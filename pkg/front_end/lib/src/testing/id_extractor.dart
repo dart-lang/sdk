@@ -44,6 +44,11 @@ abstract class DataExtractor<T> extends Visitor with DataRegistry<T> {
   /// If `null` is returned, [cls] has no associated data.
   T computeClassValue(Id id, Class cls) => null;
 
+  /// Implement this to compute the data corresponding to [extension].
+  ///
+  /// If `null` is returned, [extension] has no associated data.
+  T computeExtensionValue(Id id, Extension extension) => null;
+
   /// Implement this to compute the data corresponding to [member].
   ///
   /// If `null` is returned, [member] has no associated data.
@@ -69,6 +74,14 @@ abstract class DataExtractor<T> extends Visitor with DataRegistry<T> {
     TreeNode nodeWithOffset = computeTreeNodeWithOffset(cls);
     registerValue(nodeWithOffset?.location?.file, nodeWithOffset?.fileOffset,
         id, value, cls);
+  }
+
+  void computeForExtension(Extension extension) {
+    ClassId id = new ClassId(extension.name);
+    T value = computeExtensionValue(id, extension);
+    TreeNode nodeWithOffset = computeTreeNodeWithOffset(extension);
+    registerValue(nodeWithOffset?.location?.file, nodeWithOffset?.fileOffset,
+        id, value, extension);
   }
 
   void computeForMember(Member member) {

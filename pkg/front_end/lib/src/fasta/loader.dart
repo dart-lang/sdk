@@ -8,7 +8,7 @@ import 'dart:async' show Future;
 
 import 'dart:collection' show Queue;
 
-import 'package:kernel/ast.dart' show Library;
+import 'package:kernel/ast.dart' show Class, DartType, Library;
 
 import 'builder/builder.dart'
     show ClassBuilder, Builder, LibraryBuilder, TypeBuilder;
@@ -335,7 +335,7 @@ fileUri: ${contextMessage.uri}
 
   Builder getNativeAnnotation() => target.getNativeAnnotation(this);
 
-  ClassBuilder computeClassBuilderFromTargetClass(covariant Object cls);
+  ClassBuilder computeClassBuilderFromTargetClass(Class cls);
 
-  TypeBuilder computeTypeBuilder(covariant Object type);
+  TypeBuilder computeTypeBuilder(DartType type);
 }

@@ -233,6 +233,7 @@ class TreeVisitor<R>
 
   // Classes
   R visitClass(Class node) => defaultTreeNode(node);
+  R visitExtension(Extension node) => defaultTreeNode(node);
 
   // Initializers
   R defaultInitializer(Initializer node) => defaultTreeNode(node);

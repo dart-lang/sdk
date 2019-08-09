@@ -7,14 +7,20 @@ class A1 extends core::Object {
     : super core::Object::•()
     ;
 }
-class A2 extends core::Object {
-}
 class B1<T extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self::B1<self::B1::T*>*
     : super core::Object::•()
     ;
 }
-class B2<T extends core::Object* = dynamic> extends core::Object {
+extension A2 on self::A1* {
+  field method1 = self::A2|method1;
+  field method2 = self::A2|method2;
+  field method3 = self::A2|method3;
+  field method4 = self::A2|method4;
+}
+extension B2<T extends core::Object* = dynamic> on self::B1<T*>* {
+  field method1 = self::B2|method1;
+  field method2 = self::B2|method2;
 }
 method A2|method1(final self::A1* #this) → self::A1* {
   return #this;

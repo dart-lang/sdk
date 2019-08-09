@@ -2091,6 +2091,12 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOptionalNode(node.defaultType);
   }
 
+  @override
+  void visitExtension(Extension node) {
+    // TODO(johnniwinther): Support serialization of extension nodes.
+    throw new UnsupportedError('serialization of extension nodes');
+  }
+
   // ================================================================
   // These are nodes that are never serialized directly.  Reaching one
   // during serialization is an error.

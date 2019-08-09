@@ -15,6 +15,7 @@ import 'package:kernel/ast.dart'
         DartType,
         DynamicType,
         Expression,
+        Extension,
         Field,
         FunctionNode,
         FunctionType,
@@ -78,6 +79,8 @@ import '../builder/builder.dart'
         TypeVariableBuilder,
         UnresolvedType,
         flattenName;
+
+import '../builder/extension_builder.dart';
 
 import '../combinator.dart' show Combinator;
 
@@ -217,6 +220,8 @@ import '../severity.dart' show Severity;
 import '../type_inference/type_inferrer.dart' show TypeInferrerImpl;
 
 import 'source_class_builder.dart' show SourceClassBuilder;
+
+import 'source_extension_builder.dart' show SourceExtensionBuilder;
 
 import 'source_loader.dart' show SourceLoader;
 
@@ -1402,43 +1407,26 @@ class SourceLibraryBuilder extends LibraryBuilder {
         scope.withTypeVariables(typeVariables), "extension $extensionName",
         isModifiable: false);
 
-    // When looking up a constructor, we don't consider type variables or the
-    // library scope.
-    Scope constructorScope =
-        new Scope(constructors, null, null, extensionName, isModifiable: false);
-    bool isMixinDeclaration = false;
-    if (modifiers & mixinDeclarationMask != 0) {
-      isMixinDeclaration = true;
-      modifiers = (modifiers & ~mixinDeclarationMask) | abstractMask;
-    }
-    if (declaration.hasConstConstructor) {
-      modifiers |= hasConstConstructorMask;
-    }
-    ClassBuilder cls = new SourceClassBuilder(
+    ExtensionBuilder extension = new SourceExtensionBuilder(
         metadata,
         modifiers,
         extensionName,
         typeVariables,
-        null, // No explicit supertype.
-        null, // No implemented interfaces.
-        [type],
+        type,
         classScope,
-        constructorScope,
         this,
-        new List<ConstructorReferenceBuilder>.from(constructorReferences),
         startOffset,
         nameOffset,
-        endOffset,
-        isMixinDeclaration: isMixinDeclaration);
+        endOffset);
     loader.target.metadataCollector
-        ?.setDocumentationComment(cls.target, documentationComment);
+        ?.setDocumentationComment(extension.target, documentationComment);
 
     constructorReferences.clear();
     Map<String, TypeVariableBuilder> typeVariablesByName =
-        checkTypeVariables(typeVariables, cls);
+        checkTypeVariables(typeVariables, extension);
     void setParent(String name, MemberBuilder member) {
       while (member != null) {
-        member.parent = cls;
+        member.parent = extension;
         member = member.next;
       }
     }
@@ -1447,8 +1435,10 @@ class SourceLibraryBuilder extends LibraryBuilder {
       if (typeVariablesByName != null) {
         TypeVariableBuilder tv = typeVariablesByName[name];
         if (tv != null) {
-          cls.addProblem(templateConflictsWithTypeVariable.withArguments(name),
-              member.charOffset, name.length,
+          extension.addProblem(
+              templateConflictsWithTypeVariable.withArguments(name),
+              member.charOffset,
+              name.length,
               context: [
                 messageConflictsWithTypeVariableCause.withLocation(
                     tv.fileUri, tv.charOffset, name.length)
@@ -1461,7 +1451,7 @@ class SourceLibraryBuilder extends LibraryBuilder {
     members.forEach(setParentAndCheckConflicts);
     constructors.forEach(setParentAndCheckConflicts);
     setters.forEach(setParentAndCheckConflicts);
-    addBuilder(extensionName, cls, nameOffset);
+    addBuilder(extensionName, extension, nameOffset);
   }
 
   TypeBuilder applyMixins(TypeBuilder type, int startCharOffset, int charOffset,
@@ -2001,10 +1991,13 @@ class SourceLibraryBuilder extends LibraryBuilder {
 
   void buildBuilder(Builder declaration, LibraryBuilder coreLibrary) {
     Class cls;
+    Extension extension;
     Member member;
     Typedef typedef;
     if (declaration is SourceClassBuilder) {
       cls = declaration.build(this, coreLibrary);
+    } else if (declaration is SourceExtensionBuilder) {
+      extension = declaration.build(this, coreLibrary);
     } else if (declaration is FieldBuilder) {
       member = declaration.build(this)..isStatic = true;
     } else if (declaration is ProcedureBuilder) {
@@ -2043,6 +2036,10 @@ class SourceLibraryBuilder extends LibraryBuilder {
         cls.name += "#$count";
       }
       library.addClass(cls);
+    } else if (extension != null) {
+      if (declaration.next == null) {
+        library.addExtension(extension);
+      }
     } else if (member != null) {
       if (declaration.next == null) {
         library.addMember(member);

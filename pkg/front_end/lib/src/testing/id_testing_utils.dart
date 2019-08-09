@@ -4,6 +4,7 @@
 
 import 'package:kernel/ast.dart';
 import '../fasta/builder/builder.dart';
+import '../fasta/builder/extension_builder.dart';
 import '../fasta/kernel/kernel_builder.dart';
 import '../fasta/messages.dart';
 import '../fasta/source/source_library_builder.dart';
@@ -39,7 +40,7 @@ Library lookupLibrary(Component component, Uri uri, {bool required: true}) {
   });
 }
 
-/// Finds the first [Class] in [component] with the given [className].
+/// Finds the first [Class] in [library] with the given [className].
 ///
 /// If [required] is `true` an error is thrown if no class was found.
 Class lookupClass(Library library, String className, {bool required: true}) {
@@ -47,6 +48,21 @@ Class lookupClass(Library library, String className, {bool required: true}) {
       orElse: () {
     if (required) {
       throw new ArgumentError("Class '$className' not found in '$library'.");
+    }
+    return null;
+  });
+}
+
+/// Finds the first [Extension] in [library] with the given [className].
+///
+/// If [required] is `true` an error is thrown if no class was found.
+Extension lookupExtension(Library library, String extensionName,
+    {bool required: true}) {
+  return library.extensions.firstWhere(
+      (Extension extension) => extension.name == extensionName, orElse: () {
+    if (required) {
+      throw new ArgumentError(
+          "Extension '$extensionName' not found in '$library'.");
     }
     return null;
   });
@@ -105,6 +121,19 @@ ClassBuilder lookupClassBuilder(
   return clsBuilder;
 }
 
+ExtensionBuilder lookupExtensionBuilder(
+    InternalCompilerResult compilerResult, Extension extension,
+    {bool required: true}) {
+  TypeParameterScopeBuilder libraryBuilder = lookupLibraryDeclarationBuilder(
+      compilerResult, extension.enclosingLibrary,
+      required: required);
+  ExtensionBuilder extensionBuilder = libraryBuilder.members[extension.name];
+  if (extensionBuilder == null && required) {
+    throw new ArgumentError("ExtensionBuilder for $extension not found.");
+  }
+  return extensionBuilder;
+}
+
 /// Look up the [MemberBuilder] for [member] through the [ClassBuilder] for
 /// [cls] using [memberName] as its name.
 MemberBuilder lookupClassMemberBuilder(InternalCompilerResult compilerResult,
@@ -144,6 +173,27 @@ MemberBuilder lookupMemberBuilder(
     } else {
       memberBuilder = libraryBuilder.setters[member.name.name];
     }
+  }
+  if (memberBuilder == null && required) {
+    throw new ArgumentError("MemberBuilder for $member not found.");
+  }
+  return memberBuilder;
+}
+
+/// Look up the [MemberBuilder] for [member] through the [ClassBuilder] for
+/// [cls] using [memberName] as its name.
+MemberBuilder lookupExtensionMemberBuilder(
+    InternalCompilerResult compilerResult,
+    Extension extension,
+    Member member,
+    String memberName,
+    {bool required: true}) {
+  ExtensionBuilder extensionBuilder =
+      lookupExtensionBuilder(compilerResult, extension, required: required);
+  MemberBuilder memberBuilder;
+  if (extensionBuilder != null) {
+    memberBuilder = extensionBuilder.scope.setters[memberName] ??
+        extensionBuilder.scope.local[memberName];
   }
   if (memberBuilder == null && required) {
     throw new ArgumentError("MemberBuilder for $member not found.");
@@ -444,4 +494,19 @@ String typeVariableBuilderToText(TypeVariableBuilder typeVariable) {
 /// Returns a textual representation of [errors] to be used in testing.
 String errorsToText(List<FormattedMessage> errors) {
   return errors.map((m) => m.message).join(',');
+}
+
+/// Returns a textual representation of [descriptor] to be used in testing.
+String extensionMethodDescriptorToText(ExtensionMemberDescriptor descriptor) {
+  StringBuffer sb = new StringBuffer();
+  if (descriptor.isExternal) {
+    sb.write('external ');
+  }
+  if (descriptor.isStatic) {
+    sb.write('static ');
+  }
+  sb.write(descriptor.name.name);
+  sb.write('=');
+  sb.write(descriptor.member.asMember.name.name);
+  return sb.toString();
 }

@@ -80,7 +80,7 @@ class FieldBuilder extends MemberBuilder {
   bool get isEligibleForInference {
     return !library.legacyMode &&
         type == null &&
-        (hasInitializer || isInstanceMember);
+        (hasInitializer || isClassInstanceMember);
   }
 
   Field build(SourceLibraryBuilder library) {

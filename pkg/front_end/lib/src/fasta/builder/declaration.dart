@@ -40,7 +40,140 @@ abstract class Builder {
 
   bool get isGetter => false;
 
-  bool get isInstanceMember => false;
+  /// Returns `true` if this builder is an extension declaration.
+  ///
+  /// For instance `B` in:
+  ///
+  ///    class A {}
+  ///    extension B on A {}
+  ///
+  bool get isExtension => false;
+
+  /// Returns `true` if this builder is a member of a class, mixin, or extension
+  /// declaration.
+  ///
+  /// For instance `A.constructor`, `method1a`, `method1b`, `method2a`,
+  /// `method2b`, `method3a`, and `method3b` in:
+  ///
+  ///     class A {
+  ///       A.constructor();
+  ///       method1a() {}
+  ///       static method1b() {}
+  ///     }
+  ///     mixin B {
+  ///       method2a() {}
+  ///       static method2b() {}
+  ///     }
+  ///     extends C on A {
+  ///       method3a() {}
+  ///       static method3b() {}
+  ///     }
+  ///
+  bool get isDeclarationMember => false;
+
+  /// Returns `true` if this builder is a member of a class or mixin declaration.
+  ///
+  /// For instance `A.constructor`, `method1a`, `method1b`, `method2a` and
+  /// `method2b` in:
+  ///
+  ///     class A {
+  ///       A.constructor();
+  ///       method1a() {}
+  ///       static method1b() {}
+  ///     }
+  ///     mixin B {
+  ///       method2a() {}
+  ///       static method2b() {}
+  ///     }
+  ///     extends C on A {
+  ///       method3a() {}        // Not a class member.
+  ///       static method3b() {} // Not a class member.
+  ///     }
+  ///
+  bool get isClassMember => false;
+
+  /// Returns `true` if this builder is a member of an extension declaration.
+  ///
+  /// For instance `method3a` and `method3b` in:
+  ///
+  ///     class A {
+  ///       A.constructor();     // Not an extension member.
+  ///       method1a() {}        // Not an extension member.
+  ///       static method1b() {} // Not an extension member.
+  ///     }
+  ///     mixin B {
+  ///       method2a() {}        // Not an extension member.
+  ///       static method2b() {} // Not an extension member.
+  ///     }
+  ///     extends C on A {
+  ///       method3a() {}
+  ///       static method3b() {}
+  ///     }
+  ///
+  bool get isExtensionMember => false;
+
+  /// Returns `true` if this builder is an instance member of a class, mixin, or
+  /// extension declaration.
+  ///
+  /// For instance `method1a`, `method2a`, and `method3a` in:
+  ///
+  ///     class A {
+  ///       A.constructor();     // Not a declaration instance member.
+  ///       method1a() {}
+  ///       static method1b() {} // Not a declaration instance member.
+  ///     }
+  ///     mixin B {
+  ///       method2a() {}
+  ///       static method2b() {} // Not a declaration instance member.
+  ///     }
+  ///     extends C on A {
+  ///       method3a() {}
+  ///       static method3b() {} // Not a declaration instance member.
+  ///     }
+  ///
+  bool get isDeclarationInstanceMember => false;
+
+  /// Returns `true` if this builder is an instance member of a class or mixin
+  /// extension declaration.
+  ///
+  /// For instance `method1a` and `method2a` in:
+  ///
+  ///     class A {
+  ///       A.constructor();     // Not a class instance member.
+  ///       method1a() {}
+  ///       static method1b() {} // Not a class instance member.
+  ///     }
+  ///     mixin B {
+  ///       method2a() {}
+  ///       static method2b() {} // Not a class instance member.
+  ///     }
+  ///     extends C on A {
+  ///       method3a() {}        // Not a class instance member.
+  ///       static method3b() {} // Not a class instance member.
+  ///     }
+  ///
+  bool get isClassInstanceMember => false;
+
+  /// Returns `true` if this builder is an instance member of an extension
+  /// declaration.
+  ///
+  /// For instance `method3a` in:
+  ///
+  ///     class A {
+  ///       A.constructor();     // Not an extension instance member.
+  ///       method1a() {}        // Not an extension instance member.
+  ///       static method1b() {} // Not an extension instance member.
+  ///     }
+  ///     mixin B {
+  ///       method2a() {}        // Not an extension instance member.
+  ///       static method2b() {} // Not an extension instance member.
+  ///     }
+  ///     extends C on A {
+  ///       method3a() {}
+  ///       static method3b() {} // Not an extension instance member.
+  ///     }
+  ///
+  bool get isExtensionInstanceMember => false;
 
   bool get isLocal => false;
 

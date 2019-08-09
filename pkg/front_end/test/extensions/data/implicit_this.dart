@@ -9,10 +9,13 @@ class A1 {
 
 /*class: A2:
  builder-name=A2,
- builder-onTypes=[A1],
- builder-supertype=Object,
- cls-name=A2,
- cls-supertype=Object
+ builder-onType=A1,
+ extension-members=[
+  method2=A2|method2,
+  method3=A2|method3,
+  method4=A2|method4],
+ extension-name=A2,
+ extension-onType=A1
 */
 extension A2 on A1 {
   /*member: A2|method2:

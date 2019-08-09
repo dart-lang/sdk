@@ -149,7 +149,7 @@ class FormalParameterBuilder extends ModifierBuilder {
     // needed to generated noSuchMethod forwarders.
     final bool isConstConstructorParameter =
         (parent is ConstructorBuilder && parent.target.isConst);
-    if ((isConstConstructorParameter || parent.isInstanceMember) &&
+    if ((isConstConstructorParameter || parent.isClassInstanceMember) &&
         initializerToken != null) {
       final ClassBuilder classBuilder = parent.parent;
       Scope scope = classBuilder.scope;

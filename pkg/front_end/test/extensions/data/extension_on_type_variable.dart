@@ -4,12 +4,12 @@
 
 /*class: GeneralGeneric:
  builder-name=GeneralGeneric,
- builder-onTypes=[T],
- builder-supertype=Object,
+ builder-onType=T,
  builder-type-params=[T],
- cls-name=GeneralGeneric,
- cls-supertype=Object,
- cls-type-params=[T]
+ extension-members=[method=GeneralGeneric|method],
+ extension-name=GeneralGeneric,
+ extension-onType=T,
+ extension-type-params=[T]
 */
 extension GeneralGeneric<T> on T {
   /*member: GeneralGeneric|method:

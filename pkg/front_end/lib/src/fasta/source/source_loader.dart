@@ -308,10 +308,11 @@ class SourceLoader extends Loader {
     }
   }
 
+  // TODO(johnniwinther,jensj): Handle expression in extensions?
   Future<Expression> buildExpression(
       SourceLibraryBuilder library,
       String enclosingClass,
-      bool isInstanceMember,
+      bool isClassInstanceMember,
       FunctionNode parameters) async {
     Token token = await tokenize(library, suppressLexicalErrors: false);
     if (token == null) return null;
@@ -323,7 +324,7 @@ class SourceLoader extends Loader {
       if (cls is ClassBuilder) {
         parent = cls;
         dietListener
-          ..currentClass = cls
+          ..currentDeclaration = cls
           ..memberScope = cls.scope.copyWithParent(
               dietListener.memberScope.withTypeVariables(cls.typeVariables),
               "debugExpression in $enclosingClass");
@@ -333,7 +334,8 @@ class SourceLoader extends Loader {
         null, null, ProcedureKind.Method, library, 0, 0, -1, -1)
       ..parent = parent;
     BodyBuilder listener = dietListener.createListener(
-        builder, dietListener.memberScope, isInstanceMember);
+        builder, dietListener.memberScope,
+        isDeclarationInstanceMember: isClassInstanceMember);
 
     return listener.parseSingleExpression(
         new Parser(listener), token, parameters);

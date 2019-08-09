@@ -55,9 +55,8 @@ class TypeAliasBuilder extends TypeDeclarationBuilder {
       [Typedef target])
       : target = target ??
             (new Typedef(name, null,
-                typeParameters:
-                    TypeVariableBuilder.kernelTypeParametersFromBuilders(
-                        typeVariables),
+                typeParameters: TypeVariableBuilder.typeParametersFromBuilders(
+                    typeVariables),
                 fileUri: parent.target.fileUri)
               ..fileOffset = charOffset),
         super(metadata, 0, name, parent, charOffset);

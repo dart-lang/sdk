@@ -158,7 +158,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   final CoreTypes coreTypes;
 
-  final bool isInstanceMember;
+  final bool isDeclarationInstanceMember;
 
   final Scope enclosingScope;
 
@@ -281,17 +281,17 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   final VariableDeclaration extensionThis;
 
   BodyBuilder(
-      this.library,
+      {this.library,
       this.member,
       this.enclosingScope,
       this.formalParameterScope,
       this.hierarchy,
       this.coreTypes,
       this.classBuilder,
-      this.isInstanceMember,
+      this.isDeclarationInstanceMember,
       this.extensionThis,
       this.uri,
-      this.typeInferrer)
+      this.typeInferrer})
       : forest = const Fangorn(),
         enableNative =
             library.loader.target.backendTarget.enableNative(library.uri),
@@ -308,17 +308,17 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   BodyBuilder.withParents(FieldBuilder field, SourceLibraryBuilder part,
       ClassBuilder classBuilder, TypeInferrer typeInferrer)
       : this(
-            part,
-            field,
-            classBuilder?.scope ?? field.library.scope,
-            null,
-            part.loader.hierarchy,
-            part.loader.coreTypes,
-            classBuilder,
-            field.isInstanceMember,
-            null,
-            field.fileUri,
-            typeInferrer);
+            library: part,
+            member: field,
+            enclosingScope: classBuilder?.scope ?? field.library.scope,
+            formalParameterScope: null,
+            hierarchy: part.loader.hierarchy,
+            coreTypes: part.loader.coreTypes,
+            classBuilder: classBuilder,
+            isDeclarationInstanceMember: field.isDeclarationInstanceMember,
+            extensionThis: null,
+            uri: field.fileUri,
+            typeInferrer: typeInferrer);
 
   BodyBuilder.forField(FieldBuilder field, TypeInferrer typeInferrer)
       : this.withParents(
@@ -334,25 +334,27 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       Scope scope,
       Uri fileUri)
       : this(
-            library,
-            member,
-            scope,
-            null,
-            library.loader.hierarchy,
-            library.loader.coreTypes,
-            classBuilder,
-            member?.isInstanceMember ?? false,
-            null,
-            fileUri,
-            library.loader.typeInferenceEngine?.createLocalTypeInferrer(
-                fileUri, classBuilder?.target?.thisType, library));
+            library: library,
+            member: member,
+            enclosingScope: scope,
+            formalParameterScope: null,
+            hierarchy: library.loader.hierarchy,
+            coreTypes: library.loader.coreTypes,
+            classBuilder: classBuilder,
+            isDeclarationInstanceMember:
+                member?.isDeclarationInstanceMember ?? false,
+            extensionThis: null,
+            uri: fileUri,
+            typeInferrer: library.loader.typeInferenceEngine
+                ?.createLocalTypeInferrer(
+                    fileUri, classBuilder?.target?.thisType, library));
 
   bool get inConstructor {
     return functionNestingLevel == 0 && member is ConstructorBuilder;
   }
 
-  bool get isInstanceContext {
-    return isInstanceMember || member is ConstructorBuilder;
+  bool get isDeclarationInstanceContext {
+    return isDeclarationInstanceMember || member is ConstructorBuilder;
   }
 
   TypeEnvironment get typeEnvironment => typeInferrer?.typeSchemaEnvironment;
@@ -1810,21 +1812,36 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           classBuilder.origin.findStaticBuilder(name, charOffset, uri, library);
     }
     if (declaration != null &&
-        declaration.isInstanceMember &&
+        declaration.isDeclarationInstanceMember &&
         inFieldInitializer &&
         !inInitializer) {
+      // We cannot access a class instance member in an initializer of a
+      // field.
+      //
+      // For instance
+      //
+      //     class M {
+      //       int foo = bar;
+      //       int bar;
+      //     }
+      //
       return new IncompleteErrorGenerator(this, token,
           fasta.templateThisAccessInFieldInitializer.withArguments(name));
     }
     if (declaration == null ||
-        (!isInstanceContext && declaration.isInstanceMember)) {
+        (!isDeclarationInstanceContext &&
+            declaration.isDeclarationInstanceMember)) {
+      // We either didn't find a declaration or found an instance member from
+      // a non-instance context.
       Name n = new Name(name, library.nameOrigin);
-      if (!isQualified && isInstanceContext) {
+      if (!isQualified && isDeclarationInstanceContext) {
         assert(declaration == null);
         if (constantContext != ConstantContext.none || member.isField) {
           return new UnresolvedNameGenerator(this, token, n);
         }
         if (extensionThis != null) {
+          // If we are in an extension instance member we interpret this as an
+          // implicit access on the 'this' parameter.
           return PropertyAccessGenerator.make(
               this,
               token,
@@ -1834,6 +1851,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
               null,
               false);
         } else {
+          // This is an implicit access on 'this'.
           return new ThisPropertyAccessGenerator(this, token, n,
               lookupInstanceMember(n), lookupInstanceMember(n, isSetter: true));
         }
@@ -1863,7 +1881,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       } else {
         return new VariableUseGenerator(this, token, declaration.target);
       }
-    } else if (declaration.isInstanceMember) {
+    } else if (declaration.isDeclarationInstanceMember) {
       if (constantContext != ConstantContext.none &&
           !inInitializer &&
           // TODO(ahe): This is a hack because Fasta sets up the scope
@@ -3965,7 +3983,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void handleThisExpression(Token token, IdentifierContext context) {
     debugEvent("ThisExpression");
-    if (context.isScopeReference && isInstanceContext) {
+    if (context.isScopeReference && isDeclarationInstanceContext) {
       if (extensionThis != null) {
         push(_createReadOnlyVariableAccess(
             extensionThis, token, offsetForToken(token), 'this'));
@@ -3983,7 +4001,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void handleSuperExpression(Token token, IdentifierContext context) {
     debugEvent("SuperExpression");
     if (context.isScopeReference &&
-        isInstanceContext &&
+        isDeclarationInstanceContext &&
         extensionThis == null) {
       Member member = this.member.target;
       member.transformerFlags |= TransformerFlag.superCalls;
@@ -5062,7 +5080,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
                 ..fileOffset = fieldNameOffset)
             ..fileOffset = fieldNameOffset)
         ..fileOffset = fieldNameOffset;
-    } else if (builder is FieldBuilder && builder.isInstanceMember) {
+    } else if (builder is FieldBuilder && builder.isDeclarationInstanceMember) {
       initializedFields ??= <String, int>{};
       if (initializedFields.containsKey(name)) {
         return buildDuplicatedInitializer(builder.field, expression, name,
@@ -5202,7 +5220,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (builder is NamedTypeBuilder && builder.declaration.isTypeVariable) {
       TypeParameter typeParameter = builder.declaration.target;
       LocatedMessage message;
-      if (!isInstanceContext && typeParameter.parent is Class) {
+      if (!isDeclarationInstanceContext && typeParameter.parent is Class) {
         message = fasta.messageTypeVariableInStaticContext.withLocation(
             unresolved.fileUri,
             unresolved.charOffset,

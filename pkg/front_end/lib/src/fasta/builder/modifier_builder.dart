@@ -9,7 +9,6 @@ import '../modifier.dart'
         abstractMask,
         constMask,
         covariantMask,
-        extensionDeclarationMask,
         externalMask,
         finalMask,
         hasConstConstructorMask,
@@ -56,10 +55,6 @@ abstract class ModifierBuilder extends Builder {
   bool get hasConstConstructor => (modifiers & hasConstConstructorMask) != 0;
 
   bool get isMixin => (modifiers & mixinDeclarationMask) != 0;
-
-  bool get isExtension => (modifiers & extensionDeclarationMask) != 0;
-
-  bool get isClassMember => false;
 
   String get name;
 

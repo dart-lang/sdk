@@ -58,7 +58,6 @@ import '../modifier.dart'
         abstractMask,
         constMask,
         covariantMask,
-        extensionDeclarationMask,
         externalMask,
         finalMask,
         mixinDeclarationMask,
@@ -666,7 +665,8 @@ class OutlineBuilder extends StackListener {
     library.addExtensionDeclaration(
         documentationComment,
         metadata,
-        extensionDeclarationMask,
+        // TODO(johnniwinther): Support modifiers on extensions?
+        0,
         name,
         typeVariables,
         supertype,

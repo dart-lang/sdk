@@ -606,6 +606,12 @@ class TextSerializationVerifier implements Visitor<void> {
   }
 
   @override
+  void visitExtension(Extension node) {
+    storeLastSeenUriAndOffset(node);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitRedirectingFactoryConstructor(RedirectingFactoryConstructor node) {
     storeLastSeenUriAndOffset(node);
     node.visitChildren(this);

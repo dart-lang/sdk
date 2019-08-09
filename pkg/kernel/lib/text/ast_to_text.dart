@@ -145,6 +145,7 @@ class NameSystem {
       new NormalNamer<VariableDeclaration>('#t');
   final Namer<Member> members = new NormalNamer<Member>('#m');
   final Namer<Class> classes = new NormalNamer<Class>('#class');
+  final Namer<Extension> extensions = new NormalNamer<Extension>('#extension');
   final Namer<Library> libraries = new NormalNamer<Library>('#lib');
   final Namer<TypeParameter> typeParameters =
       new NormalNamer<TypeParameter>('#T');
@@ -156,6 +157,7 @@ class NameSystem {
   nameVariable(VariableDeclaration node) => variables.getName(node);
   nameMember(Member node) => members.getName(node);
   nameClass(Class node) => classes.getName(node);
+  nameExtension(Extension node) => extensions.getName(node);
   nameLibrary(Library node) => libraries.getName(node);
   nameTypeParameter(TypeParameter node) => typeParameters.getName(node);
   nameSwitchCase(SwitchCase node) => labels.getName(node);
@@ -283,6 +285,10 @@ class Printer extends Visitor<Null> {
 
   String getClassName(Class node) {
     return node.name ?? syntheticNames.nameClass(node);
+  }
+
+  String getExtensionName(Extension node) {
+    return node.name ?? syntheticNames.nameExtension(node);
   }
 
   String getClassReference(Class node) {
@@ -417,6 +423,7 @@ class Printer extends Visitor<Null> {
     library.parts.forEach(writeNode);
     library.typedefs.forEach(writeNode);
     library.classes.forEach(writeNode);
+    library.extensions.forEach(writeNode);
     library.fields.forEach(writeNode);
     library.procedures.forEach(writeNode);
   }
@@ -1133,6 +1140,38 @@ class Printer extends Visitor<Null> {
     node.constructors.forEach(writeNode);
     node.procedures.forEach(writeNode);
     node.redirectingFactoryConstructors.forEach(writeNode);
+    --indentation;
+    writeIndentation();
+    endLine('}');
+  }
+
+  visitExtension(Extension node) {
+    writeIndentation();
+    writeWord('extension');
+    writeWord(getExtensionName(node));
+    writeTypeParameterList(node.typeParameters);
+    writeSpaced('on');
+    writeType(node.onType);
+    var endLineString = ' {';
+    if (node.enclosingLibrary.fileUri != node.fileUri) {
+      endLineString += ' // from ${node.fileUri}';
+    }
+    endLine(endLineString);
+    ++indentation;
+    node.members.forEach((ExtensionMemberDescriptor descriptor) {
+      writeIndentation();
+      writeModifier(descriptor.isExternal, 'external');
+      writeModifier(descriptor.isStatic, 'static');
+      if (descriptor.member is Procedure) {
+        writeWord(procedureKindToString(descriptor.kind));
+      } else {
+        writeWord('field');
+      }
+      writeName(descriptor.name);
+      writeSpaced('=');
+      writeMemberReferenceFromReference(descriptor.member);
+      endLine(';');
+    });
     --indentation;
     writeIndentation();
     endLine('}');

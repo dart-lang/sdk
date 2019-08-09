@@ -66,8 +66,13 @@ class MockLibraryBuilder extends SourceLibraryBuilder {
 class MockBodyBuilder extends BodyBuilder {
   MockBodyBuilder.internal(
       MockLibraryBuilder libraryBuilder, String name, Scope scope)
-      : super(libraryBuilder, libraryBuilder.mockProcedure(name), scope, scope,
-            null, null, null, false, null, libraryBuilder.uri, null);
+      : super(
+            library: libraryBuilder,
+            member: libraryBuilder.mockProcedure(name),
+            enclosingScope: scope,
+            formalParameterScope: scope,
+            isDeclarationInstanceMember: false,
+            uri: libraryBuilder.uri);
 
   MockBodyBuilder(Uri uri, String name, Scope scope)
       : this.internal(new MockLibraryBuilder(uri), name, scope);

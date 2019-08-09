@@ -21,7 +21,8 @@ class C extends core::Object {
   get one() → core::int*
     return 1;
 }
-class E extends core::Object {
+extension E on self::C* {
+  field two = self::E|two;
 }
 method E|two(final self::C* #this) → core::int*
   return 2;
