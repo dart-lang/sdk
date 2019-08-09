@@ -4,6 +4,7 @@
 
 import 'dart:async' show Future;
 
+import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/kernel.dart' show Component, CanonicalName;
 
 import 'package:kernel/target/targets.dart' show Target;
@@ -39,7 +40,7 @@ export '../api_prototype/diagnostic_message.dart' show DiagnosticMessage;
 export '../api_prototype/experimental_flags.dart'
     show ExperimentalFlag, parseExperimentalFlag;
 
-export '../api_prototype/kernel_generator.dart' show kernelForComponent;
+export '../api_prototype/kernel_generator.dart' show kernelForModule;
 
 export '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
 
@@ -68,8 +69,10 @@ export 'compiler_state.dart'
 class DdcResult {
   final Component component;
   final List<Component> inputSummaries;
+  final ClassHierarchy classHierarchy;
 
-  DdcResult(this.component, this.inputSummaries);
+  DdcResult(this.component, this.inputSummaries, this.classHierarchy)
+      : assert(classHierarchy != null);
 }
 
 Future<InitializedCompilerState> initializeCompiler(
@@ -273,12 +276,13 @@ Future<DdcResult> compile(InitializedCompilerState compilerState,
   processedOpts.inputs.clear();
   processedOpts.inputs.addAll(inputs);
 
-  var compilerResult = await generateKernel(processedOpts);
+  var compilerResult =
+      await generateKernel(processedOpts, includeHierarchyAndCoreTypes: true);
 
   var component = compilerResult?.component;
   if (component == null) return null;
 
   // This should be cached.
   var summaries = await processedOpts.loadInputSummaries(null);
-  return new DdcResult(component, summaries);
+  return new DdcResult(component, summaries, compilerResult.classHierarchy);
 }

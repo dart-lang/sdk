@@ -18,8 +18,6 @@ class DevCompilerTarget extends Target {
 
   final TargetFlags flags;
 
-  ClassHierarchy hierarchy;
-
   WidgetCreatorTracker _widgetTracker;
 
   @override
@@ -103,7 +101,6 @@ class DevCompilerTarget extends Target {
       Map<String, String> environmentDefines,
       DiagnosticReporter diagnosticReporter,
       {void logger(String msg)}) {
-    this.hierarchy = hierarchy;
     for (var library in libraries) {
       _CovarianceTransformer(library).transform();
     }

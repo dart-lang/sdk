@@ -22,6 +22,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
     show
         CompilerContext,
         CompilerOptions,
+        CompilerResult,
         DiagnosticMessage,
         DiagnosticMessageHandler,
         FileSystem,
@@ -291,7 +292,8 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
   options.onDiagnostic = errorDetector;
 
   setVMEnvironmentDefines(environmentDefines, options);
-  Component component = await kernelForProgram(source, options);
+  CompilerResult compilerResult = await kernelForProgram(source, options);
+  Component component = compilerResult?.component;
 
   // Run global transformations only if component is correct.
   if (aot && component != null) {

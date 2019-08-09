@@ -10,7 +10,7 @@ import 'package:front_end/src/testing/id_testing.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart'
     show
         CfeDataExtractor,
-        CompilerResult,
+        InternalCompilerResult,
         DataComputer,
         cfeConstantUpdate2018Config,
         createUriForFileName,
@@ -35,14 +35,14 @@ class ConstantsDataComputer extends DataComputer<String> {
   const ConstantsDataComputer();
 
   @override
-  void computeMemberData(CompilerResult compilerResult, Member member,
+  void computeMemberData(InternalCompilerResult compilerResult, Member member,
       Map<Id, ActualData<String>> actualMap,
       {bool verbose}) {
     member.accept(new ConstantsDataExtractor(compilerResult, actualMap));
   }
 
   @override
-  void computeClassData(CompilerResult compilerResult, Class cls,
+  void computeClassData(InternalCompilerResult compilerResult, Class cls,
       Map<Id, ActualData<String>> actualMap,
       {bool verbose}) {
     new ConstantsDataExtractor(compilerResult, actualMap).computeForClass(cls);
@@ -53,8 +53,8 @@ class ConstantsDataComputer extends DataComputer<String> {
 }
 
 class ConstantsDataExtractor extends CfeDataExtractor<String> {
-  ConstantsDataExtractor(
-      CompilerResult compilerResult, Map<Id, ActualData<String>> actualMap)
+  ConstantsDataExtractor(InternalCompilerResult compilerResult,
+      Map<Id, ActualData<String>> actualMap)
       : super(compilerResult, actualMap);
 
   @override

@@ -11,7 +11,7 @@ import 'package:front_end/src/testing/id_testing.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart'
     show
         CfeDataExtractor,
-        CompilerResult,
+        InternalCompilerResult,
         DataComputer,
         defaultCfeConfig,
         createUriForFileName,
@@ -37,8 +37,8 @@ main(List<String> args) async {
 class LanguageVersioningDataComputer extends DataComputer<String> {
   const LanguageVersioningDataComputer();
 
-  void computeLibraryData(CompilerResult compilerResult, Library library,
-      Map<Id, ActualData<String>> actualMap,
+  void computeLibraryData(InternalCompilerResult compilerResult,
+      Library library, Map<Id, ActualData<String>> actualMap,
       {bool verbose}) {
     new LanguageVersioningDataExtractor(compilerResult, actualMap)
         .computeForLibrary(library, useFileUri: true);
@@ -48,7 +48,7 @@ class LanguageVersioningDataComputer extends DataComputer<String> {
   bool get supportsErrors => true;
 
   String computeErrorData(
-      CompilerResult compiler, Id id, List<FormattedMessage> errors) {
+      InternalCompilerResult compiler, Id id, List<FormattedMessage> errors) {
     return errors.map((m) => m.code.name).join(',');
   }
 
@@ -57,8 +57,8 @@ class LanguageVersioningDataComputer extends DataComputer<String> {
 }
 
 class LanguageVersioningDataExtractor extends CfeDataExtractor<String> {
-  LanguageVersioningDataExtractor(
-      CompilerResult compilerResult, Map<Id, ActualData<String>> actualMap)
+  LanguageVersioningDataExtractor(InternalCompilerResult compilerResult,
+      Map<Id, ActualData<String>> actualMap)
       : super(compilerResult, actualMap);
 
   @override

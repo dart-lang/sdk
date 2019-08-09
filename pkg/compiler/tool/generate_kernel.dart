@@ -42,7 +42,7 @@ main(List<String> args) async {
   }
 
   Uri entry = Uri.base.resolve(nativeToUriPath(flags.rest.first));
-  var component = await kernelForProgram(entry, options);
+  var component = (await kernelForProgram(entry, options)).component;
   await writeComponentToBinary(component, flags['out']);
 }
 

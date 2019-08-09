@@ -81,7 +81,7 @@ Future<List<int>> compileUnit(List<String> inputs, Map<String, dynamic> sources,
     ..packagesFileUri = toTestUri('.packages');
   var inputUris = inputs.map(toTestUri).toList();
   var inputUriSet = inputUris.toSet();
-  var component = await kernelForComponent(inputUris, options);
+  var component = (await kernelForModule(inputUris, options)).component;
   for (var lib in component.libraries) {
     if (!inputUriSet.contains(lib.importUri)) {
       component.root.getChildFromUri(lib.importUri).bindTo(lib.reference);

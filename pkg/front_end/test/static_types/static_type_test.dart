@@ -26,7 +26,7 @@ class StaticTypeDataComputer extends DataComputer<String> {
   const StaticTypeDataComputer();
 
   @override
-  void computeMemberData(CompilerResult compilerResult, Member member,
+  void computeMemberData(InternalCompilerResult compilerResult, Member member,
       Map<Id, ActualData<String>> actualMap,
       {bool verbose}) {
     member.accept(new StaticTypeDataExtractor(compilerResult, actualMap));
@@ -39,8 +39,8 @@ class StaticTypeDataComputer extends DataComputer<String> {
 class StaticTypeDataExtractor extends CfeDataExtractor<String> {
   final TypeEnvironment _environment;
 
-  StaticTypeDataExtractor(
-      CompilerResult compilerResult, Map<Id, ActualData<String>> actualMap)
+  StaticTypeDataExtractor(InternalCompilerResult compilerResult,
+      Map<Id, ActualData<String>> actualMap)
       : _environment = new TypeEnvironment(
             new CoreTypes(compilerResult.component),
             new ClassHierarchy(compilerResult.component)),

@@ -7,6 +7,7 @@ library front_end.kernel_generator_impl;
 
 import 'dart:async' show Future;
 
+import 'package:front_end/src/fasta/kernel/kernel_api.dart';
 import 'package:kernel/kernel.dart' show Component, CanonicalName;
 
 import 'base/processed_options.dart' show ProcessedOptions;
@@ -29,6 +30,8 @@ import 'fasta/severity.dart' show Severity;
 
 import 'fasta/uri_translator.dart' show UriTranslator;
 
+import 'api_prototype/front_end.dart' show CompilerResult;
+
 /// Implementation for the
 /// `package:front_end/src/api_prototype/kernel_generator.dart` and
 /// `package:front_end/src/api_prototype/summary_generator.dart` APIs.
@@ -36,13 +39,15 @@ Future<CompilerResult> generateKernel(ProcessedOptions options,
     {bool buildSummary: false,
     bool buildComponent: true,
     bool truncateSummary: false,
-    bool includeOffsets: true}) async {
+    bool includeOffsets: true,
+    bool includeHierarchyAndCoreTypes: false}) async {
   return await CompilerContext.runWithOptions(options, (_) async {
     return await generateKernelInternal(
         buildSummary: buildSummary,
         buildComponent: buildComponent,
         truncateSummary: truncateSummary,
-        includeOffsets: includeOffsets);
+        includeOffsets: includeOffsets,
+        includeHierarchyAndCoreTypes: includeHierarchyAndCoreTypes);
   });
 }
 
@@ -51,7 +56,8 @@ Future<CompilerResult> generateKernelInternal(
     bool buildComponent: true,
     bool truncateSummary: false,
     bool includeOffsets: true,
-    bool retainDataForTesting: false}) async {
+    bool retainDataForTesting: false,
+    bool includeHierarchyAndCoreTypes: false}) async {
   var options = CompilerContext.current.options;
   var fs = options.fileSystem;
 
@@ -157,16 +163,20 @@ Future<CompilerResult> generateKernelInternal(
       options.ticker.logMs("Generated component");
     }
 
-    return new CompilerResult(
+    return new InternalCompilerResult(
         summary: summary,
         component: component,
+        classHierarchy:
+            includeHierarchyAndCoreTypes ? kernelTarget.loader.hierarchy : null,
+        coreTypes:
+            includeHierarchyAndCoreTypes ? kernelTarget.loader.coreTypes : null,
         deps: new List<Uri>.from(CompilerContext.current.dependencies),
         kernelTargetForTesting: retainDataForTesting ? kernelTarget : null);
   }, () => sourceLoader?.currentUriForCrashReporting ?? options.inputs.first);
 }
 
 /// Result object of [generateKernel].
-class CompilerResult {
+class InternalCompilerResult implements CompilerResult {
   /// The generated summary bytes, if it was requested.
   final List<int> summary;
 
@@ -179,11 +189,20 @@ class CompilerResult {
   /// using the compiler itself.
   final List<Uri> deps;
 
+  final ClassHierarchy classHierarchy;
+
+  final CoreTypes coreTypes;
+
   /// The [KernelTarget] used to generated the component.
   ///
   /// This is only provided for use in testing.
   final KernelTarget kernelTargetForTesting;
 
-  CompilerResult(
-      {this.summary, this.component, this.deps, this.kernelTargetForTesting});
+  InternalCompilerResult(
+      {this.summary,
+      this.component,
+      this.deps,
+      this.classHierarchy,
+      this.coreTypes,
+      this.kernelTargetForTesting});
 }

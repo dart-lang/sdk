@@ -28,6 +28,8 @@ import 'dart:isolate';
 import 'dart:typed_data' show Uint8List;
 
 import 'package:build_integration/file_system/multi_root.dart';
+import 'package:front_end/src/api_prototype/front_end.dart' as fe
+    show CompilerResult;
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:front_end/src/api_unstable/vm.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
@@ -150,7 +152,8 @@ abstract class Compiler {
 
   Future<Component> compile(Uri script) {
     return runWithPrintToStderr(() async {
-      Component component = await compileInternal(script);
+      CompilerResult compilerResult = await compileInternal(script);
+      Component component = compilerResult.component;
 
       if (options.bytecode && errors.isEmpty) {
         await runWithFrontEndCompilerContext(script, options, component, () {
@@ -158,8 +161,8 @@ abstract class Compiler {
           //  debugger stops and source files in VM PRODUCT mode.
           // TODO(rmacnak): disable annotations if mirrors are not enabled.
           generateBytecode(component,
-              coreTypes: getCoreTypes(component),
-              hierarchy: getClassHierarchy(component),
+              coreTypes: compilerResult.coreTypes,
+              hierarchy: compilerResult.classHierarchy,
               options: new BytecodeOptions(
                   enableAsserts: enableAsserts,
                   environmentDefines: options.environmentDefines,
@@ -183,10 +186,18 @@ abstract class Compiler {
     });
   }
 
-  CoreTypes getCoreTypes(Component component);
-  ClassHierarchy getClassHierarchy(Component component);
+  Future<CompilerResult> compileInternal(Uri script);
+}
 
-  Future<Component> compileInternal(Uri script);
+class CompilerResult {
+  final Component component;
+  final ClassHierarchy classHierarchy;
+  final CoreTypes coreTypes;
+
+  CompilerResult(this.component, this.classHierarchy, this.coreTypes)
+      : assert(component != null),
+        assert(classHierarchy != null),
+        assert(coreTypes != null);
 }
 
 // Environment map which looks up environment defines in the VM environment
@@ -242,19 +253,14 @@ class IncrementalCompilerWrapper extends Compiler {
             packageConfig: packageConfig);
 
   @override
-  CoreTypes getCoreTypes(Component component) => generator.getCoreTypes();
-
-  @override
-  ClassHierarchy getClassHierarchy(Component component) =>
-      generator.getClassHierarchy();
-
-  @override
-  Future<Component> compileInternal(Uri script) async {
+  Future<CompilerResult> compileInternal(Uri script) async {
     if (generator == null) {
       generator = new IncrementalCompiler(options, script);
     }
     errors.clear();
-    return await generator.compile(entryPoint: script);
+    final component = await generator.compile(entryPoint: script);
+    return new CompilerResult(
+        component, generator.getClassHierarchy(), generator.getCoreTypes());
   }
 
   void accept() => generator.accept();
@@ -305,19 +311,12 @@ class SingleShotCompilerWrapper extends Compiler {
             packageConfig: packageConfig);
 
   @override
-  CoreTypes getCoreTypes(Component component) => new CoreTypes(component);
-
-  // TODO(alexmarkov): creating class hierarchy is an expensive operation.
-  // Reuse class hierarchy from CFE.
-  @override
-  ClassHierarchy getClassHierarchy(Component component) =>
-      new ClassHierarchy(component);
-
-  @override
-  Future<Component> compileInternal(Uri script) async {
-    return requireMain
-        ? kernelForProgram(script, options)
-        : kernelForComponent([script], options);
+  Future<CompilerResult> compileInternal(Uri script) async {
+    fe.CompilerResult compilerResult = requireMain
+        ? await kernelForProgram(script, options)
+        : await kernelForModule([script], options);
+    return new CompilerResult(compilerResult.component,
+        compilerResult.classHierarchy, compilerResult.coreTypes);
   }
 }
 

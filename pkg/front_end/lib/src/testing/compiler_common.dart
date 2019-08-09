@@ -12,7 +12,8 @@ import 'package:kernel/ast.dart' show Library, Component;
 import '../api_prototype/front_end.dart'
     show
         CompilerOptions,
-        kernelForComponent,
+        CompilerResult,
+        kernelForModule,
         kernelForProgramInternal,
         summaryFor;
 
@@ -23,8 +24,6 @@ import '../compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 
 import '../fasta/hybrid_file_system.dart' show HybridFileSystem;
-
-import '../kernel_generator_impl.dart' show CompilerResult;
 
 /// Generate kernel for a script.
 ///
@@ -55,7 +54,7 @@ Future<CompilerResult> compileScript(dynamic scriptOrSources,
 
 /// Generate a component for a modular compilation unit.
 ///
-/// Wraps [kernelForComponent] with some default testing options (see [setup]).
+/// Wraps [kernelForModule] with some default testing options (see [setup]).
 Future<Component> compileUnit(List<String> inputs, Map<String, dynamic> sources,
     {List<String> inputSummaries: const [],
     List<String> linkedDependencies: const [],
@@ -63,7 +62,8 @@ Future<Component> compileUnit(List<String> inputs, Map<String, dynamic> sources,
   options ??= new CompilerOptions();
   await setup(options, sources,
       inputSummaries: inputSummaries, linkedDependencies: linkedDependencies);
-  return await kernelForComponent(inputs.map(toTestUri).toList(), options);
+  return (await kernelForModule(inputs.map(toTestUri).toList(), options))
+      .component;
 }
 
 /// Generate a summary for a modular compilation unit.

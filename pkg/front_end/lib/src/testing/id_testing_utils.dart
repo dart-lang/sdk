@@ -82,7 +82,7 @@ Member lookupClassMember(Class cls, String memberName, {bool required: true}) {
 }
 
 TypeParameterScopeBuilder lookupLibraryDeclarationBuilder(
-    CompilerResult compilerResult, Library library,
+    InternalCompilerResult compilerResult, Library library,
     {bool required: true}) {
   SourceLoader loader = compilerResult.kernelTargetForTesting.loader;
   SourceLibraryBuilder builder = loader.builders[library.importUri];
@@ -92,7 +92,8 @@ TypeParameterScopeBuilder lookupLibraryDeclarationBuilder(
   return builder.libraryDeclaration;
 }
 
-ClassBuilder lookupClassBuilder(CompilerResult compilerResult, Class cls,
+ClassBuilder lookupClassBuilder(
+    InternalCompilerResult compilerResult, Class cls,
     {bool required: true}) {
   TypeParameterScopeBuilder libraryBuilder = lookupLibraryDeclarationBuilder(
       compilerResult, cls.enclosingLibrary,
@@ -106,8 +107,8 @@ ClassBuilder lookupClassBuilder(CompilerResult compilerResult, Class cls,
 
 /// Look up the [MemberBuilder] for [member] through the [ClassBuilder] for
 /// [cls] using [memberName] as its name.
-MemberBuilder lookupClassMemberBuilder(
-    CompilerResult compilerResult, Class cls, Member member, String memberName,
+MemberBuilder lookupClassMemberBuilder(InternalCompilerResult compilerResult,
+    Class cls, Member member, String memberName,
     {bool required: true}) {
   ClassBuilder classBuilder =
       lookupClassBuilder(compilerResult, cls, required: required);
@@ -127,7 +128,8 @@ MemberBuilder lookupClassMemberBuilder(
   return memberBuilder;
 }
 
-MemberBuilder lookupMemberBuilder(CompilerResult compilerResult, Member member,
+MemberBuilder lookupMemberBuilder(
+    InternalCompilerResult compilerResult, Member member,
     {bool required: true}) {
   MemberBuilder memberBuilder;
   if (member.enclosingClass != null) {

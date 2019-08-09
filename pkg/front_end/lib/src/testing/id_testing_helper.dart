@@ -10,7 +10,7 @@ import '../api_prototype/terminal_color_support.dart'
     show printDiagnosticMessage;
 import '../fasta/messages.dart' show FormattedMessage;
 import '../fasta/severity.dart' show Severity;
-import '../kernel_generator_impl.dart' show CompilerResult;
+import '../kernel_generator_impl.dart' show InternalCompilerResult;
 import 'compiler_common.dart' show compileScript, toTestUri;
 import 'id.dart'
     show ActualData, ClassId, Id, IdKind, IdValue, MemberId, NodeId;
@@ -27,7 +27,7 @@ import 'id_testing.dart'
 import 'id_testing_utils.dart';
 
 export '../fasta/compiler_context.dart' show CompilerContext;
-export '../kernel_generator_impl.dart' show CompilerResult;
+export '../kernel_generator_impl.dart' show InternalCompilerResult;
 export '../fasta/messages.dart' show FormattedMessage;
 
 /// Test configuration used for testing CFE in its default state.
@@ -61,22 +61,22 @@ abstract class DataComputer<T> {
   /// Function that computes a data mapping for [member].
   ///
   /// Fills [actualMap] with the data.
-  void computeMemberData(CompilerResult compilerResult, Member member,
+  void computeMemberData(InternalCompilerResult compilerResult, Member member,
       Map<Id, ActualData<T>> actualMap,
       {bool verbose}) {}
 
   /// Function that computes a data mapping for [cls].
   ///
   /// Fills [actualMap] with the data.
-  void computeClassData(CompilerResult compilerResult, Class cls,
+  void computeClassData(InternalCompilerResult compilerResult, Class cls,
       Map<Id, ActualData<T>> actualMap,
       {bool verbose}) {}
 
   /// Function that computes a data mapping for [library].
   ///
   /// Fills [actualMap] with the data.
-  void computeLibraryData(CompilerResult compilerResult, Library library,
-      Map<Id, ActualData<T>> actualMap,
+  void computeLibraryData(InternalCompilerResult compilerResult,
+      Library library, Map<Id, ActualData<T>> actualMap,
       {bool verbose}) {}
 
   /// Returns `true` if this data computer supports tests with compile-time
@@ -87,8 +87,8 @@ abstract class DataComputer<T> {
   bool get supportsErrors => false;
 
   /// Returns data corresponding to [error].
-  T computeErrorData(
-          CompilerResult compiler, Id id, List<FormattedMessage> errors) =>
+  T computeErrorData(InternalCompilerResult compiler, Id id,
+          List<FormattedMessage> errors) =>
       null;
 
   /// Returns the [DataInterpreter] used to check the actual data with the
@@ -97,7 +97,7 @@ abstract class DataComputer<T> {
 }
 
 class CfeCompiledData<T> extends CompiledData<T> {
-  final CompilerResult compilerResult;
+  final InternalCompilerResult compilerResult;
 
   CfeCompiledData(
       this.compilerResult,
@@ -146,7 +146,7 @@ class CfeCompiledData<T> extends CompiledData<T> {
 }
 
 abstract class CfeDataExtractor<T> extends DataExtractor<T> {
-  final CompilerResult compilerResult;
+  final InternalCompilerResult compilerResult;
 
   CfeDataExtractor(this.compilerResult, Map<Id, ActualData<T>> actualMap)
       : super(actualMap);
@@ -233,7 +233,7 @@ Future<bool> runTestForConfig<T>(
   };
   options.debugDump = printCode;
   options.experimentalFlags.addAll(config.experimentalFlags);
-  CompilerResult compilerResult = await compileScript(
+  InternalCompilerResult compilerResult = await compileScript(
       testData.memorySourceFiles,
       options: options,
       retainDataForTesting: true);

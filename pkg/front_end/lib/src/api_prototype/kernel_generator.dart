@@ -7,7 +7,11 @@ library front_end.kernel_generator;
 
 import 'dart:async' show Future;
 
-import 'package:kernel/kernel.dart' show Component;
+import 'package:kernel/ast.dart' show Component;
+
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+
+import 'package:kernel/core_types.dart' show CoreTypes;
 
 import '../base/processed_options.dart' show ProcessedOptions;
 
@@ -18,7 +22,7 @@ import '../fasta/fasta_codes.dart' show messageMissingMain, noLength;
 import '../fasta/severity.dart' show Severity;
 
 import '../kernel_generator_impl.dart'
-    show CompilerResult, generateKernel, generateKernelInternal;
+    show generateKernel, generateKernelInternal;
 
 import 'compiler_options.dart' show CompilerOptions;
 
@@ -31,8 +35,8 @@ import 'compiler_options.dart' show CompilerOptions;
 /// follows `import`, `export`, and `part` declarations to discover the whole
 /// program, and converts the result to Dart Kernel format.
 ///
-/// If `compileSdk` in [options] is true, the generated component will include
-/// code for the SDK.
+/// If `compileSdk` in [options] is true, the generated [CompilerResult] will
+/// include code for the SDK.
 ///
 /// If summaries are provided in [options], the compiler will use them instead
 /// of compiling the libraries contained in those summaries. This is useful, for
@@ -42,8 +46,9 @@ import 'compiler_options.dart' show CompilerOptions;
 /// The input [source] is expected to be a script with a main method, otherwise
 /// an error is reported.
 // TODO(sigmund): rename to kernelForScript?
-Future<Component> kernelForProgram(Uri source, CompilerOptions options) async {
-  return (await kernelForProgramInternal(source, options))?.component;
+Future<CompilerResult> kernelForProgram(
+    Uri source, CompilerOptions options) async {
+  return (await kernelForProgramInternal(source, options));
 }
 
 Future<CompilerResult> kernelForProgramInternal(
@@ -52,6 +57,7 @@ Future<CompilerResult> kernelForProgramInternal(
   var pOptions = new ProcessedOptions(options: options, inputs: [source]);
   return await CompilerContext.runWithOptions(pOptions, (context) async {
     CompilerResult result = await generateKernelInternal(
+        includeHierarchyAndCoreTypes: true,
         retainDataForTesting: retainDataForTesting);
     var component = result?.component;
     if (component == null) return null;
@@ -66,29 +72,50 @@ Future<CompilerResult> kernelForProgramInternal(
   });
 }
 
-/// Generates a kernel representation for a build unit containing [sources].
+/// Generates a kernel representation for a module containing [sources].
 ///
-/// A build unit is a collection of libraries that are compiled together.
-/// Libraries in the build unit may depend on each other and may have
-/// dependencies to libraries in other build units. Unlinked library
-/// dependencies, build unit dependencies must be acyclic.
+/// A module is a collection of libraries that are compiled together. Libraries
+/// in the module may depend on each other and may have dependencies to
+/// libraries in other modules. Unlike library dependencies, module dependencies
+/// must be acyclic.
 ///
-/// This API is intended for modular compilation. Dependencies to other build
-/// units are specified using [CompilerOptions.inputSummaries].  Any dependency
+/// This API is intended for modular compilation. Dependencies to other modules
+/// are specified using [CompilerOptions.inputSummaries]. Any dependency
 /// of [sources] that is not listed in [CompilerOptions.inputSummaries] and
 /// [CompilerOptions.sdkSummary] is treated as an additional source file for the
-/// build unit.
+/// module.
 ///
 /// Any `part` declarations found in [sources] must refer to part files which
-/// are also listed in the build unit sources, otherwise an error results.  (It
-/// is not permitted to refer to a part file declared in another build unit).
+/// are also listed in the module sources, otherwise an error results.  (It
+/// is not permitted to refer to a part file declared in another module).
 ///
-/// The return value is a [Component] object with no main method set. The
-/// [Component] includes external libraries for those libraries loaded through
-/// summaries.
-Future<Component> kernelForComponent(
+/// The return value is a [CompilerResult] object with no main method set in
+/// the [Component] of its `component` property. The [Component] includes
+/// external libraries for those libraries loaded through summaries.
+Future<CompilerResult> kernelForModule(
     List<Uri> sources, CompilerOptions options) async {
   return (await generateKernel(
-          new ProcessedOptions(options: options, inputs: sources)))
-      ?.component;
+      new ProcessedOptions(options: options, inputs: sources),
+      includeHierarchyAndCoreTypes: true));
+}
+
+/// Result object for [kernelForProgram] and [kernelForModule].
+abstract class CompilerResult {
+  /// The generated summary bytes, if it was requested.
+  List<int> get summary;
+
+  /// The generated component, if it was requested.
+  Component get component;
+
+  /// Dependencies traversed by the compiler. Used only for generating
+  /// dependency .GN files in the dart-sdk build system.
+  /// Note this might be removed when we switch to compute dependencies without
+  /// using the compiler itself.
+  List<Uri> get deps;
+
+  /// The [ClassHierarchy] for the compiled [component], if it was requested.
+  ClassHierarchy get classHierarchy;
+
+  /// The [CoreTypes] object for the compiled [component], if it was requested.
+  CoreTypes get coreTypes;
 }

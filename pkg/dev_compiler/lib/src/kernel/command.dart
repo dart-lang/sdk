@@ -11,7 +11,6 @@ import 'package:build_integration/file_system/multi_root.dart';
 import 'package:cli_util/cli_util.dart' show getSdkPath;
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:kernel/kernel.dart' hide MapEntry;
-import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/text/ast_to_text.dart' as kernel show Printer;
 import 'package:kernel/binary/ast_to_binary.dart' as kernel show BinaryPrinter;
@@ -290,7 +289,6 @@ Future<CompilerResult> _compile(List<String> args,
     converter.dispose();
   }
 
-  ClassHierarchy hierarchy;
   fe.DdcResult result;
   if (useAnalyzer || !useIncrementalCompiler) {
     result = await fe.compile(compilerState, inputs, diagnosticMessageHandler);
@@ -298,8 +296,8 @@ Future<CompilerResult> _compile(List<String> args,
     compilerState.options.onDiagnostic = diagnosticMessageHandler;
     Component incrementalComponent = await incrementalCompiler.computeDelta(
         entryPoints: inputs, fullComponent: true);
-    hierarchy = incrementalCompiler.userCode.loader.hierarchy;
-    result = fe.DdcResult(incrementalComponent, doneInputSummaries);
+    result = fe.DdcResult(incrementalComponent, doneInputSummaries,
+        incrementalCompiler.userCode.loader.hierarchy);
 
     // Workaround for DDC relying on isExternal being set to true.
     for (var lib in cachedSdkInput.component.libraries) {
@@ -357,13 +355,9 @@ Future<CompilerResult> _compile(List<String> args,
     kernel.Printer(sb, showExternal: false).writeComponentFile(component);
     outFiles.add(File(outPaths.first + '.txt').writeAsString(sb.toString()));
   }
-  if (hierarchy == null) {
-    var target = compilerState.options.target as DevCompilerTarget;
-    hierarchy = target.hierarchy;
-  }
 
-  var compiler =
-      ProgramCompiler(component, hierarchy, options, declaredVariables);
+  var compiler = ProgramCompiler(
+      component, result.classHierarchy, options, declaredVariables);
 
   var jsModule = compiler.emitModule(
       component, result.inputSummaries, inputSummaries, summaryModules);

@@ -46,7 +46,8 @@ Future<Component> compileTestCaseToKernelProgram(Uri sourceUri,
       fail("Compilation error: ${message.plainTextFormatted.join('\n')}");
     };
 
-  final Component component = await kernelForProgram(sourceUri, options);
+  final Component component =
+      (await kernelForProgram(sourceUri, options)).component;
 
   // Make sure the library name is the same and does not depend on the order
   // of test cases.

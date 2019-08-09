@@ -29,14 +29,14 @@ class ExtensionsDataComputer extends DataComputer<Features> {
   const ExtensionsDataComputer();
 
   @override
-  void computeMemberData(CompilerResult compilerResult, Member member,
+  void computeMemberData(InternalCompilerResult compilerResult, Member member,
       Map<Id, ActualData<Features>> actualMap,
       {bool verbose}) {
     member.accept(new ExtensionsDataExtractor(compilerResult, actualMap));
   }
 
   @override
-  void computeClassData(CompilerResult compilerResult, Class cls,
+  void computeClassData(InternalCompilerResult compilerResult, Class cls,
       Map<Id, ActualData<Features>> actualMap,
       {bool verbose}) {
     new ExtensionsDataExtractor(compilerResult, actualMap).computeForClass(cls);
@@ -47,7 +47,7 @@ class ExtensionsDataComputer extends DataComputer<Features> {
 
   @override
   Features computeErrorData(
-      CompilerResult compiler, Id id, List<FormattedMessage> errors) {
+      InternalCompilerResult compiler, Id id, List<FormattedMessage> errors) {
     Features features = new Features();
     for (FormattedMessage error in errors) {
       if (error.message.contains(',')) {
@@ -92,8 +92,8 @@ class Tags {
 }
 
 class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
-  ExtensionsDataExtractor(
-      CompilerResult compilerResult, Map<Id, ActualData<Features>> actualMap)
+  ExtensionsDataExtractor(InternalCompilerResult compilerResult,
+      Map<Id, ActualData<Features>> actualMap)
       : super(compilerResult, actualMap);
 
   @override

@@ -11,7 +11,7 @@ import 'package:front_end/src/testing/id_testing.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart'
     show
         CfeDataExtractor,
-        CompilerResult,
+        InternalCompilerResult,
         DataComputer,
         defaultCfeConfig,
         createUriForFileName,
@@ -41,21 +41,21 @@ class IdTestingDataComputer extends DataComputer<String> {
   const IdTestingDataComputer();
 
   @override
-  void computeMemberData(CompilerResult compilerResult, Member member,
+  void computeMemberData(InternalCompilerResult compilerResult, Member member,
       Map<Id, ActualData<String>> actualMap,
       {bool verbose}) {
     member.accept(new IdTestingDataExtractor(compilerResult, actualMap));
   }
 
   @override
-  void computeClassData(CompilerResult compilerResult, Class cls,
+  void computeClassData(InternalCompilerResult compilerResult, Class cls,
       Map<Id, ActualData<String>> actualMap,
       {bool verbose}) {
     new IdTestingDataExtractor(compilerResult, actualMap).computeForClass(cls);
   }
 
-  void computeLibraryData(CompilerResult compilerResult, Library library,
-      Map<Id, ActualData<String>> actualMap,
+  void computeLibraryData(InternalCompilerResult compilerResult,
+      Library library, Map<Id, ActualData<String>> actualMap,
       {bool verbose}) {
     new IdTestingDataExtractor(compilerResult, actualMap)
         .computeForLibrary(library, useFileUri: true);
@@ -65,7 +65,7 @@ class IdTestingDataComputer extends DataComputer<String> {
   bool get supportsErrors => true;
 
   String computeErrorData(
-      CompilerResult compiler, Id id, List<FormattedMessage> errors) {
+      InternalCompilerResult compiler, Id id, List<FormattedMessage> errors) {
     return errorsToText(errors);
   }
 
@@ -74,8 +74,8 @@ class IdTestingDataComputer extends DataComputer<String> {
 }
 
 class IdTestingDataExtractor extends CfeDataExtractor<String> {
-  IdTestingDataExtractor(
-      CompilerResult compilerResult, Map<Id, ActualData<String>> actualMap)
+  IdTestingDataExtractor(InternalCompilerResult compilerResult,
+      Map<Id, ActualData<String>> actualMap)
       : super(compilerResult, actualMap);
 
   @override

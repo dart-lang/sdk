@@ -19,6 +19,8 @@ import '../api_prototype/diagnostic_message.dart' show DiagnosticMessageHandler;
 
 import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
 
+import '../api_prototype/front_end.dart' show CompilerResult;
+
 import '../api_prototype/file_system.dart' show FileSystem;
 
 import '../base/processed_options.dart' show ProcessedOptions;
@@ -27,7 +29,7 @@ import '../fasta/compiler_context.dart' show CompilerContext;
 
 import '../fasta/incremental_compiler.dart' show IncrementalCompiler;
 
-import '../kernel_generator_impl.dart' show CompilerResult, generateKernel;
+import '../kernel_generator_impl.dart' show generateKernel;
 
 import 'compiler_state.dart'
     show InitializedCompilerState, WorkerInputComponent, digestsEqual;

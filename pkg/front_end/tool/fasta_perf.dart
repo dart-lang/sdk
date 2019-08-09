@@ -245,7 +245,7 @@ generateKernel(Uri entryUri,
     options.sdkSummary = sdkRoot.resolve('outline.dill');
   }
 
-  var program = await kernelForComponent([entryUri], options);
+  var program = await kernelForModule([entryUri], options);
 
   timer.stop();
   var name = 'kernel_gen_e2e${compileSdk ? "" : "_sum"}';
