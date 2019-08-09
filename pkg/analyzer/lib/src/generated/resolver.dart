@@ -5382,13 +5382,6 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
           enclosingExtension = extensionElement;
           nameScope = new TypeParameterScope(nameScope, extensionElement);
           visitExtensionDeclarationInScope(node);
-          DartType extendedType = extensionElement.extendedType;
-          if (extendedType is InterfaceType) {
-            nameScope = new ClassScope(nameScope, extendedType.element);
-          } else if (extendedType is FunctionType) {
-            nameScope =
-                new ClassScope(nameScope, typeProvider.functionType.element);
-          }
           nameScope = ExtensionScope(nameScope, extensionElement);
           visitExtensionMembersInScope(node);
         } finally {

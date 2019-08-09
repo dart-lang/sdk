@@ -1490,4 +1490,116 @@ extension E on C {
     assertElement(identifier, findElement.method('a'));
     assertType(identifier, 'void Function(int)');
   }
+
+  test_topLevel_function_fromInstance() async {
+    await assertNoErrorsInCode('''
+class C {
+  void a() {}
+}
+
+void a() {}
+
+extension E on C {
+  void b() {
+    a();
+  }
+}
+''');
+    var invocation = findNode.methodInvocation('a();');
+    assertElement(invocation, findElement.topFunction('a'));
+    assertInvokeType(invocation, 'void Function()');
+  }
+
+  test_topLevel_function_fromStatic() async {
+    await assertNoErrorsInCode('''
+class C {
+  void a() {}
+}
+
+void a() {}
+
+extension E on C {
+  static void b() {
+    a();
+  }
+}
+''');
+    var invocation = findNode.methodInvocation('a();');
+    assertElement(invocation, findElement.topFunction('a'));
+    assertInvokeType(invocation, 'void Function()');
+  }
+
+  test_topLevel_getter_fromInstance() async {
+    await assertNoErrorsInCode('''
+class C {
+  int get a => 0;
+}
+
+int get a => 0;
+
+extension E on C {
+  void b() {
+    a;
+  }
+}
+''');
+    var identifier = findNode.simple('a;');
+    assertElement(identifier, findElement.topGet('a'));
+    assertType(identifier, 'int');
+  }
+
+  test_topLevel_getter_fromStatic() async {
+    await assertNoErrorsInCode('''
+class C {
+  int get a => 0;
+}
+
+int get a => 0;
+
+extension E on C {
+  static void b() {
+    a;
+  }
+}
+''');
+    var identifier = findNode.simple('a;');
+    assertElement(identifier, findElement.topGet('a'));
+    assertType(identifier, 'int');
+  }
+
+  test_topLevel_setter_fromInstance() async {
+    await assertNoErrorsInCode('''
+class C {
+  set a(int _) {}
+}
+
+set a(int _) {}
+
+extension E on C {
+  void b() {
+    a = 0;
+  }
+}
+''');
+    var identifier = findNode.simple('a = 0;');
+    assertElement(identifier, findElement.topSet('a'));
+  }
+
+  test_topLevel_setter_fromStatic() async {
+    await assertNoErrorsInCode('''
+class C {
+  set a(int _) {}
+}
+
+set a(int _) {}
+
+extension E on C {
+  static void b() {
+    a = 0;
+  }
+}
+''');
+    var identifier = findNode.simple('a = 0;');
+    assertElement(identifier, findElement.topSet('a'));
+  }
 }
