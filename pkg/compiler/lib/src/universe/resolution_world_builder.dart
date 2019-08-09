@@ -93,6 +93,8 @@ abstract class ResolutionEnqueuerWorldBuilder extends ResolutionWorldBuilder {
   /// is returned.
   void registerIsCheck(DartType type);
 
+  void registerNamedTypeVariableNewRti(TypeVariableType typeVariable);
+
   void registerTypeVariableTypeLiteral(TypeVariableType typeVariable);
 }
 
@@ -313,6 +315,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
   final Set<FieldEntity> _fieldSetters = new Set<FieldEntity>();
 
   final Set<DartType> _isChecks = new Set<DartType>();
+  final Set<TypeVariableType> _namedTypeVariablesNewRti = {};
 
   /// Set of all closures in the program. Used by the mirror tracking system
   /// to find all live closure instances.
@@ -590,6 +593,11 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
   @override
   void registerIsCheck(covariant DartType type) {
     _isChecks.add(type);
+  }
+
+  @override
+  void registerNamedTypeVariableNewRti(TypeVariableType type) {
+    _namedTypeVariablesNewRti.add(type);
   }
 
   @override

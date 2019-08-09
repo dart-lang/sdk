@@ -27,7 +27,8 @@ import '../js_backend/native_data.dart';
 import '../js_backend/namer.dart' show ModularNamer;
 import '../js_backend/runtime_types.dart';
 import '../js_backend/runtime_types_codegen.dart';
-import '../js_backend/runtime_types_new.dart' show RecipeEncoder;
+import '../js_backend/runtime_types_new.dart'
+    show RecipeEncoder, RecipeEncoding;
 import '../js_emitter/code_emitter_task.dart' show ModularEmitter;
 import '../js_model/elements.dart' show JGeneratorBody;
 import '../js_model/type_recipe.dart' show TypeExpressionRecipe;
@@ -3423,8 +3424,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // Call `env._eval("recipe")`.
     use(node.inputs[0]);
     js.Expression environment = pop();
-    js.Expression recipe = _rtiRecipeEncoder.encodeRecipe(
+    RecipeEncoding encoding = _rtiRecipeEncoder.encodeRecipe(
         _emitter, node.envStructure, node.typeExpression);
+    js.Expression recipe = encoding.recipe;
+
+    for (TypeVariableType typeVariable in encoding.typeVariables) {
+      // TODO(fishythefish): Constraint the type variable to only be emitted on
+      // (subtypes of) the environment type.
+      _registry.registerTypeUse(TypeUse.namedTypeVariableNewRti(typeVariable));
+    }
 
     MemberEntity method = _commonElements.rtiEvalMethod;
     Selector selector = Selector.fromElement(method);

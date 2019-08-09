@@ -79,6 +79,9 @@ class KClosedWorldImpl implements KClosedWorld {
   @override
   final Set<DartType> isChecks;
 
+  @override
+  final Set<TypeVariableType> namedTypeVariablesNewRti;
+
   final Map<Entity, Set<DartType>> staticTypeArgumentDependencies;
 
   final Map<Selector, Set<DartType>> dynamicTypeArgumentDependencies;
@@ -122,6 +125,7 @@ class KClosedWorldImpl implements KClosedWorld {
       this.classHierarchy,
       this.annotationsData,
       this.isChecks,
+      this.namedTypeVariablesNewRti,
       this.staticTypeArgumentDependencies,
       this.dynamicTypeArgumentDependencies,
       this.typeVariableTypeLiterals,

@@ -1950,7 +1950,15 @@ class FragmentEmitter {
       InterfaceType targetType = _elementEnvironment.getThisType(cls.element);
       Iterable<InterfaceType> supertypes = cls.classChecksNewRti.checks.map(
           (TypeCheck check) => _dartTypes.asInstanceOf(targetType, check.cls));
-      ruleset.add(targetType, supertypes);
+      Map<TypeVariableType, DartType> typeVariables = {};
+      for (TypeVariableType typeVariable in cls.namedTypeVariablesNewRti) {
+        TypeVariableEntity element = typeVariable.element;
+        InterfaceType supertype =
+            _dartTypes.asInstanceOf(targetType, element.typeDeclaration);
+        List<DartType> supertypeArguments = supertype.typeArguments;
+        typeVariables[typeVariable] = supertypeArguments[element.index];
+      }
+      ruleset.add(targetType, supertypes, typeVariables);
     });
 
     FunctionEntity method = _closedWorld.commonElements.rtiAddRulesMethod;

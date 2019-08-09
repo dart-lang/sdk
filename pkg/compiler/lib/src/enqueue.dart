@@ -422,11 +422,19 @@ class ResolutionEnqueuer extends EnqueuerImpl {
       case TypeUseKind.TYPE_ARGUMENT:
         failedAt(CURRENT_ELEMENT_SPANNABLE, "Unexpected type use: $typeUse.");
         break;
+      case TypeUseKind.NAMED_TYPE_VARIABLE_NEW_RTI:
+        assert(type is TypeVariableType);
+        _registerNamedTypeVariableNewRti(type);
+        break;
     }
   }
 
   void _registerIsCheck(DartType type) {
     _worldBuilder.registerIsCheck(type);
+  }
+
+  void _registerNamedTypeVariableNewRti(TypeVariableType type) {
+    _worldBuilder.registerNamedTypeVariableNewRti(type);
   }
 
   void _registerClosurizedMember(MemberEntity element) {

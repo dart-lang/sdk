@@ -21,10 +21,17 @@ import 'native_data.dart';
 import 'runtime_types_codegen.dart' show RuntimeTypesSubstitutions;
 import 'runtime_types_resolution.dart' show RuntimeTypesNeed;
 
+class RecipeEncoding {
+  final jsAst.Literal recipe;
+  final Set<TypeVariableType> typeVariables;
+
+  const RecipeEncoding(this.recipe, this.typeVariables);
+}
+
 abstract class RecipeEncoder {
-  /// Returns a [jsAst.Literal] representing the given [recipe] to be
+  /// Returns a [RecipeEncoding] representing the given [recipe] to be
   /// evaluated against a type environment with shape [structure].
-  jsAst.Literal encodeRecipe(ModularEmitter emitter,
+  RecipeEncoding encodeRecipe(ModularEmitter emitter,
       TypeEnvironmentStructure environmentStructure, TypeRecipe recipe);
 
   jsAst.Literal encodeGroundRecipe(ModularEmitter emitter, TypeRecipe recipe);
@@ -67,14 +74,14 @@ class RecipeEncoderImpl implements RecipeEncoder {
       this._elementEnvironment, this.commonElements, this._rtiNeed);
 
   @override
-  jsAst.Literal encodeRecipe(ModularEmitter emitter,
+  RecipeEncoding encodeRecipe(ModularEmitter emitter,
       TypeEnvironmentStructure environmentStructure, TypeRecipe recipe) {
     return _RecipeGenerator(this, emitter, environmentStructure, recipe).run();
   }
 
   @override
   jsAst.Literal encodeGroundRecipe(ModularEmitter emitter, TypeRecipe recipe) {
-    return _RecipeGenerator(this, emitter, null, recipe).run();
+    return _RecipeGenerator(this, emitter, null, recipe).run().recipe;
   }
 
   @override
@@ -82,7 +89,8 @@ class RecipeEncoderImpl implements RecipeEncoder {
       ModularEmitter emitter, DartType dartType) {
     return _RecipeGenerator(this, emitter, null, TypeExpressionRecipe(dartType),
             hackTypeVariablesToAny: true)
-        .run();
+        .run()
+        .recipe;
   }
 
   @override
@@ -94,7 +102,8 @@ class RecipeEncoderImpl implements RecipeEncoder {
             FullTypeEnvironmentStructure(classType: declaringType),
             TypeExpressionRecipe(supertypeArgument),
             indexTypeVariablesOnDeclaringClass: true)
-        .run();
+        .run()
+        .recipe;
   }
 
   @override
@@ -125,6 +134,7 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
   final bool hackTypeVariablesToAny;
 
   final List<FunctionTypeVariable> functionTypeVariables = [];
+  final Set<TypeVariableType> typeVariables = {};
 
   // Accumulated recipe.
   final List<jsAst.Literal> _fragments = [];
@@ -139,15 +149,19 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
   NativeBasicData get _nativeData => _encoder._nativeData;
   RuntimeTypesSubstitutions get _rtiSubstitutions => _encoder._rtiSubstitutions;
 
-  jsAst.Literal run() {
+  RecipeEncoding _finishEncoding(jsAst.Literal literal) =>
+      RecipeEncoding(literal, typeVariables);
+
+  RecipeEncoding run() {
     _start(_recipe);
     assert(functionTypeVariables.isEmpty);
     if (_fragments.isEmpty) {
-      return js.string(String.fromCharCodes(_codes));
+      return _finishEncoding(js.string(String.fromCharCodes(_codes)));
     }
     _flushCodes();
     jsAst.LiteralString quote = jsAst.LiteralString('"');
-    return jsAst.StringConcatenation([quote, ..._fragments, quote]);
+    return _finishEncoding(
+        jsAst.StringConcatenation([quote, ..._fragments, quote]));
   }
 
   void _start(TypeRecipe recipe) {
@@ -261,6 +275,7 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
       }
       jsAst.Name name = _emitter.typeVariableAccessNewRti(type.element);
       _emitName(name);
+      typeVariables.add(type);
       return;
     }
     // TODO(sra): Handle missing cases. This just emits some readable junk. The
@@ -449,9 +464,10 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
 class _RulesetEntry {
   final InterfaceType _targetType;
   List<InterfaceType> _supertypes;
-  Map<TypeVariableType, DartType> _typeVariables = {};
+  Map<TypeVariableType, DartType> _typeVariables;
 
-  _RulesetEntry(this._targetType, Iterable<InterfaceType> supertypes)
+  _RulesetEntry(
+      this._targetType, Iterable<InterfaceType> supertypes, this._typeVariables)
       : _supertypes = supertypes.toList();
 
   bool get isEmpty => _supertypes.isEmpty && _typeVariables.isEmpty;
@@ -463,8 +479,9 @@ class Ruleset {
   Ruleset(this._entries);
   Ruleset.empty() : this([]);
 
-  void add(InterfaceType targetType, Iterable<InterfaceType> supertypes) =>
-      _entries.add(_RulesetEntry(targetType, supertypes));
+  void add(InterfaceType targetType, Iterable<InterfaceType> supertypes,
+          Map<TypeVariableType, DartType> typeVariables) =>
+      _entries.add(_RulesetEntry(targetType, supertypes, typeVariables));
 }
 
 class RulesetEncoder {
@@ -487,23 +504,9 @@ class RulesetEncoder {
 
   bool _isObject(InterfaceType type) => identical(type.element, _objectClass);
 
-  void _preprocessSupertype(_RulesetEntry entry, InterfaceType supertype) {
-    InterfaceType thisSupertype = _dartTypes.getThisType(supertype.element);
-    List<DartType> typeVariables = thisSupertype.typeArguments;
-    List<DartType> supertypeArguments = supertype.typeArguments;
-    int length = typeVariables.length;
-    assert(supertypeArguments.length == length);
-    for (int i = 0; i < length; i++) {
-      entry._typeVariables[typeVariables[i]] = supertypeArguments[i];
-    }
-  }
-
   void _preprocessEntry(_RulesetEntry entry) {
-    entry._supertypes.removeWhere(_isObject);
-    entry._supertypes.forEach(
-        (InterfaceType supertype) => _preprocessSupertype(entry, supertype));
-    entry._supertypes.removeWhere(
-        (InterfaceType supertype) => identical(entry._targetType, supertype));
+    entry._supertypes.removeWhere((InterfaceType supertype) =>
+        _isObject(supertype) || identical(entry._targetType, supertype));
   }
 
   void _preprocessRuleset(Ruleset ruleset) {

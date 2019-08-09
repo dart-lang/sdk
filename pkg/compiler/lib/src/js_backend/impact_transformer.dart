@@ -204,6 +204,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           break;
         case TypeUseKind.RTI_VALUE:
         case TypeUseKind.TYPE_ARGUMENT:
+        case TypeUseKind.NAMED_TYPE_VARIABLE_NEW_RTI:
           failedAt(CURRENT_ELEMENT_SPANNABLE, "Unexpected type use: $typeUse.");
           break;
       }
