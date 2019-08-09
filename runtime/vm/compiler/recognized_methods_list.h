@@ -9,9 +9,11 @@ namespace dart {
 
 // clang-format off
 // (class-name, function-name, recognized enum, fingerprint).
-// When adding a new function add a 0 as fingerprint, build and run to get the
-// correct fingerprint from the mismatch error (or use Library::GetFunction()
-// and print func.SourceFingerprint()).
+// When adding a new function add a 0 as fingerprint, build and run with
+// `tools/test.py vm/dart/reused_instructions_test` to get the correct
+// fingerprint from the mismatch error (or use Library::GetFunction() and print
+// func.SourceFingerprint()).
+// TODO(36376): Restore checking fingerprints of recognized methods.
 #define OTHER_RECOGNIZED_LIST(V)                                               \
   V(::, identical, ObjectIdentical, 0x49c6e96a)                                \
   V(ClassID, getID, ClassIDgetID, 0x7b18b257)                                  \
@@ -142,6 +144,7 @@ namespace dart {
   V(_HashVMBase, set:_deletedKeys, LinkedHashMap_setDeletedKeys, 0x5aa9888d)   \
   V(::, _classRangeCheck, ClassRangeCheck, 0x2ae76b84)                         \
   V(::, _asyncStackTraceHelper, AsyncStackTraceHelper, 0)                      \
+  V(::, _abi, FfiAbi, 0x0)                                                     \
 
 // List of intrinsics:
 // (class-name, function-name, intrinsification method, fingerprint).

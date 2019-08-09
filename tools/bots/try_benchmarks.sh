@@ -225,8 +225,7 @@ EOF
     out/ReleaseIA32/dart benchmarks/FfiBoringssl/dart/FfiBoringssl.dart
     out/ReleaseIA32/dart benchmarks/FfiCall/dart/FfiCall.dart
     out/ReleaseIA32/dart benchmarks/FfiMemory/dart/FfiMemory.dart
-    # below is commented out due to revert of struct support in ffi
-    # out/ReleaseIA32/dart benchmarks/FfiStruct/dart/FfiStruct.dart
+    out/ReleaseIA32/dart benchmarks/FfiStruct/dart/FfiStruct.dart
     cd ..
     rm -rf tmp
   elif [ "$command" = linux-x64-build ] ||

@@ -5,6 +5,7 @@
 #include <setjmp.h>  // NOLINT
 #include <stdlib.h>
 
+#include "vm/compiler/ffi.h"
 #include "vm/globals.h"
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -1386,7 +1387,7 @@ DART_NOINLINE bool Interpreter::AllocateMint(Thread* thread,
   } else {
     SP[0] = 0;  // Space for the result.
     SP[1] = thread->isolate()->object_store()->mint_class();  // Class object.
-    SP[2] = Object::null();                                  // Type arguments.
+    SP[2] = Object::null();                                   // Type arguments.
     Exit(thread, FP, SP + 3, pc);
     NativeArguments args(thread, 2, SP + 1, SP);
     if (!InvokeRuntime(thread, this, DRT_AllocateObject, args)) {
@@ -1574,8 +1575,8 @@ RawObject* Interpreter::Call(RawFunction* function,
                              Thread* thread) {
   // Interpreter state (see constants_kbc.h for high-level overview).
   const KBCInstr* pc;  // Program Counter: points to the next op to execute.
-  RawObject** FP;  // Frame Pointer.
-  RawObject** SP;  // Stack Pointer.
+  RawObject** FP;      // Frame Pointer.
+  RawObject** SP;      // Stack Pointer.
 
   uint32_t op;  // Currently executing op.
 
@@ -2253,6 +2254,9 @@ SwitchDispatch:
             instance->ptr())[LinkedHashMap::deleted_keys_offset() / kWordSize] =
             SP[0];
         *--SP = null_value;
+      } break;
+      case MethodRecognizer::kFfiAbi: {
+        *++SP = Smi::New(static_cast<int64_t>(compiler::ffi::TargetAbi()));
       } break;
       default: {
         NativeEntryData::Payload* payload =

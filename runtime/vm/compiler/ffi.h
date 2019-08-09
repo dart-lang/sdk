@@ -25,6 +25,16 @@ constexpr intptr_t kMinimumArgumentWidth = 4;
 // Storage size for an FFI type (extends 'ffi.NativeType').
 size_t ElementSizeInBytes(intptr_t class_id);
 
+// These ABIs should be kept in sync with pkg/vm/lib/transformations/ffi.dart.
+enum class Abi {
+  kWordSize64 = 0,
+  kWordSize32Align32 = 1,
+  kWordSize32Align64 = 2
+};
+
+// The target ABI. Defines sizes and alignment of native types.
+Abi TargetAbi();
+
 // Unboxed representation of an FFI type (extends 'ffi.NativeType').
 Representation TypeRepresentation(const AbstractType& result_type);
 

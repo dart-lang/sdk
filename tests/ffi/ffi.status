@@ -33,13 +33,5 @@ function_callbacks_test: Skip  # Issue dartbug.com/37295
 [ $system != android && $system != linux && $system != macos && $system != windows ]
 *: Skip # FFI not yet supported on other OSes.
 
-# dartbug.com/35768: Structs not supported on 32-bit.
-[ $arch == arm || $arch == ia32 || $arch == simdbc ]
-function_structs_test: Skip
-structs_test: Skip
-
-[ $arch == arm64 || $arch == simdbc64 || $arch == x64 ]
-enable_structs_test: SkipByDesign # Tests that structs don't work on 32-bit systems.
-
 [ $arch == simarm || $arch == simarm64 ]
 *: Skip # FFI not yet supported on the arm simulator.

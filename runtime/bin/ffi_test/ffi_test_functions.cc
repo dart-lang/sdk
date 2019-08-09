@@ -354,22 +354,29 @@ DART_EXPORT int64_t* NullableInt64ElemAt1(int64_t* a) {
   return retval;
 }
 
+// A struct designed to exercise all kinds of alignment rules.
+// Note that offset32A (System V ia32) aligns doubles on 4 bytes while offset32B
+// (Arm 32 bit and MSVC ia32) aligns on 8 bytes.
+// TODO(37271): Support nested structs.
+// TODO(37470): Add uncommon primitive data types when we want to support them.
 struct VeryLargeStruct {
-  int8_t a;
-  int16_t b;
-  int32_t c;
-  int64_t d;
-  uint8_t e;
-  uint16_t f;
-  uint32_t g;
-  uint64_t h;
-  intptr_t i;
-  float j;
-  double k;
-  VeryLargeStruct* parent;
-  intptr_t numChildren;
-  VeryLargeStruct* children;
-  int8_t smallLastField;
+  //                             size32 size64 offset32A offset32B offset64
+  int8_t a;                   // 1              0         0         0
+  int16_t b;                  // 2              2         2         2
+  int32_t c;                  // 4              4         4         4
+  int64_t d;                  // 8              8         8         8
+  uint8_t e;                  // 1             16        16        16
+  uint16_t f;                 // 2             18        18        18
+  uint32_t g;                 // 4             20        20        20
+  uint64_t h;                 // 8             24        24        24
+  intptr_t i;                 // 4      8      32        32        32
+  double j;                   // 8             36        40        40
+  float k;                    // 4             44        48        48
+  VeryLargeStruct* parent;    // 4      8      48        52        56
+  intptr_t numChildren;       // 4      8      52        56        64
+  VeryLargeStruct* children;  // 4      8      56        60        72
+  int8_t smallLastField;      // 1             60        64        80
+                              // sizeof        64        72        88
 };
 
 // Sums the fields of a very large struct, including the first field (a) from

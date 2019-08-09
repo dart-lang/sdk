@@ -8086,8 +8086,9 @@ void Function::SetDeoptReasonForAll(intptr_t deopt_id,
 }
 
 bool Function::CheckSourceFingerprint(const char* prefix, int32_t fp) const {
-  // TODO(alexmarkov): '(kernel_offset() <= 0)' looks like an impossible
-  // condition, fix this and re-enable fingerprints checking.
+  // TODO(36376): Restore checking fingerprints of recognized methods.
+  // '(kernel_offset() <= 0)' looks like an impossible condition, fix this and
+  //  re-enable fingerprints checking.
   if (!Isolate::Current()->obfuscate() && !is_declared_in_bytecode() &&
       (kernel_offset() <= 0) && (SourceFingerprint() != fp)) {
     const bool recalculatingFingerprints = false;
@@ -12537,6 +12538,7 @@ void Library::CheckFunctionFingerprints() {
   all_libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::CollectionLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::InternalLibrary()));
+  all_libs.Add(&Library::ZoneHandle(Library::FfiLibrary()));
   OTHER_RECOGNIZED_LIST(CHECK_FINGERPRINTS2);
   POLYMORPHIC_TARGET_LIST(CHECK_FINGERPRINTS);
 
