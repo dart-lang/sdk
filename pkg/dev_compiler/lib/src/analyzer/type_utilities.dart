@@ -190,7 +190,12 @@ class TypeTable {
     // readability to little or no benefit.  It would be good to do this
     // when we know that we can hoist it to an outer scope, but for
     // now we just disable it.
-    if (freeVariables.any((i) => i.enclosingElement is FunctionTypedElement)) {
+    if (freeVariables.any((i) =>
+        i.enclosingElement is FunctionTypedElement ||
+        // Strict function types don't have element, so their type parameters
+        // don't have any enclosing element. Analyzer started returning
+        // strict function types for generic methods.
+        i.enclosingElement == null)) {
       return true;
     }
 
