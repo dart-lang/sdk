@@ -154,8 +154,8 @@ class ExtensionMemberResolver {
 
   /// Return the most specific extension or `null` if no single one can be
   /// identified.
-  InstantiatedExtension _chooseMostSpecific(
-      List<InstantiatedExtension> extensions) {
+  _InstantiatedExtension _chooseMostSpecific(
+      List<_InstantiatedExtension> extensions) {
     //
     // https://github.com/dart-lang/language/blob/master/accepted/future-releases/static-extension-methods/feature-specification.md#extension-conflict-resolution:
     //
@@ -198,11 +198,11 @@ class ExtensionMemberResolver {
 
   /// Return extensions for the [type] that match the given [name] in the
   /// current scope.
-  List<InstantiatedExtension> _getApplicable(
+  List<_InstantiatedExtension> _getApplicable(
       DartType type, String name, ElementKind kind) {
     var candidates = _getExtensionsWithMember(name, kind);
 
-    var instantiatedExtensions = <InstantiatedExtension>[];
+    var instantiatedExtensions = <_InstantiatedExtension>[];
     for (var candidate in candidates) {
       var typeParameters = candidate.extension.typeParameters;
       var inferrer = GenericInferrer(
@@ -232,7 +232,7 @@ class ExtensionMemberResolver {
       }
 
       instantiatedExtensions.add(
-        InstantiatedExtension(
+        _InstantiatedExtension(
           candidate.extension,
           extendedType,
           // TODO(scheglov) Hm... Maybe not use from3(), but identify null subst?
@@ -357,7 +357,7 @@ class ExtensionMemberResolver {
     ).substituteType(extension.extendedType);
   }
 
-  bool _isMoreSpecific(InstantiatedExtension e1, InstantiatedExtension e2) {
+  bool _isMoreSpecific(_InstantiatedExtension e1, _InstantiatedExtension e2) {
     var t10 = e1.element.extendedType;
     var t20 = e2.element.extendedType;
     var t11 = e1._extendedType;
@@ -426,21 +426,21 @@ class ExtensionMemberResolver {
   }
 }
 
-class InstantiatedExtension {
-  final ExtensionElement element;
-  final DartType _extendedType;
-  final ExecutableElement instantiatedMember;
-
-  InstantiatedExtension(
-    this.element,
-    this._extendedType,
-    this.instantiatedMember,
-  );
-}
-
 class _CandidateExtension {
   final ExtensionElement extension;
   final ExecutableElement member;
 
   _CandidateExtension(this.extension, this.member);
+}
+
+class _InstantiatedExtension {
+  final ExtensionElement element;
+  final DartType _extendedType;
+  final ExecutableElement instantiatedMember;
+
+  _InstantiatedExtension(
+    this.element,
+    this._extendedType,
+    this.instantiatedMember,
+  );
 }
