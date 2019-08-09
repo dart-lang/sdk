@@ -133,9 +133,17 @@ class HValidator extends HInstructionVisitor {
     super.visitBasicBlock(block);
   }
 
+  // Limit for the size of `inputs` and `usedBy` lists. We assume lists longer
+  // than this are OK in order to avoid the O(N^2) validation getting out of
+  // hand.
+  //
+  // Poster child: corelib_2/regexp/pcre_test.dart, which has a 7KLOC main().
+  static const int kMaxValidatedInstructionListLength = 1000;
+
   /// Verifies [instruction] is contained in [instructions] [count] times.
   static bool checkInstructionCount(
       List<HInstruction> instructions, HInstruction instruction, int count) {
+    if (instructions.length > kMaxValidatedInstructionListLength) return true;
     int result = 0;
     for (int i = 0; i < instructions.length; i++) {
       if (identical(instructions[i], instruction)) result++;
@@ -146,7 +154,9 @@ class HValidator extends HInstructionVisitor {
   /// Returns true if the predicate returns true for every instruction in the
   /// list. The argument to [f] is an instruction with the count of how often
   /// it appeared in the list [instructions].
-  static bool everyInstruction(List<HInstruction> instructions, Function f) {
+  static bool everyInstruction(
+      List<HInstruction> instructions, bool Function(HInstruction, int) f) {
+    if (instructions.length > kMaxValidatedInstructionListLength) return true;
     var copy = new List<HInstruction>.from(instructions);
     // TODO(floitsch): there is currently no way to sort HInstructions before
     // we have assigned an ID. The loop is therefore O(n^2) for now.
