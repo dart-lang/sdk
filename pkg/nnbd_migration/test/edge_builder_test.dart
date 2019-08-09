@@ -2053,6 +2053,24 @@ class C extends B {
     assertUnion(bReturnType.node, cReturnType.node);
   }
 
+  test_methodDeclaration_doesntAffect_unconditional_control_flow() async {
+    await analyze('''
+class C {
+  void f(bool b, int i, int j) {
+    assert(i != null);
+    if (b) {}
+    assert(j != null);
+  }
+  void g(int k) {
+    assert(k != null);
+  }
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int i').node, never, hard: true);
+    assertNoEdge(always, decoratedTypeAnnotation('int j').node);
+    assertEdge(decoratedTypeAnnotation('int k').node, never, hard: true);
+  }
+
   test_methodDeclaration_resets_unconditional_control_flow() async {
     await analyze('''
 class C {
@@ -2466,6 +2484,445 @@ int f() {
 
     assertNullCheck(checkExpression('(null)'),
         assertEdge(always, decoratedTypeAnnotation('int').node, hard: false));
+  }
+
+  test_postDominators_assert() async {
+    await analyze('''
+void test(bool b1, bool b2, bool b3, bool _b) {
+  assert(b1 != null);
+  if (_b) {
+    assert(b2 != null);
+  }
+  assert(b3 != null);
+}
+''');
+
+    assertEdge(decoratedTypeAnnotation('bool b1').node, never, hard: true);
+    assertNoEdge(decoratedTypeAnnotation('bool b2').node, never);
+    assertEdge(decoratedTypeAnnotation('bool b3').node, never, hard: true);
+  }
+
+  test_postDominators_break() async {
+    await analyze('''
+class C {
+  void m() {}
+}
+void test(bool b1, C _c) {
+  while (b1/*check*/) {
+    bool b2 = b1;
+    C c = _c;
+    if (b2/*check*/) {
+      break;
+    }
+    c.m();
+  }
+}
+''');
+
+    // TODO(mfairhurst): enable this check
+    //assertNullCheck(checkExpression('b1/*check*/'),
+    //    assertEdge(decoratedTypeAnnotation('bool b1').node, never, hard: true));
+    assertNullCheck(checkExpression('b2/*check*/'),
+        assertEdge(decoratedTypeAnnotation('bool b2').node, never, hard: true));
+    assertNullCheck(checkExpression('c.m'),
+        assertEdge(decoratedTypeAnnotation('C c').node, never, hard: false));
+  }
+
+  test_postDominators_continue() async {
+    await analyze('''
+class C {
+  void m() {}
+}
+void test(bool b1, C _c) {
+  while (b1/*check*/) {
+    bool b2 = b1;
+    C c = _c;
+    if (b2/*check*/) {
+      continue;
+    }
+    c.m();
+  }
+}
+''');
+
+    // TODO(mfairhurst): enable this check
+    //assertNullCheck(checkExpression('b1/*check*/'),
+    //    assertEdge(decoratedTypeAnnotation('bool b1').node, never, hard: true));
+    assertNullCheck(checkExpression('b2/*check*/'),
+        assertEdge(decoratedTypeAnnotation('bool b2').node, never, hard: true));
+    assertNullCheck(checkExpression('c.m'),
+        assertEdge(decoratedTypeAnnotation('C c').node, never, hard: false));
+  }
+
+  test_postDominators_doWhileStatement_conditional() async {
+    await analyze('''
+class C {
+  void m() {}
+}
+void test(bool b, C c) {
+  do {
+    return;
+  } while(b/*check*/);
+
+  c.m();
+}
+''');
+
+    // TODO(mfairhurst): enable this check
+    //assertNullCheck(checkExpression('b/*check*/'),
+    //    assertEdge(decoratedTypeAnnotation('bool b').node, never, hard: false));
+    assertNullCheck(checkExpression('c.m'),
+        assertEdge(decoratedTypeAnnotation('C c').node, never, hard: false));
+  }
+
+  test_postDominators_doWhileStatement_unconditional() async {
+    await analyze('''
+class C {
+  void m() {}
+}
+void test(bool b, C c1, C c2) {
+  do {
+    C c3 = C();
+    c1.m();
+    c3.m();
+  } while(b/*check*/);
+
+  c2.m();
+}
+''');
+
+    // TODO(mfairhurst): enable this check
+    //assertNullCheck(checkExpression('b/*check*/'),
+    //    assertEdge(decoratedTypeAnnotation('bool b').node, never, hard: true));
+    assertNullCheck(checkExpression('c1.m'),
+        assertEdge(decoratedTypeAnnotation('C c1').node, never, hard: true));
+    assertNullCheck(checkExpression('c2.m'),
+        assertEdge(decoratedTypeAnnotation('C c2').node, never, hard: true));
+    assertNullCheck(checkExpression('c3.m'),
+        assertEdge(decoratedTypeAnnotation('C c3').node, never, hard: true));
+  }
+
+  test_postDominators_forInStatement_unconditional() async {
+    await analyze('''
+class C {
+  void m() {}
+}
+void test(List<C> l, C c1, C c2) {
+  for (C c3 in l) {
+    c1.m();
+    c3.m();
+  }
+
+  c2.m();
+}
+''');
+
+    //TODO(mfairhurst): enable this check
+    //assertNullCheck(checkExpression('l/*check*/'),
+    //    assertEdge(decoratedTypeAnnotation('List<C> l').node, never, hard: true));
+    assertNullCheck(checkExpression('c1.m'),
+        assertEdge(decoratedTypeAnnotation('C c1').node, never, hard: false));
+    assertNullCheck(checkExpression('c2.m'),
+        assertEdge(decoratedTypeAnnotation('C c2').node, never, hard: true));
+    assertNullCheck(checkExpression('c3.m'),
+        assertEdge(decoratedTypeAnnotation('C c3').node, never, hard: false));
+  }
+
+  test_postDominators_forStatement_unconditional() async {
+    await analyze('''
+
+class C {
+  void m() {}
+}
+void test(bool b1, C c1, C c2, C c3) {
+  for (bool b2 = b1, b3 = b1; b1/*check*/ & b2/*check*/; c3.m()) {
+    c1.m();
+    assert(b3 != null);
+  }
+
+  c2.m();
+}
+''');
+
+    //TODO(mfairhurst): enable this check
+    assertNullCheck(checkExpression('b1/*check*/'),
+        assertEdge(decoratedTypeAnnotation('bool b1').node, never, hard: true));
+    //assertNullCheck(checkExpression('b2/*check*/'),
+    //    assertEdge(decoratedTypeAnnotation('bool b2').node, never, hard: true));
+    //assertEdge(decoratedTypeAnnotation('b3 =').node, never, hard: false);
+    assertNullCheck(checkExpression('c1.m'),
+        assertEdge(decoratedTypeAnnotation('C c1').node, never, hard: false));
+    assertNullCheck(checkExpression('c2.m'),
+        assertEdge(decoratedTypeAnnotation('C c2').node, never, hard: true));
+    assertNullCheck(checkExpression('c3.m'),
+        assertEdge(decoratedTypeAnnotation('C c3').node, never, hard: false));
+  }
+
+  test_postDominators_ifStatement_conditional() async {
+    await analyze('''
+class C {
+  void m() {}
+}
+void test(bool b, C c1, C c2) {
+  if (b/*check*/) {
+    C c3 = C();
+    C c4 = C();
+    c1.m();
+    c3.m();
+
+    // Divergence breaks post-dominance.
+    return;
+    c4.m();
+
+  }
+  c2.m();
+}
+''');
+
+    assertNullCheck(checkExpression('b/*check*/'),
+        assertEdge(decoratedTypeAnnotation('bool b').node, never, hard: true));
+    assertNullCheck(checkExpression('c1.m'),
+        assertEdge(decoratedTypeAnnotation('C c1').node, never, hard: false));
+    assertNullCheck(checkExpression('c2.m'),
+        assertEdge(decoratedTypeAnnotation('C c2').node, never, hard: false));
+    assertNullCheck(checkExpression('c3.m'),
+        assertEdge(decoratedTypeAnnotation('C c3').node, never, hard: true));
+    assertNullCheck(checkExpression('c4.m'),
+        assertEdge(decoratedTypeAnnotation('C c4').node, never, hard: false));
+  }
+
+  test_postDominators_ifStatement_unconditional() async {
+    await analyze('''
+class C {
+  void m() {}
+}
+void test(bool b, C c1, C c2) {
+  if (b/*check*/) {
+    C c3 = C();
+    C c4 = C();
+    c1.m();
+    c3.m();
+
+    // We ignore exceptions for post-dominance.
+    throw '';
+    c4.m();
+
+  }
+  c2.m();
+}
+''');
+
+    assertNullCheck(checkExpression('b/*check*/'),
+        assertEdge(decoratedTypeAnnotation('bool b').node, never, hard: true));
+    assertNullCheck(checkExpression('c1.m'),
+        assertEdge(decoratedTypeAnnotation('C c1').node, never, hard: false));
+    assertNullCheck(checkExpression('c2.m'),
+        assertEdge(decoratedTypeAnnotation('C c2').node, never, hard: true));
+    assertNullCheck(checkExpression('c3.m'),
+        assertEdge(decoratedTypeAnnotation('C c3').node, never, hard: true));
+    assertNullCheck(checkExpression('c4.m'),
+        assertEdge(decoratedTypeAnnotation('C c4').node, never, hard: true));
+  }
+
+  test_postDominators_inReturn_local() async {
+    await analyze('''
+class C {
+  int m() => 0;
+}
+int test(C c) {
+  return c.m();
+}
+''');
+
+    assertNullCheck(checkExpression('c.m'),
+        assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true));
+  }
+
+  test_postDominators_loopReturn() async {
+    await analyze('''
+class C {
+  void m() {}
+}
+void test(bool b1, C _c) {
+  C c1 = _c;
+  while (b1/*check*/) {
+    bool b2 = b1;
+    C c2 = _c;
+    if (b2/*check*/) {
+      return;
+    }
+    c2.m();
+  }
+  c1.m();
+}
+''');
+
+    // TODO(mfairhurst): enable this check
+    //assertNullCheck(checkExpression('b1/*check*/'),
+    //    assertEdge(decoratedTypeAnnotation('bool b1').node, never, hard: true));
+    assertNullCheck(checkExpression('b2/*check*/'),
+        assertEdge(decoratedTypeAnnotation('bool b2').node, never, hard: true));
+    assertNullCheck(checkExpression('c1.m'),
+        assertEdge(decoratedTypeAnnotation('C c1').node, never, hard: false));
+    assertNullCheck(checkExpression('c2.m'),
+        assertEdge(decoratedTypeAnnotation('C c2').node, never, hard: false));
+  }
+
+  test_postDominators_reassign() async {
+    await analyze('''
+void test(bool b, int i1, int i2) {
+  i1 = null;
+  i1.toDouble();
+  if (b) {
+    i2 = null;
+  }
+  i2.toDouble();
+}
+''');
+
+    assertNullCheck(checkExpression('i1.toDouble'),
+        assertEdge(decoratedTypeAnnotation('int i1').node, never, hard: false));
+
+    assertNullCheck(checkExpression('i2.toDouble'),
+        assertEdge(decoratedTypeAnnotation('int i2').node, never, hard: false));
+  }
+
+  test_postDominators_shortCircuitOperators() async {
+    await analyze('''
+class C {
+  bool m() => true;
+}
+void test(C c1, C c2, C c3, C c4) {
+  c1.m() && c2.m();
+  c3.m() || c4.m();
+}
+''');
+
+    assertNullCheck(checkExpression('c1.m'),
+        assertEdge(decoratedTypeAnnotation('C c1').node, never, hard: true));
+
+    assertNullCheck(checkExpression('c3.m'),
+        assertEdge(decoratedTypeAnnotation('C c3').node, never, hard: true));
+
+    assertNullCheck(checkExpression('c2.m'),
+        assertEdge(decoratedTypeAnnotation('C c2').node, never, hard: false));
+
+    assertNullCheck(checkExpression('c4.m'),
+        assertEdge(decoratedTypeAnnotation('C c4').node, never, hard: false));
+  }
+
+  @failingTest
+  test_postDominators_subFunction() async {
+    await analyze('''
+class C {
+  void m() {}
+}
+void test() {
+  (C c) {
+    c.m();
+  };
+}
+''');
+
+    assertNullCheck(checkExpression('c.m'),
+        assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true));
+  }
+
+  @failingTest
+  test_postDominators_subFunction_ifStatement_conditional() async {
+    // Failing because function expressions aren't implemented
+    await analyze('''
+class C {
+  void m() {}
+}
+void test() {
+  (bool b, C c) {
+    if (b/*check*/) {
+      return;
+    }
+    c.m();
+  };
+}
+''');
+
+    assertNullCheck(checkExpression('b/*check*/'),
+        assertEdge(decoratedTypeAnnotation('bool b').node, never, hard: false));
+    assertNullCheck(checkExpression('c.m'),
+        assertEdge(decoratedTypeAnnotation('C c').node, never, hard: false));
+  }
+
+  @failingTest
+  test_postDominators_subFunction_ifStatement_unconditional() async {
+    // Failing because function expressions aren't implemented
+    await analyze('''
+class C {
+  void m() {}
+}
+void test() {
+  (bool b, C c) {
+    if (b/*check*/) {
+    }
+    c.m();
+  };
+}
+''');
+
+    assertNullCheck(checkExpression('b/*check*/'),
+        assertEdge(decoratedTypeAnnotation('bool b').node, never, hard: true));
+    assertNullCheck(checkExpression('c.m'),
+        assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true));
+  }
+
+  test_postDominators_ternaryOperator() async {
+    await analyze('''
+class C {
+  bool m() => true;
+}
+void test(C c1, C c2, C c3, C c4) {
+  c1.m() ? c2.m() : c3.m();
+
+  c4.m();
+}
+''');
+
+    assertNullCheck(checkExpression('c1.m'),
+        assertEdge(decoratedTypeAnnotation('C c1').node, never, hard: true));
+
+    assertNullCheck(checkExpression('c4.m'),
+        assertEdge(decoratedTypeAnnotation('C c4').node, never, hard: true));
+
+    assertNullCheck(checkExpression('c2.m'),
+        assertEdge(decoratedTypeAnnotation('C c2').node, never, hard: false));
+
+    assertNullCheck(checkExpression('c3.m'),
+        assertEdge(decoratedTypeAnnotation('C c3').node, never, hard: false));
+  }
+
+  test_postDominators_whileStatement_unconditional() async {
+    await analyze('''
+class C {
+  void m() {}
+}
+void test(bool b, C c1, C c2) {
+  while (b/*check*/) {
+    C c3 = C();
+    c1.m();
+    c3.m();
+  }
+
+  c2.m();
+}
+''');
+
+    //TODO(mfairhurst): enable this check
+    //assertNullCheck(checkExpression('b/*check*/'),
+    //    assertEdge(decoratedTypeAnnotation('bool b').node, never, hard: true));
+    assertNullCheck(checkExpression('c1.m'),
+        assertEdge(decoratedTypeAnnotation('C c1').node, never, hard: false));
+    assertNullCheck(checkExpression('c2.m'),
+        assertEdge(decoratedTypeAnnotation('C c2').node, never, hard: true));
+    assertNullCheck(checkExpression('c3.m'),
+        assertEdge(decoratedTypeAnnotation('C c3').node, never, hard: true));
   }
 
   test_postfixExpression_minusMinus() async {

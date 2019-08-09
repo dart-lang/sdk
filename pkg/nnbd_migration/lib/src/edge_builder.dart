@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
@@ -22,6 +23,7 @@ import 'package:nnbd_migration/src/edge_origin.dart';
 import 'package:nnbd_migration/src/expression_checks.dart';
 import 'package:nnbd_migration/src/node_builder.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
+import 'package:nnbd_migration/src/utilities/scoped_set.dart';
 
 /// Test class mixing in _AssignmentChecker, to allow [checkAssignment] to be
 /// more easily unit tested.
@@ -122,11 +124,13 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   /// code that can be proven unreachable by the migration tool.
   final _guards = <NullabilityNode>[];
 
-  /// Indicates whether the statement or expression being visited is within
-  /// conditional control flow.  If `true`, this means that the enclosing
-  /// function might complete normally without executing the current statement
-  /// or expression.
-  bool _inConditionalControlFlow = false;
+  /// The scope of locals (parameters, variables) that are post-dominated by the
+  /// current node as we walk the AST. We use a [ScopedSet] so that outer
+  /// scopes may track their post-dominators separately from inner scopes.
+  ///
+  /// Note that this is not guaranteed to be complete. It is used to make hard
+  /// edges on a best-effort basis.
+  final _postDominatedLocals = _ScopedLocalSet();
 
   NullabilityNode _lastConditionalNode;
 
@@ -209,10 +213,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType visitAssertStatement(AssertStatement node) {
     _handleAssignment(node.condition, _notNullType);
     if (identical(_conditionInfo?.condition, node.condition)) {
-      if (!_inConditionalControlFlow &&
-          _conditionInfo.trueDemonstratesNonNullIntent != null) {
-        _connect(_conditionInfo.trueDemonstratesNonNullIntent, _graph.never,
-            NonNullAssertionOrigin(_source, node.offset),
+      var intentNode = _conditionInfo.trueDemonstratesNonNullIntent;
+      if (intentNode != null && _conditionInfo.postDominatingIntent) {
+        _graph.connect(_conditionInfo.trueDemonstratesNonNullIntent,
+            _graph.never, NonNullAssertionOrigin(_source, node.offset),
             hard: true);
       }
     }
@@ -226,6 +230,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       // TODO(paulberry)
       _unimplemented(node, 'Assignment with operator ${node.operator.lexeme}');
     }
+    _postDominatedLocals.removeReferenceFromAllScopes(node.leftHandSide);
     var leftType = node.leftHandSide.accept(this);
     var conditionalNode = _lastConditionalNode;
     _lastConditionalNode = null;
@@ -263,6 +268,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         bool isPure = node.leftOperand is SimpleIdentifier;
         var conditionInfo = _ConditionInfo(node,
             isPure: isPure,
+            postDominatingIntent:
+                _postDominatedLocals.isReferenceInScope(node.leftOperand),
             trueGuard: leftType.node,
             falseDemonstratesNonNullIntent: leftType.node);
         _conditionInfo = operatorType == TokenType.EQ_EQ
@@ -273,7 +280,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     } else if (operatorType == TokenType.AMPERSAND_AMPERSAND ||
         operatorType == TokenType.BAR_BAR) {
       _handleAssignment(node.leftOperand, _notNullType);
-      _handleAssignment(node.rightOperand, _notNullType);
+      _postDominatedLocals.doScoped(
+          action: () => _handleAssignment(node.rightOperand, _notNullType));
       return _nonNullableBoolType;
     } else if (operatorType == TokenType.QUESTION_QUESTION) {
       DecoratedType expressionType;
@@ -315,6 +323,16 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitBooleanLiteral(BooleanLiteral node) {
     return DecoratedType(node.staticType, _graph.never);
+  }
+
+  @override
+  DecoratedType visitBreakStatement(BreakStatement node) {
+    // Later statements no longer post-dominate the declarations because we
+    // exited (or, in parent scopes, conditionally exited).
+    // TODO(mfairhurst): don't clear post-dominators beyond the current loop.
+    _postDominatedLocals.clearEachScope();
+
+    return null;
   }
 
   @override
@@ -365,9 +383,19 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitConditionalExpression(ConditionalExpression node) {
     _handleAssignment(node.condition, _notNullType);
+
+    DecoratedType thenType;
+    DecoratedType elseType;
+
     // TODO(paulberry): guard anything inside the true and false branches
-    var thenType = node.thenExpression.accept(this);
-    var elseType = node.elseExpression.accept(this);
+
+    // Post-dominators diverge as we branch in the conditional.
+    // Note: we don't have to create a scope for each branch because they can't
+    // define variables.
+    _postDominatedLocals.doScoped(action: () {
+      thenType = node.thenExpression.accept(this);
+      elseType = node.elseExpression.accept(this);
+    });
 
     var overallType = _decorateUpperOrLowerBound(
         node, node.staticType, thenType, elseType, true);
@@ -394,6 +422,16 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       ConstructorFieldInitializer node) {
     _handleAssignment(
         node.expression, getOrComputeElementType(node.fieldName.staticElement));
+    return null;
+  }
+
+  @override
+  DecoratedType visitContinueStatement(ContinueStatement node) {
+    // Later statements no longer post-dominate the declarations because we
+    // exited (or, in parent scopes, conditionally exited).
+    // TODO(mfairhurst): don't clear post-dominators beyond the current loop.
+    _postDominatedLocals.clearEachScope();
+
     return null;
   }
 
@@ -459,14 +497,53 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   @override
+  DecoratedType visitForStatement(ForStatement node) {
+    // TODO do special condition handling
+    // TODO do create true/false guards?
+    // Create a scope of for new initializers etc, which includes previous
+    // post-dominators.
+    _postDominatedLocals.doScoped(
+        copyCurrent: true,
+        action: () {
+          final parts = node.forLoopParts;
+          if (parts is ForParts) {
+            if (parts is ForPartsWithDeclarations) {
+              parts.variables.accept(this);
+            }
+            if (parts is ForPartsWithExpression) {
+              parts.initialization.accept(this);
+            }
+            parts.condition.accept(this);
+          }
+          if (parts is ForEachParts) {
+            parts.iterable.accept(this);
+          }
+
+          // The condition may fail/iterable may be empty, so the body does not
+          // post-dominate the parts, or the outer scope.
+          _postDominatedLocals.popScope();
+          _postDominatedLocals.pushScope();
+
+          if (parts is ForParts) {
+            parts.updaters.accept(this);
+          }
+
+          node.body.accept(this);
+        });
+    return null;
+  }
+
+  @override
   DecoratedType visitFunctionDeclaration(FunctionDeclaration node) {
     node.functionExpression.parameters?.accept(this);
     assert(_currentFunctionType == null);
     _currentFunctionType =
         _variables.decoratedElementType(node.declaredElement);
-    _inConditionalControlFlow = false;
+    // Initialize a new postDominator scope that contains only the parameters.
     try {
-      node.functionExpression.body.accept(this);
+      _postDominatedLocals.doScoped(
+          elements: node.functionExpression.declaredElement.parameters,
+          action: () => node.functionExpression.body.accept(this));
     } finally {
       _currentFunctionType = null;
     }
@@ -476,6 +553,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitFunctionExpression(FunctionExpression node) {
     // TODO(brianwilkerson)
+    // TODO(mfairhurst): enable edge builder "_insideFunction" hard edge tests.
     _unimplemented(node, 'FunctionExpression');
   }
 
@@ -492,7 +570,6 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     // TODO(paulberry): should the use of a boolean in an if-statement be
     // treated like an implicit `assert(b != null)`?  Probably.
     _handleAssignment(node.condition, _notNullType);
-    _inConditionalControlFlow = true;
     NullabilityNode trueGuard;
     NullabilityNode falseGuard;
     if (identical(_conditionInfo?.condition, node.condition)) {
@@ -505,7 +582,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _guards.add(trueGuard);
     }
     try {
-      node.thenStatement.accept(this);
+      // We branched, so create a new scope for post-dominators.
+      _postDominatedLocals.doScoped(
+          action: () => node.thenStatement.accept(this));
     } finally {
       if (trueGuard != null) {
         _guards.removeLast();
@@ -515,7 +594,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _guards.add(falseGuard);
     }
     try {
-      node.elseStatement?.accept(this);
+      // We branched, so create a new scope for post-dominators.
+      _postDominatedLocals.doScoped(
+          action: () => node.elseStatement?.accept(this));
     } finally {
       if (falseGuard != null) {
         _guards.removeLast();
@@ -800,6 +881,12 @@ $stackTrace''');
     } else {
       _handleAssignment(returnValue, returnType);
     }
+
+    // Later statements no longer post-dominate the declarations because we
+    // exited (or, in parent scopes, conditionally exited).
+    // TODO(mfairhurst): don't clear post-dominators beyond the current function.
+    _postDominatedLocals.clearEachScope();
+
     return null;
   }
 
@@ -962,6 +1049,17 @@ $stackTrace''');
         }
       }
     }
+    _postDominatedLocals
+        .addAll(node.variables.map((variable) => variable.declaredElement));
+    return null;
+  }
+
+  @override
+  DecoratedType visitWhileStatement(WhileStatement node) {
+    // TODO do special condition handling
+    // TODO do create true/false guards?
+    _handleAssignment(node.condition, _notNullType);
+    _postDominatedLocals.doScoped(action: () => node.body.accept(this));
     return null;
   }
 
@@ -1112,8 +1210,7 @@ $stackTrace''');
     _checkAssignment(expressionChecks,
         source: sourceType,
         destination: destinationType,
-        hard: _isVariableOrParameterReference(expression) &&
-            !_inConditionalControlFlow);
+        hard: _postDominatedLocals.isReferenceInScope(expression));
     return sourceType;
   }
 
@@ -1147,7 +1244,8 @@ $stackTrace''');
     returnType?.accept(this);
     parameters?.accept(this);
     _currentFunctionType = _variables.decoratedElementType(declaredElement);
-    _inConditionalControlFlow = false;
+    // Push a scope of post-dominated declarations on the stack.
+    _postDominatedLocals.pushScope(elements: declaredElement.parameters);
     try {
       initializers?.accept(this);
       body.accept(this);
@@ -1231,6 +1329,7 @@ $stackTrace''');
       }
     } finally {
       _currentFunctionType = null;
+      _postDominatedLocals.popScope();
     }
   }
 
@@ -1369,15 +1468,6 @@ $stackTrace''');
       return parameter.type == null;
     } else {
       return false;
-    }
-  }
-
-  bool _isVariableOrParameterReference(Expression expression) {
-    expression = expression.unParenthesized;
-    if (expression is SimpleIdentifier) {
-      var element = expression.staticElement;
-      if (element is LocalVariableElement) return true;
-      if (element is ParameterElement) return true;
     }
     return false;
   }
@@ -1572,6 +1662,9 @@ class _ConditionInfo {
   /// effect other than returning a boolean value.
   final bool isPure;
 
+  /// Indicates whether the intents postdominate the intent node declarations.
+  final bool postDominatingIntent;
+
   /// If not `null`, the [NullabilityNode] that would need to be nullable in
   /// order for [condition] to evaluate to `true`.
   final NullabilityNode trueGuard;
@@ -1581,7 +1674,7 @@ class _ConditionInfo {
   final NullabilityNode falseGuard;
 
   /// If not `null`, the [NullabilityNode] that should be asserted to have
-  //  /// non-null intent if [condition] is asserted to be `true`.
+  /// non-null intent if [condition] is asserted to be `true`.
   final NullabilityNode trueDemonstratesNonNullIntent;
 
   /// If not `null`, the [NullabilityNode] that should be asserted to have
@@ -1590,6 +1683,7 @@ class _ConditionInfo {
 
   _ConditionInfo(this.condition,
       {@required this.isPure,
+      this.postDominatingIntent,
       this.trueGuard,
       this.falseGuard,
       this.trueDemonstratesNonNullIntent,
@@ -1598,8 +1692,31 @@ class _ConditionInfo {
   /// Returns a new [_ConditionInfo] describing the boolean "not" of `this`.
   _ConditionInfo not(Expression condition) => _ConditionInfo(condition,
       isPure: isPure,
+      postDominatingIntent: postDominatingIntent,
       trueGuard: falseGuard,
       falseGuard: trueGuard,
       trueDemonstratesNonNullIntent: falseDemonstratesNonNullIntent,
       falseDemonstratesNonNullIntent: trueDemonstratesNonNullIntent);
+}
+
+/// A [ScopedSet] specific to the [Element]s of locals/parameters.
+///
+/// Contains helpers for dealing with expressions as if they were elements.
+class _ScopedLocalSet extends ScopedSet<Element> {
+  bool isReferenceInScope(Expression expression) {
+    expression = expression.unParenthesized;
+    if (expression is SimpleIdentifier) {
+      var element = expression.staticElement;
+      return isInScope(element);
+    }
+    return false;
+  }
+
+  void removeReferenceFromAllScopes(Expression expression) {
+    expression = expression.unParenthesized;
+    if (expression is SimpleIdentifier) {
+      var element = expression.staticElement;
+      removeFromAllScopes(element);
+    }
+  }
 }

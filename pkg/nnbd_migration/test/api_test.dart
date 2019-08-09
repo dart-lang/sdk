@@ -2225,6 +2225,72 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_unconditional_method_call_implies_non_null_intent_after_conditions() async {
+    var content = '''
+void g(bool b, int i1, int i2) {
+  int i3 = i1;
+  if (b) {
+    b;
+  }
+  i3.toDouble();
+  int i4 = i2;
+  if (b) {
+    b;
+    return;
+  }
+  i4.toDouble();
+}
+main() {
+  g(false, null, null);
+}
+''';
+    var expected = '''
+void g(bool b, int i1, int? i2) {
+  int i3 = i1;
+  if (b) {
+    b;
+  }
+  i3.toDouble();
+  int? i4 = i2;
+  if (b) {
+    b;
+    return;
+  }
+  i4!.toDouble();
+}
+main() {
+  g(false, null!, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_unconditional_method_call_implies_non_null_intent_in_condition() async {
+    var content = '''
+void g(bool b, int _i) {
+  if (b) {
+    int i = _i;
+    i.toDouble();
+  }
+}
+main() {
+  g(false, null);
+}
+''';
+    var expected = '''
+void g(bool b, int? _i) {
+  if (b) {
+    int i = _i!;
+    i.toDouble();
+  }
+}
+main() {
+  g(false, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_unconditional_non_null_usage_implies_non_null_intent() async {
     var content = '''
 void f(int i, int j) {

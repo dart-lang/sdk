@@ -4661,7 +4661,6 @@ class ForPartsWithDeclarationsImpl extends ForPartsImpl
 
   @override
   Token get beginToken => _variableList?.beginToken ?? super.beginToken;
-
   @override
   Iterable<SyntacticEntity> get childEntities => new ChildEntities()
     ..add(_variableList)
@@ -4704,7 +4703,6 @@ class ForPartsWithExpressionImpl extends ForPartsImpl
 
   @override
   Token get beginToken => initialization?.beginToken ?? super.beginToken;
-
   @override
   Iterable<SyntacticEntity> get childEntities => new ChildEntities()
     ..add(_initialization)
