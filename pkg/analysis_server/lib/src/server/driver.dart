@@ -401,19 +401,6 @@ class Driver implements ServerStarter {
       return null;
     }
 
-    if (analysisServerOptions.completionModelFolder != null &&
-        ffi.sizeOf<ffi.IntPtr>() != 4) {
-      // Start completion model isolate if this is a 64 bit system and
-      // analysis server was configured to load a language model on disk.
-      CompletionRanking.instance =
-          CompletionRanking(analysisServerOptions.completionModelFolder);
-      CompletionRanking.instance.start().catchError(() {
-        // Disable smart ranking if model startup fails.
-        analysisServerOptions.completionModelFolder = null;
-        CompletionRanking.instance = null;
-      });
-    }
-
     final defaultSdkPath = _getSdkPath(results);
     final dartSdkManager = new DartSdkManager(defaultSdkPath, true);
 
@@ -573,6 +560,7 @@ class Driver implements ServerStarter {
           socketServer.analysisServer.shutdown();
           exit(0);
         });
+        startCompletionRanking(socketServer, null, analysisServerOptions);
       },
           print: results[INTERNAL_PRINT_TO_CONSOLE]
               ? null
@@ -618,7 +606,36 @@ class Driver implements ServerStarter {
           exit(0);
         }
       });
+      startCompletionRanking(null, socketServer, analysisServerOptions);
     });
+  }
+
+  /// This will be invoked after createAnalysisServer has been called on the
+  /// socket server. At that point, we'll be able to send a server.error
+  /// notification in case model startup fails.
+  void startCompletionRanking(
+      SocketServer socketServer,
+      LspSocketServer lspSocketServer,
+      AnalysisServerOptions analysisServerOptions) {
+    if (analysisServerOptions.completionModelFolder != null &&
+        ffi.sizeOf<ffi.IntPtr>() != 4) {
+      // Start completion model isolate if this is a 64 bit system and
+      // analysis server was configured to load a language model on disk.
+      CompletionRanking.instance =
+          CompletionRanking(analysisServerOptions.completionModelFolder);
+      CompletionRanking.instance.start().catchError((error) {
+        // Disable smart ranking if model startup fails.
+        analysisServerOptions.completionModelFolder = null;
+        CompletionRanking.instance = null;
+        if (socketServer != null) {
+          socketServer.analysisServer.sendServerErrorNotification(
+              'Failed to start ranking model isolate', error, error.stackTrace);
+        } else {
+          lspSocketServer.analysisServer.sendServerErrorNotification(
+              'Failed to start ranking model isolate', error, error.stackTrace);
+        }
+      });
+    }
   }
 
   /**

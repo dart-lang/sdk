@@ -14,12 +14,6 @@ import 'package:analyzer/dart/analysis/features.dart';
 /// Number of lookback tokens.
 const int _LOOKBACK = 100;
 
-/// Completions coming from an [AvailableSuggestionSet] receive
-/// a base relevance between 0 and 8 which their relevanceBoost
-/// gets added on top of. Give classic completion suggestions
-/// a moderate base boost of 4 to compensate.
-const int _BASE_RELEVANCE_COMPENSATION = 4;
-
 /// Minimum probability to prioritize model-only suggestion.
 const double _MODEL_RELEVANCE_CUTOFF = 0.5;
 
@@ -145,12 +139,11 @@ class CompletionRanking {
         includedSuggestions = [];
       }
       if (!isRequestFollowingDot && entry.value > _MODEL_RELEVANCE_CUTOFF) {
+        final relevance = high--;
         if (completionSuggestions.isNotEmpty ||
             includedSuggestions.isNotEmpty) {
-          final relevance = high--;
           completionSuggestions.forEach((completionSuggestion) {
-            completionSuggestion.relevance =
-                relevance + _BASE_RELEVANCE_COMPENSATION;
+            completionSuggestion.relevance = relevance;
           });
           includedSuggestions.forEach((includedSuggestion) {
             includedSuggestion.relevanceBoost = relevance;
@@ -158,20 +151,24 @@ class CompletionRanking {
         } else {
           suggestions
               .add(createCompletionSuggestion(entry.key, featureSet, high--));
+          includedSuggestionRelevanceTags
+              .add(IncludedSuggestionRelevanceTag(entry.key, relevance));
         }
       } else if (completionSuggestions.isNotEmpty ||
           includedSuggestions.isNotEmpty) {
         final relevance = middle--;
         completionSuggestions.forEach((completionSuggestion) {
-          completionSuggestion.relevance =
-              relevance + _BASE_RELEVANCE_COMPENSATION;
+          completionSuggestion.relevance = relevance;
         });
         includedSuggestions.forEach((includedSuggestion) {
           includedSuggestion.relevanceBoost = relevance;
         });
       } else if (!isRequestFollowingDot) {
-        suggestions.add(createCompletionSuggestion(
-            entry.key, featureSet, _BASE_RELEVANCE_COMPENSATION + low--));
+        final relevance = low--;
+        suggestions
+            .add(createCompletionSuggestion(entry.key, featureSet, relevance));
+        includedSuggestionRelevanceTags
+            .add(IncludedSuggestionRelevanceTag(entry.key, relevance));
       }
     });
 
