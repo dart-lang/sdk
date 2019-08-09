@@ -959,7 +959,13 @@ void BytecodeFlowGraphBuilder::BuildDynamicCall() {
   }
 
   const ICData& icdata = ICData::Cast(ConstantAt(DecodeOperandD()).value());
-  ASSERT(ic_data_array_->At(icdata.deopt_id())->Original() == icdata.raw());
+  const intptr_t deopt_id = icdata.deopt_id();
+  ic_data_array_->EnsureLength(deopt_id + 1, nullptr);
+  if (ic_data_array_->At(deopt_id) == nullptr) {
+    (*ic_data_array_)[deopt_id] = &icdata;
+  } else {
+    ASSERT(ic_data_array_->At(deopt_id)->Original() == icdata.raw());
+  }
 
   const intptr_t argc = DecodeOperandF().value();
   const ArgumentsDescriptor arg_desc(
@@ -1789,22 +1795,7 @@ void BytecodeFlowGraphBuilder::ProcessICDataInObjectPool(
     if (IsICDataEntry(object_pool, i)) {
       const ICData& icdata = ICData::CheckedHandle(Z, object_pool.ObjectAt(i));
       const intptr_t deopt_id = compiler_state.GetNextDeoptId();
-
       ASSERT(icdata.deopt_id() == deopt_id);
-      ASSERT(ic_data_array_->is_empty() ||
-             (ic_data_array_->At(deopt_id)->Original() == icdata.raw()));
-    }
-  }
-
-  if (ic_data_array_->is_empty()) {
-    const intptr_t len = compiler_state.deopt_id();
-    ic_data_array_->EnsureLength(len, nullptr);
-    for (intptr_t i = 0; i < pool_length; ++i) {
-      if (IsICDataEntry(object_pool, i)) {
-        const ICData& icdata =
-            ICData::CheckedHandle(Z, object_pool.ObjectAt(i));
-        (*ic_data_array_)[icdata.deopt_id()] = &icdata;
-      }
     }
   }
 }
