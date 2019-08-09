@@ -16,7 +16,7 @@ group("default") {
   deps = [
     ":runtime",
   ]
-  if (checkout_llvm) {
+  if (defined(checkout_llvm) && checkout_llvm) {
     deps += [
       ":llvm_codegen"
     ]
@@ -126,7 +126,7 @@ group("analysis_server") {
 }
 
 group("check_llvm") {
-  if (checkout_llvm) {
+  if (defined(checkout_llvm) && checkout_llvm) {
     deps = [
       "runtime/llvm_codegen/test",
     ]
@@ -134,7 +134,7 @@ group("check_llvm") {
 }
 
 group("llvm_codegen") {
-  if (checkout_llvm) {
+  if (defined(checkout_llvm) && checkout_llvm) {
     deps = [
       "runtime/llvm_codegen/codegen",
       "runtime/llvm_codegen/bit",
