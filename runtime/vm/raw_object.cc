@@ -302,6 +302,13 @@ intptr_t RawObject::VisitPointersPredefined(ObjectPointerVisitor* visitor,
       size = RawDynamicLibrary::VisitDynamicLibraryPointers(raw_obj, visitor);
       break;
     }
+#define RAW_VISITPOINTERS(clazz) case kFfi##clazz##Cid:
+      CLASS_LIST_FFI_TYPE_MARKER(RAW_VISITPOINTERS) {
+        // NativeType do not have any fields or type arguments.
+        size = HeapSize();
+        break;
+      }
+#undef RAW_VISITPOINTERS
     case kFreeListElement: {
       uword addr = RawObject::ToAddr(this);
       FreeListElement* element = reinterpret_cast<FreeListElement*>(addr);
