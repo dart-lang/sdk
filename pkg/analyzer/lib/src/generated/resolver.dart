@@ -25,6 +25,7 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ConstructorMember;
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/exit_detector.dart';
+import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
@@ -3822,6 +3823,18 @@ class ResolverVisitor extends ScopedVisitor {
     } finally {
       typeAnalyzer.thisType = null;
     }
+  }
+
+  @override
+  void visitExtensionOverride(ExtensionOverride node) {
+    node.extensionName.accept(this);
+    node.typeArguments?.accept(this);
+
+    ExtensionMemberResolver(this).setOverrideReceiverContextType(node);
+    node.argumentList.accept(this);
+
+    node.accept(elementResolver);
+    node.accept(typeAnalyzer);
   }
 
   @override

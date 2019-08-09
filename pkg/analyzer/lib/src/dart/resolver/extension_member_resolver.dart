@@ -66,6 +66,7 @@ class ExtensionMemberResolver {
     return ExtensionResolutionResult.ambiguous;
   }
 
+  /// Perform upward inference for the override.
   void resolveOverride(ExtensionOverride node) {
     var nodeImpl = node as ExtensionOverrideImpl;
     var element = node.staticElement;
@@ -112,6 +113,44 @@ class ExtensionMemberResolver {
         [receiverType, node.extendedType],
       );
     }
+  }
+
+  /// Set the type context for the receiver of the override.
+  ///
+  /// The context of the invocation that is made through the override does
+  /// not affect the type inference of the override and the receiver.
+  void setOverrideReceiverContextType(ExtensionOverride node) {
+    var element = node.staticElement;
+    var typeParameters = element.typeParameters;
+
+    var arguments = node.argumentList.arguments;
+    if (arguments.length != 1) {
+      return;
+    }
+
+    List<DartType> typeArgumentTypes;
+    var typeArguments = node.typeArguments;
+    if (typeArguments != null) {
+      var arguments = typeArguments.arguments;
+      if (arguments.length == typeParameters.length) {
+        typeArgumentTypes = arguments.map((a) => a.type).toList();
+      } else {
+        typeArgumentTypes = _listOfDynamic(typeParameters);
+      }
+    } else {
+      typeArgumentTypes = List.filled(
+        typeParameters.length,
+        UnknownInferredType.instance,
+      );
+    }
+
+    var extendedForDownward = Substitution.fromPairs(
+      typeParameters,
+      typeArgumentTypes,
+    ).substituteType(element.extendedType);
+
+    var receiver = arguments[0];
+    InferenceContext.setType(receiver, extendedForDownward);
   }
 
   /// Return the most specific extension or `null` if no single one can be
@@ -295,21 +334,17 @@ class ExtensionMemberResolver {
         return _listOfDynamic(typeParameters);
       }
     } else {
-      if (receiverType != null) {
-        var inferrer = GenericInferrer(
-          _typeProvider,
-          _typeSystem,
-          typeParameters,
-        );
-        inferrer.constrainArgument(
-          receiverType,
-          extension.extendedType,
-          'extendedType',
-        );
-        return inferrer.infer(typeParameters);
-      } else {
-        return _listOfDynamic(typeParameters);
-      }
+      var inferrer = GenericInferrer(
+        _typeProvider,
+        _typeSystem,
+        typeParameters,
+      );
+      inferrer.constrainArgument(
+        receiverType,
+        extension.extendedType,
+        'extendedType',
+      );
+      return inferrer.infer(typeParameters);
     }
   }
 

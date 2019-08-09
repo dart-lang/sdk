@@ -137,6 +137,48 @@ void f(A<int> a) {
     );
   }
 
+  test_override_downward_hasTypeArguments() async {
+    await assertNoErrorsInCode('''
+extension E<T> on Set<T> {
+  void foo() {}
+}
+
+main() {
+  E<int>({}).foo();
+}
+''');
+    var literal = findNode.setOrMapLiteral('{}).');
+    assertType(literal, 'Set<int>');
+  }
+
+  test_override_downward_hasTypeArguments_wrongNumber() async {
+    await assertNoErrorsInCode('''
+extension E<T> on Set<T> {
+  void foo() {}
+}
+
+main() {
+  E<int, bool>({}).foo();
+}
+''');
+    var literal = findNode.setOrMapLiteral('{}).');
+    assertType(literal, 'Set<dynamic>');
+  }
+
+  test_override_downward_noTypeArguments() async {
+    await assertNoErrorsInCode('''
+extension E<T> on Set<T> {
+  void foo() {}
+}
+
+main() {
+  E({}).foo();
+}
+''');
+    var literal = findNode.setOrMapLiteral('{}).');
+    assertType(literal, 'Set<dynamic>');
+  }
+
   test_override_hasTypeArguments_getter() async {
     await assertNoErrorsInCode('''
 class A<T> {}
