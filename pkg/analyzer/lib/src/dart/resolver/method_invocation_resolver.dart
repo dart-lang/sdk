@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
+import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -338,8 +339,9 @@ class MethodInvocationResolver {
 
   /// If there is an extension matching the [receiverType] and defining a
   /// member with the given [name], resolve to the corresponding extension
-  /// method and return `true`. Otherwise return `false`.
-  ExtensionResolutionResult _resolveExtension(
+  /// method. Return a result indicating whether the [node] was resolved and if
+  /// not why.
+  ResolutionResult _resolveExtension(
     MethodInvocation node,
     DartType receiverType,
     SimpleIdentifier nameNode,
@@ -357,7 +359,7 @@ class MethodInvocationResolver {
       return result;
     }
 
-    ExecutableElement member = result.extension.instantiatedMember;
+    ExecutableElement member = result.element;
 
     if (member.isStatic) {
       _setDynamicResolution(node);
@@ -579,7 +581,7 @@ class MethodInvocationResolver {
     var result = _extensionResolver.findExtension(
         receiverType, name, nameNode, ElementKind.METHOD);
     if (result.isSingle) {
-      var target = result.extension.instantiatedMember;
+      var target = result.element;
       if (target != null) {
         nameNode.staticElement = target;
         var calleeType = _getCalleeType(node, target);
@@ -744,7 +746,7 @@ class MethodInvocationResolver {
         var result = _extensionResolver.findExtension(
             type, _nameCall.name, node.methodName, ElementKind.METHOD);
         if (result.isSingle) {
-          call = result.extension.instantiatedMember;
+          call = result.element;
         }
       }
       if (call != null && call.kind == ElementKind.METHOD) {

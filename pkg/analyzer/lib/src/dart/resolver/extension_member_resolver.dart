@@ -9,6 +9,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -35,23 +36,21 @@ class ExtensionMemberResolver {
   /// If no applicable extensions, return `null`.
   ///
   /// If the match is ambiguous, report an error and return `null`.
-  ExtensionResolutionResult findExtension(
+  ResolutionResult findExtension(
       DartType type, String name, Expression target, ElementKind kind) {
     var extensions = _getApplicable(type, name, kind);
 
     if (extensions.isEmpty) {
-      return ExtensionResolutionResult.none;
+      return ResolutionResult.none;
     }
 
     if (extensions.length == 1) {
-      return ExtensionResolutionResult(
-          ExtensionResolutionState.single, extensions[0]);
+      return ResolutionResult(extensions[0].instantiatedMember);
     }
 
     var extension = _chooseMostSpecific(extensions);
     if (extension != null) {
-      return ExtensionResolutionResult(
-          ExtensionResolutionState.single, extension);
+      return ResolutionResult(extension.instantiatedMember);
     }
 
     _errorReporter.reportErrorForNode(
@@ -63,7 +62,7 @@ class ExtensionMemberResolver {
         extensions[1].element.name,
       ],
     );
-    return ExtensionResolutionResult.ambiguous;
+    return ResolutionResult.ambiguous;
   }
 
   /// Perform upward inference for the override.
@@ -383,9 +382,9 @@ class ExtensionMemberResolver {
     // 2. they are both declared in platform libraries or both declared in
     //    non-platform libraries, and
     if (_isSubtypeAndNotViceVersa(t11, t21)) {
-      // 3. the instantiated type (the type after applying type inference from the
-      //    receiver) of T1 is a subtype of the instantiated type of T2 and either
-      //    not vice versa
+      // 3. the instantiated type (the type after applying type inference from
+      //    the receiver) of T1 is a subtype of the instantiated type of T2 and
+      //    either not vice versa
       return true;
     }
 
@@ -425,48 +424,6 @@ class ExtensionMemberResolver {
         parent is PrefixExpression ||
         parent is PropertyAccess && parent.target == node;
   }
-}
-
-/// The result of attempting to resolve an identifier to an extension member.
-class ExtensionResolutionResult {
-  /// An instance that can be used anywhere that no extension member was found.
-  static const ExtensionResolutionResult none =
-      ExtensionResolutionResult(ExtensionResolutionState.none, null);
-
-  /// An instance that can be used anywhere that multiple ambiguous members were
-  /// found.
-  static const ExtensionResolutionResult ambiguous =
-      ExtensionResolutionResult(ExtensionResolutionState.ambiguous, null);
-
-  /// The state of the result.
-  final ExtensionResolutionState state;
-
-  /// The extension that was found, or `null` if the [state] is not
-  /// [ExtensionResolutionState.single].
-  final InstantiatedExtension extension;
-
-  /// Initialize a newly created result.
-  const ExtensionResolutionResult(this.state, this.extension);
-
-  /// Return `true` if this result represents the case where no extension member
-  /// was found.
-  bool get isNone => state == ExtensionResolutionState.none;
-
-  /// Return `true` if this result represents the case where a single extension
-  /// member was found.
-  bool get isSingle => extension != null;
-}
-
-/// The state of an [ExtensionResolutionResult].
-enum ExtensionResolutionState {
-  /// Indicates that no extension member was found.
-  none,
-
-  /// Indicates that a single extension member was found.
-  single,
-
-  /// Indicates that multiple ambiguous members were found.
-  ambiguous
 }
 
 class InstantiatedExtension {

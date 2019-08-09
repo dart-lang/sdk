@@ -1246,7 +1246,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       node,
       ElementKind.METHOD,
     );
-    var instantiatedMember = result.extension?.instantiatedMember;
+    var instantiatedMember = result.element;
     if (instantiatedMember is MethodElement) {
       return instantiatedMember;
     }
@@ -1272,7 +1272,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       var result = _extensionMemberResolver.findExtension(
           type, name, nameNode, ElementKind.GETTER);
       if (result.isSingle) {
-        return result.extension.instantiatedMember;
+        return result.element;
       }
     }
     return null;
@@ -1310,7 +1310,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       var result = _extensionMemberResolver.findExtension(
           type, name, nameNode, ElementKind.METHOD);
       if (result.isSingle) {
-        return result.extension.instantiatedMember;
+        return result.element;
       }
     }
     return null;
@@ -1334,7 +1334,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       var result = _extensionMemberResolver.findExtension(
           type, name, nameNode, ElementKind.SETTER);
       if (result.isSingle) {
-        return result.extension.instantiatedMember;
+        return result.element;
       }
     }
     return null;
@@ -1593,7 +1593,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
         var result = _extensionMemberResolver.findExtension(
             leftType, methodName, node, ElementKind.METHOD);
         if (result.isSingle) {
-          invokeElement = result.extension.instantiatedMember;
+          invokeElement = result.element;
         }
       }
 
