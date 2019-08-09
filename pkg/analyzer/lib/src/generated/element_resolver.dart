@@ -1240,13 +1240,13 @@ class ElementResolver extends SimpleAstVisitor<void> {
       return callMethod;
     }
 
-    var extension = _extensionMemberResolver.findExtension(
+    var result = _extensionMemberResolver.findExtension(
       type,
       FunctionElement.CALL_METHOD_NAME,
       node,
       ElementKind.METHOD,
     );
-    var instantiatedMember = extension?.instantiatedMember;
+    var instantiatedMember = result.extension?.instantiatedMember;
     if (instantiatedMember is MethodElement) {
       return instantiatedMember;
     }
@@ -1269,10 +1269,10 @@ class ElementResolver extends SimpleAstVisitor<void> {
       if (getter != null) {
         return getter;
       }
-      var extension = _extensionMemberResolver.findExtension(
+      var result = _extensionMemberResolver.findExtension(
           type, name, nameNode, ElementKind.GETTER);
-      if (extension != null) {
-        return extension.instantiatedMember;
+      if (result.isSingle) {
+        return result.extension.instantiatedMember;
       }
     }
     return null;
@@ -1307,10 +1307,10 @@ class ElementResolver extends SimpleAstVisitor<void> {
       if (method != null) {
         return method;
       }
-      var extension = _extensionMemberResolver.findExtension(
+      var result = _extensionMemberResolver.findExtension(
           type, name, nameNode, ElementKind.METHOD);
-      if (extension != null) {
-        return extension.instantiatedMember;
+      if (result.isSingle) {
+        return result.extension.instantiatedMember;
       }
     }
     return null;
@@ -1331,10 +1331,10 @@ class ElementResolver extends SimpleAstVisitor<void> {
       if (setter != null) {
         return setter;
       }
-      var extension = _extensionMemberResolver.findExtension(
+      var result = _extensionMemberResolver.findExtension(
           type, name, nameNode, ElementKind.SETTER);
-      if (extension != null) {
-        return extension.instantiatedMember;
+      if (result.isSingle) {
+        return result.extension.instantiatedMember;
       }
     }
     return null;
@@ -1590,10 +1590,10 @@ class ElementResolver extends SimpleAstVisitor<void> {
       }
 
       if (invokeElement == null && leftType is InterfaceType) {
-        var extension = _extensionMemberResolver.findExtension(
+        var result = _extensionMemberResolver.findExtension(
             leftType, methodName, node, ElementKind.METHOD);
-        if (extension != null) {
-          invokeElement = extension.instantiatedMember;
+        if (result.isSingle) {
+          invokeElement = result.extension.instantiatedMember;
         }
       }
 
@@ -1785,19 +1785,17 @@ class ElementResolver extends SimpleAstVisitor<void> {
     }
     propertyName.staticElement = staticElement;
     if (_shouldReportInvalidMember(staticType, staticElement)) {
-      Element staticOrPropagatedEnclosingElt = staticType.element;
-      bool isStaticProperty = _isStatic(staticOrPropagatedEnclosingElt);
+      Element enclosingElement = staticType.element;
+      bool isStaticProperty = _isStatic(enclosingElement);
       // Special getter cases.
       if (propertyName.inGetterContext()) {
-        if (!isStaticProperty &&
-            staticOrPropagatedEnclosingElt is ClassElement) {
-          InterfaceType targetType = staticOrPropagatedEnclosingElt.type;
+        if (!isStaticProperty && enclosingElement is ClassElement) {
+          InterfaceType targetType = enclosingElement.type;
           if (targetType != null &&
               targetType.isDartCoreFunction &&
               propertyName.name == FunctionElement.CALL_METHOD_NAME) {
             return;
-          } else if (staticOrPropagatedEnclosingElt.isEnum &&
-              propertyName.name == "_name") {
+          } else if (enclosingElement.isEnum && propertyName.name == "_name") {
             _resolver.errorReporter.reportErrorForNode(
                 CompileTimeErrorCode.ACCESS_PRIVATE_ENUM_FIELD,
                 propertyName,
@@ -1806,8 +1804,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
           }
         }
       }
-      Element declaringElement =
-          staticType.isVoid ? null : staticOrPropagatedEnclosingElt;
+      Element declaringElement = staticType.isVoid ? null : enclosingElement;
       if (propertyName.inSetterContext()) {
         ErrorCode errorCode;
         var arguments = [propertyName.name, staticType.displayName];

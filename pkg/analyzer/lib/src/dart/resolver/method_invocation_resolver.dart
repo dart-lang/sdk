@@ -339,25 +339,25 @@ class MethodInvocationResolver {
   /// If there is an extension matching the [receiverType] and defining a
   /// member with the given [name], resolve to the corresponding extension
   /// method and return `true`. Otherwise return `false`.
-  bool _resolveExtension(
+  ExtensionResolutionResult _resolveExtension(
     MethodInvocation node,
     DartType receiverType,
     SimpleIdentifier nameNode,
     String name,
   ) {
-    var extension = _extensionResolver.findExtension(
+    var result = _extensionResolver.findExtension(
       receiverType,
       name,
       nameNode,
       ElementKind.METHOD,
     );
 
-    if (extension == null) {
+    if (!result.isSingle) {
       _setDynamicResolution(node);
-      return false;
+      return result;
     }
 
-    ExecutableElement member = extension.instantiatedMember;
+    ExecutableElement member = result.extension.instantiatedMember;
 
     if (member.isStatic) {
       _setDynamicResolution(node);
@@ -365,13 +365,13 @@ class MethodInvocationResolver {
         CompileTimeErrorCode.ACCESS_STATIC_EXTENSION_MEMBER,
         nameNode,
       );
-      return true;
+      return result;
     }
 
     nameNode.staticElement = member;
     var calleeType = _getCalleeType(node, member);
     _setResolution(node, calleeType);
-    return true;
+    return result;
   }
 
   void _resolveExtensionMember(MethodInvocation node, Identifier receiver,
@@ -479,9 +479,9 @@ class MethodInvocationResolver {
     }
 
     // Look for an applicable extension.
-    {
-      var success = _resolveExtension(node, receiverType, nameNode, name);
-      if (success) return;
+    var result = _resolveExtension(node, receiverType, nameNode, name);
+    if (result.isSingle) {
+      return;
     }
 
     // The interface of the receiver does not have an instance member.
@@ -503,11 +503,13 @@ class MethodInvocationResolver {
     }
 
     _setDynamicResolution(node);
-    _resolver.errorReporter.reportErrorForNode(
-      StaticTypeWarningCode.UNDEFINED_METHOD,
-      nameNode,
-      [name, receiverType.element.displayName],
-    );
+    if (result.isNone) {
+      _resolver.errorReporter.reportErrorForNode(
+        StaticTypeWarningCode.UNDEFINED_METHOD,
+        nameNode,
+        [name, receiverType.element.displayName],
+      );
+    }
   }
 
   void _resolveReceiverNull(
@@ -574,10 +576,10 @@ class MethodInvocationResolver {
       return;
     }
 
-    var extension = _extensionResolver.findExtension(
+    var result = _extensionResolver.findExtension(
         receiverType, name, nameNode, ElementKind.METHOD);
-    if (extension != null) {
-      var target = extension.instantiatedMember;
+    if (result.isSingle) {
+      var target = result.extension.instantiatedMember;
       if (target != null) {
         nameNode.staticElement = target;
         var calleeType = _getCalleeType(node, target);
@@ -739,10 +741,10 @@ class MethodInvocationResolver {
     if (type is InterfaceType) {
       var call = _inheritance.getMember(type, _nameCall);
       if (call == null) {
-        var extension = _extensionResolver.findExtension(
+        var result = _extensionResolver.findExtension(
             type, _nameCall.name, node.methodName, ElementKind.METHOD);
-        if (extension != null) {
-          call = extension.instantiatedMember;
+        if (result.isSingle) {
+          call = result.extension.instantiatedMember;
         }
       }
       if (call != null && call.kind == ElementKind.METHOD) {

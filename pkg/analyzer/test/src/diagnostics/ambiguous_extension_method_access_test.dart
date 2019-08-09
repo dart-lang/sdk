@@ -60,7 +60,6 @@ f(A a) {
   a.a();
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_METHOD, 107, 1),
       error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_METHOD_ACCESS, 107, 1),
     ]);
   }
