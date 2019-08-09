@@ -4,6 +4,7 @@ import "dart:core" as core;
 
 class _Y<T extends core::Object* = dynamic> extends core::Object {
   const constructor •() → self::_Y<self::_Y::T*>*
+    : super core::Object::•()
     ;
 }
 class A<T extends core::Object* = dynamic> extends core::Object {

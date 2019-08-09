@@ -31,6 +31,7 @@ import "dart:core" as core;
 class C extends core::Object {
   static field dynamic _redirecting# = <dynamic>[self::C::good];
   const constructor constant() → self::C*
+    : super core::Object::•()
     ;
   constructor missingFactoryKeyword() → self::C*
     ;

@@ -10,6 +10,7 @@ class C<T extends core::Object* = dynamic> extends core::Object {
 }
 class D<T extends core::Object* = dynamic> extends core::Object {
   const constructor foo() → self::D<self::D::T*>*
+    : super core::Object::•()
     ;
 }
 static method main() → dynamic
@@ -25,5 +26,6 @@ class E<T extends core::Object* = dynamic> extends core::Object {
 }
 class F<T extends core::Object* = dynamic> extends core::Object {
   const constructor foo() → self2::F<self2::F::T*>*
+    : super core::Object::•()
     ;
 }

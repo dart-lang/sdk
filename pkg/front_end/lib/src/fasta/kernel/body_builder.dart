@@ -1227,6 +1227,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     } else {
       handleNoInitializers();
     }
+    // We are passing [AsyncMarker.Sync] because the error will be reported
+    // already.
+    finishConstructor(member, AsyncMarker.Sync);
   }
 
   Expression parseFieldInitializer(Token token) {

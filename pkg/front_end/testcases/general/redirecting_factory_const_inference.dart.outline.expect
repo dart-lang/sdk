@@ -9,6 +9,7 @@ class _X<T extends core::Object* = dynamic> extends core::Object {
 }
 class _Y<T extends core::Object* = dynamic> extends core::Object implements self::_X<self::_Y::T*> {
   const constructor •() → self::_Y<self::_Y::T*>*
+    : super core::Object::•()
     ;
 }
 class A<T extends core::Object* = dynamic> extends core::Object {

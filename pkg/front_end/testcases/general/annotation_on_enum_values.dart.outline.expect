@@ -5,7 +5,7 @@ import "dart:core" as core;
 class Fisk<T extends core::Object* = dynamic> extends core::Object {
   final field self::Fisk::T* x;
   const constructor fisk(self::Fisk::T* x) → self::Fisk<self::Fisk::T*>*
-    : self::Fisk::x = x
+    : self::Fisk::x = x, super core::Object::•()
     ;
 }
 class Foo extends core::Object {

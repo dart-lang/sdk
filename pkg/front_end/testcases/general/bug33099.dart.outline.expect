@@ -7,6 +7,7 @@ import "dart:mirrors";
 
 class _FailingTest extends core::Object {
   const constructor •() → self::_FailingTest*
+    : super core::Object::•()
     ;
 }
 class MyTest extends core::Object {

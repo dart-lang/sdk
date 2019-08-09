@@ -4,8 +4,10 @@ import "dart:core" as core;
 
 class Foo extends core::Object {
   const constructor •(core::List<core::String*>* l) → self::Foo*
+    : super core::Object::•()
     ;
   const constructor named(core::List<core::String*>* l) → self::Foo*
+    : super core::Object::•()
     ;
 }
 @self::Foo::•(const <dynamic>[])

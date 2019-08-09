@@ -8,6 +8,7 @@ typedef F1 = () →* void;
 typedef F2 = () →* void;
 class A extends core::Object {
   const constructor •(core::int* value) → self::A*
+    : super core::Object::•()
     ;
 }
 @self::a

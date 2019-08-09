@@ -7,6 +7,7 @@ import "package:expect/expect.dart";
 class A extends core::Object {
   static field dynamic _redirecting# = <dynamic>[self::A::•];
   const constructor empty() → self::A*
+    : super core::Object::•()
     ;
   static factory •() → self::A*
     let dynamic #redirecting_factory = self::B::• in let core::String* #typeArg0 = null in invalid-expression;

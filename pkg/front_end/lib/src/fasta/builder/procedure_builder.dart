@@ -96,8 +96,6 @@ import '../problems.dart' show unexpected;
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
-import '../source/source_loader.dart' show SourceLoader;
-
 import '../type_inference/type_inference_engine.dart'
     show IncludesTypeParametersNonCovariantly, Variance;
 
@@ -657,11 +655,6 @@ class ConstructorBuilder extends FunctionBuilder {
           library, classBuilder, this, classBuilder.scope, fileUri);
       bodyBuilder.constantContext = ConstantContext.inferred;
       bodyBuilder.parseInitializers(beginInitializers);
-      if (library.loader is SourceLoader) {
-        SourceLoader loader = library.loader;
-        loader.transformPostInference(target, bodyBuilder.transformSetLiterals,
-            bodyBuilder.transformCollections);
-      }
       bodyBuilder.resolveRedirectingFactoryTargets();
     }
     beginInitializers = null;

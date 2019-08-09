@@ -18,6 +18,7 @@ Try removing the extra positional arguments.
                     ^"
     ;
   const constructor x() → self::C*
+    : super core::Object::•()
     ;
 }
 static method main() → dynamic

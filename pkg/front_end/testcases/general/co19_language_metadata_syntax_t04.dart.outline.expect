@@ -18,6 +18,7 @@ import "dart:core" as core;
 
 class A extends core::Object {
   const constructor •() → self::A*
+    : super core::Object::•()
     ;
 }
 class B extends core::Object {

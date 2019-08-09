@@ -27,6 +27,7 @@ class Foo<T extends core::Object* = dynamic> extends core::Object {
 }
 class Bar<T extends core::Object* = dynamic> extends core::Object {
   const constructor •() → self::Bar<self::Bar::T*>*
+    : super core::Object::•()
     ;
 }
 static method main() → dynamic

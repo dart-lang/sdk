@@ -4,6 +4,7 @@ import "dart:core" as core;
 
 class Constant extends core::Object {
   const constructor •() → self::Constant*
+    : super core::Object::•()
     ;
 }
 class NotConstant extends core::Object {
