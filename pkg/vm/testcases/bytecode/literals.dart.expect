@@ -390,8 +390,7 @@ Function 'testFieldWithDoubleLiteralInitializer', static, reflectable, debuggabl
 Bytecode {
   Entry                0
   CheckStack           0
-  PushConstant         CP#0
-  PushStatic           CP#0
+  LoadStatic           CP#0
   ReturnTOS
 }
 ConstantPool {

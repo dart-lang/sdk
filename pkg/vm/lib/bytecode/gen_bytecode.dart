@@ -3074,10 +3074,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       if (target.isConst) {
         _genPushConstExpr(target.initializer);
       } else if (_hasTrivialInitializer(target)) {
-        final fieldIndex = cp.addStaticField(target);
-        asm.emitPushConstant(
-            fieldIndex); // TODO(alexmarkov): do we really need this?
-        asm.emitPushStatic(fieldIndex);
+        asm.emitLoadStatic(cp.addStaticField(target));
       } else {
         _genDirectCall(target, objectTable.getArgDescHandle(0), 0, isGet: true);
       }

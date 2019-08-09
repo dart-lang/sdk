@@ -247,6 +247,8 @@ static intptr_t GetConstantPoolIndex(const KBCInstr* instr) {
     case KernelBytecode::kPushConstant_Wide:
     case KernelBytecode::kStoreStaticTOS:
     case KernelBytecode::kStoreStaticTOS_Wide:
+    case KernelBytecode::kLoadStatic:
+    case KernelBytecode::kLoadStatic_Wide:
     case KernelBytecode::kPushStatic:
     case KernelBytecode::kPushStatic_Wide:
     case KernelBytecode::kAllocate:

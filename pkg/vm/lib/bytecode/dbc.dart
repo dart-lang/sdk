@@ -10,7 +10,7 @@ library vm.bytecode.dbc;
 /// Before bumping current bytecode version format, make sure that
 /// all users have switched to a VM which is able to consume new
 /// version of bytecode.
-const int currentBytecodeFormatVersion = 18;
+const int currentBytecodeFormatVersion = 19;
 
 enum Opcode {
   kUnusedOpcode000,
@@ -168,8 +168,8 @@ enum Opcode {
   kUnused17, // Reserved for PushParamLast1
   kPopLocal,
   kPopLocal_Wide,
-  kUnused18, // Reserved for PopLocal0
-  kUnused19,
+  kLoadStatic,
+  kLoadStatic_Wide,
   kStoreLocal,
   kStoreLocal_Wide,
 
@@ -182,8 +182,8 @@ enum Opcode {
   kUnused20,
 
   // Static fields.
-  kPushStatic,
-  kPushStatic_Wide,
+  kUnused40,
+  kUnused41,
   kStoreStaticTOS,
   kStoreStaticTOS_Wide,
 
@@ -412,7 +412,7 @@ const Map<Opcode, Format> BytecodeFormats = const {
       Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
   Opcode.kStoreIndexedTOS: const Format(
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kPushStatic: const Format(
+  Opcode.kLoadStatic: const Format(
       Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
   Opcode.kStoreStaticTOS: const Format(
       Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
@@ -633,7 +633,6 @@ bool isPush(Opcode opcode) {
     case Opcode.kPushTrue:
     case Opcode.kPushFalse:
     case Opcode.kPushInt:
-    case Opcode.kPushStatic:
       return true;
     default:
       return false;

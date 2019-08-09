@@ -1207,6 +1207,25 @@ void BytecodeFlowGraphBuilder::BuildStoreStaticTOS() {
   code_ += B->StoreStaticField(position_, field);
 }
 
+void BytecodeFlowGraphBuilder::BuildLoadStatic() {
+  const Constant operand = ConstantAt(DecodeOperandD());
+  const auto& field = Field::Cast(operand.value());
+  // All constant expressions (including access to const fields) are evaluated
+  // in bytecode. However, values of injected cid fields are only available in
+  // the VM. In such case, evaluate const fields with known value here.
+  if (field.is_const() && !field.has_initializer()) {
+    const auto& value = Object::ZoneHandle(Z, field.StaticValue());
+    ASSERT((value.raw() != Object::sentinel().raw()) &&
+           (value.raw() != Object::transition_sentinel().raw()));
+    code_ += B->Constant(value);
+    return;
+  }
+  PushConstant(operand);
+  code_ += B->LoadStaticField();
+}
+
+static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 19,
+              "Cleanup PushStatic bytecode instruction");
 void BytecodeFlowGraphBuilder::BuildPushStatic() {
   // Note: Field object is both pushed into the stack and
   // available in constant pool entry D.
