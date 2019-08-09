@@ -7,6 +7,7 @@
 
 import 'dart:async' show Future;
 
+import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:kernel/kernel.dart' show Component, CanonicalName;
 
 import 'package:kernel/target/targets.dart' show Target;
@@ -72,8 +73,9 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
   Map<Uri, WorkerInputComponent> workerInputCache =
       oldState?.workerInputCache ?? new Map<Uri, WorkerInputComponent>();
   bool startOver = false;
-  Map<ExperimentalFlag, bool> experimentalFlags =
-      parseExperimentalFlags(experiments, (e) => throw e);
+  Map<ExperimentalFlag, bool> experimentalFlags = parseExperimentalFlags(
+      parseExperimentalArguments(experiments),
+      onError: (e) => throw e);
 
   if (oldState == null ||
       oldState.incrementalCompiler == null ||
@@ -218,7 +220,9 @@ Future<InitializedCompilerState> initializeCompiler(
     ..target = target
     ..fileSystem = fileSystem
     ..environmentDefines = const {}
-    ..experimentalFlags = parseExperimentalFlags(experiments, (e) => throw e);
+    ..experimentalFlags = parseExperimentalFlags(
+        parseExperimentalArguments(experiments),
+        onError: (e) => throw e);
 
   ProcessedOptions processedOpts = new ProcessedOptions(options: options);
 

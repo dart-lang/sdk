@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 export '../api_prototype/compiler_options.dart'
-    show CompilerOptions, parseExperimentalFlags;
+    show CompilerOptions, parseExperimentalArguments, parseExperimentalFlags;
 
 export '../api_prototype/diagnostic_message.dart'
     show DiagnosticMessage, DiagnosticMessageHandler, getMessageUri;

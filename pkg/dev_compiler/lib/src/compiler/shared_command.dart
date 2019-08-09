@@ -7,7 +7,7 @@ import 'dart:io';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:args/args.dart';
 import 'package:front_end/src/api_unstable/ddc.dart'
-    show InitializedCompilerState;
+    show InitializedCompilerState, parseExperimentalArguments;
 import 'package:path/path.dart' as p;
 import 'module_builder.dart';
 import '../analyzer/command.dart' as analyzer_compiler;
@@ -117,8 +117,8 @@ class SharedCompilerOptions {
             summarizeApi: args['summarize'] as bool,
             emitMetadata: args['emit-metadata'] as bool,
             enableAsserts: args['enable-asserts'] as bool,
-            experiments:
-                _parseExperiments(args['enable-experiment'] as List<String>),
+            experiments: parseExperimentalArguments(
+                args['enable-experiment'] as List<String>),
             bazelMapping:
                 _parseBazelMappings(args['bazel-mapping'] as List<String>),
             summaryModules: _parseCustomSummaryModules(
@@ -230,20 +230,6 @@ Map<String, String> _parseCustomSummaryModules(List<String> summaryPaths,
     pathToModule[summaryPath] = modulePath;
   }
   return pathToModule;
-}
-
-Map<String, bool> _parseExperiments(List<String> arguments) {
-  var result = <String, bool>{};
-  for (var argument in arguments) {
-    for (var feature in argument.split(',')) {
-      if (feature.startsWith('no-')) {
-        result[feature.substring(3)] = false;
-      } else {
-        result[feature] = true;
-      }
-    }
-  }
-  return result;
 }
 
 Map<String, String> _parseBazelMappings(List<String> argument) {

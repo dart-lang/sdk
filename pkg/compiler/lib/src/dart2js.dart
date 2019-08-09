@@ -758,7 +758,9 @@ Future<api.CompilationResult> compile(List<String> argv,
   diagnosticHandler.autoReadFileUri = true;
   CompilerOptions compilerOptions = CompilerOptions.parse(options,
       librariesSpecificationUri: librariesSpecificationUri,
-      platformBinaries: platformBinaries)
+      platformBinaries: platformBinaries,
+      onError: (String message) => fail(message),
+      onWarning: (String message) => print(message))
     ..entryPoint = script
     ..packageRoot = packageRoot
     ..packageConfig = packageConfig

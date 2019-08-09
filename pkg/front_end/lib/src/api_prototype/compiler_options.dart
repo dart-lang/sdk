@@ -9,7 +9,11 @@ import 'package:kernel/target/targets.dart' show Target;
 import 'diagnostic_message.dart' show DiagnosticMessageHandler;
 
 import 'experimental_flags.dart'
-    show defaultExperimentalFlags, ExperimentalFlag, parseExperimentalFlag;
+    show
+        defaultExperimentalFlags,
+        ExperimentalFlag,
+        expiredExperimentalFlags,
+        parseExperimentalFlag;
 
 import 'file_system.dart' show FileSystem;
 
@@ -213,40 +217,89 @@ class CompilerOptions {
   bool writeFileOnCrashReport = true;
 }
 
-/// Parse experimental flags from a list of strings, each of which is either a
-/// flag name or a flag name prefixed by 'no-'. Return a map of flags to their
-/// values that can be passed to [experimentalFlags]. The returned map is
-/// normalized to contain default values for unmentioned flags.
+/// Parse experimental flag arguments of the form 'flag' or 'no-flag' into a map
+/// from 'flag' to `true` or `false`, respectively.
+Map<String, bool> parseExperimentalArguments(List<String> arguments) {
+  Map<String, bool> result = {};
+  if (arguments != null) {
+    for (var argument in arguments) {
+      for (var feature in argument.split(',')) {
+        if (feature.startsWith('no-')) {
+          result[feature.substring(3)] = false;
+        } else {
+          result[feature] = true;
+        }
+      }
+    }
+  }
+  return result;
+}
+
+/// Parse a map of experimental flags to values that can be passed to
+/// [CompilerOptions.experimentalFlags].
+/// The returned map is normalized to contain default values for unmentioned
+/// flags.
 ///
 /// If an unknown flag is mentioned, or a flag is mentioned more than once,
 /// the supplied error handler is called with an error message.
+///
+/// If an expired flag is set to its non-default value the supplied error
+/// handler is called with an error message.
+///
+/// If an expired flag is set to its default value the supplied warning
+/// handler is called with a warning message.
 Map<ExperimentalFlag, bool> parseExperimentalFlags(
-    Iterable<String> experiments, void onError(String message)) {
+    Map<String, bool> experiments,
+    {void onError(String message),
+    void onWarning(String message)}) {
   Map<ExperimentalFlag, bool> flags = <ExperimentalFlag, bool>{};
   if (experiments != null) {
-    for (String experiment in experiments) {
-      bool value = true;
-      if (experiment.startsWith("no-")) {
-        value = false;
-        experiment = experiment.substring(3);
-      }
+    for (String experiment in experiments.keys) {
+      bool value = experiments[experiment];
       ExperimentalFlag flag = parseExperimentalFlag(experiment);
       if (flag == null) {
         onError("Unknown experiment: " + experiment);
-      } else if (flag == ExperimentalFlag.expiredFlag) {
-        print("Experiment flag no longer required: " + experiment);
       } else if (flags.containsKey(flag)) {
         if (flags[flag] != value) {
           onError(
               "Experiment specified with conflicting values: " + experiment);
         }
       } else {
-        flags[flag] = value;
+        if (expiredExperimentalFlags[flag]) {
+          if (value != defaultExperimentalFlags[flag]) {
+            /// Produce an error when the value is not the default value.
+            if (value) {
+              onError("Enabling experiment " +
+                  experiment +
+                  " is no longer supported.");
+            } else {
+              onError("Disabling experiment " +
+                  experiment +
+                  " is no longer supported.");
+            }
+            value = defaultExperimentalFlags[flag];
+          } else if (onWarning != null) {
+            /// Produce a warning when the value is the default value.
+            if (value) {
+              onWarning("Experiment " +
+                  experiment +
+                  " is enabled by default. "
+                      "The use of the flag is deprecated.");
+            } else {
+              onWarning("Experiment " +
+                  experiment +
+                  " is disabled by default. "
+                      "The use of the flag is deprecated.");
+            }
+          }
+          flags[flag] = value;
+        } else {
+          flags[flag] = value;
+        }
       }
     }
   }
   for (ExperimentalFlag flag in ExperimentalFlag.values) {
-    if (flag == ExperimentalFlag.expiredFlag) continue;
     assert(defaultExperimentalFlags.containsKey(flag),
         "No default value for $flag.");
     flags[flag] ??= defaultExperimentalFlags[flag];

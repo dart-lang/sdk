@@ -119,8 +119,9 @@ abstract class Compiler {
       ..verbose = verbose
       ..omitPlatform = true
       ..bytecode = bytecode
-      ..experimentalFlags =
-          parseExperimentalFlags(expFlags, (msg) => errors.add(msg))
+      ..experimentalFlags = parseExperimentalFlags(
+          parseExperimentalArguments(expFlags),
+          onError: (msg) => errors.add(msg))
       ..environmentDefines = new EnvironmentMap()
       ..enableAsserts = enableAsserts
       ..onDiagnostic = (DiagnosticMessage message) {

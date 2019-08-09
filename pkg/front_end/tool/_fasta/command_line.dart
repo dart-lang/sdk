@@ -13,6 +13,7 @@ import 'package:build_integration/file_system/single_root.dart'
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions, parseExperimentalFlags;
+import 'package:front_end/src/api_prototype/compiler_options.dart';
 
 import 'package:front_end/src/api_prototype/experimental_flags.dart'
     show ExperimentalFlag;
@@ -351,7 +352,9 @@ ProcessedOptions analyzeCommandLine(
   }
 
   Map<ExperimentalFlag, bool> experimentalFlags = parseExperimentalFlags(
-      options["--enable-experiment"], throwCommandLineProblem);
+      parseExperimentalArguments(options["--enable-experiment"]),
+      onError: throwCommandLineProblem,
+      onWarning: print);
 
   if (programName == "compile_platform") {
     if (arguments.length != 5) {

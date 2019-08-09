@@ -39,7 +39,7 @@ import 'compiler_state.dart' show InitializedCompilerState;
 import 'util.dart' show equalLists, equalMaps;
 
 export '../api_prototype/compiler_options.dart'
-    show CompilerOptions, parseExperimentalFlags;
+    show CompilerOptions, parseExperimentalFlags, parseExperimentalArguments;
 
 export '../api_prototype/diagnostic_message.dart'
     show

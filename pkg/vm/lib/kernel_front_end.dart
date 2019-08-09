@@ -32,6 +32,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
         StandardFileSystem,
         getMessageUri,
         kernelForProgram,
+        parseExperimentalArguments,
         parseExperimentalFlags,
         printDiagnosticMessage;
 
@@ -214,7 +215,9 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     ..fileSystem = fileSystem
     ..linkedDependencies = linkedDependencies
     ..packagesFileUri = packagesUri
-    ..experimentalFlags = parseExperimentalFlags(experimentalFlags, print)
+    ..experimentalFlags = parseExperimentalFlags(
+        parseExperimentalArguments(experimentalFlags),
+        onError: print)
     ..onDiagnostic = (DiagnosticMessage m) {
       errorDetector(m);
     }

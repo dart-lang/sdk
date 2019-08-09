@@ -351,9 +351,12 @@ class CompilerOptions implements DiagnosticOptions {
 
   /// Create an options object by parsing flags from [options].
   static CompilerOptions parse(List<String> options,
-      {Uri librariesSpecificationUri, Uri platformBinaries}) {
+      {Uri librariesSpecificationUri,
+      Uri platformBinaries,
+      void Function(String) onError,
+      void Function(String) onWarning}) {
     Map<fe.ExperimentalFlag, bool> languageExperiments =
-        _extractExperiments(options);
+        _extractExperiments(options, onError: onError, onWarning: onWarning);
     if (equalMaps(languageExperiments, fe.defaultExperimentalFlags)) {
       platformBinaries ??= fe.computePlatformBinariesLocation();
     }
@@ -607,11 +610,14 @@ List<Uri> _extractUriListOption(List<String> options, String flag) {
   return stringUris.map(Uri.parse).toList();
 }
 
-Map<fe.ExperimentalFlag, bool> _extractExperiments(List<String> options) {
+Map<fe.ExperimentalFlag, bool> _extractExperiments(List<String> options,
+    {void Function(String) onError, void Function(String) onWarning}) {
   List<String> experiments =
       _extractOptionalCsvOption(options, Flags.enableLanguageExperiments);
-  return fe.parseExperimentalFlags(
-      experiments, (String error) => throw new ArgumentError(error));
+  onError ??= (String error) => throw new ArgumentError(error);
+  onWarning ??= (String warning) => print(warning);
+  return fe.parseExperimentalFlags(fe.parseExperimentalArguments(experiments),
+      onError: onError, onWarning: onWarning);
 }
 
 const String _UNDETERMINED_BUILD_ID = "build number could not be determined";

@@ -285,7 +285,8 @@ class FrontendCompiler implements CompilerInterface {
       ..verbose = options['verbose']
       ..embedSourceText = options['embed-source-text']
       ..experimentalFlags = parseExperimentalFlags(
-          options['enable-experiment'], (msg) => errors.add(msg))
+          parseExperimentalArguments(options['enable-experiment']),
+          onError: (msg) => errors.add(msg))
       ..onDiagnostic = (DiagnosticMessage message) {
         bool printMessage;
         switch (message.severity) {

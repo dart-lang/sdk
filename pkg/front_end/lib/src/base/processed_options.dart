@@ -25,7 +25,7 @@ import '../api_prototype/compiler_options.dart'
     show CompilerOptions, DiagnosticMessage;
 
 import '../api_prototype/experimental_flags.dart'
-    show defaultExperimentalFlags, ExperimentalFlag;
+    show defaultExperimentalFlags, ExperimentalFlag, expiredExperimentalFlags;
 
 import '../api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
@@ -313,7 +313,11 @@ class ProcessedOptions {
   bool isExperimentEnabled(ExperimentalFlag flag) {
     assert(defaultExperimentalFlags.containsKey(flag),
         "No default value for $flag.");
-    // TODO(askesc): Determine default flag value from specification file.
+    assert(expiredExperimentalFlags.containsKey(flag),
+        "No expired value for $flag.");
+    if (expiredExperimentalFlags[flag]) {
+      return defaultExperimentalFlags[flag];
+    }
     return _raw.experimentalFlags[flag] ?? defaultExperimentalFlags[flag];
   }
 

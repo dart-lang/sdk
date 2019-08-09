@@ -227,17 +227,8 @@ Future<CompilerResult> _compile(List<String> args,
     fe.printDiagnosticMessage(message, print);
   }
 
-  var experiments = <fe.ExperimentalFlag, bool>{};
-  for (var name in options.experiments.keys) {
-    var flag = fe.parseExperimentalFlag(name);
-    if (flag == fe.ExperimentalFlag.expiredFlag) {
-      stderr.writeln("Flag '$name' is no longer required.");
-    } else if (flag != null) {
-      experiments[flag] = options.experiments[name];
-    } else {
-      stderr.writeln("Unknown experiment flag '$name'.");
-    }
-  }
+  var experiments = fe.parseExperimentalFlags(options.experiments,
+      onError: stderr.writeln, onWarning: print);
 
   bool trackWidgetCreation =
       argResults['track-widget-creation'] as bool ?? false;
