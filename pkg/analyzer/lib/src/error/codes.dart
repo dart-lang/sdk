@@ -1269,6 +1269,22 @@ class CompileTimeErrorCode extends ErrorCode {
               "removing the extends clause.");
 
   /**
+   * It is for an extension to define a static member and an instance member
+   * with the same base name.
+   *
+   * Parameters:
+   * 0: the name of the extension defining the conflicting member
+   * 1: the name of the conflicting static member
+   */
+  static const CompileTimeErrorCode EXTENSION_CONFLICTING_STATIC_AND_INSTANCE =
+      const CompileTimeErrorCode(
+          'EXTENSION_CONFLICTING_STATIC_AND_INSTANCE',
+          "Extension '{0}' can't define static member '{1}' and instance "
+              "member with the same name.",
+          correction:
+              "Try renaming the member to a name that doesn't conflict.");
+
+  /**
    * No parameters.
    */
   static const CompileTimeErrorCode EXTENSION_DECLARES_ABSTRACT_MEMBER =

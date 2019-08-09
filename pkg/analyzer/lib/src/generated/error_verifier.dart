@@ -726,6 +726,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     _enclosingExtension = node.declaredElement;
+    _checkDuplicateExtensionMembers(node.members);
     super.visitExtensionDeclaration(node);
     _enclosingExtension = null;
   }
@@ -1735,6 +1736,44 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
             CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
             identifier,
             [enumName, name, enumName]);
+      }
+    }
+  }
+
+  /**
+   * Check that there are no members with the same name.
+   */
+  void _checkDuplicateExtensionMembers(List<ClassMember> members) {
+    var instanceGetters = <String, Element>{};
+    var instanceSetters = <String, Element>{};
+    var staticGetters = <String, Element>{};
+    var staticSetters = <String, Element>{};
+
+    for (var member in members) {
+      if (member is MethodDeclaration) {
+        _checkDuplicateIdentifier(
+          member.isStatic ? staticGetters : instanceGetters,
+          member.name,
+          setterScope: member.isStatic ? staticSetters : instanceSetters,
+        );
+      }
+    }
+
+    // Check for local static members conflicting with local instance members.
+    for (var member in members) {
+      if (member is MethodDeclaration) {
+        if (member.isStatic) {
+          var identifier = member.name;
+          var name = identifier.name;
+          if (instanceGetters.containsKey(name) ||
+              instanceSetters.containsKey(name)) {
+            _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE,
+              identifier,
+              [_enclosingExtension.name, name],
+            );
+          }
+        }
       }
     }
   }

@@ -52,6 +52,8 @@ import 'deprecated_member_use_test.dart' as deprecated_member_use;
 import 'deprecated_mixin_function_test.dart' as deprecated_mixin_function;
 import 'division_optimization_test.dart' as division_optimization;
 import 'down_cast_composite_test.dart' as down_cast_composite;
+import 'duplicate_definition_extension_test.dart'
+    as duplicate_definition_extension;
 import 'duplicate_hidden_name_test.dart' as duplicate_hidden_name;
 import 'duplicate_import_test.dart' as duplicate_import;
 import 'duplicate_shown_name_test.dart' as duplicate_shown_name;
@@ -61,6 +63,8 @@ import 'export_suplicated_library_named_test.dart'
     as export_suplicated_library_named;
 import 'expression_in_map_test.dart' as expression_in_map;
 import 'extends_non_class_test.dart' as extends_non_class;
+import 'extension_conflicting_static_and_instance_test.dart'
+    as extension_conflicting_static_and_instance;
 import 'extension_declares_abstract_method_test.dart'
     as extension_declares_abstract_method;
 import 'extension_declares_constructor_test.dart'
@@ -321,6 +325,7 @@ main() {
     deprecated_mixin_function.main();
     division_optimization.main();
     down_cast_composite.main();
+    duplicate_definition_extension.main();
     duplicate_hidden_name.main();
     duplicate_import.main();
     duplicate_shown_name.main();
@@ -329,6 +334,7 @@ main() {
     export_suplicated_library_named.main();
     expression_in_map.main();
     extends_non_class.main();
+    extension_conflicting_static_and_instance.main();
     extension_declares_abstract_method.main();
     extension_declares_constructor.main();
     extension_declares_field.main();
