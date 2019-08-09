@@ -375,14 +375,16 @@ Rti instanceType(object) {
     var rti = JS('', r'#[#]', object, JS_GET_NAME(JsGetName.RTI_NAME));
     if (rti != null) return _castToRti(rti);
 
-    // Subclasses of Closure are synthetic classes, so make them appear to be
-    // the 'Closure' class.
+    // Subclasses of Closure are synthetic classes. The synthetic classes all
+    // extend a 'normal' class (Closure, BoundClosure, StaticClosure), so make
+    // them appear to be the superclass.
     // TODO(sra): Can this be done less expensively, e.g. by putting $ti on the
-    // prototype of Closure class?
+    // prototype of Closure/BoundClosure/StaticClosure classes?
     var closureClassConstructor = JS_BUILTIN(
         'depends:none;effects:none;', JsBuiltin.dartClosureConstructor);
     if (_Utils.instanceOf(object, closureClassConstructor)) {
-      return _instanceTypeFromConstructor(closureClassConstructor);
+      return _instanceTypeFromConstructor(
+          JS('', '#.__proto__.__proto__.constructor', object));
     }
 
     return _instanceTypeFromConstructor(JS('', '#.constructor', object));
@@ -441,7 +443,7 @@ Rti getTypeFromTypesTable(/*int*/ _index) {
 }
 
 Type getRuntimeType(object) {
-  Rti rti = instanceType(object);
+  Rti rti = _instanceFunctionType(object) ?? instanceType(object);
   return _createRuntimeType(rti);
 }
 
