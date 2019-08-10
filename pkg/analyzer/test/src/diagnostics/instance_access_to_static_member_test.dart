@@ -11,12 +11,17 @@ import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AccessStaticExtensionMemberTest);
+    defineReflectiveTests(InstanceAccessToStaticMemberTest);
+    defineReflectiveTests(InstanceAccessToStaticMemberWithExtensionMethodsTest);
   });
 }
 
 @reflectiveTest
-class AccessStaticExtensionMemberTest extends DriverResolutionTest {
+class InstanceAccessToStaticMemberTest extends DriverResolutionTest {}
+
+@reflectiveTest
+class InstanceAccessToStaticMemberWithExtensionMethodsTest
+    extends InstanceAccessToStaticMemberTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
     ..contextFeatures = new FeatureSet.forTesting(
@@ -24,6 +29,7 @@ class AccessStaticExtensionMemberTest extends DriverResolutionTest {
 
   @failingTest
   test_getter() async {
+    // No error generated
     await assertErrorsInCode('''
 class C {}
 
@@ -35,7 +41,7 @@ f(C c) {
   c.a;
 }
 ''', [
-      error(CompileTimeErrorCode.ACCESS_STATIC_EXTENSION_MEMBER, 72, 1),
+      error(StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 72, 1),
     ]);
   }
 
@@ -51,24 +57,25 @@ f(C c) {
   c.a();
 }
 ''', [
-      error(CompileTimeErrorCode.ACCESS_STATIC_EXTENSION_MEMBER, 68, 1),
+      error(StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 68, 1),
     ]);
   }
 
   @failingTest
   test_setter() async {
+    // No error generated
     await assertErrorsInCode('''
 class C {}
 
 extension E on C {
-  static set a(v) {}}
+  static set a(v) {}
 }
 
 f(C c) {
   c.a = 2;
 }
 ''', [
-      error(CompileTimeErrorCode.ACCESS_STATIC_EXTENSION_MEMBER, 69, 1),
+      error(StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 69, 1),
     ]);
   }
 }

@@ -363,9 +363,9 @@ class MethodInvocationResolver {
     if (member.isStatic) {
       _setDynamicResolution(node);
       _resolver.errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.ACCESS_STATIC_EXTENSION_MEMBER,
-        nameNode,
-      );
+          StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
+          nameNode,
+          [name, member.kind.displayName, member.enclosingElement.name]);
       return result;
     }
 

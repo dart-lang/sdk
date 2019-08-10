@@ -4,8 +4,6 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'access_static_extension_member_test.dart'
-    as access_static_extension_member;
 import 'ambiguous_export_test.dart' as ambiguous_export;
 import 'ambiguous_extension_method_access_test.dart'
     as ambiguous_extension_method_access;
@@ -98,6 +96,8 @@ import 'import_deferred_library_with_load_function_test.dart'
 import 'import_duplicated_library_named_test.dart'
     as import_duplicated_library_named;
 import 'import_of_non_library_test.dart' as import_of_non_library;
+import 'instance_access_to_static_member_test.dart'
+    as instance_access_to_static_member;
 import 'invalid_assignment_test.dart' as invalid_assignment;
 import 'invalid_cast_new_expr_test.dart' as invalid_cast_new_expr;
 import 'invalid_extension_argument_count_test.dart'
@@ -290,7 +290,6 @@ import 'wrong_type_parameter_variance_in_superinterface_test.dart'
 
 main() {
   defineReflectiveSuite(() {
-    access_static_extension_member.main();
     ambiguous_export.main();
     ambiguous_extension_method_access.main();
     ambiguous_import.main();
@@ -354,6 +353,7 @@ main() {
     import_deferred_library_with_load_function.main();
     import_duplicated_library_named.main();
     import_of_non_library.main();
+    instance_access_to_static_member.main();
     invalid_assignment.main();
     invalid_cast_new_expr.main();
     invalid_extension_argument_count.main();
