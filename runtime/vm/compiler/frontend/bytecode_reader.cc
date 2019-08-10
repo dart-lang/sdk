@@ -142,6 +142,37 @@ void BytecodeMetadataHelper::ReadLibrary(const Library& library) {
       library, bytecode_component.GetNumLibraries());
 }
 
+bool BytecodeMetadataHelper::FindModifiedLibrariesForHotReload(
+    BitVector* modified_libs,
+    bool* is_empty_program,
+    intptr_t* p_num_classes,
+    intptr_t* p_num_procedures) {
+  ASSERT(Thread::Current()->IsMutatorThread());
+
+  if (translation_helper_.GetBytecodeComponent() == Array::null()) {
+    return false;
+  }
+
+  BytecodeComponentData bytecode_component(
+      &Array::Handle(helper_->zone_, GetBytecodeComponent()));
+  BytecodeReaderHelper bytecode_reader(&H, active_class_, &bytecode_component);
+  AlternativeReadingScope alt(&bytecode_reader.reader(),
+                              bytecode_component.GetLibraryIndexOffset());
+  bytecode_reader.FindModifiedLibrariesForHotReload(
+      modified_libs, bytecode_component.GetNumLibraries());
+
+  if (is_empty_program != nullptr) {
+    *is_empty_program = (bytecode_component.GetNumLibraries() == 0);
+  }
+  if (p_num_classes != nullptr) {
+    *p_num_classes = (bytecode_component.GetNumClasses() == 0);
+  }
+  if (p_num_procedures != nullptr) {
+    *p_num_procedures = (bytecode_component.GetNumCodes() == 0);
+  }
+  return true;
+}
+
 RawLibrary* BytecodeMetadataHelper::GetMainLibrary() {
   const intptr_t md_offset = GetComponentMetadataPayloadOffset();
   if (md_offset < 0) {
@@ -1148,6 +1179,7 @@ RawArray* BytecodeReaderHelper::ReadBytecodeComponent(intptr_t md_offset) {
   intptr_t num_libraries = 0;
   intptr_t library_index_offset = 0;
   intptr_t libraries_offset = 0;
+  intptr_t num_classes = 0;
   intptr_t classes_offset = 0;
   static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 10,
                 "Cleanup condition");
@@ -1158,14 +1190,14 @@ RawArray* BytecodeReaderHelper::ReadBytecodeComponent(intptr_t md_offset) {
     reader_.ReadUInt32();  // Skip libraries.numItems
     libraries_offset = start_offset + reader_.ReadUInt32();
 
-    reader_.ReadUInt32();  // Skip classes.numItems
+    num_classes = reader_.ReadUInt32();
     classes_offset = start_offset + reader_.ReadUInt32();
   }
 
   reader_.ReadUInt32();  // Skip members.numItems
   const intptr_t members_offset = start_offset + reader_.ReadUInt32();
 
-  reader_.ReadUInt32();  // Skip codes.numItems
+  const intptr_t num_codes = reader_.ReadUInt32();
   const intptr_t codes_offset = start_offset + reader_.ReadUInt32();
 
   reader_.ReadUInt32();  // Skip sourcePositions.numItems
@@ -1214,8 +1246,8 @@ RawArray* BytecodeReaderHelper::ReadBytecodeComponent(intptr_t md_offset) {
       Z, BytecodeComponentData::New(
              Z, version, num_objects, string_table_offset,
              strings_contents_offset, objects_contents_offset, main_offset,
-             num_libraries, library_index_offset, libraries_offset,
-             classes_offset, members_offset, codes_offset,
+             num_libraries, library_index_offset, libraries_offset, num_classes,
+             classes_offset, members_offset, num_codes, codes_offset,
              source_positions_offset, source_files_offset, line_starts_offset,
              local_variables_offset, annotations_offset, Heap::kOld));
 
@@ -2663,6 +2695,23 @@ void BytecodeReaderHelper::FindAndReadSpecificLibrary(const Library& library,
   }
 }
 
+void BytecodeReaderHelper::FindModifiedLibrariesForHotReload(
+    BitVector* modified_libs,
+    intptr_t num_libraries) {
+  auto& uri = String::Handle(Z);
+  auto& lib = Library::Handle(Z);
+  for (intptr_t i = 0; i < num_libraries; ++i) {
+    uri ^= ReadObject();
+    reader_.ReadUInt();  // Skip offset.
+
+    lib = Library::LookupLibrary(thread_, uri);
+    if (!lib.IsNull() && !lib.is_dart_scheme()) {
+      // This is a library that already exists so mark it as being modified.
+      modified_libs->Add(lib.index());
+    }
+  }
+}
+
 void BytecodeReaderHelper::ReadParameterCovariance(
     const Function& function,
     BitVector* is_covariant,
@@ -3028,12 +3077,20 @@ intptr_t BytecodeComponentData::GetLibrariesOffset() const {
   return Smi::Value(Smi::RawCast(data_.At(kLibrariesOffset)));
 }
 
+intptr_t BytecodeComponentData::GetNumClasses() const {
+  return Smi::Value(Smi::RawCast(data_.At(kNumClasses)));
+}
+
 intptr_t BytecodeComponentData::GetClassesOffset() const {
   return Smi::Value(Smi::RawCast(data_.At(kClassesOffset)));
 }
 
 intptr_t BytecodeComponentData::GetMembersOffset() const {
   return Smi::Value(Smi::RawCast(data_.At(kMembersOffset)));
+}
+
+intptr_t BytecodeComponentData::GetNumCodes() const {
+  return Smi::Value(Smi::RawCast(data_.At(kNumCodes)));
 }
 
 intptr_t BytecodeComponentData::GetCodesOffset() const {
@@ -3078,8 +3135,10 @@ RawArray* BytecodeComponentData::New(Zone* zone,
                                      intptr_t num_libraries,
                                      intptr_t library_index_offset,
                                      intptr_t libraries_offset,
+                                     intptr_t num_classes,
                                      intptr_t classes_offset,
                                      intptr_t members_offset,
+                                     intptr_t num_codes,
                                      intptr_t codes_offset,
                                      intptr_t source_positions_offset,
                                      intptr_t source_files_offset,
@@ -3115,11 +3174,17 @@ RawArray* BytecodeComponentData::New(Zone* zone,
   smi_handle = Smi::New(libraries_offset);
   data.SetAt(kLibrariesOffset, smi_handle);
 
+  smi_handle = Smi::New(num_classes);
+  data.SetAt(kNumClasses, smi_handle);
+
   smi_handle = Smi::New(classes_offset);
   data.SetAt(kClassesOffset, smi_handle);
 
   smi_handle = Smi::New(members_offset);
   data.SetAt(kMembersOffset, smi_handle);
+
+  smi_handle = Smi::New(num_codes);
+  data.SetAt(kNumCodes, smi_handle);
 
   smi_handle = Smi::New(codes_offset);
   data.SetAt(kCodesOffset, smi_handle);

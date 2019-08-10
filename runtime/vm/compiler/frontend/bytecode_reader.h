@@ -37,6 +37,14 @@ class BytecodeMetadataHelper : public MetadataHelper {
   // Read specific library declaration.
   void ReadLibrary(const Library& library);
 
+  // Scan through libraries in the bytecode component and figure out if any of
+  // them will replace libraries which are already loaded.
+  // Return true if bytecode component is found.
+  bool FindModifiedLibrariesForHotReload(BitVector* modified_libs,
+                                         bool* is_empty_program,
+                                         intptr_t* p_num_classes,
+                                         intptr_t* p_num_procedures);
+
   RawLibrary* GetMainLibrary();
 
   RawArray* GetBytecodeComponent();
@@ -70,6 +78,8 @@ class BytecodeReaderHelper : public ValueObject {
   void ReadLibraryDeclarations(intptr_t num_libraries);
   void FindAndReadSpecificLibrary(const Library& library,
                                   intptr_t num_libraries);
+  void FindModifiedLibrariesForHotReload(BitVector* modified_libs,
+                                         intptr_t num_libraries);
 
   void ParseBytecodeFunction(ParsedFunction* parsed_function,
                              const Function& function);
@@ -252,8 +262,10 @@ class BytecodeComponentData : ValueObject {
     kNumLibraries,
     kLibraryIndexOffset,
     kLibrariesOffset,
+    kNumClasses,
     kClassesOffset,
     kMembersOffset,
+    kNumCodes,
     kCodesOffset,
     kSourcePositionsOffset,
     kSourceFilesOffset,
@@ -275,8 +287,10 @@ class BytecodeComponentData : ValueObject {
   intptr_t GetNumLibraries() const;
   intptr_t GetLibraryIndexOffset() const;
   intptr_t GetLibrariesOffset() const;
+  intptr_t GetNumClasses() const;
   intptr_t GetClassesOffset() const;
   intptr_t GetMembersOffset() const;
+  intptr_t GetNumCodes() const;
   intptr_t GetCodesOffset() const;
   intptr_t GetSourcePositionsOffset() const;
   intptr_t GetSourceFilesOffset() const;
@@ -298,8 +312,10 @@ class BytecodeComponentData : ValueObject {
                        intptr_t num_libraries,
                        intptr_t library_index_offset,
                        intptr_t libraries_offset,
+                       intptr_t num_classes,
                        intptr_t classes_offset,
                        intptr_t members_offset,
+                       intptr_t num_codes,
                        intptr_t codes_offset,
                        intptr_t source_positions_offset,
                        intptr_t source_files_offset,
