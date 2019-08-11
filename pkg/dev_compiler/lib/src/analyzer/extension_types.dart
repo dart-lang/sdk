@@ -3,11 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
+
 import 'package:analyzer/dart/element/element.dart'
-    show ClassElement, CompilationUnitElement, Element;
+    show ClassElement, CompilationUnitElement, Element, LibraryElement;
 import 'package:analyzer/dart/element/type.dart' show DartType, InterfaceType;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/summary/resynthesize.dart';
+import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'element_helpers.dart' show getAnnotationName, isBuiltinAnnotation;
 
 /// Contains information about native JS types (those types provided by the
@@ -29,6 +31,7 @@ import 'element_helpers.dart' show getAnnotationName, isBuiltinAnnotation;
 /// `first` to the `Array.prototype`.
 class ExtensionTypeSet {
   final SummaryResynthesizer _resynthesizer;
+  final LinkedElementFactory _elementFactory;
 
   // Abstract types that may be implemented by both native and non-native
   // classes.
@@ -38,7 +41,8 @@ class ExtensionTypeSet {
   final _nativeTypes = HashSet<ClassElement>();
   final _pendingLibraries = HashSet<String>();
 
-  ExtensionTypeSet(TypeProvider types, this._resynthesizer) {
+  ExtensionTypeSet(
+      TypeProvider types, this._resynthesizer, this._elementFactory) {
     // TODO(vsm): Eventually, we want to make this extensible - i.e., find
     // annotations in user code as well.  It would need to be summarized in
     // the element model - not searched this way on every compile.  To make this
@@ -108,20 +112,28 @@ class ExtensionTypeSet {
   }
 
   void _addExtensionTypesForLibrary(String libraryUri, List<String> typeNames) {
-    var library = _resynthesizer.getLibraryElement(libraryUri);
+    var library = _getLibraryByUri(libraryUri);
     for (var typeName in typeNames) {
       _addExtensionType(library.getType(typeName).type);
     }
   }
 
   void _addExtensionTypes(String libraryUri) {
-    var library = _resynthesizer.getLibraryElement(libraryUri);
+    var library = _getLibraryByUri(libraryUri);
     _visitCompilationUnit(library.definingCompilationUnit);
     library.parts.forEach(_visitCompilationUnit);
   }
 
   void _addPendingExtensionTypes(String libraryUri) {
     _pendingLibraries.add(libraryUri);
+  }
+
+  LibraryElement _getLibraryByUri(String uriStr) {
+    if (_resynthesizer != null) {
+      return _resynthesizer.getLibraryElement(uriStr);
+    } else {
+      return _elementFactory.libraryOfUri(uriStr);
+    }
   }
 
   bool _processPending(Element element) {

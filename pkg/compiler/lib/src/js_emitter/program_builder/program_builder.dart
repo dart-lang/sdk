@@ -27,8 +27,12 @@ import '../../js_backend/interceptor_data.dart';
 import '../../js_backend/namer.dart' show Namer, StringBackedName;
 import '../../js_backend/native_data.dart';
 import '../../js_backend/runtime_types.dart'
-    show RuntimeTypesChecks, RuntimeTypesNeed, RuntimeTypesEncoder;
+    show RuntimeTypesChecks, RuntimeTypesEncoder;
+import '../../js_backend/runtime_types_new.dart' show RecipeEncoder;
+import '../../js_backend/runtime_types_resolution.dart' show RuntimeTypesNeed;
 import '../../js_model/elements.dart' show JGeneratorBody, JSignatureMethod;
+import '../../js_model/type_recipe.dart'
+    show FullTypeEnvironmentStructure, TypeExpressionRecipe;
 import '../../native/enqueue.dart' show NativeCodegenEnqueuer;
 import '../../options.dart';
 import '../../universe/codegen_world_builder.dart';
@@ -69,6 +73,7 @@ class ProgramBuilder {
   final InterceptorData _interceptorData;
   final RuntimeTypesChecks _rtiChecks;
   final RuntimeTypesEncoder _rtiEncoder;
+  final RecipeEncoder _rtiRecipeEncoder;
   final OneShotInterceptorData _oneShotInterceptorData;
   final CustomElementsCodegenAnalysis _customElementsCodegenAnalysis;
   final Map<MemberEntity, js.Expression> _generatedCode;
@@ -111,6 +116,7 @@ class ProgramBuilder {
       this._interceptorData,
       this._rtiChecks,
       this._rtiEncoder,
+      this._rtiRecipeEncoder,
       this._oneShotInterceptorData,
       this._customElementsCodegenAnalysis,
       this._generatedCode,
@@ -337,7 +343,6 @@ class ProgramBuilder {
 
   js.Expression _buildTypeToInterceptorMap() {
     InterceptorStubGenerator stubGenerator = new InterceptorStubGenerator(
-        _options,
         _commonElements,
         _task.emitter,
         _nativeCodegenEnqueuer,
@@ -802,6 +807,7 @@ class ProgramBuilder {
           callStubs,
           checkedSetters,
           isChecks,
+          _rtiChecks.requiredChecks[cls],
           typeTests.functionTypeIndex,
           isDirectlyInstantiated: isInstantiated,
           hasRtiField: hasRtiField,
@@ -818,6 +824,7 @@ class ProgramBuilder {
           noSuchMethodStubs,
           checkedSetters,
           isChecks,
+          _rtiChecks.requiredChecks[cls],
           typeTests.functionTypeIndex,
           isDirectlyInstantiated: isInstantiated,
           hasRtiField: hasRtiField,
@@ -921,7 +928,8 @@ class ProgramBuilder {
     js.Expression functionType;
     if (canTearOff) {
       OutputUnit outputUnit = _outputUnitData.outputUnitForMember(element);
-      functionType = _generateFunctionType(memberType, outputUnit);
+      functionType =
+          _generateFunctionType(element.enclosingClass, memberType, outputUnit);
     }
 
     FunctionEntity method = element;
@@ -950,12 +958,22 @@ class ProgramBuilder {
         applyIndex: applyIndex);
   }
 
-  js.Expression _generateFunctionType(
+  js.Expression _generateFunctionType(ClassEntity /*?*/ enclosingClass,
       FunctionType type, OutputUnit outputUnit) {
     if (type.containsTypeVariables) {
-      js.Expression thisAccess = js.js(r'this.$receiver');
-      return _rtiEncoder.getSignatureEncoding(
-          _namer, _task.emitter, type, thisAccess);
+      if (_options.experimentNewRti) {
+        // TODO(sra): The recipe might reference class type variables. Collect
+        // these for the type metadata.
+        return _rtiRecipeEncoder.encodeRecipe(
+            _task.emitter,
+            FullTypeEnvironmentStructure(
+                classType: _elementEnvironment.getThisType(enclosingClass)),
+            TypeExpressionRecipe(type));
+      } else {
+        js.Expression thisAccess = js.js(r'this.$receiver');
+        return _rtiEncoder.getSignatureEncoding(
+            _namer, _task.emitter, type, thisAccess);
+      }
     } else {
       return _task.metadataCollector.reifyType(type, outputUnit);
     }
@@ -970,6 +988,7 @@ class ProgramBuilder {
         _task.nativeEmitter,
         _namer,
         _rtiEncoder,
+        _options.experimentNewRti ? _rtiRecipeEncoder : null,
         _nativeData,
         _interceptorData,
         _codegenWorld,
@@ -1010,7 +1029,6 @@ class ProgramBuilder {
 
   Iterable<StaticStubMethod> _generateGetInterceptorMethods() {
     InterceptorStubGenerator stubGenerator = new InterceptorStubGenerator(
-        _options,
         _commonElements,
         _task.emitter,
         _nativeCodegenEnqueuer,
@@ -1115,7 +1133,6 @@ class ProgramBuilder {
 
   Iterable<StaticStubMethod> _generateOneShotInterceptors() {
     InterceptorStubGenerator stubGenerator = new InterceptorStubGenerator(
-        _options,
         _commonElements,
         _task.emitter,
         _nativeCodegenEnqueuer,
@@ -1176,7 +1193,7 @@ class ProgramBuilder {
     DartType type = _elementEnvironment.getFunctionType(element);
     if (needsTearOff) {
       OutputUnit outputUnit = _outputUnitData.outputUnitForMember(element);
-      functionType = _generateFunctionType(type, outputUnit);
+      functionType = _generateFunctionType(null, type, outputUnit);
     }
 
     FunctionEntity method = element;

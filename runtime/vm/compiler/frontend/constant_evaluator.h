@@ -56,6 +56,10 @@ class ConstantEvaluator {
   RawObject* EvaluateExpressionSafe(intptr_t offset);
   RawObject* EvaluateAnnotations();
 
+  // Peeks to see if constant at the given offset will evaluate to
+  // instance of the given clazz.
+  bool IsInstanceConstant(intptr_t constant_offset, const Class& clazz);
+
   // Evaluates a constant at the given offset (possibly by recursing
   // into sub-constants).
   RawInstance* EvaluateConstantExpression(intptr_t constant_offset);

@@ -195,6 +195,17 @@ class TranslationHelper {
     info_.set_bytecode_component(bytecode_component);
   }
 
+  void SetExpressionEvaluationFunction(const Function& function) {
+    ASSERT(expression_evaluation_function_ == nullptr);
+    expression_evaluation_function_ = &Function::Handle(zone_, function.raw());
+  }
+  const Function& GetExpressionEvaluationFunction() {
+    if (expression_evaluation_function_ == nullptr) {
+      return Function::null_function();
+    }
+    return *expression_evaluation_function_;
+  }
+
  private:
   // This will mangle [name_to_modify] if necessary and make the result a symbol
   // if asked.  The result will be available in [name_to_modify] and it is also
@@ -224,6 +235,7 @@ class TranslationHelper {
   KernelProgramInfo& info_;
   Smi& name_index_handle_;
   GrowableObjectArray* potential_extension_libraries_ = nullptr;
+  Function* expression_evaluation_function_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(TranslationHelper);
 };
@@ -703,6 +715,7 @@ class LibraryHelper {
  public:
   enum Field {
     kFlags,
+    kLanguageVersion /* from binary version 27 */,
     kCanonicalName,
     kName,
     kSourceUriIndex,
@@ -727,8 +740,8 @@ class LibraryHelper {
     kSynthetic = 1 << 1,
   };
 
-  explicit LibraryHelper(KernelReaderHelper* helper)
-      : helper_(helper), next_read_(kFlags) {}
+  explicit LibraryHelper(KernelReaderHelper* helper, uint32_t binary_version)
+      : helper_(helper), binary_version_(binary_version), next_read_(kFlags) {}
 
   void ReadUntilIncluding(Field field) {
     ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
@@ -749,6 +762,7 @@ class LibraryHelper {
 
  private:
   KernelReaderHelper* helper_;
+  uint32_t binary_version_;
   intptr_t next_read_;
 
   DISALLOW_COPY_AND_ASSIGN(LibraryHelper);
@@ -1065,9 +1079,10 @@ class KernelReaderHelper {
   void SkipLibraryDependency();
   void SkipLibraryPart();
   void SkipLibraryTypedef();
-  TokenPosition ReadPosition(bool record = true);
+  TokenPosition ReadPosition();
   Tag ReadTag(uint8_t* payload = NULL);
   uint8_t ReadFlags() { return reader_.ReadFlags(); }
+  Nullability ReadNullability();
 
   intptr_t SourceTableSize();
   intptr_t GetOffsetForSourceInfo(intptr_t index);
@@ -1197,6 +1212,23 @@ class ActiveMemberScope {
   ActiveClass saved_;
 
   DISALLOW_COPY_AND_ASSIGN(ActiveMemberScope);
+};
+
+class ActiveEnclosingFunctionScope {
+ public:
+  ActiveEnclosingFunctionScope(ActiveClass* active_class,
+                               const Function* enclosing)
+      : active_class_(active_class), saved_(*active_class) {
+    active_class_->enclosing = enclosing;
+  }
+
+  ~ActiveEnclosingFunctionScope() { *active_class_ = saved_; }
+
+ private:
+  ActiveClass* active_class_;
+  ActiveClass saved_;
+
+  DISALLOW_COPY_AND_ASSIGN(ActiveEnclosingFunctionScope);
 };
 
 class ActiveTypeParametersScope {

@@ -125,8 +125,15 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitConstructorDeclaration(ConstructorDeclaration node) {
-    _handleExecutableDeclaration(node.declaredElement, null, node.parameters,
-        node.body, node.redirectedConstructor, node);
+    _handleExecutableDeclaration(
+        node.declaredElement,
+        node.metadata,
+        null,
+        node.parameters,
+        node.initializers,
+        node.body,
+        node.redirectedConstructor,
+        node);
     return null;
   }
 
@@ -171,8 +178,10 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
   DecoratedType visitFunctionDeclaration(FunctionDeclaration node) {
     _handleExecutableDeclaration(
         node.declaredElement,
+        node.metadata,
         node.returnType,
         node.functionExpression.parameters,
+        null,
         node.functionExpression.body,
         null,
         node);
@@ -194,8 +203,8 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitMethodDeclaration(MethodDeclaration node) {
-    _handleExecutableDeclaration(node.declaredElement, node.returnType,
-        node.parameters, node.body, null, node);
+    _handleExecutableDeclaration(node.declaredElement, node.metadata,
+        node.returnType, node.parameters, null, node.body, null, node);
     return null;
   }
 
@@ -376,11 +385,14 @@ $stackTrace''');
   /// Common handling of function and method declarations.
   void _handleExecutableDeclaration(
       ExecutableElement declaredElement,
+      NodeList<Annotation> metadata,
       TypeAnnotation returnType,
       FormalParameterList parameters,
+      NodeList<ConstructorInitializer> initializers,
       FunctionBody body,
       ConstructorName redirectedConstructor,
       AstNode enclosingNode) {
+    metadata.accept(this);
     var functionType = declaredElement.type;
     DecoratedType decoratedReturnType;
     if (returnType != null) {
@@ -403,6 +415,7 @@ $stackTrace''');
     try {
       parameters?.accept(this);
       redirectedConstructor?.accept(this);
+      initializers?.accept(this);
       decoratedFunctionType = DecoratedType(functionType, _graph.never,
           returnType: decoratedReturnType,
           positionalParameters: _positionalParameters,

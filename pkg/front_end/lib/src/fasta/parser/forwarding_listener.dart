@@ -71,8 +71,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginClassOrMixinBody(Token token) {
-    listener?.beginClassOrMixinBody(token);
+  void beginClassOrMixinBody(ClassKind kind, Token token) {
+    listener?.beginClassOrMixinBody(kind, token);
   }
 
   @override
@@ -521,8 +521,9 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endClassOrMixinBody(int memberCount, Token beginToken, Token endToken) {
-    listener?.endClassOrMixinBody(memberCount, beginToken, endToken);
+  void endClassOrMixinBody(
+      ClassKind kind, int memberCount, Token beginToken, Token endToken) {
+    listener?.endClassOrMixinBody(kind, memberCount, beginToken, endToken);
   }
 
   @override
@@ -593,8 +594,9 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endExtensionDeclaration(Token onKeyword, Token token) {
-    listener?.endExtensionDeclaration(onKeyword, token);
+  void endExtensionDeclaration(
+      Token extensionKeyword, Token onKeyword, Token token) {
+    listener?.endExtensionDeclaration(extensionKeyword, onKeyword, token);
   }
 
   @override
@@ -641,10 +643,16 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endFormalParameter(Token thisKeyword, Token periodAfterThis,
-      Token nameToken, FormalParameterKind kind, MemberKind memberKind) {
-    listener?.endFormalParameter(
-        thisKeyword, periodAfterThis, nameToken, kind, memberKind);
+  void endFormalParameter(
+      Token thisKeyword,
+      Token periodAfterThis,
+      Token nameToken,
+      Token initializerStart,
+      Token initializerEnd,
+      FormalParameterKind kind,
+      MemberKind memberKind) {
+    listener?.endFormalParameter(thisKeyword, periodAfterThis, nameToken,
+        initializerStart, initializerEnd, kind, memberKind);
   }
 
   @override

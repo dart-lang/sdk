@@ -17,6 +17,7 @@ args:third_party/pkg/args/lib
 async:third_party/pkg/async/lib
 async_helper:pkg/async_helper/lib
 bazel_worker:third_party/pkg/bazel_worker/lib
+benchmark_harness:third_party/pkg/benchmark_harness/lib
 boolean_selector:third_party/pkg/boolean_selector/lib
 build_integration:pkg/build_integration/lib
 charcode:third_party/pkg/charcode/lib
@@ -99,10 +100,12 @@ test_process:third_party/pkg/test_process/lib
 test_reflective_loader:third_party/pkg/test_reflective_loader/lib
 test_runner:pkg/test_runner/lib
 testing:pkg/testing/lib
+tflite_native:third_party/pkg/tflite_native/lib
 typed_data:third_party/pkg/typed_data/lib
 unittest:third_party/pkg/unittest/lib
 usage:third_party/pkg/usage/lib
 vm:pkg/vm/lib
+vm_service:pkg/vm_service/lib
 watcher:third_party/pkg/watcher/lib
 web_components:third_party/pkg/web_components/lib
 web_socket_channel:third_party/pkg/web_socket_channel/lib

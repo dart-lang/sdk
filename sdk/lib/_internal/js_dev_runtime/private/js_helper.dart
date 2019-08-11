@@ -52,7 +52,7 @@ class DartIterator<E> implements Iterator<E> {
   bool moveNext() {
     final ret = JS('', '#.next()', _jsIterator);
     _current = JS('', '#.value', ret);
-    return JS('bool', '!#.done', ret);
+    return JS<bool>('!', '!#.done', ret);
   }
 }
 
@@ -93,11 +93,11 @@ class Primitives {
     if (_radix == null) {
       if (decimalMatch != null) {
         // Cannot fail because we know that the digits are all decimal.
-        return JS('int', r'parseInt(#, 10)', source);
+        return JS<int>('!', r'parseInt(#, 10)', source);
       }
       if (match[hexIndex] != null) {
         // Cannot fail because we know that the digits are all hex.
-        return JS('int', r'parseInt(#, 16)', source);
+        return JS<int>('!', r'parseInt(#, 16)', source);
       }
       return _parseIntError(source, handleError);
     }
@@ -108,7 +108,7 @@ class Primitives {
     }
     if (radix == 10 && decimalMatch != null) {
       // Cannot fail because we know that the digits are all decimal.
-      return JS('int', r'parseInt(#, 10)', source);
+      return JS<int>('!', r'parseInt(#, 10)', source);
     }
     // If radix >= 10 and we have only decimal digits the string is safe.
     // Otherwise we need to check the digits.
@@ -132,7 +132,7 @@ class Primitives {
         maxCharCode = (0x61 - 10 - 1) + radix;
       }
       assert(match[digitsIndex] is String);
-      String digitsPart = JS('String', '#[#]', match, digitsIndex);
+      String digitsPart = JS<String>('!', '#[#]', match, digitsIndex);
       for (int i = 0; i < digitsPart.length; i++) {
         int characterCode = digitsPart.codeUnitAt(i) | 0x20;
         if (characterCode > maxCharCode) {
@@ -142,7 +142,7 @@ class Primitives {
     }
     // The above matching and checks ensures the source has at least one digits
     // and all digits are suitable for the radix, so parseInt cannot return NaN.
-    return JS('int', r'parseInt(#, #)', source, radix);
+    return JS<int>('!', r'parseInt(#, #)', source, radix);
   }
 
   @NoInline()
@@ -183,19 +183,19 @@ class Primitives {
   /** `r"$".codeUnitAt(0)` */
   static const int DOLLAR_CHAR_VALUE = 36;
 
-  static int dateNow() => JS('int', r'Date.now()');
+  static int dateNow() => JS<int>('!', r'Date.now()');
 
   static void initTicker() {
     if (timerFrequency != null) return;
     // Start with low-resolution. We overwrite the fields if we find better.
     timerFrequency = 1000;
     timerTicks = dateNow;
-    if (JS('bool', 'typeof window == "undefined"')) return;
+    if (JS<bool>('!', 'typeof window == "undefined"')) return;
     var jsWindow = JS('var', 'window');
     if (jsWindow == null) return;
     var performance = JS('var', '#.performance', jsWindow);
     if (performance == null) return;
-    if (JS('bool', 'typeof #.now != "function"', performance)) return;
+    if (JS<bool>('!', 'typeof #.now != "function"', performance)) return;
     timerFrequency = 1000000;
     timerTicks = () => (1000 * JS<num>('!', '#.now()', performance)).floor();
   }
@@ -217,8 +217,8 @@ class Primitives {
 
   static String currentUri() {
     // In a browser return self.location.href.
-    if (JS('bool', '!!#.location', dart.global_)) {
-      return JS('String', '#.location.href', dart.global_);
+    if (JS<bool>('!', '!!#.location', dart.global_)) {
+      return JS<String>('!', '#.location.href', dart.global_);
     }
 
     // TODO(vsm): Consider supporting properly in non-browser settings.
@@ -233,7 +233,7 @@ class Primitives {
     @nullCheck
     int end = array.length;
     if (end <= kMaxApply) {
-      return JS('String', r'String.fromCharCode.apply(null, #)', array);
+      return JS<String>('!', r'String.fromCharCode.apply(null, #)', array);
     }
     String result = '';
     for (int i = 0; i < end; i += kMaxApply) {
@@ -280,7 +280,7 @@ class Primitives {
       NativeUint8List charCodes, @nullCheck int start, @nullCheck int end) {
     const kMaxApply = 500;
     if (end <= kMaxApply && start == 0 && end == charCodes.length) {
-      return JS('String', r'String.fromCharCode.apply(null, #)', charCodes);
+      return JS<String>('!', r'String.fromCharCode.apply(null, #)', charCodes);
     }
     String result = '';
     for (int i = start; i < end; i += kMaxApply) {
@@ -300,13 +300,13 @@ class Primitives {
   static String stringFromCharCode(@nullCheck int charCode) {
     if (0 <= charCode) {
       if (charCode <= 0xffff) {
-        return JS('String', 'String.fromCharCode(#)', charCode);
+        return JS<String>('!', 'String.fromCharCode(#)', charCode);
       }
       if (charCode <= 0x10ffff) {
         var bits = charCode - 0x10000;
         var low = 0xDC00 | (bits & 0x3ff);
         var high = 0xD800 | (bits >> 10);
-        return JS('String', 'String.fromCharCode(#, #)', high, low);
+        return JS<String>('!', 'String.fromCharCode(#, #)', high, low);
       }
     }
     throw RangeError.range(charCode, 0, 0x10ffff);
@@ -317,7 +317,7 @@ class Primitives {
   }
 
   static String flattenString(String str) {
-    return JS('String', "#.charCodeAt(0) == 0 ? # : #", str, str, str);
+    return JS<String>('!', "#.charCodeAt(0) == 0 ? # : #", str, str, str);
   }
 
   static String getTimeZoneName(DateTime receiver) {
@@ -357,7 +357,7 @@ class Primitives {
 
   static int getTimeZoneOffsetInMinutes(DateTime receiver) {
     // Note that JS and Dart disagree on the sign of the offset.
-    return -JS('int', r'#.getTimezoneOffset()', lazyAsJsDate(receiver));
+    return -JS<int>('!', r'#.getTimezoneOffset()', lazyAsJsDate(receiver));
   }
 
   static num valueFromDecomposedDate(
@@ -400,7 +400,7 @@ class Primitives {
 
   // Lazily keep a JS Date stored in the JS object.
   static lazyAsJsDate(DateTime receiver) {
-    if (JS('bool', r'#.date === (void 0)', receiver)) {
+    if (JS<bool>('!', r'#.date === (void 0)', receiver)) {
       JS('void', r'#.date = new Date(#)', receiver,
           receiver.millisecondsSinceEpoch);
     }
@@ -413,50 +413,50 @@ class Primitives {
 
   static int getYear(DateTime receiver) {
     return (receiver.isUtc)
-        ? JS('int', r'(#.getUTCFullYear() + 0)', lazyAsJsDate(receiver))
-        : JS('int', r'(#.getFullYear() + 0)', lazyAsJsDate(receiver));
+        ? JS<int>('!', r'(#.getUTCFullYear() + 0)', lazyAsJsDate(receiver))
+        : JS<int>('!', r'(#.getFullYear() + 0)', lazyAsJsDate(receiver));
   }
 
   static int getMonth(DateTime receiver) {
     return (receiver.isUtc)
-        ? JS('int', r'#.getUTCMonth() + 1', lazyAsJsDate(receiver))
-        : JS('int', r'#.getMonth() + 1', lazyAsJsDate(receiver));
+        ? JS<int>('!', r'#.getUTCMonth() + 1', lazyAsJsDate(receiver))
+        : JS<int>('!', r'#.getMonth() + 1', lazyAsJsDate(receiver));
   }
 
   static int getDay(DateTime receiver) {
     return (receiver.isUtc)
-        ? JS('int', r'(#.getUTCDate() + 0)', lazyAsJsDate(receiver))
-        : JS('int', r'(#.getDate() + 0)', lazyAsJsDate(receiver));
+        ? JS<int>('!', r'(#.getUTCDate() + 0)', lazyAsJsDate(receiver))
+        : JS<int>('!', r'(#.getDate() + 0)', lazyAsJsDate(receiver));
   }
 
   static int getHours(DateTime receiver) {
     return (receiver.isUtc)
-        ? JS('int', r'(#.getUTCHours() + 0)', lazyAsJsDate(receiver))
-        : JS('int', r'(#.getHours() + 0)', lazyAsJsDate(receiver));
+        ? JS<int>('!', r'(#.getUTCHours() + 0)', lazyAsJsDate(receiver))
+        : JS<int>('!', r'(#.getHours() + 0)', lazyAsJsDate(receiver));
   }
 
   static int getMinutes(DateTime receiver) {
     return (receiver.isUtc)
-        ? JS('int', r'(#.getUTCMinutes() + 0)', lazyAsJsDate(receiver))
-        : JS('int', r'(#.getMinutes() + 0)', lazyAsJsDate(receiver));
+        ? JS<int>('!', r'(#.getUTCMinutes() + 0)', lazyAsJsDate(receiver))
+        : JS<int>('!', r'(#.getMinutes() + 0)', lazyAsJsDate(receiver));
   }
 
   static int getSeconds(DateTime receiver) {
     return (receiver.isUtc)
-        ? JS('int', r'(#.getUTCSeconds() + 0)', lazyAsJsDate(receiver))
-        : JS('int', r'(#.getSeconds() + 0)', lazyAsJsDate(receiver));
+        ? JS<int>('!', r'(#.getUTCSeconds() + 0)', lazyAsJsDate(receiver))
+        : JS<int>('!', r'(#.getSeconds() + 0)', lazyAsJsDate(receiver));
   }
 
   static int getMilliseconds(DateTime receiver) {
     return (receiver.isUtc)
-        ? JS('int', r'(#.getUTCMilliseconds() + 0)', lazyAsJsDate(receiver))
-        : JS('int', r'(#.getMilliseconds() + 0)', lazyAsJsDate(receiver));
+        ? JS<int>('!', r'(#.getUTCMilliseconds() + 0)', lazyAsJsDate(receiver))
+        : JS<int>('!', r'(#.getMilliseconds() + 0)', lazyAsJsDate(receiver));
   }
 
   static int getWeekday(DateTime receiver) {
     int weekday = (receiver.isUtc)
-        ? JS('int', r'#.getUTCDay() + 0', lazyAsJsDate(receiver))
-        : JS('int', r'#.getDay() + 0', lazyAsJsDate(receiver));
+        ? JS<int>('!', r'#.getUTCDay() + 0', lazyAsJsDate(receiver))
+        : JS<int>('!', r'#.getDay() + 0', lazyAsJsDate(receiver));
     // Adjust by one because JS weeks start on Sunday.
     return (weekday + 6) % 7 + 1;
   }
@@ -522,7 +522,7 @@ Error diagnoseRangeError(int start, int end, int length) {
 
 @notNull
 int stringLastIndexOfUnchecked(receiver, element, start) =>
-    JS('int', r'#.lastIndexOf(#, #)', receiver, element, start);
+    JS<int>('!', r'#.lastIndexOf(#, #)', receiver, element, start);
 
 /// 'factory' for constructing ArgumentError.value to keep the call sites small.
 @NoInline()
@@ -598,7 +598,7 @@ fillLiteralMap(keyValuePairs, Map result) {
 }
 
 bool jsHasOwnProperty(var jsObject, String property) {
-  return JS('bool', r'#.hasOwnProperty(#)', jsObject, property);
+  return JS<bool>('!', r'#.hasOwnProperty(#)', jsObject, property);
 }
 
 jsPropertyAccess(var jsObject, String property) {

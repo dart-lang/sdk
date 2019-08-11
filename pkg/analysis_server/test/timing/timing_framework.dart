@@ -89,12 +89,12 @@ class TimingResult {
    */
   double computeStandardDeviation(List<int> values) {
     int count = values.length;
-    double sumOfValues = 0.0;
+    double sumOfValues = 0;
     for (int i = 0; i < count; i++) {
       sumOfValues += values[i];
     }
     double average = sumOfValues / count;
-    double sumOfDiffSquared = 0.0;
+    double sumOfDiffSquared = 0;
     for (int i = 0; i < count; i++) {
       double diff = values[i] - average;
       sumOfDiffSquared += diff * diff;

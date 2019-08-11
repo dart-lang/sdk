@@ -4342,7 +4342,6 @@ main() {
     expect(ft.toString(), 'List<T> Function<T>(String)');
     ft = ft.instantiate([typeProvider.intType]);
     expect(ft.toString(), 'List<int> Function(String)');
-    expect('${ft.typeArguments}/${ft.typeParameters}', '[String, int]/[E, T]');
   }
 
   test_genericMethod_explicitTypeParams() async {
@@ -4358,7 +4357,6 @@ main() {
     MethodInvocation f = findIdentifier('f<int>').parent;
     FunctionType ft = f.staticInvokeType;
     expect(ft.toString(), 'List<int> Function(String)');
-    expect('${ft.typeArguments}/${ft.typeParameters}', '[String, int]/[E, T]');
 
     SimpleIdentifier x = findIdentifier('x');
     expect(x.staticType,
@@ -4685,8 +4683,6 @@ class C<T> {
 ''');
     MethodInvocation f = findIdentifier('f<int>(3);').parent;
     expect(f.staticInvokeType.toString(), 'S Function(int)');
-    FunctionType ft = f.staticInvokeType;
-    expect('${ft.typeArguments}/${ft.typeParameters}', '[S, int]/[T, S]');
 
     expectIdentifierType('f;', 'S Function<S₀>(S₀)');
   }

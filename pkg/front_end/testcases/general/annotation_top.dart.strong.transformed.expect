@@ -1,0 +1,39 @@
+@#C1
+@#C2
+library test;
+import self as self;
+import "dart:core" as core;
+
+@#C1
+@#C2
+typedef F1 = () →* void;
+@#C1
+@#C2
+typedef F2 = () →* void;
+class A extends core::Object {
+  const constructor •(core::int* value) → self::A*
+    : super core::Object::•()
+    ;
+}
+@#C1
+@#C2
+class C extends core::Object {
+  synthetic constructor •() → self::C*
+    : super core::Object::•()
+    ;
+}
+static const field core::Object* a = #C1;
+@#C1
+@#C2
+static field core::int* f1;
+@#C1
+@#C2
+static field core::int* f2;
+@#C1
+@#C2
+static method main() → void {}
+
+constants  {
+  #C1 = core::Object {}
+  #C2 = self::A {}
+}

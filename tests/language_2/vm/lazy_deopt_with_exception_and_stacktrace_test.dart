@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Test deoptimization on an optimistically hoisted smi check.
-// VMOptions=--optimization-counter-threshold=10  --no-background-compilation --enable-inlining-annotations
+// VMOptions=--optimization-counter-threshold=10  --no-background-compilation
 
 // Test that lazy deoptimization works if the program returns to a function
 // that is scheduled for lazy deoptimization via an exception.
@@ -13,9 +13,7 @@ class C {
   dynamic x = 42;
 }
 
-const NeverInline = "NeverInline";
-
-@NeverInline
+@pragma('vm:never-inline')
 AA(C c, bool b) {
   if (b) {
     c.x = 2.5;
@@ -23,7 +21,7 @@ AA(C c, bool b) {
   }
 }
 
-@NeverInline
+@pragma('vm:never-inline')
 T1(C c, bool b) {
   try {
     AA(c, b);
@@ -35,7 +33,7 @@ T1(C c, bool b) {
   return c.x + 1;
 }
 
-@NeverInline
+@pragma('vm:never-inline')
 T2(C c, bool b) {
   try {
     AA(c, b);

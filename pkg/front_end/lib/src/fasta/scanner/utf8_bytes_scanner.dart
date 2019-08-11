@@ -13,18 +13,16 @@ import '../../scanner/token.dart' as analyzer show StringToken;
 import '../scanner.dart' show unicodeReplacementCharacter;
 
 import 'abstract_scanner.dart'
-    show LanguageVersionChanged, ScannerConfiguration;
+    show AbstractScanner, LanguageVersionChanged, ScannerConfiguration;
 
 import 'token.dart'
     show CommentToken, DartDocToken, LanguageVersionToken, StringToken;
-
-import 'array_based_scanner.dart' show ArrayBasedScanner;
 
 /**
  * Scanner that reads from a UTF-8 encoded list of bytes and creates tokens
  * that points to substrings.
  */
-class Utf8BytesScanner extends ArrayBasedScanner {
+class Utf8BytesScanner extends AbstractScanner {
   /**
    * The file content.
    *

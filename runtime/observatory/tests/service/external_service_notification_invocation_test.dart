@@ -14,7 +14,7 @@ var tests = <IsolateTest>[
     VM vm = isolate.owner;
 
     final serviceEvents =
-        (await vm.getEventStream('_Service')).asBroadcastStream();
+        (await vm.getEventStream('Service')).asBroadcastStream();
 
     WebSocket _socket =
         await WebSocket.connect((vm as WebSocketVM).target.networkAddress);
@@ -46,7 +46,7 @@ var tests = <IsolateTest>[
     socket.add({
       'jsonrpc': '2.0',
       'id': 1,
-      'method': '_registerService',
+      'method': 'registerService',
       'params': {'service': serviceName, 'alias': serviceAlias}
     });
 

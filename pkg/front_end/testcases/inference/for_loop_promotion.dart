@@ -8,7 +8,7 @@ library test;
 void test() {
   for (num x = 0; x /*@target=num::<*/ < 10; x++) {
     if (x is int) {
-      var /*@type=int*/ y = /*@promotedType=int*/ x;
+      var /*@ type=int* */ y = /*@ promotedType=int* */ x;
     }
   }
 }

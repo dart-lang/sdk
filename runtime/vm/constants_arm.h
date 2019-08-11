@@ -371,6 +371,7 @@ class CallingConventions {
   static constexpr Register kFirstNonArgumentRegister = R8;
   static constexpr Register kSecondNonArgumentRegister = R9;
   static constexpr Register kFirstCalleeSavedCpuReg = NOTFP;
+  static constexpr Register kSecondCalleeSavedCpuReg = R4;
   static constexpr Register kStackPointerRegister = SPREG;
 };
 

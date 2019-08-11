@@ -1,6 +1,8 @@
 linter:
   rules:
-    - empty_constructor_bodies
+    - empty_constructor_bodies # pedantic
     - empty_statements
+    - prefer_is_empty # pedantic
+    - prefer_is_not_empty # pedantic
     - unnecessary_brace_in_string_interps
-    - valid_regexps
+    - valid_regexps # pedantic

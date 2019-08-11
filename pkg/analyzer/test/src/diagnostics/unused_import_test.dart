@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
@@ -10,6 +12,7 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnusedImportTest);
+    defineReflectiveTests(UnusedImportWithExtensionMethodsTest);
   });
 }
 
@@ -222,5 +225,171 @@ import 'lib1.dart';
 ''', [
       error(HintCode.UNUSED_IMPORT, 7, 11),
     ]);
+  }
+}
+
+@reflectiveTest
+class UnusedImportWithExtensionMethodsTest extends UnusedImportTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = new FeatureSet.forTesting(
+        sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
+
+  test_instance_call() async {
+    newFile('/test/lib/lib1.dart', content: r'''
+extension E on int {
+  int call(int x) => 0;
+}
+''');
+    await assertNoErrorsInCode('''
+import 'lib1.dart';
+
+f() {
+  7(9);
+}
+''');
+  }
+
+  test_instance_getter() async {
+    newFile('/test/lib/lib1.dart', content: r'''
+extension E on String {
+  String get empty => '';
+}
+''');
+    await assertNoErrorsInCode('''
+import 'lib1.dart';
+
+f() {
+  ''.empty;
+}
+''');
+  }
+
+  test_instance_method() async {
+    newFile('/test/lib/lib1.dart', content: r'''
+extension E on String {
+  String empty() => '';
+}
+''');
+    await assertNoErrorsInCode('''
+import 'lib1.dart';
+
+f() {
+  ''.empty();
+}
+''');
+  }
+
+  test_instance_operator_binary() async {
+    newFile('/test/lib/lib1.dart', content: r'''
+extension E on String {
+  String operator -(String s) => this;
+}
+''');
+    await assertNoErrorsInCode('''
+import 'lib1.dart';
+
+f() {
+  'abc' - 'c';
+}
+''');
+  }
+
+  test_instance_operator_index() async {
+    newFile('/test/lib/lib1.dart', content: r'''
+extension E on int {
+  int operator [](int i) => 0;
+}
+''');
+    await assertNoErrorsInCode('''
+import 'lib1.dart';
+
+f() {
+  9[7];
+}
+''');
+  }
+
+  test_instance_operator_unary() async {
+    newFile('/test/lib/lib1.dart', content: r'''
+extension E on String {
+  void operator -() {}
+}
+''');
+    await assertNoErrorsInCode('''
+import 'lib1.dart';
+
+f() {
+  -'abc';
+}
+''');
+  }
+
+  test_instance_setter() async {
+    newFile('/test/lib/lib1.dart', content: r'''
+extension E on String {
+  void set length(int i) {}
+}
+''');
+    await assertNoErrorsInCode('''
+import 'lib1.dart';
+
+f() {
+  'abc'.length = 2;
+}
+''');
+  }
+
+  test_multipleExtensions() async {
+    newFile('/test/lib/lib1.dart', content: r'''
+extension E on String {
+  String a() => '';
+}
+''');
+    newFile('/test/lib/lib2.dart', content: r'''
+extension E on String {
+  String b() => '';
+}
+''');
+    await assertErrorsInCode('''
+import 'lib1.dart';
+import 'lib2.dart';
+
+f() {
+  ''.b();
+}
+''', [
+      error(HintCode.UNUSED_IMPORT, 7, 11),
+    ]);
+  }
+
+  test_override_getter() async {
+    newFile('/test/lib/lib1.dart', content: r'''
+extension E on String {
+  String get empty => '';
+}
+''');
+    await assertNoErrorsInCode('''
+import 'lib1.dart';
+
+f() {
+  E('').empty;
+}
+''');
+  }
+
+  test_static_field() async {
+    newFile('/test/lib/lib1.dart', content: r'''
+extension E on String {
+  static const String empty = '';
+}
+''');
+    await assertNoErrorsInCode('''
+import 'lib1.dart';
+
+f() {
+  E.empty;
+}
+''');
   }
 }

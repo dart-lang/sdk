@@ -232,34 +232,37 @@ ConstantPool {
 ]library #lib from "#lib" as #lib {
 
   class A extends dart.core::Object {
-    field dart.core::int foo1;
-    field dart.core::int foo2 = null;
-    field dart.core::int foo3 = 42;
-    field dart.core::int foo4;
-    field dart.core::int foo5 = 43;
-    constructor •(dart.core::int foo4) → #lib::A
+    field dart.core::int* foo1;
+    field dart.core::int* foo2 = null;
+    field dart.core::int* foo3 = 42;
+    field dart.core::int* foo4;
+    field dart.core::int* foo5 = 43;
+    constructor •(dart.core::int* foo4) → #lib::A*
       : #lib::A::foo1 = null, #lib::A::foo4 = foo4, #lib::A::foo5 = 44, super dart.core::Object::•()
       ;
-    constructor constr2(dart.core::int x, dart.core::int y) → #lib::A
+    constructor constr2(dart.core::int* x, dart.core::int* y) → #lib::A*
       : #lib::A::foo4 = null, #lib::A::foo1 = x, #lib::A::foo5 = y.{dart.core::num::+}(1), super dart.core::Object::•()
       ;
-    constructor redirecting1() → #lib::A
+    constructor redirecting1() → #lib::A*
       : this #lib::A::•(45)
       ;
-    constructor redirecting2(dart.core::int a, dart.core::int b, dart.core::int c) → #lib::A
+    constructor redirecting2(dart.core::int* a, dart.core::int* b, dart.core::int* c) → #lib::A*
       : this #lib::A::constr2(a, b.{dart.core::num::*}(c))
       ;
   }
   class B extends #lib::A {
-    field dart.core::int foo6 = 46;
-    static field dart.core::int foo7 = 47;
-    static const field dart.core::int foo8 = 48;
-    constructor •() → #lib::B
+    field dart.core::int* foo6 = 46;
+    static field dart.core::int* foo7 = 47;
+    static const field dart.core::int* foo8 = #C1;
+    constructor •() → #lib::B*
       : super #lib::A::•(49)
       ;
-    constructor c2(dart.core::int i, dart.core::int j) → #lib::B
+    constructor c2(dart.core::int* i, dart.core::int* j) → #lib::B*
       : #lib::B::foo6 = 50, super #lib::A::redirecting2(i, j, 51)
       ;
   }
   static method main() → dynamic {}
+}
+constants  {
+  #C1 = 48
 }

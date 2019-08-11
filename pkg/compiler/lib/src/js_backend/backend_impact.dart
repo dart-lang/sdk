@@ -776,7 +776,34 @@ class BackendImpacts {
         _commonElements.instanceType,
         _commonElements.rtiEvalMethod,
         _commonElements.rtiBindMethod,
-      ])
+        _commonElements.generalIsTestImplementation,
+        _commonElements.generalAsCheckImplementation,
+        _commonElements.generalTypeCheckImplementation,
+        // Specialized checks.
+        _commonElements.specializedIsBool,
+        _commonElements.specializedAsBoolNullable,
+        _commonElements.specializedCheckBoolNullable,
+        // no specializedIsDouble.
+        _commonElements.specializedAsDoubleNullable,
+        _commonElements.specializedCheckDoubleNullable,
+        _commonElements.specializedIsInt,
+        _commonElements.specializedAsIntNullable,
+        _commonElements.specializedCheckIntNullable,
+        _commonElements.specializedIsNum,
+        _commonElements.specializedAsNumNullable,
+        _commonElements.specializedCheckNumNullable,
+        _commonElements.specializedIsString,
+        _commonElements.specializedAsStringNullable,
+        _commonElements.specializedCheckStringNullable,
+      ], globalClasses: [
+        _commonElements.closureClass, // instanceOrFunctionType uses this.
+      ], globalUses: [])
     ];
   }
+
+  BackendImpact _rtiAddRules;
+
+  BackendImpact get rtiAddRules => _rtiAddRules ??= BackendImpact(
+      globalUses: [_commonElements.rtiAddRulesMethod],
+      otherImpacts: [_needsString('Needed to encode the new RTI ruleset.')]);
 }

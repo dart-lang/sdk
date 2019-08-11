@@ -109,7 +109,7 @@ a:focus, a:hover {
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  1.27.1
+  1.27.2
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -272,6 +272,7 @@ a:focus, a:hover {
 <li><a href="#request_edit.getAssists">edit.getAssists</a></li>
 <li><a href="#request_edit.getAvailableRefactorings">edit.getAvailableRefactorings</a></li>
 <li><a href="#request_edit.getFixes">edit.getFixes</a></li>
+<li><a href="#request_edit.getPostfixCompletion">edit.getPostfixCompletion</a></li>
 <li><a href="#request_edit.getRefactoring">edit.getRefactoring</a></li>
 <li><a href="#request_edit.sortMembers">edit.sortMembers</a></li>
 <li><a href="#request_edit.organizeDirectives">edit.organizeDirectives</a></li>
@@ -286,6 +287,9 @@ a:focus, a:hover {
 
 <p><a href="#domain_diagnostic">Diagnostic</a></p><ul><li><a href="#request_diagnostic.getDiagnostics">diagnostic.getDiagnostics</a></li>
 <li><a href="#request_diagnostic.getServerPort">diagnostic.getServerPort</a></li>
+</ul>
+
+<p><a href="#domain_flutter">Flutter</a></p><ul><li><a href="#request_flutter.setSubscriptions">flutter.setSubscriptions</a></li>
 </ul>
 
 <h3>Command-line Arguments</h3>
@@ -2252,6 +2256,48 @@ a:focus, a:hover {
         <p>
           The fixes that are available for the errors at the given offset.
         </p>
+      </dd></dl></dd><dt class="request"><a name="request_edit.getPostfixCompletion">edit.getPostfixCompletion</a></dt><dd><div class="box"><pre>request: {
+  "id": String
+  "method": "edit.getPostfixCompletion"
+  "params": {
+    "<b>file</b>": <a href="#type_FilePath">FilePath</a>
+    "<b>key</b>": String
+    "<b>offset</b>": int
+  }
+}</pre><br><pre>response: {
+  "id": String
+  "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
+  "result": {
+    "<b>change</b>": <a href="#type_SourceChange">SourceChange</a>
+  }
+}</pre></div>
+    <p>
+      Get the changes required to convert the postfix template at the given
+      location into the template's expanded form.
+    </p>
+    
+    
+  <h4>parameters:</h4><dl><dt class="field"><b>file: <a href="#type_FilePath">FilePath</a></b></dt><dd>
+        
+        <p>
+          The file containing the postfix template to be expanded.
+        </p>
+      </dd><dt class="field"><b>key: String</b></dt><dd>
+        
+        <p>
+          The unique name that identifies the template in use.
+        </p>
+      </dd><dt class="field"><b>offset: int</b></dt><dd>
+        
+        <p>
+          The offset used to identify the code to which the template will be
+          applied.
+        </p>
+      </dd></dl><h4>returns:</h4><dl><dt class="field"><b>change: <a href="#type_SourceChange">SourceChange</a></b></dt><dd>
+        
+        <p>
+          The change to be applied in order to complete the statement.
+        </p>
       </dd></dl></dd><dt class="request"><a name="request_edit.getRefactoring">edit.getRefactoring</a></dt><dd><div class="box"><pre>request: {
   "id": String
   "method": "edit.getRefactoring"
@@ -2811,13 +2857,103 @@ a:focus, a:hover {
       </dd></dl></dd></dl>
 
 
-
+<h2 class="domain"><a name="domain_flutter">flutter domain</a></h2>
+  <p>
+    The analysis domain contains API’s related to Flutter support.
+  </p>
+  
+  
+  
+  
+<h3>Requests</h3><dl><dt class="request"><a name="request_flutter.setSubscriptions">flutter.setSubscriptions</a></dt><dd><div class="box"><pre>request: {
+  "id": String
+  "method": "flutter.setSubscriptions"
+  "params": {
+    "<b>subscriptions</b>": Map&lt;<a href="#type_FlutterService">FlutterService</a>, List&lt;<a href="#type_FilePath">FilePath</a>&gt;&gt;
+  }
+}</pre><br><pre>response: {
+  "id": String
+  "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
+}</pre></div>
+    <p>
+      Subscribe for services that are specific to individual files.
+      All previous subscriptions are replaced by the current set of
+      subscriptions. If a given service is not included as a key in the map
+      then no files will be subscribed to the service, exactly as if the
+      service had been included in the map with an explicit empty list of
+      files.
+    </p>
+    <p>
+      Note that this request determines the set of requested
+      subscriptions. The actual set of subscriptions at any given
+      time is the intersection of this set with the set of files
+      currently subject to analysis. The files currently subject
+      to analysis are the set of files contained within an actual
+      analysis root but not excluded, plus all of the files
+      transitively reachable from those files via import, export
+      and part directives. (See analysis.setAnalysisRoots for an
+      explanation of how the actual analysis roots are
+      determined.) When the actual analysis roots change, the
+      actual set of subscriptions is automatically updated, but
+      the set of requested subscriptions is unchanged.
+    </p>
+    <p>
+      If a requested subscription is a directory it is ignored,
+      but remains in the set of requested subscriptions so that if
+      it later becomes a file it can be included in the set of
+      actual subscriptions.
+    </p>
+    <p>
+      It is an error if any of the keys in the map are not valid
+      services. If there is an error, then the existing
+      subscriptions will remain unchanged.
+    </p>
+    
+  <h4>parameters:</h4><dl><dt class="field"><b>subscriptions: Map&lt;<a href="#type_FlutterService">FlutterService</a>, List&lt;<a href="#type_FilePath">FilePath</a>&gt;&gt;</b></dt><dd>
+        
+        <p>
+          A table mapping services to a list of the files being
+          subscribed to the service.
+        </p>
+      </dd></dl></dd></dl><h3>Notifications</h3><dl><dt class="notification"><a name="notification_flutter.outline">flutter.outline</a></dt><dd><div class="box"><pre>notification: {
+  "event": "flutter.outline"
+  "params": {
+    "<b>file</b>": <a href="#type_FilePath">FilePath</a>
+    "<b>outline</b>": <a href="#type_FlutterOutline">FlutterOutline</a>
+  }
+}</pre></div>
+    <p>
+      Reports the Flutter outline associated with a single file.
+    </p>
+    <p>
+      This notification is not subscribed to by default. Clients
+      can subscribe by including the value <tt>"OUTLINE"</tt> in
+      the list of services passed in an flutter.setSubscriptions
+      request.
+    </p>
+    
+  <h4>parameters:</h4><dl><dt class="field"><b>file: <a href="#type_FilePath">FilePath</a></b></dt><dd>
+        
+        <p>
+          The file with which the outline is associated.
+        </p>
+      </dd><dt class="field"><b>outline: <a href="#type_FlutterOutline">FlutterOutline</a></b></dt><dd>
+        
+        <p>
+          The outline associated with the file.
+        </p>
+      </dd></dl></dd></dl>
 
   <h2 class="domain"><a name="types">Types</a></h2>
   <p>
     This section contains descriptions of the data types referenced
     in the API’s of the various domains.
   </p>
+  
+  
+  
+  
+  
   
   
   
@@ -3620,7 +3756,7 @@ a:focus, a:hover {
       An enumeration of the kinds of elements.
     </p>
     
-  <dl><dt class="value">CLASS</dt><dt class="value">CLASS_TYPE_ALIAS</dt><dt class="value">COMPILATION_UNIT</dt><dt class="value">CONSTRUCTOR</dt><dt class="value">CONSTRUCTOR_INVOCATION</dt><dt class="value">ENUM</dt><dt class="value">ENUM_CONSTANT</dt><dt class="value">FIELD</dt><dt class="value">FILE</dt><dt class="value">FUNCTION</dt><dt class="value">FUNCTION_INVOCATION</dt><dt class="value">FUNCTION_TYPE_ALIAS</dt><dt class="value">GETTER</dt><dt class="value">LABEL</dt><dt class="value">LIBRARY</dt><dt class="value">LOCAL_VARIABLE</dt><dt class="value">METHOD</dt><dt class="value">MIXIN</dt><dt class="value">PARAMETER</dt><dt class="value">PREFIX</dt><dt class="value">SETTER</dt><dt class="value">TOP_LEVEL_VARIABLE</dt><dt class="value">TYPE_PARAMETER</dt><dt class="value">UNIT_TEST_GROUP</dt><dt class="value">UNIT_TEST_TEST</dt><dt class="value">UNKNOWN</dt></dl></dd><dt class="typeDefinition"><a name="type_ExecutableFile">ExecutableFile: object</a></dt><dd>
+  <dl><dt class="value">CLASS</dt><dt class="value">CLASS_TYPE_ALIAS</dt><dt class="value">COMPILATION_UNIT</dt><dt class="value">CONSTRUCTOR</dt><dt class="value">CONSTRUCTOR_INVOCATION</dt><dt class="value">ENUM</dt><dt class="value">ENUM_CONSTANT</dt><dt class="value">EXTENSION</dt><dt class="value">FIELD</dt><dt class="value">FILE</dt><dt class="value">FUNCTION</dt><dt class="value">FUNCTION_INVOCATION</dt><dt class="value">FUNCTION_TYPE_ALIAS</dt><dt class="value">GETTER</dt><dt class="value">LABEL</dt><dt class="value">LIBRARY</dt><dt class="value">LOCAL_VARIABLE</dt><dt class="value">METHOD</dt><dt class="value">MIXIN</dt><dt class="value">PARAMETER</dt><dt class="value">PREFIX</dt><dt class="value">SETTER</dt><dt class="value">TOP_LEVEL_VARIABLE</dt><dt class="value">TYPE_PARAMETER</dt><dt class="value">UNIT_TEST_GROUP</dt><dt class="value">UNIT_TEST_TEST</dt><dt class="value">UNKNOWN</dt></dl></dd><dt class="typeDefinition"><a name="type_ExecutableFile">ExecutableFile: object</a></dt><dd>
     <p>
       A description of an executable file.
     </p>
@@ -3699,7 +3835,325 @@ a:focus, a:hover {
       not absolute or is not normalized, then an error of type
       <tt>INVALID_FILE_PATH_FORMAT</tt> will be generated.
     </p>
-  </dd><dt class="typeDefinition"><a name="type_FoldingKind">FoldingKind: String</a></dt><dd>
+  </dd><dt class="typeDefinition"><a name="type_FlutterOutline">FlutterOutline: object</a></dt><dd>
+    <p>
+      An node in the Flutter specific outline structure of a file.
+    </p>
+    
+  <dl><dt class="field"><b>kind: <a href="#type_FlutterOutlineKind">FlutterOutlineKind</a></b></dt><dd>
+        
+        <p>The kind of the node.</p>
+      </dd><dt class="field"><b>offset: int</b></dt><dd>
+        
+        <p>
+          The offset of the first character of the element. This is different
+          than the offset in the Element, which is the offset of the name of the
+          element. It can be used, for example, to map locations in the file
+          back to an outline.
+        </p>
+      </dd><dt class="field"><b>length: int</b></dt><dd>
+        
+        <p>
+          The length of the element.
+        </p>
+      </dd><dt class="field"><b>codeOffset: int</b></dt><dd>
+        
+        <p>
+          The offset of the first character of the element code, which is
+          neither documentation, nor annotation.
+        </p>
+      </dd><dt class="field"><b>codeLength: int</b></dt><dd>
+        
+        <p>
+          The length of the element code.
+        </p>
+      </dd><dt class="field"><b>label: String<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          The text label of the node children of the node.
+          It is provided for any FlutterOutlineKind.GENERIC node,
+          where better information is not available.
+        </p>
+      </dd><dt class="field"><b>dartElement: <a href="#type_Element">Element</a><span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          If this node is a Dart element, the description of it; omitted
+          otherwise.
+        </p>
+      </dd><dt class="field"><b>attributes: List&lt;<a href="#type_FlutterOutlineAttribute">FlutterOutlineAttribute</a>&gt;<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          Additional attributes for this node, which might be interesting
+          to display on the client. These attributes are usually arguments
+          for the instance creation or the invocation that created the widget.
+        </p>
+      </dd><dt class="field"><b>className: String<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          If the node creates a new class instance, or a reference to an
+          instance, this field has the name of the class.
+        </p>
+      </dd><dt class="field"><b>parentAssociationLabel: String<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          A short text description how this node is associated with the parent
+          node. For example "appBar" or "body" in Scaffold.
+        </p>
+      </dd><dt class="field"><b>variableName: String<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          If FlutterOutlineKind.VARIABLE, the name of the variable.
+        </p>
+      </dd><dt class="field"><b>children: List&lt;<a href="#type_FlutterOutline">FlutterOutline</a>&gt;<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          The children of the node. The field will be omitted if the node has no
+          children.
+        </p>
+      </dd></dl></dd><dt class="typeDefinition"><a name="type_FlutterOutlineAttribute">FlutterOutlineAttribute: object</a></dt><dd>
+    <p>
+      An attribute for a FlutterOutline.
+    </p>
+    
+  <dl><dt class="field"><b>name: String</b></dt><dd>
+        
+        <p>
+          The name of the attribute.
+        </p>
+      </dd><dt class="field"><b>label: String</b></dt><dd>
+        
+        <p>
+          The label of the attribute value, usually the Dart code.
+          It might be quite long, the client should abbreviate as needed.
+        </p>
+      </dd><dt class="field"><b>literalValueBoolean: bool<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          The boolean literal value of the attribute.
+          This field is absent if the value is not a boolean literal.
+        </p>
+      </dd><dt class="field"><b>literalValueInteger: int<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          The integer literal value of the attribute.
+          This field is absent if the value is not an integer literal.
+        </p>
+      </dd><dt class="field"><b>literalValueString: String<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          The string literal value of the attribute.
+          This field is absent if the value is not a string literal.
+        </p>
+      </dd><dt class="field"><b>nameLocation: <a href="#type_Location">Location</a><span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          If the attribute is a named argument, the location of the name,
+          without the colon.
+        </p>
+      </dd><dt class="field"><b>valueLocation: <a href="#type_Location">Location</a><span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          The location of the value.
+        </p>
+        <p>
+          This field is always available, but marked optional for backward
+          compatibility between new clients with older servers.
+        </p>
+      </dd></dl></dd><dt class="typeDefinition"><a name="type_FlutterOutlineKind">FlutterOutlineKind: String</a></dt><dd>
+    <p>
+      An enumeration of the kinds of FlutterOutline elements. The list of kinds
+      might be expanded with time, clients must be able to handle new kinds
+      in some general way.
+    </p>
+    
+  <dl><dt class="value">DART_ELEMENT</dt><dd>
+        
+        <p>A dart element declaration.</p>
+      </dd><dt class="value">GENERIC</dt><dd>
+        
+        <p>A generic Flutter element, without additional information.</p>
+      </dd><dt class="value">NEW_INSTANCE</dt><dd>
+        
+        <p>A new instance creation.</p>
+      </dd><dt class="value">INVOCATION</dt><dd>
+        
+        <p>An invocation of a method, a top-level function, a function
+          expression, etc.</p>
+      </dd><dt class="value">VARIABLE</dt><dd>
+        
+        <p>A reference to a local variable, or a field.</p>
+      </dd><dt class="value">PLACEHOLDER</dt><dd>
+        
+        <p>The parent node has a required Widget. The node works as a
+          placeholder child to drop a new Widget to.</p>
+      </dd></dl></dd><dt class="typeDefinition"><a name="type_FlutterService">FlutterService: String</a></dt><dd>
+    <p>
+      An enumeration of the services provided by the flutter domain that
+      are related to a specific list of files.
+    </p>
+    
+  <dl><dt class="value">OUTLINE</dt></dl></dd><dt class="typeDefinition"><a name="type_FlutterWidgetProperty">FlutterWidgetProperty: object</a></dt><dd>
+    <p>
+      A property of a Flutter widget.
+    </p>
+    
+  <dl><dt class="field"><b>documentation: String<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          The documentation of the property to show to the user. Omitted if
+          the server does not know the documentation, e.g. because the
+          corresponding field is not documented.
+        </p>
+      </dd><dt class="field"><b>expression: String<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          If the value of this property is set, the Dart code of the expression
+          of this property.
+        </p>
+      </dd><dt class="field"><b>id: int</b></dt><dd>
+        
+        <p>
+          The unique identifier of the property, must be passed back to the
+          server when updating the property value. Identifiers become invalid
+          on any source code change.
+        </p>
+      </dd><dt class="field"><b>isRequired: bool</b></dt><dd>
+        
+        <p>
+          True if the property is required, e.g. because it corresponds to
+          a required parameter of a constructor.
+        </p>
+      </dd><dt class="field"><b>isSafeToUpdate: bool</b></dt><dd>
+        
+        <p>
+          If the property expression is a concrete value (e.g. a literal, or
+          an enum constant), then it is safe to replace the expression with
+          another concrete value. In this case this field is true. Otherwise,
+          for example when the expression is a reference to a field, so that
+          its value is provided from outside, this field is false.
+        </p>
+      </dd><dt class="field"><b>name: String</b></dt><dd>
+        
+        <p>The name of the property to display to the user.</p>
+      </dd><dt class="field"><b>children: List&lt;<a href="#type_FlutterWidgetProperty">FlutterWidgetProperty</a>&gt;<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          The list of children properties, if any. For example any property of
+          type <tt>EdgeInsets</tt> will have four children properties of type
+          <tt>double</tt> - left / top / right / bottom.
+        </p>
+      </dd><dt class="field"><b>editor: <a href="#type_FlutterWidgetPropertyEditor">FlutterWidgetPropertyEditor</a><span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          The editor that should be used by the client. This field is omitted
+          if the server does not know the editor for this property, for example
+          because it does not have one of the supported types.
+        </p>
+      </dd><dt class="field"><b>value: <a href="#type_FlutterWidgetPropertyValue">FlutterWidgetPropertyValue</a><span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          If the expression is set, and the server knows the value of the
+          expression, this field is set.
+        </p>
+      </dd></dl></dd><dt class="typeDefinition"><a name="type_FlutterWidgetPropertyEditor">FlutterWidgetPropertyEditor: object</a></dt><dd>
+    <p>
+      An editor for a property of a Flutter widget.
+    </p>
+    
+  <dl><dt class="field"><b>kind: <a href="#type_FlutterWidgetPropertyEditorKind">FlutterWidgetPropertyEditorKind</a></b></dt><dd>
+        
+      </dd><dt class="field"><b>enumItems: List&lt;<a href="#type_FlutterWidgetPropertyValueEnumItem">FlutterWidgetPropertyValueEnumItem</a>&gt;<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+      </dd></dl></dd><dt class="typeDefinition"><a name="type_FlutterWidgetPropertyEditorKind">FlutterWidgetPropertyEditorKind: String</a></dt><dd>
+    <p>
+      An enumeration of the kinds of property editors.
+    </p>
+    
+  <dl><dt class="value">BOOL</dt><dd>
+        
+        <p>
+          The editor for a property of type <tt>bool</tt>.
+        </p>
+      </dd><dt class="value">DOUBLE</dt><dd>
+        
+        <p>
+          The editor for a property of the type <tt>double</tt>.
+        </p>
+      </dd><dt class="value">ENUM</dt><dd>
+        
+        <p>
+          The editor for choosing an item of an enumeration, see the
+          <tt>enumItems</tt> field of <tt>FlutterWidgetPropertyEditor</tt>.
+        </p>
+      </dd><dt class="value">ENUM_LIKE</dt><dd>
+        
+        <p>
+          The editor for either choosing a pre-defined item from a list of
+          provided static field references (like <tt>ENUM</tt>), or specifying
+          a free-form expression.
+        </p>
+      </dd><dt class="value">INT</dt><dd>
+        
+        <p>
+          The editor for a property of type <tt>int</tt>.
+        </p>
+      </dd><dt class="value">STRING</dt><dd>
+        
+        <p>
+          The editor for a property of the type <tt>String</tt>.
+        </p>
+      </dd></dl></dd><dt class="typeDefinition"><a name="type_FlutterWidgetPropertyValue">FlutterWidgetPropertyValue: object</a></dt><dd>
+    <p>
+      A value of a property of a Flutter widget.
+    </p>
+    
+  <dl><dt class="field"><b>boolValue: bool<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+      </dd><dt class="field"><b>doubleValue: double<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+      </dd><dt class="field"><b>intValue: int<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+      </dd><dt class="field"><b>stringValue: String<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+      </dd><dt class="field"><b>enumValue: <a href="#type_FlutterWidgetPropertyValueEnumItem">FlutterWidgetPropertyValueEnumItem</a><span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+      </dd><dt class="field"><b>expression: String<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          A free-form expression, which will be used as the value as is.
+        </p>
+      </dd></dl></dd><dt class="typeDefinition"><a name="type_FlutterWidgetPropertyValueEnumItem">FlutterWidgetPropertyValueEnumItem: object</a></dt><dd>
+    <p>
+      An item of an enumeration in a general sense - actual <tt>enum</tt>
+      value, or a static field in a class.
+    </p>
+    
+  <dl><dt class="field"><b>libraryUri: String</b></dt><dd>
+        
+        <p>
+          The URI of the library containing the <tt>className</tt>. When the
+          enum item is passed back, this will allow the server to import the
+          corresponding library if necessary.
+        </p>
+      </dd><dt class="field"><b>className: String</b></dt><dd>
+        
+        <p>
+          The name of the class or enum.
+        </p>
+      </dd><dt class="field"><b>name: String</b></dt><dd>
+        
+        <p>
+          The name of the field in the enumeration, or the static field in the
+          class.
+        </p>
+      </dd><dt class="field"><b>documentation: String<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          The documentation to show to the user. Omitted if the server does not
+          know the documentation, e.g. because the corresponding field is not
+          documented.
+        </p>
+      </dd></dl></dd><dt class="typeDefinition"><a name="type_FoldingKind">FoldingKind: String</a></dt><dd>
     <p>
       An enumeration of the kinds of folding regions.
     </p>
@@ -4685,6 +5139,24 @@ a:focus, a:hover {
           an analysis root, or the requested operation is not available
           for the file.
         </p>
+      </dd><dt class="value">FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET</dt><dd>
+        
+        <p>
+          The given location does not have a supported widget.
+        </p>
+      </dd><dt class="value">FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID</dt><dd>
+        
+        <p>
+          The given property identifier is not valid. It might have never been
+          valid, or a change to code invalidated it, or its TTL was exceeded.
+        </p>
+      </dd><dt class="value">FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED</dt><dd>
+        
+        <p>
+          The value of the property cannot be removed, for example because
+          the corresponding constructor argument is required, and the server
+          does not know what default value to use.
+        </p>
       </dd><dt class="value">FORMAT_INVALID_FILE</dt><dd>
         
         <p>
@@ -5536,7 +6008,7 @@ a:focus, a:hover {
   TODO: TBD
 </p>
 <h2 class="domain"><a name="index">Index</a></h2>
-<h3>Domains</h3><h4>server (<a href="#domain_server">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_server.getVersion">getVersion</a></li><li><a href="#request_server.shutdown">shutdown</a></li><li><a href="#request_server.setSubscriptions">setSubscriptions</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_server.connected">connected</a></li><li><a href="#notification_server.error">error</a></li><li><a href="#notification_server.status">status</a></li></ul></div></div><h4>analysis (<a href="#domain_analysis">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_analysis.getErrors">getErrors</a></li><li><a href="#request_analysis.getHover">getHover</a></li><li><a href="#request_analysis.getLibraryDependencies">getLibraryDependencies</a></li><li><a href="#request_analysis.getNavigation">getNavigation</a></li><li><a href="#request_analysis.getReachableSources">getReachableSources</a></li><li><a href="#request_analysis.reanalyze">reanalyze</a></li><li><a href="#request_analysis.setAnalysisRoots">setAnalysisRoots</a></li><li><a href="#request_analysis.setGeneralSubscriptions">setGeneralSubscriptions</a></li><li><a href="#request_analysis.setPriorityFiles">setPriorityFiles</a></li><li><a href="#request_analysis.setSubscriptions">setSubscriptions</a></li><li><a href="#request_analysis.updateContent">updateContent</a></li><li><a href="#request_analysis.updateOptions">updateOptions</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_analysis.analyzedFiles">analyzedFiles</a></li><li><a href="#notification_analysis.closingLabels">closingLabels</a></li><li><a href="#notification_analysis.errors">errors</a></li><li><a href="#notification_analysis.flushResults">flushResults</a></li><li><a href="#notification_analysis.folding">folding</a></li><li><a href="#notification_analysis.highlights">highlights</a></li><li><a href="#notification_analysis.implemented">implemented</a></li><li><a href="#notification_analysis.invalidate">invalidate</a></li><li><a href="#notification_analysis.navigation">navigation</a></li><li><a href="#notification_analysis.occurrences">occurrences</a></li><li><a href="#notification_analysis.outline">outline</a></li><li><a href="#notification_analysis.overrides">overrides</a></li></ul></div></div><h4>completion (<a href="#domain_completion">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_completion.getSuggestions">getSuggestions</a></li><li><a href="#request_completion.setSubscriptions">setSubscriptions</a></li><li><a href="#request_completion.registerLibraryPaths">registerLibraryPaths</a></li><li><a href="#request_completion.getSuggestionDetails">getSuggestionDetails</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_completion.results">results</a></li><li><a href="#notification_completion.availableSuggestions">availableSuggestions</a></li><li><a href="#notification_completion.existingImports">existingImports</a></li></ul></div></div><h4>search (<a href="#domain_search">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_search.findElementReferences">findElementReferences</a></li><li><a href="#request_search.findMemberDeclarations">findMemberDeclarations</a></li><li><a href="#request_search.findMemberReferences">findMemberReferences</a></li><li><a href="#request_search.findTopLevelDeclarations">findTopLevelDeclarations</a></li><li><a href="#request_search.getTypeHierarchy">getTypeHierarchy</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_search.results">results</a></li></ul></div></div><h4>edit (<a href="#domain_edit">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_edit.format">format</a></li><li><a href="#request_edit.getAssists">getAssists</a></li><li><a href="#request_edit.getAvailableRefactorings">getAvailableRefactorings</a></li><li><a href="#request_edit.getFixes">getFixes</a></li><li><a href="#request_edit.getRefactoring">getRefactoring</a></li><li><a href="#request_edit.sortMembers">sortMembers</a></li><li><a href="#request_edit.organizeDirectives">organizeDirectives</a></li></ul></div><h4>execution (<a href="#domain_execution">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_execution.createContext">createContext</a></li><li><a href="#request_execution.deleteContext">deleteContext</a></li><li><a href="#request_execution.getSuggestions">getSuggestions</a></li><li><a href="#request_execution.mapUri">mapUri</a></li><li><a href="#request_execution.setSubscriptions">setSubscriptions</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_execution.launchData">launchData</a></li></ul></div></div><h4>diagnostic (<a href="#domain_diagnostic">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_diagnostic.getDiagnostics">getDiagnostics</a></li><li><a href="#request_diagnostic.getServerPort">getServerPort</a></li></ul></div><h3>Types (<a href="#types">↑</a>)</h3><div class="subindex"><ul><li><a href="#type_AddContentOverlay">AddContentOverlay</a></li><li><a href="#type_AnalysisError">AnalysisError</a></li><li><a href="#type_AnalysisErrorFixes">AnalysisErrorFixes</a></li><li><a href="#type_AnalysisErrorSeverity">AnalysisErrorSeverity</a></li><li><a href="#type_AnalysisErrorType">AnalysisErrorType</a></li><li><a href="#type_AnalysisOptions">AnalysisOptions</a></li><li><a href="#type_AnalysisService">AnalysisService</a></li><li><a href="#type_AnalysisStatus">AnalysisStatus</a></li><li><a href="#type_AvailableSuggestion">AvailableSuggestion</a></li><li><a href="#type_AvailableSuggestionRelevanceTag">AvailableSuggestionRelevanceTag</a></li><li><a href="#type_AvailableSuggestionSet">AvailableSuggestionSet</a></li><li><a href="#type_ChangeContentOverlay">ChangeContentOverlay</a></li><li><a href="#type_ClosingLabel">ClosingLabel</a></li><li><a href="#type_CompletionId">CompletionId</a></li><li><a href="#type_CompletionService">CompletionService</a></li><li><a href="#type_CompletionSuggestion">CompletionSuggestion</a></li><li><a href="#type_CompletionSuggestionKind">CompletionSuggestionKind</a></li><li><a href="#type_ContextData">ContextData</a></li><li><a href="#type_DiagnosticMessage">DiagnosticMessage</a></li><li><a href="#type_Element">Element</a></li><li><a href="#type_ElementDeclaration">ElementDeclaration</a></li><li><a href="#type_ElementKind">ElementKind</a></li><li><a href="#type_ExecutableFile">ExecutableFile</a></li><li><a href="#type_ExecutableKind">ExecutableKind</a></li><li><a href="#type_ExecutionContextId">ExecutionContextId</a></li><li><a href="#type_ExecutionService">ExecutionService</a></li><li><a href="#type_ExistingImport">ExistingImport</a></li><li><a href="#type_ExistingImports">ExistingImports</a></li><li><a href="#type_FileKind">FileKind</a></li><li><a href="#type_FilePath">FilePath</a></li><li><a href="#type_FoldingKind">FoldingKind</a></li><li><a href="#type_FoldingRegion">FoldingRegion</a></li><li><a href="#type_GeneralAnalysisService">GeneralAnalysisService</a></li><li><a href="#type_HighlightRegion">HighlightRegion</a></li><li><a href="#type_HighlightRegionType">HighlightRegionType</a></li><li><a href="#type_HoverInformation">HoverInformation</a></li><li><a href="#type_ImplementedClass">ImplementedClass</a></li><li><a href="#type_ImplementedMember">ImplementedMember</a></li><li><a href="#type_ImportedElementSet">ImportedElementSet</a></li><li><a href="#type_ImportedElements">ImportedElements</a></li><li><a href="#type_IncludedSuggestionRelevanceTag">IncludedSuggestionRelevanceTag</a></li><li><a href="#type_IncludedSuggestionSet">IncludedSuggestionSet</a></li><li><a href="#type_KytheEntry">KytheEntry</a></li><li><a href="#type_KytheVName">KytheVName</a></li><li><a href="#type_LibraryPathSet">LibraryPathSet</a></li><li><a href="#type_LinkedEditGroup">LinkedEditGroup</a></li><li><a href="#type_LinkedEditSuggestion">LinkedEditSuggestion</a></li><li><a href="#type_LinkedEditSuggestionKind">LinkedEditSuggestionKind</a></li><li><a href="#type_Location">Location</a></li><li><a href="#type_NavigationRegion">NavigationRegion</a></li><li><a href="#type_NavigationTarget">NavigationTarget</a></li><li><a href="#type_Occurrences">Occurrences</a></li><li><a href="#type_Outline">Outline</a></li><li><a href="#type_OverriddenMember">OverriddenMember</a></li><li><a href="#type_Override">Override</a></li><li><a href="#type_Position">Position</a></li><li><a href="#type_PostfixTemplateDescriptor">PostfixTemplateDescriptor</a></li><li><a href="#type_PubStatus">PubStatus</a></li><li><a href="#type_RefactoringFeedback">RefactoringFeedback</a></li><li><a href="#type_RefactoringKind">RefactoringKind</a></li><li><a href="#type_RefactoringMethodParameter">RefactoringMethodParameter</a></li><li><a href="#type_RefactoringMethodParameterKind">RefactoringMethodParameterKind</a></li><li><a href="#type_RefactoringOptions">RefactoringOptions</a></li><li><a href="#type_RefactoringProblem">RefactoringProblem</a></li><li><a href="#type_RefactoringProblemSeverity">RefactoringProblemSeverity</a></li><li><a href="#type_RemoveContentOverlay">RemoveContentOverlay</a></li><li><a href="#type_RequestError">RequestError</a></li><li><a href="#type_RequestErrorCode">RequestErrorCode</a></li><li><a href="#type_RuntimeCompletionExpression">RuntimeCompletionExpression</a></li><li><a href="#type_RuntimeCompletionExpressionType">RuntimeCompletionExpressionType</a></li><li><a href="#type_RuntimeCompletionExpressionTypeKind">RuntimeCompletionExpressionTypeKind</a></li><li><a href="#type_RuntimeCompletionVariable">RuntimeCompletionVariable</a></li><li><a href="#type_SearchId">SearchId</a></li><li><a href="#type_SearchResult">SearchResult</a></li><li><a href="#type_SearchResultKind">SearchResultKind</a></li><li><a href="#type_ServerService">ServerService</a></li><li><a href="#type_SourceChange">SourceChange</a></li><li><a href="#type_SourceEdit">SourceEdit</a></li><li><a href="#type_SourceFileEdit">SourceFileEdit</a></li><li><a href="#type_TypeHierarchyItem">TypeHierarchyItem</a></li></ul></div><h3>Refactorings (<a href="#refactorings">↑</a>)</h3><div class="subindex"><ul><li><a href="#refactoring_CONVERT_GETTER_TO_METHOD">CONVERT_GETTER_TO_METHOD</a></li><li><a href="#refactoring_CONVERT_METHOD_TO_GETTER">CONVERT_METHOD_TO_GETTER</a></li><li><a href="#refactoring_EXTRACT_LOCAL_VARIABLE">EXTRACT_LOCAL_VARIABLE</a></li><li><a href="#refactoring_EXTRACT_METHOD">EXTRACT_METHOD</a></li><li><a href="#refactoring_EXTRACT_WIDGET">EXTRACT_WIDGET</a></li><li><a href="#refactoring_INLINE_LOCAL_VARIABLE">INLINE_LOCAL_VARIABLE</a></li><li><a href="#refactoring_INLINE_METHOD">INLINE_METHOD</a></li><li><a href="#refactoring_MOVE_FILE">MOVE_FILE</a></li><li><a href="#refactoring_RENAME">RENAME</a></li></ul></div>
+<h3>Domains</h3><h4>server (<a href="#domain_server">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_server.getVersion">getVersion</a></li><li><a href="#request_server.shutdown">shutdown</a></li><li><a href="#request_server.setSubscriptions">setSubscriptions</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_server.connected">connected</a></li><li><a href="#notification_server.error">error</a></li><li><a href="#notification_server.status">status</a></li></ul></div></div><h4>analysis (<a href="#domain_analysis">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_analysis.getErrors">getErrors</a></li><li><a href="#request_analysis.getHover">getHover</a></li><li><a href="#request_analysis.getLibraryDependencies">getLibraryDependencies</a></li><li><a href="#request_analysis.getNavigation">getNavigation</a></li><li><a href="#request_analysis.getReachableSources">getReachableSources</a></li><li><a href="#request_analysis.reanalyze">reanalyze</a></li><li><a href="#request_analysis.setAnalysisRoots">setAnalysisRoots</a></li><li><a href="#request_analysis.setGeneralSubscriptions">setGeneralSubscriptions</a></li><li><a href="#request_analysis.setPriorityFiles">setPriorityFiles</a></li><li><a href="#request_analysis.setSubscriptions">setSubscriptions</a></li><li><a href="#request_analysis.updateContent">updateContent</a></li><li><a href="#request_analysis.updateOptions">updateOptions</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_analysis.analyzedFiles">analyzedFiles</a></li><li><a href="#notification_analysis.closingLabels">closingLabels</a></li><li><a href="#notification_analysis.errors">errors</a></li><li><a href="#notification_analysis.flushResults">flushResults</a></li><li><a href="#notification_analysis.folding">folding</a></li><li><a href="#notification_analysis.highlights">highlights</a></li><li><a href="#notification_analysis.implemented">implemented</a></li><li><a href="#notification_analysis.invalidate">invalidate</a></li><li><a href="#notification_analysis.navigation">navigation</a></li><li><a href="#notification_analysis.occurrences">occurrences</a></li><li><a href="#notification_analysis.outline">outline</a></li><li><a href="#notification_analysis.overrides">overrides</a></li></ul></div></div><h4>completion (<a href="#domain_completion">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_completion.getSuggestions">getSuggestions</a></li><li><a href="#request_completion.setSubscriptions">setSubscriptions</a></li><li><a href="#request_completion.registerLibraryPaths">registerLibraryPaths</a></li><li><a href="#request_completion.getSuggestionDetails">getSuggestionDetails</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_completion.results">results</a></li><li><a href="#notification_completion.availableSuggestions">availableSuggestions</a></li><li><a href="#notification_completion.existingImports">existingImports</a></li></ul></div></div><h4>search (<a href="#domain_search">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_search.findElementReferences">findElementReferences</a></li><li><a href="#request_search.findMemberDeclarations">findMemberDeclarations</a></li><li><a href="#request_search.findMemberReferences">findMemberReferences</a></li><li><a href="#request_search.findTopLevelDeclarations">findTopLevelDeclarations</a></li><li><a href="#request_search.getTypeHierarchy">getTypeHierarchy</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_search.results">results</a></li></ul></div></div><h4>edit (<a href="#domain_edit">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_edit.format">format</a></li><li><a href="#request_edit.getAssists">getAssists</a></li><li><a href="#request_edit.getAvailableRefactorings">getAvailableRefactorings</a></li><li><a href="#request_edit.getFixes">getFixes</a></li><li><a href="#request_edit.getPostfixCompletion">getPostfixCompletion</a></li><li><a href="#request_edit.getRefactoring">getRefactoring</a></li><li><a href="#request_edit.sortMembers">sortMembers</a></li><li><a href="#request_edit.organizeDirectives">organizeDirectives</a></li></ul></div><h4>execution (<a href="#domain_execution">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_execution.createContext">createContext</a></li><li><a href="#request_execution.deleteContext">deleteContext</a></li><li><a href="#request_execution.getSuggestions">getSuggestions</a></li><li><a href="#request_execution.mapUri">mapUri</a></li><li><a href="#request_execution.setSubscriptions">setSubscriptions</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_execution.launchData">launchData</a></li></ul></div></div><h4>diagnostic (<a href="#domain_diagnostic">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_diagnostic.getDiagnostics">getDiagnostics</a></li><li><a href="#request_diagnostic.getServerPort">getServerPort</a></li></ul></div><h4>flutter (<a href="#domain_flutter">↑</a>)</h4><div class="subindex"><h5>Requests</h5><ul><li><a href="#request_flutter.setSubscriptions">setSubscriptions</a></li></ul><h5>Notifications</h5><div class="subindex"><ul><li><a href="#notification_flutter.outline">outline</a></li></ul></div></div><h3>Types (<a href="#types">↑</a>)</h3><div class="subindex"><ul><li><a href="#type_AddContentOverlay">AddContentOverlay</a></li><li><a href="#type_AnalysisError">AnalysisError</a></li><li><a href="#type_AnalysisErrorFixes">AnalysisErrorFixes</a></li><li><a href="#type_AnalysisErrorSeverity">AnalysisErrorSeverity</a></li><li><a href="#type_AnalysisErrorType">AnalysisErrorType</a></li><li><a href="#type_AnalysisOptions">AnalysisOptions</a></li><li><a href="#type_AnalysisService">AnalysisService</a></li><li><a href="#type_AnalysisStatus">AnalysisStatus</a></li><li><a href="#type_AvailableSuggestion">AvailableSuggestion</a></li><li><a href="#type_AvailableSuggestionRelevanceTag">AvailableSuggestionRelevanceTag</a></li><li><a href="#type_AvailableSuggestionSet">AvailableSuggestionSet</a></li><li><a href="#type_ChangeContentOverlay">ChangeContentOverlay</a></li><li><a href="#type_ClosingLabel">ClosingLabel</a></li><li><a href="#type_CompletionId">CompletionId</a></li><li><a href="#type_CompletionService">CompletionService</a></li><li><a href="#type_CompletionSuggestion">CompletionSuggestion</a></li><li><a href="#type_CompletionSuggestionKind">CompletionSuggestionKind</a></li><li><a href="#type_ContextData">ContextData</a></li><li><a href="#type_DiagnosticMessage">DiagnosticMessage</a></li><li><a href="#type_Element">Element</a></li><li><a href="#type_ElementDeclaration">ElementDeclaration</a></li><li><a href="#type_ElementKind">ElementKind</a></li><li><a href="#type_ExecutableFile">ExecutableFile</a></li><li><a href="#type_ExecutableKind">ExecutableKind</a></li><li><a href="#type_ExecutionContextId">ExecutionContextId</a></li><li><a href="#type_ExecutionService">ExecutionService</a></li><li><a href="#type_ExistingImport">ExistingImport</a></li><li><a href="#type_ExistingImports">ExistingImports</a></li><li><a href="#type_FileKind">FileKind</a></li><li><a href="#type_FilePath">FilePath</a></li><li><a href="#type_FlutterOutline">FlutterOutline</a></li><li><a href="#type_FlutterOutlineAttribute">FlutterOutlineAttribute</a></li><li><a href="#type_FlutterOutlineKind">FlutterOutlineKind</a></li><li><a href="#type_FlutterService">FlutterService</a></li><li><a href="#type_FlutterWidgetProperty">FlutterWidgetProperty</a></li><li><a href="#type_FlutterWidgetPropertyEditor">FlutterWidgetPropertyEditor</a></li><li><a href="#type_FlutterWidgetPropertyEditorKind">FlutterWidgetPropertyEditorKind</a></li><li><a href="#type_FlutterWidgetPropertyValue">FlutterWidgetPropertyValue</a></li><li><a href="#type_FlutterWidgetPropertyValueEnumItem">FlutterWidgetPropertyValueEnumItem</a></li><li><a href="#type_FoldingKind">FoldingKind</a></li><li><a href="#type_FoldingRegion">FoldingRegion</a></li><li><a href="#type_GeneralAnalysisService">GeneralAnalysisService</a></li><li><a href="#type_HighlightRegion">HighlightRegion</a></li><li><a href="#type_HighlightRegionType">HighlightRegionType</a></li><li><a href="#type_HoverInformation">HoverInformation</a></li><li><a href="#type_ImplementedClass">ImplementedClass</a></li><li><a href="#type_ImplementedMember">ImplementedMember</a></li><li><a href="#type_ImportedElementSet">ImportedElementSet</a></li><li><a href="#type_ImportedElements">ImportedElements</a></li><li><a href="#type_IncludedSuggestionRelevanceTag">IncludedSuggestionRelevanceTag</a></li><li><a href="#type_IncludedSuggestionSet">IncludedSuggestionSet</a></li><li><a href="#type_KytheEntry">KytheEntry</a></li><li><a href="#type_KytheVName">KytheVName</a></li><li><a href="#type_LibraryPathSet">LibraryPathSet</a></li><li><a href="#type_LinkedEditGroup">LinkedEditGroup</a></li><li><a href="#type_LinkedEditSuggestion">LinkedEditSuggestion</a></li><li><a href="#type_LinkedEditSuggestionKind">LinkedEditSuggestionKind</a></li><li><a href="#type_Location">Location</a></li><li><a href="#type_NavigationRegion">NavigationRegion</a></li><li><a href="#type_NavigationTarget">NavigationTarget</a></li><li><a href="#type_Occurrences">Occurrences</a></li><li><a href="#type_Outline">Outline</a></li><li><a href="#type_OverriddenMember">OverriddenMember</a></li><li><a href="#type_Override">Override</a></li><li><a href="#type_Position">Position</a></li><li><a href="#type_PostfixTemplateDescriptor">PostfixTemplateDescriptor</a></li><li><a href="#type_PubStatus">PubStatus</a></li><li><a href="#type_RefactoringFeedback">RefactoringFeedback</a></li><li><a href="#type_RefactoringKind">RefactoringKind</a></li><li><a href="#type_RefactoringMethodParameter">RefactoringMethodParameter</a></li><li><a href="#type_RefactoringMethodParameterKind">RefactoringMethodParameterKind</a></li><li><a href="#type_RefactoringOptions">RefactoringOptions</a></li><li><a href="#type_RefactoringProblem">RefactoringProblem</a></li><li><a href="#type_RefactoringProblemSeverity">RefactoringProblemSeverity</a></li><li><a href="#type_RemoveContentOverlay">RemoveContentOverlay</a></li><li><a href="#type_RequestError">RequestError</a></li><li><a href="#type_RequestErrorCode">RequestErrorCode</a></li><li><a href="#type_RuntimeCompletionExpression">RuntimeCompletionExpression</a></li><li><a href="#type_RuntimeCompletionExpressionType">RuntimeCompletionExpressionType</a></li><li><a href="#type_RuntimeCompletionExpressionTypeKind">RuntimeCompletionExpressionTypeKind</a></li><li><a href="#type_RuntimeCompletionVariable">RuntimeCompletionVariable</a></li><li><a href="#type_SearchId">SearchId</a></li><li><a href="#type_SearchResult">SearchResult</a></li><li><a href="#type_SearchResultKind">SearchResultKind</a></li><li><a href="#type_ServerService">ServerService</a></li><li><a href="#type_SourceChange">SourceChange</a></li><li><a href="#type_SourceEdit">SourceEdit</a></li><li><a href="#type_SourceFileEdit">SourceFileEdit</a></li><li><a href="#type_TypeHierarchyItem">TypeHierarchyItem</a></li></ul></div><h3>Refactorings (<a href="#refactorings">↑</a>)</h3><div class="subindex"><ul><li><a href="#refactoring_CONVERT_GETTER_TO_METHOD">CONVERT_GETTER_TO_METHOD</a></li><li><a href="#refactoring_CONVERT_METHOD_TO_GETTER">CONVERT_METHOD_TO_GETTER</a></li><li><a href="#refactoring_EXTRACT_LOCAL_VARIABLE">EXTRACT_LOCAL_VARIABLE</a></li><li><a href="#refactoring_EXTRACT_METHOD">EXTRACT_METHOD</a></li><li><a href="#refactoring_EXTRACT_WIDGET">EXTRACT_WIDGET</a></li><li><a href="#refactoring_INLINE_LOCAL_VARIABLE">INLINE_LOCAL_VARIABLE</a></li><li><a href="#refactoring_INLINE_METHOD">INLINE_METHOD</a></li><li><a href="#refactoring_MOVE_FILE">MOVE_FILE</a></li><li><a href="#refactoring_RENAME">RENAME</a></li></ul></div>
 
 
 </body></html>

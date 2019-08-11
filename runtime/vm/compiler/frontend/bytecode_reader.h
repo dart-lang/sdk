@@ -88,6 +88,10 @@ class BytecodeReaderHelper : public ValueObject {
                                BitVector* is_covariant,
                                BitVector* is_generic_covariant_impl);
 
+  // Returns an flattened array of tuples {isFinal, defaultValue, metadata},
+  // or an Error.
+  RawObject* BuildParameterDescriptor(const Function& function);
+
   // Read bytecode PackedObject.
   RawObject* ReadObject();
 
@@ -130,6 +134,7 @@ class BytecodeReaderHelper : public ValueObject {
   struct Parameter {
     static const int kIsCovariantFlag = 1 << 0;
     static const int kIsGenericCovariantImplFlag = 1 << 1;
+    static const int kIsFinalFlag = 1 << 2;
   };
 
   class FunctionTypeScope : public ValueObject {
@@ -183,7 +188,13 @@ class BytecodeReaderHelper : public ValueObject {
   void ReadTypeParametersDeclaration(const Class& parameterized_class,
                                      const Function& parameterized_function);
 
-  void ReadConstantPool(const Function& function, const ObjectPool& pool);
+  // Read portion of constant pool corresponding to one function/closure.
+  // Start with [start_index], and stop when reaching EndClosureFunctionScope.
+  // Return index of the last read constant pool entry.
+  intptr_t ReadConstantPool(const Function& function,
+                            const ObjectPool& pool,
+                            intptr_t start_index);
+
   RawBytecode* ReadBytecode(const ObjectPool& pool);
   void ReadExceptionsTable(const Bytecode& bytecode, bool has_exceptions_table);
   void ReadSourcePositions(const Bytecode& bytecode, bool has_source_positions);
@@ -308,8 +319,11 @@ class BytecodeReader : public AllStatic {
   static RawError* ReadFunctionBytecode(Thread* thread,
                                         const Function& function);
 
-  // Read annotation for the given annotation field.
+  // Read annotations for the given annotation field.
   static RawObject* ReadAnnotation(const Field& annotation_field);
+  // Read the |count| annotations following given annotation field.
+  static RawArray* ReadExtendedAnnotations(const Field& annotation_field,
+                                           intptr_t count);
 
   // Read declaration of the given library.
   static void LoadLibraryDeclaration(const Library& library);

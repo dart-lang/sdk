@@ -206,3 +206,47 @@ void dynamicUses() async {
   for(var i in dyn) {}; //# 160: ok
   await for(var i in dyn) {}; //# 161: ok
 }
+
+void nullUses() async {
+  List<Null> nullList;
+  Null _null;
+  _null.isEven; //# 162: compile-time error
+  _null.round(); //# 163: compile-time error
+  _null.toString(); //# 164: ok
+  _null.hashCode; //# 165: ok
+  _null.runtimeType; //# 166: ok
+  _null.noSuchMethod(Invocation.method(#toString, [])); //# 167: ok
+  _null + 4; //# 165: compile-time error
+  -_null; //# 169: compile-time error
+  _null++; //# 170: compile-time error
+  ++null; //# 171: compile-time error
+  _null..isEven; //# 172: compile-time error
+  _null[3]; //# 170: compile-time error
+  _null[3] = 0; //# 171: compile-time error
+  _null += 4; //# 172: compile-time error
+  _null ??= _null; //# 176: ok
+  _null.round; //# 177: compile-time error
+  _null.toString; //# 178: ok
+  _null.noSuchMethod; //# 179: ok
+  _null(); //# 180: compile-time error
+  nullList[3](); //# 178: compile-time error
+  nullList.single(); //# 182: compile-time error
+  throw _null; //# 183: compile-time error
+  _null || true; //# 184: compile-time error
+  true || _null; //# 185: compile-time error
+  _null && true; //# 186: compile-time error
+  true && _null; //# 187: compile-time error
+  !_null; //# 188: compile-time error
+  _null ? _null : _null; //# 189: compile-time error
+  if (_null) {} //# 190: compile-time error
+  while (_null) {} //# 191: compile-time error
+  for (;_null;) {} //# 192: compile-time error
+  do {} while (_null); //# 193: compile-time error
+  _null!; //# 194: ok
+  _null ?? _null; //# 195: ok
+  _null == _null; //# 196: ok
+  _null != _null; //# 197: ok
+  _null?.toString(); //# 198: ok
+  for(var i in _null) {}; //# 199: compile-time error
+  await for(var i in _null) {}; //# 200: compile-time error
+}

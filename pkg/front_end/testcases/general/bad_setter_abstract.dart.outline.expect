@@ -1,0 +1,39 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/bad_setter_abstract.dart:5:8: Error: Expected a function body or '=>'.
+// Try adding {}.
+// set b();
+//        ^
+//
+// pkg/front_end/testcases/general/bad_setter_abstract.dart:7:12: Error: Expected a function body or '=>'.
+// Try adding {}.
+// set c(x, y);
+//            ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A*
+    ;
+  set a(dynamic #synthetic) → void
+    ;
+  set d(dynamic #synthetic) → void
+    ;
+}
+abstract class B extends core::Object {
+  synthetic constructor •() → self::B*
+    ;
+  set a(dynamic #synthetic) → void
+    ;
+  set d(dynamic #synthetic) → void
+    ;
+}
+static set b(dynamic #synthetic) → void
+  ;
+static set c(dynamic #synthetic) → void
+  ;
+static method main() → dynamic
+  ;

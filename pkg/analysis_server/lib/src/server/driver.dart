@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:ffi' as ffi;
 import 'dart:io';
 import 'dart:math';
 
@@ -18,6 +19,7 @@ import 'package:analysis_server/src/server/features.dart';
 import 'package:analysis_server/src/server/http_server.dart';
 import 'package:analysis_server/src/server/lsp_stdio_server.dart';
 import 'package:analysis_server/src/server/stdio_server.dart';
+import 'package:analysis_server/src/services/completion/dart/completion_ranking.dart';
 import 'package:analysis_server/src/services/completion/dart/uri_contributor.dart'
     show UriContributor;
 import 'package:analysis_server/src/socket_server.dart';
@@ -58,10 +60,10 @@ class CommandLineParser {
   void addFlag(String name,
       {String abbr,
       String help,
-      bool defaultsTo: false,
-      bool negatable: true,
+      bool defaultsTo = false,
+      bool negatable = true,
       void callback(bool value),
-      bool hide: false}) {
+      bool hide = false}) {
     _knownFlags.add(name);
     _parser.addFlag(name,
         abbr: abbr,
@@ -285,6 +287,12 @@ class Driver implements ServerStarter {
   static const String USE_LSP = "lsp";
 
   /**
+   * The path on disk to a directory containing language model files for smart
+   * code completion.
+   */
+  static const String COMPLETION_MODEL_FOLDER = "completion-model";
+
+  /**
    * The name of the flag to use summary2.
    */
   static const String USE_SUMMARY2 = "use-summary2";
@@ -339,6 +347,8 @@ class Driver implements ServerStarter {
     analysisServerOptions.cacheFolder = results[CACHE_FOLDER];
     analysisServerOptions.useFastaParser = results[USE_FASTA_PARSER];
     analysisServerOptions.useLanguageServerProtocol = results[USE_LSP];
+    analysisServerOptions.completionModelFolder =
+        results[COMPLETION_MODEL_FOLDER];
     AnalysisDriver.useSummary2 = results[USE_SUMMARY2];
 
     bool disableAnalyticsForSession = results[SUPPRESS_ANALYTICS_FLAG];
@@ -550,6 +560,7 @@ class Driver implements ServerStarter {
           socketServer.analysisServer.shutdown();
           exit(0);
         });
+        startCompletionRanking(socketServer, null, analysisServerOptions);
       },
           print: results[INTERNAL_PRINT_TO_CONSOLE]
               ? null
@@ -595,7 +606,36 @@ class Driver implements ServerStarter {
           exit(0);
         }
       });
+      startCompletionRanking(null, socketServer, analysisServerOptions);
     });
+  }
+
+  /// This will be invoked after createAnalysisServer has been called on the
+  /// socket server. At that point, we'll be able to send a server.error
+  /// notification in case model startup fails.
+  void startCompletionRanking(
+      SocketServer socketServer,
+      LspSocketServer lspSocketServer,
+      AnalysisServerOptions analysisServerOptions) {
+    if (analysisServerOptions.completionModelFolder != null &&
+        ffi.sizeOf<ffi.IntPtr>() != 4) {
+      // Start completion model isolate if this is a 64 bit system and
+      // analysis server was configured to load a language model on disk.
+      CompletionRanking.instance =
+          CompletionRanking(analysisServerOptions.completionModelFolder);
+      CompletionRanking.instance.start().catchError((error) {
+        // Disable smart ranking if model startup fails.
+        analysisServerOptions.completionModelFolder = null;
+        CompletionRanking.instance = null;
+        if (socketServer != null) {
+          socketServer.analysisServer.sendServerErrorNotification(
+              'Failed to start ranking model isolate', error, error.stackTrace);
+        } else {
+          lspSocketServer.analysisServer.sendServerErrorNotification(
+              'Failed to start ranking model isolate', error, error.stackTrace);
+        }
+      });
+    }
   }
 
   /**
@@ -722,6 +762,8 @@ class Driver implements ServerStarter {
         help: "Whether to enable parsing via the Fasta parser");
     parser.addFlag(USE_LSP,
         defaultsTo: false, help: "Whether to use the Language Server Protocol");
+    parser.addOption(COMPLETION_MODEL_FOLDER,
+        help: "[path] path to the location of a code completion model");
     parser.addFlag(USE_SUMMARY2,
         defaultsTo: false, help: "Whether to use summary2");
     parser.addOption(TRAIN_USING,
@@ -765,7 +807,7 @@ class Driver implements ServerStarter {
    * Print information about how to use the server.
    */
   void _printUsage(ArgParser parser, telemetry.Analytics analytics,
-      {bool fromHelp: false}) {
+      {bool fromHelp = false}) {
     print('Usage: $BINARY_NAME [flags]');
     print('');
     print('Supported flags are:');

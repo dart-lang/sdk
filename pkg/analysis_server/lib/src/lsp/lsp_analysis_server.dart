@@ -148,7 +148,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     this.sdkManager,
     this.instrumentationService, {
     DiagnosticServer diagnosticServer,
-    ResolverProvider packageResolverProvider: null,
+    ResolverProvider packageResolverProvider = null,
   }) : super(options, diagnosticServer, baseResourceProvider) {
     messageHandler = new UninitializedStateMessageHandler(this);
     // TODO(dantup): This code is almost identical to AnalysisServer, consider
@@ -600,8 +600,7 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
       String path = result.path;
       if (analysisServer.shouldSendErrorsNotificationFor(path)) {
         final serverErrors = protocol.mapEngineErrors(
-            result.session.analysisContext.analysisOptions,
-            result.lineInfo,
+            result,
             result.errors
                 .where((e) => e.errorCode.type != ErrorType.TODO)
                 .toList(),

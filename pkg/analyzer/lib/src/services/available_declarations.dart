@@ -13,6 +13,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
@@ -34,6 +35,8 @@ import 'package:yaml/yaml.dart';
 /// A top-level public declaration.
 class Declaration {
   final List<Declaration> children;
+  final int codeLength;
+  final int codeOffset;
   final String defaultArgumentListString;
   final List<int> defaultArgumentListTextRanges;
   final String docComplete;
@@ -43,6 +46,7 @@ class Declaration {
   final bool isDeprecated;
   final bool isFinal;
   final DeclarationKind kind;
+  final LineInfo lineInfo;
   final int locationOffset;
   final String locationPath;
   final int locationStartColumn;
@@ -61,6 +65,8 @@ class Declaration {
 
   Declaration({
     @required this.children,
+    @required this.codeLength,
+    @required this.codeOffset,
     @required this.defaultArgumentListString,
     @required this.defaultArgumentListTextRanges,
     @required this.docComplete,
@@ -70,6 +76,7 @@ class Declaration {
     @required this.isDeprecated,
     @required this.isFinal,
     @required this.kind,
+    @required this.lineInfo,
     @required this.locationOffset,
     @required this.locationPath,
     @required this.locationStartColumn,
@@ -102,9 +109,12 @@ enum DeclarationKind {
   CONSTRUCTOR,
   ENUM,
   ENUM_CONSTANT,
+  EXTENSION,
+  FIELD,
   FUNCTION,
   FUNCTION_TYPE_ALIAS,
   GETTER,
+  METHOD,
   MIXIN,
   SETTER,
   VARIABLE
@@ -140,11 +150,28 @@ class DeclarationsContext {
   /// The path prefix keys are sorted so that the longest keys are first.
   final Map<String, List<String>> _pathPrefixToDependencyPathList = {};
 
+  /// The set of paths of already checked known files, some of which were
+  /// added to [_knownPathList]. For example we skip non-API files.
+  final Set<String> _knownPathSet = Set<String>();
+
+  /// The list of paths of files known to this context - from the context
+  /// itself, from direct dependencies, from indirect dependencies.
+  ///
+  /// We include libraries from this list only when actual context dependencies
+  /// are not known. Dependencies are always know for Pub packages, but are
+  /// currently never known for Bazel packages.
+  final List<String> _knownPathList = [];
+
   DeclarationsContext(this._tracker, this._analysisContext);
 
   /// Return the combined information about all of the dartdoc directives in
   /// this context.
   DartdocDirectiveInfo get dartdocDirectiveInfo => _dartdocDirectiveInfo;
+
+  /// The set of features that are globally enabled for this context.
+  FeatureSet get featureSet {
+    return _analysisContext.analysisOptions.contextFeatures;
+  }
 
   /// Return libraries that are available to the file with the given [path].
   ///
@@ -165,6 +192,10 @@ class DeclarationsContext {
         _addLibrariesWithPaths(dependencyLibraries, pathList);
         break;
       }
+    }
+
+    if (_pathPrefixToDependencyPathList.isEmpty) {
+      _addLibrariesWithPaths(dependencyLibraries, _knownPathList);
     }
 
     _Package package;
@@ -376,6 +407,21 @@ class DeclarationsContext {
     }
   }
 
+  void _scheduleKnownFiles() {
+    var session = _analysisContext.currentSession as AnalysisSessionImpl;
+    // ignore: deprecated_member_use_from_same_package
+    var analysisDriver = session.getDriver();
+
+    for (var path in analysisDriver.knownFiles) {
+      if (_knownPathSet.add(path)) {
+        if (!path.contains(r'/lib/src/') && !path.contains(r'\lib\src\')) {
+          _knownPathList.add(path);
+          _tracker._addFile(this, path);
+        }
+      }
+    }
+  }
+
   void _scheduleSdkLibraries() {
     // ignore: deprecated_member_use_from_same_package
     var sdk = _analysisContext.currentSession.sourceFactory.dartSdk;
@@ -435,7 +481,15 @@ class DeclarationsTracker {
   /// libraries, but parts are ignored when we detect them.
   final List<_ScheduledFile> _scheduledFiles = [];
 
+  /// The time when known files were last pulled.
+  DateTime _whenKnownFilesPulled = DateTime.fromMillisecondsSinceEpoch(0);
+
   DeclarationsTracker(this._byteStore, this._resourceProvider);
+
+  /// Return all known libraries.
+  Iterable<Library> get allLibraries {
+    return _idToLibrary.values;
+  }
 
   /// The stream of changes to the set of libraries used by the added contexts.
   Stream<LibraryChange> get changes => _changesController.stream;
@@ -443,6 +497,11 @@ class DeclarationsTracker {
   /// Return `true` if there is scheduled work to do, as a result of adding
   /// new contexts, or changes to files.
   bool get hasWork {
+    var now = DateTime.now();
+    if (now.difference(_whenKnownFilesPulled).inSeconds > 1) {
+      _whenKnownFilesPulled = now;
+      _pullKnownFiles();
+    }
     return _changedPaths.isNotEmpty || _scheduledFiles.isNotEmpty;
   }
 
@@ -693,6 +752,16 @@ class DeclarationsTracker {
       LibraryChange._(changedLibraries, removedLibraries),
     );
   }
+
+  /// Pull known files into [DeclarationsContext]s.
+  ///
+  /// This is a temporary support for Bazel repositories, because IDEA
+  /// does not yet give us dependencies for them.
+  void _pullKnownFiles() {
+    for (var context in _contexts.values) {
+      context._scheduleKnownFiles();
+    }
+  }
 }
 
 class Libraries {
@@ -792,8 +861,8 @@ class _DeclarationStorage {
   static const fieldReturnTypeMask = 1 << 2;
   static const fieldTypeParametersMask = 1 << 3;
 
-  static Declaration fromIdl(
-      String path, Declaration parent, idl.AvailableDeclaration d) {
+  static Declaration fromIdl(String path, LineInfo lineInfo, Declaration parent,
+      idl.AvailableDeclaration d) {
     var fieldMask = d.fieldMask;
     var hasDoc = fieldMask & fieldDocMask != 0;
     var hasParameters = fieldMask & fieldParametersMask != 0;
@@ -810,6 +879,8 @@ class _DeclarationStorage {
     var children = <Declaration>[];
     var declaration = Declaration(
       children: children,
+      codeLength: d.codeLength,
+      codeOffset: d.codeOffset,
       defaultArgumentListString: d.defaultArgumentListString.isNotEmpty
           ? d.defaultArgumentListString
           : null,
@@ -823,6 +894,7 @@ class _DeclarationStorage {
       isDeprecated: d.isDeprecated,
       isFinal: d.isFinal,
       kind: kind,
+      lineInfo: lineInfo,
       locationOffset: d.locationOffset,
       locationPath: path,
       locationStartColumn: d.locationStartColumn,
@@ -839,7 +911,7 @@ class _DeclarationStorage {
     );
 
     for (var childIdl in d.children) {
-      var child = fromIdl(path, declaration, childIdl);
+      var child = fromIdl(path, lineInfo, declaration, childIdl);
       children.add(child);
     }
 
@@ -858,12 +930,18 @@ class _DeclarationStorage {
         return DeclarationKind.ENUM;
       case idl.AvailableDeclarationKind.ENUM_CONSTANT:
         return DeclarationKind.ENUM_CONSTANT;
+      case idl.AvailableDeclarationKind.EXTENSION:
+        return DeclarationKind.EXTENSION;
+      case idl.AvailableDeclarationKind.FIELD:
+        return DeclarationKind.FIELD;
       case idl.AvailableDeclarationKind.FUNCTION:
         return DeclarationKind.FUNCTION;
       case idl.AvailableDeclarationKind.FUNCTION_TYPE_ALIAS:
         return DeclarationKind.FUNCTION_TYPE_ALIAS;
       case idl.AvailableDeclarationKind.GETTER:
         return DeclarationKind.GETTER;
+      case idl.AvailableDeclarationKind.METHOD:
+        return DeclarationKind.METHOD;
       case idl.AvailableDeclarationKind.MIXIN:
         return DeclarationKind.MIXIN;
       case idl.AvailableDeclarationKind.SETTER:
@@ -887,12 +965,18 @@ class _DeclarationStorage {
         return idl.AvailableDeclarationKind.ENUM;
       case DeclarationKind.ENUM_CONSTANT:
         return idl.AvailableDeclarationKind.ENUM_CONSTANT;
+      case DeclarationKind.EXTENSION:
+        return idl.AvailableDeclarationKind.EXTENSION;
+      case DeclarationKind.FIELD:
+        return idl.AvailableDeclarationKind.FIELD;
       case DeclarationKind.FUNCTION:
         return idl.AvailableDeclarationKind.FUNCTION;
       case DeclarationKind.FUNCTION_TYPE_ALIAS:
         return idl.AvailableDeclarationKind.FUNCTION_TYPE_ALIAS;
       case DeclarationKind.GETTER:
         return idl.AvailableDeclarationKind.GETTER;
+      case DeclarationKind.METHOD:
+        return idl.AvailableDeclarationKind.METHOD;
       case DeclarationKind.MIXIN:
         return idl.AvailableDeclarationKind.MIXIN;
       case DeclarationKind.SETTER:
@@ -987,7 +1071,7 @@ class _ExportCombinator {
 
 class _File {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 11;
+  static const int DATA_VERSION = 13;
 
   /// The next value for [id].
   static int _nextId = 0;
@@ -999,6 +1083,8 @@ class _File {
   final Uri uri;
 
   bool exists = false;
+  List<int> lineStarts;
+  LineInfo lineInfo;
   bool isLibrary = false;
   bool isLibraryDeprecated = false;
   List<_Export> exports = [];
@@ -1071,7 +1157,7 @@ class _File {
     if (bytes == null) {
       content ??= _readContent(resource);
 
-      CompilationUnit unit = _parse(content);
+      CompilationUnit unit = _parse(context.featureSet, content);
       _buildFileDeclarations(unit);
       _extractDartdocInfoFromUnit(unit);
       _putFileDeclarationsToByteStore(contentKey);
@@ -1118,6 +1204,9 @@ class _File {
   }
 
   void _buildFileDeclarations(CompilationUnit unit) {
+    lineInfo = unit.lineInfo;
+    lineStarts = lineInfo.lineStarts;
+
     isLibrary = true;
     exports = [];
     fileDeclarations = [];
@@ -1159,7 +1248,20 @@ class _File {
       }
     }
 
-    var lineInfo = unit.lineInfo;
+    int codeOffset = 0;
+    int codeLength = 0;
+
+    void setCodeRange(AstNode node) {
+      if (node is VariableDeclaration) {
+        var variables = node.parent as VariableDeclarationList;
+        var i = variables.variables.indexOf(node);
+        codeOffset = (i == 0 ? variables.parent : node).offset;
+        codeLength = node.end - codeOffset;
+      } else {
+        codeOffset = node.offset;
+        codeLength = node.length;
+      }
+    }
 
     String docComplete = null;
     String docSummary = null;
@@ -1201,6 +1303,8 @@ class _File {
       var lineLocation = lineInfo.getLocation(locationOffset);
       var declaration = Declaration(
         children: <Declaration>[],
+        codeLength: codeLength,
+        codeOffset: codeOffset,
         defaultArgumentListString: defaultArgumentListString,
         defaultArgumentListTextRanges: defaultArgumentListTextRanges,
         docComplete: docComplete,
@@ -1210,6 +1314,7 @@ class _File {
         isDeprecated: isDeprecated,
         isFinal: isFinal,
         kind: kind,
+        lineInfo: lineInfo,
         locationOffset: locationOffset,
         locationPath: path,
         name: name.name,
@@ -1234,24 +1339,18 @@ class _File {
     }
 
     for (var node in unit.declarations) {
+      setCodeRange(node);
       setDartDoc(node);
       var isDeprecated = _hasDeprecatedAnnotation(node);
 
-      if (node is ClassDeclaration) {
-        var classDeclaration = addDeclaration(
-          isAbstract: node.isAbstract,
-          isDeprecated: isDeprecated,
-          kind: DeclarationKind.CLASS,
-          name: node.name,
-        );
-        if (classDeclaration == null) continue;
+      var hasConstructor = false;
+      void addClassMembers(Declaration parent, List<ClassMember> members) {
+        for (var classMember in members) {
+          setCodeRange(classMember);
+          setDartDoc(classMember);
+          isDeprecated = _hasDeprecatedAnnotation(classMember);
 
-        var hasConstructor = false;
-        for (var classMember in node.members) {
           if (classMember is ConstructorDeclaration) {
-            setDartDoc(classMember);
-            isDeprecated = _hasDeprecatedAnnotation(classMember);
-
             var parameters = classMember.parameters;
             var defaultArguments = _computeDefaultArguments(parameters);
 
@@ -1273,18 +1372,88 @@ class _File {
               parameters: parameters.toSource(),
               parameterNames: _getFormalParameterNames(parameters),
               parameterTypes: _getFormalParameterTypes(parameters),
-              parent: classDeclaration,
+              parent: parent,
               requiredParameterCount:
                   _getFormalParameterRequiredCount(parameters),
-              returnType: node.name.name,
+              returnType: classMember.returnType.name,
             );
             hasConstructor = true;
+          } else if (classMember is FieldDeclaration) {
+            var isConst = classMember.fields.isConst;
+            var isFinal = classMember.fields.isFinal;
+            for (var field in classMember.fields.variables) {
+              setCodeRange(field);
+              addDeclaration(
+                isConst: isConst,
+                isDeprecated: isDeprecated,
+                isFinal: isFinal,
+                kind: DeclarationKind.FIELD,
+                name: field.name,
+                parent: parent,
+                relevanceTags: RelevanceTags._forExpression(field.initializer),
+                returnType: _getTypeAnnotationString(classMember.fields.type),
+              );
+            }
+          } else if (classMember is MethodDeclaration) {
+            var parameters = classMember.parameters;
+            if (classMember.isGetter) {
+              addDeclaration(
+                isDeprecated: isDeprecated,
+                kind: DeclarationKind.GETTER,
+                name: classMember.name,
+                parent: parent,
+                returnType: _getTypeAnnotationString(classMember.returnType),
+              );
+            } else if (classMember.isSetter) {
+              addDeclaration(
+                isDeprecated: isDeprecated,
+                kind: DeclarationKind.SETTER,
+                name: classMember.name,
+                parameters: parameters.toSource(),
+                parameterNames: _getFormalParameterNames(parameters),
+                parameterTypes: _getFormalParameterTypes(parameters),
+                parent: parent,
+                requiredParameterCount:
+                    _getFormalParameterRequiredCount(parameters),
+              );
+            } else {
+              var defaultArguments = _computeDefaultArguments(parameters);
+              addDeclaration(
+                defaultArgumentListString: defaultArguments?.text,
+                defaultArgumentListTextRanges: defaultArguments?.ranges,
+                isDeprecated: isDeprecated,
+                kind: DeclarationKind.METHOD,
+                name: classMember.name,
+                parameters: parameters.toSource(),
+                parameterNames: _getFormalParameterNames(parameters),
+                parameterTypes: _getFormalParameterTypes(parameters),
+                parent: parent,
+                requiredParameterCount:
+                    _getFormalParameterRequiredCount(parameters),
+                returnType: _getTypeAnnotationString(classMember.returnType),
+                typeParameters: classMember.typeParameters?.toSource(),
+              );
+            }
           }
         }
+      }
+
+      if (node is ClassDeclaration) {
+        var classDeclaration = addDeclaration(
+          isAbstract: node.isAbstract,
+          isDeprecated: isDeprecated,
+          kind: DeclarationKind.CLASS,
+          name: node.name,
+        );
+        if (classDeclaration == null) continue;
+
+        addClassMembers(classDeclaration, node.members);
 
         if (!hasConstructor) {
           classDeclaration.children.add(Declaration(
             children: [],
+            codeLength: codeLength,
+            codeOffset: codeOffset,
             defaultArgumentListString: null,
             defaultArgumentListTextRanges: null,
             docComplete: null,
@@ -1297,6 +1466,7 @@ class _File {
             locationOffset: -1,
             locationPath: path,
             name: '',
+            lineInfo: lineInfo,
             locationStartColumn: 0,
             locationStartLine: 0,
             parameters: '()',
@@ -1331,6 +1501,14 @@ class _File {
             kind: DeclarationKind.ENUM_CONSTANT,
             name: constant.name,
             parent: enumDeclaration,
+          );
+        }
+      } else if (node is ExtensionDeclaration) {
+        if (node.name != null) {
+          addDeclaration(
+            isDeprecated: isDeprecated,
+            kind: DeclarationKind.EXTENSION,
+            name: node.name,
           );
         }
       } else if (node is FunctionDeclaration) {
@@ -1401,15 +1579,18 @@ class _File {
           typeParameters: node.typeParameters?.toSource(),
         );
       } else if (node is MixinDeclaration) {
-        addDeclaration(
+        var mixinDeclaration = addDeclaration(
           isDeprecated: isDeprecated,
           kind: DeclarationKind.MIXIN,
           name: node.name,
         );
+        if (mixinDeclaration == null) continue;
+        addClassMembers(mixinDeclaration, node.members);
       } else if (node is TopLevelVariableDeclaration) {
         var isConst = node.variables.isConst;
         var isFinal = node.variables.isFinal;
         for (var variable in node.variables.variables) {
+          setCodeRange(variable);
           addDeclaration(
             isConst: isConst,
             isDeprecated: isDeprecated,
@@ -1476,6 +1657,7 @@ class _File {
 
   void _putFileDeclarationsToByteStore(String contentKey) {
     var builder = idl.AvailableFileBuilder(
+      lineStarts: lineStarts,
       isLibrary: isLibrary,
       isLibraryDeprecated: isLibraryDeprecated,
       exports: exports.map((e) {
@@ -1501,6 +1683,9 @@ class _File {
   void _readFileDeclarationsFromBytes(List<int> bytes) {
     var idlFile = idl.AvailableFile.fromBuffer(bytes);
 
+    lineStarts = idlFile.lineStarts.toList();
+    lineInfo = LineInfo(lineStarts);
+
     isLibrary = idlFile.isLibrary;
     isLibraryDeprecated = idlFile.isLibraryDeprecated;
 
@@ -1519,7 +1704,7 @@ class _File {
     }).toList();
 
     fileDeclarations = idlFile.declarations.map((e) {
-      return _DeclarationStorage.fromIdl(path, null, e);
+      return _DeclarationStorage.fromIdl(path, lineInfo, null, e);
     }).toList();
 
     templateNames = idlFile.directiveInfo.templateNames.toList();
@@ -1640,13 +1825,11 @@ class _File {
     return false;
   }
 
-  static CompilationUnit _parse(String content) {
+  static CompilationUnit _parse(FeatureSet featureSet, String content) {
     var errorListener = AnalysisErrorListener.NULL_LISTENER;
     var source = StringSource(content, '');
 
     var reader = new CharSequenceReader(content);
-    // TODO(paulberry): figure out the appropriate FeatureSet to use here
-    var featureSet = FeatureSet.fromEnableFlags([]);
     var scanner = new Scanner(null, reader, errorListener)
       ..configureFeatures(featureSet);
     var token = scanner.tokenize();

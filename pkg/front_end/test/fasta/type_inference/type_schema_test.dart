@@ -90,7 +90,7 @@ class UnknownTypeTest {
     expect(
         typeSchemaToString(
             new FunctionType([unknownType, unknownType], unknownType)),
-        '(?, ?) → ?');
+        '(?, ?) →* ?');
   }
 
   void test_visitChildren() {

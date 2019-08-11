@@ -7,9 +7,12 @@ import 'dart:async';
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
+import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
@@ -250,7 +253,19 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
 
   /// Computes fixes for the given [error] in [testUnit].
   Future<List<Fix>> _computeFixes(AnalysisError error) async {
-    var context = new DartFixContextImpl(workspace, testAnalysisResult, error);
+    var tracker = DeclarationsTracker(MemoryByteStore(), resourceProvider);
+    tracker.addContext(driver.analysisContext);
+
+    var context = new DartFixContextImpl(
+      workspace,
+      testAnalysisResult,
+      error,
+      (name) {
+        var provider = TopLevelDeclarationsProvider(tracker);
+        provider.doTrackerWork();
+        return provider.get(driver.analysisContext, testFile, name);
+      },
+    );
     return await new DartFixContributor().computeFixes(context);
   }
 
@@ -268,7 +283,7 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
       }
       errors = errors.where(errorFilter).toList();
     }
-    if (errors.length == 0) {
+    if (errors.isEmpty) {
       fail('Expected one error, found: none');
     } else if (errors.length > 1) {
       StringBuffer buffer = new StringBuffer();

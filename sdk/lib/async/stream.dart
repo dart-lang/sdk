@@ -100,6 +100,63 @@ abstract class Stream<T> {
   const factory Stream.empty() = _EmptyStream<T>;
 
   /**
+   * Creates a stream which emits a single data event before completing.
+   *
+   * This stream emits a single data event of [value]
+   * and then completes with a done event.
+   *
+   * Example:
+   * ```dart
+   * Future<void> printThings(Stream<String> data) async {
+   *   await for (var x in data) {
+   *     print(x);
+   *   }
+   * }
+   * printThings(Stream<String>.value("ok")); // prints "ok".
+   * ```
+   *
+   * The returned stream is effectively equivalent to one created by
+   * `(() async* { yield value; } ())` or `Future<T>.value(value).asStream()`.
+   */
+  @Since("2.5")
+  factory Stream.value(T value) =>
+      (_AsyncStreamController<T>(null, null, null, null)
+            .._add(value)
+            .._closeUnchecked())
+          .stream;
+
+  /**
+   * Creates a stream which emits a single error event before completing.
+   *
+   * This stream emits a single error event of [error] and [stackTrace]
+   * and then completes with a done event.
+   *
+   * Example:
+   * ```dart
+   * Future<void> tryThings(Stream<int> data) async {
+   *   try {
+   *     await for (var x in data) {
+   *       print("Data: $x");
+   *     }
+   *   } catch (e) {
+   *     print(e);
+   *   }
+   * }
+   * tryThings(Stream<int>.error("Error")); // prints "Error".
+   * ```
+   * The returned stream is effectively equivalent to one created by
+   * `Future<T>.error(error, stackTrace).asStream()`, by or
+   * `(() async* { throw error; } ())`, except that you can control the
+   * stack trace as well.
+   */
+  @Since("2.5")
+  factory Stream.error(Object error, [StackTrace stackTrace]) =>
+      (_AsyncStreamController<T>(null, null, null, null)
+            .._addError(error, stackTrace)
+            .._closeUnchecked())
+          .stream;
+
+  /**
    * Creates a new single-subscription stream from the future.
    *
    * When the future completes, the stream will fire one event, either
@@ -109,7 +166,8 @@ abstract class Stream<T> {
     // Use the controller's buffering to fill in the value even before
     // the stream has a listener. For a single value, it's not worth it
     // to wait for a listener before doing the `then` on the future.
-    _StreamController<T> controller = new StreamController<T>(sync: true);
+    _StreamController<T> controller =
+        new _SyncStreamController<T>(null, null, null, null);
     future.then((value) {
       controller._add(value);
       controller._closeUnchecked();
@@ -136,7 +194,8 @@ abstract class Stream<T> {
    * If [futures] is empty, the stream closes as soon as possible.
    */
   factory Stream.fromFutures(Iterable<Future<T>> futures) {
-    _StreamController<T> controller = new StreamController<T>(sync: true);
+    _StreamController<T> controller =
+        new _SyncStreamController<T>(null, null, null, null);
     int count = 0;
     // Declare these as variables holding closures instead of as
     // function declarations.
@@ -1502,8 +1561,11 @@ abstract class Stream<T> {
 
     void onData(T event) {
       timer.cancel();
-      controller.add(event);
       timer = zone.createTimer(timeLimit, timeout);
+      // It might close the stream and cancel timer, so create recuring Timer
+      // before calling into add();
+      // issue: https://github.com/dart-lang/sdk/issues/37565
+      controller.add(event);
     }
 
     void onError(error, StackTrace stackTrace) {

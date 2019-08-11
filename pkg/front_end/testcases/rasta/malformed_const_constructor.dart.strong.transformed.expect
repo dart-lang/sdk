@@ -29,8 +29,8 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  field core::String x = "foo";
-  constructor •() → self::A
+  field core::String* x = "foo";
+  constructor •() → self::A*
     : self::A::x = "foo", super core::Object::•() {}
 }
 static method main() → dynamic {

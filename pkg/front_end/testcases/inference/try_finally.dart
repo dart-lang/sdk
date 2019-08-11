@@ -7,10 +7,10 @@ library test;
 
 void test(void f()) {
   try {
-    var /*@type=int*/ x = 0;
+    var /*@ type=int* */ x = 0;
     f();
   } finally {
-    var /*@type=int*/ x = 0;
+    var /*@ type=int* */ x = 0;
   }
 }
 

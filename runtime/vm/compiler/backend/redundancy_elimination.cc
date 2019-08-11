@@ -3128,15 +3128,7 @@ void AllocationSinking::CreateMaterializationAt(
   // MaterializeObject instruction.
   // We must preserve the identity: all mentions are replaced by the same
   // materialization.
-  for (Environment::DeepIterator env_it(exit->env()); !env_it.Done();
-       env_it.Advance()) {
-    Value* use = env_it.CurrentValue();
-    if (use->definition() == alloc) {
-      use->RemoveFromUseList();
-      use->set_definition(mat);
-      mat->AddEnvUse(use);
-    }
-  }
+  exit->ReplaceInEnvironment(alloc, mat);
 
   // Mark MaterializeObject as an environment use of this allocation.
   // This will allow us to discover it when we are looking for deoptimization

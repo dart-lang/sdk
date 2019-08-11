@@ -6,7 +6,7 @@
 library test;
 
 void test() {
-  int Function(Null) f = /*@returnType=int*/ (/*@type=Object*/ x) => 1;
+  int Function(Null) f = /*@ returnType=int* */ (/*@ type=Object* */ x) => 1;
 }
 
 main() {}

@@ -52,6 +52,8 @@ import '../messages.dart' show LocatedMessage;
 import '../fasta_codes.dart'
     show templateInternalProblemUnhandled, templateUnspecified;
 
+import '../resolve_input_uri.dart' show isWindows;
+
 import '../util/relativize.dart' show relativizeUri;
 
 final Uri platformBinariesLocation = computePlatformBinariesLocation();
@@ -230,8 +232,10 @@ class MatchExpectation extends Step<Component, Component, MatchContext> {
       printer.writeLibraryFile(library);
       printer.endLine();
     });
+    printer.writeConstantTable(component);
     String actual = "$buffer";
-    String binariesPath = relativizeUri(platformBinariesLocation);
+    String binariesPath =
+        relativizeUri(Uri.base, platformBinariesLocation, isWindows);
     if (binariesPath.endsWith("/dart-sdk/lib/_internal/")) {
       // We are running from the built SDK.
       actual = actual.replaceAll(

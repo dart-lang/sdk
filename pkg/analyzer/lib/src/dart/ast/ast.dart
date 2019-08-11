@@ -737,7 +737,7 @@ class AssignmentExpressionImpl extends ExpressionImpl
       return null;
     }
     List<ParameterElement> parameters = executableElement.parameters;
-    if (parameters.length < 1) {
+    if (parameters.isEmpty) {
       return null;
     }
     return parameters[0];
@@ -2567,7 +2567,7 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
   Token get endToken {
     if (_body != null) {
       return _body.endToken;
-    } else if (!_initializers.isEmpty) {
+    } else if (_initializers.isNotEmpty) {
       return _initializers.endToken;
     }
     return _parameters.endToken;
@@ -3850,11 +3850,13 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   @override
   Token rightBracket;
 
+  ExtensionElement _declaredElement;
+
   ExtensionDeclarationImpl(
       CommentImpl comment,
       List<Annotation> metadata,
       this.extensionKeyword,
-      this._name,
+      SimpleIdentifierImpl name,
       TypeParameterListImpl typeParameters,
       this.onKeyword,
       TypeAnnotationImpl extendedType,
@@ -3862,13 +3864,11 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
       List<ClassMember> members,
       this.rightBracket)
       : super(comment, metadata) {
+    _name = _becomeParentOf(name);
     _typeParameters = _becomeParentOf(typeParameters);
     _extendedType = _becomeParentOf(extendedType);
     _members = new NodeListImpl<ClassMember>(this, members);
   }
-
-  @override
-  Token get beginToken => extensionKeyword;
 
   @override
   Iterable<SyntacticEntity> get childEntities => new ChildEntities()
@@ -3882,10 +3882,15 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
     ..add(rightBracket);
 
   @override
-  Element get declaredElement => name.staticElement;
+  ExtensionElement get declaredElement => _declaredElement;
+
+  /// Set the element declared by this declaration to the given [element].
+  set declaredElement(ExtensionElement element) {
+    _declaredElement = element;
+  }
 
   @override
-  Element get element => name.staticElement;
+  ExtensionElement get element => declaredElement;
 
   @override
   Token get endToken => rightBracket;
@@ -3898,7 +3903,7 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @override
-  Token get firstTokenAfterCommentAndMetadata => name.beginToken;
+  Token get firstTokenAfterCommentAndMetadata => extensionKeyword;
 
   @override
   NodeList<ClassMember> get members => _members;
@@ -3947,6 +3952,12 @@ class ExtensionOverrideImpl extends ExpressionImpl
   /// arguments were provided.
   TypeArgumentListImpl _typeArguments;
 
+  @override
+  List<DartType> typeArgumentTypes;
+
+  @override
+  DartType extendedType;
+
   ExtensionOverrideImpl(IdentifierImpl extensionName,
       TypeArgumentListImpl typeArguments, ArgumentListImpl argumentList) {
     _extensionName = _becomeParentOf(extensionName);
@@ -3971,7 +3982,7 @@ class ExtensionOverrideImpl extends ExpressionImpl
     ..add(_argumentList);
 
   @override
-  Token get endToken => _argumentList?.endToken;
+  Token get endToken => _argumentList.endToken;
 
   @override
   Identifier get extensionName => _extensionName;
@@ -3984,16 +3995,14 @@ class ExtensionOverrideImpl extends ExpressionImpl
   Precedence get precedence => Precedence.postfix;
 
   @override
+  ExtensionElement get staticElement => extensionName.staticElement;
+
+  @override
   TypeArgumentList get typeArguments => _typeArguments;
 
   void set typeArguments(TypeArgumentList typeArguments) {
     _typeArguments = _becomeParentOf(typeArguments as TypeArgumentListImpl);
   }
-
-  @override
-  // TODO(brianwilkerson) Either implement this getter or remove it if it isn't
-  //  needed.
-  List<DartType> get typeArgumentTypes => null;
 
   @override
   E accept<E>(AstVisitor<E> visitor) {
@@ -4151,7 +4160,7 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
   @override
   Token get beginToken {
     NodeList<Annotation> metadata = this.metadata;
-    if (!metadata.isEmpty) {
+    if (metadata.isNotEmpty) {
       return metadata.beginToken;
     } else if (covariantKeyword != null) {
       return covariantKeyword;
@@ -4652,7 +4661,6 @@ class ForPartsWithDeclarationsImpl extends ForPartsImpl
 
   @override
   Token get beginToken => _variableList?.beginToken ?? super.beginToken;
-
   @override
   Iterable<SyntacticEntity> get childEntities => new ChildEntities()
     ..add(_variableList)
@@ -4695,7 +4703,6 @@ class ForPartsWithExpressionImpl extends ForPartsImpl
 
   @override
   Token get beginToken => initialization?.beginToken ?? super.beginToken;
-
   @override
   Iterable<SyntacticEntity> get childEntities => new ChildEntities()
     ..add(_initialization)
@@ -6022,7 +6029,7 @@ class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
       return null;
     }
     List<ParameterElement> parameters = staticElement.parameters;
-    if (parameters.length < 1) {
+    if (parameters.isEmpty) {
       return null;
     }
     return parameters[0];
@@ -6540,7 +6547,7 @@ class LabeledStatementImpl extends StatementImpl implements LabeledStatement {
 
   @override
   Token get beginToken {
-    if (!_labels.isEmpty) {
+    if (_labels.isNotEmpty) {
       return _labels.beginToken;
     }
     return _statement.beginToken;
@@ -7609,7 +7616,7 @@ class NodeListImpl<E extends AstNode> with ListMixin<E> implements NodeList<E> {
 
   @override
   Token get beginToken {
-    if (_elements.length == 0) {
+    if (_elements.isEmpty) {
       return null;
     }
     return _elements[0].beginToken;
@@ -7670,7 +7677,7 @@ class NodeListImpl<E extends AstNode> with ListMixin<E> implements NodeList<E> {
 
   @override
   bool addAll(Iterable<E> nodes) {
-    if (nodes != null && !nodes.isEmpty) {
+    if (nodes != null && nodes.isNotEmpty) {
       if (nodes is List<E>) {
         int length = nodes.length;
         for (int i = 0; i < length; i++) {
@@ -8183,7 +8190,7 @@ class PostfixExpressionImpl extends ExpressionImpl
       return null;
     }
     List<ParameterElement> parameters = staticElement.parameters;
-    if (parameters.length < 1) {
+    if (parameters.isEmpty) {
       return null;
     }
     return parameters[0];
@@ -8366,7 +8373,7 @@ class PrefixExpressionImpl extends ExpressionImpl implements PrefixExpression {
       return null;
     }
     List<ParameterElement> parameters = staticElement.parameters;
-    if (parameters.length < 1) {
+    if (parameters.isEmpty) {
       return null;
     }
     return parameters[0];
@@ -8830,7 +8837,7 @@ class SimpleFormalParameterImpl extends NormalFormalParameterImpl
   @override
   Token get beginToken {
     NodeList<Annotation> metadata = this.metadata;
-    if (!metadata.isEmpty) {
+    if (metadata.isNotEmpty) {
       return metadata.beginToken;
     } else if (covariantKeyword != null) {
       return covariantKeyword;
@@ -8896,6 +8903,9 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
   /// [AuxiliaryElements] will be set to hold onto the static element from the
   /// getter context.
   AuxiliaryElements auxiliaryElements = null;
+
+  @override
+  List<DartType> tearOffTypeArgumentTypes;
 
   /// Initialize a newly created identifier.
   SimpleIdentifierImpl(this.token);
@@ -9600,7 +9610,7 @@ abstract class SwitchMemberImpl extends AstNodeImpl implements SwitchMember {
 
   @override
   Token get beginToken {
-    if (!_labels.isEmpty) {
+    if (_labels.isNotEmpty) {
       return _labels.beginToken;
     }
     return keyword;
@@ -9608,7 +9618,7 @@ abstract class SwitchMemberImpl extends AstNodeImpl implements SwitchMember {
 
   @override
   Token get endToken {
-    if (!_statements.isEmpty) {
+    if (_statements.isNotEmpty) {
       return _statements.endToken;
     }
     return colon;
@@ -9946,7 +9956,7 @@ class TryStatementImpl extends StatementImpl implements TryStatement {
       return _finallyBlock.endToken;
     } else if (finallyKeyword != null) {
       return finallyKeyword;
-    } else if (!_catchClauses.isEmpty) {
+    } else if (_catchClauses.isNotEmpty) {
       return _catchClauses.endToken;
     }
     return _body.endToken;

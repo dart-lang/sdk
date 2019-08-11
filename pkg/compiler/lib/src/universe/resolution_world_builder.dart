@@ -16,7 +16,7 @@ import '../js_backend/backend_usage.dart'
 import '../js_backend/interceptor_data.dart' show InterceptorDataBuilder;
 import '../js_backend/native_data.dart' show NativeBasicData, NativeDataBuilder;
 import '../js_backend/no_such_method_registry.dart';
-import '../js_backend/runtime_types.dart';
+import '../js_backend/runtime_types_resolution.dart';
 import '../kernel/element_map_impl.dart';
 import '../kernel/kernel_world.dart';
 import '../native/enqueue.dart' show NativeResolutionEnqueuer;
@@ -1056,7 +1056,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
         mixinUses: _classHierarchyBuilder.mixinUses,
         typesImplementedBySubclasses: typesImplementedBySubclasses,
         classHierarchy: _classHierarchyBuilder.close(),
-        annotationsData: _annotationsDataBuilder.close(),
+        annotationsData: _annotationsDataBuilder.close(_options),
         isChecks: _isChecks,
         staticTypeArgumentDependencies: staticTypeArgumentDependencies,
         dynamicTypeArgumentDependencies: dynamicTypeArgumentDependencies,

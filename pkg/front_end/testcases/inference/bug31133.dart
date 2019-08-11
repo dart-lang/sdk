@@ -6,7 +6,7 @@
 library test;
 
 void test() {
-  var /*@type=int*/ i = 0;
+  var /*@ type=int* */ i = 0;
   for (i++; i /*@target=num::<*/ < 10; i++) {}
   for (++i; i /*@target=num::<*/ < 10; i++) {}
   for (i--; i /*@target=num::>=*/ >= 0; i--) {}

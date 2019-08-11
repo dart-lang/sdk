@@ -4,7 +4,7 @@
 
 // This test checks that in the case of an error on a class related to
 // non-simple bounds, the implied errors on other classes that reference the
-// erronious one in the bounds of their type variables is not reported.
+// erroneous one in the bounds of their type variables is not reported.
 
 class Hest<TypeX extends Hest<TypeX>> {}
 

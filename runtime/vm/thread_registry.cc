@@ -4,7 +4,6 @@
 
 #include "vm/thread_registry.h"
 
-#include "vm/isolate.h"
 #include "vm/json_stream.h"
 #include "vm/lockers.h"
 
@@ -17,12 +16,6 @@ ThreadRegistry::~ThreadRegistry() {
     // At this point the active list should be empty.
     ASSERT(active_list_ == NULL);
 
-    // The [mutator_thread_] is kept alive until the destruction of the isolate.
-    mutator_thread_->isolate_ = nullptr;
-
-    // We have cached the mutator thread, delete it.
-    delete mutator_thread_;
-    mutator_thread_ = NULL;
     // Now delete all the threads in the free list.
     while (free_list_ != NULL) {
       Thread* thread = free_list_;
@@ -32,83 +25,75 @@ ThreadRegistry::~ThreadRegistry() {
   }
 }
 
-// Gets a free Thread structure, we special case the mutator thread
-// by reusing the cached structure, see comment in 'thread_registry.h'.
-Thread* ThreadRegistry::GetFreeThreadLocked(Isolate* isolate, bool is_mutator) {
+Thread* ThreadRegistry::GetFreeThreadLocked(bool is_vm_isolate) {
   ASSERT(threads_lock()->IsOwnedByCurrentThread());
-  Thread* thread;
-  if (is_mutator) {
-    if (mutator_thread_ == NULL) {
-      mutator_thread_ = GetFromFreelistLocked(isolate);
-    }
-    thread = mutator_thread_;
-  } else {
-    thread = GetFromFreelistLocked(isolate);
-    ASSERT(thread->api_top_scope() == NULL);
-  }
+  Thread* thread = GetFromFreelistLocked(is_vm_isolate);
+  ASSERT(thread->api_top_scope() == NULL);
   // Now add this Thread to the active list for the isolate.
   AddToActiveListLocked(thread);
   return thread;
 }
 
-void ThreadRegistry::ReturnThreadLocked(bool is_mutator, Thread* thread) {
+void ThreadRegistry::ReturnThreadLocked(Thread* thread) {
   ASSERT(threads_lock()->IsOwnedByCurrentThread());
   // Remove thread from the active list for the isolate.
   RemoveFromActiveListLocked(thread);
-  if (!is_mutator) {
-    ReturnToFreelistLocked(thread);
-  }
+  ReturnToFreelistLocked(thread);
 }
 
-void ThreadRegistry::VisitObjectPointers(ObjectPointerVisitor* visitor,
+void ThreadRegistry::VisitObjectPointers(Isolate* isolate_of_interest,
+                                         ObjectPointerVisitor* visitor,
                                          ValidationPolicy validate_frames) {
   MonitorLocker ml(threads_lock());
-  bool mutator_thread_visited = false;
   Thread* thread = active_list_;
   while (thread != NULL) {
-    thread->VisitObjectPointers(visitor, validate_frames);
-    if (mutator_thread_ == thread) {
-      mutator_thread_visited = true;
-    }
-    thread = thread->next_;
-  }
-  // Visit mutator thread even if it is not in the active list because of
-  // api handles.
-  if (!mutator_thread_visited && (mutator_thread_ != NULL)) {
-    mutator_thread_->VisitObjectPointers(visitor, validate_frames);
-  }
-}
-
-void ThreadRegistry::ReleaseStoreBuffers() {
-  MonitorLocker ml(threads_lock());
-  Thread* thread = active_list_;
-  while (thread != NULL) {
-    if (!thread->BypassSafepoints()) {
-      thread->ReleaseStoreBuffer();
+    if (thread->isolate() == isolate_of_interest) {
+      // The mutator thread is visited by the isolate itself (see
+      // [Isolate::VisitStackPointers]).
+      if (!thread->IsMutatorThread()) {
+        thread->VisitObjectPointers(visitor, validate_frames);
+      }
     }
     thread = thread->next_;
   }
 }
 
-void ThreadRegistry::AcquireMarkingStacks() {
+void ThreadRegistry::ReleaseStoreBuffers(Isolate* isolate_of_interest) {
   MonitorLocker ml(threads_lock());
   Thread* thread = active_list_;
   while (thread != NULL) {
-    if (!thread->BypassSafepoints()) {
-      thread->MarkingStackAcquire();
-      thread->DeferredMarkingStackAcquire();
+    if (thread->isolate() == isolate_of_interest) {
+      if (!thread->BypassSafepoints()) {
+        thread->ReleaseStoreBuffer();
+      }
     }
     thread = thread->next_;
   }
 }
 
-void ThreadRegistry::ReleaseMarkingStacks() {
+void ThreadRegistry::AcquireMarkingStacks(Isolate* isolate_of_interest) {
   MonitorLocker ml(threads_lock());
   Thread* thread = active_list_;
   while (thread != NULL) {
-    if (!thread->BypassSafepoints()) {
-      thread->MarkingStackRelease();
-      thread->DeferredMarkingStackRelease();
+    if (thread->isolate() == isolate_of_interest) {
+      if (!thread->BypassSafepoints()) {
+        thread->MarkingStackAcquire();
+        thread->DeferredMarkingStackAcquire();
+      }
+    }
+    thread = thread->next_;
+  }
+}
+
+void ThreadRegistry::ReleaseMarkingStacks(Isolate* isolate_of_interest) {
+  MonitorLocker ml(threads_lock());
+  Thread* thread = active_list_;
+  while (thread != NULL) {
+    if (thread->isolate() == isolate_of_interest) {
+      if (!thread->BypassSafepoints()) {
+        thread->MarkingStackRelease();
+        thread->DeferredMarkingStackRelease();
+      }
     }
     thread = thread->next_;
   }
@@ -126,23 +111,28 @@ void ThreadRegistry::PrintJSON(JSONStream* stream) const {
 }
 #endif
 
-intptr_t ThreadRegistry::CountZoneHandles() const {
+intptr_t ThreadRegistry::CountZoneHandles(Isolate* isolate_of_interest) const {
   MonitorLocker ml(threads_lock());
   intptr_t count = 0;
   Thread* current = active_list_;
   while (current != NULL) {
-    count += current->CountZoneHandles();
+    if (current->isolate() == isolate_of_interest) {
+      count += current->CountZoneHandles();
+    }
     current = current->next_;
   }
   return count;
 }
 
-intptr_t ThreadRegistry::CountScopedHandles() const {
+intptr_t ThreadRegistry::CountScopedHandles(
+    Isolate* isolate_of_interest) const {
   MonitorLocker ml(threads_lock());
   intptr_t count = 0;
   Thread* current = active_list_;
   while (current != NULL) {
-    count += current->CountScopedHandles();
+    if (current->isolate() == isolate_of_interest) {
+      count += current->CountScopedHandles();
+    }
     current = current->next_;
   }
   return count;
@@ -174,12 +164,12 @@ void ThreadRegistry::RemoveFromActiveListLocked(Thread* thread) {
   }
 }
 
-Thread* ThreadRegistry::GetFromFreelistLocked(Isolate* isolate) {
+Thread* ThreadRegistry::GetFromFreelistLocked(bool is_vm_isolate) {
   ASSERT(threads_lock()->IsOwnedByCurrentThread());
   Thread* thread = NULL;
   // Get thread structure from free list or create a new one.
   if (free_list_ == NULL) {
-    thread = new Thread(isolate);
+    thread = new Thread(is_vm_isolate);
   } else {
     thread = free_list_;
     free_list_ = thread->next_;

@@ -6,8 +6,8 @@
 library test;
 
 main() {
-  var /*@type=Map<int, () -> int>*/ v = /*@typeArgs=int, () -> int*/ {
-    1: /*@returnType=int*/ () {
+  var /*@ type=Map<int*, () ->* int*>* */ v = /*@ typeArgs=int*, () ->* int* */ {
+    1: /*@ returnType=int* */ () {
       return 1;
     }
   };

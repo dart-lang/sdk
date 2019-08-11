@@ -129,28 +129,66 @@ class SpawnIsolateTask : public ThreadPool::Task {
   }
 
   void Run() override {
-    // Create a new isolate.
-    char* error = NULL;
-    Dart_IsolateCreateCallback callback = Isolate::CreateCallback();
-    if (callback == NULL) {
-      ReportError(
-          "Isolate spawn is not supported by this Dart implementation\n");
+    auto group = state_->isolate_group();
+
+    // The create isolate group call back is mandatory.  If not provided we
+    // cannot spawn isolates.
+    Dart_IsolateGroupCreateCallback create_group_callback =
+        Isolate::CreateGroupCallback();
+    if (create_group_callback == nullptr) {
+      FailedSpawn("Isolate spawn is not supported by this Dart embedder\n");
       return;
     }
 
-    // Make a copy of the state's isolate flags and hand it to the callback.
-    Dart_IsolateFlags api_flags = *(state_->isolate_flags());
+    // The initialize callback is optional atm, we fall back to creating isolate
+    // groups if it was not provided.
+    Dart_InitializeIsolateCallback initialize_callback =
+        Isolate::InitializeCallback();
+
     const char* name = (state_->debug_name() == NULL) ? state_->function_name()
                                                       : state_->debug_name();
     ASSERT(name != NULL);
 
-    Isolate* isolate = reinterpret_cast<Isolate*>((callback)(
-        state_->script_url(), name, nullptr, state_->package_config(),
-        &api_flags, parent_isolate_->init_callback_data(), &error));
-    parent_isolate_->DecrementSpawnCount();
-    parent_isolate_ = nullptr;
-    if (isolate == NULL) {
-      ReportError(error);
+    // Create a new isolate.
+    char* error = nullptr;
+    Isolate* isolate = nullptr;
+    if (group == nullptr || initialize_callback == nullptr) {
+      // Make a copy of the state's isolate flags and hand it to the callback.
+      Dart_IsolateFlags api_flags = *(state_->isolate_flags());
+      isolate = reinterpret_cast<Isolate*>((create_group_callback)(
+          state_->script_url(), name, nullptr, state_->package_config(),
+          &api_flags, parent_isolate_->init_callback_data(), &error));
+      parent_isolate_->DecrementSpawnCount();
+      parent_isolate_ = nullptr;
+    } else {
+      if (initialize_callback == nullptr) {
+        FailedSpawn("Isolate spawn is not supported by this embedder.");
+        return;
+      }
+
+      isolate = CreateWithinExistingIsolateGroup(group, name, &error);
+      parent_isolate_->DecrementSpawnCount();
+      parent_isolate_ = nullptr;
+      if (isolate == nullptr) {
+        FailedSpawn(error);
+        free(error);
+        return;
+      }
+
+      void* child_isolate_data = nullptr;
+      bool success = initialize_callback(&child_isolate_data, &error);
+      isolate->set_init_callback_data(child_isolate_data);
+      if (!success) {
+        Dart_ShutdownIsolate();
+        FailedSpawn(error);
+        free(error);
+        return;
+      }
+      Dart_ExitIsolate();
+    }
+
+    if (isolate == nullptr) {
+      FailedSpawn(error);
       free(error);
       return;
     }
@@ -169,6 +207,13 @@ class SpawnIsolateTask : public ThreadPool::Task {
   }
 
  private:
+  void FailedSpawn(const char* error) {
+    ReportError(error != nullptr
+                    ? error
+                    : "Unknown error occured during Isolate spawning.");
+    state_ = nullptr;
+  }
+
   void ReportError(const char* error) {
     Dart_CObject error_cobj;
     error_cobj.type = Dart_CObject_kString;
@@ -240,7 +285,7 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 11) {
       std::unique_ptr<IsolateSpawnState> state(new IsolateSpawnState(
           port.Id(), isolate->origin_id(), String2UTF8(script_uri), func,
           &message_buffer, utf8_package_config, paused.value(), fatal_errors,
-          on_exit_port, on_error_port, utf8_debug_name));
+          on_exit_port, on_error_port, utf8_debug_name, isolate->group()));
 
       // Since this is a call to Isolate.spawn, copy the parent isolate's code.
       state->isolate_flags()->copy_parent_code = true;
@@ -354,7 +399,7 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 0, 13) {
   std::unique_ptr<IsolateSpawnState> state(new IsolateSpawnState(
       port.Id(), canonical_uri, utf8_package_config, &arguments_buffer,
       &message_buffer, paused.value(), fatal_errors, on_exit_port,
-      on_error_port, utf8_debug_name));
+      on_error_port, utf8_debug_name, /*group=*/nullptr));
 
   // If we were passed a value then override the default flags state for
   // checked mode.
@@ -372,11 +417,11 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 0, 13) {
 
 DEFINE_NATIVE_ENTRY(Isolate_getDebugName, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
-  Isolate* isolate_lookup = Isolate::LookupIsolateByPort(port.Id());
-  if (isolate_lookup == NULL) {
+  auto name = Isolate::LookupIsolateNameByPort(port.Id());
+  if (name == nullptr) {
     return String::null();
   }
-  return String::New(isolate_lookup->name());
+  return String::New(name.get());
 }
 
 DEFINE_NATIVE_ENTRY(Isolate_getPortAndCapabilitiesOfCurrentIsolate, 0, 0) {
@@ -423,7 +468,7 @@ static void ExternalTypedDataFinalizer(void* isolate_callback_data,
   free(peer);
 }
 
-static intptr_t GetUint8SizeOrThrow(const Instance& instance) {
+static intptr_t GetTypedDataSizeOrThrow(const Instance& instance) {
   // From the Dart side we are guaranteed that the type of [instance] is a
   // subtype of TypedData.
   if (instance.IsTypedDataBase()) {
@@ -456,19 +501,18 @@ DEFINE_NATIVE_ENTRY(TransferableTypedData_factory, 0, 2) {
     UNREACHABLE();
   }
   Instance& instance = Instance::Handle();
-  unsigned long long total_bytes = 0;
-  const unsigned long kMaxBytes =
-      TypedData::MaxElements(kTypedDataUint8ArrayCid);
+  uint64_t total_bytes = 0;
+  const uint64_t kMaxBytes = TypedData::MaxElements(kTypedDataUint8ArrayCid);
   for (intptr_t i = 0; i < array_length; i++) {
     instance ^= array.At(i);
-    total_bytes += GetUint8SizeOrThrow(instance);
+    total_bytes += static_cast<uintptr_t>(GetTypedDataSizeOrThrow(instance));
     if (total_bytes > kMaxBytes) {
       const Array& error_args = Array::Handle(Array::New(3));
       error_args.SetAt(0, array);
       error_args.SetAt(1, String::Handle(String::New("data")));
-      error_args.SetAt(2,
-                       String::Handle(String::NewFormatted(
-                           "Aggregated list exceeds max size %ld", kMaxBytes)));
+      error_args.SetAt(
+          2, String::Handle(String::NewFormatted(
+                 "Aggregated list exceeds max size %" Pu64 "", kMaxBytes)));
       Exceptions::ThrowByType(Exceptions::kArgumentValue, error_args);
       UNREACHABLE();
     }
@@ -492,11 +536,11 @@ DEFINE_NATIVE_ENTRY(TransferableTypedData_factory, 0, 2) {
 
       void* source = typed_data.DataAddr(0);
       // The memory does not overlap.
-      memcpy(data + offset, source, length_in_bytes);
+      memcpy(data + offset, source, length_in_bytes);  // NOLINT
       offset += length_in_bytes;
     }
   }
-  ASSERT(static_cast<unsigned long>(offset) == total_bytes);
+  ASSERT(static_cast<uintptr_t>(offset) == total_bytes);
   return TransferableTypedData::New(data, total_bytes);
 }
 

@@ -37,7 +37,7 @@ main() {
       ..verify = true;
 
     List<int> kernelBinary =
-        serializeComponent(await kernelForProgram(uri, options));
+        serializeComponent((await kernelForProgram(uri, options)).component);
     CompilerImpl compiler = compilerFor(
         entryPoint: entryPoint,
         memorySourceFiles: {'main.dill': kernelBinary},

@@ -8,8 +8,36 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/resolver/flow_analysis.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
+import 'package:front_end/src/fasta/flow_analysis/flow_analysis.dart';
+import 'package:meta/meta.dart';
+
+class AnalyzerFunctionBodyAccess
+    implements FunctionBodyAccess<VariableElement> {
+  final FunctionBody node;
+
+  AnalyzerFunctionBodyAccess(this.node);
+
+  @override
+  bool isPotentiallyMutatedInClosure(VariableElement variable) {
+    return node.isPotentiallyMutatedInClosure(variable);
+  }
+
+  @override
+  bool isPotentiallyMutatedInScope(VariableElement variable) {
+    return node.isPotentiallyMutatedInScope(variable);
+  }
+}
+
+class AnalyzerNodeOperations implements NodeOperations<Expression> {
+  const AnalyzerNodeOperations();
+
+  @override
+  Expression unwrapParenthesized(Expression node) {
+    return node.unParenthesized;
+  }
+}
 
 /// The helper for performing flow analysis during resolution.
 ///
@@ -29,29 +57,27 @@ class FlowAnalysisHelper {
   final AssignedVariables<Statement, VariableElement> assignedVariables;
 
   /// The result for post-resolution stages of analysis.
-  final FlowAnalysisResult result = FlowAnalysisResult();
+  final FlowAnalysisResult result;
 
   /// The current flow, when resolving a function body, or `null` otherwise.
   FlowAnalysis<Statement, Expression, VariableElement, DartType> flow;
 
   int _blockFunctionBodyLevel = 0;
 
-  factory FlowAnalysisHelper(TypeSystem typeSystem, AstNode node) {
+  factory FlowAnalysisHelper(
+      TypeSystem typeSystem, AstNode node, bool retainDataForTesting) {
     var assignedVariables = AssignedVariables<Statement, VariableElement>();
     node.accept(_AssignedVariablesVisitor(assignedVariables));
 
     return FlowAnalysisHelper._(
-      _NodeOperations(),
-      _TypeSystemTypeOperations(typeSystem),
-      assignedVariables,
-    );
+        const AnalyzerNodeOperations(),
+        _TypeSystemTypeOperations(typeSystem),
+        assignedVariables,
+        retainDataForTesting ? FlowAnalysisResult() : null);
   }
 
-  FlowAnalysisHelper._(
-    this._nodeOperations,
-    this._typeOperations,
-    this.assignedVariables,
-  );
+  FlowAnalysisHelper._(this._nodeOperations, this._typeOperations,
+      this.assignedVariables, this.result);
 
   LocalVariableTypeProvider get localVariableTypeProvider {
     return _LocalVariableTypeProvider(this);
@@ -76,56 +102,26 @@ class FlowAnalysisHelper {
       VariableElement localElement, Expression right) {
     if (localElement == null) return;
 
-    flow.write(
-      localElement,
-      isNull: _isNull(right),
-      isNonNull: _isNonNull(right),
-    );
+    flow.write(localElement);
   }
 
-  void binaryExpression_bangEq(
-    BinaryExpression node,
-    Expression left,
-    Expression right,
-  ) {
+  void binaryExpression_equal(
+      BinaryExpression node, Expression left, Expression right,
+      {@required bool notEqual}) {
     if (flow == null) return;
 
     if (right is NullLiteral) {
       if (left is SimpleIdentifier) {
         var element = left.staticElement;
         if (element is VariableElement) {
-          flow.conditionNotEqNull(node, element);
+          flow.conditionEqNull(node, element, notEqual: notEqual);
         }
       }
     } else if (left is NullLiteral) {
       if (right is SimpleIdentifier) {
         var element = right.staticElement;
         if (element is VariableElement) {
-          flow.conditionNotEqNull(node, element);
-        }
-      }
-    }
-  }
-
-  void binaryExpression_eqEq(
-    BinaryExpression node,
-    Expression left,
-    Expression right,
-  ) {
-    if (flow == null) return;
-
-    if (right is NullLiteral) {
-      if (left is SimpleIdentifier) {
-        var element = left.staticElement;
-        if (element is VariableElement) {
-          flow.conditionEqNull(node, element);
-        }
-      }
-    } else if (left is NullLiteral) {
-      if (right is SimpleIdentifier) {
-        var element = right.staticElement;
-        if (element is VariableElement) {
-          flow.conditionEqNull(node, element);
+          flow.conditionEqNull(node, element, notEqual: notEqual);
         }
       }
     }
@@ -136,14 +132,13 @@ class FlowAnalysisHelper {
 
     if (_blockFunctionBodyLevel > 1) {
       assert(flow != null);
-      return;
+    } else {
+      flow = FlowAnalysis<Statement, Expression, VariableElement, DartType>(
+        _nodeOperations,
+        _typeOperations,
+        AnalyzerFunctionBodyAccess(node),
+      );
     }
-
-    flow = FlowAnalysis<Statement, Expression, VariableElement, DartType>(
-      _nodeOperations,
-      _typeOperations,
-      _FunctionBodyAccess(node),
-    );
 
     var parameters = _enclosingExecutableParameters(node);
     if (parameters != null) {
@@ -160,12 +155,17 @@ class FlowAnalysisHelper {
       return;
     }
 
+    // Set this.flow to null before doing any clean-up so that if an exception
+    // is raised, the state is already updated correctly, and we don't have
+    // cascading failures.
+    var flow = this.flow;
+    this.flow = null;
+
     if (!flow.isReachable) {
-      result.functionBodiesThatDontComplete.add(node);
+      result?.functionBodiesThatDontComplete?.add(node);
     }
 
-    flow.verifyStackEmpty();
-    flow = null;
+    flow.finish();
   }
 
   void breakStatement(BreakStatement node) {
@@ -179,13 +179,15 @@ class FlowAnalysisHelper {
     if (flow == null) return;
     if (flow.isReachable) return;
 
-    // Ignore the [node] if it is fully covered by the last unreachable.
-    if (result.unreachableNodes.isNotEmpty) {
-      var last = result.unreachableNodes.last;
-      if (node.offset >= last.offset && node.end <= last.end) return;
-    }
+    if (result != null) {
+      // Ignore the [node] if it is fully covered by the last unreachable.
+      if (result.unreachableNodes.isNotEmpty) {
+        var last = result.unreachableNodes.last;
+        if (node.offset >= last.offset && node.end <= last.end) return;
+      }
 
-    result.unreachableNodes.add(node);
+      result.unreachableNodes.add(node);
+    }
   }
 
   void continueStatement(ContinueStatement node) {
@@ -233,41 +235,39 @@ class FlowAnalysisHelper {
 
     var element = node.staticElement;
     if (element is LocalVariableElement) {
-      if (element.isLate) return false;
-
       var typeSystem = _typeOperations.typeSystem;
       if (typeSystem.isPotentiallyNonNullable(element.type)) {
-        return !flow.isAssigned(element);
+        var isUnassigned = !flow.isAssigned(element);
+        if (isUnassigned) {
+          result?.unassignedNodes?.add(node);
+        }
+        // Note: in principle we could make this slightly more performant by
+        // checking element.isLate earlier, but we would lose the ability to
+        // test the flow analysis mechanism using late variables.  And it seems
+        // unlikely that the `late` modifier will be used often enough for it to
+        // make a significant difference.
+        if (element.isLate) return false;
+        return isUnassigned;
       }
     }
 
     return false;
   }
 
-  void simpleIdentifier(SimpleIdentifier node) {
-    if (flow == null) return;
-
-    var element = node.staticElement;
-    var isLocalVariable = element is LocalVariableElement;
-    if (isLocalVariable || element is ParameterElement) {
-      if (node.inGetterContext() && !node.inDeclarationContext()) {
-        if (flow.isNullable(element)) {
-          result.nullableNodes.add(node);
-        }
-
-        if (flow.isNonNullable(element)) {
-          result.nonNullableNodes.add(node);
-        }
-      }
+  void loopVariable(DeclaredIdentifier loopVariable) {
+    if (loopVariable != null) {
+      flow.add(loopVariable.declaredElement, assigned: true);
     }
   }
 
-  void variableDeclarationStatement(VariableDeclarationStatement node) {
-    var variables = node.variables.variables;
-    for (var i = 0; i < variables.length; ++i) {
-      var variable = variables[i];
-      flow.add(variable.declaredElement,
-          assigned: variable.initializer != null);
+  void variableDeclarationList(VariableDeclarationList node) {
+    if (flow != null) {
+      var variables = node.variables;
+      for (var i = 0; i < variables.length; ++i) {
+        var variable = variables[i];
+        flow.add(variable.declaredElement,
+            assigned: variable.initializer != null);
+      }
     }
   }
 
@@ -318,30 +318,10 @@ class FlowAnalysisHelper {
     }
     return null;
   }
-
-  static bool _isNonNull(Expression node) {
-    if (node is NullLiteral) return false;
-
-    return node is Literal;
-  }
-
-  static bool _isNull(Expression node) {
-    return node is NullLiteral;
-  }
 }
 
 /// The result of performing flow analysis on a unit.
 class FlowAnalysisResult {
-  static const _astKey = 'FlowAnalysisResult';
-
-  /// The list of identifiers, resolved to a local variable or a parameter,
-  /// where the variable is known to be nullable.
-  final List<SimpleIdentifier> nullableNodes = [];
-
-  /// The list of identifiers, resolved to a local variable or a parameter,
-  /// where the variable is known to be non-nullable.
-  final List<SimpleIdentifier> nonNullableNodes = [];
-
   /// The list of nodes, [Expression]s or [Statement]s, that cannot be reached,
   /// for example because a previous statement always exits.
   final List<AstNode> unreachableNodes = [];
@@ -350,13 +330,9 @@ class FlowAnalysisResult {
   /// there is a `return` statement at the end of the function body block.
   final List<FunctionBody> functionBodiesThatDontComplete = [];
 
-  void putIntoNode(AstNode node) {
-    node.setProperty(_astKey, this);
-  }
-
-  static FlowAnalysisResult getFromNode(AstNode node) {
-    return node.getProperty(_astKey);
-  }
+  /// The list of [Expression]s representing variable accesses that occur before
+  /// the corresponding variable has been definitely assigned.
+  final List<AstNode> unassignedNodes = [];
 }
 
 /// The visitor that gathers local variables that are potentially assigned
@@ -454,22 +430,6 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
   }
 }
 
-class _FunctionBodyAccess implements FunctionBodyAccess<VariableElement> {
-  final FunctionBody node;
-
-  _FunctionBodyAccess(this.node);
-
-  @override
-  bool isPotentiallyMutatedInClosure(VariableElement variable) {
-    return node.isPotentiallyMutatedInClosure(variable);
-  }
-
-  @override
-  bool isPotentiallyMutatedInScope(VariableElement variable) {
-    return node.isPotentiallyMutatedInScope(variable);
-  }
-}
-
 /// The flow analysis based implementation of [LocalVariableTypeProvider].
 class _LocalVariableTypeProvider implements LocalVariableTypeProvider {
   final FlowAnalysisHelper _manager;
@@ -484,13 +444,6 @@ class _LocalVariableTypeProvider implements LocalVariableTypeProvider {
   }
 }
 
-class _NodeOperations implements NodeOperations<Expression> {
-  @override
-  Expression unwrapParenthesized(Expression node) {
-    return node.unParenthesized;
-  }
-}
-
 class _TypeSystemTypeOperations
     implements TypeOperations<VariableElement, DartType> {
   final TypeSystem typeSystem;
@@ -498,17 +451,27 @@ class _TypeSystemTypeOperations
   _TypeSystemTypeOperations(this.typeSystem);
 
   @override
-  DartType elementType(VariableElement element) {
-    return element.type;
-  }
-
-  @override
   bool isLocalVariable(VariableElement element) {
     return element is LocalVariableElement;
   }
 
   @override
+  bool isSameType(covariant TypeImpl type1, covariant TypeImpl type2) {
+    return type1 == type2;
+  }
+
+  @override
   bool isSubtypeOf(DartType leftType, DartType rightType) {
     return typeSystem.isSubtypeOf(leftType, rightType);
+  }
+
+  @override
+  DartType promoteToNonNull(DartType type) {
+    return typeSystem.promoteToNonNull(type);
+  }
+
+  @override
+  DartType variableType(VariableElement variable) {
+    return variable.type;
   }
 }

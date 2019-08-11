@@ -93,7 +93,6 @@ namespace dart {
   F(KernelProgramInfo, bytecode_component_)                                    \
   F(KernelProgramInfo, potential_natives_)                                     \
   F(KernelProgramInfo, potential_pragma_functions_)                            \
-  F(KernelProgramInfo, evaluating_)                                            \
   F(KernelProgramInfo, constants_table_)                                       \
   F(KernelProgramInfo, libraries_cache_)                                       \
   F(KernelProgramInfo, classes_cache_)                                         \

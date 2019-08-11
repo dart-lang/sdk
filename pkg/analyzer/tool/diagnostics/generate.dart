@@ -27,8 +27,11 @@ void main() async {
   String outputPath =
       pathContext.join(analyzerPath, 'tool', 'diagnostics', 'diagnostics.md');
 
+  IOSink sink = File(outputPath).openWrite();
   DocumentationGenerator generator = DocumentationGenerator(docPaths);
-  generator.writeDocumentation(outputPath);
+  generator.writeDocumentation(sink);
+  await sink.flush();
+  await sink.close();
 }
 
 /// A class used to generate diagnostic documentation.
@@ -47,13 +50,10 @@ class DocumentationGenerator {
   }
 
   /// Write the documentation to the file at the given [outputPath].
-  void writeDocumentation(String outputPath) async {
-    IOSink sink = File(outputPath).openWrite();
+  void writeDocumentation(StringSink sink) {
     _writeHeader(sink);
-//    _writeGlossary(sink);
+    _writeGlossary(sink);
     _writeDiagnostics(sink);
-    await sink.flush();
-    await sink.close();
   }
 
   /// Return a version of the [text] in which characters that have special
@@ -80,12 +80,26 @@ class DocumentationGenerator {
       return null;
     }
     List<String> docs = [];
+    bool inDartCodeBlock = false;
     while (comments != null) {
       String lexeme = comments.lexeme;
       if (lexeme.startsWith('// TODO')) {
         break;
       } else if (lexeme.startsWith('// ')) {
-        docs.add(lexeme.substring(3));
+        String trimmedLine = lexeme.substring(3);
+        if (trimmedLine == '```dart') {
+          inDartCodeBlock = true;
+          docs.add('{% prettify dart %}');
+        } else if (trimmedLine == '```') {
+          if (inDartCodeBlock) {
+            docs.add('{% endprettify %}');
+            inDartCodeBlock = false;
+          } else {
+            docs.add(trimmedLine);
+          }
+        } else {
+          docs.add(trimmedLine);
+        }
       } else if (lexeme == '//') {
         docs.add('');
       }
@@ -163,7 +177,7 @@ class DocumentationGenerator {
   }
 
   /// Write the documentation for all of the diagnostics.
-  void _writeDiagnostics(IOSink sink) {
+  void _writeDiagnostics(StringSink sink) {
     sink.write('''
 
 ## Diagnostics
@@ -183,24 +197,64 @@ that might work in unexpected ways.
     }
   }
 
-//  /// Write the glossary.
-//  void _writeGlossary(IOSink sink) {
-//    sink.write('''
-//
-//## Glossary
-//
-//This page uses the following terms.
-//
+  /// Write the glossary.
+  void _writeGlossary(StringSink sink) {
+    sink.write('''
+
+## Glossary
+
+This page uses the following terms.
+
+### Constant context
+
+A _constant context_ is a region of code in which it isn't necessary to include
+the `const` keyword because it's implied by the fact that everything in that
+region is required to be a constant. The following locations are constant
+contexts:
+
+* Everything inside a list, map or set literal that's prefixed by the keyword
+  `const`. Example:
+
+  ```dart
+  var l = const [/*constant context*/];
+  ```
+
+* The arguments inside an invocation of a constant constructor. Example:
+
+  ```dart
+  var p = const Point(/*constant context*/);
+  ```
+
+* The initializer for a variable that's prefixed by the keyword `const`.
+  Example:
+
+  ```dart
+  const v = /*constant context*/;
+  ```
+
+* Annotations
+
+* The expression in a case clause. Example:
+
+  ```dart
+  void f(int e) {
+    switch (e) {
+      case /*constant context*/:
+        break;
+    }
+  }
+  ```
+''');
+
 //### Potentially non-nullable
 //
 //A type is _potentially non-nullable_ if it's either explicitly non-nullable or
 //if it's a type parameter. The latter case is included because the actual runtime
 //type might be non-nullable.
-//''');
-//  }
+  }
 
   /// Write the header of the file.
-  void _writeHeader(IOSink sink) {
+  void _writeHeader(StringSink sink) {
     sink.write('''
 ---
 title: Diagnostics

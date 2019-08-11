@@ -10,19 +10,19 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  synthetic constructor •() → self::A
+  synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
   method foo() → dynamic {
-    new self::B::•<self::A>();
+    new self::B::•<self::A*>();
   }
 }
-class B<T extends core::Object = dynamic> extends core::Object {
-  field core::int i = null;
-  synthetic constructor •() → self::B<self::B::T>
+class B<T extends core::Object* = dynamic> extends core::Object {
+  field core::int* i = null;
+  synthetic constructor •() → self::B<self::B::T*>*
     : super core::Object::•()
     ;
 }
 static method main() → dynamic {
-  new self::B::•<self::A>();
+  new self::B::•<self::A*>();
 }

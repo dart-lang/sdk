@@ -358,6 +358,10 @@ class RawObject {
     return IsFreeListElement() || IsForwardingCorpse();
   }
 
+  intptr_t GetClassId() const {
+    uint32_t tags = ptr()->tags_;
+    return ClassIdTag::decode(tags);
+  }
   intptr_t GetClassIdMayBeSmi() const {
     return IsHeapObject() ? GetClassId() : static_cast<intptr_t>(kSmiCid);
   }
@@ -503,11 +507,6 @@ class RawObject {
                                    intptr_t class_id);
 
   intptr_t HeapSizeFromClass() const;
-
-  intptr_t GetClassId() const {
-    uint32_t tags = ptr()->tags_;
-    return ClassIdTag::decode(tags);
-  }
 
   void SetClassId(intptr_t new_cid) {
     uint32_t tags = ptr()->tags_;
@@ -660,12 +659,7 @@ class RawObject {
   friend class StoreBufferUpdateVisitor;  // RememberCard
   void RememberCard(RawObject* const* slot);
 
-  friend class Api;
-  friend class ApiMessageReader;  // GetClassId
-  friend class Serializer;        // GetClassId
   friend class Array;
-  friend class Become;  // GetClassId
-  friend class CompactorTask;  // GetClassId
   friend class ByteBuffer;
   friend class CidRewriteVisitor;
   friend class Closure;
@@ -681,25 +675,15 @@ class RawObject {
   friend class ForwardList;
   friend class GrowableObjectArray;  // StorePointer
   friend class Heap;
-  friend class HeapMapAsJSONVisitor;
   friend class ClassStatsVisitor;
   template <bool>
   friend class MarkingVisitorBase;
   friend class Mint;
   friend class Object;
   friend class OneByteString;  // StoreSmi
-  friend class RawCode;
-  friend class RawExternalTypedData;
-  friend class RawInstructions;
   friend class RawInstance;
-  friend class RawString;
-  friend class RawTypedData;
-  friend class RawTypedDataView;
   friend class Scavenger;
   friend class ScavengerVisitor;
-  friend class SizeExcludingClassVisitor;  // GetClassId
-  friend class InstanceAccumulator;        // GetClassId
-  friend class RetainingPathVisitor;       // GetClassId
   friend class ImageReader;                // tags_ check
   friend class ImageWriter;
   friend class AssemblyImageWriter;
@@ -708,29 +692,17 @@ class RawObject {
   friend class Deserializer;
   friend class SnapshotWriter;
   friend class String;
-  friend class Type;                    // GetClassId
-  friend class TypedDataBase;           // GetClassId
-  friend class TypedData;               // GetClassId
-  friend class TypedDataView;           // GetClassId
   friend class WeakProperty;            // StorePointer
   friend class Instance;                // StorePointer
   friend class StackFrame;              // GetCodeObject assertion.
   friend class CodeLookupTableBuilder;  // profiler
-  friend class NativeEntry;             // GetClassId
-  friend class WritePointerVisitor;     // GetClassId
   friend class Interpreter;
   friend class InterpreterHelpers;
   friend class Simulator;
   friend class SimulatorHelpers;
   friend class ObjectLocator;
-  friend class InstanceMorpher;  // GetClassId
-  friend class VerifyCanonicalVisitor;
-  friend class ObjectGraph::Stack;  // GetClassId
-  friend class Precompiler;         // GetClassId
-  friend class ObjectOffsetTrait;   // GetClassId
   friend class WriteBarrierUpdateVisitor;  // CheckHeapPointerStore
   friend class OffsetsTable;
-  friend class RawTransferableTypedData;  // GetClassId
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(RawObject);
@@ -861,25 +833,29 @@ class RawPatchClass : public RawObject {
 class RawFunction : public RawObject {
  public:
   enum Kind {
-    kRegularFunction,
-    kClosureFunction,
-    kImplicitClosureFunction,
-    kSignatureFunction,  // represents a signature only without actual code.
-    kGetterFunction,     // represents getter functions e.g: get foo() { .. }.
-    kSetterFunction,     // represents setter functions e.g: set foo(..) { .. }.
-    kConstructor,
-    kImplicitGetter,        // represents an implicit getter for fields.
-    kImplicitSetter,        // represents an implicit setter for fields.
-    kImplicitStaticGetter,  // represents an implicit getter for static
-                            // fields with initializers
-    kStaticFieldInitializer,
-    kMethodExtractor,  // converts method into implicit closure on the receiver.
-    kNoSuchMethodDispatcher,  // invokes noSuchMethod.
-    kInvokeFieldDispatcher,   // invokes a field as a closure.
-    kIrregexpFunction,  // represents a generated irregexp matcher function.
-    kDynamicInvocationForwarder,  // represents forwarder which performs type
-                                  // checks for arguments of a dynamic
-                                  // invocation.
+    kRegularFunction,          // an ordinary or operator method
+    kClosureFunction,          // a user-declared closure function
+    kImplicitClosureFunction,  // an implicit closure (i.e., tear-off)
+    kSignatureFunction,        // a signature only without actual code
+    kGetterFunction,           // getter functions e.g: get foo() { .. }
+    kSetterFunction,           // setter functions e.g: set foo(..) { .. }
+    kConstructor,              // a generative (is_static=false) or
+                               // factory (is_static=true) constructor
+    kImplicitGetter,           // an implicit getter for instance fields
+    kImplicitSetter,           // an implicit setter for instance fields
+    kImplicitStaticGetter,     // represents an implicit getter for static
+                               // fields with initializers
+    kFieldInitializer,         // the initialization expression for a static
+                               // or instance field
+    kMethodExtractor,          // return a closure on the receiver for tear-offs
+    kNoSuchMethodDispatcher,   // builds an Invocation and invokes noSuchMethod
+    kInvokeFieldDispatcher,    // invokes a field as a closure (i.e.,
+                               // call-through-getter)
+    kIrregexpFunction,         // a generated irregexp matcher function.
+    kDynamicInvocationForwarder,  // a forwarder which performs type checks for
+                                  // arguments of a dynamic call (i.e., those
+                                  // checks omitted by the caller for interface
+                                  // calls).
     kFfiTrampoline,
   };
 
@@ -1262,11 +1238,12 @@ class RawKernelProgramInfo : public RawObject {
   RawArray* bytecode_component_;
   RawGrowableObjectArray* potential_natives_;
   RawGrowableObjectArray* potential_pragma_functions_;
-  RawGrowableObjectArray* evaluating_;  // detects cycles
   RawExternalTypedData* constants_table_;
   RawArray* libraries_cache_;
   RawArray* classes_cache_;
   VISIT_TO(RawObject*, classes_cache_);
+
+  uint32_t kernel_binary_version_;
 
   RawObject** to_snapshot(Snapshot::Kind kind) {
     return reinterpret_cast<RawObject**>(&ptr()->constants_table_);
@@ -1462,6 +1439,7 @@ class RawInstructions : public RawObject {
   friend class Function;
   friend class ImageReader;
   friend class ImageWriter;
+  friend class AssemblyImageWriter;
   friend class BlobImageWriter;
 };
 

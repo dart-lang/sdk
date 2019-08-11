@@ -372,5 +372,7 @@ class DevCompilerSummaryTarget extends DevCompilerTarget {
 
 Uri _toUri(String uriString) {
   if (uriString == null) return null;
-  return Uri.base.resolve(uriString);
+  // Windows-style paths use '\', so convert them to '/' in case they've been
+  // concatenated with Unix-style paths.
+  return Uri.base.resolve(uriString.replaceAll("\\", "/"));
 }

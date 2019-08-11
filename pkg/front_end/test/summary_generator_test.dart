@@ -94,7 +94,7 @@ main() {
     var sourcesWithABC = new Map<String, dynamic>.from(sourcesWithA);
     sourcesWithABC['bc.dill'] = summaryBC;
 
-    // Note: unlinke the previous test now bc.dill is loaded first and contains
+    // Note: unlike the previous test now bc.dill is loaded first and contains
     // an external definition of library a.dart. Using this order also works
     // because we share a CanonicalName root to resolve names across multiple
     // dill files and because of how the kernel loader merges definitions.

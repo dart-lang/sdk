@@ -2272,20 +2272,22 @@ class ExportDeclaration extends ModuleItem {
   /// if this is an `export *`.
   ///
   /// This can be useful for lowering to other module formats.
-  List<Identifier> get exportedNames {
-    if (isDefault) return [Identifier('default')];
+  List<NameSpecifier> get exportedNames {
+    if (isDefault) return [NameSpecifier(Identifier('default'))];
 
     var exported = this.exported;
-    if (exported is ClassDeclaration) return [exported.classExpr.name];
-    if (exported is FunctionDeclaration) return [exported.name];
+    if (exported is ClassDeclaration) {
+      return [NameSpecifier(exported.classExpr.name)];
+    }
+    if (exported is FunctionDeclaration) return [NameSpecifier(exported.name)];
     if (exported is VariableDeclarationList) {
       return exported.declarations
-          .map((i) => i.declaration as Identifier)
+          .map((i) => NameSpecifier(i.declaration as Identifier))
           .toList();
     }
     if (exported is ExportClause) {
       if (exported.exportStar) return null;
-      return exported.exports.map((e) => e.name).toList();
+      return exported.exports;
     }
     throw StateError('invalid export declaration');
   }

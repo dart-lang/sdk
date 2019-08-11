@@ -96,9 +96,7 @@ import '../fasta_codes.dart'
         templateUndefinedMethod,
         templateUndefinedSetter;
 
-import '../kernel/kernel_builder.dart' show KernelLibraryBuilder;
-
-import '../kernel/kernel_expression_generator.dart' show buildIsNull;
+import '../kernel/expression_generator.dart' show buildIsNull;
 
 import '../kernel/kernel_shadow_ast.dart'
     show
@@ -115,12 +113,14 @@ import '../names.dart' show callName, unaryMinusName;
 
 import '../problems.dart' show internalProblem, unexpected, unhandled;
 
+import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+
 import 'inference_helper.dart' show InferenceHelper;
 
 import 'type_constraint_gatherer.dart' show TypeConstraintGatherer;
 
 import 'type_inference_engine.dart'
-    show IncludesTypeParametersCovariantly, TypeInferenceEngine;
+    show IncludesTypeParametersNonCovariantly, TypeInferenceEngine, Variance;
 
 import 'type_promotion.dart' show TypePromoter;
 
@@ -451,9 +451,9 @@ abstract class TypeInferrer {
       Uri uri,
       bool topLevel,
       InterfaceType thisType,
-      KernelLibraryBuilder library) = ShadowTypeInferrer.private;
+      SourceLibraryBuilder library) = ShadowTypeInferrer.private;
 
-  KernelLibraryBuilder get library;
+  SourceLibraryBuilder get library;
 
   /// Gets the [TypePromoter] that can be used to perform type promotion within
   /// this method body or initializer.
@@ -521,7 +521,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   final InterfaceType thisType;
 
   @override
-  final KernelLibraryBuilder library;
+  final SourceLibraryBuilder library;
 
   final Map<TreeNode, DartType> inferredTypesMap = <TreeNode, DartType>{};
 
@@ -1091,11 +1091,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         interfaceMember != null &&
         receiver is! ThisExpression) {
       if (interfaceMember is Procedure) {
-        checkReturn = typeParametersOccurNegatively(
+        checkReturn = returnedTypeParametersOccurNonCovariantly(
             interfaceMember.enclosingClass,
             interfaceMember.function.returnType);
       } else if (interfaceMember is Field) {
-        checkReturn = typeParametersOccurNegatively(
+        checkReturn = returnedTypeParametersOccurNonCovariantly(
             interfaceMember.enclosingClass, interfaceMember.type);
       }
     }
@@ -1708,16 +1708,27 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     return tearoffType;
   }
 
-  /// True if [type] has negative occurrences of any of [class_]'s type
-  /// parameters.
+  /// True if the returned [type] has non-covariant occurrences of any of
+  /// [class_]'s type parameters.
   ///
-  /// A negative occurrence of a type parameter is one that is to the left of
-  /// an odd number of arrows.  For example, T occurs negatively in T -> T0,
-  /// T0 -> (T -> T1), (T0 -> T) -> T1 but not in (T -> T0) -> T1.
-  static bool typeParametersOccurNegatively(Class class_, DartType type) {
+  /// A non-covariant occurrence of a type parameter is either a contravariant
+  /// or an invariant position.
+  ///
+  /// A contravariant position is to the left of an odd number of arrows. For
+  /// example, T occurs contravariantly in T -> T0, T0 -> (T -> T1),
+  /// (T0 -> T) -> T1 but not in (T -> T0) -> T1.
+  ///
+  /// An invariant position is without a bound of a type parameter. For example,
+  /// T occurs invariantly in `S Function<S extends T>()` and
+  /// `void Function<S extends C<T>>(S)`.
+  static bool returnedTypeParametersOccurNonCovariantly(
+      Class class_, DartType type) {
     if (class_.typeParameters.isEmpty) return false;
-    var checker = new IncludesTypeParametersCovariantly(class_.typeParameters)
-      ..inCovariantContext = false;
+    IncludesTypeParametersNonCovariantly checker =
+        new IncludesTypeParametersNonCovariantly(class_.typeParameters,
+            // We are checking the returned type (field/getter type or return
+            // type of a method) and this is a covariant position.
+            initialVariance: Variance.covariant);
     return type.accept(checker);
   }
 
@@ -1740,10 +1751,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       }
       if (receiver != null && receiver is! ThisExpression) {
         if ((interfaceMember is Field &&
-                typeParametersOccurNegatively(
+                returnedTypeParametersOccurNonCovariantly(
                     interfaceMember.enclosingClass, interfaceMember.type)) ||
             (interfaceMember is Procedure &&
-                typeParametersOccurNegatively(interfaceMember.enclosingClass,
+                returnedTypeParametersOccurNonCovariantly(
+                    interfaceMember.enclosingClass,
                     interfaceMember.function.returnType))) {
           return MethodContravarianceCheckKind.checkGetterReturn;
         }
@@ -1751,7 +1763,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     } else if (receiver != null &&
         receiver is! ThisExpression &&
         interfaceMember is Procedure &&
-        typeParametersOccurNegatively(interfaceMember.enclosingClass,
+        returnedTypeParametersOccurNonCovariantly(
+            interfaceMember.enclosingClass,
             interfaceMember.function.returnType)) {
       return MethodContravarianceCheckKind.checkMethodReturn;
     }
@@ -1925,7 +1938,7 @@ abstract class MixinInferrer {
       // abstract class M<X0, ..., Xn> extends S0&S1<...>
       //
       // for a VM-style super mixin.  The type parameters of S0&S1 are the X0,
-      // ..., Xn that occured free in S0 and S1.  Treat S0 and S1 as separate
+      // ..., Xn that occurred free in S0 and S1.  Treat S0 and S1 as separate
       // supertype constraints by recursively calling this algorithm.
       //
       // In the Dart VM the mixin application classes themselves are all

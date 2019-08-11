@@ -34,6 +34,7 @@ final foo = Map<int>();
       mapElement,
       'Map<dynamic, dynamic>',
       expectedConstructorMember: true,
+      expectedSubstitution: {'K': 'dynamic', 'V': 'dynamic'},
     );
   }
 
@@ -116,6 +117,7 @@ main() {
       'Foo<dynamic>',
       constructorName: 'bar',
       expectedConstructorMember: true,
+      expectedSubstitution: {'X': 'dynamic'},
     );
   }
 
@@ -147,6 +149,7 @@ main() {
       constructorName: 'bar',
       expectedConstructorMember: true,
       expectedPrefix: import.prefix,
+      expectedSubstitution: {'X': 'int'},
     );
   }
 }

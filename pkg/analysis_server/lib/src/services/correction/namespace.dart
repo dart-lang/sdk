@@ -82,7 +82,7 @@ ImportElement internal_getImportElement(
       }
     }
     // no combinators => only possible candidate
-    if (importElement.combinators.length == 0) {
+    if (importElement.combinators.isEmpty) {
       return importElement;
     }
     // OK, we have candidate

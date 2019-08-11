@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:test/test.dart';
@@ -25,6 +27,19 @@ class DecoratedTypeTest extends AbstractSingleUnitTest {
   void setUp() {
     NullabilityNode.clearDebugNames();
     super.setUp();
+  }
+
+  test_toString_bottom() async {
+    var decoratedType = DecoratedType(BottomTypeImpl.instance, _node(1));
+    expect(decoratedType.toString(), 'Never?(type(1))');
+  }
+
+  test_toString_interface_type_argument() async {
+    await resolveTestUnit('''List<int> x;''');
+    var type = findElement.topVar('x').type as InterfaceType;
+    var decoratedType = DecoratedType(type, always,
+        typeArguments: [DecoratedType(type.typeArguments[0], _node(1))]);
+    expect(decoratedType.toString(), 'List<int?(type(1))>?');
   }
 
   test_toString_named_parameter() async {

@@ -331,6 +331,7 @@ class ListIterator<E> implements Iterator<E> {
 
   E get current => _current;
 
+  @pragma("vm:prefer-inline")
   bool moveNext() {
     int length = _iterable.length;
     if (_length != length) {

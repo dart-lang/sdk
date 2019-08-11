@@ -36,6 +36,7 @@ class DecoratedClassHierarchy {
   /// nullable.
   DecoratedType getDecoratedSupertype(
       ClassElement class_, ClassElement superclass) {
+    assert(!(class_.library.isDartCore && class_.name == 'Null'));
     assert(class_ is! ClassElementHandle);
     assert(superclass is! ClassElementHandle);
     if (superclass.typeParameters.isEmpty) {
@@ -43,6 +44,22 @@ class DecoratedClassHierarchy {
     }
     return _getGenericSupertypeDecorations(class_)[superclass] ??
         (throw StateError('Unrelated types'));
+  }
+
+  /// Retrieves a [DecoratedType] describing how [type] implements [superclass].
+  ///
+  /// If [type] is not an interface type, or it does not implement [superclass],
+  /// raises an exception.
+  DecoratedType asInstanceOf(DecoratedType type, ClassElement superclass) {
+    var typeType = type.type as InterfaceType;
+    var class_ = typeType.element;
+    if (class_ == superclass) return type;
+    var result = getDecoratedSupertype(class_, superclass);
+    if (result.typeArguments.isNotEmpty && type.typeArguments.isNotEmpty) {
+      // TODO(paulberry): test
+      result = result.substitute(type.asSubstitution);
+    }
+    return result.withNode(type.node);
   }
 
   /// Computes a map whose keys are all the superclasses of [class_], and whose

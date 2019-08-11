@@ -127,7 +127,7 @@ class _Visitor extends LocalDeclarationVisitor {
       }
 
       String name = constructorDecl.name?.name;
-      if (name != null && name.length > 0) {
+      if (name != null && name.isNotEmpty) {
         completion = '$completion.$name';
       }
 

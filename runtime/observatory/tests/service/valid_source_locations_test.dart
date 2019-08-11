@@ -14,15 +14,23 @@ void testFunction() {
   debugger();
 }
 
-Future validateLocation(Location location) async {
+Future validateLocation(Location location, Object object) async {
   if (location == null) return;
   if (location.tokenPos < 0) return;
+  if (location.script.uri == 'dart:_internal-patch/class_id_fasta.dart') {
+    // Injected fields from this script cannot be reloaded.
+    return;
+  }
 
   // Ensure the script is loaded.
   final Script script = await location.script.load();
 
   // Use the more low-level functions.
-  script.getLine(script.tokenToLine(location.tokenPos));
+  final line = script.tokenToLine(location.tokenPos);
+  if (line == null) {
+    throw 'missing location for $object in script ${script.uri}';
+  }
+  script.getLine(line);
   script.tokenToCol(location.tokenPos);
 
   // Use the helper functions.
@@ -31,19 +39,18 @@ Future validateLocation(Location location) async {
 }
 
 Future validateFieldLocation(Field field) async {
-  // TODO(http://dartbug.com/32503): We should `field = await field.load()`
-  // here, but it causes all kinds of strong-mode errors.
-  await validateLocation(field.location);
+  field = await field.load();
+  await validateLocation(field.location, field);
 }
 
 Future validateFunctionLocation(ServiceFunction fun) async {
   fun = await fun.load();
-  await validateLocation(fun.location);
+  await validateLocation(fun.location, fun);
 }
 
 Future validateClassLocation(Class klass) async {
   klass = await klass.load();
-  await validateLocation(klass.location);
+  await validateLocation(klass.location, klass);
 
   for (Field field in klass.fields) {
     await validateFieldLocation(field);

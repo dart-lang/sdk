@@ -18,7 +18,6 @@ import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/referenced_names.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_api_signature.dart';
-import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -85,11 +84,6 @@ class FileContentOverlay {
  * should be called.
  */
 class FileState {
-  /**
-   * The next value for [_exportDeclarationsId].
-   */
-  static int _exportDeclarationsNextId = 0;
-
   final FileSystemState _fsState;
 
   /**
@@ -141,10 +135,6 @@ class FileState {
   LibraryCycle _libraryCycle;
   String _transitiveSignature;
   String _transitiveSignatureLinked;
-
-  Map<String, TopLevelDeclaration> _topLevelDeclarations;
-  Map<String, TopLevelDeclaration> _exportedTopLevelDeclarations;
-  int _exportDeclarationsId = 0;
 
   /**
    * The flag that shows whether the file has an error or warning that
@@ -216,18 +206,6 @@ class FileState {
    */
   List<FileState> get exportedFiles => _exportedFiles;
 
-  /**
-   * Return [TopLevelDeclaration]s exported from the this library file. The
-   * keys to the map are names of declarations.
-   */
-  Map<String, TopLevelDeclaration> get exportedTopLevelDeclarations {
-    if (AnalysisDriver.useSummary2) {
-      return <String, TopLevelDeclaration>{};
-    }
-    _exportDeclarationsNextId = 1;
-    return _computeExportedDeclarations().declarations;
-  }
-
   @override
   int get hashCode => uri.hashCode;
 
@@ -244,7 +222,7 @@ class FileState {
    */
   bool get isExternalLibrary {
     return _fsState.externalSummaries != null &&
-        _fsState.externalSummaries.linkedMap.containsKey(uriStr);
+        _fsState.externalSummaries.hasLinkedLibrary(uriStr);
   }
 
   /**
@@ -253,8 +231,8 @@ class FileState {
    */
   bool get isPart {
     if (_fsState.externalSummaries != null &&
-        _fsState.externalSummaries.unlinkedMap.containsKey(uriStr)) {
-      return !_fsState.externalSummaries.linkedMap.containsKey(uriStr);
+        _fsState.externalSummaries.hasUnlinkedUnit(uriStr)) {
+      return _fsState.externalSummaries.isPartUnit(uriStr);
     }
     if (_unlinked2 != null) {
       return !_unlinked2.hasLibraryDirective && _unlinked2.hasPartOfDirective;
@@ -324,63 +302,6 @@ class FileState {
 
   @visibleForTesting
   FileStateTestView get test => new FileStateTestView(this);
-
-  /**
-   * Return public top-level declarations declared in the file. The keys to the
-   * map are names of declarations.
-   */
-  Map<String, TopLevelDeclaration> get topLevelDeclarations {
-    if (AnalysisDriver.useSummary2) {
-      return <String, TopLevelDeclaration>{};
-    }
-
-    if (_topLevelDeclarations == null) {
-      _topLevelDeclarations = <String, TopLevelDeclaration>{};
-
-      void addDeclaration(TopLevelDeclarationKind kind, String name) {
-        if (!name.startsWith('_')) {
-          _topLevelDeclarations[name] = new TopLevelDeclaration(kind, name);
-        }
-      }
-
-      // Add types.
-      for (UnlinkedClass type in unlinked.classes) {
-        addDeclaration(TopLevelDeclarationKind.type, type.name);
-      }
-      for (UnlinkedEnum type in unlinked.enums) {
-        addDeclaration(TopLevelDeclarationKind.type, type.name);
-      }
-      for (UnlinkedClass type in unlinked.mixins) {
-        addDeclaration(TopLevelDeclarationKind.type, type.name);
-      }
-      for (UnlinkedTypedef type in unlinked.typedefs) {
-        addDeclaration(TopLevelDeclarationKind.type, type.name);
-      }
-      // Add functions and variables.
-      Set<String> addedVariableNames = new Set<String>();
-      for (UnlinkedExecutable executable in unlinked.executables) {
-        String name = executable.name;
-        if (executable.kind == UnlinkedExecutableKind.functionOrMethod) {
-          addDeclaration(TopLevelDeclarationKind.function, name);
-        } else if (executable.kind == UnlinkedExecutableKind.getter ||
-            executable.kind == UnlinkedExecutableKind.setter) {
-          if (executable.kind == UnlinkedExecutableKind.setter) {
-            name = name.substring(0, name.length - 1);
-          }
-          if (addedVariableNames.add(name)) {
-            addDeclaration(TopLevelDeclarationKind.variable, name);
-          }
-        }
-      }
-      for (UnlinkedVariable variable in unlinked.variables) {
-        String name = variable.name;
-        if (addedVariableNames.add(name)) {
-          addDeclaration(TopLevelDeclarationKind.variable, name);
-        }
-      }
-    }
-    return _topLevelDeclarations;
-  }
 
   /**
    * Return the set of transitive files - the file itself and all of the
@@ -551,10 +472,6 @@ class FileState {
           library.libraryCycle?.invalidate();
         }
       }
-
-      for (FileState file in _fsState._uriToFile.values) {
-        file._exportedTopLevelDeclarations = null;
-      }
     }
 
     // This file is potentially not a library for its previous parts anymore.
@@ -621,69 +538,6 @@ class FileState {
   @override
   String toString() => path ?? '<unresolved>';
 
-  /**
-   * Compute the full or partial map of exported declarations for this library.
-   */
-  _ExportedDeclarations _computeExportedDeclarations() {
-    // If we know exported declarations, return them.
-    if (_exportedTopLevelDeclarations != null) {
-      return new _ExportedDeclarations(0, _exportedTopLevelDeclarations);
-    }
-
-    // If we are already computing exported declarations for this library,
-    // report that we found a cycle.
-    if (_exportDeclarationsId != 0) {
-      return new _ExportedDeclarations(_exportDeclarationsId, null);
-    }
-
-    var declarations = <String, TopLevelDeclaration>{};
-
-    // Give each library a unique identifier.
-    _exportDeclarationsId = _exportDeclarationsNextId++;
-
-    // Append the exported declarations.
-    int firstCycleId = 0;
-    for (int i = 0; i < _exportedFiles.length; i++) {
-      var exported = _exportedFiles[i]._computeExportedDeclarations();
-      if (exported.declarations != null) {
-        for (TopLevelDeclaration t in exported.declarations.values) {
-          if (_exportFilters[i].accepts(t.name)) {
-            declarations[t.name] = t;
-          }
-        }
-      }
-      if (exported.firstCycleId > 0) {
-        if (firstCycleId == 0 || firstCycleId > exported.firstCycleId) {
-          firstCycleId = exported.firstCycleId;
-        }
-      }
-    }
-
-    // If this library is the first component of the cycle, then we are at
-    // the beginning of this cycle, and combination of partial export
-    // namespaces of other exported libraries and declarations of this library
-    // is the full export namespace of this library.
-    if (firstCycleId != 0 && firstCycleId == _exportDeclarationsId) {
-      firstCycleId = 0;
-    }
-
-    // We're done with this library, successfully or not.
-    _exportDeclarationsId = 0;
-
-    // Append the library declarations.
-    for (FileState file in libraryFiles) {
-      declarations.addAll(file.topLevelDeclarations);
-    }
-
-    // Record the declarations only if it is the full result.
-    if (firstCycleId == 0) {
-      _exportedTopLevelDeclarations = declarations;
-    }
-
-    // Return the full or partial result.
-    return new _ExportedDeclarations(firstCycleId, declarations);
-  }
-
   CompilationUnit _createEmptyCompilationUnit(FeatureSet featureSet) {
     var token = new Token.eof(0);
     return astFactory.compilationUnit(
@@ -719,7 +573,6 @@ class FileState {
     _definedTopLevelNames = null;
     _definedClassMemberNames = null;
     _referencedNames = null;
-    _topLevelDeclarations = null;
 
     if (_driverUnlinkedUnit != null) {
       for (var name in _driverUnlinkedUnit.subtypedNames) {
@@ -833,10 +686,6 @@ class FileState {
         for (var library in libraries) {
           library.libraryCycle?.invalidate();
         }
-      }
-
-      for (FileState file in _fsState._uriToFile.values) {
-        file._exportedTopLevelDeclarations = null;
       }
     }
 
@@ -1260,23 +1109,6 @@ class FileSystemStateTestView {
         .where((f) => f._libraryCycle == null)
         .toSet();
   }
-
-  Set<FileState> get librariesWithComputedExportedDeclarations {
-    return state._uriToFile.values
-        .where((f) => !f.isPart && f._exportedTopLevelDeclarations != null)
-        .toSet();
-  }
-}
-
-/**
- * The result of computing exported top-level declarations.
- * It can be full (when [firstCycleId] is zero), or partial (when a cycle)
- */
-class _ExportedDeclarations {
-  final int firstCycleId;
-  final Map<String, TopLevelDeclaration> declarations;
-
-  _ExportedDeclarations(this.firstCycleId, this.declarations);
 }
 
 /**

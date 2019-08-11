@@ -5,6 +5,7 @@
 # "$compiler == dartkp".
 
 convert/streamed_conversion_json_utf8_decode_test: Pass, Slow # Uses --verify_before_gc --verify_after_gc --old_gen_growth_rate=1 flags
+isolate/ping_pause_test: Skip # Issue https://dartbug.com/37787
 
 [ $builder_tag == asan ]
 isolate/non_fatal_exception_in_timer_callback_test: Pass, Fail # Issue 34724
@@ -14,18 +15,13 @@ mirrors/dynamic_load_test: Fail # Issue 32187
 async/slow_consumer2_test: RuntimeError
 async/stream_distinct_test: RuntimeError
 async/timer_not_available_test: RuntimeError
-isolate/ping_pause_test: Skip # Timeout
 
 [ $compiler == dartkb ]
 convert/streamed_conversion_json_utf8_decode_test: Pass, Timeout # Please triage.
 isolate/isolate_complex_messages_test: Pass, Crash # runtime/vm/object.cc: 17395: error: expected: type_arguments.IsNull() || type_arguments.IsCanonical()
 isolate/mandel_isolate_test: Pass, Timeout # Please triage.
 isolate/spawn_uri_exported_main_test: Pass, RuntimeError # Please triage: Expect.fail('Isolate was not spawned successfully.')
-mirrors/*: Skip # Mirrors are not yet supported in bytecode modes.
-mirrors/invocation_fuzz_test/emptyarray: Skip # Times out, issue 32232
-mirrors/invocation_fuzz_test/false: Skip # Times out, issue 32232
 mirrors/library_uri_io_test: RuntimeError # Platform.script points to dill file.
-mirrors/method_mirror_location_test: Crash # runtime/lib/mirrors.cc: 1634: error: expected: token_pos != TokenPosition::kNoSource
 
 [ $compiler == fasta ]
 html/*: Skip # TODO(ahe): Make dart:html available.
@@ -87,7 +83,6 @@ html/*: SkipByDesign # dart:html not supported on VM.
 isolate/deferred_in_isolate2_test: Skip # Times out. Deferred loading kernel issue 28335.
 isolate/deferred_in_isolate_test: Skip # Times out. Deferred loading kernel issue 28335.
 isolate/issue_21398_parent_isolate2_test/01: Skip # Times out. Deferred loading kernel issue 28335.
-isolate/ping_pause_test: Pass, Timeout
 isolate/spawn_uri_nested_vm_test: Pass, Timeout
 mirrors/*: SkipByDesign # Mirrors are not supported in AOT mode.
 
@@ -109,7 +104,6 @@ html/*: SkipByDesign # dart:html not supported on VM.
 isolate/deferred_in_isolate2_test: Skip # Times out. Deferred loading kernel issue 28335.
 isolate/deferred_in_isolate_test: Skip # Times out. Deferred loading kernel issue 28335.
 isolate/issue_21398_parent_isolate2_test/01: Skip # Times out. Deferred loading kernel issue 28335.
-isolate/ping_pause_test: Pass, Timeout
 isolate/spawn_uri_nested_vm_test: Pass, Timeout
 isolate/static_function_test: Skip # Times out. Issue 31855. CompileTimeError. Issue 31402
 mirrors/apply3_test: RuntimeError
@@ -217,8 +211,6 @@ js/*: SkipByDesign
 [ $compiler == dartk || $compiler == dartkb ]
 async/slow_consumer2_test: RuntimeError # Issue 31402 (Invocation arguments)
 async/stream_distinct_test: RuntimeError
-isolate/ping_pause_test: RuntimeError
-isolate/ping_pause_test: Skip # Issues 32137 and 32138
 isolate/request_reply_test: Pass, Timeout
 isolate/stacktrace_message_test: RuntimeError
 mirrors/constructor_optional_args_test: RuntimeError

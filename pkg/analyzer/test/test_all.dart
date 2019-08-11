@@ -13,6 +13,7 @@ import 'instrumentation/test_all.dart' as instrumentation;
 import 'parse_compilation_unit_test.dart' as parse_compilation_unit;
 import 'source/test_all.dart' as source;
 import 'src/test_all.dart' as src;
+import 'verify_diagnostics_test.dart' as verify_diagnostics;
 import 'verify_docs_test.dart' as verify_docs;
 import 'verify_tests_test.dart' as verify_tests;
 
@@ -27,6 +28,7 @@ main() {
     parse_compilation_unit.main();
     source.main();
     src.main();
+    verify_diagnostics.main();
     verify_docs.main();
     verify_tests.main();
   }, name: 'analyzer');

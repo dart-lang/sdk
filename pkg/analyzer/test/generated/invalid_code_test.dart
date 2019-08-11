@@ -48,6 +48,41 @@ class C {
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/37733')
+  test_fuzz_01() async {
+    await _assertCanBeAnalyzed(r'''
+typedef K=Function(<>($
+''');
+  }
+
+  test_fuzz_02() async {
+    await _assertCanBeAnalyzed(r'''
+class G<class G{d
+''');
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/37735')
+  test_fuzz_03() async {
+    await _assertCanBeAnalyzed('''
+class{const():super.{n
+''');
+  }
+
+  test_fuzz_04() async {
+    await _assertCanBeAnalyzed('''
+f({a: ({b = 0}) {}}) {}
+''');
+  }
+
+  test_fuzz_06() async {
+    await _assertCanBeAnalyzed(r'''
+class C {
+  int f;
+  set f() {}
+}
+''');
+  }
+
   test_genericFunction_asTypeArgument_ofUnresolvedClass() async {
     await _assertCanBeAnalyzed(r'''
 C<int Function()> c;

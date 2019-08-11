@@ -623,12 +623,14 @@ m() {
   }
 
   test_spread_nullable() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   List? list;
   [...list];
 }
-''', [StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE]);
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 26, 4),
+    ]);
   }
 
   test_spread_nullable_question() async {

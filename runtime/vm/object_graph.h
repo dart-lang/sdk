@@ -56,7 +56,17 @@ class ObjectGraph : public ThreadStackResource {
     // during this call. This method must not allocate from the heap or
     // trigger GC in any way.
     virtual Direction VisitObject(StackIterator* it) = 0;
+
+    virtual bool visit_weak_persistent_handles() const { return false; }
+
+    const char* gc_root_type = NULL;
+    bool is_traversing = false;
   };
+
+  typedef struct {
+    intptr_t length;
+    const char* gc_root_type;
+  } RetainingPathResult;
 
   explicit ObjectGraph(Thread* thread);
   ~ObjectGraph();
@@ -88,7 +98,7 @@ class ObjectGraph : public ThreadStackResource {
   // To break the trivial path, the handle 'obj' is temporarily cleared during
   // the search, but restored before returning. If no path is found (i.e., the
   // provided handle was the only way to reach the object), zero is returned.
-  intptr_t RetainingPath(Object* obj, const Array& path);
+  RetainingPathResult RetainingPath(Object* obj, const Array& path);
 
   // Find the objects that reference 'obj'. Populates the provided array with
   // pairs of (object pointing to 'obj', offset of pointer in words), as far as

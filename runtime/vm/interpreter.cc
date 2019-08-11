@@ -5,6 +5,7 @@
 #include <setjmp.h>  // NOLINT
 #include <stdlib.h>
 
+#include "vm/compiler/ffi.h"
 #include "vm/globals.h"
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -1132,11 +1133,11 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall2(Thread* thread,
     if (UNLIKELY(FLAG_compilation_counter_threshold >= 0 &&                    \
                  counter >= FLAG_compilation_counter_threshold &&              \
                  !Function::HasCode(function))) {                              \
-      SP[1] = 0; /* Unused code result. */                                     \
+      SP[1] = 0; /* Unused result. */                                          \
       SP[2] = function;                                                        \
       Exit(thread, FP, SP + 3, pc);                                            \
       NativeArguments native_args(thread, 1, SP + 2, SP + 1);                  \
-      INVOKE_RUNTIME(DRT_OptimizeInvokedFunction, native_args);                \
+      INVOKE_RUNTIME(DRT_CompileInterpretedFunction, native_args);             \
       function = FrameFunction(FP);                                            \
     }                                                                          \
   }
@@ -1144,6 +1145,8 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall2(Thread* thread,
 #ifdef PRODUCT
 #define DEBUG_CHECK
 #else
+// The DEBUG_CHECK macro must only be called from bytecodes listed in
+// KernelBytecode::IsDebugCheckedOpcode.
 #define DEBUG_CHECK                                                            \
   if (is_debugging()) {                                                        \
     /* Check for debug breakpoint or if single stepping. */                    \
@@ -1152,7 +1155,9 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall2(Thread* thread,
       Exit(thread, FP, SP + 2, pc);                                            \
       NativeArguments args(thread, 0, NULL, SP + 1);                           \
       INVOKE_RUNTIME(DRT_BreakpointRuntimeHandler, args)                       \
-    } else if (thread->isolate()->single_step()) {                             \
+    }                                                                          \
+    /* The debugger expects to see the same pc again when single-stepping */   \
+    if (thread->isolate()->single_step()) {                                    \
       Exit(thread, FP, SP + 1, pc);                                            \
       NativeArguments args(thread, 0, NULL, NULL);                             \
       INVOKE_RUNTIME(DRT_SingleStepHandler, args);                             \
@@ -1382,7 +1387,7 @@ DART_NOINLINE bool Interpreter::AllocateMint(Thread* thread,
   } else {
     SP[0] = 0;  // Space for the result.
     SP[1] = thread->isolate()->object_store()->mint_class();  // Class object.
-    SP[2] = Object::null();                                  // Type arguments.
+    SP[2] = Object::null();                                   // Type arguments.
     Exit(thread, FP, SP + 3, pc);
     NativeArguments args(thread, 2, SP + 1, SP);
     if (!InvokeRuntime(thread, this, DRT_AllocateObject, args)) {
@@ -1570,8 +1575,8 @@ RawObject* Interpreter::Call(RawFunction* function,
                              Thread* thread) {
   // Interpreter state (see constants_kbc.h for high-level overview).
   const KBCInstr* pc;  // Program Counter: points to the next op to execute.
-  RawObject** FP;  // Frame Pointer.
-  RawObject** SP;  // Stack Pointer.
+  RawObject** FP;      // Frame Pointer.
+  RawObject** SP;      // Stack Pointer.
 
   uint32_t op;  // Currently executing op.
 
@@ -1746,7 +1751,6 @@ SwitchDispatch:
 
   {
     BYTECODE(CheckStack, A);
-    DEBUG_CHECK;
     {
       // Check the interpreter's own stack limit for actual interpreter's stack
       // overflows, and also the thread's stack limit for scheduled interrupts.
@@ -1762,12 +1766,18 @@ SwitchDispatch:
     if (UNLIKELY(FLAG_compilation_counter_threshold >= 0 &&
                  counter >= FLAG_compilation_counter_threshold &&
                  !Function::HasCode(function))) {
-      SP[1] = 0;  // Unused code result.
+      SP[1] = 0;  // Unused result.
       SP[2] = function;
       Exit(thread, FP, SP + 3, pc);
       NativeArguments native_args(thread, 1, SP + 2, SP + 1);
-      INVOKE_RUNTIME(DRT_OptimizeInvokedFunction, native_args);
+      INVOKE_RUNTIME(DRT_CompileInterpretedFunction, native_args);
     }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DebugCheck, 0);
+    DEBUG_CHECK;
     DISPATCH();
   }
 
@@ -1917,14 +1927,12 @@ SwitchDispatch:
 
   {
     BYTECODE(StoreLocal, X);
-    DEBUG_CHECK;
     FP[rX] = *SP;
     DISPATCH();
   }
 
   {
     BYTECODE(PopLocal, X);
-    DEBUG_CHECK;
     FP[rX] = *SP--;
     DISPATCH();
   }
@@ -1979,6 +1987,55 @@ SwitchDispatch:
       argdesc_ = static_cast<RawArray*>(LOAD_CONSTANT(kidx + 1));
       if (!InterfaceCall(thread, target_name, call_base, call_top, &pc, &FP,
                          &SP)) {
+        HANDLE_EXCEPTION;
+      }
+    }
+
+    DISPATCH();
+  }
+  {
+    BYTECODE(InstantiatedInterfaceCall, D_F);
+    DEBUG_CHECK;
+    {
+      const uint32_t argc = rF;
+      const uint32_t kidx = rD;
+
+      RawObject** call_base = SP - argc + 1;
+      RawObject** call_top = SP + 1;
+
+      InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
+      RawString* target_name =
+          static_cast<RawFunction*>(LOAD_CONSTANT(kidx))->ptr()->name_;
+      argdesc_ = static_cast<RawArray*>(LOAD_CONSTANT(kidx + 1));
+      if (!InterfaceCall(thread, target_name, call_base, call_top, &pc, &FP,
+                         &SP)) {
+        HANDLE_EXCEPTION;
+      }
+    }
+
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(UncheckedClosureCall, D_F);
+    DEBUG_CHECK;
+    {
+      const uint32_t argc = rF;
+      const uint32_t kidx = rD;
+
+      RawClosure* receiver = Closure::RawCast(*SP--);
+      RawObject** call_base = SP - argc + 1;
+      RawObject** call_top = SP + 1;
+
+      InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
+      if (UNLIKELY(receiver == null_value)) {
+        SP[0] = Symbols::Call().raw();
+        goto ThrowNullError;
+      }
+      argdesc_ = static_cast<RawArray*>(LOAD_CONSTANT(kidx));
+      call_top[0] = receiver->ptr()->function_;
+
+      if (!Invoke(thread, call_base, call_top, &pc, &FP, &SP)) {
         HANDLE_EXCEPTION;
       }
     }
@@ -2088,6 +2145,9 @@ SwitchDispatch:
       case MethodRecognizer::kClassIDgetID: {
         SP[0] = InterpreterHelpers::GetClassIdAsSmi(SP[0]);
       } break;
+      case MethodRecognizer::kAsyncStackTraceHelper: {
+        SP[0] = Object::null();
+      } break;
       case MethodRecognizer::kGrowableArrayCapacity: {
         RawGrowableObjectArray* instance =
             reinterpret_cast<RawGrowableObjectArray*>(SP[0]);
@@ -2194,6 +2254,9 @@ SwitchDispatch:
             instance->ptr())[LinkedHashMap::deleted_keys_offset() / kWordSize] =
             SP[0];
         *--SP = null_value;
+      } break;
+      case MethodRecognizer::kFfiAbi: {
+        *++SP = Smi::New(static_cast<int64_t>(compiler::ffi::TargetAbi()));
       } break;
       default: {
         NativeEntryData::Payload* payload =
@@ -2481,6 +2544,7 @@ SwitchDispatch:
 
   {
     BYTECODE(Allocate, D);
+    DEBUG_CHECK;
     RawClass* cls = Class::RawCast(LOAD_CONSTANT(rD));
     if (LIKELY(InterpreterHelpers::IsFinalized(cls))) {
       const intptr_t class_id = cls->ptr()->id_;
@@ -2510,6 +2574,7 @@ SwitchDispatch:
 
   {
     BYTECODE(AllocateT, 0);
+    DEBUG_CHECK;
     RawClass* cls = Class::RawCast(SP[0]);
     RawTypeArguments* type_args = TypeArguments::RawCast(SP[-1]);
     if (LIKELY(InterpreterHelpers::IsFinalized(cls))) {
@@ -2627,7 +2692,6 @@ SwitchDispatch:
 
   {
     BYTECODE(Jump, T);
-    DEBUG_CHECK;
     LOAD_JUMP_TARGET();
     DISPATCH();
   }
@@ -2703,6 +2767,13 @@ SwitchDispatch:
   }
 
   {
+    BYTECODE(JumpIfUnchecked, T);
+    // Interpreter is not tracking unchecked calls, so fall through to
+    // parameter type checks.
+    DISPATCH();
+  }
+
+  {
     BYTECODE(StoreIndexedTOS, 0);
     SP -= 3;
     RawArray* array = RAW_CAST(Array, SP[1]);
@@ -2716,12 +2787,14 @@ SwitchDispatch:
 
   {
     BYTECODE(EqualsNull, 0);
+    DEBUG_CHECK;
     SP[0] = (SP[0] == null_value) ? true_value : false_value;
     DISPATCH();
   }
 
   {
     BYTECODE(NegateInt, 0);
+    DEBUG_CHECK;
     UNBOX_INT64(value, SP[0], Symbols::UnaryMinus());
     int64_t result = Utils::SubWithWrapAround(0, value);
     BOX_INT64_RESULT(result);
@@ -2730,6 +2803,7 @@ SwitchDispatch:
 
   {
     BYTECODE(AddInt, 0);
+    DEBUG_CHECK;
     SP -= 1;
     UNBOX_INT64(a, SP[0], Symbols::Plus());
     UNBOX_INT64(b, SP[1], Symbols::Plus());
@@ -2740,6 +2814,7 @@ SwitchDispatch:
 
   {
     BYTECODE(SubInt, 0);
+    DEBUG_CHECK;
     SP -= 1;
     UNBOX_INT64(a, SP[0], Symbols::Minus());
     UNBOX_INT64(b, SP[1], Symbols::Minus());
@@ -2750,6 +2825,7 @@ SwitchDispatch:
 
   {
     BYTECODE(MulInt, 0);
+    DEBUG_CHECK;
     SP -= 1;
     UNBOX_INT64(a, SP[0], Symbols::Star());
     UNBOX_INT64(b, SP[1], Symbols::Star());
@@ -2760,6 +2836,7 @@ SwitchDispatch:
 
   {
     BYTECODE(TruncDivInt, 0);
+    DEBUG_CHECK;
     SP -= 1;
     UNBOX_INT64(a, SP[0], Symbols::TruncDivOperator());
     UNBOX_INT64(b, SP[1], Symbols::TruncDivOperator());
@@ -2778,6 +2855,7 @@ SwitchDispatch:
 
   {
     BYTECODE(ModInt, 0);
+    DEBUG_CHECK;
     SP -= 1;
     UNBOX_INT64(a, SP[0], Symbols::Percent());
     UNBOX_INT64(b, SP[1], Symbols::Percent());
@@ -2803,6 +2881,7 @@ SwitchDispatch:
 
   {
     BYTECODE(BitAndInt, 0);
+    DEBUG_CHECK;
     SP -= 1;
     UNBOX_INT64(a, SP[0], Symbols::Ampersand());
     UNBOX_INT64(b, SP[1], Symbols::Ampersand());
@@ -2813,6 +2892,7 @@ SwitchDispatch:
 
   {
     BYTECODE(BitOrInt, 0);
+    DEBUG_CHECK;
     SP -= 1;
     UNBOX_INT64(a, SP[0], Symbols::BitOr());
     UNBOX_INT64(b, SP[1], Symbols::BitOr());
@@ -2823,6 +2903,7 @@ SwitchDispatch:
 
   {
     BYTECODE(BitXorInt, 0);
+    DEBUG_CHECK;
     SP -= 1;
     UNBOX_INT64(a, SP[0], Symbols::Caret());
     UNBOX_INT64(b, SP[1], Symbols::Caret());
@@ -2833,6 +2914,7 @@ SwitchDispatch:
 
   {
     BYTECODE(ShlInt, 0);
+    DEBUG_CHECK;
     SP -= 1;
     UNBOX_INT64(a, SP[0], Symbols::LeftShiftOperator());
     UNBOX_INT64(b, SP[1], Symbols::LeftShiftOperator());
@@ -2847,6 +2929,7 @@ SwitchDispatch:
 
   {
     BYTECODE(ShrInt, 0);
+    DEBUG_CHECK;
     SP -= 1;
     UNBOX_INT64(a, SP[0], Symbols::RightShiftOperator());
     UNBOX_INT64(b, SP[1], Symbols::RightShiftOperator());
@@ -2861,6 +2944,7 @@ SwitchDispatch:
 
   {
     BYTECODE(CompareIntEq, 0);
+    DEBUG_CHECK;
     SP -= 1;
     if (SP[0] == SP[1]) {
       SP[0] = true_value;
@@ -2877,6 +2961,7 @@ SwitchDispatch:
 
   {
     BYTECODE(CompareIntGt, 0);
+    DEBUG_CHECK;
     SP -= 1;
     UNBOX_INT64(a, SP[0], Symbols::RAngleBracket());
     UNBOX_INT64(b, SP[1], Symbols::RAngleBracket());
@@ -2886,6 +2971,7 @@ SwitchDispatch:
 
   {
     BYTECODE(CompareIntLt, 0);
+    DEBUG_CHECK;
     SP -= 1;
     UNBOX_INT64(a, SP[0], Symbols::LAngleBracket());
     UNBOX_INT64(b, SP[1], Symbols::LAngleBracket());
@@ -2895,6 +2981,7 @@ SwitchDispatch:
 
   {
     BYTECODE(CompareIntGe, 0);
+    DEBUG_CHECK;
     SP -= 1;
     UNBOX_INT64(a, SP[0], Symbols::GreaterEqualOperator());
     UNBOX_INT64(b, SP[1], Symbols::GreaterEqualOperator());
@@ -2904,6 +2991,7 @@ SwitchDispatch:
 
   {
     BYTECODE(CompareIntLe, 0);
+    DEBUG_CHECK;
     SP -= 1;
     UNBOX_INT64(a, SP[0], Symbols::LessEqualOperator());
     UNBOX_INT64(b, SP[1], Symbols::LessEqualOperator());
@@ -2913,6 +3001,7 @@ SwitchDispatch:
 
   {
     BYTECODE(NegateDouble, 0);
+    DEBUG_CHECK;
     UNBOX_DOUBLE(value, SP[0], Symbols::UnaryMinus());
     double result = -value;
     BOX_DOUBLE_RESULT(result);
@@ -2921,6 +3010,7 @@ SwitchDispatch:
 
   {
     BYTECODE(AddDouble, 0);
+    DEBUG_CHECK;
     SP -= 1;
     UNBOX_DOUBLE(a, SP[0], Symbols::Plus());
     UNBOX_DOUBLE(b, SP[1], Symbols::Plus());
@@ -2931,6 +3021,7 @@ SwitchDispatch:
 
   {
     BYTECODE(SubDouble, 0);
+    DEBUG_CHECK;
     SP -= 1;
     UNBOX_DOUBLE(a, SP[0], Symbols::Minus());
     UNBOX_DOUBLE(b, SP[1], Symbols::Minus());
@@ -2941,6 +3032,7 @@ SwitchDispatch:
 
   {
     BYTECODE(MulDouble, 0);
+    DEBUG_CHECK;
     SP -= 1;
     UNBOX_DOUBLE(a, SP[0], Symbols::Star());
     UNBOX_DOUBLE(b, SP[1], Symbols::Star());
@@ -2951,6 +3043,7 @@ SwitchDispatch:
 
   {
     BYTECODE(DivDouble, 0);
+    DEBUG_CHECK;
     SP -= 1;
     UNBOX_DOUBLE(a, SP[0], Symbols::Slash());
     UNBOX_DOUBLE(b, SP[1], Symbols::Slash());
@@ -2961,6 +3054,7 @@ SwitchDispatch:
 
   {
     BYTECODE(CompareDoubleEq, 0);
+    DEBUG_CHECK;
     SP -= 1;
     if ((SP[0] == null_value) || (SP[1] == null_value)) {
       SP[0] = (SP[0] == SP[1]) ? true_value : false_value;
@@ -2974,6 +3068,7 @@ SwitchDispatch:
 
   {
     BYTECODE(CompareDoubleGt, 0);
+    DEBUG_CHECK;
     SP -= 1;
     UNBOX_DOUBLE(a, SP[0], Symbols::RAngleBracket());
     UNBOX_DOUBLE(b, SP[1], Symbols::RAngleBracket());
@@ -2983,6 +3078,7 @@ SwitchDispatch:
 
   {
     BYTECODE(CompareDoubleLt, 0);
+    DEBUG_CHECK;
     SP -= 1;
     UNBOX_DOUBLE(a, SP[0], Symbols::LAngleBracket());
     UNBOX_DOUBLE(b, SP[1], Symbols::LAngleBracket());
@@ -2992,6 +3088,7 @@ SwitchDispatch:
 
   {
     BYTECODE(CompareDoubleGe, 0);
+    DEBUG_CHECK;
     SP -= 1;
     UNBOX_DOUBLE(a, SP[0], Symbols::GreaterEqualOperator());
     UNBOX_DOUBLE(b, SP[1], Symbols::GreaterEqualOperator());
@@ -3001,6 +3098,7 @@ SwitchDispatch:
 
   {
     BYTECODE(CompareDoubleLe, 0);
+    DEBUG_CHECK;
     SP -= 1;
     UNBOX_DOUBLE(a, SP[0], Symbols::LessEqualOperator());
     UNBOX_DOUBLE(b, SP[1], Symbols::LessEqualOperator());

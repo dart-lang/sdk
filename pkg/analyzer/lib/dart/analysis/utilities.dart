@@ -51,6 +51,7 @@ ParseStringResult parseFile(
   var content = (resourceProvider.getResource(path) as File).readAsStringSync();
   return parseString(
       content: content,
+      path: path,
       featureSet: featureSet,
       throwIfDiagnostics: throwIfDiagnostics);
 }
@@ -93,6 +94,9 @@ ParseStringResult parseFile2(
 /// If a [featureSet] is provided, it will be the default set of features that
 /// will be assumed by the parser.
 ///
+/// If a [path] is provided, it will be used as the name of the file when
+/// reporting errors.
+///
 /// If [throwIfDiagnostics] is `true` (the default), then if any diagnostics are
 /// produced because of syntactic errors in the [content] an `ArgumentError`
 /// will be thrown. If the parameter is `false`, then the caller can check the
@@ -100,9 +104,10 @@ ParseStringResult parseFile2(
 ParseStringResult parseString(
     {@required String content,
     FeatureSet featureSet,
+    String path,
     bool throwIfDiagnostics: true}) {
   featureSet ??= FeatureSet.fromEnableFlags([]);
-  var source = StringSource(content, null);
+  var source = StringSource(content, path);
   var reader = CharSequenceReader(content);
   var errorCollector = RecordingErrorListener();
   var scanner = Scanner(source, reader, errorCollector)

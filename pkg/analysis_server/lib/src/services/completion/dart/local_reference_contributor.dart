@@ -349,12 +349,12 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
   void _addLocalSuggestion(Comment documentationComment, SimpleIdentifier id,
       TypeAnnotation typeName, protocol.ElementKind elemKind,
-      {bool isAbstract: false,
-      bool isDeprecated: false,
+      {bool isAbstract = false,
+      bool isDeprecated = false,
       ClassOrMixinDeclaration classDecl,
       CompletionSuggestionKind kind,
       FormalParameterList param,
-      int relevance: DART_RELEVANCE_DEFAULT}) {
+      int relevance = DART_RELEVANCE_DEFAULT}) {
     kind ??= targetIsFunctionalArgument
         ? CompletionSuggestionKind.IDENTIFIER
         : optype.suggestKind;
@@ -384,9 +384,9 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   void _addLocalSuggestion_enumConstant(
       EnumConstantDeclaration constantDeclaration,
       EnumDeclaration enumDeclaration,
-      {bool isAbstract: false,
-      bool isDeprecated: false,
-      int relevance: DART_RELEVANCE_DEFAULT}) {
+      {bool isAbstract = false,
+      bool isDeprecated = false,
+      int relevance = DART_RELEVANCE_DEFAULT}) {
     String completion =
         '${enumDeclaration.name.name}.${constantDeclaration.name.name}';
     CompletionSuggestion suggestion = new CompletionSuggestion(
@@ -421,11 +421,11 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       SimpleIdentifier id,
       TypeAnnotation typeName,
       protocol.ElementKind elemKind,
-      {bool isAbstract: false,
-      bool isDeprecated: false,
+      {bool isAbstract = false,
+      bool isDeprecated = false,
       ClassOrMixinDeclaration classDecl,
       FormalParameterList param,
-      int relevance: DART_RELEVANCE_DEFAULT}) {
+      int relevance = DART_RELEVANCE_DEFAULT}) {
     relevance = optype.returnValueSuggestionsFilter(
         _staticTypeOfIdentifier(id), relevance);
     if (relevance != null) {
@@ -441,9 +441,9 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   void _addLocalSuggestion_includeReturnValueSuggestions_enumConstant(
       EnumConstantDeclaration constantDeclaration,
       EnumDeclaration enumDeclaration,
-      {bool isAbstract: false,
-      bool isDeprecated: false,
-      int relevance: DART_RELEVANCE_DEFAULT}) {
+      {bool isAbstract = false,
+      bool isDeprecated = false,
+      int relevance = DART_RELEVANCE_DEFAULT}) {
     ClassElement classElement =
         resolutionMap.elementDeclaredByEnumDeclaration(enumDeclaration);
     relevance =
@@ -461,11 +461,11 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       SimpleIdentifier id,
       TypeAnnotation typeName,
       protocol.ElementKind elemKind,
-      {bool isAbstract: false,
-      bool isDeprecated: false,
+      {bool isAbstract = false,
+      bool isDeprecated = false,
       ClassDeclaration classDecl,
       FormalParameterList param,
-      int relevance: DART_RELEVANCE_DEFAULT}) {
+      int relevance = DART_RELEVANCE_DEFAULT}) {
     relevance = optype.typeNameSuggestionsFilter(
         _staticTypeOfIdentifier(id), relevance);
     if (relevance != null) {

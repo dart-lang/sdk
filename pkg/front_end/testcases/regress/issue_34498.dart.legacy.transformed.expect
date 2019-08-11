@@ -28,7 +28,7 @@ import "dart:core" as core;
 import "org-dartlang-testcase:///issue_34498_lib.dart" as lib;
 
 class A extends core::Object {
-  synthetic constructor •() → self::A
+  synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
   get lib() → invalid-type
@@ -37,17 +37,17 @@ class A extends core::Object {
   method bar() → invalid-type {}
 }
 class B extends self::A {
-  synthetic constructor •() → self::B
+  synthetic constructor •() → self::B*
     : super self::A::•()
     ;
 }
-class C<T extends core::Object = dynamic> extends core::Object {
-  synthetic constructor •() → self::C<self::C::T>
+class C<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::C<self::C::T*>*
     : super core::Object::•()
     ;
   method foo() → invalid-type {}
 }
-static final field self::A a = null;
+static final field self::A* a = null;
 static method main() → dynamic {}
 
 library;
@@ -55,7 +55,7 @@ import self as self2;
 import "dart:core" as core;
 
 class MyClass extends core::Object {
-  synthetic constructor •() → self2::MyClass
+  synthetic constructor •() → self2::MyClass*
     : super core::Object::•()
     ;
 }

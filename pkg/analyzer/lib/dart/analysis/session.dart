@@ -11,7 +11,6 @@ import 'package:analyzer/dart/analysis/uri_converter.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 
@@ -90,6 +89,10 @@ abstract class AnalysisSession {
   /// absolute, normalized [path].
   ParsedUnitResult getParsedUnit(String path);
 
+  /// Return information about the file at the given absolute, normalized
+  /// [path].
+  FileResult getFile(String path);
+
   /// Return a future that will complete with information about the results of
   /// resolving the file with the given absolute, normalized [path].
   ///
@@ -121,11 +124,6 @@ abstract class AnalysisSession {
   /// file or if the kind of the file cannot be determined, then the future will
   /// complete with [SourceKind.UNKNOWN].
   Future<SourceKind> getSourceKind(String path);
-
-  /// Return a future that will complete with a list of the top-level
-  /// declarations with the given [name] in all known libraries.
-  Future<List<TopLevelDeclarationInSource>> getTopLevelDeclarations(
-      String name);
 
   /// Return a future that will complete with information about the results of
   /// building the element model for the file with the given absolute,

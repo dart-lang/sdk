@@ -60,4 +60,17 @@ class E<P extends String> {
   void foo6<T extends P, U extends List<T>>(Map<T, U> map) {}
 }
 
+abstract class F<T> {
+  void foo7<Q extends T>(Q a, covariant num b, T c);
+  void foo8<Q extends T>(Q a, covariant num b, T c);
+}
+
+class G<T> {
+  void foo7<Q extends T>(Q a, int b, T c) {}
+}
+
+class H<T> extends G<T> implements F<T> {
+  void foo8<Q extends T>(Q a, int b, T c) {}
+}
+
 main() {}

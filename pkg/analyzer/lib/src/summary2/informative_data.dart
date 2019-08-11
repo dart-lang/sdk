@@ -143,6 +143,23 @@ class _SetInformativeId extends SimpleAstVisitor<void> {
         directiveKeywordOffset: node.keyword.offset,
       ),
     );
+    node.combinators.accept(this);
+  }
+
+  @override
+  void visitExtensionDeclaration(ExtensionDeclaration node) {
+    setData(
+      node,
+      UnlinkedInformativeDataBuilder.extensionDeclaration(
+        codeOffset: node.offset,
+        codeLength: node.length,
+        documentationComment_tokens: _nodeCommentTokens(node),
+        nameOffset: node.name?.offset ?? 0,
+      ),
+    );
+
+    node.typeParameters?.accept(this);
+    node.members.accept(this);
   }
 
   @override
@@ -246,13 +263,26 @@ class _SetInformativeId extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitHideCombinator(HideCombinator node) {
+    setData(
+      node,
+      UnlinkedInformativeDataBuilder.hideCombinator(
+        combinatorEnd: node.end,
+        combinatorKeywordOffset: node.offset,
+      ),
+    );
+  }
+
+  @override
   void visitImportDirective(ImportDirective node) {
     setData(
       node,
       UnlinkedInformativeDataBuilder.importDirective(
         directiveKeywordOffset: node.keyword.offset,
+        importDirective_prefixOffset: node.prefix?.offset ?? 0,
       ),
     );
+    node.combinators.accept(this);
   }
 
   @override
@@ -313,6 +343,17 @@ class _SetInformativeId extends SimpleAstVisitor<void> {
       node,
       UnlinkedInformativeDataBuilder.partDirective(
         directiveKeywordOffset: node.keyword.offset,
+      ),
+    );
+  }
+
+  @override
+  void visitShowCombinator(ShowCombinator node) {
+    setData(
+      node,
+      UnlinkedInformativeDataBuilder.showCombinator(
+        combinatorEnd: node.end,
+        combinatorKeywordOffset: node.offset,
       ),
     );
   }

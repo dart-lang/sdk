@@ -213,7 +213,7 @@ class JsObject {
   int get hashCode => 0;
 
   bool operator ==(other) =>
-      other is JsObject && JS('bool', '# === #', _jsObject, other._jsObject);
+      other is JsObject && JS<bool>('!', '# === #', _jsObject, other._jsObject);
 
   /**
    * Returns `true` if the JavaScript object contains the specified property
@@ -225,7 +225,7 @@ class JsObject {
     if (property is! String && property is! num) {
       throw ArgumentError("property is not a String or num");
     }
-    return JS('bool', '# in #', property, _jsObject);
+    return JS<bool>('!', '# in #', property, _jsObject);
   }
 
   /**
@@ -237,7 +237,7 @@ class JsObject {
     if (property is! String && property is! num) {
       throw ArgumentError("property is not a String or num");
     }
-    JS('bool', 'delete #[#]', _jsObject, property);
+    JS<bool>('!', 'delete #[#]', _jsObject, property);
   }
 
   /**
@@ -246,7 +246,7 @@ class JsObject {
    * This is the equivalent of the `instanceof` operator in JavaScript.
    */
   bool instanceof(JsFunction type) {
-    return JS('bool', '# instanceof #', _jsObject, _convertToJS(type));
+    return JS<bool>('!', '# instanceof #', _jsObject, _convertToJS(type));
   }
 
   /**
@@ -254,7 +254,7 @@ class JsObject {
    */
   String toString() {
     try {
-      return JS('String', 'String(#)', _jsObject);
+      return JS<String>('!', 'String(#)', _jsObject);
     } catch (e) {
       return super.toString();
     }
@@ -272,7 +272,7 @@ class JsObject {
     }
     if (args != null) args = List.from(args.map(_convertToJS));
     var fn = JS('', '#[#]', _jsObject, method);
-    if (JS('bool', 'typeof(#) !== "function"', fn)) {
+    if (JS<bool>('!', 'typeof(#) !== "function"', fn)) {
       throw NoSuchMethodError(_jsObject, Symbol(method), args, {});
     }
     return _convertToDart(JS('', '#.apply(#, #)', fn, _jsObject, args));
@@ -379,8 +379,9 @@ class JsArray<E> extends JsObject with ListMixin<E> {
     // Check the length honours the List contract.
     var len = JS('', '#.length', _jsObject);
     // JavaScript arrays have lengths which are unsigned 32-bit integers.
-    if (JS('bool', 'typeof # === "number" && (# >>> 0) === #', len, len, len)) {
-      return JS('int', '#', len);
+    if (JS<bool>(
+        '!', 'typeof # === "number" && (# >>> 0) === #', len, len, len)) {
+      return JS<int>('!', '#', len);
     }
     throw StateError('Bad JsArray length');
   }
@@ -396,7 +397,7 @@ class JsArray<E> extends JsObject with ListMixin<E> {
   }
 
   void addAll(Iterable<E> iterable) {
-    var list = (JS('bool', '# instanceof Array', iterable))
+    var list = (JS<bool>('!', '# instanceof Array', iterable))
         ? iterable
         : List.from(iterable);
     callMethod('push', list);
@@ -519,10 +520,10 @@ Object _convertToDart(o) {
 Object _wrapToDart(o) => _putIfAbsent(_dartProxies, o, _wrapToDartHelper);
 
 Object _wrapToDartHelper(o) {
-  if (JS('bool', 'typeof # == "function"', o)) {
+  if (JS<bool>('!', 'typeof # == "function"', o)) {
     return JsFunction._fromJs(o);
   }
-  if (JS('bool', '# instanceof Array', o)) {
+  if (JS<bool>('!', '# instanceof Array', o)) {
     return JsArray._fromJs(o);
   }
   return JsObject._fromJs(o);

@@ -13,7 +13,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
 import '../mocks.dart';
-import '../src/utilities/flutter_util.dart' as flutter;
+import '../src/utilities/mock_packages.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -814,7 +814,7 @@ class GetAvailableRefactoringsTest extends AbstractAnalysisTest {
   List<RefactoringKind> kinds;
 
   void addFlutterPackage() {
-    var libFolder = flutter.configureFlutterPackage(resourceProvider);
+    var libFolder = MockPackages.instance.addFlutter(resourceProvider);
     // Create .packages in the project.
     newFile(join(projectPath, '.packages'), content: '''
 flutter:${libFolder.toUri()}
@@ -1336,7 +1336,7 @@ import 'bin/lib.dart';
 @reflectiveTest
 class RenameTest extends _AbstractGetRefactoring_Test {
   Future<Response> sendRenameRequest(String search, String newName,
-      {String id: '0', bool validateOnly: false}) {
+      {String id = '0', bool validateOnly = false}) {
     RenameOptions options = newName != null ? new RenameOptions(newName) : null;
     Request request = new EditGetRefactoringParams(RefactoringKind.RENAME,
             testFile, findOffset(search), 0, validateOnly,

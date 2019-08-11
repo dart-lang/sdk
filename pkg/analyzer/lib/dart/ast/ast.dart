@@ -2114,6 +2114,9 @@ abstract class ExtendsClause implements AstNode {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ExtensionDeclaration implements CompilationUnitMember {
+  @override
+  ExtensionElement get declaredElement;
+
   /// Return the type that is being extended.
   TypeAnnotation get extendedType;
 
@@ -2153,8 +2156,19 @@ abstract class ExtensionOverride implements Expression {
   /// contain a single argument, which evaluates to the object being extended.
   ArgumentList get argumentList;
 
+  /// Return the actual type extended by this override, produced by applying
+  /// [typeArgumentTypes] to the generic type extended by the extension.
+  ///
+  /// Return `null` if the AST structure has not been resolved.
+  DartType get extendedType;
+
   /// Return the name of the extension being selected.
   Identifier get extensionName;
+
+  /// Return the forced extension element.
+  ///
+  /// Return `null` if the AST structure has not been resolved.
+  ExtensionElement get staticElement;
 
   /// Return the type arguments to be applied to the extension, or `null` if no
   /// type arguments were provided.
@@ -4643,6 +4657,18 @@ abstract class SimpleIdentifier implements Identifier {
   /// Set the element associated with this identifier based on static type
   /// information to the given [element].
   void set staticElement(Element element);
+
+  /// If the identifier is a tear-off, return the inferred type arguments
+  /// applied to the function type of the element to produce its [staticType].
+  ///
+  /// Return an empty list if the function type does not have type parameters.
+  ///
+  /// Return an empty list if the context type has type parameters.
+  ///
+  /// Return `null` if not a tear-off.
+  ///
+  /// Return `null` if the AST structure has not been resolved.
+  List<DartType> get tearOffTypeArgumentTypes;
 
   /// Return the token representing the identifier.
   Token get token;

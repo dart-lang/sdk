@@ -18,6 +18,7 @@ import 'package:analysis_server/src/services/completion/completion_performance.d
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer/src/services/available_declarations.dart';
 
 // If the client does not provide capabilities.completion.completionItemKind.valueSet
 // then we must never send a kind that's not in this list.
@@ -188,7 +189,12 @@ class CompletionHandler
         includedSuggestionRelevanceTags
             .forEach((t) => tagBoosts[t.tag] = t.relevanceBoost);
 
-        final setResults = library.declarations
+        // Collect declarations and their children.
+        final allDeclarations = library.declarations
+            .followedBy(library.declarations.expand((decl) => decl.children))
+            .toList();
+
+        final setResults = allDeclarations
             // Filter to only the kinds we should return.
             .where((item) =>
                 includedElementKinds.contains(protocolElementKind(item.kind)))
@@ -200,7 +206,14 @@ class CompletionHandler
           final declaringUri = item.parent != null
               ? item.parent.locationLibraryUri
               : item.locationLibraryUri;
-          final key = _createImportedSymbolKey(item.name, declaringUri);
+
+          // For enums and named constructors, only the parent enum/class is in
+          // the list of imported symbols so we use the parents name.
+          final nameKey = item.kind == DeclarationKind.ENUM_CONSTANT ||
+                  item.kind == DeclarationKind.CONSTRUCTOR
+              ? item.parent.name
+              : item.name;
+          final key = _createImportedSymbolKey(nameKey, declaringUri);
           final importingUris = alreadyImportedSymbols[key];
 
           // Keep it only if there are either:

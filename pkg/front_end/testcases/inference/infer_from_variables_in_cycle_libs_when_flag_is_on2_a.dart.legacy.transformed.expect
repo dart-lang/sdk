@@ -6,7 +6,7 @@ import "org-dartlang-testcase:///infer_from_variables_in_cycle_libs_when_flag_is
 
 class A extends core::Object {
   static field dynamic x = 2;
-  synthetic constructor •() → self::A
+  synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
 }
@@ -21,12 +21,12 @@ import "org-dartlang-testcase:///infer_from_variables_in_cycle_libs_when_flag_is
 
 class B extends core::Object {
   static field dynamic y = self::A::x;
-  synthetic constructor •() → self2::B
+  synthetic constructor •() → self2::B*
     : super core::Object::•()
     ;
 }
 static method test1() → dynamic {
-  core::int t = 3;
+  core::int* t = 3;
   t = self::A::x;
   t = self2::B::y;
 }

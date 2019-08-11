@@ -15,6 +15,10 @@
 #include "vm/object.h"
 #include "vm/simulator.h"
 
+#if defined(HOST_OS_IOS)
+#include <libkern/OSCacheControl.h>
+#endif
+
 #if !defined(TARGET_HOST_MISMATCH)
 #include <sys/syscall.h> /* NOLINT */
 #include <unistd.h>      /* NOLINT */
@@ -91,12 +95,9 @@ DEFINE_FLAG(bool, sim_use_hardfp, true, "Use the hardfp ABI.");
 #endif
 
 void CPU::FlushICache(uword start, uword size) {
-#if HOST_OS_IOS
-  // Precompilation never patches code so there should be no I cache flushes.
+#if defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();
-#endif
-
-#if !defined(TARGET_HOST_MISMATCH) && HOST_ARCH_ARM && !HOST_OS_IOS
+#elif !defined(TARGET_HOST_MISMATCH) && HOST_ARCH_ARM
   // Nothing to do. Flushing no instructions.
   if (size == 0) {
     return;
@@ -104,8 +105,15 @@ void CPU::FlushICache(uword start, uword size) {
 
 // ARM recommends using the gcc intrinsic __clear_cache on Linux, and the
 // library call cacheflush from unistd.h on Android:
-// blogs.arm.com/software-enablement/141-caches-and-self-modifying-code/
-#if defined(__linux__) && !defined(ANDROID)
+//
+// https://community.arm.com/developer/ip-products/processors/b/processors-ip-blog/posts/caches-and-self-modifying-code
+//
+// On iOS we use sys_icache_invalidate from Darwin. See:
+//
+// https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man3/sys_icache_invalidate.3.html
+#if defined(HOST_OS_IOS)
+  sys_icache_invalidate(reinterpret_cast<void*>(start), size);
+#elif defined(__linux__) && !defined(ANDROID)
   extern void __clear_cache(char*, char*);
   char* beg = reinterpret_cast<char*>(start);
   char* end = reinterpret_cast<char*>(start + size);
@@ -113,7 +121,7 @@ void CPU::FlushICache(uword start, uword size) {
 #elif defined(ANDROID)
   cacheflush(start, start + size, 0);
 #else
-#error FlushICache only tested/supported on Linux and Android
+#error FlushICache only tested/supported on Linux, Android and iOS
 #endif
 #endif
 }

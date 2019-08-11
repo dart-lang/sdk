@@ -43,24 +43,6 @@ String name(E e) {
     ]);
   }
 
-  test_ambiguousExport() async {
-    newFile("/test/lib/lib1.dart", content: r'''
-library lib1;
-class N {}
-''');
-    newFile("/test/lib/lib2.dart", content: r'''
-library lib2;
-class N {}
-''');
-    await assertErrorsInCode(r'''
-library L;
-export 'lib1.dart';
-export 'lib2.dart';
-''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_EXPORT, 31, 19),
-    ]);
-  }
-
   test_annotationWithNotClass() async {
     await assertErrorsInCode('''
 class Property {
@@ -720,12 +702,11 @@ class A {
 }
 
 const num a = 0;
-const _ = a == const A();
+const b = a == const A();
 ''',
         IsEnabledByDefault.constant_update_2018
             ? []
             : [
-                error(HintCode.UNUSED_ELEMENT, 49, 1),
                 error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING, 53,
                     14),
               ]);
@@ -1801,7 +1782,7 @@ var b2 = const bool.fromEnvironment('x', defaultValue: 1);
     // The type of the defaultValue needs to be correct even when the default
     // value isn't used (because the variable is defined in the environment).
     driver.declaredVariables = new DeclaredVariables.fromMap({'x': 'true'});
-    assertErrorsInCode('''
+    await assertErrorsInCode('''
 var b = const bool.fromEnvironment('x', defaultValue: 1);
 ''', [
       error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 8, 48),
@@ -2847,86 +2828,6 @@ set x(v) sync* {}
 ''', [
       error(CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER, 9, 4),
       error(CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER, 9, 4),
-    ]);
-  }
-
-  test_invalidReferenceToThis_factoryConstructor() async {
-    await assertErrorsInCode(r'''
-class A {
-  factory A() { return this; }
-}
-''', [
-      error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 33, 4),
-    ]);
-  }
-
-  test_invalidReferenceToThis_instanceVariableInitializer_inConstructor() async {
-    await assertErrorsInCode(r'''
-class A {
-  var f;
-  A() : f = this;
-}
-''', [
-      error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 31, 4),
-    ]);
-  }
-
-  test_invalidReferenceToThis_instanceVariableInitializer_inDeclaration() async {
-    await assertErrorsInCode(r'''
-class A {
-  var f = this;
-}
-''', [
-      error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 20, 4),
-    ]);
-  }
-
-  test_invalidReferenceToThis_staticMethod() async {
-    await assertErrorsInCode(r'''
-class A {
-  static m() { return this; }
-}
-''', [
-      error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 32, 4),
-    ]);
-  }
-
-  test_invalidReferenceToThis_staticVariableInitializer() async {
-    await assertErrorsInCode(r'''
-class A {
-  static A f = this;
-}
-''', [
-      error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 25, 4),
-    ]);
-  }
-
-  test_invalidReferenceToThis_superInitializer() async {
-    await assertErrorsInCode(r'''
-class A {
-  A(var x) {}
-}
-class B extends A {
-  B() : super(this);
-}
-''', [
-      error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 60, 4),
-    ]);
-  }
-
-  test_invalidReferenceToThis_topLevelFunction() async {
-    await assertErrorsInCode('''
-f() { return this; }
-''', [
-      error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 13, 4),
-    ]);
-  }
-
-  test_invalidReferenceToThis_variableInitializer() async {
-    await assertErrorsInCode('''
-int x = this;
-''', [
-      error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 8, 4),
     ]);
   }
 
@@ -5068,6 +4969,18 @@ typedef A(A b());
   }
 
   test_typeAliasCannotReferenceItself_generic() async {
+    List<ExpectedError> expectedErrors;
+    if (AnalysisDriver.useSummary2) {
+      expectedErrors = [
+        error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 0, 37),
+        error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE, 101, 1),
+      ];
+    } else {
+      expectedErrors = [
+        error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 0, 37),
+        error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 38, 37),
+      ];
+    }
     await assertErrorsInCode(r'''
 typedef F = void Function(List<G> l);
 typedef G = void Function(List<F> l);
@@ -5075,10 +4988,7 @@ main() {
   F foo(G g) => g;
   foo(null);
 }
-''', [
-      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 0, 37),
-      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 38, 37),
-    ]);
+''', expectedErrors);
   }
 
   test_typeAliasCannotReferenceItself_parameterType_named() async {
@@ -5143,17 +5053,12 @@ typedef A B();
   }
 
   test_typeAliasCannotReferenceItself_typeVariableBounds() async {
-    var errors = [
-      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 0, 30),
-    ];
-    if (!AnalysisDriver.useSummary2) {
-      errors.add(
-        error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 22, 3),
-      );
-    }
     await assertErrorsInCode('''
 typedef A<T extends A<int>>();
-''', errors);
+''', [
+      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 0, 30),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 22, 3),
+    ]);
   }
 
   test_typeArgumentNotMatchingBounds_const() async {

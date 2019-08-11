@@ -6,8 +6,8 @@
 // configurations, so nothing is actually *executing* it. It's likely broken.
 // We should either remove it or get it working again.
 
-import "dart:io";
 import "dart:async";
+import "dart:io";
 
 import "package:status_file/expectation.dart";
 
@@ -126,7 +126,7 @@ void testProcessQueue() {
   var maxProcesses = 2;
   var maxBrowserProcesses = maxProcesses;
   var config = OptionsParser().parse(['--noBatch'])[0];
-  ProcessQueue(config, maxProcesses, maxBrowserProcesses, DateTime.now(),
+  ProcessQueue(config, maxProcesses, maxBrowserProcesses,
       [CustomTestSuite(config)], [EventListener()], TestController.finished);
 }
 
@@ -154,7 +154,7 @@ void main(List<String> arguments) {
         break;
       case 'timeout':
         // This process should be killed by the test after DEFAULT_TIMEOUT
-        Timer(Duration(hours: 42), () {});
+        Timer(const Duration(hours: 42), () {});
         break;
       default:
         throw "Unknown option ${arguments[0]} passed to test_runner_test";

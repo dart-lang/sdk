@@ -7,7 +7,7 @@ library test;
 
 int f(int x(String y)) => null;
 String g(int x(String y)) => null;
-var v = /*@typeArgs=((String) -> int) -> Object*/ [f, g];
+var v = /*@ typeArgs=((String*) ->* int*) ->* Object* */ [f, g];
 
 main() {
   v;

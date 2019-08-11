@@ -11,7 +11,7 @@ import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/universe/member_usage.dart';
 import 'package:compiler/src/universe/resolution_world_builder.dart';
 import 'package:compiler/src/util/enumset.dart';
-import 'package:compiler/src/util/features.dart';
+import 'package:front_end/src/testing/features.dart';
 import 'package:kernel/ast.dart' as ir;
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
@@ -23,12 +23,12 @@ main(List<String> args) {
     print(' Test with enqueuer checks');
     print('------------------------------------------------------------------');
     await checkTests(dataDir, const ClosedWorldDataComputer(false),
-        args: args, testOmit: false, testCFEConstants: true);
+        args: args, testedConfigs: allStrongConfigs);
     print('------------------------------------------------------------------');
     print(' Test without enqueuer checks');
     print('------------------------------------------------------------------');
     await checkTests(dataDir, const ClosedWorldDataComputer(true),
-        args: args, testOmit: false, testCFEConstants: true);
+        args: args, testedConfigs: allStrongConfigs);
   });
 }
 
@@ -106,7 +106,7 @@ class ClosedWorldDataComputer extends DataComputer<Features> {
         }
       }
     }
-    Id id = computeEntityId(node);
+    Id id = computeMemberId(node);
     ir.TreeNode nodeWithOffset = computeTreeNodeWithOffset(node);
     actualMap[id] = new ActualData<Features>(id, features,
         nodeWithOffset?.location?.file, nodeWithOffset?.fileOffset, member);

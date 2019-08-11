@@ -53,15 +53,13 @@ async_scope_test: Pass, Slow
 [ !$strong && ($compiler == dartk || $compiler == dartkp) ]
 *: Skip
 
-[ $arch != ia32 || $arch != x64 || $system != linux ]
-get_native_allocation_samples_test: Skip # Unsupported.
-
 # These tests are slow on simulators.
 [ $arch == simarm || $arch == simarm64 ]
 *: Pass, Slow
 
 [ $arch == simdbc || $arch == simdbc64 ]
 async_single_step_exception_test: RuntimeError # Issue 29218
+get_cpu_profile_timeline_rpc_test: SkipByDesign
 implicit_getter_setter_test: RuntimeError # Field guards unimplemented.
 next_through_catch_test: RuntimeError # Debugging StringConcatenation doesn't work the same on simdbc as on other platforms (bug #28975).
 next_through_simple_async_test: RuntimeError # Debugging StringConcatenation doesn't work the same on simdbc as on other platforms (bug #28975).
@@ -80,6 +78,9 @@ debugger_location_test: Pass, Slow
 
 [ $compiler == dartk || $compiler == dartkp ]
 rewind_test: Pass, Slow
+
+[ $system != linux || $arch != ia32 && $arch != x64 ]
+get_native_allocation_samples_test: Skip # Unsupported.
 
 # Skip all service tests because random reloads interfere.
 [ $hot_reload || $hot_reload_rollback ]

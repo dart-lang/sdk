@@ -12,9 +12,9 @@ namespace dart {
 
 #ifdef DART_PRECOMPILER
 
-#if defined(ARCH_IS_32_BIT)
+#if defined(TARGET_ARCH_IS_32_BIT)
 #define FORM_ADDR ".4byte"
-#elif defined(ARCH_IS_64_BIT)
+#elif defined(TARGET_ARCH_IS_64_BIT)
 #define FORM_ADDR ".8byte"
 #endif
 

@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 import "dart:async";
+import "dart:collection";
 import "dart:convert" show LineSplitter, utf8;
 import "dart:core";
-import "dart:collection";
 import "dart:io";
 
 import "path.dart";
@@ -102,13 +102,9 @@ class AdbServerPortPool {
 /// New emulators can be launched by calling the static [launchNewEmulator]
 /// method.
 class AndroidEmulator {
-  int _port;
-  Process _emulatorProcess;
-  AdbDevice _adbDevice;
-
-  int get port => _port;
-
-  AdbDevice get adbDevice => _adbDevice;
+  final int port;
+  final AdbDevice adbDevice;
+  final Process _emulatorProcess;
 
   static Future<AndroidEmulator> launchNewEmulator(String avdName) {
     var portNumber = AdbServerPortPool.next();
@@ -119,9 +115,9 @@ class AndroidEmulator {
     });
   }
 
-  AndroidEmulator._private(this._port, this._adbDevice, this._emulatorProcess) {
+  AndroidEmulator._private(this.port, this.adbDevice, this._emulatorProcess) {
     Stream<String> getLines(Stream s) {
-      return s.transform(utf8.decoder).transform(LineSplitter());
+      return s.transform(utf8.decoder).transform(const LineSplitter());
     }
 
     getLines(_emulatorProcess.stdout).listen((line) {
@@ -150,7 +146,7 @@ class AndroidEmulator {
   }
 
   void log(String msg) {
-    DebugLogger.info("AndroidEmulator(${_adbDevice.deviceId}): $msg");
+    DebugLogger.info("AndroidEmulator(${adbDevice.deviceId}): $msg");
   }
 }
 
@@ -178,12 +174,11 @@ class AndroidHelper {
 /// Used for communicating with an emulator or with a real device.
 class AdbDevice {
   static const _adbServerStartupTime = Duration(seconds: 3);
-  String _deviceId;
-  Map<String, String> _cachedData = {};
 
-  String get deviceId => _deviceId;
+  final String deviceId;
+  final Map<String, String> _cachedData = {};
 
-  AdbDevice(this._deviceId);
+  AdbDevice(this.deviceId);
 
   /// Blocks execution until the device is online.
   Future waitForDevice() {
@@ -337,8 +332,8 @@ class AdbDevice {
   }
 
   List<String> _deviceSpecificArgs(List<String> adbArgs) {
-    if (_deviceId != null) {
-      var extendedAdbArgs = ['-s', _deviceId];
+    if (deviceId != null) {
+      var extendedAdbArgs = ['-s', deviceId];
       extendedAdbArgs.addAll(adbArgs);
       adbArgs = extendedAdbArgs;
     }
@@ -348,7 +343,7 @@ class AdbDevice {
 
 /// Helper to list all adb devices available.
 class AdbHelper {
-  static RegExp _deviceLineRegexp =
+  static final RegExp _deviceLineRegexp =
       RegExp(r'^([a-zA-Z0-9_-]+)[ \t]+device$', multiLine: true);
 
   static Future<List<String>> listDevices() {

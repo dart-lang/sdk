@@ -2,11 +2,11 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-static method f<T extends core::Object = dynamic>() → self::f::T
+static method f<T extends core::Object* = dynamic>() → self::f::T*
   return null;
 static method test() → void {
-  while (self::f<core::bool>()) {
-    core::int x = 0;
+  while (self::f<core::bool*>()) {
+    core::int* x = 0;
   }
 }
 static method main() → dynamic {}

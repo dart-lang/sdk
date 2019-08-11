@@ -871,12 +871,14 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     var cOfB = c.type.instantiate([b.type]);
     // B b;
     // cOfB.m(b); // infer <B>
-    expect(_inferCall(cOfB.getMethod('m').type, [b.type]), [b.type, b.type]);
+    expect(_inferCall2(cOfB.getMethod('m').type, [b.type]).toString(),
+        'B Function(B)');
     // cOfA.m(b); // infer <B>
-    expect(_inferCall(cOfA.getMethod('m').type, [b.type]), [a.type, b.type]);
+    expect(_inferCall2(cOfA.getMethod('m').type, [b.type]).toString(),
+        'B Function(B)');
     // cOfObject.m(b); // infer <B>
-    expect(_inferCall(cOfObject.getMethod('m').type, [b.type]),
-        [objectType, b.type]);
+    expect(_inferCall2(cOfObject.getMethod('m').type, [b.type]).toString(),
+        'B Function(B)');
   }
 
   void test_boundedByOuterClassSubstituted() {
@@ -909,12 +911,14 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     // List<B> b;
     var listOfB = listType.instantiate([b.type]);
     // cOfB.m(b); // infer <B>
-    expect(_inferCall(cOfB.getMethod('m').type, [listOfB]), [b.type, listOfB]);
+    expect(_inferCall2(cOfB.getMethod('m').type, [listOfB]).toString(),
+        'List<B> Function(List<B>)');
     // cOfA.m(b); // infer <B>
-    expect(_inferCall(cOfA.getMethod('m').type, [listOfB]), [a.type, listOfB]);
+    expect(_inferCall2(cOfA.getMethod('m').type, [listOfB]).toString(),
+        'List<B> Function(List<B>)');
     // cOfObject.m(b); // infer <B>
-    expect(_inferCall(cOfObject.getMethod('m').type, [listOfB]),
-        [objectType, listOfB]);
+    expect(_inferCall2(cOfObject.getMethod('m').type, [listOfB]).toString(),
+        'List<B> Function(List<B>)');
   }
 
   void test_boundedRecursively() {
@@ -1102,6 +1106,13 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
 
   List<DartType> _inferCall(FunctionTypeImpl ft, List<DartType> arguments,
       {DartType returnType, bool expectError: false}) {
+    FunctionType inferred = _inferCall2(ft, arguments,
+        returnType: returnType, expectError: expectError);
+    return inferred?.typeArguments;
+  }
+
+  FunctionType _inferCall2(FunctionTypeImpl ft, List<DartType> arguments,
+      {DartType returnType, bool expectError: false}) {
     var listener = new RecordingErrorListener();
 
     var reporter = new ErrorReporter(
@@ -1121,7 +1132,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     } else {
       expect(listener.errors, isEmpty, reason: 'did not expect any errors.');
     }
-    return inferred?.typeArguments;
+    return inferred;
   }
 }
 
@@ -1740,6 +1751,76 @@ class LeastUpperBoundTest extends BoundTestBase {
     _checkLeastUpperBound(typeB, typeC, typeB);
   }
 
+  void test_directSuperclass_nullability() {
+    ClassElement _classElement(String name, InterfaceType supertype) {
+      return ElementFactory.classElement3(name: name, supertype: supertype);
+    }
+
+    InterfaceTypeImpl _interfaceType(
+      ClassElement element,
+      NullabilitySuffix nullabilitySuffix,
+    ) {
+      return InterfaceTypeImpl.explicit(
+        element,
+        const [],
+        nullabilitySuffix: nullabilitySuffix,
+      );
+    }
+
+    var aElement = ElementFactory.classElement3(name: 'A');
+    var aQuestion = _interfaceType(aElement, NullabilitySuffix.question);
+    var aStar = _interfaceType(aElement, NullabilitySuffix.star);
+    var aNone = _interfaceType(aElement, NullabilitySuffix.none);
+
+    var bElementStar = _classElement('B', aStar);
+    var bElementNone = _classElement('B', aNone);
+
+    InterfaceTypeImpl _bTypeStarElement(NullabilitySuffix nullability) {
+      return _interfaceType(bElementStar, nullability);
+    }
+
+    InterfaceTypeImpl _bTypeNoneElement(NullabilitySuffix nullability) {
+      return _interfaceType(bElementNone, nullability);
+    }
+
+    var bStarQuestion = _bTypeStarElement(NullabilitySuffix.question);
+    var bStarStar = _bTypeStarElement(NullabilitySuffix.star);
+    var bStarNone = _bTypeStarElement(NullabilitySuffix.none);
+
+    var bNoneQuestion = _bTypeNoneElement(NullabilitySuffix.question);
+    var bNoneStar = _bTypeNoneElement(NullabilitySuffix.star);
+    var bNoneNone = _bTypeNoneElement(NullabilitySuffix.none);
+
+    void assertLUB(DartType type1, DartType type2, DartType expected) {
+      expect(typeSystem.getLeastUpperBound(type1, type2), expected);
+      expect(typeSystem.getLeastUpperBound(type2, type1), expected);
+    }
+
+    assertLUB(bStarQuestion, aQuestion, aQuestion);
+    assertLUB(bStarQuestion, aStar, aQuestion);
+    assertLUB(bStarQuestion, aNone, aQuestion);
+
+    assertLUB(bStarStar, aQuestion, aQuestion);
+    assertLUB(bStarStar, aStar, aStar);
+    assertLUB(bStarStar, aNone, aStar);
+
+    assertLUB(bStarNone, aQuestion, aQuestion);
+    assertLUB(bStarNone, aStar, aStar);
+    assertLUB(bStarNone, aNone, aNone);
+
+    assertLUB(bNoneQuestion, aQuestion, aQuestion);
+    assertLUB(bNoneQuestion, aStar, aQuestion);
+    assertLUB(bNoneQuestion, aNone, aQuestion);
+
+    assertLUB(bNoneStar, aQuestion, aQuestion);
+    assertLUB(bNoneStar, aStar, aStar);
+    assertLUB(bNoneStar, aNone, aStar);
+
+    assertLUB(bNoneNone, aQuestion, aQuestion);
+    assertLUB(bNoneNone, aStar, aStar);
+    assertLUB(bNoneNone, aNone, aNone);
+  }
+
   void test_dynamic_bottom() {
     _checkLeastUpperBound(dynamicType, bottomType, dynamicType);
   }
@@ -1766,6 +1847,111 @@ class LeastUpperBoundTest extends BoundTestBase {
   void test_interface_function() {
     DartType interfaceType = ElementFactory.classElement2('A', []).type;
     _checkLeastUpperBound(interfaceType, simpleFunctionType, objectType);
+  }
+
+  void test_interface_sameElement_nullability() {
+    var aElement = ElementFactory.classElement3(name: 'A');
+
+    InterfaceTypeImpl _interfaceType(
+      ClassElement element,
+      NullabilitySuffix nullabilitySuffix,
+    ) {
+      return InterfaceTypeImpl.explicit(
+        element,
+        const [],
+        nullabilitySuffix: nullabilitySuffix,
+      );
+    }
+
+    var aQuestion = _interfaceType(aElement, NullabilitySuffix.question);
+    var aStar = _interfaceType(aElement, NullabilitySuffix.star);
+    var aNone = _interfaceType(aElement, NullabilitySuffix.none);
+
+    void assertLUB(DartType type1, DartType type2, DartType expected) {
+      expect(typeSystem.getLeastUpperBound(type1, type2), expected);
+      expect(typeSystem.getLeastUpperBound(type2, type1), expected);
+    }
+
+    assertLUB(aQuestion, aQuestion, aQuestion);
+    assertLUB(aQuestion, aStar, aQuestion);
+    assertLUB(aQuestion, aNone, aQuestion);
+
+    assertLUB(aStar, aQuestion, aQuestion);
+    assertLUB(aStar, aStar, aStar);
+    assertLUB(aStar, aNone, aStar);
+
+    assertLUB(aNone, aQuestion, aQuestion);
+    assertLUB(aNone, aStar, aStar);
+    assertLUB(aNone, aNone, aNone);
+  }
+
+  void test_mixinAndClass_constraintAndInterface() {
+    var classA = ElementFactory.classElement3(name: 'A');
+    var instA = InstantiatedClass(classA, []);
+
+    var classB = ElementFactory.classElement3(
+      name: 'B',
+      interfaces: [instA.withNullabilitySuffixNone],
+    );
+
+    var mixinM = ElementFactory.mixinElement(
+      name: 'M',
+      constraints: [instA.withNullabilitySuffixNone],
+    );
+
+    _checkLeastUpperBound(
+      InterfaceTypeImpl.explicit(
+        classB,
+        [],
+        nullabilitySuffix: NullabilitySuffix.star,
+      ),
+      InterfaceTypeImpl.explicit(
+        mixinM,
+        [],
+        nullabilitySuffix: NullabilitySuffix.star,
+      ),
+      instA.withNullability(NullabilitySuffix.star),
+    );
+  }
+
+  void test_mixinAndClass_object() {
+    var classA = ElementFactory.classElement3(name: 'A');
+    var mixinM = ElementFactory.mixinElement(name: 'M');
+
+    _checkLeastUpperBound(
+      InterfaceTypeImpl.explicit(classA, []),
+      InterfaceTypeImpl.explicit(mixinM, []),
+      typeProvider.objectType,
+    );
+  }
+
+  void test_mixinAndClass_sharedInterface() {
+    var classA = ElementFactory.classElement3(name: 'A');
+    var instA = InstantiatedClass(classA, []);
+
+    var classB = ElementFactory.classElement3(
+      name: 'B',
+      interfaces: [instA.withNullabilitySuffixNone],
+    );
+
+    var mixinM = ElementFactory.mixinElement(
+      name: 'M',
+      interfaces: [instA.withNullabilitySuffixNone],
+    );
+
+    _checkLeastUpperBound(
+      InterfaceTypeImpl.explicit(
+        classB,
+        [],
+        nullabilitySuffix: NullabilitySuffix.star,
+      ),
+      InterfaceTypeImpl.explicit(
+        mixinM,
+        [],
+        nullabilitySuffix: NullabilitySuffix.star,
+      ),
+      instA.withNullability(NullabilitySuffix.star),
+    );
   }
 
   void test_mixinCase() {
@@ -1867,6 +2053,114 @@ class LeastUpperBoundTest extends BoundTestBase {
     InterfaceType typeB = classB.type;
     InterfaceType typeC = classC.type;
     _checkLeastUpperBound(typeB, typeC, typeA);
+  }
+
+  void test_sharedSuperclass1_nullability() {
+    ClassElementImpl _classElement(String name, InterfaceType supertype) {
+      return ElementFactory.classElement3(name: name, supertype: supertype);
+    }
+
+    InterfaceTypeImpl _interfaceType(
+      ClassElement element,
+      NullabilitySuffix nullabilitySuffix,
+    ) {
+      return InterfaceTypeImpl.explicit(
+        element,
+        const [],
+        nullabilitySuffix: nullabilitySuffix,
+      );
+    }
+
+    var aElement = _classElement('A', null);
+
+    var aQuestion = _interfaceType(aElement, NullabilitySuffix.question);
+    var aStar = _interfaceType(aElement, NullabilitySuffix.star);
+    var aNone = _interfaceType(aElement, NullabilitySuffix.none);
+
+    var bElementNone = _classElement('B', aNone);
+    var bElementStar = _classElement('B', aStar);
+
+    var cElementNone = _classElement('C', aNone);
+    var cElementStar = _classElement('C', aStar);
+
+    InterfaceTypeImpl bTypeElementNone(NullabilitySuffix nullability) {
+      return _interfaceType(bElementNone, nullability);
+    }
+
+    InterfaceTypeImpl bTypeElementStar(NullabilitySuffix nullability) {
+      return _interfaceType(bElementStar, nullability);
+    }
+
+    var bNoneQuestion = bTypeElementNone(NullabilitySuffix.question);
+    var bNoneStar = bTypeElementNone(NullabilitySuffix.star);
+    var bNoneNone = bTypeElementNone(NullabilitySuffix.none);
+
+    var bStarQuestion = bTypeElementStar(NullabilitySuffix.question);
+    var bStarStar = bTypeElementStar(NullabilitySuffix.star);
+    var bStarNone = bTypeElementStar(NullabilitySuffix.none);
+
+    InterfaceTypeImpl cTypeElementNone(NullabilitySuffix nullability) {
+      return _interfaceType(cElementNone, nullability);
+    }
+
+    InterfaceTypeImpl cTypeElementStar(NullabilitySuffix nullability) {
+      return _interfaceType(cElementStar, nullability);
+    }
+
+    var cNoneQuestion = cTypeElementNone(NullabilitySuffix.question);
+    var cNoneStar = cTypeElementNone(NullabilitySuffix.star);
+    var cNoneNone = cTypeElementNone(NullabilitySuffix.none);
+
+    var cStarQuestion = cTypeElementStar(NullabilitySuffix.question);
+    var cStarStar = cTypeElementStar(NullabilitySuffix.star);
+    var cStarNone = cTypeElementStar(NullabilitySuffix.none);
+
+    void assertLUB(DartType type1, DartType type2, DartType expected) {
+      expect(typeSystem.getLeastUpperBound(type1, type2), expected);
+      expect(typeSystem.getLeastUpperBound(type2, type1), expected);
+    }
+
+    assertLUB(bNoneQuestion, cNoneQuestion, aQuestion);
+    assertLUB(bNoneQuestion, cNoneStar, aQuestion);
+    assertLUB(bNoneQuestion, cNoneNone, aQuestion);
+    assertLUB(bNoneQuestion, cStarQuestion, aQuestion);
+    assertLUB(bNoneQuestion, cStarStar, aQuestion);
+    assertLUB(bNoneQuestion, cStarNone, aQuestion);
+
+    assertLUB(bNoneStar, cNoneQuestion, aQuestion);
+    assertLUB(bNoneStar, cNoneStar, aStar);
+    assertLUB(bNoneStar, cNoneNone, aStar);
+    assertLUB(bNoneStar, cStarQuestion, aQuestion);
+    assertLUB(bNoneStar, cStarStar, aStar);
+    assertLUB(bNoneStar, cStarNone, aStar);
+
+    assertLUB(bNoneNone, cNoneQuestion, aQuestion);
+    assertLUB(bNoneNone, cNoneStar, aStar);
+    assertLUB(bNoneNone, cNoneNone, aNone);
+    assertLUB(bNoneNone, cStarQuestion, aQuestion);
+    assertLUB(bNoneNone, cStarStar, aStar);
+    assertLUB(bNoneNone, cStarNone, aNone);
+
+    assertLUB(bStarQuestion, cNoneQuestion, aQuestion);
+    assertLUB(bStarQuestion, cNoneStar, aQuestion);
+    assertLUB(bStarQuestion, cNoneNone, aQuestion);
+    assertLUB(bStarQuestion, cStarQuestion, aQuestion);
+    assertLUB(bStarQuestion, cStarStar, aQuestion);
+    assertLUB(bStarQuestion, cStarNone, aQuestion);
+
+    assertLUB(bStarStar, cNoneQuestion, aQuestion);
+    assertLUB(bStarStar, cNoneStar, aStar);
+    assertLUB(bStarStar, cNoneNone, aStar);
+    assertLUB(bStarStar, cStarQuestion, aQuestion);
+    assertLUB(bStarStar, cStarStar, aStar);
+    assertLUB(bStarStar, cStarNone, aStar);
+
+    assertLUB(bStarNone, cNoneQuestion, aQuestion);
+    assertLUB(bStarNone, cNoneStar, aStar);
+    assertLUB(bStarNone, cNoneNone, aNone);
+    assertLUB(bStarNone, cStarQuestion, aQuestion);
+    assertLUB(bStarNone, cStarStar, aStar);
+    assertLUB(bStarNone, cStarNone, aNone);
   }
 
   void test_sharedSuperclass2() {
@@ -2729,7 +3023,7 @@ class TypeBuilder {
 
 @reflectiveTest
 class TypeSystemTest extends AbstractTypeSystemTest {
-  DartType get functionClassTypeNone {
+  InterfaceTypeImpl get functionClassTypeNone {
     return InterfaceTypeImpl.explicit(
       typeProvider.functionType.element,
       const <DartType>[],
@@ -2737,7 +3031,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
     );
   }
 
-  DartType get functionClassTypeQuestion {
+  InterfaceTypeImpl get functionClassTypeQuestion {
     return InterfaceTypeImpl.explicit(
       typeProvider.functionType.element,
       const <DartType>[],
@@ -2745,7 +3039,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
     );
   }
 
-  DartType get functionClassTypeStar {
+  InterfaceTypeImpl get functionClassTypeStar {
     return InterfaceTypeImpl.explicit(
       typeProvider.functionType.element,
       const <DartType>[],
@@ -2756,7 +3050,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   DartType get noneType => (typeProvider.stringType as TypeImpl)
       .withNullability(NullabilitySuffix.none);
 
-  FunctionType get nothingToVoidFunctionTypeNone {
+  FunctionTypeImpl get nothingToVoidFunctionTypeNone {
     return FunctionTypeImpl.synthetic(
       voidType,
       const <TypeParameterElement>[],
@@ -2765,7 +3059,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
     );
   }
 
-  FunctionType get nothingToVoidFunctionTypeQuestion {
+  FunctionTypeImpl get nothingToVoidFunctionTypeQuestion {
     return FunctionTypeImpl.synthetic(
       voidType,
       const <TypeParameterElement>[],
@@ -2774,7 +3068,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
     );
   }
 
-  FunctionType get nothingToVoidFunctionTypeStar {
+  FunctionTypeImpl get nothingToVoidFunctionTypeStar {
     return FunctionTypeImpl.synthetic(
       voidType,
       const <TypeParameterElement>[],
@@ -2783,13 +3077,46 @@ class TypeSystemTest extends AbstractTypeSystemTest {
     );
   }
 
+  DartType get objectClassTypeNone => (typeProvider.objectType as TypeImpl)
+      .withNullability(NullabilitySuffix.none);
+
+  DartType get objectClassTypeQuestion => (typeProvider.objectType as TypeImpl)
+      .withNullability(NullabilitySuffix.question);
+
+  DartType get objectClassTypeStar => (typeProvider.objectType as TypeImpl)
+      .withNullability(NullabilitySuffix.star);
+
   DartType get questionType => (typeProvider.stringType as TypeImpl)
       .withNullability(NullabilitySuffix.question);
 
   DartType get starType => (typeProvider.stringType as TypeImpl)
       .withNullability(NullabilitySuffix.star);
 
-  DartType futureOrTypeNone({@required DartType argument}) {
+  InterfaceTypeImpl get stringClassTypeNone {
+    return InterfaceTypeImpl.explicit(
+      typeProvider.stringType.element,
+      const <DartType>[],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+  }
+
+  InterfaceTypeImpl get stringClassTypeQuestion {
+    return InterfaceTypeImpl.explicit(
+      typeProvider.stringType.element,
+      const <DartType>[],
+      nullabilitySuffix: NullabilitySuffix.question,
+    );
+  }
+
+  InterfaceTypeImpl get stringClassTypeStar {
+    return InterfaceTypeImpl.explicit(
+      typeProvider.stringType.element,
+      const <DartType>[],
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
+  }
+
+  InterfaceTypeImpl futureOrTypeNone({@required DartType argument}) {
     var element = typeProvider.futureOrType.element;
     return InterfaceTypeImpl.explicit(
       element,
@@ -2798,7 +3125,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
     );
   }
 
-  DartType futureOrTypeQuestion({@required DartType argument}) {
+  InterfaceTypeImpl futureOrTypeQuestion({@required DartType argument}) {
     var element = typeProvider.futureOrType.element;
     return InterfaceTypeImpl.explicit(
       element,
@@ -2807,8 +3134,35 @@ class TypeSystemTest extends AbstractTypeSystemTest {
     );
   }
 
-  DartType futureOrTypeStar({@required DartType argument}) {
+  InterfaceTypeImpl futureOrTypeStar({@required DartType argument}) {
     var element = typeProvider.futureOrType.element;
+    return InterfaceTypeImpl.explicit(
+      element,
+      <DartType>[argument],
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
+  }
+
+  InterfaceTypeImpl listClassTypeNone(DartType argument) {
+    var element = typeProvider.listType.element;
+    return InterfaceTypeImpl.explicit(
+      element,
+      <DartType>[argument],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+  }
+
+  InterfaceTypeImpl listClassTypeQuestion(DartType argument) {
+    var element = typeProvider.listType.element;
+    return InterfaceTypeImpl.explicit(
+      element,
+      <DartType>[argument],
+      nullabilitySuffix: NullabilitySuffix.question,
+    );
+  }
+
+  InterfaceTypeImpl listClassTypeStar(DartType argument) {
+    var element = typeProvider.listType.element;
     return InterfaceTypeImpl.explicit(
       element,
       <DartType>[argument],
@@ -3115,6 +3469,10 @@ class TypeSystemTest extends AbstractTypeSystemTest {
     expect(typeSystem.isNullable(starType), false);
   }
 
+  test_isNullable_Never() {
+    expect(typeSystem.isNullable(neverType), false);
+  }
+
   test_isNullable_never() {
     expect(typeSystem.isNullable(neverType), false);
   }
@@ -3282,8 +3640,140 @@ class TypeSystemTest extends AbstractTypeSystemTest {
     expect(typeSystem.isPotentiallyNullable(voidType), true);
   }
 
+  test_promoteToNonNull_dynamic() {
+    expect(
+      typeSystem.promoteToNonNull(dynamicType),
+      dynamicType,
+    );
+  }
+
+  test_promoteToNonNull_functionType() {
+    // NonNull(T0 Function(...)) = T0 Function(...)
+    expect(
+      typeSystem.promoteToNonNull(nothingToVoidFunctionTypeQuestion),
+      nothingToVoidFunctionTypeNone,
+    );
+  }
+
+  test_promoteToNonNull_futureOr_question() {
+    // NonNull(FutureOr<T>) = FutureOr<T>
+    expect(
+      typeSystem.promoteToNonNull(
+        futureOrTypeQuestion(argument: stringClassTypeQuestion),
+      ),
+      futureOrTypeNone(argument: stringClassTypeQuestion),
+    );
+  }
+
+  test_promoteToNonNull_interfaceType_function_none() {
+    expect(
+      typeSystem.promoteToNonNull(functionClassTypeQuestion),
+      functionClassTypeNone,
+    );
+  }
+
+  test_promoteToNonNull_interfaceType_none() {
+    expect(
+      typeSystem.promoteToNonNull(stringClassTypeNone),
+      stringClassTypeNone,
+    );
+  }
+
+  test_promoteToNonNull_interfaceType_question() {
+    expect(
+      typeSystem.promoteToNonNull(stringClassTypeQuestion),
+      stringClassTypeNone,
+    );
+  }
+
+  test_promoteToNonNull_interfaceType_question_withTypeArguments() {
+    // NonNull(C<T1, ... , Tn>) = C<T1, ... , Tn>
+    // NonNull(List<String?>?) = List<String?>
+    expect(
+      typeSystem.promoteToNonNull(
+        listClassTypeQuestion(stringClassTypeQuestion),
+      ),
+      listClassTypeNone(stringClassTypeQuestion),
+    );
+  }
+
+  test_promoteToNonNull_interfaceType_star() {
+    expect(
+      typeSystem.promoteToNonNull(stringClassTypeStar),
+      stringClassTypeNone,
+    );
+  }
+
+  test_promoteToNonNull_never() {
+    expect(typeSystem.promoteToNonNull(neverType), neverType);
+  }
+
+  test_promoteToNonNull_null() {
+    expect(typeSystem.promoteToNonNull(nullType), neverType);
+  }
+
+  test_promoteToNonNull_typeParameter_noneBound_none() {
+    expect(
+      typeSystem.promoteToNonNull(
+        typeParameterTypeNone(bound: noneType),
+      ),
+      typeParameterTypeNone(bound: noneType),
+    );
+  }
+
+  test_promoteToNonNull_typeParameter_nullBound_none() {
+    expect(
+      typeSystem.promoteToNonNull(
+        typeParameterTypeNone(bound: null),
+      ),
+      typeParameterTypeNone(bound: objectClassTypeNone),
+    );
+  }
+
+  test_promoteToNonNull_typeParameter_questionBound_none() {
+    expect(
+      typeSystem.promoteToNonNull(
+        typeParameterTypeNone(bound: stringClassTypeQuestion),
+      ),
+      typeParameterTypeNone(bound: stringClassTypeNone),
+    );
+  }
+
+  test_promoteToNonNull_typeParameter_questionBound_question() {
+    expect(
+      typeSystem.promoteToNonNull(
+        typeParameterTypeQuestion(bound: stringClassTypeQuestion),
+      ),
+      typeParameterTypeNone(bound: stringClassTypeNone),
+    );
+  }
+
+  test_promoteToNonNull_typeParameter_questionBound_star() {
+    expect(
+      typeSystem.promoteToNonNull(
+        typeParameterTypeStar(bound: stringClassTypeQuestion),
+      ),
+      typeParameterTypeNone(bound: stringClassTypeNone),
+    );
+  }
+
+  test_promoteToNonNull_typeParameter_starBound_none() {
+    expect(
+      typeSystem.promoteToNonNull(
+        typeParameterTypeNone(bound: stringClassTypeStar),
+      ),
+      typeParameterTypeNone(bound: stringClassTypeNone),
+    );
+  }
+
+  test_promoteToNonNull_void() {
+    expect(
+      typeSystem.promoteToNonNull(voidType),
+      voidType,
+    );
+  }
+
   DartType typeParameterTypeNone({@required DartType bound}) {
-    expect(bound, isNotNull);
     var element = TypeParameterElementImpl.synthetic('T');
     element.bound = bound;
     return TypeParameterTypeImpl(
@@ -3293,7 +3783,6 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   }
 
   DartType typeParameterTypeQuestion({@required DartType bound}) {
-    expect(bound, isNotNull);
     var element = TypeParameterElementImpl.synthetic('T');
     element.bound = bound;
     return TypeParameterTypeImpl(
@@ -3303,7 +3792,6 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   }
 
   DartType typeParameterTypeStar({@required DartType bound}) {
-    expect(bound, isNotNull);
     var element = TypeParameterElementImpl.synthetic('T');
     element.bound = bound;
     return TypeParameterTypeImpl(

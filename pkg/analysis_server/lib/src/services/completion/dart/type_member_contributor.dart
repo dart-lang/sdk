@@ -337,7 +337,7 @@ class _SuggestionBuilder {
    * shadowed by a previously added suggestion.
    */
   void _addSuggestion(Element element,
-      {int relevance: DART_RELEVANCE_DEFAULT}) {
+      {int relevance = DART_RELEVANCE_DEFAULT}) {
     if (element.isPrivate) {
       if (element.library != containingLibrary) {
         // Do not suggest private members for imported libraries

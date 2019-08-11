@@ -125,6 +125,10 @@ abstract class TypeSystem {
   /// Other type systems may define this operation differently.
   DartType leastUpperBound(DartType leftType, DartType rightType);
 
+  /// Returns a non-nullable version of [type].  This is equivalent to the
+  /// operation `NonNull` defined in the spec.
+  DartType promoteToNonNull(DartType type);
+
   /// Return the result of resolving the bounds of the given [type].
   ///
   /// For the Dart 2.0 type system, the definition of resolving to bounds is

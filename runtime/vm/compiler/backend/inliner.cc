@@ -78,10 +78,6 @@ DEFINE_FLAG(int,
             500,
             "Max. number of inlined calls per depth");
 DEFINE_FLAG(bool, print_inlining_tree, false, "Print inlining tree");
-DEFINE_FLAG(bool,
-            enable_inlining_annotations,
-            false,
-            "Enable inlining annotations");
 
 DECLARE_FLAG(int, max_deoptimization_counter_threshold);
 DECLARE_FLAG(bool, print_flow_graph);
@@ -129,6 +125,16 @@ static bool IsCallRecursive(const Function& function, Definition* call) {
 static ConstantInstr* GetDefaultValue(intptr_t i,
                                       const ParsedFunction& parsed_function) {
   return new ConstantInstr(parsed_function.DefaultParameterValueAt(i));
+}
+
+// Helper to get result type from call (or nullptr otherwise).
+static CompileType* ResultType(Definition* call) {
+  if (auto static_call = call->AsStaticCall()) {
+    return static_call->result_type();
+  } else if (auto instance_call = call->AsInstanceCall()) {
+    return instance_call->result_type();
+  }
+  return nullptr;
 }
 
 // Pair of an argument name and its value.
@@ -513,14 +519,16 @@ static bool IsSmallLeaf(FlowGraph* graph) {
       } else if (current->IsStaticCall()) {
         const Function& function = current->AsStaticCall()->function();
         const intptr_t inl_size = function.optimized_instruction_count();
+        const bool always_inline =
+            FlowGraphInliner::FunctionHasPreferInlinePragma(function);
         // Accept a static call is always inlined in some way and add the
         // cached size to the total instruction count. A reasonable guess
         // is made if the count has not been collected yet (listed methods
         // are never very large).
-        if (!function.always_inline() && !function.IsRecognized()) {
+        if (!always_inline && !function.IsRecognized()) {
           return false;
         }
-        if (!function.always_inline()) {
+        if (!always_inline) {
           static constexpr intptr_t kAvgListedMethodSize = 20;
           instruction_count +=
               (inl_size == 0 ? kAvgListedMethodSize : inl_size);
@@ -600,27 +608,6 @@ class PolymorphicInliner : public ValueObject {
   const intptr_t caller_inlining_id_;
 };
 
-static bool HasAnnotation(const Function& function, const char* annotation) {
-  const Class& owner = Class::Handle(function.Owner());
-  const Library& library = Library::Handle(owner.library());
-
-  auto& metadata_or_error = Object::Handle(library.GetMetadata(function));
-  if (metadata_or_error.IsError()) {
-    Report::LongJump(Error::Cast(metadata_or_error));
-  }
-  const Array& metadata = Array::Cast(metadata_or_error);
-  if (metadata.Length() > 0) {
-    Object& val = Object::Handle();
-    for (intptr_t i = 0; i < metadata.Length(); i++) {
-      val = metadata.At(i);
-      if (val.IsString() && String::Cast(val).Equals(annotation)) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
 static void ReplaceParameterStubs(Zone* zone,
                                   FlowGraph* caller_graph,
                                   InlinedCallData* call_data,
@@ -658,6 +645,11 @@ static void ReplaceParameterStubs(Zone* zone,
       }
       redefinition->InsertAfter(callee_entry);
       defn = redefinition;
+      // Since the redefinition does not dominate the callee entry, replace
+      // uses of the receiver argument in this entry with the redefined value.
+      callee_entry->ReplaceInEnvironment(
+          call_data->parameter_stubs->At(first_arg_stub_index + i),
+          actual->definition());
     } else if (actual != NULL) {
       defn = actual->definition();
     }
@@ -888,6 +880,11 @@ class CallSiteInliner : public ValueObject {
       return false;
     }
 
+    if (FlowGraphInliner::FunctionHasNeverInlinePragma(function)) {
+      TRACE_INLINING(THR_Print("     Bailout: vm:never-inline pragma\n"));
+      return false;
+    }
+
     // Don't inline any intrinsified functions in precompiled mode
     // to reduce code size and make sure we use the intrinsic code.
     if (FLAG_precompiled_mode && function.is_intrinsic() &&
@@ -923,13 +920,6 @@ class CallSiteInliner : public ValueObject {
       TRACE_INLINING(THR_Print("     Bailout: deoptimization threshold\n"));
       PRINT_INLINING_TREE("Deoptimization threshold exceeded",
                           &call_data->caller, &function, call_data->call);
-      return false;
-    }
-
-    const char* kNeverInlineAnnotation = "NeverInline";
-    if (FLAG_enable_inlining_annotations &&
-        HasAnnotation(function, kNeverInlineAnnotation)) {
-      TRACE_INLINING(THR_Print("     Bailout: NeverInline annotation\n"));
       return false;
     }
 
@@ -2287,12 +2277,22 @@ static bool IsInlineableOperator(const Function& function) {
          (function.name() == Symbols::Minus().raw());
 }
 
+bool FlowGraphInliner::FunctionHasPreferInlinePragma(const Function& function) {
+  Object& options = Object::Handle();
+  return Library::FindPragma(dart::Thread::Current(), /*only_core=*/false,
+                             function, Symbols::vm_prefer_inline(), &options);
+}
+
+bool FlowGraphInliner::FunctionHasNeverInlinePragma(const Function& function) {
+  Object& options = Object::Handle();
+  return Library::FindPragma(dart::Thread::Current(), /*only_core=*/false,
+                             function, Symbols::vm_never_inline(), &options);
+}
+
 bool FlowGraphInliner::AlwaysInline(const Function& function) {
-  const char* kAlwaysInlineAnnotation = "AlwaysInline";
-  if (FLAG_enable_inlining_annotations &&
-      HasAnnotation(function, kAlwaysInlineAnnotation)) {
+  if (FunctionHasPreferInlinePragma(function)) {
     TRACE_INLINING(
-        THR_Print("AlwaysInline annotation for %s\n", function.ToCString()));
+        THR_Print("vm:prefer-inline pragma for %s\n", function.ToCString()));
     return true;
   }
 
@@ -2319,7 +2319,7 @@ bool FlowGraphInliner::AlwaysInline(const Function& function) {
       return true;
     }
   }
-  return MethodRecognizer::AlwaysInline(function);
+  return false;
 }
 
 int FlowGraphInliner::Inline() {
@@ -2452,7 +2452,7 @@ static intptr_t PrepareInlineIndexedOp(FlowGraph* flow_graph,
 
 static bool InlineGetIndexed(FlowGraph* flow_graph,
                              MethodRecognizer::Kind kind,
-                             Instruction* call,
+                             Definition* call,
                              Definition* receiver,
                              GraphEntryInstr* graph_entry,
                              FunctionEntryInstr** entry,
@@ -2481,9 +2481,9 @@ static bool InlineGetIndexed(FlowGraph* flow_graph,
 
   // Array load and return.
   intptr_t index_scale = compiler::target::Instance::ElementSizeFor(array_cid);
-  LoadIndexedInstr* load = new (Z)
-      LoadIndexedInstr(new (Z) Value(array), new (Z) Value(index), index_scale,
-                       array_cid, kAlignedAccess, deopt_id, call->token_pos());
+  LoadIndexedInstr* load = new (Z) LoadIndexedInstr(
+      new (Z) Value(array), new (Z) Value(index), index_scale, array_cid,
+      kAlignedAccess, deopt_id, call->token_pos(), ResultType(call));
 
   *last = load;
   cursor = flow_graph->AppendTo(cursor, load,
@@ -2649,12 +2649,13 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
   const bool value_needs_unboxing =
       array_cid == kTypedDataInt8ArrayCid ||
       array_cid == kTypedDataInt16ArrayCid ||
+      array_cid == kTypedDataInt32ArrayCid ||
       array_cid == kTypedDataUint8ArrayCid ||
       array_cid == kTypedDataUint8ClampedArrayCid ||
       array_cid == kTypedDataUint16ArrayCid ||
+      array_cid == kTypedDataUint32ArrayCid ||
       array_cid == kExternalTypedDataUint8ArrayCid ||
-      array_cid == kExternalTypedDataUint8ClampedArrayCid ||
-      array_cid == kTypedDataUint32ArrayCid;
+      array_cid == kExternalTypedDataUint8ClampedArrayCid;
 
   if (value_check != NULL) {
     // No store barrier needed because checked value is a smi, an unboxed mint,
@@ -2674,7 +2675,7 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
   } else if (value_needs_unboxing) {
     Representation representation = kNoRepresentation;
     switch (array_cid) {
-      case kUnboxedInt32:
+      case kTypedDataInt32ArrayCid:
         representation = kUnboxedInt32;
         break;
       case kTypedDataUint32ArrayCid:
@@ -2920,19 +2921,8 @@ static void PrepareInlineByteArrayBaseOp(FlowGraph* flow_graph,
   }
 }
 
-static LoadIndexedInstr* NewLoad(FlowGraph* flow_graph,
-                                 Instruction* call,
-                                 Definition* array,
-                                 Definition* index,
-                                 intptr_t view_cid) {
-  return new (Z) LoadIndexedInstr(new (Z) Value(array), new (Z) Value(index),
-                                  1,  // Index scale
-                                  view_cid, kUnalignedAccess, DeoptId::kNone,
-                                  call->token_pos());
-}
-
 static bool InlineByteArrayBaseLoad(FlowGraph* flow_graph,
-                                    Instruction* call,
+                                    Definition* call,
                                     Definition* receiver,
                                     intptr_t array_cid,
                                     intptr_t view_cid,
@@ -2978,15 +2968,16 @@ static bool InlineByteArrayBaseLoad(FlowGraph* flow_graph,
                                &cursor);
 
   // Fill out the generated template with loads.
-  {
-    // Load from either external or internal.
-    LoadIndexedInstr* load = NewLoad(flow_graph, call, array, index, view_cid);
-    flow_graph->AppendTo(
-        cursor, load,
-        call->deopt_id() != DeoptId::kNone ? call->env() : nullptr,
-        FlowGraph::kValue);
-    cursor = *last = load;
-  }
+  // Load from either external or internal.
+  LoadIndexedInstr* load =
+      new (Z) LoadIndexedInstr(new (Z) Value(array), new (Z) Value(index),
+                               1,  // Index scale
+                               view_cid, kUnalignedAccess, DeoptId::kNone,
+                               call->token_pos(), ResultType(call));
+  flow_graph->AppendTo(
+      cursor, load, call->deopt_id() != DeoptId::kNone ? call->env() : nullptr,
+      FlowGraph::kValue);
+  cursor = *last = load;
 
   if (view_cid == kTypedDataFloat32ArrayCid) {
     *last = new (Z) FloatToDoubleInstr(new (Z) Value((*last)->AsDefinition()),

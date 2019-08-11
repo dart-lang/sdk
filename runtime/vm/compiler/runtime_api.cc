@@ -532,6 +532,10 @@ uword Thread::native_execution_state() {
   return dart::Thread::ExecutionState::kThreadInNative;
 }
 
+uword Thread::vm_execution_state() {
+  return dart::Thread::ExecutionState::kThreadInVM;
+}
+
 uword Thread::vm_tag_compiled_id() {
   return dart::VMTag::kDartCompiledTagId;
 }

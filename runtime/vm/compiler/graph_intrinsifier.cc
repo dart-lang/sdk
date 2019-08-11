@@ -161,8 +161,8 @@ static bool IntrinsifyArrayGetIndexed(FlowGraph* flow_graph,
   auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
 
-  Definition* index = builder.AddParameter(0, /*with_frame=*/false);
-  Definition* array = builder.AddParameter(1, /*with_frame=*/false);
+  Definition* array = builder.AddParameter(0, /*with_frame=*/false);
+  Definition* index = builder.AddParameter(1, /*with_frame=*/false);
 
   index = PrepareIndexedOp(flow_graph, &builder, array, index,
                            Slot::GetLengthFieldForArrayCid(array_cid));
@@ -269,9 +269,9 @@ static bool IntrinsifyArraySetIndexed(FlowGraph* flow_graph,
   auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
 
-  Definition* value = builder.AddParameter(0, /*with_frame=*/false);
+  Definition* array = builder.AddParameter(0, /*with_frame=*/false);
   Definition* index = builder.AddParameter(1, /*with_frame=*/false);
-  Definition* array = builder.AddParameter(2, /*with_frame=*/false);
+  Definition* value = builder.AddParameter(2, /*with_frame=*/false);
 
   index = PrepareIndexedOp(flow_graph, &builder, array, index,
                            Slot::GetLengthFieldForArrayCid(array_cid));
@@ -473,8 +473,8 @@ static bool BuildCodeUnitAt(FlowGraph* flow_graph, intptr_t cid) {
   auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
 
-  Definition* index = builder.AddParameter(0, /*with_frame=*/false);
-  Definition* str = builder.AddParameter(1, /*with_frame=*/false);
+  Definition* str = builder.AddParameter(0, /*with_frame=*/false);
+  Definition* index = builder.AddParameter(1, /*with_frame=*/false);
 
   index =
       PrepareIndexedOp(flow_graph, &builder, str, index, Slot::String_length());
@@ -536,8 +536,8 @@ static bool BuildSimdOp(FlowGraph* flow_graph, intptr_t cid, Token::Kind kind) {
   auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
 
-  Definition* right = builder.AddParameter(0, /*with_frame=*/false);
-  Definition* left = builder.AddParameter(1, /*with_frame=*/false);
+  Definition* left = builder.AddParameter(0, /*with_frame=*/false);
+  Definition* right = builder.AddParameter(1, /*with_frame=*/false);
 
   Cids* value_check = Cids::CreateMonomorphic(zone, cid);
   // Check argument. Receiver (left) is known to be a Float32x4.
@@ -676,8 +676,8 @@ bool GraphIntrinsifier::Build_GrowableArrayGetIndexed(FlowGraph* flow_graph) {
   auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
 
-  Definition* index = builder.AddParameter(0, /*with_frame=*/false);
-  Definition* growable_array = builder.AddParameter(1, /*with_frame=*/false);
+  Definition* growable_array = builder.AddParameter(0, /*with_frame=*/false);
+  Definition* index = builder.AddParameter(1, /*with_frame=*/false);
 
   index = PrepareIndexedOp(flow_graph, &builder, growable_array, index,
                            Slot::GrowableObjectArray_length());
@@ -707,9 +707,9 @@ bool GraphIntrinsifier::Build_ObjectArraySetIndexedUnchecked(
   auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
 
-  Definition* value = builder.AddParameter(0, /*with_frame=*/false);
+  Definition* array = builder.AddParameter(0, /*with_frame=*/false);
   Definition* index = builder.AddParameter(1, /*with_frame=*/false);
-  Definition* array = builder.AddParameter(2, /*with_frame=*/false);
+  Definition* value = builder.AddParameter(2, /*with_frame=*/false);
 
   index = PrepareIndexedOp(flow_graph, &builder, array, index,
                            Slot::Array_length());
@@ -738,9 +738,9 @@ bool GraphIntrinsifier::Build_GrowableArraySetIndexedUnchecked(
   auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
 
-  Definition* value = builder.AddParameter(0, /*with_frame=*/false);
+  Definition* array = builder.AddParameter(0, /*with_frame=*/false);
   Definition* index = builder.AddParameter(1, /*with_frame=*/false);
-  Definition* array = builder.AddParameter(2, /*with_frame=*/false);
+  Definition* value = builder.AddParameter(2, /*with_frame=*/false);
 
   index = PrepareIndexedOp(flow_graph, &builder, array, index,
                            Slot::GrowableObjectArray_length());
@@ -764,8 +764,8 @@ bool GraphIntrinsifier::Build_GrowableArraySetData(FlowGraph* flow_graph) {
   auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
 
-  Definition* data = builder.AddParameter(0, /*with_frame=*/false);
-  Definition* growable_array = builder.AddParameter(1, /*with_frame=*/false);
+  Definition* growable_array = builder.AddParameter(0, /*with_frame=*/false);
+  Definition* data = builder.AddParameter(1, /*with_frame=*/false);
   Zone* zone = flow_graph->zone();
 
   Cids* value_check = Cids::CreateMonomorphic(zone, kArrayCid);
@@ -786,8 +786,8 @@ bool GraphIntrinsifier::Build_GrowableArraySetLength(FlowGraph* flow_graph) {
   auto normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);
 
-  Definition* length = builder.AddParameter(0, /*with_frame=*/false);
-  Definition* growable_array = builder.AddParameter(1, /*with_frame=*/false);
+  Definition* growable_array = builder.AddParameter(0, /*with_frame=*/false);
+  Definition* length = builder.AddParameter(1, /*with_frame=*/false);
 
   builder.AddInstruction(
       new CheckSmiInstr(new Value(length), DeoptId::kNone, builder.TokenPos()));
@@ -829,9 +829,7 @@ static bool BuildInvokeMathCFunction(BlockBuilder* builder,
       new ZoneGrowableArray<Value*>(num_parameters);
 
   for (intptr_t i = 0; i < num_parameters; i++) {
-    const intptr_t parameter_index = (num_parameters - i - 1);
-    Definition* value =
-        builder->AddParameter(parameter_index, /*with_frame=*/false);
+    Definition* value = builder->AddParameter(i, /*with_frame=*/false);
     Definition* unboxed_value =
         builder->AddUnboxInstr(kUnboxedDouble, value, /* is_checked = */ false);
     args->Add(new Value(unboxed_value));

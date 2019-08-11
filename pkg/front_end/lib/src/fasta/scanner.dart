@@ -48,7 +48,7 @@ const int unicodeReplacementCharacter = unicodeReplacementCharacterRune;
 typedef Token Recover(List<int> bytes, Token tokens, List<int> lineStarts);
 
 abstract class Scanner {
-  /// Returns true if an error occured during [tokenize].
+  /// Returns true if an error occurred during [tokenize].
   bool get hasErrors;
 
   List<int> get lineStarts;

@@ -700,8 +700,8 @@ class _Uri {
   static final bool _isWindowsCached = JS(
       'bool',
       'typeof process != "undefined" && '
-      'Object.prototype.toString.call(process) == "[object process]" && '
-      'process.platform == "win32"');
+          'Object.prototype.toString.call(process) == "[object process]" && '
+          'process.platform == "win32"');
 
   // Matches a String that _uriEncodes to itself regardless of the kind of
   // component.  This corresponds to [_unreservedTable], i.e. characters that
@@ -2511,7 +2511,7 @@ class _BigIntImpl implements BigInt {
       dIsNegative = false;
     } else {
       while ((dDigits[maxUsed] != 0) ||
-        (_compareDigits(dDigits, maxUsed, xDigits, maxUsed) >= 0)) {
+          (_compareDigits(dDigits, maxUsed, xDigits, maxUsed) >= 0)) {
         // d -= x
         _absSub(dDigits, abcdUsed, xDigits, maxUsed, dDigits);
       }

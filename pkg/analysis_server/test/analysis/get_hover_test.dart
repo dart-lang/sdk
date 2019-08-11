@@ -320,6 +320,20 @@ enum MyEnum {AAA, BBB, CCC}
     expect(hover.propagatedType, isNull);
   }
 
+  test_extensionDeclaration() async {
+    createAnalysisOptionsFile(experiments: ['extension-methods']);
+    addTestFile('''
+class A {}
+/// Comment
+extension E on A {}
+''');
+    HoverInformation hover = await prepareHover('E');
+    expect(hover.elementDescription, 'extension E on A');
+    expect(hover.dartdoc, 'Comment');
+    expect(hover.staticType, isNull);
+    expect(hover.propagatedType, isNull);
+  }
+
   test_function_topLevel_declaration() async {
     addTestFile('''
 library my.library;

@@ -3,19 +3,21 @@ import self as self;
 import "dart:core" as core;
 
 class Foo extends core::Object {
-  const constructor •(core::List<core::String> l) → self::Foo
+  const constructor •(core::List<core::String*>* l) → self::Foo*
+    : super core::Object::•()
     ;
-  const constructor named(core::List<core::String> l) → self::Foo
+  const constructor named(core::List<core::String*>* l) → self::Foo*
+    : super core::Object::•()
     ;
 }
 @self::Foo::•(const <dynamic>[])
 class Bar extends core::Object {
-  synthetic constructor •() → self::Bar
+  synthetic constructor •() → self::Bar*
     ;
 }
 @self::Foo::named(const <dynamic>[])
 class Baz extends core::Object {
-  synthetic constructor •() → self::Baz
+  synthetic constructor •() → self::Baz*
     ;
 }
 static method main() → dynamic

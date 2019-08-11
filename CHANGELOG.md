@@ -22,12 +22,32 @@
   * `RawSocket.read()`
   * `Utf8Codec.encode()` (and `Utf8Encoder.convert()`)
 
-  In addition, the following methods and classes were updated to return or
-  implement `Stream<Uint8List>` rather than `Stream<List<int>>`:
+  In addition, the following classes were updated to implement
+  `Stream<Uint8List>` rather than `Stream<List<int>>`:
 
-  * `File.openRead()`
   * `HttpRequest`
-  * `HttpClientResponse`
+  * `Socket`
+
+  **Possible errors and how to fix them**
+
+    * > The argument type 'Utf8Decoder' can't be assigned to the parameter type 'StreamTransformer<Uint8List, dynamic>'
+
+      > type 'Utf8Decoder' is not a subtype of type 'StreamTransformer' of 'streamTransformer'"
+
+      You can fix these call sites by updating your code to use
+      `StreamTransformer.bind()` instead of `Stream.transform()`, like so:
+
+      *Before:* `stream.transform(utf8.decoder)`
+      *After:* `utf8.decoder.bind(stream)`
+
+    * > The argument type 'IOSink' can't be assigned to the parameter type 'StreamConsumer<Uint8List>'
+
+      > type '_IOSinkImpl' is not a subtype of type 'StreamConsumer<Uint8List>' of 'streamConsumer'
+
+      You can fix these call sites by casting your stream instance to a `Stream<List<int>>` before calling `.pipe()` on the stream, like so:
+
+      *Before:* `stream.pipe(consumer)`
+      *After:* `stream.cast<List<int>>().pipe(consumer)`
 
   Finally, the following typed lists were updated to have their `sublist()`
   methods declare a return type that is the same as the source list:
@@ -47,7 +67,11 @@
   * `Uint32List.sublist()` → `Uint32List`
   * `Uint64List.sublist()` → `Uint64List`
 
-  
+#### `dart:async`
+
+* Add `value` and `error` constructors on `Stream`
+  to allow easily creating single-value or single-error streams.
+
 #### `dart:core`
 
 * Update `Uri` class to support [RFC6874](https://tools.ietf.org/html/rfc6874):
@@ -91,12 +115,38 @@
 #### Pub
 
  * Clean-up invalid git repositories in cache when fetching from git.
+ * **Breaking change**  [#36765](https://github.com/dart-lang/sdk/issues/36765):
+   Packages published to [pub.dev](https://pub.dev) can no longer contain git
+   dependencies. These packages will be rejected by the server.
 
 #### Linter
 
-The Linter was updated to `0.1.93`, which includes the following changes:
+The Linter was updated to `0.1.96`, which includes:
 
-* new lint: `avoid_print`
+* fixed false positives in `unnecessary_parens`
+* various changes to migrate to preferred analyzer APIs
+* rule test fixes
+
+#### Dartdoc
+
+Dartdoc was updated to `0.28.4`; this version includes several fixes and is based
+on a newer version of the analyzer package.
+
+## 2.4.1 - 2019-08-07
+
+This is a patch release that fixes a performance regression in JIT mode, as
+well as a potential crash of our AOT compiler.
+
+### Dart VM
+
+* Fixed a performance regression where usage of `Int32List` could trigger
+  repeated deoptimizations in JIT mode (Issue [37551][]).
+
+* Fixed a bug where usage of a static getter with name `length` could cause a
+  crash in our AOT compiler (Issue [35121][]).
+
+[37551]: https://github.com/dart-lang/sdk/issues/37551
+[35121]: https://github.com/dart-lang/sdk/issues/35121
 
 ## 2.4.0 - 2019-06-27
 
@@ -131,7 +181,7 @@ communication of `Uint8List` data.
   [33327]: https://github.com/dart-lang/sdk/issues/33327
   [35804]: https://github.com/dart-lang/sdk/issues/35804
 
-* **Breaking change** [#36971](https://github.com/dart-lang/sdk/issues/36971): 
+* [#36971](https://github.com/dart-lang/sdk/issues/36971):
   The `HttpClientResponse` interface has been extended with the addition of a
   new `compressionState` getter, which specifies whether the body of a
   response was compressed when it was received and whether it has been
@@ -140,19 +190,18 @@ communication of `Uint8List` data.
   As part of this change, a corresponding new enum was added to `dart:io`:
   `HttpClientResponseCompressionState`.
 
-  For those implementing the `HttpClientResponse`
-  interface, this is a breaking change, as implementing classes will need to
-  implement the new getter.
+  This is a **breaking change** for those implementing the `HttpClientResponse`
+  interface as subclasses will need to implement the new getter.
 
 #### `dart:async`
 
-* **Breaking change** [#36382](https://github.com/dart-lang/sdk/issues/36382): 
+* **Breaking change** [#36382](https://github.com/dart-lang/sdk/issues/36382):
   The `await for` allowed `null` as a stream due to a bug
   in `StreamIterator` class. This bug has now been fixed.
 
 #### `dart:core`
 
-* **Breaking change** [#36171](https://github.com/dart-lang/sdk/issues/36171): 
+* [#36171](https://github.com/dart-lang/sdk/issues/36171):
   The `RegExp` interface has been extended with two new
   constructor named parameters:
 
@@ -171,8 +220,9 @@ communication of `Uint8List` data.
   * `String namedGroup(String name)`, a method that retrieves the match for
     the given named capture group
 
-  This change only affects implementers of the `RegExp` interface; current
-  code using Dart regular expressions will not be affected.
+  This is a **breaking change** for implementers of the `RegExp` interface.
+  Subclasses will need to add the new properties and may have to update the
+  return types on overridden methods.
 
 ### Language
 

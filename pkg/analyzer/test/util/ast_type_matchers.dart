@@ -107,23 +107,15 @@ const isExpressionStatement = const TypeMatcher<ExpressionStatement>();
 
 const isExtendsClause = const TypeMatcher<ExtendsClause>();
 
+const isExtensionOverride = const TypeMatcher<ExtensionOverride>();
+
 const isFieldDeclaration = const TypeMatcher<FieldDeclaration>();
 
 const isFieldFormalParameter = const TypeMatcher<FieldFormalParameter>();
 
-/// TODO(paulberry): remove the explicit type `Matcher` once an SDK has been
-/// released that includes ba5644b76cb811e8f01ffb375b87d20d6295749c.
-final Matcher isForEachStatement = predicate(
-    (Object o) => o is ForStatement && o.forLoopParts is ForEachParts);
-
 const isFormalParameter = const TypeMatcher<FormalParameter>();
 
 const isFormalParameterList = const TypeMatcher<FormalParameterList>();
-
-/// TODO(paulberry): remove the explicit type `Matcher` once an SDK has been
-/// released that includes ba5644b76cb811e8f01ffb375b87d20d6295749c.
-final Matcher isForStatement =
-    predicate((Object o) => o is ForStatement && o.forLoopParts is ForParts);
 
 const isFunctionBody = const TypeMatcher<FunctionBody>();
 
@@ -185,11 +177,6 @@ const isListLiteral = const TypeMatcher<ListLiteral>();
 
 const isLiteral = const TypeMatcher<Literal>();
 
-/// TODO(paulberry): remove the explicit type `Matcher` once an SDK has been
-/// released that includes ba5644b76cb811e8f01ffb375b87d20d6295749c.
-final Matcher isMapLiteral =
-    predicate((Object o) => o is SetOrMapLiteral && o.isMap);
-
 const isMapLiteralEntry = const TypeMatcher<MapLiteralEntry>();
 
 const isMethodDeclaration = const TypeMatcher<MethodDeclaration>();
@@ -242,11 +229,6 @@ const isRethrowExpression = const TypeMatcher<RethrowExpression>();
 const isReturnStatement = const TypeMatcher<ReturnStatement>();
 
 const isScriptTag = const TypeMatcher<ScriptTag>();
-
-/// TODO(paulberry): remove the explicit type `Matcher` once an SDK has been
-/// released that includes ba5644b76cb811e8f01ffb375b87d20d6295749c.
-final Matcher isSetLiteral =
-    predicate((Object o) => o is SetOrMapLiteral && o.isSet);
 
 const isShowCombinator = const TypeMatcher<ShowCombinator>();
 
@@ -316,3 +298,23 @@ const isWhileStatement = const TypeMatcher<WhileStatement>();
 const isWithClause = const TypeMatcher<WithClause>();
 
 const isYieldStatement = const TypeMatcher<YieldStatement>();
+
+/// TODO(paulberry): remove the explicit type `Matcher` once an SDK has been
+/// released that includes ba5644b76cb811e8f01ffb375b87d20d6295749c.
+final Matcher isForEachStatement = predicate(
+    (Object o) => o is ForStatement && o.forLoopParts is ForEachParts);
+
+/// TODO(paulberry): remove the explicit type `Matcher` once an SDK has been
+/// released that includes ba5644b76cb811e8f01ffb375b87d20d6295749c.
+final Matcher isForStatement =
+    predicate((Object o) => o is ForStatement && o.forLoopParts is ForParts);
+
+/// TODO(paulberry): remove the explicit type `Matcher` once an SDK has been
+/// released that includes ba5644b76cb811e8f01ffb375b87d20d6295749c.
+final Matcher isMapLiteral =
+    predicate((Object o) => o is SetOrMapLiteral && o.isMap);
+
+/// TODO(paulberry): remove the explicit type `Matcher` once an SDK has been
+/// released that includes ba5644b76cb811e8f01ffb375b87d20d6295749c.
+final Matcher isSetLiteral =
+    predicate((Object o) => o is SetOrMapLiteral && o.isSet);

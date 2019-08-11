@@ -44,6 +44,7 @@ class HierarchyInfo;
 class Instance;
 class Interpreter;
 class Isolate;
+class IsolateGroup;
 class Library;
 class Object;
 class OSThread;
@@ -122,7 +123,9 @@ class Zone;
   V(RawCode*, lazy_specialize_type_test_stub_,                                 \
     StubCode::LazySpecializeTypeTest().raw(), NULL)                            \
   V(RawCode*, enter_safepoint_stub_, StubCode::EnterSafepoint().raw(), NULL)   \
-  V(RawCode*, exit_safepoint_stub_, StubCode::ExitSafepoint().raw(), NULL)
+  V(RawCode*, exit_safepoint_stub_, StubCode::ExitSafepoint().raw(), NULL)     \
+  V(RawCode*, call_native_through_safepoint_stub_,                             \
+    StubCode::CallNativeThroughSafepoint().raw(), NULL)
 
 #endif
 
@@ -167,7 +170,9 @@ class Zone;
     0)                                                                         \
   V(uword, optimize_entry_, StubCode::OptimizeFunction().EntryPoint(), 0)      \
   V(uword, deoptimize_entry_, StubCode::Deoptimize().EntryPoint(), 0)          \
-  V(uword, verify_callback_entry_, StubCode::VerifyCallback().EntryPoint(), 0)
+  V(uword, verify_callback_entry_, StubCode::VerifyCallback().EntryPoint(), 0) \
+  V(uword, call_native_through_safepoint_entry_point_,                         \
+    StubCode::CallNativeThroughSafepoint().EntryPoint(), 0)
 #endif
 
 #define CACHED_ADDRESSES_LIST(V)                                               \
@@ -358,9 +363,13 @@ class Thread : public ThreadState {
   void EnterApiScope();
   void ExitApiScope();
 
-  // The isolate that this thread is operating on, or NULL if none.
+  // The isolate that this thread is operating on, or nullptr if none.
   Isolate* isolate() const { return isolate_; }
   static intptr_t isolate_offset() { return OFFSET_OF(Thread, isolate_); }
+
+  // The isolate group that this thread is operating on, or nullptr if none.
+  IsolateGroup* isolate_group() const { return isolate_group_; }
+
   bool IsMutatorThread() const;
   bool CanCollectGarbage() const;
 
@@ -883,6 +892,7 @@ class Thread : public ThreadState {
 
   TaskKind task_kind_;
   TimelineStream* dart_stream_;
+  IsolateGroup* isolate_group_ = nullptr;
   mutable Monitor thread_lock_;
   ApiLocalScope* api_reusable_scope_;
   ApiLocalScope* api_top_scope_;
@@ -938,7 +948,7 @@ class Thread : public ThreadState {
 
   Thread* next_;  // Used to chain the thread structures in an isolate.
 
-  explicit Thread(Isolate* isolate);
+  explicit Thread(bool is_vm_isolate);
 
   void StoreBufferRelease(
       StoreBuffer::ThresholdPolicy policy = StoreBuffer::kCheckThreshold);
@@ -968,6 +978,7 @@ class Thread : public ThreadState {
   friend class Interpreter;
   friend class InterruptChecker;
   friend class Isolate;
+  friend class IsolateGroup;
   friend class IsolateTestHelper;
   friend class NoOOBMessageScope;
   friend class Simulator;

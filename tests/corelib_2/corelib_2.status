@@ -39,8 +39,6 @@ integer_to_string_test/01: RuntimeError
 integer_to_string_test/01: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 iterable_return_type_test/02: RuntimeError # Dart2js does not support Uint64*.
 list_unmodifiable_test: Pass, RuntimeError # Issue 28712
-num_parse_test/01: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-num_parse_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 
 [ $compiler != dartdevc ]
 error_stack_trace_test/static: MissingCompileTimeError
@@ -106,6 +104,7 @@ apply_generic_function_test: SkipByDesign # Function.apply with named args
 apply_test: Skip # Uses new Symbol via symbolMapToStringMap helper
 dynamic_nosuchmethod_test: SkipByDesign # Expects names in NSM
 error_stack_trace1_test: SkipByDesign # Expects unobfuscated stack trace
+type_tostring_test: SkipByDesign # Expects names in Type.toString()
 
 # All static_tests have expected compile-time errors.
 [ $compiler != app_jitk && $compiler != dart2analyzer && $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkb && $compiler != dartkp && $compiler != fasta ]
@@ -316,8 +315,6 @@ list_concurrent_modify_test: RuntimeError # DDC uses ES6 array iterators so it d
 list_removeat_test: RuntimeError # Issue 29921
 main_test: RuntimeError # Issue 29921
 nan_infinity_test/01: RuntimeError # Issue 29921
-num_parse_test/01: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-num_parse_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 regexp/alternative-length-miscalculation_test: RuntimeError # Issue 29921
 regexp/ascii-regexp-subject_test: RuntimeError # Issue 29921
 regexp/bol-with-multiline_test: RuntimeError # Issue 29921

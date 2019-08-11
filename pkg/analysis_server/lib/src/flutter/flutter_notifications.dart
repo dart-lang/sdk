@@ -16,7 +16,6 @@ void sendFlutterNotificationOutline(
     var params = new protocol.FlutterOutlineParams(
       resolvedUnit.path,
       outline,
-      instrumentedCode: computer.instrumentedCode,
     );
     server.sendNotification(params.toNotification());
   });

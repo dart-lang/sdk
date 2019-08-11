@@ -167,7 +167,7 @@ var v = const <int, int>{if (1 < 0) 0: 0 else a: 0};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
             ? [
-                error(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY, 0, 0),
+                error(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY, 67, 1),
               ]
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 46, 25),
@@ -182,7 +182,7 @@ var v = const <int, int>{if (1 < 0) a: 0 else 0: 0};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
             ? [
-                error(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY, 0, 0),
+                error(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY, 57, 1),
               ]
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 46, 25),
@@ -197,7 +197,7 @@ var v = const <int, int>{if (1 > 0) 0: 0 else a: 0};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
             ? [
-                error(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY, 0, 0),
+                error(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY, 67, 1),
               ]
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 46, 25),
@@ -212,7 +212,7 @@ var v = const <int, int>{if (1 > 0) a: 0 else 0: 0};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
             ? [
-                error(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY, 0, 0),
+                error(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY, 57, 1),
               ]
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 46, 25),
@@ -240,7 +240,7 @@ var v = const <int, int>{if (1 < 0) a: 0};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
             ? [
-                error(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY, 0, 0),
+                error(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY, 57, 1),
               ]
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 46, 15),
@@ -268,7 +268,7 @@ var v = const <int, int>{if (1 > 0) a: 0};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
             ? [
-                error(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY, 0, 0),
+                error(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY, 57, 1),
               ]
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 46, 15),
@@ -302,7 +302,7 @@ var v = const <int, int>{if (1 < 0) 0: 0 else 0: a};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
             ? [
-                error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE, 0, 0),
+                error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE, 70, 1),
               ]
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 46, 25),
@@ -317,7 +317,7 @@ var v = const <int, int>{if (1 < 0) 0: a else 0: 0};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
             ? [
-                error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE, 0, 0),
+                error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE, 60, 1),
               ]
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 46, 25),
@@ -332,7 +332,7 @@ var v = const <int, int>{if (1 > 0) 0: 0 else 0: a};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
             ? [
-                error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE, 0, 0),
+                error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE, 70, 1),
               ]
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 46, 25),
@@ -347,7 +347,7 @@ var v = const <int, int>{if (1 > 0) 0: a else 0: 0};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
             ? [
-                error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE, 0, 0),
+                error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE, 60, 1),
               ]
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 46, 25),
@@ -375,7 +375,7 @@ var v = const <int, int>{if (1 < 0) 0: a};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
             ? [
-                error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE, 0, 0),
+                error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE, 60, 1),
               ]
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 46, 15),
@@ -403,7 +403,7 @@ var v = const <int, int>{if (1 > 0) 0: a};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
             ? [
-                error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE, 0, 0),
+                error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE, 60, 1),
               ]
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 46, 15),

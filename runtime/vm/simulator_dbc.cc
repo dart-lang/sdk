@@ -1853,8 +1853,16 @@ SwitchDispatch:
 
       Exit(thread, FP, SP, pc);
       {
-        TransitionGeneratedToNative transition(thread);
+        thread->set_execution_state(Thread::kThreadInNative);
+        thread->EnterSafepoint();
+
         FfiTrampolineCall(marshalled_args_data);
+
+        // We set the execution state to kThreadInVM before waiting for the
+        // safepoint to end for the benefit of tests like ffi/function_gc_test.
+        thread->set_execution_state(Thread::kThreadInVM);
+        thread->ExitSafepoint();
+        thread->set_execution_state(Thread::kThreadInGenerated);
       }
 
       const Representation result_rep = sig_desc.ResultRepresentation();

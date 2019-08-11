@@ -4,12 +4,12 @@ import "dart:core" as core;
 
 class C extends core::Object {
   field dynamic f = () → dynamic => 0;
-  synthetic constructor •() → self::C
+  synthetic constructor •() → self::C*
     : super core::Object::•()
     ;
 }
 class D extends self::C {
-  synthetic constructor •() → self::D
+  synthetic constructor •() → self::D*
     : super self::C::•()
     ;
   method g() → void {

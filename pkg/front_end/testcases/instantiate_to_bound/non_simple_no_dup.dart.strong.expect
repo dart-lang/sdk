@@ -13,13 +13,13 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class Hest<TypeX extends self::Hest<self::Hest::TypeX> = self::Hest<dynamic>> extends core::Object {
-  synthetic constructor •() → self::Hest<self::Hest::TypeX>
+class Hest<TypeX extends self::Hest<self::Hest::TypeX>* = self::Hest<dynamic>*> extends core::Object {
+  synthetic constructor •() → self::Hest<self::Hest::TypeX*>*
     : super core::Object::•()
     ;
 }
-class Fisk<TypeY extends core::Map<self::Hest<self::Hest<dynamic>>, self::Hest<self::Hest<dynamic>>> = dynamic> extends core::Object {
-  synthetic constructor •() → self::Fisk<self::Fisk::TypeY>
+class Fisk<TypeY extends core::Map<self::Hest<self::Hest<dynamic>*>*, self::Hest<self::Hest<dynamic>*>*>* = dynamic> extends core::Object {
+  synthetic constructor •() → self::Fisk<self::Fisk::TypeY*>*
     : super core::Object::•()
     ;
 }

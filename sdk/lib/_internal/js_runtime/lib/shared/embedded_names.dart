@@ -325,6 +325,24 @@ enum JsGetName {
 
   /// String representation of the type of the function class.
   FUNCTION_CLASS_TYPE_NAME,
+
+  /// String recipe for the [bool] type.
+  BOOL_RECIPE,
+
+  /// String recipe for the [double] type.
+  DOUBLE_RECIPE,
+
+  /// String recipe for the [int] type.
+  INT_RECIPE,
+
+  /// String recipe for the [num] type.
+  NUM_RECIPE,
+
+  /// String recipe for the [String] type.
+  STRING_RECIPE,
+
+  /// Property name for Rti._is field.
+  RTI_FIELD_IS,
 }
 
 enum JsBuiltin {
@@ -335,6 +353,15 @@ enum JsBuiltin {
   ///     if (JS('bool', '# instanceof #', obj, constructor))
   ///       ...
   dartObjectConstructor,
+
+  /// Returns the JavaScript constructor function for the runtime's Closure
+  /// class, the base class of all closure objects.  This can be used for type
+  /// tests, as in
+  ///
+  ///     var constructor = JS_BUILTIN('', JsBuiltin.dartClosureConstructor);
+  ///     if (JS('bool', '# instanceof #', obj, constructor))
+  ///       ...
+  dartClosureConstructor,
 
   /// Returns the JavaScript-constructor name given an [isCheckProperty].
   ///

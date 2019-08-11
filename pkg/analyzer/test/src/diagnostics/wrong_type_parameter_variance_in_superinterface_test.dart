@@ -316,11 +316,20 @@ class A<X> {}
 class B<X> extends A<void Function<Y extends X>()> {}
 ''', [
         error(
-          CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
-          22,
-          1,
-        ),
+            CompileTimeErrorCode
+                .WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
+            22,
+            1),
+        error(
+            CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
+            35,
+            28),
       ]);
+      if (!AnalysisDriver.useSummary2) {
+        throw 'Test passed - expected to fail.';
+      }
+    } on String {
+      rethrow;
     } catch (_) {
       // TODO(scheglov) This code crashes with summary1.
 //    NoSuchMethodError: The getter 'bound' was called on null.

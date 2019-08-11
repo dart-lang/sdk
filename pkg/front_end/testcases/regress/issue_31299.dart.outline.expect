@@ -3,12 +3,12 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  field core::int m;
-  constructor •() → self::A
+  field core::int* m;
+  constructor •() → self::A*
     ;
-  constructor foo() → self::A
+  constructor foo() → self::A*
     ;
-  method foo(core::int a, core::int b) → core::int
+  method foo(core::int* a, core::int* b) → core::int*
     ;
 }
 static method test() → dynamic

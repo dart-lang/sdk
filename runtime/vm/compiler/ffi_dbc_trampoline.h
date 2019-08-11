@@ -9,8 +9,7 @@
 
 namespace dart {
 
-#if !defined(HOST_OS_WINDOWS) &&                                               \
-    (defined(HOST_ARCH_X64) || defined(HOST_ARCH_ARM64))
+#if defined(HOST_ARCH_X64) && !defined(HOST_OS_WINDOWS)
 
 // Generic Trampoline for DBC dart:ffi calls. Argument needs to be layed out as
 // a FfiMarshalledArguments.

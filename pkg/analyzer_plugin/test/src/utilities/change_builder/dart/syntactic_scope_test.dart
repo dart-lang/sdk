@@ -352,6 +352,18 @@ N1 N2(N3 N4(N5 N6 ^1, N7), N8 ^2) {
 ''');
   }
 
+  test_FormalParameter_nameOnly() {
+    _assertScopeNames(code: r'''
+N1 N2(^1N3^2) {
+  ^3
+}
+''', expected: r'''
+1: {}
+2: {}
+3: N3
+''');
+  }
+
   test_ForStatement2_ForEachPartsWithDeclaration() {
     _enableExperiments();
     _assertScopeNames(code: r'''

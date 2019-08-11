@@ -8,17 +8,14 @@ import 'package:unittest/unittest.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
-const alwaysInline = "AlwaysInline";
-const noInline = "NeverInline";
-
-int LINE_A = 34;
-int LINE_B = 39;
-int LINE_C = 42;
-int LINE_D = 46;
+int LINE_A = 31;
+int LINE_B = 36;
+int LINE_C = 39;
+int LINE_D = 43;
 
 int global = 0;
 
-@noInline
+@pragma('vm:never-inline')
 b3(x) {
   int sum = 0;
   try {
@@ -35,10 +32,10 @@ b3(x) {
   return sum;
 }
 
-@alwaysInline
+@pragma('vm:prefer-inline')
 b2(x) => b3(x); // Line B
 
-@alwaysInline
+@pragma('vm:prefer-inline')
 b1(x) => b2(x); // Line C
 
 test() {
@@ -102,19 +99,6 @@ var tests = <IsolateTest>[
     expect(result.type, equals('Instance'));
     expect(result.valueAsString, equals('100'));
 
-    // Resume again, for fun.
-    var result2 = await isolate.resume();
-    expect(result2['type'], equals('Success'));
-  },
-  hasStoppedAtBreakpoint,
-  stoppedAtLine(LINE_A),
-  (Isolate isolate) async {
-    // global is now 101.
-    Instance result = await isolate.rootLibrary.evaluate('global');
-    print('global is $result');
-    expect(result.type, equals('Instance'));
-    expect(result.valueAsString, equals('101'));
-
     // Rewind up to 'test'/
     var result2 = await isolate.rewind(3);
     expect(result2['type'], equals('Success'));
@@ -151,7 +135,6 @@ var tests = <IsolateTest>[
 main(args) => runIsolateTests(args, tests, testeeConcurrent: test, extraArgs: [
       '--trace-rewind',
       '--no-prune-dead-locals',
-      '--enable-inlining-annotations',
       '--no-background-compilation',
       '--optimization-counter-threshold=10'
     ]);

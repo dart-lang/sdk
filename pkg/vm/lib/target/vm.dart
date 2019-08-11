@@ -46,6 +46,9 @@ class VmTarget extends Target {
   bool get enableNoSuchMethodForwarders => true;
 
   @override
+  bool get supportsSetLiterals => false;
+
+  @override
   String get name => 'vm';
 
   // This is the order that bootstrap libraries are loaded according to
@@ -81,6 +84,7 @@ class VmTarget extends Target {
       CoreTypes coreTypes,
       ClassHierarchy hierarchy,
       List<Library> libraries,
+      Map<String, String> environmentDefines,
       DiagnosticReporter diagnosticReporter,
       {void logger(String msg)}) {
     transformMixins.transformLibraries(this, coreTypes, hierarchy, libraries,
@@ -95,10 +99,13 @@ class VmTarget extends Target {
     logger?.call("Transformed ffi annotations");
 
     // TODO(kmillikin): Make this run on a per-method basis.
-    transformAsync.transformLibraries(coreTypes, libraries);
+    bool productMode = environmentDefines["dart.vm.product"] == "true";
+    transformAsync.transformLibraries(coreTypes, libraries,
+        productMode: productMode);
     logger?.call("Transformed async methods");
 
     listFactorySpecializer.transformLibraries(libraries, coreTypes);
+    logger?.call("Specialized list factories");
 
     callSiteAnnotator.transformLibraries(
         component, libraries, coreTypes, hierarchy);

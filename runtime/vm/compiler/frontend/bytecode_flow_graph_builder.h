@@ -147,7 +147,8 @@ class BytecodeFlowGraphBuilder {
                         int num_args);
   void BuildIntOp(const String& name, Token::Kind token_kind, int num_args);
   void BuildDoubleOp(const String& name, Token::Kind token_kind, int num_args);
-  void BuildInterfaceCallCommon(bool is_unchecked_call);
+  void BuildInterfaceCallCommon(bool is_unchecked_call,
+                                bool is_instantiated_call);
 
   void BuildInstruction(KernelBytecode::Opcode opcode);
   void BuildFfiAsFunction();
@@ -165,6 +166,10 @@ class BytecodeFlowGraphBuilder {
   void CollectControlFlow(const PcDescriptors& descriptors,
                           const ExceptionHandlers& handlers,
                           GraphEntryInstr* graph_entry);
+
+  // Figure out entry points style.
+  UncheckedEntryPointStyle ChooseEntryPointStyle(
+      const KBCInstr* jump_if_unchecked);
 
   Thread* thread() const { return flow_graph_builder_->thread_; }
   Isolate* isolate() const { return thread()->isolate(); }
@@ -189,7 +194,7 @@ class BytecodeFlowGraphBuilder {
   intptr_t pc_;
   intptr_t next_pc_ = -1;
   const KBCInstr* bytecode_instr_ = nullptr;
-  TokenPosition position_;  // TODO(alexmarkov): Set/update.
+  TokenPosition position_;
   Fragment code_;
   ZoneGrowableArray<LocalVariable*> local_vars_;
   ZoneGrowableArray<LocalVariable*> parameters_;
@@ -200,6 +205,8 @@ class BytecodeFlowGraphBuilder {
   IntMap<Value*> stack_states_;
   PrologueInfo prologue_info_;
   JoinEntryInstr* throw_no_such_method_;
+  GraphEntryInstr* graph_entry_ = nullptr;
+  UncheckedEntryPointStyle entry_point_style_ = UncheckedEntryPointStyle::kNone;
 };
 
 }  // namespace kernel

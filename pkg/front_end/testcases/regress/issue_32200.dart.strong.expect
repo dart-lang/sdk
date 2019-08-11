@@ -13,11 +13,11 @@ import "org-dartlang-testcase:///issue_32200.dart" as self;
 
 class Foo extends core::Object {
   field invalid-type self = null;
-  synthetic constructor •() → self::Foo
+  synthetic constructor •() → self::Foo*
     : super core::Object::•()
     ;
 }
 static method main() → dynamic {
-  self::Foo instance = new self::Foo::•();
+  self::Foo* instance = new self::Foo::•();
   instance.{self::Foo::self} = instance as{TypeError} invalid-type;
 }

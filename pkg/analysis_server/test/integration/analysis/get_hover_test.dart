@@ -67,11 +67,11 @@ main() {
     List<String> descriptionRegexps,
     String kind,
     List<String> staticTypeRegexps, {
-    bool isLocal: false,
-    bool isCore: false,
-    String docRegexp: null,
-    bool isLiteral: false,
-    List<String> parameterRegexps: null,
+    bool isLocal = false,
+    bool isCore = false,
+    String docRegexp = null,
+    bool isLiteral = false,
+    List<String> parameterRegexps = null,
   }) {
     int offset = text.indexOf(target);
     return sendAnalysisGetHover(pathname, offset).then((result) async {

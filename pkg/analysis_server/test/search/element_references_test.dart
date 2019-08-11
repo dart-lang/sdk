@@ -41,7 +41,6 @@ class ElementReferencesTest extends AbstractSearchDomainTest {
     if (searchId != null) {
       await waitForSearchResults();
     }
-    expect(serverErrors, isEmpty);
   }
 
   Future<void> test_constructor_named() async {

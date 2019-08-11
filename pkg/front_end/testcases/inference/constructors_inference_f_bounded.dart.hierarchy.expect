@@ -18,7 +18,7 @@ Object:
     Object.==
   classSetters:
 
-Clonable:
+Cloneable:
   superclasses:
     Object
   interfaces:

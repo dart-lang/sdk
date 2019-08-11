@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include <functional>
+
 #include "include/dart_native_api.h"
 
 #include "platform/assert.h"
@@ -170,7 +172,11 @@ DART_EXPORT bool Dart_InvokeVMServiceMethod(uint8_t* request_json,
     Dart_CloseNativePort(port);
 
     if (error != nullptr) {
-      *error = strdup("Was unable to post message to isolate.");
+      if (ServiceIsolate::Port() == ILLEGAL_PORT) {
+        *error = strdup("No service isolate port was found.");
+      } else {
+        *error = strdup("Was unable to post message to service isolate.");
+      }
     }
     return false;
   }
@@ -237,14 +243,47 @@ DART_EXPORT Dart_Handle Dart_FinalizeAllClasses() {
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
-DART_EXPORT void Dart_ExecuteInternalCommand(const char* command) {
-  if (!FLAG_enable_testing_pragmas) return;
+struct RunInSafepointAndRWCodeArgs {
+  Isolate* isolate;
+  std::function<void()>* callback;
+};
 
-  TransitionNativeToVM _(Thread::Current());
+DART_EXPORT void* Dart_ExecuteInternalCommand(const char* command, void* arg) {
+  if (!FLAG_enable_testing_pragmas) return nullptr;
+
   if (!strcmp(command, "gc-on-next-allocation")) {
+    TransitionNativeToVM _(Thread::Current());
     Isolate::Current()->heap()->CollectOnNextAllocation();
+    return nullptr;
+
   } else if (!strcmp(command, "gc-now")) {
-    Isolate::Current()->heap()->CollectAllGarbage(Heap::kDebugging);
+    TransitionNativeToVM _(Thread::Current());
+    Isolate::Current()->heap()->CollectAllGarbage();
+    return nullptr;
+
+  } else if (!strcmp(command, "is-mutator-in-native")) {
+    Isolate* const isolate = reinterpret_cast<Isolate*>(arg);
+    if (isolate->mutator_thread()->execution_state() ==
+        Thread::kThreadInNative) {
+      return arg;
+    } else {
+      return nullptr;
+    }
+
+  } else if (!strcmp(command, "run-in-safepoint-and-rw-code")) {
+    const RunInSafepointAndRWCodeArgs* const args =
+        reinterpret_cast<RunInSafepointAndRWCodeArgs*>(arg);
+    Thread::EnterIsolateAsHelper(args->isolate, Thread::TaskKind::kUnknownTask);
+    Thread* const thread = Thread::Current();
+    {
+      SafepointOperationScope scope(thread);
+      args->isolate->heap()->WriteProtectCode(/*read_only=*/false);
+      (*args->callback)();
+      args->isolate->heap()->WriteProtectCode(/*read_only=*/true);
+    }
+    Thread::ExitIsolateAsHelper();
+    return nullptr;
+
   } else {
     UNREACHABLE();
   }

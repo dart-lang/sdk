@@ -18,8 +18,6 @@ class DevCompilerTarget extends Target {
 
   final TargetFlags flags;
 
-  ClassHierarchy hierarchy;
-
   WidgetCreatorTracker _widgetTracker;
 
   @override
@@ -92,9 +90,6 @@ class DevCompilerTarget extends Target {
   bool get errorOnUnexactWebIntLiterals => true;
 
   @override
-  bool get supportsSetLiterals => true;
-
-  @override
   bool get enableNoSuchMethodForwarders => true;
 
   @override
@@ -103,9 +98,9 @@ class DevCompilerTarget extends Target {
       CoreTypes coreTypes,
       ClassHierarchy hierarchy,
       List<Library> libraries,
+      Map<String, String> environmentDefines,
       DiagnosticReporter diagnosticReporter,
       {void logger(String msg)}) {
-    this.hierarchy = hierarchy;
     for (var library in libraries) {
       _CovarianceTransformer(library).transform();
     }

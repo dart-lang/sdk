@@ -123,9 +123,9 @@ class FileUtils {
 
 class CommandCompletedHandler {
   FileUtils fileUtils;
-  bool _shouldHaveRun;
+  final bool _shouldHaveRun;
 
-  CommandCompletedHandler(FileUtils this.fileUtils, bool this._shouldHaveRun);
+  CommandCompletedHandler(this.fileUtils, this._shouldHaveRun);
 
   void processCompletedTest(CommandOutput output) {
     Expect.equals(0, output.exitCode);
@@ -246,5 +246,5 @@ void main() {
 
   // We need to wait some time to make sure that the files we 'touch' get a
   // bigger timestamp than the old ones
-  Timer(Duration(seconds: 1), touchFilesAndRunTests);
+  Timer(const Duration(seconds: 1), touchFilesAndRunTests);
 }

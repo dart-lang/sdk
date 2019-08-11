@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:meta/meta.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/edge_builder.dart';
@@ -39,16 +40,14 @@ class NullabilityMigrationImpl implements NullabilityMigration {
 
   void finish() {
     _graph.propagate();
-    for (var entry in _variables.getPotentialModifications().entries) {
-      var source = entry.key;
-      for (var potentialModification in entry.value) {
-        var fix = _SingleNullabilityFix(source, potentialModification);
-        listener.addFix(fix);
-        for (var edit in potentialModification.modifications) {
-          listener.addEdit(fix, edit);
-        }
-      }
+    if (_graph.unsatisfiedSubstitutions.isNotEmpty) {
+      throw new UnimplementedError('Need to report unsatisfied substitutions');
     }
+    // TODO(paulberry): it would be nice to report on unsatisfied edges as well,
+    // however, since every `!` we add has an unsatisfied edge associated with
+    // it, we can't report on every unsatisfied edge.  We need to figure out a
+    // way to report unsatisfied edges that isn't too overwhelming.
+    broadcast(_variables, listener);
   }
 
   void prepareInput(ResolvedUnitResult result) {
@@ -62,6 +61,27 @@ class NullabilityMigrationImpl implements NullabilityMigration {
     unit.accept(EdgeBuilder(result.typeProvider, result.typeSystem, _variables,
         _graph, unit.declaredElement.source, _permissive ? listener : null));
   }
+
+  @visibleForTesting
+  static void broadcast(
+      Variables variables, NullabilityMigrationListener listener) {
+    for (var entry in variables.getPotentialModifications().entries) {
+      var source = entry.key;
+      final lineInfo = LineInfo.fromContent(source.contents.data);
+      for (var potentialModification in entry.value) {
+        var modifications = potentialModification.modifications;
+        if (modifications.isEmpty) {
+          continue;
+        }
+        var fix =
+            _SingleNullabilityFix(source, potentialModification, lineInfo);
+        listener.addFix(fix);
+        for (var edit in modifications) {
+          listener.addEdit(fix, edit);
+        }
+      }
+    }
+  }
 }
 
 /// Implementation of [SingleNullabilityFix] used internally by
@@ -71,35 +91,57 @@ class _SingleNullabilityFix extends SingleNullabilityFix {
   final Source source;
 
   @override
-  final NullabilityFixKind kind;
+  final NullabilityFixDescription description;
 
-  factory _SingleNullabilityFix(
-      Source source, PotentialModification potentialModification) {
+  Location _location;
+
+  factory _SingleNullabilityFix(Source source,
+      PotentialModification potentialModification, LineInfo lineInfo) {
     // TODO(paulberry): once everything is migrated into the analysis server,
     // the migration engine can just create SingleNullabilityFix objects
     // directly and set their kind appropriately; we won't need to translate the
     // kinds using a bunch of `is` checks.
-    NullabilityFixKind kind;
+    NullabilityFixDescription desc;
     if (potentialModification is ExpressionChecks) {
-      kind = NullabilityFixKind.checkExpression;
+      desc = NullabilityFixDescription.checkExpression;
     } else if (potentialModification is DecoratedTypeAnnotation) {
-      kind = NullabilityFixKind.makeTypeNullable;
+      desc = NullabilityFixDescription.makeTypeNullable(
+          potentialModification.type.toString());
     } else if (potentialModification is ConditionalModification) {
-      kind = potentialModification.discard.keepFalse
-          ? NullabilityFixKind.discardThen
-          : NullabilityFixKind.discardElse;
+      desc = potentialModification.discard.keepFalse
+          ? NullabilityFixDescription.discardThen
+          : NullabilityFixDescription.discardElse;
     } else if (potentialModification is PotentiallyAddImport) {
-      kind = NullabilityFixKind.addImport;
+      desc =
+          NullabilityFixDescription.addImport(potentialModification.importPath);
     } else if (potentialModification is PotentiallyAddRequired) {
-      kind = NullabilityFixKind.addRequired;
+      desc = NullabilityFixDescription.addRequired(
+          potentialModification.className,
+          potentialModification.methodName,
+          potentialModification.parameterName);
     } else {
       throw new UnimplementedError('TODO(paulberry)');
     }
-    return _SingleNullabilityFix._(source, kind);
+
+    Location location;
+
+    if (potentialModification.modifications.isNotEmpty) {
+      final locationInfo = lineInfo
+          .getLocation(potentialModification.modifications.first.offset);
+      location = new Location(
+        source.fullName,
+        potentialModification.modifications.first.offset,
+        potentialModification.modifications.first.length,
+        locationInfo.lineNumber,
+        locationInfo.columnNumber,
+      );
+    }
+
+    return _SingleNullabilityFix._(source, desc, location: location);
   }
 
-  _SingleNullabilityFix._(this.source, this.kind);
+  _SingleNullabilityFix._(this.source, this.description, {Location location})
+      : this._location = location;
 
-  /// TODO(paulberry): do something better
-  Location get location => null;
+  Location get location => _location;
 }

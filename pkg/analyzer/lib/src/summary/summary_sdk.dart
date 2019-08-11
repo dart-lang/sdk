@@ -345,6 +345,9 @@ class SummaryTypeProvider extends TypeProviderBase {
     return _typeType;
   }
 
+  @override
+  VoidType get voidType => VoidTypeImpl.instance;
+
   /**
    * Initialize the `dart:async` types provided by this type provider.
    */

@@ -31,6 +31,7 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
   IndexedSink<Uri> _uriIndex;
   IndexedSink<ir.Member> _memberNodeIndex;
   IndexedSink<ImportEntity> _importIndex;
+  IndexedSink<ConstantValue> _constantIndex;
 
   Map<Type, IndexedSink> _generalCaches = {};
 
@@ -49,6 +50,7 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
     _uriIndex = new IndexedSink<Uri>(this);
     _memberNodeIndex = new IndexedSink<ir.Member>(this);
     _importIndex = new IndexedSink<ImportEntity>(this);
+    _constantIndex = new IndexedSink<ConstantValue>(this);
   }
 
   @override
@@ -293,6 +295,19 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
     }
   }
 
+  _MemberData _getMemberData(ir.TreeNode node) {
+    ir.TreeNode member = node;
+    while (member is! ir.Member) {
+      if (member == null) {
+        throw new UnsupportedError("No enclosing member of TreeNode "
+            "$node (${node.runtimeType})");
+      }
+      member = member.parent;
+    }
+    _writeMemberNode(member);
+    return _memberData[member] ??= new _MemberData(member);
+  }
+
   void _writeTreeNode(ir.TreeNode value, _MemberData memberData) {
     if (value is ir.Class) {
       _writeEnumInternal(_TreeNodeKind.cls);
@@ -312,24 +327,14 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
       _writeTypeParameter(value, memberData);
     } else if (value is ConstantReference) {
       _writeEnumInternal(_TreeNodeKind.constant);
+      memberData ??= _getMemberData(value.expression);
       _writeTreeNode(value.expression, memberData);
-      _ConstantNodeIndexerVisitor indexer = new _ConstantNodeIndexerVisitor();
-      value.expression.constant.accept(indexer);
-      _writeIntInternal(indexer.getIndex(value.constant));
+      int index =
+          memberData.getIndexByConstant(value.expression, value.constant);
+      _writeIntInternal(index);
     } else {
       _writeEnumInternal(_TreeNodeKind.node);
-      if (memberData == null) {
-        ir.TreeNode member = value;
-        while (member is! ir.Member) {
-          if (member == null) {
-            throw new UnsupportedError("No enclosing member of TreeNode "
-                "$value (${value.runtimeType})");
-          }
-          member = member.parent;
-        }
-        _writeMemberNode(member);
-        memberData = _memberData[member] ??= new _MemberData(member);
-      }
+      memberData ??= _getMemberData(value);
       int index = memberData.getIndexByTreeNode(value);
       assert(
           index != null,
@@ -405,6 +410,7 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
     _entityWriter.writeMemberToDataSink(this, value);
   }
 
+  @override
   void writeTypeVariable(IndexedTypeVariable value) {
     _entityWriter.writeTypeVariableToDataSink(this, value);
   }
@@ -464,6 +470,10 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
   }
 
   void _writeConstant(ConstantValue value) {
+    _constantIndex.write(value, _writeConstantInternal);
+  }
+
+  void _writeConstantInternal(ConstantValue value) {
     _writeEnumInternal(value.kind);
     switch (value.kind) {
       case ConstantValueKind.BOOL:

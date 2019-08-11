@@ -38,6 +38,18 @@ class UriTranslator {
     return null;
   }
 
+  /// For a package uri, get the fragment of the uri specified for that package.
+  String getPackageFragment(Uri uri) {
+    if (packages == null) return null;
+    if (uri.scheme != "package") return null;
+    int firstSlash = uri.path.indexOf('/');
+    if (firstSlash == -1) return null;
+    String packageName = uri.path.substring(0, firstSlash);
+    Uri packageBaseUri = packages.asMap()[packageName];
+    if (packageBaseUri == null) return null;
+    return packageBaseUri.fragment;
+  }
+
   bool isLibrarySupported(String libraryName) {
     // TODO(sigmund): change this to `?? false` when all backends provide the
     // `libraries.json` file by default (Issue #32657).

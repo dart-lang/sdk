@@ -329,6 +329,32 @@ class LazyClassTypeAlias {
   }
 }
 
+class LazyCombinator {
+  static const _key = 'lazyAst';
+
+  final LinkedNode data;
+
+  LazyCombinator(Combinator node, this.data) {
+    node.setProperty(_key, this);
+  }
+
+  static LazyCombinator get(Combinator node) {
+    return node.getProperty(_key);
+  }
+
+  static int getEnd(
+    LinkedUnitContext context,
+    Combinator node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null) {
+      var informativeData = context.getInformativeData(lazy.data);
+      return informativeData?.combinatorEnd ?? 0;
+    }
+    return node.end;
+  }
+}
+
 class LazyCompilationUnit {
   static const _key = 'lazyAst';
 
@@ -659,6 +685,123 @@ class LazyEnumDeclaration {
 
   static void setData(EnumDeclaration node, LinkedNode data) {
     node.setProperty(_key, LazyEnumDeclaration(data));
+  }
+}
+
+class LazyExtensionDeclaration {
+  static const _key = 'lazyAst';
+
+  final LinkedNode data;
+
+  bool _hasDocumentationComment = false;
+  bool _hasExtendedType = false;
+  bool _hasMembers = false;
+  bool _hasMetadata = false;
+
+  /// The name for use in `Reference`. If the extension is named, the name
+  /// of the extension. If the extension is unnamed, a synthetic name.
+  String _refName;
+
+  LazyExtensionDeclaration(ExtensionDeclaration node, this.data) {
+    node.setProperty(_key, this);
+    if (data != null) {
+      _refName = data.extensionDeclaration_refName;
+    }
+  }
+
+  String get refName => _refName;
+
+  void put(LinkedNodeBuilder builder) {
+    assert(_refName != null);
+    builder.extensionDeclaration_refName = _refName;
+  }
+
+  void setRefName(String referenceName) {
+    _refName = referenceName;
+  }
+
+  static LazyExtensionDeclaration get(ExtensionDeclaration node) {
+    LazyExtensionDeclaration lazy = node.getProperty(_key);
+    if (lazy == null) {
+      return LazyExtensionDeclaration(node, null);
+    }
+    return lazy;
+  }
+
+  static int getCodeLength(
+    LinkedUnitContext context,
+    ExtensionDeclaration node,
+  ) {
+    var lazy = get(node);
+    if (lazy?.data != null) {
+      return context.getInformativeData(lazy.data)?.codeLength ?? 0;
+    }
+    return node.length;
+  }
+
+  static int getCodeOffset(
+    LinkedUnitContext context,
+    ExtensionDeclaration node,
+  ) {
+    var lazy = get(node);
+    if (lazy?.data != null) {
+      return context.getInformativeData(lazy.data)?.codeOffset ?? 0;
+    }
+    return node.offset;
+  }
+
+  static void readDocumentationComment(
+    LinkedUnitContext context,
+    ExtensionDeclaration node,
+  ) {
+    var lazy = get(node);
+    if (lazy?.data != null && !lazy._hasDocumentationComment) {
+      node.documentationComment = context.createComment(lazy.data);
+      lazy._hasDocumentationComment = true;
+    }
+  }
+
+  static void readExtendedType(
+    AstBinaryReader reader,
+    ExtensionDeclaration node,
+  ) {
+    var lazy = get(node);
+    if (lazy?.data != null && !lazy._hasExtendedType) {
+      (node as ExtensionDeclarationImpl).extendedType = reader.readNode(
+        lazy.data.extensionDeclaration_extendedType,
+      );
+      lazy._hasExtendedType = true;
+    }
+  }
+
+  static void readMembers(
+    AstBinaryReader reader,
+    ExtensionDeclaration node,
+  ) {
+    var lazy = get(node);
+    if (lazy?.data != null && !lazy._hasMembers) {
+      var dataList = lazy.data.extensionDeclaration_members;
+      for (var i = 0; i < dataList.length; ++i) {
+        var data = dataList[i];
+        node.members[i] = reader.readNode(data);
+      }
+      lazy._hasMembers = true;
+    }
+  }
+
+  static void readMetadata(
+    AstBinaryReader reader,
+    ExtensionDeclaration node,
+  ) {
+    var lazy = get(node);
+    if (lazy?.data != null && !lazy._hasMetadata) {
+      var dataList = lazy.data.annotatedNode_metadata;
+      for (var i = 0; i < dataList.length; ++i) {
+        var data = dataList[i];
+        node.metadata[i] = reader.readNode(data);
+      }
+      lazy._hasMetadata = true;
+    }
   }
 }
 

@@ -24,6 +24,10 @@ void VirtualMemory::Init() {
   page_size_ = info.dwPageSize;
 }
 
+bool VirtualMemory::DualMappingEnabled() {
+  return false;
+}
+
 VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
                                               intptr_t alignment,
                                               bool is_executable,

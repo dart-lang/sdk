@@ -1034,8 +1034,7 @@ intptr_t Process::SetSignalHandler(intptr_t signal) {
     handler = handler->next();
   }
   if (listen) {
-    struct sigaction act;
-    bzero(&act, sizeof(act));
+    struct sigaction act = {};
     act.sa_handler = SignalHandler;
     sigemptyset(&act.sa_mask);
     for (int i = 0; i < kSignalsCount; i++) {
@@ -1084,8 +1083,7 @@ void Process::ClearSignalHandler(intptr_t signal, Dart_Port port) {
     handler = next;
   }
   if (unlisten) {
-    struct sigaction act;
-    bzero(&act, sizeof(act));
+    struct sigaction act = {};
     act.sa_handler = SIG_DFL;
     VOID_NO_RETRY_EXPECTED(sigaction(signal, &act, NULL));
   }

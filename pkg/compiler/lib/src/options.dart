@@ -255,34 +255,34 @@ class CompilerOptions implements DiagnosticOptions {
   /// Whether to omit implicit strong mode checks.
   bool omitImplicitChecks = false;
 
-  /// Whether to omit as casts.
+  /// Whether to omit as casts by default.
   bool omitAsCasts = false;
 
   /// Whether to omit class type arguments only needed for `toString` on
   /// `Object.runtimeType`.
   bool laxRuntimeTypeToString = false;
 
-  /// What should the compiler do with type assertions of assignments.
-  ///
-  /// This is an internal configuration option derived from other flags.
-  CheckPolicy assignmentCheckPolicy;
-
   /// What should the compiler do with parameter type assertions.
   ///
   /// This is an internal configuration option derived from other flags.
-  CheckPolicy parameterCheckPolicy;
+  CheckPolicy defaultParameterCheckPolicy;
 
   /// What should the compiler do with implicit downcasts.
   ///
   /// This is an internal configuration option derived from other flags.
-  CheckPolicy implicitDowncastCheckPolicy;
+  CheckPolicy defaultImplicitDowncastCheckPolicy;
 
   /// What the compiler should do with a boolean value in a condition context
   /// when the language specification says it is a runtime error for it to be
   /// null.
   ///
   /// This is an internal configuration option derived from other flags.
-  CheckPolicy conditionCheckPolicy;
+  CheckPolicy defaultConditionCheckPolicy;
+
+  /// What should the compiler do with explicit casts.
+  ///
+  /// This is an internal configuration option derived from other flags.
+  CheckPolicy defaultExplicitCastCheckPolicy;
 
   /// Whether to generate code compliant with content security policy (CSP).
   bool useContentSecurityPolicy = false;
@@ -351,9 +351,12 @@ class CompilerOptions implements DiagnosticOptions {
 
   /// Create an options object by parsing flags from [options].
   static CompilerOptions parse(List<String> options,
-      {Uri librariesSpecificationUri, Uri platformBinaries}) {
+      {Uri librariesSpecificationUri,
+      Uri platformBinaries,
+      void Function(String) onError,
+      void Function(String) onWarning}) {
     Map<fe.ExperimentalFlag, bool> languageExperiments =
-        _extractExperiments(options);
+        _extractExperiments(options, onError: onError, onWarning: onWarning);
     if (equalMaps(languageExperiments, fe.defaultExperimentalFlags)) {
       platformBinaries ??= fe.computePlatformBinariesLocation();
     }
@@ -470,6 +473,7 @@ class CompilerOptions implements DiagnosticOptions {
     if (benchmarkingExperiment) {
       // TODO(sra): Set flags implied by '--benchmarking-x'. Initially this will
       // be --experiment-new-rti, and later NNBD.
+      experimentNewRti = true;
     }
 
     if (optimizationLevel != null) {
@@ -492,15 +496,19 @@ class CompilerOptions implements DiagnosticOptions {
 
     // Strong mode always trusts type annotations (inferred or explicit), so
     // assignments checks should be trusted.
-    assignmentCheckPolicy = CheckPolicy.trusted;
     if (omitImplicitChecks) {
-      parameterCheckPolicy = CheckPolicy.trusted;
-      implicitDowncastCheckPolicy = CheckPolicy.trusted;
-      conditionCheckPolicy = CheckPolicy.trusted;
+      defaultParameterCheckPolicy = CheckPolicy.trusted;
+      defaultImplicitDowncastCheckPolicy = CheckPolicy.trusted;
+      defaultConditionCheckPolicy = CheckPolicy.trusted;
     } else {
-      parameterCheckPolicy = CheckPolicy.checked;
-      implicitDowncastCheckPolicy = CheckPolicy.checked;
-      conditionCheckPolicy = CheckPolicy.checked;
+      defaultParameterCheckPolicy = CheckPolicy.checked;
+      defaultImplicitDowncastCheckPolicy = CheckPolicy.checked;
+      defaultConditionCheckPolicy = CheckPolicy.checked;
+    }
+    if (omitAsCasts) {
+      defaultExplicitCastCheckPolicy = CheckPolicy.trusted;
+    } else {
+      defaultExplicitCastCheckPolicy = CheckPolicy.checked;
     }
 
     if (_disableMinification) {
@@ -602,11 +610,14 @@ List<Uri> _extractUriListOption(List<String> options, String flag) {
   return stringUris.map(Uri.parse).toList();
 }
 
-Map<fe.ExperimentalFlag, bool> _extractExperiments(List<String> options) {
+Map<fe.ExperimentalFlag, bool> _extractExperiments(List<String> options,
+    {void Function(String) onError, void Function(String) onWarning}) {
   List<String> experiments =
       _extractOptionalCsvOption(options, Flags.enableLanguageExperiments);
-  return fe.parseExperimentalFlags(
-      experiments, (String error) => throw new ArgumentError(error));
+  onError ??= (String error) => throw new ArgumentError(error);
+  onWarning ??= (String warning) => print(warning);
+  return fe.parseExperimentalFlags(fe.parseExperimentalArguments(experiments),
+      onError: onError, onWarning: onWarning);
 }
 
 const String _UNDETERMINED_BUILD_ID = "build number could not be determined";

@@ -23,6 +23,7 @@
 #include "vm/growable_array.h"
 #include "vm/handles.h"
 #include "vm/heap/verifier.h"
+#include "vm/intrusive_dlist.h"
 #include "vm/megamorphic_cache_table.h"
 #include "vm/metrics.h"
 #include "vm/os_thread.h"
@@ -55,6 +56,7 @@ class IsolateSpawnState;
 class Log;
 class Message;
 class MessageHandler;
+class MonitorLocker;
 class Mutex;
 class Object;
 class ObjectIdRing;
@@ -155,7 +157,121 @@ typedef FixedCache<intptr_t, CatchEntryMovesRefPtr, 16> CatchEntryMovesCache;
     unsafe_trust_strong_mode_types,                                            \
     FLAG_experimental_unsafe_mode_use_at_your_own_risk)
 
-class Isolate : public BaseIsolate {
+// Represents the information used for spawning the first isolate within an
+// isolate group.
+//
+// Any subsequent isolates created via `Isolate.spawn()` will be created using
+// the same [IsolateGroupSource] (the object itself is shared among all isolates
+// within the same group).
+//
+// Issue(http://dartbug.com/36097): It is still possible to run into issues if
+// an isolate has spawned another one and then loads more code into the first
+// one, which the latter will not get. Though it makes the status quo better
+// than what we had before (where the embedder needed to maintain the
+// same-source guarantee).
+//
+// => This is only the first step towards having multiple isolates share the
+//    same heap (and therefore the same program structure).
+//
+class IsolateGroupSource {
+ public:
+  IsolateGroupSource(const char* script_uri,
+                     const char* name,
+                     const uint8_t* snapshot_data,
+                     const uint8_t* snapshot_instructions,
+                     const uint8_t* shared_data,
+                     const uint8_t* shared_instructions,
+                     const uint8_t* kernel_buffer,
+                     intptr_t kernel_buffer_size,
+                     Dart_IsolateFlags flags)
+      : script_uri(script_uri),
+        name(strdup(name)),
+        snapshot_data(snapshot_data),
+        snapshot_instructions(snapshot_instructions),
+        shared_data(shared_data),
+        shared_instructions(shared_instructions),
+        kernel_buffer(kernel_buffer),
+        kernel_buffer_size(kernel_buffer_size),
+        flags(flags),
+        script_kernel_buffer(nullptr),
+        script_kernel_size(-1) {}
+  ~IsolateGroupSource() { free(name); }
+
+  // The arguments used for spawning in
+  // `Dart_CreateIsolateGroupFromKernel` / `Dart_CreateIsolate`.
+  const char* script_uri;
+  char* name;
+  const uint8_t* snapshot_data;
+  const uint8_t* snapshot_instructions;
+  const uint8_t* shared_data;
+  const uint8_t* shared_instructions;
+  const uint8_t* kernel_buffer;
+  const intptr_t kernel_buffer_size;
+  Dart_IsolateFlags flags;
+
+  // The kernel buffer used in `Dart_LoadScriptFromKernel`.
+  const uint8_t* script_kernel_buffer;
+  intptr_t script_kernel_size;
+};
+
+// Represents an isolate group and is shared among all isolates within a group.
+class IsolateGroup {
+ public:
+  IsolateGroup(std::unique_ptr<IsolateGroupSource> source, void* embedder_data);
+  ~IsolateGroup();
+
+  IsolateGroupSource* source() const { return source_.get(); }
+  void* embedder_data() const { return embedder_data_; }
+
+  void set_initial_spawn_successful() { initial_spawn_successful_ = true; }
+
+  void RegisterIsolate(Isolate* isolate);
+  void UnregisterIsolate(Isolate* isolate);
+
+  Monitor* threads_lock() const;
+  ThreadRegistry* thread_registry() const { return thread_registry_.get(); }
+  SafepointHandler* safepoint_handler() { return safepoint_handler_.get(); }
+
+  static inline IsolateGroup* Current() {
+    Thread* thread = Thread::Current();
+    return thread == nullptr ? nullptr : thread->isolate_group();
+  }
+
+  Thread* ScheduleThreadLocked(MonitorLocker* ml,
+                               Thread* existing_mutator_thread,
+                               bool is_vm_isolate,
+                               bool is_mutator,
+                               bool bypass_safepoint = false);
+  void UnscheduleThreadLocked(MonitorLocker* ml,
+                              Thread* thread,
+                              bool is_mutator,
+                              bool bypass_safepoint = false);
+
+  Thread* ScheduleThread(bool bypass_safepoint = false);
+  void UnscheduleThread(Thread* thread,
+                        bool is_mutator,
+                        bool bypass_safepoint = false);
+
+  Dart_LibraryTagHandler library_tag_handler() const {
+    return library_tag_handler_;
+  }
+  void set_library_tag_handler(Dart_LibraryTagHandler handler) {
+    library_tag_handler_ = handler;
+  }
+
+ private:
+  std::unique_ptr<IsolateGroupSource> source_;
+  void* embedder_data_ = nullptr;
+  std::unique_ptr<ThreadRegistry> thread_registry_;
+  std::unique_ptr<SafepointHandler> safepoint_handler_;
+  std::unique_ptr<Monitor> isolates_monitor_;
+  IntrusiveDList<Isolate> isolates_;
+  intptr_t isolate_count_ = 0;
+  bool initial_spawn_successful_ = false;
+  Dart_LibraryTagHandler library_tag_handler_ = nullptr;
+};
+
+class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
  public:
   // Keep both these enums in sync with isolate_patch.dart.
   // The different Isolate API message types.
@@ -216,8 +332,11 @@ class Isolate : public BaseIsolate {
     return deferred_marking_stack_;
   }
 
-  ThreadRegistry* thread_registry() const { return thread_registry_; }
-  SafepointHandler* safepoint_handler() const { return safepoint_handler_; }
+  ThreadRegistry* thread_registry() const { return group()->thread_registry(); }
+
+  SafepointHandler* safepoint_handler() const {
+    return group()->safepoint_handler();
+  }
   ClassTable* class_table() { return &class_table_; }
   static intptr_t class_table_offset() {
     return OFFSET_OF(Isolate, class_table_);
@@ -238,6 +357,9 @@ class Isolate : public BaseIsolate {
   void set_message_notify_callback(Dart_MessageNotifyCallback value) {
     message_notify_callback_ = value;
   }
+
+  IsolateGroupSource* source() const { return isolate_group_->source(); }
+  IsolateGroup* group() const { return isolate_group_; }
 
   bool HasPendingMessages();
 
@@ -289,21 +411,16 @@ class Isolate : public BaseIsolate {
     environment_callback_ = value;
   }
 
-  bool HasTagHandler() const { return library_tag_handler_ != nullptr; }
+  bool HasTagHandler() const {
+    return group()->library_tag_handler() != nullptr;
+  }
   RawObject* CallTagHandler(Dart_LibraryTag tag,
                             const Object& arg1,
                             const Object& arg2);
-  void set_library_tag_handler(Dart_LibraryTagHandler value) {
-    library_tag_handler_ = value;
-  }
 
   void SetupImagePage(const uint8_t* snapshot_buffer, bool is_executable);
 
   void ScheduleInterrupts(uword interrupt_bits);
-
-  // Marks all libraries as loaded.
-  void DoneLoading();
-  void DoneFinalizing();
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   // By default the reload context is deleted. This parameter allows
@@ -437,11 +554,18 @@ class Isolate : public BaseIsolate {
   void DecrementSpawnCount();
   void WaitForOutstandingSpawns();
 
-  static void SetCreateCallback(Dart_IsolateCreateCallback cb) {
-    create_callback_ = cb;
+  static void SetCreateGroupCallback(Dart_IsolateGroupCreateCallback cb) {
+    create_group_callback_ = cb;
   }
-  static Dart_IsolateCreateCallback CreateCallback() {
-    return create_callback_;
+  static Dart_IsolateGroupCreateCallback CreateGroupCallback() {
+    return create_group_callback_;
+  }
+
+  static void SetInitializeCallback_(Dart_InitializeIsolateCallback cb) {
+    initialize_callback_ = cb;
+  }
+  static Dart_InitializeIsolateCallback InitializeCallback() {
+    return initialize_callback_;
   }
 
   static void SetShutdownCallback(Dart_IsolateShutdownCallback cb) {
@@ -456,6 +580,13 @@ class Isolate : public BaseIsolate {
   }
   static Dart_IsolateCleanupCallback CleanupCallback() {
     return cleanup_callback_;
+  }
+
+  static void SetGroupCleanupCallback(Dart_IsolateGroupCleanupCallback cb) {
+    cleanup_group_callback_ = cb;
+  }
+  static Dart_IsolateGroupCleanupCallback GroupCleanupCallback() {
+    return cleanup_group_callback_;
   }
 
 #if !defined(PRODUCT)
@@ -795,6 +926,10 @@ class Isolate : public BaseIsolate {
   // is found.
   static Isolate* LookupIsolateByPort(Dart_Port port);
 
+  // Lookup an isolate by its main port and return a copy of its name. Returns
+  // nullptr if not matching isolate is found.
+  static std::unique_ptr<char[]> LookupIsolateNameByPort(Dart_Port port);
+
   static void DisableIsolateCreation();
   static void EnableIsolateCreation();
   static bool IsolateCreationEnabled();
@@ -820,10 +955,11 @@ class Isolate : public BaseIsolate {
   friend class Dart;                  // Init, InitOnce, Shutdown.
   friend class IsolateKillerVisitor;  // Kill().
 
-  explicit Isolate(const Dart_IsolateFlags& api_flags);
+  Isolate(IsolateGroup* group, const Dart_IsolateFlags& api_flags);
 
   static void InitVM();
   static Isolate* InitIsolate(const char* name_prefix,
+                              IsolateGroup* isolate_group,
                               const Dart_IsolateFlags& api_flags,
                               bool is_vm_isolate = false);
 
@@ -859,7 +995,7 @@ class Isolate : public BaseIsolate {
       const GrowableObjectArray& value);
 #endif  // !defined(PRODUCT)
 
-  Monitor* threads_lock() const;
+  Monitor* threads_lock() { return isolate_group_->threads_lock(); }
   Thread* ScheduleThread(bool is_mutator, bool bypass_safepoint = false);
   void UnscheduleThread(Thread* thread,
                         bool is_mutator,
@@ -891,6 +1027,7 @@ class Isolate : public BaseIsolate {
   MarkingStack* marking_stack_ = nullptr;
   MarkingStack* deferred_marking_stack_ = nullptr;
   Heap* heap_ = nullptr;
+  IsolateGroup* isolate_group_ = nullptr;
 
 #define ISOLATE_FLAG_BITS(V)                                                   \
   V(ErrorsFatal)                                                               \
@@ -988,8 +1125,6 @@ class Isolate : public BaseIsolate {
 
   // All other fields go here.
   int64_t start_time_micros_;
-  ThreadRegistry* thread_registry_;
-  SafepointHandler* safepoint_handler_;
   Dart_MessageNotifyCallback message_notify_callback_ = nullptr;
   char* name_ = nullptr;
   Dart_Port main_port_ = 0;
@@ -999,7 +1134,6 @@ class Isolate : public BaseIsolate {
   uint64_t terminate_capability_ = 0;
   void* init_callback_data_ = nullptr;
   Dart_EnvironmentCallback environment_callback_ = nullptr;
-  Dart_LibraryTagHandler library_tag_handler_ = nullptr;
   ApiState* api_state_ = nullptr;
   Random random_;
   Simulator* simulator_ = nullptr;
@@ -1056,9 +1190,11 @@ class Isolate : public BaseIsolate {
 
   ReversePcLookupCache* reverse_pc_lookup_cache_ = nullptr;
 
-  static Dart_IsolateCreateCallback create_callback_;
+  static Dart_IsolateGroupCreateCallback create_group_callback_;
+  static Dart_InitializeIsolateCallback initialize_callback_;
   static Dart_IsolateShutdownCallback shutdown_callback_;
   static Dart_IsolateCleanupCallback cleanup_callback_;
+  static Dart_IsolateGroupCleanupCallback cleanup_group_callback_;
 
 #if !defined(PRODUCT)
   static void WakePauseEventHandler(Dart_Isolate isolate);
@@ -1145,7 +1281,8 @@ class IsolateSpawnState {
                     bool errorsAreFatal,
                     Dart_Port onExit,
                     Dart_Port onError,
-                    const char* debug_name);
+                    const char* debug_name,
+                    IsolateGroup* group);
   IsolateSpawnState(Dart_Port parent_port,
                     const char* script_url,
                     const char* package_config,
@@ -1155,7 +1292,8 @@ class IsolateSpawnState {
                     bool errorsAreFatal,
                     Dart_Port onExit,
                     Dart_Port onError,
-                    const char* debug_name);
+                    const char* debug_name,
+                    IsolateGroup* group);
   ~IsolateSpawnState();
 
   Isolate* isolate() const { return isolate_; }
@@ -1180,6 +1318,8 @@ class IsolateSpawnState {
   RawInstance* BuildArgs(Thread* thread);
   RawInstance* BuildMessage(Thread* thread);
 
+  IsolateGroup* isolate_group() const { return isolate_group_; }
+
  private:
   Isolate* isolate_;
   Dart_Port parent_port_;
@@ -1192,6 +1332,7 @@ class IsolateSpawnState {
   const char* class_name_;
   const char* function_name_;
   const char* debug_name_;
+  IsolateGroup* isolate_group_;
   std::unique_ptr<Message> serialized_args_;
   std::unique_ptr<Message> serialized_message_;
 

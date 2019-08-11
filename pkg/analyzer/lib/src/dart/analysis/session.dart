@@ -12,7 +12,6 @@ import 'package:analyzer/dart/analysis/uri_converter.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as driver;
-import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/dart/analysis/uri_converter.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/resolver.dart';
@@ -89,6 +88,12 @@ class AnalysisSessionImpl implements AnalysisSession {
   }
 
   @override
+  FileResult getFile(String path) {
+    _checkConsistency();
+    return _driver.getFileSync(path);
+  }
+
+  @override
   Future<LibraryElement> getLibraryByUri(String uri) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
@@ -156,13 +161,6 @@ class AnalysisSessionImpl implements AnalysisSession {
   Future<SourceKind> getSourceKind(String path) {
     _checkConsistency();
     return _driver.getSourceKind(path);
-  }
-
-  @override
-  Future<List<TopLevelDeclarationInSource>> getTopLevelDeclarations(
-      String name) {
-    _checkConsistency();
-    return _driver.getTopLevelNameDeclarations(name);
   }
 
   @override

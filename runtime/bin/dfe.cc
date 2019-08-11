@@ -77,13 +77,17 @@ DFE::DFE()
     (defined(DART_PRECOMPILER) && defined(TARGET_ARCH_X64))
   kernel_service_dill_ = nullptr;
   kernel_service_dill_size_ = 0;
+#else
+  kernel_service_dill_ = kKernelServiceDill;
+  kernel_service_dill_size_ = kKernelServiceDillSize;
+#endif
+
+#if defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM)
   platform_strong_dill_for_compilation_ = nullptr;
   platform_strong_dill_for_compilation_size_ = 0;
   platform_strong_dill_for_execution_ = nullptr;
   platform_strong_dill_for_execution_size_ = 0;
 #else
-  kernel_service_dill_ = kKernelServiceDill;
-  kernel_service_dill_size_ = kKernelServiceDillSize;
   platform_strong_dill_for_compilation_ = kPlatformStrongDill;
   platform_strong_dill_for_compilation_size_ = kPlatformStrongDillSize;
   platform_strong_dill_for_execution_ = kPlatformStrongDill;
@@ -440,6 +444,9 @@ static bool TryReadKernelListBuffer(const char* script_uri,
                                     uint8_t** kernel_ir,
                                     intptr_t* kernel_ir_size) {
   const char* kernel_list_dirname = DartUtils::DirName(script_uri);
+  if (strcmp(kernel_list_dirname, script_uri) == 0) {
+    kernel_list_dirname = "";
+  }
   KernelIRNode* kernel_ir_head = nullptr;
   KernelIRNode* kernel_ir_tail = nullptr;
   // Add all kernels to the linked list
@@ -452,11 +459,11 @@ static bool TryReadKernelListBuffer(const char* script_uri,
     intptr_t this_kernel_size;
     uint8_t* this_buffer;
 
-    StringPointer absolute_filename(
+    StringPointer resolved_filename(
         File::IsAbsolutePath(filename)
             ? strdup(filename)
             : Utils::SCreate("%s%s", kernel_list_dirname, filename));
-    if (!TryReadFile(absolute_filename.c_str(), &this_buffer,
+    if (!TryReadFile(resolved_filename.c_str(), &this_buffer,
                      &this_kernel_size)) {
       return false;
     }

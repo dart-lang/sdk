@@ -8,13 +8,14 @@ import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:status_file/expectation.dart';
+import 'package:test_runner/src/test_file.dart';
 
 import 'browser_controller.dart';
 import 'command.dart';
 import 'configuration.dart';
 import 'process_queue.dart';
-import 'test_progress.dart';
 import 'test_case.dart';
+import 'test_progress.dart';
 import 'utils.dart';
 
 /// CommandOutput records the output of a completed command: the process's exit
@@ -128,7 +129,7 @@ class CommandOutput extends UniqueObject {
   }
 
   /// Called when producing output for a test failure to describe this output.
-  void describe(Progress progress, OutputWriter output) {
+  void describe(TestCase testCase, Progress progress, OutputWriter output) {
     output.subsection("exit code");
     output.write(exitCode.toString());
 
@@ -180,8 +181,7 @@ class BrowserTestJsonResult {
       if (events != null) {
         validate("Message must be a List", events is List);
 
-        var messagesByType = <String, List<String>>{};
-        _allowedTypes.forEach((type) => messagesByType[type] = <String>[]);
+        var messagesByType = {for (var type in _allowedTypes) type: <String>[]};
 
         for (var entry in events) {
           validate("Entry must be a Map", entry is Map);
@@ -279,7 +279,7 @@ class BrowserTestJsonResult {
 }
 
 class BrowserCommandOutput extends CommandOutput
-    with UnittestSuiteMessagesMixin {
+    with _UnittestSuiteMessagesMixin {
   final BrowserTestJsonResult _jsonResult;
   final BrowserTestOutput _result;
   final Expectation _rawOutcome;
@@ -351,7 +351,7 @@ class BrowserCommandOutput extends CommandOutput
     return _rawOutcome;
   }
 
-  void describe(Progress progress, OutputWriter output) {
+  void describe(TestCase testCase, Progress progress, OutputWriter output) {
     if (_jsonResult != null) {
       _describeEvents(progress, output);
     } else {
@@ -360,7 +360,7 @@ class BrowserCommandOutput extends CommandOutput
       output.write(_result.lastKnownMessage);
     }
 
-    super.describe(progress, output);
+    super.describe(testCase, progress, output);
 
     if (_result.browserOutput.stdout.isNotEmpty) {
       output.subsection("Browser stdout");
@@ -433,101 +433,9 @@ class BrowserCommandOutput extends CommandOutput
   }
 }
 
-class AnalysisCommandOutput extends CommandOutput {
-  // An error line has 8 fields that look like:
-  // ERROR|COMPILER|MISSING_SOURCE|file:/tmp/t.dart|15|1|24|Missing source.
-  static const int _errorLevel = 0;
-  static const int _formattedError = 7;
-
-  AnalysisCommandOutput(
-      Command command,
-      int exitCode,
-      bool timedOut,
-      List<int> stdout,
-      List<int> stderr,
-      Duration time,
-      bool compilationSkipped)
-      : super(command, exitCode, timedOut, stdout, stderr, time,
-            compilationSkipped, 0);
-
-  Expectation result(TestCase testCase) {
-    // TODO(kustermann): If we run the analyzer not in batch mode, make sure
-    // that command.exitCodes matches 2 (errors), 1 (warnings), 0 (no warnings,
-    // no errors)
-
-    // Handle crashes and timeouts first
-    if (hasCrashed) return Expectation.crash;
-    if (hasTimedOut) return Expectation.timeout;
-    if (hasNonUtf8) return Expectation.nonUtf8Error;
-
-    // Get the errors/warnings from the analyzer
-    var errors = <String>[];
-    var warnings = <String>[];
-    parseAnalyzerOutput(errors, warnings);
-
-    // Handle negative
-    if (testCase.isNegative) {
-      return errors.isNotEmpty
-          ? Expectation.pass
-          : Expectation.missingCompileTimeError;
-    }
-
-    // Handle errors / missing errors
-    if (testCase.hasCompileError) {
-      if (errors.isNotEmpty) {
-        return Expectation.pass;
-      }
-      return Expectation.missingCompileTimeError;
-    }
-    if (errors.isNotEmpty) {
-      return Expectation.compileTimeError;
-    }
-
-    // Handle static warnings / missing static warnings
-    if (testCase.hasStaticWarning) {
-      if (warnings.isNotEmpty) {
-        return Expectation.pass;
-      }
-      return Expectation.missingStaticWarning;
-    }
-    if (warnings.isNotEmpty) {
-      return Expectation.staticWarning;
-    }
-
-    assert(errors.isEmpty && warnings.isEmpty);
-    assert(!testCase.hasCompileError && !testCase.hasStaticWarning);
-    return Expectation.pass;
-  }
-
-  /// Cloned code from member result(), with changes.
-  /// Delete existing result() function and rename, when status files are gone.
-  Expectation realResult(TestCase testCase) {
-    // TODO(kustermann): If we run the analyzer not in batch mode, make sure
-    // that command.exitCodes matches 2 (errors), 1 (warnings), 0 (no warnings,
-    // no errors)
-
-    // Handle crashes and timeouts first
-    if (hasCrashed) return Expectation.crash;
-    if (hasTimedOut) return Expectation.timeout;
-    if (hasNonUtf8) return Expectation.nonUtf8Error;
-
-    // Get the errors/warnings from the analyzer
-    var errors = <String>[];
-    var warnings = <String>[];
-    parseAnalyzerOutput(errors, warnings);
-
-    if (errors.isNotEmpty) {
-      return Expectation.compileTimeError;
-    }
-    if (warnings.isNotEmpty) {
-      return Expectation.staticWarning;
-    }
-    return Expectation.pass;
-  }
-
-  void parseAnalyzerOutput(List<String> outErrors, List<String> outWarnings) {
-    // Parse a line delimited by the | character using \ as an escape character
-    // like:  FOO|BAR|FOO\|BAR|FOO\\BAZ as 4 fields: FOO BAR FOO|BAR FOO\BAZ
+class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
+  static void parseErrors(String stderr, List<StaticError> errors,
+      [List<StaticError> warnings]) {
     List<String> splitMachineError(String line) {
       var field = StringBuffer();
       var result = <String>[];
@@ -550,20 +458,146 @@ class AnalysisCommandOutput extends CommandOutput {
       return result;
     }
 
-    for (String line in decodeUtf8(super.stderr).split("\n")) {
+    for (var line in stderr.split("\n")) {
       if (line.isEmpty) continue;
 
-      List<String> fields = splitMachineError(line);
-      // We only consider errors/warnings for files of interest.
-      if (fields.length > _formattedError) {
-        if (fields[_errorLevel] == 'ERROR') {
-          outErrors.add(fields[_formattedError]);
-        } else if (fields[_errorLevel] == 'WARNING') {
-          outWarnings.add(fields[_formattedError]);
+      var fields = splitMachineError(line);
+
+      // Lines without enough fields are other output we don't care about.
+      if (fields.length >= 8) {
+        var severity = fields[0];
+        var errorCode = "${fields[1]}.${fields[2]}";
+        var line = int.parse(fields[4]);
+        var column = int.parse(fields[5]);
+        var length = int.parse(fields[6]);
+
+        var error = StaticError(
+            line: line, column: column, length: length, code: errorCode);
+
+        if (severity == 'ERROR') {
+          errors.add(error);
+        } else if (severity == 'WARNING') {
+          warnings?.add(error);
         }
-        // OK to Skip error output that doesn't match the machine format.
       }
     }
+  }
+
+  AnalysisCommandOutput(
+      Command command,
+      int exitCode,
+      bool timedOut,
+      List<int> stdout,
+      List<int> stderr,
+      Duration time,
+      bool compilationSkipped)
+      : super(command, exitCode, timedOut, stdout, stderr, time,
+            compilationSkipped, 0);
+
+  @override
+  void describe(TestCase testCase, Progress progress, OutputWriter output) {
+    if (testCase.testFile.isStaticErrorTest) {
+      _validateExpectedErrors(testCase, output);
+    }
+
+    if (!testCase.testFile.isStaticErrorTest || progress == Progress.verbose) {
+      super.describe(testCase, progress, output);
+    }
+  }
+
+  Expectation result(TestCase testCase) {
+    // TODO(kustermann): If we run the analyzer not in batch mode, make sure
+    // that command.exitCodes matches 2 (errors), 1 (warnings), 0 (no warnings,
+    // no errors)
+
+    // Handle crashes and timeouts first.
+    if (hasCrashed) return Expectation.crash;
+    if (hasTimedOut) return Expectation.timeout;
+    if (hasNonUtf8) return Expectation.nonUtf8Error;
+
+    // If it's a static error test, validate the exact errors.
+    if (testCase.testFile.isStaticErrorTest) {
+      return _validateExpectedErrors(testCase);
+    }
+
+    // Handle negative.
+    if (testCase.isNegative) {
+      return errors.isNotEmpty
+          ? Expectation.pass
+          : Expectation.missingCompileTimeError;
+    }
+
+    // Handle errors / missing errors.
+    if (testCase.hasCompileError) {
+      if (errors.isNotEmpty) {
+        return Expectation.pass;
+      }
+      return Expectation.missingCompileTimeError;
+    }
+    if (errors.isNotEmpty) {
+      return Expectation.compileTimeError;
+    }
+
+    // Handle static warnings / missing static warnings.
+    if (testCase.hasStaticWarning) {
+      if (warnings.isNotEmpty) {
+        return Expectation.pass;
+      }
+      return Expectation.missingStaticWarning;
+    }
+    if (warnings.isNotEmpty) {
+      return Expectation.staticWarning;
+    }
+
+    assert(errors.isEmpty && warnings.isEmpty);
+    assert(!testCase.hasCompileError && !testCase.hasStaticWarning);
+    return Expectation.pass;
+  }
+
+  /// Cloned code from member result(), with changes.
+  /// Delete existing result() function and rename, when status files are gone.
+  Expectation realResult(TestCase testCase) {
+    // TODO(kustermann): If we run the analyzer not in batch mode, make sure
+    // that command.exitCodes matches 2 (errors), 1 (warnings), 0 (no warnings,
+    // no errors)
+
+    // Handle crashes and timeouts first.
+    if (hasCrashed) return Expectation.crash;
+    if (hasTimedOut) return Expectation.timeout;
+    if (hasNonUtf8) return Expectation.nonUtf8Error;
+
+    // If it's a static error test, validate the exact errors.
+    if (testCase.testFile.isStaticErrorTest) {
+      return _validateExpectedErrors(testCase);
+    }
+
+    if (errors.isNotEmpty) {
+      return Expectation.compileTimeError;
+    }
+    if (warnings.isNotEmpty) {
+      return Expectation.staticWarning;
+    }
+    return Expectation.pass;
+  }
+
+  /// Parses the machine-readable output of analyzer, which looks like:
+  ///
+  ///     ERROR|STATIC_TYPE_WARNING|SOME_ERROR_CODE|/path/to/some_test.dart|9|26|1|Error message.
+  ///
+  /// Pipes can be escaped with backslashes:
+  ///
+  ///     FOO|BAR|FOO\|BAR|FOO\\BAZ
+  ///
+  /// Is parsed as:
+  ///
+  ///     FOO BAR FOO|BAR FOO\BAZ
+  @override
+  void _parseErrors() {
+    var errors = <StaticError>[];
+    var warnings = <StaticError>[];
+    parseErrors(decodeUtf8(stderr), errors, warnings);
+    errors.forEach(addError);
+    warnings.forEach(addWarning);
   }
 }
 
@@ -586,9 +620,9 @@ class CompareAnalyzerCfeCommandOutput extends CommandOutput {
     if (hasNonUtf8) return Expectation.nonUtf8Error;
 
     if (exitCode != 0) return Expectation.fail;
-    for (var line in decodeUtf8(this.stdout).split('\n')) {
-      if (line.indexOf('No differences found') != -1) return Expectation.pass;
-      if (line.indexOf('Differences found') != -1) return Expectation.fail;
+    for (var line in decodeUtf8(stdout).split('\n')) {
+      if (line.contains('No differences found')) return Expectation.pass;
+      if (line.contains('Differences found')) return Expectation.fail;
     }
     return Expectation.fail;
   }
@@ -602,9 +636,9 @@ class CompareAnalyzerCfeCommandOutput extends CommandOutput {
     if (hasNonUtf8) return Expectation.nonUtf8Error;
 
     if (exitCode != 0) return Expectation.fail;
-    for (var line in decodeUtf8(this.stdout).split('\n')) {
-      if (line.indexOf('No differences found') != -1) return Expectation.pass;
-      if (line.indexOf('Differences found') != -1) return Expectation.fail;
+    for (var line in decodeUtf8(stdout).split('\n')) {
+      if (line.contains('No differences found')) return Expectation.pass;
+      if (line.contains('Differences found')) return Expectation.fail;
     }
     return Expectation.fail;
   }
@@ -660,7 +694,7 @@ class SpecParseCommandOutput extends CommandOutput {
   }
 }
 
-class VMCommandOutput extends CommandOutput with UnittestSuiteMessagesMixin {
+class VMCommandOutput extends CommandOutput with _UnittestSuiteMessagesMixin {
   static const _dfeErrorExitCode = 252;
   static const _compileErrorExitCode = 254;
   static const _uncaughtExceptionExitCode = 255;
@@ -963,7 +997,7 @@ class VMKernelCompilationCommandOutput extends CompilationCommandOutput {
 }
 
 class JSCommandLineOutput extends CommandOutput
-    with UnittestSuiteMessagesMixin {
+    with _UnittestSuiteMessagesMixin {
   JSCommandLineOutput(Command command, int exitCode, bool timedOut,
       List<int> stdout, List<int> stderr, Duration time)
       : super(command, exitCode, timedOut, stdout, stderr, time, false, 0);
@@ -1019,6 +1053,50 @@ class ScriptCommandOutput extends CommandOutput {
   bool get successful => _result == Expectation.pass;
 }
 
+class FastaCommandOutput extends CompilationCommandOutput
+    with _StaticErrorOutput {
+  static void parseErrors(String stdout, List<StaticError> errors,
+      [List<StaticError> warnings]) {
+    for (var match in _errorRegexp.allMatches(stdout)) {
+      var line = int.parse(match.group(2));
+      var column = int.parse(match.group(3));
+      var message = match.group(4);
+      errors.add(StaticError(line: line, column: column, message: message));
+    }
+  }
+
+  /// Matches the first line of a Fasta error message. Fasta prints errors to
+  /// stdout that look like:
+  ///
+  ///     tests/language_2/some_test.dart:7:21: Error: Some message.
+  ///     Try fixing the code to be less bad.
+  ///       var _ = <int>[if (1) 2];
+  ///                    ^
+  ///
+  /// The test runner only validates the main error message, and not the
+  /// suggested fixes, so we only parse the first line.
+  static final _errorRegexp =
+      RegExp(r"^([^:]+):(\d+):(\d+): Error: (.*)$", multiLine: true);
+
+  FastaCommandOutput(
+      Command command,
+      int exitCode,
+      bool hasTimedOut,
+      List<int> stdout,
+      List<int> stderr,
+      Duration time,
+      bool compilationSkipped)
+      : super(command, exitCode, hasTimedOut, stdout, stderr, time,
+            compilationSkipped);
+
+  @override
+  void _parseErrors() {
+    var errors = <StaticError>[];
+    parseErrors(decodeUtf8(stdout), errors);
+    errors.forEach(addError);
+  }
+}
+
 CommandOutput createCommandOutput(Command command, int exitCode, bool timedOut,
     List<int> stdout, List<int> stderr, Duration time, bool compilationSkipped,
     [int pid = 0]) {
@@ -1040,6 +1118,9 @@ CommandOutput createCommandOutput(Command command, int exitCode, bool timedOut,
   } else if (command is AdbPrecompilationCommand) {
     return VMCommandOutput(
         command, exitCode, timedOut, stdout, stderr, time, pid);
+  } else if (command is FastaCompilationCommand) {
+    return FastaCommandOutput(
+        command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
   } else if (command is CompilationCommand) {
     if (command.displayName == 'precompiler' ||
         command.displayName == 'app_jit') {
@@ -1060,7 +1141,140 @@ CommandOutput createCommandOutput(Command command, int exitCode, bool timedOut,
       compilationSkipped, pid);
 }
 
-class UnittestSuiteMessagesMixin {
+/// Mixin for outputs from a command that implement a Dart front end which
+/// reports static errors.
+mixin _StaticErrorOutput on CommandOutput {
+  /// Reported static errors, parsed from [stderr].
+  List<StaticError> get errors {
+    if (!_parsedErrors) {
+      _parseErrors();
+      _parsedErrors = true;
+    }
+    return _errors;
+  }
+
+  /// Don't access this from outside of the mixin. It gets populated lazily by
+  /// going through the [errors] getter.
+  final List<StaticError> _errors = [];
+
+  /// Reported static warnings, parsed from [stderr].
+  List<StaticError> get warnings {
+    if (!_parsedErrors) {
+      _parseErrors();
+      _parsedErrors = true;
+    }
+    return _warnings;
+  }
+
+  /// Don't access this from outside of the mixin. It gets populated lazily by
+  /// going through the [warnings] getter.
+  final List<StaticError> _warnings = [];
+
+  bool _parsedErrors = false;
+
+  @override
+  void describe(TestCase testCase, Progress progress, OutputWriter output) {
+    if (testCase.testFile.isStaticErrorTest) {
+      _validateExpectedErrors(testCase, output);
+    }
+
+    if (!testCase.testFile.isStaticErrorTest || progress == Progress.verbose) {
+      super.describe(testCase, progress, output);
+    }
+  }
+
+  Expectation result(TestCase testCase) {
+    // If it's a static error test, validate the exact errors.
+    if (testCase.testFile.isStaticErrorTest) {
+      return _validateExpectedErrors(testCase);
+    }
+
+    return super.result(testCase);
+  }
+
+  Expectation realResult(TestCase testCase) {
+    // If it's a static error test, validate the exact errors.
+    if (testCase.testFile.isStaticErrorTest) {
+      return _validateExpectedErrors(testCase);
+    }
+
+    return super.realResult(testCase);
+  }
+
+  /// A subclass should override this to parse the command's output for any
+  /// reported errors and warnings.
+  ///
+  /// It should read [stderr] and [stdout] and call [addError] and [addWarning].
+  void _parseErrors();
+
+  void addError(StaticError error) {
+    _errors.add(error);
+  }
+
+  void addWarning(StaticError error) {
+    _warnings.add(error);
+  }
+
+  /// Compare the actual errors produced to the expected static errors parsed
+  /// from the test file.
+  ///
+  /// Returns [Expectation.pass] if all expected errors were correctly
+  /// reported.
+  ///
+  /// If [writer] is given, outputs a description of any error mismatches.
+  Expectation _validateExpectedErrors(TestCase testCase,
+      [OutputWriter writer]) {
+    // Filter out errors that aren't for this configuration.
+    var expected = testCase.testFile.expectedErrors
+        .where((error) =>
+            testCase.configuration.compiler == Compiler.dart2analyzer
+                ? error.isAnalyzer
+                : error.isCfe)
+        .toList();
+    var actual = errors.toList();
+
+    // Don't require the test or analyzer to output in any specific order.
+    expected.sort();
+    actual.sort();
+
+    writer?.subsection("incorrect static errors");
+
+    var success = expected.length == actual.length;
+    for (var i = 0; i < expected.length && i < actual.length; i++) {
+      var differences = expected[i].describeDifferences(actual[i]);
+      if (differences == null) continue;
+
+      if (writer != null) {
+        writer.write(actual[i].location);
+        for (var difference in differences) {
+          writer.write("- $difference");
+        }
+        writer.separator();
+      }
+
+      success = false;
+    }
+
+    if (writer != null) {
+      writer.subsection("missing expected static errors");
+      for (var i = actual.length; i < expected.length; i++) {
+        writer.write(expected[i].toString());
+        writer.separator();
+      }
+
+      writer.subsection("reported unexpected static errors");
+      for (var i = expected.length; i < actual.length; i++) {
+        writer.write(actual[i].toString());
+        writer.separator();
+      }
+    }
+
+    // TODO(rnystrom): Is there a better expectation we can use?
+    return success ? Expectation.pass : Expectation.missingCompileTimeError;
+  }
+}
+
+mixin _UnittestSuiteMessagesMixin {
   bool _isAsyncTest(String testOutput) {
     return testOutput.contains("unittest-suite-wait-for-done");
   }

@@ -414,7 +414,7 @@ class ZLibEncoder extends Converter<List<int>, List<int>> {
     if (sink is! ByteConversionSink) {
       sink = new ByteConversionSink.from(sink);
     }
-    return new _ZLibEncoderSink(
+    return new _ZLibEncoderSink._(
         sink, gzip, level, windowBits, memLevel, strategy, dictionary, raw);
   }
 }
@@ -476,7 +476,7 @@ class ZLibDecoder extends Converter<List<int>, List<int>> {
     if (sink is! ByteConversionSink) {
       sink = new ByteConversionSink.from(sink);
     }
-    return new _ZLibDecoderSink(sink, windowBits, dictionary, raw);
+    return new _ZLibDecoderSink._(sink, windowBits, dictionary, raw);
   }
 }
 
@@ -562,7 +562,7 @@ class _BufferSink extends ByteConversionSink {
 }
 
 class _ZLibEncoderSink extends _FilterSink {
-  _ZLibEncoderSink(
+  _ZLibEncoderSink._(
       ByteConversionSink sink,
       bool gzip,
       int level,
@@ -578,7 +578,7 @@ class _ZLibEncoderSink extends _FilterSink {
 }
 
 class _ZLibDecoderSink extends _FilterSink {
-  _ZLibDecoderSink(
+  _ZLibDecoderSink._(
       ByteConversionSink sink, int windowBits, List<int> dictionary, bool raw)
       : super(sink,
             RawZLibFilter._makeZLibInflateFilter(windowBits, dictionary, raw));

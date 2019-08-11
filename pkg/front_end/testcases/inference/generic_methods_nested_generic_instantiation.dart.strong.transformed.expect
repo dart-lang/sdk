@@ -1,25 +1,28 @@
 library test;
 import self as self;
 import "dart:core" as core;
-import "dart:math" as math;
 
 import "dart:math" as math;
 
 class Trace extends core::Object {
-  field core::List<self::Frame> frames = <self::Frame>[];
-  synthetic constructor •() → self::Trace
+  field core::List<self::Frame*>* frames = <self::Frame*>[];
+  synthetic constructor •() → self::Trace*
     : super core::Object::•()
     ;
 }
 class Frame extends core::Object {
-  field core::String location = "";
-  synthetic constructor •() → self::Frame
+  field core::String* location = "";
+  synthetic constructor •() → self::Frame*
     : super core::Object::•()
     ;
 }
 static method main() → dynamic {
-  core::List<self::Trace> traces = <self::Trace>[];
-  core::int longest = traces.{core::Iterable::map}<core::int>((self::Trace trace) → core::int {
-    return trace.{self::Trace::frames}.{core::Iterable::map}<core::int>((self::Frame frame) → core::int => frame.{self::Frame::location}.{core::String::length}).{core::Iterable::fold}<core::int>(0, math::max<core::int>);
-  }).{core::Iterable::fold}<core::int>(0, math::max<core::int>);
+  core::List<self::Trace*>* traces = <self::Trace*>[];
+  core::int* longest = traces.{core::Iterable::map}<core::int*>((self::Trace* trace) → core::int* {
+    return trace.{self::Trace::frames}.{core::Iterable::map}<core::int*>((self::Frame* frame) → core::int* => frame.{self::Frame::location}.{core::String::length}).{core::Iterable::fold}<core::int*>(0, #C1<core::int*>);
+  }).{core::Iterable::fold}<core::int*>(0, #C1<core::int*>);
+}
+
+constants  {
+  #C1 = tearoff math::max
 }

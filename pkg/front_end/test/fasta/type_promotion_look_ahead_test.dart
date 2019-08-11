@@ -7,7 +7,7 @@ import 'dart:convert' show jsonDecode;
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 
-import 'package:front_end/src/fasta/builder/builder.dart' show Declaration;
+import 'package:front_end/src/fasta/builder/builder.dart' show Builder;
 
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
@@ -133,7 +133,7 @@ class TestState extends TypePromotionState {
   }
 
   @override
-  Declaration nullValue(String name, Token token) {
+  Builder nullValue(String name, Token token) {
     return new DebugDeclaration(name, uri, token?.charOffset ?? -1);
   }
 
@@ -188,7 +188,7 @@ class TestListener extends TypePromotionLookAheadListener {
   }
 }
 
-class DebugDeclaration extends Declaration {
+class DebugDeclaration extends Builder {
   final String name;
 
   @override
@@ -199,7 +199,7 @@ class DebugDeclaration extends Declaration {
 
   DebugDeclaration(this.name, this.fileUri, this.charOffset);
 
-  Declaration get parent => null;
+  Builder get parent => null;
 
   String get fullNameForErrors => name;
 

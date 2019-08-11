@@ -16,6 +16,7 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart';
 
 /**
@@ -53,6 +54,26 @@ class ElementFactory {
   static ClassElementImpl classElement2(String typeName,
           [List<String> parameterNames]) =>
       classElement(typeName, objectType, parameterNames);
+
+  static ClassElementImpl classElement3({
+    @required String name,
+    List<TypeParameterElement> typeParameters,
+    List<String> typeParameterNames = const [],
+    InterfaceType supertype,
+    List<InterfaceType> mixins = const [],
+    List<InterfaceType> interfaces = const [],
+  }) {
+    typeParameters ??= ElementFactory.typeParameters(typeParameterNames);
+    supertype ??= objectType;
+
+    var element = ClassElementImpl(name, 0);
+    element.typeParameters = typeParameters;
+    element.supertype = supertype;
+    element.mixins = mixins;
+    element.interfaces = interfaces;
+    element.constructors = const <ConstructorElement>[];
+    return element;
+  }
 
   static classTypeAlias(String typeName, InterfaceType superclassType,
       [List<String> parameterNames]) {
@@ -189,6 +210,11 @@ class ElementFactory {
     spec.combinators = combinators;
     return spec;
   }
+
+  static ExtensionElementImpl extensionElement(
+          [String name, DartType extendedType]) =>
+      ExtensionElementImpl.forNode(AstTestFactory.identifier3(name))
+        ..extendedType = extendedType;
 
   static FieldElementImpl fieldElement(
       String name, bool isStatic, bool isFinal, bool isConst, DartType type,
@@ -461,6 +487,27 @@ class ElementFactory {
     method.returnType = returnType;
     method.type = new FunctionTypeImpl(method);
     return method;
+  }
+
+  static MixinElementImpl mixinElement({
+    @required String name,
+    List<TypeParameterElement> typeParameters,
+    List<String> typeParameterNames = const [],
+    List<InterfaceType> constraints = const [],
+    List<InterfaceType> interfaces = const [],
+  }) {
+    typeParameters ??= ElementFactory.typeParameters(typeParameterNames);
+
+    if (constraints.isEmpty) {
+      constraints = [objectType];
+    }
+
+    var element = MixinElementImpl(name, 0);
+    element.typeParameters = typeParameters;
+    element.superclassConstraints = constraints;
+    element.interfaces = interfaces;
+    element.constructors = const <ConstructorElement>[];
+    return element;
   }
 
   static ParameterElementImpl namedParameter(String name) {

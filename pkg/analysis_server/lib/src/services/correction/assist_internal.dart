@@ -222,7 +222,7 @@ class AssistProcessor {
   }
 
   void _addAssistFromBuilder(DartChangeBuilder builder, AssistKind kind,
-      {List args: null}) {
+      {List args = null}) {
     SourceChange change = builder.sourceChange;
     if (change.edits.isEmpty) {
       _coverageMarker();
@@ -848,7 +848,7 @@ class AssistProcessor {
         node.offset > creation.argumentList.offset ||
         creation.staticType.element != typeProvider.listType.element ||
         creation.constructorName.name != null ||
-        creation.argumentList.arguments.length > 0) {
+        creation.argumentList.arguments.isNotEmpty) {
       _coverageMarker();
       return;
     }
@@ -2317,9 +2317,9 @@ class AssistProcessor {
       /// Replace code between [replaceOffset] and [replaceEnd] with
       /// `createState()`, empty line, or nothing.
       void replaceInterval(int replaceEnd,
-          {bool replaceWithEmptyLine: false,
-          bool hasEmptyLineBeforeCreateState: false,
-          bool hasEmptyLineAfterCreateState: true}) {
+          {bool replaceWithEmptyLine = false,
+          bool hasEmptyLineBeforeCreateState = false,
+          bool hasEmptyLineAfterCreateState = true}) {
         int replaceLength = replaceEnd - replaceOffset;
         builder.addReplacement(
           new SourceRange(replaceOffset, replaceLength),
@@ -2663,11 +2663,11 @@ class AssistProcessor {
   }
 
   Future<void> _addProposal_flutterWrapWidgetImpl(
-      {AssistKind kind: DartAssistKind.FLUTTER_WRAP_GENERIC,
+      {AssistKind kind = DartAssistKind.FLUTTER_WRAP_GENERIC,
       bool Function(Expression widgetExpr) widgetValidator,
       String parentLibraryUri,
       String parentClassName,
-      List<String> leadingLines: const []}) async {
+      List<String> leadingLines = const []}) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     Expression widgetExpr = flutter.identifyWidgetExpression(node);
@@ -4299,7 +4299,7 @@ class AssistProcessor {
   /// placed inside curly braces, would lexically make the resulting literal a
   /// set literal rather than a map literal.
   bool _listHasUnambiguousElement(AstNode node) {
-    if (node is ListLiteral && node.elements.length > 0) {
+    if (node is ListLiteral && node.elements.isNotEmpty) {
       for (CollectionElement element in node.elements) {
         if (_isUnambiguousElement(element)) {
           return true;

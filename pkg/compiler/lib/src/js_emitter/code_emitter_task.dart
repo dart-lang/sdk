@@ -99,6 +99,7 @@ class CodeEmitterTask extends CompilerTask {
           _compiler.reporter,
           _emitter,
           codegen.rtiEncoder,
+          codegen.rtiRecipeEncoder,
           closedWorld.elementEnvironment);
       typeTestRegistry = new TypeTestRegistry(
           _compiler.options, closedWorld.elementEnvironment);
@@ -129,6 +130,7 @@ class CodeEmitterTask extends CompilerTask {
           closedWorld.interceptorData,
           typeTestRegistry.rtiChecks,
           codegenInputs.rtiEncoder,
+          codegenInputs.rtiRecipeEncoder,
           codegenWorld.oneShotInterceptorData,
           _backendStrategy.customElementsCodegenAnalysis,
           _backendStrategy.generatedCode,
@@ -182,6 +184,9 @@ abstract class ModularEmitter {
 
   /// Returns the JS name representing the type [e].
   jsAst.Name typeAccessNewRti(Entity e);
+
+  /// Returns the JS name representing the type variable [e].
+  jsAst.Name typeVariableAccessNewRti(TypeVariableEntity e);
 
   /// Returns the JS code for accessing the embedded [global].
   jsAst.Expression generateEmbeddedGlobalAccess(String global);

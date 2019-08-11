@@ -61,7 +61,7 @@ class CompletionResolveHandler
     }
 
     // The label might be `MyEnum.myValue`, but we import only `MyEnum`.
-    var requestedName = item.label;
+    var requestedName = item.insertText ?? item.label;
     if (requestedName.contains('.')) {
       requestedName = requestedName.substring(
         0,
@@ -113,7 +113,7 @@ class CompletionResolveHandler
           );
         }
 
-        var newInsertText = item.label;
+        var newInsertText = item.insertText ?? item.label;
         final builder = DartChangeBuilder(session);
         await builder.addFileEdit(libraryPath, (builder) {
           final result = builder.importLibraryElement(

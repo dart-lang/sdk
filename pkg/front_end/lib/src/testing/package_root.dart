@@ -6,7 +6,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as pathos;
 
-/// Returns a path to the directory contaning source code for packages such as
+/// Returns a path to the directory containing source code for packages such as
 /// kernel, front_end, and analyzer.
 String get packageRoot {
   // If the package root directory is specified on the command line using

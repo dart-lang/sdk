@@ -16,6 +16,7 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart' show TypeParameterMember;
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/error/codes.dart' show StrongModeCode;
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisOptionsImpl;
@@ -201,18 +202,18 @@ class Dart2TypeSystem extends TypeSystem {
    * Given a generic function type `F<T0, T1, ... Tn>` and a context type C,
    * infer an instantiation of F, such that `F<S0, S1, ..., Sn>` <: C.
    *
-   * This is similar to [inferGenericFunctionOrType], but the return type is also
-   * considered as part of the solution.
+   * This is similar to [inferGenericFunctionOrType2], but the return type is
+   * also considered as part of the solution.
    *
    * If this function is called with a [contextType] that is also
    * uninstantiated, or a [fnType] that is already instantiated, it will have
-   * no effect and return [fnType].
+   * no effect and return `null`.
    */
-  FunctionType inferFunctionTypeInstantiation(
+  List<DartType> inferFunctionTypeInstantiation(
       FunctionType contextType, FunctionType fnType,
       {ErrorReporter errorReporter, AstNode errorNode}) {
     if (contextType.typeFormals.isNotEmpty || fnType.typeFormals.isEmpty) {
-      return fnType;
+      return const <DartType>[];
     }
 
     // Create a TypeSystem that will allow certain type parameters to be
@@ -223,12 +224,11 @@ class Dart2TypeSystem extends TypeSystem {
     inferrer.constrainGenericFunctionInContext(fnType, contextType);
 
     // Infer and instantiate the resulting type.
-    var inferredTypes = inferrer.infer(
+    return inferrer.infer(
       fnType.typeFormals,
       errorReporter: errorReporter,
       errorNode: errorNode,
     );
-    return fnType.instantiate(inferredTypes);
   }
 
   /// Infers a generic type, function, method, or list/map literal
@@ -596,7 +596,7 @@ class Dart2TypeSystem extends TypeSystem {
   /// Partially updated to reflect
   /// https://github.com/dart-lang/language/blob/da5adf7eb5f2d479069d8660ed7ca7b230098510/resources/type-system/subtyping.md
   ///
-  /// However, it does not correllate 1:1 and does not specialize Null vs Never
+  /// However, it does not correlate 1:1 and does not specialize Null vs Never
   /// cases. It also is not guaranteed to be exactly accurate vs the "spec"
   /// because it has slightly different order of operations. These should be
   /// brought in line or proven equivalent.
@@ -748,9 +748,8 @@ class Dart2TypeSystem extends TypeSystem {
   @override
   DartType refineBinaryExpressionType(DartType leftType, TokenType operator,
       DartType rightType, DartType currentType, FeatureSet featureSet) {
-    if (leftType is TypeParameterType &&
-        leftType.element.bound == typeProvider.numType) {
-      if (rightType == leftType || rightType == typeProvider.intType) {
+    if (leftType is TypeParameterType && leftType.bound.isDartCoreNum) {
+      if (rightType == leftType || rightType.isDartCoreInt) {
         if (operator == TokenType.PLUS ||
             operator == TokenType.MINUS ||
             operator == TokenType.STAR ||
@@ -763,15 +762,16 @@ class Dart2TypeSystem extends TypeSystem {
           return leftType;
         }
       }
-      if (rightType == typeProvider.doubleType) {
+      if (rightType.isDartCoreDouble) {
         if (operator == TokenType.PLUS ||
             operator == TokenType.MINUS ||
             operator == TokenType.STAR ||
             operator == TokenType.SLASH) {
+          InterfaceTypeImpl doubleType = typeProvider.doubleType;
           if (featureSet.isEnabled(Feature.non_nullable)) {
-            return promoteToNonNull(typeProvider.doubleType as TypeImpl);
+            return promoteToNonNull(doubleType);
           }
-          return typeProvider.doubleType;
+          return doubleType;
         }
       }
       return currentType;
@@ -956,51 +956,10 @@ class Dart2TypeSystem extends TypeSystem {
   DartType _functionParameterBound(DartType f, DartType g) =>
       getGreatestLowerBound(f, g);
 
-  /**
-   * This currently does not implement a very complete least upper bound
-   * algorithm, but handles a couple of the very common cases that are
-   * causing pain in real code.  The current algorithm is:
-   * 1. If either of the types is a supertype of the other, return it.
-   *    This is in fact the best result in this case.
-   * 2. If the two types have the same class element, then take the
-   *    pointwise least upper bound of the type arguments.  This is again
-   *    the best result, except that the recursive calls may not return
-   *    the true least upper bounds.  The result is guaranteed to be a
-   *    well-formed type under the assumption that the input types were
-   *    well-formed (and assuming that the recursive calls return
-   *    well-formed types).
-   * 3. Otherwise return the spec-defined least upper bound.  This will
-   *    be an upper bound, might (or might not) be least, and might
-   *    (or might not) be a well-formed type.
-   *
-   * TODO(leafp): Use matchTypes or something similar here to handle the
-   *  case where one of the types is a superclass (but not supertype) of
-   *  the other, e.g. LUB(Iterable<double>, List<int>) = Iterable<num>
-   * TODO(leafp): Figure out the right final algorithm and implement it.
-   */
   @override
   DartType _interfaceLeastUpperBound(InterfaceType type1, InterfaceType type2) {
-    if (isSubtypeOf(type1, type2)) {
-      return type2;
-    }
-    if (isSubtypeOf(type2, type1)) {
-      return type1;
-    }
-    if (type1.element == type2.element) {
-      List<DartType> tArgs1 = type1.typeArguments;
-      List<DartType> tArgs2 = type2.typeArguments;
-
-      assert(tArgs1.length == tArgs2.length);
-      List<DartType> tArgs = new List(tArgs1.length);
-      for (int i = 0; i < tArgs1.length; i++) {
-        tArgs[i] = getLeastUpperBound(tArgs1[i], tArgs2[i]);
-      }
-      InterfaceTypeImpl lub = new InterfaceTypeImpl(type1.element);
-      lub.typeArguments = tArgs;
-      return lub;
-    }
-    return InterfaceTypeImpl.computeLeastUpperBound(type1, type2) ??
-        typeProvider.dynamicType;
+    var helper = InterfaceLeastUpperBoundHelper(this);
+    return helper.compute(type1, type2);
   }
 
   /// Check that [f1] is a subtype of [f2].
@@ -1326,6 +1285,7 @@ class GenericInferrer {
       {bool considerExtendsClause: true,
       ErrorReporter errorReporter,
       AstNode errorNode,
+      bool failAtError: false,
       bool downwardsInferPhase: false}) {
     var fnTypeParams = TypeParameterTypeImpl.getTypes(typeFormals);
 
@@ -1381,6 +1341,7 @@ class GenericInferrer {
       }
 
       if (!success) {
+        if (failAtError) return null;
         errorReporter?.reportErrorForNode(
             StrongModeCode.COULD_NOT_INFER,
             errorNode,
@@ -1393,6 +1354,7 @@ class GenericInferrer {
       }
 
       if (inferred is FunctionType && inferred.typeFormals.isNotEmpty) {
+        if (failAtError) return null;
         errorReporter
             ?.reportErrorForNode(StrongModeCode.COULD_NOT_INFER, errorNode, [
           typeParam,
@@ -1421,6 +1383,7 @@ class GenericInferrer {
     // Report any errors from instantiateToBounds.
     for (int i = 0; i < hasError.length; i++) {
       if (hasError[i]) {
+        if (failAtError) return null;
         TypeParameterType typeParam = fnTypeParams[i];
         var typeParamBound =
             typeParam.bound.substitute2(inferredTypes, fnTypeParams);
@@ -1893,6 +1856,379 @@ class GenericInferrer {
   }
 }
 
+/// The instantiation of a [ClassElement] with type arguments.
+///
+/// It is not a [DartType] itself, because it does not have nullability.
+/// But it should be used where nullability does not make sense - to specify
+/// superclasses, mixins, and implemented interfaces.
+class InstantiatedClass {
+  final ClassElement element;
+  final List<DartType> arguments;
+
+  final Substitution _substitution;
+
+  InstantiatedClass(this.element, this.arguments)
+      : _substitution = Substitution.fromPairs(
+          element.typeParameters,
+          arguments,
+        );
+
+  /// Return the [InstantiatedClass] that corresponds to the [type] - with the
+  /// same element and type arguments, ignoring its nullability suffix.
+  factory InstantiatedClass.of(InterfaceType type) {
+    return InstantiatedClass(type.element, type.typeArguments);
+  }
+
+  @override
+  int get hashCode {
+    var hash = 0x3fffffff & element.hashCode;
+    for (var i = 0; i < arguments.length; i++) {
+      hash = 0x3fffffff & (hash * 31 + (hash ^ arguments[i].hashCode));
+    }
+    return hash;
+  }
+
+  /// Return the interfaces that are directly implemented by this class.
+  List<InstantiatedClass> get interfaces {
+    var interfaces = element.interfaces;
+
+    var result = List<InstantiatedClass>(interfaces.length);
+    for (var i = 0; i < interfaces.length; i++) {
+      var interface = interfaces[i];
+      var substituted = _substitution.substituteType(interface);
+      result[i] = InstantiatedClass.of(substituted);
+    }
+
+    return result;
+  }
+
+  /// Return `true` if this type represents the type 'Function' defined in the
+  /// dart:core library.
+  bool get isDartCoreFunction {
+    return element.name == 'Function' && element.library.isDartCore;
+  }
+
+  /// Return the superclass of this type, or `null` if this type represents
+  /// the class 'Object'.
+  InstantiatedClass get superclass {
+    var supertype = element.supertype;
+    if (supertype == null) return null;
+
+    supertype = _substitution.substituteType(supertype);
+    return InstantiatedClass.of(supertype);
+  }
+
+  /// Return a list containing all of the superclass constraints defined for
+  /// this class. The list will be empty if this class does not represent a
+  /// mixin declaration. If this class _does_ represent a mixin declaration but
+  /// the declaration does not have an `on` clause, then the list will contain
+  /// the type for the class `Object`.
+  List<InstantiatedClass> get superclassConstraints {
+    var constraints = element.superclassConstraints;
+
+    var result = List<InstantiatedClass>(constraints.length);
+    for (var i = 0; i < constraints.length; i++) {
+      var constraint = constraints[i];
+      var substituted = _substitution.substituteType(constraint);
+      result[i] = InstantiatedClass.of(substituted);
+    }
+
+    return result;
+  }
+
+  @visibleForTesting
+  InterfaceType get withNullabilitySuffixNone {
+    return withNullability(NullabilitySuffix.none);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    if (other is InstantiatedClass) {
+      if (element != other.element) return false;
+      if (arguments.length != other.arguments.length) return false;
+      for (var i = 0; i < arguments.length; i++) {
+        if (arguments[i] != other.arguments[i]) return false;
+      }
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  String toString() {
+    var buffer = StringBuffer();
+    buffer.write(element.name);
+    if (arguments.isNotEmpty) {
+      buffer.write('<');
+      buffer.write(arguments.join(', '));
+      buffer.write('>');
+    }
+    return buffer.toString();
+  }
+
+  InterfaceType withNullability(NullabilitySuffix nullability) {
+    return InterfaceTypeImpl.explicit(
+      element,
+      arguments,
+      nullabilitySuffix: nullability,
+    );
+  }
+}
+
+class InterfaceLeastUpperBoundHelper {
+  final TypeSystem typeSystem;
+
+  InterfaceLeastUpperBoundHelper(this.typeSystem);
+
+  /// This currently does not implement a very complete least upper bound
+  /// algorithm, but handles a couple of the very common cases that are
+  /// causing pain in real code.  The current algorithm is:
+  /// 1. If either of the types is a supertype of the other, return it.
+  ///    This is in fact the best result in this case.
+  /// 2. If the two types have the same class element, then take the
+  ///    pointwise least upper bound of the type arguments.  This is again
+  ///    the best result, except that the recursive calls may not return
+  ///    the true least upper bounds.  The result is guaranteed to be a
+  ///    well-formed type under the assumption that the input types were
+  ///    well-formed (and assuming that the recursive calls return
+  ///    well-formed types).
+  /// 3. Otherwise return the spec-defined least upper bound.  This will
+  ///    be an upper bound, might (or might not) be least, and might
+  ///    (or might not) be a well-formed type.
+  ///
+  /// TODO(leafp): Use matchTypes or something similar here to handle the
+  ///  case where one of the types is a superclass (but not supertype) of
+  ///  the other, e.g. LUB(Iterable<double>, List<int>) = Iterable<num>
+  /// TODO(leafp): Figure out the right final algorithm and implement it.
+  InterfaceTypeImpl compute(InterfaceTypeImpl type1, InterfaceTypeImpl type2) {
+    var nullability = _chooseNullability(type1, type2);
+
+    // Strip off nullability.
+    type1 = type1.withNullability(NullabilitySuffix.none);
+    type2 = type2.withNullability(NullabilitySuffix.none);
+
+    if (typeSystem.isSubtypeOf(type1, type2)) {
+      return type2.withNullability(nullability);
+    }
+    if (typeSystem.isSubtypeOf(type2, type1)) {
+      return type1.withNullability(nullability);
+    }
+
+    if (type1.element == type2.element) {
+      var args1 = type1.typeArguments;
+      var args2 = type2.typeArguments;
+
+      assert(args1.length == args2.length);
+      var args = List<DartType>(args1.length);
+      for (int i = 0; i < args1.length; i++) {
+        args[i] = typeSystem.getLeastUpperBound(args1[i], args2[i]);
+      }
+
+      return new InterfaceTypeImpl.explicit(
+        type1.element,
+        args,
+        nullabilitySuffix: nullability,
+      );
+    }
+
+    var result = _computeLeastUpperBound(
+      InstantiatedClass.of(type1),
+      InstantiatedClass.of(type2),
+    );
+    return result.withNullability(nullability);
+  }
+
+  /// Compute the least upper bound of types [i] and [j], both of which are
+  /// known to be interface types.
+  ///
+  /// In the event that the algorithm fails (which might occur due to a bug in
+  /// the analyzer), `null` is returned.
+  InstantiatedClass _computeLeastUpperBound(
+    InstantiatedClass i,
+    InstantiatedClass j,
+  ) {
+    // compute set of supertypes
+    var si = computeSuperinterfaceSet(i);
+    var sj = computeSuperinterfaceSet(j);
+
+    // union si with i and sj with j
+    si.add(i);
+    sj.add(j);
+
+    // compute intersection, reference as set 's'
+    var s = _intersection(si, sj);
+    return _computeTypeAtMaxUniqueDepth(s);
+  }
+
+  /**
+   * Return the length of the longest inheritance path from the [element] to
+   * Object.
+   */
+  @visibleForTesting
+  static int computeLongestInheritancePathToObject(ClassElement element) {
+    return _computeLongestInheritancePathToObject(
+      element,
+      0,
+      Set<ClassElement>(),
+    );
+  }
+
+  /// Return all of the superinterfaces of the given [type].
+  @visibleForTesting
+  static Set<InstantiatedClass> computeSuperinterfaceSet(
+      InstantiatedClass type) {
+    var result = Set<InstantiatedClass>();
+    _addSuperinterfaces(result, type);
+    return result;
+  }
+
+  /// Add all of the superinterfaces of the given [type] to the given [set].
+  static void _addSuperinterfaces(
+      Set<InstantiatedClass> set, InstantiatedClass type) {
+    for (var interface in type.interfaces) {
+      if (!interface.isDartCoreFunction) {
+        if (set.add(interface)) {
+          _addSuperinterfaces(set, interface);
+        }
+      }
+    }
+
+    for (var constraint in type.superclassConstraints) {
+      if (!constraint.isDartCoreFunction) {
+        if (set.add(constraint)) {
+          _addSuperinterfaces(set, constraint);
+        }
+      }
+    }
+
+    var supertype = type.superclass;
+    if (supertype != null && !supertype.isDartCoreFunction) {
+      if (set.add(supertype)) {
+        _addSuperinterfaces(set, supertype);
+      }
+    }
+  }
+
+  static NullabilitySuffix _chooseNullability(
+    InterfaceTypeImpl type1,
+    InterfaceTypeImpl type2,
+  ) {
+    var nullability1 = type1.nullabilitySuffix;
+    var nullability2 = type2.nullabilitySuffix;
+    if (nullability1 == NullabilitySuffix.question ||
+        nullability2 == NullabilitySuffix.question) {
+      return NullabilitySuffix.question;
+    } else if (nullability1 == NullabilitySuffix.star ||
+        nullability2 == NullabilitySuffix.star) {
+      return NullabilitySuffix.star;
+    }
+    return NullabilitySuffix.none;
+  }
+
+  /// Return the length of the longest inheritance path from a subtype of the
+  /// given [element] to Object, where the given [depth] is the length of the
+  /// longest path from the subtype to this type. The set of [visitedElements]
+  /// is used to prevent infinite recursion in the case of a cyclic type
+  /// structure.
+  static int _computeLongestInheritancePathToObject(
+      ClassElement element, int depth, Set<ClassElement> visitedElements) {
+    // Object case
+    if (element.supertype == null || visitedElements.contains(element)) {
+      return depth;
+    }
+    int longestPath = 1;
+    try {
+      visitedElements.add(element);
+      int pathLength;
+
+      // loop through each of the superinterfaces recursively calling this
+      // method and keeping track of the longest path to return
+      for (InterfaceType interface in element.superclassConstraints) {
+        pathLength = _computeLongestInheritancePathToObject(
+            interface.element, depth + 1, visitedElements);
+        if (pathLength > longestPath) {
+          longestPath = pathLength;
+        }
+      }
+
+      // loop through each of the superinterfaces recursively calling this
+      // method and keeping track of the longest path to return
+      for (InterfaceType interface in element.interfaces) {
+        pathLength = _computeLongestInheritancePathToObject(
+            interface.element, depth + 1, visitedElements);
+        if (pathLength > longestPath) {
+          longestPath = pathLength;
+        }
+      }
+
+      // finally, perform this same check on the super type
+      // TODO(brianwilkerson) Does this also need to add in the number of mixin
+      // classes?
+      InterfaceType supertype = element.supertype;
+      if (supertype != null) {
+        pathLength = _computeLongestInheritancePathToObject(
+            supertype.element, depth + 1, visitedElements);
+        if (pathLength > longestPath) {
+          longestPath = pathLength;
+        }
+      }
+    } finally {
+      visitedElements.remove(element);
+    }
+    return longestPath;
+  }
+
+  /// Return the type from the [types] list that has the longest inheritance
+  /// path to Object of unique length.
+  static InstantiatedClass _computeTypeAtMaxUniqueDepth(
+    List<InstantiatedClass> types,
+  ) {
+    // for each element in Set s, compute the largest inheritance path to Object
+    List<int> depths = new List<int>.filled(types.length, 0);
+    int maxDepth = 0;
+    for (int i = 0; i < types.length; i++) {
+      depths[i] = computeLongestInheritancePathToObject(types[i].element);
+      if (depths[i] > maxDepth) {
+        maxDepth = depths[i];
+      }
+    }
+    // ensure that the currently computed maxDepth is unique,
+    // otherwise, decrement and test for uniqueness again
+    for (; maxDepth >= 0; maxDepth--) {
+      int indexOfLeastUpperBound = -1;
+      int numberOfTypesAtMaxDepth = 0;
+      for (int m = 0; m < depths.length; m++) {
+        if (depths[m] == maxDepth) {
+          numberOfTypesAtMaxDepth++;
+          indexOfLeastUpperBound = m;
+        }
+      }
+      if (numberOfTypesAtMaxDepth == 1) {
+        return types[indexOfLeastUpperBound];
+      }
+    }
+    // Should be impossible--there should always be exactly one type with the
+    // maximum depth.
+    assert(false);
+    return null;
+  }
+
+  /**
+   * Return the intersection of the [first] and [second] sets of types, where
+   * intersection is based on the equality of the types themselves.
+   */
+  static List<InstantiatedClass> _intersection(
+    Set<InstantiatedClass> first,
+    Set<InstantiatedClass> second,
+  ) {
+    var result = first.toSet();
+    result.retainAll(second);
+    return result.toList();
+  }
+}
+
 /// Used to check for infinite loops, if we repeat the same type comparison.
 class TypeComparison {
   final DartType lhs;
@@ -2096,6 +2432,7 @@ abstract class TypeSystem implements public.TypeSystem {
    *
    * In strong mode, this is equivalent to [isSubtypeOf].
    */
+  @Deprecated('Use isSubtypeOf() instead.')
   bool isMoreSpecificThan(DartType leftType, DartType rightType);
 
   @override
@@ -2176,9 +2513,9 @@ abstract class TypeSystem implements public.TypeSystem {
     var result = mixinElement.type.instantiate(inferredTypes);
 
     for (int i = 0; i < srcs.length; i++) {
-      if (!srcs[i]
-          .substitute2(result.typeArguments, mixinElement.type.typeArguments)
-          .isEquivalentTo(dests[i])) {
+      if (srcs[i].substitute2(
+              result.typeArguments, mixinElement.type.typeArguments) !=
+          dests[i]) {
         // Failed to find an appropriate substitution
         return null;
       }
@@ -2213,9 +2550,23 @@ abstract class TypeSystem implements public.TypeSystem {
 
   /// Returns a non-nullable version of [type].  This is equivalent to the
   /// operation `NonNull` defined in the spec.
-  DartType promoteToNonNull(TypeImpl type) {
+  DartType promoteToNonNull(covariant TypeImpl type) {
     if (type.isDartCoreNull) return BottomTypeImpl.instance;
-    // TODO(mfairhurst): handle type parameter types
+
+    if (type is TypeParameterTypeImpl) {
+      var promotedElement = TypeParameterElementImpl.synthetic(
+        type.element.name,
+      );
+
+      var bound = type.element.bound ?? typeProvider.objectType;
+      promotedElement.bound = promoteToNonNull(bound);
+
+      return TypeParameterTypeImpl(
+        promotedElement,
+        nullabilitySuffix: NullabilitySuffix.none,
+      );
+    }
+
     return type.withNullability(NullabilitySuffix.none);
   }
 
@@ -2238,8 +2589,7 @@ abstract class TypeSystem implements public.TypeSystem {
       }
       return typeProvider.boolType;
     }
-    DartType intType = typeProvider.intType;
-    if (leftType == intType) {
+    if (leftType.isDartCoreInt) {
       // int op double
       if (operator == TokenType.MINUS ||
           operator == TokenType.PERCENT ||
@@ -2249,10 +2599,10 @@ abstract class TypeSystem implements public.TypeSystem {
           operator == TokenType.PERCENT_EQ ||
           operator == TokenType.PLUS_EQ ||
           operator == TokenType.STAR_EQ) {
-        DartType doubleType = typeProvider.doubleType;
-        if (rightType == doubleType) {
+        if (rightType.isDartCoreDouble) {
+          InterfaceTypeImpl doubleType = typeProvider.doubleType;
           if (featureSet.isEnabled(Feature.non_nullable)) {
-            return promoteToNonNull(doubleType as TypeImpl);
+            return promoteToNonNull(doubleType);
           }
           return doubleType;
         }
@@ -2268,9 +2618,10 @@ abstract class TypeSystem implements public.TypeSystem {
           operator == TokenType.PLUS_EQ ||
           operator == TokenType.STAR_EQ ||
           operator == TokenType.TILDE_SLASH_EQ) {
-        if (rightType == intType) {
+        if (rightType.isDartCoreInt) {
+          InterfaceTypeImpl intType = typeProvider.intType;
           if (featureSet.isEnabled(Feature.non_nullable)) {
-            return promoteToNonNull(intType as TypeImpl);
+            return promoteToNonNull(intType);
           }
           return intType;
         }
@@ -2282,20 +2633,36 @@ abstract class TypeSystem implements public.TypeSystem {
 
   @override
   DartType resolveToBound(DartType type) {
-    return instantiateToBounds(type);
+    if (type is TypeParameterTypeImpl) {
+      var element = type.element;
+
+      var bound = element.bound as TypeImpl;
+      if (bound == null) {
+        return typeProvider.objectType;
+      }
+
+      NullabilitySuffix nullabilitySuffix = type.nullabilitySuffix;
+      NullabilitySuffix newNullabilitySuffix;
+      if (nullabilitySuffix == NullabilitySuffix.question ||
+          bound.nullabilitySuffix == NullabilitySuffix.question) {
+        newNullabilitySuffix = NullabilitySuffix.question;
+      } else if (nullabilitySuffix == NullabilitySuffix.star ||
+          bound.nullabilitySuffix == NullabilitySuffix.star) {
+        newNullabilitySuffix = NullabilitySuffix.star;
+      } else {
+        newNullabilitySuffix = NullabilitySuffix.none;
+      }
+
+      var resolved = resolveToBound(bound) as TypeImpl;
+      return resolved.withNullability(newNullabilitySuffix);
+    }
+
+    return type;
   }
 
   /**
    * Tries to promote from the first type from the second type, and returns the
    * promoted type if it succeeds, otherwise null.
-   *
-   * In the Dart 1 type system, it is not possible to promote from or to
-   * `dynamic`, and we must be promoting to a more specific type, see
-   * [isMoreSpecificThan]. Also it will always return the promote [to] type or
-   * null.
-   *
-   * In strong mode, this can potentially return a different type, see
-   * the override in [Dart2TypeSystem].
    */
   DartType tryPromoteToType(DartType to, DartType from);
 
@@ -2653,7 +3020,8 @@ class _TypeConstraintFromArgument extends _TypeConstraintOrigin {
     // However in summary code it doesn't look like the AST node with span is
     // available.
     String prefix;
-    if ((genericType.name == "List" || genericType.name == "Map") &&
+    if (genericType != null &&
+        (genericType.name == "List" || genericType.name == "Map") &&
         genericType?.element?.library?.isDartCore == true) {
       // This will become:
       //     "List element"

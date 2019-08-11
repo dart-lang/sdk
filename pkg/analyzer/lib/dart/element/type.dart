@@ -67,13 +67,33 @@ abstract class DartType {
   /// dart:core library.
   bool get isDartCoreInt;
 
+  /// Returns `true` if this type represents the type 'List' defined in the
+  /// dart:core library.
+  bool get isDartCoreList;
+
+  /// Returns `true` if this type represents the type 'Map' defined in the
+  /// dart:core library.
+  bool get isDartCoreMap;
+
   /// Return `true` if this type represents the type 'Null' defined in the
   /// dart:core library.
   bool get isDartCoreNull;
 
+  /// Return `true` if this type represents the type 'num' defined in the
+  /// dart:core library.
+  bool get isDartCoreNum;
+
+  /// Returns `true` if this type represents the type 'Set' defined in the
+  /// dart:core library.
+  bool get isDartCoreSet;
+
   /// Return `true` if this type represents the type 'String' defined in the
   /// dart:core library.
   bool get isDartCoreString;
+
+  /// Returns `true` if this type represents the type 'Symbol' defined in the
+  /// dart:core library.
+  bool get isDartCoreSymbol;
 
   /// Return `true` if this type represents the type 'dynamic'.
   bool get isDynamic;
@@ -97,11 +117,13 @@ abstract class DartType {
   ///     and for all R, if T << Future<R> then S << R.  Then flatten(T) = S.
   ///
   ///     In any other circumstance, flatten(T) = T.
+  @Deprecated('Use TypeSystem.flatten() instead.')
   DartType flattenFutures(TypeSystem typeSystem);
 
   /// Return `true` if this type is assignable to the given [type]. A type
   /// <i>T</i> may be assigned to a type <i>S</i>, written <i>T</i> &hArr;
   /// <i>S</i>, iff either <i>T</i> <: <i>S</i> or <i>S</i> <: <i>T</i>.
+  @Deprecated('Use TypeSystem.isAssignableTo() instead.')
   bool isAssignableTo(DartType type);
 
   /// Indicates whether `this` represents a type that is equivalent to `dest`.
@@ -112,9 +134,11 @@ abstract class DartType {
   ///
   /// `operator==` would consider F<int> and F<bool> to be different types;
   /// `isEquivalentTo` considers them to be equivalent.
+  @Deprecated('operator== was fixed. Use it instead.')
   bool isEquivalentTo(DartType dest);
 
   /// Return `true` if this type is more specific than the given [type].
+  @Deprecated('Use TypeSystem.isSubtypeOf() instead.')
   bool isMoreSpecificThan(DartType type);
 
   /// Return `true` if this type is a subtype of the given [type].
@@ -123,6 +147,7 @@ abstract class DartType {
   /// Return `true` if this type is a supertype of the given [type]. A type
   /// <i>S</i> is a supertype of <i>T</i>, written <i>S</i> :> <i>T</i>, iff
   /// <i>T</i> is a subtype of <i>S</i>.
+  @Deprecated('Use TypeSystem.isSubtypeOf() instead.')
   bool isSupertypeOf(DartType type);
 
   /// If this type is a [TypeParameterType], returns its bound if it has one, or
@@ -357,25 +382,8 @@ abstract class InterfaceType implements ParameterizedType {
   /// * <i>I</i> is listed in the implements clause of <i>J</i>.
   /// * <i>I</i> is listed in the with clause of <i>J</i>.
   /// * <i>J</i> is a mixin application of the mixin of <i>I</i>.
+  @Deprecated('This method was used internally, and is not used anymore.')
   bool isDirectSupertypeOf(InterfaceType type);
-
-  /// Return `true` if this type is more specific than the given [type]. An
-  /// interface type <i>T</i> is more specific than an interface type <i>S</i>,
-  /// written <i>T &laquo; S</i>, if one of the following conditions is met:
-  ///
-  /// * Reflexivity: <i>T</i> is <i>S</i>.
-  /// * <i>T</i> is bottom.
-  /// * <i>S</i> is dynamic.
-  /// * Direct supertype: <i>S</i> is a direct supertype of <i>T</i>.
-  /// * <i>T</i> is a type parameter and <i>S</i> is the upper bound of
-  /// <i>T</i>.
-  /// * Covariance: <i>T</i> is of the form <i>I&lt;T<sub>1</sub>, &hellip;,
-  ///   T<sub>n</sub>&gt;</i> and S</i> is of the form <i>I&lt;S<sub>1</sub>,
-  ///   &hellip;, S<sub>n</sub>&gt;</i> and <i>T<sub>i</sub> &laquo;
-  ///   S<sub>i</sub></i>, <i>1 <= i <= n</i>.
-  /// * Transitivity: <i>T &laquo; U</i> and <i>U &laquo; S</i>.
-  @override
-  bool isMoreSpecificThan(DartType type);
 
   /// Return `true` if this type is a subtype of the given [type]. An interface
   /// type <i>T</i> is a subtype of an interface type <i>S</i>, written <i>T</i>

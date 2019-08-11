@@ -3,9 +3,9 @@ import self as self;
 import "dart:core" as core;
 
 static method main() → dynamic {
-  core::num n = 1;
-  core::int i = 1;
-  core::double d = 1.0;
+  core::num* n = 1;
+  core::int* i = 1;
+  core::double* d = 1.0;
   dynamic ddPlus = d.+(d);
   dynamic ddMinus = d.-(d);
   dynamic ddTimes = d.*(d);

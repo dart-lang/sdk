@@ -1,0 +1,25 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/having_part_with_part_and_annotation_lib1.dart:4:6: Error: A file that's a part of a library can't have parts itself.
+// Try moving the 'part' declaration to the containing library.
+// part 'having_part_with_part_and_annotation_lib2.dart';
+//      ^
+// pkg/front_end/testcases/general/having_part_with_part_and_annotation.dart: Context: This is the containing library.
+//
+import self as self;
+import "dart:core" as core;
+
+@#C1
+part having_part_with_part_and_annotation_lib1.dart;
+static const field core::int* Foo = #C1;
+static const field core::int* Bar = #C2 /* from org-dartlang-testcase:///having_part_with_part_and_annotation_lib1.dart */;
+static method fromMain() → void {}
+static method main() → dynamic {}
+static method /* from org-dartlang-testcase:///having_part_with_part_and_annotation_lib1.dart */ fromLib1() → void {}
+
+constants  {
+  #C1 = 42
+  #C2 = 43
+}

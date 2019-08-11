@@ -9,12 +9,13 @@ import 'package:cli_util/cli_logging.dart';
 import 'package:dartfix/src/context.dart';
 import 'package:path/path.dart' as path;
 
-const excludeOption = 'exclude';
-
 const forceOption = 'force';
-const includeOption = 'include';
+const includeFixOption = 'fix';
+const excludeFixOption = 'excludeFix';
 const overwriteOption = 'overwrite';
+const pedanticOption = 'pedantic';
 const requiredOption = 'required';
+
 const _binaryName = 'dartfix';
 const _colorOption = 'color';
 const _serverSnapshot = 'server';
@@ -32,6 +33,7 @@ class Options {
   final String sdkPath;
   final String serverSnapshot;
 
+  final bool pedanticFixes;
   final bool requiredFixes;
   final List<String> includeFixes;
   final List<String> excludeFixes;
@@ -44,11 +46,10 @@ class Options {
 
   Options._fromArgs(this.context, ArgResults results)
       : force = results[forceOption] as bool,
-        includeFixes =
-            (results[includeOption] as List ?? []).cast<String>().toList(),
-        excludeFixes =
-            (results[excludeOption] as List ?? []).cast<String>().toList(),
+        includeFixes = (results[includeFixOption] as List ?? []).cast<String>(),
+        excludeFixes = (results[excludeFixOption] as List ?? []).cast<String>(),
         overwrite = results[overwriteOption] as bool,
+        pedanticFixes = results[pedanticOption] as bool,
         requiredFixes = results[requiredOption] as bool,
         sdkPath = _getSdkPath(),
         serverSnapshot = results[_serverSnapshot],
@@ -67,17 +68,16 @@ class Options {
   }
 
   static Options parse(List<String> args, Context context, Logger logger) {
-    final parser = new ArgParser(allowTrailingOptions: true)
+    final parser = ArgParser(allowTrailingOptions: true)
       ..addSeparator('Choosing fixes to be applied:')
-      ..addMultiOption(includeOption,
-          abbr: 'i', help: 'Include a specific fix.', valueHelp: 'name-of-fix')
-      ..addMultiOption(excludeOption,
-          abbr: 'x', help: 'Exclude a specific fix.', valueHelp: 'name-of-fix')
+      ..addMultiOption(includeFixOption,
+          help: 'Include a specific fix.', valueHelp: 'name-of-fix')
+      ..addMultiOption(excludeFixOption,
+          help: 'Exclude a specific fix.', valueHelp: 'name-of-fix')
+      ..addFlag(pedanticOption,
+          help: 'Apply pedantic fixes.', defaultsTo: false, negatable: false)
       ..addFlag(requiredOption,
-          abbr: 'r',
-          help: 'Apply required fixes.',
-          defaultsTo: false,
-          negatable: false)
+          help: 'Apply required fixes.', defaultsTo: false, negatable: false)
       ..addSeparator('Modifying files:')
       ..addFlag(overwriteOption,
           abbr: 'w',
@@ -106,26 +106,26 @@ class Options {
           help: 'Use ansi colors when printing messages.',
           defaultsTo: Ansi.terminalSupportsAnsi);
 
-    context ??= new Context();
+    context ??= Context();
 
     ArgResults results;
     try {
       results = parser.parse(args);
     } on FormatException catch (e) {
-      logger ??= new Logger.standard(ansi: new Ansi(Ansi.terminalSupportsAnsi));
+      logger ??= Logger.standard(ansi: Ansi(Ansi.terminalSupportsAnsi));
       logger.stderr(e.message);
       _showUsage(parser, logger);
-      context.exit(15);
+      context.exit(17);
     }
 
-    Options options = new Options._fromArgs(context, results);
+    Options options = Options._fromArgs(context, results);
 
     if (logger == null) {
       if (options.verbose) {
-        logger = new Logger.verbose();
+        logger = Logger.verbose();
       } else {
-        logger = new Logger.standard(
-            ansi: new Ansi(
+        logger = Logger.standard(
+            ansi: Ansi(
           options.useColor != null
               ? options.useColor
               : Ansi.terminalSupportsAnsi,
@@ -144,18 +144,18 @@ class Options {
     String sdkPath = options.sdkPath;
     if (sdkPath == null) {
       logger.stderr('No Dart SDK found.');
-      context.exit(15);
+      context.exit(18);
     }
 
     if (!context.exists(sdkPath)) {
       logger.stderr('Invalid Dart SDK path: $sdkPath');
-      context.exit(15);
+      context.exit(19);
     }
 
     // Check for files and/or directories to analyze.
     if (options.targets == null || options.targets.isEmpty) {
       logger.stderr('Expected at least one file or directory to analyze.');
-      context.exit(15);
+      context.exit(20);
     }
 
     // Normalize and verify paths
@@ -168,7 +168,7 @@ class Options {
         } else {
           logger.stderr('Expected directory, but found: $target');
         }
-        context.exit(15);
+        context.exit(21);
       }
     }
 
@@ -200,7 +200,7 @@ Usage: $_binaryName [options...] <directory paths>
         ? '''
 
 Use --$_helpOption to display the fixes that can be specified using either
---$includeOption or --$excludeOption.'''
+--$includeFixOption or --$excludeFixOption.'''
         : '');
   }
 }

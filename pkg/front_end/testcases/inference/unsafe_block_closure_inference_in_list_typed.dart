@@ -7,8 +7,8 @@ library test;
 
 typedef int F();
 main() {
-  var /*@type=List<() -> int>*/ v = <F>[
-    /*@returnType=int*/ () {
+  var /*@ type=List<() ->* int*>* */ v = <F>[
+    /*@ returnType=int* */ () {
       return 1;
     }
   ];

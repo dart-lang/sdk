@@ -490,6 +490,26 @@ abstract class CommonElements {
   FieldEntity get rtiIsField;
   FunctionEntity get rtiEvalMethod;
   FunctionEntity get rtiBindMethod;
+  FunctionEntity get rtiAddRulesMethod;
+
+  FunctionEntity get generalIsTestImplementation;
+  FunctionEntity get generalAsCheckImplementation;
+  FunctionEntity get generalTypeCheckImplementation;
+
+  FunctionEntity get specializedIsBool;
+  FunctionEntity get specializedAsBoolNullable;
+  FunctionEntity get specializedCheckBoolNullable;
+  FunctionEntity get specializedAsDoubleNullable;
+  FunctionEntity get specializedCheckDoubleNullable;
+  FunctionEntity get specializedIsInt;
+  FunctionEntity get specializedAsIntNullable;
+  FunctionEntity get specializedCheckIntNullable;
+  FunctionEntity get specializedIsNum;
+  FunctionEntity get specializedAsNumNullable;
+  FunctionEntity get specializedCheckNumNullable;
+  FunctionEntity get specializedIsString;
+  FunctionEntity get specializedAsStringNullable;
+  FunctionEntity get specializedCheckStringNullable;
 
   // From dart:_internal
 
@@ -1837,6 +1857,7 @@ class CommonElementsImpl
       _checkTypeBound ??= _findRtiFunction('checkTypeBound');
 
   ClassEntity get _rtiImplClass => _findClass(rtiLibrary, 'Rti');
+  ClassEntity get _rtiUniverseClass => _findClass(rtiLibrary, '_Universe');
   FieldEntity _findRtiClassField(String name) =>
       _findClassMember(_rtiImplClass, name);
 
@@ -1862,6 +1883,81 @@ class CommonElementsImpl
   @override
   FunctionEntity get rtiBindMethod =>
       _rtiBindMethod ??= _findClassMember(_rtiImplClass, '_bind');
+
+  FunctionEntity _rtiAddRulesMethod;
+  @override
+  FunctionEntity get rtiAddRulesMethod =>
+      _rtiAddRulesMethod ??= _findClassMember(_rtiUniverseClass, 'addRules');
+
+  FunctionEntity _generalIsTestImplementation;
+  @override
+  FunctionEntity get generalIsTestImplementation =>
+      _generalIsTestImplementation ??=
+          _findRtiFunction('_generalIsTestImplementation');
+
+  FunctionEntity _generalAsCheckImplementation;
+  @override
+  FunctionEntity get generalAsCheckImplementation =>
+      _generalAsCheckImplementation ??=
+          _findRtiFunction('_generalAsCheckImplementation');
+
+  FunctionEntity _generalTypeCheckImplementation;
+  @override
+  FunctionEntity get generalTypeCheckImplementation =>
+      _generalTypeCheckImplementation ??=
+          _findRtiFunction('_generalTypeCheckImplementation');
+
+  @override
+  FunctionEntity get specializedIsBool => _findRtiFunction('_isBool');
+
+  @override
+  FunctionEntity get specializedAsBoolNullable =>
+      _findRtiFunction('_asBoolNullable');
+
+  @override
+  FunctionEntity get specializedCheckBoolNullable =>
+      _findRtiFunction('_checkBoolNullable');
+
+  @override
+  FunctionEntity get specializedAsDoubleNullable =>
+      _findRtiFunction('_asDoubleNullable');
+
+  @override
+  FunctionEntity get specializedCheckDoubleNullable =>
+      _findRtiFunction('_checkDoubleNullable');
+
+  @override
+  FunctionEntity get specializedIsInt => _findRtiFunction('_isInt');
+
+  @override
+  FunctionEntity get specializedAsIntNullable =>
+      _findRtiFunction('_asIntNullable');
+
+  @override
+  FunctionEntity get specializedCheckIntNullable =>
+      _findRtiFunction('_checkIntNullable');
+
+  @override
+  FunctionEntity get specializedIsNum => _findRtiFunction('_isNum');
+
+  @override
+  FunctionEntity get specializedAsNumNullable =>
+      _findRtiFunction('_asNumNullable');
+
+  @override
+  FunctionEntity get specializedCheckNumNullable =>
+      _findRtiFunction('_checkNumNullable');
+
+  @override
+  FunctionEntity get specializedIsString => _findRtiFunction('_isString');
+
+  @override
+  FunctionEntity get specializedAsStringNullable =>
+      _findRtiFunction('_asStringNullable');
+
+  @override
+  FunctionEntity get specializedCheckStringNullable =>
+      _findRtiFunction('_checkStringNullable');
 
   // From dart:_internal
 

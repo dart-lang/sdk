@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// VMOptions=--enable-testing-pragmas --no-background-compilation --enable-inlining-annotations --optimization-counter-threshold=10 -Denable_inlining=true
-// VMOptions=--enable-testing-pragmas --no-background-compilation --enable-inlining-annotations --optimization-counter-threshold=10
+// VMOptions=--enable-testing-pragmas --no-background-compilation --optimization-counter-threshold=10 -Denable_inlining=true
+// VMOptions=--enable-testing-pragmas --no-background-compilation --optimization-counter-threshold=10
 
 // Test that 'PolymorphicInstanceCall's against "this" go through the unchecked
 // entrypoint.
@@ -14,6 +14,14 @@ import "package:expect/expect.dart";
 abstract class C<T> {
   @NeverInline
   void target1(T x) {
+    // Make sure this method gets optimized before main.
+    // Otherwise it might get inlined into warm-up loop, and subsequent
+    // loop will call an unoptimized version (which is not guaranteed to
+    // dispatch to unchecked entry point).
+    bumpUsageCounter();
+    bumpUsageCounter();
+    bumpUsageCounter();
+
     target2(x);
   }
 

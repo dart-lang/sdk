@@ -7,6 +7,7 @@
 import "package:test/test.dart";
 
 import '../lib/sqlite.dart';
+import '../lib/src/ffi/utf8.dart';
 
 void main() {
   test("sqlite integration test", () {
@@ -160,5 +161,11 @@ void main() {
     expect(count, 3 * repeats);
     r.close();
     d.close();
+  });
+  test("Utf8 unit test", () {
+    final String test = 'Hasta Mañana';
+    final medium = Utf8.allocate(test);
+    expect(test, medium.load<Utf8>().toString());
+    medium.free();
   });
 }

@@ -72,6 +72,7 @@
 
 constant-update-2018:
   help: "Enhanced constant expressions"
+  enabledIn: '2.4.1'
 
 extension-methods:
   help: "Extension Methods"

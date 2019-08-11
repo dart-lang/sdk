@@ -14,6 +14,7 @@ final String nullName = JS_GET_NAME(JsGetName.NULL_CLASS_TYPE_NAME);
 const typeRulesJson = r'''
 {
   "int": {"num": []},
+  "double": {"num": []},
   "List": {"Iterable": ["1"]},
   "CodeUnits": {
     "List": ["int"],
@@ -35,6 +36,8 @@ void runTests() {
   testTopTypes();
   testNull();
   testFutureOr();
+  testFunctions();
+  testGenericFunctions();
 }
 
 void testInterfaces() {
@@ -81,6 +84,65 @@ void testFutureOr() {
   strictSubtype('int', 'num/');
   strictSubtype('$futureName<int>', 'num/');
   equivalent('@/', '~/');
+}
+
+void testFunctions() {
+  equivalent('~()', '~()');
+  equivalent('@()', '~()');
+  unrelated('int()', 'int(int)');
+  strictSubtype('int()', 'num()');
+  strictSubtype('~(num)', '~(int)');
+  strictSubtype('int(Iterable<num>)', 'num(CodeUnits)');
+
+  equivalent('~(int,@,num)', '~(int,@,num)');
+  equivalent('@(int,~,num)', '~(int,@,num)');
+  unrelated('int(int,double)', 'void(String)');
+  unrelated('int(int,double)', 'int(int)');
+  unrelated('int(int,double)', 'int(double)');
+  unrelated('int(int,double)', 'int(int,int)');
+  unrelated('int(int,double)', 'int(String,double)');
+  strictSubtype('int(int,double)', '~(int,double)');
+  strictSubtype('int(int,double)', 'num(int,double)');
+  strictSubtype('int(num,double)', 'int(int,double)');
+  strictSubtype('int(int,num)', 'int(int,double)');
+  strictSubtype('int(num,num)', 'int(int,double)');
+  strictSubtype('double(num,Iterable<num>,int/)', 'num(int,CodeUnits,int)');
+
+  equivalent('~([@])', '~([@])');
+  equivalent('~(int,[double])', '~(int,[double])');
+  equivalent('~(int,[double,CodeUnits])', '~(int,[double,CodeUnits])');
+  unrelated('~([int])', '~([double])');
+  unrelated('~(int,[int])', '~(int,[double])');
+  unrelated('~(int,[CodeUnits,int])', '~(int,[CodeUnits,double])');
+  strictSubtype('~([num])', '~([int])');
+  strictSubtype('~([num,num])', '~([int,double])');
+  strictSubtype('~([int,double])', '~(int,[double])');
+  strictSubtype('~([int,double,CodeUnits])', '~([int,double])');
+  strictSubtype('~([int,double,CodeUnits])', '~(int,[double])');
+
+  equivalent('~({foo:@})', '~({foo:@})');
+  unrelated('~({foo:@})', '~({bar:@})');
+  unrelated('~({foo:@,quux:@})', '~({bar:@,baz:@})');
+  unrelated('~(@,{foo:@})', '~(@,@)');
+  unrelated('~(@,{foo:@})', '~({bar:@,foo:@})');
+  equivalent('~({bar:int,foo:double})', '~({bar:int,foo:double})');
+  strictSubtype('~({bar:int,foo:double})', '~({bar:int})');
+  strictSubtype('~({bar:int,foo:double})', '~({foo:double})');
+  strictSubtype('~({bar:num,baz:num,foo:num})', '~({baz:int,foo:double})');
+}
+
+void testGenericFunctions() {
+  equivalent('~()<int>', '~()<int>');
+  unrelated('~()<int>', '~()<double>');
+  unrelated('~()<int>', '~()<int,int>');
+  unrelated('~()<int>', '~()<num>');
+  unrelated('~()<int,double>', '~()<double,int>');
+  strictSubtype('List<0^>()<int>', 'Iterable<0^>()<int>');
+  strictSubtype('~(Iterable<0^>)<int>', '~(List<0^>)<int>');
+
+  equivalent('~()<@>', '~()<~>');
+  equivalent('~()<List<@/>>', '~()<List<~/>>');
+  unrelated('~()<List<int/>>', '~()<List<num/>>');
 }
 
 String reason(String s, String t) => "$s <: $t";

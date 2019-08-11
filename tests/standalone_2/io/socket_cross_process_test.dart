@@ -27,15 +27,14 @@ void main(List<String> args) {
 Future makeServer() {
   return ServerSocket.bind(InternetAddress.loopbackIPv4, 0).then((server) {
     server.listen((request) {
-      request.pipe(request);
+      request.cast<List<int>>().pipe(request);
     });
     return server;
   });
 }
 
 Future runClientProcess(int port) {
-  return Process
-      .run(
+  return Process.run(
           Platform.executable,
           []
             ..addAll(Platform.executableArguments)

@@ -20,6 +20,7 @@ abstract class AnalysisContextCollection {
   /// system, otherwise the default resource provider will be used.
   factory AnalysisContextCollection(
       {@required List<String> includedPaths,
+      List<String> excludedPaths,
       ResourceProvider resourceProvider}) = AnalysisContextCollectionImpl;
 
   /// Return all of the analysis contexts in this collection.

@@ -135,11 +135,8 @@ void InstanceMorpher::ComputeMapping() {
     }
 
     if (new_field) {
-      if (to_field.has_initializer()) {
-        // This is a new field with an initializer.
-        const Field& field = Field::Handle(to_field.raw());
-        new_fields_->Add(&field);
-      }
+      const Field& field = Field::Handle(to_field.raw());
+      new_fields_->Add(&field);
     }
   }
 }
@@ -167,33 +164,46 @@ void InstanceMorpher::RunNewFieldInitializers() const {
   TIR_Print("Running new field initializers for class: %s\n", to_.ToCString());
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  Function& eval_func = Function::Handle(zone);
+  Function& init_func = Function::Handle(zone);
   Object& result = Object::Handle(zone);
   // For each new field.
   for (intptr_t i = 0; i < new_fields_->length(); i++) {
     // Create a function that returns the expression.
     const Field* field = new_fields_->At(i);
-    if (field->is_declared_in_bytecode()) {
-      UNIMPLEMENTED();
-    } else {
-      eval_func = kernel::CreateFieldInitializerFunction(thread, zone, *field);
-    }
-
-    for (intptr_t j = 0; j < after_->length(); j++) {
-      const Instance* instance = after_->At(j);
-      TIR_Print("Initializing instance %" Pd " / %" Pd "\n", j + 1,
-                after_->length());
-      // Run the function and assign the field.
-      result = DartEntry::InvokeFunction(eval_func, Array::empty_array());
-      if (result.IsError()) {
-        // TODO(johnmccutchan): Report this error in the reload response?
-        OS::PrintErr(
-            "RELOAD: Running initializer for new field `%s` resulted in "
-            "an error: %s\n",
-            field->ToCString(), Error::Cast(result).ToErrorCString());
-        continue;
+    if (field->has_initializer()) {
+      if (field->is_declared_in_bytecode() && (field->bytecode_offset() == 0)) {
+        FATAL1(
+            "Missing field initializer for '%s'. Reload requires bytecode "
+            "to be generated with 'instance-field-initializers'",
+            field->ToCString());
       }
-      instance->RawSetFieldAtOffset(field->Offset(), result);
+      init_func = kernel::CreateFieldInitializerFunction(thread, zone, *field);
+      const Array& args = Array::Handle(zone, Array::New(1));
+      for (intptr_t j = 0; j < after_->length(); j++) {
+        const Instance* instance = after_->At(j);
+        TIR_Print("Initializing instance %" Pd " / %" Pd "\n", j + 1,
+                  after_->length());
+        // Run the function and assign the field.
+        args.SetAt(0, *instance);
+        result = DartEntry::InvokeFunction(init_func, args);
+        if (result.IsError()) {
+          // TODO(johnmccutchan): Report this error in the reload response?
+          OS::PrintErr(
+              "RELOAD: Running initializer for new field `%s` resulted in "
+              "an error: %s\n",
+              field->ToCString(), Error::Cast(result).ToErrorCString());
+          continue;
+        }
+        instance->RawSetFieldAtOffset(field->Offset(), result);
+      }
+    } else {
+      result = field->saved_initial_value();
+      for (intptr_t j = 0; j < after_->length(); j++) {
+        const Instance* instance = after_->At(j);
+        TIR_Print("Initializing instance %" Pd " / %" Pd "\n", j + 1,
+                  after_->length());
+        instance->RawSetFieldAtOffset(field->Offset(), result);
+      }
     }
   }
 }
@@ -726,26 +736,11 @@ void IsolateReloadContext::Reload(bool force_reload,
   DeoptimizeDependentCode();
   Checkpoint();
 
-  // WEIRD CONTROL FLOW BEGINS.
+  // We synchronously load the hot-reload kernel diff (which includes changed
+  // libraries and any libraries transitively depending on them).
   //
-  // The flow of execution until we return from the tag handler can be complex.
-  //
-  // On a successful load, the following will occur:
-  //   1) Tag Handler is invoked and the embedder is in control.
-  //   2) All sources and libraries are loaded.
-  //   3) Dart_FinalizeLoading is called by the embedder.
-  //   4) Dart_FinalizeLoading invokes IsolateReloadContext::FinalizeLoading
-  //      and we are temporarily back in control.
-  //      This is where we validate the reload and commit or reject.
-  //   5) Dart_FinalizeLoading invokes Dart code related to deferred libraries.
-  //   6) The tag handler returns and we move on.
-  //
-  // Even after a successful reload the Dart code invoked in (5) can result
-  // in an Unwind error or an UnhandledException error. This error will be
-  // returned by the tag handler. The tag handler can return other errors,
-  // for example, top level parse errors. We want to capture these errors while
-  // propagating the UnwindError or an UnhandledException error.
-
+  // If loading the hot-reload diff succeeded we'll finalize the loading, which
+  // will either commit or reject the reload request.
   {
     const Object& tmp =
         kernel::KernelLoader::LoadEntireProgram(kernel_program.get());
@@ -772,8 +767,6 @@ void IsolateReloadContext::Reload(bool force_reload,
       result = tmp.raw();
     }
   }
-  //
-  // WEIRD CONTROL FLOW ENDS.
 
   // Re-enable the background compiler. Do this before propagating any errors.
   BackgroundCompiler::Enable(I);
@@ -830,8 +823,6 @@ void IsolateReloadContext::RegisterClass(const Class& new_cls) {
   AddClassMapping(new_cls, old_cls);
 }
 
-// FinalizeLoading will be called *before* Reload() returns but will not be
-// called if the embedder fails to load sources.
 void IsolateReloadContext::FinalizeLoading() {
   if (reload_skipped_ || reload_finalized_) {
     return;
@@ -1465,9 +1456,9 @@ void IsolateReloadContext::Commit() {
         if (new_cls.raw() != old_cls.raw()) {
           ASSERT(new_cls.is_enum_class() == old_cls.is_enum_class());
           if (new_cls.is_enum_class() && new_cls.is_finalized()) {
-            new_cls.ReplaceEnum(old_cls);
+            new_cls.ReplaceEnum(this, old_cls);
           } else {
-            new_cls.CopyStaticFieldValues(old_cls);
+            new_cls.CopyStaticFieldValues(this, old_cls);
           }
           old_cls.PatchFieldsAndFunctions();
           old_cls.MigrateImplicitStaticClosures(this, new_cls);

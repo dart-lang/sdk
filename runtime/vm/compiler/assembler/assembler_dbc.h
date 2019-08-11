@@ -100,9 +100,6 @@ class Assembler : public AssemblerBase {
 };
 
 }  // namespace compiler
-
-using compiler::Address;
-
 }  // namespace dart
 
 #endif  // RUNTIME_VM_COMPILER_ASSEMBLER_ASSEMBLER_DBC_H_

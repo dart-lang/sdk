@@ -2,11 +2,11 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-class A<T extends core::Object = dynamic> extends core::Object {
-  generic-covariant-impl field core::List<self::A::T> x;
-  synthetic constructor •() → self::A<self::A::T>
+class A<T extends core::Object* = dynamic> extends core::Object {
+  generic-covariant-impl field core::List<self::A::T*>* x;
+  synthetic constructor •() → self::A<self::A::T*>*
     ;
-  set y(generic-covariant-impl core::List<self::A::T> value) → void
+  set y(generic-covariant-impl core::List<self::A::T*>* value) → void
     ;
 }
 static method test() → dynamic

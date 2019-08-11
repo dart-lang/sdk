@@ -108,9 +108,9 @@ class _MessageType {
  * _HttpDetachedStreamSubscription is resumed, it'll deliver the data before
  * resuming the underlaying subscription.
  */
-class _HttpDetachedStreamSubscription implements StreamSubscription<List<int>> {
-  StreamSubscription<List<int>> _subscription;
-  List<int> _injectData;
+class _HttpDetachedStreamSubscription implements StreamSubscription<Uint8List> {
+  StreamSubscription<Uint8List> _subscription;
+  Uint8List _injectData;
   bool _isCanceled = false;
   int _pauseCount = 1;
   Function _userOnData;
@@ -130,7 +130,7 @@ class _HttpDetachedStreamSubscription implements StreamSubscription<List<int>> {
     return _subscription.cancel();
   }
 
-  void onData(void handleData(List<int> data)) {
+  void onData(void handleData(Uint8List data)) {
     _userOnData = handleData;
     _subscription.onData(handleData);
   }
@@ -182,13 +182,13 @@ class _HttpDetachedStreamSubscription implements StreamSubscription<List<int>> {
   }
 }
 
-class _HttpDetachedIncoming extends Stream<List<int>> {
-  final StreamSubscription<List<int>> subscription;
-  final List<int> bufferedData;
+class _HttpDetachedIncoming extends Stream<Uint8List> {
+  final StreamSubscription<Uint8List> subscription;
+  final Uint8List bufferedData;
 
   _HttpDetachedIncoming(this.subscription, this.bufferedData);
 
-  StreamSubscription<List<int>> listen(void onData(List<int> event),
+  StreamSubscription<Uint8List> listen(void onData(Uint8List event),
       {Function onError, void onDone(), bool cancelOnError}) {
     if (subscription != null) {
       subscription
@@ -203,7 +203,7 @@ class _HttpDetachedIncoming extends Stream<List<int>> {
         ..resume();
     } else {
       // TODO(26379): add test for this branch.
-      return new Stream<List<int>>.fromIterable([bufferedData]).listen(onData,
+      return new Stream<Uint8List>.fromIterable([bufferedData]).listen(onData,
           onError: onError, onDone: onDone, cancelOnError: cancelOnError);
     }
   }
@@ -261,7 +261,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
 
   // The current incoming connection.
   _HttpIncoming _incoming;
-  StreamSubscription<List<int>> _socketSubscription;
+  StreamSubscription<Uint8List> _socketSubscription;
   bool _paused = true;
   bool _bodyPaused = false;
   StreamController<_HttpIncoming> _controller;
@@ -303,7 +303,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
         onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
 
-  void listenToStream(Stream<List<int>> stream) {
+  void listenToStream(Stream<Uint8List> stream) {
     // Listen to the stream and handle data accordingly. When a
     // _HttpIncoming is created, _dataPause, _dataResume, _dataDone is
     // given to provide a way of controlling the parser.
@@ -802,7 +802,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
     }
   }
 
-  void _onData(List<int> buffer) {
+  void _onData(Uint8List buffer) {
     _socketSubscription.pause();
     assert(_buffer == null);
     _buffer = buffer;
@@ -888,7 +888,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
     return new _HttpDetachedIncoming(_socketSubscription, readUnparsedData());
   }
 
-  List<int> readUnparsedData() {
+  Uint8List readUnparsedData() {
     if (_buffer == null) return null;
     if (_index == _buffer.length) return null;
     var result = _buffer.sublist(_index);

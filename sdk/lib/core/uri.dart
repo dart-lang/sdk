@@ -1254,11 +1254,11 @@ abstract class Uri {
    * defaults ot the end of the string.
    *
    * Some examples of IPv6 addresses:
-   *  * ::1
-   *  * FEDC:BA98:7654:3210:FEDC:BA98:7654:3210
-   *  * 3ffe:2a00:100:7031::1
-   *  * ::FFFF:129.144.52.38
-   *  * 2010:836B:4179::836B:4179
+   *  * `::1`
+   *  * `FEDC:BA98:7654:3210:FEDC:BA98:7654:3210`
+   *  * `3ffe:2a00:100:7031::1`
+   *  * `::FFFF:129.144.52.38`
+   *  * `2010:836B:4179::836B:4179`
    */
   static List<int> parseIPv6Address(String host, [int start = 0, int end]) {
     end ??= host.length;

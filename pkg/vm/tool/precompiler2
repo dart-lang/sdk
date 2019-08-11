@@ -87,18 +87,11 @@ fi
 
 export DART_CONFIGURATION=${DART_CONFIGURATION:-ReleaseX64}
 BIN_DIR="$OUT_DIR/$DART_CONFIGURATION"
-DART_BINARY="$BIN_DIR"/dart
-PLAT_DIR=$(echo ${BIN_DIR} | sed -e 's/SIMARM_X64$/SIMARM/')
-
-PREBUILT_DART_BINARY="tools/sdks/dart-sdk/bin/dart"
-if [ -x "$PREBUILT_DART_BINARY" ]; then
-  DART_BINARY=$PREBUILT_DART_BINARY
-fi
 
 # Step 1: Generate Kernel binary from the input Dart source.
-"$DART_BINARY"                                                                 \
+"$BIN_DIR"/dart                                                                \
      "${SDK_DIR}/pkg/vm/bin/gen_kernel.dart"                                   \
-     --platform "${PLAT_DIR}/vm_platform_strong.dill"                          \
+     --platform "${BIN_DIR}/vm_platform_strong.dill"                           \
      --aot                                                                     \
      "${GEN_KERNEL_OPTIONS[@]}"                                                \
      $PACKAGES                                                                 \

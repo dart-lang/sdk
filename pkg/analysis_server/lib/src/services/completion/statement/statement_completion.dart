@@ -894,7 +894,7 @@ class StatementCompletionProcessor {
 
   bool _complete_simpleEnter() {
     int offset;
-    if (!errors.isEmpty) {
+    if (errors.isNotEmpty) {
       offset = selectionOffset;
     } else {
       String indent = utils.getLinePrefix(selectionOffset);
@@ -1093,7 +1093,7 @@ class StatementCompletionProcessor {
     return false;
   }
 
-  engine.AnalysisError _findError(ErrorCode code, {partialMatch: null}) {
+  engine.AnalysisError _findError(ErrorCode code, {partialMatch = null}) {
     return errors.firstWhere(
         (err) =>
             err.errorCode == code &&
@@ -1203,7 +1203,7 @@ class StatementCompletionProcessor {
     }
   }
 
-  AstNode _selectedNode({int at: null}) =>
+  AstNode _selectedNode({int at = null}) =>
       new NodeLocator(at == null ? selectionOffset : at).searchWithin(unit);
 
   void _setCompletion(StatementCompletionKind kind, [List args]) {

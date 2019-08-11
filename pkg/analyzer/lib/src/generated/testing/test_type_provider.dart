@@ -605,6 +605,9 @@ class TestTypeProvider extends TypeProviderBase {
     return _typeType;
   }
 
+  @override
+  VoidType get voidType => VoidTypeImpl.instance;
+
   void _initDartAsync() {
     Source asyncSource;
     if (_driver != null) {

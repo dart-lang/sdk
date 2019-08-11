@@ -96,7 +96,7 @@ bool SourceReport::ShouldSkipFunction(const Function& func) {
     case RawFunction::kClosureFunction:
     case RawFunction::kImplicitClosureFunction:
     case RawFunction::kImplicitStaticGetter:
-    case RawFunction::kStaticFieldInitializer:
+    case RawFunction::kFieldInitializer:
     case RawFunction::kGetterFunction:
     case RawFunction::kSetterFunction:
     case RawFunction::kConstructor:
@@ -340,13 +340,39 @@ void SourceReport::PrintPossibleBreakpointsData(JSONObject* jsobj,
     const Bytecode& bytecode = Bytecode::Handle(func.bytecode());
     ASSERT(!bytecode.IsNull());
     kernel::BytecodeSourcePositionsIterator iter(zone(), bytecode);
-    while (iter.MoveNext()) {
-      const TokenPosition token_pos = iter.TokenPos();
-      if ((token_pos < begin_pos) || (token_pos > end_pos)) {
-        // Does not correspond to a valid source position.
-        continue;
+    intptr_t token_offset = -1;
+    uword pc_offset = kUwordMax;
+    // Ignore all possible breakpoint positions until the first DebugCheck
+    // opcode of the function.
+    const uword debug_check_pc = bytecode.GetFirstDebugCheckOpcodePc();
+    if (debug_check_pc != 0) {
+      const uword debug_check_pc_offset =
+          debug_check_pc - bytecode.PayloadStart();
+      while (iter.MoveNext()) {
+        if (pc_offset != kUwordMax) {
+          // Check that there is at least one 'debug checked' opcode in the last
+          // source position range.
+          if (bytecode.GetDebugCheckedOpcodeReturnAddress(
+                  pc_offset, iter.PcOffset()) != 0) {
+            possible[token_offset] = true;
+          }
+          pc_offset = kUwordMax;
+        }
+        const TokenPosition token_pos = iter.TokenPos();
+        if ((token_pos < begin_pos) || (token_pos > end_pos)) {
+          // Does not correspond to a valid source position.
+          continue;
+        }
+        if (iter.PcOffset() < debug_check_pc_offset) {
+          // No breakpoints in prologue.
+          continue;
+        }
+        pc_offset = iter.PcOffset();
+        token_offset = token_pos.Pos() - begin_pos.Pos();
       }
-      intptr_t token_offset = token_pos.Pos() - begin_pos.Pos();
+    }
+    if (pc_offset != kUwordMax && bytecode.GetDebugCheckedOpcodeReturnAddress(
+                                      pc_offset, bytecode.Size()) != 0) {
       possible[token_offset] = true;
     }
   } else {
@@ -447,7 +473,12 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
   Code& code = Code::Handle(zone(), func.unoptimized_code());
   Bytecode& bytecode = Bytecode::Handle(zone());
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  if (FLAG_enable_interpreter && code.IsNull() && func.HasBytecode()) {
+  if (FLAG_enable_interpreter && !func.HasCode() && func.HasBytecode()) {
+    // When the bytecode of a function is loaded, the function code is not null,
+    // but pointing to the stub to interpret the bytecode. The various Print
+    // functions below take code as an argument and know to process the bytecode
+    // if code is null.
+    code = Code::null();  // Ignore installed stub to interpret bytecode.
     bytecode = func.bytecode();
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
@@ -467,7 +498,8 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
       }
       code = func.unoptimized_code();
 #if !defined(DART_PRECOMPILED_RUNTIME)
-      if (FLAG_enable_interpreter && code.IsNull() && func.HasBytecode()) {
+      if (FLAG_enable_interpreter && !func.HasCode() && func.HasBytecode()) {
+        code = Code::null();  // Ignore installed stub to interpret bytecode.
         bytecode = func.bytecode();
       }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
@@ -528,8 +560,8 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
       object = pool.ObjectAt(i);
       if (object.IsFunction()) {
         closure ^= object.raw();
-        if ((closure.kind() == RawFunction::kClosureFunction) &&
-            (closure.IsLocalFunction())) {
+        if (closure.kind() == RawFunction::kClosureFunction &&
+            closure.IsLocalFunction()) {
           VisitFunction(jsarr, closure);
         }
       }

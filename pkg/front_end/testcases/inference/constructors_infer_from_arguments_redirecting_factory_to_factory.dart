@@ -15,9 +15,9 @@ abstract class C<T> {
 class CImpl<T> implements C<T> {
   T t;
   CImpl._(this.t);
-  factory CImpl(T t) => new /*@typeArgs=CImpl::•::T*/ CImpl._(t);
+  factory CImpl(T t) => new /*@ typeArgs=CImpl::•::T* */ CImpl._(t);
 }
 
 main() {
-  var /*@type=C<int>*/ x = new /*@typeArgs=int*/ C(42);
+  var /*@ type=C<int*>* */ x = new /*@ typeArgs=int* */ C(42);
 }

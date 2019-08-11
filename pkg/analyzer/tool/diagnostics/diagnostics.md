@@ -12,6 +12,50 @@ with details about what those messages mean and how you can fix your code.
 For more information about the analyzer, see
 [Customizing static analysis](/guides/language/analysis-options).
 
+## Glossary
+
+This page uses the following terms.
+
+### Constant context
+
+A _constant context_ is a region of code in which it isn't necessary to include
+the `const` keyword because it's implied by the fact that everything in that
+region is required to be a constant. The following locations are constant
+contexts:
+
+* Everything inside a list, map or set literal that's prefixed by the keyword
+  `const`. Example:
+
+  ```dart
+  var l = const [/*constant context*/];
+  ```
+
+* The arguments inside an invocation of a constant constructor. Example:
+
+  ```dart
+  var p = const Point(/*constant context*/);
+  ```
+
+* The initializer for a variable that's prefixed by the keyword `const`.
+  Example:
+
+  ```dart
+  const v = /*constant context*/;
+  ```
+
+* Annotations
+
+* The expression in a case clause. Example:
+
+  ```dart
+  void f(int e) {
+    switch (e) {
+      case /*constant context*/:
+        break;
+    }
+  }
+  ```
+
 ## Diagnostics
 
 The analyzer produces the following diagnostics for code that
@@ -42,10 +86,10 @@ literal or a set literal.
 
 The following code produces this diagnostic:
 
-```dart
+{% prettify dart %}
 union(Map<String, String> a, List<String> b, Map<String, String> c) =>
-    {...a, ...b, ...c};
-```
+    [!{...a, ...b, ...c}!];
+{% endprettify %}
 
 The list `b` can only be spread into a set, and the maps `a` and `c` can
 only be spread into a map, and the literal can't be both.
@@ -57,19 +101,19 @@ of the spread elements of one kind or another, so that the elements are
 consistent. In this case, that likely means removing the list and deciding
 what to do about the now unused parameter:
 
-```dart
+{% prettify dart %}
 union(Map<String, String> a, List<String> b, Map<String, String> c) =>
     {...a, ...c};
-```
+{% endprettify %}
 
 The second fix is to change the elements of one kind into elements that are
-consistent with the other elements. For example, you could add the elements
+consistent with the other elements. For example, you can add the elements
 of the list as keys that map to themselves:
 
-```dart
+{% prettify dart %}
 union(Map<String, String> a, List<String> b, Map<String, String> c) =>
     {...a, for (String s in b) s: s, ...c};
-```
+{% endprettify %}
 
 ### ambiguous_set_or_map_literal_either
 
@@ -94,9 +138,9 @@ literal or a set literal.
 
 The following code produces this diagnostic:
 
-```dart
-union(a, b) => !{...a, ...b}!;
-```
+{% prettify dart %}
+union(a, b) => [!{...a, ...b}!];
+{% endprettify %}
 
 The problem occurs because there are no type arguments, and there is no
 information about the type of either `a` or `b`.
@@ -107,43 +151,134 @@ There are three common ways to fix this problem. The first is to add type
 arguments to the literal. For example, if the literal is intended to be a
 map literal, you might write something like this:
 
-```dart
+{% prettify dart %}
 union(a, b) => <String, String>{...a, ...b};
-```
+{% endprettify %}
 
 The second fix is to add type information so that the expressions have
-either the type `Iterable` or the type `Map`. You could add an explicit
-cast or, in this case, add types to the declarations of the two parameters:
+either the type `Iterable` or the type `Map`. You can add an explicit cast
+or, in this case, add types to the declarations of the two parameters:
 
-```dart
+{% prettify dart %}
 union(List<int> a, List<int> b) => {...a, ...b};
-```
+{% endprettify %}
 
 The third fix is to add context information. In this case, that means
 adding a return type to the function:
 
-```dart
+{% prettify dart %}
 Set<String> union(a, b) => {...a, ...b};
-```
+{% endprettify %}
 
 In other cases, you might add a type somewhere else. For example, say the
 original code looks like this:
 
-```dart
+{% prettify dart %}
 union(a, b) {
   var x = {...a, ...b};
   return x;
 }
-```
+{% endprettify %}
 
 You might add a type annotation on `x`, like this:
 
-```dart
+{% prettify dart %}
 union(a, b) {
   Map<String, String> x = {...a, ...b};
   return x;
 }
-```
+{% endprettify %}
+
+### argument_type_not_assignable
+
+_The argument type '{0}' can't be assigned to the parameter type '{1}'._
+
+#### Description
+
+The analyzer produces this diagnostic when the static type of an argument
+can't be assigned to the static type of the corresponding parameter.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+int f(int x) => x;
+num g(num y) => f([!y!]);
+{% endprettify %}
+
+#### Common fixes
+
+If possible, rewrite the code so that the static type is assignable. In the
+example above you might be able to change the type of the parameter `y`:
+
+{% prettify dart %}
+int f(int x) => x;
+int g(int y) => f(y);
+{% endprettify %}
+
+If that fix isn't possible, then add code to handle the case where the
+argument value isn't the required type. One approach is to coerce other
+types to the required type:
+
+{% prettify dart %}
+int f(int x) => x;
+num g(num y) => f(y.floor());
+{% endprettify %}
+
+Another approach is to add explicit type tests and fallback code:
+
+{% prettify dart %}
+int f(int x) => x;
+num g(num y) => f(y is int ? y : 0);
+{% endprettify %}
+
+If you believe that the runtime type of the argument will always be the
+same as the static type of the parameter, and you're willing to risk having
+an exception thrown at runtime if you're wrong, then add an explicit cast:
+
+{% prettify dart %}
+int f(int x) => x;
+num g(num y) => f(y as int);
+{% endprettify %}
+
+### const_initialized_with_non_constant_value
+
+_Const variables must be initialized with a constant value._
+
+#### Description
+
+The analyzer produces this diagnostic when a value that isn't statically
+known to be a constant is assigned to a variable that's declared to be a
+'const' variable.
+
+#### Example
+
+The following code produces this diagnostic because `x` isn't declared to
+be `const`:
+
+{% prettify dart %}
+var x = 0;
+const y = [!x!];
+{% endprettify %}
+
+#### Common fixes
+
+If the value being assigned can be declared to be `const`, then change the
+declaration:
+
+{% prettify dart %}
+const x = 0;
+const y = x;
+{% endprettify %}
+
+If the value can't be declared to be `const`, then remove the `const`
+modifier from the variable, possibly using `final` in its place:
+
+{% prettify dart %}
+var x = 0;
+final y = x;
+{% endprettify %}
 
 ### deprecated_member_use
 
@@ -159,16 +294,74 @@ member is used in a different package.
 If the method `m` in the class `C` is annotated with `@deprecated`, then
 the following code produces this diagnostic:
 
-```dart
+{% prettify dart %}
 void f(C c) {
-  c.!m!();
+  c.[!m!]();
 }
-```
+{% endprettify %}
 
 #### Common fixes
 
 The documentation for declarations that are annotated with `@deprecated`
 should indicate what code to use in place of the deprecated code.
+
+### deprecated_member_use_from_same_package
+
+_'{0}' is deprecated and shouldn't be used._
+
+#### Description
+
+The analyzer produces this diagnostic when a deprecated library member or
+class member is used in the same package in which it's declared.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+@deprecated
+var x = 0;
+var y = [!x!];
+{% endprettify %}
+
+#### Common fixes
+
+The fix depends on what's been deprecated and what the replacement is. The
+documentation for deprecated declarations should indicate what code to use
+in place of the deprecated code.
+
+### equal_keys_in_const_map
+
+_Two keys in a constant map literal can't be equal._
+
+#### Description
+
+The analyzer produces this diagnostic when a key in a constant map is the
+same as a previous key in the same map. If two keys are the same, then the
+second value would overwrite the first value, which makes having both pairs
+pointless.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+const map = <int, String>{1: 'a', 2: 'b', [!1!]: 'c', 4: 'd'};
+{% endprettify %}
+
+#### Common fixes
+
+If one of the keys was supposed to be different, then replace it:
+
+{% prettify dart %}
+const map = <int, String>{1: 'a', 2: 'b', 3: 'c', 4: 'd'};
+{% endprettify %}
+
+Otherwise, remove the key/value pair that isn't intended to be in the map:
+
+{% prettify dart %}
+const map = <int, String>{1: 'a', 2: 'b', 4: 'd'};
+{% endprettify %}
 
 ### expression_in_map
 
@@ -183,9 +376,9 @@ expression, rather than a map entry, in what appears to be a map literal.
 
 The following code generates this diagnostic:
 
-```dart
-var map = <String, int>{'a': 0, 'b': 1, !'c'!};
-```
+{% prettify dart %}
+var map = <String, int>{'a': 0, 'b': 1, [!'c'!]};
+{% endprettify %}
 
 #### Common fix
 
@@ -193,9 +386,9 @@ If the expression is intended to compute either a key or a value in an
 entry, fix the issue by replacing the expression with the key or the value.
 For example:
 
-```dart
+{% prettify dart %}
 var map = <String, int>{'a': 0, 'b': 1, 'c': 2};
-```
+{% endprettify %}
 
 ### invalid_literal_annotation
 
@@ -210,18 +403,165 @@ to a const constructor.
 
 The following code produces this diagnostic:
 
-```dart
-!@literal!
+{% prettify dart %}
+[!@literal!]
 var x;
-```
+{% endprettify %}
 
 #### Common fixes
 
 Remove the annotation:
 
-```dart
+{% prettify dart %}
 var x;
-```
+{% endprettify %}
+
+### invocation_of_non_function
+
+_'{0}' isn't a function._
+
+#### Description
+
+The analyzer produces this diagnostic when it finds a function invocation,
+but the name of the function being invoked is defined to be something other
+than a function.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+typedef Binary = int Function(int, int);
+int f() {
+  return [!Binary!](1, 2);
+}
+{% endprettify %}
+
+#### Common fixes
+
+Replace the name with the name of a function.
+
+### missing_return
+
+_This function has a return type of '{0}', but doesn't end with a return
+statement._
+
+#### Description
+
+Any function or method that doesn’t end with either an explicit return or a
+throw implicitly returns `null`. This is rarely the desired behavior. The
+analyzer produces this diagnostic when it finds an implicit return.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+[!int!] f(int x) {
+  if (x < 0) {
+    return 0;
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+Add a return statement that makes the return value explicit, even if `null`
+is the appropriate value.
+
+### non_constant_list_element
+
+_The values in a const list literal must be constants._
+
+#### Description
+
+The analyzer produces this diagnostic when an element in a constant list
+literal isn't a constant value. The list literal can be constant either
+explicitly (because it's prefixed by the keyword `const`) or implicitly
+(because it appears in a <a href=”#constant-context”>constant context</a>).
+
+#### Example
+
+The following code produces this diagnostic because `x` isn't a constant,
+even though it appears in an implicitly constant list literal:
+
+{% prettify dart %}
+int x = 2;
+const y = <int>[0, 1, [!x!]];
+{% endprettify %}
+
+#### Common fixes
+
+If the list needs to be a constant list, then convert the element to be a
+constant. In the example above, you might add the keyword `const`
+to the declaration of `x`:
+
+{% prettify dart %}
+const int x = 2;
+const y = <int>[0, 1, x];
+{% endprettify %}
+
+If the expression can't be made a constant, then the list can't be a
+constant either, so you must change the code so that the list isn't a
+constant. In the example above this means removing the `const` keyword from
+the declaration of `y`:
+
+{% prettify dart %}
+int x = 2;
+var y = <int>[0, 1, x];
+{% endprettify %}
+
+### non_type_as_type_argument
+
+_The name '{0}' isn't a type so it can't be used as a type argument._
+
+#### Description
+
+The analyzer produces this diagnostic when an identifier that isn't a type
+is used as a type argument.
+
+#### Example
+
+The following code produces this diagnostic because `x` is a variable, not
+a type:
+
+{% prettify dart %}
+var x = 0;
+List<[!x!]> xList = [];
+{% endprettify %}
+
+#### Common fixes
+
+Change the type argument to be a type:
+
+{% prettify dart %}
+var x = 0;
+List<int> xList = [];
+{% endprettify %}
+
+### not_a_type
+
+_{0} isn't a type._
+
+#### Description
+
+The analyzer produces this diagnostic when a name is used as a type but
+declared to be something other than a type.
+
+#### Example
+
+The following code produces this diagnostic because `f` is a function:
+
+{% prettify dart %}
+f() {}
+main() {
+  [!f!] v = null;
+}
+{% endprettify %}
+
+#### Common fixes
+
+Replace the name with the name of a type.
 
 ### not_iterable_spread
 
@@ -237,31 +577,71 @@ set literal doesn't implement the type `Iterable`.
 
 The following code generates this diagnostic:
 
-```dart
+{% prettify dart %}
 var m = <String, int>{'a': 0, 'b': 1};
-var s = <String>{...m};
-```
+var s = <String>{...[!m!]};
+{% endprettify %}
 
 #### Common fix
 
 The most common fix is to replace the expression with one that produces an
 iterable object:
 
-```dart
+{% prettify dart %}
 var m = <String, int>{'a': 0, 'b': 1};
 var s = <String>{...m.keys};
-```
+{% endprettify %}
+
+### redirect_to_non_class
+
+_The name '{0}' isn't a type and can't be used in a redirected constructor._
+
+#### Description
+
+One way to implement a factory constructor is to redirect to another
+constructor by referencing the name of the constructor. The analyzer
+produces this diagnostic when the redirect is to something other than a
+constructor.
+
+#### Example
+
+The following code produces this diagnostic because `f` is a function:
+
+{% prettify dart %}
+C f() {}
+class C {
+  factory C() = [!f!];
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the constructor isn't defined, then either define it or replace it with
+a constructor that is defined.
+
+If the constructor is defined but the class that defines it isn't visible,
+then you probably need to add an import.
+
+If you're trying to return the value returned by a function, then rewrite
+the constructor to return the value from the constructor's body:
+
+{% prettify dart %}
+C f() {}
+class C {
+  factory C() => f();
+}
+{% endprettify %}
 
 ### sdk_version_set_literal
 
-_Set literals weren't supported until version 2.2, but this code must be able to
-run on earlier versions._
+_Set literals weren't supported until version 2.2, but this code is required to
+be able to run on earlier versions._
 
 #### Description
 
 The analyzer produces this diagnostic when a set literal is found in code
 that has an SDK constraint whose lower bound is less than 2.2. Set literals
-were not supported in earlier versions, so this code won't be able to run
+weren't supported in earlier versions, so this code won't be able to run
 against earlier versions of the SDK.
 
 #### Example
@@ -276,9 +656,9 @@ environment:
 
 The following code generates this diagnostic:
 
-```dart
-var s = !<int>{}!;
-```
+{% prettify dart %}
+var s = [!<int>{}!];
+{% endprettify %}
 
 #### Common fixes
 
@@ -293,6 +673,472 @@ environment:
 If you do need to support older versions of the SDK, then replace the set
 literal with code that creates the set without the use of a literal:
 
-```dart
+{% prettify dart %}
 var s = new Set<int>();
-```
+{% endprettify %}
+
+### type_argument_not_matching_bounds
+
+_'{0}' doesn't extend '{1}'._
+
+#### Description
+
+The analyzer produces this diagnostic when a type argument isn't the same
+as or a subclass of the bounds of the corresponding type parameter.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+class A<E extends num> {}
+var a = A<[!String!]>();
+{% endprettify %}
+
+#### Common fixes
+
+Change the type argument to be a subclass of the bounds:
+
+{% prettify dart %}
+class A<E extends num> {}
+var a = A<int>();
+{% endprettify %}
+
+### undefined_class
+
+_Undefined class '{0}'._
+
+#### Description
+
+The analyzer produces this diagnostic when it encounters an identifier that
+appears to be the name of a class but either isn't defined or isn't visible
+in the scope in which it's being referenced.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+class Point {}
+void main() {
+  [!Piont!] p;
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the identifier isn't defined, then either define it or replace it with
+the name of a class that is defined. The example above can be corrected by
+fixing the spelling of the class:
+
+{% prettify dart %}
+class Point {}
+void main() {
+  Point p;
+}
+{% endprettify %}
+
+If the class is defined but isn't visible, then you probably need to add an
+import.
+
+### undefined_function
+
+_The function '{0}' isn't defined._
+
+#### Description
+
+The analyzer produces this diagnostic when it encounters an identifier that
+appears to be the name of a function but either isn't defined or isn't
+visible in the scope in which it's being referenced.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+List<int> empty() => [];
+void main() {
+  print([!emty!]());
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the identifier isn't defined, then either define it or replace it with
+the name of a function that is defined. The example above can be corrected
+by fixing the spelling of the function:
+
+{% prettify dart %}
+List<int> empty() => [];
+void main() {
+  print(empty());
+}
+{% endprettify %}
+
+If the function is defined but isn't visible, then you probably need to add
+an import or re-arrange your code to make the function visible.
+
+### undefined_getter
+
+_The getter '{0}' isn't defined for the class '{1}'._
+
+#### Description
+
+The analyzer produces this diagnostic when it encounters an identifier that
+appears to be the name of a getter but either isn't defined or isn't
+visible in the scope in which it's being referenced.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+class Point {
+  final int x;
+  final int y;
+  Point(this.x, this.y);
+  operator +(Point other) => Point(x + other.x, y + other.[!z!]);
+}
+{% endprettify %}
+
+#### Common fix
+
+If the identifier isn't defined, then either define it or replace it with
+the name of a getter that is defined. The example above can be corrected by
+fixing the spelling of the getter:
+
+{% prettify dart %}
+class Point {
+  final int x;
+  final int y;
+  Point(this.x, this.y);
+  operator +(Point other) => Point(x + other.x, y + other.y);
+}
+{% endprettify %}
+
+### undefined_identifier
+
+_Undefined name '{0}'._
+
+#### Description
+
+The analyzer produces this diagnostic when it encounters an identifier that
+either isn't defined or isn't visible in the scope in which it's being
+referenced.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+int min(int left, int right) => left <= [!rihgt!] ? left : right;
+{% endprettify %}
+
+#### Common fixes
+
+If the identifier isn't defined, then either define it or replace it with
+an identifier that is defined. The example above can be corrected by
+fixing the spelling of the variable:
+
+{% prettify dart %}
+int min(int left, int right) => left <= right ? left : right;
+{% endprettify %}
+
+If the identifier is defined but isn't visible, then you probably need to
+add an import or re-arrange your code to make the identifier visible.
+
+### undefined_method
+
+_The method '{0}' isn't defined for the class '{1}'._
+
+#### Description
+
+The analyzer produces this diagnostic when it encounters an identifier that
+appears to be the name of a method but either isn't defined or isn't
+visible in the scope in which it's being referenced.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+int f(List<int> l) => l.[!removeMiddle!]();
+{% endprettify %}
+
+#### Common fix
+
+If the identifier isn't defined, then either define it or replace it with
+the name of a method that is defined. The example above can be corrected by
+fixing the spelling of the method:
+
+{% prettify dart %}
+int f(List<int> l) => l.removeLast();
+{% endprettify %}
+
+### undefined_named_parameter
+
+_The named parameter '{0}' isn't defined._
+
+#### Description
+
+The analyzer produces this diagnostic when a method or function invocation
+has a named argument, but the method or function being invoked doesn’t
+define a parameter with the same name.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+class C {
+  m({int b}) {}
+}
+void f(C c) {
+  c.m([!a!]: 1);
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the argument name is mistyped, then replace it with the correct name.
+The example above can be fixed by changing `a` to `b`:
+
+{% prettify dart %}
+class C {
+  m({int b}) {}
+}
+void f(C c) {
+  c.m(b: 1);
+}
+{% endprettify %}
+
+If a subclass adds a parameter with the name in question, then cast the
+target to the subclass:
+
+{% prettify dart %}
+class C {
+  m({int b}) {}
+}
+class D extends C {
+  m({int a, int b}) {}
+}
+void f(C c) {
+  (c as D).m(a: 1);
+}
+{% endprettify %}
+
+If the parameter should be added to the function, then add it:
+
+{% prettify dart %}
+class C {
+  m({int a, int b}) {}
+}
+void f(C c) {
+  c.m(a: 1);
+}
+{% endprettify %}
+
+### undefined_setter
+
+_The setter '{0}' isn't defined for the class '{1}'._
+
+#### Description
+
+The analyzer produces this diagnostic when it encounters an identifier that
+appears to be the name of a setter but either isn't defined or isn't
+visible in the scope in which the identifier is being referenced.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+class Point {
+  int x;
+  int y;
+  Point(this.x, this.y);
+  void shiftBy(Point other) {
+    this.x += other.x;
+    this.[!z!] += other.y;
+  }
+}
+{% endprettify %}
+
+#### Common fix
+
+If the identifier isn't defined, then either define it or replace it with
+the name of a setter that is defined. The example above can be corrected by
+fixing the spelling of the setter:
+
+{% prettify dart %}
+class Point {
+  int x;
+  int y;
+  Point(this.x, this.y);
+  void shiftBy(Point other) {
+    this.x += other.x;
+    this.y += other.y;
+  }
+}
+{% endprettify %}
+
+### unused_element
+
+_The declaration '{0}' isn't referenced._
+
+#### Description
+
+The analyzer produces this diagnostic when a private class, enum, mixin,
+typedef, top level variable, top level function, or method is declared but
+never referenced.
+
+#### Example
+
+Assuming that no code in the library references `_C`, the following code
+produces this diagnostic:
+
+{% prettify dart %}
+class [!_C!] {}
+{% endprettify %}
+
+#### Common fixes
+
+If the declaration isn't needed, then remove it.
+
+If the declaration was intended to be used, then add the missing code.
+
+### unused_field
+
+_The value of the field '{0}' isn't used._
+
+#### Description
+
+The analyzer produces this diagnostic when a private field is declared but
+never read, even if it's written in one or more places.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+class Point {
+  int [!_x!];
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the field isn't needed, then remove it.
+
+If the field was intended to be used, then add the missing code.
+
+### unused_import
+
+_Unused import: '{0}'._
+
+#### Description
+
+The analyzer produces this diagnostic when an import isn't needed because
+none of the names that are imported are referenced within the importing
+library.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+import [!'dart:async'!];
+
+void main() {
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the import isn't needed, then remove it.
+
+If some of the imported names are intended to be used, then add the missing
+code.
+
+### unused_local_variable
+
+_The value of the local variable '{0}' isn't used._
+
+#### Description
+
+The analyzer produces this diagnostic when a local variable is declared but
+never read, even if it's written in one or more places.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+void main() {
+  int [!count!] = 0;
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the variable isn't needed, then remove it.
+
+If the variable was intended to be used, then add the missing code.
+
+### uri_does_not_exist
+
+_Target of URI doesn't exist: '{0}'._
+
+#### Description
+
+The analyzer produces this diagnostic when an import, export, or part
+directive is found where the URI refers to a file that doesn't exist.
+
+#### Example
+
+If the file `lib.dart` doesn't exist, the following code produces this
+diagnostic:
+
+{% prettify dart %}
+import [!'lib.dart'!];
+{% endprettify %}
+
+#### Common fixes
+
+If the URI was mistyped or invalid, then correct the URI.
+
+If the URI is correct, then create the file.
+
+### uri_has_not_been_generated
+
+_Target of URI hasn't been generated: '{0}'._
+
+#### Description
+
+The analyzer produces this diagnostic when an import, export, or part
+directive is found where the URI refers to a file that doesn't exist and
+the name of the file ends with a pattern that's commonly produced by code
+generators, such as one of the following:
+- `.g.dart`
+- `.pb.dart`
+- `.pbenum.dart`
+- `.pbserver.dart`
+- `.pbjson.dart`
+- `.template.dart`
+
+#### Example
+
+If the file `lib.g.dart` doesn't exist, the following code produces this
+diagnostic:
+
+{% prettify dart %}
+import [!'lib.g.dart'!];
+{% endprettify %}
+
+#### Common fixes
+
+If the file is a generated file, then run the generator that generates the
+file.
+
+If the file isn't a generated file, then check the spelling of the URI or
+create the file.

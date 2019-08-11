@@ -686,46 +686,46 @@ ConstantPool {
 }
 ]library #lib from "#lib" as #lib {
 
-  typedef _ScheduleImmediateClosure = (() → void) → void;
+  typedef _ScheduleImmediateClosure = (() →* void) →* void;
   class _ScheduleImmediate extends dart.core::Object {
-    static field (() → void) → void _closure = null;
-    synthetic constructor •() → #lib::_ScheduleImmediate
+    static field (() →* void) →* void _closure = null;
+    synthetic constructor •() → #lib::_ScheduleImmediate*
       : super dart.core::Object::•()
       ;
   }
   class _NamespaceImpl extends dart.core::Object implements #lib::_Namespace {
-    static field #lib::_NamespaceImpl _cachedNamespace = null;
-    constructor _() → #lib::_NamespaceImpl
+    static field #lib::_NamespaceImpl* _cachedNamespace = null;
+    constructor _() → #lib::_NamespaceImpl*
       : super dart.core::Object::•()
       ;
-    @dart._internal::ExternalName::•("Namespace_Create")
-    external static method _create(#lib::_NamespaceImpl namespace, dynamic n) → #lib::_NamespaceImpl;
-    @dart._internal::ExternalName::•("Namespace_GetPointer")
-    external static method _getPointer(#lib::_NamespaceImpl namespace) → dart.core::int;
-    @dart._internal::ExternalName::•("Namespace_GetDefault")
-    external static method _getDefault() → dart.core::int;
+    @#C2
+    external static method _create(#lib::_NamespaceImpl* namespace, dynamic n) → #lib::_NamespaceImpl*;
+    @#C4
+    external static method _getPointer(#lib::_NamespaceImpl* namespace) → dart.core::int*;
+    @#C6
+    external static method _getDefault() → dart.core::int*;
     static method _setupNamespace(dynamic namespace) → void {
       #lib::_NamespaceImpl::_cachedNamespace = #lib::_NamespaceImpl::_create(new #lib::_NamespaceImpl::_(), namespace);
     }
-    static get _namespace() → #lib::_NamespaceImpl {
+    static get _namespace() → #lib::_NamespaceImpl* {
       if(#lib::_NamespaceImpl::_cachedNamespace.{dart.core::Object::==}(null)) {
         #lib::_NamespaceImpl::_cachedNamespace = #lib::_NamespaceImpl::_create(new #lib::_NamespaceImpl::_(), #lib::_NamespaceImpl::_getDefault());
       }
       return #lib::_NamespaceImpl::_cachedNamespace;
     }
-    static get _namespacePointer() → dart.core::int
+    static get _namespacePointer() → dart.core::int*
       return #lib::_NamespaceImpl::_getPointer(#lib::_NamespaceImpl::_namespace);
   }
   class _Namespace extends dart.core::Object {
-    synthetic constructor •() → #lib::_Namespace
+    synthetic constructor •() → #lib::_Namespace*
       : super dart.core::Object::•()
       ;
     static method _setupNamespace(dynamic namespace) → void {
       #lib::_NamespaceImpl::_setupNamespace(namespace);
     }
-    static get _namespace() → #lib::_Namespace
+    static get _namespace() → #lib::_Namespace*
       return #lib::_NamespaceImpl::_namespace;
-    static get _namespacePointer() → dart.core::int
+    static get _namespacePointer() → dart.core::int*
       return #lib::_NamespaceImpl::_namespacePointer;
   }
   class VMLibraryHooks extends dart.core::Object {
@@ -740,7 +740,7 @@ ConstantPool {
     static field dynamic resolvePackageUriFuture = null;
     static field dynamic _computeScriptUri = null;
     static field dynamic _cachedScript = null;
-    synthetic constructor •() → #lib::VMLibraryHooks
+    synthetic constructor •() → #lib::VMLibraryHooks*
       : super dart.core::Object::•()
       ;
     static set platformScript(dynamic f) → void {
@@ -755,38 +755,38 @@ ConstantPool {
     }
   }
   class Stdin extends dart.core::Object {
-    synthetic constructor •() → #lib::Stdin
+    synthetic constructor •() → #lib::Stdin*
       : super dart.core::Object::•()
       ;
   }
   class _StdIOUtils extends dart.core::Object {
-    synthetic constructor •() → #lib::_StdIOUtils
+    synthetic constructor •() → #lib::_StdIOUtils*
       : super dart.core::Object::•()
       ;
-    static method _getStdioInputStream(dart.core::int fd) → #lib::Stdin
+    static method _getStdioInputStream(dart.core::int* fd) → #lib::Stdin*
       return null;
   }
-  static field dart.core::int _stdinFD = 0;
-  static field dart.core::int _stdoutFD = 1;
-  static field dart.core::int _stderrFD = 2;
-  static field dart.core::String _rawScript;
-  static field #lib::Stdin _stdin;
-  @dart._internal::ExternalName::•("Builtin_PrintString")
-  external static method _printString(dart.core::String s) → void;
+  static field dart.core::int* _stdinFD = 0;
+  static field dart.core::int* _stdoutFD = 1;
+  static field dart.core::int* _stderrFD = 2;
+  static field dart.core::String* _rawScript;
+  static field #lib::Stdin* _stdin;
+  @#C8
+  external static method _printString(dart.core::String* s) → void;
   static method _print(dynamic arg) → void {
     #lib::_printString(arg.{dart.core::Object::toString}());
   }
   static method _getPrintClosure() → dynamic
-    return #lib::_print;
-  static method _setScheduleImmediateClosure((() → void) → void closure) → void {
+    return #C9;
+  static method _setScheduleImmediateClosure((() →* void) →* void closure) → void {
     #lib::_ScheduleImmediate::_closure = closure;
   }
-  static method _setStdioFDs(dart.core::int stdin, dart.core::int stdout, dart.core::int stderr) → void {
+  static method _setStdioFDs(dart.core::int* stdin, dart.core::int* stdout, dart.core::int* stderr) → void {
     #lib::_stdinFD = stdin;
     #lib::_stdoutFD = stdout;
     #lib::_stderrFD = stderr;
   }
-  static method _scriptUri() → dart.core::Uri {
+  static method _scriptUri() → dart.core::Uri* {
     if(#lib::_rawScript.{dart.core::String::startsWith}("http:") || #lib::_rawScript.{dart.core::String::startsWith}("https:") || #lib::_rawScript.{dart.core::String::startsWith}("file:")) {
       return dart.core::Uri::parse(#lib::_rawScript);
     }
@@ -795,11 +795,23 @@ ConstantPool {
     }
   }
   static method _setupHooks() → dynamic {
-    #lib::VMLibraryHooks::platformScript = #lib::_scriptUri;
+    #lib::VMLibraryHooks::platformScript = #C10;
   }
-  static get stdin() → #lib::Stdin {
-    #lib::_stdin.{dart.core::Object::==}(null) ?{#lib::Stdin} #lib::_stdin = #lib::_StdIOUtils::_getStdioInputStream(#lib::_stdinFD) : null;
+  static get stdin() → #lib::Stdin* {
+    #lib::_stdin.{dart.core::Object::==}(null) ?{#lib::Stdin*} #lib::_stdin = #lib::_StdIOUtils::_getStdioInputStream(#lib::_stdinFD) : null;
     return #lib::_stdin;
   }
   static method main() → dynamic {}
+}
+constants  {
+  #C1 = "Namespace_Create"
+  #C2 = dart._internal::ExternalName {name:#C1}
+  #C3 = "Namespace_GetPointer"
+  #C4 = dart._internal::ExternalName {name:#C3}
+  #C5 = "Namespace_GetDefault"
+  #C6 = dart._internal::ExternalName {name:#C5}
+  #C7 = "Builtin_PrintString"
+  #C8 = dart._internal::ExternalName {name:#C7}
+  #C9 = tearoff #lib::_print
+  #C10 = tearoff #lib::_scriptUri
 }

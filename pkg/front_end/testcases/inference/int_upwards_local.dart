@@ -6,5 +6,5 @@
 library test;
 
 main() {
-  var /*@type=int*/ x = 1;
+  var /*@ type=int* */ x = 1;
 }

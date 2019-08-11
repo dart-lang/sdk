@@ -9,10 +9,8 @@
 import 'dart:core';
 import "package:expect/expect.dart";
 
-const String NeverInline = 'NeverInline';
-
 class Z {
-  @NeverInline
+  @pragma('vm:never-inline')
   check(int a, int b, String c, List<int> d) {
     Expect.equals(a, 42);
     Expect.equals(b, global_bazz);
@@ -25,29 +23,29 @@ Z z = new Z();
 int global_bazz = 123;
 int global_more_bazz = 456;
 
-@NeverInline
+@pragma('vm:never-inline')
 int bazz() {
   return ++global_bazz;
 }
 
-@NeverInline
+@pragma('vm:never-inline')
 int more_bazz() {
   return ++global_more_bazz;
 }
 
-@NeverInline
+@pragma('vm:never-inline')
 int bar(int i) {
   return i - 1;
 }
 
-@NeverInline
+@pragma('vm:never-inline')
 List<int> spread(int v, List<int> x) {
   return [v, ...x];
 }
 
 // Long running control-flow collection (block expression),
 // leaves the stack non-empty during a potential OSR.
-@NeverInline
+@pragma('vm:never-inline')
 List<int> test1(int n) {
   return spread(more_bazz(), [for (int i = 0; i < n; i++) i]);
 }
@@ -76,7 +74,7 @@ List<int> test3(int n) {
 
 // Long running control-flow collection (block expression),
 // leaves the stack non-empty during a potential OSR.
-@NeverInline
+@pragma('vm:never-inline')
 List<int> test4(int n) {
   var x = [10] +
       z.check(42, bazz(), 'abc',
@@ -86,7 +84,7 @@ List<int> test4(int n) {
 
 // Long running control-flow collection (block expression) inside outer
 // loop, also leaves the stack non-empty during a potential OSR.
-@NeverInline
+@pragma('vm:never-inline')
 List<int> test5(int m, int n) {
   List<int> x = [];
   for (int k = 0; k < m; k++) {

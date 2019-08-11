@@ -6,7 +6,7 @@ part of dart._js_helper;
 
 @notNull
 int stringIndexOfStringUnchecked(receiver, other, startIndex) {
-  return JS('int', '#.indexOf(#, #)', receiver, other, startIndex);
+  return JS<int>('!', '#.indexOf(#, #)', receiver, other, startIndex);
 }
 
 @notNull
@@ -123,8 +123,8 @@ String stringReplaceJS(String receiver, replacer, String replacement) {
   // The JavaScript String.replace method recognizes replacement
   // patterns in the replacement string. Dart does not have that
   // behavior.
-  replacement = JS('String', r'#.replace(/\$/g, "$$$$")', replacement);
-  return JS('String', r'#.replace(#, #)', receiver, replacer, replacement);
+  replacement = JS<String>('!', r'#.replace(/\$/g, "$$$$")', replacement);
+  return JS<String>('!', r'#.replace(#, #)', receiver, replacer, replacement);
 }
 
 @notNull
@@ -141,7 +141,7 @@ String stringReplaceFirstRE(@notNull String receiver, JSSyntaxRegExp regexp,
 /// escaping all RegExp metacharacters.
 @notNull
 String quoteStringForRegExp(string) {
-  return JS('String', r'#.replace(/[[\]{}()*+?.\\^$|]/g, "\\$&")', string);
+  return JS<String>('!', r'#.replace(/[[\]{}()*+?.\\^$|]/g, "\\$&")', string);
 }
 
 @notNull
@@ -162,7 +162,8 @@ String stringReplaceAllUnchecked(@notNull String receiver,
         return result.toString();
       }
     } else {
-      return JS('String', '#.split(#).join(#)', receiver, pattern, replacement);
+      return JS<String>(
+          '!', '#.split(#).join(#)', receiver, pattern, replacement);
     }
   } else if (pattern is JSSyntaxRegExp) {
     var re = regExpGetGlobalNative(pattern);
@@ -284,7 +285,7 @@ String stringReplaceFirstMappedUnchecked(String receiver, Pattern pattern,
 
 @notNull
 String stringJoinUnchecked(array, separator) {
-  return JS('String', r'#.join(#)', array, separator);
+  return JS<String>('!', r'#.join(#)', array, separator);
 }
 
 @notNull

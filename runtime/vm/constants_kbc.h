@@ -570,9 +570,9 @@ namespace dart {
   V(CheckFunctionTypeArgs,               A_E, ORDN, num, reg, ___)             \
   V(CheckFunctionTypeArgs_Wide,          A_E, WIDE, num, reg, ___)             \
   V(CheckStack,                            A, ORDN, num, ___, ___)             \
-  V(Unused01,                              0, RESV, ___, ___, ___)             \
-  V(Unused02,                              0, RESV, ___, ___, ___)             \
-  V(Unused03,                              0, RESV, ___, ___, ___)             \
+  V(DebugCheck,                            0, ORDN, ___, ___, ___)             \
+  V(JumpIfUnchecked,                       T, ORDN, tgt, ___, ___)             \
+  V(JumpIfUnchecked_Wide,                  T, WIDE, tgt, ___, ___)             \
   V(Allocate,                              D, ORDN, lit, ___, ___)             \
   V(Allocate_Wide,                         D, WIDE, lit, ___, ___)             \
   V(AllocateT,                             0, ORDN, ___, ___, ___)             \
@@ -655,10 +655,10 @@ namespace dart {
   V(InterfaceCall_Wide,                  D_F, WIDE, num, num, ___)             \
   V(Unused23,                              0, RESV, ___, ___, ___)             \
   V(Unused24,                              0, RESV, ___, ___, ___)             \
-  V(Unused25,                              0, RESV, ___, ___, ___)             \
-  V(Unused26,                              0, RESV, ___, ___, ___)             \
-  V(Unused27,                              0, RESV, ___, ___, ___)             \
-  V(Unused28,                              0, RESV, ___, ___, ___)             \
+  V(InstantiatedInterfaceCall,           D_F, ORDN, num, num, ___)             \
+  V(InstantiatedInterfaceCall_Wide,      D_F, WIDE, num, num, ___)             \
+  V(UncheckedClosureCall,                D_F, ORDN, num, num, ___)             \
+  V(UncheckedClosureCall_Wide,           D_F, WIDE, num, num, ___)             \
   V(UncheckedInterfaceCall,              D_F, ORDN, num, num, ___)             \
   V(UncheckedInterfaceCall_Wide,         D_F, WIDE, num, num, ___)             \
   V(DynamicCall,                         D_F, ORDN, num, num, ___)             \
@@ -749,7 +749,7 @@ class KernelBytecode {
   // Maximum bytecode format version supported by VM.
   // The range of supported versions should include version produced by bytecode
   // generator (currentBytecodeFormatVersion in pkg/vm/lib/bytecode/dbc.dart).
-  static const intptr_t kMaxSupportedBytecodeFormatVersion = 12;
+  static const intptr_t kMaxSupportedBytecodeFormatVersion = 18;
 
   enum Opcode {
 #define DECLARE_BYTECODE(name, encoding, kind, op1, op2, op3) k##name,
@@ -860,6 +860,11 @@ class KernelBytecode {
     return bc + kInstructionSize[DecodeOpcode(bc)];
   }
 
+  DART_FORCE_INLINE static uword Next(uword pc) {
+    return pc + kInstructionSize[DecodeOpcode(
+                    reinterpret_cast<const KBCInstr*>(pc))];
+  }
+
   DART_FORCE_INLINE static bool IsJumpOpcode(const KBCInstr* instr) {
     switch (DecodeOpcode(instr)) {
       case KernelBytecode::kJump:
@@ -880,8 +885,20 @@ class KernelBytecode {
       case KernelBytecode::kJumpIfNull_Wide:
       case KernelBytecode::kJumpIfNotNull:
       case KernelBytecode::kJumpIfNotNull_Wide:
+      case KernelBytecode::kJumpIfUnchecked:
+      case KernelBytecode::kJumpIfUnchecked_Wide:
         return true;
 
+      default:
+        return false;
+    }
+  }
+
+  DART_FORCE_INLINE static bool IsJumpIfUncheckedOpcode(const KBCInstr* instr) {
+    switch (DecodeOpcode(instr)) {
+      case KernelBytecode::kJumpIfUnchecked:
+      case KernelBytecode::kJumpIfUnchecked_Wide:
+        return true;
       default:
         return false;
     }
@@ -949,29 +966,62 @@ class KernelBytecode {
     }
   }
 
-  // The interpreter and this function must agree on the opcodes.
-  DART_FORCE_INLINE static bool IsDebugBreakCheckedOpcode(
-      const KBCInstr* instr) {
+  DART_FORCE_INLINE static bool IsDebugCheckOpcode(const KBCInstr* instr) {
+    return DecodeOpcode(instr) == KernelBytecode::kDebugCheck;
+  }
+
+  // The interpreter, the bytecode generator, and this function must agree on
+  // this list of opcodes.
+  // The interpreter checks for a debug break at each instruction with listed
+  // opcode and the bytecode generator emits a source position at each
+  // instruction with listed opcode.
+  DART_FORCE_INLINE static bool IsDebugCheckedOpcode(const KBCInstr* instr) {
     switch (DecodeOpcode(instr)) {
-      case KernelBytecode::kPopLocal:
-      case KernelBytecode::kPopLocal_Wide:
-      case KernelBytecode::kStoreLocal:
-      case KernelBytecode::kStoreLocal_Wide:
+      case KernelBytecode::kAllocate:
       case KernelBytecode::kStoreStaticTOS:
       case KernelBytecode::kStoreStaticTOS_Wide:
-      case KernelBytecode::kCheckStack:
+      case KernelBytecode::kDebugCheck:
       case KernelBytecode::kDirectCall:
       case KernelBytecode::kDirectCall_Wide:
       case KernelBytecode::kInterfaceCall:
       case KernelBytecode::kInterfaceCall_Wide:
+      case KernelBytecode::kInstantiatedInterfaceCall:
+      case KernelBytecode::kInstantiatedInterfaceCall_Wide:
+      case KernelBytecode::kUncheckedClosureCall:
+      case KernelBytecode::kUncheckedClosureCall_Wide:
       case KernelBytecode::kUncheckedInterfaceCall:
       case KernelBytecode::kUncheckedInterfaceCall_Wide:
       case KernelBytecode::kDynamicCall:
       case KernelBytecode::kDynamicCall_Wide:
       case KernelBytecode::kReturnTOS:
       case KernelBytecode::kThrow:
-      case KernelBytecode::kJump:
-      case KernelBytecode::kJump_Wide:
+      case KernelBytecode::kEqualsNull:
+      case KernelBytecode::kNegateInt:
+      case KernelBytecode::kNegateDouble:
+      case KernelBytecode::kAddInt:
+      case KernelBytecode::kSubInt:
+      case KernelBytecode::kMulInt:
+      case KernelBytecode::kTruncDivInt:
+      case KernelBytecode::kModInt:
+      case KernelBytecode::kBitAndInt:
+      case KernelBytecode::kBitOrInt:
+      case KernelBytecode::kBitXorInt:
+      case KernelBytecode::kShlInt:
+      case KernelBytecode::kShrInt:
+      case KernelBytecode::kCompareIntEq:
+      case KernelBytecode::kCompareIntGt:
+      case KernelBytecode::kCompareIntLt:
+      case KernelBytecode::kCompareIntGe:
+      case KernelBytecode::kCompareIntLe:
+      case KernelBytecode::kAddDouble:
+      case KernelBytecode::kSubDouble:
+      case KernelBytecode::kMulDouble:
+      case KernelBytecode::kDivDouble:
+      case KernelBytecode::kCompareDoubleEq:
+      case KernelBytecode::kCompareDoubleGt:
+      case KernelBytecode::kCompareDoubleLt:
+      case KernelBytecode::kCompareDoubleGe:
+      case KernelBytecode::kCompareDoubleLe:
         return true;
       default:
         return false;

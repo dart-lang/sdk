@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/resolver/flow_analysis.dart';
+import 'package:front_end/src/fasta/flow_analysis/flow_analysis.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/node_builder.dart';
 
@@ -17,17 +17,27 @@ class DecoratedTypeOperations
   DecoratedTypeOperations(this._typeSystem, this._variableRepository);
 
   @override
-  DecoratedType elementType(VariableElement element) {
-    return _variableRepository.decoratedElementType(element);
-  }
-
-  @override
   bool isLocalVariable(VariableElement element) {
     return element is LocalVariableElement;
   }
 
   @override
+  bool isSameType(DecoratedType type1, DecoratedType type2) {
+    throw new UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
   bool isSubtypeOf(DecoratedType leftType, DecoratedType rightType) {
     return _typeSystem.isSubtypeOf(leftType.type, rightType.type);
+  }
+
+  @override
+  DecoratedType promoteToNonNull(DecoratedType type) {
+    throw new UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
+  DecoratedType variableType(VariableElement variable) {
+    return _variableRepository.decoratedElementType(variable);
   }
 }

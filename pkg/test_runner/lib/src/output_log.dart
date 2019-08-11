@@ -87,7 +87,7 @@ be increased, please contact dart-engprod or file an issue.
 
   @override
   Future addStream(Stream<List<int>> stream) {
-    _subscription = stream.listen(this.add);
+    _subscription = stream.listen(add);
     return _subscription.asFuture();
   }
 
@@ -104,7 +104,7 @@ be increased, please contact dart-engprod or file an issue.
 
 /// An [OutputLog] that tees the output to a file as well.
 class FileOutputLog extends OutputLog {
-  File _outputFile;
+  final File _outputFile;
   IOSink _sink;
 
   FileOutputLog(this._outputFile);

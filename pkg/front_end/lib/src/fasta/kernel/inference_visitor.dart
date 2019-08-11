@@ -180,7 +180,7 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
         isConst: node.isConst);
     inferrer.storeInferredType(node, inferenceResult.type);
     if (!inferrer.isTopLevel) {
-      KernelLibraryBuilder library = inferrer.library;
+      SourceLibraryBuilder library = inferrer.library;
       if (!hasExplicitTypeArguments) {
         library.checkBoundsInConstructorInvocation(
             node, inferrer.typeSchemaEnvironment, inferrer.helper.uri,
@@ -241,7 +241,7 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
         isConst: node.isConst);
     node.inferredType = inferenceResult.type;
     if (!inferrer.isTopLevel) {
-      KernelLibraryBuilder library = inferrer.library;
+      SourceLibraryBuilder library = inferrer.library;
       if (!hadExplicitTypeArguments) {
         library.checkBoundsInFactoryInvocation(
             node, inferrer.typeSchemaEnvironment, inferrer.helper.uri,
@@ -917,7 +917,7 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
     }
     node.inferredType = new InterfaceType(listClass, [inferredTypeArgument]);
     if (!inferrer.isTopLevel) {
-      KernelLibraryBuilder library = inferrer.library;
+      SourceLibraryBuilder library = inferrer.library;
       if (inferenceNeeded) {
         library.checkBoundsInListLiteral(
             node, inferrer.typeSchemaEnvironment, inferrer.helper.uri,
@@ -1468,7 +1468,7 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
     node.inferredType =
         new InterfaceType(mapClass, [inferredKeyType, inferredValueType]);
     if (!inferrer.isTopLevel) {
-      KernelLibraryBuilder library = inferrer.library;
+      SourceLibraryBuilder library = inferrer.library;
       // Either both [_declaredKeyType] and [_declaredValueType] are omitted or
       // none of them, so we may just check one.
       if (inferenceNeeded) {
@@ -1756,7 +1756,7 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
     }
     node.inferredType = new InterfaceType(setClass, [inferredTypeArgument]);
     if (!inferrer.isTopLevel) {
-      KernelLibraryBuilder library = inferrer.library;
+      SourceLibraryBuilder library = inferrer.library;
       if (inferenceNeeded) {
         library.checkBoundsInSetLiteral(
             node, inferrer.typeSchemaEnvironment, inferrer.helper.uri,
@@ -2021,7 +2021,7 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
       }
     }
     if (!inferrer.isTopLevel) {
-      KernelLibraryBuilder library = inferrer.library;
+      SourceLibraryBuilder library = inferrer.library;
       if (node._implicitlyTyped) {
         library.checkBoundsInVariableDeclaration(
             node, inferrer.typeSchemaEnvironment, inferrer.helper.uri,

@@ -29,12 +29,20 @@ jsBuiltin_rawRtiToJsConstructorName() {
   return JS_BUILTIN('String', JsBuiltin.rawRtiToJsConstructorName, null);
 }
 
-/*member: jsEmbeddedGlobal_getTypeFromName:SideEffects(reads static; writes nothing)*/
+/*strong.member: jsEmbeddedGlobal_getTypeFromName:SideEffects(reads static; writes nothing)*/
+/*omit.member: jsEmbeddedGlobal_getTypeFromName:SideEffects(reads static; writes nothing)*/
+// With CFE constant we no longer get the noise from the static get if GET_TYPE_FROM_NAME.
+/*strongConst.member: jsEmbeddedGlobal_getTypeFromName:SideEffects(reads nothing; writes nothing)*/
+/*omitConst.member: jsEmbeddedGlobal_getTypeFromName:SideEffects(reads nothing; writes nothing)*/
 jsEmbeddedGlobal_getTypeFromName() {
   return JS_EMBEDDED_GLOBAL('', GET_TYPE_FROM_NAME);
 }
 
-/*member: jsEmbeddedGlobal_libraries:SideEffects(reads static; writes nothing)*/
+/*strong.member: jsEmbeddedGlobal_libraries:SideEffects(reads static; writes nothing)*/
+/*omit.member: jsEmbeddedGlobal_libraries:SideEffects(reads static; writes nothing)*/
+// With CFE constant we no longer get the noise from the static get if LIBRARIES.
+/*strongConst.member: jsEmbeddedGlobal_libraries:SideEffects(reads nothing; writes nothing)*/
+/*omitConst.member: jsEmbeddedGlobal_libraries:SideEffects(reads nothing; writes nothing)*/
 jsEmbeddedGlobal_libraries() {
   return JS_EMBEDDED_GLOBAL('JSExtendableArray|Null', LIBRARIES);
 }

@@ -28,6 +28,10 @@ class DefaultValueResolver {
 
   void resolve() {
     for (CompilationUnitElementImpl unit in _libraryElement.units) {
+      for (var extensionElement in unit.extensions) {
+        _extension(extensionElement);
+      }
+
       for (var classElement in unit.mixins) {
         _class(classElement);
       }
@@ -65,6 +69,13 @@ class DefaultValueResolver {
     _setScopeFromElement(element);
 
     _parameters(element.parameters);
+  }
+
+  void _extension(ExtensionElement extensionElement) {
+    for (var element in extensionElement.methods) {
+      _setScopeFromElement(element);
+      _method(element);
+    }
   }
 
   void _function(FunctionElementImpl element) {

@@ -6,15 +6,15 @@ library fasta.declaration;
 
 import '../problems.dart' show unsupported;
 
-abstract class Declaration {
+abstract class Builder {
   /// Used when multiple things with the same name are declared within the same
   /// parent. Only used for top-level and class-member declarations, not for
   /// block scopes.
-  Declaration next;
+  Builder next;
 
-  Declaration();
+  Builder();
 
-  Declaration get parent;
+  Builder get parent;
 
   Uri get fileUri;
 
@@ -22,7 +22,7 @@ abstract class Declaration {
 
   get target => unsupported("${runtimeType}.target", charOffset, fileUri);
 
-  Declaration get origin => this;
+  Builder get origin => this;
 
   String get fullNameForErrors;
 
@@ -69,7 +69,7 @@ abstract class Declaration {
   }
 
   /// Applies [patch] to this declaration.
-  void applyPatch(Declaration patch) {
+  void applyPatch(Builder patch) {
     unsupported("${runtimeType}.applyPatch", charOffset, fileUri);
   }
 
@@ -82,5 +82,5 @@ abstract class Declaration {
 
   /// Resolve constructors (lookup names in scope) recorded in this builder and
   /// return the number of constructors resolved.
-  int resolveConstructors(covariant Declaration parent) => 0;
+  int resolveConstructors(covariant Builder parent) => 0;
 }

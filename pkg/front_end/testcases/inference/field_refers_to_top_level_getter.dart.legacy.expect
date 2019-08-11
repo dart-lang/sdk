@@ -4,10 +4,10 @@ import "dart:core" as core;
 
 class C extends core::Object {
   final field dynamic x = self::y;
-  synthetic constructor •() → self::C
+  synthetic constructor •() → self::C*
     : super core::Object::•()
     ;
 }
-static get y() → core::int
+static get y() → core::int*
   return null;
 static method main() → dynamic {}

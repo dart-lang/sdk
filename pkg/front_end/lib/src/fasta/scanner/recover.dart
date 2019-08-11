@@ -1,227 +1,53 @@
 // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
-// BSD-style licenset hat can be found in the LICENSE file.
+// BSD-style license that can be found in the LICENSE file.
 
 library fasta.scanner.recover;
 
 import '../../scanner/token.dart' show TokenType;
 
-import '../fasta_codes.dart'
-    show
-        Code,
-        codeAsciiControlCharacter,
-        codeEncoding,
-        codeExpectedHexDigit,
-        codeMissingExponent,
-        codeNonAsciiIdentifier,
-        codeNonAsciiWhitespace,
-        codeUnexpectedDollarInString,
-        codeUnmatchedToken,
-        codeUnterminatedComment,
-        codeUnterminatedString;
-
 import '../../scanner/token.dart' show Token;
 
 import 'token.dart' show StringToken;
 
-import 'error_token.dart' show NonAsciiIdentifierToken, ErrorToken;
+import 'error_token.dart' show ErrorToken;
 
 /// Recover from errors in [tokens]. The original sources are provided as
 /// [bytes]. [lineStarts] are the beginning character offsets of lines, and
 /// must be updated if recovery is performed rewriting the original source
 /// code.
 Token scannerRecovery(List<int> bytes, Token tokens, List<int> lineStarts) {
-  // See [Parser.reportErrorToken](../parser/src/parser.dart) for how
-  // it currently handles lexical errors. In addition, notice how the parser
-  // calls [handleInvalidExpression], [handleInvalidFunctionBody], and
-  // [handleInvalidTypeReference] to allow the listener to recover its internal
-  // state. See [package:compiler/src/parser/element_listener.dart] for an
-  // example of how these events are used.
-  //
-  // In addition, the scanner will attempt a bit of recovery when braces don't
-  // match up during brace grouping. See
-  // [ArrayBasedScanner.discardBeginGroupUntil](array_based_scanner.dart). For
-  // more details on brace grouping see
-  // [AbstractScanner.unmatchedBeginGroup](abstract_scanner.dart).
+  // Sanity check that all error tokens are prepended.
 
-  /// Tokens with errors.
-  ErrorToken error;
+  // TODO(danrubel): Remove this in a while after the dust has settled.
 
-  /// Used for appending to [error].
-  ErrorToken errorTail;
+  // Skip over prepended error tokens
+  var token = tokens;
+  while (token is ErrorToken) {
+    token = token.next;
+  }
 
-  /// Tokens without errors.
-  Token good;
-
-  /// Used for appending to [good].
-  Token goodTail;
-
-  /// The previous token appended to [good]. Since tokens are single linked
-  /// lists, this allows us to rewrite the current token without scanning all
-  /// of [good]. This is supposed to be the token immediately before
-  /// [goodTail], that is, `beforeGoodTail.next == goodTail`.
-  Token beforeGoodTail;
-
-  recoverIdentifier(NonAsciiIdentifierToken first) {
-    List<int> codeUnits = <int>[];
-
-    // True if the previous good token is an identifier and ends right where
-    // [first] starts. This is the case for input like `blåbærgrød`. In this
-    // case, the scanner produces this sequence of tokens:
-    //
-    //     [
-    //        StringToken("bl"),
-    //        NonAsciiIdentifierToken("å"),
-    //        StringToken("b"),
-    //        NonAsciiIdentifierToken("æ"),
-    //        StringToken("rgr"),
-    //        NonAsciiIdentifierToken("ø"),
-    //        StringToken("d"),
-    //        EOF,
-    //     ]
-    bool prepend = false;
-
-    // True if following token is also an identifier that starts right where
-    // [errorTail] ends. This is the case for "b" above.
-    bool append = false;
-    if (goodTail != null) {
-      if (goodTail.type == TokenType.IDENTIFIER &&
-          goodTail.charEnd == first.charOffset) {
-        prepend = true;
+  // Assert no error tokens in the remaining tokens
+  while (!token.isEof) {
+    if (token is ErrorToken) {
+      for (int count = 0; count < 3; ++count) {
+        var previous = token.previous;
+        if (previous.isEof) break;
+        token = previous;
       }
-    }
-    Token next = errorTail.next;
-    if (next.type == TokenType.IDENTIFIER &&
-        errorTail.charOffset + 1 == next.charOffset) {
-      append = true;
-    }
-    if (prepend) {
-      codeUnits.addAll(goodTail.lexeme.codeUnits);
-    }
-    NonAsciiIdentifierToken current = first;
-    while (current != errorTail) {
-      codeUnits.add(current.character);
-      current = current.next;
-    }
-    codeUnits.add(errorTail.character);
-    int charOffset = first.charOffset;
-    if (prepend) {
-      charOffset = goodTail.charOffset;
-      if (beforeGoodTail == null) {
-        // We're prepending the first good token, so the new token will become
-        // the first good token.
-        good = null;
-        goodTail = null;
-        beforeGoodTail = null;
-      } else {
-        goodTail = beforeGoodTail;
+      var msg = new StringBuffer(
+          "Internal error: All error tokens should have been prepended:");
+      for (int count = 0; count < 7; ++count) {
+        if (token.isEof) break;
+        msg.write(' ${token.runtimeType},');
+        token = token.next;
       }
+      throw msg.toString();
     }
-    if (append) {
-      codeUnits.addAll(next.lexeme.codeUnits);
-      next = next.next;
-    }
-    String value = new String.fromCharCodes(codeUnits);
-    return synthesizeToken(charOffset, value, TokenType.IDENTIFIER)
-      ..setNext(next);
+    token = token.next;
   }
 
-  recoverExponent() {
-    return errorTail.next;
-  }
-
-  recoverString() {
-    return errorTail.next;
-  }
-
-  recoverHexDigit() {
-    return synthesizeToken(errorTail.charOffset, "0", TokenType.INT)
-      ..setNext(errorTail.next);
-  }
-
-  recoverStringInterpolation() {
-    return errorTail.next;
-  }
-
-  recoverComment() {
-    // TODO(ahe): Improve this.
-    return skipToEof(errorTail);
-  }
-
-  recoverUnmatched() {
-    // TODO(ahe): Try to use top-level keywords (such as `class`, `typedef`,
-    // and `enum`) and indentation to recover.
-    return errorTail.next;
-  }
-
-  for (Token current = tokens; !current.isEof; current = current.next) {
-    while (current is ErrorToken) {
-      ErrorToken first = current;
-      Token next = current;
-      do {
-        current = next;
-        if (errorTail == null) {
-          error = next;
-        } else {
-          errorTail.setNext(next);
-        }
-        errorTail = next;
-        next = next.next;
-      } while (next is ErrorToken && first.errorCode == next.errorCode);
-
-      Code code = first.errorCode;
-      if (code == codeEncoding ||
-          code == codeNonAsciiWhitespace ||
-          code == codeAsciiControlCharacter) {
-        current = errorTail.next;
-      } else if (code == codeNonAsciiIdentifier) {
-        current = recoverIdentifier(first);
-        assert(current.next != null);
-      } else if (code == codeMissingExponent) {
-        current = recoverExponent();
-        assert(current.next != null);
-      } else if (code == codeUnterminatedString) {
-        current = recoverString();
-        assert(current.next != null);
-      } else if (code == codeExpectedHexDigit) {
-        current = recoverHexDigit();
-        assert(current.next != null);
-      } else if (code == codeUnexpectedDollarInString) {
-        current = recoverStringInterpolation();
-        assert(current.next != null);
-      } else if (code == codeUnterminatedComment) {
-        current = recoverComment();
-        assert(current.next != null);
-      } else if (code == codeUnmatchedToken) {
-        current = recoverUnmatched();
-        assert(current.next != null);
-      } else {
-        current = errorTail.next;
-      }
-    }
-    if (goodTail == null) {
-      good = current;
-    } else {
-      goodTail.setNext(current);
-    }
-    beforeGoodTail = goodTail;
-    goodTail = current;
-  }
-
-  if (error == null) {
-    // All of the errors are in the scanner's error list.
-    return tokens;
-  }
-  new Token.eof(-1).setNext(error);
-  Token tail;
-  if (good != null) {
-    errorTail.setNext(good);
-    tail = goodTail;
-  } else {
-    tail = errorTail;
-  }
-  if (!tail.isEof) tail.setNext(new Token.eof(tail.end));
-  return error;
+  return tokens;
 }
 
 Token synthesizeToken(int charOffset, String value, TokenType type) {

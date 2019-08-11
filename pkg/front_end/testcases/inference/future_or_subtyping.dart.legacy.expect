@@ -5,11 +5,16 @@ import "dart:async" as asy;
 
 import "dart:async";
 
-static method add(core::int x) → void {}
-static method add2(core::int y) → dynamic {}
+static method add(core::int* x) → void {}
+static method add2(core::int* y) → dynamic {}
 static method test() → dynamic {
-  asy::Future<core::int> f;
-  dynamic a = f.then(self::add);
-  dynamic b = f.then(self::add2);
+  asy::Future<core::int*>* f;
+  dynamic a = f.then(#C1);
+  dynamic b = f.then(#C2);
 }
 static method main() → dynamic {}
+
+constants  {
+  #C1 = tearoff self::add
+  #C2 = tearoff self::add2
+}

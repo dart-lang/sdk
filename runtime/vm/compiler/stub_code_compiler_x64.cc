@@ -223,6 +223,13 @@ void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
 
   __ EnterFrame(0);
   __ ReserveAlignedFrameSpace(0);
+
+  // Set the execution state to VM while waiting for the safepoint to end.
+  // This isn't strictly necessary but enables tests to check that we're not
+  // in native code anymore. See tests/ffi/function_gc_test.dart for example.
+  __ movq(Address(THR, target::Thread::execution_state_offset()),
+          Immediate(target::Thread::vm_execution_state()));
+
   __ movq(RAX, Address(THR, kExitSafepointRuntimeEntry.OffsetFromThread()));
   __ CallCFunction(RAX);
   __ LeaveFrame();
@@ -245,6 +252,29 @@ void StubCodeCompiler::GenerateVerifyCallbackStub(Assembler* assembler) {
   __ ret();
 }
 
+// Calls native code within a safepoint.
+//
+// On entry:
+//   Stack: arguments set up and aligned for native call, excl. shadow space
+//   RBX = target address to call
+//
+// On exit:
+//   Stack pointer lowered by shadow space
+//   RBX, R12 clobbered
+void StubCodeCompiler::GenerateCallNativeThroughSafepointStub(
+    Assembler* assembler) {
+  __ TransitionGeneratedToNative(RBX, FPREG);
+
+  __ popq(R12);
+  __ CallCFunction(RBX);
+
+  __ TransitionNativeToGenerated();
+
+  // Faster than jmp because it doesn't confuse the branch predictor.
+  __ pushq(R12);
+  __ ret();
+}
+
 // RBX: The extracted method.
 // RDX: The type_arguments_field_offset (or 0)
 void StubCodeCompiler::GenerateBuildMethodExtractorStub(
@@ -252,7 +282,7 @@ void StubCodeCompiler::GenerateBuildMethodExtractorStub(
     const Object& closure_allocation_stub,
     const Object& context_allocation_stub) {
   const intptr_t kReceiverOffsetInWords =
-      compiler::target::frame_layout.param_end_from_fp + 1;
+      target::frame_layout.param_end_from_fp + 1;
 
   __ EnterStubFrame();
 
@@ -261,8 +291,7 @@ void StubCodeCompiler::GenerateBuildMethodExtractorStub(
   __ movq(RCX, Address(THR, target::Thread::object_null_offset()));
   __ cmpq(RDX, Immediate(0));
   __ j(EQUAL, &no_type_args, Assembler::kNearJump);
-  __ movq(RAX,
-          Address(RBP, compiler::target::kWordSize * kReceiverOffsetInWords));
+  __ movq(RAX, Address(RBP, target::kWordSize * kReceiverOffsetInWords));
   __ movq(RCX, Address(RAX, RDX, TIMES_1, 0));
   __ Bind(&no_type_args);
   __ pushq(RCX);
@@ -294,8 +323,7 @@ void StubCodeCompiler::GenerateBuildMethodExtractorStub(
   }
 
   // Store receiver in context
-  __ movq(RSI,
-          Address(RBP, compiler::target::kWordSize * kReceiverOffsetInWords));
+  __ movq(RSI, Address(RBP, target::kWordSize * kReceiverOffsetInWords));
   __ StoreIntoObject(
       RAX, FieldAddress(RAX, target::Context::variable_offset(0)), RSI);
 
@@ -705,13 +733,13 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // The code in this frame may not cause GC. kDeoptimizeCopyFrameRuntimeEntry
   // and kDeoptimizeFillFrameRuntimeEntry are leaf runtime calls.
   const intptr_t saved_result_slot_from_fp =
-      compiler::target::frame_layout.first_local_from_fp + 1 -
+      target::frame_layout.first_local_from_fp + 1 -
       (kNumberOfCpuRegisters - RAX);
   const intptr_t saved_exception_slot_from_fp =
-      compiler::target::frame_layout.first_local_from_fp + 1 -
+      target::frame_layout.first_local_from_fp + 1 -
       (kNumberOfCpuRegisters - RAX);
   const intptr_t saved_stacktrace_slot_from_fp =
-      compiler::target::frame_layout.first_local_from_fp + 1 -
+      target::frame_layout.first_local_from_fp + 1 -
       (kNumberOfCpuRegisters - RDX);
   // Result in RAX is preserved as part of pushing all registers below.
 
@@ -779,19 +807,15 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   __ CallRuntime(kDeoptimizeFillFrameRuntimeEntry, 1);
   if (kind == kLazyDeoptFromReturn) {
     // Restore result into RBX.
-    __ movq(RBX,
-            Address(RBP, compiler::target::frame_layout.first_local_from_fp *
-                             target::kWordSize));
+    __ movq(RBX, Address(RBP, target::frame_layout.first_local_from_fp *
+                                  target::kWordSize));
   } else if (kind == kLazyDeoptFromThrow) {
     // Restore exception into RBX.
-    __ movq(RBX,
-            Address(RBP, compiler::target::frame_layout.first_local_from_fp *
-                             target::kWordSize));
+    __ movq(RBX, Address(RBP, target::frame_layout.first_local_from_fp *
+                                  target::kWordSize));
     // Restore stacktrace into RDX.
-    __ movq(
-        RDX,
-        Address(RBP, (compiler::target::frame_layout.first_local_from_fp - 1) *
-                         target::kWordSize));
+    __ movq(RDX, Address(RBP, (target::frame_layout.first_local_from_fp - 1) *
+                                  target::kWordSize));
   }
   // Code above cannot cause GC.
   // There is a Dart Frame on the stack. We must restore PP and leave frame.
@@ -910,9 +934,9 @@ void StubCodeCompiler::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ movq(RAX, FieldAddress(R10, target::ArgumentsDescriptor::count_offset()));
   // Three words (saved pp, saved fp, stub's pc marker)
   // in the stack above the return address.
-  __ movq(RAX, Address(RSP, RAX, TIMES_4,
-                       compiler::target::frame_layout.saved_below_pc() *
-                           target::kWordSize));
+  __ movq(RAX,
+          Address(RSP, RAX, TIMES_4,
+                  target::frame_layout.saved_below_pc() * target::kWordSize));
   // Preserve IC data and arguments descriptor.
   __ pushq(RBX);
   __ pushq(R10);
@@ -3234,52 +3258,6 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
   __ jmp(&cid_loaded);
 }
 
-// Called from switchable IC calls.
-//  RDX: receiver
-//  RBX: ICData (preserved)
-// Passed to target:
-//  CODE_REG: target Code object
-//  R10: arguments descriptor
-void StubCodeCompiler::GenerateICCallThroughFunctionStub(Assembler* assembler) {
-  Label loop, found, miss;
-  __ movq(R13, FieldAddress(RBX, target::ICData::entries_offset()));
-  __ movq(R10,
-          FieldAddress(RBX, target::ICData::arguments_descriptor_offset()));
-  __ leaq(R13, FieldAddress(R13, target::Array::data_offset()));
-  // R13: first IC entry
-  __ LoadTaggedClassIdMayBeSmi(RAX, RDX);
-  // RAX: receiver cid as Smi
-
-  __ Bind(&loop);
-  __ movq(R9, Address(R13, 0));
-  __ cmpq(RAX, R9);
-  __ j(EQUAL, &found, Assembler::kNearJump);
-
-  ASSERT(target::ToRawSmi(kIllegalCid) == 0);
-  __ testq(R9, R9);
-  __ j(ZERO, &miss, Assembler::kNearJump);
-
-  const intptr_t entry_length =
-      target::ICData::TestEntryLengthFor(1, /*tracking_exactness=*/false) *
-      target::kWordSize;
-  __ addq(R13, Immediate(entry_length));  // Next entry.
-  __ jmp(&loop);
-
-  __ Bind(&found);
-  const intptr_t target_offset =
-      target::ICData::TargetIndexFor(1) * target::kWordSize;
-  __ movq(RAX, Address(R13, target_offset));
-  __ movq(RCX, FieldAddress(RAX, target::Function::entry_point_offset()));
-  __ movq(CODE_REG, FieldAddress(RAX, target::Function::code_offset()));
-  __ jmp(RCX);
-
-  __ Bind(&miss);
-  __ LoadIsolate(RAX);
-  __ movq(CODE_REG, Address(RAX, target::Isolate::ic_miss_code_offset()));
-  __ movq(RCX, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
-  __ jmp(RCX);
-}
-
 void StubCodeCompiler::GenerateICCallThroughCodeStub(Assembler* assembler) {
   Label loop, found, miss;
   __ movq(R13, FieldAddress(RBX, target::ICData::entries_offset()));
@@ -3336,7 +3314,7 @@ void StubCodeCompiler::GenerateUnlinkedCallStub(Assembler* assembler) {
   __ popq(RBX);
   __ popq(RBX);
   __ popq(CODE_REG);  // result = stub
-  __ popq(RBX);  // result = IC
+  __ popq(RBX);       // result = IC
 
   __ popq(RDX);  // Restore receiver.
   __ LeaveStubFrame();
@@ -3378,7 +3356,7 @@ void StubCodeCompiler::GenerateSingleTargetCallStub(Assembler* assembler) {
   __ CallRuntime(kSingleTargetMissRuntimeEntry, 2);
   __ popq(RBX);
   __ popq(CODE_REG);  // result = stub
-  __ popq(RBX);  // result = IC
+  __ popq(RBX);       // result = IC
 
   __ popq(RDX);  // Restore receiver.
   __ LeaveStubFrame();
@@ -3402,7 +3380,7 @@ void StubCodeCompiler::GenerateMonomorphicMissStub(Assembler* assembler) {
   __ CallRuntime(kMonomorphicMissRuntimeEntry, 2);
   __ popq(RBX);
   __ popq(CODE_REG);  // result = stub
-  __ popq(RBX);  // result = IC
+  __ popq(RBX);       // result = IC
 
   __ popq(RDX);  // Restore receiver.
   __ LeaveStubFrame();

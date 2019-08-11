@@ -23,7 +23,7 @@ import "package:front_end/src/fasta/dill/dill_loader.dart" show DillLoader;
 import "package:front_end/src/fasta/dill/dill_target.dart" show DillTarget;
 
 import "package:front_end/src/fasta/kernel/kernel_builder.dart"
-    show ClassHierarchyBuilder, KernelClassBuilder;
+    show ClassHierarchyBuilder, ClassBuilder;
 
 import "package:front_end/src/fasta/ticker.dart" show Ticker;
 
@@ -51,7 +51,8 @@ main() {
     final DillLoader loader = target.loader;
     loader.appendLibraries(sdk);
     await target.buildOutlines();
-    KernelClassBuilder objectClass = loader.coreLibrary["Object"];
+    ClassBuilder objectClass =
+        loader.coreLibrary.getLocalMember("Object");
     ClassHierarchyBuilder hierarchy =
         new ClassHierarchyBuilder(objectClass, loader, new CoreTypes(sdk));
     new FastaTypesTest(hierarchy, environment).run();

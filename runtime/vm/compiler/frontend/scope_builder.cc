@@ -316,9 +316,17 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       }
       break;
     }
-    case RawFunction::kStaticFieldInitializer: {
+    case RawFunction::kFieldInitializer: {
       ASSERT(helper_.PeekTag() == kField);
-      ASSERT(function.IsStaticFunction());
+      if (!function.is_static()) {
+        Class& klass = Class::Handle(Z, function.Owner());
+        Type& klass_type = H.GetDeclarationType(klass);
+        LocalVariable* variable =
+            MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
+                         Symbols::This(), klass_type);
+        scope_->InsertParameterAt(0, variable);
+        parsed_function_->set_receiver_var(variable);
+      }
       VisitNode();
       break;
     }
@@ -1310,6 +1318,7 @@ void ScopeBuilder::VisitDartType() {
 }
 
 void ScopeBuilder::VisitInterfaceType(bool simple) {
+  helper_.ReadNullability();  // read nullability.
   helper_.ReadUInt();  // read klass_name.
   if (!simple) {
     intptr_t length = helper_.ReadListLength();  // read number of types.
@@ -1320,6 +1329,8 @@ void ScopeBuilder::VisitInterfaceType(bool simple) {
 }
 
 void ScopeBuilder::VisitFunctionType(bool simple) {
+  helper_.ReadNullability();  // read nullability.
+
   if (!simple) {
     intptr_t list_length =
         helper_.ReadListLength();  // read type_parameters list length.
@@ -1366,6 +1377,8 @@ void ScopeBuilder::VisitTypeParameterType() {
   while (function.IsClosureFunction()) {
     function = function.parent_function();
   }
+
+  helper_.ReadNullability();  // read nullability.
 
   // The index here is the index identifying the type parameter binding site
   // inside the DILL file, which uses a different indexing system than the VM

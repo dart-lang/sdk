@@ -146,6 +146,32 @@ class EnclosedScope extends Scope {
   }
 }
 
+/// The scope defined by an extension.
+class ExtensionScope extends EnclosedScope {
+  /// Initialize a newly created scope, enclosed within the [enclosingScope],
+  /// that represents the given [_extensionElement].
+  ExtensionScope(Scope enclosingScope, ExtensionElement extensionElement)
+      : super(enclosingScope) {
+    _defineMembers(extensionElement);
+  }
+
+  /// Define the static members defined by the given [extensionElement]. The
+  /// instance members should only be found if they would be found by normal
+  /// lookup on `this`.
+  void _defineMembers(ExtensionElement extensionElement) {
+    List<PropertyAccessorElement> accessors = extensionElement.accessors;
+    int accessorLength = accessors.length;
+    for (int i = 0; i < accessorLength; i++) {
+      define(accessors[i]);
+    }
+    List<MethodElement> methods = extensionElement.methods;
+    int methodLength = methods.length;
+    for (int i = 0; i < methodLength; i++) {
+      define(methods[i]);
+    }
+  }
+}
+
 /**
  * The scope defined by a function.
  */
@@ -365,11 +391,33 @@ class LibraryImportScope extends Scope {
   Map<String, Map<String, Element>> _definedPrefixedNames;
 
   /**
+   * Cache of public extensions defined in this library's imported namespaces.
+   */
+  List<ExtensionElement> _extensions;
+
+  /**
    * Initialize a newly created scope representing the names imported into the
    * [_definingLibrary].
    */
   LibraryImportScope(this._definingLibrary) {
     _createImportedNamespaces();
+  }
+
+  @override
+  List<ExtensionElement> get extensions {
+    if (_extensions == null) {
+      _extensions = [];
+      for (var namespace in _importedNamespaces) {
+        for (var element in namespace.definedNames.values) {
+          if (element is ExtensionElement &&
+              element.name.isNotEmpty /* named */ &&
+              !_extensions.contains(element)) {
+            _extensions.add(element);
+          }
+        }
+      }
+    }
+    return _extensions;
   }
 
   @override
@@ -559,6 +607,8 @@ class LibraryImportScope extends Scope {
  * A scope containing all of the names defined in a given library.
  */
 class LibraryScope extends EnclosedScope {
+  List<ExtensionElement> _extensions = <ExtensionElement>[];
+
   /**
    * Initialize a newly created scope representing the names defined in the
    * [definingLibrary].
@@ -576,6 +626,10 @@ class LibraryScope extends EnclosedScope {
     }
   }
 
+  @override
+  List<ExtensionElement> get extensions =>
+      enclosingScope.extensions.toList()..addAll(_extensions);
+
   /**
    * Add to this scope all of the public top-level names that are defined in the
    * given [compilationUnit].
@@ -589,6 +643,7 @@ class LibraryScope extends EnclosedScope {
     }
     for (ExtensionElement element in compilationUnit.extensions) {
       define(element);
+      _extensions.add(element);
     }
     for (FunctionElement element in compilationUnit.functions) {
       define(element);
@@ -768,6 +823,9 @@ class NamespaceBuilder {
       _addIfPublic(definedNames, element);
     }
     for (ClassElement element in compilationUnit.enums) {
+      _addIfPublic(definedNames, element);
+    }
+    for (ExtensionElement element in compilationUnit.extensions) {
       _addIfPublic(definedNames, element);
     }
     for (FunctionElement element in compilationUnit.functions) {
@@ -983,13 +1041,19 @@ abstract class Scope {
   Scope get enclosingScope => null;
 
   /**
+   * The list of extensions defined in this scope.
+   */
+  List<ExtensionElement> get extensions =>
+      enclosingScope == null ? <ExtensionElement>[] : enclosingScope.extensions;
+
+  /**
    * Add the given [element] to this scope. If there is already an element with
    * the given name defined in this scope, then the original element will
    * continue to be mapped to the name.
    */
   void define(Element element) {
     String name = _getName(element);
-    if (name != null && !name.isEmpty) {
+    if (name != null && name.isNotEmpty) {
       _definedNames ??= new HashMap<String, Element>();
       _definedNames.putIfAbsent(name, () => element);
     }
@@ -1088,7 +1152,7 @@ abstract class Scope {
   String _getName(Element element) {
     if (element is MethodElement) {
       MethodElement method = element;
-      if (method.name == "-" && method.parameters.length == 0) {
+      if (method.name == "-" && method.parameters.isEmpty) {
         return UNARY_MINUS;
       }
     }

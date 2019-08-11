@@ -82,6 +82,8 @@ class NamedTypeBuilder extends TypeBuilder {
         var substitution = Substitution.fromPairs(parameters, arguments);
         _type = substitution.substituteType(rawType);
       }
+    } else if (element is NeverElementImpl) {
+      _type = element.type.withNullability(nullabilitySuffix);
     } else if (element is TypeParameterElement) {
       _type = TypeParameterTypeImpl(element);
     } else {

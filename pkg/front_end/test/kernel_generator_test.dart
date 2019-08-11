@@ -43,8 +43,9 @@ main() {
         ..compileSdk = true // To prevent FE from loading an sdk-summary.
         ..onDiagnostic = errors.add;
 
-      var component =
-          await compileScript('main() => print("hi");', options: options);
+      Component component =
+          (await compileScript('main() => print("hi");', options: options))
+              ?.component;
       expect(component, isNotNull);
       expect(errors, isNotEmpty);
     });
@@ -56,8 +57,9 @@ main() {
             Uri.parse('org-dartlang-test:///not_existing_summary_file')
         ..onDiagnostic = errors.add;
 
-      var component =
-          await compileScript('main() => print("hi");', options: options);
+      Component component =
+          (await compileScript('main() => print("hi");', options: options))
+              ?.component;
       expect(component, isNotNull);
       expect(errors, isNotEmpty);
     });
@@ -69,8 +71,9 @@ main() {
         // contains broken URIs to ensure we do not attempt to lookup for
         // sources of the sdk directly.
         ..librariesSpecificationUri = invalidCoreLibsSpecUri;
-      var component =
-          await compileScript('main() => print("hi");', options: options);
+      Component component =
+          (await compileScript('main() => print("hi");', options: options))
+              ?.component;
       var core = component.libraries.firstWhere(isDartCoreLibrary);
       var printMember = core.members.firstWhere((m) => m.name.name == 'print');
 
@@ -87,8 +90,10 @@ main() {
     });
 
     test('generated program contains source-info', () async {
-      var component = await compileScript('a() => print("hi"); main() {}',
-          fileName: 'a.dart');
+      Component component = (await compileScript(
+              'a() => print("hi"); main() {}',
+              fileName: 'a.dart'))
+          ?.component;
       // Kernel always store an empty '' key in the map, so there is always at
       // least one. Having more means that source-info is added.
       expect(component.uriToSource.keys.length, greaterThan(1));
@@ -98,8 +103,10 @@ main() {
     });
 
     test('code from summary dependencies are marked external', () async {
-      var component = await compileScript('a() => print("hi"); main() {}',
-          fileName: 'a.dart');
+      Component component = (await compileScript(
+              'a() => print("hi"); main() {}',
+              fileName: 'a.dart'))
+          ?.component;
       for (var lib in component.libraries) {
         if (lib.importUri.scheme == 'dart') {
           expect(lib.isExternal, isTrue);
@@ -108,13 +115,14 @@ main() {
 
       // Pretend that the compiled code is a summary
       var bytes = serializeComponent(component);
-      component = await compileScript(
-          {
-            'b.dart': 'import "a.dart" as m; b() => m.a(); main() {}',
-            'summary.dill': bytes
-          },
-          fileName: 'b.dart',
-          inputSummaries: ['summary.dill']);
+      component = (await compileScript(
+              {
+                'b.dart': 'import "a.dart" as m; b() => m.a(); main() {}',
+                'summary.dill': bytes
+              },
+              fileName: 'b.dart',
+              inputSummaries: ['summary.dill']))
+          ?.component;
 
       var aLib = component.libraries
           .firstWhere((lib) => lib.importUri.path == '/a/b/c/a.dart');
@@ -122,8 +130,10 @@ main() {
     });
 
     test('code from linked dependencies are not marked external', () async {
-      var component = await compileScript('a() => print("hi"); main() {}',
-          fileName: 'a.dart');
+      Component component = (await compileScript(
+              'a() => print("hi"); main() {}',
+              fileName: 'a.dart'))
+          ?.component;
       for (var lib in component.libraries) {
         if (lib.importUri.scheme == 'dart') {
           expect(lib.isExternal, isTrue);
@@ -131,13 +141,14 @@ main() {
       }
 
       var bytes = serializeComponent(component);
-      component = await compileScript(
-          {
-            'b.dart': 'import "a.dart" as m; b() => m.a(); main() {}',
-            'link.dill': bytes
-          },
-          fileName: 'b.dart',
-          linkedDependencies: ['link.dill']);
+      component = (await compileScript(
+              {
+                'b.dart': 'import "a.dart" as m; b() => m.a(); main() {}',
+                'link.dill': bytes
+              },
+              fileName: 'b.dart',
+              linkedDependencies: ['link.dill']))
+          ?.component;
 
       var aLib = component.libraries
           .firstWhere((lib) => lib.importUri.path == '/a/b/c/a.dart');

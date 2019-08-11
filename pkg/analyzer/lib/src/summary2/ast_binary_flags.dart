@@ -166,6 +166,11 @@ class AstBinaryFlags {
     TypedLiteral,
   );
 
+  static final _isNative = _checkBit(
+    8,
+    MethodDeclaration,
+  );
+
   static final _isNew = _checkBit(
     0,
     InstanceCreationExpression,
@@ -246,6 +251,7 @@ class AstBinaryFlags {
     bool isGet: false,
     bool isLate: false,
     bool isMap: false,
+    bool isNative: false,
     bool isNew: false,
     bool isOperator: false,
     bool isRequired: false,
@@ -337,6 +343,9 @@ class AstBinaryFlags {
     }
     if (isMap) {
       result |= _isMap;
+    }
+    if (isNative) {
+      result |= _isNative;
     }
     if (isNew) {
       result |= _isNew;
@@ -474,6 +483,10 @@ class AstBinaryFlags {
 
   static bool isMap(int flags) {
     return (flags & _isMap) != 0;
+  }
+
+  static bool isNative(int flags) {
+    return (flags & _isNative) != 0;
   }
 
   static bool isNew(int flags) {

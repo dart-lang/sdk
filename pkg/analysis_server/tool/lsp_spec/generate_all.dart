@@ -87,7 +87,7 @@ List<AstNode> getCustomClasses() {
   }
 
   field(String name,
-      {String type, array: false, canBeNull: false, canBeUndefined: false}) {
+      {String type, array = false, canBeNull = false, canBeUndefined = false}) {
     var fieldType =
         array ? ArrayType(Type.identifier(type)) : Type.identifier(type);
 

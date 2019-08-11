@@ -1,7 +1,7 @@
 // Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--no-background-compilation --enable-inlining-annotations --optimization-counter-threshold=100
+// VMOptions=--no-background-compilation --optimization-counter-threshold=100
 
 // Verify that runtime correctly materializes unboxed variables on the catch
 // entry in optimized code.
@@ -10,9 +10,7 @@ import 'dart:typed_data';
 
 import 'package:expect/expect.dart';
 
-const NeverInline = "NeverInline";
-
-@NeverInline
+@pragma('vm:never-inline')
 void testThrow(bool shouldThrow) {
   var dbl = 0.0;
   var i32 = 0;

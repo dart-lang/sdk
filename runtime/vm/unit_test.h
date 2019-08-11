@@ -86,12 +86,12 @@
 // The ASSEMBLER_TEST_GENERATE macro is used to generate a unit test
 // for the assembler.
 #define ASSEMBLER_TEST_GENERATE(name, assembler)                               \
-  void AssemblerTestGenerate##name(Assembler* assembler)
+  void AssemblerTestGenerate##name(compiler::Assembler* assembler)
 
 // The ASSEMBLER_TEST_EXTERN macro is used to declare a unit test
 // for the assembler.
 #define ASSEMBLER_TEST_EXTERN(name)                                            \
-  extern void AssemblerTestGenerate##name(Assembler* assembler);
+  extern void AssemblerTestGenerate##name(compiler::Assembler* assembler);
 
 // The ASSEMBLER_TEST_RUN macro is used to execute the assembler unit
 // test generated using the ASSEMBLER_TEST_GENERATE macro.
@@ -103,8 +103,8 @@
       bool use_far_branches = false;                                           \
       LongJumpScope jump;                                                      \
       if (setjmp(*jump.Set()) == 0) {                                          \
-        ObjectPoolBuilder object_pool_builder;                                 \
-        Assembler assembler(&object_pool_builder, use_far_branches);           \
+        compiler::ObjectPoolBuilder object_pool_builder;                       \
+        compiler::Assembler assembler(&object_pool_builder, use_far_branches); \
         AssemblerTest test("" #name, &assembler);                              \
         AssemblerTestGenerate##name(test.assembler());                         \
         test.Assemble();                                                       \
@@ -116,8 +116,8 @@
     const Error& error = Error::Handle(Thread::Current()->sticky_error());     \
     if (error.raw() == Object::branch_offset_error().raw()) {                  \
       bool use_far_branches = true;                                            \
-      ObjectPoolBuilder object_pool_builder;                                   \
-      Assembler assembler(&object_pool_builder, use_far_branches);             \
+      compiler::ObjectPoolBuilder object_pool_builder;                         \
+      compiler::Assembler assembler(&object_pool_builder, use_far_branches);   \
       AssemblerTest test("" #name, &assembler);                                \
       AssemblerTestGenerate##name(test.assembler());                           \
       test.Assemble();                                                         \
@@ -232,9 +232,9 @@ extern const intptr_t platform_strong_dill_size;
 class TesterState : public AllStatic {
  public:
   static const uint8_t* vm_snapshot_data;
-  static Dart_IsolateCreateCallback create_callback;
+  static Dart_IsolateGroupCreateCallback create_callback;
   static Dart_IsolateShutdownCallback shutdown_callback;
-  static Dart_IsolateCleanupCallback cleanup_callback;
+  static Dart_IsolateGroupCleanupCallback group_cleanup_callback;
   static const char** argv;
   static int argc;
 };
@@ -358,8 +358,9 @@ class TestCase : TestCaseBase {
                                                     const char* name = NULL) {
     return CreateIsolate(buffer, 0, NULL, name);
   }
-  static Dart_Isolate CreateTestIsolate(const char* name = NULL,
-                                        void* data = NULL);
+  static Dart_Isolate CreateTestIsolate(const char* name = nullptr,
+                                        void* isolate_group_data = nullptr,
+                                        void* isolate_data = nullptr);
   static Dart_Handle library_handler(Dart_LibraryTag tag,
                                      Dart_Handle library,
                                      Dart_Handle url);
@@ -393,7 +394,8 @@ class TestCase : TestCaseBase {
                                     intptr_t len,
                                     const uint8_t* instr_buffer,
                                     const char* name,
-                                    void* data = NULL);
+                                    void* group_data = nullptr,
+                                    void* isolate_data = nullptr);
 
   static char* ValidateCompilationResult(Zone* zone,
                                          Dart_KernelCompilationResult result,
@@ -460,14 +462,14 @@ struct is_double<double> {
 
 class AssemblerTest {
  public:
-  AssemblerTest(const char* name, Assembler* assembler)
+  AssemblerTest(const char* name, compiler::Assembler* assembler)
       : name_(name), assembler_(assembler), code_(Code::ZoneHandle()) {
     ASSERT(name != NULL);
     ASSERT(assembler != NULL);
   }
   ~AssemblerTest() {}
 
-  Assembler* assembler() const { return assembler_; }
+  compiler::Assembler* assembler() const { return assembler_; }
 
   const Code& code() const { return code_; }
 
@@ -588,7 +590,7 @@ class AssemblerTest {
 
  private:
   const char* name_;
-  Assembler* assembler_;
+  compiler::Assembler* assembler_;
   Code& code_;
   static const intptr_t DISASSEMBLY_SIZE = 10240;
   char disassembly_[DISASSEMBLY_SIZE];

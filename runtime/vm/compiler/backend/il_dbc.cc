@@ -560,7 +560,7 @@ void ComparisonInstr::EmitBranchCode(FlowGraphCompiler* compiler,
 }
 
 void ComparisonInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Label is_true, is_false;
+  compiler::Label is_true, is_false;
   BranchLabels labels = {&is_true, &is_false, &is_false};
   Condition true_condition =
       this->GetNextInstructionCondition(compiler, labels);
@@ -571,7 +571,7 @@ void ComparisonInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (true_condition != INVALID_CONDITION) {
       EmitBranchOnCondition(compiler, true_condition, labels);
     }
-    Label done;
+    compiler::Label done;
     __ Bind(&is_false);
     __ PushConstant(Bool::False());
     __ Jump(&done);
@@ -598,7 +598,7 @@ void ComparisonInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // the correct boolean.
     if ((next_is_true && is_false.IsLinked()) ||
         (!next_is_true && is_true.IsLinked())) {
-      Label done;
+      compiler::Label done;
       __ Jump(&done);
       __ Bind(next_is_true ? &is_false : &is_true);
       __ LoadConstant(result, Bool::Get(!next_is_true));
@@ -687,7 +687,7 @@ Condition TestCidsInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
     // If the cid is not in the list, jump to the opposite label from the cids
     // that are in the list.  These must be all the same (see asserts in the
     // constructor).
-    Label* target = result ? labels.false_label : labels.true_label;
+    compiler::Label* target = result ? labels.false_label : labels.true_label;
     __ Jump(target);
   }
 
@@ -1035,11 +1035,12 @@ EMIT_NATIVE_CODE(NativeCall,
     function = native_c_function();
   }
 
-  const ExternalLabel trampoline_label(reinterpret_cast<uword>(trampoline));
+  const compiler::ExternalLabel trampoline_label(
+      reinterpret_cast<uword>(trampoline));
   const intptr_t trampoline_kidx =
       __ object_pool_builder().FindNativeFunctionWrapper(
           &trampoline_label, ObjectPool::Patchability::kPatchable);
-  const ExternalLabel label(reinterpret_cast<uword>(function));
+  const compiler::ExternalLabel label(reinterpret_cast<uword>(function));
   const intptr_t target_kidx = __ object_pool_builder().FindNativeFunction(
       &label, ObjectPool::Patchability::kPatchable);
   const intptr_t argc_tag_kidx =
@@ -1138,6 +1139,7 @@ EMIT_NATIVE_CODE(AllocateObject,
 }
 
 EMIT_NATIVE_CODE(StoreInstanceField, 2) {
+  ASSERT(OffsetInBytes() > 0);  // Field is finalized and points after header.
   ASSERT(OffsetInBytes() % kWordSize == 0);
   if (compiler->is_optimizing()) {
     const Register value = locs()->in(1).reg();
@@ -1361,66 +1363,6 @@ LocationSummary* Instruction::MakeCallSummary(Zone* zone) {
   ASSERT(0 < kMaxNumberOfFixedInputRegistersUsedByIL);
   result->set_out(0, Location::RegisterLocation(0));
   return result;
-}
-
-CompileType BinaryUint32OpInstr::ComputeType() const {
-  return CompileType::Int();
-}
-
-CompileType ShiftUint32OpInstr::ComputeType() const {
-  return CompileType::Int();
-}
-
-CompileType SpeculativeShiftUint32OpInstr::ComputeType() const {
-  return CompileType::Int();
-}
-
-CompileType UnaryUint32OpInstr::ComputeType() const {
-  return CompileType::Int();
-}
-
-CompileType LoadIndexedInstr::ComputeType() const {
-  switch (class_id_) {
-    case kArrayCid:
-    case kImmutableArrayCid:
-      return CompileType::Dynamic();
-
-    case kTypedDataFloat32ArrayCid:
-    case kTypedDataFloat64ArrayCid:
-      return CompileType::FromCid(kDoubleCid);
-    case kTypedDataFloat32x4ArrayCid:
-      return CompileType::FromCid(kFloat32x4Cid);
-    case kTypedDataInt32x4ArrayCid:
-      return CompileType::FromCid(kInt32x4Cid);
-    case kTypedDataFloat64x2ArrayCid:
-      return CompileType::FromCid(kFloat64x2Cid);
-
-    case kTypedDataInt8ArrayCid:
-    case kTypedDataUint8ArrayCid:
-    case kTypedDataUint8ClampedArrayCid:
-    case kExternalTypedDataUint8ArrayCid:
-    case kExternalTypedDataUint8ClampedArrayCid:
-
-    case kOneByteStringCid:
-    case kTwoByteStringCid:
-    case kExternalOneByteStringCid:
-      return CompileType::FromCid(kSmiCid);
-
-    case kTypedDataInt32ArrayCid:
-    case kTypedDataUint32ArrayCid:
-      return CompileType::Int();
-
-    // These are unsupported on DBC and will cause a bailout during
-    // EmitNativeCode.
-    case kTypedDataInt16ArrayCid:
-    case kTypedDataUint16ArrayCid:
-    case kExternalTwoByteStringCid:
-      return CompileType::FromCid(kSmiCid);
-
-    default:
-      UNREACHABLE();
-      return CompileType::Dynamic();
-  }
 }
 
 Representation LoadIndexedInstr::representation() const {
@@ -1818,7 +1760,7 @@ EMIT_NATIVE_CODE(BoxInteger32, 1, Location::RequiresRegister()) {
 
 EMIT_NATIVE_CODE(BoxInt64, 1, Location::RequiresRegister()) {
 #if defined(ARCH_IS_64_BIT)
-  Label done;
+  compiler::Label done;
   const Register value = locs()->in(0).reg();
   const Register out = locs()->out(0).reg();
   __ BoxInt64(out, value);

@@ -10,6 +10,7 @@
 #include "platform/assert.h"
 #include "platform/globals.h"
 #include "vm/allocation.h"
+#include "vm/compiler/backend/slot.h"
 #include "vm/growable_array.h"
 #include "vm/object.h"
 #include "vm/raw_object.h"
@@ -319,6 +320,10 @@ class LocalScope : public ZoneAllocated {
     return context_variables_;
   }
 
+  const ZoneGrowableArray<const Slot*>& context_slots() const {
+    return *context_slots_;
+  }
+
   // The number of variables allocated in the context and belonging to this
   // scope and to its children at the same loop level.
   int num_context_variables() const { return context_variables().length(); }
@@ -463,8 +468,10 @@ class LocalScope : public ZoneAllocated {
   GrowableArray<LocalVariable*> variables_;
   GrowableArray<SourceLabel*> labels_;
 
-  // List of variables allocated into the context which is owned by this scope.
+  // List of variables allocated into the context which is owned by this scope,
+  // and their corresponding Slots.
   GrowableArray<LocalVariable*> context_variables_;
+  ZoneGrowableArray<const Slot*>* context_slots_;
 
   // List of names referenced in this scope and its children that
   // are not resolved to local variables.

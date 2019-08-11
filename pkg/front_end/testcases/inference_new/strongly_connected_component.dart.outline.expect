@@ -5,7 +5,7 @@ import "dart:core" as core;
 static field dynamic x;
 static field dynamic y;
 static field dynamic z;
-static method f() → core::bool
+static method f() → core::bool*
   ;
 static method main() → dynamic
   ;

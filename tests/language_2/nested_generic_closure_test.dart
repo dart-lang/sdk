@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(37452): Avoid using unspecified 'toString' behaviour in language test.
-
 import 'package:expect/expect.dart';
 
 void foo(F f<F>(F f)) {}
@@ -11,7 +9,7 @@ void foo(F f<F>(F f)) {}
 B bar<B>(B g<F>(F f)) => null;
 
 Function baz<B>() {
-  B foo<F>(F f) => null;
+  B foo<F>(B b, F f) => null;
   return foo;
 }
 
@@ -25,34 +23,27 @@ class C<T> {
 }
 
 main() {
-  expectOne(
-    foo.runtimeType.toString(),
-    ["(<F>(F) => F) => void", "(<T1>(T1) => T1) => void"],
-  );
-  expectOne(
-    bar.runtimeType.toString(),
-    ["<B>(<F>(F) => B) => B", "<T1>(<T2>(T2) => T1) => T1"],
-  );
-  expectOne(
-    baz<int>().runtimeType.toString(),
-    ["<F>(F) => int", "<T1>(T1) => int"],
-  );
+  // Check the run-time type of the functions with generic parameters.
 
-  var c = new C<bool>();
-  expectOne(
-    c.foo.runtimeType.toString(),
-    ["(<F>(bool, F) => F) => void", "(<T1>(bool, T1) => T1) => void"],
-  );
-  expectOne(
-    c.bar.runtimeType.toString(),
-    ["<B>(<F>(bool, F) => B) => B", "<T1>(<T2>(bool, T2) => T1) => T1"],
-  );
-  expectOne(
-    c.baz<int>().runtimeType.toString(),
-    ["<F>(bool, F) => int", "<T1>(bool, T1) => int"],
-  );
-}
+  Expect.type<void Function(X Function<X>(X))>(foo);
 
-expectOne(String name, Iterable<String> names) {
-  Expect.isTrue(names.contains(name), '"$name" should be one of: ${names}');
+  Expect.isTrue(bar is X1 Function<X1>(X1 Function<X2>(X2)));
+
+  Expect.isTrue(baz<int>() is int Function<X1>(int, X1));
+  Expect.isTrue(baz<Object>() is Object Function<X1>(Object, X1));
+  Expect.isTrue(baz<Null>() is Null Function<X1>(Null, X1));
+
+  void testC<T>() {
+    var c = new C<T>();
+
+    Expect.type<void Function(F Function<F>(T, F))>(c.foo);
+
+    Expect.isTrue(c.bar is X1 Function<X1>(X1 Function<X2>(T, X2)));
+
+    Expect.isTrue(c.baz<int>() is int Function<X1>(T, X1));
+  }
+
+  testC<bool>();
+  testC<Object>();
+  testC<Null>();
 }

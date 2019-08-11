@@ -3,14 +3,15 @@ import self as self;
 import "dart:core" as core;
 
 class Foo extends core::Object {
-  const constructor •(core::List<core::String> l) → self::Foo
+  const constructor •(core::List<core::String*>* l) → self::Foo*
+    : super core::Object::•()
     ;
 }
 abstract class Bar extends core::Object {
   @self::Foo::•(const <dynamic>[])
   field dynamic x;
   @self::Foo::•(const <dynamic>[])
-  constructor •() → self::Bar
+  constructor •() → self::Bar*
     ;
   @self::Foo::•(const <dynamic>[])
   abstract method f() → void;

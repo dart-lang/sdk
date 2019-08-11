@@ -15,7 +15,7 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/null_compiler_output.dart';
 import 'package:compiler/src/options.dart';
 import 'package:compiler/src/source_file_provider.dart';
-import 'package:compiler/src/util/uri_extras.dart';
+import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import 'package:compiler/src/inferrer/debug.dart' show PRINT_GRAPH;
 import 'package:compiler/src/tracer.dart' show TRACE_FILTER_PATTERN_FOR_TEST;
 import 'package:expect/expect.dart';
@@ -28,7 +28,7 @@ class TestRandomAccessFileOutputProvider implements CompilerOutput {
 
   @override
   OutputSink createOutputSink(String name, String extension, OutputType type) {
-    outputs.add(relativize(provider.out,
+    outputs.add(fe.relativizeUri(provider.out,
         provider.createUri(name, extension, type), Platform.isWindows));
     return NullSink.outputProvider(name, extension, type);
   }

@@ -17,7 +17,6 @@ import 'filenames.dart';
 import 'options.dart' show CompilerOptions;
 import 'source_file_provider.dart';
 import 'util/command_line.dart';
-import 'util/uri_extras.dart';
 import 'util/util.dart' show stackTraceFilePrefix;
 
 const String _defaultSpecificationUri = '../../../../sdk/lib/libraries.json';
@@ -675,16 +674,16 @@ Future<api.CompilationResult> compile(List<String> argv,
         inputName = 'bytes data';
         inputSize = inputProvider.dartCharactersRead;
         String dataInput =
-            relativize(currentDirectory, readDataUri, Platform.isWindows);
+            fe.relativizeUri(currentDirectory, readDataUri, Platform.isWindows);
         summary = 'Data files $input and $dataInput ';
         break;
       case ReadStrategy.fromCodegen:
         inputName = 'bytes data';
         inputSize = inputProvider.dartCharactersRead;
         String dataInput =
-            relativize(currentDirectory, readDataUri, Platform.isWindows);
-        String codeInput =
-            relativize(currentDirectory, readCodegenUri, Platform.isWindows);
+            fe.relativizeUri(currentDirectory, readDataUri, Platform.isWindows);
+        String codeInput = fe.relativizeUri(
+            currentDirectory, readCodegenUri, Platform.isWindows);
         summary = 'Data files $input, $dataInput and '
             '${codeInput}[0-${codegenShards - 1}] ';
         break;
@@ -696,31 +695,34 @@ Future<api.CompilationResult> compile(List<String> argv,
         outputName = 'characters JavaScript';
         outputSize = outputProvider.totalCharactersWrittenJavaScript;
         primaryOutputSize = outputProvider.totalCharactersWrittenPrimary;
-        String output = relativize(currentDirectory, out, Platform.isWindows);
+        String output =
+            fe.relativizeUri(currentDirectory, out, Platform.isWindows);
         summary += 'compiled to JavaScript: ${output}';
         break;
       case WriteStrategy.toKernel:
         processName = 'Compiled';
         outputName = 'kernel bytes';
         outputSize = outputProvider.totalDataWritten;
-        String output = relativize(currentDirectory, out, Platform.isWindows);
+        String output =
+            fe.relativizeUri(currentDirectory, out, Platform.isWindows);
         summary += 'compiled to dill: ${output}.';
         break;
       case WriteStrategy.toData:
         processName = 'Serialized';
         outputName = 'bytes data';
         outputSize = outputProvider.totalDataWritten;
-        String output = relativize(currentDirectory, out, Platform.isWindows);
-        String dataOutput =
-            relativize(currentDirectory, writeDataUri, Platform.isWindows);
+        String output =
+            fe.relativizeUri(currentDirectory, out, Platform.isWindows);
+        String dataOutput = fe.relativizeUri(
+            currentDirectory, writeDataUri, Platform.isWindows);
         summary += 'serialized to dill and data: ${output} and ${dataOutput}.';
         break;
       case WriteStrategy.toCodegen:
         processName = 'Serialized';
         outputName = 'bytes data';
         outputSize = outputProvider.totalDataWritten;
-        String codeOutput =
-            relativize(currentDirectory, writeCodegenUri, Platform.isWindows);
+        String codeOutput = fe.relativizeUri(
+            currentDirectory, writeCodegenUri, Platform.isWindows);
         summary += 'serialized to codegen data: '
             '${codeOutput}${codegenShard}.';
         break;
@@ -731,9 +733,9 @@ Future<api.CompilationResult> compile(List<String> argv,
         '${_formatCharacterCount(outputSize)} $outputName in '
         '${_formatDurationAsSeconds(wallclock.elapsed)} seconds');
     if (primaryOutputSize != null) {
-      diagnosticHandler
-          .info('${_formatCharacterCount(primaryOutputSize)} $outputName '
-              'in ${relativize(currentDirectory, out, Platform.isWindows)}');
+      diagnosticHandler.info(
+          '${_formatCharacterCount(primaryOutputSize)} $outputName '
+          'in ${fe.relativizeUri(currentDirectory, out, Platform.isWindows)}');
     }
     if (writeStrategy == WriteStrategy.toJs) {
       if (outputSpecified || diagnosticHandler.verbose) {
@@ -756,7 +758,9 @@ Future<api.CompilationResult> compile(List<String> argv,
   diagnosticHandler.autoReadFileUri = true;
   CompilerOptions compilerOptions = CompilerOptions.parse(options,
       librariesSpecificationUri: librariesSpecificationUri,
-      platformBinaries: platformBinaries)
+      platformBinaries: platformBinaries,
+      onError: (String message) => fail(message),
+      onWarning: (String message) => print(message))
     ..entryPoint = script
     ..packageRoot = packageRoot
     ..packageConfig = packageConfig

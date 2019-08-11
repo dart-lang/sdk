@@ -38,7 +38,8 @@ test({bool sdkFromSource}) async {
     ..target = new VmTarget(new TargetFlags(legacyMode: true))
     ..legacyMode = true
     ..omitPlatform = true
-    ..onDiagnostic = diagnosticMessageHandler;
+    ..onDiagnostic = diagnosticMessageHandler
+    ..environmentDefines = const {};
 
   if (sdkFromSource) {
     optionBuilder.librariesSpecificationUri =
@@ -49,7 +50,8 @@ test({bool sdkFromSource}) async {
             .resolve("vm_platform.dill");
   }
 
-  final Uri helloDart = Uri.base.resolve("pkg/front_end/testcases/hello.dart");
+  final Uri helloDart =
+      Uri.base.resolve("pkg/front_end/testcases/general/hello.dart");
 
   final ProcessedOptions options =
       new ProcessedOptions(options: optionBuilder, inputs: [helloDart]);

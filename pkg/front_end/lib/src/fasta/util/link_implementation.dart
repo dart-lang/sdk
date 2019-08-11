@@ -74,7 +74,7 @@ class LinkEntry<T> extends Link<T> {
   void printOn(StringBuffer buffer, [separatedBy]) {
     buffer.write(head);
     if (separatedBy == null) separatedBy = '';
-    for (Link link = tail; link.isNotEmpty; link = link.tail) {
+    for (Link<T> link = tail; link.isNotEmpty; link = link.tail) {
       buffer.write(separatedBy);
       buffer.write(link.head);
     }
@@ -142,7 +142,7 @@ class LinkEntry<T> extends Link<T> {
 
   int slowLength() {
     int length = 0;
-    for (Link current = this; current.isNotEmpty; current = current.tail) {
+    for (Link<T> current = this; current.isNotEmpty; current = current.tail) {
       ++length;
     }
     return length;

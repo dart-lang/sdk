@@ -15,16 +15,16 @@ class A<T> {
 void main() {
   {
     // Variables, nested literals
-    var /*@type=String*/ x = "hello";
-    var /*@type=int*/ y = 3;
+    var /*@ type=String* */ x = "hello";
+    var /*@ type=int* */ y = 3;
     void f(List<Map<int, String>> l) {}
     ;
-    f(/*@typeArgs=Map<int, String>*/ [
-      /*@typeArgs=int, String*/ {y: x}
+    f(/*@ typeArgs=Map<int*, String*>* */ [
+      /*@ typeArgs=int*, String* */ {y: x}
     ]);
   }
   {
     int f(int x) => 0;
-    A<int> a = new /*@typeArgs=int*/ A(f);
+    A<int> a = new /*@ typeArgs=int* */ A(f);
   }
 }

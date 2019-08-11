@@ -66,6 +66,8 @@ compiler_sources = [
   "backend/il_ia32.cc",
   "backend/il_printer.cc",
   "backend/il_printer.h",
+  "backend/il_serializer.cc",
+  "backend/il_serializer.h",
   "backend/il_x64.cc",
   "backend/inliner.cc",
   "backend/inliner.h",
@@ -81,6 +83,8 @@ compiler_sources = [
   "backend/range_analysis.h",
   "backend/redundancy_elimination.cc",
   "backend/redundancy_elimination.h",
+  "backend/sexpression.cc",
+  "backend/sexpression.h",
   "backend/slot.cc",
   "backend/slot.h",
   "backend/type_propagator.cc",
@@ -152,12 +156,9 @@ compiler_sources = [
 #
 # Not that this diverges from our convention to build every file on every OS
 # but have ifdef guards which make the files empty on some configurations.
-if (!is_win) {
+if (is_linux || is_mac) {
   # MASM on Windows does not support c preproccesor style flags.
-  compiler_sources += [
-    "ffi_dbc_trampoline_arm64.S",
-    "ffi_dbc_trampoline_x64_linux_mac.S",
-  ]
+  compiler_sources += [ "ffi_dbc_trampoline_x64_linux_mac.S" ]
 }
 
 compiler_sources_tests = [
@@ -176,6 +177,7 @@ compiler_sources_tests = [
   "backend/loops_test.cc",
   "backend/range_analysis_test.cc",
   "backend/redundancy_elimination_test.cc",
+  "backend/sexpression_test.cc",
   "backend/slot_test.cc",
   "backend/type_propagator_test.cc",
   "backend/typed_data_aot_test.cc",

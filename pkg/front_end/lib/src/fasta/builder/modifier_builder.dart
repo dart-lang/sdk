@@ -9,18 +9,20 @@ import '../modifier.dart'
         abstractMask,
         constMask,
         covariantMask,
+        extensionDeclarationMask,
         externalMask,
         finalMask,
         hasConstConstructorMask,
         hasInitializerMask,
         initializingFormalMask,
+        mixinDeclarationMask,
         namedMixinApplicationMask,
         staticMask;
 
-import 'builder.dart' show Declaration;
+import 'builder.dart' show Builder;
 
-abstract class ModifierBuilder extends Declaration {
-  Declaration parent;
+abstract class ModifierBuilder extends Builder {
+  Builder parent;
 
   final int charOffset;
 
@@ -52,6 +54,10 @@ abstract class ModifierBuilder extends Declaration {
   bool get isInitializingFormal => (modifiers & initializingFormalMask) != 0;
 
   bool get hasConstConstructor => (modifiers & hasConstConstructorMask) != 0;
+
+  bool get isMixin => (modifiers & mixinDeclarationMask) != 0;
+
+  bool get isExtension => (modifiers & extensionDeclarationMask) != 0;
 
   bool get isClassMember => false;
 

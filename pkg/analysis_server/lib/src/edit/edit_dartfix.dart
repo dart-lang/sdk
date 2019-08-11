@@ -14,6 +14,7 @@ import 'package:analysis_server/src/edit/fix/fix_lint_task.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 
 class EditDartFix
     with FixCodeProcessor, FixErrorProcessor, FixLintProcessor
@@ -39,13 +40,21 @@ class EditDartFix
     if (params.includeRequiredFixes == true) {
       fixInfo.addAll(allFixes.where((i) => i.isRequired));
     }
+    if (params.includePedanticFixes == true) {
+      for (var fix in allFixes) {
+        if (fix.isPedantic && !fixInfo.contains(fix)) {
+          fixInfo.add(fix);
+        }
+      }
+    }
     if (params.includedFixes != null) {
       for (String key in params.includedFixes) {
         var info = allFixes.firstWhere((i) => i.key == key, orElse: () => null);
         if (info != null) {
           fixInfo.add(info);
         } else {
-          // TODO(danrubel): Report unknown fix to the user
+          return new Response.invalidParameter(
+              request, 'includedFixes', 'Unknown fix: $key');
         }
       }
     }
@@ -58,7 +67,8 @@ class EditDartFix
         if (info != null) {
           fixInfo.remove(info);
         } else {
-          // TODO(danrubel): Report unknown fix to the user
+          return new Response.invalidParameter(
+              request, 'excludedFixes', 'Unknown fix: $key');
         }
       }
     }
@@ -69,6 +79,13 @@ class EditDartFix
     // Validate each included file and directory.
     final resourceProvider = server.resourceProvider;
     final contextManager = server.contextManager;
+
+    // Discard any existing analysis so that the linters set below will be
+    // used to generate errors that can then be fixed.
+    // TODO(danrubel): Rework to use a different approach if this command
+    // will be used from within the IDE.
+    contextManager.refresh(null);
+
     for (String filePath in params.included) {
       if (!server.isValidFilePath(filePath)) {
         return new Response.invalidFilePathFormat(request, filePath);
@@ -79,8 +96,18 @@ class EditDartFix
               contextManager.isInAnalysisRoot(filePath))) {
         return new Response.fileNotAnalyzed(request, filePath);
       }
-      var pkgFolder =
-          findPkgFolder(contextManager.getContextFolderFor(filePath));
+
+      // Set the linters used during analysis. If this command is used from
+      // within an IDE, then this will cause the lint results to change.
+      // TODO(danrubel): Rework to use a different approach if this command
+      // will be used from within the IDE.
+      var driver = contextManager.getDriverFor(filePath);
+      var analysisOptions = driver.analysisOptions as AnalysisOptionsImpl;
+      analysisOptions.lint = true;
+      analysisOptions.lintRules = linters;
+
+      var contextFolder = contextManager.getContextFolderFor(filePath);
+      var pkgFolder = findPkgFolder(contextFolder);
       if (pkgFolder != null && !pkgFolders.contains(pkgFolder)) {
         pkgFolders.add(pkgFolder);
       }
@@ -96,21 +123,22 @@ class EditDartFix
       await processPackage(pkgFolder);
     }
 
-    // Process each source file.
     bool hasErrors = false;
     String changedPath;
-    server.contextManager.driverMap.values
-        .forEach((d) => d.onCurrentSessionAboutToBeDiscarded = (String path) {
-              // Remember the resource that changed during analysis
-              changedPath = path;
-            });
+    contextManager.driverMap.values.forEach((driver) {
+      // Setup a listener to remember the resource that changed during analysis
+      // so it can be reported if there is an InconsistentAnalysisException.
+      driver.onCurrentSessionAboutToBeDiscarded = (String path) {
+        changedPath = path;
+      };
+    });
 
+    // Process each source file.
     try {
       await processResources((ResolvedUnitResult result) async {
         if (await processErrors(result)) {
           hasErrors = true;
         }
-        await processLints(result);
         if (numPhases > 0) {
           await processCodeTasks(0, result);
         }
@@ -120,7 +148,6 @@ class EditDartFix
           await processCodeTasks(phase, result);
         });
       }
-      await finishLints();
       await finishCodeTasks();
     } on InconsistentAnalysisException catch (_) {
       // If a resource changed, report the problem without suggesting fixes

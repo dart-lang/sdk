@@ -9,6 +9,7 @@
 #include "vm/class_finalizer.h"
 #include "vm/code_descriptors.h"
 #include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/compiler_state.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
@@ -2280,6 +2281,10 @@ ISOLATE_UNIT_TEST_CASE(Context) {
 }
 
 ISOLATE_UNIT_TEST_CASE(ContextScope) {
+  // We need an active compiler context to manipulate scopes, since local
+  // variables and slots can be canonicalized in the compiler state.
+  CompilerState compiler_state(Thread::Current());
+
   const intptr_t parent_scope_function_level = 0;
   LocalScope* parent_scope =
       new LocalScope(NULL, parent_scope_function_level, 0);
@@ -2473,9 +2478,9 @@ static RawFunction* CreateFunction(const char* name) {
 
 // Test for Code and Instruction object creation.
 ISOLATE_UNIT_TEST_CASE(Code) {
-  extern void GenerateIncrement(Assembler * assembler);
-  ObjectPoolBuilder object_pool_builder;
-  Assembler _assembler_(&object_pool_builder);
+  extern void GenerateIncrement(compiler::Assembler * assembler);
+  compiler::ObjectPoolBuilder object_pool_builder;
+  compiler::Assembler _assembler_(&object_pool_builder);
   GenerateIncrement(&_assembler_);
   const Function& function = Function::Handle(CreateFunction("Test_Code"));
   Code& code = Code::Handle(Code::FinalizeCodeAndNotify(
@@ -2495,9 +2500,9 @@ ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(CodeImmutability, "Crash") {
   bool stack_trace_collection_enabled =
       MallocHooks::stack_trace_collection_enabled();
   MallocHooks::set_stack_trace_collection_enabled(false);
-  extern void GenerateIncrement(Assembler * assembler);
-  ObjectPoolBuilder object_pool_builder;
-  Assembler _assembler_(&object_pool_builder);
+  extern void GenerateIncrement(compiler::Assembler * assembler);
+  compiler::ObjectPoolBuilder object_pool_builder;
+  compiler::Assembler _assembler_(&object_pool_builder);
   GenerateIncrement(&_assembler_);
   const Function& function = Function::Handle(CreateFunction("Test_Code"));
   Code& code = Code::Handle(Code::FinalizeCodeAndNotify(
@@ -2532,9 +2537,9 @@ ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(CodeExecutability, "Crash") {
   bool stack_trace_collection_enabled =
       MallocHooks::stack_trace_collection_enabled();
   MallocHooks::set_stack_trace_collection_enabled(false);
-  extern void GenerateIncrement(Assembler * assembler);
-  ObjectPoolBuilder object_pool_builder;
-  Assembler _assembler_(&object_pool_builder);
+  extern void GenerateIncrement(compiler::Assembler * assembler);
+  compiler::ObjectPoolBuilder object_pool_builder;
+  compiler::Assembler _assembler_(&object_pool_builder);
   GenerateIncrement(&_assembler_);
   const Function& function = Function::Handle(CreateFunction("Test_Code"));
   Code& code = Code::Handle(Code::FinalizeCodeAndNotify(
@@ -2568,11 +2573,12 @@ ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(CodeExecutability, "Crash") {
 
 // Test for Embedded String object in the instructions.
 ISOLATE_UNIT_TEST_CASE(EmbedStringInCode) {
-  extern void GenerateEmbedStringInCode(Assembler * assembler, const char* str);
+  extern void GenerateEmbedStringInCode(compiler::Assembler * assembler,
+                                        const char* str);
   const char* kHello = "Hello World!";
   word expected_length = static_cast<word>(strlen(kHello));
-  ObjectPoolBuilder object_pool_builder;
-  Assembler _assembler_(&object_pool_builder);
+  compiler::ObjectPoolBuilder object_pool_builder;
+  compiler::Assembler _assembler_(&object_pool_builder);
   GenerateEmbedStringInCode(&_assembler_, kHello);
   const Function& function =
       Function::Handle(CreateFunction("Test_EmbedStringInCode"));
@@ -2592,10 +2598,11 @@ ISOLATE_UNIT_TEST_CASE(EmbedStringInCode) {
 
 // Test for Embedded Smi object in the instructions.
 ISOLATE_UNIT_TEST_CASE(EmbedSmiInCode) {
-  extern void GenerateEmbedSmiInCode(Assembler * assembler, intptr_t value);
+  extern void GenerateEmbedSmiInCode(compiler::Assembler * assembler,
+                                     intptr_t value);
   const intptr_t kSmiTestValue = 5;
-  ObjectPoolBuilder object_pool_builder;
-  Assembler _assembler_(&object_pool_builder);
+  compiler::ObjectPoolBuilder object_pool_builder;
+  compiler::Assembler _assembler_(&object_pool_builder);
   GenerateEmbedSmiInCode(&_assembler_, kSmiTestValue);
   const Function& function =
       Function::Handle(CreateFunction("Test_EmbedSmiInCode"));
@@ -2610,10 +2617,11 @@ ISOLATE_UNIT_TEST_CASE(EmbedSmiInCode) {
 #if defined(ARCH_IS_64_BIT)
 // Test for Embedded Smi object in the instructions.
 ISOLATE_UNIT_TEST_CASE(EmbedSmiIn64BitCode) {
-  extern void GenerateEmbedSmiInCode(Assembler * assembler, intptr_t value);
+  extern void GenerateEmbedSmiInCode(compiler::Assembler * assembler,
+                                     intptr_t value);
   const intptr_t kSmiTestValue = DART_INT64_C(5) << 32;
-  ObjectPoolBuilder object_pool_builder;
-  Assembler _assembler_(&object_pool_builder);
+  compiler::ObjectPoolBuilder object_pool_builder;
+  compiler::Assembler _assembler_(&object_pool_builder);
   GenerateEmbedSmiInCode(&_assembler_, kSmiTestValue);
   const Function& function =
       Function::Handle(CreateFunction("Test_EmbedSmiIn64BitCode"));
@@ -2642,9 +2650,9 @@ ISOLATE_UNIT_TEST_CASE(ExceptionHandlers) {
   exception_handlers.SetHandlerInfo(3, 1, 150u, kNoStackTrace, true,
                                     TokenPosition::kNoSource, true);
 
-  extern void GenerateIncrement(Assembler * assembler);
-  ObjectPoolBuilder object_pool_builder;
-  Assembler _assembler_(&object_pool_builder);
+  extern void GenerateIncrement(compiler::Assembler * assembler);
+  compiler::ObjectPoolBuilder object_pool_builder;
+  compiler::Assembler _assembler_(&object_pool_builder);
   GenerateIncrement(&_assembler_);
   Code& code = Code::Handle(Code::FinalizeCodeAndNotify(
       Function::Handle(CreateFunction("Test_Code")), nullptr, &_assembler_,
@@ -2684,9 +2692,9 @@ ISOLATE_UNIT_TEST_CASE(PcDescriptors) {
   PcDescriptors& descriptors = PcDescriptors::Handle();
   descriptors ^= builder->FinalizePcDescriptors(0);
 
-  extern void GenerateIncrement(Assembler * assembler);
-  ObjectPoolBuilder object_pool_builder;
-  Assembler _assembler_(&object_pool_builder);
+  extern void GenerateIncrement(compiler::Assembler * assembler);
+  compiler::ObjectPoolBuilder object_pool_builder;
+  compiler::Assembler _assembler_(&object_pool_builder);
   GenerateIncrement(&_assembler_);
   Code& code = Code::Handle(Code::FinalizeCodeAndNotify(
       Function::Handle(CreateFunction("Test_Code")), nullptr, &_assembler_,
@@ -2747,9 +2755,9 @@ ISOLATE_UNIT_TEST_CASE(PcDescriptorsLargeDeltas) {
   PcDescriptors& descriptors = PcDescriptors::Handle();
   descriptors ^= builder->FinalizePcDescriptors(0);
 
-  extern void GenerateIncrement(Assembler * assembler);
-  ObjectPoolBuilder object_pool_builder;
-  Assembler _assembler_(&object_pool_builder);
+  extern void GenerateIncrement(compiler::Assembler * assembler);
+  compiler::ObjectPoolBuilder object_pool_builder;
+  compiler::Assembler _assembler_(&object_pool_builder);
   GenerateIncrement(&_assembler_);
   Code& code = Code::Handle(Code::FinalizeCodeAndNotify(
       Function::Handle(CreateFunction("Test_Code")), nullptr, &_assembler_,

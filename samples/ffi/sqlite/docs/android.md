@@ -41,7 +41,7 @@ android {
     // ...
     sourceSets {
         main {
-            jniLibs.srcDir '${project.projectDir.path}/../../native-libraries'
+            jniLibs.srcDir "${project.projectDir.path}/../../native-libraries"
         }
     }
 }

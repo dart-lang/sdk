@@ -52,11 +52,23 @@ const String TEST5 = r"""
 foo(param1, param2) {
   var a = param1 ? 0xFFFFFFFF : 0;
   var b = param2 ? 3 : 4;
-  return a ~/ param2;
+  return a ~/ b;
   // We could optimize this with range analysis, but type inference summarizes
   // '3 or 4' to uint31, which is not >= 2.
   // present: '$tdiv'
   // absent: '/'
+}
+""";
+
+const String TEST_REGRESS_37502 = r"""
+foo(param1, param2) {
+  var a = param1 ? 1.2 : 12.3;
+  var b = param2 ? 3.14 : 2.81;
+  return (a ~/ b).gcd(2);
+  // The result of ~/ is int; gcd is defined only on int and is too complex
+  // to be inlined.
+  //
+  // present: 'JSInt_methods.gcd'
 }
 """;
 
@@ -71,6 +83,7 @@ main() {
     await check(TEST3);
     await check(TEST4);
     await check(TEST5);
+    await check(TEST_REGRESS_37502);
   }
 
   asyncTest(() async {

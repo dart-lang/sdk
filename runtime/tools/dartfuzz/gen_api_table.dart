@@ -128,7 +128,9 @@ visitCompilationUnit(CompilationUnitElement unit) {
 
 void visitClass(ClassElement classElement) {
   // Classes that cause too many false divergences.
-  if (classElement.name == 'ProcessInfo' || classElement.name == 'Platform') {
+  if (classElement.name == 'ProcessInfo' ||
+      classElement.name == 'Platform' ||
+      classElement.name.startsWith('FileSystem')) {
     return;
   }
   // Every class element contains elements for the members, viz. `methods` visits
@@ -253,17 +255,14 @@ void addToTable(String ret, String name, String proto) {
     return;
   }
   // Avoid some obvious false divergences.
-  if (name == 'pid' ||
-      name == 'hashCode' ||
-      name == 'Platform.executable' ||
-      name == 'Platform.resolvedExecutable') {
+  if (name == 'pid' || name == 'hashCode' || name == 'exitCode') {
     return;
   }
   // Restrict parameters for a few hardcoded cases,
   // for example, to avoid excessive runtime or memory
   // allocation in the generated fuzzing program.
   if (name == 'padLeft' || name == 'padRight') {
-    proto = proto.replaceAll('I', 'i');
+    proto = proto.replaceFirst('IS', 'is');
   } else if (name == 'List.filled') {
     proto = proto.replaceFirst('I', 'i');
   }
@@ -295,6 +294,7 @@ void dumpHeader() {
 ///   i int (small)
 ///   D double
 ///   S String
+///   s String (small)
 ///   L List<int>
 ///   X Set<int>
 ///   M Map<int, String>

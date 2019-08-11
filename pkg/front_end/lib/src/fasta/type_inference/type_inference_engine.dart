@@ -24,24 +24,41 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 import '../../base/instrumentation.dart' show Instrumentation;
 
 import '../kernel/kernel_builder.dart'
-    show
-        ClassHierarchyBuilder,
-        ImplicitFieldType,
-        LibraryBuilder,
-        KernelLibraryBuilder;
+    show ClassHierarchyBuilder, ImplicitFieldType, LibraryBuilder;
+
+import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import 'type_inferrer.dart' show TypeInferrer;
 
 import 'type_schema_environment.dart' show TypeSchemaEnvironment;
 
+enum Variance {
+  covariant,
+  contravariant,
+  invariant,
+}
+
+Variance invertVariance(Variance variance) {
+  switch (variance) {
+    case Variance.covariant:
+      return Variance.contravariant;
+    case Variance.contravariant:
+      return Variance.covariant;
+    case Variance.invariant:
+  }
+  return variance;
+}
+
 /// Visitor to check whether a given type mentions any of a class's type
-/// parameters in a covariant fashion.
-class IncludesTypeParametersCovariantly extends DartTypeVisitor<bool> {
-  bool inCovariantContext = true;
+/// parameters in a non-covariant fashion.
+class IncludesTypeParametersNonCovariantly extends DartTypeVisitor<bool> {
+  Variance _variance;
 
   final List<TypeParameter> _typeParametersToSearchFor;
 
-  IncludesTypeParametersCovariantly(this._typeParametersToSearchFor);
+  IncludesTypeParametersNonCovariantly(this._typeParametersToSearchFor,
+      {Variance initialVariance})
+      : _variance = initialVariance;
 
   @override
   bool defaultDartType(DartType node) => false;
@@ -49,18 +66,20 @@ class IncludesTypeParametersCovariantly extends DartTypeVisitor<bool> {
   @override
   bool visitFunctionType(FunctionType node) {
     if (node.returnType.accept(this)) return true;
-    try {
-      inCovariantContext = !inCovariantContext;
-      for (var parameter in node.positionalParameters) {
-        if (parameter.accept(this)) return true;
-      }
-      for (var parameter in node.namedParameters) {
-        if (parameter.type.accept(this)) return true;
-      }
-      return false;
-    } finally {
-      inCovariantContext = !inCovariantContext;
+    Variance oldVariance = _variance;
+    _variance = Variance.invariant;
+    for (var parameter in node.typeParameters) {
+      if (parameter.bound.accept(this)) return true;
     }
+    _variance = invertVariance(oldVariance);
+    for (var parameter in node.positionalParameters) {
+      if (parameter.accept(this)) return true;
+    }
+    for (var parameter in node.namedParameters) {
+      if (parameter.type.accept(this)) return true;
+    }
+    _variance = oldVariance;
+    return false;
   }
 
   @override
@@ -78,7 +97,7 @@ class IncludesTypeParametersCovariantly extends DartTypeVisitor<bool> {
 
   @override
   bool visitTypeParameterType(TypeParameterType node) {
-    return inCovariantContext &&
+    return _variance != Variance.covariant &&
         _typeParametersToSearchFor.contains(node.parameter);
   }
 }
@@ -123,12 +142,12 @@ abstract class TypeInferenceEngine {
   /// Creates a type inferrer for use inside of a method body declared in a file
   /// with the given [uri].
   TypeInferrer createLocalTypeInferrer(
-      Uri uri, InterfaceType thisType, KernelLibraryBuilder library);
+      Uri uri, InterfaceType thisType, SourceLibraryBuilder library);
 
   /// Creates a [TypeInferrer] object which is ready to perform type inference
   /// on the given [field].
   TypeInferrer createTopLevelTypeInferrer(
-      Uri uri, InterfaceType thisType, KernelLibraryBuilder library);
+      Uri uri, InterfaceType thisType, SourceLibraryBuilder library);
 
   /// Performs the third phase of top level inference, which is to visit all
   /// constructors still needing inference and infer the types of their

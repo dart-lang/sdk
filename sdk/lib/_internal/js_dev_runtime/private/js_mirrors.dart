@@ -79,7 +79,7 @@ dynamic _getMember(Symbol symbol) {
 
 String _getNameForESSymbol(member) {
   // Convert private JS symbol "Symbol(_foo)" to string "_foo".
-  assert(JS('bool', 'typeof # == "symbol"', member));
+  assert(JS<bool>('!', 'typeof # == "symbol"', member));
   var str = member.toString();
   assert(str.startsWith('Symbol(') && str.endsWith(')'));
   return str.substring(7, str.length - 1);
@@ -288,7 +288,7 @@ class JsClassMirror extends JsMirror implements ClassMirror {
       });
 
       getterType(type) {
-        if (JS('bool', '# instanceof Array', type)) {
+        if (JS<bool>('!', '# instanceof Array', type)) {
           var array = JS('', '#.slice()', type);
           type = JS('', '#[0]', array);
           JS('', '#[0] = #', array, dart.fnType(type, []));
@@ -305,7 +305,7 @@ class JsClassMirror extends JsMirror implements ClassMirror {
       });
 
       setterType(type) {
-        if (JS('bool', '# instanceof Array', type)) {
+        if (JS<bool>('!', '# instanceof Array', type)) {
           var array = JS('', '#.slice()', type);
           type = JS('', '#[0]', array);
           JS('', '#[0] = #', array, dart.fnType(dart.void_, [type]));
@@ -353,7 +353,7 @@ class JsClassMirror extends JsMirror implements ClassMirror {
   JsClassMirror._(Type cls, {bool instantiated = true})
       : _cls = cls,
         _raw = instantiated ? dart.getGenericClass(dart.unwrapType(cls)) : null,
-        simpleName = Symbol(JS('String', '#.name', dart.unwrapType(cls))) {
+        simpleName = Symbol(JS<String>('!', '#.name', dart.unwrapType(cls))) {
     var typeArgs = dart.getGenericArgs(dart.unwrapType(_cls));
     if (typeArgs == null) {
       _typeArguments = const [];
@@ -373,7 +373,7 @@ class JsClassMirror extends JsMirror implements ClassMirror {
     var cls = dart.unwrapType(_cls);
     var ctr = JS('', '#.#', cls, name);
     // Only generative Dart constructors are wired up as real JS constructors.
-    var instance = JS('bool', '#.prototype == #.prototype', cls, ctr)
+    var instance = JS<bool>('!', '#.prototype == #.prototype', cls, ctr)
         // Generative
         ? JS('', 'new #(...#)', ctr, args)
         // Factory
@@ -444,7 +444,7 @@ class JsClassMirror extends JsMirror implements ClassMirror {
       return null;
     } else {
       return reflectType(
-          dart.wrapType(JS('Type', '#.__proto__', dart.unwrapType(_cls))));
+          dart.wrapType(JS<Type>('!', '#.__proto__', dart.unwrapType(_cls))));
     }
   }
 
@@ -489,7 +489,7 @@ class JsVariableMirror extends JsMirror implements VariableMirror {
   JsVariableMirror._fromField(Symbol symbol, fieldInfo)
       : this._(symbol, dart.wrapType(JS('', '#.type', fieldInfo)),
             JS('', '#.metadata', fieldInfo),
-            isFinal: JS('bool', '#.isFinal', fieldInfo));
+            isFinal: JS<bool>('!', '#.isFinal', fieldInfo));
 
   String toString() => "VariableMirror on '$_name'";
 }

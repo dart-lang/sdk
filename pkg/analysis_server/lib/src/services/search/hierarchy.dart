@@ -160,7 +160,7 @@ Set<ClassElement> getSuperClasses(ClassElement seed) {
   List<ClassElement> queue = new List<ClassElement>();
   queue.add(seed);
   // process queue
-  while (!queue.isEmpty) {
+  while (queue.isNotEmpty) {
     ClassElement current = queue.removeLast();
     // add if not checked already
     if (!result.add(current)) {

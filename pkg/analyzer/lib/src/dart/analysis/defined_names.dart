@@ -12,7 +12,7 @@ DefinedNames computeDefinedNames(CompilationUnit unit) {
 
   void appendName(Set<String> names, SimpleIdentifier node) {
     String name = node?.name;
-    if (name != null && name.length != 0) {
+    if (name != null && name.isNotEmpty) {
       names.add(name);
     }
   }

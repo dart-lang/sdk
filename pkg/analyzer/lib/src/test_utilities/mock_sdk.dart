@@ -222,6 +222,7 @@ abstract class int extends num {
   int operator ~();
 
   int gcd(int other);
+  int abs();
 
   external static int parse(String source,
       {int radix, int onError(String source)});

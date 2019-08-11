@@ -16,7 +16,7 @@ mixin BadMessageListener on ServerListener {
       _receivedBadDataFromServer = true;
       // Give the server 1 second to continue outputting bad data
       // such as outputting a stacktrace.
-      new Future.delayed(new Duration(seconds: 1), () {
+      Future.delayed(Duration(seconds: 1), () {
         throw '$prefix $details';
       });
     }

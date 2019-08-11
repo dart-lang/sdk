@@ -14,6 +14,9 @@
 #include <psapi.h>
 #else
 #include <unistd.h>
+
+// Only OK to use here because this is test code.
+#include <thread>
 #endif
 
 #include <setjmp.h>
@@ -25,6 +28,14 @@
 #include "include/dart_native_api.h"
 
 namespace dart {
+
+#define CHECK(X)                                                               \
+  if (!(X)) {                                                                  \
+    fprintf(stderr, "%s\n", "Check failed: " #X);                              \
+    return 1;                                                                  \
+  }
+
+#define CHECK_EQ(X, Y) CHECK((X) == (Y))
 
 ////////////////////////////////////////////////////////////////////////////////
 // Tests for Dart -> native calls.
@@ -343,22 +354,29 @@ DART_EXPORT int64_t* NullableInt64ElemAt1(int64_t* a) {
   return retval;
 }
 
+// A struct designed to exercise all kinds of alignment rules.
+// Note that offset32A (System V ia32) aligns doubles on 4 bytes while offset32B
+// (Arm 32 bit and MSVC ia32) aligns on 8 bytes.
+// TODO(37271): Support nested structs.
+// TODO(37470): Add uncommon primitive data types when we want to support them.
 struct VeryLargeStruct {
-  int8_t a;
-  int16_t b;
-  int32_t c;
-  int64_t d;
-  uint8_t e;
-  uint16_t f;
-  uint32_t g;
-  uint64_t h;
-  intptr_t i;
-  float j;
-  double k;
-  VeryLargeStruct* parent;
-  intptr_t numChildren;
-  VeryLargeStruct* children;
-  int8_t smallLastField;
+  //                             size32 size64 offset32A offset32B offset64
+  int8_t a;                   // 1              0         0         0
+  int16_t b;                  // 2              2         2         2
+  int32_t c;                  // 4              4         4         4
+  int64_t d;                  // 8              8         8         8
+  uint8_t e;                  // 1             16        16        16
+  uint16_t f;                 // 2             18        18        18
+  uint32_t g;                 // 4             20        20        20
+  uint64_t h;                 // 8             24        24        24
+  intptr_t i;                 // 4      8      32        32        32
+  double j;                   // 8             36        40        40
+  float k;                    // 4             44        48        48
+  VeryLargeStruct* parent;    // 4      8      48        52        56
+  intptr_t numChildren;       // 4      8      52        56        64
+  VeryLargeStruct* children;  // 4      8      56        60        72
+  int8_t smallLastField;      // 1             60        64        80
+                              // sizeof        64        72        88
 };
 
 // Sums the fields of a very large struct, including the first field (a) from
@@ -481,30 +499,30 @@ DART_EXPORT float InventFloatValue() {
 // Functions for stress-testing.
 
 DART_EXPORT int64_t MinInt64() {
-  Dart_ExecuteInternalCommand("gc-on-next-allocation");
+  Dart_ExecuteInternalCommand("gc-on-next-allocation", nullptr);
   return 0x8000000000000000;
 }
 
 DART_EXPORT int64_t MinInt32() {
-  Dart_ExecuteInternalCommand("gc-on-next-allocation");
+  Dart_ExecuteInternalCommand("gc-on-next-allocation", nullptr);
   return 0x80000000;
 }
 
 DART_EXPORT double SmallDouble() {
-  Dart_ExecuteInternalCommand("gc-on-next-allocation");
+  Dart_ExecuteInternalCommand("gc-on-next-allocation", nullptr);
   return 0x80000000 * -1.0;
 }
 
 // Requires boxing on 32-bit and 64-bit systems, even if the top 32-bits are
 // truncated.
 DART_EXPORT void* LargePointer() {
-  Dart_ExecuteInternalCommand("gc-on-next-allocation");
+  Dart_ExecuteInternalCommand("gc-on-next-allocation", nullptr);
   uint64_t origin = 0x8100000082000000;
   return reinterpret_cast<void*>(origin);
 }
 
 DART_EXPORT void TriggerGC(uint64_t count) {
-  Dart_ExecuteInternalCommand("gc-now");
+  Dart_ExecuteInternalCommand("gc-now", nullptr);
 }
 
 // Triggers GC. Has 11 dummy arguments as unboxed odd integers which should be
@@ -520,19 +538,62 @@ DART_EXPORT void Regress37069(uint64_t a,
                               uint64_t i,
                               uint64_t j,
                               uint64_t k) {
-  Dart_ExecuteInternalCommand("gc-now");
+  Dart_ExecuteInternalCommand("gc-now", nullptr);
 }
+
+#if !defined(HOST_OS_WINDOWS) && !defined(TARGET_ARCH_DBC)
+DART_EXPORT void* UnprotectCodeOtherThread(void* isolate,
+                                           std::condition_variable* var,
+                                           std::mutex* mut) {
+  std::function<void()> callback = [&]() {
+    mut->lock();
+    var->notify_all();
+    mut->unlock();
+
+    // Wait for mutator thread to continue (and block) before leaving the
+    // safepoint.
+    while (Dart_ExecuteInternalCommand("is-mutator-in-native", isolate) !=
+           nullptr) {
+      usleep(10 * 1000 /*10 ms*/);
+    }
+  };
+
+  struct {
+    void* isolate;
+    std::function<void()>* callback;
+  } args = {.isolate = isolate, .callback = &callback};
+
+  Dart_ExecuteInternalCommand("run-in-safepoint-and-rw-code", &args);
+  return nullptr;
+}
+
+DART_EXPORT void* UnprotectCode() {
+  std::mutex mutex;
+  std::condition_variable cvar;
+  std::unique_lock<std::mutex> lock(mutex);  // locks the mutex
+  std::thread* helper = new std::thread(UnprotectCodeOtherThread,
+                                        Dart_CurrentIsolate(), &cvar, &mutex);
+
+  cvar.wait(lock);
+
+  return helper;
+}
+
+DART_EXPORT void WaitForHelper(void* helper) {
+  std::thread* thread = reinterpret_cast<std::thread*>(helper);
+  thread->join();
+  delete thread;
+}
+#else
+// Our version of VSC++ doesn't support std::thread yet.
+DART_EXPORT void* UnprotectCode() {
+  return nullptr;
+}
+DART_EXPORT void WaitForHelper(void* helper) {}
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 // Tests for callbacks.
-
-#define CHECK(X)                                                               \
-  if (!(X)) {                                                                  \
-    fprintf(stderr, "%s\n", "Check failed: " #X);                              \
-    return 1;                                                                  \
-  }
-
-#define CHECK_EQ(X, Y) CHECK((X) == (Y))
 
 // Sanity test.
 DART_EXPORT int TestSimpleAddition(int (*add)(int, int)) {
@@ -697,11 +758,11 @@ void CallbackTestSignalHandler(int) {
 int ExpectAbort(void (*fn)()) {
   fprintf(stderr, "**** EXPECT STACKTRACE TO FOLLOW. THIS IS OK. ****\n");
 
-  struct sigaction old_action;
+  struct sigaction old_action = {};
   int result = __sigsetjmp(buf, /*savesigs=*/1);
   if (result == 0) {
     // Install signal handler.
-    struct sigaction handler;
+    struct sigaction handler = {};
     handler.sa_handler = CallbackTestSignalHandler;
     sigemptyset(&handler.sa_mask);
     handler.sa_flags = 0;

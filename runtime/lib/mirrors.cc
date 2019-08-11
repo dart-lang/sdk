@@ -7,16 +7,13 @@
 #include "lib/invocation_mirror.h"
 #include "vm/bootstrap_natives.h"
 #include "vm/class_finalizer.h"
-#include "vm/compiler/frontend/kernel_to_il.h"
-#include "vm/compiler/jit/compiler.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
 #include "vm/exceptions.h"
-#include "vm/flags.h"
+#include "vm/kernel.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/port.h"
-#include "vm/resolver.h"
 #include "vm/symbols.h"
 
 namespace dart {
@@ -33,7 +30,7 @@ namespace dart {
 static RawInstance* CreateMirror(const String& mirror_class_name,
                                  const Array& constructor_arguments) {
   const Library& mirrors_lib = Library::Handle(Library::MirrorsLibrary());
-  const String& constructor_name = Symbols::Dot();
+  const String& constructor_name = Symbols::DotUnder();
 
   const Object& result = Object::Handle(DartLibraryCalls::InstanceCreate(
       mirrors_lib, mirror_class_name, constructor_name, constructor_arguments));
@@ -132,10 +129,6 @@ static RawInstance* CreateParameterMirrorList(const Function& func,
     // hence do not have a token position, and therefore cannot be reparsed.
     has_extra_parameter_info = false;
   }
-  if (func.is_declared_in_bytecode()) {
-    // Anonymous closures in bytecode cannot be reparsed.
-    has_extra_parameter_info = false;
-  }
 
   Array& param_descriptor = Array::Handle();
   if (has_extra_parameter_info) {
@@ -143,9 +136,7 @@ static RawInstance* CreateParameterMirrorList(const Function& func,
     // * The default value of a parameter.
     // * Whether a parameters has been declared as final.
     // * Any metadata associated with the parameter.
-    Object& result = Object::Handle();
-    ASSERT(func.kernel_offset() > 0);
-    result = kernel::BuildParameterDescriptor(func);
+    Object& result = Object::Handle(kernel::BuildParameterDescriptor(func));
     if (result.IsError()) {
       Exceptions::PropagateError(Error::Cast(result));
       UNREACHABLE();
@@ -603,6 +594,10 @@ static RawAbstractType* InstantiateType(const AbstractType& type,
   AbstractType& result = AbstractType::Handle(type.InstantiateFrom(
       instantiator_type_args, Object::null_type_arguments(), kAllFree, NULL,
       Heap::kOld));
+  if (result.IsNull()) {
+    // TODO(https://github.com/dart-lang/sdk/issues/37360): Remove this.
+    return type.raw();
+  }
   ASSERT(result.IsFinalized());
   return result.Canonicalize();
 }

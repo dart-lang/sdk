@@ -436,6 +436,9 @@ var #staticStateDeclaration = {};
 // global type resources are available for generating constants.
 #embeddedGlobalsPart1;
 
+// Adds the subtype rules for the new RTI.
+#typeRules;
+
 // Instantiates all constants.
 #constants;
 
@@ -531,6 +534,9 @@ var #typesOffset = hunkHelpers.updateTypes(#types);
 // Builds the inheritance structure.
 #inheritance;
 
+// Adds the subtype rules for the new RTI.
+#typeRules;
+
 // Instantiates all constants of this deferred fragment.
 // Note that the constant-holder has been updated earlier and storing the
 // constant values in the constant-holder makes them available globally.
@@ -580,6 +586,12 @@ class FragmentEmitter {
   final ModelEmitter _modelEmitter;
   final JClosedWorld _closedWorld;
   final CodegenWorld _codegenWorld;
+  RecipeEncoder _recipeEncoder;
+  RulesetEncoder _rulesetEncoder;
+
+  DartTypes get _dartTypes => _closedWorld.dartTypes;
+  JElementEnvironment get _elementEnvironment =>
+      _closedWorld.elementEnvironment;
 
   js.Name _call0Name, _call1Name, _call2Name;
   js.Name get call0Name =>
@@ -597,7 +609,21 @@ class FragmentEmitter {
       this._constantEmitter,
       this._modelEmitter,
       this._closedWorld,
-      this._codegenWorld);
+      this._codegenWorld) {
+    if (_options.experimentNewRti) {
+      _recipeEncoder = RecipeEncoderImpl(
+          _closedWorld,
+          _options.disableRtiOptimization
+              ? TrivialRuntimeTypesSubstitutions(_closedWorld)
+              : RuntimeTypesImpl(_closedWorld),
+          _closedWorld.nativeData,
+          _closedWorld.elementEnvironment,
+          _closedWorld.commonElements,
+          _closedWorld.rtiNeed);
+      _rulesetEncoder =
+          RulesetEncoder(_closedWorld.dartTypes, _emitter, _recipeEncoder);
+    }
+  }
 
   js.Expression generateEmbeddedGlobalAccess(String global) =>
       _emitter.generateEmbeddedGlobalAccess(global);
@@ -667,6 +693,7 @@ class FragmentEmitter {
           emitEmbeddedGlobalsPart1(program, deferredLoadingState),
       'embeddedGlobalsPart2':
           emitEmbeddedGlobalsPart2(program, deferredLoadingState),
+      'typeRules': emitTypeRules(fragment),
       'nativeSupport': program.needsNativeSupport
           ? emitNativeSupport(fragment)
           : new js.EmptyStatement(),
@@ -747,6 +774,7 @@ class FragmentEmitter {
     var methodAliases = emitInstanceMethodAliases(fragment);
     var tearOffs = emitInstallTearOffs(fragment);
     var constants = emitConstants(fragment);
+    var typeRules = emitTypeRules(fragment);
     var staticNonFinalFields = emitStaticNonFinalFields(fragment);
     var lazyInitializers = emitLazilyInitializedStatics(fragment);
     // TODO(floitsch): only call emitNativeSupport if we need native.
@@ -788,6 +816,7 @@ class FragmentEmitter {
       'inheritance': inheritance,
       'aliases': methodAliases,
       'tearOffs': tearOffs,
+      'typeRules': typeRules,
       'constants': constants,
       'staticNonFinalFields': staticNonFinalFields,
       'lazyStatics': lazyInitializers,
@@ -1908,6 +1937,28 @@ class FragmentEmitter {
           [js.string(TYPE_TO_INTERCEPTOR_MAP), program.typeToInterceptorMap]));
     }
     return js.Block(statements);
+  }
+
+  js.Statement emitTypeRules(Fragment fragment) {
+    if (!_options.experimentNewRti) return js.EmptyStatement();
+
+    Ruleset ruleset = Ruleset.empty();
+    Iterable<Class> classes =
+        fragment.libraries.expand((Library library) => library.classes);
+    classes.forEach((Class cls) {
+      if (cls.classChecksNewRti == null) return;
+      InterfaceType targetType = _elementEnvironment.getThisType(cls.element);
+      Iterable<InterfaceType> supertypes = cls.classChecksNewRti.checks.map(
+          (TypeCheck check) => _dartTypes.asInstanceOf(targetType, check.cls));
+      ruleset.add(targetType, supertypes);
+    });
+
+    FunctionEntity method = _closedWorld.commonElements.rtiAddRulesMethod;
+    return js.js.statement('#(init.#,JSON.parse(#));', [
+      _emitter.staticFunctionAccess(method),
+      RTI_UNIVERSE,
+      _rulesetEncoder.encodeRuleset(ruleset),
+    ]);
   }
 
   /// Returns an expression that creates the initial Rti Universe.

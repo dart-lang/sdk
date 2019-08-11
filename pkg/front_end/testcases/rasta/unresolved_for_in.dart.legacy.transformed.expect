@@ -79,9 +79,9 @@ import "dart:core" as core;
 
 import "dart:collection" as collection;
 
-typedef VoidFunction = () → void;
+typedef VoidFunction = () →* void;
 class Fisk extends core::Object {
-  synthetic constructor •() → self::Fisk
+  synthetic constructor •() → self::Fisk*
     : super core::Object::•()
     ;
   method it1(dynamic x) → dynamic {
@@ -90,8 +90,8 @@ class Fisk extends core::Object {
       core::print(this.key);
     }
     for (final dynamic #t2 in x) {
-      throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#Fisk, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[#t2]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
-      core::print(self::Fisk);
+      throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C1, 34, #C2, core::List::unmodifiable<dynamic>(<dynamic>[#t2]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
+      core::print(self::Fisk*);
     }
     for (final dynamic #t3 in x) {
       invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:17:10: Error: A prefix can't be used as an expression.
@@ -102,8 +102,8 @@ class Fisk extends core::Object {
             ^^^^^^^^^^");
     }
     for (final dynamic #t4 in x) {
-      throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#VoidFunction, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[#t4]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
-      core::print(() → void);
+      throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C5, 34, #C2, core::List::unmodifiable<dynamic>(<dynamic>[#t4]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
+      core::print(() →* void);
     }
     {
       invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:23:10: Error: Can't assign to this, so it can't be used in a for-in loop.
@@ -122,12 +122,12 @@ class Fisk extends core::Object {
 static method main(dynamic arguments) → dynamic {
   new self::Fisk::•();
   for (final dynamic #t6 in arguments) {
-    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#key, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[#t6]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
-    core::print(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#key, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))));
+    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C6, 34, #C2, core::List::unmodifiable<dynamic>(<dynamic>[#t6]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
+    core::print(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C6, 33, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))));
   }
   for (final dynamic #t7 in arguments) {
-    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#Fisk, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[#t7]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
-    core::print(self::Fisk);
+    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C1, 34, #C2, core::List::unmodifiable<dynamic>(<dynamic>[#t7]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
+    core::print(self::Fisk*);
   }
   for (final dynamic #t8 in arguments) {
     invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:37:8: Error: A prefix can't be used as an expression.
@@ -138,8 +138,8 @@ static method main(dynamic arguments) → dynamic {
           ^^^^^^^^^^");
   }
   for (final dynamic #t9 in arguments) {
-    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#VoidFunction, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[#t9]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
-    core::print(() → void);
+    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C5, 34, #C2, core::List::unmodifiable<dynamic>(<dynamic>[#t9]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
+    core::print(() →* void);
   }
   {
     invalid-expression "pkg/front_end/testcases/rasta/unresolved_for_in.dart:43:8: Error: Can't assign to this, so it can't be used in a for-in loop.
@@ -150,7 +150,16 @@ static method main(dynamic arguments) → dynamic {
   for (1 in arguments) {
        ^";
       1;
-      core::print(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#key, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))));
+      core::print(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C6, 33, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))));
     }
   }
+}
+
+constants  {
+  #C1 = #Fisk
+  #C2 = <core::Type*>[]
+  #C3 = <dynamic>[]
+  #C4 = core::_ImmutableMap<core::Symbol*, dynamic> {_kvPairs:#C3}
+  #C5 = #VoidFunction
+  #C6 = #key
 }

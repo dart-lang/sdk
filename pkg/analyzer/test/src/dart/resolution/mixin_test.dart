@@ -1643,6 +1643,7 @@ mixin M {}
 
     var element = findElement.mixin('M');
     var type = element.type;
+    // ignore: deprecated_member_use_from_same_package
     expect(type.isMoreSpecificThan(intType), isFalse);
   }
 

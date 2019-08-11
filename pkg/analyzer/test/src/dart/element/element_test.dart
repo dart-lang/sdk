@@ -1257,7 +1257,9 @@ class FunctionTypeImplTest extends EngineTestCase {
     expect(t.isSubtypeOf(s), isTrue);
     expect(s.isSubtypeOf(t), isFalse);
     // assignable iff subtype
+    // ignore: deprecated_member_use_from_same_package
     expect(t.isAssignableTo(s), isTrue);
+    // ignore: deprecated_member_use_from_same_package
     expect(s.isAssignableTo(t), isFalse);
   }
 
@@ -2032,334 +2034,6 @@ class InterfaceTypeImplTest extends EngineTestCase {
     expect(result, classA.type.instantiate([classC.type]));
   }
 
-  void test_computeLongestInheritancePathToObject_multipleInterfacePaths() {
-    //
-    //   Object
-    //     |
-    //     A
-    //    / \
-    //   B   C
-    //   |   |
-    //   |   D
-    //    \ /
-    //     E
-    //
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement2("B");
-    ClassElementImpl classC = ElementFactory.classElement2("C");
-    ClassElementImpl classD = ElementFactory.classElement2("D");
-    ClassElementImpl classE = ElementFactory.classElement2("E");
-    classB.interfaces = <InterfaceType>[classA.type];
-    classC.interfaces = <InterfaceType>[classA.type];
-    classD.interfaces = <InterfaceType>[classC.type];
-    classE.interfaces = <InterfaceType>[classB.type, classD.type];
-    // assertion: even though the longest path to Object for typeB is 2, and
-    // typeE implements typeB, the longest path for typeE is 4 since it also
-    // implements typeD
-    expect(InterfaceTypeImpl.computeLongestInheritancePathToObject(classB.type),
-        2);
-    expect(InterfaceTypeImpl.computeLongestInheritancePathToObject(classE.type),
-        4);
-  }
-
-  void test_computeLongestInheritancePathToObject_multipleSuperclassPaths() {
-    //
-    //   Object
-    //     |
-    //     A
-    //    / \
-    //   B   C
-    //   |   |
-    //   |   D
-    //    \ /
-    //     E
-    //
-    ClassElement classA = ElementFactory.classElement2("A");
-    ClassElement classB = ElementFactory.classElement("B", classA.type);
-    ClassElement classC = ElementFactory.classElement("C", classA.type);
-    ClassElement classD = ElementFactory.classElement("D", classC.type);
-    ClassElementImpl classE = ElementFactory.classElement("E", classB.type);
-    classE.interfaces = <InterfaceType>[classD.type];
-    // assertion: even though the longest path to Object for typeB is 2, and
-    // typeE extends typeB, the longest path for typeE is 4 since it also
-    // implements typeD
-    expect(InterfaceTypeImpl.computeLongestInheritancePathToObject(classB.type),
-        2);
-    expect(InterfaceTypeImpl.computeLongestInheritancePathToObject(classE.type),
-        4);
-  }
-
-  void test_computeLongestInheritancePathToObject_object() {
-    //
-    //   Object
-    //     |
-    //     A
-    //
-    ClassElement classA = ElementFactory.classElement2("A");
-    InterfaceType object = classA.supertype;
-    expect(InterfaceTypeImpl.computeLongestInheritancePathToObject(object), 0);
-  }
-
-  void test_computeLongestInheritancePathToObject_recursion() {
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
-    classA.supertype = classB.type;
-    expect(InterfaceTypeImpl.computeLongestInheritancePathToObject(classA.type),
-        2);
-  }
-
-  void test_computeLongestInheritancePathToObject_singleInterfacePath() {
-    //
-    //   Object
-    //     |
-    //     A
-    //     |
-    //     B
-    //     |
-    //     C
-    //
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement2("B");
-    ClassElementImpl classC = ElementFactory.classElement2("C");
-    classB.interfaces = <InterfaceType>[classA.type];
-    classC.interfaces = <InterfaceType>[classB.type];
-    expect(InterfaceTypeImpl.computeLongestInheritancePathToObject(classA.type),
-        1);
-    expect(InterfaceTypeImpl.computeLongestInheritancePathToObject(classB.type),
-        2);
-    expect(InterfaceTypeImpl.computeLongestInheritancePathToObject(classC.type),
-        3);
-  }
-
-  void test_computeLongestInheritancePathToObject_singleSuperclassPath() {
-    //
-    //   Object
-    //     |
-    //     A
-    //     |
-    //     B
-    //     |
-    //     C
-    //
-    ClassElement classA = ElementFactory.classElement2("A");
-    ClassElement classB = ElementFactory.classElement("B", classA.type);
-    ClassElement classC = ElementFactory.classElement("C", classB.type);
-    expect(InterfaceTypeImpl.computeLongestInheritancePathToObject(classA.type),
-        1);
-    expect(InterfaceTypeImpl.computeLongestInheritancePathToObject(classB.type),
-        2);
-    expect(InterfaceTypeImpl.computeLongestInheritancePathToObject(classC.type),
-        3);
-  }
-
-  void test_computeSuperinterfaceSet_genericInterfacePath() {
-    //
-    //  A
-    //  | implements
-    //  B<T>
-    //  | implements
-    //  C<T>
-    //
-    //  D
-    //
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement2("B", ["T"]);
-    ClassElementImpl classC = ElementFactory.classElement2("C", ["T"]);
-    ClassElement classD = ElementFactory.classElement2("D");
-    InterfaceType typeA = classA.type;
-    classB.interfaces = <InterfaceType>[typeA];
-    InterfaceTypeImpl typeBT = new InterfaceTypeImpl(classB);
-    DartType typeT = classC.type.typeArguments[0];
-    typeBT.typeArguments = <DartType>[typeT];
-    classC.interfaces = <InterfaceType>[typeBT];
-    // A
-    Set<InterfaceType> superinterfacesOfA =
-        InterfaceTypeImpl.computeSuperinterfaceSet(typeA);
-    expect(superinterfacesOfA, hasLength(1));
-    InterfaceType typeObject = ElementFactory.object.type;
-    expect(superinterfacesOfA.contains(typeObject), isTrue);
-    // B<D>
-    InterfaceTypeImpl typeBD = new InterfaceTypeImpl(classB);
-    typeBD.typeArguments = <DartType>[classD.type];
-    Set<InterfaceType> superinterfacesOfBD =
-        InterfaceTypeImpl.computeSuperinterfaceSet(typeBD);
-    expect(superinterfacesOfBD, hasLength(2));
-    expect(superinterfacesOfBD.contains(typeObject), isTrue);
-    expect(superinterfacesOfBD.contains(typeA), isTrue);
-    // C<D>
-    InterfaceTypeImpl typeCD = new InterfaceTypeImpl(classC);
-    typeCD.typeArguments = <DartType>[classD.type];
-    Set<InterfaceType> superinterfacesOfCD =
-        InterfaceTypeImpl.computeSuperinterfaceSet(typeCD);
-    expect(superinterfacesOfCD, hasLength(3));
-    expect(superinterfacesOfCD.contains(typeObject), isTrue);
-    expect(superinterfacesOfCD.contains(typeA), isTrue);
-    expect(superinterfacesOfCD.contains(typeBD), isTrue);
-  }
-
-  void test_computeSuperinterfaceSet_genericSuperclassPath() {
-    //
-    //  A
-    //  |
-    //  B<T>
-    //  |
-    //  C<T>
-    //
-    //  D
-    //
-    ClassElement classA = ElementFactory.classElement2("A");
-    InterfaceType typeA = classA.type;
-    ClassElement classB = ElementFactory.classElement("B", typeA, ["T"]);
-    ClassElementImpl classC = ElementFactory.classElement2("C", ["T"]);
-    InterfaceTypeImpl typeBT = new InterfaceTypeImpl(classB);
-    DartType typeT = classC.type.typeArguments[0];
-    typeBT.typeArguments = <DartType>[typeT];
-    classC.supertype = typeBT;
-    ClassElement classD = ElementFactory.classElement2("D");
-    // A
-    Set<InterfaceType> superinterfacesOfA =
-        InterfaceTypeImpl.computeSuperinterfaceSet(typeA);
-    expect(superinterfacesOfA, hasLength(1));
-    InterfaceType typeObject = ElementFactory.object.type;
-    expect(superinterfacesOfA.contains(typeObject), isTrue);
-    // B<D>
-    InterfaceTypeImpl typeBD = new InterfaceTypeImpl(classB);
-    typeBD.typeArguments = <DartType>[classD.type];
-    Set<InterfaceType> superinterfacesOfBD =
-        InterfaceTypeImpl.computeSuperinterfaceSet(typeBD);
-    expect(superinterfacesOfBD, hasLength(2));
-    expect(superinterfacesOfBD.contains(typeObject), isTrue);
-    expect(superinterfacesOfBD.contains(typeA), isTrue);
-    // C<D>
-    InterfaceTypeImpl typeCD = new InterfaceTypeImpl(classC);
-    typeCD.typeArguments = <DartType>[classD.type];
-    Set<InterfaceType> superinterfacesOfCD =
-        InterfaceTypeImpl.computeSuperinterfaceSet(typeCD);
-    expect(superinterfacesOfCD, hasLength(3));
-    expect(superinterfacesOfCD.contains(typeObject), isTrue);
-    expect(superinterfacesOfCD.contains(typeA), isTrue);
-    expect(superinterfacesOfCD.contains(typeBD), isTrue);
-  }
-
-  void test_computeSuperinterfaceSet_multipleInterfacePaths() {
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement2("B");
-    ClassElementImpl classC = ElementFactory.classElement2("C");
-    ClassElementImpl classD = ElementFactory.classElement2("D");
-    ClassElementImpl classE = ElementFactory.classElement2("E");
-    classB.interfaces = <InterfaceType>[classA.type];
-    classC.interfaces = <InterfaceType>[classA.type];
-    classD.interfaces = <InterfaceType>[classC.type];
-    classE.interfaces = <InterfaceType>[classB.type, classD.type];
-    // D
-    Set<InterfaceType> superinterfacesOfD =
-        InterfaceTypeImpl.computeSuperinterfaceSet(classD.type);
-    expect(superinterfacesOfD, hasLength(3));
-    expect(superinterfacesOfD.contains(ElementFactory.object.type), isTrue);
-    expect(superinterfacesOfD.contains(classA.type), isTrue);
-    expect(superinterfacesOfD.contains(classC.type), isTrue);
-    // E
-    Set<InterfaceType> superinterfacesOfE =
-        InterfaceTypeImpl.computeSuperinterfaceSet(classE.type);
-    expect(superinterfacesOfE, hasLength(5));
-    expect(superinterfacesOfE.contains(ElementFactory.object.type), isTrue);
-    expect(superinterfacesOfE.contains(classA.type), isTrue);
-    expect(superinterfacesOfE.contains(classB.type), isTrue);
-    expect(superinterfacesOfE.contains(classC.type), isTrue);
-    expect(superinterfacesOfE.contains(classD.type), isTrue);
-  }
-
-  void test_computeSuperinterfaceSet_multipleSuperclassPaths() {
-    ClassElement classA = ElementFactory.classElement2("A");
-    ClassElement classB = ElementFactory.classElement("B", classA.type);
-    ClassElement classC = ElementFactory.classElement("C", classA.type);
-    ClassElement classD = ElementFactory.classElement("D", classC.type);
-    ClassElementImpl classE = ElementFactory.classElement("E", classB.type);
-    classE.interfaces = <InterfaceType>[classD.type];
-    // D
-    Set<InterfaceType> superinterfacesOfD =
-        InterfaceTypeImpl.computeSuperinterfaceSet(classD.type);
-    expect(superinterfacesOfD, hasLength(3));
-    expect(superinterfacesOfD.contains(ElementFactory.object.type), isTrue);
-    expect(superinterfacesOfD.contains(classA.type), isTrue);
-    expect(superinterfacesOfD.contains(classC.type), isTrue);
-    // E
-    Set<InterfaceType> superinterfacesOfE =
-        InterfaceTypeImpl.computeSuperinterfaceSet(classE.type);
-    expect(superinterfacesOfE, hasLength(5));
-    expect(superinterfacesOfE.contains(ElementFactory.object.type), isTrue);
-    expect(superinterfacesOfE.contains(classA.type), isTrue);
-    expect(superinterfacesOfE.contains(classB.type), isTrue);
-    expect(superinterfacesOfE.contains(classC.type), isTrue);
-    expect(superinterfacesOfE.contains(classD.type), isTrue);
-  }
-
-  void test_computeSuperinterfaceSet_recursion() {
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
-    classA.supertype = classB.type;
-    Set<InterfaceType> superinterfacesOfB =
-        InterfaceTypeImpl.computeSuperinterfaceSet(classB.type);
-    expect(superinterfacesOfB, hasLength(2));
-  }
-
-  void test_computeSuperinterfaceSet_singleInterfacePath() {
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement2("B");
-    ClassElementImpl classC = ElementFactory.classElement2("C");
-    classB.interfaces = <InterfaceType>[classA.type];
-    classC.interfaces = <InterfaceType>[classB.type];
-    // A
-    Set<InterfaceType> superinterfacesOfA =
-        InterfaceTypeImpl.computeSuperinterfaceSet(classA.type);
-    expect(superinterfacesOfA, hasLength(1));
-    expect(superinterfacesOfA.contains(ElementFactory.object.type), isTrue);
-    // B
-    Set<InterfaceType> superinterfacesOfB =
-        InterfaceTypeImpl.computeSuperinterfaceSet(classB.type);
-    expect(superinterfacesOfB, hasLength(2));
-    expect(superinterfacesOfB.contains(ElementFactory.object.type), isTrue);
-    expect(superinterfacesOfB.contains(classA.type), isTrue);
-    // C
-    Set<InterfaceType> superinterfacesOfC =
-        InterfaceTypeImpl.computeSuperinterfaceSet(classC.type);
-    expect(superinterfacesOfC, hasLength(3));
-    expect(superinterfacesOfC.contains(ElementFactory.object.type), isTrue);
-    expect(superinterfacesOfC.contains(classA.type), isTrue);
-    expect(superinterfacesOfC.contains(classB.type), isTrue);
-  }
-
-  void test_computeSuperinterfaceSet_singleSuperclassPath() {
-    //
-    //  A
-    //  |
-    //  B
-    //  |
-    //  C
-    //
-    ClassElement classA = ElementFactory.classElement2("A");
-    ClassElement classB = ElementFactory.classElement("B", classA.type);
-    ClassElement classC = ElementFactory.classElement("C", classB.type);
-    // A
-    Set<InterfaceType> superinterfacesOfA =
-        InterfaceTypeImpl.computeSuperinterfaceSet(classA.type);
-    expect(superinterfacesOfA, hasLength(1));
-    expect(superinterfacesOfA.contains(ElementFactory.object.type), isTrue);
-    // B
-    Set<InterfaceType> superinterfacesOfB =
-        InterfaceTypeImpl.computeSuperinterfaceSet(classB.type);
-    expect(superinterfacesOfB, hasLength(2));
-    expect(superinterfacesOfB.contains(ElementFactory.object.type), isTrue);
-    expect(superinterfacesOfB.contains(classA.type), isTrue);
-    // C
-    Set<InterfaceType> superinterfacesOfC =
-        InterfaceTypeImpl.computeSuperinterfaceSet(classC.type);
-    expect(superinterfacesOfC, hasLength(3));
-    expect(superinterfacesOfC.contains(ElementFactory.object.type), isTrue);
-    expect(superinterfacesOfC.contains(classA.type), isTrue);
-    expect(superinterfacesOfC.contains(classB.type), isTrue);
-  }
-
   void test_creation() {
     expect(new InterfaceTypeImpl(ElementFactory.classElement2("A")), isNotNull);
   }
@@ -2511,12 +2185,11 @@ class InterfaceTypeImplTest extends EngineTestCase {
 
   void test_getMethod_parameterized_doesNotUseTypeParameter() {
     //
-    // class A<E> { void m() {} }
+    // class A<E> { B m() {} }
     // class B {}
     //
     ClassElementImpl classA = ElementFactory.classElement2("A", ["E"]);
     InterfaceType typeB = ElementFactory.classElement2("B").type;
-    DartType typeE = classA.type.typeArguments[0];
     String methodName = "m";
     MethodElementImpl methodM =
         ElementFactory.methodElement(methodName, typeB, []);
@@ -2531,7 +2204,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     MethodElement method = typeAI.getMethod(methodName);
     expect(method, isNotNull);
     FunctionType methodType = method.type;
-    expect(methodType.typeParameters, [same(typeE.element)]);
+    expect(methodType.typeParameters, isEmpty);
     expect(methodType.typeArguments, [same(typeI)]);
   }
 
@@ -2580,7 +2253,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     MethodElement method = typeAI.getMethod(methodName);
     expect(method, isNotNull);
     FunctionType methodType = method.type;
-    expect(methodType.typeParameters, [same(typeE.element)]);
+    expect(methodType.typeParameters, isEmpty);
     expect(methodType.typeArguments, [same(typeI)]);
     expect(methodType.returnType, same(typeI));
     List<DartType> parameterTypes = methodType.normalParameterTypes;
@@ -2776,6 +2449,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     ClassElement classB = ElementFactory.classElement("B", classA.type);
     InterfaceType typeA = classA.type;
     InterfaceType typeB = classB.type;
+    // ignore: deprecated_member_use_from_same_package
     expect(typeA.isDirectSupertypeOf(typeB), isTrue);
   }
 
@@ -2785,6 +2459,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     ClassElement classC = ElementFactory.classElement("C", classB.type);
     InterfaceType typeA = classA.type;
     InterfaceType typeC = classC.type;
+    // ignore: deprecated_member_use_from_same_package
     expect(typeA.isDirectSupertypeOf(typeC), isFalse);
   }
 
@@ -2794,6 +2469,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     InterfaceType typeA = classA.type;
     InterfaceType typeB = classB.type;
     classB.interfaces = <InterfaceType>[typeA];
+    // ignore: deprecated_member_use_from_same_package
     expect(typeA.isDirectSupertypeOf(typeB), isTrue);
   }
 
@@ -2803,6 +2479,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     InterfaceType typeA = classA.type;
     InterfaceType typeB = classB.type;
     classB.mixins = <InterfaceType>[typeA];
+    // ignore: deprecated_member_use_from_same_package
     expect(typeA.isDirectSupertypeOf(typeB), isTrue);
   }
 
@@ -2828,13 +2505,16 @@ class InterfaceTypeImplTest extends EngineTestCase {
     ClassElement classB = ElementFactory.classElement("B", classA.type);
     InterfaceType typeA = classA.type;
     InterfaceType typeB = classB.type;
+    // ignore: deprecated_member_use_from_same_package
     expect(typeB.isMoreSpecificThan(typeA), isTrue);
     // the opposite test tests a different branch in isMoreSpecificThan()
+    // ignore: deprecated_member_use_from_same_package
     expect(typeA.isMoreSpecificThan(typeB), isFalse);
   }
 
   void test_isMoreSpecificThan_dynamic() {
     InterfaceType type = ElementFactory.classElement2("A").type;
+    // ignore: deprecated_member_use_from_same_package
     expect(type.isMoreSpecificThan(DynamicTypeImpl.instance), isTrue);
   }
 
@@ -2845,12 +2525,15 @@ class InterfaceTypeImplTest extends EngineTestCase {
     InterfaceType typeAOfDynamic =
         classA.type.instantiate(<DartType>[dynamicType]);
     InterfaceType typeAOfB = classA.type.instantiate(<DartType>[classB.type]);
+    // ignore: deprecated_member_use_from_same_package
     expect(typeAOfDynamic.isMoreSpecificThan(typeAOfB), isFalse);
+    // ignore: deprecated_member_use_from_same_package
     expect(typeAOfB.isMoreSpecificThan(typeAOfDynamic), isTrue);
   }
 
   void test_isMoreSpecificThan_self() {
     InterfaceType type = ElementFactory.classElement2("A").type;
+    // ignore: deprecated_member_use_from_same_package
     expect(type.isMoreSpecificThan(type), isTrue);
   }
 
@@ -2866,6 +2549,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     classC.interfaces = <InterfaceType>[classB.type];
     InterfaceType typeA = classA.type;
     InterfaceType typeC = classC.type;
+    // ignore: deprecated_member_use_from_same_package
     expect(typeC.isMoreSpecificThan(typeA), isTrue);
   }
 
@@ -2881,6 +2565,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     classC.mixins = <InterfaceType>[classB.type];
     InterfaceType typeA = classA.type;
     InterfaceType typeC = classC.type;
+    // ignore: deprecated_member_use_from_same_package
     expect(typeC.isMoreSpecificThan(typeA), isTrue);
   }
 
@@ -2896,6 +2581,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     InterfaceType typeA = classA.type;
     InterfaceType typeC = classC.type;
     classA.supertype = classB.type;
+    // ignore: deprecated_member_use_from_same_package
     expect(typeA.isMoreSpecificThan(typeC), isFalse);
   }
 
@@ -2910,6 +2596,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     ClassElement classC = ElementFactory.classElement("C", classB.type);
     InterfaceType typeA = classA.type;
     InterfaceType typeC = classC.type;
+    // ignore: deprecated_member_use_from_same_package
     expect(typeC.isMoreSpecificThan(typeA), isTrue);
   }
 
@@ -2921,7 +2608,9 @@ class InterfaceTypeImplTest extends EngineTestCase {
     InterfaceType typeA = classA.type;
     TypeParameterType parameterType = classA.typeParameters[0].type;
     DartType objectType = _typeProvider.objectType;
+    // ignore: deprecated_member_use_from_same_package
     expect(parameterType.isMoreSpecificThan(objectType), isTrue);
+    // ignore: deprecated_member_use_from_same_package
     expect(parameterType.isMoreSpecificThan(typeA), isFalse);
   }
 
@@ -2939,6 +2628,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     parameterEA.bound = typeA;
     parameterEA.type = parameterAEType;
     classB.typeParameters = <TypeParameterElementImpl>[parameterEA];
+    // ignore: deprecated_member_use_from_same_package
     expect(parameterAEType.isMoreSpecificThan(typeA), isTrue);
   }
 
@@ -3107,7 +2797,9 @@ class InterfaceTypeImplTest extends EngineTestCase {
     ClassElement classB = ElementFactory.classElement("B", classA.type);
     InterfaceType typeA = classA.type;
     InterfaceType typeB = classB.type;
+    // ignore: deprecated_member_use_from_same_package
     expect(typeB.isSupertypeOf(typeA), isFalse);
+    // ignore: deprecated_member_use_from_same_package
     expect(typeA.isSupertypeOf(typeB), isTrue);
   }
 
@@ -3115,7 +2807,9 @@ class InterfaceTypeImplTest extends EngineTestCase {
     ClassElement classA = ElementFactory.classElement2("A");
     InterfaceType typeA = classA.type;
     DartType dynamicType = DynamicTypeImpl.instance;
+    // ignore: deprecated_member_use_from_same_package
     expect(dynamicType.isSupertypeOf(typeA), isTrue);
+    // ignore: deprecated_member_use_from_same_package
     expect(typeA.isSupertypeOf(dynamicType), isTrue);
   }
 
@@ -3125,7 +2819,9 @@ class InterfaceTypeImplTest extends EngineTestCase {
     ClassElement classC = ElementFactory.classElement("C", classB.type);
     InterfaceType typeA = classA.type;
     InterfaceType typeC = classC.type;
+    // ignore: deprecated_member_use_from_same_package
     expect(typeC.isSupertypeOf(typeA), isFalse);
+    // ignore: deprecated_member_use_from_same_package
     expect(typeA.isSupertypeOf(typeC), isTrue);
   }
 
@@ -3138,9 +2834,13 @@ class InterfaceTypeImplTest extends EngineTestCase {
     InterfaceType typeB = classB.type;
     InterfaceType typeC = classC.type;
     classC.interfaces = <InterfaceType>[typeB];
+    // ignore: deprecated_member_use_from_same_package
     expect(typeB.isSupertypeOf(typeC), isTrue);
+    // ignore: deprecated_member_use_from_same_package
     expect(typeObject.isSupertypeOf(typeC), isTrue);
+    // ignore: deprecated_member_use_from_same_package
     expect(typeA.isSupertypeOf(typeC), isTrue);
+    // ignore: deprecated_member_use_from_same_package
     expect(typeC.isSupertypeOf(typeA), isFalse);
   }
 
@@ -3158,9 +2858,13 @@ class InterfaceTypeImplTest extends EngineTestCase {
     InterfaceType typeB = classB.type;
     InterfaceType typeC = classC.type;
     classC.mixins = <InterfaceType>[typeB];
+    // ignore: deprecated_member_use_from_same_package
     expect(typeB.isSupertypeOf(typeC), isTrue);
+    // ignore: deprecated_member_use_from_same_package
     expect(typeObject.isSupertypeOf(typeC), isTrue);
+    // ignore: deprecated_member_use_from_same_package
     expect(typeA.isSupertypeOf(typeC), isTrue);
+    // ignore: deprecated_member_use_from_same_package
     expect(typeC.isSupertypeOf(typeA), isFalse);
   }
 
@@ -3168,13 +2872,16 @@ class InterfaceTypeImplTest extends EngineTestCase {
     ClassElement classA = ElementFactory.classElement2("A");
     InterfaceType typeA = classA.type;
     InterfaceType typeObject = classA.supertype;
+    // ignore: deprecated_member_use_from_same_package
     expect(typeA.isSupertypeOf(typeObject), isFalse);
+    // ignore: deprecated_member_use_from_same_package
     expect(typeObject.isSupertypeOf(typeA), isTrue);
   }
 
   void test_isSupertypeOf_self() {
     ClassElement classA = ElementFactory.classElement2("A");
     InterfaceType typeA = classA.type;
+    // ignore: deprecated_member_use_from_same_package
     expect(typeA.isSupertypeOf(typeA), isTrue);
   }
 
@@ -3979,14 +3686,17 @@ class VoidTypeImplTest extends EngineTestCase {
 
   void test_isMoreSpecificThan_void_A() {
     ClassElement classA = ElementFactory.classElement2("A");
+    // ignore: deprecated_member_use_from_same_package
     expect(_voidType.isMoreSpecificThan(classA.type), isFalse);
   }
 
   void test_isMoreSpecificThan_void_dynamic() {
+    // ignore: deprecated_member_use_from_same_package
     expect(_voidType.isMoreSpecificThan(DynamicTypeImpl.instance), isTrue);
   }
 
   void test_isMoreSpecificThan_void_void() {
+    // ignore: deprecated_member_use_from_same_package
     expect(_voidType.isMoreSpecificThan(_voidType), isTrue);
   }
 

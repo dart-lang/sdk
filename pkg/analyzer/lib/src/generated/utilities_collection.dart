@@ -187,7 +187,7 @@ class MultipleMapIterator<K, V> implements MapIterator<K, V> {
   @override
   bool moveNext() {
     if (_iteratorIndex < 0) {
-      if (_iterators.length == 0) {
+      if (_iterators.isEmpty) {
         _currentIterator = null;
         return false;
       }

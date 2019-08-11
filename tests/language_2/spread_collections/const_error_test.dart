@@ -10,6 +10,7 @@ import 'helper_classes.dart';
 
 var nonConstList = <int>[];
 var nonConstMap = <int, String>{};
+var nonConstSet = <int>{};
 const dynamic nonIterable = 3;
 const dynamic nonMap = 3;
 
@@ -48,20 +49,22 @@ void testMap() {
 void testSet() {
   // Must be constant.
   const _ = <int>{...nonConstList}; //# 09: compile-time error
+  const _ = <int>{...nonConstSet}; //# 10: compile-time error
 
   // Must be iterable.
-  const _ = <int>{...nonIterable}; //# 10: compile-time error
+  const _ = <int>{...nonIterable}; //# 11: compile-time error
 
   // Cannot be custom iterable type.
-  const _ = <int>{...ConstIterable()}; //# 11: compile-time error
+  const _ = <int>{...ConstIterable()}; //# 12: compile-time error
 
   // Cannot override operator.==().
   const obj = 0.1;
-  const _ = {...[0.1]}; //# 12: compile-time error
-  const _ = {...[Duration(seconds: 0)]}; //# 13: compile-time error
-  const _ = {...[obj]}; //# 14: compile-time error
+  const _ = {...[0.1]}; //# 13: compile-time error
+  const _ = {...[Duration(seconds: 0)]}; //# 14: compile-time error
+  const _ = {...[obj]}; //# 15: compile-time error
 
   // Cannot have collision.
-  const _ = {1, ...[1]}; //# 15: compile-time error
-  const _ = {...[1], ...[1]}; //# 16: compile-time error
+  const _ = {1, ...[1]}; //# 16: compile-time error
+  const _ = {...[1, 1, 3, 8]}; //# 17: compile-time error
+  const _ = {...[1], ...[1]}; //# 18: compile-time error
 }

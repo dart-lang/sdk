@@ -711,7 +711,7 @@ class CorrectionUtils {
     // determine if empty line is required after
     int nextLineOffset = getLineNext(offset);
     String insertLine = source.substring(offset, nextLineOffset);
-    if (!insertLine.trim().isEmpty) {
+    if (insertLine.trim().isNotEmpty) {
       insertEmptyLineAfter = true;
     }
     // fill InsertDesc
@@ -822,7 +822,7 @@ class CorrectionUtils {
    * to cover whole lines.
    */
   SourceRange getLinesRange(SourceRange sourceRange,
-      {bool skipLeadingEmptyLines: false}) {
+      {bool skipLeadingEmptyLines = false}) {
     // start
     int startOffset = sourceRange.offset;
     int startLineOffset = getLineContentStart(startOffset);
@@ -1017,7 +1017,7 @@ class CorrectionUtils {
   /**
    * Indents given source left or right.
    */
-  String indentSourceLeftRight(String source, {bool indentLeft: true}) {
+  String indentSourceLeftRight(String source, {bool indentLeft = true}) {
     StringBuffer sb = new StringBuffer();
     String indent = getIndent(1);
     String eol = endOfLine;

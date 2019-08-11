@@ -9,7 +9,7 @@ import 'dart:mirrors' show currentMirrorSystem;
 
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:front_end/src/testing/annotated_code_helper.dart';
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 import 'package:sourcemap_testing/src/stacktrace_helper.dart';
 import 'package:sourcemap_testing/src/stepping_helper.dart';
 import 'package:testing/testing.dart';
@@ -163,7 +163,7 @@ String getWrapperContent(
 void createHtmlWrapper(File sdkJsFile, Uri outputFile, String jsContent,
     String outputFilename, Uri outDir) {
   // For debugging via HTML, Chrome and ./pkg/test_runner/bin/http_server.dart.
-  var sdkFile = File(path.relative(sdkJsFile.path, from: sdkRoot.path));
+  var sdkFile = File(p.relative(sdkJsFile.path, from: sdkRoot.path));
   String jsRootDart = "/root_dart/${sdkFile.uri}";
   File.fromUri(outputFile.resolve("$outputFilename.html.js")).writeAsStringSync(
       jsContent.replaceFirst("from 'dart_sdk.js'", "from '$jsRootDart'"));
@@ -206,3 +206,103 @@ Uri selfUri = currentMirrorSystem()
 String d8Preambles = File.fromUri(selfUri.resolve(
         '../../../../sdk/lib/_internal/js_dev_runtime/private/preambles/d8.js'))
     .readAsStringSync();
+
+/// Transforms a path to a valid JS identifier.
+///
+/// This logic must be synchronized with [pathToJSIdentifier] in DDC at:
+/// pkg/dev_compiler/lib/src/compiler/module_builder.dart
+String pathToJSIdentifier(String path) {
+  path = p.normalize(path);
+  if (path.startsWith('/') || path.startsWith('\\')) {
+    path = path.substring(1, path.length);
+  }
+  return _toJSIdentifier(path
+      .replaceAll('\\', '__')
+      .replaceAll('/', '__')
+      .replaceAll('..', '__')
+      .replaceAll('-', '_'));
+}
+
+/// Escape [name] to make it into a valid identifier.
+String _toJSIdentifier(String name) {
+  if (name.isEmpty) return r'$';
+
+  // Escape any invalid characters
+  StringBuffer buffer;
+  for (var i = 0; i < name.length; i++) {
+    var ch = name[i];
+    var needsEscape = ch == r'$' || _invalidCharInIdentifier.hasMatch(ch);
+    if (needsEscape && buffer == null) {
+      buffer = StringBuffer(name.substring(0, i));
+    }
+    if (buffer != null) {
+      buffer.write(needsEscape ? '\$${ch.codeUnits.join("")}' : ch);
+    }
+  }
+
+  var result = buffer != null ? '$buffer' : name;
+  // Ensure the identifier first character is not numeric and that the whole
+  // identifier is not a keyword.
+  if (result.startsWith(RegExp('[0-9]')) || _invalidVariableName(result)) {
+    return '\$$result';
+  }
+  return result;
+}
+
+// Invalid characters for identifiers, which would need to be escaped.
+final _invalidCharInIdentifier = RegExp(r'[^A-Za-z_$0-9]');
+
+bool _invalidVariableName(String keyword) {
+  switch (keyword) {
+    // http://www.ecma-international.org/ecma-262/6.0/#sec-future-reserved-words
+    case "await":
+    case "break":
+    case "case":
+    case "catch":
+    case "class":
+    case "const":
+    case "continue":
+    case "debugger":
+    case "default":
+    case "delete":
+    case "do":
+    case "else":
+    case "enum":
+    case "export":
+    case "extends":
+    case "finally":
+    case "for":
+    case "function":
+    case "if":
+    case "import":
+    case "in":
+    case "instanceof":
+    case "let":
+    case "new":
+    case "return":
+    case "super":
+    case "switch":
+    case "this":
+    case "throw":
+    case "try":
+    case "typeof":
+    case "var":
+    case "void":
+    case "while":
+    case "with":
+    case "arguments":
+    case "eval":
+    // http://www.ecma-international.org/ecma-262/6.0/#sec-future-reserved-words
+    // http://www.ecma-international.org/ecma-262/6.0/#sec-identifiers-static-semantics-early-errors
+    case "implements":
+    case "interface":
+    case "package":
+    case "private":
+    case "protected":
+    case "public":
+    case "static":
+    case "yield":
+      return true;
+  }
+  return false;
+}

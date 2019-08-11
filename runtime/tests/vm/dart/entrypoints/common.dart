@@ -8,13 +8,15 @@ import "package:expect/expect.dart";
 // We accomplish this by using VM options in the yes-inlining variant to set the
 // "enable_inlining" constant variable to true. This maximizes code sharing
 // between the two variants, which are otherwise identical.
-const String NeverInline =
-    const bool.fromEnvironment("enable_inlining") ? "" : "NeverInline";
+const pragma NeverInline = const bool.fromEnvironment("enable_inlining")
+    ? null
+    : pragma('vm:never-inline');
 
 // In AOT we need to force some functions to be inlined since we only build the
 // unchecked entry-point when inlining.
-const String AlwaysInline =
-    const bool.fromEnvironment("enable_inlining") ? "AlwaysInline" : "";
+const pragma AlwaysInline = const bool.fromEnvironment("enable_inlining")
+    ? pragma('vm:prefer-inline')
+    : null;
 
 // All these tests can be run in test mode or in benchmark mode. In benchmark
 // mode, there is introspection is omitted and the tests runs for many more
@@ -57,3 +59,5 @@ _validateTearoffFn(String name, int entryPoint) {
 const validate = benchmarkMode ? null : _validateFn;
 @pragma("vm:entry-point", "get")
 const validateTearoff = benchmarkMode ? null : _validateTearoffFn;
+
+void bumpUsageCounter() {}

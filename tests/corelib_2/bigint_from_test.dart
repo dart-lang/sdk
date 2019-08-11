@@ -64,6 +64,12 @@ main() {
 testInt(int n) {
   var bigint = new BigInt.from(n);
   Expect.equals(n, bigint.toInt());
+
+  // If the integers are inexact (e.g. > 2^53 when represented by doubles as
+  // when compiled to JavaScript numbers) then the 'toString' might be rounded
+  // to the nearest equivalent 'nicer looking' number.
+  if (n == n + 1 || n == n - 1) return;
+
   Expect.equals("$n", "$bigint");
 }
 

@@ -11,8 +11,8 @@ import 'browser_controller.dart';
 import 'co19_test_config.dart';
 import 'configuration.dart';
 import 'path.dart';
-import 'test_progress.dart';
 import 'process_queue.dart';
+import 'test_progress.dart';
 import 'test_suite.dart';
 import 'utils.dart';
 
@@ -149,12 +149,12 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
   // If we only need to print out status files for test suites
   // we return from running here and just print.
   if (firstConf.listStatusFiles) {
-    testSuites.forEach((suite) {
+    for (var suite in testSuites) {
       print(suite.suiteName);
-      suite.statusFilePaths
-          .toSet()
-          .forEach((statusFile) => print("\t$statusFile"));
-    });
+      for (var statusFile in suite.statusFilePaths.toSet()) {
+        print("\t$statusFile");
+      }
+    }
     return;
   }
 
@@ -245,6 +245,6 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
 
   // [firstConf] is needed here, since the ProcessQueue needs to know the
   // settings of 'noBatch' and 'local_ip'
-  ProcessQueue(firstConf, maxProcesses, maxBrowserProcesses, startTime,
-      testSuites, eventListener, allTestsFinished, verbose, adbDevicePool);
+  ProcessQueue(firstConf, maxProcesses, maxBrowserProcesses, testSuites,
+      eventListener, allTestsFinished, verbose, adbDevicePool);
 }

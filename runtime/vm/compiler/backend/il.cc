@@ -1172,6 +1172,18 @@ void Instruction::RemoveEnvironment() {
   env_ = NULL;
 }
 
+void Instruction::ReplaceInEnvironment(Definition* current,
+                                       Definition* replacement) {
+  for (Environment::DeepIterator it(env()); !it.Done(); it.Advance()) {
+    Value* use = it.CurrentValue();
+    if (use->definition() == current) {
+      use->RemoveFromUseList();
+      use->set_definition(replacement);
+      replacement->AddEnvUse(use);
+    }
+  }
+}
+
 Instruction* Instruction::RemoveFromGraph(bool return_previous) {
   ASSERT(!IsBlockEntry());
   ASSERT(!IsBranch());
@@ -3932,7 +3944,7 @@ void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                    TokenPosition::kNoSource);
   }
   if (HasParallelMove()) {
-    if (Assembler::EmittingComments()) {
+    if (compiler::Assembler::EmittingComments()) {
       compiler->EmitComment(parallel_move());
     }
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
@@ -4005,7 +4017,7 @@ void FunctionEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                    TokenPosition::kNoSource);
   }
   if (HasParallelMove()) {
-    if (Assembler::EmittingComments()) {
+    if (compiler::Assembler::EmittingComments()) {
       compiler->EmitComment(parallel_move());
     }
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
@@ -4042,7 +4054,7 @@ void OsrEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #endif
 
   if (HasParallelMove()) {
-    if (Assembler::EmittingComments()) {
+    if (compiler::Assembler::EmittingComments()) {
       compiler->EmitComment(parallel_move());
     }
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
@@ -4620,6 +4632,24 @@ bool PolymorphicInstanceCallInstr::IsSureToCallSingleRecognizedTarget() const {
   return targets_.HasSingleRecognizedTarget();
 }
 
+bool StaticCallInstr::InitResultType(Zone* zone) {
+  const intptr_t list_cid = FactoryRecognizer::GetResultCidOfListFactory(
+      zone, function(), ArgumentCount());
+  if (list_cid != kDynamicCid) {
+    SetResultType(zone, CompileType::FromCid(list_cid));
+    set_is_known_list_constructor(true);
+    return true;
+  } else if (function().has_pragma()) {
+    const intptr_t recognized_cid =
+        MethodRecognizer::ResultCidFromPragma(function());
+    if (recognized_cid != kDynamicCid) {
+      SetResultType(zone, CompileType::FromCid(recognized_cid));
+      return true;
+    }
+  }
+  return false;
+}
+
 Definition* StaticCallInstr::Canonicalize(FlowGraph* flow_graph) {
   if (!FLAG_precompiled_mode) {
     return this;
@@ -4767,8 +4797,9 @@ void DeoptimizeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #if !defined(TARGET_ARCH_DBC)
 
 void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptCheckClass,
-                                        licm_hoisted_ ? ICData::kHoisted : 0);
+  compiler::Label* deopt =
+      compiler->AddDeoptStub(deopt_id(), ICData::kDeoptCheckClass,
+                             licm_hoisted_ ? ICData::kHoisted : 0);
   if (IsNullCheck()) {
     EmitNullCheck(compiler, deopt);
     return;
@@ -4777,7 +4808,7 @@ void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(!cids_.IsMonomorphic() || !cids_.HasClassId(kSmiCid));
   Register value = locs()->in(0).reg();
   Register temp = locs()->temp(0).reg();
-  Label is_ok;
+  compiler::Label is_ok;
 
   __ BranchIfSmi(value, cids_.HasClassId(kSmiCid) ? &is_ok : deopt);
 
@@ -4880,8 +4911,9 @@ void UnboxInstr::EmitLoadFromBoxWithDeopt(FlowGraphCompiler* compiler) {
   const Register box = locs()->in(0).reg();
   const Register temp =
       (locs()->temp_count() > 0) ? locs()->temp(0).reg() : kNoRegister;
-  Label* deopt = compiler->AddDeoptStub(GetDeoptId(), ICData::kDeoptUnbox);
-  Label is_smi;
+  compiler::Label* deopt =
+      compiler->AddDeoptStub(GetDeoptId(), ICData::kDeoptUnbox);
+  compiler::Label is_smi;
 
   if ((value()->Type()->ToNullableCid() == box_cid) &&
       value()->Type()->is_nullable()) {
@@ -4896,7 +4928,7 @@ void UnboxInstr::EmitLoadFromBoxWithDeopt(FlowGraphCompiler* compiler) {
   EmitLoadFromBox(compiler);
 
   if (is_smi.IsLinked()) {
-    Label done;
+    compiler::Label done;
     __ Jump(&done);
     __ Bind(&is_smi);
     EmitSmiConversion(compiler);
@@ -5225,7 +5257,7 @@ Definition* StringInterpolateInstr::Canonicalize(FlowGraph* flow_graph) {
     if (curr == this) continue;
 
     StoreIndexedInstr* store = curr->AsStoreIndexed();
-    if (!store->index()->BindsToConstant() ||
+    if (store == nullptr || !store->index()->BindsToConstant() ||
         !store->index()->BoundConstant().IsSmi()) {
       return this;
     }
@@ -5289,12 +5321,14 @@ LoadIndexedInstr::LoadIndexedInstr(Value* array,
                                    intptr_t class_id,
                                    AlignmentType alignment,
                                    intptr_t deopt_id,
-                                   TokenPosition token_pos)
+                                   TokenPosition token_pos,
+                                   CompileType* result_type)
     : TemplateDefinition(deopt_id),
       index_scale_(index_scale),
       class_id_(class_id),
       alignment_(StrengthenAlignment(class_id, alignment)),
-      token_pos_(token_pos) {
+      token_pos_(token_pos),
+      result_type_(result_type) {
   SetInputAt(0, array);
   SetInputAt(1, index);
 }
@@ -5490,9 +5524,10 @@ LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
   ASSERT(((1 << CallingConventions::kFirstCalleeSavedCpuReg) &
           CallingConventions::kArgumentRegisters) == 0);
 
-#if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_IA32) ||                 \
-    defined(TARGET_ARCH_ARM)
+#if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_IA32)
   constexpr intptr_t kNumTemps = 2;
+#elif defined(TARGET_ARCH_ARM)
+  constexpr intptr_t kNumTemps = 3;
 #else
   constexpr intptr_t kNumTemps = 1;
 #endif
@@ -5510,6 +5545,10 @@ LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
     defined(TARGET_ARCH_ARM)
   summary->set_temp(1, Location::RegisterLocation(
                            CallingConventions::kFirstCalleeSavedCpuReg));
+#endif
+#if defined(TARGET_ARCH_ARM)
+  summary->set_temp(2, Location::RegisterLocation(
+                           CallingConventions::kSecondCalleeSavedCpuReg));
 #endif
   summary->set_out(0, compiler::ffi::ResultLocation(
                           compiler::ffi::ResultRepresentation(signature_)));

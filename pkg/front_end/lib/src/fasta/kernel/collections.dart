@@ -42,7 +42,7 @@ import '../type_inference/inference_helper.dart' show InferenceHelper;
 /// only appear as elements in list or set literals.  They are translated into
 /// a lower-level representation and never serialized to .dill files.
 mixin ControlFlowElement on Expression {
-  /// Spread and contol-flow elements are not expressions and do not have a
+  /// Spread and control-flow elements are not expressions and do not have a
   /// static type.
   @override
   DartType getStaticType(TypeEnvironment types) {

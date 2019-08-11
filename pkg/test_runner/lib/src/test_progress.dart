@@ -146,7 +146,7 @@ class UnexpectedCrashLogger extends EventListener {
       final binFile = File(binName);
       final binBaseName = Path(binName).filename;
       if (!archivedBinaries.containsKey(binName) && binFile.existsSync()) {
-        final archived = "binary.${mode}_${arch}_${binBaseName}";
+        final archived = "binary.${mode}_${arch}_$binBaseName";
         TestUtils.copyFile(Path(binName), Path(archived));
         // On Windows also copy PDB file for the binary.
         if (Platform.isWindows) {
@@ -163,7 +163,7 @@ class UnexpectedCrashLogger extends EventListener {
           File('${binFile.parent.path}/$kernelServiceBaseName');
       if (!archivedBinaries.containsKey(kernelService) &&
           kernelService.existsSync()) {
-        final archived = "binary.${mode}_${arch}_${kernelServiceBaseName}";
+        final archived = "binary.${mode}_${arch}_$kernelServiceBaseName";
         TestUtils.copyFile(Path(kernelService.path), Path(archived));
         archivedBinaries[kernelServiceBaseName] = archived;
       }
@@ -182,16 +182,16 @@ class UnexpectedCrashLogger extends EventListener {
           unexpectedCrashesFile =
               File('unexpected-crashes').openSync(mode: FileMode.append);
           unexpectedCrashesFile.writeStringSync(
-              "${test.displayName},${pid},${binaries.join(',')}\n");
+              "${test.displayName},$pid,${binaries.join(',')}\n");
         } catch (e) {
-          print('Failed to add crash to unexpected-crashes list: ${e}');
+          print('Failed to add crash to unexpected-crashes list: $e');
         } finally {
           try {
             if (unexpectedCrashesFile != null) {
               unexpectedCrashesFile.closeSync();
             }
           } catch (e) {
-            print('Failed to close unexpected-crashes file: ${e}');
+            print('Failed to close unexpected-crashes file: $e');
           }
         }
       }
@@ -202,8 +202,7 @@ class UnexpectedCrashLogger extends EventListener {
 class SummaryPrinter extends EventListener {
   final bool jsonOnly;
 
-  SummaryPrinter({bool jsonOnly})
-      : jsonOnly = (jsonOnly == null) ? false : jsonOnly;
+  SummaryPrinter({bool jsonOnly}) : jsonOnly = jsonOnly ?? false;
 
   void allTestsKnown() {
     if (jsonOnly) {
@@ -218,7 +217,7 @@ class SummaryPrinter extends EventListener {
 class TimingPrinter extends EventListener {
   final _commandToTestCases = <Command, List<TestCase>>{};
   final _commandOutputs = <CommandOutput>{};
-  DateTime _startTime;
+  final DateTime _startTime;
 
   TimingPrinter(this._startTime);
 
@@ -255,8 +254,8 @@ class TimingPrinter extends EventListener {
 }
 
 class StatusFileUpdatePrinter extends EventListener {
-  var statusToConfigs = <String, List<String>>{};
-  var _failureSummary = <String>[];
+  final Map<String, List<String>> statusToConfigs = {};
+  final List<String> _failureSummary = [];
 
   void done(TestCase test) {
     if (test.unexpectedOutput) {
@@ -404,7 +403,7 @@ class PassingStdoutPrinter extends EventListener {
         var commandOutput = test.commandOutputs[command];
         if (commandOutput == null) continue;
 
-        commandOutput.describe(test.configuration.progress, output);
+        commandOutput.describe(test, test.configuration.progress, output);
       }
       for (var line in lines) {
         print(line);
@@ -416,6 +415,12 @@ class PassingStdoutPrinter extends EventListener {
 }
 
 class ProgressIndicator extends EventListener {
+  final DateTime _startTime;
+  int _foundTests = 0;
+  int _passedTests = 0;
+  int _failedTests = 0;
+  bool _allTestsKnown = false;
+
   ProgressIndicator(this._startTime);
 
   static EventListener fromProgress(
@@ -456,12 +461,6 @@ class ProgressIndicator extends EventListener {
   void _printDoneProgress(TestCase test) {}
 
   int _completedTests() => _passedTests + _failedTests;
-
-  int _foundTests = 0;
-  int _passedTests = 0;
-  int _failedTests = 0;
-  bool _allTestsKnown = false;
-  DateTime _startTime;
 }
 
 abstract class CompactIndicator extends ProgressIndicator {
@@ -491,7 +490,7 @@ class CompactProgressIndicator extends CompactIndicator {
     var progressPadded = (_allTestsKnown ? percent : '--').padLeft(3);
     var passedPadded = _passedTests.toString().padLeft(5);
     var failedPadded = _failedTests.toString().padLeft(5);
-    var elapsed = (DateTime.now()).difference(_startTime);
+    var elapsed = DateTime.now().difference(_startTime);
     var progressLine = '\r[${_timeString(elapsed)} | $progressPadded% | '
         '+${_formatter.passed(passedPadded)} | '
         '-${_formatter.failed(failedPadded)}]';
@@ -562,31 +561,42 @@ class OutputWriter {
   final List<String> _lines;
   String _pendingSection;
   String _pendingSubsection;
+  bool _pendingLine = false;
 
   OutputWriter(this._formatter, this._lines);
 
   void section(String name) {
     _pendingSection = name;
     _pendingSubsection = null;
+    _pendingLine = false;
   }
 
   void subsection(String name) {
     _pendingSubsection = name;
+    _pendingLine = false;
   }
 
   void write(String line) {
-    _flushSection();
+    _writePending();
     _lines.add(line);
   }
 
   void writeAll(Iterable<String> lines) {
     if (lines.isEmpty) return;
-    _flushSection();
+    _writePending();
     _lines.addAll(lines);
   }
 
+  /// Writes a blank line that separates lines of output.
+  ///
+  /// If no output is written after this before the next section, subsection,
+  /// or end out output, doesn't write the line.
+  void separator() {
+    _pendingLine = true;
+  }
+
   /// Writes the current section header.
-  void _flushSection() {
+  void _writePending() {
     if (_pendingSection != null) {
       if (_lines.isNotEmpty) _lines.add("");
       _lines.add(_formatter.section("--- $_pendingSection:"));
@@ -597,6 +607,11 @@ class OutputWriter {
       _lines.add("");
       _lines.add(_formatter.section("$_pendingSubsection:"));
       _pendingSubsection = null;
+    }
+
+    if (_pendingLine) {
+      _lines.add("");
+      _pendingLine = false;
     }
   }
 }
@@ -654,7 +669,7 @@ void _writeFailureOutput(
     var time = niceTime(commandOutput.time);
     output.section('Command "${command.displayName}" (took $time)');
     output.write(command.toString());
-    commandOutput.describe(test.configuration.progress, output);
+    commandOutput.describe(test, test.configuration.progress, output);
   }
 }
 
@@ -686,7 +701,7 @@ String _buildSummaryEnd(Formatter formatter, int failedTests) {
   } else {
     var pluralSuffix = failedTests != 1 ? 's' : '';
     return formatter
-        .failed('\n===\n=== ${failedTests} test$pluralSuffix failed\n===\n');
+        .failed('\n===\n=== $failedTests test$pluralSuffix failed\n===\n');
   }
 }
 

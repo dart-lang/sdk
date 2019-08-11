@@ -32,7 +32,7 @@ class PostfixCompletionTest extends AbstractSingleUnitTest {
 
   void _assertHasChange(String message, String expectedCode, [Function cmp]) {
     if (change.message == message) {
-      if (!change.edits.isEmpty) {
+      if (change.edits.isNotEmpty) {
         String resultCode =
             SourceEdit.applySequence(testCode, change.edits[0].edits);
         expect(resultCode, expectedCode.replaceAll('/*caret*/', ''));
@@ -229,6 +229,36 @@ f() {
 ''');
   }
 
+  test_iter_List_dynamic() async {
+    await _prepareCompletion('.iter', '''
+f(List values) {
+  values.iter
+}
+''');
+    _assertHasChange('Expand .iter', '''
+f(List values) {
+  for (var value in values) {
+    /*caret*/
+  }
+}
+''');
+  }
+
+  test_iter_List_int() async {
+    await _prepareCompletion('.iter', '''
+f(List<int> values) {
+  values.iter
+}
+''');
+    _assertHasChange('Expand .iter', '''
+f(List<int> values) {
+  for (var value in values) {
+    /*caret*/
+  }
+}
+''');
+  }
+
   test_iterList() async {
     await _prepareCompletion('.iter', '''
 f() {
@@ -312,16 +342,9 @@ f() {
   }
 
   test_ifDynamic() async {
-    await _prepareCompletion('.if', '''
+    await _assertNotApplicable('.if', '''
 f(expr) {
   expr.if
-}
-''');
-    _assertHasChange('Expand .if', '''
-f(expr) {
-  if (expr) {
-    /*caret*/
-  }
 }
 ''');
   }
@@ -331,12 +354,12 @@ f(expr) {
 class _NegateTest extends PostfixCompletionTest {
   test_negate() async {
     await _prepareCompletion('.not', '''
-f(expr) {
+f(bool expr) {
   if (expr.not)
 }
 ''');
     _assertHasChange('Expand .not', '''
-f(expr) {
+f(bool expr) {
   if (!expr)
 }
 ''');
@@ -352,12 +375,12 @@ f(int expr) {
 
   test_negateCascade() async {
     await _prepareCompletion('.not', '''
-f(expr) {
+f(bool expr) {
   if (expr..a..b..c.not)
 }
 ''');
     _assertHasChange('Expand .not', '''
-f(expr) {
+f(bool expr) {
   if (!expr..a..b..c)
 }
 ''');
@@ -378,13 +401,29 @@ f(int i, int j) {
 
   test_negateProperty() async {
     await _prepareCompletion('.not', '''
-f(expr) {
-  if (expr.a.b.c.not)
+f(B b) {
+  if (b.a.f.not)
+}
+
+class A {
+  bool f;
+}
+`
+class B {
+  A a;
 }
 ''');
     _assertHasChange('Expand .not', '''
-f(expr) {
-  if (!expr.a.b.c)
+f(B b) {
+  if (!b.a.f)
+}
+
+class A {
+  bool f;
+}
+`
+class B {
+  A a;
 }
 ''');
   }
@@ -433,13 +472,13 @@ f() {
 class _NotNullTest extends PostfixCompletionTest {
   test_nn() async {
     await _prepareCompletion('.nn', '''
-f(expr) {
+f() {
   var list = [1,2,3];
   list.nn
 }
 ''');
     _assertHasChange('Expand .nn', '''
-f(expr) {
+f() {
   var list = [1,2,3];
   if (list != null) {
     /*caret*/
@@ -450,7 +489,7 @@ f(expr) {
 
   test_nn_invalid() async {
     await _assertNotApplicable('.nn', '''
-f(expr) {
+f() {
   var list = [1,2,3];
 }.nn
 ''');
@@ -491,14 +530,12 @@ f(expr) {
   test_null() async {
     await _prepareCompletion('.null', '''
 f(expr) {
-  var list = [1,2,3];
-  list.null
+  expr.null
 }
 ''');
     _assertHasChange('Expand .null', '''
 f(expr) {
-  var list = [1,2,3];
-  if (list == null) {
+  if (expr == null) {
     /*caret*/
   }
 }
@@ -695,12 +732,12 @@ f() {
 class _WhileTest extends PostfixCompletionTest {
   test_while() async {
     await _prepareCompletion('.while', '''
-f(expr) {
+f(bool expr) {
   expr.while
 }
 ''');
     _assertHasChange('Expand .while', '''
-f(expr) {
+f(bool expr) {
   while (expr) {
     /*caret*/
   }

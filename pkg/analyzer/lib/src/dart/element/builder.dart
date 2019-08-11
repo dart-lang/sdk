@@ -422,7 +422,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
         SimpleIdentifier methodName = node.name;
         String nameOfMethod = methodName.name;
         if (nameOfMethod == TokenType.MINUS.lexeme &&
-            node.parameters.parameters.length == 0) {
+            node.parameters.parameters.isEmpty) {
           nameOfMethod = "unary-";
         }
         MethodElementImpl element =

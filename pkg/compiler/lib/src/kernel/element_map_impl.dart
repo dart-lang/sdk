@@ -760,9 +760,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return _constantEvaluator ??= new Dart2jsConstantEvaluator(typeEnvironment,
         (ir.LocatedMessage message, List<ir.LocatedMessage> context) {
       reportLocatedMessage(reporter, message, context);
-    },
-        enableAsserts: options.enableUserAssertions,
-        environment: _environment.toMap());
+    }, environment: _environment.toMap());
   }
 
   @override
@@ -1034,7 +1032,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
         }
         return null;
       } else {
-        return constant.accept(_constantValuefier);
+        return _constantValuefier.visitConstant(constant);
       }
     }
 

@@ -17,6 +17,8 @@ import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_backend/runtime_types.dart' show RuntimeTypesEncoder;
+import '../js_backend/runtime_types_new.dart' show RecipeEncoder;
+import '../js_model/type_recipe.dart' show TypeExpressionRecipe;
 import '../options.dart';
 
 import 'code_emitter_task.dart' show Emitter;
@@ -101,6 +103,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
   final DiagnosticReporter reporter;
   final Emitter _emitter;
   final RuntimeTypesEncoder _rtiEncoder;
+  final RecipeEncoder _rtiRecipeEncoder;
   final JElementEnvironment _elementEnvironment;
 
   /// A map with a token per output unit for a list of expressions that
@@ -131,7 +134,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
       <OutputUnit, Map<DartType, _BoundMetadataEntry>>{};
 
   MetadataCollector(this._options, this.reporter, this._emitter,
-      this._rtiEncoder, this._elementEnvironment);
+      this._rtiEncoder, this._rtiRecipeEncoder, this._elementEnvironment);
 
   List<jsAst.DeferredNumber> reifyDefaultArguments(
       FunctionEntity function, OutputUnit outputUnit) {
@@ -192,10 +195,19 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     return representation;
   }
 
+  jsAst.Expression _computeTypeRepresentationNewRti(DartType type) {
+    return _rtiRecipeEncoder.encodeGroundRecipe(
+        _emitter, TypeExpressionRecipe(type));
+  }
+
   jsAst.Expression addTypeInOutputUnit(DartType type, OutputUnit outputUnit) {
     _typesMap[outputUnit] ??= new Map<DartType, _BoundMetadataEntry>();
     return _typesMap[outputUnit].putIfAbsent(type, () {
-      return new _BoundMetadataEntry(_computeTypeRepresentation(type));
+      if (_options.experimentNewRti) {
+        return new _BoundMetadataEntry(_computeTypeRepresentationNewRti(type));
+      } else {
+        return new _BoundMetadataEntry(_computeTypeRepresentation(type));
+      }
     });
   }
 

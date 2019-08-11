@@ -10,6 +10,7 @@
 
 #include "platform/assert.h"
 #include "vm/allocation.h"
+#include "vm/compiler/runtime_api.h"
 #include "vm/datastream.h"
 #include "vm/globals.h"
 #include "vm/growable_array.h"
@@ -313,9 +314,9 @@ class AssemblyImageWriter : public ImageWriter {
   void FrameUnwindPrologue();
   void FrameUnwindEpilogue();
   intptr_t WriteByteSequence(uword start, uword end);
-  void WriteWordLiteralText(uword value) {
+  void WriteWordLiteralText(compiler::target::uword value) {
 // Padding is helpful for comparing the .S with --disassemble.
-#if defined(ARCH_IS_64_BIT)
+#if defined(TARGET_ARCH_IS_64_BIT)
     assembly_stream_.Print(".quad 0x%0.16" Px "\n", value);
 #else
     assembly_stream_.Print(".long 0x%0.8" Px "\n", value);

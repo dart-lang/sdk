@@ -35,7 +35,7 @@ runTests(List<String> args, [int shardIndex]) {
         forUserLibrariesOnly: true,
         args: args,
         options: [stopAfterTypeInference],
-        testCFEConstants: true,
+        testedConfigs: allInternalConfigs,
         skipForStrong: skipForStrong,
         shardIndex: shardIndex ?? 0,
         shards: shardIndex != null ? 4 : 1);

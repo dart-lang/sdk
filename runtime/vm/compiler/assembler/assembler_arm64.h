@@ -2283,12 +2283,6 @@ class Assembler : public AssemblerBase {
 };
 
 }  // namespace compiler
-
-using compiler::Address;
-using compiler::FieldAddress;
-using compiler::Immediate;
-using compiler::Operand;
-
 }  // namespace dart
 
 #endif  // RUNTIME_VM_COMPILER_ASSEMBLER_ASSEMBLER_ARM64_H_

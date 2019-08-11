@@ -70,16 +70,14 @@ bool _inquireIs64Bit() native "Internal_inquireIs64Bit";
 
 @pragma("vm:entry-point", "call")
 @pragma("vm:exact-result-type", bool)
+@pragma("vm:prefer-inline")
 bool _classRangeCheck(int cid, int lowerLimit, int upperLimit) {
   return cid >= lowerLimit && cid <= upperLimit;
 }
 
-bool _classRangeCheckNegative(int cid, int lowerLimit, int upperLimit) {
-  return cid < lowerLimit || cid > upperLimit;
-}
-
 // Utility class now only used by the VM.
 class Lists {
+  @pragma("vm:prefer-inline")
   static void copy(List src, int srcStart, List dst, int dstStart, int count) {
     if (srcStart < dstStart) {
       for (int i = srcStart + count - 1, j = dstStart + count - 1;

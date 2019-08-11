@@ -25,7 +25,7 @@ main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(dataDir, new StaticTypeDataComputer(),
-        args: args, testOmit: false);
+        args: args, testedConfigs: [strongConfig]);
   });
 }
 
@@ -76,11 +76,6 @@ class StaticTypeIrComputer extends IrDataExtractor<String> {
   StaticTypeIrComputer(DiagnosticReporter reporter,
       Map<Id, ActualData<String>> actualMap, this.staticTypeCache)
       : super(reporter, actualMap);
-
-  @override
-  String computeMemberValue(Id id, ir.Member node) {
-    return null;
-  }
 
   @override
   String computeNodeValue(Id id, ir.TreeNode node) {

@@ -32,7 +32,7 @@ class ArgListContributorTest extends DartCompletionContributorTest {
    * the given [completion], [selectionOffset] and [selectionLength].
    */
   void assertSuggestArgumentAndCompletion(String name,
-      {String completion, int selectionOffset, int selectionLength: 0}) {
+      {String completion, int selectionOffset, int selectionLength = 0}) {
     CompletionSuggestion suggestion =
         suggestions.firstWhere((s) => s.parameterName == name);
     expect(suggestion, isNotNull);
@@ -77,9 +77,9 @@ class ArgListContributorTest extends DartCompletionContributorTest {
    */
   void assertSuggestArgumentsAndTypes(
       {Map<String, String> namedArgumentsWithTypes,
-      List<int> requiredParamIndices: const <int>[],
-      bool includeColon: true,
-      bool includeComma: false}) {
+      List<int> requiredParamIndices = const <int>[],
+      bool includeColon = true,
+      bool includeComma = false}) {
     List<CompletionSuggestion> expected = new List<CompletionSuggestion>();
     int paramIndex = 0;
     namedArgumentsWithTypes.forEach((String name, String type) {

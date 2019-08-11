@@ -25,6 +25,12 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool,
+            android_log_to_stderr,
+            false,
+            "Send Dart VM logs to stdout and stderr instead of the Android "
+            "system logs.");
+
 // Android CodeObservers.
 
 #ifndef PRODUCT
@@ -255,8 +261,12 @@ DART_NOINLINE uintptr_t OS::GetProgramCounter() {
 void OS::Print(const char* format, ...) {
   va_list args;
   va_start(args, format);
-  // Forward to the Android log for remote access.
-  __android_log_vprint(ANDROID_LOG_INFO, "DartVM", format, args);
+  if (FLAG_android_log_to_stderr) {
+    vfprintf(stderr, format, args);
+  } else {
+    // Forward to the Android log for remote access.
+    __android_log_vprint(ANDROID_LOG_INFO, "DartVM", format, args);
+  }
   va_end(args);
 }
 
@@ -332,8 +342,12 @@ void OS::RegisterCodeObservers() {
 void OS::PrintErr(const char* format, ...) {
   va_list args;
   va_start(args, format);
-  // Forward to the Android log for remote access.
-  __android_log_vprint(ANDROID_LOG_ERROR, "DartVM", format, args);
+  if (FLAG_android_log_to_stderr) {
+    vfprintf(stderr, format, args);
+  } else {
+    // Forward to the Android log for remote access.
+    __android_log_vprint(ANDROID_LOG_ERROR, "DartVM", format, args);
+  }
   va_end(args);
 }
 
@@ -344,6 +358,7 @@ void OS::Cleanup() {}
 void OS::PrepareToAbort() {}
 
 void OS::Abort() {
+  PrepareToAbort();
   abort();
 }
 

@@ -44,7 +44,7 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
   // Code accessing pp is generated, but not executed. Uninitialized pp is OK.
   __ set_constant_pool_allowed(true);
 
-  ObjectPoolBuilder& op = __ object_pool_builder();
+  compiler::ObjectPoolBuilder& op = __ object_pool_builder();
   const intptr_t ic_data_index =
       op.AddObject(ic_data, ObjectPool::Patchability::kPatchable);
   const intptr_t stub_index =
@@ -52,8 +52,9 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
   ASSERT((ic_data_index + 1) == stub_index);
   __ LoadDoubleWordFromPoolOffset(R5, CODE_REG,
                                   ObjectPool::element_offset(ic_data_index));
-  __ ldr(LR, FieldAddress(CODE_REG, Code::entry_point_offset(
-                                        Code::EntryKind::kMonomorphic)));
+  __ ldr(LR, compiler::FieldAddress(
+                 CODE_REG,
+                 Code::entry_point_offset(Code::EntryKind::kMonomorphic)));
   __ blr(LR);
   __ ret();
 }

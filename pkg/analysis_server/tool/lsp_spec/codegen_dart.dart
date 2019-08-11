@@ -59,7 +59,7 @@ String generateDartForTypes(List<AstNode> types) {
   return formattedCode.trim() + '\n'; // Ensure a single trailing newline.
 }
 
-TypeBase resolveTypeAlias(TypeBase type, {resolveEnumClasses: false}) {
+TypeBase resolveTypeAlias(TypeBase type, {resolveEnumClasses = false}) {
   if (type is Type && _typeAliases.containsKey(type.name)) {
     final alias = _typeAliases[type.name];
     // Only follow the type if we're not an enum, or we wanted to follow enums.

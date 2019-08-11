@@ -94,6 +94,7 @@ class ObjectPointerVisitor;
   V(DefaultLabel, ":L")                                                        \
   V(DotCreate, "._create")                                                     \
   V(DotRange, ".range")                                                        \
+  V(DotUnder, "._")                                                            \
   V(DotValue, ".value")                                                        \
   V(DotWithType, "._withType")                                                 \
   V(Double, "double")                                                          \
@@ -193,7 +194,6 @@ class ObjectPointerVisitor;
   V(List, "List")                                                              \
   V(ListFactory, "List.")                                                      \
   V(ListLiteralFactory, "List._fromLiteral")                                   \
-  V(LoadLibrary, "loadLibrary")                                                \
   V(LocalVarDescriptors, "LocalVarDescriptors")                                \
   V(Map, "Map")                                                                \
   V(MapLiteralFactory, "Map._fromLiteral")                                     \
@@ -331,7 +331,7 @@ class ObjectPointerVisitor;
   V(_Float64x2List, "_Float64x2List")                                          \
   V(_GrowableList, "_GrowableList")                                            \
   V(_GrowableListFactory, "_GrowableList.")                                    \
-  V(_GrowableListWithData, "_GrowableList.withData")                           \
+  V(_GrowableListWithData, "_GrowableList._withData")                          \
   V(_ImmutableList, "_ImmutableList")                                          \
   V(_Int16ArrayFactory, "Int16List.")                                          \
   V(_Int16ArrayView, "_Int16ArrayView")                                        \
@@ -404,7 +404,6 @@ class ObjectPointerVisitor;
   V(_UserTag, "_UserTag")                                                      \
   V(_WeakProperty, "_WeakProperty")                                            \
   V(_classRangeCheck, "_classRangeCheck")                                      \
-  V(_classRangeCheckNegative, "_classRangeCheckNegative")                      \
   V(_current, "_current")                                                      \
   V(_ensureScheduleImmediate, "_ensureScheduleImmediate")                      \
   V(_get, "_get")                                                              \
@@ -451,8 +450,10 @@ class ObjectPointerVisitor;
   V(string_param, ":string_param")                                             \
   V(string_param_length, ":string_param_length")                               \
   V(toString, "toString")                                                      \
+  V(vm_prefer_inline, "vm:prefer-inline")                                      \
   V(vm_entry_point, "vm:entry-point")                                          \
   V(vm_exact_result_type, "vm:exact-result-type")                              \
+  V(vm_never_inline, "vm:never-inline")                                        \
   V(vm_non_nullable_result_type, "vm:non-nullable-result-type")                \
   V(vm_trace_entrypoints, "vm:testing.unsafe.trace-entrypoints-fn")
 

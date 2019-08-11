@@ -37,6 +37,7 @@ class Definition;
 class Environment;
 class FlowGraph;
 class FlowGraphCompiler;
+class FlowGraphSerializer;
 class FlowGraphVisitor;
 class Instruction;
 class LocalVariable;
@@ -45,6 +46,8 @@ class ParsedFunction;
 class Range;
 class RangeAnalysis;
 class RangeBoundary;
+class SExpression;
+class SExpList;
 class UnboxIntegerInstr;
 class TypeUsageInfo;
 
@@ -123,7 +126,11 @@ class Value : public ZoneAllocated {
   void SetReachingType(CompileType* type);
   void RefineReachingType(CompileType* type);
 
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
   void PrintTo(BufferFormatter* f) const;
+#endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+
+  SExpression* ToSExpression(FlowGraphSerializer* s) const;
 
   const char* ToCString() const;
 
@@ -530,6 +537,17 @@ FOR_EACH_ABSTRACT_INSTRUCTION(FORWARD_DECLARATION)
 #define PRINT_OPERANDS_TO_SUPPORT
 #endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 
+#define TO_S_EXPRESSION_SUPPORT                                                \
+  virtual SExpression* ToSExpression(FlowGraphSerializer* s) const;
+
+#define ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT                                   \
+  virtual void AddOperandsToSExpression(SExpList* sexp,                        \
+                                        FlowGraphSerializer* s) const;
+
+#define ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT                                 \
+  virtual void AddExtraInfoToSExpression(SExpList* sexp,                       \
+                                         FlowGraphSerializer* s) const;
+
 // Together with CidRange, this represents a mapping from a range of class-ids
 // to a method for a given selector (method name).  Also can contain an
 // indication of how frequently a given method has been called at a call site.
@@ -761,6 +779,11 @@ class Instruction : public ZoneAllocated {
   virtual void PrintTo(BufferFormatter* f) const;
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 #endif
+  virtual SExpression* ToSExpression(FlowGraphSerializer* s) const;
+  virtual void AddOperandsToSExpression(SExpList* sexp,
+                                        FlowGraphSerializer* s) const;
+  virtual void AddExtraInfoToSExpression(SExpList* sexp,
+                                         FlowGraphSerializer* s) const;
 
 #define DECLARE_INSTRUCTION_TYPE_CHECK(Name, Type)                             \
   bool Is##Name() { return (As##Name() != NULL); }                             \
@@ -807,6 +830,7 @@ class Instruction : public ZoneAllocated {
   Environment* env() const { return env_; }
   void SetEnvironment(Environment* deopt_env);
   void RemoveEnvironment();
+  void ReplaceInEnvironment(Definition* current, Definition* replacement);
 
   intptr_t lifetime_position() const { return lifetime_position_; }
   void set_lifetime_position(intptr_t pos) { lifetime_position_ = pos; }
@@ -989,9 +1013,9 @@ class Instruction : public ZoneAllocated {
 };
 
 struct BranchLabels {
-  Label* true_label;
-  Label* false_label;
-  Label* fall_through;
+  compiler::Label* true_label;
+  compiler::Label* false_label;
+  compiler::Label* fall_through;
 };
 
 class PureInstruction : public Instruction {
@@ -1270,6 +1294,10 @@ class BlockEntryInstr : public Instruction {
 
   DEFINE_INSTRUCTION_TYPE_CHECK(BlockEntry)
 
+  TO_S_EXPRESSION_SUPPORT
+  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
+  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
+
  protected:
   BlockEntryInstr(intptr_t block_id, intptr_t try_index, intptr_t deopt_id)
       : Instruction(deopt_id),
@@ -1524,6 +1552,7 @@ class JoinEntryInstr : public BlockEntryInstr {
   virtual bool HasUnknownSideEffects() const { return false; }
 
   PRINT_TO_SUPPORT
+  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
 
  private:
   // Classes that have access to predecessors_ when inlining.
@@ -1931,6 +1960,7 @@ class Definition : public Instruction {
 
   PRINT_OPERANDS_TO_SUPPORT
   PRINT_TO_SUPPORT
+  TO_S_EXPRESSION_SUPPORT
 
   bool UpdateType(CompileType new_type) {
     if (type_ == nullptr) {
@@ -2199,11 +2229,12 @@ class PhiInstr : public Definition {
 };
 
 // This instruction represents an incomming parameter for a function entry,
-// or incomming value for OSR entry or incomming value for a catch entry.
-// When [base_reg] is set to FPREG [index] corresponds to environment
-// variable index (0 is the very first parameter, 1 is next and so on).
-// When [base_reg] is set to SPREG [index] corresponds to SP relative parameter
-// indices (0 is the very last parameter, 1 is next and so on).
+// or incoming value for OSR entry or incomming value for a catch entry.
+// Value [index] always denotes the position of the parameter. When [base_reg]
+// is set to FPREG, value [index] corresponds to environment variable index
+// (0 is the very first parameter, 1 is next and so on). When [base_reg] is
+// set to SPREG, value [index] needs to be reversed (0 is the very last
+// parameter, 1 is next and so on) to get the sp relative position.
 class ParameterInstr : public Definition {
  public:
   ParameterInstr(intptr_t index,
@@ -2240,6 +2271,7 @@ class ParameterInstr : public Definition {
   virtual bool MayThrow() const { return false; }
 
   PRINT_OPERANDS_TO_SUPPORT
+  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
 
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value) { UNREACHABLE(); }
@@ -2344,6 +2376,7 @@ class StoreIndexedUnsafeInstr : public TemplateInstruction<2, NoThrow> {
   intptr_t offset() const { return offset_; }
 
   PRINT_OPERANDS_TO_SUPPORT
+  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  private:
   const intptr_t offset_;
@@ -2392,6 +2425,7 @@ class LoadIndexedUnsafeInstr : public TemplateDefinition<1, NoThrow> {
   intptr_t offset() const { return offset_; }
 
   PRINT_OPERANDS_TO_SUPPORT
+  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  private:
   const intptr_t offset_;
@@ -2443,6 +2477,7 @@ class TailCallInstr : public Instruction {
   virtual bool ComputeCanDeoptimize() const { return false; }
 
   PRINT_OPERANDS_TO_SUPPORT
+  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
 
  private:
   const Code& code_;
@@ -2664,6 +2699,7 @@ class GotoInstr : public TemplateInstruction<0, NoThrow> {
   }
 
   PRINT_TO_SUPPORT
+  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
 
  private:
   BlockEntryInstr* block_;
@@ -2784,6 +2820,8 @@ class ComparisonInstr : public Definition {
     return kind() == other_comparison->kind() &&
            (operation_cid() == other_comparison->operation_cid());
   }
+
+  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
 
   DEFINE_INSTRUCTION_TYPE_CHECK(Comparison)
 
@@ -2907,6 +2945,7 @@ class BranchInstr : public Instruction {
   virtual BlockEntryInstr* SuccessorAt(intptr_t index) const;
 
   PRINT_TO_SUPPORT
+  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
 
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value) {
@@ -3046,6 +3085,7 @@ class ConstantInstr : public TemplateDefinition<0, NoThrow, Pure> {
                           Register tmp = kNoRegister);
 
   PRINT_OPERANDS_TO_SUPPORT
+  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
 
  private:
   const Object& value_;
@@ -3263,6 +3303,7 @@ class SpecialParameterInstr : public TemplateDefinition<0, NoThrow> {
   const char* ToCString() const;
 
   PRINT_OPERANDS_TO_SUPPORT
+  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
 
   static const char* KindToCString(SpecialParameterKind kind) {
     switch (kind) {
@@ -3356,6 +3397,8 @@ class TemplateDartCall : public TemplateDefinition<kInputCount, Throws> {
     return ArgumentsDescriptor::New(
         type_args_len(), ArgumentCountWithoutTypeArgs(), argument_names());
   }
+
+  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  private:
   intptr_t type_args_len_;
@@ -3531,6 +3574,7 @@ class InstanceCallInstr : public TemplateDartCall<0> {
   }
 
   PRINT_OPERANDS_TO_SUPPORT
+  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
 
   bool MatchesCoreName(const String& name);
 
@@ -3630,6 +3674,8 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
   Code::EntryKind entry_kind() const { return instance_call()->entry_kind(); }
 
   PRINT_OPERANDS_TO_SUPPORT
+  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
+  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  private:
   InstanceCallInstr* instance_call_;
@@ -4029,6 +4075,11 @@ class StaticCallInstr : public TemplateDartCall<0> {
 
   virtual bool HasUnknownSideEffects() const { return true; }
 
+  // Initialize result type of this call instruction if target is a recognized
+  // method or has pragma annotation.
+  // Returns true on success, false if result type is still unknown.
+  bool InitResultType(Zone* zone);
+
   void SetResultType(Zone* zone, CompileType new_type) {
     result_type_ = new (zone) CompileType(new_type);
   }
@@ -4057,6 +4108,7 @@ class StaticCallInstr : public TemplateDartCall<0> {
   virtual void SetIdentity(AliasIdentity identity) { identity_ = identity; }
 
   PRINT_OPERANDS_TO_SUPPORT
+  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
 
  private:
   const ICData* ic_data_;
@@ -4098,6 +4150,7 @@ class LoadLocalInstr : public TemplateDefinition<0, NoThrow> {
   virtual TokenPosition token_pos() const { return token_pos_; }
 
   PRINT_OPERANDS_TO_SUPPORT
+  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
 
  private:
   const LocalVariable& local_;
@@ -4231,6 +4284,7 @@ class StoreLocalInstr : public TemplateDefinition<1, NoThrow> {
   virtual TokenPosition token_pos() const { return token_pos_; }
 
   PRINT_OPERANDS_TO_SUPPORT
+  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
 
  private:
   const LocalVariable& local_;
@@ -4281,6 +4335,7 @@ class NativeCallInstr : public TemplateDartCall<0> {
   void SetupNative();
 
   PRINT_OPERANDS_TO_SUPPORT
+  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
 
  private:
   void set_native_c_function(NativeFunction value) {
@@ -4344,6 +4399,15 @@ class FfiCallInstr : public Definition {
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const;
   virtual Representation representation() const;
+
+  // Returns true if we can assume generated code will be executable during a
+  // safepoint.
+  //
+  // TODO(#37739): This should be true when dual-mapping is enabled as well, but
+  // there are some bugs where it still switches code protections currently.
+  static bool CanExecuteGeneratedCodeInSafepoint() {
+    return FLAG_precompiled_mode;
+  }
 
   PRINT_OPERANDS_TO_SUPPORT
 
@@ -4496,18 +4560,19 @@ class StoreInstanceFieldInstr : public TemplateInstruction<2, NoThrow> {
   virtual Representation RequiredInputRepresentation(intptr_t index) const;
 
   PRINT_OPERANDS_TO_SUPPORT
+  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
 
  private:
   friend class JitCallSpecializer;  // For ASSERT(initialization_).
 
   intptr_t OffsetInBytes() const { return slot().offset_in_bytes(); }
 
-  Assembler::CanBeSmi CanValueBeSmi() const {
+  compiler::Assembler::CanBeSmi CanValueBeSmi() const {
     const intptr_t cid = value()->Type()->ToNullableCid();
     // Write barrier is skipped for nullable and non-nullable smis.
     ASSERT(cid != kSmiCid);
-    return cid == kDynamicCid ? Assembler::kValueCanBeSmi
-                              : Assembler::kValueIsNotSmi;
+    return cid == kDynamicCid ? compiler::Assembler::kValueCanBeSmi
+                              : compiler::Assembler::kValueIsNotSmi;
   }
 
   const Slot& slot_;
@@ -4667,12 +4732,12 @@ class StoreStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
-  Assembler::CanBeSmi CanValueBeSmi() const {
+  compiler::Assembler::CanBeSmi CanValueBeSmi() const {
     const intptr_t cid = value()->Type()->ToNullableCid();
     // Write barrier is skipped for nullable and non-nullable smis.
     ASSERT(cid != kSmiCid);
-    return cid == kDynamicCid ? Assembler::kValueCanBeSmi
-                              : Assembler::kValueIsNotSmi;
+    return cid == kDynamicCid ? compiler::Assembler::kValueCanBeSmi
+                              : compiler::Assembler::kValueIsNotSmi;
   }
 
   const Field& field_;
@@ -4694,7 +4759,8 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
                    intptr_t class_id,
                    AlignmentType alignment,
                    intptr_t deopt_id,
-                   TokenPosition token_pos);
+                   TokenPosition token_pos,
+                   CompileType* result_type = nullptr);
 
   TokenPosition token_pos() const { return token_pos_; }
 
@@ -4727,11 +4793,14 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
+  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
+
  private:
   const intptr_t index_scale_;
   const intptr_t class_id_;
   const AlignmentType alignment_;
   const TokenPosition token_pos_;
+  CompileType* result_type_;  // derived from call
 
   DISALLOW_COPY_AND_ASSIGN(LoadIndexedInstr);
 };
@@ -4938,9 +5007,11 @@ class StoreIndexedInstr : public TemplateInstruction<3, NoThrow> {
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
+  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
+
  private:
-  Assembler::CanBeSmi CanValueBeSmi() const {
-    return Assembler::kValueCanBeSmi;
+  compiler::Assembler::CanBeSmi CanValueBeSmi() const {
+    return compiler::Assembler::kValueCanBeSmi;
   }
 
   const StoreBarrierType emit_store_barrier_;
@@ -5098,6 +5169,8 @@ class AllocateObjectInstr : public TemplateAllocation<0, NoThrow> {
   }
 
   PRINT_OPERANDS_TO_SUPPORT
+  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
+  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  private:
   const TokenPosition token_pos_;
@@ -5467,6 +5540,7 @@ class LoadFieldInstr : public TemplateDefinition<1, NoThrow> {
   virtual bool AttributesEqual(Instruction* other) const;
 
   PRINT_OPERANDS_TO_SUPPORT
+  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
 
  private:
   intptr_t OffsetInBytes() const { return slot().offset_in_bytes(); }
@@ -5562,27 +5636,25 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<2, Throws> {
 class AllocateContextInstr : public TemplateAllocation<0, NoThrow> {
  public:
   AllocateContextInstr(TokenPosition token_pos,
-                       const GrowableArray<LocalVariable*>& context_variables)
-      : token_pos_(token_pos), context_variables_(context_variables) {}
+                       const ZoneGrowableArray<const Slot*>& context_slots)
+      : token_pos_(token_pos), context_slots_(context_slots) {}
 
   DECLARE_INSTRUCTION(AllocateContext)
   virtual CompileType ComputeType() const;
 
   virtual TokenPosition token_pos() const { return token_pos_; }
-  const GrowableArray<LocalVariable*>& context_variables() const {
-    return context_variables_;
+  const ZoneGrowableArray<const Slot*>& context_slots() const {
+    return context_slots_;
   }
 
-  intptr_t num_context_variables() const {
-    return context_variables().length();
-  }
+  intptr_t num_context_variables() const { return context_slots().length(); }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool WillAllocateNewOrRemembered() const {
-    return WillAllocateNewOrRemembered(context_variables().length());
+    return WillAllocateNewOrRemembered(context_slots().length());
   }
 
   static bool WillAllocateNewOrRemembered(intptr_t num_context_variables) {
@@ -5595,7 +5667,7 @@ class AllocateContextInstr : public TemplateAllocation<0, NoThrow> {
 
  private:
   const TokenPosition token_pos_;
-  const GrowableArray<LocalVariable*>& context_variables_;
+  const ZoneGrowableArray<const Slot*>& context_slots_;
 
   DISALLOW_COPY_AND_ASSIGN(AllocateContextInstr);
 };
@@ -5629,19 +5701,19 @@ class CloneContextInstr : public TemplateDefinition<1, NoThrow> {
  public:
   CloneContextInstr(TokenPosition token_pos,
                     Value* context_value,
-                    const GrowableArray<LocalVariable*>& context_variables,
+                    const ZoneGrowableArray<const Slot*>& context_slots,
                     intptr_t deopt_id)
       : TemplateDefinition(deopt_id),
         token_pos_(token_pos),
-        context_variables_(context_variables) {
+        context_slots_(context_slots) {
     SetInputAt(0, context_value);
   }
 
   virtual TokenPosition token_pos() const { return token_pos_; }
   Value* context_value() const { return inputs_[0]; }
 
-  const GrowableArray<LocalVariable*>& context_variables() const {
-    return context_variables_;
+  const ZoneGrowableArray<const Slot*>& context_slots() const {
+    return context_slots_;
   }
 
   DECLARE_INSTRUCTION(CloneContext)
@@ -5653,7 +5725,7 @@ class CloneContextInstr : public TemplateDefinition<1, NoThrow> {
 
  private:
   const TokenPosition token_pos_;
-  const GrowableArray<LocalVariable*>& context_variables_;
+  const ZoneGrowableArray<const Slot*>& context_slots_;
 
   DISALLOW_COPY_AND_ASSIGN(CloneContextInstr);
 };
@@ -6307,6 +6379,7 @@ class DoubleTestOpInstr : public TemplateComparison<1, NoThrow, Pure> {
   }
 
   PRINT_OPERANDS_TO_SUPPORT
+  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
 
   DECLARE_COMPARISON_INSTRUCTION(DoubleTestOp)
 
@@ -6473,6 +6546,7 @@ class CheckedSmiOpInstr : public TemplateDefinition<2, Throws> {
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   PRINT_OPERANDS_TO_SUPPORT
+  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
 
   DECLARE_INSTRUCTION(CheckedSmiOp)
 
@@ -6592,6 +6666,7 @@ class BinaryIntegerOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
   virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
 
   PRINT_OPERANDS_TO_SUPPORT
+  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
 
   DEFINE_INSTRUCTION_TYPE_CHECK(BinaryIntegerOp)
 
@@ -7026,6 +7101,7 @@ class CheckStackOverflowInstr : public TemplateInstruction<0, NoThrow> {
   }
 
   PRINT_OPERANDS_TO_SUPPORT
+  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  private:
   const TokenPosition token_pos_;
@@ -7492,15 +7568,15 @@ class CheckClassInstr : public TemplateInstruction<1, NoThrow> {
                    intptr_t cid_start,
                    intptr_t cid_end,
                    bool is_last,
-                   Label* is_ok,
-                   Label* deopt,
+                   compiler::Label* is_ok,
+                   compiler::Label* deopt,
                    bool use_near_jump);
   void EmitBitTest(FlowGraphCompiler* compiler,
                    intptr_t min,
                    intptr_t max,
                    intptr_t mask,
-                   Label* deopt);
-  void EmitNullCheck(FlowGraphCompiler* compiler, Label* deopt);
+                   compiler::Label* deopt);
+  void EmitNullCheck(FlowGraphCompiler* compiler, compiler::Label* deopt);
 
   DISALLOW_COPY_AND_ASSIGN(CheckClassInstr);
 };
@@ -7888,10 +7964,10 @@ class UnboxedWidthExtenderInstr : public TemplateDefinition<1, NoThrow, Pure> {
       : TemplateDefinition(DeoptId::kNone),
         representation_(rep),
         from_representation_(from_rep) {
-    ASSERT(rep == kUnboxedInt32 && (from_rep == kSmallUnboxedInt8 ||
-                                    from_rep == kSmallUnboxedInt16) ||
-           rep == kUnboxedUint32 && (from_rep == kSmallUnboxedUint8 ||
-                                     from_rep == kSmallUnboxedUint16));
+    ASSERT((rep == kUnboxedInt32 && (from_rep == kSmallUnboxedInt8 ||
+                                     from_rep == kSmallUnboxedInt16)) ||
+           (rep == kUnboxedUint32 && (from_rep == kSmallUnboxedUint8 ||
+                                      from_rep == kSmallUnboxedUint16)));
     SetInputAt(0, value);
   }
 
@@ -8140,6 +8216,8 @@ class SimdOpInstr : public Definition {
 
   DECLARE_INSTRUCTION(SimdOp)
   PRINT_OPERANDS_TO_SUPPORT
+  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
+  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  private:
   SimdOpInstr(Kind kind, intptr_t deopt_id)
@@ -8354,6 +8432,7 @@ class Environment : public ZoneAllocated {
                        Definition* result) const;
 
   void PrintTo(BufferFormatter* f) const;
+  SExpression* ToSExpression(FlowGraphSerializer* s) const;
   const char* ToCString() const;
 
   // Deep copy an environment.  The 'length' parameter may be less than the

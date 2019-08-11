@@ -1832,7 +1832,7 @@ const Code<Null> codeConstructorCyclic = messageConstructorCyclic;
 const MessageCode messageConstructorCyclic = const MessageCode(
     "ConstructorCyclic",
     analyzerCodes: <String>["RECURSIVE_CONSTRUCTOR_REDIRECT"],
-    message: r"""Redirecting constructers can't be cyclic.""",
+    message: r"""Redirecting constructors can't be cyclic.""",
     tip:
         r"""Try to have all constructors eventually redirect to a non-redirecting constructor.""");
 
@@ -2700,7 +2700,8 @@ Message _withArgumentsDuplicatedLibraryImportContext(String name) {
 const Template<Message Function(Token token)> templateDuplicatedModifier =
     const Template<Message Function(Token token)>(
         messageTemplate: r"""The modifier '#lexeme' was already specified.""",
-        tipTemplate: r"""Try removing all but one occurence of the modifier.""",
+        tipTemplate:
+            r"""Try removing all but one occurrence of the modifier.""",
         withArguments: _withArgumentsDuplicatedModifier);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2714,7 +2715,7 @@ Message _withArgumentsDuplicatedModifier(Token token) {
   String lexeme = token.lexeme;
   return new Message(codeDuplicatedModifier,
       message: """The modifier '${lexeme}' was already specified.""",
-      tip: """Try removing all but one occurence of the modifier.""",
+      tip: """Try removing all but one occurrence of the modifier.""",
       arguments: {'token': token});
 }
 
@@ -3615,7 +3616,7 @@ const MessageCode messageFastaUsageLong =
 
     When specified, the compiler can be invoked with inputs using the custom
     URI scheme. The compiler can ignore the exact location of files on disk
-    and as a result to produce output that is independendent of the absolute
+    and as a result to produce output that is independent of the absolute
     location of files on disk. This is mostly useful for integrating with
     build systems.
 
@@ -3741,6 +3742,33 @@ Message _withArgumentsFfiFieldInitializer(String name) {
   return new Message(codeFfiFieldInitializer,
       message:
           """Field '${name}' is a dart:ffi Pointer to a struct field and therefore cannot be initialized before constructor execution.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateFfiFieldNoAnnotation = const Template<
+        Message Function(String name)>(
+    messageTemplate:
+        r"""Field '#name' requires no annotation to declare its C++ type, it is a Pointer which is represented by the same type in Dart and C++.""",
+    withArguments: _withArgumentsFfiFieldNoAnnotation);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeFfiFieldNoAnnotation =
+    const Code<Message Function(String name)>(
+  "FfiFieldNoAnnotation",
+  templateFfiFieldNoAnnotation,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFfiFieldNoAnnotation(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeFfiFieldNoAnnotation,
+      message:
+          """Field '${name}' requires no annotation to declare its C++ type, it is a Pointer which is represented by the same type in Dart and C++.""",
       arguments: {'name': name});
 }
 
@@ -6541,6 +6569,54 @@ Message _withArgumentsLabelNotFound(String name) {
       tip:
           """Try defining the label, or correcting the name to match an existing label.""",
       arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeLanguageVersionInvalidInDotPackages =
+    messageLanguageVersionInvalidInDotPackages;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageLanguageVersionInvalidInDotPackages = const MessageCode(
+    "LanguageVersionInvalidInDotPackages",
+    message:
+        r"""The language version is not specified correctly in the .packages file.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeLanguageVersionMismatchInPart =
+    messageLanguageVersionMismatchInPart;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageLanguageVersionMismatchInPart = const MessageCode(
+    "LanguageVersionMismatchInPart",
+    message:
+        r"""The language version override has to be the same in the library and its part(s).""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        int count,
+        int
+            count2)> templateLanguageVersionTooHigh = const Template<
+        Message Function(int count, int count2)>(
+    messageTemplate:
+        r"""The specified language version is too high. The highest supported language version is #count.#count2.""",
+    withArguments: _withArgumentsLanguageVersionTooHigh);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(int count, int count2)> codeLanguageVersionTooHigh =
+    const Code<Message Function(int count, int count2)>(
+  "LanguageVersionTooHigh",
+  templateLanguageVersionTooHigh,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsLanguageVersionTooHigh(int count, int count2) {
+  if (count == null) throw 'No count provided';
+  if (count2 == null) throw 'No count provided';
+  return new Message(codeLanguageVersionTooHigh,
+      message:
+          """The specified language version is too high. The highest supported language version is ${count}.${count2}.""",
+      arguments: {'count': count, 'count2': count2});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

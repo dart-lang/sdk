@@ -331,7 +331,7 @@ interface LocationLink {
 	/**
 	 * The target resource identifier of this link.
 	 */
-	targetUri: string;
+	targetUri: DocumentUri;
 
 	/**
 	 * The full target range of this link. If the target for example is a symbol then target range is the
@@ -529,7 +529,7 @@ export interface CreateFile {
 	/**
 	 * The resource to create.
 	 */
-	uri: string;
+	uri: DocumentUri;
 	/**
 	 * Additional options
 	 */
@@ -561,11 +561,11 @@ export interface RenameFile {
 	/**
 	 * The old (existing) location.
 	 */
-	oldUri: string;
+	oldUri: DocumentUri;
 	/**
 	 * The new location.
 	 */
-	newUri: string;
+	newUri: DocumentUri;
 	/**
 	 * Rename options.
 	 */
@@ -597,7 +597,7 @@ export interface DeleteFile {
 	/**
 	 * The file to delete.
 	 */
-	uri: string;
+	uri: DocumentUri;
 	/**
 	 * Delete options.
 	 */
@@ -614,7 +614,7 @@ export interface WorkspaceEdit {
 	/**
 	 * Holds changes to existing resources.
 	 */
-	changes?: { [uri: string]: TextEdit[]; };
+	changes?: { [uri: DocumentUri]: TextEdit[]; };
 
 	/**
 	 * Depending on the client capability `workspace.workspaceEdit.resourceOperations` document changes
@@ -1001,14 +1001,14 @@ export namespace FailureHandlingKind {
 	export const Abort: FailureHandlingKind = 'abort';
 
 	/**
-	 * All operations are executed transactional. That means they either all
+	 * All operations are executed transactionally. That means they either all
 	 * succeed or no changes at all are applied to the workspace.
 	 */
 	export const Transactional: FailureHandlingKind = 'transactional';
 
 
 	/**
-	 * If the workspace edit contains only textual file changes they are executed transactional.
+	 * If the workspace edit contains only textual file changes they are executed transactionally.
 	 * If resource changes (create, rename or delete file) are part of the change the failure
 	 * handling strategy is abort.
 	 */
@@ -1016,7 +1016,7 @@ export namespace FailureHandlingKind {
 
 	/**
 	 * The client tries to undo the operations already executed. But there is no
-	 * guarantee that this is succeeding.
+	 * guarantee that this succeeds.
 	 */
 	export const Undo: FailureHandlingKind = 'undo';
 }
@@ -1952,7 +1952,7 @@ interface InitializedParams {
 
 #### <a href="#shutdown" name="shutdown" class="anchor">Shutdown Request (:leftwards_arrow_with_hook:)</a>
 
-The shutdown request is sent from the client to the server. It asks the server to shut down, but to not exit (otherwise the response might not be delivered correctly to the client). There is a separate exit notification that asks the server to exit. Clients must not sent any notifications other than `exit` or requests to a server to which they have sent a shutdown requests. If a server receives requests after a shutdown request those requests should be errored with `InvalidRequest`.
+The shutdown request is sent from the client to the server. It asks the server to shut down, but to not exit (otherwise the response might not be delivered correctly to the client). There is a separate exit notification that asks the server to exit. Clients must not send any notifications other than `exit` or requests to a server to which they have sent a shutdown requests. If a server receives requests after a shutdown request those requests should be errored with `InvalidRequest`.
 
 _Request_:
 * method: 'shutdown'
@@ -2239,7 +2239,7 @@ export interface WorkspaceFolder {
 	/**
 	 * The associated URI for this workspace folder.
 	 */
-	uri: string;
+	uri: DocumentUri;
 
 	/**
 	 * The name of the workspace folder. Used to refer to this
@@ -2330,7 +2330,7 @@ export interface ConfigurationItem {
 	/**
 	 * The scope to get the configuration section for.
 	 */
-	scopeUri?: string;
+	scopeUri?: DocumentUri;
 
 	/**
 	 * The configuration section asked for.
@@ -2971,8 +2971,6 @@ interface CompletionItem {
 	 * and a completion item with an `insertText` of `console` is provided it
 	 * will only insert `sole`. Therefore it is recommended to use `textEdit` instead
 	 * since it avoids additional client side interpretation.
-	 *
-	 * @deprecated Use textEdit instead.
 	 */
 	insertText?: string;
 

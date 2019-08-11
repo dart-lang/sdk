@@ -14,7 +14,7 @@ enum FunctionKind {
   implicitGetter,
   implicitSetter,
   implicitStaticGetter,
-  staticFieldInitializer,
+  fieldInitializer,
   irregexpFunction,
   methodExtractor,
   noSuchMethodDispatcher,

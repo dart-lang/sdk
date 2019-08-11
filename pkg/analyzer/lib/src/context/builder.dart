@@ -362,7 +362,7 @@ class ContextBuilder {
       Map<Folder, YamlMap> embedderYamls = locator.embedderYamls;
       EmbedderSdk embedderSdk =
           new EmbedderSdk(resourceProvider, embedderYamls);
-      if (embedderSdk.sdkLibraries.length > 0) {
+      if (embedderSdk.sdkLibraries.isNotEmpty) {
         //
         // There is an embedder file that defines the content of the SDK and
         // there might be an extension file that extends it.

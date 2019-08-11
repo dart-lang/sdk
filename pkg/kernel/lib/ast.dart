@@ -284,6 +284,24 @@ class Library extends NamedNode
   /// The URI of the source file this library was loaded from.
   Uri fileUri;
 
+  // TODO(jensj): Do we have a better option than this?
+  static int defaultLangaugeVersionMajor = 2;
+  static int defaultLangaugeVersionMinor = 4;
+
+  int _languageVersionMajor;
+  int _languageVersionMinor;
+  int get languageVersionMajor =>
+      _languageVersionMajor ?? defaultLangaugeVersionMajor;
+  int get languageVersionMinor =>
+      _languageVersionMinor ?? defaultLangaugeVersionMinor;
+  void setLanguageVersion(int languageVersionMajor, int languageVersionMinor) {
+    if (languageVersionMajor == null || languageVersionMinor == null) {
+      throw new StateError("Trying to set langauge version 'null'");
+    }
+    _languageVersionMajor = languageVersionMajor;
+    _languageVersionMinor = languageVersionMinor;
+  }
+
   static const int ExternalFlag = 1 << 0;
   static const int SyntheticFlag = 1 << 1;
 
@@ -1631,6 +1649,7 @@ class Procedure extends Member {
       bool isConst: false,
       bool isForwardingStub: false,
       bool isForwardingSemiStub: false,
+      bool isExtensionMethod: false,
       int transformerFlags: 0,
       Uri fileUri,
       Reference reference,
@@ -1643,6 +1662,7 @@ class Procedure extends Member {
             isConst: isConst,
             isForwardingStub: isForwardingStub,
             isForwardingSemiStub: isForwardingSemiStub,
+            isExtensionMethod: isExtensionMethod,
             transformerFlags: transformerFlags,
             fileUri: fileUri,
             reference: reference,
@@ -1658,6 +1678,7 @@ class Procedure extends Member {
       bool isConst: false,
       bool isForwardingStub: false,
       bool isForwardingSemiStub: false,
+      bool isExtensionMethod: false,
       int transformerFlags: 0,
       Uri fileUri,
       Reference reference,
@@ -1671,6 +1692,7 @@ class Procedure extends Member {
     this.isConst = isConst;
     this.isForwardingStub = isForwardingStub;
     this.isForwardingSemiStub = isForwardingSemiStub;
+    this.isExtensionMethod = isExtensionMethod;
     this.transformerFlags = transformerFlags;
   }
 
@@ -1683,6 +1705,7 @@ class Procedure extends Member {
   // TODO(29841): Remove this flag after the issue is resolved.
   static const int FlagRedirectingFactoryConstructor = 1 << 6;
   static const int FlagNoSuchMethodForwarder = 1 << 7;
+  static const int FlagExtensionMethod = 1 << 8;
 
   bool get isStatic => flags & FlagStatic != 0;
   bool get isAbstract => flags & FlagAbstract != 0;
@@ -1718,6 +1741,18 @@ class Procedure extends Member {
   bool get isSyntheticForwarder => isForwardingStub && !isForwardingSemiStub;
 
   bool get isNoSuchMethodForwarder => flags & FlagNoSuchMethodForwarder != 0;
+
+  /// If `true` this procedure is compiled from a method declared in
+  /// an extension declaration.
+  ///
+  /// For instance `method1` and `method2` in:
+  ///
+  ///     extension A on B {
+  ///       B method1() => this;
+  ///       static B method2() => new B();
+  ///     }
+  ///
+  bool get isExtensionMethod => flags & FlagExtensionMethod != 0;
 
   void set isStatic(bool value) {
     flags = value ? (flags | FlagStatic) : (flags & ~FlagStatic);
@@ -1756,6 +1791,11 @@ class Procedure extends Member {
     flags = value
         ? (flags | FlagNoSuchMethodForwarder)
         : (flags & ~FlagNoSuchMethodForwarder);
+  }
+
+  void set isExtensionMethod(bool value) {
+    flags =
+        value ? (flags | FlagExtensionMethod) : (flags & ~FlagExtensionMethod);
   }
 
   bool get isInstanceMember => !isStatic;
@@ -4801,12 +4841,6 @@ class _PublicName extends Name {
 
 /// Represents nullability of a type.
 enum Nullability {
-  /// Types in opt-out libraries are 'legacy' types.
-  ///
-  /// They are both subtypes and supertypes of the nullable and non-nullable
-  /// versions of the type.
-  legacy,
-
   /// Nullable types are marked with the '?' modifier.
   ///
   /// Null, dynamic, and void are nullable by default.
@@ -4831,7 +4865,13 @@ enum Nullability {
   ///       Object y = x;  // Compile-time error.
   ///     }
   ///   }
-  neither
+  neither,
+
+  /// Types in opt-out libraries are 'legacy' types.
+  ///
+  /// They are both subtypes and supertypes of the nullable and non-nullable
+  /// versions of the type.
+  legacy
 }
 
 /// A syntax-independent notion of a type.
@@ -5220,6 +5260,28 @@ final Map<TypeParameter, int> _temporaryHashCodeTable = <TypeParameter, int>{};
 /// is the same as the [TypeParameter]'s bound.  This allows one to detect
 /// whether the bound has been promoted.
 class TypeParameterType extends DartType {
+  /// Declared by the programmer on the type.
+  final Nullability declaredNullability;
+
+  /// Actual nullability of the type, calculated from its parts.
+  ///
+  /// [nullability] is calculated from [declaredNullability] and the
+  /// nullabilities of [promotedBound] and the bound of [parameter].
+  ///
+  /// For example, in the following program [declaredNullability] both `x` and
+  /// `y` is [Nullability.nullable], because it's copied from that of `bar`.
+  /// However, despite [nullability] of `x` is [Nullability.nullable],
+  /// [nullability] of `y` is [Nullability.nonNullable] because of its
+  /// [promotedBound].
+  ///
+  ///     class A<T extends Object?> {
+  ///       foo(T? bar) {
+  ///         var x = bar;
+  ///         if (bar is int) {
+  ///           var y = bar;
+  ///         }
+  ///       }
+  ///     }
   final Nullability nullability;
 
   TypeParameter parameter;
@@ -5231,9 +5293,9 @@ class TypeParameterType extends DartType {
   DartType promotedBound;
 
   TypeParameterType(this.parameter,
-      [this.promotedBound, Nullability nullability])
+      [this.promotedBound, this.declaredNullability = Nullability.legacy])
       : this.nullability =
-            getNullability(parameter, promotedBound, nullability);
+            getNullability(parameter, promotedBound, declaredNullability);
 
   accept(DartTypeVisitor v) => v.visitTypeParameterType(this);
   accept1(DartTypeVisitor1 v, arg) => v.visitTypeParameterType(this, arg);
@@ -5255,7 +5317,7 @@ class TypeParameterType extends DartType {
   /// [TypeParameterType] to compute the value of
   /// [TypeParameterType.nullability] from the arguments passed to the constructor.
   static Nullability getNullability(TypeParameter parameter,
-      DartType promotedBound, Nullability nullability) {
+      DartType promotedBound, Nullability declaredNullability) {
     // If promotedBound is null, getNullability returns the nullability of
     // either T or T? where T is parameter and the presence of '?' is determined
     // by nullability.
@@ -5273,7 +5335,7 @@ class TypeParameterType extends DartType {
     // If the nullability is explicitly nullable, that is, if the type parameter
     // type is followed by '?' in the code, the nullability of the type is
     // 'nullable.'
-    if (nullability == Nullability.nullable) {
+    if (declaredNullability == Nullability.nullable) {
       lhsNullability = Nullability.nullable;
     } else {
       // If the bound is nullable, both nullable and non-nullable types can be
@@ -5604,7 +5666,7 @@ class SymbolConstant extends Constant {
         : '#$name';
   }
 
-  int get hashCode => name.hashCode ^ libraryReference.hashCode;
+  int get hashCode => _Hash.hash2(name, libraryReference);
 
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -5636,12 +5698,10 @@ class MapConstant extends Constant {
 
   String toString() => '${this.runtimeType}<$keyType, $valueType>($entries)';
 
-  // TODO(kustermann): Consider combining the hash codes in a better way (also
-  // below and in [listHashCode]/[mapHashCode].
   int _cachedHashCode;
   int get hashCode {
-    return _cachedHashCode ??=
-        keyType.hashCode ^ valueType.hashCode ^ listHashCode(entries);
+    return _cachedHashCode ??= _Hash.combine2Finish(
+        keyType.hashCode, valueType.hashCode, _Hash.combineListHash(entries));
   }
 
   bool operator ==(Object other) =>
@@ -5662,7 +5722,7 @@ class ConstantMapEntry {
 
   String toString() => '$key: $value';
 
-  int get hashCode => key.hashCode ^ value.hashCode;
+  int get hashCode => _Hash.hash2(key, value);
 
   bool operator ==(Object other) =>
       other is ConstantMapEntry && other.key == key && other.value == value;
@@ -5688,7 +5748,8 @@ class ListConstant extends Constant {
 
   int _cachedHashCode;
   int get hashCode {
-    return _cachedHashCode ??= typeArgument.hashCode ^ listHashCode(entries);
+    return _cachedHashCode ??= _Hash.combineFinish(
+        typeArgument.hashCode, _Hash.combineListHash(entries));
   }
 
   bool operator ==(Object other) =>
@@ -5721,7 +5782,8 @@ class SetConstant extends Constant {
 
   int _cachedHashCode;
   int get hashCode {
-    return _cachedHashCode ??= typeArgument.hashCode ^ listHashCode(entries);
+    return _cachedHashCode ??= _Hash.combineFinish(
+        typeArgument.hashCode, _Hash.combineListHash(entries));
   }
 
   bool operator ==(Object other) =>
@@ -5774,9 +5836,10 @@ class InstanceConstant extends Constant {
 
   int _cachedHashCode;
   int get hashCode {
-    return _cachedHashCode ??= classReference.hashCode ^
-        listHashCode(typeArguments) ^
-        mapHashCode(fieldValues);
+    return _cachedHashCode ??= _Hash.combine2Finish(
+        classReference.hashCode,
+        listHashCode(typeArguments),
+        _Hash.combineMapHashUnordered(fieldValues));
   }
 
   bool operator ==(Object other) {
@@ -5810,7 +5873,8 @@ class PartialInstantiationConstant extends Constant {
     return '${runtimeType}(${tearOffConstant.procedure}<${types.join(', ')}>)';
   }
 
-  int get hashCode => tearOffConstant.hashCode ^ listHashCode(types);
+  int get hashCode => _Hash.combineFinish(
+      tearOffConstant.hashCode, _Hash.combineListHash(types));
 
   bool operator ==(Object other) {
     return other is PartialInstantiationConstant &&
@@ -6307,15 +6371,112 @@ CanonicalName getCanonicalNameOfLibrary(Library library) {
   return library.canonicalName;
 }
 
+/// Murmur-inspired hashing, with a fall-back to Jenkins-inspired hashing when
+/// compiled to JavaScript.
+///
+/// A hash function should be constructed of several [combine] calls followed by
+/// a [finish] call.
+class _Hash {
+  static const int M = 0x9ddfea08eb382000 + 0xd69;
+  static const bool intIs64Bit = (1 << 63) != 0;
+
+  /// Primitive hash combining step.
+  static int combine(int value, int hash) {
+    if (intIs64Bit) {
+      value *= M;
+      value ^= _shru(value, 47);
+      value *= M;
+      hash ^= value;
+      hash *= M;
+    } else {
+      // Fall back to Jenkins-inspired hashing on JavaScript platforms.
+      hash = 0x1fffffff & (hash + value);
+      hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
+      hash = hash ^ (hash >> 6);
+    }
+    return hash;
+  }
+
+  /// Primitive hash finalization step.
+  static int finish(int hash) {
+    if (intIs64Bit) {
+      hash ^= _shru(hash, 44);
+      hash *= M;
+      hash ^= _shru(hash, 41);
+    } else {
+      // Fall back to Jenkins-inspired hashing on JavaScript platforms.
+      hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
+      hash = hash ^ (hash >> 11);
+      hash = 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
+    }
+    return hash;
+  }
+
+  static int combineFinish(int value, int hash) {
+    return finish(combine(value, hash));
+  }
+
+  static int combine2(int value1, int value2, int hash) {
+    return combine(value2, combine(value1, hash));
+  }
+
+  static int combine2Finish(int value1, int value2, int hash) {
+    return finish(combine2(value1, value2, hash));
+  }
+
+  static int hash2(Object object1, Object object2) {
+    return combine2Finish(object2.hashCode, object2.hashCode, 0);
+  }
+
+  static int combineListHash(List list, [int hash = 1]) {
+    for (var item in list) {
+      hash = _Hash.combine(item.hashCode, hash);
+    }
+    return hash;
+  }
+
+  static int combineList(List<int> hashes, int hash) {
+    for (var item in hashes) {
+      hash = combine(item, hash);
+    }
+    return hash;
+  }
+
+  static int combineMapHashUnordered(Map map, [int hash = 2]) {
+    if (map == null || map.isEmpty) return hash;
+    List<int> entryHashes = List(map.length);
+    int i = 0;
+    for (var entry in map.entries) {
+      entryHashes[i++] = combine(entry.key.hashCode, entry.value.hashCode);
+    }
+    entryHashes.sort();
+    return combineList(entryHashes, hash);
+  }
+
+  // TODO(sra): Replace with '>>>'.
+  static int _shru(int v, int n) {
+    assert(n >= 1);
+    assert(intIs64Bit);
+    return ((v >> 1) & (0x7fffFFFFffffF000 + 0xFFF)) >> (n - 1);
+  }
+}
+
 int listHashCode(List list) {
-  return list.fold(0, (int value, Object item) => value ^ item.hashCode);
+  return _Hash.finish(_Hash.combineListHash(list));
 }
 
 int mapHashCode(Map map) {
-  int value = 0;
-  for (final Object x in map.keys) value ^= x.hashCode;
-  for (final Object x in map.values) value ^= x.hashCode;
-  return value;
+  return mapHashCodeUnordered(map);
+}
+
+int mapHashCodeOrdered(Map map, [int hash = 2]) {
+  for (final Object x in map.keys) hash = _Hash.combine(x.hashCode, hash);
+  for (final Object x in map.values) hash = _Hash.combine(x.hashCode, hash);
+  return _Hash.finish(hash);
+}
+
+int mapHashCodeUnordered(Map map) {
+  return _Hash.finish(_Hash.combineMapHashUnordered(map));
 }
 
 bool listEquals(List a, List b) {

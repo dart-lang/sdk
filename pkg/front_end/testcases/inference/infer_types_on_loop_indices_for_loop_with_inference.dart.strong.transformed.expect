@@ -3,8 +3,8 @@ import self as self;
 import "dart:core" as core;
 
 static method test() → dynamic {
-  for (core::int i = 0; i.{core::num::<}(10); i = i.{core::num::+}(1)) {
-    core::int j = i.{core::num::+}(1);
+  for (core::int* i = 0; i.{core::num::<}(10); i = i.{core::num::+}(1)) {
+    core::int* j = i.{core::num::+}(1);
   }
 }
 static method main() → dynamic {}

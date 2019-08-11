@@ -11,8 +11,8 @@ import self as self;
 import "dart:core" as core;
 
 class Increment extends core::Object {
-  field core::int x;
-  constructor •() → self::Increment
+  field core::int* x;
+  constructor •() → self::Increment*
     ;
 }
 static method main() → dynamic

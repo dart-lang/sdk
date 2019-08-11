@@ -141,7 +141,7 @@ abstract class StandardBounds {
       return type2;
     }
 
-    // SUB(Obect, T) = SUB(T, Object) = Object if T is not void or dynamic.
+    // SUB(Object, T) = SUB(T, Object) = Object if T is not void or dynamic.
     if (type1 == objectType) {
       return type1;
     }

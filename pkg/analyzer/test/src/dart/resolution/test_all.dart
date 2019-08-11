@@ -10,10 +10,10 @@ import 'class_test.dart' as class_resolution;
 import 'comment_test.dart' as comment;
 import 'constant_test.dart' as constant;
 import 'constructor_test.dart' as constructor;
-import 'definite_assignment_test.dart' as definite_assignment;
 import 'enum_test.dart' as enum_resolution;
 import 'export_test.dart' as export_;
-import 'flow_analysis_test.dart' as flow_analysis;
+import 'extension_method_test.dart' as extension_method;
+import 'extension_override_test.dart' as extension_override;
 import 'for_element_test.dart' as for_element;
 import 'for_in_test.dart' as for_in;
 import 'function_expression_invocation_test.dart'
@@ -37,7 +37,6 @@ import 'optional_const_test.dart' as optional_const;
 import 'property_access_test.dart' as property_access;
 import 'top_type_inference_test.dart' as top_type_inference;
 import 'type_inference/test_all.dart' as type_inference;
-import 'type_promotion_test.dart' as type_promotion;
 
 main() {
   defineReflectiveSuite(() {
@@ -47,10 +46,10 @@ main() {
     comment.main();
     constant.main();
     constructor.main();
-    definite_assignment.main();
     enum_resolution.main();
     export_.main();
-    flow_analysis.main();
+    extension_method.main();
+    extension_override.main();
     for_element.main();
     for_in.main();
     function_expression_invocation.main();
@@ -70,7 +69,6 @@ main() {
     optional_const.main();
     property_access.main();
     top_type_inference.main();
-    type_promotion.main();
     type_inference.main();
   }, name: 'resolution');
 }

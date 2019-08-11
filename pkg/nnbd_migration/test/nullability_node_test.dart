@@ -19,6 +19,8 @@ class NullabilityNodeTest {
 
   List<NullabilityEdge> unsatisfiedEdges;
 
+  List<NullabilityNodeForSubstitution> unsatisfiedSubstitutions;
+
   NullabilityNode get always => graph.always;
 
   NullabilityNode get never => graph.never;
@@ -41,7 +43,9 @@ class NullabilityNodeTest {
       NullabilityNode.forTypeAnnotation(offset);
 
   void propagate() {
-    unsatisfiedEdges = graph.propagate();
+    graph.propagate();
+    unsatisfiedEdges = graph.unsatisfiedEdges.toList();
+    unsatisfiedSubstitutions = graph.unsatisfiedSubstitutions.toList();
   }
 
   NullabilityNode subst(NullabilityNode inner, NullabilityNode outer) {
@@ -253,6 +257,78 @@ class NullabilityNodeTest {
     assertUnsatisfied([]);
   }
 
+  test_propagation_downstream_reverse_substitution_exact() {
+    // always -> subst(1, 2)
+    // 3 -> 1
+    // 4 -> 3
+    var n1 = newNode(1);
+    var n2 = newNode(2);
+    var n3 = newNode(3);
+    var n4 = newNode(4);
+    connect(always, subst(n1, n2));
+    connect(n3, n1);
+    connect(n4, n3);
+    propagate();
+    expect(n1.isNullable, true);
+    expect(n1.isExactNullable, true);
+    expect(n2.isNullable, false);
+    expect(n3.isNullable, true);
+    expect(n3.isExactNullable, true);
+    expect(n4.isNullable, true);
+    expect(n4.isExactNullable, true);
+  }
+
+  test_propagation_downstream_reverse_substitution_inner_non_nullable() {
+    // 1 -> never (hard)
+    // always -> subst(1, 2)
+    // 3 -> 2
+    var n1 = newNode(1);
+    var n2 = newNode(2);
+    var n3 = newNode(3);
+    connect(n1, never, hard: true);
+    connect(always, subst(n1, n2));
+    connect(n3, n2);
+    propagate();
+    expect(n1.isNullable, false);
+    expect(n2.isNullable, true);
+    expect(n2.isExactNullable, false);
+    expect(n3.isNullable, false);
+  }
+
+  test_propagation_downstream_reverse_substitution_outer_already_nullable() {
+    // always -> 2
+    // always -> subst(1, 2)
+    // 3 -> 2
+    var n1 = newNode(1);
+    var n2 = newNode(2);
+    var n3 = newNode(3);
+    connect(always, n2);
+    connect(always, subst(n1, n2));
+    connect(n3, n2);
+    propagate();
+    expect(n1.isNullable, false);
+    expect(n2.isNullable, true);
+    expect(n2.isExactNullable, false);
+    expect(n3.isNullable, false);
+  }
+
+  test_propagation_downstream_reverse_substitution_unsatisfiable() {
+    // 1 -> never (hard)
+    // 2 -> never (hard)
+    // always -> subst(1, 2)
+    var n1 = newNode(1);
+    var n2 = newNode(2);
+    connect(n1, never, hard: true);
+    connect(n2, never, hard: true);
+    var substitutionNode = subst(n1, n2);
+    connect(always, substitutionNode);
+    propagate();
+    expect(n1.isNullable, false);
+    expect(n2.isNullable, false);
+    expect(unsatisfiedSubstitutions, hasLength(1));
+    expect(unsatisfiedSubstitutions[0], same(substitutionNode));
+  }
+
   test_propagation_downstream_through_lub_both() {
     // always -> 1
     // always -> 2
@@ -336,7 +412,7 @@ class NullabilityNodeTest {
 
   test_propagation_downstream_through_substitution_cascaded() {
     // always -> 1
-    // LUB(LUB(1, 2), 3) -> 4
+    // subst(subst(1, 2), 3) -> 4
     var n1 = newNode(1);
     var n2 = newNode(2);
     var n3 = newNode(3);
@@ -350,7 +426,7 @@ class NullabilityNodeTest {
 
   test_propagation_downstream_through_substitution_inner() {
     // always -> 1
-    // LUB(1, 2) -> 3
+    // subst(1, 2) -> 3
     var n1 = newNode(1);
     var n2 = newNode(2);
     var n3 = newNode(3);
@@ -362,7 +438,7 @@ class NullabilityNodeTest {
   }
 
   test_propagation_downstream_through_substitution_neither() {
-    // LUB(1, 2) -> 3
+    // subst(1, 2) -> 3
     var n1 = newNode(1);
     var n2 = newNode(2);
     var n3 = newNode(3);
@@ -374,7 +450,7 @@ class NullabilityNodeTest {
 
   test_propagation_downstream_through_substitution_outer() {
     // always -> 2
-    // LUB(1, 2) -> 3
+    // subst(1, 2) -> 3
     var n1 = newNode(1);
     var n2 = newNode(2);
     var n3 = newNode(3);

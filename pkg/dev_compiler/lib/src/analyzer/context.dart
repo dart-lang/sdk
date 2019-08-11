@@ -17,7 +17,7 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart'
     show InSummarySource, InSummaryUriResolver, SummaryDataStore;
 import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:cli_util/cli_util.dart' show getSdkPath;
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 
 // ignore_for_file: deprecated_member_use
 
@@ -38,7 +38,7 @@ class AnalyzerOptions {
   ResourceProvider _resourceProvider;
 
   /// The default analysis root.
-  String analysisRoot = path.current;
+  String analysisRoot = p.current;
 
   // May be null.
   final DependencyTracker dependencyTracker;
@@ -69,7 +69,7 @@ class AnalyzerOptions {
 
     var dartSdkPath = args['dart-sdk'] as String ?? getSdkPath();
     dartSdkSummaryPath ??= contextOpts.dartSdkSummaryPath ??
-        path.join(dartSdkPath, 'lib', '_internal', 'ddc_sdk.sum');
+        p.join(dartSdkPath, 'lib', '_internal', 'ddc_sdk.sum');
     // For building the SDK, we explicitly set the path to none.
     if (dartSdkSummaryPath == 'build') dartSdkSummaryPath = null;
     contextOpts.dartSdkSummaryPath = dartSdkSummaryPath;
@@ -160,7 +160,7 @@ List<UriResolver> createFileResolvers(AnalyzerOptions options) {
       ContextBuilder(resourceProvider, null, null, options: builderOptions);
 
   var packageResolver = PackageMapUriResolver(resourceProvider,
-      builder.convertPackagesToMap(builder.createPackageMap(path.current)));
+      builder.convertPackagesToMap(builder.createPackageMap(p.current)));
 
   return [ResourceUriResolver(resourceProvider), packageResolver];
 }
@@ -170,7 +170,7 @@ Map<String, String> _parseUrlMappings(List<String> argument) {
   for (var mapping in argument) {
     var splitMapping = mapping.split(',');
     if (splitMapping.length >= 2) {
-      mappings[splitMapping[0]] = path.absolute(splitMapping[1]);
+      mappings[splitMapping[0]] = p.absolute(splitMapping[1]);
     }
   }
   return mappings;

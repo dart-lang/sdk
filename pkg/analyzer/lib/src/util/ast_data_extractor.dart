@@ -107,7 +107,7 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<dynamic>
 }
 
 class _Failure implements Exception {
-  final message;
+  final String message;
 
   _Failure([this.message]);
 

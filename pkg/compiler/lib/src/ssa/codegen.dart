@@ -26,6 +26,7 @@ import '../js_backend/checked_mode_helpers.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/namer.dart' show ModularNamer;
 import '../js_backend/runtime_types.dart';
+import '../js_backend/runtime_types_codegen.dart';
 import '../js_backend/runtime_types_new.dart' show RecipeEncoder;
 import '../js_emitter/code_emitter_task.dart' show ModularEmitter;
 import '../js_model/elements.dart' show JGeneratorBody;
@@ -703,6 +704,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       if (instruction is HTypeConversion ||
           instruction is HPrimitiveCheck ||
           instruction is HAsCheck ||
+          instruction is HAsCheckSimple ||
           instruction is HBoolConversion) {
         String inputName = variableNames.getName(instruction.checkedInput);
         if (variableNames.getName(instruction) == inputName) {
@@ -3361,12 +3363,25 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     use(node.checkedInput);
     js.Expression second = pop();
 
+    _registry.registerTypeUse(TypeUse.isCheck(node.checkedTypeExpression));
+
     FieldEntity field = node.isTypeError
         ? _commonElements.rtiCheckField
         : _commonElements.rtiAsField;
     js.Name name = _namer.instanceFieldPropertyName(field);
 
     push(js.js('#.#(#)', [first, name, second]).withSourceInformation(
+        node.sourceInformation));
+  }
+
+  @override
+  visitAsCheckSimple(HAsCheckSimple node) {
+    use(node.checkedInput);
+    MemberEntity method = node.method;
+    _registry.registerStaticUse(
+        StaticUse.staticInvoke(method, CallStructure.ONE_ARG));
+    js.Expression methodAccess = _emitter.staticFunctionAccess(method);
+    push(js.js(r'#(#)', [methodAccess, pop()]).withSourceInformation(
         node.sourceInformation));
   }
 

@@ -14,6 +14,7 @@ import 'package:kernel/library_index.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:source_span/source_span.dart' show SourceLocation;
+import 'package:path/path.dart' as p;
 
 import '../compiler/js_names.dart' as js_ast;
 import '../compiler/js_utils.dart' as js_ast;
@@ -32,13 +33,12 @@ import 'nullable_inference.dart';
 import 'property_model.dart';
 import 'type_table.dart';
 
-class ProgramCompiler extends Object
+class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     with SharedCompiler<Library, Class, InterfaceType, FunctionNode>
     implements
         StatementVisitor<js_ast.Statement>,
         ExpressionVisitor<js_ast.Expression>,
-        DartTypeVisitor<js_ast.Expression>,
-        ConstantVisitor<js_ast.Expression> {
+        DartTypeVisitor<js_ast.Expression> {
   final SharedCompilerOptions _options;
 
   /// Maps a library URI import, that is not in [_libraries], to the
@@ -61,6 +61,16 @@ class ProgramCompiler extends Object
 
   /// Let variables collected for the given function.
   List<js_ast.TemporaryId> _letVariables;
+
+  final _constTable = js_ast.TemporaryId("CT");
+
+  // Constant getters used to populate the constant table.
+  final _constLazyAccessors = List<js_ast.Method>();
+
+  /// Tracks the index in [moduleItems] where the const table must be inserted.
+  /// Required for SDK builds due to internal circular dependencies.
+  /// E.g., dart.constList depends on JSArray.
+  int _constTableInsertionIndex = 0;
 
   /// The class that is emitting its base class or mixin references, otherwise
   /// null.
@@ -185,6 +195,9 @@ class ProgramCompiler extends Object
   /// as targets for continue and break.
   final _switchLabelStates = HashMap<Statement, _SwitchLabelState>();
 
+  /// Maps Kernel constants to their JS aliases.
+  final constAliasCache = HashMap<Constant, js_ast.Expression>();
+
   final Class _jsArrayClass;
   final Class _privateSymbolClass;
   final Class _linkedHashMapImplClass;
@@ -287,6 +300,11 @@ class ProgramCompiler extends Object
       _pendingClasses.addAll(l.classes);
     }
 
+    // TODO(markzipan): Don't emit this when compiling the SDK.
+    moduleItems
+        .add(js.statement("const # = Object.create(null);", [_constTable]));
+    _constTableInsertionIndex = moduleItems.length;
+
     // Add implicit dart:core dependency so it is first.
     emitLibraryName(_coreTypes.coreLibrary);
 
@@ -296,6 +314,15 @@ class ProgramCompiler extends Object
     // Order will be changed as needed so the resulting code can execute.
     // This is done by forward declaring items.
     libraries.forEach(_emitLibrary);
+
+    // This can cause problems if it's ever true during the SDK build, as it's
+    // emitted before dart.defineLazy.
+    if (_constLazyAccessors.isNotEmpty) {
+      var constTableBody = runtimeStatement(
+          'defineLazy(#, { # })', [_constTable, _constLazyAccessors]);
+      moduleItems.insert(_constTableInsertionIndex, constTableBody);
+      _constLazyAccessors.clear();
+    }
 
     moduleItems.addAll(afterClassDefItems);
     afterClassDefItems.clear();
@@ -319,21 +346,24 @@ class ProgramCompiler extends Object
     if (uri.scheme == 'dart') {
       return isSdkInternalRuntime(library) ? 'dart' : uri.path;
     }
+    return pathToJSIdentifier(p.withoutExtension(uri.pathSegments.last));
+  }
 
-    // TODO(vsm): This is not necessarily unique if '__' appears in a file name.
+  @override
+  String jsLibraryAlias(Library library) {
+    var uri = library.importUri.normalizePath();
+    if (uri.scheme == 'dart') return null;
+
     Iterable<String> segments;
     if (uri.scheme == 'package') {
       // Strip the package name.
-      // TODO(vsm): This is not unique if an escaped '/'appears in a filename.
-      // E.g., "foo/bar.dart" and "foo__bar.dart" would collide.
       segments = uri.pathSegments.skip(1);
     } else {
-      // TODO(jmesserly): this is not unique typically.
-      segments = [uri.pathSegments.last];
+      segments = uri.pathSegments;
     }
 
-    var qualifiedPath = segments.map((p) => p == '..' ? '' : p).join('__');
-    return pathToJSIdentifier(qualifiedPath);
+    var qualifiedPath = pathToJSIdentifier(p.withoutExtension(segments.join('/')));
+    return qualifiedPath == jsLibraryName(library) ? null : qualifiedPath;
   }
 
   @override
@@ -445,6 +475,11 @@ class ProgramCompiler extends Object
 
     moduleItems.add(_emitClassDeclaration(c));
 
+    // The const table depends on dart.defineLazy, so emit it after the SDK.
+    if (isSdkInternalRuntime(_currentLibrary)) {
+      _constTableInsertionIndex = moduleItems.length;
+    }
+
     _currentClass = savedClass;
     _types.thisType = savedClass?.thisType;
     _currentLibrary = savedLibrary;
@@ -462,7 +497,9 @@ class ProgramCompiler extends Object
   /// declarations are assumed to be available before we start execution.
   /// See [startTopLevel].
   void _declareBeforeUse(Class c) {
-    if (c != null && _emittingClassExtends) _emitClass(c);
+    if (c != null && _emittingClassExtends) {
+      _emitClass(c);
+    }
   }
 
   js_ast.Statement _emitClassDeclaration(Class c) {
@@ -2028,11 +2065,26 @@ class ProgramCompiler extends Object
       // TODO(jmesserly): it'd be nice to avoid this special case.
       var lazyFields = <Field>[];
       var savedUri = _currentUri;
+
+      // Helper functions to test if a constructor invocation is internal and
+      // should be eagerly evaluated.
+      var isInternalConstructor = (ConstructorInvocation node) {
+        var type = node.getStaticType(_types) as InterfaceType;
+        var library = type.classNode.enclosingLibrary;
+        return isSdkInternalRuntime(library);
+      };
       for (var field in fields) {
         var init = field.initializer;
         if (init == null ||
             init is BasicLiteral ||
+            init is ConstructorInvocation && isInternalConstructor(init) ||
             init is StaticInvocation && isInlineJS(init.target)) {
+          if (init is ConstructorInvocation) {
+            // This is an eagerly executed constructor invocation.  We need to
+            // ensure the class is emitted before this statement.
+            var type = init.getStaticType(_types) as InterfaceType;
+            _emitClass(type.classNode);
+          }
           _currentUri = field.fileUri;
           moduleItems.add(js.statement('# = #;', [
             _emitTopLevelName(field),
@@ -2083,12 +2135,11 @@ class ProgramCompiler extends Object
   }
 
   js_ast.Fun _emitStaticFieldInitializer(Field field) {
-    return js_ast.Fun(
-        [],
-        js_ast.Block(_withLetScope(() => [
-              js_ast.Return(
-                  _visitInitializer(field.initializer, field.annotations))
-            ])));
+    return js_ast.Fun([], js_ast.Block(_withLetScope(() {
+      return [
+        js_ast.Return(_visitInitializer(field.initializer, field.annotations))
+      ];
+    })));
   }
 
   List<js_ast.Statement> _withLetScope(List<js_ast.Statement> visitBody()) {
@@ -3101,6 +3152,9 @@ class ProgramCompiler extends Object
 
   js_ast.Expression _visitExpression(Expression e) {
     if (e == null) return null;
+    if (e is ConstantExpression) {
+      return visitConstant(e.constant);
+    }
     var result = e.accept(this) as js_ast.Expression;
     result.sourceInformation ??= _nodeStart(e);
     return result;
@@ -3780,7 +3834,15 @@ class ProgramCompiler extends Object
 
   @override
   js_ast.Expression visitConstantExpression(ConstantExpression node) =>
-      node.constant.accept(this) as js_ast.Expression;
+      visitConstant(node.constant);
+
+  @override
+  js_ast.Expression canonicalizeConstObject(js_ast.Expression expr) {
+    if (isSdkInternalRuntime(_currentLibrary)) {
+      return super.canonicalizeConstObject(expr);
+    }
+    return runtimeCall('const(#)', [expr]);
+  }
 
   @override
   js_ast.Expression visitVariableGet(VariableGet node) {
@@ -4725,7 +4787,7 @@ class ProgramCompiler extends Object
     if (isFromEnvironmentInvocation(_coreTypes, node)) {
       var value = _constants.evaluate(node);
       if (value is PrimitiveConstant) {
-        return value.accept(this) as js_ast.Expression;
+        return visitConstant(value);
       }
     }
 
@@ -4864,7 +4926,7 @@ class ProgramCompiler extends Object
         node.accept(this);
         if (node is ConstantExpression) {
           var list = node.constant as ListConstant;
-          entries.addAll(list.entries.map(_visitConstant));
+          entries.addAll(list.entries.map(visitConstant));
         } else if (node is ListLiteral) {
           entries.addAll(node.expressions.map(_visitExpression));
         }
@@ -4886,7 +4948,7 @@ class ProgramCompiler extends Object
         node.accept(this);
         if (node is ConstantExpression) {
           var set = node.constant as SetConstant;
-          entries.addAll(set.entries.map(_visitConstant));
+          entries.addAll(set.entries.map(visitConstant));
         } else if (node is SetLiteral) {
           entries.addAll(node.expressions.map(_visitExpression));
         }
@@ -4909,8 +4971,8 @@ class ProgramCompiler extends Object
         if (node is ConstantExpression) {
           var map = node.constant as MapConstant;
           for (var entry in map.entries) {
-            entries.add(_visitConstant(entry.key));
-            entries.add(_visitConstant(entry.value));
+            entries.add(visitConstant(entry.key));
+            entries.add(visitConstant(entry.value));
           }
         } else if (node is MapLiteral) {
           for (var entry in node.entries) {
@@ -5032,11 +5094,7 @@ class ProgramCompiler extends Object
   js_ast.Expression visitListLiteral(ListLiteral node) {
     var elementType = node.typeArgument;
     var elements = _visitExpressionList(node.expressions);
-    // TODO(markzipan): remove const check when we use front-end const eval
-    if (!node.isConst) {
-      return _emitList(elementType, elements);
-    }
-    return _emitConstList(elementType, elements);
+    return _emitList(elementType, elements);
   }
 
   js_ast.Expression _emitList(
@@ -5270,8 +5328,48 @@ class ProgramCompiler extends Object
         findAnnotation(node, test), 'name') as String;
   }
 
-  js_ast.Expression _visitConstant(Constant node) =>
-      node.accept(this) as js_ast.Expression;
+  @override
+  js_ast.Expression cacheConst(js_ast.Expression jsExpr) {
+    if (isSdkInternalRuntime(_currentLibrary)) {
+      return super.cacheConst(jsExpr);
+    }
+    return jsExpr;
+  }
+
+  @override
+  js_ast.Expression visitConstant(Constant node) {
+    if (node is TearOffConstant) {
+      // JS() or JS interop functions should not be lazily loaded.
+      if (node.procedure.isExternal || _isInForeignJS) {
+        return _emitStaticTarget(node.procedure);
+      }
+    }
+    if (isSdkInternalRuntime(_currentLibrary) || node is PrimitiveConstant) {
+      return super.visitConstant(node);
+    }
+    var constAlias = constAliasCache[node];
+    if (constAlias != null) {
+      return constAlias;
+    }
+    var constAliasString = "C${constAliasCache.length}";
+    var constAliasProperty = propertyName(constAliasString);
+    var constAliasId = js_ast.TemporaryId(constAliasString);
+    var constAccessor =
+        js.call("# || #.#", [constAliasId, _constTable, constAliasProperty]);
+    constAliasCache[node] = constAccessor;
+    var constJs = super.visitConstant(node);
+    moduleItems.add(js.statement('let #;', [constAliasId]));
+
+    var func = js_ast.Fun(
+        [],
+        js_ast.Block([
+          js.statement("return # = #;", [constAliasId, constJs])
+        ]));
+    var accessor = js_ast.Method(constAliasProperty, func, isGetter: true);
+    _constLazyAccessors.add(accessor);
+    return constAccessor;
+  }
+
   @override
   js_ast.Expression visitNullConstant(NullConstant node) =>
       js_ast.LiteralNull();
@@ -5295,6 +5393,15 @@ class ProgramCompiler extends Object
         return js.number(intValue);
       }
     }
+    if (value.isInfinite) {
+      if (value.isNegative) {
+        return js.call('-1 / 0');
+      }
+      return js.call('1 / 0');
+    }
+    if (value.isNaN) {
+      return js.call('0 / 0');
+    }
     return js.number(value);
   }
 
@@ -5315,8 +5422,8 @@ class ProgramCompiler extends Object
   js_ast.Expression visitMapConstant(MapConstant node) {
     var entries = [
       for (var e in node.entries) ...[
-        _visitConstant(e.key),
-        _visitConstant(e.value),
+        visitConstant(e.key),
+        visitConstant(e.value),
       ],
     ];
     return _emitConstMap(node.keyType, node.valueType, entries);
@@ -5324,16 +5431,17 @@ class ProgramCompiler extends Object
 
   @override
   js_ast.Expression visitListConstant(ListConstant node) => _emitConstList(
-      node.typeArgument, node.entries.map(_visitConstant).toList());
+      node.typeArgument, node.entries.map(visitConstant).toList());
 
   @override
   js_ast.Expression visitSetConstant(SetConstant node) => _emitConstSet(
-      node.typeArgument, node.entries.map(_visitConstant).toList());
+      node.typeArgument, node.entries.map(visitConstant).toList());
 
   @override
   js_ast.Expression visitInstanceConstant(InstanceConstant node) {
+    _declareBeforeUse(node.classNode);
     entryToProperty(MapEntry<Reference, Constant> entry) {
-      var constant = entry.value.accept(this) as js_ast.Expression;
+      var constant = visitConstant(entry.value);
       var member = entry.key.asField;
       return js_ast.Property(
           _emitMemberName(member.name.name, member: member), constant);
@@ -5350,8 +5458,10 @@ class ProgramCompiler extends Object
   }
 
   @override
-  js_ast.Expression visitTearOffConstant(TearOffConstant node) =>
-      _emitStaticGet(node.procedure);
+  js_ast.Expression visitTearOffConstant(TearOffConstant node) {
+    _declareBeforeUse(node.procedure.enclosingClass);
+    return _emitStaticGet(node.procedure);
+  }
 
   @override
   js_ast.Expression visitTypeLiteralConstant(TypeLiteralConstant node) =>
@@ -5361,13 +5471,13 @@ class ProgramCompiler extends Object
   js_ast.Expression visitPartialInstantiationConstant(
           PartialInstantiationConstant node) =>
       runtimeCall('gbind(#, #)', [
-        _visitConstant(node.tearOffConstant),
+        visitConstant(node.tearOffConstant),
         node.types.map(_emitType).toList()
       ]);
 
   @override
   js_ast.Expression visitUnevaluatedConstant(UnevaluatedConstant node) =>
-      _visitExpression(node.expression);
+      throw UnsupportedError('Encountered an unevaluated constant: $node');
 }
 
 bool _isInlineJSFunction(Statement body) {

@@ -22,7 +22,7 @@ List<String> _replaceDartFiles(List<String> list, String replacement) {
 class CommandArtifact {
   final List<Command> commands;
 
-  /// Expected result of running [command].
+  /// Expected result of running [commands].
   final String filename;
 
   /// MIME type of [filename].
@@ -35,8 +35,6 @@ abstract class CompilerConfiguration {
   final TestConfiguration _configuration;
 
   bool get _isDebug => _configuration.mode.isDebug;
-
-  bool get _isChecked => _configuration.isChecked;
 
   bool get _isHostChecked => _configuration.isHostChecked;
 
@@ -113,8 +111,6 @@ abstract class CompilerConfiguration {
   }
 
   bool get hasCompiler => true;
-
-  String get executableScriptSuffix => Platform.isWindows ? '.bat' : '';
 
   List<Uri> bootstrapDependencies() => const <Uri>[];
 
@@ -234,7 +230,7 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
     if (runtimeConfiguration is DartkAdbRuntimeConfiguration) {
       // On Android the Dill file will be pushed to a different directory on the
       // device. Use that one instead.
-      filename = "${DartkAdbRuntimeConfiguration.DeviceTestDir}/out.dill";
+      filename = "${DartkAdbRuntimeConfiguration.deviceTestDir}/out.dill";
     }
 
     return [
@@ -362,15 +358,16 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
 
 /// Common configuration for dart2js-based tools, such as dart2js.
 class Dart2xCompilerConfiguration extends CompilerConfiguration {
+  static final Map<String, List<Uri>> _bootstrapDependenciesCache = {};
+
   final String moniker;
-  static Map<String, List<Uri>> _bootstrapDependenciesCache = {};
 
   Dart2xCompilerConfiguration(this.moniker, TestConfiguration configuration)
       : super._subclass(configuration);
 
   String computeCompilerPath() {
     var prefix = 'sdk/bin';
-    var suffix = executableScriptSuffix;
+    var suffix = shellScriptExtension;
 
     if (_isHostChecked) {
       if (_useSdk) {
@@ -441,7 +438,7 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
     // TODO(athom): input filename extraction is copied from DDC. Maybe this
     // should be passed to computeCompilationArtifact, instead?
     var inputFile = arguments.last;
-    var inputFilename = (Uri.file(inputFile)).pathSegments.last;
+    var inputFilename = Uri.file(inputFile).pathSegments.last;
     var out = "$tempDir/${inputFilename.replaceAll('.dart', '.js')}";
     var babel = _configuration.babel;
     var babelOut = out;
@@ -497,7 +494,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
 
   String computeCompilerPath() {
     var dir = _useSdk ? "${_configuration.buildDirectory}/dart-sdk" : "sdk";
-    return "$dir/bin/dartdevc$executableScriptSuffix";
+    return "$dir/bin/dartdevc$shellScriptExtension";
   }
 
   List<String> computeCompilerArguments(
@@ -555,11 +552,6 @@ class DevCompilerConfiguration extends CompilerConfiguration {
     }
     args.addAll(sharedOptions);
     args.addAll(_configuration.sharedOptions);
-    if (!useKernel) {
-      // TODO(jmesserly): library-root needs to be removed.
-      args.addAll(
-          ["--library-root", Path(inputFile).directoryPath.toNativePath()]);
-    }
 
     args.addAll([
       "--ignore-unrecognized-flags",
@@ -603,7 +595,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
     // computeCompilerArguments() to here seems hacky. Is there a cleaner way?
     var sharedOptions = arguments.sublist(0, arguments.length - 1);
     var inputFile = arguments.last;
-    var inputFilename = (Uri.file(inputFile)).pathSegments.last;
+    var inputFilename = Uri.file(inputFile).pathSegments.last;
     var outputFile = "$tempDir/${inputFilename.replaceAll('.dart', '.js')}";
 
     return CommandArtifact(
@@ -620,6 +612,10 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
   bool get _isArm => _configuration.architecture == Architecture.arm;
 
   bool get _isArm64 => _configuration.architecture == Architecture.arm64;
+
+  bool get _isX64 => _configuration.architecture == Architecture.x64;
+
+  bool get _isIA32 => _configuration.architecture == Architecture.ia32;
 
   bool get _isAot => true;
 
@@ -690,10 +686,14 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     var exec = _configuration.genSnapshotPath;
     if (exec == null) {
       if (_isAndroid) {
-        if (_isArm) {
+        if (_isArm || _isIA32) {
           exec = "$buildDir/clang_x86/gen_snapshot";
-        } else if (_configuration.architecture == Architecture.arm64) {
+        } else if (_isArm64 || _isX64) {
           exec = "$buildDir/clang_x64/gen_snapshot";
+        } else {
+          // Guaranteed by package:test_runner/src/configuration.dart's
+          // TestConfiguration.validate().
+          assert(false);
         }
       } else {
         exec = "$buildDir/gen_snapshot";
@@ -832,7 +832,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     if (runtimeConfiguration is DartPrecompiledAdbRuntimeConfiguration) {
       // On android the precompiled snapshot will be pushed to a different
       // directory on the device, use that one instead.
-      dir = DartPrecompiledAdbRuntimeConfiguration.DeviceTestDir;
+      dir = DartPrecompiledAdbRuntimeConfiguration.deviceTestDir;
     }
     originalArguments =
         _replaceDartFiles(originalArguments, "$dir/out.aotsnapshot");
@@ -924,7 +924,6 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
 
   String computeCompilerPath() {
     var prefix = 'sdk/bin';
-    var suffix = executableScriptSuffix;
     if (_isHostChecked) {
       if (_useSdk) {
         throw "--host-checked and --use-sdk cannot be used together";
@@ -932,12 +931,12 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
       // The script dartanalyzer_developer is not included in the
       // shipped SDK, that is the script is not installed in
       // "$buildDir/dart-sdk/bin/"
-      return '$prefix/dartanalyzer_developer$suffix';
+      return '$prefix/dartanalyzer_developer$shellScriptExtension';
     }
     if (_useSdk) {
       prefix = '${_configuration.buildDirectory}/dart-sdk/bin';
     }
-    return '$prefix/dartanalyzer$suffix';
+    return '$prefix/dartanalyzer$shellScriptExtension';
   }
 
   CommandArtifact computeCompilationArtifact(String tempDir,
@@ -977,11 +976,11 @@ class CompareAnalyzerCfeCompilerConfiguration extends CompilerConfiguration {
   int get timeoutMultiplier => 4;
 
   String computeCompilerPath() {
-    String suffix = executableScriptSuffix;
     if (_useSdk) {
       throw "--use-sdk cannot be used with compiler compare_analyzer_cfe";
     }
-    return 'pkg/analyzer_fe_comparison/bin/compare_sdk_tests$suffix';
+    return 'pkg/analyzer_fe_comparison/bin/'
+        'compare_sdk_tests$shellScriptExtension';
   }
 
   CommandArtifact computeCompilationArtifact(String tempDir,
@@ -1046,8 +1045,6 @@ abstract class VMKernelCompilerMixin {
 
   bool get _useEnableAsserts;
 
-  String get executableScriptSuffix;
-
   List<Uri> bootstrapDependencies();
 
   String tempKernelFile(String tempDir) =>
@@ -1056,7 +1053,7 @@ abstract class VMKernelCompilerMixin {
   Command computeCompileToKernelCommand(String tempDir, List<String> arguments,
       Map<String, String> environmentOverrides) {
     final pkgVmDir = Platform.script.resolve('../../../pkg/vm').toFilePath();
-    final genKernel = '${pkgVmDir}/tool/gen_kernel${executableScriptSuffix}';
+    final genKernel = '$pkgVmDir/tool/gen_kernel$shellScriptExtension';
 
     final String useAbiVersion = arguments.firstWhere(
         (arg) => arg.startsWith('--use-abi-version='),

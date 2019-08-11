@@ -25,7 +25,7 @@ class ListTokenDetailsTest extends AbstractAnalysisServerIntegrationTest {
   }
 
   @override
-  Future standardAnalysisSetup({bool subscribeStatus: true}) {
+  Future standardAnalysisSetup({bool subscribeStatus = true}) {
     List<Future> futures = <Future>[];
     if (subscribeStatus) {
       futures.add(sendServerSetSubscriptions([ServerService.STATUS]));

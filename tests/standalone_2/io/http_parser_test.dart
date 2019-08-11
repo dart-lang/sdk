@@ -39,7 +39,7 @@ class HttpParserTest {
       int unparsedLength: 0,
       bool connectionClose: false,
       String expectedVersion: "1.1"}) {
-    StreamController<List<int>> controller;
+    StreamController<Uint8List> controller;
     void reset() {
       _HttpParser httpParser = new _HttpParser.requestParser();
       controller = new StreamController(sync: true);
@@ -162,7 +162,7 @@ class HttpParserTest {
   static void _testParseInvalidRequest(String request) {
     _HttpParser httpParser;
     bool errorCalled;
-    StreamController<List<int>> controller;
+    StreamController<Uint8List> controller;
 
     void reset() {
       httpParser = new _HttpParser.requestParser();
@@ -214,7 +214,7 @@ class HttpParserTest {
       bool upgrade: false,
       int unparsedLength: 0,
       String expectedVersion: "1.1"}) {
-    StreamController<List<int>> controller;
+    StreamController<Uint8List> controller;
     bool upgraded;
 
     void reset() {
@@ -309,7 +309,7 @@ class HttpParserTest {
   static void _testParseInvalidResponse(String response, [bool close = false]) {
     void testWrite(List<int> requestData, [int chunkSize = -1]) {
       _HttpParser httpParser = new _HttpParser.responseParser();
-      StreamController<List<int>> controller = new StreamController(sync: true);
+      StreamController<Uint8List> controller = new StreamController(sync: true);
       bool errorCalled = false;
       ;
 

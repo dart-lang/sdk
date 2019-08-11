@@ -50,10 +50,14 @@ class ConstantPragmaAnnotationParser extends PragmaAnnotationParser {
     if (annotation is ConstantExpression) {
       Constant constant = annotation.constant;
       if (constant is InstanceConstant) {
-        if (constant.classReference.node == coreTypes.pragmaClass) {
+        if (constant.classNode == coreTypes.pragmaClass) {
           pragmaConstant = constant;
         }
+      } else if (constant is UnevaluatedConstant) {
+        throw 'Error: unevaluated constant $constant';
       }
+    } else {
+      throw 'Error: non-constant annotation $annotation';
     }
     if (pragmaConstant == null) return null;
 

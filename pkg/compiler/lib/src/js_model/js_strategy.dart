@@ -34,6 +34,7 @@ import '../js_backend/inferred_data.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/namer.dart';
 import '../js_backend/runtime_types.dart';
+import '../js_backend/runtime_types_codegen.dart';
 import '../js_backend/runtime_types_new.dart'
     show RecipeEncoder, RecipeEncoderImpl;
 import '../js_emitter/code_emitter_task.dart' show ModularEmitter;
@@ -169,7 +170,7 @@ class JsBackendStrategy implements BackendStrategy {
         closedWorld.annotationsData);
     GlobalLocalsMap _globalLocalsMap = new GlobalLocalsMap();
     ClosureDataBuilder closureDataBuilder = new ClosureDataBuilder(
-        _elementMap, _globalLocalsMap, _compiler.options);
+        _elementMap, _globalLocalsMap, closedWorld.annotationsData);
     JsClosedWorldBuilder closedWorldBuilder = new JsClosedWorldBuilder(
         _elementMap,
         _globalLocalsMap,
@@ -256,7 +257,6 @@ class JsBackendStrategy implements BackendStrategy {
         commonElements, elementEnvironment, closedWorld.nativeData);
     return new CodegenEnqueuer(
         task,
-        _compiler.options,
         new CodegenWorldBuilderImpl(
             closedWorld,
             _compiler.abstractValueStrategy.createSelectorStrategy(),
@@ -271,13 +271,15 @@ class JsBackendStrategy implements BackendStrategy {
             // tracing.
             new ComponentLookup(_elementMap.programEnv.mainComponent)),
         new CodegenEnqueuerListener(
+            _compiler.options,
             elementEnvironment,
             commonElements,
             impacts,
             closedWorld.backendUsage,
             closedWorld.rtiNeed,
             customElementsCodegenAnalysis,
-            nativeCodegenEnqueuer));
+            nativeCodegenEnqueuer),
+        closedWorld.annotationsData);
   }
 
   /// Called before the compiler starts running the codegen enqueuer.
@@ -308,7 +310,6 @@ class JsBackendStrategy implements BackendStrategy {
         closedWorld.commonElements, _compiler.options.experimentNewRti);
 
     _codegenImpactTransformer = new CodegenImpactTransformer(
-        _compiler.options,
         closedWorld,
         closedWorld.elementEnvironment,
         closedWorld.commonElements,

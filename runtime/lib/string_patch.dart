@@ -248,6 +248,7 @@ abstract class _StringBase implements String {
   int codeUnitAt(int index); // Implemented in the subclasses.
 
   @pragma("vm:exact-result-type", "dart:core#_Smi")
+  @pragma("vm:prefer-inline")
   int get length native "String_getLength";
 
   @pragma("vm:exact-result-type", bool)

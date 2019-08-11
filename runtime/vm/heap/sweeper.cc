@@ -53,7 +53,7 @@ bool GCSweeper::SweepPage(HeapPage* page, FreeList* freelist, bool locked) {
         uword end = current + obj_size;
         while (cursor < end) {
           *reinterpret_cast<uword*>(cursor) =
-              Assembler::GetBreakInstructionFiller();
+              compiler::Assembler::GetBreakInstructionFiller();
           cursor += kWordSize;
         }
       } else {

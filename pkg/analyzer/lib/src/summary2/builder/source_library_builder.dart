@@ -93,28 +93,41 @@ class SourceLibraryBuilder {
       var unitRef = reference.getChild('@unit').getChild(unitContext.uriStr);
       var classRef = unitRef.getChild('@class');
       var enumRef = unitRef.getChild('@enum');
+      var extensionRef = unitRef.getChild('@extension');
       var functionRef = unitRef.getChild('@function');
       var mixinRef = unitRef.getChild('@mixin');
       var typeAliasRef = unitRef.getChild('@typeAlias');
       var getterRef = unitRef.getChild('@getter');
       var setterRef = unitRef.getChild('@setter');
       var variableRef = unitRef.getChild('@variable');
+      var nextUnnamedExtensionId = 0;
       for (var node in unitContext.unit.declarations) {
         if (node is ast.ClassDeclaration) {
           var name = node.name.name;
           var reference = classRef.getChild(name);
-          reference.node2 = node;
+          reference.node ??= node;
           localScope.declare(name, reference);
         } else if (node is ast.ClassTypeAlias) {
           var name = node.name.name;
           var reference = classRef.getChild(name);
-          reference.node2 = node;
+          reference.node ??= node;
           localScope.declare(name, reference);
         } else if (node is ast.EnumDeclaration) {
           var name = node.name.name;
           var reference = enumRef.getChild(name);
-          reference.node2 = node;
+          reference.node ??= node;
           localScope.declare(name, reference);
+        } else if (node is ast.ExtensionDeclaration) {
+          var name = node.name?.name;
+          var refName = name ?? 'extension-${nextUnnamedExtensionId++}';
+          LazyExtensionDeclaration.get(node).setRefName(refName);
+
+          var reference = extensionRef.getChild(refName);
+          reference.node ??= node;
+
+          if (name != null) {
+            localScope.declare(name, reference);
+          }
         } else if (node is ast.FunctionDeclaration) {
           var name = node.name.name;
 
@@ -128,7 +141,7 @@ class SourceLibraryBuilder {
           }
 
           var reference = containerRef.getChild(name);
-          reference.node2 = node;
+          reference.node ??= node;
 
           if (node.isSetter) {
             localScope.declare('$name=', reference);
@@ -138,26 +151,26 @@ class SourceLibraryBuilder {
         } else if (node is ast.FunctionTypeAlias) {
           var name = node.name.name;
           var reference = typeAliasRef.getChild(name);
-          reference.node2 = node;
+          reference.node ??= node;
 
           localScope.declare(name, reference);
         } else if (node is ast.GenericTypeAlias) {
           var name = node.name.name;
           var reference = typeAliasRef.getChild(name);
-          reference.node2 = node;
+          reference.node = node;
 
           localScope.declare(name, reference);
         } else if (node is ast.MixinDeclaration) {
           var name = node.name.name;
           var reference = mixinRef.getChild(name);
-          reference.node2 = node;
+          reference.node ??= node;
           localScope.declare(name, reference);
         } else if (node is ast.TopLevelVariableDeclaration) {
           for (var variable in node.variables.variables) {
             var name = variable.name.name;
 
             var reference = variableRef.getChild(name);
-            reference.node2 = node;
+            reference.node ??= node;
 
             var getter = getterRef.getChild(name);
             localScope.declare(name, getter);
@@ -294,8 +307,8 @@ class SourceLibraryBuilder {
   ) {
     for (var configuration in configurations) {
       var name = configuration.name.components.join('.');
-      var value = configuration.value ?? 'true';
-      if (linker.declaredVariables.get(name) == (value)) {
+      var value = configuration.value?.stringValue ?? 'true';
+      if (linker.declaredVariables.get(name) == value) {
         return configuration.uri.stringValue;
       }
     }

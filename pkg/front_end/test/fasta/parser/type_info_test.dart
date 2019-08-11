@@ -1196,7 +1196,7 @@ class TypeInfoTest {
   }
 
   void test_computeType_identifierTypeArgRecovery() {
-    // TOOD(danrubel): dynamic, do, other keywords, malformed, recovery
+    // TODO(danrubel): dynamic, do, other keywords, malformed, recovery
     // <T>
 
     expectTypeParamOrArg(noTypeParamOrArg, 'G<int double> g');
@@ -2802,8 +2802,14 @@ class TypeInfoListener implements Listener {
   }
 
   @override
-  void endFormalParameter(Token thisKeyword, Token periodAfterThis,
-      Token nameToken, FormalParameterKind kind, MemberKind memberKind) {
+  void endFormalParameter(
+      Token thisKeyword,
+      Token periodAfterThis,
+      Token nameToken,
+      Token initializerStart,
+      Token initializerEnd,
+      FormalParameterKind kind,
+      MemberKind memberKind) {
     calls.add('endFormalParameter $thisKeyword $periodAfterThis '
         '$nameToken $kind $memberKind');
   }

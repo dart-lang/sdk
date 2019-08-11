@@ -22,6 +22,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
     show
         CompilerContext,
         CompilerOptions,
+        CompilerResult,
         DiagnosticMessage,
         DiagnosticMessageHandler,
         FileSystem,
@@ -32,6 +33,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
         StandardFileSystem,
         getMessageUri,
         kernelForProgram,
+        parseExperimentalArguments,
         parseExperimentalFlags,
         printDiagnosticMessage;
 
@@ -214,7 +216,9 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     ..fileSystem = fileSystem
     ..linkedDependencies = linkedDependencies
     ..packagesFileUri = packagesUri
-    ..experimentalFlags = parseExperimentalFlags(experimentalFlags, print)
+    ..experimentalFlags = parseExperimentalFlags(
+        parseExperimentalArguments(experimentalFlags),
+        onError: print)
     ..onDiagnostic = (DiagnosticMessage m) {
       errorDetector(m);
     }
@@ -227,7 +231,6 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       genBytecode: genBytecode,
       bytecodeOptions: bytecodeOptions,
       dropAST: dropAST && !splitOutputByPackages,
-      enableAsserts: enableAsserts,
       enableConstantEvaluation: enableConstantEvaluation,
       useProtobufTreeShaker: useProtobufTreeShaker);
 
@@ -281,7 +284,6 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
     bool genBytecode: false,
     BytecodeOptions bytecodeOptions,
     bool dropAST: false,
-    bool enableAsserts: false,
     bool enableConstantEvaluation: true,
     bool useProtobufTreeShaker: false}) async {
   // Replace error handler to detect if there are compilation errors.
@@ -290,7 +292,8 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
   options.onDiagnostic = errorDetector;
 
   setVMEnvironmentDefines(environmentDefines, options);
-  Component component = await kernelForProgram(source, options);
+  CompilerResult compilerResult = await kernelForProgram(source, options);
+  Component component = compilerResult?.component;
 
   // Run global transformations only if component is correct.
   if (aot && component != null) {
@@ -300,7 +303,6 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
         component,
         useGlobalTypeFlowAnalysis,
         environmentDefines,
-        enableAsserts,
         enableConstantEvaluation,
         useProtobufTreeShaker,
         errorDetector);
@@ -352,7 +354,6 @@ Future _runGlobalTransformations(
     Component component,
     bool useGlobalTypeFlowAnalysis,
     Map<String, String> environmentDefines,
-    bool enableAsserts,
     bool enableConstantEvaluation,
     bool useProtobufTreeShaker,
     ErrorDetector errorDetector) async {
@@ -370,8 +371,8 @@ Future _runGlobalTransformations(
   mixin_deduplication.transformComponent(component);
 
   if (enableConstantEvaluation) {
-    await _performConstantEvaluation(source, compilerOptions, component,
-        coreTypes, environmentDefines, enableAsserts);
+    await _performConstantEvaluation(
+        source, compilerOptions, component, coreTypes, environmentDefines);
 
     if (errorDetector.hasCompilationErrors) return;
   }
@@ -431,8 +432,7 @@ Future _performConstantEvaluation(
     CompilerOptions compilerOptions,
     Component component,
     CoreTypes coreTypes,
-    Map<String, String> environmentDefines,
-    bool enableAsserts) async {
+    Map<String, String> environmentDefines) async {
   final vmConstants = new vm_constants.VmConstantsBackend(coreTypes);
 
   await runWithFrontEndCompilerContext(source, compilerOptions, component, () {
@@ -442,7 +442,6 @@ Future _performConstantEvaluation(
         new ForwardConstantEvaluationErrors(),
         keepFields: true,
         evaluateAnnotations: true,
-        enableAsserts: enableAsserts,
         desugarSets: !compilerOptions.target.supportsSetLiterals);
   });
 }

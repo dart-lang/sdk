@@ -740,7 +740,7 @@ abstract class ScannerTest_Fasta_Base {
 class ScannerTest_Fasta_Direct_UTF8 extends ScannerTest_Fasta_Direct {
   ScannerResult scanSource(source, {includeComments: true}) {
     List<int> encoded = utf8.encode(source).toList(growable: true);
-    encoded.add(0); // Ensure 0 terminted bytes for UTF8 scanner
+    encoded.add(0); // Ensure 0 terminated bytes for UTF8 scanner
     return usedForFuzzTesting.scan(encoded,
         includeComments: includeComments,
         languageVersionChanged: languageVersionChanged);

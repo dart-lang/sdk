@@ -27,7 +27,8 @@ class BrowserOutput {
 
 /// Class describing the interface for communicating with browsers.
 abstract class Browser {
-  BrowserOutput _allBrowserOutput = BrowserOutput();
+  /// Get the output that was written so far to stdout/stderr/eventLog.
+  BrowserOutput get testBrowserOutput => _testBrowserOutput;
   BrowserOutput _testBrowserOutput = BrowserOutput();
 
   /// This is called after the process is closed, before the done future
@@ -67,8 +68,7 @@ abstract class Browser {
 
   Browser();
 
-  factory Browser.byRuntime(Runtime runtime, String executablePath,
-      [bool checkedMode = false]) {
+  factory Browser.byRuntime(Runtime runtime, String executablePath) {
     Browser browser;
     switch (runtime) {
       case Runtime.firefox:
@@ -117,21 +117,18 @@ abstract class Browser {
     if (debugPrint) print("usageLog: $toLog");
     if (logger != null) logger(toLog);
 
-    _allBrowserOutput.eventLog.write(toLog);
     _testBrowserOutput.eventLog.write(toLog);
   }
 
   void _addStdout(String output) {
     if (debugPrint) print("stdout: $output");
 
-    _allBrowserOutput.stdout.write(output);
     _testBrowserOutput.stdout.write(output);
   }
 
   void _addStderr(String output) {
     if (debugPrint) print("stderr: $output");
 
-    _allBrowserOutput.stderr.write(output);
     _testBrowserOutput.stderr.write(output);
   }
 
@@ -198,19 +195,17 @@ abstract class Browser {
         }
       }
 
-      stdoutSubscription =
-          process.stdout.transform(utf8.decoder).listen((data) {
-        _addStdout(data);
-      }, onError: (error) {
+      stdoutSubscription = process.stdout
+          .transform(utf8.decoder)
+          .listen(_addStdout, onError: (error) {
         // This should _never_ happen, but we really want this in the log
         // if it actually does due to dart:io or vm bug.
         _logEvent("An error occured in the process stdout handling: $error");
       }, onDone: closeStdout);
 
-      stderrSubscription =
-          process.stderr.transform(utf8.decoder).listen((data) {
-        _addStderr(data);
-      }, onError: (error) {
+      stderrSubscription = process.stderr
+          .transform(utf8.decoder)
+          .listen(_addStderr, onError: (error) {
         // This should _never_ happen, but we really want this in the log
         // if it actually does due to dart:io or vm bug.
         _logEvent("An error occured in the process stderr handling: $error");
@@ -245,10 +240,6 @@ abstract class Browser {
       return false;
     });
   }
-
-  /// Get the output that was written so far to stdout/stderr/eventLog.
-  BrowserOutput get allBrowserOutput => _allBrowserOutput;
-  BrowserOutput get testBrowserOutput => _testBrowserOutput;
 
   void resetTestBrowserOutput() {
     _testBrowserOutput = BrowserOutput();
@@ -460,7 +451,7 @@ class Chrome extends Browser {
             _logEvent(
                 "Error: failed to delete Chrome user-data-dir ${userDir.path}"
                 ", will try again in 40 seconds: $e");
-            Timer(Duration(seconds: 40), () {
+            Timer(const Duration(seconds: 40), () {
               try {
                 userDir.deleteSync(recursive: true);
               } catch (e) {
@@ -571,7 +562,7 @@ class AndroidChrome extends Browser {
   static const String turnScreenOnPackage = 'com.google.dart.turnscreenon';
   static const String turnScreenOnActivity = '.Main';
 
-  AdbDevice _adbDevice;
+  final AdbDevice _adbDevice;
 
   AndroidChrome(this._adbDevice);
 
@@ -696,7 +687,7 @@ class BrowserStatus {
   Timer nextTestTimeout;
   Stopwatch timeSinceRestart = Stopwatch()..start();
 
-  BrowserStatus(Browser this.browser);
+  BrowserStatus(this.browser);
 }
 
 /// Describes a single test to be run in the browser.
@@ -866,8 +857,7 @@ class BrowserTestRunner {
       browser = AndroidChrome(device);
     } else {
       var path = configuration.browserLocation;
-      browser = Browser.byRuntime(
-          configuration.runtime, path, configuration.isChecked);
+      browser = Browser.byRuntime(configuration.runtime, path);
       browser.logger = logger;
     }
 
@@ -898,10 +888,10 @@ class BrowserTestRunner {
       if (status.currentTest.id != testId) {
         print("Expected test id ${status.currentTest.id} for"
             "${status.currentTest.url}");
-        print("Got test id ${testId}");
+        print("Got test id $testId");
         print("Last test id was ${status.lastTest.id} for "
             "${status.currentTest.url}");
-        throw ("This should never happen, wrong test id");
+        throw "This should never happen, wrong test id";
       }
       testCache[testId] = status.currentTest.url;
 
@@ -1206,9 +1196,7 @@ class BrowserTestingServer {
         request.response.close();
         DebugLogger.error("Error from browser on : "
             "${request.uri.path}, data:  $back");
-      }, onError: (error) {
-        print(error);
-      });
+      }, onError: print);
     }
 
     void errorHandler(e) {
@@ -1498,11 +1486,11 @@ body div {
           current_id = next_id;
           test_started = true;
           contactBrowserController(
-            'POST', '$startedPath/${browserId}?id=' + current_id,
+            'POST', '$startedPath/$browserId?id=' + current_id,
             function () {}, msg, true);
         } else if (isStatusUpdate) {
             contactBrowserController(
-              'POST', '$statusUpdatePath/${browserId}?id=' + current_id,
+              'POST', '$statusUpdatePath/$browserId?id=' + current_id,
               function() {}, msg, true);
         } else {
           var is_double_report = test_completed;
@@ -1511,7 +1499,7 @@ body div {
 
           function reportDoneMessage() {
             contactBrowserController(
-                'POST', '$reportPath/${browserId}?id=' + current_id,
+                'POST', '$reportPath/$browserId?id=' + current_id,
                 handleReady, msg, true);
           }
 

@@ -2056,6 +2056,7 @@ abstract class _TypedList extends _TypedListBase {
   // Methods implementing the collection interface.
 
   @pragma("vm:exact-result-type", "dart:core#_Smi")
+  @pragma("vm:prefer-inline")
   int get length native "TypedData_length";
 
   // Internal utility methods.
@@ -3709,12 +3710,15 @@ abstract class _TypedListView extends _TypedListBase implements TypedData {
   }
 
   @pragma("vm:non-nullable-result-type")
+  @pragma("vm:prefer-inline")
   _TypedList get _typedData native "TypedDataView_typedData";
 
   @pragma("vm:exact-result-type", "dart:core#_Smi")
+  @pragma("vm:prefer-inline")
   int get offsetInBytes native "TypedDataView_offsetInBytes";
 
   @pragma("vm:exact-result-type", "dart:core#_Smi")
+  @pragma("vm:prefer-inline")
   int get length native "TypedDataView_length";
 }
 
@@ -3728,6 +3732,7 @@ class _Int8ArrayView extends _TypedListView
       native "TypedDataView_Int8ArrayView_new";
 
   // Method(s) implementing List interface.
+  @pragma("vm:prefer-inline")
   int operator [](int index) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
@@ -3736,6 +3741,7 @@ class _Int8ArrayView extends _TypedListView
         ._getInt8(offsetInBytes + (index * Int8List.bytesPerElement));
   }
 
+  @pragma("vm:prefer-inline")
   void operator []=(int index, int value) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
@@ -3765,6 +3771,7 @@ class _Uint8ArrayView extends _TypedListView
       native "TypedDataView_Uint8ArrayView_new";
 
   // Method(s) implementing List interface.
+  @pragma("vm:prefer-inline")
   int operator [](int index) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
@@ -3773,6 +3780,7 @@ class _Uint8ArrayView extends _TypedListView
         ._getUint8(offsetInBytes + (index * Uint8List.bytesPerElement));
   }
 
+  @pragma("vm:prefer-inline")
   void operator []=(int index, int value) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
@@ -3802,6 +3810,7 @@ class _Uint8ClampedArrayView extends _TypedListView
       int length) native "TypedDataView_Uint8ClampedArrayView_new";
 
   // Method(s) implementing List interface.
+  @pragma("vm:prefer-inline")
   int operator [](int index) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
@@ -3810,6 +3819,7 @@ class _Uint8ClampedArrayView extends _TypedListView
         ._getUint8(offsetInBytes + (index * Uint8List.bytesPerElement));
   }
 
+  @pragma("vm:prefer-inline")
   void operator []=(int index, int value) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
@@ -3839,6 +3849,7 @@ class _Int16ArrayView extends _TypedListView
       native "TypedDataView_Int16ArrayView_new";
 
   // Method(s) implementing List interface.
+  @pragma("vm:prefer-inline")
   int operator [](int index) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
@@ -3847,6 +3858,7 @@ class _Int16ArrayView extends _TypedListView
         ._getInt16(offsetInBytes + (index * Int16List.bytesPerElement));
   }
 
+  @pragma("vm:prefer-inline")
   void operator []=(int index, int value) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
@@ -3888,6 +3900,7 @@ class _Uint16ArrayView extends _TypedListView
       native "TypedDataView_Uint16ArrayView_new";
 
   // Method(s) implementing List interface.
+  @pragma("vm:prefer-inline")
   int operator [](int index) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
@@ -3896,6 +3909,7 @@ class _Uint16ArrayView extends _TypedListView
         ._getUint16(offsetInBytes + (index * Uint16List.bytesPerElement));
   }
 
+  @pragma("vm:prefer-inline")
   void operator []=(int index, int value) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
@@ -3938,6 +3952,7 @@ class _Int32ArrayView extends _TypedListView
       native "TypedDataView_Int32ArrayView_new";
 
   // Method(s) implementing List interface.
+  @pragma("vm:prefer-inline")
   int operator [](int index) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
@@ -3946,6 +3961,7 @@ class _Int32ArrayView extends _TypedListView
         ._getInt32(offsetInBytes + (index * Int32List.bytesPerElement));
   }
 
+  @pragma("vm:prefer-inline")
   void operator []=(int index, int value) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
@@ -3975,6 +3991,7 @@ class _Uint32ArrayView extends _TypedListView
       native "TypedDataView_Uint32ArrayView_new";
 
   // Method(s) implementing List interface.
+  @pragma("vm:prefer-inline")
   int operator [](int index) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
@@ -3983,6 +4000,7 @@ class _Uint32ArrayView extends _TypedListView
         ._getUint32(offsetInBytes + (index * Uint32List.bytesPerElement));
   }
 
+  @pragma("vm:prefer-inline")
   void operator []=(int index, int value) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
@@ -4012,6 +4030,7 @@ class _Int64ArrayView extends _TypedListView
       native "TypedDataView_Int64ArrayView_new";
 
   // Method(s) implementing List interface.
+  @pragma("vm:prefer-inline")
   int operator [](int index) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
@@ -4020,6 +4039,7 @@ class _Int64ArrayView extends _TypedListView
         ._getInt64(offsetInBytes + (index * Int64List.bytesPerElement));
   }
 
+  @pragma("vm:prefer-inline")
   void operator []=(int index, int value) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
@@ -4049,6 +4069,7 @@ class _Uint64ArrayView extends _TypedListView
       native "TypedDataView_Uint64ArrayView_new";
 
   // Method(s) implementing List interface.
+  @pragma("vm:prefer-inline")
   int operator [](int index) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
@@ -4057,6 +4078,7 @@ class _Uint64ArrayView extends _TypedListView
         ._getUint64(offsetInBytes + (index * Uint64List.bytesPerElement));
   }
 
+  @pragma("vm:prefer-inline")
   void operator []=(int index, int value) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
@@ -4086,6 +4108,7 @@ class _Float32ArrayView extends _TypedListView
       native "TypedDataView_Float32ArrayView_new";
 
   // Method(s) implementing List interface.
+  @pragma("vm:prefer-inline")
   double operator [](int index) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
@@ -4094,6 +4117,7 @@ class _Float32ArrayView extends _TypedListView
         ._getFloat32(offsetInBytes + (index * Float32List.bytesPerElement));
   }
 
+  @pragma("vm:prefer-inline")
   void operator []=(int index, double value) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
@@ -4123,6 +4147,7 @@ class _Float64ArrayView extends _TypedListView
       native "TypedDataView_Float64ArrayView_new";
 
   // Method(s) implementing List interface.
+  @pragma("vm:prefer-inline")
   double operator [](int index) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
@@ -4131,6 +4156,7 @@ class _Float64ArrayView extends _TypedListView
         ._getFloat64(offsetInBytes + (index * Float64List.bytesPerElement));
   }
 
+  @pragma("vm:prefer-inline")
   void operator []=(int index, double value) {
     if (index < 0 || index >= length) {
       throw new RangeError.index(index, this, "index");
@@ -4282,6 +4308,7 @@ class _ByteDataView implements ByteData {
 
   // Method(s) implementing ByteData interface.
 
+  @pragma("vm:prefer-inline")
   int getInt8(int byteOffset) {
     if (byteOffset < 0 || byteOffset >= length) {
       throw new RangeError.index(byteOffset, this, "byteOffset");
@@ -4289,6 +4316,7 @@ class _ByteDataView implements ByteData {
     return _typedData._getInt8(offsetInBytes + byteOffset);
   }
 
+  @pragma("vm:prefer-inline")
   void setInt8(int byteOffset, int value) {
     if (byteOffset < 0 || byteOffset >= length) {
       throw new RangeError.index(byteOffset, this, "byteOffset");
@@ -4296,6 +4324,7 @@ class _ByteDataView implements ByteData {
     _typedData._setInt8(offsetInBytes + byteOffset, value);
   }
 
+  @pragma("vm:prefer-inline")
   int getUint8(int byteOffset) {
     if (byteOffset < 0 || byteOffset >= length) {
       throw new RangeError.index(byteOffset, this, "byteOffset");
@@ -4303,6 +4332,7 @@ class _ByteDataView implements ByteData {
     return _typedData._getUint8(offsetInBytes + byteOffset);
   }
 
+  @pragma("vm:prefer-inline")
   void setUint8(int byteOffset, int value) {
     if (byteOffset < 0 || byteOffset >= length) {
       throw new RangeError.index(byteOffset, this, "byteOffset");
@@ -4310,6 +4340,7 @@ class _ByteDataView implements ByteData {
     _typedData._setUint8(offsetInBytes + byteOffset, value);
   }
 
+  @pragma("vm:prefer-inline")
   int getInt16(int byteOffset, [Endian endian = Endian.big]) {
     if (byteOffset < 0 || byteOffset + 1 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 2, "byteOffset");
@@ -4321,6 +4352,7 @@ class _ByteDataView implements ByteData {
     return _byteSwap16(result).toSigned(16);
   }
 
+  @pragma("vm:prefer-inline")
   void setInt16(int byteOffset, int value, [Endian endian = Endian.big]) {
     if (byteOffset < 0 || byteOffset + 1 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 2, "byteOffset");
@@ -4329,6 +4361,7 @@ class _ByteDataView implements ByteData {
         identical(endian, Endian.host) ? value : _byteSwap16(value));
   }
 
+  @pragma("vm:prefer-inline")
   int getUint16(int byteOffset, [Endian endian = Endian.big]) {
     if (byteOffset < 0 || byteOffset + 1 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 2, "byteOffset");
@@ -4340,6 +4373,7 @@ class _ByteDataView implements ByteData {
     return _byteSwap16(result);
   }
 
+  @pragma("vm:prefer-inline")
   void setUint16(int byteOffset, int value, [Endian endian = Endian.big]) {
     if (byteOffset < 0 || byteOffset + 1 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 2, "byteOffset");
@@ -4348,6 +4382,7 @@ class _ByteDataView implements ByteData {
         identical(endian, Endian.host) ? value : _byteSwap16(value));
   }
 
+  @pragma("vm:prefer-inline")
   int getInt32(int byteOffset, [Endian endian = Endian.big]) {
     if (byteOffset < 0 || byteOffset + 3 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 4, "byteOffset");
@@ -4359,6 +4394,7 @@ class _ByteDataView implements ByteData {
     return _byteSwap32(result).toSigned(32);
   }
 
+  @pragma("vm:prefer-inline")
   void setInt32(int byteOffset, int value, [Endian endian = Endian.big]) {
     if (byteOffset < 0 || byteOffset + 3 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 4, "byteOffset");
@@ -4367,6 +4403,7 @@ class _ByteDataView implements ByteData {
         identical(endian, Endian.host) ? value : _byteSwap32(value));
   }
 
+  @pragma("vm:prefer-inline")
   int getUint32(int byteOffset, [Endian endian = Endian.big]) {
     if (byteOffset < 0 || byteOffset + 3 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 4, "byteOffset");
@@ -4378,6 +4415,7 @@ class _ByteDataView implements ByteData {
     return _byteSwap32(result);
   }
 
+  @pragma("vm:prefer-inline")
   void setUint32(int byteOffset, int value, [Endian endian = Endian.big]) {
     if (byteOffset < 0 || byteOffset + 3 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 4, "byteOffset");
@@ -4386,6 +4424,7 @@ class _ByteDataView implements ByteData {
         identical(endian, Endian.host) ? value : _byteSwap32(value));
   }
 
+  @pragma("vm:prefer-inline")
   int getInt64(int byteOffset, [Endian endian = Endian.big]) {
     if (byteOffset < 0 || byteOffset + 7 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 8, "byteOffset");
@@ -4397,6 +4436,7 @@ class _ByteDataView implements ByteData {
     return _byteSwap64(result).toSigned(64);
   }
 
+  @pragma("vm:prefer-inline")
   void setInt64(int byteOffset, int value, [Endian endian = Endian.big]) {
     if (byteOffset < 0 || byteOffset + 7 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 8, "byteOffset");
@@ -4405,6 +4445,7 @@ class _ByteDataView implements ByteData {
         identical(endian, Endian.host) ? value : _byteSwap64(value));
   }
 
+  @pragma("vm:prefer-inline")
   int getUint64(int byteOffset, [Endian endian = Endian.big]) {
     if (byteOffset < 0 || byteOffset + 7 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 8, "byteOffset");
@@ -4416,6 +4457,7 @@ class _ByteDataView implements ByteData {
     return _byteSwap64(result);
   }
 
+  @pragma("vm:prefer-inline")
   void setUint64(int byteOffset, int value, [Endian endian = Endian.big]) {
     if (byteOffset < 0 || byteOffset + 7 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 8, "byteOffset");
@@ -4424,6 +4466,7 @@ class _ByteDataView implements ByteData {
         identical(endian, Endian.host) ? value : _byteSwap64(value));
   }
 
+  @pragma("vm:prefer-inline")
   double getFloat32(int byteOffset, [Endian endian = Endian.big]) {
     if (byteOffset < 0 || byteOffset + 3 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 4, "byteOffset");
@@ -4436,6 +4479,7 @@ class _ByteDataView implements ByteData {
     return _convF32[0];
   }
 
+  @pragma("vm:prefer-inline")
   void setFloat32(int byteOffset, double value, [Endian endian = Endian.big]) {
     if (byteOffset < 0 || byteOffset + 3 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 4, "byteOffset");
@@ -4448,6 +4492,7 @@ class _ByteDataView implements ByteData {
     _typedData._setUint32(offsetInBytes + byteOffset, _byteSwap32(_convU32[0]));
   }
 
+  @pragma("vm:prefer-inline")
   double getFloat64(int byteOffset, [Endian endian = Endian.big]) {
     if (byteOffset < 0 || byteOffset + 7 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 8, "byteOffset");
@@ -4460,6 +4505,7 @@ class _ByteDataView implements ByteData {
     return _convF64[0];
   }
 
+  @pragma("vm:prefer-inline")
   void setFloat64(int byteOffset, double value, [Endian endian = Endian.big]) {
     if (byteOffset < 0 || byteOffset + 7 >= length) {
       throw new RangeError.range(byteOffset, 0, length - 8, "byteOffset");
@@ -4490,25 +4536,31 @@ class _ByteDataView implements ByteData {
   }
 
   @pragma("vm:non-nullable-result-type")
+  @pragma("vm:prefer-inline")
   _TypedList get _typedData native "TypedDataView_typedData";
 
   @pragma("vm:exact-result-type", "dart:core#_Smi")
+  @pragma("vm:prefer-inline")
   int get offsetInBytes native "TypedDataView_offsetInBytes";
 
   @pragma("vm:exact-result-type", "dart:core#_Smi")
+  @pragma("vm:prefer-inline")
   int get length native "TypedDataView_length";
 }
 
+@pragma("vm:prefer-inline")
 int _byteSwap16(int value) {
   return ((value & 0xFF00) >> 8) | ((value & 0x00FF) << 8);
 }
 
+@pragma("vm:prefer-inline")
 int _byteSwap32(int value) {
   value = ((value & 0xFF00FF00) >> 8) | ((value & 0x00FF00FF) << 8);
   value = ((value & 0xFFFF0000) >> 16) | ((value & 0x0000FFFF) << 16);
   return value;
 }
 
+@pragma("vm:prefer-inline")
 int _byteSwap64(int value) {
   return (_byteSwap32(value) << 32) | _byteSwap32(value >> 32);
 }
@@ -4519,16 +4571,19 @@ final _convF32 = new Float32List.view(_convU32.buffer);
 final _convF64 = new Float64List.view(_convU32.buffer);
 
 // Top level utility methods.
+@pragma("vm:prefer-inline")
 int _toInt(int value, int mask) {
   value &= mask;
   if (value > (mask >> 1)) value -= mask + 1;
   return value;
 }
 
+@pragma("vm:prefer-inline")
 int _toInt8(int value) {
   return _toInt(value, 0xFF);
 }
 
+@pragma("vm:prefer-inline")
 int _toUint8(int value) {
   return value & 0xFF;
 }
@@ -4540,18 +4595,22 @@ int _toClampedUint8(int value) {
   return value;
 }
 
+@pragma("vm:prefer-inline")
 int _toInt16(int value) {
   return _toInt(value, 0xFFFF);
 }
 
+@pragma("vm:prefer-inline")
 int _toUint16(int value) {
   return value & 0xFFFF;
 }
 
+@pragma("vm:prefer-inline")
 int _toInt32(int value) {
   return _toInt(value, 0xFFFFFFFF);
 }
 
+@pragma("vm:prefer-inline")
 int _toUint32(int value) {
   return value & 0xFFFFFFFF;
 }

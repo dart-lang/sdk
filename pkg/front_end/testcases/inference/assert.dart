@@ -8,8 +8,8 @@ library test;
 T f<T>() => null;
 
 void test() {
-  assert(/*@typeArgs=bool*/ f());
-  assert(/*@typeArgs=bool*/ f(), /*@typeArgs=dynamic*/ f());
+  assert(/*@ typeArgs=bool* */ f());
+  assert(/*@ typeArgs=bool* */ f(), /*@ typeArgs=dynamic */ f());
 }
 
 main() {}

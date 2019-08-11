@@ -15,4 +15,4 @@ import self as self;
 
 static method main() → dynamic {}
 static method f() → dynamic
-  return let final () → dynamic h = () → dynamic => null in h;
+  return let final () →* dynamic h = () → dynamic => null in h;

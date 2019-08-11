@@ -53,7 +53,6 @@ class AbstractAnalysisTest with ResourceProviderMixin {
   AnalysisServer server;
   RequestHandler handler;
 
-  final List<ServerErrorParams> serverErrors = <ServerErrorParams>[];
   final List<GeneralAnalysisService> generalServices =
       <GeneralAnalysisService>[];
   final Map<AnalysisService, List<String>> analysisSubscriptions = {};
@@ -105,6 +104,19 @@ class AbstractAnalysisTest with ResourceProviderMixin {
     return testFile;
   }
 
+  /// Create an analysis options file based on the given arguments.
+  void createAnalysisOptionsFile({List<String> experiments}) {
+    StringBuffer buffer = new StringBuffer();
+    if (experiments != null) {
+      buffer.writeln('analyzer:');
+      buffer.writeln('  enable-experiment:');
+      for (String experiment in experiments) {
+        buffer.writeln('    - $experiment');
+      }
+    }
+    addAnalysisOptionsFile(buffer.toString());
+  }
+
   AnalysisServer createAnalysisServer() {
     //
     // Create an SDK in the mock file system.
@@ -133,6 +145,12 @@ class AbstractAnalysisTest with ResourceProviderMixin {
             packageRoots: packageRoots)
         .toRequest('0');
     handleSuccessfulRequest(request, handler: analysisHandler);
+  }
+
+  void doAllDeclarationsTrackerWork() {
+    while (server.declarationsTracker.hasWork) {
+      server.declarationsTracker.doWork();
+    }
   }
 
   /**
@@ -175,8 +193,7 @@ class AbstractAnalysisTest with ResourceProviderMixin {
 
   void processNotification(Notification notification) {
     if (notification.event == SERVER_NOTIFICATION_ERROR) {
-      var params = new ServerErrorParams.fromNotification(notification);
-      serverErrors.add(params);
+      fail('${notification.toJson()}');
     }
   }
 

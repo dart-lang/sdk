@@ -451,32 +451,45 @@ ${parser.usage}""");
       print("Loading list of try runs...");
     }
     final buildset = "buildset:patch/gerrit/$gerritHost/$changelist/$patchset";
-    final url = Uri.parse(
-        "https://cr-buildbucket.appspot.com/_ah/api/buildbucket/v1/search"
-        "?bucket=luci.dart.try"
-        "&tag=${Uri.encodeComponent(buildset)}"
-        "&fields=builds(id%2Ctags%2Cstatus%2Cstarted_ts)");
-    final client = new HttpClient();
-    final request =
-        await client.getUrl(url).timeout(const Duration(seconds: 30));
-    final response = await request.close().timeout(const Duration(seconds: 30));
-    if (response.statusCode != HttpStatus.ok) {
-      throw new Exception("Failed to request try runs for $gerrit");
+
+    Future<Map<String, dynamic>> searchBuilds(String cursor) async {
+      final url = Uri.parse(
+          "https://cr-buildbucket.appspot.com/_ah/api/buildbucket/v1/search"
+          "?bucket=luci.dart.try"
+          "&tag=${Uri.encodeComponent(buildset)}"
+          "&fields=builds(id%2Ctags%2Cstatus%2Cstarted_ts),next_cursor"
+          "&start_cursor=$cursor");
+      final client = new HttpClient();
+      final request =
+          await client.getUrl(url).timeout(const Duration(seconds: 30));
+      final response =
+          await request.close().timeout(const Duration(seconds: 30));
+      if (response.statusCode != HttpStatus.ok) {
+        throw new Exception("Failed to request try runs for $gerrit");
+      }
+      final Map<String, dynamic> object = await response
+          .cast<List<int>>()
+          .transform(new Utf8Decoder())
+          .transform(new JsonDecoder())
+          .first
+          .timeout(const Duration(seconds: 30));
+      client.close();
+      return object;
     }
-    final Map<String, dynamic> object = await response
-        .cast<List<int>>()
-        .transform(new Utf8Decoder())
-        .transform(new JsonDecoder())
-        .first
-        .timeout(const Duration(seconds: 30));
-    client.close();
-    final builds = object["builds"];
-    if (builds == null) {
-      stderr.writeln(
-          "error: $prefix$changelist has no try runs for patchset $patchset");
-      exitCode = 1;
-      return;
-    }
+
+    var cursor = "";
+    final builds = [];
+    do {
+      final object = await searchBuilds(cursor);
+      if (cursor.isEmpty && object["builds"] == null) {
+        stderr.writeln(
+            "error: $prefix$changelist has no try runs for patchset $patchset");
+        exitCode = 1;
+        return;
+      }
+      builds.addAll(object["builds"]);
+      cursor = object["next_cursor"];
+    } while (cursor != null);
 
     // Prefer the newest completed build.
     Map<String, dynamic> preferredBuild(

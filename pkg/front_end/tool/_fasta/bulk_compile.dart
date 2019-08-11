@@ -24,7 +24,7 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
 import 'package:front_end/src/kernel_generator_impl.dart'
-    show CompilerResult, generateKernelInternal;
+    show InternalCompilerResult, generateKernelInternal;
 
 const String customScheme = "org-dartlang-bulkcompile";
 
@@ -51,7 +51,7 @@ class BulkCompiler {
     return CompilerContext.runWithOptions(options,
         (CompilerContext context) async {
       (await context.options.loadSdkSummary(null))?.computeCanonicalNames();
-      CompilerResult result = await generateKernelInternal();
+      InternalCompilerResult result = await generateKernelInternal();
       result?.component?.unbindCanonicalNames();
       return null;
     });

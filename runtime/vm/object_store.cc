@@ -29,7 +29,9 @@ ObjectStore::~ObjectStore() {}
 
 void ObjectStore::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   ASSERT(visitor != NULL);
+  visitor->set_gc_root_type("object store");
   visitor->VisitPointers(from(), to());
+  visitor->clear_gc_root_type();
 }
 
 void ObjectStore::Init(Isolate* isolate) {

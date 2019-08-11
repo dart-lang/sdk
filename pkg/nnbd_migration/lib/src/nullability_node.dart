@@ -100,6 +100,35 @@ class NullabilityGraph {
   /// Set containing all sources being migrated.
   final _sourcesBeingMigrated = <Source>{};
 
+  /// After execution of [_propagateAlways], a list of all nodes reachable from
+  /// [always] via zero or more edges of kind [_NullabilityEdgeKind.union].
+  final List<NullabilityNode> _unionedWithAlways = [];
+
+  /// During any given stage of nullability propagation, a list of all the edges
+  /// that need to be examined before the stage is complete.
+  final List<NullabilityEdge> _pendingEdges = [];
+
+  /// During and after nullability propagation, a list of all edges that
+  /// couldn't be satisfied.
+  final List<NullabilityEdge> _unsatisfiedEdges = [];
+
+  /// During and after nullability propagation, a list of all substitution nodes
+  /// that couldn't be satisfied.
+  final List<NullabilityNodeForSubstitution> _unsatisfiedSubstitutions = [];
+
+  /// During execution of [_propagateDownstream], a list of all the substitution
+  /// nodes that have not yet been resolved.
+  List<NullabilityNodeForSubstitution> _pendingSubstitutions = [];
+
+  /// After calling [propagate], this getter may be queried to access the set of
+  /// edges that could not be satisfied.
+  Iterable<NullabilityEdge> get unsatisfiedEdges => _unsatisfiedEdges;
+
+  /// After calling [propagate], this getter may be queried to access the set of
+  /// substitution nodes that could not be satisfied.
+  Iterable<NullabilityNodeForSubstitution> get unsatisfiedSubstitutions =>
+      _unsatisfiedSubstitutions;
+
   /// Records that [sourceNode] is immediately upstream from [destinationNode].
   ///
   /// Returns the edge created by the connection.
@@ -123,13 +152,11 @@ class NullabilityGraph {
 
   /// Determines the nullability of each node in the graph by propagating
   /// nullability information from one node to another.
-  ///
-  /// Returns a list of edges that couldn't be satisfied.
-  List<NullabilityEdge> propagate() {
+  void propagate() {
     if (_debugBeforePropagation) _debugDump();
-    var nullableNodes = _propagateAlways();
+    _propagateAlways();
     _propagateUpstream();
-    return _propagateDownstream(nullableNodes);
+    _propagateDownstream();
   }
 
   /// Records that nodes [x] and [y] should have exactly the same nullability.
@@ -182,79 +209,62 @@ class NullabilityGraph {
   }
 
   /// Propagates nullability downstream along union edges from "always".
-  ///
-  /// Returns a list of nodes that are nullable after this operation (including
-  /// "always")
-  List<NullabilityNode> _propagateAlways() {
-    var nullableNodes = <NullabilityNode>[always];
-    var pendingEdges = always._downstreamEdges.toList();
-    while (pendingEdges.isNotEmpty) {
-      var edge = pendingEdges.removeLast();
+  void _propagateAlways() {
+    _unionedWithAlways.add(always);
+    _pendingEdges.addAll(always._downstreamEdges);
+    while (_pendingEdges.isNotEmpty) {
+      var edge = _pendingEdges.removeLast();
       if (!edge.isUnion) continue;
       // Union edges always have exactly one source, so we don't need to check
       // whether all sources are nullable.
       assert(edge.sources.length == 1);
       var node = edge.destinationNode;
       if (node is NullabilityNodeMutable && !node.isNullable) {
-        nullableNodes.add(node);
+        _unionedWithAlways.add(node);
         node._state = _NullabilityState.ordinaryNullable;
         // Was not previously nullable, so we need to propagate.
-        pendingEdges.addAll(node._downstreamEdges);
+        _pendingEdges.addAll(node._downstreamEdges);
       }
     }
-    return nullableNodes;
   }
 
   /// Propagates nullability downstream.
-  List<NullabilityEdge> _propagateDownstream(
-      List<NullabilityNode> nullableNodes) {
-    var unsatisfiedEdges = <NullabilityEdge>[];
-    var pendingEdges = <NullabilityEdge>[];
-    for (var node in nullableNodes) {
-      pendingEdges.addAll(node._downstreamEdges);
+  void _propagateDownstream() {
+    assert(_pendingEdges.isEmpty);
+    for (var node in _unionedWithAlways) {
+      _pendingEdges.addAll(node._downstreamEdges);
     }
-    var pendingSubstitutions = <NullabilityNodeForSubstitution>[];
     while (true) {
-      while (pendingEdges.isNotEmpty) {
-        var edge = pendingEdges.removeLast();
+      while (_pendingEdges.isNotEmpty) {
+        var edge = _pendingEdges.removeLast();
         if (!edge._isTriggered) continue;
         var node = edge.destinationNode;
         if (node._state == _NullabilityState.nonNullable) {
           // The node has already been marked as non-nullable, so the edge can't
           // be satisfied.
-          unsatisfiedEdges.add(edge);
+          _unsatisfiedEdges.add(edge);
           continue;
         }
         if (node is NullabilityNodeMutable && !node.isNullable) {
-          node._state = _NullabilityState.ordinaryNullable;
-          // Was not previously nullable, so we need to propagate.
-          pendingEdges.addAll(node._downstreamEdges);
-          if (node is NullabilityNodeForSubstitution) {
-            pendingSubstitutions.add(node);
-          }
+          _setNullable(node);
         }
       }
-      if (pendingSubstitutions.isEmpty) break;
-      var node = pendingSubstitutions.removeLast();
-      if (node.innerNode.isNullable || node.outerNode.isNullable) {
-        // No further propagation is needed, since some other connection already
-        // propagated nullability to either the inner or outer node.
-        continue;
+      if (_pendingSubstitutions.isEmpty) break;
+      var oldPendingSubstitutions = _pendingSubstitutions;
+      _pendingSubstitutions = [];
+      for (var node in oldPendingSubstitutions) {
+        _resolvePendingSubstitution(node);
       }
-      // Heuristically choose to propagate to the inner node since this seems
-      // to lead to better quality migrations.
-      pendingEdges.add(NullabilityEdge._(node.innerNode, const [],
-          _NullabilityEdgeKind.soft, _SubstitutionHeuristicOrigin()));
     }
-    return unsatisfiedEdges;
   }
 
   /// Propagates non-null intent upstream along unconditional control flow
   /// lines.
   void _propagateUpstream() {
-    var pendingEdges = never._upstreamEdges.toList();
-    while (pendingEdges.isNotEmpty) {
-      var edge = pendingEdges.removeLast();
+    assert(_pendingEdges.isEmpty);
+    _pendingEdges.addAll(never._upstreamEdges);
+    while (_pendingEdges.isNotEmpty) {
+      var edge = _pendingEdges.removeLast();
       if (!edge.hard) continue;
       var node = edge.primarySource;
       if (node is NullabilityNodeMutable &&
@@ -262,9 +272,71 @@ class NullabilityGraph {
         node._state = _NullabilityState.nonNullable;
         // Was not previously in the set of non-null intent nodes, so we need to
         // propagate.
-        pendingEdges.addAll(node._upstreamEdges);
+        _pendingEdges.addAll(node._upstreamEdges);
       }
     }
+  }
+
+  void _resolvePendingSubstitution(
+      NullabilityNodeForSubstitution substitutionNode) {
+    assert(substitutionNode._state.isNullable);
+    // If both nodes pointed to by the substitution node are in the non-nullable
+    // state, then no resolution is needed; the substitution node can’t be
+    // satisfied.
+    if (substitutionNode.innerNode._state == _NullabilityState.nonNullable &&
+        substitutionNode.outerNode._state == _NullabilityState.nonNullable) {
+      _unsatisfiedSubstitutions.add(substitutionNode);
+      return;
+    }
+
+    // Otherwise, if the outer node is in a nullable state, then no resolution
+    // is needed because the substitution node is already satisfied.
+    if (substitutionNode.outerNode.isNullable) {
+      return;
+    }
+
+    // Otherwise, if the inner node is in the non-nullable state, then we set
+    // the outer node to the ordinary nullable state.
+    if (substitutionNode.innerNode._state == _NullabilityState.nonNullable) {
+      _setNullable(substitutionNode.outerNode as NullabilityNodeMutable);
+      return;
+    }
+
+    // Otherwise, we set the inner node to the exact nullable state, and we
+    // propagate this state upstream as far as possible using the following
+    // rule: if there is an edge A → B, where A is in the undetermined or
+    // ordinary nullable state, and B is in the exact nullable state, then A’s
+    // state is changed to exact nullable.
+    var pendingNodes = [substitutionNode.innerNode];
+    while (pendingNodes.isNotEmpty) {
+      var node = pendingNodes.removeLast();
+      if (node is NullabilityNodeMutable) {
+        var oldState =
+            _setNullable(node, newState: _NullabilityState.exactNullable);
+        if (oldState != _NullabilityState.exactNullable) {
+          // Was not previously in the "exact nullable" state.  Need to
+          // propagate.
+          for (var edge in node._upstreamEdges) {
+            pendingNodes.add(edge.primarySource);
+          }
+        }
+      }
+    }
+  }
+
+  _NullabilityState _setNullable(NullabilityNodeMutable node,
+      {_NullabilityState newState = _NullabilityState.ordinaryNullable}) {
+    assert(newState.isNullable);
+    var oldState = node._state;
+    node._state = newState;
+    if (!oldState.isNullable) {
+      // Was not previously nullable, so we need to propagate.
+      _pendingEdges.addAll(node._downstreamEdges);
+      if (node is NullabilityNodeForSubstitution) {
+        _pendingSubstitutions.add(node);
+      }
+    }
+    return oldState;
   }
 }
 
@@ -358,6 +430,11 @@ abstract class NullabilityNode {
   /// Gets a string that can be appended to a type name during debugging to help
   /// annotate the nullability of that type.
   String get debugSuffix => '?($this)';
+
+  /// After nullability propagation, this getter can be used to query whether
+  /// the type associated with this node should be considered "exact nullable".
+  @visibleForTesting
+  bool get isExactNullable;
 
   /// After nullability propagation, this getter can be used to query whether
   /// the type associated with this node should be considered nullable.
@@ -467,6 +544,9 @@ abstract class NullabilityNodeMutable extends NullabilityNode {
         super._();
 
   @override
+  bool get isExactNullable => _state == _NullabilityState.exactNullable;
+
+  @override
   bool get isNullable => _state.isNullable;
 }
 
@@ -488,6 +568,9 @@ abstract class _NullabilityNodeCompound extends NullabilityNodeMutable {
   _NullabilityNodeCompound() : super._();
 
   @override
+  bool get isExactNullable => _components.any((c) => c.isExactNullable);
+
+  @override
   bool get isNullable => _components.any((c) => c.isNullable);
 
   Iterable<NullabilityNode> get _components;
@@ -506,8 +589,11 @@ class _NullabilityNodeImmutable extends NullabilityNode {
   String get debugSuffix => isNullable ? '?' : '';
 
   @override
+  bool get isExactNullable => isNullable;
+
+  @override
   _NullabilityState get _state => isNullable
-      ? _NullabilityState.ordinaryNullable
+      ? _NullabilityState.exactNullable
       : _NullabilityState.nonNullable;
 }
 
@@ -552,5 +638,3 @@ class _NullabilityState {
   @override
   String toString() => name;
 }
-
-class _SubstitutionHeuristicOrigin extends EdgeOrigin {}

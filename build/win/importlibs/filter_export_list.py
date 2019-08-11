@@ -9,14 +9,13 @@ import optparse
 import re
 import sys
 
-
-_EXPORT_RE = re.compile(r"""
+_EXPORT_RE = re.compile(
+    r"""
   ^\s*(?P<ordinal>[0-9]+)  # The ordinal field.
   \s+(?P<hint>[0-9A-F]+)   # The hint field.
   \s(?P<rva>........)      # The RVA field.
   \s+(?P<name>[^ ]+)       # And finally the name we're really after.
 """, re.VERBOSE)
-
 
 _USAGE = r"""\
 Usage: %prog [options] [master-file]
@@ -38,48 +37,51 @@ e.g. they are suffixed with "@" and the number of argument bytes to the
 function.
 """
 
+
 def _ReadMasterFile(master_file):
-  # Slurp the master file.
-  with open(master_file) as f:
-    master_exports = ast.literal_eval(f.read())
+    # Slurp the master file.
+    with open(master_file) as f:
+        master_exports = ast.literal_eval(f.read())
 
-  master_mapping = {}
-  for export in master_exports:
-    name = export.split('@')[0]
-    master_mapping[name] = export
+    master_mapping = {}
+    for export in master_exports:
+        name = export.split('@')[0]
+        master_mapping[name] = export
 
-  return master_mapping
+    return master_mapping
 
 
 def main():
-  parser = optparse.OptionParser(usage=_USAGE)
-  parser.add_option('-r', '--reverse',
-                    action='store_true',
-                    help='Reverse the matching, e.g. return the functions '
-                         'in the master list that aren\'t in the input.')
+    parser = optparse.OptionParser(usage=_USAGE)
+    parser.add_option(
+        '-r',
+        '--reverse',
+        action='store_true',
+        help='Reverse the matching, e.g. return the functions '
+        'in the master list that aren\'t in the input.')
 
-  options, args = parser.parse_args()
-  if len(args) != 1:
-    parser.error('Must provide a master file.')
+    options, args = parser.parse_args()
+    if len(args) != 1:
+        parser.error('Must provide a master file.')
 
-  master_mapping = _ReadMasterFile(args[0])
+    master_mapping = _ReadMasterFile(args[0])
 
-  found_exports = []
-  for line in sys.stdin:
-    match = _EXPORT_RE.match(line)
-    if match:
-      export_name = master_mapping.get(match.group('name'), None)
-      if export_name:
-          found_exports.append(export_name)
+    found_exports = []
+    for line in sys.stdin:
+        match = _EXPORT_RE.match(line)
+        if match:
+            export_name = master_mapping.get(match.group('name'), None)
+            if export_name:
+                found_exports.append(export_name)
 
-  if options.reverse:
-    # Invert the found_exports list.
-    found_exports = set(master_mapping.values()) - set(found_exports)
+    if options.reverse:
+        # Invert the found_exports list.
+        found_exports = set(master_mapping.values()) - set(found_exports)
 
-  # Sort the found exports for tidy output.
-  print '\n'.join(sorted(found_exports))
-  return 0
+    # Sort the found exports for tidy output.
+    print '\n'.join(sorted(found_exports))
+    return 0
 
 
 if __name__ == '__main__':
-  sys.exit(main())
+    sys.exit(main())

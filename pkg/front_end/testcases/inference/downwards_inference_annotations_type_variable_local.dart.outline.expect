@@ -3,7 +3,8 @@ import self as self;
 import "dart:core" as core;
 
 class Foo extends core::Object {
-  const constructor •(core::List<core::String> l) → self::Foo
+  const constructor •(core::List<core::String*>* l) → self::Foo*
+    : super core::Object::•()
     ;
 }
 static method test() → void

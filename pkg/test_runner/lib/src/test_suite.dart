@@ -62,7 +62,7 @@ Future asynchronously<T>(T function()) {
 class FutureGroup {
   static const _finished = -1;
   int _pending = 0;
-  Completer<List> _completer = Completer();
+  final Completer<List> _completer = Completer();
   final List<Future> futures = [];
   bool wasCompleted = false;
 
@@ -173,7 +173,7 @@ abstract class TestSuite {
       if (expectations.isEmpty) expectations.add(Expectation.pass);
     }
 
-    var negative = testFile != null ? isNegative(testFile) : false;
+    var negative = testFile != null && isNegative(testFile);
     var testCase = TestCase(displayName, commands, configuration, expectations,
         testFile: testFile);
     if (negative &&
@@ -318,7 +318,7 @@ class VMTestSuite extends TestSuite {
     }
   }
 
-  Future<Null> forEachTest(Function onTest, Map testCache,
+  Future<Null> forEachTest(TestCaseEvent onTest, Map testCache,
       [VoidFunction onDone]) async {
     doTest = onTest;
 
@@ -450,8 +450,8 @@ class StandardTestSuite extends TestSuite {
               .add(suiteDir.append('$s.dart').toNativePath());
           // If the test is a multitest, the filename doesn't include the label.
           // Also if it has multiple VMOptions.  If both, remove two labels.
-          for (var i in [1, 2]) {
-            // Twice
+          for (var i = 0; i < 2; i++) {
+            // Twice.
             if (s.lastIndexOf('/') != -1) {
               s = s.substring(0, s.lastIndexOf('/'));
               _testListPossibleFilenames
@@ -529,7 +529,8 @@ class StandardTestSuite extends TestSuite {
 
   List<String> additionalOptions(Path filePath) => [];
 
-  Future forEachTest(Function onTest, Map<String, List<TestFile>> testCache,
+  Future forEachTest(
+      TestCaseEvent onTest, Map<String, List<TestFile>> testCache,
       [VoidFunction onDone]) async {
     doTest = onTest;
     testExpectations = readExpectations();
@@ -618,8 +619,23 @@ class StandardTestSuite extends TestSuite {
   }
 
   void enqueueTestCaseFromTestFile(TestFile testFile) {
+    // Static error tests are currently skipped on every implementation except
+    // analyzer and Fasta.
+    // TODO(rnystrom): Should other configurations that use CFE support static
+    // error tests?
+    // TODO(rnystrom): Skipping this here is a little unusual because most
+    // skips are handled in enqueueStandardTest(). However, if the configuration
+    // is running on browser, calling enqueueStandardTest() will try to create
+    // a set of commands which ultimately causes an exception in
+    // DummyRuntimeConfiguration. This avoids that.
+    if (testFile.isStaticErrorTest &&
+        configuration.compiler != Compiler.dart2analyzer &&
+        configuration.compiler != Compiler.fasta) {
+      return;
+    }
+
     if (configuration.compilerConfiguration.hasCompiler &&
-        testFile.hasCompileError) {
+        (testFile.hasCompileError || testFile.isStaticErrorTest)) {
       // If a compile-time error is expected, and we're testing a
       // compiler, we never need to attempt to run the program (in a
       // browser or otherwise).
@@ -665,17 +681,18 @@ class StandardTestSuite extends TestSuite {
 
       var expectations = testExpectations.expectations(testFile.name);
       var isCrashExpected = expectations.contains(Expectation.crash);
-      var commands = makeCommands(testFile, vmOptionsVariant, allVmOptions,
+      var commands = _makeCommands(testFile, vmOptionsVariant, allVmOptions,
           commonArguments, isCrashExpected);
       var variantTestName = testFile.name;
       if (vmOptionsList.length > 1) {
         variantTestName = "${testFile.name}/$vmOptionsVariant";
       }
+
       enqueueNewTestCase(testFile, variantTestName, commands, expectations);
     }
   }
 
-  List<Command> makeCommands(TestFile testFile, int vmOptionsVariant,
+  List<Command> _makeCommands(TestFile testFile, int vmOptionsVariant,
       List<String> vmOptions, List<String> args, bool isCrashExpected) {
     var commands = <Command>[];
     var compilerConfiguration = configuration.compilerConfiguration;
@@ -803,7 +820,7 @@ class StandardTestSuite extends TestSuite {
   ///
   /// In order to handle browser multitests, [expectations] is a map of subtest
   /// names to expectation sets. If the test is not a multitest, the map has
-  /// a single key, [testFile.name].
+  /// a single key, `testFile.name`.
   void _enqueueBrowserTest(
       TestFile testFile, Map<String, Set<Expectation>> expectations) {
     var tempDir = createOutputDirectory(testFile.path);
@@ -828,9 +845,18 @@ class StandardTestSuite extends TestSuite {
             _createUrlPathFromFile(Path('$compilationTempDir/$nameNoExt.js'));
         content = dart2jsHtml(testFile.path.toNativePath(), scriptPath);
       } else {
+        var packageRoot =
+            packagesArgument(configuration.packageRoot, configuration.packages);
+        packageRoot =
+            packageRoot == null ? nameNoExt : packageRoot.split("=").last;
+        var nameFromModuleRoot =
+            testFile.path.relativeTo(Path(packageRoot).directoryPath);
+        var nameFromModuleRootNoExt =
+            "${nameFromModuleRoot.directoryPath}/$nameNoExt";
         var jsDir =
             Path(compilationTempDir).relativeTo(Repository.dir).toString();
-        content = dartdevcHtml(nameNoExt, jsDir, configuration.compiler);
+        content = dartdevcHtml(
+            nameNoExt, nameFromModuleRootNoExt, jsDir, configuration.compiler);
       }
     }
 

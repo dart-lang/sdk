@@ -428,20 +428,22 @@ void ParallelMoveResolver::EmitSwap(int index) {
   }
 }
 
-void ParallelMoveResolver::MoveMemoryToMemory(const Address& dst,
-                                              const Address& src) {
+void ParallelMoveResolver::MoveMemoryToMemory(const compiler::Address& dst,
+                                              const compiler::Address& src) {
   UNREACHABLE();
 }
 
 // Do not call or implement this function. Instead, use the form below that
 // uses an offset from the frame pointer instead of an Address.
-void ParallelMoveResolver::Exchange(Register reg, const Address& mem) {
+void ParallelMoveResolver::Exchange(Register reg,
+                                    const compiler::Address& mem) {
   UNREACHABLE();
 }
 
 // Do not call or implement this function. Instead, use the form below that
 // uses offsets from the frame pointer instead of Addresses.
-void ParallelMoveResolver::Exchange(const Address& mem1, const Address& mem2) {
+void ParallelMoveResolver::Exchange(const compiler::Address& mem1,
+                                    const compiler::Address& mem2) {
   UNREACHABLE();
 }
 

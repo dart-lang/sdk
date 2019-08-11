@@ -33,17 +33,15 @@ const _failedToRunCommandMessage = 'Failed to run command. return code=1';
 typedef _StepFunction = Future<AdbCommandResult> Function();
 
 class ProcessQueue {
-  TestConfiguration _globalConfiguration;
-
-  Function _allDone;
+  final TestConfiguration _globalConfiguration;
+  final void Function() _allDone;
   final Graph<Command> _graph = Graph();
-  List<EventListener> _eventListener;
+  final List<EventListener> _eventListener;
 
   ProcessQueue(
       this._globalConfiguration,
       int maxProcesses,
       int maxBrowserProcesses,
-      DateTime startTime,
       List<TestSuite> testSuites,
       this._eventListener,
       this._allDone,
@@ -166,9 +164,7 @@ class ProcessQueue {
     }
 
     // Build up the dependency graph
-    testCaseEnqueuer = TestCaseEnqueuer(_graph, (TestCase newTestCase) {
-      eventTestAdded(newTestCase);
-    });
+    testCaseEnqueuer = TestCaseEnqueuer(_graph, eventTestAdded);
 
     // Either list or run the tests
     if (_globalConfiguration.listTests) {
@@ -358,11 +354,11 @@ class CommandEnqueuer {
 /// to a state of NodeState.Successful or NodeState.failed.
 ///
 /// It provides a synchronous stream [completedCommands] which provides the
-/// [CommandOutputs] for the finished commands.
+/// [CommandOutput]s for the finished commands.
 ///
 /// It provides a [done] future, which will complete once there are no more
 /// nodes left in the states Initialized/Waiting/Enqueing/Processing
-/// and the [executor] has cleaned up it's resources.
+/// and the [executor] has cleaned up its resources.
 class CommandQueue {
   final Graph<Command> graph;
   final CommandExecutor executor;
@@ -373,11 +369,11 @@ class CommandQueue {
   final _completer = Completer<Null>();
 
   int _numProcesses = 0;
-  int _maxProcesses;
+  final int _maxProcesses;
   int _numBrowserProcesses = 0;
-  int _maxBrowserProcesses;
+  final int _maxBrowserProcesses;
   bool _finishing = false;
-  bool _verbose = false;
+  final bool _verbose;
 
   CommandQueue(this.graph, this.enqueuer, this.executor, this._maxProcesses,
       this._maxBrowserProcesses, this._verbose) {
@@ -392,7 +388,7 @@ class CommandQueue {
         } else {
           _runQueue.add(command);
         }
-        Timer.run(() => _tryRunNextCommand());
+        Timer.run(_tryRunNextCommand);
       } else if (event.to == NodeState.unableToRun) {
         _checkDone();
       }
@@ -422,7 +418,7 @@ class CommandQueue {
         // If there is no free browser runner, put it back into the queue.
         _runQueue.add(command);
         // Don't lose a process.
-        Timer(Duration(milliseconds: 100), _tryRunNextCommand);
+        Timer(const Duration(milliseconds: 100), _tryRunNextCommand);
         return;
       }
 
@@ -434,9 +430,8 @@ class CommandQueue {
       // If a command is part of many TestCases we set the timeout to be
       // the maximum over all [TestCase.timeout]s. At some point, we might
       // eliminate [TestCase.timeout] completely and move it to [Command].
-      int timeout = testCases
-          .map((TestCase test) => test.timeout)
-          .fold(0, (int a, b) => math.max(a, b));
+      int timeout =
+          testCases.map((TestCase test) => test.timeout).fold(0, math.max);
 
       if (_verbose) {
         print('Running "${command.displayName}" command: $command');
@@ -456,7 +451,7 @@ class CommandQueue {
         if (isBrowserCommand) _numBrowserProcesses--;
 
         // Don't lose a process
-        Timer.run(() => _tryRunNextCommand());
+        Timer.run(_tryRunNextCommand);
       });
     }
   }
@@ -607,7 +602,7 @@ class CommandExecutorImpl implements CommandExecutor {
                 device, command as AdbDartkCommand, timeout);
           }
         } finally {
-          await adbDevicePool.releaseDevice(device);
+          adbDevicePool.releaseDevice(device);
         }
       });
     } else if (command is VmBatchCommand) {
@@ -633,7 +628,7 @@ class CommandExecutorImpl implements CommandExecutor {
       String deviceDir, String deviceTestDir) {
     final List<_StepFunction> steps = [];
     for (var lib in command.extraLibraries) {
-      var libName = "lib${lib}.so";
+      var libName = "lib$lib.so";
       steps.add(() => device.runAdbCommand([
             'push',
             '${command.buildPath}/$libName',
@@ -649,8 +644,8 @@ class CommandExecutorImpl implements CommandExecutor {
     var processTest = command.processTestFilename;
     var testdir = command.precompiledTestDirectory;
     var arguments = command.arguments;
-    var devicedir = DartPrecompiledAdbRuntimeConfiguration.DeviceDir;
-    var deviceTestDir = DartPrecompiledAdbRuntimeConfiguration.DeviceTestDir;
+    var devicedir = DartPrecompiledAdbRuntimeConfiguration.deviceDir;
+    var deviceTestDir = DartPrecompiledAdbRuntimeConfiguration.deviceTestDir;
 
     // We copy all the files which the vm precompiler puts into the test
     // directory.
@@ -687,6 +682,7 @@ class CommandExecutorImpl implements CommandExecutor {
         [
           'export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$deviceTestDir;'
               '$devicedir/dart_precompiled_runtime',
+          '--android-log-to-stderr'
         ]..addAll(arguments),
         timeout: timeoutDuration));
 
@@ -726,8 +722,8 @@ class CommandExecutorImpl implements CommandExecutor {
     final String buildPath = command.buildPath;
     final String hostKernelFile = command.kernelFile;
     final List<String> arguments = command.arguments;
-    final String devicedir = DartkAdbRuntimeConfiguration.DeviceDir;
-    final String deviceTestDir = DartkAdbRuntimeConfiguration.DeviceTestDir;
+    final String devicedir = DartkAdbRuntimeConfiguration.deviceDir;
+    final String deviceTestDir = DartkAdbRuntimeConfiguration.deviceTestDir;
 
     final timeoutDuration = Duration(seconds: timeout);
 
@@ -735,8 +731,8 @@ class CommandExecutorImpl implements CommandExecutor {
 
     steps.add(() => device.runAdbShellCommand(['rm', '-Rf', deviceTestDir]));
     steps.add(() => device.runAdbShellCommand(['mkdir', '-p', deviceTestDir]));
-    steps.add(
-        () => device.pushCachedData("${buildPath}/dart", '$devicedir/dart'));
+    steps
+        .add(() => device.pushCachedData("$buildPath/dart", '$devicedir/dart'));
     steps.add(() => device
         .runAdbCommand(['push', hostKernelFile, '$deviceTestDir/out.dill']));
 
@@ -746,6 +742,7 @@ class CommandExecutorImpl implements CommandExecutor {
         [
           'export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$deviceTestDir;'
               '$devicedir/dart',
+          '--android-log-to-stderr'
         ]..addAll(arguments),
         timeout: timeoutDuration));
 
@@ -1041,7 +1038,11 @@ class BatchRunnerProcess {
   Future<bool> terminate() {
     if (_process == null) return Future.value(true);
     var terminateCompleter = Completer<bool>();
+    final sigkillTimer = Timer(const Duration(seconds: 5), () {
+      _process.kill(io.ProcessSignal.sigkill);
+    });
     _processExitHandler = (_) {
+      sigkillTimer.cancel();
       terminateCompleter.complete(true);
     };
     _process.kill();
@@ -1087,7 +1088,7 @@ class BatchRunnerProcess {
     var output = createCommandOutput(
         _command,
         exitCode,
-        (outcome == "TIMEOUT"),
+        outcome == "TIMEOUT",
         _testStdout.toList(),
         _testStderr.toList(),
         DateTime.now().difference(_startTime),
@@ -1134,8 +1135,9 @@ class BatchRunnerProcess {
     processFuture.then((io.Process p) {
       _process = p;
 
-      Stream<String> _stdoutStream =
-          _process.stdout.transform(utf8.decoder).transform(LineSplitter());
+      Stream<String> _stdoutStream = _process.stdout
+          .transform(utf8.decoder)
+          .transform(const LineSplitter());
       _stdoutSubscription = _stdoutStream.listen((String line) {
         if (line.startsWith('>>> TEST')) {
           _status = line;
@@ -1155,8 +1157,9 @@ class BatchRunnerProcess {
       });
       _stdoutSubscription.pause();
 
-      Stream<String> _stderrStream =
-          _process.stderr.transform(utf8.decoder).transform(LineSplitter());
+      Stream<String> _stderrStream = _process.stderr
+          .transform(utf8.decoder)
+          .transform(const LineSplitter());
       _stderrSubscription = _stderrStream.listen((String line) {
         if (line.startsWith('>>> EOF STDERR')) {
           _stderrSubscription.pause();

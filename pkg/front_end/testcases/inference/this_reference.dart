@@ -7,7 +7,7 @@ library test;
 
 class C<T> {
   void f() {
-    var /*@type=C<C::T>*/ x = this;
+    var /*@ type=C<C::T*>* */ x = this;
   }
 }
 

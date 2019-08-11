@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:smith/smith.dart';
 
@@ -32,7 +32,7 @@ const _defaultTestSelectors = [
 /// Specifies a single command line option.
 ///
 /// The name of the specification is used as the key for the option in the Map
-/// returned from the [TestOptionParser] parse method.
+/// returned from [OptionsParser.parse].
 class _Option {
   // TODO(rnystrom): Some string options use "" to mean "no value" and others
   // use null. Clean that up.
@@ -328,7 +328,7 @@ compiler.''',
 
   /// For printing out reproducing command lines, we don't want to add these
   /// options.
-  static final _blacklistedOptions = [
+  static final _blacklistedOptions = {
     'build_directory',
     'chrome',
     'clean_exit',
@@ -355,16 +355,16 @@ compiler.''',
     'write_debug_log',
     'write_logs',
     'write_results',
-  ].toSet();
+  };
 
   /// The set of objects which the named configuration should imply.
-  static final _namedConfigurationOptions = [
+  static final _namedConfigurationOptions = {
     'system',
     'arch',
     'mode',
     'compiler',
     'runtime',
-  ].toSet();
+  };
 
   /// Parses a list of strings as test options.
   ///

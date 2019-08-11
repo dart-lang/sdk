@@ -15,7 +15,7 @@ int f1(
 required //# 03: compile-time error
 class C1 {
   required //# 04: compile-time error
-  int f2;
+  int f2 = 0;
 }
 
 // Duplicate modifier

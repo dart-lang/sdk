@@ -39,7 +39,7 @@ import 'compiler_state.dart' show InitializedCompilerState;
 import 'util.dart' show equalLists, equalMaps;
 
 export '../api_prototype/compiler_options.dart'
-    show CompilerOptions, parseExperimentalFlags;
+    show CompilerOptions, parseExperimentalFlags, parseExperimentalArguments;
 
 export '../api_prototype/diagnostic_message.dart'
     show
@@ -117,8 +117,7 @@ InitializedCompilerState initializeCompiler(
     Uri packagesFileUri,
     {List<Uri> dependencies,
     Map<ExperimentalFlag, bool> experimentalFlags,
-    bool verify: false,
-    bool enableAsserts: false}) {
+    bool verify: false}) {
   linkedDependencies.sort((a, b) => a.toString().compareTo(b.toString()));
 
   if (oldState != null &&
@@ -136,8 +135,7 @@ InitializedCompilerState initializeCompiler(
     ..librariesSpecificationUri = librariesSpecificationUri
     ..packagesFileUri = packagesFileUri
     ..experimentalFlags = experimentalFlags
-    ..verify = verify
-    ..enableAsserts = enableAsserts;
+    ..verify = verify;
 
   ProcessedOptions processedOpts = new ProcessedOptions(options: options);
 

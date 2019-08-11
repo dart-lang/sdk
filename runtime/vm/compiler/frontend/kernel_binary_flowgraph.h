@@ -210,8 +210,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
                           const Class& klass,
                           intptr_t argument_count);
   Fragment AllocateObject(const Class& klass, const Function& closure_function);
-  Fragment AllocateContext(
-      const GrowableArray<LocalVariable*>& context_variables);
+  Fragment AllocateContext(const ZoneGrowableArray<const Slot*>& context_slots);
   Fragment LoadNativeField(const Slot& field);
   Fragment StoreLocal(TokenPosition position, LocalVariable* variable);
   Fragment StoreStaticField(TokenPosition position, const Field& field);
@@ -224,7 +223,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment CreateArray();
   Fragment StoreIndexed(intptr_t class_id);
   Fragment CheckStackOverflow(TokenPosition position);
-  Fragment CloneContext(const GrowableArray<LocalVariable*>& context_variables);
+  Fragment CloneContext(const ZoneGrowableArray<const Slot*>& context_slots);
   Fragment TranslateFinallyFinalizers(TryFinallyBlock* outer_finally,
                                       intptr_t target_context_depth);
   Fragment BranchIfTrue(TargetEntryInstr** then_entry,

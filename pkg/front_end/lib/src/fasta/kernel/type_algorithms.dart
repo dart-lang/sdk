@@ -27,16 +27,9 @@ import 'kernel_builder.dart'
     show
         ClassBuilder,
         FormalParameterBuilder,
-        TypeAliasBuilder,
         FunctionTypeBuilder,
-        KernelClassBuilder,
-        KernelFormalParameterBuilder,
-        KernelFunctionTypeBuilder,
-        KernelNamedTypeBuilder,
-        KernelTypeAliasBuilder,
-        KernelTypeBuilder,
-        KernelTypeVariableBuilder,
         NamedTypeBuilder,
+        TypeAliasBuilder,
         TypeBuilder,
         TypeDeclarationBuilder,
         TypeVariableBuilder;
@@ -61,26 +54,25 @@ export 'package:kernel/src/bounds_checks.dart' show Variance;
 // variables.  For that case if the type has its declaration set to null and its
 // name matches that of the variable, it's interpreted as an occurrence of a
 // type variable.
-int computeVariance(
-    KernelTypeVariableBuilder variable, KernelTypeBuilder type) {
-  if (type is KernelNamedTypeBuilder) {
+int computeVariance(TypeVariableBuilder variable, TypeBuilder type) {
+  if (type is NamedTypeBuilder) {
     TypeDeclarationBuilder declaration = type.declaration;
-    if (declaration == null || declaration is KernelTypeVariableBuilder) {
+    if (declaration == null || declaration is TypeVariableBuilder) {
       if (type.name == variable.name) {
         return Variance.covariant;
       } else {
         return Variance.unrelated;
       }
     } else {
-      if (declaration is KernelClassBuilder) {
+      if (declaration is ClassBuilder) {
         int result = Variance.unrelated;
         if (type.arguments != null) {
-          for (KernelTypeBuilder argument in type.arguments) {
+          for (TypeBuilder argument in type.arguments) {
             result = Variance.meet(result, computeVariance(variable, argument));
           }
         }
         return result;
-      } else if (declaration is KernelTypeAliasBuilder) {
+      } else if (declaration is TypeAliasBuilder) {
         int result = Variance.unrelated;
         if (type.arguments != null) {
           for (int i = 0; i < type.arguments.length; ++i) {
@@ -95,14 +87,14 @@ int computeVariance(
         return result;
       }
     }
-  } else if (type is KernelFunctionTypeBuilder) {
+  } else if (type is FunctionTypeBuilder) {
     int result = Variance.unrelated;
     if (type.returnType != null) {
       result =
           Variance.meet(result, computeVariance(variable, type.returnType));
     }
     if (type.typeVariables != null) {
-      for (KernelTypeVariableBuilder typeVariable in type.typeVariables) {
+      for (TypeVariableBuilder typeVariable in type.typeVariables) {
         // If [variable] is referenced in the bound at all, it makes the
         // variance of [variable] in the entire type invariant.  The invocation
         // of [computeVariance] below is made to simply figure out if [variable]
@@ -115,7 +107,7 @@ int computeVariance(
       }
     }
     if (type.formals != null) {
-      for (KernelFormalParameterBuilder formal in type.formals) {
+      for (FormalParameterBuilder formal in type.formals) {
         result = Variance.meet(
             result,
             Variance.combine(Variance.contravariant,
@@ -127,13 +119,13 @@ int computeVariance(
   return Variance.unrelated;
 }
 
-KernelTypeBuilder substituteRange(
-    KernelTypeBuilder type,
-    Map<TypeVariableBuilder, KernelTypeBuilder> upperSubstitution,
-    Map<TypeVariableBuilder, KernelTypeBuilder> lowerSubstitution,
+TypeBuilder substituteRange(
+    TypeBuilder type,
+    Map<TypeVariableBuilder, TypeBuilder> upperSubstitution,
+    Map<TypeVariableBuilder, TypeBuilder> lowerSubstitution,
     {bool isCovariant = true}) {
-  if (type is KernelNamedTypeBuilder) {
-    if (type.declaration is KernelTypeVariableBuilder) {
+  if (type is NamedTypeBuilder) {
+    if (type.declaration is TypeVariableBuilder) {
       if (isCovariant) {
         return upperSubstitution[type.declaration] ?? type;
       }
@@ -153,34 +145,33 @@ KernelTypeBuilder substituteRange(
       }
     }
     if (arguments != null) {
-      return new KernelNamedTypeBuilder(type.name, arguments)
-        ..bind(type.declaration);
+      return new NamedTypeBuilder(type.name, arguments)..bind(type.declaration);
     }
     return type;
   }
 
-  if (type is KernelFunctionTypeBuilder) {
-    List<KernelTypeVariableBuilder> variables;
+  if (type is FunctionTypeBuilder) {
+    List<TypeVariableBuilder> variables;
     if (type.typeVariables != null) {
-      variables =
-          new List<KernelTypeVariableBuilder>(type.typeVariables.length);
+      variables = new List<TypeVariableBuilder>(type.typeVariables.length);
     }
-    List<KernelFormalParameterBuilder> formals;
+    List<FormalParameterBuilder> formals;
     if (type.formals != null) {
-      formals = new List<KernelFormalParameterBuilder>(type.formals.length);
+      formals = new List<FormalParameterBuilder>(type.formals.length);
     }
-    KernelTypeBuilder returnType;
+    TypeBuilder returnType;
     bool changed = false;
 
     if (type.typeVariables != null) {
       for (int i = 0; i < variables.length; i++) {
-        KernelTypeVariableBuilder variable = type.typeVariables[i];
-        KernelTypeBuilder bound = substituteRange(
+        TypeVariableBuilder variable = type.typeVariables[i];
+        TypeBuilder bound = substituteRange(
             variable.bound, upperSubstitution, lowerSubstitution,
             isCovariant: isCovariant);
         if (bound != variable.bound) {
-          variables[i] = new KernelTypeVariableBuilder(
-              variable.name, variable.parent, variable.charOffset, bound);
+          variables[i] = new TypeVariableBuilder(
+              variable.name, variable.parent, variable.charOffset,
+              bound: bound);
           changed = true;
         } else {
           variables[i] = variable;
@@ -190,12 +181,12 @@ KernelTypeBuilder substituteRange(
 
     if (type.formals != null) {
       for (int i = 0; i < formals.length; i++) {
-        KernelFormalParameterBuilder formal = type.formals[i];
-        KernelTypeBuilder parameterType = substituteRange(
+        FormalParameterBuilder formal = type.formals[i];
+        TypeBuilder parameterType = substituteRange(
             formal.type, upperSubstitution, lowerSubstitution,
             isCovariant: !isCovariant);
         if (parameterType != formal.type) {
-          formals[i] = new KernelFormalParameterBuilder(
+          formals[i] = new FormalParameterBuilder(
               formal.metadata,
               formal.modifiers,
               parameterType,
@@ -217,7 +208,7 @@ KernelTypeBuilder substituteRange(
     }
 
     if (changed) {
-      return new KernelFunctionTypeBuilder(returnType, variables, formals);
+      return new FunctionTypeBuilder(returnType, variables, formals);
     }
 
     return type;
@@ -225,8 +216,8 @@ KernelTypeBuilder substituteRange(
   return type;
 }
 
-KernelTypeBuilder substitute(KernelTypeBuilder type,
-    Map<TypeVariableBuilder, KernelTypeBuilder> substitution) {
+TypeBuilder substitute(
+    TypeBuilder type, Map<TypeVariableBuilder, TypeBuilder> substitution) {
   return substituteRange(type, substitution, substitution, isCovariant: true);
 }
 
@@ -236,13 +227,9 @@ KernelTypeBuilder substitute(KernelTypeBuilder type,
 /// See the [description]
 /// (https://github.com/dart-lang/sdk/blob/master/docs/language/informal/instantiate-to-bound.md)
 /// of the algorithm for details.
-List<KernelTypeBuilder> calculateBounds(
-    List<TypeVariableBuilder> variables,
-    KernelTypeBuilder dynamicType,
-    KernelTypeBuilder bottomType,
-    KernelClassBuilder objectClass) {
-  List<KernelTypeBuilder> bounds =
-      new List<KernelTypeBuilder>(variables.length);
+List<TypeBuilder> calculateBounds(List<TypeVariableBuilder> variables,
+    TypeBuilder dynamicType, TypeBuilder bottomType, ClassBuilder objectClass) {
+  List<TypeBuilder> bounds = new List<TypeBuilder>(variables.length);
 
   for (int i = 0; i < variables.length; i++) {
     bounds[i] = variables[i].bound ?? dynamicType;
@@ -251,10 +238,10 @@ List<KernelTypeBuilder> calculateBounds(
   TypeVariablesGraph graph = new TypeVariablesGraph(variables, bounds);
   List<List<int>> stronglyConnected = computeStrongComponents(graph);
   for (List<int> component in stronglyConnected) {
-    Map<TypeVariableBuilder, KernelTypeBuilder> dynamicSubstitution =
-        <TypeVariableBuilder, KernelTypeBuilder>{};
-    Map<TypeVariableBuilder, KernelTypeBuilder> nullSubstitution =
-        <TypeVariableBuilder, KernelTypeBuilder>{};
+    Map<TypeVariableBuilder, TypeBuilder> dynamicSubstitution =
+        <TypeVariableBuilder, TypeBuilder>{};
+    Map<TypeVariableBuilder, TypeBuilder> nullSubstitution =
+        <TypeVariableBuilder, TypeBuilder>{};
     for (int variableIndex in component) {
       dynamicSubstitution[variables[variableIndex]] = dynamicType;
       nullSubstitution[variables[variableIndex]] = bottomType;
@@ -267,10 +254,10 @@ List<KernelTypeBuilder> calculateBounds(
   }
 
   for (int i = 0; i < variables.length; i++) {
-    Map<TypeVariableBuilder, KernelTypeBuilder> substitution =
-        <TypeVariableBuilder, KernelTypeBuilder>{};
-    Map<TypeVariableBuilder, KernelTypeBuilder> nullSubstitution =
-        <TypeVariableBuilder, KernelTypeBuilder>{};
+    Map<TypeVariableBuilder, TypeBuilder> substitution =
+        <TypeVariableBuilder, TypeBuilder>{};
+    Map<TypeVariableBuilder, TypeBuilder> nullSubstitution =
+        <TypeVariableBuilder, TypeBuilder>{};
     substitution[variables[i]] = bounds[i];
     nullSubstitution[variables[i]] = bottomType;
     for (int j = 0; j < variables.length; j++) {
@@ -348,11 +335,11 @@ class TypeVariablesGraph implements Graph<int> {
 /// Finds all type builders for [variable] in [type].
 ///
 /// Returns list of the found type builders.
-List<NamedTypeBuilder<TypeBuilder, Object>> findVariableUsesInType(
-  TypeVariableBuilder<TypeBuilder, Object> variable,
+List<NamedTypeBuilder> findVariableUsesInType(
+  TypeVariableBuilder variable,
   TypeBuilder type,
 ) {
-  var uses = <NamedTypeBuilder<TypeBuilder, Object>>[];
+  var uses = <NamedTypeBuilder>[];
   if (type is NamedTypeBuilder) {
     if (type.declaration == variable) {
       uses.add(type);
@@ -366,8 +353,7 @@ List<NamedTypeBuilder<TypeBuilder, Object>> findVariableUsesInType(
   } else if (type is FunctionTypeBuilder) {
     uses.addAll(findVariableUsesInType(variable, type.returnType));
     if (type.typeVariables != null) {
-      for (TypeVariableBuilder<TypeBuilder, Object> dependentVariable
-          in type.typeVariables) {
+      for (TypeVariableBuilder dependentVariable in type.typeVariables) {
         if (dependentVariable.bound != null) {
           uses.addAll(
               findVariableUsesInType(variable, dependentVariable.bound));
@@ -379,7 +365,7 @@ List<NamedTypeBuilder<TypeBuilder, Object>> findVariableUsesInType(
       }
     }
     if (type.formals != null) {
-      for (FormalParameterBuilder<TypeBuilder> formal in type.formals) {
+      for (FormalParameterBuilder formal in type.formals) {
         uses.addAll(findVariableUsesInType(variable, formal.type));
       }
     }
@@ -393,13 +379,12 @@ List<NamedTypeBuilder<TypeBuilder, Object>> findVariableUsesInType(
 /// variable builder from [variables] that references other [variables] in its
 /// bound.  The second element in the pair is the list of found references
 /// represented as type builders.
-List<Object> findInboundReferences(
-    List<TypeVariableBuilder<TypeBuilder, Object>> variables) {
+List<Object> findInboundReferences(List<TypeVariableBuilder> variables) {
   var variablesAndDependencies = <Object>[];
-  for (TypeVariableBuilder<TypeBuilder, Object> dependent in variables) {
-    var dependencies = <NamedTypeBuilder<TypeBuilder, Object>>[];
-    for (TypeVariableBuilder<TypeBuilder, Object> dependence in variables) {
-      List<NamedTypeBuilder<TypeBuilder, Object>> uses =
+  for (TypeVariableBuilder dependent in variables) {
+    var dependencies = <NamedTypeBuilder>[];
+    for (TypeVariableBuilder dependence in variables) {
+      List<NamedTypeBuilder> uses =
           findVariableUsesInType(dependence, dependent.bound);
       if (uses.length != 0) {
         dependencies.addAll(uses);
@@ -421,10 +406,9 @@ List<Object> findInboundReferences(
 /// [findInboundReferences].
 List<Object> findRawTypesWithInboundReferences(TypeBuilder type) {
   var typesAndDependencies = <Object>[];
-  if (type is NamedTypeBuilder<TypeBuilder, Object>) {
+  if (type is NamedTypeBuilder) {
     if (type.arguments == null) {
-      TypeDeclarationBuilder<TypeBuilder, Object> declaration =
-          type.declaration;
+      TypeDeclarationBuilder declaration = type.declaration;
       if (declaration is DillClassBuilder) {
         bool hasInbound = false;
         List<TypeParameter> typeParameters = declaration.target.typeParameters;
@@ -451,7 +435,7 @@ List<Object> findRawTypesWithInboundReferences(TypeBuilder type) {
           typesAndDependencies.add(type);
           typesAndDependencies.add(const <Object>[]);
         }
-      } else if (declaration is ClassBuilder<TypeBuilder, Object> &&
+      } else if (declaration is ClassBuilder &&
           declaration.typeVariables != null) {
         List<Object> dependencies =
             findInboundReferences(declaration.typeVariables);
@@ -459,7 +443,7 @@ List<Object> findRawTypesWithInboundReferences(TypeBuilder type) {
           typesAndDependencies.add(type);
           typesAndDependencies.add(dependencies);
         }
-      } else if (declaration is TypeAliasBuilder<TypeBuilder, Object>) {
+      } else if (declaration is TypeAliasBuilder) {
         if (declaration.typeVariables != null) {
           List<Object> dependencies =
               findInboundReferences(declaration.typeVariables);
@@ -490,8 +474,7 @@ List<Object> findRawTypesWithInboundReferences(TypeBuilder type) {
     typesAndDependencies
         .addAll(findRawTypesWithInboundReferences(type.returnType));
     if (type.typeVariables != null) {
-      for (TypeVariableBuilder<TypeBuilder, Object> variable
-          in type.typeVariables) {
+      for (TypeVariableBuilder variable in type.typeVariables) {
         if (variable.bound != null) {
           typesAndDependencies
               .addAll(findRawTypesWithInboundReferences(variable.bound));
@@ -503,7 +486,7 @@ List<Object> findRawTypesWithInboundReferences(TypeBuilder type) {
       }
     }
     if (type.formals != null) {
-      for (FormalParameterBuilder<TypeBuilder> formal in type.formals) {
+      for (FormalParameterBuilder formal in type.formals) {
         typesAndDependencies
             .addAll(findRawTypesWithInboundReferences(formal.type));
       }
@@ -518,25 +501,20 @@ List<Object> findRawTypesWithInboundReferences(TypeBuilder type) {
 /// [TypeDeclarationBuilder] for the type variable from [variables] that has raw
 /// generic types with inbound references in its bound.  The second element of
 /// the triplet is the error message.  The third element is the context.
-List<Object> getInboundReferenceIssues(
-    List<TypeVariableBuilder<TypeBuilder, Object>> variables) {
+List<Object> getInboundReferenceIssues(List<TypeVariableBuilder> variables) {
   var issues = <Object>[];
-  for (TypeVariableBuilder<TypeBuilder, Object> variable in variables) {
+  for (TypeVariableBuilder variable in variables) {
     if (variable.bound != null) {
       List<Object> rawTypesAndMutualDependencies =
           findRawTypesWithInboundReferences(variable.bound);
       for (int i = 0; i < rawTypesAndMutualDependencies.length; i += 2) {
-        NamedTypeBuilder<TypeBuilder, Object> type =
-            rawTypesAndMutualDependencies[i];
+        NamedTypeBuilder type = rawTypesAndMutualDependencies[i];
         List<Object> variablesAndDependencies =
             rawTypesAndMutualDependencies[i + 1];
         for (int j = 0; j < variablesAndDependencies.length; j += 2) {
-          TypeVariableBuilder<TypeBuilder, Object> dependent =
-              variablesAndDependencies[j];
-          List<NamedTypeBuilder<TypeBuilder, Object>> dependencies =
-              variablesAndDependencies[j + 1];
-          for (NamedTypeBuilder<TypeBuilder, Object> dependency
-              in dependencies) {
+          TypeVariableBuilder dependent = variablesAndDependencies[j];
+          List<NamedTypeBuilder> dependencies = variablesAndDependencies[j + 1];
+          for (NamedTypeBuilder dependency in dependencies) {
             issues.add(variable);
             issues.add(templateBoundIssueViaRawTypeWithNonSimpleBounds
                 .withArguments(type.declaration.name));
@@ -573,20 +551,18 @@ List<Object> getInboundReferenceIssues(
 /// using type for [start], and not the corresponding type declaration,
 /// is better error reporting.
 List<List<Object>> findRawTypePathsToDeclaration(
-    TypeBuilder start, TypeDeclarationBuilder<TypeBuilder, Object> end,
-    [Set<TypeDeclarationBuilder<TypeBuilder, Object>> visited]) {
-  visited ??= new Set<TypeDeclarationBuilder<TypeBuilder, Object>>.identity();
+    TypeBuilder start, TypeDeclarationBuilder end,
+    [Set<TypeDeclarationBuilder> visited]) {
+  visited ??= new Set<TypeDeclarationBuilder>.identity();
   var paths = <List<Object>>[];
-  if (start is NamedTypeBuilder<TypeBuilder, Object>) {
-    TypeDeclarationBuilder<TypeBuilder, Object> declaration = start.declaration;
+  if (start is NamedTypeBuilder) {
+    TypeDeclarationBuilder declaration = start.declaration;
     if (start.arguments == null) {
       if (start.declaration == end) {
         paths.add(<Object>[start]);
       } else if (visited.add(start.declaration)) {
-        if (declaration is ClassBuilder<TypeBuilder, Object> &&
-            declaration.typeVariables != null) {
-          for (TypeVariableBuilder<TypeBuilder, Object> variable
-              in declaration.typeVariables) {
+        if (declaration is ClassBuilder && declaration.typeVariables != null) {
+          for (TypeVariableBuilder variable in declaration.typeVariables) {
             if (variable.bound != null) {
               for (List<Object> path in findRawTypePathsToDeclaration(
                   variable.bound, end, visited)) {
@@ -594,10 +570,9 @@ List<List<Object>> findRawTypePathsToDeclaration(
               }
             }
           }
-        } else if (declaration is TypeAliasBuilder<TypeBuilder, Object>) {
+        } else if (declaration is TypeAliasBuilder) {
           if (declaration.typeVariables != null) {
-            for (TypeVariableBuilder<TypeBuilder, Object> variable
-                in declaration.typeVariables) {
+            for (TypeVariableBuilder variable in declaration.typeVariables) {
               if (variable.bound != null) {
                 for (List<Object> dependencyPath
                     in findRawTypePathsToDeclaration(
@@ -610,8 +585,7 @@ List<List<Object>> findRawTypePathsToDeclaration(
           if (declaration.type is FunctionTypeBuilder) {
             FunctionTypeBuilder type = declaration.type;
             if (type.typeVariables != null) {
-              for (TypeVariableBuilder<TypeBuilder, Object> variable
-                  in type.typeVariables) {
+              for (TypeVariableBuilder variable in type.typeVariables) {
                 if (variable.bound != null) {
                   for (List<Object> dependencyPath
                       in findRawTypePathsToDeclaration(
@@ -634,8 +608,7 @@ List<List<Object>> findRawTypePathsToDeclaration(
   } else if (start is FunctionTypeBuilder) {
     paths.addAll(findRawTypePathsToDeclaration(start.returnType, end, visited));
     if (start.typeVariables != null) {
-      for (TypeVariableBuilder<TypeBuilder, Object> variable
-          in start.typeVariables) {
+      for (TypeVariableBuilder variable in start.typeVariables) {
         if (variable.bound != null) {
           paths.addAll(
               findRawTypePathsToDeclaration(variable.bound, end, visited));
@@ -647,7 +620,7 @@ List<List<Object>> findRawTypePathsToDeclaration(
       }
     }
     if (start.formals != null) {
-      for (FormalParameterBuilder<TypeBuilder> formal in start.formals) {
+      for (FormalParameterBuilder formal in start.formals) {
         paths.addAll(findRawTypePathsToDeclaration(formal.type, end, visited));
       }
     }
@@ -665,13 +638,10 @@ List<List<Object>> findRawTypePathsToDeclaration(
 ///
 /// The reason for putting the type variables into the cycles is better error
 /// reporting.
-List<List<Object>> findRawTypeCycles(
-    TypeDeclarationBuilder<TypeBuilder, Object> declaration) {
+List<List<Object>> findRawTypeCycles(TypeDeclarationBuilder declaration) {
   var cycles = <List<Object>>[];
-  if (declaration is ClassBuilder<TypeBuilder, Object> &&
-      declaration.typeVariables != null) {
-    for (TypeVariableBuilder<TypeBuilder, Object> variable
-        in declaration.typeVariables) {
+  if (declaration is ClassBuilder && declaration.typeVariables != null) {
+    for (TypeVariableBuilder variable in declaration.typeVariables) {
       if (variable.bound != null) {
         for (List<Object> path
             in findRawTypePathsToDeclaration(variable.bound, declaration)) {
@@ -679,10 +649,9 @@ List<List<Object>> findRawTypeCycles(
         }
       }
     }
-  } else if (declaration is TypeAliasBuilder<TypeBuilder, Object>) {
+  } else if (declaration is TypeAliasBuilder) {
     if (declaration.typeVariables != null) {
-      for (TypeVariableBuilder<TypeBuilder, Object> variable
-          in declaration.typeVariables) {
+      for (TypeVariableBuilder variable in declaration.typeVariables) {
         if (variable.bound != null) {
           for (List<Object> dependencyPath
               in findRawTypePathsToDeclaration(variable.bound, declaration)) {
@@ -694,8 +663,7 @@ List<List<Object>> findRawTypeCycles(
     if (declaration.type is FunctionTypeBuilder) {
       FunctionTypeBuilder type = declaration.type;
       if (type.typeVariables != null) {
-        for (TypeVariableBuilder<TypeBuilder, Object> variable
-            in type.typeVariables) {
+        for (TypeVariableBuilder variable in type.typeVariables) {
           if (variable.bound != null) {
             for (List<Object> dependencyPath
                 in findRawTypePathsToDeclaration(variable.bound, declaration)) {
@@ -719,14 +687,13 @@ List<List<Object>> findRawTypeCycles(
 /// generic types with inbound references in its bound.  The second element of
 /// the triplet is the error message.  The third element is the context.
 List<Object> convertRawTypeCyclesIntoIssues(
-    TypeDeclarationBuilder<TypeBuilder, Object> declaration,
-    List<List<Object>> cycles) {
+    TypeDeclarationBuilder declaration, List<List<Object>> cycles) {
   List<Object> issues = <Object>[];
   for (List<Object> cycle in cycles) {
     if (cycle.length == 2) {
       // Loop.
-      TypeVariableBuilder<TypeBuilder, Object> variable = cycle[0];
-      NamedTypeBuilder<TypeBuilder, Object> type = cycle[1];
+      TypeVariableBuilder variable = cycle[0];
+      NamedTypeBuilder type = cycle[1];
       issues.add(variable);
       issues.add(templateBoundIssueViaLoopNonSimplicity
           .withArguments(type.declaration.name));
@@ -734,14 +701,14 @@ List<Object> convertRawTypeCyclesIntoIssues(
     } else {
       var context = <LocatedMessage>[];
       for (int i = 0; i < cycle.length; i += 2) {
-        TypeVariableBuilder<TypeBuilder, Object> variable = cycle[i];
-        NamedTypeBuilder<TypeBuilder, Object> type = cycle[i + 1];
+        TypeVariableBuilder variable = cycle[i];
+        NamedTypeBuilder type = cycle[i + 1];
         context.add(templateNonSimpleBoundViaReference
             .withArguments(type.declaration.name)
             .withLocation(
                 variable.fileUri, variable.charOffset, variable.name.length));
       }
-      NamedTypeBuilder<TypeBuilder, Object> firstEncounteredType = cycle[1];
+      NamedTypeBuilder firstEncounteredType = cycle[1];
 
       issues.add(declaration);
       issues.add(templateBoundIssueViaCycleNonSimplicity.withArguments(
@@ -762,7 +729,7 @@ List<Object> convertRawTypeCyclesIntoIssues(
 /// The second element in the triplet is the error message.  The third element
 /// in the triplet is the context.
 List<Object> getNonSimplicityIssuesForTypeVariables(
-    List<TypeVariableBuilder<TypeBuilder, Object>> variables) {
+    List<TypeVariableBuilder> variables) {
   if (variables == null) return <Object>[];
   return getInboundReferenceIssues(variables);
 }
@@ -778,13 +745,12 @@ List<Object> getNonSimplicityIssuesForTypeVariables(
 /// The second element in the triplet is the error message.  The third element
 /// in the triplet is the context.
 List<Object> getNonSimplicityIssuesForDeclaration(
-    TypeDeclarationBuilder<TypeBuilder, Object> declaration,
+    TypeDeclarationBuilder declaration,
     {bool performErrorRecovery: true}) {
   var issues = <Object>[];
-  if (declaration is ClassBuilder<TypeBuilder, Object> &&
-      declaration.typeVariables != null) {
+  if (declaration is ClassBuilder && declaration.typeVariables != null) {
     issues.addAll(getInboundReferenceIssues(declaration.typeVariables));
-  } else if (declaration is TypeAliasBuilder<TypeBuilder, Object> &&
+  } else if (declaration is TypeAliasBuilder &&
       declaration.typeVariables != null) {
     issues.addAll(getInboundReferenceIssues(declaration.typeVariables));
   }
@@ -800,7 +766,7 @@ List<Object> getNonSimplicityIssuesForDeclaration(
           "${declaration.fileUri}:${declaration.name}";
       String lexMinPathAndName = null;
       for (int i = 1; i < cycle.length; i += 2) {
-        NamedTypeBuilder<TypeBuilder, Object> type = cycle[i];
+        NamedTypeBuilder type = cycle[i];
         String pathAndName =
             "${type.declaration.fileUri}:${type.declaration.name}";
         if (lexMinPathAndName == null ||
@@ -830,7 +796,7 @@ List<Object> getNonSimplicityIssuesForDeclaration(
 /// of [findRawTypeCycles].
 void breakCycles(List<List<Object>> cycles) {
   for (List<Object> cycle in cycles) {
-    TypeVariableBuilder<TypeBuilder, Object> variable = cycle[0];
+    TypeVariableBuilder variable = cycle[0];
     variable.bound = null;
   }
 }
@@ -841,20 +807,18 @@ void findGenericFunctionTypes(TypeBuilder type, {List<TypeBuilder> result}) {
     if (type.typeVariables != null && type.typeVariables.length > 0) {
       result.add(type);
 
-      for (TypeVariableBuilder<TypeBuilder, Object> typeVariable
-          in type.typeVariables) {
+      for (TypeVariableBuilder typeVariable in type.typeVariables) {
         findGenericFunctionTypes(typeVariable.bound, result: result);
         findGenericFunctionTypes(typeVariable.defaultType, result: result);
       }
     }
     findGenericFunctionTypes(type.returnType, result: result);
     if (type.formals != null) {
-      for (FormalParameterBuilder<TypeBuilder> formal in type.formals) {
+      for (FormalParameterBuilder formal in type.formals) {
         findGenericFunctionTypes(formal.type, result: result);
       }
     }
-  } else if (type is NamedTypeBuilder<TypeBuilder, Object> &&
-      type.arguments != null) {
+  } else if (type is NamedTypeBuilder && type.arguments != null) {
     for (TypeBuilder argument in type.arguments) {
       findGenericFunctionTypes(argument, result: result);
     }

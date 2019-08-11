@@ -1317,6 +1317,7 @@ class KernelProgramInfoSerializationCluster : public SerializationCluster {
       RawKernelProgramInfo* info = objects_[i];
       AutoTraceObject(info);
       WriteFromTo(info);
+      s->Write<uint32_t>(info->ptr()->kernel_binary_version_);
     }
   }
 
@@ -1349,6 +1350,7 @@ class KernelProgramInfoDeserializationCluster : public DeserializationCluster {
       Deserializer::InitializeHeader(info, kKernelProgramInfoCid,
                                      KernelProgramInfo::InstanceSize());
       ReadFromTo(info);
+      info->ptr()->kernel_binary_version_ = d->Read<uint32_t>();
     }
   }
 

@@ -59,7 +59,7 @@ class B<T extends A> {
 
   test_generics() async {
     // dartbug.com/18953
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'dart:async';
 Future<int> f() => new Future.value(0);
 void g(bool c) {

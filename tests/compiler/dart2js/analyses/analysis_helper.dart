@@ -17,11 +17,10 @@ import 'package:compiler/src/ir/static_type.dart';
 import 'package:compiler/src/ir/util.dart';
 import 'package:compiler/src/kernel/dart2js_target.dart';
 import 'package:compiler/src/kernel/loader.dart';
-import 'package:compiler/src/util/uri_extras.dart';
 import 'package:expect/expect.dart';
 import 'package:front_end/src/api_prototype/constant_evaluator.dart' as ir;
 import 'package:front_end/src/api_unstable/dart2js.dart'
-    show isRedirectingFactory;
+    show isRedirectingFactory, relativizeUri;
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/core_types.dart' as ir;
@@ -82,10 +81,9 @@ class StaticTypeVisitorBase extends StaticTypeVisitor {
             new ir.TypeEnvironment(new ir.CoreTypes(component), classHierarchy),
             classHierarchy) {
     _constantEvaluator = new ir.ConstantEvaluator(
-        const Dart2jsConstantsBackend(),
+        const Dart2jsConstantsBackend(supportsUnevaluatedConstants: true),
         const {},
         typeEnvironment,
-        false,
         const ir.SimpleErrorReporter());
   }
 
@@ -241,11 +239,11 @@ class DynamicVisitor extends StaticTypeVisitorBase {
 ********************************************************************************
 *  Unexpected dynamic invocations found by test:
 *
-*    ${relativize(Uri.base, Platform.script, Platform.isWindows)}
+*    ${relativizeUri(Uri.base, Platform.script, Platform.isWindows)}
 *
 *  Please address the reported errors, or, if the errors are as expected, run
 *
-*    dart ${relativize(Uri.base, Platform.script, Platform.isWindows)} -g
+*    dart ${relativizeUri(Uri.base, Platform.script, Platform.isWindows)} -g
 *
 *  to update the expectation file.
 ********************************************************************************
@@ -373,7 +371,7 @@ class DynamicVisitor extends StaticTypeVisitorBase {
   void registerError(ir.Node node, String message) {
     SourceSpan span = computeSourceSpanFromTreeNode(node);
     Uri uri = span.uri;
-    String uriString = relativize(Uri.base, uri, Platform.isWindows);
+    String uriString = relativizeUri(Uri.base, uri, Platform.isWindows);
     Map<String, List<DiagnosticMessage>> actualMap = _actualMessages
         .putIfAbsent(uriString, () => <String, List<DiagnosticMessage>>{});
     if (uri.scheme == 'org-dartlang-sdk') {

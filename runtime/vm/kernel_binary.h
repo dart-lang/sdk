@@ -20,7 +20,7 @@ static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
 
 // Both version numbers are inclusive.
 static const uint32_t kMinSupportedKernelFormatVersion = 18;
-static const uint32_t kMaxSupportedKernelFormatVersion = 26;
+static const uint32_t kMaxSupportedKernelFormatVersion = 28;
 
 // Keep in sync with package:kernel/lib/binary/tag.dart
 #define KERNEL_TAG_LIST(V)                                                     \
@@ -160,6 +160,14 @@ enum ConstantTag {
   // These constants are not expected to be seen by the VM, because all
   // constants are fully evaluated.
   kUnevaluatedConstant = 12,
+};
+
+// Keep in sync with package:kernel/lib/ast.dart
+enum Nullability {
+  kNullable = 0,
+  kNonNullable = 1,
+  kNeither = 2,
+  kLegacy = 3,
 };
 
 static const int SpecializedIntLiteralBias = 3;
@@ -317,6 +325,11 @@ class Reader : public ValueObject {
     } else {
       return static_cast<Tag>(byte);
     }
+  }
+
+  Nullability ReadNullability() {
+    uint8_t byte = ReadByte();
+    return static_cast<Nullability>(byte);
   }
 
   void EnsureEnd() {

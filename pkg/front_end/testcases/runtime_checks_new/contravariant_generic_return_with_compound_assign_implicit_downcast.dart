@@ -46,11 +46,11 @@ void main() {
   // But not this one:
   //   (num)->num
   D d = new D(new C(numToInt));
-  d.value /*@checkReturn=(num) -> num*/ += 1;
+  d.value /*@ checkReturn=(num*) ->* num* */ += 1;
   expect(d.setValue(0), 1);
   d = new D(new C(numToNum));
   expectTypeError(() {
-    d.value /*@checkReturn=(num) -> num*/ += 1;
+    d.value /*@ checkReturn=(num*) ->* num* */ += 1;
   });
   expect(d.setValue, null);
 }

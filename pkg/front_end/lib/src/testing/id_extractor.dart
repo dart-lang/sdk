@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,7 +6,7 @@ import 'package:kernel/ast.dart';
 import 'id.dart';
 
 /// Compute a canonical [Id] for kernel-based nodes.
-Id computeEntityId(Member node) {
+Id computeMemberId(Member node) {
   String className;
   if (node.enclosingClass != null) {
     className = node.enclosingClass.name;
@@ -34,20 +34,45 @@ abstract class DataExtractor<T> extends Visitor with DataRegistry<T> {
   @override
   final Map<Id, ActualData<T>> actualMap;
 
+  /// Implement this to compute the data corresponding to [library].
+  ///
+  /// If `null` is returned, [library] has no associated data.
+  T computeLibraryValue(Id id, Library library) => null;
+
+  /// Implement this to compute the data corresponding to [cls].
+  ///
+  /// If `null` is returned, [cls] has no associated data.
+  T computeClassValue(Id id, Class cls) => null;
+
   /// Implement this to compute the data corresponding to [member].
   ///
   /// If `null` is returned, [member] has no associated data.
-  T computeMemberValue(Id id, Member member);
+  T computeMemberValue(Id id, Member member) => null;
 
   /// Implement this to compute the data corresponding to [node].
   ///
   /// If `null` is returned, [node] has no associated data.
-  T computeNodeValue(Id id, TreeNode node);
+  T computeNodeValue(Id id, TreeNode node) => null;
 
   DataExtractor(this.actualMap);
 
+  void computeForLibrary(Library library, {bool useFileUri: false}) {
+    LibraryId id =
+        new LibraryId(useFileUri ? library.fileUri : library.importUri);
+    T value = computeLibraryValue(id, library);
+    registerValue(library.fileUri, null, id, value, library);
+  }
+
+  void computeForClass(Class cls) {
+    ClassId id = new ClassId(cls.name);
+    T value = computeClassValue(id, cls);
+    TreeNode nodeWithOffset = computeTreeNodeWithOffset(cls);
+    registerValue(nodeWithOffset?.location?.file, nodeWithOffset?.fileOffset,
+        id, value, cls);
+  }
+
   void computeForMember(Member member) {
-    MemberId id = computeEntityId(member);
+    MemberId id = computeMemberId(member);
     if (id == null) return;
     T value = computeMemberValue(id, member);
     TreeNode nodeWithOffset = computeTreeNodeWithOffset(member);
@@ -63,7 +88,11 @@ abstract class DataExtractor<T> extends Visitor with DataRegistry<T> {
         id, value, node);
   }
 
-  NodeId computeDefaultNodeId(TreeNode node) {
+  NodeId computeDefaultNodeId(TreeNode node,
+      {bool skipNodeWithNoOffset: false}) {
+    if (skipNodeWithNoOffset && node.fileOffset == TreeNode.noOffset) {
+      return null;
+    }
     assert(node.fileOffset != TreeNode.noOffset,
         "No fileOffset on $node (${node.runtimeType})");
     return new NodeId(node.fileOffset, IdKind.node);
@@ -106,6 +135,14 @@ abstract class DataExtractor<T> extends Visitor with DataRegistry<T> {
   NodeId createSwitchId(SwitchStatement node) => computeDefaultNodeId(node);
   NodeId createSwitchCaseId(SwitchCase node) =>
       new NodeId(node.expressionOffsets.first, IdKind.node);
+
+  NodeId createImplicitAsId(AsExpression node) {
+    if (node.fileOffset == TreeNode.noOffset) {
+      // TODO(johnniwinther): Find out why we something have no offset.
+      return null;
+    }
+    return new NodeId(node.fileOffset, IdKind.implicitAs);
+  }
 
   void run(Node root) {
     root.accept(this);
@@ -260,5 +297,142 @@ abstract class DataExtractor<T> extends Visitor with DataRegistry<T> {
   visitContinueSwitchStatement(ContinueSwitchStatement node) {
     computeForNode(node, createGotoId(node));
     super.visitContinueSwitchStatement(node);
+  }
+
+  @override
+  visitConstantExpression(ConstantExpression node) {
+    // Implicit constants (for instance omitted field initializers, implicit
+    // default values) and synthetic constants (for instance in noSuchMethod
+    // forwarders) have no offset.
+    computeForNode(
+        node, computeDefaultNodeId(node, skipNodeWithNoOffset: true));
+    super.visitConstantExpression(node);
+  }
+
+  @override
+  visitNullLiteral(NullLiteral node) {
+    // Synthetic null literals, for instance in locals and fields without
+    // initializers, have no offset.
+    computeForNode(
+        node, computeDefaultNodeId(node, skipNodeWithNoOffset: true));
+    super.visitNullLiteral(node);
+  }
+
+  @override
+  visitBoolLiteral(BoolLiteral node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    super.visitBoolLiteral(node);
+  }
+
+  @override
+  visitIntLiteral(IntLiteral node) {
+    // Synthetic ints literals, for instance in enum fields, have no offset.
+    computeForNode(
+        node, computeDefaultNodeId(node, skipNodeWithNoOffset: true));
+    super.visitIntLiteral(node);
+  }
+
+  @override
+  visitDoubleLiteral(DoubleLiteral node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    super.visitDoubleLiteral(node);
+  }
+
+  @override
+  visitStringLiteral(StringLiteral node) {
+    // Synthetic string literals, for instance in enum fields, have no offset.
+    computeForNode(
+        node, computeDefaultNodeId(node, skipNodeWithNoOffset: true));
+    super.visitStringLiteral(node);
+  }
+
+  @override
+  visitListLiteral(ListLiteral node) {
+    // Synthetic list literals,for instance in noSuchMethod forwarders, have no
+    // offset.
+    computeForNode(
+        node, computeDefaultNodeId(node, skipNodeWithNoOffset: true));
+    super.visitListLiteral(node);
+  }
+
+  @override
+  visitMapLiteral(MapLiteral node) {
+    // Synthetic map literals, for instance in noSuchMethod forwarders, have no
+    // offset.
+    computeForNode(
+        node, computeDefaultNodeId(node, skipNodeWithNoOffset: true));
+    super.visitMapLiteral(node);
+  }
+
+  @override
+  visitSetLiteral(SetLiteral node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    super.visitSetLiteral(node);
+  }
+
+  @override
+  visitThisExpression(ThisExpression node) {
+    TreeNode parent = node.parent;
+    if (node.fileOffset == TreeNode.noOffset ||
+        (parent is PropertyGet ||
+                parent is PropertySet ||
+                parent is MethodInvocation) &&
+            parent.fileOffset == node.fileOffset) {
+      // Skip implicit this expressions.
+    } else {
+      computeForNode(node, computeDefaultNodeId(node));
+    }
+    super.visitThisExpression(node);
+  }
+
+  @override
+  visitAwaitExpression(AwaitExpression node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    super.visitAwaitExpression(node);
+  }
+
+  @override
+  visitConstructorInvocation(ConstructorInvocation node) {
+    // Skip synthetic constructor invocations like for enum constants.
+    // TODO(johnniwinther): Can [skipNodeWithNoOffset] be removed when dart2js
+    // no longer test with cfe constants?
+    computeForNode(
+        node, computeDefaultNodeId(node, skipNodeWithNoOffset: true));
+    super.visitConstructorInvocation(node);
+  }
+
+  @override
+  visitStaticGet(StaticGet node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    super.visitStaticGet(node);
+  }
+
+  @override
+  visitStaticSet(StaticSet node) {
+    computeForNode(node, createUpdateId(node));
+    super.visitStaticSet(node);
+  }
+
+  @override
+  visitStaticInvocation(StaticInvocation node) {
+    computeForNode(node, createInvokeId(node));
+    super.visitStaticInvocation(node);
+  }
+
+  @override
+  visitAsExpression(AsExpression node) {
+    if (node.isTypeError) {
+      computeForNode(node, createImplicitAsId(node));
+    } else {
+      computeForNode(node, computeDefaultNodeId(node));
+    }
+    return super.visitAsExpression(node);
+  }
+
+  @override
+  visitArguments(Arguments node) {
+    computeForNode(
+        node, computeDefaultNodeId(node, skipNodeWithNoOffset: true));
+    return super.visitArguments(node);
   }
 }

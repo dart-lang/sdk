@@ -99,11 +99,7 @@ abstract class RuntimeConfiguration {
   /// Returns the path to the Dart VM executable.
   String get dartVmBinaryFileName {
     // Controlled by user with the option "--dart".
-    var dartExecutable = _configuration.dartPath;
-
-    if (dartExecutable == null) {
-      dartExecutable = dartVmExecutableFileName;
-    }
+    var dartExecutable = _configuration.dartPath ?? dartVmExecutableFileName;
 
     TestUtils.ensureExists(dartExecutable, _configuration);
     return dartExecutable;
@@ -111,8 +107,8 @@ abstract class RuntimeConfiguration {
 
   String get dartVmExecutableFileName {
     return _configuration.useSdk
-        ? '$buildDir/dart-sdk/bin/dart$executableBinarySuffix'
-        : '$buildDir/dart$executableBinarySuffix';
+        ? '$buildDir/dart-sdk/bin/dart$executableExtension'
+        : '$buildDir/dart$executableExtension';
   }
 
   String get dartPrecompiledBinaryFileName {
@@ -120,8 +116,7 @@ abstract class RuntimeConfiguration {
     var dartExecutable = _configuration.dartPrecompiledPath;
 
     if (dartExecutable == null || dartExecutable == '') {
-      var suffix = executableBinarySuffix;
-      dartExecutable = '$buildDir/dart_precompiled_runtime$suffix';
+      dartExecutable = '$buildDir/dart_precompiled_runtime$executableExtension';
     }
 
     TestUtils.ensureExists(dartExecutable, _configuration);
@@ -129,32 +124,27 @@ abstract class RuntimeConfiguration {
   }
 
   String get processTestBinaryFileName {
-    var suffix = executableBinarySuffix;
-    var processTestExecutable = '$buildDir/process_test$suffix';
+    var processTestExecutable = '$buildDir/process_test$executableExtension';
     TestUtils.ensureExists(processTestExecutable, _configuration);
     return processTestExecutable;
   }
 
   String get d8FileName {
-    var suffix = executableBinarySuffix;
     var d8Dir = Repository.dir.append('third_party/d8');
-    var d8Path = d8Dir.append('${Platform.operatingSystem}/d8$suffix');
+    var d8Path =
+        d8Dir.append('${Platform.operatingSystem}/d8$executableExtension');
     var d8 = d8Path.toNativePath();
     TestUtils.ensureExists(d8, _configuration);
     return d8;
   }
 
   String get jsShellFileName {
-    var executableSuffix = executableBinarySuffix;
-    var executable = 'jsshell$executableSuffix';
+    var executable = 'jsshell$executableExtension';
     var jsshellDir = Repository.uri.resolve("tools/testing/bin").path;
     var jsshell = '$jsshellDir/$executable';
     TestUtils.ensureExists(jsshell, _configuration);
     return jsshell;
   }
-
-  String get executableBinarySuffix => Platform.isWindows ? '.exe' : '';
-  String get executableScriptSuffix => Platform.isWindows ? '.bat' : '';
 }
 
 /// The 'none' runtime configuration.
@@ -322,8 +312,8 @@ class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
 }
 
 class DartkAdbRuntimeConfiguration extends DartVmRuntimeConfiguration {
-  static const String DeviceDir = '/data/local/tmp/testing';
-  static const String DeviceTestDir = '/data/local/tmp/testing/test';
+  static const String deviceDir = '/data/local/tmp/testing';
+  static const String deviceTestDir = '/data/local/tmp/testing/test';
 
   List<Command> computeRuntimeCommands(
       CommandArtifact artifact,
@@ -347,8 +337,8 @@ class DartkAdbRuntimeConfiguration extends DartVmRuntimeConfiguration {
 
 class DartPrecompiledAdbRuntimeConfiguration
     extends DartVmRuntimeConfiguration {
-  static const String DeviceDir = '/data/local/tmp/precompilation-testing';
-  static const String DeviceTestDir =
+  static const String deviceDir = '/data/local/tmp/precompilation-testing';
+  static const String deviceTestDir =
       '/data/local/tmp/precompilation-testing/test';
 
   final bool useBlobs;

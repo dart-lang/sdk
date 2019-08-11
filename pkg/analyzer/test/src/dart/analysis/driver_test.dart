@@ -15,7 +15,6 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
-import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -2228,102 +2227,6 @@ var A2 = B1;
     expect(await driver.getSourceKind(path), SourceKind.PART);
   }
 
-  test_getTopLevelNameDeclarations() async {
-    var a = convertPath('/test/lib/a.dart');
-    var b = convertPath('/test/lib/b.dart');
-    var c = convertPath('/test/lib/c.dart');
-    var d = convertPath('/test/lib/d.dart');
-
-    newFile(a, content: 'class A {}');
-    newFile(b, content: 'export "a.dart"; class B {}');
-    newFile(c, content: 'import "d.dart"; class C {}');
-    newFile(d, content: 'class D {}');
-
-    driver.addFile(a);
-    driver.addFile(b);
-    driver.addFile(c);
-    // Don't add d.dart, it is referenced implicitly.
-
-    _assertTopLevelDeclarations(
-        await driver.getTopLevelNameDeclarations('A'), [a, b], [false, true]);
-
-    _assertTopLevelDeclarations(
-        await driver.getTopLevelNameDeclarations('B'), [b], [false]);
-
-    _assertTopLevelDeclarations(
-        await driver.getTopLevelNameDeclarations('C'), [c], [false]);
-
-    _assertTopLevelDeclarations(
-        await driver.getTopLevelNameDeclarations('D'), [d], [false]);
-
-    _assertTopLevelDeclarations(
-        await driver.getTopLevelNameDeclarations('X'), [], []);
-  }
-
-  test_getTopLevelNameDeclarations_discover() async {
-    var t = convertPath('/test/lib/test.dart');
-    var a1 = convertPath('/aaa/lib/a1.dart');
-    var a2 = convertPath('/aaa/lib/src/a2.dart');
-    var b = convertPath('/bbb/lib/b.dart');
-    var c = convertPath('/ccc/lib/c.dart');
-
-    newFile(t, content: 'class T {}');
-    newFile(a1, content: 'class A1 {}');
-    newFile(a2, content: 'class A2 {}');
-    newFile(b, content: 'class B {}');
-    newFile(c, content: 'class C {}');
-
-    driver.addFile(t);
-    // Don't add a1.dart, a2.dart, or b.dart - they should be discovered.
-    // And c.dart is not in .packages, so should not be discovered.
-
-    _assertTopLevelDeclarations(
-        await driver.getTopLevelNameDeclarations('T'), [t], [false]);
-
-    _assertTopLevelDeclarations(
-        await driver.getTopLevelNameDeclarations('A1'), [a1], [false]);
-
-    _assertTopLevelDeclarations(
-        await driver.getTopLevelNameDeclarations('A2'), [a2], [false]);
-
-    _assertTopLevelDeclarations(
-        await driver.getTopLevelNameDeclarations('B'), [b], [false]);
-
-    _assertTopLevelDeclarations(
-        await driver.getTopLevelNameDeclarations('C'), [], []);
-  }
-
-  test_getTopLevelNameDeclarations_parts() async {
-    var a = convertPath('/test/lib/a.dart');
-    var b = convertPath('/test/lib/b.dart');
-    var c = convertPath('/test/lib/c.dart');
-
-    newFile(a, content: r'''
-library lib;
-part 'b.dart';
-part 'c.dart';
-class A {}
-''');
-    newFile(b, content: 'part of lib; class B {}');
-    newFile(c, content: 'part of lib; class C {}');
-
-    driver.addFile(a);
-    driver.addFile(b);
-    driver.addFile(c);
-
-    _assertTopLevelDeclarations(
-        await driver.getTopLevelNameDeclarations('A'), [a], [false]);
-
-    _assertTopLevelDeclarations(
-        await driver.getTopLevelNameDeclarations('B'), [a], [false]);
-
-    _assertTopLevelDeclarations(
-        await driver.getTopLevelNameDeclarations('C'), [a], [false]);
-
-    _assertTopLevelDeclarations(
-        await driver.getTopLevelNameDeclarations('X'), [], []);
-  }
-
   test_getUnitElement() async {
     String content = r'''
 foo(int p) {}
@@ -3510,20 +3413,6 @@ var v = 0
         buffer.writeln('Exception: ${exception.exception}');
       }
       fail('Unexpected exceptions:\n$buffer');
-    }
-  }
-
-  void _assertTopLevelDeclarations(
-      List<TopLevelDeclarationInSource> declarations,
-      List<String> expectedFiles,
-      List<bool> expectedIsExported) {
-    expect(expectedFiles, hasLength(expectedIsExported.length));
-    for (int i = 0; i < expectedFiles.length; i++) {
-      expect(declarations,
-          contains(predicate((TopLevelDeclarationInSource declaration) {
-        return declaration.source.fullName == expectedFiles[i] &&
-            declaration.isExported == expectedIsExported[i];
-      })));
     }
   }
 

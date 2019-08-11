@@ -25,7 +25,7 @@ import '../api_prototype/compiler_options.dart'
     show CompilerOptions, DiagnosticMessage;
 
 import '../api_prototype/experimental_flags.dart'
-    show defaultExperimentalFlags, ExperimentalFlag;
+    show defaultExperimentalFlags, ExperimentalFlag, expiredExperimentalFlags;
 
 import '../api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
@@ -157,8 +157,6 @@ class ProcessedOptions {
   Ticker ticker;
 
   Uri get packagesUriRaw => _raw.packagesFileUri;
-
-  bool get enableAsserts => _raw.enableAsserts;
 
   bool get verbose => _raw.verbose;
 
@@ -315,7 +313,11 @@ class ProcessedOptions {
   bool isExperimentEnabled(ExperimentalFlag flag) {
     assert(defaultExperimentalFlags.containsKey(flag),
         "No default value for $flag.");
-    // TODO(askesc): Determine default flag value from specification file.
+    assert(expiredExperimentalFlags.containsKey(flag),
+        "No expired value for $flag.");
+    if (expiredExperimentalFlags[flag]) {
+      return defaultExperimentalFlags[flag];
+    }
     return _raw.experimentalFlags[flag] ?? defaultExperimentalFlags[flag];
   }
 
@@ -346,7 +348,7 @@ class ProcessedOptions {
     if (_inputSummariesComponents == null) {
       var uris = _raw.inputSummaries;
       if (uris == null || uris.isEmpty) return const <Component>[];
-      // TODO(sigmund): throttle # of concurrent opreations.
+      // TODO(sigmund): throttle # of concurrent operations.
       var allBytes = await Future.wait(
           uris.map((uri) => _readAsBytes(fileSystem.entityForUri(uri))));
       _inputSummariesComponents =
@@ -368,7 +370,7 @@ class ProcessedOptions {
     if (_linkedDependencies == null) {
       var uris = _raw.linkedDependencies;
       if (uris == null || uris.isEmpty) return const <Component>[];
-      // TODO(sigmund): throttle # of concurrent opreations.
+      // TODO(sigmund): throttle # of concurrent operations.
       var allBytes = await Future.wait(
           uris.map((uri) => _readAsBytes(fileSystem.entityForUri(uri))));
       _linkedDependencies =
@@ -405,7 +407,7 @@ class ProcessedOptions {
       ticker.logMs("Started building UriTranslator");
       var libraries = await _computeLibrarySpecification();
       ticker.logMs("Read libraries file");
-      var packages = await _getPackages();
+      Packages packages = await _getPackages();
       ticker.logMs("Read packages file");
       _uriTranslator = new UriTranslator(libraries, packages);
     }
@@ -464,7 +466,7 @@ class ProcessedOptions {
 
     var input = inputs.first;
 
-    // When compiling the SDK the input files are normaly `dart:` URIs.
+    // When compiling the SDK the input files are normally `dart:` URIs.
     if (input.scheme == 'dart') return _packages = Packages.noPackages;
 
     if (input.scheme == 'packages') {
@@ -564,7 +566,7 @@ class ProcessedOptions {
 
   /// Ensure [_sdkRoot], [_sdkSummary] and [_librarySpecUri] are initialized.
   ///
-  /// If they are not set explicitly, they are infered based on the default
+  /// If they are not set explicitly, they are inferred based on the default
   /// behavior described in [CompilerOptions].
   void _ensureSdkDefaults() {
     if (_computedSdkDefaults) return;

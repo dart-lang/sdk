@@ -10,22 +10,22 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-class C<T extends core::Object = dynamic> extends core::Object {
-  generic-covariant-impl field self::C::T t;
-  constructor •(self::C::T t) → self::C<self::C::T>
+class C<T extends core::Object* = dynamic> extends core::Object {
+  generic-covariant-impl field self::C::T* t;
+  constructor •(self::C::T* t) → self::C<self::C::T*>*
     : self::C::t = t, super core::Object::•()
     ;
 }
 static method test() → dynamic {
-  self::C<core::int> x = new self::C::•<core::int>(42);
-  core::num y;
-  self::C<core::int> c_int = new self::C::•<core::int>(y as{TypeError} core::int);
-  self::C<core::num> c_num = new self::C::•<core::num>(123);
-  self::C<core::num> c_num2 = let final self::C<core::num> #t1 = new self::C::•<core::num>(456) in let final dynamic #t2 = #t1.{self::C::t} = 1.0 in #t1;
-  self::C<dynamic> c_dynamic = new self::C::•<dynamic>(42);
+  self::C<core::int*>* x = new self::C::•<core::int*>(42);
+  core::num* y;
+  self::C<core::int*>* c_int = new self::C::•<core::int*>(y as{TypeError} core::int*);
+  self::C<core::num*>* c_num = new self::C::•<core::num*>(123);
+  self::C<core::num*>* c_num2 = let final self::C<core::num*>* #t1 = new self::C::•<core::num*>(456) in let final dynamic #t2 = #t1.{self::C::t} = 1.0 in #t1;
+  self::C<dynamic>* c_dynamic = new self::C::•<dynamic>(42);
   x.{self::C::t} = let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/inference/constructors_infer_from_arguments.dart:26:56: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
 Try changing the type of the left hand side, or casting the right hand side to 'int'.
   x. /*@target=C::t*/ t = /*error:INVALID_ASSIGNMENT*/ 'hello';
-                                                       ^" in "hello" as{TypeError} core::int;
+                                                       ^" in "hello" as{TypeError} core::int*;
 }
 static method main() → dynamic {}

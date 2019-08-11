@@ -1,3 +1,22 @@
+## 0.37.1 (Not yet published)
+* Added the getters `isDartCoreList`, `isDartCoreMap`, `isDartCoreNum`,
+  `isDartCoreSet`, and `isDartCoreSymbol` to `DartType`.
+* Added the method `DartObject.toFunctionValue`.
+* Deprecated the `isEquivalentTo(DartType)` method of `DartType`.
+  The operator `==` now correctly considers two types equal if and
+  only if they represent the same type as defined by the spec.
+* Deprecated the `isMoreSpecificThan(DartType)` method of `DartType`.
+  Deprecated the `isMoreSpecificThan(DartType)` method of `TypeSystem`.
+  Deprecated the `isSupertypeOf(DartType)` method of `TypeSystem`.
+  Use `TypeSystem.isSubtypeOf(DartType)` instead.
+* Deprecated methods `flattenFutures`, `isAssignableTo` of `DartType`.
+  Use `TypeSystem.flatten()` and `TypeSystem.isAssignableTo` instead.
+* Deprecated InheritanceManager2, and replaced with InheritanceManager3.
+  InheritanceManager3 returns ExecutableElements, not FunctionType(s).
+* Added the optional parameter `path` to `parseString`.
+* Changed `TypeSystem.resolveToBound(DartType)` implementation to do
+  what its documentation says.
+
 ## 0.37.0
 * Removed deprecated getter `DartType.isUndefined`.
 * Removed deprecated class `SdkLibrariesReader`.

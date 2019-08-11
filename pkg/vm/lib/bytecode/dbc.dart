@@ -10,7 +10,7 @@ library vm.bytecode.dbc;
 /// Before bumping current bytecode version format, make sure that
 /// all users have switched to a VM which is able to consume new
 /// version of bytecode.
-const int currentBytecodeFormatVersion = 12;
+const int currentBytecodeFormatVersion = 18;
 
 enum Opcode {
   kUnusedOpcode000,
@@ -99,8 +99,6 @@ enum Opcode {
   kUnusedOpcode083,
   kUnusedOpcode084,
 
-  // Bytecode instructions since bytecode format v7:
-
   kTrap,
 
   // Prologue and stack management.
@@ -117,9 +115,9 @@ enum Opcode {
   kCheckFunctionTypeArgs,
   kCheckFunctionTypeArgs_Wide,
   kCheckStack,
-  kUnused01,
-  kUnused02, // Reserved for CheckParameterTypes
-  kUnused03, // Reserved for CheckParameterTypes_Wide
+  kDebugCheck,
+  kJumpIfUnchecked,
+  kJumpIfUnchecked_Wide,
 
   // Object allocation.
   kAllocate,
@@ -218,10 +216,10 @@ enum Opcode {
   kInterfaceCall_Wide,
   kUnused23, // Reserved for InterfaceCall1
   kUnused24, // Reserved for InterfaceCall1_Wide
-  kUnused25, // Reserved for InterfaceCall2
-  kUnused26, // Reserved for InterfaceCall2_Wide
-  kUnused27, // Reserved for InterfaceCall3
-  kUnused28, // Reserved for InterfaceCall3_Wide
+  kInstantiatedInterfaceCall,
+  kInstantiatedInterfaceCall_Wide,
+  kUncheckedClosureCall,
+  kUncheckedClosureCall_Wide,
   kUncheckedInterfaceCall,
   kUncheckedInterfaceCall_Wide,
   kDynamicCall,
@@ -370,6 +368,8 @@ const Map<Opcode, Format> BytecodeFormats = const {
       Encoding.kAE, const [Operand.imm, Operand.reg, Operand.none]),
   Opcode.kCheckStack: const Format(
       Encoding.kA, const [Operand.imm, Operand.none, Operand.none]),
+  Opcode.kDebugCheck: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
   Opcode.kAllocate: const Format(
       Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
   Opcode.kAllocateT: const Format(
@@ -434,7 +434,11 @@ const Map<Opcode, Format> BytecodeFormats = const {
       Encoding.kT, const [Operand.tgt, Operand.none, Operand.none]),
   Opcode.kJumpIfNotNull: const Format(
       Encoding.kT, const [Operand.tgt, Operand.none, Operand.none]),
+  Opcode.kJumpIfUnchecked: const Format(
+      Encoding.kT, const [Operand.tgt, Operand.none, Operand.none]),
   Opcode.kInterfaceCall: const Format(
+      Encoding.kDF, const [Operand.lit, Operand.imm, Operand.none]),
+  Opcode.kInstantiatedInterfaceCall: const Format(
       Encoding.kDF, const [Operand.lit, Operand.imm, Operand.none]),
   Opcode.kDynamicCall: const Format(
       Encoding.kDF, const [Operand.lit, Operand.imm, Operand.none]),
@@ -500,6 +504,8 @@ const Map<Opcode, Format> BytecodeFormats = const {
       Encoding.kDF, const [Operand.lit, Operand.imm, Operand.none]),
   Opcode.kAllocateClosure: const Format(
       Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
+  Opcode.kUncheckedClosureCall: const Format(
+      Encoding.kDF, const [Operand.lit, Operand.imm, Operand.none]),
   Opcode.kUncheckedInterfaceCall: const Format(
       Encoding.kDF, const [Operand.lit, Operand.imm, Operand.none]),
   Opcode.kNegateDouble: const Format(
@@ -603,6 +609,8 @@ bool isCall(Opcode opcode) {
   switch (opcode) {
     case Opcode.kDirectCall:
     case Opcode.kInterfaceCall:
+    case Opcode.kInstantiatedInterfaceCall:
+    case Opcode.kUncheckedClosureCall:
     case Opcode.kUncheckedInterfaceCall:
     case Opcode.kDynamicCall:
     case Opcode.kNativeCall:

@@ -178,6 +178,9 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
       _nodeExits(node.expression);
 
   @override
+  bool visitExtensionOverride(ExtensionOverride node) => false;
+
+  @override
   bool visitForElement(ForElement node) {
     bool outerBreakValue = _enclosingBlockContainsBreak;
     _enclosingBlockContainsBreak = false;
@@ -509,7 +512,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
         // For switch members with no statements, don't visit the children.
         // Otherwise, if there children statements don't exit, mark this as a
         // non-exiting case.
-        if (!switchMember.statements.isEmpty && !switchMember.accept(this)) {
+        if (switchMember.statements.isNotEmpty && !switchMember.accept(this)) {
           hasNonExitingCase = true;
         }
       }

@@ -532,6 +532,36 @@ class FolderTest extends OverlayTestSupport {
         unorderedEquals([child1.path, child2.path, child3.path]));
   }
 
+  test_getChildren_existing_withOverlay() {
+    Folder folder = _folder(exists: true);
+    Folder child1 = _folder(
+        exists: true, path: provider.pathContext.join(folder.path, 'lib'));
+    _file(
+        exists: true,
+        path: provider.pathContext.join(child1.path, 'a.dart'),
+        withOverlay: true);
+    List<String> childPaths =
+        folder.getChildren().map((resource) => resource.path).toList();
+    expect(childPaths, equals([child1.path]));
+  }
+
+  test_getChildren_multipleDescendantOverlays() {
+    Folder folder = _folder(exists: true);
+    Folder child1 = _folder(
+        exists: false, path: provider.pathContext.join(folder.path, 'lib'));
+    _file(
+        exists: false,
+        withOverlay: true,
+        path: provider.pathContext.join(child1.path, 'a.dart'));
+    _file(
+        exists: false,
+        withOverlay: true,
+        path: provider.pathContext.join(child1.path, 'b.dart'));
+    List<String> childPaths =
+        folder.getChildren().map((resource) => resource.path).toList();
+    expect(childPaths, equals([child1.path]));
+  }
+
   test_getChildren_nonExisting_withOverlay() {
     File file = _file(exists: false, withOverlay: true);
     List<Resource> children = file.parent.parent.getChildren();

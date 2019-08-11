@@ -1303,7 +1303,7 @@ class AstTestFactory {
           TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
   static TypeArgumentList typeArgumentList(List<TypeAnnotation> types) {
-    if (types == null || types.length == 0) {
+    if (types == null || types.isEmpty) {
       return null;
     }
     return astFactory.typeArgumentList(TokenFactory.tokenFromType(TokenType.LT),
@@ -1345,7 +1345,7 @@ class AstTestFactory {
 
   static TypeParameterList typeParameterList([List<String> typeNames]) {
     List<TypeParameter> typeParameters = null;
-    if (typeNames != null && !typeNames.isEmpty) {
+    if (typeNames != null && typeNames.isNotEmpty) {
       typeParameters = new List<TypeParameter>();
       for (String typeName in typeNames) {
         typeParameters.add(typeParameter(typeName));

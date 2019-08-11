@@ -673,74 +673,74 @@ ConstantPool {
 }
 ]library #lib from "#lib" as #lib {
 
-  class Base<T1 extends dart.core::Object = dynamic, T2 extends dart.core::Object = dynamic> extends dart.core::Object {
-    generic-covariant-impl field #lib::Base::T1 t1 = null;
-    generic-covariant-impl field #lib::Base::T2 t2 = null;
-    constructor •() → #lib::Base<#lib::Base::T1, #lib::Base::T2>
+  class Base<T1 extends dart.core::Object* = dynamic, T2 extends dart.core::Object* = dynamic> extends dart.core::Object {
+    generic-covariant-impl field #lib::Base::T1* t1 = null;
+    generic-covariant-impl field #lib::Base::T2* t2 = null;
+    constructor •() → #lib::Base<#lib::Base::T1*, #lib::Base::T2*>*
       : super dart.core::Object::•() {
-      dart.core::print("Base: ${#lib::Base::T1}, ${#lib::Base::T2}");
+      dart.core::print("Base: ${#lib::Base::T1*}, ${#lib::Base::T2*}");
     }
   }
-  class A extends #lib::Base<dart.core::int, dart.core::String> {
-    constructor •(dart.core::String s) → #lib::A
+  class A extends #lib::Base<dart.core::int*, dart.core::String*> {
+    constructor •(dart.core::String* s) → #lib::A*
       : super #lib::Base::•()
       ;
   }
-  class B<T extends dart.core::Object = dynamic> extends #lib::Base<dart.core::List<#lib::B::T>, dart.core::String> {
-    constructor •() → #lib::B<#lib::B::T>
+  class B<T extends dart.core::Object* = dynamic> extends #lib::Base<dart.core::List<#lib::B::T*>*, dart.core::String*> {
+    constructor •() → #lib::B<#lib::B::T*>*
       : super #lib::Base::•() {
-      dart.core::print("B: ${#lib::B::T}");
+      dart.core::print("B: ${#lib::B::T*}");
     }
   }
   class C extends dart.core::Object {
-    constructor •(dart.core::String s) → #lib::C
+    constructor •(dart.core::String* s) → #lib::C*
       : super dart.core::Object::•() {
       dart.core::print("C: ${s}");
     }
   }
-  class E<K extends dart.core::Object = dynamic, V extends dart.core::Object = dynamic> extends dart.core::Object {
-    synthetic constructor •() → #lib::E<#lib::E::K, #lib::E::V>
+  class E<K extends dart.core::Object* = dynamic, V extends dart.core::Object* = dynamic> extends dart.core::Object {
+    synthetic constructor •() → #lib::E<#lib::E::K*, #lib::E::V*>*
       : super dart.core::Object::•()
       ;
     method test_reuse1() → dynamic
-      return dart.core::Map::•<#lib::E::K, #lib::E::V>();
+      return dart.core::Map::•<#lib::E::K*, #lib::E::V*>();
   }
-  class F<K extends dart.core::Object = dynamic, V extends dart.core::Object = dynamic> extends #lib::E<dart.core::String, dart.core::List<#lib::F::V>> {
-    synthetic constructor •() → #lib::F<#lib::F::K, #lib::F::V>
+  class F<K extends dart.core::Object* = dynamic, V extends dart.core::Object* = dynamic> extends #lib::E<dart.core::String*, dart.core::List<#lib::F::V*>*> {
+    synthetic constructor •() → #lib::F<#lib::F::K*, #lib::F::V*>*
       : super #lib::E::•()
       ;
     method test_reuse2() → dynamic
-      return dart.core::Map::•<dart.core::String, dart.core::List<#lib::F::V>>();
+      return dart.core::Map::•<dart.core::String*, dart.core::List<#lib::F::V*>*>();
   }
-  class G<K extends dart.core::Object = dynamic, V extends dart.core::Object = dynamic> extends dart.core::Object {
-    constructor •() → #lib::G<#lib::G::K, #lib::G::V>
+  class G<K extends dart.core::Object* = dynamic, V extends dart.core::Object* = dynamic> extends dart.core::Object {
+    constructor •() → #lib::G<#lib::G::K*, #lib::G::V*>*
       : super dart.core::Object::•()
       ;
-    static factory test_factory<K extends dart.core::Object = dynamic, V extends dart.core::Object = dynamic>() → #lib::G<#lib::G::test_factory::K, #lib::G::test_factory::V>
-      return new #lib::H::•<dart.core::String, #lib::G::test_factory::K, #lib::G::test_factory::V>();
+    static factory test_factory<K extends dart.core::Object* = dynamic, V extends dart.core::Object* = dynamic>() → #lib::G<#lib::G::test_factory::K*, #lib::G::test_factory::V*>*
+      return new #lib::H::•<dart.core::String*, #lib::G::test_factory::K*, #lib::G::test_factory::V*>();
   }
-  class H<P1 extends dart.core::Object = dynamic, P2 extends dart.core::Object = dynamic, P3 extends dart.core::Object = dynamic> extends #lib::G<#lib::H::P2, #lib::H::P3> {
-    synthetic constructor •() → #lib::H<#lib::H::P1, #lib::H::P2, #lib::H::P3>
+  class H<P1 extends dart.core::Object* = dynamic, P2 extends dart.core::Object* = dynamic, P3 extends dart.core::Object* = dynamic> extends #lib::G<#lib::H::P2*, #lib::H::P3*> {
+    synthetic constructor •() → #lib::H<#lib::H::P1*, #lib::H::P2*, #lib::H::P3*>*
       : super #lib::G::•()
       ;
   }
   class I extends dart.core::Object {
-    constructor •(dynamic param) → #lib::I
+    constructor •(dynamic param) → #lib::I*
       : super dart.core::Object::•()
       ;
-    static factory test_factory2({dynamic param = null}) → #lib::I
+    static factory test_factory2({dynamic param = #C1}) → #lib::I*
       return new #lib::I::•(param);
   }
   class J extends dart.core::Object {
-    @dart._internal::ExternalName::•("agent_J")
-    external static factory •() → #lib::J;
+    @#C3
+    external static factory •() → #lib::J*;
   }
-  abstract class K<A extends dart.core::Object = dynamic, B extends dart.core::Object = dynamic> extends dart.core::Object {
-    static factory •<A extends dart.core::Object = dynamic, B extends dart.core::Object = dynamic>() → #lib::K<#lib::K::•::A, #lib::K::•::B>
-      return new #lib::TestTypeArgReuse::•<#lib::K::•::A, #lib::K::•::B>();
+  abstract class K<A extends dart.core::Object* = dynamic, B extends dart.core::Object* = dynamic> extends dart.core::Object {
+    static factory •<A extends dart.core::Object* = dynamic, B extends dart.core::Object* = dynamic>() → #lib::K<#lib::K::•::A*, #lib::K::•::B*>*
+      return new #lib::TestTypeArgReuse::•<#lib::K::•::A*, #lib::K::•::B*>();
   }
-  class TestTypeArgReuse<P extends dart.core::Object = dynamic, Q extends dart.core::Object = dynamic> extends #lib::Base<#lib::TestTypeArgReuse::P, #lib::TestTypeArgReuse::Q> implements #lib::K<#lib::TestTypeArgReuse::P, #lib::TestTypeArgReuse::Q> {
-    synthetic constructor •() → #lib::TestTypeArgReuse<#lib::TestTypeArgReuse::P, #lib::TestTypeArgReuse::Q>
+  class TestTypeArgReuse<P extends dart.core::Object* = dynamic, Q extends dart.core::Object* = dynamic> extends #lib::Base<#lib::TestTypeArgReuse::P*, #lib::TestTypeArgReuse::Q*> implements #lib::K<#lib::TestTypeArgReuse::P*, #lib::TestTypeArgReuse::Q*> {
+    synthetic constructor •() → #lib::TestTypeArgReuse<#lib::TestTypeArgReuse::P*, #lib::TestTypeArgReuse::Q*>*
       : super #lib::Base::•()
       ;
   }
@@ -748,25 +748,30 @@ ConstantPool {
     return new #lib::C::•("hello");
   static method foo2() → void {
     new #lib::A::•("hi");
-    new #lib::B::•<dart.core::int>();
+    new #lib::B::•<dart.core::int*>();
   }
-  static method foo3<T extends dart.core::Object = dynamic>() → void {
-    new #lib::B::•<dart.core::List<#lib::foo3::T>>();
+  static method foo3<T extends dart.core::Object* = dynamic>() → void {
+    new #lib::B::•<dart.core::List<#lib::foo3::T*>*>();
   }
   static method foo4() → void {
-    #lib::G::test_factory<dart.core::int, dart.core::List<dart.core::String>>();
+    #lib::G::test_factory<dart.core::int*, dart.core::List<dart.core::String*>*>();
   }
   static method foo5() → void {
     #lib::I::test_factory2();
     #lib::I::test_factory2(param: 42);
   }
   static method foo6() → dynamic
-    return dart.core::_GrowableList::•<dart.core::String>(0);
-  static method foo7(dart.core::int n) → dynamic
-    return dart.core::_List::•<dart.core::int>(n);
+    return dart.core::_GrowableList::•<dart.core::String*>(0);
+  static method foo7(dart.core::int* n) → dynamic
+    return dart.core::_List::•<dart.core::int*>(n);
   static method main() → dynamic {
     #lib::foo1();
     #lib::foo2();
-    #lib::foo3<dart.core::String>();
+    #lib::foo3<dart.core::String*>();
   }
+}
+constants  {
+  #C1 = null
+  #C2 = "agent_J"
+  #C3 = dart._internal::ExternalName {name:#C2}
 }

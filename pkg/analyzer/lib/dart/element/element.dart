@@ -349,9 +349,8 @@ abstract class ClassElement
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ClassMemberElement implements Element {
-  @override
-  ClassElement get enclosingElement;
-
+  // TODO(brianwilkerson) Either remove this class or rename it to something
+  //  more correct, such as PotentiallyStaticElement.
   /// Return `true` if this element is a static element. A static element is an
   /// element that is not associated with a particular instance, but rather with
   /// an entire library or class.
@@ -425,6 +424,9 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
 /// Clients may not extend, implement or mix-in this class.
 abstract class ConstructorElement
     implements ClassMemberElement, ExecutableElement, ConstantEvaluationTarget {
+  @override
+  ClassElement get enclosingElement;
+
   /// Return `true` if this constructor is a const constructor.
   bool get isConst;
 
@@ -1058,7 +1060,7 @@ abstract class ExportElement implements Element, UriReferencedElement {
 /// An element that represents an extension.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class ExtensionElement implements Element {
+abstract class ExtensionElement implements TypeParameterizedElement {
   /// Return a list containing all of the accessors (getters and setters)
   /// declared in this extension.
   List<PropertyAccessorElement> get accessors;
@@ -1066,12 +1068,11 @@ abstract class ExtensionElement implements Element {
   /// Return the type that is extended by this extension.
   DartType get extendedType;
 
+  /// Return a list containing all of the fields declared in this extension.
+  List<FieldElement> get fields;
+
   /// Return a list containing all of the methods declared in this extension.
   List<MethodElement> get methods;
-
-  /// Return a list containing all of the type parameters declared by this
-  /// extension.
-  List<TypeParameterElement> get typeParameters;
 
   /// Return the element representing the getter with the given [name] that is
   /// declared in this extension, or `null` if this extension does not declare a
@@ -1099,6 +1100,11 @@ abstract class FieldElement
 
   /// Return `true` if this element is an enum constant.
   bool get isEnumConstant;
+
+  /// Return `true` if this element is a static element. A static element is an
+  /// element that is not associated with a particular instance, but rather with
+  /// an entire library or class.
+  bool get isStatic;
 
   /// Returns `true` if this field can be overridden in strong mode.
   @deprecated
@@ -1191,7 +1197,7 @@ abstract class FunctionTypedElement implements TypeParameterizedElement {
   /// return type was explicitly specified.
   DartType get returnType;
 
-  @override
+  /// Return the type defined by this element.
   FunctionType get type;
 }
 
@@ -1655,7 +1661,9 @@ abstract class TypeDefiningElement implements Element {
 /// Clients may not extend, implement or mix-in this class.
 abstract class TypeParameterElement implements TypeDefiningElement {
   /// Return the type representing the bound associated with this parameter, or
-  /// `null` if this parameter does not have an explicit bound.
+  /// `null` if this parameter does not have an explicit bound. Being able to
+  /// distinguish between an implicit and explicit bound is needed by the
+  /// instantiate to bounds algorithm.
   DartType get bound;
 
   @override
@@ -1673,9 +1681,6 @@ abstract class TypeParameterizedElement implements Element {
   ///
   /// If the element does not define a type, returns `true`.
   bool get isSimplyBounded;
-
-  /// The type of this element, which will be a parameterized type.
-  ParameterizedType get type;
 
   /// Return a list containing all of the type parameters declared by this
   /// element directly. This does not include type parameters that are declared

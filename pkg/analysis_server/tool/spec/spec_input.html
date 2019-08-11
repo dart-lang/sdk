@@ -7,7 +7,7 @@
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  <version>1.27.1</version>
+  <version>1.27.2</version>
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -2201,6 +2201,12 @@
           an error of type <tt>UNKNOWN_FIX</tt> will be generated.
         </p>
       </field>
+      <field name="includePedanticFixes" optional="true">
+        <ref>bool</ref>
+        <p>
+          A flag indicating that "pedantic" fixes should be applied.
+        </p>
+      </field>
       <field name="includeRequiredFixes" optional="true">
         <ref>bool</ref>
         <p>
@@ -2299,7 +2305,7 @@
       </field>
     </result>
   </request>
-  <request method="getPostfixCompletion" experimental="true">
+  <request method="getPostfixCompletion">
     <p>
       Get the changes required to convert the postfix template at the given
       location into the template's expanded form.
@@ -3141,26 +3147,80 @@
     </result>
   </request>
 </domain>
-<domain name="flutter" experimental="true">
+<domain name="flutter">
   <p>
     The analysis domain contains API’s related to Flutter support.
   </p>
-  <request method="getChangeAddForDesignTimeConstructor">
+  <request method="getWidgetDescription" experimental="true">
     <p>
-      Return the change that adds the forDesignTime() constructor for the
-      widget class at the given offset.
+      Return the description of the widget instance at the given location.
+    </p>
+    <p>
+      If the location does not have a support widget, an error of type
+      <tt>FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET</tt> will be generated.
     </p>
     <params>
       <field name="file">
         <ref>FilePath</ref>
         <p>
-          The file containing the code of the class.
+          The file where the widget instance is created.
         </p>
       </field>
       <field name="offset">
         <ref>int</ref>
         <p>
-          The offset of the class in the code.
+          The offset in the file where the widget instance is created.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="properties">
+        <list>
+          <ref>FlutterWidgetProperty</ref>
+        </list>
+        <p>
+          The list of properties of the widget. Some of the properties might be
+          read only, when their <tt>editor</tt> is not set. This might be
+          because they have type that we don't know how to edit, or for
+          compound properties that work as containers for sub-properties.
+        </p>
+      </field>
+    </result>
+  </request>
+  <request method="setWidgetPropertyValue" experimental="true">
+    <p>
+      Set the value of a property, or remove it.
+    </p>
+    <p>
+      The server will generate a change that the client should apply to the
+      project to get the value of the property set to the new value.
+      The complexity of the change might be from updating a single literal
+      value in the code, to updating multiple files to get libraries imported,
+      and new intermediate widgets instantiated.
+    </p>
+    <params>
+      <field name="id">
+        <ref>int</ref>
+        <p>
+          The identifier of the property, previously returned as a part of
+          a <tt>FlutterWidgetProperty</tt>.
+        </p>
+        <p>
+          An error of type <tt>FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID</tt>
+          is generated if the identifier is not valid.
+        </p>
+      </field>
+      <field name="value" optional="true">
+        <ref>FlutterWidgetPropertyValue</ref>
+        <p>
+          The new value to set for the property.
+        </p>
+        <p>
+          If absent, indicates that the property should be removed. If the
+          property corresponds to an optional parameter, the corresponding
+          named argument is removed. If the property <tt>isRequired</tt> is
+          true, <tt>FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED</tt> error
+          is generated.
         </p>
       </field>
     </params>
@@ -3168,8 +3228,7 @@
       <field name="change">
         <ref>SourceChange</ref>
         <p>
-          The change that adds the forDesignTime() constructor.
-          If the change cannot be produced, an error is returned.
+          The change that should be applied.
         </p>
       </field>
     </result>
@@ -3227,7 +3286,7 @@
       </field>
     </params>
   </request>
-  <notification event="outline" experimental="true">
+  <notification event="outline">
     <p>
       Reports the Flutter outline associated with a single file.
     </p>
@@ -3248,15 +3307,6 @@
         <ref>FlutterOutline</ref>
         <p>
           The outline associated with the file.
-        </p>
-      </field>
-      <field name="instrumentedCode" optional="true">
-        <ref>String</ref>
-        <p>
-          If the file has Flutter widgets that can be rendered, this field
-          has the instrumented content of the file, that allows associating
-          widgets with corresponding outline nodes. If there are no widgets
-          to render, this field is absent.
         </p>
       </field>
     </params>
@@ -4080,7 +4130,209 @@
       <value><code>PART</code></value>
     </enum>
   </type>
-  <type name="FlutterService" experimental="true">
+  <type name="FlutterWidgetProperty">
+    <p>
+      A property of a Flutter widget.
+    </p>
+    <object>
+      <field name="documentation" optional="true">
+        <ref>String</ref>
+        <p>
+          The documentation of the property to show to the user. Omitted if
+          the server does not know the documentation, e.g. because the
+          corresponding field is not documented.
+        </p>
+      </field>
+      <field name="expression" optional="true">
+        <ref>String</ref>
+        <p>
+          If the value of this property is set, the Dart code of the expression
+          of this property.
+        </p>
+      </field>
+      <field name="id">
+        <ref>int</ref>
+        <p>
+          The unique identifier of the property, must be passed back to the
+          server when updating the property value. Identifiers become invalid
+          on any source code change.
+        </p>
+      </field>
+      <field name="isRequired">
+        <ref>bool</ref>
+        <p>
+          True if the property is required, e.g. because it corresponds to
+          a required parameter of a constructor.
+        </p>
+      </field>
+      <field name="isSafeToUpdate">
+        <ref>bool</ref>
+        <p>
+          If the property expression is a concrete value (e.g. a literal, or
+          an enum constant), then it is safe to replace the expression with
+          another concrete value. In this case this field is true. Otherwise,
+          for example when the expression is a reference to a field, so that
+          its value is provided from outside, this field is false.
+        </p>
+      </field>
+      <field name="name">
+        <ref>String</ref>
+        <p>The name of the property to display to the user.</p>
+      </field>
+      <field name="children" optional="true">
+        <list>
+          <ref>FlutterWidgetProperty</ref>
+        </list>
+        <p>
+          The list of children properties, if any. For example any property of
+          type <tt>EdgeInsets</tt> will have four children properties of type
+          <tt>double</tt> - left / top / right / bottom.
+        </p>
+      </field>
+      <field name="editor" optional="true">
+        <ref>FlutterWidgetPropertyEditor</ref>
+        <p>
+          The editor that should be used by the client. This field is omitted
+          if the server does not know the editor for this property, for example
+          because it does not have one of the supported types.
+        </p>
+      </field>
+      <field name="value" optional="true">
+        <ref>FlutterWidgetPropertyValue</ref>
+        <p>
+          If the expression is set, and the server knows the value of the
+          expression, this field is set.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="FlutterWidgetPropertyEditor">
+    <p>
+      An editor for a property of a Flutter widget.
+    </p>
+    <object>
+      <field name="kind">
+        <ref>FlutterWidgetPropertyEditorKind</ref>
+      </field>
+      <field name="enumItems" optional="true">
+        <list>
+          <ref>FlutterWidgetPropertyValueEnumItem</ref>
+        </list>
+      </field>
+    </object>
+  </type>
+  <type name="FlutterWidgetPropertyEditorKind">
+    <p>
+      An enumeration of the kinds of property editors.
+    </p>
+    <enum>
+      <value>
+        <code>BOOL</code>
+        <p>
+          The editor for a property of type <tt>bool</tt>.
+        </p>
+      </value>
+      <value>
+        <code>DOUBLE</code>
+        <p>
+          The editor for a property of the type <tt>double</tt>.
+        </p>
+      </value>
+      <value>
+        <code>ENUM</code>
+        <p>
+          The editor for choosing an item of an enumeration, see the
+          <tt>enumItems</tt> field of <tt>FlutterWidgetPropertyEditor</tt>.
+        </p>
+      </value>
+      <value>
+        <code>ENUM_LIKE</code>
+        <p>
+          The editor for either choosing a pre-defined item from a list of
+          provided static field references (like <tt>ENUM</tt>), or specifying
+          a free-form expression.
+        </p>
+      </value>
+      <value>
+        <code>INT</code>
+        <p>
+          The editor for a property of type <tt>int</tt>.
+        </p>
+      </value>
+      <value>
+        <code>STRING</code>
+        <p>
+          The editor for a property of the type <tt>String</tt>.
+        </p>
+      </value>
+    </enum>
+  </type>
+  <type name="FlutterWidgetPropertyValue">
+    <p>
+      A value of a property of a Flutter widget.
+    </p>
+    <object>
+      <field name="boolValue" optional="true">
+        <ref>bool</ref>
+      </field>
+      <field name="doubleValue" optional="true">
+        <ref>double</ref>
+      </field>
+      <field name="intValue" optional="true">
+        <ref>int</ref>
+      </field>
+      <field name="stringValue" optional="true">
+        <ref>String</ref>
+      </field>
+      <field name="enumValue" optional="true">
+        <ref>FlutterWidgetPropertyValueEnumItem</ref>
+      </field>
+      <field name="expression" optional="true">
+        <ref>String</ref>
+        <p>
+          A free-form expression, which will be used as the value as is.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="FlutterWidgetPropertyValueEnumItem">
+    <p>
+      An item of an enumeration in a general sense - actual <tt>enum</tt>
+      value, or a static field in a class.
+    </p>
+    <object>
+      <field name="libraryUri">
+        <ref>String</ref>
+        <p>
+          The URI of the library containing the <tt>className</tt>. When the
+          enum item is passed back, this will allow the server to import the
+          corresponding library if necessary.
+        </p>
+      </field>
+      <field name="className">
+        <ref>String</ref>
+        <p>
+          The name of the class or enum.
+        </p>
+      </field>
+      <field name="name">
+        <ref>String</ref>
+        <p>
+          The name of the field in the enumeration, or the static field in the
+          class.
+        </p>
+      </field>
+      <field name="documentation" optional="true">
+        <ref>String</ref>
+        <p>
+          The documentation to show to the user. Omitted if the server does not
+          know the documentation, e.g. because the corresponding field is not
+          documented.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="FlutterService">
     <p>
       An enumeration of the services provided by the flutter domain that
       are related to a specific list of files.
@@ -4089,7 +4341,7 @@
       <value><code>OUTLINE</code></value>
     </enum>
   </type>
-  <type name="FlutterOutline" experimental="true">
+  <type name="FlutterOutline">
     <p>
       An node in the Flutter specific outline structure of a file.
     </p>
@@ -4180,57 +4432,9 @@
           children.
         </p>
       </field>
-      <field name="id" optional="true">
-        <ref>int</ref>
-        <p>
-          If the node is a widget, and it is instrumented, the unique identifier
-          of this widget, that can be used to associate rendering information
-          with this node.
-        </p>
-      </field>
-      <field name="isWidgetClass" optional="true">
-        <ref>bool</ref>
-        <p>
-          True if the node is a widget class, so it can potentially be
-          rendered, even if it does not yet have the rendering constructor.
-          This field is omitted if the node is not a widget class.
-        </p>
-      </field>
-      <field name="renderConstructor" optional="true">
-        <ref>String</ref>
-        <p>
-          If the node is a widget class that can be rendered for IDE, the name
-          of the constructor that should be used to instantiate the widget.
-          Empty string for default constructor. Absent if the node is not a
-          widget class that can be rendered.
-        </p>
-      </field>
-      <field name="stateClassName" optional="true">
-        <ref>String</ref>
-        <p>
-          If the node is a StatefulWidget, and its state class is defined in
-          the same file, the name of the state class.
-        </p>
-      </field>
-      <field name="stateOffset" optional="true">
-        <ref>int</ref>
-        <p>
-          If the node is a StatefulWidget that can be rendered, and its state
-          class is defined in the same file, the offset of the state class code
-          in the file.
-        </p>
-      </field>
-      <field name="stateLength" optional="true">
-        <ref>int</ref>
-        <p>
-          If the node is a StatefulWidget that can be rendered, and its state
-          class is defined in the same file, the length of the state class code
-          in the file.
-        </p>
-      </field>
     </object>
   </type>
-  <type name="FlutterOutlineAttribute" experimental="true">
+  <type name="FlutterOutlineAttribute">
     <p>
       An attribute for a FlutterOutline.
     </p>
@@ -4269,9 +4473,26 @@
           This field is absent if the value is not a string literal.
         </p>
       </field>
+      <field name="nameLocation" optional="true">
+        <ref>Location</ref>
+        <p>
+          If the attribute is a named argument, the location of the name,
+          without the colon.
+        </p>
+      </field>
+      <field name="valueLocation" optional="true">
+        <ref>Location</ref>
+        <p>
+          The location of the value.
+        </p>
+        <p>
+          This field is always available, but marked optional for backward
+          compatibility between new clients with older servers.
+        </p>
+      </field>
     </object>
   </type>
-  <type name="FlutterOutlineKind" experimental="true">
+  <type name="FlutterOutlineKind">
     <p>
       An enumeration of the kinds of FlutterOutline elements. The list of kinds
       might be expanded with time, clients must be able to handle new kinds
@@ -4655,6 +4876,27 @@
           A request specified a FilePath which does not match a file in
           an analysis root, or the requested operation is not available
           for the file.
+        </p>
+      </value>
+      <value>
+        <code>FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET</code>
+        <p>
+          The given location does not have a supported widget.
+        </p>
+      </value>
+      <value>
+        <code>FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID</code>
+        <p>
+          The given property identifier is not valid. It might have never been
+          valid, or a change to code invalidated it, or its TTL was exceeded.
+        </p>
+      </value>
+      <value>
+        <code>FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED</code>
+        <p>
+          The value of the property cannot be removed, for example because
+          the corresponding constructor argument is required, and the server
+          does not know what default value to use.
         </p>
       </value>
       <value>

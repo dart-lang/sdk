@@ -197,7 +197,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
   List<AnalysisError> get errors => _errors;
 
   /// Return `true` if at least one error has been gathered.
-  bool get hasErrors => _errors.length > 0;
+  bool get hasErrors => _errors.isNotEmpty;
 
   /// Add the given [errors] to this listener.
   void addAll(List<AnalysisError> errors) {
@@ -288,9 +288,9 @@ class GatheringErrorListener implements AnalysisErrorListener {
             if (i > 0) {
               buffer.write(', ');
             }
-            buffer.write('message(resourceProvider.convertPath(\'');
+            buffer.write('message(\'');
             buffer.write(message.filePath);
-            buffer.write('\'), ');
+            buffer.write('\', ');
             buffer.write(message.offset);
             buffer.write(', ');
             buffer.write(message.length);

@@ -9,9 +9,16 @@ environment:
 dependencies:
   expect:
     path: ../expect
+  glob:
+    path: ../../third_party/pkg/glob
   package_resolver:
     path: ../../third_party/pkg_tested/package_resolver
   smith:
     path: ../smith
   status_file:
     path: ../status_file
+dependency_overrides:
+  # Other packages in the dependency graph have normal hosted dependencies on
+  # this, so just override it to force the local one.
+  args:
+    path: ../../third_party/pkg/args

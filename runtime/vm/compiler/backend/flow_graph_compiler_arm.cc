@@ -187,7 +187,7 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
                                              intptr_t stub_ix) {
   // Calls do not need stubs, they share a deoptimization trampoline.
   ASSERT(reason() != ICData::kDeoptAtCall);
-  Assembler* assembler = compiler->assembler();
+  compiler::Assembler* assembler = compiler->assembler();
 #define __ assembler->
   __ Comment("%s", Name());
   __ Bind(entry_label());
@@ -196,7 +196,8 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
   }
 
   ASSERT(deopt_env() != NULL);
-  __ ldr(LR, Address(THR, compiler::target::Thread::deoptimize_entry_offset()));
+  __ ldr(LR, compiler::Address(
+                 THR, compiler::target::Thread::deoptimize_entry_offset()));
   __ blx(LR);
   ASSERT(kReservedCpuRegisters & (1 << LR));
   set_pc_offset(assembler->CodeSize());
@@ -207,9 +208,9 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
 
 // Fall through if bool_register contains null.
 void FlowGraphCompiler::GenerateBoolToJump(Register bool_register,
-                                           Label* is_true,
-                                           Label* is_false) {
-  Label fall_through;
+                                           compiler::Label* is_true,
+                                           compiler::Label* is_false) {
+  compiler::Label fall_through;
   __ CompareObject(bool_register, Object::null_object());
   __ b(&fall_through, EQ);
   __ CompareObject(bool_register, Bool::True());
@@ -228,8 +229,8 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateCallSubtypeTestStub(
     Register instantiator_type_arguments_reg,
     Register function_type_arguments_reg,
     Register temp_reg,
-    Label* is_instance_lbl,
-    Label* is_not_instance_lbl) {
+    compiler::Label* is_instance_lbl,
+    compiler::Label* is_not_instance_lbl) {
   ASSERT(instance_reg == R0);
   ASSERT(temp_reg == kNoRegister);  // Unused on ARM.
   const SubtypeTestCache& type_test_cache =
@@ -268,8 +269,8 @@ RawSubtypeTestCache*
 FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
     TokenPosition token_pos,
     const AbstractType& type,
-    Label* is_instance_lbl,
-    Label* is_not_instance_lbl) {
+    compiler::Label* is_instance_lbl,
+    compiler::Label* is_not_instance_lbl) {
   __ Comment("InstantiatedTypeWithArgumentsTest");
   ASSERT(type.IsInstantiated());
   ASSERT(!type.IsFunctionType());
@@ -278,7 +279,7 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   const Register kInstanceReg = R0;
   const Type& smi_type = Type::Handle(zone(), Type::SmiType());
   const bool smi_is_ok = smi_type.IsSubtypeOf(type, Heap::kOld);
-  __ tst(kInstanceReg, Operand(kSmiTagMask));
+  __ tst(kInstanceReg, compiler::Operand(kSmiTagMask));
   if (smi_is_ok) {
     // Fast case for type = FutureOr<int/num/top-type>.
     __ b(is_instance_lbl, EQ);
@@ -334,8 +335,8 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
 
 void FlowGraphCompiler::CheckClassIds(Register class_id_reg,
                                       const GrowableArray<intptr_t>& class_ids,
-                                      Label* is_equal_lbl,
-                                      Label* is_not_equal_lbl) {
+                                      compiler::Label* is_equal_lbl,
+                                      compiler::Label* is_not_equal_lbl) {
   for (intptr_t i = 0; i < class_ids.length(); i++) {
     __ CompareImmediate(class_id_reg, class_ids[i]);
     __ b(is_equal_lbl, EQ);
@@ -351,8 +352,8 @@ void FlowGraphCompiler::CheckClassIds(Register class_id_reg,
 bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     TokenPosition token_pos,
     const AbstractType& type,
-    Label* is_instance_lbl,
-    Label* is_not_instance_lbl) {
+    compiler::Label* is_instance_lbl,
+    compiler::Label* is_not_instance_lbl) {
   __ Comment("InstantiatedTypeNoArgumentsTest");
   ASSERT(type.IsInstantiated());
   ASSERT(!type.IsFunctionType());
@@ -360,7 +361,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   ASSERT(type_class.NumTypeArguments() == 0);
 
   const Register kInstanceReg = R0;
-  __ tst(kInstanceReg, Operand(kSmiTagMask));
+  __ tst(kInstanceReg, compiler::Operand(kSmiTagMask));
   // If instance is Smi, check directly.
   const Class& smi_class = Class::Handle(zone(), Smi::Class());
   if (Class::IsSubtypeOf(smi_class, Object::null_type_arguments(), type_class,
@@ -417,12 +418,12 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
 RawSubtypeTestCache* FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
     TokenPosition token_pos,
     const Class& type_class,
-    Label* is_instance_lbl,
-    Label* is_not_instance_lbl) {
+    compiler::Label* is_instance_lbl,
+    compiler::Label* is_not_instance_lbl) {
   __ Comment("Subtype1TestCacheLookup");
   const Register kInstanceReg = R0;
 #if defined(DEBUG)
-  Label ok;
+  compiler::Label ok;
   __ BranchIfNotSmi(kInstanceReg, &ok);
   __ Breakpoint();
   __ Bind(&ok);
@@ -431,8 +432,10 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
   __ LoadClassById(R1, R2);
   // R1: instance class.
   // Check immediate superclass equality.
-  __ ldr(R2, FieldAddress(R1, compiler::target::Class::super_type_offset()));
-  __ ldr(R2, FieldAddress(R2, compiler::target::Type::type_class_id_offset()));
+  __ ldr(R2, compiler::FieldAddress(
+                 R1, compiler::target::Class::super_type_offset()));
+  __ ldr(R2, compiler::FieldAddress(
+                 R2, compiler::target::Type::type_class_id_offset()));
   __ CompareImmediate(R2, Smi::RawValue(type_class.id()));
   __ b(is_instance_lbl, EQ);
 
@@ -450,8 +453,8 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
 RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     TokenPosition token_pos,
     const AbstractType& type,
-    Label* is_instance_lbl,
-    Label* is_not_instance_lbl) {
+    compiler::Label* is_instance_lbl,
+    compiler::Label* is_not_instance_lbl) {
   __ Comment("UninstantiatedTypeTest");
   const Register kInstanceReg = R0;
   const Register kInstantiatorTypeArgumentsReg = R2;
@@ -474,9 +477,10 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     // Check if type arguments are null, i.e. equivalent to vector of dynamic.
     __ CompareObject(kTypeArgumentsReg, Object::null_object());
     __ b(is_instance_lbl, EQ);
-    __ ldr(R3, FieldAddress(kTypeArgumentsReg,
-                            compiler::target::TypeArguments::type_at_offset(
-                                type_param.index())));
+    __ ldr(R3, compiler::FieldAddress(
+                   kTypeArgumentsReg,
+                   compiler::target::TypeArguments::type_at_offset(
+                       type_param.index())));
     // R3: concrete type of type.
     // Check if type argument is dynamic, Object, or void.
     __ CompareObject(R3, Object::dynamic_type());
@@ -487,8 +491,8 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     __ b(is_instance_lbl, EQ);
 
     // For Smi check quickly against int and num interfaces.
-    Label not_smi;
-    __ tst(R0, Operand(kSmiTagMask));  // Value is Smi?
+    compiler::Label not_smi;
+    __ tst(R0, compiler::Operand(kSmiTagMask));  // Value is Smi?
     __ b(&not_smi, NE);
     __ CompareObject(R3, Type::ZoneHandle(zone(), Type::IntType()));
     __ b(is_instance_lbl, EQ);
@@ -536,8 +540,8 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
 RawSubtypeTestCache* FlowGraphCompiler::GenerateFunctionTypeTest(
     TokenPosition token_pos,
     const AbstractType& type,
-    Label* is_instance_lbl,
-    Label* is_not_instance_lbl) {
+    compiler::Label* is_instance_lbl,
+    compiler::Label* is_not_instance_lbl) {
   const Register kInstanceReg = R0;
   const Register kInstantiatorTypeArgumentsReg = R2;
   const Register kFunctionTypeArgumentsReg = R1;
@@ -568,8 +572,8 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateFunctionTypeTest(
 RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
     TokenPosition token_pos,
     const AbstractType& type,
-    Label* is_instance_lbl,
-    Label* is_not_instance_lbl) {
+    compiler::Label* is_instance_lbl,
+    compiler::Label* is_not_instance_lbl) {
   __ Comment("InlineInstanceof");
 
   if (type.IsFunctionType()) {
@@ -623,7 +627,7 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
   const Register kFunctionTypeArgumentsReg = R1;
   __ PushList((1 << kInstantiatorTypeArgumentsReg) |
               (1 << kFunctionTypeArgumentsReg));
-  Label is_instance, is_not_instance;
+  compiler::Label is_instance, is_not_instance;
   // If type is instantiated and non-parameterized, we can inline code
   // checking whether the tested instance is a Smi.
   if (type.IsInstantiated()) {
@@ -644,7 +648,7 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
       GenerateInlineInstanceof(token_pos, type, &is_instance, &is_not_instance);
 
   // test_cache is null if there is no fall-through.
-  Label done;
+  compiler::Label done;
   if (!test_cache.IsNull()) {
     // Generate runtime call.
     __ ldm(IA, SP,
@@ -705,7 +709,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
     GenerateAssertAssignableViaTypeTestingStub(token_pos, deopt_id, dst_type,
                                                dst_name, locs);
   } else {
-    Label is_assignable_fast, is_assignable, runtime_call;
+    compiler::Label is_assignable_fast, is_assignable, runtime_call;
 
     // A null object is always assignable and is returned as result.
     __ CompareObject(R0, Object::null_object());
@@ -758,7 +762,7 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
   const Register kDstTypeReg = R8;
   const Register kScratchReg = R4;
 
-  Label done;
+  compiler::Label done;
 
   GenerateAssertAssignableViaTypeTestingStub(
       dst_type, dst_name, kInstanceReg, kInstantiatorTypeArgumentsReg,
@@ -782,7 +786,7 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
 
   __ LoadField(
       R9,
-      FieldAddress(
+      compiler::FieldAddress(
           kDstTypeReg,
           compiler::target::AbstractType::type_test_stub_entry_point_offset()));
   __ LoadWordFromPoolOffset(kSubtypeTestCacheReg, sub_type_cache_offset, PP,
@@ -835,8 +839,9 @@ void FlowGraphCompiler::GenerateMethodExtractorIntrinsic(
   __ LoadFieldFromOffset(
       kWord, CODE_REG, kPoolReg,
       compiler::target::ObjectPool::element_offset(stub_index));
-  __ Branch(FieldAddress(CODE_REG, compiler::target::Code::entry_point_offset(
-                                       Code::EntryKind::kUnchecked)));
+  __ Branch(compiler::FieldAddress(
+      CODE_REG,
+      compiler::target::Code::entry_point_offset(Code::EntryKind::kUnchecked)));
 }
 
 void FlowGraphCompiler::GenerateGetterIntrinsic(intptr_t offset) {
@@ -844,7 +849,7 @@ void FlowGraphCompiler::GenerateGetterIntrinsic(intptr_t offset) {
   // SP: receiver.
   // Sequence node has one return node, its input is load field node.
   __ Comment("Intrinsic Getter");
-  __ ldr(R0, Address(SP, 0 * compiler::target::kWordSize));
+  __ ldr(R0, compiler::Address(SP, 0 * compiler::target::kWordSize));
   __ LoadFieldFromOffset(kWord, R0, R0, offset);
   __ Ret();
 }
@@ -855,8 +860,9 @@ void FlowGraphCompiler::GenerateSetterIntrinsic(intptr_t offset) {
   // SP+0: value.
   // Sequence node has one store node and one return NULL node.
   __ Comment("Intrinsic Setter");
-  __ ldr(R0, Address(SP, 1 * compiler::target::kWordSize));  // Receiver.
-  __ ldr(R1, Address(SP, 0 * compiler::target::kWordSize));  // Value.
+  __ ldr(R0,
+         compiler::Address(SP, 1 * compiler::target::kWordSize));  // Receiver.
+  __ ldr(R1, compiler::Address(SP, 0 * compiler::target::kWordSize));  // Value.
   __ StoreIntoObjectOffset(R0, offset, R1);
   __ LoadObject(R0, Object::null_object());
   __ Ret();
@@ -868,22 +874,23 @@ void FlowGraphCompiler::EmitFrameEntry() {
       (!is_optimizing() || may_reoptimize())) {
     __ Comment("Invocation Count Check");
     const Register function_reg = R8;
-    __ ldr(function_reg,
-           FieldAddress(CODE_REG, compiler::target::Code::owner_offset()));
-    __ ldr(R3,
-           FieldAddress(function_reg,
-                        compiler::target::Function::usage_counter_offset()));
+    __ ldr(function_reg, compiler::FieldAddress(
+                             CODE_REG, compiler::target::Code::owner_offset()));
+    __ ldr(R3, compiler::FieldAddress(
+                   function_reg,
+                   compiler::target::Function::usage_counter_offset()));
     // Reoptimization of an optimized function is triggered by counting in
     // IC stubs, but not at the entry of the function.
     if (!is_optimizing()) {
-      __ add(R3, R3, Operand(1));
-      __ str(R3,
-             FieldAddress(function_reg,
-                          compiler::target::Function::usage_counter_offset()));
+      __ add(R3, R3, compiler::Operand(1));
+      __ str(R3, compiler::FieldAddress(
+                     function_reg,
+                     compiler::target::Function::usage_counter_offset()));
     }
     __ CompareImmediate(R3, GetOptimizationThreshold());
     ASSERT(function_reg == R8);
-    __ Branch(Address(THR, compiler::target::Thread::optimize_entry_offset()),
+    __ Branch(compiler::Address(
+                  THR, compiler::target::Thread::optimize_entry_offset()),
               GE);
   }
   __ Comment("Enter frame");
@@ -1036,7 +1043,7 @@ void FlowGraphCompiler::EmitEdgeCounter(intptr_t edge_id) {
 #endif  // DEBUG
   __ LoadFieldFromOffset(kWord, R1, R0,
                          compiler::target::Array::element_offset(edge_id));
-  __ add(R1, R1, Operand(Smi::RawValue(1)));
+  __ add(R1, R1, compiler::Operand(Smi::RawValue(1)));
   __ StoreIntoObjectNoBarrierOffset(
       R0, compiler::target::Array::element_offset(edge_id), R1);
 #if defined(DEBUG)
@@ -1084,7 +1091,7 @@ void FlowGraphCompiler::EmitInstanceCallJIT(const Code& stub,
       entry_kind == Code::EntryKind::kNormal
           ? Code::entry_point_offset(Code::EntryKind::kMonomorphic)
           : Code::entry_point_offset(Code::EntryKind::kMonomorphicUnchecked);
-  __ ldr(LR, FieldAddress(CODE_REG, entry_point_offset));
+  __ ldr(LR, compiler::FieldAddress(CODE_REG, entry_point_offset));
   __ blx(LR);
   EmitCallsiteMetadata(token_pos, deopt_id, RawPcDescriptors::kIcCall, locs);
   __ Drop(ic_data.CountWithTypeArgs());
@@ -1111,7 +1118,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   __ LoadObject(R9, cache);
   __ ldr(
       LR,
-      Address(
+      compiler::Address(
           THR,
           compiler::target::Thread::megamorphic_call_checked_entry_offset()));
   __ blx(LR);
@@ -1147,7 +1154,9 @@ void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
   ASSERT(entry_kind == Code::EntryKind::kNormal ||
          entry_kind == Code::EntryKind::kUnchecked);
   ASSERT(ic_data.NumArgsTested() == 1);
-  const Code& initial_stub = StubCode::ICCallThroughFunction();
+  const Code& initial_stub = StubCode::UnlinkedCall();
+  const UnlinkedCall& data =
+      UnlinkedCall::ZoneHandle(zone(), ic_data.AsUnlinkedCall());
 
   __ Comment("InstanceCallAOT");
   __ LoadFromOffset(
@@ -1165,9 +1174,9 @@ void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
                   Code::EntryKind::kMonomorphic)
             : compiler::target::Code::entry_point_offset(
                   Code::EntryKind::kMonomorphicUnchecked);
-    __ ldr(LR, FieldAddress(CODE_REG, entry_point_offset));
+    __ ldr(LR, compiler::FieldAddress(CODE_REG, entry_point_offset));
   }
-  __ LoadUniqueObject(R9, ic_data);
+  __ LoadUniqueObject(R9, data);
   __ blx(LR);
 
   EmitCallsiteMetadata(token_pos, DeoptId::kNone, RawPcDescriptors::kOther,
@@ -1254,7 +1263,7 @@ Condition FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
     __ Pop(right);
     __ Pop(left);
   } else {
-    __ cmp(left, Operand(right));
+    __ cmp(left, compiler::Operand(right));
   }
   return EQ;
 }
@@ -1282,7 +1291,7 @@ void FlowGraphCompiler::ClobberDeadTempRegisters(LocationSummary* locs) {
     // TODO(zerny): clobber non-live temporary FPU registers.
     if (tmp.IsRegister() &&
         !locs->live_registers()->ContainsRegister(tmp.reg())) {
-      __ mov(tmp.reg(), Operand(0xf7));
+      __ mov(tmp.reg(), compiler::Operand(0xf7));
     }
   }
 }
@@ -1303,8 +1312,9 @@ void FlowGraphCompiler::EmitTestAndCallLoadReceiver(
   __ LoadObject(R4, arguments_descriptor);
 }
 
-void FlowGraphCompiler::EmitTestAndCallSmiBranch(Label* label, bool if_smi) {
-  __ tst(R0, Operand(kSmiTagMask));
+void FlowGraphCompiler::EmitTestAndCallSmiBranch(compiler::Label* label,
+                                                 bool if_smi) {
+  __ tst(R0, compiler::Operand(kSmiTagMask));
   // Jump if receiver is not Smi.
   __ b(label, if_smi ? EQ : NE);
 }
@@ -1317,8 +1327,8 @@ void FlowGraphCompiler::EmitTestAndCallLoadCid(Register class_id_reg) {
 #undef __
 #define __ assembler->
 
-int FlowGraphCompiler::EmitTestAndCallCheckCid(Assembler* assembler,
-                                               Label* label,
+int FlowGraphCompiler::EmitTestAndCallCheckCid(compiler::Assembler* assembler,
+                                               compiler::Label* label,
                                                Register class_id_reg,
                                                const CidRange& range,
                                                int bias,
@@ -1347,7 +1357,7 @@ void FlowGraphCompiler::EmitMove(Location destination,
 
   if (source.IsRegister()) {
     if (destination.IsRegister()) {
-      __ mov(destination.reg(), Operand(source.reg()));
+      __ mov(destination.reg(), compiler::Operand(source.reg()));
     } else {
       ASSERT(destination.IsStackSlot());
       const intptr_t dest_offset = destination.ToStackSlotOffset();
@@ -1451,9 +1461,9 @@ void ParallelMoveResolver::EmitSwap(int index) {
   if (source.IsRegister() && destination.IsRegister()) {
     ASSERT(source.reg() != IP);
     ASSERT(destination.reg() != IP);
-    __ mov(IP, Operand(source.reg()));
-    __ mov(source.reg(), Operand(destination.reg()));
-    __ mov(destination.reg(), Operand(IP));
+    __ mov(IP, compiler::Operand(source.reg()));
+    __ mov(source.reg(), compiler::Operand(destination.reg()));
+    __ mov(destination.reg(), compiler::Operand(IP));
   } else if (source.IsRegister() && destination.IsStackSlot()) {
     Exchange(source.reg(), destination.base_reg(),
              destination.ToStackSlotOffset());
@@ -1543,20 +1553,22 @@ void ParallelMoveResolver::EmitSwap(int index) {
   }
 }
 
-void ParallelMoveResolver::MoveMemoryToMemory(const Address& dst,
-                                              const Address& src) {
+void ParallelMoveResolver::MoveMemoryToMemory(const compiler::Address& dst,
+                                              const compiler::Address& src) {
   UNREACHABLE();
 }
 
 // Do not call or implement this function. Instead, use the form below that
 // uses an offset from the frame pointer instead of an Address.
-void ParallelMoveResolver::Exchange(Register reg, const Address& mem) {
+void ParallelMoveResolver::Exchange(Register reg,
+                                    const compiler::Address& mem) {
   UNREACHABLE();
 }
 
 // Do not call or implement this function. Instead, use the form below that
 // uses offsets from the frame pointer instead of Addresses.
-void ParallelMoveResolver::Exchange(const Address& mem1, const Address& mem2) {
+void ParallelMoveResolver::Exchange(const compiler::Address& mem1,
+                                    const compiler::Address& mem2) {
   UNREACHABLE();
 }
 
@@ -1564,7 +1576,7 @@ void ParallelMoveResolver::Exchange(Register reg,
                                     Register base_reg,
                                     intptr_t stack_offset) {
   ScratchRegisterScope tmp(this, reg);
-  __ mov(tmp.reg(), Operand(reg));
+  __ mov(tmp.reg(), compiler::Operand(reg));
   __ LoadFromOffset(kWord, reg, base_reg, stack_offset);
   __ StoreToOffset(kWord, tmp.reg(), base_reg, stack_offset);
 }
@@ -1591,12 +1603,14 @@ void ParallelMoveResolver::RestoreScratch(Register reg) {
 
 void ParallelMoveResolver::SpillFpuScratch(FpuRegister reg) {
   DRegister dreg = EvenDRegisterOf(reg);
-  __ vstrd(dreg, Address(SP, -kDoubleSize, Address::PreIndex));
+  __ vstrd(dreg,
+           compiler::Address(SP, -kDoubleSize, compiler::Address::PreIndex));
 }
 
 void ParallelMoveResolver::RestoreFpuScratch(FpuRegister reg) {
   DRegister dreg = EvenDRegisterOf(reg);
-  __ vldrd(dreg, Address(SP, kDoubleSize, Address::PostIndex));
+  __ vldrd(dreg,
+           compiler::Address(SP, kDoubleSize, compiler::Address::PostIndex));
 }
 
 #undef __

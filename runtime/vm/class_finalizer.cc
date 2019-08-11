@@ -1576,13 +1576,13 @@ void ClassFinalizer::RemapClassIds(intptr_t* old_to_new_cid) {
 //    * RawType::hash_
 //    * RawTypeParameter::hash_
 //    * RawTypeArguments::hash_
+//    * RawInstance (weak table)
+//    * RawArray (weak table)
 //
 // No caching of canonical hash codes (i.e. it gets re-computed every time)
 // happens for:
 //
 //    * RawTypeRef (computed via RawTypeRef::type_->type_class_id)
-//    * RawInstance (computed via size & fields)
-//    * RawArray (computed via type arguments & array entries)
 //
 // Usages of canonical hash codes are:
 //

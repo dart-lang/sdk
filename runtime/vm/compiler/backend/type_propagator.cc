@@ -6,8 +6,9 @@
 
 #include "vm/compiler/backend/type_propagator.h"
 
+#include "platform/text_buffer.h"
+
 #include "vm/bit_vector.h"
-#include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/compiler_state.h"
 #include "vm/object_store.h"
 #include "vm/regexp_assembler.h"
@@ -660,6 +661,14 @@ CompileType CompileType::Int() {
   return FromAbstractType(Type::ZoneHandle(Type::IntType()), kNonNullable);
 }
 
+CompileType CompileType::Int32() {
+#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
+  return FromCid(kSmiCid);
+#else
+  return Int();
+#endif
+}
+
 CompileType CompileType::NullableInt() {
   return FromAbstractType(Type::ZoneHandle(Type::IntType()), kNullable);
 }
@@ -819,6 +828,33 @@ bool CompileType::IsSubtypeOf(const AbstractType& other) {
   }
 
   return ToAbstractType()->IsSubtypeOf(other, Heap::kOld);
+}
+
+void CompileType::PrintTo(BufferFormatter* f) const {
+  const char* type_name = "?";
+  if (IsNone()) {
+    f->Print("T{}");
+    return;
+  } else if ((cid_ != kIllegalCid) && (cid_ != kDynamicCid)) {
+    const Class& cls =
+        Class::Handle(Isolate::Current()->class_table()->At(cid_));
+    type_name = String::Handle(cls.ScrubbedName()).ToCString();
+  } else if (type_ != NULL) {
+    type_name = type_->IsDynamicType()
+                    ? "*"
+                    : String::Handle(type_->UserVisibleName()).ToCString();
+  } else if (!is_nullable()) {
+    type_name = "!null";
+  }
+
+  f->Print("T{%s%s}", type_name, is_nullable_ ? "?" : "");
+}
+
+const char* CompileType::ToCString() const {
+  char buffer[1024];
+  BufferFormatter f(buffer, sizeof(buffer));
+  PrintTo(&f);
+  return Thread::Current()->zone()->MakeCopyOfString(buffer);
 }
 
 CompileType* Value::Type() {
@@ -1112,7 +1148,7 @@ CompileType AssertAssignableInstr::ComputeType() const {
     return *value_type;
   }
 
-  return CompileType::Create(value_type->ToCid(), dst_type());
+  return CompileType::FromAbstractType(dst_type(), value_type->is_nullable());
 }
 
 bool AssertAssignableInstr::RecomputeType() {
@@ -1403,6 +1439,22 @@ CompileType LoadCodeUnitsInstr::ComputeType() const {
   }
 }
 
+CompileType BinaryUint32OpInstr::ComputeType() const {
+  return CompileType::Int32();
+}
+
+CompileType ShiftUint32OpInstr::ComputeType() const {
+  return CompileType::Int32();
+}
+
+CompileType SpeculativeShiftUint32OpInstr::ComputeType() const {
+  return CompileType::Int32();
+}
+
+CompileType UnaryUint32OpInstr::ComputeType() const {
+  return CompileType::Int32();
+}
+
 CompileType BinaryInt32OpInstr::ComputeType() const {
   // TODO(vegorov): range analysis information shall be used here.
   return CompileType::Int();
@@ -1604,6 +1656,56 @@ CompileType TruncDivModInstr::ComputeType() const {
 
 CompileType ExtractNthOutputInstr::ComputeType() const {
   return CompileType::FromCid(definition_cid_);
+}
+
+CompileType LoadIndexedInstr::ComputeType() const {
+  switch (class_id_) {
+    case kArrayCid:
+    case kImmutableArrayCid:
+      if (result_type_ != nullptr) {
+        // The original call knew something.
+        return *result_type_;
+      }
+      return CompileType::Dynamic();
+
+    case kTypedDataFloat32ArrayCid:
+    case kTypedDataFloat64ArrayCid:
+      return CompileType::FromCid(kDoubleCid);
+
+    case kTypedDataFloat32x4ArrayCid:
+      return CompileType::FromCid(kFloat32x4Cid);
+
+    case kTypedDataInt32x4ArrayCid:
+      return CompileType::FromCid(kInt32x4Cid);
+
+    case kTypedDataFloat64x2ArrayCid:
+      return CompileType::FromCid(kFloat64x2Cid);
+
+    case kTypedDataInt8ArrayCid:
+    case kTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
+    case kExternalTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
+    case kTypedDataInt16ArrayCid:
+    case kTypedDataUint16ArrayCid:
+    case kOneByteStringCid:
+    case kTwoByteStringCid:
+    case kExternalOneByteStringCid:
+    case kExternalTwoByteStringCid:
+      return CompileType::FromCid(kSmiCid);
+
+    case kTypedDataInt32ArrayCid:
+    case kTypedDataUint32ArrayCid:
+      return CompileType::Int32();
+
+    case kTypedDataInt64ArrayCid:
+    case kTypedDataUint64ArrayCid:
+      return CompileType::Int();
+
+    default:
+      UNIMPLEMENTED();
+      return CompileType::Dynamic();
+  }
 }
 
 }  // namespace dart

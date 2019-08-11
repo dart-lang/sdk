@@ -7,7 +7,7 @@ library test;
 
 abstract class C<E> {
   void sort([int compare(E a, E b)]) {
-    /*@typeArgs=C::E*/ sort2(this, compare ?? _compareAny);
+    /*@ typeArgs=C::E* */ sort2(this, compare ?? _compareAny);
   }
 
   static int _compareAny(a, b) {

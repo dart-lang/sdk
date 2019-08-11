@@ -841,7 +841,7 @@ class ResultMerger {
    */
   @visibleForTesting
   bool overlaps(int leftStart, int leftEnd, int rightStart, int rightEnd,
-      {bool allowNesting: false}) {
+      {bool allowNesting = false}) {
     if (leftEnd < rightStart || leftStart > rightEnd) {
       return false;
     }

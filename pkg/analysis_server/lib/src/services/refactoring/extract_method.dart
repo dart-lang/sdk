@@ -219,7 +219,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     _prepareExcludedNames();
     _prepareNames();
     // closure cannot have parameters
-    if (_selectionFunctionExpression != null && !_parameters.isEmpty) {
+    if (_selectionFunctionExpression != null && _parameters.isNotEmpty) {
       String message = format(
           'Cannot extract closure as method, it references {0} external variable(s).',
           _parameters.length);
@@ -464,6 +464,15 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
    * location of this [DartExpression] in AST allows extracting.
    */
   RefactoringStatus _checkSelection() {
+    if (selectionOffset <= 0) {
+      return new RefactoringStatus.fatal(
+          'The selection offset must be greater than zero.');
+    }
+    if (selectionOffset + selectionLength >= resolveResult.content.length) {
+      return new RefactoringStatus.fatal(
+          'The selection end offset must be less then the length of the file.');
+    }
+
     // Check for implicitly selected closure.
     {
       FunctionExpression function = _findFunctionExpression();
@@ -501,7 +510,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     }
 
     // Check selected nodes.
-    if (!selectedNodes.isEmpty) {
+    if (selectedNodes.isNotEmpty) {
       AstNode selectedNode = selectedNodes.first;
       _parentMember = getEnclosingClassOrUnitMember(selectedNode);
       // single expression selected
@@ -549,7 +558,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
       return false;
     }
     // has parameters
-    if (!parameters.isEmpty) {
+    if (parameters.isNotEmpty) {
       return false;
     }
     // is assignment

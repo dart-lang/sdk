@@ -475,7 +475,9 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
           // Keep first error, if present.
           if (error == null) {
             int errorCode = result.errorCode;
-            if (errorCode != null && socket.isBindError(errorCode)) {
+            if (sourceAddress != null &&
+                errorCode != null &&
+                socket.isBindError(errorCode)) {
               error = createError(result, "Bind failed", sourceAddress);
             } else {
               error = createError(result, "Connection failed", address, port);
@@ -1606,10 +1608,10 @@ class _SocketStreamConsumer extends StreamConsumer<List<int>> {
   }
 }
 
-class _Socket extends Stream<List<int>> implements Socket {
+class _Socket extends Stream<Uint8List> implements Socket {
   RawSocket _raw; // Set to null when the raw socket is closed.
   bool _closed = false; // Set to true when the raw socket is closed.
-  StreamController<List<int>> _controller;
+  StreamController<Uint8List> _controller;
   bool _controllerClosed = false;
   _SocketStreamConsumer _consumer;
   IOSink _sink;
@@ -1617,7 +1619,7 @@ class _Socket extends Stream<List<int>> implements Socket {
   var _detachReady;
 
   _Socket(this._raw) {
-    _controller = new StreamController<List<int>>(
+    _controller = new StreamController<Uint8List>(
         sync: true,
         onListen: _onSubscriptionStateChange,
         onCancel: _onSubscriptionStateChange,
@@ -1647,7 +1649,7 @@ class _Socket extends Stream<List<int>> implements Socket {
   // is Socket and not _NativeSocket.
   _NativeSocket get _nativeSocket => (_raw as _RawSocket)._socket;
 
-  StreamSubscription<List<int>> listen(void onData(List<int> event),
+  StreamSubscription<Uint8List> listen(void onData(Uint8List event),
       {Function onError, void onDone(), bool cancelOnError}) {
     return _controller.stream.listen(onData,
         onError: onError, onDone: onDone, cancelOnError: cancelOnError);
@@ -1782,6 +1784,7 @@ class _Socket extends Stream<List<int>> implements Socket {
   void _onData(event) {
     switch (event) {
       case RawSocketEvent.read:
+        if (_raw == null) break;
         var buffer = _raw.read();
         if (buffer != null) _controller.add(buffer);
         break;
@@ -1812,11 +1815,17 @@ class _Socket extends Stream<List<int>> implements Socket {
     _consumer.done(error, stackTrace);
   }
 
-  int _write(List<int> data, int offset, int length) =>
-      _raw.write(data, offset, length);
+  int _write(List<int> data, int offset, int length) {
+    if (_raw != null) {
+      return _raw.write(data, offset, length);
+    }
+    return 0;
+  }
 
   void _enableWriteEvent() {
-    _raw.writeEventsEnabled = true;
+    if (_raw != null) {
+      _raw.writeEventsEnabled = true;
+    }
   }
 
   void _disableWriteEvent() {

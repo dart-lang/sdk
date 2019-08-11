@@ -25,8 +25,8 @@ test() async {
   await for (b in stream) {}
   for (i in iterable) {}
   await for (i in stream) {}
-  for (a in /*@typeArgs=Iterable<A>*/ f()) {}
-  await for (a in /*@typeArgs=Stream<A>*/ f()) {}
+  for (a in /*@ typeArgs=Iterable<A*>* */ f()) {}
+  await for (a in /*@ typeArgs=Stream<A*>* */ f()) {}
 }
 
 main() {}

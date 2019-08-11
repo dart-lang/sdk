@@ -71,7 +71,7 @@ library dart._foreign_helper;
  *    The remedy in this case is to expand the `+=` operator, leaving all
  *    references to the Dart field as Dart code:
  *
- *        this.field = JS('String', '# + "x"', this.field);
+ *        this.field = JS<String>('!', '# + "x"', this.field);
  *
  *  + Never use `#` in function bodies.
  *
@@ -106,6 +106,9 @@ library dart._foreign_helper;
  */
 // Add additional optional arguments if needed. The method is treated internally
 // as a variable argument method.
+// TODO(vsm): Enforce that this doesn't fall back to dynamic by typing it as:
+//  `T JS<T extends Object>(...)`
+// once we clean up html libraries.
 T JS<T>(String typeDescription, String codeTemplate,
     [arg0,
     arg1,
@@ -143,7 +146,7 @@ class JSExportName {
  * Returns the JavaScript constructor function for Dart's Object class.
  * This can be used for type tests, as in
  *
- *     if (JS('bool', '# instanceof #', obj, JS_DART_OBJECT_CONSTRUCTOR()))
+ *     if (JS<bool>('!', '# instanceof #', obj, JS_DART_OBJECT_CONSTRUCTOR()))
  *       ...
  */
 JS_DART_OBJECT_CONSTRUCTOR() {}
@@ -265,7 +268,7 @@ class JS_CONST {
  */
 String JS_STRING_CONCAT(String a, String b) {
   // This body is unused, only here for type analysis.
-  return JS('String', '# + #', a, b);
+  return JS<String>('!', '# + #', a, b);
 }
 
 /// Same `@rest` annotation and `spread` function as in

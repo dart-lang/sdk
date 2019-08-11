@@ -468,6 +468,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
         elementKind == ElementKind.ERROR ||
         elementKind == ElementKind.LABEL ||
         elementKind == ElementKind.LOCAL_VARIABLE ||
+        elementKind == ElementKind.NEVER ||
         elementKind == ElementKind.PREFIX ||
         elementKind == ElementKind.TYPE_PARAMETER ||
         elementKind == ElementKind.FUNCTION &&

@@ -27,7 +27,7 @@ import 'package:dev_compiler/src/analyzer/module_compiler.dart';
 
 import 'package:dev_compiler/src/compiler/module_builder.dart';
 import 'package:js/js.dart';
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 
 typedef void MessageHandler(Object message);
 
@@ -164,13 +164,13 @@ class WebCompileCommand extends Command {
     var resolveFn = (String url) {
       var packagePrefix = 'package:';
       var uri = Uri.parse(url);
-      var base = path.basename(url);
+      var base = p.basename(url);
       var parts = uri.pathSegments;
       var match;
       int bestScore = 0;
       for (var candidate in summaryData.uriToSummaryPath.keys) {
-        if (path.basename(candidate) != base) continue;
-        List<String> candidateParts = path.dirname(candidate).split('/');
+        if (p.basename(candidate) != base) continue;
+        List<String> candidateParts = p.dirname(candidate).split('/');
         var first = candidateParts.first;
 
         // Process and strip "package:" prefix.
@@ -228,7 +228,7 @@ class WebCompileCommand extends Command {
       if (existingLibrary == null) {
         sourceCode = imports + body;
       } else {
-        var dir = path.dirname(existingLibrary);
+        var dir = p.dirname(existingLibrary);
         // Need to pull in all the imports from the existing library and
         // re-export all privates as privates in this library.
         // Assumption: summaries are available for all libraries, including any
@@ -261,10 +261,10 @@ class WebCompileCommand extends Command {
           // dart: and package: uris are not relative but the path package
           // thinks they are. We have to provide absolute uris as our library
           // has a different directory than the library we are pretending to be.
-          if (path.isRelative(uri) &&
+          if (p.isRelative(uri) &&
               !uri.startsWith('package:') &&
               !uri.startsWith('dart:')) {
-            uri = path.normalize(path.join(dir, uri));
+            uri = p.normalize(p.join(dir, uri));
           }
           sb.write('import ${json.encode(uri)}');
           if (import.prefixReference != 0) {
@@ -287,7 +287,7 @@ class WebCompileCommand extends Command {
       }
       resources.newFile(fileName, sourceCode);
 
-      var name = path.toUri(libraryName).toString();
+      var name = p.toUri(libraryName).toString();
       compilerOptions.moduleName = name;
       JSModuleFile module =
           compileWithAnalyzer(driver, [fileName], options, compilerOptions);

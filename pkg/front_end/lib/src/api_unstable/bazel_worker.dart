@@ -7,6 +7,7 @@
 
 import 'dart:async' show Future;
 
+import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:kernel/kernel.dart' show Component, CanonicalName;
 
 import 'package:kernel/target/targets.dart' show Target;
@@ -18,6 +19,8 @@ import '../api_prototype/diagnostic_message.dart' show DiagnosticMessageHandler;
 
 import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
 
+import '../api_prototype/front_end.dart' show CompilerResult;
+
 import '../api_prototype/file_system.dart' show FileSystem;
 
 import '../base/processed_options.dart' show ProcessedOptions;
@@ -26,7 +29,7 @@ import '../fasta/compiler_context.dart' show CompilerContext;
 
 import '../fasta/incremental_compiler.dart' show IncrementalCompiler;
 
-import '../kernel_generator_impl.dart' show CompilerResult, generateKernel;
+import '../kernel_generator_impl.dart' show generateKernel;
 
 import 'compiler_state.dart'
     show InitializedCompilerState, WorkerInputComponent, digestsEqual;
@@ -72,8 +75,9 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
   Map<Uri, WorkerInputComponent> workerInputCache =
       oldState?.workerInputCache ?? new Map<Uri, WorkerInputComponent>();
   bool startOver = false;
-  Map<ExperimentalFlag, bool> experimentalFlags =
-      parseExperimentalFlags(experiments, (e) => throw e);
+  Map<ExperimentalFlag, bool> experimentalFlags = parseExperimentalFlags(
+      parseExperimentalArguments(experiments),
+      onError: (e) => throw e);
 
   if (oldState == null ||
       oldState.incrementalCompiler == null ||
@@ -130,7 +134,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     // won't be able to link to it when loading more outlines.
     sdkComponent.adoptChildren();
 
-    // TODO(jensj): This is - at least currently - neccessary,
+    // TODO(jensj): This is - at least currently - necessary,
     // although it's not entirely obvious why.
     // It likely has to do with several outlines containing the same libraries.
     // Once that stops (and we check for it) we can probably remove this,
@@ -218,7 +222,9 @@ Future<InitializedCompilerState> initializeCompiler(
     ..target = target
     ..fileSystem = fileSystem
     ..environmentDefines = const {}
-    ..experimentalFlags = parseExperimentalFlags(experiments, (e) => throw e);
+    ..experimentalFlags = parseExperimentalFlags(
+        parseExperimentalArguments(experiments),
+        onError: (e) => throw e);
 
   ProcessedOptions processedOpts = new ProcessedOptions(options: options);
 

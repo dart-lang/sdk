@@ -57,6 +57,9 @@ class ServiceIsolate : public AllStatic {
  private:
   static void KillServiceIsolate();
 
+  // Does not need a current thread.
+  static Dart_Port WaitForLoadPortInternal();
+
  protected:
   static void SetServicePort(Dart_Port port);
   static void SetServiceIsolate(Isolate* isolate);
@@ -65,11 +68,11 @@ class ServiceIsolate : public AllStatic {
   static void FinishedInitializing();
   static void InitializingFailed();
   static void MaybeMakeServiceIsolate(Isolate* isolate);
-  static Dart_IsolateCreateCallback create_callback() {
-    return create_callback_;
+  static Dart_IsolateGroupCreateCallback create_group_callback() {
+    return create_group_callback_;
   }
 
-  static Dart_IsolateCreateCallback create_callback_;
+  static Dart_IsolateGroupCreateCallback create_group_callback_;
   static Monitor* monitor_;
   enum State {
     kStopped,

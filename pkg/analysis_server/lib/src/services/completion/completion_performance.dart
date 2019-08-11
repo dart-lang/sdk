@@ -23,7 +23,7 @@ class CompletionPerformance {
   }
 
   int get elapsedInMilliseconds =>
-      operations.length > 0 ? operations.last.elapsed.inMilliseconds : 0;
+      operations.isNotEmpty ? operations.last.elapsed.inMilliseconds : 0;
 
   String get suggestionCount {
     if (notificationCount < 1) return '';

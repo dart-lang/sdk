@@ -1846,7 +1846,7 @@ class Parser {
               _reportErrorForCurrentToken(
                   ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES);
             } else {
-              if (directives.length > 0) {
+              if (directives.isNotEmpty) {
                 _reportErrorForCurrentToken(
                     ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST);
               }
@@ -1870,7 +1870,7 @@ class Parser {
         }
 
         Directive directive = parseDirective();
-        if (declarations.length > 0 && !directiveFoundAfterDeclaration) {
+        if (declarations.isNotEmpty && !directiveFoundAfterDeclaration) {
           _reportErrorForToken(ParserErrorCode.DIRECTIVE_AFTER_DECLARATION,
               directive.beginToken);
           directiveFoundAfterDeclaration = true;

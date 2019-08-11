@@ -105,11 +105,11 @@ void testFunctionWithVeryLargeStruct() {
     struct.smallLastField = 1;
   }
   vls1.parent = vls2.addressOf;
-  vls1.numChidlren = 2;
+  vls1.numChildren = 2;
   vls1.children = vls1.addressOf;
   vls2.parent = vls2.addressOf;
   vls2.parent = ffi.nullptr.cast();
-  vls2.numChidlren = 0;
+  vls2.numChildren = 0;
   vls2.children = ffi.nullptr.cast();
 
   int result = f(vls1.addressOf);

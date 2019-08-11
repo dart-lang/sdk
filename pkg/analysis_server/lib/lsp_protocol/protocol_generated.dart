@@ -2221,8 +2221,6 @@ class CompletionItem implements ToJsonable {
   /// completion item with an `insertText` of `console` is provided it will only
   /// insert `sole`. Therefore it is recommended to use `textEdit` instead since
   /// it avoids additional client side interpretation.
-  ///  @deprecated Use textEdit instead.
-  @core.deprecated
   final String insertText;
 
   /// The format of the insert text. The format applies to both the `insertText`
@@ -6357,18 +6355,18 @@ class FailureHandlingKind {
   /// executed.
   static const Abort = const FailureHandlingKind._('abort');
 
-  /// All operations are executed transactional. That means they either all
+  /// All operations are executed transactionally. That means they either all
   /// succeed or no changes at all are applied to the workspace.
   static const Transactional = const FailureHandlingKind._('transactional');
 
   /// If the workspace edit contains only textual file changes they are executed
-  /// transactional. If resource changes (create, rename or delete file) are
+  /// transactionally. If resource changes (create, rename or delete file) are
   /// part of the change the failure handling strategy is abort.
   static const TextOnlyTransactional =
       const FailureHandlingKind._('textOnlyTransactional');
 
   /// The client tries to undo the operations already executed. But there is no
-  /// guarantee that this is succeeding.
+  /// guarantee that this succeeds.
   static const Undo = const FailureHandlingKind._('undo');
 
   Object toJson() => _value;

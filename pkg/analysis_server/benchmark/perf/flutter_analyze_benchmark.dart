@@ -62,8 +62,8 @@ class FlutterAnalyzeBenchmark extends Benchmark {
 
   @override
   Future<BenchMarkResult> run({
-    bool quick: false,
-    bool verbose: false,
+    bool quick = false,
+    bool verbose = false,
   }) async {
     if (!quick) {
       deleteServerCache();

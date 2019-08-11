@@ -281,13 +281,13 @@ num j = "str";
 /\/ [analyzer] CompileTimeErrorCode.ALSO_WRONG_TYPE
     /\/ [cfe] Error: Can't assign a string to a num.
 """, [
-    ErrorExpectation(
+    StaticError(
         line: 1,
         column: 9,
         length: 3,
         code: "CompileTimeErrorCode.WRONG_TYPE",
         message: "Error: Can't assign a string to an int."),
-    ErrorExpectation(
+    StaticError(
         line: 6,
         column: 9,
         length: 5,
@@ -305,20 +305,23 @@ num j = "str";
 /\/ [cfe] Second error.
 /\/[error line 9,column 8,length 7]
 /\/ [cfe] Third.
+/\/[error line 10,column 9]
+/\/ [cfe] No length.
 """, [
-    ErrorExpectation(
+    StaticError(
         line: 123,
         column: 45,
         length: 678,
         code: "CompileTimeErrorCode.FIRST",
         message: "First error."),
-    ErrorExpectation(
+    StaticError(
         line: 23,
         column: 5,
         length: 78,
         code: "CompileTimeErrorCode.SECOND",
         message: "Second error."),
-    ErrorExpectation(line: 9, column: 8, length: 7, message: "Third.")
+    StaticError(line: 9, column: 8, length: 7, message: "Third."),
+    StaticError(line: 10, column: 9, message: "No length.")
   ]);
 
   // Multi-line error message.
@@ -332,7 +335,7 @@ int i = "s";
 
 /\/ The preceding blank line ends the message.
 """, [
-    ErrorExpectation(
+    StaticError(
         line: 1,
         column: 9,
         length: 3,
@@ -351,22 +354,52 @@ int i = "s";
 /\/  ^^^^^^^
 /\/ [cfe] Third error.
 """, [
-    ErrorExpectation(line: 2, column: 9, length: 3, message: "First error."),
-    ErrorExpectation(line: 2, column: 7, length: 1, code: "ErrorCode.second"),
-    ErrorExpectation(line: 2, column: 5, length: 7, message: "Third error."),
+    StaticError(line: 2, column: 9, length: 3, message: "First error."),
+    StaticError(line: 2, column: 7, length: 1, code: "ErrorCode.second"),
+    StaticError(line: 2, column: 5, length: 7, message: "Third error."),
   ]);
 
   // Unspecified errors.
   expectParseErrorExpectations("""
 int i = "s";
-/\/ [unspecified error]
+/\/     ^^^
+// [analyzer] unspecified
+// [cfe] unspecified
 int j = "s";
-  /\/ [unspecified error] some additional info
+/\/     ^^^
+// [analyzer] unspecified
+// [cfe] Message.
+int k = "s";
+/\/     ^^^
+// [analyzer] Error.CODE
+// [cfe] unspecified
+int l = "s";
+/\/     ^^^
+// [analyzer] unspecified
+int m = "s";
+/\/     ^^^
+// [cfe] unspecified
 """, [
-    ErrorExpectation(
-        line: 1, column: null, length: null, code: null, message: null),
-    ErrorExpectation(
-        line: 3, column: null, length: null, code: null, message: null)
+    StaticError(
+        line: 1,
+        column: 8,
+        length: 3,
+        code: "unspecified",
+        message: "unspecified"),
+    StaticError(
+        line: 5,
+        column: 8,
+        length: 3,
+        code: "unspecified",
+        message: "Message."),
+    StaticError(
+        line: 9,
+        column: 8,
+        length: 3,
+        code: "Error.CODE",
+        message: "unspecified"),
+    StaticError(line: 13, column: 8, length: 3, code: "unspecified"),
+    StaticError(line: 16, column: 8, length: 3, message: "unspecified"),
   ]);
 
   // Ignore multitest markers.
@@ -379,13 +412,13 @@ int i = "s";
 /\/ [error line 12, column 34, length 56]  /\/# 3: continued
 /\/ [cfe] Message.
 """, [
-    ErrorExpectation(
+    StaticError(
         line: 1,
         column: 9,
         length: 3,
         code: "ErrorCode.BAD_THING",
         message: "Message.\nMore message."),
-    ErrorExpectation(line: 12, column: 34, length: 56, message: "Message."),
+    StaticError(line: 12, column: 34, length: 56, message: "Message."),
   ]);
 
   // Must have either a code or a message.
@@ -487,8 +520,7 @@ void testMultitest() {
   Expect.isTrue(d.hasStaticWarning);
 }
 
-void expectParseErrorExpectations(
-    String source, List<ErrorExpectation> errors) {
+void expectParseErrorExpectations(String source, List<StaticError> errors) {
   var file = parse(source);
   Expect.listEquals(errors.map((error) => error.toString()).toList(),
       file.expectedErrors.map((error) => error.toString()).toList());

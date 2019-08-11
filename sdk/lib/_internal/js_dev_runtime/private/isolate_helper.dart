@@ -59,11 +59,11 @@ class TimerImpl implements Timer {
       : _once = false {
     if (hasTimer()) {
       dart.addAsyncCallback();
-      int start = JS('int', 'Date.now()');
-      _handle = JS('int', '#.setInterval(#, #)', global, () {
+      int start = JS<int>('!', 'Date.now()');
+      _handle = JS<int>('!', '#.setInterval(#, #)', global, () {
         int tick = this._tick + 1;
         if (milliseconds > 0) {
-          int duration = JS('int', 'Date.now()') - start;
+          int duration = JS<int>('!', 'Date.now()') - start;
           if (duration > (tick + 1) * milliseconds) {
             tick = duration ~/ milliseconds;
           }

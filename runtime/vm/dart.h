@@ -28,9 +28,11 @@ class Dart : public AllStatic {
   // (caller owns error message and has to free it).
   static char* Init(const uint8_t* vm_snapshot_data,
                     const uint8_t* vm_snapshot_instructions,
-                    Dart_IsolateCreateCallback create,
+                    Dart_IsolateGroupCreateCallback create_group,
+                    Dart_InitializeIsolateCallback initialize_isolate,
                     Dart_IsolateShutdownCallback shutdown,
                     Dart_IsolateCleanupCallback cleanup,
+                    Dart_IsolateGroupCleanupCallback cleanup_group,
                     Dart_ThreadExitCallback thread_exit,
                     Dart_FileOpenCallback file_open,
                     Dart_FileReadCallback file_read,
@@ -46,7 +48,8 @@ class Dart : public AllStatic {
   static char* Cleanup();
 
   static Isolate* CreateIsolate(const char* name_prefix,
-                                const Dart_IsolateFlags& api_flags);
+                                const Dart_IsolateFlags& api_flags,
+                                IsolateGroup* isolate_group);
 
   // Initialize an isolate, either from a snapshot, from a Kernel binary, or
   // from SDK library sources.  If the snapshot_buffer is non-NULL,

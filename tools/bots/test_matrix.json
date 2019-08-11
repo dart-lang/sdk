@@ -1,7 +1,7 @@
 {
   "global": {
-    "chrome": "65",
-    "firefox": "61"
+    "chrome": "76",
+    "firefox": "67"
   },
   "branches": [
     "analyzer-stable",
@@ -95,6 +95,39 @@
       "xcodebuild/ReleaseX64/dart2js_platform.dill",
       "xcodebuild/ReleaseX64/dart2js_platform_strong.dill"
     ],
+    "front-end": [
+      ".packages",
+      "out/ReleaseIA32/",
+      "out/ReleaseX64/",
+      "pkg/",
+      "runtime/tests/",
+      "samples-dev/",
+      "samples/",
+      "sdk/",
+      "tests/angular/",
+      "tests/co19_2/co19_2-analyzer.status",
+      "tests/co19_2/co19_2-dart2js.status",
+      "tests/co19_2/co19_2-kernel.status",
+      "tests/co19_2/co19_2-runtime.status",
+      "tests/compiler/",
+      "tests/corelib_2/",
+      "tests/dart/",
+      "tests/kernel/",
+      "tests/language_2/",
+      "tests/lib_2/",
+      "tests/light_unittest.dart",
+      "tests/search/",
+      "tests/standalone/",
+      "tests/standalone_2/",
+      "tests/ffi/",
+      "third_party/d8/",
+      "third_party/pkg/",
+      "third_party/pkg_tested/",
+      "third_party/requirejs/",
+      "tools/",
+      "xcodebuild/ReleaseIA32/",
+      "xcodebuild/ReleaseX64/"
+    ],
     "fuzzer": [
       "runtime/tools/dartfuzz/",
       "out/DebugIA32/",
@@ -128,6 +161,7 @@
       "out/DebugX64/",
       "out/DebugSIMARM/",
       "out/DebugSIMARM64/",
+      "out/DebugSIMARM_X64/",
       "out/DebugSIMDBC64/",
       "out/DebugAndroidARM/",
       "out/DebugAndroidARM64/",
@@ -135,6 +169,7 @@
       "out/ReleaseX64/",
       "out/ReleaseSIMARM/",
       "out/ReleaseSIMARM64/",
+      "out/ReleaseSIMARM_X64/",
       "out/ReleaseSIMDBC64/",
       "out/ReleaseAndroidARM/",
       "out/ReleaseAndroidARM64/",
@@ -143,15 +178,21 @@
       "out/ProductX64/",
       "out/ProductSIMARM/",
       "out/ProductSIMARM64/",
+      "out/ProductSIMARM_X64/",
       "out/ProductSIMDBC64/",
       "out/ProductAndroidARM/",
       "out/ProductAndroidARM64/",
       "xcodebuild/DebugIA32/",
+      "xcodebuild/DebugSIMARM/",
+      "xcodebuild/DebugSIMARM64/",
+      "xcodebuild/DebugSIMARM_X64/",
       "xcodebuild/DebugSIMDBC64/",
       "xcodebuild/DebugX64/",
       "xcodebuild/ProductX64/",
       "xcodebuild/ReleaseIA32/",
+      "xcodebuild/ReleaseSIMARM/",
       "xcodebuild/ReleaseSIMARM64/",
+      "xcodebuild/ReleaseSIMARM_X64/",
       "xcodebuild/ReleaseSIMDBC64/",
       "xcodebuild/ReleaseX64/",
       "samples/",
@@ -304,6 +345,11 @@
       "options": {
         "use-blobs": true
     }},
+    "dartkp-(linux|win|mac)-(debug|product|release)-(simarm|simarm64)-crossword": {
+      "options": {
+        "builder-tag": "crossword",
+        "use-blobs": true
+    }},
     "dartkp-win-(product|release)-x64": {
       "options": {
         "use-blobs": true
@@ -358,17 +404,20 @@
     "app_jitk-(linux|mac|win)-(debug|product|release)-(ia32|x64)": { },
     "dartkb-interpret-(linux|mac|win)-(debug|product|release)-(ia32|x64|arm|arm64|simarm|simarm64)": {
       "options": {
+        "builder-tag": "bytecode_interpreter",
         "vm-options": ["--enable_interpreter", "--compilation-counter-threshold=-1"]
     }},
     "dartkb-mixed-(linux|mac|win)-(debug|product|release)-(ia32|x64|arm|arm64|simarm|simarm64)": {
       "options": {
+        "builder-tag": "bytecode_mixed",
         "vm-options": ["--enable_interpreter"]
     }},
     "dartkb-compile-(linux|mac|win)-(debug|product|release)-(ia32|x64|arm|arm64|simarm|simarm64)": {
       "options": {
+        "builder-tag": "bytecode_compiler",
         "vm-options": ["--use_bytecode_compiler"]
     }},
-    "(dartdevc|dartdevk)-checked-(linux|mac|win)-(debug|product|release)-chrome": {
+    "(dartdevc|dartdevk)-checked-(linux|mac|win)-(debug|product|release)-(chrome|firefox)": {
       "options": {
         "checked": true,
         "use-sdk": true
@@ -408,22 +457,26 @@
           ]
         },
         {
+          "name": "fasta co19_2 tests",
+          "arguments": [
+            "-nfasta-${system}",
+            "co19_2"
+          ],
+          "fileset": "front-end",
+          "shards": 10
+        },
+        {
+          "name": "fasta sdk tests",
+          "arguments": ["-nfasta-${system}"],
+          "fileset": "front-end",
+          "shards": 5
+        },
+        {
           "name": "unit tests",
           "script": "tools/disguised_test.py",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}",
              "pkg/(kernel|front_end|fasta)"
-          ]
-        },
-        {
-          "name": "fasta sdk tests",
-          "arguments": ["-nfasta-${system}"]
-        },
-        {
-          "name": "fasta co19_2 tests",
-          "arguments": [
-            "-nfasta-${system}",
-            "co19_2"
           ]
         }
       ]
@@ -463,7 +516,16 @@
             "-ndartkb-mixed-linux-${mode}-${arch}"
           ],
           "fileset": "vm-kernel",
-          "shards": 10
+          "shards": 4
+        },
+        {
+          "name": "vm mixed mode co19 tests",
+          "arguments": [
+            "-ndartkb-mixed-linux-${mode}-${arch}",
+            "co19_2"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 4
         },
         {
           "name": "vm bytecode compiler tests",
@@ -471,7 +533,16 @@
             "-ndartkb-compile-linux-${mode}-${arch}"
           ],
           "fileset": "vm-kernel",
-          "shards": 10
+          "shards": 4
+        },
+        {
+          "name": "vm bytecode compiler co19 tests",
+          "arguments": [
+            "-ndartkb-compile-linux-${mode}-${arch}",
+            "co19_2"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 4
         },
         {
           "name": "vm interpreter tests",
@@ -479,7 +550,16 @@
             "-ndartkb-interpret-linux-${mode}-${arch}"
           ],
           "fileset": "vm-kernel",
-          "shards": 10
+          "shards": 4
+        },
+        {
+          "name": "vm interpreter co19 tests",
+          "arguments": [
+            "-ndartkb-interpret-linux-${mode}-${arch}",
+            "co19_2"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 4
         }
       ]
     },
@@ -887,7 +967,9 @@
             "corelib_2",
             "lib_2",
             "dartdevc_native"
-          ]
+          ],
+          "shards": 1,
+          "fileset": "dart2js"
         },
         {
           "name": "ddc kernel tests",
@@ -976,6 +1058,52 @@
     },
     {
       "builders": [
+        "ddk-linux-release-firefox"
+      ],
+      "meta": {
+        "description": "This configuration is used by the ddc builder group."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["dart2js_bot", "dartdevc_test"]
+        },
+        {
+          "name": "ddk co19_2 tests",
+          "arguments": [
+            "-ndartdevk-checked-${system}-release-firefox",
+            "co19_2"
+          ],
+          "shards": 6,
+          "fileset": "dart2js"
+        },
+        {
+          "name": "ddc kernel tests",
+          "arguments": [
+            "-ndartdevk-checked-${system}-release-firefox",
+            "language_2",
+            "corelib_2",
+            "lib_2",
+            "dartdevc_native"
+          ]
+        },
+        {
+          "name": "ddc kernel modular tests",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "testRunner": true,
+          "arguments": [
+            "pkg/dev_compiler/test/modular_suite.dart",
+            "--configuration-name",
+            "dartdevk-${system}-release",
+            "--verbose",
+            "--use-sdk"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
         "ddc-mac-release-chrome"
       ],
       "meta": {
@@ -995,7 +1123,9 @@
             "corelib_2",
             "lib_2",
             "dartdevc_native"
-          ]
+          ],
+          "shards": 1,
+          "fileset": "dart2js"
         },
         {
           "name": "ddc kernel tests",
@@ -2164,6 +2294,63 @@
           "name": "run tests",
           "script": "tools/run_abi_tests.py",
           "testRunner": true
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-kernel-precomp-mac-debug-simarm_x64",
+        "vm-kernel-precomp-mac-release-simarm_x64"
+      ],
+      "meta": {
+        "description": "This configuration runs tests for the simarm_x64 architecture."
+      },
+      "steps": [
+        {
+          "name": "configure dart for simarm_x64",
+          "script": "tools/gn.py",
+          "arguments": [
+            "--mode=${mode}",
+            "--arch=simarm_x64",
+            "--bytecode"
+          ]
+        },
+        {
+          "name": "configure dart for simarm",
+          "script": "tools/gn.py",
+          "arguments": [
+            "--mode=${mode}",
+            "--arch=simarm",
+            "--bytecode"
+          ]
+        },
+        {
+          "name": "build dart for simarm_x64",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=${mode}",
+            "--arch=simarm_x64",
+            "gen_snapshot"
+          ]
+        },
+        {
+          "name": "build dart for simarm",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=${mode}",
+            "--arch=simarm",
+            "dart_precompiled_runtime",
+            "vm_platform"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-ndartkp-${system}-${mode}-simarm-crossword",
+            "--gen-snapshot=${build_root}/gen_snapshot"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 10
         }
       ]
     }

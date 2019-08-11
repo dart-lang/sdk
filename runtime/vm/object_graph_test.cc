@@ -101,10 +101,12 @@ ISOLATE_UNIT_TEST_CASE(ObjectGraph) {
     {
       HANDLESCOPE(thread);
       // Test null, empty, and length 1 array.
-      intptr_t null_length = graph.RetainingPath(&c, Object::null_array());
-      intptr_t empty_length = graph.RetainingPath(&c, Object::empty_array());
+      intptr_t null_length =
+          graph.RetainingPath(&c, Object::null_array()).length;
+      intptr_t empty_length =
+          graph.RetainingPath(&c, Object::empty_array()).length;
       Array& path = Array::Handle(Array::New(1, Heap::kNew));
-      intptr_t one_length = graph.RetainingPath(&c, path);
+      intptr_t one_length = graph.RetainingPath(&c, path).length;
       EXPECT_EQ(null_length, empty_length);
       EXPECT_EQ(null_length, one_length);
       EXPECT_LE(3, null_length);
@@ -114,7 +116,7 @@ ISOLATE_UNIT_TEST_CASE(ObjectGraph) {
       Array& path = Array::Handle(Array::New(6, Heap::kNew));
       // Trigger a full GC to increase probability of concurrent tasks.
       isolate->heap()->CollectAllGarbage();
-      intptr_t length = graph.RetainingPath(&c, path);
+      intptr_t length = graph.RetainingPath(&c, path).length;
       EXPECT_LE(3, length);
       Array& expected_c = Array::Handle();
       expected_c ^= path.At(0);
@@ -136,6 +138,58 @@ ISOLATE_UNIT_TEST_CASE(ObjectGraph) {
       EXPECT(expected_a.raw() == a.raw());
     }
   }
+}
+
+static void WeakHandleFinalizer(void* isolate_callback_data,
+                                Dart_WeakPersistentHandle handle,
+                                void* peer) {}
+
+ISOLATE_UNIT_TEST_CASE(RetainingPathGCRoot) {
+  Dart_PersistentHandle persistent_handle;
+  Dart_WeakPersistentHandle weak_persistent_handle;
+  Array& path = Array::Handle(Array::New(1, Heap::kNew));
+  ObjectGraph graph(thread);
+  Dart_Handle handle = Api::NewHandle(thread, path.raw());
+
+  // GC root should be a local handle
+  auto result = graph.RetainingPath(&path, path);
+  EXPECT_STREQ(result.gc_root_type, "local handle");
+
+  // GC root should now be a weak persistent handle
+  {
+    TransitionVMToNative transition(thread);
+    weak_persistent_handle = Dart_NewWeakPersistentHandle(
+        handle, reinterpret_cast<void*>(0xdeadbeef), 128, WeakHandleFinalizer);
+  }
+  result = graph.RetainingPath(&path, path);
+  EXPECT_STREQ(result.gc_root_type, "weak persistent handle");
+
+  // GC root should now be a persistent handle
+  {
+    TransitionVMToNative transition(thread);
+    persistent_handle = Dart_NewPersistentHandle(handle);
+  }
+  result = graph.RetainingPath(&path, path);
+  EXPECT_STREQ(result.gc_root_type, "persistent handle");
+
+  // Delete the persistent handle. GC root should now be weak persistent handle
+  {
+    TransitionVMToNative transition(thread);
+    Dart_DeletePersistentHandle(persistent_handle);
+    persistent_handle = NULL;
+  }
+  result = graph.RetainingPath(&path, path);
+  EXPECT_STREQ(result.gc_root_type, "weak persistent handle");
+
+  // Delete the weak persistent handle. GC root should now be local handle.
+  {
+    TransitionVMToNative transition(thread);
+    Dart_DeleteWeakPersistentHandle(Api::CastIsolate(thread->isolate()),
+                                    weak_persistent_handle);
+    weak_persistent_handle = NULL;
+  }
+  result = graph.RetainingPath(&path, path);
+  EXPECT_STREQ(result.gc_root_type, "local handle");
 }
 
 }  // namespace dart

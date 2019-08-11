@@ -9,6 +9,8 @@ import 'dart:math' show max;
 import 'package:kernel/ast.dart';
 import 'package:kernel/transformations/continuation.dart'
     show ContinuationVariables;
+import 'package:kernel/type_environment.dart';
+import 'package:vm/bytecode/generics.dart';
 
 import 'dbc.dart';
 import 'options.dart' show BytecodeOptions;
@@ -27,6 +29,7 @@ class LocalVariables {
   final Map<ForInStatement, VariableDeclaration> _capturedIteratorVars =
       <ForInStatement, VariableDeclaration>{};
   final BytecodeOptions options;
+  final TypeEnvironment typeEnvironment;
 
   Scope _currentScope;
   Frame _currentFrame;
@@ -185,7 +188,7 @@ class LocalVariables {
   List<VariableDeclaration> get sortedNamedParameters =>
       _currentFrame.sortedNamedParameters;
 
-  LocalVariables(Member node, this.options) {
+  LocalVariables(Member node, this.options, this.typeEnvironment) {
     final scopeBuilder = new _ScopeBuilder(this);
     node.accept(scopeBuilder);
 
@@ -281,6 +284,12 @@ class Scope {
   bool get hasContext => contextSize > 0;
 }
 
+bool _hasReceiverParameter(TreeNode node) {
+  return node is Constructor ||
+      (node is Procedure && !node.isStatic) ||
+      (node is Field && !node.isStatic);
+}
+
 class _ScopeBuilder extends RecursiveVisitor<Null> {
   final LocalVariables locals;
 
@@ -310,6 +319,10 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
     _enterFrame(node);
 
     if (node is Field) {
+      if (_hasReceiverParameter(node)) {
+        _currentFrame.receiverVar = new VariableDeclaration('this');
+        _declareVariable(_currentFrame.receiverVar);
+      }
       node.initializer?.accept(this);
     } else {
       assert(node is Procedure ||
@@ -348,7 +361,7 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
         }
       }
 
-      if (node is Constructor || (node is Procedure && !node.isStatic)) {
+      if (_hasReceiverParameter(node)) {
         _currentFrame.receiverVar = new VariableDeclaration('this');
         _declareVariable(_currentFrame.receiverVar);
       } else if (_currentFrame.parent?.receiverVar != null) {
@@ -403,7 +416,7 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
       _declareVariable(_currentFrame.scratchVar);
     }
 
-    if (node is Constructor || (node is Procedure && !node.isStatic)) {
+    if (_hasReceiverParameter(node)) {
       if (locals.isCaptured(_currentFrame.receiverVar)) {
         // Duplicate receiver variable for local use.
         _currentFrame.capturedReceiverVar = _currentFrame.receiverVar;
@@ -939,8 +952,7 @@ class _Allocator extends RecursiveVisitor<Null> {
 
   void _allocateParameters(TreeNode node, FunctionNode function) {
     final bool isFactory = node is Procedure && node.isFactory;
-    final bool hasReceiver =
-        node is Constructor || (node is Procedure && !node.isStatic);
+    final bool hasReceiver = _hasReceiverParameter(node);
     final bool hasClosureArg =
         node is FunctionDeclaration || node is FunctionExpression;
 
@@ -1001,6 +1013,13 @@ class _Allocator extends RecursiveVisitor<Null> {
     _enterScope(node);
 
     if (node is Field) {
+      if (_hasReceiverParameter(node)) {
+        _currentFrame.numParameters = 1;
+        _allocateParameter(_currentFrame.receiverVar, 0);
+        if (_currentFrame.capturedReceiverVar != null) {
+          _allocateVariable(_currentFrame.capturedReceiverVar);
+        }
+      }
       _allocateSpecialVariables();
       node.initializer?.accept(this);
     } else {
@@ -1173,6 +1192,15 @@ class _Allocator extends RecursiveVisitor<Null> {
   @override
   visitLogicalExpression(LogicalExpression node) {
     _visit(node, temps: 1);
+  }
+
+  @override
+  visitMethodInvocation(MethodInvocation node) {
+    int numTemps = 0;
+    if (isUncheckedClosureCall(node, locals.typeEnvironment)) {
+      numTemps = 1;
+    }
+    _visit(node, temps: numTemps);
   }
 
   @override

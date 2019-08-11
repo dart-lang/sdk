@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-//import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/src/dart/error/hint_codes.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -11,13 +12,49 @@ import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-//    defineReflectiveTests(FinalNotInitializedTest);
+    defineReflectiveTests(FinalNotInitializedTest);
     defineReflectiveTests(FinalNotInitializedWithNnbdTest);
   });
 }
 
 @reflectiveTest
-class FinalNotInitializedTest extends DriverResolutionTest {}
+class FinalNotInitializedTest extends DriverResolutionTest {
+  test_instanceField_final() async {
+    await assertErrorsInCode('''
+class A {
+  final F;
+}''', [
+      error(StaticWarningCode.FINAL_NOT_INITIALIZED, 18, 1),
+    ]);
+  }
+
+  test_instanceField_final_static() async {
+    await assertErrorsInCode('''
+class A {
+  static final F;
+}''', [
+      error(StaticWarningCode.FINAL_NOT_INITIALIZED, 25, 1),
+    ]);
+  }
+
+  test_library_final() async {
+    await assertErrorsInCode('''
+final F;
+''', [
+      error(StaticWarningCode.FINAL_NOT_INITIALIZED, 6, 1),
+    ]);
+  }
+
+  test_local_final() async {
+    await assertErrorsInCode('''
+f() {
+  final int x;
+}''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 1),
+      error(StaticWarningCode.FINAL_NOT_INITIALIZED, 18, 1),
+    ]);
+  }
+}
 
 @reflectiveTest
 class FinalNotInitializedWithNnbdTest extends DriverResolutionTest {
@@ -26,24 +63,24 @@ class FinalNotInitializedWithNnbdTest extends DriverResolutionTest {
     ..contextFeatures = new FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
 
-  test_field_noConstructor_initializer() {
-    assertNoErrorsInCode('''
+  test_field_noConstructor_initializer() async {
+    await assertNoErrorsInCode('''
 class C {
   late final f = 1;
 }
 ''');
   }
 
-  test_field_noConstructor_noInitializer() {
-    assertNoErrorsInCode('''
+  test_field_noConstructor_noInitializer() async {
+    await assertNoErrorsInCode('''
 class C {
   late final f;
 }
 ''');
   }
 
-  test_field_unnamedConstructor_constructorInitializer() {
-    assertNoErrorsInCode('''
+  test_field_unnamedConstructor_constructorInitializer() async {
+    await assertNoErrorsInCode('''
 class C {
   late final f;
   C() : f = 2;
@@ -51,8 +88,8 @@ class C {
 ''');
   }
 
-  test_field_unnamedConstructor_fieldFormalParameter() {
-    assertNoErrorsInCode('''
+  test_field_unnamedConstructor_fieldFormalParameter() async {
+    await assertNoErrorsInCode('''
 class C {
   late final f;
   C(this.f);
@@ -60,8 +97,8 @@ class C {
 ''');
   }
 
-  test_field_unnamedConstructor_initializer() {
-    assertNoErrorsInCode('''
+  test_field_unnamedConstructor_initializer() async {
+    await assertNoErrorsInCode('''
 class C {
   late final f = 1;
   C();
@@ -69,8 +106,8 @@ class C {
 ''');
   }
 
-  test_field_unnamedConstructor_noInitializer() {
-    assertNoErrorsInCode('''
+  test_field_unnamedConstructor_noInitializer() async {
+    await assertNoErrorsInCode('''
 class C {
   late final f;
   C();
@@ -78,16 +115,16 @@ class C {
 ''');
   }
 
-  test_localVariable_initializer() {
-    assertNoErrorsInCode('''
+  test_localVariable_initializer() async {
+    await assertNoErrorsInCode('''
 f() {
   late final x = 1;
 }
 ''');
   }
 
-  test_localVariable_noInitializer() {
-    assertNoErrorsInCode('''
+  test_localVariable_noInitializer() async {
+    await assertNoErrorsInCode('''
 f() {
   late final x;
 }

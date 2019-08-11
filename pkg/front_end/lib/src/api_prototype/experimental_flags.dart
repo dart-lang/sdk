@@ -12,13 +12,9 @@ enum ExperimentalFlag {
   controlFlowCollections,
   extensionMethods,
   nonNullable,
+  setLiterals,
   spreadCollections,
   tripleShift,
-
-  // A placeholder representing an "expired" flag which has been removed
-  // from the codebase but still needs to be gracefully ignored
-  // when specified on the command line.
-  expiredFlag,
 }
 
 ExperimentalFlag parseExperimentalFlag(String flag) {
@@ -31,23 +27,32 @@ ExperimentalFlag parseExperimentalFlag(String flag) {
       return ExperimentalFlag.extensionMethods;
     case "non-nullable":
       return ExperimentalFlag.nonNullable;
+    case "set-literals":
+      return ExperimentalFlag.setLiterals;
     case "spread-collections":
       return ExperimentalFlag.spreadCollections;
     case "triple-shift":
       return ExperimentalFlag.tripleShift;
-
-    // Expired flags
-    case "set-literals":
-      return ExperimentalFlag.expiredFlag;
   }
   return null;
 }
 
 const Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
-  ExperimentalFlag.constantUpdate2018: false,
+  ExperimentalFlag.constantUpdate2018: true,
   ExperimentalFlag.controlFlowCollections: true,
   ExperimentalFlag.extensionMethods: false,
   ExperimentalFlag.nonNullable: false,
+  ExperimentalFlag.setLiterals: true,
   ExperimentalFlag.spreadCollections: true,
+  ExperimentalFlag.tripleShift: false,
+};
+
+const Map<ExperimentalFlag, bool> expiredExperimentalFlags = {
+  ExperimentalFlag.constantUpdate2018: false,
+  ExperimentalFlag.controlFlowCollections: false,
+  ExperimentalFlag.extensionMethods: false,
+  ExperimentalFlag.nonNullable: false,
+  ExperimentalFlag.setLiterals: true,
+  ExperimentalFlag.spreadCollections: false,
   ExperimentalFlag.tripleShift: false,
 };

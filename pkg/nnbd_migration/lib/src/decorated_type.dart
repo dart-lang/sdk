@@ -269,7 +269,7 @@ class DecoratedType {
       var name = type.element.name;
       var args = '';
       if (type.typeArguments.isNotEmpty) {
-        args = '<${type.typeArguments.join(', ')}>';
+        args = '<${typeArguments.join(', ')}>';
       }
       return '$name$args$trailing';
     } else if (type is FunctionType) {
@@ -300,6 +300,8 @@ class DecoratedType {
       return '$returnType Function$formals($args)$trailing';
     } else if (type is DynamicTypeImpl) {
       return 'dynamic';
+    } else if (type.isBottom) {
+      return 'Never$trailing';
     } else {
       throw '$type'; // TODO(paulberry)
     }

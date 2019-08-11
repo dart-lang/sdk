@@ -2,20 +2,20 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-static method getInt() → core::int
+static method getInt() → core::int*
   return 0;
-static method getNum() → core::num
+static method getNum() → core::num*
   return 0;
-static method getDouble() → core::double
+static method getDouble() → core::double*
   return 0.0;
-static method test1(core::int t) → void {
+static method test1(core::int* t) → void {
   dynamic v1 = t = self::getInt();
   dynamic v4 = let final dynamic #t1 = t in #t1.==(null) ? t = self::getInt() : #t1;
   dynamic v7 = t = t.+(self::getInt());
   dynamic v10 = t = t.+(1);
   dynamic v11 = let final dynamic #t2 = t in let final dynamic #t3 = t = #t2.+(1) in #t2;
 }
-static method test2(core::num t) → void {
+static method test2(core::num* t) → void {
   dynamic v1 = t = self::getInt();
   dynamic v2 = t = self::getNum();
   dynamic v3 = t = self::getDouble();
@@ -28,7 +28,7 @@ static method test2(core::num t) → void {
   dynamic v10 = t = t.+(1);
   dynamic v11 = let final dynamic #t7 = t in let final dynamic #t8 = t = #t7.+(1) in #t7;
 }
-static method test3(core::double t) → void {
+static method test3(core::double* t) → void {
   dynamic v3 = t = self::getDouble();
   dynamic v6 = let final dynamic #t9 = t in #t9.==(null) ? t = self::getDouble() : #t9;
   dynamic v7 = t = t.+(self::getInt());

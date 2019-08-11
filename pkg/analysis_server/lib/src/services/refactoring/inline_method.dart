@@ -388,7 +388,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     } else if (_methodBody is BlockFunctionBody) {
       Block body = (_methodBody as BlockFunctionBody).block;
       List<Statement> statements = body.statements;
-      if (statements.length >= 1) {
+      if (statements.isNotEmpty) {
         Statement lastStatement = statements[statements.length - 1];
         // "return" statement requires special handling
         if (lastStatement is ReturnStatement) {
@@ -399,7 +399,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
           statements = statements.sublist(0, statements.length - 1);
         }
         // if there are statements, process them
-        if (!statements.isEmpty) {
+        if (statements.isNotEmpty) {
           SourceRange statementsRange =
               _methodUtils.getLinesRangeStatements(statements);
           _methodStatementsPart = _createSourcePart(statementsRange);

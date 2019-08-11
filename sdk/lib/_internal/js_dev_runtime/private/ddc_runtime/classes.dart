@@ -127,7 +127,14 @@ generic(typeConstructor, setBaseClass) => JS('', '''(() => {
     $throwInternalError('must have at least one generic type argument');
   }
   let resultMap = new Map();
-  $_cacheMaps.push(resultMap);
+  // TODO(vsm): Rethink how to clear the resultMap on hot restart.
+  // A simple clear via:
+  //   _cacheMaps.push(resultMap);
+  // will break (a) we hoist type expressions in generated code and
+  // (b) we don't clear those type expressions in the presence of a
+  // hot restart.  Not clearing this map (as we're doing now) should
+  // not affect correctness, but can result in a memory leak across
+  // multiple restarts.
   function makeGenericType(...args) {
     if (args.length != length && args.length != 0) {
       $throwInternalError('requires ' + length + ' or 0 type arguments');

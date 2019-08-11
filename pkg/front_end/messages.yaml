@@ -659,7 +659,7 @@ CovariantAndStatic:
 DuplicatedModifier:
   index: 70
   template: "The modifier '#lexeme' was already specified."
-  tip: "Try removing all but one occurence of the modifier."
+  tip: "Try removing all but one occurrence of the modifier."
   analyzerCode: ParserErrorCode.DUPLICATED_MODIFIER
   script:
     - "class C { const const m; }"
@@ -1301,7 +1301,7 @@ ConstructorWithWrongNameContext:
   severity: CONTEXT
 
 ConstructorCyclic:
-  template: "Redirecting constructers can't be cyclic."
+  template: "Redirecting constructors can't be cyclic."
   tip: "Try to have all constructors eventually redirect to a non-redirecting constructor."
   analyzerCode: RECURSIVE_CONSTRUCTOR_REDIRECT
   script:
@@ -1562,7 +1562,7 @@ FastaUsageLong:
 
         When specified, the compiler can be invoked with inputs using the custom
         URI scheme. The compiler can ignore the exact location of files on disk
-        and as a result to produce output that is independendent of the absolute
+        and as a result to produce output that is independent of the absolute
         location of files on disk. This is mostly useful for integrating with
         build systems.
 
@@ -2505,6 +2505,7 @@ ThisAsIdentifier:
   template: "Expected identifier, but got 'this'."
   analyzerCode: INVALID_REFERENCE_TO_THIS
 
+# TODO(johnniwinther): Confusing message, it should probably mention that `super` is not available.
 SuperAsIdentifier:
   template: "Expected identifier, but got 'super'."
   analyzerCode: SUPER_AS_EXPRESSION
@@ -3462,6 +3463,11 @@ FfiFieldAnnotation:
   template: "Field '#name' requires exactly one annotation to declare its C++ type, which cannot be Void. dart:ffi Structs cannot have regular Dart fields."
   external: test/ffi_test.dart
 
+FfiFieldNoAnnotation:
+  # Used by dart:ffi
+  template: "Field '#name' requires no annotation to declare its C++ type, it is a Pointer which is represented by the same type in Dart and C++."
+  external: test/ffi_test.dart
+
 FfiNotStatic:
   # Used by dart:ffi
   template: "#name expects a static function as parameter. dart:ffi only supports calling static Dart functions from c."
@@ -3607,3 +3613,27 @@ CombinedMemberSignatureFailed:
       }
 
       abstract class C implements I2, I1 {}
+
+LanguageVersionTooHigh:
+  template: "The specified language version is too high. The highest supported language version is #count.#count2."
+  script: >
+    // @dart = 100.200
+
+LanguageVersionInvalidInDotPackages:
+  template: "The language version is not specified correctly in the .packages file."
+  script:
+    main.dart: "import 'package:foo/foo.dart';"
+    lib/foo.dart: "// blah blah blah"
+    .packages: "foo:lib/#dart=arglebargle"
+
+LanguageVersionMismatchInPart:
+  template: "The language version override has to be the same in the library and its part(s)."
+  script:
+    main.dart: >
+      // @dart = 2.4
+
+      part 'part.dart';
+    part.dart: >
+      // @dart = 2.3
+
+      part of 'main.dart';

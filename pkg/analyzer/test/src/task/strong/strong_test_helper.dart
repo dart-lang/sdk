@@ -55,21 +55,11 @@ SourceSpanWithContext _createSpanHelper(
   return new SourceSpanWithContext(startLoc, endLoc, text, lineText);
 }
 
-String _errorCodeName(ErrorCode errorCode) {
-  var name = errorCode.name;
-  final prefix = 'STRONG_MODE_';
-  if (name.startsWith(prefix)) {
-    return name.substring(prefix.length);
-  } else {
-    return name;
-  }
-}
-
 ErrorSeverity _errorSeverity(
     AnalysisOptions analysisOptions, AnalysisError error) {
   // TODO(brianwilkerson) Remove the if when top-level inference is made an
   // error again.
-  if (error.errorCode.name.startsWith('STRONG_MODE_TOP_LEVEL_')) {
+  if (error.errorCode.name.startsWith('TOP_LEVEL_')) {
     return ErrorSeverity.ERROR;
   }
   return ErrorProcessor.getProcessor(analysisOptions, error)?.severity ??
@@ -192,7 +182,7 @@ void _reportFailure(
         resolutionMap.elementDeclaredByCompilationUnit(unit).source, sourceCode,
         end: offset + length);
     var levelName = _errorSeverity(analysisOptions, error).displayName;
-    return '@$offset $levelName:${_errorCodeName(error.errorCode)}\n' +
+    return '@$offset $levelName:${error.errorCode.name}\n' +
         span.message(error.message);
   }
 
@@ -411,7 +401,7 @@ class _ErrorExpectation {
 
   bool matches(AnalysisOptions options, AnalysisError e) {
     return _errorSeverity(options, e) == severity &&
-        _errorCodeName(e.errorCode) == typeName;
+        e.errorCode.name == typeName;
   }
 
   String toString() => '@$offset ${severity.displayName}: [$typeName]';

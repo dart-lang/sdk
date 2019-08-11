@@ -28,6 +28,8 @@ import 'messages.dart' show getLocation, getSourceLine;
 
 import 'problems.dart' show unhandled;
 
+import 'resolve_input_uri.dart' show isWindows;
+
 import 'severity.dart' show Severity, severityPrefixes;
 
 import 'scanner/characters.dart' show $CARET, $SPACE, $TAB;
@@ -74,7 +76,8 @@ String format(LocatedMessage message, Severity severity, {Location location}) {
     }
 
     if (message.uri != null) {
-      String path = relativizeUri(translateSdk(message.uri));
+      String path =
+          relativizeUri(Uri.base, translateSdk(message.uri), isWindows);
       int offset = message.charOffset;
       location ??= (offset == -1 ? null : getLocation(message.uri, offset));
       if (location?.line == TreeNode.noOffset) {

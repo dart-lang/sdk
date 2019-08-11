@@ -53,6 +53,7 @@ class ObjectGraph::Stack : public ObjectPointerVisitor {
         Node node;
         node.ptr = current;
         node.obj = *current;
+        node.gc_root_type = gc_root_type();
         data_.Add(node);
       }
     }
@@ -74,15 +75,26 @@ class ObjectGraph::Stack : public ObjectPointerVisitor {
       sentinel.ptr = kSentinel;
       data_.Add(sentinel);
       StackIterator it(this, data_.length() - 2);
+      visitor->gc_root_type = node.gc_root_type;
       Visitor::Direction direction = visitor->VisitObject(&it);
       if (direction == ObjectGraph::Visitor::kAbort) {
         break;
       }
       if (direction == ObjectGraph::Visitor::kProceed) {
+        set_gc_root_type(node.gc_root_type);
         obj->VisitPointers(this);
+        clear_gc_root_type();
       }
     }
     isolate()->heap()->ResetObjectIdTable();
+  }
+
+  virtual bool visit_weak_persistent_handles() const {
+    return visit_weak_persistent_handles_;
+  }
+
+  void set_visit_weak_persistent_handles(bool value) {
+    visit_weak_persistent_handles_ = value;
   }
 
   bool include_vm_objects_;
@@ -91,8 +103,10 @@ class ObjectGraph::Stack : public ObjectPointerVisitor {
   struct Node {
     RawObject** ptr;  // kSentinel for the sentinel node.
     RawObject* obj;
+    const char* gc_root_type;
   };
 
+  bool visit_weak_persistent_handles_ = false;
   static RawObject** const kSentinel;
   static const intptr_t kInitialCapacity = 1024;
   static const intptr_t kNoParent = -1;
@@ -151,6 +165,7 @@ intptr_t ObjectGraph::StackIterator::OffsetFromParentInWords() const {
 }
 
 static void IterateUserFields(ObjectPointerVisitor* visitor) {
+  visitor->set_gc_root_type("user global");
   Thread* thread = Thread::Current();
   // Scope to prevent handles create here from appearing as stack references.
   HANDLESCOPE(thread);
@@ -182,6 +197,7 @@ static void IterateUserFields(ObjectPointerVisitor* visitor) {
       }
     }
   }
+  visitor->clear_gc_root_type();
 }
 
 ObjectGraph::ObjectGraph(Thread* thread) : ThreadStackResource(thread) {
@@ -194,12 +210,16 @@ ObjectGraph::~ObjectGraph() {}
 
 void ObjectGraph::IterateObjects(ObjectGraph::Visitor* visitor) {
   Stack stack(isolate());
+  stack.set_visit_weak_persistent_handles(
+      visitor->visit_weak_persistent_handles());
   isolate()->VisitObjectPointers(&stack, ValidationPolicy::kDontValidateFrames);
   stack.TraverseGraph(visitor);
 }
 
 void ObjectGraph::IterateUserObjects(ObjectGraph::Visitor* visitor) {
   Stack stack(isolate());
+  stack.set_visit_weak_persistent_handles(
+      visitor->visit_weak_persistent_handles());
   IterateUserFields(&stack);
   stack.include_vm_objects_ = false;
   stack.TraverseGraph(visitor);
@@ -208,6 +228,8 @@ void ObjectGraph::IterateUserObjects(ObjectGraph::Visitor* visitor) {
 void ObjectGraph::IterateObjectsFrom(const Object& root,
                                      ObjectGraph::Visitor* visitor) {
   Stack stack(isolate());
+  stack.set_visit_weak_persistent_handles(
+      visitor->visit_weak_persistent_handles());
   RawObject* root_raw = root.raw();
   stack.VisitPointer(&root_raw);
   stack.TraverseGraph(visitor);
@@ -325,6 +347,7 @@ class RetainingPathVisitor : public ObjectGraph::Visitor {
   }
 
   intptr_t length() const { return length_; }
+  virtual bool visit_weak_persistent_handles() const { return true; }
 
   bool ShouldSkip(RawObject* obj) {
     // A retaining path through ICData is never the only retaining path,
@@ -403,7 +426,8 @@ class RetainingPathVisitor : public ObjectGraph::Visitor {
   bool was_last_array_;
 };
 
-intptr_t ObjectGraph::RetainingPath(Object* obj, const Array& path) {
+ObjectGraph::RetainingPathResult ObjectGraph::RetainingPath(Object* obj,
+                                                            const Array& path) {
   HeapIterationScope iteration_scope(Thread::Current(), true);
   // To break the trivial path, the handle 'obj' is temporarily cleared during
   // the search, but restored before returning.
@@ -415,7 +439,7 @@ intptr_t ObjectGraph::RetainingPath(Object* obj, const Array& path) {
     IterateObjects(&visitor);
   }
   *obj = raw;
-  return visitor.length();
+  return {visitor.length(), visitor.gc_root_type};
 }
 
 class InboundReferencesVisitor : public ObjectVisitor,

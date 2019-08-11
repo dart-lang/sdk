@@ -115,7 +115,7 @@ class ManifestFixGenerator {
   /// for the fix.
   // ignore: unused_element
   void _addFixFromBuilder(ChangeBuilder builder, FixKind kind,
-      {List args: null}) {
+      {List args = null}) {
     SourceChange change = builder.sourceChange;
     if (change.edits.isEmpty) {
       return;

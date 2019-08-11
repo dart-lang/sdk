@@ -29,12 +29,9 @@ import 'package:kernel/ast.dart'
         LibraryDependency,
         LogicalExpression,
         MapEntry,
-        Member,
-        Name,
         NamedExpression,
         Not,
         NullLiteral,
-        Procedure,
         Rethrow,
         Statement,
         StringConcatenation,
@@ -62,29 +59,6 @@ import 'collections.dart'
         IfElement,
         IfMapEntry,
         SpreadElement;
-
-import 'kernel_expression_generator.dart'
-    show
-        KernelDeferredAccessGenerator,
-        KernelDelayedAssignment,
-        KernelDelayedPostfixIncrement,
-        KernelIndexedAccessGenerator,
-        KernelLoadLibraryGenerator,
-        KernelNullAwarePropertyAccessGenerator,
-        KernelParserErrorGenerator,
-        KernelPrefixUseGenerator,
-        KernelPropertyAccessGenerator,
-        KernelReadOnlyAccessGenerator,
-        KernelStaticAccessGenerator,
-        KernelSuperIndexedAccessGenerator,
-        KernelSuperPropertyAccessGenerator,
-        KernelThisIndexedAccessGenerator,
-        KernelThisPropertyAccessGenerator,
-        KernelTypeUseGenerator,
-        KernelUnexpectedQualifiedUseGenerator,
-        KernelUnlinkedGenerator,
-        KernelUnresolvedNameGenerator,
-        KernelVariableUseGenerator;
 
 import 'kernel_shadow_ast.dart'
     show
@@ -114,17 +88,7 @@ import 'kernel_shadow_ast.dart'
         WhileJudgment,
         YieldJudgment;
 
-import 'forest.dart'
-    show
-        ExpressionGeneratorHelper,
-        Forest,
-        Generator,
-        LoadLibraryBuilder,
-        Message,
-        PrefixBuilder,
-        PrefixUseGenerator,
-        TypeDeclarationBuilder,
-        UnlinkedDeclaration;
+import 'forest.dart' show Forest;
 
 /// A shadow tree factory.
 class Fangorn extends Forest {
@@ -251,7 +215,7 @@ class Fangorn extends Forest {
   }
 
   @override
-  SymbolLiteralJudgment literalSymbolSingluar(String value, Token hash, _) {
+  SymbolLiteralJudgment literalSymbolSingular(String value, Token hash, _) {
     return new SymbolLiteralJudgment(value)..fileOffset = offsetForToken(hash);
   }
 
@@ -655,200 +619,6 @@ class Fangorn extends Forest {
 
   @override
   bool isVariablesDeclaration(Object node) => node is _VariablesDeclaration;
-
-  @override
-  KernelVariableUseGenerator variableUseGenerator(
-      ExpressionGeneratorHelper helper,
-      Token token,
-      VariableDeclaration variable,
-      DartType promotedType) {
-    return new KernelVariableUseGenerator(
-        helper, token, variable, promotedType);
-  }
-
-  @override
-  KernelPropertyAccessGenerator propertyAccessGenerator(
-      ExpressionGeneratorHelper helper,
-      Token token,
-      Expression receiver,
-      Name name,
-      Member getter,
-      Member setter) {
-    return new KernelPropertyAccessGenerator.internal(
-        helper, token, receiver, name, getter, setter);
-  }
-
-  @override
-  KernelThisPropertyAccessGenerator thisPropertyAccessGenerator(
-      ExpressionGeneratorHelper helper,
-      Token token,
-      Name name,
-      Member getter,
-      Member setter) {
-    return new KernelThisPropertyAccessGenerator(
-        helper, token, name, getter, setter);
-  }
-
-  @override
-  KernelNullAwarePropertyAccessGenerator nullAwarePropertyAccessGenerator(
-      ExpressionGeneratorHelper helper,
-      Token token,
-      Expression receiverExpression,
-      Name name,
-      Member getter,
-      Member setter,
-      DartType type) {
-    return new KernelNullAwarePropertyAccessGenerator(
-        helper, token, receiverExpression, name, getter, setter, type);
-  }
-
-  @override
-  KernelSuperPropertyAccessGenerator superPropertyAccessGenerator(
-      ExpressionGeneratorHelper helper,
-      Token token,
-      Name name,
-      Member getter,
-      Member setter) {
-    return new KernelSuperPropertyAccessGenerator(
-        helper, token, name, getter, setter);
-  }
-
-  @override
-  KernelIndexedAccessGenerator indexedAccessGenerator(
-      ExpressionGeneratorHelper helper,
-      Token token,
-      Expression receiver,
-      Expression index,
-      Procedure getter,
-      Procedure setter) {
-    return new KernelIndexedAccessGenerator.internal(
-        helper, token, receiver, index, getter, setter);
-  }
-
-  @override
-  KernelThisIndexedAccessGenerator thisIndexedAccessGenerator(
-      ExpressionGeneratorHelper helper,
-      Token token,
-      Expression index,
-      Procedure getter,
-      Procedure setter) {
-    return new KernelThisIndexedAccessGenerator(
-        helper, token, index, getter, setter);
-  }
-
-  @override
-  KernelSuperIndexedAccessGenerator superIndexedAccessGenerator(
-      ExpressionGeneratorHelper helper,
-      Token token,
-      Expression index,
-      Member getter,
-      Member setter) {
-    return new KernelSuperIndexedAccessGenerator(
-        helper, token, index, getter, setter);
-  }
-
-  @override
-  KernelStaticAccessGenerator staticAccessGenerator(
-      ExpressionGeneratorHelper helper,
-      Token token,
-      Member getter,
-      Member setter) {
-    return new KernelStaticAccessGenerator(helper, token, getter, setter);
-  }
-
-  @override
-  KernelLoadLibraryGenerator loadLibraryGenerator(
-      ExpressionGeneratorHelper helper,
-      Token token,
-      LoadLibraryBuilder builder) {
-    return new KernelLoadLibraryGenerator(helper, token, builder);
-  }
-
-  @override
-  KernelDeferredAccessGenerator deferredAccessGenerator(
-      ExpressionGeneratorHelper helper,
-      Token token,
-      PrefixUseGenerator prefixGenerator,
-      Generator suffixGenerator) {
-    return new KernelDeferredAccessGenerator(
-        helper, token, prefixGenerator, suffixGenerator);
-  }
-
-  @override
-  KernelTypeUseGenerator typeUseGenerator(
-      ExpressionGeneratorHelper helper,
-      Token token,
-      TypeDeclarationBuilder declaration,
-      String plainNameForRead) {
-    return new KernelTypeUseGenerator(
-        helper, token, declaration, plainNameForRead);
-  }
-
-  @override
-  KernelReadOnlyAccessGenerator readOnlyAccessGenerator(
-      ExpressionGeneratorHelper helper,
-      Token token,
-      Expression expression,
-      String plainNameForRead) {
-    return new KernelReadOnlyAccessGenerator(
-        helper, token, expression, plainNameForRead);
-  }
-
-  @override
-  KernelUnresolvedNameGenerator unresolvedNameGenerator(
-      ExpressionGeneratorHelper helper, Token token, Name name) {
-    return new KernelUnresolvedNameGenerator(helper, token, name);
-  }
-
-  @override
-  KernelUnlinkedGenerator unlinkedGenerator(ExpressionGeneratorHelper helper,
-      Token token, UnlinkedDeclaration declaration) {
-    return new KernelUnlinkedGenerator(helper, token, declaration);
-  }
-
-  @override
-  KernelDelayedAssignment delayedAssignment(
-      ExpressionGeneratorHelper helper,
-      Token token,
-      Generator generator,
-      Expression value,
-      String assignmentOperator) {
-    return new KernelDelayedAssignment(
-        helper, token, generator, value, assignmentOperator);
-  }
-
-  @override
-  KernelDelayedPostfixIncrement delayedPostfixIncrement(
-      ExpressionGeneratorHelper helper,
-      Token token,
-      Generator generator,
-      Name binaryOperator,
-      Procedure interfaceTarget) {
-    return new KernelDelayedPostfixIncrement(
-        helper, token, generator, binaryOperator, interfaceTarget);
-  }
-
-  @override
-  KernelPrefixUseGenerator prefixUseGenerator(
-      ExpressionGeneratorHelper helper, Token token, PrefixBuilder prefix) {
-    return new KernelPrefixUseGenerator(helper, token, prefix);
-  }
-
-  @override
-  KernelUnexpectedQualifiedUseGenerator unexpectedQualifiedUseGenerator(
-      ExpressionGeneratorHelper helper,
-      Token token,
-      Generator prefixGenerator,
-      bool isUnresolved) {
-    return new KernelUnexpectedQualifiedUseGenerator(
-        helper, token, prefixGenerator, isUnresolved);
-  }
-
-  @override
-  KernelParserErrorGenerator parserErrorGenerator(
-      ExpressionGeneratorHelper helper, Token token, Message message) {
-    return new KernelParserErrorGenerator(helper, token, message);
-  }
 }
 
 class _VariablesDeclaration extends Statement {

@@ -27,7 +27,7 @@ f(int x) {
   (x)?.isEven;
 }
 ''', [
-      error(HintCode.UNNECESSARY_NULL_AWARE_CALL, 16, 2),
+      error(StaticWarningCode.UNNECESSARY_NULL_AWARE_CALL, 16, 2),
     ]);
   }
 
@@ -45,7 +45,7 @@ f(int x) {
   x?.isEven;
 }
 ''', [
-      error(HintCode.UNNECESSARY_NULL_AWARE_CALL, 14, 2),
+      error(StaticWarningCode.UNNECESSARY_NULL_AWARE_CALL, 14, 2),
     ]);
   }
 
@@ -63,7 +63,7 @@ f(int x) {
   (x)?.round();
 }
 ''', [
-      error(HintCode.UNNECESSARY_NULL_AWARE_CALL, 16, 2),
+      error(StaticWarningCode.UNNECESSARY_NULL_AWARE_CALL, 16, 2),
     ]);
   }
 
@@ -81,7 +81,7 @@ f(int x) {
   x?.round();
 }
 ''', [
-      error(HintCode.UNNECESSARY_NULL_AWARE_CALL, 14, 2),
+      error(StaticWarningCode.UNNECESSARY_NULL_AWARE_CALL, 14, 2),
     ]);
   }
 

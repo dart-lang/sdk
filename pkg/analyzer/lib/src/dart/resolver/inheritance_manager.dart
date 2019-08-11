@@ -21,7 +21,7 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
  * Instances of the class `InheritanceManager` manage the knowledge of where class members
  * (methods, getters & setters) are inherited from.
  */
-@Deprecated('Use InheritanceManager2 instead.')
+@Deprecated('Use InheritanceManager3 instead.')
 class InheritanceManager {
   /**
    * The [LibraryElement] that is managed by this manager.
@@ -77,7 +77,7 @@ class InheritanceManager {
    * @return a mapping between the set of all members inherited from the passed [ClassElement]
    *         superclass hierarchy, and the associated [ExecutableElement]
    */
-  @Deprecated('Use InheritanceManager2.getInheritedConcreteMap() instead.')
+  @Deprecated('Use InheritanceManager3.getInheritedConcreteMap() instead.')
   MemberMap getMapOfMembersInheritedFromClasses(ClassElement classElt) =>
       new MemberMap.fromMap(
           _computeClassChainLookupMap(classElt, new HashSet<ClassElement>()));
@@ -90,7 +90,7 @@ class InheritanceManager {
    * @return a mapping between the set of all string names of the members inherited from the passed
    *         [ClassElement] interface hierarchy, and the associated [ExecutableElement].
    */
-  @Deprecated('Use InheritanceManager2.getInheritedMap() instead.')
+  @Deprecated('Use InheritanceManager3.getInheritedMap() instead.')
   MemberMap getMapOfMembersInheritedFromInterfaces(ClassElement classElt) =>
       new MemberMap.fromMap(
           _computeInterfaceLookupMap(classElt, new HashSet<ClassElement>()));
@@ -126,7 +126,7 @@ class InheritanceManager {
    * @return the inherited executable element with the member name, or `null` if no such
    *         member exists
    */
-  @Deprecated('Use InheritanceManager2.getInherited() instead.')
+  @Deprecated('Use InheritanceManager3.getInherited() instead.')
   ExecutableElement lookupInheritance(
       ClassElement classElt, String memberName) {
     if (memberName == null || memberName.isEmpty) {
@@ -151,7 +151,7 @@ class InheritanceManager {
    * @return the inherited executable element with the member name, or `null` if no such
    *         member exists
    */
-  @Deprecated('Use InheritanceManager2.getMember() instead.')
+  @Deprecated('Use InheritanceManager3.getMember() instead.')
   ExecutableElement lookupMember(ClassElement classElt, String memberName) {
     ExecutableElement element = _lookupMemberInClass(classElt, memberName);
     if (element != null) {
@@ -170,7 +170,7 @@ class InheritanceManager {
    * @param memberName the name of the class member to query
    * @return a list of overridden methods
    */
-  @Deprecated('Use InheritanceManager2.getOverridden() instead.')
+  @Deprecated('Use InheritanceManager3.getOverridden() instead.')
   List<ExecutableElement> lookupOverrides(
       ClassElement classElt, String memberName) {
     List<ExecutableElement> result = new List<ExecutableElement>();
@@ -681,7 +681,7 @@ class InheritanceManager {
             //
             resultMap[key] = elements[subtypesOfAllOtherTypesIndexes[0]];
           } else {
-            if (!subtypesOfAllOtherTypesIndexes.isEmpty) {
+            if (subtypesOfAllOtherTypesIndexes.isNotEmpty) {
               //
               // Example: class A inherits 2 methods named 'm'.
               // One has the function type '(int) -> dynamic' and one has the

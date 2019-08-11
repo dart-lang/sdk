@@ -330,6 +330,9 @@ abstract class DataSink {
       Map<MemberEntity, V> map, void f(MemberEntity member, V value),
       {bool allowNull: false});
 
+  /// Writes a reference to the indexed type variable [value] to this data sink.
+  void writeTypeVariable(IndexedTypeVariable value);
+
   /// Writes a reference to the local [value] to this data sink.
   void writeLocal(Local local);
 
@@ -737,6 +740,9 @@ abstract class DataSource {
   /// [DataSink.writeMemberMap].
   Map<K, V> readMemberMap<K extends MemberEntity, V>(V f(MemberEntity member),
       {bool emptyAsNull: false});
+
+  /// Reads a reference to an indexed type variable from this data source.
+  IndexedTypeVariable readTypeVariable();
 
   /// Reads a reference to a local from this data source.
   Local readLocal();

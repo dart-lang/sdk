@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class FormatTest extends AbstractAnalysisServerIntegrationTest {
-  String formatTestSetup({bool withErrors: false}) {
+  String formatTestSetup({bool withErrors = false}) {
     String pathname = sourcePath('test.dart');
 
     if (withErrors) {

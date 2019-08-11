@@ -12,7 +12,6 @@ import 'package:kernel/ast.dart'
         FunctionNode,
         InterfaceType,
         InvalidType,
-        Library,
         Member,
         Name,
         Procedure,
@@ -58,6 +57,8 @@ import '../problems.dart' show unhandled;
 
 import '../scope.dart' show Scope;
 
+import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+
 import '../source/source_loader.dart' show SourceLoader;
 
 import '../type_inference/standard_bounds.dart' show StandardBounds;
@@ -75,16 +76,13 @@ import 'forwarding_node.dart' show ForwardingNode;
 
 import 'kernel_builder.dart'
     show
-        Declaration,
+        Builder,
         FormalParameterBuilder,
         ImplicitFieldType,
-        KernelClassBuilder,
-        KernelFieldBuilder,
-        KernelLibraryBuilder,
-        KernelNamedTypeBuilder,
-        KernelProcedureBuilder,
-        KernelTypeBuilder,
-        KernelTypeVariableBuilder,
+        ClassBuilder,
+        FieldBuilder,
+        NamedTypeBuilder,
+        ProcedureBuilder,
         LibraryBuilder,
         MemberBuilder,
         TypeBuilder,
@@ -100,7 +98,7 @@ class DebugLogger {
   void log(Object message) => print(message);
 }
 
-int compareDeclarations(Declaration a, Declaration b) {
+int compareDeclarations(Builder a, Builder b) {
   return ClassHierarchy.compareMembers(a.target, b.target);
 }
 
@@ -108,8 +106,7 @@ ProcedureKind memberKind(Member member) {
   return member is Procedure ? member.kind : null;
 }
 
-bool isNameVisibleIn(
-    Name name, LibraryBuilder<KernelTypeBuilder, Library> library) {
+bool isNameVisibleIn(Name name, LibraryBuilder library) {
   return !name.isPrivate || name.library == library.target;
 }
 
@@ -119,7 +116,7 @@ bool isNameVisibleIn(
 /// See the section named "Class Member Conflicts" in [Dart Programming
 /// Language Specification](
 /// ../../../../../../docs/language/dartLangSpec.tex#classMemberConflicts).
-bool isInheritanceConflict(Declaration a, Declaration b) {
+bool isInheritanceConflict(Builder a, Builder b) {
   if (a.isStatic) return true;
   if (memberKind(a.target) == memberKind(b.target)) return false;
   if (a.isField) return !(b.isField || b.isGetter || b.isSetter);
@@ -130,7 +127,7 @@ bool isInheritanceConflict(Declaration a, Declaration b) {
   return true;
 }
 
-bool impliesSetter(Declaration declaration) {
+bool impliesSetter(Builder declaration) {
   return declaration.isField && !(declaration.isFinal || declaration.isConst);
 }
 
@@ -199,9 +196,9 @@ bool hasSameSignature(FunctionNode a, FunctionNode b) {
 class ClassHierarchyBuilder {
   final Map<Class, ClassHierarchyNode> nodes = <Class, ClassHierarchyNode>{};
 
-  final KernelClassBuilder objectClass;
+  final ClassBuilder objectClass;
 
-  final Loader<Library> loader;
+  final Loader loader;
 
   final Class objectKernelClass;
 
@@ -231,13 +228,13 @@ class ClassHierarchyBuilder {
     types = new Types(this);
   }
 
-  ClassHierarchyNode getNodeFromClass(KernelClassBuilder cls) {
+  ClassHierarchyNode getNodeFromClass(ClassBuilder cls) {
     return nodes[cls.target] ??=
         new ClassHierarchyNodeBuilder(this, cls).build();
   }
 
-  ClassHierarchyNode getNodeFromType(KernelTypeBuilder type) {
-    KernelClassBuilder cls = getClass(type);
+  ClassHierarchyNode getNodeFromType(TypeBuilder type) {
+    ClassBuilder cls = getClass(type);
     return cls == null ? null : getNodeFromClass(cls);
   }
 
@@ -246,24 +243,23 @@ class ClassHierarchyBuilder {
         getNodeFromClass(loader.computeClassBuilderFromTargetClass(cls));
   }
 
-  KernelTypeBuilder asSupertypeOf(Class cls, Class supertype) {
+  TypeBuilder asSupertypeOf(Class cls, Class supertype) {
     ClassHierarchyNode clsNode = getNodeFromKernelClass(cls);
     if (cls == supertype) {
-      return new KernelNamedTypeBuilder(clsNode.cls.name, null)
-        ..bind(clsNode.cls);
+      return new NamedTypeBuilder(clsNode.cls.name, null)..bind(clsNode.cls);
     }
     ClassHierarchyNode supertypeNode = getNodeFromKernelClass(supertype);
-    List<KernelTypeBuilder> supertypes = clsNode.superclasses;
+    List<TypeBuilder> supertypes = clsNode.superclasses;
     int depth = supertypeNode.depth;
-    Declaration supertypeDeclaration = supertypeNode.cls;
+    Builder supertypeDeclaration = supertypeNode.cls;
     if (depth < supertypes.length) {
-      KernelTypeBuilder asSupertypeOf = supertypes[depth];
+      TypeBuilder asSupertypeOf = supertypes[depth];
       if (asSupertypeOf.declaration == supertypeDeclaration)
         return asSupertypeOf;
     }
     supertypes = clsNode.interfaces;
     for (int i = 0; i < supertypes.length; i++) {
-      KernelTypeBuilder type = supertypes[i];
+      TypeBuilder type = supertypes[i];
       if (type.declaration == supertypeDeclaration) return type;
     }
     return null;
@@ -285,7 +281,7 @@ class ClassHierarchyBuilder {
                 superclass.typeParameters.length, nullKernelClass.rawType));
       }
     }
-    KernelNamedTypeBuilder supertype = asSupertypeOf(kernelClass, superclass);
+    NamedTypeBuilder supertype = asSupertypeOf(kernelClass, superclass);
     if (supertype == null) return null;
     if (supertype.arguments == null && superclass.typeParameters.isEmpty) {
       return superclass.rawType;
@@ -344,8 +340,8 @@ class ClassHierarchyBuilder {
   }
 
   Member getCombinedMemberSignatureKernel(Class cls, Name name, bool isSetter,
-      int charOffset, KernelLibraryBuilder library) {
-    Declaration declaration =
+      int charOffset, SourceLibraryBuilder library) {
+    Builder declaration =
         getNodeFromKernelClass(cls).getInterfaceMember(name, isSetter);
     if (declaration?.isStatic ?? true) return null;
     if (declaration.next != null) {
@@ -363,15 +359,12 @@ class ClassHierarchyBuilder {
     }
   }
 
-  static ClassHierarchyBuilder build(
-      KernelClassBuilder objectClass,
-      List<KernelClassBuilder> classes,
-      SourceLoader loader,
-      CoreTypes coreTypes) {
+  static ClassHierarchyBuilder build(ClassBuilder objectClass,
+      List<ClassBuilder> classes, SourceLoader loader, CoreTypes coreTypes) {
     ClassHierarchyBuilder hierarchy =
         new ClassHierarchyBuilder(objectClass, loader, coreTypes);
     for (int i = 0; i < classes.length; i++) {
-      KernelClassBuilder cls = classes[i];
+      ClassBuilder cls = classes[i];
       if (!cls.isPatch) {
         hierarchy.nodes[cls.target] =
             new ClassHierarchyNodeBuilder(hierarchy, cls).build();
@@ -387,15 +380,15 @@ class ClassHierarchyBuilder {
 class ClassHierarchyNodeBuilder {
   final ClassHierarchyBuilder hierarchy;
 
-  final KernelClassBuilder cls;
+  final ClassBuilder cls;
 
   bool hasNoSuchMethod = false;
 
-  List<Declaration> abstractMembers = null;
+  List<Builder> abstractMembers = null;
 
   ClassHierarchyNodeBuilder(this.hierarchy, this.cls);
 
-  KernelClassBuilder get objectClass => hierarchy.objectClass;
+  ClassBuilder get objectClass => hierarchy.objectClass;
 
   final Map<Class, Substitution> substitutions = <Class, Substitution>{};
 
@@ -409,8 +402,7 @@ class ClassHierarchyNodeBuilder {
   ///
   /// If [mergeKind] is `MergeKind.supertypes`, [a] should implement [b], and
   /// [b] is implicitly abstract.
-  Declaration handleMergeConflict(
-      Declaration a, Declaration b, MergeKind mergeKind) {
+  Builder handleMergeConflict(Builder a, Builder b, MergeKind mergeKind) {
     debug?.log(
         "handleMergeConflict: ${fullName(a)} ${fullName(b)} ${mergeKind}");
     // TODO(ahe): Enable this optimization, but be careful about abstract
@@ -421,7 +413,7 @@ class ClassHierarchyNodeBuilder {
       // Don't check overrides involving duplicated members.
       return a;
     }
-    Declaration result = checkInheritanceConflict(a, b);
+    Builder result = checkInheritanceConflict(a, b);
     if (result != null) return result;
     result = a;
     switch (mergeKind) {
@@ -474,7 +466,7 @@ class ClassHierarchyNodeBuilder {
       case MergeKind.membersWithSetters:
       case MergeKind.settersWithMembers:
         if (a.parent == cls && b.parent != cls) {
-          if (a is KernelFieldBuilder) {
+          if (a is FieldBuilder) {
             if (a.isFinal && b.isSetter) {
               hierarchy.overrideChecks.add(new DelayedOverrideCheck(cls, a, b));
             } else {
@@ -483,7 +475,7 @@ class ClassHierarchyNodeBuilder {
                     .add(new DelayedOverrideCheck(cls, a, b));
               }
             }
-          } else if (a is KernelProcedureBuilder) {
+          } else if (a is ProcedureBuilder) {
             if (!inferMethodTypes(a, b)) {
               hierarchy.overrideChecks.add(new DelayedOverrideCheck(cls, a, b));
             }
@@ -547,19 +539,19 @@ class ClassHierarchyNodeBuilder {
     return result;
   }
 
-  Declaration checkInheritanceConflict(Declaration a, Declaration b) {
+  Builder checkInheritanceConflict(Builder a, Builder b) {
     if (a is DelayedMember) {
-      Declaration result;
+      Builder result;
       for (int i = 0; i < a.declarations.length; i++) {
-        Declaration d = checkInheritanceConflict(a.declarations[i], b);
+        Builder d = checkInheritanceConflict(a.declarations[i], b);
         result ??= d;
       }
       return result;
     }
     if (b is DelayedMember) {
-      Declaration result;
+      Builder result;
       for (int i = 0; i < b.declarations.length; i++) {
-        Declaration d = checkInheritanceConflict(a, b.declarations[i]);
+        Builder d = checkInheritanceConflict(a, b.declarations[i]);
         result ??= d;
       }
       return result;
@@ -571,12 +563,12 @@ class ClassHierarchyNodeBuilder {
     return null;
   }
 
-  bool inferMethodTypes(KernelProcedureBuilder a, Declaration b) {
+  bool inferMethodTypes(ProcedureBuilder a, Builder b) {
     debug?.log(
         "Trying to infer types for ${fullName(a)} based on ${fullName(b)}");
     if (b is DelayedMember) {
       bool hasSameSignature = true;
-      List<Declaration> declarations = b.declarations;
+      List<Builder> declarations = b.declarations;
       for (int i = 0; i < declarations.length; i++) {
         if (!inferMethodTypes(a, declarations[i])) {
           hasSameSignature = false;
@@ -590,7 +582,7 @@ class ClassHierarchyNodeBuilder {
       return inferSetterType(a, b);
     }
     bool hadTypesInferred = a.hadTypesInferred;
-    KernelClassBuilder aCls = a.parent;
+    ClassBuilder aCls = a.parent;
     Substitution aSubstitution;
     if (cls != aCls) {
       assert(substitutions.containsKey(aCls.target),
@@ -599,7 +591,7 @@ class ClassHierarchyNodeBuilder {
       debug?.log(
           "${cls.fullNameForErrors} -> ${aCls.fullNameForErrors} $aSubstitution");
     }
-    KernelClassBuilder bCls = b.parent;
+    ClassBuilder bCls = b.parent;
     Substitution bSubstitution;
     if (cls != bCls) {
       assert(substitutions.containsKey(bCls.target),
@@ -748,7 +740,7 @@ class ClassHierarchyNodeBuilder {
           bType = substitution.substituteType(bType);
         }
         if (aType != bType) {
-          FormalParameterBuilder<KernelTypeBuilder> parameter;
+          FormalParameterBuilder parameter;
           for (int i = aPositional.length; i < a.formals.length; ++i) {
             if (a.formals[i].name == name) {
               parameter = a.formals[i];
@@ -770,7 +762,7 @@ class ClassHierarchyNodeBuilder {
     return result;
   }
 
-  bool inferGetterType(KernelProcedureBuilder a, Declaration b) {
+  bool inferGetterType(ProcedureBuilder a, Builder b) {
     debug?.log(
         "Inferring getter types for ${fullName(a)} based on ${fullName(b)}");
     Member bTarget = b.target;
@@ -803,7 +795,7 @@ class ClassHierarchyNodeBuilder {
     return a.target.function.returnType == bType;
   }
 
-  bool inferSetterType(KernelProcedureBuilder a, Declaration b) {
+  bool inferSetterType(ProcedureBuilder a, Builder b) {
     debug?.log(
         "Inferring setter types for ${fullName(a)} based on ${fullName(b)}");
     Member bTarget = b.target;
@@ -843,10 +835,10 @@ class ClassHierarchyNodeBuilder {
     return aParameter.type == bType;
   }
 
-  void checkValidOverride(Declaration a, Declaration b) {
+  void checkValidOverride(Builder a, Builder b) {
     debug?.log(
         "checkValidOverride(${fullName(a)}, ${fullName(b)}) ${a.runtimeType}");
-    if (a is KernelProcedureBuilder) {
+    if (a is ProcedureBuilder) {
       if (inferMethodTypes(a, b)) return;
     } else if (a.isField) {
       if (inferFieldTypes(a, b)) return;
@@ -867,12 +859,12 @@ class ClassHierarchyNodeBuilder {
     }
   }
 
-  bool inferFieldTypes(MemberBuilder a, Declaration b) {
+  bool inferFieldTypes(MemberBuilder a, Builder b) {
     debug?.log(
         "Trying to infer field types for ${fullName(a)} based on ${fullName(b)}");
     if (b is DelayedMember) {
       bool hasSameSignature = true;
-      List<Declaration> declarations = b.declarations;
+      List<Builder> declarations = b.declarations;
       for (int i = 0; i < declarations.length; i++) {
         if (!inferFieldTypes(a, declarations[i])) {
           hasSameSignature = false;
@@ -904,7 +896,7 @@ class ClassHierarchyNodeBuilder {
       debug?.log("Giving up (inheritedType == null)\n${StackTrace.current}");
       return false;
     }
-    KernelClassBuilder aCls = a.parent;
+    ClassBuilder aCls = a.parent;
     Substitution aSubstitution;
     if (cls != aCls) {
       assert(substitutions.containsKey(aCls.target),
@@ -913,7 +905,7 @@ class ClassHierarchyNodeBuilder {
       debug?.log(
           "${cls.fullNameForErrors} -> ${aCls.fullNameForErrors} $aSubstitution");
     }
-    KernelClassBuilder bCls = b.parent;
+    ClassBuilder bCls = b.parent;
     Substitution bSubstitution;
     if (cls != bCls) {
       assert(substitutions.containsKey(bCls.target),
@@ -933,7 +925,7 @@ class ClassHierarchyNodeBuilder {
     if (declaredType == inheritedType) return true;
 
     bool result = false;
-    if (a is KernelFieldBuilder) {
+    if (a is FieldBuilder) {
       if (a.parent == cls && a.type == null) {
         if (a.hadTypesInferred) {
           reportCantInferFieldType(cls, a);
@@ -943,8 +935,8 @@ class ClassHierarchyNodeBuilder {
           a.hadTypesInferred = true;
         }
         if (inheritedType is ImplicitFieldType) {
-          KernelLibraryBuilder library = cls.library;
-          (library.implicitlyTypedFields ??= <KernelFieldBuilder>[]).add(a);
+          SourceLibraryBuilder library = cls.library;
+          (library.implicitlyTypedFields ??= <FieldBuilder>[]).add(a);
         }
         a.target.type = inheritedType;
       }
@@ -952,8 +944,8 @@ class ClassHierarchyNodeBuilder {
     return result;
   }
 
-  void copyParameterCovariance(Declaration parent,
-      VariableDeclaration aParameter, VariableDeclaration bParameter) {
+  void copyParameterCovariance(Builder parent, VariableDeclaration aParameter,
+      VariableDeclaration bParameter) {
     if (parent == cls) {
       if (bParameter.isCovariant) {
         aParameter.isCovariant = true;
@@ -965,7 +957,7 @@ class ClassHierarchyNodeBuilder {
   }
 
   void copyParameterCovarianceFromField(
-      Declaration parent, VariableDeclaration aParameter, Field bField) {
+      Builder parent, VariableDeclaration aParameter, Field bField) {
     if (parent == cls) {
       if (bField.isCovariant) {
         aParameter.isCovariant = true;
@@ -976,7 +968,7 @@ class ClassHierarchyNodeBuilder {
     }
   }
 
-  void copyFieldCovariance(Declaration parent, Field aField, Field bField) {
+  void copyFieldCovariance(Builder parent, Field aField, Field bField) {
     if (parent == cls) {
       if (bField.isCovariant) {
         aField.isCovariant = true;
@@ -988,7 +980,7 @@ class ClassHierarchyNodeBuilder {
   }
 
   void copyFieldCovarianceFromParameter(
-      Declaration parent, Field aField, VariableDeclaration bParameter) {
+      Builder parent, Field aField, VariableDeclaration bParameter) {
     if (parent == cls) {
       if (bParameter.isCovariant) {
         aField.isCovariant = true;
@@ -1000,7 +992,7 @@ class ClassHierarchyNodeBuilder {
   }
 
   void copyTypeParameterCovariance(
-      Declaration parent, TypeParameter aParameter, TypeParameter bParameter) {
+      Builder parent, TypeParameter aParameter, TypeParameter bParameter) {
     if (parent == cls) {
       if (bParameter.isGenericCovariantImpl) {
         aParameter.isGenericCovariantImpl = true;
@@ -1008,7 +1000,7 @@ class ClassHierarchyNodeBuilder {
     }
   }
 
-  void reportInheritanceConflict(Declaration a, Declaration b) {
+  void reportInheritanceConflict(Builder a, Builder b) {
     String name = a.fullNameForErrors;
     if (a.parent != b.parent) {
       if (a.parent == cls) {
@@ -1024,8 +1016,8 @@ class ClassHierarchyNodeBuilder {
             context: inheritedConflictContext(a, b));
       }
     } else if (a.isStatic != b.isStatic) {
-      Declaration staticMember;
-      Declaration instanceMember;
+      Builder staticMember;
+      Builder instanceMember;
       if (a.isStatic) {
         staticMember = a;
         instanceMember = b;
@@ -1045,8 +1037,8 @@ class ClassHierarchyNodeBuilder {
       // we always report the one with higher charOffset as the duplicate,
       // the message duplication logic ensures that we only report this
       // problem once.
-      Declaration existing;
-      Declaration duplicate;
+      Builder existing;
+      Builder duplicate;
       assert(a.fileUri == b.fileUri);
       if (a.charOffset < b.charOffset) {
         existing = a;
@@ -1073,7 +1065,7 @@ class ClassHierarchyNodeBuilder {
   ///
   /// If [mergeKind] is `MergeKind.supertypes`, [member] isn't
   /// implementing/overriding anything.
-  void handleOnlyA(Declaration member, MergeKind mergeKind) {
+  void handleOnlyA(Builder member, MergeKind mergeKind) {
     if (mergeKind == MergeKind.interfacesMembers ||
         mergeKind == MergeKind.interfacesSetters) {
       return;
@@ -1097,7 +1089,7 @@ class ClassHierarchyNodeBuilder {
   ///
   /// If [mergeKind] is `MergeKind.supertypes`, [member] is implicitly
   /// abstract, and not implemented.
-  Declaration handleOnlyB(Declaration member, MergeKind mergeKind) {
+  Builder handleOnlyB(Builder member, MergeKind mergeKind) {
     if (mergeKind == MergeKind.interfacesMembers ||
         mergeKind == MergeKind.interfacesSetters) {
       return member;
@@ -1128,8 +1120,8 @@ class ClassHierarchyNodeBuilder {
     return member;
   }
 
-  void recordAbstractMember(Declaration member) {
-    abstractMembers ??= <Declaration>[];
+  void recordAbstractMember(Builder member) {
+    abstractMembers ??= <Builder>[];
     if (member is DelayedMember) {
       abstractMembers.addAll(member.declarations);
     } else {
@@ -1150,53 +1142,51 @@ class ClassHierarchyNodeBuilder {
 
     Scope scope = cls.scope;
     if (cls.isMixinApplication) {
-      Declaration mixin = cls.mixedInType.declaration;
+      Builder mixin = cls.mixedInType.declaration;
       inferMixinApplication();
       // recordSupertype(cls.mixedInType);
       while (mixin.isNamedMixinApplication) {
-        KernelClassBuilder named = mixin;
+        ClassBuilder named = mixin;
         // recordSupertype(named.mixedInType);
         mixin = named.mixedInType.declaration;
       }
-      if (mixin is KernelClassBuilder) {
+      if (mixin is ClassBuilder) {
         scope = mixin.scope.computeMixinScope();
       }
     }
 
     /// Members (excluding setters) declared in [cls].
-    List<Declaration> localMembers =
-        new List<Declaration>.from(scope.local.values)
-          ..sort(compareDeclarations);
+    List<Builder> localMembers = new List<Builder>.from(scope.local.values)
+      ..sort(compareDeclarations);
 
     /// Setters declared in [cls].
-    List<Declaration> localSetters =
-        new List<Declaration>.from(scope.setters.values)
-          ..sort(compareDeclarations);
+    List<Builder> localSetters = new List<Builder>.from(scope.setters.values)
+      ..sort(compareDeclarations);
 
     // Add implied setters from fields in [localMembers].
     localSetters = mergeAccessors(localMembers, localSetters);
 
     /// Members (excluding setters) declared in [cls] or its superclasses. This
     /// includes static methods of [cls], but not its superclasses.
-    List<Declaration> classMembers;
+    List<Builder> classMembers;
 
     /// Setters declared in [cls] or its superclasses. This includes static
     /// setters of [cls], but not its superclasses.
-    List<Declaration> classSetters;
+    List<Builder> classSetters;
 
     /// Members (excluding setters) inherited from interfaces. This contains no static
     /// members. Is null if no interfaces are implemented by this class or its
     /// superclasses.
-    List<Declaration> interfaceMembers;
+    List<Builder> interfaceMembers;
 
     /// Setters inherited from interfaces. This contains no static setters. Is
     /// null if no interfaces are implemented by this class or its
     /// superclasses.
-    List<Declaration> interfaceSetters;
+    List<Builder> interfaceSetters;
 
-    List<KernelTypeBuilder> superclasses;
+    List<TypeBuilder> superclasses;
 
-    List<KernelTypeBuilder> interfaces;
+    List<TypeBuilder> interfaces;
 
     int maxInheritancePath;
 
@@ -1204,23 +1194,22 @@ class ClassHierarchyNodeBuilder {
       // This should be Object.
       classMembers = localMembers;
       classSetters = localSetters;
-      superclasses = new List<KernelTypeBuilder>(0);
-      interfaces = new List<KernelTypeBuilder>(0);
+      superclasses = new List<TypeBuilder>(0);
+      interfaces = new List<TypeBuilder>(0);
       maxInheritancePath = 0;
     } else {
       maxInheritancePath = supernode.maxInheritancePath + 1;
-      superclasses =
-          new List<KernelTypeBuilder>(supernode.superclasses.length + 1);
+      superclasses = new List<TypeBuilder>(supernode.superclasses.length + 1);
       superclasses.setRange(0, superclasses.length - 1,
           substSupertypes(cls.supertype, supernode.superclasses));
       superclasses[superclasses.length - 1] = recordSupertype(cls.supertype);
 
-      List<KernelTypeBuilder> directInterfaces = ignoreFunction(cls.interfaces);
+      List<TypeBuilder> directInterfaces = ignoreFunction(cls.interfaces);
       if (cls.isMixinApplication) {
         if (directInterfaces == null) {
-          directInterfaces = <KernelTypeBuilder>[cls.mixedInType];
+          directInterfaces = <TypeBuilder>[cls.mixedInType];
         } else {
-          directInterfaces = <KernelTypeBuilder>[cls.mixedInType]
+          directInterfaces = <TypeBuilder>[cls.mixedInType]
             ..addAll(directInterfaces);
         }
       }
@@ -1229,7 +1218,7 @@ class ClassHierarchyNodeBuilder {
           recordSupertype(directInterfaces[i]);
         }
       }
-      List<KernelTypeBuilder> superclassInterfaces = supernode.interfaces;
+      List<TypeBuilder> superclassInterfaces = supernode.interfaces;
       if (superclassInterfaces != null) {
         superclassInterfaces =
             substSupertypes(cls.supertype, superclassInterfaces);
@@ -1244,14 +1233,14 @@ class ClassHierarchyNodeBuilder {
         MergeResult result = mergeInterfaces(supernode, directInterfaces);
         interfaceMembers = result.mergedMembers;
         interfaceSetters = result.mergedSetters;
-        interfaces = <KernelTypeBuilder>[];
+        interfaces = <TypeBuilder>[];
         if (superclassInterfaces != null) {
           for (int i = 0; i < superclassInterfaces.length; i++) {
             addInterface(interfaces, superclasses, superclassInterfaces[i]);
           }
         }
         for (int i = 0; i < directInterfaces.length; i++) {
-          KernelTypeBuilder directInterface = directInterfaces[i];
+          TypeBuilder directInterface = directInterfaces[i];
           addInterface(interfaces, superclasses, directInterface);
           ClassHierarchyNode interfaceNode =
               hierarchy.getNodeFromType(directInterface);
@@ -1259,14 +1248,14 @@ class ClassHierarchyNodeBuilder {
             if (maxInheritancePath < interfaceNode.maxInheritancePath + 1) {
               maxInheritancePath = interfaceNode.maxInheritancePath + 1;
             }
-            List<KernelTypeBuilder> types =
+            List<TypeBuilder> types =
                 substSupertypes(directInterface, interfaceNode.superclasses);
             for (int i = 0; i < types.length; i++) {
               addInterface(interfaces, superclasses, types[i]);
             }
 
             if (interfaceNode.interfaces != null) {
-              List<KernelTypeBuilder> types =
+              List<TypeBuilder> types =
                   substSupertypes(directInterface, interfaceNode.interfaces);
               for (int i = 0; i < types.length; i++) {
                 addInterface(interfaces, superclasses, types[i]);
@@ -1327,23 +1316,22 @@ class ClassHierarchyNodeBuilder {
     );
   }
 
-  KernelTypeBuilder recordSupertype(KernelTypeBuilder supertype) {
-    if (supertype is KernelNamedTypeBuilder) {
+  TypeBuilder recordSupertype(TypeBuilder supertype) {
+    if (supertype is NamedTypeBuilder) {
       debug?.log(
           "In ${this.cls.fullNameForErrors} recordSupertype(${supertype.fullNameForErrors})");
-      Declaration declaration = supertype.declaration;
-      if (declaration is! KernelClassBuilder) return supertype;
-      KernelClassBuilder cls = declaration;
+      Builder declaration = supertype.declaration;
+      if (declaration is! ClassBuilder) return supertype;
+      ClassBuilder cls = declaration;
       if (cls.isMixinApplication) {
         recordSupertype(cls.mixedInType);
       }
-      List<TypeVariableBuilder<TypeBuilder, Object>> typeVariables =
-          cls.typeVariables;
+      List<TypeVariableBuilder> typeVariables = cls.typeVariables;
       if (typeVariables == null) {
         substitutions[cls.target] = Substitution.empty;
         assert(cls.target.typeParameters.isEmpty);
       } else {
-        List<KernelTypeBuilder> arguments =
+        List<TypeBuilder> arguments =
             supertype.arguments ?? computeDefaultTypeArguments(supertype);
         if (arguments.length != typeVariables.length) {
           arguments = computeDefaultTypeArguments(supertype);
@@ -1362,13 +1350,12 @@ class ClassHierarchyNodeBuilder {
     return supertype;
   }
 
-  List<KernelTypeBuilder> substSupertypes(
-      KernelNamedTypeBuilder supertype, List<KernelTypeBuilder> supertypes) {
-    Declaration declaration = supertype.declaration;
-    if (declaration is! KernelClassBuilder) return supertypes;
-    KernelClassBuilder cls = declaration;
-    List<TypeVariableBuilder<TypeBuilder, Object>> typeVariables =
-        cls.typeVariables;
+  List<TypeBuilder> substSupertypes(
+      NamedTypeBuilder supertype, List<TypeBuilder> supertypes) {
+    Builder declaration = supertype.declaration;
+    if (declaration is! ClassBuilder) return supertypes;
+    ClassBuilder cls = declaration;
+    List<TypeVariableBuilder> typeVariables = cls.typeVariables;
     if (typeVariables == null) {
       debug?.log("In ${this.cls.fullNameForErrors} $supertypes aren't substed");
       for (int i = 0; i < supertypes.length; i++) {
@@ -1376,18 +1363,17 @@ class ClassHierarchyNodeBuilder {
       }
       return supertypes;
     }
-    Map<TypeVariableBuilder<TypeBuilder, Object>, TypeBuilder> substitution =
-        <TypeVariableBuilder<TypeBuilder, Object>, TypeBuilder>{};
-    List<KernelTypeBuilder> arguments =
+    Map<TypeVariableBuilder, TypeBuilder> substitution =
+        <TypeVariableBuilder, TypeBuilder>{};
+    List<TypeBuilder> arguments =
         supertype.arguments ?? computeDefaultTypeArguments(supertype);
     for (int i = 0; i < typeVariables.length; i++) {
       substitution[typeVariables[i]] = arguments[i];
     }
-    List<KernelTypeBuilder> result;
+    List<TypeBuilder> result;
     for (int i = 0; i < supertypes.length; i++) {
-      KernelTypeBuilder supertype = supertypes[i];
-      KernelTypeBuilder substed =
-          recordSupertype(supertype.subst(substitution));
+      TypeBuilder supertype = supertypes[i];
+      TypeBuilder substed = recordSupertype(supertype.subst(substitution));
       if (supertype != substed) {
         debug?.log("In ${this.cls.fullNameForErrors} $supertype -> $substed");
         result ??= supertypes.toList();
@@ -1399,20 +1385,19 @@ class ClassHierarchyNodeBuilder {
     return result ?? supertypes;
   }
 
-  List<KernelTypeBuilder> computeDefaultTypeArguments(KernelTypeBuilder type) {
-    KernelClassBuilder cls = type.declaration;
-    List<KernelTypeBuilder> result =
-        new List<KernelTypeBuilder>(cls.typeVariables.length);
+  List<TypeBuilder> computeDefaultTypeArguments(TypeBuilder type) {
+    ClassBuilder cls = type.declaration;
+    List<TypeBuilder> result = new List<TypeBuilder>(cls.typeVariables.length);
     for (int i = 0; i < result.length; ++i) {
-      KernelTypeVariableBuilder tv = cls.typeVariables[i];
+      TypeVariableBuilder tv = cls.typeVariables[i];
       result[i] = tv.defaultType ??
           cls.library.loader.computeTypeBuilder(tv.target.defaultType);
     }
     return result;
   }
 
-  KernelTypeBuilder addInterface(List<KernelTypeBuilder> interfaces,
-      List<KernelTypeBuilder> superclasses, KernelTypeBuilder type) {
+  TypeBuilder addInterface(List<TypeBuilder> interfaces,
+      List<TypeBuilder> superclasses, TypeBuilder type) {
     ClassHierarchyNode node = hierarchy.getNodeFromType(type);
     if (node == null) return null;
     int depth = node.depth;
@@ -1435,13 +1420,13 @@ class ClassHierarchyNodeBuilder {
   }
 
   MergeResult mergeInterfaces(
-      ClassHierarchyNode supernode, List<KernelTypeBuilder> interfaces) {
+      ClassHierarchyNode supernode, List<TypeBuilder> interfaces) {
     debug?.log(
         "mergeInterfaces($cls (${this.cls}) ${supernode.interfaces} ${interfaces}");
-    List<List<Declaration>> memberLists =
-        new List<List<Declaration>>(interfaces.length + 1);
-    List<List<Declaration>> setterLists =
-        new List<List<Declaration>>(interfaces.length + 1);
+    List<List<Builder>> memberLists =
+        new List<List<Builder>>(interfaces.length + 1);
+    List<List<Builder>> setterLists =
+        new List<List<Builder>>(interfaces.length + 1);
     memberLists[0] = supernode.interfaceMembers;
     setterLists[0] = supernode.interfaceSetters;
     for (int i = 0; i < interfaces.length; i++) {
@@ -1461,16 +1446,15 @@ class ClassHierarchyNodeBuilder {
         mergeLists(setterLists, MergeKind.interfacesSetters));
   }
 
-  List<Declaration> mergeLists(
-      List<List<Declaration>> input, MergeKind mergeKind) {
+  List<Builder> mergeLists(List<List<Builder>> input, MergeKind mergeKind) {
     // This is a k-way merge sort (where k is `input.length + 1`). We merge the
     // lists pairwise, which reduces the number of lists to merge by half on
     // each iteration. Consequently, we perform O(log k) merges.
     while (input.length > 1) {
-      List<List<Declaration>> output = <List<Declaration>>[];
+      List<List<Builder>> output = <List<Builder>>[];
       for (int i = 0; i < input.length - 1; i += 2) {
-        List<Declaration> first = input[i];
-        List<Declaration> second = input[i + 1];
+        List<Builder> first = input[i];
+        List<Builder> second = input[i + 1];
         if (first == null) {
           output.add(second);
         } else if (second == null) {
@@ -1490,17 +1474,16 @@ class ClassHierarchyNodeBuilder {
   /// Merge [and check] accessors. This entails copying mutable fields to
   /// setters to simulate implied setters, and checking that setters don't
   /// override regular methods.
-  List<Declaration> mergeAccessors(
-      List<Declaration> members, List<Declaration> setters) {
-    final List<Declaration> mergedSetters = new List<Declaration>.filled(
+  List<Builder> mergeAccessors(List<Builder> members, List<Builder> setters) {
+    final List<Builder> mergedSetters = new List<Builder>.filled(
         members.length + setters.length, null,
         growable: true);
     int storeIndex = 0;
     int i = 0;
     int j = 0;
     while (i < members.length && j < setters.length) {
-      final Declaration member = members[i];
-      final Declaration setter = setters[j];
+      final Builder member = members[i];
+      final Builder setter = setters[j];
       final int compare = compareDeclarations(member, setter);
       if (compare == 0) {
         mergedSetters[storeIndex++] = setter;
@@ -1517,7 +1500,7 @@ class ClassHierarchyNodeBuilder {
       }
     }
     while (i < members.length) {
-      final Declaration member = members[i];
+      final Builder member = members[i];
       if (impliesSetter(member)) {
         mergedSetters[storeIndex++] = member;
       }
@@ -1538,7 +1521,7 @@ class ClassHierarchyNodeBuilder {
   void reportMissingMembers() {
     Map<String, LocatedMessage> contextMap = <String, LocatedMessage>{};
     for (int i = 0; i < abstractMembers.length; i++) {
-      Declaration declaration = abstractMembers[i];
+      Builder declaration = abstractMembers[i];
       Member target = declaration.target;
       if (isNameVisibleIn(target.name, cls.library)) {
         String name = declaration.fullNameForErrors;
@@ -1566,20 +1549,20 @@ class ClassHierarchyNodeBuilder {
   }
 
   void installNsmHandlers() {
-    // TOOD(ahe): Implement this.
+    // TODO(ahe): Implement this.
   }
 
-  List<Declaration> merge(
-      List<Declaration> aList, List<Declaration> bList, MergeKind mergeKind) {
-    final List<Declaration> result = new List<Declaration>.filled(
+  List<Builder> merge(
+      List<Builder> aList, List<Builder> bList, MergeKind mergeKind) {
+    final List<Builder> result = new List<Builder>.filled(
         aList.length + bList.length, null,
         growable: true);
     int storeIndex = 0;
     int i = 0;
     int j = 0;
     while (i < aList.length && j < bList.length) {
-      final Declaration a = aList[i];
-      final Declaration b = bList[j];
+      final Builder a = aList[i];
+      final Builder b = bList[j];
       if ((mergeKind == MergeKind.interfacesMembers ||
               mergeKind == MergeKind.interfacesSetters) &&
           a.isStatic) {
@@ -1605,7 +1588,7 @@ class ClassHierarchyNodeBuilder {
       }
     }
     while (i < aList.length) {
-      final Declaration a = aList[i];
+      final Builder a = aList[i];
       if (!(mergeKind == MergeKind.interfacesMembers ||
               mergeKind == MergeKind.interfacesSetters) ||
           !a.isStatic) {
@@ -1615,7 +1598,7 @@ class ClassHierarchyNodeBuilder {
       i++;
     }
     while (j < bList.length) {
-      final Declaration b = bList[j];
+      final Builder b = bList[j];
       if (!b.isStatic) {
         result[storeIndex++] = handleOnlyB(b, mergeKind);
       }
@@ -1638,22 +1621,22 @@ class ClassHierarchyNodeBuilder {
             new TypeBuilderConstraintGatherer(
                 hierarchy, kernelMixedInType.classNode.typeParameters))
         .infer(kernelClass);
-    List<KernelTypeBuilder> inferredArguments =
-        new List<KernelTypeBuilder>(typeArguments.length);
+    List<TypeBuilder> inferredArguments =
+        new List<TypeBuilder>(typeArguments.length);
     for (int i = 0; i < typeArguments.length; i++) {
       inferredArguments[i] =
           hierarchy.loader.computeTypeBuilder(typeArguments[i]);
     }
-    KernelNamedTypeBuilder mixedInType = cls.mixedInType;
+    NamedTypeBuilder mixedInType = cls.mixedInType;
     mixedInType.arguments = inferredArguments;
   }
 
   /// The class Function from dart:core is supposed to be ignored when used as
   /// an interface.
-  List<KernelTypeBuilder> ignoreFunction(List<KernelTypeBuilder> interfaces) {
+  List<TypeBuilder> ignoreFunction(List<TypeBuilder> interfaces) {
     if (interfaces == null) return null;
     for (int i = 0; i < interfaces.length; i++) {
-      KernelClassBuilder cls = getClass(interfaces[i]);
+      ClassBuilder cls = getClass(interfaces[i]);
       if (cls != null && cls.target == hierarchy.functionKernelClass) {
         if (interfaces.length == 1) {
           return null;
@@ -1670,14 +1653,14 @@ class ClassHierarchyNodeBuilder {
 
 class ClassHierarchyNode {
   /// The class corresponding to this hierarchy node.
-  final KernelClassBuilder cls;
+  final ClassBuilder cls;
 
   /// All the members of this class including [classMembers] of its
   /// superclasses. The members are sorted by [compareDeclarations].
-  final List<Declaration> classMembers;
+  final List<Builder> classMembers;
 
   /// Similar to [classMembers] but for setters.
-  final List<Declaration> classSetters;
+  final List<Builder> classSetters;
 
   /// All the interface members of this class including [interfaceMembers] of
   /// its supertypes. The members are sorted by [compareDeclarations].
@@ -1686,20 +1669,20 @@ class ClassHierarchyNode {
   /// from interfaces.
   ///
   /// This may be null, in which case [classMembers] is the interface members.
-  final List<Declaration> interfaceMembers;
+  final List<Builder> interfaceMembers;
 
   /// Similar to [interfaceMembers] but for setters.
   ///
   /// This may be null, in which case [classSetters] is the interface setters.
-  final List<Declaration> interfaceSetters;
+  final List<Builder> interfaceSetters;
 
   /// All superclasses of [cls] excluding itself. The classes are sorted by
   /// depth from the root (Object) in ascending order.
-  final List<KernelTypeBuilder> superclasses;
+  final List<TypeBuilder> superclasses;
 
   /// The list of all classes implemented by [cls] and its supertypes excluding
   /// any classes from [superclasses].
-  final List<KernelTypeBuilder> interfaces;
+  final List<TypeBuilder> interfaces;
 
   /// The longest inheritance path from [cls] to `Object`.
   final int maxInheritancePath;
@@ -1725,14 +1708,14 @@ class ClassHierarchyNode {
     List<ClassHierarchyNode> result = new List<ClassHierarchyNode>(
         1 + superclasses.length + interfaces.length);
     for (int i = 0; i < superclasses.length; i++) {
-      Declaration declaration = superclasses[i].declaration;
-      if (declaration is KernelClassBuilder) {
+      Builder declaration = superclasses[i].declaration;
+      if (declaration is ClassBuilder) {
         result[i] = hierarchy.getNodeFromClass(declaration);
       }
     }
     for (int i = 0; i < interfaces.length; i++) {
-      Declaration declaration = interfaces[i].declaration;
-      if (declaration is KernelClassBuilder) {
+      Builder declaration = interfaces[i].declaration;
+      if (declaration is ClassBuilder) {
         result[i + superclasses.length] =
             hierarchy.getNodeFromClass(declaration);
       }
@@ -1752,7 +1735,7 @@ class ClassHierarchyNode {
     }
     sb..writeln("  superclasses:");
     int depth = 0;
-    for (KernelTypeBuilder superclass in superclasses) {
+    for (TypeBuilder superclass in superclasses) {
       sb.write("  " * (depth + 2));
       if (depth != 0) sb.write("-> ");
       superclass.printOn(sb);
@@ -1762,7 +1745,7 @@ class ClassHierarchyNode {
     if (interfaces != null) {
       sb.write("  interfaces:");
       bool first = true;
-      for (KernelTypeBuilder i in interfaces) {
+      for (TypeBuilder i in interfaces) {
         if (!first) sb.write(",");
         sb.write(" ");
         i.printOn(sb);
@@ -1781,12 +1764,11 @@ class ClassHierarchyNode {
     return "$sb";
   }
 
-  void printMembers(
-      List<Declaration> members, StringBuffer sb, String heading) {
+  void printMembers(List<Builder> members, StringBuffer sb, String heading) {
     sb.write("  ");
     sb.write(heading);
     sb.writeln(":");
-    for (Declaration member in members) {
+    for (Builder member in members) {
       sb
         ..write("    ")
         ..write(member.parent.fullNameForErrors)
@@ -1796,7 +1778,7 @@ class ClassHierarchyNode {
     }
   }
 
-  Declaration getInterfaceMember(Name name, bool isSetter) {
+  Builder getInterfaceMember(Name name, bool isSetter) {
     return findMember(
         name,
         isSetter
@@ -1804,7 +1786,7 @@ class ClassHierarchyNode {
             : interfaceMembers ?? classMembers);
   }
 
-  Declaration findMember(Name name, List<Declaration> declarations) {
+  Builder findMember(Name name, List<Builder> declarations) {
     // TODO(ahe): Consider creating a map or scope. The obvious choice would be
     // to use scopes, but they don't handle private names correctly.
 
@@ -1812,7 +1794,7 @@ class ClassHierarchyNode {
     int low = 0, high = declarations.length - 1;
     while (low <= high) {
       int mid = low + ((high - low) >> 1);
-      Declaration pivot = declarations[mid];
+      Builder pivot = declarations[mid];
       int comparison = ClassHierarchy.compareNames(name, pivot.target.name);
       if (comparison < 0) {
         high = mid - 1;
@@ -1828,7 +1810,7 @@ class ClassHierarchyNode {
     return null;
   }
 
-  Declaration getDispatchTarget(Name name, bool isSetter) {
+  Builder getDispatchTarget(Name name, bool isSetter) {
     return findMember(name, isSetter ? classSetters : classMembers);
   }
 
@@ -1839,9 +1821,9 @@ class ClassHierarchyNode {
 }
 
 class MergeResult {
-  final List<Declaration> mergedMembers;
+  final List<Builder> mergedMembers;
 
-  final List<Declaration> mergedSetters;
+  final List<Builder> mergedSetters;
 
   MergeResult(this.mergedMembers, this.mergedSetters);
 }
@@ -1872,7 +1854,7 @@ enum MergeKind {
   settersWithMembers,
 }
 
-List<LocatedMessage> inheritedConflictContext(Declaration a, Declaration b) {
+List<LocatedMessage> inheritedConflictContext(Builder a, Builder b) {
   return inheritedConflictContextKernel(
       a.target, b.target, a.fullNameForErrors.length);
 }
@@ -1902,7 +1884,7 @@ List<LocatedMessage> inheritedConflictContextKernel(
 }
 
 class BuilderMixinInferrer extends MixinInferrer {
-  final KernelClassBuilder cls;
+  final ClassBuilder cls;
 
   BuilderMixinInferrer(
       this.cls, CoreTypes coreTypes, TypeBuilderConstraintGatherer gatherer)
@@ -1988,9 +1970,9 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
 }
 
 class DelayedOverrideCheck {
-  final KernelClassBuilder cls;
-  final Declaration a;
-  final Declaration b;
+  final ClassBuilder cls;
+  final Builder a;
+  final Builder b;
 
   const DelayedOverrideCheck(this.cls, this.a, this.b);
 
@@ -2002,11 +1984,11 @@ class DelayedOverrideCheck {
           isInterfaceCheck: !cls.isMixinApplication);
     }
 
-    Declaration a = this.a;
+    Builder a = this.a;
     debug?.log(
         "Delayed override check of ${fullName(a)} ${fullName(b)} wrt. ${cls.fullNameForErrors}");
     if (cls == a.parent) {
-      if (a is KernelProcedureBuilder) {
+      if (a is ProcedureBuilder) {
         if (a.isGetter && !hasExplicitReturnType(a)) {
           DartType type;
           if (b.isGetter) {
@@ -2052,7 +2034,7 @@ class DelayedOverrideCheck {
           }
         }
         a.hadTypesInferred = true;
-      } else if (a is KernelFieldBuilder && a.type == null) {
+      } else if (a is FieldBuilder && a.type == null) {
         DartType type;
         if (b.isGetter) {
           Procedure bTarget = b.target;
@@ -2092,13 +2074,13 @@ class DelayedOverrideCheck {
   }
 }
 
-abstract class DelayedMember extends Declaration {
+abstract class DelayedMember extends Builder {
   /// The class which has inherited [declarations].
   @override
-  final KernelClassBuilder parent;
+  final ClassBuilder parent;
 
   /// Conflicting declarations.
-  final List<Declaration> declarations;
+  final List<Builder> declarations;
 
   final isSetter;
 
@@ -2107,7 +2089,7 @@ abstract class DelayedMember extends Declaration {
   DelayedMember(
       this.parent, this.declarations, this.isSetter, this.modifyKernel);
 
-  void addAllDeclarationsTo(List<Declaration> declarations) {
+  void addAllDeclarationsTo(List<Builder> declarations) {
     for (int i = 0; i < this.declarations.length; i++) {
       addDeclarationIfDifferent(this.declarations[i], declarations);
     }
@@ -2116,7 +2098,7 @@ abstract class DelayedMember extends Declaration {
 
   Member check(ClassHierarchyBuilder hierarchy);
 
-  DelayedMember withParent(KernelClassBuilder parent);
+  DelayedMember withParent(ClassBuilder parent);
 
   @override
   Uri get fileUri => parent.fileUri;
@@ -2142,8 +2124,8 @@ class InheritedImplementationInterfaceConflict extends DelayedMember {
   @override
   final bool isInheritableConflict;
 
-  InheritedImplementationInterfaceConflict(KernelClassBuilder parent,
-      List<Declaration> declarations, bool isSetter, bool modifyKernel,
+  InheritedImplementationInterfaceConflict(ClassBuilder parent,
+      List<Builder> declarations, bool isSetter, bool modifyKernel,
       {this.isInheritableConflict = true})
       : super(parent, declarations, isSetter, modifyKernel);
 
@@ -2160,7 +2142,7 @@ class InheritedImplementationInterfaceConflict extends DelayedMember {
       return combinedMemberSignatureResult;
     }
     if (!parent.isAbstract) {
-      Declaration concreteImplementation = declarations.first;
+      Builder concreteImplementation = declarations.first;
       for (int i = 1; i < declarations.length; i++) {
         new DelayedOverrideCheck(
                 parent, concreteImplementation, declarations[i])
@@ -2173,21 +2155,17 @@ class InheritedImplementationInterfaceConflict extends DelayedMember {
   }
 
   @override
-  DelayedMember withParent(KernelClassBuilder parent) {
+  DelayedMember withParent(ClassBuilder parent) {
     return parent == this.parent
         ? this
         : new InheritedImplementationInterfaceConflict(
             parent, declarations, isSetter, modifyKernel);
   }
 
-  static Declaration combined(
-      KernelClassBuilder parent,
-      Declaration concreteImplementation,
-      Declaration other,
-      bool isSetter,
-      bool createForwarders,
+  static Builder combined(ClassBuilder parent, Builder concreteImplementation,
+      Builder other, bool isSetter, bool createForwarders,
       {bool isInheritableConflict = true}) {
-    List<Declaration> declarations = <Declaration>[];
+    List<Builder> declarations = <Builder>[];
     if (concreteImplementation is DelayedMember) {
       concreteImplementation.addAllDeclarationsTo(declarations);
     } else {
@@ -2209,7 +2187,7 @@ class InheritedImplementationInterfaceConflict extends DelayedMember {
 }
 
 class InterfaceConflict extends DelayedMember {
-  InterfaceConflict(KernelClassBuilder parent, List<Declaration> declarations,
+  InterfaceConflict(ClassBuilder parent, List<Builder> declarations,
       bool isSetter, bool modifyKernel)
       : super(parent, declarations, isSetter, modifyKernel);
 
@@ -2256,14 +2234,14 @@ class InterfaceConflict extends DelayedMember {
     if (combinedMemberSignatureResult != null) {
       return combinedMemberSignatureResult;
     }
-    if (parent.library is! KernelLibraryBuilder) {
+    if (parent.library is! SourceLibraryBuilder) {
       return combinedMemberSignatureResult = declarations.first.target;
     }
     DartType thisType = parent.cls.thisType;
-    Declaration bestSoFar;
+    Builder bestSoFar;
     DartType bestTypeSoFar;
     for (int i = declarations.length - 1; i >= 0; i--) {
-      Declaration candidate = declarations[i];
+      Builder candidate = declarations[i];
       Member target = candidate.target;
       DartType candidateType = computeMemberType(hierarchy, thisType, target);
       if (bestSoFar == null) {
@@ -2284,7 +2262,7 @@ class InterfaceConflict extends DelayedMember {
     if (bestSoFar != null) {
       debug?.log("Combined Member Signature bestSoFar: ${fullName(bestSoFar)}");
       for (int i = 0; i < declarations.length; i++) {
-        Declaration candidate = declarations[i];
+        Builder candidate = declarations[i];
         Member target = candidate.target;
         DartType candidateType = computeMemberType(hierarchy, thisType, target);
         if (!isMoreSpecific(hierarchy, bestTypeSoFar, candidateType)) {
@@ -2309,7 +2287,7 @@ class InterfaceConflict extends DelayedMember {
     if (bestSoFar == null) {
       String name = parent.fullNameForErrors;
       int length = parent.isAnonymousMixinApplication ? 1 : name.length;
-      List<LocatedMessage> context = declarations.map((Declaration d) {
+      List<LocatedMessage> context = declarations.map((Builder d) {
         return messageDeclaredMemberConflictsWithInheritedMemberCause
             .withLocation(d.fileUri, d.charOffset, d.fullNameForErrors.length);
       }).toList();
@@ -2341,7 +2319,7 @@ class InterfaceConflict extends DelayedMember {
               .finalize();
       if (parent.cls == stub.enclosingClass) {
         parent.cls.addMember(stub);
-        KernelLibraryBuilder library = parent.library;
+        SourceLibraryBuilder library = parent.library;
         if (bestSoFar.target is Procedure) {
           library.forwardersOrigins..add(stub)..add(bestSoFar.target);
         }
@@ -2361,15 +2339,15 @@ class InterfaceConflict extends DelayedMember {
   }
 
   @override
-  DelayedMember withParent(KernelClassBuilder parent) {
+  DelayedMember withParent(ClassBuilder parent) {
     return parent == this.parent
         ? this
         : new InterfaceConflict(parent, declarations, isSetter, modifyKernel);
   }
 
-  static Declaration combined(KernelClassBuilder parent, Declaration a,
-      Declaration b, bool isSetter, bool createForwarders) {
-    List<Declaration> declarations = <Declaration>[];
+  static Builder combined(ClassBuilder parent, Builder a, Builder b,
+      bool isSetter, bool createForwarders) {
+    List<Builder> declarations = <Builder>[];
     if (a is DelayedMember) {
       a.addAllDeclarationsTo(declarations);
     } else {
@@ -2391,17 +2369,17 @@ class InterfaceConflict extends DelayedMember {
 
 class AbstractMemberOverridingImplementation extends DelayedMember {
   AbstractMemberOverridingImplementation(
-      KernelClassBuilder parent,
-      Declaration abstractMember,
-      Declaration concreteImplementation,
+      ClassBuilder parent,
+      Builder abstractMember,
+      Builder concreteImplementation,
       bool isSetter,
       bool modifyKernel)
-      : super(parent, <Declaration>[concreteImplementation, abstractMember],
+      : super(parent, <Builder>[concreteImplementation, abstractMember],
             isSetter, modifyKernel);
 
-  Declaration get concreteImplementation => declarations[0];
+  Builder get concreteImplementation => declarations[0];
 
-  Declaration get abstractMember => declarations[1];
+  Builder get abstractMember => declarations[1];
 
   Member check(ClassHierarchyBuilder hierarchy) {
     if (!parent.isAbstract && !hierarchy.nodes[parent.cls].hasNoSuchMethod) {
@@ -2423,14 +2401,14 @@ class AbstractMemberOverridingImplementation extends DelayedMember {
   }
 
   @override
-  DelayedMember withParent(KernelClassBuilder parent) {
+  DelayedMember withParent(ClassBuilder parent) {
     return parent == this.parent
         ? this
         : new AbstractMemberOverridingImplementation(parent, abstractMember,
             concreteImplementation, isSetter, modifyKernel);
   }
 
-  static Declaration selectAbstract(Declaration declaration) {
+  static Builder selectAbstract(Builder declaration) {
     if (declaration is AbstractMemberOverridingImplementation) {
       return declaration.abstractMember;
     } else {
@@ -2438,7 +2416,7 @@ class AbstractMemberOverridingImplementation extends DelayedMember {
     }
   }
 
-  static Declaration selectConcrete(Declaration declaration) {
+  static Builder selectConcrete(Builder declaration) {
     if (declaration is AbstractMemberOverridingImplementation) {
       return declaration.concreteImplementation;
     } else {
@@ -2448,7 +2426,7 @@ class AbstractMemberOverridingImplementation extends DelayedMember {
 }
 
 void addDeclarationIfDifferent(
-    Declaration declaration, List<Declaration> declarations) {
+    Builder declaration, List<Builder> declarations) {
   Member target = declaration.target;
   if (target is Procedure) {
     FunctionNode function = target.function;
@@ -2466,12 +2444,12 @@ void addDeclarationIfDifferent(
   declarations.add(declaration);
 }
 
-String fullName(Declaration declaration) {
+String fullName(Builder declaration) {
   String suffix = declaration.isSetter ? "=" : "";
   if (declaration is DelayedMember) {
     return "${declaration.fullNameForErrors}$suffix";
   }
-  Declaration parent = declaration.parent;
+  Builder parent = declaration.parent;
   return parent == null
       ? "${declaration.fullNameForErrors}$suffix"
       : "${parent.fullNameForErrors}.${declaration.fullNameForErrors}$suffix";
@@ -2481,14 +2459,14 @@ int compareNamedParameters(VariableDeclaration a, VariableDeclaration b) {
   return a.name.compareTo(b.name);
 }
 
-bool isAbstract(Declaration declaration) {
+bool isAbstract(Builder declaration) {
   return declaration.target.isAbstract || declaration is InterfaceConflict;
 }
 
 bool inferParameterType(
-    KernelClassBuilder cls,
-    KernelProcedureBuilder member,
-    FormalParameterBuilder<KernelTypeBuilder> parameter,
+    ClassBuilder cls,
+    ProcedureBuilder member,
+    FormalParameterBuilder parameter,
     DartType type,
     bool hadTypesInferred,
     ClassHierarchyBuilder hierarchy) {
@@ -2505,11 +2483,8 @@ bool inferParameterType(
   return result;
 }
 
-void reportCantInferParameterType(
-    KernelClassBuilder cls,
-    MemberBuilder member,
-    FormalParameterBuilder<KernelTypeBuilder> parameter,
-    ClassHierarchyBuilder hierarchy) {
+void reportCantInferParameterType(ClassBuilder cls, MemberBuilder member,
+    FormalParameterBuilder parameter, ClassHierarchyBuilder hierarchy) {
   String name = parameter.name;
   cls.addProblem(
       templateCantInferTypeDueToInconsistentOverrides.withArguments(name),
@@ -2518,8 +2493,8 @@ void reportCantInferParameterType(
       wasHandled: true);
 }
 
-bool inferReturnType(KernelClassBuilder cls, KernelProcedureBuilder member,
-    DartType type, bool hadTypesInferred, ClassHierarchyBuilder hierarchy) {
+bool inferReturnType(ClassBuilder cls, ProcedureBuilder member, DartType type,
+    bool hadTypesInferred, ClassHierarchyBuilder hierarchy) {
   if (type == member.target.function.returnType) return true;
   bool result = true;
   if (hadTypesInferred) {
@@ -2533,8 +2508,8 @@ bool inferReturnType(KernelClassBuilder cls, KernelProcedureBuilder member,
   return result;
 }
 
-void reportCantInferReturnType(KernelClassBuilder cls, MemberBuilder member,
-    ClassHierarchyBuilder hierarchy) {
+void reportCantInferReturnType(
+    ClassBuilder cls, MemberBuilder member, ClassHierarchyBuilder hierarchy) {
   String name = member.fullNameForErrors;
   List<LocatedMessage> context;
   // // TODO(ahe): The following is for debugging, but could be cleaned up and
@@ -2562,7 +2537,7 @@ void reportCantInferReturnType(KernelClassBuilder cls, MemberBuilder member,
   //             superMember.fileUri, superMember.charOffset, name.length));
   //   }
   // }
-  // List<KernelTypeBuilder> directInterfaces = cls.interfaces;
+  // List<TypeBuilder> directInterfaces = cls.interfaces;
   // for (int i = 0; i < directInterfaces.length; i++) {
   //   ClassHierarchyNode supernode =
   //       hierarchy.getNodeFromType(directInterfaces[i]);
@@ -2592,8 +2567,7 @@ void reportCantInferReturnType(KernelClassBuilder cls, MemberBuilder member,
       context: context);
 }
 
-void reportCantInferFieldType(
-    KernelClassBuilder cls, KernelFieldBuilder member) {
+void reportCantInferFieldType(ClassBuilder cls, FieldBuilder member) {
   String name = member.fullNameForErrors;
   cls.addProblem(
       templateCantInferTypeDueToInconsistentOverrides.withArguments(name),
@@ -2602,25 +2576,23 @@ void reportCantInferFieldType(
       wasHandled: true);
 }
 
-KernelClassBuilder getClass(KernelTypeBuilder type) {
-  Declaration declaration = type.declaration;
-  return declaration is KernelClassBuilder ? declaration : null;
+ClassBuilder getClass(TypeBuilder type) {
+  Builder declaration = type.declaration;
+  return declaration is ClassBuilder ? declaration : null;
 }
 
-bool hasExplicitReturnType(Declaration declaration) {
-  assert(
-      declaration is KernelProcedureBuilder || declaration is DillMemberBuilder,
+bool hasExplicitReturnType(Builder declaration) {
+  assert(declaration is ProcedureBuilder || declaration is DillMemberBuilder,
       "${declaration.runtimeType}");
-  return declaration is KernelProcedureBuilder
+  return declaration is ProcedureBuilder
       ? declaration.returnType != null
       : true;
 }
 
-bool hasExplicitlyTypedFormalParameter(Declaration declaration, int index) {
-  assert(
-      declaration is KernelProcedureBuilder || declaration is DillMemberBuilder,
+bool hasExplicitlyTypedFormalParameter(Builder declaration, int index) {
+  assert(declaration is ProcedureBuilder || declaration is DillMemberBuilder,
       "${declaration.runtimeType}");
-  return declaration is KernelProcedureBuilder
+  return declaration is ProcedureBuilder
       ? declaration.formals[index].type != null
       : true;
 }

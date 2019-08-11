@@ -15,7 +15,10 @@ import 'package:kernel/binary/ast_from_binary.dart'
         CanonicalNameSdkError,
         InvalidKernelVersionError;
 
-import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+import 'package:kernel/class_hierarchy.dart'
+    show ClassHierarchy, ClosedWorldClassHierarchy;
+
+import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'package:kernel/kernel.dart'
     show
@@ -32,6 +35,7 @@ import 'package:kernel/kernel.dart'
         ProcedureKind,
         ReturnStatement,
         Source,
+        Supertype,
         TreeNode,
         TypeParameter;
 
@@ -68,7 +72,7 @@ import 'fasta_codes.dart'
 
 import 'hybrid_file_system.dart' show HybridFileSystem;
 
-import 'kernel/kernel_library_builder.dart' show KernelLibraryBuilder;
+import 'kernel/kernel_builder.dart' show ClassHierarchyBuilder;
 
 import 'kernel/kernel_shadow_ast.dart' show VariableDeclarationJudgment;
 
@@ -90,6 +94,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   final Ticker ticker;
 
   final bool outlineOnly;
+  bool trackNeededDillLibraries = false;
+  Set<Library> neededDillLibraries;
 
   Set<Uri> invalidatedUris = new Set<Uri>();
 
@@ -301,6 +307,19 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           uriTranslator);
       userCode.loader.hierarchy = hierarchy;
 
+      if (trackNeededDillLibraries) {
+        // Reset dill loaders and kernel class hierarchy.
+        for (LibraryBuilder builder in dillLoadedData.loader.builders.values) {
+          if (builder is DillLibraryBuilder) {
+            builder.isBuiltAndMarked = false;
+          }
+        }
+
+        if (hierarchy is ClosedWorldClassHierarchy) {
+          hierarchy.resetUsed();
+        }
+      }
+
       for (LibraryBuilder library in reusedLibraries) {
         userCode.loader.builders[library.uri] = library;
         if (library.uri.scheme == "dart" && library.uri.path == "core") {
@@ -324,8 +343,23 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         componentWithDill =
             await userCode.buildComponent(verify: c.options.verify);
       }
+      hierarchy ??= userCode.loader.hierarchy;
 
       recordNonFullComponentForTesting(componentWithDill);
+      if (trackNeededDillLibraries) {
+        // Which dill builders were built?
+        neededDillLibraries = new Set<Library>();
+        for (LibraryBuilder builder in dillLoadedData.loader.builders.values) {
+          if (builder is DillLibraryBuilder) {
+            if (builder.isBuiltAndMarked) {
+              neededDillLibraries.add(builder.library);
+            }
+          }
+        }
+
+        updateNeededDillLibrariesWithHierarchy(
+            hierarchy, userCode.loader.builderHierarchy);
+      }
 
       if (componentWithDill != null) {
         this.invalidatedUris.clear();
@@ -388,6 +422,82 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     });
   }
 
+  @override
+  CoreTypes getCoreTypes() => userCode?.loader?.coreTypes;
+
+  @override
+  ClassHierarchy getClassHierarchy() => userCode?.loader?.hierarchy;
+
+  /// Allows for updating the list of needed libraries.
+  ///
+  /// Useful if a class hierarchy has been used externally.
+  /// Currently there are two different class hierarchies which is unfortunate.
+  /// For now this method allows the 'ClassHierarchyBuilder' to be null.
+  ///
+  /// TODO(jensj,CFE in general): Eventually we should get to a point where we
+  /// only have one class hierarchy.
+  /// TODO(jensj): This could probably be a utility method somewhere instead
+  /// (though handling of the case where all bets are off should probably still
+  /// live locally).
+  void updateNeededDillLibrariesWithHierarchy(
+      ClassHierarchy hierarchy, ClassHierarchyBuilder builderHierarchy) {
+    if (hierarchy is ClosedWorldClassHierarchy && !hierarchy.allBetsOff) {
+      neededDillLibraries ??= new Set<Library>();
+      Set<Class> classes = new Set<Class>();
+      List<Class> worklist = new List<Class>();
+      // Get all classes touched by kernel class hierarchy.
+      List<Class> usedClasses = hierarchy.getUsedClasses();
+      worklist.addAll(usedClasses);
+      classes.addAll(usedClasses);
+
+      // Get all classes touched by fasta class hierarchy.
+      if (builderHierarchy != null) {
+        for (Class c in builderHierarchy.nodes.keys) {
+          if (classes.add(c)) worklist.add(c);
+        }
+      }
+
+      // Get all supers etc.
+      while (worklist.isNotEmpty) {
+        Class c = worklist.removeLast();
+        for (Supertype supertype in c.implementedTypes) {
+          if (classes.add(supertype.classNode)) {
+            worklist.add(supertype.classNode);
+          }
+        }
+        if (c.mixedInType != null) {
+          if (classes.add(c.mixedInType.classNode)) {
+            worklist.add(c.mixedInType.classNode);
+          }
+        }
+        if (c.supertype != null) {
+          if (classes.add(c.supertype.classNode)) {
+            worklist.add(c.supertype.classNode);
+          }
+        }
+      }
+
+      // Add any libraries that was used or was in the "parent-chain" of a
+      // used class.
+      for (Class c in classes) {
+        Library library = c.enclosingLibrary;
+        // Only add if loaded from a dill file.
+        if (dillLoadedData.loader.builders.containsKey(library.importUri)) {
+          neededDillLibraries.add(library);
+        }
+      }
+    } else {
+      // Cannot track in other kernel class hierarchies or
+      // if all bets are off: Add everything.
+      neededDillLibraries = new Set<Library>();
+      for (LibraryBuilder builder in dillLoadedData.loader.builders.values) {
+        if (builder is DillLibraryBuilder) {
+          neededDillLibraries.add(builder.library);
+        }
+      }
+    }
+  }
+
   /// Internal method.
   void invalidateNotKeptUserBuilders(Set<Uri> invalidatedUris) {
     if (modulesToLoad != null && userBuilders != null) {
@@ -405,7 +515,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   }
 
   /// Internal method.
-  Future loadEnsureLoadedComponents(
+  Future<void> loadEnsureLoadedComponents(
       List<LibraryBuilder> reusedLibraries) async {
     if (modulesToLoad != null) {
       bool loadedAnything = false;
@@ -742,12 +852,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         if (!isLegalIdentifier(name)) return null;
       }
 
-      KernelLibraryBuilder debugLibrary = new KernelLibraryBuilder(
-          libraryUri,
-          debugExprUri,
-          userCode.loader,
-          null,
-          library.scope.createNestedScope("expression"));
+      SourceLibraryBuilder debugLibrary = new SourceLibraryBuilder(
+        libraryUri,
+        debugExprUri,
+        userCode.loader,
+        null,
+        scope: library.scope.createNestedScope("expression"),
+        nameOrigin: library.target,
+      );
 
       if (library is DillLibraryBuilder) {
         for (LibraryDependency dependency in library.target.dependencies) {

@@ -465,7 +465,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         docComment(toHtmlVisitor.collectHtml(() {
           toHtmlVisitor.translateHtml(field.html);
         }));
-        writeln('void set ${field.name}(${dartType(field.type)} value) {');
+        writeln('set ${field.name}(${dartType(field.type)} value) {');
         indent(() {
           if (!field.optional) {
             writeln('assert(value != null);');

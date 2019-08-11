@@ -240,7 +240,14 @@ class FlowGraph : public ZoneAllocated {
 
   intptr_t InstructionCount() const;
 
+  // Returns the definition for the object from the constant pool if
+  // one exists, otherwise returns nullptr.
+  ConstantInstr* GetExistingConstant(const Object& object) const;
+
+  // Always returns a definition for the object from the constant pool,
+  // allocating one if it doesn't already exist.
   ConstantInstr* GetConstant(const Object& object);
+
   void AddToGraphInitialDefinitions(Definition* defn);
   void AddToInitialDefinitions(BlockEntryWithInitialDefs* entry,
                                Definition* defn);

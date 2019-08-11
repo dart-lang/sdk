@@ -18,18 +18,18 @@ import self as self;
 import "dart:core" as core;
 
 abstract class C extends core::Object {
-  synthetic constructor •() → self::C
+  synthetic constructor •() → self::C*
     : super core::Object::•()
     ;
 }
-abstract class D<T extends core::Object = dynamic> extends core::Object {
-  constructor •(self::D::T t) → self::D<self::D::T>
+abstract class D<T extends core::Object* = dynamic> extends core::Object {
+  constructor •(self::D::T* t) → self::D<self::D::T*>*
     : super core::Object::•()
     ;
 }
 static method test() → void {
   dynamic x = throw new core::AbstractClassInstantiationError::•("C");
-  dynamic y = let final core::Object #t1 = 1 in throw new core::AbstractClassInstantiationError::•("D");
-  self::D<core::List<core::int>> z = let final core::Object #t2 = <dynamic>[] in throw new core::AbstractClassInstantiationError::•("D");
+  dynamic y = let final core::Object* #t1 = 1 in throw new core::AbstractClassInstantiationError::•("D");
+  self::D<core::List<core::int*>*>* z = let final core::Object* #t2 = <dynamic>[] in throw new core::AbstractClassInstantiationError::•("D");
 }
 static method main() → dynamic {}

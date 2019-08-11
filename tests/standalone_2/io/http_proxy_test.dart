@@ -222,8 +222,8 @@ class ProxyServer {
           Socket.connect(tmp[0], int.parse(tmp[1])).then((socket) {
             request.response.reasonPhrase = "Connection established";
             request.response.detachSocket().then((detached) {
-              socket.pipe(detached);
-              detached.pipe(socket);
+              socket.cast<List<int>>().pipe(detached);
+              detached.cast<List<int>>().pipe(socket);
             });
           });
         } else {

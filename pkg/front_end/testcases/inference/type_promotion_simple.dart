@@ -8,6 +8,6 @@ library test;
 main() {
   num n = null;
   if (n is int) {
-    var /*@type=int*/ i = /*@promotedType=int*/ n;
+    var /*@ type=int* */ i = /*@ promotedType=int* */ n;
   }
 }

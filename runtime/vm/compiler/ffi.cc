@@ -52,6 +52,75 @@ size_t ElementSizeInBytes(intptr_t class_id) {
   return element_size_table[index];
 }
 
+// See pkg/vm/lib/transformations/ffi.dart, which makes these assumptions.
+struct AbiAlignmentDouble {
+  int8_t use_one_byte;
+  double d;
+};
+struct AbiAlignmentUint64 {
+  int8_t use_one_byte;
+  uint64_t i;
+};
+
+#if defined(HOST_ARCH_X64) || defined(HOST_ARCH_ARM64)
+static_assert(offsetof(AbiAlignmentDouble, d) == 8,
+              "FFI transformation alignment");
+static_assert(offsetof(AbiAlignmentUint64, i) == 8,
+              "FFI transformation alignment");
+#elif (defined(HOST_ARCH_IA32) &&                                              \
+       (defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS) ||                    \
+        defined(HOST_OS_ANDROID))) ||                                          \
+    (defined(HOST_ARCH_ARM) && defined(HOST_OS_IOS))
+static_assert(offsetof(AbiAlignmentDouble, d) == 4,
+              "FFI transformation alignment");
+static_assert(offsetof(AbiAlignmentUint64, i) == 4,
+              "FFI transformation alignment");
+#elif defined(HOST_ARCH_IA32) && defined(HOST_OS_WINDOWS) ||                   \
+    defined(HOST_ARCH_ARM)
+static_assert(offsetof(AbiAlignmentDouble, d) == 8,
+              "FFI transformation alignment");
+static_assert(offsetof(AbiAlignmentUint64, i) == 8,
+              "FFI transformation alignment");
+#else
+#error "Unknown platform. Please add alignment requirements for ABI."
+#endif
+
+#if defined(TARGET_ARCH_DBC)
+static Abi HostAbi() {
+#if defined(HOST_ARCH_X64) || defined(HOST_ARCH_ARM64)
+  return Abi::kWordSize64;
+#elif (defined(HOST_ARCH_IA32) &&                                              \
+       (defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS) ||                    \
+        defined(HOST_OS_ANDROID))) ||                                          \
+    (defined(HOST_ARCH_ARM) && defined(HOST_OS_IOS))
+  return Abi::kWordSize32Align32;
+#elif defined(HOST_ARCH_IA32) && defined(HOST_OS_WINDOWS) ||                   \
+    defined(HOST_ARCH_ARM)
+  return Abi::kWordSize32Align64;
+#else
+#error "Unknown platform. Please add alignment requirements for ABI."
+#endif
+}
+#endif  // defined(TARGET_ARCH_DBC)
+
+Abi TargetAbi() {
+#if defined(TARGET_ARCH_DBC)
+  return HostAbi();
+#elif defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
+  return Abi::kWordSize64;
+#elif (defined(TARGET_ARCH_IA32) &&                                            \
+       (defined(TARGET_OS_LINUX) || defined(TARGET_OS_MACOS) ||                \
+        defined(TARGET_OS_ANDROID))) ||                                        \
+    (defined(TARGET_ARCH_ARM) && defined(TARGET_OS_IOS))
+  return Abi::kWordSize32Align32;
+#elif defined(TARGET_ARCH_IA32) && defined(TARGET_OS_WINDOWS) ||               \
+    defined(TARGET_ARCH_ARM)
+  return Abi::kWordSize32Align64;
+#else
+#error "Unknown platform. Please add alignment requirements for ABI."
+#endif
+}
+
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
 Representation TypeRepresentation(const AbstractType& result_type) {
@@ -184,10 +253,9 @@ class ArgumentAllocator : public ValueObject {
       case kUnboxedInt64:
       case kUnboxedUint32:
       case kUnboxedInt32: {
-        Location result =
-            rep == kUnboxedInt64 && compiler::target::kWordSize == 4
-                ? AllocateAlignedRegisterPair()
-                : AllocateCpuRegister();
+        Location result = rep == kUnboxedInt64 && target::kWordSize == 4
+                              ? AllocateAlignedRegisterPair()
+                              : AllocateCpuRegister();
         if (!result.IsUnallocated()) return result;
         break;
       }
@@ -196,7 +264,7 @@ class ArgumentAllocator : public ValueObject {
     }
 
     // Argument must be spilled.
-    if (rep == kUnboxedInt64 && compiler::target::kWordSize == 4) {
+    if (rep == kUnboxedInt64 && target::kWordSize == 4) {
       return AllocateAlignedStackSlots(rep);
     } else if (rep == kUnboxedDouble) {
       // By convention, we always use DoubleStackSlot for doubles, even on
@@ -217,15 +285,14 @@ class ArgumentAllocator : public ValueObject {
   Location AllocateDoubleStackSlot() {
     const Location result = Location::DoubleStackSlot(
         stack_height_in_slots, CallingConventions::kStackPointerRegister);
-    stack_height_in_slots += 8 / compiler::target::kWordSize;
+    stack_height_in_slots += 8 / target::kWordSize;
     return result;
   }
 
   // Allocates a pair of stack slots where the first stack slot is aligned to an
   // 8-byte boundary, if necessary.
   Location AllocateAlignedStackSlots(Representation rep) {
-    if (CallingConventions::kAlignArguments &&
-        compiler::target::kWordSize == 4) {
+    if (CallingConventions::kAlignArguments && target::kWordSize == 4) {
       stack_height_in_slots += stack_height_in_slots % 2;
     }
 
@@ -314,7 +381,7 @@ void CallbackArgumentTranslator::AllocateArgument(Location arg) {
   if (arg.IsRegister()) {
     argument_slots_required_++;
   } else {
-    argument_slots_required_ += 8 / compiler::target::kWordSize;
+    argument_slots_required_ += 8 / target::kWordSize;
   }
 }
 
@@ -345,7 +412,7 @@ Location CallbackArgumentTranslator::TranslateArgument(Location arg) {
   ASSERT(arg.IsFpuRegister());
   const Location result =
       Location::DoubleStackSlot(argument_slots_used_, SPREG);
-  argument_slots_used_ += 8 / compiler::target::kWordSize;
+  argument_slots_used_ += 8 / target::kWordSize;
   return result;
 }
 
@@ -376,7 +443,7 @@ ZoneGrowableArray<Location>* ArgumentLocations(
   return ArgumentLocationsBase<dart::CallingConventions, Location,
                                dart::Register, dart::FpuRegister>(arg_reps);
 #else
-  intptr_t next_free_register = compiler::ffi::kFirstArgumentRegister;
+  intptr_t next_free_register = ffi::kFirstArgumentRegister;
   intptr_t num_arguments = arg_reps.length();
   auto result = new ZoneGrowableArray<Location>(num_arguments);
   for (intptr_t i = 0; i < num_arguments; i++) {
@@ -413,7 +480,7 @@ Location ResultLocation(Representation result_rep) {
     case kUnboxedUint32:
       return Location::RegisterLocation(CallingConventions::kReturnReg);
     case kUnboxedInt64:
-      if (compiler::target::kWordSize == 4) {
+      if (target::kWordSize == 4) {
         return Location::Pair(
             Location::RegisterLocation(CallingConventions::kReturnReg),
             Location::RegisterLocation(CallingConventions::kSecondReturnReg));
@@ -478,7 +545,7 @@ intptr_t TemplateNumStackSlots(const ZoneGrowableArray<Location>& locations) {
     if (locations.At(i).IsStackSlot()) {
       height = locations.At(i).stack_index() + 1;
     } else if (locations.At(i).IsDoubleStackSlot()) {
-      height = locations.At(i).stack_index() + 8 / compiler::target::kWordSize;
+      height = locations.At(i).stack_index() + 8 / target::kWordSize;
     } else if (locations.At(i).IsPairLocation()) {
       const Location first = locations.At(i).AsPairLocation()->At(0);
       const Location second = locations.At(i).AsPairLocation()->At(1);
@@ -578,7 +645,7 @@ bool IsAsFunctionInternal(Zone* zone, Isolate* isolate, const Function& func) {
       Object::Handle(zone, isolate->object_store()->ffi_as_function_internal());
   if (asFunctionInternal.raw() == Object::null()) {
     // Cache the reference.
-    Library& ffi =
+    const Library& ffi =
         Library::Handle(zone, isolate->object_store()->ffi_library());
     asFunctionInternal =
         ffi.LookupFunctionAllowPrivate(Symbols::AsFunctionInternal());

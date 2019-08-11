@@ -2,8 +2,8 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-static field core::int x = 0;
-static field core::int y = 0;
+static field core::int* x = 0;
+static field core::int* y = 0;
 static final field dynamic z = 42;
 static method test1() → dynamic {
   dynamic a = self::x;

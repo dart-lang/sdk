@@ -577,7 +577,7 @@ mixin UnitResynthesizerMixin implements UnitResynthesizer {
       element = infoElement.unnamedConstructor;
     }
     if (element != null && info.hasTypeParameters) {
-      return new ConstructorMember(element, classType);
+      return ConstructorMember.from(element, classType);
     }
     return element;
   }
@@ -1559,7 +1559,15 @@ class _UnitResynthesizer extends UnitResynthesizer with UnitResynthesizerMixin {
         }
         switch (linkedReference.kind) {
           case ReferenceKind.classOrEnum:
-            element = new ClassElementHandle(summaryResynthesizer, location);
+            if (locationComponents.length == 3 &&
+                locationComponents[0] == 'dart:core' &&
+                locationComponents[1] == 'dart:core' &&
+                locationComponents[2] == 'Never') {
+              element = NeverElementImpl.instance;
+              type = BottomTypeImpl.instance;
+            } else {
+              element = new ClassElementHandle(summaryResynthesizer, location);
+            }
             isDeclarableType = true;
             break;
           case ReferenceKind.constructor:

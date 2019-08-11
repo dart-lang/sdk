@@ -76,7 +76,7 @@
  * current isolate may be NULL, in which case no isolate is ready to
  * execute. Most of the Dart apis require there to be a current
  * isolate in order to function without error. The current isolate is
- * set by any call to Dart_CreateIsolate or Dart_EnterIsolate.
+ * set by any call to Dart_CreateIsolateGroup or Dart_EnterIsolate.
  */
 typedef struct _Dart_Isolate* Dart_Isolate;
 
@@ -541,7 +541,7 @@ DART_EXPORT void Dart_IsolateFlagsInitialize(Dart_IsolateFlags* flags);
  *
  * This callback, provided by the embedder, is called when the VM
  * needs to create an isolate. The callback should create an isolate
- * by calling Dart_CreateIsolate and load any scripts required for
+ * by calling Dart_CreateIsolateGroup and load any scripts required for
  * execution.
  *
  * This callback may be called on a different thread than the one
@@ -550,7 +550,7 @@ DART_EXPORT void Dart_IsolateFlagsInitialize(Dart_IsolateFlags* flags);
  * When the function returns NULL, it is the responsibility of this
  * function to ensure that Dart_ShutdownIsolate has been called if
  * required (for example, if the isolate was created successfully by
- * Dart_CreateIsolate() but the root library fails to load
+ * Dart_CreateIsolateGroup() but the root library fails to load
  * successfully, then the function should call Dart_ShutdownIsolate
  * before returning).
  *
@@ -560,7 +560,7 @@ DART_EXPORT void Dart_IsolateFlagsInitialize(Dart_IsolateFlags* flags);
  * freed.
  *
  * \param script_uri The uri of the main source file or snapshot to load.
- *   Either the URI of the parent isolate set in Dart_CreateIsolate for
+ *   Either the URI of the parent isolate set in Dart_CreateIsolateGroup for
  *   Isolate.spawn, or the argument to Isolate.spawnUri canonicalized by the
  *   library tag handler of the parent isolate.
  *   The callback is responsible for loading the program by a call to
@@ -582,20 +582,54 @@ DART_EXPORT void Dart_IsolateFlagsInitialize(Dart_IsolateFlags* flags);
  *   from the spawning isolate or passed as parameters when spawning the
  *   isolate from Dart code.
  * \param callback_data The callback data which was passed to the
- *   parent isolate when it was created by calling Dart_CreateIsolate().
+ *   parent isolate when it was created by calling Dart_CreateIsolateGroup().
  * \param error A structure into which the embedder can place a
  *   C string containing an error message in the case of failures.
  *
  * \return The embedder returns NULL if the creation and
  *   initialization was not successful and the isolate if successful.
  */
-typedef Dart_Isolate (*Dart_IsolateCreateCallback)(const char* script_uri,
-                                                   const char* main,
-                                                   const char* package_root,
-                                                   const char* package_config,
-                                                   Dart_IsolateFlags* flags,
-                                                   void* callback_data,
-                                                   char** error);
+typedef Dart_Isolate (*Dart_IsolateGroupCreateCallback)(
+    const char* script_uri,
+    const char* main,
+    const char* package_root,
+    const char* package_config,
+    Dart_IsolateFlags* flags,
+    void* callback_data,
+    char** error);
+
+/**
+ * An isolate initialization callback function.
+ *
+ * This callback, provided by the embedder, is called when the VM has created an
+ * isolate within an existing isolate group (i.e. from the same source as an
+ * existing isolate).
+ *
+ * The callback should setup native resolvers and might want to set a custom
+ * message handler via [Dart_SetMessageNotifyCallback] and mark the isolate as
+ * runnable.
+ *
+ * This callback may be called on a different thread than the one
+ * running the parent isolate.
+ *
+ * When the function returns `false`, it is the responsibility of this
+ * function to ensure that `Dart_ShutdownIsolate` has been called.
+ *
+ * When the function returns `false`, the function should set *error to
+ * a malloc-allocated buffer containing a useful error message.  The
+ * caller of this function (the VM) will make sure that the buffer is
+ * freed.
+ *
+ * \param child_isolate_data The callback data to associate with the new
+ *        child isolate.
+ * \param error A structure into which the embedder can place a
+ *   C string containing an error message in the case the initialization fails.
+ *
+ * \return The embedder returns true if the initialization was successful and
+ *         false otherwise (in which case the VM will terminate the isolate).
+ */
+typedef bool (*Dart_InitializeIsolateCallback)(void** child_isolate_data,
+                                               char** error);
 
 /**
  * An isolate unhandled exception callback function.
@@ -614,11 +648,13 @@ typedef void (*Dart_IsolateUnhandledExceptionCallback)(Dart_Handle error);
  * This function should be used to dispose of native resources that
  * are allocated to an isolate in order to avoid leaks.
  *
- * \param callback_data The same callback data which was passed to the
- *   isolate when it was created.
- *
+ * \param isolate_group_data The same callback data which was passed to the
+ *   isolate group when it was created.
+ * \param isolate_data The same callback data which was passed to the isolate
+ *   when it was created.
  */
-typedef void (*Dart_IsolateShutdownCallback)(void* callback_data);
+typedef void (*Dart_IsolateShutdownCallback)(void* isolate_group_data,
+                                             void* isolate_data);
 
 /**
  * An isolate cleanup callback function.
@@ -630,11 +666,28 @@ typedef void (*Dart_IsolateShutdownCallback)(void* callback_data);
  * This function should be used to dispose of native resources that
  * are allocated to an isolate in order to avoid leaks.
  *
- * \param callback_data The same callback data which was passed to the
- *   isolate when it was created.
+ * \param isolate_group_data The same callback data which was passed to the
+ *   isolate group when it was created.
+ * \param isolate_data The same callback data which was passed to the isolate
+ *   when it was created.
+ */
+typedef void (*Dart_IsolateCleanupCallback)(void* isolate_group_data,
+                                            void* isolate_data);
+
+/**
+ * An isolate group cleanup callback function.
+ *
+ * This callback, provided by the embedder, is called after the vm
+ * shuts down an isolate group.
+ *
+ * This function should be used to dispose of native resources that
+ * are allocated to an isolate in order to avoid leaks.
+ *
+ * \param isolate_group_data The same callback data which was passed to the
+ *   isolate group when it was created.
  *
  */
-typedef void (*Dart_IsolateCleanupCallback)(void* callback_data);
+typedef void (*Dart_IsolateGroupCleanupCallback)(void* isolate_group_data);
 
 /**
  * A thread death callback function.
@@ -739,12 +792,17 @@ typedef struct Dart_CodeObserver {
  * \param instructions_snapshot A buffer containing a snapshot of precompiled
  *   instructions, or NULL if no snapshot is provided. If provided, the buffer
  *   must remain valid until Dart_Cleanup returns.
- * \param create A function to be called during isolate creation.
- *   See Dart_IsolateCreateCallback.
- * \param shutdown A function to be called when an isolate is shutdown.
+ * \param initialize_isolate A function to be called during isolate
+ *   initialization inside an existing isolate group.
+ *   See Dart_InitializeIsolateCallback.
+ * \param create_group A function to be called during isolate group creation.
+ *   See Dart_IsolateGroupCreateCallback.
+ * \param shutdown A function to be called right before an isolate is shutdown.
  *   See Dart_IsolateShutdownCallback.
- * \param cleanup A function to be called after an isolate is shutdown.
+ * \param cleanup A function to be called after an isolate was shutdown.
  *   See Dart_IsolateCleanupCallback.
+ * \param cleanup_group A function to be called after an isolate group is shutdown.
+ *   See Dart_IsolateGroupCleanupCallback.
  * \param get_service_assets A function to be called by the service isolate when
  *    it requires the vmservice assets archive.
  *    See Dart_GetVMServiceAssetsArchive.
@@ -755,9 +813,11 @@ typedef struct {
   int32_t version;
   const uint8_t* vm_snapshot_data;
   const uint8_t* vm_snapshot_instructions;
-  Dart_IsolateCreateCallback create;
-  Dart_IsolateShutdownCallback shutdown;
-  Dart_IsolateCleanupCallback cleanup;
+  Dart_IsolateGroupCreateCallback create_group;
+  Dart_InitializeIsolateCallback initialize_isolate;
+  Dart_IsolateShutdownCallback shutdown_isolate;
+  Dart_IsolateCleanupCallback cleanup_isolate;
+  Dart_IsolateGroupCleanupCallback cleanup_group;
   Dart_ThreadExitCallback thread_exit;
   Dart_FileOpenCallback file_open;
   Dart_FileReadCallback file_read;
@@ -824,7 +884,7 @@ DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name);
  * Requires there to be no current isolate.
  *
  * \param script_uri The main source file or snapshot this isolate will load.
- *   The VM will provide this URI to the Dart_IsolateCreateCallback when a child
+ *   The VM will provide this URI to the Dart_IsolateGroupCreateCallback when a child
  *   isolate is created by Isolate.spawn. The embedder should use a URI that
  *   allows it to load the same program into such a child isolate.
  * \param name A short name for the isolate to improve debugging messages.
@@ -835,7 +895,7 @@ DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name);
  *   remain valid until the isolate shuts down.
  * \param flags Pointer to VM specific flags or NULL for default flags.
  * \param callback_data Embedder data.  This data will be passed to
- *   the Dart_IsolateCreateCallback when new isolates are spawned from
+ *   the Dart_IsolateGroupCreateCallback when new isolates are spawned from
  *   this parent isolate.
  * \param error Returns NULL if creation is successful, an error message
  *   otherwise. The caller is responsible for calling free() on the error
@@ -844,15 +904,16 @@ DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name);
  * \return The new isolate on success, or NULL if isolate creation failed.
  */
 DART_EXPORT Dart_Isolate
-Dart_CreateIsolate(const char* script_uri,
-                   const char* name,
-                   const uint8_t* isolate_snapshot_data,
-                   const uint8_t* isolate_snapshot_instructions,
-                   const uint8_t* shared_data,
-                   const uint8_t* shared_instructions,
-                   Dart_IsolateFlags* flags,
-                   void* callback_data,
-                   char** error);
+Dart_CreateIsolateGroup(const char* script_uri,
+                        const char* name,
+                        const uint8_t* isolate_snapshot_data,
+                        const uint8_t* isolate_snapshot_instructions,
+                        const uint8_t* shared_data,
+                        const uint8_t* shared_instructions,
+                        Dart_IsolateFlags* flags,
+                        void* isolate_group_data,
+                        void* isolate_data,
+                        char** error);
 /* TODO(turnidge): Document behavior when there is already a current
  * isolate. */
 
@@ -863,7 +924,7 @@ Dart_CreateIsolate(const char* script_uri,
  * Requires there to be no current isolate.
  *
  * \param script_uri The main source file or snapshot this isolate will load.
- *   The VM will provide this URI to the Dart_IsolateCreateCallback when a child
+ *   The VM will provide this URI to the Dart_IsolateGroupCreateCallback when a child
  *   isolate is created by Isolate.spawn. The embedder should use a URI that
  *   allows it to load the same program into such a child isolate.
  * \param name A short name for the isolate to improve debugging messages.
@@ -873,7 +934,7 @@ Dart_CreateIsolate(const char* script_uri,
  *   remain valid until isolate shutdown.
  * \param flags Pointer to VM specific flags or NULL for default flags.
  * \param callback_data Embedder data.  This data will be passed to
- *   the Dart_IsolateCreateCallback when new isolates are spawned from
+ *   the Dart_IsolateGroupCreateCallback when new isolates are spawned from
  *   this parent isolate.
  * \param error Returns NULL if creation is successful, an error message
  *   otherwise. The caller is responsible for calling free() on the error
@@ -882,13 +943,14 @@ Dart_CreateIsolate(const char* script_uri,
  * \return The new isolate on success, or NULL if isolate creation failed.
  */
 DART_EXPORT Dart_Isolate
-Dart_CreateIsolateFromKernel(const char* script_uri,
-                             const char* name,
-                             const uint8_t* kernel_buffer,
-                             intptr_t kernel_buffer_size,
-                             Dart_IsolateFlags* flags,
-                             void* callback_data,
-                             char** error);
+Dart_CreateIsolateGroupFromKernel(const char* script_uri,
+                                  const char* name,
+                                  const uint8_t* kernel_buffer,
+                                  intptr_t kernel_buffer_size,
+                                  Dart_IsolateFlags* flags,
+                                  void* isolate_group_data,
+                                  void* isolate_data,
+                                  char** error);
 /**
  * Shuts down the current isolate. After this call, the current isolate is NULL.
  * Any current scopes created by Dart_EnterScope will be exited. Invokes the
@@ -906,18 +968,30 @@ DART_EXPORT void Dart_ShutdownIsolate();
 DART_EXPORT Dart_Isolate Dart_CurrentIsolate();
 
 /**
- * Returns the callback data associated with the current Isolate. This data was
- * passed to the isolate when it was created.
+ * Returns the callback data associated with the current isolate. This
+ * data was set when the isolate got created or initialized.
  */
 DART_EXPORT void* Dart_CurrentIsolateData();
 
 /**
- * Returns the callback data associated with the specified Isolate. This data
- * was passed to the isolate when it was created.
- * The embedder is responsible for ensuring the consistency of this data
- * with respect to the lifecycle of an Isolate.
+ * Returns the callback data associated with the given isolate. This
+ * data was set when the isolate got created or initialized.
  */
 DART_EXPORT void* Dart_IsolateData(Dart_Isolate isolate);
+
+/**
+ * Returns the callback data associated with the current isolate group. This
+ * data was passed to the isolate group when it was created.
+ */
+DART_EXPORT void* Dart_CurrentIsolateGroupData();
+
+/**
+ * Returns the callback data associated with the specified isolate group. This
+ * data was passed to the isolate when it was created.
+ * The embedder is responsible for ensuring the consistency of this data
+ * with respect to the lifecycle of an isolate group.
+ */
+DART_EXPORT void* Dart_IsolateGroupData(Dart_Isolate isolate);
 
 /**
  * Returns the debugging name for the current isolate.
@@ -942,6 +1016,20 @@ DART_EXPORT const char* Dart_IsolateServiceId(Dart_Isolate isolate);
  * the same isolate at once.
  */
 DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate);
+
+/**
+ * Kills the given isolate.
+ *
+ * This function has the same effect as dart:isolate's
+ * Isolate.kill(priority:immediate).
+ * It can interrupt ordinary Dart code but not native code. If the isolate is
+ * in the middle of a long running native function, the isolate will not be
+ * killed until control returns to Dart.
+ *
+ * Does not require a current isolate. It is safe to kill the current isolate if
+ * there is one.
+ */
+DART_EXPORT void Dart_KillIsolate(Dart_Isolate isolate);
 
 /**
  * Notifies the VM that the embedder expects to be idle until |deadline|. The VM
@@ -2514,9 +2602,9 @@ DART_EXPORT Dart_Handle Dart_SetNativeInstanceField(Dart_Handle obj,
 typedef struct _Dart_NativeArguments* Dart_NativeArguments;
 
 /**
- * Extracts current isolate data from the native arguments structure.
+ * Extracts current isolate group data from the native arguments structure.
  */
-DART_EXPORT void* Dart_GetNativeIsolateData(Dart_NativeArguments args);
+DART_EXPORT void* Dart_GetNativeIsolateGroupData(Dart_NativeArguments args);
 
 typedef enum {
   Dart_NativeArgument_kBool = 0,
@@ -2918,7 +3006,7 @@ DART_EXPORT Dart_Handle Dart_DefaultCanonicalizeUrl(Dart_Handle base_url,
  * Requires there to be no current root library.
  *
  * \param buffer A buffer which contains a kernel binary (see
- *     pkg/kernel/binary.md). Must remain valid until isolate shutdown.
+ *     pkg/kernel/binary.md). Must remain valid until isolate group shutdown.
  * \param buffer_size Length of the passed in buffer.
  *
  * \return A handle to the root library, or an error.
@@ -3288,7 +3376,7 @@ typedef void (*Dart_StreamingWriteCallback)(void* callback_data,
  *  Running this snapshot requires a VM compiled with DART_PRECOMPILED_SNAPSHOT.
  *  The kDartVmSnapshotData and kDartVmSnapshotInstructions should be passed to
  *  Dart_Initialize. The kDartIsolateSnapshotData and
- *  kDartIsolateSnapshotInstructions should be passed to Dart_CreateIsolate.
+ *  kDartIsolateSnapshotInstructions should be passed to Dart_CreateIsolateGroup.
  *
  *  The callback will be invoked one or more times to provide the assembly code.
  *
@@ -3364,7 +3452,7 @@ DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle Dart_SortClasses();
  *  startup and quicker warmup in a subsequent process.
  *
  *  Outputs a snapshot in two pieces. The pieces should be passed to
- *  Dart_CreateIsolate in a VM using the same VM snapshot pieces used in the
+ *  Dart_CreateIsolateGroup in a VM using the same VM snapshot pieces used in the
  *  current VM. The instructions piece must be loaded with read and execute
  *  permissions; the data piece may be loaded as read-only.
  *

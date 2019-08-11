@@ -236,7 +236,8 @@ generateKernel(Uri entryUri,
     ..legacyMode = legacyMode
     ..target = createTarget(isFlutter: false, legacyMode: legacyMode)
     ..packagesFileUri = Uri.base.resolve('.packages')
-    ..compileSdk = compileSdk;
+    ..compileSdk = compileSdk
+    ..environmentDefines = const {};
   if (!compileSdk) {
     // TODO(sigmund): fix this: this is broken since the change to move .dill
     // files out of the patched_sdk folder. It is not failing anywhere because
@@ -244,7 +245,7 @@ generateKernel(Uri entryUri,
     options.sdkSummary = sdkRoot.resolve('outline.dill');
   }
 
-  var program = await kernelForComponent([entryUri], options);
+  var program = await kernelForModule([entryUri], options);
 
   timer.stop();
   var name = 'kernel_gen_e2e${compileSdk ? "" : "_sum"}';

@@ -38,11 +38,13 @@ testAll() {
   Expect.isTrue(foo_int_num.FooString() is Foo<int, String>);
 
   var foo_raw = new Foo();
-  Expect.isTrue(foo_raw is Foo<int, num>);
-  Expect.isTrue(foo_raw is Foo<int, String>);
+  Expect.isTrue(foo_raw is! Foo<int, num>);
+  Expect.isTrue(foo_raw is! Foo<int, String>);
+  Expect.isTrue(foo_raw is Foo<dynamic, dynamic>);
   // foo_raw.FooString() returns a Foo<dynamic, String>
   Expect.isTrue(foo_raw.FooString() is! Foo<int, num>);
-  Expect.isTrue(foo_raw.FooString() is Foo<int, String>);
+  Expect.isTrue(foo_raw.FooString() is! Foo<int, String>);
+  Expect.isTrue(foo_raw.FooString() is Foo<dynamic, String>);
 
   var moo_int_num = new Moo<int, num>();
   Expect.isTrue(moo_int_num is Moo<int, num>);
@@ -52,11 +54,13 @@ testAll() {
   Expect.isTrue(moo_int_num.MooString() is Moo<int, String>);
 
   var moo_raw = new Moo();
-  Expect.isTrue(moo_raw is Moo<int, num>);
-  Expect.isTrue(moo_raw is Moo<int, String>);
+  Expect.isTrue(moo_raw is! Moo<int, num>);
+  Expect.isTrue(moo_raw is! Moo<int, String>);
+  Expect.isTrue(moo_raw is Moo<dynamic, dynamic>);
   // moo_raw.MooString() returns a Moo<dynamic, String>
   Expect.isTrue(moo_raw.MooString() is! Moo<int, num>);
-  Expect.isTrue(moo_raw.MooString() is Moo<int, String>);
+  Expect.isTrue(moo_raw.MooString() is! Moo<int, String>);
+  Expect.isTrue(moo_raw.MooString() is Moo<dynamic, String>);
 }
 
 main() {

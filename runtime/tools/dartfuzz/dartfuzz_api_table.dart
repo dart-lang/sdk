@@ -20,6 +20,7 @@
 ///   i int (small)
 ///   D double
 ///   S String
+///   s String (small)
 ///   L List<int>
 ///   X Set<int>
 ///   M Map<int, String>
@@ -45,11 +46,6 @@ class DartLib {
     DartLib('endsWith', 'SS'),
     DartLib('isEmpty', 'Sv'),
     DartLib('isNotEmpty', 'Sv'),
-    DartLib('FileSystemEntity.identicalSync', 'VSS'),
-    DartLib('FileSystemEntity.isLinkSync', 'VS'),
-    DartLib('FileSystemEntity.isFileSync', 'VS'),
-    DartLib('FileSystemEntity.isDirectorySync', 'VS'),
-    DartLib('FileSystemEntity.isWatchSupported', 'Vv'),
     DartLib('SecurityContext.alpnSupported', 'Vv'),
     DartLib('NetworkInterface.listSupported', 'Vv'),
   ];
@@ -157,17 +153,6 @@ class DartLib {
     DartLib('ZLibOption.STRATEGY_FIXED', 'Vv'),
     DartLib('ZLibOption.strategyDefault', 'Vv'),
     DartLib('ZLibOption.STRATEGY_DEFAULT', 'Vv'),
-    DartLib('FileSystemEvent.create', 'Vv'),
-    DartLib('FileSystemEvent.CREATE', 'Vv'),
-    DartLib('FileSystemEvent.modify', 'Vv'),
-    DartLib('FileSystemEvent.MODIFY', 'Vv'),
-    DartLib('FileSystemEvent.delete', 'Vv'),
-    DartLib('FileSystemEvent.DELETE', 'Vv'),
-    DartLib('FileSystemEvent.move', 'Vv'),
-    DartLib('FileSystemEvent.MOVE', 'Vv'),
-    DartLib('FileSystemEvent.all', 'Vv'),
-    DartLib('FileSystemEvent.ALL', 'Vv'),
-    DartLib('exitCode', 'Vv'),
     DartLib('RawSocketOption.levelSocket', 'Vv'),
     DartLib('RawSocketOption.levelIPv4', 'Vv'),
     DartLib('RawSocketOption.IPv4MulticastInterface', 'Vv'),
@@ -773,8 +758,8 @@ class DartLib {
     DartLib('trim', 'SV'),
     DartLib('trimLeft', 'SV'),
     DartLib('trimRight', 'SV'),
-    DartLib('padLeft', 'SiS'),
-    DartLib('padRight', 'SiS'),
+    DartLib('padLeft', 'Sis'),
+    DartLib('padRight', 'Sis'),
     DartLib('replaceRange', 'SIIS'),
     DartLib('toLowerCase', 'SV'),
     DartLib('toUpperCase', 'SV'),
@@ -784,7 +769,6 @@ class DartLib {
     DartLib('Uri.decodeQueryComponent', 'VS'),
     DartLib('Uri.encodeFull', 'VS'),
     DartLib('Uri.decodeFull', 'VS'),
-    DartLib('FileSystemEntity.parentOf', 'VS'),
   ];
   static const listLibs = [
     DartLib('List.filled', 'ViI'),

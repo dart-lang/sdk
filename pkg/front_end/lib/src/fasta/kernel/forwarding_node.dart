@@ -32,25 +32,25 @@ import "package:kernel/type_algebra.dart" show Substitution;
 import "../problems.dart" show unhandled;
 
 import "../type_inference/type_inference_engine.dart"
-    show IncludesTypeParametersCovariantly;
+    show IncludesTypeParametersNonCovariantly, Variance;
 
 import "../type_inference/type_inferrer.dart" show getNamedFormal;
 
 import "kernel_builder.dart"
-    show ClassHierarchyBuilder, Declaration, DelayedMember, KernelClassBuilder;
+    show ClassHierarchyBuilder, Builder, DelayedMember, ClassBuilder;
 
 class ForwardingNode {
   final ClassHierarchyBuilder hierarchy;
 
-  final KernelClassBuilder parent;
+  final ClassBuilder parent;
 
-  final Declaration combinedMemberSignatureResult;
+  final Builder combinedMemberSignatureResult;
 
   final ProcedureKind kind;
 
   /// A list containing the directly implemented and directly inherited
   /// procedures of the class in question.
-  final List<Declaration> _candidates;
+  final List<Builder> _candidates;
 
   ForwardingNode(this.hierarchy, this.parent,
       this.combinedMemberSignatureResult, this._candidates, this.kind);
@@ -111,11 +111,15 @@ class ForwardingNode {
       isImplCreated = true;
     }
 
-    IncludesTypeParametersCovariantly needsCheckVisitor = enclosingClass
-            .typeParameters.isEmpty
-        ? null
-        // TODO(ahe): It may be necessary to cache this object.
-        : new IncludesTypeParametersCovariantly(enclosingClass.typeParameters);
+    IncludesTypeParametersNonCovariantly needsCheckVisitor =
+        enclosingClass.typeParameters.isEmpty
+            ? null
+            // TODO(ahe): It may be necessary to cache this object.
+            : new IncludesTypeParametersNonCovariantly(
+                enclosingClass.typeParameters,
+                // We are checking the parameter types and these are in a
+                // contravariant position.
+                initialVariance: Variance.contravariant);
     bool needsCheck(DartType type) => needsCheckVisitor == null
         ? false
         : substitution.substituteType(type).accept(needsCheckVisitor);
@@ -351,7 +355,7 @@ class ForwardingNode {
 
   /// Returns the [i]th element of [_candidates], finalizing it if necessary.
   Member getCandidateAt(int i) {
-    Declaration candidate = _candidates[i];
+    Builder candidate = _candidates[i];
     assert(candidate is! DelayedMember);
     return candidate.target;
   }

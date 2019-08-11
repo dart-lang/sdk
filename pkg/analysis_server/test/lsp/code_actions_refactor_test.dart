@@ -6,8 +6,7 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../src/utilities/flutter_util.dart' as flutter;
-import '../src/utilities/meta_util.dart' as meta;
+import '../src/utilities/mock_packages.dart';
 import 'code_actions_abstract.dart';
 
 main() {
@@ -74,8 +73,8 @@ class ExtractWidgetRefactorCodeActionsTest extends AbstractCodeActionsTest {
   void setUp() {
     super.setUp();
 
-    final flutterLibFolder = flutter.configureFlutterPackage(resourceProvider);
-    final metaLibFolder = meta.configureMetaPackage(resourceProvider);
+    final flutterLibFolder = MockPackages.instance.addFlutter(resourceProvider);
+    final metaLibFolder = MockPackages.instance.addMeta(resourceProvider);
     // Create .packages in the project.
     newFile(join(projectFolderPath, '.packages'), content: '''
 flutter:${flutterLibFolder.toUri()}

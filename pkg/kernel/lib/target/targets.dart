@@ -66,6 +66,15 @@ class ConstantsBackend {
   /// This method must be deterministic, i.e. it must always return the same
   /// value for the same constant value and place in the AST.
   bool shouldInlineConstant(ConstantExpression initializer) => true;
+
+  /// Whether this target supports unevaluated constants.
+  ///
+  /// If not, then trying to perform constant evaluation without an environment
+  /// raises an exception.
+  ///
+  /// This defaults to `false` since it requires additional work for a backend
+  /// to support unevaluated constants.
+  bool get supportsUnevaluatedConstants => false;
 }
 
 /// A target provides backend-specific options for generating kernel IR.
@@ -140,6 +149,9 @@ abstract class Target {
       CoreTypes coreTypes,
       ClassHierarchy hierarchy,
       List<Library> libraries,
+      // TODO(askesc): Consider how to generally pass compiler options to
+      // transformations.
+      Map<String, String> environmentDefines,
       DiagnosticReporter diagnosticReporter,
       {void logger(String msg)});
 
@@ -197,7 +209,7 @@ abstract class Target {
   /// literals are not supported by the target, they will be desugared into
   /// explicit `Set` creation (for non-const set literals) or wrapped map
   /// literals (for const set literals).
-  bool get supportsSetLiterals => false;
+  bool get supportsSetLiterals => true;
 
   /// Builds an expression that instantiates an [Invocation] that can be passed
   /// to [noSuchMethod].
@@ -235,6 +247,13 @@ abstract class Target {
   ConstantsBackend constantsBackend(CoreTypes coreTypes);
 }
 
+class NoneConstantsBackend extends ConstantsBackend {
+  @override
+  final bool supportsUnevaluatedConstants;
+
+  const NoneConstantsBackend({this.supportsUnevaluatedConstants});
+}
+
 class NoneTarget extends Target {
   final TargetFlags flags;
 
@@ -248,6 +267,7 @@ class NoneTarget extends Target {
       CoreTypes coreTypes,
       ClassHierarchy hierarchy,
       List<Library> libraries,
+      Map<String, String> environmentDefines,
       DiagnosticReporter diagnosticReporter,
       {void logger(String msg)}) {}
 
@@ -275,5 +295,6 @@ class NoneTarget extends Target {
 
   @override
   ConstantsBackend constantsBackend(CoreTypes coreTypes) =>
-      const ConstantsBackend();
+      // TODO(johnniwinther): Should this vary with the use case?
+      const NoneConstantsBackend(supportsUnevaluatedConstants: true);
 }

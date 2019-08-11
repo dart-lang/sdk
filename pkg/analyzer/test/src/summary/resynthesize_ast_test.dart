@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'element_text.dart';
@@ -9,6 +10,7 @@ import 'resynthesize_common.dart';
 import 'test_strategies.dart';
 
 main() {
+  if (AnalysisDriver.useSummary2) return;
   defineReflectiveSuite(() {
     defineReflectiveTests(ApplyCheckElementTextReplacements);
     defineReflectiveTests(ResynthesizeAstStrongTest);
@@ -25,6 +27,12 @@ class ApplyCheckElementTextReplacements {
 @reflectiveTest
 class ResynthesizeAstStrongTest extends ResynthesizeTestStrategyTwoPhase
     with ResynthesizeTestCases, GetElementTestCases, ResynthesizeTestHelpers {
+  @override
+  @failingTest
+  test_codeRange_extensions() async {
+    await super.test_codeRange_extensions();
+  }
+
   @failingTest // See dartbug.com/32290
   test_const_constructor_inferred_args() =>
       super.test_const_constructor_inferred_args();
@@ -35,13 +43,40 @@ class ResynthesizeAstStrongTest extends ResynthesizeTestStrategyTwoPhase
   @failingTest // See dartbug.com/33441
   test_const_map_inferredType() => super.test_const_map_inferredType();
 
+  @FailingTest(
+      reason: "NoSuchMethodError: Class 'ExtensionElementForLink' has no "
+          "instance method 'getGetter' with matching arguments.")
+  test_const_reference_staticMethod_ofExtension() async {
+    await super.test_const_reference_staticMethod_ofExtension();
+  }
+
   @failingTest // See dartbug.com/33441
   test_const_set_inferredType() => super.test_const_set_inferredType();
 
   @override
   @failingTest
+  test_defaultValue_refersToExtension_method_inside() async {
+    await super.test_defaultValue_refersToExtension_method_inside();
+  }
+
+  @override
+  @failingTest
   test_defaultValue_refersToGenericClass() async {
     await super.test_defaultValue_refersToGenericClass();
+  }
+
+  @FailingTest(
+    reason: 'Inference for extension fields is not implemented in summary1.',
+  )
+  test_duplicateDeclaration_extension() async {
+    await super.test_duplicateDeclaration_extension();
+  }
+
+  @FailingTest(
+    reason: 'Inference for extension fields is not implemented in summary1.',
+  )
+  test_extension_field_inferredType_const() async {
+    await super.test_extension_field_inferredType_const();
   }
 
   @override
@@ -52,7 +87,20 @@ class ResynthesizeAstStrongTest extends ResynthesizeTestStrategyTwoPhase
 
   @override
   @failingTest
+  test_metadata_extensionDeclaration() async {
+    await super.test_metadata_extensionDeclaration();
+  }
+
+  @override
+  @failingTest
   test_syntheticFunctionType_inGenericClass() async {
     await super.test_syntheticFunctionType_inGenericClass();
+  }
+
+  @FailingTest(
+      reason: "NoSuchMethodError: Class 'ExtensionElementForLink' has no "
+          "instance method 'getGetter' with matching arguments.")
+  test_variable_initializer_staticMethod_ofExtension() async {
+    await super.test_variable_initializer_staticMethod_ofExtension();
   }
 }

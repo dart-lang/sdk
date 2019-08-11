@@ -19,7 +19,7 @@ class Path {
       : _path = source,
         isWindowsShare = false;
 
-  Path._internal(String this._path, bool this.isWindowsShare);
+  Path._internal(this._path, this.isWindowsShare);
 
   static String _clean(String source) {
     if (Platform.operatingSystem == 'windows') return _cleanWindows(source);
@@ -46,6 +46,8 @@ class Path {
   static bool _isWindowsShare(String source) {
     return Platform.operatingSystem == 'windows' && source.startsWith('\\\\');
   }
+
+  bool operator ==(other) => other is Path && _path == other._path;
 
   int get hashCode => _path.hashCode;
   bool get isEmpty => _path.isEmpty;
@@ -127,7 +129,7 @@ class Path {
     while (common < length && pathSegments[common] == baseSegments[common]) {
       common++;
     }
-    final segments = List<String>();
+    final segments = <String>[];
 
     if (common < baseSegments.length && baseSegments[common] == '..') {
       throw ArgumentError("Invalid case of Path.relativeTo(base):\n"
@@ -157,10 +159,10 @@ class Path {
       return further.canonicalize();
     }
     if (hasTrailingSeparator) {
-      var joined = Path._internal('$_path${further}', isWindowsShare);
+      var joined = Path._internal('$_path$further', isWindowsShare);
       return joined.canonicalize();
     }
-    var joined = Path._internal('$_path/${further}', isWindowsShare);
+    var joined = Path._internal('$_path/$further', isWindowsShare);
     return joined.canonicalize();
   }
 
@@ -304,7 +306,9 @@ class Path {
   Path get directoryPath {
     int pos = _path.lastIndexOf('/');
     if (pos < 0) return Path('');
-    while (pos > 0 && _path[pos - 1] == '/') --pos;
+    while (pos > 0 && _path[pos - 1] == '/') {
+      --pos;
+    }
     var dirPath = (pos > 0) ? _path.substring(0, pos) : '/';
     return Path._internal(dirPath, isWindowsShare);
   }

@@ -580,6 +580,7 @@ Future testData(TestData data) async {
     KernelToElementMapImpl elementMap = frontEndStrategy.elementMap;
     KElementEnvironment elementEnvironment =
         compiler.frontendStrategy.elementEnvironment;
+    ConstantValuefier constantValuefier = new ConstantValuefier(elementMap);
     LibraryEntity library = elementEnvironment.mainLibrary;
     constants.forEach((String name, ConstantData data) {
       IndexedField field =
@@ -604,14 +605,11 @@ Future testData(TestData data) async {
             // all unevaluated constants have no uri.
             errors.add(message.code.name);
             reportLocatedMessage(elementMap.reporter, message, context);
-          },
-                  enableAsserts: true,
-                  environment: environment,
-                  supportReevaluationForTesting: true);
+          }, environment: environment, supportReevaluationForTesting: true);
           ir.Constant evaluatedConstant = evaluator.evaluate(initializer);
 
           ConstantValue value = evaluatedConstant is! ir.UnevaluatedConstant
-              ? evaluatedConstant.accept(new ConstantValuefier(elementMap))
+              ? constantValuefier.visitConstant(evaluatedConstant)
               : new NonConstantValue();
 
           Expect.isNotNull(

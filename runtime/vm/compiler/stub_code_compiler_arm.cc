@@ -198,8 +198,7 @@ void StubCodeCompiler::GenerateBuildMethodExtractorStub(
     Assembler* assembler,
     const Object& closure_allocation_stub,
     const Object& context_allocation_stub) {
-  const intptr_t kReceiverOffset =
-      compiler::target::frame_layout.param_end_from_fp + 1;
+  const intptr_t kReceiverOffset = target::frame_layout.param_end_from_fp + 1;
 
   __ EnterStubFrame();
 
@@ -292,12 +291,44 @@ void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
 
   __ EnterFrame((1 << FP) | (1 << LR), 0);
   __ ReserveAlignedFrameSpace(0);
+
+  // Set the execution state to VM while waiting for the safepoint to end.
+  // This isn't strictly necessary but enables tests to check that we're not
+  // in native code anymore. See tests/ffi/function_gc_test.dart for example.
+  __ LoadImmediate(R0, target::Thread::vm_execution_state());
+  __ str(R0, Address(THR, target::Thread::execution_state_offset()));
+
   __ ldr(R0, Address(THR, kExitSafepointRuntimeEntry.OffsetFromThread()));
   __ blx(R0);
   __ LeaveFrame((1 << FP) | (1 << LR), 0);
 
   __ PopRegisters(all_registers);
   __ Ret();
+}
+
+// Call a native function within a safepoint.
+//
+// On entry:
+//   Stack: set up for call, incl. alignment
+//   R8: target to call
+//
+// On exit:
+//   Stack: preserved
+//   NOTFP, R4: clobbered, although normally callee-saved
+void StubCodeCompiler::GenerateCallNativeThroughSafepointStub(
+    Assembler* assembler) {
+  COMPILE_ASSERT((kAbiPreservedCpuRegs & (1 << R4)) != 0);
+
+  // TransitionGeneratedToNative might clobber LR if it takes the slow path.
+  __ mov(R4, Operand(LR));
+
+  __ TransitionGeneratedToNative(R8, FPREG, R9 /*volatile*/, NOTFP);
+
+  __ blx(R8);
+
+  __ TransitionNativeToGenerated(R9 /*volatile*/, NOTFP);
+
+  __ bx(R4);
 }
 
 void StubCodeCompiler::GenerateVerifyCallbackStub(Assembler* assembler) {
@@ -710,13 +741,13 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // The code in this frame may not cause GC. kDeoptimizeCopyFrameRuntimeEntry
   // and kDeoptimizeFillFrameRuntimeEntry are leaf runtime calls.
   const intptr_t saved_result_slot_from_fp =
-      compiler::target::frame_layout.first_local_from_fp + 1 -
+      target::frame_layout.first_local_from_fp + 1 -
       (kNumberOfCpuRegisters - R0);
   const intptr_t saved_exception_slot_from_fp =
-      compiler::target::frame_layout.first_local_from_fp + 1 -
+      target::frame_layout.first_local_from_fp + 1 -
       (kNumberOfCpuRegisters - R0);
   const intptr_t saved_stacktrace_slot_from_fp =
-      compiler::target::frame_layout.first_local_from_fp + 1 -
+      target::frame_layout.first_local_from_fp + 1 -
       (kNumberOfCpuRegisters - R1);
   // Result in R0 is preserved as part of pushing all registers below.
 
@@ -784,14 +815,13 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   __ CallRuntime(kDeoptimizeFillFrameRuntimeEntry, 1);  // Pass last FP in R0.
   if (kind == kLazyDeoptFromReturn) {
     // Restore result into R1.
-    __ ldr(R1, Address(FP, compiler::target::frame_layout.first_local_from_fp *
+    __ ldr(R1, Address(FP, target::frame_layout.first_local_from_fp *
                                target::kWordSize));
   } else if (kind == kLazyDeoptFromThrow) {
     // Restore result into R1.
-    __ ldr(R1, Address(FP, compiler::target::frame_layout.first_local_from_fp *
+    __ ldr(R1, Address(FP, target::frame_layout.first_local_from_fp *
                                target::kWordSize));
-    __ ldr(R2, Address(FP, (compiler::target::frame_layout.first_local_from_fp -
-                            1) *
+    __ ldr(R2, Address(FP, (target::frame_layout.first_local_from_fp - 1) *
                                target::kWordSize));
   }
   // Code above cannot cause GC.
@@ -904,7 +934,7 @@ void StubCodeCompiler::GenerateMegamorphicMissStub(Assembler* assembler) {
   // Load the receiver.
   __ ldr(R2, FieldAddress(R4, target::ArgumentsDescriptor::count_offset()));
   __ add(IP, FP, Operand(R2, LSL, 1));  // R2 is Smi.
-  __ ldr(R8, Address(IP, compiler::target::frame_layout.param_end_from_fp *
+  __ ldr(R8, Address(IP, target::frame_layout.param_end_from_fp *
                              target::kWordSize));
 
   // Preserve IC data and arguments descriptor.
@@ -3149,48 +3179,6 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
   __ b(&loop);
 }
 
-// Called from switchable IC calls.
-//  R0: receiver
-//  R9: ICData (preserved)
-// Passed to target:
-//  CODE_REG: target Code object
-//  R4: arguments descriptor
-void StubCodeCompiler::GenerateICCallThroughFunctionStub(Assembler* assembler) {
-  Label loop, found, miss;
-  __ ldr(ARGS_DESC_REG,
-         FieldAddress(R9, target::ICData::arguments_descriptor_offset()));
-  __ ldr(R8, FieldAddress(R9, target::ICData::entries_offset()));
-  __ AddImmediate(R8, target::Array::data_offset() - kHeapObjectTag);
-  // R8: first IC entry
-  __ LoadTaggedClassIdMayBeSmi(R1, R0);
-  // R1: receiver cid as Smi
-
-  __ Bind(&loop);
-  __ ldr(R2, Address(R8, 0));
-  __ cmp(R1, Operand(R2));
-  __ b(&found, EQ);
-  __ CompareImmediate(R2, target::ToRawSmi(kIllegalCid));
-  __ b(&miss, EQ);
-
-  const intptr_t entry_length =
-      target::ICData::TestEntryLengthFor(1, /*tracking_exactness=*/false) *
-      target::kWordSize;
-  __ AddImmediate(R8, entry_length);  // Next entry.
-  __ b(&loop);
-
-  __ Bind(&found);
-  const intptr_t target_offset =
-      target::ICData::TargetIndexFor(1) * target::kWordSize;
-  __ LoadFromOffset(kWord, R0, R8, target_offset);
-  __ ldr(CODE_REG, FieldAddress(R0, target::Function::code_offset()));
-  __ Branch(FieldAddress(R0, target::Function::entry_point_offset()));
-
-  __ Bind(&miss);
-  __ LoadIsolate(R2);
-  __ ldr(CODE_REG, Address(R2, target::Isolate::ic_miss_code_offset()));
-  __ Branch(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
-}
-
 void StubCodeCompiler::GenerateICCallThroughCodeStub(Assembler* assembler) {
   Label loop, found, miss;
   __ ldr(R8, FieldAddress(R9, target::ICData::entries_offset()));
@@ -3244,7 +3232,7 @@ void StubCodeCompiler::GenerateUnlinkedCallStub(Assembler* assembler) {
   __ CallRuntime(kUnlinkedCallRuntimeEntry, 3);
   __ Drop(2);
   __ Pop(CODE_REG);  // result = stub
-  __ Pop(R9);  // result = IC
+  __ Pop(R9);        // result = IC
 
   __ Pop(R0);  // Restore receiver.
   __ LeaveStubFrame();
@@ -3286,7 +3274,7 @@ void StubCodeCompiler::GenerateSingleTargetCallStub(Assembler* assembler) {
   __ CallRuntime(kSingleTargetMissRuntimeEntry, 2);
   __ Drop(1);
   __ Pop(CODE_REG);  // result = stub
-  __ Pop(R9);  // result = IC
+  __ Pop(R9);        // result = IC
 
   __ Pop(R0);  // Restore receiver.
   __ LeaveStubFrame();
@@ -3310,7 +3298,7 @@ void StubCodeCompiler::GenerateMonomorphicMissStub(Assembler* assembler) {
   __ CallRuntime(kMonomorphicMissRuntimeEntry, 2);
   __ Drop(1);
   __ Pop(CODE_REG);  // result = stub
-  __ Pop(R9);  // result = IC
+  __ Pop(R9);        // result = IC
 
   __ Pop(R0);  // Restore receiver.
   __ LeaveStubFrame();

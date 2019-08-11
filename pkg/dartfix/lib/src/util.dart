@@ -15,9 +15,14 @@ int compareSuggestions(DartFixSuggestion s1, DartFixSuggestion s2) {
   return (s2.location?.offset ?? 0) - (s1.location?.offset ?? 0);
 }
 
-/// Return the analysis_server executable by proceeding upward
-/// until finding the Dart SDK repository root then returning
-/// the analysis_server executable within the repository.
+int compareFixes(DartFix s1, DartFix s2) {
+  return s1.name.compareTo(s2.name);
+}
+
+/// Return the analysis_server executable by proceeding upward until finding the
+/// Dart SDK repository root, then returning the analysis_server executable
+/// within the repository.
+///
 /// Return `null` if it cannot be found.
 String findServerPath() {
   String pathname = Platform.script.toFilePath();
@@ -28,7 +33,7 @@ String findServerPath() {
     }
     String serverPath =
         path.join(parent, 'pkg', 'analysis_server', 'bin', 'server.dart');
-    if (new File(serverPath).existsSync()) {
+    if (File(serverPath).existsSync()) {
       return serverPath;
     }
     pathname = parent;

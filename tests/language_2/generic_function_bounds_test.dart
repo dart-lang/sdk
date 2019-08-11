@@ -5,74 +5,113 @@
 import 'dart:math';
 import 'package:expect/expect.dart';
 
+Type getType<T>() => T;
+
 void testInstantiateToBounds() {
   f<T extends num, U extends T>() => [T, U];
   g<T extends List<U>, U extends int>() => [T, U];
-  h<T extends num, U extends T>(T x, U y) => h.runtimeType.toString();
+  h<T extends U, U extends num>(T x, U y) => [T, U];
 
+  // Check that instantiate to bounds creates the correct type arguments
+  // during dynamic calls.
   Expect.listEquals([num, num], (f as dynamic)());
-  Expect.equals('List<int>|int', (g as dynamic)().join('|'));
-  Expect.equals('<T extends num, U extends T>(T, U) => String',
-      (h as dynamic)(null, null));
+  Expect.listEquals([getType<List<int>>(), int], (g as dynamic)());
+  Expect.listEquals([num, num], (h as dynamic)(null, null));
 
+  // Check that when instantiate to bounds creates a super-bounded type argument
+  // during a dynamic call, an error is thrown.
   i<T extends Iterable<T>>() => null;
   j<T extends Iterable<S>, S extends T>() => null;
-  Expect.throws(
-      () => (i as dynamic)(), (e) => '$e'.contains('Instantiate to bounds'));
-  Expect.throws(
-      () => (j as dynamic)(), (e) => '$e'.contains('Instantiate to bounds'));
+  Expect.throwsTypeError(() => (i as dynamic)(), "Super bounded type argument");
+  Expect.throwsTypeError(() => (j as dynamic)(), "Super bounded type argument");
 }
 
 void testChecksBound() {
   f<T extends num>(T x) => x;
-  Expect.equals((f as dynamic)(42), 42);
-  Expect.throws(() => (f as dynamic)('42'));
-
-  msg(t1, t2, tf) => Expect.throws(() => (f as dynamic)<Object>(42),
-      (e) => '$e' == 'type `Object` does not extend `num` of `T');
-
   g<T extends U, U extends num>(T x, U y) => x;
-  Expect.equals((g as dynamic)(42.0, 100), 42.0);
-  Expect.throws(() => (g as dynamic)('hi', 100));
-  Expect.throws(() => (g as dynamic)<double, int>(42.0, 100),
-      (e) => '$e' == 'type `double` does not extend `int` of `T`.');
 
-  Expect.throws(() => (g as dynamic)<num, Object>(42.0, 100),
-      (e) => '$e' == 'type `Object` does not extend `num` of `U`.');
+  // Check that arguments are checked against the correct types when instantiate
+  // to bounds produces a type argument during a dynamic call.
+  Expect.equals((f as dynamic)(42), 42);
+  Expect.equals((g as dynamic)(42.0, 100), 42.0);
+  Expect.throwsTypeError(() => (f as dynamic)('42'), "Argument check");
+  Expect.throwsTypeError(() => (g as dynamic)('hi', 100), "Argument check");
+
+  // Check that an actual type argument is checked against the bound during a
+  // dynamic call.
+  Expect.equals((f as dynamic)<int>(42), 42);
+  Expect.equals((g as dynamic)<double, num>(42.0, 100), 42.0);
+  Expect.throwsTypeError(() => (g as dynamic)<double, int>(42.0, 100),
+      "Type argument bounds check");
+  Expect.throwsTypeError(
+      () => (f as dynamic)<Object>(42), "Type argument bounds check");
+  Expect.throwsTypeError(() => (g as dynamic)<double, int>(42.0, 100),
+      "Type argument bounds check");
+  Expect.throwsTypeError(() => (g as dynamic)<num, Object>(42.0, 100),
+      "Type argument bounds check");
 }
 
-typedef G<U> = T Function<T extends U>(T x);
+typedef G<U> = num Function<T extends U>(T x);
+
+typedef F<U> = Object Function<T extends U>(T x);
 
 void testSubtype() {
-  f<T extends num>(T x) => x + 2;
-
+  num f<T extends num>(T x) => x + 2;
   dynamic d = f;
-  Expect.equals(d(40.0), 42.0);
-  Expect.equals((f as G<int>)(40), 42);
-  Expect.equals((d as G<int>)(40), 42);
-  Expect.equals((f as G<double>)(40.0), 42.0);
-  Expect.equals((d as G<double>)(40.0), 42.0);
 
-  d as G<Null>;
-  Expect.throws(() => d as G);
-  Expect.throws(() => d as G<Object>);
-  Expect.throws(() => d as G<String>);
+  // Check that casting to an equal generic function type works
+  Expect.equals((f as G<num>)(40), 42);
+  Expect.equals((d as G<num>)(40), 42);
+
+  // Check that casting to a more general generic function type works
+  Expect.equals((f as F<num>)(40), 42);
+  Expect.equals((d as F<num>)(40), 42);
+
+  // Check that casting to a generic function with more specific bounds fails
+  Expect.throwsCastError(
+      () => (f as G<int>), "Generic functions are invariant");
+  Expect.throwsCastError(
+      () => (d as G<int>), "Generic functions are invariant");
+  Expect.throwsCastError(
+      () => (f as G<double>), "Generic functions are invariant");
+  Expect.throwsCastError(
+      () => (d as G<double>), "Generic functions are invariant");
+  Expect.throwsCastError(
+      () => (f as G<Null>), "Generic functions are invariant");
+  Expect.throwsCastError(
+      () => (d as G<Null>), "Generic functions are invariant");
+
+  // Check that casting to a generic function with a more general bound fails
+  Expect.throwsCastError(
+      () => (f as G<Object>), "Generic functions are invariant");
+  Expect.throwsCastError(
+      () => (d as G<Object>), "Generic functions are invariant");
+
+  // Check that casting to a generic function with an unrelated bound fails
+  Expect.throwsCastError(
+      () => (f as G<String>), "Generic functions are invariant");
+  Expect.throwsCastError(
+      () => (d as G<String>), "Generic functions are invariant");
 }
 
 void testToString() {
-  // TODO(jmesserly): I don't think the cast on `y` should be required.
-  num f<T extends num, U extends T>(T x, U y) => min(x, y as num);
+  num f<T extends num, U extends T>(T x, U y) => min(x, y);
   num g<T, U>(T x, U y) => max(x as num, y as num);
   String h<T, U>(T x, U y) => h.runtimeType.toString();
-  Expect.equals(
-      f.runtimeType.toString(), '<T extends num, U extends T>(T, U) => num');
-  Expect.equals(g.runtimeType.toString(), '<T, U>(T, U) => num');
-  Expect.equals(h(42, 123.0), '<T, U>(T, U) => String');
+
+  // Check that generic method types are printed in a reasonable way
+  Expect.isTrue(
+      new RegExp(r'<(\w+) extends num, (\w+) extends \1>\(\1, \2\) => num')
+          .hasMatch(f.runtimeType.toString()));
+  Expect.isTrue(new RegExp(r'<(\w+), (\w+)>\(\1, \2\) => num')
+      .hasMatch(g.runtimeType.toString()));
+  Expect.isTrue(
+      new RegExp(r'<(\w+), (\w+)>\(\1, \2\) => String').hasMatch(h(42, 123.0)));
 }
 
 main() {
-  testInstantiateToBounds();
-  testToString();
-  testChecksBound();
-  testSubtype();
+  testInstantiateToBounds(); //# 01: ok
+  testToString(); //# 02: ok
+  testChecksBound(); //# 03: ok
+  testSubtype(); //# 04: ok
 }

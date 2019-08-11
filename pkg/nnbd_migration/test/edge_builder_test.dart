@@ -4,9 +4,17 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/testing/test_type_provider.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:nnbd_migration/src/decorated_class_hierarchy.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/edge_builder.dart';
+import 'package:nnbd_migration/src/edge_origin.dart';
 import 'package:nnbd_migration/src/expression_checks.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:test/test.dart';
@@ -16,8 +24,332 @@ import 'migration_visitor_test_base.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(AssignmentCheckerTest);
     defineReflectiveTests(EdgeBuilderTest);
   });
+}
+
+@reflectiveTest
+class AssignmentCheckerTest extends Object with EdgeTester {
+  static const EdgeOrigin origin = const _TestEdgeOrigin();
+
+  ClassElement _myListOfListClass;
+
+  DecoratedType _myListOfListSupertype;
+
+  final TypeProvider typeProvider;
+
+  final NullabilityGraphForTesting graph;
+
+  final AssignmentCheckerForTesting checker;
+
+  int offset = 0;
+
+  factory AssignmentCheckerTest() {
+    var typeProvider = TestTypeProvider();
+    var graph = NullabilityGraphForTesting();
+    var decoratedClassHierarchy = _DecoratedClassHierarchyForTesting();
+    var checker = AssignmentCheckerForTesting(
+        Dart2TypeSystem(typeProvider), graph, decoratedClassHierarchy);
+    var assignmentCheckerTest =
+        AssignmentCheckerTest._(typeProvider, graph, checker);
+    decoratedClassHierarchy.assignmentCheckerTest = assignmentCheckerTest;
+    return assignmentCheckerTest;
+  }
+
+  AssignmentCheckerTest._(this.typeProvider, this.graph, this.checker);
+
+  NullabilityNode get always => graph.always;
+
+  DecoratedType get bottom => DecoratedType(typeProvider.bottomType, never);
+
+  DecoratedType get dynamic_ => DecoratedType(typeProvider.dynamicType, always);
+
+  NullabilityNode get never => graph.never;
+
+  DecoratedType get null_ => DecoratedType(typeProvider.nullType, always);
+
+  DecoratedType get void_ => DecoratedType(typeProvider.voidType, always);
+
+  void assign(DecoratedType source, DecoratedType destination,
+      {bool hard = false}) {
+    checker.checkAssignment(origin,
+        source: source, destination: destination, hard: hard);
+  }
+
+  DecoratedType function(DecoratedType returnType,
+      {List<DecoratedType> required = const [],
+      List<DecoratedType> positional = const [],
+      Map<String, DecoratedType> named = const {}}) {
+    int i = 0;
+    var parameters = required
+        .map((t) => ParameterElementImpl.synthetic(
+            'p${i++}', t.type, ParameterKind.REQUIRED))
+        .toList();
+    parameters.addAll(positional.map((t) => ParameterElementImpl.synthetic(
+        'p${i++}', t.type, ParameterKind.POSITIONAL)));
+    parameters.addAll(named.entries.map((e) => ParameterElementImpl.synthetic(
+        e.key, e.value.type, ParameterKind.NAMED)));
+    return DecoratedType(
+        FunctionTypeImpl.synthetic(returnType.type, const [], parameters),
+        NullabilityNode.forTypeAnnotation(offset++),
+        returnType: returnType,
+        positionalParameters: required.toList()..addAll(positional),
+        namedParameters: named);
+  }
+
+  DecoratedType list(DecoratedType elementType) => DecoratedType(
+      typeProvider.listType.instantiate([elementType.type]),
+      NullabilityNode.forTypeAnnotation(offset++),
+      typeArguments: [elementType]);
+
+  DecoratedType myListOfList(DecoratedType elementType) {
+    if (_myListOfListClass == null) {
+      var t = TypeParameterElementImpl.synthetic('T')..bound = object().type;
+      _myListOfListSupertype = list(list(typeParameterType(t)));
+      _myListOfListClass = ClassElementImpl('MyListOfList', 0)
+        ..typeParameters = [t]
+        ..supertype = _myListOfListSupertype.type as InterfaceType;
+    }
+    return DecoratedType(
+        InterfaceTypeImpl(_myListOfListClass)
+          ..typeArguments = [elementType.type],
+        NullabilityNode.forTypeAnnotation(offset++),
+        typeArguments: [elementType]);
+  }
+
+  DecoratedType object() => DecoratedType(
+      typeProvider.objectType, NullabilityNode.forTypeAnnotation(offset++));
+
+  void test_bottom_to_generic() {
+    var t = list(object());
+    assign(bottom, t);
+    assertEdge(never, t.node, hard: false);
+    expect(graph.getUpstreamEdges(t.typeArguments[0].node), isEmpty);
+  }
+
+  void test_bottom_to_simple() {
+    var t = object();
+    assign(bottom, t);
+    assertEdge(never, t.node, hard: false);
+  }
+
+  void test_complex_to_typeParam() {
+    var bound = list(object());
+    var t = TypeParameterElementImpl.synthetic('T')..bound = bound.type;
+    checker.bounds[t] = bound;
+    var t1 = list(object());
+    var t2 = typeParameterType(t);
+    assign(t1, t2, hard: true);
+    assertEdge(t1.node, t2.node, hard: true);
+    assertNoEdge(t1.node, bound.node);
+    assertEdge(t1.typeArguments[0].node, bound.typeArguments[0].node,
+        hard: false);
+  }
+
+  void test_dynamic_to_dynamic() {
+    assign(dynamic_, dynamic_);
+    // Note: no assertions to do; just need to make sure there wasn't a crash.
+  }
+
+  void test_function_type_named_parameter() {
+    var t1 = function(dynamic_, named: {'x': object()});
+    var t2 = function(dynamic_, named: {'x': object()});
+    assign(t1, t2, hard: true);
+    // Note: t1 and t2 are swapped due to contravariance.
+    assertEdge(t2.namedParameters['x'].node, t1.namedParameters['x'].node,
+        hard: false);
+  }
+
+  void test_function_type_named_to_no_parameter() {
+    var t1 = function(dynamic_, named: {'x': object()});
+    var t2 = function(dynamic_);
+    assign(t1, t2);
+    // Note: no assertions to do; just need to make sure there wasn't a crash.
+  }
+
+  void test_function_type_positional_parameter() {
+    var t1 = function(dynamic_, positional: [object()]);
+    var t2 = function(dynamic_, positional: [object()]);
+    assign(t1, t2, hard: true);
+    // Note: t1 and t2 are swapped due to contravariance.
+    assertEdge(t2.positionalParameters[0].node, t1.positionalParameters[0].node,
+        hard: false);
+  }
+
+  void test_function_type_positional_to_no_parameter() {
+    var t1 = function(dynamic_, positional: [object()]);
+    var t2 = function(dynamic_);
+    assign(t1, t2);
+    // Note: no assertions to do; just need to make sure there wasn't a crash.
+  }
+
+  void test_function_type_positional_to_required_parameter() {
+    var t1 = function(dynamic_, positional: [object()]);
+    var t2 = function(dynamic_, required: [object()]);
+    assign(t1, t2, hard: true);
+    // Note: t1 and t2 are swapped due to contravariance.
+    assertEdge(t2.positionalParameters[0].node, t1.positionalParameters[0].node,
+        hard: false);
+  }
+
+  void test_function_type_required_parameter() {
+    var t1 = function(dynamic_, required: [object()]);
+    var t2 = function(dynamic_, required: [object()]);
+    assign(t1, t2);
+    // Note: t1 and t2 are swapped due to contravariance.
+    assertEdge(t2.positionalParameters[0].node, t1.positionalParameters[0].node,
+        hard: false);
+  }
+
+  void test_function_type_return_type() {
+    var t1 = function(object());
+    var t2 = function(object());
+    assign(t1, t2, hard: true);
+    assertEdge(t1.returnType.node, t2.returnType.node, hard: false);
+  }
+
+  test_generic_to_dynamic() {
+    var t = list(object());
+    assign(t, dynamic_);
+    assertEdge(t.node, always, hard: false);
+    expect(graph.getDownstreamEdges(t.typeArguments[0].node), isEmpty);
+  }
+
+  test_generic_to_generic_downcast() {
+    var t1 = list(list(object()));
+    var t2 = myListOfList(object());
+    assign(t1, t2, hard: true);
+    assertEdge(t1.node, t2.node, hard: true);
+    // Let A, B, and C be nullability nodes such that:
+    // - t2 is MyListOfList<Object?A>
+    var a = t2.typeArguments[0].node;
+    // - t1 is List<List<Object?B>>
+    var b = t1.typeArguments[0].typeArguments[0].node;
+    // - the supertype of MyListOfList<T> is List<List<T?C>>
+    var c = _myListOfListSupertype.typeArguments[0].typeArguments[0].node;
+    // Then there should be an edge from b to substitute(a, c)
+    var substitutionNode = graph.getDownstreamEdges(b).single.destinationNode
+        as NullabilityNodeForSubstitution;
+    expect(substitutionNode.innerNode, same(a));
+    expect(substitutionNode.outerNode, same(c));
+  }
+
+  test_generic_to_generic_same_element() {
+    var t1 = list(object());
+    var t2 = list(object());
+    assign(t1, t2, hard: true);
+    assertEdge(t1.node, t2.node, hard: true);
+    assertEdge(t1.typeArguments[0].node, t2.typeArguments[0].node, hard: false);
+  }
+
+  test_generic_to_generic_upcast() {
+    var t1 = myListOfList(object());
+    var t2 = list(list(object()));
+    assign(t1, t2);
+    assertEdge(t1.node, t2.node, hard: false);
+    // Let A, B, and C be nullability nodes such that:
+    // - t1 is MyListOfList<Object?A>
+    var a = t1.typeArguments[0].node;
+    // - t2 is List<List<Object?B>>
+    var b = t2.typeArguments[0].typeArguments[0].node;
+    // - the supertype of MyListOfList<T> is List<List<T?C>>
+    var c = _myListOfListSupertype.typeArguments[0].typeArguments[0].node;
+    // Then there should be an edge from substitute(a, c) to b.
+    var substitutionNode = graph.getUpstreamEdges(b).single.primarySource
+        as NullabilityNodeForSubstitution;
+    expect(substitutionNode.innerNode, same(a));
+    expect(substitutionNode.outerNode, same(c));
+  }
+
+  test_generic_to_object() {
+    var t1 = list(object());
+    var t2 = object();
+    assign(t1, t2);
+    assertEdge(t1.node, t2.node, hard: false);
+    expect(graph.getDownstreamEdges(t1.typeArguments[0].node), isEmpty);
+  }
+
+  test_generic_to_void() {
+    var t = list(object());
+    assign(t, void_);
+    assertEdge(t.node, always, hard: false);
+    expect(graph.getDownstreamEdges(t.typeArguments[0].node), isEmpty);
+  }
+
+  void test_null_to_generic() {
+    var t = list(object());
+    assign(null_, t);
+    assertEdge(always, t.node, hard: false);
+    expect(graph.getUpstreamEdges(t.typeArguments[0].node), isEmpty);
+  }
+
+  void test_null_to_simple() {
+    var t = object();
+    assign(null_, t);
+    assertEdge(always, t.node, hard: false);
+  }
+
+  test_simple_to_dynamic() {
+    var t = object();
+    assign(t, dynamic_);
+    assertEdge(t.node, always, hard: false);
+  }
+
+  test_simple_to_simple() {
+    var t1 = object();
+    var t2 = object();
+    assign(t1, t2);
+    assertEdge(t1.node, t2.node, hard: false);
+  }
+
+  test_simple_to_simple_hard() {
+    var t1 = object();
+    var t2 = object();
+    assign(t1, t2, hard: true);
+    assertEdge(t1.node, t2.node, hard: true);
+  }
+
+  test_simple_to_void() {
+    var t = object();
+    assign(t, void_);
+    assertEdge(t.node, always, hard: false);
+  }
+
+  void test_typeParam_to_complex() {
+    var bound = list(object());
+    var t = TypeParameterElementImpl.synthetic('T')..bound = bound.type;
+    checker.bounds[t] = bound;
+    var t1 = typeParameterType(t);
+    var t2 = list(object());
+    assign(t1, t2, hard: true);
+    assertEdge(t1.node, t2.node, hard: true);
+    assertEdge(bound.node, t2.node, hard: false);
+    assertEdge(bound.typeArguments[0].node, t2.typeArguments[0].node,
+        hard: false);
+  }
+
+  void test_typeParam_to_object() {
+    var bound = object();
+    var t = TypeParameterElementImpl.synthetic('T')..bound = bound.type;
+    checker.bounds[t] = bound;
+    var t1 = typeParameterType(t);
+    var t2 = object();
+    assign(t1, t2);
+    assertEdge(t1.node, t2.node, hard: false);
+  }
+
+  void test_typeParam_to_typeParam() {
+    var t = TypeParameterElementImpl.synthetic('T')..bound = object().type;
+    var t1 = typeParameterType(t);
+    var t2 = typeParameterType(t);
+    assign(t1, t2);
+    assertEdge(t1.node, t2.node, hard: false);
+  }
+
+  DecoratedType typeParameterType(TypeParameterElement typeParameter) =>
+      DecoratedType(
+          typeParameter.type, NullabilityNode.forTypeAnnotation(offset++));
 }
 
 @reflectiveTest
@@ -90,6 +422,48 @@ void f(int i) {
 ''');
 
     assertEdge(decoratedTypeAnnotation('int i').node, never, hard: true);
+  }
+
+  test_assign_bound_to_type_parameter() async {
+    await analyze('''
+class C<T extends List<int>> {
+  T f(List<int> x) => x;
+}
+''');
+    var boundType = decoratedTypeAnnotation('List<int>>');
+    var parameterType = decoratedTypeAnnotation('List<int> x');
+    var tType = decoratedTypeAnnotation('T f');
+    assertEdge(parameterType.node, tType.node, hard: true);
+    assertNoEdge(parameterType.node, boundType.node);
+    assertEdge(
+        parameterType.typeArguments[0].node, boundType.typeArguments[0].node,
+        hard: false);
+  }
+
+  test_assign_null_to_generic_type() async {
+    await analyze('''
+main() {
+  List<int> x = null;
+}
+''');
+    // TODO(paulberry): edge should be hard.
+    assertEdge(always, decoratedTypeAnnotation('List').node, hard: false);
+  }
+
+  test_assign_type_parameter_to_bound() async {
+    await analyze('''
+class C<T extends List<int>> {
+  List<int> f(T x) => x;
+}
+''');
+    var boundType = decoratedTypeAnnotation('List<int>>');
+    var returnType = decoratedTypeAnnotation('List<int> f');
+    var tType = decoratedTypeAnnotation('T x');
+    assertEdge(tType.node, returnType.node, hard: true);
+    assertEdge(boundType.node, returnType.node, hard: false);
+    assertEdge(
+        boundType.typeArguments[0].node, returnType.typeArguments[0].node,
+        hard: false);
   }
 
   test_assignmentExpression_field() async {
@@ -925,6 +1299,53 @@ class C {}
     expect(constructorDecoratedType.returnType.typeArguments, isEmpty);
   }
 
+  test_constructorFieldInitializer_generic() async {
+    await analyze('''
+class C<T> {
+  C(T/*1*/ x) : f = x;
+  T/*2*/ f;
+}
+''');
+    assertEdge(decoratedTypeAnnotation('T/*1*/').node,
+        decoratedTypeAnnotation('T/*2*/').node,
+        hard: true);
+  }
+
+  test_constructorFieldInitializer_simple() async {
+    await analyze('''
+class C {
+  C(int/*1*/ i) : f = i;
+  int/*2*/ f;
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int/*1*/').node,
+        decoratedTypeAnnotation('int/*2*/').node,
+        hard: true);
+  }
+
+  test_constructorFieldInitializer_via_this() async {
+    await analyze('''
+class C {
+  C(int/*1*/ i) : this.f = i;
+  int/*2*/ f;
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int/*1*/').node,
+        decoratedTypeAnnotation('int/*2*/').node,
+        hard: true);
+  }
+
+  test_do_while_condition() async {
+    await analyze('''
+void f(bool b) {
+  do {} while (b);
+}
+''');
+
+    assertNullCheck(checkExpression('b);'),
+        assertEdge(decoratedTypeAnnotation('bool b').node, never, hard: true));
+  }
+
   test_doubleLiteral() async {
     await analyze('''
 double f() {
@@ -959,13 +1380,13 @@ class C {
     var fieldType = variables.decoratedElementType(findElement.field('f'));
     assertEdge(ctorParamType.node, fieldType.node, hard: true);
     assertEdge(ctorParamType.returnType.node, fieldType.returnType.node,
-        hard: true);
+        hard: false);
     assertEdge(fieldType.positionalParameters[0].node,
         ctorParamType.positionalParameters[0].node,
-        hard: true);
+        hard: false);
     assertEdge(fieldType.namedParameters['j'].node,
         ctorParamType.namedParameters['j'].node,
-        hard: true);
+        hard: false);
   }
 
   test_fieldFormalParameter_typed() async {
@@ -1632,6 +2053,24 @@ class C extends B {
     assertUnion(bReturnType.node, cReturnType.node);
   }
 
+  test_methodDeclaration_doesntAffect_unconditional_control_flow() async {
+    await analyze('''
+class C {
+  void f(bool b, int i, int j) {
+    assert(i != null);
+    if (b) {}
+    assert(j != null);
+  }
+  void g(int k) {
+    assert(k != null);
+  }
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int i').node, never, hard: true);
+    assertNoEdge(always, decoratedTypeAnnotation('int j').node);
+    assertEdge(decoratedTypeAnnotation('int k').node, never, hard: true);
+  }
+
   test_methodDeclaration_resets_unconditional_control_flow() async {
     await analyze('''
 class C {
@@ -2047,6 +2486,445 @@ int f() {
         assertEdge(always, decoratedTypeAnnotation('int').node, hard: false));
   }
 
+  test_postDominators_assert() async {
+    await analyze('''
+void test(bool b1, bool b2, bool b3, bool _b) {
+  assert(b1 != null);
+  if (_b) {
+    assert(b2 != null);
+  }
+  assert(b3 != null);
+}
+''');
+
+    assertEdge(decoratedTypeAnnotation('bool b1').node, never, hard: true);
+    assertNoEdge(decoratedTypeAnnotation('bool b2').node, never);
+    assertEdge(decoratedTypeAnnotation('bool b3').node, never, hard: true);
+  }
+
+  test_postDominators_break() async {
+    await analyze('''
+class C {
+  void m() {}
+}
+void test(bool b1, C _c) {
+  while (b1/*check*/) {
+    bool b2 = b1;
+    C c = _c;
+    if (b2/*check*/) {
+      break;
+    }
+    c.m();
+  }
+}
+''');
+
+    // TODO(mfairhurst): enable this check
+    //assertNullCheck(checkExpression('b1/*check*/'),
+    //    assertEdge(decoratedTypeAnnotation('bool b1').node, never, hard: true));
+    assertNullCheck(checkExpression('b2/*check*/'),
+        assertEdge(decoratedTypeAnnotation('bool b2').node, never, hard: true));
+    assertNullCheck(checkExpression('c.m'),
+        assertEdge(decoratedTypeAnnotation('C c').node, never, hard: false));
+  }
+
+  test_postDominators_continue() async {
+    await analyze('''
+class C {
+  void m() {}
+}
+void test(bool b1, C _c) {
+  while (b1/*check*/) {
+    bool b2 = b1;
+    C c = _c;
+    if (b2/*check*/) {
+      continue;
+    }
+    c.m();
+  }
+}
+''');
+
+    // TODO(mfairhurst): enable this check
+    //assertNullCheck(checkExpression('b1/*check*/'),
+    //    assertEdge(decoratedTypeAnnotation('bool b1').node, never, hard: true));
+    assertNullCheck(checkExpression('b2/*check*/'),
+        assertEdge(decoratedTypeAnnotation('bool b2').node, never, hard: true));
+    assertNullCheck(checkExpression('c.m'),
+        assertEdge(decoratedTypeAnnotation('C c').node, never, hard: false));
+  }
+
+  test_postDominators_doWhileStatement_conditional() async {
+    await analyze('''
+class C {
+  void m() {}
+}
+void test(bool b, C c) {
+  do {
+    return;
+  } while(b/*check*/);
+
+  c.m();
+}
+''');
+
+    // TODO(mfairhurst): enable this check
+    //assertNullCheck(checkExpression('b/*check*/'),
+    //    assertEdge(decoratedTypeAnnotation('bool b').node, never, hard: false));
+    assertNullCheck(checkExpression('c.m'),
+        assertEdge(decoratedTypeAnnotation('C c').node, never, hard: false));
+  }
+
+  test_postDominators_doWhileStatement_unconditional() async {
+    await analyze('''
+class C {
+  void m() {}
+}
+void test(bool b, C c1, C c2) {
+  do {
+    C c3 = C();
+    c1.m();
+    c3.m();
+  } while(b/*check*/);
+
+  c2.m();
+}
+''');
+
+    // TODO(mfairhurst): enable this check
+    //assertNullCheck(checkExpression('b/*check*/'),
+    //    assertEdge(decoratedTypeAnnotation('bool b').node, never, hard: true));
+    assertNullCheck(checkExpression('c1.m'),
+        assertEdge(decoratedTypeAnnotation('C c1').node, never, hard: true));
+    assertNullCheck(checkExpression('c2.m'),
+        assertEdge(decoratedTypeAnnotation('C c2').node, never, hard: true));
+    assertNullCheck(checkExpression('c3.m'),
+        assertEdge(decoratedTypeAnnotation('C c3').node, never, hard: true));
+  }
+
+  test_postDominators_forInStatement_unconditional() async {
+    await analyze('''
+class C {
+  void m() {}
+}
+void test(List<C> l, C c1, C c2) {
+  for (C c3 in l) {
+    c1.m();
+    c3.m();
+  }
+
+  c2.m();
+}
+''');
+
+    //TODO(mfairhurst): enable this check
+    //assertNullCheck(checkExpression('l/*check*/'),
+    //    assertEdge(decoratedTypeAnnotation('List<C> l').node, never, hard: true));
+    assertNullCheck(checkExpression('c1.m'),
+        assertEdge(decoratedTypeAnnotation('C c1').node, never, hard: false));
+    assertNullCheck(checkExpression('c2.m'),
+        assertEdge(decoratedTypeAnnotation('C c2').node, never, hard: true));
+    assertNullCheck(checkExpression('c3.m'),
+        assertEdge(decoratedTypeAnnotation('C c3').node, never, hard: false));
+  }
+
+  test_postDominators_forStatement_unconditional() async {
+    await analyze('''
+
+class C {
+  void m() {}
+}
+void test(bool b1, C c1, C c2, C c3) {
+  for (bool b2 = b1, b3 = b1; b1/*check*/ & b2/*check*/; c3.m()) {
+    c1.m();
+    assert(b3 != null);
+  }
+
+  c2.m();
+}
+''');
+
+    //TODO(mfairhurst): enable this check
+    assertNullCheck(checkExpression('b1/*check*/'),
+        assertEdge(decoratedTypeAnnotation('bool b1').node, never, hard: true));
+    //assertNullCheck(checkExpression('b2/*check*/'),
+    //    assertEdge(decoratedTypeAnnotation('bool b2').node, never, hard: true));
+    //assertEdge(decoratedTypeAnnotation('b3 =').node, never, hard: false);
+    assertNullCheck(checkExpression('c1.m'),
+        assertEdge(decoratedTypeAnnotation('C c1').node, never, hard: false));
+    assertNullCheck(checkExpression('c2.m'),
+        assertEdge(decoratedTypeAnnotation('C c2').node, never, hard: true));
+    assertNullCheck(checkExpression('c3.m'),
+        assertEdge(decoratedTypeAnnotation('C c3').node, never, hard: false));
+  }
+
+  test_postDominators_ifStatement_conditional() async {
+    await analyze('''
+class C {
+  void m() {}
+}
+void test(bool b, C c1, C c2) {
+  if (b/*check*/) {
+    C c3 = C();
+    C c4 = C();
+    c1.m();
+    c3.m();
+
+    // Divergence breaks post-dominance.
+    return;
+    c4.m();
+
+  }
+  c2.m();
+}
+''');
+
+    assertNullCheck(checkExpression('b/*check*/'),
+        assertEdge(decoratedTypeAnnotation('bool b').node, never, hard: true));
+    assertNullCheck(checkExpression('c1.m'),
+        assertEdge(decoratedTypeAnnotation('C c1').node, never, hard: false));
+    assertNullCheck(checkExpression('c2.m'),
+        assertEdge(decoratedTypeAnnotation('C c2').node, never, hard: false));
+    assertNullCheck(checkExpression('c3.m'),
+        assertEdge(decoratedTypeAnnotation('C c3').node, never, hard: true));
+    assertNullCheck(checkExpression('c4.m'),
+        assertEdge(decoratedTypeAnnotation('C c4').node, never, hard: false));
+  }
+
+  test_postDominators_ifStatement_unconditional() async {
+    await analyze('''
+class C {
+  void m() {}
+}
+void test(bool b, C c1, C c2) {
+  if (b/*check*/) {
+    C c3 = C();
+    C c4 = C();
+    c1.m();
+    c3.m();
+
+    // We ignore exceptions for post-dominance.
+    throw '';
+    c4.m();
+
+  }
+  c2.m();
+}
+''');
+
+    assertNullCheck(checkExpression('b/*check*/'),
+        assertEdge(decoratedTypeAnnotation('bool b').node, never, hard: true));
+    assertNullCheck(checkExpression('c1.m'),
+        assertEdge(decoratedTypeAnnotation('C c1').node, never, hard: false));
+    assertNullCheck(checkExpression('c2.m'),
+        assertEdge(decoratedTypeAnnotation('C c2').node, never, hard: true));
+    assertNullCheck(checkExpression('c3.m'),
+        assertEdge(decoratedTypeAnnotation('C c3').node, never, hard: true));
+    assertNullCheck(checkExpression('c4.m'),
+        assertEdge(decoratedTypeAnnotation('C c4').node, never, hard: true));
+  }
+
+  test_postDominators_inReturn_local() async {
+    await analyze('''
+class C {
+  int m() => 0;
+}
+int test(C c) {
+  return c.m();
+}
+''');
+
+    assertNullCheck(checkExpression('c.m'),
+        assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true));
+  }
+
+  test_postDominators_loopReturn() async {
+    await analyze('''
+class C {
+  void m() {}
+}
+void test(bool b1, C _c) {
+  C c1 = _c;
+  while (b1/*check*/) {
+    bool b2 = b1;
+    C c2 = _c;
+    if (b2/*check*/) {
+      return;
+    }
+    c2.m();
+  }
+  c1.m();
+}
+''');
+
+    // TODO(mfairhurst): enable this check
+    //assertNullCheck(checkExpression('b1/*check*/'),
+    //    assertEdge(decoratedTypeAnnotation('bool b1').node, never, hard: true));
+    assertNullCheck(checkExpression('b2/*check*/'),
+        assertEdge(decoratedTypeAnnotation('bool b2').node, never, hard: true));
+    assertNullCheck(checkExpression('c1.m'),
+        assertEdge(decoratedTypeAnnotation('C c1').node, never, hard: false));
+    assertNullCheck(checkExpression('c2.m'),
+        assertEdge(decoratedTypeAnnotation('C c2').node, never, hard: false));
+  }
+
+  test_postDominators_reassign() async {
+    await analyze('''
+void test(bool b, int i1, int i2) {
+  i1 = null;
+  i1.toDouble();
+  if (b) {
+    i2 = null;
+  }
+  i2.toDouble();
+}
+''');
+
+    assertNullCheck(checkExpression('i1.toDouble'),
+        assertEdge(decoratedTypeAnnotation('int i1').node, never, hard: false));
+
+    assertNullCheck(checkExpression('i2.toDouble'),
+        assertEdge(decoratedTypeAnnotation('int i2').node, never, hard: false));
+  }
+
+  test_postDominators_shortCircuitOperators() async {
+    await analyze('''
+class C {
+  bool m() => true;
+}
+void test(C c1, C c2, C c3, C c4) {
+  c1.m() && c2.m();
+  c3.m() || c4.m();
+}
+''');
+
+    assertNullCheck(checkExpression('c1.m'),
+        assertEdge(decoratedTypeAnnotation('C c1').node, never, hard: true));
+
+    assertNullCheck(checkExpression('c3.m'),
+        assertEdge(decoratedTypeAnnotation('C c3').node, never, hard: true));
+
+    assertNullCheck(checkExpression('c2.m'),
+        assertEdge(decoratedTypeAnnotation('C c2').node, never, hard: false));
+
+    assertNullCheck(checkExpression('c4.m'),
+        assertEdge(decoratedTypeAnnotation('C c4').node, never, hard: false));
+  }
+
+  @failingTest
+  test_postDominators_subFunction() async {
+    await analyze('''
+class C {
+  void m() {}
+}
+void test() {
+  (C c) {
+    c.m();
+  };
+}
+''');
+
+    assertNullCheck(checkExpression('c.m'),
+        assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true));
+  }
+
+  @failingTest
+  test_postDominators_subFunction_ifStatement_conditional() async {
+    // Failing because function expressions aren't implemented
+    await analyze('''
+class C {
+  void m() {}
+}
+void test() {
+  (bool b, C c) {
+    if (b/*check*/) {
+      return;
+    }
+    c.m();
+  };
+}
+''');
+
+    assertNullCheck(checkExpression('b/*check*/'),
+        assertEdge(decoratedTypeAnnotation('bool b').node, never, hard: false));
+    assertNullCheck(checkExpression('c.m'),
+        assertEdge(decoratedTypeAnnotation('C c').node, never, hard: false));
+  }
+
+  @failingTest
+  test_postDominators_subFunction_ifStatement_unconditional() async {
+    // Failing because function expressions aren't implemented
+    await analyze('''
+class C {
+  void m() {}
+}
+void test() {
+  (bool b, C c) {
+    if (b/*check*/) {
+    }
+    c.m();
+  };
+}
+''');
+
+    assertNullCheck(checkExpression('b/*check*/'),
+        assertEdge(decoratedTypeAnnotation('bool b').node, never, hard: true));
+    assertNullCheck(checkExpression('c.m'),
+        assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true));
+  }
+
+  test_postDominators_ternaryOperator() async {
+    await analyze('''
+class C {
+  bool m() => true;
+}
+void test(C c1, C c2, C c3, C c4) {
+  c1.m() ? c2.m() : c3.m();
+
+  c4.m();
+}
+''');
+
+    assertNullCheck(checkExpression('c1.m'),
+        assertEdge(decoratedTypeAnnotation('C c1').node, never, hard: true));
+
+    assertNullCheck(checkExpression('c4.m'),
+        assertEdge(decoratedTypeAnnotation('C c4').node, never, hard: true));
+
+    assertNullCheck(checkExpression('c2.m'),
+        assertEdge(decoratedTypeAnnotation('C c2').node, never, hard: false));
+
+    assertNullCheck(checkExpression('c3.m'),
+        assertEdge(decoratedTypeAnnotation('C c3').node, never, hard: false));
+  }
+
+  test_postDominators_whileStatement_unconditional() async {
+    await analyze('''
+class C {
+  void m() {}
+}
+void test(bool b, C c1, C c2) {
+  while (b/*check*/) {
+    C c3 = C();
+    c1.m();
+    c3.m();
+  }
+
+  c2.m();
+}
+''');
+
+    //TODO(mfairhurst): enable this check
+    //assertNullCheck(checkExpression('b/*check*/'),
+    //    assertEdge(decoratedTypeAnnotation('bool b').node, never, hard: true));
+    assertNullCheck(checkExpression('c1.m'),
+        assertEdge(decoratedTypeAnnotation('C c1').node, never, hard: false));
+    assertNullCheck(checkExpression('c2.m'),
+        assertEdge(decoratedTypeAnnotation('C c2').node, never, hard: true));
+    assertNullCheck(checkExpression('c3.m'),
+        assertEdge(decoratedTypeAnnotation('C c3').node, never, hard: true));
+  }
+
   test_postfixExpression_minusMinus() async {
     await analyze('''
 int f(int i) {
@@ -2317,6 +3195,21 @@ class C {
         hard: true);
   }
 
+  test_redirecting_constructor_ordinary_to_unnamed() async {
+    await analyze('''
+class C {
+  C.named(int/*1*/ i, int/*2*/ j) : this(j, i);
+  C(int/*3*/ j, int/*4*/ i);
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int/*1*/').node,
+        decoratedTypeAnnotation('int/*4*/').node,
+        hard: true);
+    assertEdge(decoratedTypeAnnotation('int/*2*/').node,
+        decoratedTypeAnnotation('int/*3*/').node,
+        hard: true);
+  }
+
   test_return_from_async_future() async {
     await analyze('''
 Future<int> f() async {
@@ -2344,7 +3237,7 @@ int/*1*/ Function() f(int/*2*/ Function() x) => x;
 ''');
     var int1 = decoratedTypeAnnotation('int/*1*/');
     var int2 = decoratedTypeAnnotation('int/*2*/');
-    assertEdge(int2.node, int1.node, hard: true);
+    assertEdge(int2.node, int1.node, hard: false);
   }
 
   test_return_implicit_null() async {
@@ -2802,4 +3695,33 @@ void f(int i) {
         decoratedTypeAnnotation('int j').node,
         hard: true);
   }
+}
+
+class _DecoratedClassHierarchyForTesting implements DecoratedClassHierarchy {
+  AssignmentCheckerTest assignmentCheckerTest;
+
+  @override
+  DecoratedType asInstanceOf(DecoratedType type, ClassElement superclass) {
+    var class_ = (type.type as InterfaceType).element;
+    if (class_ == superclass) return type;
+    if (superclass.name == 'Object') {
+      return DecoratedType(superclass.type, type.node);
+    }
+    if (class_.name == 'MyListOfList' && superclass.name == 'List') {
+      return assignmentCheckerTest._myListOfListSupertype
+          .substitute({class_.typeParameters[0]: type.typeArguments[0]});
+    }
+    throw UnimplementedError(
+        'TODO(paulberry): asInstanceOf($type, $superclass)');
+  }
+
+  @override
+  DecoratedType getDecoratedSupertype(
+      ClassElement class_, ClassElement superclass) {
+    throw UnimplementedError('TODO(paulberry)');
+  }
+}
+
+class _TestEdgeOrigin extends EdgeOrigin {
+  const _TestEdgeOrigin();
 }

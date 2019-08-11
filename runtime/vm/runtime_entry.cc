@@ -54,7 +54,6 @@ DEFINE_FLAG(bool,
 
 DECLARE_FLAG(bool, enable_interpreter);
 DECLARE_FLAG(int, max_deoptimization_counter_threshold);
-DECLARE_FLAG(bool, enable_inlining_annotations);
 DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, trace_optimizing_compiler);
 DECLARE_FLAG(int, max_polymorphic_checks);
@@ -81,7 +80,7 @@ DEFINE_FLAG(bool,
             "Enable specializing monomorphic calls from unoptimized code.");
 DEFINE_FLAG(bool,
             unopt_megamorphic_calls,
-            false,
+            true,
             "Enable specializing megamorphic calls from unoptimized code.");
 
 DECLARE_FLAG(int, reload_every);
@@ -1122,6 +1121,11 @@ static void TrySwitchInstanceCall(const ICData& ic_data,
   if (caller_function.unoptimized_code() != caller_code.raw()) {
     return;
   }
+#if !defined(PRODUCT)
+  // Skip functions that contain breakpoints or when debugger is in single
+  // stepping mode.
+  if (Debugger::IsDebugging(thread, caller_function)) return;
+#endif
 
   intptr_t num_checks = ic_data.NumberOfChecks();
 
@@ -1132,6 +1136,12 @@ static void TrySwitchInstanceCall(const ICData& ic_data,
     // needs it.
     if (target_function.HasOptionalParameters() ||
         target_function.IsGeneric()) {
+      return;
+    }
+
+    // Avoid forcing foreground compilation if target function is still
+    // interpreted.
+    if (FLAG_enable_interpreter && !target_function.HasCode()) {
       return;
     }
 
@@ -2136,9 +2146,7 @@ static void HandleStackOverflowTestCases(Thread* thread) {
         // Ensure that we have unoptimized code.
         frame->function().EnsureHasCompiledUnoptimizedCode();
       }
-      // TODO(regis): Provide var descriptors in kernel bytecode.
-      const int num_vars =
-          frame->IsInterpreted() ? 0 : frame->NumLocalVariables();
+      const int num_vars = frame->NumLocalVariables();
 #else
       // Variable locations and number are unknown when precompiling.
       const int num_vars = 0;
@@ -2149,7 +2157,7 @@ static void HandleStackOverflowTestCases(Thread* thread) {
       }
     }
     if (FLAG_stress_async_stacks) {
-      Debugger::CollectAwaiterReturnStackTrace();
+      isolate->debugger()->CollectAwaiterReturnStackTrace();
     }
     FLAG_stacktrace_every = saved_stacktrace_every;
   }
@@ -2292,6 +2300,46 @@ DEFINE_RUNTIME_ENTRY(TraceICCall, 2) {
                ic_data.NumberOfChecks(), function.ToFullyQualifiedCString());
 }
 
+// This is called from interpreter when function usage counter reached
+// compilation threshold and function needs to be compiled.
+DEFINE_RUNTIME_ENTRY(CompileInterpretedFunction, 1) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  const Function& function = Function::CheckedHandle(zone, arguments.ArgAt(0));
+  ASSERT(!function.IsNull());
+  ASSERT(FLAG_enable_interpreter);
+
+#if !defined(PRODUCT)
+  if (Debugger::IsDebugging(thread, function)) {
+    return;
+  }
+#endif  // !defined(PRODUCT)
+
+  if (FLAG_background_compilation) {
+    if (!BackgroundCompiler::IsDisabled(isolate,
+                                        /* optimizing_compilation = */ false) &&
+        function.is_background_optimizable()) {
+      // Ensure background compiler is running, if not start it.
+      BackgroundCompiler::Start(isolate);
+      // Reduce the chance of triggering a compilation while the function is
+      // being compiled in the background. INT_MIN should ensure that it
+      // takes long time to trigger a compilation.
+      // Note that the background compilation queue rejects duplicate entries.
+      function.SetUsageCounter(INT_MIN);
+      isolate->background_compiler()->Compile(function);
+      return;
+    }
+  }
+
+  // Reset usage counter for future optimization.
+  function.SetUsageCounter(0);
+  Object& result =
+      Object::Handle(zone, Compiler::CompileFunction(thread, function));
+  ThrowIfError(result);
+#else
+  UNREACHABLE();
+#endif  // !DART_PRECOMPILED_RUNTIME
+}
+
 // This is called from function that needs to be optimized.
 // The requesting function can be already optimized (reoptimization).
 // Returns the Code object where to continue execution.
@@ -2299,25 +2347,10 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   const Function& function = Function::CheckedHandle(zone, arguments.ArgAt(0));
   ASSERT(!function.IsNull());
+  ASSERT(function.HasCode());
 
-  // If running with interpreter, do the unoptimized compilation first.
-  const bool optimizing_compilation = function.ShouldCompilerOptimize();
-  ASSERT(FLAG_enable_interpreter || optimizing_compilation);
-  ASSERT((!optimizing_compilation) || function.HasCode() ||
-         function.ForceOptimize());
-
-#if defined(PRODUCT)
-  if (!optimizing_compilation ||
-      Compiler::CanOptimizeFunction(thread, function)) {
-#else
-  if ((!optimizing_compilation && !Debugger::IsDebugging(thread, function)) ||
-      (optimizing_compilation &&
-       Compiler::CanOptimizeFunction(thread, function))) {
-#endif  // defined(PRODUCT)
+  if (Compiler::CanOptimizeFunction(thread, function)) {
     if (FLAG_background_compilation) {
-      if (FLAG_enable_inlining_annotations) {
-        FATAL("Cannot enable inlining annotations and background compilation");
-      }
       Field& field = Field::Handle(zone, isolate->GetDeoptimizingBoxedField());
       while (!field.IsNull()) {
         if (FLAG_trace_optimization || FLAG_trace_field_guards) {
@@ -2328,7 +2361,8 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
         // Get next field.
         field = isolate->GetDeoptimizingBoxedField();
       }
-      if (!BackgroundCompiler::IsDisabled(isolate, optimizing_compilation) &&
+      if (!BackgroundCompiler::IsDisabled(isolate,
+                                          /* optimizing_compiler = */ true) &&
           function.is_background_optimizable()) {
         // Ensure background compiler is running, if not start it.
         BackgroundCompiler::Start(isolate);
@@ -2337,12 +2371,7 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
         // takes long time to trigger a compilation.
         // Note that the background compilation queue rejects duplicate entries.
         function.SetUsageCounter(INT_MIN);
-        if (optimizing_compilation) {
-          isolate->optimizing_background_compiler()->Compile(function);
-        } else {
-          ASSERT(FLAG_enable_interpreter);
-          isolate->background_compiler()->Compile(function);
-        }
+        isolate->optimizing_background_compiler()->Compile(function);
         // Continue in the same code.
         arguments.SetReturn(function);
         return;
@@ -2358,12 +2387,8 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
                   function.ToFullyQualifiedCString());
       }
     }
-    Object& result = Object::Handle(zone);
-    if (optimizing_compilation) {
-      result = Compiler::CompileOptimizedFunction(thread, function);
-    } else {
-      result = Compiler::CompileFunction(thread, function);
-    }
+    Object& result = Object::Handle(
+        zone, Compiler::CompileOptimizedFunction(thread, function));
     ThrowIfError(result);
   }
   arguments.SetReturn(function);
@@ -2998,7 +3023,8 @@ extern "C" void DFLRT_ExitSafepoint(NativeArguments __unusable_) {
   CHECK_STACK_ALIGNMENT;
   Thread* thread = Thread::Current();
   ASSERT(thread->top_exit_frame_info() != 0);
-  ASSERT(thread->execution_state() == Thread::kThreadInNative);
+
+  ASSERT(thread->execution_state() == Thread::kThreadInVM);
   thread->ExitSafepoint();
 }
 DEFINE_RAW_LEAF_RUNTIME_ENTRY(ExitSafepoint, 0, false, &DFLRT_ExitSafepoint);

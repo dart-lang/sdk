@@ -51,7 +51,7 @@ class PipeServerGame {
         var dstFile = new File(dstFileName);
         dstFile.createSync();
         var fileOutput = dstFile.openWrite();
-        _socket.pipe(fileOutput).then((_) {
+        _socket.cast<List<int>>().pipe(fileOutput).then((_) {
           // Check that the resulting file is equal to the initial
           // file.
           bool result = compareFileContent(srcFileName, dstFileName);
@@ -109,7 +109,7 @@ void startPipeServer(Object replyPortObj) {
 // stream to its output stream.
 class PipeServer extends TestingServer {
   void onConnection(Socket connection) {
-    connection.pipe(connection);
+    connection.cast<List<int>>().pipe(connection);
   }
 }
 

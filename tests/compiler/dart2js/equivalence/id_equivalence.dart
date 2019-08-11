@@ -14,7 +14,14 @@ export 'package:front_end/src/testing/id.dart';
 export 'package:front_end/src/testing/id_extractor.dart';
 
 SourceSpan computeSourceSpanFromUriOffset(Uri uri, int offset) {
-  return uri != null ? new SourceSpan(uri, offset, offset + 1) : null;
+  if (uri != null) {
+    if (offset != null) {
+      return new SourceSpan(uri, offset, offset + 1);
+    } else {
+      return new SourceSpan(uri, 0, 0);
+    }
+  }
+  return null;
 }
 
 abstract class IrDataRegistryMixin<T> implements DataRegistry<T> {

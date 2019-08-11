@@ -12,7 +12,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -1139,7 +1139,7 @@ class ElementResolverTest extends EngineTestCase with ResourceProviderMixin {
         resourceProvider: resourceProvider);
     _typeProvider = context.typeProvider;
 
-    var inheritance = new InheritanceManager2(context.typeSystem);
+    var inheritance = new InheritanceManager3(context.typeSystem);
     Source source = new FileSource(getFile("/test.dart"));
     CompilationUnitElementImpl unit = new CompilationUnitElementImpl();
     unit.librarySource = unit.source = source;

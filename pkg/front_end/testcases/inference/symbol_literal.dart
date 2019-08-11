@@ -6,7 +6,7 @@
 library test;
 
 void test() {
-  var /*@type=Symbol*/ x = #foo;
+  var /*@ type=Symbol* */ x = #foo;
 }
 
 main() {}

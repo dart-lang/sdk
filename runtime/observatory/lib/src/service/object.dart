@@ -929,7 +929,7 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
   static const kStdoutStream = 'Stdout';
   static const kStderrStream = 'Stderr';
   static const _kGraphStream = '_Graph';
-  static const kServiceStream = '_Service';
+  static const kServiceStream = 'Service';
 
   /// Returns a single-subscription Stream object for a VM event stream.
   Future<Stream<ServiceEvent>> getEventStream(String streamId) async {
@@ -1110,11 +1110,13 @@ class InboundReference implements M.InboundReference {
 
 class RetainingPath implements M.RetainingPath {
   final Iterable<RetainingPathItem> elements;
+  final String gcRootType;
 
   RetainingPath(ServiceMap map)
       : this.elements = map['elements']
             .map<RetainingPathItem>((rmap) => new RetainingPathItem(rmap))
-            .toList();
+            .toList(),
+        this.gcRootType = map['gcRootType'];
 }
 
 class RetainingPathItem implements M.RetainingPathItem {
@@ -1887,7 +1889,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
       'targetId': target.id,
       'limit': limit.toString(),
     };
-    return invokeRpc('_getRetainingPath', params);
+    return invokeRpc('getRetainingPath', params);
   }
 
   Future<ServiceObject> getInboundReferences(ServiceObject target, var limit) {
@@ -1895,7 +1897,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
       'targetId': target.id,
       'limit': limit.toString(),
     };
-    return invokeRpc('_getInboundReferences', params);
+    return invokeRpc('getInboundReferences', params);
   }
 
   Future<ServiceObject> getTypeArgumentsList(bool onlyWithInstantiations) {
@@ -1907,7 +1909,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
 
   Future<ServiceObject> getInstances(Class cls, var limit) {
     Map params = {
-      'classId': cls.id,
+      'objectId': cls.id,
       'limit': limit.toString(),
     };
     return invokeRpc('getInstances', params);
@@ -2087,6 +2089,7 @@ Level _findLogLevel(int value) {
 class ServiceEvent extends ServiceObject {
   /// The possible 'kind' values.
   static const kVMUpdate = 'VMUpdate';
+  static const kVMFlagUpdate = 'VMFlagUpdate';
   static const kIsolateStart = 'IsolateStart';
   static const kIsolateRunnable = 'IsolateRunnable';
   static const kIsolateExit = 'IsolateExit';
@@ -2123,6 +2126,8 @@ class ServiceEvent extends ServiceObject {
 
   String kind;
   DateTime timestamp;
+  String flag;
+  String newValue;
   List<M.Breakpoint> pauseBreakpoints;
   Breakpoint breakpoint;
   Frame topFrame;
@@ -2252,6 +2257,12 @@ class ServiceEvent extends ServiceObject {
     }
     if (map['alias'] != null) {
       alias = map['alias'];
+    }
+    if (map['flag'] != null) {
+      flag = map['flag'];
+    }
+    if (map['new_value'] != null) {
+      newValue = map['new_value'];
     }
   }
 
@@ -3028,8 +3039,8 @@ M.FunctionKind stringToFunctionKind(String value) {
       return M.FunctionKind.implicitSetter;
     case 'ImplicitStaticGetter':
       return M.FunctionKind.implicitStaticGetter;
-    case 'StaticFieldInitializer':
-      return M.FunctionKind.staticFieldInitializer;
+    case 'FieldInitializer':
+      return M.FunctionKind.fieldInitializer;
     case 'IrregexpFunction':
       return M.FunctionKind.irregexpFunction;
     case 'MethodExtractor':

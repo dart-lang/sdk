@@ -21,7 +21,7 @@ abstract class D {
   double get x;
 }
 
-// Superclasses have a consistent type for `x` so inferrence succeeds.
+// Superclasses have a consistent type for `x` so inference succeeds.
 class E extends A implements B {
   var x;
 }

@@ -69,7 +69,7 @@ List<DartType> getInstantiatorTypeArguments(
     Class instantiatedClass, List<DartType> typeArgs) {
   final flatTypeArgs =
       flattenInstantiatorTypeArguments(instantiatedClass, typeArgs);
-  if (_isAllDynamic(flatTypeArgs)) {
+  if (isAllDynamic(flatTypeArgs)) {
     return null;
   }
   return flatTypeArgs;
@@ -79,13 +79,13 @@ List<DartType> getDefaultFunctionTypeArguments(FunctionNode function) {
   List<DartType> defaultTypes = function.typeParameters
       .map((p) => p.defaultType ?? const DynamicType())
       .toList();
-  if (_isAllDynamic(defaultTypes)) {
+  if (isAllDynamic(defaultTypes)) {
     return null;
   }
   return defaultTypes;
 }
 
-bool _isAllDynamic(List<DartType> typeArgs) {
+bool isAllDynamic(List<DartType> typeArgs) {
   for (var t in typeArgs) {
     if (t != const DynamicType()) {
       return false;
@@ -93,6 +93,11 @@ bool _isAllDynamic(List<DartType> typeArgs) {
   }
   return true;
 }
+
+bool isInstantiatedGenericType(DartType type) =>
+    (type is InterfaceType) &&
+    type.typeArguments.isNotEmpty &&
+    !hasFreeTypeParameters(type.typeArguments);
 
 bool hasFreeTypeParameters(List<DartType> typeArgs) {
   final findTypeParams = new FindFreeTypeParametersVisitor();
@@ -176,9 +181,9 @@ bool isSealedType(DartType type, CoreTypes coreTypes) {
   return false;
 }
 
-// Returns true if an instance call to [interfaceTarget] with given
-// [receiver] can omit argument type checks needed due to generic-covariant
-// parameters.
+/// Returns true if an instance call to [interfaceTarget] with given
+/// [receiver] can omit argument type checks needed due to generic-covariant
+/// parameters.
 bool isUncheckedCall(Member interfaceTarget, Expression receiver,
     TypeEnvironment typeEnvironment) {
   if (interfaceTarget == null) {
@@ -210,6 +215,23 @@ bool isUncheckedCall(Member interfaceTarget, Expression receiver,
   return false;
 }
 
+/// If receiver type at run time matches static type we can omit argument type
+/// checks. This condition can be efficiently tested if static receiver type is
+/// fully instantiated (e.g. doesn't have type parameters).
+/// [isInstantiatedInterfaceCall] tests if an instance call to
+/// [interfaceTarget] with given [staticReceiverType] may benefit from
+/// this optimization.
+bool isInstantiatedInterfaceCall(
+    Member interfaceTarget, DartType staticReceiverType) {
+  // Providing instantiated receiver type wouldn't help in case of a
+  // dynamic call or call without any parameter type checks.
+  if (interfaceTarget == null ||
+      !_hasGenericCovariantParameters(interfaceTarget)) {
+    return false;
+  }
+  return isInstantiatedGenericType(staticReceiverType);
+}
+
 bool _hasGenericCovariantParameters(Member target) {
   if (target is Field) {
     return target.isGenericCovariantImpl;
@@ -229,3 +251,10 @@ bool _hasGenericCovariantParameters(Member target) {
     throw 'Unexpected instance call target ${target.runtimeType} $target';
   }
 }
+
+/// Returns true if invocation [node] is a closure call with statically known
+/// function type. Such invocations can omit argument type checks.
+bool isUncheckedClosureCall(
+        MethodInvocation node, TypeEnvironment typeEnvironment) =>
+    node.name.name == 'call' &&
+    getStaticType(node.receiver, typeEnvironment) is FunctionType;

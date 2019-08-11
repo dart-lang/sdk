@@ -13,7 +13,7 @@ import '../api_prototype/memory_file_system.dart';
 import '../api_prototype/standard_file_system.dart';
 
 /// A file system that mixes files from memory and a physical file system. All
-/// memory entities take priotity over file system entities.
+/// memory entities take priority over file system entities.
 class HybridFileSystem implements FileSystem {
   final MemoryFileSystem memory;
   final FileSystem physical;
@@ -26,7 +26,7 @@ class HybridFileSystem implements FileSystem {
       new HybridFileSystemEntity(uri, this);
 }
 
-/// Entity that delegates to an underlying memory or phisical file system
+/// Entity that delegates to an underlying memory or physical file system
 /// entity.
 class HybridFileSystemEntity implements FileSystemEntity {
   final Uri uri;

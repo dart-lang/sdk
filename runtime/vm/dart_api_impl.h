@@ -5,6 +5,8 @@
 #ifndef RUNTIME_VM_DART_API_IMPL_H_
 #define RUNTIME_VM_DART_API_IMPL_H_
 
+#include <memory>
+
 #include "vm/allocation.h"
 #include "vm/heap/safepoint.h"
 #include "vm/native_arguments.h"
@@ -32,7 +34,7 @@ const char* CanonicalFunction(const char* func);
     if ((isolate) == NULL) {                                                   \
       FATAL1(                                                                  \
           "%s expects there to be a current isolate. Did you "                 \
-          "forget to call Dart_CreateIsolate or Dart_EnterIsolate?",           \
+          "forget to call Dart_CreateIsolateGroup or Dart_EnterIsolate?",      \
           CURRENT_FUNC);                                                       \
     }                                                                          \
   } while (0)
@@ -73,13 +75,13 @@ const char* CanonicalFunction(const char* func);
     const Object& tmp =                                                        \
         Object::Handle(zone, Api::UnwrapHandle((dart_handle)));                \
     if (tmp.IsNull()) {                                                        \
-      return Api::NewError("%s expects argument '%s' to be non-null.",         \
-                           CURRENT_FUNC, #dart_handle);                        \
+      return Api::NewArgumentError("%s expects argument '%s' to be non-null.", \
+                                   CURRENT_FUNC, #dart_handle);                \
     } else if (tmp.IsError()) {                                                \
       return dart_handle;                                                      \
     }                                                                          \
-    return Api::NewError("%s expects argument '%s' to be of type %s.",         \
-                         CURRENT_FUNC, #dart_handle, #type);                   \
+    return Api::NewArgumentError("%s expects argument '%s' to be of type %s.", \
+                                 CURRENT_FUNC, #dart_handle, #type);           \
   } while (0)
 
 #define RETURN_NULL_ERROR(parameter)                                           \
@@ -223,6 +225,8 @@ class Api : AllStatic {
 
   // Generates a handle used to designate an error return.
   static Dart_Handle NewError(const char* format, ...) PRINTF_ATTRIBUTE(1, 2);
+  static Dart_Handle NewArgumentError(const char* format, ...)
+      PRINTF_ATTRIBUTE(1, 2);
 
   // Gets a handle to Null.
   static Dart_Handle Null() { return null_handle_; }
@@ -300,14 +304,6 @@ class Api : AllStatic {
 #if defined(TARGET_ARCH_DBC) && !defined(ARCH_IS_64_BIT)
     // TODO(36809): Support SimDBC32.
     return false;
-#elif defined(TARGET_ARCH_DBC) &&                                              \
-    !(defined(HOST_ARCH_X64) || defined(HOST_ARCH_ARM64))
-    // TODO(36809): Support ia32 and arm.
-    return false;
-#elif defined(TARGET_ARCH_DBC) && defined(HOST_ARCH_X64) &&                    \
-    defined(HOST_OS_WINDOWS)
-    // TODO(35773): Support x64 Windows.
-    return false;
 #elif defined(TARGET_ARCH_ARM) &&                                              \
     !(defined(TARGET_OS_ANDROID) || defined(TARGET_OS_MACOS_IOS))
     // TODO(36309): Support hardfp calling convention.
@@ -359,6 +355,14 @@ class Api : AllStatic {
 
 #define ASSERT_CALLBACK_STATE(thread)                                          \
   ASSERT(thread->no_callback_scope_depth() == 0)
+
+class IsolateGroupSource;
+
+// Creates a new isolate from [source] (which should come from an existing
+// isolate).
+Isolate* CreateWithinExistingIsolateGroup(IsolateGroup* group,
+                                          const char* name,
+                                          char** error);
 
 }  // namespace dart.
 

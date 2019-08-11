@@ -8,6 +8,8 @@
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
 namespace dart {
 
 DEFINE_FLAG(bool,
@@ -34,6 +36,8 @@ LocalScope::LocalScope(LocalScope* parent, int function_level, int loop_level)
       variables_(),
       labels_(),
       context_variables_(),
+      context_slots_(new (Thread::Current()->zone())
+                         ZoneGrowableArray<const Slot*>()),
       referenced_() {
   // Hook this node into the children of the parent, unless the parent has a
   // different function_level, since the local scope of a nested function can
@@ -185,6 +189,8 @@ void LocalScope::AllocateContextVariable(LocalVariable* variable,
 void LocalScope::AddContextVariable(LocalVariable* variable) {
   variable->set_index(VariableIndex(context_variables_.length()));
   context_variables_.Add(variable);
+  context_slots_->Add(
+      &Slot::GetContextVariableSlotFor(Thread::Current(), *variable));
 }
 
 VariableIndex LocalScope::AllocateVariables(VariableIndex first_parameter_index,
@@ -708,3 +714,5 @@ bool LocalVariable::Equals(const LocalVariable& other) const {
 }
 
 }  // namespace dart
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)

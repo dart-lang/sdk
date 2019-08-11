@@ -19,8 +19,9 @@ import 'package:kernel/target/targets.dart';
 Future<ComparisonNode> analyzePackage(
     List<Uri> inputs, Uri packagesFileUri, Uri platformUri) async {
   var messages = <DiagnosticMessage>[];
-  var component = await kernelForComponent(
-      inputs, _makeCompilerOptions(packagesFileUri, platformUri, messages.add));
+  var component = (await kernelForModule(inputs,
+          _makeCompilerOptions(packagesFileUri, platformUri, messages.add)))
+      .component;
   if (messages.isNotEmpty) {
     return ComparisonNode(
         'Error occurred', messages.map(_diagnosticMessageToNode).toList());
@@ -42,8 +43,9 @@ Future<ComparisonNode> analyzePackage(
 Future<ComparisonNode> analyzeProgram(Uri input, Uri packagesFileUri,
     Uri platformUri, bool uriFilter(Uri uri)) async {
   var messages = <DiagnosticMessage>[];
-  var component = await kernelForProgram(
-      input, _makeCompilerOptions(packagesFileUri, platformUri, messages.add));
+  var component = (await kernelForProgram(input,
+          _makeCompilerOptions(packagesFileUri, platformUri, messages.add)))
+      .component;
   if (messages.isNotEmpty) {
     return ComparisonNode(
         'Error occurred', messages.map(_diagnosticMessageToNode).toList());

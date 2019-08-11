@@ -50,7 +50,7 @@ class Driver {
     }
     if (checkIfChangesShouldBeApplied(result)) {
       for (SourceFileEdit fileEdit in result.edits) {
-        final file = new File(fileEdit.file);
+        final file = File(fileEdit.file);
         String code = file.existsSync() ? file.readAsStringSync() : '';
         code = SourceEdit.applySequence(code, fileEdit.edits);
         await file.writeAsString(code);
@@ -80,15 +80,22 @@ class Driver {
   /// server being run and return `true` if they are.
   /// Display an error message and return `false` if not.
   bool checkIfSelectedOptionsAreSupported(Options options) {
-    if (handler.serverProtocolVersion.compareTo(new Version(1, 22, 2)) >= 0) {
+    if (handler.serverProtocolVersion.compareTo(Version(1, 27, 2)) >= 0) {
+      return true;
+    }
+    if (options.pedanticFixes) {
+      _unsupportedOption(pedanticOption);
+      return false;
+    }
+    if (handler.serverProtocolVersion.compareTo(Version(1, 22, 2)) >= 0) {
       return true;
     }
     if (options.excludeFixes.isNotEmpty) {
-      _unsupportedOption(excludeOption);
+      _unsupportedOption(excludeFixOption);
       return false;
     }
     if (options.includeFixes.isNotEmpty) {
-      _unsupportedOption(includeOption);
+      _unsupportedOption(includeFixOption);
       return false;
     }
     if (options.requiredFixes) {
@@ -108,7 +115,7 @@ class Driver {
     logger.trace('Requesting fixes');
     Future isAnalysisComplete = handler.analysisComplete();
 
-    final params = new EditDartfixParams(options.targets);
+    final params = EditDartfixParams(options.targets);
     if (options.excludeFixes.isNotEmpty) {
       params.excludedFixes = options.excludeFixes;
     }
@@ -117,6 +124,9 @@ class Driver {
     }
     if (options.requiredFixes) {
       params.includeRequiredFixes = true;
+    }
+    if (options.pedanticFixes) {
+      params.includePedanticFixes = true;
     }
     Map<String, dynamic> json =
         await server.send(EDIT_REQUEST_DARTFIX, params.toJson());
@@ -128,7 +138,7 @@ class Driver {
     await isAnalysisComplete;
 
     progress.finish(showTiming: true);
-    ResponseDecoder decoder = new ResponseDecoder(null);
+    ResponseDecoder decoder = ResponseDecoder(null);
     return EditDartfixResult.fromJson(decoder, 'result', json);
   }
 
@@ -136,10 +146,10 @@ class Driver {
     if (suggestions.isNotEmpty) {
       logger.stdout('');
       logger.stdout(ansi.emphasized('$title:'));
-      List<DartFixSuggestion> sorted = new List.from(suggestions)
+      List<DartFixSuggestion> sorted = List.from(suggestions)
         ..sort(compareSuggestions);
       for (DartFixSuggestion suggestion in sorted) {
-        final msg = new StringBuffer();
+        final msg = StringBuffer();
         msg.write('  ${toSentenceFragment(suggestion.description)}');
         final loc = suggestion.location;
         if (loc != null) {
@@ -169,7 +179,7 @@ Analysis Details:
   void showFix(DartFix fix) {
     logger.stdout('''
 
-• ${fix.name}''');
+• ${ansi.emphasized(fix.name)}''');
     if (fix.description != null) {
       for (String line in _indentAndWrapDescription(fix.description)) {
         logger.stdout(line);
@@ -179,27 +189,28 @@ Analysis Details:
 
   Future<EditGetDartfixInfoResult> showFixes({Progress progress}) async {
     Map<String, dynamic> json = await server.send(
-        EDIT_REQUEST_GET_DARTFIX_INFO, new EditGetDartfixInfoParams().toJson());
+        EDIT_REQUEST_GET_DARTFIX_INFO, EditGetDartfixInfoParams().toJson());
     progress?.finish(showTiming: true);
-    ResponseDecoder decoder = new ResponseDecoder(null);
+    ResponseDecoder decoder = ResponseDecoder(null);
     final result = EditGetDartfixInfoResult.fromJson(decoder, 'result', json);
 
-    final fixes = new List<DartFix>.from(result.fixes)
+    final fixes = List<DartFix>.from(result.fixes)
       ..sort((f1, f2) => f1.name.compareTo(f2.name));
 
     logger.stdout('''
 
-These fixes are automatically applied unless at least one
---$includeOption option is specified and --$requiredOption is not specified.
-They may be individually disabled using --$excludeOption.''');
+The following fixes are automatically applied unless at least one --$includeFixOption option is specified
+(and --$requiredOption is not specified). They may be individually disabled using --$excludeFixOption.''');
 
     fixes.where((fix) => fix.isRequired).forEach(showFix);
 
     logger.stdout('''
 
-These fixes are NOT automatically applied, but may be enabled using --$includeOption.''');
+These fixes are NOT automatically applied, but may be enabled using --$includeFixOption:''');
 
-    fixes.where((fix) => !fix.isRequired).forEach(showFix);
+    fixes.where((fix) => !fix.isRequired).toList()
+      ..sort(compareFixes)
+      ..forEach(showFix);
 
     return result;
   }
@@ -216,8 +227,8 @@ These fixes are NOT automatically applied, but may be enabled using --$includeOp
     targets = options.targets;
     context = testContext ?? options.context;
     logger = testLogger ?? options.logger;
-    server = new Server(listener: new _Listener(logger));
-    handler = new _Handler(this);
+    server = Server(listener: _Listener(logger));
+    handler = _Handler(this);
 
     // Start showing progress before we start the analysis server.
     Progress progress;
@@ -228,7 +239,7 @@ These fixes are NOT automatically applied, but may be enabled using --$includeOp
     }
 
     if (!await startServer(options)) {
-      context.exit(15);
+      context.exit(16);
     }
 
     if (!checkIfSelectedOptionsAreSupported(options)) {
@@ -291,10 +302,10 @@ analysis server
     logger.trace('');
     logger.trace('Setup analysis');
     await server.send(SERVER_REQUEST_SET_SUBSCRIPTIONS,
-        new ServerSetSubscriptionsParams([ServerService.STATUS]).toJson());
+        ServerSetSubscriptionsParams([ServerService.STATUS]).toJson());
     await server.send(
         ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS,
-        new AnalysisSetAnalysisRootsParams(
+        AnalysisSetAnalysisRootsParams(
           options.targets,
           const [],
         ).toJson());

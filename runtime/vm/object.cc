@@ -80,6 +80,7 @@ DEFINE_FLAG(bool,
             false,
             "Remove script timestamps to allow for deterministic testing.");
 
+DECLARE_FLAG(bool, dual_map_code);
 DECLARE_FLAG(bool, intrinsify);
 DECLARE_FLAG(bool, show_invisible_frames);
 DECLARE_FLAG(bool, trace_deoptimization);
@@ -2086,14 +2087,21 @@ RawString* Object::DictionaryName() const {
 }
 
 void Object::InitializeObject(uword address, intptr_t class_id, intptr_t size) {
-  uword initial_value = (class_id == kInstructionsCid)
-                            ? Assembler::GetBreakInstructionFiller()
-                            : reinterpret_cast<uword>(null_);
   uword cur = address;
   uword end = address + size;
-  while (cur < end) {
-    *reinterpret_cast<uword*>(cur) = initial_value;
-    cur += kWordSize;
+  if (class_id == kInstructionsCid) {
+    compiler::target::uword initial_value =
+        compiler::Assembler::GetBreakInstructionFiller();
+    while (cur < end) {
+      *reinterpret_cast<compiler::target::uword*>(cur) = initial_value;
+      cur += compiler::target::kWordSize;
+    }
+  } else {
+    uword initial_value = reinterpret_cast<uword>(null_);
+    while (cur < end) {
+      *reinterpret_cast<uword*>(cur) = initial_value;
+      cur += kWordSize;
+    }
   }
   uint32_t tags = 0;
   ASSERT(class_id != kIllegalCid);
@@ -2156,12 +2164,17 @@ RawObject* Object::Allocate(intptr_t cls_id, intptr_t size, Heap::Space space) {
     address = heap->Allocate(size, space);
   }
   if (UNLIKELY(address == 0)) {
-    // Use the preallocated out of memory exception to avoid calling
-    // into dart code or allocating any code.
-    const Instance& exception =
-        Instance::Handle(thread->isolate()->object_store()->out_of_memory());
-    Exceptions::Throw(thread, exception);
-    UNREACHABLE();
+    if (thread->top_exit_frame_info() != 0) {
+      // Use the preallocated out of memory exception to avoid calling
+      // into dart code or allocating any code.
+      const Instance& exception =
+          Instance::Handle(thread->isolate()->object_store()->out_of_memory());
+      Exceptions::Throw(thread, exception);
+      UNREACHABLE();
+    } else {
+      // No Dart to propagate an exception to.
+      OUT_OF_MEMORY();
+    }
   }
 #ifndef PRODUCT
   ClassTable* class_table = thread->isolate()->class_table();
@@ -3062,6 +3075,9 @@ RawFunction* Function::CreateDynamicInvocationForwarder(
   forwarder ^= Object::Clone(*this, Heap::kOld);
 
   forwarder.set_name(mangled_name);
+  forwarder.set_is_native(false);
+  // TODO(dartbug.com/37737): Currently, we intentionally keep the recognized
+  // kind when creating the dynamic invocation forwarder.
   forwarder.set_kind(RawFunction::kDynamicInvocationForwarder);
   forwarder.set_is_debuggable(false);
 
@@ -3550,7 +3566,9 @@ void Class::EnsureDeclarationLoaded() const {
 #else
     // Loading of class declaration can be postponed until needed
     // if class comes from bytecode.
-    ASSERT(is_declared_in_bytecode());
+    if (!is_declared_in_bytecode()) {
+      FATAL1("Unable to use class %s which is not loaded yet.", ToCString());
+    }
     kernel::BytecodeReader::LoadClassDeclaration(*this);
     ASSERT(is_declaration_loaded());
     ASSERT(is_type_finalized());
@@ -3560,6 +3578,7 @@ void Class::EnsureDeclarationLoaded() const {
 
 // Ensure that top level parsing of the class has been done.
 RawError* Class::EnsureIsFinalized(Thread* thread) const {
+  ASSERT(!IsNull());
   // Finalized classes have already been parsed.
   if (is_finalized()) {
     return Error::null();
@@ -4458,6 +4477,7 @@ RawFunction* Class::CheckFunctionType(const Function& func, MemberKind kind) {
 }
 
 RawFunction* Class::LookupFunction(const String& name, MemberKind kind) const {
+  ASSERT(!IsNull());
   Thread* thread = Thread::Current();
   if (EnsureIsFinalized(thread) != Error::null()) {
     return Function::null();
@@ -4509,6 +4529,7 @@ RawFunction* Class::LookupFunction(const String& name, MemberKind kind) const {
 
 RawFunction* Class::LookupFunctionAllowPrivate(const String& name,
                                                MemberKind kind) const {
+  ASSERT(!IsNull());
   Thread* thread = Thread::Current();
   if (EnsureIsFinalized(thread) != Error::null()) {
     return Function::null();
@@ -4544,6 +4565,7 @@ RawFunction* Class::LookupSetterFunction(const String& name) const {
 RawFunction* Class::LookupAccessorFunction(const char* prefix,
                                            intptr_t prefix_length,
                                            const String& name) const {
+  ASSERT(!IsNull());
   Thread* thread = Thread::Current();
   if (EnsureIsFinalized(thread) != Error::null()) {
     return Function::null();
@@ -4581,6 +4603,7 @@ RawField* Class::LookupField(const String& name) const {
 }
 
 RawField* Class::LookupField(const String& name, MemberKind kind) const {
+  ASSERT(!IsNull());
   Thread* thread = Thread::Current();
   if (EnsureIsFinalized(thread) != Error::null()) {
     return Field::null();
@@ -4628,6 +4651,7 @@ RawField* Class::LookupField(const String& name, MemberKind kind) const {
 
 RawField* Class::LookupFieldAllowPrivate(const String& name,
                                          bool instance_only) const {
+  ASSERT(!IsNull());
   // Use slow string compare, ignoring privacy name mangling.
   Thread* thread = Thread::Current();
   if (EnsureIsFinalized(thread) != Error::null()) {
@@ -4905,7 +4929,10 @@ void Class::RehashConstants(Zone* zone) const {
   while (it.MoveNext()) {
     constant ^= set.GetKey(it.Current());
     ASSERT(!constant.IsNull());
-    ASSERT(constant.IsCanonical());
+    // Shape changes lose the canonical bit because they may result/ in merging
+    // constants. E.g., [x1, y1], [x1, y2] -> [x1].
+    DEBUG_ASSERT(constant.IsCanonical() ||
+                 Isolate::Current()->HasAttemptedReload());
     InsertCanonicalConstant(zone, constant);
   }
   set.Release();
@@ -4950,6 +4977,26 @@ RawTypeArguments* TypeArguments::Prepend(Zone* zone,
     result.SetTypeAt(i, type);
   }
   return result.Canonicalize();
+}
+
+RawTypeArguments* TypeArguments::ConcatenateTypeParameters(
+    Zone* zone,
+    const TypeArguments& other) const {
+  ASSERT(!IsNull() && !other.IsNull());
+  const intptr_t this_len = Length();
+  const intptr_t other_len = other.Length();
+  const auto& result = TypeArguments::Handle(
+      zone, TypeArguments::New(this_len + other_len, Heap::kNew));
+  auto& type = AbstractType::Handle(zone);
+  for (intptr_t i = 0; i < this_len; ++i) {
+    type = TypeAt(i);
+    result.SetTypeAt(i, type);
+  }
+  for (intptr_t i = 0; i < other_len; ++i) {
+    type = other.TypeAt(i);
+    result.SetTypeAt(this_len + i, type);
+  }
+  return result.raw();
 }
 
 RawString* TypeArguments::SubvectorName(intptr_t from_index,
@@ -5880,7 +5927,7 @@ RawField* Function::accessor_field() const {
   ASSERT(kind() == RawFunction::kImplicitGetter ||
          kind() == RawFunction::kImplicitSetter ||
          kind() == RawFunction::kImplicitStaticGetter ||
-         kind() == RawFunction::kStaticFieldInitializer);
+         kind() == RawFunction::kFieldInitializer);
   return Field::RawCast(raw_ptr()->data_);
 }
 
@@ -5888,7 +5935,7 @@ void Function::set_accessor_field(const Field& value) const {
   ASSERT(kind() == RawFunction::kImplicitGetter ||
          kind() == RawFunction::kImplicitSetter ||
          kind() == RawFunction::kImplicitStaticGetter ||
-         kind() == RawFunction::kStaticFieldInitializer);
+         kind() == RawFunction::kFieldInitializer);
   // Top level classes may be finalized multiple times.
   ASSERT(raw_ptr()->data_ == Object::null() || raw_ptr()->data_ == value.raw());
   set_data(value);
@@ -5950,7 +5997,7 @@ bool Function::HasGenericParent() const {
 
 RawFunction* Function::implicit_closure_function() const {
   if (IsClosureFunction() || IsSignatureFunction() || IsFactory() ||
-      IsDispatcherOrImplicitAccessor() || IsImplicitStaticFieldInitializer()) {
+      IsDispatcherOrImplicitAccessor() || IsFieldInitializer()) {
     return Function::null();
   }
   const Object& obj = Object::Handle(raw_ptr()->data_);
@@ -6158,8 +6205,8 @@ const char* Function::KindToCString(RawFunction::Kind kind) {
     case RawFunction::kImplicitStaticGetter:
       return "ImplicitStaticGetter";
       break;
-    case RawFunction::kStaticFieldInitializer:
-      return "StaticFieldInitializer";
+    case RawFunction::kFieldInitializer:
+      return "FieldInitializer";
       break;
     case RawFunction::kMethodExtractor:
       return "MethodExtractor";
@@ -7250,7 +7297,6 @@ RawFunction* Function::New(const String& name,
   result.set_is_redirecting(false);
   result.set_is_generated_body(false);
   result.set_has_pragma(false);
-  result.set_always_inline(false);
   result.set_is_polymorphic_target(false);
   result.set_is_no_such_method_forwarder(false);
   NOT_IN_PRECOMPILED(result.set_state_bits(0));
@@ -7711,7 +7757,7 @@ void Function::InheritBinaryDeclarationFrom(const Field& src) const {
 
 void Function::SetKernelDataAndScript(const Script& script,
                                       const ExternalTypedData& data,
-                                      intptr_t offset) {
+                                      intptr_t offset) const {
   Array& data_field = Array::Handle(Array::New(3));
   data_field.SetAt(0, script);
   data_field.SetAt(1, data);
@@ -8040,8 +8086,9 @@ void Function::SetDeoptReasonForAll(intptr_t deopt_id,
 }
 
 bool Function::CheckSourceFingerprint(const char* prefix, int32_t fp) const {
-  // TODO(alexmarkov): '(kernel_offset() <= 0)' looks like an impossible
-  // condition, fix this and re-enable fingerprints checking.
+  // TODO(36376): Restore checking fingerprints of recognized methods.
+  // '(kernel_offset() <= 0)' looks like an impossible condition, fix this and
+  //  re-enable fingerprints checking.
   if (!Isolate::Current()->obfuscate() && !is_declared_in_bytecode() &&
       (kernel_offset() <= 0) && (SourceFingerprint() != fp)) {
     const bool recalculatingFingerprints = false;
@@ -8124,8 +8171,8 @@ const char* Function::ToCString() const {
     case RawFunction::kImplicitStaticGetter:
       kind_str = " static-getter";
       break;
-    case RawFunction::kStaticFieldInitializer:
-      kind_str = " static-field-initializer";
+    case RawFunction::kFieldInitializer:
+      kind_str = " field-initializer";
       break;
     case RawFunction::kMethodExtractor:
       kind_str = " method-extractor";
@@ -10119,7 +10166,7 @@ RawObject* Library::GetMetadata(const Object& obj) const {
 #else
   if (!obj.IsClass() && !obj.IsField() && !obj.IsFunction() &&
       !obj.IsLibrary() && !obj.IsTypeParameter()) {
-    return Object::null();
+    UNREACHABLE();
   }
   const String& metaname = String::Handle(MakeMetadataName(obj));
   Field& field = Field::Handle(GetMetadataField(metaname));
@@ -10143,6 +10190,25 @@ RawObject* Library::GetMetadata(const Object& obj) const {
     }
   }
   return metadata.raw();
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+}
+
+RawArray* Library::GetExtendedMetadata(const Object& obj,
+                                       intptr_t count) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Object::empty_array().raw();
+#else
+  if (!obj.IsFunction()) {
+    UNREACHABLE();
+  }
+  const String& metaname = String::Handle(MakeMetadataName(obj));
+  Field& field = Field::Handle(GetMetadataField(metaname));
+  if (field.IsNull()) {
+    // There is no metadata for this object.
+    return Object::empty_array().raw();
+  }
+  ASSERT(field.is_declared_in_bytecode());
+  return kernel::BytecodeReader::ReadExtendedAnnotations(field, count);
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
@@ -10424,6 +10490,7 @@ RawObject* Library::LookupReExport(const String& name,
 }
 
 RawObject* Library::LookupEntry(const String& name, intptr_t* index) const {
+  ASSERT(!IsNull());
   Thread* thread = Thread::Current();
   REUSABLE_ARRAY_HANDLESCOPE(thread);
   REUSABLE_OBJECT_HANDLESCOPE(thread);
@@ -12100,7 +12167,8 @@ RawKernelProgramInfo* KernelProgramInfo::New(
     const ExternalTypedData& constants_table,
     const Array& scripts,
     const Array& libraries_cache,
-    const Array& classes_cache) {
+    const Array& classes_cache,
+    const uint32_t binary_version) {
   const KernelProgramInfo& info =
       KernelProgramInfo::Handle(KernelProgramInfo::New());
   info.StorePointer(&info.raw_ptr()->string_offsets_, string_offsets.raw());
@@ -12114,6 +12182,7 @@ RawKernelProgramInfo* KernelProgramInfo::New(
   info.StorePointer(&info.raw_ptr()->constants_table_, constants_table.raw());
   info.StorePointer(&info.raw_ptr()->libraries_cache_, libraries_cache.raw());
   info.StorePointer(&info.raw_ptr()->classes_cache_, classes_cache.raw());
+  info.set_kernel_binary_version(binary_version);
   return info.raw();
 }
 
@@ -12135,14 +12204,13 @@ void KernelProgramInfo::set_constants(const Array& constants) const {
   StorePointer(&raw_ptr()->constants_, constants.raw());
 }
 
+void KernelProgramInfo::set_kernel_binary_version(uint32_t version) const {
+  StoreNonPointer(&raw_ptr()->kernel_binary_version_, version);
+}
+
 void KernelProgramInfo::set_constants_table(
     const ExternalTypedData& value) const {
   StorePointer(&raw_ptr()->constants_table_, value.raw());
-}
-
-void KernelProgramInfo::set_evaluating(
-    const GrowableObjectArray& evaluating) const {
-  StorePointer(&raw_ptr()->evaluating_, evaluating.raw());
 }
 
 void KernelProgramInfo::set_potential_natives(
@@ -12465,13 +12533,13 @@ void Library::CheckFunctionFingerprints() {
   CORE_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS2);
   CORE_INTEGER_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS2);
 
+  all_libs.Add(&Library::ZoneHandle(Library::AsyncLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::MathLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::CollectionLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::InternalLibrary()));
+  all_libs.Add(&Library::ZoneHandle(Library::FfiLibrary()));
   OTHER_RECOGNIZED_LIST(CHECK_FINGERPRINTS2);
-  INLINE_WHITE_LIST(CHECK_FINGERPRINTS);
-  INLINE_BLACK_LIST(CHECK_FINGERPRINTS);
   POLYMORPHIC_TARGET_LIST(CHECK_FINGERPRINTS);
 
   all_libs.Clear();
@@ -13367,12 +13435,6 @@ void ICData::SetReceiversStaticType(const AbstractType& type) const {
 }
 #endif
 
-void ICData::ResetSwitchable(Zone* zone) const {
-  ASSERT(NumArgsTested() == 1);
-  ASSERT(!is_tracking_exactness());
-  set_entries(Array::Handle(zone, CachedEmptyICDataArray(1, false)));
-}
-
 const char* ICData::ToCString() const {
   Zone* zone = Thread::Current()->zone();
   const String& name = String::Handle(zone, target_name());
@@ -14171,7 +14233,18 @@ RawICData* ICData::AsUnaryClassChecksSortedByCount() const {
   return result.raw();
 }
 
+RawUnlinkedCall* ICData::AsUnlinkedCall() const {
+  ASSERT(NumArgsTested() == 1);
+  ASSERT(!is_tracking_exactness());
+  const UnlinkedCall& result = UnlinkedCall::Handle(UnlinkedCall::New());
+  result.set_target_name(String::Handle(target_name()));
+  result.set_args_descriptor(Array::Handle(arguments_descriptor()));
+  return result.raw();
+}
+
 RawMegamorphicCache* ICData::AsMegamorphicCache() const {
+  ASSERT(NumArgsTested() == 1);
+  ASSERT(!is_tracking_exactness());
   const String& name = String::Handle(target_name());
   const Array& descriptor = Array::Handle(arguments_descriptor());
   return MegamorphicCacheTable::Lookup(Isolate::Current(), name, descriptor);
@@ -14822,7 +14895,7 @@ RawCode* Code::FinalizeCodeAndNotify(const char* name,
 }
 
 RawCode* Code::FinalizeCode(FlowGraphCompiler* compiler,
-                            Assembler* assembler,
+                            compiler::Assembler* assembler,
                             PoolAttachment pool_attachment,
                             bool optimized,
                             CodeStatistics* stats /* = nullptr */) {
@@ -14894,15 +14967,24 @@ RawCode* Code::FinalizeCode(FlowGraphCompiler* compiler,
       // Check if a dual mapping exists.
       instrs = Instructions::RawCast(HeapPage::ToExecutable(instrs.raw()));
       uword exec_address = RawObject::ToAddr(instrs.raw());
-      if (exec_address != address) {
+      const bool use_dual_mapping = exec_address != address;
+      ASSERT(use_dual_mapping == FLAG_dual_map_code);
+
+      // When dual mapping is enabled the executable mapping is RX from the
+      // point of allocation and never changes protection.
+      // Yet the writable mapping is still turned back from RW to R.
+      if (use_dual_mapping) {
         VirtualMemory::Protect(reinterpret_cast<void*>(address),
                                instrs.raw()->HeapSize(),
                                VirtualMemory::kReadOnly);
         address = exec_address;
+      } else {
+        // If dual mapping is disabled and we write protect then we have to
+        // change the single mapping from RW -> RX.
+        VirtualMemory::Protect(reinterpret_cast<void*>(address),
+                               instrs.raw()->HeapSize(),
+                               VirtualMemory::kReadExecute);
       }
-      VirtualMemory::Protect(reinterpret_cast<void*>(address),
-                             instrs.raw()->HeapSize(),
-                             VirtualMemory::kReadExecute);
     }
 
     // Hook up Code and Instructions objects.
@@ -15319,7 +15401,7 @@ TokenPosition Bytecode::GetTokenIndexOfPC(uword return_address) const {
     return TokenPosition::kNoSource;
   }
   uword pc_offset = return_address - PayloadStart();
-  // PC could equal to bytecode size if the last instruction is Throw.
+  // pc_offset could equal to bytecode size if the last instruction is Throw.
   ASSERT(pc_offset <= static_cast<uword>(Size()));
   kernel::BytecodeSourcePositionsIterator iter(Thread::Current()->zone(),
                                                *this);
@@ -15360,6 +15442,43 @@ intptr_t Bytecode::GetTryIndexAtPc(uword return_address) const {
     }
   }
   return try_index;
+#endif
+}
+
+uword Bytecode::GetFirstDebugCheckOpcodePc() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
+  uword pc = PayloadStart();
+  const uword end_pc = pc + Size();
+  while (pc < end_pc) {
+    if (KernelBytecode::IsDebugCheckOpcode(
+            reinterpret_cast<const KBCInstr*>(pc))) {
+      return pc;
+    }
+    pc = KernelBytecode::Next(pc);
+  }
+  return 0;
+#endif
+}
+
+uword Bytecode::GetDebugCheckedOpcodeReturnAddress(uword from_offset,
+                                                   uword to_offset) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
+  uword pc = PayloadStart() + from_offset;
+  const uword end_pc = pc + (to_offset - from_offset);
+  while (pc < end_pc) {
+    uword next_pc = KernelBytecode::Next(pc);
+    if (KernelBytecode::IsDebugCheckedOpcode(
+            reinterpret_cast<const KBCInstr*>(pc))) {
+      // Return the pc after the opcode, i.e. its 'return address'.
+      return next_pc;
+    }
+    pc = next_pc;
+  }
+  return 0;
 #endif
 }
 
@@ -15408,6 +15527,16 @@ const char* Bytecode::QualifiedName() const {
   return zone->PrintToString("[Bytecode] %s", function_name);
 }
 
+const char* Bytecode::FullyQualifiedName() const {
+  Zone* zone = Thread::Current()->zone();
+  const Function& fun = Function::Handle(zone, function());
+  if (fun.IsNull()) {
+    return BytecodeStubName(*this);
+  }
+  const char* function_name = fun.ToFullyQualifiedCString();
+  return zone->PrintToString("[Bytecode] %s", function_name);
+}
+
 bool Bytecode::SlowFindRawBytecodeVisitor::FindObject(
     RawObject* raw_obj) const {
   return RawBytecode::ContainsPC(raw_obj, pc_);
@@ -15441,6 +15570,16 @@ RawLocalVarDescriptors* Bytecode::GetLocalVarDescriptors() const {
   }
   return var_descs.raw();
 #endif
+}
+
+intptr_t Context::GetLevel() const {
+  intptr_t level = 0;
+  Context& parent_ctx = Context::Handle(parent());
+  while (!parent_ctx.IsNull()) {
+    level++;
+    parent_ctx = parent_ctx.parent();
+  }
+  return level;
 }
 
 RawContext* Context::New(intptr_t num_variables, Heap::Space space) {
@@ -16400,10 +16539,15 @@ uint32_t Instance::CanonicalizeHash() const {
   if (IsNull()) {
     return 2011;
   }
-  NoSafepointScope no_safepoint;
+  Thread* thread = Thread::Current();
+  uint32_t hash = thread->heap()->GetCanonicalHash(raw());
+  if (hash != 0) {
+    return hash;
+  }
+  NoSafepointScope no_safepoint(thread);
   const intptr_t instance_size = SizeFromClass();
   ASSERT(instance_size != 0);
-  uint32_t hash = instance_size / kWordSize;
+  hash = instance_size / kWordSize;
   uword this_addr = reinterpret_cast<uword>(this->raw_ptr());
   Instance& member = Instance::Handle();
   for (intptr_t offset = Instance::NextFieldOffset(); offset < instance_size;
@@ -16411,7 +16555,9 @@ uint32_t Instance::CanonicalizeHash() const {
     member ^= *reinterpret_cast<RawObject**>(this_addr + offset);
     hash = CombineHashes(hash, member.CanonicalizeHash());
   }
-  return FinalizeHash(hash, String::kHashBits);
+  hash = FinalizeHash(hash, String::kHashBits);
+  thread->heap()->SetCanonicalHash(raw(), hash);
+  return hash;
 }
 
 #if defined(DEBUG)
@@ -20637,19 +20783,25 @@ bool Array::CanonicalizeEquals(const Instance& other) const {
 }
 
 uint32_t Array::CanonicalizeHash() const {
-  NoSafepointScope no_safepoint;
   intptr_t len = Length();
   if (len == 0) {
     return 1;
   }
-  uint32_t hash = len;
+  Thread* thread = Thread::Current();
+  uint32_t hash = thread->heap()->GetCanonicalHash(raw());
+  if (hash != 0) {
+    return hash;
+  }
+  hash = len;
   Instance& member = Instance::Handle(GetTypeArguments());
   hash = CombineHashes(hash, member.CanonicalizeHash());
   for (intptr_t i = 0; i < len; i++) {
     member ^= At(i);
     hash = CombineHashes(hash, member.CanonicalizeHash());
   }
-  return FinalizeHash(hash, kHashBits);
+  hash = FinalizeHash(hash, kHashBits);
+  thread->heap()->SetCanonicalHash(raw(), hash);
+  return hash;
 }
 
 RawArray* Array::New(intptr_t len, Heap::Space space) {

@@ -14,11 +14,10 @@ import 'package:test_runner/src/utils.dart';
 
 class DispatchingServer {
   HttpServer server;
-  Map<String, Function> _handlers = {};
-  Function _notFound;
+  final Map<String, Function> _handlers = {};
+  final void Function(HttpRequest request) _notFound;
 
-  DispatchingServer(
-      this.server, void onError(e), void this._notFound(HttpRequest request)) {
+  DispatchingServer(this.server, void onError(e), this._notFound) {
     server.listen(_dispatchRequest, onError: onError);
   }
 
@@ -332,7 +331,7 @@ class TestingServers {
       if (headerOrigin != null) {
         var origin = Uri.parse(headerOrigin);
         // Allow loading from http://*:$allowedPort in browsers.
-        allowedOrigin = '${origin.scheme}://${origin.host}:${allowedPort}';
+        allowedOrigin = '${origin.scheme}://${origin.host}:$allowedPort';
       } else {
         // IE10 appears to be bugged and is not sending the Origin header
         // when making CORS requests to the same domain but different port.

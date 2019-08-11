@@ -5,20 +5,20 @@ import "dart:core" as core;
 import "dart:async";
 
 class B extends core::Object {
-  synthetic constructor •() → self::B
+  synthetic constructor •() → self::B*
     ;
-  operator [](core::int x) → core::num
+  operator [](core::int* x) → core::num*
     ;
 }
 class C extends self::B {
-  synthetic constructor •() → self::C
+  synthetic constructor •() → self::C*
     ;
-  operator [](core::Object x) → core::int
+  operator [](core::Object* x) → core::int*
     ;
   method h() → void
     ;
 }
-static method f<T extends core::Object = dynamic>() → self::f::T
+static method f<T extends core::Object* = dynamic>() → self::f::T*
   ;
 static method main() → dynamic
   ;

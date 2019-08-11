@@ -112,7 +112,7 @@ class _SuggestionBuilder extends GeneralizingElementVisitor {
       }
     }
     String completion = element.displayName;
-    if (completion == null || completion.length <= 0) {
+    if (completion == null || completion.isEmpty) {
       return;
     }
     CompletionSuggestion suggestion =

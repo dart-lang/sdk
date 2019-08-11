@@ -19,12 +19,14 @@ class Dart2jsConstantEvaluator extends ir.ConstantEvaluator {
 
   Dart2jsConstantEvaluator(
       ir.TypeEnvironment typeEnvironment, ReportErrorFunction reportError,
-      {bool enableAsserts,
-      Map<String, String> environment: const {},
+      {Map<String, String> environment: const {},
       bool supportReevaluationForTesting: false})
       : _supportReevaluationForTesting = supportReevaluationForTesting,
-        super(const Dart2jsConstantsBackend(), environment, typeEnvironment,
-            enableAsserts, new ErrorReporter(reportError));
+        super(
+            const Dart2jsConstantsBackend(supportsUnevaluatedConstants: false),
+            environment,
+            typeEnvironment,
+            new ErrorReporter(reportError));
 
   @override
   ErrorReporter get errorReporter => super.errorReporter;

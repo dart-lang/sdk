@@ -950,6 +950,9 @@ class _WebSocketConsumer implements StreamConsumer {
   void add(data) {
     if (_closed) return;
     _ensureController();
+    // Stop sending message if _controller has been closed.
+    // https://github.com/dart-lang/sdk/issues/37441
+    if (_controller.isClosed) return;
     _controller.add(data);
   }
 
@@ -1066,7 +1069,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
       List<int> expectedAccept = sha1.close();
       List<int> receivedAccept = _CryptoUtils.base64StringToBytes(accept);
       if (expectedAccept.length != receivedAccept.length) {
-        error("Reasponse header 'Sec-WebSocket-Accept' is the wrong length");
+        error("Response header 'Sec-WebSocket-Accept' is the wrong length");
       }
       for (int i = 0; i < expectedAccept.length; i++) {
         if (expectedAccept[i] != receivedAccept[i]) {
@@ -1128,7 +1131,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
     _deflate = deflate;
 
     var transformer = new _WebSocketProtocolTransformer(_serverSide, _deflate);
-    _subscription = _socket.transform(transformer).listen((data) {
+    _subscription = transformer.bind(_socket).listen((data) {
       if (data is _WebSocketPing) {
         if (!_writeClosed) _consumer.add(new _WebSocketPong(data.payload));
       } else if (data is _WebSocketPong) {

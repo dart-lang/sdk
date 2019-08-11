@@ -76,6 +76,8 @@ import '../scope.dart' show AmbiguousBuilder;
 
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 
+import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+
 import '../source/source_loader.dart' show SourceLoader;
 
 import '../target_implementation.dart' show TargetImplementation;
@@ -87,15 +89,12 @@ import 'constant_evaluator.dart' as constants show transformLibraries;
 import 'kernel_builder.dart'
     show
         ClassBuilder,
-        Declaration,
+        Builder,
         InvalidTypeBuilder,
-        KernelClassBuilder,
-        KernelFieldBuilder,
-        KernelLibraryBuilder,
-        KernelNamedTypeBuilder,
-        KernelProcedureBuilder,
-        LibraryBuilder,
+        FieldBuilder,
         NamedTypeBuilder,
+        ProcedureBuilder,
+        LibraryBuilder,
         TypeBuilder,
         TypeDeclarationBuilder;
 
@@ -121,12 +120,11 @@ class KernelTarget extends TargetImplementation {
 
   Component component;
 
-  final TypeBuilder dynamicType = new KernelNamedTypeBuilder("dynamic", null);
+  final TypeBuilder dynamicType = new NamedTypeBuilder("dynamic", null);
 
-  final NamedTypeBuilder objectType =
-      new KernelNamedTypeBuilder("Object", null);
+  final NamedTypeBuilder objectType = new NamedTypeBuilder("Object", null);
 
-  final TypeBuilder bottomType = new KernelNamedTypeBuilder("Null", null);
+  final TypeBuilder bottomType = new NamedTypeBuilder("Null", null);
 
   bool get legacyMode => backendTarget.legacyMode;
 
@@ -137,8 +135,6 @@ class KernelTarget extends TargetImplementation {
 
   final bool errorOnUnevaluatedConstant =
       CompilerContext.current.options.errorOnUnevaluatedConstant;
-
-  final bool enableAsserts = CompilerContext.current.options.enableAsserts;
 
   final List<Object> clonedFormals = <Object>[];
 
@@ -177,7 +173,11 @@ class KernelTarget extends TargetImplementation {
           String asString = "$entryPoint";
           packagesMap ??= uriTranslator.packages.asMap();
           for (String packageName in packagesMap.keys) {
-            String prefix = "${packagesMap[packageName]}";
+            Uri packageUri = packagesMap[packageName];
+            if (packageUri?.hasFragment == true) {
+              packageUri = packageUri.removeFragment();
+            }
+            String prefix = "${packageUri}";
             if (asString.startsWith(prefix)) {
               Uri reversed = Uri.parse(
                   "package:$packageName/${asString.substring(prefix.length)}");
@@ -202,14 +202,14 @@ class KernelTarget extends TargetImplementation {
 
   @override
   LibraryBuilder createLibraryBuilder(
-      Uri uri, Uri fileUri, KernelLibraryBuilder origin) {
+      Uri uri, Uri fileUri, SourceLibraryBuilder origin) {
     if (dillTarget.isLoaded) {
       var builder = dillTarget.loader.builders[uri];
       if (builder != null) {
         return builder;
       }
     }
-    return new KernelLibraryBuilder(uri, fileUri, loader, origin);
+    return new SourceLibraryBuilder(uri, fileUri, loader, origin);
   }
 
   /// Returns classes defined in libraries in [loader].
@@ -217,9 +217,9 @@ class KernelTarget extends TargetImplementation {
     List<SourceClassBuilder> result = <SourceClassBuilder>[];
     loader.builders.forEach((Uri uri, LibraryBuilder library) {
       if (library.loader == loader) {
-        Iterator<Declaration> iterator = library.iterator;
+        Iterator<Builder> iterator = library.iterator;
         while (iterator.moveNext()) {
-          Declaration member = iterator.current;
+          Builder member = iterator.current;
           if (member is SourceClassBuilder && !member.isPatch) {
             result.add(member);
           }
@@ -234,7 +234,7 @@ class KernelTarget extends TargetImplementation {
     cls.implementedTypes.clear();
     cls.supertype = null;
     cls.mixedInType = null;
-    builder.supertype = new KernelNamedTypeBuilder("Object", null)
+    builder.supertype = new NamedTypeBuilder("Object", null)
       ..bind(objectClassBuilder);
     builder.interfaces = null;
     builder.mixedInType = null;
@@ -247,11 +247,11 @@ class KernelTarget extends TargetImplementation {
       loader.createTypeInferenceEngine();
       await loader.buildOutlines();
       loader.coreLibrary.becomeCoreLibrary();
-      dynamicType.bind(loader.coreLibrary["dynamic"]);
+      dynamicType.bind(loader.coreLibrary.getLocalMember("dynamic"));
       loader.resolveParts();
       loader.computeLibraryScopes();
-      objectType.bind(loader.coreLibrary["Object"]);
-      bottomType.bind(loader.coreLibrary["Null"]);
+      objectType.bind(loader.coreLibrary.getLocalMember("Object"));
+      bottomType.bind(loader.coreLibrary.getLocalMember("Null"));
       loader.resolveTypes();
       loader.computeDefaultTypes(dynamicType, bottomType, objectClassBuilder);
       List<SourceClassBuilder> myClasses =
@@ -341,13 +341,12 @@ class KernelTarget extends TargetImplementation {
         nameRoot: nameRoot, libraries: libraries, uriToSource: uriToSource));
     if (loader.first != null) {
       // TODO(sigmund): do only for full program
-      Declaration declaration =
-          loader.first.exportScope.lookup("main", -1, null);
+      Builder declaration = loader.first.exportScope.lookup("main", -1, null);
       if (declaration is AmbiguousBuilder) {
         AmbiguousBuilder problem = declaration;
         declaration = problem.getFirstDeclaration();
       }
-      if (declaration is KernelProcedureBuilder) {
+      if (declaration is ProcedureBuilder) {
         component.mainMethod = declaration.procedure;
       } else if (declaration is DillMemberBuilder) {
         if (declaration.member is Procedure) {
@@ -368,16 +367,15 @@ class KernelTarget extends TargetImplementation {
     Class objectClass = this.objectClass;
     loader.builders.forEach((Uri uri, LibraryBuilder library) {
       if (library.loader == loader) {
-        Iterator<Declaration> iterator = library.iterator;
+        Iterator<Builder> iterator = library.iterator;
         while (iterator.moveNext()) {
-          Declaration declaration = iterator.current;
+          Builder declaration = iterator.current;
           if (declaration is SourceClassBuilder) {
             Class cls = declaration.target;
             if (cls != objectClass) {
               cls.supertype ??= objectClass.asRawSupertype;
-              declaration.supertype ??=
-                  new KernelNamedTypeBuilder("Object", null)
-                    ..bind(objectClassBuilder);
+              declaration.supertype ??= new NamedTypeBuilder("Object", null)
+                ..bind(objectClassBuilder);
             }
             if (declaration.isMixinApplication) {
               cls.mixedInType = declaration.mixedInType.buildMixedInType(
@@ -394,7 +392,11 @@ class KernelTarget extends TargetImplementation {
     Class objectClass = this.objectClass;
     for (SourceClassBuilder builder in builders) {
       if (builder.target != objectClass && !builder.isPatch) {
-        if (builder.isPatch || builder.isMixinDeclaration) continue;
+        if (builder.isPatch ||
+            builder.isMixinDeclaration ||
+            builder.isExtension) {
+          continue;
+        }
         if (builder.isMixinApplication) {
           installForwardingConstructors(builder);
         } else {
@@ -405,13 +407,14 @@ class KernelTarget extends TargetImplementation {
     ticker.logMs("Installed synthetic constructors");
   }
 
-  KernelClassBuilder get objectClassBuilder => objectType.declaration;
+  ClassBuilder get objectClassBuilder => objectType.declaration;
 
   Class get objectClass => objectClassBuilder.cls;
 
   /// If [builder] doesn't have a constructors, install the defaults.
   void installDefaultConstructor(SourceClassBuilder builder) {
     assert(!builder.isMixinApplication);
+    assert(!builder.isExtension);
     // TODO(askesc): Make this check light-weight in the absence of patches.
     if (builder.target.constructors.isNotEmpty) return;
     if (builder.target.redirectingFactoryConstructors.isNotEmpty) return;
@@ -457,7 +460,7 @@ class KernelTarget extends TargetImplementation {
     if (supertype.isMixinApplication) {
       installForwardingConstructors(supertype);
     }
-    if (supertype is KernelClassBuilder) {
+    if (supertype is ClassBuilder) {
       if (supertype.cls.constructors.isEmpty) {
         builder.addSyntheticConstructor(makeDefaultConstructor(builder.target));
       } else {
@@ -589,11 +592,11 @@ class KernelTarget extends TargetImplementation {
         libraries.add(library.target);
       }
     }
-    Component plaformLibraries =
+    Component platformLibraries =
         backendTarget.configureComponent(new Component());
     // Add libraries directly to prevent that their parents are changed.
-    plaformLibraries.libraries.addAll(libraries);
-    loader.computeCoreTypes(plaformLibraries);
+    platformLibraries.libraries.addAll(libraries);
+    loader.computeCoreTypes(platformLibraries);
   }
 
   void finishAllConstructors(List<SourceClassBuilder> builders) {
@@ -683,9 +686,9 @@ class KernelTarget extends TargetImplementation {
         for (VariableDeclaration formal
             in constructor.function.positionalParameters) {
           if (formal.isFieldFormal) {
-            Declaration fieldBuilder = builder.scope.local[formal.name] ??
+            Builder fieldBuilder = builder.scope.local[formal.name] ??
                 builder.origin.scope.local[formal.name];
-            if (fieldBuilder is KernelFieldBuilder) {
+            if (fieldBuilder is FieldBuilder) {
               myInitializedFields.add(fieldBuilder.field);
             }
           }
@@ -786,7 +789,6 @@ class KernelTarget extends TargetImplementation {
           environmentDefines,
           environment,
           new KernelConstantErrorReporter(loader),
-          enableAsserts: enableAsserts,
           desugarSets: !backendTarget.supportsSetLiterals,
           errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
       ticker.logMs("Evaluated constants");
@@ -796,6 +798,7 @@ class KernelTarget extends TargetImplementation {
         loader.coreTypes,
         loader.hierarchy,
         loader.libraries,
+        environmentDefines,
         new KernelDiagnosticReporter(loader),
         logger: (String msg) => ticker.logMs(msg));
   }
@@ -819,11 +822,11 @@ class KernelTarget extends TargetImplementation {
   }
 
   @override
-  void readPatchFiles(KernelLibraryBuilder library) {
+  void readPatchFiles(SourceLibraryBuilder library) {
     assert(library.uri.scheme == "dart");
     List<Uri> patches = uriTranslator.getDartPatches(library.uri.path);
     if (patches != null) {
-      KernelLibraryBuilder first;
+      SourceLibraryBuilder first;
       for (Uri patch in patches) {
         if (first == null) {
           first = library.loader.read(patch, -1,
@@ -831,7 +834,7 @@ class KernelTarget extends TargetImplementation {
         } else {
           // If there's more than one patch file, it's interpreted as a part of
           // the patch library.
-          KernelLibraryBuilder part = library.loader.read(patch, -1,
+          SourceLibraryBuilder part = library.loader.read(patch, -1,
               origin: library, fileUri: patch, accessor: library);
           first.parts.add(part);
           first.partOffsets.add(-1);
@@ -861,7 +864,7 @@ Constructor defaultSuperConstructor(Class cls) {
 
 class KernelDiagnosticReporter
     extends DiagnosticReporter<Message, LocatedMessage> {
-  final Loader<Library> loader;
+  final Loader loader;
 
   KernelDiagnosticReporter(this.loader);
 

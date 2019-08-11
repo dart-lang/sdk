@@ -1364,8 +1364,10 @@ class Class : public Object {
   bool TraceAllocation(Isolate* isolate) const;
   void SetTraceAllocation(bool trace_allocation) const;
 
-  void ReplaceEnum(const Class& old_enum) const;
-  void CopyStaticFieldValues(const Class& old_cls) const;
+  void ReplaceEnum(IsolateReloadContext* reload_context,
+                   const Class& old_enum) const;
+  void CopyStaticFieldValues(IsolateReloadContext* reload_context,
+                             const Class& old_cls) const;
   void PatchFieldsAndFunctions() const;
   void MigrateImplicitStaticClosures(IsolateReloadContext* context,
                                      const Class& new_cls) const;
@@ -1705,7 +1707,6 @@ class ICData : public Object {
 #endif
 
   void Reset(Zone* zone) const;
-  void ResetSwitchable(Zone* zone) const;
 
 // Note: only deopts with reasons before Unknown in this list are recorded in
 // the ICData. All other reasons are used purely for informational messages
@@ -1907,6 +1908,7 @@ class ICData : public Object {
   // Used for printing and optimizations.
   RawICData* AsUnaryClassChecksSortedByCount() const;
 
+  RawUnlinkedCall* AsUnlinkedCall() const;
   RawMegamorphicCache* AsMegamorphicCache() const;
 
   // Consider only used entries.
@@ -2430,7 +2432,7 @@ class Function : public Object {
       case RawFunction::kSignatureFunction:
       case RawFunction::kConstructor:
       case RawFunction::kImplicitStaticGetter:
-      case RawFunction::kStaticFieldInitializer:
+      case RawFunction::kFieldInitializer:
       case RawFunction::kIrregexpFunction:
         return false;
       default:
@@ -2449,7 +2451,7 @@ class Function : public Object {
       case RawFunction::kImplicitGetter:
       case RawFunction::kImplicitSetter:
       case RawFunction::kImplicitStaticGetter:
-      case RawFunction::kStaticFieldInitializer:
+      case RawFunction::kFieldInitializer:
       case RawFunction::kIrregexpFunction:
         return true;
       case RawFunction::kClosureFunction:
@@ -2648,7 +2650,7 @@ class Function : public Object {
 
   void SetKernelDataAndScript(const Script& script,
                               const ExternalTypedData& data,
-                              intptr_t offset);
+                              intptr_t offset) const;
 
   intptr_t KernelDataProgramOffset() const;
 
@@ -2762,10 +2764,11 @@ class Function : public Object {
     return kind() == RawFunction::kImplicitSetter;
   }
 
-  // Returns true if this function represents an implicit static field
-  // initializer function.
-  bool IsImplicitStaticFieldInitializer() const {
-    return kind() == RawFunction::kStaticFieldInitializer;
+  // Returns true if this function represents an the initializer for a static or
+  // instance field. The function returns the initial value and the caller is
+  // responsible for setting the field.
+  bool IsFieldInitializer() const {
+    return kind() == RawFunction::kFieldInitializer;
   }
 
   // Returns true if this function represents a (possibly implicit) closure
@@ -3027,7 +3030,6 @@ class Function : public Object {
   // external: Just a declaration that expects to be defined in another patch
   //           file.
   // generated_body: Has a generated body.
-  // always_inline: Should always be inlined.
   // polymorphic_target: A polymorphic method.
   // has_pragma: Has a @pragma decoration.
   // no_such_method_forwarder: A stub method that just calls noSuchMethod.
@@ -3045,7 +3047,6 @@ class Function : public Object {
   V(Redirecting, is_redirecting)                                               \
   V(External, is_external)                                                     \
   V(GeneratedBody, is_generated_body)                                          \
-  V(AlwaysInline, always_inline)                                               \
   V(PolymorphicTarget, is_polymorphic_target)                                  \
   V(HasPragma, has_pragma)                                                     \
   V(IsNoSuchMethodForwarder, is_no_such_method_forwarder)
@@ -3446,6 +3447,13 @@ class Field : public Object {
   inline RawInstance* StaticValue() const;
   inline void SetStaticValue(const Instance& value,
                              bool save_initial_value = false) const;
+
+#ifndef DART_PRECOMPILED_RUNTIME
+  RawInstance* saved_initial_value() const {
+    return raw_ptr()->saved_initial_value_;
+  }
+  inline void set_saved_initial_value(const Instance& value) const;
+#endif
 
   RawClass* Owner() const;
   RawClass* Origin() const;  // Either mixin class, or same as owner().
@@ -4056,6 +4064,7 @@ class Library : public Object {
                          const Function& from_fun,
                          const Function& to_fun) const;
   RawObject* GetMetadata(const Object& obj) const;
+  RawArray* GetExtendedMetadata(const Object& obj, intptr_t count) const;
 
   // Tries to finds a @pragma annotation on [object].
   //
@@ -4389,7 +4398,8 @@ class KernelProgramInfo : public Object {
                                    const ExternalTypedData& constants_table,
                                    const Array& scripts,
                                    const Array& libraries_cache,
-                                   const Array& classes_cache);
+                                   const Array& classes_cache,
+                                   const uint32_t binary_version);
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawKernelProgramInfo));
@@ -4421,9 +4431,10 @@ class KernelProgramInfo : public Object {
   RawArray* constants() const { return raw_ptr()->constants_; }
   void set_constants(const Array& constants) const;
 
-  // Records libraries under evaluation to break evaluation cycles.
-  RawGrowableObjectArray* evaluating() const { return raw_ptr()->evaluating_; }
-  void set_evaluating(const GrowableObjectArray& evaluating) const;
+  uint32_t kernel_binary_version() const {
+    return raw_ptr()->kernel_binary_version_;
+  }
+  void set_kernel_binary_version(uint32_t version) const;
 
   // If we load a kernel blob with evaluated constants, then we delay setting
   // the native names of [Function] objects until we've read the constant table
@@ -5729,6 +5740,15 @@ class Bytecode : public Object {
   TokenPosition GetTokenIndexOfPC(uword return_address) const;
   intptr_t GetTryIndexAtPc(uword return_address) const;
 
+  // Return the pc of the first 'DebugCheck' opcode of the bytecode.
+  // Return 0 if none is found.
+  uword GetFirstDebugCheckOpcodePc() const;
+
+  // Return the pc after the first 'debug checked' opcode in the range.
+  // Return 0 if none is found.
+  uword GetDebugCheckedOpcodeReturnAddress(uword from_offset,
+                                           uword to_offset) const;
+
   intptr_t instructions_binary_offset() const {
     return raw_ptr()->instructions_binary_offset_;
   }
@@ -5780,6 +5800,7 @@ class Bytecode : public Object {
 
   const char* Name() const;
   const char* QualifiedName() const;
+  const char* FullyQualifiedName() const;
 
   class SlowFindRawBytecodeVisitor : public FindObjectVisitor {
    public:
@@ -5837,6 +5858,8 @@ class Context : public Object {
     return *ObjectAddr(context_index);
   }
   inline void SetAt(intptr_t context_index, const Object& value) const;
+
+  intptr_t GetLevel() const;
 
   void Dump(int indent = 0) const;
 
@@ -6535,6 +6558,10 @@ class TypeArguments : public Instance {
                             const TypeArguments& other,
                             intptr_t other_length,
                             intptr_t total_length) const;
+
+  // Concatenate [this] and [other] vectors of type parameters.
+  RawTypeArguments* ConcatenateTypeParameters(Zone* zone,
+                                              const TypeArguments& other) const;
 
   // Check if the subvector of length 'len' starting at 'from_index' of this
   // type argument vector consists solely of DynamicType, ObjectType, or
@@ -9102,7 +9129,9 @@ class Pointer : public Instance {
   }
 
   void SetNativeAddress(size_t address) const {
-    StorePointer(&raw_ptr()->c_memory_address_, Integer::New(address));
+    const auto& address_boxed = Integer::Handle(Integer::New(address));
+    NoSafepointScope no_safepoint_scope;
+    StorePointer(&raw_ptr()->c_memory_address_, address_boxed.raw());
   }
 
   static intptr_t type_arguments_offset() {
@@ -9892,6 +9921,12 @@ void Field::SetStaticValue(const Instance& value,
 #endif
   }
 }
+
+#ifndef DART_PRECOMPILED_RUNTIME
+void Field::set_saved_initial_value(const Instance& value) const {
+  StorePointer(&raw_ptr()->saved_initial_value_, value.raw());
+}
+#endif
 
 void Context::SetAt(intptr_t index, const Object& value) const {
   StorePointer(ObjectAddr(index), value.raw());

@@ -65,14 +65,29 @@ public class FlutterOutlineAttribute {
   private final String literalValueString;
 
   /**
+   * If the attribute is a named argument, the location of the name, without the colon.
+   */
+  private final Location nameLocation;
+
+  /**
+   * The location of the value.
+   *
+   * This field is always available, but marked optional for backward compatibility between new
+   * clients with older servers.
+   */
+  private final Location valueLocation;
+
+  /**
    * Constructor for {@link FlutterOutlineAttribute}.
    */
-  public FlutterOutlineAttribute(String name, String label, Boolean literalValueBoolean, Integer literalValueInteger, String literalValueString) {
+  public FlutterOutlineAttribute(String name, String label, Boolean literalValueBoolean, Integer literalValueInteger, String literalValueString, Location nameLocation, Location valueLocation) {
     this.name = name;
     this.label = label;
     this.literalValueBoolean = literalValueBoolean;
     this.literalValueInteger = literalValueInteger;
     this.literalValueString = literalValueString;
+    this.nameLocation = nameLocation;
+    this.valueLocation = valueLocation;
   }
 
   @Override
@@ -84,7 +99,9 @@ public class FlutterOutlineAttribute {
         ObjectUtilities.equals(other.label, label) &&
         ObjectUtilities.equals(other.literalValueBoolean, literalValueBoolean) &&
         ObjectUtilities.equals(other.literalValueInteger, literalValueInteger) &&
-        ObjectUtilities.equals(other.literalValueString, literalValueString);
+        ObjectUtilities.equals(other.literalValueString, literalValueString) &&
+        ObjectUtilities.equals(other.nameLocation, nameLocation) &&
+        ObjectUtilities.equals(other.valueLocation, valueLocation);
     }
     return false;
   }
@@ -95,7 +112,9 @@ public class FlutterOutlineAttribute {
     Boolean literalValueBoolean = jsonObject.get("literalValueBoolean") == null ? null : jsonObject.get("literalValueBoolean").getAsBoolean();
     Integer literalValueInteger = jsonObject.get("literalValueInteger") == null ? null : jsonObject.get("literalValueInteger").getAsInt();
     String literalValueString = jsonObject.get("literalValueString") == null ? null : jsonObject.get("literalValueString").getAsString();
-    return new FlutterOutlineAttribute(name, label, literalValueBoolean, literalValueInteger, literalValueString);
+    Location nameLocation = jsonObject.get("nameLocation") == null ? null : Location.fromJson(jsonObject.get("nameLocation").getAsJsonObject());
+    Location valueLocation = jsonObject.get("valueLocation") == null ? null : Location.fromJson(jsonObject.get("valueLocation").getAsJsonObject());
+    return new FlutterOutlineAttribute(name, label, literalValueBoolean, literalValueInteger, literalValueString, nameLocation, valueLocation);
   }
 
   public static List<FlutterOutlineAttribute> fromJsonArray(JsonArray jsonArray) {
@@ -149,6 +168,23 @@ public class FlutterOutlineAttribute {
     return name;
   }
 
+  /**
+   * If the attribute is a named argument, the location of the name, without the colon.
+   */
+  public Location getNameLocation() {
+    return nameLocation;
+  }
+
+  /**
+   * The location of the value.
+   *
+   * This field is always available, but marked optional for backward compatibility between new
+   * clients with older servers.
+   */
+  public Location getValueLocation() {
+    return valueLocation;
+  }
+
   @Override
   public int hashCode() {
     HashCodeBuilder builder = new HashCodeBuilder();
@@ -157,6 +193,8 @@ public class FlutterOutlineAttribute {
     builder.append(literalValueBoolean);
     builder.append(literalValueInteger);
     builder.append(literalValueString);
+    builder.append(nameLocation);
+    builder.append(valueLocation);
     return builder.toHashCode();
   }
 
@@ -172,6 +210,12 @@ public class FlutterOutlineAttribute {
     }
     if (literalValueString != null) {
       jsonObject.addProperty("literalValueString", literalValueString);
+    }
+    if (nameLocation != null) {
+      jsonObject.add("nameLocation", nameLocation.toJson());
+    }
+    if (valueLocation != null) {
+      jsonObject.add("valueLocation", valueLocation.toJson());
     }
     return jsonObject;
   }
@@ -189,7 +233,11 @@ public class FlutterOutlineAttribute {
     builder.append("literalValueInteger=");
     builder.append(literalValueInteger + ", ");
     builder.append("literalValueString=");
-    builder.append(literalValueString);
+    builder.append(literalValueString + ", ");
+    builder.append("nameLocation=");
+    builder.append(nameLocation + ", ");
+    builder.append("valueLocation=");
+    builder.append(valueLocation);
     builder.append("]");
     return builder.toString();
   }

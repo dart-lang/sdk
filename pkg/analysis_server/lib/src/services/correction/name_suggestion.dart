@@ -31,7 +31,7 @@ List<String> getCamelWordCombinations(String name) {
  */
 List<String> getVariableNameSuggestionsForExpression(
     DartType expectedType, Expression assignedExpression, Set<String> excluded,
-    {bool isMethod: false}) {
+    {bool isMethod = false}) {
   String prefix;
 
   if (isMethod) {

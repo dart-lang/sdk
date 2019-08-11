@@ -2,114 +2,118 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:16:68: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:16:71: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
 // Try changing the type of the left hand side, or casting the right hand side to 'int'.
-//   f0(/*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello"]);
-//                                                                    ^
-//
-// pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:17:68: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-// Try changing the type of the left hand side, or casting the right hand side to 'int'.
-//   f0(/*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello", 3]);
-//                                                                    ^
-//
-// pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:21:71: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-// Try changing the type of the left hand side, or casting the right hand side to 'int'.
-//   f1(a: /*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello"]);
+//   f0(/*@ typeArgs=int* */ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello"]);
 //                                                                       ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:17:71: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
+//   f0(/*@ typeArgs=int* */ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello", 3]);
+//                                                                       ^
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:21:74: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// Try changing the type of the left hand side, or casting the right hand side to 'int'.
+//   f1(a: /*@ typeArgs=int* */ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello"]);
+//                                                                          ^
 //
 // pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:23:48: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
 // Try changing the type of the left hand side, or casting the right hand side to 'int'.
 //     /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello",
 //                                                ^
 //
-// pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:29:68: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:29:71: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
 // Try changing the type of the left hand side, or casting the right hand side to 'int'.
-//   f2(/*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello"]);
-//                                                                    ^
+//   f2(/*@ typeArgs=int* */ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello"]);
+//                                                                       ^
 //
-// pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:30:68: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:30:71: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
 // Try changing the type of the left hand side, or casting the right hand side to 'int'.
-//   f2(/*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello", 3]);
-//                                                                    ^
+//   f2(/*@ typeArgs=int* */ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello", 3]);
+//                                                                       ^
 //
-// pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:37:67: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:37:70: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
 // Try changing the type of the left hand side, or casting the right hand side to 'int'.
-//     /*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello"]
-//                                                                   ^
+//     /*@ typeArgs=int* */ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello"]
+//                                                                      ^
 //
-// pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:40:67: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:40:70: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
 // Try changing the type of the left hand side, or casting the right hand side to 'int'.
-//     /*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello"],
-//                                                                   ^
+//     /*@ typeArgs=int* */ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello"],
+//                                                                      ^
 //
-// pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:49:67: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:49:70: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
 // Try changing the type of the left hand side, or casting the right hand side to 'int'.
-//     /*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello"]
-//                                                                   ^
+//     /*@ typeArgs=int* */ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello"]
+//                                                                      ^
 //
-// pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:52:67: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:52:70: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
 // Try changing the type of the left hand side, or casting the right hand side to 'int'.
-//     /*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello"],
-//                                                                   ^
+//     /*@ typeArgs=int* */ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello"],
+//                                                                      ^
 //
 import self as self;
 import "dart:core" as core;
 
-static method f0(core::List<core::int> a) → void {}
-static method f1({core::List<core::int> a = null}) → void {}
-static method f2(core::Iterable<core::int> a) → void {}
-static method f3(core::Iterable<core::Iterable<core::int>> a) → void {}
-static method f4({core::Iterable<core::Iterable<core::int>> a = null}) → void {}
+static method f0(core::List<core::int*>* a) → void {}
+static method f1({core::List<core::int*>* a = #C1}) → void {}
+static method f2(core::Iterable<core::int*>* a) → void {}
+static method f3(core::Iterable<core::Iterable<core::int*>*>* a) → void {}
+static method f4({core::Iterable<core::Iterable<core::int*>*>* a = #C1}) → void {}
 static method test() → void {
-  self::f0(<core::int>[]);
-  self::f0(<core::int>[3]);
-  self::f0(<core::int>[let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:16:68: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+  self::f0(<core::int*>[]);
+  self::f0(<core::int*>[3]);
+  self::f0(<core::int*>[let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:16:71: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
 Try changing the type of the left hand side, or casting the right hand side to 'int'.
-  f0(/*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"]);
-                                                                   ^" in "hello" as{TypeError} core::int]);
-  self::f0(<core::int>[let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:17:68: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+  f0(/*@ typeArgs=int* */ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"]);
+                                                                      ^" in "hello" as{TypeError} core::int*]);
+  self::f0(<core::int*>[let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:17:71: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
 Try changing the type of the left hand side, or casting the right hand side to 'int'.
-  f0(/*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\", 3]);
-                                                                   ^" in "hello" as{TypeError} core::int, 3]);
-  self::f1(a: <core::int>[]);
-  self::f1(a: <core::int>[3]);
-  self::f1(a: <core::int>[let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:21:71: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+  f0(/*@ typeArgs=int* */ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\", 3]);
+                                                                      ^" in "hello" as{TypeError} core::int*, 3]);
+  self::f1(a: <core::int*>[]);
+  self::f1(a: <core::int*>[3]);
+  self::f1(a: <core::int*>[let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:21:74: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
 Try changing the type of the left hand side, or casting the right hand side to 'int'.
-  f1(a: /*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"]);
-                                                                      ^" in "hello" as{TypeError} core::int]);
-  self::f1(a: <core::int>[let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:23:48: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+  f1(a: /*@ typeArgs=int* */ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"]);
+                                                                         ^" in "hello" as{TypeError} core::int*]);
+  self::f1(a: <core::int*>[let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:23:48: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
 Try changing the type of the left hand side, or casting the right hand side to 'int'.
     /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\",
-                                               ^" in "hello" as{TypeError} core::int, 3]);
-  self::f2(<core::int>[]);
-  self::f2(<core::int>[3]);
-  self::f2(<core::int>[let final<BottomType> #t5 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:29:68: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+                                               ^" in "hello" as{TypeError} core::int*, 3]);
+  self::f2(<core::int*>[]);
+  self::f2(<core::int*>[3]);
+  self::f2(<core::int*>[let final<BottomType> #t5 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:29:71: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
 Try changing the type of the left hand side, or casting the right hand side to 'int'.
-  f2(/*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"]);
-                                                                   ^" in "hello" as{TypeError} core::int]);
-  self::f2(<core::int>[let final<BottomType> #t6 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:30:68: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+  f2(/*@ typeArgs=int* */ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"]);
+                                                                      ^" in "hello" as{TypeError} core::int*]);
+  self::f2(<core::int*>[let final<BottomType> #t6 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:30:71: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
 Try changing the type of the left hand side, or casting the right hand side to 'int'.
-  f2(/*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\", 3]);
-                                                                   ^" in "hello" as{TypeError} core::int, 3]);
-  self::f3(<core::Iterable<core::int>>[]);
-  self::f3(<core::Iterable<core::int>>[<core::int>[3]]);
-  self::f3(<core::Iterable<core::int>>[<core::int>[let final<BottomType> #t7 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:37:67: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+  f2(/*@ typeArgs=int* */ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\", 3]);
+                                                                      ^" in "hello" as{TypeError} core::int*, 3]);
+  self::f3(<core::Iterable<core::int*>*>[]);
+  self::f3(<core::Iterable<core::int*>*>[<core::int*>[3]]);
+  self::f3(<core::Iterable<core::int*>*>[<core::int*>[let final<BottomType> #t7 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:37:70: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
 Try changing the type of the left hand side, or casting the right hand side to 'int'.
-    /*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"]
-                                                                  ^" in "hello" as{TypeError} core::int]]);
-  self::f3(<core::Iterable<core::int>>[<core::int>[let final<BottomType> #t8 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:40:67: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+    /*@ typeArgs=int* */ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"]
+                                                                     ^" in "hello" as{TypeError} core::int*]]);
+  self::f3(<core::Iterable<core::int*>*>[<core::int*>[let final<BottomType> #t8 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:40:70: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
 Try changing the type of the left hand side, or casting the right hand side to 'int'.
-    /*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"],
-                                                                  ^" in "hello" as{TypeError} core::int], <core::int>[3]]);
-  self::f4(a: <core::Iterable<core::int>>[]);
-  self::f4(a: <core::Iterable<core::int>>[<core::int>[3]]);
-  self::f4(a: <core::Iterable<core::int>>[<core::int>[let final<BottomType> #t9 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:49:67: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+    /*@ typeArgs=int* */ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"],
+                                                                     ^" in "hello" as{TypeError} core::int*], <core::int*>[3]]);
+  self::f4(a: <core::Iterable<core::int*>*>[]);
+  self::f4(a: <core::Iterable<core::int*>*>[<core::int*>[3]]);
+  self::f4(a: <core::Iterable<core::int*>*>[<core::int*>[let final<BottomType> #t9 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:49:70: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
 Try changing the type of the left hand side, or casting the right hand side to 'int'.
-    /*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"]
-                                                                  ^" in "hello" as{TypeError} core::int]]);
-  self::f4(a: <core::Iterable<core::int>>[<core::int>[let final<BottomType> #t10 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:52:67: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+    /*@ typeArgs=int* */ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"]
+                                                                     ^" in "hello" as{TypeError} core::int*]]);
+  self::f4(a: <core::Iterable<core::int*>*>[<core::int*>[let final<BottomType> #t10 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:52:70: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
 Try changing the type of the left hand side, or casting the right hand side to 'int'.
-    /*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"],
-                                                                  ^" in "hello" as{TypeError} core::int], <core::int>[3]]);
+    /*@ typeArgs=int* */ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"],
+                                                                     ^" in "hello" as{TypeError} core::int*], <core::int*>[3]]);
 }
 static method main() → dynamic {}
+
+constants  {
+  #C1 = null
+}

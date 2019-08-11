@@ -239,10 +239,13 @@ void KernelFingerprintHelper::CalculateDartTypeFingerprint() {
     case kSimpleFunctionType:
       CalculateFunctionTypeFingerprint(true);
       break;
-    case kTypeParameterType:
+    case kTypeParameterType: {
+      Nullability nullability = ReadNullability();
+      BuildHash(nullability);
       ReadUInt();                              // read index for parameter.
       CalculateOptionalDartTypeFingerprint();  // read bound bound.
       break;
+    }
     default:
       ReportUnexpectedTag("type", tag);
       UNREACHABLE();
@@ -260,6 +263,8 @@ void KernelFingerprintHelper::CalculateOptionalDartTypeFingerprint() {
 }
 
 void KernelFingerprintHelper::CalculateInterfaceTypeFingerprint(bool simple) {
+  Nullability nullability = ReadNullability();
+  BuildHash(nullability);
   NameIndex kernel_class = ReadCanonicalNameReference();
   ASSERT(H.IsClass(kernel_class));
   const String& class_name = H.DartClassName(kernel_class);
@@ -274,6 +279,9 @@ void KernelFingerprintHelper::CalculateInterfaceTypeFingerprint(bool simple) {
 }
 
 void KernelFingerprintHelper::CalculateFunctionTypeFingerprint(bool simple) {
+  Nullability nullability = ReadNullability();
+  BuildHash(nullability);
+
   if (!simple) {
     CalculateTypeParametersListFingerprint();  // read type_parameters.
     BuildHash(ReadUInt());                     // read required parameter count.

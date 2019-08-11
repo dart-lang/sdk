@@ -25,7 +25,7 @@ import 'package:analyzer/src/generated/resolver.dart'
 import 'package:analyzer/src/generated/type_system.dart' show Dart2TypeSystem;
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/task/strong/ast_properties.dart';
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart' show SourceLocation;
 
 import '../compiler/js_metalet.dart' as js_ast;
@@ -262,8 +262,8 @@ class CodeGenerator extends Object
   /// errors, and computes the output module code and optionally the source map.
   js_ast.Program compile(List<CompilationUnit> compilationUnits) {
     _libraryRoot = options.libraryRoot;
-    if (!_libraryRoot.endsWith(path.separator)) {
-      _libraryRoot += path.separator;
+    if (!_libraryRoot.endsWith(p.separator)) {
+      _libraryRoot += p.separator;
     }
 
     if (moduleItems.isNotEmpty) {
@@ -418,32 +418,25 @@ class CodeGenerator extends Object
     return name;
   }
 
-  /// Choose a canonical name from the [library] element.
-  ///
-  /// This never uses the library's name (the identifier in the `library`
-  /// declaration) as it doesn't have any meaningful rules enforced.
   @override
   String jsLibraryName(LibraryElement library) {
-    var uri = library.source.uri;
+    var uri = library.source.uri.normalizePath();
     if (uri.scheme == 'dart') {
       return isSdkInternalRuntime(library) ? 'dart' : uri.path;
     }
-    // TODO(vsm): This is not necessarily unique if '__' appears in a file name.
-    var encodedSeparator = '__';
-    String qualifiedPath;
+    Iterable<String> segments;
     if (uri.scheme == 'package') {
       // Strip the package name.
-      // TODO(vsm): This is not unique if an escaped '/'appears in a filename.
-      // E.g., "foo/bar.dart" and "foo$47bar.dart" would collide.
-      qualifiedPath = uri.pathSegments.skip(1).join(encodedSeparator);
+      segments = uri.pathSegments.skip(1);
     } else {
-      qualifiedPath = path
-          .relative(uri.toFilePath(), from: _libraryRoot)
-          .replaceAll(path.separator, encodedSeparator)
-          .replaceAll('..', encodedSeparator);
+      segments = p.split(p.relative(uri.toFilePath(), from: _libraryRoot));
     }
-    return pathToJSIdentifier(qualifiedPath);
+    return pathToJSIdentifier(p.withoutExtension(segments.join('/')));
   }
+
+  // TODO(markzipan): Analyzer libraries are non-aliased.
+  @override
+  String jsLibraryAlias(LibraryElement library) => null;
 
   /// Debugger friendly name for a Dart Library.
   @override
@@ -454,7 +447,7 @@ class CodeGenerator extends Object
 
     var filePath = uri.toFilePath();
     // Relative path to the library.
-    return path.relative(filePath, from: _libraryRoot);
+    return p.relative(filePath, from: _libraryRoot);
   }
 
   /// Returns true if the library [l] is dart:_runtime.
@@ -3006,7 +2999,7 @@ class CodeGenerator extends Object
   @override
   js_ast.Expression visitSimpleIdentifier(SimpleIdentifier node,
       [PrefixedIdentifier prefix]) {
-    var typeArgs = _getTypeArgs(node.staticElement, node.staticType);
+    var typeArgs = _emitFunctionTypeArguments(node.tearOffTypeArgumentTypes);
     var simpleId = _emitSimpleIdentifier(node, prefix)
       ..sourceInformation = _nodeSpan(node);
     if (prefix != null &&
@@ -3105,7 +3098,7 @@ class CodeGenerator extends Object
   js_ast.Expression _emitClassMemberElement(
       ClassMemberElement element, Element accessor, Expression node) {
     bool isStatic = element.isStatic;
-    var classElem = element.enclosingElement;
+    var classElem = element.enclosingElement as ClassElement;
     var type = classElem.type;
     var member = _emitMemberName(element.name,
         isStatic: isStatic, type: type, element: accessor);
@@ -3300,7 +3293,7 @@ class CodeGenerator extends Object
   /// [_emitTopLevelName] on the class, but if the member is external, then the
   /// native class name will be used, for direct access to the native member.
   js_ast.Expression _emitStaticClassName(ClassMemberElement member) {
-    var c = member.enclosingElement;
+    var c = member.enclosingElement as ClassElement;
     _declareBeforeUse(c);
 
     // A static native element should just forward directly to the JS type's
@@ -3593,7 +3586,7 @@ class CodeGenerator extends Object
   /// Emits assignment to a static field element or property.
   js_ast.Expression _emitSetField(Expression right, FieldElement field,
       js_ast.Expression jsTarget, SimpleIdentifier id) {
-    var classElem = field.enclosingElement;
+    var classElem = field.enclosingElement as ClassElement;
     var isStatic = field.isStatic;
     var member = _emitMemberName(field.name,
         isStatic: isStatic, type: classElem.type, element: field.setter);
@@ -3998,57 +3991,18 @@ class CodeGenerator extends Object
     if (function is Identifier && !_reifyGeneric(function.staticElement)) {
       return null;
     }
-    return _emitFunctionTypeArguments(
-        node, function.staticType, node.staticInvokeType, node.typeArguments);
+    if (node.typeArgumentTypes.isEmpty) {
+      return null;
+    }
+    return _emitFunctionTypeArguments(node.typeArgumentTypes);
   }
 
-  /// If `g` is a generic function type, and `f` is an instantiation of it,
-  /// then this will return the type arguments to apply, otherwise null.
+  /// If has [typeArguments], emit them, otherwise return `null`.
   List<js_ast.Expression> _emitFunctionTypeArguments(
-      AstNode node, DartType g, DartType f,
-      [TypeArgumentList typeArgs]) {
-    if (node is InvocationExpression) {
-      if (g is! FunctionType && typeArgs == null) {
-        return null;
-      }
-      var typeArguments = node.typeArgumentTypes;
-      return typeArguments.map(_emitType).toList(growable: false);
-    }
-
-    if (g is FunctionType &&
-        g.typeFormals.isNotEmpty &&
-        f is FunctionType &&
-        f.typeFormals.isEmpty) {
-      var typeArguments = _recoverTypeArguments(g, f);
-      return typeArguments.map(_emitType).toList(growable: false);
-    }
-
-    return null;
-  }
-
-  /// Given a generic function type [g] and an instantiated function type [f],
-  /// find a list of type arguments TArgs such that `g<TArgs> == f`,
-  /// and return TArgs.
-  ///
-  /// This function must be called with type [f] that was instantiated from [g].
-  Iterable<DartType> _recoverTypeArguments(FunctionType g, FunctionType f) {
-    // TODO(jmesserly): this design is a bit unfortunate. It would be nice if
-    // resolution could simply create a synthetic type argument list.
-    assert(g.typeFormals.isNotEmpty && f.typeFormals.isEmpty);
-    assert(g.typeFormals.length <= f.typeArguments.length);
-
-    // Instantiation in Analyzer works like this:
-    // Given:
-    //     {U/T} <S> T -> S
-    // Where {U/T} represents the typeArguments (U) and typeParameters (T) list,
-    // and <S> represents the typeFormals.
-    //
-    // Now instantiate([V]), and the result should be:
-    //     {U/T, V/S} T -> S.
-    //
-    // Therefore, we can recover the typeArguments from our instantiated
-    // function.
-    return f.typeArguments.skip(f.typeArguments.length - g.typeFormals.length);
+      List<DartType> typeArguments) {
+    if (typeArguments == null) return null;
+    if (typeArguments.isEmpty) return null;
+    return typeArguments.map(_emitType).toList(growable: false);
   }
 
   /// Emits code for the `JS(...)` macro.
@@ -4511,6 +4465,10 @@ class CodeGenerator extends Object
         return _emitConstList(type.typeArguments[0],
             value.toListValue().map(_emitDartObject).toList());
       }
+      if (type.element == types.setType.element) {
+        return _emitConstSet(type.typeArguments[0],
+            value.toSetValue().map(_emitDartObject).toList());
+      }
       if (type.element == types.mapType.element) {
         var entries = <js_ast.Expression>[];
         value.toMapValue().forEach((key, value) {
@@ -4577,7 +4535,10 @@ class CodeGenerator extends Object
     DartType getType(TypeAnnotation typeNode) {
       if (typeNode is NamedType && typeNode.typeArguments != null) {
         var e = typeNode.name.staticElement;
-        if (e is TypeParameterizedElement) {
+        if (e is ClassElement) {
+          return e.type.instantiate(
+              typeNode.typeArguments.arguments.map(getType).toList());
+        } else if (e is FunctionTypedElement) {
           return e.type.instantiate(
               typeNode.typeArguments.arguments.map(getType).toList());
         }
@@ -5260,23 +5221,9 @@ class CodeGenerator extends Object
     }
   }
 
-  List<js_ast.Expression> _getTypeArgs(Element member, DartType instantiated) {
-    DartType type;
-    if (member is ExecutableElement) {
-      type = member.type;
-    } else if (member is VariableElement) {
-      type = member.type;
-    }
-
-    // TODO(jmesserly): handle explicitly passed type args.
-    if (type == null) return null;
-    return _emitFunctionTypeArguments(null, type, instantiated);
-  }
-
   /// Shared code for [PrefixedIdentifier] and [PropertyAccess].
   js_ast.Expression _emitPropertyGet(
       Expression receiver, SimpleIdentifier memberId, Expression accessNode) {
-    var resultType = accessNode.staticType;
     var accessor = memberId.staticElement;
     var memberName = memberId.name;
     var receiverType = getStaticType(receiver);
@@ -5329,7 +5276,9 @@ class CodeGenerator extends Object
       result = _emitTargetAccess(jsTarget, jsName, accessor, memberId);
     }
 
-    var typeArgs = _getTypeArgs(accessor, resultType);
+    var typeArgs = _emitFunctionTypeArguments(
+      memberId.tearOffTypeArgumentTypes,
+    );
     return typeArgs == null
         ? result
         : runtimeCall('gbind(#, #)', [result, typeArgs]);
@@ -5806,6 +5755,12 @@ class CodeGenerator extends Object
     identity ??= jsTypeRep.isPrimitive(typeArgs[0]);
     type = identity ? identityHashMapImplType : linkedHashMapImplType;
     return _emitType(type.instantiate(typeArgs));
+  }
+
+  js_ast.Expression _emitConstSet(
+      DartType elementType, List<js_ast.Expression> elements) {
+    return cacheConst(
+        runtimeCall('constSet([#], #)', [elements, _emitType(elementType)]));
   }
 
   js_ast.Expression _emitSetImplType(InterfaceType type, {bool identity}) {

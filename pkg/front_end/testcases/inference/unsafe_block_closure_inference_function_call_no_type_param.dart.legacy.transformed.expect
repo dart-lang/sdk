@@ -7,5 +7,5 @@ static method main() → dynamic {
     return 1;
   });
 }
-static method f(dynamic x) → core::double
+static method f(dynamic x) → core::double*
   return 1.0;

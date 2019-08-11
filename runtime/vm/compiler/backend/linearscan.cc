@@ -738,10 +738,14 @@ void FlowGraphAllocator::ProcessInitialDefinition(Definition* defn,
     ParameterInstr* param = defn->AsParameter();
     intptr_t slot_index = param->index();
     ASSERT(slot_index >= 0);
-    ASSERT((param->base_reg() == FPREG) || (param->base_reg() == SPREG));
     if (param->base_reg() == FPREG) {
       // Slot index for the rightmost fixed parameter is -1.
       slot_index -= flow_graph_.num_direct_parameters();
+    } else {
+      // Slot index for a "frameless" parameter is reversed.
+      ASSERT(param->base_reg() == SPREG);
+      ASSERT(slot_index < flow_graph_.num_direct_parameters());
+      slot_index = flow_graph_.num_direct_parameters() - 1 - slot_index;
     }
 
 #if defined(TARGET_ARCH_DBC)
@@ -1224,12 +1228,18 @@ void FlowGraphAllocator::ProcessOneOutput(BlockEntryInstr* block,
     // If the value has no uses we don't need to allocate it.
     if (use == NULL) return;
 
-    if (use->pos() == (pos + 1)) {
-      ASSERT(use->location_slot()->IsUnallocated());
-      *(use->location_slot()) = *out;
-
-      // Remove first use. It was allocated.
-      range->set_first_use(range->first_use()->next());
+    // Connect fixed output to all inputs that immediately follow to avoid
+    // allocating an intermediary register.
+    for (; use != nullptr; use = use->next()) {
+      if (use->pos() == (pos + 1)) {
+        // Allocate and then drop this use.
+        ASSERT(use->location_slot()->IsUnallocated());
+        *(use->location_slot()) = *out;
+        range->set_first_use(use->next());
+      } else {
+        ASSERT(use->pos() > (pos + 1));  // sorted
+        break;
+      }
     }
 
     // Shorten live range to the point of definition, this might make the range

@@ -8,5 +8,5 @@ library test;
 var a = 1;
 
 main() {
-  var /*@type=int*/ b = 2;
+  var /*@ type=int* */ b = 2;
 }

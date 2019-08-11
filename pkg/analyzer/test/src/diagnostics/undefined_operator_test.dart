@@ -44,6 +44,17 @@ f(var a) {
     ]);
   }
 
+  test_index_null() async {
+    await assertErrorsInCode(r'''
+m() {
+  Null x;
+  x[0];
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 19, 3),
+    ]);
+  }
+
   test_indexBoth() async {
     await assertErrorsInCode(r'''
 class A {}
@@ -133,6 +144,64 @@ f(var a) {
     ]);
   }
 
+  test_minus_null() async {
+    await assertErrorsInCode(r'''
+m() {
+  Null x;
+  x - 3;
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 20, 1),
+    ]);
+  }
+
+  test_minusEq_null() async {
+    await assertErrorsInCode(r'''
+m() {
+  Null x;
+  x -= 1;
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 20, 2),
+    ]);
+  }
+
+  test_plus_null() async {
+    await assertErrorsInCode(r'''
+m() {
+  Null x;
+  x + 3;
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 20, 1),
+    ]);
+  }
+
+  test_plusEq_null() async {
+    await assertErrorsInCode(r'''
+m() {
+  Null x;
+  x += 1;
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 20, 2),
+    ]);
+  }
+
+  test_postfixDec_null() async {
+    await assertErrorsInCode(r'''
+m() {
+  Null x;
+  x--;
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 19, 2),
+    ]);
+  }
+
   test_postfixExpression() async {
     await assertNoErrorsInCode(r'''
 class A {}
@@ -158,6 +227,30 @@ f(var a) {
 ''');
   }
 
+  test_postfixInc_null() async {
+    await assertErrorsInCode(r'''
+m() {
+  Null x;
+  x++;
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 19, 2),
+    ]);
+  }
+
+  test_prefixDec_null() async {
+    await assertErrorsInCode(r'''
+m() {
+  Null x;
+  --x;
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 18, 2),
+    ]);
+  }
+
   test_prefixExpression() async {
     await assertNoErrorsInCode(r'''
 class A {}
@@ -181,5 +274,29 @@ f(var a) {
   }
 }
 ''');
+  }
+
+  test_prefixInc_null() async {
+    await assertErrorsInCode(r'''
+m() {
+  Null x;
+  ++x;
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 18, 2),
+    ]);
+  }
+
+  test_unaryMinus_null() async {
+    await assertErrorsInCode(r'''
+m() {
+  Null x;
+  -x;
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 18, 1),
+    ]);
   }
 }

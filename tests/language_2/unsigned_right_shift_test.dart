@@ -57,7 +57,7 @@ main() {
   Expect.isFalse(invocation.isAccessor);
   Expect.equals(#>>>, invocation.memberName);
   Expect.equals(1, invocation.positionalArguments.length);
-  Expect.identical(c2, invocation.positionalArguments[1]);
+  Expect.identical(c2, invocation.positionalArguments[0]);
   Expect.equals(0, invocation.namedArguments.length);
 
   invocation = (nsm >>>= c2);
@@ -65,7 +65,7 @@ main() {
   Expect.isFalse(invocation.isAccessor);
   Expect.equals(#>>>, invocation.memberName);
   Expect.equals(1, invocation.positionalArguments.length);
-  Expect.identical(c2, invocation.positionalArguments[1]);
+  Expect.identical(c2, invocation.positionalArguments[0]);
   Expect.equals(0, invocation.namedArguments.length);
 
   // And unimplemented interface methods.
@@ -75,7 +75,7 @@ main() {
   Expect.isFalse(invocation.isAccessor);
   Expect.equals(#>>>, invocation.memberName);
   Expect.equals(1, invocation.positionalArguments.length);
-  Expect.identical(c2, invocation.positionalArguments[1]);
+  Expect.identical(c2, invocation.positionalArguments[0]);
   Expect.equals(0, invocation.namedArguments.length);
 
   // If there is an interface, we must match it, even if the call
@@ -97,9 +97,27 @@ main() {
     Expect.identical(c2, (await fc1) >>> (await fc2));
     /// The operator itself can be async.
     var async = Async();
-    Expect.identical(c1, await (async >>> c2));
+    Expect.identical(c1, await (async >>> c1));
+
+    var asyncStar = AsyncStar();
+    int count = 0;
+    await for (var v in asyncStar >>> c1) {
+      count++;
+      Expect.identical(c1, v);
+    }
+    Expect.equals(1, count);
     asyncEnd();
   }();
+
+  {
+    var syncStar = SyncStar();
+    int count = 0;
+    for (var v in syncStar >>> c1) {
+      count++;
+      Expect.identical(c1, v);
+    }
+    Expect.equals(1, count);
+  }
 
   // >>> has same precedence as >> (and <<), is left associative.
   // Binds weaker than addition/multiplication, stronger than other bitwise
@@ -108,10 +126,10 @@ main() {
   Expect.equals("((~*)>>>(~*))", "${~a >>> ~a}");
   Expect.equals("((*+*)>>>(*+*))", "${a + a >>> a + a}");
   Expect.equals("((*/*)>>>(*/*))", "${a / a >>> a / a}");
-  Expect.equals("((*>>*)>>>*)>>*)", "${a >> a >>> a >> a}");
+  Expect.equals("(((*>>*)>>>*)>>*)", "${a >> a >>> a >> a}");
   Expect.equals("((*&(*>>>*))&*)", "${a & a >>> a & a}");
-  Expect.equals("((*|(*>>>*)|)*)", "${a | a >>> a | a}");
-  Expect.equals("((*^(*>>>*)^)*)", "${a ^ a >>> a ^ a}");
+  Expect.equals("((*|(*>>>*))|*)", "${a | a >>> a | a}");
+  Expect.equals("((*^(*>>>*))^*)", "${a ^ a >>> a ^ a}");
   Expect.equals("(*<(*>>>*))", "${a < a >>> a}");
   Expect.equals("((*>>>*)<*)", "${a >>> a < a}");
 
@@ -146,14 +164,11 @@ class Invalid {
   Object operator>>>(v1, v2) => null;  //# arg2: compile-time error
   Object operator>>>([v1]) => null;  //# argOpt: compile-time error
   Object operator>>>({v1}) => null;  //# argNam: compile-time error
-  // The operator must not be async* or sync*.
-  Stream<Object> operator>>>(v) async* {}  //# asyncstar: compile-time error
-  Iterable<Object> operator>>>(v) sync* {}  //# syncstar: compile-time error
 }
 
 /// Class with noSuchMethod and no `>>>` operator.
 class NSM {
-  dynamic noSuchMethod(Invocation i) {
+  dynamic noSuchMethod(Invocation invocation) {
     return invocation;
   }
 }
@@ -177,21 +192,38 @@ class BadNSM {
 
 /// Class with an `async` implementation of `operator >>>`
 class Async {
-  Future<C> operator>>>(C other) async => other;
+  Future<C> operator >>>(C value) async => value;
+}
+
+/// Class with an `async*` implementation of `operator >>>`
+class AsyncStar {
+  Stream<C> operator >>>(C value) async* {
+    yield value;
+  }
+}
+
+/// Class with a `sync*` implementation of `operator >>>`
+class SyncStar {
+  Iterable<C> operator >>>(C value) sync* {
+    yield value;
+  }
 }
 
 /// Helper class to record precedence and associativity of operators.
 class Assoc {
   final String ops;
   Assoc(this.ops);
-  Assoc operator~() => Assoc("(~${this}}");
-  Assoc operator+(Assoc other) => Assoc("(${this}+$other)");
-  Assoc operator/(Assoc other) => Assoc("(${this}/$other)");
-  Assoc operator&(Assoc other) => Assoc("(${this}&$other)");
-  Assoc operator|(Assoc other) => Assoc("(${this}|$other)");
-  Assoc operator^(Assoc other) => Assoc("(${this}^$other)");
-  Assoc operator>(Assoc other) => Assoc("(${this}>$other)");
-  Assoc operator>>(Assoc other) => Assoc("(${this}>>$other)");
-  Assoc operator>>>(Assoc other) => Assoc("(${this}>>>$other)");
+  Assoc operator ~() => Assoc("(~${this})");
+  Assoc operator +(Assoc other) => Assoc("(${this}+$other)");
+  Assoc operator /(Assoc other) => Assoc("(${this}/$other)");
+  Assoc operator &(Assoc other) => Assoc("(${this}&$other)");
+  Assoc operator |(Assoc other) => Assoc("(${this}|$other)");
+  Assoc operator ^(Assoc other) => Assoc("(${this}^$other)");
+  Assoc operator >(Assoc other) => Assoc("(${this}>$other)");
+  Assoc operator >>(Assoc other) => Assoc("(${this}>>$other)");
+  Assoc operator >>>(Assoc other) => Assoc("(${this}>>>$other)");
+  Assoc operator <(Assoc other) => Assoc("(${this}<$other)");
+  Assoc operator >=(Assoc other) => Assoc("(${this}>=$other)");
+  Assoc operator <=(Assoc other) => Assoc("(${this}<=$other)");
   String toString() => ops;
 }

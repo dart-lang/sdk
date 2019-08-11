@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// All imports must be in all FFI patch files to not depend on the order
+// the patches are applied.
 import "dart:_internal" show patch;
+import 'dart:typed_data' show TypedData;
 
 @patch
 int sizeOf<T extends NativeType>() native "Ffi_sizeOf";
@@ -16,6 +19,9 @@ Pointer<T> _fromAddress<T extends NativeType>(int ptr) native "Ffi_fromAddress";
 // this function.
 DS _asFunctionInternal<DS extends Function, NS extends Function>(
     Pointer<NativeFunction<NS>> ptr) native "Ffi_asFunctionInternal";
+
+dynamic _asExternalTypedData(Pointer ptr, int count)
+    native "Ffi_asExternalTypedData";
 
 @patch
 @pragma("vm:entry-point")
@@ -67,4 +73,14 @@ class Pointer<T extends NativeType> {
 
   @patch
   void free() native "Ffi_free";
+
+  @patch
+  TypedData asExternalTypedData({int count: 1}) =>
+      _asExternalTypedData(this, count);
 }
+
+// Returns the ABI used for size and alignment calculations.
+// See pkg/vm/lib/transformations/ffi.dart.
+@pragma('vm:prefer-inline')
+int _abi()
+    native "Recognized method: method is directly interpreted by the bytecode interpreter or IR graph is built in the flow graph builder.";

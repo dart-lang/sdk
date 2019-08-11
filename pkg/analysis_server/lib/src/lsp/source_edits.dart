@@ -11,7 +11,7 @@ final DartFormatter formatter = new DartFormatter();
 ErrorOr<String> applyEdits(
   String oldContent,
   List<TextDocumentContentChangeEvent> changes, {
-  failureIsCritical: false,
+  failureIsCritical = false,
 }) {
   String newContent = oldContent;
   for (var change in changes) {

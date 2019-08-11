@@ -293,6 +293,9 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   /// True if the 'dart:core' library is been summarized.
   bool isCoreLibrary = false;
 
+  /// True if the 'dart:core' library defining unit is been summarized.
+  bool isCoreLibraryDefiningUnit = false;
+
   /// True is a [PartOfDirective] was found, so the unit is a part.
   bool isPartOf = false;
 
@@ -516,7 +519,17 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     b.references = unlinkedReferences;
     b.typedefs = typedefs;
     b.variables = variables;
+
     b.publicNamespace = computePublicNamespace(compilationUnit);
+    if (isCoreLibraryDefiningUnit) {
+      b.publicNamespace.names.add(
+        UnlinkedPublicNameBuilder(
+          name: 'Never',
+          kind: ReferenceKind.classOrEnum,
+        ),
+      );
+    }
+
     _computeApiSignature(b);
     return b;
   }
@@ -1204,6 +1217,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     b.nameOffset = node.name?.offset ?? 0;
     b.typeParameters =
         serializeTypeParameters(node.typeParameters, typeParameterScope);
+    b.extendedType = serializeType(node.extendedType);
     if (node.members != null) {
       scopes.add(buildClassMemberScope(node.name?.name, node.members));
       for (ClassMember member in node.members) {
@@ -1212,6 +1226,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       scopes.removeLast();
     }
     b.executables = executables;
+    b.fields = variables;
     b.documentationComment = serializeDocumentation(node.documentationComment);
     b.annotations = serializeAnnotations(node.metadata);
     b.codeRange = serializeCodeRange(node);
@@ -1383,6 +1398,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     libraryNameOffset = node.name.offset;
     libraryNameLength = node.name.length;
     isCoreLibrary = libraryName == 'dart.core';
+    isCoreLibraryDefiningUnit = isCoreLibrary;
     libraryDocumentationComment =
         serializeDocumentation(node.documentationComment);
     libraryAnnotations = serializeAnnotations(node.metadata);

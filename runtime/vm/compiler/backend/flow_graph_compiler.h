@@ -139,9 +139,10 @@ class ParallelMoveResolver : public ValueObject {
 
   // Helpers for non-trivial source-destination combinations that cannot
   // be handled by a single instruction.
-  void MoveMemoryToMemory(const Address& dst, const Address& src);
-  void Exchange(Register reg, const Address& mem);
-  void Exchange(const Address& mem1, const Address& mem2);
+  void MoveMemoryToMemory(const compiler::Address& dst,
+                          const compiler::Address& src);
+  void Exchange(Register reg, const compiler::Address& mem);
+  void Exchange(const compiler::Address& mem1, const compiler::Address& mem2);
   void Exchange(Register reg, Register base_reg, intptr_t stack_offset);
   void Exchange(Register base_reg1,
                 intptr_t stack_offset1,
@@ -229,7 +230,7 @@ class CompilerDeoptInfoWithStub : public CompilerDeoptInfo {
     ASSERT(reason != ICData::kDeoptAtCall);
   }
 
-  Label* entry_label() { return &entry_label_; }
+  compiler::Label* entry_label() { return &entry_label_; }
 
   // Implementation is in architecture specific file.
   virtual void GenerateCode(FlowGraphCompiler* compiler, intptr_t stub_ix);
@@ -246,7 +247,7 @@ class CompilerDeoptInfoWithStub : public CompilerDeoptInfo {
   }
 
  private:
-  Label entry_label_;
+  compiler::Label entry_label_;
 
   DISALLOW_COPY_AND_ASSIGN(CompilerDeoptInfoWithStub);
 };
@@ -258,8 +259,8 @@ class SlowPathCode : public ZoneAllocated {
   virtual ~SlowPathCode() {}
 
   Instruction* instruction() const { return instruction_; }
-  Label* entry_label() { return &entry_label_; }
-  Label* exit_label() { return &exit_label_; }
+  compiler::Label* entry_label() { return &entry_label_; }
+  compiler::Label* exit_label() { return &exit_label_; }
 
   void GenerateCode(FlowGraphCompiler* compiler) {
     EmitNativeCode(compiler);
@@ -270,8 +271,8 @@ class SlowPathCode : public ZoneAllocated {
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) = 0;
 
   Instruction* instruction_;
-  Label entry_label_;
-  Label exit_label_;
+  compiler::Label entry_label_;
+  compiler::Label exit_label_;
 
   DISALLOW_COPY_AND_ASSIGN(SlowPathCode);
 };
@@ -352,13 +353,17 @@ class FlowGraphCompiler : public ValueObject {
     // The label to jump to when control is transferred to this block.  For
     // nonempty blocks it is the label of the block itself.  For empty
     // blocks it is the label of the first nonempty successor block.
-    Label* jump_label() const { return jump_label_; }
-    void set_jump_label(Label* label) { jump_label_ = label; }
+    compiler::Label* jump_label() const { return jump_label_; }
+    void set_jump_label(compiler::Label* label) { jump_label_ = label; }
 
     // The label of the first nonempty block after this one in the block
     // order, or NULL if there is no nonempty block following this one.
-    Label* next_nonempty_label() const { return next_nonempty_label_; }
-    void set_next_nonempty_label(Label* label) { next_nonempty_label_ = label; }
+    compiler::Label* next_nonempty_label() const {
+      return next_nonempty_label_;
+    }
+    void set_next_nonempty_label(compiler::Label* label) {
+      next_nonempty_label_ = label;
+    }
 
     bool WasCompacted() const { return jump_label_ != &block_label_; }
 
@@ -368,16 +373,16 @@ class FlowGraphCompiler : public ValueObject {
     void mark() { is_marked_ = true; }
 
    private:
-    Label block_label_;
+    compiler::Label block_label_;
 
-    Label* jump_label_;
-    Label* next_nonempty_label_;
+    compiler::Label* jump_label_;
+    compiler::Label* next_nonempty_label_;
 
     bool is_marked_;
   };
 
  public:
-  FlowGraphCompiler(Assembler* assembler,
+  FlowGraphCompiler(compiler::Assembler* assembler,
                     FlowGraph* flow_graph,
                     const ParsedFunction& parsed_function,
                     bool is_optimizing,
@@ -402,7 +407,7 @@ class FlowGraphCompiler : public ValueObject {
   static bool IsPotentialUnboxedField(const Field& field);
 
   // Accessors.
-  Assembler* assembler() const { return assembler_; }
+  compiler::Assembler* assembler() const { return assembler_; }
   const ParsedFunction& parsed_function() const { return parsed_function_; }
   const Function& function() const { return parsed_function_.function(); }
   const GrowableArray<BlockEntryInstr*>& block_order() const {
@@ -436,11 +441,11 @@ class FlowGraphCompiler : public ValueObject {
   void ExitIntrinsicMode();
   bool intrinsic_mode() const { return intrinsic_mode_; }
 
-  void set_intrinsic_slow_path_label(Label* label) {
+  void set_intrinsic_slow_path_label(compiler::Label* label) {
     ASSERT(intrinsic_slow_path_label_ == nullptr || label == nullptr);
     intrinsic_slow_path_label_ = label;
   }
-  Label* intrinsic_slow_path_label() const {
+  compiler::Label* intrinsic_slow_path_label() const {
     ASSERT(intrinsic_slow_path_label_ != nullptr);
     return intrinsic_slow_path_label_;
   }
@@ -513,7 +518,7 @@ class FlowGraphCompiler : public ValueObject {
       const Register subtype_cache_reg,
       const Register dst_type_reg,
       const Register scratch_reg,
-      Label* done);
+      compiler::Label* done);
 
 // DBC emits calls very differently from all other architectures due to its
 // interpreted nature.
@@ -579,19 +584,20 @@ class FlowGraphCompiler : public ValueObject {
 
   void GenerateNumberTypeCheck(Register kClassIdReg,
                                const AbstractType& type,
-                               Label* is_instance_lbl,
-                               Label* is_not_instance_lbl);
+                               compiler::Label* is_instance_lbl,
+                               compiler::Label* is_not_instance_lbl);
   void GenerateStringTypeCheck(Register kClassIdReg,
-                               Label* is_instance_lbl,
-                               Label* is_not_instance_lbl);
-  void GenerateListTypeCheck(Register kClassIdReg, Label* is_instance_lbl);
+                               compiler::Label* is_instance_lbl,
+                               compiler::Label* is_not_instance_lbl);
+  void GenerateListTypeCheck(Register kClassIdReg,
+                             compiler::Label* is_instance_lbl);
 
   // Returns true if no further checks are necessary but the code coming after
   // the emitted code here is still required do a runtime call (for the negative
   // case of throwing an exception).
   bool GenerateSubtypeRangeCheck(Register class_id_reg,
                                  const Class& type_class,
-                                 Label* is_subtype_lbl);
+                                 compiler::Label* is_subtype_lbl);
 
   // We test up to 4 different cid ranges, if we would need to test more in
   // order to get a definite answer we fall back to the old mechanism (namely
@@ -601,11 +607,11 @@ class FlowGraphCompiler : public ValueObject {
   // If [fall_through_if_inside] is `true`, then [outside_range_lbl] must be
   // supplied, since it will be jumped to in the last case if the cid is outside
   // the range.
-  static void GenerateCidRangesCheck(Assembler* assembler,
+  static void GenerateCidRangesCheck(compiler::Assembler* assembler,
                                      Register class_id_reg,
                                      const CidRangeVector& cid_ranges,
-                                     Label* inside_range_lbl,
-                                     Label* outside_range_lbl = NULL,
+                                     compiler::Label* inside_range_lbl,
+                                     compiler::Label* outside_range_lbl = NULL,
                                      bool fall_through_if_inside = false);
 
   void EmitOptimizedInstanceCall(
@@ -652,8 +658,8 @@ class FlowGraphCompiler : public ValueObject {
   void EmitTestAndCall(const CallTargets& targets,
                        const String& function_name,
                        ArgumentsInfo args_info,
-                       Label* failed,
-                       Label* match_found,
+                       compiler::Label* failed,
+                       compiler::Label* match_found,
                        intptr_t deopt_id,
                        TokenPosition token_index,
                        LocationSummary* locs,
@@ -706,11 +712,11 @@ class FlowGraphCompiler : public ValueObject {
   intptr_t ExtraStackSlotsOnOsrEntry() const;
 
   // Returns assembler label associated with the given block entry.
-  Label* GetJumpLabel(BlockEntryInstr* block_entry) const;
+  compiler::Label* GetJumpLabel(BlockEntryInstr* block_entry) const;
   bool WasCompacted(BlockEntryInstr* block_entry) const;
 
   // Returns the label of the fall-through of the current block.
-  Label* NextNonEmptyLabel() const;
+  compiler::Label* NextNonEmptyLabel() const;
 
   // Returns true if there is a next block after the current one in
   // the block order and if it is the given block.
@@ -743,9 +749,9 @@ class FlowGraphCompiler : public ValueObject {
   void RecordSafepoint(LocationSummary* locs,
                        intptr_t slow_path_argument_count = 0);
 
-  Label* AddDeoptStub(intptr_t deopt_id,
-                      ICData::DeoptReasonId reason,
-                      uint32_t flags = 0);
+  compiler::Label* AddDeoptStub(intptr_t deopt_id,
+                                ICData::DeoptReasonId reason,
+                                uint32_t flags = 0);
 
 #if defined(TARGET_ARCH_DBC)
   void EmitDeopt(intptr_t deopt_id,
@@ -763,7 +769,7 @@ class FlowGraphCompiler : public ValueObject {
 
   void FinalizeExceptionHandlers(const Code& code);
   void FinalizePcDescriptors(const Code& code);
-  RawArray* CreateDeoptInfo(Assembler* assembler);
+  RawArray* CreateDeoptInfo(compiler::Assembler* assembler);
   void FinalizeStackMaps(const Code& code);
   void FinalizeVarDescriptors(const Code& code);
   void FinalizeCatchEntryMovesMap(const Code& code);
@@ -853,8 +859,8 @@ class FlowGraphCompiler : public ValueObject {
   // Returns new class-id bias.
   //
   // TODO(kustermann): We should move this code out of the [FlowGraphCompiler]!
-  static int EmitTestAndCallCheckCid(Assembler* assembler,
-                                     Label* label,
+  static int EmitTestAndCallCheckCid(compiler::Assembler* assembler,
+                                     compiler::Label* label,
                                      Register class_id_reg,
                                      const CidRange& range,
                                      int bias,
@@ -920,7 +926,7 @@ class FlowGraphCompiler : public ValueObject {
   void EmitTestAndCallLoadReceiver(intptr_t count_without_type_args,
                                    const Array& arguments_descriptor);
 
-  void EmitTestAndCallSmiBranch(Label* label, bool jump_if_smi);
+  void EmitTestAndCallSmiBranch(compiler::Label* label, bool jump_if_smi);
 
   void EmitTestAndCallLoadCid(Register class_id_reg);
 
@@ -930,41 +936,44 @@ class FlowGraphCompiler : public ValueObject {
   // Type checking helper methods.
   void CheckClassIds(Register class_id_reg,
                      const GrowableArray<intptr_t>& class_ids,
-                     Label* is_instance_lbl,
-                     Label* is_not_instance_lbl);
+                     compiler::Label* is_instance_lbl,
+                     compiler::Label* is_not_instance_lbl);
 
-  RawSubtypeTestCache* GenerateInlineInstanceof(TokenPosition token_pos,
-                                                const AbstractType& type,
-                                                Label* is_instance_lbl,
-                                                Label* is_not_instance_lbl);
+  RawSubtypeTestCache* GenerateInlineInstanceof(
+      TokenPosition token_pos,
+      const AbstractType& type,
+      compiler::Label* is_instance_lbl,
+      compiler::Label* is_not_instance_lbl);
 
   RawSubtypeTestCache* GenerateInstantiatedTypeWithArgumentsTest(
       TokenPosition token_pos,
       const AbstractType& dst_type,
-      Label* is_instance_lbl,
-      Label* is_not_instance_lbl);
+      compiler::Label* is_instance_lbl,
+      compiler::Label* is_not_instance_lbl);
 
-  bool GenerateInstantiatedTypeNoArgumentsTest(TokenPosition token_pos,
-                                               const AbstractType& dst_type,
-                                               Label* is_instance_lbl,
-                                               Label* is_not_instance_lbl);
+  bool GenerateInstantiatedTypeNoArgumentsTest(
+      TokenPosition token_pos,
+      const AbstractType& dst_type,
+      compiler::Label* is_instance_lbl,
+      compiler::Label* is_not_instance_lbl);
 
   RawSubtypeTestCache* GenerateUninstantiatedTypeTest(
       TokenPosition token_pos,
       const AbstractType& dst_type,
-      Label* is_instance_lbl,
-      Label* is_not_instance_label);
+      compiler::Label* is_instance_lbl,
+      compiler::Label* is_not_instance_label);
 
-  RawSubtypeTestCache* GenerateFunctionTypeTest(TokenPosition token_pos,
-                                                const AbstractType& dst_type,
-                                                Label* is_instance_lbl,
-                                                Label* is_not_instance_label);
+  RawSubtypeTestCache* GenerateFunctionTypeTest(
+      TokenPosition token_pos,
+      const AbstractType& dst_type,
+      compiler::Label* is_instance_lbl,
+      compiler::Label* is_not_instance_label);
 
   RawSubtypeTestCache* GenerateSubtype1TestCacheLookup(
       TokenPosition token_pos,
       const Class& type_class,
-      Label* is_instance_lbl,
-      Label* is_not_instance_lbl);
+      compiler::Label* is_instance_lbl,
+      compiler::Label* is_not_instance_lbl);
 
   enum TypeTestStubKind {
     kTestTypeOneArg,
@@ -979,10 +988,12 @@ class FlowGraphCompiler : public ValueObject {
       Register instantiator_type_arguments_reg,
       Register function_type_arguments_reg,
       Register temp_reg,
-      Label* is_instance_lbl,
-      Label* is_not_instance_lbl);
+      compiler::Label* is_instance_lbl,
+      compiler::Label* is_not_instance_lbl);
 
-  void GenerateBoolToJump(Register bool_reg, Label* is_true, Label* is_false);
+  void GenerateBoolToJump(Register bool_reg,
+                          compiler::Label* is_true,
+                          compiler::Label* is_false);
 
   void GenerateMethodExtractorIntrinsic(const Function& extracted_method,
                                         intptr_t type_arguments_field_offset);
@@ -1064,7 +1075,7 @@ class FlowGraphCompiler : public ValueObject {
 
   Thread* thread_;
   Zone* zone_;
-  Assembler* assembler_;
+  compiler::Assembler* assembler_;
   const ParsedFunction& parsed_function_;
   const FlowGraph& flow_graph_;
   const GrowableArray<BlockEntryInstr*>& block_order_;
@@ -1095,7 +1106,7 @@ class FlowGraphCompiler : public ValueObject {
   bool may_reoptimize_;
   // True while emitting intrinsic code.
   bool intrinsic_mode_;
-  Label* intrinsic_slow_path_label_ = nullptr;
+  compiler::Label* intrinsic_slow_path_label_ = nullptr;
   bool fully_intrinsified_ = false;
   CodeStatistics* stats_;
 

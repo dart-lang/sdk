@@ -11,13 +11,13 @@ import 'package:analyzer/src/summary/api_signature.dart';
 ///
 /// If API signatures of two units are different, they may have different APIs.
 List<int> computeUnlinkedApiSignature(CompilationUnit unit) {
-  var computer = new _UnitApiSignatureComputer();
+  var computer = _UnitApiSignatureComputer();
   computer.compute(unit);
   return computer.signature.toByteList();
 }
 
 class _UnitApiSignatureComputer {
-  final signature = new ApiSignature();
+  final ApiSignature signature = ApiSignature();
 
   void addClassOrMixin(ClassOrMixinDeclaration node) {
     addTokens(node.beginToken, node.leftBracket);
@@ -49,12 +49,19 @@ class _UnitApiSignatureComputer {
           member.beginToken,
           (member.parameters ?? member.name).endToken,
         );
+        signature.addBool(member.body is EmptyFunctionBody);
+        addFunctionBodyModifiers(member.body);
       } else {
         addNode(member);
       }
     }
 
     addToken(node.rightBracket);
+  }
+
+  void addFunctionBodyModifiers(FunctionBody node) {
+    signature.addBool(node.isSynchronous);
+    signature.addBool(node.isGenerator);
   }
 
   void addNode(AstNode node) {
@@ -120,11 +127,12 @@ class _UnitApiSignatureComputer {
       if (declaration is ClassOrMixinDeclaration) {
         addClassOrMixin(declaration);
       } else if (declaration is FunctionDeclaration) {
-        var parameters = declaration.functionExpression.parameters;
+        var functionExpression = declaration.functionExpression;
         addTokens(
           declaration.beginToken,
-          (parameters ?? declaration.name).endToken,
+          (functionExpression.parameters ?? declaration.name).endToken,
         );
+        addFunctionBodyModifiers(functionExpression.body);
       } else if (declaration is TopLevelVariableDeclaration) {
         addVariables(declaration, declaration.variables, false);
       } else {

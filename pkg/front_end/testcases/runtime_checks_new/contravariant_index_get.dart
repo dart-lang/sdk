@@ -12,7 +12,7 @@ class C<T> {
 }
 
 F<num> test(C<num> c) {
-  return c /*@checkReturn=(num) -> void*/ [0];
+  return c /*@ checkReturn=(num*) ->* void */ [0];
 }
 
 main() {}

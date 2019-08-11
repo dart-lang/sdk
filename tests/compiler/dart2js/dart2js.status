@@ -10,6 +10,7 @@ codegen/gvn_dynamic_field_get_test: Fail # Issue 18519
 codegen/list_tracer_length_test: Fail # Issue 33051
 codegen/load_elimination_test: Pass, Slow
 codegen/logical_expression_test: Fail # Issue 17027
+codegen/model_test: Pass, Slow
 codegen/side_effect_tdiv_regression_test: Fail # Issue 33050
 codegen/simple_function_subtype_test: Fail # simple_function_subtype_test is temporarily(?) disabled due to new method for building function type tests.
 codegen/string_escapes_test: Fail # Issue 33060
@@ -19,8 +20,11 @@ end_to_end/generate_code_with_compile_time_errors_test: RuntimeError # not suppo
 end_to_end/show_package_warnings_test: RuntimeError # missing errors from the FE
 equivalence/id_equivalence1_test: Pass, Slow
 equivalence/id_equivalence2_test: Pass, Slow
+impact/impact_test: Pass, Slow
 inference/inference0_test: Slow, Pass
 inference/inference1_test: Slow, Pass
+inference/inference2_test: Slow, Pass
+inference/inference3_test: Slow, Pass
 inference/simple_inferrer_const_closure2_test: Fail # Issue 16507
 inference/simple_inferrer_const_closure_test: Fail # Issue 16507
 inference/simple_inferrer_global_field_closure_test: Fail # Issue 16507
@@ -35,11 +39,13 @@ packages/*: Skip # Skip packages folder
 rti/rti_emission_test: Pass, Slow
 rti/rti_need0_test: Pass, Slow
 rti/rti_need1_test: Pass, Slow
+serialization/serialization_test: Pass, Slow
 sourcemaps/d2js_validity_test: RuntimeError # Issue 33072
 sourcemaps/deferred_d2js_validity_test: RuntimeError # Issue 33072
 sourcemaps/source_mapping_invokes_test: Pass, Slow
 sourcemaps/source_mapping_operators_test: Pass, Slow
 sourcemaps/source_mapping_test: Pass, Slow
+sourcemaps/stacktrace_test: Pass, Slow
 
 [ $mode == debug ]
 deferred/load_graph_segmentation_test: Pass, Slow

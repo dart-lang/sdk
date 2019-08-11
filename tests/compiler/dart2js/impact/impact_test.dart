@@ -11,7 +11,7 @@ import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/universe/feature.dart';
 import 'package:compiler/src/universe/use.dart';
 import 'package:compiler/src/universe/world_impact.dart';
-import 'package:compiler/src/util/features.dart';
+import 'package:front_end/src/testing/features.dart';
 import 'package:kernel/ast.dart' as ir;
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
@@ -25,7 +25,7 @@ main(List<String> args) {
     print('==================================================================');
     useImpactDataForTesting = false;
     await checkTests(dataDir, const ImpactDataComputer(),
-        libDirectory: libDirectory, args: args, testOmit: false);
+        libDirectory: libDirectory, args: args, testedConfigs: [strongConfig]);
 
     print('Testing computation of ResolutionImpact through ImpactData');
     print('==================================================================');
@@ -33,8 +33,7 @@ main(List<String> args) {
     await checkTests(dataDir, const ImpactDataComputer(),
         libDirectory: libDirectory,
         args: args,
-        testOmit: false,
-        testCFEConstants: true);
+        testedConfigs: allStrongConfigs);
   });
 }
 
@@ -84,7 +83,7 @@ class ImpactDataComputer extends DataComputer<Features> {
         features.addElement(Tags.runtimeTypeUse, use.shortText);
       }
     }
-    Id id = computeEntityId(node);
+    Id id = computeMemberId(node);
     ir.TreeNode nodeWithOffset = computeTreeNodeWithOffset(node);
     actualMap[id] = new ActualData<Features>(id, features,
         nodeWithOffset?.location?.file, nodeWithOffset?.fileOffset, member);

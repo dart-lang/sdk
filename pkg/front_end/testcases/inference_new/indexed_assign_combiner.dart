@@ -32,18 +32,18 @@ class G {
 }
 
 void test1(G g) {
-  g /*@target=G::[]=*/ [0] *= /*@typeArgs=dynamic*/ f();
-  var /*@type=C*/ x = g /*@target=G::[]=*/ [0] *= /*@typeArgs=dynamic*/ f();
+  g /*@target=G::[]=*/ [0] *= /*@ typeArgs=dynamic */ f();
+  var /*@ type=C* */ x = g /*@target=G::[]=*/ [0] *= /*@ typeArgs=dynamic */ f();
 }
 
 void test2(G g) {
   ++g /*@target=G::[]=*/ [0];
-  var /*@type=C*/ x = ++g /*@target=G::[]=*/ [0];
+  var /*@ type=C* */ x = ++g /*@target=G::[]=*/ [0];
 }
 
 void test3(G g) {
   g /*@target=G::[]=*/ [0]++;
-  var /*@type=A*/ x = g /*@target=G::[]=*/ [0]++;
+  var /*@ type=A* */ x = g /*@target=G::[]=*/ [0]++;
 }
 
 main() {}

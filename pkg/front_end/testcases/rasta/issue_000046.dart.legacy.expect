@@ -22,8 +22,8 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  field self::C c = new core::Object::•();
-  synthetic constructor •() → self::C
+  field self::C* c = new core::Object::•();
+  synthetic constructor •() → self::C*
     : super core::Object::•()
     ;
 }

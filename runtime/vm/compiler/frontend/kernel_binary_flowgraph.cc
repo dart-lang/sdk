@@ -874,7 +874,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
       }
     }
     if (extra_entry != nullptr) {
-      B->RecordUncheckedEntryPoint(extra_entry);
+      B->RecordUncheckedEntryPoint(graph_entry, extra_entry);
     }
   } else {
     // If the function's body contains any yield points, build switch statement
@@ -1001,7 +1001,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
       }
       return B->BuildGraphOfFieldAccessor(function);
     }
-    case RawFunction::kStaticFieldInitializer:
+    case RawFunction::kFieldInitializer:
       return BuildGraphOfFieldInitializer();
     case RawFunction::kDynamicInvocationForwarder:
       return B->BuildGraphOfDynamicInvocationForwarder(function);
@@ -1062,7 +1062,7 @@ void StreamingFlowGraphBuilder::ParseKernelASTFunction() {
     case RawFunction::kImplicitGetter:
     case RawFunction::kImplicitStaticGetter:
     case RawFunction::kImplicitSetter:
-    case RawFunction::kStaticFieldInitializer:
+    case RawFunction::kFieldInitializer:
     case RawFunction::kMethodExtractor:
     case RawFunction::kNoSuchMethodDispatcher:
     case RawFunction::kInvokeFieldDispatcher:
@@ -1308,6 +1308,13 @@ Tag KernelReaderHelper::ReadTag(uint8_t* payload) {
 
 Tag KernelReaderHelper::PeekTag(uint8_t* payload) {
   return reader_.PeekTag(payload);
+}
+
+Nullability KernelReaderHelper::ReadNullability() {
+  if (translation_helper_.info().kernel_binary_version() >= 28) {
+    return reader_.ReadNullability();
+  }
+  return kLegacy;
 }
 
 void StreamingFlowGraphBuilder::loop_depth_inc() {
@@ -1633,8 +1640,8 @@ Fragment StreamingFlowGraphBuilder::AllocateObject(TokenPosition position,
 }
 
 Fragment StreamingFlowGraphBuilder::AllocateContext(
-    const GrowableArray<LocalVariable*>& context_variables) {
-  return flow_graph_builder_->AllocateContext(context_variables);
+    const ZoneGrowableArray<const Slot*>& context_slots) {
+  return flow_graph_builder_->AllocateContext(context_slots);
 }
 
 Fragment StreamingFlowGraphBuilder::LoadNativeField(const Slot& field) {
@@ -1691,8 +1698,8 @@ Fragment StreamingFlowGraphBuilder::CheckStackOverflow(TokenPosition position) {
 }
 
 Fragment StreamingFlowGraphBuilder::CloneContext(
-    const GrowableArray<LocalVariable*>& context_variables) {
-  return flow_graph_builder_->CloneContext(context_variables);
+    const ZoneGrowableArray<const Slot*>& context_slots) {
+  return flow_graph_builder_->CloneContext(context_slots);
 }
 
 Fragment StreamingFlowGraphBuilder::TranslateFinallyFinalizers(
@@ -3049,12 +3056,16 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,
     ++argument_count;
   }
 
-  if (compiler::ffi::IsAsFunctionInternal(Z, Isolate::Current(), target)) {
+  if (compiler::ffi::IsAsFunctionInternal(Z, H.isolate(), target)) {
     return BuildFfiAsFunctionInternal();
   }
 
   Fragment instructions;
   LocalVariable* instance_variable = NULL;
+
+  const bool special_case_nop_async_stack_trace_helper =
+      !FLAG_causal_async_stacks &&
+      target.recognized_kind() == MethodRecognizer::kAsyncStackTraceHelper;
 
   const bool special_case_unchecked_cast =
       klass.IsTopLevel() && (klass.library() == Library::InternalLibrary()) &&
@@ -3064,8 +3075,9 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,
       klass.IsTopLevel() && (klass.library() == Library::CoreLibrary()) &&
       (target.name() == Symbols::Identical().raw());
 
-  const bool special_case =
-      special_case_identical || special_case_unchecked_cast;
+  const bool special_case = special_case_identical ||
+                            special_case_unchecked_cast ||
+                            special_case_nop_async_stack_trace_helper;
 
   // If we cross the Kernel -> VM core library boundary, a [StaticInvocation]
   // can appear, but the thing we're calling is not a static method, but a
@@ -3130,6 +3142,10 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,
     ASSERT(argument_count == 2);
     instructions +=
         StrictCompare(position, Token::kEQ_STRICT, /*number_check=*/true);
+  } else if (special_case_nop_async_stack_trace_helper) {
+    ASSERT(argument_count == 1);
+    instructions += Drop();
+    instructions += NullConstant();
   } else if (special_case_unchecked_cast) {
     // Simply do nothing: the result value is already pushed on the stack.
   } else {
@@ -4137,7 +4153,7 @@ Fragment StreamingFlowGraphBuilder::BuildForStatement() {
     // the body gets a fresh set of [ForStatement] variables (with the old
     // (possibly updated) values).
     if (context_scope->num_context_variables() > 0) {
-      body += CloneContext(context_scope->context_variables());
+      body += CloneContext(context_scope->context_slots());
     }
 
     body += updates;

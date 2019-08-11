@@ -17,7 +17,7 @@
 /// untagged lines of the file, with key "none", which is expected to pass. This
 /// library extracts these tests, writes them into a temporary directory, and
 /// passes them to the test runner. These tests may be referred to in the status
-/// files with the pattern [test name]/[key].
+/// files with the pattern `[test name]/[key]`.
 ///
 /// For example, file i_am_a_multitest.dart:
 ///
@@ -79,7 +79,7 @@ import "utils.dart";
 /// Until legacy multitests are ported we need to support both /// and //#
 final _multitestMarker = RegExp(r"//[/#]");
 
-final _multitestOutcomes = [
+final _multitestOutcomes = {
   'ok',
   'syntax error',
   'compile-time error',
@@ -88,7 +88,7 @@ final _multitestOutcomes = [
   'static type warning', // This is still a valid analyzer test
   'dynamic type error', // This is now a no-op
   'checked mode compile-time error' // This is now a no-op
-].toSet();
+};
 
 void _generateTestsFromMultitest(Path filePath, Map<String, String> tests,
     Map<String, Set<String>> outcomes) {
@@ -132,7 +132,9 @@ void _generateTestsFromMultitest(Path filePath, Map<String, String> tests,
         }
       }
     } else {
-      for (var test in testsAsLines.values) test.add(line);
+      for (var test in testsAsLines.values) {
+        test.add(line);
+      }
     }
   }
 
@@ -141,7 +143,9 @@ void _generateTestsFromMultitest(Path filePath, Map<String, String> tests,
   var marker =
       '// Test created from multitest named ${filePath.toNativePath()}.'
       '$lineSeparator';
-  for (var test in testsAsLines.values) test.add(marker);
+  for (var test in testsAsLines.values) {
+    test.add(marker);
+  }
 
   // Check that every test (other than the none case) has at least one outcome.
   var invalidTests = outcomes.keys

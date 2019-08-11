@@ -2,8 +2,8 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-static method test(<T extends core::Object = dynamic>(T) → T f) → void {
-  (core::int) → core::int func;
+static method test(<T extends core::Object* = dynamic>(T*) →* T* f) → void {
+  (core::int*) →* core::int* func;
   func = f.call;
 }
 static method main() → dynamic {}

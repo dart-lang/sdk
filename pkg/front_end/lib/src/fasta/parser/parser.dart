@@ -53,6 +53,8 @@ import 'assert.dart' show Assert;
 
 import 'async_modifier.dart' show AsyncModifier;
 
+import 'class_kind.dart' show ClassKind;
+
 import 'directive_context.dart';
 
 import 'formal_parameter_kind.dart'
@@ -583,7 +585,7 @@ class Parser {
         return parseTopLevelMemberImpl(start);
       } else if (identical(nextValue, '<')) {
         if (identical(value, 'extension')) {
-          // The neame in an extension declaration is optional:
+          // The name in an extension declaration is optional:
           // `extension<T> on ...`
           Token endGroup = keyword.next.endGroup;
           if (endGroup != null && optional('on', endGroup.next)) {
@@ -1495,10 +1497,12 @@ class Parser {
     next = token.next;
 
     String value = next.stringValue;
+    Token initializerStart, initializerEnd;
     if ((identical('=', value)) || (identical(':', value))) {
       Token equal = next;
+      initializerStart = equal.next;
       listener.beginFormalParameterDefaultValueExpression();
-      token = parseExpression(equal);
+      token = initializerEnd = parseExpression(equal);
       next = token.next;
       listener.endFormalParameterDefaultValueExpression();
       // TODO(danrubel): Consider removing the last parameter from the
@@ -1519,8 +1523,8 @@ class Parser {
     } else {
       listener.handleFormalParameterWithoutValue(next);
     }
-    listener.endFormalParameter(
-        thisKeyword, periodAfterThis, nameToken, parameterKind, memberKind);
+    listener.endFormalParameter(thisKeyword, periodAfterThis, nameToken,
+        initializerStart, initializerEnd, parameterKind, memberKind);
     return token;
   }
 
@@ -1790,7 +1794,7 @@ class Parser {
       token = parseClassHeaderRecovery(start, begin, classKeyword);
       ensureBlock(token, null, 'class declaration');
     }
-    token = parseClassOrMixinBody(token);
+    token = parseClassOrMixinBody(ClassKind.Class, token);
     listener.endClassDeclaration(begin, token);
     return token;
   }
@@ -1956,7 +1960,7 @@ class Parser {
       token = parseMixinHeaderRecovery(token, mixinKeyword, headerStart);
       ensureBlock(token, null, 'mixin declaration');
     }
-    token = parseClassOrMixinBody(token);
+    token = parseClassOrMixinBody(ClassKind.Mixin, token);
     listener.endMixinDeclaration(mixinKeyword, token);
     return token;
   }
@@ -2099,7 +2103,7 @@ class Parser {
       }
     }
     TypeInfo typeInfo = computeType(onKeyword, true);
-    token = typeInfo.ensureTypeNotVoid(onKeyword, this);
+    token = typeInfo.ensureTypeOrVoid(onKeyword, this);
     if (!optional('{', token.next)) {
       // Recovery
       Token next = token.next;
@@ -2125,8 +2129,8 @@ class Parser {
       ensureBlock(token, null, 'extension declaration');
     }
     // TODO(danrubel): Do not allow fields or constructors
-    token = parseClassOrMixinBody(token);
-    listener.endExtensionDeclaration(onKeyword, token);
+    token = parseClassOrMixinBody(ClassKind.Extension, token);
+    listener.endExtensionDeclaration(extensionKeyword, onKeyword, token);
     return token;
   }
 
@@ -2893,10 +2897,10 @@ class Parser {
   ///   '{' classMember* '}'
   /// ;
   /// ```
-  Token parseClassOrMixinBody(Token token) {
+  Token parseClassOrMixinBody(ClassKind kind, Token token) {
     Token begin = token = token.next;
     assert(optional('{', token));
-    listener.beginClassOrMixinBody(token);
+    listener.beginClassOrMixinBody(kind, token);
     int count = 0;
     while (notEofOrValue('}', token.next)) {
       token = parseClassOrMixinMemberImpl(token);
@@ -2904,7 +2908,7 @@ class Parser {
     }
     token = token.next;
     assert(optional('}', token));
-    listener.endClassOrMixinBody(count, begin, token);
+    listener.endClassOrMixinBody(kind, count, begin, token);
     return token;
   }
 
@@ -4925,6 +4929,14 @@ class Parser {
 
   Token parseSend(Token token, IdentifierContext context) {
     Token beginToken = token = ensureIdentifier(token, context);
+    if (optional('!', token.next)) {
+      Token bang = token.next;
+      Token next = bang.next;
+      if (optional('(', next) || optional('[', next)) {
+        listener.handleNonNullAssertExpression(bang);
+        token = bang;
+      }
+    }
     TypeParamOrArgInfo typeArg = computeMethodTypeArguments(token);
     if (typeArg != noTypeParamOrArg) {
       token = typeArg.parseArguments(token, this);
@@ -5870,7 +5882,7 @@ class Parser {
             //   } catch (E e, t) {
             // will recover to
             //   } on E catch (e, t) {
-            // with a detailed explaination for the user in the error
+            // with a detailed explanation for the user in the error
             // indicating what they should do to fix the code.
 
             // TODO(danrubel): Consider inserting synthetic identifier if

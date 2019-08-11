@@ -181,7 +181,7 @@ abstract class TypePromoterImpl extends TypePromoter {
   TypePromotionFact _trueFactsForPromotionExpression;
 
   /// Linked list of [TypePromotionScope]s describing the nesting structure that
-  /// contains the expressoin or statement that was most recently parsed.
+  /// contains the expression or statement that was most recently parsed.
   TypePromotionScope _currentScope = const _TopLevelScope();
 
   /// The sequence number of the [TypePromotionFact] that was most recently
@@ -401,7 +401,7 @@ abstract class TypePromoterImpl extends TypePromoter {
   /// Returns the set of facts known to be true after the execution of [e]
   /// assuming it evaluates to `false`.
   ///
-  /// [e] must be the most resently parsed expression or statement.
+  /// [e] must be the most recently parsed expression or statement.
   TypePromotionFact _factsWhenFalse(Expression e) {
     // Type promotion currently only occurs when an "is" or logical expression
     // evaluates to `true`, so no special logic is required; we just use
@@ -415,7 +415,7 @@ abstract class TypePromoterImpl extends TypePromoter {
   /// Returns the set of facts known to be true after the execution of [e]
   /// assuming it evaluates to `true`.
   ///
-  /// [e] must be the most resently parsed expression or statement.
+  /// [e] must be the most recently parsed expression or statement.
   TypePromotionFact _factsWhenTrue(Expression e) =>
       sameExpressions(_promotionExpression, e)
           ? _trueFactsForPromotionExpression
@@ -470,9 +470,9 @@ abstract class TypePromoterImpl extends TypePromoter {
   }
 
   /// Records that after the evaluation of [expression], the facts will be
-  /// [ifTrue] on a branch where the expression evaluted to `true`, and
+  /// [ifTrue] on a branch where the expression evaluated to `true`, and
   /// [ifFalse] on a branch where the expression evaluated to `false` (or where
-  /// the truth value of the expresison doesn't matter).
+  /// the truth value of the expression doesn't matter).
   ///
   /// TODO(paulberry): when we start handling promotion in "else" clauses, we'll
   /// need to split [ifFalse] into two cases, one for when the expression
@@ -506,7 +506,7 @@ abstract class TypePromoterImpl extends TypePromoter {
 /// the fact was deduced at a previous point in the straight line execution of
 /// the code.  It's possible that the fact will be overshadowed by a later
 /// fact, or its effect will be cancelled by a later assignment.  The final
-/// detemination of whether promotion occurs is left to [_computePromotedType].
+/// determination of whether promotion occurs is left to [_computePromotedType].
 abstract class TypePromotionFact {
   /// The variable this fact records information about, or `null` if this fact
   /// records information about general flow control.

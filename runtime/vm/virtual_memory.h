@@ -6,6 +6,7 @@
 #define RUNTIME_VM_VIRTUAL_MEMORY_H_
 
 #include "platform/utils.h"
+#include "vm/flags.h"
 #include "vm/globals.h"
 #include "vm/memory_region.h"
 
@@ -31,6 +32,9 @@ class VirtualMemory {
   intptr_t AliasOffset() const { return alias_.start() - region_.start(); }
 
   static void Init();
+
+  // Returns true if dual mapping is enabled.
+  static bool DualMappingEnabled();
 
   bool Contains(uword addr) const { return region_.Contains(addr); }
   bool ContainsAlias(uword addr) const {

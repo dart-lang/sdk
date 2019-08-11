@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
@@ -10,6 +12,7 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UndefinedGetterTest);
+    defineReflectiveTests(UndefinedGetterWithExtensionMethodsTest);
   });
 }
 
@@ -92,12 +95,14 @@ f(Object x) {
   }
 
   test_nullMember_undefined() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   Null _null;
   _null.foo;
 }
-''', [StaticTypeWarningCode.UNDEFINED_GETTER]);
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_GETTER, 28, 3),
+    ]);
   }
 
   test_promotedTypeParameter_regress35305() async {
@@ -109,6 +114,28 @@ void f<X extends num, Y extends X>(Y y) {
 }
 ''', [
       error(StaticTypeWarningCode.UNDEFINED_GETTER, 66, 6),
+    ]);
+  }
+}
+
+@reflectiveTest
+class UndefinedGetterWithExtensionMethodsTest extends UndefinedGetterTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = new FeatureSet.forTesting(
+        sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
+
+  test_withExtension() async {
+    await assertErrorsInCode(r'''
+class C {}
+
+extension E on C {}
+
+f(C c) {
+  c.a;
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_GETTER, 46, 1),
     ]);
   }
 }

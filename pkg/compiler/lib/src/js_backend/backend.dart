@@ -20,6 +20,7 @@ import 'annotations.dart';
 import 'checked_mode_helpers.dart';
 import 'namer.dart';
 import 'runtime_types.dart';
+import 'runtime_types_codegen.dart';
 import 'runtime_types_new.dart';
 
 abstract class FunctionCompiler {

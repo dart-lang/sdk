@@ -3,7 +3,6 @@
 # Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
-
 """Script to generate configuration files for analysis servers of C++ and Dart.
 
 It generates compile_commands.json for C++ clang and intellij and
@@ -23,12 +22,12 @@ HOST_OS = utils.GuessOS()
 
 
 def GenerateIdeFiles(options):
-  GenerateCompileCommands(options)
-  GenerateAnalysisOptions(options)
+    GenerateCompileCommands(options)
+    GenerateAnalysisOptions(options)
 
 
 def GenerateCompileCommands(options):
-  """Generate compile_commands.json for the C++ analysis servers.
+    """Generate compile_commands.json for the C++ analysis servers.
 
   compile_commands.json is used by the c++ clang and intellij language analysis
   servers used in IDEs such as Visual Studio Code and Emacs.
@@ -40,48 +39,48 @@ def GenerateCompileCommands(options):
     success (0) or failure (non zero)
   """
 
-  fname = os.path.join(options.dir, "compile_commands.json")
+    fname = os.path.join(options.dir, "compile_commands.json")
 
-  if os.path.isfile(fname) and not options.force:
-    print fname + " already exists, use --force to override"
-    return
+    if os.path.isfile(fname) and not options.force:
+        print fname + " already exists, use --force to override"
+        return
 
-  gn_result = generate_buildfiles.RunGn(options)
-  if gn_result != 0:
-    return gn_result
+    gn_result = generate_buildfiles.RunGn(options)
+    if gn_result != 0:
+        return gn_result
 
-  out_folder = utils.GetBuildRoot(
-      HOST_OS, mode="debug", arch=options.arch, target_os=options.os)
+    out_folder = utils.GetBuildRoot(
+        HOST_OS, mode="debug", arch=options.arch, target_os=options.os)
 
-  if not os.path.isdir(out_folder):
-    return 1
+    if not os.path.isdir(out_folder):
+        return 1
 
-  command_set = json.loads(
-      subprocess.check_output(
-          ["ninja", "-C", out_folder, "-t", "compdb", "cxx", "cc", "h"]))
+    command_set = json.loads(
+        subprocess.check_output(
+            ["ninja", "-C", out_folder, "-t", "compdb", "cxx", "cc", "h"]))
 
-  commands = []
-  for obj in command_set:
-    command = obj["command"]
+    commands = []
+    for obj in command_set:
+        command = obj["command"]
 
-    # Skip precompiled mode, a lot of code is commented out in precompiled mode
-    if "-DDART_PRECOMPILED_RUNTIME" in command:
-      continue
+        # Skip precompiled mode, a lot of code is commented out in precompiled mode
+        if "-DDART_PRECOMPILED_RUNTIME" in command:
+            continue
 
-    # Remove warnings
-    command = command.replace("-Werror", "")
+        # Remove warnings
+        command = command.replace("-Werror", "")
 
-    obj["command"] = command
-    commands += [obj]
+        obj["command"] = command
+        commands += [obj]
 
-  with open(fname, "w") as f:
-    json.dump(commands, f, indent=4)
+    with open(fname, "w") as f:
+        json.dump(commands, f, indent=4)
 
-  return 0
+    return 0
 
 
 def GenerateAnalysisOptions(options):
-  """Generate analysis_optioms.yaml for the Dart analyzer.
+    """Generate analysis_optioms.yaml for the Dart analyzer.
 
   To prevent dartanalyzer from tripping on the non-Dart files when it is
   started from the root dart-sdk directory.
@@ -90,7 +89,7 @@ def GenerateAnalysisOptions(options):
   Args:
     options: supported options include: force, dir
   """
-  contents = """analyzer:
+    contents = """analyzer:
   exclude:
     - docs/newsletter/20171103/**
     - out/**
@@ -109,46 +108,47 @@ def GenerateAnalysisOptions(options):
     - tools/status_clean.dart
     - xcodebuild / **"""
 
-  fname = os.path.join(options.dir, "analysis_options.yaml")
+    fname = os.path.join(options.dir, "analysis_options.yaml")
 
-  if os.path.isfile(fname) and not options.force:
-    print fname + " already exists, use --force to override"
-    return
+    if os.path.isfile(fname) and not options.force:
+        print fname + " already exists, use --force to override"
+        return
 
-  with open(fname, "w") as f:
-    f.write(contents)
+    with open(fname, "w") as f:
+        f.write(contents)
 
 
 def main(argv):
-  parser = argparse.ArgumentParser(
-      description="Python script to generate compile_commands.json and "
-      "analysis_options.yaml which are used by the analysis servers for "
-      "c++ and Dart.")
+    parser = argparse.ArgumentParser(
+        description="Python script to generate compile_commands.json and "
+        "analysis_options.yaml which are used by the analysis servers for "
+        "c++ and Dart.")
 
-  parser.add_argument("-v", "--verbose",
-                      help="Verbose output.",
-                      action="store_true")
+    parser.add_argument(
+        "-v", "--verbose", help="Verbose output.", action="store_true")
 
-  parser.add_argument("-f", "--force",
-                      help="Override files.",
-                      action="store_true")
+    parser.add_argument(
+        "-f", "--force", help="Override files.", action="store_true")
 
-  parser.add_argument("-d", "--dir",
-                      help="Target directory.",
-                      default=utils.DART_DIR)
+    parser.add_argument(
+        "-d", "--dir", help="Target directory.", default=utils.DART_DIR)
 
-  parser.add_argument("-a", "--arch",
-                      help="Target architecture for runtime sources.",
-                      default="x64")
+    parser.add_argument(
+        "-a",
+        "--arch",
+        help="Target architecture for runtime sources.",
+        default="x64")
 
-  parser.add_argument("-s", "--os",
-                      help="Target operating system for runtime sources.",
-                      default=HOST_OS)
+    parser.add_argument(
+        "-s",
+        "--os",
+        help="Target operating system for runtime sources.",
+        default=HOST_OS)
 
-  options = parser.parse_args(argv[1:])
+    options = parser.parse_args(argv[1:])
 
-  return GenerateIdeFiles(options)
+    return GenerateIdeFiles(options)
 
 
 if __name__ == "__main__":
-  sys.exit(main(sys.argv))
+    sys.exit(main(sys.argv))

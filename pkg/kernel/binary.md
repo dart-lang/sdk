@@ -139,7 +139,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 26;
+  UInt32 formatVersion = 28;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
   UriSource sourceMap;
@@ -224,6 +224,8 @@ type Name {
 
 type Library {
   Byte flags (isExternal, isSynthetic);
+  UInt languageVersionMajor;
+  UInt languageVersionMinor;
   CanonicalNameReference canonicalName;
   StringReference name;
   // An absolute path URI to the .dart file from which the library was created.
@@ -1195,6 +1197,8 @@ type FunctionDeclaration extends Statement {
   FunctionNode function;
 }
 
+enum Nullability { nullable = 0, nonNullable = 1, neither = 2, legacy = 3, }
+
 abstract type DartType extends Node {}
 
 type InvalidType extends DartType {
@@ -1211,18 +1215,21 @@ type VoidType extends DartType {
 
 type InterfaceType extends DartType {
   Byte tag = 93;
+  Byte nullability; // Index into the Nullability enum above.
   ClassReference class;
   List<DartType> typeArguments;
 }
 
 type SimpleInterfaceType extends DartType {
   Byte tag = 96; // Note: tag is out of order.
+  Byte nullability; // Index into the Nullability enum above.
   ClassReference class;
   // Equivalent to InterfaceType with empty list of type arguments.
 }
 
 type FunctionType extends DartType {
   Byte tag = 94;
+  Byte nullability; // Index into the Nullability enum above.
   List<TypeParameter> typeParameters;
   UInt requiredParameterCount;
   // positionalParameters.length + namedParameters.length
@@ -1235,6 +1242,7 @@ type FunctionType extends DartType {
 
 type SimpleFunctionType extends DartType {
   Byte tag = 97; // Note: tag is out of order.
+  Byte nullability; // Index into the Nullability enum above.
   List<DartType> positionalParameters;
   List<StringReference> positionalParameterNames;
   DartType returnType;
@@ -1249,6 +1257,7 @@ type NamedDartType {
 
 type TypeParameterType extends DartType {
   Byte tag = 95;
+  Byte nullability; // Index into the Nullability enum above.
 
   // Reference to the Nth type parameter in scope (with some caveats about
   // type parameter bounds).
@@ -1273,6 +1282,7 @@ type TypeParameterType extends DartType {
 
 type TypedefType {
   Byte tag = 87;
+  Byte nullability; // Index into the Nullability enum above.
   TypedefReference typedefReference;
   List<DartType> typeArguments;
 }

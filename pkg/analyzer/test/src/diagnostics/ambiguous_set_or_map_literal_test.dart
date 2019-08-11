@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class AmbiguousSetOrMapLiteralBothTest extends DriverResolutionTest {
   test_setAndMap() async {
-    assertErrorsInCode('''
+    await assertErrorsInCode('''
 Map<int, int> map;
 Set<int> set;
 var c = {...set, ...map};
@@ -39,7 +39,7 @@ union(a, b) => !{...a, ...b};
   }
 
   test_setAndMap() async {
-    assertErrorsInCode('''
+    await assertErrorsInCode('''
 var map;
 var set;
 var c = {...set, ...map};

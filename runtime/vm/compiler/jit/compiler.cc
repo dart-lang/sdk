@@ -235,7 +235,7 @@ DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
       // If interpreter is enabled and there is bytecode, LazyCompile stub
       // (which calls CompileFunction) should proceed to InterpretCall in order
       // to enter interpreter. In such case, compilation is postponed and
-      // triggered by interpreter later via OptimizeInvokedFunction.
+      // triggered by interpreter later via CompileInterpretedFunction.
       return;
     }
     // No bytecode, fall back to compilation.
@@ -350,7 +350,7 @@ class CompileParsedFunctionHelper : public ValueObject {
   intptr_t loading_invalidation_gen_at_start() const {
     return loading_invalidation_gen_at_start_;
   }
-  RawCode* FinalizeCompilation(Assembler* assembler,
+  RawCode* FinalizeCompilation(compiler::Assembler* assembler,
                                FlowGraphCompiler* graph_compiler,
                                FlowGraph* flow_graph);
   void CheckIfBackgroundCompilerIsBeingStopped(bool optimizing_compiler);
@@ -365,7 +365,7 @@ class CompileParsedFunctionHelper : public ValueObject {
 };
 
 RawCode* CompileParsedFunctionHelper::FinalizeCompilation(
-    Assembler* assembler,
+    compiler::Assembler* assembler,
     FlowGraphCompiler* graph_compiler,
     FlowGraph* flow_graph) {
   ASSERT(!FLAG_precompiled_mode);
@@ -651,8 +651,8 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
       ASSERT(pass_state.inline_id_to_function.length() ==
              pass_state.caller_inline_id.length());
-      ObjectPoolBuilder object_pool_builder;
-      Assembler assembler(&object_pool_builder, use_far_branches);
+      compiler::ObjectPoolBuilder object_pool_builder;
+      compiler::Assembler assembler(&object_pool_builder, use_far_branches);
       FlowGraphCompiler graph_compiler(
           &assembler, flow_graph, *parsed_function(), optimized(),
           &speculative_policy, pass_state.inline_id_to_function,
@@ -678,10 +678,7 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           // executable).
           {
             CheckIfBackgroundCompilerIsBeingStopped(optimized());
-            SafepointOperationScope safepoint_scope(thread());
-            // Do not Garbage collect during this stage and instead allow the
-            // heap to grow.
-            NoHeapGrowthControlScope no_growth_control;
+            ForceGrowthSafepointOperationScope safepoint_scope(thread());
             CheckIfBackgroundCompilerIsBeingStopped(optimized());
             *result =
                 FinalizeCompilation(&assembler, &graph_compiler, flow_graph);
@@ -1226,13 +1223,14 @@ class BackgroundCompilationQueue {
   DISALLOW_COPY_AND_ASSIGN(BackgroundCompilationQueue);
 };
 
-BackgroundCompiler::BackgroundCompiler(Isolate* isolate)
+BackgroundCompiler::BackgroundCompiler(Isolate* isolate, bool optimizing)
     : isolate_(isolate),
       queue_monitor_(),
       function_queue_(new BackgroundCompilationQueue()),
       done_monitor_(),
       running_(false),
       done_(true),
+      optimizing_(optimizing),
       disabled_depth_(0) {}
 
 // Fields all deleted in ::Stop; here clear them.
@@ -1257,14 +1255,11 @@ void BackgroundCompiler::Run() {
         function = function_queue()->PeekFunction();
       }
       while (running_ && !function.IsNull()) {
-        // This is false if we are compiling bytecode -> unoptimized code.
-        const bool optimizing = function.ShouldCompilerOptimize();
-        ASSERT(FLAG_enable_interpreter || optimizing);
-
-        if (optimizing) {
+        if (is_optimizing()) {
           Compiler::CompileOptimizedFunction(thread, function,
                                              Compiler::kNoOSRDeoptId);
         } else {
+          ASSERT(FLAG_enable_interpreter);
           Compiler::CompileFunction(thread, function);
         }
 
@@ -1279,7 +1274,7 @@ void BackgroundCompiler::Run() {
             const Function& old = Function::Handle(qelem->Function());
             // If an optimizable method is not optimized, put it back on
             // the background queue (unless it was passed to foreground).
-            if ((optimizing && !old.HasOptimizedCode() &&
+            if ((is_optimizing() && !old.HasOptimizedCode() &&
                  old.IsOptimizable()) ||
                 FLAG_stress_test_background_compilation) {
               if (old.is_background_optimizable() &&
@@ -1316,21 +1311,14 @@ void BackgroundCompiler::Run() {
 
 void BackgroundCompiler::Compile(const Function& function) {
   ASSERT(Thread::Current()->IsMutatorThread());
-  // TODO(srdjan): Checking different strategy for collecting garbage
-  // accumulated by background compiler.
-  if (isolate_->heap()->NeedsGarbageCollection()) {
-    isolate_->heap()->CollectMostGarbage();
+  MonitorLocker ml(&queue_monitor_);
+  ASSERT(running_);
+  if (function_queue()->ContainsObj(function)) {
+    return;
   }
-  {
-    MonitorLocker ml(&queue_monitor_);
-    ASSERT(running_);
-    if (function_queue()->ContainsObj(function)) {
-      return;
-    }
-    QueueElement* elem = new QueueElement(function);
-    function_queue()->Add(elem);
-    ml.Notify();
-  }
+  QueueElement* elem = new QueueElement(function);
+  function_queue()->Add(elem);
+  ml.Notify();
 }
 
 void BackgroundCompiler::VisitPointers(ObjectPointerVisitor* visitor) {

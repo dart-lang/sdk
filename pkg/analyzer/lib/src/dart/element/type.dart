@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine;
 import 'package:analyzer/src/generated/resolver.dart';
@@ -584,19 +585,20 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
 
   @override
   String get displayName {
-    String name = this.name;
-
-    // Function types have an empty name when they are defined implicitly by
-    // either a closure or as part of a parameter declaration.
-    if (name == null || name.length == 0) {
+    if (name == null || name.isEmpty) {
+      // Function types have an empty name when they are defined implicitly by
+      // either a closure or as part of a parameter declaration.
       StringBuffer buffer = new StringBuffer();
       appendTo(buffer, new Set.identity());
+      if (nullabilitySuffix == NullabilitySuffix.question) {
+        buffer.write('?');
+      }
       return buffer.toString();
     }
 
     List<DartType> typeArguments = this.typeArguments;
 
-    bool areAllTypeArgumentsDynamic() {
+    bool allTypeArgumentsAreDynamic() {
       for (DartType type in typeArguments) {
         if (type != null && !type.isDynamic) {
           return false;
@@ -605,10 +607,10 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
       return true;
     }
 
+    StringBuffer buffer = new StringBuffer();
+    buffer.write(name);
     // If there is at least one non-dynamic type, then list them out.
-    if (!areAllTypeArgumentsDynamic()) {
-      StringBuffer buffer = new StringBuffer();
-      buffer.write(name);
+    if (!allTypeArgumentsAreDynamic()) {
       buffer.write("<");
       for (int i = 0; i < typeArguments.length; i++) {
         if (i != 0) {
@@ -618,10 +620,11 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
         buffer.write(typeArg.displayName);
       }
       buffer.write(">");
-      name = buffer.toString();
     }
-
-    return name;
+    if (nullabilitySuffix == NullabilitySuffix.question) {
+      buffer.write('?');
+    }
+    return buffer.toString();
   }
 
   @override
@@ -724,7 +727,8 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
               normalParameterTypes, object.normalParameterTypes) &&
           TypeImpl.equalArrays(
               optionalParameterTypes, object.optionalParameterTypes) &&
-          _equals(namedParameterTypes, object.namedParameterTypes);
+          _equals(namedParameterTypes, object.namedParameterTypes) &&
+          nullabilitySuffix == object.nullabilitySuffix;
     }
     return false;
   }
@@ -808,35 +812,6 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   @override
-  bool isEquivalentTo(DartType other) {
-    if (other is FunctionTypeImpl) {
-      if (typeFormals.length != other.typeFormals.length) {
-        return false;
-      }
-      // `<T>T -> T` should be equal to `<U>U -> U`
-      // To test this, we instantiate both types with the same (unique) type
-      // variables, and see if the result is equal.
-      if (typeFormals.isNotEmpty) {
-        List<DartType> freshVariables = FunctionTypeImpl.relateTypeFormals(
-            this, other, (t, s, _, __) => t == s);
-        if (freshVariables == null) {
-          return false;
-        }
-        return instantiate(freshVariables)
-            .isEquivalentTo(other.instantiate(freshVariables));
-      }
-
-      return returnType.isEquivalentTo(other.returnType) &&
-          TypeImpl.equivalentArrays(
-              normalParameterTypes, other.normalParameterTypes) &&
-          TypeImpl.equivalentArrays(
-              optionalParameterTypes, other.optionalParameterTypes) &&
-          _equivalent(namedParameterTypes, other.namedParameterTypes);
-    }
-    return false;
-  }
-
-  @override
   bool isMoreSpecificThan(DartType type,
       [bool withDynamic = false, Set<Element> visitedElements]) {
     // Note: visitedElements is only used for breaking recursion in the type
@@ -854,6 +829,7 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
     return FunctionTypeImpl.relate(
         typeSystem.instantiateToBounds(this),
         typeSystem.instantiateToBounds(type),
+        // ignore: deprecated_member_use_from_same_package
         (DartType t, DartType s) => t.isAssignableTo(s));
   }
 
@@ -1189,6 +1165,14 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
           TypeParameterElement formal2, TypeParameterElement formal1)) {
     List<TypeParameterElement> params1 = f1.typeFormals;
     List<TypeParameterElement> params2 = f2.typeFormals;
+    return relateTypeFormals2(params1, params2, relation);
+  }
+
+  static List<DartType> relateTypeFormals2(
+      List<TypeParameterElement> params1,
+      List<TypeParameterElement> params2,
+      bool relation(DartType bound2, DartType bound1,
+          TypeParameterElement formal2, TypeParameterElement formal1)) {
     int count = params1.length;
     if (params2.length != count) {
       return null;
@@ -1247,31 +1231,6 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
       TypeImpl firstType = firstTypes[firstKey];
       TypeImpl secondType = secondTypes[secondKey];
       if (firstKey != secondKey || firstType != secondType) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  /**
-   * Return `true` if all of the name/type pairs in the first map ([firstTypes])
-   * are equivalent to the corresponding name/type pairs in the second map
-   * ([secondTypes]). The maps are expected to iterate over their entries in the
-   * same order in which those entries were added to the map.
-   */
-  static bool _equivalent(
-      Map<String, DartType> firstTypes, Map<String, DartType> secondTypes) {
-    if (secondTypes.length != firstTypes.length) {
-      return false;
-    }
-    Iterator<String> firstKeys = firstTypes.keys.iterator;
-    Iterator<String> secondKeys = secondTypes.keys.iterator;
-    while (firstKeys.moveNext() && secondKeys.moveNext()) {
-      String firstKey = firstKeys.current;
-      String secondKey = secondKeys.current;
-      TypeImpl firstType = firstTypes[firstKey];
-      TypeImpl secondType = secondTypes[secondKey];
-      if (firstKey != secondKey || !firstType.isEquivalentTo(secondType)) {
         return false;
       }
     }
@@ -1403,11 +1362,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   String get displayName {
-    String name = this.name;
-
     List<DartType> typeArguments = this.typeArguments;
 
-    bool areAllTypeArgumentsDynamic() {
+    bool allTypeArgumentsAreDynamic() {
       for (DartType type in typeArguments) {
         if (type != null && !type.isDynamic) {
           return false;
@@ -1416,10 +1373,10 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return true;
     }
 
+    StringBuffer buffer = new StringBuffer();
+    buffer.write(name);
     // If there is at least one non-dynamic type, then list them out.
-    if (!areAllTypeArgumentsDynamic()) {
-      StringBuffer buffer = new StringBuffer();
-      buffer.write(name);
+    if (!allTypeArgumentsAreDynamic()) {
       buffer.write("<");
       for (int i = 0; i < typeArguments.length; i++) {
         if (i != 0) {
@@ -1429,9 +1386,11 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         buffer.write(typeArg.displayName);
       }
       buffer.write(">");
-      name = buffer.toString();
     }
-    return name;
+    if (nullabilitySuffix == NullabilitySuffix.question) {
+      buffer.write('?');
+    }
+    return buffer.toString();
   }
 
   @override
@@ -1452,7 +1411,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     List<InterfaceType> interfaces = classElement.interfaces;
     List<TypeParameterElement> typeParameters = classElement.typeParameters;
     List<DartType> parameterTypes = classElement.type.typeArguments;
-    if (typeParameters.length == 0) {
+    if (typeParameters.isEmpty) {
       return interfaces;
     }
     int count = interfaces.length;
@@ -1519,6 +1478,24 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
+  bool get isDartCoreList {
+    ClassElement element = this.element;
+    if (element == null) {
+      return false;
+    }
+    return element.name == "List" && element.library.isDartCore;
+  }
+
+  @override
+  bool get isDartCoreMap {
+    ClassElement element = this.element;
+    if (element == null) {
+      return false;
+    }
+    return element.name == "Map" && element.library.isDartCore;
+  }
+
+  @override
   bool get isDartCoreNull {
     ClassElement element = this.element;
     if (element == null) {
@@ -1528,12 +1505,39 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
+  bool get isDartCoreNum {
+    ClassElement element = this.element;
+    if (element == null) {
+      return false;
+    }
+    return element.name == "num" && element.library.isDartCore;
+  }
+
+  @override
+  bool get isDartCoreSet {
+    ClassElement element = this.element;
+    if (element == null) {
+      return false;
+    }
+    return element.name == "Set" && element.library.isDartCore;
+  }
+
+  @override
   bool get isDartCoreString {
     ClassElement element = this.element;
     if (element == null) {
       return false;
     }
     return element.name == "String" && element.library.isDartCore;
+  }
+
+  @override
+  bool get isDartCoreSymbol {
+    ClassElement element = this.element;
+    if (element == null) {
+      return false;
+    }
+    return element.name == "Symbol" && element.library.isDartCore;
   }
 
   @override
@@ -1567,7 +1571,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return null;
     }
     List<DartType> typeParameters = classElement.type.typeArguments;
-    if (typeArguments.length == 0 ||
+    if (typeArguments.isEmpty ||
         typeArguments.length != typeParameters.length) {
       return supertype;
     }
@@ -1612,8 +1616,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return true;
     }
     if (object is InterfaceTypeImpl) {
-      return (element == object.element) &&
-          TypeImpl.equalArrays(typeArguments, object.typeArguments);
+      return element == object.element &&
+          TypeImpl.equalArrays(typeArguments, object.typeArguments) &&
+          nullabilitySuffix == object.nullabilitySuffix;
     }
     return false;
   }
@@ -1772,18 +1777,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  bool isEquivalentTo(DartType other) {
-    if (identical(other, this)) {
-      return true;
-    }
-    if (other is InterfaceTypeImpl) {
-      return (element == other.element) &&
-          TypeImpl.equivalentArrays(typeArguments, other.typeArguments);
-    }
-    return false;
-  }
-
-  @override
   bool isMoreSpecificThan(DartType type,
       [bool withDynamic = false, Set<Element> visitedElements]) {
     //
@@ -1815,6 +1808,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       //
       // Direct supertype: S is a direct supertype of T.
       //
+      // ignore: deprecated_member_use_from_same_package
       if (type.isDirectSupertypeOf(this)) {
         return true;
       }
@@ -2258,7 +2252,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       throw new ArgumentError(
           "argumentTypes.length (${argumentTypes.length}) != parameterTypes.length (${parameterTypes.length})");
     }
-    if (argumentTypes.length == 0 || typeArguments.length == 0) {
+    if (argumentTypes.isEmpty || typeArguments.isEmpty) {
       return this.pruned(prune);
     }
 
@@ -2378,80 +2372,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   /**
-   * Compute the least upper bound of types [i] and [j], both of which are
-   * known to be interface types.
-   *
-   * In the event that the algorithm fails (which might occur due to a bug in
-   * the analyzer), `null` is returned.
-   */
-  static InterfaceType computeLeastUpperBound(InterfaceType i, InterfaceType j,
-      {@deprecated bool strong = true}) {
-    // compute set of supertypes
-    Set<InterfaceType> si = computeSuperinterfaceSet(i);
-    Set<InterfaceType> sj = computeSuperinterfaceSet(j);
-    // union si with i and sj with j
-    si.add(i);
-    sj.add(j);
-    // compute intersection, reference as set 's'
-    List<InterfaceType> s = _intersection(si, sj);
-    return computeTypeAtMaxUniqueDepth(s);
-  }
-
-  /**
-   * Return the length of the longest inheritance path from the given [type] to
-   * Object.
-   *
-   * See [computeLeastUpperBound].
-   */
-  static int computeLongestInheritancePathToObject(InterfaceType type) =>
-      _computeLongestInheritancePathToObject(
-          type, 0, new HashSet<ClassElement>());
-
-  /**
-   * Returns the set of all superinterfaces of the given [type].
-   *
-   * See [computeLeastUpperBound].
-   */
-  static Set<InterfaceType> computeSuperinterfaceSet(InterfaceType type,
-          {@deprecated bool strong = true}) =>
-      _computeSuperinterfaceSet(type, new HashSet<InterfaceType>(), true);
-
-  /**
-   * Return the type from the [types] list that has the longest inheritance path
-   * to Object of unique length.
-   */
-  static InterfaceType computeTypeAtMaxUniqueDepth(List<InterfaceType> types) {
-    // for each element in Set s, compute the largest inheritance path to Object
-    List<int> depths = new List<int>.filled(types.length, 0);
-    int maxDepth = 0;
-    for (int n = 0; n < types.length; n++) {
-      depths[n] = computeLongestInheritancePathToObject(types[n]);
-      if (depths[n] > maxDepth) {
-        maxDepth = depths[n];
-      }
-    }
-    // ensure that the currently computed maxDepth is unique,
-    // otherwise, decrement and test for uniqueness again
-    for (; maxDepth >= 0; maxDepth--) {
-      int indexOfLeastUpperBound = -1;
-      int numberOfTypesAtMaxDepth = 0;
-      for (int m = 0; m < depths.length; m++) {
-        if (depths[m] == maxDepth) {
-          numberOfTypesAtMaxDepth++;
-          indexOfLeastUpperBound = m;
-        }
-      }
-      if (numberOfTypesAtMaxDepth == 1) {
-        return types[indexOfLeastUpperBound];
-      }
-    }
-    // Should be impossible--there should always be exactly one type with the
-    // maximum depth.
-    assert(false);
-    return null;
-  }
-
-  /**
    * If there is a single type which is at least as specific as all of the
    * types in [types], return it.  Otherwise return `null`.
    */
@@ -2467,7 +2387,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     for (DartType type in types) {
       // If any existing type in the bucket is more specific than this type,
       // then we can ignore this type.
-      if (bucket.any((DartType t) => typeSystem.isMoreSpecificThan(t, type))) {
+      if (bucket.any((DartType t) => typeSystem.isSubtypeOf(t, type))) {
         continue;
       }
       // Otherwise, we need to add this type to the bucket and remove any types
@@ -2475,7 +2395,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       bool added = false;
       int i = 0;
       while (i < bucket.length) {
-        if (typeSystem.isMoreSpecificThan(type, bucket[i])) {
+        if (typeSystem.isSubtypeOf(type, bucket[i])) {
           if (added) {
             if (i < bucket.length - 1) {
               bucket[i] = bucket.removeLast();
@@ -2525,105 +2445,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
     AnalysisContext context = first.element.context;
     return context.typeSystem.getLeastUpperBound(first, second);
-  }
-
-  /**
-   * Return the length of the longest inheritance path from a subtype of the
-   * given [type] to Object, where the given [depth] is the length of the
-   * longest path from the subtype to this type. The set of [visitedTypes] is
-   * used to prevent infinite recursion in the case of a cyclic type structure.
-   *
-   * See [computeLongestInheritancePathToObject], and [computeLeastUpperBound].
-   */
-  static int _computeLongestInheritancePathToObject(
-      InterfaceType type, int depth, HashSet<ClassElement> visitedTypes) {
-    ClassElement classElement = type.element;
-    // Object case
-    if (type.isObject || visitedTypes.contains(classElement)) {
-      return depth;
-    }
-    int longestPath = 1;
-    try {
-      visitedTypes.add(classElement);
-      int pathLength;
-
-      // loop through each of the superinterfaces recursively calling this
-      // method and keeping track of the longest path to return
-      for (InterfaceType interface in classElement.superclassConstraints) {
-        pathLength = _computeLongestInheritancePathToObject(
-            interface, depth + 1, visitedTypes);
-        if (pathLength > longestPath) {
-          longestPath = pathLength;
-        }
-      }
-
-      // loop through each of the superinterfaces recursively calling this
-      // method and keeping track of the longest path to return
-      for (InterfaceType interface in classElement.interfaces) {
-        pathLength = _computeLongestInheritancePathToObject(
-            interface, depth + 1, visitedTypes);
-        if (pathLength > longestPath) {
-          longestPath = pathLength;
-        }
-      }
-
-      // finally, perform this same check on the super type
-      // TODO(brianwilkerson) Does this also need to add in the number of mixin
-      // classes?
-      InterfaceType supertype = classElement.supertype;
-      if (supertype != null) {
-        pathLength = _computeLongestInheritancePathToObject(
-            supertype, depth + 1, visitedTypes);
-        if (pathLength > longestPath) {
-          longestPath = pathLength;
-        }
-      }
-    } finally {
-      visitedTypes.remove(classElement);
-    }
-    return longestPath;
-  }
-
-  /**
-   * Add all of the superinterfaces of the given [type] to the given [set].
-   * Return the [set] as a convenience.
-   *
-   * If [strong] mode is enabled (Dart 2), then the `Function` interface is
-   * ignored and not treated as a superinterface.
-   *
-   * See [computeSuperinterfaceSet], and [computeLeastUpperBound].
-   */
-  static Set<InterfaceType> _computeSuperinterfaceSet(
-      InterfaceType type, HashSet<InterfaceType> set, bool _) {
-    Element element = type.element;
-    if (element != null) {
-      List<InterfaceType> superinterfaces = type.interfaces;
-      for (InterfaceType superinterface in superinterfaces) {
-        if (!superinterface.isDartCoreFunction) {
-          if (set.add(superinterface)) {
-            _computeSuperinterfaceSet(superinterface, set, true);
-          }
-        }
-      }
-      InterfaceType supertype = type.superclass;
-      if (supertype != null && !supertype.isDartCoreFunction) {
-        if (set.add(supertype)) {
-          _computeSuperinterfaceSet(supertype, set, true);
-        }
-      }
-    }
-    return set;
-  }
-
-  /**
-   * Return the intersection of the [first] and [second] sets of types, where
-   * intersection is based on the equality of the types themselves.
-   */
-  static List<InterfaceType> _intersection(
-      Set<InterfaceType> first, Set<InterfaceType> second) {
-    Set<InterfaceType> result = new HashSet<InterfaceType>.from(first);
-    result.retainAll(second);
-    return new List.from(result);
   }
 
   /**
@@ -2830,10 +2651,25 @@ abstract class TypeImpl implements DartType {
   bool get isDartCoreInt => false;
 
   @override
+  bool get isDartCoreList => false;
+
+  @override
+  bool get isDartCoreMap => false;
+
+  @override
   bool get isDartCoreNull => false;
 
   @override
+  bool get isDartCoreNum => false;
+
+  @override
+  bool get isDartCoreSet => false;
+
+  @override
   bool get isDartCoreString => false;
+
+  @override
+  bool get isDartCoreSymbol => false;
 
   @override
   bool get isDynamic => false;
@@ -3035,31 +2871,6 @@ abstract class TypeImpl implements DartType {
   }
 
   /**
-   * Return `true` if corresponding elements of the [first] and [second] lists
-   * of type arguments are all equivalent.
-   */
-  static bool equivalentArrays(List<DartType> first, List<DartType> second) {
-    if (first.length != second.length) {
-      return false;
-    }
-    for (int i = 0; i < first.length; i++) {
-      if (first[i] == null) {
-        AnalysisEngine.instance.logger
-            .logInformation('Found null type argument in TypeImpl.equalArrays');
-        return second[i] == null;
-      } else if (second[i] == null) {
-        AnalysisEngine.instance.logger
-            .logInformation('Found null type argument in TypeImpl.equalArrays');
-        return false;
-      }
-      if (!first[i].isEquivalentTo(second[i])) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  /**
    * Return a list containing the results of using the given [argumentTypes] and
    * [parameterTypes] to perform a substitution on all of the given [types].
    *
@@ -3153,24 +2964,6 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
         _appendingBounds = false;
       }
     }
-  }
-
-  @override
-  bool isEquivalentTo(DartType other) {
-    if (other is TypeParameterTypeImpl && element == other.element) {
-      if (_comparingBounds) {
-        // If we're comparing bounds already, then we only need type variable
-        // equality.
-        return true;
-      }
-      _comparingBounds = true;
-      try {
-        return bound.isEquivalentTo(other.bound);
-      } finally {
-        _comparingBounds = false;
-      }
-    }
-    return false;
   }
 
   @override
@@ -3515,6 +3308,8 @@ class _FunctionTypeImplLazy extends FunctionTypeImpl {
 
   @override
   List<ParameterElement> get parameters {
+    var substitution = Substitution.fromPairs(typeParameters, typeArguments);
+
     List<ParameterElement> baseParameters = this.baseParameters;
     // no parameters, quick return
     int parameterCount = baseParameters.length;
@@ -3538,7 +3333,8 @@ class _FunctionTypeImplLazy extends FunctionTypeImpl {
 
       if (parameter is FieldFormalParameterElement) {
         // TODO(jmesserly): this seems like it won't handle pruning correctly.
-        specializedParams[i] = new FieldFormalParameterMember(parameter, this);
+        specializedParams[i] =
+            new FieldFormalParameterMember(parameter, substitution);
         continue;
       }
       var baseType = parameter.type as TypeImpl;
@@ -3552,7 +3348,7 @@ class _FunctionTypeImplLazy extends FunctionTypeImpl {
 
       specializedParams[i] = identical(type, baseType)
           ? parameter
-          : new ParameterMember(parameter, this, type);
+          : new ParameterMember(parameter, substitution, type);
     }
     return specializedParams;
   }
@@ -3567,7 +3363,7 @@ class _FunctionTypeImplLazy extends FunctionTypeImpl {
     }
     // If there are no arguments to substitute, or if the arguments size doesn't
     // match the parameter size, return the base return type.
-    if (typeArguments.length == 0 ||
+    if (typeArguments.isEmpty ||
         typeArguments.length != typeParameters.length) {
       return (baseReturnType as TypeImpl).pruned(newPrune);
     }
@@ -3711,7 +3507,7 @@ class _FunctionTypeImplLazy extends FunctionTypeImpl {
       // Circularity found.  Prune the type declaration.
       return new CircularFunctionTypeImpl();
     }
-    if (argumentTypes.length == 0) {
+    if (argumentTypes.isEmpty) {
       return this.pruned(prune);
     }
     List<DartType> typeArgs =
@@ -3745,7 +3541,7 @@ class _FunctionTypeImplLazy extends FunctionTypeImpl {
       // ignore: deprecated_member_use_from_same_package
       if (parameter.parameterKind == kind) {
         TypeImpl type = parameter.type ?? DynamicTypeImpl.instance;
-        if (typeArguments.length != 0 &&
+        if (typeArguments.isNotEmpty &&
             typeArguments.length == typeParameters.length) {
           type = type.substitute2(typeArguments, typeParameters, newPrune);
         } else {
@@ -3838,7 +3634,8 @@ class _FunctionTypeImplStrict extends FunctionTypeImpl {
           p.name,
           newType,
           // ignore: deprecated_member_use_from_same_package
-          p.parameterKind);
+          p.parameterKind)
+        ..isExplicitlyCovariant = p.isCovariant;
     }
 
     return new _FunctionTypeImplStrict._(

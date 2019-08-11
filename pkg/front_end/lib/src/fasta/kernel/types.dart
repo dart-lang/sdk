@@ -284,7 +284,7 @@ class IsInterfaceSubtypeOf extends TypeRelation<InterfaceType> {
   bool isInterfaceRelated(InterfaceType s, Nullability sNullability,
       InterfaceType t, Nullability tNullability, Types types) {
     if (s.classNode == types.hierarchy.nullKernelClass) {
-      // This is an optimization, to avoid instantating unnecessary type
+      // This is an optimization, to avoid instantiating unnecessary type
       // arguments in getKernelTypeAsInstanceOf.
       return true;
     }

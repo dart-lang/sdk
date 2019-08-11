@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 import 'dart:convert';
+import 'dart:io';
 
 import 'configuration.dart';
 import 'path.dart';
@@ -30,6 +30,12 @@ const testPackages = [
   "stack_trace",
   "unittest"
 ];
+
+/// Gets the file extension for a shell script on the host OS.
+String get shellScriptExtension => Platform.isWindows ? '.bat' : '';
+
+/// Gets the file extension for an executable binary on the host OS.
+String get executableExtension => Platform.isWindows ? '.exe' : '';
 
 class DebugLogger {
   static IOSink _sink;
@@ -131,13 +137,11 @@ String prettifyJson(Object json,
   return buffer.toString();
 }
 
-/// [areByteArraysEqual] compares a range of bytes from [buffer1] with a
-/// range of bytes from [buffer2].
+/// Compares a range of bytes from [buffer1] with a range of bytes from
+/// [buffer2].
 ///
-/// Returns [true] if the [count] bytes in [buffer1] (starting at
-/// [offset1]) match the [count] bytes in [buffer2] (starting at
-/// [offset2]).
-/// Otherwise [false] is returned.
+/// Returns `true` if the [count] bytes in [buffer1] (starting at [offset1])
+/// match the [count] bytes in [buffer2] (starting at [offset2]).
 bool areByteArraysEqual(
     List<int> buffer1, int offset1, List<int> buffer2, int offset2, int count) {
   if ((offset1 + count) > buffer1.length ||
@@ -153,10 +157,9 @@ bool areByteArraysEqual(
   return true;
 }
 
-/// [findBytes] searches for [pattern] in [data] beginning at [startPos].
+/// Searches for [pattern] in [data] beginning at [startPos].
 ///
-/// Returns [true] if [pattern] was found in [data].
-/// Otherwise [false] is returned.
+/// Returns `true` if [pattern] was found in [data].
 int findBytes(List<int> data, List<int> pattern, [int startPos = 0]) {
   // TODO(kustermann): Use one of the fast string-matching algorithms!
   for (int i = startPos; i < (data.length - pattern.length); i++) {
@@ -217,11 +220,11 @@ String niceTime(Duration duration) {
       digits(6, duration.inMilliseconds, Duration.millisecondsPerSecond);
 
   if (duration.inHours >= 1) {
-    return "${duration.inHours}:${minutes}:${seconds}s";
+    return "${duration.inHours}:$minutes:${seconds}s";
   } else if (duration.inMinutes >= 1) {
-    return "${minutes}:${seconds}.${millis}s";
+    return "$minutes:$seconds.${millis}s";
   } else if (duration.inSeconds >= 1) {
-    return "${seconds}.${millis}s";
+    return "$seconds.${millis}s";
   } else {
     return "${duration.inMilliseconds}ms";
   }
@@ -308,13 +311,14 @@ class UniqueObject {
 }
 
 class LastModifiedCache {
-  Map<String, DateTime> _cache = <String, DateTime>{};
+  final Map<String, DateTime> _cache = {};
 
   /// Returns the last modified date of the given [uri].
   ///
   /// The return value will be cached for future queries. If [uri] is a local
-  /// file, it's last modified [Date] will be returned. If the file does not
+  /// file, its last modified [DateTime] will be returned. If the file does not
   /// exist, null will be returned instead.
+  ///
   /// In case [uri] is not a local file, this method will always return
   /// the current date.
   DateTime getLastModified(Uri uri) {
@@ -331,7 +335,7 @@ class LastModifiedCache {
 }
 
 class ExistsCache {
-  Map<String, bool> _cache = <String, bool>{};
+  final Map<String, bool> _cache = {};
 
   /// Returns true if the file in [path] exists, false otherwise.
   ///
@@ -375,7 +379,7 @@ class TestUtils {
   }
 
   /// Keep a map of files copied to avoid race conditions.
-  static Map<String, Future> _copyFilesMap = {};
+  static final Map<String, Future> _copyFilesMap = {};
 
   /// Copy a [source] file to a new place.
   /// Assumes that the directory for [dest] already exists.

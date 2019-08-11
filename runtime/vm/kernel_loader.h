@@ -82,10 +82,8 @@ class Mapping {
 class LibraryIndex {
  public:
   // |kernel_data| is the kernel data for one library alone.
-  // binary_version can be -1 in which case some parts of the index might not
-  // be read.
   explicit LibraryIndex(const ExternalTypedData& kernel_data,
-                        int32_t binary_version);
+                        uint32_t binary_version);
 
   intptr_t class_count() const { return class_count_; }
   intptr_t procedure_count() const { return procedure_count_; }
@@ -118,7 +116,7 @@ class LibraryIndex {
 
  private:
   Reader reader_;
-  int32_t binary_version_;
+  uint32_t binary_version_;
   intptr_t source_references_offset_;
   intptr_t class_index_offset_;
   intptr_t class_count_;
@@ -262,7 +260,8 @@ class KernelLoader : public ValueObject {
  private:
   KernelLoader(const Script& script,
                const ExternalTypedData& kernel_data,
-               intptr_t data_program_offset);
+               intptr_t data_program_offset,
+               uint32_t kernel_binary_version);
 
   void InitializeFields(
       DirectChainedHashMap<UriToSourceTableTrait>* uri_to_source_table);
@@ -289,7 +288,12 @@ class KernelLoader : public ValueObject {
     reader.set_offset(library_offset(index));
 
     // Start reading library.
+    // Note that this needs to be keep in sync with LibraryHelper.
     reader.ReadFlags();
+    if (program_->binary_version() >= 27) {
+      reader.ReadUInt();  // Read major language version.
+      reader.ReadUInt();  // Read minor language version.
+    }
     return reader.ReadCanonicalNameReference();
   }
 
@@ -361,9 +365,10 @@ class KernelLoader : public ValueObject {
           Library::Handle(zone_, dart::Library::InternalLibrary());
       external_name_class_ = internal_lib.LookupClass(Symbols::ExternalName());
       external_name_field_ = external_name_class_.LookupField(Symbols::name());
-    } else {
-      ASSERT(!external_name_field_.IsNull());
     }
+    ASSERT(!external_name_class_.IsNull());
+    ASSERT(!external_name_field_.IsNull());
+    ASSERT(external_name_class_.is_declaration_loaded());
   }
 
   void EnsurePragmaClassIsLookedUp() {
@@ -371,8 +376,9 @@ class KernelLoader : public ValueObject {
       const Library& core_lib =
           Library::Handle(zone_, dart::Library::CoreLibrary());
       pragma_class_ = core_lib.LookupLocalClass(Symbols::Pragma());
-      ASSERT(!pragma_class_.IsNull());
     }
+    ASSERT(!pragma_class_.IsNull());
+    ASSERT(pragma_class_.is_declaration_loaded());
   }
 
   void EnsurePotentialNatives() {
@@ -390,37 +396,6 @@ class KernelLoader : public ValueObject {
         translation_helper_.EnsurePotentialPragmaFunctions();
   }
 
-  // Returns `true` if the [library] was newly enqueued or `false`
-  // if it was already enqueued. Allocates storage on first enqueue.
-  bool EnqueueLibraryForEvaluation(const Library& library) {
-    evaluating_ = kernel_program_info_.evaluating();
-    if (evaluating_.IsNull()) {
-      evaluating_ = GrowableObjectArray::New();
-      kernel_program_info_.set_evaluating(evaluating_);
-      ASSERT(!evaluating_.IsNull());
-    } else {
-      for (intptr_t i = 0, n = evaluating_.Length(); i < n; i++) {
-        if (library.raw() == evaluating_.At(i)) {
-          return false;
-        }
-      }
-    }
-    evaluating_.Add(library);
-    return true;
-  }
-
-  // Dequeues most recent libary. Releases storage when empty.
-  void DequeueLibraryForEvaluation(const Library& library) {
-    ASSERT(!evaluating_.IsNull());
-    RawObject* object = evaluating_.RemoveLast();
-    ASSERT(library.raw() == object);
-    if (evaluating_.Length() == 0) {
-      evaluating_ = GrowableObjectArray::null();
-      kernel_program_info_.set_evaluating(evaluating_);
-      ASSERT(evaluating_.IsNull());
-    }
-  }
-
   Program* program_;
 
   Thread* thread_;
@@ -431,6 +406,7 @@ class KernelLoader : public ValueObject {
   // This is the offset of the current library within
   // the whole kernel program.
   intptr_t library_kernel_offset_;
+  uint32_t kernel_binary_version_;
   // This is the offset by which offsets, which are set relative
   // to their library's kernel data, have to be corrected.
   intptr_t correction_offset_;
@@ -448,7 +424,6 @@ class KernelLoader : public ValueObject {
 
   Class& external_name_class_;
   Field& external_name_field_;
-  GrowableObjectArray& evaluating_;
   GrowableObjectArray& potential_natives_;
   GrowableObjectArray& potential_pragma_functions_;
 
@@ -477,11 +452,12 @@ class KernelLoader : public ValueObject {
   //      |> procedure ":Eval"
   //
   // See
-  //   * pkg/front_end/lib/src/fasta/incremental_compiler.dart:compileExpression
-  //   * pkg/front_end/lib/src/fasta/kernel/utils.dart:serializeProcedure
+  //   * pkg/front_end/lib/src/fasta/incremental_compiler.dart,
+  //       compileExpression
+  //   * pkg/front_end/lib/src/fasta/kernel/utils.dart,
+  //       createExpressionEvaluationComponent
   //
   Library& expression_evaluation_library_;
-  Function& expression_evaluation_function_;
 
   GrowableArray<const Function*> functions_;
   GrowableArray<const Field*> fields_;

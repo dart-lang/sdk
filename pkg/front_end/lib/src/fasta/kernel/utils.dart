@@ -6,6 +6,8 @@ import 'dart:async' show Future;
 
 import 'dart:io' show BytesBuilder, File, IOSink;
 
+import 'dart:typed_data' show Uint8List;
+
 import 'package:kernel/clone.dart' show CloneVisitor;
 
 import 'package:kernel/ast.dart'
@@ -59,7 +61,7 @@ Future<Null> writeComponentToFile(Component component, Uri uri,
 }
 
 /// Serialize the libraries in [component] that match [filter].
-List<int> serializeComponent(Component component,
+Uint8List serializeComponent(Component component,
     {bool filter(Library library),
     bool includeSources: true,
     bool includeOffsets: true}) {
@@ -75,7 +77,7 @@ List<int> serializeComponent(Component component,
 
 const String kDebugClassName = "#DebugClass";
 
-List<int> serializeProcedure(Procedure procedure) {
+Component createExpressionEvaluationComponent(Procedure procedure) {
   Library fakeLibrary =
       new Library(new Uri(scheme: 'evaluate', path: 'source'));
 
@@ -117,8 +119,11 @@ List<int> serializeProcedure(Procedure procedure) {
   }
 
   // TODO(vegorov) find a way to preserve metadata.
-  Component program = new Component(libraries: [fakeLibrary]);
-  return serializeComponent(program);
+  return new Component(libraries: [fakeLibrary]);
+}
+
+List<int> serializeProcedure(Procedure procedure) {
+  return serializeComponent(createExpressionEvaluationComponent(procedure));
 }
 
 /// A [Sink] that directly writes data into a byte builder.

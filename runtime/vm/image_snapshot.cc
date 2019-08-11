@@ -570,7 +570,7 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   // look like a HeapPage.
   intptr_t instructions_length = next_text_offset_;
   WriteWordLiteralText(instructions_length);
-  intptr_t header_words = Image::kHeaderSize / sizeof(uword);
+  intptr_t header_words = Image::kHeaderSize / sizeof(compiler::target::uword);
   for (intptr_t i = 1; i < header_words; i++) {
     WriteWordLiteralText(0);
   }
@@ -629,9 +629,6 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
     {
       NoSafepointScope no_safepoint;
 
-      uword beginning = reinterpret_cast<uword>(insns.raw_ptr());
-      uword entry = beginning + Instructions::HeaderSize();
-
       // Write Instructions with the mark and read-only bits set.
       uword marked_tags = insns.raw_ptr()->tags_;
       marked_tags = RawObject::OldBit::update(true, marked_tags);
@@ -645,10 +642,25 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
       marked_tags |= static_cast<uword>(insns.raw_ptr()->hash_) << 32;
 #endif
 
+#if defined(IS_SIMARM_X64)
+      const intptr_t size_in_bytes = InstructionsSizeInSnapshot(insns.Size());
+      marked_tags = RawObject::SizeTag::update(size_in_bytes * 2, marked_tags);
+      WriteWordLiteralText(marked_tags);
+      text_offset += sizeof(compiler::target::uword);
+      WriteWordLiteralText(insns.raw_ptr()->size_and_flags_);
+      text_offset += sizeof(compiler::target::uword);
+      WriteWordLiteralText(insns.raw_ptr()->unchecked_entrypoint_pc_offset_);
+      text_offset += sizeof(compiler::target::uword);
+      WriteWordLiteralText(0);
+      text_offset += sizeof(compiler::target::uword);
+#else   // defined(IS_SIMARM_X64)
+      uword beginning = reinterpret_cast<uword>(insns.raw_ptr());
+      uword entry = beginning + Instructions::HeaderSize();
       WriteWordLiteralText(marked_tags);
       beginning += sizeof(uword);
       text_offset += sizeof(uword);
       text_offset += WriteByteSequence(beginning, entry);
+#endif  // defined(IS_SIMARM_X64)
 
       ASSERT((text_offset - instr_start) == insns.HeaderSize());
     }
@@ -811,8 +823,8 @@ void AssemblyImageWriter::FrameUnwindEpilogue() {
 }
 
 intptr_t AssemblyImageWriter::WriteByteSequence(uword start, uword end) {
-  for (uword* cursor = reinterpret_cast<uword*>(start);
-       cursor < reinterpret_cast<uword*>(end); cursor++) {
+  for (auto* cursor = reinterpret_cast<compiler::target::uword*>(start);
+       cursor < reinterpret_cast<compiler::target::uword*>(end); cursor++) {
     WriteWordLiteralText(*cursor);
   }
   return end - start;
@@ -841,11 +853,10 @@ BlobImageWriter::BlobImageWriter(Thread* thread,
 }
 
 intptr_t BlobImageWriter::WriteByteSequence(uword start, uword end) {
-  for (uword* cursor = reinterpret_cast<uword*>(start);
-       cursor < reinterpret_cast<uword*>(end); cursor++) {
-    instructions_blob_stream_.WriteWord(*cursor);
-  }
-  return end - start;
+  const uword size = end - start;
+  instructions_blob_stream_.WriteBytes(reinterpret_cast<const void*>(start),
+                                       size);
+  return size;
 }
 
 void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {

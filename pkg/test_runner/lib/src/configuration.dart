@@ -7,13 +7,14 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:smith/smith.dart';
-export 'package:smith/smith.dart';
 
 import 'compiler_configuration.dart';
 import 'path.dart';
 import 'repository.dart';
 import 'runtime_configuration.dart';
 import 'testing_servers.dart';
+
+export 'package:smith/smith.dart';
 
 /// All of the contextual information to determine how a test suite should be
 /// run.
@@ -200,11 +201,7 @@ class TestConfiguration {
 
   String get configurationDirectory {
     // Lazy initialize and cache since it requires hitting the file system.
-    if (_configurationDirectory == null) {
-      _configurationDirectory = _calculateDirectory();
-    }
-
-    return _configurationDirectory;
+    return _configurationDirectory ??= _calculateDirectory();
   }
 
   /// The build directory path for this configuration, like:
@@ -363,6 +360,21 @@ class TestConfiguration {
       isValid = false;
     }
 
+    if (architecture == Architecture.ia32 && compiler == Compiler.dartkp) {
+      print("Warning: IA32 does not support AOT mode.");
+      isValid = false;
+    }
+
+    if (system == System.android &&
+        !(architecture == Architecture.ia32 ||
+            architecture == Architecture.x64 ||
+            architecture == Architecture.arm ||
+            architecture == Architecture.arm64)) {
+      print("Warning: Android only supports the following "
+          "architectures: ia32/x64/arm/arm64.");
+      isValid = false;
+    }
+
     if (shard < 1 || shard > shardCount) {
       print("Error: shard index is $shard out of $shardCount shards");
       isValid = false;
@@ -433,37 +445,34 @@ class TestConfiguration {
   /// of a test. Flags and properties used for output are not included.
   /// The summary map can be used to serialize to json for test-output logging.
   Map toSummaryMap() {
-    if (_summaryMap == null) {
-      _summaryMap = {
-        'mode': mode.name,
-        'arch': architecture.name,
-        'compiler': compiler.name,
-        'runtime': runtime.name,
-        'checked': isChecked,
-        'host_checked': isHostChecked,
-        'minified': isMinified,
-        'csp': isCsp,
-        'system': system.name,
-        'vm_options': vmOptions,
-        'dart2js_options': dart2jsOptions,
-        'fasta': usesFasta,
-        'use_sdk': useSdk,
-        'builder_tag': builderTag,
-        'timeout': timeout,
-        'no_preview_dart_2': noPreviewDart2,
-        'use_cfe': useAnalyzerCfe,
-        'analyzer_use_fasta_parser': useAnalyzerFastaParser,
-        'enable_asserts': useEnableAsserts,
-        'hot_reload': hotReload,
-        'hot_reload_rollback': hotReloadRollback,
-        'batch': batch,
-        'batch_dart2js': batchDart2JS,
-        'reset_browser_configuration': resetBrowser,
-        'selectors': selectors.keys.toList(),
-        'use_kernel_bytecode': useKernelBytecode,
-      };
-    }
-    return _summaryMap;
+    return _summaryMap ??= {
+      'mode': mode.name,
+      'arch': architecture.name,
+      'compiler': compiler.name,
+      'runtime': runtime.name,
+      'checked': isChecked,
+      'host_checked': isHostChecked,
+      'minified': isMinified,
+      'csp': isCsp,
+      'system': system.name,
+      'vm_options': vmOptions,
+      'dart2js_options': dart2jsOptions,
+      'fasta': usesFasta,
+      'use_sdk': useSdk,
+      'builder_tag': builderTag,
+      'timeout': timeout,
+      'no_preview_dart_2': noPreviewDart2,
+      'use_cfe': useAnalyzerCfe,
+      'analyzer_use_fasta_parser': useAnalyzerFastaParser,
+      'enable_asserts': useEnableAsserts,
+      'hot_reload': hotReload,
+      'hot_reload_rollback': hotReloadRollback,
+      'batch': batch,
+      'batch_dart2js': batchDart2JS,
+      'reset_browser_configuration': resetBrowser,
+      'selectors': selectors.keys.toList(),
+      'use_kernel_bytecode': useKernelBytecode,
+    };
   }
 }
 

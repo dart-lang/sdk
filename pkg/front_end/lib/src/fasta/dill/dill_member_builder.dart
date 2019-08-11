@@ -9,7 +9,7 @@ import 'package:kernel/ast.dart'
 
 import '../kernel/kernel_builder.dart'
     show
-        Declaration,
+        Builder,
         MemberBuilder,
         isRedirectingGenerativeConstructorImplementation;
 
@@ -23,7 +23,7 @@ class DillMemberBuilder extends MemberBuilder {
 
   final Member member;
 
-  DillMemberBuilder(Member member, Declaration parent)
+  DillMemberBuilder(Member member, Builder parent)
       : modifiers = computeModifiers(member),
         member = member,
         super(parent, member.fileOffset);

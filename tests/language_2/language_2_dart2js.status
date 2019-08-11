@@ -29,7 +29,6 @@ compile_time_constant_static5_test/11: CompileTimeError
 compile_time_constant_static5_test/16: CompileTimeError
 compile_time_constant_static5_test/21: CompileTimeError
 compile_time_constant_static5_test/23: CompileTimeError
-conditional_rewrite_test: RuntimeError
 config_import_corelib_test: CompileTimeError # we need a special platform.dill file for categories=all. Once we fix that, all dart:* are supported when using '--categories=all' so this will become a RuntimeError, OK.
 config_import_test: RuntimeError # Test flag is not passed to the compiler.
 const_constructor3_test/04: MissingCompileTimeError # OK - Subtype check uses JS number semantics.
@@ -40,7 +39,6 @@ const_map2_test/00: MissingCompileTimeError
 const_map3_test/00: MissingCompileTimeError
 const_switch_test/02: RuntimeError, OK # constant identity based on JS constants
 const_switch_test/04: RuntimeError, OK # constant identity based on JS constants
-constructor12_test: RuntimeError
 constructor_named_arguments_test/none: RuntimeError
 covariant_subtyping_test: Crash # Unsupported operation: Unsupported type parameter type node E.
 ct_const_test: RuntimeError
@@ -74,7 +72,6 @@ function_propagation_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
 generic_function_bounds_test: RuntimeError
 generic_function_dcall_test/01: RuntimeError
-generic_instanceof2_test: RuntimeError
 generic_is_check_test: RuntimeError
 generic_methods_bounds_test/02: MissingRuntimeError
 generic_no_such_method_dispatcher_simple_test: CompileTimeError
@@ -160,7 +157,6 @@ mixin_illegal_superclass_test/29: MissingCompileTimeError
 mixin_illegal_superclass_test/30: MissingCompileTimeError
 mixin_method_override_test/G5: Skip # Issue 34354
 mock_writable_final_field_test: RuntimeError # Issue 30847
-mock_writable_final_private_field_test: RuntimeError # Issue 17526, 30847
 modulo_test: RuntimeError # non JS number semantics
 named_parameters_default_eq_test/none: RuntimeError
 nan_identical_test: RuntimeError # Issue 11551
@@ -170,7 +166,6 @@ null_no_such_method_test: CompileTimeError
 number_identity2_test: RuntimeError
 number_identity_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 numbers_test: RuntimeError, OK # non JS number semantics
-parser_quirks_test: CompileTimeError
 partial_instantiation_eager_bounds_check_test: RuntimeError # Issue #34295
 partial_tearoff_instantiation_test/05: Pass # for the wrong reason.
 partial_tearoff_instantiation_test/06: Pass # for the wrong reason.
@@ -251,6 +246,10 @@ round_test: Fail, OK # Common JavaScript engine Math.round bug.
 stacktrace_test: RuntimeError
 
 [ $compiler == dart2js && $system == windows ]
+canonicalization_hashing_memoize_array_test: Skip # Issue 37631
+canonicalization_hashing_memoize_instance_test: Skip # Issue 37631
+canonicalization_hashing_shallow_collision_array_test: Skip # Issue 37631
+canonicalization_hashing_shallow_collision_instance_test: Skip # Issue 37631
 string_literals_test: Pass, RuntimeError # Failures on dart2js-win7-chrome-4-4-be and dart2js-win7-ie11ff-4-4-be
 
 [ $compiler == dart2js && $checked ]
@@ -455,7 +454,6 @@ mixin_mixin_bound_test: RuntimeError
 mixin_mixin_test: RuntimeError
 mixin_type_parameters_super_test: RuntimeError
 mock_writable_final_field_test: RuntimeError # Issue 30847
-mock_writable_final_private_field_test: RuntimeError # Issue 17526, 30847
 modulo_test: RuntimeError # non JS number semantics
 nan_identical_test: RuntimeError # Issue 11551
 no_main_test/01: CompileTimeError

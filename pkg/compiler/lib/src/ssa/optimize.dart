@@ -17,7 +17,9 @@ import '../js_backend/field_analysis.dart'
     show FieldAnalysisData, JFieldAnalysis;
 import '../js_backend/backend.dart' show CodegenInputs;
 import '../js_backend/native_data.dart' show NativeData;
-import '../js_backend/runtime_types.dart';
+import '../js_backend/runtime_types_codegen.dart';
+import '../js_model/type_recipe.dart' show TypeRecipe;
+import '../js_backend/specialized_checks.dart';
 import '../native/behavior.dart';
 import '../options.dart';
 import '../universe/selector.dart' show Selector;
@@ -83,7 +85,7 @@ class SsaOptimizerTask extends CompilerTask {
         new SsaTypeConversionInserter(closedWorld),
         new SsaRedundantPhiEliminator(),
         new SsaDeadPhiEliminator(),
-        new SsaTypePropagator(globalInferenceResults, _options,
+        new SsaTypePropagator(globalInferenceResults,
             closedWorld.commonElements, closedWorld, log),
         // After type propagation, more instructions can be
         // simplified.
@@ -93,7 +95,7 @@ class SsaOptimizerTask extends CompilerTask {
         new SsaInstructionSimplifier(globalInferenceResults, _options,
             codegen.rtiSubstitutions, closedWorld, registry, log),
         new SsaCheckInserter(trustPrimitives, closedWorld, boundsChecked),
-        new SsaTypePropagator(globalInferenceResults, _options,
+        new SsaTypePropagator(globalInferenceResults,
             closedWorld.commonElements, closedWorld, log),
         // Run a dead code eliminator before LICM because dead
         // interceptors are often in the way of LICM'able instructions.
@@ -101,7 +103,7 @@ class SsaOptimizerTask extends CompilerTask {
         new SsaGlobalValueNumberer(closedWorld.abstractValueDomain),
         // After GVN, some instructions might need their type to be
         // updated because they now have different inputs.
-        new SsaTypePropagator(globalInferenceResults, _options,
+        new SsaTypePropagator(globalInferenceResults,
             closedWorld.commonElements, closedWorld, log),
         codeMotion = new SsaCodeMotion(closedWorld.abstractValueDomain),
         loadElimination = new SsaLoadElimination(closedWorld),
@@ -111,7 +113,7 @@ class SsaOptimizerTask extends CompilerTask {
         // controlled by a test on the value, so redo 'conversion insertion' to
         // learn from the refined type.
         new SsaTypeConversionInserter(closedWorld),
-        new SsaTypePropagator(globalInferenceResults, _options,
+        new SsaTypePropagator(globalInferenceResults,
             closedWorld.commonElements, closedWorld, log),
         new SsaValueRangeAnalyzer(closedWorld, this),
         // Previous optimizations may have generated new
@@ -133,7 +135,7 @@ class SsaOptimizerTask extends CompilerTask {
           dce.eliminatedSideEffects ||
           loadElimination.newGvnCandidates) {
         phases = <OptimizationPhase>[
-          new SsaTypePropagator(globalInferenceResults, _options,
+          new SsaTypePropagator(globalInferenceResults,
               closedWorld.commonElements, closedWorld, log),
           new SsaGlobalValueNumberer(closedWorld.abstractValueDomain),
           new SsaCodeMotion(closedWorld.abstractValueDomain),
@@ -146,7 +148,7 @@ class SsaOptimizerTask extends CompilerTask {
         ];
       } else {
         phases = <OptimizationPhase>[
-          new SsaTypePropagator(globalInferenceResults, _options,
+          new SsaTypePropagator(globalInferenceResults,
               closedWorld.commonElements, closedWorld, log),
           // Run the simplifier to remove unneeded type checks inserted by
           // type propagation.
@@ -519,14 +521,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
     }
 
     // Try converting the instruction to a builtin instruction.
-    HInstruction instruction = node.specializer.tryConvertToBuiltin(
-        node,
-        _graph,
-        _globalInferenceResults,
-        _options,
-        commonElements,
-        _closedWorld,
-        _log);
+    HInstruction instruction = node.specializer.tryConvertToBuiltin(node,
+        _graph, _globalInferenceResults, commonElements, _closedWorld, _log);
     if (instruction != null) {
       return instruction;
     }
@@ -551,7 +547,9 @@ class SsaInstructionSimplifier extends HBaseVisitor
         } else if (applies(commonElements.jsArrayAdd)) {
           // The codegen special cases array calls, but does not
           // inline argument type checks.
-          if (!_options.parameterCheckPolicy.isEmitted ||
+          if (!_closedWorld.annotationsData
+                  .getParameterCheckPolicy(commonElements.jsArrayAdd)
+                  .isEmitted ||
               input is HLiteralList) {
             target = commonElements.jsArrayAdd;
           }
@@ -636,24 +634,32 @@ class SsaInstructionSimplifier extends HBaseVisitor
       return splitInstruction;
     }
 
-    // TODO(sra): Implement tagging with `JSArray<String>` for new rti.
-
     node.block.addBefore(node, splitInstruction);
 
-    HInstruction stringTypeInfo = new HTypeInfoExpression(
-        TypeInfoExpressionKind.COMPLETE,
-        _closedWorld.elementEnvironment.getThisType(commonElements.stringClass),
-        <HInstruction>[],
-        _abstractValueDomain.dynamicType);
-    node.block.addBefore(node, stringTypeInfo);
+    HInstruction typeInfo;
+    if (_options.experimentNewRti) {
+      typeInfo = HLoadType(
+          _closedWorld.elementEnvironment.createInterfaceType(
+              commonElements.jsArrayClass, [commonElements.stringType]),
+          _abstractValueDomain.dynamicType);
+      node.block.addBefore(node, typeInfo);
+    } else {
+      HInstruction stringTypeInfo = new HTypeInfoExpression(
+          TypeInfoExpressionKind.COMPLETE,
+          _closedWorld.elementEnvironment
+              .getThisType(commonElements.stringClass),
+          <HInstruction>[],
+          _abstractValueDomain.dynamicType);
+      node.block.addBefore(node, stringTypeInfo);
 
-    HInstruction typeInfo = new HTypeInfoExpression(
-        TypeInfoExpressionKind.INSTANCE,
-        _closedWorld.elementEnvironment
-            .getThisType(commonElements.jsArrayClass),
-        <HInstruction>[stringTypeInfo],
-        _abstractValueDomain.dynamicType);
-    node.block.addBefore(node, typeInfo);
+      typeInfo = new HTypeInfoExpression(
+          TypeInfoExpressionKind.INSTANCE,
+          _closedWorld.elementEnvironment
+              .getThisType(commonElements.jsArrayClass),
+          <HInstruction>[stringTypeInfo],
+          _abstractValueDomain.dynamicType);
+      node.block.addBefore(node, typeInfo);
+    }
 
     HInvokeStatic tagInstruction = new HInvokeStatic(
         commonElements.setRuntimeTypeInfo,
@@ -755,7 +761,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
             _closedWorld.elementEnvironment.getFieldType(field);
         HInstruction closureCall = new HInvokeClosure(
             callSelector,
-            _abstractValueDomain.createFromStaticType(fieldType),
+            _abstractValueDomain.createFromStaticType(fieldType).abstractValue,
             inputs,
             node.instructionType,
             node.typeArguments)
@@ -799,7 +805,11 @@ class SsaInstructionSimplifier extends HBaseVisitor
       }
 
       // If the target has no checks don't let a bad type stop us inlining.
-      if (!_options.parameterCheckPolicy.isEmitted) return;
+      if (!_closedWorld.annotationsData
+          .getParameterCheckPolicy(method)
+          .isEmitted) {
+        return;
+      }
 
       AbstractValue parameterAbstractValue = _abstractValueDomain
           .getAbstractValueForNativeMethodParameterType(parameterType);
@@ -1323,7 +1333,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // Use `node.inputs.last` in case the call follows the interceptor calling
     // convention, but is not a call on an interceptor.
     HInstruction value = node.inputs.last;
-    if (_options.parameterCheckPolicy.isEmitted) {
+    if (_closedWorld.annotationsData.getParameterCheckPolicy(field).isEmitted) {
       if (_options.experimentNewRti) {
         // TODO(sra): Implement inlining of setters with checks for new rti.
         node.needsCheck = true;
@@ -1843,6 +1853,79 @@ class SsaInstructionSimplifier extends HBaseVisitor
             variable, object, node.instructionType);
       }
     }
+
+    return node;
+  }
+
+  @override
+  HInstruction visitTypeEval(HTypeEval node) {
+    if (TypeRecipe.isIdentity(node.typeExpression, node.envStructure)) {
+      return node.inputs.single;
+    }
+    return node;
+  }
+
+  @override
+  HInstruction visitAsCheck(HAsCheck node) {
+    if (node.isRedundant(_closedWorld)) return node.checkedInput;
+
+    // See if this check can be lowered to a simple one.
+    HInstruction typeInput = node.typeInput;
+    if (typeInput is HLoadType) {
+      DartType dartType = typeInput.typeExpression;
+      MemberEntity specializedCheck = SpecializedChecks.findAsCheck(
+          dartType, node.isTypeError, _closedWorld.commonElements);
+      if (specializedCheck != null) {
+        AbstractValueWithPrecision checkedType =
+            _abstractValueDomain.createFromStaticType(dartType);
+        return HAsCheckSimple(node.checkedInput, dartType, checkedType,
+            node.isTypeError, specializedCheck, node.instructionType);
+      }
+    }
+    return node;
+  }
+
+  @override
+  HInstruction visitAsCheckSimple(HAsCheckSimple node) {
+    if (node.isRedundant(_closedWorld)) return node.checkedInput;
+    return node;
+  }
+
+  @override
+  HInstruction visitInstanceEnvironment(HInstanceEnvironment node) {
+    HInstruction instance = node.inputs.single;
+
+    // Store-forward instance types of created instances and constant instances.
+    //
+    // Forwarding the type might cause the instance (HCreate, constant etc) to
+    // become dead. This might cause us to lose track of that fact that there
+    // are type expressions from within the instance's class scope, so breaking
+    // the algorithm for generating the per-type runtime type information. The
+    // fix is to register the classes as created here in case the instance
+    // becomes dead.
+    //
+    // TODO(sra): It would be cleaner to track on HLoadType, HTypeEval, etc
+    // which class scope(s) they originated from. If the type expressions become
+    // dead, the references to the scope type variables become dead.
+
+    if (instance is HCreate) {
+      if (instance.hasRtiInput) {
+        instance.instantiatedTypes?.forEach(_registry.registerInstantiation);
+        return instance.inputs.last;
+      }
+      return node;
+    }
+
+    if (instance is HConstant) {
+      ConstantValue constantValue = instance.constant;
+      if (constantValue is ConstructedConstantValue) {
+        _registry.registerInstantiation(constantValue.type);
+        return HLoadType(constantValue.type, instance.instructionType);
+      }
+      return node;
+    }
+
+    // TODO(sra): Store-forward list literal types.
 
     return node;
   }

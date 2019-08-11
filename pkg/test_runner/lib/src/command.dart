@@ -561,7 +561,7 @@ class VmBatchCommand extends ProcessCommand implements VmCommand {
   VmBatchCommand._(String executable, String dartFile, List<String> arguments,
       Map<String, String> environmentOverrides,
       {this.checked = true, int index = 0})
-      : this.dartFile = dartFile,
+      : dartFile = dartFile,
         super._('vm-batch', executable, arguments, environmentOverrides, null,
             index);
 
@@ -632,14 +632,6 @@ class AdbPrecompilationCommand extends Command implements AdbCommand {
     extraLibraries.forEach(builder.add);
   }
 
-  static bool _listEquals(List<String> x, List<String> y) {
-    if (x.length != y.length) return false;
-    for (int i = 0; i < x.length; ++i) {
-      if (x[i] != y[i]) return false;
-    }
-    return true;
-  }
-
   bool _equal(AdbPrecompilationCommand other) =>
       super._equal(other) &&
       buildPath == other.buildPath &&
@@ -647,7 +639,7 @@ class AdbPrecompilationCommand extends Command implements AdbCommand {
       useElf == other.useElf &&
       arguments == other.arguments &&
       precompiledTestDirectory == other.precompiledTestDirectory &&
-      _listEquals(extraLibraries, other.extraLibraries);
+      deepJsonCompare(extraLibraries, other.extraLibraries);
 
   String toString() => 'Steps to push precompiled runner and precompiled code '
       'to an attached device. Uses (and requires) adb.';
@@ -690,7 +682,7 @@ class AdbDartkCommand extends Command implements AdbCommand {
 class JSCommandlineCommand extends ProcessCommand {
   JSCommandlineCommand._(
       String displayName, String executable, List<String> arguments,
-      [Map<String, String> environmentOverrides = null, int index = 0])
+      [Map<String, String> environmentOverrides, int index = 0])
       : super._(displayName, executable, arguments, environmentOverrides, null,
             index);
 
@@ -758,8 +750,8 @@ class CleanDirectoryCopyCommand extends ScriptCommand {
 
 /// Makes a symbolic link to another directory.
 class MakeSymlinkCommand extends ScriptCommand {
-  String _link;
-  String _target;
+  final String _link;
+  final String _target;
 
   MakeSymlinkCommand._(this._link, this._target, {int index = 0})
       : super._('make_symlink', index: index);

@@ -57,6 +57,10 @@ static void Unmap(zx_handle_t vmar, uword start, uword end) {
   }
 }
 
+bool VirtualMemory::DualMappingEnabled() {
+  return FLAG_dual_map_code;
+}
+
 VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
                                               intptr_t alignment,
                                               bool is_executable,
@@ -65,6 +69,10 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   // is_executable = true) is allocated as non-executable and later
   // changed to executable via VirtualMemory::Protect, which requires
   // ZX_RIGHT_EXECUTE on the underlying VMO.
+  //
+  // If FLAG_dual_map_code is active, the executable mapping will be mapped RX
+  // immediately and never changes protection until it is eventually unmapped.
+  //
   // In addition, dual mapping of the same underlying code memory is provided.
   const bool dual_mapping =
       is_executable && FLAG_write_protect_code && FLAG_dual_map_code;
@@ -118,8 +126,10 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   VirtualMemory* result;
 
   if (dual_mapping) {
-    // ZX_VM_PERM_EXECUTE is added later via VirtualMemory::Protect.
-    const zx_vm_option_t alias_options = ZX_VM_PERM_READ | align_flag;
+    // The mapping will be RX and stays that way until it will eventually be
+    // unmapped.
+    const zx_vm_option_t alias_options =
+        ZX_VM_PERM_READ | ZX_VM_PERM_EXECUTE | align_flag;
     status = zx_vmar_map(vmar, alias_options, 0, vmo, 0u, size, &base);
     LOG_INFO("zx_vmar_map(%u, 0x%lx, 0x%lx)\n", alias_options, base, size);
     if (status != ZX_OK) {

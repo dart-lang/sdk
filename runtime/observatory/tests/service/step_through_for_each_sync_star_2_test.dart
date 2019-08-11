@@ -25,8 +25,6 @@ List<String> stops = [];
 List<String> expected = [
   "$file:${LINE + 0}:5", // after 'code'
   "$file:${LINE + 1}:25", // on 'generator' (in 'for' line)
-  "$file:${LINE + 1}:25", // on 'generator' (in 'for' line)
-  "$file:${LINE + 1}:25", // on 'generator' (in 'for' line)
 
   "$file:${LINE + 6}:10", // after 'generator' (definition line)
   "$file:${LINE + 7}:9", // on '=' in 'x = 3'

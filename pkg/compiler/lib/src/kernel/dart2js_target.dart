@@ -79,14 +79,12 @@ class Dart2jsTarget extends Target {
   bool get errorOnUnexactWebIntLiterals => true;
 
   @override
-  bool get supportsSetLiterals => true;
-
-  @override
   void performModularTransformationsOnLibraries(
       ir.Component component,
       CoreTypes coreTypes,
       ClassHierarchy hierarchy,
       List<ir.Library> libraries,
+      Map<String, String> environmentDefines,
       DiagnosticReporter diagnosticReporter,
       {void logger(String msg)}) {}
 
@@ -149,7 +147,7 @@ class Dart2jsTarget extends Target {
 
   @override
   ConstantsBackend constantsBackend(CoreTypes coreTypes) =>
-      const Dart2jsConstantsBackend();
+      const Dart2jsConstantsBackend(supportsUnevaluatedConstants: true);
 }
 
 // TODO(sigmund): this "extraRequiredLibraries" needs to be removed...
@@ -196,7 +194,10 @@ const _requiredLibraries = const <String, List<String>>{
 };
 
 class Dart2jsConstantsBackend extends ConstantsBackend {
-  const Dart2jsConstantsBackend();
+  @override
+  final bool supportsUnevaluatedConstants;
+
+  const Dart2jsConstantsBackend({this.supportsUnevaluatedConstants});
 
   @override
   NumberSemantics get numberSemantics => NumberSemantics.js;

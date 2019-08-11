@@ -41,6 +41,7 @@ main() {
   Expect.equals(String, 'hest'.runtimeType);
   Expect.equals(double, (0.5).runtimeType);
   Expect.equals(bool, true.runtimeType);
+  Expect.equals(Object, Object().runtimeType);
   Expect.equals(C, new C().runtimeType); // //# 01: ok
   Expect.equals(D, new D().runtimeType); // //# 02: ok
 

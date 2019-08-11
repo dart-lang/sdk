@@ -22,14 +22,14 @@ class NullableTypeInWithClauseTest extends DriverResolutionTest {
       AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
 
   test_class_nonNullable() async {
-    assertNoErrorsInCode('''
+    await assertNoErrorsInCode('''
 class A {}
 class B with A {}
 ''');
   }
 
   test_class_nullable() async {
-    assertErrorsInCode('''
+    await assertErrorsInCode('''
 class A {}
 class B with A? {}
 ''', [
@@ -38,7 +38,7 @@ class B with A? {}
   }
 
   test_classAlias_withClass_nonNullable() async {
-    assertNoErrorsInCode('''
+    await assertNoErrorsInCode('''
 class A {}
 class B {}
 class C = A with B;
@@ -46,7 +46,7 @@ class C = A with B;
   }
 
   test_classAlias_withClass_nullable() async {
-    assertErrorsInCode('''
+    await assertErrorsInCode('''
 class A {}
 class B {}
 class C = A with B?;
@@ -56,7 +56,7 @@ class C = A with B?;
   }
 
   test_classAlias_withMixin_nonNullable() async {
-    assertNoErrorsInCode('''
+    await assertNoErrorsInCode('''
 class A {}
 mixin B {}
 class C = A with B;
@@ -64,7 +64,7 @@ class C = A with B;
   }
 
   test_classAlias_withMixin_nullable() async {
-    assertErrorsInCode('''
+    await assertErrorsInCode('''
 class A {}
 mixin B {}
 class C = A with B?;

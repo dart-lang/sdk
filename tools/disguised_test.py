@@ -16,7 +16,8 @@ import os
 import subprocess
 import sys
 
-exit(subprocess.call([sys.executable,
-                      os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                   "test.py")] +
-                      sys.argv[1:]))
+exit(
+    subprocess.call([
+        sys.executable,
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), "test.py")
+    ] + sys.argv[1:]))

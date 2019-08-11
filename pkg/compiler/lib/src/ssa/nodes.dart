@@ -108,6 +108,7 @@ abstract class HVisitor<R> {
   // Instructions for 'dart:_rti'.
   R visitIsTest(HIsTest node);
   R visitAsCheck(HAsCheck node);
+  R visitAsCheckSimple(HAsCheckSimple node);
   R visitSubtypeCheck(HSubtypeCheck node);
   R visitLoadType(HLoadType node);
   R visitInstanceEnvironment(HInstanceEnvironment node);
@@ -603,6 +604,8 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   @override
   visitAsCheck(HAsCheck node) => visitCheck(node);
   @override
+  visitAsCheckSimple(HAsCheckSimple node) => visitCheck(node);
+  @override
   visitSubtypeCheck(HSubtypeCheck node) => visitCheck(node);
   @override
   visitLoadType(HLoadType node) => visitInstruction(node);
@@ -1092,11 +1095,12 @@ abstract class HInstruction implements Spannable {
 
   static const int IS_TEST_TYPECODE = 47;
   static const int AS_CHECK_TYPECODE = 48;
-  static const int SUBTYPE_CHECK_TYPECODE = 49;
-  static const int LOAD_TYPE_TYPECODE = 50;
-  static const int INSTANCE_ENVIRONMENT_TYPECODE = 51;
-  static const int TYPE_EVAL_TYPECODE = 52;
-  static const int TYPE_BIND_TYPECODE = 53;
+  static const int AS_CHECK_SIMPLE_TYPECODE = 49;
+  static const int SUBTYPE_CHECK_TYPECODE = 50;
+  static const int LOAD_TYPE_TYPECODE = 51;
+  static const int INSTANCE_ENVIRONMENT_TYPECODE = 52;
+  static const int TYPE_EVAL_TYPECODE = 53;
+  static const int TYPE_BIND_TYPECODE = 54;
 
   HInstruction(this.inputs, this.instructionType)
       : id = idCounter++,
@@ -4378,12 +4382,19 @@ class HIsTest extends HInstruction {
 
 /// Type cast or type check using Rti form of type expression.
 class HAsCheck extends HCheck {
+  final AbstractValueWithPrecision checkedType;
+  final DartType checkedTypeExpression;
   final bool isTypeError;
 
-  HAsCheck(HInstruction checked, HInstruction rti, this.isTypeError,
-      AbstractValue type)
+  HAsCheck(
+      HInstruction checked,
+      HInstruction rti,
+      this.checkedType,
+      this.checkedTypeExpression,
+      this.isTypeError,
+      AbstractValue instructionType)
       : assert(isTypeError != null),
-        super([rti, checked], type);
+        super([rti, checked], instructionType);
 
   // The type input is first to facilitate the `type.as(value)` codegen pattern.
   HInstruction get typeInput => inputs[0];
@@ -4405,6 +4416,64 @@ class HAsCheck extends HCheck {
   @override
   bool dataEquals(HAsCheck other) {
     return isTypeError == other.isTypeError;
+  }
+
+  bool isRedundant(JClosedWorld closedWorld) {
+    if (!checkedType.isPrecise) return false;
+    AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
+    AbstractValue inputType = checkedInput.instructionType;
+    return abstractValueDomain
+        .isIn(inputType, checkedType.abstractValue)
+        .isDefinitelyTrue;
+  }
+
+  @override
+  String toString() {
+    String error = isTypeError ? 'TypeError' : 'CastError';
+    return 'HAsCheck($error)';
+  }
+}
+
+/// Type cast or type check for simple known types that are achieved via a
+/// simple static call.
+class HAsCheckSimple extends HCheck {
+  final DartType dartType;
+  final AbstractValueWithPrecision checkedType;
+  final bool isTypeError;
+  final MemberEntity method;
+
+  HAsCheckSimple(HInstruction checked, this.dartType, this.checkedType,
+      this.isTypeError, this.method, AbstractValue type)
+      : assert(isTypeError != null),
+        super([checked], type);
+
+  @override
+  HInstruction get checkedInput => inputs[0];
+
+  @override
+  bool isJsStatement() => false;
+
+  @override
+  accept(HVisitor visitor) => visitor.visitAsCheckSimple(this);
+
+  bool isRedundant(JClosedWorld closedWorld) {
+    if (!checkedType.isPrecise) return false;
+    AbstractValueDomain abstractValueDomain = closedWorld.abstractValueDomain;
+    AbstractValue inputType = checkedInput.instructionType;
+    return abstractValueDomain
+        .isIn(inputType, checkedType.abstractValue)
+        .isDefinitelyTrue;
+  }
+
+  @override
+  int typeCode() => HInstruction.AS_CHECK_SIMPLE_TYPECODE;
+
+  @override
+  bool typeEquals(HInstruction other) => other is HAsCheckSimple;
+
+  @override
+  bool dataEquals(HAsCheckSimple other) {
+    return isTypeError == other.isTypeError && dartType == other.dartType;
   }
 
   @override
@@ -4521,7 +4590,8 @@ class HTypeEval extends HRtiInstruction {
 
   @override
   bool dataEquals(HTypeEval other) {
-    return typeExpression == other.typeExpression;
+    return TypeRecipe.yieldsSameType(
+        typeExpression, envStructure, other.typeExpression, other.envStructure);
   }
 
   @override

@@ -456,8 +456,16 @@ DART_FORCE_INLINE static uword ParamAddress(uword fp, intptr_t reverse_index) {
   return fp + (kParamEndSlotFromFp * kWordSize) + (reverse_index * kWordSize);
 }
 
+// Both fp and other_fp are compiled code frame pointers.
+// See stack_frame_dbc.h for the DBC version.
 DART_FORCE_INLINE static bool IsCalleeFrameOf(uword fp, uword other_fp) {
   return other_fp < fp;
+}
+
+// Both fp and other_fp are bytecode frame pointers.
+DART_FORCE_INLINE static bool IsBytecodeCalleeFrameOf(uword fp,
+                                                      uword other_fp) {
+  return other_fp > fp;
 }
 
 // Value for stack limit that is used to cause an interrupt.

@@ -710,7 +710,7 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
  * The [Socket] exposes both a [Stream] and a [IOSink] interface, making it
  * ideal for using together with other [Stream]s.
  */
-abstract class Socket implements Stream<List<int>>, IOSink {
+abstract class Socket implements Stream<Uint8List>, IOSink {
   /**
    * Creates a new socket connection to the host and port and returns a [Future]
    * that will complete with either a [Socket] once connected or an error

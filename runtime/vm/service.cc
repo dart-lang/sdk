@@ -2163,10 +2163,12 @@ static bool PrintRetainingPath(Thread* thread,
                                JSONStream* js) {
   ObjectGraph graph(thread);
   Array& path = Array::Handle(Array::New(limit * 2));
-  intptr_t length = graph.RetainingPath(obj, path);
+  auto result = graph.RetainingPath(obj, path);
+  intptr_t length = result.length;
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "RetainingPath");
   jsobj.AddProperty("length", length);
+  jsobj.AddProperty("gcRootType", result.gc_root_type);
   JSONArray elements(&jsobj, "elements");
   Object& element = Object::Handle();
   Smi& slot_offset = Smi::Handle();
@@ -2175,6 +2177,7 @@ static bool PrintRetainingPath(Thread* thread,
   LinkedHashMap& map = LinkedHashMap::Handle();
   Array& map_data = Array::Handle();
   Field& field = Field::Handle();
+  String& name = String::Handle();
   limit = Utils::Minimum(limit, length);
   for (intptr_t i = 0; i < limit; ++i) {
     JSONObject jselement(&elements);
@@ -2184,7 +2187,6 @@ static bool PrintRetainingPath(Thread* thread,
     // or instance field.
     if (i > 0) {
       slot_offset ^= path.At((i * 2) - 1);
-      jselement.AddProperty("offset", slot_offset.Value());
       if (element.IsArray() || element.IsGrowableObjectArray()) {
         intptr_t element_index =
             slot_offset.Value() - (Array::element_offset(0) >> kWordSizeLog2);
@@ -2209,7 +2211,10 @@ static bool PrintRetainingPath(Thread* thread,
         intptr_t offset = slot_offset.Value();
         if (offset > 0 && offset < element_field_map.Length()) {
           field ^= element_field_map.At(offset);
-          jselement.AddProperty("parentField", field);
+          // TODO(bkonyi): check for mapping between C++ name and Dart name (V8
+          // snapshot writer?)
+          name ^= field.name();
+          jselement.AddProperty("parentField", name.ToCString());
         }
       } else {
         intptr_t element_index = slot_offset.Value();
@@ -2651,11 +2656,12 @@ static bool BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
         klass_name = cls.UserVisibleName();
       }
       library_uri = Library::Handle(zone, cls.library()).url();
-      isStatic = !cls.IsTopLevel();
+      isStatic = true;
     } else {
       const Class& method_cls = Class::Handle(zone, frame->function().origin());
       library_uri = Library::Handle(zone, method_cls.library()).url();
       klass_name = method_cls.UserVisibleName();
+      isStatic = false;
     }
   } else {
     // building scope in the context of a given object
@@ -2676,15 +2682,18 @@ static bool BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
     if (obj.IsLibrary()) {
       const Library& lib = Library::Cast(obj);
       library_uri = lib.url();
+      isStatic = true;
     } else if (obj.IsClass() || ((obj.IsInstance() || obj.IsNull()) &&
                                  !ContainsNonInstance(obj))) {
       Class& cls = Class::Handle(zone);
       if (obj.IsClass()) {
         cls ^= obj.raw();
+        isStatic = true;
       } else {
         Instance& instance = Instance::Handle(zone);
         instance ^= obj.raw();
         cls = instance.clazz();
+        isStatic = false;
       }
       if (cls.id() < kInstanceCid || cls.id() == kTypeArgumentsCid) {
         js->PrintError(
@@ -2802,7 +2811,9 @@ static bool CompileExpression(Thread* thread, JSONStream* js) {
     return true;
   }
 
-  bool is_static = BoolParameter::Parse(js->LookupParam("isStatic"), false);
+  const char* klass = js->LookupParam("klass");
+  bool is_static =
+      BoolParameter::Parse(js->LookupParam("isStatic"), (klass == nullptr));
 
   const GrowableObjectArray& params =
       GrowableObjectArray::Handle(thread->zone(), GrowableObjectArray::New());
@@ -4581,8 +4592,9 @@ void Service::PrintJSONForVM(JSONStream* js, bool ref) {
     return;
   }
   jsobj.AddProperty("architectureBits", static_cast<intptr_t>(kBitsPerWord));
-  jsobj.AddProperty("targetCPU", CPU::Id());
   jsobj.AddProperty("hostCPU", HostCPUFeatures::hardware());
+  jsobj.AddProperty("operatingSystem", OS::Name());
+  jsobj.AddProperty("targetCPU", CPU::Id());
   jsobj.AddProperty("version", Version::String());
   jsobj.AddProperty("_profilerMode", FLAG_profile_vm ? "VM" : "Dart");
   jsobj.AddProperty64("_nativeZoneMemoryUsage",
@@ -4707,6 +4719,12 @@ static bool SetFlag(Thread* thread, JSONStream* js) {
       // FLAG_profile_period has already been set to the new value. Now we need
       // to notify the ThreadInterrupter to pick up the change.
       Profiler::UpdateSamplePeriod();
+    }
+    if (Service::vm_stream.enabled()) {
+      ServiceEvent event(NULL, ServiceEvent::kVMFlagUpdate);
+      event.set_flag_name(flag_name);
+      event.set_flag_new_value(flag_value);
+      Service::HandleEvent(&event);
     }
     return true;
   } else {
@@ -4935,7 +4953,7 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_flag_list_params },
   { "_getHeapMap", GetHeapMap,
     get_heap_map_params },
-  { "_getInboundReferences", GetInboundReferences,
+  { "getInboundReferences", GetInboundReferences,
     get_inbound_references_params },
   { "getInstances", GetInstances,
     get_instances_params },
@@ -4961,7 +4979,7 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_reachable_size_params },
   { "_getRetainedSize", GetRetainedSize,
     get_retained_size_params },
-  { "_getRetainingPath", GetRetainingPath,
+  { "getRetainingPath", GetRetainingPath,
     get_retaining_path_params },
   { "getScripts", GetScripts,
     get_scripts_params },

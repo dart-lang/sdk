@@ -5,6 +5,11 @@
 [ $compiler == dartk ]
 LanguageFeatures/Set-literals/syntax_compatibility_A01_t02: RuntimeError
 
+[ $compiler == dartkb ]
+LibTest/isolate/Isolate/kill_A01_t01: Skip # Issue 37699
+LibTest/isolate/Isolate/pause_A01_t01: Skip # Issue 37699
+LibTest/isolate/Isolate/pause_A01_t02: Skip # Issue 37699
+
 [ $compiler == dartkp ]
 Language/Expressions/Instance_Creation/New/evaluation_t20: RuntimeError
 Language/Libraries_and_Scripts/Imports/deferred_import_t01: RuntimeError

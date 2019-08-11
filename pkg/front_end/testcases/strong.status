@@ -6,28 +6,51 @@
 # Kernel ASTs directly, that is, code in pkg/fasta/lib/src/kernel/ with
 # strong-mode enabled.
 
-abstract_members: TypeCheckError
-accessors: RuntimeError
-ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
-argument_mismatch: InstrumentationMismatch # Test assumes Dart 1.0 semantics
-await_in_non_async: RuntimeError # Expected.
-bug21938: TypeCheckError
-bug30695: TypeCheckError
-bug31124: RuntimeError # Test has no main method (and we shouldn't add one).
-bug32629: InstrumentationMismatch # Test has an intentional error
-call: TypeCheckError
-cascade: RuntimeError
-constructor_initializer_invalid: RuntimeError # Fails execution after recovery
-covariant_generic: RuntimeError
-duplicated_declarations: TypeCheckError
-duplicated_field_initializer: RuntimeError
-dynamic_and_void: InstrumentationMismatch # Test assumes Dart 1.0 semantics
-expressions: RuntimeError
-extension_methods: TypeCheckError
-external_import: RuntimeError # The native extension to import doesn't exist. This is ok.
-fallthrough: ExpectationFileMismatch
-ignore_function: TypeCheckError
-incomplete_field_formal_parameter: RuntimeError
+general/abstract_members: TypeCheckError
+general/accessors: RuntimeError
+general/ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
+general/argument_mismatch: InstrumentationMismatch # Test assumes Dart 1.0 semantics
+general/await_in_non_async: RuntimeError # Expected.
+general/bug21938: TypeCheckError
+general/bug30695: TypeCheckError
+general/bug31124: RuntimeError # Test has no main method (and we shouldn't add one).
+general/bug32629: InstrumentationMismatch # Test has an intentional error
+general/call: TypeCheckError
+general/cascade: RuntimeError
+general/constructor_initializer_invalid: RuntimeError # Fails execution after recovery
+general/covariant_generic: RuntimeError
+general/duplicated_declarations: TypeCheckError
+general/duplicated_field_initializer: RuntimeError
+general/dynamic_and_void: InstrumentationMismatch # Test assumes Dart 1.0 semantics
+general/expressions: RuntimeError
+general/extension_methods: RuntimeError
+general/external_import: RuntimeError # The native extension to import doesn't exist. This is ok.
+general/fallthrough: ExpectationFileMismatch
+general/ignore_function: TypeCheckError
+general/incomplete_field_formal_parameter: RuntimeError
+general/invalid_type: TypeCheckError
+general/invocations: RuntimeError
+general/issue34899: TypeCheckError
+general/micro: RuntimeError
+general/mixin_application_override: ExpectationFileMismatch # Too many errors.
+general/mixin_application_override: TypeCheckError
+general/mixin_constructors_with_default_values: RuntimeError # Expected
+general/operator_method_not_found: RuntimeError # Expected
+general/optional: TypeCheckError
+general/override_check_accessor_after_inference: TypeCheckError # Issue #31620
+general/override_check_accessor_basic: TypeCheckError # Issue #31620
+general/override_check_accessor_with_covariant_modifier: TypeCheckError # Issue #31620
+general/override_check_after_inference: TypeCheckError # Issue #31620
+general/override_check_basic: TypeCheckError # Issue #31620
+general/override_check_with_covariant_modifier: TypeCheckError # Issue #31620
+general/reject_generic_function_types_in_bounds: RuntimeError # Expected
+general/spread_collection: RuntimeError
+general/statements: Crash
+general/type_parameter_type_named_int: RuntimeError # Expected
+general/type_variable_as_super: RuntimeError
+general/unsound_promotion: RuntimeError
+general/void_methods: ExpectationFileMismatch
+general/warn_unresolved_sends: InstrumentationMismatch # Test assumes Dart 1.0 semantics
 inference/abstract_class_instantiation: InstrumentationMismatch # Issue #30040
 inference/conflicting_fields: TypeCheckError
 inference/conflicts_can_happen2: TypeCheckError
@@ -76,21 +99,7 @@ inference_new/infer_field_override_getter_overrides_setter: TypeCheckError
 inference_new/invalid_assignment_during_toplevel_inference: TypeCheckError
 instantiate_to_bound/non_simple_class_parametrized_typedef_cycle: RuntimeError # Expected
 instantiate_to_bound/non_simple_generic_function_in_bound_regress: RuntimeError # Expected
-invalid_type: TypeCheckError
-invocations: RuntimeError
-issue34899: TypeCheckError
-micro: RuntimeError
-mixin_application_override: ExpectationFileMismatch # Too many errors.
-mixin_application_override: TypeCheckError
 nnbd/nullable_param: RuntimeError
-operator_method_not_found: RuntimeError # Expected
-optional: TypeCheckError
-override_check_accessor_after_inference: TypeCheckError # Issue #31620
-override_check_accessor_basic: TypeCheckError # Issue #31620
-override_check_accessor_with_covariant_modifier: TypeCheckError # Issue #31620
-override_check_after_inference: TypeCheckError # Issue #31620
-override_check_basic: TypeCheckError # Issue #31620
-override_check_with_covariant_modifier: TypeCheckError # Issue #31620
 rasta/abstract_constructor: RuntimeError
 rasta/bad_constructor_redirection: RuntimeError
 rasta/bad_continue: RuntimeError
@@ -154,16 +163,8 @@ regress/issue_36647: RuntimeError # Expected
 regress/issue_36647_2: RuntimeError # Expected
 regress/issue_36669: RuntimeError
 regress/issue_37285: RuntimeError
-reject_generic_function_types_in_bounds: RuntimeError # Expected
 runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast: RuntimeError
 runtime_checks_new/mixin_forwarding_stub_field: TypeCheckError
 runtime_checks_new/mixin_forwarding_stub_getter: TypeCheckError
 runtime_checks_new/mixin_forwarding_stub_setter: TypeCheckError
 set_literals/disambiguation_rule: RuntimeError
-spread_collection: RuntimeError
-statements: Crash
-type_parameter_type_named_int: RuntimeError # Expected
-type_variable_as_super: RuntimeError
-unsound_promotion: RuntimeError
-void_methods: ExpectationFileMismatch
-warn_unresolved_sends: InstrumentationMismatch # Test assumes Dart 1.0 semantics

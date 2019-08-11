@@ -165,6 +165,33 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitExtensionDeclaration(ExtensionDeclaration node) {
+    var outerScope = scope;
+    var outerReference = reference;
+
+    var refName = LazyExtensionDeclaration.get(node).refName;
+    reference = reference.getChild('@extension').getChild(refName);
+
+    ExtensionElementImpl element = reference.element;
+    node.name?.staticElement = element;
+
+    _createTypeParameterElements(node.typeParameters);
+    scope = new TypeParameterScope(scope, element);
+
+    node.typeParameters?.accept(this);
+    node.extendedType.accept(this);
+
+    scope = new ExtensionScope(scope, element);
+    LinkingNodeContext(node, scope);
+
+    node.members.accept(this);
+    nodesToBuildType.addDeclaration(node);
+
+    scope = outerScope;
+    reference = outerReference;
+  }
+
+  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     node.fields.accept(this);
 
@@ -252,7 +279,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     var name = node.identifier.name;
     reference = reference.getChild('@parameter').getChild(name);
-    reference.node2 = node;
+    reference.node = node;
 
     var element = ParameterElementImpl.forLinkedNode(
       outerReference.element,
@@ -484,7 +511,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerReference = this.reference;
     var containerRef = outerReference.getChild('@typeParameter');
     var reference = containerRef.getChild(node.name.name);
-    reference.node2 = node;
+    reference.node = node;
 
     var element = TypeParameterElementImpl.forLinkedNode(
       outerReference.element,

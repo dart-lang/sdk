@@ -27,6 +27,25 @@ class DecoratedClassHierarchyTest extends MigrationVisitorTestBase {
     return unit;
   }
 
+  test_asInstanceOf_complex() async {
+    await analyze('''
+class Base<T> {}
+class Derived<U> extends Base<List<U>> {}
+Derived<int> x;
+''');
+    var decoratedType = decoratedTypeAnnotation('Derived<int>');
+    var asInstanceOfBase =
+        _hierarchy.asInstanceOf(decoratedType, findElement.class_('Base'));
+    expect(asInstanceOfBase.type.toString(), 'Base<List<int>>');
+    expect(asInstanceOfBase.node, same(decoratedType.node));
+    var listOfUType = decoratedTypeAnnotation('List<U>');
+    expect(asInstanceOfBase.typeArguments[0].node, same(listOfUType.node));
+    var substitution = asInstanceOfBase.typeArguments[0].typeArguments[0].node
+        as NullabilityNodeForSubstitution;
+    expect(substitution.innerNode, same(decoratedType.typeArguments[0].node));
+    expect(substitution.outerNode, same(listOfUType.typeArguments[0].node));
+  }
+
   test_getDecoratedSupertype_complex() async {
     await analyze('''
 class Base<T> {}

@@ -13,7 +13,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/workspace/bazel.dart';
 import 'package:analyzer/src/workspace/gn.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
@@ -30,7 +30,7 @@ String _computeConstructorElementName(ConstructorElement element) {
   assert(element != null);
   var name = element.enclosingElement.name;
   var constructorName = element.name;
-  if (!constructorName.isEmpty) {
+  if (constructorName.isNotEmpty) {
     name = name + '.' + constructorName;
   }
   return name;
@@ -94,7 +94,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
   final ResourceProvider resourceProvider;
   final List<KytheEntry> entries;
   final String corpus;
-  final InheritanceManager2 _inheritanceManager;
+  final InheritanceManager3 _inheritanceManager;
   final String _contents;
 
   String _enclosingFilePath = '';
@@ -695,18 +695,18 @@ class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
           returnNode: node.returnType);
 
       // override edges
-      var overriddenSignatures = _inheritanceManager.getOverridden(
+      var overriddenList = _inheritanceManager.getOverridden(
         _enclosingClassElement.type,
         new Name(
           _enclosingClassElement.library.source.uri,
           node.declaredElement.name,
         ),
       );
-      for (FunctionType signature in overriddenSignatures) {
+      for (ExecutableElement overridden in overriddenList) {
         addEdge(
           methodVName,
           schema.OVERRIDES_EDGE,
-          _vNameFromElement(signature.element, schema.FUNCTION_KIND),
+          _vNameFromElement(overridden, schema.FUNCTION_KIND),
         );
       }
 
@@ -894,10 +894,10 @@ class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
 
   _handleRefCallEdge(
     Element element, {
-    SyntacticEntity syntacticEntity: null,
-    int start: _notFound,
-    int end: _notFound,
-    KytheVName enclosingTarget: null,
+    SyntacticEntity syntacticEntity = null,
+    int start = _notFound,
+    int end = _notFound,
+    KytheVName enclosingTarget = null,
   }) {
     if (element is ExecutableElement &&
         _enclosingVName != _enclosingFileVName) {
@@ -931,11 +931,11 @@ class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
   KytheVName _handleRefEdge(
     Element element,
     List<String> refEdgeTypes, {
-    SyntacticEntity syntacticEntity: null,
-    int start: _notFound,
-    int end: _notFound,
-    KytheVName enclosingTarget: null,
-    KytheVName enclosingAnchor: null,
+    SyntacticEntity syntacticEntity = null,
+    int start = _notFound,
+    int end = _notFound,
+    KytheVName enclosingTarget = null,
+    KytheVName enclosingAnchor = null,
   }) {
     assert(refEdgeTypes.isNotEmpty);
     element = _findNonSyntheticElement(element);
@@ -1140,13 +1140,13 @@ mixin OutputUtils {
   /// Finally, for all anchors, a childof edge with a target of the enclosing
   /// file is written out.
   KytheVName addAnchorEdgesContainingEdge({
-    SyntacticEntity syntacticEntity: null,
-    int start: _notFound,
-    int end: _notFound,
-    List<String> edges: const [],
-    KytheVName target: null,
-    KytheVName enclosingTarget: null,
-    KytheVName enclosingAnchor: null,
+    SyntacticEntity syntacticEntity = null,
+    int start = _notFound,
+    int end = _notFound,
+    List<String> edges = const [],
+    KytheVName target = null,
+    KytheVName enclosingTarget = null,
+    KytheVName enclosingAnchor = null,
   }) {
     if (start == _notFound && end == _notFound) {
       if (syntacticEntity != null) {
@@ -1192,7 +1192,7 @@ mixin OutputUtils {
   /// of logic as [addNameFact] to prevent the edge from being written out.
   /// This is a convenience method for visitors to add an edge Entry.
   KytheEntry addEdge(KytheVName source, String edgeKind, KytheVName target,
-      {int ordinalIntValue: _notFound}) {
+      {int ordinalIntValue = _notFound}) {
     if (ordinalIntValue == _notFound) {
       return addEntry(source, edgeKind, target, "/", new List<int>());
     } else {
@@ -1228,7 +1228,7 @@ mixin OutputUtils {
     Element functionElement,
     FormalParameterList paramNodes,
     KytheVName functionVName, {
-    AstNode returnNode: null,
+    AstNode returnNode = null,
   }) {
     var i = 0;
     var funcTypeVName =
@@ -1291,10 +1291,10 @@ mixin OutputUtils {
   /// currently guarantee that the inputs to these fact kinds are valid for the
   /// associated nodeKind- if a non-null, then it will set.
   KytheVName addNodeAndFacts(String nodeKind,
-      {Element element: null,
-      KytheVName nodeVName: null,
-      String subKind: null,
-      String completeFact: null}) {
+      {Element element = null,
+      KytheVName nodeVName = null,
+      String subKind = null,
+      String completeFact = null}) {
     if (nodeVName == null) {
       nodeVName = _vNameFromElement(element, nodeKind);
     }

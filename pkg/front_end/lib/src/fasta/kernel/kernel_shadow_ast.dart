@@ -57,10 +57,12 @@ import '../problems.dart' show getFileUri, unhandled, unsupported;
 
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 
+import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+
 import '../type_inference/inference_helper.dart' show InferenceHelper;
 
 import '../type_inference/type_inference_engine.dart'
-    show IncludesTypeParametersCovariantly, TypeInferenceEngine;
+    show IncludesTypeParametersNonCovariantly, TypeInferenceEngine;
 
 import '../type_inference/type_inferrer.dart'
     show ExpressionInferenceResult, TypeInferrer, TypeInferrerImpl;
@@ -90,11 +92,9 @@ import 'collections.dart'
         SpreadMapEntry,
         convertToElement;
 
+import 'expression_generator.dart' show makeLet;
+
 import 'implicit_type_argument.dart' show ImplicitTypeArgument;
-
-import 'kernel_builder.dart' show KernelLibraryBuilder;
-
-import 'kernel_expression_generator.dart' show makeLet;
 
 part "inference_visitor.dart";
 part "inferred_type_visitor.dart";
@@ -126,7 +126,7 @@ class ClassInferenceInfo {
 
   /// The visitor for determining if a given type makes covariant use of one of
   /// the class's generic parameters, and therefore requires covariant checks.
-  IncludesTypeParametersCovariantly needsCheckVisitor;
+  IncludesTypeParametersNonCovariantly needsCheckVisitor;
 
   /// Getters and methods in the class's API.  May include forwarding nodes.
   final gettersAndMethods = <Member>[];
@@ -1279,7 +1279,7 @@ class SyntheticExpressionJudgment extends Let implements ExpressionJudgment {
   }
 
   @override
-  accept(ExpressionVisitor v) {
+  accept(ExpressionVisitor<dynamic> v) {
     // This is designed to throw an exception during serialization. It can also
     // lead to exceptions during transformations, but we have to accept a
     // [Transformer] as this is used to implement `replaceChild`.
@@ -1288,12 +1288,12 @@ class SyntheticExpressionJudgment extends Let implements ExpressionJudgment {
   }
 
   @override
-  accept1(ExpressionVisitor1 v, arg) {
+  accept1(ExpressionVisitor1<dynamic, dynamic> v, arg) {
     unsupported("accept1", fileOffset, getFileUri(this));
   }
 
   @override
-  visitChildren(Visitor v) {
+  visitChildren(Visitor<dynamic> v) {
     unsupported("visitChildren", fileOffset, getFileUri(this));
   }
 }
@@ -1340,13 +1340,13 @@ class ShadowTypeInferenceEngine extends TypeInferenceEngine {
 
   @override
   ShadowTypeInferrer createLocalTypeInferrer(
-      Uri uri, InterfaceType thisType, KernelLibraryBuilder library) {
+      Uri uri, InterfaceType thisType, SourceLibraryBuilder library) {
     return new TypeInferrer(this, uri, false, thisType, library);
   }
 
   @override
   ShadowTypeInferrer createTopLevelTypeInferrer(
-      Uri uri, InterfaceType thisType, KernelLibraryBuilder library) {
+      Uri uri, InterfaceType thisType, SourceLibraryBuilder library) {
     return new TypeInferrer(this, uri, true, thisType, library);
   }
 }
@@ -1358,7 +1358,7 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
   final typePromoter;
 
   ShadowTypeInferrer.private(ShadowTypeInferenceEngine engine, Uri uri,
-      bool topLevel, InterfaceType thisType, KernelLibraryBuilder library)
+      bool topLevel, InterfaceType thisType, SourceLibraryBuilder library)
       : typePromoter = new TypePromoter(engine.typeSchemaEnvironment),
         super.private(engine, uri, topLevel, thisType, library);
 

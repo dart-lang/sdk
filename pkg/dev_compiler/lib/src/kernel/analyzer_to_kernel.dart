@@ -436,7 +436,7 @@ class AnalyzerToKernel {
         fileUri: e.source.uri,
         reference: _reference(e));
     if (!e.isFinal && !e.isConst) {
-      var class_ = e.enclosingElement;
+      var class_ = e.enclosingElement as a.ClassElement;
       if (class_.typeParameters.isNotEmpty) {
         result.isGenericCovariantImpl = _isGenericCovariant(class_, e.type);
       }
@@ -598,7 +598,7 @@ class AnalyzerToKernel {
     var enclosingElement = e.enclosingElement;
     if (hasBound && enclosingElement is a.ClassMemberElement) {
       var class_ = enclosingElement.enclosingElement;
-      if (class_ != null && class_.typeParameters.isNotEmpty) {
+      if (class_ is a.ClassElement && class_.typeParameters.isNotEmpty) {
         t.isGenericCovariantImpl = _isGenericCovariant(class_, e.bound);
       }
     }

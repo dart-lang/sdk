@@ -1421,6 +1421,9 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
   }
   String get innerHtml => _innerHtml;
 
+  @JSName('innerText')
+  String innerText;
+
   /**
    * This is an ease-of-use accessor for event streams which should only be
    * used when an explicit accessor is not available.

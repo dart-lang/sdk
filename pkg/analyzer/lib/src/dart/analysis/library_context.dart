@@ -14,7 +14,7 @@ import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/restricted_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisOptions;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
@@ -61,7 +61,7 @@ class LibraryContext {
   RestrictedAnalysisContext analysisContext;
   SummaryResynthesizer resynthesizer;
   LinkedElementFactory elementFactory;
-  InheritanceManager2 inheritanceManager;
+  InheritanceManager3 inheritanceManager;
 
   var loadedBundles = Set<LibraryCycle>.identity();
 
@@ -103,7 +103,7 @@ class LibraryContext {
       resynthesizer.finishCoreAsyncLibraries();
     }
 
-    inheritanceManager = new InheritanceManager2(analysisContext.typeSystem);
+    inheritanceManager = new InheritanceManager3(analysisContext.typeSystem);
   }
 
   /**

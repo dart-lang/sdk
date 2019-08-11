@@ -21,7 +21,8 @@ class IncludesTypeParametersCovariantlyTest {
   final Class cls = new Class(name: 'C');
 
   bool check(DartType type, List<TypeParameter> typeParameters) {
-    return type.accept(new IncludesTypeParametersCovariantly(typeParameters));
+    return type.accept(new IncludesTypeParametersNonCovariantly(typeParameters,
+        initialVariance: Variance.contravariant));
   }
 
   bool checkContravariant(DartType type, List<TypeParameter> typeParameters) {
