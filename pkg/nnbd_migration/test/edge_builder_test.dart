@@ -2568,9 +2568,8 @@ void test(bool b, C c) {
 }
 ''');
 
-    // TODO(mfairhurst): enable this check
-    //assertNullCheck(checkExpression('b/*check*/'),
-    //    assertEdge(decoratedTypeAnnotation('bool b').node, never, hard: false));
+    assertNullCheck(checkExpression('b/*check*/'),
+        assertEdge(decoratedTypeAnnotation('bool b').node, never, hard: false));
     assertNullCheck(checkExpression('c.m'),
         assertEdge(decoratedTypeAnnotation('C c').node, never, hard: false));
   }
@@ -2591,9 +2590,8 @@ void test(bool b, C c1, C c2) {
 }
 ''');
 
-    // TODO(mfairhurst): enable this check
-    //assertNullCheck(checkExpression('b/*check*/'),
-    //    assertEdge(decoratedTypeAnnotation('bool b').node, never, hard: true));
+    assertNullCheck(checkExpression('b/*check*/'),
+        assertEdge(decoratedTypeAnnotation('bool b').node, never, hard: true));
     assertNullCheck(checkExpression('c1.m'),
         assertEdge(decoratedTypeAnnotation('C c1').node, never, hard: true));
     assertNullCheck(checkExpression('c2.m'),
