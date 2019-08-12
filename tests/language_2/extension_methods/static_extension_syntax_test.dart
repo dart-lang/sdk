@@ -71,13 +71,13 @@ main() {
 
   Expect.equals(0, object.e19);
   Expect.equals(19, recs.e19);
-  Expect.type<RecSolution>(recs.list19);
-  checkStaticType<RecSolution>(recs.list19);
+  Expect.type<List<RecSolution>>(recs.list19);
+  checkStaticType<List<RecSolution>>(recs.list19);
 
   Expect.equals(0, object.e20);
   Expect.equals(20, recs.e20);
-  Expect.type<RecSolution>(recs.list20);
-  checkStaticType<RecSolution>(recs.list20);
+  Expect.type<List<RecSolution>>(recs.list20);
+  checkStaticType<List<RecSolution>>(recs.list20);
 }
 
 extension on Object {
