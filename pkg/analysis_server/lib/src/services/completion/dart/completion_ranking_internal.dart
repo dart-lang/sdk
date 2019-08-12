@@ -8,6 +8,7 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:front_end/src/fasta/scanner.dart';
 
 /// Constructs a [CompletionSuggestion] object.
 CompletionSuggestion createCompletionSuggestion(
@@ -160,7 +161,7 @@ List<String> constructQuery(DartCompletionRequest request, int n) {
 
   final result = List<String>();
   for (var size = 0; size < n && !token.isEof; token = token.previous) {
-    if (!token.isSynthetic) {
+    if (!token.isSynthetic && token is! ErrorToken) {
       result.add(token.lexeme);
       size += 1;
     }
