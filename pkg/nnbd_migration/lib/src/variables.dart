@@ -20,6 +20,8 @@ class Variables implements VariableRecorder, VariableRepository {
 
   final _decoratedElementTypes = <Element, DecoratedType>{};
 
+  final _decoratedTypeParameterBounds = <Element, DecoratedType>{};
+
   final _decoratedDirectSupertypes =
       <ClassElement, Map<ClassElement, DecoratedType>>{};
 
@@ -42,8 +44,12 @@ class Variables implements VariableRecorder, VariableRepository {
   }
 
   @override
-  DecoratedType decoratedElementType(Element element) =>
-      _decoratedElementTypes[element] ??= _createDecoratedElementType(element);
+  DecoratedType decoratedElementType(Element element) {
+    assert(element is! TypeParameterElement,
+        'Use decoratedTypeParameterBound instead');
+    return _decoratedElementTypes[element] ??=
+        _createDecoratedElementType(element);
+  }
 
   @override
   DecoratedType decoratedTypeAnnotation(
@@ -60,6 +66,35 @@ class Variables implements VariableRecorder, VariableRepository {
           ' in ${source.fullName}; for ${typeAnnotation.toSource()}');
     }
     return decoratedTypeAnnotation;
+  }
+
+  @override
+  DecoratedType decoratedTypeParameterBound(
+      TypeParameterElement typeParameter) {
+    if (typeParameter.enclosingElement == null) {
+      var decoratedType =
+          DecoratedType.decoratedTypeParameterBound(typeParameter);
+      if (decoratedType == null) {
+        throw StateError(
+            'A decorated type for the bound of $typeParameter should '
+            'have been stored by the NodeBuilder via recordTypeParameterBound');
+      }
+      return decoratedType;
+    } else {
+      var decoratedType = _decoratedTypeParameterBounds[typeParameter];
+      if (decoratedType == null) {
+        if (_graph.isBeingMigrated(typeParameter.library.source)) {
+          throw StateError(
+              'A decorated type for the bound of $typeParameter should '
+              'have been stored by the NodeBuilder via '
+              'recordTypeParameterBound');
+        }
+        decoratedType = _alreadyMigratedCodeDecorator
+            .decorate(typeParameter.bound ?? DynamicTypeImpl.instance);
+        _decoratedTypeParameterBounds[typeParameter] = decoratedType;
+      }
+      return decoratedType;
+    }
   }
 
   Map<Source, List<PotentialModification>> getPotentialModifications() =>
@@ -87,6 +122,8 @@ class Variables implements VariableRecorder, VariableRepository {
 
   void recordDecoratedElementType(Element element, DecoratedType type) {
     assert(() {
+      assert(element is! TypeParameterElement,
+          'Use recordDecoratedTypeParameterBound instead');
       var library = element.library;
       if (library == null) {
         // No problem; the element is probably a parameter of a function type
@@ -107,6 +144,16 @@ class Variables implements VariableRecorder, VariableRepository {
     if (potentialModification) _addPotentialModification(source, type);
     (_decoratedTypeAnnotations[source] ??=
         {})[_uniqueOffsetForTypeAnnotation(node)] = type;
+  }
+
+  @override
+  void recordDecoratedTypeParameterBound(
+      TypeParameterElement typeParameter, DecoratedType bound) {
+    if (typeParameter.enclosingElement == null) {
+      DecoratedType.recordTypeParameterBound(typeParameter, bound);
+    } else {
+      _decoratedTypeParameterBounds[typeParameter] = bound;
+    }
   }
 
   @override
@@ -187,11 +234,6 @@ class Variables implements VariableRecorder, VariableRepository {
       decoratedType = _alreadyMigratedCodeDecorator.decorate(element.type);
     } else if (element is TopLevelVariableElement) {
       decoratedType = _alreadyMigratedCodeDecorator.decorate(element.type);
-    } else if (element is TypeParameterElement) {
-      // By convention, type parameter elements are decorated with the type of
-      // their bounds.
-      decoratedType = _alreadyMigratedCodeDecorator
-          .decorate(element.bound ?? DynamicTypeImpl.instance);
     } else {
       // TODO(paulberry)
       throw UnimplementedError('Decorating ${element.runtimeType}');

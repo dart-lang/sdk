@@ -23,8 +23,9 @@ class NodeBuilderTest extends MigrationVisitorTestBase {
       variables.decoratedElementType(
           findNode.functionDeclaration(search).declaredElement);
 
-  DecoratedType decoratedTypeParameterBound(String search) => variables
-      .decoratedElementType(findNode.typeParameter(search).declaredElement);
+  DecoratedType decoratedTypeParameterBound(String search) =>
+      variables.decoratedTypeParameterBound(
+          findNode.typeParameter(search).declaredElement);
 
   test_class_alias_synthetic_constructors_no_parameters() async {
     await analyze('''

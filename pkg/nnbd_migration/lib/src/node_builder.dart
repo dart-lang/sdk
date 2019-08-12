@@ -346,7 +346,7 @@ $stackTrace''');
           AlwaysNullableTypeOrigin(_source, node.offset));
       decoratedBound = DecoratedType(_typeProvider.objectType, nullabilityNode);
     }
-    _variables.recordDecoratedElementType(element, decoratedBound);
+    _variables.recordDecoratedTypeParameterBound(element, decoratedBound);
     return null;
   }
 
@@ -548,6 +548,10 @@ abstract class VariableRecorder {
       Source source, TypeAnnotation node, DecoratedTypeAnnotation type,
       {bool potentialModification: true});
 
+  /// Stores he decorated bound of the given [typeParameter].
+  void recordDecoratedTypeParameterBound(
+      TypeParameterElement typeParameter, DecoratedType bound);
+
   /// Records that [node] is associated with the question of whether the named
   /// [parameter] should be optional (should not have a `required`
   /// annotation added to it).
@@ -579,6 +583,9 @@ abstract class VariableRepository {
   /// Gets the [DecoratedType] associated with the given [typeAnnotation].
   DecoratedType decoratedTypeAnnotation(
       Source source, TypeAnnotation typeAnnotation);
+
+  /// Retrieves the decorated bound of the given [typeParameter].
+  DecoratedType decoratedTypeParameterBound(TypeParameterElement typeParameter);
 
   /// Records conditional discard information for the given AST node (which is
   /// an `if` statement or a conditional (`?:`) expression).

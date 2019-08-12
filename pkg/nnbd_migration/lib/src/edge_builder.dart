@@ -1005,13 +1005,15 @@ $stackTrace''');
         for (int i = 0; i < instantiatedType.typeArguments.length; i++) {
           _unionDecoratedTypes(
               instantiatedType.typeArguments[i],
-              _variables.decoratedElementType(element.typeParameters[i]),
+              _variables.decoratedTypeParameterBound(element.typeParameters[i]),
               origin);
         }
       } else {
         for (int i = 0; i < typeArguments.length; i++) {
           DecoratedType bound;
-          bound = _variables.decoratedElementType(element.typeParameters[i]);
+          bound =
+              _variables.decoratedTypeParameterBound(element.typeParameters[i]);
+          assert(bound != null);
           var argumentType =
               _variables.decoratedTypeAnnotation(_source, typeArguments[i]);
           if (argumentType == null) {
@@ -1188,7 +1190,7 @@ $stackTrace''');
     // TODO(paulberry): once we've wired up flow analysis, return promoted
     // bounds if applicable.
     return _variables
-        .decoratedElementType((type.type as TypeParameterType).element);
+        .decoratedTypeParameterBound((type.type as TypeParameterType).element);
   }
 
   /// Creates the necessary constraint(s) for an assignment of the given

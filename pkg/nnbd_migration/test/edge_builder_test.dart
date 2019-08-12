@@ -3626,7 +3626,7 @@ void f(Point<int> x) {}
     var pointClass =
         findNode.typeName('Point').name.staticElement as ClassElement;
     var pointBound =
-        variables.decoratedElementType(pointClass.typeParameters[0]);
+        variables.decoratedTypeParameterBound(pointClass.typeParameters[0]);
     expect(pointBound.type.toString(), 'num');
     assertEdge(decoratedTypeAnnotation('int>').node, pointBound.node,
         hard: true);
@@ -3637,7 +3637,8 @@ void f(Point<int> x) {}
 void f(List<int> x) {}
 ''');
     var listClass = typeProvider.listType.element;
-    var listBound = variables.decoratedElementType(listClass.typeParameters[0]);
+    var listBound =
+        variables.decoratedTypeParameterBound(listClass.typeParameters[0]);
     expect(listBound.type.toString(), 'dynamic');
     assertEdge(decoratedTypeAnnotation('int>').node, listBound.node,
         hard: true);
