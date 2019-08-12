@@ -1359,7 +1359,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     if (_options.experimentNewRti) {
       AbstractValueWithPrecision checkedType =
-          _abstractValueDomain.createFromStaticType(fieldType);
+          _abstractValueDomain.createFromStaticType(fieldType, nullable: true);
       if (checkedType.isPrecise &&
           _abstractValueDomain
               .isIn(value.instructionType, checkedType.abstractValue)
