@@ -1938,6 +1938,31 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  @failingTest
+  test_removed_if_element_doesnt_introduce_nullability() async {
+    // Failing for two reasons: 1. we don't add ! to recover(), and 2. we get
+    // an unimplemented error.
+    var content = '''
+f(int x) {
+  <int>[if (x == null) recover(), 0];
+}
+int recover() {
+  assert(false);
+  return null;
+}
+''';
+    var expected = '''
+f(int x) {
+  <int>[if (x == null) recover()!, 0];
+}
+int? recover() {
+  assert(false);
+  return null;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_single_file_multiple_changes() async {
     var content = '''
 int f() => null;

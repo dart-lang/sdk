@@ -111,6 +111,13 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   /// return statements.
   DecoratedType _currentFunctionType;
 
+  /// The [DecoratedType] of the innermost list or set literal being visited, or
+  /// `null` if the visitor is not inside any function or method.
+  ///
+  /// This is needed to construct the appropriate nullability constraints for
+  /// ui as code list elements.
+  DecoratedType _currentLiteralType;
+
   /// Information about the most recently visited binary expression whose
   /// boolean value could possibly affect nullability analysis.
   _ConditionInfo _conditionInfo;
@@ -556,6 +563,44 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   @override
+  DecoratedType visitIfElement(IfElement node) {
+    _handleAssignment(node.condition, _notNullType);
+    NullabilityNode trueGuard;
+    NullabilityNode falseGuard;
+    if (identical(_conditionInfo?.condition, node.condition)) {
+      trueGuard = _conditionInfo.trueGuard;
+      falseGuard = _conditionInfo.falseGuard;
+      _variables.recordConditionalDiscard(_source, node,
+          ConditionalDiscard(trueGuard, falseGuard, _conditionInfo.isPure));
+    }
+    if (trueGuard != null) {
+      _guards.add(trueGuard);
+    }
+    try {
+      _postDominatedLocals.doScoped(
+          action: () => _handleCollectionElement(node.thenElement));
+    } finally {
+      if (trueGuard != null) {
+        _guards.removeLast();
+      }
+    }
+    if (node.elseElement != null) {
+      if (falseGuard != null) {
+        _guards.add(falseGuard);
+      }
+      try {
+        _postDominatedLocals.doScoped(
+            action: () => _handleCollectionElement(node.elseElement));
+      } finally {
+        if (falseGuard != null) {
+          _guards.removeLast();
+        }
+      }
+    }
+    return null;
+  }
+
+  @override
   DecoratedType visitIfStatement(IfStatement node) {
     // TODO(paulberry): should the use of a boolean in an if-statement be
     // treated like an implicit `assert(b != null)`?  Probably.
@@ -681,15 +726,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       if (typeArgumentType == null) {
         _unimplemented(node, 'Could not compute type argument type');
       }
-      for (var element in node.elements) {
-        if (element is Expression) {
-          _handleAssignment(element, typeArgumentType);
-        } else {
-          // Handle spread and control flow elements.
-          element.accept(this);
-          // TODO(brianwilkerson)
-          _unimplemented(node, 'Spread or control flow element');
-        }
+      final previousLiteralType = _currentLiteralType;
+      try {
+        _currentLiteralType = typeArgumentType;
+        node.elements.forEach(_handleCollectionElement);
+      } finally {
+        _currentLiteralType = previousLiteralType;
       }
       return DecoratedType(listType, _graph.never,
           typeArguments: [typeArgumentType]);
@@ -1204,6 +1246,15 @@ $stackTrace''');
         destination: destinationType,
         hard: _postDominatedLocals.isReferenceInScope(expression));
     return sourceType;
+  }
+
+  DecoratedType _handleCollectionElement(CollectionElement element) {
+    if (element is Expression) {
+      assert(_currentLiteralType != null);
+      return _handleAssignment(element, _currentLiteralType);
+    } else {
+      return element.accept(this);
+    }
   }
 
   void _handleConstructorRedirection(

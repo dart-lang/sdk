@@ -1707,6 +1707,76 @@ void f(bool b, int i) {
     assertNoEdge(always, decoratedTypeAnnotation('int i').node);
   }
 
+  test_if_element() async {
+    await analyze('''
+void f(bool b) {
+  int i1 = null;
+  int i2 = null;
+  <int>[if (b) i1 else i2];
+}
+''');
+
+    assertNullCheck(checkExpression('b) i1'),
+        assertEdge(decoratedTypeAnnotation('bool b').node, never, hard: true));
+    assertEdge(decoratedTypeAnnotation('int i1').node,
+        decoratedTypeAnnotation('int>[').node,
+        hard: false);
+    assertEdge(decoratedTypeAnnotation('int i2').node,
+        decoratedTypeAnnotation('int>[').node,
+        hard: false);
+  }
+
+  @failingTest
+  test_if_element_guard_equals_null() async {
+    // failing because of an unimplemented exception in conditional modification
+    await analyze('''
+dynamic f(int i, int j, int k) {
+  <int>[if (i == null) j/*check*/ else k/*check*/];
+}
+''');
+    var nullable_i = decoratedTypeAnnotation('int i').node;
+    var nullable_j = decoratedTypeAnnotation('int j').node;
+    var nullable_k = decoratedTypeAnnotation('int k').node;
+    var nullable_itemType = decoratedTypeAnnotation('int>[').node;
+    assertNullCheck(
+        checkExpression('j/*check*/'),
+        assertEdge(nullable_j, nullable_itemType,
+            guards: [nullable_i], hard: false));
+    assertNullCheck(checkExpression('k/*check*/'),
+        assertEdge(nullable_k, nullable_itemType, hard: false));
+    var discard = statementDiscard('if (i == null)');
+    expect(discard.trueGuard, same(nullable_i));
+    expect(discard.falseGuard, null);
+    expect(discard.pureCondition, true);
+  }
+
+  test_if_element_nested() async {
+    await analyze('''
+void f(bool b1, bool b2) {
+  int i1 = null;
+  int i2 = null;
+  int i3 = null;
+  <int>[if (b1) if (b2) i1 else i2 else i3];
+}
+''');
+
+    assertNullCheck(checkExpression('b1)'),
+        assertEdge(decoratedTypeAnnotation('bool b1').node, never, hard: true));
+    assertNullCheck(
+        checkExpression('b2) i1'),
+        assertEdge(decoratedTypeAnnotation('bool b2').node, never,
+            hard: false));
+    assertEdge(decoratedTypeAnnotation('int i1').node,
+        decoratedTypeAnnotation('int>[').node,
+        hard: false);
+    assertEdge(decoratedTypeAnnotation('int i2').node,
+        decoratedTypeAnnotation('int>[').node,
+        hard: false);
+    assertEdge(decoratedTypeAnnotation('int i3').node,
+        decoratedTypeAnnotation('int>[').node,
+        hard: false);
+  }
+
   test_if_guard_equals_null() async {
     await analyze('''
 int f(int i, int j, int k) {
@@ -2693,6 +2763,27 @@ void test(bool b1, C c1, C c2, C c3) {
         assertEdge(decoratedTypeAnnotation('C c2').node, never, hard: true));
     assertNullCheck(checkExpression('c3.m'),
         assertEdge(decoratedTypeAnnotation('C c3').node, never, hard: false));
+  }
+
+  test_postDominators_ifElement() async {
+    await analyze('''
+class C {
+  int m() => 0;
+}
+void test(bool b, C c1, C c2, C c3) {
+  <int>[if (b) c1.m() else c2.m()];
+  c3.m();
+}
+''');
+
+    assertNullCheck(checkExpression('b)'),
+        assertEdge(decoratedTypeAnnotation('bool b').node, never, hard: true));
+    assertNullCheck(checkExpression('c1.m'),
+        assertEdge(decoratedTypeAnnotation('C c1').node, never, hard: false));
+    assertNullCheck(checkExpression('c2.m'),
+        assertEdge(decoratedTypeAnnotation('C c2').node, never, hard: false));
+    assertNullCheck(checkExpression('c3.m'),
+        assertEdge(decoratedTypeAnnotation('C c3').node, never, hard: true));
   }
 
   test_postDominators_ifStatement_conditional() async {
