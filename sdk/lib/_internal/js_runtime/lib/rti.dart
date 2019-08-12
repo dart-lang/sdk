@@ -1909,11 +1909,15 @@ bool _isSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
     }
   }
 
-  if (isEitherFunctionKind(t)) {
+  if (isGenericFunctionKind(t)) {
+    return _isGenericFunctionSubtype(universe, s, sEnv, t, tEnv);
+  }
+
+  if (isFunctionKind(t)) {
     return _isFunctionSubtype(universe, s, sEnv, t, tEnv);
   }
 
-  if (isEitherFunctionKind(s)) {
+  if (isFunctionKind(s) || isGenericFunctionKind(s)) {
     return isFunctionType(t);
   }
 
@@ -1924,25 +1928,25 @@ bool _isSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
   return _isSubtypeOfInterface(universe, s, sEnv, tName, tArgs, tEnv);
 }
 
+bool _isGenericFunctionSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
+  assert(isGenericFunctionKind(t));
+  if (!isGenericFunctionKind(s)) return false;
+
+  var sBounds = Rti._getGenericFunctionBounds(s);
+  var tBounds = Rti._getGenericFunctionBounds(t);
+  if (!typesEqual(sBounds, tBounds)) return false;
+  // TODO(fishythefish): Extend [sEnv] and [tEnv] with bindings for the [s]
+  // and [t] type parameters to enable checking the bound against
+  // non-type-parameter terms.
+
+  return _isFunctionSubtype(universe, Rti._getGenericFunctionBase(s), sEnv,
+      Rti._getGenericFunctionBase(t), tEnv);
+}
+
 // TODO(fishythefish): Support required named parameters.
 bool _isFunctionSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
-  assert(isEitherFunctionKind(t));
-  if (!isEitherFunctionKind(s)) return false;
-
-  if (isGenericFunctionKind(s)) {
-    if (!isGenericFunctionKind(t)) return false;
-    var sBounds = Rti._getGenericFunctionBounds(s);
-    var tBounds = Rti._getGenericFunctionBounds(t);
-    if (!typesEqual(sBounds, tBounds)) return false;
-    // TODO(fishythefish): Extend [sEnv] and [tEnv] with bindings for the [s]
-    // and [t] type parameters to enable checking the bound against
-    // non-type-parameter terms.
-
-    s = Rti._getGenericFunctionBase(s);
-    t = Rti._getGenericFunctionBase(t);
-  } else if (isGenericFunctionKind(t)) {
-    return false;
-  }
+  assert(isFunctionKind(t));
+  if (!isFunctionKind(s)) return false;
 
   Rti sReturnType = Rti._getReturnType(s);
   Rti tReturnType = Rti._getReturnType(t);
@@ -2136,8 +2140,6 @@ bool isJsInteropType(Rti t) => Rti._getKind(t) == Rti.kindAny;
 
 bool isFutureOrType(Rti t) => Rti._getKind(t) == Rti.kindFutureOr;
 
-bool isEitherFunctionKind(Rti t) =>
-    isFunctionKind(t) || isGenericFunctionKind(t);
 bool isFunctionKind(Rti t) => Rti._getKind(t) == Rti.kindFunction;
 bool isGenericFunctionKind(Rti t) => Rti._getKind(t) == Rti.kindGenericFunction;
 
