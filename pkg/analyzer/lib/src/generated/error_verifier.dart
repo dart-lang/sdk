@@ -1750,7 +1750,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     var staticSetters = <String, Element>{};
 
     for (var member in members) {
-      if (member is MethodDeclaration) {
+      if (member is FieldDeclaration) {
+        for (var field in member.fields.variables) {
+          var identifier = field.name;
+          _checkDuplicateIdentifier(
+            member.isStatic ? staticGetters : instanceGetters,
+            identifier,
+            setterScope: member.isStatic ? staticSetters : instanceSetters,
+          );
+        }
+      } else if (member is MethodDeclaration) {
         _checkDuplicateIdentifier(
           member.isStatic ? staticGetters : instanceGetters,
           member.name,
@@ -1761,7 +1770,22 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
     // Check for local static members conflicting with local instance members.
     for (var member in members) {
-      if (member is MethodDeclaration) {
+      if (member is FieldDeclaration) {
+        if (member.isStatic) {
+          for (var field in member.fields.variables) {
+            var identifier = field.name;
+            var name = identifier.name;
+            if (instanceGetters.containsKey(name) ||
+                instanceSetters.containsKey(name)) {
+              _errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE,
+                identifier,
+                [_enclosingExtension.name, name],
+              );
+            }
+          }
+        }
+      } else if (member is MethodDeclaration) {
         if (member.isStatic) {
           var identifier = member.name;
           var name = identifier.name;
@@ -1901,7 +1925,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       }
     }
     for (CompilationUnitMember member in node.declarations) {
-      if (member is NamedCompilationUnitMember) {
+      if (member is ExtensionDeclaration) {
+        var identifier = member.name;
+        if (identifier != null) {
+          _checkDuplicateIdentifier(definedGetters, identifier,
+              setterScope: definedSetters);
+        }
+      } else if (member is NamedCompilationUnitMember) {
         _checkDuplicateIdentifier(definedGetters, member.name,
             setterScope: definedSetters);
       } else if (member is TopLevelVariableDeclaration) {

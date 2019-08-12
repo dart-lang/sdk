@@ -325,9 +325,6 @@ class DuplicateDefinitionExtensionTest extends DriverResolutionTest {
     ..contextFeatures = new FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
 
-  CompileTimeErrorCode get _errorCode =>
-      CompileTimeErrorCode.DUPLICATE_DEFINITION;
-
   test_extendedType_instance() async {
     await assertNoErrorsInCode('''
 class A {
@@ -361,86 +358,277 @@ extension E on A {
   }
 
   test_instance_getter_getter() async {
-    await assertErrorsInCode('''
-extension E on String {
+    await assertErrorsInCode(r'''
+class A {}
+extension E on A {
   int get foo => 0;
   int get foo => 0;
 }
 ''', [
-      error(_errorCode, 54, 3),
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 60, 3),
+    ]);
+  }
+
+  test_instance_getter_method() async {
+    await assertErrorsInCode(r'''
+class A {}
+extension E on A {
+  int get foo => 0;
+  void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 57, 3),
     ]);
   }
 
   test_instance_getter_setter() async {
-    await assertNoErrorsInCode('''
-extension E on String {
+    await assertNoErrorsInCode(r'''
+class A {}
+extension E on A {
   int get foo => 0;
   set foo(_) {}
 }
 ''');
   }
 
+  test_instance_method_getter() async {
+    await assertErrorsInCode(r'''
+class A {}
+extension E on A {
+  void foo() {}
+  int get foo => 0;
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 56, 3),
+    ]);
+  }
+
   test_instance_method_method() async {
-    await assertErrorsInCode('''
-extension E on String {
+    await assertErrorsInCode(r'''
+class A {}
+extension E on A {
   void foo() {}
   void foo() {}
 }
 ''', [
-      error(_errorCode, 47, 3),
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 53, 3),
+    ]);
+  }
+
+  test_instance_method_setter() async {
+    await assertErrorsInCode(r'''
+class A {}
+extension E on A {
+  void foo() {}
+  set foo(_) {}
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 52, 3),
+    ]);
+  }
+
+  test_instance_setter_getter() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+extension E on A {
+  set foo(_) {}
+  int get foo => 0;
+}
+''');
+  }
+
+  test_instance_setter_method() async {
+    await assertErrorsInCode(r'''
+class A {}
+extension E on A {
+  set foo(_) {}
+  void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 53, 3),
     ]);
   }
 
   test_instance_setter_setter() async {
-    await assertErrorsInCode('''
-extension E on String {
-  set foo(_) {}
-  set foo(_) {}
+    await assertErrorsInCode(r'''
+class A {}
+extension E on A {
+  void set foo(_) {}
+  void set foo(_) {}
 }
 ''', [
-      error(_errorCode, 46, 3),
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 62, 3),
     ]);
   }
 
+  test_static_field_field() async {
+    await assertErrorsInCode(r'''
+class A {}
+extension E on A {
+  static int foo;
+  static int foo;
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 61, 3),
+    ]);
+  }
+
+  test_static_field_getter() async {
+    await assertErrorsInCode(r'''
+class A {}
+extension E on A {
+  static int foo;
+  static int get foo => 0;
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 65, 3),
+    ]);
+  }
+
+  test_static_field_method() async {
+    await assertErrorsInCode(r'''
+class A {}
+extension E on A {
+  static int foo;
+  static void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 62, 3),
+    ]);
+  }
+
+  test_static_fieldFinal_getter() async {
+    await assertErrorsInCode(r'''
+class A {}
+extension E on A {
+  static final int foo = 0;
+  static int get foo => 0;
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 75, 3),
+    ]);
+  }
+
+  test_static_fieldFinal_setter() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+extension E on A {
+  static final int foo = 0;
+  static set foo(int x) {}
+}
+''');
+  }
+
   test_static_getter_getter() async {
-    await assertErrorsInCode('''
-extension E on String {
+    await assertErrorsInCode(r'''
+class A {}
+extension E on A {
   static int get foo => 0;
   static int get foo => 0;
 }
 ''', [
-      error(_errorCode, 68, 3),
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 74, 3),
+    ]);
+  }
+
+  test_static_getter_method() async {
+    await assertErrorsInCode(r'''
+class A {}
+extension E on A {
+  static int get foo => 0;
+  static void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 71, 3),
     ]);
   }
 
   test_static_getter_setter() async {
-    await assertNoErrorsInCode('''
-extension E on String {
+    await assertNoErrorsInCode(r'''
+class A {}
+extension E on A {
   static int get foo => 0;
   static set foo(_) {}
 }
 ''');
   }
 
+  test_static_method_getter() async {
+    await assertErrorsInCode(r'''
+class A {}
+extension E on A {
+  static void foo() {}
+  static int get foo => 0;
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 70, 3),
+    ]);
+  }
+
   test_static_method_method() async {
-    await assertErrorsInCode('''
-extension E on String {
+    await assertErrorsInCode(r'''
+class A {}
+extension E on A {
   static void foo() {}
   static void foo() {}
 }
 ''', [
-      error(_errorCode, 61, 3),
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 67, 3),
+    ]);
+  }
+
+  test_static_method_setter() async {
+    await assertErrorsInCode(r'''
+class A {}
+extension E on A {
+  static void foo() {}
+  static set foo(_) {}
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 66, 3),
+    ]);
+  }
+
+  test_static_setter_getter() async {
+    await assertNoErrorsInCode(r'''
+mixin M {
+  static set foo(_) {}
+  static int get foo => 0;
+}
+''');
+  }
+
+  test_static_setter_method() async {
+    await assertErrorsInCode(r'''
+class A {}
+extension E on A {
+  static set foo(_) {}
+  static void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 67, 3),
     ]);
   }
 
   test_static_setter_setter() async {
-    await assertErrorsInCode('''
-extension E on String {
-  static set foo(_) {}
-  static set foo(_) {}
+    await assertErrorsInCode(r'''
+class A {}
+extension E on A {
+  static void set foo(_) {}
+  static void set foo(_) {}
 }
 ''', [
-      error(_errorCode, 60, 3),
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 76, 3),
+    ]);
+  }
+
+  test_unitMembers_extension() async {
+    await assertErrorsInCode('''
+class A {}
+extension E on A {}
+extension E on A {}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 41, 1),
     ]);
   }
 }

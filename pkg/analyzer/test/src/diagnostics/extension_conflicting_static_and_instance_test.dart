@@ -25,6 +25,20 @@ class ExtensionConflictingStaticAndInstanceTest extends DriverResolutionTest {
   CompileTimeErrorCode get _errorCode =>
       CompileTimeErrorCode.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE;
 
+  test_extendedType_field() async {
+    await assertNoErrorsInCode('''
+class A {
+  static int foo = 0;
+  int bar = 0;
+}
+
+extension E on A {
+  int get foo => 0;
+  static int get bar => 0;
+}
+''');
+  }
+
   test_extendedType_getter() async {
     await assertNoErrorsInCode('''
 class A {
@@ -65,6 +79,39 @@ extension E on A {
   static set bar(_) {}
 }
 ''');
+  }
+
+  test_field_getter() async {
+    await assertErrorsInCode('''
+extension E on String {
+  static int foo = 0;
+  int get foo => 0;
+}
+''', [
+      error(_errorCode, 37, 3),
+    ]);
+  }
+
+  test_field_method() async {
+    await assertErrorsInCode('''
+extension E on String {
+  static int foo = 0;
+  void foo() {}
+}
+''', [
+      error(_errorCode, 37, 3),
+    ]);
+  }
+
+  test_field_setter() async {
+    await assertErrorsInCode('''
+extension E on String {
+  static int foo = 0;
+  set foo(_) {}
+}
+''', [
+      error(_errorCode, 37, 3),
+    ]);
   }
 
   test_getter_getter() async {
