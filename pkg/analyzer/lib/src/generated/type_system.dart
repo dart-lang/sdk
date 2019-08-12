@@ -1514,7 +1514,7 @@ class GenericInferrer {
   ///   - `GLB(FutureOr<A>, FutureOr<B>) == FutureOr<GLB(A, B)>`
   ///   - `GLB(FutureOr<A>, Future<B>) == Future<GLB(A, B)>`
   ///   - else `GLB(FutureOr<A>, B) == GLB(A, B)`
-  /// - `GLB(A, FutureOr<B>) ==  GLB(FutureOr<A>, B)` (defined above),
+  /// - `GLB(A, FutureOr<B>) ==  GLB(FutureOr<B>, A)` (defined above),
   /// - else `GLB(A, B) == Null`
   DartType _getGreatestLowerBound(DartType t1, DartType t2) {
     var result = _typeSystem.getGreatestLowerBound(t1, t2);
@@ -1540,7 +1540,7 @@ class GenericInferrer {
         return _getGreatestLowerBound(t1TypeArg, t2);
       }
       if (t2 is InterfaceType && t2.isDartAsyncFutureOr) {
-        // GLB(A, FutureOr<B>) ==  GLB(FutureOr<A>, B)
+        // GLB(A, FutureOr<B>) ==  GLB(FutureOr<B>, A)
         return _getGreatestLowerBound(t2, t1);
       }
       return typeProvider.nullType;
