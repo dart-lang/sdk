@@ -1432,6 +1432,17 @@ main() {
     // No assertions; just checking that it doesn't crash.
   }
 
+  test_forStatement_empty() async {
+    await analyze('''
+
+void test() {
+  for (; ; ) {
+    return;
+  }
+}
+''');
+  }
+
   test_function_assignment() async {
     await analyze('''
 class C {
@@ -2622,6 +2633,34 @@ void test(List<C> l, C c1, C c2) {
         assertEdge(decoratedTypeAnnotation('C c1').node, never, hard: false));
     assertNullCheck(checkExpression('c2.m'),
         assertEdge(decoratedTypeAnnotation('C c2').node, never, hard: true));
+    assertNullCheck(checkExpression('c3.m'),
+        assertEdge(decoratedTypeAnnotation('C c3').node, never, hard: false));
+  }
+
+  test_postDominators_forStatement_conditional() async {
+    await analyze('''
+
+class C {
+  void m() {}
+}
+void test(bool b1, C c1, C c2, C c3) {
+  for (; b1/*check*/; c2.m()) {
+    C c4 = c1;
+    c4.m();
+    return;
+  }
+
+  c3.m();
+}
+''');
+
+    //TODO(mfairhurst): enable this check
+    //assertNullCheck(checkExpression('b1/*check*/'),
+    //    assertEdge(decoratedTypeAnnotation('bool b1').node, never, hard: true));
+    assertNullCheck(checkExpression('c4.m'),
+        assertEdge(decoratedTypeAnnotation('C c4').node, never, hard: true));
+    assertNullCheck(checkExpression('c2.m'),
+        assertEdge(decoratedTypeAnnotation('C c2').node, never, hard: false));
     assertNullCheck(checkExpression('c3.m'),
         assertEdge(decoratedTypeAnnotation('C c3').node, never, hard: false));
   }

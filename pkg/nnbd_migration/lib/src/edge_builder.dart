@@ -124,7 +124,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   final _guards = <NullabilityNode>[];
 
   /// The scope of locals (parameters, variables) that are post-dominated by the
-  /// current node as we walk the AST. We use a [ScopedSet] so that outer
+  /// current node as we walk the AST. We use a [_ScopedLocalSet] so that outer
   /// scopes may track their post-dominators separately from inner scopes.
   ///
   /// Note that this is not guaranteed to be complete. It is used to make hard
@@ -499,36 +499,27 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType visitForStatement(ForStatement node) {
     // TODO do special condition handling
     // TODO do create true/false guards?
-    // Create a scope of for new initializers etc, which includes previous
-    // post-dominators.
-    _postDominatedLocals.doScoped(
-        copyCurrent: true,
-        action: () {
-          final parts = node.forLoopParts;
-          if (parts is ForParts) {
-            if (parts is ForPartsWithDeclarations) {
-              parts.variables.accept(this);
-            }
-            if (parts is ForPartsWithExpression) {
-              parts.initialization.accept(this);
-            }
-            parts.condition.accept(this);
-          }
-          if (parts is ForEachParts) {
-            parts.iterable.accept(this);
-          }
+    final parts = node.forLoopParts;
+    if (parts is ForParts) {
+      if (parts is ForPartsWithDeclarations) {
+        parts.variables?.accept(this);
+      } else if (parts is ForPartsWithExpression) {
+        parts.initialization?.accept(this);
+      }
+      parts.condition?.accept(this);
+    } else if (parts is ForEachParts) {
+      parts.iterable.accept(this);
+    }
 
-          // The condition may fail/iterable may be empty, so the body does not
-          // post-dominate the parts, or the outer scope.
-          _postDominatedLocals.popScope();
-          _postDominatedLocals.pushScope();
+    // The condition may fail/iterable may be empty, so the body gets a new
+    // post-dominator scope.
+    _postDominatedLocals.doScoped(action: () {
+      node.body.accept(this);
 
-          if (parts is ForParts) {
-            parts.updaters.accept(this);
-          }
-
-          node.body.accept(this);
-        });
+      if (parts is ForParts) {
+        parts.updaters.accept(this);
+      }
+    });
     return null;
   }
 
