@@ -305,6 +305,8 @@ class CommonMasks implements AbstractValueDomain {
     } else if (type is FunctionType) {
       return finish(
           TypeMask.subtype(commonElements.functionClass, _closedWorld), false);
+    } else if (type is DynamicType) {
+      return AbstractValueWithPrecision(dynamicType, true);
     } else {
       return finish(dynamicType, false);
     }
