@@ -761,7 +761,9 @@ class SsaInstructionSimplifier extends HBaseVisitor
             _closedWorld.elementEnvironment.getFieldType(field);
         HInstruction closureCall = new HInvokeClosure(
             callSelector,
-            _abstractValueDomain.createFromStaticType(fieldType).abstractValue,
+            _abstractValueDomain
+                .createFromStaticType(fieldType, nullable: true)
+                .abstractValue,
             inputs,
             node.instructionType,
             node.typeArguments)
@@ -1877,7 +1879,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
           dartType, node.isTypeError, _closedWorld.commonElements);
       if (specializedCheck != null) {
         AbstractValueWithPrecision checkedType =
-            _abstractValueDomain.createFromStaticType(dartType);
+            _abstractValueDomain.createFromStaticType(dartType, nullable: true);
         return HAsCheckSimple(node.checkedInput, dartType, checkedType,
             node.isTypeError, specializedCheck, node.instructionType);
       }
@@ -1888,6 +1890,27 @@ class SsaInstructionSimplifier extends HBaseVisitor
   @override
   HInstruction visitAsCheckSimple(HAsCheckSimple node) {
     if (node.isRedundant(_closedWorld)) return node.checkedInput;
+    return node;
+  }
+
+  @override
+  HInstruction visitIsTest(HIsTest node) {
+    AbstractValueWithPrecision checkedAbstractValue = node.checkedAbstractValue;
+    HInstruction checkedInput = node.checkedInput;
+    AbstractValue inputType = checkedInput.instructionType;
+
+    AbstractBool isIn = _abstractValueDomain.isIn(
+        inputType, checkedAbstractValue.abstractValue);
+
+    if (isIn.isDefinitelyFalse) {
+      return _graph.addConstantBool(false, _closedWorld);
+    }
+    if (!checkedAbstractValue.isPrecise) return node;
+
+    if (isIn.isDefinitelyTrue) {
+      return _graph.addConstantBool(true, _closedWorld);
+    }
+
     return node;
   }
 
@@ -2952,6 +2975,27 @@ class SsaTypeConversionInserter extends HBaseVisitor
     }
     // TODO(sra): Also strengthen uses for when the condition is known
     // false. Avoid strengthening to `null`.
+  }
+
+  @override
+  void visitIsTest(HIsTest instruction) {
+    List<HBasicBlock> trueTargets = <HBasicBlock>[];
+    List<HBasicBlock> falseTargets = <HBasicBlock>[];
+
+    collectTargets(instruction, trueTargets, falseTargets);
+
+    if (trueTargets.isEmpty && falseTargets.isEmpty) return;
+
+    AbstractValue convertedType =
+        instruction.checkedAbstractValue.abstractValue;
+    HInstruction input = instruction.checkedInput;
+
+    for (HBasicBlock block in trueTargets) {
+      insertTypePropagationForDominatedUsers(block, input, convertedType);
+    }
+    // TODO(sra): Also strengthen uses for when the condition is precise and
+    // known false (e.g. int? x; ... if (x is! int) use(x)). Avoid strengthening
+    // to `null`.
   }
 
   @override

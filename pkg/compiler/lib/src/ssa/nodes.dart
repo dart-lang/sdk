@@ -4352,10 +4352,11 @@ class HTypeInfoExpression extends HInstruction {
 /// lowered to other instructions, so this instruction remains for types that
 /// depend on type variables and complex types.
 class HIsTest extends HInstruction {
+  final AbstractValueWithPrecision checkedAbstractValue;
   final DartType dartType;
 
-  HIsTest(
-      this.dartType, HInstruction checked, HInstruction rti, AbstractValue type)
+  HIsTest(this.dartType, this.checkedAbstractValue, HInstruction checked,
+      HInstruction rti, AbstractValue type)
       : super([rti, checked], type) {
     setUseGvn();
   }

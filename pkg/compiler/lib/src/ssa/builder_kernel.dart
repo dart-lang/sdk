@@ -4055,8 +4055,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     StaticType receiverStaticType =
         _getStaticType(invocation.arguments.positional[1]);
     AbstractValue receiverType = _abstractValueDomain
-        .createFromStaticType(
-            receiverStaticType.type, receiverStaticType.relation)
+        .createFromStaticType(receiverStaticType.type,
+            classRelation: receiverStaticType.relation, nullable: true)
         .abstractValue;
     push(new HInvokeClosure(selector, receiverType, inputs,
         _abstractValueDomain.dynamicType, typeArguments));
@@ -4811,8 +4811,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       List<DartType> typeArguments,
       SourceInformation sourceInformation) {
     AbstractValue typeBound = _abstractValueDomain
-        .createFromStaticType(
-            staticReceiverType.type, staticReceiverType.relation)
+        .createFromStaticType(staticReceiverType.type,
+            classRelation: staticReceiverType.relation, nullable: true)
         .abstractValue;
     receiverType = receiverType == null
         ? typeBound
@@ -5404,7 +5404,11 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     if (options.experimentNewRti) {
       HInstruction rti =
           _typeBuilder.analyzeTypeArgumentNewRti(typeValue, sourceElement);
-      push(HIsTest(typeValue, expression, rti, _abstractValueDomain.boolType));
+      AbstractValueWithPrecision checkedType =
+          _abstractValueDomain.createFromStaticType(typeValue, nullable: false);
+
+      push(HIsTest(typeValue, checkedType, expression, rti,
+          _abstractValueDomain.boolType));
       return;
     }
 

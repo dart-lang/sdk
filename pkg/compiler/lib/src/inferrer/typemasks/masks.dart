@@ -265,7 +265,13 @@ class CommonMasks implements AbstractValueDomain {
 
   @override
   AbstractValueWithPrecision createFromStaticType(DartType type,
-      [ClassRelation classRelation = ClassRelation.subtype]) {
+      {ClassRelation classRelation = ClassRelation.subtype, bool nullable}) {
+    assert(nullable != null);
+    AbstractValueWithPrecision finish(TypeMask value, bool isPrecise) {
+      return AbstractValueWithPrecision(
+          nullable ? value : value.nonNullable(), isPrecise);
+    }
+
     bool isPrecise = true;
     while (type is TypeVariableType) {
       TypeVariableType typeVariable = type;
@@ -274,6 +280,7 @@ class CommonMasks implements AbstractValueDomain {
       classRelation = ClassRelation.subtype;
       isPrecise = false;
     }
+
     if (type is InterfaceType) {
       if (isPrecise) {
         // TODO(sra): Could be precise if instantiated-to-bounds.
@@ -284,24 +291,22 @@ class CommonMasks implements AbstractValueDomain {
       }
       switch (classRelation) {
         case ClassRelation.exact:
-          return AbstractValueWithPrecision(
-              TypeMask.exact(type.element, _closedWorld), isPrecise);
+          return finish(TypeMask.exact(type.element, _closedWorld), isPrecise);
         case ClassRelation.thisExpression:
           if (!_closedWorld.isUsedAsMixin(type.element)) {
-            return AbstractValueWithPrecision(
+            return finish(
                 TypeMask.subclass(type.element, _closedWorld), isPrecise);
           }
           break;
         case ClassRelation.subtype:
           break;
       }
-      return AbstractValueWithPrecision(
-          TypeMask.subtype(type.element, _closedWorld), isPrecise);
+      return finish(TypeMask.subtype(type.element, _closedWorld), isPrecise);
     } else if (type is FunctionType) {
-      return AbstractValueWithPrecision(
+      return finish(
           TypeMask.subtype(commonElements.functionClass, _closedWorld), false);
     } else {
-      return AbstractValueWithPrecision(dynamicType, false);
+      return finish(dynamicType, false);
     }
   }
 
