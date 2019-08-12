@@ -93,11 +93,7 @@ class ExtensionMemberResolver {
     var receiverExpression = arguments[0];
     var receiverType = receiverExpression.staticType;
 
-    var typeArgumentTypes = _inferTypeArguments(
-      element,
-      receiverType,
-      node.typeArguments,
-    );
+    var typeArgumentTypes = _inferTypeArguments(node, receiverType);
 
     nodeImpl.typeArgumentTypes = typeArgumentTypes;
     nodeImpl.extendedType = Substitution.fromPairs(
@@ -307,7 +303,7 @@ class ExtensionMemberResolver {
     return candidates;
   }
 
-  /// Given the generic [extension] element, either return types specified
+  /// Given the generic [element] element, either return types specified
   /// explicitly in [typeArguments], or infer type arguments from the given
   /// [receiverType].
   ///
@@ -315,15 +311,16 @@ class ExtensionMemberResolver {
   /// of extension's type parameters, or inference fails, return `dynamic`
   /// for all type parameters.
   List<DartType> _inferTypeArguments(
-    ExtensionElement extension,
+    ExtensionOverride node,
     DartType receiverType,
-    TypeArgumentList typeArguments,
   ) {
-    var typeParameters = extension.typeParameters;
+    var element = node.staticElement;
+    var typeParameters = element.typeParameters;
     if (typeParameters.isEmpty) {
       return const <DartType>[];
     }
 
+    var typeArguments = node.typeArguments;
     if (typeArguments != null) {
       var arguments = typeArguments.arguments;
       if (arguments.length == typeParameters.length) {
@@ -340,10 +337,14 @@ class ExtensionMemberResolver {
       );
       inferrer.constrainArgument(
         receiverType,
-        extension.extendedType,
+        element.extendedType,
         'extendedType',
       );
-      return inferrer.infer(typeParameters);
+      return inferrer.infer(
+        typeParameters,
+        errorReporter: _errorReporter,
+        errorNode: node.extensionName,
+      );
     }
   }
 
