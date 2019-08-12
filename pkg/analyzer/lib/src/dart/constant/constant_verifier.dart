@@ -600,8 +600,7 @@ class _ConstLiteralVerifier {
       return CompileTimeErrorCode
           .NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY;
     } else if (forSet) {
-      return CompileTimeErrorCode
-          .NON_CONSTANT_SET_ELEMENT_FROM_DEFERRED_LIBRARY;
+      return CompileTimeErrorCode.SET_ELEMENT_FROM_DEFERRED_LIBRARY;
     }
 
     return null;
@@ -640,10 +639,8 @@ class _ConstLiteralVerifier {
       // The errors have already been reported.
       if (conditionBool == null) return false;
 
-      verifier._reportErrorIfFromDeferredLibrary(
-          element.condition,
-          CompileTimeErrorCode
-              .NON_CONSTANT_IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY);
+      verifier._reportErrorIfFromDeferredLibrary(element.condition,
+          CompileTimeErrorCode.IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY);
 
       var thenValid = true;
       var elseValid = true;
@@ -670,10 +667,8 @@ class _ConstLiteralVerifier {
       var value = verifier._validate(element.expression, errorCode);
       if (value == null) return false;
 
-      verifier._reportErrorIfFromDeferredLibrary(
-          element.expression,
-          CompileTimeErrorCode
-              .NON_CONSTANT_SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY);
+      verifier._reportErrorIfFromDeferredLibrary(element.expression,
+          CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY);
 
       if (forList || forSet) {
         return _validateListOrSetSpread(element, value);
@@ -896,7 +891,7 @@ class _ConstLiteralVerifier {
 
     verifier._reportErrorIfFromDeferredLibrary(
       expression,
-      CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT_FROM_DEFERRED_LIBRARY,
+      CompileTimeErrorCode.SET_ELEMENT_FROM_DEFERRED_LIBRARY,
     );
 
     if (setUniqueValues.containsKey(value)) {

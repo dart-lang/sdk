@@ -1466,6 +1466,13 @@ class CompileTimeErrorCode extends ErrorCode {
               "Try using an explicit typedef, or changing type parameters to "
               "`dynamic`.");
 
+  static const CompileTimeErrorCode IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY =
+      const CompileTimeErrorCode(
+          'IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY',
+          "Constant values from a deferred library can't be used as values in "
+              "an if condition inside a const collection literal.",
+          correction: "Try making the deferred import non-deferred.");
+
   /**
    * 7.10 Superinterfaces: It is a compile-time error if the implements clause
    * of a class <i>C</i> specifies a malformed type or deferred type as a
@@ -2625,30 +2632,6 @@ class CompileTimeErrorCode extends ErrorCode {
           "The values in a const set literal must be constants.",
           correction: "Try removing the keyword 'const' from the set literal.");
 
-  static const CompileTimeErrorCode
-      NON_CONSTANT_SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY =
-      const CompileTimeErrorCode(
-          'NON_CONSTANT_SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY',
-          "Constant values from a deferred library can't be spread into a "
-              "const literal.",
-          correction: "Try making the deferred import non-deferred.");
-
-  static const CompileTimeErrorCode
-      NON_CONSTANT_IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY =
-      const CompileTimeErrorCode(
-          'NON_CONSTANT_IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY',
-          "Constant values from a deferred library can't be used as values in "
-              "an if condition inside a const collection literal.",
-          correction: "Try making the deferred import non-deferred.");
-
-  static const CompileTimeErrorCode
-      NON_CONSTANT_SET_ELEMENT_FROM_DEFERRED_LIBRARY =
-      const CompileTimeErrorCode(
-          'NON_CONSTANT_SET_ELEMENT_FROM_DEFERRED_LIBRARY',
-          "Constant values from a deferred library can't be used as values in "
-              "a 'const' set.",
-          correction: "Try removing the keyword 'const' from the set literal.");
-
   /**
    * This error code is no longer being generated. It should be removed when the
    * reference to it in the linter has been removed and rolled into the SDK.
@@ -3206,6 +3189,13 @@ class CompileTimeErrorCode extends ErrorCode {
               "Try removing the value, replacing 'return' with 'yield' or "
               "changing the method body modifier.");
 
+  static const CompileTimeErrorCode SET_ELEMENT_FROM_DEFERRED_LIBRARY =
+      const CompileTimeErrorCode(
+          'SET_ELEMENT_FROM_DEFERRED_LIBRARY',
+          "Constant values from a deferred library can't be used as values in "
+              "a const set.",
+          correction: "Try making the deferred import non-deferred.");
+
   /**
    * 14.1 Imports: It is a compile-time error if a prefix used in a deferred
    * import is used in another import clause.
@@ -3216,6 +3206,13 @@ class CompileTimeErrorCode extends ErrorCode {
           "The prefix of a deferred import can't be used in other import "
               "directives.",
           correction: "Try renaming one of the prefixes.");
+
+  static const CompileTimeErrorCode SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY =
+      const CompileTimeErrorCode(
+          'SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY',
+          "Constant values from a deferred library can't be spread into a "
+              "const literal.",
+          correction: "Try making the deferred import non-deferred.");
 
   /**
    * No parameters.

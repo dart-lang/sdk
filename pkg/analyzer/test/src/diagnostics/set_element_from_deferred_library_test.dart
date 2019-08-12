@@ -11,15 +11,13 @@ import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(NonConstantSetElementFromDeferredLibraryTest);
-    defineReflectiveTests(
-        NonConstantSetElementFromDeferredLibraryWithConstantsTest);
+    defineReflectiveTests(SetElementFromDeferredLibraryTest);
+    defineReflectiveTests(SetElementFromDeferredLibraryWithConstantsTest);
   });
 }
 
 @reflectiveTest
-class NonConstantSetElementFromDeferredLibraryTest
-    extends DriverResolutionTest {
+class SetElementFromDeferredLibraryTest extends DriverResolutionTest {
   @failingTest
   test_const_ifElement_thenTrue_elseDeferred() async {
     // reports wrong error code
@@ -30,8 +28,7 @@ import 'lib1.dart' deferred as a;
 const cond = true;
 var v = const {if (cond) null else a.c};
 ''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT_FROM_DEFERRED_LIBRARY,
-          88, 3),
+      error(CompileTimeErrorCode.SET_ELEMENT_FROM_DEFERRED_LIBRARY, 88, 3),
     ]);
   }
 
@@ -46,11 +43,8 @@ var v = const {if (cond) a.c};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
             ? [
-                error(
-                    CompileTimeErrorCode
-                        .NON_CONSTANT_SET_ELEMENT_FROM_DEFERRED_LIBRARY,
-                    78,
-                    3),
+                error(CompileTimeErrorCode.SET_ELEMENT_FROM_DEFERRED_LIBRARY,
+                    78, 3),
               ]
             : [
                 error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 68, 13),
@@ -64,8 +58,7 @@ const int c = 1;''');
 import 'lib1.dart' deferred as a;
 var v = const {a.c};
 ''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT_FROM_DEFERRED_LIBRARY,
-          49, 3),
+      error(CompileTimeErrorCode.SET_ELEMENT_FROM_DEFERRED_LIBRARY, 49, 3),
     ]);
   }
 
@@ -76,15 +69,14 @@ const int c = 1;''');
 import 'lib1.dart' deferred as a;
 var v = const {a.c + 1};
 ''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT_FROM_DEFERRED_LIBRARY,
-          49, 7),
+      error(CompileTimeErrorCode.SET_ELEMENT_FROM_DEFERRED_LIBRARY, 49, 7),
     ]);
   }
 }
 
 @reflectiveTest
-class NonConstantSetElementFromDeferredLibraryWithConstantsTest
-    extends NonConstantSetElementFromDeferredLibraryTest {
+class SetElementFromDeferredLibraryWithConstantsTest
+    extends SetElementFromDeferredLibraryTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
     ..enabledExperiments = [EnableString.constant_update_2018];

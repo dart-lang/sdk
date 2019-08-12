@@ -87,6 +87,8 @@ import 'final_initialized_in_delcaration_and_constructor_test.dart'
 import 'final_not_initialized_constructor_test.dart'
     as final_not_initialized_constructor;
 import 'final_not_initialized_test.dart' as final_not_initialized;
+import 'if_element_condition_from_deferred_library_test.dart'
+    as if_element_condition_from_deferred_library;
 import 'implements_non_class_test.dart' as implements_non_class;
 import 'implicit_this_reference_in_initializer_test.dart'
     as implicit_this_reference_in_initializer;
@@ -163,8 +165,6 @@ import 'non_abstract_class_inherits_abstract_member_test.dart'
 import 'non_bool_condition_test.dart' as non_bool_condition;
 import 'non_bool_negation_expression_test.dart' as non_bool_negation_expression;
 import 'non_bool_operand_test.dart' as non_bool_operand;
-import 'non_constant_if_element_condition_from_deferred_library_test.dart'
-    as non_constant_if_element_condition_from_deferred_library;
 import 'non_constant_list_element_from_deferred_library_test.dart'
     as non_constant_list_element_from_deferred_library;
 import 'non_constant_list_element_test.dart' as non_constant_list_element;
@@ -175,11 +175,7 @@ import 'non_constant_map_key_test.dart' as non_constant_map_key;
 import 'non_constant_map_value_from_deferred_library_test.dart'
     as non_constant_map_value_from_deferred_library;
 import 'non_constant_map_value_test.dart' as non_constant_map_value;
-import 'non_constant_set_element_from_deferred_library_test.dart'
-    as non_constant_set_element_from_deferred_library;
 import 'non_constant_set_element_test.dart' as non_constant_set_element;
-import 'non_constant_spread_expression_from_deferred_library_test.dart'
-    as non_constant_spread_expression_from_deferred_library;
 import 'non_null_opt_out_test.dart' as non_null_opt_out;
 import 'non_type_in_catch_clause_test.dart' as non_type_in_catch_clause;
 import 'non_void_return_for_operator_test.dart' as non_void_return_for_operator;
@@ -242,8 +238,12 @@ import 'sdk_version_set_literal_test.dart' as sdk_version_set_literal;
 import 'sdk_version_ui_as_code_in_const_context_test.dart'
     as sdk_version_ui_as_code_in_const_context;
 import 'sdk_version_ui_as_code_test.dart' as sdk_version_ui_as_code;
+import 'set_element_from_deferred_library_test.dart'
+    as set_element_from_deferred_library;
 import 'set_element_type_not_assignable_test.dart'
     as set_element_type_not_assignable;
+import 'spread_expression_from_deferred_library_test.dart'
+    as spread_expression_from_deferred_library;
 import 'static_access_to_instance_member_test.dart'
     as static_access_to_instance_member;
 import 'subtype_of_sealed_class_test.dart' as subtype_of_sealed_class;
@@ -347,6 +347,7 @@ main() {
     final_initialized_in_delcaration_and_constructor.main();
     final_not_initialized_constructor.main();
     final_not_initialized.main();
+    if_element_condition_from_deferred_library.main();
     implements_non_class.main();
     implicit_this_reference_in_initializer.main();
     import_deferred_library_with_load_function.main();
@@ -402,7 +403,6 @@ main() {
     non_bool_condition.main();
     non_bool_negation_expression.main();
     non_bool_operand.main();
-    non_constant_if_element_condition_from_deferred_library.main();
     non_constant_list_element.main();
     non_constant_list_element_from_deferred_library.main();
     non_constant_map_key.main();
@@ -411,8 +411,6 @@ main() {
     non_constant_map_value.main();
     non_constant_map_value_from_deferred_library.main();
     non_constant_set_element.main();
-    non_constant_set_element_from_deferred_library.main();
-    non_constant_spread_expression_from_deferred_library.main();
     non_null_opt_out.main();
     non_type_in_catch_clause.main();
     non_void_return_for_operator.main();
@@ -444,6 +442,7 @@ main() {
     redirect_to_missing_constructor.main();
     redirect_to_non_class.main();
     return_without_value.main();
+    set_element_from_deferred_library.main();
     sdk_version_as_expression_in_const_context.main();
     sdk_version_async_exported_from_core.main();
     sdk_version_bool_operator.main();
@@ -455,6 +454,7 @@ main() {
     sdk_version_ui_as_code.main();
     sdk_version_ui_as_code_in_const_context.main();
     set_element_type_not_assignable.main();
+    spread_expression_from_deferred_library.main();
     static_access_to_instance_member.main();
     subtype_of_sealed_class.main();
     super_in_extension.main();
