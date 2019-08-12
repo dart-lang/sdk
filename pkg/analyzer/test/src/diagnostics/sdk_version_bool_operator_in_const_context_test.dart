@@ -11,12 +11,13 @@ import 'sdk_constraint_verifier_support.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(SdkVersionBoolOperatorTest);
+    defineReflectiveTests(SdkVersionBoolOperatorInConstContextTest);
   });
 }
 
 @reflectiveTest
-class SdkVersionBoolOperatorTest extends SdkConstraintVerifierTest {
+class SdkVersionBoolOperatorInConstContextTest
+    extends SdkConstraintVerifierTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
     ..enabledExperiments = [EnableString.constant_update_2018];
@@ -31,7 +32,7 @@ const c = true & false;
     verifyVersion('2.2.0', '''
 const c = true & false;
 ''', expectedErrors: [
-      error(HintCode.SDK_VERSION_BOOL_OPERATOR, 15, 1),
+      error(HintCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT, 15, 1),
     ]);
   }
 
@@ -57,7 +58,7 @@ const c = true | false;
     verifyVersion('2.2.0', '''
 const c = true | false;
 ''', expectedErrors: [
-      error(HintCode.SDK_VERSION_BOOL_OPERATOR, 15, 1),
+      error(HintCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT, 15, 1),
     ]);
   }
 
@@ -83,7 +84,7 @@ const c = true ^ false;
     verifyVersion('2.2.0', '''
 const c = true ^ false;
 ''', expectedErrors: [
-      error(HintCode.SDK_VERSION_BOOL_OPERATOR, 15, 1),
+      error(HintCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT, 15, 1),
     ]);
   }
 

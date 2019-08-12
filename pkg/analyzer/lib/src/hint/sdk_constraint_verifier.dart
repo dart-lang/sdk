@@ -122,8 +122,10 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
               operatorType == TokenType.CARET) &&
           (node as BinaryExpressionImpl).inConstantContext) {
         if (node.leftOperand.staticType.isDartCoreBool) {
-          _errorReporter.reportErrorForToken(HintCode.SDK_VERSION_BOOL_OPERATOR,
-              node.operator, [node.operator.lexeme]);
+          _errorReporter.reportErrorForToken(
+              HintCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT,
+              node.operator,
+              [node.operator.lexeme]);
         }
       } else if (operatorType == TokenType.EQ_EQ &&
           (node as BinaryExpressionImpl).inConstantContext) {

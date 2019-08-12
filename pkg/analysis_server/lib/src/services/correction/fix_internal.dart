@@ -342,7 +342,7 @@ class FixProcessor {
       await _addFix_updateSdkConstraints('2.2.0');
     }
     if (errorCode == HintCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT ||
-        errorCode == HintCode.SDK_VERSION_BOOL_OPERATOR ||
+        errorCode == HintCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT ||
         errorCode == HintCode.SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT ||
         errorCode == HintCode.SDK_VERSION_GT_GT_GT_OPERATOR ||
         errorCode == HintCode.SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT ||
