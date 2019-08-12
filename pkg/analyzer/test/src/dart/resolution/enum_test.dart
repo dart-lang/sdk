@@ -20,17 +20,6 @@ class EnumDriverResolutionTest extends DriverResolutionTest
     with EnumResolutionMixin {}
 
 mixin EnumResolutionMixin implements ResolutionTest {
-  test_error_conflictingStaticAndInstance_index() async {
-    addTestFile(r'''
-enum E {
-  a, index
-}
-''');
-    await resolveTestFile();
-    assertTestErrorsWithCodes(
-        [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
-  }
-
   test_inference_listLiteral() async {
     addTestFile(r'''
 enum E1 {a, b}

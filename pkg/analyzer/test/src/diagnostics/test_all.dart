@@ -25,6 +25,8 @@ import 'case_block_not_terminated_test.dart' as case_block_not_terminated;
 import 'cast_to_non_type_test.dart' as cast_to_non_type;
 import 'concrete_class_with_abstract_member_test.dart'
     as concrete_class_with_abstract_member;
+import 'conflicting_static_and_instance_test.dart'
+    as conflicting_static_and_instance;
 import 'const_constructor_param_type_mismatch_test.dart'
     as const_constructor_param_type_mismatch;
 import 'const_constructor_with_mixin_with_field_test.dart'
@@ -307,6 +309,7 @@ main() {
     case_block_not_terminated.main();
     cast_to_non_type.main();
     concrete_class_with_abstract_member.main();
+    conflicting_static_and_instance.main();
     const_constructor_param_type_mismatch.main();
     const_constructor_with_mixin_with_field.main();
     const_eval_throws_exception.main();
