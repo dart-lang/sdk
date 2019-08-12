@@ -528,7 +528,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
               s.setListening(read: false, write: false);
             });
             connecting.clear();
-          }, error: (e) {
+          }, error: (e, st) {
             timer.cancel();
             socket.close();
             // Keep first error, if present.
@@ -676,7 +676,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     if (len == 0) return null;
     var result = nativeRead(len);
     if (result is OSError) {
-      reportError(result, "Read failed");
+      reportError(result, StackTrace.current, "Read failed");
       return null;
     }
     if (result != null) {
@@ -699,7 +699,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     if (isClosing || isClosed) return null;
     var result = nativeRecvFrom();
     if (result is OSError) {
-      reportError(result, "Receive failed");
+      reportError(result, StackTrace.current, "Receive failed");
       return null;
     }
     if (result != null) {
@@ -747,7 +747,8 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
         nativeWrite(bufferAndStart.buffer, bufferAndStart.start, bytes);
     if (result is OSError) {
       OSError osError = result;
-      scheduleMicrotask(() => reportError(osError, "Write failed"));
+      StackTrace st = StackTrace.current;
+      scheduleMicrotask(() => reportError(osError, st, "Write failed"));
       result = 0;
     }
     // The result may be negative, if we forced a short write for testing
@@ -776,7 +777,8 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
         bytes, (address as _InternetAddress)._in_addr, port);
     if (result is OSError) {
       OSError osError = result;
-      scheduleMicrotask(() => reportError(osError, "Send failed"));
+      StackTrace st = StackTrace.current;
+      scheduleMicrotask(() => reportError(osError, st, "Send failed"));
       result = 0;
     }
     // TODO(ricow): Remove when we track internal and pipe uses.
@@ -934,7 +936,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
 
         if (i == errorEvent) {
           if (!isClosing) {
-            reportError(nativeGetError(), "");
+            reportError(nativeGetError(), null, "");
           }
         } else if (!isClosed) {
           // If the connection is closed right after it's accepted, there's a
@@ -1092,11 +1094,11 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     }
   }
 
-  void reportError(error, String message) {
+  void reportError(error, StackTrace st, String message) {
     var e = createError(error, message, address, localPort);
     // Invoke the error handler if any.
     if (eventHandlers[errorEvent] != null) {
-      eventHandlers[errorEvent](e);
+      eventHandlers[errorEvent](e, st);
     }
     // For all errors we close the socket
     close();
@@ -1242,8 +1244,8 @@ class _RawServerSocket extends Stream<RawSocket> implements RawServerSocket {
         _controller.add(new _RawSocket(socket));
         if (_controller.isPaused) return;
       }
-    }), error: zone.bindUnaryCallbackGuarded((e) {
-      _controller.addError(e);
+    }), error: zone.bindBinaryCallbackGuarded((e, st) {
+      _controller.addError(e, st);
       _controller.close();
     }), destroyed: () {
       _controller.close();
@@ -1346,8 +1348,8 @@ class _RawSocket extends Stream<RawSocketEvent> implements RawSocket {
           _controller.add(RawSocketEvent.closed);
           _controller.close();
         },
-        error: zone.bindUnaryCallbackGuarded((e) {
-          _controller.addError(e);
+        error: zone.bindBinaryCallbackGuarded((e, st) {
+          _controller.addError(e, st);
           _socket.close();
         }));
   }
@@ -1889,8 +1891,8 @@ class _RawDatagramSocket extends Stream<RawSocketEvent>
           _controller.add(RawSocketEvent.closed);
           _controller.close();
         },
-        error: zone.bindUnaryCallbackGuarded((e) {
-          _controller.addError(e);
+        error: zone.bindBinaryCallbackGuarded((e, st) {
+          _controller.addError(e, st);
           _socket.close();
         }));
   }
