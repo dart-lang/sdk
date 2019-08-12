@@ -594,6 +594,12 @@ class NullabilityNodeTest {
     expect(edge.isSatisfied, true);
   }
 
+  test_substitution_simplify_null() {
+    var n1 = newNode(1);
+    expect(subst(null, n1), same(n1));
+    expect(subst(n1, null), same(n1));
+  }
+
   test_unconstrainted_node_non_nullable() {
     var n1 = newNode(1);
     propagate();
