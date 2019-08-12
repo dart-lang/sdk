@@ -13,7 +13,7 @@ import 'dartfuzz_api_table.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.16';
+const String version = '1.17';
 
 // Restriction on statements and expressions.
 const int stmtLength = 2;
@@ -294,7 +294,7 @@ class DartFuzz {
   // Emit a simple membership for-in-loop.
   bool emitForIn(int depth) {
     int i = localVars.length;
-    emitLn('for (var $localName$i in ', newline: false);
+    emitLn('for (int $localName$i in ', newline: false);
     emitExpr(0, rand.nextBool() ? DartType.INT_LIST : DartType.INT_SET);
     emit(') {', newline: true);
     indent += 2;
