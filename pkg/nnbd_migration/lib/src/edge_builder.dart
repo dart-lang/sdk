@@ -1090,8 +1090,8 @@ $stackTrace''');
 
   @override
   DecoratedType visitWhileStatement(WhileStatement node) {
-    // TODO do special condition handling
-    // TODO do create true/false guards?
+    // Note: we do not create guards. A null check here is *very* unlikely to be
+    // unnecessary after analysis.
     _handleAssignment(node.condition, _notNullType);
     _postDominatedLocals.doScoped(action: () => node.body.accept(this));
     return null;
