@@ -4881,19 +4881,6 @@ typedef A<T extends A<int>>();
     ]);
   }
 
-  test_typeArgumentNotMatchingBounds_const() async {
-    await assertErrorsInCode(r'''
-class A {}
-class B {}
-class G<E extends A> {
-  const G();
-}
-f() { return const G<B>(); }
-''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 81, 1),
-    ]);
-  }
-
   test_typedef_infiniteParameterBoundCycle() async {
     await assertErrorsInCode(r'''
 typedef F<X extends F> = F Function();

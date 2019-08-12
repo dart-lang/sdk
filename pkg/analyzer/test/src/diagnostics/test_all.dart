@@ -253,6 +253,8 @@ import 'subtype_of_sealed_class_test.dart' as subtype_of_sealed_class;
 import 'super_in_extension_test.dart' as super_in_extension;
 import 'top_level_instance_getter_test.dart' as top_level_instance_getter;
 import 'top_level_instance_method_test.dart' as top_level_instance_method;
+import 'type_argument_not_matching_bounds_test.dart'
+    as type_argument_not_matching_bounds;
 import 'type_check_is_not_null_test.dart' as type_check_is_not_null;
 import 'type_check_is_null_test.dart' as type_check_is_null;
 import 'unchecked_use_of_nullable_value_test.dart'
@@ -464,6 +466,7 @@ main() {
     super_in_extension.main();
     top_level_instance_getter.main();
     top_level_instance_method.main();
+    type_argument_not_matching_bounds.main();
     type_check_is_not_null.main();
     type_check_is_null.main();
     unchecked_use_of_nullable_value.main();
