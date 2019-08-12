@@ -30,9 +30,6 @@ dart/kernel_determinism_test: SkipSlow
 dart/redirection_type_shuffling_test/none: RuntimeError
 dart/snapshot_version_test: RuntimeError
 
-[ $compiler == dartkb ]
-cc/*: Skip # Too many timeouts and crashes for infrastructure to handle.
-
 [ $compiler == dartkp ]
 dart/v8_snapshot_profile_writer_test: Pass, Slow # Can be slow due to re-invoking the precompiler.
 
