@@ -136,8 +136,11 @@ class Rti {
   static const kindGenericFunction = 11;
   static const kindGenericFunctionParameter = 12;
 
-  static bool _isFunctionType(Rti rti) {
+  static bool _isUnionOfFunctionType(Rti rti) {
     int kind = Rti._getKind(rti);
+    if (kind == kindStar || kind == kindQuestion || kind == kindFutureOr) {
+      return _isUnionOfFunctionType(_castToRti(_getPrimary(rti)));
+    }
     return kind == kindFunction || kind == kindGenericFunction;
   }
 
@@ -346,22 +349,56 @@ Rti evalInInstance(instance, String recipe) {
   return _rtiEval(instanceType(instance), recipe);
 }
 
+bool _isClosure(object) => _Utils.instanceOf(object,
+    JS_BUILTIN('depends:none;effects:none;', JsBuiltin.dartClosureConstructor));
+
+Rti _closureFunctionType(closure) {
+  var signatureName = JS_GET_NAME(JsGetName.SIGNATURE_NAME);
+  var signature = JS('', '#[#]', closure, signatureName);
+  if (signature != null) {
+    if (JS('bool', 'typeof # == "number"', signature)) {
+      return getTypeFromTypesTable(_Utils.asInt(signature));
+    }
+    return _castToRti(JS('', '#[#]()', closure, signatureName));
+  }
+  return null;
+}
+
+// Subclasses of Closure are synthetic classes. The synthetic classes all
+// extend a 'normal' class (Closure, BoundClosure, StaticClosure), so make
+// them appear to be the superclass.
+// TODO(sra): Can this be done less expensively, e.g. by putting $ti on the
+// prototype of Closure/BoundClosure/StaticClosure classes?
+Rti _closureInterfaceType(closure) => _instanceTypeFromConstructor(
+    JS('', '#.__proto__.__proto__.constructor', closure));
+
 /// Returns the Rti type of [object]. Closures have both an interface type
 /// (Closures implement `Function`) and a structural function type. Uses
 /// [testRti] to choose the appropriate type.
 ///
 /// Called from generated code.
 Rti instanceOrFunctionType(object, Rti testRti) {
-  if (Rti._isFunctionType(testRti)) {
-    Rti rti = _instanceFunctionType(object);
-    if (rti != null) return rti;
+  if (_isClosure(object)) {
+    if (Rti._isUnionOfFunctionType(testRti)) {
+      // If [testRti] is e.g. `FutureOr<Action>` (where `Action` is some
+      // function type), we don't need to worry about the `Future<Action>`
+      // branch because closures can't be `Future`s.
+      Rti rti = _closureFunctionType(object);
+      if (rti != null) return rti;
+    }
+    return _closureInterfaceType(object);
   }
-  return instanceType(object);
+  return _nonClosureInstanceType(object);
 }
 
 /// Returns the Rti type of [object].
 /// Called from generated code.
 Rti instanceType(object) {
+  if (_isClosure(object)) return _closureInterfaceType(object);
+  return _nonClosureInstanceType(object);
+}
+
+Rti _nonClosureInstanceType(object) {
   // TODO(sra): Add specializations of this method. One possible way is to
   // arrange that the interceptor has a _getType method that is injected into
   // DartObject, Interceptor and JSArray. Then this method can be replaced-by
@@ -374,18 +411,6 @@ Rti instanceType(object) {
           'depends:none;effects:none;', JsBuiltin.dartObjectConstructor))) {
     var rti = JS('', r'#[#]', object, JS_GET_NAME(JsGetName.RTI_NAME));
     if (rti != null) return _castToRti(rti);
-
-    // Subclasses of Closure are synthetic classes. The synthetic classes all
-    // extend a 'normal' class (Closure, BoundClosure, StaticClosure), so make
-    // them appear to be the superclass.
-    // TODO(sra): Can this be done less expensively, e.g. by putting $ti on the
-    // prototype of Closure/BoundClosure/StaticClosure classes?
-    var closureClassConstructor = JS_BUILTIN(
-        'depends:none;effects:none;', JsBuiltin.dartClosureConstructor);
-    if (_Utils.instanceOf(object, closureClassConstructor)) {
-      return _instanceTypeFromConstructor(
-          JS('', '#.__proto__.__proto__.constructor', object));
-    }
 
     return _instanceTypeFromConstructor(JS('', '#.constructor', object));
   }
@@ -412,19 +437,7 @@ Rti _instanceTypeFromConstructor(constructor) {
 /// Returns the structural function type of [object], or `null` if the object is
 /// not a closure.
 Rti _instanceFunctionType(object) {
-  if (_Utils.instanceOf(
-      object,
-      JS_BUILTIN(
-          'depends:none;effects:none;', JsBuiltin.dartClosureConstructor))) {
-    var signatureName = JS_GET_NAME(JsGetName.SIGNATURE_NAME);
-    var signature = JS('', '#[#]', object, signatureName);
-    if (signature != null) {
-      if (JS('bool', 'typeof # == "number"', signature)) {
-        return getTypeFromTypesTable(_Utils.asInt(signature));
-      }
-      return _castToRti(JS('', '#[#]()', object, signatureName));
-    }
-  }
+  if (_isClosure(object)) return _closureFunctionType(object);
   return null;
 }
 
@@ -443,7 +456,7 @@ Rti getTypeFromTypesTable(/*int*/ _index) {
 }
 
 Type getRuntimeType(object) {
-  Rti rti = _instanceFunctionType(object) ?? instanceType(object);
+  Rti rti = _instanceFunctionType(object) ?? _nonClosureInstanceType(object);
   return _createRuntimeType(rti);
 }
 
@@ -1896,11 +1909,11 @@ bool _isSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
     }
   }
 
-  if (Rti._isFunctionType(t)) {
+  if (isEitherFunctionKind(t)) {
     return _isFunctionSubtype(universe, s, sEnv, t, tEnv);
   }
 
-  if (Rti._isFunctionType(s)) {
+  if (isEitherFunctionKind(s)) {
     return isFunctionType(t);
   }
 
@@ -1913,8 +1926,8 @@ bool _isSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
 
 // TODO(fishythefish): Support required named parameters.
 bool _isFunctionSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
-  assert(Rti._isFunctionType(t));
-  if (!Rti._isFunctionType(s)) return false;
+  assert(isEitherFunctionKind(t));
+  if (!isEitherFunctionKind(s)) return false;
 
   if (isGenericFunctionKind(s)) {
     if (!isGenericFunctionKind(t)) return false;
@@ -2123,6 +2136,9 @@ bool isJsInteropType(Rti t) => Rti._getKind(t) == Rti.kindAny;
 
 bool isFutureOrType(Rti t) => Rti._getKind(t) == Rti.kindFutureOr;
 
+bool isEitherFunctionKind(Rti t) =>
+    isFunctionKind(t) || isGenericFunctionKind(t);
+bool isFunctionKind(Rti t) => Rti._getKind(t) == Rti.kindFunction;
 bool isGenericFunctionKind(Rti t) => Rti._getKind(t) == Rti.kindGenericFunction;
 
 bool isGenericFunctionTypeParameter(Rti t) =>
