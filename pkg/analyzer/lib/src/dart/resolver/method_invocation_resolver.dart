@@ -746,6 +746,8 @@ class MethodInvocationResolver {
             type, _nameCall.name, node.methodName, ElementKind.METHOD);
         if (result.isSingle) {
           call = result.element;
+        } else if (result.isAmbiguous) {
+          return;
         }
       }
       if (call != null && call.kind == ElementKind.METHOD) {

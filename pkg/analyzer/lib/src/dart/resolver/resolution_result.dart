@@ -23,7 +23,9 @@ class ResolutionResult {
 
   /// Initialize a newly created result to represent resolving to a single
   /// [element].
-  const ResolutionResult(this.element) : state = _ResolutionResultState.single;
+  ResolutionResult(this.element)
+      : assert(element != null),
+        state = _ResolutionResultState.single;
 
   /// Initialize a newly created result with no element and the given [state].
   const ResolutionResult._(this.state) : element = null;
