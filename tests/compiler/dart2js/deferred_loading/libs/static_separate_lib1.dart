@@ -9,12 +9,10 @@ class ConstClass {
   /*member: ConstClass.x:OutputUnit(2, {lib1, lib2})*/
   final x;
 
-  /*strong.member: ConstClass.:OutputUnit(2, {lib1, lib2})*/
   const ConstClass(this.x);
 }
 
-/*strong.member: x:OutputUnit(2, {lib1, lib2})*/
-/*strongConst.member: x:
+/*member: x:
  OutputUnit(2, {lib1, lib2}),
  constants=[ConstructedConstant(ConstClass(x=ConstructedConstant(ConstClass(x=IntConstant(1)))))=OutputUnit(2, {lib1, lib2})]
 */
@@ -40,8 +38,7 @@ class C {
 
 /*class: C1:null*/
 class C1 {
-  /*strong.member: C1.foo:OutputUnit(3, {lib2})*/
-  /*strongConst.member: C1.foo:
+  /*member: C1.foo:
    OutputUnit(3, {lib2}),
    constants=[MapConstant({})=OutputUnit(3, {lib2})]
   */
@@ -63,15 +60,13 @@ class C2 {
 
 /*class: C3:OutputUnit(1, {lib1})*/
 class C3 {
-  /*strong.member: C3.foo:OutputUnit(3, {lib2})*/
-  /*strongConst.member: C3.foo:
+  /*member: C3.foo:
    OutputUnit(3, {lib2}),
    constants=[ConstructedConstant(ConstClass(x=ConstructedConstant(ConstClass(x=IntConstant(1)))))=OutputUnit(2, {lib1, lib2})]
   */
   static final foo = const ConstClass(const ConstClass(1));
 
-  /*strong.member: C3.bar:OutputUnit(1, {lib1})*/
-  /*strongConst.member: C3.bar:
+  /*member: C3.bar:
    OutputUnit(1, {lib1}),
    constants=[ConstructedConstant(ConstClass(x=ConstructedConstant(ConstClass(x=IntConstant(1)))))=OutputUnit(2, {lib1, lib2})]
   */
@@ -95,8 +90,7 @@ class C4 {
 
 /*class: C5:OutputUnit(1, {lib1})*/
 class C5 {
-  /*strong.member: C5.foo:OutputUnit(3, {lib2})*/
-  static const foo = /*strong.OutputUnit(3, {lib2})*/ const [
+  static const foo = const [
     const {1: 3}
   ];
 

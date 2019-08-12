@@ -5,8 +5,7 @@
 import '../libs/deferred_constant1_lib1.dart';
 import '../libs/deferred_constant1_lib2.dart' deferred as lib2;
 
-/*strong.member: main:OutputUnit(main, {})*/
-/*strongConst.member: main:
+/*member: main:
  OutputUnit(main, {}),
  constants=[
   ConstructedConstant(C(value=ConstructedConstant(C(value=IntConstant(7)))))=OutputUnit(1, {lib2}),

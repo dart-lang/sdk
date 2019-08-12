@@ -7,8 +7,7 @@ library lib2;
 import "package:expect/expect.dart";
 import "static_separate_lib1.dart";
 
-/*strong.member: foo:OutputUnit(3, {lib2})*/
-/*strongConst.member: foo:
+/*member: foo:
  OutputUnit(3, {lib2}),
  constants=[
   ListConstant(<Map<int,int>>[MapConstant(<int, int>{IntConstant(1): IntConstant(3)})])=OutputUnit(3, {lib2}),

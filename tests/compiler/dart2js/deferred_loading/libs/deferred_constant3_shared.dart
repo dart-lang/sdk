@@ -4,7 +4,6 @@
 
 /*class: C:OutputUnit(main, {})*/
 class C {
-  /*strong.member: C.:OutputUnit(main, {})*/
   const C(this.x);
 
   /*member: C.x:OutputUnit(main, {})*/

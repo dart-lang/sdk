@@ -4,8 +4,7 @@
 
 import 'shared_constant_shared.dart' deferred as s2;
 
-/*strong.member: doB:OutputUnit(main, {})*/
-/*strongConst.member: doB:
+/*member: doB:
  OutputUnit(main, {}),
  constants=[ConstructedConstant(C())=OutputUnit(1, {s1, s2})]
 */

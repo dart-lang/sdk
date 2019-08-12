@@ -4,12 +4,10 @@
 
 /*class: C:OutputUnit(main, {})*/
 class C<T> {
-  /*strong.member: C.:OutputUnit(main, {})*/
   const C();
 }
 
 /*class: D:OutputUnit(main, {})*/
 class D {}
 
-/*strong.member: field:OutputUnit(main, {})*/
-const dynamic field = /*strong.OutputUnit(main, {})*/ const C<D>();
+const dynamic field = const C<D>();

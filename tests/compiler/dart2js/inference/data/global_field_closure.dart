@@ -13,16 +13,10 @@ method2(/*[exact=JSUInt31]*/ a) {
   return a;
 }
 
-/*strong.member: foo1:[null|subclass=Closure]*/
-/*omit.member: foo1:[null|subclass=Closure]*/
-/*strongConst.member: foo1:[subclass=Closure]*/
-/*omitConst.member: foo1:[subclass=Closure]*/
+/*member: foo1:[subclass=Closure]*/
 var foo1 = method1;
 
-/*strong.member: foo2:[null|subclass=Closure]*/
-/*omit.member: foo2:[null|subclass=Closure]*/
-/*strongConst.member: foo2:[subclass=Closure]*/
-/*omitConst.member: foo2:[subclass=Closure]*/
+/*member: foo2:[subclass=Closure]*/
 var foo2 = method2;
 
 /*member: returnInt1:[null|subclass=Object]*/

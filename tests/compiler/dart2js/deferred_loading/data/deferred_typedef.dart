@@ -4,8 +4,7 @@
 
 import '../libs/deferred_typedef_lib1.dart' deferred as lib1;
 
-/*strong.member: main:OutputUnit(main, {})*/
-/*strongConst.member: main:
+/*member: main:
  OutputUnit(main, {}),
  constants=[
   ConstructedConstant(C(a=TypeConstant(void Function()),b=FunctionConstant(topLevelMethod)))=OutputUnit(1, {lib1}),

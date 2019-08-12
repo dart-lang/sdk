@@ -8,7 +8,7 @@ library deferred_constants2_lib;
 class Constant {
   /*member: Constant.value:OutputUnit(1, {lib})*/
   final value;
-  /*strong.member: Constant.:OutputUnit(1, {lib})*/
+
   const Constant(this.value);
 
   /*member: Constant.==:OutputUnit(1, {lib})*/
@@ -17,5 +17,4 @@ class Constant {
   get hashCode => 0;
 }
 
-/*strong.member: C1:OutputUnit(1, {lib})*/
-const C1 = /*strong.OutputUnit(1, {lib})*/ const Constant(499);
+const C1 = const Constant(499);

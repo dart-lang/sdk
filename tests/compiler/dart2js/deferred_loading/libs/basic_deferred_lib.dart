@@ -5,8 +5,7 @@
 /*member: defaultArg:OutputUnit(1, {lib})*/
 defaultArg() => "";
 
-/*strong.member: funky:OutputUnit(1, {lib})*/
-/*strongConst.member: funky:
+/*member: funky:
  OutputUnit(1, {lib}),
  constants=[FunctionConstant(defaultArg)=OutputUnit(1, {lib})]
 */

@@ -4,8 +4,7 @@
 
 import '../libs/deferred_typed_map_lib1.dart' deferred as lib;
 
-/*strong.member: main:OutputUnit(main, {})*/
-/*strongConst.member: main:
+/*member: main:
  OutputUnit(main, {}),
  constants=[
   MapConstant(<int, dynamic Function({M b})>{IntConstant(1): FunctionConstant(f1), IntConstant(2): FunctionConstant(f2)})=OutputUnit(1, {lib})]

@@ -12,7 +12,6 @@ class C {
   /*member: C.b:OutputUnit(1, {lib1})*/
   final b;
 
-  /*strong.member: C.:OutputUnit(1, {lib1})*/
   const C(this.a, this.b);
 }
 
@@ -23,8 +22,6 @@ typedef void MyF2();
 /*member: topLevelMethod:OutputUnit(1, {lib1})*/
 topLevelMethod() {}
 
-/*strong.member: cA:OutputUnit(1, {lib1})*/
-const cA = /*strong.OutputUnit(1, {lib1})*/ const C(MyF1, topLevelMethod);
+const cA = const C(MyF1, topLevelMethod);
 
-/*strong.member: cB:OutputUnit(1, {lib1})*/
-const cB = /*strong.OutputUnit(1, {lib1})*/ MyF2;
+const cB = MyF2;

@@ -42,7 +42,6 @@ abstract class TestOp {
   /*member: TestOp.result:init,read*/
   final result;
 
-  /*strong.member: TestOp.:invoke*/
   const TestOp(this.expected, this.result);
 
   /*member: TestOp.checkAll:invoke*/
@@ -62,7 +61,6 @@ class BitNot extends TestOp {
   /*member: BitNot.arg:init,read*/
   final arg;
 
-  /*strong.member: BitNot.:invoke*/
   const BitNot(this.arg, expected) : super(expected, ~arg);
 
   /*member: BitNot.check:invoke*/

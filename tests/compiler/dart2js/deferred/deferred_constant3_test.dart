@@ -9,13 +9,13 @@ import 'package:async_helper/async_helper.dart';
 import 'constant_emission_test_helper.dart';
 
 void main() {
-  runTest({bool useCFEConstants: false}) async {
+  runTest() async {
     Map<String, Set<String>> expectedOutputUnits = {
       'ConstructedConstant(C(x=IntConstant(1)))': {'main'},
       'DeferredGlobalConstant(ConstructedConstant(C(x=IntConstant(1))))':
           // With CFE constants, the references are inlined, so the constant
           // only occurs in main.
-          useCFEConstants ? {} : {'lib2'},
+          {},
       'ConstructedConstant(C(x=IntConstant(2)))': {'lib1'},
       'DeferredGlobalConstant(ConstructedConstant(C(x=IntConstant(2))))': {
         'lib1'
@@ -33,15 +33,12 @@ void main() {
           OutputUnitDescriptor('memory:lib1.dart', 'm1', 'lib1'),
           OutputUnitDescriptor('memory:lib2.dart', 'm2', 'lib2'),
         ],
-        expectedOutputUnits,
-        useCFEConstants: useCFEConstants);
+        expectedOutputUnits);
   }
 
   asyncTest(() async {
     print('--test from kernel------------------------------------------------');
     await runTest();
-    print('--test from kernel with CFE constants-----------------------------');
-    await runTest(useCFEConstants: true);
   });
 }
 

@@ -65,7 +65,6 @@ final field1a = 0;
 /*member: field1b:complexity=constant,initial=IntConstant(0)*/
 var field1b = 0;
 
-/*strong.member: field1c:complexity=constant,initial=IntConstant(0)*/
 const field1c = 0;
 
 /*member: field2a:complexity=constant,initial=ListConstant([])*/
@@ -74,7 +73,6 @@ final field2a = const [];
 /*member: field2b:complexity=constant,initial=ListConstant([])*/
 var field2b = const [];
 
-/*strong.member: field2c:complexity=constant,initial=ListConstant([])*/
 const field2c = const [];
 
 /*member: field3a:complexity=eager*/
@@ -125,7 +123,6 @@ final field4a = 2 + 3;
 /*member: field4b:complexity=lazy,initial=IntConstant(5)*/
 var field4b = 2 + 3;
 
-/*strong.member: field4c:complexity=lazy,initial=IntConstant(5)*/
 const field4c = 2 + 3;
 
 /*member: field5a:complexity=constant,initial=FunctionConstant(method)*/
@@ -134,7 +131,6 @@ final field5a = method;
 /*member: field5b:complexity=constant,initial=FunctionConstant(method)*/
 var field5b = method;
 
-/*strong.member: field5c:complexity=constant,initial=FunctionConstant(method)*/
 const field5c = method;
 
 /*member: field6a:complexity=constant,initial=ConstructedConstant(Class())*/

@@ -7,10 +7,7 @@ class M {}
 
 typedef dynamic FF({M b});
 
-/*strong.member: table:OutputUnit(1, {lib})*/
-const table =
-/*strong.OutputUnit(1, {lib})*/
-    const <int, FF>{1: f1, 2: f2};
+const table = const <int, FF>{1: f1, 2: f2};
 
 /*member: f1:OutputUnit(1, {lib})*/
 dynamic f1({M b}) => null;

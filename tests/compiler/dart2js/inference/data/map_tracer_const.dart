@@ -7,15 +7,11 @@ int closure(
     int
         /*strong.Union([exact=JSDouble], [exact=JSUInt31])*/
         /*omit.[exact=JSUInt31]*/
-        /*strongConst.Union([exact=JSDouble], [exact=JSUInt31])*/
-        /*omitConst.[exact=JSUInt31]*/
         x) {
   return x;
 }
 
 class A {
-  /*strong.member: A.DEFAULT:Dictionary([subclass=ConstantMap], key: Value([exact=JSString], value: "fun"), value: [null|subclass=Closure], map: {fun: [subclass=Closure]})*/
-  /*omit.member: A.DEFAULT:Dictionary([subclass=ConstantMap], key: Value([exact=JSString], value: "fun"), value: [null|subclass=Closure], map: {fun: [subclass=Closure]})*/
   static const DEFAULT = const {'fun': closure};
 
   /*member: A.map:Dictionary([subclass=ConstantMap], key: Value([exact=JSString], value: "fun"), value: [null|subclass=Closure], map: {fun: [subclass=Closure]})*/

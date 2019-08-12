@@ -86,11 +86,7 @@ testString() => 'foo';
 */
 testStringInterpolation() => '${true}';
 
-/*strong.member: testStringInterpolationConst:
- dynamic=[toString(0)],
- static=[S(1)],type=[inst:JSBool,inst:JSString]
-*/
-/*strongConst.member: testStringInterpolationConst:type=[inst:JSString]*/
+/*strong.member: testStringInterpolationConst:type=[inst:JSString]*/
 testStringInterpolationConst() {
   const b = '${true}';
   return b;
@@ -106,67 +102,13 @@ testStringJuxtaposition() => 'a' 'b';
 /*member: testSymbol:static=[Symbol.(1)],type=[inst:Symbol]*/
 testSymbol() => #main;
 
-/*strong.member: testConstSymbol:
- static=[Symbol.(1),Symbol.(1),Symbol.validated(1)],
- type=[inst:JSString,inst:Symbol]
-*/
-/*strongConst.member: testConstSymbol:static=[Symbol.(1)],type=[inst:Symbol]*/
+/*strong.member: testConstSymbol:static=[Symbol.(1)],type=[inst:Symbol]*/
 testConstSymbol() => const Symbol('main');
 
-/*strong.member: complexSymbolField1:
- dynamic=[String.length,int.==],
- type=[inst:JSBool,inst:JSDouble,inst:JSInt,inst:JSNumber,inst:JSPositiveInt,inst:JSString,inst:JSUInt31,inst:JSUInt32,param:bool]
-*/
 const complexSymbolField1 = "true".length == 4;
 
-/*strong.member: complexSymbolField2:
- dynamic=[toString(0)],
- static=[S(1)],
- type=[inst:JSBool,inst:JSNull,inst:JSString,param:String]
-*/
 const complexSymbolField2 = "true" "false" "${true}${null}";
 
-/*strong.member: complexSymbolField3:
-  dynamic=[int.+,int.unary-],
-  static=[
-   GenericClass.generative(0),
-   String.fromEnvironment(1),
-   Symbol.(1),
-   assertIsSubtype(5),
-   bool.fromEnvironment(1,defaultValue),
-   checkSubtype(4),
-   getRuntimeTypeArgument(3),
-   getRuntimeTypeArgumentIntercepted(4),
-   getRuntimeTypeInfo(1),
-   getTypeArgumentByIndex(2),
-   identical(2),
-   int.fromEnvironment(1,defaultValue),
-   override,
-   setRuntimeTypeInfo(2),
-   testComplexConstSymbol,
-   throwTypeError(1)],
-  type=[
-   inst:ConstantMap<dynamic,dynamic>,
-   inst:ConstantProtoMap<dynamic,dynamic>,
-   inst:ConstantStringMap<dynamic,dynamic>,
-   inst:GeneralConstantMap<dynamic,dynamic>,
-   inst:JSArray<dynamic>,
-   inst:JSBool,
-   inst:JSDouble,
-   inst:JSExtendableArray<dynamic>,
-   inst:JSFixedArray<dynamic>,
-   inst:JSInt,
-   inst:JSMutableArray<dynamic>,
-   inst:JSNumber,
-   inst:JSPositiveInt,
-   inst:JSString,
-   inst:JSUInt31,
-   inst:JSUInt32,
-   inst:JSUnmodifiableArray<dynamic>,
-   inst:List<int>,
-   inst:Symbol,
-   param:Map<Object,Object>]
-*/
 const complexSymbolField3 = const {
   0: const bool.fromEnvironment('a', defaultValue: true),
   false: const int.fromEnvironment('b', defaultValue: 42),
@@ -178,29 +120,13 @@ const complexSymbolField3 = const {
   override: const GenericClass<int, String>.generative(),
 };
 
-/*strong.member: complexSymbolField:
- static=[
-  complexSymbolField1,
-  complexSymbolField2,
-  complexSymbolField3],
- type=[inst:JSBool,param:Object]
-*/
 const complexSymbolField =
     complexSymbolField1 ? complexSymbolField2 : complexSymbolField3;
 
-/*strong.member: testComplexConstSymbol:
- static=[Symbol.(1),Symbol.(1),Symbol.validated(1),complexSymbolField],
- type=[impl:String,inst:JSBool,inst:Symbol]
-*/
-/*strongConst.member: testComplexConstSymbol:static=[Symbol.(1)],type=[inst:Symbol]*/
+/*strong.member: testComplexConstSymbol:static=[Symbol.(1)],type=[inst:Symbol]*/
 testComplexConstSymbol() => const Symbol(complexSymbolField);
 
-/*strong.member: testIfNullConstSymbol:
- dynamic=[Null.==],
- static=[Symbol.(1),Symbol.(1),Symbol.validated(1)],
- type=[inst:JSNull,inst:JSString,inst:Symbol]
-*/
-/*strongConst.member: testIfNullConstSymbol:static=[Symbol.(1)],type=[inst:Symbol]*/
+/*strong.member: testIfNullConstSymbol:static=[Symbol.(1)],type=[inst:Symbol]*/
 testIfNullConstSymbol() => const Symbol(null ?? 'foo');
 
 /*member: testTypeLiteral:
@@ -209,8 +135,7 @@ testIfNullConstSymbol() => const Symbol(null ?? 'foo');
 */
 testTypeLiteral() => Object;
 
-/*strong.member: testBoolFromEnvironment:static=[bool.fromEnvironment(1)],type=[inst:JSString]*/
-/*strongConst.member: testBoolFromEnvironment:type=[inst:JSBool]*/
+/*strong.member: testBoolFromEnvironment:type=[inst:JSBool]*/
 testBoolFromEnvironment() => const bool.fromEnvironment('FOO');
 
 /*member: testEmptyListLiteral:type=[inst:List<dynamic>]*/
@@ -250,6 +175,5 @@ testEmptyMapLiteralConstant() => const {};
 testNonEmptyMapLiteral() => {null: true};
 
 class GenericClass<X, Y> {
-  /*strong.member: GenericClass.generative:static=[Object.(0)]*/
   const GenericClass.generative();
 }

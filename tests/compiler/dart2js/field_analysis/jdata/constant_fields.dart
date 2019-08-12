@@ -17,7 +17,7 @@ class Class1 {
 }
 
 class Class2 {
-  /*strongConst.member: Class2.field2:constant=BoolConstant(true)*/
+  /*strong.member: Class2.field2:constant=BoolConstant(true)*/
   final bool field2;
 
   const Class2({this.field2: false});

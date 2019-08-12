@@ -5,7 +5,6 @@
 import 'dont_inline_deferred_constants_lib1.dart' deferred as lib1;
 import 'dont_inline_deferred_constants_lib2.dart' deferred as lib2;
 
-/*strong.member: c:OutputUnit(main, {})*/
 const c = "string3";
 
 /*class: C:OutputUnit(main, {})*/
@@ -13,15 +12,13 @@ class C {
   /*member: C.p:OutputUnit(main, {})*/
   final p;
 
-  /*strong.member: C.:OutputUnit(main, {})*/
   const C(this.p);
 }
 
 /*member: foo:OutputUnit(2, {lib1, lib2})*/
 foo() => print("main");
 
-/*strong.member: main:OutputUnit(main, {})*/
-/*strongConst.member: main:
+/*member: main:
  OutputUnit(main, {}),
  constants=[
   ConstructedConstant(C(p=IntConstant(1)))=OutputUnit(main, {}),

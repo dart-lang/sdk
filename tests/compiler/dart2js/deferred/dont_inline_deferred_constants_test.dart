@@ -9,7 +9,7 @@ import 'package:async_helper/async_helper.dart';
 import 'constant_emission_test_helper.dart';
 
 void main() {
-  runTest({bool useCFEConstants: false}) async {
+  runTest() async {
     Map<String, Set<String>> expectedOutputUnits = {
       // Test that the deferred constants are not inlined into the main file.
       'DeferredGlobalConstant(IntConstant(1010))': {'lib1'},
@@ -19,21 +19,21 @@ void main() {
       'DeferredGlobalConstant(StringConstant("string4"))':
           // TODO(johnniwinther): Should we inline CFE constants within deferred
           // library boundaries?
-          useCFEConstants ? {'lib12'} : {'lib1', 'lib2'},
+          {'lib12'},
       // C(1) is shared between main, lib1 and lib2. Test that lib1 and lib2
       // each has a reference to it. It is defined in the main output file.
       'ConstructedConstant(C(p=IntConstant(1)))': {'main'},
       'DeferredGlobalConstant(ConstructedConstant(C(p=IntConstant(1))))':
           // With CFE constants, the references are inlined, so the constant
           // only occurs in main.
-          useCFEConstants ? {} : {'lib1', 'lib2'},
+          {},
       // C(2) is shared between lib1 and lib2, each of them has their own
       // reference to it.
       'ConstructedConstant(C(p=IntConstant(2)))': {'lib12'},
       'DeferredGlobalConstant(ConstructedConstant(C(p=IntConstant(2))))':
           // With CFE constants, the references are inlined, so the constant
           // occurs in lib12.
-          useCFEConstants ? {'lib12'} : {'lib1', 'lib2'},
+          {'lib12'},
       // Test that the non-deferred constant is inlined.
       'ConstructedConstant(C(p=IntConstant(5)))': {'main'},
     };
@@ -44,15 +44,12 @@ void main() {
           OutputUnitDescriptor('memory:lib2.dart', 'foo', 'lib2'),
           OutputUnitDescriptor('memory:main.dart', 'foo', 'lib12')
         ],
-        expectedOutputUnits,
-        useCFEConstants: useCFEConstants);
+        expectedOutputUnits);
   }
 
   asyncTest(() async {
     print('--test from kernel------------------------------------------------');
     await runTest();
-    print('--test from kernel with CFE constants-----------------------------');
-    await runTest(useCFEConstants: true);
   });
 }
 

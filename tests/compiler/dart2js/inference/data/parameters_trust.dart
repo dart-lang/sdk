@@ -18,8 +18,6 @@ _trustParameters(
     int
         /*strong.Union([exact=JSString], [exact=JSUInt31])*/
         /*omit.[exact=JSUInt31]*/
-        /*strongConst.Union([exact=JSString], [exact=JSUInt31])*/
-        /*omitConst.[exact=JSUInt31]*/
         i) {
   return i;
 }

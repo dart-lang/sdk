@@ -6,8 +6,7 @@ import 'dart:async';
 import '../libs/future_or_lib1.dart' deferred as lib1;
 import '../libs/future_or_lib2.dart' as lib2;
 
-/*strong.member: main:OutputUnit(main, {})*/
-/*strongConst.member: main:
+/*member: main:
  OutputUnit(main, {}),
  constants=[ConstructedConstant(A())=OutputUnit(1, {lib1})]
 */

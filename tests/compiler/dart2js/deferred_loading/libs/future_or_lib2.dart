@@ -4,7 +4,6 @@
 
 /*class: A:OutputUnit(main, {})*/
 class A {
-  /*strong.member: A.:OutputUnit(1, {lib1})*/
   const A();
 
   /*member: A.method:OutputUnit(main, {})*/

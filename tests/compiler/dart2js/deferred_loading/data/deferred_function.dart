@@ -7,8 +7,7 @@
 
 import '../libs/deferred_function_lib.dart' deferred as lib;
 
-/*strong.member: readFoo:OutputUnit(main, {})*/
-/*strongConst.member: readFoo:
+/*member: readFoo:
  OutputUnit(main, {}),
  constants=[FunctionConstant(foo)=OutputUnit(1, {lib})]
 */

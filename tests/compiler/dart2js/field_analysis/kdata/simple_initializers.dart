@@ -7,7 +7,6 @@ main() {
   new Class2();
 }
 
-/*strong.member: const1:complexity=constant,initial=BoolConstant(true)*/
 const bool const1 = true;
 
 class Class1 {

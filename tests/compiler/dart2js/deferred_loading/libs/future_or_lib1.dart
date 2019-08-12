@@ -4,5 +4,4 @@
 
 import 'future_or_lib2.dart';
 
-/*strong.member: field:OutputUnit(1, {lib1})*/
-const dynamic field = /*strong.OutputUnit(1, {lib1})*/ const A();
+const dynamic field = const A();

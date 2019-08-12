@@ -569,12 +569,9 @@ Future testData(TestData data) async {
   print(source);
 
   Future runTest() async {
-    CompilationResult result = await runCompiler(memorySourceFiles: {
-      'main.dart': source
-    }, options: [
-      Flags.enableAsserts,
-      '${Flags.enableLanguageExperiments}=constant-update-2018',
-    ]);
+    CompilationResult result = await runCompiler(
+        memorySourceFiles: {'main.dart': source},
+        options: [Flags.enableAsserts]);
     Compiler compiler = result.compiler;
     KernelFrontendStrategy frontEndStrategy = compiler.frontendStrategy;
     KernelToElementMapImpl elementMap = frontEndStrategy.elementMap;

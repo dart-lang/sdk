@@ -13,12 +13,8 @@ method2(/*[exact=JSUInt31]*/ a) {
   return a;
 }
 
-/*strong.member: foo1:[subclass=Closure]*/
-/*omit.member: foo1:[subclass=Closure]*/
 const foo1 = method1;
 
-/*strong.member: foo2:[subclass=Closure]*/
-/*omit.member: foo2:[subclass=Closure]*/
 const foo2 = method2;
 
 /*member: returnInt1:[null|subclass=Object]*/

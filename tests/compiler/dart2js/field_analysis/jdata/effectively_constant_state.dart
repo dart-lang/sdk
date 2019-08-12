@@ -3,13 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 enum Enum {
-  /*strong.member: Enum.a:constant=ConstructedConstant(Enum(_name=StringConstant("Enum.a"),index=IntConstant(0)))*/
   a,
 
-  /*strong.member: Enum.b:constant=ConstructedConstant(Enum(_name=StringConstant("Enum.b"),index=IntConstant(1)))*/
   b,
 
-  /*strong.member: Enum.c:constant=ConstructedConstant(Enum(_name=StringConstant("Enum.c"),index=IntConstant(2)))*/
   c,
 }
 

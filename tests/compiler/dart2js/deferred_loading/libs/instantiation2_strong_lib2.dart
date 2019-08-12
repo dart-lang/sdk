@@ -7,8 +7,7 @@ T getFoo<T>(T v) => v;
 
 typedef dynamic G<T>(T v);
 
-/*strong.member: m:OutputUnit(3, {c})*/
-/*strongConst.member: m:
+/*member: m:
  OutputUnit(3, {c}),
  constants=[
   InstantiationConstant([int],FunctionConstant(getFoo))=OutputUnit(3, {c})]

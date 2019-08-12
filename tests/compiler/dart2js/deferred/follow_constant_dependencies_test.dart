@@ -5,19 +5,15 @@
 // Test that constants depended on by other constants are correctly deferred.
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/constants/values.dart';
 import 'package:expect/expect.dart';
 import '../helpers/memory_compiler.dart';
 
 void main() {
-  runTest({bool useCFEConstants: false}) async {
-    CompilationResult result = await runCompiler(
-        memorySourceFiles: MEMORY_SOURCE_FILES,
-        options: useCFEConstants
-            ? ['${Flags.enableLanguageExperiments}=constant-update-2018']
-            : ['${Flags.enableLanguageExperiments}=no-constant-update-2018']);
+  runTest() async {
+    CompilationResult result =
+        await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
 
     Compiler compiler = result.compiler;
     var closedWorld = compiler.backendClosedWorldForTesting;
@@ -52,8 +48,6 @@ void main() {
   asyncTest(() async {
     print('--test from kernel------------------------------------------------');
     await runTest();
-    print('--test from kernel with CFE constants-----------------------------');
-    await runTest(useCFEConstants: true);
   });
 }
 
