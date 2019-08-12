@@ -5176,9 +5176,7 @@ bool CheckArrayBoundInstr::IsFixedLengthArrayType(intptr_t cid) {
 }
 
 Definition* CheckArrayBoundInstr::Canonicalize(FlowGraph* flow_graph) {
-  return IsRedundant(RangeBoundary::FromDefinition(length()->definition()))
-             ? index()->definition()
-             : this;
+  return IsRedundant() ? index()->definition() : this;
 }
 
 intptr_t CheckArrayBoundInstr::LengthOffsetFor(intptr_t class_id) {

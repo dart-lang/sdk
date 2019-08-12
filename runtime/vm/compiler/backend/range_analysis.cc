@@ -103,8 +103,8 @@ void RangeAnalysis::CollectValues() {
           }
         }
       }
-      if (current->IsCheckArrayBound() || current->IsGenericCheckBound()) {
-        bounds_checks_.Add(current);
+      if (auto check = current->AsCheckBoundBase()) {
+        bounds_checks_.Add(check);
       }
     }
   }
@@ -723,8 +723,7 @@ class BoundsCheckGeneralizer {
         flow_graph_(flow_graph),
         scheduler_(flow_graph) {}
 
-  void TryGeneralize(CheckArrayBoundInstr* check,
-                     const RangeBoundary& array_length) {
+  void TryGeneralize(CheckArrayBoundInstr* check) {
     Definition* upper_bound =
         ConstructUpperBound(check->index()->definition(), check);
     if (upper_bound == UnwrapConstraint(check->index()->definition())) {
@@ -837,7 +836,7 @@ class BoundsCheckGeneralizer {
         new Value(UnwrapConstraint(check->length()->definition())),
         new Value(upper_bound), DeoptId::kNone);
     new_check->mark_generalized();
-    if (new_check->IsRedundant(array_length)) {
+    if (new_check->IsRedundant()) {
       if (FLAG_trace_range_analysis) {
         THR_Print("  => generalized check is redundant\n");
       }
@@ -1307,38 +1306,20 @@ void RangeAnalysis::EliminateRedundantBoundsChecks() {
   if (FLAG_array_bounds_check_elimination) {
     const Function& function = flow_graph_->function();
     // Generalization only if we have not deoptimized on a generalized
-    // check earlier, or we're compiling precompiled code (no
-    // optimistic hoisting of checks possible)
+    // check earlier and we are not compiling precompiled code
+    // (no optimistic hoisting of checks possible)
     const bool try_generalization =
-        !function.ProhibitsBoundsCheckGeneralization() &&
-        !FLAG_precompiled_mode;
-
+        !FLAG_precompiled_mode &&
+        !function.ProhibitsBoundsCheckGeneralization();
     BoundsCheckGeneralizer generalizer(this, flow_graph_);
-
-    for (intptr_t i = 0; i < bounds_checks_.length(); i++) {
-      // Is this a non-speculative check bound?
-      auto aot_check = bounds_checks_[i]->AsGenericCheckBound();
-      if (aot_check != nullptr) {
-        auto length = aot_check->length()
-                          ->definition()
-                          ->OriginalDefinitionIgnoreBoxingAndConstraints();
-        auto array_length = RangeBoundary::FromDefinition(length);
-        if (aot_check->IsRedundant(array_length)) {
-          aot_check->ReplaceUsesWith(aot_check->index()->definition());
-          aot_check->RemoveFromGraph();
-        }
-        continue;
-      }
-      // Must be a speculative check bound.
-      CheckArrayBoundInstr* check = bounds_checks_[i]->AsCheckArrayBound();
-      ASSERT(check != nullptr);
-      RangeBoundary array_length =
-          RangeBoundary::FromDefinition(check->length()->definition());
-      if (check->IsRedundant(array_length)) {
+    for (CheckBoundBase* check : bounds_checks_) {
+      if (check->IsRedundant()) {
         check->ReplaceUsesWith(check->index()->definition());
         check->RemoveFromGraph();
       } else if (try_generalization) {
-        generalizer.TryGeneralize(check, array_length);
+        if (auto jit_check = check->AsCheckArrayBound()) {
+          generalizer.TryGeneralize(jit_check);
+        }
       }
     }
   }
@@ -2931,21 +2912,19 @@ void IntConverterInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   }
 }
 
-bool CheckArrayBoundInstr::IsRedundant(const RangeBoundary& length) {
-  Range* index_range = index()->definition()->range();
-
+static bool IsRedundantBasedOnRangeInformation(Value* index, Value* length) {
   // Range of the index is unknown can't decide if the check is redundant.
-  if (index_range == NULL) {
-    if (!(index()->BindsToConstant() &&
-          compiler::target::IsSmi(index()->BoundConstant()))) {
+  Range* index_range = index->definition()->range();
+  if (index_range == nullptr) {
+    if (!(index->BindsToConstant() &&
+          compiler::target::IsSmi(index->BoundConstant()))) {
       return false;
     }
-
     Range range;
-    index()->definition()->InferRange(NULL, &range);
+    index->definition()->InferRange(nullptr, &range);
     ASSERT(!Range::IsUnknown(&range));
-    index()->definition()->set_range(range);
-    index_range = index()->definition()->range();
+    index->definition()->set_range(range);
+    index_range = index->definition()->range();
   }
 
   // Range of the index is not positive. Check can't be redundant.
@@ -2953,11 +2932,11 @@ bool CheckArrayBoundInstr::IsRedundant(const RangeBoundary& length) {
     return false;
   }
 
-  RangeBoundary max = RangeBoundary::FromDefinition(index()->definition());
-
+  RangeBoundary max = RangeBoundary::FromDefinition(index->definition());
   RangeBoundary max_upper = max.UpperBound();
-  RangeBoundary length_lower = length.LowerBound();
-
+  RangeBoundary array_length =
+      RangeBoundary::FromDefinition(length->definition());
+  RangeBoundary length_lower = array_length.LowerBound();
   if (max_upper.OverflowedSmi() || length_lower.OverflowedSmi()) {
     return false;
   }
@@ -2968,7 +2947,7 @@ bool CheckArrayBoundInstr::IsRedundant(const RangeBoundary& length) {
   }
 
   RangeBoundary canonical_length =
-      CanonicalizeBoundary(length, RangeBoundary::PositiveInfinity());
+      CanonicalizeBoundary(array_length, RangeBoundary::PositiveInfinity());
   if (canonical_length.OverflowedSmi()) {
     return false;
   }
@@ -3000,30 +2979,41 @@ static bool IsSameBound(const RangeBoundary& a, InductionVar* b) {
   return false;
 }
 
-bool GenericCheckBoundInstr::IsRedundant(const RangeBoundary& length) {
-  // In loop, with index as induction?
-  LoopInfo* loop = GetBlock()->loop_info();
-  if (loop == nullptr) {
-    return false;
+bool CheckBoundBase::IsRedundant() {
+  // First, try to prove redundancy with the results of range analysis.
+  if (IsRedundantBasedOnRangeInformation(index(), length())) {
+    return true;
+  } else if (previous() == nullptr) {
+    return false;  // check is not in flow graph yet
   }
-  InductionVar* induc = loop->LookupInduction(index()->definition());
-  if (induc == nullptr) {
-    return false;
-  }
+  // Next, try to prove redundancy with the results of induction analysis.
   // Under 64-bit wrap-around arithmetic, it is always safe to remove the
-  // bounds check from the following, if initial >= 0 and the corresponding
+  // bounds check from the following loop, if initial >= 0 and the loop
   // exit branch dominates the bounds check:
+  //
   //   for (int i = initial; i < length; i++)
   //     .... a[i] ....
-  int64_t stride = 0;
-  int64_t initial = 0;
-  if (InductionVar::IsLinear(induc, &stride) &&
-      InductionVar::IsConstant(induc->initial(), &initial)) {
-    if (stride == 1 && initial >= 0) {
-      for (auto bound : induc->bounds()) {
-        if (IsSameBound(length, bound.limit_) &&
-            this->IsDominatedBy(bound.branch_)) {
-          return true;
+  //
+  LoopInfo* loop = GetBlock()->loop_info();
+  if (loop != nullptr) {
+    InductionVar* induc = loop->LookupInduction(index()->definition());
+    if (induc != nullptr) {
+      int64_t stride = 0;
+      int64_t initial = 0;
+      if (InductionVar::IsLinear(induc, &stride) &&
+          InductionVar::IsConstant(induc->initial(), &initial)) {
+        if (stride == 1 && initial >= 0) {
+          // Deeply trace back the range of the array length.
+          RangeBoundary deep_length = RangeBoundary::FromDefinition(
+              length()
+                  ->definition()
+                  ->OriginalDefinitionIgnoreBoxingAndConstraints());
+          for (auto bound : induc->bounds()) {
+            if (IsSameBound(deep_length, bound.limit_) &&
+                this->IsDominatedBy(bound.branch_)) {
+              return true;
+            }
+          }
         }
       }
     }

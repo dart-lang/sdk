@@ -7692,7 +7692,7 @@ class CheckClassIdInstr : public TemplateInstruction<1, NoThrow> {
 };
 
 // Base class for speculative [CheckArrayBoundInstr] and
-// [GenericCheckBoundInstr]
+// non-speculative [GenericCheckBoundInstr] bounds checking.
 class CheckBoundBase : public TemplateDefinition<2, NoThrow, Pure> {
  public:
   CheckBoundBase(Value* length, Value* index, intptr_t deopt_id)
@@ -7707,6 +7707,10 @@ class CheckBoundBase : public TemplateDefinition<2, NoThrow, Pure> {
   virtual bool IsCheckBoundBase() { return true; }
   virtual CheckBoundBase* AsCheckBoundBase() { return this; }
   virtual Value* RedefinedValue() const;
+
+  // Returns true if the bounds check can be eliminated without
+  // changing the semantics (viz. 0 <= index < length).
+  bool IsRedundant();
 
   // Give a name to the location/input indices.
   enum { kLengthPos = 0, kIndexPos = 1 };
@@ -7733,8 +7737,6 @@ class CheckArrayBoundInstr : public CheckBoundBase {
   virtual bool RecomputeType();
 
   virtual bool ComputeCanDeoptimize() const { return true; }
-
-  bool IsRedundant(const RangeBoundary& length);
 
   void mark_generalized() { generalized_ = true; }
 
@@ -7776,8 +7778,6 @@ class GenericCheckBoundInstr : public CheckBoundBase {
   // GenericCheckBound can implicitly call Dart code (RangeError or
   // ArgumentError constructor), so it can lazily deopt.
   virtual bool ComputeCanDeoptimize() const { return true; }
-
-  bool IsRedundant(const RangeBoundary& length);
 
   virtual bool MayThrow() const { return true; }
 
