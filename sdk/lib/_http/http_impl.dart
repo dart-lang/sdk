@@ -1990,14 +1990,26 @@ class _ConnectionTarget {
     return connectionTask.then((ConnectionTask task) {
       _socketTasks.add(task);
       Future socketFuture = task.socket;
-      if (client.connectionTimeout != null) {
-        socketFuture =
-            socketFuture.timeout(client.connectionTimeout, onTimeout: () {
+      final Duration connectionTimeout = client.connectionTimeout;
+      if (connectionTimeout != null) {
+        socketFuture = socketFuture.timeout(connectionTimeout, onTimeout: () {
           _socketTasks.remove(task);
           task.cancel();
+          return null;
         });
       }
       return socketFuture.then((socket) {
+        // When there is a timeout, there is a race in which the connectionTask
+        // Future won't be completed with an error before the socketFuture here
+        // is completed with 'null' by the onTimeout callback above. In this
+        // case, propagate a SocketException as specified by the
+        // HttpClient.connectionTimeout docs.
+        if (socket == null) {
+          assert(connectionTimeout != null);
+          throw new SocketException(
+              "HTTP connection timed out after ${connectionTimeout}, "
+              "host: ${host}, port: ${port}");
+        }
         _connecting--;
         socket.setOption(SocketOption.tcpNoDelay, true);
         var connection =
