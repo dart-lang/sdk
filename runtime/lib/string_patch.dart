@@ -219,6 +219,8 @@ abstract class _StringBase implements String {
     return createFromCharCodes(charCodeList, 0, length, bits);
   }
 
+  // Inlining is disabled as a workaround to http://dartbug.com/37800.
+  @pragma("vm:never-inline")
   static String _createOneByteString(List<int> charCodes, int start, int len) {
     // It's always faster to do this in Dart than to call into the runtime.
     var s = _OneByteString._allocate(len);
