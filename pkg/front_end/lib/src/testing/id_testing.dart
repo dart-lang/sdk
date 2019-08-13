@@ -635,6 +635,9 @@ Future runTests(Directory dataDir,
   int testCount = 0;
   for (FileSystemEntity entity in entities) {
     String name = entity.uri.pathSegments.last;
+    if (entity is Directory) {
+      name = entity.uri.pathSegments[entity.uri.pathSegments.length - 2];
+    }
     if (args.isNotEmpty && !args.contains(name) && !continued) continue;
     if (shouldContinue) continued = true;
     testCount++;
