@@ -17718,7 +17718,7 @@ class HttpRequest extends HttpRequestEventTarget {
   final int status;
 
   /**
-   * The request response string (such as \"200 OK\").
+   * The request response string (such as \"OK\").
    * See also: [HTTP Status Codes](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
    */
   final String statusText;
