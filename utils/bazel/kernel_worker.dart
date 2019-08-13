@@ -139,6 +139,7 @@ final summaryArgsParser = new ArgParser()
   ..addOption('output')
   ..addFlag('reuse-compiler-result', defaultsTo: false)
   ..addFlag('use-incremental-compiler', defaultsTo: false)
+  ..addOption('used-inputs')
   ..addFlag('track-widget-creation', defaultsTo: false)
   ..addMultiOption('enable-experiment',
       help: 'Enable a language experiment when invoking the CFE.');
@@ -242,6 +243,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
 
   fe.InitializedCompilerState state;
   bool usingIncrementalCompiler = false;
+  bool recordUsedInputs = parsedArgs["used-inputs"] != null;
   if (parsedArgs['use-incremental-compiler'] &&
       linkedInputs.isEmpty &&
       isWorker) {
@@ -264,7 +266,8 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
         target,
         fileSystem,
         (parsedArgs['enable-experiment'] as List<String>),
-        summaryOnly);
+        summaryOnly,
+        trackNeededDillLibraries: recordUsedInputs);
   } else {
     state = await fe.initializeCompiler(
         // TODO(sigmund): pass an old state once we can make use of it.
@@ -285,10 +288,28 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   }
 
   List<int> kernel;
+  bool wroteUsedDills = false;
   if (usingIncrementalCompiler) {
     state.options.onDiagnostic = onDiagnostic;
     Component incrementalComponent = await state.incrementalCompiler
         .computeDelta(entryPoints: sources, fullComponent: true);
+
+    if (recordUsedInputs) {
+      Set<Uri> usedOutlines = {};
+      for (Library lib in state.incrementalCompiler.neededDillLibraries) {
+        if (lib.importUri.scheme == "dart") continue;
+        Uri uri = state.libraryToInputDill[lib.importUri];
+        if (uri == null) {
+          throw new StateError("Library ${lib.importUri} was recorded as used, "
+              "but was not in the list of known libraries.");
+        }
+        usedOutlines.add(uri);
+      }
+      var outputUsedFile = new File(parsedArgs["used-inputs"]);
+      outputUsedFile.createSync(recursive: true);
+      outputUsedFile.writeAsStringSync(usedOutlines.join("\n"));
+      wroteUsedDills = true;
+    }
 
     kernel = await state.incrementalCompiler.context.runInContext((_) {
       if (summaryOnly) {
@@ -315,6 +336,15 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
         includeOffsets: true);
   }
   state.options.onDiagnostic = null; // See http://dartbug.com/36983.
+
+  if (!wroteUsedDills && recordUsedInputs) {
+    // The path taken didn't record inputs used: Say we used everything.
+    var outputUsedFile = new File(parsedArgs["used-inputs"]);
+    outputUsedFile.createSync(recursive: true);
+    Set<Uri> allFiles = {...summaryInputs, ...linkedInputs};
+    outputUsedFile.writeAsStringSync(allFiles.join("\n"));
+    wroteUsedDills = true;
+  }
 
   if (kernel != null) {
     var outputFile = new File(parsedArgs['output']);
