@@ -1353,6 +1353,69 @@ void main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_multiDeclaration_innerUsage() async {
+    var content = '''
+void test() {
+  // here non-null is OK.
+  int i1 = 0, i2 = i1.gcd(2);
+  // here non-null is not OK.
+  int i3 = 0, i4 = i3.gcd(2), i5 = null;
+}
+''';
+    var expected = '''
+void test() {
+  // here non-null is OK.
+  int i1 = 0, i2 = i1.gcd(2);
+  // here non-null is not OK.
+  int? i3 = 0, i4 = i3!.gcd(2), i5 = null;
+}
+''';
+
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_multiDeclaration_softEdges() async {
+    var content = '''
+int nullable(int i1, int i2) {
+  int i3 = i1, i4 = i2;
+  return i3;
+}
+int nonNull(int i1, int i2) {
+  int i3 = i1, i4 = i2;
+  return i3;
+}
+int both(int i1, int i2) {
+  int i3 = i1, i4 = i2;
+  return i3;
+}
+void main() {
+  nullable(null, null);
+  nonNull(0, 1);
+  both(0, null);
+}
+''';
+    var expected = '''
+int? nullable(int? i1, int? i2) {
+  int? i3 = i1, i4 = i2;
+  return i3;
+}
+int nonNull(int i1, int i2) {
+  int i3 = i1, i4 = i2;
+  return i3;
+}
+int? both(int i1, int? i2) {
+  int? i3 = i1, i4 = i2;
+  return i3;
+}
+void main() {
+  nullable(null, null);
+  nonNull(0, 1);
+  both(0, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_named_parameter_no_default_unused() async {
     var content = '''
 void f({String s}) {}

@@ -2851,6 +2851,21 @@ void test(bool b1, C _c) {
         assertEdge(decoratedTypeAnnotation('C c2').node, never, hard: false));
   }
 
+  test_postDominators_multiDeclaration() async {
+    // Multi declarations cannot use hard edges as shown below.
+    await analyze('''
+void test() {
+  int i1 = 0, i2 = null;
+  i1.toDouble();
+}
+''');
+
+    // i1.toDouble() cannot be a hard edge or i2 will fail assignment
+    assertEdge(decoratedTypeAnnotation('int i').node, never, hard: false);
+    // i2 gets a soft edge to always due to null assignment
+    assertEdge(always, decoratedTypeAnnotation('int i').node, hard: false);
+  }
+
   test_postDominators_reassign() async {
     await analyze('''
 void test(bool b, int i1, int i2) {

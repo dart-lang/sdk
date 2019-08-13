@@ -131,14 +131,6 @@ class ScopedSetTest {
     expect(set.isInScope(0), true);
   }
 
-  test_pushScope_addAll() {
-    final set = ScopedSet<int>();
-    set.pushScope();
-    set.addAll([0, 1]);
-    expect(set.isInScope(0), true);
-    expect(set.isInScope(1), true);
-  }
-
   test_pushScope_copyCurrent() {
     final set = ScopedSet<int>();
     set.pushScope();

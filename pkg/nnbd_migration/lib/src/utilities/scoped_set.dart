@@ -20,17 +20,10 @@ class ScopedSet<T> {
   /// Get the current scope. Private so as not to expose to clients.
   Set<T> get _currentScope => _scopeStack.last;
 
-  /// Add an element to the current scope (and not its parent scopes).
+  /// Add element to the current scope (and not its parent scopes).
   void add(T element) {
     if (_scopeStack.isNotEmpty) {
       _currentScope.add(element);
-    }
-  }
-
-  /// Add many elements to the current scope (and not its parent scopes).
-  void addAll(Iterable<T> elements) {
-    if (_scopeStack.isNotEmpty) {
-      _currentScope.addAll(elements);
     }
   }
 
