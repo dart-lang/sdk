@@ -1,4 +1,7 @@
 analyzer:
+  # This currently finds ~1,200 implicit-casts issues when enabled.
+  # strong-mode:
+  #   implicit-casts: false
   exclude:
     - test/mock_packages/**
 

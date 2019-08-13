@@ -99,7 +99,7 @@ class _Handler with NotificationHandler, ConnectionHandler {
       if (errorCount == 0) {
         print('No issues found.');
       } else {
-        print('Found ${errorCount} errors/warnings/hints');
+        print('Found $errorCount errors/warnings/hints');
       }
       errorCount = 0;
       print('--------- ctrl-c to exit ---------');

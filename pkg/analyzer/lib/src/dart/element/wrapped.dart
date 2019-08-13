@@ -194,8 +194,10 @@ class WrappedCompilationUnitElement implements CompilationUnitElement {
       .accept(visitor); // ignore: deprecated_member_use_from_same_package
 
   @override
-  String computeDocumentationComment() =>
-      wrappedUnit.computeDocumentationComment();
+  String computeDocumentationComment() {
+    // ignore: deprecated_member_use_from_same_package
+    return wrappedUnit.computeDocumentationComment();
+  }
 
   @deprecated
   @override
