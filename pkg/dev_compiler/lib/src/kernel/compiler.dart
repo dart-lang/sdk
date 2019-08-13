@@ -5339,8 +5339,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   @override
   js_ast.Expression visitConstant(Constant node) {
     if (node is TearOffConstant) {
-      // JS() or JS interop functions should not be lazily loaded.
-      if (node.procedure.isExternal || _isInForeignJS) {
+      // JS() or external JS consts should not be lazily loaded.
+      var isSdk = node.procedure.enclosingLibrary.importUri.scheme == "dart";
+      if ((node.procedure.isExternal && !isSdk) || _isInForeignJS) {
         return _emitStaticTarget(node.procedure);
       }
     }
