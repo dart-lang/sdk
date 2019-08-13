@@ -2,6 +2,11 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $builder_tag == bytecode_interpreter ]
+LibTest/collection/ListBase/ListBase_class_A01_t04: Pass, Slow
+LibTest/collection/ListBase/ListBase_class_A01_t05: Pass, Slow
+LibTest/collection/ListBase/ListBase_class_A01_t06: Pass, Slow
+
 [ $compiler == dartk ]
 LanguageFeatures/Set-literals/syntax_compatibility_A01_t02: RuntimeError
 
