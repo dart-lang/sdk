@@ -789,8 +789,10 @@ intptr_t ActivationFrame::ContextLevel() {
       while (local_vars.MoveNext()) {
         if (local_vars.Kind() ==
             kernel::BytecodeLocalVariablesIterator::kScope) {
-          if (local_vars.StartPC() <= pc_offset &&
-              pc_offset <= local_vars.EndPC()) {
+          if (local_vars.StartPC() > pc_offset) {
+            break;
+          }
+          if (pc_offset <= local_vars.EndPC()) {
             ASSERT(context_level_ <= local_vars.ContextLevel());
             context_level_ = local_vars.ContextLevel();
           }

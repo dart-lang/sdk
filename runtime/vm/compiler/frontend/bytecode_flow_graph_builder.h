@@ -167,6 +167,12 @@ class BytecodeFlowGraphBuilder {
                           const ExceptionHandlers& handlers,
                           GraphEntryInstr* graph_entry);
 
+#if !defined(PRODUCT)
+  // Update context level for the given bytecode PC. returns
+  // next PC where context level might need an update.
+  intptr_t UpdateContextLevel(const Bytecode& bytecode, intptr_t pc);
+#endif
+
   // Figure out entry points style.
   UncheckedEntryPointStyle ChooseEntryPointStyle(
       const KBCInstr* jump_if_unchecked);

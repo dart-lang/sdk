@@ -966,6 +966,7 @@ void BytecodeFlowGraphBuilder::BuildDynamicCall() {
   } else {
     ASSERT(ic_data_array_->At(deopt_id)->Original() == icdata.raw());
   }
+  B->reset_context_depth_for_deopt_id(deopt_id);
 
   const intptr_t argc = DecodeOperandF().value();
   const ArgumentsDescriptor arg_desc(
@@ -1806,14 +1807,13 @@ static bool IsICDataEntry(const ObjectPool& object_pool, intptr_t index) {
 // pre-populate ic_data_array_.
 void BytecodeFlowGraphBuilder::ProcessICDataInObjectPool(
     const ObjectPool& object_pool) {
-  CompilerState& compiler_state = thread()->compiler_state();
-  ASSERT(compiler_state.deopt_id() == 0);
+  ASSERT(thread()->compiler_state().deopt_id() == 0);
 
   const intptr_t pool_length = object_pool.Length();
   for (intptr_t i = 0; i < pool_length; ++i) {
     if (IsICDataEntry(object_pool, i)) {
       const ICData& icdata = ICData::CheckedHandle(Z, object_pool.ObjectAt(i));
-      const intptr_t deopt_id = compiler_state.GetNextDeoptId();
+      const intptr_t deopt_id = B->GetNextDeoptId();
       ASSERT(icdata.deopt_id() == deopt_id);
     }
   }
@@ -2017,6 +2017,35 @@ void BytecodeFlowGraphBuilder::CreateParameterVariables() {
   }
 }
 
+#if !defined(PRODUCT)
+intptr_t BytecodeFlowGraphBuilder::UpdateContextLevel(const Bytecode& bytecode,
+                                                      intptr_t pc) {
+  ASSERT(B->is_recording_context_levels());
+
+  kernel::BytecodeLocalVariablesIterator iter(Z, bytecode);
+  intptr_t context_level = 0;
+  intptr_t next_pc = bytecode_length_;
+  while (iter.MoveNext()) {
+    if (iter.IsScope()) {
+      if (iter.StartPC() <= pc) {
+        if (pc < iter.EndPC()) {
+          // Found enclosing scope. Keep looking as we might find more
+          // scopes (the last one is the most specific).
+          context_level = iter.ContextLevel();
+          next_pc = iter.EndPC();
+        }
+      } else {
+        next_pc = Utils::Minimum(next_pc, iter.StartPC());
+        break;
+      }
+    }
+  }
+
+  B->set_context_depth(context_level);
+  return next_pc;
+}
+#endif  // !defined(PRODUCT)
+
 FlowGraph* BytecodeFlowGraphBuilder::BuildGraph() {
   const Bytecode& bytecode = Bytecode::Handle(Z, function().bytecode());
 
@@ -2040,6 +2069,11 @@ FlowGraph* BytecodeFlowGraphBuilder::BuildGraph() {
 
   kernel::BytecodeSourcePositionsIterator source_pos_iter(Z, bytecode);
   bool update_position = source_pos_iter.MoveNext();
+
+#if !defined(PRODUCT)
+  intptr_t next_pc_to_update_context_level =
+      B->is_recording_context_levels() ? 0 : bytecode_length_;
+#endif
 
   code_ = Fragment(normal_entry);
 
@@ -2072,6 +2106,12 @@ FlowGraph* BytecodeFlowGraphBuilder::BuildGraph() {
       position_ = source_pos_iter.TokenPos();
       update_position = source_pos_iter.MoveNext();
     }
+
+#if !defined(PRODUCT)
+    if (pc_ >= next_pc_to_update_context_level) {
+      next_pc_to_update_context_level = UpdateContextLevel(bytecode, pc_);
+    }
+#endif
 
     BuildInstruction(KernelBytecode::DecodeOpcode(bytecode_instr_));
 
