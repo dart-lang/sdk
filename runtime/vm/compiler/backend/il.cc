@@ -1271,17 +1271,28 @@ void FlowGraphVisitor::VisitBlocks() {
 }
 
 bool Value::NeedsWriteBarrier() {
-  if (Type()->IsNull() || (Type()->ToNullableCid() == kSmiCid) ||
-      (Type()->ToNullableCid() == kBoolCid)) {
-    return false;
-  }
+  Value* value = this;
+  do {
+    if (value->Type()->IsNull() ||
+        (value->Type()->ToNullableCid() == kSmiCid) ||
+        (value->Type()->ToNullableCid() == kBoolCid)) {
+      return false;
+    }
 
-  // Strictly speaking, the incremental barrier can only be skipped for
-  // immediate objects (Smis) or permanent objects (vm-isolate heap or
-  // image pages). Here we choose to skip the barrier for any constant on
-  // the assumption it will remain reachable through the object pool.
+    // Strictly speaking, the incremental barrier can only be skipped for
+    // immediate objects (Smis) or permanent objects (vm-isolate heap or
+    // image pages). Here we choose to skip the barrier for any constant on
+    // the assumption it will remain reachable through the object pool.
+    if (value->BindsToConstant()) {
+      return false;
+    }
 
-  return !BindsToConstant();
+    // Follow the chain of redefinitions as redefined value could have a more
+    // accurate type (for example, AssertAssignable of Smi to a generic T).
+    value = value->definition()->RedefinedValue();
+  } while (value != nullptr);
+
+  return true;
 }
 
 void JoinEntryInstr::AddPredecessor(BlockEntryInstr* predecessor) {
