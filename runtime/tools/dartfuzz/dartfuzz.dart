@@ -13,7 +13,7 @@ import 'dartfuzz_api_table.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.17';
+const String version = '1.18';
 
 // Restriction on statements and expressions.
 const int stmtLength = 2;
@@ -40,6 +40,7 @@ class DartFuzz {
     currentMethod = null;
     // Setup the types.
     localVars = new List<DartType>();
+    iterVars = new List<String>();
     globalVars = fillTypes1();
     globalVars.addAll(DartType.allTypes); // always one each
     globalMethods = fillTypes2();
@@ -208,7 +209,7 @@ class DartFuzz {
   bool emitAssign() {
     DartType tp = getType();
     emitLn('', newline: false);
-    emitVar(0, tp);
+    emitVar(0, tp, isLhs: true);
     emitAssignOp(tp);
     emitExpr(0, tp);
     emit(';', newline: true);
@@ -282,9 +283,11 @@ class DartFuzz {
     emit('; $localName$i++) {', newline: true);
     indent += 2;
     nest++;
+    iterVars.add("$localName$i");
     localVars.add(DartType.INT);
     emitStatements(depth + 1);
     localVars.removeLast();
+    iterVars.removeLast();
     nest--;
     indent -= 2;
     emitLn('}');
@@ -318,9 +321,11 @@ class DartFuzz {
     emitLn('while (--$localName$i > 0) {');
     indent += 2;
     nest++;
+    iterVars.add("$localName$i");
     localVars.add(DartType.INT);
     emitStatements(depth + 1);
     localVars.removeLast();
+    iterVars.removeLast();
     nest--;
     indent -= 2;
     emitLn('}');
@@ -337,9 +342,11 @@ class DartFuzz {
     emitLn('do {');
     indent += 2;
     nest++;
+    iterVars.add("$localName$i");
     localVars.add(DartType.INT);
     emitStatements(depth + 1);
     localVars.removeLast();
+    iterVars.removeLast();
     nest--;
     indent -= 2;
     emitLn('} while (++$localName$i < ', newline: false);
@@ -642,9 +649,9 @@ class DartFuzz {
     }
   }
 
-  void emitScalarVar(DartType tp) {
+  void emitScalarVar(DartType tp, {bool isLhs = false}) {
     // Collect all choices from globals, fields, locals, and parameters.
-    List<String> choices = new List<String>();
+    Set<String> choices = new Set<String>();
     for (int i = 0; i < globalVars.length; i++) {
       if (tp == globalVars[i]) choices.add('$varName$i');
     }
@@ -663,34 +670,44 @@ class DartFuzz {
         if (tp == proto[i]) choices.add('$paramName$i');
       }
     }
+    // Remove possible modification of the iteration variable from the loop
+    // body.
+    if (isLhs) {
+      if (rand.nextInt(10) != 0) {
+        Set<String> cleanChoices = choices.difference(Set.from(iterVars));
+        if (cleanChoices.length > 0) {
+          choices = cleanChoices;
+        }
+      }
+    }
     // Then pick one.
     assert(choices.length > 0);
-    emit('${choices[rand.nextInt(choices.length)]}');
+    emit('${choices.elementAt(rand.nextInt(choices.length))}');
   }
 
-  void emitSubscriptedVar(int depth, DartType tp) {
+  void emitSubscriptedVar(int depth, DartType tp, {bool isLhs = false}) {
     if (tp == DartType.INT) {
-      emitScalarVar(DartType.INT_LIST);
+      emitScalarVar(DartType.INT_LIST, isLhs: isLhs);
       emit('[');
       emitExpr(depth + 1, DartType.INT);
       emit(']');
     } else if (tp == DartType.STRING) {
-      emitScalarVar(DartType.INT_STRING_MAP);
+      emitScalarVar(DartType.INT_STRING_MAP, isLhs: isLhs);
       emit('[');
       emitExpr(depth + 1, DartType.INT);
       emit(']');
     } else {
-      emitScalarVar(tp); // resort to scalar
+      emitScalarVar(tp, isLhs: isLhs); // resort to scalar
     }
   }
 
-  void emitVar(int depth, DartType tp) {
+  void emitVar(int depth, DartType tp, {bool isLhs = false}) {
     switch (rand.nextInt(2)) {
       case 0:
-        emitScalarVar(tp);
+        emitScalarVar(tp, isLhs: isLhs);
         break;
       default:
-        emitSubscriptedVar(depth, tp);
+        emitSubscriptedVar(depth, tp, isLhs: isLhs);
         break;
     }
   }
@@ -778,7 +795,7 @@ class DartFuzz {
       int r = rand.nextInt(2);
       emit('(');
       if (r == 0) emitPreOrPostOp(tp);
-      emitScalarVar(tp);
+      emitScalarVar(tp, isLhs: true);
       if (r == 1) emitPreOrPostOp(tp);
       emit(')');
     } else {
@@ -1145,6 +1162,11 @@ class DartFuzz {
 
   // Types of global variables.
   List<DartType> globalVars;
+
+  // Names of currenty active iterator variables.
+  // These are tracked to avoid modifications within the loop body,
+  // which can lead to infinite loops.
+  List<String> iterVars;
 
   // Prototypes of all global methods (first element is return type).
   List<List<DartType>> globalMethods;
