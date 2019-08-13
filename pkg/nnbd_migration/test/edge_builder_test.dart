@@ -10,7 +10,6 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:nnbd_migration/src/decorated_class_hierarchy.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/edge_builder.dart';
@@ -30,20 +29,21 @@ main() {
 }
 
 @reflectiveTest
-class AssignmentCheckerTest extends Object with EdgeTester {
+class AssignmentCheckerTest extends Object
+    with EdgeTester, DecoratedTypeTester {
   static const EdgeOrigin origin = const _TestEdgeOrigin();
 
   ClassElement _myListOfListClass;
 
   DecoratedType _myListOfListSupertype;
 
+  @override
   final TypeProvider typeProvider;
 
+  @override
   final NullabilityGraphForTesting graph;
 
   final AssignmentCheckerForTesting checker;
-
-  int offset = 0;
 
   factory AssignmentCheckerTest() {
     var typeProvider = TestTypeProvider();
@@ -59,53 +59,15 @@ class AssignmentCheckerTest extends Object with EdgeTester {
 
   AssignmentCheckerTest._(this.typeProvider, this.graph, this.checker);
 
-  NullabilityNode get always => graph.always;
-
-  DecoratedType get bottom => DecoratedType(typeProvider.bottomType, never);
-
-  DecoratedType get dynamic_ => DecoratedType(typeProvider.dynamicType, always);
-
-  NullabilityNode get never => graph.never;
-
-  DecoratedType get null_ => DecoratedType(typeProvider.nullType, always);
-
-  DecoratedType get void_ => DecoratedType(typeProvider.voidType, always);
-
   void assign(DecoratedType source, DecoratedType destination,
       {bool hard = false}) {
     checker.checkAssignment(origin,
         source: source, destination: destination, hard: hard);
   }
 
-  DecoratedType function(DecoratedType returnType,
-      {List<DecoratedType> required = const [],
-      List<DecoratedType> positional = const [],
-      Map<String, DecoratedType> named = const {}}) {
-    int i = 0;
-    var parameters = required
-        .map((t) => ParameterElementImpl.synthetic(
-            'p${i++}', t.type, ParameterKind.REQUIRED))
-        .toList();
-    parameters.addAll(positional.map((t) => ParameterElementImpl.synthetic(
-        'p${i++}', t.type, ParameterKind.POSITIONAL)));
-    parameters.addAll(named.entries.map((e) => ParameterElementImpl.synthetic(
-        e.key, e.value.type, ParameterKind.NAMED)));
-    return DecoratedType(
-        FunctionTypeImpl.synthetic(returnType.type, const [], parameters),
-        NullabilityNode.forTypeAnnotation(offset++),
-        returnType: returnType,
-        positionalParameters: required.toList()..addAll(positional),
-        namedParameters: named);
-  }
-
-  DecoratedType list(DecoratedType elementType) => DecoratedType(
-      typeProvider.listType.instantiate([elementType.type]),
-      NullabilityNode.forTypeAnnotation(offset++),
-      typeArguments: [elementType]);
-
   DecoratedType myListOfList(DecoratedType elementType) {
     if (_myListOfListClass == null) {
-      var t = TypeParameterElementImpl.synthetic('T')..bound = object().type;
+      var t = typeParameter('T', object());
       _myListOfListSupertype = list(list(typeParameterType(t)));
       _myListOfListClass = ClassElementImpl('MyListOfList', 0)
         ..typeParameters = [t]
@@ -114,12 +76,9 @@ class AssignmentCheckerTest extends Object with EdgeTester {
     return DecoratedType(
         InterfaceTypeImpl(_myListOfListClass)
           ..typeArguments = [elementType.type],
-        NullabilityNode.forTypeAnnotation(offset++),
+        newNode(),
         typeArguments: [elementType]);
   }
-
-  DecoratedType object() => DecoratedType(
-      typeProvider.objectType, NullabilityNode.forTypeAnnotation(offset++));
 
   void test_bottom_to_generic() {
     var t = list(object());
@@ -136,10 +95,8 @@ class AssignmentCheckerTest extends Object with EdgeTester {
 
   void test_complex_to_typeParam() {
     var bound = list(object());
-    var t = TypeParameterElementImpl.synthetic('T')..bound = bound.type;
-    checker.bounds[t] = bound;
     var t1 = list(object());
-    var t2 = typeParameterType(t);
+    var t2 = typeParameterType(typeParameter('T', bound));
     assign(t1, t2, hard: true);
     assertEdge(t1.node, t2.node, hard: true);
     assertNoEdge(t1.node, bound.node);
@@ -318,9 +275,7 @@ class AssignmentCheckerTest extends Object with EdgeTester {
 
   void test_typeParam_to_complex() {
     var bound = list(object());
-    var t = TypeParameterElementImpl.synthetic('T')..bound = bound.type;
-    checker.bounds[t] = bound;
-    var t1 = typeParameterType(t);
+    var t1 = typeParameterType(typeParameter('T', bound));
     var t2 = list(object());
     assign(t1, t2, hard: true);
     assertEdge(t1.node, t2.node, hard: true);
@@ -330,26 +285,26 @@ class AssignmentCheckerTest extends Object with EdgeTester {
   }
 
   void test_typeParam_to_object() {
-    var bound = object();
-    var t = TypeParameterElementImpl.synthetic('T')..bound = bound.type;
-    checker.bounds[t] = bound;
-    var t1 = typeParameterType(t);
+    var t1 = typeParameterType(typeParameter('T', object()));
     var t2 = object();
     assign(t1, t2);
     assertEdge(t1.node, t2.node, hard: false);
   }
 
   void test_typeParam_to_typeParam() {
-    var t = TypeParameterElementImpl.synthetic('T')..bound = object().type;
+    var t = typeParameter('T', object());
     var t1 = typeParameterType(t);
     var t2 = typeParameterType(t);
     assign(t1, t2);
     assertEdge(t1.node, t2.node, hard: false);
   }
 
-  DecoratedType typeParameterType(TypeParameterElement typeParameter) =>
-      DecoratedType(
-          typeParameter.type, NullabilityNode.forTypeAnnotation(offset++));
+  @override
+  TypeParameterElement typeParameter(String name, DecoratedType bound) {
+    var t = super.typeParameter(name, bound);
+    checker.bounds[t] = bound;
+    return t;
+  }
 }
 
 @reflectiveTest

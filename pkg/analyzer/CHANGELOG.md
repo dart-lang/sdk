@@ -1,6 +1,6 @@
 ## 0.37.1 (Not yet published)
 * Added the getters `isDartCoreList`, `isDartCoreMap`, `isDartCoreNum`,
-  `isDartCoreSet`, and `isDartCoreSymbol` to `DartType`.
+  `isDartCoreSet`, `isDartCoreSymbol`, and `isDartCoreObject` to `DartType`.
 * Added the method `DartObject.toFunctionValue`.
 * Deprecated the `isEquivalentTo(DartType)` method of `DartType`.
   The operator `==` now correctly considers two types equal if and

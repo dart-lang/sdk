@@ -43,11 +43,16 @@ class DecoratedType {
   /// TODO(paulberry): how should we handle generic typedefs?
   final List<DecoratedType> typeArguments;
 
+  /// If `this` is a function type, the [DecoratedType] of each of the bounds of
+  /// its type parameters.
+  final List<DecoratedType> typeFormalBounds;
+
   DecoratedType(this.type, this.node,
       {this.returnType,
       this.positionalParameters = const [],
       this.namedParameters = const {},
-      this.typeArguments = const []}) {
+      this.typeArguments = const [],
+      this.typeFormalBounds = const []}) {
     assert(() {
       assert(node != null);
       var type = this.type;
@@ -55,11 +60,21 @@ class DecoratedType {
         assert(returnType == null);
         assert(positionalParameters.isEmpty);
         assert(namedParameters.isEmpty);
+        assert(typeFormalBounds.isEmpty);
         assert(typeArguments.length == type.typeArguments.length);
         for (int i = 0; i < typeArguments.length; i++) {
           assert(typeArguments[i].type == type.typeArguments[i]);
         }
       } else if (type is FunctionType) {
+        assert(typeFormalBounds.length == type.typeFormals.length);
+        for (int i = 0; i < typeFormalBounds.length; i++) {
+          var declaredBound = type.typeFormals[i].bound;
+          if (declaredBound == null) {
+            assert(typeFormalBounds[i].type.isDartCoreObject);
+          } else {
+            assert(typeFormalBounds[i].type == declaredBound);
+          }
+        }
         assert(returnType.type == type.returnType);
         int positionalParameterCount = 0;
         int namedParameterCount = 0;
@@ -81,11 +96,13 @@ class DecoratedType {
         assert(positionalParameters.isEmpty);
         assert(namedParameters.isEmpty);
         assert(typeArguments.isEmpty);
+        assert(typeFormalBounds.isEmpty);
       } else {
         assert(returnType == null);
         assert(positionalParameters.isEmpty);
         assert(namedParameters.isEmpty);
         assert(typeArguments.isEmpty);
+        assert(typeFormalBounds.isEmpty);
       }
       return true;
     }());

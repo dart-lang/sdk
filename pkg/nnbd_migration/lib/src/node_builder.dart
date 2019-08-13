@@ -43,6 +43,11 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
   /// seen so far.  Otherwise `null`.
   List<DecoratedType> _positionalParameters;
 
+  /// If the type parameters of a function or method are being visited, the
+  /// [DecoratedType]s of the bounds of the function's type formals that have
+  /// been seen so far.  Otherwise `null`.
+  List<DecoratedType> _typeFormalBounds;
+
   final NullabilityMigrationListener /*?*/ listener;
 
   final NullabilityGraph _graph;
@@ -129,6 +134,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
         node.declaredElement,
         node.metadata,
         null,
+        null,
         node.parameters,
         node.initializers,
         node.body,
@@ -180,6 +186,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
         node.declaredElement,
         node.metadata,
         node.returnType,
+        node.functionExpression.typeParameters,
         node.functionExpression.parameters,
         null,
         node.functionExpression.body,
@@ -203,8 +210,16 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitMethodDeclaration(MethodDeclaration node) {
-    _handleExecutableDeclaration(node.declaredElement, node.metadata,
-        node.returnType, node.parameters, null, node.body, null, node);
+    _handleExecutableDeclaration(
+        node.declaredElement,
+        node.metadata,
+        node.returnType,
+        node.typeParameters,
+        node.parameters,
+        null,
+        node.body,
+        null,
+        node);
     return null;
   }
 
@@ -346,6 +361,7 @@ $stackTrace''');
           AlwaysNullableTypeOrigin(_source, node.offset));
       decoratedBound = DecoratedType(_typeProvider.objectType, nullabilityNode);
     }
+    _typeFormalBounds?.add(decoratedBound);
     _variables.recordDecoratedTypeParameterBound(element, decoratedBound);
     return null;
   }
@@ -387,6 +403,7 @@ $stackTrace''');
       ExecutableElement declaredElement,
       NodeList<Annotation> metadata,
       TypeAnnotation returnType,
+      TypeParameterList typeParameters,
       FormalParameterList parameters,
       NodeList<ConstructorInitializer> initializers,
       FunctionBody body,
@@ -409,14 +426,18 @@ $stackTrace''');
     }
     var previousPositionalParameters = _positionalParameters;
     var previousNamedParameters = _namedParameters;
+    var previousTypeFormalBounds = _typeFormalBounds;
     _positionalParameters = [];
     _namedParameters = {};
+    _typeFormalBounds = [];
     DecoratedType decoratedFunctionType;
     try {
+      typeParameters?.accept(this);
       parameters?.accept(this);
       redirectedConstructor?.accept(this);
       initializers?.accept(this);
       decoratedFunctionType = DecoratedType(functionType, _graph.never,
+          typeFormalBounds: _typeFormalBounds,
           returnType: decoratedReturnType,
           positionalParameters: _positionalParameters,
           namedParameters: _namedParameters);
@@ -424,6 +445,7 @@ $stackTrace''');
     } finally {
       _positionalParameters = previousPositionalParameters;
       _namedParameters = previousNamedParameters;
+      _typeFormalBounds = previousTypeFormalBounds;
     }
     _variables.recordDecoratedElementType(
         declaredElement, decoratedFunctionType);

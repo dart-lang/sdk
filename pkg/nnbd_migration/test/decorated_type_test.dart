@@ -2,14 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'abstract_single_unit.dart';
+import 'migration_visitor_test_base.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -18,91 +20,71 @@ main() {
 }
 
 @reflectiveTest
-class DecoratedTypeTest extends AbstractSingleUnitTest {
-  final _graph = NullabilityGraph();
+class DecoratedTypeTest extends Object
+    with DecoratedTypeTester
+    implements DecoratedTypeTesterBase {
+  final graph = NullabilityGraph();
 
-  NullabilityNode get always => _graph.always;
+  final TypeProvider typeProvider;
 
-  @override
+  factory DecoratedTypeTest() {
+    var typeProvider = TestTypeProvider();
+    return DecoratedTypeTest._(typeProvider);
+  }
+
+  DecoratedTypeTest._(this.typeProvider);
+
+  NullabilityNode get always => graph.always;
+
+  ClassElement get listElement => typeProvider.listType.element;
+
   void setUp() {
     NullabilityNode.clearDebugNames();
-    super.setUp();
   }
 
-  test_toString_bottom() async {
-    var decoratedType = DecoratedType(BottomTypeImpl.instance, _node(1));
-    expect(decoratedType.toString(), 'Never?(type(1))');
+  test_toString_bottom() {
+    var node = newNode();
+    var decoratedType = DecoratedType(BottomTypeImpl.instance, node);
+    expect(decoratedType.toString(), 'Never?($node)');
   }
 
-  test_toString_interface_type_argument() async {
-    await resolveTestUnit('''List<int> x;''');
-    var type = findElement.topVar('x').type as InterfaceType;
-    var decoratedType = DecoratedType(type, always,
-        typeArguments: [DecoratedType(type.typeArguments[0], _node(1))]);
-    expect(decoratedType.toString(), 'List<int?(type(1))>?');
+  test_toString_interface_type_argument() {
+    var argType = int_();
+    var decoratedType = list(argType, node: always);
+    expect(decoratedType.toString(), 'List<$argType>?');
   }
 
-  test_toString_named_parameter() async {
-    await resolveTestUnit('''dynamic f({int x}) {}''');
-    var type = findElement.function('f').type;
-    var decoratedType = DecoratedType(type, always,
-        namedParameters: {
-          'x': DecoratedType(type.namedParameterTypes['x'], _node(1))
-        },
-        returnType: DecoratedType(type.returnType, always));
-    expect(decoratedType.toString(), 'dynamic Function({x: int?(type(1))})?');
+  test_toString_named_parameter() {
+    var xType = int_();
+    var decoratedType = function(dynamic_, named: {'x': xType}, node: always);
+    expect(decoratedType.toString(), 'dynamic Function({x: $xType})?');
   }
 
-  test_toString_normal_and_named_parameter() async {
-    await resolveTestUnit('''dynamic f(int x, {int y}) {}''');
-    var type = findElement.function('f').type;
-    var decoratedType = DecoratedType(type, always,
-        positionalParameters: [
-          DecoratedType(type.normalParameterTypes[0], _node(1))
-        ],
-        namedParameters: {
-          'y': DecoratedType(type.namedParameterTypes['y'], _node(2))
-        },
-        returnType: DecoratedType(type.returnType, always));
-    expect(decoratedType.toString(),
-        'dynamic Function(int?(type(1)), {y: int?(type(2))})?');
+  test_toString_normal_and_named_parameter() {
+    var xType = int_();
+    var yType = int_();
+    var decoratedType = function(dynamic_,
+        required: [xType], named: {'y': yType}, node: always);
+    expect(decoratedType.toString(), 'dynamic Function($xType, {y: $yType})?');
   }
 
-  test_toString_normal_and_optional_parameter() async {
-    await resolveTestUnit('''dynamic f(int x, [int y]) {}''');
-    var type = findElement.function('f').type;
-    var decoratedType = DecoratedType(type, always,
-        positionalParameters: [
-          DecoratedType(type.normalParameterTypes[0], _node(1)),
-          DecoratedType(type.optionalParameterTypes[0], _node(2))
-        ],
-        returnType: DecoratedType(type.returnType, always));
-    expect(decoratedType.toString(),
-        'dynamic Function(int?(type(1)), [int?(type(2))])?');
+  test_toString_normal_and_optional_parameter() {
+    var xType = int_();
+    var yType = int_();
+    var decoratedType = function(dynamic_,
+        required: [xType], positional: [yType], node: always);
+    expect(decoratedType.toString(), 'dynamic Function($xType, [$yType])?');
   }
 
-  test_toString_normal_parameter() async {
-    await resolveTestUnit('''dynamic f(int x) {}''');
-    var type = findElement.function('f').type;
-    var decoratedType = DecoratedType(type, always,
-        positionalParameters: [
-          DecoratedType(type.normalParameterTypes[0], _node(1))
-        ],
-        returnType: DecoratedType(type.returnType, always));
-    expect(decoratedType.toString(), 'dynamic Function(int?(type(1)))?');
+  test_toString_normal_parameter() {
+    var xType = int_();
+    var decoratedType = function(dynamic_, required: [xType], node: always);
+    expect(decoratedType.toString(), 'dynamic Function($xType)?');
   }
 
-  test_toString_optional_parameter() async {
-    await resolveTestUnit('''dynamic f([int x]) {}''');
-    var type = findElement.function('f').type;
-    var decoratedType = DecoratedType(type, always,
-        positionalParameters: [
-          DecoratedType(type.optionalParameterTypes[0], _node(1))
-        ],
-        returnType: DecoratedType(type.returnType, always));
-    expect(decoratedType.toString(), 'dynamic Function([int?(type(1))])?');
+  test_toString_optional_parameter() {
+    var xType = int_();
+    var decoratedType = function(dynamic_, positional: [xType], node: always);
+    expect(decoratedType.toString(), 'dynamic Function([$xType])?');
   }
-
-  NullabilityNode _node(int offset) =>
-      NullabilityNode.forTypeAnnotation(offset);
 }
