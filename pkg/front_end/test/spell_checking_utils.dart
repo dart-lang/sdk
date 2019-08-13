@@ -4,15 +4,34 @@
 
 import 'dart:io';
 
-Set<String> _dictionary;
+enum Dictionaries {
+  common,
+  cfeMessages,
+  cfeCode,
+  cfeTests,
+}
 
-Set<String> spellcheckString(String s, {bool splitAsCode: false}) {
+Map<Dictionaries, Set<String>> loadedDictionaries;
+
+Set<String> spellcheckString(String s,
+    {List<Dictionaries> dictionaries, bool splitAsCode: false}) {
+  dictionaries ??= const [Dictionaries.common];
+  ensureDictionariesLoaded(dictionaries);
+
   Set<String> wrongWords;
-  _dictionary ??= _loadDictionary();
   List<String> words = splitStringIntoWords(s, splitAsCode: splitAsCode);
   for (int i = 0; i < words.length; i++) {
     String word = words[i].toLowerCase();
-    if (!_dictionary.contains(word)) {
+    bool found = false;
+    for (int j = 0; j < dictionaries.length; j++) {
+      Dictionaries dictionaryType = dictionaries[j];
+      Set<String> dictionary = loadedDictionaries[dictionaryType];
+      if (dictionary.contains(word)) {
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
       wrongWords ??= new Set<String>();
       wrongWords.add(word);
     }
@@ -20,9 +39,8 @@ Set<String> spellcheckString(String s, {bool splitAsCode: false}) {
   return wrongWords;
 }
 
-Set<String> _loadDictionary() {
-  Set<String> dictionary = new Set<String>();
-  addWords(Uri uri) {
+void ensureDictionariesLoaded(List<Dictionaries> dictionaries) {
+  void addWords(Uri uri, Set<String> dictionary) {
     for (String word in File.fromUri(uri)
         .readAsStringSync()
         .split("\n")
@@ -39,14 +57,34 @@ Set<String> _loadDictionary() {
     }
   }
 
-  // TODO(jensj): Split list into several:
-  // * A common one with correctly spelled words.
-  // * A special one for messages.yaml.
-  // * A special one for source code in 'src'.
-  // * A special one for source code not in 'src'.
-  // and allow the caller to specify the combination of lists we want to use.
-  addWords(Uri.base.resolve("pkg/front_end/test/spell_checking_list.txt"));
-  return dictionary;
+  loadedDictionaries ??= new Map<Dictionaries, Set<String>>();
+  for (int j = 0; j < dictionaries.length; j++) {
+    Dictionaries dictionaryType = dictionaries[j];
+    Set<String> dictionary = loadedDictionaries[dictionaryType];
+    if (dictionary == null) {
+      dictionary = new Set<String>();
+      loadedDictionaries[dictionaryType] = dictionary;
+      addWords(dictionaryToUri(dictionaryType), dictionary);
+    }
+  }
+}
+
+Uri dictionaryToUri(Dictionaries dictionaryType) {
+  switch (dictionaryType) {
+    case Dictionaries.common:
+      return Uri.base
+          .resolve("pkg/front_end/test/spell_checking_list_common.txt");
+    case Dictionaries.cfeMessages:
+      return Uri.base
+          .resolve("pkg/front_end/test/spell_checking_list_messages.txt");
+    case Dictionaries.cfeCode:
+      return Uri.base
+          .resolve("pkg/front_end/test/spell_checking_list_code.txt");
+    case Dictionaries.cfeTests:
+      return Uri.base
+          .resolve("pkg/front_end/test/spell_checking_list_tests.txt");
+  }
+  throw "Unknown Dictionary";
 }
 
 List<String> splitStringIntoWords(String s, {bool splitAsCode: false}) {

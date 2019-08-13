@@ -106,7 +106,11 @@ class MessageTestSuite extends ChainContext {
         var value = node.value;
         switch (key) {
           case "template":
-            Set<String> misspelled = spell.spellcheckString(value);
+            Set<String> misspelled = spell.spellcheckString(value,
+                dictionaries: const [
+                  spell.Dictionaries.common,
+                  spell.Dictionaries.cfeMessages
+                ]);
             if (misspelled != null) {
               misspelledTemplate = node;
               misspelledTemplateWords = misspelled;
@@ -114,7 +118,11 @@ class MessageTestSuite extends ChainContext {
             break;
 
           case "tip":
-            Set<String> misspelled = spell.spellcheckString(value);
+            Set<String> misspelled = spell.spellcheckString(value,
+                dictionaries: const [
+                  spell.Dictionaries.common,
+                  spell.Dictionaries.cfeMessages
+                ]);
             if (misspelled != null) {
               misspelledTip = node;
               misspelledTipWords = misspelled;

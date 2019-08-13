@@ -18,19 +18,11 @@ import 'package:front_end/src/scanner/token.dart'
 import 'package:front_end/src/scanner/token.dart';
 
 import 'package:testing/testing.dart'
-    show Chain, ChainContext, Result, Step, TestDescription, runMe;
+    show ChainContext, Result, Step, TestDescription;
 
 import 'spell_checking_utils.dart' as spell;
 
-main([List<String> arguments = const []]) =>
-    runMe(arguments, createContext, "../testing.json");
-
-Future<Context> createContext(
-    Chain suite, Map<String, String> environment) async {
-  return new Context();
-}
-
-class Context extends ChainContext {
+abstract class Context extends ChainContext {
   final List<Step> steps = const <Step>[
     const SpellTest(),
   ];
@@ -41,6 +33,8 @@ class Context extends ChainContext {
       TestDescription description, Result result, bool last) {
     return result;
   }
+
+  List<spell.Dictionaries> get dictionaries;
 }
 
 class SpellTest extends Step<TestDescription, TestDescription, Context> {
@@ -72,8 +66,8 @@ class SpellTest extends Step<TestDescription, TestDescription, Context> {
       if (token.precedingComments != null) {
         Token comment = token.precedingComments;
         while (comment != null) {
-          Set<String> misspelled =
-              spell.spellcheckString(comment.lexeme, splitAsCode: true);
+          Set<String> misspelled = spell.spellcheckString(comment.lexeme,
+              splitAsCode: true, dictionaries: context.dictionaries);
           if (misspelled != null) {
             errors ??= new List<String>();
             errors.add("Misspelled words around offset ${comment.offset}: "
@@ -83,8 +77,8 @@ class SpellTest extends Step<TestDescription, TestDescription, Context> {
         }
       }
       if (token is StringToken) {
-        Set<String> misspelled =
-            spell.spellcheckString(token.lexeme, splitAsCode: true);
+        Set<String> misspelled = spell.spellcheckString(token.lexeme,
+            splitAsCode: true, dictionaries: context.dictionaries);
         if (misspelled != null) {
           errors ??= new List<String>();
           errors.add("Misspelled words around offset ${token.offset}: "

@@ -834,7 +834,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     // [legacyMode] is enabled.
     // 2) the member [typeEnvironment] might be null when [legacyMode] is
     // enabled.
-    // This particular behaviour can be observed when running the fasta perf
+    // This particular behavior can be observed when running the fasta perf
     // benchmarks.
     if (!legacyMode && builder.returnType != null) {
       DartType returnType = builder.function.returnType;

@@ -363,7 +363,7 @@ abstract class ClassBuilder extends DeclarationBuilder {
   /// Find the first member of this class with [name]. This method isn't
   /// suitable for scope lookups as it will throw an error if the name isn't
   /// declared. The [scope] should be used for that. This method is used to
-  /// find a member that is known to exist and it wil pick the first
+  /// find a member that is known to exist and it will pick the first
   /// declaration if the name is ambiguous.
   ///
   /// For example, this method is convenient for use when building synthetic
