@@ -148,8 +148,10 @@ class CompletionRanking {
         } else {
           suggestions
               .add(createCompletionSuggestion(entry.key, featureSet, high--));
-          includedSuggestionRelevanceTags
-              .add(IncludedSuggestionRelevanceTag(entry.key, relevance));
+          if (includedSuggestionRelevanceTags != null) {
+            includedSuggestionRelevanceTags
+                .add(IncludedSuggestionRelevanceTag(entry.key, relevance));
+          }
         }
       } else if (completionSuggestions.isNotEmpty ||
           includedSuggestions.isNotEmpty) {
@@ -164,8 +166,10 @@ class CompletionRanking {
         final relevance = low--;
         suggestions
             .add(createCompletionSuggestion(entry.key, featureSet, relevance));
-        includedSuggestionRelevanceTags
-            .add(IncludedSuggestionRelevanceTag(entry.key, relevance));
+        if (includedSuggestionRelevanceTags != null) {
+          includedSuggestionRelevanceTags
+              .add(IncludedSuggestionRelevanceTag(entry.key, relevance));
+        }
       }
     });
 
