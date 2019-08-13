@@ -4,6 +4,7 @@
 
 import "dart:async";
 import "dart:io";
+import "dart:isolate";
 
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
@@ -313,6 +314,71 @@ void testWatchMoveSelf() {
   dir2.renameSync(join(dir.path, 'new_dir'));
 }
 
+testWatchConsistentModifiedFile() async {
+  // When file modification starts before the watcher listen() is called and the first event
+  // happens in a very short period of time the modifying event will be missed before the
+  // stream listen has been set up and the watcher will hang forever.
+  // Bug: https://github.com/dart-lang/sdk/issues/37233
+  asyncStart();
+  ReceivePort receivePort = ReceivePort();
+  await Isolate.spawn(modifyFiles, receivePort.sendPort);
+
+  await for (var object in receivePort) {
+    if (object == 'end') {
+      receivePort.close();
+      break;
+    }
+    var sendPort = object[0];
+    var path = object[1];
+    var dir = new Directory(path);
+
+    sendPort.send('start');
+    // Delay some time to ensure that watcher is created when modification is running consistently.
+    await Future.delayed(Duration(milliseconds: 10));
+    var watcher = dir.watch();
+
+    // Wait for event and check the type
+    var event = await watcher.first;
+    Expect.isTrue(event is FileSystemModifyEvent);
+    Expect.isTrue(event.path.endsWith('file'));
+
+    // Create a file to signal modifier isolate to stop modification and clean up temp directory.
+    var file = new File(join(dir.path, 'EventReceived'));
+    file.createSync();
+    sendPort.send('end');
+  }
+  asyncEnd();
+}
+
+void modifyFiles(SendPort sendPort) {
+  // Send sendPort back to listen for modification signal.
+  ReceivePort receivePort = ReceivePort();
+  var dir = Directory.systemTemp.createTempSync('dart_file_system_watcher');
+
+  // Create file within the directory and keep modifying.
+  var file = new File(join(dir.path, 'file'));
+  file.createSync();
+  var subscription;
+  sendPort.send([receivePort.sendPort, dir.path]);
+  subscription = receivePort.listen((data) {
+    if (data == 'end') {
+      // Clean up the directory and files
+      dir.deleteSync(recursive: true);
+      sendPort.send('end');
+      subscription.cancel();
+    } else {
+      // This signal file is created once watcher isolate receives the event.
+      var signal = new File(join(dir.path, 'EventReceived'));
+      while (!signal.existsSync()) {
+        // Start modifying the file continuously before watcher start watching.
+        for (int i = 0; i < 100; i++) {
+          file.writeAsStringSync('a');
+        }
+      }
+    }
+  });
+}
+
 void main() {
   if (!FileSystemEntity.isWatchSupported) return;
   testWatchCreateFile();
@@ -326,4 +392,5 @@ void main() {
   testWatchNonRecursive();
   testWatchNonExisting();
   testWatchMoveSelf();
+  testWatchConsistentModifiedFile();
 }
