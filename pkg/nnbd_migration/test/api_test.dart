@@ -1806,6 +1806,42 @@ int f(int x, int Function(int i) g) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_postdominating_usage_after_cfg_altered() async {
+    // By altering the control-flow graph, we can create new postdominators,
+    // which are not recognized as such. This is not a problem as we only do
+    // hard edges on a best-effort basis, and this case would be a lot of
+    // additional complexity.
+    var content = '''
+int f(int a, int b, int c) {
+  if (a != null) {
+    b.toDouble();
+  } else {
+    return null;
+  }
+  c.toDouble;
+}
+
+void main() {
+  f(1, null, null);
+}
+''';
+    var expected = '''
+int f(int a, int? b, int? c) {
+  /* if (a != null) {
+    */ b!.toDouble(); /*
+  } else {
+    return null;
+  } */
+  c!.toDouble;
+}
+
+void main() {
+  f(1, null, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_prefix_minus() async {
     var content = '''
 class C {
