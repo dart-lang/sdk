@@ -336,11 +336,15 @@ testWatchConsistentModifiedFile() async {
     // Delay some time to ensure that watcher is created when modification is running consistently.
     await Future.delayed(Duration(milliseconds: 10));
     var watcher = dir.watch();
+    var subscription;
 
     // Wait for event and check the type
-    var event = await watcher.first;
-    Expect.isTrue(event is FileSystemModifyEvent);
-    Expect.isTrue(event.path.endsWith('file'));
+    subscription = watcher.listen((data) {
+      if (data is FileSystemModifyEvent) {
+        Expect.isTrue(data.path.endsWith('file'));
+        subscription.cancel();
+      }
+    });
 
     // Create a file to signal modifier isolate to stop modification and clean up temp directory.
     var file = new File(join(dir.path, 'EventReceived'));
