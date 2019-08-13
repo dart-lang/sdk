@@ -80,6 +80,7 @@ class Search {
     ElementKind kind = element.kind;
     if (kind == ElementKind.CLASS ||
         kind == ElementKind.CONSTRUCTOR ||
+        kind == ElementKind.EXTENSION ||
         kind == ElementKind.FUNCTION_TYPE_ALIAS ||
         kind == ElementKind.SETTER) {
       return _searchReferences(element, searchedFiles);
@@ -817,7 +818,8 @@ class _IndexRequest {
    */
   int getElementClassMemberId(Element element) {
     for (; element != null; element = element.enclosingElement) {
-      if (element.enclosingElement is ClassElement) {
+      if (element.enclosingElement is ClassElement ||
+          element.enclosingElement is ExtensionElement) {
         return getStringId(element.name);
       }
     }
