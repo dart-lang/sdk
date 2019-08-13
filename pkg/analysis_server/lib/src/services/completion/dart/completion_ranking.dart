@@ -109,10 +109,7 @@ class CompletionRanking {
     if (testInsideQuotes(request)) {
       // If completion is requested inside of quotes, remove any suggestions
       // which are not string literal.
-      entries = entries
-          .where((MapEntry entry) =>
-              isStringLiteral(entry.key) && isNotWhitespace(entry.key))
-          .toList();
+      entries = selectStringLiterals(entries);
     } else if (request.opType.includeVarNameSuggestions &&
         suggestions.every((CompletionSuggestion suggestion) =>
             suggestion.kind == CompletionSuggestionKind.IDENTIFIER)) {

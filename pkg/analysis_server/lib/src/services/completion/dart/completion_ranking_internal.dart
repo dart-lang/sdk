@@ -180,3 +180,21 @@ String elementNameFromRelevanceTag(String tag) {
 
   return tag.substring(index + 2);
 }
+
+/// Filters the entries list down to only those which represent string literals
+/// and then strips quotes.
+List<MapEntry<String, double>> selectStringLiterals(List<MapEntry> entries) {
+  return entries
+      .where((MapEntry entry) =>
+          isStringLiteral(entry.key) && isNotWhitespace(entry.key))
+      .map<MapEntry<String, double>>(
+          (MapEntry entry) => MapEntry(trimQuotes(entry.key), entry.value))
+      .toList();
+}
+
+String trimQuotes(String input) {
+  final result = input[0] == '\'' ? input.substring(1) : input;
+  return result[result.length - 1] == '\''
+      ? result.substring(0, result.length - 1)
+      : result;
+}
