@@ -584,7 +584,6 @@ f(B b) {
     assertInvokeType(invocation, 'void Function()');
   }
 
-  @failingTest
   test_instance_method_specificSubtypeMatchLocalGenerics() async {
     await assertNoErrorsInCode('''
 class A<T> {}
@@ -606,8 +605,12 @@ f(B<C> x, C o) {
 }
 ''');
     var invocation = findNode.methodInvocation('x.f(o)');
-    assertElement(invocation, findElement.method('f', of: 'B_Ext'));
-    assertInvokeType(invocation, 'void Function(T)');
+    assertMember(
+      invocation,
+      findElement.method('f', of: 'B_Ext'),
+      {'T': 'C'},
+    );
+    assertInvokeType(invocation, 'void Function(C)');
   }
 
   test_instance_method_specificSubtypeMatchPlatform() async {

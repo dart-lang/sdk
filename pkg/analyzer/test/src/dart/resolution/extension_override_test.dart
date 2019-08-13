@@ -59,7 +59,6 @@ void f(A a) {
     validateCall();
   }
 
-  @failingTest
   test_call_noPrefix_typeArguments() async {
     // The test is failing because we're not yet doing type inference.
     await assertNoErrorsInCode('''
@@ -97,7 +96,6 @@ void f(p.A a) {
     validateCall();
   }
 
-  @failingTest
   test_call_prefix_typeArguments() async {
     // The test is failing because we're not yet doing type inference.
     newFile('/test/lib/lib.dart', content: '''

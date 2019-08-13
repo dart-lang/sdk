@@ -65,6 +65,30 @@ class ExtensionMemberResolver {
     return ResolutionResult.ambiguous;
   }
 
+  /// Return the member with the [name] (without `=`) of the given [kind].
+  ///
+  /// The [node] is fully resolved, and its type arguments are set.
+  ExecutableElement getOverrideMember(
+      ExtensionOverride node, String name, ElementKind kind) {
+    ExtensionElement element = node.extensionName.staticElement;
+
+    ExecutableElement member;
+    if (kind == ElementKind.GETTER) {
+      member = element.getGetter(name);
+    } else if (kind == ElementKind.METHOD) {
+      member = element.getMethod(name);
+    } else if (kind == ElementKind.SETTER) {
+      member = element.getSetter(name);
+    }
+    if (member == null) return null;
+
+    return ExecutableMember.from3(
+      member,
+      element.typeParameters,
+      node.typeArgumentTypes,
+    );
+  }
+
   /// Perform upward inference for the override.
   void resolveOverride(ExtensionOverride node) {
     var nodeImpl = node as ExtensionOverrideImpl;

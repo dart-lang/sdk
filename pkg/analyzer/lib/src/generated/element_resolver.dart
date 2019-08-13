@@ -19,7 +19,6 @@ import 'package:analyzer/src/dart/ast/ast.dart'
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
@@ -406,8 +405,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
     Expression function = node.function;
     DartType functionType;
     if (function is ExtensionOverride) {
-      ExtensionElement element = function.extensionName.staticElement;
-      MethodElement member = element.getMethod('call');
+      var member = _extensionResolver.getOverrideMember(
+          function, 'call', ElementKind.METHOD);
       if (member != null && member.isStatic) {
         _resolver.errorReporter.reportErrorForNode(
             CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
@@ -717,7 +716,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
       String memberName = propertyName.name;
       ExecutableElement member;
       if (propertyName.inSetterContext()) {
-        member = element.getSetter(memberName);
+        member = _extensionResolver.getOverrideMember(
+            target, memberName, ElementKind.SETTER);
         if (member == null) {
           _resolver.errorReporter.reportErrorForNode(
               CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER,
@@ -725,7 +725,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
               [memberName, element.name]);
         }
         if (propertyName.inGetterContext()) {
-          PropertyAccessorElement getter = element.getGetter(memberName);
+          PropertyAccessorElement getter = _extensionResolver.getOverrideMember(
+              target, memberName, ElementKind.GETTER);
           if (getter == null) {
             _resolver.errorReporter.reportErrorForNode(
                 CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER,
@@ -735,7 +736,10 @@ class ElementResolver extends SimpleAstVisitor<void> {
           propertyName.auxiliaryElements = AuxiliaryElements(getter, null);
         }
       } else if (propertyName.inGetterContext()) {
-        member = element.getGetter(memberName) ?? element.getMethod(memberName);
+        member = _extensionResolver.getOverrideMember(
+                target, memberName, ElementKind.GETTER) ??
+            _extensionResolver.getOverrideMember(
+                target, memberName, ElementKind.METHOD);
         if (member == null) {
           _resolver.errorReporter.reportErrorForNode(
               CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER,
@@ -748,12 +752,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
             CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
             propertyName);
       }
-
-      member = ExecutableMember.from3(
-        member,
-        element.typeParameters,
-        target.typeArgumentTypes,
-      );
 
       propertyName.staticElement = member;
       return;
