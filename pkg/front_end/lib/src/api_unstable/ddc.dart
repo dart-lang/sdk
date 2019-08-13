@@ -142,7 +142,8 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     Target target,
     {FileSystem fileSystem,
     Map<ExperimentalFlag, bool> experiments,
-    Map<String, String> environmentDefines}) async {
+    Map<String, String> environmentDefines,
+    bool trackNeededDillLibraries: false}) async {
   inputSummaries.sort((a, b) => a.toString().compareTo(b.toString()));
 
   IncrementalCompiler incrementalCompiler;
@@ -189,6 +190,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     workerInputCache[sdkSummary] = cachedSdkInput;
     incrementalCompiler = new IncrementalCompiler.fromComponent(
         new CompilerContext(processedOpts), cachedSdkInput.component);
+    incrementalCompiler.trackNeededDillLibraries = trackNeededDillLibraries;
   } else {
     options = oldState.options;
     options.inputSummaries = inputSummaries;
@@ -205,6 +207,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     // Reuse the incremental compiler, but reset as needed.
     incrementalCompiler = oldState.incrementalCompiler;
     incrementalCompiler.invalidateAllSources();
+    incrementalCompiler.trackNeededDillLibraries = trackNeededDillLibraries;
     options.packagesFileUri = packagesFile;
     options.fileSystem = fileSystem;
     processedOpts.clearFileSystemCache();
@@ -215,6 +218,10 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       incrementalCompiler: incrementalCompiler);
 
   CanonicalName nameRoot = cachedSdkInput.component.root;
+  Map<Uri, Uri> libraryToInputDill;
+  if (trackNeededDillLibraries) {
+    libraryToInputDill = new Map<Uri, Uri>();
+  }
   List<int> loadFromDillIndexes = new List<int>();
 
   // Notice that the ordering of the input summaries matter, so we need to
@@ -238,6 +245,9 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       var component = cachedInput.component;
       for (var lib in component.libraries) {
         lib.isExternal = cachedInput.externalLibs.contains(lib.importUri);
+        if (trackNeededDillLibraries) {
+          libraryToInputDill[lib.importUri] = inputSummary;
+        }
       }
       component.computeCanonicalNames();
       doneInputSummaries[i] = component;
@@ -258,13 +268,19 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
             .loadComponent(bytes, nameRoot, alwaysCreateNewNamedNodes: true));
     workerInputCache[summary] = cachedInput;
     doneInputSummaries[index] = cachedInput.component;
+    if (trackNeededDillLibraries) {
+      for (var lib in cachedInput.component.libraries) {
+        libraryToInputDill[lib.importUri] = summary;
+      }
+    }
   }
 
   incrementalCompiler.setModulesToLoadOnNextComputeDelta(doneInputSummaries);
 
   return new InitializedCompilerState(options, processedOpts,
       workerInputCache: workerInputCache,
-      incrementalCompiler: incrementalCompiler);
+      incrementalCompiler: incrementalCompiler,
+      libraryToInputDill: libraryToInputDill);
 }
 
 Future<DdcResult> compile(InitializedCompilerState compilerState,
