@@ -233,14 +233,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
     if (path is! String) {
       throw new ArgumentError("Path is not a String: $path");
     }
-
-    if (Platform.isWindows) {
-      // Escape paths that may contain spaces
-      // Bug: https://github.com/dart-lang/sdk/issues/37751
-      _path = _windowsArgumentEscape(path);
-    } else {
-      _path = path;
-    }
+    _path = path;
 
     if (arguments is! List) {
       throw new ArgumentError("Arguments is not a List: $arguments");
