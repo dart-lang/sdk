@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
@@ -10,6 +12,9 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TypeArgumentNotMatchingBoundsTest);
+    defineReflectiveTests(
+      TypeArgumentNotMatchingBoundsWithExtensionMethodsTest,
+    );
   });
 }
 
@@ -300,6 +305,43 @@ class G<E extends A> {}
 class C extends Object with G<B>{}
 ''', [
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 76, 1),
+    ]);
+  }
+}
+
+@reflectiveTest
+class TypeArgumentNotMatchingBoundsWithExtensionMethodsTest
+    extends DriverResolutionTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = new FeatureSet.forTesting(
+        sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
+
+  test_extensionOverride_hasTypeArguments() async {
+    await assertErrorsInCode(r'''
+extension E<T extends num> on int {
+  void foo() {}
+}
+
+void f() {
+  E<String>(0).foo();
+}
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 70, 6),
+    ]);
+  }
+
+  test_extensionOverride_hasTypeArguments_call() async {
+    await assertErrorsInCode(r'''
+extension E<T extends num> on int {
+  void call() {}
+}
+
+void f() {
+  E<String>(0)();
+}
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 71, 6),
     ]);
   }
 }

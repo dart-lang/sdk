@@ -94,12 +94,21 @@ class ExtensionMemberResolver {
     var receiverType = receiverExpression.staticType;
 
     var typeArgumentTypes = _inferTypeArguments(node, receiverType);
-
     nodeImpl.typeArgumentTypes = typeArgumentTypes;
-    nodeImpl.extendedType = Substitution.fromPairs(
+
+    var substitution = Substitution.fromPairs(
       typeParameters,
       typeArgumentTypes,
-    ).substituteType(element.extendedType);
+    );
+
+    nodeImpl.extendedType = substitution.substituteType(element.extendedType);
+
+    _checkTypeArgumentsMatchingBounds(
+      typeParameters,
+      node.typeArguments,
+      typeArgumentTypes,
+      substitution,
+    );
 
     if (!_typeSystem.isAssignableTo(receiverType, node.extendedType)) {
       _errorReporter.reportErrorForNode(
@@ -146,6 +155,30 @@ class ExtensionMemberResolver {
 
     var receiver = arguments[0];
     InferenceContext.setType(receiver, extendedForDownward);
+  }
+
+  void _checkTypeArgumentsMatchingBounds(
+    List<TypeParameterElement> typeParameters,
+    TypeArgumentList typeArgumentList,
+    List<DartType> typeArgumentTypes,
+    Substitution substitution,
+  ) {
+    if (typeArgumentList != null) {
+      for (var i = 0; i < typeArgumentTypes.length; i++) {
+        var argType = typeArgumentTypes[i];
+        var boundType = typeParameters[i].bound;
+        if (boundType != null) {
+          boundType = substitution.substituteType(boundType);
+          if (!_typeSystem.isSubtypeOf(argType, boundType)) {
+            _errorReporter.reportTypeErrorForNode(
+              CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+              typeArgumentList.arguments[i],
+              [argType, boundType],
+            );
+          }
+        }
+      }
+    }
   }
 
   /// Return the most specific extension or `null` if no single one can be
