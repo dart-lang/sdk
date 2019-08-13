@@ -378,6 +378,8 @@ abstract class ObjectHandle extends BytecodeObject {
   set flags(int value) {}
 
   bool get isCacheable => true;
+  bool get shouldBeIncludedIntoIndexTable =>
+      _useCount >= ObjectTable.indexTableUseCountThreshold && isCacheable;
 
   factory ObjectHandle._empty(ObjectKind kind, int flags) {
     switch (kind) {
@@ -1532,6 +1534,12 @@ class _ScriptHandle extends ObjectHandle {
   @override
   ObjectKind get kind => ObjectKind.kScript;
 
+  // Include scripts into index table if there are more than 1 reference
+  // in order to make sure there are no duplicated script objects within the
+  // same bytecode component.
+  @override
+  bool get shouldBeIncludedIntoIndexTable => _useCount > 1;
+
   @override
   int get flags => _flags;
 
@@ -1757,7 +1765,7 @@ class ObjectTable implements ObjectWriter, ObjectReader {
     int tableSize = 1; // Reserve invalid entry.
     for (var obj in _objects.reversed) {
       assert(obj._reference == null);
-      if (obj._useCount >= indexTableUseCountThreshold && obj.isCacheable) {
+      if (obj.shouldBeIncludedIntoIndexTable) {
         // This object will be included into index table.
         ++tableSize;
       } else {
