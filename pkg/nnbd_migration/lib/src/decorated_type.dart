@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' show SourceEdit;
 import 'package:nnbd_migration/src/nullability_node.dart';
@@ -157,6 +158,23 @@ class DecoratedType {
         'DecoratedType.forImplicitType(${type.runtimeType})');
   }
 
+  /// Creates a [DecoratedType] for a synthetic type parameter, to be used
+  /// during comparison of generic function types.
+  DecoratedType._forTypeParameterSubstitution(
+      TypeParameterElementImpl parameter)
+      : type = TypeParameterTypeImpl(parameter),
+        node = null,
+        returnType = null,
+        positionalParameters = const [],
+        namedParameters = const {},
+        typeArguments = const [],
+        typeFormalBounds = const [] {
+    // We'll be storing the type parameter bounds in
+    // [_decoratedTypeParameterBounds] so the type parameter needs to have an
+    // enclosing element of `null`.
+    assert(parameter.enclosingElement == null);
+  }
+
   /// If `this` represents an interface type, returns the substitution necessary
   /// to produce this type using the class's type as a starting point.
   /// Otherwise throws an exception.
@@ -184,6 +202,84 @@ class DecoratedType {
     } else {
       return null;
     }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is DecoratedType) {
+      if (!identical(this.node, other.node)) return false;
+      var thisType = this.type;
+      var otherType = other.type;
+      if (thisType is FunctionType && otherType is FunctionType) {
+        if (thisType.normalParameterTypes.length !=
+            otherType.normalParameterTypes.length) {
+          return false;
+        }
+        if (thisType.typeFormals.length != otherType.typeFormals.length) {
+          return false;
+        }
+        var thisReturnType = this.returnType;
+        var otherReturnType = other.returnType;
+        var thisPositionalParameters = this.positionalParameters;
+        var otherPositionalParameters = other.positionalParameters;
+        var thisNamedParameters = this.namedParameters;
+        var otherNamedParameters = other.namedParameters;
+        if (!_compareTypeFormalLists(
+            thisType.typeFormals, otherType.typeFormals)) {
+          // Create a fresh set of type variables and substitute so we can
+          // compare safely.
+          var thisSubstitution = <TypeParameterElement, DecoratedType>{};
+          var otherSubstitution = <TypeParameterElement, DecoratedType>{};
+          var newParameters = <TypeParameterElement>[];
+          for (int i = 0; i < thisType.typeFormals.length; i++) {
+            var newParameter = TypeParameterElementImpl.synthetic(
+                thisType.typeFormals[i].name);
+            newParameters.add(newParameter);
+            var newParameterType =
+                DecoratedType._forTypeParameterSubstitution(newParameter);
+            thisSubstitution[thisType.typeFormals[i]] = newParameterType;
+            otherSubstitution[otherType.typeFormals[i]] = newParameterType;
+          }
+          for (int i = 0; i < thisType.typeFormals.length; i++) {
+            var thisBound =
+                this.typeFormalBounds[i].substitute(thisSubstitution);
+            var otherBound =
+                other.typeFormalBounds[i].substitute(otherSubstitution);
+            if (thisBound != otherBound) return false;
+            recordTypeParameterBound(newParameters[i], thisBound);
+          }
+          // TODO(paulberry): need to substitute bounds and compare them.
+          thisReturnType = thisReturnType.substitute(thisSubstitution);
+          otherReturnType = otherReturnType.substitute(otherSubstitution);
+          thisPositionalParameters =
+              _substituteList(thisPositionalParameters, thisSubstitution);
+          otherPositionalParameters =
+              _substituteList(otherPositionalParameters, otherSubstitution);
+          thisNamedParameters =
+              _substituteMap(thisNamedParameters, thisSubstitution);
+          otherNamedParameters =
+              _substituteMap(otherNamedParameters, otherSubstitution);
+        }
+        if (thisReturnType != otherReturnType) return false;
+        if (!_compareLists(
+            thisPositionalParameters, otherPositionalParameters)) {
+          return false;
+        }
+        if (!_compareMaps(thisNamedParameters, otherNamedParameters)) {
+          return false;
+        }
+        return true;
+      } else if (thisType is InterfaceType && otherType is InterfaceType) {
+        if (thisType.element != otherType.element) return false;
+        if (!_compareLists(this.typeArguments, other.typeArguments)) {
+          return false;
+        }
+        return true;
+      } else {
+        return thisType == otherType;
+      }
+    }
+    return false;
   }
 
   /// Converts one function type into another by substituting the given
@@ -328,6 +424,20 @@ class DecoratedType {
         positionalParameters: newPositionalParameters);
   }
 
+  List<DecoratedType> _substituteList(List<DecoratedType> list,
+      Map<TypeParameterElement, DecoratedType> substitution) {
+    return list.map((t) => t.substitute(substitution)).toList();
+  }
+
+  Map<String, DecoratedType> _substituteMap(Map<String, DecoratedType> map,
+      Map<TypeParameterElement, DecoratedType> substitution) {
+    var result = <String, DecoratedType>{};
+    for (var entry in map.entries) {
+      result[entry.key] = entry.value.substitute(substitution);
+    }
+    return result;
+  }
+
   /// Retrieves the decorated bound of the given [typeParameter].
   ///
   /// [typeParameter] must have an enclosing element of `null`.  Type parameters
@@ -348,6 +458,36 @@ class DecoratedType {
       TypeParameterElement typeParameter, DecoratedType bound) {
     assert(typeParameter.enclosingElement == null);
     _decoratedTypeParameterBounds[typeParameter] = bound;
+  }
+
+  static bool _compareLists(
+      List<DecoratedType> list1, List<DecoratedType> list2) {
+    if (identical(list1, list2)) return true;
+    if (list1.length != list2.length) return false;
+    for (int i = 0; i < list1.length; i++) {
+      if (list1[i] != list2[i]) return false;
+    }
+    return true;
+  }
+
+  static bool _compareMaps(
+      Map<String, DecoratedType> map1, Map<String, DecoratedType> map2) {
+    if (identical(map1, map2)) return true;
+    if (map1.length != map2.length) return false;
+    for (var entry in map1.entries) {
+      if (entry.value != map2[entry.key]) return false;
+    }
+    return true;
+  }
+
+  static bool _compareTypeFormalLists(List<TypeParameterElement> formals1,
+      List<TypeParameterElement> formals2) {
+    if (identical(formals1, formals2)) return true;
+    if (formals1.length != formals2.length) return false;
+    for (int i = 0; i < formals1.length; i++) {
+      if (!identical(formals1[i], formals2[i])) return false;
+    }
+    return true;
   }
 }
 
