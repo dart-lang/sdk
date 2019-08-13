@@ -1,4 +1,4 @@
-## 0.37.1 (Not yet published)
+## 0.37.1
 * Added the getters `isDartCoreList`, `isDartCoreMap`, `isDartCoreNum`,
   `isDartCoreSet`, `isDartCoreSymbol`, and `isDartCoreObject` to `DartType`.
 * Added the method `DartObject.toFunctionValue`.
@@ -16,6 +16,10 @@
 * Added the optional parameter `path` to `parseString`.
 * Changed `TypeSystem.resolveToBound(DartType)` implementation to do
   what its documentation says.
+* This version of the analyzer should contain all the necessary parsing support
+  and AST data structures for the experimental "extension-methods" feature.
+* Deprecated `InterfaceType.isDirectSupertypeOf`.  There is no replacement; this
+  method was not intended to be used outside of the analyzer.
 
 ## 0.37.0
 * Removed deprecated getter `DartType.isUndefined`.
