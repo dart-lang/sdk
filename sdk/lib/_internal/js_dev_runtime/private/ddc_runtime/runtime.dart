@@ -128,11 +128,6 @@ final global_ = JS('', '''
     // These settings must be configured before the application starts so that
     // user code runs with the correct configuration.
     let settings = 'ddcSettings' in globalState ? globalState.ddcSettings : {};
-    $trapRuntimeErrors(
-        'trapRuntimeErrors' in settings ? settings.trapRuntimeErrors : false);
-
-    $ignoreAllErrors(
-        'ignoreAllErrors' in settings ? settings.ignoreAllErrors : false);
 
     $trackProfile(
         'trackProfile' in settings ? settings.trackProfile : false);
