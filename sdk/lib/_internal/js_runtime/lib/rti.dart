@@ -592,7 +592,7 @@ bool _isBool(object) {
 /// Specialization for 'as bool?'.
 /// Called from generated code.
 bool /*?*/ _asBoolNullable(object) {
-  if (object is bool) return object;
+  if (_isBool(object)) return _Utils.asBool(object);
   if (object == null) return object;
   throw _CastError.forType(object, 'bool');
 }
@@ -600,7 +600,7 @@ bool /*?*/ _asBoolNullable(object) {
 /// Specialization for check on 'bool?'.
 /// Called from generated code.
 bool /*?*/ _checkBoolNullable(object) {
-  if (object is bool) return object;
+  if (_isBool(object)) return _Utils.asBool(object);
   if (object == null) return object;
   throw _TypeError.forType(object, 'bool');
 }
@@ -608,7 +608,7 @@ bool /*?*/ _checkBoolNullable(object) {
 /// Specialization for 'as double?'.
 /// Called from generated code.
 double /*?*/ _asDoubleNullable(object) {
-  if (object is double) return object;
+  if (_isNum(object)) return _Utils.asDouble(object);
   if (object == null) return object;
   throw _CastError.forType(object, 'double');
 }
@@ -616,7 +616,7 @@ double /*?*/ _asDoubleNullable(object) {
 /// Specialization for check on 'double?'.
 /// Called from generated code.
 double /*?*/ _checkDoubleNullable(object) {
-  if (object is double) return object;
+  if (_isNum(object)) return _Utils.asDouble(object);
   if (object == null) return object;
   throw _TypeError.forType(object, 'double');
 }
@@ -631,7 +631,7 @@ bool _isInt(object) {
 /// Specialization for 'as int?'.
 /// Called from generated code.
 int /*?*/ _asIntNullable(object) {
-  if (object is int) return object;
+  if (_isInt(object)) return _Utils.asInt(object);
   if (object == null) return object;
   throw _CastError.forType(object, 'int');
 }
@@ -639,7 +639,7 @@ int /*?*/ _asIntNullable(object) {
 /// Specialization for check on 'int?'.
 /// Called from generated code.
 int /*?*/ _checkIntNullable(object) {
-  if (object is int) return object;
+  if (_isInt(object)) return _Utils.asInt(object);
   if (object == null) return object;
   throw _TypeError.forType(object, 'int');
 }
@@ -653,7 +653,7 @@ bool _isNum(object) {
 /// Specialization for 'as num?'.
 /// Called from generated code.
 num /*?*/ _asNumNullable(object) {
-  if (object is num) return object;
+  if (_isNum(object)) return _Utils.asNum(object);
   if (object == null) return object;
   throw _CastError.forType(object, 'num');
 }
@@ -661,7 +661,7 @@ num /*?*/ _asNumNullable(object) {
 /// Specialization for check on 'num?'.
 /// Called from generated code.
 num /*?*/ _checkNumNullable(object) {
-  if (object is num) return object;
+  if (_isNum(object)) return _Utils.asNum(object);
   if (object == null) return object;
   throw _TypeError.forType(object, 'num');
 }
@@ -675,7 +675,7 @@ bool _isString(object) {
 /// Specialization for 'as String?'.
 /// Called from generated code.
 String /*?*/ _asStringNullable(object) {
-  if (object is String) return object;
+  if (_isString(object)) return _Utils.asString(object);
   if (object == null) return object;
   throw _CastError.forType(object, 'String');
 }
@@ -683,7 +683,7 @@ String /*?*/ _asStringNullable(object) {
 /// Specialization for check on 'String?'.
 /// Called from generated code.
 String /*?*/ _checkStringNullable(object) {
-  if (object is String) return object;
+  if (_isString(object)) return _Utils.asString(object);
   if (object == null) return object;
   throw _TypeError.forType(object, 'String');
 }
@@ -2165,7 +2165,10 @@ Rti _castToRti(s) => JS('Rti', '#', s);
 
 ///
 class _Utils {
+  static bool asBool(Object o) => JS('bool', '#', o);
+  static double asDouble(Object o) => JS('double', '#', o);
   static int asInt(Object o) => JS('int', '#', o);
+  static num asNum(Object o) => JS('num', '#', o);
   static String asString(Object o) => JS('String', '#', o);
 
   static bool isString(Object o) => JS('bool', 'typeof # == "string"', o);
