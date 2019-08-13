@@ -37,7 +37,7 @@ _async<T>(Function() initGenerator) {
     } else {
       f = _Future.value(value);
     }
-    f = JS('', '#', f._thenNoZoneRegistration(onValue, onError));
+    f = JS('', '#', f._thenAwait(onValue, onError));
     return f;
   }
 
@@ -363,7 +363,7 @@ class _AsyncStarImpl<T> {
     } else {
       f = _Future.value(value);
     }
-    f._thenNoZoneRegistration(_runBodyCallback, handleError);
+    f._thenAwait(_runBodyCallback, handleError);
   }
 
   /// Adds element to [stream] and returns true if the caller should terminate

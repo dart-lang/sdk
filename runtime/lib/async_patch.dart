@@ -18,30 +18,24 @@ import "dart:_internal" show VMLibraryHooks, patch;
 _fatal(msg) native "DartAsync_fatal";
 
 class _AsyncAwaitCompleter<T> implements Completer<T> {
-  final _completer = new Completer<T>.sync();
+  final _future = new _Future<T>();
   bool isSync;
 
   _AsyncAwaitCompleter() : isSync = false;
 
   void complete([FutureOr<T> value]) {
-    if (isSync) {
-      _completer.complete(value);
-    } else if (value is Future<T>) {
-      value.then(_completer.complete, onError: _completer.completeError);
+    if (!isSync || value is Future<T>) {
+      _future._asyncComplete(value);
     } else {
-      scheduleMicrotask(() {
-        _completer.complete(value);
-      });
+      _future._completeWithValue(value);
     }
   }
 
   void completeError(e, [st]) {
     if (isSync) {
-      _completer.completeError(e, st);
+      _future._completeError(e, st);
     } else {
-      scheduleMicrotask(() {
-        _completer.completeError(e, st);
-      });
+      _future._asyncCompleteError(e, st);
     }
   }
 
@@ -50,8 +44,8 @@ class _AsyncAwaitCompleter<T> implements Completer<T> {
     isSync = true;
   }
 
-  Future<T> get future => _completer.future;
-  bool get isCompleted => _completer.isCompleted;
+  Future<T> get future => _future;
+  bool get isCompleted => !_future._mayComplete;
 }
 
 // We need to pass the value as first argument and leave the second and third
@@ -107,7 +101,7 @@ Future _awaitHelper(
   // We can only do this for our internal futures (the default implementation of
   // all futures that are constructed by the `dart:async` library).
   object._awaiter = awaiter;
-  return object._thenNoZoneRegistration(thenCallback, errorCallback);
+  return object._thenAwait(thenCallback, errorCallback);
 }
 
 // Called as part of the 'await for (...)' construct. Registers the
@@ -143,7 +137,7 @@ class _AsyncStarStreamController<T> {
   bool onListenReceived = false;
   bool isScheduled = false;
   bool isSuspendedAtYield = false;
-  Completer cancellationCompleter = null;
+  _Future cancellationFuture = null;
 
   Stream<T> get stream {
     final Stream<T> local = controller.stream;
@@ -210,10 +204,10 @@ class _AsyncStarStreamController<T> {
   }
 
   void addError(Object error, StackTrace stackTrace) {
-    if ((cancellationCompleter != null) && !cancellationCompleter.isCompleted) {
+    if ((cancellationFuture != null) && cancellationFuture._mayComplete) {
       // If the stream has been cancelled, complete the cancellation future
       // with the error.
-      cancellationCompleter.completeError(error, stackTrace);
+      cancellationFuture._completeError(error, stackTrace);
       return;
     }
     // If stream is cancelled, tell caller to exit the async generator.
@@ -226,10 +220,10 @@ class _AsyncStarStreamController<T> {
   }
 
   close() {
-    if ((cancellationCompleter != null) && !cancellationCompleter.isCompleted) {
+    if ((cancellationFuture != null) && cancellationFuture._mayComplete) {
       // If the stream has been cancelled, complete the cancellation future
       // with the error.
-      cancellationCompleter.complete();
+      cancellationFuture._completeWithValue(null);
     }
     controller.close();
   }
@@ -257,8 +251,8 @@ class _AsyncStarStreamController<T> {
     if (controller.isClosed) {
       return null;
     }
-    if (cancellationCompleter == null) {
-      cancellationCompleter = new Completer();
+    if (cancellationFuture == null) {
+      cancellationFuture = new _Future();
       // Only resume the generator if it is suspended at a yield.
       // Cancellation does not affect an async generator that is
       // suspended at an await.
@@ -266,7 +260,7 @@ class _AsyncStarStreamController<T> {
         scheduleGenerator();
       }
     }
-    return cancellationCompleter.future;
+    return cancellationFuture;
   }
 }
 
