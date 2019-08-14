@@ -17,6 +17,9 @@ const int _LOOKBACK = 100;
 /// Minimum probability to prioritize model-only suggestion.
 const double _MODEL_RELEVANCE_CUTOFF = 0.5;
 
+/// Number of code completion isolates.
+const int _ISOLATE_COUNT = 4;
+
 /// Prediction service run by the model isolate.
 void entrypoint(SendPort sendPort) {
   LanguageModel model;
@@ -44,8 +47,11 @@ class CompletionRanking {
   /// Filesystem location of model files.
   final String _directory;
 
-  /// Port to communicate from main to model isolate.
-  SendPort _write;
+  /// Ports to communicate from main to model isolates.
+  List<SendPort> _writes;
+
+  /// Pointer for round robin load balancing over isolates.
+  int _index;
 
   CompletionRanking(this._directory);
 
@@ -53,11 +59,12 @@ class CompletionRanking {
   Future<Map<String, Map<String, double>>> makeRequest(
       String method, List<String> args) async {
     final port = ReceivePort();
-    _write.send({
+    _writes[_index].send({
       'method': method,
       'args': args,
       'port': port.sendPort,
     });
+    this._index = (_index + 1) % _ISOLATE_COUNT;
     return await port.first;
   }
 
@@ -84,7 +91,7 @@ class CompletionRanking {
       DartCompletionRequest request,
       FeatureSet featureSet) async {
     final probability = await probabilityFuture
-        .timeout(const Duration(milliseconds: 500), onTimeout: () => null);
+        .timeout(const Duration(seconds: 1), onTimeout: () => null);
     if (probability == null || probability.isEmpty) {
       // Failed to compute probability distribution, don't rerank.
       return suggestions;
@@ -179,9 +186,20 @@ class CompletionRanking {
 
   /// Spins up the model isolate and tells it to load the tflite model.
   Future<void> start() async {
+    this._writes = [];
+    this._index = 0;
+    final initializations = <Future<void>>[];
+    for (var i = 0; i < _ISOLATE_COUNT; i++) {
+      initializations.add(_startIsolate());
+    }
+
+    await Future.wait(initializations);
+  }
+
+  Future<void> _startIsolate() async {
     final port = ReceivePort();
     await Isolate.spawn(entrypoint, port.sendPort);
-    this._write = await port.first;
+    this._writes.add(await port.first);
     await makeRequest('load', [_directory]);
   }
 }
