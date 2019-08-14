@@ -347,10 +347,14 @@ abstract class ClassElement
 
 /// An element that is contained within a [ClassElement].
 ///
+/// When the 'extension-methods' experiment is enabled, these elements can also
+/// be contained within an extension element.
+///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ClassMemberElement implements Element {
   // TODO(brianwilkerson) Either remove this class or rename it to something
-  //  more correct, such as PotentiallyStaticElement.
+  //  more correct.
+
   /// Return `true` if this element is a static element. A static element is an
   /// element that is not associated with a particular instance, but rather with
   /// an entire library or class.
@@ -1090,7 +1094,10 @@ abstract class ExtensionElement implements TypeParameterizedElement {
   PropertyAccessorElement /*?*/ getSetter(String name);
 }
 
-/// A field defined within a type.
+/// A field defined within a class.
+///
+/// When the 'extension-methods' experiment is enabled, these elements can also
+/// be contained within an extension element.
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FieldElement
@@ -1391,7 +1398,10 @@ abstract class LocalVariableElement implements LocalElement, VariableElement {
   bool get isLate;
 }
 
-/// An element that represents a method defined within a type.
+/// An element that represents a method defined within a class.
+///
+/// When the 'extension-methods' experiment is enabled, these elements can also
+/// be contained within an extension element.
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class MethodElement implements ClassMemberElement, ExecutableElement {
