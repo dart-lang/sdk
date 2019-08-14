@@ -33,7 +33,7 @@ abstract class TypeSystem {
   /// Other type systems may define this operation differently.
   DartType flatten(DartType type);
 
-  /// Return `true` if the [rightType] is assignable to the [leftType].
+  /// Return `true` if the [leftType] is assignable to the [rightType].
   ///
   /// For the Dart 2.0 type system, the definition of this relationship is given
   /// in the Dart Language Specification, section 19.4 Subtypes:
@@ -46,8 +46,8 @@ abstract class TypeSystem {
   /// The subtype relationship (<:) can be tested using [isSubtypeOf].
   ///
   /// Other type systems may define this operation differently. In particular,
-  /// while the operation is commutative in the Dart 2.0 type system, that is
-  /// not a requirement of a type system, so the order of the arguments is
+  /// while the operation is commutative in the Dart 2.0 type system, it will
+  /// not be commutative when NNBD is enabled, so the order of the arguments is
   /// important.
   bool isAssignableTo(DartType leftType, DartType rightType);
 
