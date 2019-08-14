@@ -69,6 +69,7 @@ class CompletionRanking {
       return Future.value(null);
     }
 
+    request.checkAborted();
     final response = await makeRequest('predict', query);
     return response['data'];
   }

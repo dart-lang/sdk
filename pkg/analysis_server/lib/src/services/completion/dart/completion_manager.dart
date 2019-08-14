@@ -179,6 +179,7 @@ class DartCompletionManager implements CompletionContributor {
     performance.logStartTime(SORT_TAG);
     await contributionSorter.sort(dartRequest, suggestions);
     if (ranking != null) {
+      request.checkAborted();
       suggestions = await ranking.rerank(
           probabilityFuture,
           suggestions,
