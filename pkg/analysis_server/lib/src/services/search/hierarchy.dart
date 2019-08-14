@@ -73,6 +73,11 @@ Future<Set<ClassMemberElement>> getHierarchyMembers(
   // TODO(brianwilkerson) Determine whether this await is necessary.
   await null;
   Set<ClassMemberElement> result = new HashSet<ClassMemberElement>();
+  // extension member
+  if (member.enclosingElement is ExtensionElement) {
+    result.add(member);
+    return new Future.value(result);
+  }
   // static elements
   if (member.isStatic || member is ConstructorElement) {
     result.add(member);
