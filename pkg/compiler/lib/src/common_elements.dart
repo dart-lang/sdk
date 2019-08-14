@@ -513,6 +513,9 @@ abstract class CommonElements {
   FunctionEntity get specializedAsStringNullable;
   FunctionEntity get specializedCheckStringNullable;
 
+  FunctionEntity get instantiatedGenericFunctionTypeNewRti;
+  FunctionEntity get closureFunctionType;
+
   // From dart:_internal
 
   ClassEntity get symbolImplementationClass;
@@ -1970,6 +1973,14 @@ class CommonElementsImpl
   @override
   FunctionEntity get specializedCheckStringNullable =>
       _findRtiFunction('_checkStringNullable');
+
+  @override
+  FunctionEntity get instantiatedGenericFunctionTypeNewRti =>
+      _findRtiFunction('instantiatedGenericFunctionType');
+
+  @override
+  FunctionEntity get closureFunctionType =>
+      _findRtiFunction('closureFunctionType');
 
   // From dart:_internal
 

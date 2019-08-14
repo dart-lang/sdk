@@ -797,6 +797,8 @@ class BackendImpacts {
         _commonElements.specializedIsString,
         _commonElements.specializedAsStringNullable,
         _commonElements.specializedCheckStringNullable,
+        _commonElements.instantiatedGenericFunctionTypeNewRti,
+        _commonElements.closureFunctionType,
       ], globalClasses: [
         _commonElements.closureClass, // instanceOrFunctionType uses this.
       ], globalUses: [])

@@ -349,10 +349,26 @@ Rti evalInInstance(instance, String recipe) {
   return _rtiEval(instanceType(instance), recipe);
 }
 
+/// Returns [genericFunctionRti] with type parameters bound to those specified
+/// by [instantiationRti].
+///
+/// [genericFunctionRti] must be an rti representation with a number of generic
+/// type parameters matching the number of types provided by [instantiationRti].
+///
+/// Called from generated code.
+@pragma('dart2js:noInline')
+Rti instantiatedGenericFunctionType(
+    Rti genericFunctionRti, Rti instantiationRti) {
+  // TODO(fishythefish)
+  throw UnimplementedError('instantiatedGenericFunctionType');
+}
+
 bool _isClosure(object) => _Utils.instanceOf(object,
     JS_BUILTIN('depends:none;effects:none;', JsBuiltin.dartClosureConstructor));
 
-Rti _closureFunctionType(closure) {
+/// Returns the structural function [Rti] of [closure].
+/// Called from generated code.
+Rti closureFunctionType(closure) {
   var signatureName = JS_GET_NAME(JsGetName.SIGNATURE_NAME);
   var signature = JS('', '#[#]', closure, signatureName);
   if (signature != null) {
@@ -383,7 +399,7 @@ Rti instanceOrFunctionType(object, Rti testRti) {
       // If [testRti] is e.g. `FutureOr<Action>` (where `Action` is some
       // function type), we don't need to worry about the `Future<Action>`
       // branch because closures can't be `Future`s.
-      Rti rti = _closureFunctionType(object);
+      Rti rti = closureFunctionType(object);
       if (rti != null) return rti;
     }
     return _closureInterfaceType(object);
@@ -449,7 +465,7 @@ Rti _instanceTypeFromConstructor(constructor) {
 /// Returns the structural function type of [object], or `null` if the object is
 /// not a closure.
 Rti _instanceFunctionType(object) {
-  if (_isClosure(object)) return _closureFunctionType(object);
+  if (_isClosure(object)) return closureFunctionType(object);
   return null;
 }
 

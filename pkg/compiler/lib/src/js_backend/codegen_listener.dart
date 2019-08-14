@@ -181,12 +181,21 @@ class CodegenEnqueuerListener extends EnqueuerListener {
       impactBuilder.registerTypeUse(new TypeUse.instantiation(
           _elementEnvironment.getThisType(_commonElements
               .getInstantiationClass(constant.typeArguments.length))));
-      impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
-          _commonElements.instantiatedGenericFunctionType,
-          CallStructure.TWO_ARGS));
-      impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
-          _commonElements.extractFunctionTypeObjectFromInternal,
-          CallStructure.ONE_ARG));
+
+      if (_options.experimentNewRti) {
+        impactBuilder.registerStaticUse(StaticUse.staticInvoke(
+            _commonElements.instantiatedGenericFunctionTypeNewRti,
+            CallStructure.TWO_ARGS));
+        impactBuilder.registerStaticUse(StaticUse.staticInvoke(
+            _commonElements.closureFunctionType, CallStructure.ONE_ARG));
+      } else {
+        impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
+            _commonElements.instantiatedGenericFunctionType,
+            CallStructure.TWO_ARGS));
+        impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
+            _commonElements.extractFunctionTypeObjectFromInternal,
+            CallStructure.ONE_ARG));
+      }
     }
   }
 
