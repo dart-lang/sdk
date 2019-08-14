@@ -219,7 +219,7 @@ void nullUses() async {
   _null + 4; //# 165: compile-time error
   -_null; //# 169: compile-time error
   _null++; //# 170: compile-time error
-  ++null; //# 171: compile-time error
+  ++_null; //# 171: compile-time error
   _null..isEven; //# 172: compile-time error
   _null[3]; //# 170: compile-time error
   _null[3] = 0; //# 171: compile-time error

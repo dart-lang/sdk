@@ -11,7 +11,7 @@ main() {
 
 class A {
   foo(); // //# 00: compile-time error
-  static bar(); // //# 01: compile-time error
+  static bar(); // //# 01: syntax error
 }
 
 class B extends A {

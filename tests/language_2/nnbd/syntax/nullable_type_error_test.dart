@@ -12,12 +12,12 @@ main() {
   // The grammar for types does not allow multiple successive ? operators on a
   // type.  Note: we test both with and without a space between `?`s because the
   // scanner treats `??` as a single token.
-  int?? x1 = 0; //# 01: compile-time error
-  core.int?? x2 = 0; //# 02: compile-time error
-  List<int>?? x3 = <int>[]; //# 03: compile-time error
-  void Function()?? x4 = f; //# 04: compile-time error
-  int? ? x5 = 0; //# 05: compile-time error
-  core.int? ? x6 = 0; //# 06: compile-time error
-  List<int>? ? x7 = <int>[]; //# 07: compile-time error
-  void Function()? ? x4 = f; //# 08: compile-time error
+  int?? x1 = 0; //# 01: syntax error
+  core.int?? x2 = 0; //# 02: syntax error
+  List<int>?? x3 = <int>[]; //# 03: syntax error
+  void Function()?? x4 = f; //# 04: syntax error
+  int? ? x5 = 0; //# 05: syntax error
+  core.int? ? x6 = 0; //# 06: syntax error
+  List<int>? ? x7 = <int>[]; //# 07: syntax error
+  void Function()? ? x4 = f; //# 08: syntax error
 }

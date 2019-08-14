@@ -6,15 +6,15 @@
 
 // Invalid uses of "late" modifier
 
-late //# 01: compile-time error
+late //# 01: syntax error
 int f1(
   late //# 02: compile-time error
   int x
 ) {}
 
-late //# 03: compile-time error
+late //# 03: syntax error
 class C1 {
-  late //# 04: compile-time error
+  late //# 04: syntax error
   int m() {}
 }
 
