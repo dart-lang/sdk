@@ -48,17 +48,29 @@ abstract class AbstractTypeSystemTest {
   Dart2TypeSystem typeSystem;
 
   DartType get bottomType => typeProvider.bottomType;
+
   InterfaceType get doubleType => typeProvider.doubleType;
+
   DartType get dynamicType => typeProvider.dynamicType;
+
   InterfaceType get functionType => typeProvider.functionType;
+
   InterfaceType get intType => typeProvider.intType;
+
   InterfaceType get iterableType => typeProvider.iterableType;
+
   InterfaceType get listType => typeProvider.listType;
+
   DartType get neverType => typeProvider.neverType;
+
   DartType get nullType => typeProvider.nullType;
+
   InterfaceType get numType => typeProvider.numType;
+
   InterfaceType get objectType => typeProvider.objectType;
+
   InterfaceType get stringType => typeProvider.stringType;
+
   DartType get voidType => VoidTypeImpl.instance;
 
   void setUp() {
@@ -342,16 +354,27 @@ abstract class BoundTestBase {
   FunctionType simpleFunctionType;
 
   DartType get bottomType => typeProvider.bottomType;
+
   InterfaceType get doubleType => typeProvider.doubleType;
+
   DartType get dynamicType => typeProvider.dynamicType;
+
   InterfaceType get functionType => typeProvider.functionType;
+
   InterfaceType get futureOrType => typeProvider.futureOrType;
+
   InterfaceType get intType => typeProvider.intType;
+
   InterfaceType get iterableType => typeProvider.iterableType;
+
   InterfaceType get listType => typeProvider.listType;
+
   InterfaceType get nullType => typeProvider.nullType;
+
   InterfaceType get numType => typeProvider.numType;
+
   InterfaceType get objectType => typeProvider.objectType;
+
   InterfaceType get stringType => typeProvider.stringType;
 
   DartType get voidType => VoidTypeImpl.instance;
@@ -2673,7 +2696,7 @@ class SubtypingTest extends SubtypingTestBase {
     ]);
 
     // Create a non-identical but equal copy of Function, and verify subtyping
-    var copyOfFunction = new InterfaceTypeImpl(functionType.element, null);
+    var copyOfFunction = new InterfaceTypeImpl(functionType.element);
     _checkEquivalent(functionType, copyOfFunction);
   }
 
@@ -2907,16 +2930,27 @@ class SubtypingTestBase {
   TypeSystem typeSystem;
 
   DartType get bottomType => typeProvider.bottomType;
+
   InterfaceType get doubleType => typeProvider.doubleType;
+
   DartType get dynamicType => typeProvider.dynamicType;
+
   InterfaceType get functionType => typeProvider.functionType;
+
   InterfaceType get futureOrType => typeProvider.futureOrType;
+
   InterfaceType get intType => typeProvider.intType;
+
   InterfaceType get listType => typeProvider.listType;
+
   DartType get nullType => typeProvider.nullType;
+
   InterfaceType get numType => typeProvider.numType;
+
   InterfaceType get objectType => typeProvider.objectType;
+
   InterfaceType get stringType => typeProvider.stringType;
+
   DartType get voidType => VoidTypeImpl.instance;
 
   void setUp() {

@@ -1081,8 +1081,9 @@ class Dart2TypeSystem extends TypeSystem {
       var newTypeArgs = _transformList(
           type.typeArguments, (t) => _substituteType(t, lowerBound, visitType));
       if (identical(type.typeArguments, newTypeArgs)) return type;
-      return new InterfaceTypeImpl(
-          type.element, type.prunedTypedefs, type.nullabilitySuffix)
+      return new InterfaceTypeImpl(type.element,
+          prunedTypedefs: type.prunedTypedefs,
+          nullabilitySuffix: type.nullabilitySuffix)
         ..typeArguments = newTypeArgs;
     }
     if (type is FunctionType) {
