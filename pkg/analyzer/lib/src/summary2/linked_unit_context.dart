@@ -998,11 +998,17 @@ class LinkedUnitContext {
       VariableDeclarationList variableList = node.parent;
       if (variableList.isConst) return true;
 
+      FieldDeclaration fieldDeclaration = variableList.parent;
+      if (fieldDeclaration.staticKeyword != null) return false;
+
       if (variableList.isFinal) {
-        ClassOrMixinDeclaration class_ = variableList.parent.parent;
-        for (var member in class_.members) {
-          if (member is ConstructorDeclaration && member.constKeyword != null) {
-            return true;
+        var class_ = fieldDeclaration.parent;
+        if (class_ is ClassOrMixinDeclaration) {
+          for (var member in class_.members) {
+            if (member is ConstructorDeclaration &&
+                member.constKeyword != null) {
+              return true;
+            }
           }
         }
       }
