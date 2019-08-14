@@ -5,8 +5,8 @@
 // SharedOptions=--enable-experiment=extension-methods
 
 // It is an error to have a setter and a getter in an extension where
-// the argument type of the setter is not assignable to the return type
-// of the getter
+// the return type of the getter is not assignable to the argument type
+// of the setter.
 extension E1 on int {
   static int get property => 1;
   //     ^^
