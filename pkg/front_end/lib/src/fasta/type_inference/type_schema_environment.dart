@@ -95,6 +95,10 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
 
   Class get functionClass => coreTypes.functionClass;
 
+  Class get futureClass => coreTypes.futureClass;
+
+  Class get futureOrClass => coreTypes.futureOrClass;
+
   InterfaceType getLegacyLeastUpperBound(
       InterfaceType type1, InterfaceType type2) {
     return hierarchy.getLegacyLeastUpperBound(type1, type2);

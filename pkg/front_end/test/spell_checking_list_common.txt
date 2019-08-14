@@ -1249,6 +1249,7 @@ imported
 importer
 importing
 imports
+imposed
 imposes
 impossible
 improve
@@ -1785,6 +1786,7 @@ once
 one
 ones
 only
+onto
 open
 opener
 openers

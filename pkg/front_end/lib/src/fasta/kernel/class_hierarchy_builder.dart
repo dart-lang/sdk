@@ -1918,6 +1918,9 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
   Class get functionClass => hierarchy.functionKernelClass;
 
   @override
+  Class get futureClass => hierarchy.futureKernelClass;
+
+  @override
   Class get futureOrClass => hierarchy.futureOrKernelClass;
 
   @override
