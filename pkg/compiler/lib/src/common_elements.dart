@@ -483,6 +483,8 @@ abstract class CommonElements {
 
   FunctionEntity get findType;
   FunctionEntity get instanceType;
+  FunctionEntity get arrayInstanceType;
+  FunctionEntity get simpleInstanceType;
   FunctionEntity get typeLiteralMaker;
   FunctionEntity get checkTypeBound;
   FieldEntity get rtiAsField;
@@ -1845,6 +1847,16 @@ class CommonElementsImpl
   @override
   FunctionEntity get instanceType =>
       _instanceType ??= _findRtiFunction('instanceType');
+
+  FunctionEntity _arrayInstanceType;
+  @override
+  FunctionEntity get arrayInstanceType =>
+      _arrayInstanceType ??= _findRtiFunction('_arrayInstanceType');
+
+  FunctionEntity _simpleInstanceType;
+  @override
+  FunctionEntity get simpleInstanceType =>
+      _simpleInstanceType ??= _findRtiFunction('_instanceType');
 
   FunctionEntity _typeLiteralMaker;
   @override

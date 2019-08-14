@@ -3405,18 +3405,63 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   @override
   visitInstanceEnvironment(HInstanceEnvironment node) {
-    use(node.inputs.single);
+    HInstruction input = node.inputs.single;
+    use(input);
     js.Expression receiver = pop();
-    // TODO(sra): Optimize to direct field access where possible.
-    //
-    //    push(js.js(r'#.#', [receiver, _namer.rtiFieldJsName]));
 
-    FunctionEntity helperElement = _commonElements.instanceType;
-    _registry.registerStaticUse(
-        new StaticUse.staticInvoke(helperElement, CallStructure.ONE_ARG));
-    js.Expression helper = _emitter.staticFunctionAccess(helperElement);
-    push(js.js(r'#(#)', [helper, receiver]).withSourceInformation(
-        node.sourceInformation));
+    void useRtiField() {
+      push(js.js(r'#.#', [receiver, _namer.rtiFieldJsName]));
+    }
+
+    void useHelper(FunctionEntity helper) {
+      _registry.registerStaticUse(
+          new StaticUse.staticInvoke(helper, CallStructure.ONE_ARG));
+      js.Expression helperAccess = _emitter.staticFunctionAccess(helper);
+      push(js.js(r'#(#)', [helperAccess, receiver]).withSourceInformation(
+          node.sourceInformation));
+    }
+
+    // Try to use the 'rti' field, or a specialization of 'instanceType'.
+    AbstractValue receiverMask = input.instructionType;
+
+    AbstractBool isArray = _abstractValueDomain.isInstanceOf(
+        receiverMask, _commonElements.jsArrayClass);
+
+    if (isArray.isDefinitelyTrue) {
+      useHelper(_commonElements.arrayInstanceType);
+      return;
+    }
+
+    if (isArray.isDefinitelyFalse) {
+      // See if the receiver type narrows the set of classes to ones that all
+      // have a stored type field.
+      // TODO(sra): Currently the only convenient query is [getExactClass]. We
+      // should have a (cached) query to iterate over all the concrete classes
+      // in [receiverMask].
+      // TODO(sra): Store the context class on the HInstanceEnvironment. This
+      // would allow the subtype classes to be iterated.
+      ClassEntity receiverClass =
+          _abstractValueDomain.getExactClass(receiverMask);
+      if (receiverClass != null) {
+        if (_closedWorld.rtiNeed.classNeedsTypeArguments(receiverClass)) {
+          useRtiField();
+          return;
+        }
+      }
+
+      // If the type is not intercepted and is not a closure, use the 'simple'
+      // helper.
+      if (_abstractValueDomain.isInterceptor(receiverMask).isDefinitelyFalse) {
+        if (_abstractValueDomain
+            .isInstanceOf(receiverMask, _commonElements.closureClass)
+            .isDefinitelyFalse) {
+          useHelper(_commonElements.simpleInstanceType);
+          return;
+        }
+      }
+    }
+
+    useHelper(_commonElements.instanceType);
   }
 
   @override

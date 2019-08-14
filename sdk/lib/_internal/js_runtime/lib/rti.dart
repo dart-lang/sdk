@@ -409,24 +409,36 @@ Rti _nonClosureInstanceType(object) {
       object,
       JS_BUILTIN(
           'depends:none;effects:none;', JsBuiltin.dartObjectConstructor))) {
-    var rti = JS('', r'#[#]', object, JS_GET_NAME(JsGetName.RTI_NAME));
-    if (rti != null) return _castToRti(rti);
-
-    return _instanceTypeFromConstructor(JS('', '#.constructor', object));
+    return _instanceType(object);
   }
 
   if (_Utils.isArray(object)) {
-    var rti = JS('', r'#[#]', object, JS_GET_NAME(JsGetName.RTI_NAME));
-    // TODO(sra): Do we need to protect against an Array passed between two Dart
-    // programs loaded into the same JavaScript isolate (e.g. via JS-interop).
-    // FWIW, the legacy rti has this problem too. Perhaps JSArrays should use a
-    // program-local `symbol` for the type field.
-    if (rti != null) return _castToRti(rti);
-    return _castToRti(getJSArrayInteropRti());
+    return _arrayInstanceType(object);
   }
 
   var interceptor = getInterceptor(object);
   return _instanceTypeFromConstructor(JS('', '#.constructor', interceptor));
+}
+
+/// Returns the Rti type of JavaScript Array [object].
+/// Called from generated code.
+Rti _arrayInstanceType(object) {
+  // TODO(sra): Do we need to protect against an Array passed between two Dart
+  // programs loaded into the same JavaScript isolate (e.g. via JS-interop).
+  // FWIW, the legacy rti has this problem too. Perhaps JSArrays should use a
+  // program-local `symbol` for the type field.
+  var rti = JS('', r'#[#]', object, JS_GET_NAME(JsGetName.RTI_NAME));
+  return rti != null ? _castToRti(rti) : _castToRti(getJSArrayInteropRti());
+}
+
+/// Returns the Rti type of user-defined class [object].
+/// [object] must not be an intercepted class or a closure.
+/// Called from generated code.
+Rti _instanceType(object) {
+  var rti = JS('', r'#[#]', object, JS_GET_NAME(JsGetName.RTI_NAME));
+  return rti != null
+      ? _castToRti(rti)
+      : _instanceTypeFromConstructor(JS('', '#.constructor', object));
 }
 
 Rti _instanceTypeFromConstructor(constructor) {

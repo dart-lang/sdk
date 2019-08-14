@@ -774,6 +774,8 @@ class BackendImpacts {
       BackendImpact(staticUses: [
         _commonElements.findType,
         _commonElements.instanceType,
+        _commonElements.arrayInstanceType,
+        _commonElements.simpleInstanceType,
         _commonElements.rtiEvalMethod,
         _commonElements.rtiBindMethod,
         _commonElements.generalIsTestImplementation,
