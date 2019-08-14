@@ -994,6 +994,13 @@ intptr_t ActivationFrame::GetAwaitJumpVariable() {
     if (var_descriptors_.GetName(i) == Symbols::AwaitJumpVar().raw()) {
       ASSERT(kind == RawLocalVarDescriptors::kContextVar);
       ASSERT(!ctx_.IsNull());
+      // Variable descriptors constructed from bytecode have all variables of
+      // enclosing functions, even shadowed by the current function.
+      // Check context level in order to pick correct :await_jump_var variable.
+      if (function().is_declared_in_bytecode() &&
+          (ctx_.GetLevel() != var_info.scope_id)) {
+        continue;
+      }
       Object& await_jump_index = Object::Handle(ctx_.At(var_info.index()));
       ASSERT(await_jump_index.IsSmi());
       await_jump_var = Smi::Cast(await_jump_index).Value();
