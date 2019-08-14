@@ -744,6 +744,9 @@ class AnalysisServerOptions {
   /// Whether to use the Language Server Protocol.
   bool useLanguageServerProtocol = false;
 
+  /// Whether or not to enable ML code completion.
+  bool enableCompletionModel = false;
+
   /// Base path to locate trained completion language model files.
   String completionModelFolder;
 

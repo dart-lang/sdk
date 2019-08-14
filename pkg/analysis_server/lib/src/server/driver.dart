@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:ffi' as ffi;
 import 'dart:io';
 import 'dart:math';
+import 'package:path/path.dart' as path;
 
 import 'package:analysis_server/protocol/protocol_constants.dart'
     show PROTOCOL_VERSION;
@@ -287,6 +288,11 @@ class Driver implements ServerStarter {
   static const String USE_LSP = "lsp";
 
   /**
+   * Whether or not to enable ML ranking for code completion.
+   */
+  static const String ENABLE_COMPLETION_MODEL = "enable-completion-model";
+
+  /**
    * The path on disk to a directory containing language model files for smart
    * code completion.
    */
@@ -349,6 +355,20 @@ class Driver implements ServerStarter {
     analysisServerOptions.useLanguageServerProtocol = results[USE_LSP];
     analysisServerOptions.completionModelFolder =
         results[COMPLETION_MODEL_FOLDER];
+    if (results[ENABLE_COMPLETION_MODEL] &&
+        analysisServerOptions.completionModelFolder == null) {
+      // The user has enabled ML code completion without explicitly setting
+      // a model for us to choose, so use the default one. We need to walk over
+      // from $SDK/bin/snapshots/analysis_server.dart.snapshot to
+      // $SDK/model/lexeme.
+      analysisServerOptions.completionModelFolder = path.join(
+          File.fromUri(Platform.script).parent.path,
+          '..',
+          '..',
+          'model',
+          'lexeme');
+    }
+
     AnalysisDriver.useSummary2 = results[USE_SUMMARY2];
 
     bool disableAnalyticsForSession = results[SUPPRESS_ANALYTICS_FLAG];
@@ -617,25 +637,27 @@ class Driver implements ServerStarter {
       SocketServer socketServer,
       LspSocketServer lspSocketServer,
       AnalysisServerOptions analysisServerOptions) {
-    if (analysisServerOptions.completionModelFolder != null &&
-        ffi.sizeOf<ffi.IntPtr>() != 4) {
-      // Start completion model isolate if this is a 64 bit system and
-      // analysis server was configured to load a language model on disk.
-      CompletionRanking.instance =
-          CompletionRanking(analysisServerOptions.completionModelFolder);
-      CompletionRanking.instance.start().catchError((error) {
-        // Disable smart ranking if model startup fails.
-        analysisServerOptions.completionModelFolder = null;
-        CompletionRanking.instance = null;
-        if (socketServer != null) {
-          socketServer.analysisServer.sendServerErrorNotification(
-              'Failed to start ranking model isolate', error, error.stackTrace);
-        } else {
-          lspSocketServer.analysisServer.sendServerErrorNotification(
-              'Failed to start ranking model isolate', error, error.stackTrace);
-        }
-      });
+    if (analysisServerOptions.completionModelFolder == null ||
+        ffi.sizeOf<ffi.IntPtr>() == 4) {
+      return;
     }
+
+    // Start completion model isolate if this is a 64 bit system and
+    // analysis server was configured to load a language model on disk.
+    CompletionRanking.instance =
+        CompletionRanking(analysisServerOptions.completionModelFolder);
+    CompletionRanking.instance.start().catchError((error) {
+      // Disable smart ranking if model startup fails.
+      analysisServerOptions.completionModelFolder = null;
+      CompletionRanking.instance = null;
+      if (socketServer != null) {
+        socketServer.analysisServer.sendServerErrorNotification(
+            'Failed to start ranking model isolate', error, error.stackTrace);
+      } else {
+        lspSocketServer.analysisServer.sendServerErrorNotification(
+            'Failed to start ranking model isolate', error, error.stackTrace);
+      }
+    });
   }
 
   /**
@@ -762,6 +784,8 @@ class Driver implements ServerStarter {
         help: "Whether to enable parsing via the Fasta parser");
     parser.addFlag(USE_LSP,
         defaultsTo: false, help: "Whether to use the Language Server Protocol");
+    parser.addFlag(ENABLE_COMPLETION_MODEL,
+        help: "Whether or not to turn on ML ranking for code completion");
     parser.addOption(COMPLETION_MODEL_FOLDER,
         help: "[path] path to the location of a code completion model");
     parser.addFlag(USE_SUMMARY2,
