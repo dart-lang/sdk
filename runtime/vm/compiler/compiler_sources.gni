@@ -101,6 +101,8 @@ compiler_sources = [
   "ffi.h",
   "frontend/base_flow_graph_builder.cc",
   "frontend/base_flow_graph_builder.h",
+  "frontend/bytecode_fingerprints.cc",
+  "frontend/bytecode_fingerprints.h",
   "frontend/bytecode_flow_graph_builder.cc",
   "frontend/bytecode_flow_graph_builder.h",
   "frontend/bytecode_reader.cc",

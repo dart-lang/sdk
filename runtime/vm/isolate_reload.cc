@@ -1377,6 +1377,10 @@ static void RecordChanges(const GrowableObjectArray& changed_in_last_reload,
     return;
   }
 
+  if (old_cls.IsTopLevel()) {
+    return;
+  }
+
   ASSERT(new_cls.is_finalized() == old_cls.is_finalized());
   if (!new_cls.is_finalized()) {
     if (new_cls.SourceFingerprint() == old_cls.SourceFingerprint()) {
@@ -1435,6 +1439,36 @@ void IsolateReloadContext::Commit() {
   VerifyMaps();
 #endif
 
+  // Copy over certain properties of libraries, e.g. is the library
+  // debuggable?
+  {
+    TIMELINE_SCOPE(CopyLibraryBits);
+    Library& lib = Library::Handle();
+    Library& new_lib = Library::Handle();
+
+    UnorderedHashMap<LibraryMapTraits> lib_map(library_map_storage_);
+
+    {
+      // Reload existing libraries.
+      UnorderedHashMap<LibraryMapTraits>::Iterator it(&lib_map);
+
+      while (it.MoveNext()) {
+        const intptr_t entry = it.Current();
+        ASSERT(entry != -1);
+        new_lib = Library::RawCast(lib_map.GetKey(entry));
+        lib = Library::RawCast(lib_map.GetPayload(entry, 0));
+        new_lib.set_debuggable(lib.IsDebuggable());
+        // Native extension support.
+        new_lib.set_native_entry_resolver(lib.native_entry_resolver());
+        new_lib.set_native_entry_symbol_resolver(
+            lib.native_entry_symbol_resolver());
+      }
+    }
+
+    // Release the library map.
+    lib_map.Release();
+  }
+
   const GrowableObjectArray& changed_in_last_reload =
       GrowableObjectArray::Handle(GrowableObjectArray::New());
 
@@ -1490,36 +1524,6 @@ void IsolateReloadContext::Commit() {
     }
   }
   I->object_store()->set_changed_in_last_reload(changed_in_last_reload);
-
-  // Copy over certain properties of libraries, e.g. is the library
-  // debuggable?
-  {
-    TIMELINE_SCOPE(CopyLibraryBits);
-    Library& lib = Library::Handle();
-    Library& new_lib = Library::Handle();
-
-    UnorderedHashMap<LibraryMapTraits> lib_map(library_map_storage_);
-
-    {
-      // Reload existing libraries.
-      UnorderedHashMap<LibraryMapTraits>::Iterator it(&lib_map);
-
-      while (it.MoveNext()) {
-        const intptr_t entry = it.Current();
-        ASSERT(entry != -1);
-        new_lib = Library::RawCast(lib_map.GetKey(entry));
-        lib = Library::RawCast(lib_map.GetPayload(entry, 0));
-        new_lib.set_debuggable(lib.IsDebuggable());
-        // Native extension support.
-        new_lib.set_native_entry_resolver(lib.native_entry_resolver());
-        new_lib.set_native_entry_symbol_resolver(
-            lib.native_entry_symbol_resolver());
-      }
-    }
-
-    // Release the library map.
-    lib_map.Release();
-  }
 
   {
     TIMELINE_SCOPE(UpdateLibrariesArray);

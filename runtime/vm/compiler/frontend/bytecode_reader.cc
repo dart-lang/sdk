@@ -14,6 +14,7 @@
 #include "vm/dart_api_impl.h"  // For Api::IsFfiEnabled().
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
+#include "vm/hash.h"
 #include "vm/longjump.h"
 #include "vm/object_store.h"
 #include "vm/reusable_handles.h"

@@ -17,6 +17,7 @@
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/compiler/assembler/disassembler_kbc.h"
+#include "vm/compiler/frontend/bytecode_fingerprints.h"
 #include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/frontend/kernel_fingerprints.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
@@ -7970,7 +7971,8 @@ RawString* Function::GetSource() const {
 int32_t Function::SourceFingerprint() const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (is_declared_in_bytecode()) {
-    return 0;  // TODO(37353): Implement or remove.
+    return kernel::BytecodeFingerprintHelper::CalculateFunctionFingerprint(
+        *this);
   }
   return kernel::KernelSourceFingerprintHelper::CalculateFunctionFingerprint(
       *this);
