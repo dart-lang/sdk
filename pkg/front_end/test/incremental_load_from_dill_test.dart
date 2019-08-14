@@ -206,8 +206,9 @@ Future<Map<String, List<int>>> createModules(
     for (String filename in moduleSources.keys) {
       String data = moduleSources[filename];
       Uri uri = base.resolve(filename);
-      if (await fs.entityForUri(uri).exists())
+      if (await fs.entityForUri(uri).exists()) {
         throw "More than one entry for $filename";
+      }
       fs.entityForUri(uri).writeAsStringSync(data);
     }
   }
@@ -499,14 +500,16 @@ Future<Null> newWorldTest(List worlds, Map modules, bool omitPlatform) async {
         countNonSyntheticPlatformLibraries(component);
     int syntheticLibraries = countSyntheticLibraries(component);
     if (world["expectsPlatform"] == true) {
-      if (nonSyntheticPlatformLibraries < 5)
+      if (nonSyntheticPlatformLibraries < 5) {
         throw "Expected to have at least 5 platform libraries "
             "(actually, the entire sdk), "
             "but got $nonSyntheticPlatformLibraries.";
+      }
     } else {
-      if (nonSyntheticPlatformLibraries != 0)
+      if (nonSyntheticPlatformLibraries != 0) {
         throw "Expected to have 0 platform libraries "
             "but got $nonSyntheticPlatformLibraries.";
+      }
     }
     if (world["expectedLibraryCount"] != null) {
       if (nonSyntheticLibraries - nonSyntheticPlatformLibraries !=

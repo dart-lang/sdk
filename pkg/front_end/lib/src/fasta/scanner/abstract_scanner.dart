@@ -511,8 +511,9 @@ abstract class AbstractScanner implements Scanner {
     // This recovers nicely from from situations like "{[}".
     while (!identical(originalStack, groupingStack)) {
       // Don't report unmatched errors for <; it is also the less-than operator.
-      if (!identical(groupingStack.head.kind, LT_TOKEN))
+      if (!identical(groupingStack.head.kind, LT_TOKEN)) {
         unmatchedBeginGroup(originalStack.head);
+      }
       originalStack = originalStack.tail;
     }
     return true;

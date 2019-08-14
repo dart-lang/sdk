@@ -184,7 +184,9 @@ Set<Source> scanReachableFiles(Uri entryUri) {
   loadTimer.stop();
 
   inputSize = 0;
-  for (var s in files) inputSize += s.contents.data.length;
+  for (var s in files) {
+    inputSize += s.contents.data.length;
+  }
   print('input size: ${inputSize} chars');
   var loadTime = loadTimer.elapsedMicroseconds - scanTimer.elapsedMicroseconds;
   report('load', loadTime);

@@ -1011,7 +1011,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         }
       } else {
         TreeNode parent = invocation.parent;
-        while (parent is! Component && parent != null) parent = parent.parent;
+        while (parent is! Component && parent != null) {
+          parent = parent.parent;
+        }
         if (parent == null) continue;
       }
 
@@ -1912,8 +1914,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     } else if (declaration is LoadLibraryBuilder) {
       return new LoadLibraryGenerator(this, token, declaration);
     } else {
-      if (declaration.hasProblem && declaration is! AccessErrorBuilder)
+      if (declaration.hasProblem && declaration is! AccessErrorBuilder) {
         return declaration;
+      }
       Builder setter;
       if (declaration.isSetter) {
         setter = declaration;

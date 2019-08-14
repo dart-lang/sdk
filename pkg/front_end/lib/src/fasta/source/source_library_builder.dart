@@ -1045,7 +1045,9 @@ class SourceLibraryBuilder extends LibraryBuilder {
               // additionalExports either. Add the last one only (the one that
               // will eventually be added to the library).
               Builder memberLast = member;
-              while (memberLast.next != null) memberLast = memberLast.next;
+              while (memberLast.next != null) {
+                memberLast = memberLast.next;
+              }
               library.additionalExports.add(memberLast.target.reference);
             }
         }

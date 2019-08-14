@@ -387,7 +387,7 @@
 
   "analyze": {
 
-    "options": "analysis_options.yaml",
+    "options": "analysis_options_no_lints.yaml",
 
     "uris": [
       "lib/",

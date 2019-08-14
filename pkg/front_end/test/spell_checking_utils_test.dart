@@ -104,8 +104,9 @@ void main() {
 }
 
 void _expectList(List<String> actual, List<String> expected) {
-  if (actual.length != expected.length)
+  if (actual.length != expected.length) {
     throw "Not the same ($actual vs $expected)";
+  }
   for (int i = 0; i < actual.length; i++) {
     if (actual[i] != expected[i]) throw "Not the same ($actual vs $expected)";
   }
