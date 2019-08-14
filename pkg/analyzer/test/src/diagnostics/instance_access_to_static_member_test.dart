@@ -43,6 +43,10 @@ f(C c) {
 ''', [
       error(StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 72, 1),
     ]);
+    assertElement(
+      findNode.simple('a;'),
+      findElement.getter('a'),
+    );
   }
 
   test_method() async {
@@ -59,6 +63,10 @@ f(C c) {
 ''', [
       error(StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 68, 1),
     ]);
+    assertElement(
+      findNode.methodInvocation('a();'),
+      findElement.method('a'),
+    );
   }
 
   @failingTest
@@ -77,5 +85,9 @@ f(C c) {
 ''', [
       error(StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 69, 1),
     ]);
+    assertElement(
+      findNode.simple('a = 2;'),
+      findElement.setter('a'),
+    );
   }
 }

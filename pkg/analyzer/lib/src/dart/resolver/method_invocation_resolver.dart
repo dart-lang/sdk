@@ -358,6 +358,7 @@ class MethodInvocationResolver {
     }
 
     ExecutableElement member = result.element;
+    nameNode.staticElement = member;
 
     if (member.isStatic) {
       _setDynamicResolution(node);
@@ -368,7 +369,6 @@ class MethodInvocationResolver {
       return result;
     }
 
-    nameNode.staticElement = member;
     var calleeType = _getCalleeType(node, member);
     _setResolution(node, calleeType);
     return result;

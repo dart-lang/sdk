@@ -10,12 +10,13 @@ import 'fix_processor.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ChangeToStaticAccessTest);
+    defineReflectiveTests(ChangeToStaticAccessClassTest);
+    defineReflectiveTests(ChangeToStaticAccessExtensionTest);
   });
 }
 
 @reflectiveTest
-class ChangeToStaticAccessTest extends FixProcessorTest {
+class ChangeToStaticAccessClassTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CHANGE_TO_STATIC_ACCESS;
 
@@ -124,6 +125,53 @@ import 'package:test/b.dart';
 
 main(B b) {
   A.foo;
+}
+''');
+  }
+}
+
+@reflectiveTest
+class ChangeToStaticAccessExtensionTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.CHANGE_TO_STATIC_ACCESS;
+
+  test_method() async {
+    createAnalysisOptionsFile(experiments: ['extension-methods']);
+    await resolveTestUnit('''
+extension E on int {
+  static void foo() {}
+}
+main() {
+  0.foo();
+}
+''');
+    await assertHasFix('''
+extension E on int {
+  static void foo() {}
+}
+main() {
+  E.foo();
+}
+''');
+  }
+
+  @failingTest
+  test_property() async {
+    createAnalysisOptionsFile(experiments: ['extension-methods']);
+    await resolveTestUnit('''
+extension E on int {
+  static int get foo => 42;
+}
+main() {
+  0.foo;
+}
+''');
+    await assertHasFix('''
+extension E on int {
+  static int get foo => 42;
+}
+main() {
+  E.foo;
 }
 ''');
   }

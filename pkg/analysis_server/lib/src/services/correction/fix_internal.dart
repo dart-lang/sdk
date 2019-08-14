@@ -4012,21 +4012,18 @@ class FixProcessor {
    * the given [element].
    */
   Future<void> _addFix_useStaticAccess(AstNode target, Element element) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    Element declaringElement = element.enclosingElement;
-    if (declaringElement is ClassElement) {
-      DartType declaringType = declaringElement.type;
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        // replace "target" with class name
-        builder.addReplacement(range.node(target), (DartEditBuilder builder) {
-          builder.writeType(declaringType);
-        });
+    var declaringElement = element.enclosingElement;
+    var changeBuilder = _newDartChangeBuilder();
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      builder.addReplacement(range.node(target), (DartEditBuilder builder) {
+        builder.writeReference(declaringElement);
       });
-      _addFixFromBuilder(changeBuilder, DartFixKind.CHANGE_TO_STATIC_ACCESS,
-          args: [declaringType]);
-    }
+    });
+    _addFixFromBuilder(
+      changeBuilder,
+      DartFixKind.CHANGE_TO_STATIC_ACCESS,
+      args: [declaringElement.name],
+    );
   }
 
   Future<void> _addFix_useStaticAccess_method() async {
