@@ -4,6 +4,8 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'already_migrated_code_decorator_test.dart'
+    as already_migrated_code_decorator_test;
 import 'api_test.dart' as api_test;
 import 'decorated_class_hierarchy_test.dart' as decorated_class_hierarchy_test;
 import 'decorated_type_test.dart' as decorated_type_test;
@@ -14,6 +16,7 @@ import 'utilities/test_all.dart' as utilities;
 
 main() {
   defineReflectiveSuite(() {
+    already_migrated_code_decorator_test.main();
     api_test.main();
     decorated_class_hierarchy_test.main();
     decorated_type_test.main();

@@ -36,6 +36,9 @@ class AlreadyMigratedCodeDecorator {
       assert(nullabilitySuffix == NullabilitySuffix.star);
     }
     if (type is FunctionType) {
+      if (type.typeFormals.isNotEmpty) {
+        throw UnimplementedError('Decorating generic function type');
+      }
       var positionalParameters = <DecoratedType>[];
       var namedParameters = <String, DecoratedType>{};
       for (var parameter in type.parameters) {
