@@ -51,7 +51,7 @@ static void SetEdgeWeight(BlockEntryInstr* block,
   }
 }
 
-void BlockScheduler::AssignEdgeWeights() const {
+void BlockScheduler::AssignEdgeWeights(FlowGraph* flow_graph) {
   if (!FLAG_reorder_basic_blocks) {
     return;
   }
@@ -59,9 +59,9 @@ void BlockScheduler::AssignEdgeWeights() const {
     return;
   }
 
-  const Function& function = flow_graph()->parsed_function().function();
+  const Function& function = flow_graph->parsed_function().function();
   const Array& ic_data_array =
-      Array::Handle(flow_graph()->zone(), function.ic_data_array());
+      Array::Handle(flow_graph->zone(), function.ic_data_array());
   if (Compiler::IsBackgroundCompilation() && ic_data_array.IsNull()) {
     // Deferred loading cleared ic_data_array.
     Compiler::AbortBackgroundCompilation(
@@ -75,7 +75,7 @@ void BlockScheduler::AssignEdgeWeights() const {
   Array& edge_counters = Array::Handle();
   edge_counters ^= ic_data_array.At(0);
 
-  auto graph_entry = flow_graph()->graph_entry();
+  auto graph_entry = flow_graph->graph_entry();
   BlockEntryInstr* entry = graph_entry->normal_entry();
   if (entry == nullptr) {
     entry = graph_entry->osr_entry();
@@ -85,8 +85,8 @@ void BlockScheduler::AssignEdgeWeights() const {
       GetEdgeCount(edge_counters, entry->preorder_number());
   graph_entry->set_entry_count(entry_count);
 
-  for (BlockIterator it = flow_graph()->reverse_postorder_iterator();
-       !it.Done(); it.Advance()) {
+  for (BlockIterator it = flow_graph->reverse_postorder_iterator(); !it.Done();
+       it.Advance()) {
     BlockEntryInstr* block = it.Current();
     Instruction* last = block->last_instruction();
     for (intptr_t i = 0; i < last->SuccessorCount(); ++i) {
@@ -158,22 +158,22 @@ static void Union(GrowableArray<Chain*>* chains,
   }
 }
 
-void BlockScheduler::ReorderBlocks() const {
+void BlockScheduler::ReorderBlocks(FlowGraph* flow_graph) {
   if (FLAG_precompiled_mode) {
-    ReorderBlocksAOT();
+    ReorderBlocksAOT(flow_graph);
   } else {
-    ReorderBlocksJIT();
+    ReorderBlocksJIT(flow_graph);
   }
 }
 
-void BlockScheduler::ReorderBlocksJIT() const {
+void BlockScheduler::ReorderBlocksJIT(FlowGraph* flow_graph) {
   if (!FLAG_reorder_basic_blocks) {
     return;
   }
 
   // Add every block to a chain of length 1 and compute a list of edges
   // sorted by weight.
-  intptr_t block_count = flow_graph()->preorder().length();
+  intptr_t block_count = flow_graph->preorder().length();
   GrowableArray<Edge> edges(2 * block_count);
 
   // A map from a block's postorder number to the chain it is in.  Used to
@@ -182,7 +182,7 @@ void BlockScheduler::ReorderBlocksJIT() const {
   // shared ones).  Find(n) is simply chains[n].
   GrowableArray<Chain*> chains(block_count);
 
-  for (BlockIterator it = flow_graph()->postorder_iterator(); !it.Done();
+  for (BlockIterator it = flow_graph->postorder_iterator(); !it.Done();
        it.Advance()) {
     BlockEntryInstr* block = it.Current();
     chains.Add(new Chain(block));
@@ -221,20 +221,20 @@ void BlockScheduler::ReorderBlocksJIT() const {
 
   // Ensure the checked entry remains first to avoid needing another offset on
   // Instructions, compare Code::EntryPoint.
-  GraphEntryInstr* graph_entry = flow_graph()->graph_entry();
-  flow_graph()->CodegenBlockOrder(true)->Add(graph_entry);
+  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
+  flow_graph->CodegenBlockOrder(true)->Add(graph_entry);
   FunctionEntryInstr* checked_entry = graph_entry->normal_entry();
   if (checked_entry != nullptr) {
-    flow_graph()->CodegenBlockOrder(true)->Add(checked_entry);
+    flow_graph->CodegenBlockOrder(true)->Add(checked_entry);
   }
   // Build a new block order.  Emit each chain when its first block occurs
   // in the original reverse postorder ordering (which gives a topological
   // sort of the blocks).
   for (intptr_t i = block_count - 1; i >= 0; --i) {
-    if (chains[i]->first->block == flow_graph()->postorder()[i]) {
+    if (chains[i]->first->block == flow_graph->postorder()[i]) {
       for (Link* link = chains[i]->first; link != NULL; link = link->next) {
         if ((link->block != checked_entry) && (link->block != graph_entry)) {
-          flow_graph()->CodegenBlockOrder(true)->Add(link->block);
+          flow_graph->CodegenBlockOrder(true)->Add(link->block);
         }
       }
     }
@@ -243,12 +243,12 @@ void BlockScheduler::ReorderBlocksJIT() const {
 
 // Moves blocks ending in a throw/rethrow, as well as any block post-dominated
 // by such a throwing block, to the end.
-void BlockScheduler::ReorderBlocksAOT() const {
+void BlockScheduler::ReorderBlocksAOT(FlowGraph* flow_graph) {
   if (!FLAG_reorder_basic_blocks) {
     return;
   }
 
-  auto& reverse_postorder = flow_graph()->reverse_postorder();
+  auto& reverse_postorder = flow_graph->reverse_postorder();
   const intptr_t block_count = reverse_postorder.length();
   GrowableArray<bool> is_terminating(block_count);
   is_terminating.FillWith(false, 0, block_count);
@@ -286,19 +286,19 @@ void BlockScheduler::ReorderBlocksAOT() const {
 
   // Emit code in reverse postorder but move any throwing blocks (except the
   // function entry, which needs to come first) to the very end.
-  auto& codegen_order = *flow_graph()->CodegenBlockOrder(true);
+  auto codegen_order = flow_graph->CodegenBlockOrder(true);
   for (intptr_t i = 0; i < block_count; ++i) {
     auto block = reverse_postorder[i];
     const intptr_t preorder_nr = block->preorder_number();
     if (!is_terminating[preorder_nr] || block->IsFunctionEntry()) {
-      codegen_order.Add(block);
+      codegen_order->Add(block);
     }
   }
   for (intptr_t i = 0; i < block_count; ++i) {
     auto block = reverse_postorder[i];
     const intptr_t preorder_nr = block->preorder_number();
     if (is_terminating[preorder_nr] && !block->IsFunctionEntry()) {
-      codegen_order.Add(block);
+      codegen_order->Add(block);
     }
   }
 }

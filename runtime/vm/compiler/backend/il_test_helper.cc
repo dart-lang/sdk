@@ -84,16 +84,14 @@ FlowGraph* TestPipeline::RunPasses(
     flow_graph_->PopulateWithICData(function_);
   }
 
-  BlockScheduler block_scheduler(flow_graph_);
   const bool reorder_blocks =
       FlowGraph::ShouldReorderBlocks(function_, optimized);
   if (mode_ == CompilerPass::kJIT && reorder_blocks) {
-    block_scheduler.AssignEdgeWeights();
+    BlockScheduler::AssignEdgeWeights(flow_graph_);
   }
 
   SpeculativeInliningPolicy speculative_policy(/*enable_blacklist=*/false);
   pass_state_ = new CompilerPassState(thread, flow_graph_, &speculative_policy);
-  pass_state_->block_scheduler = &block_scheduler;
   pass_state_->reorder_blocks = reorder_blocks;
 
   if (optimized) {

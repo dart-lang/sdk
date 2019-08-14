@@ -1120,8 +1120,7 @@ class CallSiteInliner : public ValueObject {
           }
         }
 
-        BlockScheduler block_scheduler(callee_graph);
-        block_scheduler.AssignEdgeWeights();
+        BlockScheduler::AssignEdgeWeights(callee_graph);
 
         {
           // Compute SSA on the callee graph, catching bailouts.

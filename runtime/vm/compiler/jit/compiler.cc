@@ -618,17 +618,15 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         FlowGraphPrinter::PrintGraph("Unoptimized Compilation", flow_graph);
       }
 
-      BlockScheduler block_scheduler(flow_graph);
       const bool reorder_blocks =
           FlowGraph::ShouldReorderBlocks(function, optimized());
       if (reorder_blocks) {
         TIMELINE_DURATION(thread(), CompilerVerbose,
                           "BlockScheduler::AssignEdgeWeights");
-        block_scheduler.AssignEdgeWeights();
+        BlockScheduler::AssignEdgeWeights(flow_graph);
       }
 
       CompilerPassState pass_state(thread(), flow_graph, &speculative_policy);
-      pass_state.block_scheduler = &block_scheduler;
       pass_state.reorder_blocks = reorder_blocks;
 
       if (optimized()) {
