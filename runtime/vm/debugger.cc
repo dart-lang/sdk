@@ -860,7 +860,7 @@ RawObject* ActivationFrame::GetAsyncContextVariable(const String& name) {
           // Bytecode uses absolute context levels, i.e. the frame context level
           // on entry must be calculated.
           const intptr_t frame_ctx_level =
-              IsInterpreted() ? ctx_.GetLevel() : 0;
+              function().is_declared_in_bytecode() ? ctx_.GetLevel() : 0;
           return GetRelativeContextVar(var_info.scope_id,
                                        variable_index.value(), frame_ctx_level);
         }
