@@ -236,7 +236,7 @@ void main(List<String> args) async {
       if (!source_maps) {
         console.log('For Dart source maps: npm install source-map-support');
       }
-      console.error(e);
+      sdk.core.print(sdk.dart.stackTrace(e));
       process.exit(1);
     }
     ''';
