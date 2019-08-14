@@ -959,6 +959,34 @@ class C {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_flow_analysis_simple() async {
+    var content = '''
+int f(int x) {
+  if (x == null) {
+    return 0;
+  } else {
+    return x;
+  }
+}
+main() {
+  f(null);
+}
+''';
+    var expected = '''
+int f(int? x) {
+  if (x == null) {
+    return 0;
+  } else {
+    return x;
+  }
+}
+main() {
+  f(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_function_expression_invocation() async {
     var content = '''
 abstract class C {
