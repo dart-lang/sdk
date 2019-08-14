@@ -33,7 +33,8 @@ static intptr_t CountBoundChecks(FlowGraph* flow_graph) {
 
 // Helper method to build CFG, run BCE, and count number of
 // before/after bounds checks.
-static std::pair<intptr_t, intptr_t> ApplyBCE(const char* script_chars) {
+static std::pair<intptr_t, intptr_t> ApplyBCE(const char* script_chars,
+                                              CompilerPass::PipelineMode mode) {
   // Load the script and exercise the code once
   // while exercising the given compiler passes.
   const auto& root_library = Library::Handle(LoadTestScript(script_chars));
@@ -47,13 +48,12 @@ static std::pair<intptr_t, intptr_t> ApplyBCE(const char* script_chars) {
       CompilerPass::kApplyICData,
       CompilerPass::kSelectRepresentations,
       CompilerPass::kCanonicalize,
+      CompilerPass::kConstantPropagation,
       CompilerPass::kCSE,
       CompilerPass::kLICM,
   };
   const auto& function = Function::Handle(GetFunction(root_library, "foo"));
-  // TODO(ajcbik): test CompilerPass::kAOT too, but how to deal
-  //               with FLAG_precompiled_mode and DART_PRECOMPILER?
-  TestPipeline pipeline(function, CompilerPass::kJIT);
+  TestPipeline pipeline(function, mode);
   FlowGraph* flow_graph = pipeline.RunPasses(passes);
   // Count the number of before/after bounds checks.
   const intptr_t num_bc_before = CountBoundChecks(flow_graph);
@@ -61,6 +61,14 @@ static std::pair<intptr_t, intptr_t> ApplyBCE(const char* script_chars) {
   range_analysis.Analyze();
   const intptr_t num_bc_after = CountBoundChecks(flow_graph);
   return {num_bc_before, num_bc_after};
+}
+
+static void TestScriptJIT(const char* script_chars,
+                          intptr_t expected_before,
+                          intptr_t expected_after) {
+  auto jit_result = ApplyBCE(script_chars, CompilerPass::kJIT);
+  EXPECT_STREQ(expected_before, jit_result.first);
+  EXPECT_STREQ(expected_after, jit_result.second);
 }
 
 //
@@ -79,9 +87,7 @@ ISOLATE_UNIT_TEST_CASE(BCECannotRemove) {
         foo(l);
       }
     )";
-  auto result = ApplyBCE(kScriptChars);
-  EXPECT_STREQ(1, result.first);
-  EXPECT_STREQ(1, result.second);
+  TestScriptJIT(kScriptChars, 1, 1);
 }
 
 ISOLATE_UNIT_TEST_CASE(BCERemoveOne) {
@@ -96,9 +102,7 @@ ISOLATE_UNIT_TEST_CASE(BCERemoveOne) {
         foo(l);
       }
     )";
-  auto result = ApplyBCE(kScriptChars);
-  EXPECT_STREQ(2, result.first);
-  EXPECT_STREQ(1, result.second);
+  TestScriptJIT(kScriptChars, 2, 1);
 }
 
 ISOLATE_UNIT_TEST_CASE(BCESimpleLoop) {
@@ -115,9 +119,21 @@ ISOLATE_UNIT_TEST_CASE(BCESimpleLoop) {
         foo(l);
       }
     )";
-  auto result = ApplyBCE(kScriptChars);
-  EXPECT_STREQ(1, result.first);
-  EXPECT_STREQ(0, result.second);
+  TestScriptJIT(kScriptChars, 1, 0);
+}
+
+ISOLATE_UNIT_TEST_CASE(BCEModulo) {
+  const char* kScriptChars =
+      R"(
+      foo(int i) {
+        var l = new List<int>(3);
+        return l[i % 3] ?? l[i % (-3)];
+      }
+      main() {
+        foo(0);
+      }
+    )";
+  TestScriptJIT(kScriptChars, 2, 0);
 }
 
 // TODO(ajcbik): add more tests

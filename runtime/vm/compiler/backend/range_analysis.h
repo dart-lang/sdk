@@ -450,6 +450,10 @@ class Range : public ZoneAllocated {
                        RangeBoundary* min,
                        RangeBoundary* max);
 
+  static void Mod(const Range* right_range,
+                  RangeBoundary* min,
+                  RangeBoundary* max);
+
   static void Shr(const Range* left_range,
                   const Range* right_range,
                   RangeBoundary* min,

@@ -2331,6 +2331,26 @@ void Range::TruncDiv(const Range* left_range,
   *result_max = RangeBoundary::PositiveInfinity();
 }
 
+void Range::Mod(const Range* right_range,
+                RangeBoundary* result_min,
+                RangeBoundary* result_max) {
+  ASSERT(right_range != nullptr);
+  ASSERT(result_min != nullptr);
+  ASSERT(result_max != nullptr);
+  // Each modulo result is positive and bounded by one less than
+  // the maximum of the right-hand-side (it is unlikely that the
+  // left-hand-side further refines this in typical programs).
+  // Note that x % MinInt can be MaxInt and x % 0 always throws.
+  const int64_t kModMin = 0;
+  int64_t mod_max = kMaxInt64;
+  if (Range::ConstantMin(right_range).ConstantValue() != kMinInt64) {
+    const int64_t right_max = ConstantAbsMax(right_range);
+    mod_max = Utils::Maximum(right_max - 1, kModMin);
+  }
+  *result_min = RangeBoundary::FromConstant(kModMin);
+  *result_max = RangeBoundary::FromConstant(mod_max);
+}
+
 // Both the a and b ranges are >= 0.
 bool Range::OnlyPositiveOrZero(const Range& a, const Range& b) {
   return a.OnlyGreaterThanOrEqualTo(0) && b.OnlyGreaterThanOrEqualTo(0);
@@ -2396,6 +2416,10 @@ void Range::BinaryOp(const Token::Kind op,
 
     case Token::kTRUNCDIV:
       Range::TruncDiv(left_range, right_range, &min, &max);
+      break;
+
+    case Token::kMOD:
+      Range::Mod(right_range, &min, &max);
       break;
 
     case Token::kSHL:
