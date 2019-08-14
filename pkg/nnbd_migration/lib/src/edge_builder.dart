@@ -902,10 +902,7 @@ $stackTrace''');
             returnType.type.isDartAsyncFutureOr) &&
         node.thisOrAncestorOfType<FunctionBody>().isAsynchronous &&
         !returnValue.staticType.isDartAsyncFuture) {
-      returnType = returnType.typeArguments?.first;
-      if (returnType == null) {
-        return null;
-      }
+      returnType = returnType.typeArguments.first;
     }
     if (returnValue == null) {
       _checkAssignment(null,
