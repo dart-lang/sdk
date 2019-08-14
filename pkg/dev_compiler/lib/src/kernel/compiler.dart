@@ -362,7 +362,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       segments = uri.pathSegments;
     }
 
-    var qualifiedPath = pathToJSIdentifier(p.withoutExtension(segments.join('/')));
+    var qualifiedPath =
+        pathToJSIdentifier(p.withoutExtension(segments.join('/')));
     return qualifiedPath == jsLibraryName(library) ? null : qualifiedPath;
   }
 
@@ -5452,7 +5453,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var prototype = js.call("#.prototype", [type]);
     var properties = [
       js_ast.Property(propertyName("__proto__"), prototype),
-      for (var e in node.fieldValues.entries) entryToProperty(e),
+      for (var e in node.fieldValues.entries.toList().reversed)
+        entryToProperty(e),
     ];
     return canonicalizeConstObject(
         js_ast.ObjectInitializer(properties, multiline: true));
