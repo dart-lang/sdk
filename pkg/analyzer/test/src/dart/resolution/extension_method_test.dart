@@ -457,6 +457,20 @@ f(C c) {
     assertType(access, 'int');
   }
 
+  test_instance_getterInvoked_fromExtension_functionType() async {
+    await assertNoErrorsInCode('''
+extension E on int Function(int) {
+  String Function() get a => () => 'a';
+}
+g(int Function(int) f) {
+  f.a();
+}
+''');
+    var invocation = findNode.methodInvocation('f.a()');
+    assertElement(invocation, findElement.getter('a'));
+    assertType(invocation, 'String');
+  }
+
   test_instance_method_fromDifferentExtension_usingBounds() async {
     await assertNoErrorsInCode('''
 class B {}

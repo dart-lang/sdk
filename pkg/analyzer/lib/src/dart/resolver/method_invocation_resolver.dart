@@ -445,7 +445,8 @@ class MethodInvocationResolver {
         receiverType, name, nameNode, ElementKind.METHOD);
     if (result.isSingle) {
       nameNode.staticElement = result.element;
-      return _setResolution(node, result.element.type);
+      var calleeType = _getCalleeType(node, result.element);
+      return _setResolution(node, calleeType);
     } else if (result.isAmbiguous) {
       return;
     }
