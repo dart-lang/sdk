@@ -363,6 +363,20 @@ extension E on C {
     assertType(identifier, 'int');
   }
 
+  test_instance_getter_fromExtension_functionType() async {
+    await assertNoErrorsInCode('''
+extension E on int Function(int) {
+  int get a => 1;
+}
+g(int Function(int) f) {
+  f.a;
+}
+''');
+    var access = findNode.prefixed('f.a');
+    assertElement(access, findElement.getter('a'));
+    assertType(access, 'int');
+  }
+
   test_instance_getter_fromInstance() async {
     await assertNoErrorsInCode('''
 class C {}
@@ -505,6 +519,20 @@ extension E on B {
 }
 ''');
     var invocation = findNode.methodInvocation('a();');
+    assertElement(invocation, findElement.method('a'));
+    assertInvokeType(invocation, 'void Function()');
+  }
+
+  test_instance_method_fromExtension_functionType() async {
+    await assertNoErrorsInCode('''
+extension E on int Function(int) {
+  void a() {}
+}
+g(int Function(int) f) {
+  f.a();
+}
+''');
+    var invocation = findNode.methodInvocation('f.a()');
     assertElement(invocation, findElement.method('a'));
     assertInvokeType(invocation, 'void Function()');
   }
@@ -657,7 +685,20 @@ f(C c) {
     assertElement(binary, findElement.method('+', of: 'C'));
   }
 
-  test_instance_operator_binary_fromExtension() async {
+  test_instance_operator_binary_fromExtension_functionType() async {
+    await assertNoErrorsInCode('''
+extension E on int Function(int) {
+  void operator +(int i) {}
+}
+g(int Function(int) f) {
+  f + 2;
+}
+''');
+    var binary = findNode.binary('+ ');
+    assertElement(binary, findElement.method('+', of: 'E'));
+  }
+
+  test_instance_operator_binary_fromExtension_interfaceType() async {
     await assertNoErrorsInCode('''
 class C {}
 extension E on C {
@@ -687,7 +728,20 @@ f(C c) {
     assertElement(index, findElement.method('[]', of: 'C'));
   }
 
-  test_instance_operator_index_fromExtension() async {
+  test_instance_operator_index_fromExtension_functionType() async {
+    await assertNoErrorsInCode('''
+extension E on int Function(int) {
+  void operator [](int index) {}
+}
+g(int Function(int) f) {
+  f[2];
+}
+''');
+    var index = findNode.index('f[2]');
+    assertElement(index, findElement.method('[]', of: 'E'));
+  }
+
+  test_instance_operator_index_fromExtension_interfaceType() async {
     await assertNoErrorsInCode('''
 class C {}
 extension E on C {
@@ -717,7 +771,20 @@ f(C c) {
     assertElement(index, findElement.method('[]=', of: 'C'));
   }
 
-  test_instance_operator_indexEquals_fromExtension() async {
+  test_instance_operator_indexEquals_fromExtension_functionType() async {
+    await assertNoErrorsInCode('''
+extension E on int Function(int) {
+  void operator []=(int index, int value) {}
+}
+g(int Function(int) f) {
+  f[2] = 3;
+}
+''');
+    var index = findNode.index('f[2]');
+    assertElement(index, findElement.method('[]=', of: 'E'));
+  }
+
+  test_instance_operator_indexEquals_fromExtension_interfaceType() async {
     await assertNoErrorsInCode('''
 class C {}
 extension E on C {
@@ -747,7 +814,20 @@ f(C c) {
     assertElement(postfix, findElement.method('+', of: 'C'));
   }
 
-  test_instance_operator_postfix_fromExtension() async {
+  test_instance_operator_postfix_fromExtension_functionType() async {
+    await assertNoErrorsInCode('''
+extension E on int Function(int) {
+  void operator +(int i) {}
+}
+g(int Function(int) f) {
+  f++;
+}
+''');
+    var postfix = findNode.postfix('++');
+    assertElement(postfix, findElement.method('+', of: 'E'));
+  }
+
+  test_instance_operator_postfix_fromExtension_interfaceType() async {
     await assertNoErrorsInCode('''
 class C {}
 extension E on C {
@@ -777,7 +857,20 @@ f(C c) {
     assertElement(prefix, findElement.method('+', of: 'C'));
   }
 
-  test_instance_operator_prefix_fromExtension() async {
+  test_instance_operator_prefix_fromExtension_functionType() async {
+    await assertNoErrorsInCode('''
+extension E on int Function(int) {
+  void operator +(int i) {}
+}
+g(int Function(int) f) {
+  ++f;
+}
+''');
+    var prefix = findNode.prefix('++');
+    assertElement(prefix, findElement.method('+', of: 'E'));
+  }
+
+  test_instance_operator_prefix_fromExtension_interfaceType() async {
     await assertNoErrorsInCode('''
 class C {}
 extension E on C {
@@ -807,7 +900,20 @@ f(C c) {
     assertElement(prefix, findElement.method('unary-', of: 'C'));
   }
 
-  test_instance_operator_unary_fromExtension() async {
+  test_instance_operator_unary_fromExtension_functionType() async {
+    await assertNoErrorsInCode('''
+extension E on int Function(int) {
+  void operator -() {}
+}
+g(int Function(int) f) {
+  -f;
+}
+''');
+    var prefix = findNode.prefix('-f');
+    assertElement(prefix, findElement.method('unary-', of: 'E'));
+  }
+
+  test_instance_operator_unary_fromExtension_interfaceType() async {
     await assertNoErrorsInCode('''
 class C {}
 extension E on C {
@@ -819,6 +925,19 @@ f(C c) {
 ''');
     var prefix = findNode.prefix('-c');
     assertElement(prefix, findElement.method('unary-', of: 'E'));
+  }
+
+  test_instance_setter_fromExtension_functionType() async {
+    await assertNoErrorsInCode('''
+extension E on int Function(int) {
+  set a(int x) {}
+}
+g(int Function(int) f) {
+  f.a = 1;
+}
+''');
+    var access = findNode.prefixed('f.a');
+    assertElement(access, findElement.setter('a'));
   }
 
   test_instance_setter_oneMatch() async {
@@ -858,7 +977,19 @@ f(C c) {
     assertType(access, 'int');
   }
 
-  test_instance_tearoff() async {
+  test_instance_tearoff_fromExtension_functionType() async {
+    await assertNoErrorsInCode('''
+extension E on int Function(int) {
+  void a(int x) {}
+}
+g(int Function(int) f) => f.a;
+''');
+    var identifier = findNode.simple('a;');
+    assertElement(identifier, findElement.method('a'));
+    assertType(identifier, 'void Function(int)');
+  }
+
+  test_instance_tearoff_fromExtension_interfaceType() async {
     await assertNoErrorsInCode('''
 class C {}
 

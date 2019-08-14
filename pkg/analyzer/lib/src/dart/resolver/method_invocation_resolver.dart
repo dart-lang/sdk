@@ -441,9 +441,17 @@ class MethodInvocationResolver {
       return;
     }
 
+    ResolutionResult result = _extensionResolver.findExtension(
+        receiverType, name, nameNode, ElementKind.METHOD);
+    if (result.isSingle) {
+      nameNode.staticElement = result.element;
+      return _setResolution(node, result.element.type);
+    } else if (result.isAmbiguous) {
+      return;
+    }
     // We can invoke Object methods on Function.
     var member = _inheritance.getMember(
-      _resolver.typeProvider.objectType,
+      _resolver.typeProvider.functionType,
       new Name(null, name),
     );
     if (member != null) {
