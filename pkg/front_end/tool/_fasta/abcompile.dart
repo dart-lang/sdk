@@ -180,6 +180,7 @@ Future<Null> run(Uri workingDir, Uri dartApp, List<String> args,
 
   Process process = await Process.start(Platform.executable, procArgs,
       workingDirectory: workingDirPath);
+  // ignore: unawaited_futures
   stderr.addStream(process.stderr);
   StreamSubscription<String> stdOutSubscription;
   stdOutSubscription = process.stdout

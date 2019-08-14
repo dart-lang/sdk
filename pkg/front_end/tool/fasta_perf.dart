@@ -229,7 +229,7 @@ generateKernel(Uri entryUri,
     {bool compileSdk: true, bool legacyMode: false}) async {
   // TODO(sigmund): this is here only to compute the input size,
   // we should extract the input size from the frontend instead.
-  scanReachableFiles(entryUri);
+  await scanReachableFiles(entryUri);
 
   var timer = new Stopwatch()..start();
   var options = new CompilerOptions()

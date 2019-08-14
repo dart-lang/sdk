@@ -317,7 +317,7 @@ class Run extends Step<Uri, int, FastaContext> {
       process = await StdioProcess.run(context.vm.toFilePath(), args);
       print(process.output);
     } finally {
-      generated.parent.delete(recursive: true);
+      await generated.parent.delete(recursive: true);
     }
     return process.toResult();
   }

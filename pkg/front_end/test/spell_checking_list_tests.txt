@@ -166,6 +166,7 @@ fox
 framework
 fulfill
 func
+futures
 gallery
 gamma
 gen
@@ -380,6 +381,7 @@ typeargs
 typeparam
 typeparambounds
 unassigned
+unawaited
 unbreak
 unification
 unordered

@@ -8,3 +8,4 @@ linter:
   rules:
     - curly_braces_in_flow_control_structures
     - prefer_adjacent_string_concatenation
+    - unawaited_futures
