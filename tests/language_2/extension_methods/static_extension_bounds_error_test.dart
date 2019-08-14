@@ -35,15 +35,15 @@ void main() {
   // Inferred type of String does not satisfy the bound.
   s.e1;
 //  ^^
-// [analyzer] unspecified
+// [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
 // [cfe] unspecified
   E1(s).e1;
-//      ^^
-// [analyzer] unspecified
+//^^
+// [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
 // [cfe] unspecified
   E1<String>(s).e1;
-//              ^^
-// [analyzer] unspecified
+//   ^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
 // [cfe] unspecified
 
   // Inferred types of int and double are ok
@@ -57,15 +57,15 @@ void main() {
   // Inferred type of String does not satisfy the bound.
   s.e2;
 //  ^^
-// [analyzer] unspecified
+// [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
 // [cfe] unspecified
   E2(s).e2;
-//      ^^
-// [analyzer] unspecified
+//^^
+// [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
 // [cfe] unspecified
   E2<String, num>(s).e2;
-//                   ^^
-// [analyzer] unspecified
+//   ^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
 // [cfe] unspecified
 
   // Inferred types of int and double are ok
@@ -80,15 +80,15 @@ void main() {
   // bound of String
   s.f3(3);
 //  ^^
-// [analyzer] unspecified
+// [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
 // [cfe] unspecified
   E3(s).f3(3);
 //      ^^
-// [analyzer] unspecified
+// [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
 // [cfe] unspecified
   E3<String>(s).f3(3);
 //              ^^
-// [analyzer] unspecified
+// [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
 // [cfe] unspecified
 
   // Inferred type int for method type parameter is ok
@@ -100,15 +100,15 @@ void main() {
   // bound of double
   d.f3(3);
 //  ^^
-// [analyzer] unspecified
+// [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
 // [cfe] unspecified
   E3(d).f3(3);
 //      ^^
-// [analyzer] unspecified
+// [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
 // [cfe] unspecified
   E3<double>(d).f3(3);
 //              ^^
-// [analyzer] unspecified
+// [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
 // [cfe] unspecified
 
   RecSolution recs = RecSolution();
@@ -122,14 +122,14 @@ void main() {
   // Inferred super-bounded type is invalid as type argument
   superRec.e4;
 //         ^^
-// [analyzer] unspecified
+// [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
 // [cfe] unspecified
   E4(superRec).e4;
-//             ^^
-// [analyzer] unspecified
+//^^
+// [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
 // [cfe] unspecified
   E4<Rec<dynamic>>(superRec).e4;
-//                           ^^
-// [analyzer] unspecified
+//   ^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
 // [cfe] unspecified
 }
