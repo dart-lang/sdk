@@ -7,3 +7,4 @@ include: analysis_options_no_lints.yaml
 linter:
   rules:
     - curly_braces_in_flow_control_structures
+    - prefer_adjacent_string_concatenation
