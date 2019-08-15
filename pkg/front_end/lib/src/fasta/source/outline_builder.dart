@@ -1567,12 +1567,12 @@ class OutlineBuilder extends StackListener {
           // Find cycle: If there's no cycle we can at most step through all
           // `typeParameters` (at which point the last builders bound will be
           // null).
-          // If there is a cycle with `builder` 'inside' the steps to get back to
-          // it will also be bound by `typeParameters.length`.
-          // If there is a cycle without `builder` 'inside' we will just ignore it
-          // for now. It will be reported when processing one of the `builder`s
-          // that is in fact `inside` the cycle. This matches the cyclic class
-          // hierarchy error.
+          // If there is a cycle with `builder` 'inside' the steps to get back
+          // to it will also be bound by `typeParameters.length`.
+          // If there is a cycle without `builder` 'inside' we will just ignore
+          // it for now. It will be reported when processing one of the
+          // `builder`s that is in fact `inside` the cycle. This matches the
+          // cyclic class hierarchy error.
           TypeVariableBuilder bound = builder;
           for (int steps = 0;
               bound.bound != null && steps < typeParameters.length;

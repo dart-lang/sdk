@@ -764,8 +764,8 @@ class IndexAssignmentJudgment extends ComplexAssignmentJudgmentWithReceiver {
 /// Common base class for shadow objects representing initializers in kernel
 /// form.
 abstract class InitializerJudgment implements Initializer {
-  /// Performs type inference for whatever concrete type of [InitializerJudgment]
-  /// this is.
+  /// Performs type inference for whatever concrete type of
+  /// [InitializerJudgment] this is.
   void acceptInference(InferenceVisitor visitor);
 }
 

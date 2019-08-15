@@ -4740,7 +4740,8 @@ class Parser {
   /// ;
   ///
   /// mapLiteral:
-  ///   'const'? typeArguments? '{' (mapLiteralEntry (',' mapLiteralEntry)* ','?)? '}'
+  ///   'const'? typeArguments?
+  ///     '{' (mapLiteralEntry (',' mapLiteralEntry)* ','?)? '}'
   /// ;
   ///
   /// mapLiteralEntry:

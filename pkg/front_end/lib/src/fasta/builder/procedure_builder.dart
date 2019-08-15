@@ -274,7 +274,8 @@ abstract class FunctionBuilder extends MemberBuilder {
       if (enclosingClass.typeParameters.isNotEmpty) {
         needsCheckVisitor = new IncludesTypeParametersNonCovariantly(
             enclosingClass.typeParameters,
-            // We are checking the parameter types which are in a contravariant position.
+            // We are checking the parameter types which are in a
+            // contravariant position.
             initialVariance: Variance.contravariant);
       }
     }

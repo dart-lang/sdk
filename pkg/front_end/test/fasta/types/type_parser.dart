@@ -249,7 +249,8 @@ class Parser {
 
   void expect(String string) {
     if (!identical(string, peek.stringValue)) {
-      throw "Expected '$string', but got '${peek.lexeme}'\n${computeLocation()}";
+      throw "Expected '$string', "
+          "but got '${peek.lexeme}'\n${computeLocation()}";
     }
     advance();
   }
@@ -332,7 +333,8 @@ class Parser {
 
   String parseName() {
     if (!peek.isIdentifier) {
-      throw "Expected a name, but got '${peek.stringValue}'\n${computeLocation()}";
+      throw "Expected a name, "
+          "but got '${peek.stringValue}'\n${computeLocation()}";
     }
     String result = peek.lexeme;
     advance();

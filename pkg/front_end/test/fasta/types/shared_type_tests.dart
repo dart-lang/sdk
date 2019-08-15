@@ -284,7 +284,8 @@ abstract class SubtypeTest<T, E> {
     isNotSubtype('Typedef<void>', '() -> void');
     isSubtype('VoidFunction', '() -> void');
     isNotSubtype(
-        'DefaultTypes<void, void, List<void>, List<void>, int, (int) -> void, () -> int>',
+        'DefaultTypes<void, void, List<void>, List<void>, '
+            'int, (int) -> void, () -> int>',
         '() -> void');
     isNotSubtype('void', '() -> void');
 

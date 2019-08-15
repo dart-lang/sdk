@@ -16,3 +16,4 @@ linter:
     - iterable_contains_unrelated_type
     - valid_regexps
     - package_api_docs
+    - lines_longer_than_80_chars

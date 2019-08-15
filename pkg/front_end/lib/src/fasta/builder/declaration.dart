@@ -71,7 +71,8 @@ abstract class Builder {
   ///
   bool get isDeclarationMember => false;
 
-  /// Returns `true` if this builder is a member of a class or mixin declaration.
+  /// Returns `true` if this builder is a member of a class or mixin
+  /// declaration.
   ///
   /// For instance `A.constructor`, `method1a`, `method1b`, `method2a` and
   /// `method2b` in:

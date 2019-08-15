@@ -422,8 +422,8 @@ class ClassHierarchyNodeBuilder {
       case MergeKind.superclassSetters:
         // [a] is a method declared in [cls]. This means it defines the
         // interface of this class regardless if its abstract.
-        debug?.log(
-            "superclass: checkValidOverride(${cls.fullNameForErrors}, ${fullName(a)}, ${fullName(b)})");
+        debug?.log("superclass: checkValidOverride(${cls.fullNameForErrors}, "
+            "${fullName(a)}, ${fullName(b)})");
         checkValidOverride(
             a, AbstractMemberOverridingImplementation.selectAbstract(b));
 
@@ -503,8 +503,8 @@ class ClassHierarchyNodeBuilder {
 
         // If [a] is declared in this class, it defines the interface.
         if (a.parent == cls) {
-          debug?.log(
-              "supertypes: checkValidOverride(${cls.fullNameForErrors}, ${fullName(a)}, ${fullName(b)})");
+          debug?.log("supertypes: checkValidOverride(${cls.fullNameForErrors}, "
+              "${fullName(a)}, ${fullName(b)})");
           checkValidOverride(a, b);
           if (a is DelayedMember && !a.isInheritableConflict) {
             if (b is DelayedMember) {
@@ -589,8 +589,8 @@ class ClassHierarchyNodeBuilder {
       assert(substitutions.containsKey(aCls.target),
           "${cls.fullNameForErrors} ${aCls.fullNameForErrors}");
       aSubstitution = substitutions[aCls.target];
-      debug?.log(
-          "${cls.fullNameForErrors} -> ${aCls.fullNameForErrors} $aSubstitution");
+      debug?.log("${cls.fullNameForErrors} -> ${aCls.fullNameForErrors} "
+          "$aSubstitution");
     }
     ClassBuilder bCls = b.parent;
     Substitution bSubstitution;
@@ -598,8 +598,8 @@ class ClassHierarchyNodeBuilder {
       assert(substitutions.containsKey(bCls.target),
           "${cls.fullNameForErrors} ${bCls.fullNameForErrors}");
       bSubstitution = substitutions[bCls.target];
-      debug?.log(
-          "${cls.fullNameForErrors} -> ${bCls.fullNameForErrors} $bSubstitution");
+      debug?.log("${cls.fullNameForErrors} -> ${bCls.fullNameForErrors} "
+          "$bSubstitution");
     }
     Procedure aProcedure = a.target;
     if (b.target is! Procedure) {
@@ -861,8 +861,8 @@ class ClassHierarchyNodeBuilder {
   }
 
   bool inferFieldTypes(MemberBuilder a, Builder b) {
-    debug?.log(
-        "Trying to infer field types for ${fullName(a)} based on ${fullName(b)}");
+    debug?.log("Trying to infer field types for ${fullName(a)} "
+        "based on ${fullName(b)}");
     if (b is DelayedMember) {
       bool hasSameSignature = true;
       List<Builder> declarations = b.declarations;
@@ -903,8 +903,8 @@ class ClassHierarchyNodeBuilder {
       assert(substitutions.containsKey(aCls.target),
           "${cls.fullNameForErrors} ${aCls.fullNameForErrors}");
       aSubstitution = substitutions[aCls.target];
-      debug?.log(
-          "${cls.fullNameForErrors} -> ${aCls.fullNameForErrors} $aSubstitution");
+      debug?.log("${cls.fullNameForErrors} -> ${aCls.fullNameForErrors} "
+          "$aSubstitution");
     }
     ClassBuilder bCls = b.parent;
     Substitution bSubstitution;
@@ -912,8 +912,8 @@ class ClassHierarchyNodeBuilder {
       assert(substitutions.containsKey(bCls.target),
           "${cls.fullNameForErrors} ${bCls.fullNameForErrors}");
       bSubstitution = substitutions[bCls.target];
-      debug?.log(
-          "${cls.fullNameForErrors} -> ${bCls.fullNameForErrors} $bSubstitution");
+      debug?.log("${cls.fullNameForErrors} -> ${bCls.fullNameForErrors} "
+          "$bSubstitution");
     }
     if (bSubstitution != null && inheritedType is! ImplicitFieldType) {
       inheritedType = bSubstitution.substituteType(inheritedType);
@@ -1073,7 +1073,8 @@ class ClassHierarchyNodeBuilder {
     }
     // TODO(ahe): Enable this optimization:
     // if (cls is DillClassBuilder) return;
-    // assert(mergeKind == MergeKind.interfaces || member is! InterfaceConflict);
+    // assert(mergeKind == MergeKind.interfaces ||
+    //    member is! InterfaceConflict);
     if ((mergeKind == MergeKind.superclassMembers ||
             mergeKind == MergeKind.superclassSetters) &&
         isAbstract(member)) {
@@ -1175,9 +1176,9 @@ class ClassHierarchyNodeBuilder {
     /// setters of [cls], but not its superclasses.
     List<Builder> classSetters;
 
-    /// Members (excluding setters) inherited from interfaces. This contains no static
-    /// members. Is null if no interfaces are implemented by this class or its
-    /// superclasses.
+    /// Members (excluding setters) inherited from interfaces. This contains no
+    /// static members. Is null if no interfaces are implemented by this class
+    /// or its superclasses.
     List<Builder> interfaceMembers;
 
     /// Setters inherited from interfaces. This contains no static setters. Is
@@ -1319,8 +1320,8 @@ class ClassHierarchyNodeBuilder {
 
   TypeBuilder recordSupertype(TypeBuilder supertype) {
     if (supertype is NamedTypeBuilder) {
-      debug?.log(
-          "In ${this.cls.fullNameForErrors} recordSupertype(${supertype.fullNameForErrors})");
+      debug?.log("In ${this.cls.fullNameForErrors} "
+          "recordSupertype(${supertype.fullNameForErrors})");
       Builder declaration = supertype.declaration;
       if (declaration is! ClassBuilder) return supertype;
       ClassBuilder cls = declaration;
@@ -1422,8 +1423,8 @@ class ClassHierarchyNodeBuilder {
 
   MergeResult mergeInterfaces(
       ClassHierarchyNode supernode, List<TypeBuilder> interfaces) {
-    debug?.log(
-        "mergeInterfaces($cls (${this.cls}) ${supernode.interfaces} ${interfaces}");
+    debug?.log("mergeInterfaces($cls (${this.cls}) "
+        "${supernode.interfaces} ${interfaces}");
     List<List<Builder>> memberLists =
         new List<List<Builder>>(interfaces.length + 1);
     List<List<Builder>> setterLists =
@@ -1989,8 +1990,8 @@ class DelayedOverrideCheck {
     }
 
     Builder a = this.a;
-    debug?.log(
-        "Delayed override check of ${fullName(a)} ${fullName(b)} wrt. ${cls.fullNameForErrors}");
+    debug?.log("Delayed override check of ${fullName(a)} "
+        "${fullName(b)} wrt. ${cls.fullNameForErrors}");
     if (cls == a.parent) {
       if (a is ProcedureBuilder) {
         if (a.isGetter && !hasExplicitReturnType(a)) {
@@ -2253,13 +2254,13 @@ class InterfaceConflict extends DelayedMember {
         bestTypeSoFar = candidateType;
       } else {
         if (isMoreSpecific(hierarchy, candidateType, bestTypeSoFar)) {
-          debug?.log(
-              "Combined Member Signature: ${fullName(candidate)} ${candidateType} <: ${fullName(bestSoFar)} ${bestTypeSoFar}");
+          debug?.log("Combined Member Signature: ${fullName(candidate)} "
+              "${candidateType} <: ${fullName(bestSoFar)} ${bestTypeSoFar}");
           bestSoFar = candidate;
           bestTypeSoFar = candidateType;
         } else {
-          debug?.log(
-              "Combined Member Signature: ${fullName(candidate)} !<: ${fullName(bestSoFar)}");
+          debug?.log("Combined Member Signature: "
+              "${fullName(candidate)} !<: ${fullName(bestSoFar)}");
         }
       }
     }
@@ -2270,8 +2271,8 @@ class InterfaceConflict extends DelayedMember {
         Member target = candidate.target;
         DartType candidateType = computeMemberType(hierarchy, thisType, target);
         if (!isMoreSpecific(hierarchy, bestTypeSoFar, candidateType)) {
-          debug?.log(
-              "Combined Member Signature: ${fullName(bestSoFar)} !<: ${fullName(candidate)}");
+          debug?.log("Combined Member Signature: "
+              "${fullName(bestSoFar)} !<: ${fullName(candidate)}");
 
           String uri = '${parent.library.uri}';
           if (uri == 'dart:js' &&
@@ -2304,8 +2305,8 @@ class InterfaceConflict extends DelayedMember {
           context: context);
       return null;
     }
-    debug?.log(
-        "Combined Member Signature of ${fullNameForErrors}: ${fullName(bestSoFar)}");
+    debug?.log("Combined Member Signature of ${fullNameForErrors}: "
+        "${fullName(bestSoFar)}");
 
     ProcedureKind kind = ProcedureKind.Method;
     if (bestSoFar.isField || bestSoFar.isSetter || bestSoFar.isGetter) {
@@ -2316,8 +2317,8 @@ class InterfaceConflict extends DelayedMember {
     }
 
     if (modifyKernel) {
-      debug?.log(
-          "Combined Member Signature of ${fullNameForErrors}: new ForwardingNode($parent, $bestSoFar, $declarations, $kind)");
+      debug?.log("Combined Member Signature of ${fullNameForErrors}: "
+          "new ForwardingNode($parent, $bestSoFar, $declarations, $kind)");
       Member stub =
           new ForwardingNode(hierarchy, parent, bestSoFar, declarations, kind)
               .finalize();
@@ -2327,8 +2328,8 @@ class InterfaceConflict extends DelayedMember {
         if (bestSoFar.target is Procedure) {
           library.forwardersOrigins..add(stub)..add(bestSoFar.target);
         }
-        debug?.log(
-            "Combined Member Signature of ${fullNameForErrors}: added stub $stub");
+        debug?.log("Combined Member Signature of ${fullNameForErrors}: "
+            "added stub $stub");
         if (parent.isMixinApplication) {
           return combinedMemberSignatureResult = bestSoFar.target;
         } else {

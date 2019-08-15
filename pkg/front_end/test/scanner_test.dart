@@ -1397,8 +1397,8 @@ abstract class ScannerTestBase {
   }
 
   /**
-   * Assert that when scanned the given [source] contains a single identifier token
-   * with the same lexeme as the original source.
+   * Assert that when scanned the given [source] contains a single identifier
+   * token with the same lexeme as the original source.
    */
   void _assertNotKeywordToken(String source,
       {ScannerConfiguration configuration}) {

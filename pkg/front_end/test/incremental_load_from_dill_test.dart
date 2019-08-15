@@ -532,8 +532,9 @@ Future<Null> newWorldTest(List worlds, Map modules, bool omitPlatform) async {
               entries.contains(lib.importUri) || entries.contains(lib.fileUri))
           .toList();
       if (entryLib.length != entries.length) {
-        throw "Expected the entries to become libraries. Got ${entryLib.length} "
-            "libraries for the expected ${entries.length} entries.";
+        throw "Expected the entries to become libraries. "
+            "Got ${entryLib.length} libraries for the expected "
+            "${entries.length} entries.";
       }
     }
     if (compiler.initializedFromDill != expectInitializeFromDill) {

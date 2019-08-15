@@ -2341,7 +2341,8 @@ class TypeParamOrArgInfoTest {
           'handleType T null',
           'handleNoName )',
           'handleFormalParameterWithoutValue )',
-          'endFormalParameter null null ) FormalParameterKind.mandatory MemberKind.GeneralizedFunctionType',
+          'endFormalParameter null null ) FormalParameterKind.mandatory '
+              'MemberKind.GeneralizedFunctionType',
           'endFormalParameters 1 ( ) MemberKind.GeneralizedFunctionType',
           'endFunctionType Function null',
           'endTypeVariable > 0 extends',

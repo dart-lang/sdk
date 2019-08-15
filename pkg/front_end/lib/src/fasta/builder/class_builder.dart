@@ -1553,7 +1553,8 @@ abstract class ClassBuilder extends DeclarationBuilder {
         DartType typeParameterBound =
             substitution.substituteType(typeParameter.bound);
         DartType typeArgument = typeArguments[i];
-        // Check whether the [typeArgument] respects the bounds of [typeParameter].
+        // Check whether the [typeArgument] respects the bounds of
+        // [typeParameter].
         if (!typeEnvironment.isSubtypeOf(typeArgument, typeParameterBound)) {
           addProblem(
               templateRedirectingFactoryIncompatibleTypeArgument.withArguments(

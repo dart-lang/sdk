@@ -949,8 +949,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   bool isValidSymbolName(String name) {
     // See https://api.dartlang.org/stable/2.0.0/dart-core/Symbol/Symbol.html:
     //
-    //  A qualified name is a valid name preceded by a public identifier name and
-    //  a '.', e.g., foo.bar.baz= is a qualified version of baz=.
+    //  A qualified name is a valid name preceded by a public identifier name
+    //  and a '.', e.g., foo.bar.baz= is a qualified version of baz=.
     //
     //  That means that the content of the name String must be either
     //     - a valid public Dart identifier (that is, an identifier not
@@ -1082,7 +1082,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
 
         // We simulate now the constructor invocation.
 
-        // Step 1) Map type arguments and normal arguments from caller to callee.
+        // Step 1) Map type arguments and normal arguments from caller to
+        //         callee.
         for (int i = 0; i < klass.typeParameters.length; i++) {
           env.addTypeParameterValue(klass.typeParameters[i], typeArguments[i]);
         }
@@ -1100,7 +1101,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
           env.addVariableValue(parameter, value);
         }
 
-        // Step 2) Run all initializers (including super calls) with environment setup.
+        // Step 2) Run all initializers (including super calls) with environment
+        //         setup.
         for (final Field field in klass.fields) {
           if (!field.isStatic) {
             instanceBuilder.setFieldValue(
@@ -1300,7 +1302,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
             if (otherValue < 0) {
               return report(
                   node.arguments.positional.first,
-                  // TODO(askesc): Change argument types in template to constants.
+                  // TODO(askesc): Change argument types in template to
+                  // constants.
                   templateConstEvalNegativeShift.withArguments(
                       op, '${receiverValue}', '${otherValue}'));
             }
