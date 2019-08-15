@@ -111,8 +111,6 @@ import 'expression_generator.dart'
 
 import 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
 
-import 'fangorn.dart' show Fangorn;
-
 import 'forest.dart' show Forest;
 
 import 'implicit_type_argument.dart' show ImplicitTypeArgument;
@@ -299,7 +297,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       this.extensionThis,
       this.uri,
       this.typeInferrer})
-      : forest = const Fangorn(),
+      : forest = const Forest(),
         classBuilder =
             declarationBuilder is ClassBuilder ? declarationBuilder : null,
         enableNative =
@@ -430,7 +428,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   Statement popBlock(int count, Token openBrace, Token closeBrace) {
-    return forest.block(
+    return forest.createBlock(
         openBrace,
         const GrowableList<Statement>().pop(stack, count) ?? <Statement>[],
         closeBrace);
@@ -817,7 +815,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         if (parameter.isOptional || initializer != null) {
           VariableDeclaration realParameter = builder.formals[i].target;
           if (parameter.isOptional) {
-            initializer ??= forest.literalNull(
+            initializer ??= forest.createNullLiteral(
                 // TODO(ahe): Should store: realParameter.fileOffset
                 // https://github.com/dart-lang/sdk/issues/32289
                 null);
@@ -919,12 +917,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             statements.add(parameter.target);
           }
           statements.add(body);
-          body = forest.block(null, statements, null)..fileOffset = charOffset;
+          body = forest.createBlock(null, statements, null)
+            ..fileOffset = charOffset;
         }
-        body = forest.block(
+        body = forest.createBlock(
             null,
             <Statement>[
-              forest.expressionStatement(
+              forest.createExpressionStatement(
                   // This error is added after type inference is done, so we
                   // don't need to wrap errors in SyntheticExpressionJudgment.
                   desugarSyntheticExpression(buildProblem(
@@ -1048,7 +1047,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       } else if (resolvedTarget is Constructor &&
           resolvedTarget.enclosingClass.isAbstract) {
         replacementNode = evaluateArgumentsBefore(
-            forest.arguments(invocation.arguments.positional, null,
+            forest.createArguments(invocation.arguments.positional, null,
                 types: invocation.arguments.types,
                 named: invocation.arguments.named),
             buildAbstractClassInstantiationError(
@@ -1066,9 +1065,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           String errorName = redirectingFactoryBody.unresolvedName;
 
           replacementNode = throwNoSuchMethodError(
-              forest.literalNull(null)..fileOffset = invocation.fileOffset,
+              forest.createNullLiteral(null)
+                ..fileOffset = invocation.fileOffset,
               errorName,
-              forest.arguments(invocation.arguments.positional, null,
+              forest.createArguments(invocation.arguments.positional, null,
                   types: invocation.arguments.types,
                   named: invocation.arguments.named),
               initialTarget.fileOffset);
@@ -1086,7 +1086,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
           replacementNode = buildStaticInvocation(
               resolvedTarget,
-              forest.arguments(invocation.arguments.positional, null,
+              forest.createArguments(invocation.arguments.positional, null,
                   types: invocation.arguments.types,
                   named: invocation.arguments.named),
               constness: invocation.isConst
@@ -1285,7 +1285,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       /// >unless the enclosing class is class Object.
       Constructor superTarget = lookupConstructor(emptyName, isSuper: true);
       Initializer initializer;
-      Arguments arguments = forest.argumentsEmpty(noLocation);
+      Arguments arguments = forest.createArgumentsEmpty(noLocation);
       if (superTarget == null ||
           checkArgumentsForFunction(superTarget.function, arguments,
                   builder.charOffset, const <TypeParameter>[]) !=
@@ -1323,7 +1323,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void handleExpressionStatement(Token token) {
     debugEvent("ExpressionStatement");
-    push(forest.expressionStatement(popForEffect(), token));
+    push(forest.createExpressionStatement(popForEffect(), token));
   }
 
   @override
@@ -1359,18 +1359,20 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           arguments.getRange(0, firstNamedArgumentIndex));
       List<NamedExpression> named = new List<NamedExpression>.from(
           arguments.getRange(firstNamedArgumentIndex, arguments.length));
-      push(forest.arguments(positional, beginToken, named: named));
+      push(forest.createArguments(positional, beginToken, named: named));
     } else {
       // TODO(kmillikin): Find a way to avoid allocating a second list in the
       // case where there were no named arguments, which is a common one.
-      push(forest.arguments(new List<Expression>.from(arguments), beginToken));
+      push(forest.createArguments(
+          new List<Expression>.from(arguments), beginToken));
     }
   }
 
   @override
   void handleParenthesizedCondition(Token token) {
     debugEvent("ParenthesizedCondition");
-    push(forest.parenthesizedCondition(token, popForValue(), token.endGroup));
+    push(forest.createParenthesizedCondition(
+        token, popForValue(), token.endGroup));
   }
 
   @override
@@ -1421,8 +1423,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       if (arguments == null) {
         push(new IncompletePropertyAccessGenerator(this, beginToken, name));
       } else {
-        push(new SendAccessGenerator(
-            this, beginToken, name, forest.castArguments(arguments)));
+        push(new SendAccessGenerator(this, beginToken, name, arguments));
       }
     } else if (arguments == null) {
       push(receiver);
@@ -1511,7 +1512,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (receiver is ThisAccessGenerator && receiver.isSuper) {
       ThisAccessGenerator thisAccessorReceiver = receiver;
       isSuper = true;
-      receiver = forest.thisExpression(thisAccessorReceiver.token);
+      receiver = forest.createThisExpression(thisAccessorReceiver.token);
     }
     push(buildBinaryOperator(toValue(receiver), token, argument, isSuper));
   }
@@ -1536,12 +1537,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       }
     } else {
       Expression result = buildMethodInvocation(a, new Name(operator),
-          forest.arguments(<Expression>[b], noLocation), token.charOffset,
+          forest.createArguments(<Expression>[b], noLocation), token.charOffset,
           // This *could* be a constant expression, we can't know without
           // evaluating [a] and [b].
           isConstantExpression: !isSuper,
           isSuper: isSuper);
-      return negate ? forest.notExpression(result, null, true) : result;
+      return negate ? forest.createNot(result, null, true) : result;
     }
   }
 
@@ -1549,7 +1550,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     Expression argument = popForValue();
     Expression receiver = pop();
     Expression logicalExpression =
-        forest.logicalExpression(receiver, token, argument);
+        forest.createLogicalExpression(receiver, token, argument);
     typePromoter?.exitLogicalExpression(argument, logicalExpression);
     push(logicalExpression);
   }
@@ -1561,7 +1562,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     VariableDeclaration variable = new VariableDeclaration.forValue(a);
     push(new IfNullJudgment(
         variable,
-        forest.conditionalExpression(
+        forest.createConditionalExpression(
             buildIsNull(new VariableGet(variable), offsetForToken(token), this),
             token,
             b,
@@ -1650,10 +1651,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (legacyMode && constantContext == ConstantContext.none) {
       addProblem(message.messageObject, message.charOffset, message.length,
           wasHandled: true, context: context);
-      return forest.throwExpression(
+      return forest.createThrow(
           null,
           library.loader.instantiateNoSuchMethodError(
-              receiver, name, forest.castArguments(arguments), charOffset,
+              receiver, name, arguments, charOffset,
               isMethod: !isGetter && !isSetter,
               isGetter: isGetter,
               isSetter: isSetter,
@@ -1872,7 +1873,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       } else if (ignoreMainInGetMainClosure &&
           name == "main" &&
           member?.name == "_getMainClosure") {
-        return forest.literalNull(null)..fileOffset = charOffset;
+        return forest.createNullLiteral(null)..fileOffset = charOffset;
       } else {
         return new UnresolvedNameGenerator(this, token, n);
       }
@@ -1989,7 +1990,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (interpolationCount == 0) {
       Token token = pop();
       String value = unescapeString(token.lexeme, token, this);
-      push(forest.literalString(value, token));
+      push(forest.createStringLiteral(value, token));
     } else {
       int count = 1 + interpolationCount * 2;
       List<Object> parts = const FixedNullableList<Object>().pop(stack, count);
@@ -2006,7 +2007,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         String value =
             unescapeFirstStringPart(first.lexeme, quote, first, this);
         if (value.isNotEmpty) {
-          expressions.add(forest.literalString(value, first));
+          expressions.add(forest.createStringLiteral(value, first));
         }
       }
       for (int i = 1; i < parts.length - 1; i++) {
@@ -2014,7 +2015,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         if (part is Token) {
           if (part.lexeme.length != 0) {
             String value = unescape(part.lexeme, quote, part, this);
-            expressions.add(forest.literalString(value, part));
+            expressions.add(forest.createStringLiteral(value, part));
           }
         } else {
           expressions.add(toValue(part));
@@ -2025,10 +2026,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         String value = unescapeLastStringPart(
             last.lexeme, quote, last, last.isSynthetic, this);
         if (value.isNotEmpty) {
-          expressions.add(forest.literalString(value, last));
+          expressions.add(forest.createStringLiteral(value, last));
         }
       }
-      push(forest.stringConcatenationExpression(expressions, endToken));
+      push(forest.createStringConcatenation(expressions, endToken));
     }
   }
 
@@ -2066,7 +2067,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         }
       }
     }
-    push(forest.stringConcatenationExpression(expressions ?? parts, null));
+    push(forest.createStringConcatenation(expressions ?? parts, null));
   }
 
   @override
@@ -2078,16 +2079,16 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         push(unhandled(
             'large integer', 'handleLiteralInt', token.charOffset, uri));
       } else {
-        push(forest.literalInt(value, token));
+        push(forest.createIntLiteral(value, token));
       }
       return;
     }
     // Postpone parsing of literals resulting in a negative value
     // (hex literals >= 2^63). These are only allowed when not negated.
     if (value == null || value < 0) {
-      push(forest.literalLargeInt(token.lexeme, token));
+      push(forest.createIntLiteralLarge(token.lexeme, token));
     } else {
-      push(forest.literalInt(value, token));
+      push(forest.createIntLiteral(value, token));
     }
   }
 
@@ -2112,7 +2113,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       push(buildProblemStatement(
           fasta.messageConstructorWithReturnType, beginToken.charOffset));
     } else {
-      push(forest.returnStatement(beginToken, expression, endToken));
+      push(forest.createReturnStatement(beginToken, expression, endToken));
     }
   }
 
@@ -2136,7 +2137,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     Statement thenPart = popStatement();
     Expression condition = pop();
     typePromoter?.exitConditional();
-    push(forest.ifStatement(ifToken, condition, thenPart, elseToken, elsePart));
+    push(forest.createIfStatement(
+        ifToken, condition, thenPart, elseToken, elsePart));
   }
 
   @override
@@ -2215,7 +2217,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("NoFieldInitializer");
     if (constantContext == ConstantContext.inferred) {
       // Creating a null value to prevent the Dart VM from crashing.
-      push(forest.literalNull(token));
+      push(forest.createNullLiteral(token));
     } else {
       push(NullValue.FieldInitializer);
     }
@@ -2450,9 +2452,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       assert(forest.isEmptyStatement(conditionStatement));
     }
     if (entry is MapEntry) {
-      push(forest.forMapEntry(variables, condition, updates, entry, forToken));
+      push(forest.createForMapEntry(
+          variables, condition, updates, entry, forToken));
     } else {
-      push(forest.forElement(
+      push(forest.createForElement(
           variables, condition, updates, toValue(entry), forToken));
     }
   }
@@ -2476,7 +2479,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     JumpTarget continueTarget = exitContinueTarget();
     JumpTarget breakTarget = exitBreakTarget();
     if (continueTarget.hasUsers) {
-      body = forest.syntheticLabeledStatement(body);
+      body = forest.createLabeledStatement(body);
       continueTarget.resolveContinues(forest, body);
     }
     Expression condition;
@@ -2486,7 +2489,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     } else {
       assert(forest.isEmptyStatement(conditionStatement));
     }
-    Statement result = forest.forStatement(
+    Statement result = forest.createForStatement(
         forKeyword,
         leftParen,
         variables,
@@ -2497,7 +2500,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         leftParen.endGroup,
         body);
     if (breakTarget.hasUsers) {
-      result = forest.syntheticLabeledStatement(result);
+      result = forest.createLabeledStatement(result);
       breakTarget.resolveBreaks(forest, result);
     }
     if (variableOrExpression is ParserRecovery) {
@@ -2511,7 +2514,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void endAwaitExpression(Token keyword, Token endToken) {
     debugEvent("AwaitExpression");
-    push(forest.awaitExpression(popForValue(), keyword));
+    push(forest.createAwaitExpression(popForValue(), keyword));
   }
 
   @override
@@ -2567,7 +2570,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       typeArgument = implicitTypeArgument;
     }
 
-    Expression node = forest.literalList(
+    Expression node = forest.createListLiteral(
         constKeyword,
         constKeyword != null || constantContext == ConstantContext.inferred,
         typeArgument,
@@ -2606,7 +2609,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       }
     }
 
-    Expression node = forest.literalSet(
+    Expression node = forest.createSetLiteral(
         constKeyword,
         constKeyword != null || constantContext == ConstantContext.inferred,
         typeArgument,
@@ -2687,19 +2690,19 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("LiteralBool");
     bool value = optional("true", token);
     assert(value || optional("false", token));
-    push(forest.literalBool(value, token));
+    push(forest.createBoolLiteral(value, token));
   }
 
   @override
   void handleLiteralDouble(Token token) {
     debugEvent("LiteralDouble");
-    push(forest.literalDouble(double.parse(token.lexeme), token));
+    push(forest.createDoubleLiteral(double.parse(token.lexeme), token));
   }
 
   @override
   void handleLiteralNull(Token token) {
     debugEvent("LiteralNull");
-    push(forest.literalNull(token));
+    push(forest.createNullLiteral(token));
   }
 
   void buildLiteralMap(List<UnresolvedType> typeArguments, Token constKeyword,
@@ -2724,7 +2727,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       valueType = implicitTypeArgument;
     }
 
-    Expression node = forest.literalMap(
+    Expression node = forest.createMapLiteral(
         constKeyword,
         constKeyword != null || constantContext == ConstantContext.inferred,
         keyType,
@@ -2742,7 +2745,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("LiteralMapEntry");
     Expression value = popForValue();
     Expression key = popForValue();
-    push(forest.mapEntry(key, colon, value));
+    push(forest.createMapEntry(key, colon, value));
   }
 
   String symbolPartToString(name) {
@@ -2764,8 +2767,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         push(new ParserErrorGenerator(
             this, hashToken, fasta.messageSyntheticToken));
       } else {
-        push(forest.literalSymbolSingular(
-            symbolPartToString(part), hashToken, part));
+        push(forest.createSymbolLiteral(symbolPartToString(part), hashToken));
       }
     } else {
       List<Identifier> parts =
@@ -2779,7 +2781,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       for (int i = 1; i < parts.length; i++) {
         value += ".${symbolPartToString(parts[i])}";
       }
-      push(forest.literalSymbolMultiple(value, hashToken, parts));
+      push(forest.createSymbolLiteral(value, hashToken));
     }
   }
 
@@ -2906,7 +2908,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           operator.charOffset,
           operator.length)));
     } else {
-      Expression node = forest.asExpression(expression, type, operator);
+      Expression node = forest.createAsExpression(expression, type, operator);
       push(node);
     }
   }
@@ -2918,7 +2920,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     Expression operand = popForValue();
     bool isInverted = not != null;
     Expression isExpression =
-        forest.isExpression(operand, isOperator, not, type);
+        forest.createIsExpression(operand, isOperator, not, type);
     library.checkBoundsInType(
         type, typeEnvironment, uri, isOperator.charOffset);
     if (operand is VariableGet) {
@@ -2959,7 +2961,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     Expression thenExpression = pop();
     Expression condition = pop();
     typePromoter?.exitConditional();
-    push(forest.conditionalExpression(
+    push(forest.createConditionalExpression(
         condition, question, thenExpression, colon, elseExpression));
   }
 
@@ -2973,7 +2975,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           throwToken.offset,
           throwToken.length));
     } else {
-      push(forest.throwExpression(throwToken, expression));
+      push(forest.createThrow(throwToken, expression));
     }
   }
 
@@ -3056,7 +3058,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         variable.initializer = initializer..parent = variable;
       }
     } else if (kind != FormalParameterKind.mandatory) {
-      variable.initializer ??= forest.literalNull(null)..parent = variable;
+      variable.initializer ??= forest.createNullLiteral(null)
+        ..parent = variable;
     }
     if (annotations != null) {
       if (functionNestingLevel == 0) {
@@ -3236,7 +3239,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         }
       }
     }
-    push(forest.catchClause(
+    push(forest.createCatch(
         onKeyword,
         exceptionType,
         catchKeyword,
@@ -3247,7 +3250,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (compileTimeErrors == null) {
       push(NullValue.Block);
     } else {
-      push(forest.block(null, compileTimeErrors, null));
+      push(forest.createBlock(null, compileTimeErrors, null));
     }
   }
 
@@ -3270,11 +3273,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       }
     }
     Statement tryBlock = popStatement();
-    Statement tryStatement = forest.tryStatement(
+    Statement tryStatement = forest.createTryStatement(
         tryKeyword, tryBlock, catchBlocks, finallyKeyword, finallyBlock);
     if (compileTimeErrors != null) {
       compileTimeErrors.add(tryStatement);
-      push(forest.block(null, compileTimeErrors, null));
+      push(forest.createBlock(null, compileTimeErrors, null));
     } else {
       push(tryStatement);
     }
@@ -3304,7 +3307,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("UnaryPrefixExpression");
     Object receiver = pop();
     if (optional("!", token)) {
-      push(forest.notExpression(toValue(receiver), token, false));
+      push(forest.createNot(toValue(receiver), token, false));
     } else {
       String operator = token.stringValue;
       Expression receiverValue;
@@ -3314,12 +3317,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       bool isSuper = false;
       if (receiver is ThisAccessGenerator && receiver.isSuper) {
         isSuper = true;
-        receiverValue = forest.thisExpression(receiver.token);
+        receiverValue = forest.createThisExpression(receiver.token);
       } else {
         receiverValue = toValue(receiver);
       }
       push(buildMethodInvocation(receiverValue, new Name(operator),
-          forest.argumentsEmpty(noLocation), token.charOffset,
+          forest.createArgumentsEmpty(noLocation), token.charOffset,
           // This *could* be a constant expression, we can't know without
           // evaluating [receiver].
           isConstantExpression: !isSuper,
@@ -3457,7 +3460,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       if (argMessage != null) {
         return wrapSyntheticExpression(
             throwNoSuchMethodError(
-                forest.literalNull(null)..fileOffset = charOffset,
+                forest.createNullLiteral(null)..fileOffset = charOffset,
                 target.name.name,
                 arguments,
                 charOffset,
@@ -3480,10 +3483,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             arguments,
             charOffset);
       }
-      ConstructorInvocation node = new ConstructorInvocation(
-          target, forest.castArguments(arguments),
-          isConst: isConst)
-        ..fileOffset = charOffset;
+      ConstructorInvocation node =
+          new ConstructorInvocation(target, arguments, isConst: isConst)
+            ..fileOffset = charOffset;
       library.checkBoundsInConstructorInvocation(node, typeEnvironment, uri);
       return node;
     } else {
@@ -3501,16 +3503,15 @@ class BodyBuilder extends ScopeListener<JumpTarget>
               charOffset);
         }
         StaticInvocation node = FactoryConstructorInvocationJudgment(
-            target, forest.castArguments(arguments),
+            target, arguments,
             isConst: isConst)
           ..fileOffset = charOffset;
         library.checkBoundsInFactoryInvocation(node, typeEnvironment, uri);
         return node;
       } else {
-        StaticInvocation node = new StaticInvocation(
-            target, forest.castArguments(arguments),
-            isConst: isConst)
-          ..fileOffset = charOffset;
+        StaticInvocation node =
+            new StaticInvocation(target, arguments, isConst: isConst)
+              ..fileOffset = charOffset;
         library.checkBoundsInStaticInvocation(node, typeEnvironment, uri);
         return node;
       }
@@ -3680,7 +3681,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     } else {
       push(wrapSyntheticExpression(
           throwNoSuchMethodError(
-              forest.literalNull(null)..fileOffset = offset,
+              forest.createNullLiteral(null)..fileOffset = offset,
               debugName(getNodeName(type), name),
               arguments,
               nameToken.charOffset),
@@ -3762,7 +3763,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           if (target.function.typeParameters != null &&
               target.function.typeParameters.length !=
                   forest.argumentsTypeArguments(arguments).length) {
-            arguments = forest.arguments(
+            arguments = forest.createArguments(
                 forest.argumentsPositional(arguments), null,
                 named: forest.argumentsNamed(arguments),
                 types: new List<DartType>.filled(
@@ -3770,7 +3771,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
                     growable: true));
           }
           invocation = new FactoryConstructorInvocationJudgment(
-              target, forest.castArguments(arguments),
+              target, arguments,
               isConst: constness == Constness.explicitConst)
             ..fileOffset = nameToken.charOffset;
         } else {
@@ -3802,7 +3803,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
     return wrapUnresolvedTargetInvocation(
         throwNoSuchMethodError(
-            forest.literalNull(null)..fileOffset = charOffset,
+            forest.createNullLiteral(null)..fileOffset = charOffset,
             errorName,
             arguments,
             nameLastToken.charOffset,
@@ -3870,9 +3871,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
     transformCollections = true;
     if (entry is MapEntry) {
-      push(forest.ifMapEntry(toValue(condition), entry, null, ifToken));
+      push(forest.createIfMapEntry(toValue(condition), entry, null, ifToken));
     } else {
-      push(forest.ifElement(toValue(condition), toValue(entry), null, ifToken));
+      push(forest.createIfElement(
+          toValue(condition), toValue(entry), null, ifToken));
     }
   }
 
@@ -3909,10 +3911,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     transformCollections = true;
     if (thenEntry is MapEntry) {
       if (elseEntry is MapEntry) {
-        push(forest.ifMapEntry(
+        push(forest.createIfMapEntry(
             toValue(condition), thenEntry, elseEntry, ifToken));
       } else if (elseEntry is SpreadElement) {
-        push(forest.ifMapEntry(
+        push(forest.createIfMapEntry(
             toValue(condition),
             thenEntry,
             new SpreadMapEntry(elseEntry.expression, elseEntry.isNullAware),
@@ -3931,7 +3933,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       }
     } else if (elseEntry is MapEntry) {
       if (thenEntry is SpreadElement) {
-        push(forest.ifMapEntry(
+        push(forest.createIfMapEntry(
             toValue(condition),
             new SpreadMapEntry(thenEntry.expression, thenEntry.isNullAware),
             elseEntry,
@@ -3949,7 +3951,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           ..fileOffset = offsetForToken(ifToken));
       }
     } else {
-      push(forest.ifElement(
+      push(forest.createIfElement(
           toValue(condition), toValue(thenEntry), toValue(elseEntry), ifToken));
     }
   }
@@ -3979,7 +3981,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
 
     transformCollections = true;
-    push(forest.spreadElement(toValue(expression), spreadToken));
+    push(forest.createSpreadElement(toValue(expression), spreadToken));
   }
 
   @override
@@ -4161,10 +4163,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           // This must have been a compile-time error.
           assert(isErroneousNode(variable.initializer));
 
-          push(forest.block(
+          push(forest.createBlock(
               null,
               <Statement>[
-                forest.expressionStatement(variable.initializer, token),
+                forest.createExpressionStatement(variable.initializer, token),
                 declaration
               ],
               null)
@@ -4241,13 +4243,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     JumpTarget continueTarget = exitContinueTarget();
     JumpTarget breakTarget = exitBreakTarget();
     if (continueTarget.hasUsers) {
-      body = forest.syntheticLabeledStatement(body);
+      body = forest.createLabeledStatement(body);
       continueTarget.resolveContinues(forest, body);
     }
-    Statement result =
-        forest.doStatement(doKeyword, body, whileKeyword, condition, endToken);
+    Statement result = forest.createDoStatement(
+        doKeyword, body, whileKeyword, condition, endToken);
     if (breakTarget.hasUsers) {
-      result = forest.syntheticLabeledStatement(result);
+      result = forest.createLabeledStatement(result);
       breakTarget.resolveBreaks(forest, result);
     }
     exitLoopOrSwitch(result);
@@ -4311,11 +4313,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     Expression problem = checkForInVariable(lvalue, variable, forToken);
     Statement prologue = buildForInBody(lvalue, variable, forToken, inToken);
     if (entry is MapEntry) {
-      push(forest.forInMapEntry(
+      push(forest.createForInMapEntry(
           variable, iterable, prologue, entry, problem, forToken,
           isAsync: awaitToken != null));
     } else {
-      push(forest.forInElement(
+      push(forest.createForInElement(
           variable, iterable, prologue, toValue(entry), problem, forToken,
           isAsync: awaitToken != null));
     }
@@ -4370,7 +4372,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             desugarSyntheticExpression(syntheticAssignment),
             offsetForToken(lvalue.token));
       }
-      return forest.expressionStatement(syntheticAssignment, null);
+      return forest.createExpressionStatement(syntheticAssignment, null);
     }
     Message message = forest.isVariablesDeclaration(lvalue)
         ? fasta.messageForInLoopExactlyOneVariable
@@ -4378,17 +4380,17 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     Token token = forToken.next.next;
     Statement body;
     if (forest.isVariablesDeclaration(lvalue)) {
-      body = forest.block(
+      body = forest.createBlock(
           null,
           // New list because the declarations are not a growable list.
           new List<Statement>.from(
               forest.variablesDeclarationExtractDeclarations(lvalue)),
           null);
     } else {
-      body = forest.expressionStatement(lvalue, null);
+      body = forest.createExpressionStatement(lvalue, null);
     }
     return combineStatements(
-        forest.expressionStatement(
+        forest.createExpressionStatement(
             buildProblem(message, offsetForToken(token), lengthForToken(token)),
             null),
         body);
@@ -4409,7 +4411,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     JumpTarget continueTarget = exitContinueTarget();
     JumpTarget breakTarget = exitBreakTarget();
     if (continueTarget.hasUsers) {
-      body = forest.syntheticLabeledStatement(body);
+      body = forest.createLabeledStatement(body);
       continueTarget.resolveContinues(forest, body);
     }
     VariableDeclaration variable = buildForInVariable(lvalue);
@@ -4434,12 +4436,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       ..fileOffset = awaitToken?.charOffset ?? forToken.charOffset
       ..bodyOffset = body.fileOffset; // TODO(ahe): Isn't this redundant?
     if (breakTarget.hasUsers) {
-      result = forest.syntheticLabeledStatement(result);
+      result = forest.createLabeledStatement(result);
       breakTarget.resolveBreaks(forest, result);
     }
     if (problem != null) {
-      result =
-          combineStatements(forest.expressionStatement(problem, null), result);
+      result = combineStatements(
+          forest.createExpressionStatement(problem, null), result);
     }
     exitLoopOrSwitch(result);
   }
@@ -4481,7 +4483,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             uri);
       }
       if (statement is! LabeledStatement) {
-        statement = forest.syntheticLabeledStatement(statement);
+        statement = forest.createLabeledStatement(statement);
       }
       target.breakTarget.resolveBreaks(forest, statement);
       target.continueTarget.resolveContinues(forest, statement);
@@ -4493,7 +4495,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void endRethrowStatement(Token rethrowToken, Token endToken) {
     debugEvent("RethrowStatement");
     if (inCatchBlock) {
-      push(forest.rethrowStatement(rethrowToken, endToken));
+      push(forest.createRethrowStatement(rethrowToken, endToken));
     } else {
       push(new ExpressionStatementJudgment(buildProblem(
           fasta.messageRethrowNotCatch,
@@ -4517,12 +4519,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     JumpTarget continueTarget = exitContinueTarget();
     JumpTarget breakTarget = exitBreakTarget();
     if (continueTarget.hasUsers) {
-      body = forest.syntheticLabeledStatement(body);
+      body = forest.createLabeledStatement(body);
       continueTarget.resolveContinues(forest, body);
     }
-    Statement result = forest.whileStatement(whileKeyword, condition, body);
+    Statement result =
+        forest.createWhileStatement(whileKeyword, condition, body);
     if (breakTarget.hasUsers) {
-      result = forest.syntheticLabeledStatement(result);
+      result = forest.createLabeledStatement(result);
       breakTarget.resolveBreaks(forest, result);
     }
     exitLoopOrSwitch(result);
@@ -4531,7 +4534,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void handleEmptyStatement(Token token) {
     debugEvent("EmptyStatement");
-    push(forest.emptyStatement(token));
+    push(forest.createEmptyStatement(token));
   }
 
   @override
@@ -4552,8 +4555,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
     switch (kind) {
       case Assert.Statement:
-        push(forest.assertStatement(assertKeyword, leftParenthesis, condition,
-            commaToken, message, semicolonToken));
+        push(forest.createAssertStatement(assertKeyword, leftParenthesis,
+            condition, commaToken, message, semicolonToken));
         break;
 
       case Assert.Expression:
@@ -4564,7 +4567,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         break;
 
       case Assert.Initializer:
-        push(forest.assertInitializer(
+        push(forest.createAssertInitializer(
             assertKeyword, leftParenthesis, condition, commaToken, message));
         break;
     }
@@ -4573,7 +4576,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void endYieldStatement(Token yieldToken, Token starToken, Token endToken) {
     debugEvent("YieldStatement");
-    push(forest.yieldStatement(yieldToken, starToken, popForValue(), endToken));
+    push(forest.createYieldStatement(
+        yieldToken, starToken, popForValue(), endToken));
   }
 
   @override
@@ -4667,7 +4671,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     Statement result = new SwitchStatementJudgment(expression, cases)
       ..fileOffset = switchKeyword.charOffset;
     if (target.hasUsers) {
-      result = forest.syntheticLabeledStatement(result);
+      result = forest.createLabeledStatement(result);
       target.resolveBreaks(forest, result);
     }
     exitLoopOrSwitch(result);
@@ -4752,7 +4756,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       push(buildProblemTargetOutsideLocalFunction(name, breakKeyword));
     } else {
       Statement statement =
-          forest.breakStatement(breakKeyword, identifier, endToken);
+          forest.createBreakStatement(breakKeyword, identifier, endToken);
       target.addBreak(statement);
       push(statement);
     }
@@ -4831,7 +4835,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       push(buildProblemTargetOutsideLocalFunction(name, continueKeyword));
     } else {
       Statement statement =
-          forest.continueStatement(continueKeyword, identifier, endToken);
+          forest.createContinueStatement(continueKeyword, identifier, endToken);
       target.addContinue(statement);
       push(statement);
     }
@@ -4990,14 +4994,14 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     // TODO(ahe): Compute a LocatedMessage above instead?
     Location location = messages.getLocationFromUri(uri, charOffset);
 
-    return forest.throwExpression(
+    return forest.createThrow(
         null,
         buildStaticInvocation(
             library.loader.coreTypes.fallThroughErrorUrlAndLineConstructor,
-            forest.arguments(<Expression>[
-              forest.literalString("${location?.file ?? uri}", null)
+            forest.createArguments(<Expression>[
+              forest.createStringLiteral("${location?.file ?? uri}", null)
                 ..fileOffset = charOffset,
-              forest.literalInt(location?.line ?? 0, null)
+              forest.createIntLiteral(location?.line ?? 0, null)
                 ..fileOffset = charOffset,
             ], noLocation),
             charOffset: charOffset))
@@ -5012,15 +5016,15 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     Builder constructor = library.loader.getAbstractClassInstantiationError();
     Expression invocation = buildStaticInvocation(
         constructor.target,
-        forest.arguments(<Expression>[
-          forest.literalString(className, null)..fileOffset = charOffset
+        forest.createArguments(<Expression>[
+          forest.createStringLiteral(className, null)..fileOffset = charOffset
         ], noLocation)
           ..fileOffset = charOffset,
         charOffset: charOffset);
     if (invocation is shadow.SyntheticExpressionJudgment) {
       invocation = desugarSyntheticExpression(invocation);
     }
-    return forest.throwExpression(null, invocation)..fileOffset = charOffset;
+    return forest.createThrow(null, invocation)..fileOffset = charOffset;
   }
 
   Statement buildProblemStatement(Message message, int charOffset,
@@ -5116,8 +5120,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             library.loader.getDuplicatedFieldInitializerError();
         Expression invocation = buildStaticInvocation(
             constructor.target,
-            forest.arguments(<Expression>[
-              forest.literalString(name, null)..fileOffset = assignmentOffset
+            forest.createArguments(<Expression>[
+              forest.createStringLiteral(name, null)
+                ..fileOffset = assignmentOffset
             ], noLocation)
               ..fileOffset = assignmentOffset,
             charOffset: assignmentOffset);
@@ -5128,7 +5133,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             builder.field,
             expression,
             new VariableDeclaration.forValue(
-                forest.throwExpression(null, invocation)
+                forest.createThrow(null, invocation)
                   ..fileOffset = assignmentOffset))
           ..fileOffset = assignmentOffset;
       } else {
@@ -5167,7 +5172,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (member.isConst && !constructor.isConst) {
       return buildInvalidSuperInitializer(
           constructor,
-          forest.castArguments(arguments),
+          arguments,
           desugarSyntheticExpression(buildProblem(
               fasta.messageConstConstructorWithNonConstSuper,
               charOffset,
@@ -5175,8 +5180,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           charOffset);
     }
     needsImplicitSuperInitializer = false;
-    return new SuperInitializerJudgment(
-        constructor, forest.castArguments(arguments))
+    return new SuperInitializerJudgment(constructor, arguments)
       ..fileOffset = charOffset
       ..isSynthetic = isSynthetic;
   }
@@ -5193,8 +5197,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       // TODO(askesc): Produce invalid initializer.
     }
     needsImplicitSuperInitializer = false;
-    return new RedirectingInitializerJudgment(
-        constructor, forest.castArguments(arguments))
+    return new RedirectingInitializerJudgment(constructor, arguments)
       ..fileOffset = charOffset;
   }
 
@@ -5215,7 +5218,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (member.isNative) {
       push(NullValue.FunctionBody);
     } else {
-      push(forest.block(
+      push(forest.createBlock(
           token,
           <Statement>[
             buildProblemStatement(
@@ -5309,8 +5312,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
               offset,
               name.name.length);
         }
-        return new SuperMethodInvocationJudgment(
-            name, forest.castArguments(arguments),
+        return new SuperMethodInvocationJudgment(name, arguments,
             interfaceTarget: target)
           ..fileOffset = offset;
       }
@@ -5318,7 +5320,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       receiver = new SuperPropertyGetJudgment(name, interfaceTarget: target)
         ..fileOffset = offset;
       MethodInvocation node = new MethodInvocationJudgment(
-          receiver, callName, forest.castArguments(arguments),
+          receiver, callName, arguments,
           isImplicitCall: true)
         ..fileOffset = forest.readOffset(arguments);
       return node;
@@ -5328,19 +5330,19 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       VariableDeclaration variable = new VariableDeclaration.forValue(receiver);
       return new NullAwareMethodInvocationJudgment(
           variable,
-          forest.conditionalExpression(
+          forest.createConditionalExpression(
               buildIsNull(new VariableGet(variable), offset, this),
               null,
-              forest.literalNull(null)..fileOffset = offset,
+              forest.createNullLiteral(null)..fileOffset = offset,
               null,
-              new MethodInvocation(new VariableGet(variable), name,
-                  forest.castArguments(arguments), interfaceTarget)
+              new MethodInvocation(
+                  new VariableGet(variable), name, arguments, interfaceTarget)
                 ..fileOffset = offset)
             ..fileOffset = offset)
         ..fileOffset = offset;
     } else {
       MethodInvocation node = new MethodInvocationJudgment(
-          receiver, name, forest.castArguments(arguments),
+          receiver, name, arguments,
           isImplicitCall: isImplicitCall, interfaceTarget: interfaceTarget)
         ..fileOffset = offset;
       return node;

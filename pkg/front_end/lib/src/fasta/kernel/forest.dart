@@ -2,79 +2,110 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.forest;
+library fasta.fangorn;
 
 import 'dart:core' hide MapEntry;
 
-import 'package:kernel/ast.dart'
-    show
-        Arguments,
-        Catch,
-        DartType,
-        Expression,
-        LibraryDependency,
-        MapEntry,
-        NamedExpression,
-        Statement,
-        TreeNode,
-        VariableDeclaration;
+import 'package:kernel/ast.dart';
 
-import 'body_builder.dart' show LabelTarget;
+import '../parser.dart' show offsetForToken, optional;
 
-import 'kernel_builder.dart' show Identifier;
+import '../problems.dart' show unsupported;
 
 import '../scanner.dart' show Token;
 
-export '../fasta_codes.dart' show Message;
-
-export 'body_builder.dart' show Operator;
-
-export 'constness.dart' show Constness;
-
-export 'expression_generator.dart' show Generator, PrefixUseGenerator;
-
-export 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
-
-export 'kernel_builder.dart'
+import 'collections.dart'
     show
-        Identifier,
-        LoadLibraryBuilder,
-        PrefixBuilder,
-        TypeDeclarationBuilder,
-        UnlinkedDeclaration;
+        ForElement,
+        ForInElement,
+        ForInMapEntry,
+        ForMapEntry,
+        IfElement,
+        IfMapEntry,
+        SpreadElement;
 
-/// A tree factory.
-abstract class Forest {
+import 'kernel_shadow_ast.dart'
+    show
+        ArgumentsJudgment,
+        AssertInitializerJudgment,
+        AssertStatementJudgment,
+        BlockJudgment,
+        CatchJudgment,
+        DoJudgment,
+        DoubleJudgment,
+        EmptyStatementJudgment,
+        ExpressionStatementJudgment,
+        ForJudgment,
+        IfJudgment,
+        IntJudgment,
+        ListLiteralJudgment,
+        LoadLibraryJudgment,
+        MapLiteralJudgment,
+        ReturnJudgment,
+        SetLiteralJudgment,
+        ShadowLargeIntLiteral,
+        SymbolLiteralJudgment,
+        SyntheticExpressionJudgment,
+        TryCatchJudgment,
+        TryFinallyJudgment,
+        TypeLiteralJudgment,
+        WhileJudgment,
+        YieldJudgment;
+
+/// A shadow tree factory.
+class Forest {
   const Forest();
 
-  Arguments arguments(List<Expression> positional, Token location,
-      {List<DartType> types, List<NamedExpression> named});
+  Arguments createArguments(List<Expression> positional, Token token,
+      {List<DartType> types, List<NamedExpression> named}) {
+    return new ArgumentsJudgment(positional, types: types, named: named)
+      ..fileOffset = offsetForToken(token);
+  }
 
-  Arguments argumentsEmpty(Token location);
+  Arguments createArgumentsEmpty(Token token) {
+    return createArguments(<Expression>[], token);
+  }
 
-  List<Object> argumentsNamed(Arguments arguments);
+  List<NamedExpression> argumentsNamed(Arguments arguments) {
+    return arguments.named;
+  }
 
-  List<Expression> argumentsPositional(Arguments arguments);
+  List<Expression> argumentsPositional(Arguments arguments) {
+    return arguments.positional;
+  }
 
-  List<DartType> argumentsTypeArguments(Arguments arguments);
+  List<DartType> argumentsTypeArguments(Arguments arguments) {
+    return arguments.types;
+  }
 
-  void argumentsSetTypeArguments(Arguments arguments, List<DartType> types);
+  void argumentsSetTypeArguments(Arguments arguments, List<DartType> types) {
+    ArgumentsJudgment.setNonInferrableArgumentTypes(arguments, types);
+  }
 
-  Expression asLiteralString(Expression value);
+  StringLiteral asLiteralString(Expression value) => value;
 
   /// Return a representation of a boolean literal at the given [location]. The
   /// literal has the given [value].
-  Expression literalBool(bool value, Token location);
+  BoolLiteral createBoolLiteral(bool value, Token token) {
+    return new BoolLiteral(value)..fileOffset = offsetForToken(token);
+  }
 
   /// Return a representation of a double literal at the given [location]. The
   /// literal has the given [value].
-  Expression literalDouble(double value, Token location);
+  DoubleLiteral createDoubleLiteral(double value, Token token) {
+    return new DoubleJudgment(value)..fileOffset = offsetForToken(token);
+  }
 
   /// Return a representation of an integer literal at the given [location]. The
   /// literal has the given [value].
-  Expression literalInt(int value, Token location);
+  IntLiteral createIntLiteral(int value, Token token) {
+    return new IntJudgment(value, token?.lexeme)
+      ..fileOffset = offsetForToken(token);
+  }
 
-  Expression literalLargeInt(String literal, Token location);
+  IntLiteral createIntLiteralLarge(String literal, Token token) {
+    return new ShadowLargeIntLiteral(literal, offsetForToken(token));
+  }
 
   /// Return a representation of a list literal. The [constKeyword] is the
   /// location of the `const` keyword, or `null` if there is no keyword. The
@@ -87,14 +118,20 @@ abstract class Forest {
   /// type arguments. The [leftBracket] is the location of the `[`. The list of
   /// [expressions] is a list of the representations of the list elements. The
   /// [rightBracket] is the location of the `]`.
-  Expression literalList(
+  ListLiteral createListLiteral(
       Token constKeyword,
       bool isConst,
       Object typeArgument,
       Object typeArguments,
       Token leftBracket,
       List<Expression> expressions,
-      Token rightBracket);
+      Token rightBracket) {
+    // TODO(brianwilkerson): The file offset computed below will not be correct
+    // if there are type arguments but no `const` keyword.
+    return new ListLiteralJudgment(expressions,
+        typeArgument: typeArgument, isConst: isConst)
+      ..fileOffset = offsetForToken(constKeyword ?? leftBracket);
+  }
 
   /// Return a representation of a set literal. The [constKeyword] is the
   /// location of the `const` keyword, or `null` if there is no keyword. The
@@ -107,14 +144,20 @@ abstract class Forest {
   /// type arguments. The [leftBrace] is the location of the `{`. The list of
   /// [expressions] is a list of the representations of the set elements. The
   /// [rightBrace] is the location of the `}`.
-  Expression literalSet(
+  SetLiteral createSetLiteral(
       Token constKeyword,
       bool isConst,
       Object typeArgument,
       Object typeArguments,
       Token leftBrace,
       List<Expression> expressions,
-      Token rightBrace);
+      Token rightBrace) {
+    // TODO(brianwilkerson): The file offset computed below will not be correct
+    // if there are type arguments but no `const` keyword.
+    return new SetLiteralJudgment(expressions,
+        typeArgument: typeArgument, isConst: isConst)
+      ..fileOffset = offsetForToken(constKeyword ?? leftBrace);
+  }
 
   /// Return a representation of a map literal. The [constKeyword] is the
   /// location of the `const` keyword, or `null` if there is no keyword. The
@@ -129,7 +172,7 @@ abstract class Forest {
   /// `null` if there are no type arguments. The [leftBrace] is the location
   /// of the `{`. The list of [entries] is a list of the representations of the
   /// map entries. The [rightBrace] is the location of the `}`.
-  Expression literalMap(
+  MapLiteral createMapLiteral(
       Token constKeyword,
       bool isConst,
       DartType keyType,
@@ -137,128 +180,257 @@ abstract class Forest {
       Object typeArguments,
       Token leftBrace,
       List<MapEntry> entries,
-      Token rightBrace);
+      Token rightBrace) {
+    // TODO(brianwilkerson): The file offset computed below will not be correct
+    // if there are type arguments but no `const` keyword.
+    return new MapLiteralJudgment(entries,
+        keyType: keyType, valueType: valueType, isConst: isConst)
+      ..fileOffset = offsetForToken(constKeyword ?? leftBrace);
+  }
 
   /// Return a representation of a null literal at the given [location].
-  Expression literalNull(Token location);
+  NullLiteral createNullLiteral(Token token) {
+    return new NullLiteral()..fileOffset = offsetForToken(token);
+  }
 
   /// Return a representation of a simple string literal at the given
   /// [location]. The literal has the given [value]. This does not include
   /// either adjacent strings or interpolated strings.
-  Expression literalString(String value, Token location);
+  StringLiteral createStringLiteral(String value, Token token) {
+    return new StringLiteral(value)..fileOffset = offsetForToken(token);
+  }
 
-  /// Return a representation of a symbol literal defined by the [hash] and the
-  /// list of [components]. The [value] is the string value of the symbol.
-  Expression literalSymbolMultiple(
-      String value, Token hash, List<Identifier> components);
+  /// Return a representation of a symbol literal defined by [value].
+  SymbolLiteral createSymbolLiteral(String value, Token token) {
+    return new SymbolLiteralJudgment(value)..fileOffset = offsetForToken(token);
+  }
 
-  /// Return a representation of a symbol literal defined by the [hash] and the
-  /// single [component]. The component can be either an [Identifier] or an
-  /// [Operator]. The [value] is the string value of the symbol.
-  Expression literalSymbolSingular(String value, Token hash, Object component);
-
-  Expression literalType(DartType type, Token location);
+  TypeLiteral createTypeLiteral(DartType type, Token token) {
+    return new TypeLiteralJudgment(type)..fileOffset = offsetForToken(token);
+  }
 
   /// Return a representation of a key/value pair in a literal map. The [key] is
   /// the representation of the expression used to compute the key. The [colon]
   /// is the location of the colon separating the key and the value. The [value]
   /// is the representation of the expression used to compute the value.
-  Object mapEntry(Expression key, Token colon, Expression value);
+  MapEntry createMapEntry(Expression key, Token colon, Expression value) {
+    return new MapEntry(key, value)..fileOffset = offsetForToken(colon);
+  }
 
-  int readOffset(TreeNode node);
+  int readOffset(TreeNode node) => node.fileOffset;
 
-  Expression loadLibrary(LibraryDependency dependency, Arguments arguments);
+  Expression createLoadLibrary(
+      LibraryDependency dependency, Arguments arguments) {
+    return new LoadLibraryJudgment(dependency, arguments);
+  }
 
-  Expression checkLibraryIsLoaded(LibraryDependency dependency);
+  Expression checkLibraryIsLoaded(LibraryDependency dependency) {
+    return new CheckLibraryIsLoaded(dependency);
+  }
 
-  Expression asExpression(Expression expression, DartType type, Token location);
+  Expression createAsExpression(
+      Expression expression, DartType type, Token token) {
+    return new AsExpression(expression, type)
+      ..fileOffset = offsetForToken(token);
+  }
 
-  Expression spreadElement(Expression expression, Token token);
+  Expression createSpreadElement(Expression expression, Token token) {
+    return new SpreadElement(expression, token.lexeme == '...?')
+      ..fileOffset = offsetForToken(token);
+  }
 
-  Expression ifElement(
-      Expression condition, Expression then, Expression otherwise, Token token);
+  Expression createIfElement(Expression condition, Expression then,
+      Expression otherwise, Token token) {
+    return new IfElement(condition, then, otherwise)
+      ..fileOffset = offsetForToken(token);
+  }
 
-  MapEntry ifMapEntry(
-      Expression condition, MapEntry then, MapEntry otherwise, Token token);
+  MapEntry createIfMapEntry(
+      Expression condition, MapEntry then, MapEntry otherwise, Token token) {
+    return new IfMapEntry(condition, then, otherwise)
+      ..fileOffset = offsetForToken(token);
+  }
 
-  Expression forElement(
+  Expression createForElement(
       List<VariableDeclaration> variables,
       Expression condition,
       List<Expression> updates,
       Expression body,
-      Token token);
+      Token token) {
+    return new ForElement(variables, condition, updates, body)
+      ..fileOffset = offsetForToken(token);
+  }
 
-  MapEntry forMapEntry(
+  MapEntry createForMapEntry(
       List<VariableDeclaration> variables,
       Expression condition,
       List<Expression> updates,
       MapEntry body,
-      Token token);
+      Token token) {
+    return new ForMapEntry(variables, condition, updates, body)
+      ..fileOffset = offsetForToken(token);
+  }
 
-  Expression forInElement(VariableDeclaration variable, Expression iterable,
-      Statement prologue, Expression body, Expression problem, Token token,
-      {bool isAsync: false});
+  Expression createForInElement(
+      VariableDeclaration variable,
+      Expression iterable,
+      Statement prologue,
+      Expression body,
+      Expression problem,
+      Token token,
+      {bool isAsync: false}) {
+    return new ForInElement(variable, iterable, prologue, body, problem,
+        isAsync: isAsync)
+      ..fileOffset = offsetForToken(token);
+  }
 
-  MapEntry forInMapEntry(VariableDeclaration variable, Expression iterable,
-      Statement prologue, MapEntry body, Expression problem, Token token,
-      {bool isAsync: false});
+  MapEntry createForInMapEntry(
+      VariableDeclaration variable,
+      Expression iterable,
+      Statement prologue,
+      MapEntry body,
+      Expression problem,
+      Token token,
+      {bool isAsync: false}) {
+    return new ForInMapEntry(variable, iterable, prologue, body, problem,
+        isAsync: isAsync)
+      ..fileOffset = offsetForToken(token);
+  }
 
   /// Return a representation of an assert that appears in a constructor's
   /// initializer list.
-  Object assertInitializer(Token assertKeyword, Token leftParenthesis,
-      Expression condition, Token comma, Expression message);
+  AssertInitializer createAssertInitializer(
+      Token assertKeyword,
+      Token leftParenthesis,
+      Expression condition,
+      Token comma,
+      Expression message) {
+    return new AssertInitializerJudgment(createAssertStatement(
+        assertKeyword, leftParenthesis, condition, comma, message, null));
+  }
 
   /// Return a representation of an assert that appears as a statement.
-  Statement assertStatement(Token assertKeyword, Token leftParenthesis,
-      Expression condition, Token comma, Expression message, Token semicolon);
+  Statement createAssertStatement(Token assertKeyword, Token leftParenthesis,
+      Expression condition, Token comma, Expression message, Token semicolon) {
+    // Compute start and end offsets for the condition expression.
+    // This code is a temporary workaround because expressions don't carry
+    // their start and end offsets currently.
+    //
+    // The token that follows leftParenthesis is considered to be the
+    // first token of the condition.
+    // TODO(ahe): this really should be condition.fileOffset.
+    int startOffset = leftParenthesis.next.offset;
+    int endOffset;
+    {
+      // Search forward from leftParenthesis to find the last token of
+      // the condition - which is a token immediately followed by a commaToken,
+      // right parenthesis or a trailing comma.
+      Token conditionBoundary = comma ?? leftParenthesis.endGroup;
+      Token conditionLastToken = leftParenthesis;
+      while (!conditionLastToken.isEof) {
+        Token nextToken = conditionLastToken.next;
+        if (nextToken == conditionBoundary) {
+          break;
+        } else if (optional(',', nextToken) &&
+            nextToken.next == conditionBoundary) {
+          // The next token is trailing comma, which means current token is
+          // the last token of the condition.
+          break;
+        }
+        conditionLastToken = nextToken;
+      }
+      if (conditionLastToken.isEof) {
+        endOffset = startOffset = -1;
+      } else {
+        endOffset = conditionLastToken.offset + conditionLastToken.length;
+      }
+    }
+    return new AssertStatementJudgment(condition,
+        conditionStartOffset: startOffset,
+        conditionEndOffset: endOffset,
+        message: message);
+  }
 
-  Expression awaitExpression(Expression operand, Token location);
+  Expression createAwaitExpression(Expression operand, Token token) {
+    return new AwaitExpression(operand)..fileOffset = offsetForToken(token);
+  }
 
   /// Return a representation of a block of [statements] enclosed between the
   /// [openBracket] and [closeBracket].
-  Statement block(
-      Token openBrace, List<Statement> statements, Token closeBrace);
+  Statement createBlock(
+      Token openBrace, List<Statement> statements, Token closeBrace) {
+    List<Statement> copy;
+    for (int i = 0; i < statements.length; i++) {
+      Statement statement = statements[i];
+      if (statement is _VariablesDeclaration) {
+        copy ??= new List<Statement>.from(statements.getRange(0, i));
+        copy.addAll(statement.declarations);
+      } else if (copy != null) {
+        copy.add(statement);
+      }
+    }
+    return new BlockJudgment(copy ?? statements)
+      ..fileOffset = offsetForToken(openBrace);
+  }
 
   /// Return a representation of a break statement.
-  Statement breakStatement(
-      Token breakKeyword, Identifier label, Token semicolon);
+  Statement createBreakStatement(
+      Token breakKeyword, Object label, Token semicolon) {
+    return new BreakStatement(null)..fileOffset = breakKeyword.charOffset;
+  }
 
   /// Return a representation of a catch clause.
-  Object catchClause(
+  Catch createCatch(
       Token onKeyword,
       DartType exceptionType,
       Token catchKeyword,
       VariableDeclaration exceptionParameter,
       VariableDeclaration stackTraceParameter,
       DartType stackTraceType,
-      Statement body);
+      Statement body) {
+    return new CatchJudgment(exceptionParameter, body,
+        guard: exceptionType, stackTrace: stackTraceParameter)
+      ..fileOffset = offsetForToken(onKeyword ?? catchKeyword);
+  }
 
   /// Return a representation of a conditional expression. The [condition] is
   /// the expression preceding the question mark. The [question] is the `?`. The
   /// [thenExpression] is the expression following the question mark. The
   /// [colon] is the `:`. The [elseExpression] is the expression following the
   /// colon.
-  Expression conditionalExpression(Expression condition, Token question,
-      Expression thenExpression, Token colon, Expression elseExpression);
+  Expression createConditionalExpression(Expression condition, Token question,
+      Expression thenExpression, Token colon, Expression elseExpression) {
+    return new ConditionalExpression(
+        condition, thenExpression, elseExpression, null)
+      ..fileOffset = offsetForToken(question);
+  }
 
   /// Return a representation of a continue statement.
-  Statement continueStatement(
-      Token continueKeyword, Identifier label, Token semicolon);
+  Statement createContinueStatement(
+      Token continueKeyword, Object label, Token semicolon) {
+    return new BreakStatement(null)..fileOffset = continueKeyword.charOffset;
+  }
 
   /// Return a representation of a do statement.
-  Statement doStatement(Token doKeyword, Statement body, Token whileKeyword,
-      Expression condition, Token semicolon);
+  Statement createDoStatement(Token doKeyword, Statement body,
+      Token whileKeyword, Expression condition, Token semicolon) {
+    return new DoJudgment(body, condition)..fileOffset = doKeyword.charOffset;
+  }
 
   /// Return a representation of an expression statement composed from the
   /// [expression] and [semicolon].
-  Statement expressionStatement(Expression expression, Token semicolon);
+  Statement createExpressionStatement(Expression expression, Token semicolon) {
+    return new ExpressionStatementJudgment(expression);
+  }
 
   /// Return a representation of an empty statement consisting of the given
   /// [semicolon].
-  Statement emptyStatement(Token semicolon);
+  Statement createEmptyStatement(Token semicolon) {
+    return new EmptyStatementJudgment();
+  }
 
   /// Return a representation of a for statement.
-  Statement forStatement(
+  Statement createForStatement(
       Token forKeyword,
       Token leftParenthesis,
       List<VariableDeclaration> variables,
@@ -267,59 +439,90 @@ abstract class Forest {
       Statement conditionStatement,
       List<Expression> updaters,
       Token rightParenthesis,
-      Statement body);
+      Statement body) {
+    return new ForJudgment(variables, condition, updaters, body)
+      ..fileOffset = forKeyword.charOffset;
+  }
 
   /// Return a representation of an `if` statement.
-  Statement ifStatement(Token ifKeyword, Expression condition,
-      Statement thenStatement, Token elseKeyword, Statement elseStatement);
+  Statement createIfStatement(Token ifKeyword, Expression condition,
+      Statement thenStatement, Token elseKeyword, Statement elseStatement) {
+    return new IfJudgment(condition, thenStatement, elseStatement)
+      ..fileOffset = ifKeyword.charOffset;
+  }
 
   /// Return a representation of an `is` expression. The [operand] is the
   /// representation of the left operand. The [isOperator] is the `is` operator.
   /// The [notOperator] is either the `!` or `null` if the test is not negated.
   /// The [type] is a representation of the type that is the right operand.
-  Expression isExpression(
-      Expression operand, Token isOperator, Token notOperator, DartType type);
-
-  /// Return a representation of a [statement] that has one or more labels (from
-  /// the [target]) associated with it.
-  Statement labeledStatement(LabelTarget target, Statement statement);
+  Expression createIsExpression(
+      Expression operand, Token isOperator, Token notOperator, DartType type) {
+    Expression result = new IsExpression(operand, type)
+      ..fileOffset = offsetForToken(isOperator);
+    if (notOperator != null) {
+      result = createNot(result, notOperator, false);
+    }
+    return result;
+  }
 
   /// Return a representation of a logical expression having the [leftOperand],
   /// [rightOperand] and the [operator] (either `&&` or `||`).
-  Expression logicalExpression(
-      Expression leftOperand, Token operator, Expression rightOperand);
+  Expression createLogicalExpression(
+      Expression leftOperand, Token operator, Expression rightOperand) {
+    return new LogicalExpression(
+        leftOperand, operator.stringValue, rightOperand)
+      ..fileOffset = offsetForToken(operator);
+  }
 
-  Expression notExpression(
-      Expression operand, Token location, bool isSynthetic);
+  Expression createNot(Expression operand, Token token, bool isSynthetic) {
+    return new Not(operand)..fileOffset = offsetForToken(token);
+  }
 
   /// Return a representation of a parenthesized condition consisting of the
   /// given [expression] between the [leftParenthesis] and [rightParenthesis].
-  Object parenthesizedCondition(
-      Token leftParenthesis, Expression expression, Token rightParenthesis);
+  Expression createParenthesizedCondition(
+      Token leftParenthesis, Expression expression, Token rightParenthesis) {
+    return expression;
+  }
 
   /// Return a representation of a rethrow statement consisting of the
   /// [rethrowKeyword] followed by the [semicolon].
-  Statement rethrowStatement(Token rethrowKeyword, Token semicolon);
+  Statement createRethrowStatement(Token rethrowKeyword, Token semicolon) {
+    return new ExpressionStatementJudgment(
+        new Rethrow()..fileOffset = offsetForToken(rethrowKeyword));
+  }
 
   /// Return a representation of a return statement.
-  Statement returnStatement(
-      Token returnKeyword, Expression expression, Token semicolon);
+  Statement createReturnStatement(
+      Token returnKeyword, Expression expression, Token semicolon) {
+    return new ReturnJudgment(returnKeyword?.lexeme, expression)
+      ..fileOffset = returnKeyword.charOffset;
+  }
 
-  Expression stringConcatenationExpression(
-      List<Expression> expressions, Token location);
+  Expression createStringConcatenation(
+      List<Expression> expressions, Token token) {
+    return new StringConcatenation(expressions)
+      ..fileOffset = offsetForToken(token);
+  }
 
   /// The given [statement] is being used as the target of either a break or
   /// continue statement. Return the statement that should be used as the actual
   /// target.
-  Statement syntheticLabeledStatement(Statement statement);
+  Statement createLabeledStatement(Statement statement) {
+    return new LabeledStatement(statement);
+  }
 
-  Expression thisExpression(Token location);
+  Expression createThisExpression(Token token) {
+    return new ThisExpression()..fileOffset = offsetForToken(token);
+  }
 
   /// Return a representation of a throw expression consisting of the
   /// [throwKeyword].
-  Expression throwExpression(Token throwKeyword, Expression expression);
+  Expression createThrow(Token throwKeyword, Expression expression) {
+    return new Throw(expression)..fileOffset = offsetForToken(throwKeyword);
+  }
 
-  bool isThrow(Object o);
+  bool isThrow(Object o) => o is Throw;
 
   /// Return a representation of a try statement. The statement is introduced by
   /// the [tryKeyword] and the given [body]. If catch clauses were included,
@@ -329,49 +532,120 @@ abstract class Forest {
   /// was an error in some part of the try statement, then an [errorReplacement]
   /// might be provided, in which case it could be returned instead of the
   /// representation of the try statement.
-  Statement tryStatement(Token tryKeyword, Statement body,
-      List<Catch> catchClauses, Token finallyKeyword, Statement finallyBlock);
+  Statement createTryStatement(Token tryKeyword, Statement body,
+      List<Catch> catchClauses, Token finallyKeyword, Statement finallyBlock) {
+    Statement result = body;
+    if (catchClauses != null) {
+      result = new TryCatchJudgment(result, catchClauses);
+    }
+    if (finallyBlock != null) {
+      result = new TryFinallyJudgment(result, finallyBlock);
+    }
+    return result;
+  }
 
-  Statement variablesDeclaration(
-      List<VariableDeclaration> declarations, Uri uri);
+  _VariablesDeclaration variablesDeclaration(
+      List<VariableDeclaration> declarations, Uri uri) {
+    return new _VariablesDeclaration(declarations, uri);
+  }
 
   List<VariableDeclaration> variablesDeclarationExtractDeclarations(
-      covariant Statement variablesDeclaration);
+      _VariablesDeclaration variablesDeclaration) {
+    return variablesDeclaration.declarations;
+  }
 
-  Statement wrapVariables(Statement statement);
+  Statement wrapVariables(Statement statement) {
+    if (statement is _VariablesDeclaration) {
+      return new BlockJudgment(
+          new List<Statement>.from(statement.declarations, growable: true))
+        ..fileOffset = statement.fileOffset;
+    } else if (statement is VariableDeclaration) {
+      return new BlockJudgment(<Statement>[statement])
+        ..fileOffset = statement.fileOffset;
+    } else {
+      return statement;
+    }
+  }
 
   /// Return a representation of a while statement introduced by the
   /// [whileKeyword] and consisting of the given [condition] and [body].
-  Statement whileStatement(
-      Token whileKeyword, Expression condition, Statement body);
+  Statement createWhileStatement(
+      Token whileKeyword, Expression condition, Statement body) {
+    return new WhileJudgment(condition, body)
+      ..fileOffset = whileKeyword.charOffset;
+  }
 
   /// Return a representation of a yield statement consisting of the
   /// [yieldKeyword], [star], [expression], and [semicolon]. The [star] is null
   /// when no star was included in the source code.
-  Statement yieldStatement(
-      Token yieldKeyword, Token star, Expression expression, Token semicolon);
+  Statement createYieldStatement(
+      Token yieldKeyword, Token star, Expression expression, Token semicolon) {
+    return new YieldJudgment(star != null, expression)
+      ..fileOffset = yieldKeyword.charOffset;
+  }
 
   /// Return the expression from the given expression [statement].
-  Expression getExpressionFromExpressionStatement(Statement statement);
+  Expression getExpressionFromExpressionStatement(Statement statement) {
+    return (statement as ExpressionStatement).expression;
+  }
 
-  bool isBlock(Object node);
+  bool isBlock(Object node) => node is Block;
 
   /// Return `true` if the given [statement] is the representation of an empty
   /// statement.
-  bool isEmptyStatement(Statement statement);
+  bool isEmptyStatement(Statement statement) => statement is EmptyStatement;
 
-  bool isErroneousNode(Object node);
+  bool isErroneousNode(Object node) {
+    if (node is ExpressionStatement) {
+      ExpressionStatement statement = node;
+      node = statement.expression;
+    }
+    if (node is VariableDeclaration) {
+      VariableDeclaration variable = node;
+      node = variable.initializer;
+    }
+    if (node is SyntheticExpressionJudgment) {
+      SyntheticExpressionJudgment synth = node;
+      node = synth.desugared;
+    }
+    if (node is Let) {
+      Let let = node;
+      node = let.variable.initializer;
+    }
+    return node is InvalidExpression;
+  }
 
   /// Return `true` if the given [statement] is the representation of an
   /// expression statement.
-  bool isExpressionStatement(Statement statement);
+  bool isExpressionStatement(Statement statement) =>
+      statement is ExpressionStatement;
 
-  bool isThisExpression(Object node);
+  bool isThisExpression(Object node) => node is ThisExpression;
 
-  bool isVariablesDeclaration(Object node);
+  bool isVariablesDeclaration(Object node) => node is _VariablesDeclaration;
+}
 
-  // TODO(ahe): Remove this method when all users are moved here.
-  Arguments castArguments(Arguments arguments) {
-    return arguments;
+class _VariablesDeclaration extends Statement {
+  final List<VariableDeclaration> declarations;
+  final Uri uri;
+
+  _VariablesDeclaration(this.declarations, this.uri) {
+    setParents(declarations, this);
+  }
+
+  accept(v) {
+    unsupported("accept", fileOffset, uri);
+  }
+
+  accept1(v, arg) {
+    unsupported("accept1", fileOffset, uri);
+  }
+
+  visitChildren(v) {
+    unsupported("visitChildren", fileOffset, uri);
+  }
+
+  transformChildren(v) {
+    unsupported("transformChildren", fileOffset, uri);
   }
 }
