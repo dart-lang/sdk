@@ -59,6 +59,58 @@ main() {
       h.flow.finish();
     });
 
+    test('logicalBinaryOp_rightBegin(isAnd: true) promotes in RHS', () {
+      var h = _Harness();
+      var x = h.addAssignedVar('x', 'int?');
+      var expr = _Expression();
+      h.flow.conditionEqNull(expr, x, notEqual: true);
+      h.flow.logicalBinaryOp_rightBegin(expr, isAnd: true);
+      expect(h.flow.promotedType(x).type, 'int');
+      h.flow.logicalBinaryOp_end(_Expression(), _Expression(), isAnd: true);
+      h.flow.finish();
+    });
+
+    test('logicalBinaryOp_rightEnd(isAnd: true) keeps promotions from RHS', () {
+      var h = _Harness();
+      var x = h.addAssignedVar('x', 'int?');
+      h.flow.logicalBinaryOp_rightBegin(_Expression(), isAnd: true);
+      var rhsExpr = _Expression();
+      h.flow.conditionEqNull(rhsExpr, x, notEqual: true);
+      var wholeExpr = _Expression();
+      h.flow.logicalBinaryOp_end(wholeExpr, rhsExpr, isAnd: true);
+      h.flow.ifStatement_thenBegin(wholeExpr);
+      expect(h.flow.promotedType(x).type, 'int');
+      h.flow.ifStatement_end(false);
+      h.flow.finish();
+    });
+
+    test('logicalBinaryOp_rightEnd(isAnd: false) keeps promotions from RHS',
+        () {
+      var h = _Harness();
+      var x = h.addAssignedVar('x', 'int?');
+      h.flow.logicalBinaryOp_rightBegin(_Expression(), isAnd: false);
+      var rhsExpr = _Expression();
+      h.flow.conditionEqNull(rhsExpr, x);
+      var wholeExpr = _Expression();
+      h.flow.logicalBinaryOp_end(wholeExpr, rhsExpr, isAnd: false);
+      h.flow.ifStatement_thenBegin(wholeExpr);
+      h.flow.ifStatement_elseBegin();
+      expect(h.flow.promotedType(x).type, 'int');
+      h.flow.ifStatement_end(true);
+      h.flow.finish();
+    });
+
+    test('logicalBinaryOp_rightBegin(isAnd: false) promotes in RHS', () {
+      var h = _Harness();
+      var x = h.addAssignedVar('x', 'int?');
+      var expr = _Expression();
+      h.flow.conditionEqNull(expr, x);
+      h.flow.logicalBinaryOp_rightBegin(expr, isAnd: false);
+      expect(h.flow.promotedType(x).type, 'int');
+      h.flow.logicalBinaryOp_end(_Expression(), _Expression(), isAnd: false);
+      h.flow.finish();
+    });
+
     test('Infinite loop does not implicitly assign variables', () {
       var h = _Harness();
       var x = h.addUnassignedVar('x', 'int');

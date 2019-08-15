@@ -399,33 +399,48 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
     }
   }
 
-  void logicalAnd_end(Expression andExpression, Expression rightOperand) {
+  void logicalBinaryOp_end(Expression wholeExpression, Expression rightOperand,
+      {@required bool isAnd}) {
     _conditionalEnd(rightOperand);
     // Tail of the stack: falseLeft, trueLeft, falseRight, trueRight
 
     var trueRight = _stack.removeLast();
     var falseRight = _stack.removeLast();
 
-    _stack.removeLast(); // trueLeft is not used
+    var trueLeft = _stack.removeLast();
     var falseLeft = _stack.removeLast();
 
-    var trueResult = trueRight;
-    var falseResult = _join(falseLeft, falseRight);
+    FlowModel<Variable, Type> trueResult;
+    FlowModel<Variable, Type> falseResult;
+    if (isAnd) {
+      trueResult = trueRight;
+      falseResult = _join(falseLeft, falseRight);
+    } else {
+      trueResult = _join(trueLeft, trueRight);
+      falseResult = falseRight;
+    }
+
     var afterResult = _join(trueResult, falseResult);
 
-    _condition = andExpression;
+    _condition = wholeExpression;
     _conditionTrue = trueResult;
     _conditionFalse = falseResult;
 
     _current = afterResult;
   }
 
-  void logicalAnd_rightBegin(Expression andExpression, Expression leftOperand) {
+  void logicalBinaryOp_rightBegin(Expression leftOperand,
+      {@required bool isAnd}) {
     _conditionalEnd(leftOperand);
     // Tail of the stack: falseLeft, trueLeft
 
-    var trueLeft = _stack.last;
-    _current = trueLeft;
+    if (isAnd) {
+      var trueLeft = _stack.last;
+      _current = trueLeft;
+    } else {
+      var falseLeft = _stack[_stack.length - 2];
+      _current = falseLeft;
+    }
   }
 
   void logicalNot_end(Expression notExpression, Expression operand) {
@@ -436,35 +451,6 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
     _condition = notExpression;
     _conditionTrue = falseExpr;
     _conditionFalse = trueExpr;
-  }
-
-  void logicalOr_end(Expression orExpression, Expression rightOperand) {
-    _conditionalEnd(rightOperand);
-    // Tail of the stack: falseLeft, trueLeft, falseRight, trueRight
-
-    var trueRight = _stack.removeLast();
-    var falseRight = _stack.removeLast();
-
-    var trueLeft = _stack.removeLast();
-    _stack.removeLast(); // falseLeft is not used
-
-    var trueResult = _join(trueLeft, trueRight);
-    var falseResult = falseRight;
-    var afterResult = _join(trueResult, falseResult);
-
-    _condition = orExpression;
-    _conditionTrue = trueResult;
-    _conditionFalse = falseResult;
-
-    _current = afterResult;
-  }
-
-  void logicalOr_rightBegin(Expression orExpression, Expression leftOperand) {
-    _conditionalEnd(leftOperand);
-    // Tail of the stack: falseLeft, trueLeft
-
-    var falseLeft = _stack[_stack.length - 2];
-    _current = falseLeft;
   }
 
   /// Retrieves the type that the [variable] is promoted to, if the [variable]

@@ -3427,10 +3427,10 @@ class ResolverVisitor extends ScopedVisitor {
       left?.accept(this);
 
       if (_flowAnalysis != null) {
-        flow?.logicalAnd_rightBegin(node, left);
+        flow?.logicalBinaryOp_rightBegin(left, isAnd: true);
         _flowAnalysis.checkUnreachableNode(right);
         right.accept(this);
-        flow?.logicalAnd_end(node, right);
+        flow?.logicalBinaryOp_end(node, right, isAnd: true);
       } else {
         _promoteManager.visitBinaryExpression_and_rhs(
           left,
@@ -3448,10 +3448,10 @@ class ResolverVisitor extends ScopedVisitor {
 
       left?.accept(this);
 
-      flow?.logicalOr_rightBegin(node, left);
+      flow?.logicalBinaryOp_rightBegin(left, isAnd: false);
       _flowAnalysis?.checkUnreachableNode(right);
       right.accept(this);
-      flow?.logicalOr_end(node, right);
+      flow?.logicalBinaryOp_end(node, right, isAnd: false);
 
       node.accept(elementResolver);
     } else if (operator == TokenType.BANG_EQ || operator == TokenType.EQ_EQ) {
