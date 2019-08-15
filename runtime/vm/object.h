@@ -349,6 +349,8 @@ class Object {
     return *obj;
   }
 
+  static Object& ZoneHandle(Zone* zone) { return ZoneHandle(zone, null_); }
+
   static Object& ZoneHandle() {
     return ZoneHandle(Thread::Current()->zone(), null_);
   }
