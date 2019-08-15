@@ -733,6 +733,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     _enclosingExtension = node.declaredElement;
     _duplicateDefinitionVerifier.checkExtension(node);
+    _checkForMismatchedAccessorTypesInExtension(node);
     super.visitExtensionDeclaration(node);
     _enclosingExtension = null;
   }
@@ -3691,6 +3692,36 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
             StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
             accessorDeclaration,
             [accessorTextName, getterType, setterType, accessorTextName]);
+      }
+    }
+  }
+
+  /**
+   * Check whether all similarly named accessors have consistent types.
+   */
+  void _checkForMismatchedAccessorTypesInExtension(
+      ExtensionDeclaration extension) {
+    for (ClassMember member in extension.members) {
+      if (member is MethodDeclaration && member.isGetter) {
+        PropertyAccessorElement getterElement =
+            member.declaredElement as PropertyAccessorElement;
+        PropertyAccessorElement setterElement =
+            getterElement.correspondingSetter;
+        if (setterElement != null) {
+          DartType getterType = _getGetterType(getterElement);
+          DartType setterType = _getSetterType(setterElement);
+          if (setterType != null &&
+              getterType != null &&
+              !_typeSystem.isAssignableTo(getterType, setterType,
+                  featureSet: _featureSet)) {
+            SimpleIdentifier nameNode = member.name;
+            String name = nameNode.name;
+            _errorReporter.reportTypeErrorForNode(
+                StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
+                nameNode,
+                [name, getterType, setterType, name]);
+          }
+        }
       }
     }
   }
