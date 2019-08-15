@@ -194,6 +194,7 @@ class Search {
         CompilationUnitElement unitElement = unitResult.element;
         unitElement.accessors.forEach(addElement);
         unitElement.enums.forEach(addElement);
+        unitElement.extensions.forEach(addElement);
         unitElement.functions.forEach(addElement);
         unitElement.functionTypeAliases.forEach(addElement);
         unitElement.mixins.forEach(addElement);

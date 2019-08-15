@@ -57,6 +57,15 @@ class TopLevelDeclarationsTest extends AbstractSearchDomainTest {
     return null;
   }
 
+  test_extensionDeclaration() async {
+    createAnalysisOptionsFile(experiments: ['extension-methods']);
+    addTestFile('''
+extension MyExtension on int {}
+''');
+    await findTopLevelDeclarations('My*');
+    assertHasDeclaration(ElementKind.EXTENSION, 'MyExtension');
+  }
+
   test_invalidRegex() async {
     var result = await findTopLevelDeclarations('[A');
     expect(result, const TypeMatcher<RequestError>());
