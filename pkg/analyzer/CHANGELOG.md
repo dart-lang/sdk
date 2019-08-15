@@ -1,4 +1,4 @@
-## 0.38.0-dev (Not yet published - breaking changes)
+## 0.38.0
 * The deprecated method `AstFactory.compilationUnit2` has been removed.  Clients
   should switch back to `AstFactory.compilationUnit`.
 * Removed the deprecated constructor `ParsedLibraryResultImpl.tmp` and the
