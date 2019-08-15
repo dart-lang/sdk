@@ -1095,7 +1095,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (target != null) {
       ClassElement typeReference = ElementResolver.getTypeReference(target);
       _checkForStaticAccessToInstanceMember(typeReference, methodName);
-      _checkForInstanceAccessToStaticMember(typeReference, methodName);
+      _checkForInstanceAccessToStaticMember(
+          typeReference, node.target, methodName);
       _checkForUnnecessaryNullAware(target, node.operator);
     } else {
       _checkForUnqualifiedReferenceToNonLocalStaticMember(methodName);
@@ -1182,7 +1183,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           ElementResolver.getTypeReference(node.prefix);
       SimpleIdentifier name = node.identifier;
       _checkForStaticAccessToInstanceMember(typeReference, name);
-      _checkForInstanceAccessToStaticMember(typeReference, name);
+      _checkForInstanceAccessToStaticMember(typeReference, node.prefix, name);
     }
     String property = node.identifier.name;
     if (node.staticElement is ExecutableElement &&
@@ -1215,7 +1216,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         ElementResolver.getTypeReference(node.realTarget);
     SimpleIdentifier propertyName = node.propertyName;
     _checkForStaticAccessToInstanceMember(typeReference, propertyName);
-    _checkForInstanceAccessToStaticMember(typeReference, propertyName);
+    _checkForInstanceAccessToStaticMember(
+        typeReference, node.target, propertyName);
     if (node.operator?.type != TokenType.QUESTION_PERIOD &&
         !_objectPropertyNames.contains(propertyName.name)) {
       _checkForNullableDereference(node.target);
@@ -3379,25 +3381,39 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * See [StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER].
    */
   void _checkForInstanceAccessToStaticMember(
-      ClassElement typeReference, SimpleIdentifier name) {
-    // OK, in comment
+      ClassElement typeReference, Expression target, SimpleIdentifier name) {
     if (_isInComment) {
-      return;
-    }
-    // OK, target is a type
-    if (typeReference != null) {
+      // OK, in comment
       return;
     }
     // prepare member Element
     Element element = name.staticElement;
     if (element is ExecutableElement) {
-      // OK, top-level element
-      if (element.enclosingElement is! ClassElement) {
+      if (!element.isStatic) {
+        // OK, instance member
         return;
       }
-      // OK, instance member
-      if (!element.isStatic) {
-        return;
+      Element enclosingElement = element.enclosingElement;
+      if (enclosingElement is ExtensionElement) {
+        if (target is ExtensionOverride) {
+          // OK, target is an extension override
+          return;
+        } else if (target is SimpleIdentifier &&
+            target.staticElement is ExtensionElement) {
+          return;
+        } else if (target is PrefixedIdentifier &&
+            target.staticElement is ExtensionElement) {
+          return;
+        }
+      } else {
+        if (typeReference != null) {
+          // OK, target is a type
+          return;
+        }
+        if (enclosingElement is! ClassElement) {
+          // OK, top-level element
+          return;
+        }
       }
       _errorReporter.reportErrorForNode(
           StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,

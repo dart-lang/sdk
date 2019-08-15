@@ -27,9 +27,7 @@ class InstanceAccessToStaticMemberWithExtensionMethodsTest
     ..contextFeatures = new FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
 
-  @failingTest
   test_getter() async {
-    // No error generated
     await assertErrorsInCode('''
 class C {}
 
@@ -37,11 +35,12 @@ extension E on C {
   static int get a => 0;
 }
 
+C g(C c) => null;
 f(C c) {
-  c.a;
+  g(c).a;
 }
 ''', [
-      error(StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 72, 1),
+      error(StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 93, 1),
     ]);
     assertElement(
       findNode.simple('a;'),
@@ -69,9 +68,7 @@ f(C c) {
     );
   }
 
-  @failingTest
   test_setter() async {
-    // No error generated
     await assertErrorsInCode('''
 class C {}
 
@@ -83,7 +80,7 @@ f(C c) {
   c.a = 2;
 }
 ''', [
-      error(StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 69, 1),
+      error(StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER, 68, 1),
     ]);
     assertElement(
       findNode.simple('a = 2;'),
