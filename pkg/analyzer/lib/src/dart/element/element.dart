@@ -10011,6 +10011,11 @@ class TypeParameterElementImpl extends ElementImpl
   /// The unlinked representation of the type parameter in the summary.
   final UnlinkedTypeParam _unlinkedTypeParam;
 
+  /// The default value of the type parameter. It is used to provide the
+  /// corresponding missing type argument in type annotations and as the
+  /// fall-back type value in type inference.
+  DartType _defaultType;
+
   /// The type defined by this type parameter.
   TypeParameterType _type;
 
@@ -10099,10 +10104,16 @@ class TypeParameterElementImpl extends ElementImpl
   /// corresponding missing type argument in type annotations and as the
   /// fall-back type value in type inference.
   DartType get defaultType {
+    if (_defaultType != null) return _defaultType;
+
     if (linkedNode != null) {
-      return linkedContext.getDefaultType(linkedNode);
+      return _defaultType = linkedContext.getDefaultType(linkedNode);
     }
     return null;
+  }
+
+  set defaultType(DartType defaultType) {
+    _defaultType = defaultType;
   }
 
   @override
