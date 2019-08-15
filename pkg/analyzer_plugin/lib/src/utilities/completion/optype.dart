@@ -616,6 +616,14 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitExtensionDeclaration(ExtensionDeclaration node) {
+    // Make suggestions in the body of the extension declaration
+    if (node.members.contains(entity) || identical(entity, node.rightBracket)) {
+      optype.includeTypeNameSuggestions = true;
+    }
+  }
+
+  @override
   visitFieldDeclaration(FieldDeclaration node) {
     if (offset <= node.semicolon.offset) {
       optype.includeVarNameSuggestions = true;
@@ -873,6 +881,14 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
       optype.includeTypeNameSuggestions = !isThis;
       optype.includeVoidReturnSuggestions = true;
       optype.isPrefixed = true;
+    }
+  }
+
+  @override
+  visitMixinDeclaration(MixinDeclaration node) {
+    // Make suggestions in the body of the mixin declaration
+    if (node.members.contains(entity) || identical(entity, node.rightBracket)) {
+      optype.includeTypeNameSuggestions = true;
     }
   }
 
