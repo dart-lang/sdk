@@ -8,7 +8,8 @@
 import 'dart:async' show Future;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart';
-import 'package:kernel/kernel.dart' show Component, CanonicalName;
+
+import 'package:kernel/kernel.dart' show Component, CanonicalName, Library;
 
 import 'package:kernel/target/targets.dart' show Target;
 
@@ -126,9 +127,9 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
   } else {
     options = oldState.options;
     processedOpts = oldState.processedOpts;
-    var sdkComponent = cachedSdkInput.component;
+    Component sdkComponent = cachedSdkInput.component;
     // Reset the state of the component.
-    for (var lib in sdkComponent.libraries) {
+    for (Library lib in sdkComponent.libraries) {
       lib.isExternal = cachedSdkInput.externalLibs.contains(lib.importUri);
     }
 
@@ -157,15 +158,15 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
 
   // Then read all the input summary components.
   CanonicalName nameRoot = cachedSdkInput.component.root;
-  final inputSummaries = <Component>[];
+  final List<Component> inputSummaries = <Component>[];
   Map<Uri, Uri> libraryToInputDill;
   if (trackNeededDillLibraries) {
     libraryToInputDill = new Map<Uri, Uri>();
   }
   List<Uri> loadFromDill = new List<Uri>();
   for (Uri summary in summaryInputs) {
-    var cachedInput = workerInputCache[summary];
-    var summaryDigest = workerInputDigests[summary];
+    WorkerInputComponent cachedInput = workerInputCache[summary];
+    List<int> summaryDigest = workerInputDigests[summary];
     if (summaryDigest == null) {
       throw new StateError("Expected to get digest for $summary");
     }
@@ -175,8 +176,8 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       loadFromDill.add(summary);
     } else {
       // Need to reset cached components so they are usable again.
-      var component = cachedInput.component;
-      for (var lib in component.libraries) {
+      Component component = cachedInput.component;
+      for (Library lib in component.libraries) {
         lib.isExternal = cachedInput.externalLibs.contains(lib.importUri);
         if (trackNeededDillLibraries) {
           libraryToInputDill[lib.importUri] = summary;
@@ -200,7 +201,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     workerInputCache[summary] = cachedInput;
     inputSummaries.add(cachedInput.component);
     if (trackNeededDillLibraries) {
-      for (var lib in cachedInput.component.libraries) {
+      for (Library lib in cachedInput.component.libraries) {
         libraryToInputDill[lib.importUri] = summary;
       }
     }
@@ -267,19 +268,21 @@ Future<CompilerResult> _compile(InitializedCompilerState compilerState,
 Future<List<int>> compileSummary(InitializedCompilerState compilerState,
     List<Uri> inputs, DiagnosticMessageHandler diagnosticMessageHandler,
     {bool includeOffsets: false}) async {
-  var result = await _compile(compilerState, inputs, diagnosticMessageHandler,
+  CompilerResult result = await _compile(
+      compilerState, inputs, diagnosticMessageHandler,
       summaryOnly: true, includeOffsets: includeOffsets);
   return result?.summary;
 }
 
 Future<Component> compileComponent(InitializedCompilerState compilerState,
     List<Uri> inputs, DiagnosticMessageHandler diagnosticMessageHandler) async {
-  var result = await _compile(compilerState, inputs, diagnosticMessageHandler,
+  CompilerResult result = await _compile(
+      compilerState, inputs, diagnosticMessageHandler,
       summaryOnly: false);
 
-  var component = result?.component;
+  Component component = result?.component;
   if (component != null) {
-    for (var lib in component.libraries) {
+    for (Library lib in component.libraries) {
       if (!inputs.contains(lib.importUri)) {
         // Excluding the library also means that their canonical names will not
         // be computed as part of serialization, so we need to do that

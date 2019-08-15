@@ -92,9 +92,9 @@ Future<List<int>> summarize(List<String> inputs, Map<String, dynamic> sources,
 Future<Null> setup(CompilerOptions options, Map<String, dynamic> sources,
     {List<String> inputSummaries: const [],
     List<String> linkedDependencies: const []}) async {
-  var fs = new MemoryFileSystem(_defaultDir);
+  MemoryFileSystem fs = new MemoryFileSystem(_defaultDir);
   sources.forEach((name, data) {
-    var entity = fs.entityForUri(toTestUri(name));
+    MemoryFileSystemEntity entity = fs.entityForUri(toTestUri(name));
     if (data is String) {
       entity.writeAsStringSync(data);
     } else {

@@ -1223,8 +1223,10 @@ abstract class ClassBuilder extends DeclarationBuilder {
         i < declaredFunction.positionalParameters.length &&
             i < interfaceFunction.positionalParameters.length;
         i++) {
-      var declaredParameter = declaredFunction.positionalParameters[i];
-      var interfaceParameter = interfaceFunction.positionalParameters[i];
+      VariableDeclaration declaredParameter =
+          declaredFunction.positionalParameters[i];
+      VariableDeclaration interfaceParameter =
+          interfaceFunction.positionalParameters[i];
       _checkTypes(
           types,
           interfaceSubstitution,
@@ -1301,7 +1303,7 @@ abstract class ClassBuilder extends DeclarationBuilder {
           break outer;
         }
       }
-      var declaredParameter = declaredNamedParameters.current;
+      VariableDeclaration declaredParameter = declaredNamedParameters.current;
       _checkTypes(
           types,
           interfaceSubstitution,
@@ -1324,8 +1326,8 @@ abstract class ClassBuilder extends DeclarationBuilder {
         types, declaredMember, interfaceMember, null, null, isInterfaceCheck);
     Substitution declaredSubstitution =
         _computeDeclaredSubstitution(types, declaredMember);
-    var declaredType = declaredMember.getterType;
-    var interfaceType = interfaceMember.getterType;
+    DartType declaredType = declaredMember.getterType;
+    DartType interfaceType = interfaceMember.getterType;
     _checkTypes(
         types,
         interfaceSubstitution,
@@ -1347,9 +1349,9 @@ abstract class ClassBuilder extends DeclarationBuilder {
         types, declaredMember, interfaceMember, null, null, isInterfaceCheck);
     Substitution declaredSubstitution =
         _computeDeclaredSubstitution(types, declaredMember);
-    var declaredType = declaredMember.setterType;
-    var interfaceType = interfaceMember.setterType;
-    var declaredParameter =
+    DartType declaredType = declaredMember.setterType;
+    DartType interfaceType = interfaceMember.setterType;
+    VariableDeclaration declaredParameter =
         declaredMember.function?.positionalParameters?.elementAt(0);
     bool isCovariant = declaredParameter?.isCovariant ?? false;
     if (!isCovariant && declaredMember is Field) {

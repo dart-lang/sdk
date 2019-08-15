@@ -5,7 +5,8 @@
 import 'dart:async' show Future;
 
 import 'package:kernel/class_hierarchy.dart';
-import 'package:kernel/kernel.dart' show Component, CanonicalName;
+
+import 'package:kernel/kernel.dart' show Component, CanonicalName, Library;
 
 import 'package:kernel/target/targets.dart' show Target;
 
@@ -16,6 +17,8 @@ import '../api_prototype/diagnostic_message.dart' show DiagnosticMessageHandler;
 import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
 
 import '../api_prototype/file_system.dart' show FileSystem;
+
+import '../api_prototype/kernel_generator.dart' show CompilerResult;
 
 import '../api_prototype/standard_file_system.dart' show StandardFileSystem;
 
@@ -153,7 +156,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
 
   Map<Uri, WorkerInputComponent> workerInputCache =
       oldState?.workerInputCache ?? new Map<Uri, WorkerInputComponent>();
-  var sdkDigest = workerInputDigests[sdkSummary];
+  final List<int> sdkDigest = workerInputDigests[sdkSummary];
   if (sdkDigest == null) {
     throw new StateError("Expected to get sdk digest at $sdkSummary");
   }
@@ -196,7 +199,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     options.inputSummaries = inputSummaries;
     processedOpts = oldState.processedOpts;
 
-    for (var lib in cachedSdkInput.component.libraries) {
+    for (Library lib in cachedSdkInput.component.libraries) {
       lib.isExternal = false;
     }
     cachedSdkInput.component.adoptChildren();
@@ -232,7 +235,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
   for (int i = 0; i < inputSummaries.length; i++) {
     Uri inputSummary = inputSummaries[i];
     WorkerInputComponent cachedInput = workerInputCache[inputSummary];
-    var digest = workerInputDigests[inputSummary];
+    List<int> digest = workerInputDigests[inputSummary];
     if (digest == null) {
       throw new StateError("Expected to get digest for $inputSummary");
     }
@@ -242,8 +245,8 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       loadFromDillIndexes.add(i);
     } else {
       // Need to reset cached components so they are usable again.
-      var component = cachedInput.component;
-      for (var lib in component.libraries) {
+      Component component = cachedInput.component;
+      for (Library lib in component.libraries) {
         lib.isExternal = cachedInput.externalLibs.contains(lib.importUri);
         if (trackNeededDillLibraries) {
           libraryToInputDill[lib.importUri] = inputSummary;
@@ -261,7 +264,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     if (digest == null) {
       throw new StateError("Expected to get digest for $summary");
     }
-    var bytes = await fileSystem.entityForUri(summary).readAsBytes();
+    List<int> bytes = await fileSystem.entityForUri(summary).readAsBytes();
     WorkerInputComponent cachedInput = WorkerInputComponent(
         digest,
         await compilerState.processedOpts
@@ -269,7 +272,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     workerInputCache[summary] = cachedInput;
     doneInputSummaries[index] = cachedInput.component;
     if (trackNeededDillLibraries) {
-      for (var lib in cachedInput.component.libraries) {
+      for (Library lib in cachedInput.component.libraries) {
         libraryToInputDill[lib.importUri] = summary;
       }
     }
@@ -292,13 +295,13 @@ Future<DdcResult> compile(InitializedCompilerState compilerState,
   processedOpts.inputs.clear();
   processedOpts.inputs.addAll(inputs);
 
-  var compilerResult =
+  CompilerResult compilerResult =
       await generateKernel(processedOpts, includeHierarchyAndCoreTypes: true);
 
-  var component = compilerResult?.component;
+  Component component = compilerResult?.component;
   if (component == null) return null;
 
   // This should be cached.
-  var summaries = await processedOpts.loadInputSummaries(null);
+  List<Component> summaries = await processedOpts.loadInputSummaries(null);
   return new DdcResult(component, summaries, compilerResult.classHierarchy);
 }

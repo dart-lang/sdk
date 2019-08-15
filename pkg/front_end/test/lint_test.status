@@ -2,20 +2,10 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE.md file.
 
-src/api_prototype/compiler_options: Fail
-src/api_prototype/kernel_generator: Fail
-src/api_prototype/memory_file_system: Fail
-src/api_unstable/bazel_worker: Fail
-src/api_unstable/dart2js: Fail
-src/api_unstable/ddc: Fail
-src/base/libraries_specification: Fail
-src/base/processed_options: Fail
-src/fasta/builder/class_builder: Fail
 src/fasta/builder/constructor_reference_builder: Fail
 src/fasta/builder/named_type_builder: Fail
 src/fasta/builder/procedure_builder: Fail
 src/fasta/builder/type_alias_builder: Fail
-src/fasta/compiler_context: Fail
 src/fasta/dill/dill_library_builder: Fail
 src/fasta/dill/dill_member_builder: Fail
 src/fasta/flow_analysis/flow_analysis: Fail
@@ -55,11 +45,6 @@ src/fasta/type_inference/type_constraint_gatherer: Fail
 src/fasta/type_inference/type_inference_engine: Fail
 src/fasta/type_inference/type_inferrer: Fail
 src/fasta/type_inference/type_promotion: Fail
+src/fasta/type_inference/type_schema: Fail
 src/fasta/type_inference/type_schema_elimination: Fail
 src/fasta/type_inference/type_schema_environment: Fail
-src/fasta/type_inference/type_schema: Fail
-src/kernel_generator_impl: Fail
-src/scanner/errors: Fail
-src/testing/compiler_common: Fail
-src/testing/id_testing: Fail
-src/testing/package_root: Fail

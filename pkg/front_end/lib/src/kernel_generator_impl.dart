@@ -18,6 +18,8 @@ import 'fasta/crash.dart' show withCrashReporting;
 
 import 'fasta/dill/dill_target.dart' show DillTarget;
 
+import 'fasta/fasta_codes.dart' show LocatedMessage;
+
 import 'fasta/kernel/kernel_target.dart' show KernelTarget;
 
 import 'fasta/kernel/utils.dart' show printComponentText, serializeComponent;
@@ -31,6 +33,8 @@ import 'fasta/severity.dart' show Severity;
 import 'fasta/uri_translator.dart' show UriTranslator;
 
 import 'api_prototype/front_end.dart' show CompilerResult;
+
+import 'api_prototype/file_system.dart' show FileSystem;
 
 /// Implementation for the
 /// `package:front_end/src/api_prototype/kernel_generator.dart` and
@@ -58,14 +62,14 @@ Future<CompilerResult> generateKernelInternal(
     bool includeOffsets: true,
     bool retainDataForTesting: false,
     bool includeHierarchyAndCoreTypes: false}) async {
-  var options = CompilerContext.current.options;
-  var fs = options.fileSystem;
+  ProcessedOptions options = CompilerContext.current.options;
+  FileSystem fs = options.fileSystem;
 
   Loader sourceLoader;
   return withCrashReporting<CompilerResult>(() async {
     UriTranslator uriTranslator = await options.getUriTranslator();
 
-    var dillTarget =
+    DillTarget dillTarget =
         new DillTarget(options.ticker, uriTranslator, options.target);
 
     Set<Uri> externalLibs(Component component) {
@@ -75,12 +79,12 @@ Future<CompilerResult> generateKernelInternal(
           .toSet();
     }
 
-    var sdkSummary = await options.loadSdkSummary(null);
+    Component sdkSummary = await options.loadSdkSummary(null);
     // By using the nameRoot of the the summary, we enable sharing the
     // sdkSummary between multiple invocations.
     CanonicalName nameRoot = sdkSummary?.root ?? new CanonicalName.root();
     if (sdkSummary != null) {
-      var excluded = externalLibs(sdkSummary);
+      Set<Uri> excluded = externalLibs(sdkSummary);
       dillTarget.loader.appendLibraries(sdkSummary,
           filter: (uri) => !excluded.contains(uri));
     }
@@ -88,8 +92,8 @@ Future<CompilerResult> generateKernelInternal(
     // TODO(sigmund): provide better error reporting if input summaries or
     // linked dependencies were listed out of order (or provide mechanism to
     // sort them).
-    for (var inputSummary in await options.loadInputSummaries(nameRoot)) {
-      var excluded = externalLibs(inputSummary);
+    for (Component inputSummary in await options.loadInputSummaries(nameRoot)) {
+      Set<Uri> excluded = externalLibs(inputSummary);
       dillTarget.loader.appendLibraries(inputSummary,
           filter: (uri) => !excluded.contains(uri));
     }
@@ -102,15 +106,16 @@ Future<CompilerResult> generateKernelInternal(
 
     // Linked dependencies are meant to be part of the component so they are not
     // marked external.
-    for (var dependency in await options.loadLinkDependencies(nameRoot)) {
-      var excluded = externalLibs(dependency);
+    for (Component dependency in await options.loadLinkDependencies(nameRoot)) {
+      Set<Uri> excluded = externalLibs(dependency);
       dillTarget.loader.appendLibraries(dependency,
           filter: (uri) => !excluded.contains(uri));
     }
 
     await dillTarget.buildOutlines();
 
-    var kernelTarget = new KernelTarget(fs, false, dillTarget, uriTranslator);
+    KernelTarget kernelTarget =
+        new KernelTarget(fs, false, dillTarget, uriTranslator);
     sourceLoader = kernelTarget.loader;
     kernelTarget.setEntryPoints(options.inputs);
     Component summaryComponent =
@@ -118,7 +123,7 @@ Future<CompilerResult> generateKernelInternal(
     List<int> summary = null;
     if (buildSummary) {
       if (options.verify) {
-        for (var error in verifyComponent(summaryComponent)) {
+        for (LocatedMessage error in verifyComponent(summaryComponent)) {
           options.report(error, Severity.error);
         }
       }
@@ -132,7 +137,7 @@ Future<CompilerResult> generateKernelInternal(
       // Note: we don't pass the library argument to the constructor to
       // preserve the the libraries parent pointer (it should continue to point
       // to the component within KernelTarget).
-      var trimmedSummaryComponent =
+      Component trimmedSummaryComponent =
           new Component(nameRoot: summaryComponent.root)
             ..libraries.addAll(truncateSummary
                 ? kernelTarget.loader.libraries

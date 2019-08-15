@@ -222,8 +222,8 @@ class CompilerOptions {
 Map<String, bool> parseExperimentalArguments(List<String> arguments) {
   Map<String, bool> result = {};
   if (arguments != null) {
-    for (var argument in arguments) {
-      for (var feature in argument.split(',')) {
+    for (String argument in arguments) {
+      for (String feature in argument.split(',')) {
         if (feature.startsWith('no-')) {
           result[feature.substring(3)] = false;
         } else {

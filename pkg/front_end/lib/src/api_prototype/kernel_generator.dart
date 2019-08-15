@@ -54,12 +54,13 @@ Future<CompilerResult> kernelForProgram(
 Future<CompilerResult> kernelForProgramInternal(
     Uri source, CompilerOptions options,
     {bool retainDataForTesting: false}) async {
-  var pOptions = new ProcessedOptions(options: options, inputs: [source]);
+  ProcessedOptions pOptions =
+      new ProcessedOptions(options: options, inputs: [source]);
   return await CompilerContext.runWithOptions(pOptions, (context) async {
     CompilerResult result = await generateKernelInternal(
         includeHierarchyAndCoreTypes: true,
         retainDataForTesting: retainDataForTesting);
-    var component = result?.component;
+    Component component = result?.component;
     if (component == null) return null;
 
     if (component.mainMethod == null) {

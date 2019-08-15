@@ -17,3 +17,4 @@ linter:
     - valid_regexps
     - package_api_docs
     - lines_longer_than_80_chars
+    # - always_specify_types

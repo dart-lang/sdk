@@ -600,7 +600,7 @@ Future runTests(Directory dataDir,
   bool continued = false;
   bool hasFailures = false;
 
-  var relativeDir = dataDir.uri.path.replaceAll(Uri.base.path, '');
+  String relativeDir = dataDir.uri.path.replaceAll(Uri.base.path, '');
   print('Data dir: ${relativeDir}');
   List<FileSystemEntity> entities = dataDir.listSync();
   if (shards > 1) {
