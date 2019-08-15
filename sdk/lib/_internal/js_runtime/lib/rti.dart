@@ -1163,6 +1163,10 @@ class _Universe {
   static String _canonicalRecipeOfAny() =>
       Recipe.pushAnyExtensionString + Recipe.extensionOpString;
 
+  static String _canonicalRecipeOfStar(Rti baseType) =>
+      Rti._getCanonicalRecipe(baseType) + Recipe.wrapStarString;
+  static String _canonicalRecipeOfQuestion(Rti baseType) =>
+      Rti._getCanonicalRecipe(baseType) + Recipe.wrapQuestionString;
   static String _canonicalRecipeOfFutureOr(Rti baseType) =>
       Rti._getCanonicalRecipe(baseType) + Recipe.wrapFutureOrString;
 
@@ -1201,18 +1205,33 @@ class _Universe {
     return _finishRti(universe, rti);
   }
 
-  static Rti _lookupFutureOrRti(universe, Rti baseType) {
-    String canonicalRecipe = _canonicalRecipeOfFutureOr(baseType);
+  static Rti _lookupStarRti(universe, Rti baseType) => _lookupUnaryRti(
+      universe, Rti.kindStar, baseType, _canonicalRecipeOfStar(baseType));
+
+  static Rti _lookupQuestionRti(universe, Rti baseType) => _lookupUnaryRti(
+      universe,
+      Rti.kindQuestion,
+      baseType,
+      _canonicalRecipeOfQuestion(baseType));
+
+  static Rti _lookupFutureOrRti(universe, Rti baseType) => _lookupUnaryRti(
+      universe,
+      Rti.kindFutureOr,
+      baseType,
+      _canonicalRecipeOfFutureOr(baseType));
+
+  static Rti _lookupUnaryRti(
+      universe, int kind, Rti baseType, String canonicalRecipe) {
     var cache = evalCache(universe);
     var probe = _cacheGet(cache, canonicalRecipe);
     if (probe != null) return _castToRti(probe);
-    return _createFutureOrRti(universe, baseType, canonicalRecipe);
+    return _createUnaryRti(universe, kind, baseType, canonicalRecipe);
   }
 
-  static Rti _createFutureOrRti(
-      universe, Rti baseType, String canonicalRecipe) {
+  static Rti _createUnaryRti(
+      universe, int kind, Rti baseType, String canonicalRecipe) {
     Rti rti = Rti.allocate();
-    Rti._setKind(rti, Rti.kindFutureOr);
+    Rti._setKind(rti, kind);
     Rti._setPrimary(rti, baseType);
     Rti._setCanonicalRecipe(rti, canonicalRecipe);
     return _finishRti(universe, rti);
@@ -1615,6 +1634,22 @@ class _Parser {
 
           case Recipe.extensionOp:
             handleExtendedOperations(parser, stack);
+            break;
+
+          case Recipe.wrapStar:
+            Object u = universe(parser);
+            push(
+                stack,
+                _Universe._lookupStarRti(
+                    u, toType(u, environment(parser), pop(stack))));
+            break;
+
+          case Recipe.wrapQuestion:
+            Object u = universe(parser);
+            push(
+                stack,
+                _Universe._lookupQuestionRti(
+                    u, toType(u, environment(parser), pop(stack))));
             break;
 
           case Recipe.wrapFutureOr:
