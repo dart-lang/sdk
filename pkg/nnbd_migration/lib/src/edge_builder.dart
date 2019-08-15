@@ -301,9 +301,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       return _nonNullableBoolType;
     } else if (operatorType == TokenType.AMPERSAND_AMPERSAND ||
         operatorType == TokenType.BAR_BAR) {
+      bool isAnd = operatorType == TokenType.AMPERSAND_AMPERSAND;
       _handleAssignment(node.leftOperand, _notNullType);
+      _flowAnalysis.logicalBinaryOp_rightBegin(node.leftOperand, isAnd: isAnd);
       _postDominatedLocals.doScoped(
           action: () => _handleAssignment(node.rightOperand, _notNullType));
+      _flowAnalysis.logicalBinaryOp_end(node, node.rightOperand, isAnd: isAnd);
       return _nonNullableBoolType;
     } else if (operatorType == TokenType.QUESTION_QUESTION) {
       DecoratedType expressionType;

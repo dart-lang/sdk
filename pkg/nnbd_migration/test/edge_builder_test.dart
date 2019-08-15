@@ -642,6 +642,36 @@ bool f(bool i, bool j) => i && j;
     assertNoUpstreamNullability(decoratedTypeAnnotation('bool i').node);
   }
 
+  test_binaryExpression_ampersandAmpersand_flow_analysis_left() async {
+    await analyze('''
+bool f(int i) => i != null && i.isEven;
+bool g(int j) => j.isEven;
+''');
+    var iNode = decoratedTypeAnnotation('int i').node;
+    var jNode = decoratedTypeAnnotation('int j').node;
+    // No edge from i to `never` because i's type is promoted to non-nullable
+    assertNoEdge(iNode, never);
+    // But there is an edge from j to `never`.
+    assertEdge(jNode, never, hard: true);
+  }
+
+  test_binaryExpression_ampersandAmpersand_flow_analysis_right() async {
+    await analyze('''
+void f(bool b, int i, int j) {
+  if (b && i != null) {
+    print(i.isEven);
+    print(j.isEven);
+  }
+}
+''');
+    var iNode = decoratedTypeAnnotation('int i').node;
+    var jNode = decoratedTypeAnnotation('int j').node;
+    // No edge from i to `never` because i's type is promoted to non-nullable
+    assertNoEdge(iNode, never);
+    // But there is an edge from j to `never`.
+    assertEdge(jNode, never, hard: false);
+  }
+
   test_binaryExpression_bar_result_not_null() async {
     await analyze('''
 int f(int i, int j) => i | j;
@@ -656,6 +686,36 @@ bool f(bool i, bool j) => i || j;
 ''');
 
     assertNoUpstreamNullability(decoratedTypeAnnotation('bool i').node);
+  }
+
+  test_binaryExpression_barBar_flow_analysis_left() async {
+    await analyze('''
+bool f(int i) => i == null || i.isEven;
+bool g(int j) => j.isEven;
+''');
+    var iNode = decoratedTypeAnnotation('int i').node;
+    var jNode = decoratedTypeAnnotation('int j').node;
+    // No edge from i to `never` because i's type is promoted to non-nullable
+    assertNoEdge(iNode, never);
+    // But there is an edge from j to `never`.
+    assertEdge(jNode, never, hard: true);
+  }
+
+  test_binaryExpression_barBar_flow_analysis_right() async {
+    await analyze('''
+void f(bool b, int i, int j) {
+  if (b || i == null) {} else {
+    print(i.isEven);
+    print(j.isEven);
+  }
+}
+''');
+    var iNode = decoratedTypeAnnotation('int i').node;
+    var jNode = decoratedTypeAnnotation('int j').node;
+    // No edge from i to `never` because i's type is promoted to non-nullable
+    assertNoEdge(iNode, never);
+    // But there is an edge from j to `never`.
+    assertEdge(jNode, never, hard: false);
   }
 
   test_binaryExpression_caret_result_not_null() async {
