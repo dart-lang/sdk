@@ -9,6 +9,8 @@ import 'already_migrated_code_decorator_test.dart'
 import 'api_test.dart' as api_test;
 import 'decorated_class_hierarchy_test.dart' as decorated_class_hierarchy_test;
 import 'decorated_type_test.dart' as decorated_type_test;
+import 'edge_builder_flow_analysis_test.dart'
+    as edge_builder_flow_analysis_test;
 import 'edge_builder_test.dart' as edge_builder_test;
 import 'node_builder_test.dart' as node_builder_test;
 import 'nullability_node_test.dart' as nullability_node_test;
@@ -20,6 +22,7 @@ main() {
     api_test.main();
     decorated_class_hierarchy_test.main();
     decorated_type_test.main();
+    edge_builder_flow_analysis_test.main();
     edge_builder_test.main();
     node_builder_test.main();
     nullability_node_test.main();
