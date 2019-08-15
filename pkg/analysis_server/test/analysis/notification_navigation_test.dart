@@ -363,6 +363,19 @@ class BBB {}
     assertHasRegionTarget('BBB p', 'BBB {}');
   }
 
+  test_extension_on() async {
+    createAnalysisOptionsFile(experiments: ['extension-methods']);
+    addTestFile('''
+class C //1
+{}
+extension E on C //2
+{}
+''');
+    await prepareNavigation();
+    assertHasRegion('C //2');
+    assertHasTarget('C //1');
+  }
+
   test_factoryRedirectingConstructor_implicit() async {
     addTestFile('''
 class A {
