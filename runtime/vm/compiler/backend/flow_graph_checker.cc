@@ -242,8 +242,13 @@ void FlowGraphChecker::VisitInstruction(Instruction* instruction) {
 }
 
 void FlowGraphChecker::VisitDefinition(Definition* def) {
-  // Used definitions must have an SSA name.
-  ASSERT(def->HasSSATemp() || def->input_use_list() == nullptr);
+  // Used definitions must have an SSA name, and the SSA name must
+  // be less than the current_ssa_temp_index.
+  if (def->HasSSATemp()) {
+    ASSERT(def->ssa_temp_index() < flow_graph_->current_ssa_temp_index());
+  } else {
+    ASSERT(def->input_use_list() == nullptr);
+  }
   // Check all regular uses.
   Value* prev = nullptr;
   for (Value* use = def->input_use_list(); use != nullptr;
