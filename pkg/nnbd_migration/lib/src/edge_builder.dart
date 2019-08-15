@@ -237,7 +237,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitAssertStatement(AssertStatement node) {
-    _handleAssignment(node.condition, destinationType: _notNullType);
+    _handleAssignment(node.condition, destinationType: _nonNullableBoolType);
     if (identical(_conditionInfo?.condition, node.condition)) {
       var intentNode = _conditionInfo.trueDemonstratesNonNullIntent;
       if (intentNode != null && _conditionInfo.postDominatingIntent) {
@@ -312,11 +312,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     } else if (operatorType == TokenType.AMPERSAND_AMPERSAND ||
         operatorType == TokenType.BAR_BAR) {
       bool isAnd = operatorType == TokenType.AMPERSAND_AMPERSAND;
-      _handleAssignment(node.leftOperand, destinationType: _notNullType);
+      _handleAssignment(node.leftOperand,
+          destinationType: _nonNullableBoolType);
       _flowAnalysis.logicalBinaryOp_rightBegin(node.leftOperand, isAnd: isAnd);
       _postDominatedLocals.doScoped(
           action: () => _handleAssignment(node.rightOperand,
-              destinationType: _notNullType));
+              destinationType: _nonNullableBoolType));
       _flowAnalysis.logicalBinaryOp_end(node, node.rightOperand, isAnd: isAnd);
       return _nonNullableBoolType;
     } else if (operatorType == TokenType.QUESTION_QUESTION) {
@@ -435,7 +436,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitConditionalExpression(ConditionalExpression node) {
-    _handleAssignment(node.condition, destinationType: _notNullType);
+    _handleAssignment(node.condition, destinationType: _nonNullableBoolType);
 
     DecoratedType thenType;
     DecoratedType elseType;
@@ -513,7 +514,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitDoStatement(DoStatement node) {
     node.body.accept(this);
-    _handleAssignment(node.condition, destinationType: _notNullType);
+    _handleAssignment(node.condition, destinationType: _nonNullableBoolType);
     return null;
   }
 
@@ -632,7 +633,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitIfElement(IfElement node) {
-    _handleAssignment(node.condition, destinationType: _notNullType);
+    _handleAssignment(node.condition, destinationType: _nonNullableBoolType);
     NullabilityNode trueGuard;
     NullabilityNode falseGuard;
     if (identical(_conditionInfo?.condition, node.condition)) {
@@ -670,7 +671,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitIfStatement(IfStatement node) {
-    _handleAssignment(node.condition, destinationType: _notNullType);
+    _handleAssignment(node.condition, destinationType: _nonNullableBoolType);
     NullabilityNode trueGuard;
     NullabilityNode falseGuard;
     if (identical(_conditionInfo?.condition, node.condition)) {
@@ -1177,7 +1178,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType visitWhileStatement(WhileStatement node) {
     // Note: we do not create guards. A null check here is *very* unlikely to be
     // unnecessary after analysis.
-    _handleAssignment(node.condition, destinationType: _notNullType);
+    _handleAssignment(node.condition, destinationType: _nonNullableBoolType);
     _postDominatedLocals.doScoped(action: () => node.body.accept(this));
     return null;
   }
