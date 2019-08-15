@@ -143,8 +143,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         node.parameters,
         node.initializers,
         node.body,
-        node.redirectedConstructor,
-        node);
+        node.redirectedConstructor);
     return null;
   }
 
@@ -195,8 +194,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         node.functionExpression.parameters,
         null,
         node.functionExpression.body,
-        null,
-        node);
+        null);
     return null;
   }
 
@@ -223,8 +221,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         node.parameters,
         null,
         node.body,
-        null,
-        node);
+        null);
     return null;
   }
 
@@ -395,8 +392,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
       FormalParameterList parameters,
       NodeList<ConstructorInitializer> initializers,
       FunctionBody body,
-      ConstructorName redirectedConstructor,
-      AstNode enclosingNode) {
+      ConstructorName redirectedConstructor) {
     metadata.accept(this);
     var functionType = declaredElement.type;
     DecoratedType decoratedReturnType;
