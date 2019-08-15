@@ -1633,8 +1633,13 @@ class ObjectTable implements ObjectWriter, ObjectReader {
     return handle;
   }
 
-  List<ObjectHandle> getHandles(List<Node> nodes) =>
-      nodes.map((n) => getHandle(n)).toList();
+  List<ObjectHandle> getHandles(List<Node> nodes) {
+    final handles = new List<ObjectHandle>(nodes.length);
+    for (int i = 0; i < nodes.length; ++i) {
+      handles[i] = getHandle(nodes[i]);
+    }
+    return handles;
+  }
 
   String mangleGetterName(String name) => 'get:$name';
 
@@ -1665,6 +1670,17 @@ class ObjectTable implements ObjectWriter, ObjectReader {
     assert(name != null);
     final libraryHandle = library != null ? getHandle(library) : null;
     return getOrAddObject(new _NameHandle(libraryHandle, name));
+  }
+
+  List<_NameHandle> getPublicNameHandles(List<String> names) {
+    if (names.isEmpty) {
+      return const <_NameHandle>[];
+    }
+    final handles = new List<_NameHandle>(names.length);
+    for (int i = 0; i < names.length; ++i) {
+      handles[i] = getNameHandle(null, names[i]);
+    }
+    return handles;
   }
 
   ObjectHandle getSelectorNameHandle(Name name,
@@ -1704,34 +1720,40 @@ class ObjectTable implements ObjectWriter, ObjectReader {
     if (typeArgs == null) {
       return null;
     }
-    final List<_TypeHandle> handles =
-        typeArgs.map((t) => getHandle(t) as _TypeHandle).toList();
+    final handles = new List<_TypeHandle>(typeArgs.length);
+    for (int i = 0; i < typeArgs.length; ++i) {
+      handles[i] = getHandle(typeArgs[i]) as _TypeHandle;
+    }
     return getOrAddObject(new _TypeArgumentsHandle(handles));
   }
 
   ObjectHandle getArgDescHandle(int numArguments,
       [int numTypeArguments = 0, List<String> argNames = const <String>[]]) {
     return getOrAddObject(new _ArgDescHandle(
-        numArguments,
-        numTypeArguments,
-        argNames
-            .map<_NameHandle>((name) => getNameHandle(null, name))
-            .toList()));
+        numArguments, numTypeArguments, getPublicNameHandles(argNames)));
   }
 
   ObjectHandle getArgDescHandleByArguments(Arguments args,
       {bool hasReceiver: false, bool isFactory: false}) {
-    return getArgDescHandle(
-        args.positional.length +
-            args.named.length +
-            (hasReceiver ? 1 : 0) +
-            // VM expects that type arguments vector passed to a factory
-            // constructor is counted in numArguments, and not counted in
-            // numTypeArgs.
-            // TODO(alexmarkov): Clean this up.
-            (isFactory ? 1 : 0),
-        isFactory ? 0 : args.types.length,
-        new List<String>.from(args.named.map((ne) => ne.name)));
+    List<_NameHandle> argNames = const <_NameHandle>[];
+    final namedArguments = args.named;
+    if (namedArguments.isNotEmpty) {
+      argNames = new List<_NameHandle>(namedArguments.length);
+      for (int i = 0; i < namedArguments.length; ++i) {
+        argNames[i] = getNameHandle(null, namedArguments[i].name);
+      }
+    }
+    final int numArguments = args.positional.length +
+        args.named.length +
+        (hasReceiver ? 1 : 0) +
+        // VM expects that type arguments vector passed to a factory
+        // constructor is counted in numArguments, and not counted in
+        // numTypeArgs.
+        // TODO(alexmarkov): Clean this up.
+        (isFactory ? 1 : 0);
+    final int numTypeArguments = isFactory ? 0 : args.types.length;
+    return getOrAddObject(
+        new _ArgDescHandle(numArguments, numTypeArguments, argNames));
   }
 
   ObjectHandle getScriptHandle(Uri uri, SourceFile source) {
@@ -1741,6 +1763,18 @@ class ObjectTable implements ObjectWriter, ObjectReader {
       handle.source = source;
     }
     return handle;
+  }
+
+  List<NameAndType> getTypeParameterHandles(List<TypeParameter> typeParams) {
+    if (typeParams.isEmpty) {
+      return const <NameAndType>[];
+    }
+    final namesAndBounds = new List<NameAndType>();
+    for (TypeParameter tp in typeParams) {
+      namesAndBounds.add(
+          new NameAndType(getNameHandle(null, tp.name), getHandle(tp.bound)));
+    }
+    return namesAndBounds;
   }
 
   void declareClosure(
@@ -2047,11 +2081,7 @@ class _NodeVisitor extends Visitor<ObjectHandle> {
     final returnType = objectTable.getHandle(node.returnType);
 
     final result = objectTable.getOrAddObject(new _FunctionTypeHandle(
-        node.typeParameters
-            .map((tp) => new NameAndType(
-                objectTable.getNameHandle(null, tp.name),
-                objectTable.getHandle(tp.bound)))
-            .toList(),
+        objectTable.getTypeParameterHandles(node.typeParameters),
         node.requiredParameterCount,
         positionalParams,
         namedParams,
@@ -2098,8 +2128,7 @@ class _NodeVisitor extends Visitor<ObjectHandle> {
   ObjectHandle visitListConstant(ListConstant node) =>
       objectTable.getOrAddObject(new _ConstObjectHandle(
           ConstTag.kList,
-          new List<ObjectHandle>.from(
-              node.entries.map((Constant c) => objectTable.getHandle(c))),
+          objectTable.getHandles(node.entries),
           objectTable.getHandle(node.typeArgument)));
 
   @override
