@@ -4570,12 +4570,6 @@ void Serializer::Push(RawObject* object) {
   }
 #endif  // !DART_PRECOMPILED_RUNTIME
 
-  if (object->IsSendPort()) {
-    // TODO(rmacnak): Do a better job of resetting fields in precompilation
-    // and assert this is unreachable.
-    return;  // Do not trace, will write null.
-  }
-
   intptr_t id = heap_->GetObjectId(object);
   if (id == 0) {
     // When discovering the transitive closure of objects reachable from the
