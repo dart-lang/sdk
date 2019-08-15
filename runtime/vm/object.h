@@ -859,6 +859,11 @@ class Class : public Object {
   RawString* Name() const;
   RawString* ScrubbedName() const;
   RawString* UserVisibleName() const;
+
+  // The mixin for this class if one exists. Otherwise, returns a raw pointer
+  // to this class.
+  RawClass* Mixin() const;
+
   bool IsInFullSnapshot() const;
 
   virtual RawString* DictionaryName() const { return Name(); }

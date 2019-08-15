@@ -2284,6 +2284,16 @@ RawString* Class::UserVisibleName() const {
   return GenerateUserVisibleName();  // No caching in PRODUCT, regenerate.
 }
 
+RawClass* Class::Mixin() const {
+  if (is_transformed_mixin_application()) {
+    const Array& interfaces = Array::Handle(this->interfaces());
+    const Type& mixin_type =
+        Type::Handle(Type::RawCast(interfaces.At(interfaces.Length() - 1)));
+    return mixin_type.type_class();
+  }
+  return raw();
+}
+
 bool Class::IsInFullSnapshot() const {
   NoSafepointScope no_safepoint;
   return raw_ptr()->library_->ptr()->is_in_fullsnapshot_;
@@ -7918,10 +7928,11 @@ RawString* Function::QualifiedName(NameVisibility name_visibility) const {
       result = String::Concat(Symbols::ConstructorStacktracePrefix(), result,
                               Heap::kOld);
     } else {
+      const Class& mixin = Class::Handle(cls.Mixin());
       result = String::Concat(Symbols::Dot(), result, Heap::kOld);
       const String& cls_name = String::Handle(name_visibility == kScrubbedName
                                                   ? cls.ScrubbedName()
-                                                  : cls.UserVisibleName());
+                                                  : mixin.UserVisibleName());
       result = String::Concat(cls_name, result, Heap::kOld);
     }
   }
@@ -15204,7 +15215,7 @@ const char* Code::QualifiedName() const {
   if (obj.IsFunction()) {
     const char* opt = is_optimized() ? "[Optimized]" : "[Unoptimized]";
     const char* function_name =
-        String::Handle(zone, Function::Cast(obj).QualifiedScrubbedName())
+        String::Handle(zone, Function::Cast(obj).QualifiedUserVisibleName())
             .ToCString();
     return zone->PrintToString("%s %s", opt, function_name);
   }
