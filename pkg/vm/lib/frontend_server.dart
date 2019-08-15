@@ -441,11 +441,20 @@ class FrontendCompiler implements CompilerInterface {
       if (previouslyReportedDependencies.contains(uri)) {
         continue;
       }
-      _outputStream.writeln('+${await asFileUri(_fileSystem, uri)}');
+      try {
+        _outputStream.writeln('+${await asFileUri(_fileSystem, uri)}');
+      } on FileSystemException {
+        // Ignore errors from invalid import uris.
+      }
     }
     for (Uri uri in previouslyReportedDependencies) {
-      if (!uris.contains(uri)) {
+      if (uris.contains(uri)) {
+        continue;
+      }
+      try {
         _outputStream.writeln('-${await asFileUri(_fileSystem, uri)}');
+      } on FileSystemException {
+        // Ignore errors from invalid import uris.
       }
     }
     previouslyReportedDependencies = uris;
