@@ -461,6 +461,10 @@ class IntKeyRawPointerValueTrait {
 template <typename V>
 class IntMap : public DirectChainedHashMap<IntKeyRawPointerValueTrait<V> > {
  public:
+  IntMap() : DirectChainedHashMap<IntKeyRawPointerValueTrait<V>>() {}
+  explicit IntMap(Zone* zone)
+      : DirectChainedHashMap<IntKeyRawPointerValueTrait<V>>(zone) {}
+
   typedef typename IntKeyRawPointerValueTrait<V>::Key Key;
   typedef typename IntKeyRawPointerValueTrait<V>::Value Value;
   typedef typename IntKeyRawPointerValueTrait<V>::Pair Pair;
