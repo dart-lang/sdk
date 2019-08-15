@@ -4367,6 +4367,21 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
     return new (Z) TypedDataSerializationCluster(cid);
   }
 
+  if (Snapshot::IncludesCode(kind_)) {
+    switch (cid) {
+      case kPcDescriptorsCid:
+        return new (Z) RODataSerializationCluster("(RO)PcDescriptors", cid);
+      case kCodeSourceMapCid:
+        return new (Z) RODataSerializationCluster("(RO)CodeSourceMap", cid);
+      case kStackMapCid:
+        return new (Z) RODataSerializationCluster("(RO)StackMap", cid);
+      case kOneByteStringCid:
+        return new (Z) RODataSerializationCluster("(RO)OneByteString", cid);
+      case kTwoByteStringCid:
+        return new (Z) RODataSerializationCluster("(RO)TwoByteString", cid);
+    }
+  }
+
   switch (cid) {
     case kClassCid:
       return new (Z) ClassSerializationCluster(num_cids_);
@@ -4402,14 +4417,6 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
 #endif  // !DART_PRECOMPILED_RUNTIME
     case kObjectPoolCid:
       return new (Z) ObjectPoolSerializationCluster();
-    case kPcDescriptorsCid:
-      return new (Z)
-          RODataSerializationCluster("(RO)PcDescriptors", kPcDescriptorsCid);
-    case kCodeSourceMapCid:
-      return new (Z)
-          RODataSerializationCluster("(RO)CodeSourceMap", kCodeSourceMapCid);
-    case kStackMapCid:
-      return new (Z) RODataSerializationCluster("(RO)StackMap", kStackMapCid);
     case kExceptionHandlersCid:
       return new (Z) ExceptionHandlersSerializationCluster();
     case kContextCid:
@@ -4458,22 +4465,10 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
       return new (Z) ArraySerializationCluster(kArrayCid);
     case kImmutableArrayCid:
       return new (Z) ArraySerializationCluster(kImmutableArrayCid);
-    case kOneByteStringCid: {
-      if (Snapshot::IncludesCode(kind_)) {
-        return new (Z)
-            RODataSerializationCluster("(RO)OneByteString", kOneByteStringCid);
-      } else {
-        return new (Z) OneByteStringSerializationCluster();
-      }
-    }
-    case kTwoByteStringCid: {
-      if (Snapshot::IncludesCode(kind_)) {
-        return new (Z)
-            RODataSerializationCluster("(RO)TwoByteString", kTwoByteStringCid);
-      } else {
-        return new (Z) TwoByteStringSerializationCluster();
-      }
-    }
+    case kOneByteStringCid:
+      return new (Z) OneByteStringSerializationCluster();
+    case kTwoByteStringCid:
+      return new (Z) TwoByteStringSerializationCluster();
     default:
       break;
   }

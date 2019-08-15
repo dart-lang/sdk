@@ -163,12 +163,60 @@ void Bytecode::ResetICDatas(Zone* zone) const {
   const ObjectPool& pool = ObjectPool::Handle(zone, object_pool());
   ASSERT(!pool.IsNull());
   pool.ResetICDatas(zone);
+
+  Object& object = Object::Handle(zone);
+  String& name = String::Handle(zone);
+  Class& new_cls = Class::Handle(zone);
+  Library& new_lib = Library::Handle(zone);
+  Function& new_function = Function::Handle(zone);
+  Field& new_field = Field::Handle(zone);
+  for (intptr_t i = 0; i < pool.Length(); i++) {
+    ObjectPool::EntryType entry_type = pool.TypeAt(i);
+    if (entry_type != ObjectPool::EntryType::kTaggedObject) {
+      continue;
+    }
+    object = pool.ObjectAt(i);
+    if (object.IsFunction()) {
+      const Function& old_function = Function::Cast(object);
+      if (old_function.IsClosureFunction()) {
+        continue;
+      }
+      name = old_function.name();
+      new_cls = old_function.Owner();
+      if (new_cls.IsTopLevel()) {
+        new_lib = new_cls.library();
+        new_function = new_lib.LookupLocalFunction(name);
+      } else {
+        new_function = new_cls.LookupFunction(name);
+      }
+      if (!new_function.IsNull() &&
+          (new_function.is_static() == old_function.is_static()) &&
+          (new_function.kind() == old_function.kind())) {
+        pool.SetObjectAt(i, new_function);
+      } else {
+        VTIR_Print("Cannot rebind function %s\n", old_function.ToCString());
+      }
+    } else if (object.IsField()) {
+      const Field& old_field = Field::Cast(object);
+      name = old_field.name();
+      new_cls = old_field.Owner();
+      if (new_cls.IsTopLevel()) {
+        new_lib = new_cls.library();
+        new_field = new_lib.LookupLocalField(name);
+      } else {
+        new_field = new_cls.LookupField(name);
+      }
+      if (!new_field.IsNull() &&
+          (new_field.is_static() == old_field.is_static())) {
+        pool.SetObjectAt(i, new_field);
+      } else {
+        VTIR_Print("Cannot rebind field %s\n", old_field.ToCString());
+      }
+    }
+  }
 }
 
 void ObjectPool::ResetICDatas(Zone* zone) const {
-#ifdef TARGET_ARCH_IA32
-  UNREACHABLE();
-#else
   Object& object = Object::Handle(zone);
   for (intptr_t i = 0; i < Length(); i++) {
     ObjectPool::EntryType entry_type = TypeAt(i);
@@ -180,7 +228,6 @@ void ObjectPool::ResetICDatas(Zone* zone) const {
       ICData::Cast(object).Reset(zone);
     }
   }
-#endif
 }
 
 void Class::CopyStaticFieldValues(IsolateReloadContext* reload_context,
@@ -863,4 +910,4 @@ void ICData::Reset(Zone* zone) const {
 
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
-}  // namespace dart.
+}  // namespace dart

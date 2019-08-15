@@ -2008,30 +2008,30 @@ void IsolateReloadContext::RunInvalidationVisitors() {
     const bool clear_code = IsDirty(owning_lib);
     const bool stub_code = code.IsStubCode();
 
-    // Zero edge counters.
+    // Zero edge counters, before clearing the ICDataArray, since that's where
+    // they're held.
     func.ZeroEdgeCounters();
 
-    if (!stub_code || !bytecode.IsNull()) {
-      if (clear_code) {
-        VTIR_Print("Marking %s for recompilation, clearing code\n",
-                   func.ToCString());
-        // Null out the ICData array and code.
-        func.ClearICDataArray();
-        func.ClearCode();
-        func.SetWasCompiled(false);
-      } else {
-        if (!stub_code) {
-          // We are preserving the unoptimized code, fill all ICData arrays with
-          // the sentinel values so that we have no stale type feedback.
-          code.ResetSwitchableCalls(zone);
-          code.ResetICDatas(zone);
-        }
-        if (!bytecode.IsNull()) {
-          // We are preserving the bytecode, fill all ICData arrays with
-          // the sentinel values so that we have no stale type feedback.
-          bytecode.ResetICDatas(zone);
-        }
-      }
+    if (!bytecode.IsNull()) {
+      // We are preserving the bytecode, fill all ICData arrays with
+      // the sentinel values so that we have no stale type feedback.
+      bytecode.ResetICDatas(zone);
+    }
+
+    if (stub_code) {
+      // Nothing to reset.
+    } else if (clear_code) {
+      VTIR_Print("Marking %s for recompilation, clearing code\n",
+                 func.ToCString());
+      // Null out the ICData array and code.
+      func.ClearICDataArray();
+      func.ClearCode();
+      func.SetWasCompiled(false);
+    } else {
+      // We are preserving the unoptimized code, fill all ICData arrays with
+      // the sentinel values so that we have no stale type feedback.
+      code.ResetSwitchableCalls(zone);
+      code.ResetICDatas(zone);
     }
 
     // Clear counters.

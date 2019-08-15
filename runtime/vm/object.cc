@@ -3089,6 +3089,7 @@ RawFunction* Function::CreateDynamicInvocationForwarder(
   forwarder.set_is_visible(false);
 
   forwarder.ClearICDataArray();
+  forwarder.ClearBytecode();
   forwarder.ClearCode();
   forwarder.set_usage_counter(0);
   forwarder.set_deoptimization_counter(0);
@@ -5753,9 +5754,20 @@ void Function::ClearCode() const {
   ASSERT(Thread::Current()->IsMutatorThread());
 
   StorePointer(&raw_ptr()->unoptimized_code_, Code::null());
-  StorePointer(&raw_ptr()->bytecode_, Bytecode::null());
 
-  SetInstructions(StubCode::LazyCompile());
+  if (FLAG_enable_interpreter && HasBytecode()) {
+    SetInstructions(StubCode::InterpretCall());
+  } else {
+    SetInstructions(StubCode::LazyCompile());
+  }
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+}
+
+void Function::ClearBytecode() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
+  StorePointer(&raw_ptr()->bytecode_, Bytecode::null());
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
