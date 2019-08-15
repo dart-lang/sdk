@@ -541,18 +541,6 @@ abstract class Member implements Element {
     }
   }
 
-  /**
-   * Return the type that results from replacing the type parameters in the
-   * given [type] with the type arguments associated with this member.
-   */
-  @Deprecated("Used only by 'getReifiedType', which is deprecated")
-  DartType substituteFor(DartType type) {
-    if (type == null) {
-      return null;
-    }
-    return _substitution.substituteType(type);
-  }
-
   @override
   void visitChildren(ElementVisitor visitor) {
     // There are no children to visit
@@ -585,11 +573,6 @@ class MethodMember extends ExecutableMember implements MethodElement {
   @deprecated
   @override
   MethodDeclaration computeNode() => baseElement.computeNode();
-
-  @deprecated
-  @override
-  FunctionType getReifiedType(DartType objectType) =>
-      substituteFor(baseElement.getReifiedType(objectType));
 
   @override
   String toString() {

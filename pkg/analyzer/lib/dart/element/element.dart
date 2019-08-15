@@ -1408,14 +1408,6 @@ abstract class MethodElement implements ClassMemberElement, ExecutableElement {
   @deprecated
   @override
   MethodDeclaration computeNode();
-
-  /// Gets the reified type of a tear-off of this method.
-  ///
-  /// If any of the parameters in the method are covariant, they are replaced
-  /// with Object in the returned type. If no covariant parameters are present,
-  /// returns `this`.
-  @deprecated
-  FunctionType getReifiedType(DartType objectType);
 }
 
 /// A pseudo-element that represents multiple elements defined within a single

@@ -1,3 +1,14 @@
+## 0.38.0-dev (Not yet published - breaking changes)
+* The deprecated method `AstFactory.compilationUnit2` has been removed.  Clients
+  should switch back to `AstFactory.compilationUnit`.
+* Removed the deprecated constructor `ParsedLibraryResultImpl.tmp` and the
+  deprecated method `ResolvedLibraryResultImpl.tmp`.  Please use
+  `AnalysisSession.getParsedLibraryByElement` and
+  `AnalysisSession.getResolvedLibraryByElement` instead.
+* Removed `MethodElement.getReifiedType`.
+* The return type of `ClassMemberElement.enclosingElement` was changed from
+  `ClassElement` to `Element`.
+
 ## 0.37.1+1
 * Reverted an unintentional breaking API change (the return type of
   `ClassMemberElement.enclosingElement` was changed from `ClassElement` to

@@ -7863,38 +7863,6 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   @override
   MethodDeclaration computeNode() =>
       getNodeMatching((node) => node is MethodDeclaration);
-
-  @deprecated
-  @override
-  FunctionType getReifiedType(DartType objectType) {
-    // TODO(jmesserly): this implementation is completely wrong:
-    // It does not handle covariant parameters from a generic class.
-    // It drops type parameters from generic methods.
-    // Since this method was for DDC, it should be removed.
-    //
-    // Check whether we have any covariant parameters.
-    // Usually we don't, so we can use the same type.
-    bool hasCovariant = false;
-    for (ParameterElement parameter in parameters) {
-      if (parameter.isCovariant) {
-        hasCovariant = true;
-        break;
-      }
-    }
-
-    if (!hasCovariant) {
-      return type;
-    }
-
-    List<ParameterElement> covariantParameters = parameters.map((parameter) {
-      DartType type = parameter.isCovariant ? objectType : parameter.type;
-      return new ParameterElementImpl.synthetic(
-          parameter.name, type, parameter.parameterKind);
-    }).toList();
-
-    return new FunctionElementImpl.synthetic(covariantParameters, returnType)
-        .type;
-  }
 }
 
 /// A [ClassElementImpl] representing a mixin declaration.
