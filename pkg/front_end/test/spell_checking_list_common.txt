@@ -1457,6 +1457,7 @@ larger
 last
 late
 later
+latest
 latter
 lax
 lazily
@@ -2462,6 +2463,7 @@ spread
 spreadable
 spreads
 square
+squiggly
 stable
 stack
 stage

@@ -221,6 +221,20 @@
     },
 
     {
+      "name": "lint_test",
+      "kind": "Chain",
+      "source": "test/lint_test.dart",
+      "path": "lib/",
+      "status": "test/lint_test.status",
+      "pattern": [
+        ".*\\.dart$"
+      ],
+      "exclude": [
+        "src/fasta/fasta_codes_generated\\.dart$"
+      ]
+    },
+
+    {
       "name": "spelling_test_src_test",
       "kind": "Chain",
       "source": "test/spelling_test_src_test.dart",
