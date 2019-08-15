@@ -1290,6 +1290,51 @@ class C {
     // exception to be thrown.
   }
 
+  test_constructorDeclaration_assert_flow_analysis() async {
+    await analyze('''
+class C {
+  C(int i, int j) : assert(i == null || i.isEven, j.isEven);
+}
+''');
+    var iNode = decoratedTypeAnnotation('int i').node;
+    var jNode = decoratedTypeAnnotation('int j').node;
+    // No edge from i to `never` because i's type is promoted to non-nullable
+    assertNoEdge(iNode, never);
+    // But there is an edge from j to `never`.
+    assertEdge(jNode, never, hard: true);
+  }
+
+  test_constructorDeclaration_initializer_flow_analysis() async {
+    await analyze('''
+class C {
+  bool b1;
+  bool b2;
+  C(int i, int j) : b1 = i == null || i.isEven, b2 = j.isEven;
+}
+''');
+    var iNode = decoratedTypeAnnotation('int i').node;
+    var jNode = decoratedTypeAnnotation('int j').node;
+    // No edge from i to `never` because i's type is promoted to non-nullable
+    assertNoEdge(iNode, never);
+    // But there is an edge from j to `never`.
+    assertEdge(jNode, never, hard: true);
+  }
+
+  test_constructorDeclaration_redirection_flow_analysis() async {
+    await analyze('''
+class C {
+  C(bool b1, bool b2);
+  C.redirect(int i, int j) : this(i == null || i.isEven, j.isEven);
+}
+''');
+    var iNode = decoratedTypeAnnotation('int i').node;
+    var jNode = decoratedTypeAnnotation('int j').node;
+    // No edge from i to `never` because i's type is promoted to non-nullable
+    assertNoEdge(iNode, never);
+    // But there is an edge from j to `never`.
+    assertEdge(jNode, never, hard: true);
+  }
+
   test_constructorDeclaration_returnType_generic() async {
     await analyze('''
 class C<T, U> {
@@ -1414,6 +1459,32 @@ double f() {
     assertNoUpstreamNullability(decoratedTypeAnnotation('double').node);
   }
 
+  test_field_initializer_flow_analysis() async {
+    await analyze('''
+bool b1 = true;
+bool b2 = true;
+class C {
+  bool b = b1 || b2;
+}
+''');
+    // No assertions; we just want to verify that the presence of `||` inside a
+    // field doesn't cause flow analysis to crash.
+  }
+
+  test_field_metadata() async {
+    await analyze('''
+class A {
+  const A();
+}
+class C {
+  @A()
+  int f;
+}
+''');
+    // No assertions needed; the AnnotationTracker mixin verifies that the
+    // metadata was visited.
+  }
+
   test_field_type_inferred() async {
     await analyze('''
 int f() => 1;
@@ -1531,6 +1602,19 @@ int/*1*/ f(int/*2*/ i) => i/*3*/;
         assertEdge(decoratedTypeAnnotation('int/*2*/').node,
             decoratedTypeAnnotation('int/*1*/').node,
             hard: true));
+  }
+
+  test_functionDeclaration_expression_body_flow_analysis() async {
+    await analyze('''
+bool f(int i) => i == null || i.isEven;
+bool g(int j) => j.isEven;
+''');
+    var iNode = decoratedTypeAnnotation('int i').node;
+    var jNode = decoratedTypeAnnotation('int j').node;
+    // No edge from i to `never` because i's type is promoted to non-nullable
+    assertNoEdge(iNode, never);
+    // But there is an edge from j to `never`.
+    assertEdge(jNode, never, hard: true);
   }
 
   test_functionDeclaration_flow_analysis() async {
@@ -3852,6 +3936,28 @@ main() { x = null; }
 ''');
     var setXType = decoratedTypeAnnotation('int value');
     assertEdge(always, setXType.node, hard: false);
+  }
+
+  test_topLevelVar_initializer_flow_analysis() async {
+    await analyze('''
+bool b1 = true;
+bool b2 = true;
+bool b3 = b1 || b2;
+''');
+    // No assertions; we just want to verify that the presence of `||` inside a
+    // top level variable doesn't cause flow analysis to crash.
+  }
+
+  test_topLevelVar_metadata() async {
+    await analyze('''
+class A {
+  const A();
+}
+@A()
+int v;
+''');
+    // No assertions needed; the AnnotationTracker mixin verifies that the
+    // metadata was visited.
   }
 
   test_topLevelVar_reference() async {

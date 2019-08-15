@@ -512,6 +512,18 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   @override
+  DecoratedType visitFieldDeclaration(FieldDeclaration node) {
+    node.metadata.accept(this);
+    _createFlowAnalysis(null);
+    try {
+      node.fields.accept(this);
+    } finally {
+      _flowAnalysis = null;
+    }
+    return null;
+  }
+
+  @override
   DecoratedType visitFieldFormalParameter(FieldFormalParameter node) {
     var parameterElement = node.declaredElement as FieldFormalParameterElement;
     var parameterType = _variables.decoratedElementType(parameterElement);
@@ -560,7 +572,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     assert(_currentFunctionType == null);
     _currentFunctionType =
         _variables.decoratedElementType(node.declaredElement);
-    _flowAnalysis = _createFlowAnalysis(node.functionExpression.body);
+    _createFlowAnalysis(node.functionExpression.body);
     // Initialize a new postDominator scope that contains only the parameters.
     try {
       _postDominatedLocals.doScoped(
@@ -1038,6 +1050,19 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   @override
+  DecoratedType visitTopLevelVariableDeclaration(
+      TopLevelVariableDeclaration node) {
+    node.metadata.accept(this);
+    _createFlowAnalysis(null);
+    try {
+      node.variables.accept(this);
+    } finally {
+      _flowAnalysis = null;
+    }
+    return null;
+  }
+
+  @override
   DecoratedType visitTypeName(TypeName typeName) {
     var typeArguments = typeName.typeArguments?.arguments;
     var element = typeName.name.staticElement;
@@ -1145,12 +1170,13 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
   }
 
-  FlowAnalysis<Statement, Expression, VariableElement, DecoratedType>
-      _createFlowAnalysis(FunctionBody node) {
-    return FlowAnalysis<Statement, Expression, VariableElement, DecoratedType>(
-        const AnalyzerNodeOperations(),
-        DecoratedTypeOperations(_typeSystem, _variables, _graph),
-        AnalyzerFunctionBodyAccess(node));
+  void _createFlowAnalysis(FunctionBody node) {
+    assert(_flowAnalysis == null);
+    _flowAnalysis =
+        FlowAnalysis<Statement, Expression, VariableElement, DecoratedType>(
+            const AnalyzerNodeOperations(),
+            DecoratedTypeOperations(_typeSystem, _variables, _graph),
+            AnalyzerFunctionBodyAccess(node));
   }
 
   DecoratedType _decorateUpperOrLowerBound(AstNode astNode, DartType type,
@@ -1320,7 +1346,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     returnType?.accept(this);
     parameters?.accept(this);
     _currentFunctionType = _variables.decoratedElementType(declaredElement);
-    _flowAnalysis = _createFlowAnalysis(body);
+    _createFlowAnalysis(body);
     // Push a scope of post-dominated declarations on the stack.
     _postDominatedLocals.pushScope(elements: declaredElement.parameters);
     try {
