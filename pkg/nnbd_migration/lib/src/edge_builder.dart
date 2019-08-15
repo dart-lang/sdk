@@ -373,6 +373,22 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   @override
+  DecoratedType visitCatchClause(CatchClause node) {
+    node.exceptionType?.accept(this);
+    for (var identifier in [
+      node.exceptionParameter,
+      node.stackTraceParameter
+    ]) {
+      if (identifier != null) {
+        _flowAnalysis.add(identifier.staticElement as VariableElement,
+            assigned: true);
+      }
+    }
+    node.body.accept(this);
+    return null;
+  }
+
+  @override
   DecoratedType visitClassDeclaration(ClassDeclaration node) {
     node.members.accept(this);
     return null;
@@ -514,10 +530,11 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitFieldDeclaration(FieldDeclaration node) {
     node.metadata.accept(this);
-    _createFlowAnalysis(null);
+    _createFlowAnalysis(null, null);
     try {
       node.fields.accept(this);
     } finally {
+      _flowAnalysis.finish();
       _flowAnalysis = null;
     }
     return null;
@@ -551,6 +568,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       }
       parts.condition?.accept(this);
     } else if (parts is ForEachParts) {
+      if (parts is ForEachPartsWithDeclaration) {
+        _flowAnalysis.add(parts.loopVariable.declaredElement, assigned: true);
+      }
       parts.iterable.accept(this);
     }
 
@@ -572,7 +592,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     assert(_currentFunctionType == null);
     _currentFunctionType =
         _variables.decoratedElementType(node.declaredElement);
-    _createFlowAnalysis(node.functionExpression.body);
+    _createFlowAnalysis(
+        node.functionExpression.body, node.functionExpression.parameters);
     // Initialize a new postDominator scope that contains only the parameters.
     try {
       _postDominatedLocals.doScoped(
@@ -580,6 +601,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           action: () => node.functionExpression.body.accept(this));
     } finally {
       _currentFunctionType = null;
+      _flowAnalysis.finish();
       _flowAnalysis = null;
     }
     return null;
@@ -1053,10 +1075,11 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType visitTopLevelVariableDeclaration(
       TopLevelVariableDeclaration node) {
     node.metadata.accept(this);
-    _createFlowAnalysis(null);
+    _createFlowAnalysis(null, null);
     try {
       node.variables.accept(this);
     } finally {
+      _flowAnalysis.finish();
       _flowAnalysis = null;
     }
     return null;
@@ -1108,6 +1131,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     for (var variable in node.variables) {
       variable.metadata.accept(this);
       var initializer = variable.initializer;
+      _flowAnalysis.add(variable.declaredElement,
+          assigned: initializer != null);
       if (initializer != null) {
         var destinationType = getOrComputeElementType(variable.declaredElement);
         if (typeAnnotation == null) {
@@ -1170,13 +1195,18 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
   }
 
-  void _createFlowAnalysis(FunctionBody node) {
+  void _createFlowAnalysis(FunctionBody node, FormalParameterList parameters) {
     assert(_flowAnalysis == null);
     _flowAnalysis =
         FlowAnalysis<Statement, Expression, VariableElement, DecoratedType>(
             const AnalyzerNodeOperations(),
             DecoratedTypeOperations(_typeSystem, _variables, _graph),
             AnalyzerFunctionBodyAccess(node));
+    if (parameters != null) {
+      for (var parameter in parameters.parameters) {
+        _flowAnalysis.add(parameter.declaredElement, assigned: true);
+      }
+    }
   }
 
   DecoratedType _decorateUpperOrLowerBound(AstNode astNode, DartType type,
@@ -1346,7 +1376,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     returnType?.accept(this);
     parameters?.accept(this);
     _currentFunctionType = _variables.decoratedElementType(declaredElement);
-    _createFlowAnalysis(body);
+    _createFlowAnalysis(body, parameters);
     // Push a scope of post-dominated declarations on the stack.
     _postDominatedLocals.pushScope(elements: declaredElement.parameters);
     try {
@@ -1431,6 +1461,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         }
       }
     } finally {
+      _flowAnalysis.finish();
       _flowAnalysis = null;
       _currentFunctionType = null;
       _postDominatedLocals.popScope();
