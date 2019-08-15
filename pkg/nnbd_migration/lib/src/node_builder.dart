@@ -17,6 +17,8 @@ import 'package:nnbd_migration/src/conditional_discard.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/expression_checks.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
+import 'package:nnbd_migration/src/utilities/annotation_tracker.dart';
+import 'package:nnbd_migration/src/utilities/permissive_mode.dart';
 
 import 'edge_origin.dart';
 
@@ -26,7 +28,10 @@ import 'edge_origin.dart';
 /// the static type of the element declared by the visited node, along with the
 /// constraint variables that will determine its nullability.  For `visit...`
 /// methods that don't visit declarations, `null` will be returned.
-class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
+class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
+    with
+        PermissiveModeVisitor<DecoratedType>,
+        AnnotationTracker<DecoratedType> {
   /// Constraint variables and decorated types are stored here.
   final VariableRecorder _variables;
 
@@ -232,23 +237,6 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
     _handleSupertypeClauses(
         node.declaredElement, null, null, node.implementsClause, node.onClause);
     return null;
-  }
-
-  @override
-  DecoratedType visitNode(AstNode node) {
-    if (listener != null) {
-      try {
-        return super.visitNode(node);
-      } catch (exception, stackTrace) {
-        listener.addDetail('''
-$exception
-
-$stackTrace''');
-        return null;
-      }
-    } else {
-      return super.visitNode(node);
-    }
   }
 
   @override

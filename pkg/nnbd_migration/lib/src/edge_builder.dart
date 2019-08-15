@@ -24,6 +24,8 @@ import 'package:nnbd_migration/src/edge_origin.dart';
 import 'package:nnbd_migration/src/expression_checks.dart';
 import 'package:nnbd_migration/src/node_builder.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
+import 'package:nnbd_migration/src/utilities/annotation_tracker.dart';
+import 'package:nnbd_migration/src/utilities/permissive_mode.dart';
 import 'package:nnbd_migration/src/utilities/scoped_set.dart';
 
 import 'decorated_type_operations.dart';
@@ -77,7 +79,10 @@ class AssignmentCheckerForTesting extends Object with _AssignmentChecker {
 /// variables that will determine its nullability.  For `visit...` methods that
 /// don't visit expressions, `null` will be returned.
 class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
-    with _AssignmentChecker {
+    with
+        _AssignmentChecker,
+        PermissiveModeVisitor<DecoratedType>,
+        AnnotationTracker<DecoratedType> {
   final TypeSystem _typeSystem;
 
   final InheritanceManager3 _inheritanceManager;
@@ -809,23 +814,6 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType visitNamespaceDirective(NamespaceDirective node) {
     // skip directives
     return null;
-  }
-
-  @override
-  DecoratedType visitNode(AstNode node) {
-    if (listener != null) {
-      try {
-        return super.visitNode(node);
-      } catch (exception, stackTrace) {
-        listener.addDetail('''
-$exception
-
-$stackTrace''');
-        return null;
-      }
-    } else {
-      return super.visitNode(node);
-    }
   }
 
   @override
