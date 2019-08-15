@@ -92,6 +92,31 @@ void Code::ResetICDatas(Zone* zone) const {
 #endif
 }
 
+#if !defined(TARGET_ARCH_DBC)
+static void FindICData(const Array& ic_data_array,
+                       intptr_t deopt_id,
+                       ICData* ic_data) {
+  // ic_data_array is sorted because of how it is constructed in
+  // Function::SaveICDataMap.
+  intptr_t lo = 1;
+  intptr_t hi = ic_data_array.Length() - 1;
+  while (lo <= hi) {
+    intptr_t mid = (hi - lo + 1) / 2 + lo;
+    ASSERT(mid >= lo);
+    ASSERT(mid <= hi);
+    *ic_data ^= ic_data_array.At(mid);
+    if (ic_data->deopt_id() == deopt_id) {
+      return;
+    } else if (ic_data->deopt_id() > deopt_id) {
+      hi = mid - 1;
+    } else {
+      lo = mid + 1;
+    }
+  }
+  FATAL1("Missing deopt id %" Pd "\n", deopt_id);
+}
+#endif  // !defined(TARGET_ARCH_DBC)
+
 void Code::ResetSwitchableCalls(Zone* zone) const {
 #if !defined(TARGET_ARCH_DBC)
   if (is_optimized()) {
@@ -128,21 +153,21 @@ void Code::ResetSwitchableCalls(Zone* zone) const {
 #endif
     return;
   }
+
   ICData& ic_data = ICData::Handle(zone);
   Object& data = Object::Handle(zone);
-  for (intptr_t i = 1; i < ic_data_array.Length(); i++) {
-    ic_data ^= ic_data_array.At(i);
-    if (ic_data.rebind_rule() != ICData::kInstance) {
-      continue;
-    }
-    if (ic_data.NumArgsTested() != 1) {
-      continue;
-    }
-    uword pc = GetPcForDeoptId(ic_data.deopt_id(), RawPcDescriptors::kIcCall);
+  const PcDescriptors& descriptors =
+      PcDescriptors::Handle(zone, pc_descriptors());
+  PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kIcCall);
+  while (iter.MoveNext()) {
+    uword pc = PayloadStart() + iter.PcOffset();
     CodePatcher::GetInstanceCallAt(pc, *this, &data);
     // This check both avoids unnecessary patching to reduce log spam and
     // prevents patching over breakpoint stubs.
     if (!data.IsICData()) {
+      FindICData(ic_data_array, iter.DeoptId(), &ic_data);
+      ASSERT(ic_data.rebind_rule() == ICData::kInstance);
+      ASSERT(ic_data.NumArgsTested() == 1);
       const Code& stub =
           ic_data.is_tracking_exactness()
               ? StubCode::OneArgCheckInlineCacheWithExactnessCheck()
