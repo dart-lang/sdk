@@ -10,19 +10,19 @@
 extension E1 on int {
   static int get property => 1;
   //     ^^
-  // [analyzer] unspecified
   // [cfe] unspecified
+  //             ^^^^^^^^
+  // [analyzer] STATIC_WARNING.MISMATCHED_GETTER_AND_SETTER_TYPES
   static void set property(String value) {}
   //                       ^^
-  // [analyzer] unspecified
   // [cfe] unspecified
   int get property2 => 1;
   //  ^^
-  // [analyzer] unspecified
   // [cfe] unspecified
+  //      ^^^^^^^^^
+  // [analyzer] STATIC_WARNING.MISMATCHED_GETTER_AND_SETTER_TYPES
   void set property2(String x) {}
   //                 ^^
-  // [analyzer] unspecified
   // [cfe] unspecified
 }
 
