@@ -32,9 +32,7 @@ main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(dataDir, const OutputUnitDataComputer(),
-        libDirectory: new Directory.fromUri(Platform.script.resolve('libs')),
-        options: compilerOptions,
-        args: args, setUpFunction: () {
+        options: compilerOptions, args: args, setUpFunction: () {
       importPrefixes.clear();
     }, testedConfigs: allStrongConfigs);
   });

@@ -171,7 +171,7 @@ abstract class CfeDataExtractor<T> extends DataExtractor<T> {
 }
 
 /// Create the testing URI used for [fileName] in annotated tests.
-Uri createUriForFileName(String fileName, {bool isLib}) => toTestUri(fileName);
+Uri createUriForFileName(String fileName) => toTestUri(fileName);
 
 void onFailure(String message) => throw new StateError(message);
 

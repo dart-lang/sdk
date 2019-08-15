@@ -131,7 +131,7 @@ Future<CompiledData<T>> computeData<T>(Uri entryPoint,
   OutputCollector outputCollector = new OutputCollector();
   DiagnosticCollector diagnosticCollector = new DiagnosticCollector();
   Uri packageConfig;
-  Uri wantedPackageConfig = createUriForFileName(".packages", isLib: false);
+  Uri wantedPackageConfig = createUriForFileName(".packages");
   for (String key in memorySourceFiles.keys) {
     if (key == wantedPackageConfig.path) {
       packageConfig = wantedPackageConfig;
@@ -389,11 +389,10 @@ class TestConfig {
 /// If [forUserSourceFilesOnly] is true, we examine the elements in the main
 /// file and any supporting libraries.
 Future checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
-    {List<String> skipForStrong: const <String>[],
+    {List<String> skip: const <String>[],
     bool filterActualData(IdValue idValue, ActualData<T> actualData),
     List<String> options: const <String>[],
     List<String> args: const <String>[],
-    Directory libDirectory: null,
     bool forUserLibrariesOnly: true,
     Callback setUpFunction,
     int shards: 1,
@@ -430,7 +429,8 @@ Future checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
 
     if (setUpFunction != null) setUpFunction();
 
-    if (skipForStrong.contains(name)) {
+    print('name="${name}"');
+    if (skip.contains(name)) {
       print('--skipped ------------------------------------------------------');
     } else {
       for (TestConfig testConfiguration in testedConfigs) {
@@ -455,22 +455,16 @@ Future checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
       shards: shards,
       shardIndex: shardIndex,
       onTest: onTest,
-      libDirectory: libDirectory,
       supportedMarkers: supportedMarkers,
       createUriForFileName: createUriForFileName,
       onFailure: Expect.fail,
       runTest: checkTest);
 }
 
-Uri createUriForFileName(String fileName, {bool isLib}) {
-  String commonTestPath = 'sdk/tests/compiler';
-  if (isLib) {
-    return Uri.parse('memory:$commonTestPath/libs/$fileName');
-  } else {
-    // Pretend this is a dart2js_native test to allow use of 'native'
-    // keyword and import of private libraries.
-    return Uri.parse('memory:$commonTestPath/dart2js_native/$fileName');
-  }
+Uri createUriForFileName(String fileName) {
+  // Pretend this is a dart2js_native test to allow use of 'native'
+  // keyword and import of private libraries.
+  return Uri.parse('memory:sdk/tests/compiler/dart2js_native/$fileName');
 }
 
 Future<bool> runTestForConfiguration<T>(TestConfig testConfiguration,

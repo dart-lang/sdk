@@ -167,8 +167,24 @@ abstract class DataExtractor<T> extends Visitor with DataRegistry<T> {
   }
 
   @override
-  defaultMember(Member node) {
-    super.defaultMember(node);
+  visitProcedure(Procedure node) {
+    // Avoid visiting annotations.
+    node.function.accept(this);
+    computeForMember(node);
+  }
+
+  @override
+  visitConstructor(Constructor node) {
+    // Avoid visiting annotations.
+    visitList(node.initializers, this);
+    node.function.accept(this);
+    computeForMember(node);
+  }
+
+  @override
+  visitField(Field node) {
+    // Avoid visiting annotations.
+    node.initializer?.accept(this);
     computeForMember(node);
   }
 
@@ -213,7 +229,8 @@ abstract class DataExtractor<T> extends Visitor with DataRegistry<T> {
       // Skip synthetic variables and function declaration variables.
       computeForNode(node, computeDefaultNodeId(node));
     }
-    super.visitVariableDeclaration(node);
+    // Avoid visiting annotations.
+    node.initializer?.accept(this);
   }
 
   @override
