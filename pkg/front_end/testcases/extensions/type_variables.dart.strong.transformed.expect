@@ -8,8 +8,8 @@ class A1<T extends core::Object* = dynamic> extends core::Object {
     ;
 }
 extension A2<T extends core::Object* = dynamic> on self::A1<T*>* {
-  field method1 = self::A2|method1;
-  field method2 = self::A2|method2;
+  method method1 = self::A2|method1;
+  method method2 = self::A2|method2;
 }
 method A2|method1<#T extends core::Object* = dynamic, S extends self::A2|method1::#T = dynamic>(final self::A1<self::A2|method1::#T*>* #this) → self::A1<self::A2|method1::#T*>* {
   return #this;

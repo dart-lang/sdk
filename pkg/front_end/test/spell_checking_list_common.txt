@@ -1891,6 +1891,7 @@ pasted
 patch
 patched
 patches
+patching
 paths
 pattern
 peek

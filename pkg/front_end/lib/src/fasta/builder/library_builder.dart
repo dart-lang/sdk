@@ -231,14 +231,20 @@ abstract class LibraryBuilder extends ModifierBuilder {
 
   void addSyntheticDeclarationOfDynamic();
 
-  /// Don't use for scope lookup. Only use when an element is known to exist
-  /// (and not a setter).
-  Builder getLocalMember(String name) {
-    return scope.local[name] ??
-        internalProblem(
-            templateInternalProblemNotFoundIn.withArguments(name, "$fileUri"),
-            -1,
-            fileUri);
+  /// Lookups the member [name] declared in this library.
+  ///
+  /// If [required] is `true` and no member is found an internal problem is
+  /// reported.
+  Builder lookupLocalMember(String name, {bool required: false}) {
+    Builder builder = scope.local[name];
+    if (required && builder == null) {
+      internalProblem(
+          templateInternalProblemNotFoundIn.withArguments(
+              name, fullNameForErrors),
+          -1,
+          null);
+    }
+    return builder;
   }
 
   Builder lookup(String name, int charOffset, Uri fileUri) {

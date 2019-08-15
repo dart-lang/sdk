@@ -161,7 +161,23 @@ MemberBuilder lookupMemberBuilder(
     InternalCompilerResult compilerResult, Member member,
     {bool required: true}) {
   MemberBuilder memberBuilder;
-  if (member.enclosingClass != null) {
+  if (member.isExtensionMember) {
+    String memberName = member.name.name;
+    String extensionName = memberName.substring(0, memberName.indexOf('|'));
+    memberName = memberName.substring(extensionName.length + 1);
+    bool isSetter = false;
+    if (memberName.startsWith('set#')) {
+      memberName = memberName.substring(4);
+      isSetter = true;
+    } else if (memberName.startsWith('get#')) {
+      memberName = memberName.substring(4);
+    }
+    Extension extension =
+        lookupExtension(member.enclosingLibrary, extensionName);
+    memberBuilder = lookupExtensionMemberBuilder(
+        compilerResult, extension, member, memberName,
+        isSetter: isSetter, required: required);
+  } else if (member.enclosingClass != null) {
     memberBuilder = lookupClassMemberBuilder(
         compilerResult, member.enclosingClass, member, member.name.name,
         required: required);
@@ -187,13 +203,17 @@ MemberBuilder lookupExtensionMemberBuilder(
     Extension extension,
     Member member,
     String memberName,
-    {bool required: true}) {
+    {bool isSetter: false,
+    bool required: true}) {
   ExtensionBuilder extensionBuilder =
       lookupExtensionBuilder(compilerResult, extension, required: required);
   MemberBuilder memberBuilder;
   if (extensionBuilder != null) {
-    memberBuilder = extensionBuilder.scope.setters[memberName] ??
-        extensionBuilder.scope.local[memberName];
+    if (isSetter) {
+      memberBuilder = extensionBuilder.scope.setters[memberName];
+    } else {
+      memberBuilder = extensionBuilder.scope.local[memberName];
+    }
   }
   if (memberBuilder == null && required) {
     throw new ArgumentError("MemberBuilder for $member not found.");
@@ -504,6 +524,26 @@ String extensionMethodDescriptorToText(ExtensionMemberDescriptor descriptor) {
   }
   if (descriptor.isStatic) {
     sb.write('static ');
+  }
+  if (descriptor.kind == null) {
+    sb.write('field ');
+  } else {
+    switch (descriptor.kind) {
+      case ProcedureKind.Method:
+        break;
+      case ProcedureKind.Getter:
+        sb.write('getter ');
+        break;
+      case ProcedureKind.Setter:
+        sb.write('setter ');
+        break;
+      case ProcedureKind.Operator:
+        sb.write('operator ');
+        break;
+      case ProcedureKind.Factory:
+        throw new UnsupportedError(
+            "Unexpected procedure kind ${descriptor.kind}.");
+    }
   }
   sb.write(descriptor.name.name);
   sb.write('=');

@@ -1162,7 +1162,7 @@ class Printer extends Visitor<Null> {
       writeIndentation();
       writeModifier(descriptor.isExternal, 'external');
       writeModifier(descriptor.isStatic, 'static');
-      if (descriptor.member is Procedure) {
+      if (descriptor.member.asMember is Procedure) {
         writeWord(procedureKindToString(descriptor.kind));
       } else {
         writeWord('field');

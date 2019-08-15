@@ -310,7 +310,9 @@ abstract class FunctionBuilder extends MemberBuilder {
         }
       }
     }
-    if (isSetter && (formals?.length != 1 || formals[0].isOptional)) {
+    if (!isExtensionMember &&
+        isSetter &&
+        (formals?.length != 1 || formals[0].isOptional)) {
       // Replace illegal parameters by single dummy parameter.
       // Do this after building the parameters, since the diet listener
       // assumes that parameters are built, even if illegal in number.
@@ -430,6 +432,7 @@ abstract class FunctionBuilder extends MemberBuilder {
 class ProcedureBuilder extends FunctionBuilder {
   final Procedure procedure;
   final int charOpenParenOffset;
+  final ProcedureKind kind;
 
   AsyncMarker actualAsyncModifier = AsyncMarker.Sync;
 
@@ -445,7 +448,7 @@ class ProcedureBuilder extends FunctionBuilder {
       String name,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
-      ProcedureKind kind,
+      this.kind,
       SourceLibraryBuilder compilationUnit,
       int startCharOffset,
       int charOffset,
@@ -462,8 +465,6 @@ class ProcedureBuilder extends FunctionBuilder {
 
   @override
   ProcedureBuilder get origin => actualOrigin ?? this;
-
-  ProcedureKind get kind => procedure.kind;
 
   AsyncMarker get asyncModifier => actualAsyncModifier;
 
@@ -514,9 +515,27 @@ class ProcedureBuilder extends FunctionBuilder {
       if (isExtensionMethod) {
         ExtensionBuilder extension = parent;
         procedure.isStatic = false;
-        procedure.isExtensionMethod = true;
+        procedure.isExtensionMember = true;
+        String kindInfix;
+        switch (kind) {
+          case ProcedureKind.Getter:
+            kindInfix = 'get#';
+            break;
+          case ProcedureKind.Setter:
+            kindInfix = 'set#';
+            break;
+          case ProcedureKind.Method:
+          case ProcedureKind.Operator:
+            kindInfix = '';
+            break;
+          case ProcedureKind.Factory:
+            throw new UnsupportedError(
+                'Unexpected extension method kind ${kind}');
+        }
         procedure.kind = ProcedureKind.Method;
-        procedure.name = new Name('${extension.name}|${name}', library.target);
+
+        procedure.name =
+            new Name('${extension.name}|${kindInfix}${name}', library.target);
       } else {
         procedure.isStatic = isStatic;
         procedure.name = new Name(name, library.target);

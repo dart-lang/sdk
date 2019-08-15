@@ -349,15 +349,20 @@ abstract class ClassBuilder extends DeclarationBuilder {
     scope.forEach(f);
   }
 
-  /// Don't use for scope lookup. Only use when an element is known to exist
-  /// (and isn't a setter).
-  MemberBuilder getLocalMember(String name) {
-    return scope.local[name] ??
-        internalProblem(
-            templateInternalProblemNotFoundIn.withArguments(
-                name, fullNameForErrors),
-            -1,
-            null);
+  @override
+  Builder lookupLocalMember(String name, {bool required: false}) {
+    Builder builder = scope.local[name];
+    if (builder == null && isPatch) {
+      builder = origin.scope.local[name];
+    }
+    if (required && builder == null) {
+      internalProblem(
+          templateInternalProblemNotFoundIn.withArguments(
+              name, fullNameForErrors),
+          -1,
+          null);
+    }
+    return builder;
   }
 
   /// Find the first member of this class with [name]. This method isn't
@@ -369,7 +374,7 @@ abstract class ClassBuilder extends DeclarationBuilder {
   /// For example, this method is convenient for use when building synthetic
   /// members, such as those of an enum.
   MemberBuilder firstMemberNamed(String name) {
-    Builder declaration = getLocalMember(name);
+    Builder declaration = lookupLocalMember(name, required: true);
     while (declaration.next != null) {
       declaration = declaration.next;
     }
@@ -384,6 +389,9 @@ abstract class ClassBuilder extends DeclarationBuilder {
 
   @override
   ClassBuilder get origin => actualOrigin ?? this;
+
+  @override
+  InterfaceType get thisType => cls.thisType;
 
   /// [arguments] have already been built.
   InterfaceType buildTypesWithBuiltArguments(

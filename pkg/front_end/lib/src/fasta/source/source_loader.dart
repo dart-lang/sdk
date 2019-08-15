@@ -599,8 +599,8 @@ class SourceLoader extends Loader {
 
     Set<ClassBuilder> blackListedClasses = new Set<ClassBuilder>();
     for (int i = 0; i < blacklistedCoreClasses.length; i++) {
-      blackListedClasses
-          .add(coreLibrary.getLocalMember(blacklistedCoreClasses[i]));
+      blackListedClasses.add(coreLibrary
+          .lookupLocalMember(blacklistedCoreClasses[i], required: true));
     }
 
     // Sort the classes topologically.
@@ -1113,7 +1113,7 @@ class SourceLoader extends Loader {
     if (library == null) {
       return target.dillTarget.loader.computeClassBuilderFromTargetClass(cls);
     }
-    return library.getLocalMember(cls.name);
+    return library.lookupLocalMember(cls.name, required: true);
   }
 
   @override

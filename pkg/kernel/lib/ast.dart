@@ -1196,9 +1196,9 @@ class ExtensionMemberDescriptor {
   /// will be converted into
   ///
   ///     class A {}
-  ///     B|get|bar(A #this) => #this.foo;
+  ///     B|get#bar(A #this) => #this.foo;
   ///
-  /// where `B|get|bar` is the synthesized name of the top-level method and
+  /// where `B|get#bar` is the synthesized name of the top-level method and
   /// `#this` is the synthesized parameter that holds represents `this`.
   ///
   ProcedureKind kind;
@@ -1319,6 +1319,19 @@ abstract class Member extends NamedNode implements Annotatable, FileUriNode {
   bool get isExternal;
   void set isExternal(bool value);
 
+  /// If `true` this member is compiled from a member declared in an extension
+  /// declaration.
+  ///
+  /// For instance `field`, `method1` and `method2` in:
+  ///
+  ///     extension A on B {
+  ///       static var field;
+  ///       B method1() => this;
+  ///       static B method2() => new B();
+  ///     }
+  ///
+  bool get isExtensionMember;
+
   /// The body of the procedure or constructor, or `null` if this is a field.
   FunctionNode get function => null;
 
@@ -1382,6 +1395,7 @@ class Field extends Member {
   static const int FlagHasImplicitSetter = 1 << 4;
   static const int FlagCovariant = 1 << 5;
   static const int FlagGenericCovariantImpl = 1 << 6;
+  static const int FlagExtensionMember = 1 << 7;
 
   /// Whether the field is declared with the `covariant` keyword.
   bool get isCovariant => flags & FlagCovariant != 0;
@@ -1389,6 +1403,9 @@ class Field extends Member {
   bool get isFinal => flags & FlagFinal != 0;
   bool get isConst => flags & FlagConst != 0;
   bool get isStatic => flags & FlagStatic != 0;
+
+  @override
+  bool get isExtensionMember => flags & FlagExtensionMember != 0;
 
   /// If true, a getter should be generated for this field.
   ///
@@ -1431,6 +1448,11 @@ class Field extends Member {
 
   void set isStatic(bool value) {
     flags = value ? (flags | FlagStatic) : (flags & ~FlagStatic);
+  }
+
+  void set isExtensionMember(bool value) {
+    flags =
+        value ? (flags | FlagExtensionMember) : (flags & ~FlagExtensionMember);
   }
 
   void set hasImplicitGetter(bool value) {
@@ -1558,6 +1580,9 @@ class Constructor extends Member {
   bool get hasGetter => false;
   bool get hasSetter => false;
 
+  @override
+  bool get isExtensionMember => false;
+
   accept(MemberVisitor v) => v.visitConstructor(this);
 
   acceptReference(MemberReferenceVisitor v) =>
@@ -1682,6 +1707,9 @@ class RedirectingFactoryConstructor extends Member {
   bool get hasGetter => false;
   bool get hasSetter => false;
 
+  @override
+  bool get isExtensionMember => false;
+
   bool get isUnresolved => targetReference == null;
 
   Member get target => targetReference?.asMember;
@@ -1781,7 +1809,7 @@ class Procedure extends Member {
       bool isConst: false,
       bool isForwardingStub: false,
       bool isForwardingSemiStub: false,
-      bool isExtensionMethod: false,
+      bool isExtensionMember: false,
       int transformerFlags: 0,
       Uri fileUri,
       Reference reference,
@@ -1794,7 +1822,7 @@ class Procedure extends Member {
             isConst: isConst,
             isForwardingStub: isForwardingStub,
             isForwardingSemiStub: isForwardingSemiStub,
-            isExtensionMethod: isExtensionMethod,
+            isExtensionMember: isExtensionMember,
             transformerFlags: transformerFlags,
             fileUri: fileUri,
             reference: reference,
@@ -1810,7 +1838,7 @@ class Procedure extends Member {
       bool isConst: false,
       bool isForwardingStub: false,
       bool isForwardingSemiStub: false,
-      bool isExtensionMethod: false,
+      bool isExtensionMember: false,
       int transformerFlags: 0,
       Uri fileUri,
       Reference reference,
@@ -1824,7 +1852,7 @@ class Procedure extends Member {
     this.isConst = isConst;
     this.isForwardingStub = isForwardingStub;
     this.isForwardingSemiStub = isForwardingSemiStub;
-    this.isExtensionMethod = isExtensionMethod;
+    this.isExtensionMember = isExtensionMember;
     this.transformerFlags = transformerFlags;
   }
 
@@ -1837,7 +1865,7 @@ class Procedure extends Member {
   // TODO(29841): Remove this flag after the issue is resolved.
   static const int FlagRedirectingFactoryConstructor = 1 << 6;
   static const int FlagNoSuchMethodForwarder = 1 << 7;
-  static const int FlagExtensionMethod = 1 << 8;
+  static const int FlagExtensionMember = 1 << 8;
 
   bool get isStatic => flags & FlagStatic != 0;
   bool get isAbstract => flags & FlagAbstract != 0;
@@ -1874,17 +1902,8 @@ class Procedure extends Member {
 
   bool get isNoSuchMethodForwarder => flags & FlagNoSuchMethodForwarder != 0;
 
-  /// If `true` this procedure is compiled from a method declared in
-  /// an extension declaration.
-  ///
-  /// For instance `method1` and `method2` in:
-  ///
-  ///     extension A on B {
-  ///       B method1() => this;
-  ///       static B method2() => new B();
-  ///     }
-  ///
-  bool get isExtensionMethod => flags & FlagExtensionMethod != 0;
+  @override
+  bool get isExtensionMember => flags & FlagExtensionMember != 0;
 
   void set isStatic(bool value) {
     flags = value ? (flags | FlagStatic) : (flags & ~FlagStatic);
@@ -1925,9 +1944,9 @@ class Procedure extends Member {
         : (flags & ~FlagNoSuchMethodForwarder);
   }
 
-  void set isExtensionMethod(bool value) {
+  void set isExtensionMember(bool value) {
     flags =
-        value ? (flags | FlagExtensionMethod) : (flags & ~FlagExtensionMethod);
+        value ? (flags | FlagExtensionMember) : (flags & ~FlagExtensionMember);
   }
 
   bool get isInstanceMember => !isStatic;

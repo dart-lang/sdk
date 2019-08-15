@@ -6,6 +6,8 @@ library fasta.body_builder;
 
 import 'dart:core' hide MapEntry;
 
+import '../builder/declaration_builder.dart';
+
 import '../constant_context.dart' show ConstantContext;
 
 import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
@@ -151,6 +153,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   final ModifierBuilder member;
 
+  /// The class, mixin or extension declaration in which [member] is declared,
+  /// if any.
+  final DeclarationBuilder declarationBuilder;
+
+  /// The class or mixin declaration in which [member] is declared, if any.
   final ClassBuilder classBuilder;
 
   final ClassHierarchy hierarchy;
@@ -287,34 +294,36 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       this.formalParameterScope,
       this.hierarchy,
       this.coreTypes,
-      this.classBuilder,
+      this.declarationBuilder,
       this.isDeclarationInstanceMember,
       this.extensionThis,
       this.uri,
       this.typeInferrer})
       : forest = const Fangorn(),
+        classBuilder =
+            declarationBuilder is ClassBuilder ? declarationBuilder : null,
         enableNative =
             library.loader.target.backendTarget.enableNative(library.uri),
         stringExpectedAfterNative =
             library.loader.target.backendTarget.nativeExtensionExpectsString,
         ignoreMainInGetMainClosure = library.uri.scheme == 'dart' &&
             (library.uri.path == "_builtin" || library.uri.path == "ui"),
-        needsImplicitSuperInitializer =
-            coreTypes?.objectClass != classBuilder?.cls,
+        needsImplicitSuperInitializer = declarationBuilder is ClassBuilder &&
+            coreTypes?.objectClass != declarationBuilder.cls,
         typePromoter = typeInferrer?.typePromoter,
         legacyMode = library.legacyMode,
         super(enclosingScope);
 
   BodyBuilder.withParents(FieldBuilder field, SourceLibraryBuilder part,
-      ClassBuilder classBuilder, TypeInferrer typeInferrer)
+      DeclarationBuilder declarationBuilder, TypeInferrer typeInferrer)
       : this(
             library: part,
             member: field,
-            enclosingScope: classBuilder?.scope ?? field.library.scope,
+            enclosingScope: declarationBuilder?.scope ?? field.library.scope,
             formalParameterScope: null,
             hierarchy: part.loader.hierarchy,
             coreTypes: part.loader.coreTypes,
-            classBuilder: classBuilder,
+            declarationBuilder: declarationBuilder,
             isDeclarationInstanceMember: field.isDeclarationInstanceMember,
             extensionThis: null,
             uri: field.fileUri,
@@ -323,13 +332,15 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   BodyBuilder.forField(FieldBuilder field, TypeInferrer typeInferrer)
       : this.withParents(
             field,
-            field.parent is ClassBuilder ? field.parent.parent : field.parent,
-            field.parent is ClassBuilder ? field.parent : null,
+            field.parent is DeclarationBuilder
+                ? field.parent.parent
+                : field.parent,
+            field.parent is DeclarationBuilder ? field.parent : null,
             typeInferrer);
 
   BodyBuilder.forOutlineExpression(
       SourceLibraryBuilder library,
-      ClassBuilder classBuilder,
+      DeclarationBuilder declarationBuilder,
       ModifierBuilder member,
       Scope scope,
       Uri fileUri)
@@ -340,14 +351,14 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             formalParameterScope: null,
             hierarchy: library.loader.hierarchy,
             coreTypes: library.loader.coreTypes,
-            classBuilder: classBuilder,
+            declarationBuilder: declarationBuilder,
             isDeclarationInstanceMember:
                 member?.isDeclarationInstanceMember ?? false,
             extensionThis: null,
             uri: fileUri,
             typeInferrer: library.loader.typeInferenceEngine
                 ?.createLocalTypeInferrer(
-                    fileUri, classBuilder?.target?.thisType, library));
+                    fileUri, declarationBuilder?.thisType, library));
 
   bool get inConstructor {
     return functionNestingLevel == 0 && member is ConstructorBuilder;
@@ -619,10 +630,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       Identifier identifier = pop();
       String name = identifier.name;
       Builder declaration;
-      if (classBuilder != null) {
-        declaration = classBuilder.getLocalMember(name);
+      if (declarationBuilder != null) {
+        declaration =
+            declarationBuilder.lookupLocalMember(name, required: true);
       } else {
-        declaration = library.getLocalMember(name);
+        declaration = library.lookupLocalMember(name, required: true);
       }
       FieldBuilder field;
       if (declaration.isField && declaration.next == null) {
@@ -5070,8 +5082,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   Initializer buildFieldInitializer(bool isSynthetic, String name,
       int fieldNameOffset, int assignmentOffset, Expression expression,
       {DartType formalType}) {
-    Builder builder =
-        classBuilder.scope.local[name] ?? classBuilder.origin.scope.local[name];
+    Builder builder = declarationBuilder.lookupLocalMember(name);
     if (builder?.next != null) {
       // Duplicated name, already reported.
       return new LocalInitializer(

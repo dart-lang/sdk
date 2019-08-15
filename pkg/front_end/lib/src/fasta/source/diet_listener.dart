@@ -629,7 +629,7 @@ class DietListener extends StackListener {
     // TODO(johnniwinther): Provide a dummy this on static extension methods
     // for better error recovery?
     InterfaceType thisType =
-        extensionThis == null ? currentClass?.target?.thisType : null;
+        extensionThis == null ? currentDeclaration?.thisType : null;
     var typeInferrer =
         typeInferenceEngine?.createLocalTypeInferrer(uri, thisType, library);
     ConstantContext constantContext = builder.isConstructor && builder.isConst
@@ -642,7 +642,7 @@ class DietListener extends StackListener {
         formalParameterScope: formalParameterScope,
         hierarchy: hierarchy,
         coreTypes: coreTypes,
-        classBuilder: currentClass,
+        declarationBuilder: currentDeclaration,
         isDeclarationInstanceMember: isDeclarationInstanceMember,
         extensionThis: extensionThis,
         uri: uri,

@@ -247,11 +247,14 @@ class KernelTarget extends TargetImplementation {
       loader.createTypeInferenceEngine();
       await loader.buildOutlines();
       loader.coreLibrary.becomeCoreLibrary();
-      dynamicType.bind(loader.coreLibrary.getLocalMember("dynamic"));
+      dynamicType.bind(
+          loader.coreLibrary.lookupLocalMember("dynamic", required: true));
       loader.resolveParts();
       loader.computeLibraryScopes();
-      objectType.bind(loader.coreLibrary.getLocalMember("Object"));
-      bottomType.bind(loader.coreLibrary.getLocalMember("Null"));
+      objectType
+          .bind(loader.coreLibrary.lookupLocalMember("Object", required: true));
+      bottomType
+          .bind(loader.coreLibrary.lookupLocalMember("Null", required: true));
       loader.resolveTypes();
       loader.computeDefaultTypes(dynamicType, bottomType, objectClassBuilder);
       List<SourceClassBuilder> myClasses =

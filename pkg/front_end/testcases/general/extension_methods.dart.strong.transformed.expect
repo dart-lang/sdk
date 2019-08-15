@@ -22,9 +22,9 @@ class C extends core::Object {
     return 1;
 }
 extension E on self::C* {
-  field two = self::E|two;
+  get two = self::E|get#two;
 }
-method E|two(final self::C* #this) → core::int*
+method E|get#two(final self::C* #this) → core::int*
   return 2;
 static method main() → dynamic {
   self::C* c = new self::C::•();
