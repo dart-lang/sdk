@@ -321,7 +321,11 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
             includeSources: false, includeOffsets: false));
       }
 
-      return Future.value(fe.serializeComponent(incrementalComponent));
+      return Future.value(fe.serializeComponent(incrementalComponent,
+          filter: excludeNonSources
+              ? (library) => sources.contains(library.importUri)
+              : null,
+          includeOffsets: true));
     });
   } else if (summaryOnly) {
     kernel = await fe.compileSummary(state, sources, onDiagnostic,
