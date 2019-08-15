@@ -14,6 +14,78 @@ main() {
 
 @reflectiveTest
 class EdgeBuilderFlowAnalysisTest extends EdgeBuilderTestBase {
+  test_assignmentExpression() async {
+    await analyze('''
+void f(int i, int j) {
+  if (i != null) {
+    g(i);
+    i = j;
+    h(i);
+  }
+}
+void g(int k) {}
+void h(int l) {}
+''');
+    var iNode = decoratedTypeAnnotation('int i').node;
+    var jNode = decoratedTypeAnnotation('int j').node;
+    var kNode = decoratedTypeAnnotation('int k').node;
+    var lNode = decoratedTypeAnnotation('int l').node;
+    // No edge from i to k because i's type is promoted to non-nullable
+    assertNoEdge(iNode, kNode);
+    // But there is an edge from i to l, because it is after the assignment
+    assertEdge(iNode, lNode, hard: false);
+    // And there is an edge from j to i, because a null value of j would lead to
+    // a null value for i.
+    assertEdge(jNode, iNode, hard: false);
+  }
+
+  test_assignmentExpression_lhs_before_rhs() async {
+    await analyze('''
+void f(int i, List<int> l) {
+  if (i != null) {
+    l[i = g(i)] = h(i);
+  }
+}
+int g(int j) => 1;
+int h(int k) => 1;
+''');
+    var iNode = decoratedTypeAnnotation('int i').node;
+    var jNode = decoratedTypeAnnotation('int j').node;
+    var kNode = decoratedTypeAnnotation('int k').node;
+    var gReturnNode = decoratedTypeAnnotation('int g').node;
+    // No edge from i to j, because i's type is promoted before the call to g.
+    assertNoEdge(iNode, jNode);
+    // But there is an edge from i to k, because the call to h happens after the
+    // assignment.
+    assertEdge(iNode, kNode, hard: false);
+    // And there is an edge from g's return type to i, due to the assignment.
+    assertEdge(gReturnNode, iNode, hard: false);
+  }
+
+  test_assignmentExpression_write_after_rhs() async {
+    await analyze('''
+void f(int i) {
+  if (i != null) {
+    i = g(i);
+    h(i);
+  }
+}
+int g(int j) => 1;
+void h(int k) {}
+''');
+    var iNode = decoratedTypeAnnotation('int i').node;
+    var jNode = decoratedTypeAnnotation('int j').node;
+    var kNode = decoratedTypeAnnotation('int k').node;
+    var gReturnNode = decoratedTypeAnnotation('int g').node;
+    // No edge from i to j because i's type is promoted before the call to g.
+    assertNoEdge(iNode, jNode);
+    // But there is an edge from i to k, because the call to h happens after the
+    // assignment.
+    assertEdge(iNode, kNode, hard: false);
+    // And there is an edge from g's return type to i, due to the assignment.
+    assertEdge(gReturnNode, iNode, hard: false);
+  }
+
   test_binaryExpression_ampersandAmpersand_left() async {
     await analyze('''
 bool f(int i) => i != null && i.isEven;
