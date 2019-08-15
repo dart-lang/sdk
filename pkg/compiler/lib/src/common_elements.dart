@@ -490,6 +490,7 @@ abstract class CommonElements {
   FieldEntity get rtiAsField;
   FieldEntity get rtiCheckField;
   FieldEntity get rtiIsField;
+  FieldEntity get rtiRestField;
   FunctionEntity get rtiEvalMethod;
   FunctionEntity get rtiBindMethod;
   FunctionEntity get rtiAddRulesMethod;
@@ -1888,6 +1889,10 @@ class CommonElementsImpl
   @override
   FieldEntity get rtiCheckField =>
       _rtiCheckField ??= _findRtiClassField('_check');
+
+  FieldEntity _rtiRestField;
+  @override
+  FieldEntity get rtiRestField => _rtiRestField ??= _findRtiClassField('_rest');
 
   FunctionEntity _rtiEvalMethod;
   @override

@@ -64,7 +64,8 @@ import 'dart:_rti' as newRti
         createRuntimeType,
         evalInInstance,
         getRuntimeType,
-        getTypeFromTypesTable;
+        getTypeFromTypesTable,
+        instantiatedGenericFunctionType;
 
 part 'annotations.dart';
 part 'constant_map.dart';

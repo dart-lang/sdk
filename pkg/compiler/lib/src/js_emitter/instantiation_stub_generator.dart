@@ -81,8 +81,18 @@ class InstantiationStubGenerator {
       parameters.add(new jsAst.Parameter(jsName));
     }
 
-    for (int i = 0; i < targetSelector.typeArgumentCount; i++) {
-      arguments.add(js('this.#[#]', [_namer.rtiFieldJsName, js.number(i)]));
+    if (_options.experimentNewRti) {
+      for (int i = 0; i < targetSelector.typeArgumentCount; i++) {
+        arguments.add(js('this.#.#[#]', [
+          _namer.rtiFieldJsName,
+          _namer.fieldPropertyName(_commonElements.rtiRestField),
+          js.number(i)
+        ]));
+      }
+    } else {
+      for (int i = 0; i < targetSelector.typeArgumentCount; i++) {
+        arguments.add(js('this.#[#]', [_namer.rtiFieldJsName, js.number(i)]));
+      }
     }
 
     jsAst.Fun function = js('function(#) { return this.#.#(#); }', [
