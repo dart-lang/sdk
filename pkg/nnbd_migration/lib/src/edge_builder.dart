@@ -152,7 +152,13 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   /// edges on a best-effort basis.
   final _postDominatedLocals = _ScopedLocalSet();
 
-  NullabilityNode _lastConditionalNode;
+  /// Map whose keys are expressions of the form `a?.b` on the LHS of
+  /// assignments, and whose values are the nullability nodes corresponding to
+  /// the expression preceding `?.`.  These are needed in order to properly
+  /// analyze expressions like `a?.b += c`, since the type of the compound
+  /// assignment is nullable if the type of the expression preceding `?.` is
+  /// nullable.
+  final Map<Expression, NullabilityNode> _conditionalNodes = {};
 
   EdgeBuilder(TypeProvider typeProvider, this._typeSystem, this._variables,
       this._graph, this._source, this.listener)
@@ -252,10 +258,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
     _postDominatedLocals.removeReferenceFromAllScopes(node.leftHandSide);
     var leftType = node.leftHandSide.accept(this);
-    var conditionalNode = _lastConditionalNode;
-    _lastConditionalNode = null;
     var expressionType = _handleAssignment(node.rightHandSide, leftType);
-    if (_isConditionalExpression(node.leftHandSide)) {
+    var conditionalNode = _conditionalNodes[node.leftHandSide];
+    if (conditionalNode != null) {
       expressionType = expressionType.withNode(
           NullabilityNode.forLUB(conditionalNode, expressionType.node));
       _variables.recordDecoratedExpressionType(node, expressionType);
@@ -1557,7 +1562,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     // TODO(paulberry): substitute if necessary
     if (propertyName.inSetterContext()) {
       if (isConditional) {
-        _lastConditionalNode = targetType.node;
+        _conditionalNodes[node] = targetType.node;
       }
       return calleeType.positionalParameters[0];
     } else {
