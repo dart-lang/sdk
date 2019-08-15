@@ -401,11 +401,30 @@ ProcessedOptions analyzeCommandLine(
 
   final Uri sdk = options["--sdk"] ?? options["--compile-sdk"];
 
+  String computePlatformDillName() {
+    switch (target.name) {
+      case 'dartdevc':
+        return 'dartdevc.dill';
+      case 'dart2js':
+        return 'dart2js_platform.dill';
+      case 'dart2js_server':
+        return 'dart2js_platform.dill';
+      case 'vm':
+        return legacyMode ? 'vm_platform.dill' : "vm_platform_strong.dill";
+      case 'none':
+        return "vm_platform_strong.dill";
+      default:
+        throwCommandLineProblem(
+            'Target "${target.name}" requires an explicit --platform option.');
+    }
+    return null;
+  }
+
   final Uri platform = compileSdk
       ? null
       : (options["--platform"] ??
-          computePlatformBinariesLocation(forceBuildDir: true).resolve(
-              legacyMode ? "vm_platform.dill" : "vm_platform_strong.dill"));
+          computePlatformBinariesLocation(forceBuildDir: true)
+              .resolve(computePlatformDillName()));
 
   CompilerOptions compilerOptions = new CompilerOptions()
     ..compileSdk = compileSdk
