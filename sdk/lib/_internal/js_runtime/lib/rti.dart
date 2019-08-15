@@ -261,6 +261,10 @@ class Rti {
   /// between 'generic class is the base environment' and 'generic class is a
   /// singleton type argument' is resolved [TBD] (either (1) a bind1 cache, or
   /// (2)using `env._eval("@<0>")._bind(args)` in place of `env._bind1(args)`).
+  ///
+  /// On [Rti]s that are generic function types, results of instantiation are
+  /// cached on the generic function type to ensure fast repeated
+  /// instantiations.
   Object _bindCache;
 
   static Object _getBindCache(Rti rti) => rti._bindCache;
@@ -359,8 +363,172 @@ Rti evalInInstance(instance, String recipe) {
 @pragma('dart2js:noInline')
 Rti instantiatedGenericFunctionType(
     Rti genericFunctionRti, Rti instantiationRti) {
-  // TODO(fishythefish)
-  throw UnimplementedError('instantiatedGenericFunctionType');
+  var bounds = Rti._getGenericFunctionBounds(genericFunctionRti);
+  var typeArguments = Rti._getInterfaceTypeArguments(instantiationRti);
+  assert(_Utils.arrayLength(bounds) == _Utils.arrayLength(typeArguments));
+
+  var cache = Rti._getBindCache(genericFunctionRti);
+  if (cache == null) {
+    cache = JS('', 'new Map()');
+    Rti._setBindCache(genericFunctionRti, cache);
+  }
+  String key = Rti._getCanonicalRecipe(instantiationRti);
+  var probe = _Utils.mapGet(cache, key);
+  if (probe != null) return _castToRti(probe);
+  Rti rti = _instantiate(_theUniverse(),
+      Rti._getGenericFunctionBase(genericFunctionRti), typeArguments, 0);
+  _Utils.mapSet(cache, key, rti);
+  return rti;
+}
+
+/// Substitutes [typeArguments] for generic function parameters in [rti].
+///
+/// Generic function parameters are de Bruijn indices counting up through the
+/// parameters' scopes to index into [typeArguments].
+///
+/// [depth] is the number of subsequent generic function parameters that are in
+/// scope. This is subtracted off the de Bruijn index for the type parameter to
+/// arrive at an potential index into [typeArguments].
+Rti _instantiate(universe, Rti rti, Object typeArguments, int depth) {
+  int kind = Rti._getKind(rti);
+  switch (kind) {
+    case Rti.kindNever:
+    case Rti.kindDynamic:
+    case Rti.kindVoid:
+    case Rti.kindAny:
+      return rti;
+    case Rti.kindStar:
+      Rti baseType = _castToRti(Rti._getPrimary(rti));
+      Rti instantiatedBaseType =
+          _instantiate(universe, baseType, typeArguments, depth);
+      if (_Utils.isIdentical(instantiatedBaseType, baseType)) return rti;
+      return _Universe._lookupStarRti(universe, instantiatedBaseType);
+    case Rti.kindQuestion:
+      Rti baseType = _castToRti(Rti._getPrimary(rti));
+      Rti instantiatedBaseType =
+          _instantiate(universe, baseType, typeArguments, depth);
+      if (_Utils.isIdentical(instantiatedBaseType, baseType)) return rti;
+      return _Universe._lookupQuestionRti(universe, instantiatedBaseType);
+    case Rti.kindFutureOr:
+      Rti baseType = _castToRti(Rti._getPrimary(rti));
+      Rti instantiatedBaseType =
+          _instantiate(universe, baseType, typeArguments, depth);
+      if (_Utils.isIdentical(instantiatedBaseType, baseType)) return rti;
+      return _Universe._lookupFutureOrRti(universe, instantiatedBaseType);
+    case Rti.kindInterface:
+      Object interfaceTypeArguments = Rti._getInterfaceTypeArguments(rti);
+      Object instantiatedInterfaceTypeArguments = _instantiateArray(
+          universe, interfaceTypeArguments, typeArguments, depth);
+      if (_Utils.isIdentical(
+          instantiatedInterfaceTypeArguments, interfaceTypeArguments))
+        return rti;
+      return _Universe._lookupInterfaceRti(universe, Rti._getInterfaceName(rti),
+          instantiatedInterfaceTypeArguments);
+    case Rti.kindBinding:
+      Rti base = Rti._getBindingBase(rti);
+      Rti instantiatedBase = _instantiate(universe, base, typeArguments, depth);
+      Object arguments = Rti._getBindingArguments(rti);
+      Object instantiatedArguments =
+          _instantiateArray(universe, arguments, typeArguments, depth);
+      if (_Utils.isIdentical(instantiatedBase, base) &&
+          _Utils.isIdentical(instantiatedArguments, arguments)) return rti;
+      return _Universe._lookupBindingRti(
+          universe, instantiatedBase, instantiatedArguments);
+    case Rti.kindFunction:
+      Rti returnType = Rti._getReturnType(rti);
+      Rti instantiatedReturnType =
+          _instantiate(universe, returnType, typeArguments, depth);
+      _FunctionParameters functionParameters = Rti._getFunctionParameters(rti);
+      _FunctionParameters instantiatedFunctionParameters =
+          _instantiateFunctionParameters(
+              universe, functionParameters, typeArguments, depth);
+      if (_Utils.isIdentical(instantiatedReturnType, returnType) &&
+          _Utils.isIdentical(
+              instantiatedFunctionParameters, functionParameters)) return rti;
+      return _Universe._lookupFunctionRti(
+          universe, instantiatedReturnType, instantiatedFunctionParameters);
+    case Rti.kindGenericFunction:
+      Object bounds = Rti._getGenericFunctionBounds(rti);
+      depth += _Utils.arrayLength(bounds);
+      Object instantiatedBounds =
+          _instantiateArray(universe, bounds, typeArguments, depth);
+      Rti base = Rti._getGenericFunctionBase(rti);
+      Rti instantiatedBase = _instantiate(universe, base, typeArguments, depth);
+      if (_Utils.isIdentical(instantiatedBounds, bounds) &&
+          _Utils.isIdentical(instantiatedBase, base)) return rti;
+      return _Universe._lookupGenericFunctionRti(
+          universe, instantiatedBase, instantiatedBounds);
+    case Rti.kindGenericFunctionParameter:
+      int index = Rti._getGenericFunctionParameterIndex(rti);
+      if (index < depth) return null;
+      return _castToRti(_Utils.arrayAt(typeArguments, index - depth));
+    default:
+      throw AssertionError(
+          'Attempted to instantiate unexpected RTI kind $kind');
+  }
+}
+
+Object _instantiateArray(
+    universe, Object rtiArray, Object typeArguments, int depth) {
+  bool changed = false;
+  int length = _Utils.arrayLength(rtiArray);
+  Object result = JS('', '[]');
+  for (int i = 0; i < length; i++) {
+    Rti rti = _castToRti(_Utils.arrayAt(rtiArray, i));
+    Rti instantiatedRti = _instantiate(universe, rti, typeArguments, depth);
+    if (!_Utils.isIdentical(instantiatedRti, rti)) {
+      changed = true;
+    }
+    _Utils.arrayPush(result, instantiatedRti);
+  }
+  return changed ? result : rtiArray;
+}
+
+Object _instantiateNamed(
+    universe, Object namedArray, Object typeArguments, int depth) {
+  bool changed = false;
+  int length = _Utils.arrayLength(namedArray);
+  assert(length.isEven);
+  Object result = JS('', '[]');
+  for (int i = 0; i < length; i += 2) {
+    String name = _Utils.asString(_Utils.arrayAt(namedArray, i));
+    Rti rti = _castToRti(_Utils.arrayAt(namedArray, i + 1));
+    Rti instantiatedRti = _instantiate(universe, rti, typeArguments, depth);
+    if (!_Utils.isIdentical(instantiatedRti, rti)) {
+      changed = true;
+    }
+    _Utils.arrayPush(result, name);
+    _Utils.arrayPush(result, instantiatedRti);
+  }
+  return changed ? result : namedArray;
+}
+
+// TODO(fishythefish): Support required named parameters.
+_FunctionParameters _instantiateFunctionParameters(universe,
+    _FunctionParameters functionParameters, Object typeArguments, int depth) {
+  Object requiredPositional =
+      _FunctionParameters._getRequiredPositional(functionParameters);
+  Object instantiatedRequiredPositional =
+      _instantiateArray(universe, requiredPositional, typeArguments, depth);
+  Object optionalPositional =
+      _FunctionParameters._getOptionalPositional(functionParameters);
+  Object instantiatedOptionalPositional =
+      _instantiateArray(universe, optionalPositional, typeArguments, depth);
+  Object optionalNamed =
+      _FunctionParameters._getOptionalNamed(functionParameters);
+  Object instantiatedOptionalNamed =
+      _instantiateNamed(universe, optionalNamed, typeArguments, depth);
+  if (_Utils.isIdentical(instantiatedRequiredPositional, requiredPositional) &&
+      _Utils.isIdentical(instantiatedOptionalPositional, optionalPositional) &&
+      _Utils.isIdentical(instantiatedOptionalNamed, optionalNamed))
+    return functionParameters;
+  _FunctionParameters result = _FunctionParameters.allocate();
+  _FunctionParameters._setRequiredPositional(
+      result, instantiatedRequiredPositional);
+  _FunctionParameters._setOptionalPositional(
+      result, instantiatedOptionalPositional);
+  _FunctionParameters._setOptionalNamed(result, instantiatedOptionalNamed);
+  return result;
 }
 
 bool _isClosure(object) => _Utils.instanceOf(object,
@@ -385,8 +553,13 @@ Rti closureFunctionType(closure) {
 // them appear to be the superclass.
 // TODO(sra): Can this be done less expensively, e.g. by putting $ti on the
 // prototype of Closure/BoundClosure/StaticClosure classes?
-Rti _closureInterfaceType(closure) => _instanceTypeFromConstructor(
-    JS('', '#.__proto__.__proto__.constructor', closure));
+Rti _closureInterfaceType(closure) {
+  var rti = JS('', r'#[#]', closure, JS_GET_NAME(JsGetName.RTI_NAME));
+  return rti != null
+      ? _castToRti(rti)
+      : _instanceTypeFromConstructor(
+          JS('', '#.__proto__.__proto__.constructor', closure));
+}
 
 /// Returns the Rti type of [object]. Closures have both an interface type
 /// (Closures implement `Function`) and a structural function type. Uses
@@ -394,17 +567,16 @@ Rti _closureInterfaceType(closure) => _instanceTypeFromConstructor(
 ///
 /// Called from generated code.
 Rti instanceOrFunctionType(object, Rti testRti) {
-  if (_isClosure(object)) {
-    if (Rti._isUnionOfFunctionType(testRti)) {
+  if (Rti._isUnionOfFunctionType(testRti)) {
+    if (_isClosure(object)) {
       // If [testRti] is e.g. `FutureOr<Action>` (where `Action` is some
       // function type), we don't need to worry about the `Future<Action>`
       // branch because closures can't be `Future`s.
       Rti rti = closureFunctionType(object);
       if (rti != null) return rti;
     }
-    return _closureInterfaceType(object);
   }
-  return _nonClosureInstanceType(object);
+  return instanceType(object);
 }
 
 /// Returns the Rti type of [object].
@@ -464,10 +636,8 @@ Rti _instanceTypeFromConstructor(constructor) {
 
 /// Returns the structural function type of [object], or `null` if the object is
 /// not a closure.
-Rti _instanceFunctionType(object) {
-  if (_isClosure(object)) return closureFunctionType(object);
-  return null;
-}
+Rti _instanceFunctionType(object) =>
+    _isClosure(object) ? closureFunctionType(object) : null;
 
 /// Returns Rti from types table. The types table is initialized with recipe
 /// strings.
@@ -2251,6 +2421,9 @@ class _Utils {
   static void arraySetAt(Object array, int i, Object value) {
     JS('', '#[#] = #', array, i, value);
   }
+
+  static JSArray arrayShallowCopy(Object array) =>
+      JS('JSArray', '#.slice()', array);
 
   static JSArray arraySplice(Object array, int position) =>
       JS('JSArray', '#.splice(#)', array, position);
