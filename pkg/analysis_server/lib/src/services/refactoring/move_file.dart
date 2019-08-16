@@ -16,7 +16,8 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:path/path.dart' as pathos;
 
 /**
@@ -69,19 +70,21 @@ class MoveFileRefactoringImpl extends RefactoringImpl
 
   @override
   Future<SourceChange> createChange() async {
-    final DartChangeBuilder changeBuilder =
-        new DartChangeBuilder(driver.currentSession);
+    final ChangeBuilder changeBuilder = new ChangeBuilder();
     final CompilationUnitElement element = resolvedUnit.unit.declaredElement;
     if (element == null) {
       return changeBuilder.sourceChange;
     }
-    final LibraryElement libraryElement = element.library;
+
+    var libraryElement = element.library;
+    var libraryPath = libraryElement.source.fullName;
 
     // If this element is a library, update outgoing references inside the file.
     if (element == libraryElement.definingCompilationUnit) {
       // Handle part-of directives in this library
       final ResolvedLibraryResult libraryResult = await driver.currentSession
           .getResolvedLibraryByElement(libraryElement);
+      ResolvedUnitResult definingUnitResult;
       for (ResolvedUnitResult result in libraryResult.units) {
         if (result.isPart) {
           Iterable<PartOfDirective> partOfs = result.unit.directives
@@ -103,15 +106,19 @@ class MoveFileRefactoringImpl extends RefactoringImpl
             });
           }
         }
+        if (result.path == libraryPath) {
+          definingUnitResult = result;
+        }
       }
 
-      await changeBuilder.addFileEdit(libraryElement.source.fullName,
-          (builder) {
+      await changeBuilder.addFileEdit(definingUnitResult.path, (builder) {
         final String oldDir = pathContext.dirname(oldFile);
         final String newDir = pathContext.dirname(newFile);
-        _updateUriReferences(builder, libraryElement.imports, oldDir, newDir);
-        _updateUriReferences(builder, libraryElement.exports, oldDir, newDir);
-        _updateUriReferences(builder, libraryElement.parts, oldDir, newDir);
+        for (var directive in definingUnitResult.unit.directives) {
+          if (directive is UriBasedDirective) {
+            _updateUriReference(builder, directive, oldDir, newDir);
+          }
+        }
       });
     } else {
       // Otherwise, we need to update any relative part-of references.
@@ -198,25 +205,14 @@ class MoveFileRefactoringImpl extends RefactoringImpl
     return true;
   }
 
-  void _updateUriReference(DartFileEditBuilder builder,
-      UriReferencedElement element, String oldDir, String newDir) {
-    if (!element.isSynthetic) {
-      String elementUri = element.uri;
-      if (_isRelativeUri(elementUri)) {
-        String elementPath = pathContext.join(oldDir, elementUri);
-        String newUri = _getRelativeUri(elementPath, newDir);
-        int uriOffset = element.uriOffset;
-        int uriLength = element.uriEnd - uriOffset;
-        builder.addSimpleReplacement(
-            new SourceRange(uriOffset, uriLength), "'$newUri'");
-      }
-    }
-  }
-
-  void _updateUriReferences(DartFileEditBuilder builder,
-      List<UriReferencedElement> elements, String oldDir, String newDir) {
-    for (UriReferencedElement element in elements) {
-      _updateUriReference(builder, element, oldDir, newDir);
+  void _updateUriReference(FileEditBuilder builder, UriBasedDirective directive,
+      String oldDir, String newDir) {
+    var uriNode = directive.uri;
+    var uriValue = uriNode.stringValue;
+    if (_isRelativeUri(uriValue)) {
+      String elementPath = pathContext.join(oldDir, uriValue);
+      String newUri = _getRelativeUri(elementPath, newDir);
+      builder.addSimpleReplacement(range.node(uriNode), "'$newUri'");
     }
   }
 }
