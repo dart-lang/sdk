@@ -231,14 +231,14 @@ DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
         Exceptions::PropagateError(Error::Cast(result));
       }
     }
-    if (function.HasBytecode() && (FLAG_compilation_counter_threshold != 0)) {
+    if (function.HasBytecode()) {
       // If interpreter is enabled and there is bytecode, LazyCompile stub
       // (which calls CompileFunction) should proceed to InterpretCall in order
       // to enter interpreter. In such case, compilation is postponed and
       // triggered by interpreter later via CompileInterpretedFunction.
       return;
     }
-    // Fall back to compilation.
+    // No bytecode, fall back to compilation.
   } else {
     ASSERT(!function.HasCode());
   }

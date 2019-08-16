@@ -46,10 +46,8 @@ RawFunction* GetFunction(const Library& lib, const char* name) {
 
 void Invoke(const Library& lib, const char* name) {
   // These tests rely on running unoptimized code to collect type feedback. The
-  // interpreter does not collect type feedback for interface calls, so set
-  // compilation threshold to 0 in order to compile invoked function
-  // immediately and executed compiled code.
-  SetFlagScope<int> sfs(&FLAG_compilation_counter_threshold, 0);
+  // interpreter does not collect type feedback for interface calls.
+  SetFlagScope<bool> sfs(&FLAG_enable_interpreter, false);
 
   Thread* thread = Thread::Current();
   Dart_Handle api_lib = Api::NewHandle(thread, lib.raw());

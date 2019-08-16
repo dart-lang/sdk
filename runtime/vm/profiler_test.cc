@@ -1528,7 +1528,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_FunctionInline) {
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
   SetFlagScope<int> sfs(&FLAG_optimization_counter_threshold, 30000);
-  SetFlagScope<int> sfs2(&FLAG_compilation_counter_threshold, 0);
+  SetFlagScope<bool> sfs2(&FLAG_enable_interpreter, false);
 
   const char* kScript =
       "class A {\n"
@@ -1814,7 +1814,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_InliningIntervalBoundry) {
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
   SetFlagScope<int> sfs(&FLAG_optimization_counter_threshold, 30000);
-  SetFlagScope<int> sfs2(&FLAG_compilation_counter_threshold, 0);
+  SetFlagScope<bool> sfs2(&FLAG_enable_interpreter, false);
 
   const char* kScript =
       "class A {\n"
@@ -2162,8 +2162,8 @@ ISOLATE_UNIT_TEST_CASE(Profiler_BasicSourcePositionOptimized) {
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
   // Optimize quickly.
-  SetFlagScope<int> sfs(&FLAG_optimization_counter_threshold, 5);
-  SetFlagScope<int> sfs2(&FLAG_compilation_counter_threshold, 0);
+  SetFlagScope<int> sfs2(&FLAG_optimization_counter_threshold, 5);
+  SetFlagScope<bool> sfs3(&FLAG_enable_interpreter, false);
   const char* kScript =
       "class A {\n"
       "  var a;\n"
@@ -2348,8 +2348,8 @@ ISOLATE_UNIT_TEST_CASE(Profiler_SourcePositionOptimized) {
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
   // Optimize quickly.
-  SetFlagScope<int> sfs(&FLAG_optimization_counter_threshold, 5);
-  SetFlagScope<int> sfs2(&FLAG_compilation_counter_threshold, 0);
+  SetFlagScope<int> sfs2(&FLAG_optimization_counter_threshold, 5);
+  SetFlagScope<bool> sfs3(&FLAG_enable_interpreter, false);
 
   const char* kScript =
       "class A {\n"
@@ -2574,8 +2574,8 @@ ISOLATE_UNIT_TEST_CASE(Profiler_BinaryOperatorSourcePositionOptimized) {
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
   // Optimize quickly.
-  SetFlagScope<int> sfs(&FLAG_optimization_counter_threshold, 5);
-  SetFlagScope<int> sfs2(&FLAG_compilation_counter_threshold, 0);
+  SetFlagScope<int> sfs2(&FLAG_optimization_counter_threshold, 5);
+  SetFlagScope<bool> sfs3(&FLAG_enable_interpreter, false);
 
   const char* kScript =
       "class A {\n"
@@ -2654,9 +2654,11 @@ ISOLATE_UNIT_TEST_CASE(Profiler_BinaryOperatorSourcePositionOptimized) {
     EXPECT(walker.Down());
     EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
-    EXPECT_EQ(1, walker.CurrentExclusiveTicks());
-    EXPECT(walker.Down());
+    if (!FLAG_enable_interpreter) {
+      EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
+      EXPECT_EQ(1, walker.CurrentExclusiveTicks());
+      EXPECT(walker.Down());
+    }
     EXPECT_STREQ("B.boo", walker.CurrentName());
     EXPECT_EQ(1, walker.CurrentNodeTickCount());
     EXPECT_EQ(1, walker.CurrentInclusiveTicks());
