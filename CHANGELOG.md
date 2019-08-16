@@ -4,6 +4,46 @@
 
 ### Language
 
+The set of operations allowed in constant expressions has been expanded as
+described in
+the [constant update proposal](https://github.com/dart-lang/language/issues/61).
+The control flow and spread collection features shipped in Dart 2.3 are now also
+supported in constants
+as
+[described in the specification here](https://github.com/dart-lang/language/blob/master/accepted/2.3/unified-collections/feature-specification.md#constant-semantics).
+
+Specifically, it is now valid to use the following operations in constant
+expressions under the appropriate conditions:
+  - Casts (`e as T`) and type tests (`e is T`).
+  - Comparisons to `null`, even for types which override the `==` operator.
+  - The `&`, `|`, and `^` binary operators on booleans.
+  - The spread operators (`...` and `...?`).
+  - An `if` element in a collection literal.
+
+```dart
+// Example: these are now valid constants.
+const i = 3;
+const list = [i as int];
+const set = {if (list is List<int>) ...list};
+const map = {if (i is int) i : "int"};
+```
+
+In addition, the semantics of constant evaluation has been changed as follows:
+  - The `&&` operator only evaluates its second operand if the first evaluates
+  to true.
+  - The `||` operator only evaluates its second operand if the first evaluates
+  to false.
+  - The `??` operator only evaluates its second operand if the first evaluates
+  to null.
+  - The conditional operator (`e ? e1 : e2`) only evaluates one of the two
+    branches, depending on the value of the first operand.
+
+```dart
+// Example: x is now a valid constant definition.
+const String s = null;
+const int x = (s == null) ? 0 : s.length;
+```
+
 ### Core libraries
 
 * **Breaking change** [#36900](https://github.com/dart-lang/sdk/issues/36900):
