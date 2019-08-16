@@ -412,6 +412,13 @@ class OutlineBuilder extends StackListener {
 
   @override
   void handleQualified(Token period) {
+    assert(checkState(period, [
+      /*suffix offset*/ ValueKind.Integer,
+      /*suffix*/ ValueKind.NameOrParserRecovery,
+      /*prefix offset*/ ValueKind.Integer,
+      /*prefix*/ unionOfKinds(
+          [ValueKind.Name, ValueKind.ParserRecovery, ValueKind.QualifiedName]),
+    ]));
     debugEvent("handleQualified");
     int suffixOffset = pop();
     Object suffix = pop();

@@ -79,25 +79,47 @@ enum NullValue {
 abstract class StackListener extends Listener {
   final Stack stack = new Stack();
 
+  /// Checks that [value] matches the expected [kind].
+  ///
+  /// Use this in assert statements like
+  ///
+  ///     assert(checkValue(token, ValueKind.Token, value));
+  ///
+  /// to document and validate the expected value kind.
+  bool checkValue(Token token, ValueKind kind, Object value) {
+    if (!kind.check(value)) {
+      String message = 'Unexpected value `${value}` (${value.runtimeType}). '
+          'Expected ${kind}.';
+      if (token != null) {
+        // If offset is available report and internal problem to show the
+        // parsed code in the output.
+        throw internalProblem(
+            new Message(null, message: message), token.charOffset, uri);
+      } else {
+        throw message;
+      }
+    }
+    return true;
+  }
+
   /// Checks the top of the current stack against [kinds]. If a mismatch is
   /// found, a top of the current stack is print along with the expected [kinds]
   /// marking the frames that don't match, and throws an exception.
   ///
-  /// Use this in assert statements like `assert(checkState([ValueKind.Token]))`
+  /// Use this in assert statements like
+  ///
+  ///     assert(checkState(token, [ValueKind.Integer, ValueKind.StringOrNull]))
+  ///
   /// to document the expected stack and get earlier errors on unexpected stack
   /// content.
   bool checkState(Token token, List<ValueKind> kinds) {
-    bool checkValue(ValueKind kind, Object value) {
-      return kind.check(value);
-    }
-
     bool success = true;
     for (int kindIndex = 0; kindIndex < kinds.length; kindIndex++) {
       int stackIndex = stack.arrayLength - kindIndex - 1;
       ValueKind kind = kinds[kindIndex];
       if (stackIndex >= 0) {
         Object value = stack.array[stackIndex];
-        if (!checkValue(kind, value)) {
+        if (!kind.check(value)) {
           success = false;
         }
       } else {
@@ -151,7 +173,7 @@ abstract class StackListener extends Listener {
         }
         if (stackIndex >= 0) {
           Object value = stack.array[stackIndex];
-          if (kind == null || checkValue(kind, value)) {
+          if (kind == null || kind.check(value)) {
             sb.write(' ');
           } else {
             sb.write('*');

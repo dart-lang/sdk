@@ -6,7 +6,7 @@ import 'dart:io';
 
 final String repoDir = _computeRepoDir();
 
-String get dartVm => Platform.isWindows ? 'sdk/bin/dart.bat' : 'sdk/bin/dart';
+String get dartVm => Platform.executable;
 
 main(List<String> args) async {
   Stopwatch stopwatch = new Stopwatch()..start();

@@ -365,6 +365,15 @@ class DietListener extends StackListener {
 
   @override
   void handleQualified(Token period) {
+    assert(checkState(period, [
+      /*suffix*/ ValueKind.NameOrParserRecovery,
+      /*prefix*/ unionOfKinds([
+        ValueKind.Name,
+        ValueKind.Generator,
+        ValueKind.ParserRecovery,
+        ValueKind.QualifiedName,
+      ]),
+    ]));
     debugEvent("handleQualified");
     Object suffix = pop();
     Object prefix = pop();

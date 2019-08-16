@@ -21,6 +21,7 @@ general/fallthrough: Fail # Missing FallThroughError.
 general/function_type_recovery: Fail
 general/incomplete_field_formal_parameter: Fail # Fasta doesn't recover well
 general/invocations: Fail
+general/issue37776: RuntimeError
 general/micro: Fail # External method marked abstract.
 general/minimum_int: Crash # Min int literal not supported in non-strong mode.
 general/mixin_constructors_with_default_values: RuntimeError # Expected

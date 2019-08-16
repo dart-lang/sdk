@@ -542,7 +542,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     pushQualifiedReference(beginToken.next, periodBeforeName);
     if (arguments != null) {
       push(arguments);
-      buildConstructorReferenceInvocation(
+      _buildConstructorReferenceInvocation(
           beginToken.next, beginToken.offset, Constness.explicitConst);
       push(popForValue());
     } else {
@@ -3403,6 +3403,16 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   /// reference, or an expression in metadata), a list of type arguments, and a
   /// name.
   void pushQualifiedReference(Token start, Token periodBeforeName) {
+    assert(checkState(start, [
+      /*suffix*/ if (periodBeforeName != null) ValueKind.Identifier,
+      /*type arguments*/ ValueKind.TypeArgumentsOrNull,
+      /*type*/ unionOfKinds([
+        ValueKind.Generator,
+        ValueKind.QualifiedName,
+        ValueKind.ProblemBuilder,
+        ValueKind.ParserRecovery
+      ])
+    ]));
     Identifier suffix = popIfNotNull(periodBeforeName);
     Identifier identifier;
     List<UnresolvedType> typeArguments = pop();
@@ -3411,6 +3421,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       identifier = type;
       QualifiedName qualified = type;
       Object qualifier = qualified.qualifier;
+      assert(checkValue(
+          start,
+          unionOfKinds([ValueKind.Generator, ValueKind.ProblemBuilder]),
+          qualifier));
       if (qualifier is TypeUseGenerator) {
         type = qualifier;
         if (typeArguments != null) {
@@ -3421,6 +3435,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       } else if (qualifier is Generator) {
         type = qualifier.qualifiedLookup(deprecated_extractToken(identifier));
         identifier = null;
+      } else if (qualifier is ProblemBuilder) {
+        type = qualifier;
       } else {
         unhandled("${qualifier.runtimeType}", "pushQualifiedReference",
             start.charOffset, uri);
@@ -3440,6 +3456,17 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     push(typeArguments ?? NullValue.TypeArguments);
     push(name);
     push(suffix ?? identifier ?? NullValue.Identifier);
+
+    assert(checkState(start, [
+      /*constructor name identifier*/ ValueKind.IdentifierOrNull,
+      /*constructor name*/ ValueKind.Name,
+      /*type arguments*/ ValueKind.TypeArgumentsOrNull,
+      /*class*/ unionOfKinds([
+        ValueKind.Generator,
+        ValueKind.ProblemBuilder,
+        ValueKind.ParserRecovery
+      ]),
+    ]));
   }
 
   @override
@@ -3656,12 +3683,23 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void endNewExpression(Token token) {
     debugEvent("NewExpression");
-    buildConstructorReferenceInvocation(
+    _buildConstructorReferenceInvocation(
         token.next, token.offset, Constness.explicitNew);
   }
 
-  void buildConstructorReferenceInvocation(
+  void _buildConstructorReferenceInvocation(
       Token nameToken, int offset, Constness constness) {
+    assert(checkState(nameToken, [
+      /*arguments*/ ValueKind.Arguments,
+      /*constructor name identifier*/ ValueKind.IdentifierOrNull,
+      /*constructor name*/ ValueKind.Name,
+      /*type arguments*/ ValueKind.TypeArgumentsOrNull,
+      /*class*/ unionOfKinds([
+        ValueKind.Generator,
+        ValueKind.ProblemBuilder,
+        ValueKind.ParserRecovery
+      ]),
+    ]));
     Arguments arguments = pop();
     Identifier nameLastIdentifier = pop(NullValue.Identifier);
     Token nameLastToken =
@@ -3679,10 +3717,14 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       push(new ParserErrorGenerator(
           this, nameToken, fasta.messageSyntheticToken));
     } else {
+      String typeName;
+      if (type is ProblemBuilder) {
+        typeName = type.fullNameForErrors;
+      }
       push(wrapSyntheticExpression(
           throwNoSuchMethodError(
               forest.createNullLiteral(null)..fileOffset = offset,
-              debugName(getNodeName(type), name),
+              debugName(typeName, name),
               arguments,
               nameToken.charOffset),
           offset));
@@ -3693,7 +3735,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void endImplicitCreationExpression(Token token) {
     debugEvent("ImplicitCreationExpression");
-    buildConstructorReferenceInvocation(
+    _buildConstructorReferenceInvocation(
         token, token.offset, Constness.implicit);
   }
 
@@ -3815,7 +3857,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void endConstExpression(Token token) {
     debugEvent("endConstExpression");
-    buildConstructorReferenceInvocation(
+    _buildConstructorReferenceInvocation(
         token.next, token.offset, Constness.explicitConst);
   }
 
