@@ -17194,13 +17194,11 @@ class HtmlOptionsCollection extends HtmlCollection {
   * and prints its length:
   *
   *     var path = 'myData.json';
-  *     HttpRequest.getString(path)
-  *         .then((String fileContents) {
-  *           print(fileContents.length);
-  *         })
-  *         .catchError((Error error) {
-  *           print(error.toString());
-  *         });
+  *     HttpRequest.getString(path).then((String fileContents) {
+  *       print(fileContents.length);
+  *     }).catchError((error) {
+  *       print(error.toString());
+  *     });
   *
   * ## Fetching data from other servers
   *
