@@ -293,7 +293,7 @@ class _ElementRequest {
       elementFactory.analysisSession,
       libraryNode.name,
       hasName ? libraryNode.nameOffset : -1,
-      libraryNode.name.length,
+      libraryNode.nameLength,
       definingUnitContext,
       reference,
       definingUnitContext.unit_withDeclarations,
