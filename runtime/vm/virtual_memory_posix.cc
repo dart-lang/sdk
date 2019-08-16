@@ -214,8 +214,8 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
       PROT_READ | PROT_WRITE |
       ((is_executable && !FLAG_write_protect_code) ? PROT_EXEC : 0);
   int map_flags = MAP_PRIVATE | MAP_ANONYMOUS;
-#if defined(HOST_OS_MACOS)
-  if (IsAtLeastOS10_14()) {
+#if (defined(HOST_OS_MACOS) && !defined(HOST_OS_IOS))
+  if (is_executable && IsAtLeastOS10_14()) {
     map_flags |= MAP_JIT;
   }
 #endif  // defined(HOST_OS_MACOS)
