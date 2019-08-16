@@ -577,6 +577,9 @@ RawClass* TranslationHelper::LookupClassByKernelClass(NameIndex kernel_class) {
       Class::Handle(Z, library.LookupClassAllowPrivate(class_name));
   CheckStaticLookup(klass);
   ASSERT(!klass.IsNull());
+  if (klass.is_declared_in_bytecode()) {
+    klass.EnsureDeclarationLoaded();
+  }
   name_index_handle_ = Smi::New(kernel_class);
   return info_.InsertClass(thread_, name_index_handle_, klass);
 }

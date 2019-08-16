@@ -878,14 +878,6 @@ static void ReadFile(const char* filename, uint8_t** buffer, intptr_t* size) {
   file->Release();
 }
 
-static void LoadBytecode() {
-  if (Dart_IsVMFlagSet("enable_interpreter") ||
-      Dart_IsVMFlagSet("use_bytecode_compiler")) {
-    Dart_Handle result = Dart_ReadAllBytecode();
-    CHECK_RESULT(result);
-  }
-}
-
 bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
   // Call CreateIsolateGroupAndSetup which creates an isolate and loads up
   // the specified application script.
@@ -949,10 +941,6 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
     if (Dart_IsNull(root_lib)) {
       ErrorExit(kErrorExitCode, "Unable to find root library for '%s'\n",
                 script_name);
-    }
-
-    if (Options::gen_snapshot_kind() == kAppJIT) {
-      LoadBytecode();
     }
 
     if (Options::load_compilation_trace_filename() != NULL) {
