@@ -10,6 +10,7 @@ import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
+import 'package:analysis_server/src/services/refactoring/visible_ranges_computer.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -156,13 +157,12 @@ Set<String> _getNamesConflictingAt(AstNode node) {
   {
     SourceRange localsRange = _getLocalsConflictingRange(node);
     AstNode enclosingExecutable = getEnclosingExecutableNode(node);
-    List<LocalElement> elements = getDefinedLocalElements(enclosingExecutable);
-    for (LocalElement element in elements) {
-      SourceRange elementRange = element.visibleRange;
-      if (elementRange != null && elementRange.intersects(localsRange)) {
+    var visibleRangeMap = VisibleRangesComputer.forNode(enclosingExecutable);
+    visibleRangeMap.forEach((element, elementRange) {
+      if (elementRange.intersects(localsRange)) {
         result.add(element.displayName);
       }
-    }
+    });
   }
   // fields
   {

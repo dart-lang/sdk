@@ -11,6 +11,7 @@ import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/naming_conventions.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/rename.dart';
+import 'package:analysis_server/src/services/refactoring/visible_ranges_computer.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -47,14 +48,19 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   Future<RefactoringStatus> checkFinalConditions() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     RefactoringStatus result = new RefactoringStatus();
     await _prepareElements();
     for (LocalElement element in elements) {
       var resolvedUnit = await sessionHelper.getResolvedUnitByElement(element);
       var unit = resolvedUnit.unit;
-      unit.accept(new _ConflictValidatorVisitor(result, newName, element));
+      unit.accept(
+        _ConflictValidatorVisitor(
+          result,
+          newName,
+          element,
+          VisibleRangesComputer.forNode(unit),
+        ),
+      );
     }
     return result;
   }
@@ -92,8 +98,6 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
    * Fills [elements] with [Element]s to rename.
    */
   Future _prepareElements() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     Element element = this.element;
     if (element is ParameterElement && element.isNamed) {
       elements = await getHierarchyNamedParameters(searchEngine, element);
@@ -107,9 +111,15 @@ class _ConflictValidatorVisitor extends RecursiveAstVisitor {
   final RefactoringStatus result;
   final String newName;
   final LocalElement target;
+  final Map<Element, SourceRange> visibleRangeMap;
   final Set<Element> conflictingLocals = new Set<Element>();
 
-  _ConflictValidatorVisitor(this.result, this.newName, this.target);
+  _ConflictValidatorVisitor(
+    this.result,
+    this.newName,
+    this.target,
+    this.visibleRangeMap,
+  );
 
   @override
   visitSimpleIdentifier(SimpleIdentifier node) {
@@ -127,7 +137,7 @@ class _ConflictValidatorVisitor extends RecursiveAstVisitor {
         return;
       }
       // Shadowing by the target element.
-      SourceRange targetRange = target.visibleRange;
+      SourceRange targetRange = _getVisibleRange(target);
       if (targetRange != null &&
           targetRange.contains(node.offset) &&
           !node.isQualified &&
@@ -144,13 +154,17 @@ class _ConflictValidatorVisitor extends RecursiveAstVisitor {
     }
   }
 
+  SourceRange _getVisibleRange(LocalElement element) {
+    return visibleRangeMap[element];
+  }
+
   /**
    * Returns whether [element] and [target] are visible together.
    */
   bool _isVisibleWithTarget(Element element) {
     if (element is LocalElement) {
-      SourceRange targetRange = target.visibleRange;
-      SourceRange elementRange = element.visibleRange;
+      SourceRange targetRange = _getVisibleRange(target);
+      SourceRange elementRange = _getVisibleRange(element);
       return targetRange != null &&
           elementRange != null &&
           elementRange.intersects(targetRange);

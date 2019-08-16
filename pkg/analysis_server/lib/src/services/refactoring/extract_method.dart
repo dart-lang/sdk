@@ -15,6 +15,7 @@ import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
 import 'package:analysis_server/src/services/refactoring/rename_class_member.dart';
 import 'package:analysis_server/src/services/refactoring/rename_unit_member.dart';
+import 'package:analysis_server/src/services/refactoring/visible_ranges_computer.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -39,7 +40,8 @@ Element _getLocalElement(SimpleIdentifier node) {
   Element element = node.staticElement;
   if (element is LocalVariableElement ||
       element is ParameterElement ||
-      element is FunctionElement && element.visibleRange != null) {
+      element is FunctionElement &&
+          element.enclosingElement is! CompilationUnitElement) {
     return element;
   }
   return null;
@@ -91,6 +93,11 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   final List<String> names = <String>[];
   final List<int> offsets = <int>[];
   final List<int> lengths = <int>[];
+
+  /**
+   * The map of local elements to their visibility ranges.
+   */
+  Map<LocalElement, SourceRange> _visibleRangeMap;
 
   /**
    * The map of local names to their visibility ranges.
@@ -733,8 +740,13 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     _parameterReferencesMap.clear();
     RefactoringStatus result = new RefactoringStatus();
     List<VariableElement> assignedUsedVariables = [];
-    resolveResult.unit
-        .accept(new _InitializeParametersVisitor(this, assignedUsedVariables));
+
+    var unit = resolveResult.unit;
+    _visibleRangeMap = VisibleRangesComputer.forNode(unit);
+    unit.accept(
+      _InitializeParametersVisitor(this, assignedUsedVariables),
+    );
+
     // single expression
     if (_selectionExpression != null) {
       _returnType = _selectionExpression.staticType;
@@ -1294,7 +1306,7 @@ class _InitializeParametersVisitor extends GeneralizingAstVisitor {
       // declared local elements
       if (node.inDeclarationContext()) {
         ref._localNames.putIfAbsent(name, () => <SourceRange>[]);
-        ref._localNames[name].add(element.visibleRange);
+        ref._localNames[name].add(ref._visibleRangeMap[element]);
       }
     } else {
       // unqualified non-local names
