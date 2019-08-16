@@ -103,6 +103,7 @@ def
 depended
 depfile
 deviation
+dfast
 dictionaries
 dictionary
 differs

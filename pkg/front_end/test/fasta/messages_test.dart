@@ -75,7 +75,9 @@ class MessageTestSuite extends ChainContext {
 
   final BatchCompiler compiler;
 
-  MessageTestSuite()
+  final bool fastOnly;
+
+  MessageTestSuite(this.fastOnly)
       : fileSystem = new MemoryFileSystem(Uri.parse("org-dartlang-fasta:///")),
         compiler = new BatchCompiler(null);
 
@@ -282,15 +284,18 @@ class MessageTestSuite extends ChainContext {
             name, messageNode, example, problem);
       }
 
-      for (Example example in examples) {
-        yield createDescription(example.name, example, null);
-      }
-      // "Wrap" example as a part.
-      for (Example example in examples) {
-        yield createDescription(
-            "part_wrapped_${example.name}",
-            new PartWrapExample("part_wrapped_${example.name}", name, example),
-            null);
+      if (!fastOnly) {
+        for (Example example in examples) {
+          yield createDescription(example.name, example, null);
+        }
+        // "Wrap" example as a part.
+        for (Example example in examples) {
+          yield createDescription(
+              "part_wrapped_${example.name}",
+              new PartWrapExample(
+                  "part_wrapped_${example.name}", name, example),
+              null);
+        }
       }
 
       yield createDescription(
@@ -315,7 +320,6 @@ class MessageTestSuite extends ChainContext {
               ? "The 'ERROR' severity is the default and not necessary."
               : null,
           location: unnecessarySeverity?.span?.start);
-
       yield createDescription(
           "spelling",
           null,
@@ -644,7 +648,8 @@ class Compile extends Step<Example, Null, MessageTestSuite> {
 
 Future<MessageTestSuite> createContext(
     Chain suite, Map<String, String> environment) async {
-  return new MessageTestSuite();
+  final bool fastOnly = environment["fastOnly"] == "true";
+  return new MessageTestSuite(fastOnly);
 }
 
 String relativize(Uri uri) {
