@@ -565,33 +565,14 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   @override
+  DecoratedType visitForElement(ForElement node) {
+    _handleForLoopParts(node.forLoopParts, node.body);
+    return null;
+  }
+
+  @override
   DecoratedType visitForStatement(ForStatement node) {
-    // TODO do special condition handling
-    // TODO do create true/false guards?
-    final parts = node.forLoopParts;
-    if (parts is ForParts) {
-      if (parts is ForPartsWithDeclarations) {
-        parts.variables?.accept(this);
-      } else if (parts is ForPartsWithExpression) {
-        parts.initialization?.accept(this);
-      }
-      parts.condition?.accept(this);
-    } else if (parts is ForEachParts) {
-      if (parts is ForEachPartsWithDeclaration) {
-        _flowAnalysis.add(parts.loopVariable.declaredElement, assigned: true);
-      }
-      parts.iterable.accept(this);
-    }
-
-    // The condition may fail/iterable may be empty, so the body gets a new
-    // post-dominator scope.
-    _postDominatedLocals.doScoped(action: () {
-      node.body.accept(this);
-
-      if (parts is ForParts) {
-        parts.updaters.accept(this);
-      }
-    });
+    _handleForLoopParts(node.forLoopParts, node.body);
     return null;
   }
 
@@ -1504,6 +1485,36 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _currentFunctionType = null;
       _postDominatedLocals.popScope();
     }
+  }
+
+  void _handleForLoopParts(ForLoopParts parts, AstNode body) {
+    if (parts is ForParts) {
+      if (parts is ForPartsWithDeclarations) {
+        parts.variables?.accept(this);
+      } else if (parts is ForPartsWithExpression) {
+        parts.initialization?.accept(this);
+      }
+      if (parts.condition != null) {
+        _handleAssignment(parts.condition,
+            destinationType: _nonNullableBoolType);
+      }
+    } else if (parts is ForEachParts) {
+      if (parts is ForEachPartsWithDeclaration) {
+        _flowAnalysis.add(parts.loopVariable.declaredElement, assigned: true);
+      }
+      // TODO(mfairhurst): assert this is non-nullable
+      parts.iterable?.accept(this);
+    }
+
+    // The condition may fail/iterable may be empty, so the body gets a new
+    // post-dominator scope.
+    _postDominatedLocals.doScoped(action: () {
+      body.accept(this);
+
+      if (parts is ForParts) {
+        parts.updaters.accept(this);
+      }
+    });
   }
 
   /// Creates the necessary constraint(s) for an [argumentList] when invoking an
