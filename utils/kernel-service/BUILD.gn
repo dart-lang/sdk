@@ -101,6 +101,13 @@ template("kernel_service_dill") {
           "--output=" + rebase_path(output),
           rebase_path(kernel_service_script),
         ]
+
+    if (dart_platform_bytecode) {
+      args += [
+        "--gen-bytecode",
+        "--drop-ast",
+      ]
+    }
   }
 }
 
