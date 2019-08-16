@@ -2103,11 +2103,7 @@ class FixProcessor {
     String prefix = utils.getNodePrefix(target);
     // compute type
     DartType type = _inferUndefinedExpressionType(node);
-    if (!(type == null ||
-        type is InterfaceType ||
-        type is FunctionType &&
-            type.element != null &&
-            !type.element.isSynthetic)) {
+    if (!(type == null || type is InterfaceType || type is FunctionType)) {
       return;
     }
     // build variable declaration source
