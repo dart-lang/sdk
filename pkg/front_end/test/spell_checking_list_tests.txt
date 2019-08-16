@@ -245,6 +245,7 @@ mismatched
 miss
 misspelled
 mistake
+mistakes
 month
 mx
 mysdk

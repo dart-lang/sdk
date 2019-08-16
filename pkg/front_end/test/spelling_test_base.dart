@@ -8,6 +8,9 @@ import 'dart:io' show File;
 
 import 'dart:typed_data' show Uint8List;
 
+import 'package:front_end/src/fasta/command_line_reporting.dart'
+    as command_line_reporting;
+
 import 'package:front_end/src/fasta/scanner.dart' show ErrorToken;
 
 import 'package:front_end/src/fasta/scanner/utf8_bytes_scanner.dart'
@@ -15,7 +18,10 @@ import 'package:front_end/src/fasta/scanner/utf8_bytes_scanner.dart'
 
 import 'package:front_end/src/scanner/token.dart'
     show Token, KeywordToken, BeginToken;
+
 import 'package:front_end/src/scanner/token.dart';
+
+import 'package:kernel/kernel.dart';
 
 import 'package:testing/testing.dart'
     show ChainContext, Result, Step, TestDescription;
@@ -57,6 +63,18 @@ class SpellTest extends Step<TestDescription, TestDescription, Context> {
     Token token = firstToken;
 
     List<String> errors;
+    Source source = new Source(
+        scanner.lineStarts, rawBytes, description.uri, description.uri);
+    void addErrorMessage(int offset, int squigglyLength, String message) {
+      errors ??= new List<String>();
+      Location location = source.getLocation(description.uri, offset);
+      errors.add(command_line_reporting.formatErrorMessage(
+          source.getTextLine(location.line),
+          location,
+          squigglyLength,
+          description.uri.toString(),
+          message));
+    }
 
     while (token != null) {
       if (token is ErrorToken) {
@@ -66,23 +84,32 @@ class SpellTest extends Step<TestDescription, TestDescription, Context> {
       if (token.precedingComments != null) {
         Token comment = token.precedingComments;
         while (comment != null) {
-          Set<String> misspelled = spell.spellcheckString(comment.lexeme,
-              splitAsCode: true, dictionaries: context.dictionaries);
-          if (misspelled != null) {
-            errors ??= new List<String>();
-            errors.add("Misspelled words around offset ${comment.offset}: "
-                "${misspelled.toList()}");
+          spell.SpellingResult spellingResult = spell.spellcheckString(
+              comment.lexeme,
+              splitAsCode: true,
+              dictionaries: context.dictionaries);
+          if (spellingResult.misspelledWords != null) {
+            for (int i = 0; i < spellingResult.misspelledWords.length; i++) {
+              int offset =
+                  comment.offset + spellingResult.misspelledWordsOffset[i];
+              String word = spellingResult.misspelledWords[i];
+              addErrorMessage(offset, word.length, "Misspelled word '$word'.");
+            }
           }
           comment = comment.next;
         }
       }
       if (token is StringToken) {
-        Set<String> misspelled = spell.spellcheckString(token.lexeme,
-            splitAsCode: true, dictionaries: context.dictionaries);
-        if (misspelled != null) {
-          errors ??= new List<String>();
-          errors.add("Misspelled words around offset ${token.offset}: "
-              "${misspelled.toList()}");
+        spell.SpellingResult spellingResult = spell.spellcheckString(
+            token.lexeme,
+            splitAsCode: true,
+            dictionaries: context.dictionaries);
+        if (spellingResult.misspelledWords != null) {
+          for (int i = 0; i < spellingResult.misspelledWords.length; i++) {
+            int offset = token.offset + spellingResult.misspelledWordsOffset[i];
+            String word = spellingResult.misspelledWords[i];
+            addErrorMessage(offset, word.length, "Misspelled word '$word'.");
+          }
         }
       } else if (token is KeywordToken || token is BeginToken) {
         // Ignored.
@@ -100,9 +127,7 @@ class SpellTest extends Step<TestDescription, TestDescription, Context> {
     if (errors == null) {
       return pass(description);
     } else {
-      // TODO(jensj): Point properly in the source code like compilation errors
-      // do.
-      return fail(description, errors.join("\n"));
+      return fail(description, errors.join("\n\n"));
     }
   }
 }

@@ -13,15 +13,19 @@ enum Dictionaries {
 
 Map<Dictionaries, Set<String>> loadedDictionaries;
 
-Set<String> spellcheckString(String s,
+SpellingResult spellcheckString(String s,
     {List<Dictionaries> dictionaries, bool splitAsCode: false}) {
   dictionaries ??= const [Dictionaries.common];
   ensureDictionariesLoaded(dictionaries);
 
-  Set<String> wrongWords;
-  List<String> words = splitStringIntoWords(s, splitAsCode: splitAsCode);
+  List<String> wrongWords;
+  List<int> wrongWordsOffset;
+  List<int> wordOffsets = new List<int>();
+  List<String> words =
+      splitStringIntoWords(s, wordOffsets, splitAsCode: splitAsCode);
   for (int i = 0; i < words.length; i++) {
     String word = words[i].toLowerCase();
+    int offset = wordOffsets[i];
     bool found = false;
     for (int j = 0; j < dictionaries.length; j++) {
       Dictionaries dictionaryType = dictionaries[j];
@@ -32,11 +36,20 @@ Set<String> spellcheckString(String s,
       }
     }
     if (!found) {
-      wrongWords ??= new Set<String>();
+      wrongWords ??= new List<String>();
       wrongWords.add(word);
+      wrongWordsOffset ??= new List<int>();
+      wrongWordsOffset.add(offset);
     }
   }
-  return wrongWords;
+  return new SpellingResult(wrongWords, wrongWordsOffset);
+}
+
+class SpellingResult {
+  final List<String> misspelledWords;
+  final List<int> misspelledWordsOffset;
+
+  SpellingResult(this.misspelledWords, this.misspelledWordsOffset);
 }
 
 void ensureDictionariesLoaded(List<Dictionaries> dictionaries) {
@@ -87,7 +100,8 @@ Uri dictionaryToUri(Dictionaries dictionaryType) {
   throw "Unknown Dictionary";
 }
 
-List<String> splitStringIntoWords(String s, {bool splitAsCode: false}) {
+List<String> splitStringIntoWords(String s, List<int> splitOffsets,
+    {bool splitAsCode: false}) {
   List<String> result = new List<String>();
   // Match whitespace and the characters "-", "=", "|", "/", ",".
   String regExpStringInner = r"\s-=\|\/,";
@@ -104,9 +118,27 @@ List<String> splitStringIntoWords(String s, {bool splitAsCode: false}) {
     regExp = "([$regExpStringInner]|(\\\\n))+";
   }
 
-  List<String> split = s.split(new RegExp(regExp));
+  Iterator<RegExpMatch> matchesIterator =
+      new RegExp(regExp).allMatches(s).iterator;
+  int latestMatch = 0;
+  List<String> split = new List<String>();
+  List<int> splitOffset = new List<int>();
+  while (matchesIterator.moveNext()) {
+    RegExpMatch match = matchesIterator.current;
+    if (match.start > latestMatch) {
+      split.add(s.substring(latestMatch, match.start));
+      splitOffset.add(latestMatch);
+    }
+    latestMatch = match.end;
+  }
+  if (s.length > latestMatch) {
+    split.add(s.substring(latestMatch, s.length));
+    splitOffset.add(latestMatch);
+  }
+
   for (int i = 0; i < split.length; i++) {
-    String word = split[i].trim();
+    String word = split[i];
+    int offset = splitOffset[i];
     if (word.isEmpty) continue;
     int start = 0;
     int end = word.length;
@@ -185,6 +217,7 @@ List<String> splitStringIntoWords(String s, {bool splitAsCode: false}) {
             }
             if (doSpecialCase) {
               result.add(word.substring(start, i));
+              splitOffsets.add(offset + start);
               start = i;
             }
           }
@@ -196,6 +229,7 @@ List<String> splitStringIntoWords(String s, {bool splitAsCode: false}) {
             if (nextUnit >= 97 && nextUnit <= 122) {
               // Next is not capitalized.
               result.add(word.substring(start, i));
+              splitOffsets.add(offset + start);
               start = i;
             }
           }
@@ -203,6 +237,7 @@ List<String> splitStringIntoWords(String s, {bool splitAsCode: false}) {
           // Starting a new camel case word.
           if (i > start) {
             result.add(word.substring(start, i));
+            splitOffsets.add(offset + start);
             start = i;
           }
         } else if (prevCapitalized && !thisCapitalized) {
@@ -214,6 +249,7 @@ List<String> splitStringIntoWords(String s, {bool splitAsCode: false}) {
           // End of string.
           if (i >= start) {
             result.add(word.substring(start, end));
+            splitOffsets.add(offset + start);
           }
         }
         prevCapitalized = thisCapitalized;
@@ -221,6 +257,7 @@ List<String> splitStringIntoWords(String s, {bool splitAsCode: false}) {
     } else {
       result.add(
           (changedStart || changedEnd) ? word.substring(start, end) : word);
+      splitOffsets.add(offset + start);
     }
   }
   return result;

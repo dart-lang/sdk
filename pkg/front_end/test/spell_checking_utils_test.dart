@@ -5,109 +5,95 @@
 import 'spell_checking_utils.dart';
 
 void main() {
-  _expectList(splitStringIntoWords("Hello world"), ["Hello", "world"]);
-  _expectList(splitStringIntoWords("Hello\nworld"), ["Hello", "world"]);
-  _expectList(splitStringIntoWords("Hello 'world'"), ["Hello", "world"]);
-  _expectList(splitStringIntoWords("It's fun"), ["It's", "fun"]);
-  _expectList(splitStringIntoWords("It's 'fun'"), ["It's", "fun"]);
-  _expectList(splitStringIntoWords("exit-code"), ["exit", "code"]);
-  _expectList(splitStringIntoWords("fatal=warning"), ["fatal", "warning"]);
-  _expectList(splitStringIntoWords("vm|none"), ["vm", "none"]);
-  _expectList(splitStringIntoWords("vm/none"), ["vm", "none"]);
-  _expectList(splitStringIntoWords("vm,none"), ["vm", "none"]);
-  _expectList(splitStringIntoWords("One or more word(s)"),
-      ["One", "or", "more", "word(s)"]);
-  _expectList(splitStringIntoWords("One or more words)"),
-      ["One", "or", "more", "words"]);
-  _expectList(
-      splitStringIntoWords("It's 'fun' times 100"), ["It's", "fun", "times"]);
+  expectSplit("Hello world", false, ["Hello", "world"], [0, 6]);
+  expectSplit("Hello  world", false, ["Hello", "world"], [0, 7]);
+  expectSplit("Hello\nworld", false, ["Hello", "world"], [0, 6]);
+  expectSplit("Hello 'world'", false, ["Hello", "world"], [0, 7]);
+  expectSplit("It's fun", false, ["It's", "fun"], [0, 5]);
+  expectSplit("It's 'fun'", false, ["It's", "fun"], [0, 6]);
+  expectSplit("exit-code", false, ["exit", "code"], [0, 5]);
+  expectSplit("fatal=warning", false, ["fatal", "warning"], [0, 6]);
+  expectSplit("vm|none", false, ["vm", "none"], [0, 3]);
+  expectSplit("vm/none", false, ["vm", "none"], [0, 3]);
+  expectSplit("vm,none", false, ["vm", "none"], [0, 3]);
+  expectSplit("One or more word(s)", false, ["One", "or", "more", "word(s)"],
+      [0, 4, 7, 12]);
+  expectSplit("One or more words)", false, ["One", "or", "more", "words"],
+      [0, 4, 7, 12]);
+  expectSplit(
+      "It's 'fun' times 100", false, ["It's", "fun", "times"], [0, 6, 11]);
 
-  _expectList(splitStringIntoWords("splitCamelCase", splitAsCode: false),
-      ["splitCamelCase"]);
-  _expectList(splitStringIntoWords("splitCamelCase", splitAsCode: true),
-      ["split", "Camel", "Case"]);
-  _expectList(splitStringIntoWords("logicalAnd_end", splitAsCode: true),
-      ["logical", "And", "end"]);
-  _expectList(splitStringIntoWords("TheCNNAlso", splitAsCode: true),
-      ["The", "CNN", "Also"]);
-  _expectList(splitStringIntoWords("LOGICAL_OR_PRECEDENCE", splitAsCode: true),
-      ["LOGICAL", "OR", "PRECEDENCE"]);
+  expectSplit("splitCamelCase", false, ["splitCamelCase"], [0]);
+  expectSplit("splitCamelCase", true, ["split", "Camel", "Case"], [0, 5, 10]);
+  expectSplit("logicalAnd_end", true, ["logical", "And", "end"], [0, 7, 11]);
+  expectSplit("TheCNNAlso", true, ["The", "CNN", "Also"], [0, 3, 6]);
+  expectSplit("LOGICAL_OR_PRECEDENCE", true, ["LOGICAL", "OR", "PRECEDENCE"],
+      [0, 8, 11]);
 
-  _expectList(splitStringIntoWords("ThisIsTheCNN", splitAsCode: true),
-      ["This", "Is", "The", "CNN"]);
+  expectSplit("ThisIsTheCNN", true, ["This", "Is", "The", "CNN"], [0, 4, 6, 9]);
 
   // Special-case "A".
-  _expectList(splitStringIntoWords("notAConstant", splitAsCode: true),
-      ["not", "A", "Constant"]);
-  _expectList(
-      splitStringIntoWords("notAC", splitAsCode: true), ["not", "A", "C"]);
-  _expectList(
-      splitStringIntoWords("split_etc", splitAsCode: false), ["split_etc"]);
-  _expectList(
-      splitStringIntoWords("split_etc", splitAsCode: true), ["split", "etc"]);
-  _expectList(
-      splitStringIntoWords("split:etc", splitAsCode: false), ["split:etc"]);
-  _expectList(
-      splitStringIntoWords("split:etc", splitAsCode: true), ["split", "etc"]);
+  expectSplit("notAConstant", true, ["not", "A", "Constant"], [0, 3, 4]);
+  expectSplit("notAC", true, ["not", "A", "C"], [0, 3, 4]);
+  expectSplit("split_etc", false, ["split_etc"], [0]);
+  expectSplit("split_etc", true, ["split", "etc"], [0, 6]);
+  expectSplit("split:etc", false, ["split:etc"], [0]);
+  expectSplit("split:etc", true, ["split", "etc"], [0, 6]);
 
-  _expectList(splitStringIntoWords("vm.none", splitAsCode: false), ["vm.none"]);
-  _expectList(
-      splitStringIntoWords("vm.none", splitAsCode: true), ["vm", "none"]);
+  expectSplit("vm.none", false, ["vm.none"], [0]);
+  expectSplit("vm.none", true, ["vm", "none"], [0, 3]);
 
-  _expectList(splitStringIntoWords("ActualData(foo, bar)", splitAsCode: false),
-      ["ActualData(foo", "bar"]);
-  _expectList(splitStringIntoWords("ActualData(foo, bar)", splitAsCode: true),
-      ["Actual", "Data", "foo", "bar"]);
+  expectSplit(
+      "ActualData(foo, bar)", false, ["ActualData(foo", "bar"], [0, 16]);
+  expectSplit("ActualData(foo, bar)", true, ["Actual", "Data", "foo", "bar"],
+      [0, 6, 11, 16]);
 
-  _expectList(
-      splitStringIntoWords("List<int>", splitAsCode: false), ["List<int"]);
-  _expectList(
-      splitStringIntoWords("List<int>", splitAsCode: true), ["List", "int"]);
+  expectSplit("List<int>", false, ["List<int"], [0]);
+  expectSplit("List<int>", true, ["List", "int"], [0, 5]);
 
-  _expectList(
-      splitStringIntoWords("Platform.environment['TERM']", splitAsCode: false),
-      ["Platform.environment['TERM"]);
-  _expectList(
-      splitStringIntoWords("Platform.environment['TERM']", splitAsCode: true),
-      ["Platform", "environment", "TERM"]);
+  expectSplit("Platform.environment['TERM']", false,
+      ["Platform.environment['TERM"], [0]);
+  expectSplit("Platform.environment['TERM']", true,
+      ["Platform", "environment", "TERM"], [0, 9, 22]);
 
-  _expectList(splitStringIntoWords("DART2JS_PLATFORM", splitAsCode: false),
-      ["DART2JS_PLATFORM"]);
-  _expectList(splitStringIntoWords("DART2JS_PLATFORM", splitAsCode: true),
-      ["DART2JS", "PLATFORM"]);
+  expectSplit("DART2JS_PLATFORM", false, ["DART2JS_PLATFORM"], [0]);
+  expectSplit("DART2JS_PLATFORM", true, ["DART2JS", "PLATFORM"], [0, 8]);
 
-  _expectList(splitStringIntoWords("Foo\\n", splitAsCode: false), ["Foo\\n"]);
-  _expectList(splitStringIntoWords("Foo\\n", splitAsCode: true), ["Foo"]);
+  expectSplit("Foo\\n", false, ["Foo\\n"], [0]);
+  expectSplit("Foo\\n", true, ["Foo"], [0]);
 
-  _expectList(
-      splitStringIntoWords("foo({bar})", splitAsCode: false), ["foo({bar"]);
-  _expectList(
-      splitStringIntoWords("foo({bar})", splitAsCode: true), ["foo", "bar"]);
+  expectSplit("foo({bar})", false, ["foo({bar"], [0]);
+  expectSplit("foo({bar})", true, ["foo", "bar"], [0, 5]);
 
-  _expectList(splitStringIntoWords("foo@bar", splitAsCode: false), ["foo@bar"]);
-  _expectList(
-      splitStringIntoWords("foo@bar", splitAsCode: true), ["foo", "bar"]);
+  expectSplit("foo@bar", false, ["foo@bar"], [0]);
+  expectSplit("foo@bar", true, ["foo", "bar"], [0, 4]);
 
-  _expectList(splitStringIntoWords("foo#bar", splitAsCode: false), ["foo#bar"]);
-  _expectList(
-      splitStringIntoWords("foo#bar", splitAsCode: true), ["foo", "bar"]);
+  expectSplit("foo#bar", false, ["foo#bar"], [0]);
+  expectSplit("foo#bar", true, ["foo", "bar"], [0, 4]);
 
-  _expectList(splitStringIntoWords("foo&bar", splitAsCode: false), ["foo&bar"]);
-  _expectList(
-      splitStringIntoWords("foo&bar", splitAsCode: true), ["foo", "bar"]);
+  expectSplit("foo&bar", false, ["foo&bar"], [0]);
+  expectSplit("foo&bar", true, ["foo", "bar"], [0, 4]);
 
-  _expectList(splitStringIntoWords("foo?bar", splitAsCode: false), ["foo?bar"]);
-  _expectList(
-      splitStringIntoWords("foo?bar", splitAsCode: true), ["foo", "bar"]);
+  expectSplit("foo?bar", false, ["foo?bar"], [0]);
+  expectSplit("foo?bar", true, ["foo", "bar"], [0, 4]);
 
   print("OK");
 }
 
-void _expectList(List<String> actual, List<String> expected) {
-  if (actual.length != expected.length) {
-    throw "Not the same ($actual vs $expected)";
+void expectSplit(String s, bool splitAsCode, List<String> expectedWords,
+    List<int> expectedOffsets) {
+  List<int> actualOffsets = new List<int>();
+  List<String> actualWords =
+      splitStringIntoWords(s, actualOffsets, splitAsCode: splitAsCode);
+  if (actualWords.length != expectedWords.length) {
+    throw "Not the same ($actualWords vs $expectedWords)";
   }
-  for (int i = 0; i < actual.length; i++) {
-    if (actual[i] != expected[i]) throw "Not the same ($actual vs $expected)";
+  for (int i = 0; i < actualWords.length; i++) {
+    if (actualWords[i] != expectedWords[i]) {
+      throw "Not the same ($actualWords vs $expectedWords)";
+    }
+    if (actualOffsets[i] != expectedOffsets[i]) {
+      throw "Not the same ($actualOffsets vs $expectedOffsets)";
+    }
   }
 }
