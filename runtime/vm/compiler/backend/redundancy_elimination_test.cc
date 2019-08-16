@@ -13,6 +13,7 @@
 #include "vm/compiler/backend/loops.h"
 #include "vm/compiler/backend/type_propagator.h"
 #include "vm/compiler/compiler_pass.h"
+#include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/compiler/jit/jit_call_specializer.h"
 #include "vm/log.h"
@@ -57,6 +58,35 @@ static void FlattenScopeIntoEnvironment(FlowGraph* graph,
   }
 }
 
+#if !defined(PRODUCT)
+void PopulateEnvironmentFromBytecodeLocalVariables(
+    const Function& function,
+    FlowGraph* graph,
+    GrowableArray<LocalVariable*>* env) {
+  const auto& bytecode = Bytecode::Handle(function.bytecode());
+  ASSERT(!bytecode.IsNull());
+
+  kernel::BytecodeLocalVariablesIterator iter(Thread::Current()->zone(),
+                                              bytecode);
+  while (iter.MoveNext()) {
+    if (iter.IsVariableDeclaration() && !iter.IsCaptured()) {
+      LocalVariable* const var = new LocalVariable(
+          TokenPosition::kNoSource, TokenPosition::kNoSource,
+          String::ZoneHandle(graph->zone(), iter.Name()),
+          AbstractType::ZoneHandle(graph->zone(), iter.Type()));
+      if (iter.Index() < 0) {  // Parameter.
+        var->set_index(VariableIndex(-iter.Index() - kKBCParamEndSlotFromFp));
+      } else {
+        var->set_index(VariableIndex(-iter.Index()));
+      }
+      const intptr_t env_index = graph->EnvIndex(var);
+      env->EnsureLength(env_index + 1, nullptr);
+      (*env)[env_index] = var;
+    }
+  }
+}
+#endif
+
 // Run TryCatchAnalyzer optimization on the function foo from the given script
 // and check that the only variables from the given list are synchronized
 // on catch entry.
@@ -86,7 +116,17 @@ static void TryCatchOptimizerTest(
   auto scope = graph->parsed_function().scope();
 
   GrowableArray<LocalVariable*> env;
-  FlattenScopeIntoEnvironment(graph, scope, &env);
+  if (function.is_declared_in_bytecode()) {
+#if defined(PRODUCT)
+    // In product mode information about local variables is not retained in
+    // bytecode, so we can't find variables by names.
+    return;
+#else
+    PopulateEnvironmentFromBytecodeLocalVariables(function, graph, &env);
+#endif
+  } else {
+    FlattenScopeIntoEnvironment(graph, scope, &env);
+  }
 
   for (intptr_t i = 0; i < env.length(); i++) {
     bool found = false;
