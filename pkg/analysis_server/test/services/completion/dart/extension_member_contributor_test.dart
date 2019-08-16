@@ -26,7 +26,24 @@ class ExtensionMemberContributorTest extends DartCompletionContributorTest {
     super.setUp();
   }
 
-  test_extensionOverride() async {
+  test_extensionOverride_doesNotMatch() async {
+    addTestSource('''
+extension E on int {
+  bool a(int b, int c) {}
+  int get b => 0;
+  set c(int d) {}
+}
+void f() {
+  E('3').a^
+}
+''');
+    await computeSuggestions();
+    assertSuggestMethod('a', null, 'bool', defaultArgListString: 'b, c');
+    assertSuggestGetter('b', 'int');
+    assertSuggestSetter('c');
+  }
+
+  test_extensionOverride_matches() async {
     addTestSource('''
 extension E on int {
   bool a(int b, int c) {}
@@ -43,41 +60,25 @@ void f() {
     assertSuggestSetter('c');
   }
 
-  test_literal() async {
+  test_function_doesNotMatch() async {
     addTestSource('''
-extension E on int {
+extension E<T extends num> on List<T> {
   bool a(int b, int c) {}
   int get b => 0;
   set c(int d) {}
 }
-void f() {
-  2.a^
+List<T> g<T>(T x) => [x];
+void f(String s) {
+  g(s).a^
 }
 ''');
     await computeSuggestions();
-    assertSuggestMethod('a', null, 'bool', defaultArgListString: 'b, c');
-    assertSuggestGetter('b', 'int');
-    assertSuggestSetter('c');
+    assertNotSuggested('a');
+    assertNotSuggested('b');
+    assertNotSuggested('c');
   }
 
-  test_identifier() async {
-    addTestSource('''
-extension E on int {
-  bool a(int b, int c) {}
-  int get b => 0;
-  set c(int d) {}
-}
-void f(int i) {
-  i.a^
-}
-''');
-    await computeSuggestions();
-    assertSuggestMethod('a', null, 'bool', defaultArgListString: 'b, c');
-    assertSuggestGetter('b', 'int');
-    assertSuggestSetter('c');
-  }
-
-  test_function() async {
+  test_function_matches() async {
     addTestSource('''
 extension E on int {
   bool a(int b, int c) {}
@@ -88,6 +89,74 @@ void f() {
   g().a^
 }
 int g() => 3;
+''');
+    await computeSuggestions();
+    assertSuggestMethod('a', null, 'bool', defaultArgListString: 'b, c');
+    assertSuggestGetter('b', 'int');
+    assertSuggestSetter('c');
+  }
+
+  test_identifier_doesNotMatch() async {
+    addTestSource('''
+extension E<T extends num> on List<T> {
+  bool a(int b, int c) {}
+  int get b => 0;
+  set c(int d) {}
+}
+void f(List<String> l) {
+  l.a^
+}
+''');
+    await computeSuggestions();
+    assertNotSuggested('a');
+    assertNotSuggested('b');
+    assertNotSuggested('c');
+  }
+
+  test_identifier_matches() async {
+    addTestSource('''
+extension E<T extends num> on List<T> {
+  bool a(int b, int c) {}
+  int get b => 0;
+  set c(int d) {}
+}
+void f(List<int> l) {
+  l.a^
+}
+''');
+    await computeSuggestions();
+    assertSuggestMethod('a', null, 'bool', defaultArgListString: 'b, c');
+    assertSuggestGetter('b', 'int');
+    assertSuggestSetter('c');
+  }
+
+  test_literal_doesNotMatch() async {
+    addTestSource('''
+extension E<T extends num> on List<T> {
+  bool a(int b, int c) {}
+  int get b => 0;
+  set c(int d) {}
+}
+void f() {
+  ['a'].a^
+}
+''');
+    await computeSuggestions();
+    assertNotSuggested('a');
+    assertNotSuggested('b');
+    assertNotSuggested('c');
+  }
+
+  test_literal_matches() async {
+    addTestSource('''
+extension E on int {
+  bool a(int b, int c) {}
+  int get b => 0;
+  set c(int d) {}
+}
+void f() {
+  2.a^
+}
 ''');
     await computeSuggestions();
     assertSuggestMethod('a', null, 'bool', defaultArgListString: 'b, c');

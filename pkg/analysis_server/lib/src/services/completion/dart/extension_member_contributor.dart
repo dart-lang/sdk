@@ -58,7 +58,8 @@ class ExtensionMemberContributor extends DartCompletionContributor {
         var typeProvider = containingLibrary.context.typeProvider;
         var extendedType =
             _resolveExtendedType(typeSystem, typeProvider, extension, type);
-        if (typeSystem.isSubtypeOf(type, extendedType)) {
+        if (extendedType != null &&
+            typeSystem.isSubtypeOf(type, extendedType)) {
           // TODO(brianwilkerson) We might want to apply the substitution to the
           //  members of the extension for display purposes.
           _addInstanceMembers(extension);
