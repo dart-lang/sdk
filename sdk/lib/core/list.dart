@@ -719,4 +719,13 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    *     map.keys.toList(); // [0, 1, 2, 3]
    */
   Map<int, E> asMap();
+
+  /**
+  * Whether this list is equal to [other].
+  *
+  * Lists are, by default, only equal to themselves.
+  * Even if [other] is also a list, the equality comparison
+  * does not compare the elements of the two lists.
+  */
+ bool operator ==(Object other);
 }
