@@ -138,48 +138,42 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
     }
   }
 
-  void conditional_elseBegin(Expression conditionalExpression,
-      Expression thenExpression, bool isBool) {
+  void conditional_elseBegin(Expression thenExpression) {
     var afterThen = _current;
     var falseCondition = _stack.removeLast();
 
-    if (isBool) {
-      _conditionalEnd(thenExpression);
-      // Tail of the stack: falseThen, trueThen
-    }
+    _conditionalEnd(thenExpression);
+    // Tail of the stack: falseThen, trueThen
 
     _stack.add(afterThen);
     _current = falseCondition;
   }
 
-  void conditional_end(Expression conditionalExpression,
-      Expression elseExpression, bool isBool) {
+  void conditional_end(
+      Expression conditionalExpression, Expression elseExpression) {
     var afterThen = _stack.removeLast();
     var afterElse = _current;
 
-    if (isBool) {
-      _conditionalEnd(elseExpression);
-      // Tail of the stack: falseThen, trueThen, falseElse, trueElse
+    _conditionalEnd(elseExpression);
+    // Tail of the stack: falseThen, trueThen, falseElse, trueElse
 
-      var trueElse = _stack.removeLast();
-      var falseElse = _stack.removeLast();
+    var trueElse = _stack.removeLast();
+    var falseElse = _stack.removeLast();
 
-      var trueThen = _stack.removeLast();
-      var falseThen = _stack.removeLast();
+    var trueThen = _stack.removeLast();
+    var falseThen = _stack.removeLast();
 
-      var trueResult = _join(trueThen, trueElse);
-      var falseResult = _join(falseThen, falseElse);
+    var trueResult = _join(trueThen, trueElse);
+    var falseResult = _join(falseThen, falseElse);
 
-      _condition = conditionalExpression;
-      _conditionTrue = trueResult;
-      _conditionFalse = falseResult;
-    }
+    _condition = conditionalExpression;
+    _conditionTrue = trueResult;
+    _conditionFalse = falseResult;
 
     _current = _join(afterThen, afterElse);
   }
 
-  void conditional_thenBegin(
-      Expression conditionalExpression, Expression condition) {
+  void conditional_thenBegin(Expression condition) {
     _conditionalEnd(condition);
     // Tail of the stack: falseCondition, trueCondition
 

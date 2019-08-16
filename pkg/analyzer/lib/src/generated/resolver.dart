@@ -3610,7 +3610,7 @@ class ResolverVisitor extends ScopedVisitor {
 
     if (_flowAnalysis != null) {
       if (flow != null) {
-        flow.conditional_thenBegin(node, condition);
+        flow.conditional_thenBegin(condition);
         _flowAnalysis.checkUnreachableNode(thenExpression);
       }
       thenExpression.accept(this);
@@ -3628,11 +3628,10 @@ class ResolverVisitor extends ScopedVisitor {
     InferenceContext.setTypeFromNode(elseExpression, node);
 
     if (flow != null) {
-      var isBool = thenExpression.staticType.isDartCoreBool;
-      flow.conditional_elseBegin(node, thenExpression, isBool);
+      flow.conditional_elseBegin(thenExpression);
       _flowAnalysis.checkUnreachableNode(elseExpression);
       elseExpression.accept(this);
-      flow.conditional_end(node, elseExpression, isBool);
+      flow.conditional_end(node, elseExpression);
     } else {
       elseExpression.accept(this);
     }
