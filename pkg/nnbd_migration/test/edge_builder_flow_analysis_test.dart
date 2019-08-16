@@ -182,6 +182,43 @@ void f(int i, int j) {
     assertEdge(jNode, never, hard: false);
   }
 
+  test_conditionalExpression() async {
+    await analyze('''
+int f(int i) => i == null ? g(i) : h(i);
+int g(int j) => 1;
+int h(int k) => 1;
+''');
+    var iNode = decoratedTypeAnnotation('int i').node;
+    var jNode = decoratedTypeAnnotation('int j').node;
+    var kNode = decoratedTypeAnnotation('int k').node;
+    // No edge from i to k because i is known to be non-nullable at the site of
+    // the call to h()
+    assertNoEdge(iNode, kNode);
+    // But there is an edge from i to j
+    // TODO(paulberry): there should be a guard on this edge.
+    assertEdge(iNode, jNode, hard: false);
+  }
+
+  test_conditionalExpression_propagates_promotions() async {
+    await analyze('''
+void f(bool b, int i, int j, int k) {
+  if (b ? (i != null && j != null) : (i != null && k != null)) {
+    i.isEven;
+    j.isEven;
+    k.isEven;
+  }
+}
+''');
+    var iNode = decoratedTypeAnnotation('int i').node;
+    var jNode = decoratedTypeAnnotation('int j').node;
+    var kNode = decoratedTypeAnnotation('int k').node;
+    // No edge from i to never because i is promoted.
+    assertNoEdge(iNode, never);
+    // But there are edges from j and k to never.
+    assertEdge(jNode, never, hard: false);
+    assertEdge(kNode, never, hard: false);
+  }
+
   test_constructorDeclaration_assert() async {
     await analyze('''
 class C {
