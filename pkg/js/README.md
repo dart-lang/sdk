@@ -9,8 +9,7 @@ annotations, using them to connect your Dart code with JavaScript.
 Instead, import `package:js/js.dart`.
 
 A second library in this package, `js_util`, provides low-level utilities
-that you can use if you need to read property values.
-[PENDING: check!]
+that you can use when it isn't possible to wrap JavaScript with a static, annotated API.
 
 
 ## Example
@@ -35,7 +34,7 @@ import 'package:js/js.dart';
 external String stringify(Object obj);
 ```
 
-### Using namespaces and defining classes
+### Using JavaScript namespaces and classes
 
 ```dart
 @JS('google.maps')
@@ -106,8 +105,6 @@ If you pass a Dart function to a JavaScript API as an argument,
 wrap the Dart function using `allowInterop()` or `allowInteropCaptureThis()`.
 
 **Warning:** Although dart2js requires `allowInterop()`, dartdevc does not.
-[PENDING: link to more info.
-This happens because dartdevc uses JavaScript calling semantics by default.]
 
 To make a Dart function callable from JavaScript _by name_, use a setter
 annotated with `@JS()`.
@@ -145,7 +142,7 @@ Please file bugs and feature requests on the [SDK issue tracker][issues].
 
 ## Known limitations and bugs
 
-[PENDING: add intro. perhaps move this to another page?]
+<!-- [TODO: add intro. perhaps move this to another page?] -->
 
 ### Differences between dart2js and dartdevc
 
