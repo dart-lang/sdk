@@ -1665,6 +1665,34 @@ void f(bool b) {
         assertEdge(decoratedTypeAnnotation('bool b').node, never, hard: true));
   }
 
+  test_if_conditional_control_flow_after() async {
+    // Asserts after ifs don't demonstrate non-null intent.
+    // TODO(paulberry): if both branches complete normally, they should.
+    await analyze('''
+void f(bool b, int i) {
+  if (b) return;
+  assert(i != null);
+}
+''');
+
+    assertNoEdge(always, decoratedTypeAnnotation('int i').node);
+  }
+
+  test_if_conditional_control_flow_within() async {
+    // Asserts inside ifs don't demonstrate non-null intent.
+    await analyze('''
+void f(bool b, int i) {
+  if (b) {
+    assert(i != null);
+  } else {
+    assert(i != null);
+  }
+}
+''');
+
+    assertNoEdge(always, decoratedTypeAnnotation('int i').node);
+  }
+
   test_if_element() async {
     await analyze('''
 void f(bool b) {
