@@ -248,6 +248,24 @@ void g(int k) {
     assertEdge(decoratedTypeAnnotation('int k').node, never, hard: true);
   }
 
+  test_functionExpression_parameters() async {
+    await analyze('''
+void f() {
+  var g = (int i, int j) {
+    if (i == null) return;
+    print(i.isEven);
+    print(j.isEven);
+  };
+}
+''');
+    var iNode = decoratedTypeAnnotation('int i').node;
+    var jNode = decoratedTypeAnnotation('int j').node;
+    // No edge from i to `never` because i's type is promoted to non-nullable
+    assertNoEdge(iNode, never);
+    // But there is an edge from j to `never`.
+    assertEdge(jNode, never, hard: false);
+  }
+
   test_if() async {
     await analyze('''
 void f(int i) {
@@ -318,6 +336,24 @@ void h(int k) {}
     assertNoEdge(iNode, kNode);
     // But there is an edge from i to j
     assertEdge(iNode, jNode, hard: false, guards: [iNode]);
+  }
+
+  test_local_function_parameters() async {
+    await analyze('''
+void f() {
+  void g(int i, int j) {
+    if (i == null) return;
+    print(i.isEven);
+    print(j.isEven);
+  }
+}
+''');
+    var iNode = decoratedTypeAnnotation('int i').node;
+    var jNode = decoratedTypeAnnotation('int j').node;
+    // No edge from i to `never` because i's type is promoted to non-nullable
+    assertNoEdge(iNode, never);
+    // But there is an edge from j to `never`.
+    assertEdge(jNode, never, hard: false);
   }
 
   test_return() async {

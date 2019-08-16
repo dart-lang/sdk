@@ -539,7 +539,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitFieldDeclaration(FieldDeclaration node) {
     node.metadata.accept(this);
-    _createFlowAnalysis(null, null);
+    _createFlowAnalysis(null);
     try {
       node.fields.accept(this);
     } finally {
@@ -578,30 +578,38 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitFunctionDeclaration(FunctionDeclaration node) {
-    node.functionExpression.parameters?.accept(this);
-    assert(_currentFunctionType == null);
-    _currentFunctionType =
-        _variables.decoratedElementType(node.declaredElement);
-    _createFlowAnalysis(
-        node.functionExpression.body, node.functionExpression.parameters);
-    // Initialize a new postDominator scope that contains only the parameters.
-    try {
-      _postDominatedLocals.doScoped(
-          elements: node.functionExpression.declaredElement.parameters,
-          action: () => node.functionExpression.body.accept(this));
-    } finally {
-      _currentFunctionType = null;
-      _flowAnalysis.finish();
-      _flowAnalysis = null;
+    if (_flowAnalysis != null) {
+      // This is a local function.
+      node.functionExpression.accept(this);
+    } else {
+      _createFlowAnalysis(node.functionExpression.body);
+      // Initialize a new postDominator scope that contains only the parameters.
+      try {
+        node.functionExpression.accept(this);
+      } finally {
+        _flowAnalysis.finish();
+        _flowAnalysis = null;
+      }
     }
     return null;
   }
 
   @override
   DecoratedType visitFunctionExpression(FunctionExpression node) {
-    // TODO(brianwilkerson)
     // TODO(mfairhurst): enable edge builder "_insideFunction" hard edge tests.
-    _unimplemented(node, 'FunctionExpression');
+    node.parameters?.accept(this);
+    _addParametersToFlowAnalysis(node.parameters);
+    var previousFunctionType = _currentFunctionType;
+    _currentFunctionType =
+        _variables.decoratedElementType(node.declaredElement);
+    try {
+      _postDominatedLocals.doScoped(
+          elements: node.declaredElement.parameters,
+          action: () => node.body.accept(this));
+      return _currentFunctionType;
+    } finally {
+      _currentFunctionType = previousFunctionType;
+    }
   }
 
   @override
@@ -1067,7 +1075,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType visitTopLevelVariableDeclaration(
       TopLevelVariableDeclaration node) {
     node.metadata.accept(this);
-    _createFlowAnalysis(null, null);
+    _createFlowAnalysis(null);
     try {
       node.variables.accept(this);
     } finally {
@@ -1164,6 +1172,14 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     return null;
   }
 
+  void _addParametersToFlowAnalysis(FormalParameterList parameters) {
+    if (parameters != null) {
+      for (var parameter in parameters.parameters) {
+        _flowAnalysis.add(parameter.declaredElement, assigned: true);
+      }
+    }
+  }
+
   /// Double checks that [name] is not the name of a method or getter declared
   /// on [Object].
   ///
@@ -1187,18 +1203,13 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
   }
 
-  void _createFlowAnalysis(FunctionBody node, FormalParameterList parameters) {
+  void _createFlowAnalysis(FunctionBody node) {
     assert(_flowAnalysis == null);
     _flowAnalysis =
         FlowAnalysis<Statement, Expression, VariableElement, DecoratedType>(
             const AnalyzerNodeOperations(),
             DecoratedTypeOperations(_typeSystem, _variables, _graph),
             AnalyzerFunctionBodyAccess(node));
-    if (parameters != null) {
-      for (var parameter in parameters.parameters) {
-        _flowAnalysis.add(parameter.declaredElement, assigned: true);
-      }
-    }
   }
 
   DecoratedType _decorateUpperOrLowerBound(AstNode astNode, DartType type,
@@ -1395,7 +1406,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     returnType?.accept(this);
     parameters?.accept(this);
     _currentFunctionType = _variables.decoratedElementType(declaredElement);
-    _createFlowAnalysis(body, parameters);
+    _createFlowAnalysis(body);
+    _addParametersToFlowAnalysis(parameters);
     // Push a scope of post-dominated declarations on the stack.
     _postDominatedLocals.pushScope(elements: declaredElement.parameters);
     try {

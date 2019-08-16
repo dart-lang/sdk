@@ -608,6 +608,23 @@ f() {}
     expect(node, TypeMatcher<NullabilityNodeMutable>());
   }
 
+  test_functionExpression() async {
+    await analyze('''
+void f() {
+  var x = (int i) => 1;
+}
+''');
+    var functionExpressionElement =
+        findNode.simpleParameter('int i').declaredElement.enclosingElement;
+    var decoratedType =
+        variables.decoratedElementType(functionExpressionElement);
+    expect(decoratedType.positionalParameters[0],
+        same(decoratedTypeAnnotation('int i')));
+    expect(decoratedType.node, same(never));
+    expect(
+        decoratedType.returnType.node, TypeMatcher<NullabilityNodeMutable>());
+  }
+
   test_functionTypedFormalParameter_namedParameter_typed() async {
     await analyze('''
 void f(void g({int i})) {}
@@ -874,6 +891,19 @@ void f(List<int> x) {}
     expect(decoratedListType.typeArguments[0], same(decoratedIntType));
     expect(decoratedIntType.node, isNotNull);
     expect(decoratedIntType.node, isNot(never));
+  }
+
+  test_local_function() async {
+    await analyze('''
+void f() {
+  int g(int i) => 1;
+}
+''');
+    var decoratedType = decoratedFunctionType('g');
+    expect(decoratedType.returnType, same(decoratedTypeAnnotation('int g')));
+    expect(decoratedType.positionalParameters[0],
+        same(decoratedTypeAnnotation('int i')));
+    expect(decoratedType.node, same(never));
   }
 
   test_localVariable_type_implicit_dynamic() async {
