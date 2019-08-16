@@ -106,6 +106,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   FlowAnalysis<Statement, Expression, VariableElement, DecoratedType>
       _flowAnalysis;
 
+  /// If we are visiting a function body or initializer, assigned variable
+  /// information  used in flow analysis.  Otherwise `null`.
+  AssignedVariables<Statement, VariableElement> _assignedVariables;
+
   /// For convenience, a [DecoratedType] representing non-nullable `Object`.
   final DecoratedType _notNullType;
 
@@ -366,6 +370,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitBreakStatement(BreakStatement node) {
+    _flowAnalysis.handleBreak(FlowAnalysisHelper.getLabelTarget(
+        node, node.label?.staticElement as LabelElement));
     // Later statements no longer post-dominate the declarations because we
     // exited (or, in parent scopes, conditionally exited).
     // TODO(mfairhurst): don't clear post-dominators beyond the current loop.
@@ -543,12 +549,13 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitFieldDeclaration(FieldDeclaration node) {
     node.metadata.accept(this);
-    _createFlowAnalysis(null);
+    _createFlowAnalysis(node);
     try {
       node.fields.accept(this);
     } finally {
       _flowAnalysis.finish();
       _flowAnalysis = null;
+      _assignedVariables = null;
     }
     return null;
   }
@@ -593,6 +600,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       } finally {
         _flowAnalysis.finish();
         _flowAnalysis = null;
+        _assignedVariables = null;
       }
     }
     return null;
@@ -770,6 +778,13 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
     node.visitChildren(this);
     return DecoratedType(node.staticType, _graph.never);
+  }
+
+  @override
+  DecoratedType visitLabel(Label node) {
+    // Labels are identifiers but they don't have types so we don't need to
+    // visit them directly.
+    return null;
   }
 
   @override
@@ -1079,12 +1094,13 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType visitTopLevelVariableDeclaration(
       TopLevelVariableDeclaration node) {
     node.metadata.accept(this);
-    _createFlowAnalysis(null);
+    _createFlowAnalysis(node);
     try {
       node.variables.accept(this);
     } finally {
       _flowAnalysis.finish();
       _flowAnalysis = null;
+      _assignedVariables = null;
     }
     return null;
   }
@@ -1171,8 +1187,11 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType visitWhileStatement(WhileStatement node) {
     // Note: we do not create guards. A null check here is *very* unlikely to be
     // unnecessary after analysis.
+    _flowAnalysis.whileStatement_conditionBegin(_assignedVariables[node]);
     _handleAssignment(node.condition, destinationType: _nonNullableBoolType);
+    _flowAnalysis.whileStatement_bodyBegin(node, node.condition);
     _postDominatedLocals.doScoped(action: () => node.body.accept(this));
+    _flowAnalysis.whileStatement_end();
     return null;
   }
 
@@ -1207,13 +1226,15 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
   }
 
-  void _createFlowAnalysis(FunctionBody node) {
+  void _createFlowAnalysis(AstNode node) {
     assert(_flowAnalysis == null);
+    assert(_assignedVariables == null);
     _flowAnalysis =
         FlowAnalysis<Statement, Expression, VariableElement, DecoratedType>(
             const AnalyzerNodeOperations(),
             DecoratedTypeOperations(_typeSystem, _variables, _graph),
-            AnalyzerFunctionBodyAccess(node));
+            AnalyzerFunctionBodyAccess(node is FunctionBody ? node : null));
+    _assignedVariables = FlowAnalysisHelper.computeAssignedVariables(node);
   }
 
   DecoratedType _decorateUpperOrLowerBound(AstNode astNode, DartType type,
@@ -1498,6 +1519,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     } finally {
       _flowAnalysis.finish();
       _flowAnalysis = null;
+      _assignedVariables = null;
       _currentFunctionType = null;
       _postDominatedLocals.popScope();
     }
