@@ -16,9 +16,10 @@ To generate a single random Dart program, run
 
 where
 
-    --help    : prints help and exits
-    --seed    : defines random seed (system-set by default)
-    --[no-]fp : enables/disables floating-point operations
+    --help     : prints help and exits
+    --seed     : defines random seed (system-set by default)
+    --[no-]fp  : enables/disables floating-point operations (default: on)
+    --[no-]ffi : enables/disables FFI method calls (default: off)
 
 The tool provides a runnable main isolate. A typical single
 test run looks as:

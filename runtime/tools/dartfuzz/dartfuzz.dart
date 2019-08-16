@@ -13,7 +13,7 @@ import 'dartfuzz_api_table.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.18';
+const String version = '1.19';
 
 // Restriction on statements and expressions.
 const int stmtLength = 2;
@@ -29,7 +29,7 @@ const methodName = 'foo';
 
 /// Class that generates a random, but runnable Dart program for fuzz testing.
 class DartFuzz {
-  DartFuzz(this.seed, this.fp, this.file);
+  DartFuzz(this.seed, this.fp, this.ffi, this.file);
 
   void run() {
     // Initialize program variables.
@@ -46,10 +46,22 @@ class DartFuzz {
     globalMethods = fillTypes2();
     classFields = fillTypes2();
     classMethods = fillTypes3(classFields.length);
+    // Setup optional ffi methods and types.
+    List<bool> ffiStatus = new List<bool>();
+    for (var m in globalMethods) {
+      ffiStatus.add(false);
+    }
+    if (ffi) {
+      List<List<DartType>> globalMethodsFfi = fillTypes2(isFfi: true);
+      for (var m in globalMethodsFfi) {
+        globalMethods.add(m);
+        ffiStatus.add(true);
+      }
+    }
     // Generate.
     emitHeader();
     emitVarDecls(varName, globalVars);
-    emitMethods(methodName, globalMethods);
+    emitMethods(methodName, globalMethods, ffiStatus);
     emitClasses();
     emitMain();
     // Sanity.
@@ -67,7 +79,8 @@ class DartFuzz {
   void emitHeader() {
     emitLn('// The Dart Project Fuzz Tester ($version).');
     emitLn('// Program generated as:');
-    emitLn('//   dart dartfuzz.dart --seed $seed --${fp ? "" : "no-"}fp');
+    emitLn('//   dart dartfuzz.dart --seed $seed --${fp ? "" : "no-"}fp ' +
+        '--${ffi ? "" : "no-"}ffi');
     emitLn('');
     emitLn("import 'dart:async';");
     emitLn("import 'dart:cli';");
@@ -78,13 +91,37 @@ class DartFuzz {
     emitLn("import 'dart:isolate';");
     emitLn("import 'dart:math';");
     emitLn("import 'dart:typed_data';");
+    if (ffi) emitLn("import 'dart:ffi' as ffi;");
   }
 
-  void emitMethods(String name, List<List<DartType>> methods) {
+  void emitFfiCast(String dartFuncName, String ffiFuncName, String typeName,
+      List<DartType> pars) {
+    emit("${pars[0].name} Function(");
+    for (int i = 1; i < pars.length; i++) {
+      DartType tp = pars[i];
+      emit('${tp.name}');
+      if (i != (pars.length - 1)) {
+        emit(', ');
+      }
+    }
+    emit(') ${dartFuncName} = ' +
+        'ffi.Pointer.fromFunction<${typeName}>(${ffiFuncName}, ');
+    emitLiteral(0, pars[0]);
+    emitLn(').cast<ffi.NativeFunction<${typeName}>>().asFunction();');
+  }
+
+  void emitMethods(String name, List<List<DartType>> methods,
+      [List<bool> ffiStatus]) {
     for (int i = 0; i < methods.length; i++) {
       List<DartType> method = methods[i];
       currentMethod = i;
-      emitLn('${method[0].name} $name$i(', newline: false);
+      bool isFfiMethod = ffiStatus != null && ffiStatus[i];
+      if (isFfiMethod) {
+        emitFfiTypedef("${name}Ffi${i}Type", method);
+        emitLn('${method[0].name} ${name}Ffi$i(', newline: false);
+      } else {
+        emitLn('${method[0].name} $name$i(', newline: false);
+      }
       emitParDecls(method);
       emit(') {', newline: true);
       indent += 2;
@@ -95,6 +132,10 @@ class DartFuzz {
       assert(localVars.length == 0);
       indent -= 2;
       emitLn('}');
+      if (isFfiMethod) {
+        emitFfiCast(
+            "${name}${i}", "${name}Ffi${i}", "${name}Ffi${i}Type", method);
+      }
       emit('', newline: true);
       currentMethod = null;
     }
@@ -1076,18 +1117,21 @@ class DartFuzz {
     }
   }
 
-  List<DartType> fillTypes1() {
+  List<DartType> fillTypes1({bool isFfi = false}) {
     List<DartType> list = new List<DartType>();
     for (int i = 0, n = 1 + rand.nextInt(4); i < n; i++) {
-      list.add(getType());
+      if (isFfi)
+        list.add(fp ? oneOf([DartType.INT, DartType.DOUBLE]) : DartType.INT);
+      else
+        list.add(getType());
     }
     return list;
   }
 
-  List<List<DartType>> fillTypes2() {
+  List<List<DartType>> fillTypes2({bool isFfi = false}) {
     List<List<DartType>> list = new List<List<DartType>>();
     for (int i = 0, n = 1 + rand.nextInt(4); i < n; i++) {
-      list.add(fillTypes1());
+      list.add(fillTypes1(isFfi: isFfi));
     }
     return list;
   }
@@ -1118,6 +1162,29 @@ class DartFuzz {
     return null;
   }
 
+  String getFfiType(String name) {
+    switch (name) {
+      case 'int':
+        return 'ffi.Int32';
+      case 'double':
+        return 'ffi.Double';
+      default:
+        throw 'Invalid FFI type ${name}';
+    }
+  }
+
+  void emitFfiTypedef(String typeName, List<DartType> pars) {
+    emit("typedef ${typeName} = ${getFfiType(pars[0].name)} Function(");
+    for (int i = 1; i < pars.length; i++) {
+      DartType tp = pars[i];
+      emit('${getFfiType(tp.name)}');
+      if (i != (pars.length - 1)) {
+        emit(', ');
+      }
+    }
+    emitLn(');');
+  }
+
   //
   // Output.
   //
@@ -1146,6 +1213,9 @@ class DartFuzz {
 
   // Enables floating-point operations.
   final bool fp;
+
+  // Enables FFI method calls.
+  final bool ffi;
 
   // File used for output.
   final RandomAccessFile file;
@@ -1197,14 +1267,16 @@ main(List<String> arguments) {
   final parser = new ArgParser()
     ..addOption('seed',
         help: 'random seed (0 forces time-based seed)', defaultsTo: '0')
-    ..addFlag('fp',
-        help: 'enables floating-point operations', defaultsTo: true);
+    ..addFlag('fp', help: 'enables floating-point operations', defaultsTo: true)
+    ..addFlag('ffi',
+        help: 'enables FFI method calls (default: off)', defaultsTo: false);
   try {
     final results = parser.parse(arguments);
     final seed = getSeed(results['seed']);
     final fp = results['fp'];
+    final ffi = results['ffi'];
     final file = new File(results.rest.single).openSync(mode: FileMode.write);
-    new DartFuzz(seed, fp, file).run();
+    new DartFuzz(seed, fp, ffi, file).run();
     file.closeSync();
   } catch (e) {
     print('Usage: dart dartfuzz.dart [OPTIONS] FILENAME\n${parser.usage}\n$e');
