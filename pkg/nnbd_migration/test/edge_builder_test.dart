@@ -2691,15 +2691,14 @@ class C {
 }
 void test(List<C> l, C c1) {
   <int>[for (C _c in l/*check*/) c1.m()];
-  <int>[for (C c2 in l) c2.m()];
+  <int>[for (C c2 in <C>[]) c2.m()];
 }
 ''');
 
-    // TODO(mfairhurst): enable this check
-    //assertNullCheck(
-    //    checkExpression('l/*check*/'),
-    //    assertEdge(decoratedTypeAnnotation('List<C> l').node, never,
-    //        hard: true));
+    assertNullCheck(
+        checkExpression('l/*check*/'),
+        assertEdge(decoratedTypeAnnotation('List<C> l').node, never,
+            hard: true));
     assertNullCheck(checkExpression('c1.m'),
         assertEdge(decoratedTypeAnnotation('C c1').node, never, hard: false));
     assertNullCheck(checkExpression('c2.m'),
@@ -2712,7 +2711,7 @@ class C {
   void m() {}
 }
 void test(List<C> l, C c1, C c2) {
-  for (C c3 in l) {
+  for (C c3 in l/*check*/) {
     c1.m();
     c3.m();
   }
@@ -2721,9 +2720,10 @@ void test(List<C> l, C c1, C c2) {
 }
 ''');
 
-    //TODO(mfairhurst): enable this check
-    //assertNullCheck(checkExpression('l/*check*/'),
-    //    assertEdge(decoratedTypeAnnotation('List<C> l').node, never, hard: true));
+    assertNullCheck(
+        checkExpression('l/*check*/'),
+        assertEdge(decoratedTypeAnnotation('List<C> l').node, never,
+            hard: true));
     assertNullCheck(checkExpression('c1.m'),
         assertEdge(decoratedTypeAnnotation('C c1').node, never, hard: false));
     assertNullCheck(checkExpression('c2.m'),
