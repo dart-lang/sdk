@@ -970,14 +970,14 @@ class KernelBytecode {
     return DecodeOpcode(instr) == KernelBytecode::kDebugCheck;
   }
 
-  // The interpreter, the bytecode generator, and this function must agree on
-  // this list of opcodes.
-  // The interpreter checks for a debug break at each instruction with listed
-  // opcode and the bytecode generator emits a source position at each
-  // instruction with listed opcode.
+  // The interpreter, the bytecode generator, the bytecode compiler, and this
+  // function must agree on this list of opcodes.
+  // For each instruction with listed opcode:
+  // - The interpreter checks for a debug break.
+  // - The bytecode generator emits a source position.
+  // - The bytecode compiler may emit a DebugStepCheck call.
   DART_FORCE_INLINE static bool IsDebugCheckedOpcode(const KBCInstr* instr) {
     switch (DecodeOpcode(instr)) {
-      case KernelBytecode::kAllocate:
       case KernelBytecode::kStoreStaticTOS:
       case KernelBytecode::kStoreStaticTOS_Wide:
       case KernelBytecode::kDebugCheck:

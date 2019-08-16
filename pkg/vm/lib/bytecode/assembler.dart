@@ -418,12 +418,10 @@ class BytecodeAssembler {
   }
 
   void emitAllocate(int rd) {
-    emitSourcePosition();
     _emitInstructionD(Opcode.kAllocate, rd);
   }
 
   void emitAllocateT() {
-    emitSourcePosition();
     _emitInstruction0(Opcode.kAllocateT);
   }
 

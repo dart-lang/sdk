@@ -152,6 +152,7 @@ class BytecodeFlowGraphBuilder {
 
   void BuildInstruction(KernelBytecode::Opcode opcode);
   void BuildFfiAsFunction();
+  void BuildDebugStepCheck();
 
 #define DECLARE_BUILD_METHOD(name, encoding, kind, op1, op2, op3)              \
   void Build##name();
@@ -213,6 +214,7 @@ class BytecodeFlowGraphBuilder {
   JoinEntryInstr* throw_no_such_method_;
   GraphEntryInstr* graph_entry_ = nullptr;
   UncheckedEntryPointStyle entry_point_style_ = UncheckedEntryPointStyle::kNone;
+  bool build_debug_step_checks_ = false;
 };
 
 }  // namespace kernel
