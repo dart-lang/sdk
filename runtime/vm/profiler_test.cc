@@ -160,6 +160,7 @@ static RawLibrary* LoadTestScript(const char* script) {
   {
     TransitionVMToNative transition(Thread::Current());
     api_lib = TestCase::LoadTestScript(script, NULL);
+    EXPECT_VALID(api_lib);
   }
   Library& lib = Library::Handle();
   lib ^= Api::UnwrapHandle(api_lib);
