@@ -114,6 +114,9 @@ class BaseDirectChainedHashMap : public B {
   HashMapListElement* lists_;  // The linked lists containing hash collisions.
   intptr_t free_list_head_;  // Unused elements in lists_ are on the free list.
   Allocator* allocator_;
+
+ private:
+  void operator=(const BaseDirectChainedHashMap& other) = delete;
 };
 
 template <typename KeyValueTrait, typename B, typename Allocator>
@@ -379,6 +382,15 @@ class DirectChainedHashMap
   explicit DirectChainedHashMap(Zone* zone)
       : BaseDirectChainedHashMap<KeyValueTrait, ValueObject>(
             ASSERT_NOTNULL(zone)) {}
+
+  // There is a current use of the copy constructor in CSEInstructionMap
+  // (compiler/backend/redundancy_elimination.cc), so work is needed if we
+  // want to disallow it.
+  DirectChainedHashMap(const DirectChainedHashMap& other)
+      : BaseDirectChainedHashMap<KeyValueTrait, ValueObject>(other) {}
+
+ private:
+  void operator=(const DirectChainedHashMap& other) = delete;
 };
 
 template <typename KeyValueTrait>
@@ -387,6 +399,14 @@ class MallocDirectChainedHashMap
  public:
   MallocDirectChainedHashMap()
       : BaseDirectChainedHashMap<KeyValueTrait, EmptyBase, Malloc>(NULL) {}
+
+  // The only use of the copy constructor seems to be in hash_map_test.cc.
+  // Not disallowing it for now just in case there are other users.
+  MallocDirectChainedHashMap(const MallocDirectChainedHashMap& other)
+      : BaseDirectChainedHashMap<KeyValueTrait, EmptyBase, Malloc>(other) {}
+
+ private:
+  void operator=(const MallocDirectChainedHashMap& other) = delete;
 };
 
 template <typename T>
@@ -487,6 +507,9 @@ class IntMap : public DirectChainedHashMap<IntKeyRawPointerValueTrait<V> > {
   inline Pair* LookupPair(const Key& key) {
     return DirectChainedHashMap<IntKeyRawPointerValueTrait<V> >::Lookup(key);
   }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(IntMap);
 };
 
 }  // namespace dart
