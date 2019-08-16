@@ -66,13 +66,10 @@ class FlowAnalysisHelper {
 
   factory FlowAnalysisHelper(
       TypeSystem typeSystem, AstNode node, bool retainDataForTesting) {
-    var assignedVariables = AssignedVariables<Statement, VariableElement>();
-    node.accept(_AssignedVariablesVisitor(assignedVariables));
-
     return FlowAnalysisHelper._(
         const AnalyzerNodeOperations(),
         _TypeSystemTypeOperations(typeSystem),
-        assignedVariables,
+        computeAssignedVariables(node),
         retainDataForTesting ? FlowAnalysisResult() : null);
   }
 
@@ -317,6 +314,14 @@ class FlowAnalysisHelper {
       }
     }
     return null;
+  }
+
+  /// Computes the [AssignedVariables] map for the given [node].
+  static AssignedVariables<Statement, VariableElement> computeAssignedVariables(
+      AstNode node) {
+    var assignedVariables = AssignedVariables<Statement, VariableElement>();
+    node.accept(_AssignedVariablesVisitor(assignedVariables));
+    return assignedVariables;
   }
 }
 
