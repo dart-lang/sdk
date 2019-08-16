@@ -1763,7 +1763,7 @@ class CommonElementsImpl
 
   @override
   FunctionEntity get createRuntimeType => _options.experimentNewRti
-      ? _findRtiFunction('_createRuntimeType')
+      ? _findRtiFunction('createRuntimeType')
       : _findHelperFunction('createRuntimeType');
 
   @override

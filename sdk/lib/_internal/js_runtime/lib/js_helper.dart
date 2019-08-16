@@ -357,8 +357,14 @@ class JSInvocationMirror implements Invocation {
     if (_typeArgumentCount == 0) return const <Type>[];
     int start = _arguments.length - _typeArgumentCount;
     var list = <Type>[];
-    for (int index = 0; index < _typeArgumentCount; index++) {
-      list.add(createRuntimeType(_arguments[start + index]));
+    if (JS_GET_FLAG('USE_NEW_RTI')) {
+      for (int index = 0; index < _typeArgumentCount; index++) {
+        list.add(newRti.createRuntimeType(_arguments[start + index]));
+      }
+    } else {
+      for (int index = 0; index < _typeArgumentCount; index++) {
+        list.add(createRuntimeType(_arguments[start + index]));
+      }
     }
     return list;
   }

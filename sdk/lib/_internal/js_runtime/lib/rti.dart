@@ -660,11 +660,11 @@ Rti getTypeFromTypesTable(/*int*/ _index) {
 
 Type getRuntimeType(object) {
   Rti rti = _instanceFunctionType(object) ?? _nonClosureInstanceType(object);
-  return _createRuntimeType(rti);
+  return createRuntimeType(rti);
 }
 
 /// Called from generated code.
-Type _createRuntimeType(Rti rti) {
+Type createRuntimeType(Rti rti) {
   _Type type = Rti._getCachedRuntimeType(rti);
   if (type != null) return type;
   // TODO(https://github.com/dart-lang/language/issues/428) For NNBD transition,
@@ -677,7 +677,7 @@ Type _createRuntimeType(Rti rti) {
 
 /// Called from generated code in the constant pool.
 Type typeLiteral(String recipe) {
-  return _createRuntimeType(findType(recipe));
+  return createRuntimeType(findType(recipe));
 }
 
 /// Implementation of [Type] based on Rti.
