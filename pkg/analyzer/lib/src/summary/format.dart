@@ -23598,6 +23598,7 @@ class UnlinkedInformativeDataBuilder extends Object
   List<int> _variantField_7;
   int _variantField_6;
   int _variantField_5;
+  String _variantField_10;
   int _variantField_1;
   List<String> _variantField_4;
   idl.LinkedNodeKind _kind;
@@ -23768,6 +23769,19 @@ class UnlinkedInformativeDataBuilder extends Object
   }
 
   @override
+  String get defaultFormalParameter_defaultValueCode {
+    assert(kind == idl.LinkedNodeKind.defaultFormalParameter);
+    return _variantField_10 ??= '';
+  }
+
+  /// If the parameter has a default value, the source text of the constant
+  /// expression in the default value.  Otherwise the empty string.
+  set defaultFormalParameter_defaultValueCode(String value) {
+    assert(kind == idl.LinkedNodeKind.defaultFormalParameter);
+    _variantField_10 = value;
+  }
+
+  @override
   int get directiveKeywordOffset {
     assert(kind == idl.LinkedNodeKind.exportDirective ||
         kind == idl.LinkedNodeKind.importDirective ||
@@ -23923,9 +23937,11 @@ class UnlinkedInformativeDataBuilder extends Object
   UnlinkedInformativeDataBuilder.defaultFormalParameter({
     int codeLength,
     int codeOffset,
+    String defaultFormalParameter_defaultValueCode,
   })  : _kind = idl.LinkedNodeKind.defaultFormalParameter,
         _variantField_2 = codeLength,
-        _variantField_3 = codeOffset;
+        _variantField_3 = codeOffset,
+        _variantField_10 = defaultFormalParameter_defaultValueCode;
 
   UnlinkedInformativeDataBuilder.enumConstantDeclaration({
     int nameOffset,
@@ -24199,6 +24215,7 @@ class UnlinkedInformativeDataBuilder extends Object
       signature.addInt(this.kind == null ? 0 : this.kind.index);
       signature.addInt(this.codeLength ?? 0);
       signature.addInt(this.codeOffset ?? 0);
+      signature.addString(this.defaultFormalParameter_defaultValueCode ?? '');
     } else if (kind == idl.LinkedNodeKind.enumConstantDeclaration) {
       signature.addInt(this.kind == null ? 0 : this.kind.index);
       signature.addInt(this.nameOffset ?? 0);
@@ -24383,9 +24400,13 @@ class UnlinkedInformativeDataBuilder extends Object
 
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset offset_variantField_7;
+    fb.Offset offset_variantField_10;
     fb.Offset offset_variantField_4;
     if (!(_variantField_7 == null || _variantField_7.isEmpty)) {
       offset_variantField_7 = fbBuilder.writeListUint32(_variantField_7);
+    }
+    if (_variantField_10 != null) {
+      offset_variantField_10 = fbBuilder.writeString(_variantField_10);
     }
     if (!(_variantField_4 == null || _variantField_4.isEmpty)) {
       offset_variantField_4 = fbBuilder.writeList(
@@ -24412,6 +24433,9 @@ class UnlinkedInformativeDataBuilder extends Object
     }
     if (_variantField_5 != null && _variantField_5 != 0) {
       fbBuilder.addUint32(5, _variantField_5);
+    }
+    if (offset_variantField_10 != null) {
+      fbBuilder.addOffset(10, offset_variantField_10);
     }
     if (_variantField_1 != null && _variantField_1 != 0) {
       fbBuilder.addUint32(1, _variantField_1);
@@ -24450,6 +24474,7 @@ class _UnlinkedInformativeDataImpl extends Object
   List<int> _variantField_7;
   int _variantField_6;
   int _variantField_5;
+  String _variantField_10;
   int _variantField_1;
   List<String> _variantField_4;
   idl.LinkedNodeKind _kind;
@@ -24543,6 +24568,14 @@ class _UnlinkedInformativeDataImpl extends Object
     assert(kind == idl.LinkedNodeKind.constructorDeclaration);
     _variantField_5 ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 5, 0);
     return _variantField_5;
+  }
+
+  @override
+  String get defaultFormalParameter_defaultValueCode {
+    assert(kind == idl.LinkedNodeKind.defaultFormalParameter);
+    _variantField_10 ??=
+        const fb.StringReader().vTableGet(_bc, _bcOffset, 10, '');
+    return _variantField_10;
   }
 
   @override
@@ -24650,6 +24683,9 @@ abstract class _UnlinkedInformativeDataMixin
     if (kind == idl.LinkedNodeKind.defaultFormalParameter) {
       if (codeLength != 0) _result["codeLength"] = codeLength;
       if (codeOffset != 0) _result["codeOffset"] = codeOffset;
+      if (defaultFormalParameter_defaultValueCode != '')
+        _result["defaultFormalParameter_defaultValueCode"] =
+            defaultFormalParameter_defaultValueCode;
     }
     if (kind == idl.LinkedNodeKind.enumConstantDeclaration) {
       if (nameOffset != 0) _result["nameOffset"] = nameOffset;
@@ -24820,6 +24856,8 @@ abstract class _UnlinkedInformativeDataMixin
       return {
         "codeLength": codeLength,
         "codeOffset": codeOffset,
+        "defaultFormalParameter_defaultValueCode":
+            defaultFormalParameter_defaultValueCode,
         "kind": kind,
       };
     }

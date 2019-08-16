@@ -890,6 +890,21 @@ class LazyFormalParameter {
     return node.offset;
   }
 
+  static String getDefaultValueCode(
+    LinkedUnitContext context,
+    DefaultFormalParameter node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null) {
+      if (lazy.data.defaultFormalParameter_defaultValue == null) {
+        return null;
+      }
+      return context.getDefaultValueCodeData(lazy.data);
+    } else {
+      return node.defaultValue?.toSource();
+    }
+  }
+
   static DartType getType(
     AstBinaryReader reader,
     FormalParameter node,

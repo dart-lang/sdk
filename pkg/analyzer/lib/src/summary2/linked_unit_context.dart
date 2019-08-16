@@ -238,10 +238,14 @@ class LinkedUnitContext {
 
   String getDefaultValueCode(AstNode node) {
     if (node is DefaultFormalParameter) {
-      LazyFormalParameter.readDefaultValue(_astReader, node);
-      return node.defaultValue?.toString();
+      return LazyFormalParameter.getDefaultValueCode(this, node);
     }
     return null;
+  }
+
+  String getDefaultValueCodeData(LinkedNode data) {
+    var informativeData = getInformativeData(data);
+    return informativeData?.defaultFormalParameter_defaultValueCode;
   }
 
   int getDirectiveOffset(Directive node) {
