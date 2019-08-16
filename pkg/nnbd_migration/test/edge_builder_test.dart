@@ -2558,9 +2558,8 @@ void test(bool b1, C _c) {
 }
 ''');
 
-    // TODO(mfairhurst): enable this check
-    //assertNullCheck(checkExpression('b1/*check*/'),
-    //    assertEdge(decoratedTypeAnnotation('bool b1').node, never, hard: true));
+    assertNullCheck(checkExpression('b1/*check*/'),
+        assertEdge(decoratedTypeAnnotation('bool b1').node, never, hard: true));
     assertNullCheck(checkExpression('b2/*check*/'),
         assertEdge(decoratedTypeAnnotation('bool b2').node, never, hard: true));
     assertNullCheck(checkExpression('c.m'),
@@ -2584,9 +2583,8 @@ void test(bool b1, C _c) {
 }
 ''');
 
-    // TODO(mfairhurst): enable this check
-    //assertNullCheck(checkExpression('b1/*check*/'),
-    //    assertEdge(decoratedTypeAnnotation('bool b1').node, never, hard: true));
+    assertNullCheck(checkExpression('b1/*check*/'),
+        assertEdge(decoratedTypeAnnotation('bool b1').node, never, hard: true));
     assertNullCheck(checkExpression('b2/*check*/'),
         assertEdge(decoratedTypeAnnotation('bool b2').node, never, hard: true));
     assertNullCheck(checkExpression('c.m'),
@@ -2843,9 +2841,8 @@ void test(bool b1, C _c) {
 }
 ''');
 
-    // TODO(mfairhurst): enable this check
-    //assertNullCheck(checkExpression('b1/*check*/'),
-    //    assertEdge(decoratedTypeAnnotation('bool b1').node, never, hard: true));
+    assertNullCheck(checkExpression('b1/*check*/'),
+        assertEdge(decoratedTypeAnnotation('bool b1').node, never, hard: true));
     assertNullCheck(checkExpression('b2/*check*/'),
         assertEdge(decoratedTypeAnnotation('bool b2').node, never, hard: true));
     assertNullCheck(checkExpression('c1.m'),
@@ -3015,9 +3012,8 @@ void test(bool b, C c1, C c2) {
 }
 ''');
 
-    //TODO(mfairhurst): enable this check
-    //assertNullCheck(checkExpression('b/*check*/'),
-    //    assertEdge(decoratedTypeAnnotation('bool b').node, never, hard: true));
+    assertNullCheck(checkExpression('b/*check*/'),
+        assertEdge(decoratedTypeAnnotation('bool b').node, never, hard: true));
     assertNullCheck(checkExpression('c1.m'),
         assertEdge(decoratedTypeAnnotation('C c1').node, never, hard: false));
     assertNullCheck(checkExpression('c2.m'),
