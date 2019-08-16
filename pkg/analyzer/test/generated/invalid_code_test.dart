@@ -89,6 +89,38 @@ C<int Function()> c;
 ''');
   }
 
+  test_keywordInConstructorInitializer_assert() async {
+    await _assertCanBeAnalyzed('''
+class C {
+  C() : assert = 0;
+}
+''');
+  }
+
+  test_keywordInConstructorInitializer_null() async {
+    await _assertCanBeAnalyzed('''
+class C {
+  C() : null = 0;
+}
+''');
+  }
+
+  test_keywordInConstructorInitializer_super() async {
+    await _assertCanBeAnalyzed('''
+class C {
+  C() : super = 0;
+}
+''');
+  }
+
+  test_keywordInConstructorInitializer_this() async {
+    await _assertCanBeAnalyzed('''
+class C {
+  C() : this = 0;
+}
+''');
+  }
+
   Future<void> _assertCanBeAnalyzed(String text) async {
     addTestFile(text);
     await resolveTestFile();
