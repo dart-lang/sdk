@@ -360,6 +360,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitBooleanLiteral(BooleanLiteral node) {
+    _flowAnalysis.booleanLiteral(node, node.value);
     return DecoratedType(node.staticType, _graph.never);
   }
 
