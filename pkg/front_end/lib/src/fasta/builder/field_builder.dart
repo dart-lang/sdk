@@ -86,13 +86,15 @@ class FieldBuilder extends MemberBuilder {
   }
 
   Field build(SourceLibraryBuilder library) {
+    field
+      ..isCovariant = isCovariant
+      ..isFinal = isFinal
+      ..isConst = isConst
+      ..isLate = isLate;
     if (isExtensionMember) {
       ExtensionBuilder extension = parent;
       field.name = new Name('${extension.name}|$name', library.target);
       field
-        ..isCovariant = false
-        ..isFinal = isFinal
-        ..isConst = isConst
         ..hasImplicitGetter = false
         ..hasImplicitSetter = false
         ..isStatic = true
@@ -102,9 +104,6 @@ class FieldBuilder extends MemberBuilder {
       field.name ??= new Name(name, library.target);
       bool isInstanceMember = !isStatic && !isTopLevel;
       field
-        ..isCovariant = isCovariant
-        ..isFinal = isFinal
-        ..isConst = isConst
         ..hasImplicitGetter = isInstanceMember
         ..hasImplicitSetter = isInstanceMember && !isConst && !isFinal
         ..isStatic = !isInstanceMember

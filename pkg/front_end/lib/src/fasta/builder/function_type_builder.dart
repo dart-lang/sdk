@@ -87,7 +87,8 @@ class FunctionTypeBuilder extends TypeBuilder {
           if (formal.isRequired) requiredParameterCount++;
         } else if (formal.isNamed) {
           namedParameters ??= <NamedType>[];
-          namedParameters.add(new NamedType(formal.name, type));
+          namedParameters.add(new NamedType(formal.name, type,
+              isRequired: formal.isNamedRequired));
         }
       }
       if (namedParameters != null) {

@@ -72,8 +72,9 @@ class _TypeSchemaEliminationVisitor extends TypeSchemaVisitor<DartType> {
       DartType substitution = node.namedParameters[i].type.accept(this);
       if (substitution != null) {
         newNamedParameters ??= node.namedParameters.toList(growable: false);
-        newNamedParameters[i] =
-            new NamedType(node.namedParameters[i].name, substitution);
+        newNamedParameters[i] = new NamedType(
+            node.namedParameters[i].name, substitution,
+            isRequired: node.namedParameters[i].isRequired);
       }
     }
     isLeastClosure = !isLeastClosure;

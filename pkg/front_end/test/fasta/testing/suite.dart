@@ -256,6 +256,8 @@ class FastaContext extends ChainContext with MatchContext {
           environment["enableSpreadCollections"] != "false" && !legacyMode,
       ExperimentalFlag.extensionMethods:
           environment["enableExtensionMethods"] != "false" && !legacyMode,
+      ExperimentalFlag.nonNullable:
+          environment["enableNonNullable"] != "false" && !legacyMode,
     };
     var options = new ProcessedOptions(
         options: new CompilerOptions()

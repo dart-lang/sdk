@@ -18,7 +18,8 @@ import '../fasta_codes.dart' show LocatedMessage, Message, noLength, Template;
 
 import '../messages.dart' as messages show getLocationFromUri;
 
-import '../modifier.dart' show Modifier, constMask, covariantMask, finalMask;
+import '../modifier.dart'
+    show Modifier, constMask, covariantMask, finalMask, lateMask;
 
 import '../names.dart'
     show callName, emptyName, indexGetName, indexSetName, minusName, plusName;
@@ -600,7 +601,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       Token beginToken,
       Token endToken) {
     debugEvent("TopLevelFields");
-    // TODO(danrubel): handle NNBD 'late' modifier
     if (!library.loader.target.enableNonNullable) {
       reportNonNullableModifierError(lateToken);
     }
@@ -611,7 +611,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void endFields(Token staticToken, Token covariantToken, Token lateToken,
       Token varFinalOrConst, int count, Token beginToken, Token endToken) {
     debugEvent("Fields");
-    // TODO(danrubel): handle NNBD 'late' modifier
     if (!library.loader.target.enableNonNullable) {
       reportNonNullableModifierError(lateToken);
     }
@@ -2185,6 +2184,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     assert(currentLocalVariableModifiers != -1);
     bool isConst = (currentLocalVariableModifiers & constMask) != 0;
     bool isFinal = (currentLocalVariableModifiers & finalMask) != 0;
+    bool isLate = (currentLocalVariableModifiers & lateMask) != 0;
     assert(isConst == (constantContext == ConstantContext.inferred));
     VariableDeclaration variable = new VariableDeclarationJudgment(
         identifier.name, functionNestingLevel,
@@ -2192,7 +2192,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         initializer: initializer,
         type: buildDartType(currentLocalVariableType),
         isFinal: isFinal,
-        isConst: isConst)
+        isConst: isConst,
+        isLate: isLate)
       ..fileOffset = identifier.charOffset
       ..fileEqualsOffset = offsetForToken(equalsToken);
     library.checkBoundsInVariableDeclaration(variable, typeEnvironment, uri);
@@ -2242,12 +2243,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void beginVariablesDeclaration(
       Token token, Token lateToken, Token varFinalOrConst) {
     debugEvent("beginVariablesDeclaration");
-    // TODO(danrubel): handle NNBD 'late' modifier
     if (!library.loader.target.enableNonNullable) {
       reportNonNullableModifierError(lateToken);
     }
     UnresolvedType type = pop();
-    int modifiers = Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme);
+    int modifiers = (lateToken != null ? lateMask : 0) |
+        Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme);
     super.push(currentLocalVariableModifiers);
     super.push(currentLocalVariableType ?? NullValue.Type);
     currentLocalVariableType = type;

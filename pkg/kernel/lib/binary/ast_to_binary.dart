@@ -75,6 +75,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   void writeByte(int byte) {
+    assert((byte & 0xFF) == byte);
     _sink.addByte(byte);
   }
 
@@ -1163,7 +1164,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
     writeByte(node.kind.index);
-    writeByte(node.flags);
+    writeUInt30(node.flags);
     writeName(node.name ?? _emptyName);
     writeAnnotationList(node.annotations);
     writeNullAllowedReference(node.forwardingStubSuperTargetReference);
@@ -1187,7 +1188,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeUriReference(node.fileUri);
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
-    writeByte(node.flags);
+    writeUInt30(node.flags);
     writeName(node.name);
     writeAnnotationList(node.annotations);
     writeNode(node.type);
@@ -2064,6 +2065,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitNamedType(NamedType node) {
     writeStringReference(node.name);
     writeNode(node.type);
+    int flags = (node.isRequired ? NamedType.FlagRequiredNamedType : 0);
+    writeByte(flags);
   }
 
   @override

@@ -476,6 +476,7 @@ class CloneVisitor implements TreeVisitor {
         isFinal: node.isFinal,
         isConst: node.isConst,
         isStatic: node.isStatic,
+        isLate: node.isLate,
         hasImplicitGetter: node.hasImplicitGetter,
         hasImplicitSetter: node.hasImplicitSetter,
         transformerFlags: node.transformerFlags,

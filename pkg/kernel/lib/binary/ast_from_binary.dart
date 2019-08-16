@@ -1084,7 +1084,7 @@ class BinaryBuilder {
     var fileUri = readUriReference();
     int fileOffset = readOffset();
     int fileEndOffset = readOffset();
-    int flags = readByte();
+    int flags = readUInt();
     var name = readName();
     var annotations = readAnnotationList(node);
     assert(() {
@@ -1178,7 +1178,7 @@ class BinaryBuilder {
     var fileEndOffset = readOffset();
     int kindIndex = readByte();
     var kind = ProcedureKind.values[kindIndex];
-    var flags = readByte();
+    var flags = readUInt();
     var name = readName();
     var annotations = readAnnotationList(node);
     assert(() {
@@ -1950,7 +1950,11 @@ class BinaryBuilder {
   }
 
   NamedType readNamedType() {
-    return new NamedType(readStringReference(), readDartType());
+    String name = readStringReference();
+    DartType type = readDartType();
+    int flags = readByte();
+    return new NamedType(name, type,
+        isRequired: (flags & NamedType.FlagRequiredNamedType) != 0);
   }
 
   DartType readDartTypeOption() {

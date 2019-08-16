@@ -60,7 +60,9 @@ import '../modifier.dart'
         covariantMask,
         externalMask,
         finalMask,
+        lateMask,
         mixinDeclarationMask,
+        requiredMask,
         staticMask;
 
 import '../operator.dart'
@@ -1161,6 +1163,7 @@ class OutlineBuilder extends StackListener {
       reportNonNullableModifierError(requiredToken);
     }
     push((covariantToken != null ? covariantMask : 0) |
+        (requiredToken != null ? requiredMask : 0) |
         Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme));
   }
 
@@ -1455,7 +1458,6 @@ class OutlineBuilder extends StackListener {
       Token beginToken,
       Token endToken) {
     debugEvent("endTopLevelFields");
-    // TODO(danrubel): handle NNBD 'late' modifier
     if (!library.loader.target.enableNonNullable) {
       reportNonNullableModifierError(lateToken);
     }
@@ -1463,6 +1465,7 @@ class OutlineBuilder extends StackListener {
     TypeBuilder type = nullIfParserRecovery(pop());
     int modifiers = (staticToken != null ? staticMask : 0) |
         (covariantToken != null ? covariantMask : 0) |
+        (lateToken != null ? lateMask : 0) |
         Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme);
     List<MetadataBuilder> metadata = pop();
     checkEmpty(beginToken.charOffset);
@@ -1476,7 +1479,6 @@ class OutlineBuilder extends StackListener {
   void endFields(Token staticToken, Token covariantToken, Token lateToken,
       Token varFinalOrConst, int count, Token beginToken, Token endToken) {
     debugEvent("Fields");
-    // TODO(danrubel): handle NNBD 'late' modifier
     if (!library.loader.target.enableNonNullable) {
       reportNonNullableModifierError(lateToken);
     }
@@ -1484,6 +1486,7 @@ class OutlineBuilder extends StackListener {
     TypeBuilder type = pop();
     int modifiers = (staticToken != null ? staticMask : 0) |
         (covariantToken != null ? covariantMask : 0) |
+        (lateToken != null ? lateMask : 0) |
         Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme);
     if (staticToken == null && modifiers & constMask != 0) {
       // It is a compile-time error if an instance variable is declared to be

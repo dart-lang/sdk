@@ -1362,6 +1362,9 @@ void ScopeBuilder::VisitFunctionType(bool simple) {
       // read string reference (i.e. named_parameters[i].name).
       helper_.SkipStringReference();
       VisitDartType();  // read named_parameters[i].type.
+      if (helper_.translation_helper_.info().kernel_binary_version() >= 28) {
+        helper_.ReadByte();  // read flags
+      }
     }
   }
 

@@ -19,7 +19,7 @@ import 'package:kernel/ast.dart' show VariableDeclaration;
 
 import '../constant_context.dart' show ConstantContext;
 
-import '../modifier.dart' show finalMask, initializingFormalMask;
+import '../modifier.dart' show finalMask, initializingFormalMask, requiredMask;
 
 import '../scanner.dart' show Token;
 
@@ -74,7 +74,11 @@ class FormalParameterBuilder extends ModifierBuilder {
 
   String get debugName => "FormalParameterBuilder";
 
+  // TODO(johnniwinther): Cleanup `isRequired` semantics in face of required
+  // named parameters.
   bool get isRequired => isMandatoryFormalParameterKind(kind);
+
+  bool get isNamedRequired => (modifiers & requiredMask) != 0;
 
   bool get isPositional {
     return isOptionalPositionalFormalParameterKind(kind) ||
@@ -100,7 +104,8 @@ class FormalParameterBuilder extends ModifierBuilder {
           isFinal: isFinal,
           isConst: isConst,
           isFieldFormal: isInitializingFormal,
-          isCovariant: isCovariant)
+          isCovariant: isCovariant,
+          isRequired: isNamedRequired)
         ..fileOffset = charOffset;
     }
     return declaration;

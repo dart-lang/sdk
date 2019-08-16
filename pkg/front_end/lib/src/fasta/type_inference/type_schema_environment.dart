@@ -41,7 +41,8 @@ FunctionType substituteTypeParams(
       substitution.substituteType(type.returnType),
       namedParameters: type.namedParameters
           .map((named) => new NamedType(
-              named.name, substitution.substituteType(named.type)))
+              named.name, substitution.substituteType(named.type),
+              isRequired: named.isRequired))
           .toList(),
       typeParameters: newTypeParameters,
       requiredParameterCount: type.requiredParameterCount,

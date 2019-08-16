@@ -139,7 +139,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 28;
+  UInt32 formatVersion = 29;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
   UriSource sourceMap;
@@ -340,8 +340,8 @@ type Field extends Member {
   UriReference fileUri;
   FileOffset fileOffset;
   FileOffset fileEndOffset;
-  Byte flags (isFinal, isConst, isStatic, hasImplicitGetter, hasImplicitSetter,
-              isCovariant, isGenericCovariantImpl);
+  UInt flags (isFinal, isConst, isStatic, hasImplicitGetter, hasImplicitSetter,
+                isCovariant, isGenericCovariantImpl, isLate, isExtensionMember);
   Name name;
   List<Expression> annotations;
   DartType type;
@@ -381,10 +381,9 @@ type Procedure extends Member {
   FileOffset fileOffset; // Offset of the procedure name.
   FileOffset fileEndOffset;
   Byte kind; // Index into the ProcedureKind enum above.
-  Byte flags (isStatic, isAbstract, isExternal, isConst, isForwardingStub,
-              isForwardingSemiStub,
-              isRedirectingFactoryConstructor,
-              isNoSuchMethodForwarder);
+  Uint flags (isStatic, isAbstract, isExternal, isConst, isForwardingStub,
+              isForwardingSemiStub, isRedirectingFactoryConstructor,
+              isNoSuchMethodForwarder, isExtensionMember);
   Name name;
   List<Expression> annotations;
   // Only present if the 'isForwardingStub' flag is set.
@@ -1173,7 +1172,7 @@ type VariableDeclaration {
   List<Expression> annotations;
 
   Byte flags (isFinal, isConst, isFieldFormal, isCovariant,
-              isInScope, isGenericCovariantImpl);
+              isInScope, isGenericCovariantImpl, isLate, isRequired);
   // For named parameters, this is the parameter name.
   // For other variables, the name is cosmetic, may be empty,
   // and is not necessarily unique.
@@ -1253,6 +1252,7 @@ type SimpleFunctionType extends DartType {
 type NamedDartType {
   StringReference name;
   DartType type;
+  Byte flags (isRequired);
 }
 
 type TypeParameterType extends DartType {

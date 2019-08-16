@@ -298,6 +298,9 @@ void KernelFingerprintHelper::CalculateFunctionTypeFingerprint(bool simple) {
       // read string reference (i.e. named_parameters[i].name).
       CalculateStringReferenceFingerprint();
       CalculateDartTypeFingerprint();  // read named_parameters[i].type.
+      if (translation_helper_.info().kernel_binary_version() >= 29) {
+        BuildHash(ReadFlags());  // read flags.
+      }
     }
   }
 

@@ -14,7 +14,7 @@ import '../kernel/kernel_builder.dart'
         isRedirectingGenerativeConstructorImplementation;
 
 import '../modifier.dart'
-    show abstractMask, constMask, externalMask, finalMask, staticMask;
+    show abstractMask, constMask, externalMask, finalMask, lateMask, staticMask;
 
 import '../problems.dart' show unhandled;
 
@@ -70,6 +70,7 @@ int computeModifiers(Member member) {
   if (member is Field) {
     modifier |= member.isConst ? constMask : 0;
     modifier |= member.isFinal ? finalMask : 0;
+    modifier |= member.isLate ? lateMask : 0;
     modifier |= member.isStatic ? staticMask : 0;
   } else if (member is Procedure) {
     modifier |= member.isConst ? constMask : 0;

@@ -4,6 +4,7 @@
 
 library fasta.parser.formal_parameter_kind;
 
+// TODO(johnniwinther): Update this to support required named arguments.
 enum FormalParameterKind {
   mandatory,
   optionalNamed,

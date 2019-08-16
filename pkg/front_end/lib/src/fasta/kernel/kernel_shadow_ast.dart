@@ -1568,7 +1568,9 @@ class VariableDeclarationJudgment extends VariableDeclaration
       bool isConst: false,
       bool isFieldFormal: false,
       bool isCovariant: false,
-      bool isLocalFunction: false})
+      bool isLocalFunction: false,
+      bool isLate: false,
+      bool isRequired: false})
       : _implicitlyTyped = type == null,
         _isLocalFunction = isLocalFunction,
         super(name,
@@ -1577,7 +1579,9 @@ class VariableDeclarationJudgment extends VariableDeclaration
             isFinal: isFinal,
             isConst: isConst,
             isFieldFormal: isFieldFormal,
-            isCovariant: isCovariant);
+            isCovariant: isCovariant,
+            isLate: isLate,
+            isRequired: isRequired);
 
   VariableDeclarationJudgment.forEffect(
       Expression initializer, this._functionNestingLevel)

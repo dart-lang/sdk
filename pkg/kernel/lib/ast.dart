@@ -1373,6 +1373,7 @@ class Field extends Member {
       bool isStatic: false,
       bool hasImplicitGetter,
       bool hasImplicitSetter,
+      bool isLate: false,
       int transformerFlags: 0,
       Uri fileUri,
       Reference reference})
@@ -1383,6 +1384,7 @@ class Field extends Member {
     this.isFinal = isFinal;
     this.isConst = isConst;
     this.isStatic = isStatic;
+    this.isLate = isLate;
     this.hasImplicitGetter = hasImplicitGetter ?? !isStatic;
     this.hasImplicitSetter = hasImplicitSetter ?? (!isStatic && !isFinal);
     this.transformerFlags = transformerFlags;
@@ -1395,7 +1397,8 @@ class Field extends Member {
   static const int FlagHasImplicitSetter = 1 << 4;
   static const int FlagCovariant = 1 << 5;
   static const int FlagGenericCovariantImpl = 1 << 6;
-  static const int FlagExtensionMember = 1 << 7;
+  static const int FlagLate = 1 << 7;
+  static const int FlagExtensionMember = 1 << 8;
 
   /// Whether the field is declared with the `covariant` keyword.
   bool get isCovariant => flags & FlagCovariant != 0;
@@ -1434,6 +1437,9 @@ class Field extends Member {
   /// [DispatchCategory] for details.
   bool get isGenericCovariantImpl => flags & FlagGenericCovariantImpl != 0;
 
+  /// Whether the field is declared with the `late` keyword.
+  bool get isLate => flags & FlagLate != 0;
+
   void set isCovariant(bool value) {
     flags = value ? (flags | FlagCovariant) : (flags & ~FlagCovariant);
   }
@@ -1471,6 +1477,10 @@ class Field extends Member {
     flags = value
         ? (flags | FlagGenericCovariantImpl)
         : (flags & ~FlagGenericCovariantImpl);
+  }
+
+  void set isLate(bool value) {
+    flags = value ? (flags | FlagLate) : (flags & ~FlagLate);
   }
 
   /// True if the field is neither final nor const.
@@ -2288,7 +2298,7 @@ class FunctionNode extends TreeNode {
   static DartType _getTypeOfVariable(VariableDeclaration node) => node.type;
 
   static NamedType _getNamedTypeOfVariable(VariableDeclaration node) {
-    return new NamedType(node.name, node.type);
+    return new NamedType(node.name, node.type, isRequired: node.isRequired);
   }
 
   FunctionType get functionType {
@@ -4767,7 +4777,9 @@ class VariableDeclaration extends Statement {
       bool isFinal: false,
       bool isConst: false,
       bool isFieldFormal: false,
-      bool isCovariant: false}) {
+      bool isCovariant: false,
+      bool isLate: false,
+      bool isRequired: false}) {
     assert(type != null);
     initializer?.parent = this;
     if (flags != -1) {
@@ -4777,6 +4789,8 @@ class VariableDeclaration extends Statement {
       this.isConst = isConst;
       this.isFieldFormal = isFieldFormal;
       this.isCovariant = isCovariant;
+      this.isLate = isLate;
+      this.isRequired = isRequired;
     }
   }
 
@@ -4785,12 +4799,16 @@ class VariableDeclaration extends Statement {
       {bool isFinal: true,
       bool isConst: false,
       bool isFieldFormal: false,
+      bool isLate: false,
+      bool isRequired: false,
       this.type: const DynamicType()}) {
     assert(type != null);
     initializer?.parent = this;
     this.isFinal = isFinal;
     this.isConst = isConst;
     this.isFieldFormal = isFieldFormal;
+    this.isLate = isLate;
+    this.isRequired = isRequired;
   }
 
   static const int FlagFinal = 1 << 0; // Must match serialized bit positions.
@@ -4799,6 +4817,8 @@ class VariableDeclaration extends Statement {
   static const int FlagCovariant = 1 << 3;
   static const int FlagInScope = 1 << 4; // Temporary flag used by verifier.
   static const int FlagGenericCovariantImpl = 1 << 5;
+  static const int FlagLate = 1 << 6;
+  static const int FlagRequired = 1 << 7;
 
   bool get isFinal => flags & FlagFinal != 0;
   bool get isConst => flags & FlagConst != 0;
@@ -4818,6 +4838,18 @@ class VariableDeclaration extends Statement {
   /// When `true`, runtime checks may need to be performed; see
   /// [DispatchCategory] for details.
   bool get isGenericCovariantImpl => flags & FlagGenericCovariantImpl != 0;
+
+  /// Whether the variable is declared with the `late` keyword.
+  ///
+  /// The `late` modifier is only supported on local variables and not on
+  /// parameters.
+  bool get isLate => flags & FlagLate != 0;
+
+  /// Whether the parameter is declared with the `required` keyword.
+  ///
+  /// The `required` modifier is only supported on named parameters and not on
+  /// positional parameters and local variables.
+  bool get isRequired => flags & FlagRequired != 0;
 
   void set isFinal(bool value) {
     flags = value ? (flags | FlagFinal) : (flags & ~FlagFinal);
@@ -4840,6 +4872,14 @@ class VariableDeclaration extends Statement {
     flags = value
         ? (flags | FlagGenericCovariantImpl)
         : (flags & ~FlagGenericCovariantImpl);
+  }
+
+  void set isLate(bool value) {
+    flags = value ? (flags | FlagLate) : (flags & ~FlagLate);
+  }
+
+  void set isRequired(bool value) {
+    flags = value ? (flags | FlagRequired) : (flags & ~FlagRequired);
   }
 
   void addAnnotation(Expression annotation) {
@@ -5374,17 +5414,24 @@ class TypedefType extends DartType {
 
 /// A named parameter in [FunctionType].
 class NamedType extends Node implements Comparable<NamedType> {
+  // Flag used for serialization if [isRequired].
+  static const int FlagRequiredNamedType = 1 << 0;
+
   final String name;
   final DartType type;
+  final bool isRequired;
 
-  NamedType(this.name, this.type);
+  NamedType(this.name, this.type, {this.isRequired: false});
 
   bool operator ==(Object other) {
-    return other is NamedType && name == other.name && type == other.type;
+    return other is NamedType &&
+        name == other.name &&
+        type == other.type &&
+        isRequired == other.isRequired;
   }
 
   int get hashCode {
-    return name.hashCode * 31 + type.hashCode * 37;
+    return name.hashCode * 31 + type.hashCode * 37 + isRequired.hashCode * 41;
   }
 
   int compareTo(NamedType other) => name.compareTo(other.name);
