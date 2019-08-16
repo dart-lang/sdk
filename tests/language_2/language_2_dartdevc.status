@@ -30,6 +30,10 @@ cascaded_forwarding_stubs_test: CompileTimeError
 const_cast2_test/01: CompileTimeError
 const_cast2_test/none: CompileTimeError
 const_constructor3_test/04: MissingCompileTimeError # Side-effect of working around issue 33441 for int-to-double
+const_double_in_int_op_test/dd6: Skip # Triple shift
+const_double_in_int_op_test/di6: Skip # Triple shift
+const_double_in_int_op_test/id6: Skip # Triple shift
+const_double_in_int_op_test/ii6: Skip # Triple shift
 covariant_override/tear_off_type_test: RuntimeError # Issue 28395
 covariant_subtyping_with_mixin_test: CompileTimeError # Issue 34329
 deferred_load_library_wrong_args_test/01: MissingRuntimeError, RuntimeError # Issue 29920

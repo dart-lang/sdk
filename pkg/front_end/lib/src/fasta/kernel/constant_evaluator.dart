@@ -1215,9 +1215,11 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
               unevaluatedArguments(arguments, {}, node.arguments.types)));
     }
 
+    final String op = node.name.name;
+
     // Handle == and != first (it's common between all types). Since `a != b` is
     // parsed as `!(a == b)` it is handled implicitly through ==.
-    if (arguments.length == 1 && node.name.name == '==') {
+    if (arguments.length == 1 && op == '==') {
       final right = arguments[0];
 
       // [DoubleConstant] uses [identical] to determine equality, so we need two
@@ -1250,7 +1252,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     // This is a white-listed set of methods we need to support on constants.
     if (receiver is StringConstant) {
       if (arguments.length == 1) {
-        switch (node.name.name) {
+        switch (op) {
           case '+':
             final Constant other = arguments[0];
             if (other is StringConstant) {
@@ -1268,7 +1270,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       }
     } else if (receiver is IntConstant || receiver is JavaScriptIntConstant) {
       if (arguments.length == 0) {
-        switch (node.name.name) {
+        switch (op) {
           case 'unary-':
             if (targetingJavaScript) {
               BigInt value = (receiver as JavaScriptIntConstant).bigIntValue;
@@ -1290,7 +1292,6 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         }
       } else if (arguments.length == 1) {
         final Constant other = arguments[0];
-        final op = node.name.name;
         if (other is IntConstant || other is JavaScriptIntConstant) {
           if ((op == '<<' || op == '>>' || op == '>>>')) {
             var receiverValue = receiver is IntConstant
@@ -1342,7 +1343,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
                       .toUnsigned(32)
                       .toInt();
               return evaluateBinaryBitOperation(
-                  node.name.name, receiverValue, otherValue, node);
+                  op, receiverValue, otherValue, node);
             case '<<':
             case '>>':
             case '>>>':
@@ -1361,7 +1362,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
                   : (other as JavaScriptIntConstant).bigIntValue.toInt();
 
               return evaluateBinaryShiftOperation(
-                  node.name.name, receiverValue, otherValue, node,
+                  op, receiverValue, otherValue, node,
                   negativeReceiver: negative);
             default:
               num receiverValue = receiver is IntConstant
@@ -1371,26 +1372,46 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
                   ? other.value
                   : (other as DoubleConstant).value;
               return evaluateBinaryNumericOperation(
-                  node.name.name, receiverValue, otherValue, node);
+                  op, receiverValue, otherValue, node);
           }
         } else if (other is DoubleConstant) {
+          if ((op == '|' || op == '&' || op == '^') ||
+              (op == '<<' || op == '>>' || op == '>>>')) {
+            return report(
+                node,
+                templateConstEvalInvalidBinaryOperandType.withArguments(
+                    op,
+                    other,
+                    typeEnvironment.intType,
+                    other.getType(typeEnvironment)));
+          }
           num receiverValue = receiver is IntConstant
               ? receiver.value
               : (receiver as DoubleConstant).value;
           return evaluateBinaryNumericOperation(
-              node.name.name, receiverValue, other.value, node);
+              op, receiverValue, other.value, node);
         }
         return report(
             node,
             templateConstEvalInvalidBinaryOperandType.withArguments(
-                node.name.name,
+                op,
                 receiver,
                 typeEnvironment.numType,
                 other.getType(typeEnvironment)));
       }
     } else if (receiver is DoubleConstant) {
+      if ((op == '|' || op == '&' || op == '^') ||
+          (op == '<<' || op == '>>' || op == '>>>')) {
+        return report(
+            node,
+            templateConstEvalInvalidBinaryOperandType.withArguments(
+                op,
+                receiver,
+                typeEnvironment.intType,
+                receiver.getType(typeEnvironment)));
+      }
       if (arguments.length == 0) {
-        switch (node.name.name) {
+        switch (op) {
           case 'unary-':
             return canonicalize(makeDoubleConstant(-receiver.value));
         }
@@ -1402,12 +1423,12 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
               ? other.value
               : (other as DoubleConstant).value;
           return evaluateBinaryNumericOperation(
-              node.name.name, receiver.value, value, node);
+              op, receiver.value, value, node);
         }
         return report(
             node,
             templateConstEvalInvalidBinaryOperandType.withArguments(
-                node.name.name,
+                op,
                 receiver,
                 typeEnvironment.numType,
                 other.getType(typeEnvironment)));
@@ -1416,7 +1437,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       if (arguments.length == 1) {
         final Constant other = arguments[0];
         if (other is BoolConstant) {
-          switch (node.name.name) {
+          switch (op) {
             case '|':
               return canonicalize(
                   new BoolConstant(receiver.value || other.value));
@@ -1433,10 +1454,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       return report(node, messageConstEvalNullValue);
     }
 
-    return report(
-        node,
-        templateConstEvalInvalidMethodInvocation.withArguments(
-            node.name.name, receiver));
+    return report(node,
+        templateConstEvalInvalidMethodInvocation.withArguments(op, receiver));
   }
 
   visitLogicalExpression(LogicalExpression node) {
