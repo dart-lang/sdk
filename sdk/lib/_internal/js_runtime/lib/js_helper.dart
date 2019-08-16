@@ -65,6 +65,7 @@ import 'dart:_rti' as newRti
         evalInInstance,
         getRuntimeType,
         getTypeFromTypesTable,
+        instanceTypeName,
         instantiatedGenericFunctionType;
 
 part 'annotations.dart';
@@ -513,10 +514,15 @@ class Primitives {
   }
 
   /// Returns the type of [object] as a string (including type arguments).
+  /// Tries to return a sensible name for non-Dart objects.
   ///
-  /// In minified mode, uses the unminified names if available.
+  /// In minified mode, uses the unminified names if available, otherwise tags
+  /// them with 'minified:'.
   @pragma('dart2js:noInline')
   static String objectTypeName(Object object) {
+    if (JS_GET_FLAG('USE_NEW_RTI')) {
+      return _objectTypeNameNewRti(object);
+    }
     String className = _objectClassName(object);
     String arguments = joinArguments(getRuntimeTypeInfo(object), 0);
     return '${className}${arguments}';
@@ -587,6 +593,54 @@ class Primitives {
     }
     return unminifyOrTag(name);
   }
+
+  /// Returns the type of [object] as a string (including type arguments).
+  /// Tries to return a sensible name for non-Dart objects.
+  ///
+  /// In minified mode, uses the unminified names if available, otherwise tags
+  /// them with 'minified:'.
+  static String _objectTypeNameNewRti(Object object) {
+    var dartObjectConstructor = JS_BUILTIN(
+        'depends:none;effects:none;', JsBuiltin.dartObjectConstructor);
+    if (JS('bool', '# instanceof #', object, dartObjectConstructor)) {
+      return newRti.instanceTypeName(object);
+    }
+
+    var interceptor = getInterceptor(object);
+    if (identical(interceptor, JS_INTERCEPTOR_CONSTANT(Interceptor)) ||
+        object is UnknownJavaScriptObject) {
+      // Try to do better.  If we do not find something better, fallthrough to
+      // Dart-type based name that leave the name as 'UnknownJavaScriptObject'
+      // or 'Interceptor' (or the minified versions thereof).
+      //
+      // When we get here via the UnknownJavaScriptObject test (for JavaScript
+      // objects from outside the program), the object's constructor has a
+      // better name that 'UnknownJavaScriptObject'.
+      //
+      // When we get here the Interceptor test (for Native classes that are
+      // declared in the Dart program but have been 'folded' into Interceptor),
+      // the native class's constructor name is better than the generic
+      // 'Interceptor' (an abstract class).
+
+      // Try the [constructorNameFallback]. This gets the constructor name for
+      // any browser (used by [getNativeInterceptor]).
+      String dispatchName = constructorNameFallback(object);
+      if (_saneNativeClassName(dispatchName)) return dispatchName;
+      var constructor = JS('', '#.constructor', object);
+      if (JS('bool', 'typeof # == "function"', constructor)) {
+        var constructorName = JS('', '#.name', constructor);
+        if (constructorName is String &&
+            _saneNativeClassName(constructorName)) {
+          return constructorName;
+        }
+      }
+    }
+
+    return newRti.instanceTypeName(object);
+  }
+
+  static bool _saneNativeClassName(name) =>
+      name != null && name != 'Object' && name != '';
 
   /// In minified mode, uses the unminified names if available.
   static String objectToHumanReadableString(Object object) {
@@ -2498,9 +2552,10 @@ abstract class Closure implements Function {
   // to be visible to resolution and the generation of extra stubs.
 
   String toString() {
-    String name = Primitives.objectTypeName(this);
-    // Mirrors puts a space in front of some names, so remove it.
-    name = JS('String', '#.trim()', name);
+    var constructor = JS('', '#.constructor', this);
+    String name =
+        constructor == null ? null : JS('String|Null', '#.name', constructor);
+    if (name == null) name = 'unknown';
     return "Closure '$name'";
   }
 }

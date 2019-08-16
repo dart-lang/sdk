@@ -629,6 +629,11 @@ Rti _instanceType(object) {
       : _instanceTypeFromConstructor(JS('', '#.constructor', object));
 }
 
+String instanceTypeName(object) {
+  Rti rti = instanceType(object);
+  return _rtiToString(rti, null);
+}
+
 Rti _instanceTypeFromConstructor(constructor) {
   // TODO(sra): Cache Rti on constructor.
   return findType(JS('String', '#.name', constructor));
