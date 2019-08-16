@@ -788,7 +788,7 @@ class _Harness
     return _subtypes[query] ?? fail('Unknown subtype query: $query');
   }
 
-  /// Creates a [LazyExpression] representing an `== null` check performed on
+  /// Creates a [LazyExpression] representing a `!= null` check performed on
   /// [variable].
   LazyExpression notNull(_Var variable) {
     return () {
