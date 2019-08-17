@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -65,23 +64,13 @@ main() {
   foo(bar);
 }
 ''');
-    if (AnalysisDriver.useSummary2) {
-      await assertHasFix('''
-foo(f(int p)) {}
-main() {
-  dynamic Function(int) bar;
-  foo(bar);
-}
-''');
-    } else {
-      await assertHasFix('''
+    await assertHasFix('''
 foo(f(int p)) {}
 main() {
   Function(int p) bar;
   foo(bar);
 }
 ''');
-    }
   }
 
   test_read_typeAssignment() async {
