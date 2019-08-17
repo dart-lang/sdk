@@ -39,6 +39,7 @@ import '../js_model/locals.dart' show JumpVisitor;
 import '../js_model/elements.dart' show JGeneratorBody;
 import '../js_model/element_map.dart';
 import '../js_model/js_strategy.dart';
+import '../js_model/type_recipe.dart';
 import '../kernel/invocation_mirror_constants.dart';
 import '../native/behavior.dart';
 import '../native/js.dart';
@@ -4038,14 +4039,32 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     List<HInstruction> inputs = <HInstruction>[closure];
     List<DartType> typeArguments = <DartType>[];
 
-    thisType.typeArguments.forEach((_typeVariable) {
-      TypeVariableType variable = _typeVariable;
-      typeArguments.add(variable);
-      HInstruction readType = new HTypeInfoReadVariable.intercepted(
-          variable, interceptor, object, _abstractValueDomain.dynamicType);
-      add(readType);
-      inputs.add(readType);
-    });
+    if (options.experimentNewRti) {
+      HInstruction instanceType =
+          HInstanceEnvironment(object, _abstractValueDomain.dynamicType);
+      add(instanceType);
+      TypeEnvironmentStructure envStructure =
+          FullTypeEnvironmentStructure(classType: thisType);
+
+      thisType.typeArguments.forEach((_typeVariable) {
+        TypeVariableType variable = _typeVariable;
+        typeArguments.add(variable);
+        TypeRecipe recipe = TypeExpressionRecipe(variable);
+        HInstruction typeEval = new HTypeEval(instanceType, envStructure,
+            recipe, _abstractValueDomain.dynamicType);
+        add(typeEval);
+        inputs.add(typeEval);
+      });
+    } else {
+      thisType.typeArguments.forEach((_typeVariable) {
+        TypeVariableType variable = _typeVariable;
+        typeArguments.add(variable);
+        HInstruction readType = new HTypeInfoReadVariable.intercepted(
+            variable, interceptor, object, _abstractValueDomain.dynamicType);
+        add(readType);
+        inputs.add(readType);
+      });
+    }
 
     // TODO(sra): In compliance mode, insert a check that [closure] is a
     // function of N type arguments.
