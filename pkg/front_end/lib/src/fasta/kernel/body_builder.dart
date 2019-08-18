@@ -84,31 +84,7 @@ import 'collections.dart'
 
 import 'constness.dart' show Constness;
 
-import 'expression_generator.dart'
-    show
-        DelayedAssignment,
-        DelayedPostfixIncrement,
-        Generator,
-        IncompleteErrorGenerator,
-        IncompletePropertyAccessGenerator,
-        IncompleteSendGenerator,
-        IndexedAccessGenerator,
-        LoadLibraryGenerator,
-        ParenthesizedExpressionGenerator,
-        ParserErrorGenerator,
-        PrefixUseGenerator,
-        PropertyAccessGenerator,
-        ReadOnlyAccessGenerator,
-        SendAccessGenerator,
-        StaticAccessGenerator,
-        SuperIndexedAccessGenerator,
-        ThisAccessGenerator,
-        ThisPropertyAccessGenerator,
-        TypeUseGenerator,
-        UnlinkedGenerator,
-        UnresolvedNameGenerator,
-        VariableUseGenerator,
-        buildIsNull;
+import 'expression_generator.dart';
 
 import 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
 
@@ -286,6 +262,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   /// for `this`.
   final VariableDeclaration extensionThis;
 
+  final List<TypeParameter> extensionTypeParameters;
+
   BodyBuilder(
       {this.library,
       this.member,
@@ -296,6 +274,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       this.declarationBuilder,
       this.isDeclarationInstanceMember,
       this.extensionThis,
+      this.extensionTypeParameters,
       this.uri,
       this.typeInferrer})
       : forest = const Forest(),
@@ -1785,7 +1764,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   /// Helper method to create a [VariableGet] of the [variable] using
   /// [charOffset] as the file offset.
-  VariableGet _createVariableGet(VariableDeclaration variable, int charOffset) {
+  @override
+  VariableGet createVariableGet(VariableDeclaration variable, int charOffset) {
     Object fact =
         typePromoter?.getFactForAccess(variable, functionNestingLevel);
     Object scope = typePromoter?.currentScope;
@@ -1799,7 +1779,108 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   ReadOnlyAccessGenerator _createReadOnlyVariableAccess(
       VariableDeclaration variable, Token token, int charOffset, String name) {
     return new ReadOnlyAccessGenerator(
-        this, token, _createVariableGet(variable, charOffset), name);
+        this, token, createVariableGet(variable, charOffset), name);
+  }
+
+  @override
+  Expression createExtensionTearOff(
+      Procedure procedure,
+      VariableDeclaration extensionThis,
+      List<TypeParameter> extensionTypeParameters,
+      Token token) {
+    int charOffset = offsetForToken(token);
+
+    FunctionNode function = procedure.function;
+    List<TypeParameter> typeParameters = [];
+    List<DartType> typeArguments = [];
+    int extensionTypeParameterCount = extensionTypeParameters?.length ?? 0;
+    for (int index = 0; index < extensionTypeParameterCount; index++) {
+      typeArguments
+          .add(forest.createTypeParameterType(extensionTypeParameters[index]));
+    }
+    for (int index = extensionTypeParameterCount;
+        index < function.typeParameters.length;
+        index++) {
+      TypeParameter typeParameter = function.typeParameters[index];
+      TypeParameter newTypeParameter =
+          forest.createTypeParameter(typeParameter.name);
+      typeParameters.add(newTypeParameter);
+      typeArguments.add(forest.createTypeParameterType(newTypeParameter));
+    }
+    Substitution substitution =
+        Substitution.fromPairs(function.typeParameters, typeArguments);
+    for (int index = extensionTypeParameterCount;
+        index < function.typeParameters.length;
+        index++) {
+      TypeParameter oldTypeParameter = function.typeParameters[index];
+      TypeParameter newTypeParameter =
+          typeParameters[index - extensionTypeParameterCount];
+      newTypeParameter.bound =
+          substitution.substituteType(oldTypeParameter.bound);
+      newTypeParameter.defaultType = oldTypeParameter.defaultType;
+    }
+
+    DartType returnType = substitution.substituteType(function.returnType);
+
+    List<VariableDeclaration> positionalParameters = [];
+    List<Expression> positionalArguments = [];
+    functionNestingLevel++;
+
+    VariableDeclaration copyParameter(VariableDeclaration parameter,
+        {bool isOptional}) {
+      // TODO(johnniwinther): Handle default values.
+      return forest.createVariableDeclaration(
+          parameter.name, functionNestingLevel,
+          type: substitution.substituteType(parameter.type),
+          initializer: isOptional ? forest.createNullLiteral(token) : null);
+    }
+
+    for (int position = 0;
+        position < function.positionalParameters.length;
+        position++) {
+      VariableDeclaration parameter = function.positionalParameters[position];
+      if (position == 0) {
+        /// Pass `this` as a captured variable.
+        positionalArguments.add(createVariableGet(extensionThis, charOffset));
+      } else {
+        VariableDeclaration newParameter = copyParameter(parameter,
+            isOptional: position >= function.requiredParameterCount);
+        positionalParameters.add(newParameter);
+        positionalArguments.add(createVariableGet(newParameter, charOffset));
+      }
+    }
+    List<VariableDeclaration> namedParameters = [];
+    List<NamedExpression> namedArguments = [];
+    for (VariableDeclaration parameter in function.namedParameters) {
+      VariableDeclaration newParameter =
+          copyParameter(parameter, isOptional: true);
+      namedParameters.add(newParameter);
+      namedArguments.add(forest.createNamedExpression(
+          parameter.name, createVariableGet(newParameter, charOffset)));
+    }
+
+    Statement body = forest.createReturnStatement(
+        null,
+        buildStaticInvocation(
+            procedure,
+            forest.createArguments(positionalArguments, token,
+                types: typeArguments, named: namedArguments),
+            charOffset: charOffset),
+        charOffset);
+
+    FunctionExpression expression = forest.createFunctionExpression(
+        forest.createFunctionNode(body,
+            typeParameters: typeParameters,
+            positionalParameters: positionalParameters,
+            namedParameters: namedParameters,
+            requiredParameterCount:
+                procedure.function.requiredParameterCount - 1,
+            returnType: returnType,
+            asyncMarker: procedure.function.asyncMarker,
+            dartAsyncMarker: procedure.function.dartAsyncMarker),
+        charOffset);
+    functionNestingLevel--;
+    return expression;
   }
 
   /// Look up [name] in [scope] using [token] as location information (both to
@@ -1859,7 +1940,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           return PropertyAccessGenerator.make(
               this,
               token,
-              _createVariableGet(extensionThis, charOffset),
+              createVariableGet(extensionThis, charOffset),
               n,
               null,
               null,
@@ -1895,7 +1976,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       } else {
         return new VariableUseGenerator(this, token, declaration.target);
       }
-    } else if (declaration.isDeclarationInstanceMember) {
+    } else if (declaration.isClassInstanceMember) {
       if (constantContext != ConstantContext.none &&
           !inInitializer &&
           // TODO(ahe): This is a hack because Fasta sets up the scope
@@ -1917,6 +1998,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         setter = lookupInstanceMember(n, isSetter: true);
       }
       return new ThisPropertyAccessGenerator(this, token, n, getter, setter);
+    } else if (declaration.isExtensionInstanceMember) {
+      Builder setter =
+          _getCorrespondingSetterBuilder(scope, declaration, name, charOffset);
+      // TODO(johnniwinther): Check for constantContext like below?
+      return new ExtensionInstanceAccessGenerator.fromBuilder(this,
+          extensionThis, extensionTypeParameters, declaration, token, setter);
     } else if (declaration.isRegularMethod) {
       assert(declaration.isStatic || declaration.isTopLevel);
       return new StaticAccessGenerator(this, token, declaration.target, null);
@@ -1925,22 +2012,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       return new PrefixUseGenerator(this, token, declaration);
     } else if (declaration is LoadLibraryBuilder) {
       return new LoadLibraryGenerator(this, token, declaration);
+    } else if (declaration.hasProblem && declaration is! AccessErrorBuilder) {
+      return declaration;
     } else {
-      if (declaration.hasProblem && declaration is! AccessErrorBuilder) {
-        return declaration;
-      }
-      Builder setter;
-      if (declaration.isSetter) {
-        setter = declaration;
-      } else if (declaration.isGetter) {
-        setter = scope.lookupSetter(name, charOffset, uri);
-      } else if (declaration.isField) {
-        if (declaration.isFinal || declaration.isConst) {
-          setter = scope.lookupSetter(name, charOffset, uri);
-        } else {
-          setter = declaration;
-        }
-      }
+      Builder setter =
+          _getCorrespondingSetterBuilder(scope, declaration, name, charOffset);
       StaticAccessGenerator generator = new StaticAccessGenerator.fromBuilder(
           this, declaration, token, setter);
       if (constantContext != ConstantContext.none) {
@@ -1954,6 +2030,25 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       }
       return generator;
     }
+  }
+
+  /// Returns the setter builder corresponding to [declaration] using the
+  /// [name] and [charOffset] for the lookup into [scope] if necessary.
+  Builder _getCorrespondingSetterBuilder(
+      Scope scope, Builder declaration, String name, int charOffset) {
+    Builder setter;
+    if (declaration.isSetter) {
+      setter = declaration;
+    } else if (declaration.isGetter) {
+      setter = scope.lookupSetter(name, charOffset, uri);
+    } else if (declaration.isField) {
+      if (declaration.isFinal || declaration.isConst) {
+        setter = scope.lookupSetter(name, charOffset, uri);
+      } else {
+        setter = declaration;
+      }
+    }
+    return setter;
   }
 
   @override
@@ -2112,7 +2207,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       push(buildProblemStatement(
           fasta.messageConstructorWithReturnType, beginToken.charOffset));
     } else {
-      push(forest.createReturnStatement(beginToken, expression, endToken));
+      push(forest.createReturnStatement(
+          beginToken, expression, offsetForToken(beginToken)));
     }
   }
 

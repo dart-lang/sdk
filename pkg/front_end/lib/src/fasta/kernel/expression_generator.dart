@@ -5,6 +5,8 @@
 /// A library to help generate expression.
 library fasta.expression_generator;
 
+import 'dart:core' hide MapEntry;
+
 import 'package:kernel/ast.dart'
     show
         Constructor,
@@ -418,6 +420,8 @@ abstract class Generator {
   /// * If this is an [IncompleteErrorGenerator], this will return the error
   ///   generator itself.
   ///
+  /// If the invocation has explicit type arguments
+  /// [buildTypeWithResolvedArguments] called instead.
   /* Expression | Generator | Initializer */ doInvocation(
       int offset, Arguments arguments);
 
@@ -1415,9 +1419,52 @@ class SuperIndexedAccessGenerator extends Generator {
   }
 }
 
+/// A [StaticAccessGenerator] represents a subexpression whose prefix is
+/// a static or top-level member, including static extension members.
+///
+/// For instance
+///
+///   get property => 0;
+///   set property(_) {}
+///   var field;
+///   method() {}
+///
+///   main() {
+///     property;     // a StaticAccessGenerator is created for `property`.
+///     property = 0; // a StaticAccessGenerator is created for `property`.
+///     field = 0;    // a StaticAccessGenerator is created for `field`.
+///     method;       // a StaticAccessGenerator is created for `method`.
+///     method();     // a StaticAccessGenerator is created for `method`.
+///   }
+///
+///   class A {}
+///   extension B on A {
+///     static get property => 0;
+///     static set property(_) {}
+///     static var field;
+///     static method() {
+///       property;     // this StaticAccessGenerator is created for `property`.
+///       property = 0; // this StaticAccessGenerator is created for `property`.
+///       field = 0;    // this StaticAccessGenerator is created for `field`.
+///       method;       // this StaticAccessGenerator is created for `method`.
+///       method();     // this StaticAccessGenerator is created for `method`.
+///     }
+///   }
+///
 class StaticAccessGenerator extends Generator {
+  /// The static [Member] used for performing a read or invocation on this
+  /// subexpression.
+  ///
+  /// This can be `null` if the subexpression doesn't have a readable target.
+  /// For instance if the subexpression is a setter without a corresponding
+  /// getter.
   final Member readTarget;
 
+  /// The static [Member] used for performing a write on this subexpression.
+  ///
+  /// This can be `null` if the subexpression doesn't have a writable target.
+  /// For instance if the subexpression is a final field, a method, or a getter
+  /// without a corresponding setter.
   final Member writeTarget;
 
   StaticAccessGenerator(ExpressionGeneratorHelper helper, Token token,
@@ -1507,6 +1554,222 @@ class StaticAccessGenerator extends Generator {
     } else {
       return _helper.buildStaticInvocation(readTarget, arguments,
           charOffset: offset);
+    }
+  }
+
+  @override
+  ComplexAssignmentJudgment startComplexAssignment(Expression rhs) =>
+      SyntheticWrapper.wrapStaticAssignment(rhs);
+
+  @override
+  void printOn(StringSink sink) {
+    NameSystem syntheticNames = new NameSystem();
+    sink.write(", readTarget: ");
+    printQualifiedNameOn(readTarget, sink, syntheticNames: syntheticNames);
+    sink.write(", writeTarget: ");
+    printQualifiedNameOn(writeTarget, sink, syntheticNames: syntheticNames);
+  }
+}
+
+/// An [ExtensionInstanceAccessGenerator] represents a subexpression whose
+/// prefix is an extension instance member.
+///
+/// For instance
+///
+///   class A {}
+///   extension B on A {
+///     get property => 0;
+///     set property(_) {}
+///     var field;
+///     method() {
+///       property;     // this generator is created for `property`.
+///       property = 0; // this generator is created for `property`.
+///       field = 0;    // this generator is created for `field`.
+///       method;       // this generator is created for `method`.
+///       method();     // this generator is created for `method`.
+///     }
+///   }
+///
+class ExtensionInstanceAccessGenerator extends Generator {
+  /// The static [Member] generated for an instance extension member which is
+  /// used for performing a read or invocation on this subexpression.
+  ///
+  /// This can be `null` if the subexpression doesn't have a readable target.
+  /// For instance if the subexpression is a setter without a corresponding
+  /// getter.
+  final Procedure readTarget;
+
+  /// `true` if the [readTarget] is declared as a regular method in the
+  /// extension.
+  ///
+  /// All extension instance members are converted into to top level methods so
+  /// this field is needed to know whether a read should be a tear off, which
+  /// is the case for regular methods, or an invocation should be a read follow
+  /// by a call, which is the case for getters.
+  final bool readTargetIsRegularMethod;
+
+  /// The static [Member] generated for an instance extension member which is
+  /// used for performing a write on this subexpression.
+  ///
+  /// This can be `null` if the subexpression doesn't have a writable target.
+  /// For instance if the subexpression is a final field, a method, or a getter
+  /// without a corresponding setter.
+  final Procedure writeTarget;
+
+  /// The parameter holding the value for `this` within the current extension
+  /// instance method.
+  // TODO(johnniwinther): Handle static access to extension instance members,
+  // in which case the access is erroneous and [extensionThis] is `null`.
+  final VariableDeclaration extensionThis;
+
+  /// The type parameters synthetically added to  the current extension
+  /// instance method.
+  final List<TypeParameter> extensionTypeParameters;
+
+  ExtensionInstanceAccessGenerator(
+      ExpressionGeneratorHelper helper,
+      Token token,
+      this.readTarget,
+      this.readTargetIsRegularMethod,
+      this.writeTarget,
+      this.extensionThis,
+      this.extensionTypeParameters)
+      : assert(readTarget != null || writeTarget != null),
+        assert(extensionThis != null),
+        super(helper, token);
+
+  factory ExtensionInstanceAccessGenerator.fromBuilder(
+      ExpressionGeneratorHelper helper,
+      VariableDeclaration extensionThis,
+      List<TypeParameter> extensionTypeParameters,
+      Builder declaration,
+      Token token,
+      Builder builderSetter) {
+    if (declaration is AccessErrorBuilder) {
+      AccessErrorBuilder error = declaration;
+      declaration = error.builder;
+      // We should only see an access error here if we've looked up a setter
+      // when not explicitly looking for a setter.
+      assert(declaration.isSetter);
+    } else if (declaration.target == null) {
+      return unhandled(
+          "${declaration.runtimeType}",
+          "InstanceExtensionAccessGenerator.fromBuilder",
+          offsetForToken(token),
+          helper.uri);
+    }
+    bool readTargetIsRegularMethod = declaration.isRegularMethod;
+    Procedure getter;
+    if (declaration.isGetter || declaration.isRegularMethod) {
+      getter = declaration.target;
+    }
+    Procedure setter;
+    if (builderSetter != null && builderSetter.isSetter) {
+      setter = builderSetter.target;
+    }
+    return new ExtensionInstanceAccessGenerator(
+        helper,
+        token,
+        getter,
+        readTargetIsRegularMethod,
+        setter,
+        extensionThis,
+        extensionTypeParameters);
+  }
+
+  @override
+  String get _debugName => "InstanceExtensionAccessGenerator";
+
+  @override
+  String get _plainNameForRead => (readTarget ?? writeTarget).name.name;
+
+  @override
+  Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
+    Expression read;
+    if (readTarget == null) {
+      read = _makeInvalidRead();
+      if (complexAssignment != null) {
+        read = _helper.desugarSyntheticExpression(read);
+      }
+    } else if (readTargetIsRegularMethod) {
+      read = _helper.createExtensionTearOff(
+          readTarget, extensionThis, extensionTypeParameters, token);
+    } else {
+      List<DartType> typeArguments;
+      if (extensionTypeParameters != null) {
+        typeArguments = [];
+        for (TypeParameter typeParameter in extensionTypeParameters) {
+          typeArguments.add(_forest.createTypeParameterType(typeParameter));
+        }
+      }
+      read = _helper.buildStaticInvocation(
+          readTarget,
+          _helper.forest.createArguments([
+            _helper.createVariableGet(extensionThis, offsetForToken(token))
+          ], token, types: typeArguments),
+          charOffset: token.charOffset);
+    }
+    complexAssignment?.read = read;
+    return read;
+  }
+
+  @override
+  Expression _makeWrite(Expression value, bool voidContext,
+      ComplexAssignmentJudgment complexAssignment) {
+    Expression write;
+    if (writeTarget == null) {
+      write = _makeInvalidWrite(value);
+      if (complexAssignment != null) {
+        write = _helper.desugarSyntheticExpression(write);
+      }
+    } else {
+      List<DartType> typeArguments;
+      if (extensionTypeParameters != null) {
+        typeArguments = [];
+        for (TypeParameter typeParameter in extensionTypeParameters) {
+          typeArguments.add(_forest.createTypeParameterType(typeParameter));
+        }
+      }
+      write = _helper.buildStaticInvocation(
+          writeTarget,
+          _helper.forest.createArguments([
+            _helper.createVariableGet(extensionThis, offsetForToken(token)),
+            value
+          ], token, types: typeArguments),
+          charOffset: token.charOffset);
+    }
+    complexAssignment?.write = write;
+    write.fileOffset = offsetForToken(token);
+    return write;
+  }
+
+  @override
+  Expression doInvocation(int offset, Arguments arguments) {
+    if (readTargetIsRegularMethod) {
+      List<Expression> positionalArguments = [
+        _helper.createVariableGet(extensionThis, offset)
+      ]..addAll(arguments.positional);
+      List<DartType> typeArguments;
+      if (extensionTypeParameters != null) {
+        typeArguments = [];
+        for (TypeParameter typeParameter in extensionTypeParameters) {
+          typeArguments.add(_forest.createTypeParameterType(typeParameter));
+        }
+        if (arguments.types.isNotEmpty) {
+          typeArguments.addAll(arguments.types);
+        }
+      } else if (arguments.types.isNotEmpty) {
+        typeArguments = arguments.types;
+      }
+      return _helper.buildStaticInvocation(
+          readTarget,
+          _forest.createArguments(positionalArguments, token,
+              named: arguments.named, types: typeArguments),
+          charOffset: offset);
+    } else {
+      return _helper.buildMethodInvocation(buildSimpleRead(), callName,
+          arguments, adjustForImplicitCall(_plainNameForRead, offset),
+          isImplicitCall: true);
     }
   }
 
@@ -2457,10 +2720,8 @@ class PrefixUseGenerator extends Generator {
           "'${send.name.name}' != ${send.token.lexeme}");
       Object result = qualifiedLookup(send.token);
       if (send is SendAccessGenerator) {
-        result = _helper.finishSend(
-            result,
-            send.arguments as dynamic /* TODO(ahe): Remove this cast. */,
-            offsetForToken(token));
+        result =
+            _helper.finishSend(result, send.arguments, offsetForToken(token));
       }
       if (isNullAware) {
         result = _helper.wrapInLocatedProblem(

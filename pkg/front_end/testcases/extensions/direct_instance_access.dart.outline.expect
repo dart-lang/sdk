@@ -1,0 +1,76 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/direct_instance_access.dart:9:1: Error: This requires the 'extension-methods' experiment to be enabled.
+// Try enabling this experiment by adding it to the command line when compiling and running.
+// extension Extension on Class {
+// ^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/direct_instance_access.dart:9:24: Error: A function declaration needs an explicit list of parameters.
+// Try adding a parameter list to the function declaration.
+// extension Extension on Class {
+//                        ^^^^^
+//
+// pkg/front_end/testcases/extensions/direct_instance_access.dart:9:24: Error: 'Class' is already declared in this scope.
+// extension Extension on Class {
+//                        ^^^^^
+// pkg/front_end/testcases/extensions/direct_instance_access.dart:5:7: Context: Previous declaration of 'Class'.
+// class Class {
+//       ^^^^^
+//
+// pkg/front_end/testcases/extensions/direct_instance_access.dart:73:11: Error: A function declaration needs an explicit list of parameters.
+// Try adding a parameter list to the function declaration.
+// extension GenericExtension<T> on GenericClass<T> {
+//           ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/direct_instance_access.dart:73:31: Error: Expected '{' before this.
+// extension GenericExtension<T> on GenericClass<T> {
+//                               ^^
+//
+// pkg/front_end/testcases/extensions/direct_instance_access.dart:73:34: Error: A function declaration needs an explicit list of parameters.
+// Try adding a parameter list to the function declaration.
+// extension GenericExtension<T> on GenericClass<T> {
+//                                  ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/direct_instance_access.dart:73:34: Error: 'GenericClass' is already declared in this scope.
+// extension GenericExtension<T> on GenericClass<T> {
+//                                  ^^^^^^^^^^^^
+// pkg/front_end/testcases/extensions/direct_instance_access.dart:69:7: Context: Previous declaration of 'GenericClass'.
+// class GenericClass<T> {
+//       ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/direct_instance_access.dart:9:1: Warning: Type 'extension' not found.
+// extension Extension on Class {
+// ^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/direct_instance_access.dart:9:21: Warning: Type 'on' not found.
+// extension Extension on Class {
+//                     ^^
+//
+// pkg/front_end/testcases/extensions/direct_instance_access.dart:73:1: Warning: Type 'extension' not found.
+// extension GenericExtension<T> on GenericClass<T> {
+// ^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/direct_instance_access.dart:73:31: Warning: Type 'on' not found.
+// extension GenericExtension<T> on GenericClass<T> {
+//                               ^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field dynamic field;
+  synthetic constructor •() → self::Class*
+    ;
+}
+class GenericClass<T extends core::Object* = dynamic> extends core::Object {
+  generic-covariant-impl field self::GenericClass::T* field;
+  synthetic constructor •() → self::GenericClass<self::GenericClass::T*>*
+    ;
+}
+static field invalid-type Extension;
+static method GenericExtension<T extends core::Object* = dynamic>() → invalid-type
+  ;
+static method main() → dynamic
+  ;

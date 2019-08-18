@@ -137,6 +137,11 @@ class CfeCompiledData<T> extends CompiledData<T> {
       return offset;
     } else if (id is ClassId) {
       Library library = lookupLibrary(compilerResult.component, uri);
+      Extension extension =
+          lookupExtension(library, id.className, required: false);
+      if (extension != null) {
+        return extension.fileOffset;
+      }
       Class cls = lookupClass(library, id.className);
       return cls.fileOffset;
     }

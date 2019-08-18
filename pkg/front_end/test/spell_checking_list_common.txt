@@ -336,6 +336,8 @@ capabilities
 capability
 capital
 capture
+captured
+captures
 capturing
 care
 careful
@@ -2592,6 +2594,7 @@ syntactically
 syntax
 synthesize
 synthesized
+synthesizing
 synthetic
 synthetically
 system

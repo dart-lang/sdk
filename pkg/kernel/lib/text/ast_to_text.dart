@@ -1170,6 +1170,14 @@ class Printer extends Visitor<Null> {
       }
       writeName(descriptor.name);
       writeSpaced('=');
+      Member member = descriptor.member.asMember;
+      if (member is Procedure) {
+        if (member.isGetter) {
+          writeWord('get');
+        } else if (member.isSetter) {
+          writeWord('set');
+        }
+      }
       writeMemberReferenceFromReference(descriptor.member);
       endLine(';');
     });

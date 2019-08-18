@@ -1,0 +1,45 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:9:11: Error: A function declaration needs an explicit list of parameters.
+// Try adding a parameter list to the function declaration.
+// extension Extension<T> on Class<T> {
+//           ^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:9:24: Error: Expected '{' before this.
+// extension Extension<T> on Class<T> {
+//                        ^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:9:27: Error: A function declaration needs an explicit list of parameters.
+// Try adding a parameter list to the function declaration.
+// extension Extension<T> on Class<T> {
+//                           ^^^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:9:27: Error: 'Class' is already declared in this scope.
+// extension Extension<T> on Class<T> {
+//                           ^^^^^
+// pkg/front_end/testcases/extensions/direct_static_access.dart:5:7: Context: Previous declaration of 'Class'.
+// class Class<T> {
+//       ^^^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:9:1: Warning: Type 'extension' not found.
+// extension Extension<T> on Class<T> {
+// ^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:9:24: Warning: Type 'on' not found.
+// extension Extension<T> on Class<T> {
+//                        ^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class<T extends core::Object* = dynamic> extends core::Object {
+  static field dynamic field;
+  synthetic constructor •() → self::Class<self::Class::T*>*
+    ;
+}
+static method Extension<T extends core::Object* = dynamic>() → invalid-type
+  ;
+static method main() → dynamic
+  ;

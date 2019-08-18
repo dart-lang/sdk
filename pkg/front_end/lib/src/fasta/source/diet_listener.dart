@@ -13,6 +13,7 @@ import 'package:kernel/ast.dart'
         LibraryDependency,
         LibraryPart,
         TreeNode,
+        TypeParameter,
         VariableDeclaration;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
@@ -632,6 +633,7 @@ class DietListener extends StackListener {
   StackListener createListener(ModifierBuilder builder, Scope memberScope,
       {bool isDeclarationInstanceMember,
       VariableDeclaration extensionThis,
+      List<TypeParameter> extensionTypeParameters,
       Scope formalParameterScope}) {
     // Note: we set thisType regardless of whether we are building a static
     // member, since that provides better error recovery.
@@ -654,6 +656,7 @@ class DietListener extends StackListener {
         declarationBuilder: currentDeclaration,
         isDeclarationInstanceMember: isDeclarationInstanceMember,
         extensionThis: extensionThis,
+        extensionTypeParameters: extensionTypeParameters,
         uri: uri,
         typeInferrer: typeInferrer)
       ..constantContext = constantContext;
@@ -669,6 +672,7 @@ class DietListener extends StackListener {
     return createListener(builder, typeParameterScope,
         isDeclarationInstanceMember: builder.isDeclarationInstanceMember,
         extensionThis: builder.extensionThis,
+        extensionTypeParameters: builder.extensionTypeParameters,
         formalParameterScope: formalParameterScope);
   }
 

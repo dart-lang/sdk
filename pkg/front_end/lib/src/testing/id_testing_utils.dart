@@ -165,7 +165,7 @@ MemberBuilder lookupMemberBuilder(
     String memberName = member.name.name;
     String extensionName = memberName.substring(0, memberName.indexOf('|'));
     memberName = memberName.substring(extensionName.length + 1);
-    bool isSetter = false;
+    bool isSetter = member is Procedure && member.isSetter;
     if (memberName.startsWith('set#')) {
       memberName = memberName.substring(4);
       isSetter = true;
@@ -547,6 +547,12 @@ String extensionMethodDescriptorToText(ExtensionMemberDescriptor descriptor) {
   }
   sb.write(descriptor.name.name);
   sb.write('=');
-  sb.write(descriptor.member.asMember.name.name);
+  Member member = descriptor.member.asMember;
+  String name = member.name.name;
+  if (member is Procedure && member.isSetter) {
+    sb.write('$name=');
+  } else {
+    sb.write(name);
+  }
   return sb.toString();
 }

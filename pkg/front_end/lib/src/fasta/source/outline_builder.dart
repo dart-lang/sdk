@@ -963,6 +963,8 @@ class OutlineBuilder extends StackListener {
         // TODO(johnniwinther): Handle shadowing of extension type variables.
         List<TypeVariableBuilder> synthesizedTypeVariables = library
             .copyTypeVariables(extension.typeVariables, declarationBuilder,
+                // TODO(johnniwinther): The synthesized names show up in
+                // messages. Move synthesizing of names later to avoid this.
                 synthesizeTypeParameterNames: true);
         substitution = {};
         for (int i = 0; i < synthesizedTypeVariables.length; i++) {
