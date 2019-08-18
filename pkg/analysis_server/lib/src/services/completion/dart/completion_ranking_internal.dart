@@ -160,7 +160,9 @@ List<String> constructQuery(DartCompletionRequest request, int n) {
   }
 
   final result = List<String>();
-  for (var size = 0; size < n && !token.isEof; token = token.previous) {
+  for (var size = 0;
+      size < n && token != null && !token.isEof;
+      token = token.previous) {
     if (!token.isSynthetic && token is! ErrorToken) {
       result.add(token.lexeme);
       size += 1;
