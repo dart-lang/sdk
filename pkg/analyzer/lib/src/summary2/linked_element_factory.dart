@@ -76,6 +76,14 @@ class LinkedElementFactory {
     var library = libraryMap[uriStr];
     if (library == null) return const [];
 
+    // Ask for source to trigger dependency tracking.
+    //
+    // Usually we record a dependency because we request an element from a
+    // library, so we build its library element, so request its source.
+    // However if a library is just exported, and the exporting library is not
+    // imported itself, we just copy references, without computing elements.
+    analysisContext.sourceFactory.forUri(uriStr);
+
     var exportIndexList = library.node.exports;
     var exportReferences = List<Reference>(exportIndexList.length);
     for (var i = 0; i < exportIndexList.length; ++i) {
