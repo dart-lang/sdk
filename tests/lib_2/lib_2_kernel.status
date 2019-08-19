@@ -11,6 +11,11 @@ isolate/ping_pause_test: Skip # Issue https://dartbug.com/37787
 isolate/non_fatal_exception_in_timer_callback_test: Pass, Fail # Issue 34724
 mirrors/dynamic_load_test: Fail # Issue 32187
 
+[ $compiler == app_jitk ]
+async/slow_consumer2_test: RuntimeError
+async/stream_distinct_test: RuntimeError
+async/timer_not_available_test: RuntimeError
+
 [ $compiler == dartkb ]
 convert/streamed_conversion_json_utf8_decode_test: Pass, Timeout # Please triage.
 isolate/isolate_complex_messages_test: Pass, Crash # runtime/vm/object.cc: 17395: error: expected: type_arguments.IsNull() || type_arguments.IsCanonical()
@@ -20,11 +25,22 @@ mirrors/library_uri_io_test: RuntimeError # Platform.script points to dill file.
 
 [ $compiler == fasta ]
 html/*: Skip # TODO(ahe): Make dart:html available.
+isolate/isolate_stress_test: CompileTimeError
 js/*: Skip # TODO(ahe): Make dart:js available.
+mirrors/deferred_type_test: CompileTimeError
+mirrors/metadata_allowed_values_test/02: MissingCompileTimeError
+mirrors/metadata_allowed_values_test/27: MissingCompileTimeError
+mirrors/metadata_constructor_arguments_test/04: MissingCompileTimeError
+mirrors/mirrors_nsm_mismatch_test: CompileTimeError
+mirrors/mirrors_nsm_test/dart2js: CompileTimeError
+mirrors/mirrors_nsm_test/none: CompileTimeError
+mirrors/native_class_test: CompileTimeError
 
 [ $fasta ]
 async/future_or_type_test: CompileTimeError # Issue 34626
 mirrors/generic_f_bounded_mixin_application_test: CompileTimeError # Issue 34613
+mirrors/metadata_allowed_values_test/13: MissingCompileTimeError
+mirrors/metadata_allowed_values_test/14: MissingCompileTimeError
 mirrors/redirecting_factory_test/01: CompileTimeError # Issue 34714
 mirrors/redirecting_factory_test/none: CompileTimeError # Issue 34714
 
@@ -61,10 +77,13 @@ isolate/static_function_test: Skip # Flaky (https://github.com/dart-lang/sdk/iss
 # ===== dartkp + dart_precompiled status lines =====
 [ $compiler == dartkp && $runtime == dart_precompiled ]
 async/slow_consumer2_test: RuntimeError # Issue 31402 (Invocation arguments)
+async/stream_distinct_test: RuntimeError
+async/timer_not_available_test: RuntimeError
 html/*: SkipByDesign # dart:html not supported on VM.
 isolate/deferred_in_isolate2_test: Skip # Times out. Deferred loading kernel issue 28335.
 isolate/deferred_in_isolate_test: Skip # Times out. Deferred loading kernel issue 28335.
 isolate/issue_21398_parent_isolate2_test/01: Skip # Times out. Deferred loading kernel issue 28335.
+isolate/spawn_uri_nested_vm_test: Pass, Timeout
 mirrors/*: SkipByDesign # Mirrors are not supported in AOT mode.
 
 [ $mode == debug && $runtime == vm && ($compiler == dartk || $compiler == dartkb) ]
@@ -75,23 +94,39 @@ isolate/message3_test/constList_identical: Skip # Timeout
 
 [ $runtime == vm && $checked && ($compiler == dartk || $compiler == dartkb) ]
 mirrors/redirecting_factory_different_type_test/none: RuntimeError # Issue 28424
+mirrors/reflected_type_generics_test/02: Pass
 
 # ===== dartk + vm status lines =====
 [ $runtime == vm && ($compiler == dartk || $compiler == dartkb) ]
 async/slow_consumer2_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/timer_not_available_test: RuntimeError
 html/*: SkipByDesign # dart:html not supported on VM.
 isolate/deferred_in_isolate2_test: Skip # Times out. Deferred loading kernel issue 28335.
 isolate/deferred_in_isolate_test: Skip # Times out. Deferred loading kernel issue 28335.
 isolate/issue_21398_parent_isolate2_test/01: Skip # Times out. Deferred loading kernel issue 28335.
+isolate/spawn_uri_nested_vm_test: Pass, Timeout
 isolate/static_function_test: Skip # Times out. Issue 31855. CompileTimeError. Issue 31402
+mirrors/apply3_test: RuntimeError
 mirrors/class_declarations_test/01: RuntimeError # Issue 31402 (Invocation arguments)
 mirrors/class_declarations_test/none: RuntimeError # Issue 31402 (Invocation arguments)
+mirrors/class_mirror_location_test: RuntimeError
+mirrors/constructor_kinds_test/01: RuntimeError
+mirrors/constructor_kinds_test/none: RuntimeError
 mirrors/constructor_private_name_test: RuntimeError # Issue 33345 - Incorrect qualified symbol literal from kernel reader
 mirrors/constructors_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/dart2js_mirrors_test: RuntimeError # 31916
+mirrors/deferred_type_test: CompileTimeError, RuntimeError
 mirrors/enum_test: RuntimeError # Issue 31402 (Invocation arguments)
-mirrors/invocation_fuzz_test: Crash
+mirrors/equality_test: RuntimeError
+mirrors/fake_function_without_call_test: RuntimeError, OK
+mirrors/function_apply_test: RuntimeError, OK
+mirrors/function_type_mirror_test: RuntimeError
+mirrors/generic_f_bounded_mixin_application_test: RuntimeError
+mirrors/generic_function_typedef_test: RuntimeError
+mirrors/generic_mixin_applications_test: RuntimeError
+mirrors/invocation_fuzz_test: RuntimeError, Crash
 mirrors/library_declarations_test/none: RuntimeError # Issue 31402 (Invocation arguments)
+mirrors/library_enumeration_deferred_loading_test: RuntimeError
 mirrors/library_exports_hidden_test: RuntimeError # Issue 33098
 mirrors/library_exports_shown_test: RuntimeError # Issue 33098
 mirrors/library_import_deferred_loading_test: RuntimeError # Issue 33098
@@ -101,13 +136,20 @@ mirrors/library_imports_metadata_test: RuntimeError # Issue 33098
 mirrors/library_imports_prefixed_show_hide_test: RuntimeError # Issue 33098
 mirrors/library_imports_prefixed_test: RuntimeError # Issue 33098
 mirrors/library_imports_shown_test: RuntimeError # Issue 33098
+mirrors/load_library_test: RuntimeError
 mirrors/metadata_allowed_values_test/16: Skip # Flaky, crashes.
+mirrors/metadata_scope_test/none: RuntimeError
+mirrors/method_mirror_location_test: RuntimeError
 mirrors/method_mirror_source_line_ending_test: RuntimeError # Issue 33478
 mirrors/method_mirror_source_test: RuntimeError # Issue 33041
 mirrors/mirrors_nsm_mismatch_test: CompileTimeError # Issue 31533
 mirrors/mirrors_nsm_test/dart2js: CompileTimeError # Issue 31533
 mirrors/mirrors_nsm_test/none: CompileTimeError # Issue 31533
+mirrors/mirrors_test: RuntimeError
 mirrors/mirrors_used*: SkipByDesign # Invalid tests. MirrorsUsed does not have a specification, and dart:mirrors is not required to hide declarations that are not covered by any MirrorsUsed annotation.
+mirrors/mirrors_used_inheritance_test: RuntimeError
+mirrors/mirrors_used_typedef_declaration_test/01: RuntimeError
+mirrors/mirrors_used_typedef_declaration_test/none: RuntimeError
 mirrors/mixin_application_test: RuntimeError # Issue 31402 (Invocation arguments)
 mirrors/mixin_members_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/native_class_test: SkipByDesign # Imports dart:html
@@ -116,12 +158,34 @@ mirrors/other_declarations_location_test: RuntimeError # Issue 33325 (no source 
 mirrors/parameter_of_mixin_app_constructor_test: RuntimeError # Issue 31402 (Invocation arguments)
 mirrors/private_symbol_test: RuntimeError # Issue 33326 - CFE/kernel invalid typedef substitution
 mirrors/private_types_test: RuntimeError # Issue 33326 - CFE/kernel invalid typedef substitution
+mirrors/redirecting_factory_test/01: RuntimeError
+mirrors/redirecting_factory_test/none: RuntimeError
+mirrors/reflect_class_test/none: RuntimeError
+mirrors/reflected_type_function_type_test: RuntimeError
+mirrors/reflected_type_generics_test/01: RuntimeError
+mirrors/reflected_type_generics_test/02: RuntimeError
+mirrors/reflected_type_typedefs_test: RuntimeError
+mirrors/reflected_type_typevars_test: RuntimeError
+mirrors/regress_26187_test: RuntimeError
+mirrors/relation_assignable_test: RuntimeError
+mirrors/relation_subclass_test: RuntimeError
+mirrors/relation_subtype_test: RuntimeError
 mirrors/repeated_private_anon_mixin_app_test: RuntimeError # Mangled mixin application class name
 mirrors/static_members_easier_test: RuntimeError # Issue 31402 (Invocation arguments)
 mirrors/static_members_test: RuntimeError # Issue 31402 (Invocation arguments)
 mirrors/symbol_validation_test/01: RuntimeError # Issue 31537
 mirrors/symbol_validation_test/none: RuntimeError # Issue 31537
+mirrors/type_variable_is_static_test: RuntimeError
+mirrors/type_variable_owner_test/01: RuntimeError
 mirrors/typedef_deferred_library_test: CompileTimeError # Deferred loading kernel issue 28335.
+mirrors/typedef_deferred_library_test: RuntimeError
+mirrors/typedef_in_signature_test: RuntimeError
+mirrors/typedef_library_test: RuntimeError
+mirrors/typedef_metadata_test: RuntimeError
+mirrors/typedef_reflected_type_test/01: RuntimeError
+mirrors/typedef_reflected_type_test/none: RuntimeError
+mirrors/typedef_test: RuntimeError
+mirrors/typevariable_mirror_metadata_test: RuntimeError
 
 [ $hot_reload_rollback && ($compiler == dartk || $compiler == dartkb) ]
 isolate/illegal_msg_function_test: Skip # Timeout
@@ -136,6 +200,7 @@ mirrors/library_uri_io_test: RuntimeError # Please triage.
 [ ($compiler == dartk || $compiler == dartkb) && ($hot_reload || $hot_reload_rollback) ]
 isolate/mandel_isolate_test: Pass, Timeout, RuntimeError # Test can time out which results in runtime error
 isolate/message4_test: Pass, Timeout, Crash # Timeout and sporadic crash (issue 33824)
+mirrors/dynamic_load_test: Crash
 mirrors/library_uri_io_test: Skip # Timeout
 mirrors/library_uri_package_test: Skip # Timeout
 
@@ -145,6 +210,21 @@ js/*: SkipByDesign
 
 [ $compiler == dartk || $compiler == dartkb ]
 async/slow_consumer2_test: RuntimeError # Issue 31402 (Invocation arguments)
+async/stream_distinct_test: RuntimeError
+isolate/request_reply_test: Pass, Timeout
+isolate/stacktrace_message_test: RuntimeError
+mirrors/constructor_optional_args_test: RuntimeError
+mirrors/constructors_test: RuntimeError
+mirrors/fake_function_with_call_test: RuntimeError
+mirrors/instance_members_easier_test: RuntimeError
+mirrors/instance_members_test: RuntimeError
+mirrors/instance_members_with_override_test: RuntimeError
+mirrors/invoke_closurization2_test: RuntimeError
+mirrors/invoke_throws_test: RuntimeError
+mirrors/mixin_members_test: RuntimeError
+mirrors/operator_test: RuntimeError
+mirrors/redirecting_factory_different_type_test/none: RuntimeError
+mirrors/redirecting_factory_reflection_test: RuntimeError
 
 [ $hot_reload || $hot_reload_rollback ]
 isolate/issue_6610_test: Skip # Sources are looked up on every reload request.
