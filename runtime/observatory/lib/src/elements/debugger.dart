@@ -1793,7 +1793,7 @@ class ObservatoryDebugger extends Debugger {
         break;
 
       case S.ServiceEvent.kIsolateRunnable:
-      case S.ServiceEvent.kGraph:
+      case S.ServiceEvent.kHeapSnapshot:
       case S.ServiceEvent.kGC:
       case S.ServiceEvent.kInspect:
         // Ignore.

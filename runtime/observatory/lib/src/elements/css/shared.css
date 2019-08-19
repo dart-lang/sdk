@@ -1321,20 +1321,38 @@ eval-box .historyDelete button:hover {
   height: 30px;
   padding-left: 5%;
   padding-right: 5%;
+
+  display: flex;
+  flex-direction: row;
 }
 .heap-snapshot .tree-item > .size,
 .heap-snapshot .tree-item > .percentage {
-  display: inline-block;
   text-align: right;
-  width: 4em;
   margin-left: 0.25em;
   margin-right: 0.25em;
+  flex-basis: 5em;
+  flex-grow: 0;
+  flex-shrink: 0;
 }
-
+.heap-snapshot .tree-item > .edge {
+  margin-left: 0.25em;
+  margin-right: 0.25em;
+  flex-basis: 0;
+  flex-grow: 1;
+  flex-shrink: 1;
+}
 .heap-snapshot .tree-item > .name {
-  display: inline;
   margin-left: 0.5em;
   margin-right: 0.5em;
+  flex-basis: 0;
+  flex-grow: 4;
+  flex-shrink: 4;
+}
+.heap-snapshot .tree-item > .link {
+  margin-left: 0.25em;
+  margin-right: 0.25em;
+  flex-grow: 0;
+  flex-shrink: 0;
 }
 
 
@@ -2720,7 +2738,7 @@ li.nav-menu, .nav-menu_label {
 
 .virtual-collection .header.attached > div,
 .virtual-collection .buffer > div {
-  display: inline-block;
+/*  display: inline-block;*/
 }
 
 .virtual-collection .buffer > div {
@@ -2818,4 +2836,15 @@ li.nav-menu, .nav-menu_label {
 
 .vm-connect ul {
   list-style-type: none;
+}
+
+.treemapTile {
+  position: absolute;
+  box-sizing: border-box;
+  border: solid 1px;
+  font-size: 10px;
+  text-align: center;
+  overflow: hidden;
+  white-space: nowrap;
+  cursor: default;
 }

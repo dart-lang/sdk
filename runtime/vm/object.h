@@ -7821,6 +7821,7 @@ class String : public Instance {
   friend class ExternalTwoByteString;
   friend class RawOneByteString;
   friend class RODataSerializationCluster;  // SetHash
+  friend class Pass2Visitor;                // Stack "handle"
 };
 
 class OneByteString : public AllStatic {

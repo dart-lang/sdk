@@ -165,10 +165,6 @@ enum ClassId {
   // Illegal class id.
   kIllegalCid = 0,
 
-  // A sentinel used by the vm service's heap snapshots to represent references
-  // from the stack.
-  kStackCid = 1,
-
   // The following entries describes classes for pseudo-objects in the heap
   // that should never be reachable from live objects. Free list elements
   // maintain the free list for old space, and forwarding corpses are used to

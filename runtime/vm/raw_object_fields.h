@@ -19,7 +19,7 @@
 
 namespace dart {
 
-#if defined(DART_PRECOMPILER)
+#if defined(DART_PRECOMPILER) || !defined(DART_PRODUCT)
 
 class OffsetsTable : public ZoneAllocated {
  public:
@@ -29,7 +29,6 @@ class OffsetsTable : public ZoneAllocated {
   // Otherwise, the returned string is allocated in global static memory.
   const char* FieldNameForOffset(intptr_t cid, intptr_t offset);
 
- private:
   struct OffsetsTableEntry {
     const intptr_t class_id;
     const char* field_name;
@@ -38,6 +37,7 @@ class OffsetsTable : public ZoneAllocated {
 
   static OffsetsTableEntry offsets_table[];
 
+ private:
   struct IntAndIntToStringMapTraits {
     typedef std::pair<intptr_t, intptr_t> Key;
     typedef const char* Value;

@@ -106,7 +106,8 @@ enum class MemoryOrder {
   friend class object##SerializationCluster;                                   \
   friend class object##DeserializationCluster;                                 \
   friend class Serializer;                                                     \
-  friend class Deserializer;
+  friend class Deserializer;                                                   \
+  friend class Pass2Visitor;
 
 // RawObject is the base class of all raw objects; even though it carries the
 // tags_ field not all raw objects are allocated in the heap and thus cannot
@@ -443,6 +444,10 @@ class RawObject {
 
     return instance_size;
   }
+
+  // This variant ensures that we do not visit the extra slot created from
+  // rounding up instance sizes up to the allocation unit.
+  void VisitPointersPrecise(ObjectPointerVisitor* visitor);
 
   static RawObject* FromAddr(uword addr) {
     // We expect the untagged address here.
