@@ -6044,7 +6044,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       FunctionEntity function, TypeVariableType typeVariable) {
     DartType bound =
         _elementEnvironment.getTypeVariableDefaultType(typeVariable.element);
-    if (bound.containsTypeVariables) {
+    if (bound.containsTypeVariables && !options.experimentNewRti) {
       // TODO(33422): Support type variables in default
       // types. Temporarily using the "any" type (encoded as -2) to
       // avoid failing on bounds checks.
