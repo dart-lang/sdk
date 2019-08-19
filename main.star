@@ -480,13 +480,9 @@ dart_ci_sandbox_builder(
     "vm-canary-linux-debug", category="vm|kernel|c", on_cq=True)
 dart_ci_sandbox_builder("vm-kernel-linux-debug-x64", category="vm|kernel|d")
 dart_vm_extra_builder(
-    "vm-kernel-linux-debug-simdbc64", category="vm|kernel|dbc")
-dart_vm_extra_builder(
     "vm-kernel-linux-release-simarm", category="vm|kernel|a32")
 dart_vm_extra_builder(
     "vm-kernel-linux-release-simarm64", category="vm|kernel|a64")
-dart_vm_extra_builder(
-    "vm-kernel-linux-release-simdbc64", category="vm|kernel|rbc", on_cq=True)
 dart_vm_extra_builder("vm-kernel-linux-release-ia32", category="vm|kernel|r32")
 dart_ci_sandbox_builder(
     "vm-kernel-linux-release-x64", category="vm|kernel|r", on_cq=True)
@@ -592,10 +588,6 @@ dart_vm_extra_builder(
     "vm-kernel-reload-linux-debug-x64", category="vm|reload-kernel|d")
 dart_vm_extra_builder(
     "vm-kernel-reload-linux-release-x64", category="vm|reload-kernel|r")
-dart_vm_extra_builder(
-    "vm-kernel-reload-mac-debug-simdbc64",
-    category="vm|reload-kernel|md",
-    dimensions=mac())
 dart_vm_extra_builder(
     "vm-kernel-reload-mac-release-simdbc64",
     category="vm|reload-kernel|mr",
