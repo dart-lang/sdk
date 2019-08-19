@@ -310,7 +310,7 @@ class ExpressionIdentifierContext extends IdentifierContext {
         }
       } else if (!identifier.isOperator &&
           !isOneOfOrEof(identifier,
-              const ['.', ',', '(', ')', '[', ']', '}', '?', ':', ';'])) {
+              const ['.', ',', '(', ')', '[', ']', '{', '}', '?', ':', ';'])) {
         // When in doubt, consume the token to ensure we make progress
         token = identifier;
         identifier = token.next;

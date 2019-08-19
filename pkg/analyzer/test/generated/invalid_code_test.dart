@@ -60,7 +60,6 @@ class G<class G{d
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/37735')
   test_fuzz_03() async {
     await _assertCanBeAnalyzed('''
 class{const():super.{n

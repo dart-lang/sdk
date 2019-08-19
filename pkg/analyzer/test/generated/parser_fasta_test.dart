@@ -97,6 +97,24 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     expect(rightHandSide.name, 'value');
   }
 
+  void test_parseConstructor_nullSuperArgList_openBrace_37735() {
+    // https://github.com/dart-lang/sdk/issues/37735
+    var unit = parseCompilationUnit('class{const():super.{n', errors: [
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 5, 1),
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 11, 1),
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 20, 1),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 20, 1),
+      expectedError(ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY, 20, 1),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 21, 1),
+      expectedError(ScannerErrorCode.EXPECTED_TOKEN, 22, 1),
+      expectedError(ScannerErrorCode.EXPECTED_TOKEN, 22, 1),
+    ]);
+    var classDeclaration = unit.declarations[0] as ClassDeclaration;
+    var constructor = classDeclaration.members[0] as ConstructorDeclaration;
+    var invocation = constructor.initializers[0] as SuperConstructorInvocation;
+    expect(invocation.argumentList.arguments, hasLength(0));
+  }
+
   void test_parseField_const_late() {
     createParser('const late T f = 0;', featureSet: nonNullable);
     ClassMember member = parser.parseClassMember('C');
@@ -1024,8 +1042,6 @@ main() { // missing async
       expectedError(ParserErrorCode.INVALID_SUPER_IN_INITIALIZER, 25, 5),
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 30, 2),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 33, 1),
-      expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 34, 1),
-      expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 36, 1),
     ]);
   }
 
@@ -1068,8 +1084,6 @@ main() { // missing async
       expectedError(ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER, 25, 4),
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 29, 2),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 32, 1),
-      expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 33, 1),
-      expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 35, 1),
     ]);
   }
 
