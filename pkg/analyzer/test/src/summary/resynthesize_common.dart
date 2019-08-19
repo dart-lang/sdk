@@ -10093,6 +10093,35 @@ class A<T> {
 ''');
   }
 
+  test_type_inference_instanceCreation_notGeneric() async {
+    var library = await checkLibrary('''
+class A {
+  A(_);
+}
+var a = A(() => b);
+var b = A(() => a);
+''');
+    if (isAstBasedSummary) {
+      // There is no cycle with `a` and `b`, because `A` is not generic,
+      // so the type of `new A(...)` does not depend on its arguments.
+      checkElementText(library, '''
+class A {
+  A(dynamic _);
+}
+A a;
+A b;
+''');
+    } else {
+      checkElementText(library, '''
+class A {
+  A(dynamic _);
+}
+dynamic a/*error: dependencyCycle*/;
+dynamic b/*error: dependencyCycle*/;
+''');
+    }
+  }
+
   test_type_inference_multiplyDefinedElement() async {
     addLibrarySource('/a.dart', 'class C {}');
     addLibrarySource('/b.dart', 'class C {}');
