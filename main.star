@@ -448,7 +448,7 @@ dart_ci_sandbox_builder(
     "flutter-engine-linux",
     recipe="flutter_engine",
     category="flutter|3H",
-    channels=[],
+    channels=["try"],
     properties={"new_workflow_enabled": False},
     triggered_by=["dart-gitiles-trigger-flutter"],
     triggering_policy=scheduler.greedy_batching(
