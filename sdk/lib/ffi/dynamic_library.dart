@@ -6,11 +6,20 @@ part of dart.ffi;
 
 /// Represents a dynamically loaded C library.
 class DynamicLibrary {
-  /// Loads a dynamic library file. This is the equivalent of dlopen.
+  /// Creates a dynamic library holding all global symbols.
+  ///
+  /// Any symbol in a library currently loaded with global visibility (including
+  /// the executable itself) may be resolved in this library.
+  ///
+  /// This feature is not available on Windows, instead an exception is thrown.
+  external factory DynamicLibrary.process();
+
+  /// Creates a dynamic library representing the running executable.
+  external factory DynamicLibrary.executable();
+
+  /// Loads a dynamic library file with local visibility.
   ///
   /// Throws an [ArgumentError] if loading the dynamic library fails.
-  ///
-  /// Note that it loads the functions in the library lazily (RTLD_LAZY).
   external factory DynamicLibrary.open(String name);
 
   /// Looks up a symbol in the [DynamicLibrary] and returns its address in

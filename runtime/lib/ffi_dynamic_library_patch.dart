@@ -8,6 +8,8 @@ import "dart:_internal" show patch;
 import 'dart:typed_data' show TypedData;
 
 DynamicLibrary _open(String name) native "Ffi_dl_open";
+DynamicLibrary _processLibrary() native "Ffi_dl_processLibrary";
+DynamicLibrary _executableLibrary() native "Ffi_dl_executableLibrary";
 
 @patch
 @pragma("vm:entry-point")
@@ -16,6 +18,12 @@ class DynamicLibrary {
   factory DynamicLibrary.open(String name) {
     return _open(name);
   }
+
+  @patch
+  factory DynamicLibrary.process() => _processLibrary();
+
+  @patch
+  factory DynamicLibrary.executable() => _executableLibrary();
 
   @patch
   Pointer<T> lookup<T extends NativeType>(String symbolName)

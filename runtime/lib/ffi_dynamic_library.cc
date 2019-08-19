@@ -36,14 +36,20 @@ static void* LoadExtensionLibrary(const char* library_file) {
 #elif defined(HOST_OS_WINDOWS)
   SetLastError(0);  // Clear any errors.
 
-  // Convert to wchar_t string.
-  const int name_len =
-      MultiByteToWideChar(CP_UTF8, 0, library_file, -1, NULL, 0);
-  wchar_t* name = new wchar_t[name_len];
-  MultiByteToWideChar(CP_UTF8, 0, library_file, -1, name, name_len);
+  void* ext;
 
-  void* ext = LoadLibraryW(name);
-  delete[] name;
+  if (library_file == nullptr) {
+    ext = GetModuleHandle(nullptr);
+  } else {
+    // Convert to wchar_t string.
+    const int name_len =
+        MultiByteToWideChar(CP_UTF8, 0, library_file, -1, NULL, 0);
+    wchar_t* name = new wchar_t[name_len];
+    MultiByteToWideChar(CP_UTF8, 0, library_file, -1, name, name_len);
+
+    ext = LoadLibraryW(name);
+    delete[] name;
+  }
 
   if (ext == nullptr) {
     const int error = GetLastError();
@@ -68,6 +74,22 @@ DEFINE_NATIVE_ENTRY(Ffi_dl_open, 0, 1) {
   void* handle = LoadExtensionLibrary(lib_path.ToCString());
 
   return DynamicLibrary::New(handle);
+}
+
+DEFINE_NATIVE_ENTRY(Ffi_dl_processLibrary, 0, 0) {
+#if defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS) || defined(HOST_OS_ANDROID)
+  return DynamicLibrary::New(RTLD_DEFAULT);
+#else
+  const Array& args = Array::Handle(Array::New(1));
+  args.SetAt(0,
+             String::Handle(String::New(
+                 "DynamicLibrary.process is not available on this platform.")));
+  Exceptions::ThrowByType(Exceptions::kUnsupported, args);
+#endif
+}
+
+DEFINE_NATIVE_ENTRY(Ffi_dl_executableLibrary, 0, 0) {
+  return DynamicLibrary::New(LoadExtensionLibrary(nullptr));
 }
 
 static void* ResolveSymbol(void* handle, const char* symbol) {
