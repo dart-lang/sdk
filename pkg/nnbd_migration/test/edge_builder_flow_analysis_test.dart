@@ -312,6 +312,137 @@ class C {
     assertEdge(jNode, never, hard: true);
   }
 
+  test_continue_labeled() async {
+    await analyze('''
+void f(int i) {
+  L: do {
+    do {
+      if (i != null) continue L;
+    } while (g(i));
+    break;
+  } while (h(i));
+}
+bool g(int j) => true;
+bool h(int k) => true;
+''');
+    var iNode = decoratedTypeAnnotation('int i').node;
+    var jNode = decoratedTypeAnnotation('int j').node;
+    var kNode = decoratedTypeAnnotation('int k').node;
+    // No edge from i to k because i is promoted at the time of the call to h.
+    assertNoEdge(iNode, kNode);
+    // But there is an edge from i to j, because i is not promoted at the time
+    // of the call to g.
+    assertEdge(iNode, jNode, hard: false);
+  }
+
+  test_continue_unlabeled() async {
+    await analyze('''
+void f(int i) {
+  do {
+    if (i != null) continue;
+    h(i);
+    break;
+  } while (g(i));
+}
+bool g(int j) => true;
+void h(int k) {}
+''');
+    var iNode = decoratedTypeAnnotation('int i').node;
+    var jNode = decoratedTypeAnnotation('int j').node;
+    var kNode = decoratedTypeAnnotation('int k').node;
+    // No edge from i to j because i is promoted at the time of the call to g.
+    assertNoEdge(iNode, jNode);
+    // But there is an edge from i to j, because i is not promoted at the time
+    // of the call to h.
+    assertEdge(iNode, kNode, hard: false);
+  }
+
+  test_do_break_target() async {
+    await analyze('''
+void f(int i) {
+  L: do {
+    do {
+      if (i != null) break L;
+      if (b()) break;
+    } while (true);
+    g(i);
+  } while (true);
+  h(i);
+}
+bool b() => true;
+void g(int j) {}
+void h(int k) {}
+''');
+    var iNode = decoratedTypeAnnotation('int i').node;
+    var jNode = decoratedTypeAnnotation('int j').node;
+    var kNode = decoratedTypeAnnotation('int k').node;
+    // No edge from i to k because i is promoted at the time of the call to h.
+    assertNoEdge(iNode, kNode);
+    // But there is an edge from i to j, because i is not promoted at the time
+    // of the call to g.
+    assertEdge(iNode, jNode, hard: false);
+  }
+
+  test_do_cancels_promotions_for_assignments_in_body() async {
+    await analyze('''
+void f(int i, int j) {
+  if (i == null) return;
+  if (j == null) return;
+  do {
+    i.isEven;
+    j.isEven;
+    j = null;
+  } while (true);
+}
+''');
+    var iNode = decoratedTypeAnnotation('int i').node;
+    var jNode = decoratedTypeAnnotation('int j').node;
+    // No edge from i to never because is is promoted.
+    assertNoEdge(iNode, never);
+    // But there is an edge from j to never because its promotion was cancelled.
+    assertEdge(jNode, never, hard: false);
+  }
+
+  test_do_cancels_promotions_for_assignments_in_condition() async {
+    await analyze('''
+void f(int i, int j) {
+  if (i == null) return;
+  if (j == null) return;
+  do {} while (i.isEven && j.isEven && g(j = null));
+}
+bool g(int k) => true;
+''');
+    var iNode = decoratedTypeAnnotation('int i').node;
+    var jNode = decoratedTypeAnnotation('int j').node;
+    // No edge from i to never because is is promoted.
+    assertNoEdge(iNode, never);
+    // But there is an edge from j to never because its promotion was cancelled.
+    assertEdge(jNode, never, hard: false);
+  }
+
+  test_do_continue_target() async {
+    await analyze('''
+void f(int i) {
+  L: do {
+    do {
+      if (i != null) continue L;
+      g(i);
+    } while (true);
+  } while (h(i));
+}
+void g(int j) {}
+bool h(int k) => true;
+''');
+    var iNode = decoratedTypeAnnotation('int i').node;
+    var jNode = decoratedTypeAnnotation('int j').node;
+    var kNode = decoratedTypeAnnotation('int k').node;
+    // No edge from i to k because i is promoted at the time of the call to h.
+    assertNoEdge(iNode, kNode);
+    // But there is an edge from i to j, because i is not promoted at the time
+    // of the call to g.
+    assertEdge(iNode, jNode, hard: false);
+  }
+
   test_field_initializer() async {
     await analyze('''
 bool b1 = true;
