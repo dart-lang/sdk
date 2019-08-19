@@ -1209,16 +1209,13 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
 
   void test_listLiteral_invalid_assert() {
     // https://github.com/dart-lang/sdk/issues/37674
-    parseExpression('n=<.["\$assert',
-        errors: [
-          expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 3, 1),
-          expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 4, 1),
-          expectedError(ParserErrorCode.MISSING_IDENTIFIER, 7, 6),
-          expectedError(ParserErrorCode.EXPECTED_STRING_LITERAL, 7, 6),
-          expectedError(ScannerErrorCode.EXPECTED_TOKEN, 7, 1),
-          expectedError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 12, 1),
-        ],
-        expectedEndOffset: 7);
+    parseExpression('n=<.["\$assert', errors: [
+      expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 3, 1),
+      expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 4, 1),
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 7, 6),
+      expectedError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 12, 1),
+      expectedError(ScannerErrorCode.EXPECTED_TOKEN, 13, 1),
+    ]);
   }
 
   void test_listLiteral_spread_disabled() {
@@ -1392,6 +1389,22 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     expect(map.constKeyword, isNull);
     expect(map.typeArguments.arguments, hasLength(2));
     expect(map.elements, hasLength(0));
+  }
+
+  void test_parseStringLiteral_interpolated_void() {
+    Expression expression = parseStringLiteral(r"'<html>$void</html>'");
+    expect(expression, isNotNull);
+    assertErrors(
+        errors: [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 4)]);
+    expect(expression, isStringInterpolation);
+    StringInterpolation literal = expression;
+    NodeList<InterpolationElement> elements = literal.elements;
+    expect(elements, hasLength(3));
+    expect(elements[0] is InterpolationString, isTrue);
+    expect(elements[1] is InterpolationExpression, isTrue);
+    expect(elements[2] is InterpolationString, isTrue);
+    expect((elements[1] as InterpolationExpression).leftBracket.lexeme, '\$');
+    expect((elements[1] as InterpolationExpression).rightBracket, isNull);
   }
 
   @override

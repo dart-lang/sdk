@@ -298,7 +298,12 @@ class ExpressionIdentifierContext extends IdentifierContext {
     // Recovery
     parser.reportRecoverableErrorWithToken(
         identifier, fasta.templateExpectedIdentifier);
-    if (!looksLikeStatementStart(identifier)) {
+    if (optional(r'$', token) &&
+        identifier.isKeyword &&
+        identifier.next.kind == STRING_TOKEN) {
+      // Keyword used as identifier in string interpolation
+      return identifier;
+    } else if (!looksLikeStatementStart(identifier)) {
       if (identifier.isKeywordOrIdentifier) {
         if (isContinuation || !isOneOfOrEof(identifier, const ['as', 'is'])) {
           return identifier;
