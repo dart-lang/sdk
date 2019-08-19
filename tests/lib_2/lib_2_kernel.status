@@ -90,6 +90,7 @@ mirrors/constructor_private_name_test: RuntimeError # Issue 33345 - Incorrect qu
 mirrors/constructors_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/dart2js_mirrors_test: RuntimeError # 31916
 mirrors/enum_test: RuntimeError # Issue 31402 (Invocation arguments)
+mirrors/invocation_fuzz_test: Crash
 mirrors/library_declarations_test/none: RuntimeError # Issue 31402 (Invocation arguments)
 mirrors/library_exports_hidden_test: RuntimeError # Issue 33098
 mirrors/library_exports_shown_test: RuntimeError # Issue 33098
