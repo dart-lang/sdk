@@ -3743,7 +3743,7 @@ class ResolverVisitor extends ScopedVisitor {
     _flowAnalysis?.flow?.doStatement_conditionBegin();
     condition.accept(this);
 
-    _flowAnalysis?.flow?.doStatement_end(node, node.condition);
+    _flowAnalysis?.flow?.doStatement_end(node.condition);
   }
 
   @override

@@ -7,17 +7,6 @@ import 'package:test/test.dart';
 
 main() {
   group('API', () {
-    void _promote(_Harness h, _Var variable, String type) {
-      // if (variable is! type) {
-      var isExpression = _Expression();
-      h.flow.isExpression_end(isExpression, variable, true, _Type(type));
-      h.flow.ifStatement_thenBegin(isExpression);
-      //   return;
-      h.flow.handleExit();
-      // }
-      h.flow.ifStatement_end(false);
-    }
-
     test('conditional_thenBegin promotes true branch', () {
       var h = _Harness();
       var x = h.addAssignedVar('x', 'int?');
@@ -49,11 +38,11 @@ main() {
       var y = h.addAssignedVar('x', 'int?');
       var z = h.addAssignedVar('x', 'int?');
       h.flow.conditional_thenBegin(_Expression());
-      _promote(h, x, 'int');
-      _promote(h, y, 'int');
+      h.promote(x, 'int');
+      h.promote(y, 'int');
       h.flow.conditional_elseBegin(_Expression());
-      _promote(h, x, 'int');
-      _promote(h, z, 'int');
+      h.promote(x, 'int');
+      h.promote(z, 'int');
       h.flow.conditional_end(_Expression(), _Expression());
       expect(h.flow.promotedType(x).type, 'int');
       expect(h.flow.promotedType(y), isNull);
@@ -122,6 +111,47 @@ main() {
       h.flow.ifStatement_elseBegin();
       expect(h.flow.promotedType(x).type, 'int');
       h.flow.ifStatement_end(true);
+      h.flow.finish();
+    });
+
+    test('doStatement_bodyBegin() un-promotes', () {
+      var h = _Harness();
+      var x = h.addAssignedVar('x', 'int?');
+      h.promote(x, 'int');
+      expect(h.flow.promotedType(x).type, 'int');
+      h.flow.doStatement_bodyBegin(_Statement(), {x});
+      expect(h.flow.promotedType(x), isNull);
+      h.flow.doStatement_conditionBegin();
+      h.flow.doStatement_end(_Expression());
+      h.flow.finish();
+    });
+
+    test('doStatement_conditionBegin() joins continue state', () {
+      var h = _Harness();
+      var x = h.addAssignedVar('x', 'int?');
+      var stmt = _Statement();
+      h.flow.doStatement_bodyBegin(stmt, {});
+      h.if_(h.notNull(x), () {
+        h.flow.handleContinue(stmt);
+      });
+      h.flow.handleExit();
+      expect(h.flow.isReachable, false);
+      expect(h.flow.promotedType(x), isNull);
+      h.flow.doStatement_conditionBegin();
+      expect(h.flow.isReachable, true);
+      expect(h.flow.promotedType(x).type, 'int');
+      h.flow.doStatement_end(_Expression());
+      h.flow.finish();
+    });
+
+    test('doStatement_end() promotes', () {
+      var h = _Harness();
+      var x = h.addAssignedVar('x', 'int?');
+      h.flow.doStatement_bodyBegin(_Statement(), {});
+      h.flow.doStatement_conditionBegin();
+      expect(h.flow.promotedType(x), isNull);
+      h.flow.doStatement_end(h.eqNull(x)());
+      expect(h.flow.promotedType(x).type, 'int');
       h.flow.finish();
     });
 
@@ -235,7 +265,7 @@ main() {
     test('If(false) does not discard promotions', () {
       var h = _Harness();
       var x = h.addAssignedVar('x', 'Object');
-      _promote(h, x, 'int');
+      h.promote(x, 'int');
       expect(h.flow.promotedType(x).type, 'int');
       // if (false) {
       var falseExpression = _Expression();
@@ -752,6 +782,16 @@ class _Harness
     return true;
   }
 
+  /// Creates a [LazyExpression] representing an `is!` check, checking whether
+  /// [variable] has the given [type].
+  LazyExpression isNotType(_Var variable, String type) {
+    return () {
+      var expr = _Expression();
+      flow.isExpression_end(expr, variable, true, _Type(type));
+      return expr;
+    };
+  }
+
   @override
   bool isPotentiallyMutatedInClosure(_Var variable) {
     // TODO(paulberry): make tests where this returns true
@@ -807,6 +847,11 @@ class _Harness
       flow.logicalBinaryOp_end(expr, rhs(), isAnd: false);
       return expr;
     };
+  }
+
+  /// Causes [variable] to be promoted to [type].
+  void promote(_Var variable, String type) {
+    if_(isNotType(variable, type), flow.handleExit);
   }
 
   @override

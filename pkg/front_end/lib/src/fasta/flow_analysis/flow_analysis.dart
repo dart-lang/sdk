@@ -218,7 +218,7 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
     _current = _join(_current, continueState);
   }
 
-  void doStatement_end(Statement doStatement, Expression condition) {
+  void doStatement_end(Expression condition) {
     _conditionalEnd(condition);
     // Tail of the stack:  break, falseCondition, trueCondition
 
