@@ -702,6 +702,9 @@ void Class::CheckReload(const Class& replacement,
                         IsolateReloadContext* context) const {
   ASSERT(IsolateReloadContext::IsSameClass(*this, replacement));
 
+  // Ensure is_enum_class etc have been set.
+  replacement.EnsureDeclarationLoaded();
+
   // Class cannot change enum property.
   if (is_enum_class() != replacement.is_enum_class()) {
     context->AddReasonForCancelling(new (context->zone()) EnumClassConflict(
