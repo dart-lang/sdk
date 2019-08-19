@@ -360,7 +360,8 @@ Future<CompilerResult> _compile(List<String> args,
     outFiles.add(File(outPaths.first + '.txt').writeAsString(sb.toString()));
   }
 
-  var compiler = ProgramCompiler(component, result.classHierarchy, options);
+  var compiler = ProgramCompiler(
+      component, result.classHierarchy, options, declaredVariables);
 
   var jsModule = compiler.emitModule(
       component, result.inputSummaries, inputSummaries, summaryModules);

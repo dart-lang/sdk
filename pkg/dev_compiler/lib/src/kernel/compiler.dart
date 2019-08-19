@@ -216,10 +216,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   final NullableInference _nullableInference;
 
   factory ProgramCompiler(Component component, ClassHierarchy hierarchy,
-      SharedCompilerOptions options) {
+      SharedCompilerOptions options, Map<String, String> declaredVariables) {
     var coreTypes = CoreTypes(component);
     var types = TypeSchemaEnvironment(coreTypes, hierarchy);
-    var constants = DevCompilerConstants();
+    var constants = DevCompilerConstants(types, declaredVariables);
     var nativeTypes = NativeTypeSet(coreTypes, constants);
     var jsTypeRep = JSTypeRep(types, hierarchy);
     return ProgramCompiler._(coreTypes, coreTypes.index, nativeTypes, constants,
@@ -4919,19 +4919,73 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   @override
   js_ast.Expression visitListConcatenation(ListConcatenation node) {
     // Only occurs inside unevaluated constants.
-    throw UnsupportedError("List concatenation");
+    List<js_ast.Expression> entries = [];
+    _concatenate(Expression node) {
+      if (node is ListConcatenation) {
+        node.lists.forEach(_concatenate);
+      } else {
+        node.accept(this);
+        if (node is ConstantExpression) {
+          var list = node.constant as ListConstant;
+          entries.addAll(list.entries.map(visitConstant));
+        } else if (node is ListLiteral) {
+          entries.addAll(node.expressions.map(_visitExpression));
+        }
+      }
+    }
+
+    node.lists.forEach(_concatenate);
+    return _emitConstList(node.typeArgument, entries);
   }
 
   @override
   js_ast.Expression visitSetConcatenation(SetConcatenation node) {
     // Only occurs inside unevaluated constants.
-    throw UnsupportedError("Set concatenation");
+    List<js_ast.Expression> entries = [];
+    _concatenate(Expression node) {
+      if (node is SetConcatenation) {
+        node.sets.forEach(_concatenate);
+      } else {
+        node.accept(this);
+        if (node is ConstantExpression) {
+          var set = node.constant as SetConstant;
+          entries.addAll(set.entries.map(visitConstant));
+        } else if (node is SetLiteral) {
+          entries.addAll(node.expressions.map(_visitExpression));
+        }
+      }
+    }
+
+    node.sets.forEach(_concatenate);
+    return _emitConstSet(node.typeArgument, entries);
   }
 
   @override
   js_ast.Expression visitMapConcatenation(MapConcatenation node) {
     // Only occurs inside unevaluated constants.
-    throw UnsupportedError("Map concatenation");
+    List<js_ast.Expression> entries = [];
+    _concatenate(Expression node) {
+      if (node is MapConcatenation) {
+        node.maps.forEach(_concatenate);
+      } else {
+        node.accept(this);
+        if (node is ConstantExpression) {
+          var map = node.constant as MapConstant;
+          for (var entry in map.entries) {
+            entries.add(visitConstant(entry.key));
+            entries.add(visitConstant(entry.value));
+          }
+        } else if (node is MapLiteral) {
+          for (var entry in node.entries) {
+            entries.add(_visitExpression(entry.key));
+            entries.add(_visitExpression(entry.value));
+          }
+        }
+      }
+    }
+
+    node.maps.forEach(_concatenate);
+    return _emitConstMap(node.keyType, node.valueType, entries);
   }
 
   @override
