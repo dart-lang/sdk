@@ -29,6 +29,7 @@ import '../../scanner/token.dart' show Token;
 import '../constant_context.dart' show ConstantContext;
 
 import '../builder/builder.dart' show PrefixBuilder, TypeDeclarationBuilder;
+import '../builder/declaration_builder.dart';
 
 import '../fasta_codes.dart'
     show
@@ -110,7 +111,6 @@ import 'kernel_builder.dart'
     show
         AccessErrorBuilder,
         Builder,
-        ClassBuilder,
         InvalidTypeBuilder,
         LoadLibraryBuilder,
         NamedTypeBuilder,
@@ -2087,8 +2087,8 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
     Name name = send.name;
     Arguments arguments = send.arguments;
 
-    if (declaration is ClassBuilder) {
-      ClassBuilder declaration = this.declaration;
+    if (declaration is DeclarationBuilder) {
+      DeclarationBuilder declaration = this.declaration;
       Builder member = declaration.findStaticBuilder(
           name.name, offsetForToken(send.token), _uri, _helper.library);
 

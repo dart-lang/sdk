@@ -5,6 +5,7 @@
 # Status file for the legacy_test.dart test suite. This is testing generating
 # Kernel ASTs in legacy mode (Dart 1.0).
 
+extensions/static_access: RuntimeError
 general/DeltaBlue: Fail # Fasta and dartk disagree on static initializers
 general/ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
 general/await_in_non_async: RuntimeError # Expected.

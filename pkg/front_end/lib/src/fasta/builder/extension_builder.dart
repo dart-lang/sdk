@@ -31,6 +31,20 @@ abstract class ExtensionBuilder extends DeclarationBuilder {
       this.onType)
       : super(metadata, modifiers, name, parent, charOffset, scope);
 
+  /// Lookup a static member of this declaration.
+  Builder findStaticBuilder(
+      String name, int charOffset, Uri fileUri, LibraryBuilder accessingLibrary,
+      {bool isSetter: false}) {
+    if (accessingLibrary.origin != library.origin && name.startsWith("_")) {
+      return null;
+    }
+    Builder declaration = isSetter
+        ? scope.lookupSetter(name, charOffset, fileUri, isInstanceScope: false)
+        : scope.lookup(name, charOffset, fileUri, isInstanceScope: false);
+    // TODO(johnniwinther): Handle patched extensions.
+    return declaration;
+  }
+
   @override
   DartType buildType(LibraryBuilder library, List<TypeBuilder> arguments) {
     throw new UnsupportedError("ExtensionBuilder.buildType is not supported.");

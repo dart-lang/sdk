@@ -315,6 +315,7 @@ abstract class ClassBuilder extends DeclarationBuilder {
   }
 
   /// Used to lookup a static member of this class.
+  @override
   Builder findStaticBuilder(
       String name, int charOffset, Uri fileUri, LibraryBuilder accessingLibrary,
       {bool isSetter: false}) {

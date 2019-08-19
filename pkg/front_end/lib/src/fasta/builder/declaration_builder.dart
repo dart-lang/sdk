@@ -29,6 +29,11 @@ abstract class DeclarationBuilder extends TypeDeclarationBuilder {
     return library.partOfLibrary ?? library;
   }
 
+  /// Lookup a member accessed statically through this declaration.
+  Builder findStaticBuilder(
+      String name, int charOffset, Uri fileUri, LibraryBuilder accessingLibrary,
+      {bool isSetter: false});
+
   void addProblem(Message message, int charOffset, int length,
       {bool wasHandled: false, List<LocatedMessage> context}) {
     library.addProblem(message, charOffset, length, fileUri,
