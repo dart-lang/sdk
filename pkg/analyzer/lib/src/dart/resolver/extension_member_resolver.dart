@@ -82,10 +82,12 @@ class ExtensionMemberResolver {
     }
     if (member == null) return null;
 
-    return ExecutableMember.from3(
+    return ExecutableMember.from2(
       member,
-      element.typeParameters,
-      node.typeArgumentTypes,
+      Substitution.fromPairs(
+        element.typeParameters,
+        node.typeArgumentTypes,
+      ),
     );
   }
 
@@ -288,11 +290,9 @@ class ExtensionMemberResolver {
         _InstantiatedExtension(
           candidate.extension,
           extendedType,
-          // TODO(scheglov) Hm... Maybe not use from3(), but identify null subst?
-          ExecutableMember.from3(
+          ExecutableMember.from2(
             candidate.member,
-            typeParameters,
-            typeArguments,
+            substitution,
           ),
         ),
       );

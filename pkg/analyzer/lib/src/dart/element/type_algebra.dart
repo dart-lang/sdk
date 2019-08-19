@@ -126,7 +126,7 @@ abstract class Substitution {
   }
 
   /// Substitutes each parameter to the type it maps to in [map].
-  static Substitution fromMap(Map<TypeParameterElement, DartType> map) {
+  static MapSubstitution fromMap(Map<TypeParameterElement, DartType> map) {
     if (map.isEmpty) {
       return _NullSubstitution.instance;
     }

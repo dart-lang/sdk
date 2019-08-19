@@ -217,6 +217,10 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
       combined = Substitution.fromMap(map);
     }
 
+    if (combined.map.isEmpty) {
+      return element;
+    }
+
     if (element is ConstructorElement) {
       return ConstructorMember(element, combined);
     } else if (element is MethodElement) {
@@ -226,20 +230,6 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
     } else {
       throw UnimplementedError('(${element.runtimeType}) $element');
     }
-  }
-
-  static ExecutableElement from3(
-    ExecutableElement element,
-    List<TypeParameterElement> typeParameters,
-    List<DartType> typeArguments,
-  ) {
-    if (typeParameters.isEmpty) {
-      return element;
-    }
-    return from2(
-      element,
-      Substitution.fromPairs(typeParameters, typeArguments),
-    );
   }
 }
 
