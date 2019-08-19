@@ -89,9 +89,9 @@ class _Builder {
   List<int> build() {
     librarySources.forEach(_addLibrary);
 
-    if (AnalysisDriver.useSummary2) {
-      _link2();
-    } else {
+    var useSummary2 = AnalysisDriver.useSummary2;
+    try {
+      AnalysisDriver.useSummary2 = false;
       Map<String, LinkedLibraryBuilder> map = link(libraryUris, (uri) {
         throw new StateError('Unexpected call to GetDependencyCallback($uri).');
       }, (uri) {
@@ -102,7 +102,11 @@ class _Builder {
         return unlinked;
       }, DeclaredVariables(), context.analysisOptions);
       map.forEach(bundleAssembler.addLinkedLibrary);
+    } finally {
+      AnalysisDriver.useSummary2 = useSummary2;
     }
+
+    _link2();
 
     return bundleAssembler.assemble().toBuffer();
   }
