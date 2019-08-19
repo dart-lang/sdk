@@ -83,7 +83,7 @@ class FastaVerifyingVisitor extends VerifyingVisitor
   }
 
   void checkSuperInvocation(TreeNode node) {
-    var containingMember = getContainingMember(node);
+    Member containingMember = getContainingMember(node);
     if (containingMember == null) {
       problem(node, 'Super call outside of any member');
     } else {

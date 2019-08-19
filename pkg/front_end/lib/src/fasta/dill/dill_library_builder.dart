@@ -16,7 +16,9 @@ import 'package:kernel/ast.dart'
         Library,
         ListLiteral,
         Member,
+        NamedNode,
         Procedure,
+        Reference,
         StaticGet,
         StringLiteral,
         Typedef;
@@ -159,7 +161,7 @@ class DillLibraryBuilder extends LibraryBuilder {
     if (name == "_exports#") {
       Field field = member;
       StringLiteral string = field.initializer;
-      var json = jsonDecode(string.value);
+      Map<dynamic, dynamic> json = jsonDecode(string.value);
       unserializableExports =
           json != null ? new Map<String, String>.from(json) : null;
     } else {
@@ -253,8 +255,8 @@ class DillLibraryBuilder extends LibraryBuilder {
       exportScopeBuilder.addMember(name, declaration);
     });
 
-    for (var reference in library.additionalExports) {
-      var node = reference.node;
+    for (Reference reference in library.additionalExports) {
+      NamedNode node = reference.node;
       Uri libraryUri;
       String name;
       bool isSetter = false;

@@ -37,7 +37,7 @@ class DillMemberBuilder extends MemberBuilder {
   bool get isConstructor => member is Constructor;
 
   ProcedureKind get kind {
-    final member = this.member;
+    final Member member = this.member;
     return member is Procedure ? member.kind : null;
   }
 

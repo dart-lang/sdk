@@ -52,6 +52,8 @@ import '../problems.dart'
 
 import '../type_inference/type_inference_engine.dart' show TypeInferenceEngine;
 
+import '../type_inference/type_inferrer.dart' show TypeInferrer;
+
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
 import 'stack_listener.dart'
@@ -641,7 +643,7 @@ class DietListener extends StackListener {
     // for better error recovery?
     InterfaceType thisType =
         extensionThis == null ? currentDeclaration?.thisType : null;
-    var typeInferrer =
+    TypeInferrer typeInferrer =
         typeInferenceEngine?.createLocalTypeInferrer(uri, thisType, library);
     ConstantContext constantContext = builder.isConstructor && builder.isConst
         ? ConstantContext.inferred
@@ -861,7 +863,7 @@ class DietListener extends StackListener {
       }
       token = parser.parseFormalParametersOpt(
           parser.syntheticPreviousToken(token), kind);
-      var formals = listener.pop();
+      Object formals = listener.pop();
       listener.checkEmpty(token.next.charOffset);
       token = parser.parseInitializersOpt(token);
       token = parser.parseAsyncModifierOpt(token);
@@ -869,7 +871,7 @@ class DietListener extends StackListener {
       bool isExpression = false;
       bool allowAbstract = asyncModifier == AsyncMarker.Sync;
       parser.parseFunctionBody(token, isExpression, allowAbstract);
-      var body = listener.pop();
+      Object body = listener.pop();
       listener.checkEmpty(token.charOffset);
       listenerFinishFunction(
           listener, startToken, kind, formals, asyncModifier, body);
@@ -989,9 +991,9 @@ class DietListener extends StackListener {
   List<Expression> parseMetadata(
       ModifierBuilder builder, Token metadata, TreeNode parent) {
     if (metadata != null) {
-      var listener = createListener(builder, memberScope,
+      StackListener listener = createListener(builder, memberScope,
           isDeclarationInstanceMember: false);
-      var parser = new Parser(listener);
+      Parser parser = new Parser(listener);
       parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
       return listener.finishMetadata(parent);
     }

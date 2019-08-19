@@ -204,7 +204,7 @@ class KernelTarget extends TargetImplementation {
   LibraryBuilder createLibraryBuilder(
       Uri uri, Uri fileUri, SourceLibraryBuilder origin) {
     if (dillTarget.isLoaded) {
-      var builder = dillTarget.loader.builders[uri];
+      LibraryBuilder builder = dillTarget.loader.builders[uri];
       if (builder != null) {
         return builder;
       }
@@ -486,7 +486,7 @@ class KernelTarget extends TargetImplementation {
       Constructor constructor, Map<TypeParameter, DartType> substitutionMap) {
     VariableDeclaration copyFormal(VariableDeclaration formal) {
       // TODO(ahe): Handle initializers.
-      var copy = new VariableDeclaration(formal.name,
+      VariableDeclaration copy = new VariableDeclaration(formal.name,
           isFinal: formal.isFinal, isConst: formal.isConst);
       if (formal.type != null) {
         copy.type = substitute(formal.type, substitutionMap);

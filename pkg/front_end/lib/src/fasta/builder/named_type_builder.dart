@@ -72,7 +72,7 @@ class NamedTypeBuilder extends TypeBuilder {
   void resolveIn(
       Scope scope, int charOffset, Uri fileUri, LibraryBuilder library) {
     if (declaration != null) return;
-    final name = this.name;
+    final Object name = this.name;
     Builder member;
     if (name is QualifiedName) {
       Object qualifier = name.qualifier;
@@ -195,9 +195,10 @@ class NamedTypeBuilder extends TypeBuilder {
 
   Supertype handleInvalidSupertype(
       LibraryBuilder library, int charOffset, Uri fileUri) {
-    var template = declaration.isTypeVariable
-        ? templateSupertypeIsTypeVariable
-        : templateSupertypeIsIllegal;
+    Template<Message Function(String name)> template =
+        declaration.isTypeVariable
+            ? templateSupertypeIsTypeVariable
+            : templateSupertypeIsIllegal;
     library.addProblem(
         template.withArguments(flattenName(name, charOffset, fileUri)),
         charOffset,

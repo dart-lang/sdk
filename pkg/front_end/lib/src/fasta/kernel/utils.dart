@@ -89,7 +89,7 @@ Component createExpressionEvaluationComponent(Procedure procedure) {
         <TypeParameter, TypeParameter>{};
     Map<TypeParameter, DartType> typeSubstitution = <TypeParameter, DartType>{};
     for (TypeParameter typeParam in realClass.typeParameters) {
-      var newNode = new TypeParameter(typeParam.name);
+      TypeParameter newNode = new TypeParameter(typeParam.name);
       typeParams[typeParam] = newNode;
       typeSubstitution[typeParam] = new TypeParameterType(newNode);
     }

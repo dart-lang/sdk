@@ -27,6 +27,7 @@ import '../fasta_codes.dart'
         messageOperatorWithOptionalFormals,
         messageStaticConstructor,
         messageTypedefNotFunction,
+        Template,
         templateCycleInTypeVariables,
         templateDirectCycleInTypeVariables,
         templateDuplicatedParameterName,
@@ -877,7 +878,7 @@ class OutlineBuilder extends StackListener {
       kind = ProcedureKind.Operator;
       int requiredArgumentCount = operatorRequiredArgumentCount(nameOrOperator);
       if ((formals?.length ?? 0) != requiredArgumentCount) {
-        var template;
+        Template<Message Function(String name)> template;
         switch (requiredArgumentCount) {
           case 0:
             template = templateOperatorParameterMismatch0;
@@ -1422,7 +1423,7 @@ class OutlineBuilder extends StackListener {
       functionType =
           library.addFunctionType(returnType, null, formals, charOffset);
     } else {
-      var type = pop();
+      Object type = pop();
       typeVariables = pop();
       charOffset = pop();
       name = pop();
@@ -1823,7 +1824,7 @@ class OutlineBuilder extends StackListener {
     Token docToken = token.precedingComments;
     if (docToken == null) return null;
     bool inSlash = false;
-    var buffer = new StringBuffer();
+    StringBuffer buffer = new StringBuffer();
     while (docToken != null) {
       String lexeme = docToken.lexeme;
       if (lexeme.startsWith('/**')) {

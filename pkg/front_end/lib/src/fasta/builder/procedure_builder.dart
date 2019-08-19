@@ -49,6 +49,7 @@ import 'package:kernel/ast.dart'
         StaticInvocation,
         StringLiteral,
         SuperInitializer,
+        TreeNode,
         TypeParameter,
         TypeParameterType,
         VariableDeclaration,
@@ -243,7 +244,7 @@ abstract class FunctionBuilder extends MemberBuilder {
       // but which needs to have a forwarding stub body in order to ensure that
       // covariance checks occur.  We don't want to replace the forwarding stub
       // body with null.
-      var parent = function.parent;
+      TreeNode parent = function.parent;
       if (!(newBody == null &&
           parent is Procedure &&
           parent.isForwardingSemiStub)) {
@@ -511,7 +512,7 @@ class ProcedureBuilder extends FunctionBuilder {
     if (isDeclarationInstanceMember) {
       if (returnType == null) return true;
       if (formals != null) {
-        for (var formal in formals) {
+        for (FormalParameterBuilder formal in formals) {
           if (formal.type == null) return true;
         }
       }
@@ -668,7 +669,7 @@ class ConstructorBuilder extends FunctionBuilder {
   bool get isEligibleForTopLevelInference {
     if (library.legacyMode) return false;
     if (formals != null) {
-      for (var formal in formals) {
+      for (FormalParameterBuilder formal in formals) {
         if (formal.type == null && formal.isInitializingFormal) return true;
       }
     }

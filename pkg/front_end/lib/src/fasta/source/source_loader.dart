@@ -83,7 +83,8 @@ import '../kernel/kernel_builder.dart'
         LibraryBuilder,
         MemberBuilder,
         NamedTypeBuilder,
-        TypeBuilder;
+        TypeBuilder,
+        TypeDeclarationBuilder;
 
 import '../kernel/kernel_target.dart' show KernelTarget;
 
@@ -681,7 +682,7 @@ class SourceLoader extends Loader {
     if (mixedInType != null) {
       bool isClassBuilder = false;
       if (mixedInType is NamedTypeBuilder) {
-        var builder = mixedInType.declaration;
+        TypeDeclarationBuilder builder = mixedInType.declaration;
         if (builder is ClassBuilder) {
           isClassBuilder = true;
           for (Builder constructor in builder.constructors.local.values) {

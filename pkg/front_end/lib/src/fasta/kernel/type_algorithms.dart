@@ -339,7 +339,7 @@ List<NamedTypeBuilder> findVariableUsesInType(
   TypeVariableBuilder variable,
   TypeBuilder type,
 ) {
-  var uses = <NamedTypeBuilder>[];
+  List<NamedTypeBuilder> uses = <NamedTypeBuilder>[];
   if (type is NamedTypeBuilder) {
     if (type.declaration == variable) {
       uses.add(type);
@@ -380,9 +380,9 @@ List<NamedTypeBuilder> findVariableUsesInType(
 /// bound.  The second element in the pair is the list of found references
 /// represented as type builders.
 List<Object> findInboundReferences(List<TypeVariableBuilder> variables) {
-  var variablesAndDependencies = <Object>[];
+  List<Object> variablesAndDependencies = <Object>[];
   for (TypeVariableBuilder dependent in variables) {
-    var dependencies = <NamedTypeBuilder>[];
+    List<NamedTypeBuilder> dependencies = <NamedTypeBuilder>[];
     for (TypeVariableBuilder dependence in variables) {
       List<NamedTypeBuilder> uses =
           findVariableUsesInType(dependence, dependent.bound);
@@ -405,7 +405,7 @@ List<Object> findInboundReferences(List<TypeVariableBuilder> variables) {
 /// variables of that type with inbound references in the format specified in
 /// [findInboundReferences].
 List<Object> findRawTypesWithInboundReferences(TypeBuilder type) {
-  var typesAndDependencies = <Object>[];
+  List<Object> typesAndDependencies = <Object>[];
   if (type is NamedTypeBuilder) {
     if (type.arguments == null) {
       TypeDeclarationBuilder declaration = type.declaration;
@@ -502,7 +502,7 @@ List<Object> findRawTypesWithInboundReferences(TypeBuilder type) {
 /// generic types with inbound references in its bound.  The second element of
 /// the triplet is the error message.  The third element is the context.
 List<Object> getInboundReferenceIssues(List<TypeVariableBuilder> variables) {
-  var issues = <Object>[];
+  List<Object> issues = <Object>[];
   for (TypeVariableBuilder variable in variables) {
     if (variable.bound != null) {
       List<Object> rawTypesAndMutualDependencies =
@@ -554,7 +554,7 @@ List<List<Object>> findRawTypePathsToDeclaration(
     TypeBuilder start, TypeDeclarationBuilder end,
     [Set<TypeDeclarationBuilder> visited]) {
   visited ??= new Set<TypeDeclarationBuilder>.identity();
-  var paths = <List<Object>>[];
+  List<List<Object>> paths = <List<Object>>[];
   if (start is NamedTypeBuilder) {
     TypeDeclarationBuilder declaration = start.declaration;
     if (start.arguments == null) {
@@ -639,7 +639,7 @@ List<List<Object>> findRawTypePathsToDeclaration(
 /// The reason for putting the type variables into the cycles is better error
 /// reporting.
 List<List<Object>> findRawTypeCycles(TypeDeclarationBuilder declaration) {
-  var cycles = <List<Object>>[];
+  List<List<Object>> cycles = <List<Object>>[];
   if (declaration is ClassBuilder && declaration.typeVariables != null) {
     for (TypeVariableBuilder variable in declaration.typeVariables) {
       if (variable.bound != null) {
@@ -699,7 +699,7 @@ List<Object> convertRawTypeCyclesIntoIssues(
           .withArguments(type.declaration.name));
       issues.add(null); // Context.
     } else {
-      var context = <LocatedMessage>[];
+      List<LocatedMessage> context = <LocatedMessage>[];
       for (int i = 0; i < cycle.length; i += 2) {
         TypeVariableBuilder variable = cycle[i];
         NamedTypeBuilder type = cycle[i + 1];
@@ -747,7 +747,7 @@ List<Object> getNonSimplicityIssuesForTypeVariables(
 List<Object> getNonSimplicityIssuesForDeclaration(
     TypeDeclarationBuilder declaration,
     {bool performErrorRecovery: true}) {
-  var issues = <Object>[];
+  List<Object> issues = <Object>[];
   if (declaration is ClassBuilder && declaration.typeVariables != null) {
     issues.addAll(getInboundReferenceIssues(declaration.typeVariables));
   } else if (declaration is TypeAliasBuilder &&

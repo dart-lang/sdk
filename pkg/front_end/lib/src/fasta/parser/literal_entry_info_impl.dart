@@ -29,7 +29,7 @@ class ForCondition extends LiteralEntryInfo {
       awaitToken = token = next;
       next = token.next;
     }
-    final forToken = next;
+    final Token forToken = next;
     assert(optional('for', forToken));
     parser.listener.beginForControlFlow(awaitToken, forToken);
 
@@ -141,7 +141,7 @@ class IfCondition extends LiteralEntryInfo {
 
   @override
   Token parse(Token token, Parser parser) {
-    final ifToken = token.next;
+    final Token ifToken = token.next;
     assert(optional('if', ifToken));
     parser.listener.beginIfControlFlow(ifToken);
     Token result = parser.ensureParenthesizedCondition(ifToken);
@@ -261,7 +261,7 @@ class SpreadOperator extends LiteralEntryInfo {
 
   @override
   Token parse(Token token, Parser parser) {
-    final operator = token.next;
+    final Token operator = token.next;
     assert(optional('...', operator) || optional('...?', operator));
     token = parser.parseExpression(operator);
     parser.listener.handleSpreadExpression(operator);

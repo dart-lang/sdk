@@ -95,7 +95,7 @@ class Utf8BytesScanner extends AbstractScanner {
   }
 
   bool containsBomAt(int offset) {
-    const BOM_UTF8 = const [0xEF, 0xBB, 0xBF];
+    const List<int> BOM_UTF8 = const [0xEF, 0xBB, 0xBF];
 
     return offset + 3 < bytes.length &&
         bytes[offset] == BOM_UTF8[0] &&
@@ -157,9 +157,9 @@ class Utf8BytesScanner extends AbstractScanner {
       stringOffsetSlackOffset = byteOffset;
       // In case of a surrogate pair, return a single code point.
       // Gracefully degrade given invalid UTF-8.
-      var runes = codePoint.runes.iterator;
+      RuneIterator runes = codePoint.runes.iterator;
       if (!runes.moveNext()) return unicodeReplacementCharacter;
-      var codeUnit = runes.current;
+      int codeUnit = runes.current;
       return !runes.moveNext() ? codeUnit : unicodeReplacementCharacter;
     } else {
       return unicodeReplacementCharacter;

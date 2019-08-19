@@ -250,12 +250,12 @@ abstract class StandardBounds {
     // Calculate the SUB of each corresponding pair of parameters.
     int totalPositional =
         math.max(f.positionalParameters.length, g.positionalParameters.length);
-    var positionalParameters = new List<DartType>(totalPositional);
+    List<DartType> positionalParameters = new List<DartType>(totalPositional);
     for (int i = 0; i < totalPositional; i++) {
       if (i < f.positionalParameters.length) {
-        var fType = f.positionalParameters[i];
+        DartType fType = f.positionalParameters[i];
         if (i < g.positionalParameters.length) {
-          var gType = g.positionalParameters[i];
+          DartType gType = g.positionalParameters[i];
           positionalParameters[i] = getStandardUpperBound(fType, gType);
         } else {
           positionalParameters[i] = fType;
@@ -280,8 +280,8 @@ abstract class StandardBounds {
       while (true) {
         if (i < f.namedParameters.length) {
           if (j < g.namedParameters.length) {
-            var fName = f.namedParameters[i].name;
-            var gName = g.namedParameters[j].name;
+            String fName = f.namedParameters[i].name;
+            String gName = g.namedParameters[j].name;
             int order = fName.compareTo(gName);
             if (order < 0) {
               namedParameters.add(f.namedParameters[i++]);
@@ -346,7 +346,7 @@ abstract class StandardBounds {
     // other.
     int totalPositional =
         math.min(f.positionalParameters.length, g.positionalParameters.length);
-    var positionalParameters = new List<DartType>(totalPositional);
+    List<DartType> positionalParameters = new List<DartType>(totalPositional);
     for (int i = 0; i < totalPositional; i++) {
       positionalParameters[i] = getStandardLowerBound(
           f.positionalParameters[i], g.positionalParameters[i]);
@@ -360,8 +360,8 @@ abstract class StandardBounds {
       while (true) {
         if (i < f.namedParameters.length) {
           if (j < g.namedParameters.length) {
-            var fName = f.namedParameters[i].name;
-            var gName = g.namedParameters[j].name;
+            String fName = f.namedParameters[i].name;
+            String gName = g.namedParameters[j].name;
             int order = fName.compareTo(gName);
             if (order < 0) {
               i++;

@@ -40,12 +40,12 @@ class RedirectingFactoryBody extends ExpressionStatement {
       : this.internal(new StringLiteral(name));
 
   Member get target {
-    var value = getValue(expression);
+    dynamic value = getValue(expression);
     return value is StaticGet ? value.target : null;
   }
 
   String get unresolvedName {
-    var value = getValue(expression);
+    dynamic value = getValue(expression);
     return value is StringLiteral ? value.value : null;
   }
 
