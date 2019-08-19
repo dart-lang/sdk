@@ -491,10 +491,6 @@ dart_vm_extra_builder(
 dart_vm_extra_builder("vm-kernel-linux-debug-ia32", category="vm|kernel|d32")
 dart_vm_extra_builder(
     "vm-kernel-mac-debug-simdbc64", category="vm|kernel|mds", dimensions=mac())
-dart_vm_extra_builder(
-    "vm-kernel-mac-release-simdbc64",
-    category="vm|kernel|mrs",
-    dimensions=mac())
 dart_ci_sandbox_builder(
     "vm-kernel-mac-debug-x64", category="vm|kernel|md", dimensions=mac())
 dart_ci_sandbox_builder(
