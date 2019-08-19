@@ -81,6 +81,12 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   bool get checkConstantUpdate2018 => _checkConstantUpdate2018 ??=
       !before_2_5_0.intersect(_versionConstraint).isEmpty;
 
+  /// Return `true` if references to the extension method features need to
+  /// be checked.
+  // TODO(brianwilkerson) Implement this as a version check when a version has
+  //  been selected.
+  bool get checkExtensionMethods => true;
+
   /// Return `true` if references to Future and Stream need to be checked.
   bool get checkFutureAndStream => _checkFutureAndStream ??=
       !before_2_1_0.intersect(_versionConstraint).isEmpty;
@@ -146,6 +152,24 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
       }
     }
     super.visitBinaryExpression(node);
+  }
+
+  @override
+  void visitExtensionDeclaration(ExtensionDeclaration node) {
+    if (checkExtensionMethods) {
+      _errorReporter.reportErrorForToken(
+          HintCode.SDK_VERSION_EXTENSION_METHODS, node.extensionKeyword);
+    }
+    super.visitExtensionDeclaration(node);
+  }
+
+  @override
+  void visitExtensionOverride(ExtensionOverride node) {
+    if (checkExtensionMethods) {
+      _errorReporter.reportErrorForNode(
+          HintCode.SDK_VERSION_EXTENSION_METHODS, node.extensionName);
+    }
+    super.visitExtensionOverride(node);
   }
 
   @override

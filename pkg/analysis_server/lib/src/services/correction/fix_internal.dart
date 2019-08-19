@@ -349,6 +349,9 @@ class FixProcessor {
         errorCode == HintCode.SDK_VERSION_UI_AS_CODE) {
       await _addFix_updateSdkConstraints('2.2.2');
     }
+    if (errorCode == HintCode.SDK_VERSION_EXTENSION_METHODS) {
+      await _addFix_updateSdkConstraints('2.6.0');
+    }
     if (errorCode == HintCode.TYPE_CHECK_IS_NOT_NULL) {
       await _addFix_isNotNull();
     }

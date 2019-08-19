@@ -669,6 +669,16 @@ class HintCode extends ErrorCode {
           correction: "Try updating the SDK constraints.");
 
   /**
+   * Extension method features are being used in code that is expected to run
+   * on versions of the SDK that did not support them.
+   */
+  static const HintCode SDK_VERSION_EXTENSION_METHODS = const HintCode(
+      'SDK_VERSION_EXTENSION_METHODS',
+      "Extension methods weren't supported until version 2.X.0, "
+          "but this code is required to be able to run on earlier versions.",
+      correction: "Try updating the SDK constraints.");
+
+  /**
    * The operator '>>>' is being used in code that is expected to run on
    * versions of the SDK that did not support it.
    */

@@ -11,57 +11,54 @@ import 'sdk_constraint_verifier_support.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(SdkVersionEqEqOperatorTest);
+    defineReflectiveTests(SdkVersionExtensionMethodsTest);
   });
 }
 
 @reflectiveTest
-class SdkVersionEqEqOperatorTest extends SdkConstraintVerifierTest {
+class SdkVersionExtensionMethodsTest extends SdkConstraintVerifierTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [EnableString.constant_update_2018];
+    ..enabledExperiments = [EnableString.extension_methods];
 
-  test_left_equals() async {
-    await verifyVersion('2.5.0', '''
-class A {
-  const A();
-}
-const A a = A();
-const c = a == null;
+  @failingTest
+  test_extension_equals() async {
+    await verifyVersion('2.6.0', '''
+extension E on int {}
 ''');
   }
 
-  test_left_lessThan() async {
+  test_extension_lessThan() async {
     await verifyVersion('2.2.0', '''
-class A {
-  const A();
-}
-const A a = A();
-const c = a == null;
+extension E on int {}
 ''', expectedErrors: [
-      error(HintCode.SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT, 54, 2),
+      error(HintCode.SDK_VERSION_EXTENSION_METHODS, 0, 9),
     ]);
   }
 
-  test_right_equals() async {
-    await verifyVersion('2.5.0', '''
-class A {
-  const A();
+  @failingTest
+  test_extensionOverride_equals() async {
+    await verifyVersion('2.6.0', '''
+extension E on int {
+  int get a => 0;
 }
-const A a = A();
-const c = null == a;
+void f() {
+  E(0).a;
+}
 ''');
   }
 
-  test_right_lessThan() async {
+  test_extensionOverride_lessThan() async {
     await verifyVersion('2.2.0', '''
-class A {
-  const A();
+extension E on int {
+  int get a => 0;
 }
-const A a = A();
-const c = null == a;
+void f() {
+  E(0).a;
+}
 ''', expectedErrors: [
-      error(HintCode.SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT, 57, 2),
+      error(HintCode.SDK_VERSION_EXTENSION_METHODS, 0, 9),
+      error(HintCode.SDK_VERSION_EXTENSION_METHODS, 54, 1),
     ]);
   }
 }

@@ -232,6 +232,8 @@ import 'sdk_version_async_exported_from_core_test.dart'
 import 'sdk_version_bool_operator_in_const_context_test.dart'
     as sdk_version_bool_operator_in_const_context;
 import 'sdk_version_eq_eq_operator_test.dart' as sdk_version_eq_eq_operator;
+import 'sdk_version_extension_methods_test.dart'
+    as sdk_version_extension_methods;
 import 'sdk_version_gt_gt_gt_operator_test.dart'
     as sdk_version_gt_gt_gt_operator;
 import 'sdk_version_is_expression_in_const_context_test.dart'
@@ -453,6 +455,7 @@ main() {
     sdk_version_async_exported_from_core.main();
     sdk_version_bool_operator_in_const_context.main();
     sdk_version_eq_eq_operator.main();
+    sdk_version_extension_methods.main();
     sdk_version_gt_gt_gt_operator.main();
     sdk_version_is_expression_in_const_context.main();
     sdk_version_never.main();
