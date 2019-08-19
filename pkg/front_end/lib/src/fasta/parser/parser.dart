@@ -1482,7 +1482,10 @@ class Parser {
       token = periodAfterThis;
     }
     next = token.next;
-    if (inFunctionType && !isNamedParameter && !next.isKeywordOrIdentifier) {
+    if (inFunctionType &&
+        !isNamedParameter &&
+        !next.isKeywordOrIdentifier &&
+        beforeInlineFunctionType == null) {
       nameToken = token.next;
       listener.handleNoName(nameToken);
     } else {
