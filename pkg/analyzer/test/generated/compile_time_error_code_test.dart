@@ -231,7 +231,7 @@ f() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 14, 1),
-      error(CompileTimeErrorCode.FOR_IN_WITH_CONST_VARIABLE, 28, 1),
+      error(StaticWarningCode.ASSIGNMENT_TO_CONST, 28, 1),
     ]);
   }
 
