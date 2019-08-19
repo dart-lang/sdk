@@ -372,13 +372,6 @@ replNameLookup(object, field) => JS('', '''(() => {
   return rawField;
 })()''');
 
-// TODO(jmesserly): the debugger extension hardcodes a call to this private
-// function. Fix that.
-@Deprecated('use replNameLookup')
-_dhelperRepl(obj, field, Function(Object) callback) {
-  return callback(replNameLookup(obj, field));
-}
-
 /// Shared code for dsend, dindex, and dsetindex.
 callMethod(obj, name, typeArgs, args, named, displayName) {
   if (JS('!', 'typeof # == "function" && # == "call"', obj, name)) {
