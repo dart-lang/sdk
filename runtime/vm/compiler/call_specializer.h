@@ -117,12 +117,6 @@ class CallSpecializer : public FlowGraphVisitor {
  protected:
   void InlineImplicitInstanceGetter(Definition* call, const Field& field);
 
-  SpeculativeInliningPolicy* speculative_policy_;
-  const bool should_clone_fields_;
-
- private:
-  bool TypeCheckAsClassEquality(const AbstractType& type);
-
   // Insert a check of 'to_check' determined by 'unary_checks'.  If the
   // check fails it will deoptimize to 'deopt_id' using the deoptimization
   // environment 'deopt_environment'.  The check is inserted immediately
@@ -132,6 +126,12 @@ class CallSpecializer : public FlowGraphVisitor {
                      intptr_t deopt_id,
                      Environment* deopt_environment,
                      Instruction* insert_before);
+
+  SpeculativeInliningPolicy* speculative_policy_;
+  const bool should_clone_fields_;
+
+ private:
+  bool TypeCheckAsClassEquality(const AbstractType& type);
 
   // Insert a Smi check if needed.
   void AddCheckSmi(Definition* to_check,
