@@ -22,7 +22,6 @@ import 'package:linter/src/rules/avoid_function_literals_in_foreach_calls.dart';
 import 'package:linter/src/rules/avoid_implementing_value_types.dart';
 import 'package:linter/src/rules/avoid_init_to_null.dart';
 import 'package:linter/src/rules/avoid_js_rounded_ints.dart';
-import 'package:linter/src/rules/avoid_mutable_fields_in_equality_operators.dart';
 import 'package:linter/src/rules/avoid_operator_equals_on_mutable_classes.dart';
 import 'package:linter/src/rules/avoid_null_checks_in_equality_operators.dart';
 import 'package:linter/src/rules/avoid_positional_boolean_parameters.dart';
@@ -178,7 +177,6 @@ void registerLintRules() {
     ..register(AvoidImplementingValueTypes())
     ..register(AvoidInitToNull())
     ..register(AvoidJsRoundedInts())
-    ..register(AvoidMutableFieldsInEqualityOperators())
     ..register(AvoidOperatorEqualsOnMutableClasses())
     ..register(AvoidNullChecksInEqualityOperators())
     ..register(AvoidPositionalBooleanParameters())
