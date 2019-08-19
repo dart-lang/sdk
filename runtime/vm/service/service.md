@@ -261,7 +261,7 @@ _streamNotify_, and the _params_ will have _streamId_ and _event_ properties:
 It is considered a _backwards compatible_ change to add a new type of event to an existing stream.
 Clients should be written to handle this gracefully.
 
-### Binary Events
+## Binary Events
 
 Some events are associated with bulk binary data. These events are delivered as
 WebSocket binary frames instead of text frames. A binary event's metadata
