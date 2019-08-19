@@ -41,7 +41,7 @@ StatusFile removeNonEssentialEntries(
     StatusFile statusFile, List<Expectation> expectationsToKeep) {
   List<StatusSection> sections = <StatusSection>[];
   for (StatusSection section in statusFile.sections) {
-    bool hasOnlyEmptyEntries = section.sectionHeaderComments.isEmpty;
+    bool hasStatusEntries = false;
     List<Entry> entries = <Entry>[];
     for (Entry entry in section.entries) {
       if (entry is EmptyEntry) {
@@ -49,18 +49,20 @@ StatusFile removeNonEssentialEntries(
       } else if (entry is StatusEntry && entry.comment != null ||
           entry is CommentEntry) {
         entries.add(entry);
-        hasOnlyEmptyEntries = false;
+        hasStatusEntries = true;
       } else if (entry is StatusEntry) {
         StatusEntry newEntry = filterExpectations(entry, expectationsToKeep);
         if (newEntry != null) {
           entries.add(newEntry);
-          hasOnlyEmptyEntries = false;
+          hasStatusEntries = true;
         }
       } else {
         throw "Unknown entry type ${entry.runtimeType}";
       }
     }
-    if (!hasOnlyEmptyEntries || section.sectionHeaderComments.isNotEmpty) {
+    bool isDefaultSection = section.condition == null;
+    if (hasStatusEntries ||
+        (isDefaultSection && section.sectionHeaderComments.isNotEmpty)) {
       StatusSection newSection =
           StatusSection(section.condition, -1, section.sectionHeaderComments);
       newSection.entries.addAll(entries);
