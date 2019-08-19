@@ -32,6 +32,7 @@ import 'package:front_end/src/fasta/messages.dart'
         messageFieldInitializerOutsideConstructor,
         messageIllegalAssignmentToNonAssignable,
         messageInterpolationInUri,
+        messageInvalidInitializer,
         messageInvalidSuperInInitializer,
         messageInvalidThisInInitializer,
         messageMissingAssignableSelector,
@@ -419,8 +420,7 @@ class AstBuilder extends StackListener {
           initializerObject.target, initializerObject);
     }
 
-    throw new UnsupportedError('unsupported initializer:'
-        ' ${initializerObject.runtimeType} :: $initializerObject');
+    return null;
   }
 
   AstNode buildInitializerTargetExpressionRecovery(
@@ -455,9 +455,7 @@ class AstBuilder extends StackListener {
       return ast.redirectingConstructorInvocation(
           target.thisKeyword, null, null, argumentList);
     }
-    throw new UnsupportedError('unsupported initializer:'
-        ' ${initializerObject.runtimeType} :: $initializerObject'
-        ' %% target : ${target.runtimeType} :: $target');
+    return null;
   }
 
   void checkFieldFormalParameters(FormalParameterList parameters) {
@@ -1367,11 +1365,14 @@ class AstBuilder extends StackListener {
     var initializers = <ConstructorInitializer>[];
     for (Object initializerObject in initializerObjects) {
       ConstructorInitializer initializer = buildInitializer(initializerObject);
-      if (initializer == null) {
-        throw new UnsupportedError('unsupported initializer:'
-            ' ${initializerObject.runtimeType} :: $initializerObject');
+      if (initializer != null) {
+        initializers.add(initializer);
+      } else {
+        handleRecoverableError(
+            messageInvalidInitializer,
+            initializerObject is AstNode ? initializerObject.beginToken : colon,
+            initializerObject is AstNode ? initializerObject.endToken : colon);
       }
-      initializers.add(initializer);
     }
 
     push(initializers);

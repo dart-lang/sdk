@@ -6402,6 +6402,7 @@ const Code<Null> codeInvalidInitializer = messageInvalidInitializer;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInvalidInitializer = const MessageCode(
     "InvalidInitializer",
+    index: 90,
     message: r"""Not a valid initializer.""",
     tip: r"""To initialize a field, use the syntax 'name = value'.""");
 

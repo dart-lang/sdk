@@ -97,6 +97,7 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _EXTERNAL_CONSTRUCTOR_WITH_BODY,
   _FIELD_INITIALIZED_OUTSIDE_DECLARING_CLASS,
   _VAR_AND_TYPE,
+  _INVALID_INITIALIZER,
 ];
 
 const ParserErrorCode _ABSTRACT_CLASS_MEMBER = const ParserErrorCode(
@@ -190,7 +191,7 @@ const ParserErrorCode _DIRECTIVE_AFTER_DECLARATION = const ParserErrorCode(
 
 const ParserErrorCode _DUPLICATED_MODIFIER = const ParserErrorCode(
     'DUPLICATED_MODIFIER', r"The modifier '#lexeme' was already specified.",
-    correction: "Try removing all but one occurence of the modifier.");
+    correction: "Try removing all but one occurrence of the modifier.");
 
 const ParserErrorCode _DUPLICATE_DEFERRED = const ParserErrorCode(
     'DUPLICATE_DEFERRED',
@@ -341,6 +342,10 @@ const ParserErrorCode _INVALID_AWAIT_IN_FOR = const ParserErrorCode(
 const ParserErrorCode _INVALID_HEX_ESCAPE = const ParserErrorCode(
     'INVALID_HEX_ESCAPE',
     r"An escape sequence starting with '\x' must be followed by 2 hexadecimal digits.");
+
+const ParserErrorCode _INVALID_INITIALIZER = const ParserErrorCode(
+    'INVALID_INITIALIZER', r"Not a valid initializer.",
+    correction: "To initialize a field, use the syntax 'name = value'.");
 
 const ParserErrorCode _INVALID_OPERATOR = const ParserErrorCode(
     'INVALID_OPERATOR',
