@@ -241,7 +241,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitAssertStatement(AssertStatement node) {
-    _handleAssignment(node.condition, destinationType: _nonNullableBoolType);
+    _checkExpressionNotNull(node.condition);
     if (identical(_conditionInfo?.condition, node.condition)) {
       var intentNode = _conditionInfo.trueDemonstratesNonNullIntent;
       if (intentNode != null && _conditionInfo.postDominatingIntent) {
@@ -316,12 +316,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     } else if (operatorType == TokenType.AMPERSAND_AMPERSAND ||
         operatorType == TokenType.BAR_BAR) {
       bool isAnd = operatorType == TokenType.AMPERSAND_AMPERSAND;
-      _handleAssignment(node.leftOperand,
-          destinationType: _nonNullableBoolType);
+      _checkExpressionNotNull(node.leftOperand);
       _flowAnalysis.logicalBinaryOp_rightBegin(node.leftOperand, isAnd: isAnd);
       _postDominatedLocals.doScoped(
-          action: () => _handleAssignment(node.rightOperand,
-              destinationType: _nonNullableBoolType));
+          action: () => _checkExpressionNotNull(node.rightOperand));
       _flowAnalysis.logicalBinaryOp_end(node, node.rightOperand, isAnd: isAnd);
       return _nonNullableBoolType;
     } else if (operatorType == TokenType.QUESTION_QUESTION) {
@@ -340,7 +338,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _variables.recordDecoratedExpressionType(node, expressionType);
       return expressionType;
     } else if (operatorType.isUserDefinableOperator) {
-      _handleAssignment(node.leftOperand, destinationType: _notNullType);
+      _checkExpressionNotNull(node.leftOperand);
       var callee = node.staticElement;
       assert(!(callee is ClassMemberElement &&
           (callee.enclosingElement as ClassElement)
@@ -443,7 +441,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitConditionalExpression(ConditionalExpression node) {
-    _handleAssignment(node.condition, destinationType: _nonNullableBoolType);
+    _checkExpressionNotNull(node.condition);
 
     DecoratedType thenType;
     DecoratedType elseType;
@@ -528,7 +526,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     _flowAnalysis.doStatement_bodyBegin(node, _assignedVariables[node]);
     node.body.accept(this);
     _flowAnalysis.doStatement_conditionBegin();
-    _handleAssignment(node.condition, destinationType: _nonNullableBoolType);
+    _checkExpressionNotNull(node.condition);
     _flowAnalysis.doStatement_end(node.condition);
     return null;
   }
@@ -639,7 +637,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitIfElement(IfElement node) {
-    _handleAssignment(node.condition, destinationType: _nonNullableBoolType);
+    _checkExpressionNotNull(node.condition);
     NullabilityNode trueGuard;
     NullabilityNode falseGuard;
     if (identical(_conditionInfo?.condition, node.condition)) {
@@ -677,7 +675,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitIfStatement(IfStatement node) {
-    _handleAssignment(node.condition, destinationType: _nonNullableBoolType);
+    _checkExpressionNotNull(node.condition);
     NullabilityNode trueGuard;
     NullabilityNode falseGuard;
     if (identical(_conditionInfo?.condition, node.condition)) {
@@ -724,7 +722,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     DecoratedType targetType;
     var target = node.realTarget;
     if (target != null) {
-      targetType = _handleAssignment(target, destinationType: _notNullType);
+      targetType = _checkExpressionNotNull(target);
     }
     var callee = node.staticElement;
     if (callee == null) {
@@ -845,7 +843,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         targetType = target.accept(this);
       } else {
         _checkNonObjectMember(node.methodName.name); // TODO(paulberry)
-        targetType = _handleAssignment(target, destinationType: _notNullType);
+        targetType = _checkExpressionNotNull(target);
       }
     }
     var callee = node.methodName.staticElement;
@@ -888,7 +886,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var operatorType = node.operator.type;
     if (operatorType == TokenType.PLUS_PLUS ||
         operatorType == TokenType.MINUS_MINUS) {
-      _handleAssignment(node.operand, destinationType: _notNullType);
+      _checkExpressionNotNull(node.operand);
       var callee = node.staticElement;
       if (callee is ClassMemberElement &&
           (callee.enclosingElement as ClassElement).typeParameters.isNotEmpty) {
@@ -920,8 +918,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitPrefixExpression(PrefixExpression node) {
-    var targetType =
-        _handleAssignment(node.operand, destinationType: _notNullType);
+    var targetType = _checkExpressionNotNull(node.operand);
     var operatorType = node.operator.type;
     if (operatorType == TokenType.BANG) {
       return _nonNullableBoolType;
@@ -1193,7 +1190,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     // Note: we do not create guards. A null check here is *very* unlikely to be
     // unnecessary after analysis.
     _flowAnalysis.whileStatement_conditionBegin(_assignedVariables[node]);
-    _handleAssignment(node.condition, destinationType: _nonNullableBoolType);
+    _checkExpressionNotNull(node.condition);
     _flowAnalysis.whileStatement_bodyBegin(node, node.condition);
     _postDominatedLocals.doScoped(action: () => node.body.accept(this));
     _flowAnalysis.whileStatement_end();
@@ -1206,6 +1203,18 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         _flowAnalysis.add(parameter.declaredElement, assigned: true);
       }
     }
+  }
+
+  /// Visits [expression] and generates the appropriate edge to assert that its
+  /// value is non-null.
+  ///
+  /// Returns the decorated type of [expression].
+  DecoratedType _checkExpressionNotNull(Expression expression) {
+    // Note: it's not necessary for `destinationType` to precisely match the
+    // type of the expression, since all we are doing is causing a single graph
+    // edge to be built; it is sufficient to pass in any decorated type whose
+    // node is `never`.
+    return _handleAssignment(expression, destinationType: _notNullType);
   }
 
   /// Double checks that [name] is not the name of a method or getter declared
@@ -1538,14 +1547,13 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         parts.initialization?.accept(this);
       }
       if (parts.condition != null) {
-        _handleAssignment(parts.condition,
-            destinationType: _nonNullableBoolType);
+        _checkExpressionNotNull(parts.condition);
       }
     } else if (parts is ForEachParts) {
       if (parts is ForEachPartsWithDeclaration) {
         _flowAnalysis.add(parts.loopVariable.declaredElement, assigned: true);
       }
-      _handleAssignment(parts.iterable, destinationType: _notNullType);
+      _checkExpressionNotNull(parts.iterable);
     }
 
     // The condition may fail/iterable may be empty, so the body gets a new
@@ -1637,7 +1645,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       targetType = target.accept(this);
     } else {
       _checkNonObjectMember(propertyName.name); // TODO(paulberry)
-      targetType = _handleAssignment(target, destinationType: _notNullType);
+      targetType = _checkExpressionNotNull(target);
     }
     var callee = propertyName.staticElement;
     if (callee == null) {
