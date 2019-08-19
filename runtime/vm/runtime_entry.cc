@@ -82,6 +82,10 @@ DEFINE_FLAG(bool,
             unopt_megamorphic_calls,
             true,
             "Enable specializing megamorphic calls from unoptimized code.");
+DEFINE_FLAG(bool,
+            verbose_stack_overflow,
+            false,
+            "Print additional details about stack overflow.");
 
 DECLARE_FLAG(int, reload_every);
 DECLARE_FLAG(bool, reload_every_optimized);
@@ -2260,6 +2264,38 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
   // TODO(regis): Warning: IsCalleeFrameOf is overridden in stack_frame_dbc.h.
   if (interpreter_stack_overflow || !thread->os_thread()->HasStackHeadroom() ||
       IsCalleeFrameOf(thread->saved_stack_limit(), stack_pos)) {
+    if (FLAG_verbose_stack_overflow) {
+      OS::PrintErr("Stack overflow in %s\n",
+                   interpreter_stack_overflow ? "interpreter" : "native code");
+      OS::PrintErr("  Native SP = %" Px ", stack limit = %" Px "\n", stack_pos,
+                   thread->saved_stack_limit());
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      if (thread->interpreter() != nullptr) {
+        OS::PrintErr("  Interpreter SP = %" Px ", stack limit = %" Px "\n",
+                     thread->interpreter()->get_sp(),
+                     thread->interpreter()->overflow_stack_limit());
+      }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+      OS::PrintErr("Call stack:\n");
+      OS::PrintErr("size | frame\n");
+      StackFrameIterator frames(ValidationPolicy::kDontValidateFrames, thread,
+                                StackFrameIterator::kNoCrossThreadIteration);
+      uword fp = stack_pos;
+      StackFrame* frame = frames.NextFrame();
+      while (frame != NULL) {
+        if (frame->is_interpreted() == interpreter_stack_overflow) {
+          uword delta = interpreter_stack_overflow ? (fp - frame->fp())
+                                                   : (frame->fp() - fp);
+          fp = frame->fp();
+          OS::PrintErr("%4" Pd " %s\n", delta, frame->ToCString());
+        } else {
+          OS::PrintErr("     %s\n", frame->ToCString());
+        }
+        frame = frames.NextFrame();
+      }
+    }
+
     // Use the preallocated stack overflow exception to avoid calling
     // into dart code.
     const Instance& exception =
