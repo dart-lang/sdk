@@ -16,7 +16,7 @@
 #include <unistd.h>
 
 // Only OK to use here because this is test code.
-#include <thread>
+#include <thread>  // NOLINT(build/c++11)
 #endif
 
 #include <setjmp.h>
