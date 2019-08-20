@@ -761,6 +761,10 @@ class _TypeConverter implements DartTypeVisitor<DartType, _EntityConverter> {
   }
 
   @override
+  DartType visitAnyType(AnyType type, _EntityConverter converter) =>
+      const AnyType();
+
+  @override
   DartType visitInterfaceType(InterfaceType type, _EntityConverter converter) {
     return new InterfaceType(
         converter(type.element), visitList(type.typeArguments, converter));

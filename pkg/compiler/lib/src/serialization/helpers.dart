@@ -96,6 +96,7 @@ enum DartTypeKind {
   interfaceType,
   typedef,
   dynamicType,
+  anyType,
   futureOr,
 }
 
@@ -187,6 +188,12 @@ class DartTypeWriter
   void visitDynamicType(covariant DynamicType type,
       List<FunctionTypeVariable> functionTypeVariables) {
     _sink.writeEnum(DartTypeKind.dynamicType);
+  }
+
+  @override
+  void visitAnyType(covariant AnyType type,
+      List<FunctionTypeVariable> functionTypeVariables) {
+    _sink.writeEnum(DartTypeKind.anyType);
   }
 
   @override

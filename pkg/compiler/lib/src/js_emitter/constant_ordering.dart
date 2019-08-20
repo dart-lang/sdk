@@ -223,6 +223,8 @@ class _DartTypeKindVisitor extends DartTypeVisitor<int, Null> {
   int visitTypedefType(covariant TypedefType type, _) => 2;
   @override
   int visitDynamicType(covariant DynamicType type, _) => 5;
+  @override
+  int visitAnyType(covariant AnyType type, _) => 7;
 }
 
 class _DartTypeOrdering extends DartTypeVisitor<int, DartType> {
@@ -290,6 +292,11 @@ class _DartTypeOrdering extends DartTypeVisitor<int, DartType> {
   int visitDynamicType(
       covariant DynamicType type, covariant DynamicType other) {
     throw new UnsupportedError('Unreachable');
+  }
+
+  @override
+  int visitAnyType(covariant AnyType type, covariant AnyType other) {
+    throw UnsupportedError('Unreachable');
   }
 
   int _compareTypeArguments(

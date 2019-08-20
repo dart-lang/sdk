@@ -1656,6 +1656,11 @@ class TypeDependencyVisitor implements DartTypeVisitor<void, Null> {
   }
 
   @override
+  void visitAnyType(AnyType type, Null argument) {
+    // Nothing to add.
+  }
+
+  @override
   void visitTypedefType(TypedefType type, Null argument) {
     visitList(type.typeArguments);
     visit(type.unaliased);
