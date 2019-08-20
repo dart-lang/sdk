@@ -3,8 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:linter/src/analyzer.dart';
+import 'package:linter/src/rules/always_declare_return_types.dart';
 
-final experiments = <LintRule>[];
+final experiments = <LintRule>[
+  AlwaysDeclareReturnTypes(),
+];
 
 void registerLintRuleExperiments() {
   experiments.forEach(Analyzer.facade.register);
