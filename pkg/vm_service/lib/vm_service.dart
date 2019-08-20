@@ -929,7 +929,7 @@ class VmServerConnection {
             params['isolateId'],
             params['targetId'],
             params['selector'],
-            params['argumentIds'],
+            List<String>.from(params['argumentIds'] ?? []),
             disableBreakpoints: params['disableBreakpoints'],
           );
           break;
@@ -1013,7 +1013,7 @@ class VmServerConnection {
         case 'getSourceReport':
           response = await _serviceImplementation.getSourceReport(
             params['isolateId'],
-            params['reports'],
+            List<String>.from(params['reports'] ?? []),
             scriptId: params['scriptId'],
             tokenPos: params['tokenPos'],
             endTokenPos: params['endTokenPos'],
@@ -1107,7 +1107,7 @@ class VmServerConnection {
           break;
         case 'setVMTimelineFlags':
           response = await _serviceImplementation.setVMTimelineFlags(
-            params['recordedStreams'],
+            List<String>.from(params['recordedStreams'] ?? []),
           );
           break;
         case 'streamCancel':

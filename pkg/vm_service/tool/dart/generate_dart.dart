@@ -635,8 +635,13 @@ abstract class VmServiceInterface {
         } else {
           gen.write("response = await _serviceImplementation.${m.name}(");
           // Positional args
-          m.args.where((arg) => !arg.optional).forEach((arg) {
-            gen.write("params['${arg.name}'], ");
+          m.args.where((arg) => !arg.optional).forEach((MethodArg arg) {
+            if (arg.type.isArray) {
+              gen.write(
+                  "${arg.type.listCreationRef}.from(params['${arg.name}'] ?? []), ");
+            } else {
+              gen.write("params['${arg.name}'], ");
+            }
           });
           // Optional named args
           var namedArgs = m.args.where((arg) => arg.optional);
@@ -1166,6 +1171,16 @@ class TypeRef {
       return '$name<${genericTypes.join(', ')}>';
     } else {
       return name.startsWith('_') ? name.substring(1) : name;
+    }
+  }
+
+  String get listCreationRef {
+    assert(arrayDepth == 1);
+
+    if (isListTypeSimple) {
+      return 'List<$name>';
+    } else {
+      return 'List<String>';
     }
   }
 
