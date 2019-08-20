@@ -1883,13 +1883,14 @@ void IsolateReloadContext::ResetUnoptimizedICsOnStack() {
   Code& code = Code::Handle(zone);
   Bytecode& bytecode = Bytecode::Handle(zone);
   Function& function = Function::Handle(zone);
+  CallSiteResetter resetter(zone);
   DartFrameIterator iterator(thread,
                              StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = iterator.NextFrame();
   while (frame != NULL) {
     if (frame->is_interpreted()) {
       bytecode = frame->LookupDartBytecode();
-      bytecode.ResetICDatas(zone);
+      resetter.ResetICDatas(bytecode);
     } else {
       code = frame->LookupDartCode();
       if (code.is_optimized() && !code.is_force_optimized()) {
@@ -1899,11 +1900,11 @@ void IsolateReloadContext::ResetUnoptimizedICsOnStack() {
         function = code.function();
         code = function.unoptimized_code();
         ASSERT(!code.IsNull());
-        code.ResetSwitchableCalls(zone);
-        code.ResetICDatas(zone);
+        resetter.ResetSwitchableCalls(code);
+        resetter.ResetICDatas(code);
       } else {
-        code.ResetSwitchableCalls(zone);
-        code.ResetICDatas(zone);
+        resetter.ResetSwitchableCalls(code);
+        resetter.ResetICDatas(code);
       }
     }
     frame = iterator.NextFrame();
@@ -1985,6 +1986,8 @@ void IsolateReloadContext::RunInvalidationVisitors() {
     }
   }
 
+  CallSiteResetter resetter(zone);
+
   Class& owning_class = Class::Handle(zone);
   Library& owning_lib = Library::Handle(zone);
   Code& code = Code::Handle(zone);
@@ -2010,12 +2013,12 @@ void IsolateReloadContext::RunInvalidationVisitors() {
 
     // Zero edge counters, before clearing the ICDataArray, since that's where
     // they're held.
-    func.ZeroEdgeCounters();
+    resetter.ZeroEdgeCounters(func);
 
     if (!bytecode.IsNull()) {
       // We are preserving the bytecode, fill all ICData arrays with
       // the sentinel values so that we have no stale type feedback.
-      bytecode.ResetICDatas(zone);
+      resetter.ResetICDatas(bytecode);
     }
 
     if (stub_code) {
@@ -2030,8 +2033,8 @@ void IsolateReloadContext::RunInvalidationVisitors() {
     } else {
       // We are preserving the unoptimized code, fill all ICData arrays with
       // the sentinel values so that we have no stale type feedback.
-      code.ResetSwitchableCalls(zone);
-      code.ResetICDatas(zone);
+      resetter.ResetSwitchableCalls(code);
+      resetter.ResetICDatas(code);
     }
 
     // Clear counters.

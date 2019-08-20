@@ -413,6 +413,7 @@ class Object {
   V(Bool, bool_true)                                                           \
   V(Bool, bool_false)                                                          \
   V(Smi, smi_illegal_cid)                                                      \
+  V(Smi, smi_zero)                                                             \
   V(LanguageError, snapshot_writer_error)                                      \
   V(LanguageError, branch_offset_error)                                        \
   V(LanguageError, speculative_inlining_error)                                 \
@@ -2065,6 +2066,7 @@ class ICData : public Object {
   friend class SnapshotWriter;
   friend class Serializer;
   friend class Deserializer;
+  friend class CallSiteResetter;
 };
 
 // Often used constants for number of free function type parameters.
@@ -2171,10 +2173,6 @@ class Function : public Object {
   bool HasInstantiatedSignature(Genericity genericity = kAny,
                                 intptr_t num_free_fun_type_params = kAllFree,
                                 TrailPtr trail = NULL) const;
-
-  // Reloading support:
-  void Reparent(const Class& new_cls) const;
-  void ZeroEdgeCounters() const;
 
   RawClass* Owner() const;
   void set_owner(const Object& value) const;
@@ -4567,9 +4565,6 @@ class ObjectPool : public Object {
     StoreNonPointer(&EntryAddr(index)->raw_value_, raw_value);
   }
 
-  // Used during reloading (see object_reload.cc). Calls Reset on all ICDatas.
-  void ResetICDatas(Zone* zone) const;
-
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawObjectPool) ==
            OFFSET_OF_RETURNED_VALUE(RawObjectPool, data));
@@ -5292,11 +5287,6 @@ class Code : public Object {
     StorePointer(&raw_ptr()->code_source_map_, code_source_map.raw());
   }
 
-  // Used during reloading (see object_reload.cc). Calls Reset on all ICDatas
-  // that are embedded inside the Code or ObjecPool objects.
-  void ResetICDatas(Zone* zone) const;
-  void ResetSwitchableCalls(Zone* zone) const;
-
   // Array of DeoptInfo objects.
   RawArray* deopt_info_array() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -5691,6 +5681,7 @@ class Code : public Object {
   // So that the RawFunction pointer visitor can determine whether code the
   // function points to is optimized.
   friend class RawFunction;
+  friend class CallSiteResetter;
 };
 
 class Bytecode : public Object {
@@ -5730,10 +5721,6 @@ class Bytecode : public Object {
     ASSERT(function.IsOld());
     StorePointer(&raw_ptr()->function_, function.raw());
   }
-
-  // Used during reloading (see object_reload.cc). Calls Reset on all ICDatas
-  // that are embedded inside the Code or ObjecPool objects.
-  void ResetICDatas(Zone* zone) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawBytecode));

@@ -21,57 +21,55 @@ DECLARE_FLAG(bool, trace_reload);
 DECLARE_FLAG(bool, trace_reload_verbose);
 DECLARE_FLAG(bool, two_args_smi_icd);
 
-class ObjectReloadUtils : public AllStatic {
-  static void DumpLibraryDictionary(const Library& lib) {
-    DictionaryIterator it(lib);
-    Object& entry = Object::Handle();
-    String& name = String::Handle();
-    TIR_Print("Dumping dictionary for %s\n", lib.ToCString());
-    while (it.HasNext()) {
-      entry = it.GetNext();
-      name = entry.DictionaryName();
-      TIR_Print("%s -> %s\n", name.ToCString(), entry.ToCString());
-    }
-  }
-};
-
-void Function::Reparent(const Class& new_cls) const {
-  set_owner(new_cls);
-}
-
-void Function::ZeroEdgeCounters() const {
-  const Array& saved_ic_data = Array::Handle(ic_data_array());
-  if (saved_ic_data.IsNull()) {
+void CallSiteResetter::ZeroEdgeCounters(const Function& function) {
+  ic_data_array_ = function.ic_data_array();
+  if (ic_data_array_.IsNull()) {
     return;
   }
-  const intptr_t saved_ic_datalength = saved_ic_data.Length();
-  ASSERT(saved_ic_datalength > 0);
-  const Array& edge_counters_array =
-      Array::Handle(Array::RawCast(saved_ic_data.At(0)));
-  if (edge_counters_array.IsNull()) {
+  ASSERT(ic_data_array_.Length() > 0);
+  edge_counters_ ^= ic_data_array_.At(0);
+  if (edge_counters_.IsNull()) {
     return;
   }
   // Fill edge counters array with zeros.
-  const Smi& zero = Smi::Handle(Smi::New(0));
-  for (intptr_t i = 0; i < edge_counters_array.Length(); i++) {
-    edge_counters_array.SetAt(i, zero);
+  for (intptr_t i = 0; i < edge_counters_.Length(); i++) {
+    edge_counters_.SetAt(i, Object::smi_zero());
   }
 }
 
-void Code::ResetICDatas(Zone* zone) const {
-// Iterate over the Code's object pool and reset all ICDatas.
+CallSiteResetter::CallSiteResetter(Zone* zone)
+    : zone_(zone),
+      instrs_(Instructions::Handle(zone)),
+      pool_(ObjectPool::Handle(zone)),
+      object_(Object::Handle(zone)),
+      name_(String::Handle(zone)),
+      new_cls_(Class::Handle(zone)),
+      new_lib_(Library::Handle(zone)),
+      new_function_(Function::Handle(zone)),
+      new_field_(Field::Handle(zone)),
+      entries_(Array::Handle(zone)),
+      old_target_(Function::Handle(zone)),
+      new_target_(Function::Handle(zone)),
+      caller_(Function::Handle(zone)),
+      args_desc_array_(Array::Handle(zone)),
+      ic_data_array_(Array::Handle(zone)),
+      edge_counters_(Array::Handle(zone)),
+      descriptors_(PcDescriptors::Handle(zone)),
+      ic_data_(ICData::Handle(zone)) {}
+
+void CallSiteResetter::ResetICDatas(const Code& code) {
+  // Iterate over the Code's object pool and reset all ICDatas.
 #ifdef TARGET_ARCH_IA32
   // IA32 does not have an object pool, but, we can iterate over all
   // embedded objects by using the variable length data section.
-  if (!is_alive()) {
+  if (!code.is_alive()) {
     return;
   }
-  const Instructions& instrs = Instructions::Handle(zone, instructions());
-  ASSERT(!instrs.IsNull());
-  uword base_address = instrs.PayloadStart();
-  Object& object = Object::Handle(zone);
-  intptr_t offsets_length = pointer_offsets_length();
-  const int32_t* offsets = raw_ptr()->data();
+  instrs_ = code.instructions();
+  ASSERT(!instrs_.IsNull());
+  uword base_address = instrs_.PayloadStart();
+  intptr_t offsets_length = code.pointer_offsets_length();
+  const int32_t* offsets = code.raw_ptr()->data();
   for (intptr_t i = 0; i < offsets_length; i++) {
     int32_t offset = offsets[i];
     RawObject** object_ptr =
@@ -80,15 +78,15 @@ void Code::ResetICDatas(Zone* zone) const {
     if (!raw_object->IsHeapObject()) {
       continue;
     }
-    object = raw_object;
-    if (object.IsICData()) {
-      ICData::Cast(object).Reset(zone);
+    object_ = raw_object;
+    if (object_.IsICData()) {
+      Reset(ICData::Cast(object_));
     }
   }
 #else
-  const ObjectPool& pool = ObjectPool::Handle(zone, object_pool());
-  ASSERT(!pool.IsNull());
-  pool.ResetICDatas(zone);
+  pool_ = code.object_pool();
+  ASSERT(!pool_.IsNull());
+  ResetICDatas(pool_);
 #endif
 }
 
@@ -117,17 +115,17 @@ static void FindICData(const Array& ic_data_array,
 }
 #endif  // !defined(TARGET_ARCH_DBC)
 
-void Code::ResetSwitchableCalls(Zone* zone) const {
+void CallSiteResetter::ResetSwitchableCalls(const Code& code) {
 #if !defined(TARGET_ARCH_DBC)
-  if (is_optimized()) {
+  if (code.is_optimized()) {
     return;  // No switchable calls in optimized code.
   }
 
-  const Object& owner = Object::Handle(zone, this->owner());
-  if (!owner.IsFunction()) {
+  object_ = code.owner();
+  if (!object_.IsFunction()) {
     return;  // No switchable calls in stub code.
   }
-  const Function& function = Function::Cast(owner);
+  const Function& function = Function::Cast(object_);
 
   if (function.kind() == RawFunction::kIrregexpFunction) {
     // Regex matchers do not support breakpoints or stepping, and they only call
@@ -138,102 +136,92 @@ void Code::ResetSwitchableCalls(Zone* zone) const {
     return;
   }
 
-  const Array& ic_data_array = Array::Handle(zone, function.ic_data_array());
-  if (ic_data_array.IsNull()) {
+  ic_data_array_ = function.ic_data_array();
+  if (ic_data_array_.IsNull()) {
     // The megamorphic miss stub and some recognized function doesn't populate
     // their ic_data_array. Check this only happens for functions without IC
     // calls.
 #if defined(DEBUG)
-    const PcDescriptors& descriptors =
-        PcDescriptors::Handle(zone, pc_descriptors());
-    PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kIcCall);
+    descriptors_ = code.pc_descriptors();
+    PcDescriptors::Iterator iter(descriptors_, RawPcDescriptors::kIcCall);
     while (iter.MoveNext()) {
-      FATAL1("%s has IC calls but no ic_data_array\n", owner.ToCString());
+      FATAL1("%s has IC calls but no ic_data_array\n", object_.ToCString());
     }
 #endif
     return;
   }
 
-  ICData& ic_data = ICData::Handle(zone);
-  Object& data = Object::Handle(zone);
-  const PcDescriptors& descriptors =
-      PcDescriptors::Handle(zone, pc_descriptors());
-  PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kIcCall);
+  descriptors_ = code.pc_descriptors();
+  PcDescriptors::Iterator iter(descriptors_, RawPcDescriptors::kIcCall);
   while (iter.MoveNext()) {
-    uword pc = PayloadStart() + iter.PcOffset();
-    CodePatcher::GetInstanceCallAt(pc, *this, &data);
+    uword pc = code.PayloadStart() + iter.PcOffset();
+    CodePatcher::GetInstanceCallAt(pc, code, &object_);
     // This check both avoids unnecessary patching to reduce log spam and
     // prevents patching over breakpoint stubs.
-    if (!data.IsICData()) {
-      FindICData(ic_data_array, iter.DeoptId(), &ic_data);
-      ASSERT(ic_data.rebind_rule() == ICData::kInstance);
-      ASSERT(ic_data.NumArgsTested() == 1);
+    if (!object_.IsICData()) {
+      FindICData(ic_data_array_, iter.DeoptId(), &ic_data_);
+      ASSERT(ic_data_.rebind_rule() == ICData::kInstance);
+      ASSERT(ic_data_.NumArgsTested() == 1);
       const Code& stub =
-          ic_data.is_tracking_exactness()
+          ic_data_.is_tracking_exactness()
               ? StubCode::OneArgCheckInlineCacheWithExactnessCheck()
               : StubCode::OneArgCheckInlineCache();
-      CodePatcher::PatchInstanceCallAt(pc, *this, ic_data, stub);
+      CodePatcher::PatchInstanceCallAt(pc, code, ic_data_, stub);
       if (FLAG_trace_ic) {
         OS::PrintErr("Instance call at %" Px
                      " resetting to polymorphic dispatch, %s\n",
-                     pc, ic_data.ToCString());
+                     pc, ic_data_.ToCString());
       }
     }
   }
 #endif
 }
 
-void Bytecode::ResetICDatas(Zone* zone) const {
+void CallSiteResetter::ResetICDatas(const Bytecode& bytecode) {
   // Iterate over the Bytecode's object pool and reset all ICDatas.
-  const ObjectPool& pool = ObjectPool::Handle(zone, object_pool());
-  ASSERT(!pool.IsNull());
-  pool.ResetICDatas(zone);
+  pool_ = bytecode.object_pool();
+  ASSERT(!pool_.IsNull());
+  ResetICDatas(pool_);
 
-  Object& object = Object::Handle(zone);
-  String& name = String::Handle(zone);
-  Class& new_cls = Class::Handle(zone);
-  Library& new_lib = Library::Handle(zone);
-  Function& new_function = Function::Handle(zone);
-  Field& new_field = Field::Handle(zone);
-  for (intptr_t i = 0; i < pool.Length(); i++) {
-    ObjectPool::EntryType entry_type = pool.TypeAt(i);
+  for (intptr_t i = 0; i < pool_.Length(); i++) {
+    ObjectPool::EntryType entry_type = pool_.TypeAt(i);
     if (entry_type != ObjectPool::EntryType::kTaggedObject) {
       continue;
     }
-    object = pool.ObjectAt(i);
-    if (object.IsFunction()) {
-      const Function& old_function = Function::Cast(object);
+    object_ = pool_.ObjectAt(i);
+    if (object_.IsFunction()) {
+      const Function& old_function = Function::Cast(object_);
       if (old_function.IsClosureFunction()) {
         continue;
       }
-      name = old_function.name();
-      new_cls = old_function.Owner();
-      if (new_cls.IsTopLevel()) {
-        new_lib = new_cls.library();
-        new_function = new_lib.LookupLocalFunction(name);
+      name_ = old_function.name();
+      new_cls_ = old_function.Owner();
+      if (new_cls_.IsTopLevel()) {
+        new_lib_ = new_cls_.library();
+        new_function_ = new_lib_.LookupLocalFunction(name_);
       } else {
-        new_function = new_cls.LookupFunction(name);
+        new_function_ = new_cls_.LookupFunction(name_);
       }
-      if (!new_function.IsNull() &&
-          (new_function.is_static() == old_function.is_static()) &&
-          (new_function.kind() == old_function.kind())) {
-        pool.SetObjectAt(i, new_function);
+      if (!new_function_.IsNull() &&
+          (new_function_.is_static() == old_function.is_static()) &&
+          (new_function_.kind() == old_function.kind())) {
+        pool_.SetObjectAt(i, new_function_);
       } else {
         VTIR_Print("Cannot rebind function %s\n", old_function.ToCString());
       }
-    } else if (object.IsField()) {
-      const Field& old_field = Field::Cast(object);
-      name = old_field.name();
-      new_cls = old_field.Owner();
-      if (new_cls.IsTopLevel()) {
-        new_lib = new_cls.library();
-        new_field = new_lib.LookupLocalField(name);
+    } else if (object_.IsField()) {
+      const Field& old_field = Field::Cast(object_);
+      name_ = old_field.name();
+      new_cls_ = old_field.Owner();
+      if (new_cls_.IsTopLevel()) {
+        new_lib_ = new_cls_.library();
+        new_field_ = new_lib_.LookupLocalField(name_);
       } else {
-        new_field = new_cls.LookupField(name);
+        new_field_ = new_cls_.LookupField(name_);
       }
-      if (!new_field.IsNull() &&
-          (new_field.is_static() == old_field.is_static())) {
-        pool.SetObjectAt(i, new_field);
+      if (!new_field_.IsNull() &&
+          (new_field_.is_static() == old_field.is_static())) {
+        pool_.SetObjectAt(i, new_field_);
       } else {
         VTIR_Print("Cannot rebind field %s\n", old_field.ToCString());
       }
@@ -241,16 +229,15 @@ void Bytecode::ResetICDatas(Zone* zone) const {
   }
 }
 
-void ObjectPool::ResetICDatas(Zone* zone) const {
-  Object& object = Object::Handle(zone);
-  for (intptr_t i = 0; i < Length(); i++) {
-    ObjectPool::EntryType entry_type = TypeAt(i);
+void CallSiteResetter::ResetICDatas(const ObjectPool& pool) {
+  for (intptr_t i = 0; i < pool.Length(); i++) {
+    ObjectPool::EntryType entry_type = pool.TypeAt(i);
     if (entry_type != ObjectPool::EntryType::kTaggedObject) {
       continue;
     }
-    object = ObjectAt(i);
-    if (object.IsICData()) {
-      ICData::Cast(object).Reset(zone);
+    object_ = pool.ObjectAt(i);
+    if (object_.IsICData()) {
+      Reset(ICData::Cast(object_));
     }
   }
 }
@@ -841,96 +828,90 @@ void Library::CheckReload(const Library& replacement,
   }
 }
 
-static const Function* static_call_target = NULL;
-
-void ICData::Reset(Zone* zone) const {
-  RebindRule rule = rebind_rule();
-  if (rule == kInstance) {
-    const intptr_t num_args = NumArgsTested();
-    const bool tracking_exactness = is_tracking_exactness();
-    const intptr_t len = Length();
+void CallSiteResetter::Reset(const ICData& ic) {
+  ICData::RebindRule rule = ic.rebind_rule();
+  if (rule == ICData::kInstance) {
+    const intptr_t num_args = ic.NumArgsTested();
+    const bool tracking_exactness = ic.is_tracking_exactness();
+    const intptr_t len = ic.Length();
     // We need at least one non-sentinel entry to require a check
     // for the smi fast path case.
     if (num_args == 2 && len >= 2) {
-      if (IsImmutable()) {
+      if (ic.IsImmutable()) {
         return;
       }
-      Zone* zone = Thread::Current()->zone();
-      const String& name = String::Handle(target_name());
-      const Class& smi_class = Class::Handle(Smi::Class());
+      name_ = ic.target_name();
+      const Class& smi_class = Class::Handle(zone_, Smi::Class());
       const Function& smi_op_target = Function::Handle(
-          Resolver::ResolveDynamicAnyArgs(zone, smi_class, name));
+          zone_, Resolver::ResolveDynamicAnyArgs(zone_, smi_class, name_));
       GrowableArray<intptr_t> class_ids(2);
-      Function& target = Function::Handle();
-      GetCheckAt(0, &class_ids, &target);
+      Function& target = Function::Handle(zone_);
+      ic.GetCheckAt(0, &class_ids, &target);
       if ((target.raw() == smi_op_target.raw()) && (class_ids[0] == kSmiCid) &&
           (class_ids[1] == kSmiCid)) {
         // The smi fast path case, preserve the initial entry but reset the
         // count.
-        ClearCountAt(0);
-        WriteSentinelAt(1);
-        const Array& array = Array::Handle(entries());
-        array.Truncate(2 * TestEntryLength());
+        ic.ClearCountAt(0);
+        ic.WriteSentinelAt(1);
+        entries_ = ic.entries();
+        entries_.Truncate(2 * ic.TestEntryLength());
         return;
       }
       // Fall back to the normal behavior with cached empty ICData arrays.
     }
-    const Array& data_array = Array::Handle(
-        zone, CachedEmptyICDataArray(num_args, tracking_exactness));
-    set_entries(data_array);
-    set_is_megamorphic(false);
+    entries_ = ICData::CachedEmptyICDataArray(num_args, tracking_exactness);
+    ic.set_entries(entries_);
+    ic.set_is_megamorphic(false);
     return;
-  } else if (rule == kNoRebind || rule == kNSMDispatch) {
+  } else if (rule == ICData::kNoRebind || rule == ICData::kNSMDispatch) {
     // TODO(30877) we should account for addition/removal of NSM.
     // Don't rebind dispatchers.
     return;
-  } else if (rule == kStatic || rule == kSuper) {
-    const Function& old_target = Function::Handle(zone, GetTargetAt(0));
-    if (old_target.IsNull()) {
+  } else if (rule == ICData::kStatic || rule == ICData::kSuper) {
+    old_target_ = ic.GetTargetAt(0);
+    if (old_target_.IsNull()) {
       FATAL("old_target is NULL.\n");
     }
-    static_call_target = &old_target;
+    name_ = old_target_.name();
 
-    const String& selector = String::Handle(zone, old_target.name());
-    Function& new_target = Function::Handle(zone);
-
-    if (rule == kStatic) {
-      ASSERT(old_target.is_static() ||
-             old_target.kind() == RawFunction::kConstructor);
+    if (rule == ICData::kStatic) {
+      ASSERT(old_target_.is_static() ||
+             old_target_.kind() == RawFunction::kConstructor);
       // This can be incorrect if the call site was an unqualified invocation.
-      const Class& cls = Class::Handle(zone, old_target.Owner());
-      new_target = cls.LookupFunction(selector);
-      if (new_target.kind() != old_target.kind()) {
-        new_target = Function::null();
+      new_cls_ = old_target_.Owner();
+      new_target_ = new_cls_.LookupFunction(name_);
+      if (new_target_.kind() != old_target_.kind()) {
+        new_target_ = Function::null();
       }
     } else {
       // Super call.
-      Function& caller = Function::Handle(zone);
-      caller = Owner();
-      ASSERT(!caller.is_static());
-      Class& cls = Class::Handle(zone, caller.Owner());
-      cls = cls.SuperClass();
-      while (!cls.IsNull()) {
+      caller_ = ic.Owner();
+      ASSERT(!caller_.is_static());
+      new_cls_ = caller_.Owner();
+      new_cls_ = new_cls_.SuperClass();
+      new_target_ = Function::null();
+      while (!new_cls_.IsNull()) {
         // TODO(rmacnak): Should use Resolver::ResolveDynamicAnyArgs to handle
         // method-extractors and call-through-getters, but we're in a no
         // safepoint scope here.
-        new_target = cls.LookupDynamicFunction(selector);
-        if (!new_target.IsNull()) {
+        new_target_ = new_cls_.LookupDynamicFunction(name_);
+        if (!new_target_.IsNull()) {
           break;
         }
-        cls = cls.SuperClass();
+        new_cls_ = new_cls_.SuperClass();
       }
     }
-    const Array& args_desc_array = Array::Handle(zone, arguments_descriptor());
-    ArgumentsDescriptor args_desc(args_desc_array);
-    if (new_target.IsNull() || !new_target.AreValidArguments(args_desc, NULL)) {
+    args_desc_array_ = ic.arguments_descriptor();
+    ArgumentsDescriptor args_desc(args_desc_array_);
+    if (new_target_.IsNull() ||
+        !new_target_.AreValidArguments(args_desc, NULL)) {
       // TODO(rmacnak): Patch to a NSME stub.
       VTIR_Print("Cannot rebind static call to %s from %s\n",
-                 old_target.ToCString(),
-                 Object::Handle(zone, Owner()).ToCString());
+                 old_target_.ToCString(),
+                 Object::Handle(zone_, ic.Owner()).ToCString());
       return;
     }
-    ClearAndSetStaticTarget(new_target);
+    ic.ClearAndSetStaticTarget(new_target_);
   } else {
     FATAL("Unexpected rebind rule.");
   }
