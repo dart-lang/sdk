@@ -189,6 +189,155 @@ f(C c) {
       error(StaticTypeWarningCode.UNDEFINED_GETTER, 40, 1),
     ]);
   }
+
+  test_visibility_shadowed_byClass() async {
+    newFile('/test/lib/lib.dart', content: '''
+class C {}
+extension E on C {
+  int get a => 1;
+}
+''');
+    await assertNoErrorsInCode('''
+import 'lib.dart';
+
+class E {}
+f(C c) {
+  c.a;
+}
+''');
+    var access = findNode.prefixed('c.a');
+    var import = findElement.importFind('package:test/lib.dart');
+    assertElement(access, import.extension_('E').getGetter('a'));
+    assertType(access, 'int');
+  }
+
+  test_visibility_shadowed_byImport() async {
+    newFile('/test/lib/lib1.dart', content: '''
+extension E on Object {
+  int get a => 1;
+}
+''');
+    newFile('/test/lib/lib2.dart', content: '''
+class E {}
+class A {}
+''');
+    await assertNoErrorsInCode('''
+import 'lib1.dart';
+import 'lib2.dart';
+
+f(Object o, A a) {
+  o.a;
+}
+''');
+    var access = findNode.prefixed('o.a');
+    var import = findElement.importFind('package:test/lib1.dart');
+    assertElement(access, import.extension_('E').getGetter('a'));
+    assertType(access, 'int');
+  }
+
+  test_visibility_shadowed_byLocal_imported() async {
+    newFile('/test/lib/lib.dart', content: '''
+class C {}
+extension E on C {
+  int get a => 1;
+}
+''');
+    await assertNoErrorsInCode('''
+import 'lib.dart';
+
+f(C c) {
+  double E = 2.71;
+  c.a;
+}
+''');
+    var access = findNode.prefixed('c.a');
+    var import = findElement.importFind('package:test/lib.dart');
+    assertElement(access, import.extension_('E').getGetter('a'));
+    assertType(access, 'int');
+  }
+
+  test_visibility_shadowed_byLocal_local() async {
+    await assertNoErrorsInCode('''
+class C {}
+extension E on C {
+  int get a => 1;
+}
+f(C c) {
+  double E = 2.71;
+  c.a;
+}
+''');
+    var access = findNode.prefixed('c.a');
+    assertElement(access, findElement.getter('a'));
+    assertType(access, 'int');
+  }
+
+  test_visibility_shadowed_byTopLevelVariable() async {
+    newFile('/test/lib/lib.dart', content: '''
+class C {}
+extension E on C {
+  int get a => 1;
+}
+''');
+    await assertNoErrorsInCode('''
+import 'lib.dart';
+
+double E = 2.71;
+f(C c) {
+  c.a;
+}
+''');
+    var access = findNode.prefixed('c.a');
+    var import = findElement.importFind('package:test/lib.dart');
+    assertElement(access, import.extension_('E').getGetter('a'));
+    assertType(access, 'int');
+  }
+
+  test_visibility_shadowed_coreByNonCore() async {
+    newFile('/test/lib/core.dart', content: '''
+library dart.core;
+
+extension E on Object {
+  int get a => 1;
+}
+class A {}
+''');
+    newFile('/test/lib/lib.dart', content: '''
+extension E on Object {
+  int get a => 1;
+}
+class B {}
+''');
+    await assertErrorsInCode('''
+import 'core.dart';
+import 'lib.dart';
+
+f(Object o, A a, B b) {
+  o.a;
+}
+''', [
+      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_METHOD_ACCESS, 68, 1),
+    ]);
+  }
+
+  @failingTest
+  test_visibility_withPrefix() async {
+    newFile('/test/lib/lib.dart', content: '''
+class C {}
+extension E on C {
+  int get a => 1;
+}
+''');
+    await assertErrorsInCode('''
+import 'lib.dart' as p;
+
+f(p.C c) {
+  c.a;
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_GETTER, 40, 1),
+    ]);
+  }
 }
 
 /// Tests that extension members can be correctly resolved when referenced
