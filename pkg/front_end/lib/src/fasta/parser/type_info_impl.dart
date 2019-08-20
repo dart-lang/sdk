@@ -1151,9 +1151,16 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
     if (parseCloser(next)) {
       return next;
     }
-    Token endGroup = syntheticGt(next);
-    endGroup.setNext(next);
-    token.setNext(endGroup);
+    Token endGroup = start.endGroup;
+    if (endGroup != null) {
+      while (token.next != endGroup && !token.isEof) {
+        token = token.next;
+      }
+    } else {
+      endGroup = syntheticGt(next);
+      endGroup.setNext(next);
+      token.setNext(endGroup);
+    }
     return token;
   }
 
