@@ -1257,8 +1257,9 @@ FinalFieldWithoutInitializer:
   analyzerCode: FINAL_NOT_INITIALIZED
 
 MetadataTypeArguments:
+  index: 91
   template: "An annotation (metadata) can't use type arguments."
-  analyzerCode: ANNOTATION_WITH_TYPE_ARGUMENTS
+  analyzerCode: ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS
 
 ConstructorNotFound:
   template: "Couldn't find constructor '#name'."

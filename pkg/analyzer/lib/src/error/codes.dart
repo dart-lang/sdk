@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 
 export 'package:analyzer/src/analysis_options/error/option_codes.dart';
 export 'package:analyzer/src/dart/error/hint_codes.dart';
@@ -323,9 +324,8 @@ class CompileTimeErrorCode extends ErrorCode {
               "correcting the name to match a defined class, or "
               "defining a class with the given name.");
 
-  static const CompileTimeErrorCode ANNOTATION_WITH_TYPE_ARGUMENTS =
-      const CompileTimeErrorCode('ANNOTATION_WITH_TYPE_ARGUMENTS',
-          "An annotation (metadata) can't use type arguments.");
+  static const ParserErrorCode ANNOTATION_WITH_TYPE_ARGUMENTS =
+      ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS;
 
   /**
    * 17.6.3 Asynchronous For-in: It is a compile-time error if an asynchronous

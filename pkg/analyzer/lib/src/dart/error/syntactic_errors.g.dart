@@ -98,6 +98,7 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _FIELD_INITIALIZED_OUTSIDE_DECLARING_CLASS,
   _VAR_AND_TYPE,
   _INVALID_INITIALIZER,
+  _ANNOTATION_WITH_TYPE_ARGUMENTS,
 ];
 
 const ParserErrorCode _ABSTRACT_CLASS_MEMBER = const ParserErrorCode(
@@ -105,6 +106,10 @@ const ParserErrorCode _ABSTRACT_CLASS_MEMBER = const ParserErrorCode(
     r"Members of classes can't be declared to be 'abstract'.",
     correction:
         "Try removing the 'abstract' keyword. You can add the 'abstract' keyword before the class declaration.");
+
+const ParserErrorCode _ANNOTATION_WITH_TYPE_ARGUMENTS = const ParserErrorCode(
+    'ANNOTATION_WITH_TYPE_ARGUMENTS',
+    r"An annotation (metadata) can't use type arguments.");
 
 const ParserErrorCode _BREAK_OUTSIDE_OF_LOOP = const ParserErrorCode(
     'BREAK_OUTSIDE_OF_LOOP',
