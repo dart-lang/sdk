@@ -152,6 +152,8 @@ class DecoratedType {
           type, NullabilityNode.forInferredType(), graph);
     } else if (type is TypeParameterType) {
       return DecoratedType(type, NullabilityNode.forInferredType());
+    } else if (type is BottomTypeImpl) {
+      return DecoratedType(type, NullabilityNode.forInferredType());
     }
     // TODO(paulberry)
     throw UnimplementedError(

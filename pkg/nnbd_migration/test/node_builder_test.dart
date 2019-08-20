@@ -625,6 +625,20 @@ void f() {
         decoratedType.returnType.node, TypeMatcher<NullabilityNodeMutable>());
   }
 
+  test_functionExpression_returns_bottom() async {
+    await analyze('''
+void f() {
+  var x = (int i) => throw 'foo';
+}
+''');
+    var functionExpressionElement =
+        findNode.simpleParameter('int i').declaredElement.enclosingElement;
+    var decoratedType =
+        variables.decoratedElementType(functionExpressionElement);
+    expect(
+        decoratedType.returnType.node, TypeMatcher<NullabilityNodeMutable>());
+  }
+
   test_functionTypedFormalParameter_namedParameter_typed() async {
     await analyze('''
 void f(void g({int i})) {}
