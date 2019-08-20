@@ -1138,6 +1138,28 @@ void g(C<int?> y) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_generic_exact_propagation_premigratedListClass() async {
+    var content = '''
+void f() {
+  List<int> x = new List<int>();
+  g(x);
+}
+void g(List<int> y) {
+  y.add(null);
+}
+''';
+    var expected = '''
+void f() {
+  List<int?> x = new List<int?>();
+  g(x);
+}
+void g(List<int?> y) {
+  y.add(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_generic_function_type_syntax_inferred_dynamic_return() async {
     var content = '''
 abstract class C {
