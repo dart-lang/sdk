@@ -664,11 +664,13 @@ class Assembler : public AssemblerBase {
   // Require a temporary register 'tmp'.
   // Clobber all non-CPU registers (e.g. XMM registers and the "FPU stack").
   // However XMM0 is saved for convenience.
-
   void TransitionGeneratedToNative(Register destination_address,
                                    Register new_exit_frame,
-                                   Register scratch);
-  void TransitionNativeToGenerated(Register scratch);
+                                   Register scratch,
+                                   bool enter_safepoint);
+  void TransitionNativeToGenerated(Register scratch, bool exit_safepoint);
+  void EnterSafepoint(Register scratch);
+  void ExitSafepoint(Register scratch);
 
   // Create a frame for calling into runtime that preserves all volatile
   // registers.  Frame's RSP is guaranteed to be correctly aligned and

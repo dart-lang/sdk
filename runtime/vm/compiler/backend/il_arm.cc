@@ -1038,12 +1038,13 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Update information in the thread object and enter a safepoint.
   const Register tmp = locs()->temp(1).reg();
   if (CanExecuteGeneratedCodeInSafepoint()) {
-    __ TransitionGeneratedToNative(branch, FPREG, saved_fp, tmp);
+    __ TransitionGeneratedToNative(branch, FPREG, saved_fp, tmp,
+                                   /*enter_safepoint=*/true);
 
     __ blx(branch);
 
     // Update information in the thread object and leave the safepoint.
-    __ TransitionNativeToGenerated(saved_fp, tmp);
+    __ TransitionNativeToGenerated(saved_fp, tmp, /*leave_safepoint=*/true);
   } else {
     // We cannot trust that this code will be executable within a safepoint.
     // Therefore we delegate the responsibility of entering/exiting the
@@ -1091,9 +1092,11 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ Pop(vm_tag_reg);
 
-  // Reset the exit frame info to
-  // old_exit_frame_reg *before* entering the safepoint.
-  __ TransitionGeneratedToNative(vm_tag_reg, old_exit_frame_reg, tmp, tmp1);
+  // If we were called by a trampoline, it will enter the safepoint on our
+  // behalf.
+  __ TransitionGeneratedToNative(
+      vm_tag_reg, old_exit_frame_reg, tmp, tmp1,
+      /*enter_safepoint=*/!NativeCallbackTrampolines::Enabled());
 
   __ PopNativeCalleeSavedRegisters();
 
@@ -1160,18 +1163,20 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ PushNativeCalleeSavedRegisters();
 
-  // Load the thread object.
-  // TODO(35765): Fix linking issue on AOT.
-  // TOOD(35934): Exclude native callbacks from snapshots.
+  // Load the thread object. If we were called by a trampoline, the thread is
+  // already loaded.
   //
-  // Create another frame to align the frame before continuing in "native" code.
-  {
+  // TODO(35765): Fix linking issue on AOT.
+  if (!NativeCallbackTrampolines::Enabled()) {
+    // Create another frame to align the frame before continuing in "native"
+    // code.
     __ EnterFrame(1 << FP, 0);
     __ ReserveAlignedFrameSpace(0);
 
+    __ LoadImmediate(R0, callback_id_);
     __ LoadImmediate(
-        R0, reinterpret_cast<int64_t>(DLRT_GetThreadForNativeCallback));
-    __ blx(R0);
+        R1, reinterpret_cast<int64_t>(DLRT_GetThreadForNativeCallback));
+    __ blx(R1);
     __ mov(THR, compiler::Operand(R0));
 
     __ LeaveFrame(1 << FP);
@@ -1189,27 +1194,21 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LoadImmediate(R0, 0);
   __ StoreToOffset(kWord, R0, THR, top_resource_offset);
 
-  // Save top exit frame info. Don't set it to 0 yet --
-  // TransitionNativeToGenerated will handle that *after* leaving the safepoint.
+  // Save top exit frame info. Don't set it to 0 yet,
+  // TransitionNativeToGenerated will handle that.
   __ LoadFromOffset(kWord, R0, THR,
                     compiler::target::Thread::top_exit_frame_info_offset());
   __ Push(R0);
 
   __ EmitEntryFrameVerification(R0);
 
-  __ TransitionNativeToGenerated(/*scratch0=*/R0, /*scratch1=*/R1);
+  // Either DLRT_GetThreadForNativeCallback or the callback trampoline (caller)
+  // will leave the safepoint for us.
+  __ TransitionNativeToGenerated(/*scratch0=*/R0, /*scratch1=*/R1,
+                                 /*exit_safepoint=*/false);
 
   // Now that the safepoint has ended, we can touch Dart objects without
   // handles.
-
-  // Otherwise we'll clobber the argument sent from the caller.
-  ASSERT(CallingConventions::ArgumentRegisters[0] != TMP &&
-         CallingConventions::ArgumentRegisters[0] != TMP2 &&
-         CallingConventions::ArgumentRegisters[0] != R1);
-  __ LoadImmediate(CallingConventions::ArgumentRegisters[0], callback_id_);
-  __ LoadFromOffset(kWord, R1, THR,
-                    compiler::target::Thread::verify_callback_entry_offset());
-  __ blx(R1);
 
   // Load the code object.
   __ LoadFromOffset(kWord, R0, THR,

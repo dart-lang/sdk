@@ -238,20 +238,6 @@ void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
   __ ret();
 }
 
-void StubCodeCompiler::GenerateVerifyCallbackStub(Assembler* assembler) {
-  // SP points to return address, which needs to be the second argument to
-  // VerifyCallbackIsolate.
-  __ movq(CallingConventions::kArg2Reg, Address(SPREG, 0));
-
-  __ EnterFrame(0);
-  __ ReserveAlignedFrameSpace(0);
-  __ movq(RAX,
-          Address(THR, kVerifyCallbackIsolateRuntimeEntry.OffsetFromThread()));
-  __ CallCFunction(RAX);
-  __ LeaveFrame();
-  __ ret();
-}
-
 // Calls native code within a safepoint.
 //
 // On entry:
@@ -263,16 +249,118 @@ void StubCodeCompiler::GenerateVerifyCallbackStub(Assembler* assembler) {
 //   RBX, R12 clobbered
 void StubCodeCompiler::GenerateCallNativeThroughSafepointStub(
     Assembler* assembler) {
-  __ TransitionGeneratedToNative(RBX, FPREG);
+  __ TransitionGeneratedToNative(RBX, FPREG, /*enter_safepoint=*/true);
 
   __ popq(R12);
   __ CallCFunction(RBX);
 
-  __ TransitionNativeToGenerated();
+  __ TransitionNativeToGenerated(/*leave_safepoint=*/true);
 
   // Faster than jmp because it doesn't confuse the branch predictor.
   __ pushq(R12);
   __ ret();
+}
+
+void StubCodeCompiler::GenerateJITCallbackTrampolines(
+    Assembler* assembler,
+    intptr_t next_callback_id) {
+  Label done;
+
+  // RAX is volatile and not used for passing any arguments.
+  COMPILE_ASSERT(!IsCalleeSavedRegister(RAX) && !IsArgumentRegister(RAX));
+
+  for (intptr_t i = 0;
+       i < NativeCallbackTrampolines::NumCallbackTrampolinesPerPage(); ++i) {
+    __ movq(RAX, compiler::Immediate(next_callback_id + i));
+    __ jmp(&done);
+  }
+
+  ASSERT(__ CodeSize() ==
+         kNativeCallbackTrampolineSize *
+             NativeCallbackTrampolines::NumCallbackTrampolinesPerPage());
+
+  __ Bind(&done);
+
+  const intptr_t shared_stub_start = __ CodeSize();
+
+  // Save THR which is callee-saved.
+  __ pushq(THR);
+
+  // THR & return address
+  COMPILE_ASSERT(StubCodeCompiler::kNativeCallbackTrampolineStackDelta == 2);
+
+  // Save the callback ID.
+  __ pushq(RAX);
+
+  // Save all registers which might hold arguments.
+  __ PushRegisters(CallingConventions::kArgumentRegisters,
+                   CallingConventions::kFpuArgumentRegisters);
+
+  // Load the thread, verify the callback ID and exit the safepoint.
+  //
+  // We exit the safepoint inside DLRT_GetThreadForNativeCallbackTrampoline
+  // in order to safe code size on this shared stub.
+  {
+    __ EnterFrame(0);
+    __ ReserveAlignedFrameSpace(0);
+
+    COMPILE_ASSERT(RAX != CallingConventions::kArg1Reg);
+    __ movq(CallingConventions::kArg1Reg, RAX);
+    __ movq(RAX, compiler::Immediate(reinterpret_cast<int64_t>(
+                     DLRT_GetThreadForNativeCallbackTrampoline)));
+    __ call(RAX);
+    __ movq(THR, RAX);
+
+    __ LeaveFrame();
+  }
+
+  // Restore the arguments.
+  __ PopRegisters(CallingConventions::kArgumentRegisters,
+                  CallingConventions::kFpuArgumentRegisters);
+
+  // Restore the callback ID.
+  __ popq(RAX);
+
+  // Current state:
+  //
+  // Stack:
+  //  <old stack (arguments)>
+  //  <return address>
+  //  <saved THR>
+  //
+  // Registers: Like entry, except RAX == callback_id and THR == thread
+  //            All argument registers are untouched.
+
+  COMPILE_ASSERT(!IsCalleeSavedRegister(TMP) && !IsArgumentRegister(TMP));
+
+  // Load the target from the thread.
+  __ movq(TMP, compiler::Address(
+                   THR, compiler::target::Thread::callback_code_offset()));
+  __ movq(TMP, compiler::FieldAddress(
+                   TMP, compiler::target::GrowableObjectArray::data_offset()));
+  __ movq(TMP, __ ElementAddressForRegIndex(
+                   /*external=*/false,
+                   /*array_cid=*/kArrayCid,
+                   /*index, smi-tagged=*/compiler::target::kWordSize * 2,
+                   /*array=*/TMP,
+                   /*index=*/RAX));
+  __ movq(TMP, compiler::FieldAddress(
+                   TMP, compiler::target::Code::entry_point_offset()));
+
+  // On entry to the function, there will be two extra slots on the stack:
+  // the saved THR and the return address. The target will know to skip them.
+  __ call(TMP);
+
+  // EnterSafepoint takes care to not clobber *any* registers (besides TMP).
+  __ EnterSafepoint();
+
+  // Restore THR (callee-saved).
+  __ popq(THR);
+
+  __ ret();
+
+  ASSERT((__ CodeSize() - shared_stub_start) == kNativeCallbackSharedStubSize);
+  ASSERT(__ CodeSize() <= VirtualMemory::PageSize());
 }
 
 // RBX: The extracted method.

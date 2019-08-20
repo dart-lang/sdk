@@ -53,6 +53,9 @@ COMPILE_ASSERT(kAbiPreservedFpuRegCount == 8);
 // arguments passed on stack and arguments saved in callback prologue.
 //
 // 2 = return adddress (1) + saved frame pointer (1).
+//
+// If NativeCallbackTrampolines::Enabled(), then
+// kNativeCallbackTrampolineStackDelta must be added as well.
 constexpr intptr_t kCallbackSlotsBeforeSavedArguments = 2;
 
 }  // namespace dart

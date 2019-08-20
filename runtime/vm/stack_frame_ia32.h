@@ -48,6 +48,9 @@ static const int kExitLinkSlotFromEntryFp = -7;
 
 // All arguments are passed on the stack, so none need to be saved. Therefore
 // there is no frame for holding the saved arguments.
+//
+// If NativeCallbackTrampolines::Enabled(), then
+// kNativeCallbackTrampolineStackDelta must be added as well.
 constexpr intptr_t kCallbackSlotsBeforeSavedArguments = 0;
 
 }  // namespace dart

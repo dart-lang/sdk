@@ -5,6 +5,7 @@
 // Dart test program for testing dart:ffi function pointers with callbacks.
 //
 // VMOptions=--enable-testing-pragmas
+// VMOptions=--enable-testing-pragmas --write-protect-code --no-dual-map-code
 // SharedObjects=ffi_test_functions
 
 library FfiTest;
@@ -172,6 +173,12 @@ void testGC() {
   triggerGc();
 }
 
+typedef WaitForHelper = Void Function(Pointer<Void>);
+void waitForHelper(Pointer<Void> helper) {
+  print("helper: $helper");
+  testLibrary.lookupFunction<WaitForHelper, WaitForHelper>("WaitForHelper")(helper);
+}
+
 final List<Test> testcases = [
   Test("SimpleAddition", Pointer.fromFunction<SimpleAdditionType>(simpleAddition, 0)),
   Test("IntComputation", Pointer.fromFunction<IntComputationType>(intComputation, 0)),
@@ -195,6 +202,7 @@ final List<Test> testcases = [
           throwExceptionPointer, Pointer<Void>.fromAddress(42))),
   Test("ThrowException", Pointer.fromFunction<ThrowExceptionInt>(throwExceptionInt, 42)),
   Test("GC", Pointer.fromFunction<ReturnVoid>(testGC, null)),
+  Test("UnprotectCode", Pointer.fromFunction<WaitForHelper>(waitForHelper, null)),
 ];
 
 testCallbackWrongThread() =>
@@ -243,5 +251,21 @@ void main() async {
     testCallbackWrongThread(); //# 01: ok
     testCallbackOutsideIsolate(); //# 02: ok
     await testCallbackWrongIsolate(); //# 03: ok
+  }
+
+  testManyCallbacks();  //# 04: ok
+}
+
+void testManyCallbacks() {
+  // Create enough callbacks (1000) to overflow one page of the JIT callback
+  // trampolines. The use of distinct exceptional return values forces separate
+  // trampolines.
+  final List<Pointer> pointers = [];
+  for (int i = 0; i < 1000; ++i) {
+    pointers.add(Pointer.fromFunction<SimpleAdditionType>(simpleAddition, i));
+  }
+
+  for (final pointer in pointers) {
+    Test("SimpleAddition", pointer).run();
   }
 }

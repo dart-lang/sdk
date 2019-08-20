@@ -513,6 +513,7 @@ class Assembler : public AssemblerBase {
 
   // Emit data (e.g encoded instruction or immediate) in instruction stream.
   void Emit(int32_t value);
+  void Emit64(int64_t value);
 
   // On some other platforms, we draw a distinction between safe and unsafe
   // smis.
@@ -1547,8 +1548,11 @@ class Assembler : public AssemblerBase {
 
   void TransitionGeneratedToNative(Register destination_address,
                                    Register new_exit_frame,
-                                   Register scratch);
-  void TransitionNativeToGenerated(Register scratch);
+                                   Register scratch,
+                                   bool enter_safepoint);
+  void TransitionNativeToGenerated(Register scratch, bool exit_safepoint);
+  void EnterSafepoint(Register scratch);
+  void ExitSafepoint(Register scratch);
 
   void CheckCodePointer();
   void RestoreCodePointer();
