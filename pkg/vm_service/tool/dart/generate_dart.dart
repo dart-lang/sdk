@@ -811,14 +811,14 @@ double assertDouble(double obj) {
   return obj;
 }
 
-List<int> assertInts(List<int> list) {
+List<int> assertListOfInt(List<int> list) {
   for (int elem in list) {
     assertInt(elem);
   }
   return list;
 }
 
-List<String> assertStrings(List<String> list) {
+List<String> assertListOfString(List<String> list) {
   for (String elem in list) {
     assertString(elem);
   }
@@ -902,15 +902,17 @@ vms.Event assertIsolateEvent(vms.Event event) {
           [
             'BoundVariable',
             'Breakpoint',
+            'ClassHeapStats',
+            'CodeRegion',
             'ContextElement',
             'Flag',
             'Frame',
+            'InboundReference',
             'LibraryDependency',
             'Message',
-            'SourceReportRange',
-            'ClassHeapStats',
-            'CodeRegion',
             'ProfileFunction',
+            'RetainingObject',
+            'SourceReportRange',
             'TimelineEvent',
           ].contains(type.name)) {
         type.generateListAssert(gen);
@@ -1187,10 +1189,6 @@ class TypeRef {
           name == 'bool' ||
           name == 'double');
 
-  String get namePlural => name.endsWith('y')
-      ? name.substring(0, name.length - 1) + 'ies'
-      : name + 's';
-
   String toString() => ref;
 }
 
@@ -1207,6 +1205,8 @@ class MethodArg extends Member {
   void generate(DartGenerator gen) {
     gen.write('${type.ref} ${name}');
   }
+
+  String toString() => '$type $name';
 }
 
 class Type extends Member {
@@ -1250,10 +1250,6 @@ class Type extends Member {
   }
 
   bool get isRef => name.endsWith('Ref');
-
-  String get namePlural => name.endsWith('y')
-      ? name.substring(0, name.length - 1) + 'ies'
-      : name + 's';
 
   bool get supportsIdentity {
     if (fields.any((f) => f.name == 'id')) return true;
@@ -1535,9 +1531,9 @@ Map<String, dynamic> toJson() {
         if (type.isArray) {
           TypeRef arrayType = type.types.first;
           if (arrayType.arrayDepth == 1) {
-            String assertMethodName = 'assert' +
+            String assertMethodName = 'assertListOf' +
                 arrayType.name.substring(0, 1).toUpperCase() +
-                arrayType.namePlural.substring(1);
+                arrayType.name.substring(1);
             gen.writeln('$assertMethodName(obj.${field.generatableName});');
           } else {
             gen.writeln(
@@ -1574,7 +1570,7 @@ Map<String, dynamic> toJson() {
 
   void generateListAssert(DartGenerator gen) {
     gen.writeln('List<vms.${name}> '
-        'assert${namePlural}(List<vms.${name}> list) {');
+        'assertListOf${name}(List<vms.${name}> list) {');
     gen.writeln('for (vms.${name} elem in list) {');
     gen.writeln('assert${name}(elem);');
     gen.writeln('}');
