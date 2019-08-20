@@ -95,8 +95,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   final NullabilityGraph _graph;
 
-  /// The file being analyzed.
-  final Source _source;
+  @override
+  final Source source;
 
   @override
   final DecoratedClassHierarchy _decoratedClassHierarchy;
@@ -165,7 +165,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   final Map<Expression, NullabilityNode> _conditionalNodes = {};
 
   EdgeBuilder(TypeProvider typeProvider, this._typeSystem, this._variables,
-      this._graph, this._source, this.listener)
+      this._graph, this.source, this.listener)
       : _decoratedClassHierarchy = DecoratedClassHierarchy(_variables, _graph),
         _inheritanceManager = InheritanceManager3(_typeSystem),
         _notNullType = DecoratedType(typeProvider.objectType, _graph.never),
@@ -246,7 +246,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       var intentNode = _conditionInfo.trueDemonstratesNonNullIntent;
       if (intentNode != null && _conditionInfo.postDominatingIntent) {
         _graph.connect(_conditionInfo.trueDemonstratesNonNullIntent,
-            _graph.never, NonNullAssertionOrigin(_source, node.offset),
+            _graph.never, NonNullAssertionOrigin(source, node.offset),
             hard: true);
       }
     }
@@ -331,7 +331,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         var ifNullNode = NullabilityNode.forIfNotNull();
         expressionType = DecoratedType(node.staticType, ifNullNode);
         _connect(rightType.node, expressionType.node,
-            IfNullOrigin(_source, node.offset));
+            IfNullOrigin(source, node.offset));
       } finally {
         _guards.removeLast();
       }
@@ -426,7 +426,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
               .asSubstitution);
       var superConstructorDecoratedType =
           _variables.decoratedElementType(superConstructorElement);
-      var origin = ImplicitMixinSuperCallOrigin(_source, node.offset);
+      var origin = ImplicitMixinSuperCallOrigin(source, node.offset);
       _unionDecoratedTypeParameters(
           constructorDecoratedType, superConstructorDecoratedType, origin);
     }
@@ -511,7 +511,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         _connect(
             _graph.always,
             getOrComputeElementType(node.declaredElement).node,
-            OptionalFormalParameterOrigin(_source, node.offset));
+            OptionalFormalParameterOrigin(source, node.offset));
       }
     } else {
       _handleAssignment(defaultValue,
@@ -568,7 +568,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var parameterElement = node.declaredElement as FieldFormalParameterElement;
     var parameterType = _variables.decoratedElementType(parameterElement);
     var fieldType = _variables.decoratedElementType(parameterElement.field);
-    var origin = FieldFormalParameterOrigin(_source, node.offset);
+    var origin = FieldFormalParameterOrigin(source, node.offset);
     if (node.type == null) {
       _unionDecoratedTypes(parameterType, fieldType, origin);
     } else {
@@ -643,7 +643,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     if (identical(_conditionInfo?.condition, node.condition)) {
       trueGuard = _conditionInfo.trueGuard;
       falseGuard = _conditionInfo.falseGuard;
-      _variables.recordConditionalDiscard(_source, node,
+      _variables.recordConditionalDiscard(source, node,
           ConditionalDiscard(trueGuard, falseGuard, _conditionInfo.isPure));
     }
     if (trueGuard != null) {
@@ -681,7 +681,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     if (identical(_conditionInfo?.condition, node.condition)) {
       trueGuard = _conditionInfo.trueGuard;
       falseGuard = _conditionInfo.falseGuard;
-      _variables.recordConditionalDiscard(_source, node,
+      _variables.recordConditionalDiscard(source, node,
           ConditionalDiscard(trueGuard, falseGuard, _conditionInfo.isPure));
     }
     if (trueGuard != null) {
@@ -749,7 +749,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var typeArguments = node.constructorName.type.typeArguments;
     if (typeArguments != null) {
       decoratedTypeArguments = typeArguments.arguments
-          .map((t) => _variables.decoratedTypeAnnotation(_source, t))
+          .map((t) => _variables.decoratedTypeAnnotation(source, t))
           .toList();
     } else {
       decoratedTypeArguments = const [];
@@ -807,7 +807,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _unimplemented(node, 'List literal with no type arguments');
     } else {
       var typeArgumentType = _variables.decoratedTypeAnnotation(
-          _source, node.typeArguments.arguments[0]);
+          source, node.typeArguments.arguments[0]);
       if (typeArgumentType == null) {
         _unimplemented(node, 'Could not compute type argument type');
       }
@@ -1000,7 +1000,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _unimplemented(node, 'Set or map literal with no type arguments');
     } else if (typeArguments.length == 1) {
       var elementType =
-          _variables.decoratedTypeAnnotation(_source, typeArguments[0]);
+          _variables.decoratedTypeAnnotation(source, typeArguments[0]);
       for (var element in node.elements) {
         if (element is Expression) {
           _handleAssignment(element, destinationType: elementType);
@@ -1015,9 +1015,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           typeArguments: [elementType]);
     } else if (typeArguments.length == 2) {
       var keyType =
-          _variables.decoratedTypeAnnotation(_source, typeArguments[0]);
+          _variables.decoratedTypeAnnotation(source, typeArguments[0]);
       var valueType =
-          _variables.decoratedTypeAnnotation(_source, typeArguments[1]);
+          _variables.decoratedTypeAnnotation(source, typeArguments[1]);
       for (var element in node.elements) {
         if (element is MapLiteralEntry) {
           _handleAssignment(element.key, destinationType: keyType);
@@ -1114,12 +1114,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     if (element is TypeParameterizedElement) {
       if (typeArguments == null) {
         var instantiatedType =
-            _variables.decoratedTypeAnnotation(_source, typeName);
+            _variables.decoratedTypeAnnotation(source, typeName);
         if (instantiatedType == null) {
           throw new StateError('No type annotation for type name '
               '${typeName.toSource()}, offset=${typeName.offset}');
         }
-        var origin = InstantiateToBoundsOrigin(_source, typeName.offset);
+        var origin = InstantiateToBoundsOrigin(source, typeName.offset);
         for (int i = 0; i < instantiatedType.typeArguments.length; i++) {
           _unionDecoratedTypes(
               instantiatedType.typeArguments[i],
@@ -1133,7 +1133,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
               _variables.decoratedTypeParameterBound(element.typeParameters[i]);
           assert(bound != null);
           var argumentType =
-              _variables.decoratedTypeAnnotation(_source, typeArguments[i]);
+              _variables.decoratedTypeAnnotation(source, typeArguments[i]);
           if (argumentType == null) {
             _unimplemented(typeName,
                 'No decorated type for type argument ${typeArguments[i]} ($i)');
@@ -1164,7 +1164,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
                 '(${initializer.toSource()}) offset=${initializer.offset}');
           }
           _unionDecoratedTypes(initializerType, destinationType,
-              InitializerInferenceOrigin(_source, variable.name.offset));
+              InitializerInferenceOrigin(source, variable.name.offset));
         } else {
           _handleAssignment(initializer, destinationType: destinationType);
         }
@@ -1394,7 +1394,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     ExpressionChecks expressionChecks;
     if (canInsertChecks) {
       expressionChecks = ExpressionChecks(expression.end);
-      _variables.recordExpressionChecks(_source, expression, expressionChecks);
+      _variables.recordExpressionChecks(source, expression, expressionChecks);
     }
     _checkAssignment(expressionChecks,
         source: sourceType,
@@ -1457,7 +1457,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       }
       if (declaredElement is! ConstructorElement) {
         var classElement = declaredElement.enclosingElement as ClassElement;
-        var origin = InheritanceOrigin(_source, node.offset);
+        var origin = InheritanceOrigin(source, node.offset);
         for (var overriddenElement in _inheritanceManager.getOverridden(
                 classElement.type,
                 Name(classElement.library.source.uri, declaredElement.name)) ??
@@ -1582,7 +1582,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     if (typeFormals.isNotEmpty) {
       if (typeArguments != null) {
         var argumentTypes = typeArguments.arguments
-            .map((t) => _variables.decoratedTypeAnnotation(_source, t))
+            .map((t) => _variables.decoratedTypeAnnotation(source, t))
             .toList();
         if (constructorTypeParameters != null) {
           calleeType = calleeType.substitute(
@@ -1632,7 +1632,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     for (var entry in calleeType.namedParameters.entries) {
       if (suppliedNamedParameters.contains(entry.key)) continue;
       entry.value.node.recordNamedParameterNotSupplied(_guards, _graph,
-          NamedParameterNotSuppliedOrigin(_source, node.offset));
+          NamedParameterNotSuppliedOrigin(source, node.offset));
     }
     return calleeType.returnType;
   }
@@ -1708,7 +1708,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   NullabilityNode _nullabilityNodeForGLB(
       AstNode astNode, NullabilityNode leftNode, NullabilityNode rightNode) {
     var node = NullabilityNode.forGLB();
-    var origin = GreatestLowerBoundOrigin(_source, astNode.offset);
+    var origin = GreatestLowerBoundOrigin(source, astNode.offset);
     _graph.connect(leftNode, node, origin, guards: [rightNode]);
     _graph.connect(node, leftNode, origin);
     _graph.connect(node, rightNode, origin);

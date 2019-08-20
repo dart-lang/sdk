@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/src/nullability_migration_impl.dart';
@@ -79,16 +80,18 @@ abstract class NullabilityMigration {
 /// [NullabilityMigrationListener] is used by [NullabilityMigration]
 /// to communicate source changes or "fixes" to the client.
 abstract class NullabilityMigrationListener {
-  /// Add the given [detail] to the list of details to be returned to the
-  /// client.
-  void addDetail(String detail);
-
   /// [addEdit] is called once for each source edit, in the order in which they
   /// appear in the source file.
   void addEdit(SingleNullabilityFix fix, SourceEdit edit);
 
   /// [addFix] is called once for each source change.
   void addFix(SingleNullabilityFix fix);
+
+  /// [reportException] is called once for each exception that occurs in
+  /// "permissive mode", reporting the location of the exception and the
+  /// exception details.
+  void reportException(
+      Source source, AstNode node, Object exception, StackTrace stackTrace);
 }
 
 /// Representation of a single conceptual change made by the nullability

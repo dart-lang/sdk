@@ -26,7 +26,7 @@ mixin AnnotationTracker<T> on AstVisitor<T>, PermissiveModeVisitor<T> {
   @override
   T visitCompilationUnit(CompilationUnit node) {
     T result;
-    reportExceptionsIfPermissive(() {
+    reportExceptionsIfPermissive(node, () {
       _AnnotationTracker oldAnnotationTracker;
       assert(() {
         oldAnnotationTracker = _annotationTracker;

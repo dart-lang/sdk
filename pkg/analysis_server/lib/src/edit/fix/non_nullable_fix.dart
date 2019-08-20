@@ -5,12 +5,14 @@
 import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_registrar.dart';
 import 'package:analysis_server/src/edit/fix/fix_code_task.dart';
-import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 
@@ -185,11 +187,6 @@ class NullabilityMigrationAdapter implements NullabilityMigrationListener {
   NullabilityMigrationAdapter(this.listener);
 
   @override
-  void addDetail(String detail) {
-    listener.addDetail(detail);
-  }
-
-  @override
   void addEdit(SingleNullabilityFix fix, SourceEdit edit) {
     listener.addEditWithoutSuggestion(fix.source, edit);
   }
@@ -197,5 +194,14 @@ class NullabilityMigrationAdapter implements NullabilityMigrationListener {
   @override
   void addFix(SingleNullabilityFix fix) {
     listener.addSuggestion(fix.description.appliedMessage, fix.location);
+  }
+
+  @override
+  void reportException(
+      Source source, AstNode node, Object exception, StackTrace stackTrace) {
+    listener.addDetail('''
+$exception
+
+$stackTrace''');
   }
 }

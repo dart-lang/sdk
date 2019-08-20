@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
@@ -2606,15 +2607,16 @@ class _TestMigrationListener implements NullabilityMigrationListener {
   List<String> details = [];
 
   @override
-  void addDetail(String detail) {
-    details.add(detail);
-  }
-
-  @override
   void addEdit(SingleNullabilityFix fix, SourceEdit edit) {
     (_edits[fix.source] ??= []).add(edit);
   }
 
   @override
   void addFix(SingleNullabilityFix fix) {}
+
+  @override
+  void reportException(
+      Source source, AstNode node, Object exception, StackTrace stackTrace) {
+    fail('Exception reported: $exception');
+  }
 }

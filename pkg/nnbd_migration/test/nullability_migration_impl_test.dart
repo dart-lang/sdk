@@ -50,7 +50,7 @@ class NullabilityMigrationImplTest {
     expect(fix.location.file, '/test.dart');
     expect(fix.location.startLine, 2);
     expect(fix.location.startColumn, 3);
-    verifyNever(listener.addDetail(any));
+    verifyNever(listener.reportException(any, any, any, any));
     final edit =
         verify(listener.addEdit(fix, captureAny)).captured.single as SourceEdit;
     expect(edit.offset, 10);
@@ -71,7 +71,7 @@ class NullabilityMigrationImplTest {
     NullabilityMigrationImpl.broadcast(variables, listener);
 
     verifyNever(listener.addFix(any));
-    verifyNever(listener.addDetail(any));
+    verifyNever(listener.reportException(any, any, any, any));
     verifyNever(listener.addEdit(any, any));
   }
 
@@ -83,7 +83,7 @@ class NullabilityMigrationImplTest {
     NullabilityMigrationImpl.broadcast(variables, listener);
 
     verifyNever(listener.addFix(any));
-    verifyNever(listener.addDetail(any));
+    verifyNever(listener.reportException(any, any, any, any));
     verifyNever(listener.addEdit(any, any));
   }
 }
