@@ -238,6 +238,15 @@ class HintCode extends ErrorCode {
           correction: "Try specifying the type of the variable.");
 
   /**
+   * When "strict-inference" in enabled, function parameters must be
+   * declared with a specific type, or inherit a type.
+   */
+  static const HintCode INFERENCE_FAILURE_ON_UNTYPED_PARAMETER = const HintCode(
+      'INFERENCE_FAILURE_ON_UNTYPED_PARAMETER',
+      "The type of {0} can't be inferred; a type must be explicitly provided.",
+      correction: "Try specifying the type of the parameter.");
+
+  /**
    * This hint is generated anywhere a @factory annotation is associated with
    * anything other than a method.
    */
