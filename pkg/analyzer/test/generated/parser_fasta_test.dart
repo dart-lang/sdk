@@ -1430,6 +1430,13 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     expect(map.elements, hasLength(0));
   }
 
+  void test_parseConstructorInitializer_functionExpression() {
+    // https://github.com/dart-lang/sdk/issues/37414
+    parseCompilationUnit('class C { C.n() : this()(); }', errors: [
+      expectedError(ParserErrorCode.INVALID_INITIALIZER, 18, 8),
+    ]);
+  }
+
   void test_parseStringLiteral_interpolated_void() {
     Expression expression = parseStringLiteral(r"'<html>$void</html>'");
     expect(expression, isNotNull);

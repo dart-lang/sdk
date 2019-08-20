@@ -344,13 +344,12 @@ class AstBuilder extends StackListener {
       if (function is SuperExpression) {
         return ast.superConstructorInvocation(
             function.superKeyword, null, null, initializerObject.argumentList);
-      } else {
-        return ast.redirectingConstructorInvocation(
-            (function as ThisExpression).thisKeyword,
-            null,
-            null,
-            initializerObject.argumentList);
       }
+      if (function is ThisExpression) {
+        return ast.redirectingConstructorInvocation(
+            function.thisKeyword, null, null, initializerObject.argumentList);
+      }
+      return null;
     }
 
     if (initializerObject is MethodInvocation) {
