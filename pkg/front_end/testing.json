@@ -221,6 +221,19 @@
     },
 
     {
+      "name": "old_dill_test",
+      "kind": "Chain",
+      "source": "test/old_dill_test.dart",
+      "path": "testcases/old_dills/",
+      "status": "testcases/old_dills/old_dills.status",
+      "pattern": [
+        ".*\\.dill$"
+      ],
+      "exclude": [
+      ]
+    },
+
+    {
       "name": "lint_test",
       "kind": "Chain",
       "source": "test/lint_test.dart",
