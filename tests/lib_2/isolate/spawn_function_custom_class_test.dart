@@ -14,26 +14,38 @@ import 'package:unittest/unittest.dart';
 import "remote_unittest_helper.dart";
 
 class MyClass {
-  var myVar = 'there';
+  final myVar = 'there';
   myFunc(msg) {
     return '$msg $myVar';
   }
 }
 
-child(args) {
-  var reply = args[1];
-  var msg = args[0];
+isolateEntryPoint(args) {
+  final reply = args[1];
+  final msg = args[0];
   reply.send('re: ${new MyClass().myFunc(msg)}');
 }
 
 void main([args, port]) {
-  if (testRemote(main, port)) return;
-  test('message - reply chain', () {
-    ReceivePort port = new ReceivePort();
-    Isolate.spawn(child, ['hi', port.sendPort]);
-    port.listen((msg) {
-      port.close();
+  if (testRemote(main, port)) {
+    return;
+  }
+
+  test('message - reply chain', () async {
+    final exitPort = ReceivePort();
+    final replyPort = ReceivePort();
+
+    final isolate = Isolate.spawn(isolateEntryPoint, ['hi', replyPort.sendPort],
+        onExit: exitPort.sendPort);
+
+    replyPort.listen((msg) {
+      replyPort.close();
       expect(msg, equals('re: hi there'));
     });
+
+    // Explicitly await spawned isolate exit to enforce main isolate not
+    // completing (and the stand-alone runtime exiting) before the spawned
+    // isolate is done.
+    await exitPort.first;
   });
 }
