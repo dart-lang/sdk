@@ -11,6 +11,7 @@ import 'package:kernel/ast.dart'
     show
         Constructor,
         Field,
+        IntLiteral,
         InvalidExpression,
         Let,
         Node,
@@ -84,6 +85,9 @@ import '../parser.dart' show lengthForToken, lengthOfSpan, offsetForToken;
 import '../problems.dart' show unhandled, unsupported;
 
 import '../scope.dart';
+
+import '../type_inference/type_promotion.dart'
+    show TypePromotionFact, TypePromotionScope;
 
 import 'body_builder.dart' show noLocation;
 
@@ -194,7 +198,7 @@ abstract class Generator {
   /// The returned expression evaluates to the assigned value, unless
   /// [voidContext] is true, in which case it may evaluate to anything.
   Expression buildAssignment(Expression value, {bool voidContext: false}) {
-    var complexAssignment = startComplexAssignment(value);
+    ComplexAssignmentJudgment complexAssignment = startComplexAssignment(value);
     return _finish(_makeSimpleWrite(value, voidContext, complexAssignment),
         complexAssignment);
   }
@@ -215,9 +219,9 @@ abstract class Generator {
   Expression buildNullAwareAssignment(
       Expression value, DartType type, int offset,
       {bool voidContext: false}) {
-    var complexAssignment = startComplexAssignment(value);
+    ComplexAssignmentJudgment complexAssignment = startComplexAssignment(value);
     if (voidContext) {
-      var nullAwareCombiner = _forest.createConditionalExpression(
+      Expression nullAwareCombiner = _forest.createConditionalExpression(
           buildIsNull(_makeRead(complexAssignment), offset, _helper),
           null,
           _makeWrite(value, false, complexAssignment),
@@ -227,8 +231,9 @@ abstract class Generator {
       complexAssignment?.nullAwareCombiner = nullAwareCombiner;
       return _finish(nullAwareCombiner, complexAssignment);
     }
-    var tmp = new VariableDeclaration.forValue(_makeRead(complexAssignment));
-    var nullAwareCombiner = _forest.createConditionalExpression(
+    VariableDeclaration tmp =
+        new VariableDeclaration.forValue(_makeRead(complexAssignment));
+    Expression nullAwareCombiner = _forest.createConditionalExpression(
         buildIsNull(new VariableGet(tmp), offset, _helper),
         null,
         _makeWrite(value, false, complexAssignment),
@@ -247,11 +252,11 @@ abstract class Generator {
       Procedure interfaceTarget,
       bool isPreIncDec: false,
       bool isPostIncDec: false}) {
-    var complexAssignment = startComplexAssignment(value);
+    ComplexAssignmentJudgment complexAssignment = startComplexAssignment(value);
     complexAssignment?.isPreIncDec = isPreIncDec;
     complexAssignment?.isPostIncDec = isPostIncDec;
-    var combiner = makeBinary(_makeRead(complexAssignment), binaryOperator,
-        interfaceTarget, value, _helper,
+    Expression combiner = makeBinary(_makeRead(complexAssignment),
+        binaryOperator, interfaceTarget, value, _helper,
         offset: offset);
     complexAssignment?.combiner = combiner;
     return _finish(_makeWrite(combiner, voidContext, complexAssignment),
@@ -286,18 +291,20 @@ abstract class Generator {
           interfaceTarget: interfaceTarget,
           isPostIncDec: true);
     }
-    var rhs = _forest.createIntLiteral(1, null)..fileOffset = offset;
-    var complexAssignment = startComplexAssignment(rhs);
-    var value = new VariableDeclaration.forValue(_makeRead(complexAssignment));
+    IntLiteral rhs = _forest.createIntLiteral(1, null)..fileOffset = offset;
+    ComplexAssignmentJudgment complexAssignment = startComplexAssignment(rhs);
+    VariableDeclaration value =
+        new VariableDeclaration.forValue(_makeRead(complexAssignment));
     valueAccess() => new VariableGet(value);
-    var combiner = makeBinary(
+    Expression combiner = makeBinary(
         valueAccess(), binaryOperator, interfaceTarget, rhs, _helper,
         offset: offset);
     complexAssignment?.combiner = combiner;
     complexAssignment?.isPostIncDec = true;
-    var dummy = new VariableDeclarationJudgment.forValue(
-        _makeWrite(combiner, true, complexAssignment),
-        _helper.functionNestingLevel);
+    VariableDeclarationJudgment dummy =
+        new VariableDeclarationJudgment.forValue(
+            _makeWrite(combiner, true, complexAssignment),
+            _helper.functionNestingLevel);
     return _finish(
         makeLet(value, makeLet(dummy, valueAccess())), complexAssignment);
   }
@@ -531,10 +538,10 @@ class VariableUseGenerator extends Generator {
 
   @override
   Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
-    var fact = _helper.typePromoter
+    TypePromotionFact fact = _helper.typePromoter
         ?.getFactForAccess(variable, _helper.functionNestingLevel);
-    var scope = _helper.typePromoter?.currentScope;
-    var read = new VariableGetJudgment(variable, fact, scope)
+    TypePromotionScope scope = _helper.typePromoter?.currentScope;
+    VariableGetJudgment read = new VariableGetJudgment(variable, fact, scope)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.read = read;
     return read;
@@ -664,7 +671,7 @@ class PropertyAccessGenerator extends Generator {
   @override
   Expression _makeSimpleWrite(Expression value, bool voidContext,
       ComplexAssignmentJudgment complexAssignment) {
-    var write = new PropertySet(receiver, name, value, setter)
+    PropertySet write = new PropertySet(receiver, name, value, setter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.write = write;
     return write;
@@ -672,7 +679,7 @@ class PropertyAccessGenerator extends Generator {
 
   @override
   Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
-    var read = new PropertyGet(receiverAccess(), name, getter)
+    PropertyGet read = new PropertyGet(receiverAccess(), name, getter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.read = read;
     return read;
@@ -681,7 +688,7 @@ class PropertyAccessGenerator extends Generator {
   @override
   Expression _makeWrite(Expression value, bool voidContext,
       ComplexAssignmentJudgment complexAssignment) {
-    var write = new PropertySet(receiverAccess(), name, value, setter)
+    PropertySet write = new PropertySet(receiverAccess(), name, value, setter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.write = write;
     return write;
@@ -780,7 +787,7 @@ class ThisPropertyAccessGenerator extends Generator {
     if (getter == null) {
       _helper.warnUnresolvedGet(name, offsetForToken(token));
     }
-    var read =
+    PropertyGet read =
         new PropertyGet(_forest.createThisExpression(token), name, getter)
           ..fileOffset = offsetForToken(token);
     complexAssignment?.read = read;
@@ -793,7 +800,7 @@ class ThisPropertyAccessGenerator extends Generator {
     if (setter == null) {
       _helper.warnUnresolvedSet(name, offsetForToken(token));
     }
-    var write = new PropertySet(
+    PropertySet write = new PropertySet(
         _forest.createThisExpression(token), name, value, setter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.write = write;
@@ -866,7 +873,7 @@ class NullAwarePropertyAccessGenerator extends Generator {
 
   @override
   Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
-    var read = new PropertyGet(receiverAccess(), name, getter)
+    PropertyGet read = new PropertyGet(receiverAccess(), name, getter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.read = read;
     return read;
@@ -875,7 +882,7 @@ class NullAwarePropertyAccessGenerator extends Generator {
   @override
   Expression _makeWrite(Expression value, bool voidContext,
       ComplexAssignmentJudgment complexAssignment) {
-    var write = new PropertySet(receiverAccess(), name, value, setter)
+    PropertySet write = new PropertySet(receiverAccess(), name, value, setter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.write = write;
     return write;
@@ -884,8 +891,8 @@ class NullAwarePropertyAccessGenerator extends Generator {
   @override
   Expression _finish(
       Expression body, ComplexAssignmentJudgment complexAssignment) {
-    var offset = offsetForToken(token);
-    var nullAwareGuard = _forest.createConditionalExpression(
+    int offset = offsetForToken(token);
+    Expression nullAwareGuard = _forest.createConditionalExpression(
         buildIsNull(receiverAccess(), offset, _helper),
         null,
         _forest.createNullLiteral(null)..fileOffset = offset,
@@ -955,8 +962,9 @@ class SuperPropertyAccessGenerator extends Generator {
       _helper.warnUnresolvedGet(name, offsetForToken(token), isSuper: true);
     }
     // TODO(ahe): Use [DirectPropertyGet] when possible.
-    var read = new SuperPropertyGetJudgment(name, interfaceTarget: getter)
-      ..fileOffset = offsetForToken(token);
+    SuperPropertyGetJudgment read =
+        new SuperPropertyGetJudgment(name, interfaceTarget: getter)
+          ..fileOffset = offsetForToken(token);
     complexAssignment?.read = read;
     return read;
   }
@@ -968,7 +976,7 @@ class SuperPropertyAccessGenerator extends Generator {
       _helper.warnUnresolvedSet(name, offsetForToken(token), isSuper: true);
     }
     // TODO(ahe): Use [DirectPropertySet] when possible.
-    var write = new SuperPropertySet(name, value, setter)
+    SuperPropertySet write = new SuperPropertySet(name, value, setter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.write = write;
     return write;
@@ -1048,8 +1056,8 @@ class IndexedAccessGenerator extends Generator {
 
   @override
   Expression _makeSimpleRead() {
-    var read = new MethodInvocationJudgment(receiver, indexGetName,
-        _forest.createArguments(<Expression>[index], token),
+    MethodInvocationJudgment read = new MethodInvocationJudgment(receiver,
+        indexGetName, _forest.createArguments(<Expression>[index], token),
         interfaceTarget: getter)
       ..fileOffset = offsetForToken(token);
     return read;
@@ -1059,7 +1067,9 @@ class IndexedAccessGenerator extends Generator {
   Expression _makeSimpleWrite(Expression value, bool voidContext,
       ComplexAssignmentJudgment complexAssignment) {
     if (!voidContext) return _makeWriteAndReturn(value, complexAssignment);
-    var write = new MethodInvocationJudgment(receiver, indexSetName,
+    MethodInvocationJudgment write = new MethodInvocationJudgment(
+        receiver,
+        indexSetName,
         _forest.createArguments(<Expression>[index, value], token),
         interfaceTarget: setter)
       ..fileOffset = offsetForToken(token);
@@ -1069,7 +1079,9 @@ class IndexedAccessGenerator extends Generator {
 
   @override
   Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
-    var read = new MethodInvocationJudgment(receiverAccess(), indexGetName,
+    MethodInvocationJudgment read = new MethodInvocationJudgment(
+        receiverAccess(),
+        indexGetName,
         _forest.createArguments(<Expression>[indexAccess()], token),
         interfaceTarget: getter)
       ..fileOffset = offsetForToken(token);
@@ -1081,7 +1093,9 @@ class IndexedAccessGenerator extends Generator {
   Expression _makeWrite(Expression value, bool voidContext,
       ComplexAssignmentJudgment complexAssignment) {
     if (!voidContext) return _makeWriteAndReturn(value, complexAssignment);
-    var write = new MethodInvocationJudgment(receiverAccess(), indexSetName,
+    MethodInvocationJudgment write = new MethodInvocationJudgment(
+        receiverAccess(),
+        indexSetName,
         _forest.createArguments(<Expression>[indexAccess(), value], token),
         interfaceTarget: setter)
       ..fileOffset = offsetForToken(token);
@@ -1095,8 +1109,8 @@ class IndexedAccessGenerator extends Generator {
       Expression value, ComplexAssignmentJudgment complexAssignment) {
     // The call to []= does not return the value like direct-style assignments
     // do.  We need to bind the value in a let.
-    var valueVariable = new VariableDeclaration.forValue(value);
-    var write = new MethodInvocationJudgment(
+    VariableDeclaration valueVariable = new VariableDeclaration.forValue(value);
+    MethodInvocationJudgment write = new MethodInvocationJudgment(
         receiverAccess(),
         indexSetName,
         _forest.createArguments(
@@ -1104,8 +1118,9 @@ class IndexedAccessGenerator extends Generator {
         interfaceTarget: setter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.write = write;
-    var dummy = new VariableDeclarationJudgment.forValue(
-        write, _helper.functionNestingLevel);
+    VariableDeclarationJudgment dummy =
+        new VariableDeclarationJudgment.forValue(
+            write, _helper.functionNestingLevel);
     return makeLet(
         valueVariable, makeLet(dummy, new VariableGet(valueVariable)));
   }
@@ -1194,8 +1209,8 @@ class ThisIndexedAccessGenerator extends Generator {
 
   Expression _makeWriteAndReturn(
       Expression value, ComplexAssignmentJudgment complexAssignment) {
-    var valueVariable = new VariableDeclaration.forValue(value);
-    var write = new MethodInvocationJudgment(
+    VariableDeclaration valueVariable = new VariableDeclaration.forValue(value);
+    MethodInvocationJudgment write = new MethodInvocationJudgment(
         _forest.createThisExpression(token),
         indexSetName,
         _forest.createArguments(
@@ -1203,7 +1218,7 @@ class ThisIndexedAccessGenerator extends Generator {
         interfaceTarget: setter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.write = write;
-    var dummy = new VariableDeclaration.forValue(write);
+    VariableDeclaration dummy = new VariableDeclaration.forValue(write);
     return makeLet(
         valueVariable, makeLet(dummy, new VariableGet(valueVariable)));
   }
@@ -1220,7 +1235,7 @@ class ThisIndexedAccessGenerator extends Generator {
   Expression _makeSimpleWrite(Expression value, bool voidContext,
       ComplexAssignmentJudgment complexAssignment) {
     if (!voidContext) return _makeWriteAndReturn(value, complexAssignment);
-    var write = new MethodInvocationJudgment(
+    MethodInvocationJudgment write = new MethodInvocationJudgment(
         _forest.createThisExpression(token),
         indexSetName,
         _forest.createArguments(<Expression>[index, value], token),
@@ -1232,7 +1247,7 @@ class ThisIndexedAccessGenerator extends Generator {
 
   @override
   Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
-    var read = new MethodInvocationJudgment(
+    MethodInvocationJudgment read = new MethodInvocationJudgment(
         _forest.createThisExpression(token),
         indexGetName,
         _forest.createArguments(<Expression>[indexAccess()], token),
@@ -1246,7 +1261,7 @@ class ThisIndexedAccessGenerator extends Generator {
   Expression _makeWrite(Expression value, bool voidContext,
       ComplexAssignmentJudgment complexAssignment) {
     if (!voidContext) return _makeWriteAndReturn(value, complexAssignment);
-    var write = new MethodInvocationJudgment(
+    MethodInvocationJudgment write = new MethodInvocationJudgment(
         _forest.createThisExpression(token),
         indexSetName,
         _forest.createArguments(<Expression>[indexAccess(), value], token),
@@ -1311,19 +1326,19 @@ class SuperIndexedAccessGenerator extends Generator {
 
   Expression _makeWriteAndReturn(
       Expression value, ComplexAssignmentJudgment complexAssignment) {
-    var valueVariable = new VariableDeclaration.forValue(value);
+    VariableDeclaration valueVariable = new VariableDeclaration.forValue(value);
     if (setter == null) {
       _helper.warnUnresolvedMethod(indexSetName, offsetForToken(token),
           isSuper: true);
     }
-    var write = new SuperMethodInvocation(
+    SuperMethodInvocation write = new SuperMethodInvocation(
         indexSetName,
         _forest.createArguments(
             <Expression>[indexAccess(), new VariableGet(valueVariable)], token),
         setter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.write = write;
-    var dummy = new VariableDeclaration.forValue(write);
+    VariableDeclaration dummy = new VariableDeclaration.forValue(write);
     return makeLet(
         valueVariable, makeLet(dummy, new VariableGet(valueVariable)));
   }
@@ -1349,7 +1364,7 @@ class SuperIndexedAccessGenerator extends Generator {
       _helper.warnUnresolvedMethod(indexSetName, offsetForToken(token),
           isSuper: true);
     }
-    var write = new SuperMethodInvocation(indexSetName,
+    SuperMethodInvocation write = new SuperMethodInvocation(indexSetName,
         _forest.createArguments(<Expression>[index, value], token), setter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.write = write;
@@ -1362,7 +1377,7 @@ class SuperIndexedAccessGenerator extends Generator {
       _helper.warnUnresolvedMethod(indexGetName, offsetForToken(token),
           isSuper: true);
     }
-    var read = new SuperMethodInvocation(indexGetName,
+    SuperMethodInvocation read = new SuperMethodInvocation(indexGetName,
         _forest.createArguments(<Expression>[indexAccess()], token), getter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.read = read;
@@ -1377,7 +1392,7 @@ class SuperIndexedAccessGenerator extends Generator {
       _helper.warnUnresolvedMethod(indexSetName, offsetForToken(token),
           isSuper: true);
     }
-    var write = new SuperMethodInvocation(
+    SuperMethodInvocation write = new SuperMethodInvocation(
         indexSetName,
         _forest.createArguments(<Expression>[indexAccess(), value], token),
         setter)
@@ -1802,7 +1817,7 @@ class LoadLibraryGenerator extends Generator {
   @override
   Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
     builder.importDependency.targetLibrary;
-    var read = new LoadLibraryTearOffJudgment(
+    LoadLibraryTearOffJudgment read = new LoadLibraryTearOffJudgment(
         builder.importDependency, builder.createTearoffMethod(_helper.forest))
       ..fileOffset = offsetForToken(token);
     complexAssignment?.read = read;
@@ -3266,7 +3281,7 @@ class SendAccessGenerator extends Generator with IncompleteSendGenerator {
     sink.write(", name: ");
     sink.write(name.name);
     sink.write(", arguments: ");
-    var node = arguments;
+    Arguments node = arguments;
     if (node is Node) {
       printNodeOn(node, sink);
     } else {

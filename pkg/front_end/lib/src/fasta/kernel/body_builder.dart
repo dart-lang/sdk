@@ -740,7 +740,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("endInitializer");
     inFieldInitializer = false;
     assert(!inInitializer);
-    final member = this.member;
+    final ModifierBuilder member = this.member;
     Object node = pop();
     Initializer initializer;
     if (node is Initializer) {
@@ -2507,7 +2507,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void endForControlFlow(Token token) {
     debugEvent("ForControlFlow");
-    var entry = pop();
+    Object entry = pop();
     int updateExpressionCount = pop();
     pop(); // left separator
     pop(); // left parenthesis
@@ -2638,7 +2638,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     List<Expression> expressions =
         new List<Expression>.filled(count, null, growable: true);
     for (int i = count - 1; i >= 0; i--) {
-      var elem = pop();
+      Object elem = pop();
       if (elem != invalidCollectionElement) {
         expressions[i] = toValue(elem);
       } else {
@@ -2691,9 +2691,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       typeArgument = implicitTypeArgument;
     }
 
-    var expressions = <Expression>[];
+    List<Expression> expressions = <Expression>[];
     if (setOrMapEntries != null) {
-      for (var entry in setOrMapEntries) {
+      for (dynamic entry in setOrMapEntries) {
         if (entry is MapEntry) {
           // TODO(danrubel): report the error on the colon
           addProblem(fasta.templateExpectedButGot.withArguments(','),
@@ -2730,9 +2730,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   ) {
     debugEvent("LiteralSetOrMap");
 
-    var setOrMapEntries = new List<dynamic>.filled(count, null, growable: true);
+    List<dynamic> setOrMapEntries =
+        new List<dynamic>.filled(count, null, growable: true);
     for (int i = count - 1; i >= 0; i--) {
-      var elem = pop();
+      Object elem = pop();
       // TODO(danrubel): Revise this to handle control flow and spread
       if (elem == invalidCollectionElement) {
         setOrMapEntries.removeAt(i);
@@ -2751,7 +2752,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     // TODO(danrubel): Since type resolution is needed to disambiguate
     // set or map in some situations, consider always deferring determination
     // until the type resolution phase.
-    final typeArgCount = typeArguments?.length;
+    final int typeArgCount = typeArguments?.length;
     bool isSet = typeArgCount == 1 ? true : typeArgCount != null ? false : null;
 
     for (int i = 0; i < setOrMapEntries.length; ++i) {
@@ -3981,8 +3982,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void endIfControlFlow(Token token) {
     debugEvent("endIfControlFlow");
-    var entry = pop();
-    var condition = pop(); // parenthesized expression
+    Object entry = pop();
+    Object condition = pop(); // parenthesized expression
     Token ifToken = pop();
     typePromoter?.enterElse();
     typePromoter?.exitConditional();
@@ -4020,9 +4021,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void endIfElseControlFlow(Token token) {
     debugEvent("endIfElseControlFlow");
-    var elseEntry = pop(); // else entry
-    var thenEntry = pop(); // then entry
-    var condition = pop(); // parenthesized expression
+    Object elseEntry = pop(); // else entry
+    Object thenEntry = pop(); // then entry
+    Object condition = pop(); // parenthesized expression
     Token ifToken = pop();
     typePromoter?.exitConditional();
     if (!library.loader.target.enableControlFlowCollections) {
@@ -4098,7 +4099,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void handleSpreadExpression(Token spreadToken) {
     debugEvent("SpreadExpression");
-    var expression = pop();
+    Object expression = pop();
     if (!library.loader.target.enableSpreadCollections) {
       handleRecoverableError(
           fasta.templateUnexpectedToken.withArguments(spreadToken),
@@ -4418,7 +4419,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void endForInControlFlow(Token token) {
     debugEvent("ForInControlFlow");
-    var entry = pop();
+    Object entry = pop();
     Token inToken = pop();
     Token forToken = pop();
     Token awaitToken = pop(NullValue.AwaitToken);
