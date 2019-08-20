@@ -95,7 +95,6 @@ already
 also
 alternating
 alternative
-alternatives
 alternatively
 although
 always
@@ -1951,7 +1950,6 @@ positionals
 positions
 positive
 positives
-possibilities
 possible
 possibly
 post

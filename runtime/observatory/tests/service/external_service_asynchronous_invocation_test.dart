@@ -145,7 +145,7 @@ var tests = <IsolateTest>[
       completions.forEach((complete) => complete());
 
       final errors = await Future.wait(results.map((future) {
-        return future.then<dynamic>((_) {
+        return future.then((_) {
           expect(false, isTrue, reason: 'shouldn\'t get here');
         }).catchError((e) => e);
       }));

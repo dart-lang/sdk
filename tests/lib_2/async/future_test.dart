@@ -1248,7 +1248,7 @@ class UglyFuture implements Future<dynamic> {
   UglyFuture(int badness)
       : _result = (badness == 0) ? 42 : new UglyFuture(badness - 1);
   Future<S> then<S>(action(value), {Function onError}) {
-    var c = new Completer<S>();
+    var c = new Completer();
     c.complete(new Future.microtask(() => action(_result)));
     return c.future;
   }
