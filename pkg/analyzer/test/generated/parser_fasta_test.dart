@@ -1240,6 +1240,14 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     ]);
   }
 
+  void test_listLiteral_invalidElement_37697() {
+    // https://github.com/dart-lang/sdk/issues/37674
+    parseExpression('[<y.<z>(){}]', errors: [
+      expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 4, 1),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 6, 1),
+    ]);
+  }
+
   void test_listLiteral_spread_disabled() {
     ListLiteral list =
         parseExpression('[1, ...[2]]', featureSet: beforeUiAsCode, errors: [
