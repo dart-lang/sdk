@@ -1,3 +1,6 @@
+## 0.38.1
+* LinterVistor support for extension method AST nodes.
+
 ## 0.38.0
 * The deprecated method `AstFactory.compilationUnit2` has been removed.  Clients
   should switch back to `AstFactory.compilationUnit`.
