@@ -644,7 +644,7 @@ abstract class RuntimeTypesNeed {
       DataSource source, ElementEnvironment elementEnvironment) {
     bool isTrivial = source.readBool();
     if (isTrivial) {
-      return const TrivialRuntimeTypesNeed();
+      return TrivialRuntimeTypesNeed(elementEnvironment);
     }
     return new RuntimeTypesNeedImpl.readFromDataSource(
         source, elementEnvironment);
@@ -715,7 +715,9 @@ abstract class RuntimeTypesNeed {
 }
 
 class TrivialRuntimeTypesNeed implements RuntimeTypesNeed {
-  const TrivialRuntimeTypesNeed();
+  final ElementEnvironment _elementEnvironment;
+
+  const TrivialRuntimeTypesNeed(this._elementEnvironment);
 
   @override
   void writeToDataSink(DataSink sink) {
@@ -723,7 +725,8 @@ class TrivialRuntimeTypesNeed implements RuntimeTypesNeed {
   }
 
   @override
-  bool classNeedsTypeArguments(ClassEntity cls) => true;
+  bool classNeedsTypeArguments(ClassEntity cls) =>
+      _elementEnvironment.isGenericClass(cls);
 
   @override
   bool methodNeedsSignature(FunctionEntity method) => true;
@@ -878,7 +881,7 @@ class TrivialRuntimeTypesNeedBuilder implements RuntimeTypesNeedBuilder {
   @override
   RuntimeTypesNeed computeRuntimeTypesNeed(
       KClosedWorld closedWorld, CompilerOptions options) {
-    return const TrivialRuntimeTypesNeed();
+    return TrivialRuntimeTypesNeed(closedWorld.elementEnvironment);
   }
 }
 

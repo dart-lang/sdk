@@ -135,7 +135,7 @@ class JsClosedWorldBuilder {
     List<FunctionEntity> callMethods = <FunctionEntity>[];
     ClosureData closureData;
     if (_options.disableRtiOptimization) {
-      rtiNeed = new TrivialRuntimeTypesNeed();
+      rtiNeed = new TrivialRuntimeTypesNeed(_elementMap.elementEnvironment);
       closureData = _closureDataBuilder.createClosureEntities(
           this,
           map.toBackendMemberMap(closureModels, identity),
