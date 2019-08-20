@@ -256,12 +256,6 @@ abstract class TypeConstraintGatherer {
     // identical().  If P and Q are equal but not identical, recursing through
     // the types will give the proper result.
     if (identical(subtype, supertype)) return true;
-    // Any type `P` is a subtype match for `dynamic`, `Object`, or `void` under
-    // no constraints.
-    if (_isTop(supertype)) return true;
-    // `Null` is a subtype match for any type `Q` under no constraints.
-    // Note that nullable types will change this.
-    if (_isNull(subtype)) return true;
 
     // Handle FutureOr<T> union type.
     if (subtype is InterfaceType &&
@@ -300,9 +294,32 @@ abstract class TypeConstraintGatherer {
       //     constraints `C`
       var supertypeArg = supertype.typeArguments[0];
       var supertypeFuture = futureType(supertypeArg);
-      return trySubtypeMatch(subtype, supertypeFuture) ||
-          _isSubtypeMatch(subtype, supertypeArg);
+
+      // The outcome of both trySubtypeMatch and _isSubtypeMatch is includes the
+      // returned boolean value and the added constraints to _protoConstraints.
+      // Here we need to match 'subtype' against both possibilities of the
+      // FutureOr<X> which is 'supertype,' that is, we need to match 'subtype'
+      // against Future<X> and X.  However, if the first matching against
+      // Future<X> finds any new constraints and adds them to _protoConstraints,
+      // we should prefer them over the constraints possibly found while
+      // matching against X.  Note that if matching against Future<X> returned
+      // true, but didn't find any new constraints, then matching against X
+      // should still be done and the new constraints should still be added to
+      // _protoConstraints.
+      int oldProtoConstraintsLength = _protoConstraints.length;
+      bool matchesFuture = trySubtypeMatch(subtype, supertypeFuture);
+      bool matchesArg = oldProtoConstraintsLength != _protoConstraints.length
+          ? false
+          : _isSubtypeMatch(subtype, supertypeArg);
+      return matchesFuture || matchesArg;
     }
+
+    // Any type `P` is a subtype match for `dynamic`, `Object`, or `void` under
+    // no constraints.
+    if (_isTop(supertype)) return true;
+    // `Null` is a subtype match for any type `Q` under no constraints.
+    // Note that nullable types will change this.
+    if (_isNull(subtype)) return true;
 
     // A type variable `T` not in `L` with bound `P` is a subtype match for the
     // same type variable `T` with bound `Q` with respect to `L` under
