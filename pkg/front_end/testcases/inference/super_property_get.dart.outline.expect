@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  field dynamic x;
+  field core::int* x;
   synthetic constructor •() → self::C*
     ;
 }

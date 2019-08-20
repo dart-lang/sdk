@@ -1,4 +1,19 @@
 library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/runtime_checks_new/mixin_forwarding_stub_field.dart:48:7: Error: The return type of the method 'M.y' is 'int', which does not match the return type, 'Object', of the overridden method, 'I.y'.
+//  - 'Object' is from 'dart:core'.
+// Change to a subtype of 'Object'.
+//   int y;
+//       ^
+// pkg/front_end/testcases/runtime_checks_new/mixin_forwarding_stub_field.dart:43:12: Context: This is the overridden method ('y').
+//   void set y(covariant Object value);
+//            ^
+// pkg/front_end/testcases/runtime_checks_new/mixin_forwarding_stub_field.dart:51:7: Context: Override was introduced in the mixin application class 'C'.
+// class C = B with M implements I<int>;
+//       ^
+//
 import self as self;
 import "dart:core" as core;
 

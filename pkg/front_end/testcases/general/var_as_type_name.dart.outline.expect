@@ -6,7 +6,7 @@ library;
 //   Map<String, var> m;
 //               ^^^
 //
-// pkg/front_end/testcases/general/var_as_type_name.dart:6:15: Warning: Type 'var' not found.
+// pkg/front_end/testcases/general/var_as_type_name.dart:6:15: Error: Type 'var' not found.
 //   Map<String, var> m;
 //               ^^^
 //

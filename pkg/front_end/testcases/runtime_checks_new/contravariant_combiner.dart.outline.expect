@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 typedef F<T extends core::Object* = dynamic> = (T*) →* void;
-class B<T extends core::Object* = dynamic, U extends (self::B::T*) →* void = dynamic> extends core::Object {
+class B<T extends core::Object* = dynamic, U extends (self::B::T*) →* void = (dynamic) →* void> extends core::Object {
   synthetic constructor •() → self::B<self::B::T*, self::B::U*>*
     ;
   operator +(dynamic other) → self::B<self::B::T*, (self::B::T*) →* void>*

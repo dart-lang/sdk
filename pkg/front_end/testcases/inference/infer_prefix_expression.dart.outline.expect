@@ -1,0 +1,9 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static field core::bool* a_not;
+static field core::int* a_complement;
+static field core::int* a_negate;
+static method main() → dynamic
+  ;

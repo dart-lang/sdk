@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/regress/issue_32660.dart:21:3: Warning: The method 'D.foo' has fewer named arguments than those of overridden method 'E.foo'.
+// pkg/front_end/testcases/regress/issue_32660.dart:21:3: Error: The method 'D.foo' has fewer named arguments than those of overridden method 'E.foo'.
 //   foo(int x) => x;
 //   ^
 // pkg/front_end/testcases/regress/issue_32660.dart:25:3: Context: This is the overridden method ('foo').
@@ -12,7 +12,7 @@ library;
 // class E extends D {
 //       ^
 //
-// pkg/front_end/testcases/regress/issue_32660.dart:6:3: Warning: The method 'A.foo' has fewer named arguments than those of overridden method 'B.foo'.
+// pkg/front_end/testcases/regress/issue_32660.dart:6:3: Error: The method 'A.foo' has fewer named arguments than those of overridden method 'B.foo'.
 //   foo(int x) => x;
 //   ^
 // pkg/front_end/testcases/regress/issue_32660.dart:10:3: Context: This is the overridden method ('foo').

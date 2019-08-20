@@ -2,16 +2,16 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class A<T extends core::num* = dynamic> extends core::Object {
+class A<T extends core::num* = core::num*> extends core::Object {
   synthetic constructor •() → self::A<self::A::T*>*
     ;
 }
 class B extends core::Object {
   synthetic constructor •() → self::B*
     ;
-  method foo(self::A<dynamic>* a) → dynamic
+  method foo(self::A<core::num*>* a) → dynamic
     ;
-  method bar() → self::A<dynamic>*
+  method bar() → self::A<core::num*>*
     ;
 }
 static method main() → dynamic

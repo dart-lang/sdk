@@ -1,0 +1,12 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method getListOfString() → core::List<core::String*>*
+  ;
+static method foo() → void
+  ;
+static method bar() → void
+  ;
+static method main() → dynamic
+  ;

@@ -1,0 +1,44 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class A<S extends core::Object* = dynamic, T extends core::Object* = dynamic> extends core::Object {
+  generic-covariant-impl field self::A::S* x;
+  generic-covariant-impl field self::A::T* y;
+  constructor •(self::A::S* x, self::A::T* y) → self::A<self::A::S*, self::A::T*>*
+    ;
+  constructor named(self::A::S* x, self::A::T* y) → self::A<self::A::S*, self::A::T*>*
+    ;
+}
+class B<S extends core::Object* = dynamic, T extends core::Object* = dynamic> extends self::A<self::B::T*, self::B::S*> {
+  constructor •(self::B::S* y, self::B::T* x) → self::B<self::B::S*, self::B::T*>*
+    ;
+  constructor named(self::B::S* y, self::B::T* x) → self::B<self::B::S*, self::B::T*>*
+    ;
+}
+class C<S extends core::Object* = dynamic> extends self::B<self::C::S*, self::C::S*> {
+  constructor •(self::C::S* a) → self::C<self::C::S*>*
+    ;
+  constructor named(self::C::S* a) → self::C<self::C::S*>*
+    ;
+}
+class D<S extends core::Object* = dynamic, T extends core::Object* = dynamic> extends self::B<self::D::T*, core::int*> {
+  constructor •(self::D::T* a) → self::D<self::D::S*, self::D::T*>*
+    ;
+  constructor named(self::D::T* a) → self::D<self::D::S*, self::D::T*>*
+    ;
+}
+class E<S extends core::Object* = dynamic, T extends core::Object* = dynamic> extends self::A<self::C<self::E::S*>*, self::E::T*> {
+  constructor •(self::E::T* a) → self::E<self::E::S*, self::E::T*>*
+    ;
+}
+class F<S extends core::Object* = dynamic, T extends core::Object* = dynamic> extends self::A<self::F::S*, self::F::T*> {
+  constructor •(self::F::S* x, self::F::T* y, {core::List<self::F::S*>* a, core::List<self::F::T*>* b}) → self::F<self::F::S*, self::F::T*>*
+    ;
+  constructor named(self::F::S* x, self::F::T* y, [self::F::S* a, self::F::T* b]) → self::F<self::F::S*, self::F::T*>*
+    ;
+}
+static method test() → void
+  ;
+static method main() → dynamic
+  ;

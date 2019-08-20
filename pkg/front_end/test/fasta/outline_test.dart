@@ -10,7 +10,6 @@ import 'testing/suite.dart';
 
 Future<FastaContext> createContext(
     Chain suite, Map<String, String> environment) {
-  environment[LEGACY_MODE] = "";
   return FastaContext.create(suite, environment);
 }
 

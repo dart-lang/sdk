@@ -1,0 +1,8 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+typedef F<T extends core::Object* = dynamic> = () →* T*;
+static final field core::Map<core::String*, () →* core::int*>* x;
+static method main() → dynamic
+  ;

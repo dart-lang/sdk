@@ -1,4 +1,15 @@
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/instantiate_to_bound/non_simple_bound_due_to_non_simple.dart:12:9: Error: Generic type 'A' can't be used without type arguments in a type variable bound.
+// Try providing type arguments to 'A' here.
+// class B<TypeU extends A> {}
+//         ^^^^^
+// pkg/front_end/testcases/instantiate_to_bound/non_simple_bound_due_to_non_simple.dart:10:16: Context: Bound of this variable references variable 'TypeT' from the same declaration.
+// class A<TypeT, TypeS extends TypeT> {}
+//                ^^^^^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -10,10 +21,10 @@ class B<TypeU extends self::A<dynamic, dynamic>* = dynamic> extends core::Object
   synthetic constructor •() → self::B<self::B::TypeU*>*
     ;
 }
-class C<TypeV extends self::B<dynamic>* = dynamic> extends core::Object {
+class C<TypeV extends self::B<dynamic>* = self::B<dynamic>*> extends core::Object {
   synthetic constructor •() → self::C<self::C::TypeV*>*
     ;
 }
-static field self::C<dynamic>* c;
+static field self::C<self::B<dynamic>*>* c;
 static method main() → dynamic
   ;

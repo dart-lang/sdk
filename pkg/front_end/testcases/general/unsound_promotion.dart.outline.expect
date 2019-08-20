@@ -15,7 +15,7 @@ class C extends self::B implements self::A {
     ;
 }
 static field core::List<self::A*>* list;
-static method g<T extends self::A* = dynamic>(self::g::T* t) → core::List<self::g::T*>*
+static method g<T extends self::A* = self::A*>(self::g::T* t) → core::List<self::g::T*>*
   ;
 static method f<S extends core::Object* = dynamic>(self::f::S* s) → core::List<self::f::S*>*
   ;

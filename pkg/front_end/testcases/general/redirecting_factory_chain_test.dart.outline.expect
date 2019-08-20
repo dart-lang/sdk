@@ -3,10 +3,13 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  constructor •() → void
+  static field dynamic _redirecting# = <dynamic>[self::A::first, self::A::second];
+  constructor •() → self::A*
     ;
-  redirecting_factory first() = self::A::•;
-  redirecting_factory second() = self::A::first;
+  static factory first() → self::A*
+    let dynamic #redirecting_factory = self::A::• in invalid-expression;
+  static factory second() → self::A*
+    let dynamic #redirecting_factory = self::A::first in invalid-expression;
 }
 static method main() → dynamic
   ;
