@@ -901,9 +901,6 @@ class CodeChecker extends RecursiveAstVisitor {
           classLowerBound, Name(element.librarySource.uri, element.name));
       if (memberLowerBound == null &&
           element.enclosingElement is ExtensionElement) {
-        // TODO(brianwilkerson) At this point, I think we need to search for the
-        //  extension member in the lower bound of the extended type. For now we
-        //  return in order to stop it from crashing.
         return;
       }
       var expectedType = invokeType.returnType;
