@@ -6,11 +6,11 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/ast.dart';
 
-const _desc = r'AVOID overloading operator == on classes not marked `@immutable`.';
+const _desc =
+    r'AVOID overloading operator == on classes not marked `@immutable`.';
 
 const _details = r'''
 
@@ -82,40 +82,22 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     if (node.name.token?.type == TokenType.EQ_EQ || isHashCode(node)) {
-      final ClassElement classElement = _getClassForMethod(node);
+      final classElement = _getClassForMethod(node);
       if (classElement != null && !_hasImmutableAnnotation(classElement)) {
         rule.reportLintForToken(node.firstTokenAfterCommentAndMetadata);
       }
     }
   }
 
-  ClassElement _getClassForMethod(MethodDeclaration node) {
-    AstNode maybeClass = node.parent;
-    while (maybeClass != null) {
-      if (maybeClass is ClassDeclaration) {
-        return maybeClass.declaredElement;
-      }
-      maybeClass = maybeClass.parent;
-    }
-    return null;
-  }
-
-  Iterable<InterfaceType> _getSelfAndInheritedTypes(InterfaceType type) sync* {
-    InterfaceType current = type;
-    Set<ClassElement> seenTypes = <ClassElement>{};
-    while (current != null && seenTypes.add(current.element)) {
-      yield current;
-      current = current.superclass;
-    }
-  }
+  ClassElement _getClassForMethod(MethodDeclaration node) =>
+      node.parent.thisOrAncestorOfType<ClassDeclaration>()?.declaredElement;
 
   bool _hasImmutableAnnotation(ClassElement clazz) {
-    final inheritedAndSelfTypes = _getSelfAndInheritedTypes(clazz.type);
+    final inheritedAndSelfTypes = clazz.allSupertypes..add(clazz.type);
     final inheritedAndSelfAnnotations = inheritedAndSelfTypes
         .map((type) => type.element)
         .expand((c) => c.metadata)
         .map((m) => m.element);
     return inheritedAndSelfAnnotations.any(_isImmutable);
   }
-
 }

@@ -18,13 +18,31 @@ const _Immutable immutable = _Immutable();
 class A {
   final String key;
   const A(this.key);
-  @override operator ==(other) => other is A && other.key == key; // OK
-  @override int hashCode() => key.hashCode; // OK
+  @override
+  operator ==(other) => other is A && other.key == key; // OK
+  @override
+  int hashCode() => key.hashCode; // OK
 }
 
 class B {
   final String key;
   const B(this.key);
-  @override operator ==(other) => other is B && other.key == key; // LINT
-  @override int hashCode() => key.hashCode; // LINT
+  @override
+  operator ==(other) => other is B && other.key == key; // LINT
+  @override
+  int hashCode() => key.hashCode; // LINT
+}
+
+@immutable
+class C {
+  const C();
+}
+
+class D extends C {
+  final String key;
+  const D(this.key);
+  @override
+  operator ==(other) => other is B && other.key == key; // OK
+  @override
+  int get hashCode => key.hashCode; // OK
 }
