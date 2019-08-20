@@ -119,6 +119,7 @@ vars = {
   "quiver-dart_tag": "2.0.0+1",
   "resource_rev": "f8e37558a1c4f54550aa463b88a6a831e3e33cd6",
   "root_certificates_rev": "16ef64be64c7dfdff2b9f4b910726e635ccc519e",
+  "rust_revision": "60960a260f7b5c695fd0717311d72ce62dd4eb43",
   "shelf_static_rev": "v0.2.8",
   "shelf_packages_handler_tag": "1.0.4",
   "shelf_tag": "0.7.3+3",
@@ -431,6 +432,17 @@ deps = {
               "version": "git_revision:" + Var("gn_revision"),
           },
       ],
+      "dep_type": "cipd",
+  },
+
+  Var("dart_root") + "/buildtools/" + Var("host_os") + "-" + Var("host_cpu") + "/rust": {
+      "packages": [
+          {
+              "package": "fuchsia/rust/${{platform}}",
+              "version": "git_revision:" + Var("rust_revision"),
+          },
+      ],
+      "condition": "(host_os == 'linux' or host_os == 'mac') and host_cpu == 'x64'",
       "dep_type": "cipd",
   },
 
