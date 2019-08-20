@@ -241,6 +241,18 @@ class LinterVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitExtensionDeclaration(ExtensionDeclaration node) {
+    _runSubscriptions(node, registry._forExtensionDeclaration);
+    super.visitExtensionDeclaration(node);
+  }
+
+  @override
+  void visitExtensionOverride(ExtensionOverride node) {
+    _runSubscriptions(node, registry._forExtensionOverride);
+    super.visitExtensionOverride(node);
+  }
+
+  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     _runSubscriptions(node, registry._forFieldDeclaration);
     super.visitFieldDeclaration(node);
@@ -765,6 +777,8 @@ class NodeLintRegistry {
       [];
   final List<_Subscription<ExpressionStatement>> _forExpressionStatement = [];
   final List<_Subscription<ExtendsClause>> _forExtendsClause = [];
+  final List<_Subscription<ExtendsClause>> _forExtensionDeclaration = [];
+  final List<_Subscription<ExtendsClause>> _forExtensionOverride = [];
   final List<_Subscription<FieldDeclaration>> _forFieldDeclaration = [];
   final List<_Subscription<FieldFormalParameter>> _forFieldFormalParameter = [];
   final List<_Subscription<ForEachPartsWithDeclaration>>
@@ -1036,6 +1050,16 @@ class NodeLintRegistry {
 
   void addExtendsClause(LintRule linter, AstVisitor visitor) {
     _forExtendsClause
+        .add(new _Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addExtensionDeclaration(LintRule linter, AstVisitor visitor) {
+    _forExtensionDeclaration
+        .add(new _Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addExtensionOverride(LintRule linter, AstVisitor visitor) {
+    _forExtensionOverride
         .add(new _Subscription(linter, visitor, _getTimer(linter)));
   }
 
