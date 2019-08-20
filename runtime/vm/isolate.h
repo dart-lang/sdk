@@ -19,7 +19,6 @@
 #include "vm/class_table.h"
 #include "vm/constants_kbc.h"
 #include "vm/exceptions.h"
-#include "vm/ffi_callback_trampolines.h"
 #include "vm/fixed_cache.h"
 #include "vm/growable_array.h"
 #include "vm/handles.h"
@@ -33,7 +32,6 @@
 #include "vm/thread.h"
 #include "vm/thread_stack_resource.h"
 #include "vm/token_position.h"
-#include "vm/virtual_memory.h"
 
 namespace dart {
 
@@ -405,12 +403,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
   void set_init_callback_data(void* value) { init_callback_data_ = value; }
   void* init_callback_data() const { return init_callback_data_; }
-
-#if !defined(TARGET_ARCH_DBC) && !defined(DART_PRECOMPILED_RUNTIME)
-  NativeCallbackTrampolines* native_callback_trampolines() {
-    return &native_callback_trampolines_;
-  }
-#endif
 
   Dart_EnvironmentCallback environment_callback() const {
     return environment_callback_;
@@ -906,7 +898,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
 #if defined(PRODUCT)
   void set_use_osr(bool use_osr) { ASSERT(!use_osr); }
-#else   // defined(PRODUCT)
+#else  // defined(PRODUCT)
   void set_use_osr(bool use_osr) {
     isolate_flags_ = UseOsrBit::update(use_osr, isolate_flags_);
   }
@@ -1037,10 +1029,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   Heap* heap_ = nullptr;
   IsolateGroup* isolate_group_ = nullptr;
 
-#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(TARGET_ARCH_DBC)
-  NativeCallbackTrampolines native_callback_trampolines_;
-#endif
-
 #define ISOLATE_FLAG_BITS(V)                                                   \
   V(ErrorsFatal)                                                               \
   V(IsRunnable)                                                                \
@@ -1097,14 +1085,23 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   VMTagCounters vm_tag_counters_;
 
   // We use 6 list entries for each pending service extension calls.
-  enum {kPendingHandlerIndex = 0, kPendingMethodNameIndex, kPendingKeysIndex,
-        kPendingValuesIndex,      kPendingReplyPortIndex,  kPendingIdIndex,
-        kPendingEntrySize};
+  enum {
+    kPendingHandlerIndex = 0,
+    kPendingMethodNameIndex,
+    kPendingKeysIndex,
+    kPendingValuesIndex,
+    kPendingReplyPortIndex,
+    kPendingIdIndex,
+    kPendingEntrySize
+  };
   RawGrowableObjectArray* pending_service_extension_calls_;
 
   // We use 2 list entries for each registered extension handler.
-  enum {kRegisteredNameIndex = 0, kRegisteredHandlerIndex,
-        kRegisteredEntrySize};
+  enum {
+    kRegisteredNameIndex = 0,
+    kRegisteredHandlerIndex,
+    kRegisteredEntrySize
+  };
   RawGrowableObjectArray* registered_service_extension_handlers_;
 
   Metric* metrics_list_head_ = nullptr;
@@ -1217,13 +1214,13 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   REUSABLE_HANDLE_LIST(REUSABLE_FRIEND_DECLARATION)
 #undef REUSABLE_FRIEND_DECLARATION
 
-  friend class Become;       // VisitObjectPointers
+  friend class Become;    // VisitObjectPointers
   friend class GCCompactor;  // VisitObjectPointers
-  friend class GCMarker;     // VisitObjectPointers
+  friend class GCMarker;  // VisitObjectPointers
   friend class SafepointHandler;
-  friend class ObjectGraph;         // VisitObjectPointers
+  friend class ObjectGraph;  // VisitObjectPointers
   friend class HeapSnapshotWriter;  // VisitObjectPointers
-  friend class Scavenger;           // VisitObjectPointers
+  friend class Scavenger;    // VisitObjectPointers
   friend class HeapIterationScope;  // VisitObjectPointers
   friend class ServiceIsolate;
   friend class Thread;

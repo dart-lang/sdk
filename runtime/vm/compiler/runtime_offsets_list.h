@@ -217,6 +217,7 @@
   NOT_IN_DBC(FIELD(Thread, write_barrier_code_offset))                         \
   NOT_IN_DBC(FIELD(Thread, write_barrier_entry_point_offset))                  \
   FIELD(Thread, write_barrier_mask_offset)                                     \
+  NOT_IN_DBC(FIELD(Thread, verify_callback_entry_offset))                      \
   FIELD(Thread, callback_code_offset)                                          \
   FIELD(TimelineStream, enabled_offset)                                        \
   FIELD(TwoByteString, data_offset)                                            \

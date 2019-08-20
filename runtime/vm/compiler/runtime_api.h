@@ -651,13 +651,13 @@ class Thread : public AllStatic {
   static word write_barrier_wrappers_thread_offset(Register regno);
   static word array_write_barrier_entry_point_offset();
   static word write_barrier_entry_point_offset();
+  static word verify_callback_entry_offset();
   static word vm_tag_offset();
   static uword vm_tag_compiled_id();
 
   static word safepoint_state_offset();
   static uword safepoint_state_unacquired();
   static uword safepoint_state_acquired();
-  static intptr_t safepoint_state_inside_bit();
 
   static word execution_state_offset();
   static uword vm_execution_state();

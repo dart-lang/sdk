@@ -2141,7 +2141,18 @@ void Assembler::BranchOnMonomorphicCheckedEntryJIT(Label* label) {
   }
 }
 
-void Assembler::EnterSafepoint(Register scratch) {
+void Assembler::TransitionGeneratedToNative(Register destination_address,
+                                            Register new_exit_frame,
+                                            Register scratch) {
+  // Save exit frame information to enable stack walking.
+  movl(Address(THR, target::Thread::top_exit_frame_info_offset()),
+       new_exit_frame);
+
+  // Mark that the thread is executing native code.
+  movl(VMTagAddress(), destination_address);
+  movl(Address(THR, target::Thread::execution_state_offset()),
+       Immediate(target::Thread::native_execution_state()));
+
   // Compare and swap the value at Thread::safepoint_state from unacquired to
   // acquired. On success, jump to 'success'; otherwise, fallthrough.
   Label done;
@@ -2164,25 +2175,7 @@ void Assembler::EnterSafepoint(Register scratch) {
   Bind(&done);
 }
 
-void Assembler::TransitionGeneratedToNative(Register destination_address,
-                                            Register new_exit_frame,
-                                            Register scratch,
-                                            bool enter_safepoint) {
-  // Save exit frame information to enable stack walking.
-  movl(Address(THR, target::Thread::top_exit_frame_info_offset()),
-       new_exit_frame);
-
-  // Mark that the thread is executing native code.
-  movl(VMTagAddress(), destination_address);
-  movl(Address(THR, target::Thread::execution_state_offset()),
-       Immediate(target::Thread::native_execution_state()));
-
-  if (enter_safepoint) {
-    EnterSafepoint(scratch);
-  }
-}
-
-void Assembler::ExitSafepoint(Register scratch) {
+void Assembler::TransitionNativeToGenerated(Register scratch) {
   // Compare and swap the value at Thread::safepoint_state from acquired to
   // unacquired. On success, jump to 'success'; otherwise, fallthrough.
   Label done;
@@ -2203,23 +2196,6 @@ void Assembler::ExitSafepoint(Register scratch) {
   call(scratch);
 
   Bind(&done);
-}
-
-void Assembler::TransitionNativeToGenerated(Register scratch,
-                                            bool exit_safepoint) {
-  if (exit_safepoint) {
-    ExitSafepoint(scratch);
-  } else {
-#if defined(DEBUG)
-    // Ensure we've already left the safepoint.
-    movl(scratch, Address(THR, target::Thread::safepoint_state_offset()));
-    andl(scratch, Immediate(1 << target::Thread::safepoint_state_inside_bit()));
-    Label ok;
-    j(ZERO, &ok);
-    Breakpoint();
-    Bind(&ok);
-#endif
-  }
 
   // Mark that the thread is executing Dart code.
   movl(Assembler::VMTagAddress(),

@@ -146,8 +146,7 @@ RUNTIME_ENTRY_LIST(DECLARE_RUNTIME_ENTRY)
 LEAF_RUNTIME_ENTRY_LIST(DECLARE_LEAF_RUNTIME_ENTRY)
 
 // Expected to be called inside a safepoint.
-extern "C" Thread* DLRT_GetThreadForNativeCallback(uword callback_id);
-extern "C" Thread* DLRT_GetThreadForNativeCallbackTrampoline(uword callback_id);
+extern "C" Thread* DLRT_GetThreadForNativeCallback();
 
 const char* DeoptReasonToCString(ICData::DeoptReasonId deopt_reason);
 

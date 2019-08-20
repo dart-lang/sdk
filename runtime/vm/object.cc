@@ -12,7 +12,6 @@
 #include "vm/bit_vector.h"
 #include "vm/bootstrap.h"
 #include "vm/class_finalizer.h"
-#include "vm/code_comments.h"
 #include "vm/code_observers.h"
 #include "vm/compiler/aot/precompiler.h"
 #include "vm/compiler/assembler/assembler.h"
@@ -14897,6 +14896,42 @@ RawCode* Code::New(intptr_t pointer_offsets_length) {
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(PRODUCT)
+class CodeCommentsWrapper final : public CodeComments {
+ public:
+  explicit CodeCommentsWrapper(const Code::Comments& comments)
+      : comments_(comments), string_(String::Handle()) {}
+
+  intptr_t Length() const override { return comments_.Length(); }
+
+  intptr_t PCOffsetAt(intptr_t i) const override {
+    return comments_.PCOffsetAt(i);
+  }
+
+  const char* CommentAt(intptr_t i) const override {
+    string_ = comments_.CommentAt(i);
+    return string_.ToCString();
+  }
+
+ private:
+  const Code::Comments& comments_;
+  String& string_;
+};
+
+static const Code::Comments& CreateCommentsFrom(
+    compiler::Assembler* assembler) {
+  const auto& comments = assembler->comments();
+  Code::Comments& result = Code::Comments::New(comments.length());
+
+  for (intptr_t i = 0; i < comments.length(); i++) {
+    result.SetPCOffsetAt(i, comments[i]->pc_offset());
+    result.SetCommentAt(i, comments[i]->comment());
+  }
+
+  return result;
+}
+#endif
+
 RawCode* Code::FinalizeCodeAndNotify(const Function& function,
                                      FlowGraphCompiler* compiler,
                                      compiler::Assembler* assembler,
@@ -15095,6 +15130,7 @@ void Code::NotifyCodeObservers(const char* name,
   }
 #endif
 }
+
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 bool Code::SlowFindRawCodeVisitor::FindObject(RawObject* raw_obj) const {

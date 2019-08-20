@@ -9,7 +9,6 @@
 #include "platform/globals.h"
 #include "vm/compiler/backend/locations.h"
 #include "vm/compiler/runtime_api.h"
-#include "vm/compiler/stub_code_compiler.h"
 #include "vm/growable_array.h"
 #include "vm/object_store.h"
 #include "vm/stack_frame.h"
@@ -355,7 +354,6 @@ class ArgumentAllocator : public ValueObject {
   intptr_t stack_height_in_slots = 0;
 };
 
-#if !defined(TARGET_ARCH_DBC)
 ZoneGrowableArray<Location>*
 CallbackArgumentTranslator::TranslateArgumentLocations(
     const ZoneGrowableArray<Location>& arg_locs) {
@@ -400,17 +398,10 @@ Location CallbackArgumentTranslator::TranslateArgument(Location arg) {
     // saved argument registers and stack arguments. Also add slots for the
     // shadow space if present (factored into
     // kCallbackSlotsBeforeSavedArguments).
-    //
-    // Finally, if we are using NativeCallbackTrampolines, factor in the extra
-    // stack space corresponding to those trampolines' frames (above the entry
-    // frame).
-    intptr_t stack_delta = kCallbackSlotsBeforeSavedArguments;
-    if (NativeCallbackTrampolines::Enabled()) {
-      stack_delta += StubCodeCompiler::kNativeCallbackTrampolineStackDelta;
-    }
     FrameRebase rebase(
         /*old_base=*/SPREG, /*new_base=*/SPREG,
-        /*stack_delta=*/argument_slots_required_ + stack_delta);
+        /*stack_delta=*/argument_slots_required_ +
+            kCallbackSlotsBeforeSavedArguments);
     return rebase.Rebase(arg);
   }
 
@@ -424,7 +415,6 @@ Location CallbackArgumentTranslator::TranslateArgument(Location arg) {
   argument_slots_used_ += 8 / target::kWordSize;
   return result;
 }
-#endif  // !defined(TARGET_ARCH_DBC)
 
 // Takes a list of argument representations, and converts it to a list of
 // argument locations based on calling convention.

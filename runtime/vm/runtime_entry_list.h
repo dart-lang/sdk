@@ -87,6 +87,7 @@ namespace dart {
     RawSmi*)                                                                   \
   V(void, EnterSafepoint)                                                      \
   V(void, ExitSafepoint)                                                       \
+  V(void, VerifyCallbackIsolate, int32_t, uword)
 
 }  // namespace dart
 

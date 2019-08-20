@@ -198,8 +198,6 @@ class CallingConventions {
 
   static const bool kArgumentIntRegXorFpuReg = false;
 
-  static constexpr intptr_t kCalleeSaveCpuRegisters = kAbiPreservedCpuRegs;
-
   // Whether floating-point values should be passed as integers ("softfp" vs
   // "hardfp").
   static constexpr bool kAbiSoftFP = false;

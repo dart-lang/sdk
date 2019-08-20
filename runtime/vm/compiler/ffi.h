@@ -119,7 +119,7 @@ class FfiSignatureDescriptor : public ValueObject {
   static const intptr_t kOffsetArgumentLocations = 3;
 };
 
-#else  // defined(TARGET_ARCH_DBC)
+#endif  // defined(TARGET_ARCH_DBC)
 
 // This classes translates the ABI location of arguments into the locations they
 // will inhabit after entry-frame setup in the invocation of a native callback.
@@ -145,8 +145,6 @@ class CallbackArgumentTranslator : public ValueObject {
   intptr_t argument_slots_used_ = 0;
   intptr_t argument_slots_required_ = 0;
 };
-
-#endif  // defined(TARGET_ARCH_DBC)
 
 bool IsAsFunctionInternal(Zone* zone, Isolate* isolate, const Function& func);
 

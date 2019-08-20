@@ -78,6 +78,7 @@ namespace dart {
   V(OneArgOptimizedCheckInlineCacheWithExactnessCheck)                         \
   V(EnterSafepoint)                                                            \
   V(ExitSafepoint)                                                             \
+  V(VerifyCallback)                                                            \
   V(CallNativeThroughSafepoint)
 
 #else

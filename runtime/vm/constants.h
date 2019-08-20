@@ -85,22 +85,6 @@ class RegisterNames {
 #endif  // !defined(HOST_ARCH_EQUALS_TARGET_ARCH)
 };
 
-#if !defined(TARGET_ARCH_DBC)
-
-static constexpr bool IsArgumentRegister(Register reg) {
-  return ((1 << reg) & CallingConventions::kArgumentRegisters) != 0;
-}
-
-static constexpr bool IsFpuArgumentRegister(FpuRegister reg) {
-  return ((1 << reg) & CallingConventions::kFpuArgumentRegisters) != 0;
-}
-
-static constexpr bool IsCalleeSavedRegister(Register reg) {
-  return ((1 << reg) & CallingConventions::kCalleeSaveCpuRegisters) != 0;
-}
-
-#endif  // !defined(TARGET_ARCH_DBC)
-
 }  // namespace dart
 
 #endif  // RUNTIME_VM_CONSTANTS_H_

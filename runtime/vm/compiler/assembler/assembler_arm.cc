@@ -190,10 +190,6 @@ void Assembler::and_(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), AND, 0, rn, rd, o);
 }
 
-void Assembler::ands(Register rd, Register rn, Operand o, Condition cond) {
-  EmitType01(cond, o.type(), AND, 1, rn, rd, o);
-}
-
 void Assembler::eor(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), EOR, 0, rn, rd, o);
 }
@@ -545,7 +541,20 @@ void Assembler::strex(Register rd, Register rt, Register rn, Condition cond) {
   Emit(encoding);
 }
 
-void Assembler::EnterSafepoint(Register addr, Register state) {
+void Assembler::TransitionGeneratedToNative(Register destination_address,
+                                            Register exit_frame_fp,
+                                            Register addr,
+                                            Register state) {
+  // Save exit frame information to enable stack walking.
+  StoreToOffset(kWord, exit_frame_fp, THR,
+                target::Thread::top_exit_frame_info_offset());
+
+  // Mark that the thread is executing native code.
+  StoreToOffset(kWord, destination_address, THR,
+                target::Thread::vm_tag_offset());
+  LoadImmediate(state, target::Thread::native_execution_state());
+  StoreToOffset(kWord, state, THR, target::Thread::execution_state_offset());
+
   if (FLAG_use_slow_path || TargetCPUFeatures::arm_version() == ARMv5TE) {
     EnterSafepointSlowly();
   } else {
@@ -576,27 +585,7 @@ void Assembler::EnterSafepointSlowly() {
   blx(TMP);
 }
 
-void Assembler::TransitionGeneratedToNative(Register destination_address,
-                                            Register exit_frame_fp,
-                                            Register addr,
-                                            Register state,
-                                            bool enter_safepoint) {
-  // Save exit frame information to enable stack walking.
-  StoreToOffset(kWord, exit_frame_fp, THR,
-                target::Thread::top_exit_frame_info_offset());
-
-  // Mark that the thread is executing native code.
-  StoreToOffset(kWord, destination_address, THR,
-                target::Thread::vm_tag_offset());
-  LoadImmediate(state, target::Thread::native_execution_state());
-  StoreToOffset(kWord, state, THR, target::Thread::execution_state_offset());
-
-  if (enter_safepoint) {
-    EnterSafepoint(addr, state);
-  }
-}
-
-void Assembler::ExitSafepoint(Register addr, Register state) {
+void Assembler::TransitionNativeToGenerated(Register addr, Register state) {
   if (FLAG_use_slow_path || TargetCPUFeatures::arm_version() == ARMv5TE) {
     ExitSafepointSlowly();
   } else {
@@ -619,31 +608,6 @@ void Assembler::ExitSafepoint(Register addr, Register state) {
 
     Bind(&done);
   }
-}
-
-void Assembler::ExitSafepointSlowly() {
-  ldr(TMP, Address(THR, target::Thread::exit_safepoint_stub_offset()));
-  ldr(TMP, FieldAddress(TMP, target::Code::entry_point_offset()));
-  blx(TMP);
-}
-
-void Assembler::TransitionNativeToGenerated(Register addr,
-                                            Register state,
-                                            bool exit_safepoint) {
-  if (exit_safepoint) {
-    ExitSafepoint(addr, state);
-  } else {
-#if defined(DEBUG)
-    // Ensure we've already left the safepoint.
-    LoadImmediate(state, 1 << target::Thread::safepoint_state_inside_bit());
-    ldr(TMP, Address(THR, target::Thread::safepoint_state_offset()));
-    ands(TMP, TMP, Operand(state));  // Is-at-safepoint is the LSB.
-    Label ok;
-    b(&ok, ZERO);
-    Breakpoint();
-    Bind(&ok);
-#endif
-  }
 
   // Mark that the thread is executing Dart code.
   LoadImmediate(state, target::Thread::vm_tag_compiled_id());
@@ -655,6 +619,12 @@ void Assembler::TransitionNativeToGenerated(Register addr,
   LoadImmediate(state, 0);
   StoreToOffset(kWord, state, THR,
                 target::Thread::top_exit_frame_info_offset());
+}
+
+void Assembler::ExitSafepointSlowly() {
+  ldr(TMP, Address(THR, target::Thread::exit_safepoint_stub_offset()));
+  ldr(TMP, FieldAddress(TMP, target::Code::entry_point_offset()));
+  blx(TMP);
 }
 
 void Assembler::clrex() {
