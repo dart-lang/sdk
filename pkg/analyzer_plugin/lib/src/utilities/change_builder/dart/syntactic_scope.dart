@@ -46,6 +46,16 @@ class NotSyntacticScopeReferencedNamesCollector
   }
 
   @override
+  void visitConstructorName(ConstructorName node) {
+    node.type.accept(this);
+  }
+
+  @override
+  void visitPrefixedIdentifier(PrefixedIdentifier node) {
+    node.prefix.accept(this);
+  }
+
+  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     var name = node.name;
     referencedNames.add(name);
