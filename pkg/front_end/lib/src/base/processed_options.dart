@@ -494,7 +494,8 @@ class ProcessedOptions {
     if (contents != null) {
       _packagesUri = file;
       try {
-        Map<String, Uri> map = package_config.parse(contents, file);
+        Map<String, Uri> map =
+            package_config.parse(contents, file, allowDefaultPackage: true);
         return new MapPackages(map);
       } on FormatException catch (e) {
         report(

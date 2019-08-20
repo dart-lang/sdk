@@ -118,6 +118,9 @@ abstract class Loader {
 
           default:
             fileUri = uri;
+            // Check for empty package name entry (redirecting to package name
+            // from which we should get the fragment part).
+            packageFragment = target.uriTranslator?.getDefaultPackageFragment();
             break;
         }
       }
