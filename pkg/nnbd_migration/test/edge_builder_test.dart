@@ -410,6 +410,25 @@ class C<T extends List<int>> {
         hard: false);
   }
 
+  test_assign_upcast_generic() async {
+    await analyze('''
+void f(Iterable<int> x) {}
+void g(List<int> x) {
+  f(x);
+}
+''');
+
+    var iterableInt = decoratedTypeAnnotation('Iterable<int>');
+    var listInt = decoratedTypeAnnotation('List<int>');
+    assertEdge(listInt.node, iterableInt.node, hard: true);
+    var substitution = graph
+        .getUpstreamEdges(iterableInt.typeArguments[0].node)
+        .single
+        .primarySource as NullabilityNodeForSubstitution;
+    expect(substitution.innerNode, same(listInt.typeArguments[0].node));
+    expect(substitution.outerNode, same(never));
+  }
+
   test_assignmentExpression_field() async {
     await analyze('''
 class C {

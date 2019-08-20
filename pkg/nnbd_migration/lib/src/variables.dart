@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -245,14 +246,18 @@ class Variables implements VariableRecorder, VariableRepository {
   /// class.
   Map<ClassElement, DecoratedType> _decorateDirectSupertypes(
       ClassElement class_) {
-    if (class_.type.isObject) {
-      // TODO(paulberry): this special case is just to get the basic
-      // infrastructure working (necessary since all classes derive from
-      // Object).  Once we have the full implementation this case shouldn't be
-      // needed.
-      return const {};
+    var result = <ClassElement, DecoratedType>{};
+    for (var supertype in class_.allSupertypes) {
+      var decoratedSupertype =
+          _alreadyMigratedCodeDecorator.decorate(supertype);
+      assert(identical(decoratedSupertype.node, _graph.never));
+      var class_ = (decoratedSupertype.type as InterfaceType).element;
+      if (class_ is ClassElementHandle) {
+        class_ = (class_ as ClassElementHandle).actualElement;
+      }
+      result[class_] = decoratedSupertype;
     }
-    throw UnimplementedError('TODO(paulberry)');
+    return result;
   }
 
   int _uniqueOffsetForTypeAnnotation(TypeAnnotation typeAnnotation) =>
