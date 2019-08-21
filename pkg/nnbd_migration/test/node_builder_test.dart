@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/element/type.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:test/test.dart';
@@ -637,6 +638,54 @@ void f() {
         variables.decoratedElementType(functionExpressionElement);
     expect(
         decoratedType.returnType.node, TypeMatcher<NullabilityNodeMutable>());
+  }
+
+  test_functionTypeAlias_generic() async {
+    await analyze('''
+typedef T F<T, U>(U u);
+''');
+    var element = findElement.genericTypeAlias('F');
+    var decoratedType = variables.decoratedElementType(element);
+    var t = element.typeParameters[0];
+    var u = element.typeParameters[1];
+    // typeFormals should be empty because this is not a generic function type,
+    // it's a generic typedef that defines an ordinary (non-generic) function
+    // type.
+    expect(decoratedType.typeFormals, isEmpty);
+    expect(decoratedType.returnType, same(decoratedTypeAnnotation('T F')));
+    expect(
+        (decoratedType.returnType.type as TypeParameterType).element, same(t));
+    expect(
+        decoratedType.returnType.node, TypeMatcher<NullabilityNodeMutable>());
+    expect(
+        (decoratedType.positionalParameters[0].type as TypeParameterType)
+            .element,
+        same(u));
+    expect(decoratedType.positionalParameters[0].node,
+        TypeMatcher<NullabilityNodeMutable>());
+  }
+
+  test_functionTypeAlias_implicit_return_type() async {
+    await analyze('''
+typedef F();
+''');
+    var decoratedType =
+        variables.decoratedElementType(findElement.genericTypeAlias('F'));
+    expect(decoratedType.returnType.type.isDynamic, isTrue);
+    expect(decoratedType.returnType.node, same(always));
+    expect(decoratedType.typeFormals, isEmpty);
+  }
+
+  test_functionTypeAlias_simple() async {
+    await analyze('''
+typedef int F(String s);
+''');
+    var decoratedType =
+        variables.decoratedElementType(findElement.genericTypeAlias('F'));
+    expect(decoratedType.returnType, same(decoratedTypeAnnotation('int')));
+    expect(decoratedType.typeFormals, isEmpty);
+    expect(decoratedType.positionalParameters[0],
+        same(decoratedTypeAnnotation('String')));
   }
 
   test_functionTypedFormalParameter_namedParameter_typed() async {

@@ -207,8 +207,44 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitFunctionTypeAlias(FunctionTypeAlias node) {
-    // TODO(brianwilkerson)
-    _unimplemented(node, 'FunctionTypeAlias');
+    node.metadata.accept(this);
+    var declaredElement = node.declaredElement;
+    var functionType = declaredElement.function.type;
+    var returnType = node.returnType;
+    DecoratedType decoratedReturnType;
+    if (returnType != null) {
+      decoratedReturnType = returnType.accept(this);
+    } else {
+      // Inferred return type.
+      decoratedReturnType =
+          DecoratedType.forImplicitType(functionType.returnType, _graph);
+    }
+    var previousPositionalParameters = _positionalParameters;
+    var previousNamedParameters = _namedParameters;
+    var previousTypeFormalBounds = _typeFormalBounds;
+    _positionalParameters = [];
+    _namedParameters = {};
+    _typeFormalBounds = [];
+    DecoratedType decoratedFunctionType;
+    try {
+      node.typeParameters?.accept(this);
+      node.parameters?.accept(this);
+      // Node: we don't pass _typeFormalBounds into DecoratedType because we're
+      // not defining a generic function type, we're defining a generic typedef
+      // of an ordinary (non-generic) function type.
+      decoratedFunctionType = DecoratedType(functionType, _graph.never,
+          typeFormalBounds: const [],
+          returnType: decoratedReturnType,
+          positionalParameters: _positionalParameters,
+          namedParameters: _namedParameters);
+    } finally {
+      _positionalParameters = previousPositionalParameters;
+      _namedParameters = previousNamedParameters;
+      _typeFormalBounds = previousTypeFormalBounds;
+    }
+    _variables.recordDecoratedElementType(
+        declaredElement, decoratedFunctionType);
+    return null;
   }
 
   @override
