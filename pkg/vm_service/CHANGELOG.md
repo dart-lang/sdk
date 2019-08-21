@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.1
+- Fixed issue serializing list arguments for certain VM service methods.
+  - Issue #37872
+
 ## 1.1.0
 - Support service protocol version 3.25:
   - Added `getInboundReferences`, `getRetainingPath` methods
