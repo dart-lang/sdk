@@ -855,6 +855,84 @@ void f(void Function(int) x) {}
     expect(decoratedIntType.node, isNot(never));
   }
 
+  test_genericTypeAlias_generic_inner() async {
+    await analyze('''
+typedef F = T Function<T, U>(U u);
+''');
+    var element = findElement.genericTypeAlias('F');
+    var decoratedType = variables.decoratedElementType(element);
+    expect(decoratedType,
+        same(decoratedGenericFunctionTypeAnnotation('T Function')));
+    expect(decoratedType.typeFormals, hasLength(2));
+    var t = decoratedType.typeFormals[0];
+    var u = decoratedType.typeFormals[1];
+    expect(decoratedType.returnType, same(decoratedTypeAnnotation('T F')));
+    expect(
+        (decoratedType.returnType.type as TypeParameterType).element, same(t));
+    expect(
+        decoratedType.returnType.node, TypeMatcher<NullabilityNodeMutable>());
+    expect(
+        (decoratedType.positionalParameters[0].type as TypeParameterType)
+            .element,
+        same(u));
+    expect(decoratedType.positionalParameters[0].node,
+        TypeMatcher<NullabilityNodeMutable>());
+  }
+
+  test_genericTypeAlias_generic_outer() async {
+    await analyze('''
+typedef F<T, U> = T Function(U u);
+''');
+    var element = findElement.genericTypeAlias('F');
+    var decoratedType = variables.decoratedElementType(element);
+    expect(decoratedType,
+        same(decoratedGenericFunctionTypeAnnotation('T Function')));
+    var t = element.typeParameters[0];
+    var u = element.typeParameters[1];
+    // typeFormals should be empty because this is not a generic function type,
+    // it's a generic typedef that defines an ordinary (non-generic) function
+    // type.
+    expect(decoratedType.typeFormals, isEmpty);
+    expect(decoratedType.returnType, same(decoratedTypeAnnotation('T F')));
+    expect(
+        (decoratedType.returnType.type as TypeParameterType).element, same(t));
+    expect(
+        decoratedType.returnType.node, TypeMatcher<NullabilityNodeMutable>());
+    expect(
+        (decoratedType.positionalParameters[0].type as TypeParameterType)
+            .element,
+        same(u));
+    expect(decoratedType.positionalParameters[0].node,
+        TypeMatcher<NullabilityNodeMutable>());
+  }
+
+  test_genericTypeAlias_implicit_return_type() async {
+    await analyze('''
+typedef F = Function();
+''');
+    var decoratedType =
+        variables.decoratedElementType(findElement.genericTypeAlias('F'));
+    expect(decoratedType,
+        same(decoratedGenericFunctionTypeAnnotation('Function')));
+    expect(decoratedType.returnType.type.isDynamic, isTrue);
+    expect(decoratedType.returnType.node, same(always));
+    expect(decoratedType.typeFormals, isEmpty);
+  }
+
+  test_genericTypeAlias_simple() async {
+    await analyze('''
+typedef F = int Function(String s);
+''');
+    var decoratedType =
+        variables.decoratedElementType(findElement.genericTypeAlias('F'));
+    expect(decoratedType,
+        same(decoratedGenericFunctionTypeAnnotation('int Function')));
+    expect(decoratedType.returnType, same(decoratedTypeAnnotation('int')));
+    expect(decoratedType.typeFormals, isEmpty);
+    expect(decoratedType.positionalParameters[0],
+        same(decoratedTypeAnnotation('String')));
+  }
+
   test_interfaceType_generic_instantiate_to_dynamic() async {
     await analyze('''
 void f(List x) {}

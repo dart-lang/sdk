@@ -255,6 +255,23 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   @override
+  DecoratedType visitGenericTypeAlias(GenericTypeAlias node) {
+    node.metadata.accept(this);
+    var previousTypeFormalBounds = _typeFormalBounds;
+    _typeFormalBounds = [];
+    DecoratedType decoratedFunctionType;
+    try {
+      node.typeParameters?.accept(this);
+      decoratedFunctionType = node.functionType.accept(this);
+    } finally {
+      _typeFormalBounds = previousTypeFormalBounds;
+    }
+    _variables.recordDecoratedElementType(
+        node.declaredElement, decoratedFunctionType);
+    return null;
+  }
+
+  @override
   DecoratedType visitMethodDeclaration(MethodDeclaration node) {
     _handleExecutableDeclaration(
         node.declaredElement,
