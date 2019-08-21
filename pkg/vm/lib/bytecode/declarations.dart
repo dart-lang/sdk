@@ -220,22 +220,20 @@ class SourceFile {
   static const hasLineStartsFlag = 1 << 0;
   static const hasSourceFlag = 1 << 1;
 
-  int flags;
   final ObjectHandle importUri;
-  final LineStarts lineStarts;
-  final String source;
+  LineStarts lineStarts;
+  String source;
 
-  SourceFile(this.importUri, this.lineStarts, this.source) {
-    flags = 0;
+  SourceFile(this.importUri, [this.lineStarts, this.source]);
+
+  void write(BufferedWriter writer) {
+    int flags = 0;
     if (lineStarts != null) {
       flags |= hasLineStartsFlag;
     }
     if (source != null && source != '') {
       flags |= hasSourceFlag;
     }
-  }
-
-  void write(BufferedWriter writer) {
     writer.writePackedUInt30(flags);
     writer.writePackedObject(importUri);
     if ((flags & hasLineStartsFlag) != 0) {
@@ -261,11 +259,13 @@ class SourceFile {
   @override
   String toString() {
     final StringBuffer sb = new StringBuffer();
-    sb.writeln('SourceFile $importUri');
-    sb.writeln('------------------------------------------------');
-    sb.write(source);
-    sb.writeln('------------------------------------------------');
-    sb.writeln(lineStarts);
+    sb.write('source: import-uri $importUri');
+    if (source != null && source != '') {
+      sb.write(', ${source.length} text chars');
+    }
+    if (lineStarts != null) {
+      sb.write(', ${lineStarts.lineStarts.length} line starts');
+    }
     return sb.toString();
   }
 }

@@ -1592,8 +1592,7 @@ class _ScriptHandle extends ObjectHandle {
   bool operator ==(other) => other is _ScriptHandle && this.uri == other.uri;
 
   @override
-  String toString() =>
-      "$uri${source != null ? '(source ${source.importUri})' : ''}";
+  String toString() => "$uri${source != null ? '($source)' : ''}";
 }
 
 class ObjectTable implements ObjectWriter, ObjectReader {

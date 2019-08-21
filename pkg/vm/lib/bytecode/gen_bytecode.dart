@@ -211,29 +211,32 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     return members;
   }
 
-  ObjectHandle getScript(Uri uri, bool includeSource) {
+  ObjectHandle getScript(Uri uri, bool includeSourceInfo) {
     SourceFile source;
-    if (includeSource &&
-        (options.emitSourceFiles || options.emitSourcePositions)) {
-      source = bytecodeComponent.uriToSource[uri];
-      if (source == null) {
-        final astSource = astUriToSource[uri];
-        if (astSource != null) {
+    if (options.emitSourceFiles || options.emitSourcePositions) {
+      final astSource = astUriToSource[uri];
+      if (astSource != null) {
+        source = bytecodeComponent.uriToSource[uri];
+        if (source == null) {
           final importUri =
               objectTable.getNameHandle(null, astSource.importUri.toString());
-          LineStarts lineStarts;
-          if (options.emitSourcePositions) {
-            lineStarts = new LineStarts(astSource.lineStarts);
-            bytecodeComponent.lineStarts.add(lineStarts);
-          }
-          String text = '';
-          if (options.emitSourceFiles) {
-            text = astSource.cachedText ??
-                utf8.decode(astSource.source, allowMalformed: true);
-          }
-          source = new SourceFile(importUri, lineStarts, text);
+          source = new SourceFile(importUri);
           bytecodeComponent.sourceFiles.add(source);
           bytecodeComponent.uriToSource[uri] = source;
+        }
+        if (options.emitSourcePositions &&
+            includeSourceInfo &&
+            source.lineStarts == null) {
+          LineStarts lineStarts = new LineStarts(astSource.lineStarts);
+          bytecodeComponent.lineStarts.add(lineStarts);
+          source.lineStarts = lineStarts;
+        }
+        if (options.emitSourceFiles &&
+            includeSourceInfo &&
+            source.source == null) {
+          String text = astSource.cachedText ??
+              utf8.decode(astSource.source, allowMalformed: true);
+          source.source = text;
         }
       }
     }
@@ -777,6 +780,16 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       return false;
     }
     if (member is Field) {
+      // TODO(dartbug.com/34277)
+      // Front-end inserts synthetic static fields "_redirecting#" to record
+      // information about redirecting constructors in kernel.
+      // The problem is that initializers of these synthetic static fields
+      // contain incorrect kernel AST, e.g. StaticGet which takes tear-off
+      // of a constructor. Do not generate bytecode for them, as they should
+      // never be used.
+      if (member.isStatic && member.name.name == "_redirecting#") {
+        return false;
+      }
       return hasInitializerCode(member);
     }
     return true;
@@ -3083,6 +3096,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     } else if (target is Procedure) {
       if (target.isGetter) {
         _genDirectCall(target, objectTable.getArgDescHandle(0), 0, isGet: true);
+      } else if (target.isFactory || target.isRedirectingFactoryConstructor) {
+        throw 'Unexpected target for StaticGet: factory $target';
       } else {
         asm.emitPushConstant(cp.addObjectRef(new TearOffConstant(target)));
       }
