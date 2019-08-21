@@ -1290,6 +1290,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   /// Returns value of the given expression if it is a bool constant.
   /// Otherwise, returns `null`.
   bool _constantConditionValue(Expression condition) {
+    if (options.keepUnreachableCode) {
+      return null;
+    }
     // TODO(dartbug.com/34585): use constant evaluator to evaluate
     // expressions in a non-constant context.
     if (condition is Not) {

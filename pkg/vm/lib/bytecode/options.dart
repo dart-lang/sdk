@@ -13,6 +13,8 @@ class BytecodeOptions {
     'show-bytecode-size-stat': 'Show bytecode size breakdown',
     'source-positions': 'Emit source positions',
     'instance-field-initializers': 'Emit separate instance field initializers',
+    'keep-unreachable-code':
+        'Do not remove unreachable code (useful if collecting code coverage)',
   };
 
   bool enableAsserts;
@@ -24,6 +26,7 @@ class BytecodeOptions {
   bool emitAnnotations;
   bool emitInstanceFieldInitializers;
   bool omitAssertSourcePositions;
+  bool keepUnreachableCode;
   bool showBytecodeSizeStatistics;
   Map<String, String> environmentDefines;
 
@@ -37,6 +40,7 @@ class BytecodeOptions {
       this.emitAnnotations = false,
       this.emitInstanceFieldInitializers = false,
       this.omitAssertSourcePositions = false,
+      this.keepUnreachableCode = false,
       this.showBytecodeSizeStatistics = false,
       this.environmentDefines = const <String, String>{}}) {
     causalAsyncStacks ??=
@@ -63,6 +67,9 @@ class BytecodeOptions {
           break;
         case 'instance-field-initializers':
           emitInstanceFieldInitializers = true;
+          break;
+        case 'keep-unreachable-code':
+          keepUnreachableCode = true;
           break;
         case 'show-bytecode-size-stat':
           showBytecodeSizeStatistics = true;
