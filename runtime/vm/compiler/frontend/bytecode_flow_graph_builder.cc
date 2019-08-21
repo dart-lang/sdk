@@ -838,12 +838,11 @@ void BytecodeFlowGraphBuilder::BuildDirectCall() {
 
   ArgumentArray arguments = GetArguments(argc);
 
-  // TODO(alexmarkov): pass ICData::kSuper for super calls
-  // (need to distinguish them in bytecode).
   StaticCallInstr* call = new (Z) StaticCallInstr(
       position_, target, arg_desc.TypeArgsLen(),
       Array::ZoneHandle(Z, arg_desc.GetArgumentNames()), arguments,
-      *ic_data_array_, B->GetNextDeoptId(), ICData::kStatic);
+      *ic_data_array_, B->GetNextDeoptId(),
+      target.IsDynamicFunction() ? ICData::kSuper : ICData::kStatic);
 
   if (target.MayHaveUncheckedEntryPoint(isolate())) {
     call->set_entry_kind(Code::EntryKind::kUnchecked);

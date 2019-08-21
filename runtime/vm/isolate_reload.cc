@@ -1954,6 +1954,14 @@ void IsolateReloadContext::RunInvalidationVisitors() {
   StackZone stack_zone(thread);
   Zone* zone = stack_zone.GetZone();
 
+  Thread* mutator_thread = isolate()->mutator_thread();
+  if (mutator_thread != nullptr) {
+    Interpreter* interpreter = mutator_thread->interpreter();
+    if (interpreter != nullptr) {
+      interpreter->ClearLookupCache();
+    }
+  }
+
   GrowableArray<const Function*> functions(4 * KB);
   GrowableArray<const KernelProgramInfo*> kernel_infos(KB);
 
@@ -1983,6 +1991,10 @@ void IsolateReloadContext::RunInvalidationVisitors() {
       IntHashMap table(&key, &value, &data);
       table.Clear();
       info.set_classes_cache(table.Release());
+    }
+    // Clear the bytecode object table.
+    if (info.bytecode_component() != Array::null()) {
+      kernel::BytecodeReader::ResetObjectTable(info);
     }
   }
 

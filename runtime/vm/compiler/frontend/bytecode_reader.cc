@@ -1242,16 +1242,18 @@ RawArray* BytecodeReaderHelper::ReadBytecodeComponent(intptr_t md_offset) {
 
   // Skip over contents of objects.
   const intptr_t objects_contents_offset = reader_.offset();
-  reader_.set_offset(objects_contents_offset + objects_size);
+  const intptr_t object_offsets_offset = objects_contents_offset + objects_size;
+  reader_.set_offset(object_offsets_offset);
 
   auto& bytecode_component_array = Array::Handle(
-      Z, BytecodeComponentData::New(
-             Z, version, num_objects, string_table_offset,
-             strings_contents_offset, objects_contents_offset, main_offset,
-             num_libraries, library_index_offset, libraries_offset, num_classes,
-             classes_offset, members_offset, num_codes, codes_offset,
-             source_positions_offset, source_files_offset, line_starts_offset,
-             local_variables_offset, annotations_offset, Heap::kOld));
+      Z,
+      BytecodeComponentData::New(
+          Z, version, num_objects, string_table_offset, strings_contents_offset,
+          object_offsets_offset, objects_contents_offset, main_offset,
+          num_libraries, library_index_offset, libraries_offset, num_classes,
+          classes_offset, members_offset, num_codes, codes_offset,
+          source_positions_offset, source_files_offset, line_starts_offset,
+          local_variables_offset, annotations_offset, Heap::kOld));
 
   BytecodeComponentData bytecode_component(&bytecode_component_array);
 
@@ -1265,6 +1267,18 @@ RawArray* BytecodeReaderHelper::ReadBytecodeComponent(intptr_t md_offset) {
   H.SetBytecodeComponent(bytecode_component_array);
 
   return bytecode_component_array.raw();
+}
+
+void BytecodeReaderHelper::ResetObjects() {
+  reader_.set_offset(bytecode_component_->GetObjectOffsetsOffset());
+  const intptr_t num_objects = bytecode_component_->GetNumObjects();
+
+  // Read object offsets.
+  Smi& offs = Smi::Handle(Z);
+  for (intptr_t i = 0; i < num_objects; ++i) {
+    offs = Smi::New(reader_.ReadUInt());
+    bytecode_component_->SetObject(i, offs);
+  }
 }
 
 RawObject* BytecodeReaderHelper::ReadObject() {
@@ -3059,6 +3073,14 @@ intptr_t BytecodeComponentData::GetStringsContentsOffset() const {
   return Smi::Value(Smi::RawCast(data_.At(kStringsContentsOffset)));
 }
 
+intptr_t BytecodeComponentData::GetObjectOffsetsOffset() const {
+  return Smi::Value(Smi::RawCast(data_.At(kObjectOffsetsOffset)));
+}
+
+intptr_t BytecodeComponentData::GetNumObjects() const {
+  return Smi::Value(Smi::RawCast(data_.At(kNumObjects)));
+}
+
 intptr_t BytecodeComponentData::GetObjectsContentsOffset() const {
   return Smi::Value(Smi::RawCast(data_.At(kObjectsContentsOffset)));
 }
@@ -3132,6 +3154,7 @@ RawArray* BytecodeComponentData::New(Zone* zone,
                                      intptr_t num_objects,
                                      intptr_t strings_header_offset,
                                      intptr_t strings_contents_offset,
+                                     intptr_t object_offsets_offset,
                                      intptr_t objects_contents_offset,
                                      intptr_t main_offset,
                                      intptr_t num_libraries,
@@ -3160,6 +3183,12 @@ RawArray* BytecodeComponentData::New(Zone* zone,
 
   smi_handle = Smi::New(strings_contents_offset);
   data.SetAt(kStringsContentsOffset, smi_handle);
+
+  smi_handle = Smi::New(object_offsets_offset);
+  data.SetAt(kObjectOffsetsOffset, smi_handle);
+
+  smi_handle = Smi::New(num_objects);
+  data.SetAt(kNumObjects, smi_handle);
 
   smi_handle = Smi::New(objects_contents_offset);
   data.SetAt(kObjectsContentsOffset, smi_handle);
@@ -3390,6 +3419,19 @@ RawArray* BytecodeReader::ReadExtendedAnnotations(const Field& annotation_field,
     result.SetAt(i, element);
   }
   return result.raw();
+}
+
+void BytecodeReader::ResetObjectTable(const KernelProgramInfo& info) {
+  Thread* thread = Thread::Current();
+  TranslationHelper translation_helper(thread);
+  translation_helper.InitFromKernelProgramInfo(info);
+  ActiveClass active_class;
+  BytecodeComponentData bytecode_component(&Array::Handle(
+      thread->zone(), translation_helper.GetBytecodeComponent()));
+  ASSERT(!bytecode_component.IsNull());
+  BytecodeReaderHelper bytecode_reader(&translation_helper, &active_class,
+                                       &bytecode_component);
+  bytecode_reader.ResetObjects();
 }
 
 void BytecodeReader::LoadClassDeclaration(const Class& cls) {

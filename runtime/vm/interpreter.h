@@ -120,7 +120,7 @@ class Interpreter {
   void Unexit(Thread* thread);
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
-  void MajorGC() { lookup_cache_.Clear(); }
+  void ClearLookupCache() { lookup_cache_.Clear(); }
 
 #ifndef PRODUCT
   void set_is_debugging(bool value) { is_debugging_ = value; }

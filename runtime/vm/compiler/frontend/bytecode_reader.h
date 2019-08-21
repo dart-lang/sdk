@@ -87,6 +87,7 @@ class BytecodeReaderHelper : public ValueObject {
   RawLibrary* ReadMain();
 
   RawArray* ReadBytecodeComponent(intptr_t md_offset);
+  void ResetObjects();
 
   // Fills in [is_covariant] and [is_generic_covariant_impl] vectors
   // according to covariance attributes of [function] parameters.
@@ -257,6 +258,8 @@ class BytecodeComponentData : ValueObject {
     kVersion,
     kStringsHeaderOffset,
     kStringsContentsOffset,
+    kObjectOffsetsOffset,
+    kNumObjects,
     kObjectsContentsOffset,
     kMainOffset,
     kNumLibraries,
@@ -282,6 +285,8 @@ class BytecodeComponentData : ValueObject {
   intptr_t GetVersion() const;
   intptr_t GetStringsHeaderOffset() const;
   intptr_t GetStringsContentsOffset() const;
+  intptr_t GetObjectOffsetsOffset() const;
+  intptr_t GetNumObjects() const;
   intptr_t GetObjectsContentsOffset() const;
   intptr_t GetMainOffset() const;
   intptr_t GetNumLibraries() const;
@@ -307,6 +312,7 @@ class BytecodeComponentData : ValueObject {
                        intptr_t num_objects,
                        intptr_t strings_header_offset,
                        intptr_t strings_contents_offset,
+                       intptr_t object_offsets_offset,
                        intptr_t objects_contents_offset,
                        intptr_t main_offset,
                        intptr_t num_libraries,
@@ -340,6 +346,8 @@ class BytecodeReader : public AllStatic {
   // Read the |count| annotations following given annotation field.
   static RawArray* ReadExtendedAnnotations(const Field& annotation_field,
                                            intptr_t count);
+
+  static void ResetObjectTable(const KernelProgramInfo& info);
 
   // Read declaration of the given library.
   static void LoadLibraryDeclaration(const Library& library);
