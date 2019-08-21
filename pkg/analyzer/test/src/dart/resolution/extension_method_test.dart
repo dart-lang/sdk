@@ -874,6 +874,17 @@ f(C c) {
     assertElement(binary, findElement.method('+', of: 'E'));
   }
 
+  test_instance_operator_binary_undefinedTarget() async {
+    // Ensure that there is no exception thrown while resolving the code.
+    await assertErrorsInCode('''
+extension on Object {}
+var a = b + c;
+''', [
+      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 31, 1),
+      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 35, 1),
+    ]);
+  }
+
   test_instance_operator_index_fromExtendedType() async {
     await assertNoErrorsInCode('''
 class C {

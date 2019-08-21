@@ -84,11 +84,4 @@ class ResynthesizeAstStrongTest extends ResynthesizeTestStrategyTwoPhase
   test_syntheticFunctionType_inGenericClass() async {
     await super.test_syntheticFunctionType_inGenericClass();
   }
-
-  @FailingTest(
-      reason: "NoSuchMethodError: Class 'ExtensionElementForLink' has no "
-          "instance method 'getGetter' with matching arguments.")
-  test_variable_initializer_staticMethod_ofExtension() async {
-    await super.test_variable_initializer_staticMethod_ofExtension();
-  }
 }

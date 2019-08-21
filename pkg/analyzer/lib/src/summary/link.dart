@@ -558,7 +558,7 @@ abstract class ClassElementForLink
 /// linking.
 class ClassElementForLink_Class extends ClassElementForLink
     with TypeParameterizedElementMixin, SimplyBoundableForLinkMixin
-    implements ClassElementImpl {
+    implements ClassElementImpl, ClassMemberContainerForLink {
   /// The unlinked representation of the class in the summary.
   final UnlinkedClass _unlinkedClass;
 
@@ -1053,6 +1053,9 @@ class ClassElementForLink_Enum extends ClassElementForLink
   @override
   String toString() => '$enclosingElement.$name';
 }
+
+abstract class ClassMemberContainerForLink
+    implements ReferenceableElementForLink, TypeParameterizedElementMixin {}
 
 /// Element representing a compilation unit resynthesized from a
 /// summary during linking.
@@ -2033,7 +2036,8 @@ class ConstructorElementForLink extends ExecutableElementForLink_NonLocal
   ConstructorElementForLink get asConstructor => this;
 
   @override
-  ClassElementImpl get enclosingElement => super.enclosingClass;
+  ClassElementImpl get enclosingElement =>
+      super.enclosingClass as ClassElementImpl;
 
   @override
   String get identifier => name;
@@ -2411,7 +2415,7 @@ abstract class ExecutableElementForLink_NonLocal
     extends ExecutableElementForLink {
   /// Return the class in which this executable appears, maybe `null` for a
   /// top-level function.
-  final ClassElementForLink_Class enclosingClass;
+  final ClassMemberContainerForLink enclosingClass;
 
   ExecutableElementForLink_NonLocal(
       CompilationUnitElementForLink compilationUnit,
@@ -2568,16 +2572,127 @@ class ExprTypeComputer {
 
 class ExtensionElementForLink
     with ReferenceableElementForLink
-    implements ExtensionElementImpl {
+    implements ClassMemberContainerForLink, ExtensionElementImpl {
   @override
   final CompilationUnitElementForLink enclosingElement;
 
   final UnlinkedExtension _unlinkedExtension;
 
+  Map<String, ReferenceableElementForLink> _containedNames;
+
+  List<PropertyAccessorElementForLink> _accessors;
+  List<FieldElementForLink_ClassField> _fields;
+  List<MethodElement> _methods;
+
   ExtensionElementForLink(this.enclosingElement, this._unlinkedExtension);
 
   @override
+  List<PropertyAccessorElementForLink> get accessors {
+    if (_accessors == null) {
+      _accessors = <PropertyAccessorElementForLink>[];
+      Map<String, SyntheticVariableElementForLink> syntheticVariables =
+          <String, SyntheticVariableElementForLink>{};
+      for (UnlinkedExecutable unlinkedExecutable
+          in _unlinkedExtension.executables) {
+        if (unlinkedExecutable.kind == UnlinkedExecutableKind.getter ||
+            unlinkedExecutable.kind == UnlinkedExecutableKind.setter) {
+          String name = unlinkedExecutable.name;
+          if (unlinkedExecutable.kind == UnlinkedExecutableKind.setter) {
+            assert(name.endsWith('='));
+            name = name.substring(0, name.length - 1);
+          }
+          SyntheticVariableElementForLink syntheticVariable = syntheticVariables
+              .putIfAbsent(name, () => new SyntheticVariableElementForLink());
+          PropertyAccessorElementForLink_Executable accessor =
+              new PropertyAccessorElementForLink_Executable(enclosingElement,
+                  this, unlinkedExecutable, syntheticVariable);
+          _accessors.add(accessor);
+          if (unlinkedExecutable.kind == UnlinkedExecutableKind.getter) {
+            syntheticVariable._getter = accessor;
+          } else {
+            syntheticVariable._setter = accessor;
+          }
+        }
+      }
+      for (FieldElementForLink_ClassField field in fields) {
+        _accessors.add(field.getter);
+        if (!field.isConst && !field.isFinal) {
+          _accessors.add(field.setter);
+        }
+      }
+    }
+    return _accessors;
+  }
+
+  @override
+  List<FieldElementForLink_ClassField> get fields {
+    if (_fields == null) {
+      _fields = <FieldElementForLink_ClassField>[];
+      for (int i = 0; i < _unlinkedExtension.fields.length; i++) {
+        var field = _unlinkedExtension.fields[i];
+        _fields.add(new FieldElementForLink_ClassField(this, field, null));
+      }
+    }
+    return _fields;
+  }
+
+  @override
+  List<MethodElement> get methods {
+    if (_methods == null) {
+      _methods = <MethodElementForLink>[];
+      for (UnlinkedExecutable unlinkedExecutable
+          in _unlinkedExtension.executables) {
+        if (unlinkedExecutable.kind ==
+            UnlinkedExecutableKind.functionOrMethod) {
+          _methods.add(new MethodElementForLink(this, unlinkedExecutable));
+        }
+      }
+    }
+    return _methods;
+  }
+
+  @override
   String get name => _unlinkedExtension.name;
+
+  @override
+  ReferenceableElementForLink getContainedName(String name) {
+    if (_containedNames == null) {
+      _containedNames = <String, ReferenceableElementForLink>{};
+      // TODO(paulberry): what's the correct way to handle name conflicts?
+      for (PropertyAccessorElementForLink accessor in accessors) {
+        _containedNames[accessor.name] = accessor;
+      }
+      for (MethodElementForLink method in methods) {
+        _containedNames[method.name] = method;
+      }
+    }
+    return _containedNames.putIfAbsent(
+        name, () => UndefinedElementForLink.instance);
+  }
+
+  @override
+  PropertyAccessorElement getGetter(String getterName) {
+    for (PropertyAccessorElement accessor in accessors) {
+      if (accessor.isGetter && accessor.name == getterName) {
+        return accessor;
+      }
+    }
+    return null;
+  }
+
+  @override
+  MethodElement getMethod(String methodName) {
+    for (MethodElement method in methods) {
+      if (method.name == methodName) {
+        return method;
+      }
+    }
+    return null;
+  }
+
+  @override
+  PropertyAccessorElement getSetter(String setterName) =>
+      AbstractClassElementImpl.getSetterFromAccessors(setterName, accessors);
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -2597,7 +2712,7 @@ abstract class FieldElementForLink implements FieldElement {
 class FieldElementForLink_ClassField extends VariableElementForLink
     implements FieldElementForLink {
   @override
-  final ClassElementForLink_Class enclosingElement;
+  final ClassMemberContainerForLink enclosingElement;
 
   /// If this is an instance field, the type that was computed by
   /// [InstanceMemberInferrer] (if any).  Otherwise `null`.
@@ -2605,7 +2720,7 @@ class FieldElementForLink_ClassField extends VariableElementForLink
 
   TopLevelInferenceErrorBuilder _inferenceError;
 
-  FieldElementForLink_ClassField(ClassElementForLink_Class enclosingElement,
+  FieldElementForLink_ClassField(ClassMemberContainerForLink enclosingElement,
       UnlinkedVariable unlinkedVariable, Expression initializerForInference)
       : enclosingElement = enclosingElement,
         super(unlinkedVariable, enclosingElement.enclosingElement,
@@ -4090,16 +4205,13 @@ class Linker {
 class MethodElementForLink extends ExecutableElementForLink_NonLocal
     with ReferenceableElementForLink
     implements MethodElementImpl {
-  MethodElementForLink(ClassElementForLink_Class enclosingClass,
+  MethodElementForLink(ClassMemberContainerForLink enclosingClass,
       UnlinkedExecutable unlinkedExecutable)
       : super(enclosingClass.enclosingElement, enclosingClass,
             unlinkedExecutable);
 
   @override
   DartType get asStaticType => type;
-
-  @override
-  ClassElementImpl get enclosingElement => super.enclosingClass;
 
   @override
   String get identifier => name;
@@ -4656,7 +4768,7 @@ class PropertyAccessorElementForLink_Executable
 
   PropertyAccessorElementForLink_Executable(
       CompilationUnitElementForLink enclosingUnit,
-      ClassElementForLink_Class enclosingClass,
+      ClassMemberContainerForLink enclosingClass,
       UnlinkedExecutable unlinkedExecutable,
       this.variable)
       : super(enclosingUnit, enclosingClass, unlinkedExecutable);
