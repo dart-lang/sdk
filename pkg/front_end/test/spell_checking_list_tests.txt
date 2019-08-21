@@ -32,6 +32,7 @@ b1x
 b2x
 ba
 backed
+bailout
 bash
 bat
 batch
@@ -344,6 +345,7 @@ strip
 strongest
 structures
 stub's
+stupid
 subcommand
 subscription
 subtool
