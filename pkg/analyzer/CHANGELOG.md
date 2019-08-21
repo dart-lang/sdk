@@ -1,3 +1,9 @@
+## 0.38.2-dev
+* The type of `FunctionTypeAlias.declaredElement` has been refined to
+  `FunctionTypeAliasElement`.  Since the new type is a refinement of
+  the old one, the only effect on clients should be to make certain
+  casts unnecessary.
+
 ## 0.38.1
 * LinterVistor support for extension method AST nodes.
 

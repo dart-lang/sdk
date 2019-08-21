@@ -2814,6 +2814,9 @@ abstract class FunctionExpressionInvocation implements InvocationExpression {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FunctionTypeAlias implements TypeAlias {
+  @override
+  FunctionTypeAliasElement get declaredElement;
+
   /// Return the parameters associated with the function type.
   FormalParameterList get parameters;
 
