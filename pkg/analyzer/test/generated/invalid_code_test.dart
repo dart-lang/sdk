@@ -72,6 +72,16 @@ f({a: ({b = 0}) {}}) {}
 ''');
   }
 
+  test_fuzz_05() async {
+    // Here 'v' is used as both the local variable name, and its type.
+    // This triggers "reference before declaration" diagnostics.
+    // It attempts to ask the enclosing unit element for "v".
+    // Every (not library or unit) element must have the enclosing unit.
+    await _assertCanBeAnalyzed('''
+f({a = [for (v v in [])]}) {}
+''');
+  }
+
   test_fuzz_06() async {
     await _assertCanBeAnalyzed(r'''
 class C {
