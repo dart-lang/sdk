@@ -1875,10 +1875,10 @@ DEFINE_RUNTIME_ENTRY(NoSuchMethodFromCallStub, 4) {
   Class& cls = Class::Handle(zone, receiver.clazz());
   Function& function = Function::Handle(zone);
 
-// Dart distinguishes getters and regular methods and allows their calls
-// to mix with conversions, and its selectors are independent of arity. So do
-// a zigzagged lookup to see if this call failed because of an arity mismatch,
-// need for conversion, or there really is no such method.
+  // Dart distinguishes getters and regular methods and allows their calls
+  // to mix with conversions, and its selectors are independent of arity. So do
+  // a zigzagged lookup to see if this call failed because of an arity mismatch,
+  // need for conversion, or there really is no such method.
 
 #define NO_SUCH_METHOD()                                                       \
   const Object& result = Object::Handle(                                       \
@@ -3066,7 +3066,8 @@ extern "C" void DFLRT_ExitSafepoint(NativeArguments __unusable_) {
 DEFINE_RAW_LEAF_RUNTIME_ENTRY(ExitSafepoint, 0, false, &DFLRT_ExitSafepoint);
 
 // Not registered as a runtime entry because we can't use Thread to look it up.
-extern "C" Thread* DLRT_GetThreadForNativeCallback() {
+static Thread* GetThreadForNativeCallback(uword callback_id,
+                                          uword return_address) {
   Thread* const thread = Thread::Current();
   if (thread == nullptr) {
     FATAL("Cannot invoke native callback outside an isolate.");
@@ -3077,17 +3078,46 @@ extern "C" Thread* DLRT_GetThreadForNativeCallback() {
   if (!thread->IsMutatorThread()) {
     FATAL("Native callbacks must be invoked on the mutator thread.");
   }
+
+  // Set the execution state to VM while waiting for the safepoint to end.
+  // This isn't strictly necessary but enables tests to check that we're not
+  // in native code anymore. See tests/ffi/function_gc_test.dart for example.
+  thread->set_execution_state(Thread::kThreadInVM);
+
+  thread->ExitSafepoint();
+  thread->VerifyCallbackIsolate(callback_id, return_address);
+
   return thread;
 }
 
-extern "C" void DLRT_VerifyCallbackIsolate(int32_t callback_id,
-                                           uword return_address) {
-  Thread::Current()->VerifyCallbackIsolate(callback_id, return_address);
+#if defined(HOST_OS_WINDOWS)
+#pragma intrinsic(_ReturnAddress)
+#endif
+
+// This is called directly by NativeEntryInstr. At the moment we enter this
+// routine, the caller is generated code in the Isolate heap. Therefore we check
+// that the return address (caller) corresponds to the declared callback ID's
+// code within this Isolate.
+extern "C" Thread* DLRT_GetThreadForNativeCallback(uword callback_id) {
+  CHECK_STACK_ALIGNMENT;
+#if defined(HOST_OS_WINDOWS)
+  void* return_address = _ReturnAddress();
+#else
+  void* return_address = __builtin_return_address(0);
+#endif
+  return GetThreadForNativeCallback(callback_id,
+                                    reinterpret_cast<uword>(return_address));
 }
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(
-    VerifyCallbackIsolate,
-    1,
-    false /* is_float */,
-    reinterpret_cast<RuntimeFunction>(&DLRT_VerifyCallbackIsolate));
+
+// This is called by a native callback trampoline
+// (see StubCodeCompiler::GenerateJITCallbackTrampolines). There is no need to
+// check the return address because the trampoline will use the callback ID to
+// look up the generated code. We still check that the callback ID is valid for
+// this isolate.
+extern "C" Thread* DLRT_GetThreadForNativeCallbackTrampoline(
+    uword callback_id) {
+  CHECK_STACK_ALIGNMENT;
+  return GetThreadForNativeCallback(callback_id, 0);
+}
 
 }  // namespace dart

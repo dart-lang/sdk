@@ -56,6 +56,11 @@ void Assembler::Emit(int32_t value) {
   buffer_.Emit<int32_t>(value);
 }
 
+void Assembler::Emit64(int64_t value) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  buffer_.Emit<int64_t>(value);
+}
+
 int32_t Assembler::BindImm19Branch(int64_t position, int64_t dest) {
   if (use_far_branches() && !CanEncodeImm19BranchOffset(dest)) {
     // Far branches are enabled, and we can't encode the branch offset in
@@ -1301,20 +1306,9 @@ void Assembler::LeaveDartFrame(RestorePP restore_pp) {
   LeaveFrame();
 }
 
-void Assembler::TransitionGeneratedToNative(Register destination,
-                                            Register new_exit_frame,
-                                            Register state) {
+void Assembler::EnterSafepoint(Register state) {
   Register addr = TMP2;
   ASSERT(addr != state);
-
-  // Save exit frame information to enable stack walking.
-  StoreToOffset(new_exit_frame, THR,
-                target::Thread::top_exit_frame_info_offset());
-
-  // Mark that the thread is executing native code.
-  StoreToOffset(destination, THR, target::Thread::vm_tag_offset());
-  LoadImmediate(state, target::Thread::native_execution_state());
-  StoreToOffset(state, THR, target::Thread::execution_state_offset());
 
   Label slow_path, done, retry;
   if (!FLAG_use_slow_path) {
@@ -1339,7 +1333,25 @@ void Assembler::TransitionGeneratedToNative(Register destination,
   Bind(&done);
 }
 
-void Assembler::TransitionNativeToGenerated(Register state) {
+void Assembler::TransitionGeneratedToNative(Register destination,
+                                            Register new_exit_frame,
+                                            Register state,
+                                            bool enter_safepoint) {
+  // Save exit frame information to enable stack walking.
+  StoreToOffset(new_exit_frame, THR,
+                target::Thread::top_exit_frame_info_offset());
+
+  // Mark that the thread is executing native code.
+  StoreToOffset(destination, THR, target::Thread::vm_tag_offset());
+  LoadImmediate(state, target::Thread::native_execution_state());
+  StoreToOffset(state, THR, target::Thread::execution_state_offset());
+
+  if (enter_safepoint) {
+    EnterSafepoint(state);
+  }
+}
+
+void Assembler::ExitSafepoint(Register state) {
   Register addr = TMP2;
   ASSERT(addr != state);
 
@@ -1364,6 +1376,22 @@ void Assembler::TransitionNativeToGenerated(Register state) {
   blr(addr);
 
   Bind(&done);
+}
+
+void Assembler::TransitionNativeToGenerated(Register state,
+                                            bool exit_safepoint) {
+  if (exit_safepoint) {
+    ExitSafepoint(state);
+  } else {
+#if defined(DEBUG)
+    // Ensure we've already left the safepoint.
+    ldr(TMP, Address(THR, target::Thread::safepoint_state_offset()));
+    Label ok;
+    tbz(&ok, TMP, target::Thread::safepoint_state_inside_bit());
+    Breakpoint();
+    Bind(&ok);
+#endif
+  }
 
   // Mark that the thread is executing Dart code.
   LoadImmediate(state, target::Thread::vm_tag_compiled_id());

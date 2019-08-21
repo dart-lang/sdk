@@ -65,6 +65,30 @@ class StubCodeCompiler : public AllStatic {
   static void GenerateUsageCounterIncrement(Assembler* assembler,
                                             Register temp_reg);
   static void GenerateOptimizedUsageCounterIncrement(Assembler* assembler);
+
+#if defined(TARGET_ARCH_X64)
+  static constexpr intptr_t kNativeCallbackTrampolineSize = 10;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 217;
+  static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
+#elif defined(TARGET_ARCH_IA32)
+  static constexpr intptr_t kNativeCallbackTrampolineSize = 10;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 90;
+  static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
+#elif defined(TARGET_ARCH_ARM)
+  static constexpr intptr_t kNativeCallbackTrampolineSize = 12;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 140;
+  static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 4;
+#elif defined(TARGET_ARCH_ARM64)
+  static constexpr intptr_t kNativeCallbackTrampolineSize = 12;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 284;
+  static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
+#endif
+
+#if !defined(TARGET_ARCH_DBC)
+  static void GenerateJITCallbackTrampolines(Assembler* assembler,
+                                             intptr_t next_callback_id);
+#endif
+
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 };
 

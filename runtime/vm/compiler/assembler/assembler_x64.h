@@ -306,9 +306,12 @@ class Assembler : public AssemblerBase {
 
   void setcc(Condition condition, ByteRegister dst);
 
+  void EnterSafepoint();
+  void LeaveSafepoint();
   void TransitionGeneratedToNative(Register destination_address,
-                                   Register new_exit_frame);
-  void TransitionNativeToGenerated();
+                                   Register new_exit_frame,
+                                   bool enter_safepoint);
+  void TransitionNativeToGenerated(bool leave_safepoint);
 
 // Register-register, register-address and address-register instructions.
 #define RR(width, name, ...)                                                   \

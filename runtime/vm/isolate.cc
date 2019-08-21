@@ -53,6 +53,11 @@
 #include "vm/timeline_analysis.h"
 #include "vm/visitor.h"
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/stub_code_compiler.h"
+#endif
+
 namespace dart {
 
 DECLARE_FLAG(bool, print_metrics);
@@ -73,7 +78,7 @@ static void DeterministicModeHandler(bool value) {
     FLAG_background_compilation = false;  // Timing dependent.
     FLAG_concurrent_mark = false;         // Timing dependent.
     FLAG_concurrent_sweep = false;        // Timing dependent.
-    FLAG_random_seed = 0x44617274;  // "Dart"
+    FLAG_random_seed = 0x44617274;        // "Dart"
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
     FLAG_load_deferred_eagerly = true;
 #else
@@ -1052,6 +1057,9 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       ic_miss_code_(Code::null()),
       class_table_(),
       store_buffer_(new StoreBuffer()),
+#if !defined(TARGET_ARCH_DBC) && !defined(DART_PRECOMPILED_RUNTIME)
+      native_callback_trampolines_(),
+#endif
 #if !defined(PRODUCT)
       last_resume_timestamp_(OS::GetCurrentTimeMillis()),
       vm_tag_counters_(),

@@ -174,7 +174,12 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // This will reset the exit frame info to old_exit_frame_reg *before* entering
   // the safepoint.
-  __ TransitionGeneratedToNative(vm_tag_reg, old_exit_frame_reg, tmp);
+  //
+  // If we were called by a trampoline, it will enter the safepoint on our
+  // behalf.
+  __ TransitionGeneratedToNative(
+      vm_tag_reg, old_exit_frame_reg, tmp,
+      /*enter_safepoint=*/!NativeCallbackTrampolines::Enabled());
 
   // Move XMM0 into ST0 if needed.
   if (return_in_st0) {
@@ -954,9 +959,10 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ movl(compiler::Address(FPREG, kSavedCallerPcSlotFromFp * kWordSize), tmp);
 
   if (CanExecuteGeneratedCodeInSafepoint()) {
-    __ TransitionGeneratedToNative(branch, FPREG, tmp);
+    __ TransitionGeneratedToNative(branch, FPREG, tmp,
+                                   /*enter_safepoint=*/true);
     __ call(branch);
-    __ TransitionNativeToGenerated(tmp);
+    __ TransitionNativeToGenerated(tmp, /*leave_safepoint=*/true);
   } else {
     // We cannot trust that this code will be executable within a safepoint.
     // Therefore we delegate the responsibility of entering/exiting the
@@ -1030,13 +1036,14 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ pushl(EDI);
 
   // Load the thread object.
-  // TOOD(35934): Exclude native callbacks from snapshots.
   // Linking in AOT is not relevant here since we don't support AOT for IA32.
   // Create another frame to align the frame before continuing in "native" code.
-  {
+  // If we were called by a trampoline, it has already loaded the thread.
+  if (!NativeCallbackTrampolines::Enabled()) {
     __ EnterFrame(0);
-    __ ReserveAlignedFrameSpace(0);
+    __ ReserveAlignedFrameSpace(compiler::target::kWordSize);
 
+    __ movl(compiler::Address(SPREG, 0), compiler::Immediate(callback_id_));
     __ movl(EAX, compiler::Immediate(reinterpret_cast<int64_t>(
                      DLRT_GetThreadForNativeCallback)));
     __ call(EAX);
@@ -1064,18 +1071,11 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // correct offset from FP.
   __ EmitEntryFrameVerification();
 
-  // TransitionNativeToGenerated will reset top exit frame info to 0 *after*
-  // leaving the safepoint.
-  __ TransitionNativeToGenerated(EAX);
+  // Either DLRT_GetThreadForNativeCallback or the callback trampoline (caller)
+  // will leave the safepoint for us.
+  __ TransitionNativeToGenerated(EAX, /*exit_safepoint=*/false);
 
   // Now that the safepoint has ended, we can hold Dart objects with bare hands.
-  // TODO(35934): fix linking issue
-  __ pushl(compiler::Immediate(callback_id_));
-  __ movl(EAX,
-          compiler::Address(
-              THR, compiler::target::Thread::verify_callback_entry_offset()));
-  __ call(EAX);
-  __ popl(EAX);
 
   // Load the code object.
   __ movl(EAX, compiler::Address(

@@ -1933,7 +1933,11 @@ class InvalidationCollector : public ObjectVisitor {
     }
     const Object& handle = Object::Handle(zone_, obj);
     if (handle.IsFunction()) {
-      functions_->Add(&Function::Cast(handle));
+      const auto& func = Function::Cast(handle);
+      if (!func.ForceOptimize()) {
+        // Force-optimized functions cannot deoptimize.
+        functions_->Add(&func);
+      }
     } else if (handle.IsKernelProgramInfo()) {
       kernel_infos_->Add(&KernelProgramInfo::Cast(handle));
     }

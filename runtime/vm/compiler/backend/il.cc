@@ -3981,10 +3981,10 @@ void FunctionEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ Bind(compiler->GetJumpLabel(this));
   }
 
-// In the AOT compiler we want to reduce code size, so generate no
-// fall-through code in [FlowGraphCompiler::CompileGraph()].
-// (As opposed to here where we don't check for the return value of
-// [Intrinsify]).
+  // In the AOT compiler we want to reduce code size, so generate no
+  // fall-through code in [FlowGraphCompiler::CompileGraph()].
+  // (As opposed to here where we don't check for the return value of
+  // [Intrinsify]).
   const Function& function = compiler->parsed_function().function();
   if (function.IsDynamicFunction()) {
     compiler->SpecialStatsBegin(CombinedCodeStatistics::kTagCheckedEntry);

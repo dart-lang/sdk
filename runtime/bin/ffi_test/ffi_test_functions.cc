@@ -576,29 +576,42 @@ DART_EXPORT void* UnprotectCodeOtherThread(void* isolate,
   return nullptr;
 }
 
-DART_EXPORT void* UnprotectCode() {
+struct HelperThreadState {
   std::mutex mutex;
   std::condition_variable cvar;
-  std::unique_lock<std::mutex> lock(mutex);  // locks the mutex
-  std::thread* helper = new std::thread(UnprotectCodeOtherThread,
-                                        Dart_CurrentIsolate(), &cvar, &mutex);
+  std::unique_ptr<std::thread> helper;
+};
 
-  cvar.wait(lock);
+DART_EXPORT void* TestUnprotectCode(void (*fn)(void*)) {
+  HelperThreadState* state = new HelperThreadState;
 
-  return helper;
+  {
+    std::unique_lock<std::mutex> lock(state->mutex);  // locks the mutex
+    state->helper.reset(new std::thread(UnprotectCodeOtherThread,
+                                        Dart_CurrentIsolate(), &state->cvar,
+                                        &state->mutex));
+
+    state->cvar.wait(lock);
+  }
+
+  if (fn != nullptr) {
+    fn(state);
+    return nullptr;
+  } else {
+    return state;
+  }
 }
 
-DART_EXPORT void WaitForHelper(void* helper) {
-  std::thread* thread = reinterpret_cast<std::thread*>(helper);
-  thread->join();
-  delete thread;
+DART_EXPORT void WaitForHelper(HelperThreadState* helper) {
+  helper->helper->join();
+  delete helper;
 }
 #else
 // Our version of VSC++ doesn't support std::thread yet.
-DART_EXPORT void* UnprotectCode() {
+DART_EXPORT void WaitForHelper(void* helper) {}
+DART_EXPORT void* TestUnprotectCode(void (*fn)(void)) {
   return nullptr;
 }
-DART_EXPORT void WaitForHelper(void* helper) {}
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////

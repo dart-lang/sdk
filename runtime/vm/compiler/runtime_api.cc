@@ -291,7 +291,6 @@ bool RawObject::IsTypedDataClassId(intptr_t cid) {
   return dart::RawObject::IsTypedDataClassId(cid);
 }
 
-
 const word Class::kNoTypeArguments = dart::Class::kNoTypeArguments;
 
 classid_t Class::GetId(const dart::Class& handle) {
@@ -526,6 +525,11 @@ uword Thread::safepoint_state_unacquired() {
 
 uword Thread::safepoint_state_acquired() {
   return dart::Thread::safepoint_state_acquired();
+}
+
+intptr_t Thread::safepoint_state_inside_bit() {
+  COMPILE_ASSERT(dart::Thread::AtSafepointField::bitsize() == 1);
+  return dart::Thread::AtSafepointField::shift();
 }
 
 uword Thread::generated_execution_state() {

@@ -266,7 +266,8 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub(
   COMPILE_ASSERT((1 << R19) & kAbiPreservedCpuRegs);
 
   __ mov(R19, LR);
-  __ TransitionGeneratedToNative(R8, FPREG, R9 /*volatile*/);
+  __ TransitionGeneratedToNative(R8, FPREG, R9 /*volatile*/,
+                                 /*enter_safepoint=*/true);
   __ mov(CSP, SP);
 
 #if defined(DEBUG)
@@ -282,27 +283,136 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub(
 
   __ blr(R8);
   __ mov(SP, CSP);
-  __ TransitionNativeToGenerated(R9);
+  __ TransitionNativeToGenerated(R9, /*leave_safepoint=*/true);
   __ ret(R19);
 }
 
-void StubCodeCompiler::GenerateVerifyCallbackStub(Assembler* assembler) {
-  __ EnterFrame(0);
-  __ ReserveAlignedFrameSpace(0);
+#if !defined(DART_PRECOMPILER)
+void StubCodeCompiler::GenerateJITCallbackTrampolines(
+    Assembler* assembler,
+    intptr_t next_callback_id) {
+#if !defined(HOST_ARCH_ARM64)
+  // TODO(37299): FFI is not support in SIMARM64.
+  __ Breakpoint();
+#else
+  Label done;
 
-  // First argument is already set up by the caller.
+  // R8 is volatile and not used for passing any arguments.
+  COMPILE_ASSERT(!IsCalleeSavedRegister(R8) && !IsArgumentRegister(R8));
+  for (intptr_t i = 0;
+       i < NativeCallbackTrampolines::NumCallbackTrampolinesPerPage(); ++i) {
+    // We don't use LoadImmediate because we need the trampoline size to be
+    // fixed independently of the callback ID.
+    //
+    // Instead we paste the callback ID directly in the code load it
+    // PC-relative.
+    __ ldr(R8, compiler::Address::PC(2 * Instr::kInstrSize));
+    __ b(&done);
+    __ Emit(next_callback_id + i);
+  }
+
+  ASSERT(__ CodeSize() ==
+         kNativeCallbackTrampolineSize *
+             NativeCallbackTrampolines::NumCallbackTrampolinesPerPage());
+
+  __ Bind(&done);
+
+  const intptr_t shared_stub_start = __ CodeSize();
+
+  // The load of the callback ID might have incorrect higher-order bits, since
+  // we only emit a 32-bit callback ID.
+  __ uxtw(R8, R8);
+
+  // Save THR (callee-saved) and LR on real real C stack (CSP). Keeps it
+  // aligned.
+  COMPILE_ASSERT(StubCodeCompiler::kNativeCallbackTrampolineStackDelta == 2);
+  __ stp(THR, LR, Address(CSP, -2 * target::kWordSize, Address::PairPreIndex));
+
+  COMPILE_ASSERT(!IsArgumentRegister(THR));
+
+  RegisterSet all_registers;
+  all_registers.AddAllArgumentRegisters();
+
+  // The call below might clobber R8 (volatile, holding callback_id).
+  all_registers.Add(Location::RegisterLocation(R8));
+
+  // Load the thread, verify the callback ID and exit the safepoint.
   //
-  // Second argument is the return address of the caller.
-  __ mov(CallingConventions::ArgumentRegisters[1], LR);
-  __ LoadFromOffset(R2, THR,
-                    kVerifyCallbackIsolateRuntimeEntry.OffsetFromThread());
-  __ mov(CSP, SP);
-  __ blr(R2);
-  __ mov(SP, CSP);
+  // We exit the safepoint inside DLRT_GetThreadForNativeCallbackTrampoline
+  // in order to safe code size on this shared stub.
+  {
+    __ mov(SP, CSP);
 
-  __ LeaveFrame();
-  __ Ret();
+    __ EnterFrame(0);
+    __ PushRegisters(all_registers);
+
+    __ EnterFrame(0);
+    __ ReserveAlignedFrameSpace(0);
+
+    __ mov(CSP, SP);
+
+    // Since DLRT_GetThreadForNativeCallbackTrampoline can theoretically be
+    // loaded anywhere, we use the same trick as before to ensure a predictable
+    // instruction sequence.
+    Label call;
+    __ mov(R0, R8);
+    __ ldr(R1, compiler::Address::PC(2 * Instr::kInstrSize));
+    __ b(&call);
+
+    __ Emit64(
+        reinterpret_cast<int64_t>(&DLRT_GetThreadForNativeCallbackTrampoline));
+
+    __ Bind(&call);
+    __ blr(R1);
+    __ mov(THR, R0);
+
+    __ LeaveFrame();
+
+    __ PopRegisters(all_registers);
+    __ LeaveFrame();
+
+    __ mov(CSP, SP);
+  }
+
+  COMPILE_ASSERT(!IsCalleeSavedRegister(R9) && !IsArgumentRegister(R9));
+
+  // Load the code object.
+  __ LoadFromOffset(R9, THR, compiler::target::Thread::callback_code_offset());
+  __ LoadFieldFromOffset(R9, R9,
+                         compiler::target::GrowableObjectArray::data_offset());
+  __ ldr(R9, __ ElementAddressForRegIndex(
+                 /*is_load=*/true,
+                 /*external=*/false,
+                 /*array_cid=*/kArrayCid,
+                 /*index, smi-tagged=*/compiler::target::kWordSize * 2,
+                 /*array=*/R9,
+                 /*index=*/R8));
+  __ LoadFieldFromOffset(R9, R9, compiler::target::Code::entry_point_offset());
+
+  // Clobbers all volatile registers, including the callback ID in R8.
+  // Resets CSP and SP, important for EnterSafepoint below.
+  __ blr(R9);
+
+  // EnterSafepoint clobbers TMP, TMP2 and R8 -- all volatile and not holding
+  // return values.
+  __ EnterSafepoint(R8);
+
+  // Pop LR and THR from the real stack (CSP).
+  __ ldp(THR, LR, Address(CSP, 2 * target::kWordSize, Address::PairPostIndex));
+
+  __ ret();
+
+  ASSERT((__ CodeSize() - shared_stub_start) == kNativeCallbackSharedStubSize);
+  ASSERT(__ CodeSize() <= VirtualMemory::PageSize());
+
+#if defined(DEBUG)
+  while (__ CodeSize() < VirtualMemory::PageSize()) {
+    __ Breakpoint();
+  }
+#endif
+#endif  // !defined(HOST_ARCH_ARM64)
 }
+#endif  // !defined(DART_PRECOMPILER)
 
 // R1: The extracted method.
 // R4: The type_arguments_field_offset (or 0)

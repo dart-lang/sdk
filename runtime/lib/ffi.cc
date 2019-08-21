@@ -436,7 +436,10 @@ static uword CompileNativeCallback(const Function& c_signature,
                                    const Function& dart_target,
                                    const Instance& exceptional_return) {
   Thread* const thread = Thread::Current();
-  const int32_t callback_id = thread->AllocateFfiCallbackId();
+
+  uword entry_point = 0;
+  const int32_t callback_id = thread->AllocateFfiCallbackId(&entry_point);
+  ASSERT(NativeCallbackTrampolines::Enabled() == (entry_point != 0));
 
   // Create a new Function named 'FfiCallback' and stick it in the 'dart:ffi'
   // library. Note that these functions will never be invoked by Dart, so it
@@ -501,7 +504,11 @@ static uword CompileNativeCallback(const Function& c_signature,
 
   thread->SetFfiCallbackCode(callback_id, code);
 
-  return code.EntryPoint();
+  if (entry_point != 0) {
+    return entry_point;
+  } else {
+    return code.EntryPoint();
+  }
 }
 #endif
 

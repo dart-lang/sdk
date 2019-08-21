@@ -5,6 +5,7 @@
 #include "vm/thread.h"
 
 #include "vm/dart_api_state.h"
+#include "vm/ffi_callback_trampolines.h"
 #include "vm/growable_array.h"
 #include "vm/heap/safepoint.h"
 #include "vm/isolate.h"
@@ -940,14 +941,25 @@ DisableThreadInterruptsScope::~DisableThreadInterruptsScope() {
 }
 
 const intptr_t kInitialCallbackIdsReserved = 1024;
-int32_t Thread::AllocateFfiCallbackId() {
+int32_t Thread::AllocateFfiCallbackId(uword* trampoline) {
   Zone* Z = isolate()->current_zone();
   if (ffi_callback_code_ == GrowableObjectArray::null()) {
     ffi_callback_code_ = GrowableObjectArray::New(kInitialCallbackIdsReserved);
   }
   const auto& array = GrowableObjectArray::Handle(Z, ffi_callback_code_);
   array.Add(Code::Handle(Z, Code::null()));
-  return array.Length() - 1;
+  const int32_t id = array.Length() - 1;
+
+  // Allocate a native callback trampoline if necessary.
+#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(TARGET_ARCH_DBC)
+  if (NativeCallbackTrampolines::Enabled()) {
+    auto* const tramps = isolate()->native_callback_trampolines();
+    ASSERT(tramps->next_callback_id() == id);
+    *trampoline = tramps->AllocateTrampoline();
+  }
+#endif
+
+  return id;
 }
 
 void Thread::SetFfiCallbackCode(int32_t callback_id, const Code& code) {
@@ -972,11 +984,15 @@ void Thread::VerifyCallbackIsolate(int32_t callback_id, uword entry) {
     FATAL("Cannot invoke callback on incorrect isolate.");
   }
 
-  RawObject** const code_array =
-      Array::DataOf(GrowableObjectArray::NoSafepointData(array));
-  const RawCode* const code = Code::RawCast(code_array[callback_id]);
-  if (!Code::ContainsInstructionAt(code, entry)) {
-    FATAL("Cannot invoke callback on incorrect isolate.");
+  if (entry != 0) {
+    RawObject** const code_array =
+        Array::DataOf(GrowableObjectArray::NoSafepointData(array));
+    // RawCast allocates handles in ASSERTs.
+    const RawCode* const code =
+        reinterpret_cast<RawCode*>(code_array[callback_id]);
+    if (!Code::ContainsInstructionAt(code, entry)) {
+      FATAL("Cannot invoke callback on incorrect isolate.");
+    }
   }
 }
 

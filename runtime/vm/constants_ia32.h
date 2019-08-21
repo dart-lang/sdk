@@ -130,11 +130,15 @@ class CallingConventions {
  public:
   static const Register ArgumentRegisters[];
   static const intptr_t kArgumentRegisters = 0;
+  static const intptr_t kFpuArgumentRegisters = 0;
   static const intptr_t kNumArgRegs = 0;
 
   static const XmmRegister FpuArgumentRegisters[];
   static const intptr_t kXmmArgumentRegisters = 0;
   static const intptr_t kNumFpuArgRegs = 0;
+
+  static constexpr intptr_t kCalleeSaveCpuRegisters =
+      (1 << EDI) | (1 << ESI) | (1 << EBX);
 
   static const bool kArgumentIntRegXorFpuReg = false;
 
