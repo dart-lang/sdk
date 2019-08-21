@@ -782,6 +782,34 @@ abstract class C {
     expect(decoratedFReturnReturnType.node, same(always));
   }
 
+  test_genericFunctionType_formal_bounds() async {
+    await analyze('''
+void f(T Function<T extends num>() x) {}
+''');
+    var decoratedType = decoratedGenericFunctionTypeAnnotation('T Function');
+    expect(decoratedType.typeFormalBounds[0].type.toString(), 'num');
+  }
+
+  test_genericFunctionType_formals() async {
+    await analyze('''
+void f(T Function<T, U>(U) x) {}
+''');
+    var decoratedType = decoratedGenericFunctionTypeAnnotation('T Function');
+    expect(decoratedFunctionType('f').positionalParameters[0],
+        same(decoratedType));
+    expect(decoratedType.node, TypeMatcher<NullabilityNodeMutable>());
+    expect(decoratedType.type.toString(), 'T Function<T,U>(U)');
+    expect(decoratedType.typeFormals, hasLength(2));
+    var t = decoratedType.typeFormals[0];
+    var u = decoratedType.typeFormals[1];
+    expect(
+        (decoratedType.returnType.type as TypeParameterType).element, same(t));
+    expect(
+        (decoratedType.positionalParameters[0].type as TypeParameterType)
+            .element,
+        same(u));
+  }
+
   test_genericFunctionType_namedParameterType() async {
     await analyze('''
 void f(void Function({int y}) x) {}
