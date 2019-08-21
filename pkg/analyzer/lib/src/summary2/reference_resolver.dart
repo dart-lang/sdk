@@ -265,7 +265,11 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     node.returnType?.accept(this);
     node.typeParameters?.accept(this);
+
+    reference = reference.getChild('@function');
+    reference.element = element;
     node.parameters.accept(this);
+
     nodesToBuildType.addDeclaration(node);
 
     scope = outerScope;

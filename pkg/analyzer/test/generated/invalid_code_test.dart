@@ -91,6 +91,13 @@ class C {
 ''');
   }
 
+  test_fuzz_07() async {
+    // typedef v(<T extends T>(e
+    await _assertCanBeAnalyzed(r'''
+typedef F(a<TT extends TT>(e));
+''');
+  }
+
   test_genericFunction_asTypeArgument_ofUnresolvedClass() async {
     await _assertCanBeAnalyzed(r'''
 C<int Function()> c;
