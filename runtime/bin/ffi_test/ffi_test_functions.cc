@@ -499,30 +499,39 @@ DART_EXPORT float InventFloatValue() {
 // Functions for stress-testing.
 
 DART_EXPORT int64_t MinInt64() {
-  Dart_ExecuteInternalCommand("gc-on-next-allocation", nullptr);
+  Dart_ExecuteInternalCommand("gc-on-nth-allocation",
+                              reinterpret_cast<void*>(1));
   return 0x8000000000000000;
 }
 
 DART_EXPORT int64_t MinInt32() {
-  Dart_ExecuteInternalCommand("gc-on-next-allocation", nullptr);
+  Dart_ExecuteInternalCommand("gc-on-nth-allocation",
+                              reinterpret_cast<void*>(1));
   return 0x80000000;
 }
 
 DART_EXPORT double SmallDouble() {
-  Dart_ExecuteInternalCommand("gc-on-next-allocation", nullptr);
+  Dart_ExecuteInternalCommand("gc-on-nth-allocation",
+                              reinterpret_cast<void*>(1));
   return 0x80000000 * -1.0;
 }
 
 // Requires boxing on 32-bit and 64-bit systems, even if the top 32-bits are
 // truncated.
 DART_EXPORT void* LargePointer() {
-  Dart_ExecuteInternalCommand("gc-on-next-allocation", nullptr);
+  Dart_ExecuteInternalCommand("gc-on-nth-allocation",
+                              reinterpret_cast<void*>(1));
   uint64_t origin = 0x8100000082000000;
   return reinterpret_cast<void*>(origin);
 }
 
 DART_EXPORT void TriggerGC(uint64_t count) {
   Dart_ExecuteInternalCommand("gc-now", nullptr);
+}
+
+DART_EXPORT void CollectOnNthAllocation(intptr_t num_allocations) {
+  Dart_ExecuteInternalCommand("gc-on-nth-allocation",
+                              reinterpret_cast<void*>(num_allocations));
 }
 
 // Triggers GC. Has 11 dummy arguments as unboxed odd integers which should be
