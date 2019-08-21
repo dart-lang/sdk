@@ -17,6 +17,7 @@ import 'package:linter/src/rules/avoid_catching_errors.dart';
 import 'package:linter/src/rules/avoid_classes_with_only_static_members.dart';
 import 'package:linter/src/rules/avoid_double_and_int_checks.dart';
 import 'package:linter/src/rules/avoid_empty_else.dart';
+import 'package:linter/src/rules/avoid_equals_and_hash_code_on_mutable_classes.dart';
 import 'package:linter/src/rules/avoid_field_initializers_in_const_classes.dart';
 import 'package:linter/src/rules/avoid_function_literals_in_foreach_calls.dart';
 import 'package:linter/src/rules/avoid_implementing_value_types.dart';
@@ -176,6 +177,7 @@ void registerLintRules() {
     ..register(AvoidImplementingValueTypes())
     ..register(AvoidInitToNull())
     ..register(AvoidJsRoundedInts())
+    ..register(AvoidOperatorEqualsOnMutableClasses())
     ..register(AvoidNullChecksInEqualityOperators())
     ..register(AvoidPositionalBooleanParameters())
     ..register(AvoidPrint())
