@@ -4,9 +4,11 @@
 
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules/always_declare_return_types.dart';
+import 'package:linter/src/rules/camel_case_extensions.dart';
 
 final experiments = <LintRule>[
   AlwaysDeclareReturnTypes(),
+  CamelCaseExtensions(),
 ];
 
 void registerLintRuleExperiments() {
