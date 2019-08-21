@@ -76,6 +76,7 @@ class VmTarget extends Target {
         'dart:nativewrappers',
         'dart:io',
         'dart:cli',
+        'dart:wasm',
       ];
 
   @override

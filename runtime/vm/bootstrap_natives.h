@@ -12,6 +12,7 @@
 namespace dart {
 
 // List of bootstrap native entry points used in the core dart library.
+// V(function_name, argument_count)
 #define BOOTSTRAP_NATIVE_LIST(V)                                               \
   V(AsyncStarMoveNext_debuggerStepCheck, 1)                                    \
   V(DartAsync_fatal, 1)                                                        \
@@ -392,7 +393,8 @@ namespace dart {
   V(Ffi_dl_processLibrary, 0)                                                  \
   V(Ffi_dl_executableLibrary, 0)                                               \
   V(TransferableTypedData_factory, 2)                                          \
-  V(TransferableTypedData_materialize, 1)
+  V(TransferableTypedData_materialize, 1)                                      \
+  V(Wasm_callFunction, 2)
 
 // List of bootstrap native entry points used in the dart:mirror library.
 #define MIRRORS_BOOTSTRAP_NATIVE_LIST(V)                                       \

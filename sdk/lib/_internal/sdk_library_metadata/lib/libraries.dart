@@ -134,6 +134,8 @@ const Map<String, LibraryInfo> libraries = const {
       categories: "Client",
       maturity: Maturity.WEB_STABLE,
       platforms: DART2JS_PLATFORM),
+  "wasm": const LibraryInfo("wasm/wasm.dart",
+      categories: "Server", maturity: Maturity.EXPERIMENTAL),
   "web_audio": const LibraryInfo("web_audio/dart2js/web_audio_dart2js.dart",
       categories: "Client",
       maturity: Maturity.WEB_STABLE,
