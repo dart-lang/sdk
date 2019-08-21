@@ -27,18 +27,37 @@ for more information.
 class A {
   final String key;
   const A(this.key);
-  @override operator ==(other) => other is A && other.key == key;
-  @override int hashCode() => key.hashCode;
+  @override
+  operator ==(other) => other is A && other.key == key;
+  @override
+  int hashCode() => key.hashCode;
 }
 ```
 
 **BAD:**
 ```
 class B {
-  final String key;
+  String key;
   const B(this.key);
-  @override operator ==(other) => other is B && other.key == key;
-  @override int hashCode() => key.hashCode;
+  @override
+  operator ==(other) => other is B && other.key == key;
+  @override
+  int hashCode() => key.hashCode;
+}
+```
+
+NOTE: The lint checks the use of the @immutable annotation, and will trigger
+even if the class is otherwise not mutable. Thus:
+
+**BAD:**
+```
+class C {
+  final String key;
+  const C(this.key);
+  @override
+  operator ==(other) => other is B && other.key == key;
+  @override
+  int hashCode() => key.hashCode;
 }
 ```
 
