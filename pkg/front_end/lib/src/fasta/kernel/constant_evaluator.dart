@@ -179,21 +179,24 @@ class ConstantsTransformer extends Transformer {
     }
   }
 
-  visitLibraryPart(LibraryPart node) {
+  @override
+  LibraryPart visitLibraryPart(LibraryPart node) {
     constantEvaluator.withNewEnvironment(() {
       transformAnnotations(node.annotations, node);
     });
     return node;
   }
 
-  visitLibraryDependency(LibraryDependency node) {
+  @override
+  LibraryDependency visitLibraryDependency(LibraryDependency node) {
     constantEvaluator.withNewEnvironment(() {
       transformAnnotations(node.annotations, node);
     });
     return node;
   }
 
-  visitClass(Class node) {
+  @override
+  Class visitClass(Class node) {
     constantEvaluator.withNewEnvironment(() {
       transformAnnotations(node.annotations, node);
       transformList(node.fields, this, node);
@@ -205,7 +208,8 @@ class ConstantsTransformer extends Transformer {
     return node;
   }
 
-  visitProcedure(Procedure node) {
+  @override
+  Procedure visitProcedure(Procedure node) {
     constantEvaluator.withNewEnvironment(() {
       transformAnnotations(node.annotations, node);
       node.function = node.function.accept(this)..parent = node;
@@ -213,7 +217,8 @@ class ConstantsTransformer extends Transformer {
     return node;
   }
 
-  visitConstructor(Constructor node) {
+  @override
+  Constructor visitConstructor(Constructor node) {
     constantEvaluator.withNewEnvironment(() {
       transformAnnotations(node.annotations, node);
       transformList(node.initializers, this, node);
@@ -222,7 +227,8 @@ class ConstantsTransformer extends Transformer {
     return node;
   }
 
-  visitTypedef(Typedef node) {
+  @override
+  Typedef visitTypedef(Typedef node) {
     constantEvaluator.withNewEnvironment(() {
       transformAnnotations(node.annotations, node);
       transformList(node.typeParameters, this, node);
@@ -233,7 +239,9 @@ class ConstantsTransformer extends Transformer {
     return node;
   }
 
-  visitRedirectingFactoryConstructor(RedirectingFactoryConstructor node) {
+  @override
+  RedirectingFactoryConstructor visitRedirectingFactoryConstructor(
+      RedirectingFactoryConstructor node) {
     constantEvaluator.withNewEnvironment(() {
       transformAnnotations(node.annotations, node);
       transformList(node.typeParameters, this, node);
@@ -243,7 +251,8 @@ class ConstantsTransformer extends Transformer {
     return node;
   }
 
-  visitTypeParameter(TypeParameter node) {
+  @override
+  TypeParameter visitTypeParameter(TypeParameter node) {
     transformAnnotations(node.annotations, node);
     return node;
   }
@@ -265,7 +274,8 @@ class ConstantsTransformer extends Transformer {
 
   // Handle definition of constants:
 
-  visitFunctionNode(FunctionNode node) {
+  @override
+  FunctionNode visitFunctionNode(FunctionNode node) {
     final int positionalParameterCount = node.positionalParameters.length;
     for (int i = 0; i < positionalParameterCount; ++i) {
       final VariableDeclaration variable = node.positionalParameters[i];
@@ -290,7 +300,8 @@ class ConstantsTransformer extends Transformer {
     return node;
   }
 
-  visitVariableDeclaration(VariableDeclaration node) {
+  @override
+  VariableDeclaration visitVariableDeclaration(VariableDeclaration node) {
     transformAnnotations(node.annotations, node);
 
     if (node.initializer != null) {
@@ -316,7 +327,8 @@ class ConstantsTransformer extends Transformer {
     return node;
   }
 
-  visitField(Field node) {
+  @override
+  Field visitField(Field node) {
     return constantEvaluator.withNewEnvironment(() {
       if (node.isConst) {
         transformAnnotations(node.annotations, node);
@@ -340,11 +352,13 @@ class ConstantsTransformer extends Transformer {
 
   // Handle use-sites of constants (and "inline" constant expressions):
 
-  visitSymbolLiteral(SymbolLiteral node) {
+  @override
+  Expression visitSymbolLiteral(SymbolLiteral node) {
     return makeConstantExpression(constantEvaluator.evaluate(node), node);
   }
 
-  visitStaticGet(StaticGet node) {
+  @override
+  Expression visitStaticGet(StaticGet node) {
     final Member target = node.target;
     if (target is Field && target.isConst) {
       // Make sure the initializer is evaluated first.
@@ -360,12 +374,14 @@ class ConstantsTransformer extends Transformer {
     return super.visitStaticGet(node);
   }
 
-  visitSwitchCase(SwitchCase node) {
+  @override
+  SwitchCase visitSwitchCase(SwitchCase node) {
     transformExpressions(node.expressions, node);
     return super.visitSwitchCase(node);
   }
 
-  visitVariableGet(VariableGet node) {
+  @override
+  Expression visitVariableGet(VariableGet node) {
     final VariableDeclaration variable = node.variable;
     if (variable.isConst) {
       variable.initializer =
@@ -378,54 +394,63 @@ class ConstantsTransformer extends Transformer {
     return super.visitVariableGet(node);
   }
 
-  visitListLiteral(ListLiteral node) {
+  @override
+  Expression visitListLiteral(ListLiteral node) {
     if (node.isConst) {
       return evaluateAndTransformWithContext(node, node);
     }
     return super.visitListLiteral(node);
   }
 
-  visitListConcatenation(ListConcatenation node) {
+  @override
+  Expression visitListConcatenation(ListConcatenation node) {
     return evaluateAndTransformWithContext(node, node);
   }
 
-  visitSetLiteral(SetLiteral node) {
+  @override
+  Expression visitSetLiteral(SetLiteral node) {
     if (node.isConst) {
       return evaluateAndTransformWithContext(node, node);
     }
     return super.visitSetLiteral(node);
   }
 
-  visitSetConcatenation(SetConcatenation node) {
+  @override
+  Expression visitSetConcatenation(SetConcatenation node) {
     return evaluateAndTransformWithContext(node, node);
   }
 
-  visitMapLiteral(MapLiteral node) {
+  @override
+  Expression visitMapLiteral(MapLiteral node) {
     if (node.isConst) {
       return evaluateAndTransformWithContext(node, node);
     }
     return super.visitMapLiteral(node);
   }
 
-  visitMapConcatenation(MapConcatenation node) {
+  @override
+  Expression visitMapConcatenation(MapConcatenation node) {
     return evaluateAndTransformWithContext(node, node);
   }
 
-  visitConstructorInvocation(ConstructorInvocation node) {
+  @override
+  Expression visitConstructorInvocation(ConstructorInvocation node) {
     if (node.isConst) {
       return evaluateAndTransformWithContext(node, node);
     }
     return super.visitConstructorInvocation(node);
   }
 
-  visitStaticInvocation(StaticInvocation node) {
+  @override
+  Expression visitStaticInvocation(StaticInvocation node) {
     if (node.isConst) {
       return evaluateAndTransformWithContext(node, node);
     }
     return super.visitStaticInvocation(node);
   }
 
-  visitConstantExpression(ConstantExpression node) {
+  @override
+  Expression visitConstantExpression(ConstantExpression node) {
     Constant constant = node.constant;
     if (constant is UnevaluatedConstant) {
       Expression expression = constant.expression;
@@ -480,7 +505,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   final bool desugarSets;
   final Field unmodifiableSetMap;
 
-  final isInstantiated = new IsInstantiatedVisitor().isInstantiated;
+  final bool Function(DartType) isInstantiated =
+      new IsInstantiatedVisitor().isInstantiated;
 
   final Map<Constant, Constant> canonicalizationCache;
   final Map<Node, Object> nodeCache;
@@ -701,7 +727,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     return _evaluateSubexpression(node);
   }
 
-  Constant runInsideContext(TreeNode node, Constant fun()) {
+  T runInsideContext<T>(TreeNode node, T fun()) {
     try {
       pushContext(node);
       return fun();
@@ -710,7 +736,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     }
   }
 
-  Constant runInsideContextIfNoContext(TreeNode node, Constant fun()) {
+  T runInsideContextIfNoContext<T>(TreeNode node, T fun()) {
     if (contextChain.isEmpty) {
       return runInsideContext(node, fun);
     } else {
@@ -718,29 +744,33 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     }
   }
 
-  pushContext(TreeNode contextNode) {
+  void pushContext(TreeNode contextNode) {
     contextChain.add(contextNode);
   }
 
-  popContext(TreeNode contextNode) {
+  void popContext(TreeNode contextNode) {
     assert(contextChain.last == contextNode);
     contextChain.length = contextChain.length - 1;
   }
 
-  defaultTreeNode(Node node) {
+  @override
+  Constant defaultTreeNode(Node node) {
     // Only a subset of the expression language is valid for constant
     // evaluation.
     return reportInvalid(
         node, 'Constant evaluation has no support for ${node.runtimeType}!');
   }
 
-  visitNullLiteral(NullLiteral node) => nullConstant;
+  @override
+  Constant visitNullLiteral(NullLiteral node) => nullConstant;
 
-  visitBoolLiteral(BoolLiteral node) {
+  @override
+  Constant visitBoolLiteral(BoolLiteral node) {
     return makeBoolConstant(node.value);
   }
 
-  visitIntLiteral(IntLiteral node) {
+  @override
+  Constant visitIntLiteral(IntLiteral node) {
     // The frontend ensures that integer literals are valid according to the
     // target representation.
     return targetingJavaScript
@@ -748,20 +778,24 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         : canonicalize(new IntConstant(node.value));
   }
 
-  visitDoubleLiteral(DoubleLiteral node) {
+  @override
+  Constant visitDoubleLiteral(DoubleLiteral node) {
     return canonicalize(makeDoubleConstant(node.value));
   }
 
-  visitStringLiteral(StringLiteral node) {
+  @override
+  Constant visitStringLiteral(StringLiteral node) {
     return canonicalize(new StringConstant(node.value));
   }
 
-  visitTypeLiteral(TypeLiteral node) {
+  @override
+  Constant visitTypeLiteral(TypeLiteral node) {
     final DartType type = evaluateDartType(node, node.type);
     return canonicalize(new TypeLiteralConstant(type));
   }
 
-  visitConstantExpression(ConstantExpression node) {
+  @override
+  Constant visitConstantExpression(ConstantExpression node) {
     Constant constant = node.constant;
     Constant result = constant;
     if (constant is UnevaluatedConstant) {
@@ -784,7 +818,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     return canonicalize(result);
   }
 
-  visitListLiteral(ListLiteral node) {
+  @override
+  Constant visitListLiteral(ListLiteral node) {
     if (!node.isConst) {
       return report(
           node, templateConstEvalNonConstantLiteral.withArguments('List'));
@@ -797,7 +832,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     return builder.build();
   }
 
-  visitListConcatenation(ListConcatenation node) {
+  @override
+  Constant visitListConcatenation(ListConcatenation node) {
     final ListConstantBuilder builder =
         new ListConstantBuilder(node, node.typeArgument, this);
     for (Expression list in node.lists) {
@@ -806,7 +842,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     return builder.build();
   }
 
-  visitSetLiteral(SetLiteral node) {
+  @override
+  Constant visitSetLiteral(SetLiteral node) {
     if (!node.isConst) {
       return report(
           node, templateConstEvalNonConstantLiteral.withArguments('Set'));
@@ -819,7 +856,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     return builder.build();
   }
 
-  visitSetConcatenation(SetConcatenation node) {
+  @override
+  Constant visitSetConcatenation(SetConcatenation node) {
     final SetConstantBuilder builder =
         new SetConstantBuilder(node, node.typeArgument, this);
     for (Expression set_ in node.sets) {
@@ -828,7 +866,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     return builder.build();
   }
 
-  visitMapLiteral(MapLiteral node) {
+  @override
+  Constant visitMapLiteral(MapLiteral node) {
     if (!node.isConst) {
       return report(
           node, templateConstEvalNonConstantLiteral.withArguments('Map'));
@@ -841,7 +880,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     return builder.build();
   }
 
-  visitMapConcatenation(MapConcatenation node) {
+  @override
+  Constant visitMapConcatenation(MapConcatenation node) {
     final MapConstantBuilder builder =
         new MapConstantBuilder(node, node.keyType, node.valueType, this);
     for (Expression map in node.maps) {
@@ -850,12 +890,14 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     return builder.build();
   }
 
-  visitFunctionExpression(FunctionExpression node) {
+  @override
+  Constant visitFunctionExpression(FunctionExpression node) {
     return report(
         node, templateConstEvalNonConstantLiteral.withArguments('Function'));
   }
 
-  visitConstructorInvocation(ConstructorInvocation node) {
+  @override
+  Constant visitConstructorInvocation(ConstructorInvocation node) {
     final Constructor constructor = node.target;
     final Class klass = constructor.enclosingClass;
     bool isSymbol = klass == coreTypes.internalSymbolClass;
@@ -928,7 +970,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     });
   }
 
-  visitInstanceCreation(InstanceCreation node) {
+  @override
+  Constant visitInstanceCreation(InstanceCreation node) {
     return withNewInstanceBuilder(node.classNode, node.typeArguments, () {
       for (AssertStatement statement in node.asserts) {
         checkAssert(statement);
@@ -1031,10 +1074,10 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   ///   IDENTIFIER_PART_NO_DOLLAR:
   ///       IDENTIFIER_START_NO_DOLLAR | DIGIT
   ///
-  static final publicIdentifierRegExp =
+  static final RegExp publicIdentifierRegExp =
       new RegExp(r'^[a-zA-Z$][a-zA-Z0-9_$]*$');
 
-  static const nonUsableKeywords = const <String>[
+  static const List<String> nonUsableKeywords = const <String>[
     'assert',
     'break',
     'case',
@@ -1074,7 +1117,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         !nonUsableKeywords.contains(name);
   }
 
-  handleConstructorInvocation(
+  void handleConstructorInvocation(
       Constructor constructor,
       List<DartType> typeArguments,
       List<Constant> positionalArguments,
@@ -1200,11 +1243,13 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     }
   }
 
-  visitInvalidExpression(InvalidExpression node) {
+  @override
+  Constant visitInvalidExpression(InvalidExpression node) {
     return reportInvalid(node, node.message);
   }
 
-  visitMethodInvocation(MethodInvocation node) {
+  @override
+  Constant visitMethodInvocation(MethodInvocation node) {
     // We have no support for generic method invocation atm.
     assert(node.arguments.named.isEmpty);
 
@@ -1462,7 +1507,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         templateConstEvalInvalidMethodInvocation.withArguments(op, receiver));
   }
 
-  visitLogicalExpression(LogicalExpression node) {
+  @override
+  Constant visitLogicalExpression(LogicalExpression node) {
     final Constant left = _evaluateSubexpression(node.left);
     if (shouldBeUnevaluated) {
       enterLazy();
@@ -1526,7 +1572,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     }
   }
 
-  visitConditionalExpression(ConditionalExpression node) {
+  @override
+  Constant visitConditionalExpression(ConditionalExpression node) {
     final Constant condition = _evaluateSubexpression(node.condition);
     if (condition == trueConstant) {
       return _evaluateSubexpression(node.then);
@@ -1549,7 +1596,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     }
   }
 
-  visitPropertyGet(PropertyGet node) {
+  @override
+  Constant visitPropertyGet(PropertyGet node) {
     if (node.receiver is ThisExpression) {
       // Access "this" during instance creation.
       if (instanceBuilder == null) {
@@ -1582,13 +1630,15 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
             node.name.name, receiver));
   }
 
-  visitLet(Let node) {
+  @override
+  Constant visitLet(Let node) {
     env.addVariableValue(
         node.variable, _evaluateSubexpression(node.variable.initializer));
     return _evaluateSubexpression(node.body);
   }
 
-  visitVariableGet(VariableGet node) {
+  @override
+  Constant visitVariableGet(VariableGet node) {
     // Not every variable which a [VariableGet] refers to must be marked as
     // constant.  For example function parameters as well as constructs
     // desugared to [Let] expressions are ok.
@@ -1609,7 +1659,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     return reportInvalid(node, 'Variable get of a non-const variable.');
   }
 
-  visitStaticGet(StaticGet node) {
+  @override
+  Constant visitStaticGet(StaticGet node) {
     return withNewEnvironment(() {
       final Member target = node.target;
       if (target is Field) {
@@ -1638,7 +1689,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     });
   }
 
-  visitStringConcatenation(StringConcatenation node) {
+  @override
+  Constant visitStringConcatenation(StringConcatenation node) {
     final List<Object> concatenated = <Object>[new StringBuffer()];
     for (int i = 0; i < node.expressions.length; i++) {
       Constant constant = _evaluateSubexpression(node.expressions[i]);
@@ -1681,7 +1733,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     return canonicalize(new StringConstant(concatenated.single.toString()));
   }
 
-  visitStaticInvocation(StaticInvocation node) {
+  @override
+  Constant visitStaticInvocation(StaticInvocation node) {
     final Procedure target = node.target;
     final Arguments arguments = node.arguments;
     final List<Constant> positionals = evaluatePositionalArguments(arguments);
@@ -1790,7 +1843,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         node, templateConstEvalInvalidStaticInvocation.withArguments(name));
   }
 
-  visitAsExpression(AsExpression node) {
+  @override
+  Constant visitAsExpression(AsExpression node) {
     final Constant constant = _evaluateSubexpression(node.operand);
     if (shouldBeUnevaluated) {
       return unevaluated(node,
@@ -1799,7 +1853,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     return ensureIsSubtype(constant, evaluateDartType(node, node.type), node);
   }
 
-  visitIsExpression(IsExpression node) {
+  @override
+  Constant visitIsExpression(IsExpression node) {
     final Constant constant = node.operand.accept(this);
     if (shouldBeUnevaluated) {
       return unevaluated(node, new IsExpression(extract(constant), node.type));
@@ -1813,7 +1868,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         isSubtype(constant, evaluateDartType(node, node.type)));
   }
 
-  visitNot(Not node) {
+  @override
+  Constant visitNot(Not node) {
     final Constant constant = _evaluateSubexpression(node.operand);
     if (constant is BoolConstant) {
       return makeBoolConstant(constant != trueConstant);
@@ -1827,13 +1883,15 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
             typeEnvironment.boolType, constant.getType(typeEnvironment)));
   }
 
-  visitSymbolLiteral(SymbolLiteral node) {
+  @override
+  Constant visitSymbolLiteral(SymbolLiteral node) {
     final Reference libraryReference =
         node.value.startsWith('_') ? libraryOf(node).reference : null;
     return canonicalize(new SymbolConstant(node.value, libraryReference));
   }
 
-  visitInstantiation(Instantiation node) {
+  @override
+  Constant visitInstantiation(Instantiation node) {
     final Constant constant = _evaluateSubexpression(node.expression);
     if (shouldBeUnevaluated) {
       return unevaluated(
@@ -1861,7 +1919,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   }
 
   @override
-  visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) {
+  Constant visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) {
     return report(
         node, templateConstEvalDeferredLibrary.withArguments(node.import.name));
   }
@@ -2005,7 +2063,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     return canonicalizationCache.putIfAbsent(constant, () => constant);
   }
 
-  withNewInstanceBuilder(Class klass, List<DartType> typeArguments, fn()) {
+  T withNewInstanceBuilder<T>(
+      Class klass, List<DartType> typeArguments, T fn()) {
     InstanceBuilder old = instanceBuilder;
     try {
       instanceBuilder = new InstanceBuilder(this, klass, typeArguments);
@@ -2015,7 +2074,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     }
   }
 
-  withNewEnvironment(fn()) {
+  T withNewEnvironment<T>(T fn()) {
     final EvaluationEnvironment oldEnv = env;
     try {
       env = new EvaluationEnvironment();
@@ -2297,24 +2356,35 @@ class IsInstantiatedVisitor extends DartTypeVisitor<bool> {
     return type.accept(this);
   }
 
+  @override
   bool defaultDartType(DartType node) {
     throw 'A visitor method seems to be unimplemented!';
   }
 
+  @override
   bool visitInvalidType(InvalidType node) => true;
+
+  @override
   bool visitDynamicType(DynamicType node) => true;
+
+  @override
   bool visitVoidType(VoidType node) => true;
+
+  @override
   bool visitBottomType(BottomType node) => true;
 
+  @override
   bool visitTypeParameterType(TypeParameterType node) {
     return _availableVariables.contains(node.parameter);
   }
 
+  @override
   bool visitInterfaceType(InterfaceType node) {
     return node.typeArguments
         .every((DartType typeArgument) => typeArgument.accept(this));
   }
 
+  @override
   bool visitFunctionType(FunctionType node) {
     final List<TypeParameter> parameters = node.typeParameters;
     _availableVariables.addAll(parameters);
@@ -2325,6 +2395,7 @@ class IsInstantiatedVisitor extends DartTypeVisitor<bool> {
     return result;
   }
 
+  @override
   bool visitTypedefType(TypedefType node) {
     return node.unalias.accept(this);
   }
