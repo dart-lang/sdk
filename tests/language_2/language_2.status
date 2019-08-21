@@ -23,7 +23,6 @@ switch_case_warn_test: Skip # Analyzer only, see language_analyzer2.status
 
 [ $compiler == none ]
 invalid_returns/*: Skip # https://github.com/dart-lang/sdk/issues/34013
-library_env_test/has_no_mirror_support: RuntimeError, OK
 void/*: Skip # https://github.com/dart-lang/sdk/issues/34013
 
 [ $compiler == spec_parser ]
@@ -33,7 +32,7 @@ mixin_declaration/*: Skip # See https://github.com/dart-lang/language/issues/7
 void/*: Skip # https://github.com/dart-lang/sdk/issues/34015
 
 [ $mode == debug ]
-large_class_declaration_test: Slow, Pass
+large_class_declaration_test: Slow
 
 [ $mode == product ]
 assertion_test: SkipByDesign # Requires checked mode.
@@ -48,12 +47,6 @@ positional_parameters_type_test/02: SkipByDesign # Requires checked mode.
 regress_29784_test/02: SkipByDesign # Requires checked mode.
 stacktrace_demangle_ctors_test: SkipByDesign # Names are not scrubbed.
 type_checks_in_factory_method_test: SkipByDesign # Requires checked mode.
-
-[ $runtime == vm ]
-spread_collections/const_error_test/05: Crash
-spread_collections/const_error_test/06: Crash
-spread_collections/const_error_test/07: Crash
-spread_collections/const_error_test/08: Crash
 
 [ $fasta ]
 partial_instantiation_static_bounds_check_test/01: MissingCompileTimeError # Issue 34327
@@ -72,22 +65,6 @@ mixin_constructor_forwarding/const_constructor_test/none: CompileTimeError # Iss
 mixin_constructor_forwarding/const_constructor_with_field_test/none: CompileTimeError # Issue 32223
 mixin_constructor_forwarding/optional_named_parameters_test/none: CompileTimeError # Issue 31543
 mixin_constructor_forwarding/optional_positional_parameters_test/none: CompileTimeError # Issue 31543
-
-# Detection of compile-time errors that are related to constants can't be fully
-# done at the front end, because constants are evaluated at back ends.  So, some
-# errors aren't detected by fasta, but reported by back ends as compile-time
-# errors.
-[ $compiler != dart2analyzer && $compiler != dart2js && $runtime != dart_precompiled && $runtime != vm && $fasta ]
-implicit_creation/implicit_const_not_default_values_test/e12: MissingCompileTimeError
-implicit_creation/implicit_const_not_default_values_test/e15: MissingCompileTimeError
-implicit_creation/implicit_const_not_default_values_test/e18: MissingCompileTimeError
-implicit_creation/implicit_const_not_default_values_test/e21: MissingCompileTimeError
-implicit_creation/implicit_const_not_default_values_test/e24: MissingCompileTimeError
-implicit_creation/implicit_const_not_default_values_test/e27: MissingCompileTimeError
-implicit_creation/implicit_const_not_default_values_test/e3: MissingCompileTimeError
-implicit_creation/implicit_const_not_default_values_test/e30: MissingCompileTimeError
-implicit_creation/implicit_const_not_default_values_test/e6: MissingCompileTimeError
-implicit_creation/implicit_const_not_default_values_test/e9: MissingCompileTimeError
 
 [ $compiler != dart2js && $compiler != dartdevc && !$checked ]
 function_type/*: Skip # Needs checked mode.
@@ -136,6 +113,5 @@ regress_22443_test: Crash # Requires deferred libraries
 regress_23408_test: Crash # Requires deferred libraries
 regress_28278_test: Crash # Requires deferred libraries
 static_closure_identical_test: Pass, Fail # Closure identity
-symbol_conflict_test: Pass, Timeout
-vm/optimized_stacktrace_test: Pass, Slow
+vm/optimized_stacktrace_test: Slow
 vm/regress_27201_test: Pass, Crash # Requires deferred libraries
