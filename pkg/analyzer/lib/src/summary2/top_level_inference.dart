@@ -47,35 +47,50 @@ class ConstantInitializersResolver {
   void perform() {
     for (var builder in linker.builders.values) {
       _library = builder.element;
-      for (var unitContext in builder.context.units) {
-        for (var unitMember in unitContext.unit.declarations) {
-          _scope = builder.scope;
-          if (unitMember is TopLevelVariableDeclaration) {
-            _variableDeclarationList(unitMember.variables);
-          } else if (unitMember is ClassOrMixinDeclaration) {
-            _scope = LinkingNodeContext.get(unitMember).scope;
-            for (var classMember in unitMember.members) {
-              if (classMember is FieldDeclaration) {
-                _variableDeclarationList(classMember.fields);
-              }
-            }
-          }
-        }
+      for (var unit in _library.units) {
+        unit.extensions.forEach(_resolveExtensionFields);
+        unit.mixins.forEach(_resolveClassFields);
+        unit.types.forEach(_resolveClassFields);
+
+        _scope = builder.scope;
+        unit.topLevelVariables.forEach(_resolveVariable);
       }
     }
   }
 
-  void _variableDeclarationList(VariableDeclarationList node) {
-    var typeNode = node.type;
-    if (node.isConst && typeNode != null) {
-      for (var variable in node.variables) {
-        if (variable.initializer != null) {
-          InferenceContext.setType(variable.initializer, typeNode.type);
-          var astResolver = AstResolver(linker, _library, _scope);
-          astResolver.rewriteAst(variable.initializer);
-          astResolver.resolve(variable.initializer);
-        }
-      }
+  void _resolveClassFields(ClassElement class_) {
+    var node = _getLinkedNode(class_);
+    _scope = LinkingNodeContext.get(node).scope;
+    for (var element in class_.fields) {
+      _resolveVariable(element);
+    }
+  }
+
+  void _resolveExtensionFields(ExtensionElement extension_) {
+    var node = _getLinkedNode(extension_);
+    _scope = LinkingNodeContext.get(node).scope;
+    for (var element in extension_.fields) {
+      _resolveVariable(element);
+    }
+  }
+
+  void _resolveVariable(VariableElement element) {
+    if (element.isSynthetic) return;
+
+    VariableDeclaration variable = _getLinkedNode(element);
+    if (variable.initializer == null) return;
+
+    VariableDeclarationList declarationList = variable.parent;
+    var typeNode = declarationList.type;
+    if (declarationList.isConst && typeNode != null) {
+      var holder = ElementHolder();
+      variable.initializer.accept(LocalElementBuilder(holder, null));
+      (element as VariableElementImpl).encloseElements(holder.functions);
+
+      InferenceContext.setType(variable.initializer, typeNode.type);
+      var astResolver = AstResolver(linker, _library, _scope);
+      astResolver.rewriteAst(variable.initializer);
+      astResolver.resolve(variable.initializer);
     }
   }
 }
