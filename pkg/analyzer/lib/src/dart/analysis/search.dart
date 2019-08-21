@@ -141,7 +141,7 @@ class Search {
   /**
    * Return direct [SubtypeResult]s for either the [type] or [subtype].
    */
-  Future<List<SubtypeResult>> subtypes(
+  Future<List<SubtypeResult>> subtypes(SearchedFiles searchedFiles,
       {ClassElement type, SubtypeResult subtype}) async {
     String name;
     String id;
@@ -162,10 +162,12 @@ class Search {
 
     if (files != null) {
       for (FileState file in files) {
-        AnalysisDriverUnitIndex index = await _driver.getIndex(file.path);
-        if (index != null) {
-          var request = new _IndexRequest(index);
-          request.addSubtypes(id, results, file);
+        if (searchedFiles.add(file.path, this)) {
+          AnalysisDriverUnitIndex index = await _driver.getIndex(file.path);
+          if (index != null) {
+            var request = new _IndexRequest(index);
+            request.addSubtypes(id, results, file);
+          }
         }
       }
     }

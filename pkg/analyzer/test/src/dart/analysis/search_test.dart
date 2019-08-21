@@ -1320,7 +1320,8 @@ class F {}
     ClassElement a = _findElement('A');
 
     // Search by 'type'.
-    List<SubtypeResult> subtypes = await driver.search.subtypes(type: a);
+    List<SubtypeResult> subtypes =
+        await driver.search.subtypes(SearchedFiles(), type: a);
     expect(subtypes, hasLength(3));
 
     SubtypeResult b = subtypes.singleWhere((r) => r.name == 'B');
@@ -1341,7 +1342,8 @@ class F {}
 
     // Search by 'id'.
     {
-      List<SubtypeResult> subtypes = await driver.search.subtypes(subtype: b);
+      List<SubtypeResult> subtypes =
+          await driver.search.subtypes(SearchedFiles(), subtype: b);
       expect(subtypes, hasLength(1));
       SubtypeResult e = subtypes.singleWhere((r) => r.name == 'E');
       expect(e.members, ['methodE']);
@@ -1390,7 +1392,8 @@ class A {
     ClassElement aClass = aLibrary.getType('A');
 
     // Search by 'type'.
-    List<SubtypeResult> subtypes = await driver.search.subtypes(type: aClass);
+    List<SubtypeResult> subtypes =
+        await driver.search.subtypes(SearchedFiles(), type: aClass);
     expect(subtypes, hasLength(3));
 
     SubtypeResult t1 = subtypes.singleWhere((r) => r.name == 'T1');
@@ -1465,7 +1468,8 @@ class A {}
     driver.addFile(pathC);
     await scheduler.waitForIdle();
 
-    List<SubtypeResult> subtypes = await driver.search.subtypes(type: a);
+    List<SubtypeResult> subtypes =
+        await driver.search.subtypes(SearchedFiles(), type: a);
     expect(subtypes, hasLength(2));
 
     SubtypeResult b = subtypes.singleWhere((r) => r.name == 'B');
@@ -1494,7 +1498,7 @@ mixin M on A, B {
     ClassElement b = _findElement('B');
 
     {
-      var subtypes = await driver.search.subtypes(type: a);
+      var subtypes = await driver.search.subtypes(SearchedFiles(), type: a);
       expect(subtypes, hasLength(1));
 
       var m = subtypes.singleWhere((r) => r.name == 'M');
@@ -1504,7 +1508,7 @@ mixin M on A, B {
     }
 
     {
-      var subtypes = await driver.search.subtypes(type: b);
+      var subtypes = await driver.search.subtypes(SearchedFiles(), type: b);
       expect(subtypes, hasLength(1));
 
       var m = subtypes.singleWhere((r) => r.name == 'M');
@@ -1523,7 +1527,8 @@ class B extends A {}
 ''');
     ClassElement a = _findElement('A');
 
-    List<SubtypeResult> subtypes = await driver.search.subtypes(type: a);
+    List<SubtypeResult> subtypes =
+        await driver.search.subtypes(SearchedFiles(), type: a);
     expect(subtypes, hasLength(1));
 
     SubtypeResult b = subtypes.singleWhere((r) => r.name == 'B');

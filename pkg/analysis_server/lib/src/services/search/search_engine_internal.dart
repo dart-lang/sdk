@@ -23,6 +23,7 @@ class SearchEngineImpl implements SearchEngine {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     List<AnalysisDriver> drivers = _drivers.toList();
+    SearchedFiles searchedFiles = _createSearchedFiles(drivers);
 
     String libraryUriStr = type.librarySource.uri.toString();
     bool hasSubtypes = false;
@@ -36,8 +37,8 @@ class SearchEngineImpl implements SearchEngine {
         return;
       }
       for (AnalysisDriver driver in drivers) {
-        List<SubtypeResult> subtypes =
-            await driver.search.subtypes(type: type, subtype: subtype);
+        List<SubtypeResult> subtypes = await driver.search
+            .subtypes(searchedFiles, type: type, subtype: subtype);
         for (SubtypeResult subtype in subtypes) {
           hasSubtypes = true;
           members.addAll(subtype.libraryUri == libraryUriStr
