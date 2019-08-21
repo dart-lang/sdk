@@ -1,358 +1,4 @@
 library;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:9:11: Error: A function declaration needs an explicit list of parameters.
-// Try adding a parameter list to the function declaration.
-// extension Extension<T> on Class<T> {
-//           ^^^^^^^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:9:24: Error: Expected '{' before this.
-// extension Extension<T> on Class<T> {
-//                        ^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:9:27: Error: A function declaration needs an explicit list of parameters.
-// Try adding a parameter list to the function declaration.
-// extension Extension<T> on Class<T> {
-//                           ^^^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:9:27: Error: 'Class' is already declared in this scope.
-// extension Extension<T> on Class<T> {
-//                           ^^^^^
-// pkg/front_end/testcases/extensions/direct_static_access.dart:5:7: Context: Previous declaration of 'Class'.
-// class Class<T> {
-//       ^^^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:9:1: Warning: Type 'extension' not found.
-// extension Extension<T> on Class<T> {
-// ^^^^^^^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:9:24: Warning: Type 'on' not found.
-// extension Extension<T> on Class<T> {
-//                        ^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:11:3: Error: Can't have modifier 'static' here.
-// Try removing 'static'.
-//   static get property => Class.field;
-//   ^^^^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:11:10: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
-// Try adding the name of the type of the variable or the keyword 'var'.
-//   static get property => Class.field;
-//          ^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:11:10: Error: Expected ';' after this.
-//   static get property => Class.field;
-//          ^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:11:23: Error: A function declaration needs an explicit list of parameters.
-// Try adding a parameter list to the function declaration.
-//   static get property => Class.field;
-//                       ^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:11:26: Error: Can't use 'Class' because it is declared more than once.
-//   static get property => Class.field;
-//                          ^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:13:3: Error: Can't have modifier 'static' here.
-// Try removing 'static'.
-//   static set property(value) {
-//   ^^^^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:13:10: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
-// Try adding the name of the type of the variable or the keyword 'var'.
-//   static set property(value) {
-//          ^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:13:10: Error: Expected ';' after this.
-//   static set property(value) {
-//          ^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:13:14: Error: 'property' is already declared in this scope.
-//   static set property(value) {
-//              ^^^^^^^^
-// pkg/front_end/testcases/extensions/direct_static_access.dart:11:14: Context: Previous declaration of 'property'.
-//   static get property => Class.field;
-//              ^^^^^^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:14:5: Error: Can't use 'Class' because it is declared more than once.
-//     Class.field = value;
-//     ^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:17:3: Error: Can't have modifier 'static' here.
-// Try removing 'static'.
-//   static var field;
-//   ^^^^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:19:3: Error: Can't have modifier 'static' here.
-// Try removing 'static'.
-//   static readGetter() {
-//   ^^^^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:23:3: Error: Can't have modifier 'static' here.
-// Try removing 'static'.
-//   static writeSetterRequired(value) {
-//   ^^^^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:24:5: Warning: Setter not found: 'property'.
-//     property = value;
-//     ^^^^^^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:27:3: Error: Can't have modifier 'static' here.
-// Try removing 'static'.
-//   static writeSetterOptional([value]) {
-//   ^^^^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:28:5: Warning: Setter not found: 'property'.
-//     property = value;
-//     ^^^^^^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:31:3: Error: Can't have modifier 'static' here.
-// Try removing 'static'.
-//   static writeSetterNamed({value}) {
-//   ^^^^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:32:5: Warning: Setter not found: 'property'.
-//     property = value;
-//     ^^^^^^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:35:3: Error: Can't have modifier 'static' here.
-// Try removing 'static'.
-//   static genericWriteSetterRequired<S>(S value) {
-//   ^^^^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:36:5: Warning: Setter not found: 'property'.
-//     property = value;
-//     ^^^^^^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:39:3: Error: Can't have modifier 'static' here.
-// Try removing 'static'.
-//   static genericWriteSetterOptional<S>([S value]) {
-//   ^^^^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:40:5: Warning: Setter not found: 'property'.
-//     property = value;
-//     ^^^^^^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:43:3: Error: Can't have modifier 'static' here.
-// Try removing 'static'.
-//   static genericWriteSetterNamed<S>({S value}) {
-//   ^^^^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:44:5: Warning: Setter not found: 'property'.
-//     property = value;
-//     ^^^^^^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:47:3: Error: Can't have modifier 'static' here.
-// Try removing 'static'.
-//   static get tearOffGetterNoArgs => readGetter;
-//   ^^^^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:47:10: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
-// Try adding the name of the type of the variable or the keyword 'var'.
-//   static get tearOffGetterNoArgs => readGetter;
-//          ^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:47:10: Error: 'get' is already declared in this scope.
-//   static get tearOffGetterNoArgs => readGetter;
-//          ^^^
-// pkg/front_end/testcases/extensions/direct_static_access.dart:11:10: Context: Previous declaration of 'get'.
-//   static get property => Class.field;
-//          ^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:47:10: Error: Expected ';' after this.
-//   static get tearOffGetterNoArgs => readGetter;
-//          ^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:47:34: Error: A function declaration needs an explicit list of parameters.
-// Try adding a parameter list to the function declaration.
-//   static get tearOffGetterNoArgs => readGetter;
-//                                  ^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:48:3: Error: Can't have modifier 'static' here.
-// Try removing 'static'.
-//   static get tearOffGetterRequired => writeSetterRequired;
-//   ^^^^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:48:10: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
-// Try adding the name of the type of the variable or the keyword 'var'.
-//   static get tearOffGetterRequired => writeSetterRequired;
-//          ^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:48:10: Error: 'get' is already declared in this scope.
-//   static get tearOffGetterRequired => writeSetterRequired;
-//          ^^^
-// pkg/front_end/testcases/extensions/direct_static_access.dart:11:10: Context: Previous declaration of 'get'.
-//   static get property => Class.field;
-//          ^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:48:10: Error: Expected ';' after this.
-//   static get tearOffGetterRequired => writeSetterRequired;
-//          ^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:48:36: Error: A function declaration needs an explicit list of parameters.
-// Try adding a parameter list to the function declaration.
-//   static get tearOffGetterRequired => writeSetterRequired;
-//                                    ^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:49:3: Error: Can't have modifier 'static' here.
-// Try removing 'static'.
-//   static get tearOffGetterOptional => writeSetterOptional;
-//   ^^^^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:49:10: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
-// Try adding the name of the type of the variable or the keyword 'var'.
-//   static get tearOffGetterOptional => writeSetterOptional;
-//          ^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:49:10: Error: 'get' is already declared in this scope.
-//   static get tearOffGetterOptional => writeSetterOptional;
-//          ^^^
-// pkg/front_end/testcases/extensions/direct_static_access.dart:11:10: Context: Previous declaration of 'get'.
-//   static get property => Class.field;
-//          ^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:49:10: Error: Expected ';' after this.
-//   static get tearOffGetterOptional => writeSetterOptional;
-//          ^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:49:36: Error: A function declaration needs an explicit list of parameters.
-// Try adding a parameter list to the function declaration.
-//   static get tearOffGetterOptional => writeSetterOptional;
-//                                    ^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:50:3: Error: Can't have modifier 'static' here.
-// Try removing 'static'.
-//   static get tearOffGetterNamed => writeSetterNamed;
-//   ^^^^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:50:10: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
-// Try adding the name of the type of the variable or the keyword 'var'.
-//   static get tearOffGetterNamed => writeSetterNamed;
-//          ^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:50:10: Error: 'get' is already declared in this scope.
-//   static get tearOffGetterNamed => writeSetterNamed;
-//          ^^^
-// pkg/front_end/testcases/extensions/direct_static_access.dart:11:10: Context: Previous declaration of 'get'.
-//   static get property => Class.field;
-//          ^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:50:10: Error: Expected ';' after this.
-//   static get tearOffGetterNamed => writeSetterNamed;
-//          ^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:50:33: Error: A function declaration needs an explicit list of parameters.
-// Try adding a parameter list to the function declaration.
-//   static get tearOffGetterNamed => writeSetterNamed;
-//                                 ^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:51:3: Error: Can't have modifier 'static' here.
-// Try removing 'static'.
-//   static get tearOffGetterGenericRequired => genericWriteSetterRequired;
-//   ^^^^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:51:10: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
-// Try adding the name of the type of the variable or the keyword 'var'.
-//   static get tearOffGetterGenericRequired => genericWriteSetterRequired;
-//          ^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:51:10: Error: 'get' is already declared in this scope.
-//   static get tearOffGetterGenericRequired => genericWriteSetterRequired;
-//          ^^^
-// pkg/front_end/testcases/extensions/direct_static_access.dart:11:10: Context: Previous declaration of 'get'.
-//   static get property => Class.field;
-//          ^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:51:10: Error: Expected ';' after this.
-//   static get tearOffGetterGenericRequired => genericWriteSetterRequired;
-//          ^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:51:43: Error: A function declaration needs an explicit list of parameters.
-// Try adding a parameter list to the function declaration.
-//   static get tearOffGetterGenericRequired => genericWriteSetterRequired;
-//                                           ^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:52:3: Error: Can't have modifier 'static' here.
-// Try removing 'static'.
-//   static get tearOffGetterGenericOptional => genericWriteSetterOptional;
-//   ^^^^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:52:10: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
-// Try adding the name of the type of the variable or the keyword 'var'.
-//   static get tearOffGetterGenericOptional => genericWriteSetterOptional;
-//          ^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:52:10: Error: 'get' is already declared in this scope.
-//   static get tearOffGetterGenericOptional => genericWriteSetterOptional;
-//          ^^^
-// pkg/front_end/testcases/extensions/direct_static_access.dart:11:10: Context: Previous declaration of 'get'.
-//   static get property => Class.field;
-//          ^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:52:10: Error: Expected ';' after this.
-//   static get tearOffGetterGenericOptional => genericWriteSetterOptional;
-//          ^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:52:43: Error: A function declaration needs an explicit list of parameters.
-// Try adding a parameter list to the function declaration.
-//   static get tearOffGetterGenericOptional => genericWriteSetterOptional;
-//                                           ^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:53:3: Error: Can't have modifier 'static' here.
-// Try removing 'static'.
-//   static get tearOffGetterGenericNamed => genericWriteSetterNamed;
-//   ^^^^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:53:10: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
-// Try adding the name of the type of the variable or the keyword 'var'.
-//   static get tearOffGetterGenericNamed => genericWriteSetterNamed;
-//          ^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:53:10: Error: 'get' is already declared in this scope.
-//   static get tearOffGetterGenericNamed => genericWriteSetterNamed;
-//          ^^^
-// pkg/front_end/testcases/extensions/direct_static_access.dart:11:10: Context: Previous declaration of 'get'.
-//   static get property => Class.field;
-//          ^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:53:10: Error: Expected ';' after this.
-//   static get tearOffGetterGenericNamed => genericWriteSetterNamed;
-//          ^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:53:40: Error: A function declaration needs an explicit list of parameters.
-// Try adding a parameter list to the function declaration.
-//   static get tearOffGetterGenericNamed => genericWriteSetterNamed;
-//                                        ^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:55:3: Error: Can't have modifier 'static' here.
-// Try removing 'static'.
-//   static invocationsFromStaticContext(int value) {
-//   ^^^^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:74:3: Error: Can't have modifier 'static' here.
-// Try removing 'static'.
-//   static tearOffsFromStaticContext(int value) {
-//   ^^^^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:100:3: Error: Can't have modifier 'static' here.
-// Try removing 'static'.
-//   static fieldAccessFromStaticContext() {
-//   ^^^^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:102:5: Warning: Setter not found: 'property'.
-//     property = field;
-//     ^^^^^^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:105:3: Error: Can't have modifier 'static' here.
-// Try removing 'static'.
-//   static getterCallsFromStaticContext(int value) {
-//   ^^^^^^
-//
-// pkg/front_end/testcases/extensions/direct_static_access.dart:171:5: Warning: Setter not found: 'property'.
-//     property = field;
-//     ^^^^^^^^
-//
 import self as self;
 import "dart:core" as core;
 
@@ -362,5 +8,213 @@ class Class<T extends core::Object* = dynamic> extends core::Object {
     : super core::Object::•()
     ;
 }
-static method Extension<T extends core::Object* = dynamic>() → invalid-type {}
+extension Extension<T extends core::Object* = dynamic> on self::Class<T*>* {
+  static get property = get self::Extension|property;
+  static field field = self::Extension|field;
+  static method readGetter = self::Extension|readGetter;
+  static method writeSetterRequired = self::Extension|writeSetterRequired;
+  static method writeSetterOptional = self::Extension|writeSetterOptional;
+  static method writeSetterNamed = self::Extension|writeSetterNamed;
+  static method genericWriteSetterRequired = self::Extension|genericWriteSetterRequired;
+  static method genericWriteSetterOptional = self::Extension|genericWriteSetterOptional;
+  static method genericWriteSetterNamed = self::Extension|genericWriteSetterNamed;
+  static get tearOffGetterNoArgs = get self::Extension|tearOffGetterNoArgs;
+  static get tearOffGetterRequired = get self::Extension|tearOffGetterRequired;
+  static get tearOffGetterOptional = get self::Extension|tearOffGetterOptional;
+  static get tearOffGetterNamed = get self::Extension|tearOffGetterNamed;
+  static get tearOffGetterGenericRequired = get self::Extension|tearOffGetterGenericRequired;
+  static get tearOffGetterGenericOptional = get self::Extension|tearOffGetterGenericOptional;
+  static get tearOffGetterGenericNamed = get self::Extension|tearOffGetterGenericNamed;
+  static method invocationsFromStaticContext = self::Extension|invocationsFromStaticContext;
+  static method tearOffsFromStaticContext = self::Extension|tearOffsFromStaticContext;
+  static method fieldAccessFromStaticContext = self::Extension|fieldAccessFromStaticContext;
+  static method getterCallsFromStaticContext = self::Extension|getterCallsFromStaticContext;
+  method invocationsFromInstanceContext = self::Extension|invocationsFromInstanceContext;
+  method tearOffsFromInstanceContext = self::Extension|tearOffsFromInstanceContext;
+  method fieldAccessFromInstanceContext = self::Extension|fieldAccessFromInstanceContext;
+  method getterCallsFromInstanceContext = self::Extension|getterCallsFromInstanceContext;
+  static set property = set self::Extension|property;
+}
+static field dynamic Extension|field;
+static get Extension|property() → dynamic
+  return self::Class::field;
+static set Extension|property(dynamic value) → void {
+  self::Class::field = value;
+}
+static method Extension|readGetter() → dynamic {
+  return self::Extension|property;
+}
+static method Extension|writeSetterRequired(dynamic value) → dynamic {
+  self::Extension|property = value;
+}
+static method Extension|writeSetterOptional([dynamic value = #C1]) → dynamic {
+  self::Extension|property = value;
+}
+static method Extension|writeSetterNamed({dynamic value = #C1}) → dynamic {
+  self::Extension|property = value;
+}
+static method Extension|genericWriteSetterRequired<S extends core::Object* = dynamic>(self::Extension|genericWriteSetterRequired::S* value) → dynamic {
+  self::Extension|property = value;
+}
+static method Extension|genericWriteSetterOptional<S extends core::Object* = dynamic>([self::Extension|genericWriteSetterOptional::S* value = #C1]) → dynamic {
+  self::Extension|property = value;
+}
+static method Extension|genericWriteSetterNamed<S extends core::Object* = dynamic>({self::Extension|genericWriteSetterNamed::S* value = #C1}) → dynamic {
+  self::Extension|property = value;
+}
+static get Extension|tearOffGetterNoArgs() → dynamic
+  return #C2;
+static get Extension|tearOffGetterRequired() → dynamic
+  return #C3;
+static get Extension|tearOffGetterOptional() → dynamic
+  return #C4;
+static get Extension|tearOffGetterNamed() → dynamic
+  return #C5;
+static get Extension|tearOffGetterGenericRequired() → dynamic
+  return #C6;
+static get Extension|tearOffGetterGenericOptional() → dynamic
+  return #C7;
+static get Extension|tearOffGetterGenericNamed() → dynamic
+  return #C8;
+static method Extension|invocationsFromStaticContext(core::int* value) → dynamic {
+  self::Extension|readGetter();
+  self::Extension|writeSetterRequired(value);
+  self::Extension|writeSetterOptional();
+  self::Extension|writeSetterOptional(value);
+  self::Extension|writeSetterNamed();
+  self::Extension|writeSetterNamed(value: value);
+  self::Extension|genericWriteSetterRequired<dynamic>(value);
+  self::Extension|genericWriteSetterRequired<core::int*>(value);
+  self::Extension|genericWriteSetterOptional<dynamic>();
+  self::Extension|genericWriteSetterOptional<core::int*>();
+  self::Extension|genericWriteSetterOptional<dynamic>(value);
+  self::Extension|genericWriteSetterOptional<core::int*>(value);
+  self::Extension|genericWriteSetterNamed<dynamic>();
+  self::Extension|genericWriteSetterNamed<core::int*>();
+  self::Extension|genericWriteSetterNamed<dynamic>(value: value);
+  self::Extension|genericWriteSetterNamed<core::int*>(value: value);
+}
+static method Extension|tearOffsFromStaticContext(core::int* value) → dynamic {
+  dynamic tearOffNoArgs = #C2;
+  tearOffNoArgs.call();
+  dynamic tearOffRequired = #C3;
+  tearOffRequired.call(value);
+  dynamic tearOffOptional = #C4;
+  tearOffOptional.call();
+  tearOffOptional.call(value);
+  dynamic tearOffNamed = #C5;
+  tearOffNamed.call();
+  tearOffNamed.call(value: value);
+  dynamic tearOffGenericRequired = #C6;
+  tearOffGenericRequired.call(value);
+  tearOffGenericRequired.call<core::int*>(value);
+  dynamic tearOffGenericOptional = #C7;
+  tearOffGenericOptional.call();
+  tearOffGenericOptional.call<core::int*>();
+  tearOffGenericOptional.call(value);
+  tearOffGenericOptional.call<core::int*>(value);
+  dynamic tearOffGenericNamed = #C8;
+  tearOffGenericNamed.call();
+  tearOffGenericNamed.call<core::int*>();
+  tearOffGenericNamed.call(value: value);
+  tearOffGenericNamed.call<core::int*>(value: value);
+}
+static method Extension|fieldAccessFromStaticContext() → dynamic {
+  self::Extension|field = self::Extension|property;
+  self::Extension|property = self::Extension|field;
+}
+static method Extension|getterCallsFromStaticContext(core::int* value) → dynamic {
+  self::Extension|tearOffGetterNoArgs.call();
+  self::Extension|tearOffGetterRequired.call(value);
+  self::Extension|tearOffGetterOptional.call();
+  self::Extension|tearOffGetterOptional.call(value);
+  self::Extension|tearOffGetterNamed.call();
+  self::Extension|tearOffGetterNamed.call(value: value);
+  self::Extension|tearOffGetterGenericRequired.call(value);
+  self::Extension|tearOffGetterGenericRequired.call<core::int*>(value);
+  self::Extension|tearOffGetterGenericOptional.call();
+  self::Extension|tearOffGetterGenericOptional.call<core::int*>();
+  self::Extension|tearOffGetterGenericOptional.call(value);
+  self::Extension|tearOffGetterGenericOptional.call<core::int*>(value);
+  self::Extension|tearOffGetterGenericNamed.call();
+  self::Extension|tearOffGetterGenericNamed.call<core::int*>();
+  self::Extension|tearOffGetterGenericNamed.call(value: value);
+  self::Extension|tearOffGetterGenericNamed.call<core::int*>(value: value);
+}
+static method Extension|invocationsFromInstanceContext<#T extends core::Object* = dynamic>(final self::Class<self::Extension|invocationsFromInstanceContext::#T*>* #this, self::Extension|invocationsFromInstanceContext::#T* value) → dynamic {
+  self::Extension|readGetter();
+  self::Extension|writeSetterRequired(value);
+  self::Extension|writeSetterOptional();
+  self::Extension|writeSetterOptional(value);
+  self::Extension|writeSetterNamed();
+  self::Extension|writeSetterNamed(value: value);
+  self::Extension|genericWriteSetterRequired<dynamic>(value);
+  self::Extension|genericWriteSetterRequired<self::Extension|invocationsFromInstanceContext::#T*>(value);
+  self::Extension|genericWriteSetterOptional<dynamic>();
+  self::Extension|genericWriteSetterOptional<self::Extension|invocationsFromInstanceContext::#T*>();
+  self::Extension|genericWriteSetterOptional<dynamic>(value);
+  self::Extension|genericWriteSetterOptional<self::Extension|invocationsFromInstanceContext::#T*>(value);
+  self::Extension|genericWriteSetterNamed<dynamic>();
+  self::Extension|genericWriteSetterNamed<self::Extension|invocationsFromInstanceContext::#T*>();
+  self::Extension|genericWriteSetterNamed<dynamic>(value: value);
+  self::Extension|genericWriteSetterNamed<self::Extension|invocationsFromInstanceContext::#T*>(value: value);
+}
+static method Extension|tearOffsFromInstanceContext<#T extends core::Object* = dynamic>(final self::Class<self::Extension|tearOffsFromInstanceContext::#T*>* #this, self::Extension|tearOffsFromInstanceContext::#T* value) → dynamic {
+  dynamic tearOffNoArgs = #C2;
+  tearOffNoArgs.call();
+  dynamic tearOffRequired = #C3;
+  tearOffRequired.call(value);
+  dynamic tearOffOptional = #C4;
+  tearOffOptional.call();
+  tearOffOptional.call(value);
+  dynamic tearOffNamed = #C5;
+  tearOffNamed.call();
+  tearOffNamed.call(value: value);
+  dynamic tearOffGenericRequired = #C6;
+  tearOffGenericRequired.call(value);
+  tearOffGenericRequired.call<self::Extension|tearOffsFromInstanceContext::#T*>(value);
+  dynamic tearOffGenericOptional = #C7;
+  tearOffGenericOptional.call();
+  tearOffGenericOptional.call<self::Extension|tearOffsFromInstanceContext::#T*>();
+  tearOffGenericOptional.call(value);
+  tearOffGenericOptional.call<self::Extension|tearOffsFromInstanceContext::#T*>(value);
+  dynamic tearOffGenericNamed = #C8;
+  tearOffGenericNamed.call();
+  tearOffGenericNamed.call<self::Extension|tearOffsFromInstanceContext::#T*>();
+  tearOffGenericNamed.call(value: value);
+  tearOffGenericNamed.call<self::Extension|tearOffsFromInstanceContext::#T*>(value: value);
+}
+static method Extension|fieldAccessFromInstanceContext<#T extends core::Object* = dynamic>(final self::Class<self::Extension|fieldAccessFromInstanceContext::#T*>* #this) → dynamic {
+  self::Extension|field = self::Extension|property;
+  self::Extension|property = self::Extension|field;
+}
+static method Extension|getterCallsFromInstanceContext<#T extends core::Object* = dynamic>(final self::Class<self::Extension|getterCallsFromInstanceContext::#T*>* #this, self::Extension|getterCallsFromInstanceContext::#T* value) → dynamic {
+  self::Extension|tearOffGetterNoArgs.call();
+  self::Extension|tearOffGetterRequired.call(value);
+  self::Extension|tearOffGetterOptional.call();
+  self::Extension|tearOffGetterOptional.call(value);
+  self::Extension|tearOffGetterNamed.call();
+  self::Extension|tearOffGetterNamed.call(value: value);
+  self::Extension|tearOffGetterGenericRequired.call(value);
+  self::Extension|tearOffGetterGenericRequired.call<self::Extension|getterCallsFromInstanceContext::#T*>(value);
+  self::Extension|tearOffGetterGenericOptional.call();
+  self::Extension|tearOffGetterGenericOptional.call<self::Extension|getterCallsFromInstanceContext::#T*>();
+  self::Extension|tearOffGetterGenericOptional.call(value);
+  self::Extension|tearOffGetterGenericOptional.call<self::Extension|getterCallsFromInstanceContext::#T*>(value);
+  self::Extension|tearOffGetterGenericNamed.call();
+  self::Extension|tearOffGetterGenericNamed.call<self::Extension|getterCallsFromInstanceContext::#T*>();
+  self::Extension|tearOffGetterGenericNamed.call(value: value);
+  self::Extension|tearOffGetterGenericNamed.call<self::Extension|getterCallsFromInstanceContext::#T*>(value: value);
+}
 static method main() → dynamic {}
+
+constants  {
+  #C1 = null
+  #C2 = tearoff self::Extension|readGetter
+  #C3 = tearoff self::Extension|writeSetterRequired
+  #C4 = tearoff self::Extension|writeSetterOptional
+  #C5 = tearoff self::Extension|writeSetterNamed
+  #C6 = tearoff self::Extension|genericWriteSetterRequired
+  #C7 = tearoff self::Extension|genericWriteSetterOptional
+  #C8 = tearoff self::Extension|genericWriteSetterNamed
+}

@@ -2,8 +2,8 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/extension_methods.dart:19:26: Error: The getter 'two' isn't defined for the class 'C'.
-//  - 'C' is from 'pkg/front_end/testcases/general/extension_methods.dart'.
+// pkg/front_end/testcases/extensions/extension_methods.dart:19:26: Error: The getter 'two' isn't defined for the class 'C'.
+//  - 'C' is from 'pkg/front_end/testcases/extensions/extension_methods.dart'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'two'.
 //   var result = c.one + c.two;
 //                          ^^^
@@ -28,8 +28,8 @@ static method E|get#two(final self::C* #this) → core::int*
   return 2;
 static method main() → dynamic {
   self::C* c = new self::C::•();
-  core::num* result = c.{self::C::one}.{core::num::+}(invalid-expression "pkg/front_end/testcases/general/extension_methods.dart:19:26: Error: The getter 'two' isn't defined for the class 'C'.
- - 'C' is from 'pkg/front_end/testcases/general/extension_methods.dart'.
+  core::num* result = c.{self::C::one}.{core::num::+}(invalid-expression "pkg/front_end/testcases/extensions/extension_methods.dart:19:26: Error: The getter 'two' isn't defined for the class 'C'.
+ - 'C' is from 'pkg/front_end/testcases/extensions/extension_methods.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'two'.
   var result = c.one + c.two;
                          ^^^" as{TypeError} core::num*);

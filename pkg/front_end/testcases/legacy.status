@@ -5,7 +5,7 @@
 # Status file for the legacy_test.dart test suite. This is testing generating
 # Kernel ASTs in legacy mode (Dart 1.0).
 
-extensions/static_access: RuntimeError
+extensions/extension_methods: RuntimeError
 general/DeltaBlue: Fail # Fasta and dartk disagree on static initializers
 general/ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
 general/await_in_non_async: RuntimeError # Expected.
@@ -14,14 +14,15 @@ general/bug37476: RuntimeError # Expected.
 general/call: Fail # Test can't run.
 general/constructor_const_inference: RuntimeError # Test exercises strong mode semantics.  See also Issue #33813.
 general/constructor_initializer_invalid: RuntimeError # Fails execution after recovery
-general/control_flow_collection: RuntimeError
+general/control_flow_collection: Crash
+general/control_flow_collection_inference: Crash
 general/duplicated_field_initializer: RuntimeError
-general/extension_methods: RuntimeError
 general/external_import: RuntimeError # Expected -- test uses import which doesn't exist.
 general/fallthrough: Fail # Missing FallThroughError.
 general/function_type_recovery: Fail
 general/incomplete_field_formal_parameter: Fail # Fasta doesn't recover well
 general/invocations: Fail
+general/issue37027: Crash
 general/issue37776: RuntimeError
 general/micro: Fail # External method marked abstract.
 general/minimum_int: Crash # Min int literal not supported in non-strong mode.
@@ -38,7 +39,8 @@ general/redirecting_factory_typeargs_test: Fail # Missing support for Redirectin
 general/redirecting_factory_typeparam_test: Fail # Missing support for RedirectingFactoryConstructor.
 general/redirecting_factory_typeparambounds_test: Fail # Missing support for RedirectingFactoryConstructor.
 general/reject_generic_function_types_in_bounds: RuntimeError # Expected
-general/spread_collection: RuntimeError
+general/spread_collection: Crash
+general/spread_collection_inference: Crash
 general/type_parameter_type_named_int: RuntimeError # Expected
 general/type_variable_as_super: Fail
 general/uninitialized_fields: Fail # Fasta and dartk disagree on static initializers

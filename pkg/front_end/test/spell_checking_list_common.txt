@@ -1059,12 +1059,14 @@ flux
 fold
 folded
 folder
+folders
 follow
 followed
 following
 follows
 for
 force
+forced
 forest
 forget
 fork

@@ -8,8 +8,9 @@ import 'dart:async' show Future;
 
 import 'dart:convert' show jsonDecode;
 
-import 'dart:io' show File, Platform;
+import 'dart:io' show Directory, File, Platform;
 
+import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:kernel/ast.dart'
     show AwaitExpression, Component, Library, Node, Visitor;
 
@@ -130,6 +131,14 @@ String generateExpectationName(bool legacyMode) {
   return legacyMode ? "legacy" : "strong";
 }
 
+const String experimentalFlagOptions = '--enable-experiment=';
+
+class TestOptions {
+  final Map<ExperimentalFlag, bool> experimentalFlags;
+
+  TestOptions(this.experimentalFlags);
+}
+
 class FastaContext extends ChainContext with MatchContext {
   final UriTranslator uriTranslator;
   final List<Step> steps;
@@ -143,6 +152,7 @@ class FastaContext extends ChainContext with MatchContext {
   final Map<Component, StringBuffer> componentToDiagnostics =
       <Component, StringBuffer>{};
   final Uri platformBinaries;
+  final Map<Uri, TestOptions> _testOptions = {};
 
   @override
   final bool updateExpectations;
@@ -203,6 +213,41 @@ class FastaContext extends ChainContext with MatchContext {
     }
   }
 
+  /// Computes the experimental flag for [description].
+  ///
+  /// [forcedExperimentalFlags] is used to override the default flags for
+  /// [description].
+  Map<ExperimentalFlag, bool> computeExperimentalFlags(
+      TestDescription description,
+      Map<ExperimentalFlag, bool> forcedExperimentalFlags) {
+    Directory directory = new File.fromUri(description.uri).parent;
+    // TODO(johnniwinther): Support nested test folders?
+    TestOptions testOptions = _testOptions[directory.uri];
+    if (testOptions == null) {
+      List<String> experimentalFlagsArguments = [];
+      File optionsFile =
+          new File.fromUri(directory.uri.resolve('test.options'));
+      if (optionsFile.existsSync()) {
+        for (String line in optionsFile.readAsStringSync().split('\n')) {
+          // TODO(johnniwinther): Support more options if need.
+          if (line.startsWith(experimentalFlagOptions)) {
+            experimentalFlagsArguments =
+                line.substring(experimentalFlagOptions.length).split('\n');
+          }
+        }
+      }
+      testOptions = new TestOptions(parseExperimentalFlags(
+          parseExperimentalArguments(experimentalFlagsArguments),
+          onError: (String message) => throw new ArgumentError(message),
+          onWarning: (String message) => throw new ArgumentError(message)));
+      _testOptions[directory.uri] = testOptions;
+    }
+    Map<ExperimentalFlag, bool> flags =
+        new Map.from(testOptions.experimentalFlags);
+    flags.addAll(forcedExperimentalFlags);
+    return flags;
+  }
+
   Expectation get verificationError => expectationSet["VerificationError"];
 
   Future ensurePlatformUris() async {
@@ -249,16 +294,19 @@ class FastaContext extends ChainContext with MatchContext {
     Uri vm = Uri.base.resolveUri(new Uri.file(Platform.resolvedExecutable));
     Uri packages = Uri.base.resolve(".packages");
     bool legacyMode = environment.containsKey(LEGACY_MODE);
-    Map<ExperimentalFlag, bool> experimentalFlags = <ExperimentalFlag, bool>{
-      ExperimentalFlag.controlFlowCollections:
-          environment["enableControlFlowCollections"] != "false" && !legacyMode,
-      ExperimentalFlag.spreadCollections:
-          environment["enableSpreadCollections"] != "false" && !legacyMode,
-      ExperimentalFlag.extensionMethods:
-          environment["enableExtensionMethods"] != "false" && !legacyMode,
-      ExperimentalFlag.nonNullable:
-          environment["enableNonNullable"] != "false" && !legacyMode,
-    };
+    Map<ExperimentalFlag, bool> experimentalFlags = <ExperimentalFlag, bool>{};
+
+    void addForcedExperimentalFlag(String name, ExperimentalFlag flag) {
+      if (environment.containsKey(name)) {
+        experimentalFlags[flag] = environment[name] == "true";
+      }
+    }
+
+    addForcedExperimentalFlag(
+        "enableExtensionMethods", ExperimentalFlag.extensionMethods);
+    addForcedExperimentalFlag(
+        "enableNonNullable", ExperimentalFlag.nonNullable);
+
     var options = new ProcessedOptions(
         options: new CompilerOptions()
           ..onDiagnostic = (DiagnosticMessage message) {
@@ -354,7 +402,8 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
             errors.writeAll(message.plainTextFormatted, "\n");
           }
           ..environmentDefines = {}
-          ..experimentalFlags = context.experimentalFlags,
+          ..experimentalFlags = context.computeExperimentalFlags(
+              description, context.experimentalFlags),
         inputs: <Uri>[description.uri]);
     return await CompilerContext.runWithOptions(options, (_) async {
       // Disable colors to ensure that expectation files are the same across
