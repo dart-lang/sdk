@@ -825,6 +825,7 @@ class FileStateTestView {
 class FileSystemState {
   final PerformanceLog _logger;
   final ResourceProvider _resourceProvider;
+  final String contextName;
   final ByteStore _byteStore;
   final FileContentOverlay _contentOverlay;
   final SourceFactory _sourceFactory;
@@ -906,6 +907,7 @@ class FileSystemState {
     this._byteStore,
     this._contentOverlay,
     this._resourceProvider,
+    this.contextName,
     this._sourceFactory,
     this._analysisOptions,
     this._unlinkedSalt,
