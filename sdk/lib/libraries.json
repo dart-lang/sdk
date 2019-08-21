@@ -71,12 +71,6 @@
         ],
         "uri": "ffi/ffi.dart"
       },
-      "wasm": {
-        "patches": [
-          "../../runtime/lib/wasm_patch.dart"
-        ],
-        "uri": "wasm/wasm.dart"
-      },
       "typed_data": {
         "patches": "../../runtime/lib/typed_data_patch.dart",
         "uri": "typed_data/typed_data.dart"

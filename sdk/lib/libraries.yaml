@@ -94,11 +94,6 @@ vm:
         - "../../runtime/lib/ffi_dynamic_library_patch.dart"
         - "../../runtime/lib/ffi_native_type_patch.dart"
 
-    wasm:
-      uri: "wasm/wasm.dart"
-      patches:
-        - "../../runtime/lib/wasm_patch.dart"
-
     _http:
       uri: "_http/http.dart"
 

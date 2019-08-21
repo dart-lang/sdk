@@ -16,7 +16,6 @@ import("../../sdk/lib/mirrors/mirrors_sources.gni")
 import("../../sdk/lib/profiler/profiler_sources.gni")
 import("../../sdk/lib/typed_data/typed_data_sources.gni")
 import("../../sdk/lib/vmservice/vmservice_sources.gni")
-import("../../sdk/lib/wasm/wasm_sources.gni")
 import("../../utils/compile_platform.gni")
 import("../bin/cli_sources.gni")
 import("../bin/io_sources.gni")
@@ -34,7 +33,6 @@ import("../lib/mirrors_sources.gni")
 import("../lib/profiler_sources.gni")
 import("../lib/typed_data_sources.gni")
 import("../lib/vmservice_sources.gni")
-import("../lib/wasm_sources.gni")
 import("../runtime_args.gni")
 import("compiler/compiler_sources.gni")
 import("heap/heap_sources.gni")
@@ -108,7 +106,7 @@ library_for_all_configs("libdart_lib") {
                internal_runtime_cc_files + isolate_runtime_cc_files +
                math_runtime_cc_files + mirrors_runtime_cc_files +
                typed_data_runtime_cc_files + vmservice_runtime_cc_files +
-               ffi_runtime_cc_files + wasm_runtime_cc_files
+               ffi_runtime_cc_files
   sources = [ "bootstrap.cc" ] + rebase_path(allsources, ".", "../lib")
   snapshot_sources = []
   nosnapshot_sources = []

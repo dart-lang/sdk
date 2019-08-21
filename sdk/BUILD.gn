@@ -84,7 +84,6 @@ declare_args() {
 # ......math/
 # ......mirrors/
 # ......typed_data/
-# ......wasm/
 # ......api_readme.md
 # ....model/
 # ......lexeme/
@@ -217,7 +216,6 @@ _full_sdk_libraries = [
   "profiler",
   "svg",
   "typed_data",
-  "wasm",
   "web_audio",
   "web_gl",
   "web_sql",
