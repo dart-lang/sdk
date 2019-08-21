@@ -356,6 +356,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     }
 
     ResolvedUnitResult resolvedUnit = await server.getResolvedUnit(file);
+    server.requestStatistics?.addItemTimeNow(request, 'resolvedUnit');
     if (resolvedUnit?.state == ResultState.VALID) {
       if (offset < 0 || offset > resolvedUnit.content.length) {
         server.sendResponse(new Response.invalidParameter(

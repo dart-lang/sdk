@@ -46,7 +46,9 @@ import 'package:analysis_server/src/server/features.dart';
 import 'package:analysis_server/src/services/flutter/widget_descriptions.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
+import 'package:analysis_server/src/utilities/file_string_sink.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
+import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -104,6 +106,9 @@ class AnalysisServer extends AbstractAnalysisServer {
 
   /// The instrumentation service that is to be used by this analysis server.
   final InstrumentationService instrumentationService;
+
+  /// The helper for tracking request / response statistics.
+  final RequestStatisticsHelper requestStatistics;
 
   /// A set of the [ServerService]s to send notifications for.
   Set<ServerService> serverServices = new HashSet<ServerService>();
@@ -170,6 +175,7 @@ class AnalysisServer extends AbstractAnalysisServer {
     AnalysisServerOptions options,
     this.sdkManager,
     this.instrumentationService, {
+    this.requestStatistics,
     DiagnosticServer diagnosticServer,
     ResolverProvider fileResolverProvider = null,
     ResolverProvider packageResolverProvider = null,
@@ -197,7 +203,8 @@ class AnalysisServer extends AbstractAnalysisServer {
           sink = io.stdout;
         } else if (name.startsWith('file:')) {
           String path = name.substring('file:'.length);
-          sink = new io.File(path).openWrite(mode: io.FileMode.append);
+          sink = FileStringSink(path);
+          requestStatistics?.sink = sink;
         }
       }
       _analysisPerformanceLogger = new PerformanceLog(sink);
