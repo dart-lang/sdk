@@ -86,8 +86,6 @@ import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
 
 export 'package:testing/testing.dart' show Chain, runMe;
 
-const String LEGACY_MODE = " legacy mode ";
-
 const String ENABLE_FULL_COMPILE = " full compile ";
 
 const String EXPECTATIONS = '''
@@ -143,7 +141,6 @@ class FastaContext extends ChainContext with MatchContext {
   final UriTranslator uriTranslator;
   final List<Step> steps;
   final Uri vm;
-  final bool legacyMode;
   final bool onlyCrashes;
   final Map<ExperimentalFlag, bool> experimentalFlags;
   final bool skipVm;
@@ -167,7 +164,6 @@ class FastaContext extends ChainContext with MatchContext {
 
   FastaContext(
       this.vm,
-      this.legacyMode,
       this.platformBinaries,
       this.onlyCrashes,
       this.experimentalFlags,
@@ -179,30 +175,24 @@ class FastaContext extends ChainContext with MatchContext {
       this.uriTranslator,
       bool fullCompile)
       : steps = <Step>[
-          new Outline(fullCompile, legacyMode, updateComments: updateComments),
+          new Outline(fullCompile, updateComments: updateComments),
           const Print(),
           new Verify(fullCompile)
         ] {
     if (!ignoreExpectations) {
-      steps.add(new MatchExpectation(fullCompile
-          ? ".${generateExpectationName(legacyMode)}.expect"
-          : ".outline.expect"));
+      steps.add(new MatchExpectation(
+          fullCompile ? ".strong.expect" : ".outline.expect"));
     }
-    if (!legacyMode) {
-      steps.add(const TypeCheck());
-    }
+    steps.add(const TypeCheck());
     steps.add(const EnsureNoErrors());
     if (kernelTextSerialization) {
       steps.add(const KernelTextSerialization());
-    }
-    if (legacyMode && !fullCompile) {
-      steps.add(new MatchHierarchy());
     }
     if (fullCompile) {
       steps.add(const Transform());
       if (!ignoreExpectations) {
         steps.add(new MatchExpectation(fullCompile
-            ? ".${generateExpectationName(legacyMode)}.transformed.expect"
+            ? ".strong.transformed.expect"
             : ".outline.transformed.expect"));
       }
       steps.add(const EnsureNoErrors());
@@ -252,8 +242,7 @@ class FastaContext extends ChainContext with MatchContext {
 
   Future ensurePlatformUris() async {
     if (platformUri == null) {
-      platformUri = platformBinaries
-          .resolve(legacyMode ? "vm_platform.dill" : "vm_platform_strong.dill");
+      platformUri = platformBinaries.resolve("vm_platform_strong.dill");
     }
   }
 
@@ -293,7 +282,6 @@ class FastaContext extends ChainContext with MatchContext {
     Uri sdk = Uri.base.resolve("sdk/");
     Uri vm = Uri.base.resolveUri(new Uri.file(Platform.resolvedExecutable));
     Uri packages = Uri.base.resolve(".packages");
-    bool legacyMode = environment.containsKey(LEGACY_MODE);
     Map<ExperimentalFlag, bool> experimentalFlags = <ExperimentalFlag, bool>{};
 
     void addForcedExperimentalFlag(String name, ExperimentalFlag flag) {
@@ -330,7 +318,6 @@ class FastaContext extends ChainContext with MatchContext {
     }
     return new FastaContext(
         vm,
-        legacyMode,
         platformBinaries == null
             ? computePlatformBinariesLocation(forceBuildDir: true)
             : Uri.base.resolve(platformBinaries),
@@ -376,10 +363,7 @@ class Run extends Step<Uri, int, FastaContext> {
 class Outline extends Step<TestDescription, Component, FastaContext> {
   final bool fullCompile;
 
-  final bool legacyMode;
-
-  const Outline(this.fullCompile, this.legacyMode,
-      {this.updateComments: false});
+  const Outline(this.fullCompile, {this.updateComments: false});
 
   final bool updateComments;
 
@@ -394,7 +378,6 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
     StringBuffer errors = new StringBuffer();
     ProcessedOptions options = new ProcessedOptions(
         options: new CompilerOptions()
-          ..legacyMode = legacyMode
           ..onDiagnostic = (DiagnosticMessage message) {
             if (errors.isNotEmpty) {
               errors.write("\n\n");
@@ -411,8 +394,8 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
       CompilerContext.current.disableColors();
       Component platform = await context.loadPlatform();
       Ticker ticker = new Ticker();
-      DillTarget dillTarget = new DillTarget(ticker, context.uriTranslator,
-          new TestVmTarget(new TargetFlags(legacyMode: legacyMode)));
+      DillTarget dillTarget = new DillTarget(
+          ticker, context.uriTranslator, new TestVmTarget(new TargetFlags()));
       dillTarget.loader.appendLibraries(platform);
       // We create a new URI translator to avoid reading platform libraries from
       // file system.
@@ -425,11 +408,9 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
       sourceTarget.setEntryPoints(<Uri>[description.uri]);
       await dillTarget.buildOutlines();
       ValidatingInstrumentation instrumentation;
-      if (!legacyMode) {
-        instrumentation = new ValidatingInstrumentation();
-        await instrumentation.loadExpectations(description.uri);
-        sourceTarget.loader.instrumentation = instrumentation;
-      }
+      instrumentation = new ValidatingInstrumentation();
+      await instrumentation.loadExpectations(description.uri);
+      sourceTarget.loader.instrumentation = instrumentation;
       Component p = await sourceTarget.buildOutlines();
       context.componentToTarget.clear();
       context.componentToTarget[p] = sourceTarget;

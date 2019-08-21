@@ -1,9 +1,0 @@
-library;
-import self as self;
-import "dart:collection" as col;
-import "dart:core" as core;
-
-static method main() → dynamic {
-  "Should redirect to LinkedHashMap constructor.";
-  col::LinkedHashMap::•<core::Symbol, dynamic>();
-}

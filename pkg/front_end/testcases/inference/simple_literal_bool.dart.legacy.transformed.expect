@@ -1,7 +1,0 @@
-library test;
-import self as self;
-
-static field dynamic a = true;
-static method main() → dynamic {
-  dynamic b = false;
-}
