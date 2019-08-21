@@ -1836,8 +1836,10 @@ class _HttpClientConnection {
     }
     return request.close().then((response) {
       if (response.statusCode != HttpStatus.ok) {
-        throw "Proxy failed to establish tunnel "
-            "(${response.statusCode} ${response.reasonPhrase})";
+        throw new HttpException(
+            "Proxy failed to establish tunnel "
+            "(${response.statusCode} ${response.reasonPhrase})",
+            uri: request.uri);
       }
       var socket = (response as _HttpClientResponse)
           ._httpRequest
