@@ -3927,6 +3927,7 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
+    super.visitChildren(visitor);
     name?.accept(visitor);
     _typeParameters?.accept(visitor);
     _extendedType?.accept(visitor);

@@ -30,16 +30,15 @@ abstract class BaseExtensionMethodsTest extends DriverResolutionTest {
 /// resolved correctly.
 @reflectiveTest
 class ExtensionMethodsDeclarationTest extends BaseExtensionMethodsTest {
-  @failingTest
   test_metadata() async {
     await assertNoErrorsInCode('''
 const int ann = 1;
 class C {}
-@ann
+@ann //
 extension E on C {}
 ''');
-    var annotation = findNode.annotation('@ann');
-    assertElement(annotation, findElement.topVar('ann'));
+    var annotation = findNode.annotation('ann //');
+    assertElement(annotation, findElement.topVar('ann').getter);
   }
 
   test_multipleExtensions_noConflict() async {
