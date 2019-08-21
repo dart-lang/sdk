@@ -59,6 +59,7 @@ class SlashForDocComments extends LintRule implements NodeLintRule {
     registry.addConstructorDeclaration(this, visitor);
     registry.addEnumConstantDeclaration(this, visitor);
     registry.addEnumDeclaration(this, visitor);
+    registry.addExtensionDeclaration(this, visitor);
     registry.addFieldDeclaration(this, visitor);
     registry.addFunctionDeclaration(this, visitor);
     registry.addFunctionTypeAlias(this, visitor);
@@ -101,6 +102,11 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
+    checkComment(node.documentationComment);
+  }
+
+  @override
+  void visitExtensionDeclaration(ExtensionDeclaration node) {
     checkComment(node.documentationComment);
   }
 
