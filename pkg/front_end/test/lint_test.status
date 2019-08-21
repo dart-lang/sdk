@@ -20,3 +20,13 @@ src/fasta/scanner/utf8_bytes_scanner/ImportsTwice: Fail
 src/fasta/source/value_kinds/ImportsTwice: Fail
 src/fasta/type_inference/type_constraint_gatherer/ImportsTwice: Fail
 src/fasta/type_inference/type_inferrer/ImportsTwice: Fail
+
+src/fasta/kernel/body_builder/ExplicitType: Fail
+src/fasta/kernel/class_hierarchy_builder/ExplicitType: Fail
+src/fasta/kernel/constant_evaluator/ExplicitType: Fail
+src/fasta/kernel/kernel_shadow_ast/ExplicitType: Fail
+src/fasta/parser/identifier_context/ExplicitType: Fail
+src/fasta/scanner/abstract_scanner/ExplicitType: Fail
+src/fasta/scanner/string_canonicalizer/ExplicitType: Fail
+src/fasta/scanner/token/ExplicitType: Fail
+src/fasta/testing/validating_instrumentation/ExplicitType: Fail

@@ -201,6 +201,28 @@ class ExplicitTypeLintListener extends LintListener {
   void handleNoType(Token lastConsumed) {
     _latestType = new LatestType(lastConsumed, false);
   }
+
+  void endTopLevelFields(
+      Token staticToken,
+      Token covariantToken,
+      Token lateToken,
+      Token varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
+    if (!_latestType.type) {
+      onProblem(
+          varFinalOrConst.offset, varFinalOrConst.length, "No explicit type.");
+    }
+  }
+
+  void endFields(Token staticToken, Token covariantToken, Token lateToken,
+      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
+    if (!_latestType.type) {
+      onProblem(
+          varFinalOrConst.offset, varFinalOrConst.length, "No explicit type.");
+    }
+  }
 }
 
 class LatestType {
