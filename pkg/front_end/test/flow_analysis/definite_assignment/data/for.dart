@@ -88,3 +88,38 @@ for_updaters_afterBody(bool c) {
     v = 0;
   }
 }
+
+collection_for_body(bool c) {
+  late int v;
+  [for (; c;) (v = 0)];
+  /*unassigned*/ v;
+}
+
+collection_for_condition() {
+  late int v;
+  [for (; (v = 0) >= 0;) null];
+  v;
+}
+
+collection_for_initializer_expression() {
+  late int v;
+  [for (v = 0;;) v];
+  v;
+}
+
+collection_for_initializer_variable() {
+  late int v;
+  [for (var t = (v = 0);;) v];
+  v;
+}
+
+collection_for_updaters(bool c) {
+  late int v1, v2, v3, v4;
+  [for (; c; v1 = 0, v2 = 0, v3 = 0, /*unassigned*/ v4) /*unassigned*/ v1];
+  /*unassigned*/ v2;
+}
+
+collection_for_updaters_afterBody(bool c) {
+  late int v;
+  [for (; c; v) (v = 0)];
+}

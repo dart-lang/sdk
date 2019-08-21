@@ -3851,10 +3851,15 @@ class ResolverVisitor extends ScopedVisitor {
       } else if (forLoopParts is ForPartsWithExpression) {
         forLoopParts.initialization?.accept(this);
       }
-      InferenceContext.setType(forLoopParts.condition, typeProvider.boolType);
-      forLoopParts.condition?.accept(this);
+      var condition = forLoopParts.condition;
+      InferenceContext.setType(condition, typeProvider.boolType);
+      _flowAnalysis?.for_conditionBegin(node, condition);
+      condition?.accept(this);
+      _flowAnalysis?.for_bodyBegin(node, condition);
       node.body?.accept(this);
+      _flowAnalysis?.flow?.for_updaterBegin();
       forLoopParts.updaters.accept(this);
+      _flowAnalysis?.flow?.for_end();
     } else if (forLoopParts is ForEachParts) {
       Expression iterable = forLoopParts.iterable;
       DeclaredIdentifier loopVariable;
@@ -3886,8 +3891,12 @@ class ResolverVisitor extends ScopedVisitor {
       // variable cannot be in scope while visiting the iterator.
       //
       iterable?.accept(this);
+      _flowAnalysis?.loopVariable(loopVariable);
       loopVariable?.accept(this);
+      _flowAnalysis?.flow
+          ?.forEach_bodyBegin(_flowAnalysis?.assignedVariables[node]);
       node.body?.accept(this);
+      _flowAnalysis?.flow?.forEach_end();
 
       node.accept(elementResolver);
       node.accept(typeAnalyzer);
@@ -3909,18 +3918,18 @@ class ResolverVisitor extends ScopedVisitor {
       var condition = forLoopParts.condition;
       InferenceContext.setType(condition, typeProvider.boolType);
 
-      _flowAnalysis?.forStatement_conditionBegin(node, condition);
+      _flowAnalysis?.for_conditionBegin(node, condition);
       if (condition != null) {
         condition.accept(this);
       }
 
-      _flowAnalysis?.forStatement_bodyBegin(node, condition);
+      _flowAnalysis?.for_bodyBegin(node, condition);
       visitStatementInScope(node.body);
 
-      _flowAnalysis?.flow?.forStatement_updaterBegin();
+      _flowAnalysis?.flow?.for_updaterBegin();
       forLoopParts.updaters.accept(this);
 
-      _flowAnalysis?.flow?.forStatement_end();
+      _flowAnalysis?.flow?.for_end();
     } else if (forLoopParts is ForEachParts) {
       Expression iterable = forLoopParts.iterable;
       DeclaredIdentifier loopVariable;
@@ -3961,7 +3970,7 @@ class ResolverVisitor extends ScopedVisitor {
       _flowAnalysis?.loopVariable(loopVariable);
       loopVariable?.accept(this);
 
-      _flowAnalysis?.flow?.forEachStatement_bodyBegin(
+      _flowAnalysis?.flow?.forEach_bodyBegin(
         _flowAnalysis?.assignedVariables[node],
       );
 
@@ -3970,7 +3979,7 @@ class ResolverVisitor extends ScopedVisitor {
         visitStatementInScope(body);
       }
 
-      _flowAnalysis?.flow?.forEachStatement_end();
+      _flowAnalysis?.flow?.forEach_end();
 
       node.accept(elementResolver);
       node.accept(typeAnalyzer);

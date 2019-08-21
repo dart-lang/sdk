@@ -32,3 +32,10 @@ forEach_continue(bool c) {
   /*unassigned*/ v1;
   /*unassigned*/ v2;
 }
+
+collection_forEach() {
+  late Object v1, v2;
+  [for (var _ in (v1 = [0, 1, 2])) (v2 = 0)];
+  v1;
+  /*unassigned*/ v2;
+}
