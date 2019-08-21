@@ -16,3 +16,6 @@ void conditional_then(bool b, Object x) {
   b ? ((x is num) || (throw 1)) : 0;
   x;
 }
+
+int conditional_in_expression_function_body(Object o) =>
+    o is int ? /*int*/ o : 0;

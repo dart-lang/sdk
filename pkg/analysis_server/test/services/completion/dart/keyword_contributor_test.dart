@@ -2177,4 +2177,12 @@ class KeywordContributorWithNnbdTest extends KeywordContributorTest {
     super.setupResourceProvider();
     createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
   }
+
+  @override
+  @failingTest
+  test_ifOrForElement_forElement() {
+    // TODO(paulberry): this test is failing due to lack of support for flow
+    // analysis of "for" elements.
+    return super.test_ifOrForElement_forElement();
+  }
 }

@@ -124,7 +124,7 @@ class FlowAnalysisHelper {
     }
   }
 
-  void blockFunctionBody_enter(BlockFunctionBody node) {
+  void functionBody_enter(FunctionBody node) {
     _blockFunctionBodyLevel++;
 
     if (_blockFunctionBodyLevel > 1) {
@@ -145,7 +145,7 @@ class FlowAnalysisHelper {
     }
   }
 
-  void blockFunctionBody_exit(BlockFunctionBody node) {
+  void functionBody_exit(FunctionBody node) {
     _blockFunctionBodyLevel--;
 
     if (_blockFunctionBodyLevel > 0) {
