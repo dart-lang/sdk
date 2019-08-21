@@ -89,7 +89,7 @@ String toClassName(String ruleName) =>
 
 void updateRuleRegistry(String ruleName) {
   print("Don't forget to update lib/rules.dart with a line like:");
-  print('  ..register(new ${toClassName(ruleName)}())');
+  print('  ..register(${toClassName(ruleName)}())');
   print('and add your rule to `example/all.yaml`.');
   print('Then run your test like so:');
   print('  pub run test -N $ruleName');
@@ -131,7 +131,7 @@ class $className extends LintRule implements NodeLintRule {
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry, [LinterContext context]) {
-    final visitor = new _Visitor(this);
+    final visitor = _Visitor(this);
     registry.addSimpleIdentifier(this, visitor);
   }
 }
