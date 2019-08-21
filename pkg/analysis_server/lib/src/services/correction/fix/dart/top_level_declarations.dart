@@ -75,6 +75,8 @@ class TopLevelDeclarationsProvider {
     }
 
     var declarationsContext = tracker.getContext(analysisContext);
+    if (declarationsContext == null) return const [];
+
     var libraries = declarationsContext.getLibraries(path);
     libraries.context.forEach(addDeclarations);
     libraries.dependencies.forEach(addDeclarations);
