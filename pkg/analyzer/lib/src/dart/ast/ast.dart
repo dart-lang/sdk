@@ -2175,11 +2175,12 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
 ///
 ///    compilationUnitMember ::=
 ///        [ClassDeclaration]
+///      | [MixinDeclaration]
+///      | [ExtensionDeclaration]
+///      | [EnumDeclaration]
 ///      | [TypeAlias]
 ///      | [FunctionDeclaration]
-///      | [MethodDeclaration]
-///      | [VariableDeclaration]
-///      | [VariableDeclaration]
+///      | [TopLevelVariableDeclaration]
 abstract class CompilationUnitMemberImpl extends DeclarationImpl
     implements CompilationUnitMember {
   /// Initialize a newly created generic compilation unit member. Either or both

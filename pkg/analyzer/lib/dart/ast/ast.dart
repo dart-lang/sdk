@@ -1260,11 +1260,12 @@ abstract class CompilationUnit implements AstNode {
 ///
 ///    compilationUnitMember ::=
 ///        [ClassDeclaration]
+///      | [MixinDeclaration]
+///      | [ExtensionDeclaration]
+///      | [EnumDeclaration]
 ///      | [TypeAlias]
 ///      | [FunctionDeclaration]
-///      | [MethodDeclaration]
-///      | [VariableDeclaration]
-///      | [VariableDeclaration]
+///      | [TopLevelVariableDeclaration]
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class CompilationUnitMember implements Declaration {}
