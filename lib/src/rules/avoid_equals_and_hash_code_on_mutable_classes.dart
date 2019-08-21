@@ -10,11 +10,11 @@ import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/ast.dart';
 
 const _desc =
-    r'AVOID overloading operator == on classes not marked `@immutable`.';
+    r'AVOID overloading operator == and hashCode on classes not marked `@immutable`.';
 
 const _details = r'''
 
-**AVOID** overloading operator == on classes not marked `@immutable`.
+**AVOID** overloading operator == and hashCode on classes not marked `@immutable`.
 
 If a class is not immutable, overloading operator == and hashCode can lead to
 unpredictable and undesirable behavior when used in collections. See
@@ -59,7 +59,7 @@ class AvoidOperatorEqualsOnMutableClasses extends LintRule
     implements NodeLintRule {
   AvoidOperatorEqualsOnMutableClasses()
       : super(
-            name: 'avoid_operator_equals_on_mutable_classes',
+            name: 'avoid_equals_and_hash_code_on_mutable_classes',
             description: _desc,
             details: _details,
             group: Group.style);

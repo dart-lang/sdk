@@ -16,13 +16,13 @@ linter:
     - avoid_classes_with_only_static_members
     - avoid_double_and_int_checks
     - avoid_empty_else
+    - avoid_equals_and_hash_code_on_mutable_classes
     - avoid_field_initializers_in_const_classes
     - avoid_function_literals_in_foreach_calls
     - avoid_implementing_value_types
     - avoid_init_to_null
     - avoid_js_rounded_ints
     - avoid_null_checks_in_equality_operators
-    - avoid_operator_equals_on_mutable_classes
     - avoid_positional_boolean_parameters
     - avoid_print
     - avoid_private_typedef_functions
