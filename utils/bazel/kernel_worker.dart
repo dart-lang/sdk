@@ -244,13 +244,29 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   fe.InitializedCompilerState state;
   bool usingIncrementalCompiler = false;
   bool recordUsedInputs = parsedArgs["used-inputs"] != null;
-  if (parsedArgs['use-incremental-compiler'] && isWorker) {
+  if (parsedArgs['use-incremental-compiler']) {
     usingIncrementalCompiler = true;
 
     /// Build a map of uris to digests.
     final inputDigests = <Uri, List<int>>{};
-    for (var input in inputs) {
-      inputDigests[_toUri(input.path)] = input.digest;
+    if (inputs != null) {
+      for (var input in inputs) {
+        inputDigests[_toUri(input.path)] = input.digest;
+      }
+    }
+
+    // If digests weren't given and if not in worker mode, create fake data and
+    // ensure we don't have a previous state (as that wouldn't be safe with
+    // fake input digests).
+    if (!isWorker && inputDigests.isEmpty) {
+      previousState = null;
+      inputDigests[_toUri(parsedArgs['dart-sdk-summary'])] = const [0];
+      for (Uri uri in summaryInputs) {
+        inputDigests[uri] = const [0];
+      }
+      for (Uri uri in linkedInputs) {
+        inputDigests[uri] = const [0];
+      }
     }
 
     // TODO(sigmund): add support for experiments with the incremental compiler.

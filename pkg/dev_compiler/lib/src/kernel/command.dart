@@ -36,11 +36,13 @@ const _binaryName = 'dartdevc -k';
 /// Returns `true` if the program compiled without any fatal errors.
 Future<CompilerResult> compile(List<String> args,
     {fe.InitializedCompilerState compilerState,
+    bool isWorker = false,
     bool useIncrementalCompiler = false,
     Map<Uri, List<int>> inputDigests}) async {
   try {
     return await _compile(args,
         compilerState: compilerState,
+        isWorker: isWorker,
         useIncrementalCompiler: useIncrementalCompiler,
         inputDigests: inputDigests);
   } catch (error, stackTrace) {
@@ -69,6 +71,7 @@ String _usageMessage(ArgParser ddcArgParser) =>
 
 Future<CompilerResult> _compile(List<String> args,
     {fe.InitializedCompilerState compilerState,
+    bool isWorker = false,
     bool useIncrementalCompiler = false,
     Map<Uri, List<int>> inputDigests}) async {
   // TODO(jmesserly): refactor options to share code with dartdevc CLI.
@@ -255,6 +258,20 @@ Future<CompilerResult> _compile(List<String> args,
         experiments: experiments,
         environmentDefines: declaredVariables);
   } else {
+    // If digests weren't given and if not in worker mode, create fake data and
+    // ensure we don't have a previous state (as that wouldn't be safe with
+    // fake input digests).
+    if (!isWorker && (inputDigests == null || inputDigests.isEmpty)) {
+      oldCompilerState = null;
+      inputDigests ??= {};
+      if (!compileSdk) {
+        inputDigests[sourcePathToUri(sdkSummaryPath)] = const [0];
+      }
+      for (Uri uri in summaryModules.keys) {
+        inputDigests[uri] = const [0];
+      }
+    }
+
     doneInputSummaries = List<Component>(summaryModules.length);
     compilerState = await fe.initializeIncrementalCompiler(
         oldCompilerState,
