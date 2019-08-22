@@ -91,10 +91,10 @@ class RequestStatisticsHelper {
     };
 
     if (event == 'analysis.highlights' ||
+        event == 'analysis.implemented' ||
         event == 'analysis.navigation' ||
         event == 'analysis.outline' ||
-        event == 'analysis.overrides' ||
-        event == 'analysis.implemented') {
+        event == 'analysis.overrides') {
       map['file'] = notification.params['file'];
     }
 
@@ -128,13 +128,13 @@ class RequestStatisticsHelper {
       }
     }
 
-    if (method == 'edit.getAssists' || method == 'edit.getFixes') {
-      map = request.toJson();
-    } else if (method == 'analysis.updateContent') {
+    if (method == 'analysis.updateContent') {
       var filesMap = request.params['files'];
       if (filesMap is Map<String, Object>) {
         map['files'] = filesMap.keys.toList();
       }
+    } else {
+      map = request.toJson();
     }
 
     sink.writeln(
