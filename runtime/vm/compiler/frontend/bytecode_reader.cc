@@ -1395,6 +1395,9 @@ RawObject* BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
       RawClass* cls = library.LookupLocalClass(class_name);
       NoSafepointScope no_safepoint_scope(thread_);
       if (cls == Class::null()) {
+        if (IsExpressionEvaluationLibrary(library)) {
+          return H.GetExpressionEvaluationRealClass();
+        }
         FATAL2("Unable to find class %s in %s", class_name.ToCString(),
                library.ToCString());
       }
@@ -2388,6 +2391,11 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
       // or a function which are not registered and cannot be looked up.
       ASSERT(!function.is_abstract());
       ASSERT(function.bytecode_offset() != 0);
+      // Replace class of the function in scope as we're going to look for
+      // expression evaluation function in a real class.
+      if (!cls.IsTopLevel()) {
+        scoped_function_class_ = H.GetExpressionEvaluationRealClass();
+      }
       CompilerState compiler_state(thread_);
       ReadCode(function, function.bytecode_offset());
     }
@@ -2518,8 +2526,12 @@ void BytecodeReaderHelper::ReadClassDeclaration(const Class& cls) {
     cls.set_is_type_finalized();
   }
 
-  // TODO(alexmarkov): move this to class finalization.
-  ClassFinalizer::RegisterClassInHierarchy(Z, cls);
+  // Avoid registering expression evaluation class in a hierarchy, as
+  // it doesn't have cid and shouldn't be found when enumerating subclasses.
+  if (expression_evaluation_library_ == nullptr) {
+    // TODO(alexmarkov): move this to class finalization.
+    ClassFinalizer::RegisterClassInHierarchy(Z, cls);
+  }
 }
 
 void BytecodeReaderHelper::ReadLibraryDeclaration(const Library& library,

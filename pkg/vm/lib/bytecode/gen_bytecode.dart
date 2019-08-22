@@ -1712,6 +1712,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       for (var v in locals.sortedNamedParameters) {
         _declareLocalVariable(v, function.fileOffset);
       }
+      if (locals.hasFunctionTypeArgsVar) {
+        _declareLocalVariable(locals.functionTypeArgsVar, function.fileOffset);
+      }
     }
 
     if (locals.hasCapturedParameters) {

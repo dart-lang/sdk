@@ -104,9 +104,12 @@ class LocalVariables {
   int get returnVarIndexInFrame => getVarIndexInFrame(_currentFrame.returnVar ??
       (throw 'Return variable is not declared in ${_currentFrame.function}'));
 
-  int get functionTypeArgsVarIndexInFrame => getVarIndexInFrame(_currentFrame
-          .functionTypeArgsVar ??
-      (throw 'FunctionTypeArgs variable is not declared in ${_currentFrame.function}'));
+  VariableDeclaration get functionTypeArgsVar =>
+      _currentFrame.functionTypeArgsVar ??
+      (throw 'FunctionTypeArgs variable is not declared in ${_currentFrame.function}');
+
+  int get functionTypeArgsVarIndexInFrame =>
+      getVarIndexInFrame(functionTypeArgsVar);
 
   bool get hasFunctionTypeArgsVar => _currentFrame.functionTypeArgsVar != null;
 
@@ -351,7 +354,8 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
 
         if (_currentFrame.numTypeArguments > 0) {
           _currentFrame.functionTypeArgsVar =
-              new VariableDeclaration(':function_type_arguments_var');
+              new VariableDeclaration(':function_type_arguments_var')
+                ..fileOffset = function.fileOffset;
           _declareVariable(_currentFrame.functionTypeArgsVar);
         }
 
