@@ -1375,10 +1375,18 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       }
     }
 
-    var libraryContext = _createLibraryContext(library);
-    var element = libraryContext.computeUnitElement(library, file);
-    return new UnitElementResultImpl(
-        currentSession, path, file.uri, library.transitiveSignature, element);
+    return _logger.run('Compute unit element for $path', () {
+      _logger.writeln('Work in $name');
+      var libraryContext = _createLibraryContext(library);
+      var element = libraryContext.computeUnitElement(library, file);
+      return new UnitElementResultImpl(
+        currentSession,
+        path,
+        file.uri,
+        library.transitiveSignature,
+        element,
+      );
+    });
   }
 
   String _computeUnitElementSignature(String path,
