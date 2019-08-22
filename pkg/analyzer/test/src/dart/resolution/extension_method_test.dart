@@ -34,10 +34,10 @@ class ExtensionMethodsDeclarationTest extends BaseExtensionMethodsTest {
     await assertNoErrorsInCode('''
 const int ann = 1;
 class C {}
-@ann //
+@ann
 extension E on C {}
 ''');
-    var annotation = findNode.annotation('ann //');
+    var annotation = findNode.annotation('@ann');
     assertElement(annotation, findElement.topVar('ann').getter);
   }
 
