@@ -472,7 +472,6 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
 
   Code& code = Code::Handle(zone(), func.unoptimized_code());
   Bytecode& bytecode = Bytecode::Handle(zone());
-#if !defined(DART_PRECOMPILED_RUNTIME)
   if (FLAG_enable_interpreter && !func.HasCode() && func.HasBytecode()) {
     // When the bytecode of a function is loaded, the function code is not null,
     // but pointing to the stub to interpret the bytecode. The various Print
@@ -481,7 +480,6 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
     code = Code::null();  // Ignore installed stub to interpret bytecode.
     bytecode = func.bytecode();
   }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   if (code.IsNull() && bytecode.IsNull()) {
     if (func.HasCode() || (compile_mode_ == kForceCompile)) {
       const Error& err =
@@ -497,12 +495,10 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
         return;
       }
       code = func.unoptimized_code();
-#if !defined(DART_PRECOMPILED_RUNTIME)
       if (FLAG_enable_interpreter && !func.HasCode() && func.HasBytecode()) {
         code = Code::null();  // Ignore installed stub to interpret bytecode.
         bytecode = func.bytecode();
       }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
     } else {
       // This function has not been compiled yet.
       JSONObject range(jsarr);
@@ -540,30 +536,6 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
       if ((profile_function != NULL) &&
           (profile_function->NumSourcePositions() > 0)) {
         PrintProfileData(&range, profile_function);
-      }
-    }
-  }
-
-  // Visit the closures declared in a bytecode function by traversing its object
-  // pool, because they do not appear in the object store's list of closures.
-  // Since local functions share the object pool, only traverse the pool once,
-  // i.e. when func is the outermost function.
-  if (!bytecode.IsNull() && !func.IsLocalFunction()) {
-    const ObjectPool& pool = ObjectPool::Handle(zone(), bytecode.object_pool());
-    Object& object = Object::Handle(zone());
-    Function& closure = Function::Handle(zone());
-    for (intptr_t i = 0; i < pool.Length(); i++) {
-      ObjectPool::EntryType entry_type = pool.TypeAt(i);
-      if (entry_type != ObjectPool::EntryType::kTaggedObject) {
-        continue;
-      }
-      object = pool.ObjectAt(i);
-      if (object.IsFunction()) {
-        closure ^= object.raw();
-        if (closure.kind() == RawFunction::kClosureFunction &&
-            closure.IsLocalFunction()) {
-          VisitFunction(jsarr, closure);
-        }
       }
     }
   }

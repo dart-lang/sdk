@@ -3231,12 +3231,6 @@ void Debugger::FindCompiledFunctions(
   Array& functions = Array::Handle(zone);
   GrowableObjectArray& closures = GrowableObjectArray::Handle(zone);
   Function& function = Function::Handle(zone);
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  Bytecode& bytecode = Bytecode::Handle(zone);
-  ObjectPool& pool = ObjectPool::Handle(zone);
-  Object& object = Object::Handle(zone);
-  Function& closure = Function::Handle(zone);
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   closures = isolate_->object_store()->closure_functions();
   const intptr_t num_closures = closures.Length();
@@ -3290,54 +3284,17 @@ void Debugger::FindCompiledFunctions(
           function ^= functions.At(pos);
           ASSERT(!function.IsNull());
           bool function_added = false;
-#if !defined(DART_PRECOMPILED_RUNTIME)
-          // Note that a non-debuggable async function may refer to a debuggable
-          // async op closure function via its object pool.
-          if (function.HasBytecode()) {
-            // Check token position first to avoid unnecessary calls
-            // to script() which allocates handles.
-            if (function.token_pos() <= start_pos &&
-                function.end_token_pos() >= end_pos &&
-                function.script() == script.raw()) {
-              // Record the function if the token range matches exactly.
-              if (function.is_debuggable() &&
-                  function.token_pos() == start_pos &&
-                  function.end_token_pos() == end_pos) {
-                bytecode_function_list->Add(function);
-                function_added = true;
-              }
-              // Visit the closures declared in a bytecode function by
-              // traversing its object pool, because they do not appear in the
-              // object store's list of closures.
-              ASSERT(!function.IsLocalFunction());
-              bytecode = function.bytecode();
-              pool = bytecode.object_pool();
-              for (intptr_t i = 0; i < pool.Length(); i++) {
-                ObjectPool::EntryType entry_type = pool.TypeAt(i);
-                if (entry_type != ObjectPool::EntryType::kTaggedObject) {
-                  continue;
-                }
-                object = pool.ObjectAt(i);
-                if (object.IsFunction()) {
-                  closure ^= object.raw();
-                  if (closure.kind() == RawFunction::kClosureFunction &&
-                      closure.IsLocalFunction() && closure.is_debuggable() &&
-                      closure.token_pos() == start_pos &&
-                      closure.end_token_pos() == end_pos) {
-                    ASSERT(closure.HasBytecode());
-                    ASSERT(closure.script() == script.raw());
-                    bytecode_function_list->Add(closure);
-                  }
-                }
-              }
-            }
-          }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-          if (function.is_debuggable() && function.HasCode() &&
+          if (function.is_debuggable() &&
+              (function.HasCode() || function.HasBytecode()) &&
               function.token_pos() == start_pos &&
               function.end_token_pos() == end_pos &&
               function.script() == script.raw()) {
-            code_function_list->Add(function);
+            if (function.HasBytecode()) {
+              bytecode_function_list->Add(function);
+            }
+            if (function.HasCode()) {
+              code_function_list->Add(function);
+            }
             function_added = true;
           }
           if (function_added && function.HasImplicitClosureFunction()) {

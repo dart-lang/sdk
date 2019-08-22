@@ -553,6 +553,8 @@ void BytecodeReaderHelper::ReadClosureDeclaration(const Function& function,
                                /* has_positional_param_names = */ true));
 
   closure.SetSignatureType(signature_type);
+
+  I->AddClosureFunction(closure);
 }
 
 static bool IsNonCanonical(const AbstractType& type) {
