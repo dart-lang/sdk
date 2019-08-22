@@ -36,6 +36,8 @@ vars = {
   "chromium_git": "https://chromium.googlesource.com",
   "fuchsia_git": "https://fuchsia.googlesource.com",
 
+  # co19 is a cipd package. Use tests/co19_2/update.sh to update this hash.
+  # It requires access to the dart-build-access group, which EngProd has.
   "co19_2_rev": "d2c051f7537e6fe47c8ccf0bd7a7e84b02010a2a",
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
