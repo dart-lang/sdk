@@ -12,6 +12,7 @@ import 'package:front_end/src/testing/id_testing_helper.dart'
         CfeDataExtractor,
         InternalCompilerResult,
         DataComputer,
+        FormattedMessage,
         cfeConstantUpdate2018Config,
         createUriForFileName,
         onFailure,
@@ -46,6 +47,15 @@ class ConstantsDataComputer extends DataComputer<String> {
       Map<Id, ActualData<String>> actualMap,
       {bool verbose}) {
     new ConstantsDataExtractor(compilerResult, actualMap).computeForClass(cls);
+  }
+
+  @override
+  bool get supportsErrors => true;
+
+  /// Returns data corresponding to [error].
+  String computeErrorData(
+      InternalCompilerResult compiler, Id id, List<FormattedMessage> errors) {
+    return errorsToText(errors);
   }
 
   @override
