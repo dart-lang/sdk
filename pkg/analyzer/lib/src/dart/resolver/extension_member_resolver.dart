@@ -415,31 +415,24 @@ class ExtensionMemberResolver {
     ).substituteType(extension.extendedType);
   }
 
+  /// Return `true` is [e1] is more specific than [e2].
   bool _isMoreSpecific(_InstantiatedExtension e1, _InstantiatedExtension e2) {
-    var t10 = e1.element.extendedType;
-    var t20 = e2.element.extendedType;
-    var t11 = e1._extendedType;
-    var t21 = e2._extendedType;
-
-    bool inSdk(DartType type) {
-      if (type.isDynamic || type.isVoid) {
-        return true;
-      }
-      return t20.element.library.isInSdk;
-    }
-
-    if (inSdk(t20)) {
-      //  1. T2 is declared in a platform library, and T1 is not
-      if (!inSdk(t10)) {
-        return true;
-      }
-    } else if (inSdk(t10)) {
+    // 1. The latter extension is declared in a platform library, and the
+    // former extension is not.
+    var e1_isInSdk = e1.element.library.isInSdk;
+    var e2_isInSdk = e2.element.library.isInSdk;
+    if (e1_isInSdk && !e2_isInSdk) {
       return false;
+    } else if (!e1_isInSdk && e2_isInSdk) {
+      return true;
     }
+
+    var extendedType1 = e1._extendedType;
+    var extendedType2 = e2._extendedType;
 
     // 2. they are both declared in platform libraries or both declared in
     //    non-platform libraries, and
-    if (_isSubtypeAndNotViceVersa(t11, t21)) {
+    if (_isSubtypeAndNotViceVersa(extendedType1, extendedType2)) {
       // 3. the instantiated type (the type after applying type inference from
       //    the receiver) of T1 is a subtype of the instantiated type of T2 and
       //    either not vice versa
@@ -447,9 +440,9 @@ class ExtensionMemberResolver {
     }
 
     // TODO(scheglov) store instantiated types
-    var t12 = _instantiateToBounds(e1.element);
-    var t22 = _instantiateToBounds(e2.element);
-    if (_isSubtypeAndNotViceVersa(t12, t22)) {
+    var extendedTypeBound1 = _instantiateToBounds(e1.element);
+    var extendedTypeBound2 = _instantiateToBounds(e2.element);
+    if (_isSubtypeAndNotViceVersa(extendedTypeBound1, extendedTypeBound2)) {
       // or:
       // 4. the instantiate-to-bounds type of T1 is a subtype of the
       //    instantiate-to-bounds type of T2 and not vice versa.

@@ -13,24 +13,13 @@ import 'package:analyzer/src/summary/idl.dart' show PackageBundle;
 import 'package:analyzer/src/summary/summary_file_builder.dart';
 import 'package:meta/meta.dart';
 
-const String librariesContent = r'''
-const Map<String, LibraryInfo> libraries = const {
-  "async": const LibraryInfo("async/async.dart"),
-  "collection": const LibraryInfo("collection/collection.dart"),
-  "convert": const LibraryInfo("convert/convert.dart"),
-  "core": const LibraryInfo("core/core.dart"),
-  "html": const LibraryInfo(
-    "html/dartium/html_dartium.dart",
-    dart2jsPath: "html/dart2js/html_dart2js.dart"),
-  "math": const LibraryInfo("math/math.dart"),
-  "_foreign_helper": const LibraryInfo("_internal/js_runtime/lib/foreign_helper.dart"),
-};
-''';
-
 const String sdkRoot = '/sdk';
 
-const _MockSdkLibrary _LIB_ASYNC =
-    const _MockSdkLibrary('dart:async', '$sdkRoot/lib/async/async.dart', '''
+final MockSdkLibrary _LIB_ASYNC = MockSdkLibrary([
+  MockSdkLibraryUnit(
+    'dart:async',
+    '$sdkRoot/lib/async/async.dart',
+    '''
 library dart.async;
 
 import 'dart:math';
@@ -63,8 +52,12 @@ abstract class Completer<T> {
 abstract class Timer {
   static void run(void callback()) {}
 }
-''', const <String, String>{
-  '$sdkRoot/lib/async/stream.dart': r'''
+''',
+  ),
+  MockSdkLibraryUnit(
+    'dart:async/stream.dart',
+    '$sdkRoot/lib/async/stream.dart',
+    r'''
 part of dart.async;
 abstract class Stream<T> {
   Future<T> get first;
@@ -90,18 +83,27 @@ abstract class StreamSubscription<T> {
 }
 
 abstract class StreamTransformer<S, T> {}
-'''
-});
+''',
+  )
+]);
 
-const _MockSdkLibrary _LIB_ASYNC2 =
-    const _MockSdkLibrary('dart:async2', '$sdkRoot/lib/async2/async2.dart', '''
+final MockSdkLibrary _LIB_ASYNC2 = MockSdkLibrary([
+  MockSdkLibraryUnit(
+    'dart:async2',
+    '$sdkRoot/lib/async2/async2.dart',
+    '''
 library dart.async2;
 
 class Future {}
-''');
+''',
+  )
+]);
 
-const _MockSdkLibrary _LIB_COLLECTION = const _MockSdkLibrary(
-    'dart:collection', '$sdkRoot/lib/collection/collection.dart', '''
+final MockSdkLibrary _LIB_COLLECTION = MockSdkLibrary([
+  MockSdkLibraryUnit(
+    'dart:collection',
+    '$sdkRoot/lib/collection/collection.dart',
+    '''
 library dart.collection;
 
 abstract class HashMap<K, V> implements Map<K, V> {}
@@ -113,20 +115,33 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
 }
 abstract class HashSet<E> implements Set<E> {}
 abstract class LinkedHashSet<E> implements Set<E> {}
-''');
+''',
+  )
+]);
 
-const _MockSdkLibrary _LIB_CONVERT = const _MockSdkLibrary(
-    'dart:convert', '$sdkRoot/lib/convert/convert.dart', '''
+final MockSdkLibrary _LIB_CONVERT = MockSdkLibrary(
+  [
+    MockSdkLibraryUnit(
+      'dart:convert',
+      '$sdkRoot/lib/convert/convert.dart',
+      '''
 library dart.convert;
 
 import 'dart:async';
 
 abstract class Converter<S, T> implements StreamTransformer {}
 class JsonDecoder extends Converter<String, Object> {}
-''');
+''',
+    )
+  ],
+);
 
-const _MockSdkLibrary _LIB_CORE =
-    const _MockSdkLibrary('dart:core', '$sdkRoot/lib/core/core.dart', '''
+final MockSdkLibrary _LIB_CORE = MockSdkLibrary(
+  [
+    MockSdkLibraryUnit(
+      'dart:core',
+      '$sdkRoot/lib/core/core.dart',
+      '''
 library dart.core;
 
 import 'dart:async'; // ignore: unused_import
@@ -376,26 +391,46 @@ class _Proxy {
 class _SymbolImpl {
   const _SymbolImpl(String name);
 }
-''');
+''',
+    )
+  ],
+);
 
-const _MockSdkLibrary _LIB_FOREIGN_HELPER = const _MockSdkLibrary(
-    'dart:_foreign_helper',
-    '$sdkRoot/lib/_foreign_helper/_foreign_helper.dart', '''
+final MockSdkLibrary _LIB_FOREIGN_HELPER = MockSdkLibrary(
+  [
+    MockSdkLibraryUnit(
+      'dart:_foreign_helper',
+      '$sdkRoot/lib/_foreign_helper/_foreign_helper.dart',
+      '''
 library dart._foreign_helper;
 
 JS(String typeDescription, String codeTemplate,
   [arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11])
 {}
-''');
+''',
+    )
+  ],
+);
 
-const _MockSdkLibrary _LIB_HTML_DART2JS = const _MockSdkLibrary(
-    'dart:html', '$sdkRoot/lib/html/dart2js/html_dart2js.dart', '''
+final MockSdkLibrary _LIB_HTML_DART2JS = MockSdkLibrary(
+  [
+    MockSdkLibraryUnit(
+      'dart:html',
+      '$sdkRoot/lib/html/dart2js/html_dart2js.dart',
+      '''
 library dart.html;
 class HtmlElement {}
-''');
+''',
+    )
+  ],
+);
 
-const _MockSdkLibrary _LIB_HTML_DARTIUM = const _MockSdkLibrary(
-    'dart:html', '$sdkRoot/lib/html/dartium/html_dartium.dart', '''
+final MockSdkLibrary _LIB_HTML_DARTIUM = MockSdkLibrary(
+  [
+    MockSdkLibraryUnit(
+      'dart:html',
+      '$sdkRoot/lib/html/dartium/html_dartium.dart',
+      '''
 library dart.dom.html;
 
 final HtmlDocument document;
@@ -424,26 +459,46 @@ abstract class CanvasElement extends HtmlElement {
 abstract class CanvasRenderingContext2D {}
 
 Element query(String relativeSelectors) => null;
-''');
+''',
+    )
+  ],
+);
 
-const _MockSdkLibrary _LIB_INTERCEPTORS = const _MockSdkLibrary(
-    'dart:_interceptors',
-    '$sdkRoot/lib/_internal/js_runtime/lib/interceptors.dart', '''
+final MockSdkLibrary _LIB_INTERCEPTORS = MockSdkLibrary(
+  [
+    MockSdkLibraryUnit(
+      'dart:_interceptors',
+      '$sdkRoot/lib/_internal/js_runtime/lib/interceptors.dart',
+      '''
 library dart._interceptors;
-''');
+''',
+    )
+  ],
+);
 
-const _MockSdkLibrary _LIB_INTERNAL = const _MockSdkLibrary(
-    'dart:_internal', '$sdkRoot/lib/_internal/internal.dart', '''
+final MockSdkLibrary _LIB_INTERNAL = MockSdkLibrary(
+  [
+    MockSdkLibraryUnit(
+      'dart:_internal',
+      '$sdkRoot/lib/_internal/internal.dart',
+      '''
 library dart._internal;
 class Symbol {}
 class ExternalName {
   final String name;
   const ExternalName(this.name);
 }
-''');
+''',
+    )
+  ],
+);
 
-const _MockSdkLibrary _LIB_MATH =
-    const _MockSdkLibrary('dart:math', '$sdkRoot/lib/math/math.dart', '''
+final MockSdkLibrary _LIB_MATH = MockSdkLibrary(
+  [
+    MockSdkLibraryUnit(
+      'dart:math',
+      '$sdkRoot/lib/math/math.dart',
+      '''
 library dart.math;
 
 const double E = 2.718281828459045;
@@ -463,9 +518,12 @@ class Random {
   int nextInt() => 1;
 }
 class Point<T extends num> {}
-''');
+''',
+    )
+  ],
+);
 
-const List<SdkLibrary> _LIBRARIES = const [
+final List<SdkLibrary> _LIBRARIES = [
   _LIB_CORE,
   _LIB_ASYNC,
   _LIB_ASYNC2,
@@ -479,22 +537,19 @@ const List<SdkLibrary> _LIBRARIES = const [
   _LIB_INTERNAL,
 ];
 
-class MockSdk implements DartSdk {
-  static const Map<String, String> _URI_MAP = const {
-    "dart:core": "$sdkRoot/lib/core/core.dart",
-    "dart:html": "$sdkRoot/lib/html/dartium/html_dartium.dart",
-    "dart:async": "$sdkRoot/lib/async/async.dart",
-    "dart:async2": "$sdkRoot/lib/async2/async2.dart",
-    "dart:async/stream.dart": "$sdkRoot/lib/async/stream.dart",
-    "dart:collection": "$sdkRoot/lib/collection/collection.dart",
-    "dart:convert": "$sdkRoot/lib/convert/convert.dart",
-    "dart:_foreign_helper": "$sdkRoot/lib/_foreign_helper/_foreign_helper.dart",
-    "dart:_interceptors":
-        "$sdkRoot/lib/_internal/js_runtime/lib/interceptors.dart",
-    "dart:_internal": "$sdkRoot/lib/_internal/internal.dart",
-    "dart:math": "$sdkRoot/lib/math/math.dart"
-  };
+final Map<String, String> _librariesDartEntries = {
+  'async': 'const LibraryInfo("async/async.dart")',
+  'collection': 'const LibraryInfo("collection/collection.dart")',
+  'convert': 'const LibraryInfo("convert/convert.dart")',
+  'core': 'const LibraryInfo("core/core.dart")',
+  'html': 'const LibraryInfo("html/dartium/html_dartium.dart", '
+      'dart2jsPath: "html/dart2js/html_dart2js.dart")',
+  'math': 'const LibraryInfo("math/math.dart")',
+  '_foreign_helper':
+      'const LibraryInfo("_internal/js_runtime/lib/foreign_helper.dart")',
+};
 
+class MockSdk implements DartSdk {
   final MemoryResourceProvider resourceProvider;
 
   final Map<String, String> uriMap = {};
@@ -512,26 +567,57 @@ class MockSdk implements DartSdk {
    */
   PackageBundle _bundle;
 
-  MockSdk({bool generateSummaryFiles: false, @required this.resourceProvider}) {
-    _URI_MAP.forEach((uri, path) {
-      uriMap[uri] = resourceProvider.convertPath(path);
-    });
-
-    for (_MockSdkLibrary library in _LIBRARIES) {
+  /// Optional [additionalLibraries] should have unique URIs, and paths in
+  /// their units are relative (will be put into `sdkRoot/lib`).
+  MockSdk({
+    bool generateSummaryFiles: false,
+    @required this.resourceProvider,
+    List<MockSdkLibrary> additionalLibraries = const [],
+  }) {
+    for (MockSdkLibrary library in _LIBRARIES) {
       var convertedLibrary = library._toProvider(resourceProvider);
       sdkLibraries.add(convertedLibrary);
     }
-
-    for (_MockSdkLibrary library in sdkLibraries) {
-      resourceProvider.newFile(library.path, library.content);
-      library.parts.forEach((String path, String content) {
-        resourceProvider.newFile(path, content);
-      });
+    for (MockSdkLibrary library in additionalLibraries) {
+      sdkLibraries.add(
+        MockSdkLibrary(
+          library.units.map(
+            (unit) {
+              var pathContext = resourceProvider.pathContext;
+              var absoluteUri = pathContext.join(sdkRoot, unit.path);
+              return MockSdkLibraryUnit(
+                unit.uriStr,
+                resourceProvider.convertPath(absoluteUri),
+                unit.content,
+              );
+            },
+          ).toList(),
+        ),
+      );
     }
-    resourceProvider.newFile(
+
+    for (MockSdkLibrary library in sdkLibraries) {
+      for (var unit in library.units) {
+        resourceProvider.newFile(unit.path, unit.content);
+        uriMap[unit.uriStr] = unit.path;
+      }
+    }
+
+    {
+      var buffer = StringBuffer();
+      buffer.writeln('const Map<String, LibraryInfo> libraries = const {');
+      for (var e in _librariesDartEntries.entries) {
+        buffer.writeln('"${e.key}": ${e.value},');
+      }
+      buffer.writeln('};');
+      resourceProvider.newFile(
         resourceProvider.convertPath(
-            '$sdkRoot/lib/_internal/sdk_library_metadata/lib/libraries.dart'),
-        librariesContent);
+          '$sdkRoot/lib/_internal/sdk_library_metadata/lib/libraries.dart',
+        ),
+        buffer.toString(),
+      );
+    }
+
     if (generateSummaryFiles) {
       List<int> bytes = _computeLinkedBundleBytes();
       resourceProvider.newFileWithBytes(
@@ -641,14 +727,10 @@ class MockSdk implements DartSdk {
   }
 }
 
-class _MockSdkLibrary implements SdkLibrary {
-  final String shortName;
-  final String path;
-  final String content;
-  final Map<String, String> parts;
+class MockSdkLibrary implements SdkLibrary {
+  final List<MockSdkLibraryUnit> units;
 
-  const _MockSdkLibrary(this.shortName, this.path, this.content,
-      [this.parts = const <String, String>{}]);
+  MockSdkLibrary(this.units);
 
   @override
   String get category => throw new UnimplementedError();
@@ -671,15 +753,31 @@ class _MockSdkLibrary implements SdkLibrary {
   @override
   bool get isVmLibrary => throw new UnimplementedError();
 
-  _MockSdkLibrary _toProvider(MemoryResourceProvider provider) {
-    return new _MockSdkLibrary(
-      shortName,
+  @override
+  String get path => units[0].path;
+
+  @override
+  String get shortName => units[0].uriStr;
+
+  MockSdkLibrary _toProvider(MemoryResourceProvider provider) {
+    return MockSdkLibrary(
+      units.map((unit) => unit._toProvider(provider)).toList(),
+    );
+  }
+}
+
+class MockSdkLibraryUnit {
+  final String uriStr;
+  final String path;
+  final String content;
+
+  MockSdkLibraryUnit(this.uriStr, this.path, this.content);
+
+  MockSdkLibraryUnit _toProvider(MemoryResourceProvider provider) {
+    return MockSdkLibraryUnit(
+      uriStr,
       provider.convertPath(path),
       content,
-      parts.map((path, content) {
-        var convertedPath = provider.convertPath(path);
-        return new MapEntry(convertedPath, content);
-      }),
     );
   }
 }

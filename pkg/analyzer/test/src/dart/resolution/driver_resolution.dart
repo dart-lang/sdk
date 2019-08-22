@@ -31,6 +31,8 @@ class DriverResolutionTest with ResourceProviderMixin, ResolutionTest {
   AnalysisDriverScheduler scheduler;
   AnalysisDriver driver;
 
+  List<MockSdkLibrary> get additionalMockSdkLibraries => [];
+
   /// Override this to change the analysis options for a given set of tests.
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl();
 
@@ -40,7 +42,10 @@ class DriverResolutionTest with ResourceProviderMixin, ResolutionTest {
   }
 
   void setUp() {
-    sdk = new MockSdk(resourceProvider: resourceProvider);
+    sdk = new MockSdk(
+      resourceProvider: resourceProvider,
+      additionalLibraries: additionalMockSdkLibraries,
+    );
     logger = new PerformanceLog(logBuffer);
     scheduler = new AnalysisDriverScheduler(logger);
 
