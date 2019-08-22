@@ -228,6 +228,7 @@ lets
 lightly
 likewise
 linebreaks
+lints
 linux
 listening
 ll
