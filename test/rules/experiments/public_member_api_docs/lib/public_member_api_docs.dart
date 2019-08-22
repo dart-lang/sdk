@@ -8,13 +8,15 @@ extension E on Object { // LINT
   set zz(int z) // OK
   { }
 
-  static int foo = 1; // LINT
+  static int baz = 1; // LINT
 }
 
 extension _E on Object { // OK
   int get z => 0; // OK
+  static int bar = 1; // OK
 }
 
 extension on Object { // OK
   int get z => 0; // OK
+  static int foo = 1; // OK
 }
