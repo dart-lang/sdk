@@ -95,3 +95,7 @@ void closureAsArgument() {
 extension Ext on E {
   void badBad([bool value]) {} // LINT
 }
+
+extension on E {
+  void badBadBad([bool value]) {} // LINT
+}
