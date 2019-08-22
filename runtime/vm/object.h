@@ -874,10 +874,7 @@ class Class : public Object {
 
   TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
   void set_token_pos(TokenPosition value) const;
-  TokenPosition end_token_pos() const {
-    ASSERT(is_declaration_loaded());
-    return raw_ptr()->end_token_pos_;
-  }
+  TokenPosition end_token_pos() const { return raw_ptr()->end_token_pos_; }
   void set_end_token_pos(TokenPosition value) const;
 
   int32_t SourceFingerprint() const;
@@ -3790,6 +3787,7 @@ class Script : public Object {
   RawString* Source() const;
   bool IsPartOfDartColonLibrary() const;
 
+  void LookupSourceAndLineStarts(Zone* zone) const;
   RawGrowableObjectArray* GenerateLineNumberArray() const;
   RawScript::Kind kind() const {
     return static_cast<RawScript::Kind>(raw_ptr()->kind_);

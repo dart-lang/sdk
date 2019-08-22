@@ -10,6 +10,7 @@
 
 #include "vm/code_patcher.h"
 #include "vm/compiler/assembler/disassembler.h"
+#include "vm/compiler/assembler/disassembler_kbc.h"
 #include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart_entry.h"
@@ -745,16 +746,16 @@ void ActivationFrame::PrintDescriptorsError(const char* message) {
   OS::PrintErr("pc_ %" Px "\n", pc_);
   OS::PrintErr("deopt_id_ %" Px "\n", deopt_id_);
   OS::PrintErr("context_level_ %" Px "\n", context_level_);
-  DisassembleToStdout formatter;
+  OS::PrintErr("token_pos_ %s\n", token_pos_.ToCString());
   if (function().is_declared_in_bytecode()) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-    ASSERT(function().HasBytecode());
-    const Bytecode& bytecode = Bytecode::Handle(function().bytecode());
-    bytecode.Disassemble(&formatter);
+    KernelBytecodeDisassembler::Disassemble(function());
 #else
     UNREACHABLE();
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
-  } else {
+  }
+  if (!IsInterpreted()) {
+    DisassembleToStdout formatter;
     code().Disassemble(&formatter);
     PcDescriptors::Handle(code().pc_descriptors()).Print();
   }
@@ -827,7 +828,7 @@ intptr_t ActivationFrame::ContextLevel() {
         }
       }
       if (!found) {
-        PrintDescriptorsError("Missing context level");
+        PrintDescriptorsError("Missing context level in var descriptors");
       }
       ASSERT(context_level_ >= 0);
     }
