@@ -85,8 +85,10 @@ class PublicMemberApiDocs extends LintRule implements NodeLintRule {
     registry.addConstructorDeclaration(this, visitor);
     registry.addEnumConstantDeclaration(this, visitor);
     registry.addEnumDeclaration(this, visitor);
+    registry.addExtensionDeclaration(this, visitor);
     registry.addFieldDeclaration(this, visitor);
     registry.addFunctionTypeAlias(this, visitor);
+    // todo (pq): add mixins
     registry.addTopLevelVariableDeclaration(this, visitor);
   }
 }
@@ -281,6 +283,57 @@ class _Visitor extends SimpleAstVisitor {
     if (!isPrivate(node.name)) {
       check(node);
     }
+  }
+
+  @override
+  visitExtensionDeclaration(ExtensionDeclaration node) {
+    if (!isInLibFolder) return;
+
+    if (node.name == null || isPrivate(node.name)) {
+      return;
+    }
+
+    check(node);
+
+    // Check methods
+
+    Map<String, MethodDeclaration> getters = <String, MethodDeclaration>{};
+    List<MethodDeclaration> setters = <MethodDeclaration>[];
+
+    // Non-getters/setters.
+    List<MethodDeclaration> methods = <MethodDeclaration>[];
+
+    // Identify getter/setter pairs.
+    for (ClassMember member in node.members) {
+      if (member is MethodDeclaration && !isPrivate(member.name)) {
+        if (member.isGetter) {
+          getters[member.name.name] = member;
+        } else if (member.isSetter) {
+          setters.add(member);
+        } else {
+          methods.add(member);
+        }
+      }
+    }
+
+    // Check all getters, and collect offenders along the way.
+    Set<MethodDeclaration> missingDocs = <MethodDeclaration>{};
+    for (MethodDeclaration getter in getters.values) {
+      if (check(getter)) {
+        missingDocs.add(getter);
+      }
+    }
+
+    // But only setters whose getter is missing a doc.
+    for (MethodDeclaration setter in setters) {
+      MethodDeclaration getter = getters[setter.name.name];
+      if (getter != null && missingDocs.contains(getter)) {
+        check(setter);
+      }
+    }
+
+    // Check remaining methods.
+    methods.forEach(check);
   }
 
   @override

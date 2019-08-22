@@ -89,6 +89,9 @@ bool inPrivateMember(AstNode node) {
   if (parent is NamedCompilationUnitMember) {
     return isPrivate(parent.name);
   }
+  if (parent is ExtensionDeclaration) {
+    return parent.name == null || isPrivate(parent.name);
+  }
   return false;
 }
 

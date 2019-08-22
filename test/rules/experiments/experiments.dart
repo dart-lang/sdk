@@ -5,12 +5,14 @@
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules/always_declare_return_types.dart';
 import 'package:linter/src/rules/camel_case_extensions.dart';
+import 'package:linter/src/rules/public_member_api_docs.dart';
 import 'package:linter/src/rules/slash_for_doc_comments.dart';
 import 'package:linter/src/rules/type_annotate_public_apis.dart';
 
 final experiments = <LintRule>[
   AlwaysDeclareReturnTypes(),
   CamelCaseExtensions(),
+  PublicMemberApiDocs(),
   SlashForDocComments(),
   TypeAnnotatePublicApis(),
 ];
