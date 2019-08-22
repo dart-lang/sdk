@@ -45,8 +45,6 @@ Language/Expressions/Instance_Creation/Const/arguments_t03: MissingCompileTimeEr
 Language/Expressions/Instance_Creation/Const/parameterized_type_t01: CompileTimeError # Please triage this failure
 Language/Expressions/Instance_Creation/Const/parameterized_type_t02: CompileTimeError # Please triage this failure
 Language/Expressions/Instance_Creation/New/syntax_t04: MissingCompileTimeError # Please triage this failure
-Language/Expressions/Instance_Creation/New/type_t08: CompileTimeError
-Language/Expressions/Instance_Creation/New/type_t09: CompileTimeError
 Language/Expressions/Lists/constant_list_t01: CompileTimeError # Please triage this failure
 Language/Expressions/Lists/syntax_t01: CompileTimeError # triple shift
 Language/Expressions/Maps/constant_map_t02: MissingCompileTimeError # Please triage this failure
@@ -84,7 +82,6 @@ Language/Mixins/Mixin_Application/syntax_t24: CompileTimeError # Issue 26409
 Language/Mixins/Mixin_Application/syntax_t25: CompileTimeError # Issue 26409
 Language/Mixins/declaring_constructor_t05: MissingCompileTimeError # Issue 24767
 Language/Mixins/declaring_constructor_t06: MissingCompileTimeError # Issue 24767
-Language/Overview/Privacy/private_and_public_t11: CompileTimeError
 Language/Reference/Operator_Precedence/precedence_01_assignment_t14: CompileTimeError # triple shift
 Language/Reference/Operator_Precedence/precedence_12_Shift_t04: CompileTimeError # triple shift
 Language/Reference/Operator_Precedence/precedence_t05: CompileTimeError # triple shift
@@ -158,13 +155,9 @@ LanguageFeatures/Instantiate-to-bound/class/static/class_FutureOr_l1_t04/none: C
 LanguageFeatures/Instantiate-to-bound/class/static/class_l1_t04/none: CompileTimeError # Please triage this failure
 LanguageFeatures/Instantiate-to-bound/class/static/class_l2_t03/none: CompileTimeError # Please triage this failure
 LanguageFeatures/Instantiate-to-bound/class/static/class_l2_t04/none: CompileTimeError # Please triage this failure
-LanguageFeatures/Instantiate-to-bound/class/static/class_l2_t05/none: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/class/static/class_l2_t08/none: CompileTimeError # Please triage this failure
-LanguageFeatures/Instantiate-to-bound/class/static/class_l2_t09/none: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/class/static/class_l3_t02/none: CompileTimeError # Please triage this failure
 LanguageFeatures/Instantiate-to-bound/class/static/class_l4_t01/none: CompileTimeError # Please triage this failure
-LanguageFeatures/Instantiate-to-bound/class/static/class_typedef_l1_t02/none: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_FutureOr_l1_t02/none: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t02/none: CompileTimeError # Please triage this failure
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t04/01: MissingCompileTimeError # Please triage this failure
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t04/02: MissingCompileTimeError # Please triage this failure
@@ -182,19 +175,6 @@ LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t09/05: MissingC
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t09/06: MissingCompileTimeError # Please triage this failure
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t09/07: MissingCompileTimeError # Please triage this failure
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_t01/none: CompileTimeError # Please triage this failure
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_t02/none: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_t03/none: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_t04/none: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_t05/none: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_t06/none: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_t07: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_t08: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_t09: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_t10: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_t13: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_t14: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_t15: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_t21: CompileTimeError
 LanguageFeatures/Set-literals/constant_set_literals_A02_t01: CompileTimeError # This feature is not implemented yet
 LanguageFeatures/Set-literals/constant_set_literals_A03_t01: CompileTimeError # This feature is not implemented yet
 LanguageFeatures/Set-literals/constant_set_literals_A04_t01: CompileTimeError # This feature is not implemented yet
@@ -206,8 +186,6 @@ LanguageFeatures/Set-literals/set_literals_A01_t01: CompileTimeError # This feat
 LanguageFeatures/Set-literals/set_literals_A02_t01: CompileTimeError # This feature is not implemented yet
 LanguageFeatures/Set-literals/set_literals_A04_t01: CompileTimeError # This feature is not implemented yet
 LanguageFeatures/Set-literals/syntax_compatibility_A01_t01: CompileTimeError # This feature is not implemented yet
-LanguageFeatures/Simple-bounds/static/typedef_FutureOr_l1_t02/none: CompileTimeError
-LanguageFeatures/Simple-bounds/static/typedef_l1_t07/none: CompileTimeError
 LanguageFeatures/Simple-bounds/static/typedef_l2_t02/none: CompileTimeError # Please triage this failure
 LanguageFeatures/Super-bounded-types/static_analysis_A01_t02: CompileTimeError # Issue 32903
 LanguageFeatures/Super-bounded-types/static_analysis_A01_t05: CompileTimeError # Issue 32903
@@ -223,51 +201,6 @@ LanguageFeatures/regression/34635_t03: CompileTimeError # Please triage this fai
 LibTest/async/Future/Future_A01_t01: CompileTimeError # Please triage this failure
 
 [ $compiler == dart2analyzer && $system != macos && $system != windows ]
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t03: MissingCompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t08: MissingCompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l1_t10: MissingCompileTimeError
-LanguageFeatures/Simple-bounds/static/class_typedef_l1_t02/none: CompileTimeError
 LanguageFeatures/regression/33585_t01: MissingCompileTimeError # Please triage this failure
 LanguageFeatures/regression/33585_t02: MissingCompileTimeError # Please triage this failure
 
-[ $compiler == dart2analyzer && ($system == macos || $system == windows) ]
-LanguageFeatures/Instantiate-to-bound/class/static/class_typedef_l1_t03/01: MissingCompileTimeError
-LanguageFeatures/Instantiate-to-bound/class/static/class_typedef_l2_t02/none: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/class/static/class_typedef_l2_t06/none: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/class/static/class_typedef_l2_t07/01: MissingCompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_01_t04: MissingCompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_01_t05/none: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_02_t02/none: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_02_t04/none: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_02_t05/none: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_02_t12: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_02_t13: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_03_t01/none: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_03_t03/none: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_03_t05: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_03_t10: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_03_t11: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_04_t05/none: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_05_t05: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_06_t04: MissingCompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_l2_06_t05/none: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t02/none: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t03/01: MissingCompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t04/01: MissingCompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t04/02: MissingCompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t04/03: MissingCompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t04/04: MissingCompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t04/05: MissingCompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t04/06: MissingCompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t04/07: MissingCompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t05/none: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t06/none: CompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t08/01: MissingCompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t08/02: MissingCompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t08/03: MissingCompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t08/04: MissingCompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t08/05: MissingCompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t08/06: MissingCompileTimeError
-LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t08/07: MissingCompileTimeError
-LanguageFeatures/Set-literals/semantics_A05_t01: CompileTimeError
-LanguageFeatures/Set-literals/syntax_compatibility_A01_t02: CompileTimeError
