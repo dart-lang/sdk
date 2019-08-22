@@ -2913,7 +2913,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     }
     // Front-end guarantees that all calls with known function type
     // do not need any argument type checks.
-    if (isUncheckedClosureCall(node, typeEnvironment)) {
+    if (isUncheckedClosureCall(node, typeEnvironment, options)) {
       final int receiverTemp = locals.tempIndexInFrame(node);
       _genArguments(node.receiver, args, storeReceiverToLocal: receiverTemp);
       // Duplicate receiver (closure) for UncheckedClosureCall.

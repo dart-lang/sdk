@@ -15,6 +15,10 @@ class BytecodeOptions {
     'instance-field-initializers': 'Emit separate instance field initializers',
     'keep-unreachable-code':
         'Do not remove unreachable code (useful if collecting code coverage)',
+    'avoid-closure-call-instructions':
+        'Do not emit closure call instructions (useful if collecting code '
+            'coverage, as closure call instructions are not tracked by code '
+            'coverage)',
   };
 
   bool enableAsserts;
@@ -27,6 +31,7 @@ class BytecodeOptions {
   bool emitInstanceFieldInitializers;
   bool omitAssertSourcePositions;
   bool keepUnreachableCode;
+  bool avoidClosureCallInstructions;
   bool showBytecodeSizeStatistics;
   Map<String, String> environmentDefines;
 
@@ -41,6 +46,7 @@ class BytecodeOptions {
       this.emitInstanceFieldInitializers = false,
       this.omitAssertSourcePositions = false,
       this.keepUnreachableCode = false,
+      this.avoidClosureCallInstructions = false,
       this.showBytecodeSizeStatistics = false,
       this.environmentDefines = const <String, String>{}}) {
     causalAsyncStacks ??=
@@ -70,6 +76,9 @@ class BytecodeOptions {
           break;
         case 'keep-unreachable-code':
           keepUnreachableCode = true;
+          break;
+        case 'avoid-closure-call-instructions':
+          avoidClosureCallInstructions = true;
           break;
         case 'show-bytecode-size-stat':
           showBytecodeSizeStatistics = true;

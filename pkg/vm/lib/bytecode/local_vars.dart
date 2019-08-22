@@ -1197,7 +1197,7 @@ class _Allocator extends RecursiveVisitor<Null> {
   @override
   visitMethodInvocation(MethodInvocation node) {
     int numTemps = 0;
-    if (isUncheckedClosureCall(node, locals.typeEnvironment)) {
+    if (isUncheckedClosureCall(node, locals.typeEnvironment, locals.options)) {
       numTemps = 1;
     }
     _visit(node, temps: numTemps);
