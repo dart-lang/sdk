@@ -7,7 +7,7 @@ library fasta.scanner.string_canonicalizer;
 import 'dart:convert';
 
 class Node {
-  var /* String | List<int> */ data;
+  dynamic /* String | List<int> */ data;
   int start;
   int end;
   String payload;

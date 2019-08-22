@@ -112,11 +112,11 @@ import 'kernel_ast_api.dart';
 import 'kernel_builder.dart';
 
 // TODO(ahe): Remove this and ensure all nodes have a location.
-const noLocation = null;
+const Token noLocation = null;
 
 // TODO(danrubel): Remove this once control flow and spread collection support
 // has been enabled by default.
-const invalidCollectionElement = const Object();
+const Object invalidCollectionElement = const Object();
 
 class BodyBuilder extends ScopeListener<JumpTarget>
     implements ExpressionGeneratorHelper, EnsureLoaded {

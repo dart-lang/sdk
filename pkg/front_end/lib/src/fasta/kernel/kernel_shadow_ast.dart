@@ -1363,7 +1363,7 @@ class ShadowTypeInferenceEngine extends TypeInferenceEngine {
 /// objects.
 class ShadowTypeInferrer extends TypeInferrerImpl {
   @override
-  final typePromoter;
+  final TypePromoter typePromoter;
 
   ShadowTypeInferrer.private(ShadowTypeInferenceEngine engine, Uri uri,
       bool topLevel, InterfaceType thisType, SourceLibraryBuilder library)

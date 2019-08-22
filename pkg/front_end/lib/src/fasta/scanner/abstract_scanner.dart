@@ -1885,8 +1885,9 @@ class LineStarts extends Object with ListMixin<int> {
 /// [ScannerConfiguration] contains information for configuring which tokens
 /// the scanner produces based upon the Dart language level.
 class ScannerConfiguration {
-  static const classic = ScannerConfiguration();
-  static const nonNullable = ScannerConfiguration(enableNonNullable: true);
+  static const ScannerConfiguration classic = ScannerConfiguration();
+  static const ScannerConfiguration nonNullable =
+      ScannerConfiguration(enableNonNullable: true);
 
   /// Experimental flag for enabling scanning of the `extension` keyword.
   final bool enableExtensionMethods;
