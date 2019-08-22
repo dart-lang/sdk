@@ -24,7 +24,7 @@ namespace dart {
   V(InlineCacheMissHandlerTwoArgs)                                             \
   V(StaticCallMissHandlerOneArg)                                               \
   V(StaticCallMissHandlerTwoArgs)                                              \
-  V(InterpretedInterfaceCallMissHandler)                                       \
+  V(InterpretedInstanceCallMissHandler)                                        \
   V(Instanceof)                                                                \
   V(SubtypeCheck)                                                              \
   V(TypeCheck)                                                                 \

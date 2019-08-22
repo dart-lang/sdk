@@ -100,6 +100,8 @@ static const intptr_t kInitPrefixLength = strlen(kInitPrefix);
 
 // A cache of VM heap allocated preinitialized empty ic data entry arrays.
 RawArray* ICData::cached_icdata_arrays_[kCachedICDataArrayCount];
+// A VM heap allocated preinitialized empty subtype entry array.
+RawArray* SubtypeTestCache::cached_array_;
 
 cpp_vtable Object::handle_vtable_ = 0;
 cpp_vtable Object::builtin_vtables_[kNumPredefinedCids] = {0};
@@ -13783,17 +13785,17 @@ bool ICData::AddSmiSmiCheckForFastSmiStubs() const {
   bool is_smi_two_args_op = false;
 
   ASSERT(NumArgsTested() == 2);
-  const String& name = String::Handle(target_name());
-  const Class& smi_class = Class::Handle(Smi::Class());
   Zone* zone = Thread::Current()->zone();
-  Function& smi_op_target =
-      Function::Handle(Resolver::ResolveDynamicAnyArgs(zone, smi_class, name));
+  const String& name = String::Handle(zone, target_name());
+  const Class& smi_class = Class::Handle(zone, Smi::Class());
+  Function& smi_op_target = Function::Handle(
+      zone, Resolver::ResolveDynamicAnyArgs(zone, smi_class, name));
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (smi_op_target.IsNull() &&
       Function::IsDynamicInvocationForwarderName(name)) {
-    const String& demangled =
-        String::Handle(Function::DemangleDynamicInvocationForwarderName(name));
+    const String& demangled = String::Handle(
+        zone, Function::DemangleDynamicInvocationForwarderName(name));
     smi_op_target = Resolver::ResolveDynamicAnyArgs(zone, smi_class, demangled);
   }
 #endif
@@ -16018,6 +16020,14 @@ RawMegamorphicCache* MegamorphicCache::Clone(const MegamorphicCache& from) {
   return result.raw();
 }
 
+void SubtypeTestCache::Init() {
+  cached_array_ = Array::New(kTestEntryLength, Heap::kOld);
+}
+
+void SubtypeTestCache::Cleanup() {
+  cached_array_ = NULL;
+}
+
 RawSubtypeTestCache* SubtypeTestCache::New() {
   ASSERT(Object::subtypetestcache_class() != Class::null());
   SubtypeTestCache& result = SubtypeTestCache::Handle();
@@ -16030,8 +16040,7 @@ RawSubtypeTestCache* SubtypeTestCache::New() {
     NoSafepointScope no_safepoint;
     result ^= raw;
   }
-  const Array& cache = Array::Handle(Array::New(kTestEntryLength, Heap::kOld));
-  result.set_cache(cache);
+  result.set_cache(Array::Handle(cached_array_));
   return result.raw();
 }
 
@@ -16093,6 +16102,10 @@ void SubtypeTestCache::GetCheck(
   *instance_delayed_type_arguments =
       entry.Get<kInstanceDelayedFunctionTypeArguments>();
   *test_result ^= entry.Get<kTestResult>();
+}
+
+void SubtypeTestCache::Reset() const {
+  set_cache(Array::Handle(cached_array_));
 }
 
 const char* SubtypeTestCache::ToCString() const {

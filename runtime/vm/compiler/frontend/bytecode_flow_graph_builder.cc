@@ -854,6 +854,28 @@ void BytecodeFlowGraphBuilder::BuildDirectCall() {
   B->Push(call);
 }
 
+static void ComputeTokenKindAndCheckedArguments(
+    const String& name,
+    const ArgumentsDescriptor& arg_desc,
+    Token::Kind* token_kind,
+    intptr_t* checked_argument_count) {
+  *token_kind = MethodTokenRecognizer::RecognizeTokenKind(name);
+
+  *checked_argument_count = 1;
+  if (*token_kind != Token::kILLEGAL) {
+    intptr_t argument_count = arg_desc.Count();
+    ASSERT(argument_count <= 2);
+    *checked_argument_count = (*token_kind == Token::kSET) ? 1 : argument_count;
+  } else if (Library::IsPrivateCoreLibName(name,
+                                           Symbols::_simpleInstanceOf())) {
+    ASSERT(arg_desc.Count() == 2);
+    *checked_argument_count = 2;
+    *token_kind = Token::kIS;
+  } else if (Library::IsPrivateCoreLibName(name, Symbols::_instanceOf())) {
+    *token_kind = Token::kIS;
+  }
+}
+
 void BytecodeFlowGraphBuilder::BuildInterfaceCallCommon(
     bool is_unchecked_call,
     bool is_instantiated_call) {
@@ -872,23 +894,12 @@ void BytecodeFlowGraphBuilder::BuildInterfaceCallCommon(
       Array::Cast(ConstantAt(DecodeOperandD(), 1).value());
   const ArgumentsDescriptor arg_desc(arg_desc_array);
 
+  Token::Kind token_kind;
+  intptr_t checked_argument_count;
+  ComputeTokenKindAndCheckedArguments(name, arg_desc, &token_kind,
+                                      &checked_argument_count);
+
   const intptr_t argc = DecodeOperandF().value();
-  Token::Kind token_kind = MethodTokenRecognizer::RecognizeTokenKind(name);
-
-  intptr_t checked_argument_count = 1;
-  if (token_kind != Token::kILLEGAL) {
-    intptr_t argument_count = arg_desc.Count();
-    ASSERT(argument_count <= 2);
-    checked_argument_count = (token_kind == Token::kSET) ? 1 : argument_count;
-  } else if (Library::IsPrivateCoreLibName(name,
-                                           Symbols::_simpleInstanceOf())) {
-    ASSERT(arg_desc.Count() == 2);
-    checked_argument_count = 2;
-    token_kind = Token::kIS;
-  } else if (Library::IsPrivateCoreLibName(name, Symbols::_instanceOf())) {
-    token_kind = Token::kIS;
-  }
-
   const ArgumentArray arguments = GetArguments(argc);
 
   InstanceCallInstr* call = new (Z) InstanceCallInstr(
@@ -970,35 +981,28 @@ void BytecodeFlowGraphBuilder::BuildDynamicCall() {
 
   // A DebugStepCheck is performed as part of the calling stub.
 
-  const ICData& icdata = ICData::Cast(ConstantAt(DecodeOperandD()).value());
-  const intptr_t deopt_id = icdata.deopt_id();
-  ic_data_array_->EnsureLength(deopt_id + 1, nullptr);
-  if (ic_data_array_->At(deopt_id) == nullptr) {
-    (*ic_data_array_)[deopt_id] = &icdata;
-  } else {
-    ASSERT(ic_data_array_->At(deopt_id)->Original() == icdata.raw());
-  }
-  B->reset_context_depth_for_deopt_id(deopt_id);
+  const UnlinkedCall& selector =
+      UnlinkedCall::Cast(ConstantAt(DecodeOperandD()).value());
+
+  const ArgumentsDescriptor arg_desc(
+      Array::Handle(Z, selector.args_descriptor()));
+
+  const String& name = String::ZoneHandle(Z, selector.target_name());
+
+  Token::Kind token_kind;
+  intptr_t checked_argument_count;
+  ComputeTokenKindAndCheckedArguments(name, arg_desc, &token_kind,
+                                      &checked_argument_count);
 
   const intptr_t argc = DecodeOperandF().value();
-  const ArgumentsDescriptor arg_desc(
-      Array::Handle(Z, icdata.arguments_descriptor()));
-
-  const String& name = String::ZoneHandle(Z, icdata.target_name());
-  const Token::Kind token_kind =
-      MethodTokenRecognizer::RecognizeTokenKind(name);
-
   const ArgumentArray arguments = GetArguments(argc);
 
   const Function& interface_target = Function::null_function();
 
   InstanceCallInstr* call = new (Z) InstanceCallInstr(
       position_, name, token_kind, arguments, arg_desc.TypeArgsLen(),
-      Array::ZoneHandle(Z, arg_desc.GetArgumentNames()), icdata.NumArgsTested(),
-      *ic_data_array_, icdata.deopt_id(), interface_target);
-
-  ASSERT(call->ic_data() != nullptr);
-  ASSERT(call->ic_data()->Original() == icdata.raw());
+      Array::ZoneHandle(Z, arg_desc.GetArgumentNames()), checked_argument_count,
+      *ic_data_array_, B->GetNextDeoptId(), interface_target);
 
   // TODO(alexmarkov): add type info - call->SetResultType()
 
@@ -1824,30 +1828,6 @@ void BytecodeFlowGraphBuilder::BuildDebugStepCheck() {
 #endif  // !defined(PRODUCT)
 }
 
-static bool IsICDataEntry(const ObjectPool& object_pool, intptr_t index) {
-  if (object_pool.TypeAt(index) != ObjectPool::EntryType::kTaggedObject) {
-    return false;
-  }
-  RawObject* entry = object_pool.ObjectAt(index);
-  return entry->IsHeapObject() && entry->IsICData();
-}
-
-// Read ICData entries in object pool, skip deopt_ids and
-// pre-populate ic_data_array_.
-void BytecodeFlowGraphBuilder::ProcessICDataInObjectPool(
-    const ObjectPool& object_pool) {
-  ASSERT(thread()->compiler_state().deopt_id() == 0);
-
-  const intptr_t pool_length = object_pool.Length();
-  for (intptr_t i = 0; i < pool_length; ++i) {
-    if (IsICDataEntry(object_pool, i)) {
-      const ICData& icdata = ICData::CheckedHandle(Z, object_pool.ObjectAt(i));
-      const intptr_t deopt_id = B->GetNextDeoptId();
-      ASSERT(icdata.deopt_id() == deopt_id);
-    }
-  }
-}
-
 intptr_t BytecodeFlowGraphBuilder::GetTryIndex(const PcDescriptors& descriptors,
                                                intptr_t pc) {
   const uword pc_offset =
@@ -2081,8 +2061,6 @@ FlowGraph* BytecodeFlowGraphBuilder::BuildGraph() {
   object_pool_ = bytecode.object_pool();
   raw_bytecode_ = reinterpret_cast<const KBCInstr*>(bytecode.PayloadStart());
   bytecode_length_ = bytecode.Size() / sizeof(KBCInstr);
-
-  ProcessICDataInObjectPool(object_pool_);
 
   graph_entry_ = new (Z) GraphEntryInstr(*parsed_function_, B->osr_id_);
 

@@ -4855,6 +4855,8 @@ void Serializer::AddVMIsolateBaseObjects() {
     AddBaseObject(ICData::cached_icdata_arrays_[i], "Array",
                   "<empty icdata entries>");
   }
+  AddBaseObject(SubtypeTestCache::cached_array_, "Array",
+                "<empty subtype entries>");
 
   ClassTable* table = isolate()->class_table();
   for (intptr_t cid = kClassCid; cid < kInstanceCid; cid++) {
@@ -5320,6 +5322,7 @@ void Deserializer::AddVMIsolateBaseObjects() {
   for (intptr_t i = 0; i < ICData::kCachedICDataArrayCount; i++) {
     AddBaseObject(ICData::cached_icdata_arrays_[i]);
   }
+  AddBaseObject(SubtypeTestCache::cached_array_);
 
   ClassTable* table = isolate()->class_table();
   for (intptr_t cid = kClassCid; cid <= kUnwindErrorCid; cid++) {

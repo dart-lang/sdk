@@ -40,17 +40,19 @@ class LookupCache : public ValueObject {
   void Clear();
   bool Lookup(intptr_t receiver_cid,
               RawString* function_name,
+              RawArray* arguments_descriptor,
               RawFunction** target) const;
   void Insert(intptr_t receiver_cid,
               RawString* function_name,
+              RawArray* arguments_descriptor,
               RawFunction* target);
 
  private:
   struct Entry {
     intptr_t receiver_cid;
     RawString* function_name;
+    RawArray* arguments_descriptor;
     RawFunction* target;
-    intptr_t padding;
   };
 
   static const intptr_t kNumEntries = 1024;
@@ -183,31 +185,13 @@ class Interpreter {
                        RawObject** FP,
                        RawObject** SP);
 
-  bool InterfaceCall(Thread* thread,
-                     RawString* target_name,
-                     RawObject** call_base,
-                     RawObject** call_top,
-                     const KBCInstr** pc,
-                     RawObject*** FP,
-                     RawObject*** SP);
-
-  bool InstanceCall1(Thread* thread,
-                     RawICData* icdata,
-                     RawObject** call_base,
-                     RawObject** call_top,
-                     const KBCInstr** pc,
-                     RawObject*** FP,
-                     RawObject*** SP,
-                     bool optimized);
-
-  bool InstanceCall2(Thread* thread,
-                     RawICData* icdata,
-                     RawObject** call_base,
-                     RawObject** call_top,
-                     const KBCInstr** pc,
-                     RawObject*** FP,
-                     RawObject*** SP,
-                     bool optimized);
+  bool InstanceCall(Thread* thread,
+                    RawString* target_name,
+                    RawObject** call_base,
+                    RawObject** call_top,
+                    const KBCInstr** pc,
+                    RawObject*** FP,
+                    RawObject*** SP);
 
   bool CopyParameters(Thread* thread,
                       const KBCInstr** pc,

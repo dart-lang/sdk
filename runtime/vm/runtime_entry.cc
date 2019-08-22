@@ -1827,7 +1827,7 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
 //   Arg2: arguments descriptor
 //   Returns: target function
 // Modifies the instance call table in current interpreter.
-DEFINE_RUNTIME_ENTRY(InterpretedInterfaceCallMissHandler, 3) {
+DEFINE_RUNTIME_ENTRY(InterpretedInstanceCallMissHandler, 3) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();
 #else

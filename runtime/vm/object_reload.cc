@@ -57,8 +57,9 @@ CallSiteResetter::CallSiteResetter(Zone* zone)
       descriptors_(PcDescriptors::Handle(zone)),
       ic_data_(ICData::Handle(zone)) {}
 
-void CallSiteResetter::ResetICDatas(const Code& code) {
-  // Iterate over the Code's object pool and reset all ICDatas.
+void CallSiteResetter::ResetCaches(const Code& code) {
+  // Iterate over the Code's object pool and reset all ICDatas and
+  // SubtypeTestCaches.
 #ifdef TARGET_ARCH_IA32
   // IA32 does not have an object pool, but, we can iterate over all
   // embedded objects by using the variable length data section.
@@ -81,12 +82,14 @@ void CallSiteResetter::ResetICDatas(const Code& code) {
     object_ = raw_object;
     if (object_.IsICData()) {
       Reset(ICData::Cast(object_));
+    } else if (object_.IsSubtypeTestCache()) {
+      SubtypeTestCache::Cast(object_).Reset();
     }
   }
 #else
   pool_ = code.object_pool();
   ASSERT(!pool_.IsNull());
-  ResetICDatas(pool_);
+  ResetCaches(pool_);
 #endif
 }
 
@@ -177,11 +180,10 @@ void CallSiteResetter::ResetSwitchableCalls(const Code& code) {
 #endif
 }
 
-void CallSiteResetter::ResetICDatas(const Bytecode& bytecode) {
+void CallSiteResetter::RebindStaticTargets(const Bytecode& bytecode) {
   // Iterate over the Bytecode's object pool and reset all ICDatas.
   pool_ = bytecode.object_pool();
   ASSERT(!pool_.IsNull());
-  ResetICDatas(pool_);
 
   for (intptr_t i = 0; i < pool_.Length(); i++) {
     ObjectPool::EntryType entry_type = pool_.TypeAt(i);
@@ -229,7 +231,7 @@ void CallSiteResetter::ResetICDatas(const Bytecode& bytecode) {
   }
 }
 
-void CallSiteResetter::ResetICDatas(const ObjectPool& pool) {
+void CallSiteResetter::ResetCaches(const ObjectPool& pool) {
   for (intptr_t i = 0; i < pool.Length(); i++) {
     ObjectPool::EntryType entry_type = pool.TypeAt(i);
     if (entry_type != ObjectPool::EntryType::kTaggedObject) {
@@ -238,6 +240,8 @@ void CallSiteResetter::ResetICDatas(const ObjectPool& pool) {
     object_ = pool.ObjectAt(i);
     if (object_.IsICData()) {
       Reset(ICData::Cast(object_));
+    } else if (object_.IsSubtypeTestCache()) {
+      SubtypeTestCache::Cast(object_).Reset();
     }
   }
 }

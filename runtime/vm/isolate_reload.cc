@@ -1890,7 +1890,7 @@ void IsolateReloadContext::ResetUnoptimizedICsOnStack() {
   while (frame != NULL) {
     if (frame->is_interpreted()) {
       bytecode = frame->LookupDartBytecode();
-      resetter.ResetICDatas(bytecode);
+      resetter.RebindStaticTargets(bytecode);
     } else {
       code = frame->LookupDartCode();
       if (code.is_optimized() && !code.is_force_optimized()) {
@@ -1901,10 +1901,10 @@ void IsolateReloadContext::ResetUnoptimizedICsOnStack() {
         code = function.unoptimized_code();
         ASSERT(!code.IsNull());
         resetter.ResetSwitchableCalls(code);
-        resetter.ResetICDatas(code);
+        resetter.ResetCaches(code);
       } else {
         resetter.ResetSwitchableCalls(code);
-        resetter.ResetICDatas(code);
+        resetter.ResetCaches(code);
       }
     }
     frame = iterator.NextFrame();
@@ -2032,9 +2032,7 @@ void IsolateReloadContext::RunInvalidationVisitors() {
     resetter.ZeroEdgeCounters(func);
 
     if (!bytecode.IsNull()) {
-      // We are preserving the bytecode, fill all ICData arrays with
-      // the sentinel values so that we have no stale type feedback.
-      resetter.ResetICDatas(bytecode);
+      resetter.RebindStaticTargets(bytecode);
     }
 
     if (stub_code) {
@@ -2047,10 +2045,10 @@ void IsolateReloadContext::RunInvalidationVisitors() {
       func.ClearCode();
       func.SetWasCompiled(false);
     } else {
-      // We are preserving the unoptimized code, fill all ICData arrays with
-      // the sentinel values so that we have no stale type feedback.
+      // We are preserving the unoptimized code, reset instance calls and type
+      // test caches.
       resetter.ResetSwitchableCalls(code);
-      resetter.ResetICDatas(code);
+      resetter.ResetCaches(code);
     }
 
     // Clear counters.
