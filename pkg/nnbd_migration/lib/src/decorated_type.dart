@@ -6,9 +6,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart' show SourceEdit;
 import 'package:nnbd_migration/src/nullability_node.dart';
-import 'package:nnbd_migration/src/potential_modification.dart';
 
 /// Representation of a type in the code to be migrated.  In addition to
 /// tracking the (unmigrated) [DartType], we track the [ConstraintVariable]s
@@ -491,35 +489,4 @@ class DecoratedType {
     }
     return true;
   }
-}
-
-/// A [DecoratedType] based on a type annotation appearing explicitly in the
-/// source code.
-///
-/// This class implements [PotentialModification] because it knows how to update
-/// the source code to reflect its nullability.
-class DecoratedTypeAnnotation extends DecoratedType
-    implements PotentialModification {
-  final int _offset;
-
-  DecoratedTypeAnnotation(
-      DartType type, NullabilityNode nullabilityNode, this._offset,
-      {List<DecoratedType> typeArguments = const [],
-      DecoratedType returnType,
-      List<DecoratedType> positionalParameters = const [],
-      Map<String, DecoratedType> namedParameters = const {},
-      List<DecoratedType> typeFormalBounds = const []})
-      : super(type, nullabilityNode,
-            typeArguments: typeArguments,
-            returnType: returnType,
-            positionalParameters: positionalParameters,
-            namedParameters: namedParameters,
-            typeFormalBounds: typeFormalBounds);
-
-  @override
-  bool get isEmpty => !node.isNullable;
-
-  @override
-  Iterable<SourceEdit> get modifications =>
-      isEmpty ? [] : [SourceEdit(_offset, 0, '?')];
 }

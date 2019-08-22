@@ -26,8 +26,7 @@ class Variables implements VariableRecorder, VariableRepository {
   final _decoratedDirectSupertypes =
       <ClassElement, Map<ClassElement, DecoratedType>>{};
 
-  final _decoratedTypeAnnotations =
-      <Source, Map<int, DecoratedTypeAnnotation>>{};
+  final _decoratedTypeAnnotations = <Source, Map<int, DecoratedType>>{};
 
   final _potentialModifications = <Source, List<PotentialModification>>{};
 
@@ -60,7 +59,7 @@ class Variables implements VariableRecorder, VariableRepository {
       throw StateError('No declarated type annotations in ${source.fullName}; '
           'expected one for ${typeAnnotation.toSource()}');
     }
-    DecoratedTypeAnnotation decoratedTypeAnnotation =
+    DecoratedType decoratedTypeAnnotation =
         annotationsInSource[_uniqueOffsetForTypeAnnotation(typeAnnotation)];
     if (decoratedTypeAnnotation == null) {
       throw StateError('Missing declarated type annotation'
@@ -139,10 +138,10 @@ class Variables implements VariableRecorder, VariableRepository {
 
   void recordDecoratedExpressionType(Expression node, DecoratedType type) {}
 
-  void recordDecoratedTypeAnnotation(
-      Source source, TypeAnnotation node, DecoratedTypeAnnotation type,
-      {bool potentialModification: true}) {
-    if (potentialModification) _addPotentialModification(source, type);
+  void recordDecoratedTypeAnnotation(Source source, TypeAnnotation node,
+      DecoratedType type, PotentiallyAddQuestionSuffix potentialModification) {
+    if (potentialModification != null)
+      _addPotentialModification(source, potentialModification);
     (_decoratedTypeAnnotations[source] ??=
         {})[_uniqueOffsetForTypeAnnotation(node)] = type;
   }

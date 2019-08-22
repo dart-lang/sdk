@@ -17,6 +17,7 @@ import 'package:nnbd_migration/src/conditional_discard.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/expression_checks.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
+import 'package:nnbd_migration/src/potential_modification.dart';
 import 'package:nnbd_migration/src/utilities/annotation_tracker.dart';
 import 'package:nnbd_migration/src/utilities/permissive_mode.dart';
 
@@ -309,10 +310,9 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
       var nullabilityNode = NullabilityNode.forTypeAnnotation(node.end);
       _graph.connect(_graph.always, nullabilityNode,
           AlwaysNullableTypeOrigin(source, node.offset));
-      var decoratedType =
-          DecoratedTypeAnnotation(type, nullabilityNode, node.offset);
-      _variables.recordDecoratedTypeAnnotation(source, node, decoratedType,
-          potentialModification: false);
+      var decoratedType = DecoratedType(type, nullabilityNode);
+      _variables.recordDecoratedTypeAnnotation(
+          source, node, decoratedType, null);
       return decoratedType;
     }
     var typeArguments = const <DecoratedType>[];
@@ -369,13 +369,18 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     } else {
       nullabilityNode = NullabilityNode.forTypeAnnotation(node.end);
     }
-    var decoratedType = DecoratedTypeAnnotation(type, nullabilityNode, node.end,
+    var decoratedType = DecoratedType(type, nullabilityNode,
         typeArguments: typeArguments,
         returnType: decoratedReturnType,
         positionalParameters: positionalParameters,
         namedParameters: namedParameters,
         typeFormalBounds: typeFormalBounds);
-    _variables.recordDecoratedTypeAnnotation(source, node, decoratedType);
+    _variables.recordDecoratedTypeAnnotation(
+        source,
+        node,
+        decoratedType,
+        PotentiallyAddQuestionSuffix(
+            nullabilityNode, decoratedType.type, node.end));
     var commentToken = node.endToken.next.precedingComments;
     switch (_classifyComment(commentToken)) {
       case _NullabilityComment.bang:
@@ -531,8 +536,8 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         _positionalParameters = previousPositionalParameters;
         _namedParameters = previousNamedParameters;
       }
-      decoratedType = DecoratedTypeAnnotation(declaredElement.type,
-          NullabilityNode.forTypeAnnotation(node.end), node.end,
+      decoratedType = DecoratedType(
+          declaredElement.type, NullabilityNode.forTypeAnnotation(node.end),
           returnType: decoratedReturnType,
           positionalParameters: positionalParameters,
           namedParameters: namedParameters);
@@ -613,9 +618,8 @@ abstract class VariableRecorder {
   void recordDecoratedElementType(Element element, DecoratedType type);
 
   /// Associates decorated type information with the given [type] node.
-  void recordDecoratedTypeAnnotation(
-      Source source, TypeAnnotation node, DecoratedTypeAnnotation type,
-      {bool potentialModification: true});
+  void recordDecoratedTypeAnnotation(Source source, TypeAnnotation node,
+      DecoratedType type, PotentiallyAddQuestionSuffix potentialModification);
 
   /// Stores he decorated bound of the given [typeParameter].
   void recordDecoratedTypeParameterBound(

@@ -7,7 +7,6 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
-import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/edge_builder.dart';
 import 'package:nnbd_migration/src/expression_checks.dart';
 import 'package:nnbd_migration/src/node_builder.dart';
@@ -104,7 +103,7 @@ class _SingleNullabilityFix extends SingleNullabilityFix {
     NullabilityFixDescription desc;
     if (potentialModification is ExpressionChecks) {
       desc = NullabilityFixDescription.checkExpression;
-    } else if (potentialModification is DecoratedTypeAnnotation) {
+    } else if (potentialModification is PotentiallyAddQuestionSuffix) {
       desc = NullabilityFixDescription.makeTypeNullable(
           potentialModification.type.toString());
     } else if (potentialModification is ConditionalModification) {
