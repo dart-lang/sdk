@@ -302,8 +302,8 @@ class _SyncBlock {
     _reportCompleteEvent(
         _start, _startCpu, category, name, _argumentsAsJson(_arguments));
     if (_flow != null) {
-      _reportFlowEvent(_start, _startCpu, category, name, _flow._type, _flow.id,
-          _argumentsAsJson(null));
+      _reportFlowEvent(_start, _startCpu, category, "${_flow.id}", _flow._type,
+          _flow.id, _argumentsAsJson(null));
     }
   }
 

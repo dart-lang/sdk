@@ -18,7 +18,7 @@ primeTimeline() {
   task.instant('ITASK');
   task.finish();
 
-  Flow flow = Flow.begin();
+  Flow flow = Flow.begin(id: 123);
   Timeline.startSync('peach', flow: flow);
   Timeline.finishSync();
   Timeline.startSync('watermelon', flow: Flow.step(flow.id));
@@ -114,9 +114,12 @@ var tests = <VMTest>[
     expect(eventsContains(dartEvents, 'e', 'TASK1'), isTrue);
     expect(eventsContains(dartEvents, 'n', 'ITASK'), isTrue);
     expect(eventsContains(dartEvents, 'q', 'ITASK'), isFalse);
-    expect(eventsContains(dartEvents, 's', 'peach'), isTrue);
-    expect(eventsContains(dartEvents, 't', 'watermelon'), isTrue);
-    expect(eventsContains(dartEvents, 'f', 'pear'), isTrue);
+    expect(eventsContains(dartEvents, 'X', 'peach'), isTrue);
+    expect(eventsContains(dartEvents, 'X', 'watermelon'), isTrue);
+    expect(eventsContains(dartEvents, 'X', 'pear'), isTrue);
+    expect(eventsContains(dartEvents, 's', '123'), isTrue);
+    expect(eventsContains(dartEvents, 't', '123'), isTrue);
+    expect(eventsContains(dartEvents, 'f', '123'), isTrue);
     // Calculate the time Window of Dart events.
     int origin = timeOrigin(dartEvents);
     int extent = timeDuration(dartEvents, origin);
