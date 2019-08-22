@@ -110,6 +110,17 @@ class Context extends ChainContext {
             cache,
             new ImportsTwiceLintListener(),
           );
+
+          Uri apiUnstableUri =
+              Uri.base.resolve("pkg/front_end/lib/src/api_unstable/");
+          if (!entity.uri.toString().startsWith(apiUnstableUri.toString())) {
+            yield new LintTestDescription(
+              "$baseName/Exports",
+              entity.uri,
+              cache,
+              new ExportsLintListener(),
+            );
+          }
         }
       }
     } else {
@@ -253,5 +264,25 @@ class ImportsTwiceLintListener extends LintListener {
       onProblem(importUriToken.offset, importUriToken.lexeme.length,
           "Uri '$resolved' already imported once.");
     }
+  }
+}
+
+class ExportsLintListener extends LintListener {
+  void endExport(Token exportKeyword, Token semicolon) {
+    Token exportUriToken = exportKeyword.next;
+    String exportUri = exportUriToken.lexeme;
+    if (exportUri.startsWith("r")) {
+      exportUri = exportUri.substring(2, exportUri.length - 1);
+    } else {
+      exportUri = exportUri.substring(1, exportUri.length - 1);
+    }
+    Uri resolved = uri.resolve(exportUri);
+    if (resolved.scheme == "package") {
+      if (description.cache.packages != null) {
+        resolved = description.cache.packages.resolve(resolved);
+      }
+    }
+    onProblem(exportUriToken.offset, exportUriToken.lexeme.length,
+        "Exports disallowed internally.");
   }
 }

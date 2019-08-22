@@ -112,6 +112,7 @@ dillfile
 dills
 dirname
 disagree
+disallowed
 disconnect
 discovering
 dispatcher
