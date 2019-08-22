@@ -22,10 +22,11 @@ Returning `this` is allowed for:
 - operators
 - methods with a return type different of the current class
 - methods defined in parent classes / mixins or interfaces
+- methods defined in extensions
 
 **BAD:**
 ```
-var buffer = new StringBuffer()
+var buffer = StringBuffer()
   .write('one')
   .write('two')
   .write('three');
@@ -33,7 +34,7 @@ var buffer = new StringBuffer()
 
 **GOOD:**
 ```
-var buffer = new StringBuffer()
+var buffer = StringBuffer()
   ..write('one')
   ..write('two')
   ..write('three');
@@ -72,11 +73,18 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     if (node.isOperator) return;
-    if (node.declaredElement.returnType !=
-            (node.parent as ClassOrMixinDeclaration).declaredElement?.type ||
-        DartTypeUtilities.overridesMethod(node)) {
+
+    final parent = node.parent;
+    if (parent is ClassOrMixinDeclaration) {
+      if (node.declaredElement.returnType != parent.declaredElement?.type ||
+          DartTypeUtilities.overridesMethod(node)) {
+        return;
+      }
+    } else {
+      // Ignore Extensions.
       return;
     }
+
     final body = node.body;
     if (body is BlockFunctionBody) {
       final returnStatements = DartTypeUtilities.traverseNodesInDFS(body.block,
