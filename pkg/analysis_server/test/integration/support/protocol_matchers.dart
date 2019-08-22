@@ -176,8 +176,6 @@ final Matcher isAnalysisStatus = new LazyMatcher(() => new MatchesJsonObject(
  *   "element": Element
  *   "defaultArgumentListString": optional String
  *   "defaultArgumentListTextRanges": optional List<int>
- *   "docComplete": optional String
- *   "docSummary": optional String
  *   "parameterNames": optional List<String>
  *   "parameterTypes": optional List<String>
  *   "relevanceTags": optional List<AvailableSuggestionRelevanceTag>
@@ -192,8 +190,6 @@ final Matcher isAvailableSuggestion =
         }, optionalFields: {
           "defaultArgumentListString": isString,
           "defaultArgumentListTextRanges": isListOf(isInt),
-          "docComplete": isString,
-          "docSummary": isString,
           "parameterNames": isListOf(isString),
           "parameterTypes": isListOf(isString),
           "relevanceTags": isListOf(isAvailableSuggestionRelevanceTag),

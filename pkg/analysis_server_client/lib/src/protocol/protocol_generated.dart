@@ -5079,8 +5079,6 @@ class AnalyticsSendTimingResult implements ResponseResult {
  *   "element": Element
  *   "defaultArgumentListString": optional String
  *   "defaultArgumentListTextRanges": optional List<int>
- *   "docComplete": optional String
- *   "docSummary": optional String
  *   "parameterNames": optional List<String>
  *   "parameterTypes": optional List<String>
  *   "relevanceTags": optional List<AvailableSuggestionRelevanceTag>
@@ -5099,10 +5097,6 @@ class AvailableSuggestion implements HasToJson {
   String _defaultArgumentListString;
 
   List<int> _defaultArgumentListTextRanges;
-
-  String _docComplete;
-
-  String _docSummary;
 
   List<String> _parameterNames;
 
@@ -5190,36 +5184,6 @@ class AvailableSuggestion implements HasToJson {
   }
 
   /**
-   * The Dartdoc associated with the element being suggested. This field is
-   * omitted if there is no Dartdoc associated with the element.
-   */
-  String get docComplete => _docComplete;
-
-  /**
-   * The Dartdoc associated with the element being suggested. This field is
-   * omitted if there is no Dartdoc associated with the element.
-   */
-  void set docComplete(String value) {
-    this._docComplete = value;
-  }
-
-  /**
-   * An abbreviated version of the Dartdoc associated with the element being
-   * suggested. This field is omitted if there is no Dartdoc associated with
-   * the element.
-   */
-  String get docSummary => _docSummary;
-
-  /**
-   * An abbreviated version of the Dartdoc associated with the element being
-   * suggested. This field is omitted if there is no Dartdoc associated with
-   * the element.
-   */
-  void set docSummary(String value) {
-    this._docSummary = value;
-  }
-
-  /**
    * If the element is an executable, the names of the formal parameters of all
    * kinds - required, optional positional, and optional named. The names of
    * positional parameters are empty strings. Omitted if the element is not an
@@ -5276,8 +5240,6 @@ class AvailableSuggestion implements HasToJson {
   AvailableSuggestion(String label, String declaringLibraryUri, Element element,
       {String defaultArgumentListString,
       List<int> defaultArgumentListTextRanges,
-      String docComplete,
-      String docSummary,
       List<String> parameterNames,
       List<String> parameterTypes,
       List<String> relevanceTags,
@@ -5287,8 +5249,6 @@ class AvailableSuggestion implements HasToJson {
     this.element = element;
     this.defaultArgumentListString = defaultArgumentListString;
     this.defaultArgumentListTextRanges = defaultArgumentListTextRanges;
-    this.docComplete = docComplete;
-    this.docSummary = docSummary;
     this.parameterNames = parameterNames;
     this.parameterTypes = parameterTypes;
     this.relevanceTags = relevanceTags;
@@ -5334,16 +5294,6 @@ class AvailableSuggestion implements HasToJson {
             json["defaultArgumentListTextRanges"],
             jsonDecoder.decodeInt);
       }
-      String docComplete;
-      if (json.containsKey("docComplete")) {
-        docComplete = jsonDecoder.decodeString(
-            jsonPath + ".docComplete", json["docComplete"]);
-      }
-      String docSummary;
-      if (json.containsKey("docSummary")) {
-        docSummary = jsonDecoder.decodeString(
-            jsonPath + ".docSummary", json["docSummary"]);
-      }
       List<String> parameterNames;
       if (json.containsKey("parameterNames")) {
         parameterNames = jsonDecoder.decodeList(jsonPath + ".parameterNames",
@@ -5368,8 +5318,6 @@ class AvailableSuggestion implements HasToJson {
       return new AvailableSuggestion(label, declaringLibraryUri, element,
           defaultArgumentListString: defaultArgumentListString,
           defaultArgumentListTextRanges: defaultArgumentListTextRanges,
-          docComplete: docComplete,
-          docSummary: docSummary,
           parameterNames: parameterNames,
           parameterTypes: parameterTypes,
           relevanceTags: relevanceTags,
@@ -5390,12 +5338,6 @@ class AvailableSuggestion implements HasToJson {
     }
     if (defaultArgumentListTextRanges != null) {
       result["defaultArgumentListTextRanges"] = defaultArgumentListTextRanges;
-    }
-    if (docComplete != null) {
-      result["docComplete"] = docComplete;
-    }
-    if (docSummary != null) {
-      result["docSummary"] = docSummary;
     }
     if (parameterNames != null) {
       result["parameterNames"] = parameterNames;
@@ -5424,8 +5366,6 @@ class AvailableSuggestion implements HasToJson {
           defaultArgumentListString == other.defaultArgumentListString &&
           listEqual(defaultArgumentListTextRanges,
               other.defaultArgumentListTextRanges, (int a, int b) => a == b) &&
-          docComplete == other.docComplete &&
-          docSummary == other.docSummary &&
           listEqual(parameterNames, other.parameterNames,
               (String a, String b) => a == b) &&
           listEqual(parameterTypes, other.parameterTypes,
@@ -5445,8 +5385,6 @@ class AvailableSuggestion implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, element.hashCode);
     hash = JenkinsSmiHash.combine(hash, defaultArgumentListString.hashCode);
     hash = JenkinsSmiHash.combine(hash, defaultArgumentListTextRanges.hashCode);
-    hash = JenkinsSmiHash.combine(hash, docComplete.hashCode);
-    hash = JenkinsSmiHash.combine(hash, docSummary.hashCode);
     hash = JenkinsSmiHash.combine(hash, parameterNames.hashCode);
     hash = JenkinsSmiHash.combine(hash, parameterTypes.hashCode);
     hash = JenkinsSmiHash.combine(hash, relevanceTags.hashCode);
