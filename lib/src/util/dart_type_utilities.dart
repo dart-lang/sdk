@@ -213,10 +213,13 @@ class DartTypeUtilities {
           .lookUpInheritedConcreteSetter(
               node.name.name, node.declaredElement.library);
 
-  static MethodElement lookUpInheritedMethod(MethodDeclaration node) =>
-      (node.parent as ClassOrMixinDeclaration)
-          .declaredElement
-          .lookUpInheritedMethod(node.name.name, node.declaredElement.library);
+  static MethodElement lookUpInheritedMethod(MethodDeclaration node) {
+    final parent = node.parent;
+    return parent is ClassOrMixinDeclaration
+        ? parent.declaredElement
+            .lookUpInheritedMethod(node.name.name, node.declaredElement.library)
+        : null;
+  }
 
   static PropertyAccessorElement lookUpSetter(MethodDeclaration node) =>
       (node.parent as ClassOrMixinDeclaration)
