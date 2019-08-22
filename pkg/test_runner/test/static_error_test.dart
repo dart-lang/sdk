@@ -11,6 +11,7 @@ void main() {
   testCompareTo();
   testDescribeDifferences();
   testSimplify();
+  testValidate();
 }
 
 void testFlags() {
@@ -401,6 +402,118 @@ void testSimplify() {
   ]);
 }
 
+void testValidate() {
+  // No errors.
+  expectValidate([], [], null);
+
+  // Same errors.
+  expectValidate([
+    StaticError(line: 1, column: 2, length: 3, code: "ERR.A", message: "One."),
+    StaticError(line: 2, column: 2, length: 3, code: "ERR.B", message: "Two."),
+    StaticError(line: 3, column: 2, length: 3, code: "ERR.C", message: "Tres."),
+  ], [
+    // Order doesn't matter.
+    StaticError(line: 3, column: 2, length: 3, code: "ERR.C", message: "Tres."),
+    StaticError(line: 1, column: 2, length: 3, code: "ERR.A", message: "One."),
+    StaticError(line: 2, column: 2, length: 3, code: "ERR.B", message: "Two."),
+  ], null);
+
+  // Ignore fields that aren't in actual errors.
+  expectValidate([
+    StaticError(line: 1, column: 2, length: 3, code: "ERR.A", message: "One."),
+    StaticError(line: 2, column: 2, length: 3, code: "ERR.B", message: "Two."),
+    StaticError(line: 3, column: 2, length: 3, code: "ERR.C", message: "Tres."),
+  ], [
+    StaticError(line: 1, column: 2, code: "ERR.A", message: "One."),
+    StaticError(line: 2, column: 2, length: 3, message: "Two."),
+    StaticError(line: 3, column: 2, length: 3, code: "ERR.C"),
+  ], null);
+
+  // Catches differences in any field.
+  expectValidate([
+    StaticError(line: 1, column: 2, length: 3, code: "ERR.A", message: "One."),
+    StaticError(line: 2, column: 2, length: 3, code: "ERR.B", message: "Two."),
+    StaticError(line: 3, column: 2, length: 3, code: "ERR.C", message: "Tres."),
+    StaticError(line: 4, column: 2, length: 3, code: "ERR.D", message: "Four."),
+  ], [
+    StaticError(line: 1, column: 9, length: 3, code: "ERR.A", message: "One."),
+    StaticError(line: 2, column: 2, length: 9, code: "ERR.B", message: "Two."),
+    StaticError(line: 3, column: 2, length: 3, code: "ERR.Z", message: "Tres."),
+    StaticError(line: 4, column: 2, length: 3, code: "ERR.D", message: "Zzz."),
+  ], """
+Wrong static error at line 1, column 2, length 3:
+- Expected on column 2 but was on 9.
+
+Wrong static error at line 2, column 2, length 3:
+- Expected length 3 but was 9.
+
+Wrong static error at line 3, column 2, length 3:
+- Expected error code ERR.C but was ERR.Z.
+
+Wrong static error at line 4, column 2, length 3:
+- Expected error message 'Four.' but was 'Zzz.'.""");
+
+  // Unexpected errors.
+  expectValidate([
+    StaticError(line: 2, column: 2, length: 3, code: "ERR.A", message: "One."),
+    StaticError(line: 4, column: 2, length: 3, code: "ERR.B", message: "Two."),
+    StaticError(line: 6, column: 2, length: 3, code: "ERR.C", message: "Tres."),
+  ], [
+    StaticError(line: 1, column: 2, length: 3, code: "ERR.W", message: "1."),
+    StaticError(line: 2, column: 2, length: 3, code: "ERR.A", message: "One."),
+    StaticError(line: 3, column: 2, length: 3, code: "ERR.X", message: "3."),
+    StaticError(line: 4, column: 2, length: 3, code: "ERR.B", message: "Two."),
+    StaticError(line: 5, column: 2, length: 3, code: "ERR.Y", message: "5."),
+    StaticError(line: 6, column: 2, length: 3, code: "ERR.C", message: "Tres."),
+    StaticError(line: 7, column: 2, length: 3, code: "ERR.Z", message: "7."),
+  ], """
+Unexpected static error at line 1, column 2, length 3:
+- Had error code ERR.W.
+- Had error message '1.'.
+
+Unexpected static error at line 3, column 2, length 3:
+- Had error code ERR.X.
+- Had error message '3.'.
+
+Unexpected static error at line 5, column 2, length 3:
+- Had error code ERR.Y.
+- Had error message '5.'.
+
+Unexpected static error at line 7, column 2, length 3:
+- Had error code ERR.Z.
+- Had error message '7.'.""");
+
+  // Missing errors.
+  expectValidate([
+    StaticError(line: 1, column: 2, length: 3, code: "ERR.A", message: "1."),
+    StaticError(line: 2, column: 2, length: 3, code: "ERR.B", message: "2."),
+    StaticError(line: 3, column: 2, length: 3, code: "ERR.C", message: "3."),
+    StaticError(line: 4, column: 2, length: 3, code: "ERR.D", message: "4."),
+    StaticError(line: 5, column: 2, length: 3, code: "ERR.E", message: "5."),
+    StaticError(line: 6, column: 2, length: 3, code: "ERR.F", message: "6."),
+    StaticError(line: 7, column: 2, length: 3, code: "ERR.G", message: "7."),
+  ], [
+    StaticError(line: 2, column: 2, length: 3, code: "ERR.B", message: "2."),
+    StaticError(line: 4, column: 2, length: 3, code: "ERR.D", message: "4."),
+    StaticError(line: 6, column: 2, length: 3, code: "ERR.F", message: "6."),
+  ], """
+Missing static error at line 1, column 2, length 3:
+- Expected error code ERR.A.
+- Expected error message '1.'.
+
+Missing static error at line 3, column 2, length 3:
+- Expected error code ERR.C.
+- Expected error message '3.'.
+
+Missing static error at line 5, column 2, length 3:
+- Expected error code ERR.E.
+- Expected error message '5.'.
+
+Missing static error at line 7, column 2, length 3:
+- Expected error code ERR.G.
+- Expected error message '7.'.""");
+}
+
 void expectNoDifferences(StaticError expectedError, StaticError actualError) {
   var actualLines = expectedError.describeDifferences(actualError);
   if (actualLines != null) {
@@ -426,4 +539,10 @@ void expectSimplify(List<StaticError> input, List<StaticError> expected) {
   var actual = StaticError.simplify(input);
   Expect.listEquals(expected.map((error) => error.toString()).toList(),
       actual.map((error) => error.toString()).toList());
+}
+
+void expectValidate(List<StaticError> expected, List<StaticError> actual,
+    String expectedValidation) {
+  var actualValidation = StaticError.validateExpectations(expected, actual);
+  Expect.stringEquals(expectedValidation, actualValidation);
 }
