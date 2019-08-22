@@ -22,7 +22,7 @@ class UndefinedExtensionGetterTest extends DriverResolutionTest {
     ..contextFeatures = new FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
 
-  test_defined() async {
+  test_instance_defined() async {
     await assertNoErrorsInCode('''
 extension E on String {
   int get g => 0;
@@ -33,7 +33,7 @@ f() {
 ''');
   }
 
-  test_undefined() async {
+  test_instance_withoutSetter() async {
     await assertErrorsInCode('''
 extension E on String {}
 f() {
@@ -44,7 +44,7 @@ f() {
     ]);
   }
 
-  test_undefined_withSetter() async {
+  test_instance_withSetter() async {
     await assertErrorsInCode('''
 extension E on String {
   void set s(int x) {}
@@ -54,6 +54,26 @@ f() {
 }
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER, 64, 1),
+    ]);
+  }
+
+  test_static_withInference() async {
+    await assertErrorsInCode('''
+extension E on Object {}
+var a = E.v;
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER, 35, 1),
+    ]);
+  }
+
+  test_static_withoutInference() async {
+    await assertErrorsInCode('''
+extension E on Object {}
+void f() {
+  E.v;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER, 40, 1),
     ]);
   }
 }

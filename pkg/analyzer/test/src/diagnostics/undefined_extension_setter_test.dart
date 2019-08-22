@@ -22,7 +22,7 @@ class UndefinedExtensionSetterTest extends DriverResolutionTest {
     ..contextFeatures = new FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
 
-  test_defined() async {
+  test_instance_defined() async {
     await assertNoErrorsInCode('''
 extension E on String {
   void set s(int x) {}
@@ -33,11 +33,22 @@ f() {
 ''');
   }
 
-  test_undefined() async {
+  test_instance_undefined() async {
     await assertErrorsInCode('''
 extension E on String {}
 f() {
   E('a').s = 1;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER, 40, 1),
+    ]);
+  }
+
+  test_static_undefined() async {
+    await assertErrorsInCode('''
+extension E on Object {}
+void f() {
+  E.s = 3;
 }
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER, 40, 1),
