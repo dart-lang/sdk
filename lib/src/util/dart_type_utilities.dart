@@ -277,9 +277,12 @@ class DartTypeUtilities {
   }
 
   static bool overridesMethod(MethodDeclaration node) {
+    final parent = node.parent;
+    if (parent is! ClassOrMixinDeclaration) {
+      return false;
+    }
     final name = node.declaredElement.name;
-    final ClassOrMixinDeclaration clazz =
-        node.parent as ClassOrMixinDeclaration;
+    final ClassOrMixinDeclaration clazz = parent as ClassOrMixinDeclaration;
     final classElement = clazz.declaredElement;
     final library = classElement.library;
     return classElement.allSupertypes
