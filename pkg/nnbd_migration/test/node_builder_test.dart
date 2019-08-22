@@ -1210,6 +1210,42 @@ class C extends B {
     expect(decoratedType.node, same(always));
   }
 
+  test_method_parameterType_inferred_generic_function_typed_no_bound() async {
+    await analyze('''
+class B {
+  void f/*B*/(T Function<T>() x) {}
+}
+class C extends B {
+  void f/*C*/(x) {}
+}
+''');
+    var decoratedBaseType =
+        decoratedMethodType('f/*B*/').positionalParameters[0];
+    var decoratedType = decoratedMethodType('f/*C*/').positionalParameters[0];
+    expect(decoratedType.typeFormalBounds, hasLength(1));
+    expect(decoratedType.typeFormalBounds[0].type.toString(), 'Object');
+    expect(decoratedType.typeFormalBounds[0].node,
+        isNot(same(decoratedBaseType.typeFormalBounds[0].node)));
+  }
+
+  test_method_parameterType_inferred_generic_function_typed_with_bound() async {
+    await analyze('''
+class B {
+  void f/*B*/(T Function<T extends num>() x) {}
+}
+class C extends B {
+  void f/*C*/(x) {}
+}
+''');
+    var decoratedBaseType =
+        decoratedMethodType('f/*B*/').positionalParameters[0];
+    var decoratedType = decoratedMethodType('f/*C*/').positionalParameters[0];
+    expect(decoratedType.typeFormalBounds, hasLength(1));
+    expect(decoratedType.typeFormalBounds[0].type.toString(), 'num');
+    expect(decoratedType.typeFormalBounds[0].node,
+        isNot(same(decoratedBaseType.typeFormalBounds[0].node)));
+  }
+
   test_method_parameterType_inferred_named() async {
     await analyze('''
 class B {
