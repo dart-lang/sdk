@@ -50,8 +50,13 @@ class C {
 
   test_fuzz_01() async {
     await _assertCanBeAnalyzed(r'''
-typedef K=Function(<>($
+typedef F = void Function(bool, int a(double b));
 ''');
+    var function = findElement.genericTypeAlias('F').function;
+    assertElementTypeString(
+      function.type,
+      'void Function(bool, int Function(double))',
+    );
   }
 
   test_fuzz_02() async {
