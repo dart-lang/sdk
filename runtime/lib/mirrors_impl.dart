@@ -561,8 +561,7 @@ class _LocalClassMirror extends _LocalObjectMirror
 
     var decls = new Map<Symbol, DeclarationMirror>();
 
-    var members = (mixin as _LocalClassMirror)._computeMembers(
-        _instantiator, (mixin as _LocalClassMirror)._reflectee);
+    var members = _computeMembers(mixin, _instantiator, _reflectee);
     for (var member in members) {
       decls[member.simpleName] = member;
     }
@@ -719,7 +718,7 @@ class _LocalClassMirror extends _LocalObjectMirror
   static Type _nativeMixinInstantiated(reflectedType, instantiator)
       native "ClassMirror_mixin_instantiated";
 
-  List<dynamic> _computeMembers(reflectee, instantiator)
+  static List<dynamic> _computeMembers(owner, reflectee, instantiator)
       native "ClassMirror_members";
 
   List<dynamic> _computeConstructors(reflectee, instantiator)
