@@ -315,7 +315,7 @@ f(Object o, A a, B b) {
   o.a;
 }
 ''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_METHOD_ACCESS, 68, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 68, 1),
     ]);
   }
 

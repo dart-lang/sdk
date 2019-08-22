@@ -152,9 +152,9 @@ class CompileTimeErrorCode extends ErrorCode {
    * 1: the name of the first declaring extension
    * 2: the name of the second declaring extension
    */
-  static const CompileTimeErrorCode AMBIGUOUS_EXTENSION_METHOD_ACCESS =
+  static const CompileTimeErrorCode AMBIGUOUS_EXTENSION_MEMBER_ACCESS =
       const CompileTimeErrorCode(
-          'AMBIGUOUS_EXTENSION_METHOD_ACCESS',
+          'AMBIGUOUS_EXTENSION_MEMBER_ACCESS',
           "A member named '{0}' is defined in extensions '{1}' and '{2}' and "
               "neither is more specific.",
           correction:
@@ -1366,8 +1366,6 @@ class CompileTimeErrorCode extends ErrorCode {
    * Parameters:
    * 0: the maximum number of positional arguments
    * 1: the actual number of positional arguments given
-   *
-   * See [NOT_ENOUGH_REQUIRED_ARGUMENTS].
    */
   static const CompileTimeErrorCode EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED =
       const CompileTimeErrorCode('EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED',
@@ -1528,9 +1526,10 @@ class CompileTimeErrorCode extends ErrorCode {
    */
   static const CompileTimeErrorCode IMPLEMENTS_NON_CLASS =
       const CompileTimeErrorCode('IMPLEMENTS_NON_CLASS',
-          "Classes and mixins can only implement classes.",
+          "Classes and mixins can only implement other classes and mixins.",
           correction:
-              "Try specifying a class, or remove the name from the list.");
+              "Try specifying a class or mixin, or remove the name from the "
+              "list.");
 
   /**
    * 10.10 Superinterfaces: It is a compile-time error if two elements in the
@@ -2666,19 +2665,13 @@ class CompileTimeErrorCode extends ErrorCode {
               "or mark it 'late'.");
 
   /**
-   * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m < h</i>
-   * or if <i>m > n</i>.
-   *
-   * 16.12.2 Const: It is a compile-time error if evaluation of a constant
-   * object results in an uncaught exception being thrown.
-   *
    * Parameters:
    * 0: the expected number of required arguments
    * 1: the actual number of positional arguments given
    */
-  static const CompileTimeErrorCode NOT_ENOUGH_REQUIRED_ARGUMENTS =
-      const CompileTimeErrorCode('NOT_ENOUGH_REQUIRED_ARGUMENTS',
-          "{0} required argument(s) expected, but {1} found.",
+  static const CompileTimeErrorCode NOT_ENOUGH_POSITIONAL_ARGUMENTS =
+      const CompileTimeErrorCode('NOT_ENOUGH_POSITIONAL_ARGUMENTS',
+          "{0} positional argument(s) expected, but {1} found.",
           correction: "Try adding the missing arguments.");
 
   /**
@@ -4596,8 +4589,6 @@ class StaticWarningCode extends ErrorCode {
    * Parameters:
    * 0: the maximum number of positional arguments
    * 1: the actual number of positional arguments given
-   *
-   * See [NOT_ENOUGH_REQUIRED_ARGUMENTS].
    */
   static const StaticWarningCode EXTRA_POSITIONAL_ARGUMENTS =
       const StaticWarningCode('EXTRA_POSITIONAL_ARGUMENTS',
@@ -4611,8 +4602,6 @@ class StaticWarningCode extends ErrorCode {
    * Parameters:
    * 0: the maximum number of positional arguments
    * 1: the actual number of positional arguments given
-   *
-   * See [NOT_ENOUGH_REQUIRED_ARGUMENTS].
    */
   static const StaticWarningCode EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED =
       const StaticWarningCode('EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED',
@@ -5214,8 +5203,6 @@ class StaticWarningCode extends ErrorCode {
    * Parameters:
    * 0: the expected number of required arguments
    * 1: the actual number of positional arguments given
-   *
-   * See [EXTRA_POSITIONAL_ARGUMENTS].
    */
   static const StaticWarningCode NOT_ENOUGH_REQUIRED_ARGUMENTS =
       const StaticWarningCode('NOT_ENOUGH_REQUIRED_ARGUMENTS',

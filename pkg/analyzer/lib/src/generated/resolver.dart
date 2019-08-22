@@ -5064,7 +5064,7 @@ class ResolverVisitor extends ScopedVisitor {
     }
     if (positionalArgumentCount < requiredParameterCount && noBlankArguments) {
       ErrorCode errorCode = (reportAsError
-          ? CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS
+          ? CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS
           : StaticWarningCode.NOT_ENOUGH_REQUIRED_ARGUMENTS);
       if (onError != null) {
         onError(errorCode, argumentList,

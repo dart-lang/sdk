@@ -11,12 +11,12 @@ import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AmbiguousExtensionMethodAccessTest);
+    defineReflectiveTests(AmbiguousExtensionMemberAccessTest);
   });
 }
 
 @reflectiveTest
-class AmbiguousExtensionMethodAccessTest extends DriverResolutionTest {
+class AmbiguousExtensionMemberAccessTest extends DriverResolutionTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
     ..contextFeatures = new FeatureSet.forTesting(
@@ -36,7 +36,7 @@ extension E2 on A {
 
 int f(A a) => a();
 ''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_METHOD_ACCESS, 110, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 110, 1),
     ]);
   }
 
@@ -56,7 +56,7 @@ f(A a) {
   a.a;
 }
 ''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_METHOD_ACCESS, 109, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 109, 1),
     ]);
   }
 
@@ -76,7 +76,7 @@ f(A a) {
   a.a();
 }
 ''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_METHOD_ACCESS, 99, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 99, 1),
     ]);
   }
 
@@ -95,7 +95,7 @@ extension E2 on A {
 
 A f(A a) => a + a;
 ''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_METHOD_ACCESS, 122, 5),
+      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 122, 5),
     ]);
   }
 
@@ -113,7 +113,7 @@ extension E2 on A {
 
 int f(A a) => a[0];
 ''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_METHOD_ACCESS, 134, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 134, 1),
     ]);
   }
 
@@ -131,7 +131,7 @@ extension E2 on A {
 
 int f(A a) => -a;
 ''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_METHOD_ACCESS, 123, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 123, 1),
     ]);
   }
 
@@ -151,7 +151,7 @@ f(A a) {
   a.a = 3;
 }
 ''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_METHOD_ACCESS, 99, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 99, 1),
     ]);
   }
 }

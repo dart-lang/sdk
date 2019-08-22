@@ -54,7 +54,7 @@ class ExtensionMemberResolver {
     }
 
     _errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.AMBIGUOUS_EXTENSION_METHOD_ACCESS,
+      CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS,
       target,
       [
         name,

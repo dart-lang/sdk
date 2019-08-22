@@ -5,8 +5,8 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'ambiguous_export_test.dart' as ambiguous_export;
-import 'ambiguous_extension_method_access_test.dart'
-    as ambiguous_extension_method_access;
+import 'ambiguous_extension_member_access_test.dart'
+    as ambiguous_extension_member_access;
 import 'ambiguous_import_test.dart' as ambiguous_import;
 import 'ambiguous_set_or_map_literal_test.dart' as ambiguous_set_or_map_literal;
 import 'argument_type_not_assignable_test.dart' as argument_type_not_assignable;
@@ -301,7 +301,7 @@ import 'wrong_type_parameter_variance_in_superinterface_test.dart'
 main() {
   defineReflectiveSuite(() {
     ambiguous_export.main();
-    ambiguous_extension_method_access.main();
+    ambiguous_extension_member_access.main();
     ambiguous_import.main();
     ambiguous_set_or_map_literal.main();
     argument_type_not_assignable.main();
