@@ -11,6 +11,7 @@ extension E on Object { // LINT
 
 extension _E on Object { // OK
   int get z => 0; // OK
+  static int foo = 1; // LINT
 }
 
 extension on Object { // OK
