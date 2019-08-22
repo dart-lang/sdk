@@ -774,9 +774,12 @@ void Cids::CreateHelper(Zone* zone,
   }
 
   if (ic_data.is_megamorphic()) {
-    const MegamorphicCache& cache =
-        MegamorphicCache::Handle(zone, ic_data.AsMegamorphicCache());
-    SafepointMutexLocker ml(Isolate::Current()->megamorphic_mutex());
+    const String& name = String::Handle(zone, ic_data.target_name());
+    const Array& descriptor =
+        Array::Handle(zone, ic_data.arguments_descriptor());
+    const MegamorphicCache& cache = MegamorphicCache::Handle(
+        zone, MegamorphicCacheTable::LookupClone(Thread::Current(), name,
+                                                 descriptor));
     MegamorphicCacheEntries entries(Array::Handle(zone, cache.buckets()));
     for (intptr_t i = 0; i < entries.Length(); i++) {
       const intptr_t id =

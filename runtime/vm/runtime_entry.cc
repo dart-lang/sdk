@@ -1164,8 +1164,11 @@ static void TrySwitchInstanceCall(const ICData& ic_data,
   // Megamorphic call.
   if (FLAG_unopt_megamorphic_calls &&
       (num_checks > FLAG_max_polymorphic_checks)) {
-    const MegamorphicCache& cache =
-        MegamorphicCache::Handle(zone, ic_data.AsMegamorphicCache());
+    const String& name = String::Handle(zone, ic_data.target_name());
+    const Array& descriptor =
+        Array::Handle(zone, ic_data.arguments_descriptor());
+    const MegamorphicCache& cache = MegamorphicCache::Handle(
+        zone, MegamorphicCacheTable::LookupOriginal(thread, name, descriptor));
     ic_data.set_is_megamorphic(true);
     CodePatcher::PatchInstanceCallAt(caller_frame->pc(), caller_code, cache,
                                      StubCode::MegamorphicCall());
@@ -1792,7 +1795,8 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
       if (number_of_checks > FLAG_max_polymorphic_checks) {
         // Switch to megamorphic call.
         const MegamorphicCache& cache = MegamorphicCache::Handle(
-            zone, MegamorphicCacheTable::Lookup(isolate, name, descriptor));
+            zone,
+            MegamorphicCacheTable::LookupOriginal(thread, name, descriptor));
         DartFrameIterator iterator(thread,
                                    StackFrameIterator::kNoCrossThreadIteration);
         StackFrame* miss_function_frame = iterator.NextFrame();

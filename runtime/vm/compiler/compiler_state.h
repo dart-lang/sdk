@@ -115,6 +115,15 @@ class CompilerState : public ThreadStackResource {
   // TODO(vegorov): disambiguate slots for different context IDs.
   LocalVariable* GetDummyCapturedVariable(intptr_t context_id, intptr_t index);
 
+  ZoneGrowableArray<const MegamorphicCache*>& cloned_megamorphic_caches() {
+    if (cloned_megamorphic_caches_ == nullptr) {
+      Zone* Z = Thread::Current()->zone();
+      cloned_megamorphic_caches_ =
+          new (Z) ZoneGrowableArray<const MegamorphicCache*>(Z, 12);
+    }
+    return *cloned_megamorphic_caches_;
+  }
+
  private:
   CHA cha_;
   intptr_t deopt_id_ = 0;
@@ -126,6 +135,9 @@ class CompilerState : public ThreadStackResource {
   // to IL translation.
   ZoneGrowableArray<ZoneGrowableArray<const Slot*>*>* dummy_slots_ = nullptr;
   ZoneGrowableArray<LocalVariable*>* dummy_captured_vars_ = nullptr;
+
+  ZoneGrowableArray<const MegamorphicCache*>* cloned_megamorphic_caches_ =
+      nullptr;
 
   CompilerState* previous_;
 };

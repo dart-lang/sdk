@@ -14308,14 +14308,6 @@ RawUnlinkedCall* ICData::AsUnlinkedCall() const {
   return result.raw();
 }
 
-RawMegamorphicCache* ICData::AsMegamorphicCache() const {
-  ASSERT(NumArgsTested() == 1);
-  ASSERT(!is_tracking_exactness());
-  const String& name = String::Handle(target_name());
-  const Array& descriptor = Array::Handle(arguments_descriptor());
-  return MegamorphicCacheTable::Lookup(Isolate::Current(), name, descriptor);
-}
-
 bool ICData::HasReceiverClassId(intptr_t class_id) const {
   ASSERT(NumArgsTested() > 0);
   const intptr_t len = NumberOfChecks();
@@ -14344,9 +14336,12 @@ bool ICData::HasOneTarget() const {
     }
   }
   if (is_megamorphic()) {
-    const MegamorphicCache& cache =
-        MegamorphicCache::Handle(AsMegamorphicCache());
-    SafepointMutexLocker ml(Isolate::Current()->megamorphic_mutex());
+    Thread* thread = Thread::Current();
+    Zone* zone = thread->zone();
+    const String& name = String::Handle(zone, target_name());
+    const Array& descriptor = Array::Handle(zone, arguments_descriptor());
+    const MegamorphicCache& cache = MegamorphicCache::Handle(
+        zone, MegamorphicCacheTable::LookupClone(thread, name, descriptor));
     MegamorphicCacheEntries entries(Array::Handle(cache.buckets()));
     for (intptr_t i = 0; i < entries.Length(); i++) {
       const intptr_t id =
@@ -15964,6 +15959,37 @@ void MegamorphicCache::SwitchToBareInstructions() {
       ASSERT(cid == kSmiCid);
     }
   }
+}
+
+RawMegamorphicCache* MegamorphicCache::Clone(const MegamorphicCache& from) {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  MegamorphicCache& result = MegamorphicCache::Handle(zone);
+  {
+    RawObject* raw =
+        Object::Allocate(MegamorphicCache::kClassId,
+                         MegamorphicCache::InstanceSize(), Heap::kNew);
+    NoSafepointScope no_safepoint;
+    result ^= raw;
+  }
+
+  SafepointMutexLocker ml(thread->isolate()->megamorphic_mutex());
+  const Array& from_buckets = Array::Handle(zone, from.buckets());
+  const intptr_t len = from_buckets.Length();
+  const Array& cloned_buckets =
+      Array::Handle(zone, Array::New(len, Heap::kNew));
+  Object& obj = Object::Handle(zone);
+  for (intptr_t i = 0; i < len; i++) {
+    obj = from_buckets.At(i);
+    cloned_buckets.SetAt(i, obj);
+  }
+  result.set_buckets(cloned_buckets);
+  result.set_mask(from.mask());
+  result.set_target_name(String::Handle(zone, from.target_name()));
+  result.set_arguments_descriptor(
+      Array::Handle(zone, from.arguments_descriptor()));
+  result.set_filled_entry_count(from.filled_entry_count());
+  return result.raw();
 }
 
 RawSubtypeTestCache* SubtypeTestCache::New() {

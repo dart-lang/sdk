@@ -1917,7 +1917,6 @@ class ICData : public Object {
   RawICData* AsUnaryClassChecksSortedByCount() const;
 
   RawUnlinkedCall* AsUnlinkedCall() const;
-  RawMegamorphicCache* AsMegamorphicCache() const;
 
   // Consider only used entries.
   bool HasOneTarget() const;
@@ -6022,6 +6021,8 @@ class MegamorphicCache : public Object {
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawMegamorphicCache));
   }
+
+  static RawMegamorphicCache* Clone(const MegamorphicCache& from);
 
  private:
   friend class Class;
