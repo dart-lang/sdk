@@ -110,7 +110,7 @@ abstract class SecureSocket implements Socket {
       {host,
       SecurityContext context,
       bool onBadCertificate(X509Certificate certificate),
-      List<String> supportedProtocols}) {
+      @Since("2.6") List<String> supportedProtocols}) {
     return ((socket as dynamic /*_Socket*/)._detachRaw() as Future)
         .then<RawSecureSocket>((detachedRaw) {
       return RawSecureSocket.secure(detachedRaw[0] as RawSocket,
