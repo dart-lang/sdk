@@ -10225,6 +10225,14 @@ RawObject* Library::GetMetadata(const Object& obj) const {
       !obj.IsLibrary() && !obj.IsTypeParameter()) {
     UNREACHABLE();
   }
+  if (obj.IsLibrary()) {
+    // Ensure top-level class is loaded as it may contain annotations of
+    // a library.
+    const auto& cls = Class::Handle(toplevel_class());
+    if (!cls.IsNull()) {
+      cls.EnsureDeclarationLoaded();
+    }
+  }
   const String& metaname = String::Handle(MakeMetadataName(obj));
   Field& field = Field::Handle(GetMetadataField(metaname));
   if (field.IsNull()) {

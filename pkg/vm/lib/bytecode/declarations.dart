@@ -1130,6 +1130,9 @@ class AnnotationsDeclaration {
   factory AnnotationsDeclaration.read(BufferedReader reader) {
     return new AnnotationsDeclaration(reader.readPackedObject());
   }
+
+  @override
+  String toString() => object.toString();
 }
 
 class _Section {
