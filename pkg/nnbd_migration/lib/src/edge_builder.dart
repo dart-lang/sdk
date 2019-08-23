@@ -1546,9 +1546,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       } else if (parts is ForPartsWithExpression) {
         parts.initialization?.accept(this);
       }
+      _flowAnalysis.for_conditionBegin(_assignedVariables[node]);
       if (parts.condition != null) {
         _checkExpressionNotNull(parts.condition);
       }
+      _flowAnalysis.for_bodyBegin(
+          node is Statement ? node : null, parts.condition);
     } else if (parts is ForEachParts) {
       if (parts is ForEachPartsWithDeclaration) {
         _flowAnalysis.add(parts.loopVariable.declaredElement, assigned: true);
@@ -1563,7 +1566,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       body.accept(this);
 
       if (parts is ForParts) {
+        _flowAnalysis.for_updaterBegin();
         parts.updaters.accept(this);
+        _flowAnalysis.for_end();
       } else {
         _flowAnalysis.forEach_end();
       }
