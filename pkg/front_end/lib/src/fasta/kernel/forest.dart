@@ -58,14 +58,14 @@ import 'kernel_shadow_ast.dart'
 class Forest {
   const Forest();
 
-  Arguments createArguments(List<Expression> positional, Token token,
+  Arguments createArguments(int fileOffset, List<Expression> positional,
       {List<DartType> types, List<NamedExpression> named}) {
     return new ArgumentsJudgment(positional, types: types, named: named)
-      ..fileOffset = offsetForToken(token);
+      ..fileOffset = fileOffset ?? TreeNode.noOffset;
   }
 
-  Arguments createArgumentsEmpty(Token token) {
-    return createArguments(<Expression>[], token);
+  Arguments createArgumentsEmpty(int fileOffset) {
+    return createArguments(fileOffset, <Expression>[]);
   }
 
   List<NamedExpression> argumentsNamed(Arguments arguments) {
@@ -680,6 +680,12 @@ class Forest {
 
   NamedExpression createNamedExpression(String name, Expression expression) {
     return new NamedExpression(name, expression);
+  }
+
+  StaticInvocation createStaticInvocation(
+      int fileOffset, Procedure procedure, Arguments arguments) {
+    return new StaticInvocation(procedure, arguments)
+      ..fileOffset = fileOffset ?? TreeNode.noOffset;
   }
 }
 

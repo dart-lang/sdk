@@ -112,7 +112,7 @@ import 'kernel_ast_api.dart';
 import 'kernel_builder.dart';
 
 // TODO(ahe): Remove this and ensure all nodes have a location.
-const Token noLocation = null;
+const Null noLocation = null;
 
 // TODO(danrubel): Remove this once control flow and spread collection support
 // has been enabled by default.
@@ -1025,7 +1025,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       } else if (resolvedTarget is Constructor &&
           resolvedTarget.enclosingClass.isAbstract) {
         replacementNode = evaluateArgumentsBefore(
-            forest.createArguments(invocation.arguments.positional, null,
+            forest.createArguments(noLocation, invocation.arguments.positional,
                 types: invocation.arguments.types,
                 named: invocation.arguments.named),
             buildAbstractClassInstantiationError(
@@ -1046,7 +1046,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
               forest.createNullLiteral(null)
                 ..fileOffset = invocation.fileOffset,
               errorName,
-              forest.createArguments(invocation.arguments.positional, null,
+              forest.createArguments(null, invocation.arguments.positional,
                   types: invocation.arguments.types,
                   named: invocation.arguments.named),
               initialTarget.fileOffset);
@@ -1064,7 +1064,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
           replacementNode = buildStaticInvocation(
               resolvedTarget,
-              forest.createArguments(invocation.arguments.positional, null,
+              forest.createArguments(
+                  noLocation, invocation.arguments.positional,
                   types: invocation.arguments.types,
                   named: invocation.arguments.named),
               constness: invocation.isConst
@@ -1337,12 +1338,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           arguments.getRange(0, firstNamedArgumentIndex));
       List<NamedExpression> named = new List<NamedExpression>.from(
           arguments.getRange(firstNamedArgumentIndex, arguments.length));
-      push(forest.createArguments(positional, beginToken, named: named));
+      push(forest.createArguments(beginToken.offset, positional, named: named));
     } else {
       // TODO(kmillikin): Find a way to avoid allocating a second list in the
       // case where there were no named arguments, which is a common one.
       push(forest.createArguments(
-          new List<Expression>.from(arguments), beginToken));
+          beginToken.offset, new List<Expression>.from(arguments)));
     }
   }
 
@@ -1515,7 +1516,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       }
     } else {
       Expression result = buildMethodInvocation(a, new Name(operator),
-          forest.createArguments(<Expression>[b], noLocation), token.charOffset,
+          forest.createArguments(noLocation, <Expression>[b]), token.charOffset,
           // This *could* be a constant expression, we can't know without
           // evaluating [a] and [b].
           isConstantExpression: !isSuper,
@@ -1863,7 +1864,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         null,
         buildStaticInvocation(
             procedure,
-            forest.createArguments(positionalArguments, token,
+            forest.createArguments(charOffset, positionalArguments,
                 types: typeArguments, named: namedArguments),
             charOffset: charOffset),
         charOffset);
@@ -3904,7 +3905,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
               target.function.typeParameters.length !=
                   forest.argumentsTypeArguments(arguments).length) {
             arguments = forest.createArguments(
-                forest.argumentsPositional(arguments), null,
+                noLocation, forest.argumentsPositional(arguments),
                 named: forest.argumentsNamed(arguments),
                 types: new List<DartType>.filled(
                     target.function.typeParameters.length, const DynamicType(),
@@ -5138,12 +5139,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         null,
         buildStaticInvocation(
             library.loader.coreTypes.fallThroughErrorUrlAndLineConstructor,
-            forest.createArguments(<Expression>[
+            forest.createArguments(noLocation, <Expression>[
               forest.createStringLiteral("${location?.file ?? uri}", null)
                 ..fileOffset = charOffset,
               forest.createIntLiteral(location?.line ?? 0, null)
                 ..fileOffset = charOffset,
-            ], noLocation),
+            ]),
             charOffset: charOffset))
       ..fileOffset = charOffset;
   }
@@ -5156,10 +5157,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     Builder constructor = library.loader.getAbstractClassInstantiationError();
     Expression invocation = buildStaticInvocation(
         constructor.target,
-        forest.createArguments(<Expression>[
+        forest.createArguments(charOffset, <Expression>[
           forest.createStringLiteral(className, null)..fileOffset = charOffset
-        ], noLocation)
-          ..fileOffset = charOffset,
+        ]),
         charOffset: charOffset);
     if (invocation is shadow.SyntheticExpressionJudgment) {
       invocation = desugarSyntheticExpression(invocation);
@@ -5260,11 +5260,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             library.loader.getDuplicatedFieldInitializerError();
         Expression invocation = buildStaticInvocation(
             constructor.target,
-            forest.createArguments(<Expression>[
+            forest.createArguments(assignmentOffset, <Expression>[
               forest.createStringLiteral(name, null)
                 ..fileOffset = assignmentOffset
-            ], noLocation)
-              ..fileOffset = assignmentOffset,
+            ]),
             charOffset: assignmentOffset);
         if (invocation is shadow.SyntheticExpressionJudgment) {
           invocation = desugarSyntheticExpression(invocation);
