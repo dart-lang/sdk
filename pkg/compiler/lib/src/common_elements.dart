@@ -105,6 +105,12 @@ abstract class CommonElements {
   /// The dart:_internal library.
   LibraryEntity get internalLibrary;
 
+  /// The dart:js library.
+  LibraryEntity get dartJsLibrary;
+
+  /// The package:js library.
+  LibraryEntity get packageJsLibrary;
+
   /// The `NativeTypedData` class from dart:typed_data.
   ClassEntity get typedDataClass;
 
@@ -541,12 +547,14 @@ abstract class CommonElements {
 
   ClassEntity getDefaultSuperclass(
       ClassEntity cls, NativeBasicData nativeBasicData);
+
+  // From package:js
+  FunctionEntity get jsAllowInterop;
 }
 
 abstract class KCommonElements implements CommonElements {
   // From package:js
   ClassEntity get jsAnnotationClass;
-
   ClassEntity get jsAnonymousClass;
 
   ClassEntity get pragmaClass;
@@ -782,6 +790,16 @@ class CommonElementsImpl
   @override
   LibraryEntity get internalLibrary => _internalLibrary ??=
       _env.lookupLibrary(Uris.dart__internal, required: true);
+
+  LibraryEntity _dartJsLibrary;
+  @override
+  LibraryEntity get dartJsLibrary =>
+      _dartJsLibrary ??= _env.lookupLibrary(Uris.dart_js);
+
+  LibraryEntity _packageJsLibrary;
+  @override
+  LibraryEntity get packageJsLibrary =>
+      _packageJsLibrary ??= _env.lookupLibrary(Uris.package_js);
 
   ClassEntity _typedDataClass;
   @override
@@ -1429,28 +1447,22 @@ class CommonElementsImpl
   ClassEntity get jsConstClass =>
       _jsConstClass ??= _findClass(foreignLibrary, 'JS_CONST');
 
+  // From dart:js
+  FunctionEntity _jsAllowInterop;
+  @override
+  FunctionEntity get jsAllowInterop => _jsAllowInterop ??=
+      _findLibraryMember(dartJsLibrary, 'allowInterop', required: false);
+
   // From package:js
   ClassEntity _jsAnnotationClass;
   @override
-  ClassEntity get jsAnnotationClass {
-    if (_jsAnnotationClass == null) {
-      LibraryEntity library = _env.lookupLibrary(Uris.package_js);
-      if (library == null) return null;
-      _jsAnnotationClass = _findClass(library, 'JS');
-    }
-    return _jsAnnotationClass;
-  }
+  ClassEntity get jsAnnotationClass => _jsAnnotationClass ??=
+      _findClass(packageJsLibrary, 'JS', required: false);
 
   ClassEntity _jsAnonymousClass;
   @override
-  ClassEntity get jsAnonymousClass {
-    if (_jsAnonymousClass == null) {
-      LibraryEntity library = _env.lookupLibrary(Uris.package_js);
-      if (library == null) return null;
-      _jsAnonymousClass = _findClass(library, '_Anonymous');
-    }
-    return _jsAnonymousClass;
-  }
+  ClassEntity get jsAnonymousClass => _jsAnonymousClass ??=
+      _findClass(packageJsLibrary, '_Anonymous', required: false);
 
   @override
   FunctionEntity findHelperFunction(String name) => _findHelperFunction(name);
