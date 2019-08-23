@@ -95,6 +95,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   final NullabilityGraph _graph;
 
+  TypeProvider _typeProvider;
+
   @override
   final Source source;
 
@@ -164,16 +166,16 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   /// nullable.
   final Map<Expression, NullabilityNode> _conditionalNodes = {};
 
-  EdgeBuilder(TypeProvider typeProvider, this._typeSystem, this._variables,
+  EdgeBuilder(this._typeProvider, this._typeSystem, this._variables,
       this._graph, this.source, this.listener)
       : _decoratedClassHierarchy = DecoratedClassHierarchy(_variables, _graph),
         _inheritanceManager = InheritanceManager3(_typeSystem),
-        _notNullType = DecoratedType(typeProvider.objectType, _graph.never),
+        _notNullType = DecoratedType(_typeProvider.objectType, _graph.never),
         _nonNullableBoolType =
-            DecoratedType(typeProvider.boolType, _graph.never),
+            DecoratedType(_typeProvider.boolType, _graph.never),
         _nonNullableTypeType =
-            DecoratedType(typeProvider.typeType, _graph.never),
-        _nullType = DecoratedType(typeProvider.nullType, _graph.always);
+            DecoratedType(_typeProvider.typeType, _graph.never),
+        _nullType = DecoratedType(_typeProvider.nullType, _graph.always);
 
   /// Gets the decorated type of [element] from [_variables], performing any
   /// necessary substitutions.
@@ -798,28 +800,21 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitListLiteral(ListLiteral node) {
-    var listType = node.staticType as InterfaceType;
-    if (node.typeArguments == null) {
-      // TODO(brianwilkerson) We might want to create a fake node in the graph
-      //  to represent the type argument so that we can still create edges from
-      //  the elements to it.
-      // TODO(brianwilkerson)
-      _unimplemented(node, 'List literal with no type arguments');
-    } else {
-      var typeArgumentType = _variables.decoratedTypeAnnotation(
-          source, node.typeArguments.arguments[0]);
-      if (typeArgumentType == null) {
-        _unimplemented(node, 'Could not compute type argument type');
+    final previousLiteralType = _currentLiteralType;
+    try {
+      var listType = node.staticType as InterfaceType;
+      if (node.typeArguments == null) {
+        _currentLiteralType = DecoratedType.forImplicitType(
+            _typeProvider, listType.typeArguments[0], _graph);
+      } else {
+        _currentLiteralType = _variables.decoratedTypeAnnotation(
+            source, node.typeArguments.arguments[0]);
       }
-      final previousLiteralType = _currentLiteralType;
-      try {
-        _currentLiteralType = typeArgumentType;
-        node.elements.forEach(_handleCollectionElement);
-      } finally {
-        _currentLiteralType = previousLiteralType;
-      }
+      node.elements.forEach(_handleCollectionElement);
       return DecoratedType(listType, _graph.never,
-          typeArguments: [typeArgumentType]);
+          typeArguments: [_currentLiteralType]);
+    } finally {
+      _currentLiteralType = previousLiteralType;
     }
   }
 

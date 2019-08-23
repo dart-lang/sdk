@@ -2035,31 +2035,38 @@ library foo;
     // Passes if no exceptions are thrown.
   }
 
-  @failingTest
   test_listLiteral_noTypeArgument_noNullableElements() async {
-    // Failing because we're not yet handling collection literals without a
-    // type argument.
     await analyze('''
 List<String> f() {
   return ['a', 'b'];
 }
 ''');
     assertNoUpstreamNullability(decoratedTypeAnnotation('List').node);
-    // TODO(brianwilkerson) Add an assertion that there is an edge from the list
-    //  literal's fake type argument to the return type's type argument.
+    final returnTypeNode = decoratedTypeAnnotation('String').node;
+    final returnTypeEdges = graph.getUpstreamEdges(returnTypeNode);
+
+    expect(returnTypeEdges.length, 1);
+    final returnTypeEdge = returnTypeEdges.single;
+
+    final listArgType = returnTypeEdge.primarySource;
+    assertNoUpstreamNullability(listArgType);
   }
 
-  @failingTest
   test_listLiteral_noTypeArgument_nullableElement() async {
-    // Failing because we're not yet handling collection literals without a
-    // type argument.
     await analyze('''
 List<String> f() {
   return ['a', null, 'c'];
 }
 ''');
     assertNoUpstreamNullability(decoratedTypeAnnotation('List').node);
-    assertEdge(always, decoratedTypeAnnotation('String').node, hard: false);
+    final returnTypeNode = decoratedTypeAnnotation('String').node;
+    final returnTypeEdges = graph.getUpstreamEdges(returnTypeNode);
+
+    expect(returnTypeEdges.length, 1);
+    final returnTypeEdge = returnTypeEdges.single;
+
+    final listArgType = returnTypeEdge.primarySource;
+    assertEdge(always, listArgType, hard: false);
   }
 
   test_listLiteral_typeArgument_noNullableElements() async {

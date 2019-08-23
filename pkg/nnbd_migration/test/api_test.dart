@@ -935,6 +935,22 @@ class C {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_field_initializer_untyped_list_literal() async {
+    var content = '''
+class C {
+  List<int> f;
+  C() : f = [null];
+}
+''';
+    var expected = '''
+class C {
+  List<int?> f;
+  C() : f = [null];
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_field_type_inferred() async {
     var content = '''
 int f() => null;
