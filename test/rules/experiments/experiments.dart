@@ -11,6 +11,7 @@ import 'package:linter/src/rules/prefer_constructors_over_static_methods.dart';
 import 'package:linter/src/rules/public_member_api_docs.dart';
 import 'package:linter/src/rules/slash_for_doc_comments.dart';
 import 'package:linter/src/rules/type_annotate_public_apis.dart';
+import 'package:linter/src/rules/use_setters_to_change_properties.dart';
 
 final experiments = <LintRule>[
   AlwaysDeclareReturnTypes(),
@@ -21,6 +22,7 @@ final experiments = <LintRule>[
   PublicMemberApiDocs(),
   SlashForDocComments(),
   TypeAnnotatePublicApis(),
+  UseSettersToChangeAProperty(),
 ];
 
 void registerLintRuleExperiments() {
