@@ -2772,6 +2772,7 @@ under
 underlying
 underscore
 understand
+understood
 unevaluated
 unexpected
 unfinished

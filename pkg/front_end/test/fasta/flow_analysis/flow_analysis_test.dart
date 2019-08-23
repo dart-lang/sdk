@@ -182,6 +182,17 @@ main() {
       h.flow.finish();
     });
 
+    test('for_bodyBegin() handles empty condition', () {
+      var h = _Harness();
+      h.flow.for_conditionBegin({});
+      h.flow.for_bodyBegin(_Statement(), null);
+      h.flow.for_updaterBegin();
+      expect(h.flow.isReachable, isTrue);
+      h.flow.for_end();
+      expect(h.flow.isReachable, isFalse);
+      h.flow.finish();
+    });
+
     test('for_bodyBegin() promotes', () {
       var h = _Harness();
       var x = h.addAssignedVar('x', 'int?');

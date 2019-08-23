@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -45,8 +44,6 @@ class AnalyzerNodeOperations implements NodeOperations<Expression> {
 /// code that are independent from visiting AST during resolution, so can
 /// be extracted.
 class FlowAnalysisHelper {
-  static final _trueLiteral = astFactory.booleanLiteral(null, true);
-
   /// The reused instance for creating new [FlowAnalysis] instances.
   final NodeOperations<Expression> _nodeOperations;
 
@@ -152,16 +149,12 @@ class FlowAnalysisHelper {
   }
 
   void for_bodyBegin(AstNode node, Expression condition) {
-    flow.for_bodyBegin(
-        node is Statement ? node : null, condition ?? _trueLiteral);
+    flow.for_bodyBegin(node is Statement ? node : null, condition);
   }
 
   void for_conditionBegin(AstNode node, Expression condition) {
     var assigned = assignedVariables[node];
     flow.for_conditionBegin(assigned);
-    if (condition == null) {
-      flow.booleanLiteral(_trueLiteral, true);
-    }
   }
 
   void functionBody_enter(FunctionBody node) {
