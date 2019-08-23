@@ -958,6 +958,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   @override
+  DecoratedType visitRethrowExpression(RethrowExpression node) {
+    _flowAnalysis.handleExit();
+    return DecoratedType(node.staticType, _graph.never);
+  }
+
+  @override
   DecoratedType visitReturnStatement(ReturnStatement node) {
     DecoratedType returnType = _currentFunctionType.returnType;
     Expression returnValue = node.expression;
@@ -1086,6 +1092,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType visitThrowExpression(ThrowExpression node) {
     node.expression.accept(this);
     // TODO(paulberry): do we need to check the expression type?  I think not.
+    _flowAnalysis.handleExit();
     return DecoratedType(node.staticType, _graph.never);
   }
 
