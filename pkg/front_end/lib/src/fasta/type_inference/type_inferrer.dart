@@ -1668,7 +1668,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   /// Performs the core type inference algorithm for property gets (this handles
   /// both null-aware and non-null-aware property gets).
-  void inferPropertyGet(Expression expression, Expression receiver,
+  DartType inferPropertyGet(Expression expression, Expression receiver,
       int fileOffset, DartType typeContext,
       {VariableDeclaration receiverVariable,
       PropertyGet desugaredGet,
@@ -1708,6 +1708,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       }
     }
     storeInferredType(expression, inferredType);
+    return inferredType;
   }
 
   /// Modifies a type as appropriate when inferring a closure return type.
