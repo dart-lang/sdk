@@ -399,7 +399,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
             assigned: true);
       }
     }
-    node.body.accept(this);
+    // The catch clause may not execute, so create a new scope for
+    // post-dominators.
+    _postDominatedLocals.doScoped(action: () => node.body.accept(this));
     return null;
   }
 

@@ -3087,6 +3087,19 @@ void test(C c1, C c2, C c3, C c4) {
         assertEdge(decoratedTypeAnnotation('C c3').node, never, hard: false));
   }
 
+  test_postDominators_tryCatch() async {
+    await analyze('''
+void test(int i) {
+  try {} catch (_) {
+    i.isEven;
+  }
+}
+''');
+    // Edge should not be hard because the call to `i.isEven` does not
+    // post-dominate the declaration of `i`.
+    assertEdge(decoratedTypeAnnotation('int i').node, never, hard: false);
+  }
+
   test_postDominators_whileStatement_unconditional() async {
     await analyze('''
 class C {
