@@ -279,6 +279,11 @@ abstract class RawSecureSocket implements RawSocket {
    * the [socket] will be used. The [host] can be either a [String] or
    * an [InternetAddress].
    *
+   * [supportedProtocols] is an optional list of protocols (in decreasing
+   * order of preference) to use during the ALPN protocol negotiation with the
+   * server.  Example values are "http/1.1" or "h2".  The selected protocol
+   * can be obtained via [SecureSocket.selectedProtocol].
+   *
    * Calling this function will _not_ cause a DNS host lookup. If the
    * [host] passed is a [String] the [InternetAddress] for the
    * resulting [SecureSocket] will have this passed in [host] as its
