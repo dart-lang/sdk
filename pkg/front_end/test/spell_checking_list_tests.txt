@@ -288,6 +288,7 @@ prop
 propagated
 protected
 provider
+pubspec
 pure
 pv
 px

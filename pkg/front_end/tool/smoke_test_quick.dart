@@ -18,6 +18,7 @@ main(List<String> args) async {
   futures.add(run("pkg/front_end/test/spelling_test_not_src_test.dart", []));
   futures.add(run("pkg/front_end/test/spelling_test_src_test.dart", []));
   futures.add(run("pkg/front_end/test/lint_test.dart", []));
+  futures.add(run("pkg/front_end/test/deps_test.dart", []));
   await Future.wait(futures);
   print("\n-----------------------\n");
   print("Done with exitcode $exitCode in ${stopwatch.elapsedMilliseconds} ms");
