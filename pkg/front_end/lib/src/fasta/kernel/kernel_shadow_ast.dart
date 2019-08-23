@@ -66,13 +66,7 @@ import '../type_inference/inference_helper.dart' show InferenceHelper;
 import '../type_inference/type_inference_engine.dart'
     show IncludesTypeParametersNonCovariantly, TypeInferenceEngine;
 
-import '../type_inference/type_inferrer.dart'
-    show
-        ClosureContext,
-        ExpressionInferenceResult,
-        MethodContravarianceCheckKind,
-        TypeInferrer,
-        TypeInferrerImpl;
+import '../type_inference/type_inferrer.dart';
 
 import '../type_inference/type_promotion.dart'
     show TypePromoter, TypePromoterImpl, TypePromotionFact, TypePromotionScope;
@@ -358,19 +352,22 @@ abstract class ComplexAssignmentJudgment extends SyntheticExpressionJudgment {
           ?.addProblem(messageVoidExpression, read.fileOffset, noLength);
     }
     int writeOffset = write == null ? -1 : write.fileOffset;
-    Procedure combinerMember;
+    ObjectAccessTarget combinerTarget = const ObjectAccessTarget.unresolved();
     DartType combinedType;
     if (combiner != null) {
       bool isOverloadedArithmeticOperator = false;
-      combinerMember = inferrer.findMethodInvocationMember(readType, combiner,
+      combinerTarget = inferrer.findMethodInvocationMember(readType, combiner,
           instrumented: false);
-      if (combinerMember is Procedure) {
+      assert(!combinerTarget.isCallFunction);
+      if (combinerTarget.isInstanceMember &&
+          combinerTarget.member is Procedure) {
         isOverloadedArithmeticOperator = inferrer.typeSchemaEnvironment
-            .isOverloadedArithmeticOperatorAndType(combinerMember, readType);
+            .isOverloadedArithmeticOperatorAndType(
+                combinerTarget.member, readType);
       }
       DartType rhsType;
       FunctionType combinerType = inferrer.getCalleeFunctionType(
-          inferrer.getCalleeType(combinerMember, readType), false);
+          inferrer.getCalleeType(combinerTarget, readType), false);
       if (isPreIncDec || isPostIncDec) {
         rhsType = inferrer.coreTypes.intClass.rawType;
       } else {
@@ -396,7 +393,7 @@ abstract class ComplexAssignmentJudgment extends SyntheticExpressionJudgment {
       }
       MethodContravarianceCheckKind checkKind =
           inferrer.preCheckInvocationContravariance(read, readType,
-              combinerMember, combiner, combiner.arguments, combiner);
+              combinerTarget, combiner, combiner.arguments, combiner);
       Expression replacedCombiner = inferrer.handleInvocationContravariance(
           checkKind,
           combiner,
@@ -441,7 +438,7 @@ abstract class ComplexAssignmentJudgment extends SyntheticExpressionJudgment {
     }
     inferredType =
         isPostIncDec ? (readType ?? const DynamicType()) : combinedType;
-    return new _ComplexAssignmentInferenceResult(combinerMember);
+    return new _ComplexAssignmentInferenceResult(combinerTarget.member);
   }
 }
 
@@ -1042,7 +1039,7 @@ class PropertyAssignmentJudgment extends ComplexAssignmentJudgmentWithReceiver {
     return parts;
   }
 
-  Object _handleWriteContravariance(
+  ObjectAccessTarget _handleWriteContravariance(
       ShadowTypeInferrer inferrer, DartType receiverType) {
     return inferrer.findPropertySetMember(receiverType, write);
   }

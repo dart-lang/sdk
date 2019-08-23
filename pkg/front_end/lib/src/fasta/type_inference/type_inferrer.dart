@@ -650,7 +650,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           PropertyGet tearOff =
               new PropertyGet(new VariableGet(t), callName, callMember)
                 ..fileOffset = fileOffset;
-          actualType = getCalleeType(callMember, actualType);
+          actualType = getCalleeTypeForMemberTarget(callMember, actualType);
           ConditionalExpression conditional = new ConditionalExpression(
               nullCheck,
               new NullLiteral()..fileOffset = fileOffset,
@@ -738,7 +738,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// up targeting it if the arguments do not match (the basic principle is that
   /// the Object member is used for inferring types only if noSuchMethod cannot
   /// be targeted due to, e.g., an incorrect argument count).
-  Object findInterfaceMember(DartType receiverType, Name name, int fileOffset,
+  ObjectAccessTarget findInterfaceMember(
+      DartType receiverType, Name name, int fileOffset,
       {Template<Message Function(String, DartType)> errorTemplate,
       Expression expression,
       Expression receiver,
@@ -749,7 +750,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     receiverType = resolveTypeParameter(receiverType);
 
     if (receiverType is FunctionType && name.name == 'call') {
-      return 'call';
+      return const ObjectAccessTarget.callFunction();
     }
 
     Class classNode = receiverType is InterfaceType
@@ -783,55 +784,59 @@ abstract class TypeInferrerImpl extends TypeInferrer {
               fileOffset,
               length)));
     }
-    return interfaceMember;
+    return interfaceMember != null
+        ? new ObjectAccessTarget.interfaceMember(interfaceMember)
+        : const ObjectAccessTarget.unresolved();
   }
 
   /// Finds a member of [receiverType] called [name] and records it in
   /// [methodInvocation].
-  Object findMethodInvocationMember(
+  ObjectAccessTarget findMethodInvocationMember(
       DartType receiverType, InvocationExpression methodInvocation,
       {bool instrumented: true}) {
     // TODO(paulberry): could we add getters to InvocationExpression to make
     // these is-checks unnecessary?
     if (methodInvocation is MethodInvocation) {
-      Object interfaceMember = findInterfaceMember(
+      ObjectAccessTarget interfaceTarget = findInterfaceMember(
           receiverType, methodInvocation.name, methodInvocation.fileOffset,
           errorTemplate: templateUndefinedMethod,
           expression: methodInvocation,
           receiver: methodInvocation.receiver,
           instrumented: instrumented);
-      if (receiverType == const DynamicType() && interfaceMember is Procedure) {
-        Arguments arguments = methodInvocation.arguments;
-        FunctionNode signature = interfaceMember.function;
-        if (arguments.positional.length < signature.requiredParameterCount ||
-            arguments.positional.length >
-                signature.positionalParameters.length) {
-          return null;
-        }
-        for (kernel.NamedExpression argument in arguments.named) {
-          if (!signature.namedParameters
-              .any((declaration) => declaration.name == argument.name)) {
-            return null;
+      if (interfaceTarget.isInstanceMember) {
+        Member interfaceMember = interfaceTarget.member;
+        if (receiverType == const DynamicType() &&
+            interfaceMember is Procedure) {
+          Arguments arguments = methodInvocation.arguments;
+          FunctionNode signature = interfaceMember.function;
+          if (arguments.positional.length < signature.requiredParameterCount ||
+              arguments.positional.length >
+                  signature.positionalParameters.length) {
+            return const ObjectAccessTarget.unresolved();
+          }
+          for (kernel.NamedExpression argument in arguments.named) {
+            if (!signature.namedParameters
+                .any((declaration) => declaration.name == argument.name)) {
+              return const ObjectAccessTarget.unresolved();
+            }
+          }
+          if (instrumented && instrumentation != null) {
+            instrumentation.record(uri, methodInvocation.fileOffset, 'target',
+                new InstrumentationValueForMember(interfaceMember));
           }
         }
-        if (instrumented && instrumentation != null) {
-          instrumentation.record(uri, methodInvocation.fileOffset, 'target',
-              new InstrumentationValueForMember(interfaceMember));
-        }
-        methodInvocation.interfaceTarget = interfaceMember;
-      } else if (interfaceMember is Member) {
         methodInvocation.interfaceTarget = interfaceMember;
       }
-      return interfaceMember;
+      return interfaceTarget;
     } else if (methodInvocation is SuperMethodInvocation) {
       assert(receiverType != const DynamicType());
-      Object interfaceMember = findInterfaceMember(
+      ObjectAccessTarget interfaceTarget = findInterfaceMember(
           receiverType, methodInvocation.name, methodInvocation.fileOffset,
           instrumented: instrumented);
-      if (interfaceMember is Member) {
-        methodInvocation.interfaceTarget = interfaceMember;
+      if (interfaceTarget.isInstanceMember) {
+        methodInvocation.interfaceTarget = interfaceTarget.member;
       }
-      return interfaceMember;
+      return interfaceTarget;
     } else {
       throw unhandled("${methodInvocation.runtimeType}",
           "findMethodInvocationMember", methodInvocation.fileOffset, uri);
@@ -840,34 +845,35 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   /// Finds a member of [receiverType] called [name], and if it is found,
   /// reports it through instrumentation and records it in [propertyGet].
-  Object findPropertyGetMember(DartType receiverType, Expression propertyGet,
+  ObjectAccessTarget findPropertyGetMember(
+      DartType receiverType, Expression propertyGet,
       {bool instrumented: true}) {
     // TODO(paulberry): could we add a common base class to PropertyGet and
     // SuperPropertyGet to make these is-checks unnecessary?
     if (propertyGet is PropertyGet) {
-      Object interfaceMember = findInterfaceMember(
+      ObjectAccessTarget readTarget = findInterfaceMember(
           receiverType, propertyGet.name, propertyGet.fileOffset,
           errorTemplate: templateUndefinedGetter,
           expression: propertyGet,
           receiver: propertyGet.receiver,
           instrumented: instrumented);
-      if (interfaceMember is Member) {
+      if (readTarget.isInstanceMember) {
         if (instrumented &&
             instrumentation != null &&
             receiverType == const DynamicType()) {
           instrumentation.record(uri, propertyGet.fileOffset, 'target',
-              new InstrumentationValueForMember(interfaceMember));
+              new InstrumentationValueForMember(readTarget.member));
         }
-        propertyGet.interfaceTarget = interfaceMember;
+        propertyGet.interfaceTarget = readTarget.member;
       }
-      return interfaceMember;
+      return readTarget;
     } else if (propertyGet is SuperPropertyGet) {
       assert(receiverType != const DynamicType());
-      Object interfaceMember = findInterfaceMember(
+      ObjectAccessTarget interfaceMember = findInterfaceMember(
           receiverType, propertyGet.name, propertyGet.fileOffset,
           instrumented: instrumented);
-      if (interfaceMember is Member) {
-        propertyGet.interfaceTarget = interfaceMember;
+      if (interfaceMember.isInstanceMember) {
+        propertyGet.interfaceTarget = interfaceMember.member;
       }
       return interfaceMember;
     } else {
@@ -878,33 +884,34 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   /// Finds a member of [receiverType] called [name], and if it is found,
   /// reports it through instrumentation and records it in [propertySet].
-  Object findPropertySetMember(DartType receiverType, Expression propertySet,
+  ObjectAccessTarget findPropertySetMember(
+      DartType receiverType, Expression propertySet,
       {bool instrumented: true}) {
     if (propertySet is PropertySet) {
-      Object interfaceMember = findInterfaceMember(
+      ObjectAccessTarget writeTarget = findInterfaceMember(
           receiverType, propertySet.name, propertySet.fileOffset,
           errorTemplate: templateUndefinedSetter,
           expression: propertySet,
           receiver: propertySet.receiver,
           setter: true,
           instrumented: instrumented);
-      if (interfaceMember is Member) {
+      if (writeTarget.isInstanceMember) {
         if (instrumented &&
             instrumentation != null &&
             receiverType == const DynamicType()) {
           instrumentation.record(uri, propertySet.fileOffset, 'target',
-              new InstrumentationValueForMember(interfaceMember));
+              new InstrumentationValueForMember(writeTarget.member));
         }
-        propertySet.interfaceTarget = interfaceMember;
+        propertySet.interfaceTarget = writeTarget.member;
       }
-      return interfaceMember;
+      return writeTarget;
     } else if (propertySet is SuperPropertySet) {
       assert(receiverType != const DynamicType());
-      Object interfaceMember = findInterfaceMember(
+      ObjectAccessTarget interfaceMember = findInterfaceMember(
           receiverType, propertySet.name, propertySet.fileOffset,
           setter: true, instrumented: instrumented);
-      if (interfaceMember is Member) {
-        propertySet.interfaceTarget = interfaceMember;
+      if (interfaceMember.isInstanceMember) {
+        propertySet.interfaceTarget = interfaceMember.member;
       }
       return interfaceMember;
     } else {
@@ -919,7 +926,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     } else if (followCall && calleeType is InterfaceType) {
       Member member =
           _getInterfaceMember(calleeType.classNode, callName, false, -1);
-      DartType callType = getCalleeType(member, calleeType);
+      DartType callType = getCalleeTypeForMemberTarget(member, calleeType);
       if (callType is FunctionType) {
         return callType;
       }
@@ -927,40 +934,49 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     return unknownFunction;
   }
 
-  DartType getCalleeType(Object interfaceMember, DartType receiverType) {
-    if (identical(interfaceMember, 'call')) {
-      return receiverType;
-    } else if (interfaceMember == null) {
+  DartType getCalleeType(ObjectAccessTarget target, DartType receiverType) {
+    switch (target.kind) {
+      case ObjectAccessTargetKind.callFunction:
+        return receiverType;
+      case ObjectAccessTargetKind.unresolved:
+        return const DynamicType();
+      case ObjectAccessTargetKind.instanceMember:
+        return getCalleeTypeForMemberTarget(target.member, receiverType);
+      default:
+        throw unhandled(
+            target.runtimeType.toString(), 'getCalleeType', null, null);
+    }
+  }
+
+  DartType getCalleeTypeForMemberTarget(
+      Member interfaceMember, DartType receiverType) {
+    if (interfaceMember == null) {
       return const DynamicType();
-    } else if (interfaceMember is Member) {
-      Class memberClass = interfaceMember.enclosingClass;
-      DartType calleeType;
-      if (interfaceMember is Procedure) {
-        if (interfaceMember.kind == ProcedureKind.Getter) {
-          calleeType = interfaceMember.function.returnType;
-        } else {
-          calleeType = interfaceMember.function.functionType;
-        }
-      } else if (interfaceMember is Field) {
-        calleeType = interfaceMember.type;
+    }
+    Class memberClass = interfaceMember.enclosingClass;
+    DartType calleeType;
+    if (interfaceMember is Procedure) {
+      if (interfaceMember.kind == ProcedureKind.Getter) {
+        calleeType = interfaceMember.function.returnType;
       } else {
-        throw unhandled(interfaceMember.runtimeType.toString(), 'getCalleeType',
-            null, null);
+        calleeType = interfaceMember.function.functionType;
       }
-      if (memberClass.typeParameters.isNotEmpty) {
-        receiverType = resolveTypeParameter(receiverType);
-        if (receiverType is InterfaceType) {
-          InterfaceType castedType =
-              classHierarchy.getTypeAsInstanceOf(receiverType, memberClass);
-          calleeType = Substitution.fromInterfaceType(castedType)
-              .substituteType(calleeType);
-        }
-      }
-      return calleeType;
+    } else if (interfaceMember is Field) {
+      calleeType = interfaceMember.type;
     } else {
       throw unhandled(
           interfaceMember.runtimeType.toString(), 'getCalleeType', null, null);
     }
+    if (memberClass.typeParameters.isNotEmpty) {
+      receiverType = resolveTypeParameter(receiverType);
+      if (receiverType is InterfaceType) {
+        InterfaceType castedType =
+            classHierarchy.getTypeAsInstanceOf(receiverType, memberClass);
+        calleeType = Substitution.fromInterfaceType(castedType)
+            .substituteType(calleeType);
+      }
+    }
+    return calleeType;
   }
 
   DartType getDerivedTypeArgumentOf(DartType type, Class class_) {
@@ -987,40 +1003,41 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     return member;
   }
 
-  DartType getSetterType(Object interfaceMember, DartType receiverType) {
-    if (interfaceMember is FunctionType) {
-      return interfaceMember;
-    } else if (interfaceMember == null) {
-      return const DynamicType();
-    } else if (interfaceMember is Member) {
-      Class memberClass = interfaceMember.enclosingClass;
-      DartType setterType;
-      if (interfaceMember is Procedure) {
-        assert(interfaceMember.kind == ProcedureKind.Setter);
-        List<VariableDeclaration> setterParameters =
-            interfaceMember.function.positionalParameters;
-        setterType = setterParameters.length > 0
-            ? setterParameters[0].type
-            : const DynamicType();
-      } else if (interfaceMember is Field) {
-        setterType = interfaceMember.type;
-      } else {
-        throw unhandled(interfaceMember.runtimeType.toString(), 'getSetterType',
-            null, null);
-      }
-      if (memberClass.typeParameters.isNotEmpty) {
-        receiverType = resolveTypeParameter(receiverType);
-        if (receiverType is InterfaceType) {
-          InterfaceType castedType =
-              classHierarchy.getTypeAsInstanceOf(receiverType, memberClass);
-          setterType = Substitution.fromInterfaceType(castedType)
-              .substituteType(setterType);
+  DartType getSetterType(ObjectAccessTarget target, DartType receiverType) {
+    switch (target.kind) {
+      case ObjectAccessTargetKind.unresolved:
+        return const DynamicType();
+      case ObjectAccessTargetKind.instanceMember:
+        Member interfaceMember = target.member;
+        Class memberClass = interfaceMember.enclosingClass;
+        DartType setterType;
+        if (interfaceMember is Procedure) {
+          assert(interfaceMember.kind == ProcedureKind.Setter);
+          List<VariableDeclaration> setterParameters =
+              interfaceMember.function.positionalParameters;
+          setterType = setterParameters.length > 0
+              ? setterParameters[0].type
+              : const DynamicType();
+        } else if (interfaceMember is Field) {
+          setterType = interfaceMember.type;
+        } else {
+          throw unhandled(interfaceMember.runtimeType.toString(),
+              'getSetterType', null, null);
         }
-      }
-      return setterType;
-    } else {
-      throw unhandled(
-          interfaceMember.runtimeType.toString(), 'getSetterType', null, null);
+        if (memberClass.typeParameters.isNotEmpty) {
+          receiverType = resolveTypeParameter(receiverType);
+          if (receiverType is InterfaceType) {
+            InterfaceType castedType =
+                classHierarchy.getTypeAsInstanceOf(receiverType, memberClass);
+            setterType = Substitution.fromInterfaceType(castedType)
+                .substituteType(setterType);
+          }
+        }
+        return setterType;
+      case ObjectAccessTargetKind.callFunction:
+      default:
+        throw unhandled(
+            target.runtimeType.toString(), 'getSetterType', null, null);
     }
   }
 
@@ -1092,15 +1109,16 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// expression.
   Expression handlePropertyGetContravariance(
       Expression receiver,
-      Object interfaceMember,
+      ObjectAccessTarget readTarget,
       PropertyGet desugaredGet,
       Expression expression,
       DartType inferredType,
       int fileOffset) {
     bool checkReturn = false;
     if (receiver != null &&
-        interfaceMember != null &&
+        readTarget.isInstanceMember &&
         receiver is! ThisExpression) {
+      Member interfaceMember = readTarget.member;
       if (interfaceMember is Procedure) {
         checkReturn = returnedTypeParametersOccurNonCovariantly(
             interfaceMember.enclosingClass,
@@ -1533,28 +1551,34 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       DartType typeContext,
       {VariableDeclaration receiverVariable,
       MethodInvocation desugaredInvocation,
-      Object interfaceMember,
+      ObjectAccessTarget target,
       Name methodName,
       Arguments arguments}) {
+    assert(desugaredInvocation == null || target == null);
+    assert(desugaredInvocation != null || target != null);
     // First infer the receiver so we can look up the method that was invoked.
     DartType receiverType = receiver == null
         ? thisType
         : inferExpression(receiver, const UnknownType(), true);
     receiverVariable?.type = receiverType;
     if (desugaredInvocation != null) {
-      interfaceMember =
-          findMethodInvocationMember(receiverType, desugaredInvocation);
+      target = findMethodInvocationMember(receiverType, desugaredInvocation);
       methodName = desugaredInvocation.name;
       arguments = desugaredInvocation.arguments;
     }
-    bool isOverloadedArithmeticOperator = interfaceMember is Procedure &&
+    assert(
+        target != null,
+        "No target for ${expression} with desugared "
+        "invocation ${desugaredInvocation}.");
+    bool isOverloadedArithmeticOperator = target.isInstanceMember &&
+        target.member is Procedure &&
         typeSchemaEnvironment.isOverloadedArithmeticOperatorAndType(
-            interfaceMember, receiverType);
-    DartType calleeType = getCalleeType(interfaceMember, receiverType);
+            target.member, receiverType);
+    DartType calleeType = getCalleeType(target, receiverType);
     FunctionType functionType =
         getCalleeFunctionType(calleeType, !isImplicitCall);
 
-    if (interfaceMember != null &&
+    if (!target.isUnresolved &&
         calleeType is! DynamicType &&
         calleeType != coreTypes.functionClass.rawType &&
         identical(functionType, unknownFunction)) {
@@ -1567,7 +1591,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     MethodContravarianceCheckKind checkKind = preCheckInvocationContravariance(
         receiver,
         receiverType,
-        interfaceMember,
+        target,
         desugaredInvocation,
         arguments,
         expression);
@@ -1581,13 +1605,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     }
     handleInvocationContravariance(checkKind, desugaredInvocation, arguments,
         expression, inferredType, functionType, fileOffset);
-    if (!identical(interfaceMember, 'call')) {
-      if (isImplicitCall &&
-          interfaceMember != null &&
-          !(interfaceMember is Procedure &&
-              interfaceMember.kind == ProcedureKind.Method) &&
-          receiverType is! DynamicType &&
-          receiverType != typeSchemaEnvironment.rawFunctionType) {
+    if (isImplicitCall && target.isInstanceMember) {
+      Member member = target.member;
+      if (!(member is Procedure && member.kind == ProcedureKind.Method)) {
         TreeNode parent = expression.parent;
         Expression errorNode = helper.wrapInProblem(
             expression,
@@ -1615,7 +1635,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         actualMethodName = callName;
       } else {
         actualReceiverType = receiverType;
-        interfaceTarget = interfaceMember is Member ? interfaceMember : null;
+        interfaceTarget = target.isInstanceMember ? target.member : null;
         actualMethodName = methodName;
       }
       library.checkBoundsInMethodInvocation(
@@ -1652,7 +1672,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       int fileOffset, DartType typeContext,
       {VariableDeclaration receiverVariable,
       PropertyGet desugaredGet,
-      Object interfaceMember,
+      ObjectAccessTarget readTarget,
       Name propertyName}) {
     // First infer the receiver so we can look up the getter that was invoked.
     DartType receiverType;
@@ -1665,26 +1685,27 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     receiverVariable?.type = receiverType;
     propertyName ??= desugaredGet.name;
     if (desugaredGet != null) {
-      interfaceMember = findInterfaceMember(
-          receiverType, propertyName, fileOffset,
+      readTarget = findInterfaceMember(receiverType, propertyName, fileOffset,
           errorTemplate: templateUndefinedGetter,
           expression: expression,
           receiver: receiver);
-      if (interfaceMember is Member) {
+      if (readTarget.isInstanceMember) {
         if (instrumentation != null && receiverType == const DynamicType()) {
           instrumentation.record(uri, desugaredGet.fileOffset, 'target',
-              new InstrumentationValueForMember(interfaceMember));
+              new InstrumentationValueForMember(readTarget.member));
         }
-        desugaredGet.interfaceTarget = interfaceMember;
+        desugaredGet.interfaceTarget = readTarget.member;
       }
     }
-    DartType inferredType = getCalleeType(interfaceMember, receiverType);
+    DartType inferredType = getCalleeType(readTarget, receiverType);
     Expression replacedExpression = handlePropertyGetContravariance(receiver,
-        interfaceMember, desugaredGet, expression, inferredType, fileOffset);
-    if ((interfaceMember is Procedure &&
-        interfaceMember.kind == ProcedureKind.Method)) {
-      inferredType =
-          instantiateTearOff(inferredType, typeContext, replacedExpression);
+        readTarget, desugaredGet, expression, inferredType, fileOffset);
+    if (readTarget.isInstanceMember) {
+      Member member = readTarget.member;
+      if (member is Procedure && member.kind == ProcedureKind.Method) {
+        inferredType =
+            instantiateTearOff(inferredType, typeContext, replacedExpression);
+      }
     }
     storeInferredType(expression, inferredType);
   }
@@ -1759,35 +1780,38 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   MethodContravarianceCheckKind preCheckInvocationContravariance(
       Expression receiver,
       DartType receiverType,
-      Object interfaceMember,
+      ObjectAccessTarget target,
       MethodInvocation desugaredInvocation,
       Arguments arguments,
       Expression expression) {
-    if (interfaceMember is Field ||
-        interfaceMember is Procedure &&
-            interfaceMember.kind == ProcedureKind.Getter) {
-      DartType getType = getCalleeType(interfaceMember, receiverType);
-      if (getType is DynamicType) {
-        return MethodContravarianceCheckKind.none;
-      }
-      if (receiver != null && receiver is! ThisExpression) {
-        if ((interfaceMember is Field &&
-                returnedTypeParametersOccurNonCovariantly(
-                    interfaceMember.enclosingClass, interfaceMember.type)) ||
-            (interfaceMember is Procedure &&
-                returnedTypeParametersOccurNonCovariantly(
-                    interfaceMember.enclosingClass,
-                    interfaceMember.function.returnType))) {
-          return MethodContravarianceCheckKind.checkGetterReturn;
+    if (target.isInstanceMember) {
+      Member interfaceMember = target.member;
+      if (interfaceMember is Field ||
+          interfaceMember is Procedure &&
+              interfaceMember.kind == ProcedureKind.Getter) {
+        DartType getType = getCalleeType(target, receiverType);
+        if (getType is DynamicType) {
+          return MethodContravarianceCheckKind.none;
         }
+        if (receiver != null && receiver is! ThisExpression) {
+          if ((interfaceMember is Field &&
+                  returnedTypeParametersOccurNonCovariantly(
+                      interfaceMember.enclosingClass, interfaceMember.type)) ||
+              (interfaceMember is Procedure &&
+                  returnedTypeParametersOccurNonCovariantly(
+                      interfaceMember.enclosingClass,
+                      interfaceMember.function.returnType))) {
+            return MethodContravarianceCheckKind.checkGetterReturn;
+          }
+        }
+      } else if (receiver != null &&
+          receiver is! ThisExpression &&
+          interfaceMember is Procedure &&
+          returnedTypeParametersOccurNonCovariantly(
+              interfaceMember.enclosingClass,
+              interfaceMember.function.returnType)) {
+        return MethodContravarianceCheckKind.checkMethodReturn;
       }
-    } else if (receiver != null &&
-        receiver is! ThisExpression &&
-        interfaceMember is Procedure &&
-        returnedTypeParametersOccurNonCovariantly(
-            interfaceMember.enclosingClass,
-            interfaceMember.function.returnType)) {
-      return MethodContravarianceCheckKind.checkMethodReturn;
     }
     return MethodContravarianceCheckKind.none;
   }
@@ -2077,4 +2101,49 @@ class ExpressionInferenceResult {
   final DartType type;
 
   ExpressionInferenceResult(this.expression, this.type);
+}
+
+enum ObjectAccessTargetKind {
+  instanceMember,
+  callFunction,
+  unresolved,
+}
+
+/// Result for performing an access on an object, like `o.foo`, `o.foo()` and
+/// `o.foo = ...`.
+class ObjectAccessTarget {
+  final ObjectAccessTargetKind kind;
+  final Member member;
+
+  const ObjectAccessTarget.internal(this.kind, this.member);
+
+  /// Creates an access to the instance [member].
+  factory ObjectAccessTarget.interfaceMember(Member member) {
+    assert(member != null);
+    return new ObjectAccessTarget.internal(
+        ObjectAccessTargetKind.instanceMember, member);
+  }
+
+  /// Creates an access to a 'call' method on a function, i.e. a function
+  /// invocation.
+  const ObjectAccessTarget.callFunction()
+      : this.internal(ObjectAccessTargetKind.callFunction, null);
+
+  /// Creates an access with no target.
+  ///
+  /// Done depending on context this may or may not be an error. For instance
+  /// if the receiver has type `dynamic` this is not an error.
+  const ObjectAccessTarget.unresolved()
+      : this.internal(ObjectAccessTargetKind.unresolved, null);
+
+  /// Returns `true` if this is an access to an instance member.
+  bool get isInstanceMember => kind == ObjectAccessTargetKind.instanceMember;
+
+  /// Returns `true` if this is an access to the 'call' method on a function.
+  bool get isCallFunction => kind == ObjectAccessTargetKind.callFunction;
+
+  /// Returns `true` if this is an access without a known target.
+  bool get isUnresolved => kind == ObjectAccessTargetKind.unresolved;
+
+  String toString() => 'ObjectAccessTarget($kind,$member)';
 }

@@ -360,10 +360,10 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
     } else if (syntheticAssignment is PropertySet ||
         syntheticAssignment is SuperPropertySet) {
       DartType receiverType = inferrer.thisType;
-      Object writeMember =
+      ObjectAccessTarget writeTarget =
           inferrer.findPropertySetMember(receiverType, syntheticAssignment);
       syntheticWriteType =
-          elementType = inferrer.getSetterType(writeMember, receiverType);
+          elementType = inferrer.getSetterType(writeTarget, receiverType);
       if (syntheticAssignment is PropertySet) {
         rhs = syntheticAssignment.value;
       } else if (syntheticAssignment is SuperPropertySet) {
@@ -544,13 +544,13 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
   void visitIndexAssignmentJudgment(
       IndexAssignmentJudgment node, DartType typeContext) {
     DartType receiverType = node._inferReceiver(inferrer);
-    Object writeMember =
+    ObjectAccessTarget writeTarget =
         inferrer.findMethodInvocationMember(receiverType, node.write);
     // To replicate analyzer behavior, we base type inference on the write
     // member.  TODO(paulberry): would it be better to use the read member
     // when doing compound assignment?
     FunctionType calleeType = inferrer.getCalleeFunctionType(
-        inferrer.getCalleeType(writeMember, receiverType), false);
+        inferrer.getCalleeType(writeTarget, receiverType), false);
     DartType expectedIndexTypeForWrite;
     DartType indexContext = const UnknownType();
     DartType writeContext = const UnknownType();
@@ -574,7 +574,7 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
     InvocationExpression read = node.read;
     DartType readType;
     if (read != null) {
-      Object readMember = inferrer
+      ObjectAccessTarget readMember = inferrer
           .findMethodInvocationMember(receiverType, read, instrumented: false);
       FunctionType calleeFunctionType = inferrer.getCalleeFunctionType(
           inferrer.getCalleeType(readMember, receiverType), false);
@@ -1625,26 +1625,26 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
 
     DartType readType;
     if (node.read != null) {
-      Object readMember = inferrer
+      ObjectAccessTarget readTarget = inferrer
           .findPropertyGetMember(receiverType, node.read, instrumented: false);
-      readType = inferrer.getCalleeType(readMember, receiverType);
+      readType = inferrer.getCalleeType(readTarget, receiverType);
       inferrer.handlePropertyGetContravariance(
           node.receiver,
-          readMember,
+          readTarget,
           node.read is PropertyGet ? node.read : null,
           node.read,
           readType,
           node.read.fileOffset);
       node._storeLetType(inferrer, node.read, readType);
     }
-    Member writeMember;
+    ObjectAccessTarget writeTarget;
     if (node.write != null) {
-      writeMember = node._handleWriteContravariance(inferrer, receiverType);
+      writeTarget = node._handleWriteContravariance(inferrer, receiverType);
     }
     // To replicate analyzer behavior, we base type inference on the write
     // member.  TODO(paulberry): would it be better to use the read member when
     // doing compound assignment?
-    DartType writeContext = inferrer.getSetterType(writeMember, receiverType);
+    DartType writeContext = inferrer.getSetterType(writeTarget, receiverType);
     node._inferRhs(inferrer, readType, writeContext);
     node.nullAwareGuard?.staticType = node.inferredType;
     node._replaceWithDesugared();
@@ -1864,7 +1864,9 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
     }
     ExpressionInferenceResult inferenceResult = inferrer.inferMethodInvocation(
         node, null, node.fileOffset, false, typeContext,
-        interfaceMember: node.interfaceTarget,
+        target: node.interfaceTarget != null
+            ? new ObjectAccessTarget.interfaceMember(node.interfaceTarget)
+            : const ObjectAccessTarget.unresolved(),
         methodName: node.name,
         arguments: node.arguments);
     node.inferredType = inferenceResult.type;
@@ -1877,7 +1879,10 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
           new InstrumentationValueForMember(node.interfaceTarget));
     }
     inferrer.inferPropertyGet(node, null, node.fileOffset, typeContext,
-        interfaceMember: node.interfaceTarget, propertyName: node.name);
+        readTarget: node.interfaceTarget != null
+            ? new ObjectAccessTarget.interfaceMember(node.interfaceTarget)
+            : const ObjectAccessTarget.unresolved(),
+        propertyName: node.name);
   }
 
   void visitSwitchStatementJudgment(SwitchStatementJudgment node) {
