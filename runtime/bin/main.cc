@@ -662,11 +662,11 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
   }
 
   if (flags->copy_parent_code && callback_data) {
-    IsolateGroupData* parent_isolate_data =
-        reinterpret_cast<IsolateGroupData*>(callback_data);
-    parent_kernel_buffer = parent_isolate_data->kernel_buffer();
+    auto parent_isolate_group_data =
+        reinterpret_cast<IsolateData*>(callback_data)->isolate_group_data();
+    parent_kernel_buffer = parent_isolate_group_data->kernel_buffer();
     kernel_buffer = parent_kernel_buffer.get();
-    kernel_buffer_size = parent_isolate_data->kernel_buffer_size();
+    kernel_buffer_size = parent_isolate_group_data->kernel_buffer_size();
   }
 
   if (kernel_buffer == NULL && !isolate_run_app_snapshot) {
