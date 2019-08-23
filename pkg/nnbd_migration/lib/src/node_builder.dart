@@ -372,12 +372,21 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     } else {
       nullabilityNode = NullabilityNode.forTypeAnnotation(node.end);
     }
-    var decoratedType = DecoratedType(type, nullabilityNode,
-        typeArguments: typeArguments,
-        returnType: decoratedReturnType,
-        positionalParameters: positionalParameters,
-        namedParameters: namedParameters,
-        typeFormalBounds: typeFormalBounds);
+    DecoratedType decoratedType;
+    if (type is FunctionType && node is! GenericFunctionType) {
+      // node is a reference to a typedef.  Treat it like an inferred type (we
+      // synthesize new nodes for it).  These nodes will be unioned with the
+      // typedef nodes by the edge builder.
+      decoratedType = DecoratedType.forImplicitFunction(
+          _typeProvider, type, nullabilityNode, _graph);
+    } else {
+      decoratedType = DecoratedType(type, nullabilityNode,
+          typeArguments: typeArguments,
+          returnType: decoratedReturnType,
+          positionalParameters: positionalParameters,
+          namedParameters: namedParameters,
+          typeFormalBounds: typeFormalBounds);
+    }
     _variables.recordDecoratedTypeAnnotation(
         source,
         node,
