@@ -124,47 +124,6 @@ class FlowAnalysisHelper {
     }
   }
 
-  void functionBody_enter(FunctionBody node) {
-    _blockFunctionBodyLevel++;
-
-    if (_blockFunctionBodyLevel > 1) {
-      assert(flow != null);
-    } else {
-      flow = FlowAnalysis<Statement, Expression, VariableElement, DartType>(
-        _nodeOperations,
-        _typeOperations,
-        AnalyzerFunctionBodyAccess(node),
-      );
-    }
-
-    var parameters = _enclosingExecutableParameters(node);
-    if (parameters != null) {
-      for (var parameter in parameters.parameters) {
-        flow.add(parameter.declaredElement, assigned: true);
-      }
-    }
-  }
-
-  void functionBody_exit(FunctionBody node) {
-    _blockFunctionBodyLevel--;
-
-    if (_blockFunctionBodyLevel > 0) {
-      return;
-    }
-
-    // Set this.flow to null before doing any clean-up so that if an exception
-    // is raised, the state is already updated correctly, and we don't have
-    // cascading failures.
-    var flow = this.flow;
-    this.flow = null;
-
-    if (!flow.isReachable) {
-      result?.functionBodiesThatDontComplete?.add(node);
-    }
-
-    flow.finish();
-  }
-
   void breakStatement(BreakStatement node) {
     var target = getLabelTarget(node, node.label?.staticElement);
     flow.handleBreak(target);
@@ -204,6 +163,47 @@ class FlowAnalysisHelper {
     } else {
       flow.booleanLiteral(_trueLiteral, true);
     }
+  }
+
+  void functionBody_enter(FunctionBody node) {
+    _blockFunctionBodyLevel++;
+
+    if (_blockFunctionBodyLevel > 1) {
+      assert(flow != null);
+    } else {
+      flow = FlowAnalysis<Statement, Expression, VariableElement, DartType>(
+        _nodeOperations,
+        _typeOperations,
+        AnalyzerFunctionBodyAccess(node),
+      );
+    }
+
+    var parameters = _enclosingExecutableParameters(node);
+    if (parameters != null) {
+      for (var parameter in parameters.parameters) {
+        flow.add(parameter.declaredElement, assigned: true);
+      }
+    }
+  }
+
+  void functionBody_exit(FunctionBody node) {
+    _blockFunctionBodyLevel--;
+
+    if (_blockFunctionBodyLevel > 0) {
+      return;
+    }
+
+    // Set this.flow to null before doing any clean-up so that if an exception
+    // is raised, the state is already updated correctly, and we don't have
+    // cascading failures.
+    var flow = this.flow;
+    this.flow = null;
+
+    if (!flow.isReachable) {
+      result?.functionBodiesThatDontComplete?.add(node);
+    }
+
+    flow.finish();
   }
 
   void isExpression(IsExpression node) {
