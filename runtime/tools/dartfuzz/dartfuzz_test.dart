@@ -106,6 +106,11 @@ abstract class TestRunner {
       prefix += '-O3';
       extraFlags += ['--optimization_level=3'];
     }
+    // Every once in a while, use the slowpath flag.
+    if (!mode.startsWith('djs') && rand.nextInt(4) == 0) {
+      prefix += '-SLOWPATH';
+      extraFlags += ['--use-slow-path'];
+    }
     // Construct runner.
     if (mode.startsWith('jit')) {
       return new TestRunnerJIT(
