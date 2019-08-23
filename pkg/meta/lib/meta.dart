@@ -240,7 +240,7 @@ class Immutable {
   final String reason;
 
   /// Initialize a newly created instance to have the given [reason].
-  const Immutable([this.reason]);
+  const Immutable([this.reason = '']);
 }
 
 /// Used to annotate a named parameter `p` in a method or function `f`.
@@ -259,7 +259,7 @@ class Required {
   final String reason;
 
   /// Initialize a newly created instance to have the given [reason].
-  const Required([this.reason]);
+  const Required([this.reason = '']);
 }
 
 class _AlwaysThrows {
