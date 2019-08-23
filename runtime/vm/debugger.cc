@@ -3544,6 +3544,7 @@ BreakpointLocation* Debugger::SetBreakpoint(const Script& script,
             FindExactTokenPosition(script, token_pos, requested_column);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
       }
+      DeoptimizeWorld();
       // Since source positions may differ in code and bytecode, process
       // breakpoints in bytecode and code separately.
       BreakpointLocation* loc = NULL;
@@ -3553,7 +3554,6 @@ BreakpointLocation* Debugger::SetBreakpoint(const Script& script,
                                  exact_token_pos, bytecode_functions);
       }
       if (code_functions.Length() > 0) {
-        DeoptimizeWorld();
         loc = SetCodeBreakpoints(false, loc, script, token_pos, last_token_pos,
                                  requested_line, requested_column,
                                  exact_token_pos, code_functions);
@@ -4622,11 +4622,8 @@ void Debugger::NotifyIsolateCreated() {
 
 // Return innermost closure contained in 'function' that contains
 // the given token position.
-// Note: this should only be called for compiled functions and not for
-// bytecode functions.
 RawFunction* Debugger::FindInnermostClosure(const Function& function,
                                             TokenPosition token_pos) {
-  ASSERT(function.HasCode());
   Zone* zone = Thread::Current()->zone();
   const Script& outer_origin = Script::Handle(zone, function.script());
   const GrowableObjectArray& closures = GrowableObjectArray::Handle(
@@ -4694,16 +4691,26 @@ void Debugger::HandleCodeChange(bool bytecode_loaded, const Function& func) {
                                            loc->requested_column_number());
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
       }
-      if (bytecode_loaded) {
-        // func's bytecode was just loaded.
-        // If func has an inner closure, we got notified earlier.
-        // Therefore we will always resolve the breakpoint correctly to the
-        // innermost function without searching for it.
-      } else {
-        // func was just compiled.
-        const Function& inner_function =
-            Function::Handle(zone, FindInnermostClosure(func, token_pos));
-        if (!inner_function.IsNull()) {
+      const Function& inner_function =
+          Function::Handle(zone, FindInnermostClosure(func, token_pos));
+      if (!inner_function.IsNull()) {
+        if (bytecode_loaded) {
+          // func's bytecode was just loaded.
+          // If func is a closure and has an inner closure, the inner closure
+          // may not have been loaded yet.
+          if (inner_function.HasBytecode()) {
+            ASSERT(loc->IsResolved(bytecode_loaded));
+          } else {
+            if (FLAG_verbose_debug) {
+              OS::PrintErr(
+                  "Pending BP remains unresolved in inner bytecode function "
+                  "'%s'\n",
+                  inner_function.ToFullyQualifiedCString());
+            }
+          }
+          continue;
+        } else {
+          // func was just compiled.
           // The local function of a function we just compiled cannot
           // be compiled already.
           ASSERT(!inner_function.HasCode());
