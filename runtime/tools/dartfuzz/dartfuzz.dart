@@ -13,7 +13,7 @@ import 'dartfuzz_api_table.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.22';
+const String version = '1.23';
 
 // Restriction on statements and expressions.
 const int stmtLength = 2;
@@ -1185,22 +1185,23 @@ class DartFuzz {
     return null;
   }
 
-  String getFfiType(String name) {
-    switch (name) {
-      case 'int':
-        return 'ffi.Int32';
-      case 'double':
-        return 'ffi.Double';
-      default:
-        throw 'Invalid FFI type ${name}';
+  void emitFfiType(DartType tp) {
+    if (tp == DartType.INT) {
+      emit(oneOf(['ffi.Int8', 'ffi.Int16', 'ffi.Int32', 'ffi.Int64']));
+    } else if (tp == DartType.DOUBLE) {
+      emit(oneOf(['ffi.Float', 'ffi.Double']));
+    } else {
+      throw 'Invalid FFI type ${tp.name}';
     }
   }
 
   void emitFfiTypedef(String typeName, List<DartType> pars) {
-    emit("typedef ${typeName} = ${getFfiType(pars[0].name)} Function(");
+    emit("typedef ${typeName} = ");
+    emitFfiType(pars[0]);
+    emit(" Function(");
     for (int i = 1; i < pars.length; i++) {
       DartType tp = pars[i];
-      emit('${getFfiType(tp.name)}');
+      emitFfiType(tp);
       if (i != (pars.length - 1)) {
         emit(', ');
       }
