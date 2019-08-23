@@ -189,10 +189,9 @@ class DartTypeUtilities {
       expression?.unParenthesized is NullLiteral;
 
   static PropertyAccessorElement lookUpGetter(MethodDeclaration node) {
-    final parent = node.parent;
-    if (parent is ClassOrMixinDeclaration) {
-      return parent.declaredElement
-          .lookUpGetter(node.name.name, node.declaredElement.library);
+    final parent = node.declaredElement.enclosingElement;
+    if (parent is ClassElement) {
+      return parent.lookUpGetter(node.name.name, node.declaredElement.library);
     }
     // todo (pq): consider extensions
     return null;
@@ -200,9 +199,9 @@ class DartTypeUtilities {
 
   static PropertyAccessorElement lookUpInheritedConcreteGetter(
       MethodDeclaration node) {
-    final parent = node.parent;
-    if (parent is ClassOrMixinDeclaration) {
-      return parent.declaredElement.lookUpInheritedConcreteGetter(
+    final parent = node.declaredElement.enclosingElement;
+    if (parent is ClassElement) {
+      return parent.lookUpInheritedConcreteGetter(
           node.name.name, node.declaredElement.library);
     }
     // todo (pq): consider extensions
@@ -210,9 +209,9 @@ class DartTypeUtilities {
   }
 
   static MethodElement lookUpInheritedConcreteMethod(MethodDeclaration node) {
-    final parent = node.parent;
-    if (parent is ClassOrMixinDeclaration) {
-      return parent.declaredElement.lookUpInheritedConcreteMethod(
+    final parent = node.declaredElement.enclosingElement;
+    if (parent is ClassElement) {
+      return parent.lookUpInheritedConcreteMethod(
           node.name.name, node.declaredElement.library);
     }
     // todo (pq): consider extensions
@@ -221,9 +220,9 @@ class DartTypeUtilities {
 
   static PropertyAccessorElement lookUpInheritedConcreteSetter(
       MethodDeclaration node) {
-    final parent = node.parent;
-    if (parent is ClassOrMixinDeclaration) {
-      return parent.declaredElement.lookUpInheritedConcreteSetter(
+    final parent = node.declaredElement.enclosingElement;
+    if (parent is ClassElement) {
+      return parent.lookUpInheritedConcreteSetter(
           node.name.name, node.declaredElement.library);
     }
     // todo (pq): consider extensions
@@ -231,18 +230,17 @@ class DartTypeUtilities {
   }
 
   static MethodElement lookUpInheritedMethod(MethodDeclaration node) {
-    final parent = node.parent;
-    return parent is ClassOrMixinDeclaration
-        ? parent.declaredElement
-            .lookUpInheritedMethod(node.name.name, node.declaredElement.library)
+    final parent = node.declaredElement.enclosingElement;
+    return parent is ClassElement
+        ? parent.lookUpInheritedMethod(
+            node.name.name, node.declaredElement.library)
         : null;
   }
 
   static PropertyAccessorElement lookUpSetter(MethodDeclaration node) {
-    final parent = node.parent;
-    if (parent is ClassOrMixinDeclaration) {
-      return parent.declaredElement
-          .lookUpSetter(node.name.name, node.declaredElement.library);
+    final parent = node.declaredElement.enclosingElement;
+    if (parent is ClassElement) {
+      return parent.lookUpSetter(node.name.name, node.declaredElement.library);
     }
     // todo (pq): consider extensions
     return null;
