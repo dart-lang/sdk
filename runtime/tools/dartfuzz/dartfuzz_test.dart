@@ -29,7 +29,7 @@ class TestResult {
 /// Command runner.
 TestResult runCommand(List<String> cmd, Map<String, String> env) {
   ProcessResult res = Process.runSync(
-      'timeout', ['-s', '$sigkill', '$timeout'] + cmd,
+      'timeout', ['-s', '$sigkill', '$timeout', ...cmd],
       environment: env);
   if (debug) {
     print('\nrunning $cmd yields:\n'
@@ -146,7 +146,7 @@ class TestRunnerJIT implements TestRunner {
       this.fileName, List<String> extraFlags) {
     description = '$prefix-$tag';
     dart = '$top/out/$tag/dart';
-    cmd = [dart] + extraFlags + [fileName];
+    cmd = [dart, ...extraFlags, fileName];
   }
 
   TestResult run() {
@@ -170,7 +170,7 @@ class TestRunnerAOT implements TestRunner {
     snapshot = '$tmp/snapshot';
     env = Map<String, String>.from(e);
     env['DART_CONFIGURATION'] = tag;
-    cmd = [precompiler] + extraFlags + [fileName, snapshot];
+    cmd = [precompiler, ...extraFlags, fileName, snapshot];
   }
 
   TestResult run() {
@@ -197,12 +197,12 @@ class TestRunnerKBC implements TestRunner {
     description = '$prefix-$tag';
     dart = '$top/out/$tag/dart';
     if (kbcSrc) {
-      cmd = [dart] + extraFlags + [fileName];
+      cmd = [dart, ...extraFlags, fileName];
     } else {
       generate = '$top/pkg/vm/tool/gen_kernel';
       platform = '--platform=$top/out/$tag/vm_platform_strong.dill';
       dill = '$tmp/out.dill';
-      cmd = [dart] + extraFlags + [dill];
+      cmd = [dart, ...extraFlags, dill];
     }
   }
 
