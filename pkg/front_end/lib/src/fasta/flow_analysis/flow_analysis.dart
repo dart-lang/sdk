@@ -203,9 +203,8 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
   }
 
   void doStatement_bodyBegin(
-      Statement doStatement, Set<Variable> loopAssigned) {
-    _variablesReferenced(loopAssigned);
-    _current = _current.removePromotedAll(loopAssigned);
+      Statement doStatement, Iterable<Variable> loopAssigned) {
+    _current = _current.removePromotedAll(loopAssigned, _referencedVariables);
 
     _statementToStackIndex[doStatement] = _stack.length;
     _stack.add(null); // break
@@ -290,8 +289,7 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
   /// [loopAssigned] should be the set of variables that are assigned anywhere
   /// in the loop's condition, updaters, or body.
   void for_conditionBegin(Set<Variable> loopAssigned) {
-    _variablesReferenced(loopAssigned);
-    _current = _current.removePromotedAll(loopAssigned);
+    _current = _current.removePromotedAll(loopAssigned, _referencedVariables);
   }
 
   /// Call this method just after visiting the updaters of a conventional "for"
@@ -327,9 +325,8 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
   /// [loopAssigned] should be the set of variables that are assigned anywhere
   /// in the loop's body.
   void forEach_bodyBegin(Set<Variable> loopAssigned) {
-    _variablesReferenced(loopAssigned);
     _stack.add(_current);
-    _current = _current.removePromotedAll(loopAssigned);
+    _current = _current.removePromotedAll(loopAssigned, _referencedVariables);
   }
 
   /// Call this method just before visiting the body of a "for-in" statement or
@@ -342,20 +339,19 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
   void functionExpression_begin() {
     _stack.add(_current);
 
-    Set<Variable> notPromoted = null;
+    List<Variable> notPromoted = [];
     for (MapEntry<Variable, VariableModel<Type>> entry
         in _current.variableInfo.entries) {
       Variable variable = entry.key;
       Type promotedType = entry.value.promotedType;
       if (promotedType != null &&
           functionBody.isPotentiallyMutatedInScope(variable)) {
-        notPromoted ??= Set<Variable>.identity();
         notPromoted.add(variable);
       }
     }
 
-    if (notPromoted != null) {
-      _current = _current.removePromotedAll(notPromoted);
+    if (notPromoted.isNotEmpty) {
+      _current = _current.removePromotedAll(notPromoted, null);
     }
   }
 
@@ -511,9 +507,8 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
   /// assigned in other cases that might target this with `continue`, so
   /// these variables might have different types and are "un-promoted" from
   /// the "afterExpression" state.
-  void switchStatement_beginCase(Set<Variable> notPromoted) {
-    _variablesReferenced(notPromoted);
-    _current = _stack.last.removePromotedAll(notPromoted);
+  void switchStatement_beginCase(Iterable<Variable> notPromoted) {
+    _current = _stack.last.removePromotedAll(notPromoted, _referencedVariables);
   }
 
   void switchStatement_end(Statement switchStatement, bool hasDefault) {
@@ -544,11 +539,10 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
     // Tail of the stack: beforeBody
   }
 
-  void tryCatchStatement_bodyEnd(Set<Variable> assignedInBody) {
-    _variablesReferenced(assignedInBody);
+  void tryCatchStatement_bodyEnd(Iterable<Variable> assignedInBody) {
     FlowModel<Variable, Type> beforeBody = _stack.removeLast();
     FlowModel<Variable, Type> beforeCatch =
-        beforeBody.removePromotedAll(assignedInBody);
+        beforeBody.removePromotedAll(assignedInBody, _referencedVariables);
     _stack.add(beforeCatch);
     _stack.add(_current); // afterBodyAndCatches
     // Tail of the stack: beforeCatch, afterBodyAndCatches
@@ -585,12 +579,12 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
     );
   }
 
-  void tryFinallyStatement_finallyBegin(Set<Variable> assignedInBody) {
-    _variablesReferenced(assignedInBody);
+  void tryFinallyStatement_finallyBegin(Iterable<Variable> assignedInBody) {
     FlowModel<Variable, Type> beforeTry = _stack.removeLast();
     FlowModel<Variable, Type> afterBody = _current;
     _stack.add(afterBody);
-    _current = _join(afterBody, beforeTry.removePromotedAll(assignedInBody));
+    _current = _join(afterBody,
+        beforeTry.removePromotedAll(assignedInBody, _referencedVariables));
   }
 
   void whileStatement_bodyBegin(
@@ -607,9 +601,8 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
     _current = trueCondition;
   }
 
-  void whileStatement_conditionBegin(Set<Variable> loopAssigned) {
-    _variablesReferenced(loopAssigned);
-    _current = _current.removePromotedAll(loopAssigned);
+  void whileStatement_conditionBegin(Iterable<Variable> loopAssigned) {
+    _current = _current.removePromotedAll(loopAssigned, _referencedVariables);
   }
 
   void whileStatement_end() {
@@ -773,6 +766,10 @@ class FlowModel<Variable, Type> {
   /// Updates the state to indicate that the given [variables] are no longer
   /// promoted; they are presumed to have their declared types.
   ///
+  /// If assertions are enabled and [referencedVariables] is not `null`, all
+  /// variables in [variables] will be stored in [referencedVariables] as a side
+  /// effect of this call.
+  ///
   /// This is used at the top of loops to conservatively cancel the promotion of
   /// variables that are modified within the loop, so that we correctly analyze
   /// code like the following:
@@ -789,9 +786,10 @@ class FlowModel<Variable, Type> {
   /// and only remove promotions if it can be shown that they aren't restored
   /// later in the loop body.  If we switch to a fixed point analysis, we should
   /// be able to remove this method.
-  FlowModel<Variable, Type> removePromotedAll(Set<Variable> variables) {
+  FlowModel<Variable, Type> removePromotedAll(
+      Iterable<Variable> variables, Set<Variable> referencedVariables) {
     Map<Variable, VariableModel<Type>> newVariableInfo =
-        _removePromotedAll(variableInfo, variables);
+        _removePromotedAll(variableInfo, variables, referencedVariables);
 
     if (identical(newVariableInfo, variableInfo)) return this;
 
@@ -932,24 +930,27 @@ class FlowModel<Variable, Type> {
 
   /// Updates a "variableInfo" [map] to indicate that a set of [variable] is no
   /// longer promoted, treating the map as immutable.
+  ///
+  /// If assertions are enabled and [referencedVariables] is not `null`, all
+  /// variables in [variables] will be stored in [referencedVariables] as a side
+  /// effect of this call.
   Map<Variable, VariableModel<Type>> _removePromotedAll(
-    Map<Variable, VariableModel<Type>> map,
-    Set<Variable> variables,
-  ) {
+      Map<Variable, VariableModel<Type>> map,
+      Iterable<Variable> variables,
+      Set<Variable> referencedVariables) {
     if (map.isEmpty) return const {};
-    if (variables.isEmpty) return map;
-
     Map<Variable, VariableModel<Type>> result;
-    for (MapEntry<Variable, VariableModel<Type>> entry in map.entries) {
-      Variable variable = entry.key;
-      VariableModel<Type> info = entry.value;
-      Type promotedType = info.promotedType;
-      if (variables.contains(variable) && promotedType != null) {
+    for (Variable variable in variables) {
+      assert(() {
+        referencedVariables?.add(variable);
+        return true;
+      }());
+      VariableModel<Type> info = map[variable];
+      if (info.promotedType != null) {
         (result ??= Map<Variable, VariableModel<Type>>.from(map))[variable] =
             info.withPromotedType(null);
       }
     }
-
     if (result == null) return map;
     return result;
   }
