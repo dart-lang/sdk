@@ -1131,7 +1131,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
 
   @override
   void visitSuperExpression(SuperExpression node) {
-    if (thisType == null) {
+    if (thisType == null ||
+        node.thisOrAncestorOfType<ExtensionDeclaration>() != null) {
       // TODO(brianwilkerson) Report this error if it hasn't already been
       // reported.
       _recordStaticType(node, _dynamicType);

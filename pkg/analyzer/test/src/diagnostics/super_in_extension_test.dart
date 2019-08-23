@@ -23,14 +23,24 @@ class SuperInExtensionTest extends DriverResolutionTest {
         sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
 
   test_binaryOperator_inMethod() async {
-    // TODO(brianwilkerson) Ensure that only one diagnostic is produced.
     await assertErrorsInCode('''
 extension E on int {
   int plusOne() => super + 1;
 }
 ''', [
       error(CompileTimeErrorCode.SUPER_IN_EXTENSION, 40, 5),
-      error(StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR, 46, 1),
+    ]);
+  }
+
+  test_binaryOperator_withGenericExtendedType() async {
+    await assertErrorsInCode('''
+extension <T> on T {
+  f() {
+    super + 1;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.SUPER_IN_EXTENSION, 33, 5),
     ]);
   }
 
@@ -51,7 +61,6 @@ extension E on C {
   }
 
   test_indexOperator_inMethod() async {
-    // TODO(brianwilkerson) Ensure that only one diagnostic is produced.
     await assertErrorsInCode('''
 class C {
   int operator[](int i) => 0;
@@ -61,7 +70,6 @@ extension E on C {
 }
 ''', [
       error(CompileTimeErrorCode.SUPER_IN_EXTENSION, 80, 5),
-      error(StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR, 85, 3),
     ]);
   }
 
@@ -76,7 +84,6 @@ extension E on int {
   }
 
   test_prefixOperator_inGetter() async {
-    // TODO(brianwilkerson) Ensure that only one diagnostic is produced.
     await assertErrorsInCode('''
 class C {
   C operator-() => this;
@@ -85,7 +92,6 @@ extension E on C {
   C get negated => -super;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR, 75, 1),
       error(CompileTimeErrorCode.SUPER_IN_EXTENSION, 76, 5),
     ]);
   }
