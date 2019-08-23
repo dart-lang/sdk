@@ -65,7 +65,7 @@ Future<void> hasPausedFor(
       if (completer != null) {
         try {
           await service.streamCancel(EventStreams.kDebug);
-        } finally {
+        } catch (_) {/* swallow exception */} finally {
           subscription.cancel();
           completer?.complete();
           completer = null;
@@ -81,7 +81,7 @@ Future<void> hasPausedFor(
     if (completer != null) {
       try {
         await service.streamCancel(EventStreams.kDebug);
-      } finally {
+      } catch (_) {/* swallow exception */} finally {
         subscription.cancel();
         completer?.complete();
       }
@@ -178,7 +178,7 @@ Future<void> resumeIsolate(VmService service, IsolateRef isolate) async {
     if (event.kind == EventKind.kResume) {
       try {
         await service.streamCancel(EventStreams.kDebug);
-      } finally {
+      } catch (_) {/* swallow exception */} finally {
         subscription.cancel();
         completer.complete();
       }
