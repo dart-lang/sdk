@@ -675,9 +675,11 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   }
 
   ParameterDeclaration getParameterDeclaration(VariableDeclaration variable) {
-    final name = objectTable.getNameHandle(null, variable.name);
-    final type = objectTable.getHandle(variable.type);
-    return new ParameterDeclaration(name, type);
+    final name = variable.name;
+    final lib = name.startsWith('_') ? enclosingMember.enclosingLibrary : null;
+    final nameHandle = objectTable.getNameHandle(lib, name);
+    final typeHandle = objectTable.getHandle(variable.type);
+    return new ParameterDeclaration(nameHandle, typeHandle);
   }
 
   List<int> getParameterFlags(FunctionNode function) {
