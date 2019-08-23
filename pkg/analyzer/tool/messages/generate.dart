@@ -17,10 +17,11 @@ import 'dart:io';
 import 'package:analyzer/error/error.dart';
 import 'package:analysis_tool/tools.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:front_end/src/testing/package_root.dart' as pkgRoot;
 import 'package:front_end/src/fasta/scanner.dart';
 import 'package:path/path.dart';
 import 'package:yaml/yaml.dart' show loadYaml;
+
+import '../../test/utils/package_root.dart' as pkgRoot;
 
 main() async {
   String analyzerPkgPath = normalize(join(pkgRoot.packageRoot, 'analyzer'));

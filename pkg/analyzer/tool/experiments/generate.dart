@@ -6,9 +6,10 @@ import 'dart:io';
 
 import 'package:analysis_tool/tools.dart';
 import 'package:front_end/src/fasta/scanner/characters.dart' show $MINUS, $_;
-import 'package:front_end/src/testing/package_root.dart' as pkgRoot;
 import 'package:path/path.dart';
 import 'package:yaml/yaml.dart' show YamlMap, loadYaml;
+
+import '../../test/utils/package_root.dart' as pkgRoot;
 
 main() async {
   await GeneratedContent.generateAll(

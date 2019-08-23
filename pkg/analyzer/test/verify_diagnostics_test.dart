@@ -9,12 +9,12 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:front_end/src/testing/package_root.dart' as package_root;
 import 'package:path/path.dart';
 import 'package:test/test.dart';
 
 import '../tool/diagnostics/generate.dart';
 import 'src/dart/resolution/driver_resolution.dart';
+import 'utils/package_root.dart' as package_root;
 
 /// Validate the documentation associated with the declarations of the error
 /// codes.
