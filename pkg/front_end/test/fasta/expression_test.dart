@@ -10,16 +10,6 @@ import "dart:convert" show JsonEncoder;
 
 import "dart:io" show File, IOSink;
 
-import "package:kernel/ast.dart"
-    show Procedure, Component, DynamicType, DartType, TypeParameter;
-
-import "package:testing/testing.dart"
-    show Chain, ChainContext, Result, Step, TestDescription, runMe;
-
-import "package:testing/src/log.dart" show splitLines;
-
-import "package:yaml/yaml.dart" show YamlMap, YamlList, loadYamlNode;
-
 import "package:front_end/src/api_prototype/compiler_options.dart"
     show CompilerOptions, DiagnosticMessage;
 
@@ -29,30 +19,40 @@ import "package:front_end/src/api_prototype/memory_file_system.dart"
 import "package:front_end/src/api_prototype/terminal_color_support.dart"
     show printDiagnosticMessage;
 
+import 'package:front_end/src/base/processed_options.dart'
+    show ProcessedOptions;
+
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 
 import 'package:front_end/src/external_state_snapshot.dart'
     show ExternalStateSnapshot;
 
-import 'package:front_end/src/base/processed_options.dart'
-    show ProcessedOptions;
-
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;
 
+import "package:kernel/ast.dart"
+    show Procedure, Component, DynamicType, DartType, TypeParameter;
+
 import 'package:kernel/target/targets.dart' show TargetFlags;
 
 import 'package:kernel/text/ast_to_text.dart' show Printer;
 
+import "package:testing/src/log.dart" show splitLines;
+
+import "package:testing/testing.dart"
+    show Chain, ChainContext, Result, Step, TestDescription, runMe;
+
 import 'package:vm/target/vm.dart' show VmTarget;
 
-import '../../lib/src/fasta/testing/kernel_chain.dart' show runDiff, openWrite;
+import "package:yaml/yaml.dart" show YamlMap, YamlList, loadYamlNode;
 
 import '../../lib/src/fasta/kernel/utils.dart'
     show writeComponentToFile, serializeProcedure;
+
+import '../utils/kernel_chain.dart' show runDiff, openWrite;
 
 const JsonEncoder json = const JsonEncoder.withIndent("  ");
 

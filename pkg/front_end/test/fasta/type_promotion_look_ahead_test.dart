@@ -26,15 +26,14 @@ import 'package:front_end/src/fasta/source/type_promotion_look_ahead_listener.da
         TypePromotionState,
         UnspecifiedDeclaration;
 
-import 'package:front_end/src/fasta/testing/kernel_chain.dart'
-    show MatchContext;
-
-import 'package:front_end/src/fasta/testing/scanner_chain.dart'
-    show Read, Scan, ScannedFile;
-
 import 'package:kernel/ast.dart' show Source;
 
-import 'package:testing/testing.dart';
+import 'package:testing/testing.dart'
+    show Chain, ChainContext, ExpectationSet, Future, Result, Step, runMe;
+
+import '../utils/kernel_chain.dart' show MatchContext;
+
+import '../utils/scanner_chain.dart' show Read, Scan, ScannedFile;
 
 const String EXPECTATIONS = '''
 [

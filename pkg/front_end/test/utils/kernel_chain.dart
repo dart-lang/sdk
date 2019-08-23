@@ -10,11 +10,33 @@ import 'dart:io' show Directory, File, IOSink;
 
 import 'dart:typed_data' show Uint8List;
 
+import 'package:front_end/src/api_prototype/compiler_options.dart'
+    show CompilerOptions, DiagnosticMessage;
+
+import 'package:front_end/src/base/processed_options.dart'
+    show ProcessedOptions;
+
+import 'package:front_end/src/compute_platform_binaries_location.dart'
+    show computePlatformBinariesLocation;
+
+import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
+
+import 'package:front_end/src/fasta/fasta_codes.dart'
+    show templateInternalProblemUnhandled, templateUnspecified;
+
+import 'package:front_end/src/fasta/kernel/verifier.dart' show verifyComponent;
+
+import 'package:front_end/src/fasta/messages.dart' show LocatedMessage;
+
+import 'package:front_end/src/fasta/resolve_input_uri.dart' show isWindows;
+
+import 'package:front_end/src/fasta/util/relativize.dart' show relativizeUri;
+
 import 'package:kernel/ast.dart' show Component, Library;
 
-import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
-
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
+
+import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 
 import 'package:kernel/error_formatter.dart' show ErrorFormatter;
 
@@ -34,27 +56,6 @@ import 'package:kernel/text/text_serialization_verifier.dart'
 
 import 'package:testing/testing.dart'
     show ChainContext, Expectation, ExpectationSet, Result, StdioProcess, Step;
-
-import '../../api_prototype/compiler_options.dart'
-    show CompilerOptions, DiagnosticMessage;
-
-import '../../base/processed_options.dart' show ProcessedOptions;
-
-import '../../compute_platform_binaries_location.dart'
-    show computePlatformBinariesLocation;
-
-import '../compiler_context.dart' show CompilerContext;
-
-import '../kernel/verifier.dart' show verifyComponent;
-
-import '../messages.dart' show LocatedMessage;
-
-import '../fasta_codes.dart'
-    show templateInternalProblemUnhandled, templateUnspecified;
-
-import '../resolve_input_uri.dart' show isWindows;
-
-import '../util/relativize.dart' show relativizeUri;
 
 final Uri platformBinariesLocation = computePlatformBinariesLocation();
 

@@ -4,11 +4,12 @@
 
 library fasta.testing.scanner_chain;
 
-import 'package:testing/testing.dart';
+import 'package:front_end/src/fasta/scanner.dart' show ScannerResult, scan;
 
-import '../scanner.dart';
+import 'package:front_end/src/fasta/scanner/io.dart' show readBytesFromFile;
 
-import '../scanner/io.dart';
+import 'package:testing/testing.dart'
+    show ChainContext, Future, Result, Step, TestDescription;
 
 class ReadFile {
   final Uri uri;
