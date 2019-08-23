@@ -146,7 +146,7 @@ class TestRunnerJIT implements TestRunner {
       this.fileName, List<String> extraFlags) {
     description = '$prefix-$tag';
     dart = '$top/out/$tag/dart';
-    cmd = [dart, "--deterministic"] + extraFlags + [fileName];
+    cmd = [dart] + extraFlags + [fileName];
   }
 
   TestResult run() {
@@ -170,11 +170,11 @@ class TestRunnerAOT implements TestRunner {
     snapshot = '$tmp/snapshot';
     env = Map<String, String>.from(e);
     env['DART_CONFIGURATION'] = tag;
-    env['OPTIONS'] = extraFlags.join(' ');
+    cmd = [precompiler] + extraFlags + [fileName, snapshot];
   }
 
   TestResult run() {
-    TestResult result = runCommand([precompiler, fileName, snapshot], env);
+    TestResult result = runCommand(cmd, env);
     if (result.exitCode != 0) {
       return result;
     }
@@ -187,6 +187,7 @@ class TestRunnerAOT implements TestRunner {
   String fileName;
   String snapshot;
   Map<String, String> env;
+  List<String> cmd;
 }
 
 /// Concrete test runner of bytecode.
