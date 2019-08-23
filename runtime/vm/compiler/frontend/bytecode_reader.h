@@ -369,8 +369,9 @@ class BytecodeReader : public AllStatic {
 
 class BytecodeSourcePositionsIterator : ValueObject {
  public:
-  // This constant should match corresponding constant in class SourcePositions
-  // (pkg/vm/lib/bytecode/source_positions.dart).
+  // These constants should match corresponding constants in class
+  // SourcePositions (pkg/vm/lib/bytecode/source_positions.dart).
+  static const intptr_t kSyntheticCodeMarker = -1;
   static const intptr_t kYieldPointMarker = -2;
 
   BytecodeSourcePositionsIterator(Zone* zone, const Bytecode& bytecode)
@@ -400,7 +401,11 @@ class BytecodeSourcePositionsIterator : ValueObject {
 
   uword PcOffset() const { return cur_bci_; }
 
-  TokenPosition TokenPos() const { return TokenPosition(cur_token_pos_); }
+  TokenPosition TokenPos() const {
+    return (cur_token_pos_ == kSyntheticCodeMarker)
+               ? TokenPosition::kNoSource
+               : TokenPosition(cur_token_pos_);
+  }
 
   bool IsYieldPoint() const { return is_yield_point_; }
 

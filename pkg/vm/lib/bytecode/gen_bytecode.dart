@@ -935,9 +935,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       _dartFfiLibrary ??= libraryIndex.tryGetLibrary('dart:ffi');
 
   void _recordSourcePosition(int fileOffset) {
-    if (options.emitSourcePositions) {
-      asm.currentSourcePosition = fileOffset;
-    }
+    asm.currentSourcePosition = fileOffset;
     maxSourcePosition = math.max(maxSourcePosition, fileOffset);
   }
 
@@ -1430,7 +1428,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     initializedFields = null; // Tracked for constructors only.
     nullableFields = const <ObjectHandle>[];
     cp = new ConstantPool(stringTable, objectTable);
-    asm = new BytecodeAssembler();
+    asm = new BytecodeAssembler(options);
     savedAssemblers = <BytecodeAssembler>[];
     currentLoopDepth = 0;
     savedMaxSourcePositions = <int>[];
@@ -2045,7 +2043,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   void _pushAssemblerState() {
     savedAssemblers.add(asm);
-    asm = new BytecodeAssembler();
+    asm = new BytecodeAssembler(options);
   }
 
   void _popAssemblerState() {

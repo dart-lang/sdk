@@ -5,6 +5,7 @@
 library vm.bytecode.assembler;
 
 import 'package:kernel/ast.dart' show TreeNode;
+import 'package:vm/bytecode/options.dart';
 
 import 'dbc.dart';
 import 'exceptions.dart' show ExceptionsTable;
@@ -56,10 +57,12 @@ class BytecodeAssembler {
   final ExceptionsTable exceptionsTable = new ExceptionsTable();
   final LocalVariableTable localVariableTable = new LocalVariableTable();
   final SourcePositions sourcePositions = new SourcePositions();
+  final bool _emitSourcePositions;
   bool isUnreachable = false;
   int currentSourcePosition = TreeNode.noOffset;
 
-  BytecodeAssembler();
+  BytecodeAssembler(BytecodeOptions options)
+      : _emitSourcePositions = options.emitSourcePositions;
 
   int get offset => bytecode.length;
 
@@ -74,8 +77,24 @@ class BytecodeAssembler {
   }
 
   void emitSourcePosition() {
-    if (currentSourcePosition != TreeNode.noOffset && !isUnreachable) {
+    if (_emitSourcePositions &&
+        !isUnreachable &&
+        currentSourcePosition != TreeNode.noOffset) {
       sourcePositions.add(offset, currentSourcePosition);
+    }
+  }
+
+  // TreeNode.noOffset (-1) source position on calls is used to mark synthetic
+  // calls without corresponding source position. Debugger uses the absence of
+  // source position to distinguish these calls and avoid stopping at them
+  // while single stepping.
+  void emitSourcePositionForCall() {
+    if (_emitSourcePositions && !isUnreachable) {
+      sourcePositions.add(
+          offset,
+          currentSourcePosition == TreeNode.noOffset
+              ? SourcePositions.syntheticCodeMarker
+              : currentSourcePosition);
     }
   }
 
@@ -371,32 +390,32 @@ class BytecodeAssembler {
   }
 
   void emitDirectCall(int rd, int rf) {
-    emitSourcePosition();
+    emitSourcePositionForCall();
     _emitInstructionDF(Opcode.kDirectCall, rd, rf);
   }
 
   void emitInterfaceCall(int rd, int rf) {
-    emitSourcePosition();
+    emitSourcePositionForCall();
     _emitInstructionDF(Opcode.kInterfaceCall, rd, rf);
   }
 
   void emitInstantiatedInterfaceCall(int rd, int rf) {
-    emitSourcePosition();
+    emitSourcePositionForCall();
     _emitInstructionDF(Opcode.kInstantiatedInterfaceCall, rd, rf);
   }
 
   void emitUncheckedClosureCall(int rd, int rf) {
-    emitSourcePosition();
+    emitSourcePositionForCall();
     _emitInstructionDF(Opcode.kUncheckedClosureCall, rd, rf);
   }
 
   void emitUncheckedInterfaceCall(int rd, int rf) {
-    emitSourcePosition();
+    emitSourcePositionForCall();
     _emitInstructionDF(Opcode.kUncheckedInterfaceCall, rd, rf);
   }
 
   void emitDynamicCall(int rd, int rf) {
-    emitSourcePosition();
+    emitSourcePositionForCall();
     _emitInstructionDF(Opcode.kDynamicCall, rd, rf);
   }
 
