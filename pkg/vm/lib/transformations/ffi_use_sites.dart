@@ -139,7 +139,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
               exceptionalReturn.location.file);
         }
       }
-    } catch (_FfiStaticTypeError) {}
+    } on _FfiStaticTypeError {}
 
     return node;
   }
@@ -233,7 +233,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         _ensureNativeTypeSized(nativeType, node, target.name);
         _ensureNativeTypeToDartType(nativeType, dartType, node);
       }
-    } catch (_FfiStaticTypeError) {}
+    } on _FfiStaticTypeError {}
 
     return node;
   }
