@@ -1131,7 +1131,7 @@ static void TrySwitchInstanceCall(const ICData& ic_data,
   if (Debugger::IsDebugging(thread, caller_function)) return;
 #endif
 
-  intptr_t num_checks = ic_data.NumberOfChecks();
+  const intptr_t num_checks = ic_data.NumberOfChecks();
 
   // Monomorphic call.
   if (FLAG_unopt_monomorphic_calls && (num_checks == 1)) {

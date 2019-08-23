@@ -65,6 +65,7 @@ enum TypedDataElementType {
 enum class MemoryOrder {
   kRelaxed,
   kRelease,
+  kAcquire,
 };
 
 #define SNAPSHOT_WRITER_SUPPORT()                                              \

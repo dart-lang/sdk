@@ -601,6 +601,29 @@ class Object {
     *const_cast<FieldType*>(addr) = value;
   }
 
+  template <typename FieldType, typename ValueType, MemoryOrder order>
+  void StoreNonPointer(const FieldType* addr, ValueType value) const {
+    // Can't use Contains, as it uses tags_, which is set through this method.
+    ASSERT(reinterpret_cast<uword>(addr) >= RawObject::ToAddr(raw()));
+
+    if (order == MemoryOrder::kRelease) {
+      AtomicOperations::StoreRelease(const_cast<FieldType*>(addr), value);
+    } else {
+      ASSERT(order == MemoryOrder::kRelaxed);
+      StoreNonPointer<FieldType, ValueType>(addr, value);
+    }
+  }
+
+  template <typename FieldType, MemoryOrder order = MemoryOrder::kRelaxed>
+  FieldType LoadNonPointer(const FieldType* addr) const {
+    if (order == MemoryOrder::kAcquire) {
+      return AtomicOperations::LoadAcquire(const_cast<FieldType*>(addr));
+    } else {
+      ASSERT(order == MemoryOrder::kRelaxed);
+      return *const_cast<FieldType*>(addr);
+    }
+  }
+
   // Provides non-const access to non-pointer fields within the object. Such
   // access does not need a write barrier, but it is *not* GC-safe, since the
   // object might move, hence must be fully contained within a NoSafepointScope.
@@ -1777,11 +1800,22 @@ class ICData : public Object {
   // ICData are incomplete and the MegamorphicCache needs to also be consulted
   // to list the call site's observed receiver classes and targets.
   bool is_megamorphic() const {
-    return MegamorphicBit::decode(raw_ptr()->state_bits_);
+    // Ensure any following load instructions do not get performed before this
+    // one.
+    const uint32_t bits = LoadNonPointer<uint32_t, MemoryOrder::kAcquire>(
+        &raw_ptr()->state_bits_);
+    return MegamorphicBit::decode(bits);
   }
+
   void set_is_megamorphic(bool value) const {
-    StoreNonPointer(&raw_ptr()->state_bits_,
-                    MegamorphicBit::update(value, raw_ptr()->state_bits_));
+    // We don't have concurrent RW access to [state_bits_].
+    const uint32_t updated_bits =
+        MegamorphicBit::update(value, raw_ptr()->state_bits_);
+
+    // Though we ensure that once the state bits are updated, all other previous
+    // writes to the IC are visible as well.
+    StoreNonPointer<uint32_t, uint32_t, MemoryOrder::kRelease>(
+        &raw_ptr()->state_bits_, updated_bits);
   }
 
   // The length of the array. This includes all sentinel entries including

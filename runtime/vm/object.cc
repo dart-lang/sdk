@@ -90,6 +90,7 @@ DECLARE_FLAG(bool, trace_deoptimization_verbose);
 DECLARE_FLAG(bool, trace_reload);
 DECLARE_FLAG(bool, write_protect_code);
 DECLARE_FLAG(bool, precompiled_mode);
+DECLARE_FLAG(int, max_polymorphic_checks);
 
 static const char* const kGetterPrefix = "get:";
 static const intptr_t kGetterPrefixLength = strlen(kGetterPrefix);
@@ -14517,6 +14518,9 @@ RawICData* ICData::New(const Function& owner,
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 RawICData* ICData::NewFrom(const ICData& from, intptr_t num_args_tested) {
+  // See comment in [ICData::Clone] why we access the megamorphic bit first.
+  const bool is_megamorphic = from.is_megamorphic();
+
   const ICData& result = ICData::Handle(ICData::New(
       Function::Handle(from.Owner()), String::Handle(from.target_name()),
       Array::Handle(from.arguments_descriptor()), from.deopt_id(),
@@ -14524,12 +14528,21 @@ RawICData* ICData::NewFrom(const ICData& from, intptr_t num_args_tested) {
       AbstractType::Handle(from.receivers_static_type())));
   // Copy deoptimization reasons.
   result.SetDeoptReasons(from.DeoptReasons());
-  result.set_is_megamorphic(from.is_megamorphic());
+  result.set_is_megamorphic(is_megamorphic);
   return result.raw();
 }
 
 RawICData* ICData::Clone(const ICData& from) {
   Zone* zone = Thread::Current()->zone();
+
+  // We have to check the megamorphic bit before accessing the entries of the
+  // ICData to ensure all writes to the entries have been flushed and are
+  // visible at this point.
+  //
+  // This will allow us to maintain the invariant that if the megamorphic bit is
+  // set, the number of entries in the ICData have reached the limit.
+  const bool is_megamorphic = from.is_megamorphic();
+
   const ICData& result = ICData::Handle(
       zone, ICData::NewDescriptor(
                 zone, Function::Handle(zone, from.Owner()),
@@ -14549,7 +14562,11 @@ RawICData* ICData::Clone(const ICData& from) {
   result.set_entries(cloned_array);
   // Copy deoptimization reasons.
   result.SetDeoptReasons(from.DeoptReasons());
-  result.set_is_megamorphic(from.is_megamorphic());
+  result.set_is_megamorphic(is_megamorphic);
+
+  RELEASE_ASSERT(!is_megamorphic ||
+                 result.NumberOfChecks() >= FLAG_max_polymorphic_checks);
+
   return result.raw();
 }
 #endif
