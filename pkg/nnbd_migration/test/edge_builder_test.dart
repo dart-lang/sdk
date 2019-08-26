@@ -1685,22 +1685,41 @@ void f(bool b) {
   }
 
   test_if_conditional_control_flow_after() async {
-    // Asserts after ifs don't demonstrate non-null intent.
-    // TODO(paulberry): if both branches complete normally, they should.
     await analyze('''
-void f(bool b, int i) {
+void f(bool b, int i, int j) {
+  assert(j != null);
   if (b) return;
   assert(i != null);
 }
 ''');
 
-    assertNoEdge(always, decoratedTypeAnnotation('int i').node);
+    // Asserts after ifs don't demonstrate non-null intent.
+    assertNoEdge(decoratedTypeAnnotation('int i').node, never);
+    // But asserts before ifs do
+    assertEdge(decoratedTypeAnnotation('int j').node, never, hard: true);
+  }
+
+  test_if_conditional_control_flow_after_normal_completion() async {
+    await analyze('''
+void f(bool b1, bool b2, int i, int j) {
+  if (b1) {}
+  assert(j != null);
+  if (b2) return;
+  assert(i != null);
+}
+''');
+
+    // Asserts after `if (...) return` s don't demonstrate non-null intent.
+    assertNoEdge(decoratedTypeAnnotation('int i').node, never);
+    // But asserts after `if (...) {}` do, since both branches of the `if`
+    // complete normally, so the assertion is unconditionally reachable.
+    assertEdge(decoratedTypeAnnotation('int j').node, never, hard: true);
   }
 
   test_if_conditional_control_flow_within() async {
-    // Asserts inside ifs don't demonstrate non-null intent.
     await analyze('''
-void f(bool b, int i) {
+void f(bool b, int i, int j) {
+  assert(j != null);
   if (b) {
     assert(i != null);
   } else {
@@ -1709,7 +1728,10 @@ void f(bool b, int i) {
 }
 ''');
 
-    assertNoEdge(always, decoratedTypeAnnotation('int i').node);
+    // Asserts inside ifs don't demonstrate non-null intent.
+    assertNoEdge(decoratedTypeAnnotation('int i').node, never);
+    // But asserts outside ifs do.
+    assertEdge(decoratedTypeAnnotation('int j').node, never, hard: true);
   }
 
   test_if_element() async {
