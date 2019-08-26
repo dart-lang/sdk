@@ -3617,15 +3617,18 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       if (switchCase.isDefault) {
         defaultLabel = caseLabel;
       } else {
-        for (var expr in switchCase.expressions) {
+        final savedSourcePosition = asm.currentSourcePosition;
+        for (int i = 0; i < switchCase.expressions.length; ++i) {
+          _recordSourcePosition(switchCase.expressionOffsets[i]);
           asm.emitPush(temp);
-          _genPushConstExpr(expr);
+          _genPushConstExpr(switchCase.expressions[i]);
           asm.emitInterfaceCall(
               cp.addInterfaceCall(
                   InvocationKind.method, coreTypes.objectEquals, equalsArgDesc),
               2);
           _genJumpIfTrue(/* negated = */ false, caseLabel);
         }
+        asm.currentSourcePosition = savedSourcePosition;
       }
     }
 
