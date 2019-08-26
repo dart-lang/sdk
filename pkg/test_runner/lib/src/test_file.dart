@@ -136,11 +136,15 @@ class StaticError implements Comparable<StaticError> {
 
     describeError(String adjective, StaticError error, String verb) {
       buffer.writeln("$adjective static error at ${error.location}:");
-      if (error.code != null) {
+      if (error.code == _unspecified) {
+        buffer.writeln("- $verb unspecified error code.");
+      } else if (error.code != null) {
         buffer.writeln("- $verb error code ${error.code}.");
       }
 
-      if (error.message != null) {
+      if (error.message == _unspecified) {
+        buffer.writeln("- $verb unspecified error message.");
+      } else if (error.message != null) {
         buffer.writeln("- $verb error message '${error.message}'.");
       }
       buffer.writeln();

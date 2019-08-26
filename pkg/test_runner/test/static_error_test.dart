@@ -512,6 +512,49 @@ Missing static error at line 5, column 2, length 3:
 Missing static error at line 7, column 2, length 3:
 - Expected error code ERR.G.
 - Expected error message '7.'.""");
+
+  // Unspecified errors.
+  expectValidate([
+    // Missing.
+    StaticError(line: 1, column: 2, length: 3, code: "unspecified"),
+    StaticError(line: 2, column: 2, length: 3, message: "unspecified"),
+    StaticError(
+        line: 3,
+        column: 2,
+        length: 3,
+        code: "unspecified",
+        message: "unspecified"),
+
+    // Right.
+    StaticError(line: 4, column: 2, length: 3, code: "unspecified"),
+    StaticError(line: 5, column: 2, length: 3, message: "unspecified"),
+    StaticError(
+        line: 6,
+        column: 2,
+        length: 3,
+        code: "unspecified",
+        message: "unspecified"),
+  ], [
+    StaticError(line: 4, column: 2, length: 3, code: "ACT.UAL"),
+    StaticError(line: 5, column: 2, length: 3, message: "Actual."),
+    StaticError(
+        line: 6, column: 2, length: 3, code: "ACT.UAL", message: "Actual."),
+
+    // Unexpected.
+    StaticError(line: 7, column: 9, length: 3, code: "ACT.UAL"),
+  ], """
+Missing static error at line 1, column 2, length 3:
+- Expected unspecified error code.
+
+Missing static error at line 2, column 2, length 3:
+- Expected unspecified error message.
+
+Missing static error at line 3, column 2, length 3:
+- Expected unspecified error code.
+- Expected unspecified error message.
+
+Unexpected static error at line 7, column 9, length 3:
+- Had error code ACT.UAL.""");
 }
 
 void expectNoDifferences(StaticError expectedError, StaticError actualError) {

@@ -494,17 +494,6 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
       : super(command, exitCode, timedOut, stdout, stderr, time,
             compilationSkipped, 0);
 
-  @override
-  void describe(TestCase testCase, Progress progress, OutputWriter output) {
-    if (testCase.testFile.isStaticErrorTest) {
-      _validateExpectedErrors(testCase, output);
-    }
-
-    if (!testCase.testFile.isStaticErrorTest || progress == Progress.verbose) {
-      super.describe(testCase, progress, output);
-    }
-  }
-
   Expectation result(TestCase testCase) {
     // TODO(kustermann): If we run the analyzer not in batch mode, make sure
     // that command.exitCodes matches 2 (errors), 1 (warnings), 0 (no warnings,
@@ -1174,11 +1163,18 @@ mixin _StaticErrorOutput on CommandOutput {
 
   @override
   void describe(TestCase testCase, Progress progress, OutputWriter output) {
-    if (testCase.testFile.isStaticErrorTest) {
+    // Handle static error test output specially. We don't want to show the raw
+    // stdout if we can give the user the parsed expectations instead.
+    if (testCase.testFile.isStaticErrorTest && !hasCrashed && !hasTimedOut) {
       _validateExpectedErrors(testCase, output);
     }
 
-    if (!testCase.testFile.isStaticErrorTest || progress == Progress.verbose) {
+    // Don't show the "raw" output unless something strange happened or the
+    // user explicitly requests all the output.
+    if (hasTimedOut ||
+        hasCrashed ||
+        !testCase.testFile.isStaticErrorTest ||
+        progress == Progress.verbose) {
       super.describe(testCase, progress, output);
     }
   }
