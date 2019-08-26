@@ -3571,6 +3571,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       _generateNode(expr);
       _genReturnTOS();
     } else {
+      if (options.emitDebuggerStops) {
+        // Stop on the return statement before executing finally blocks.
+        asm.emitDebugCheck();
+      }
       if (expr is BasicLiteral) {
         _addFinallyBlocks(tryFinallyBlocks, () {
           _generateNode(expr);
