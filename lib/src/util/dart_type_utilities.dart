@@ -193,7 +193,9 @@ class DartTypeUtilities {
     if (parent is ClassElement) {
       return parent.lookUpGetter(node.name.name, node.declaredElement.library);
     }
-    // todo (pq): consider extensions
+    if (parent is ExtensionElement) {
+      return parent.getSetter(node.name.name);
+    }
     return null;
   }
 
@@ -204,7 +206,7 @@ class DartTypeUtilities {
       return parent.lookUpInheritedConcreteGetter(
           node.name.name, node.declaredElement.library);
     }
-    // todo (pq): consider extensions
+    // Extensions don't inherit.
     return null;
   }
 
@@ -214,7 +216,7 @@ class DartTypeUtilities {
       return parent.lookUpInheritedConcreteMethod(
           node.name.name, node.declaredElement.library);
     }
-    // todo (pq): consider extensions
+    // Extensions don't inherit.
     return null;
   }
 
@@ -225,7 +227,7 @@ class DartTypeUtilities {
       return parent.lookUpInheritedConcreteSetter(
           node.name.name, node.declaredElement.library);
     }
-    // todo (pq): consider extensions
+    // Extensions don't inherit.
     return null;
   }
 
@@ -242,7 +244,9 @@ class DartTypeUtilities {
     if (parent is ClassElement) {
       return parent.lookUpSetter(node.name.name, node.declaredElement.library);
     }
-    // todo (pq): consider extensions
+    if (parent is ExtensionElement) {
+      return parent.getSetter(node.name.name);
+    }
     return null;
   }
 
