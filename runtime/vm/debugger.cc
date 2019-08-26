@@ -3177,6 +3177,12 @@ void Debugger::MakeCodeBreakpointAt(const Function& func,
       if (code_bpt == NULL) {
         // No code breakpoint for this code exists; create one.
         code_bpt = new CodeBreakpoint(bytecode, loc->token_pos_, pc);
+        if (FLAG_verbose_debug) {
+          OS::PrintErr("Setting bytecode breakpoint at pos %s pc %#" Px
+                       " offset %#" Px "\n",
+                       loc->token_pos_.ToCString(), pc,
+                       pc - bytecode.PayloadStart());
+        }
         RegisterCodeBreakpoint(code_bpt);
       }
       code_bpt->set_bpt_location(loc);
@@ -3210,6 +3216,12 @@ void Debugger::MakeCodeBreakpointAt(const Function& func,
         // No code breakpoint for this code exists; create one.
         code_bpt =
             new CodeBreakpoint(code, loc->token_pos_, lowest_pc, lowest_kind);
+        if (FLAG_verbose_debug) {
+          OS::PrintErr("Setting code breakpoint at pos %s pc %#" Px
+                       " offset %#" Px "\n",
+                       loc->token_pos_.ToCString(), lowest_pc,
+                       lowest_pc - code.PayloadStart());
+        }
         RegisterCodeBreakpoint(code_bpt);
       }
       code_bpt->set_bpt_location(loc);
@@ -3493,10 +3505,9 @@ BreakpointLocation* Debugger::SetCodeBreakpoints(
     intptr_t line_number;
     intptr_t column_number;
     script.GetTokenLocation(breakpoint_pos, &line_number, &column_number);
-    OS::PrintErr(
-        "Resolved BP for "
-        "function '%s' at line %" Pd " col %" Pd "\n",
-        func.ToFullyQualifiedCString(), line_number, column_number);
+    OS::PrintErr("Resolved breakpoint for function '%s' at line %" Pd
+                 " col %" Pd "\n",
+                 func.ToFullyQualifiedCString(), line_number, column_number);
   }
   return loc;
 }
@@ -4703,8 +4714,8 @@ void Debugger::HandleCodeChange(bool bytecode_loaded, const Function& func) {
           } else {
             if (FLAG_verbose_debug) {
               OS::PrintErr(
-                  "Pending BP remains unresolved in inner bytecode function "
-                  "'%s'\n",
+                  "Pending breakpoint remains unresolved in "
+                  "inner bytecode function '%s'\n",
                   inner_function.ToFullyQualifiedCString());
             }
           }
@@ -4716,7 +4727,8 @@ void Debugger::HandleCodeChange(bool bytecode_loaded, const Function& func) {
           ASSERT(!inner_function.HasCode());
           if (FLAG_verbose_debug) {
             OS::PrintErr(
-                "Pending BP remains unresolved in inner function '%s'\n",
+                "Pending breakpoint remains unresolved in "
+                "inner function '%s'\n",
                 inner_function.ToFullyQualifiedCString());
           }
           continue;
@@ -4749,9 +4761,8 @@ void Debugger::HandleCodeChange(bool bytecode_loaded, const Function& func) {
         while (bpt != NULL) {
           if (FLAG_verbose_debug) {
             OS::PrintErr(
-                "Resolved BP %" Pd
-                " to pos %s, "
-                "function '%s' (requested range %s-%s, "
+                "Resolved breakpoint %" Pd
+                " to pos %s, function '%s' (requested range %s-%s, "
                 "requested col %" Pd ")\n",
                 bpt->id(), loc->token_pos().ToCString(),
                 func.ToFullyQualifiedCString(), requested_pos.ToCString(),
