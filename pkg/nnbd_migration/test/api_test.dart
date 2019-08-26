@@ -976,6 +976,36 @@ class C {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_flow_analysis_complex() async {
+    var content = '''
+int f(int x) {
+  while (x == null) {
+    x = g(x);
+  }
+  return x;
+}
+int g(int x) => x == null ? 1 : null;
+main() {
+  f(null);
+}
+''';
+    // Flow analysis can tell that the loop only exits if x is non-null, so the
+    // return type of `f` can remain `int`, and no null check is needed.
+    var expected = '''
+int f(int? x) {
+  while (x == null) {
+    x = g(x);
+  }
+  return x;
+}
+int? g(int? x) => x == null ? 1 : null;
+main() {
+  f(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_flow_analysis_simple() async {
     var content = '''
 int f(int x) {
