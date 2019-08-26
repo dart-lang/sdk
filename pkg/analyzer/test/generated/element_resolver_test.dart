@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -63,11 +62,10 @@ class A {
         Element annotationElement) {
       expect(name1, isNotNull);
       expect(name1.staticElement, isClassElement);
-      expect(resolutionMap.staticElementForIdentifier(name1).displayName, 'A');
+      expect(name1.staticElement.displayName, 'A');
       expect(name2, isNotNull);
       expect(name2.staticElement, isConstructorElement);
-      expect(
-          resolutionMap.staticElementForIdentifier(name2).displayName, 'named');
+      expect(name2.staticElement.displayName, 'named');
       expect(name3, isNull);
       if (annotationElement is ConstructorElement) {
         expect(annotationElement, same(name2.staticElement));
@@ -93,14 +91,13 @@ class A {
         Element annotationElement) {
       expect(name1, isNotNull);
       expect(name1.staticElement, isPrefixElement);
-      expect(resolutionMap.staticElementForIdentifier(name1).displayName, 'p');
+      expect(name1.staticElement.displayName, 'p');
       expect(name2, isNotNull);
       expect(name2.staticElement, isClassElement);
-      expect(resolutionMap.staticElementForIdentifier(name2).displayName, 'A');
+      expect(name2.staticElement.displayName, 'A');
       expect(name3, isNotNull);
       expect(name3.staticElement, isConstructorElement);
-      expect(
-          resolutionMap.staticElementForIdentifier(name3).displayName, 'named');
+      expect(name3.staticElement.displayName, 'named');
       if (annotationElement is ConstructorElement) {
         expect(annotationElement, same(name3.staticElement));
         expect(annotationElement.enclosingElement, name2.staticElement);
@@ -125,13 +122,13 @@ class A {
         Element annotationElement) {
       expect(name1, isNotNull);
       expect(name1.staticElement, isPrefixElement);
-      expect(resolutionMap.staticElementForIdentifier(name1).displayName, 'p');
+      expect(name1.staticElement.displayName, 'p');
       expect(name2, isNotNull);
       expect(name2.staticElement, isClassElement);
-      expect(resolutionMap.staticElementForIdentifier(name2).displayName, 'A');
+      expect(name2.staticElement.displayName, 'A');
       expect(name3, isNotNull);
       expect(name3.staticElement, isPropertyAccessorElement);
-      expect(resolutionMap.staticElementForIdentifier(name3).displayName, 'V');
+      expect(name3.staticElement.displayName, 'V');
       if (annotationElement is PropertyAccessorElement) {
         expect(annotationElement, same(name3.staticElement));
         expect(annotationElement.enclosingElement, name2.staticElement);
@@ -155,10 +152,10 @@ class A {
         Element annotationElement) {
       expect(name1, isNotNull);
       expect(name1.staticElement, isPrefixElement);
-      expect(resolutionMap.staticElementForIdentifier(name1).displayName, 'p');
+      expect(name1.staticElement.displayName, 'p');
       expect(name2, isNotNull);
       expect(name2.staticElement, isClassElement);
-      expect(resolutionMap.staticElementForIdentifier(name2).displayName, 'A');
+      expect(name2.staticElement.displayName, 'A');
       expect(name3, isNull);
       if (annotationElement is ConstructorElement) {
         expect(annotationElement.enclosingElement, name2.staticElement);
@@ -183,10 +180,10 @@ class A {
         Element annotationElement) {
       expect(name1, isNotNull);
       expect(name1.staticElement, isClassElement);
-      expect(resolutionMap.staticElementForIdentifier(name1).displayName, 'A');
+      expect(name1.staticElement.displayName, 'A');
       expect(name2, isNotNull);
       expect(name2.staticElement, isPropertyAccessorElement);
-      expect(resolutionMap.staticElementForIdentifier(name2).displayName, 'V');
+      expect(name2.staticElement.displayName, 'V');
       expect(name3, isNull);
       if (annotationElement is PropertyAccessorElement) {
         expect(annotationElement, same(name2.staticElement));
@@ -211,7 +208,7 @@ class A {
         Element annotationElement) {
       expect(name1, isNotNull);
       expect(name1.staticElement, isClassElement);
-      expect(resolutionMap.staticElementForIdentifier(name1).displayName, 'A');
+      expect(name1.staticElement.displayName, 'A');
       expect(name2, isNull);
       expect(name3, isNull);
       if (annotationElement is ConstructorElement) {
@@ -235,7 +232,7 @@ const V = 0;
         Element annotationElement) {
       expect(name1, isNotNull);
       expect(name1.staticElement, isPropertyAccessorElement);
-      expect(resolutionMap.staticElementForIdentifier(name1).displayName, 'V');
+      expect(name1.staticElement.displayName, 'V');
       expect(name2, isNull);
       expect(name3, isNull);
       if (annotationElement is PropertyAccessorElement) {
@@ -259,10 +256,10 @@ const V = 0;
         Element annotationElement) {
       expect(name1, isNotNull);
       expect(name1.staticElement, isPrefixElement);
-      expect(resolutionMap.staticElementForIdentifier(name1).displayName, 'p');
+      expect(name1.staticElement.displayName, 'p');
       expect(name2, isNotNull);
       expect(name2.staticElement, isPropertyAccessorElement);
-      expect(resolutionMap.staticElementForIdentifier(name2).displayName, 'V');
+      expect(name2.staticElement.displayName, 'V');
       expect(name3, isNull);
       if (annotationElement is PropertyAccessorElement) {
         expect(annotationElement, same(name2.staticElement));
@@ -673,8 +670,7 @@ class ElementResolverTest extends EngineTestCase with ResourceProviderMixin {
     parameterElement.type = intType;
     parameter.identifier.staticElement = parameterElement;
     _resolveInClass(parameter, classA);
-    expect(resolutionMap.elementDeclaredByFormalParameter(parameter).type,
-        same(intType));
+    expect(parameter.declaredElement.type, same(intType));
   }
 
   test_visitImportDirective_noCombinators_noPrefix() async {

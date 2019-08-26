@@ -444,8 +444,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       {bool isAbstract = false,
       bool isDeprecated = false,
       int relevance = DART_RELEVANCE_DEFAULT}) {
-    ClassElement classElement =
-        resolutionMap.elementDeclaredByEnumDeclaration(enumDeclaration);
+    ClassElement classElement = enumDeclaration.declaredElement;
     relevance =
         optype.returnValueSuggestionsFilter(classElement?.type, relevance);
     if (relevance != null) {

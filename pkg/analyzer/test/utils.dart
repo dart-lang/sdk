@@ -70,7 +70,7 @@ class AstFinder {
         return unitMember;
       }
     }
-    Source source = resolutionMap.elementDeclaredByCompilationUnit(unit).source;
+    Source source = unit.declaredElement.source;
     fail('No class named $className in $source');
   }
 

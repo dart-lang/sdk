@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
@@ -1954,10 +1953,7 @@ export 'dart:math';
     ResolvedUnitResult result = await driver.getResult(testFile);
     expect(result.path, testFile);
     // Has only exports for valid URIs.
-    List<ExportElement> imports = resolutionMap
-        .elementDeclaredByCompilationUnit(result.unit)
-        .library
-        .exports;
+    List<ExportElement> imports = result.libraryElement.exports;
     expect(imports.map((import) {
       return import.exportedLibrary?.source?.uri?.toString();
     }), ['dart:async', null, 'dart:math']);
@@ -1974,10 +1970,7 @@ import 'dart:math';
     ResolvedUnitResult result = await driver.getResult(testFile);
     expect(result.path, testFile);
     // Has only imports for valid URIs.
-    List<ImportElement> imports = resolutionMap
-        .elementDeclaredByCompilationUnit(result.unit)
-        .library
-        .imports;
+    List<ImportElement> imports = result.libraryElement.imports;
     expect(imports.map((import) {
       return import.importedLibrary?.source?.uri?.toString();
     }), ['dart:async', null, 'dart:math', 'dart:core']);
@@ -3452,9 +3445,8 @@ var v = 0
 
   String _getClassFieldType(
       CompilationUnit unit, String className, String fieldName) {
-    return resolutionMap
-        .elementDeclaredByVariableDeclaration(
-            _getClassField(unit, className, fieldName))
+    return _getClassField(unit, className, fieldName)
+        .declaredElement
         .type
         .toString();
   }
@@ -3474,9 +3466,8 @@ var v = 0
 
   String _getClassMethodReturnType(
       CompilationUnit unit, String className, String fieldName) {
-    return resolutionMap
-        .elementDeclaredByMethodDeclaration(
-            _getClassMethod(unit, className, fieldName))
+    return _getClassMethod(unit, className, fieldName)
+        .declaredElement
         .type
         .returnType
         .toString();
@@ -3506,10 +3497,7 @@ var v = 0
 
   String _getTopLevelVarType(CompilationUnit unit, String name) {
     VariableDeclaration variable = _getTopLevelVar(unit, name);
-    return resolutionMap
-        .elementDeclaredByVariableDeclaration(variable)
-        .type
-        .toString();
+    return variable.declaredElement.type.toString();
   }
 }
 

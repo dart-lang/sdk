@@ -582,7 +582,7 @@ class CodeChecker extends RecursiveAstVisitor {
   @override
   void visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
-    var type = resolutionMap.staticElementForConstructorReference(node)?.type;
+    var type = node.staticElement?.type;
     // TODO(leafp): There's a TODO in visitRedirectingConstructorInvocation
     // in the element_resolver to handle the case that the element is null
     // and emit an error.  In the meantime, just be defensive here.
@@ -657,7 +657,7 @@ class CodeChecker extends RecursiveAstVisitor {
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     var element = node.staticElement;
     if (element != null) {
-      var type = resolutionMap.staticElementForConstructorReference(node).type;
+      var type = node.staticElement.type;
       checkArgumentList(node.argumentList, type);
     }
     node.visitChildren(this);
@@ -674,9 +674,8 @@ class CodeChecker extends RecursiveAstVisitor {
 
   @override
   Object visitVariableDeclaration(VariableDeclaration node) {
-    VariableElement variableElement = node == null
-        ? null
-        : resolutionMap.elementDeclaredByVariableDeclaration(node);
+    VariableElement variableElement =
+        node == null ? null : node.declaredElement;
     AstNode parent = node.parent;
     if (variableElement != null &&
         parent is VariableDeclarationList &&
@@ -720,7 +719,7 @@ class CodeChecker extends RecursiveAstVisitor {
   void _checkCompoundAssignment(AssignmentExpression expr) {
     var op = expr.operator.type;
     assert(op.isAssignmentOperator && op != TokenType.EQ);
-    var methodElement = resolutionMap.staticElementForMethodReference(expr);
+    var methodElement = expr.staticElement;
     if (methodElement == null) {
       // Dynamic invocation.
       _recordDynamicInvoke(expr, expr.leftHandSide);
@@ -1290,9 +1289,7 @@ class CodeChecker extends RecursiveAstVisitor {
           ? node.firstTokenAfterCommentAndMetadata.offset
           : node.offset;
       int length = node.end - begin;
-      var source = resolutionMap
-          .elementDeclaredByCompilationUnit(node.root as CompilationUnit)
-          .source;
+      var source = (node.root as CompilationUnit).declaredElement.source;
       var error =
           new AnalysisError(source, begin, length, errorCode, arguments);
       reporter.onError(error);
@@ -1396,8 +1393,7 @@ class _OverrideChecker {
   _OverrideChecker(CodeChecker checker) : rules = checker.rules;
 
   void check(Declaration node) {
-    var element =
-        resolutionMap.elementDeclaredByDeclaration(node) as ClassElement;
+    var element = node.declaredElement as ClassElement;
     if (element.type.isObject) {
       return;
     }

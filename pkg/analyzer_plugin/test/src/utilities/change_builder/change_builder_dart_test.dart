@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -914,8 +913,8 @@ class A {}
     CompilationUnit unit = (await driver.getResult(path))?.unit;
     FunctionDeclaration f = unit.declarations[0] as FunctionDeclaration;
     FormalParameterList parameters = f.functionExpression.parameters;
-    Iterable<ParameterElement> elements = parameters.parameters
-        .map(resolutionMap.elementDeclaredByFormalParameter);
+    Iterable<ParameterElement> elements =
+        parameters.parameters.map((p) => p.declaredElement);
 
     DartChangeBuilderImpl builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
@@ -935,8 +934,8 @@ class A {}
     CompilationUnit unit = (await driver.getResult(path))?.unit;
     FunctionDeclaration f = unit.declarations[0] as FunctionDeclaration;
     FormalParameterList parameters = f.functionExpression.parameters;
-    Iterable<ParameterElement> elements = parameters.parameters
-        .map(resolutionMap.elementDeclaredByFormalParameter);
+    Iterable<ParameterElement> elements =
+        parameters.parameters.map((p) => p.declaredElement);
 
     DartChangeBuilderImpl builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
@@ -956,8 +955,8 @@ class A {}
     CompilationUnit unit = (await driver.getResult(path))?.unit;
     FunctionDeclaration f = unit.declarations[0] as FunctionDeclaration;
     FormalParameterList parameters = f.functionExpression.parameters;
-    Iterable<ParameterElement> elements = parameters.parameters
-        .map(resolutionMap.elementDeclaredByFormalParameter);
+    Iterable<ParameterElement> elements =
+        parameters.parameters.map((p) => p.declaredElement);
 
     DartChangeBuilderImpl builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
@@ -1121,11 +1120,8 @@ import 'a.dart' as p;
     DartChangeBuilderImpl builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilder).writeType(resolutionMap
-            .elementDeclaredByCompilationUnit(unit)
-            .context
-            .typeProvider
-            .dynamicType);
+        var typeProvider = unit.declaredElement.context.typeProvider;
+        (builder as DartEditBuilder).writeType(typeProvider.dynamicType);
       });
     });
     SourceEdit edit = getEdit(builder);
@@ -1332,13 +1328,9 @@ class B {}
     DartChangeBuilderImpl builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilder).writeType(
-            resolutionMap
-                .elementDeclaredByCompilationUnit(unit)
-                .context
-                .typeProvider
-                .dynamicType,
-            required: true);
+        var typeProvider = unit.declaredElement.context.typeProvider;
+        (builder as DartEditBuilder)
+            .writeType(typeProvider.dynamicType, required: true);
       });
     });
     SourceEdit edit = getEdit(builder);

@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -1775,7 +1774,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     AstNode parent = node.parent;
     if (initializer != null) {
       if (parent is VariableDeclarationList && parent.type == null) {
-        DartType type = resolutionMap.staticTypeForExpression(initializer);
+        DartType type = initializer.staticType;
         if (type != null && !type.isBottom && !type.isDartCoreNull) {
           VariableElement element = node.declaredElement;
           if (element is LocalVariableElementImpl) {

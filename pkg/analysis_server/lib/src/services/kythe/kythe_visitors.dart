@@ -5,7 +5,6 @@
 import 'dart:convert';
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -353,8 +352,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
 
       // Don't use visitLibraryDirective as this won't generate a package
       // VName for libraries that don't have a library directive.
-      var libraryElement =
-          resolutionMap.elementDeclaredByCompilationUnit(node).library;
+      var libraryElement = node.declaredElement.library;
       if (libraryElement.definingCompilationUnit == node.declaredElement) {
         LibraryDirective libraryDirective;
         for (var directive in node.directives) {
@@ -433,8 +431,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
   @override
   visitDeclaredIdentifier(DeclaredIdentifier node) {
     _handleVariableDeclaration(node.declaredElement, node.identifier,
-        subKind: schema.LOCAL_SUBKIND,
-        type: resolutionMap.elementDeclaredByDeclaredIdentifier(node).type);
+        subKind: schema.LOCAL_SUBKIND, type: node.declaredElement.type);
 
     // no children
   }
@@ -638,8 +635,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
     // constructorName
     //
     var constructorName = node.constructorName;
-    var constructorElement =
-        resolutionMap.staticElementForConstructorReference(constructorName);
+    var constructorElement = constructorName.staticElement;
     if (constructorElement != null) {
       // anchor- ref/call
       _handleRefCallEdge(constructorElement,
@@ -786,11 +782,8 @@ class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
     }
 
     // type
-    addEdge(
-        paramVName,
-        schema.TYPED_EDGE,
-        _vNameFromType(
-            resolutionMap.elementDeclaredByFormalParameter(node).type));
+    addEdge(paramVName, schema.TYPED_EDGE,
+        _vNameFromType(node.declaredElement.type));
 
     // visit children
     _safelyVisit(node.documentationComment);
@@ -851,7 +844,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
     // variable
     _handleVariableDeclaration(node.declaredElement, node.name,
         subKind: isLocal ? schema.LOCAL_SUBKIND : schema.FIELD_SUBKIND,
-        type: resolutionMap.elementDeclaredByVariableDeclaration(node).type);
+        type: node.declaredElement.type);
 
     // visit children
     _safelyVisit(node.initializer);
@@ -1239,7 +1232,7 @@ mixin OutputUtils {
     if (returnNode is TypeName) {
       // MethodDeclaration and FunctionDeclaration both return a TypeName from
       // returnType
-      if (resolutionMap.typeForTypeName(returnNode).isVoid) {
+      if (returnNode.type.isVoid) {
         returnTypeVName = voidBuiltin;
       } else {
         returnTypeVName =
@@ -1247,7 +1240,7 @@ mixin OutputUtils {
       }
     } else if (returnNode is Identifier) {
       // ConstructorDeclaration returns an Identifier from returnType
-      if (resolutionMap.staticTypeForExpression(returnNode).isVoid) {
+      if (returnNode.staticType.isVoid) {
         returnTypeVName = voidBuiltin;
       } else {
         returnTypeVName =
@@ -1264,16 +1257,9 @@ mixin OutputUtils {
     if (paramNodes != null) {
       for (FormalParameter paramNode in paramNodes.parameters) {
         var paramTypeVName = dynamicBuiltin;
-        if (!resolutionMap
-            .elementDeclaredByFormalParameter(paramNode)
-            .type
-            .isDynamic) {
+        if (!paramNode.declaredElement.type.isDynamic) {
           paramTypeVName = _vNameFromElement(
-              resolutionMap
-                  .elementDeclaredByFormalParameter(paramNode)
-                  .type
-                  .element,
-              schema.TAPP_KIND);
+              paramNode.declaredElement.type.element, schema.TAPP_KIND);
         }
         addEdge(funcTypeVName, schema.PARAM_EDGE, paramTypeVName,
             ordinalIntValue: i++);

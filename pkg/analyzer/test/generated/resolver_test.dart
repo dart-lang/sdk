@@ -8,7 +8,6 @@ import 'dart:collection';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -822,8 +821,7 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<void> {
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     // In cases where we have a prefixed identifier where the prefix is dynamic,
     // we don't want to assert that the node will have a type.
-    if (node.staticType == null &&
-        resolutionMap.staticTypeForExpression(node.prefix).isDynamic) {
+    if (node.staticType == null && node.prefix.staticType.isDynamic) {
       return;
     }
     super.visitPrefixedIdentifier(node);
@@ -885,10 +883,7 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<void> {
       if (root is CompilationUnit) {
         CompilationUnit rootCU = root;
         if (rootCU.declaredElement != null) {
-          return resolutionMap
-              .elementDeclaredByCompilationUnit(rootCU)
-              .source
-              .fullName;
+          return rootCU.declaredElement.source.fullName;
         } else {
           return "<unknown file- CompilationUnit.getElement() returned null>";
         }

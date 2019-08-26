@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 
@@ -127,8 +126,7 @@ ImportElement internal_getImportElementInfo(SimpleIdentifier prefixNode) {
   // prepare environment
   AstNode parent = prefixNode.parent;
   CompilationUnit unit = prefixNode.thisOrAncestorOfType<CompilationUnit>();
-  LibraryElement libraryElement =
-      resolutionMap.elementDeclaredByCompilationUnit(unit).library;
+  LibraryElement libraryElement = unit.declaredElement.library;
   // prepare used element
   Element usedElement = null;
   if (parent is PrefixedIdentifier) {

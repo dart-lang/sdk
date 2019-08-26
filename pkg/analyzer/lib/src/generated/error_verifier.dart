@@ -6,7 +6,6 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -926,8 +925,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       // we can get the function element via `node?.element?.type?.element` but
       // it doesn't have hasImplicitReturnType set correctly.
       if (!_options.implicitDynamic && node.returnType == null) {
-        DartType parameterType =
-            resolutionMap.elementDeclaredByFormalParameter(node).type;
+        DartType parameterType = node.declaredElement.type;
         if (parameterType is FunctionType &&
             parameterType.returnType.isDynamic) {
           _errorReporter.reportErrorForNode(
@@ -1797,8 +1795,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     DartType redirectedReturnType = redirectedType.returnType;
 
     // Report specific problem when return type is incompatible
-    FunctionType constructorType =
-        resolutionMap.elementDeclaredByConstructorDeclaration(declaration).type;
+    FunctionType constructorType = declaration.declaredElement.type;
     DartType constructorReturnType = constructorType.returnType;
     if (!_typeSystem.isAssignableTo(redirectedReturnType, constructorReturnType,
         featureSet: _featureSet)) {
@@ -3794,7 +3791,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _checkForMissingJSLibAnnotation(Annotation node) {
-    if (resolutionMap.elementAnnotationForAnnotation(node)?.isJS ?? false) {
+    if (node.elementAnnotation?.isJS ?? false) {
       if (_currentLibrary.hasJS != true) {
         _errorReporter.reportErrorForNode(
             HintCode.MISSING_JS_LIB_ANNOTATION, node);

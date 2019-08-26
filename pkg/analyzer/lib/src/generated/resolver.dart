@@ -7,7 +7,6 @@ import 'dart:collection';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/ast_factory.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -133,8 +132,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitAnnotation(Annotation node) {
-    ElementAnnotation element =
-        resolutionMap.elementAnnotationForAnnotation(node);
+    ElementAnnotation element = node.elementAnnotation;
     AstNode parent = node.parent;
     if (element?.isFactory == true) {
       if (parent is MethodDeclaration) {
@@ -261,7 +259,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    if (resolutionMap.elementDeclaredByConstructorDeclaration(node).isFactory) {
+    if (node.declaredElement.isFactory) {
       if (node.body is BlockFunctionBody) {
         // Check the block for a return statement, if not, create the hint.
         if (!ExitDetector.exits(node.body)) {
@@ -576,8 +574,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       } else if (displayName == FunctionElement.CALL_METHOD_NAME &&
           node is MethodInvocation &&
           node.staticInvokeType is InterfaceType) {
-        DartType staticInvokeType =
-            resolutionMap.staticInvokeTypeForInvocationExpression(node);
+        DartType staticInvokeType = node.staticInvokeType;
         displayName = "${staticInvokeType.displayName}.${element.displayName}";
       }
       LibraryElement library =
@@ -1789,8 +1786,7 @@ class DirectiveResolver extends SimpleAstVisitor {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    _enclosingLibrary =
-        resolutionMap.elementDeclaredByCompilationUnit(node).library;
+    _enclosingLibrary = node.declaredElement.library;
     for (Directive directive in node.directives) {
       directive.accept(this);
     }
@@ -3707,8 +3703,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
-    InferenceContext.setType(node.defaultValue,
-        resolutionMap.elementDeclaredByFormalParameter(node.parameter)?.type);
+    InferenceContext.setType(node.defaultValue, node.declaredElement?.type);
     super.visitDefaultFormalParameter(node);
     ParameterElement element = node.declaredElement;
 
@@ -4317,8 +4312,7 @@ class ResolverVisitor extends ScopedVisitor {
     // because it needs to be visited in the context of the constructor
     // invocation.
     //
-    InferenceContext.setType(node.argumentList,
-        resolutionMap.staticElementForConstructorReference(node)?.type);
+    InferenceContext.setType(node.argumentList, node.staticElement?.type);
     node.argumentList?.accept(this);
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
@@ -4426,8 +4420,7 @@ class ResolverVisitor extends ScopedVisitor {
     // because it needs to be visited in the context of the constructor
     // invocation.
     //
-    InferenceContext.setType(node.argumentList,
-        resolutionMap.staticElementForConstructorReference(node)?.type);
+    InferenceContext.setType(node.argumentList, node.staticElement?.type);
     node.argumentList?.accept(this);
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
@@ -4563,8 +4556,7 @@ class ResolverVisitor extends ScopedVisitor {
   void visitVariableDeclarationList(VariableDeclarationList node) {
     _flowAnalysis?.variableDeclarationList(node);
     for (VariableDeclaration decl in node.variables) {
-      VariableElement variableElement =
-          resolutionMap.elementDeclaredByVariableDeclaration(decl);
+      VariableElement variableElement = decl.declaredElement;
       InferenceContext.setType(decl, variableElement?.type);
     }
     super.visitVariableDeclarationList(node);
@@ -4846,8 +4838,7 @@ class ResolverVisitor extends ScopedVisitor {
       return;
     }
 
-    ConstructorElement originalElement =
-        resolutionMap.staticElementForConstructorReference(constructor);
+    ConstructorElement originalElement = constructor.staticElement;
     FunctionType inferred;
     // If the constructor is generic, we'll have a ConstructorMember that
     // substitutes in type arguments (possibly `dynamic`) from earlier in
