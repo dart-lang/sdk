@@ -110,6 +110,18 @@ class X extends Object with M {
 }
 ''');
   }
+  
+  test_mixin_noFields() async {
+    await assertNoErrorsInCode('''
+mixin M {
+  get x;
+}
+
+class X extends Object with M {
+  const X();
+}
+''');
+  }
 
   test_mixin_static() async {
     await assertNoErrorsInCode('''
