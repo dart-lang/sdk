@@ -839,6 +839,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     SimpleIdentifier prefixedIdentifier = node.identifier;
     Element staticElement = prefixedIdentifier.staticElement;
+
+    if (staticElement is ExtensionElement) {
+      return;
+    }
+
     DartType staticType = _dynamicType;
     if (staticElement is ClassElement) {
       if (_isNotTypeLiteral(node)) {
@@ -1072,6 +1077,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     Element element = node.staticElement;
+
+    if (element is ExtensionElement) {
+      return;
+    }
+
     DartType staticType = _dynamicType;
     if (element is ClassElement) {
       if (_isNotTypeLiteral(node)) {
