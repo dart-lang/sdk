@@ -16,6 +16,7 @@ class ContinuationVariables {
   static const awaitJumpVar = ':await_jump_var';
   static const awaitContextVar = ':await_ctx_var';
   static const asyncStackTraceVar = ':async_stack_trace';
+  static const controllerStreamVar = ':controller_stream';
   static const exceptionParam = ':exception';
   static const stackTraceParam = ':stack_trace';
 
@@ -919,7 +920,7 @@ class AsyncStarFunctionRewriter extends AsyncRewriterBase {
 
     // dynamic :controller_stream;
     VariableDeclaration controllerStreamVariable =
-        new VariableDeclaration(":controller_stream");
+        new VariableDeclaration(ContinuationVariables.controllerStreamVar);
     statements.add(controllerStreamVariable);
 
     setupAsyncContinuations(statements);

@@ -390,6 +390,13 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
         _useVariable(_currentFrame.parent
             .getSyntheticVar(ContinuationVariables.awaitContextVar));
 
+        // Debugger looks for :controller_stream variable among captured
+        // variables in a context, so make sure to capture it.
+        if (_currentFrame.parent.dartAsyncMarker == AsyncMarker.AsyncStar) {
+          _useVariable(_currentFrame.parent
+              .getSyntheticVar(ContinuationVariables.controllerStreamVar));
+        }
+
         if (locals.options.causalAsyncStacks &&
             (_currentFrame.parent.dartAsyncMarker == AsyncMarker.Async ||
                 _currentFrame.parent.dartAsyncMarker ==
