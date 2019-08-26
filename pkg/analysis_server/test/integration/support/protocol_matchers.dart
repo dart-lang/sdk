@@ -1767,16 +1767,16 @@ final Matcher isSourceFileEdit = new LazyMatcher(() => new MatchesJsonObject(
  *   "lexeme": String
  *   "type": optional String
  *   "validElementKinds": optional List<String>
- *   "offset": int
+ *   "offset": optional int
  * }
  */
 final Matcher isTokenDetails = new LazyMatcher(() => new MatchesJsonObject(
         "TokenDetails", {
-      "lexeme": isString,
-      "offset": isInt
+      "lexeme": isString
     }, optionalFields: {
       "type": isString,
-      "validElementKinds": isListOf(isString)
+      "validElementKinds": isListOf(isString),
+      "offset": isInt
     }));
 
 /**

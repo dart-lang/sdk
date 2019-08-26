@@ -23071,7 +23071,7 @@ class ServerStatusParams implements HasToJson {
  *   "lexeme": String
  *   "type": optional String
  *   "validElementKinds": optional List<String>
- *   "offset": int
+ *   "offset": optional int
  * }
  *
  * Clients may not extend, implement or mix-in this class.
@@ -23141,12 +23141,11 @@ class TokenDetails implements HasToJson {
    * originated from.
    */
   void set offset(int value) {
-    assert(value != null);
     this._offset = value;
   }
 
-  TokenDetails(String lexeme, int offset,
-      {String type, List<String> validElementKinds}) {
+  TokenDetails(String lexeme,
+      {String type, List<String> validElementKinds, int offset}) {
     this.lexeme = lexeme;
     this.type = type;
     this.validElementKinds = validElementKinds;
@@ -23179,11 +23178,9 @@ class TokenDetails implements HasToJson {
       int offset;
       if (json.containsKey("offset")) {
         offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
-      } else {
-        throw jsonDecoder.mismatch(jsonPath, "offset");
       }
-      return new TokenDetails(lexeme, offset,
-          type: type, validElementKinds: validElementKinds);
+      return new TokenDetails(lexeme,
+          type: type, validElementKinds: validElementKinds, offset: offset);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "TokenDetails", json);
     }
@@ -23199,7 +23196,9 @@ class TokenDetails implements HasToJson {
     if (validElementKinds != null) {
       result["validElementKinds"] = validElementKinds;
     }
-    result["offset"] = offset;
+    if (offset != null) {
+      result["offset"] = offset;
+    }
     return result;
   }
 
