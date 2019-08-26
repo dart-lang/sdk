@@ -3413,6 +3413,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     // Front-end inserts implicit cast (type check) which ensures that
     // result of iterable expression is Iterable<dynamic>.
+    _recordSourcePosition(node.iterable.fileOffset);
     asm.emitInterfaceCall(
         cp.addInterfaceCall(InvocationKind.getter, iterableIterator,
             objectTable.getArgDescHandle(1)),
@@ -3454,6 +3455,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     _genJumpIfFalse(/* negated = */ false, done);
 
     _enterScope(node);
+    _recordSourcePosition(node.bodyOffset);
 
     _genPushContextIfCaptured(node.variable);
 
