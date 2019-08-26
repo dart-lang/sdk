@@ -3,16 +3,8 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2js ]
-23264_test: RuntimeError
-bound_closure_interceptor_type_test: RuntimeError
 bounds_check4a_test: RuntimeError # Issue 32741
 bounds_check4b_test: RuntimeError # Issue 32741
-class_test: Fail
-closure_capture2_test: RuntimeError
-constant_javascript_semantics4_test: Fail, OK
-constant_javascript_semantics_test/03: CompileTimeError
-constant_javascript_semantics_test/04: CompileTimeError
-constant_javascript_semantics_test/none: CompileTimeError
 generic_class_is_test: Fail # Issue 32004
 jsinterop_test/01: MissingCompileTimeError # Issue 34174
 jsinterop_test/02: MissingCompileTimeError # Issue 34174
@@ -52,17 +44,6 @@ non_jsinterop_test/51: MissingCompileTimeError # Issue 34174
 non_jsinterop_test/52: MissingCompileTimeError # Issue 34345
 non_jsinterop_test/53: MissingCompileTimeError # Issue 34345
 non_jsinterop_test/54: MissingCompileTimeError # Issue 34345
-private_symbol_literal_test/01: MissingCompileTimeError
-private_symbol_literal_test/02: MissingCompileTimeError
-private_symbol_literal_test/03: MissingCompileTimeError
-private_symbol_literal_test/04: MissingCompileTimeError
-private_symbol_literal_test/05: MissingCompileTimeError
-private_symbol_literal_test/06: MissingCompileTimeError
-regress/4562_test/none: CompileTimeError
-round_constant_folding_test: CompileTimeError
-statements_test: Fail
-type_constant_switch_test/01: MissingCompileTimeError
-typed_locals_test: Pass, Fail
 
 [ $compiler != dart2js ]
 dummy_compiler_test: SkipByDesign # Issue 30773. Test should be migrated as a unit test of dart2js, is only intended to test self-hosting.
@@ -100,11 +81,6 @@ consistent_index_error_string_test: Pass, Slow # Issue 25940
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
-[ $compiler == dart2js && $checked ]
-dummy_compiler_test: Crash
-local_signature_test: Crash
-minus_zero_test/01: MissingCompileTimeError
-
 [ $compiler == dart2js && $csp ]
 deferred_custom_loader_test: SkipByDesign # Issue 25683
 deferred_fail_and_retry_test: SkipByDesign # Uses eval to simulate failed loading.
@@ -118,9 +94,7 @@ dummy_compiler_test: RuntimeError, Slow # Issue 32439. self-hosting doesn't work
 closure_capture2_test: Pass # Passes for the wrong reason
 code_motion_exception_test: Skip # Requires unminified operator names.
 deferred/reflect_multiple_annotations_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
-deferred/reflect_multiple_annotations_test: Fail
 deferred/reflect_multiple_default_arg_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
-deferred/reflect_multiple_default_arg_test: Fail
 mirrors_used_warning_test/minif: Fail, OK # Tests warning that minified code will be broken.
 runtime_type_test: Fail, OK # Tests extected output of Type.toString().
 to_string_test: Fail # Issue 7179.
