@@ -4467,10 +4467,8 @@ class ResolverVisitor extends ScopedVisitor {
           );
           member.accept(this);
 
-          // Implicit `break` at the end of `default`.
           if (member is SwitchDefault) {
             hasDefault = true;
-            flow.handleBreak(node);
           }
         }
 

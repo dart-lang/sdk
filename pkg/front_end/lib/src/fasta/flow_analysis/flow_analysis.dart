@@ -533,18 +533,18 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
   /// [hasDefault] indicates whether the switch statement had a "default" case.
   void switchStatement_end(bool hasDefault) {
     // Tail of the stack: break, continue, afterExpression
-    FlowModel<Variable, Type> afterExpression = _current = _stack.removeLast();
+    FlowModel<Variable, Type> afterExpression = _stack.removeLast();
     _stack.removeLast(); // continue
     FlowModel<Variable, Type> breakState = _stack.removeLast();
 
-    if (hasDefault) {
-      // breakState should not be null because we should have joined it with
-      // something non-null when handling the default case.
-      assert(breakState != null);
-      _current = breakState;
-    } else {
-      _current = _join(breakState, afterExpression);
-    }
+    // It is allowed to "fall off" the end of a switch statement, so join the
+    // current state to any breaks that were found previously.
+    breakState = _join(breakState, _current);
+
+    // And, if there is an implicit fall-through default, join it to any breaks.
+    if (!hasDefault) breakState = _join(breakState, afterExpression);
+
+    _current = breakState;
   }
 
   /// Call this method just after visiting the expression part of a switch

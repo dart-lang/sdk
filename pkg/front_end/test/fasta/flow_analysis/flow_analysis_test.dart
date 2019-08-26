@@ -468,6 +468,20 @@ main() {
       h.flow.finish();
     });
 
+    test('switchStatement_end(true) allows fall-through of last case', () {
+      var h = _Harness();
+      var x = h.addAssignedVar('x', 'int?');
+      var stmt = _Statement();
+      h.flow.switchStatement_expressionEnd(stmt);
+      h.flow.switchStatement_beginCase(false, {});
+      h.promote(x, 'int');
+      h.flow.handleBreak(stmt);
+      h.flow.switchStatement_beginCase(false, {});
+      h.flow.switchStatement_end(true);
+      expect(h.flow.promotedType(x), isNull);
+      h.flow.finish();
+    });
+
     test('Infinite loop does not implicitly assign variables', () {
       var h = _Harness();
       var x = h.addUnassignedVar('x', 'int');
