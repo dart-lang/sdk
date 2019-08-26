@@ -285,7 +285,9 @@ Future<bool> runTestForConfig<T>(
   }
 
   Map<Id, ActualData<T>> actualMapFor(TreeNode node) {
-    Uri uri = node is Library ? node.fileUri : node.location.file;
+    Uri uri = node is Library
+        ? node.fileUri
+        : (node is Member ? node.fileUri : node.location.file);
     return actualMaps.putIfAbsent(uri, () => <Id, ActualData<T>>{});
   }
 

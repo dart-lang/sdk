@@ -483,10 +483,14 @@ class OutlineBuilder extends StackListener {
   @override
   void beginClassOrMixinBody(ClassKind kind, Token token) {
     if (kind == ClassKind.Extension) {
-      assert(checkState(token, [ValueKind.TypeBuilder]));
-      TypeBuilder extensionThisType = peek();
-      library.currentTypeParameterScopeBuilder
-          .registerExtensionThisType(extensionThisType);
+      assert(checkState(token, [
+        unionOfKinds([ValueKind.ParserRecovery, ValueKind.TypeBuilder])
+      ]));
+      Object extensionThisType = peek();
+      if (extensionThisType is TypeBuilder) {
+        library.currentTypeParameterScopeBuilder
+            .registerExtensionThisType(extensionThisType);
+      }
     }
     debugEvent("beginClassOrMixinBody");
     // Resolve unresolved types from the class header (i.e., superclass, mixins,
@@ -639,7 +643,7 @@ class OutlineBuilder extends StackListener {
     int offset = nameToken?.charOffset ?? extensionKeyword.charOffset;
     String name = nameToken?.lexeme ??
         // Synthesized name used internally.
-        'extension#${unnamedExtensionCounter++}';
+        '_extension#${unnamedExtensionCounter++}';
     push(name);
     push(offset);
     push(typeVariables ?? NullValue.TypeVariables);
@@ -651,7 +655,7 @@ class OutlineBuilder extends StackListener {
   void endExtensionDeclaration(
       Token extensionKeyword, Token onKeyword, Token endToken) {
     assert(checkState(extensionKeyword, [
-      ValueKind.TypeBuilder,
+      unionOfKinds([ValueKind.ParserRecovery, ValueKind.TypeBuilder]),
       ValueKind.TypeVariableListOrNull,
       ValueKind.Integer,
       ValueKind.NameOrNull,

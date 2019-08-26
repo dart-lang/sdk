@@ -32,6 +32,9 @@ abstract class ExtensionBuilder extends DeclarationBuilder {
       this.onType)
       : super(metadata, modifiers, name, parent, charOffset, scope);
 
+  /// Return the [Extension] built by this builder.
+  Extension get extension;
+
   /// Lookup a static member of this declaration.
   Builder findStaticBuilder(
       String name, int charOffset, Uri fileUri, LibraryBuilder accessingLibrary,
@@ -45,9 +48,6 @@ abstract class ExtensionBuilder extends DeclarationBuilder {
     // TODO(johnniwinther): Handle patched extensions.
     return declaration;
   }
-
-  /// Return the [Extension] built by this builder.
-  Extension get extension;
 
   // Deliberately unrelated return type to statically detect more accidental
   // use until Builder.target is fully retired.
@@ -76,9 +76,10 @@ abstract class ExtensionBuilder extends DeclarationBuilder {
   InterfaceType get thisType => null;
 
   @override
-  Builder lookupLocalMember(String name, {bool required: false}) {
+  Builder lookupLocalMember(String name,
+      {bool setter: false, bool required: false}) {
     // TODO(johnniwinther): Support patching on extensions.
-    Builder builder = scope.local[name];
+    Builder builder = setter ? scope.setters[name] : scope.local[name];
     if (required && builder == null) {
       internalProblem(
           templateInternalProblemNotFoundIn.withArguments(

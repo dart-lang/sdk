@@ -353,10 +353,11 @@ abstract class ClassBuilder extends DeclarationBuilder {
   }
 
   @override
-  Builder lookupLocalMember(String name, {bool required: false}) {
-    Builder builder = scope.local[name];
+  Builder lookupLocalMember(String name,
+      {bool setter: false, bool required: false}) {
+    Builder builder = setter ? scope.setters[name] : scope.local[name];
     if (builder == null && isPatch) {
-      builder = origin.scope.local[name];
+      builder = setter ? origin.scope.setters[name] : origin.scope.local[name];
     }
     if (required && builder == null) {
       internalProblem(

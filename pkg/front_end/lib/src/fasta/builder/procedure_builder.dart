@@ -171,7 +171,10 @@ abstract class FunctionBuilder extends MemberBuilder {
         local[formal.name] = formal;
       }
     }
-    return new Scope(local, null, parent, "formal parameter",
+    return new Scope(
+        local: local,
+        parent: parent,
+        debugName: "formal parameter",
         isModifiable: false);
   }
 
@@ -196,7 +199,10 @@ abstract class FunctionBuilder extends MemberBuilder {
     for (FormalParameterBuilder formal in formals) {
       local[formal.name] = formal.forFormalParameterInitializerScope();
     }
-    return new Scope(local, null, parent, "formal parameter initializer",
+    return new Scope(
+        local: local,
+        parent: parent,
+        debugName: "formal parameter initializer",
         isModifiable: false);
   }
 
@@ -209,7 +215,10 @@ abstract class FunctionBuilder extends MemberBuilder {
     for (TypeVariableBuilder variable in typeVariables) {
       local[variable.name] = variable;
     }
-    return new Scope(local, null, parent, "type parameter",
+    return new Scope(
+        local: local,
+        parent: parent,
+        debugName: "type parameter",
         isModifiable: false);
   }
 

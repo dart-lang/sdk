@@ -724,6 +724,9 @@ class SourceLibraryBuilder extends LibraryBuilder {
                     existing.fileUri, existing.charOffset, fullName.length)
           ]);
     }
+    if (declaration.isExtension) {
+      currentTypeParameterScopeBuilder.extensions.add(declaration);
+    }
     return members[name] = declaration;
   }
 
@@ -1077,6 +1080,9 @@ class SourceLibraryBuilder extends LibraryBuilder {
     } else {
       map[name] = member;
     }
+    if (member.isExtension) {
+      importScope.addExtension(member);
+    }
   }
 
   /// Resolves all unresolved types in [types]. The list of types is cleared
@@ -1290,14 +1296,17 @@ class SourceLibraryBuilder extends LibraryBuilder {
     Map<String, MemberBuilder> constructors = declaration.constructors;
     Map<String, MemberBuilder> setters = declaration.setters;
 
-    Scope classScope = new Scope(members, setters,
-        scope.withTypeVariables(typeVariables), "class $className",
+    Scope classScope = new Scope(
+        local: members,
+        setters: setters,
+        parent: scope.withTypeVariables(typeVariables),
+        debugName: "class $className",
         isModifiable: false);
 
     // When looking up a constructor, we don't consider type variables or the
     // library scope.
-    Scope constructorScope =
-        new Scope(constructors, null, null, className, isModifiable: false);
+    Scope constructorScope = new Scope(
+        local: constructors, debugName: className, isModifiable: false);
     bool isMixinDeclaration = false;
     if (modifiers & mixinDeclarationMask != 0) {
       isMixinDeclaration = true;
@@ -1412,8 +1421,11 @@ class SourceLibraryBuilder extends LibraryBuilder {
     Map<String, MemberBuilder> constructors = declaration.constructors;
     Map<String, MemberBuilder> setters = declaration.setters;
 
-    Scope classScope = new Scope(members, setters,
-        scope.withTypeVariables(typeVariables), "extension $extensionName",
+    Scope classScope = new Scope(
+        local: members,
+        setters: setters,
+        parent: scope.withTypeVariables(typeVariables),
+        debugName: "extension $extensionName",
         isModifiable: false);
 
     ExtensionBuilder extensionBuilder = new SourceExtensionBuilder(
@@ -1656,10 +1668,15 @@ class SourceLibraryBuilder extends LibraryBuilder {
                 ? interfaces
                 : isMixinDeclaration ? [supertype, mixin] : null,
             null, // No `on` clause types.
-            new Scope(<String, MemberBuilder>{}, <String, MemberBuilder>{},
-                scope.withTypeVariables(typeVariables),
-                "mixin $fullname ", isModifiable: false),
-            new Scope(<String, MemberBuilder>{}, null, null, fullname,
+            new Scope(
+                local: <String, MemberBuilder>{},
+                setters: <String, MemberBuilder>{},
+                parent: scope.withTypeVariables(typeVariables),
+                debugName: "mixin $fullname ",
+                isModifiable: false),
+            new Scope(
+                local: <String, MemberBuilder>{},
+                debugName: fullname,
                 isModifiable: false),
             this,
             <ConstructorReferenceBuilder>[],
@@ -2901,6 +2918,8 @@ class TypeParameterScopeBuilder {
 
   final Map<String, Builder> setters;
 
+  final List<ExtensionBuilder> extensions;
+
   final List<UnresolvedType> types = <UnresolvedType>[];
 
   // TODO(johnniwinther): Stop using [_name] for determining the declaration
@@ -2921,14 +2940,28 @@ class TypeParameterScopeBuilder {
 
   bool hasConstConstructor = false;
 
-  TypeParameterScopeBuilder(this._kind, this.members, this.setters,
-      this.constructors, this._name, this._charOffset, this.parent) {
+  TypeParameterScopeBuilder(
+      this._kind,
+      this.members,
+      this.setters,
+      this.constructors,
+      this.extensions,
+      this._name,
+      this._charOffset,
+      this.parent) {
     assert(_name != null);
   }
 
   TypeParameterScopeBuilder.library()
-      : this(TypeParameterScopeKind.library, <String, Builder>{},
-            <String, Builder>{}, null, "<library>", -1, null);
+      : this(
+            TypeParameterScopeKind.library,
+            <String, Builder>{},
+            <String, Builder>{},
+            null, // No support for constructors in library scopes.
+            <ExtensionBuilder>[],
+            "<library>",
+            -1,
+            null);
 
   TypeParameterScopeBuilder createNested(
       TypeParameterScopeKind kind, String name, bool hasMembers) {
@@ -2937,6 +2970,7 @@ class TypeParameterScopeBuilder {
         hasMembers ? <String, MemberBuilder>{} : null,
         hasMembers ? <String, MemberBuilder>{} : null,
         hasMembers ? <String, MemberBuilder>{} : null,
+        null, // No support for extensions in nested scopes.
         name,
         -1,
         this);
@@ -3101,7 +3135,13 @@ class TypeParameterScopeBuilder {
   }
 
   Scope toScope(Scope parent) {
-    return new Scope(members, setters, parent, name, isModifiable: false);
+    return new Scope(
+        local: members,
+        setters: setters,
+        extensions: extensions,
+        parent: parent,
+        debugName: name,
+        isModifiable: false);
   }
 
   @override

@@ -48,7 +48,6 @@ class SourceExtensionBuilder extends ExtensionBuilder {
         super(metadata, modifiers, name, parent, nameOffset, scope,
             typeParameters, onType);
 
-  @override
   Extension get extension => _extension;
 
   Extension build(

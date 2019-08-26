@@ -48,7 +48,9 @@ abstract class DeclarationBuilder extends TypeDeclarationBuilder {
 
   /// Lookups the member [name] declared in this declaration.
   ///
+  /// If [setter] is `true` the sought member is a setter or assignable field.
   /// If [required] is `true` and no member is found an internal problem is
   /// reported.
-  Builder lookupLocalMember(String name, {bool required: false});
+  Builder lookupLocalMember(String name,
+      {bool setter: false, bool required: false});
 }

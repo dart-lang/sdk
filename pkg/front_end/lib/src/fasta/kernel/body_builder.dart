@@ -1048,7 +1048,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
               forest.createNullLiteral(null)
                 ..fileOffset = invocation.fileOffset,
               errorName,
-              forest.createArguments(null, invocation.arguments.positional,
+              forest.createArguments(
+                  noLocation, invocation.arguments.positional,
                   types: invocation.arguments.types,
                   named: invocation.arguments.named),
               initialTarget.fileOffset);
@@ -5876,7 +5877,11 @@ class FormalParameters {
         local[parameter.name] = parameter;
       }
     }
-    return new Scope(local, null, parent, "formals", isModifiable: false);
+    return new Scope(
+        local: local,
+        parent: parent,
+        debugName: "formals",
+        isModifiable: false);
   }
 
   String toString() {

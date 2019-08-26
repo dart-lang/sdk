@@ -97,7 +97,7 @@ Member lookupClassMember(Class cls, String memberName, {bool required: true}) {
   });
 }
 
-TypeParameterScopeBuilder lookupLibraryDeclarationBuilder(
+LibraryBuilder lookupLibraryBuilder(
     InternalCompilerResult compilerResult, Library library,
     {bool required: true}) {
   SourceLoader loader = compilerResult.kernelTargetForTesting.loader;
@@ -105,6 +105,14 @@ TypeParameterScopeBuilder lookupLibraryDeclarationBuilder(
   if (builder == null && required) {
     throw new ArgumentError("DeclarationBuilder for $library not found.");
   }
+  return builder;
+}
+
+TypeParameterScopeBuilder lookupLibraryDeclarationBuilder(
+    InternalCompilerResult compilerResult, Library library,
+    {bool required: true}) {
+  SourceLibraryBuilder builder =
+      lookupLibraryBuilder(compilerResult, library, required: required);
   return builder.libraryDeclaration;
 }
 

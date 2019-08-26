@@ -227,9 +227,12 @@ class EnumBuilder extends SourceClassBuilder {
     EnumBuilder enumBuilder = new EnumBuilder.internal(
         metadata,
         name,
-        new Scope(members, null, parent.scope, "enum $name",
+        new Scope(
+            local: members,
+            parent: parent.scope,
+            debugName: "enum $name",
             isModifiable: false),
-        new Scope(constructors, null, null, name, isModifiable: false),
+        new Scope(local: constructors, debugName: name, isModifiable: false),
         cls,
         enumConstantInfos,
         intType,

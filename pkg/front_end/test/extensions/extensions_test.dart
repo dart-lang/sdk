@@ -43,6 +43,13 @@ class ExtensionsDataComputer extends DataComputer<Features> {
     new ExtensionsDataExtractor(compilerResult, actualMap).computeForClass(cls);
   }
 
+  void computeLibraryData(InternalCompilerResult compilerResult,
+      Library library, Map<Id, ActualData<Features>> actualMap,
+      {bool verbose}) {
+    new ExtensionsDataExtractor(compilerResult, actualMap)
+        .computeForLibrary(library);
+  }
+
   @override
   void computeExtensionData(InternalCompilerResult compilerResult,
       Extension extension, Map<Id, ActualData<Features>> actualMap,
@@ -84,6 +91,7 @@ class Tags {
   static const String builderRequiredParameters = 'builder-params';
   static const String builderPositionalParameters = 'builder-pos-params';
   static const String builderNamedParameters = 'builder-named-params';
+  static const String builderScope = 'scope';
 
   static const String clsName = 'cls-name';
   static const String clsTypeParameters = 'cls-type-params';
@@ -110,6 +118,22 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
   ExtensionsDataExtractor(InternalCompilerResult compilerResult,
       Map<Id, ActualData<Features>> actualMap)
       : super(compilerResult, actualMap);
+
+  @override
+  Features computeLibraryValue(Id id, Library library) {
+    Features features = new Features();
+    LibraryBuilder libraryBuilder =
+        lookupLibraryBuilder(compilerResult, library);
+    libraryBuilder.scope.forEachExtension((ExtensionBuilder extension) {
+      LibraryBuilder library = extension.parent;
+      String libraryPrefix = '';
+      if (library != libraryBuilder) {
+        libraryPrefix = '${library.fileUri.pathSegments.last}.';
+      }
+      features.addElement(Tags.builderScope, '$libraryPrefix${extension.name}');
+    });
+    return features;
+  }
 
   @override
   Features computeClassValue(Id id, Class cls) {

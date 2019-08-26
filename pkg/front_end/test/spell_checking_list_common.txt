@@ -387,6 +387,7 @@ chunk
 circularities
 circularity
 circumstances
+clashing
 class
 classes
 classic
@@ -2455,6 +2456,7 @@ sort
 sorted
 sorting
 sorts
+sought
 source
 sources
 space
@@ -2763,6 +2765,7 @@ types
 typically
 typing
 unable
+unambiguous
 unary
 unbalanced
 unbind

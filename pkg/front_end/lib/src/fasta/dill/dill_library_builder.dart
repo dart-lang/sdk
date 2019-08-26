@@ -56,9 +56,13 @@ class LazyLibraryScope extends Scope {
   DillLibraryBuilder libraryBuilder;
 
   LazyLibraryScope(Map<String, Builder> local, Map<String, Builder> setters,
-      Scope parent, String debugName,
-      {bool isModifiable: true})
-      : super(local, setters, parent, debugName, isModifiable: isModifiable);
+      Scope parent, String debugName, {bool isModifiable: true})
+      : super(
+            local: local,
+            setters: setters,
+            parent: parent,
+            debugName: debugName,
+            isModifiable: isModifiable);
 
   LazyLibraryScope.top({bool isModifiable: false})
       : this(<String, Builder>{}, <String, Builder>{}, null, "top",
