@@ -38,6 +38,7 @@ def windows():
 CI_ACCOUNT = "dart-luci-ci-builder@dart-ci.iam.gserviceaccount.com"
 TRY_ACCOUNT = "dart-luci-try-builder@dart-ci.iam.gserviceaccount.com"
 CI_TRIGGERERS = ["luci-scheduler@appspot.gserviceaccount.com", CI_ACCOUNT]
+CI_SANDBOX_TRIGGERERS = CI_TRIGGERERS + [TRY_ACCOUNT]
 
 lucicfg.config(
     config_dir=".",
@@ -158,7 +159,7 @@ luci.bucket(
 luci.bucket(
     name="ci.sandbox",
     acls=[
-        acl.entry(acl.BUILDBUCKET_TRIGGERER, users=CI_TRIGGERERS),
+        acl.entry(acl.BUILDBUCKET_TRIGGERER, users=CI_SANDBOX_TRIGGERERS),
     ],
 )
 luci.bucket(
