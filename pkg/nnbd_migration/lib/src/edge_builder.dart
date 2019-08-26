@@ -391,6 +391,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitCatchClause(CatchClause node) {
+    _flowAnalysis.tryCatchStatement_catchBegin();
     node.exceptionType?.accept(this);
     for (var identifier in [
       node.exceptionParameter,
@@ -404,6 +405,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     // The catch clause may not execute, so create a new scope for
     // post-dominators.
     _postDominatedLocals.doScoped(action: () => node.body.accept(this));
+    _flowAnalysis.tryCatchStatement_catchEnd();
     return null;
   }
 
@@ -1130,6 +1132,32 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _flowAnalysis.finish();
       _flowAnalysis = null;
       _assignedVariables = null;
+    }
+    return null;
+  }
+
+  @override
+  DecoratedType visitTryStatement(TryStatement node) {
+    var finallyBlock = node.finallyBlock;
+    if (finallyBlock != null) {
+      _flowAnalysis.tryFinallyStatement_bodyBegin();
+    }
+    var catchClauses = node.catchClauses;
+    if (catchClauses.isNotEmpty) {
+      _flowAnalysis.tryCatchStatement_bodyBegin();
+    }
+    var body = node.body;
+    body.accept(this);
+    var assignedInBody = _assignedVariables[body];
+    if (catchClauses.isNotEmpty) {
+      _flowAnalysis.tryCatchStatement_bodyEnd(assignedInBody);
+      catchClauses.accept(this);
+      _flowAnalysis.tryCatchStatement_end();
+    }
+    if (finallyBlock != null) {
+      _flowAnalysis.tryFinallyStatement_finallyBegin(assignedInBody);
+      finallyBlock.accept(this);
+      _flowAnalysis.tryFinallyStatement_end(_assignedVariables[finallyBlock]);
     }
     return null;
   }
