@@ -762,7 +762,7 @@ dart_ci_sandbox_builder(
     channels=[],
     notifies="dart-fuzz-testing",
     properties={"new_workflow_enabled": False},
-    schedule="0 3 * * *")
+    schedule="0 3,4 * * *")
 
 # Try only builders
 dart_try_builder("cl-linux")
