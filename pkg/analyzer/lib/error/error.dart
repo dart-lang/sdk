@@ -246,6 +246,8 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.NON_SYNC_FACTORY,
   CompileTimeErrorCode.NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
   CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS,
+  // ignore: deprecated_member_use_from_same_package
+  CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS,
   CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
   CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD_CONSTRUCTOR,
   CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE,

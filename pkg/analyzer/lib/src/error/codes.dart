@@ -2674,6 +2674,10 @@ class CompileTimeErrorCode extends ErrorCode {
           "{0} positional argument(s) expected, but {1} found.",
           correction: "Try adding the missing arguments.");
 
+  @deprecated
+  static const CompileTimeErrorCode NOT_ENOUGH_REQUIRED_ARGUMENTS =
+      NOT_ENOUGH_POSITIONAL_ARGUMENTS;
+
   /**
    * It is an error if an instance field with potentially non-nullable type has
    * no initializer expression and is not initialized in a constructor via an
