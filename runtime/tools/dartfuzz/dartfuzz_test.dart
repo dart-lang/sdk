@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:math';
@@ -117,16 +116,14 @@ abstract class TestRunner {
     }
     // Construct runner.
     if (mode.startsWith('jit')) {
-      return new TestRunnerJIT(
-          prefix, tag, top, tmp, env, fileName, extraFlags);
+      return TestRunnerJIT(prefix, tag, top, tmp, env, fileName, extraFlags);
     } else if (mode.startsWith('aot')) {
-      return new TestRunnerAOT(
-          prefix, tag, top, tmp, env, fileName, extraFlags);
+      return TestRunnerAOT(prefix, tag, top, tmp, env, fileName, extraFlags);
     } else if (mode.startsWith('kbc')) {
-      return new TestRunnerKBC(
+      return TestRunnerKBC(
           prefix, tag, top, tmp, env, fileName, extraFlags, kbcSrc);
     } else if (mode.startsWith('djs')) {
-      return new TestRunnerDJS(prefix, tag, top, tmp, env, fileName);
+      return TestRunnerDJS(prefix, tag, top, tmp, env, fileName);
     }
     throw ('unknown runner in mode: $mode');
   }
@@ -296,7 +293,7 @@ class DartFuzzTest {
   }
 
   void setup() {
-    rand = new Random();
+    rand = Random();
     tmpDir = Directory.systemTemp.createTempSync('dart_fuzz');
     fileName = '${tmpDir.path}/fuzz.dart';
     fp = samePrecision(mode1, mode2);
@@ -309,7 +306,7 @@ class DartFuzzTest {
         'Isolate (${tmpDir.path}) ${ffi ? "" : "NO-"}FFI ${fp ? "" : "NO-"}FP : '
         '${runner1.description} - ${runner2.description}';
 
-    start_time = new DateTime.now().millisecondsSinceEpoch;
+    start_time = DateTime.now().millisecondsSinceEpoch;
     current_time = start_time;
     report_time = start_time;
     end_time = start_time + max(0, time - timeout) * 1000;
@@ -331,7 +328,7 @@ class DartFuzzTest {
 
   bool timeIsUp() {
     if (time > 0) {
-      current_time = new DateTime.now().millisecondsSinceEpoch;
+      current_time = DateTime.now().millisecondsSinceEpoch;
       if (current_time > end_time) {
         return true;
       }
@@ -355,8 +352,8 @@ class DartFuzzTest {
   }
 
   void generateTest() {
-    final file = new File(fileName).openSync(mode: FileMode.write);
-    new DartFuzz(seed, fp, ffi, file).run();
+    final file = File(fileName).openSync(mode: FileMode.write);
+    DartFuzz(seed, fp, ffi, file).run();
     file.closeSync();
   }
 
@@ -512,9 +509,9 @@ class DartFuzzTestSession {
     print('Show Stats      : ${showStats}');
     print('Dart Dev        : ${top}');
     // Fork.
-    List<ReceivePort> ports = new List();
+    List<ReceivePort> ports = List();
     for (int i = 0; i < isolates; i++) {
-      ReceivePort r = new ReceivePort();
+      ReceivePort r = ReceivePort();
       ports.add(r);
       port = r.sendPort;
       await Isolate.spawn(run, this);
@@ -538,7 +535,7 @@ class DartFuzzTestSession {
     try {
       final m1 = getMode(session.mode1, null);
       final m2 = getMode(session.mode2, m1);
-      final fuzz = new DartFuzzTest(
+      final fuzz = DartFuzzTest(
           Platform.environment,
           session.repeat,
           session.time,
@@ -571,7 +568,7 @@ class DartFuzzTestSession {
     // Random when not set.
     if (mode == null || mode == '') {
       // Pick a mode at random (cluster), different from other.
-      Random rand = new Random();
+      Random rand = Random();
       do {
         mode = clusterModes[rand.nextInt(clusterModes.length)];
       } while (mode == other);
@@ -658,7 +655,7 @@ class DartFuzzTestSession {
 /// Main driver for a fuzz testing session.
 main(List<String> arguments) {
   // Set up argument parser.
-  final parser = new ArgParser()
+  final parser = ArgParser()
     ..addOption('isolates', help: 'number of isolates to use', defaultsTo: '1')
     ..addOption('repeat', help: 'number of tests to run', defaultsTo: '1000')
     ..addOption('time', help: 'time limit in seconds', defaultsTo: '0')
@@ -690,7 +687,7 @@ main(List<String> arguments) {
     if (shards > 1) {
       print('\nSHARD $shard OF $shards');
     }
-    new DartFuzzTestSession(
+    DartFuzzTestSession(
             int.parse(results['isolates']),
             int.parse(results['repeat']),
             int.parse(results['time']),

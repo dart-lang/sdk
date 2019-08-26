@@ -1857,7 +1857,11 @@
           "script": "tools/build.py",
           "arguments": ["create_sdk"]
         },
-
+        {
+          "name": "analyze runtime/tools/dartfuzz",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "arguments": ["--fatal-warnings", "runtime/tools/dartfuzz"]
+        },
         {
           "name": "analyze pkg/analysis_server",
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",

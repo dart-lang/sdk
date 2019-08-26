@@ -33,14 +33,14 @@ class DartFuzz {
 
   void run() {
     // Initialize program variables.
-    rand = new Random(seed);
+    rand = Random(seed);
     indent = 0;
     nest = 0;
     currentClass = null;
     currentMethod = null;
     // Setup the types.
-    localVars = new List<DartType>();
-    iterVars = new List<String>();
+    localVars = <DartType>[];
+    iterVars = <String>[];
     globalVars = fillTypes1();
     globalVars.addAll(DartType.allTypes); // always one each
     globalMethods = fillTypes2();
@@ -48,10 +48,7 @@ class DartFuzz {
     classMethods = fillTypes3(classFields.length);
     classParents = new List<int>();
     // Setup optional ffi methods and types.
-    List<bool> ffiStatus = new List<bool>();
-    for (var m in globalMethods) {
-      ffiStatus.add(false);
-    }
+    final ffiStatus = <bool>[for (final _ in globalMethods) false];
     if (ffi) {
       List<List<DartType>> globalMethodsFfi = fillTypes2(isFfi: true);
       for (var m in globalMethodsFfi) {
@@ -475,7 +472,7 @@ class DartFuzz {
     emit(';', newline: true);
     indent += 2;
     localVars.add(tp);
-    bool b = emitStatements(depth + 1);
+    emitStatements(depth + 1);
     localVars.removeLast();
     indent -= 2;
     emitLn('}');
@@ -723,7 +720,7 @@ class DartFuzz {
 
   void emitScalarVar(DartType tp, {bool isLhs = false}) {
     // Collect all choices from globals, fields, locals, and parameters.
-    Set<String> choices = new Set<String>();
+    Set<String> choices = <String>{};
     for (int i = 0; i < globalVars.length; i++) {
       if (tp == globalVars[i]) choices.add('$varName$i');
     }
@@ -1096,9 +1093,8 @@ class DartFuzz {
       return oneOf(DartLib.setLibs);
     } else if (tp == DartType.INT_STRING_MAP) {
       return oneOf(DartLib.mapLibs);
-    } else {
-      assert(false);
     }
+    throw ArgumentError('Invalid DartType: $tp');
   }
 
   // Emit a library argument, possibly subject to restrictions.
@@ -1137,7 +1133,7 @@ class DartFuzz {
         emitExpr(depth, DartType.INT_STRING_MAP);
         break;
       default:
-        assert(false);
+        throw ArgumentError('Invalid p value: $p');
     }
   }
 
@@ -1160,13 +1156,13 @@ class DartFuzz {
         return DartType.INT_LIST;
       case 5:
         return DartType.INT_SET;
-      case 6:
+      default:
         return DartType.INT_STRING_MAP;
     }
   }
 
   List<DartType> fillTypes1({bool isFfi = false}) {
-    List<DartType> list = new List<DartType>();
+    final list = <DartType>[];
     for (int i = 0, n = 1 + rand.nextInt(4); i < n; i++) {
       if (isFfi)
         list.add(fp ? oneOf([DartType.INT, DartType.DOUBLE]) : DartType.INT);
@@ -1177,7 +1173,7 @@ class DartFuzz {
   }
 
   List<List<DartType>> fillTypes2({bool isFfi = false}) {
-    List<List<DartType>> list = new List<List<DartType>>();
+    final list = <List<DartType>>[];
     for (int i = 0, n = 1 + rand.nextInt(8); i < n; i++) {
       list.add(fillTypes1(isFfi: isFfi));
     }
@@ -1185,7 +1181,7 @@ class DartFuzz {
   }
 
   List<List<List<DartType>>> fillTypes3(int n) {
-    List<List<List<DartType>>> list = new List<List<List<DartType>>>();
+    final list = <List<List<DartType>>>[];
     for (int i = 0; i < n; i++) {
       list.add(fillTypes2());
     }
@@ -1306,7 +1302,7 @@ class DartFuzz {
 int getSeed(String userSeed) {
   int seed = int.parse(userSeed);
   if (seed == 0) {
-    Random rand = new Random();
+    Random rand = Random();
     while (seed == 0) {
       seed = rand.nextInt(1 << 32);
     }
@@ -1316,7 +1312,7 @@ int getSeed(String userSeed) {
 
 /// Main driver when dartfuzz.dart is run stand-alone.
 main(List<String> arguments) {
-  final parser = new ArgParser()
+  final parser = ArgParser()
     ..addOption('seed',
         help: 'random seed (0 forces time-based seed)', defaultsTo: '0')
     ..addFlag('fp', help: 'enables floating-point operations', defaultsTo: true)
@@ -1327,8 +1323,8 @@ main(List<String> arguments) {
     final seed = getSeed(results['seed']);
     final fp = results['fp'];
     final ffi = results['ffi'];
-    final file = new File(results.rest.single).openSync(mode: FileMode.write);
-    new DartFuzz(seed, fp, ffi, file).run();
+    final file = File(results.rest.single).openSync(mode: FileMode.write);
+    DartFuzz(seed, fp, ffi, file).run();
     file.closeSync();
   } catch (e) {
     print('Usage: dart dartfuzz.dart [OPTIONS] FILENAME\n${parser.usage}\n$e');
