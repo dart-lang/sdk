@@ -1082,6 +1082,26 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   @override
+  DecoratedType visitSwitchStatement(SwitchStatement node) {
+    node.expression.accept(this);
+    _flowAnalysis.switchStatement_expressionEnd(node);
+    var notPromoted = _assignedVariables[node];
+    var hasDefault = false;
+    for (var member in node.members) {
+      var hasLabel = member.labels.isNotEmpty;
+      _flowAnalysis.switchStatement_beginCase(hasLabel, notPromoted);
+      if (member is SwitchCase) {
+        member.expression.accept(this);
+      } else {
+        hasDefault = true;
+      }
+      member.statements.accept(this);
+    }
+    _flowAnalysis.switchStatement_end(hasDefault);
+    return null;
+  }
+
+  @override
   DecoratedType visitSymbolLiteral(SymbolLiteral node) {
     return DecoratedType(node.staticType, _graph.never);
   }
