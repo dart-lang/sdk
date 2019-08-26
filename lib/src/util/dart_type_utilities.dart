@@ -194,7 +194,7 @@ class DartTypeUtilities {
       return parent.lookUpGetter(node.name.name, node.declaredElement.library);
     }
     if (parent is ExtensionElement) {
-      return parent.getSetter(node.name.name);
+      return parent.getGetter(node.name.name);
     }
     return null;
   }
