@@ -230,7 +230,7 @@ class KernelTarget extends TargetImplementation {
   }
 
   void breakCycle(ClassBuilder builder) {
-    Class cls = builder.target;
+    Class cls = builder.cls;
     cls.implementedTypes.clear();
     cls.supertype = null;
     cls.mixedInType = null;
@@ -350,7 +350,7 @@ class KernelTarget extends TargetImplementation {
         declaration = problem.getFirstDeclaration();
       }
       if (declaration is ProcedureBuilder) {
-        component.mainMethod = declaration.procedure;
+        component.mainMethod = declaration.actualProcedure;
       } else if (declaration is DillMemberBuilder) {
         if (declaration.member is Procedure) {
           component.mainMethod = declaration.member;
@@ -374,7 +374,7 @@ class KernelTarget extends TargetImplementation {
         while (iterator.moveNext()) {
           Builder declaration = iterator.current;
           if (declaration is SourceClassBuilder) {
-            Class cls = declaration.target;
+            Class cls = declaration.cls;
             if (cls != objectClass) {
               cls.supertype ??= objectClass.asRawSupertype;
               declaration.supertype ??= new NamedTypeBuilder("Object", null)
@@ -394,7 +394,7 @@ class KernelTarget extends TargetImplementation {
   void installSyntheticConstructors(List<SourceClassBuilder> builders) {
     Class objectClass = this.objectClass;
     for (SourceClassBuilder builder in builders) {
-      if (builder.target != objectClass && !builder.isPatch) {
+      if (builder.cls != objectClass && !builder.isPatch) {
         if (builder.isPatch ||
             builder.isMixinDeclaration ||
             builder.isExtension) {
@@ -419,9 +419,9 @@ class KernelTarget extends TargetImplementation {
     assert(!builder.isMixinApplication);
     assert(!builder.isExtension);
     // TODO(askesc): Make this check light-weight in the absence of patches.
-    if (builder.target.constructors.isNotEmpty) return;
-    if (builder.target.redirectingFactoryConstructors.isNotEmpty) return;
-    for (Procedure proc in builder.target.procedures) {
+    if (builder.cls.constructors.isNotEmpty) return;
+    if (builder.cls.redirectingFactoryConstructors.isNotEmpty) return;
+    for (Procedure proc in builder.cls.procedures) {
       if (proc.isFactory) return;
     }
 
@@ -430,13 +430,13 @@ class KernelTarget extends TargetImplementation {
     /// >Iff no constructor is specified for a class C, it implicitly has a
     /// >default constructor C() : super() {}, unless C is class Object.
     // The superinitializer is installed below in [finishConstructors].
-    builder.addSyntheticConstructor(makeDefaultConstructor(builder.target));
+    builder.addSyntheticConstructor(makeDefaultConstructor(builder.cls));
   }
 
   void installForwardingConstructors(SourceClassBuilder builder) {
     assert(builder.isMixinApplication);
     if (builder.library.loader != loader) return;
-    if (builder.target.constructors.isNotEmpty) {
+    if (builder.cls.constructors.isNotEmpty) {
       // These were installed by a subclass in the recursive call below.
       return;
     }
@@ -465,17 +465,17 @@ class KernelTarget extends TargetImplementation {
     }
     if (supertype is ClassBuilder) {
       if (supertype.cls.constructors.isEmpty) {
-        builder.addSyntheticConstructor(makeDefaultConstructor(builder.target));
+        builder.addSyntheticConstructor(makeDefaultConstructor(builder.cls));
       } else {
         Map<TypeParameter, DartType> substitutionMap =
-            builder.getSubstitutionMap(supertype.target);
+            builder.getSubstitutionMap(supertype.cls);
         for (Constructor constructor in supertype.cls.constructors) {
           builder.addSyntheticConstructor(makeMixinApplicationConstructor(
-              builder.target, builder.cls.mixin, constructor, substitutionMap));
+              builder.cls, builder.cls.mixin, constructor, substitutionMap));
         }
       }
     } else if (supertype is InvalidTypeBuilder) {
-      builder.addSyntheticConstructor(makeDefaultConstructor(builder.target));
+      builder.addSyntheticConstructor(makeDefaultConstructor(builder.cls));
     } else {
       unhandled("${supertype.runtimeType}", "installForwardingConstructors",
           builder.charOffset, builder.fileUri);
@@ -575,8 +575,8 @@ class KernelTarget extends TargetImplementation {
       "dart:mirrors"
     ]) {
       Uri uri = Uri.parse(platformLibrary);
-      LibraryBuilder library = loader.builders[uri];
-      if (library == null) {
+      LibraryBuilder libraryBuilder = loader.builders[uri];
+      if (libraryBuilder == null) {
         // TODO(ahe): This is working around a bug in kernel_driver_test or
         // kernel_driver.
         bool found = false;
@@ -592,7 +592,7 @@ class KernelTarget extends TargetImplementation {
           throw "Can't find $uri";
         }
       } else {
-        libraries.add(library.target);
+        libraries.add(libraryBuilder.library);
       }
     }
     Component platformLibraries =
@@ -605,7 +605,7 @@ class KernelTarget extends TargetImplementation {
   void finishAllConstructors(List<SourceClassBuilder> builders) {
     Class objectClass = this.objectClass;
     for (SourceClassBuilder builder in builders) {
-      Class cls = builder.target;
+      Class cls = builder.cls;
       if (cls != objectClass) {
         finishConstructors(builder);
       }
@@ -613,11 +613,11 @@ class KernelTarget extends TargetImplementation {
     ticker.logMs("Finished constructors");
   }
 
-  /// Ensure constructors of [cls] have the correct initializers and other
+  /// Ensure constructors of [builder] have the correct initializers and other
   /// requirements.
   void finishConstructors(SourceClassBuilder builder) {
     if (builder.isPatch) return;
-    Class cls = builder.target;
+    Class cls = builder.cls;
 
     /// Quotes below are from [Dart Programming Language Specification, 4th
     /// Edition](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-408.pdf):

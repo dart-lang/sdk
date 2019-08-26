@@ -65,6 +65,8 @@ import 'builder.dart'
         TypeBuilder,
         TypeVariableBuilder;
 
+import 'declaration.dart';
+
 import 'declaration_builder.dart';
 
 import '../fasta_codes.dart'
@@ -130,7 +132,7 @@ import '../kernel/types.dart' show Types;
 import '../names.dart' show noSuchMethodName;
 
 import '../problems.dart'
-    show internalProblem, unexpected, unhandled, unimplemented;
+    show internalProblem, unexpected, unhandled, unimplemented, unsupported;
 
 import '../scope.dart' show AmbiguousBuilder;
 
@@ -201,7 +203,7 @@ abstract class ClassBuilder extends DeclarationBuilder {
     }
 
     MetadataBuilder.buildAnnotations(
-        isPatch ? origin.target : cls, metadata, library, this, null);
+        isPatch ? origin.cls : cls, metadata, library, this, null);
     constructors.forEach(build);
     scope.forEach(build);
   }
@@ -261,12 +263,12 @@ abstract class ClassBuilder extends DeclarationBuilder {
                   // be inferred.  Currently, the inference is not performed.
                   // The code below is a workaround.
                   typeArguments = new List<DartType>.filled(
-                      targetBuilder.target.enclosingClass.typeParameters.length,
+                      targetBuilder.member.enclosingClass.typeParameters.length,
                       const DynamicType(),
                       growable: true);
                 }
                 declaration.setRedirectingFactoryBody(
-                    targetBuilder.target, typeArguments);
+                    targetBuilder.member, typeArguments);
               } else if (targetBuilder is DillMemberBuilder) {
                 List<DartType> typeArguments = declaration.typeArguments;
                 if (typeArguments == null) {
@@ -274,7 +276,7 @@ abstract class ClassBuilder extends DeclarationBuilder {
                   // be inferred.  Currently, the inference is not performed.
                   // The code below is a workaround.
                   typeArguments = new List<DartType>.filled(
-                      targetBuilder.target.enclosingClass.typeParameters.length,
+                      targetBuilder.member.enclosingClass.typeParameters.length,
                       const DynamicType(),
                       growable: true);
                 }
@@ -382,9 +384,18 @@ abstract class ClassBuilder extends DeclarationBuilder {
     return declaration;
   }
 
+  /// The [Class] built by this builder.
+  ///
+  /// For a patch class the origin class is returned.
   Class get cls;
 
-  Class get target => cls;
+  // Deliberately unrelated return type to statically detect more accidental
+  // use until Builder.target is fully retired.
+  UnrelatedTarget get target => unsupported(
+      "ClassBuilder.target is deprecated. "
+      "Use ClassBuilder.cls instead.",
+      charOffset,
+      fileUri);
 
   Class get actualCls;
 
@@ -450,13 +461,13 @@ abstract class ClassBuilder extends DeclarationBuilder {
 
   Supertype buildSupertype(
       LibraryBuilder library, List<TypeBuilder> arguments) {
-    Class cls = isPatch ? origin.target : this.cls;
+    Class cls = isPatch ? origin.cls : this.cls;
     return new Supertype(cls, buildTypeArguments(library, arguments));
   }
 
   Supertype buildMixedInType(
       LibraryBuilder library, List<TypeBuilder> arguments) {
-    Class cls = isPatch ? origin.target : this.cls;
+    Class cls = isPatch ? origin.cls : this.cls;
     if (arguments != null) {
       return new Supertype(cls, buildTypeArguments(library, arguments));
     } else {
@@ -507,9 +518,9 @@ abstract class ClassBuilder extends DeclarationBuilder {
 
             problemsOffsets ??= new Map<ClassBuilder, int>();
             problemsOffsets[interface] ??= charOffset;
-          } else if (interface.target == coreTypes.futureOrClass) {
+          } else if (interface.cls == coreTypes.futureOrClass) {
             addProblem(messageImplementsFutureOr, charOffset,
-                interface.target.name.length);
+                interface.cls.name.length);
           } else {
             implemented.add(interface);
           }
@@ -651,7 +662,7 @@ abstract class ClassBuilder extends DeclarationBuilder {
   }
 
   void addRedirectingConstructor(
-      ProcedureBuilder constructor, SourceLibraryBuilder library) {
+      ProcedureBuilder constructorBuilder, SourceLibraryBuilder library) {
     // Add a new synthetic field to this class for representing factory
     // constructors. This is used to support resolving such constructors in
     // source code.
@@ -674,10 +685,10 @@ abstract class ClassBuilder extends DeclarationBuilder {
       cls.addMember(field);
       return new DillMemberBuilder(field, this);
     });
-    Field field = constructorsField.target;
+    Field field = constructorsField.member;
     ListLiteral literal = field.initializer;
     literal.expressions
-        .add(new StaticGet(constructor.target)..parent = literal);
+        .add(new StaticGet(constructorBuilder.procedure)..parent = literal);
   }
 
   void handleSeenCovariant(
@@ -1540,7 +1551,7 @@ abstract class ClassBuilder extends DeclarationBuilder {
     }
 
     List<DartType> typeArguments =
-        getRedirectingFactoryBody(factory.target).typeArguments;
+        getRedirectingFactoryBody(factory.procedure).typeArguments;
     FunctionType targetFunctionType = target.functionType;
     if (typeArguments != null &&
         targetFunctionType.typeParameters.length != typeArguments.length) {
@@ -1665,7 +1676,7 @@ abstract class ClassBuilder extends DeclarationBuilder {
   ///
   /// It's an error if [superclass] isn't a superclass.
   Map<TypeParameter, DartType> getSubstitutionMap(Class superclass) {
-    Supertype supertype = target.supertype;
+    Supertype supertype = cls.supertype;
     Map<TypeParameter, DartType> substitutionMap = <TypeParameter, DartType>{};
     List<DartType> arguments;
     List<TypeParameter> variables;
@@ -1785,8 +1796,8 @@ abstract class ClassBuilder extends DeclarationBuilder {
         builder = getSuperclass(builder)?.origin;
       }
       if (builder != null) {
-        Class target = builder.target;
-        for (Constructor constructor in target.constructors) {
+        Class cls = builder.cls;
+        for (Constructor constructor in cls.constructors) {
           if (constructor.name == name) return constructor;
         }
       }

@@ -32,6 +32,7 @@ accessible
 accessing
 accessor
 accessors
+accidental
 accidentally
 accordance
 according
@@ -2257,6 +2258,7 @@ resynthesize
 retain
 retained
 rethrow
+retired
 retrieve
 retrieved
 retrieves

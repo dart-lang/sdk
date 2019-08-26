@@ -67,7 +67,7 @@ class MockBodyBuilder extends BodyBuilder {
   MockBodyBuilder.internal(
       MockLibraryBuilder libraryBuilder, String name, Scope scope)
       : super(
-            library: libraryBuilder,
+            libraryBuilder: libraryBuilder,
             member: libraryBuilder.mockProcedure(name),
             enclosingScope: scope,
             formalParameterScope: scope,

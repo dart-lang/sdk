@@ -14,7 +14,11 @@ import '../fasta_codes.dart' show templateTypeArgumentsOnTypeVariable;
 import '../kernel/kernel_builder.dart'
     show ClassBuilder, NamedTypeBuilder, LibraryBuilder, TypeBuilder;
 
+import '../problems.dart' show unsupported;
+
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+
+import 'declaration.dart';
 
 class TypeVariableBuilder extends TypeDeclarationBuilder {
   TypeBuilder bound;
@@ -55,9 +59,16 @@ class TypeVariableBuilder extends TypeDeclarationBuilder {
 
   TypeVariableBuilder get origin => actualOrigin ?? this;
 
+  /// The [TypeParameter] built by this builder.
   TypeParameter get parameter => origin.actualParameter;
 
-  TypeParameter get target => parameter;
+  // Deliberately unrelated return type to statically detect more accidental
+  // uses until Builder.target is fully retired.
+  UnrelatedTarget get target => unsupported(
+      "TypeVariableBuilder.target is deprecated. "
+      "Use TypeVariableBuilder.parameter instead.",
+      charOffset,
+      fileUri);
 
   DartType buildType(LibraryBuilder library, List<TypeBuilder> arguments) {
     if (arguments != null) {
@@ -119,11 +130,11 @@ class TypeVariableBuilder extends TypeDeclarationBuilder {
 
   @override
   bool operator ==(Object other) {
-    return other is TypeVariableBuilder && target == other.target;
+    return other is TypeVariableBuilder && parameter == other.parameter;
   }
 
   @override
-  int get hashCode => target.hashCode;
+  int get hashCode => parameter.hashCode;
 
   static List<TypeParameter> typeParametersFromBuilders(
       List<TypeVariableBuilder> builders) {
@@ -131,7 +142,7 @@ class TypeVariableBuilder extends TypeDeclarationBuilder {
     List<TypeParameter> result =
         new List<TypeParameter>.filled(builders.length, null, growable: true);
     for (int i = 0; i < builders.length; i++) {
-      result[i] = builders[i].target;
+      result[i] = builders[i].parameter;
     }
     return result;
   }

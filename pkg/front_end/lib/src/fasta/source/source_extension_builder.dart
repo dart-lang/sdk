@@ -48,7 +48,11 @@ class SourceExtensionBuilder extends ExtensionBuilder {
         super(metadata, modifiers, name, parent, nameOffset, scope,
             typeParameters, onType);
 
-  Extension build(SourceLibraryBuilder library, LibraryBuilder coreLibrary) {
+  @override
+  Extension get extension => _extension;
+
+  Extension build(
+      SourceLibraryBuilder libraryBuilder, LibraryBuilder coreLibrary) {
     void buildBuilders(String name, Builder declaration) {
       do {
         if (declaration.parent != this) {
@@ -60,17 +64,17 @@ class SourceExtensionBuilder extends ExtensionBuilder {
                 charOffset, fileUri);
           }
         } else if (declaration is FieldBuilder) {
-          Field field = declaration.build(library);
-          library.target.addMember(field);
+          Field field = declaration.build(libraryBuilder);
+          libraryBuilder.library.addMember(field);
           _extension.members.add(new ExtensionMemberDescriptor(
-              name: new Name(declaration.name, library.target),
+              name: new Name(declaration.name, libraryBuilder.library),
               member: field.reference,
               isStatic: declaration.isStatic));
         } else if (declaration is FunctionBuilder) {
-          Member function = declaration.build(library);
-          library.target.addMember(function);
+          Member function = declaration.build(libraryBuilder);
+          libraryBuilder.library.addMember(function);
           _extension.members.add(new ExtensionMemberDescriptor(
-              name: new Name(declaration.name, library.target),
+              name: new Name(declaration.name, libraryBuilder.library),
               member: function.reference,
               isStatic: declaration.isStatic,
               isExternal: declaration.isExternal,
@@ -108,7 +112,7 @@ class SourceExtensionBuilder extends ExtensionBuilder {
       }
     });
 
-    _extension.onType = onType?.build(library);
+    _extension.onType = onType?.build(libraryBuilder);
 
     return _extension;
   }

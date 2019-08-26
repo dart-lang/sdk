@@ -196,8 +196,8 @@ MemberBuilder lookupMemberBuilder(
   return memberBuilder;
 }
 
-/// Look up the [MemberBuilder] for [member] through the [ClassBuilder] for
-/// [cls] using [memberName] as its name.
+/// Look up the [MemberBuilder] for [member] through the [ExtensionBuilder] for
+/// [extension] using [memberName] as its name.
 MemberBuilder lookupExtensionMemberBuilder(
     InternalCompilerResult compilerResult,
     Extension extension,

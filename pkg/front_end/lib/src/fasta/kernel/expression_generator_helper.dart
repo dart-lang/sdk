@@ -43,7 +43,7 @@ import 'kernel_builder.dart'
     show PrefixBuilder, LibraryBuilder, TypeDeclarationBuilder;
 
 abstract class ExpressionGeneratorHelper implements InferenceHelper {
-  LibraryBuilder get library;
+  LibraryBuilder get libraryBuilder;
 
   TypePromoter get typePromoter;
 

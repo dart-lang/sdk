@@ -458,7 +458,7 @@ abstract class Generator {
   TypeBuilder buildTypeWithResolvedArguments(List<UnresolvedType> arguments) {
     NamedTypeBuilder result = new NamedTypeBuilder(token.lexeme, null);
     Message message = templateNotAType.withArguments(token.lexeme);
-    _helper.library
+    _helper.libraryBuilder
         .addProblem(message, fileOffset, lengthForToken(token), _uri);
     result.bind(result.buildInvalidType(
         message.withLocation(_uri, fileOffset, lengthForToken(token))));
@@ -1910,7 +1910,7 @@ class DeferredAccessGenerator extends Generator {
               _uri, charOffset, lengthOfSpan(prefixGenerator.token, token));
     }
     NamedTypeBuilder result = new NamedTypeBuilder(name, null);
-    _helper.library.addProblem(
+    _helper.libraryBuilder.addProblem(
         message.messageObject, message.charOffset, message.length, message.uri);
     result.bind(result.buildInvalidType(message));
     return result;
@@ -2092,7 +2092,7 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
     if (declaration is DeclarationBuilder) {
       DeclarationBuilder declaration = this.declaration;
       Builder member = declaration.findStaticBuilder(
-          name.name, offsetForToken(send.token), _uri, _helper.library);
+          name.name, offsetForToken(send.token), _uri, _helper.libraryBuilder);
 
       Generator generator;
       if (member == null) {
@@ -2119,12 +2119,12 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
           setter = member;
         } else if (member.isGetter) {
           setter = declaration.findStaticBuilder(
-              name.name, fileOffset, _uri, _helper.library,
+              name.name, fileOffset, _uri, _helper.libraryBuilder,
               isSetter: true);
         } else if (member.isField) {
           if (member.isFinal || member.isConst) {
             setter = declaration.findStaticBuilder(
-                name.name, fileOffset, _uri, _helper.library,
+                name.name, fileOffset, _uri, _helper.libraryBuilder,
                 isSetter: true);
           } else {
             setter = member;
@@ -2439,7 +2439,7 @@ class UnlinkedGenerator extends Generator {
 
   UnlinkedGenerator(
       ExpressionGeneratorHelper helper, Token token, this.declaration)
-      : name = new Name(declaration.name, helper.library.target),
+      : name = new Name(declaration.name, helper.libraryBuilder.library),
         receiver = new InvalidExpression(declaration.name)
           ..fileOffset = offsetForToken(token),
         super(helper, token);
@@ -2792,8 +2792,11 @@ class UnexpectedQualifiedUseGenerator extends Generator {
     NamedTypeBuilder result = new NamedTypeBuilder(_plainNameForRead, null);
     Message message =
         template.withArguments(prefixGenerator.token.lexeme, token.lexeme);
-    _helper.library.addProblem(message, offsetForToken(prefixGenerator.token),
-        lengthOfSpan(prefixGenerator.token, token), _uri);
+    _helper.libraryBuilder.addProblem(
+        message,
+        offsetForToken(prefixGenerator.token),
+        lengthOfSpan(prefixGenerator.token, token),
+        _uri);
     result.bind(result.buildInvalidType(message.withLocation(
         _uri,
         offsetForToken(prefixGenerator.token),
@@ -2884,7 +2887,7 @@ class ParserErrorGenerator extends Generator {
 
   TypeBuilder buildTypeWithResolvedArguments(List<UnresolvedType> arguments) {
     NamedTypeBuilder result = new NamedTypeBuilder(token.lexeme, null);
-    _helper.library.addProblem(message, fileOffset, noLength, _uri);
+    _helper.libraryBuilder.addProblem(message, fileOffset, noLength, _uri);
     result.bind(result
         .buildInvalidType(message.withLocation(_uri, fileOffset, noLength)));
     return result;

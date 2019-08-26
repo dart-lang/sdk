@@ -57,10 +57,10 @@ class Types {
     }
     if (t is InterfaceType) {
       Class cls = t.classNode;
-      if (cls == hierarchy.objectKernelClass) {
+      if (cls == hierarchy.objectClass) {
         return true; // Rule 2.
       }
-      if (cls == hierarchy.futureOrKernelClass) {
+      if (cls == hierarchy.futureOrClass) {
         const IsFutureOrSubtypeOf relation = const IsFutureOrSubtypeOf();
         if (s is DynamicType) {
           return relation.isDynamicRelated(
@@ -68,7 +68,7 @@ class Types {
         } else if (s is VoidType) {
           return relation.isVoidRelated(s, sNullability, t, tNullability, this);
         } else if (s is InterfaceType) {
-          return s.classNode == hierarchy.futureOrKernelClass
+          return s.classNode == hierarchy.futureOrClass
               ? relation.isFutureOrRelated(
                   s, sNullability, t, tNullability, this)
               : relation.isInterfaceRelated(
@@ -94,7 +94,7 @@ class Types {
         } else if (s is VoidType) {
           return relation.isVoidRelated(s, sNullability, t, tNullability, this);
         } else if (s is InterfaceType) {
-          return s.classNode == hierarchy.futureOrKernelClass
+          return s.classNode == hierarchy.futureOrClass
               ? relation.isFutureOrRelated(
                   s, sNullability, t, tNullability, this)
               : relation.isInterfaceRelated(
@@ -121,7 +121,7 @@ class Types {
       } else if (s is VoidType) {
         return relation.isVoidRelated(s, sNullability, t, tNullability, this);
       } else if (s is InterfaceType) {
-        return s.classNode == hierarchy.futureOrKernelClass
+        return s.classNode == hierarchy.futureOrClass
             ? relation.isFutureOrRelated(s, sNullability, t, tNullability, this)
             : relation.isInterfaceRelated(
                 s, sNullability, t, tNullability, this);
@@ -148,7 +148,7 @@ class Types {
         } else if (s is VoidType) {
           return relation.isVoidRelated(s, sNullability, t, tNullability, this);
         } else if (s is InterfaceType) {
-          return s.classNode == hierarchy.futureOrKernelClass
+          return s.classNode == hierarchy.futureOrClass
               ? relation.isFutureOrRelated(
                   s, sNullability, t, tNullability, this)
               : relation.isInterfaceRelated(
@@ -175,7 +175,7 @@ class Types {
         } else if (s is VoidType) {
           return relation.isVoidRelated(s, sNullability, t, tNullability, this);
         } else if (s is InterfaceType) {
-          return s.classNode == hierarchy.futureOrKernelClass
+          return s.classNode == hierarchy.futureOrClass
               ? relation.isFutureOrRelated(
                   s, sNullability, t, tNullability, this)
               : relation.isInterfaceRelated(
@@ -202,7 +202,7 @@ class Types {
       } else if (s is VoidType) {
         return relation.isVoidRelated(s, sNullability, t, tNullability, this);
       } else if (s is InterfaceType) {
-        return s.classNode == hierarchy.futureOrKernelClass
+        return s.classNode == hierarchy.futureOrClass
             ? relation.isFutureOrRelated(s, sNullability, t, tNullability, this)
             : relation.isInterfaceRelated(
                 s, sNullability, t, tNullability, this);
@@ -283,7 +283,7 @@ class IsInterfaceSubtypeOf extends TypeRelation<InterfaceType> {
   @override
   bool isInterfaceRelated(InterfaceType s, Nullability sNullability,
       InterfaceType t, Nullability tNullability, Types types) {
-    if (s.classNode == types.hierarchy.nullKernelClass) {
+    if (s.classNode == types.hierarchy.nullClass) {
       // This is an optimization, to avoid instantiating unnecessary type
       // arguments in getKernelTypeAsInstanceOf.
       return true;
@@ -316,7 +316,7 @@ class IsInterfaceSubtypeOf extends TypeRelation<InterfaceType> {
       return false; // Rule 7.1
     }
     if (!types.isSubtypeOfKernel(
-        new InterfaceType(types.hierarchy.futureKernelClass, arguments), t)) {
+        new InterfaceType(types.hierarchy.futureClass, arguments), t)) {
       return false; // Rule 7.2
     }
     return true;
@@ -341,7 +341,7 @@ class IsInterfaceSubtypeOf extends TypeRelation<InterfaceType> {
   @override
   bool isFunctionRelated(FunctionType s, Nullability sNullability,
       InterfaceType t, Nullability tNullability, Types types) {
-    return t.classNode == types.hierarchy.functionKernelClass; // Rule 14.
+    return t.classNode == types.hierarchy.functionClass; // Rule 14.
   }
 
   @override
@@ -443,7 +443,7 @@ class IsFunctionSubtypeOf extends TypeRelation<FunctionType> {
   @override
   bool isInterfaceRelated(InterfaceType s, Nullability sNullability,
       FunctionType t, Nullability tNullability, Types types) {
-    return s.classNode == types.hierarchy.nullKernelClass; // Rule 4.
+    return s.classNode == types.hierarchy.nullClass; // Rule 4.
   }
 
   @override
@@ -518,7 +518,7 @@ class IsTypeParameterSubtypeOf extends TypeRelation<TypeParameterType> {
   @override
   bool isInterfaceRelated(InterfaceType s, Nullability sNullability,
       TypeParameterType t, Nullability tNullability, Types types) {
-    return s.classNode == types.hierarchy.nullKernelClass; // Rule 4.
+    return s.classNode == types.hierarchy.nullClass; // Rule 4.
   }
 
   @override
@@ -628,7 +628,7 @@ class IsFutureOrSubtypeOf extends TypeRelation<InterfaceType> {
     }
     // Rule 10.
     return types.isSubtypeOfKernel(
-        s, new InterfaceType(types.hierarchy.futureKernelClass, arguments));
+        s, new InterfaceType(types.hierarchy.futureClass, arguments));
   }
 
   @override
@@ -673,7 +673,7 @@ class IsFutureOrSubtypeOf extends TypeRelation<InterfaceType> {
 
     // Rule 10.
     return types.isSubtypeOfKernel(
-        s, new InterfaceType(types.hierarchy.futureKernelClass, arguments));
+        s, new InterfaceType(types.hierarchy.futureClass, arguments));
   }
 
   @override
@@ -746,7 +746,7 @@ class IsIntersectionSubtypeOf extends TypeRelation<TypeParameterType> {
       TypeParameterType intersection,
       Nullability intersectionNullability,
       Types types) {
-    return s.classNode == types.hierarchy.nullKernelClass; // Rule 4.
+    return s.classNode == types.hierarchy.nullClass; // Rule 4.
   }
 
   @override

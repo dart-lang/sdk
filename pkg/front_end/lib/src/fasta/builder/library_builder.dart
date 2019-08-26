@@ -37,6 +37,8 @@ import 'builder.dart'
         ScopeBuilder,
         TypeBuilder;
 
+import 'declaration.dart';
+
 abstract class LibraryBuilder extends ModifierBuilder {
   final Scope scope;
 
@@ -60,6 +62,14 @@ abstract class LibraryBuilder extends ModifierBuilder {
   bool get legacyMode => false;
 
   bool get isSynthetic => false;
+
+  // Deliberately unrelated return type to statically detect more accidental
+  // use until Builder.target is fully retired.
+  UnrelatedTarget get target => unsupported(
+      "LibraryBuilder.target is deprecated. "
+      "Use LibraryBuilder.library instead.",
+      charOffset,
+      fileUri);
 
   /// Set the langauge version to a specific non-null major and minor version.
   ///
@@ -91,8 +101,8 @@ abstract class LibraryBuilder extends ModifierBuilder {
   @override
   int get modifiers => 0;
 
-  @override
-  Library get target;
+  /// Returns the [Library] built by this builder.
+  Library get library;
 
   Uri get uri;
 

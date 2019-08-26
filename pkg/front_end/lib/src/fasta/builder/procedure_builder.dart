@@ -275,7 +275,8 @@ abstract class FunctionBuilder extends MemberBuilder {
     FunctionNode result = new FunctionNode(body, asyncMarker: asyncModifier);
     IncludesTypeParametersNonCovariantly needsCheckVisitor;
     if (!isConstructor && !isFactory && parent is ClassBuilder) {
-      Class enclosingClass = parent.target;
+      ClassBuilder enclosingClassBuilder = parent;
+      Class enclosingClass = enclosingClassBuilder.cls;
       if (enclosingClass.typeParameters.isNotEmpty) {
         needsCheckVisitor = new IncludesTypeParametersNonCovariantly(
             enclosingClass.typeParameters,
@@ -335,7 +336,9 @@ abstract class FunctionBuilder extends MemberBuilder {
     if (!isConstructor &&
         !isDeclarationInstanceMember &&
         parent is ClassBuilder) {
-      List<TypeParameter> typeParameters = parent.target.typeParameters;
+      ClassBuilder enclosingClassBuilder = parent;
+      List<TypeParameter> typeParameters =
+          enclosingClassBuilder.cls.typeParameters;
       if (typeParameters.isNotEmpty) {
         Map<TypeParameter, DartType> substitution;
         DartType removeTypeVariables(DartType type) {
@@ -403,7 +406,7 @@ abstract class FunctionBuilder extends MemberBuilder {
   @override
   void buildOutlineExpressions(LibraryBuilder library) {
     MetadataBuilder.buildAnnotations(
-        target, metadata, library, isClassMember ? parent : null, this);
+        member, metadata, library, isClassMember ? parent : null, this);
 
     if (formals != null) {
       // For const constructors we need to include default parameter values
@@ -417,18 +420,18 @@ abstract class FunctionBuilder extends MemberBuilder {
   }
 
   void becomeNative(Loader loader) {
-    Builder constructor = loader.getNativeAnnotation();
+    MemberBuilder constructor = loader.getNativeAnnotation();
     Arguments arguments =
         new Arguments(<Expression>[new StringLiteral(nativeMethodName)]);
     Expression annotation;
     if (constructor.isConstructor) {
-      annotation = new ConstructorInvocation(constructor.target, arguments)
+      annotation = new ConstructorInvocation(constructor.member, arguments)
         ..isConst = true;
     } else {
-      annotation = new StaticInvocation(constructor.target, arguments)
+      annotation = new StaticInvocation(constructor.member, arguments)
         ..isConst = true;
     }
-    target.addAnnotation(annotation);
+    member.addAnnotation(annotation);
   }
 
   bool checkPatch(FunctionBuilder patch) {
@@ -453,7 +456,7 @@ abstract class FunctionBuilder extends MemberBuilder {
 }
 
 class ProcedureBuilder extends FunctionBuilder {
-  final Procedure procedure;
+  final Procedure _procedure;
   final int charOpenParenOffset;
   final ProcedureKind kind;
 
@@ -461,6 +464,8 @@ class ProcedureBuilder extends FunctionBuilder {
 
   @override
   ProcedureBuilder actualOrigin;
+
+  Procedure get actualProcedure => _procedure;
 
   bool hadTypesInferred = false;
 
@@ -478,7 +483,7 @@ class ProcedureBuilder extends FunctionBuilder {
       this.charOpenParenOffset,
       int charEndOffset,
       [String nativeMethodName])
-      : procedure =
+      : _procedure =
             new Procedure(null, kind, null, fileUri: compilationUnit?.fileUri)
               ..startFileOffset = startCharOffset
               ..fileOffset = charOffset
@@ -525,16 +530,16 @@ class ProcedureBuilder extends FunctionBuilder {
     return parent is ExtensionBuilder;
   }
 
-  Procedure build(SourceLibraryBuilder library) {
+  Procedure build(SourceLibraryBuilder libraryBuilder) {
     // TODO(ahe): I think we may call this twice on parts. Investigate.
-    if (procedure.name == null) {
-      procedure.function = buildFunction(library);
-      procedure.function.parent = procedure;
-      procedure.function.fileOffset = charOpenParenOffset;
-      procedure.function.fileEndOffset = procedure.fileEndOffset;
-      procedure.isAbstract = isAbstract;
-      procedure.isExternal = isExternal;
-      procedure.isConst = isConst;
+    if (_procedure.name == null) {
+      _procedure.function = buildFunction(libraryBuilder);
+      _procedure.function.parent = _procedure;
+      _procedure.function.fileOffset = charOpenParenOffset;
+      _procedure.function.fileEndOffset = _procedure.fileEndOffset;
+      _procedure.isAbstract = isAbstract;
+      _procedure.isExternal = isExternal;
+      _procedure.isConst = isConst;
       if (isExtensionMethod) {
         ExtensionBuilder extension = parent;
         procedure.isExtensionMember = true;
@@ -560,17 +565,20 @@ class ProcedureBuilder extends FunctionBuilder {
           }
           procedure.kind = ProcedureKind.Method;
         }
-        procedure.name =
-            new Name('${extension.name}|${kindInfix}${name}', library.target);
+        procedure.name = new Name(
+            '${extension.name}|${kindInfix}${name}', libraryBuilder.library);
       } else {
-        procedure.isStatic = isStatic;
-        procedure.name = new Name(name, library.target);
+        _procedure.isStatic = isStatic;
+        _procedure.name = new Name(name, libraryBuilder.library);
       }
     }
-    return procedure;
+    return _procedure;
   }
 
-  Procedure get target => origin.procedure;
+  /// The [Procedure] built by this builder.
+  Procedure get procedure => isPatch ? origin.procedure : _procedure;
+
+  Member get member => procedure;
 
   @override
   int finishPatch() {
@@ -579,22 +587,22 @@ class ProcedureBuilder extends FunctionBuilder {
     // TODO(ahe): restore file-offset once we track both origin and patch file
     // URIs. See https://github.com/dart-lang/sdk/issues/31579
     origin.procedure.fileUri = fileUri;
-    origin.procedure.startFileOffset = procedure.startFileOffset;
-    origin.procedure.fileOffset = procedure.fileOffset;
-    origin.procedure.fileEndOffset = procedure.fileEndOffset;
+    origin.procedure.startFileOffset = _procedure.startFileOffset;
+    origin.procedure.fileOffset = _procedure.fileOffset;
+    origin.procedure.fileEndOffset = _procedure.fileEndOffset;
     origin.procedure.annotations
-        .forEach((m) => m.fileOffset = procedure.fileOffset);
+        .forEach((m) => m.fileOffset = _procedure.fileOffset);
 
-    origin.procedure.isAbstract = procedure.isAbstract;
-    origin.procedure.isExternal = procedure.isExternal;
-    origin.procedure.function = procedure.function;
+    origin.procedure.isAbstract = _procedure.isAbstract;
+    origin.procedure.isExternal = _procedure.isExternal;
+    origin.procedure.function = _procedure.function;
     origin.procedure.function.parent = origin.procedure;
     return 1;
   }
 
   @override
   void becomeNative(Loader loader) {
-    procedure.isExternal = true;
+    _procedure.isExternal = true;
     super.becomeNative(loader);
   }
 
@@ -612,7 +620,7 @@ class ProcedureBuilder extends FunctionBuilder {
 
 // TODO(ahe): Move this to own file?
 class ConstructorBuilder extends FunctionBuilder {
-  final Constructor constructor;
+  final Constructor _constructor;
 
   final int charOpenParenOffset;
 
@@ -627,6 +635,8 @@ class ConstructorBuilder extends FunctionBuilder {
   @override
   ConstructorBuilder actualOrigin;
 
+  Constructor get actualConstructor => _constructor;
+
   ConstructorBuilder(
       List<MetadataBuilder> metadata,
       int modifiers,
@@ -640,7 +650,7 @@ class ConstructorBuilder extends FunctionBuilder {
       this.charOpenParenOffset,
       int charEndOffset,
       [String nativeMethodName])
-      : constructor = new Constructor(null, fileUri: compilationUnit?.fileUri)
+      : _constructor = new Constructor(null, fileUri: compilationUnit?.fileUri)
           ..startFileOffset = startCharOffset
           ..fileOffset = charOffset
           ..fileEndOffset = charEndOffset,
@@ -663,7 +673,7 @@ class ConstructorBuilder extends FunctionBuilder {
   ProcedureKind get kind => null;
 
   bool get isRedirectingGenerativeConstructor {
-    return isRedirectingGenerativeConstructorImplementation(constructor);
+    return isRedirectingGenerativeConstructorImplementation(_constructor);
   }
 
   bool get isEligibleForTopLevelInference {
@@ -676,26 +686,27 @@ class ConstructorBuilder extends FunctionBuilder {
     return false;
   }
 
-  Constructor build(SourceLibraryBuilder library) {
-    if (constructor.name == null) {
-      constructor.function = buildFunction(library);
-      constructor.function.parent = constructor;
-      constructor.function.fileOffset = charOpenParenOffset;
-      constructor.function.fileEndOffset = constructor.fileEndOffset;
-      constructor.function.typeParameters = const <TypeParameter>[];
-      constructor.isConst = isConst;
-      constructor.isExternal = isExternal;
-      constructor.name = new Name(name, library.target);
+  Constructor build(SourceLibraryBuilder libraryBuilder) {
+    if (_constructor.name == null) {
+      _constructor.function = buildFunction(libraryBuilder);
+      _constructor.function.parent = _constructor;
+      _constructor.function.fileOffset = charOpenParenOffset;
+      _constructor.function.fileEndOffset = _constructor.fileEndOffset;
+      _constructor.function.typeParameters = const <TypeParameter>[];
+      _constructor.isConst = isConst;
+      _constructor.isExternal = isExternal;
+      _constructor.name = new Name(name, libraryBuilder.library);
     }
     if (isEligibleForTopLevelInference) {
       for (FormalParameterBuilder formal in formals) {
         if (formal.type == null && formal.isInitializingFormal) {
-          formal.declaration.type = null;
+          formal.variable.type = null;
         }
       }
-      library.loader.typeInferenceEngine.toBeInferred[constructor] = library;
+      libraryBuilder.loader.typeInferenceEngine.toBeInferred[_constructor] =
+          libraryBuilder;
     }
-    return constructor;
+    return _constructor;
   }
 
   @override
@@ -719,22 +730,26 @@ class ConstructorBuilder extends FunctionBuilder {
     // According to the specification §9.3 the return type of a constructor
     // function is its enclosing class.
     FunctionNode functionNode = super.buildFunction(library);
-    ClassBuilder enclosingClass = parent;
+    ClassBuilder enclosingClassBuilder = parent;
+    Class enclosingClass = enclosingClassBuilder.cls;
     List<DartType> typeParameterTypes = new List<DartType>();
-    for (int i = 0; i < enclosingClass.target.typeParameters.length; i++) {
-      TypeParameter typeParameter = enclosingClass.target.typeParameters[i];
+    for (int i = 0; i < enclosingClass.typeParameters.length; i++) {
+      TypeParameter typeParameter = enclosingClass.typeParameters[i];
       typeParameterTypes.add(new TypeParameterType(typeParameter));
     }
     functionNode.returnType =
-        new InterfaceType(enclosingClass.target, typeParameterTypes);
+        new InterfaceType(enclosingClass, typeParameterTypes);
     return functionNode;
   }
 
-  Constructor get target => origin.constructor;
+  /// The [Constructor] built by this builder.
+  Constructor get constructor => isPatch ? origin.constructor : _constructor;
+
+  Member get member => constructor;
 
   void injectInvalidInitializer(
       Message message, int charOffset, ExpressionGeneratorHelper helper) {
-    List<Initializer> initializers = constructor.initializers;
+    List<Initializer> initializers = _constructor.initializers;
     Initializer lastInitializer = initializers.removeLast();
     assert(lastInitializer == superInitializer ||
         lastInitializer == redirectingInitializer);
@@ -742,34 +757,34 @@ class ConstructorBuilder extends FunctionBuilder {
         helper.desugarSyntheticExpression(
             helper.buildProblem(message, charOffset, noLength)),
         charOffset);
-    initializers.add(error..parent = constructor);
+    initializers.add(error..parent = _constructor);
     initializers.add(lastInitializer);
   }
 
   void addInitializer(
       Initializer initializer, ExpressionGeneratorHelper helper) {
-    List<Initializer> initializers = constructor.initializers;
+    List<Initializer> initializers = _constructor.initializers;
     if (initializer is SuperInitializer) {
       if (superInitializer != null || redirectingInitializer != null) {
         injectInvalidInitializer(messageMoreThanOneSuperOrThisInitializer,
             initializer.fileOffset, helper);
       } else {
-        initializers.add(initializer..parent = constructor);
+        initializers.add(initializer..parent = _constructor);
         superInitializer = initializer;
       }
     } else if (initializer is RedirectingInitializer) {
       if (superInitializer != null || redirectingInitializer != null) {
         injectInvalidInitializer(messageMoreThanOneSuperOrThisInitializer,
             initializer.fileOffset, helper);
-      } else if (constructor.initializers.isNotEmpty) {
-        Initializer first = constructor.initializers.first;
+      } else if (_constructor.initializers.isNotEmpty) {
+        Initializer first = _constructor.initializers.first;
         Initializer error = helper.buildInvalidInitializer(
             helper.desugarSyntheticExpression(helper.buildProblem(
                 messageThisInitializerNotAlone, first.fileOffset, noLength)),
             first.fileOffset);
-        initializers.add(error..parent = constructor);
+        initializers.add(error..parent = _constructor);
       } else {
-        initializers.add(initializer..parent = constructor);
+        initializers.add(initializer..parent = _constructor);
         redirectingInitializer = initializer;
       }
     } else if (redirectingInitializer != null) {
@@ -779,7 +794,7 @@ class ConstructorBuilder extends FunctionBuilder {
       injectInvalidInitializer(
           messageSuperInitializerNotLast, superInitializer.fileOffset, helper);
     } else {
-      initializers.add(initializer..parent = constructor);
+      initializers.add(initializer..parent = _constructor);
     }
   }
 
@@ -790,23 +805,23 @@ class ConstructorBuilder extends FunctionBuilder {
     // TODO(ahe): restore file-offset once we track both origin and patch file
     // URIs. See https://github.com/dart-lang/sdk/issues/31579
     origin.constructor.fileUri = fileUri;
-    origin.constructor.startFileOffset = constructor.startFileOffset;
-    origin.constructor.fileOffset = constructor.fileOffset;
-    origin.constructor.fileEndOffset = constructor.fileEndOffset;
+    origin.constructor.startFileOffset = _constructor.startFileOffset;
+    origin.constructor.fileOffset = _constructor.fileOffset;
+    origin.constructor.fileEndOffset = _constructor.fileEndOffset;
     origin.constructor.annotations
-        .forEach((m) => m.fileOffset = constructor.fileOffset);
+        .forEach((m) => m.fileOffset = _constructor.fileOffset);
 
-    origin.constructor.isExternal = constructor.isExternal;
-    origin.constructor.function = constructor.function;
+    origin.constructor.isExternal = _constructor.isExternal;
+    origin.constructor.function = _constructor.function;
     origin.constructor.function.parent = origin.constructor;
-    origin.constructor.initializers = constructor.initializers;
+    origin.constructor.initializers = _constructor.initializers;
     setParents(origin.constructor.initializers, origin.constructor);
     return 1;
   }
 
   @override
   void becomeNative(Loader loader) {
-    constructor.isExternal = true;
+    _constructor.isExternal = true;
     super.becomeNative(loader);
   }
 
@@ -828,8 +843,8 @@ class ConstructorBuilder extends FunctionBuilder {
     // again.
     // Note: this method clears both initializers from the target Kernel node
     // and internal state associated with parsing initializers.
-    if (target.isConst) {
-      target.initializers.length = 0;
+    if (constructor.isConst) {
+      constructor.initializers.length = 0;
       redirectingInitializer = null;
       superInitializer = null;
       hasMovedSuperInitializer = false;

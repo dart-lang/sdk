@@ -62,7 +62,7 @@ class SetLiteralTransformer extends Transformer {
     // CoreTypes. This is a temporary solution until all backends have
     // implemented support for set literals.
     Uri collectionUri = Uri.parse("dart:collection");
-    Library collectionLibrary = loader.builders[collectionUri].target;
+    Library collectionLibrary = loader.builders[collectionUri].library;
     for (int i = 0; i < collectionLibrary.classes.length; i++) {
       Class classNode = collectionLibrary.classes[i];
       if (classNode.name == "_UnmodifiableSet") {

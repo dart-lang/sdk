@@ -218,7 +218,7 @@ class EnumBuilder extends SourceClassBuilder {
             enumConstantInfo.charOffset,
             enumConstantInfo.charOffset);
         metadataCollector?.setDocumentationComment(
-            fieldBuilder.target, documentationComment);
+            fieldBuilder.field, documentationComment);
         members[name] = fieldBuilder..next = existing;
       }
     }
@@ -316,7 +316,7 @@ class EnumBuilder extends SourceClassBuilder {
           objectClass.charOffset, objectClass.name.length, objectClass.fileUri);
     } else {
       constructor.initializers.add(
-          new SuperInitializer(superConstructor.target, new Arguments.empty())
+          new SuperInitializer(superConstructor.member, new Arguments.empty())
             ..parent = constructor);
     }
     int index = 0;

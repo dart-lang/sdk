@@ -809,13 +809,13 @@ class SourceLoader extends Loader {
   Component computeFullComponent() {
     Set<Library> libraries = new Set<Library>();
     List<Library> workList = <Library>[];
-    builders.forEach((Uri uri, LibraryBuilder library) {
-      if (!library.isPatch &&
-          (library.loader == this ||
-              library.uri.scheme == "dart" ||
-              library == this.first)) {
-        if (libraries.add(library.target)) {
-          workList.add(library.target);
+    builders.forEach((Uri uri, LibraryBuilder libraryBuilder) {
+      if (!libraryBuilder.isPatch &&
+          (libraryBuilder.loader == this ||
+              libraryBuilder.uri.scheme == "dart" ||
+              libraryBuilder == this.first)) {
+        if (libraries.add(libraryBuilder.library)) {
+          workList.add(libraryBuilder.library);
         }
       }
     });
@@ -951,7 +951,7 @@ class SourceLoader extends Loader {
     for (SourceClassBuilder builder in sourceClasses) {
       if (builder.library.loader == this && !builder.isPatch) {
         if (builder.addNoSuchMethodForwarders(target, hierarchy)) {
-          changedClasses.add(builder.target);
+          changedClasses.add(builder.cls);
         }
       }
     }

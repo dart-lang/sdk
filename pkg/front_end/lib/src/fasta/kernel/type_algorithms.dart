@@ -411,7 +411,7 @@ List<Object> findRawTypesWithInboundReferences(TypeBuilder type) {
       TypeDeclarationBuilder declaration = type.declaration;
       if (declaration is DillClassBuilder) {
         bool hasInbound = false;
-        List<TypeParameter> typeParameters = declaration.target.typeParameters;
+        List<TypeParameter> typeParameters = declaration.cls.typeParameters;
         for (int i = 0; i < typeParameters.length && !hasInbound; ++i) {
           if (containsTypeVariable(
               typeParameters[i].bound, typeParameters.toSet())) {
@@ -424,7 +424,7 @@ List<Object> findRawTypesWithInboundReferences(TypeBuilder type) {
         }
       } else if (declaration is DillTypeAliasBuilder) {
         bool hasInbound = false;
-        List<TypeParameter> typeParameters = declaration.target.typeParameters;
+        List<TypeParameter> typeParameters = declaration.typedef.typeParameters;
         for (int i = 0; i < typeParameters.length && !hasInbound; ++i) {
           if (containsTypeVariable(
               typeParameters[i].bound, typeParameters.toSet())) {

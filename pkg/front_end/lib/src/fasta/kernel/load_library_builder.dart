@@ -51,12 +51,12 @@ class LoadLibraryBuilder extends Builder {
     LoadLibrary expression = createLoadLibrary(charOffset, forest, null);
     String prefix = expression.import.name;
     tearoff = new Procedure(
-        new Name('__loadLibrary_$prefix', parent.target),
+        new Name('__loadLibrary_$prefix', parent.library),
         ProcedureKind.Method,
         new FunctionNode(new ReturnStatement(expression),
             returnType: new InterfaceType(parent.loader.coreTypes.futureClass,
                 <DartType>[const DynamicType()])),
-        fileUri: parent.target.fileUri,
+        fileUri: parent.library.fileUri,
         isStatic: true)
       ..startFileOffset = charOffset
       ..fileOffset = charOffset;

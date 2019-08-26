@@ -97,7 +97,9 @@ main() {
     VariableDeclaration variable = new VariableDeclaration(null);
 
     BodyBuilder helper = new BodyBuilder(
-        library: libraryBuilder, isDeclarationInstanceMember: false, uri: uri);
+        libraryBuilder: libraryBuilder,
+        isDeclarationInstanceMember: false,
+        uri: uri);
 
     Generator generator = new ThisAccessGenerator(helper, token, false, false);
 
