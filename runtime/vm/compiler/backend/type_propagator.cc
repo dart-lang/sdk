@@ -662,7 +662,7 @@ CompileType CompileType::Int() {
 }
 
 CompileType CompileType::Int32() {
-#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
+#if defined(TARGET_ARCH_IS_64_BIT)
   return FromCid(kSmiCid);
 #else
   return Int();
