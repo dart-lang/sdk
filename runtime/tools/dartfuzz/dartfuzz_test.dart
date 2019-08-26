@@ -44,7 +44,7 @@ abstract class TestRunner {
   String description;
 
   // Factory.
-  static TestRunner getTestRunner(String mode, bool ffi, String top, String tmp,
+  static TestRunner getTestRunner(String mode, String top, String tmp,
       Map<String, String> env, String fileName, Random rand) {
     String prefix = mode.substring(0, 3).toUpperCase();
     String tag = getTag(mode);
@@ -87,8 +87,7 @@ abstract class TestRunner {
       } else if (r == 4) {
         prefix += '-DEPOPTEVERY';
         extraFlags += ['--deoptimize_every=100'];
-      } else if (r == 5 && !ffi) {
-        // TODO: https://github.com/dart-lang/sdk/issues/37606
+      } else if (r == 5) {
         prefix += '-STACKTRACEEVERY';
         extraFlags += ['--stacktrace_every=100'];
       } else if (r == 6) {
@@ -297,10 +296,10 @@ class DartFuzzTest {
     fileName = '${tmpDir.path}/fuzz.dart';
     fp = samePrecision(mode1, mode2);
     ffi = ffiCapable(mode1, mode2);
-    runner1 = TestRunner.getTestRunner(
-        mode1, ffi, top, tmpDir.path, env, fileName, rand);
-    runner2 = TestRunner.getTestRunner(
-        mode2, ffi, top, tmpDir.path, env, fileName, rand);
+    runner1 =
+        TestRunner.getTestRunner(mode1, top, tmpDir.path, env, fileName, rand);
+    runner2 =
+        TestRunner.getTestRunner(mode2, top, tmpDir.path, env, fileName, rand);
     isolate =
         'Isolate (${tmpDir.path}) ${ffi ? "" : "NO-"}FFI ${fp ? "" : "NO-"}FP : '
         '${runner1.description} - ${runner2.description}';
