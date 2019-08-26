@@ -330,7 +330,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _flowAnalysis.ifNullExpression_rightBegin();
       try {
         _guards.add(leftType.node);
-        var rightType = node.rightOperand.accept(this);
+        DecoratedType rightType;
+        _postDominatedLocals.doScoped(action: () {
+          rightType = node.rightOperand.accept(this);
+        });
         var ifNullNode = NullabilityNode.forIfNotNull();
         expressionType = DecoratedType(node.staticType, ifNullNode);
         _connect(rightType.node, expressionType.node,

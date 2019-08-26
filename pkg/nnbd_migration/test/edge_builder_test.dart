@@ -2982,6 +2982,22 @@ void test() {
     assertEdge(always, decoratedTypeAnnotation('int i').node, hard: false);
   }
 
+  test_postDominators_questionQuestionOperator() async {
+    await analyze('''
+class C {
+  Object m() => null;
+}
+Object test(C x, C y) => x.m() ?? y.m();
+''');
+    // There is a hard edge from x to `never` because `x.m()` is unconditionally
+    // reachable from the top of `test`.
+    assertEdge(decoratedTypeAnnotation('C x').node, never, hard: true);
+    // However, the edge from y to `never` is soft because `y.m()` is only
+    // executed if `x.m()` returned `null`.
+    assertEdge(decoratedTypeAnnotation('C y').node, never,
+        hard: false, guards: [decoratedTypeAnnotation('Object m').node]);
+  }
+
   test_postDominators_reassign() async {
     await analyze('''
 void test(bool b, int i1, int i2) {
