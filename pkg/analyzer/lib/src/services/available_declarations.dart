@@ -824,6 +824,9 @@ class RelevanceTags {
       case DeclarationKind.FUNCTION_TYPE_ALIAS:
         var name = declaration.name;
         return <String>['$uriStr::$name'];
+      case DeclarationKind.CONSTRUCTOR:
+        var className = declaration.parent.name;
+        return <String>['$uriStr::$className'];
       case DeclarationKind.ENUM_CONSTANT:
         var enumName = declaration.parent.name;
         return <String>['$uriStr::$enumName'];

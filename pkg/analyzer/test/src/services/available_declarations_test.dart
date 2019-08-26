@@ -1234,6 +1234,7 @@ class C {
       parameterNames: [],
       parameters: '()',
       parameterTypes: [],
+      relevanceTags: ['package:test/test.dart::C'],
       requiredParameterCount: 0,
       returnType: 'C',
     );
@@ -1244,6 +1245,7 @@ class C {
       parameterNames: [],
       parameters: '()',
       parameterTypes: [],
+      relevanceTags: ['package:test/test.dart::C'],
       requiredParameterCount: 0,
       returnType: 'C',
     );
@@ -1255,6 +1257,7 @@ class C {
       parameters: '()',
       parameterNames: [],
       parameterTypes: [],
+      relevanceTags: ['package:test/test.dart::C'],
       requiredParameterCount: 0,
       returnType: 'C',
     );
@@ -1267,6 +1270,7 @@ class C {
       parameters: '()',
       parameterNames: [],
       parameterTypes: [],
+      relevanceTags: ['package:test/test.dart::C'],
       requiredParameterCount: 0,
       returnType: 'C',
     );
@@ -1279,6 +1283,7 @@ class C {
       parameters: '(Map<String, int> p1, int p2, {double p3})',
       parameterNames: ['p1', 'p2', 'p3'],
       parameterTypes: ['Map<String, int>', 'int', 'double'],
+      relevanceTags: ['package:test/test.dart::C'],
       requiredParameterCount: 2,
       returnType: 'C',
     );
@@ -1291,6 +1296,7 @@ class C {
       parameters: '(this.f1, this.f2)',
       parameterNames: ['f1', 'f2'],
       parameterTypes: ['', ''],
+      relevanceTags: ['package:test/test.dart::C'],
       requiredParameterCount: 2,
       returnType: 'C',
     );
