@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -425,10 +424,8 @@ class DartUnitHighlightsComputer2 {
   }
 
   static bool _isDynamicExpression(Expression e) {
-    if (e is SimpleIdentifier && e.staticElement is PrefixElement) {
-      return false;
-    }
-    return resolutionMap.staticTypeForExpression(e).isDynamic;
+    var type = e.staticType;
+    return type != null && type.isDynamic;
   }
 }
 
