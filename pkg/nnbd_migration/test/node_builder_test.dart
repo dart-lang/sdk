@@ -338,6 +338,19 @@ class D<V> = Object with C<int, V>;
         same(decoratedTypeAnnotation('V>;').node));
   }
 
+  test_directSupertypes_dartCoreClass() async {
+    await analyze('''
+abstract class D<V> extends Iterable<V> {}
+''');
+    var types = decoratedDirectSupertypes('D');
+    var super_ = types.values.single;
+    expect(super_.type.toString(), 'Iterable<V>');
+    expect(super_.node, same(never));
+    expect(super_.typeArguments, hasLength(1));
+    expect(super_.typeArguments[0].node,
+        same(decoratedTypeAnnotation('V> {').node));
+  }
+
   test_directSupertypes_mixin_extends_default() async {
     await analyze('''
 mixin C<T, U> {}

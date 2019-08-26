@@ -26,26 +26,6 @@ class DecoratedClassHierarchy {
 
   DecoratedClassHierarchy(this._variables, this._graph);
 
-  /// Retrieves a [DecoratedType] describing how [class_] implements
-  /// [superclass].
-  ///
-  /// If [class_] does not implement [superclass], raises an exception.
-  ///
-  /// Note that the returned [DecoratedType] will have a node of `never`,
-  /// because the relationship between a class and its superclass is not
-  /// nullable.
-  DecoratedType getDecoratedSupertype(
-      ClassElement class_, ClassElement superclass) {
-    assert(!(class_.library.isDartCore && class_.name == 'Null'));
-    assert(class_ is! ClassElementHandle);
-    assert(superclass is! ClassElementHandle);
-    if (superclass.typeParameters.isEmpty) {
-      return DecoratedType(superclass.type, _graph.never);
-    }
-    return _getGenericSupertypeDecorations(class_)[superclass] ??
-        (throw StateError('Unrelated types'));
-  }
-
   /// Retrieves a [DecoratedType] describing how [type] implements [superclass].
   ///
   /// If [type] is not an interface type, or it does not implement [superclass],
@@ -60,6 +40,24 @@ class DecoratedClassHierarchy {
       result = result.substitute(type.asSubstitution);
     }
     return result.withNode(type.node);
+  }
+
+  /// Retrieves a [DecoratedType] describing how [class_] implements
+  /// [superclass].
+  ///
+  /// If [class_] does not implement [superclass], raises an exception.
+  ///
+  /// Note that the returned [DecoratedType] will have a node of `never`,
+  /// because the relationship between a class and its superclass is not
+  /// nullable.
+  DecoratedType getDecoratedSupertype(
+      ClassElement class_, ClassElement superclass) {
+    assert(!(class_.library.isDartCore && class_.name == 'Null'));
+    if (superclass.typeParameters.isEmpty) {
+      return DecoratedType(superclass.type, _graph.never);
+    }
+    return _getGenericSupertypeDecorations(class_)[superclass] ??
+        (throw StateError('Unrelated types'));
   }
 
   /// Computes a map whose keys are all the superclasses of [class_], and whose
