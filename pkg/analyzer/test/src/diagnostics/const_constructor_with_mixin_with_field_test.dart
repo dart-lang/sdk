@@ -111,7 +111,7 @@ class X extends Object with M {
 ''');
   }
   
-  test_mixin_noFields() async {
+  test_mixin_getter() async {
     await assertNoErrorsInCode('''
 mixin M {
   get x;
