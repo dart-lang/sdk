@@ -7,8 +7,6 @@ import 'package:meta/meta.dart';
 /// Sets of local variables that are potentially assigned in a loop statement,
 /// switch statement, try statement, or loop collection element.
 class AssignedVariables<StatementOrElement, Variable> {
-  final emptySet = Set<Variable>();
-
   /// Mapping from a statement or element to the set of local variables that
   /// are potentially assigned in that statement or element.
   final Map<StatementOrElement, Set<Variable>> _map = {};
@@ -21,7 +19,7 @@ class AssignedVariables<StatementOrElement, Variable> {
   /// Return the set of variables that are potentially assigned in the
   /// [statementOrElement].
   Set<Variable> operator [](StatementOrElement statementOrElement) {
-    return _map[statementOrElement] ?? emptySet;
+    return _map[statementOrElement] ?? const {};
   }
 
   void beginStatementOrElement() {
@@ -512,15 +510,28 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
     return _current.variableInfo[variable]?.promotedType;
   }
 
-  /// The [notPromoted] set contains all variables that are potentially
-  /// assigned in other cases that might target this with `continue`, so
-  /// these variables might have different types and are "un-promoted" from
-  /// the "afterExpression" state.
-  void switchStatement_beginCase(Iterable<Variable> notPromoted) {
-    _current = _stack.last.removePromotedAll(notPromoted, _referencedVariables);
+  /// Call this method just before visiting one of the cases in the body of a
+  /// switch statement.  See [switchStatement_expressionEnd] for details.
+  ///
+  /// [hasLabel] indicates whether the case has any labels.
+  ///
+  /// The [notPromoted] set contains all variables that are potentially assigned
+  /// within the body of the switch statement.
+  void switchStatement_beginCase(
+      bool hasLabel, Iterable<Variable> notPromoted) {
+    if (hasLabel) {
+      _current =
+          _stack.last.removePromotedAll(notPromoted, _referencedVariables);
+    } else {
+      _current = _stack.last;
+    }
   }
 
-  void switchStatement_end(Statement switchStatement, bool hasDefault) {
+  /// Call this method just after visiting the body of a switch statement.  See
+  /// [switchStatement_expressionEnd] for details.
+  ///
+  /// [hasDefault] indicates whether the switch statement had a "default" case.
+  void switchStatement_end(bool hasDefault) {
     // Tail of the stack: break, continue, afterExpression
     FlowModel<Variable, Type> afterExpression = _current = _stack.removeLast();
     _stack.removeLast(); // continue
@@ -536,6 +547,16 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
     }
   }
 
+  /// Call this method just after visiting the expression part of a switch
+  /// statement.
+  ///
+  /// The order of visiting a switch statement should be:
+  /// - Visit the switch expression.
+  /// - Call [switchStatement_expressionEnd].
+  /// - For each switch case (including the default case, if any):
+  ///   - Call [switchStatement_beginCase].
+  ///   - Visit the case.
+  /// - Call [switchStatement_end].
   void switchStatement_expressionEnd(Statement switchStatement) {
     _statementToStackIndex[switchStatement] = _stack.length;
     _stack.add(null); // break

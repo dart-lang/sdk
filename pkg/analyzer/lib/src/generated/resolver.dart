@@ -4462,9 +4462,8 @@ class ResolverVisitor extends ScopedVisitor {
         var members = node.members;
         for (var member in members) {
           flow.switchStatement_beginCase(
-            member.labels.isNotEmpty
-                ? assignedInCases
-                : _flowAnalysis.assignedVariables.emptySet,
+            member.labels.isNotEmpty,
+            assignedInCases,
           );
           member.accept(this);
 
@@ -4475,7 +4474,7 @@ class ResolverVisitor extends ScopedVisitor {
           }
         }
 
-        flow.switchStatement_end(node, hasDefault);
+        flow.switchStatement_end(hasDefault);
       } else {
         node.members.accept(this);
       }

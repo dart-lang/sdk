@@ -376,6 +376,98 @@ main() {
       expect(h.flow.promotedType(x), isNull);
     });
 
+    test('switchStatement_beginCase(false) restores previous promotions', () {
+      var h = _Harness();
+      var x = h.addAssignedVar('x', 'int?');
+      h.promote(x, 'int');
+      h.flow.switchStatement_expressionEnd(_Statement());
+      h.flow.switchStatement_beginCase(false, {x});
+      expect(h.flow.promotedType(x).type, 'int');
+      h.flow.write(x);
+      expect(h.flow.promotedType(x), isNull);
+      h.flow.switchStatement_beginCase(false, {x});
+      expect(h.flow.promotedType(x).type, 'int');
+      h.flow.write(x);
+      expect(h.flow.promotedType(x), isNull);
+      h.flow.switchStatement_end(false);
+      h.flow.finish();
+    });
+
+    test('switchStatement_beginCase(false) does not un-promote', () {
+      var h = _Harness();
+      var x = h.addAssignedVar('x', 'int?');
+      h.promote(x, 'int');
+      h.flow.switchStatement_expressionEnd(_Statement());
+      h.flow.switchStatement_beginCase(false, {x});
+      expect(h.flow.promotedType(x).type, 'int');
+      h.flow.write(x);
+      expect(h.flow.promotedType(x), isNull);
+      h.flow.switchStatement_end(false);
+      h.flow.finish();
+    });
+
+    test('switchStatement_beginCase(true) un-promotes', () {
+      var h = _Harness();
+      var x = h.addAssignedVar('x', 'int?');
+      h.promote(x, 'int');
+      h.flow.switchStatement_expressionEnd(_Statement());
+      h.flow.switchStatement_beginCase(true, {x});
+      expect(h.flow.promotedType(x), isNull);
+      h.flow.write(x);
+      expect(h.flow.promotedType(x), isNull);
+      h.flow.switchStatement_end(false);
+      h.flow.finish();
+    });
+
+    test('switchStatement_end(false) joins break and default', () {
+      var h = _Harness();
+      var x = h.addAssignedVar('x', 'int?');
+      var y = h.addAssignedVar('y', 'int?');
+      var z = h.addAssignedVar('z', 'int?');
+      h.promote(y, 'int');
+      h.promote(z, 'int');
+      var stmt = _Statement();
+      h.flow.switchStatement_expressionEnd(stmt);
+      h.flow.switchStatement_beginCase(false, {y});
+      h.promote(x, 'int');
+      h.flow.write(y);
+      h.flow.handleBreak(stmt);
+      h.flow.switchStatement_end(false);
+      expect(h.flow.promotedType(x), isNull);
+      expect(h.flow.promotedType(y), isNull);
+      expect(h.flow.promotedType(z).type, 'int');
+      h.flow.finish();
+    });
+
+    test('switchStatement_end(true) joins breaks', () {
+      var h = _Harness();
+      var w = h.addAssignedVar('w', 'int?');
+      var x = h.addAssignedVar('x', 'int?');
+      var y = h.addAssignedVar('y', 'int?');
+      var z = h.addAssignedVar('z', 'int?');
+      h.promote(x, 'int');
+      h.promote(y, 'int');
+      h.promote(z, 'int');
+      var stmt = _Statement();
+      h.flow.switchStatement_expressionEnd(stmt);
+      h.flow.switchStatement_beginCase(false, {x, y});
+      h.promote(w, 'int');
+      h.promote(y, 'int');
+      h.flow.write(x);
+      h.flow.handleBreak(stmt);
+      h.flow.switchStatement_beginCase(false, {x, y});
+      h.promote(w, 'int');
+      h.promote(x, 'int');
+      h.flow.write(y);
+      h.flow.handleBreak(stmt);
+      h.flow.switchStatement_end(true);
+      expect(h.flow.promotedType(w).type, 'int');
+      expect(h.flow.promotedType(x), isNull);
+      expect(h.flow.promotedType(y), isNull);
+      expect(h.flow.promotedType(z).type, 'int');
+      h.flow.finish();
+    });
+
     test('Infinite loop does not implicitly assign variables', () {
       var h = _Harness();
       var x = h.addUnassignedVar('x', 'int');
