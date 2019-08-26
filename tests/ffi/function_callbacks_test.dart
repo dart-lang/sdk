@@ -5,7 +5,9 @@
 // Dart test program for testing dart:ffi function pointers with callbacks.
 //
 // VMOptions=--enable-testing-pragmas
+// VMOptions=--enable-testing-pragmas --stacktrace-every=100
 // VMOptions=--enable-testing-pragmas --write-protect-code --no-dual-map-code
+// VMOptions=--enable-testing-pragmas --write-protect-code --no-dual-map-code --stacktrace-every=100
 // SharedObjects=ffi_test_functions
 
 library FfiTest;

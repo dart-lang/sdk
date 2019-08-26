@@ -2222,7 +2222,7 @@ void Debugger::AppendCodeFrames(Thread* thread,
                                 Code* inlined_code,
                                 Array* deopt_frame) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  if (code->is_optimized()) {
+  if (code->is_optimized() && !code->is_force_optimized()) {
     // TODO(rmacnak): Use CodeSourceMap
     *deopt_frame = DeoptimizeToArray(thread, frame, *code);
     for (InlinedFunctionsIterator it(*code, frame->pc()); !it.Done();

@@ -141,7 +141,11 @@ class CompilerPass {
 
   static void ParseFilters(const char* filter);
 
-  enum PipelineMode { kJIT, kAOT };
+  enum PipelineMode {
+    kJIT,    // Includes speculative and inter-procedural optimizations.
+    kAOT,    // Includes inter-procedural optimizations.
+    kForced  // Does not include speculative or inter-procedural optimizations.
+  };
 
   static void RunGraphIntrinsicPipeline(CompilerPassState* state);
 

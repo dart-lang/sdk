@@ -7363,6 +7363,13 @@ RawFunction* Function::New(const String& name,
     // in new space.
     ASSERT(space == Heap::kOld);
   }
+
+  // Force-optimized functions are not debuggable because they cannot
+  // deoptimize.
+  if (result.ForceOptimize()) {
+    result.set_is_debuggable(false);
+  }
+
   return result.raw();
 }
 

@@ -2149,15 +2149,18 @@ static void HandleStackOverflowTestCases(Thread* thread) {
     intptr_t num_frames = stack->Length();
     for (intptr_t i = 0; i < num_frames; i++) {
       ActivationFrame* frame = stack->FrameAt(i);
-#ifndef DART_PRECOMPILED_RUNTIME
-      if (!frame->IsInterpreted() && !frame->function().ForceOptimize()) {
-        // Ensure that we have unoptimized code.
-        frame->function().EnsureHasCompiledUnoptimizedCode();
-      }
-      const int num_vars = frame->NumLocalVariables();
-#else
+      int num_vars = 0;
       // Variable locations and number are unknown when precompiling.
-      const int num_vars = 0;
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      // NumLocalVariables() can call EnsureHasUnoptimizedCode() for
+      // non-interpreted functions.
+      if (!frame->function().ForceOptimize()) {
+        if (!frame->IsInterpreted()) {
+          // Ensure that we have unoptimized code.
+          frame->function().EnsureHasCompiledUnoptimizedCode();
+        }
+        num_vars = frame->NumLocalVariables();
+      }
 #endif
       TokenPosition unused = TokenPosition::kNoSource;
       for (intptr_t v = 0; v < num_vars; v++) {
