@@ -15,6 +15,7 @@ import 'package:analysis_server/src/services/refactoring/inline_method.dart';
 import 'package:analysis_server/src/services/refactoring/move_file.dart';
 import 'package:analysis_server/src/services/refactoring/rename_class_member.dart';
 import 'package:analysis_server/src/services/refactoring/rename_constructor.dart';
+import 'package:analysis_server/src/services/refactoring/rename_extension_member.dart';
 import 'package:analysis_server/src/services/refactoring/rename_import.dart';
 import 'package:analysis_server/src/services/refactoring/rename_label.dart';
 import 'package:analysis_server/src/services/refactoring/rename_library.dart';
@@ -483,6 +484,9 @@ abstract class RenameRefactoring implements Refactoring {
     }
     if (element.enclosingElement is ClassElement) {
       return new RenameClassMemberRefactoringImpl(workspace, session, element);
+    }
+    if (element.enclosingElement is ExtensionElement) {
+      return RenameExtensionMemberRefactoringImpl(workspace, session, element);
     }
     return null;
   }
