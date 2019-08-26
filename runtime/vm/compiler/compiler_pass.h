@@ -40,6 +40,7 @@ namespace dart {
   V(OptimizeTypedDataAccesses)                                                 \
   V(RangeAnalysis)                                                             \
   V(ReorderBlocks)                                                             \
+  V(RoundTripSerialization)                                                    \
   V(SelectRepresentations)                                                     \
   V(SerializeGraph)                                                            \
   V(SetOuterInliningId)                                                        \
@@ -76,7 +77,7 @@ struct CompilerPassState {
   }
 
   Thread* const thread;
-  FlowGraph* const flow_graph;
+  FlowGraph* flow_graph;
   Precompiler* const precompiler;
   int inlining_depth;
   AllocationSinking* sinking;
@@ -146,9 +147,17 @@ class CompilerPass {
 
   static void RunInliningPipeline(PipelineMode mode, CompilerPassState* state);
 
-  static void RunPipeline(PipelineMode mode, CompilerPassState* state);
-
-  static void RunPipelineWithPasses(
+  // RunPipeline(WithPasses) may have the side effect of changing the FlowGraph
+  // stored in the CompilerPassState. However, existing callers may depend on
+  // the old invariant that the FlowGraph stored in the CompilerPassState was
+  // always updated, never entirely replaced.
+  //
+  // To make sure callers are updated properly, these methods also return
+  // the final FlowGraph and we add a check that callers use this result.
+  DART_WARN_UNUSED_RESULT
+  static FlowGraph* RunPipeline(PipelineMode mode, CompilerPassState* state);
+  DART_WARN_UNUSED_RESULT
+  static FlowGraph* RunPipelineWithPasses(
       CompilerPassState* state,
       std::initializer_list<CompilerPass::Id> passes);
 

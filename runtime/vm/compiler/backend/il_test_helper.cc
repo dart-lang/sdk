@@ -114,9 +114,9 @@ FlowGraph* TestPipeline::RunPasses(
     }
 
     if (passes.size() > 0) {
-      CompilerPass::RunPipelineWithPasses(pass_state_, passes);
+      flow_graph_ = CompilerPass::RunPipelineWithPasses(pass_state_, passes);
     } else {
-      CompilerPass::RunPipeline(mode_, pass_state_);
+      flow_graph_ = CompilerPass::RunPipeline(mode_, pass_state_);
     }
   }
 

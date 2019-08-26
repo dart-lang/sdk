@@ -644,7 +644,7 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         JitCallSpecializer call_specializer(flow_graph, &speculative_policy);
         pass_state.call_specializer = &call_specializer;
 
-        CompilerPass::RunPipeline(CompilerPass::kJIT, &pass_state);
+        flow_graph = CompilerPass::RunPipeline(CompilerPass::kJIT, &pass_state);
       }
 
       ASSERT(pass_state.inline_id_to_function.length() ==

@@ -2302,7 +2302,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
                                             &speculative_policy);
         pass_state.call_specializer = &call_specializer;
 
-        CompilerPass::RunPipeline(CompilerPass::kAOT, &pass_state);
+        flow_graph = CompilerPass::RunPipeline(CompilerPass::kAOT, &pass_state);
       }
 
       ASSERT(pass_state.inline_id_to_function.length() ==

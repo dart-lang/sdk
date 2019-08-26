@@ -35,21 +35,30 @@ const char* const FlowGraphSerializer::initial_indent = "";
 
 void FlowGraphSerializer::SerializeToBuffer(const FlowGraph* flow_graph,
                                             TextBuffer* buffer) {
-  SerializeToBuffer(flow_graph->zone(), flow_graph, buffer);
+  SerializeToBuffer(Thread::Current()->zone(), flow_graph, buffer);
 }
 
 void FlowGraphSerializer::SerializeToBuffer(Zone* zone,
                                             const FlowGraph* flow_graph,
                                             TextBuffer* buffer) {
   ASSERT(buffer != nullptr);
-  FlowGraphSerializer serializer(zone, flow_graph);
-  auto const sexp = serializer.FlowGraphToSExp();
+  auto const sexp = SerializeToSExp(zone, flow_graph);
   if (FLAG_pretty_print_serialization) {
-    sexp->SerializeTo(serializer.zone(), buffer, initial_indent);
+    sexp->SerializeTo(zone, buffer, initial_indent);
   } else {
     sexp->SerializeToLine(buffer);
   }
   buffer->AddString("\n\n");
+}
+
+SExpression* FlowGraphSerializer::SerializeToSExp(const FlowGraph* flow_graph) {
+  return SerializeToSExp(Thread::Current()->zone(), flow_graph);
+}
+
+SExpression* FlowGraphSerializer::SerializeToSExp(Zone* zone,
+                                                  const FlowGraph* flow_graph) {
+  FlowGraphSerializer serializer(zone, flow_graph);
+  return serializer.FlowGraphToSExp();
 }
 
 void FlowGraphSerializer::AddBool(SExpList* sexp, bool b) {

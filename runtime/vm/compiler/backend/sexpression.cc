@@ -19,6 +19,16 @@ SExpression* SExpression::FromCString(Zone* zone, const char* str) {
   return sexp;
 }
 
+const char* SExpression::ToCString(Zone* zone) const {
+  TextBuffer buf(1 * KB);
+  SerializeToLine(&buf);
+  auto const buf_len = buf.length();
+  char* ret = zone->Alloc<char>(buf_len + 1);
+  strncpy(ret, buf.buf(), buf_len);
+  ret[buf_len] = '\0';
+  return ret;
+}
+
 bool SExpBool::Equals(SExpression* sexp) const {
   if (!sexp->IsBool()) return false;
   return this->value() == sexp->AsBool()->value();

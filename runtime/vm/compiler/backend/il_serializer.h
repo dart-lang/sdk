@@ -25,6 +25,8 @@ class FlowGraphSerializer : ValueObject {
   static void SerializeToBuffer(Zone* zone,
                                 const FlowGraph* flow_graph,
                                 TextBuffer* buffer);
+  static SExpression* SerializeToSExp(const FlowGraph* flow_graph);
+  static SExpression* SerializeToSExp(Zone* zone, const FlowGraph* flow_graph);
 
   const FlowGraph* flow_graph() const { return flow_graph_; }
   Zone* zone() const { return zone_; }
@@ -94,7 +96,11 @@ class FlowGraphSerializer : ValueObject {
         serialize_parent_(Function::Handle(zone_)),
         type_arguments_elem_(AbstractType::Handle(zone_)),
         type_class_(Class::Handle(zone_)),
-        type_ref_type_(AbstractType::Handle(zone_)) {}
+        type_ref_type_(AbstractType::Handle(zone_)) {
+    // Double-check that the zone in the flow graph is a parent of the
+    // zone we'll be using for serialization.
+    ASSERT(flow_graph->zone()->ContainsNestedZone(zone));
+  }
 
   static const char* const initial_indent;
 

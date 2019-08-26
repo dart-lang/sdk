@@ -61,6 +61,7 @@ class SExpression : public ZoneAllocated {
   static intptr_t const kInvalidPos = -1;
 
   static SExpression* FromCString(Zone* zone, const char* cstr);
+  const char* ToCString(Zone* zone) const;
   intptr_t start() const { return start_; }
 
 #define S_EXPRESSION_TYPE_CHECK(name, value_type)                              \
@@ -292,7 +293,7 @@ class SExpParser : public ValueObject {
   SExpression* TokenToSExpression(Token* token);
   Token* GetNextToken();
   void Reset();
-  void StoreError(intptr_t pos, const char* format, ...);
+  void StoreError(intptr_t pos, const char* format, ...) PRINTF_ATTRIBUTE(3, 4);
 
   static bool IsSymbolContinue(char c);
 
