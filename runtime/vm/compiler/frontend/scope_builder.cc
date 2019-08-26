@@ -1637,6 +1637,7 @@ void ScopeBuilder::FinalizeExceptionVariable(
     raw_variable =
         new LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
                           symbol, AbstractType::dynamic_type());
+    raw_variable->set_is_forced_stack();
     const bool ok = scope_->AddVariable(raw_variable);
     ASSERT(ok);
   } else {
