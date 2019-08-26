@@ -4,8 +4,11 @@
 library kernel.ast_to_text;
 
 import 'dart:core' hide MapEntry;
+import 'dart:core' as core show MapEntry;
 
 import 'dart:convert' show json;
+
+import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
 import '../ast.dart';
 import '../import_table.dart';
@@ -24,16 +27,44 @@ class NormalNamer<T> extends Namer<T> {
   NormalNamer(this.prefix);
 }
 
+class FakePrintingConstant extends Constant {
+  final String id;
+  FakePrintingConstant(this.id);
+
+  @override
+  accept(ConstantVisitor v) {}
+
+  @override
+  acceptReference(Visitor v) {}
+
+  @override
+  DartType getType(TypeEnvironment types) => null;
+
+  @override
+  void visitChildren(Visitor v) {}
+
+  @override
+  String toString() {
+    return "FakePrintingConstant[$id]";
+  }
+}
+
 class ConstantNamer extends RecursiveVisitor<Null> with Namer<Constant> {
   final String prefix;
   ConstantNamer(this.prefix);
 
   String getName(Constant constant) {
-    if (!map.containsKey(constant)) {
-      // Name everything in post-order visit of DAG.
-      constant.visitChildren(this);
+    try {
+      if (!map.containsKey(constant)) {
+        // Name everything in post-order visit of DAG.
+        constant.visitChildren(this);
+      }
+      return super.getName(constant);
+    } catch (e) {
+      // Partial dill. Name anyway.
+      String id = "${constant.runtimeType.toString()}";
+      return super.getName(new FakePrintingConstant(id));
     }
-    return super.getName(constant);
   }
 
   defaultConstantReference(Constant constant) {
@@ -2130,14 +2161,20 @@ class Printer extends Visitor<Null> {
     writeConstantReference(node);
     writeSpaced('=');
     writeClassReferenceFromReference(node.classReference);
-    if (!node.classNode.typeParameters.isEmpty) {
+    if (!node.typeArguments.isEmpty) {
       writeSymbol('<');
       writeList(node.typeArguments, writeType);
       writeSymbol('>');
     }
+
     writeSymbol(' {');
-    writeList(node.fieldValues.entries, (entry) {
-      writeWord('${entry.key.asField.name.name}');
+    writeList(node.fieldValues.entries,
+        (core.MapEntry<Reference, Constant> entry) {
+      if (entry.key.node != null) {
+        writeWord('${entry.key.asField.name.name}');
+      } else {
+        writeWord('${entry.key.canonicalName.name}');
+      }
       writeSymbol(':');
       writeConstantReference(entry.value);
     });
