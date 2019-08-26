@@ -110,6 +110,11 @@ abstract class TestRunner {
       prefix += '-SLOWPATH';
       extraFlags += ['--use-slow-path'];
     }
+    // Every once in a while, use the deterministic flag.
+    if (!mode.startsWith('djs') && rand.nextInt(4) == 0) {
+      prefix += '-DET';
+      extraFlags += ['--deterministic'];
+    }
     // Construct runner.
     if (mode.startsWith('jit')) {
       return new TestRunnerJIT(
