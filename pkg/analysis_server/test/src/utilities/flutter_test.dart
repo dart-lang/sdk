@@ -331,6 +331,44 @@ main(Widget widget) {
     expect(flutter.identifyWidgetExpression(expression), expression);
   }
 
+  test_identifyWidgetExpression_parent_forElement() async {
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+
+main(bool b) {
+  [
+    for (var v in [0, 1, 2]) Container()
+  ];
+}
+
+void useWidget(Widget w) {}
+''');
+    var expression = findNode.instanceCreation('Container()');
+    expect(flutter.identifyWidgetExpression(expression), expression);
+  }
+
+  test_identifyWidgetExpression_parent_ifElement() async {
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+
+main(bool b) {
+  [
+    if (b)
+      Text('then')
+    else
+      Text('else')
+  ];
+}
+
+void useWidget(Widget w) {}
+''');
+    var thenExpression = findNode.instanceCreation("Text('then')");
+    expect(flutter.identifyWidgetExpression(thenExpression), thenExpression);
+
+    var elseExpression = findNode.instanceCreation("Text('else')");
+    expect(flutter.identifyWidgetExpression(elseExpression), elseExpression);
+  }
+
   test_identifyWidgetExpression_parent_listLiteral() async {
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';

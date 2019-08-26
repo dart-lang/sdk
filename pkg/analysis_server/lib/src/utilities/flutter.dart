@@ -334,6 +334,9 @@ class Flutter {
 
         if (parent is ArgumentList ||
             parent is ExpressionFunctionBody && parent.expression == node ||
+            parent is ForElement && parent.body == node ||
+            parent is IfElement && parent.thenElement == node ||
+            parent is IfElement && parent.elseElement == node ||
             parent is ListLiteral ||
             parent is NamedExpression && parent.expression == node ||
             parent is Statement) {
