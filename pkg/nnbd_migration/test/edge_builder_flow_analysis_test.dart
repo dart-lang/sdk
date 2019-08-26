@@ -787,6 +787,25 @@ void h(int k) {}
     assertEdge(iNode, jNode, hard: false, guards: [iNode]);
   }
 
+  test_ifNull() async {
+    await analyze('''
+void f(int i, int x) {
+  x ?? (i == null ? throw 'foo' : g(i));
+  h(i);
+}
+int g(int j) => 0;
+void h(int k) {}
+''');
+    var iNode = decoratedTypeAnnotation('int i').node;
+    var jNode = decoratedTypeAnnotation('int j').node;
+    var kNode = decoratedTypeAnnotation('int k').node;
+    // No edge from i to j because i's type is promoted to non-nullable
+    assertNoEdge(iNode, jNode);
+    // But there is an edge from i to k, because the RHS of the `??` isn't
+    // guaranteed to execute.
+    assertEdge(iNode, kNode, hard: true);
+  }
+
   test_local_function_parameters() async {
     await analyze('''
 void f() {
