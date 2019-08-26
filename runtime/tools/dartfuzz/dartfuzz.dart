@@ -13,7 +13,7 @@ import 'dartfuzz_api_table.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.23';
+const String version = '1.24';
 
 // Restriction on statements and expressions.
 const int stmtLength = 2;
@@ -46,6 +46,7 @@ class DartFuzz {
     globalMethods = fillTypes2();
     classFields = fillTypes2();
     classMethods = fillTypes3(classFields.length);
+    classParents = new List<int>();
     // Setup optional ffi methods and types.
     List<bool> ffiStatus = new List<bool>();
     for (var m in globalMethods) {
@@ -144,7 +145,14 @@ class DartFuzz {
   void emitClasses() {
     assert(classFields.length == classMethods.length);
     for (int i = 0; i < classFields.length; i++) {
-      emitLn('class X$i ${i == 0 ? "" : "extends X${i - 1}"} {');
+      if (i == 0) {
+        classParents.add(-1);
+        emitLn('class X0 {');
+      } else {
+        final int parentClass = rand.nextInt(i);
+        classParents.add(parentClass);
+        emitLn('class X$i extends X${parentClass} {');
+      }
       indent += 2;
       emitVarDecls('$fieldName${i}_', classFields[i]);
       currentClass = i;
@@ -917,13 +925,30 @@ class DartFuzz {
         return;
       }
     } else {
-      // Inside a class: try to call backwards in class methods first.
-      final int m1 = currentMethod == null
-          ? classMethods[currentClass].length
-          : currentMethod;
+      int classIndex = currentClass;
+      // Chase randomly up in class hierarchy.
+      while (classParents[classIndex] > 0) {
+        if (rand.nextInt(2) == 0) {
+          break;
+        }
+        classIndex = classParents[classIndex];
+      }
+      int m1 = 0;
+      // Inside a class: try to call backwards into current or parent class
+      // methods first.
+      if (currentMethod == null || classIndex != currentClass) {
+        // If currently emitting the 'run' method or calling into a parent class
+        // pick any of the current or parent class methods respectively.
+        m1 = classMethods[classIndex].length;
+      } else {
+        // If calling into the current class from any method other than 'run'
+        // pick one of the already emitted methods
+        // (to avoid infinite recursions).
+        m1 = currentMethod;
+      }
       final int m2 = globalMethods.length;
-      if (pickedCall(depth, tp, '$methodName${currentClass}_',
-              classMethods[currentClass], m1) ||
+      if (pickedCall(depth, tp, '$methodName${classIndex}_',
+              classMethods[classIndex], m1) ||
           pickedCall(depth, tp, methodName, globalMethods, m2)) {
         return;
       }
@@ -1153,7 +1178,7 @@ class DartFuzz {
 
   List<List<DartType>> fillTypes2({bool isFfi = false}) {
     List<List<DartType>> list = new List<List<DartType>>();
-    for (int i = 0, n = 1 + rand.nextInt(4); i < n; i++) {
+    for (int i = 0, n = 1 + rand.nextInt(8); i < n; i++) {
       list.add(fillTypes1(isFfi: isFfi));
     }
     return list;
@@ -1270,6 +1295,9 @@ class DartFuzz {
 
   // Prototypes of all methods over all classes (first element is return type).
   List<List<List<DartType>>> classMethods;
+
+  // Parent class indices for all classes.
+  List<int> classParents;
 }
 
 // Generate seed. By default (no user-defined nonzero seed given),
