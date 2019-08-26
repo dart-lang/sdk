@@ -824,6 +824,28 @@ void f() {
     assertEdge(jNode, never, hard: false);
   }
 
+  test_not() async {
+    await analyze('''
+void f(int i) {
+  if (!(i == null)) {
+    h(i);
+  } else {
+    g(i);
+  }
+}
+void g(int j) {}
+void h(int k) {}
+''');
+    var iNode = decoratedTypeAnnotation('int i').node;
+    var jNode = decoratedTypeAnnotation('int j').node;
+    var kNode = decoratedTypeAnnotation('int k').node;
+    // No edge from i to k because i is known to be non-nullable at the site of
+    // the call to h()
+    assertNoEdge(iNode, kNode);
+    // But there is an edge from i to j
+    assertEdge(iNode, jNode, hard: false);
+  }
+
   test_rethrow() async {
     await analyze('''
 void f(int i, int j) {

@@ -920,6 +920,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var targetType = _checkExpressionNotNull(node.operand);
     var operatorType = node.operator.type;
     if (operatorType == TokenType.BANG) {
+      _flowAnalysis.logicalNot_end(node, node.operand);
       return _nonNullableBoolType;
     } else if (operatorType == TokenType.PLUS_PLUS ||
         operatorType == TokenType.MINUS_MINUS) {
