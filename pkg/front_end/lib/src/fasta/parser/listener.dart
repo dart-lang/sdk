@@ -295,9 +295,21 @@ class Listener implements UnescapeErrorListener {
   void beginFactoryMethod(
       Token lastConsumed, Token externalToken, Token constToken) {}
 
-  void endFactoryMethod(
+  void endClassFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
-    logEvent("FactoryMethod");
+    logEvent("ClassFactoryMethod");
+  }
+
+  void endMixinFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token endToken) {
+    // TODO(danrubel): push implementation into subclasses
+    endClassFactoryMethod(beginToken, factoryKeyword, endToken);
+  }
+
+  void endExtensionFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token endToken) {
+    // TODO(danrubel): push implementation into subclasses
+    endClassFactoryMethod(beginToken, factoryKeyword, endToken);
   }
 
   void beginFormalParameter(Token token, MemberKind kind, Token requiredToken,

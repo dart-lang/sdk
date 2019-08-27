@@ -1798,7 +1798,7 @@ class Parser {
       token = parseClassHeaderRecovery(start, begin, classKeyword);
       ensureBlock(token, null, 'class declaration');
     }
-    token = parseClassOrMixinOrExtensionBody(ClassKind.Class, token);
+    token = parseClassOrMixinOrExtensionBody(token, ClassKind.Class);
     listener.endClassDeclaration(begin, token);
     return token;
   }
@@ -1965,7 +1965,7 @@ class Parser {
       token = parseMixinHeaderRecovery(token, mixinKeyword, headerStart);
       ensureBlock(token, null, 'mixin declaration');
     }
-    token = parseClassOrMixinOrExtensionBody(ClassKind.Mixin, token);
+    token = parseClassOrMixinOrExtensionBody(token, ClassKind.Mixin);
     listener.endMixinDeclaration(mixinKeyword, token);
     return token;
   }
@@ -2135,7 +2135,7 @@ class Parser {
       ensureBlock(token, null, 'extension declaration');
     }
     // TODO(danrubel): Do not allow fields or constructors
-    token = parseClassOrMixinOrExtensionBody(ClassKind.Extension, token);
+    token = parseClassOrMixinOrExtensionBody(token, ClassKind.Extension);
     listener.endExtensionDeclaration(extensionKeyword, onKeyword, token);
     return token;
   }
@@ -2903,7 +2903,7 @@ class Parser {
   ///   '{' classMember* '}'
   /// ;
   /// ```
-  Token parseClassOrMixinOrExtensionBody(ClassKind kind, Token token) {
+  Token parseClassOrMixinOrExtensionBody(Token token, ClassKind kind) {
     Token begin = token = token.next;
     assert(optional('{', token));
     listener.beginClassOrMixinBody(kind, token);
@@ -2972,6 +2972,7 @@ class Parser {
   /// ;
   ///
   /// extensionMember:
+  ///   staticFieldDeclaration |
   ///   methodDeclaration
   /// ;
   /// ```
@@ -3061,7 +3062,7 @@ class Parser {
           if (beforeType != token) {
             reportRecoverableError(token, fasta.messageTypeBeforeFactory);
           }
-          token = parseFactoryMethod(token, beforeStart, externalToken,
+          token = parseFactoryMethod(token, kind, beforeStart, externalToken,
               staticToken ?? covariantToken, varFinalOrConst);
           listener.endMember();
           return token;
@@ -3311,8 +3312,8 @@ class Parser {
     return token;
   }
 
-  Token parseFactoryMethod(Token token, Token beforeStart, Token externalToken,
-      Token staticOrCovariant, Token varFinalOrConst) {
+  Token parseFactoryMethod(Token token, ClassKind kind, Token beforeStart,
+      Token externalToken, Token staticOrCovariant, Token varFinalOrConst) {
     Token factoryKeyword = token = token.next;
     assert(optional('factory', factoryKeyword));
 
@@ -3372,7 +3373,18 @@ class Parser {
       }
       token = parseFunctionBody(token, false, false);
     }
-    listener.endFactoryMethod(beforeStart.next, factoryKeyword, token);
+    switch (kind) {
+      case ClassKind.Class:
+        listener.endClassFactoryMethod(beforeStart.next, factoryKeyword, token);
+        break;
+      case ClassKind.Mixin:
+        listener.endMixinFactoryMethod(beforeStart.next, factoryKeyword, token);
+        break;
+      case ClassKind.Extension:
+        listener.endExtensionFactoryMethod(
+            beforeStart.next, factoryKeyword, token);
+        break;
+    }
     return token;
   }
 

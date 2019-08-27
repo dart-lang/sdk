@@ -560,9 +560,9 @@ class DietListener extends StackListener {
   }
 
   @override
-  void endFactoryMethod(
+  void endClassFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
-    debugEvent("FactoryMethod");
+    debugEvent("ClassFactoryMethod");
     Token bodyToken = pop();
     Object name = pop();
     Token metadata = pop();

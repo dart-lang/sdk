@@ -600,9 +600,21 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endFactoryMethod(
+  void endClassFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
-    listener?.endFactoryMethod(beginToken, factoryKeyword, endToken);
+    listener?.endClassFactoryMethod(beginToken, factoryKeyword, endToken);
+  }
+
+  @override
+  void endMixinFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token endToken) {
+    listener?.endMixinFactoryMethod(beginToken, factoryKeyword, endToken);
+  }
+
+  @override
+  void endExtensionFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token endToken) {
+    listener?.endExtensionFactoryMethod(beginToken, factoryKeyword, endToken);
   }
 
   @override

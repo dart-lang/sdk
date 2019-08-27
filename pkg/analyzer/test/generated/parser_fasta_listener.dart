@@ -712,10 +712,24 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endFactoryMethod(
+  void endClassFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
     end('FactoryMethod');
-    super.endFactoryMethod(beginToken, factoryKeyword, endToken);
+    super.endClassFactoryMethod(beginToken, factoryKeyword, endToken);
+  }
+
+  @override
+  void endMixinFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token endToken) {
+    end('FactoryMethod');
+    super.endMixinFactoryMethod(beginToken, factoryKeyword, endToken);
+  }
+
+  @override
+  void endExtensionFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token endToken) {
+    end('FactoryMethod');
+    super.endExtensionFactoryMethod(beginToken, factoryKeyword, endToken);
   }
 
   @override

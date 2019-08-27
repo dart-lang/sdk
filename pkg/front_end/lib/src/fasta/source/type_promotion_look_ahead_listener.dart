@@ -545,9 +545,9 @@ class TypePromotionLookAheadListener extends Listener {
   }
 
   @override
-  void endFactoryMethod(
+  void endClassFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
-    debugEvent("FactoryMethod", beginToken);
+    debugEvent("ClassFactoryMethod", beginToken);
     state.pop(); // Name.
     state.checkEmpty(endToken);
   }

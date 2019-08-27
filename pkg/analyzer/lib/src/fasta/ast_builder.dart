@@ -834,11 +834,11 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endFactoryMethod(
+  void endClassFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
     assert(optional('factory', factoryKeyword));
     assert(optional(';', endToken) || optional('}', endToken));
-    debugEvent("FactoryMethod");
+    debugEvent("ClassFactoryMethod");
 
     FunctionBody body;
     Token separator;

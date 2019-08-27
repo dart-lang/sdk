@@ -1666,9 +1666,9 @@ class OutlineBuilder extends StackListener {
   }
 
   @override
-  void endFactoryMethod(
+  void endClassFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
-    debugEvent("FactoryMethod");
+    debugEvent("ClassFactoryMethod");
     MethodBody kind = pop();
     ConstructorReferenceBuilder redirectionTarget;
     if (kind == MethodBody.RedirectingFactoryBody) {

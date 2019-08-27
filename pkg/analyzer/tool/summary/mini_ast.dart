@@ -280,9 +280,9 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void endFactoryMethod(
+  void endClassFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
-    debugEvent("FactoryMethod");
+    debugEvent("ClassFactoryMethod");
     pop(); // Body
     pop(); // Type variables
     String name = pop();
