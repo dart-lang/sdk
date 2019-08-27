@@ -979,21 +979,6 @@ class CallSiteInliner : public ValueObject {
       // Install bailout jump.
       LongJumpScope jump;
       if (setjmp(*jump.Set()) == 0) {
-        Isolate* isolate = Isolate::Current();
-        // Makes sure no classes are loaded during parsing in background.
-        const intptr_t loading_invalidation_gen_at_start =
-            isolate->loading_invalidation_gen();
-
-        if (Compiler::IsBackgroundCompilation()) {
-          if ((loading_invalidation_gen_at_start !=
-               isolate->loading_invalidation_gen())) {
-            // Loading occured while parsing. We need to abort here because
-            // state changed while compiling.
-            Compiler::AbortBackgroundCompilation(
-                DeoptId::kNone, "Loading occured while parsing in inliner");
-          }
-        }
-
         // Load IC data for the callee.
         ZoneGrowableArray<const ICData*>* ic_data_array =
             new (Z) ZoneGrowableArray<const ICData*>();

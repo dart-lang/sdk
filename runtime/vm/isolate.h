@@ -779,18 +779,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     isolate_flags_ = RemappingCidsBit::update(value, isolate_flags_);
   }
 
-  static const intptr_t kInvalidGen = 0;
-
-  void IncrLoadingInvalidationGen() {
-    AtomicOperations::IncrementBy(&loading_invalidation_gen_, 1);
-    if (loading_invalidation_gen_ == kInvalidGen) {
-      AtomicOperations::IncrementBy(&loading_invalidation_gen_, 1);
-    }
-  }
-  intptr_t loading_invalidation_gen() {
-    return AtomicOperations::LoadRelaxed(&loading_invalidation_gen_);
-  }
-
   // Used by background compiler which field became boxed and must trigger
   // deoptimization in the mutator thread.
   void AddDeoptimizingBoxedField(const Field& field);
@@ -1169,11 +1157,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
   // Isolate list next pointer.
   Isolate* next_ = nullptr;
-
-  // Invalidation generations; used to track events occurring in parallel
-  // to background compilation. The counters may overflow, which is OK
-  // since we check for equality to detect if an event occured.
-  intptr_t loading_invalidation_gen_ = kInvalidGen;
 
   // Protect access to boxed_field_list_.
   Mutex field_list_mutex_;
