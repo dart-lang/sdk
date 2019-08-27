@@ -39,6 +39,15 @@ class BaseDirectChainedHashMap : public B {
   void Insert(typename KeyValueTrait::Pair kv);
   bool Remove(typename KeyValueTrait::Key key);
 
+  // If a pair already exists in the map with an equal key, replace that pair
+  // with this one. Otherwise, insert the pair as a new entry.
+  //
+  // Note: Insert operates in constant time, while Update must walk the chained
+  // entries for a given hash value, checking keys for equality. However, if
+  // multiple value updates are needed for the same key, only using Update
+  // guarantees constant space usage whereas Insert does not.
+  void Update(typename KeyValueTrait::Pair kv);
+
   typename KeyValueTrait::Value LookupValue(
       typename KeyValueTrait::Key key) const;
 
@@ -311,6 +320,20 @@ void BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Insert(
     ASSERT(array_[pos].next == kNil ||
            KeyValueTrait::ValueOf(lists_[array_[pos].next].kv) != kNoValue);
     array_[pos].next = new_element_pos;
+  }
+}
+
+template <typename KeyValueTrait, typename B, typename Allocator>
+void BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Update(
+    typename KeyValueTrait::Pair kv) {
+  const typename KeyValueTrait::Value kNoValue =
+      KeyValueTrait::ValueOf(typename KeyValueTrait::Pair());
+
+  ASSERT(KeyValueTrait::ValueOf(kv) != kNoValue);
+  if (auto const old_kv = Lookup(KeyValueTrait::KeyOf(kv))) {
+    *old_kv = kv;
+  } else {
+    Insert(kv);
   }
 }
 

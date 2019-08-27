@@ -220,4 +220,84 @@ TEST_CASE(CStringMap) {
   free(str1);
 }
 
+TEST_CASE(CStringMapUpdate) {
+  const char* const kConst1 = "test";
+  const char* const kConst2 = "test 2";
+
+  char* str1 = OS::SCreate(nullptr, "%s", kConst1);
+  char* str2 = OS::SCreate(nullptr, "%s", kConst2);
+  char* str3 = OS::SCreate(nullptr, "%s", kConst1);
+  char* str4 = OS::SCreate(nullptr, "%s", kConst1);  // Only used for lookup.
+
+  // Make sure these strings are pointer-distinct, but C-string-equal.
+  EXPECT_NE(str1, str3);
+  EXPECT_NE(str1, str4);
+  EXPECT_NE(str3, str4);
+  EXPECT_STREQ(str1, str3);
+  EXPECT_STREQ(str1, str4);
+
+  CStringKeyValueTrait<intptr_t>::Pair p1 = {str1, 1};
+  CStringKeyValueTrait<intptr_t>::Pair p2 = {str2, 2};
+  CStringKeyValueTrait<intptr_t>::Pair p3 = {str3, 3};
+
+  CStringMap<intptr_t> map;
+  EXPECT(map.IsEmpty());
+
+  map.Update(p1);
+  EXPECT_NOTNULL(map.Lookup(str1));
+  EXPECT_EQ(p1.value, map.LookupValue(str1));
+  EXPECT_NULLPTR(map.Lookup(str2));
+  EXPECT_NOTNULL(map.Lookup(str3));
+  EXPECT_EQ(p1.value, map.LookupValue(str3));
+  EXPECT_NOTNULL(map.Lookup(str4));
+  EXPECT_EQ(p1.value, map.LookupValue(str4));
+
+  map.Update(p2);
+  EXPECT_NOTNULL(map.Lookup(str1));
+  EXPECT_EQ(p1.value, map.LookupValue(str1));
+  EXPECT_NOTNULL(map.Lookup(str2));
+  EXPECT_EQ(p2.value, map.LookupValue(str2));
+  EXPECT_NOTNULL(map.Lookup(str3));
+  EXPECT_EQ(p1.value, map.LookupValue(str3));
+  EXPECT_NOTNULL(map.Lookup(str4));
+  EXPECT_EQ(p1.value, map.LookupValue(str4));
+
+  // Check Lookup after Update.
+  map.Update(p3);
+  EXPECT_NOTNULL(map.Lookup(str1));
+  EXPECT_EQ(p3.value, map.LookupValue(str1));
+  EXPECT_NOTNULL(map.Lookup(str2));
+  EXPECT_EQ(p2.value, map.LookupValue(str2));
+  EXPECT_NOTNULL(map.Lookup(str3));
+  EXPECT_EQ(p3.value, map.LookupValue(str3));
+  EXPECT_NOTNULL(map.Lookup(str4));
+  EXPECT_EQ(p3.value, map.LookupValue(str4));
+
+  // Check that single Remove after only Updates ensures Lookup fails after.
+  EXPECT(map.Remove(str3));
+  EXPECT_NULLPTR(map.Lookup(str1));
+  EXPECT_NOTNULL(map.Lookup(str2));
+  EXPECT_EQ(p2.value, map.LookupValue(str2));
+  EXPECT_NULLPTR(map.Lookup(str3));
+  EXPECT_NULLPTR(map.Lookup(str4));
+
+  EXPECT(!map.Remove(str3));
+  EXPECT(map.Remove(str2));
+  EXPECT(map.IsEmpty());
+
+  // Quick double-check that these weren't side-effected by the implementation
+  // of hash maps (p1 especially).
+  EXPECT_EQ(str1, p1.key);
+  EXPECT_EQ(1, p1.value);
+  EXPECT_EQ(str2, p2.key);
+  EXPECT_EQ(2, p2.value);
+  EXPECT_EQ(str3, p3.key);
+  EXPECT_EQ(3, p3.value);
+
+  free(str4);
+  free(str3);
+  free(str2);
+  free(str1);
+}
+
 }  // namespace dart
