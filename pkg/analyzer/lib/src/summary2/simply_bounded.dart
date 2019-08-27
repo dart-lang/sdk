@@ -302,6 +302,8 @@ class _TypeCollector {
   void visitParameter(FormalParameter node) {
     if (node is DefaultFormalParameter) {
       visitParameter(node.parameter);
+    } else if (node is FieldFormalParameter) {
+      // The spec does not allow them here, ignore.
     } else if (node is FunctionTypedFormalParameter) {
       addType(node.returnType);
       visitParameters(node.parameters);

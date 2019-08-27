@@ -115,6 +115,17 @@ class C {
 ''');
   }
 
+  test_fuzz_09() async {
+    await _assertCanBeAnalyzed(r'''
+typedef void F(int a, this.b);
+''');
+    var function = findElement.genericTypeAlias('F').function;
+    assertElementTypeString(
+      function.type,
+      'void Function(int, dynamic)',
+    );
+  }
+
   test_genericFunction_asTypeArgument_ofUnresolvedClass() async {
     await _assertCanBeAnalyzed(r'''
 C<int Function()> c;
