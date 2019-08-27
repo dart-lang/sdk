@@ -36,7 +36,6 @@ main() {
 
   asyncTest(() async {
     await runTest(const {});
-    await runTest(const {fe.ExperimentalFlag.constantUpdate2018: true});
-    await runTest(const {fe.ExperimentalFlag.spreadCollections: true});
+    await runTest(const {fe.ExperimentalFlag.extensionMethods: true});
   });
 }

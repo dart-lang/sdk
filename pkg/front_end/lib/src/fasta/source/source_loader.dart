@@ -1046,8 +1046,7 @@ class SourceLoader extends Loader {
       node.accept(collectionTransformer ??= new CollectionTransformer(this));
     }
     if (transformSetLiterals) {
-      node.accept(setLiteralTransformer ??= new SetLiteralTransformer(this,
-          transformConst: !target.enableConstantUpdate2018));
+      node.accept(setLiteralTransformer ??= new SetLiteralTransformer(this));
     }
   }
 
@@ -1061,9 +1060,8 @@ class SourceLoader extends Loader {
       }
     }
     if (transformSetLiterals) {
-      SetLiteralTransformer transformer = setLiteralTransformer ??=
-          new SetLiteralTransformer(this,
-              transformConst: !target.enableConstantUpdate2018);
+      SetLiteralTransformer transformer =
+          setLiteralTransformer ??= new SetLiteralTransformer(this);
       for (int i = 0; i < list.length; ++i) {
         list[i] = list[i].accept(transformer);
       }

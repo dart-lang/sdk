@@ -783,19 +783,19 @@ class KernelTarget extends TargetImplementation {
         loader.libraries,
         new KernelDiagnosticReporter(loader),
         logger: (String msg) => ticker.logMs(msg));
-    if (loader.target.enableConstantUpdate2018) {
-      TypeEnvironment environment =
-          new TypeEnvironment(loader.coreTypes, loader.hierarchy);
-      constants.transformLibraries(
-          loader.libraries,
-          backendTarget.constantsBackend(loader.coreTypes),
-          environmentDefines,
-          environment,
-          new KernelConstantErrorReporter(loader),
-          desugarSets: !backendTarget.supportsSetLiterals,
-          errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
-      ticker.logMs("Evaluated constants");
-    }
+
+    TypeEnvironment environment =
+        new TypeEnvironment(loader.coreTypes, loader.hierarchy);
+    constants.transformLibraries(
+        loader.libraries,
+        backendTarget.constantsBackend(loader.coreTypes),
+        environmentDefines,
+        environment,
+        new KernelConstantErrorReporter(loader),
+        desugarSets: !backendTarget.supportsSetLiterals,
+        errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
+    ticker.logMs("Evaluated constants");
+
     backendTarget.performModularTransformationsOnLibraries(
         component,
         loader.coreTypes,

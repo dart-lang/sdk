@@ -13,8 +13,8 @@ import 'package:front_end/src/testing/id_testing_helper.dart'
         InternalCompilerResult,
         DataComputer,
         FormattedMessage,
-        cfeConstantUpdate2018Config,
         createUriForFileName,
+        defaultCfeConfig,
         onFailure,
         runTestFor;
 import 'package:front_end/src/testing/id_testing_utils.dart';
@@ -28,8 +28,7 @@ main(List<String> args) async {
       supportedMarkers: sharedMarkers,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
-      runTest: runTestFor(
-          const ConstantsDataComputer(), [cfeConstantUpdate2018Config]));
+      runTest: runTestFor(const ConstantsDataComputer(), [defaultCfeConfig]));
 }
 
 class ConstantsDataComputer extends DataComputer<String> {
