@@ -32,33 +32,12 @@ import 'package:test/test.dart';
 class ForwardingTestListener extends ForwardingListener {
   final _stack = <String>[];
 
+  ForwardingTestListener([Listener listener]) : super(listener);
+
   void begin(String event) {
     expect(event, isNotNull);
     _stack.add(event);
   }
-
-  void expectEmpty() {
-    expect(_stack, isEmpty);
-  }
-
-  void expectIn(String event) {
-    if (_stack.isEmpty || _stack.last != event) {
-      fail('Expected $event, but found $_stack');
-    }
-  }
-
-  void expectInOneOf(List<String> events) {
-    if (_stack.isEmpty || !events.contains(_stack.last)) {
-      fail('Expected one of $events, but found $_stack');
-    }
-  }
-
-  void end(String event) {
-    expectIn(event);
-    _stack.removeLast();
-  }
-
-  ForwardingTestListener([Listener listener]) : super(listener);
 
   @override
   void beginArguments(Token token) {
@@ -558,6 +537,11 @@ class ForwardingTestListener extends ForwardingListener {
     begin('YieldStatement');
   }
 
+  void end(String event) {
+    expectIn(event);
+    _stack.removeLast();
+  }
+
   @override
   void endArguments(int count, Token beginToken, Token endToken) {
     end('Arguments');
@@ -576,13 +560,6 @@ class ForwardingTestListener extends ForwardingListener {
   void endAwaitExpression(Token beginToken, Token endToken) {
     end('AwaitExpression');
     super.endAwaitExpression(beginToken, endToken);
-  }
-
-  @override
-  void endInvalidAwaitExpression(
-      Token beginToken, Token endToken, MessageCode errorCode) {
-    end('InvalidAwaitExpression');
-    super.endInvalidAwaitExpression(beginToken, endToken, errorCode);
   }
 
   @override
@@ -620,6 +597,13 @@ class ForwardingTestListener extends ForwardingListener {
     end('ClassDeclaration');
     end('ClassOrNamedMixinApplication');
     super.endClassDeclaration(beginToken, endToken);
+  }
+
+  @override
+  void endClassFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token endToken) {
+    end('FactoryMethod');
+    super.endClassFactoryMethod(beginToken, factoryKeyword, endToken);
   }
 
   @override
@@ -709,20 +693,6 @@ class ForwardingTestListener extends ForwardingListener {
       Token extensionKeyword, Token onKeyword, Token token) {
     super.endExtensionDeclaration(extensionKeyword, onKeyword, token);
     end('ExtensionDeclaration');
-  }
-
-  @override
-  void endClassFactoryMethod(
-      Token beginToken, Token factoryKeyword, Token endToken) {
-    end('FactoryMethod');
-    super.endClassFactoryMethod(beginToken, factoryKeyword, endToken);
-  }
-
-  @override
-  void endMixinFactoryMethod(
-      Token beginToken, Token factoryKeyword, Token endToken) {
-    end('FactoryMethod');
-    super.endMixinFactoryMethod(beginToken, factoryKeyword, endToken);
   }
 
   @override
@@ -890,6 +860,13 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
+  void endInvalidAwaitExpression(
+      Token beginToken, Token endToken, MessageCode errorCode) {
+    end('InvalidAwaitExpression');
+    super.endInvalidAwaitExpression(beginToken, endToken, errorCode);
+  }
+
+  @override
   void endLabeledStatement(int labelCount) {
     end('LabeledStatement');
     super.endLabeledStatement(labelCount);
@@ -950,6 +927,13 @@ class ForwardingTestListener extends ForwardingListener {
     end('MixinDeclaration');
     end('ClassOrNamedMixinApplication');
     super.endMixinDeclaration(mixinKeyword, endToken);
+  }
+
+  @override
+  void endMixinFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token endToken) {
+    end('FactoryMethod');
+    super.endMixinFactoryMethod(beginToken, factoryKeyword, endToken);
   }
 
   @override
@@ -1137,6 +1121,22 @@ class ForwardingTestListener extends ForwardingListener {
   void endYieldStatement(Token yieldToken, Token starToken, Token endToken) {
     end('YieldStatement');
     super.endYieldStatement(yieldToken, starToken, endToken);
+  }
+
+  void expectEmpty() {
+    expect(_stack, isEmpty);
+  }
+
+  void expectIn(String event) {
+    if (_stack.isEmpty || _stack.last != event) {
+      fail('Expected $event, but found $_stack');
+    }
+  }
+
+  void expectInOneOf(List<String> events) {
+    if (_stack.isEmpty || !events.contains(_stack.last)) {
+      fail('Expected one of $events, but found $_stack');
+    }
   }
 
   @override

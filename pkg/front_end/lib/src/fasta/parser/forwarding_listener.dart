@@ -480,12 +480,6 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endInvalidAwaitExpression(
-      Token beginToken, Token endToken, MessageCode errorCode) {
-    listener?.endInvalidAwaitExpression(beginToken, endToken, errorCode);
-  }
-
-  @override
   void endBinaryExpression(Token token) {
     listener?.endBinaryExpression(token);
   }
@@ -518,6 +512,12 @@ class ForwardingListener implements Listener {
   @override
   void endClassDeclaration(Token beginToken, Token endToken) {
     listener?.endClassDeclaration(beginToken, endToken);
+  }
+
+  @override
+  void endClassFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token endToken) {
+    listener?.endClassFactoryMethod(beginToken, factoryKeyword, endToken);
   }
 
   @override
@@ -597,18 +597,6 @@ class ForwardingListener implements Listener {
   void endExtensionDeclaration(
       Token extensionKeyword, Token onKeyword, Token token) {
     listener?.endExtensionDeclaration(extensionKeyword, onKeyword, token);
-  }
-
-  @override
-  void endClassFactoryMethod(
-      Token beginToken, Token factoryKeyword, Token endToken) {
-    listener?.endClassFactoryMethod(beginToken, factoryKeyword, endToken);
-  }
-
-  @override
-  void endMixinFactoryMethod(
-      Token beginToken, Token factoryKeyword, Token endToken) {
-    listener?.endMixinFactoryMethod(beginToken, factoryKeyword, endToken);
   }
 
   @override
@@ -760,6 +748,12 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void endInvalidAwaitExpression(
+      Token beginToken, Token endToken, MessageCode errorCode) {
+    listener?.endInvalidAwaitExpression(beginToken, endToken, errorCode);
+  }
+
+  @override
   void endLabeledStatement(int labelCount) {
     listener?.endLabeledStatement(labelCount);
   }
@@ -809,6 +803,12 @@ class ForwardingListener implements Listener {
   @override
   void endMixinDeclaration(Token mixinKeyword, Token endToken) {
     listener?.endMixinDeclaration(mixinKeyword, endToken);
+  }
+
+  @override
+  void endMixinFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token endToken) {
+    listener?.endMixinFactoryMethod(beginToken, factoryKeyword, endToken);
   }
 
   @override
