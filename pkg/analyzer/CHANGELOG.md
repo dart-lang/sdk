@@ -3,6 +3,10 @@
   `FunctionTypeAliasElement`.  Since the new type is a refinement of
   the old one, the only effect on clients should be to make certain
   casts unnecessary.
+* Deprecated `HintCode.INVALID_REQUIRED_PARAM` and replaced it with more
+  specific hints, `HintCode.INVALID_REQUIRED_NAMED_PARAM`,
+  `HintCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM`, and
+  `HintCode.INVALID_REQUIRED_POSITIONAL_PARAM` to address #36966.
 
 ## 0.38.1
 * LinterVistor support for extension method AST nodes.

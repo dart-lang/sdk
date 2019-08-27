@@ -1086,17 +1086,25 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     final requiredParameters =
         node.parameters.where((p) => p.declaredElement?.hasRequired == true);
     final nonNamedParamsWithRequired =
-        requiredParameters.where((p) => !p.isNamed);
+        requiredParameters.where((p) => p.isPositional);
     final namedParamsWithRequiredAndDefault = requiredParameters
         .where((p) => p.isNamed)
         .where((p) => p.declaredElement.defaultValueCode != null);
-    final paramsToHint = [
-      nonNamedParamsWithRequired,
-      namedParamsWithRequiredAndDefault
-    ].expand((e) => e);
-    for (final param in paramsToHint) {
+    for (final param in nonNamedParamsWithRequired.where((p) => p.isOptional)) {
       _errorReporter.reportErrorForNode(
-          HintCode.INVALID_REQUIRED_PARAM, param, [param.identifier.name]);
+          HintCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM,
+          param,
+          [param.identifier.name]);
+    }
+    for (final param in nonNamedParamsWithRequired.where((p) => p.isRequired)) {
+      _errorReporter.reportErrorForNode(
+          HintCode.INVALID_REQUIRED_POSITIONAL_PARAM,
+          param,
+          [param.identifier.name]);
+    }
+    for (final param in namedParamsWithRequiredAndDefault) {
+      _errorReporter.reportErrorForNode(HintCode.INVALID_REQUIRED_NAMED_PARAM,
+          param, [param.identifier.name]);
     }
   }
 

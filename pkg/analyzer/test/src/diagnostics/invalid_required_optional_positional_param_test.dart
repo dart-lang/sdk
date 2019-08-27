@@ -10,26 +10,17 @@ import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(InvalidRequiredParamTest);
+    defineReflectiveTests(InvalidRequiredOptionalPositionalParamTest);
   });
 }
 
 @reflectiveTest
-class InvalidRequiredParamTest extends DriverResolutionTest with PackageMixin {
+class InvalidRequiredOptionalPositionalParamTest extends DriverResolutionTest
+    with PackageMixin {
   @override
   void setUp() {
     super.setUp();
     addMetaPackage();
-  }
-
-  test_namedParameter_withDefault() async {
-    await assertErrorsInCode(r'''
-import 'package:meta/meta.dart';
-
-m({@required a = 1}) => null;
-''', [
-      error(HintCode.INVALID_REQUIRED_PARAM, 37, 15),
-    ]);
   }
 
   test_positionalParameter_noDefault() async {
@@ -38,7 +29,7 @@ import 'package:meta/meta.dart';
 
 m([@required a]) => null;
 ''', [
-      error(HintCode.INVALID_REQUIRED_PARAM, 37, 11),
+      error(HintCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM, 37, 11),
     ]);
   }
 
@@ -48,30 +39,35 @@ import 'package:meta/meta.dart';
 
 m([@required a = 1]) => null;
 ''', [
-      error(HintCode.INVALID_REQUIRED_PARAM, 37, 15),
+      error(HintCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM, 37, 15),
     ]);
   }
 
-  test_requiredParameter() async {
+  test_positionalParameter_noDefault_asSecond() async {
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 
-m(@required a) => null;
+m(a, [@required b]) => null;
 ''', [
-      error(HintCode.INVALID_REQUIRED_PARAM, 36, 11),
+      error(HintCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM, 40, 11),
+    ]);
+  }
+
+  test_positionalParameter_withDefault_withTwo() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+m([a, @required b = 1]) => null;
+''', [
+      error(HintCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM, 40, 15),
     ]);
   }
 
   test_valid() async {
     await assertNoErrorsInCode(r'''
-import 'package:meta/meta.dart';
-
-m1() => null;
-m2(a) => null;
-m3([a]) => null;
-m4({a}) => null;
-m5({@required a}) => null;
-m6({a, @required b}) => null;
+m1([a]) => null;
+m2([a = 1]) => null;
+m3([a, b]) => null;
 ''');
   }
 }

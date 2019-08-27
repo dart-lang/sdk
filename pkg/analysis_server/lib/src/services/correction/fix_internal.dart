@@ -315,7 +315,9 @@ class FixProcessor {
     if (errorCode == HintCode.INVALID_FACTORY_ANNOTATION ||
         errorCode == HintCode.INVALID_IMMUTABLE_ANNOTATION ||
         errorCode == HintCode.INVALID_LITERAL_ANNOTATION ||
-        errorCode == HintCode.INVALID_REQUIRED_PARAM ||
+        errorCode == HintCode.INVALID_REQUIRED_NAMED_PARAM ||
+        errorCode == HintCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM ||
+        errorCode == HintCode.INVALID_REQUIRED_POSITIONAL_PARAM ||
         errorCode == HintCode.INVALID_SEALED_ANNOTATION) {
       await _addFix_removeAnnotation();
     }

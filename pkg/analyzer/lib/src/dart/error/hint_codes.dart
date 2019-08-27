@@ -311,16 +311,62 @@ class HintCode extends ErrorCode {
       "Only const constructors can have the `@literal` annotation.");
 
   /**
+   * This hint is generated anywhere where `@required` annotates a named
+   * parameter with a default value.
+   *
+   * Parameters:
+   * 0: the name of the member
+   */
+  static const HintCode INVALID_REQUIRED_NAMED_PARAM = const HintCode(
+      'INVALID_REQUIRED_NAMED_PARAM',
+      "The type parameter '{0}' is annotated with @required but only named "
+          "parameters without a default value can be annotated with it.",
+      correction: "Remove @required.");
+
+  /**
+   * This hint is generated anywhere where `@required` annotates an optional
+   * positional parameter.
+   *
+   * Parameters:
+   * 0: the name of the member
+   */
+  static const HintCode INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM =
+      const HintCode(
+          'INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM',
+          "Incorrect use of the annotation @required on the optional "
+              "positional parameter '{0}'. Optional positional parameters "
+              "cannot be required.",
+          correction: "Remove @required.");
+
+  /**
    * This hint is generated anywhere where `@required` annotates a non named
    * parameter or a named parameter with default value.
    *
    * Parameters:
    * 0: the name of the member
+   *
+   * Deprecated: Use the more specific [INVALID_REQUIRED_NAMED_PARAM],
+   * [INVALID_REQUIRED_OPTIONAL_POSITION_PARAM], and
+   * [INVALID_REQUIRED_POSITION_PARAM]
    */
+  @deprecated
   static const HintCode INVALID_REQUIRED_PARAM = const HintCode(
       'INVALID_REQUIRED_PARAM',
       "The type parameter '{0}' is annotated with @required but only named "
           "parameters without default value can be annotated with it.",
+      correction: "Remove @required.");
+
+  /**
+   * This hint is generated anywhere where `@required` annotates a non optional
+   * positional parameter.
+   *
+   * Parameters:
+   * 0: the name of the member
+   */
+  static const HintCode INVALID_REQUIRED_POSITIONAL_PARAM = const HintCode(
+      'INVALID_REQUIRED_POSITIONAL_PARAM',
+      "Redundant use of the annotation @required on the required positional "
+          "parameter '{0}'.",
       correction: "Remove @required.");
 
   /**
