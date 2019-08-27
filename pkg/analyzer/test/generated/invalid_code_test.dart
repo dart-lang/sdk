@@ -126,6 +126,12 @@ typedef void F(int a, this.b);
     );
   }
 
+  test_fuzz_10() async {
+    await _assertCanBeAnalyzed(r'''
+void f<@A(() { Function() v; }) T>() {}
+''');
+  }
+
   test_genericFunction_asTypeArgument_ofUnresolvedClass() async {
     await _assertCanBeAnalyzed(r'''
 C<int Function()> c;
