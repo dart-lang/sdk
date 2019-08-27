@@ -79,6 +79,14 @@ class VmTarget extends Target {
       ];
 
   @override
+  List<String> get extraIndexedLibraries => const <String>[
+        // TODO(askesc): When the VM supports set literals, we no longer
+        // need to index dart:collection, as it is only needed for desugaring of
+        // const sets. We can remove it from this list at that time.
+        "dart:collection",
+      ];
+
+  @override
   void performModularTransformationsOnLibraries(
       Component component,
       CoreTypes coreTypes,

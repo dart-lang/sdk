@@ -564,15 +564,12 @@ class KernelTarget extends TargetImplementation {
 
   void computeCoreTypes() {
     List<Library> libraries = <Library>[];
-    for (String platformLibrary in const [
+    for (String platformLibrary in [
       "dart:_internal",
       "dart:async",
-      // TODO(askesc): When all backends support set literals, we no longer
-      // need to index dart:collection, as it is only needed for desugaring of
-      // const sets. We can remove it from this list at that time.
-      "dart:collection",
       "dart:core",
-      "dart:mirrors"
+      "dart:mirrors",
+      ...backendTarget.extraIndexedLibraries
     ]) {
       Uri uri = Uri.parse(platformLibrary);
       LibraryBuilder libraryBuilder = loader.builders[uri];

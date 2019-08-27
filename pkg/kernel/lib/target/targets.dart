@@ -84,7 +84,11 @@ abstract class Target {
   /// A list of URIs of required libraries, not including dart:core.
   ///
   /// Libraries will be loaded in order.
-  List<String> get extraRequiredLibraries => <String>[];
+  List<String> get extraRequiredLibraries => const <String>[];
+
+  /// A list of URIs of libraries to be indexed in the CoreTypes index, not
+  /// including dart:_internal, dart:async, dart:core and dart:mirrors.
+  List<String> get extraIndexedLibraries => const <String>[];
 
   /// Additional declared variables implied by this target.
   ///
