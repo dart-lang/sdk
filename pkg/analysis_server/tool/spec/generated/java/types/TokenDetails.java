@@ -56,12 +56,12 @@ public class TokenDetails {
   /**
    * The offset of the first character of the token in the file which it originated from.
    */
-  private final Integer offset;
+  private final int offset;
 
   /**
    * Constructor for {@link TokenDetails}.
    */
-  public TokenDetails(String lexeme, String type, List<String> validElementKinds, Integer offset) {
+  public TokenDetails(String lexeme, String type, List<String> validElementKinds, int offset) {
     this.lexeme = lexeme;
     this.type = type;
     this.validElementKinds = validElementKinds;
@@ -76,7 +76,7 @@ public class TokenDetails {
         ObjectUtilities.equals(other.lexeme, lexeme) &&
         ObjectUtilities.equals(other.type, type) &&
         ObjectUtilities.equals(other.validElementKinds, validElementKinds) &&
-        ObjectUtilities.equals(other.offset, offset);
+        other.offset == offset;
     }
     return false;
   }
@@ -85,7 +85,7 @@ public class TokenDetails {
     String lexeme = jsonObject.get("lexeme").getAsString();
     String type = jsonObject.get("type") == null ? null : jsonObject.get("type").getAsString();
     List<String> validElementKinds = jsonObject.get("validElementKinds") == null ? null : JsonUtilities.decodeStringList(jsonObject.get("validElementKinds").getAsJsonArray());
-    Integer offset = jsonObject.get("offset") == null ? null : jsonObject.get("offset").getAsInt();
+    int offset = jsonObject.get("offset").getAsInt();
     return new TokenDetails(lexeme, type, validElementKinds, offset);
   }
 
@@ -111,7 +111,7 @@ public class TokenDetails {
   /**
    * The offset of the first character of the token in the file which it originated from.
    */
-  public Integer getOffset() {
+  public int getOffset() {
     return offset;
   }
 
@@ -155,9 +155,7 @@ public class TokenDetails {
       }
       jsonObject.add("validElementKinds", jsonArrayValidElementKinds);
     }
-    if (offset != null) {
-      jsonObject.addProperty("offset", offset);
-    }
+    jsonObject.addProperty("offset", offset);
     return jsonObject;
   }
 
