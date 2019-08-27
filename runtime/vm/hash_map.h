@@ -6,6 +6,7 @@
 #define RUNTIME_VM_HASH_MAP_H_
 
 #include "vm/growable_array.h"  // For Malloc, EmptyBase
+#include "vm/hash.h"
 #include "vm/zone.h"
 
 namespace dart {
@@ -34,6 +35,7 @@ class BaseDirectChainedHashMap : public B {
     allocator_->template Free<HashMapListElement>(lists_, lists_size_);
   }
 
+  // Assumes that no existing pair in the map has a key equal to [kv.key].
   void Insert(typename KeyValueTrait::Pair kv);
   bool Remove(typename KeyValueTrait::Key key);
 
@@ -286,6 +288,8 @@ void BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Insert(
       KeyValueTrait::ValueOf(typename KeyValueTrait::Pair());
 
   ASSERT(KeyValueTrait::ValueOf(kv) != kNoValue);
+  // TODO(dartbug.com/38018): Add assert that Lookup returns nullptr for key.
+
   // Resizing when half of the hashtable is filled up.
   if (count_ >= array_size_ >> 1) Resize(array_size_ << 1);
   ASSERT(count_ < array_size_);
@@ -313,11 +317,15 @@ void BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Insert(
 template <typename KeyValueTrait, typename B, typename Allocator>
 bool BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Remove(
     typename KeyValueTrait::Key key) {
+  const typename KeyValueTrait::Value kNoValue =
+      KeyValueTrait::ValueOf(typename KeyValueTrait::Pair());
+
   uword pos = Bound(static_cast<uword>(KeyValueTrait::Hashcode(key)));
 
   // Check to see if the first element in the bucket is the one we want to
   // remove.
-  if (KeyValueTrait::KeyOf(array_[pos].kv) == key) {
+  if (KeyValueTrait::ValueOf(array_[pos].kv) == kNoValue) return false;
+  if (KeyValueTrait::IsKeyEqual(array_[pos].kv, key)) {
     if (array_[pos].next == kNil) {
       array_[pos] = HashMapListElement();
     } else {
@@ -341,7 +349,7 @@ bool BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Remove(
 
   // Check the case where the second element in the bucket is the one to be
   // removed.
-  if (KeyValueTrait::KeyOf(lists_[current].kv) == key) {
+  if (KeyValueTrait::IsKeyEqual(lists_[current].kv, key)) {
     array_[pos].next = lists_[current].next;
     lists_[current] = HashMapListElement();
     lists_[current].next = free_list_head_;
@@ -353,7 +361,7 @@ bool BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Remove(
   // Finally, iterate through the rest of the bucket to see if we can find the
   // entry that matches our key.
   intptr_t previous;
-  while (KeyValueTrait::KeyOf(lists_[current].kv) != key) {
+  while (!KeyValueTrait::IsKeyEqual(lists_[current].kv, key)) {
     previous = current;
     current = lists_[current].next;
 
@@ -456,6 +464,38 @@ class RawPointerKeyValueTrait {
   static Value ValueOf(Pair kv) { return kv.value; }
   static intptr_t Hashcode(Key key) { return reinterpret_cast<intptr_t>(key); }
   static bool IsKeyEqual(Pair kv, Key key) { return kv.key == key; }
+};
+
+template <typename V>
+class CStringKeyValueTrait : public RawPointerKeyValueTrait<const char, V> {
+ public:
+  typedef typename RawPointerKeyValueTrait<const char, V>::Key Key;
+  typedef typename RawPointerKeyValueTrait<const char, V>::Value Value;
+  typedef typename RawPointerKeyValueTrait<const char, V>::Pair Pair;
+
+  static intptr_t Hashcode(Key key) {
+    ASSERT(key != nullptr);
+    intptr_t hash = 0;
+    for (size_t i = 0; i < strlen(key); i++) {
+      hash = CombineHashes(hash, key[i]);
+    }
+    return FinalizeHash(hash, kBitsPerWord - 1);
+  }
+  static bool IsKeyEqual(Pair kv, Key key) {
+    ASSERT(kv.key != nullptr && key != nullptr);
+    return kv.key == key || strcmp(kv.key, key) == 0;
+  }
+};
+
+template <typename V>
+class CStringMap : public DirectChainedHashMap<CStringKeyValueTrait<V>> {
+ public:
+  CStringMap() : DirectChainedHashMap<CStringKeyValueTrait<V>>() {}
+  explicit CStringMap(Zone* zone)
+      : DirectChainedHashMap<CStringKeyValueTrait<V>>(zone) {}
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(CStringMap);
 };
 
 template <typename V>

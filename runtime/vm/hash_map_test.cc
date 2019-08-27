@@ -172,4 +172,52 @@ TEST_CASE(DirectChainedHashMapIterator) {
   EXPECT(sum == 15);
 }
 
+TEST_CASE(CStringMap) {
+  const char* const kConst1 = "test";
+  const char* const kConst2 = "test 2";
+
+  char* const str1 = OS::SCreate(nullptr, "%s", kConst1);
+  char* const str2 = OS::SCreate(nullptr, "%s", kConst2);
+  char* const str3 = OS::SCreate(nullptr, "%s", kConst1);
+
+  // Make sure these strings are pointer-distinct, but C-string-equal.
+  EXPECT_NE(str1, str3);
+  EXPECT_STREQ(str1, str3);
+
+  const intptr_t i1 = 1;
+  const intptr_t i2 = 2;
+
+  CStringMap<intptr_t> map;
+  EXPECT(map.IsEmpty());
+
+  map.Insert({str1, i1});
+  EXPECT_NOTNULL(map.Lookup(str1));
+  EXPECT_EQ(i1, map.LookupValue(str1));
+  EXPECT_NULLPTR(map.Lookup(str2));
+  EXPECT_NOTNULL(map.Lookup(str3));
+  EXPECT_EQ(i1, map.LookupValue(str3));
+
+  map.Insert({str2, i2});
+  EXPECT_NOTNULL(map.Lookup(str1));
+  EXPECT_EQ(i1, map.LookupValue(str1));
+  EXPECT_NOTNULL(map.Lookup(str2));
+  EXPECT_EQ(i2, map.LookupValue(str2));
+  EXPECT_NOTNULL(map.Lookup(str3));
+  EXPECT_EQ(i1, map.LookupValue(str3));
+
+  EXPECT(map.Remove(str3));
+  EXPECT_NULLPTR(map.Lookup(str1));
+  EXPECT_NOTNULL(map.Lookup(str2));
+  EXPECT_EQ(i2, map.LookupValue(str2));
+  EXPECT_NULLPTR(map.Lookup(str3));
+
+  EXPECT(!map.Remove(str3));
+  EXPECT(map.Remove(str2));
+  EXPECT(map.IsEmpty());
+
+  free(str3);
+  free(str2);
+  free(str1);
+}
+
 }  // namespace dart
