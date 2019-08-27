@@ -13,11 +13,6 @@ import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:build_integration/file_system/multi_root.dart'
     show MultiRootFileSystem, MultiRootFileSystemEntity;
 
-// TODO(askesc): We should not need to call the constant evaluator
-// explicitly once constant-update-2018 is shipped.
-import 'package:front_end/src/api_prototype/constant_evaluator.dart'
-    as constants;
-
 import 'package:front_end/src/api_unstable/vm.dart'
     show
         CompilerContext,
@@ -44,14 +39,12 @@ import 'package:kernel/binary/limited_ast_to_binary.dart'
     show LimitedBinaryPrinter;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
-import 'package:kernel/vm/constants_native_effects.dart' as vm_constants;
 
 import 'bytecode/bytecode_serialization.dart' show BytecodeSizeStatistics;
 import 'bytecode/gen_bytecode.dart'
     show generateBytecode, createFreshComponentWithBytecode;
 import 'bytecode/options.dart' show BytecodeOptions;
 
-import 'constants_error_reporter.dart' show ForwardConstantEvaluationErrors;
 import 'target/install.dart' show installAdditionalTargets;
 import 'transformations/devirtualization.dart' as devirtualization
     show transformComponent;
@@ -105,9 +98,6 @@ void declareCompilerOptions(ArgParser args) {
       help: 'The values for the environment constants (e.g. -Dkey=value).');
   args.addFlag('enable-asserts',
       help: 'Whether asserts will be enabled.', defaultsTo: false);
-  args.addFlag('enable-constant-evaluation',
-      help: 'Whether kernel constant evaluation will be enabled.',
-      defaultsTo: true);
   args.addFlag('split-output-by-packages',
       help:
           'Split resulting kernel file into multiple files (one per package).',
@@ -166,7 +156,6 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final bool genBytecode = options['gen-bytecode'];
   final bool dropAST = options['drop-ast'];
   final bool enableAsserts = options['enable-asserts'];
-  final bool enableConstantEvaluation = options['enable-constant-evaluation'];
   final bool useProtobufTreeShaker = options['protobuf-tree-shaker'];
   final bool splitOutputByPackages = options['split-output-by-packages'];
   final List<String> experimentalFlags = options['enable-experiment'];
@@ -230,7 +219,6 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       genBytecode: genBytecode,
       bytecodeOptions: bytecodeOptions,
       dropAST: dropAST && !splitOutputByPackages,
-      enableConstantEvaluation: enableConstantEvaluation,
       useProtobufTreeShaker: useProtobufTreeShaker);
 
   errorPrinter.printCompilationMessages();
@@ -283,7 +271,6 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
     bool genBytecode: false,
     BytecodeOptions bytecodeOptions,
     bool dropAST: false,
-    bool enableConstantEvaluation: true,
     bool useProtobufTreeShaker: false}) async {
   // Replace error handler to detect if there are compilation errors.
   final errorDetector =
@@ -302,7 +289,6 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
         component,
         useGlobalTypeFlowAnalysis,
         environmentDefines,
-        enableConstantEvaluation,
         useProtobufTreeShaker,
         errorDetector);
   }
@@ -353,7 +339,6 @@ Future _runGlobalTransformations(
     Component component,
     bool useGlobalTypeFlowAnalysis,
     Map<String, String> environmentDefines,
-    bool enableConstantEvaluation,
     bool useProtobufTreeShaker,
     ErrorDetector errorDetector) async {
   if (errorDetector.hasCompilationErrors) return;
@@ -367,13 +352,6 @@ Future _runGlobalTransformations(
   // At least, in addition to VM/AOT case we should run this transformation
   // when building a platform dill file for VM/JIT case.
   mixin_deduplication.transformComponent(component);
-
-  if (enableConstantEvaluation) {
-    await _performConstantEvaluation(
-        source, compilerOptions, component, coreTypes, environmentDefines);
-
-    if (errorDetector.hasCompilationErrors) return;
-  }
 
   if (useGlobalTypeFlowAnalysis) {
     globalTypeFlow.transformComponent(
@@ -422,25 +400,6 @@ Future<T> runWithFrontEndCompilerContext<T>(Uri source,
     context.uriToSource.addAll(component.uriToSource);
 
     return action();
-  });
-}
-
-Future _performConstantEvaluation(
-    Uri source,
-    CompilerOptions compilerOptions,
-    Component component,
-    CoreTypes coreTypes,
-    Map<String, String> environmentDefines) async {
-  final vmConstants = new vm_constants.VmConstantsBackend(coreTypes);
-
-  await runWithFrontEndCompilerContext(source, compilerOptions, component, () {
-    // TFA will remove constants fields which are unused (and respects the
-    // vm/embedder entrypoints).
-    constants.transformComponent(component, vmConstants, environmentDefines,
-        new ForwardConstantEvaluationErrors(),
-        keepFields: true,
-        evaluateAnnotations: true,
-        desugarSets: !compilerOptions.target.supportsSetLiterals);
   });
 }
 
