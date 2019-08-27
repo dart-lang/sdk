@@ -99,6 +99,18 @@ abstract class DecoratedTypeTesterBase {
   TypeProvider get typeProvider;
 }
 
+class EdgeBuilderTestBase extends MigrationVisitorTestBase {
+  /// Analyzes the given source code, producing constraint variables and
+  /// constraints for it.
+  @override
+  Future<CompilationUnit> analyze(String code) async {
+    var unit = await super.analyze(code);
+    unit.accept(EdgeBuilder(
+        typeProvider, typeSystem, variables, graph, testSource, null));
+    return unit;
+  }
+}
+
 /// Mixin allowing unit tests to check for the presence of graph edges.
 mixin EdgeTester {
   NullabilityGraphForTesting get graph;
@@ -206,18 +218,6 @@ class InstrumentedVariables extends Variables {
       expression = (expression as ParenthesizedExpression).expression;
     }
     return expression;
-  }
-}
-
-class EdgeBuilderTestBase extends MigrationVisitorTestBase {
-  /// Analyzes the given source code, producing constraint variables and
-  /// constraints for it.
-  @override
-  Future<CompilationUnit> analyze(String code) async {
-    var unit = await super.analyze(code);
-    unit.accept(EdgeBuilder(
-        typeProvider, typeSystem, variables, graph, testSource, null));
-    return unit;
   }
 }
 
