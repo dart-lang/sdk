@@ -1734,8 +1734,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
     var callee = propertyName.staticElement;
     if (callee == null) {
-      // TODO(paulberry)
-      _unimplemented(node, 'Unresolved property access');
+      // Dynamic dispatch.
+      return _dynamicType;
     }
     var calleeType = getOrComputeElementType(callee, targetType: targetType);
     // TODO(paulberry): substitute if necessary

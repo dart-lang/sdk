@@ -3429,6 +3429,23 @@ int f(int i) {
     assertEdge(never, returnType, hard: false);
   }
 
+  test_propertyAccess_dynamic() async {
+    await analyze('''
+class C {
+  int get g => 0;
+}
+int f(dynamic d) {
+  return d.g;
+}
+''');
+    // The call `d.g` is dynamic, so we can't tell what method it resolves
+    // to.  There's no reason to assume it resolves to `C.g`.
+    assertNoEdge(decoratedTypeAnnotation('int get g').node,
+        decoratedTypeAnnotation('int f').node);
+    // We do, however, assume that it might return anything, including `null`.
+    assertEdge(always, decoratedTypeAnnotation('int f').node, hard: false);
+  }
+
   test_propertyAccess_return_type() async {
     await analyze('''
 class C {

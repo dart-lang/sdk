@@ -857,6 +857,36 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_dynamic_property_access() async {
+    var content = '''
+class C {
+  int get g => 0;
+}
+int f(bool b, dynamic d) {
+  if (b) return 0;
+  return d.g;
+}
+main() {
+  f(true, null);
+  f(false, C());
+}
+''';
+    var expected = '''
+class C {
+  int get g => 0;
+}
+int? f(bool b, dynamic d) {
+  if (b) return 0;
+  return d.g;
+}
+main() {
+  f(true, null);
+  f(false, C());
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_field_formal_param_typed() async {
     var content = '''
 class C {
