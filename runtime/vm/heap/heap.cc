@@ -432,6 +432,16 @@ void Heap::NotifyIdle(int64_t deadline) {
   } else if (old_space_.ShouldPerformIdleMarkSweep(deadline)) {
     TIMELINE_FUNCTION_GC_DURATION(thread, "IdleGC");
     CollectOldSpaceGarbage(thread, kMarkSweep, kIdle);
+  } else if (old_space_.NeedsGarbageCollection()) {
+    // Even though the following GC may exceed our idle deadline, we need to
+    // ensure than that promotions during idle scavenges do not lead to
+    // unbounded growth of old space. If a program is allocating only in new
+    // space and all scavenges happen during idle time, then NotifyIdle will be
+    // the only place that checks the old space allocation limit.
+    // Compare the tail end of Heap::CollectNewSpaceGarbage.
+    CollectOldSpaceGarbage(thread, kMarkSweep, kIdle);  // Blocks for O(heap)
+  } else {
+    CheckStartConcurrentMarking(thread, kIdle);  // Blocks for up to O(roots)
   }
 }
 
