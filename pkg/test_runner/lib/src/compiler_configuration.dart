@@ -157,10 +157,6 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
       List<String> originalArguments,
       CommandArtifact artifact) {
     return [
-      if (_isDebug)
-        // Temporarily disable background compilation to avoid flaky crashes
-        // (see http://dartbug.com/30016 for details).
-        '--no-background-compilation',
       if (_useEnableAsserts) '--enable_asserts',
       if (_configuration.hotReload)
         '--hot-reload-test-mode'
