@@ -60,7 +60,7 @@ import 'package:front_end/src/fasta/fasta_codes.dart'
     show DiagnosticMessageFromJson, FormattedMessage;
 
 main([List<String> arguments = const []]) =>
-    runMe(arguments, createContext, "../testing.json");
+    runMe(arguments, createContext, configurationPath: "../testing.json");
 
 Future<Context> createContext(
     Chain suite, Map<String, String> environment) async {

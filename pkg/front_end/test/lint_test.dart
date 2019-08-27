@@ -32,7 +32,7 @@ import 'package:testing/testing.dart'
     show Chain, ChainContext, Result, Step, TestDescription, runMe;
 
 main([List<String> arguments = const []]) =>
-    runMe(arguments, createContext, "../testing.json");
+    runMe(arguments, createContext, configurationPath: "../testing.json");
 
 Future<Context> createContext(
     Chain suite, Map<String, String> environment) async {

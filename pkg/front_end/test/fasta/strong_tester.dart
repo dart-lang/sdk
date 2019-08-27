@@ -5,8 +5,11 @@
 library fasta.test.strong_test;
 
 import 'dart:async' show Future;
+import 'dart:io' show Platform;
 
 import 'testing/suite.dart';
+
+const int shardCount = 4;
 
 Future<FastaContext> createContext(
     Chain suite, Map<String, String> environment) {
@@ -14,5 +17,15 @@ Future<FastaContext> createContext(
   return FastaContext.create(suite, environment);
 }
 
-main([List<String> arguments = const []]) =>
-    runMe(arguments, createContext, "../../testing.json");
+main(List<String> arguments) {
+  internalMain(arguments: arguments);
+}
+
+internalMain(
+    {List<String> arguments = const [], int shards = 1, int shard = 0}) {
+  runMe(arguments, createContext,
+      configurationPath: "../../testing.json",
+      me: Platform.script.resolve('strong_tester.dart'),
+      shards: shards,
+      shard: shard);
+}

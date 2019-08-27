@@ -29,4 +29,4 @@ class StackTraceContext extends ChainContextWithCleanupHelper
 }
 
 void main(List<String> arguments) =>
-    runMe(arguments, createContext, "testing.json");
+    runMe(arguments, createContext, configurationPath: "testing.json");

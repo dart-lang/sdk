@@ -9,7 +9,7 @@ import 'package:testing/testing.dart' show Chain, runMe;
 import 'incremental_bulk_compiler_full.dart' show Context;
 
 main([List<String> arguments = const []]) =>
-    runMe(arguments, createContext, "../testing.json");
+    runMe(arguments, createContext, configurationPath: "../testing.json");
 
 Future<Context> createContext(
     Chain suite, Map<String, String> environment) async {

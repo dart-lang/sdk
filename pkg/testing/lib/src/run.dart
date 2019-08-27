@@ -55,7 +55,7 @@ Future<TestRoot> computeTestRoot(String configurationPath, Uri base) {
 /// `testing.json` isn't located in the current working directory and is a path
 /// relative to [me] which defaults to `Platform.script`.
 Future<Null> runMe(List<String> arguments, CreateContext f,
-    [String configurationPath, Uri me]) {
+    {String configurationPath, Uri me, int shards = 1, int shard = 0}) {
   me ??= Platform.script;
   return withErrorHandling(() async {
     TestRoot testRoot = await computeTestRoot(configurationPath, me);
@@ -65,7 +65,8 @@ Future<Null> runMe(List<String> arguments, CreateContext f,
       if (me == suite.source) {
         print("Running suite ${suite.name}...");
         ChainContext context = await f(suite, cl.environment);
-        await context.run(suite, new Set<String>.from(cl.selectors));
+        await context.run(suite, new Set<String>.from(cl.selectors),
+            shards: shards, shard: shard);
       }
     }
   });

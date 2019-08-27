@@ -18,4 +18,5 @@ Future<FastaContext> createContext(
 }
 
 main([List<String> arguments = const []]) => runMe(arguments, createContext,
-    "../../testing.json", Platform.script.resolve("strong_test.dart"));
+    configurationPath: "../../testing.json",
+    me: Platform.script.resolve("strong_tester.dart"));
