@@ -290,6 +290,7 @@ class DecoratedType {
   DecoratedType instantiate(List<DecoratedType> argumentTypes) {
     var type = this.type as FunctionType;
     var typeFormals = type.typeFormals;
+    assert(argumentTypes.length == typeFormals.length);
     List<DartType> undecoratedArgumentTypes = [];
     Map<TypeParameterElement, DecoratedType> substitution = {};
     for (int i = 0; i < argumentTypes.length; i++) {

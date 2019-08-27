@@ -865,8 +865,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     if (callee is PropertyAccessorElement) {
       calleeType = calleeType.returnType;
     }
-    var expressionType = _handleInvocationArguments(node,
-        node.argumentList.arguments, node.typeArguments, calleeType, null);
+    var expressionType = _handleInvocationArguments(
+        node, node.argumentList.arguments, node.typeArguments, calleeType, null,
+        invokeType: node.staticInvokeType);
     if (isConditional) {
       expressionType = expressionType.withNode(
           NullabilityNode.forLUB(targetType.node, expressionType.node));
@@ -1649,7 +1650,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       Iterable<AstNode> arguments,
       TypeArgumentList typeArguments,
       DecoratedType calleeType,
-      List<TypeParameterElement> constructorTypeParameters) {
+      List<TypeParameterElement> constructorTypeParameters,
+      {DartType invokeType}) {
     var typeFormals = constructorTypeParameters ?? calleeType.typeFormals;
     if (typeFormals.isNotEmpty) {
       if (typeArguments != null) {
@@ -1664,7 +1666,18 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           calleeType = calleeType.instantiate(argumentTypes);
         }
       } else {
-        _unimplemented(node, 'Inferred type parameters in invocation');
+        if (invokeType is FunctionType) {
+          var argumentTypes = invokeType.typeArguments
+              .map((argType) =>
+                  DecoratedType.forImplicitType(_typeProvider, argType, _graph))
+              .toList();
+          calleeType = calleeType.instantiate(argumentTypes);
+        } else {
+          assert(
+              false,
+              'invoke type should be a non-null function type, or '
+              'dynamic/Function, which have no type arguments.');
+        }
       }
     }
     int i = 0;

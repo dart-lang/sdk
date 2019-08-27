@@ -1530,6 +1530,38 @@ void main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_methodInvocation_typeArguments_explicit() async {
+    var content = '''
+T f<T>(T t) => t;
+void g() {
+  int x = f<int>(null);
+}
+''';
+    var expected = '''
+T f<T>(T t) => t;
+void g() {
+  int? x = f<int?>(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_methodInvocation_typeArguments_inferred() async {
+    var content = '''
+T f<T>(T t) => t;
+void g() {
+  int x = f(null);
+}
+''';
+    var expected = '''
+T f<T>(T t) => t;
+void g() {
+  int? x = f(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_multiDeclaration_innerUsage() async {
     var content = '''
 void test() {

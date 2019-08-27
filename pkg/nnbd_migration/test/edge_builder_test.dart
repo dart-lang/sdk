@@ -2467,6 +2467,91 @@ void test(C c) {
     assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true);
   }
 
+  test_methodInvocation_typeParameter_inferred() async {
+    await analyze('''
+T f<T>(T t) => t;
+void g() {
+  int y;
+  int x = f(y);
+}
+''');
+    var int_y = decoratedTypeAnnotation('int y').node;
+    var int_x = decoratedTypeAnnotation('int x').node;
+    var t_ret = decoratedTypeAnnotation('T f').node;
+    var t_param = decoratedTypeAnnotation('T t').node;
+
+    final x_upstream = graph.getUpstreamEdges(int_x);
+    expect(x_upstream.length, 1);
+    final x_upstreamSource = x_upstream.single.primarySource;
+    expect(x_upstreamSource is NullabilityNodeForSubstitution, true);
+    final t_ret_sub = x_upstreamSource as NullabilityNodeForSubstitution;
+    expect(t_ret_sub.outerNode, t_ret);
+
+    final y_downstream = graph.getDownstreamEdges(int_y);
+    expect(y_downstream.length, 1);
+    final y_downstreamSource = y_downstream.single.destinationNode;
+    expect(y_downstreamSource is NullabilityNodeForSubstitution, true);
+    final t_param_sub = y_downstreamSource as NullabilityNodeForSubstitution;
+    expect(t_param_sub.outerNode, t_param);
+
+    expect(t_param_sub.innerNode, t_ret_sub.innerNode);
+    assertEdge(t_param, t_ret, hard: true);
+  }
+
+  @failingTest
+  test_methodInvocation_typeParameter_inferred_inGenericClass() async {
+    // this creates an edge case because the typeArguments are not equal in
+    // length the the typeFormals of the calleeType, due to the enclosing
+    // generic class.
+    await analyze('''
+class C<T> {
+ void g() {
+   // use a local fn because generic methods aren't implemented.
+   T f<T>(T t) => t;
+   int y;
+   int x = f(y);
+ }
+}
+''');
+    var int_y = decoratedTypeAnnotation('int y').node;
+    var int_x = decoratedTypeAnnotation('int x').node;
+    var t_ret = decoratedTypeAnnotation('T f').node;
+    var t_param = decoratedTypeAnnotation('T t').node;
+
+    assertEdge(int_y, t_param, hard: true);
+    assertEdge(t_param, t_ret, hard: true);
+    assertEdge(t_ret, int_x, hard: false);
+  }
+
+  @failingTest
+  test_methodInvocation_typeParameter_inferred_inGenericExtreme() async {
+    // this creates an edge case because the typeArguments are not equal in
+    // length the the typeFormals of the calleeType, due to the enclosing
+    // generic class/functions.
+    await analyze('''
+class C<T> {
+ void g() {
+   // use local fns because generic methods aren't implemented.
+   void f2<R1>() {
+     void f3<R2>() {
+       T f<T>(T t) => t;
+       int y;
+       int x = f(y);
+     }
+   }
+ }
+}
+''');
+    var int_y = decoratedTypeAnnotation('int y').node;
+    var int_x = decoratedTypeAnnotation('int x').node;
+    var t_ret = decoratedTypeAnnotation('T f').node;
+    var t_param = decoratedTypeAnnotation('T t').node;
+
+    assertEdge(int_y, t_param, hard: true);
+    assertEdge(t_param, t_ret, hard: true);
+    assertEdge(t_ret, int_x, hard: false);
+  }
+
   test_never() async {
     await analyze('');
 
