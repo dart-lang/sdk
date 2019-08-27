@@ -2982,7 +2982,8 @@ TokenPosition Debugger::ResolveBreakpointPos(bool in_bytecode,
                   TokenPosition::kMaxSource;
               while (iter2.MoveNext()) {
                 const TokenPosition next = iter2.TokenPos();
-                if (next < next_closest_token_position && next > pos) {
+                if (next.IsReal() && next < next_closest_token_position &&
+                    next > pos) {
                   next_closest_token_position = next;
                 }
               }
@@ -3154,9 +3155,13 @@ void Debugger::MakeCodeBreakpointAt(const Function& func,
             pc = bytecode.GetDebugCheckedOpcodeReturnAddress(pc_offset,
                                                              iter.PcOffset());
             pc_offset = kUwordMax;
-            // TODO(regis): We may want to find all PCs for a token position,
-            // e.g. in the case of duplicated bytecode in finally clauses.
-            break;
+            if (pc != 0) {
+              // TODO(regis): We may want to find all PCs for a token position,
+              // e.g. in the case of duplicated bytecode in finally clauses.
+              break;
+            }
+            // This range does not contain a 'debug checked' opcode or the
+            // first DebugCheck opcode of the function is not reached yet.
           }
           if (iter.TokenPos() == loc->token_pos_) {
             pc_offset = iter.PcOffset();
@@ -3505,8 +3510,9 @@ BreakpointLocation* Debugger::SetCodeBreakpoints(
     intptr_t line_number;
     intptr_t column_number;
     script.GetTokenLocation(breakpoint_pos, &line_number, &column_number);
-    OS::PrintErr("Resolved breakpoint for function '%s' at line %" Pd
+    OS::PrintErr("Resolved %s breakpoint for function '%s' at line %" Pd
                  " col %" Pd "\n",
+                 in_bytecode ? "bytecode" : "code",
                  func.ToFullyQualifiedCString(), line_number, column_number);
   }
   return loc;

@@ -2069,11 +2069,14 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         parentFunction != null &&
         (parentFunction.dartAsyncMarker == AsyncMarker.Async ||
             parentFunction.dartAsyncMarker == AsyncMarker.AsyncStar)) {
+      final savedSourcePosition = asm.currentSourcePosition;
+      _recordSourcePosition(TreeNode.noOffset);
       _genLoadVar(locals.asyncStackTraceVar,
           currentContextLevel: locals.contextLevelAtEntry);
       _genDirectCall(
           setAsyncThreadStackTrace, objectTable.getArgDescHandle(1), 1);
       asm.emitDrop1();
+      asm.currentSourcePosition = savedSourcePosition;
     }
 
     Label continuationSwitchLabel;
