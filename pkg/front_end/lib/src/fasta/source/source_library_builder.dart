@@ -1057,6 +1057,8 @@ class SourceLibraryBuilder extends LibraryBuilder {
                 library.additionalExports.add(memberLast.cls.reference);
               } else if (memberLast is TypeAliasBuilder) {
                 library.additionalExports.add(memberLast.typedef.reference);
+              } else if (memberLast is ExtensionBuilder) {
+                library.additionalExports.add(memberLast.extension.reference);
               } else {
                 library.additionalExports.add(memberLast.target.reference);
               }
