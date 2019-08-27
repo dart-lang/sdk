@@ -124,6 +124,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   /// For convenience, a [DecoratedType] representing `Null`.
   final DecoratedType _nullType;
 
+  /// For convenience, a [DecoratedType] representing `dynamic`.
+  final DecoratedType _dynamicType;
+
   /// The [DecoratedType] of the innermost function or method being visited, or
   /// `null` if the visitor is not inside any function or method.
   ///
@@ -175,7 +178,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
             DecoratedType(_typeProvider.boolType, _graph.never),
         _nonNullableTypeType =
             DecoratedType(_typeProvider.typeType, _graph.never),
-        _nullType = DecoratedType(_typeProvider.nullType, _graph.always);
+        _nullType = DecoratedType(_typeProvider.nullType, _graph.always),
+        _dynamicType = DecoratedType(_typeProvider.dynamicType, _graph.always);
 
   /// Gets the decorated type of [element] from [_variables], performing any
   /// necessary substitutions.
@@ -852,8 +856,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
     var callee = node.methodName.staticElement;
     if (callee == null) {
-      // TODO(paulberry)
-      _unimplemented(node, 'Unresolved method name');
+      // Dynamic dispatch.  The return type is `dynamic`.
+      // TODO(paulberry): would it be better to assume a return type of `Never`
+      // so that we don't unnecessarily propagate nullabilities everywhere?
+      return _dynamicType;
     }
     var calleeType = getOrComputeElementType(callee, targetType: targetType);
     if (callee is PropertyAccessorElement) {
@@ -1450,7 +1456,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           '(${expression.toSource()}) offset=${expression.offset}');
     }
     ExpressionChecks expressionChecks;
-    if (canInsertChecks) {
+    if (canInsertChecks && !sourceType.type.isDynamic) {
       expressionChecks = ExpressionChecks(expression.end);
       _variables.recordExpressionChecks(source, expression, expressionChecks);
     }

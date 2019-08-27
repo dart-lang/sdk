@@ -384,6 +384,20 @@ class C<T extends List<int>> {
         hard: false);
   }
 
+  test_assign_dynamic_to_other_type() async {
+    await analyze('''
+int f(dynamic d) => d;
+''');
+    // There is no explicit null check necessary, since `dynamic` is
+    // downcastable to any type, nullable or not.
+    expect(checkExpression('d;'), isNull);
+    // But we still create an edge, to make sure that the possibility of `null`
+    // propagates to callees.
+    assertEdge(decoratedTypeAnnotation('dynamic').node,
+        decoratedTypeAnnotation('int').node,
+        hard: true);
+  }
+
   test_assign_null_to_generic_type() async {
     await analyze('''
 main() {
@@ -2202,6 +2216,25 @@ class C {
     assertEdge(decoratedTypeAnnotation('int i').node, never, hard: true);
     assertNoEdge(always, decoratedTypeAnnotation('int j').node);
     assertEdge(decoratedTypeAnnotation('int k').node, never, hard: true);
+  }
+
+  test_methodInvocation_dynamic() async {
+    await analyze('''
+class C {
+  int g(int i) => i;
+}
+int f(dynamic d, int j) {
+  return d.g(j);
+}
+''');
+    // The call `d.g(j)` is dynamic, so we can't tell what method it resolves
+    // to.  There's no reason to assume it resolves to `C.g`.
+    assertNoEdge(decoratedTypeAnnotation('int j').node,
+        decoratedTypeAnnotation('int i').node);
+    assertNoEdge(decoratedTypeAnnotation('int g').node,
+        decoratedTypeAnnotation('int f').node);
+    // We do, however, assume that it might return anything, including `null`.
+    assertEdge(always, decoratedTypeAnnotation('int f').node, hard: false);
   }
 
   test_methodInvocation_parameter_contravariant() async {

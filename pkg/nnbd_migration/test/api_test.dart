@@ -821,6 +821,42 @@ int f(int i) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_dynamic_method_call() async {
+    var content = '''
+class C {
+  int g(int i) => i;
+}
+int f(bool b, dynamic d) {
+  if (b) return 0;
+  return d.g(null);
+}
+main() {
+  f(true, null);
+  f(false, C());
+}
+''';
+    // `d.g(null)` is a dynamic call, so we can't tell that it will target `C.g`
+    // at runtime.  So we can't figure out that we need to make g's argument and
+    // return types nullable.
+    //
+    // We do, however, make f's return type nullable, since there is no way of
+    // knowing whether a dynamic call will return `null`.
+    var expected = '''
+class C {
+  int g(int i) => i;
+}
+int? f(bool b, dynamic d) {
+  if (b) return 0;
+  return d.g(null);
+}
+main() {
+  f(true, null);
+  f(false, C());
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_field_formal_param_typed() async {
     var content = '''
 class C {
