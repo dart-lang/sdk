@@ -141,11 +141,7 @@ class CompilerPass {
 
   static void ParseFilters(const char* filter);
 
-  enum PipelineMode {
-    kJIT,    // Includes speculative and inter-procedural optimizations.
-    kAOT,    // Includes inter-procedural optimizations.
-    kForced  // Does not include speculative or inter-procedural optimizations.
-  };
+  enum PipelineMode { kJIT, kAOT };
 
   static void RunGraphIntrinsicPipeline(CompilerPassState* state);
 
@@ -164,6 +160,13 @@ class CompilerPass {
   static FlowGraph* RunPipelineWithPasses(
       CompilerPassState* state,
       std::initializer_list<CompilerPass::Id> passes);
+
+  // Pipeline which is used for "force-optimized" functions.
+  //
+  // Must not include speculative or inter-procedural optimizations.
+  DART_WARN_UNUSED_RESULT
+  static FlowGraph* RunForceOptimizedPipeline(PipelineMode mode,
+                                              CompilerPassState* state);
 
  protected:
   // This function executes the pass. If it returns true then

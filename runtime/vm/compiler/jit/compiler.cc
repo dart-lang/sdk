@@ -616,7 +616,12 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       CompilerPassState pass_state(thread(), flow_graph, &speculative_policy);
       pass_state.reorder_blocks = reorder_blocks;
 
-      if (optimized()) {
+      if (function.ForceOptimize()) {
+        ASSERT(optimized());
+        TIMELINE_DURATION(thread(), CompilerVerbose, "OptimizationPasses");
+        flow_graph = CompilerPass::RunForceOptimizedPipeline(CompilerPass::kJIT,
+                                                             &pass_state);
+      } else if (optimized()) {
         TIMELINE_DURATION(thread(), CompilerVerbose, "OptimizationPasses");
 
         pass_state.inline_id_to_function.Add(&function);

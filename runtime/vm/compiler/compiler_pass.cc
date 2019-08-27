@@ -236,42 +236,43 @@ void CompilerPass::RunInliningPipeline(PipelineMode mode,
   INVOKE_PASS(TryOptimizePatterns);
 }
 
+FlowGraph* CompilerPass::RunForceOptimizedPipeline(
+    PipelineMode mode,
+    CompilerPassState* pass_state) {
+  INVOKE_PASS(ComputeSSA);
+  if (FLAG_early_round_trip_serialization) {
+    INVOKE_PASS(RoundTripSerialization);
+  }
+  INVOKE_PASS(TypePropagation);
+  INVOKE_PASS(Canonicalize);
+  INVOKE_PASS(BranchSimplify);
+  INVOKE_PASS(IfConvert);
+  INVOKE_PASS(ConstantPropagation);
+  INVOKE_PASS(TypePropagation);
+  INVOKE_PASS(WidenSmiToInt32);
+  INVOKE_PASS(SelectRepresentations);
+  INVOKE_PASS(TypePropagation);
+  INVOKE_PASS(TryCatchOptimization);
+  INVOKE_PASS(EliminateEnvironments);
+  INVOKE_PASS(EliminateDeadPhis);
+  INVOKE_PASS(Canonicalize);
+  INVOKE_PASS(WriteBarrierElimination);
+  INVOKE_PASS(FinalizeGraph);
+#if defined(DART_PRECOMPILER)
+  if (mode == kAOT) {
+    INVOKE_PASS(SerializeGraph);
+  }
+#endif
+  if (FLAG_late_round_trip_serialization) {
+    INVOKE_PASS(RoundTripSerialization);
+  }
+  INVOKE_PASS(AllocateRegisters);
+  INVOKE_PASS(ReorderBlocks);
+  return pass_state->flow_graph;
+}
+
 FlowGraph* CompilerPass::RunPipeline(PipelineMode mode,
                                      CompilerPassState* pass_state) {
-  if (mode == kForced) {
-    INVOKE_PASS(ComputeSSA);
-    if (FLAG_early_round_trip_serialization) {
-      INVOKE_PASS(RoundTripSerialization);
-    }
-    INVOKE_PASS(TypePropagation);
-    INVOKE_PASS(ApplyClassIds);
-    INVOKE_PASS(Canonicalize);
-    INVOKE_PASS(BranchSimplify);
-    INVOKE_PASS(IfConvert);
-    INVOKE_PASS(ConstantPropagation);
-    INVOKE_PASS(TypePropagation);
-    INVOKE_PASS(WidenSmiToInt32);
-    INVOKE_PASS(SelectRepresentations);
-    INVOKE_PASS(TypePropagation);
-    INVOKE_PASS(TryCatchOptimization);
-    INVOKE_PASS(EliminateEnvironments);
-    INVOKE_PASS(EliminateDeadPhis);
-    INVOKE_PASS(Canonicalize);
-    INVOKE_PASS(WriteBarrierElimination);
-    INVOKE_PASS(FinalizeGraph);
-#if defined(DART_PRECOMPILER)
-    if (mode == kAOT) {
-      INVOKE_PASS(SerializeGraph);
-    }
-#endif
-    if (FLAG_late_round_trip_serialization) {
-      INVOKE_PASS(RoundTripSerialization);
-    }
-    INVOKE_PASS(AllocateRegisters);
-    INVOKE_PASS(ReorderBlocks);
-    return pass_state->flow_graph;
-  }
-
   INVOKE_PASS(ComputeSSA);
   if (FLAG_early_round_trip_serialization) {
     INVOKE_PASS(RoundTripSerialization);

@@ -2285,7 +2285,12 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       pass_state.reorder_blocks =
           FlowGraph::ShouldReorderBlocks(function, optimized());
 
-      if (optimized()) {
+      if (function.ForceOptimize()) {
+        ASSERT(optimized());
+        TIMELINE_DURATION(thread(), CompilerVerbose, "OptimizationPasses");
+        flow_graph = CompilerPass::RunForceOptimizedPipeline(CompilerPass::kAOT,
+                                                             &pass_state);
+      } else if (optimized()) {
         TIMELINE_DURATION(thread(), CompilerVerbose, "OptimizationPasses");
 
         pass_state.inline_id_to_function.Add(&function);
