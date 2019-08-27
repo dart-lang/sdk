@@ -24,7 +24,7 @@ import 'package:analyzer/src/summary2/reference_resolver.dart';
 import 'package:analyzer/src/summary2/scope.dart';
 import 'package:analyzer/src/summary2/types_builder.dart';
 
-class SourceLibraryBuilder {
+class LibraryBuilder {
   final Linker linker;
   final Uri uri;
   final Reference reference;
@@ -43,7 +43,7 @@ class SourceLibraryBuilder {
 
   final List<Export> exporters = [];
 
-  SourceLibraryBuilder(this.linker, this.uri, this.reference, this.node);
+  LibraryBuilder(this.linker, this.uri, this.reference, this.node);
 
   void addExporters() {
     var unitContext = context.units[0];
@@ -335,7 +335,7 @@ class SourceLibraryBuilder {
       }
     }
 
-    var builder = SourceLibraryBuilder(
+    var builder = LibraryBuilder(
       linker,
       libraryUri,
       libraryReference,

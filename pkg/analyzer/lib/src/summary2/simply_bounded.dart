@@ -7,8 +7,8 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary/link.dart' as graph
     show DependencyWalker, Node;
-import 'package:analyzer/src/summary2/builder/source_library_builder.dart';
 import 'package:analyzer/src/summary2/lazy_ast.dart';
+import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
 
 /// Compute simple-boundedness for all classes and generic types aliases in
@@ -16,7 +16,7 @@ import 'package:analyzer/src/summary2/linked_bundle_context.dart';
 /// so they all should be processed simultaneously.
 void computeSimplyBounded(
   LinkedBundleContext bundleContext,
-  Iterable<SourceLibraryBuilder> libraryBuilders,
+  Iterable<LibraryBuilder> libraryBuilders,
 ) {
   var walker = SimplyBoundedDependencyWalker(bundleContext);
   var nodes = <SimplyBoundedNode>[];
