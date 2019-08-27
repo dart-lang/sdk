@@ -83,7 +83,7 @@ class AssignmentCheckerTest extends Object
     var t = list(object());
     assign(bottom, t);
     assertEdge(never, t.node, hard: false);
-    expect(graph.getUpstreamEdges(t.typeArguments[0].node), isEmpty);
+    assertNoEdge(anyNode, t.typeArguments[0].node);
   }
 
   void test_bottom_to_simple() {
@@ -169,7 +169,7 @@ class AssignmentCheckerTest extends Object
     var t = list(object());
     assign(t, dynamic_);
     assertEdge(t.node, always, hard: false);
-    expect(graph.getDownstreamEdges(t.typeArguments[0].node), isEmpty);
+    assertNoEdge(t.typeArguments[0].node, anyNode);
   }
 
   test_generic_to_generic_downcast() {
@@ -185,10 +185,7 @@ class AssignmentCheckerTest extends Object
     // - the supertype of MyListOfList<T> is List<List<T?C>>
     var c = _myListOfListSupertype.typeArguments[0].typeArguments[0].node;
     // Then there should be an edge from b to substitute(a, c)
-    var substitutionNode = graph.getDownstreamEdges(b).single.destinationNode
-        as NullabilityNodeForSubstitution;
-    expect(substitutionNode.innerNode, same(a));
-    expect(substitutionNode.outerNode, same(c));
+    assertEdge(b, substitutionNode(a, c), hard: false);
   }
 
   test_generic_to_generic_same_element() {
@@ -212,10 +209,7 @@ class AssignmentCheckerTest extends Object
     // - the supertype of MyListOfList<T> is List<List<T?C>>
     var c = _myListOfListSupertype.typeArguments[0].typeArguments[0].node;
     // Then there should be an edge from substitute(a, c) to b.
-    var substitutionNode = graph.getUpstreamEdges(b).single.primarySource
-        as NullabilityNodeForSubstitution;
-    expect(substitutionNode.innerNode, same(a));
-    expect(substitutionNode.outerNode, same(c));
+    assertEdge(substitutionNode(a, c), b, hard: false);
   }
 
   test_generic_to_object() {
@@ -223,21 +217,21 @@ class AssignmentCheckerTest extends Object
     var t2 = object();
     assign(t1, t2);
     assertEdge(t1.node, t2.node, hard: false);
-    expect(graph.getDownstreamEdges(t1.typeArguments[0].node), isEmpty);
+    assertNoEdge(t1.typeArguments[0].node, anyNode);
   }
 
   test_generic_to_void() {
     var t = list(object());
     assign(t, void_);
     assertEdge(t.node, always, hard: false);
-    expect(graph.getDownstreamEdges(t.typeArguments[0].node), isEmpty);
+    assertNoEdge(t.typeArguments[0].node, anyNode);
   }
 
   void test_null_to_generic() {
     var t = list(object());
     assign(null_, t);
     assertEdge(always, t.node, hard: false);
-    expect(graph.getUpstreamEdges(t.typeArguments[0].node), isEmpty);
+    assertNoEdge(anyNode, t.typeArguments[0].node);
   }
 
   void test_null_to_simple() {
@@ -330,7 +324,7 @@ class EdgeBuilderTest extends EdgeBuilderTestBase {
     // upstream from it.
     if (node == never) return;
 
-    for (var edge in graph.getUpstreamEdges(node)) {
+    for (var edge in getEdges(anyNode, node)) {
       expect(edge.primarySource, never);
     }
   }
@@ -435,12 +429,9 @@ void g(List<int> x) {
     var iterableInt = decoratedTypeAnnotation('Iterable<int>');
     var listInt = decoratedTypeAnnotation('List<int>');
     assertEdge(listInt.node, iterableInt.node, hard: true);
-    var substitution = graph
-        .getUpstreamEdges(iterableInt.typeArguments[0].node)
-        .single
-        .primarySource as NullabilityNodeForSubstitution;
-    expect(substitution.innerNode, same(listInt.typeArguments[0].node));
-    expect(substitution.outerNode, same(never));
+    assertEdge(substitutionNode(listInt.typeArguments[0].node, never),
+        iterableInt.typeArguments[0].node,
+        hard: false);
   }
 
   test_assignmentExpression_field() async {
@@ -2079,7 +2070,7 @@ List<String> f() {
 ''');
     assertNoUpstreamNullability(decoratedTypeAnnotation('List').node);
     final returnTypeNode = decoratedTypeAnnotation('String').node;
-    final returnTypeEdges = graph.getUpstreamEdges(returnTypeNode);
+    final returnTypeEdges = getEdges(anyNode, returnTypeNode);
 
     expect(returnTypeEdges.length, 1);
     final returnTypeEdge = returnTypeEdges.single;
@@ -2096,7 +2087,7 @@ List<String> f() {
 ''');
     assertNoUpstreamNullability(decoratedTypeAnnotation('List').node);
     final returnTypeNode = decoratedTypeAnnotation('String').node;
-    final returnTypeEdges = graph.getUpstreamEdges(returnTypeNode);
+    final returnTypeEdges = getEdges(anyNode, returnTypeNode);
 
     expect(returnTypeEdges.length, 1);
     final returnTypeEdge = returnTypeEdges.single;
@@ -3507,13 +3498,8 @@ class D<U> implements C<U> {
     var nullable_t1 = decoratedTypeAnnotation('T/*1*/').node;
     var nullable_t2 = decoratedTypeAnnotation('T/*2*/').node;
     var nullable_u3 = decoratedTypeAnnotation('U/*3*/').node;
-    var nullable_t2_or_nullable_u3 = graph
-        .getDownstreamEdges(nullable_t1)
-        .single
-        .destinationNode as NullabilityNodeForSubstitution;
-    expect(nullable_t2_or_nullable_u3.innerNode, same(nullable_t2));
-    expect(nullable_t2_or_nullable_u3.outerNode, same(nullable_u3));
-    assertEdge(nullable_t1, nullable_t2_or_nullable_u3, hard: true);
+    assertEdge(nullable_t1, substitutionNode(nullable_t2, nullable_u3),
+        hard: true);
   }
 
   test_redirecting_constructor_factory_to_generic() async {
@@ -3528,13 +3514,8 @@ class D<T> implements C {
     var nullable_i1 = decoratedTypeAnnotation('int/*1*/').node;
     var nullable_i2 = decoratedTypeAnnotation('int/*2*/').node;
     var nullable_t3 = decoratedTypeAnnotation('T/*3*/').node;
-    var nullable_i2_or_nullable_t3 = graph
-        .getDownstreamEdges(nullable_i1)
-        .single
-        .destinationNode as NullabilityNodeForSubstitution;
-    expect(nullable_i2_or_nullable_t3.innerNode, same(nullable_i2));
-    expect(nullable_i2_or_nullable_t3.outerNode, same(nullable_t3));
-    assertEdge(nullable_i1, nullable_i2_or_nullable_t3, hard: true);
+    assertEdge(nullable_i1, substitutionNode(nullable_i2, nullable_t3),
+        hard: true);
   }
 
   test_redirecting_constructor_ordinary() async {

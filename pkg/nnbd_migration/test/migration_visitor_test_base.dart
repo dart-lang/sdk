@@ -113,10 +113,18 @@ class EdgeBuilderTestBase extends MigrationVisitorTestBase {
 
 /// Mixin allowing unit tests to check for the presence of graph edges.
 mixin EdgeTester {
+  /// Returns a [NodeMatcher] that matches any node whatsoever.
+  NodeMatcher get anyNode => const _AnyNodeMatcher();
+
   NullabilityGraphForTesting get graph;
 
-  NullabilityEdge assertEdge(
-      NullabilityNode source, NullabilityNode destination,
+  /// Asserts that an edge exists with a node matching [source] and a node
+  /// matching [destination], and with the given [hard]ness and [guards].
+  ///
+  /// [source] and [destination] are converted to [NodeMatcher] objects if they
+  /// aren't already.  In practice this means that the caller can pass in either
+  //  /// a [NodeMatcher] or a [NullabilityNode].
+  NullabilityEdge assertEdge(Object source, Object destination,
       {@required bool hard, List<NullabilityNode> guards = const []}) {
     var edges = getEdges(source, destination);
     if (edges.length == 0) {
@@ -131,14 +139,25 @@ mixin EdgeTester {
     }
   }
 
-  void assertNoEdge(NullabilityNode source, NullabilityNode destination) {
+  /// Asserts that no edge exists with a node matching [source] and a node
+  /// matching [destination].
+  ///
+  /// [source] and [destination] are converted to [NodeMatcher] objects if they
+  /// aren't already.  In practice this means that the caller can pass in either
+  /// a [NodeMatcher] or a [NullabilityNode].
+  void assertNoEdge(Object source, Object destination) {
     var edges = getEdges(source, destination);
     if (edges.isNotEmpty) {
       fail('Expected no edge $source -> $destination, found ${edges.length}');
     }
   }
 
-  void assertUnion(NullabilityNode x, NullabilityNode y) {
+  /// Asserts that a union-type edge exists between nodes [x] and [y].
+  ///
+  /// [x] and [y] are converted to [NodeMatcher] objects if they aren't already.
+  /// In practice this means that the caller can pass in either a [NodeMatcher]
+  /// or a [NullabilityNode].
+  void assertUnion(Object x, Object y) {
     var edges = getEdges(x, y);
     for (var edge in edges) {
       if (edge.isUnion) {
@@ -149,12 +168,31 @@ mixin EdgeTester {
     fail('Expected union between $x and $y, not found');
   }
 
-  List<NullabilityEdge> getEdges(
-          NullabilityNode source, NullabilityNode destination) =>
-      graph
-          .getUpstreamEdges(destination)
-          .where((e) => e.primarySource == source)
-          .toList();
+  /// Gets a list of all edges whose source matches [source] and whose
+  /// destination matches [destination].
+  ///
+  /// [source] and [destination] are converted to [NodeMatcher] objects if they
+  /// aren't already.  In practice this means that the caller can pass in either
+  /// a [NodeMatcher] or a [NullabilityNode].
+  List<NullabilityEdge> getEdges(Object source, Object destination) {
+    var sourceMatcher = NodeMatcher(source);
+    var destinationMatcher = NodeMatcher(destination);
+    return graph
+        .getAllEdges()
+        .where((e) =>
+            sourceMatcher.matches(e.primarySource) &&
+            destinationMatcher.matches(e.destinationNode))
+        .toList();
+  }
+
+  /// Creates a [NodeMatcher] matching a substitution node whose inner and outer
+  /// nodes match [inner] and [outer].
+  ///
+  /// [inner] and [outer] are converted to [NodeMatcher] objects if they aren't
+  /// already.  In practice this means that the caller can pass in either a
+  /// [NodeMatcher] or a [NullabilityNode].
+  NodeMatcher substitutionNode(Object inner, Object outer) =>
+      _SubstitutionNodeMatcher(NodeMatcher(inner), NodeMatcher(outer));
 }
 
 /// Mock representation of constraint variables.
@@ -282,5 +320,52 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest with EdgeTester {
   /// whose text is [text].
   ConditionalDiscard statementDiscard(String text) {
     return variables.conditionalDiscard(findNode.statement(text));
+  }
+}
+
+/// Abstract base class representing a thing that can be matched against
+/// nullability nodes.
+abstract class NodeMatcher {
+  factory NodeMatcher(Object expectation) {
+    if (expectation is NodeMatcher) return expectation;
+    if (expectation is NullabilityNode) return _ExactNodeMatcher(expectation);
+    fail(
+        'Unclear how to match node expectation of type ${expectation.runtimeType}');
+  }
+
+  bool matches(NullabilityNode node);
+}
+
+/// A [NodeMatcher] that matches any node.
+class _AnyNodeMatcher implements NodeMatcher {
+  const _AnyNodeMatcher();
+
+  @override
+  bool matches(NullabilityNode node) => true;
+}
+
+/// A [NodeMatcher] that matches exactly one node.
+class _ExactNodeMatcher implements NodeMatcher {
+  final NullabilityNode _expectation;
+
+  _ExactNodeMatcher(this._expectation);
+
+  @override
+  bool matches(NullabilityNode node) => node == _expectation;
+}
+
+/// A [NodeMatcher] that matches a substitution node with the given inner and
+/// outer nodes.
+class _SubstitutionNodeMatcher implements NodeMatcher {
+  final NodeMatcher inner;
+  final NodeMatcher outer;
+
+  _SubstitutionNodeMatcher(this.inner, this.outer);
+
+  @override
+  bool matches(NullabilityNode node) {
+    return node is NullabilityNodeForSubstitution &&
+        inner.matches(node.innerNode) &&
+        outer.matches(node.outerNode);
   }
 }
