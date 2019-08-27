@@ -493,7 +493,7 @@ class DartFuzzTestSession {
       this.mode1,
       this.mode2,
       this.rerun)
-      : top = getTop(tp) {}
+      : top = getTop(tp);
 
   start() async {
     print('\n**\n**** Dart Fuzz Testing Session\n**\n');

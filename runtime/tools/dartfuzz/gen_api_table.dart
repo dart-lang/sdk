@@ -139,7 +139,7 @@ void visitClass(ClassElement classElement) {
   for (ConstructorElement constructor in classElement.constructors) {
     if (constructor.isPublic &&
         constructor.isFactory &&
-        !constructor.name.isEmpty) {
+        constructor.name.isNotEmpty) {
       addToTable(
           typeString(classElement.type),
           '${classElement.name}.${constructor.name}',
