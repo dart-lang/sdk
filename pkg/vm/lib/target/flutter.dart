@@ -54,6 +54,9 @@ class FlutterTarget extends VmTarget {
       List<Library> libraries,
       DiagnosticReporter diagnosticReporter,
       {void logger(String msg)}) {
+    super.performPreConstantEvaluationTransformations(
+        component, coreTypes, libraries, diagnosticReporter,
+        logger: logger);
     if (flags.trackWidgetCreation) {
       if (_widgetTracker == null) {
         _widgetTracker = WidgetCreatorTracker();

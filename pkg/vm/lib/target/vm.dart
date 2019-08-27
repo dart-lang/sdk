@@ -6,6 +6,7 @@ library vm.target.vm;
 import 'dart:core' hide MapEntry;
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/clone.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/target/targets.dart';
@@ -78,12 +79,45 @@ class VmTarget extends Target {
         'dart:cli',
       ];
 
+  void _patchVmConstants(CoreTypes coreTypes) {
+    // Fix Endian.host to be a const field equal to Endian.little instead of
+    // a final field. VM does not support big-endian architectures at the
+    // moment.
+    // Can't use normal patching process for this because CFE does not
+    // support patching fields.
+    // See http://dartbug.com/32836 for the background.
+    final Field host =
+        coreTypes.index.getMember('dart:typed_data', 'Endian', 'host');
+    final Field little =
+        coreTypes.index.getMember('dart:typed_data', 'Endian', 'little');
+    host.isConst = true;
+    host.initializer = new CloneVisitor().clone(little.initializer)
+      ..parent = host;
+  }
+
+  @override
+  void performPreConstantEvaluationTransformations(
+      Component component,
+      CoreTypes coreTypes,
+      List<Library> libraries,
+      DiagnosticReporter diagnosticReporter,
+      {void logger(String msg)}) {
+    super.performPreConstantEvaluationTransformations(
+        component, coreTypes, libraries, diagnosticReporter,
+        logger: logger);
+    _patchVmConstants(coreTypes);
+  }
+
   @override
   List<String> get extraIndexedLibraries => const <String>[
         // TODO(askesc): When the VM supports set literals, we no longer
         // need to index dart:collection, as it is only needed for desugaring of
         // const sets. We can remove it from this list at that time.
         "dart:collection",
+        // TODO(askesc): This is for the VM host endian optimization, which
+        // could possibly be done more cleanly after the VM no longer supports
+        // doing constant evaluation on its own. See http://dartbug.com/32836
+        "dart:typed_data",
       ];
 
   @override

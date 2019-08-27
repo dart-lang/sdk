@@ -264,6 +264,9 @@ class SourceLoader extends Loader {
       case "dart:_internal":
         return utf8.encode(defaultDartInternalSource);
 
+      case "dart:typed_data":
+        return utf8.encode(defaultDartTypedDataSource);
+
       default:
         return utf8.encode(message == null ? "" : "/* ${message.message} */");
     }
@@ -1259,6 +1262,16 @@ class _UnmodifiableSet {
 const String defaultDartInternalSource = """
 class Symbol {
   const Symbol(String name);
+}
+""";
+
+/// A minimal implementation of dart:typed_data that is sufficient to create an
+/// instance of [CoreTypes] and compile program.
+const String defaultDartTypedDataSource = """
+class Endian {
+  static const Endian little = null;
+  static const Endian big = null;
+  static final Endian host = null;
 }
 """;
 

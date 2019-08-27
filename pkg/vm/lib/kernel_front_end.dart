@@ -38,8 +38,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
         printDiagnosticMessage;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
-import 'package:kernel/ast.dart'
-    show Component, Field, Library, Reference, StaticGet;
+import 'package:kernel/ast.dart' show Component, Library, Reference;
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 import 'package:kernel/binary/limited_ast_to_binary.dart'
     show LimitedBinaryPrinter;
@@ -360,7 +359,6 @@ Future _runGlobalTransformations(
   if (errorDetector.hasCompilationErrors) return;
 
   final coreTypes = new CoreTypes(component);
-  _patchVmConstants(coreTypes);
 
   // TODO(alexmarkov, dmitryas): Consider doing canonicalization of identical
   // mixin applications when creating mixin applications in frontend,
@@ -444,21 +442,6 @@ Future _performConstantEvaluation(
         evaluateAnnotations: true,
         desugarSets: !compilerOptions.target.supportsSetLiterals);
   });
-}
-
-void _patchVmConstants(CoreTypes coreTypes) {
-  // Fix Endian.host to be a const field equal to Endial.little instead of
-  // a final field. VM does not support big-endian architectures at the
-  // moment.
-  // Can't use normal patching process for this because CFE does not
-  // support patching fields.
-  // See http://dartbug.com/32836 for the background.
-  final Field host =
-      coreTypes.index.getMember('dart:typed_data', 'Endian', 'host');
-  host.isConst = true;
-  host.initializer = new StaticGet(
-      coreTypes.index.getMember('dart:typed_data', 'Endian', 'little'))
-    ..parent = host;
 }
 
 class ErrorDetector {

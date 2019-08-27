@@ -861,6 +861,7 @@ encountered
 encounters
 end
 ended
+endian
 ending
 endings
 ends

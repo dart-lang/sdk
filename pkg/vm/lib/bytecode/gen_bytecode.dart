@@ -1537,7 +1537,6 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     functionTypeParametersSet = null;
     instantiatorTypeArguments = null;
     locals = null;
-    constantEvaluator.env = null;
     labeledStatements = null;
     switchCases = null;
     tryCatches = null;
