@@ -3859,7 +3859,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         asm.emitPushNull();
       }
 
-      if (options.emitDebuggerStops) {
+      if (options.emitDebuggerStops &&
+          (node.initializer == null ||
+              _variableSetNeedsDebugCheck(node.initializer))) {
         final savedSourcePosition = asm.currentSourcePosition;
         if (node.fileEqualsOffset != TreeNode.noOffset) {
           _recordSourcePosition(node.fileEqualsOffset);
