@@ -85,12 +85,12 @@ class Expect {
    * This finds the first point where two strings differ, and returns
    * a text describing the difference.
    *
-   * For small strings (length less than 20) nothing is done, and "" is
+   * For small strings (length less than 20) nothing is done, and null is
    * returned. Small strings can be compared visually, but for longer strings
    * only a slice containing the first difference will be shown.
    */
   static String _stringDifference(String expected, String actual) {
-    if (expected.length < 20 && actual.length < 20) return "";
+    if (expected.length < 20 && actual.length < 20) return null;
     for (int i = 0; i < expected.length && i < actual.length; i++) {
       if (expected.codeUnitAt(i) != actual.codeUnitAt(i)) {
         int start = i;
@@ -106,18 +106,18 @@ class Expect {
             "Found: <$truncActual>";
       }
     }
-    return "";
+    return null;
   }
 
   /**
    * Checks whether the expected and actual values are equal (using `==`).
    */
-  static void equals(var expected, var actual, [String reason = ""]) {
+  static void equals(var expected, var actual, [String reason = null]) {
     if (expected == actual) return;
     String msg = _getMessage(reason);
     if (expected is String && actual is String) {
       String stringDifference = _stringDifference(expected, actual);
-      if (stringDifference.isNotEmpty) {
+      if (stringDifference != null) {
         _fail("Expect.equals($stringDifference$msg) fails.");
       }
       _fail("Expect.equals(expected: <${_escapeString(expected)}>"
@@ -129,7 +129,7 @@ class Expect {
   /**
    * Checks whether the actual value is a bool and its value is true.
    */
-  static void isTrue(var actual, [String reason = ""]) {
+  static void isTrue(var actual, [String reason = null]) {
     if (_identical(actual, true)) return;
     String msg = _getMessage(reason);
     _fail("Expect.isTrue($actual$msg) fails.");
@@ -138,7 +138,7 @@ class Expect {
   /**
    * Checks whether the actual value is a bool and its value is false.
    */
-  static void isFalse(var actual, [String reason = ""]) {
+  static void isFalse(var actual, [String reason = null]) {
     if (_identical(actual, false)) return;
     String msg = _getMessage(reason);
     _fail("Expect.isFalse($actual$msg) fails.");
@@ -147,7 +147,7 @@ class Expect {
   /**
    * Checks whether [actual] is null.
    */
-  static void isNull(actual, [String reason = ""]) {
+  static void isNull(actual, [String reason = null]) {
     if (null == actual) return;
     String msg = _getMessage(reason);
     _fail("Expect.isNull(actual: <$actual>$msg) fails.");
@@ -156,7 +156,7 @@ class Expect {
   /**
    * Checks whether [actual] is not null.
    */
-  static void isNotNull(actual, [String reason = ""]) {
+  static void isNotNull(actual, [String reason = null]) {
     if (null != actual) return;
     String msg = _getMessage(reason);
     _fail("Expect.isNotNull(actual: <$actual>$msg) fails.");
@@ -166,7 +166,7 @@ class Expect {
    * Checks whether the expected and actual values are identical
    * (using `identical`).
    */
-  static void identical(var expected, var actual, [String reason = ""]) {
+  static void identical(var expected, var actual, [String reason = null]) {
     if (_identical(expected, actual)) return;
     String msg = _getMessage(reason);
     if (expected is String && actual is String) {
@@ -187,20 +187,17 @@ class Expect {
    * That is, `objects[i]` is identical to objects with indices in
    * `_findEquivalences(objects)[i]`.
    *
-   * Uses `[]` for objects that are only identical to themselves.
+   * Uses `null` for objects that are only identical to themselves.
    */
   static List<List<int>> _findEquivalences(List<Object> objects) {
-    var equivalences = new List<List<int>>.generate(objects.length, (_) => []);
+    var equivalences = new List<List<int>>(objects.length);
     for (int i = 0; i < objects.length; i++) {
-      if (equivalences[i].isNotEmpty) continue;
+      if (equivalences[i] != null) continue;
       var o = objects[i];
       for (int j = i + 1; j < objects.length; j++) {
-        if (equivalences[j].isNotEmpty) continue;
+        if (equivalences[j] != null) continue;
         if (_identical(o, objects[j])) {
-          if (equivalences[i].isEmpty) {
-            equivalences[i].add(i);
-          }
-          equivalences[j] = equivalences[i]..add(j);
+          equivalences[j] = (equivalences[i] ??= <int>[i])..add(j);
         }
       }
     }
@@ -214,7 +211,7 @@ class Expect {
       buffer.write(separator);
       separator = ",";
       var equivalence = equivalences[i];
-      if (equivalence.isEmpty) {
+      if (equivalence == null) {
         buffer.write('_');
       } else {
         int first = equivalence[0];
@@ -226,12 +223,12 @@ class Expect {
     }
   }
 
-  static void allIdentical(List<Object> objects, [String reason = ""]) {
+  static void allIdentical(Iterable<Object> objects, [String reason]) {
     if (objects.length <= 1) return;
     String msg = _getMessage(reason);
     var equivalences = _findEquivalences(objects);
     var first = equivalences[0];
-    if (first.isNotEmpty && first.length == objects.length) return;
+    if (first != null && first.length == objects.length) return;
     var buffer = new StringBuffer("Expect.allIdentical([");
     _writeEquivalences(objects, equivalences, buffer);
     buffer..write("]")..write(msg)..write(")");
@@ -242,7 +239,7 @@ class Expect {
    * Checks whether the expected and actual values are *not* identical
    * (using `identical`).
    */
-  static void notIdentical(var unexpected, var actual, [String reason = ""]) {
+  static void notIdentical(var unexpected, var actual, [String reason = null]) {
     if (!_identical(unexpected, actual)) return;
     String msg = _getMessage(reason);
     _fail("Expect.notIdentical(expected and actual: <$actual>$msg) fails.");
@@ -251,13 +248,13 @@ class Expect {
   /**
    * Checks that no two [objects] are `identical`.
    */
-  static void allDistinct(List<Object> objects, [String reason = ""]) {
+  static void allDistinct(List<Object> objects, [String reason = null]) {
     String msg = _getMessage(reason);
     var equivalences = _findEquivalences(objects);
 
     bool hasEquivalence = false;
     for (int i = 0; i < equivalences.length; i++) {
-      if (equivalences[i].isNotEmpty) {
+      if (equivalences[i] != null) {
         hasEquivalence = true;
         break;
       }
@@ -281,8 +278,8 @@ class Expect {
    * value 4 significant digits smaller than the value given for expected.
    */
   static void approxEquals(num expected, num actual,
-      [num tolerance = -1, String reason = ""]) {
-    if (tolerance < 0) {
+      [num tolerance = null, String reason = null]) {
+    if (tolerance == null) {
       tolerance = (expected / 1e4).abs();
     }
     // Note: use !( <= ) rather than > so we fail on NaNs
@@ -293,7 +290,7 @@ class Expect {
         'tolerance:<$tolerance>$msg) fails');
   }
 
-  static void notEquals(unexpected, actual, [String reason = ""]) {
+  static void notEquals(unexpected, actual, [String reason = null]) {
     if (unexpected != actual) return;
     String msg = _getMessage(reason);
     _fail("Expect.notEquals(unexpected: <$unexpected>, actual:<$actual>$msg) "
@@ -306,7 +303,7 @@ class Expect {
    * used by the standard list implementation.  It should also produce nicer
    * error messages than just calling `Expect.equals(expected, actual)`.
    */
-  static void listEquals(List expected, List actual, [String reason = ""]) {
+  static void listEquals(List expected, List actual, [String reason = null]) {
     String msg = _getMessage(reason);
     int n = (expected.length < actual.length) ? expected.length : actual.length;
     for (int i = 0; i < n; i++) {
@@ -330,7 +327,7 @@ class Expect {
    * the semantics of [Map.containsKey] to determine what "same" means. For
    * each key, checks that the values in both maps are equal using `==`.
    */
-  static void mapEquals(Map expected, Map actual, [String reason = ""]) {
+  static void mapEquals(Map expected, Map actual, [String reason = null]) {
     String msg = _getMessage(reason);
 
     // Make sure all of the values are present in both, and they match.
@@ -355,7 +352,7 @@ class Expect {
    * this method shows where the mismatch starts and ends.
    */
   static void stringEquals(String expected, String actual,
-      [String reason = ""]) {
+      [String reason = null]) {
     if (expected == actual) return;
 
     String msg = _getMessage(reason);
@@ -438,7 +435,7 @@ class Expect {
    * every element of [actual] is also in [expected].
    */
   static void setEquals(Iterable expected, Iterable actual,
-      [String reason = ""]) {
+      [String reason = null]) {
     final missingSet = new Set.from(expected);
     missingSet.removeAll(actual);
     final extraSet = new Set.from(actual);
@@ -520,8 +517,6 @@ class Expect {
     }
   }
 
-  static bool _defaultCheck([dynamic e]) => true;
-
   /**
    * Calls the function [f] and verifies that it throws a `T`.
    * The optional [check] function can provide additional validation
@@ -538,13 +533,8 @@ class Expect {
    * exception is not caught by [Expect.throws]. The test is still considered
    * failing.
    */
-  static void throws<T>(void f(),
-      [bool check(T error) = _defaultCheck, String reason = ""]) {
-    // TODO(vsm): Make check nullable.  Existing tests pass null to set
-    // a reason.
-    check = check ?? _defaultCheck;
-    reason = reason ?? "";
-    String msg = reason.isEmpty ? "" : "($reason)";
+  static void throws<T>(void f(), [bool check(T error), String reason]) {
+    String msg = reason == null ? "" : "($reason)";
     if (f is! Function()) {
       // Only throws from executing the function body should count as throwing.
       // The failure to even call `f` should throw outside the try/catch.
@@ -555,7 +545,7 @@ class Expect {
     } on Object catch (e, s) {
       // A test failure doesn't count as throwing.
       if (e is ExpectException) rethrow;
-      if (e is T && check(e as dynamic)) return;
+      if (e is T && (check == null || check(e))) return;
       // Throws something unexpected.
       String type = "";
       if (T != dynamic && T != Object) {
@@ -567,44 +557,45 @@ class Expect {
     _fail('Expect.throws$msg fails: Did not throw');
   }
 
-  static void throwsArgumentError(void f(), [String reason = "ArgumentError"]) {
-    Expect.throws(f, (error) => error is ArgumentError, reason);
+  static void throwsArgumentError(void f(), [String reason]) {
+    Expect.throws(
+        f, (error) => error is ArgumentError, reason ?? "ArgumentError");
   }
 
-  static void throwsAssertionError(void f(),
-      [String reason = "AssertionError"]) {
-    Expect.throws(f, (error) => error is AssertionError, reason);
+  static void throwsAssertionError(void f(), [String reason]) {
+    Expect.throws(
+        f, (error) => error is AssertionError, reason ?? "AssertionError");
   }
 
-  static void throwsCastError(void f(), [String reason = "CastError"]) {
-    Expect.throws(f, (error) => error is CastError, reason);
+  static void throwsCastError(void f(), [String reason]) {
+    Expect.throws(f, (error) => error is CastError, reason ?? "CastError");
   }
 
-  static void throwsFormatException(void f(),
-      [String reason = "FormatException"]) {
-    Expect.throws(f, (error) => error is FormatException, reason);
+  static void throwsFormatException(void f(), [String reason]) {
+    Expect.throws(
+        f, (error) => error is FormatException, reason ?? "FormatException");
   }
 
-  static void throwsNoSuchMethodError(void f(),
-      [String reason = "NoSuchMethodError"]) {
-    Expect.throws(f, (error) => error is NoSuchMethodError, reason);
+  static void throwsNoSuchMethodError(void f(), [String reason]) {
+    Expect.throws(f, (error) => error is NoSuchMethodError,
+        reason ?? "NoSuchMethodError");
   }
 
-  static void throwsRangeError(void f(), [String reason = "RangeError"]) {
-    Expect.throws(f, (error) => error is RangeError, reason);
+  static void throwsRangeError(void f(), [String reason]) {
+    Expect.throws(f, (error) => error is RangeError, reason ?? "RangeError");
   }
 
-  static void throwsStateError(void f(), [String reason = "StateError"]) {
-    Expect.throws(f, (error) => error is StateError, reason);
+  static void throwsStateError(void f(), [String reason]) {
+    Expect.throws(f, (error) => error is StateError, reason ?? "StateError");
   }
 
-  static void throwsTypeError(void f(), [String reason = "TypeError"]) {
-    Expect.throws(f, (error) => error is TypeError, reason);
+  static void throwsTypeError(void f(), [String reason]) {
+    Expect.throws(f, (error) => error is TypeError, reason ?? "TypeError");
   }
 
-  static void throwsUnsupportedError(void f(),
-      [String reason = "UnsupportedError"]) {
-    Expect.throws(f, (error) => error is UnsupportedError, reason);
+  static void throwsUnsupportedError(void f(), [String reason]) {
+    Expect.throws(
+        f, (error) => error is UnsupportedError, reason ?? "UnsupportedError");
   }
 
   /// Reports that there is an error in the test itself and not the code under
@@ -617,7 +608,7 @@ class Expect {
   }
 
   /// Checks that [object] has type [T].
-  static void type<T>(dynamic object, [String reason = ""]) {
+  static void type<T>(Object object, [String reason]) {
     if (object is T) return;
     String msg = _getMessage(reason);
     _fail("Expect.type($object is $T$msg) fails "
@@ -625,7 +616,7 @@ class Expect {
   }
 
   /// Checks that [object] does not have type [T].
-  static void notType<T>(dynamic object, [String reason = ""]) {
+  static void notType<T>(Object object, [String reason]) {
     if (object is! T) return;
     String msg = _getMessage(reason);
     _fail("Expect.type($object is! $T$msg) fails"
@@ -657,7 +648,7 @@ class Expect {
   }
 
   static String _getMessage(String reason) =>
-      (reason.isEmpty) ? "" : ", '$reason'";
+      (reason == null) ? "" : ", '$reason'";
 
   @alwaysThrows
   static void _fail(String message) {

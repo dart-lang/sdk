@@ -18,7 +18,7 @@ import "expect.dart" show Expect;
 
 typedef Matcher = void Function(Object actual);
 
-void expect(dynamic actual, dynamic expected) {
+void expect(Object actual, Object expected) {
   if (expected is Matcher) {
     expected(actual);
   } else {
@@ -27,8 +27,7 @@ void expect(dynamic actual, dynamic expected) {
 }
 
 Matcher unorderedEquals(Iterable<Object> expected) {
-  return (Object actual) =>
-      Expect.setEquals(expected, actual as Iterable<Object>);
+  return (Object actual) => Expect.setEquals(expected, actual);
 }
 
 fail(String message) {
@@ -41,7 +40,7 @@ Matcher same(Object expected) {
 
 Matcher equals(Object expected) {
   if (expected is String) {
-    return (Object actual) => Expect.stringEquals(expected, actual as String);
+    return (Object actual) => Expect.stringEquals(expected, actual);
   } else if (expected is Iterable<Object>) {
     return (dynamic actual) =>
         Expect.listEquals(expected.toList(), actual.toList());

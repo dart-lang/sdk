@@ -90,9 +90,11 @@ void group(String description, body()) {
 void test(String description, body()) {
   // TODO(rnystrom): Do something useful with the description.
   for (var group in _groups) {
-    var result = group.setUpFunction();
-    if (result is Future) {
-      Expect.testError("setUp() does not support asynchronous functions.");
+    if (group.setUpFunction != null) {
+      var result = group.setUpFunction();
+      if (result is Future) {
+        Expect.testError("setUp() does not support asynchronous functions.");
+      }
     }
   }
 
@@ -104,9 +106,12 @@ void test(String description, body()) {
   } finally {
     for (var i = _groups.length - 1; i >= 0; i--) {
       var group = _groups[i];
-      var result = group.tearDownFunction();
-      if (result is Future) {
-        Expect.testError("tearDown() does not support asynchronous functions.");
+      if (group.tearDownFunction != null) {
+        var result = group.tearDownFunction();
+        if (result is Future) {
+          Expect.testError(
+              "tearDown() does not support asynchronous functions.");
+        }
       }
     }
   }
@@ -114,17 +119,17 @@ void test(String description, body()) {
 
 void setUp(body()) {
   // Can't define multiple setUps at the same level.
-  assert(_groups.last.setUpFunction == _defaultAction);
+  assert(_groups.last.setUpFunction == null);
   _groups.last.setUpFunction = body;
 }
 
 void tearDown(body()) {
   // Can't define multiple tearDowns at the same level.
-  assert(_groups.last.tearDownFunction == _defaultAction);
+  assert(_groups.last.tearDownFunction == null);
   _groups.last.tearDownFunction = body;
 }
 
-void expect(Object actual, Object expected, {String reason = ""}) {
+void expect(Object actual, Object expected, {String reason}) {
   // TODO(rnystrom): Do something useful with reason.
   if (expected is! _Expectation) {
     expected = equals(expected);
@@ -147,10 +152,10 @@ Object notEquals(Object value) => new _Expectation((actual) {
     });
 
 Object unorderedEquals(Object value) => new _Expectation((actual) {
-      Expect.setEquals(value as Iterable, actual as Iterable);
+      Expect.setEquals(value, actual);
     });
 
-Object predicate(bool fn(Object value), [String description = ""]) =>
+Object predicate(bool fn(Object value), [String description]) =>
     new _Expectation((actual) {
       Expect.isTrue(fn(actual), description);
     });
@@ -174,7 +179,7 @@ Object same(Object value) => new _Expectation((actual) {
     });
 
 Object closeTo(num value, num tolerance) => new _Expectation((actual) {
-      Expect.approxEquals(value, actual as num, tolerance);
+      Expect.approxEquals(value, actual, tolerance);
     });
 
 /// Succeeds if the actual value is any of the given strings. Unlike matcher's
@@ -187,15 +192,13 @@ Object anyOf(List<String> expected) => new _Expectation((actual) {
       fail("Expected $actual to be one of $expected.");
     });
 
-_defaultAction() {}
-
 /// One level of group() nesting to track an optional [setUp()] and [tearDown()]
 /// function for the group.
 ///
 /// There is also an implicit top level group.
 class _Group {
-  _Action setUpFunction = _defaultAction;
-  _Action tearDownFunction = _defaultAction;
+  _Action setUpFunction;
+  _Action tearDownFunction;
 }
 
 /// A wrapper around an expectation function.
