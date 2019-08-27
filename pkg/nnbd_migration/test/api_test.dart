@@ -2180,6 +2180,36 @@ D<int?> test(C<int?/*?*/> c) => -c;
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_prefixes() async {
+    var root = '/home/test/lib';
+    var path1 = convertPath('$root/file1.dart');
+    var file1 = '''
+import 'file2.dart';
+int x;
+int f() => null;
+''';
+    var expected1 = '''
+import 'file2.dart';
+int? x;
+int? f() => null;
+''';
+    var path2 = convertPath('$root/file2.dart');
+    var file2 = '''
+import 'file1.dart' as f1;
+void main() {
+  f1.x = f1.f();
+}
+''';
+    var expected2 = '''
+import 'file1.dart' as f1;
+void main() {
+  f1.x = f1.f();
+}
+''';
+    await _checkMultipleFileChanges(
+        {path1: file1, path2: file2}, {path1: expected1, path2: expected2});
+  }
+
   test_prefixExpression_bang() async {
     var content = '''
 bool f(bool b) => !b;
