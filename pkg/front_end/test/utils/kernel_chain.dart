@@ -7,6 +7,7 @@ library fasta.testing.kernel_chain;
 import 'dart:async' show Future;
 
 import 'dart:io' show Directory, File, IOSink;
+import 'dart:io';
 
 import 'dart:typed_data' show Uint8List;
 
@@ -402,10 +403,32 @@ class BytesCollector implements Sink<List<int>> {
 }
 
 Future<String> runDiff(Uri expected, String actual) async {
-  StdioProcess process = await StdioProcess.run(
-      "git", <String>["diff", "--no-index", "-u", expected.toFilePath(), "-"],
-      input: actual, runInShell: true);
-  return process.output;
+  if (Platform.isWindows) {
+    // TODO(johnniwinther): Work-around for Windows. For some reason piping
+    // the actual result through stdin doesn't work; it shows a diff as if the
+    // actual result is the empty string.
+    Directory tempDirectory = Directory.systemTemp.createTempSync();
+    Uri uri = tempDirectory.uri.resolve('actual');
+    File file = new File.fromUri(uri)..writeAsStringSync(actual);
+    StdioProcess process = await StdioProcess.run(
+        "git",
+        <String>[
+          "diff",
+          "--no-index",
+          "-u",
+          expected.toFilePath(),
+          uri.toFilePath()
+        ],
+        runInShell: true);
+    file.deleteSync();
+    tempDirectory.deleteSync();
+    return process.output;
+  } else {
+    StdioProcess process = await StdioProcess.run(
+        "git", <String>["diff", "--no-index", "-u", expected.toFilePath(), "-"],
+        input: actual, runInShell: true);
+    return process.output;
+  }
 }
 
 Future<void> openWrite(Uri uri, f(IOSink sink)) async {
