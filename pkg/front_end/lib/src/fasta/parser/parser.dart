@@ -127,7 +127,7 @@ import 'util.dart'
 /// Parse methods all have the prefix `parse`, generate events
 /// (by calling methods on [listener]), and return the next token to parse.
 /// Some exceptions to this last point are methods such as [parseFunctionBody]
-/// and [parseClassOrMixinBody] which return the last token parsed
+/// and [parseClassOrMixinOrExtensionBody] which return the last token parsed
 /// rather than the next token to be parsed.
 /// Parse methods are generally named `parseGrammarProductionSuffix`.
 /// The suffix can be one of `opt`, or `star`.
@@ -1798,7 +1798,7 @@ class Parser {
       token = parseClassHeaderRecovery(start, begin, classKeyword);
       ensureBlock(token, null, 'class declaration');
     }
-    token = parseClassOrMixinBody(ClassKind.Class, token);
+    token = parseClassOrMixinOrExtensionBody(ClassKind.Class, token);
     listener.endClassDeclaration(begin, token);
     return token;
   }
@@ -1965,7 +1965,7 @@ class Parser {
       token = parseMixinHeaderRecovery(token, mixinKeyword, headerStart);
       ensureBlock(token, null, 'mixin declaration');
     }
-    token = parseClassOrMixinBody(ClassKind.Mixin, token);
+    token = parseClassOrMixinOrExtensionBody(ClassKind.Mixin, token);
     listener.endMixinDeclaration(mixinKeyword, token);
     return token;
   }
@@ -2135,7 +2135,7 @@ class Parser {
       ensureBlock(token, null, 'extension declaration');
     }
     // TODO(danrubel): Do not allow fields or constructors
-    token = parseClassOrMixinBody(ClassKind.Extension, token);
+    token = parseClassOrMixinOrExtensionBody(ClassKind.Extension, token);
     listener.endExtensionDeclaration(extensionKeyword, onKeyword, token);
     return token;
   }
@@ -2893,7 +2893,7 @@ class Parser {
     return token;
   }
 
-  Token skipClassOrMixinBody(Token token) {
+  Token skipClassOrMixinOrExtensionBody(Token token) {
     // The scanner ensures that `{` always has a closing `}`.
     return ensureBlock(token, null, null);
   }
@@ -2903,13 +2903,13 @@ class Parser {
   ///   '{' classMember* '}'
   /// ;
   /// ```
-  Token parseClassOrMixinBody(ClassKind kind, Token token) {
+  Token parseClassOrMixinOrExtensionBody(ClassKind kind, Token token) {
     Token begin = token = token.next;
     assert(optional('{', token));
     listener.beginClassOrMixinBody(kind, token);
     int count = 0;
     while (notEofOrValue('}', token.next)) {
-      token = parseClassOrMixinMemberImpl(token);
+      token = parseClassOrMixinOrExtensionMemberImpl(kind, token);
       ++count;
     }
     token = token.next;
@@ -2923,14 +2923,40 @@ class Parser {
       token.lexeme == 'unary' &&
       optional('-', token.next);
 
-  /// Parse a class or mixin member.
+  /// Parse a class member.
   ///
   /// This method is only invoked from outside the parser. As a result, this
   /// method takes the next token to be consumed rather than the last consumed
   /// token and returns the token after the last consumed token rather than the
   /// last consumed token.
-  Token parseClassOrMixinMember(Token token) {
-    return parseClassOrMixinMemberImpl(syntheticPreviousToken(token)).next;
+  Token parseClassMember(Token token) {
+    return parseClassOrMixinOrExtensionMemberImpl(
+            ClassKind.Class, syntheticPreviousToken(token))
+        .next;
+  }
+
+  /// Parse a mixin member.
+  ///
+  /// This method is only invoked from outside the parser. As a result, this
+  /// method takes the next token to be consumed rather than the last consumed
+  /// token and returns the token after the last consumed token rather than the
+  /// last consumed token.
+  Token parseMixinMember(Token token) {
+    return parseClassOrMixinOrExtensionMemberImpl(
+            ClassKind.Mixin, syntheticPreviousToken(token))
+        .next;
+  }
+
+  /// Parse an extension member.
+  ///
+  /// This method is only invoked from outside the parser. As a result, this
+  /// method takes the next token to be consumed rather than the last consumed
+  /// token and returns the token after the last consumed token rather than the
+  /// last consumed token.
+  Token parseExtensionMember(Token token) {
+    return parseClassOrMixinOrExtensionMemberImpl(
+            ClassKind.Extension, syntheticPreviousToken(token))
+        .next;
   }
 
   /// ```
@@ -2944,8 +2970,12 @@ class Parser {
   ///   fieldDeclaration |
   ///   methodDeclaration
   /// ;
+  ///
+  /// extensionMember:
+  ///   methodDeclaration
+  /// ;
   /// ```
-  Token parseClassOrMixinMemberImpl(Token token) {
+  Token parseClassOrMixinOrExtensionMemberImpl(ClassKind kind, Token token) {
     Token beforeStart = token = parseMetadataStar(token);
 
     Token covariantToken;

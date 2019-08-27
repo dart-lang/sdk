@@ -889,7 +889,8 @@ class DietListener extends StackListener {
     if (isTopLevel) {
       token = parser.parseTopLevelMember(metadata ?? token);
     } else {
-      token = parser.parseClassOrMixinMember(metadata ?? token).next;
+      // TODO(danrubel): disambiguate between class/mixin/extension members
+      token = parser.parseClassMember(metadata ?? token).next;
     }
     listenerFinishFields(listener, startToken, metadata, isTopLevel);
     listener.checkEmpty(token.charOffset);
