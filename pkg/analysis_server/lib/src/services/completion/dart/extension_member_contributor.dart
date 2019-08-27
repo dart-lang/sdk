@@ -41,8 +41,10 @@ class ExtensionMemberContributor extends DartCompletionContributor {
       if (elem is ClassElement) {
         // Suggestions provided by StaticMemberContributor
         return const <CompletionSuggestion>[];
-      }
-      if (elem is PrefixElement) {
+      } else if (elem is ExtensionElement) {
+        // Suggestions provided by StaticMemberContributor
+        return const <CompletionSuggestion>[];
+      } else if (elem is PrefixElement) {
         // Suggestions provided by LibraryMemberContributor
         return const <CompletionSuggestion>[];
       }
@@ -52,6 +54,13 @@ class ExtensionMemberContributor extends DartCompletionContributor {
       _addInstanceMembers(expression.staticElement);
     } else {
       var type = expression.staticType;
+      if (type == null) {
+        // Without a type we cannot find the extensions that apply.
+        // We shouldn't get to this point, but there's an NPE if we invoke
+        // `_resolveExtendedType` when `type` is `null`, so we guard against it
+        // to ensure that we can return the suggestions from other providers.
+        return const <CompletionSuggestion>[];
+      }
       LibraryScope nameScope = new LibraryScope(containingLibrary);
       for (var extension in nameScope.extensions) {
         var typeSystem = containingLibrary.context.typeSystem;
