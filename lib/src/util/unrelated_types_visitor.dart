@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:linter/src/analyzer.dart';
@@ -115,13 +114,9 @@ abstract class UnrelatedTypesProcessors extends SimpleAstVisitor<void> {
       if (classDeclaration == null) {
         targetType = null;
       } else if (classDeclaration is ClassDeclaration) {
-        targetType = resolutionMap
-            .elementDeclaredByClassDeclaration(classDeclaration)
-            ?.type;
+        targetType = classDeclaration.declaredElement?.type;
       } else if (classDeclaration is MixinDeclaration) {
-        targetType = resolutionMap
-            .elementDeclaredByMixinDeclaration(classDeclaration)
-            ?.type;
+        targetType = classDeclaration.declaredElement?.type;
       }
     }
     Expression argument = node.argumentList.arguments.first;

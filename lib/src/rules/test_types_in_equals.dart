@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 
@@ -100,12 +99,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     SimpleIdentifier identifier = node.expression as SimpleIdentifier;
     var parameters = declaration.parameters;
-    String parameterName = parameters == null
-        ? null
-        : resolutionMap
-            .parameterElementsForFormalParameterList(parameters)
-            ?.first
-            ?.name;
+    String parameterName = parameters?.parameterElements?.first?.name;
     if (identifier.name == parameterName) {
       rule.reportLint(node);
     }

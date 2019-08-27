@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:linter/src/analyzer.dart';
@@ -80,8 +79,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var expr = node?.expression;
     if (expr is AssignmentExpression) return;
 
-    var type =
-        expr == null ? null : resolutionMap.staticTypeForExpression(expr);
+    var type = expr?.staticType;
     if (type?.isDartAsyncFuture == true) {
       // Ignore a couple of special known cases.
       if (_isFutureDelayedInstanceCreationWithComputation(expr) ||
@@ -106,12 +104,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// computation.
   bool _isFutureDelayedInstanceCreationWithComputation(Expression expr) =>
       expr is InstanceCreationExpression &&
-      resolutionMap
-              .staticElementForConstructorReference(expr)
-              ?.enclosingElement
-              ?.type
-              ?.isDartAsyncFuture ==
-          true &&
+      expr.staticElement?.enclosingElement?.type?.isDartAsyncFuture == true &&
       expr.constructorName?.name?.name == 'delayed' &&
       expr.argumentList.arguments.length == 2;
 
@@ -122,7 +115,5 @@ class _Visitor extends SimpleAstVisitor<void> {
   bool _isMapPutIfAbsentInvocation(Expression expr) =>
       expr is MethodInvocation &&
       expr.methodName.name == 'putIfAbsent' &&
-      _isMapClass(resolutionMap
-          .staticElementForIdentifier(expr.methodName)
-          ?.enclosingElement);
+      _isMapClass(expr.methodName.staticElement?.enclosingElement);
 }

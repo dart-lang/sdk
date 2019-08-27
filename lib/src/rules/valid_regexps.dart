@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:linter/src/analyzer.dart';
@@ -53,9 +52,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    ClassElement element = resolutionMap
-        .staticElementForConstructorReference(node)
-        ?.enclosingElement;
+    ClassElement element = node.staticElement?.enclosingElement;
     if (element?.name == 'RegExp' && element?.library?.name == 'dart.core') {
       NodeList<Expression> args = node.argumentList.arguments;
       if (args.isEmpty) {

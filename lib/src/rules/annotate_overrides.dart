@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:linter/src/analyzer.dart';
@@ -91,11 +90,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
     for (VariableDeclaration field in node.fields.variables) {
-      if (field?.declaredElement != null &&
-          !resolutionMap
-              .elementDeclaredByVariableDeclaration(field)
-              .hasOverride) {
-        Element member = getOverriddenMember(field.declaredElement);
+      var element = field.declaredElement;
+      if (element != null && !element.hasOverride) {
+        Element member = getOverriddenMember(element);
         if (member != null) {
           rule.reportLint(field);
         }
@@ -105,9 +102,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    if (node?.declaredElement != null &&
-        !resolutionMap.elementDeclaredByMethodDeclaration(node).hasOverride) {
-      Element member = getOverriddenMember(node.declaredElement);
+    var element = node.declaredElement;
+    if (element != null && !element.hasOverride) {
+      Element member = getOverriddenMember(element);
       if (member != null) {
         rule.reportLint(node.name);
       }

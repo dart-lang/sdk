@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 
@@ -80,9 +79,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitImportDirective(ImportDirective node) {
     Uri importUri = node?.uriSource?.uri;
-    Uri sourceUri = node == null
-        ? null
-        : resolutionMap.elementDeclaredByDirective(node)?.source?.uri;
+    Uri sourceUri = node?.element?.source?.uri;
 
     // Test for 'package:*/src/'.
     if (!isImplementation(importUri)) {

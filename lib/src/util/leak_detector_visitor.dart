@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -38,8 +37,8 @@ _VisitVariableDeclaration _buildVariableReporter(
         LintRule rule,
         Map<DartTypePredicate, String> predicates) =>
     (VariableDeclaration variable) {
-      if (!predicates.keys.any((DartTypePredicate p) => p(
-          resolutionMap.elementDeclaredByVariableDeclaration(variable).type))) {
+      if (!predicates.keys
+          .any((DartTypePredicate p) => p(variable.declaredElement.type))) {
         return;
       }
 
@@ -76,9 +75,7 @@ Iterable<AstNode> _findMethodCallbackNodes(Iterable<AstNode> containerNodes,
       containerNodes.whereType<PrefixedIdentifier>();
   return prefixedIdentifiers.where((n) =>
       n.prefix.staticElement == variable.name.staticElement &&
-      _hasMatch(
-          predicates,
-          resolutionMap.elementDeclaredByVariableDeclaration(variable).type,
+      _hasMatch(predicates, variable.declaredElement.type,
           n.identifier.token.lexeme));
 }
 
@@ -98,11 +95,7 @@ Iterable<AstNode> _findNodesInvokingMethodOnVariable(
         Map<DartTypePredicate, String> predicates) =>
     classNodes.where((AstNode n) =>
         n is MethodInvocation &&
-        ((_hasMatch(
-                    predicates,
-                    resolutionMap
-                        .elementDeclaredByVariableDeclaration(variable)
-                        .type,
+        ((_hasMatch(predicates, variable.declaredElement.type,
                     n.methodName.name) &&
                 (_isSimpleIdentifierElementEqualToVariable(
                         n.realTarget, variable) ||

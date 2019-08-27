@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 
@@ -82,6 +81,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule);
 
   DartProject get project => rule.project;
+
   @override
   void visitLibraryDirective(LibraryDirective node) {
     // If no project info is set, bail early.
@@ -89,13 +89,13 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (project == null) {
       return;
     }
-    Source source = resolutionMap.elementDeclaredByDirective(node).source;
+    Source source = node.element.source;
     var prefix = Analyzer.facade.createLibraryNamePrefix(
         libraryPath: source.fullName,
         projectRoot: project.root.absolute.path,
         packageName: project.name);
 
-    var libraryName = resolutionMap.elementDeclaredByDirective(node).name;
+    var libraryName = node.element.name;
     if (!matchesOrIsPrefixedBy(libraryName, prefix)) {
       rule.reportLint(node.name);
     }

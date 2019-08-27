@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -170,8 +169,6 @@ class UnrelatedTypeEqualityChecks extends LintRule implements NodeLintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  static const String _boolClassName = 'bool';
-
   final LintRule rule;
   final TypeSystem typeSystem;
 
@@ -179,10 +176,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
-    bool isDartCoreBoolean = resolutionMap.staticTypeForExpression(node).name ==
-            _boolClassName &&
-        resolutionMap.staticTypeForExpression(node).element?.library?.name ==
-            _dartCoreLibraryName;
+    bool isDartCoreBoolean = node.staticType.isDartCoreBool;
     if (!isDartCoreBoolean ||
         (node.operator.type != TokenType.EQ_EQ &&
             node.operator.type != TokenType.BANG_EQ)) {
