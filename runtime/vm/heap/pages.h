@@ -232,6 +232,8 @@ class PageSpaceController {
   bool is_enabled() { return is_enabled_; }
 
  private:
+  void RecordUpdate(SpaceUsage before, SpaceUsage after, const char* reason);
+
   Heap* heap_;
 
   bool is_enabled_;
@@ -256,9 +258,6 @@ class PageSpaceController {
 
   // Perform a synchronous GC when capacity exceeds this amount.
   intptr_t gc_threshold_in_words_;
-
-  // Perform a synchronous GC when external allocations exceed this amount.
-  intptr_t gc_external_threshold_in_words_;
 
   // Start considering idle GC when capacity exceeds this amount.
   intptr_t idle_gc_threshold_in_words_;

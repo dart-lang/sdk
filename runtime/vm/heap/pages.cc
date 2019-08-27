@@ -1498,11 +1498,7 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
   idle_gc_threshold_in_words_ =
       after.CombinedCapacityInWords() + 2 * kPageSizeInWords;
 
-  if (FLAG_log_growth) {
-    THR_Print("%s: threshold=%" Pd "kB, idle_threshold=%" Pd "kB, reason=gc\n",
-              heap_->isolate()->name(), gc_threshold_in_words_ / KBInWords,
-              idle_gc_threshold_in_words_ / KBInWords);
-  }
+  RecordUpdate(before, after, "gc");
 }
 
 void PageSpaceController::EvaluateAfterLoading(SpaceUsage after) {
@@ -1526,11 +1522,30 @@ void PageSpaceController::EvaluateAfterLoading(SpaceUsage after) {
   idle_gc_threshold_in_words_ =
       after.CombinedCapacityInWords() + 2 * kPageSizeInWords;
 
+  RecordUpdate(after, after, "loaded");
+}
+
+void PageSpaceController::RecordUpdate(SpaceUsage before,
+                                       SpaceUsage after,
+                                       const char* reason) {
+#if defined(SUPPORT_TIMELINE)
+  TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "UpdateGrowthLimit");
+  tds.SetNumArguments(5);
+  tds.CopyArgument(0, "Reason", reason);
+  tds.FormatArgument(1, "Before.CombinedCapacity (kB)", "%" Pd "",
+                     RoundWordsToKB(before.CombinedCapacityInWords()));
+  tds.FormatArgument(2, "After.CombinedCapacity (kB)", "%" Pd "",
+                     RoundWordsToKB(after.CombinedCapacityInWords()));
+  tds.FormatArgument(3, "Threshold (kB)", "%" Pd "",
+                     RoundWordsToKB(gc_threshold_in_words_));
+  tds.FormatArgument(4, "Idle Threshold (kB)", "%" Pd "",
+                     RoundWordsToKB(idle_gc_threshold_in_words_));
+#endif
+
   if (FLAG_log_growth) {
-    THR_Print("%s: threshold=%" Pd "kB, idle_threshold=%" Pd
-              "kB, reason=loaded\n",
+    THR_Print("%s: threshold=%" Pd "kB, idle_threshold=%" Pd "kB, reason=%s\n",
               heap_->isolate()->name(), gc_threshold_in_words_ / KBInWords,
-              idle_gc_threshold_in_words_ / KBInWords);
+              idle_gc_threshold_in_words_ / KBInWords, reason);
   }
 }
 
