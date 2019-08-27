@@ -249,7 +249,6 @@ class NullableInference extends ExpressionVisitor<bool> {
 
   bool _isInternalAnnotationField(
       Expression node, String fieldName, String className) {
-    node = unwrapUnevaluatedConstant(node);
     if (node is ConstantExpression) {
       var constant = node.constant;
       return constant is InstanceConstant &&

@@ -101,7 +101,6 @@ bool isBuiltinAnnotation(
 /// This function works regardless of whether the CFE is evaluating constants,
 /// or whether the constant is a field reference (such as "anonymous" above).
 Class getAnnotationClass(Expression node) {
-  node = unwrapUnevaluatedConstant(node);
   if (node is ConstantExpression) {
     var constant = node.constant;
     if (constant is InstanceConstant) return constant.classNode;
@@ -112,19 +111,6 @@ Class getAnnotationClass(Expression node) {
     if (type is InterfaceType) return type.classNode;
   }
   return null;
-}
-
-Expression unwrapUnevaluatedConstant(Expression node) {
-  // TODO(jmesserly): see if we can configure CFE to preseve the original
-  // expression, rather than wrapping in an UnevaluatedConstant and then
-  // a ConstantExpression.
-  if (node is ConstantExpression) {
-    var constant = node.constant;
-    if (constant is UnevaluatedConstant) {
-      return constant.expression;
-    }
-  }
-  return node;
 }
 
 /// Returns true if [name] is an operator method that is available on primitive
