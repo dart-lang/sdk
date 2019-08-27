@@ -7,7 +7,7 @@
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  <version>1.27.2</version>
+  <version>1.27.3</version>
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -4094,6 +4094,13 @@
           position. (If no other purpose is found for this field then it should
           be renamed and converted to a boolean value.)
           Omitted if the token is not an identifier.
+        </p>
+      </field>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The offset of the first character of the token in the file which it
+          originated from.
         </p>
       </field>
     </object>
