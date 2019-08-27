@@ -57,7 +57,7 @@ type List<T> {
 
 type RList<T> {
   T[length] elements;
-  Uint32 length;
+  UInt32 length;
 }
 
 // Untagged pairs.
@@ -99,6 +99,10 @@ type SourceInfo {
   List<UInt> lineStarts;
 
   List<Byte> importUriUtf8Bytes;
+}
+
+type String {
+  List<Byte> utf8Bytes;
 }
 
 type UriSource {
@@ -168,6 +172,7 @@ type MetadataMapping {
 // which allows to skip to any other field in this component index,
 // which again allows to skip to what it points to.
 type ComponentIndex {
+  Byte[] 8bitAlignment; // 0-bytes to make the entire component (!) 8-byte aligned.
   UInt32 binaryOffsetForSourceTable;
   UInt32 binaryOffsetForCanonicalNames;
   UInt32 binaryOffsetForMetadataPayloads;
@@ -381,7 +386,7 @@ type Procedure extends Member {
   FileOffset fileOffset; // Offset of the procedure name.
   FileOffset fileEndOffset;
   Byte kind; // Index into the ProcedureKind enum above.
-  Uint flags (isStatic, isAbstract, isExternal, isConst, isForwardingStub,
+  UInt flags (isStatic, isAbstract, isExternal, isConst, isForwardingStub,
               isForwardingSemiStub, isRedirectingFactoryConstructor,
               isNoSuchMethodForwarder, isExtensionMember);
   Name name;
@@ -394,7 +399,7 @@ type Procedure extends Member {
 }
 
 type RedirectingFactoryConstructor extends Member {
-  Byte tag = 107;
+  Byte tag = 108;
   CanonicalNameReference canonicalName;
   UriReference fileUri;
   FileOffset fileOffset;
@@ -729,7 +734,7 @@ type InstanceCreation extends Expression {
   FileOffset fileOffset;
   CanonicalNameReference class;
   List<DartType> typeArguments;
-  List<[FieldReference, Expression]> fieldValues;
+  List<Pair<FieldReference, Expression>> fieldValues;
   List<AssertStatement> asserts;
   List<Expression> unusedArguments;
 }
@@ -754,22 +759,24 @@ type StringLiteral extends Expression {
   StringReference value;
 }
 
-type SpecializedIntLiteral extends Expression {
+type IntegerLiteral extends Expression {}
+
+type SpecializedIntLiteral extends IntegerLiteral {
   Byte tag = 144 + N; // Where 0 <= N < 8.
   // Integer literal with value (N - 3), that is, an integer in range -3..4.
 }
 
-type PositiveIntLiteral extends Expression {
+type PositiveIntLiteral extends IntegerLiteral {
   Byte tag = 55;
   UInt value;
 }
 
-type NegativeIntLiteral extends Expression {
+type NegativeIntLiteral extends IntegerLiteral {
   Byte tag = 56;
   UInt absoluteValue;
 }
 
-type BigIntLiteral extends Expression {
+type BigIntLiteral extends IntegerLiteral {
   Byte tag = 57;
   StringReference valueString;
 }
@@ -912,12 +919,9 @@ type ConstantExpression extends Expression {
   ConstantReference constantReference;
 }
 
-type Deprecated_ConstantExpression extends Expression {
-  Byte tag = 107;
-  ConstantReference constantReference;
+abstract type Constant extends Node {
+  Byte tag;
 }
-
-abstract type Constant extends Node {}
 
 type NullConstant extends Constant {
   Byte tag = 0;
@@ -930,7 +934,7 @@ type BoolConstant extends Constant {
 
 type IntConstant extends Constant {
   Byte tag = 2;
-  PositiveIntLiteral | NegativeIntLiteral | SpecializedIntLiteral | BigIntLiteral value;
+  IntegerLiteral value;
 }
 
 type DoubleConstant extends Constant {
@@ -953,7 +957,7 @@ type MapConstant extends Constant {
   Byte tag = 6;
   DartType keyType;
   DartType valueType;
-  List<[ConstantReference, ConstantReference]> keyValueList;
+  List<Pair<ConstantReference, ConstantReference>> keyValueList;
 }
 
 type ListConstant extends Constant {
@@ -972,7 +976,7 @@ type InstanceConstant extends Constant {
   Byte tag = 8;
   CanonicalNameReference class;
   List<DartType> typeArguments;
-  List<[FieldReference, ConstantReference]> values;
+  List<Pair<FieldReference, ConstantReference>> values;
 }
 
 type PartialInstantiationConstant extends Constant {
@@ -1200,6 +1204,10 @@ enum Nullability { nullable = 0, nonNullable = 1, neither = 2, legacy = 3, }
 
 abstract type DartType extends Node {}
 
+type BottomType extends DartType {
+  Byte tag = 89;
+}
+
 type InvalidType extends DartType {
   Byte tag = 90;
 }
@@ -1243,7 +1251,6 @@ type SimpleFunctionType extends DartType {
   Byte tag = 97; // Note: tag is out of order.
   Byte nullability; // Index into the Nullability enum above.
   List<DartType> positionalParameters;
-  List<StringReference> positionalParameterNames;
   DartType returnType;
   // Equivalent to a FunctionType with no type parameters or named parameters,
   // and where all positional parameters are required.
