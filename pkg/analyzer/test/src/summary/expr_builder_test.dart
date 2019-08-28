@@ -23,7 +23,10 @@ import 'resynthesize_common.dart';
 import 'test_strategies.dart';
 
 main() {
-  if (AnalysisDriver.useSummary2) return;
+  if (AnalysisDriver.useSummary2) {
+    test('fake', () {});
+    return;
+  }
   defineReflectiveSuite(() {
     defineReflectiveTests(ExprBuilderTest);
     defineReflectiveTests(ExprBuilderWithConstantUpdateTest);
