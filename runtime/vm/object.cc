@@ -1918,6 +1918,14 @@ RawError* Object::Init(Isolate* isolate,
     pending_classes.Add(cls);
     RegisterClass(cls, Symbols::FfiDynamicLibrary(), lib);
 
+    lib = Library::LookupLibrary(thread, Symbols::DartWasm());
+    if (lib.IsNull()) {
+      lib = Library::NewLibraryHelper(Symbols::DartWasm(), true);
+      lib.SetLoadRequested();
+      lib.Register(thread);
+    }
+    object_store->set_bootstrap_library(ObjectStore::kWasm, lib);
+
     // Finish the initialization by compiling the bootstrap scripts containing
     // the base interfaces and the implementation of the internal classes.
     const Error& error = Error::Handle(
@@ -11740,6 +11748,10 @@ RawLibrary* Library::TypedDataLibrary() {
 
 RawLibrary* Library::VMServiceLibrary() {
   return Isolate::Current()->object_store()->_vmservice_library();
+}
+
+RawLibrary* Library::WasmLibrary() {
+  return Isolate::Current()->object_store()->wasm_library();
 }
 
 const char* Library::ToCString() const {

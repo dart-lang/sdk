@@ -77,6 +77,7 @@ class VmTarget extends Target {
         'dart:nativewrappers',
         'dart:io',
         'dart:cli',
+        'dart:wasm',
       ];
 
   void _patchVmConstants(CoreTypes coreTypes) {

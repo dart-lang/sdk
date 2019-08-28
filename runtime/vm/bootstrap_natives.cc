@@ -141,6 +141,11 @@ void Bootstrap::SetupNativeResolver() {
   ASSERT(!library.IsNull());
   library.set_native_entry_resolver(resolver);
   library.set_native_entry_symbol_resolver(symbol_resolver);
+
+  library = Library::WasmLibrary();
+  ASSERT(!library.IsNull());
+  library.set_native_entry_resolver(resolver);
+  library.set_native_entry_symbol_resolver(symbol_resolver);
 }
 
 bool Bootstrap::IsBootstrapResolver(Dart_NativeEntryResolver resolver) {

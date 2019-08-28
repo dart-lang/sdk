@@ -36,6 +36,7 @@ class DartRunnerTarget extends VmTarget {
         'dart:typed_data',
         'dart:nativewrappers',
         'dart:io',
+        'dart:wasm',
 
         // Required for dart_runner.
         'dart:fuchsia.builtin',

@@ -4274,6 +4274,7 @@ class Library : public Object {
   static RawLibrary* ProfilerLibrary();
   static RawLibrary* TypedDataLibrary();
   static RawLibrary* VMServiceLibrary();
+  static RawLibrary* WasmLibrary();
 
   // Eagerly compile all classes and functions in the library.
   static RawError* CompileAll(bool ignore_error = false);
