@@ -855,6 +855,25 @@ ASSEMBLER_TEST_RUN(UnsignedMultiply, test) {
       "ret\n");
 }
 
+ASSEMBLER_TEST_GENERATE(SignedMultiply64Implicit, assembler) {
+  __ movq(RAX, Immediate(7));
+  __ movq(RDX, Immediate(-3));
+  __ imulq(RDX);  // // RDX:RAX = -21
+  __ addq(RAX, RDX);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(SignedMultiply64Implicit, test) {
+  typedef int (*SignedMultiply64Implicit)();
+  EXPECT_EQ(-22, reinterpret_cast<SignedMultiply64Implicit>(test->entry())());
+  EXPECT_DISASSEMBLY(
+      "movl rax,7\n"
+      "movq rdx,-3\n"
+      "imulq (rax,rdx),rdx\n"
+      "addq rax,rdx\n"
+      "ret\n");
+}
+
 ASSEMBLER_TEST_GENERATE(SignedMultiply64, assembler) {
   __ pushq(R15);  // Callee saved.
   __ movq(RAX, Immediate(2));
