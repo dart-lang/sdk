@@ -647,6 +647,12 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  visitSwitchCase(SwitchCase node) {
+    _addSuggestion(Keyword.BREAK);
+    return super.visitSwitchCase(node);
+  }
+
+  @override
   visitTryStatement(TryStatement node) {
     var obj = entity;
     if (obj is CatchClause ||

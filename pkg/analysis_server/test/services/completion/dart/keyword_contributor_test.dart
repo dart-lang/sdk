@@ -1983,6 +1983,18 @@ f() => [...^];
         relevance: DART_RELEVANCE_HIGH);
   }
 
+  test_switch_statement_case_break_insideClass() async {
+    addTestSource('class A{foo() {switch(1) {case 1: b^}}}');
+    await computeSuggestions();
+    assertSuggestKeywords([Keyword.BREAK]);
+  }
+
+  test_switch_statement_case_break_outsideClass() async {
+    addTestSource('foo() {switch(1) {case 1: b^}}');
+    await computeSuggestions();
+    assertSuggestKeywords([Keyword.BREAK]);
+  }
+
   test_switch_statement_insideClass() async {
     addTestSource('class A{foo() {switch(1) {case 1:^}}}');
     await computeSuggestions();
