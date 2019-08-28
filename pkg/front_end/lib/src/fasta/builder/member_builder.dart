@@ -58,6 +58,9 @@ abstract class MemberBuilder extends ModifierBuilder {
     if (parent is LibraryBuilder) {
       LibraryBuilder library = parent;
       return library.partOfLibrary ?? library;
+    } else if (parent is ExtensionBuilder) {
+      ExtensionBuilder extension = parent;
+      return extension.library;
     } else {
       ClassBuilder cls = parent;
       return cls.library;

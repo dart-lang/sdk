@@ -274,7 +274,8 @@ class CascadeJudgment extends Let implements ExpressionJudgment {
   }
 
   @override
-  DartType acceptInference(InferenceVisitor visitor, DartType typeContext) {
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
     return visitor.visitCascadeJudgment(this, typeContext);
   }
 }
@@ -409,9 +410,10 @@ abstract class ComplexAssignmentJudgment extends SyntheticExpressionJudgment {
       }
       _storeLetType(inferrer, replacedCombiner, combinedType);
     } else {
-      inferrer.inferExpression(rhs, writeContext ?? const UnknownType(), true,
+      ExpressionInferenceResult rhsResult = inferrer.inferExpression(
+          rhs, writeContext ?? const UnknownType(), true,
           isVoidAllowed: true);
-      DartType rhsType = getInferredType(rhs, inferrer);
+      DartType rhsType = rhsResult.inferredType;
       Expression replacedRhs = inferrer.ensureAssignable(
           writeContext, rhsType, rhs, writeOffset,
           isVoidAllowed: writeContext is VoidType);
@@ -501,10 +503,11 @@ class DeferredCheckJudgment extends Let implements ExpressionJudgment {
   DeferredCheckJudgment(VariableDeclaration variable, Expression body)
       : super(variable, body);
 
-  Expression get judgment => body;
+  Expression get expression => body;
 
   @override
-  DartType acceptInference(InferenceVisitor visitor, DartType typeContext) {
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
     return visitor.visitDeferredCheckJudgment(this, typeContext);
   }
 }
@@ -528,7 +531,8 @@ class DoubleJudgment extends DoubleLiteral implements ExpressionJudgment {
   DoubleJudgment(double value) : super(value);
 
   @override
-  DartType acceptInference(InferenceVisitor visitor, DartType typeContext) {
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
     return visitor.visitDoubleJudgment(this, typeContext);
   }
 }
@@ -540,7 +544,8 @@ abstract class ExpressionJudgment extends Expression {
 
   /// Calls back to [inferrer] to perform type inference for whatever concrete
   /// type of [Expression] this is.
-  DartType acceptInference(InferenceVisitor visitor, DartType typeContext);
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext);
 }
 
 /// Concrete shadow object representing an empty statement in kernel form.
@@ -581,7 +586,8 @@ class FactoryConstructorInvocationJudgment extends StaticInvocation
   ArgumentsJudgment get argumentJudgments => arguments;
 
   @override
-  DartType acceptInference(InferenceVisitor visitor, DartType typeContext) {
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
     return visitor.visitFactoryConstructorInvocationJudgment(this, typeContext);
   }
 }
@@ -696,7 +702,8 @@ class IfNullJudgment extends Let implements ExpressionJudgment {
   Expression get rightJudgment => body.then;
 
   @override
-  DartType acceptInference(InferenceVisitor visitor, DartType typeContext) {
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
     return visitor.visitIfNullJudgment(this, typeContext);
   }
 }
@@ -727,7 +734,8 @@ class IllegalAssignmentJudgment extends ComplexAssignmentJudgment {
   }
 
   @override
-  DartType acceptInference(InferenceVisitor visitor, DartType typeContext) {
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
     return visitor.visitIllegalAssignmentJudgment(this, typeContext);
   }
 }
@@ -762,7 +770,8 @@ class IndexAssignmentJudgment extends ComplexAssignmentJudgmentWithReceiver {
   }
 
   @override
-  DartType acceptInference(InferenceVisitor visitor, DartType typeContext) {
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
     return visitor.visitIndexAssignmentJudgment(this, typeContext);
   }
 }
@@ -812,7 +821,8 @@ class IntJudgment extends IntLiteral implements ExpressionJudgment {
   }
 
   @override
-  DartType acceptInference(InferenceVisitor visitor, DartType typeContext) {
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
     return visitor.visitIntJudgment(this, typeContext);
   }
 }
@@ -842,7 +852,8 @@ class ShadowLargeIntLiteral extends IntLiteral implements ExpressionJudgment {
   }
 
   @override
-  DartType acceptInference(InferenceVisitor visitor, DartType typeContext) {
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
     return visitor.visitShadowLargeIntLiteral(this, typeContext);
   }
 }
@@ -888,7 +899,8 @@ class ListLiteralJudgment extends ListLiteral implements ExpressionJudgment {
         super(expressions, typeArgument: typeArgument, isConst: isConst);
 
   @override
-  DartType acceptInference(InferenceVisitor visitor, DartType typeContext) {
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
     return visitor.visitListLiteralJudgment(this, typeContext);
   }
 }
@@ -903,7 +915,8 @@ class SetLiteralJudgment extends SetLiteral implements ExpressionJudgment {
         super(expressions, typeArgument: typeArgument, isConst: isConst);
 
   @override
-  DartType acceptInference(InferenceVisitor visitor, DartType typeContext) {
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
     return visitor.visitSetLiteralJudgment(this, typeContext);
   }
 }
@@ -920,7 +933,8 @@ class MapLiteralJudgment extends MapLiteral implements ExpressionJudgment {
             keyType: keyType, valueType: valueType, isConst: isConst);
 
   @override
-  DartType acceptInference(InferenceVisitor visitor, DartType typeContext) {
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
     return visitor.visitMapLiteralJudgment(this, typeContext);
   }
 }
@@ -943,7 +957,8 @@ class MethodInvocationJudgment extends MethodInvocation
   ArgumentsJudgment get argumentJudgments => arguments;
 
   @override
-  DartType acceptInference(InferenceVisitor visitor, DartType typeContext) {
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
     return visitor.visitMethodInvocationJudgment(this, typeContext);
   }
 }
@@ -967,7 +982,8 @@ class NamedFunctionExpressionJudgment extends Let
   VariableDeclarationJudgment get variableJudgment => variable;
 
   @override
-  DartType acceptInference(InferenceVisitor visitor, DartType typeContext) {
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
     return visitor.visitNamedFunctionExpressionJudgment(this, typeContext);
   }
 }
@@ -992,7 +1008,8 @@ class NullAwareMethodInvocationJudgment extends Let
   MethodInvocation get _desugaredInvocation => body.otherwise;
 
   @override
-  DartType acceptInference(InferenceVisitor visitor, DartType typeContext) {
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
     return visitor.visitNullAwareMethodInvocationJudgment(this, typeContext);
   }
 }
@@ -1018,7 +1035,8 @@ class NullAwarePropertyGetJudgment extends Let implements ExpressionJudgment {
   Expression get receiverJudgment => variable.initializer;
 
   @override
-  DartType acceptInference(InferenceVisitor visitor, DartType typeContext) {
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
     return visitor.visitNullAwarePropertyGetJudgment(this, typeContext);
   }
 }
@@ -1046,7 +1064,8 @@ class PropertyAssignmentJudgment extends ComplexAssignmentJudgmentWithReceiver {
   }
 
   @override
-  DartType acceptInference(InferenceVisitor visitor, DartType typeContext) {
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
     return visitor.visitPropertyAssignmentJudgment(this, typeContext);
   }
 }
@@ -1095,7 +1114,8 @@ class StaticAssignmentJudgment extends ComplexAssignmentJudgment {
   StaticAssignmentJudgment._(Expression rhs) : super._(rhs);
 
   @override
-  DartType acceptInference(InferenceVisitor visitor, DartType typeContext) {
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
     return visitor.visitStaticAssignmentJudgment(this, typeContext);
   }
 }
@@ -1126,7 +1146,8 @@ class SuperMethodInvocationJudgment extends SuperMethodInvocation
   ArgumentsJudgment get argumentJudgments => arguments;
 
   @override
-  DartType acceptInference(InferenceVisitor visitor, DartType typeContext) {
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
     return visitor.visitSuperMethodInvocationJudgment(this, typeContext);
   }
 }
@@ -1140,7 +1161,8 @@ class SuperPropertyGetJudgment extends SuperPropertyGet
       : super(name, interfaceTarget);
 
   @override
-  DartType acceptInference(InferenceVisitor visitor, DartType typeContext) {
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
     return visitor.visitSuperPropertyGetJudgment(this, typeContext);
   }
 }
@@ -1183,7 +1205,8 @@ class SymbolLiteralJudgment extends SymbolLiteral
   SymbolLiteralJudgment(String value) : super(value);
 
   @override
-  DartType acceptInference(InferenceVisitor visitor, DartType typeContext) {
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
     return visitor.visitSymbolLiteralJudgment(this, typeContext);
   }
 }
@@ -1203,7 +1226,8 @@ class InvalidConstructorInvocationJudgment extends SyntheticExpressionJudgment {
   ArgumentsJudgment get argumentJudgments => arguments;
 
   @override
-  DartType acceptInference(InferenceVisitor visitor, DartType typeContext) {
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
     return visitor.visitInvalidConstructorInvocationJudgment(this, typeContext);
   }
 }
@@ -1217,7 +1241,8 @@ class InvalidWriteJudgment extends SyntheticExpressionJudgment {
       : super._(desugared);
 
   @override
-  DartType acceptInference(InferenceVisitor visitor, DartType typeContext) {
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
     return visitor.visitInvalidWriteJudgment(this, typeContext);
   }
 }
@@ -1243,7 +1268,8 @@ class SyntheticExpressionJudgment extends Let implements ExpressionJudgment {
   }
 
   @override
-  DartType acceptInference(InferenceVisitor visitor, DartType typeContext) {
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
     return visitor.visitSyntheticExpressionJudgment(this, typeContext);
   }
 
@@ -1374,7 +1400,7 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
   }
 
   @override
-  DartType inferExpression(
+  ExpressionInferenceResult inferExpression(
       kernel.Expression expression, DartType typeContext, bool typeNeeded,
       {bool isVoidAllowed: false}) {
     // `null` should never be used as the type context.  An instance of
@@ -1393,15 +1419,16 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
     // When doing top level inference, we skip subexpressions whose type isn't
     // needed so that we don't induce bogus dependencies on fields mentioned in
     // those subexpressions.
-    if (!typeNeeded) return null;
+    if (!typeNeeded) return const ExpressionInferenceResult(null);
 
     InferenceVisitor visitor = new InferenceVisitor(this);
-    DartType inferredType;
+    ExpressionInferenceResult result;
     if (expression is ExpressionJudgment) {
-      inferredType = expression.acceptInference(visitor, typeContext);
+      result = expression.acceptInference(visitor, typeContext);
     } else {
-      inferredType = expression.accept1(visitor, typeContext);
+      result = expression.accept1(visitor, typeContext);
     }
+    DartType inferredType = result.inferredType;
     assert(inferredType != null, "No type inferred for $expression.");
     if (inferredType is VoidType && !isVoidAllowed) {
       if (expression.parent is! ArgumentsJudgment) {
@@ -1409,7 +1436,7 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
             messageVoidExpression, expression.fileOffset, noLength);
       }
     }
-    return inferredType;
+    return result;
   }
 
   @override
@@ -1461,7 +1488,8 @@ class TypeLiteralJudgment extends TypeLiteral implements ExpressionJudgment {
   TypeLiteralJudgment(DartType type) : super(type);
 
   @override
-  DartType acceptInference(InferenceVisitor visitor, DartType typeContext) {
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
     return visitor.visitTypeLiteralJudgment(this, typeContext);
   }
 }
@@ -1539,7 +1567,8 @@ class VariableAssignmentJudgment extends ComplexAssignmentJudgment {
   VariableAssignmentJudgment._(Expression rhs) : super._(rhs);
 
   @override
-  DartType acceptInference(InferenceVisitor visitor, DartType typeContext) {
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
     return visitor.visitVariableAssignmentJudgment(this, typeContext);
   }
 }
@@ -1638,7 +1667,8 @@ class UnresolvedTargetInvocationJudgment extends SyntheticExpressionJudgment {
       : super._(desugared);
 
   @override
-  DartType acceptInference(InferenceVisitor visitor, DartType typeContext) {
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
     return visitor.visitUnresolvedTargetInvocationJudgment(this, typeContext);
   }
 }
@@ -1654,7 +1684,8 @@ class UnresolvedVariableAssignmentJudgment extends SyntheticExpressionJudgment {
       : super._(desugared);
 
   @override
-  DartType acceptInference(InferenceVisitor visitor, DartType typeContext) {
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
     return visitor.visitUnresolvedVariableAssignmentJudgment(this, typeContext);
   }
 }
@@ -1671,7 +1702,8 @@ class VariableGetJudgment extends VariableGet implements ExpressionJudgment {
       : super(variable);
 
   @override
-  DartType acceptInference(InferenceVisitor visitor, DartType typeContext) {
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
     return visitor.visitVariableGetJudgment(this, typeContext);
   }
 }
@@ -1712,7 +1744,8 @@ class LoadLibraryJudgment extends LoadLibrary implements ExpressionJudgment {
   ArgumentsJudgment get argumentJudgments => arguments;
 
   @override
-  DartType acceptInference(InferenceVisitor visitor, DartType typeContext) {
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
     return visitor.visitLoadLibraryJudgment(this, typeContext);
   }
 }
@@ -1727,7 +1760,8 @@ class LoadLibraryTearOffJudgment extends StaticGet
   LoadLibraryTearOffJudgment(this.import, Procedure target) : super(target);
 
   @override
-  DartType acceptInference(InferenceVisitor visitor, DartType typeContext) {
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
     return visitor.visitLoadLibraryTearOffJudgment(this, typeContext);
   }
 }

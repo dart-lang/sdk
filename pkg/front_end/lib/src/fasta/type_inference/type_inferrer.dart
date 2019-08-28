@@ -104,8 +104,7 @@ import '../kernel/kernel_shadow_ast.dart'
         ShadowTypeInferenceEngine,
         ShadowTypeInferrer,
         VariableDeclarationJudgment,
-        getExplicitTypeArguments,
-        getInferredType;
+        getExplicitTypeArguments;
 
 import '../kernel/type_algorithms.dart' show hasAnyTypeVariables;
 
@@ -1162,12 +1161,13 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   ///
   /// [typeContext] is the expected type of the expression, based on surrounding
   /// code.  [typeNeeded] indicates whether it is necessary to compute the
-  /// actual type of the expression.  If [typeNeeded] is `true`, the actual type
-  /// of the expression is returned; otherwise `null` is returned.
+  /// actual type of the expression.  If [typeNeeded] is `true`,
+  /// [ExpressionInferenceResult.inferredType] is the actual type of the
+  /// expression; otherwise `null`.
   ///
   /// Derived classes should override this method with logic that dispatches on
   /// the expression type and calls the appropriate specialized "infer" method.
-  DartType inferExpression(
+  ExpressionInferenceResult inferExpression(
       kernel.Expression expression, DartType typeContext, bool typeNeeded,
       {bool isVoidAllowed});
 
@@ -1180,9 +1180,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     assert(closureContext == null);
     assert(!isTopLevel);
     this.helper = helper;
-    DartType actualType =
+    ExpressionInferenceResult result =
         inferExpression(initializer, context, true, isVoidAllowed: true);
-    ensureAssignable(context, actualType, initializer, initializer.fileOffset,
+    ensureAssignable(
+        context, result.inferredType, initializer, initializer.fileOffset,
         isVoidAllowed: context is VoidType);
     this.helper = null;
   }
@@ -1200,7 +1201,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   /// Performs the type inference steps that are shared by all kinds of
   /// invocations (constructors, instance methods, and static methods).
-  ExpressionInferenceResult inferInvocation(DartType typeContext, int offset,
+  DartType inferInvocation(DartType typeContext, int offset,
       FunctionType calleeType, DartType returnType, Arguments arguments,
       {bool isOverloadedArithmeticOperator: false,
       DartType receiverType,
@@ -1268,7 +1269,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       DartType inferredFormalType = substitution != null
           ? substitution.substituteType(formalType)
           : formalType;
-      DartType expressionType = inferExpression(
+      ExpressionInferenceResult result = inferExpression(
           expression,
           inferredFormalType,
           inferenceNeeded ||
@@ -1276,11 +1277,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
               typeChecksNeeded);
       if (inferenceNeeded || typeChecksNeeded) {
         formalTypes.add(formalType);
-        actualTypes.add(expressionType);
+        actualTypes.add(result.inferredType);
       }
       if (isOverloadedArithmeticOperator) {
         returnType = typeSchemaEnvironment.getTypeOfOverloadedArithmetic(
-            receiverType, expressionType);
+            receiverType, result.inferredType);
       }
     });
 
@@ -1374,11 +1375,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     inferredType = substitution == null
         ? returnType
         : substitution.substituteType(returnType);
-    return new ExpressionInferenceResult(null, inferredType);
+    return inferredType;
   }
 
-  ExpressionInferenceResult inferLocalFunction(FunctionNode function,
-      DartType typeContext, int fileOffset, DartType returnContext) {
+  DartType inferLocalFunction(FunctionNode function, DartType typeContext,
+      int fileOffset, DartType returnContext) {
     bool hasImplicitReturnType = false;
     if (returnContext == null) {
       hasImplicitReturnType = true;
@@ -1511,7 +1512,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       function.returnType = inferredReturnType;
     }
     this.closureContext = oldClosureContext;
-    return new ExpressionInferenceResult(null, function.functionType);
+    return function.functionType;
   }
 
   @override
@@ -1557,9 +1558,14 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     assert(desugaredInvocation == null || target == null);
     assert(desugaredInvocation != null || target != null);
     // First infer the receiver so we can look up the method that was invoked.
-    DartType receiverType = receiver == null
-        ? thisType
-        : inferExpression(receiver, const UnknownType(), true);
+    DartType receiverType;
+    if (receiver == null) {
+      receiverType = thisType;
+    } else {
+      ExpressionInferenceResult result =
+          inferExpression(receiver, const UnknownType(), true);
+      receiverType = result.inferredType;
+    }
     receiverVariable?.type = receiverType;
     if (desugaredInvocation != null) {
       target = findMethodInvocationMember(receiverType, desugaredInvocation);
@@ -1586,7 +1592,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       kernel.Expression error = helper.wrapInProblem(expression,
           templateInvokeNonFunction.withArguments(methodName.name), noLength);
       parent?.replaceChild(expression, error);
-      return new ExpressionInferenceResult(null, const DynamicType());
+      return const ExpressionInferenceResult(const DynamicType());
     }
     MethodContravarianceCheckKind checkKind = preCheckInvocationContravariance(
         receiver,
@@ -1595,11 +1601,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         desugaredInvocation,
         arguments,
         expression);
-    ExpressionInferenceResult inferenceResult = inferInvocation(typeContext,
-        fileOffset, functionType, functionType.returnType, arguments,
+    DartType inferredType = inferInvocation(typeContext, fileOffset,
+        functionType, functionType.returnType, arguments,
         isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
         receiverType: receiverType);
-    DartType inferredType = inferenceResult.type;
     if (methodName.name == '==') {
       inferredType = coreTypes.boolClass.rawType;
     }
@@ -1651,7 +1656,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           inferred: getExplicitTypeArguments(arguments) == null);
     }
 
-    return new ExpressionInferenceResult(null, inferredType);
+    return new ExpressionInferenceResult(inferredType);
   }
 
   @override
@@ -1660,16 +1665,17 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     assert(closureContext == null);
     this.helper = helper;
     assert(declaredType != null);
-    DartType actualType = inferExpression(initializer, declaredType, true);
+    ExpressionInferenceResult result =
+        inferExpression(initializer, declaredType, true);
     ensureAssignable(
-        declaredType, actualType, initializer, initializer.fileOffset);
+        declaredType, result.inferredType, initializer, initializer.fileOffset);
     this.helper = null;
   }
 
   /// Performs the core type inference algorithm for property gets (this handles
   /// both null-aware and non-null-aware property gets).
-  DartType inferPropertyGet(Expression expression, Expression receiver,
-      int fileOffset, DartType typeContext,
+  ExpressionInferenceResult inferPropertyGet(Expression expression,
+      Expression receiver, int fileOffset, DartType typeContext,
       {VariableDeclaration receiverVariable,
       PropertyGet desugaredGet,
       ObjectAccessTarget readTarget,
@@ -1679,8 +1685,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     if (receiver == null) {
       receiverType = thisType;
     } else {
-      inferExpression(receiver, const UnknownType(), true);
-      receiverType = getInferredType(receiver, this);
+      ExpressionInferenceResult result =
+          inferExpression(receiver, const UnknownType(), true);
+      receiverType = result.inferredType;
     }
     receiverVariable?.type = receiverType;
     propertyName ??= desugaredGet.name;
@@ -1708,7 +1715,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       }
     }
     storeInferredType(expression, inferredType);
-    return inferredType;
+    return new ExpressionInferenceResult(inferredType);
   }
 
   /// Modifies a type as appropriate when inferring a closure return type.
@@ -2098,10 +2105,13 @@ abstract class MixinInferrer {
 
 /// The result of an expression inference.
 class ExpressionInferenceResult {
-  final Expression expression;
-  final DartType type;
+  /// The inferred type of the expression.
+  final DartType inferredType;
 
-  ExpressionInferenceResult(this.expression, this.type);
+  /// If not-null, the [replacement] that replaced the inferred expression.
+  final Expression replacement;
+
+  const ExpressionInferenceResult(this.inferredType, [this.replacement]);
 }
 
 enum ObjectAccessTargetKind {

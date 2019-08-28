@@ -50,7 +50,8 @@ import '../source/source_loader.dart' show SourceLoader;
 import '../type_inference/type_inference_engine.dart'
     show IncludesTypeParametersNonCovariantly, Variance;
 
-import '../type_inference/type_inferrer.dart' show TypeInferrerImpl;
+import '../type_inference/type_inferrer.dart'
+    show ExpressionInferenceResult, TypeInferrerImpl;
 
 import '../type_inference/type_schema.dart' show UnknownType;
 
@@ -215,9 +216,11 @@ class FieldBuilder extends MemberBuilder {
     initializer = bodyBuilder.parseFieldInitializer(type.initializerToken);
     type.initializerToken = null;
 
-    DartType inferredType = typeInferrer.inferDeclarationType(typeInferrer
-        .inferExpression(field.initializer, const UnknownType(), true,
-            isVoidAllowed: true));
+    ExpressionInferenceResult result = typeInferrer.inferExpression(
+        field.initializer, const UnknownType(), true,
+        isVoidAllowed: true);
+    DartType inferredType =
+        typeInferrer.inferDeclarationType(result.inferredType);
 
     if (field.type is ImplicitFieldType) {
       // `field.type` may have changed if a circularity was detected when
