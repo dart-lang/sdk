@@ -346,6 +346,12 @@ class NullabilityGraph {
 class NullabilityGraphForTesting extends NullabilityGraph {
   final List<NullabilityEdge> _allEdges = [];
 
+  /// Prints out a representation of the graph nodes.  Useful in debugging
+  /// broken tests.
+  void debugDump() {
+    _debugDump();
+  }
+
   /// Iterates through all edges in the graph.
   @visibleForTesting
   Iterable<NullabilityEdge> getAllEdges() {

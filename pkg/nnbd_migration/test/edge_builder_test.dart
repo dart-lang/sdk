@@ -2468,6 +2468,23 @@ void test(C c) {
     assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true);
   }
 
+  test_methodInvocation_target_generic_in_base_class() async {
+    await analyze('''
+abstract class B<T> {
+  void m(T/*1*/ t);
+}
+abstract class C extends B<int/*2*/> {}
+void f(C c, int/*3*/ i) {
+  c.m(i);
+}
+''');
+    // nullable(3) -> substitute(nullable(2), nullable(1))
+    var nullable1 = decoratedTypeAnnotation('T/*1*/').node;
+    var nullable2 = decoratedTypeAnnotation('int/*2*/').node;
+    var nullable3 = decoratedTypeAnnotation('int/*3*/').node;
+    assertEdge(nullable3, substitutionNode(nullable2, nullable1), hard: true);
+  }
+
   test_methodInvocation_typeParameter_inferred() async {
     await analyze('''
 T f<T>(T t) => t;
@@ -3321,6 +3338,24 @@ bool f(C c) => c.b;
 ''');
     assertEdge(decoratedTypeAnnotation('bool get').node,
         decoratedTypeAnnotation('bool f').node,
+        hard: false);
+  }
+
+  test_prefixedIdentifier_getter_type_in_generic() async {
+    await analyze('''
+class C<T> {
+  List<T> _x;
+  List<T> get x => _x;
+}
+List<int> f(C<int> c) => c.x;
+''');
+    assertEdge(decoratedTypeAnnotation('List<T> get').node,
+        decoratedTypeAnnotation('List<int> f').node,
+        hard: false);
+    assertEdge(
+        substitutionNode(decoratedTypeAnnotation('int> c').node,
+            decoratedTypeAnnotation('T> get').node),
+        decoratedTypeAnnotation('int> f').node,
         hard: false);
   }
 
