@@ -605,7 +605,7 @@ class CommandExecutorImpl implements CommandExecutor {
           adbDevicePool.releaseDevice(device);
         }
       });
-    } else if (command is VmBatchCommand) {
+    } else if (command is VMBatchCommand) {
       var name = command.displayName;
       return _getBatchRunner(command.displayName + command.dartFile)
           .runCommand(name, command, timeout, command.arguments);
@@ -713,7 +713,7 @@ class CommandExecutorImpl implements CommandExecutor {
       // immediately.
       if (result.exitCode != 0) break;
     }
-    return createCommandOutput(command, result.exitCode, result.timedOut,
+    return command.createOutput(result.exitCode, result.timedOut,
         utf8.encode('$writer'), [], stopwatch.elapsed, false);
   }
 
@@ -773,7 +773,7 @@ class CommandExecutorImpl implements CommandExecutor {
       // immediately.
       if (result.exitCode != 0) break;
     }
-    return createCommandOutput(command, result.exitCode, result.timedOut,
+    return command.createOutput(result.exitCode, result.timedOut,
         utf8.encode('$writer'), [], stopwatch.elapsed, false);
   }
 
@@ -1085,8 +1085,7 @@ class BatchRunnerProcess {
     if (outcome == "CRASH") exitCode = unhandledCompilerExceptionExitCode;
     if (outcome == "PARSE_FAIL") exitCode = parseFailExitCode;
     if (outcome == "FAIL" || outcome == "TIMEOUT") exitCode = 1;
-    var output = createCommandOutput(
-        _command,
+    var output = _command.createOutput(
         exitCode,
         outcome == "TIMEOUT",
         _testStdout.toList(),

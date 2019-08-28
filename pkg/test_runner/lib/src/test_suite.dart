@@ -378,7 +378,7 @@ class VMTestSuite extends TestSuite {
 
     args.add(test.name);
 
-    var command = Command.process(
+    var command = ProcessCommand(
         'run_vm_unittest', targetRunnerPath, args, environmentOverrides);
     enqueueNewTestCase(testFile, fullName, [command], expectations);
   }

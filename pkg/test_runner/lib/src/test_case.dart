@@ -384,8 +384,7 @@ class RunningProcess {
         exitCode = nonUtfFakeExitCode;
       }
     }
-    var commandOutput = createCommandOutput(
-        command,
+    var commandOutput = command.createOutput(
         exitCode,
         timedOut,
         stdoutData,

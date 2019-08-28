@@ -1086,50 +1086,6 @@ class FastaCommandOutput extends CompilationCommandOutput
   }
 }
 
-CommandOutput createCommandOutput(Command command, int exitCode, bool timedOut,
-    List<int> stdout, List<int> stderr, Duration time, bool compilationSkipped,
-    [int pid = 0]) {
-  if (command is AnalysisCommand) {
-    return AnalysisCommandOutput(
-        command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
-  } else if (command is CompareAnalyzerCfeCommand) {
-    return CompareAnalyzerCfeCommandOutput(
-        command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
-  } else if (command is SpecParseCommand) {
-    return SpecParseCommandOutput(
-        command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
-  } else if (command is VmCommand) {
-    return VMCommandOutput(
-        command, exitCode, timedOut, stdout, stderr, time, pid);
-  } else if (command is VMKernelCompilationCommand) {
-    return VMKernelCompilationCommandOutput(
-        command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
-  } else if (command is AdbPrecompilationCommand) {
-    return VMCommandOutput(
-        command, exitCode, timedOut, stdout, stderr, time, pid);
-  } else if (command is FastaCompilationCommand) {
-    return FastaCommandOutput(
-        command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
-  } else if (command is CompilationCommand) {
-    if (command.displayName == 'precompiler' ||
-        command.displayName == 'app_jit') {
-      return VMCommandOutput(
-          command, exitCode, timedOut, stdout, stderr, time, pid);
-    } else if (command.displayName == 'dartdevc') {
-      return DevCompilerCommandOutput(command, exitCode, timedOut, stdout,
-          stderr, time, compilationSkipped, pid);
-    }
-    return CompilationCommandOutput(
-        command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
-  } else if (command is JSCommandlineCommand) {
-    return JSCommandLineOutput(
-        command, exitCode, timedOut, stdout, stderr, time);
-  }
-
-  return CommandOutput(command, exitCode, timedOut, stdout, stderr, time,
-      compilationSkipped, pid);
-}
-
 /// Mixin for outputs from a command that implement a Dart front end which
 /// reports static errors.
 mixin _StaticErrorOutput on CommandOutput {

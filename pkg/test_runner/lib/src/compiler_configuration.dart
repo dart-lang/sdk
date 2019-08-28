@@ -392,7 +392,7 @@ class Dart2xCompilerConfiguration extends CompilerConfiguration {
     arguments = arguments.toList();
     arguments.add('--out=$outputFileName');
 
-    return Command.compilation(moniker, outputFileName, bootstrapDependencies(),
+    return CompilationCommand(moniker, outputFileName, bootstrapDependencies(),
         computeCompilerPath(), arguments, environmentOverrides,
         alwaysCompile: !_useSdk);
   }
@@ -472,7 +472,7 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
         uri.resolve('pkg/test_runner/lib/src/babel_transform.js').toFilePath();
     var babelStandalone =
         uri.resolve('third_party/babel/babel.min.js').toFilePath();
-    return Command.compilation(
+    return CompilationCommand(
         'babel',
         output,
         [],
@@ -579,7 +579,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
 
     var inputDir = Path(inputFile).append("..").canonicalize().toNativePath();
     var displayName = useKernel ? 'dartdevk' : 'dartdevc';
-    return Command.compilation(displayName, outputFile, bootstrapDependencies(),
+    return CompilationCommand(displayName, outputFile, bootstrapDependencies(),
         computeCompilerPath(), args, environment,
         workingDirectory: inputDir);
   }
@@ -673,7 +673,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       args = [tempKernelFile(tempDir)];
     }
 
-    return Command.compilation('remove_kernel_file', tempDir,
+    return CompilationCommand('remove_kernel_file', tempDir,
         bootstrapDependencies(), exec, args, environmentOverrides,
         alwaysCompile: !_useSdk);
   }
@@ -714,7 +714,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       ..._replaceDartFiles(arguments, tempKernelFile(tempDir))
     ];
 
-    return Command.compilation('precompiler', tempDir, bootstrapDependencies(),
+    return CompilationCommand('precompiler', tempDir, bootstrapDependencies(),
         exec, args, environmentOverrides,
         alwaysCompile: !_useSdk);
   }
@@ -776,7 +776,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       '$tempDir/out.S'
     ];
 
-    return Command.compilation('assemble', tempDir, bootstrapDependencies(), cc,
+    return CompilationCommand('assemble', tempDir, bootstrapDependencies(), cc,
         args, environmentOverrides,
         alwaysCompile: !_useSdk);
   }
@@ -790,7 +790,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
   /// almost identical configurations are tested simultaneously.
   Command computeRemoveAssemblyCommand(String tempDir, List arguments,
       Map<String, String> environmentOverrides) {
-    return Command.compilation('remove_assembly', tempDir,
+    return CompilationCommand('remove_assembly', tempDir,
         bootstrapDependencies(), 'rm', ['$tempDir/out.S'], environmentOverrides,
         alwaysCompile: !_useSdk);
   }
@@ -869,7 +869,7 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
   Command computeCompilationCommand(String tempDir, List<String> arguments,
       Map<String, String> environmentOverrides) {
     var snapshot = "$tempDir/out.jitsnapshot";
-    return Command.compilation(
+    return CompilationCommand(
         'app_jit',
         tempDir,
         bootstrapDependencies(),
@@ -951,7 +951,7 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
 
     // Since this is not a real compilation, no artifacts are produced.
     return CommandArtifact(
-        [Command.analysis(computeCompilerPath(), args, environmentOverrides)],
+        [AnalysisCommand(computeCompilerPath(), args, environmentOverrides)],
         null,
         null);
   }
@@ -989,7 +989,7 @@ class CompareAnalyzerCfeCompilerConfiguration extends CompilerConfiguration {
 
     // Since this is not a real compilation, no artifacts are produced.
     return CommandArtifact([
-      Command.compareAnalyzerCfe(
+      CompareAnalyzerCfeCommand(
           computeCompilerPath(), arguments.toList(), environmentOverrides)
     ], null, null);
   }
@@ -1017,7 +1017,7 @@ class SpecParserCompilerConfiguration extends CompilerConfiguration {
 
     // Since this is not a real compilation, no artifacts are produced.
     return CommandArtifact([
-      Command.specParse(computeCompilerPath(), arguments, environmentOverrides)
+      SpecParseCommand(computeCompilerPath(), arguments, environmentOverrides)
     ], null, null);
   }
 
@@ -1097,8 +1097,9 @@ abstract class VMKernelCompilerMixin {
 
     var batchArgs = [if (useAbiVersion != null) useAbiVersion];
 
-    return Command.vmKernelCompilation(dillFile, true, bootstrapDependencies(),
-        genKernel, args, environmentOverrides, batchArgs);
+    return VMKernelCompilationCommand(dillFile, bootstrapDependencies(),
+        genKernel, args, environmentOverrides, batchArgs,
+        alwaysCompile: true);
   }
 }
 
@@ -1158,14 +1159,14 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
     ];
 
     return CommandArtifact([
-      Command.fasta(
+      FastaCompilationCommand(
           _compilerLocation,
-          output,
+          output.toFilePath(),
           bootstrapDependencies(),
-          _vmExecutable,
+          _vmExecutable.toFilePath(),
           compilerArguments,
           environmentOverrides,
-          Repository.uri)
+          Repository.uri.toFilePath())
     ], outputFileName, "application/x.dill");
   }
 
