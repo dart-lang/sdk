@@ -337,16 +337,50 @@ class Listener implements UnescapeErrorListener {
     logEvent("FormalParameters");
   }
 
-  /// Handle the end of a field declaration.  Substructures:
+  /// Handle the end of a class field declaration.  Substructures:
   /// - Metadata
   /// - Modifiers
   /// - Type
   /// - Variable declarations (count times)
   ///
   /// Doesn't have a corresponding begin event, use [beginMember] instead.
-  void endFields(Token staticToken, Token covariantToken, Token lateToken,
+  void endClassFields(Token staticToken, Token covariantToken, Token lateToken,
       Token varFinalOrConst, int count, Token beginToken, Token endToken) {
     logEvent("Fields");
+  }
+
+  /// Handle the end of a mixin field declaration.  Substructures:
+  /// - Metadata
+  /// - Modifiers
+  /// - Type
+  /// - Variable declarations (count times)
+  ///
+  /// Doesn't have a corresponding begin event, use [beginMember] instead.
+  void endMixinFields(Token staticToken, Token covariantToken, Token lateToken,
+      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
+    // TODO(danrubel): push implementation into subclasses
+    endClassFields(staticToken, covariantToken, lateToken, varFinalOrConst,
+        count, beginToken, endToken);
+  }
+
+  /// Handle the end of a extension field declaration.  Substructures:
+  /// - Metadata
+  /// - Modifiers
+  /// - Type
+  /// - Variable declarations (count times)
+  ///
+  /// Doesn't have a corresponding begin event, use [beginMember] instead.
+  void endExtensionFields(
+      Token staticToken,
+      Token covariantToken,
+      Token lateToken,
+      Token varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
+    // TODO(danrubel): push implementation into subclasses
+    endClassFields(staticToken, covariantToken, lateToken, varFinalOrConst,
+        count, beginToken, endToken);
   }
 
   /// Marks that the grammar term `forInitializerStatement` has been parsed and
@@ -761,7 +795,8 @@ class Listener implements UnescapeErrorListener {
   }
 
   /// This event is added for convenience. Normally, one should override
-  /// [endMethod] or [endFields] instead.
+  /// [endClassFields], [endMixinFields], [endExtensionFields],
+  /// or [endMethod] instead.
   void endMember() {
     logEvent("Member");
   }

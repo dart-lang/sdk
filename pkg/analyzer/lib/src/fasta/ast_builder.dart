@@ -930,7 +930,7 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endFields(Token staticToken, Token covariantToken, Token lateToken,
+  void endClassFields(Token staticToken, Token covariantToken, Token lateToken,
       Token varFinalOrConst, int count, Token beginToken, Token semicolon) {
     assert(optional(';', semicolon));
     debugEvent("Fields");

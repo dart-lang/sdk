@@ -607,6 +607,15 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
+  void endClassFields(Token staticToken, Token covariantToken, Token lateToken,
+      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
+    // beginMember --> endClassFields, endMember
+    expectIn('Member');
+    super.endClassFields(staticToken, covariantToken, lateToken,
+        varFinalOrConst, count, beginToken, endToken);
+  }
+
+  @override
   void endClassOrMixinBody(
       DeclarationKind kind, int memberCount, Token beginToken, Token endToken) {
     end('ClassOrMixinBody');
@@ -703,18 +712,24 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endFieldInitializer(Token assignment, Token token) {
-    end('FieldInitializer');
-    super.endFieldInitializer(assignment, token);
+  void endExtensionFields(
+      Token staticToken,
+      Token covariantToken,
+      Token lateToken,
+      Token varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
+    // beginMember --> endExtensionFields, endMember
+    expectIn('Member');
+    super.endExtensionFields(staticToken, covariantToken, lateToken,
+        varFinalOrConst, count, beginToken, endToken);
   }
 
   @override
-  void endFields(Token staticToken, Token covariantToken, Token lateToken,
-      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
-    // beginMember --> endFields, endMember
-    expectIn('Member');
-    super.endFields(staticToken, covariantToken, lateToken, varFinalOrConst,
-        count, beginToken, endToken);
+  void endFieldInitializer(Token assignment, Token token) {
+    end('FieldInitializer');
+    super.endFieldInitializer(assignment, token);
   }
 
   @override
@@ -934,6 +949,15 @@ class ForwardingTestListener extends ForwardingListener {
       Token beginToken, Token factoryKeyword, Token endToken) {
     end('FactoryMethod');
     super.endMixinFactoryMethod(beginToken, factoryKeyword, endToken);
+  }
+
+  @override
+  void endMixinFields(Token staticToken, Token covariantToken, Token lateToken,
+      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
+    // beginMember --> endMixinFields, endMember
+    expectIn('Member');
+    super.endMixinFields(staticToken, covariantToken, lateToken,
+        varFinalOrConst, count, beginToken, endToken);
   }
 
   @override

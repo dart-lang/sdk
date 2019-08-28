@@ -564,7 +564,7 @@ class TypePromotionLookAheadListener extends Listener {
   }
 
   @override
-  void endFields(Token staticToken, Token covariantToken, Token lateToken,
+  void endClassFields(Token staticToken, Token covariantToken, Token lateToken,
       Token varFinalOrConst, int count, Token beginToken, Token endToken) {
     debugEvent("Fields", staticToken);
     state.discard(count); // Field names.

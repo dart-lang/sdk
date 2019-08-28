@@ -2351,8 +2351,17 @@ class Parser {
       reportRecoverableErrorWithToken(
           getOrSet, fasta.templateExtraneousModifier);
     }
-    return parseFields(beforeStart, externalToken, null, null, lateToken,
-        varFinalOrConst, beforeType, typeInfo, token.next, true);
+    return parseFields(
+        beforeStart,
+        externalToken,
+        null,
+        null,
+        lateToken,
+        varFinalOrConst,
+        beforeType,
+        typeInfo,
+        token.next,
+        DeclarationKind.TopLevel);
   }
 
   Token parseFields(
@@ -2365,7 +2374,7 @@ class Parser {
       Token beforeType,
       TypeInfo typeInfo,
       Token name,
-      bool isTopLevel) {
+      DeclarationKind kind) {
     if (externalToken != null) {
       reportRecoverableError(externalToken, fasta.messageExternalField);
     }
@@ -2388,18 +2397,18 @@ class Parser {
     Token token = typeInfo.parseType(beforeType, this);
     assert(token.next == name);
 
-    IdentifierContext context = isTopLevel
+    IdentifierContext context = kind == DeclarationKind.TopLevel
         ? IdentifierContext.topLevelVariableDeclaration
         : IdentifierContext.fieldDeclaration;
     name = ensureIdentifier(token, context);
 
     int fieldCount = 1;
-    token = parseFieldInitializerOpt(
-        name, name, lateToken, varFinalOrConst, isTopLevel);
+    token =
+        parseFieldInitializerOpt(name, name, lateToken, varFinalOrConst, kind);
     while (optional(',', token.next)) {
       name = ensureIdentifier(token.next, context);
       token = parseFieldInitializerOpt(
-          name, name, lateToken, varFinalOrConst, isTopLevel);
+          name, name, lateToken, varFinalOrConst, kind);
       ++fieldCount;
     }
     Token semicolon = token.next;
@@ -2407,7 +2416,7 @@ class Parser {
       token = semicolon;
     } else {
       // Recovery
-      if (isTopLevel &&
+      if (kind == DeclarationKind.TopLevel &&
           beforeType.next.isIdentifier &&
           beforeType.next.lexeme == 'extension') {
         // Looks like an extension method
@@ -2423,12 +2432,23 @@ class Parser {
         token = ensureSemicolon(token);
       }
     }
-    if (isTopLevel) {
-      listener.endTopLevelFields(staticToken, covariantToken, lateToken,
-          varFinalOrConst, fieldCount, beforeStart.next, token);
-    } else {
-      listener.endFields(staticToken, covariantToken, lateToken,
-          varFinalOrConst, fieldCount, beforeStart.next, token);
+    switch (kind) {
+      case DeclarationKind.TopLevel:
+        listener.endTopLevelFields(staticToken, covariantToken, lateToken,
+            varFinalOrConst, fieldCount, beforeStart.next, token);
+        break;
+      case DeclarationKind.Class:
+        listener.endClassFields(staticToken, covariantToken, lateToken,
+            varFinalOrConst, fieldCount, beforeStart.next, token);
+        break;
+      case DeclarationKind.Mixin:
+        listener.endMixinFields(staticToken, covariantToken, lateToken,
+            varFinalOrConst, fieldCount, beforeStart.next, token);
+        break;
+      case DeclarationKind.Extension:
+        listener.endExtensionFields(staticToken, covariantToken, lateToken,
+            varFinalOrConst, fieldCount, beforeStart.next, token);
+        break;
     }
     return token;
   }
@@ -2484,7 +2504,7 @@ class Parser {
   }
 
   Token parseFieldInitializerOpt(Token token, Token name, Token lateToken,
-      Token varFinalOrConst, bool isTopLevel) {
+      Token varFinalOrConst, DeclarationKind kind) {
     Token next = token.next;
     if (optional('=', next)) {
       Token assignment = next;
@@ -2498,7 +2518,7 @@ class Parser {
               name,
               fasta.templateConstFieldWithoutInitializer
                   .withArguments(name.lexeme));
-        } else if (isTopLevel &&
+        } else if (kind == DeclarationKind.TopLevel &&
             optional("final", varFinalOrConst) &&
             lateToken == null) {
           reportRecoverableError(
@@ -3124,7 +3144,7 @@ class Parser {
               token == beforeStart &&
               next.next.isIdentifier)) {
         // Recovery
-        return recoverFromInvalidClassMember(
+        return recoverFromInvalidMember(
             token,
             beforeStart,
             externalToken,
@@ -3134,7 +3154,8 @@ class Parser {
             varFinalOrConst,
             beforeType,
             typeInfo,
-            getOrSet);
+            getOrSet,
+            kind);
       }
     } else if (typeInfo == noType && varFinalOrConst == null) {
       Token next2 = next.next;
@@ -3191,7 +3212,7 @@ class Parser {
           beforeType,
           typeInfo,
           token.next,
-          false);
+          kind);
     }
     listener.endMember();
     return token;
@@ -6338,7 +6359,7 @@ class Parser {
   /// Recover from finding an invalid class member. The metadata for the member,
   /// if any, has already been parsed (and events have already been generated).
   /// The member was expected to start with the token after [token].
-  Token recoverFromInvalidClassMember(
+  Token recoverFromInvalidMember(
       Token token,
       Token beforeStart,
       Token externalToken,
@@ -6348,7 +6369,8 @@ class Parser {
       Token varFinalOrConst,
       Token beforeType,
       TypeInfo typeInfo,
-      Token getOrSet) {
+      Token getOrSet,
+      DeclarationKind kind) {
     Token next = token.next;
     String value = next.stringValue;
 
@@ -6397,7 +6419,7 @@ class Parser {
           beforeType,
           typeInfo,
           token.next,
-          false);
+          kind);
     }
 
     listener.endMember();

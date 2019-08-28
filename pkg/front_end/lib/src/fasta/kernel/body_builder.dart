@@ -589,7 +589,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  void endFields(Token staticToken, Token covariantToken, Token lateToken,
+  void endClassFields(Token staticToken, Token covariantToken, Token lateToken,
       Token varFinalOrConst, int count, Token beginToken, Token endToken) {
     debugEvent("Fields");
     if (!libraryBuilder.loader.target.enableNonNullable) {
