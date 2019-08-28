@@ -1367,6 +1367,10 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       }
     }
 
+    if (!_isSerializableExpression(initializer)) {
+      initializer = null;
+    }
+
     var builder = LinkedNodeBuilder.variableDeclaration(
       informativeId: getInformativeId(node),
       variableDeclaration_initializer: initializer?.accept(this),

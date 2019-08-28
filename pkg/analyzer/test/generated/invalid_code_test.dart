@@ -152,6 +152,16 @@ void f({a = [for (@b c = 0;;)]}) {}
 ''');
   }
 
+  test_fuzz_13() async {
+    // `x is int` promotes the type of `x` to `S extends int`, and the
+    // underlying element is `TypeParameterMember`, which by itself is
+    // questionable.  But this is not a valid constant anyway, so we should
+    // not even try to serialize it.
+    await _assertCanBeAnalyzed(r'''
+const v = [<S extends num>(S x) => x is int ? x : 0];
+''');
+  }
+
   test_genericFunction_asTypeArgument_ofUnresolvedClass() async {
     await _assertCanBeAnalyzed(r'''
 C<int Function()> c;
