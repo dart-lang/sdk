@@ -67,12 +67,19 @@ String updateErrorExpectations(String source, List<StaticError> errors,
   }
 
   var previousIndent = 0;
+  var codeLine = 1;
   var result = <String>[];
   for (var i = 0; i < lines.length; i++) {
     // Keep the code.
     if (lines[i] != null) {
       result.add(lines[i]);
       previousIndent = _countIndentation(lines[i]);
+
+      // Keep track of the resulting line number of the last line containing
+      // real code. We use this when outputting explicit line numbers instead
+      // the error's reported line to compensate for added or removed lines
+      // above the error.
+      codeLine = result.length;
     }
 
     // Add expectations for any errors reported on this line.
@@ -92,11 +99,10 @@ String updateErrorExpectations(String source, List<StaticError> errors,
       // If the error can't fit in a line comment or doesn't have a length, use
       // an explicit location.
       if (error.length == null) {
-        result.add("$comment [error line ${error.line}, column "
-            "${error.column}]");
+        result.add("$comment [error line $codeLine, column ${error.column}]");
       } else if (error.column <= 2) {
-        result.add("$comment [error line ${error.line}, column "
-            "${error.column}, length ${error.length}]");
+        result.add("$comment [error line $codeLine, column ${error.column}, "
+            "length ${error.length}]");
       } else {
         var spacing = " " * (error.column - 1 - 2 - indent);
         // A CFE-only error may not have a length, so treat it as length 1.
