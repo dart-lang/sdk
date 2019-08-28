@@ -5,10 +5,7 @@
 [ $compiler == dartdevc ]
 html/element_types_keygen_test: CompileTimeError # Chrome 57 keygen removed
 html/mediasource_test: RuntimeError # Issue 29922
-html/xhr_test: Pass, Slow
-
-[ $compiler == dartdevk ]
-async/slow_consumer_test: CompileTimeError
+html/xhr_test: Slow
 
 [ $runtime == chrome && ($compiler == dartdevc || $compiler == dartdevk) ]
 html/element_animate_test/timing_dict: RuntimeError # Issue 29922
@@ -33,18 +30,16 @@ async/future_or_bad_type_test/none: RuntimeError # Issue 29922
 async/future_test: RuntimeError # Issue 29922
 async/slow_consumer_test: Pass, Timeout # Issue 29922
 async/stream_distinct_test: RuntimeError # Issue 29922
-async/timer_not_available_test: RuntimeError
 convert/base64_test/01: Fail, OK # Uses bit-wise operations to detect invalid values. Some large invalid values accepted by DDC/dart2js.
-convert/chunked_conversion_utf88_test: Slow, Pass
-convert/json_utf8_chunk_test: Slow, Pass
+convert/chunked_conversion_utf88_test: Slow
+convert/json_utf8_chunk_test: Slow
 convert/streamed_conversion_json_utf8_encode_test: Pass, Timeout # Issue 29922
 convert/streamed_conversion_utf8_decode_test: Slow, Pass, Timeout # Issue 29922
-convert/utf85_test: Slow, Pass
+convert/utf85_test: Slow
 html/async_test: RuntimeError # Issue 29922
 html/callback_list_test: Skip # Test requires user interaction to accept permissions.
 html/custom/attribute_changed_callback_test: Skip # Issue 31577
 html/custom/constructor_calls_created_synchronously_test: Skip # Issue 31577
-html/custom/created_callback_test: RuntimeError
 html/custom/created_callback_test: Skip # Issue 31577
 html/custom/document_register_basic_test: Skip # Issue 31577
 html/custom/document_register_template_test: Skip # Issue 31577
