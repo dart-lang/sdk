@@ -2827,11 +2827,14 @@ RawObject* BytecodeReaderHelper::BuildParameterDescriptor(
     const KBCInstr* instr =
         reinterpret_cast<const KBCInstr*>(bytecode.PayloadStart());
     if (KernelBytecode::IsEntryOptionalOpcode(instr)) {
-      const intptr_t num_fixed_params = KernelBytecode::DecodeA(instr);
+      // Note that number of fixed parameters may not match 'A' operand of
+      // EntryOptional bytecode as [function] could be an implicit closure
+      // function with an extra implicit argument, while bytecode corresponds
+      // to a static function without any implicit arguments.
+      const intptr_t num_fixed_params = function.num_fixed_parameters();
       const intptr_t num_opt_pos_params = KernelBytecode::DecodeB(instr);
       const intptr_t num_opt_named_params = KernelBytecode::DecodeC(instr);
       instr = KernelBytecode::Next(instr);
-      ASSERT(num_fixed_params == function.num_fixed_parameters());
       ASSERT(num_opt_pos_params == function.NumOptionalPositionalParameters());
       ASSERT(num_opt_named_params == function.NumOptionalNamedParameters());
       ASSERT((num_opt_pos_params == 0) || (num_opt_named_params == 0));
