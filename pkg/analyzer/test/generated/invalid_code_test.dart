@@ -132,6 +132,15 @@ void f<@A(() { Function() v; }) T>() {}
 ''');
   }
 
+  test_fuzz_12() async {
+    // This code crashed with summary2 because usually AST reader is lazy,
+    // so we did not read metadata `@b` for `c`. But default values must be
+    // read fully.
+    await _assertCanBeAnalyzed(r'''
+void f({a = [for (@b c = 0;;)]}) {}
+''');
+  }
+
   test_genericFunction_asTypeArgument_ofUnresolvedClass() async {
     await _assertCanBeAnalyzed(r'''
 C<int Function()> c;
