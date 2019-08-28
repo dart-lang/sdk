@@ -215,10 +215,11 @@
       "name": "spelling_test_src_test",
       "kind": "Chain",
       "source": "test/spelling_test_src_test.dart",
-      "path": "lib/",
+      "path": "../",
       "status": "test/spelling_test.status",
       "pattern": [
-        ".*\\.dart$"
+        "front_end/lib/.*\\.dart$",
+        "kernel/lib/.*\\.dart$"
       ],
       "exclude": [
         "src/fasta/fasta_codes_generated\\.dart$"

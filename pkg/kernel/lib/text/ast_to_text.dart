@@ -702,7 +702,7 @@ class Printer extends Visitor<Null> {
     if (name?.name == '') {
       writeWord(emptyNameString);
     } else {
-      writeWord(name?.name ?? '<anon>'); // TODO: write library name
+      writeWord(name?.name ?? '<anonymous>'); // TODO: write library name
     }
   }
 
@@ -2335,11 +2335,4 @@ String procedureKindToString(ProcedureKind kind) {
       return 'factory';
   }
   throw 'illegal ProcedureKind: $kind';
-}
-
-class ExpressionPrinter {
-  final Printer writeer;
-  final int minimumPrecedence;
-
-  ExpressionPrinter(this.writeer, this.minimumPrecedence);
 }

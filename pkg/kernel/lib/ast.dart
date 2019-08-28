@@ -5068,7 +5068,7 @@ class InvalidType extends DartType {
 
   bool operator ==(Object other) => other is InvalidType;
 
-  Nullability get nullability => throw "InvalidType doesn't have nullabiliity";
+  Nullability get nullability => throw "InvalidType doesn't have nullability";
 }
 
 class DynamicType extends DartType {
@@ -5472,7 +5472,7 @@ class TypeParameterType extends DartType {
     // by nullability.
 
     // If promotedBound isn't null, getNullability returns the nullability of an
-    // instesection of the left-hand side (referred to as LHS below) and the
+    // intersection of the left-hand side (referred to as LHS below) and the
     // right-hand side (referred to as RHS below).  LHS is parameter followed by
     // nullability, and RHS is promotedBound.  That is, getNullability returns
     // the nullability of either T & P or T? & P where T is parameter, P is

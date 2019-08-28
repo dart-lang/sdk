@@ -80,7 +80,9 @@ class ExpressionLifter extends Transformer {
 
   ExpressionLifter(this.continuationRewriter);
 
-  Block blockOf(List<Statement> stmts) => new Block(stmts.reversed.toList());
+  Block blockOf(List<Statement> statements) {
+    return new Block(statements.reversed.toList());
+  }
 
   /// Rewrite a toplevel expression (toplevel wrt. a statement).
   ///

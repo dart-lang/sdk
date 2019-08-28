@@ -41,7 +41,7 @@ abstract class ClassHierarchy {
   /// [unordered], they are not included.
   Iterable<Class> getOrderedClasses(Iterable<Class> unordered);
 
-  // Returns the instantition of each generic supertype implemented by this
+  // Returns the instantiation of each generic supertype implemented by this
   // class (e.g. getClassAsInstanceOf applied to all superclasses and
   // interfaces).
   List<Supertype> genericSupertypesOf(Class class_);
@@ -377,7 +377,7 @@ class _ClosedWorldClassHierarchySubtypes implements ClassHierarchySubtypes {
   @override
   Member getSingleTargetForInterfaceInvocation(Member interfaceTarget,
       {bool setter: false}) {
-    if (invalidated) throw "This datastructure has been invalidated";
+    if (invalidated) throw "This data structure has been invalidated";
     Name name = interfaceTarget.name;
     Member target = null;
     ClassSet subtypes = getSubtypesOf(interfaceTarget.enclosingClass);
@@ -398,7 +398,7 @@ class _ClosedWorldClassHierarchySubtypes implements ClassHierarchySubtypes {
 
   @override
   ClassSet getSubtypesOf(Class class_) {
-    if (invalidated) throw "This datastructure has been invalidated";
+    if (invalidated) throw "This data structure has been invalidated";
     Set<Class> result = new Set<Class>();
     Uint32List list = _infoMap[class_].subtypeIntervalList;
     for (int i = 0; i < list.length; i += 2) {

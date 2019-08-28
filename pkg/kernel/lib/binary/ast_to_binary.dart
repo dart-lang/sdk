@@ -2215,7 +2215,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   @override
   void visitLibraryDependency(LibraryDependency node) {
-    throw new UnsupportedError('serialization of LibraryDependencys');
+    throw new UnsupportedError('serialization of LibraryDependencies');
   }
 
   @override
@@ -2664,7 +2664,7 @@ class NotQuiteString {
    * Returns
    *  * Non-negative on success (the new index in [target]).
    *  * -1 when [target] doesn't have enough space. Note that [target] can be
-   *    poluted starting at [index].
+   *    polluted starting at [index].
    *  * -2 on input error, i.e. an unpaired lead or tail surrogate.
    */
   static int writeUtf8(List<int> target, int index, String source,

@@ -576,10 +576,10 @@ class BinaryBuilder {
     result.libraryOffsets = new List<int>(result.libraryCount + 1);
     result.componentFileSizeInBytes = readUint32();
     if (result.componentFileSizeInBytes != componentFileSize) {
-      throw 'Malformed binary: This component file\'s component index indicates that'
-          ' the filesize should be $componentFileSize but other component indexes'
-          ' has indicated that the size should be '
-          '${result.componentFileSizeInBytes}.';
+      throw "Malformed binary: This component file's component index indicates that"
+          " the file size should be $componentFileSize but other component indexes"
+          " has indicated that the size should be "
+          "${result.componentFileSizeInBytes}.";
     }
 
     // Skip to the start of the index.
