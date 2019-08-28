@@ -76,7 +76,6 @@ import 'transformations/flags.dart';
 import 'text/ast_to_text.dart';
 import 'type_algebra.dart';
 import 'type_environment.dart';
-import 'coq_annot.dart';
 
 /// Any type of node in the IR.
 abstract class Node {
@@ -174,9 +173,7 @@ abstract class TreeNode extends Node {
 ///
 /// There is a single [reference] belonging to this node, providing a level of
 /// indirection that is needed during serialization.
-@coq
 abstract class NamedNode extends TreeNode {
-  @coqdef
   final Reference reference;
 
   NamedNode(Reference reference)
@@ -200,11 +197,9 @@ abstract class Annotatable {
 /// Indirection between a reference and its definition.
 ///
 /// There is only one reference object per [NamedNode].
-@coqref
 class Reference {
   CanonicalName canonicalName;
 
-  @nocoq
   NamedNode node;
 
   String toString() {
@@ -271,7 +266,6 @@ class Reference {
 //                      LIBRARIES and CLASSES
 // ------------------------------------------------------------------------
 
-@coq
 class Library extends NamedNode
     implements Annotatable, Comparable<Library>, FileUriNode {
   /// An import path to this library.
@@ -336,7 +330,6 @@ class Library extends NamedNode
   /// list is empty.
   List<String> problemsAsJson;
 
-  @nocoq
   final List<Expression> annotations;
 
   final List<LibraryDependency> dependencies;
@@ -344,7 +337,6 @@ class Library extends NamedNode
   /// References to nodes exported by `export` declarations that:
   /// - aren't ambiguous, or
   /// - aren't hidden by local declarations.
-  @nocoq
   final List<Reference> additionalExports = <Reference>[];
 
   @informative
@@ -753,7 +745,6 @@ enum ClassLevel {
 /// use those from its mixed-in type.  However, the IR does not enforce this
 /// rule directly, as doing so can obstruct transformations.  It is possible to
 /// transform a mixin application to become a regular class, and vice versa.
-@coq
 class Class extends NamedNode implements Annotatable, FileUriNode {
   /// Start offset of the class in the source file it comes from.
   ///
@@ -776,7 +767,6 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   ///
   /// This defaults to an immutable empty list. Use [addAnnotation] to add
   /// annotations if needed.
-  @nocoq
   List<Expression> annotations = const <Expression>[];
 
   /// Name of the class.
@@ -786,7 +776,6 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   /// The name may contain characters that are not valid in a Dart identifier,
   /// in particular, the symbol '&' is used in class names generated for mixin
   /// applications.
-  @coq
   String name;
 
   // Must match serialized bit positions.
@@ -1059,18 +1048,15 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
     return new Supertype(this, _getAsTypeArguments(typeParameters));
   }
 
-  @nocoq
   InterfaceType _rawType;
   InterfaceType get rawType => _rawType ??= new InterfaceType(this);
 
-  @nocoq
   InterfaceType _thisType;
   InterfaceType get thisType {
     return _thisType ??=
         new InterfaceType(this, _getAsTypeArguments(typeParameters));
   }
 
-  @nocoq
   InterfaceType _bottomType;
   InterfaceType get bottomType {
     return _bottomType ??= new InterfaceType(this,
@@ -1241,7 +1227,6 @@ class ExtensionMemberDescriptor {
 //                            MEMBERS
 // ------------------------------------------------------------------------
 
-@coq
 abstract class Member extends NamedNode implements Annotatable, FileUriNode {
   /// End offset in the source file it comes from.
   ///
@@ -1254,7 +1239,6 @@ abstract class Member extends NamedNode implements Annotatable, FileUriNode {
   ///
   /// This defaults to an immutable empty list. Use [addAnnotation] to add
   /// annotations if needed.
-  @nocoq
   List<Expression> annotations = const <Expression>[];
 
   Name name;
@@ -1770,7 +1754,6 @@ class RedirectingFactoryConstructor extends Member {
 /// For index-getters/setters, this is `[]` and `[]=`.
 /// For operators, this is the token for the operator, e.g. `+` or `==`,
 /// except for the unary minus operator, whose name is `unary-`.
-@coq
 class Procedure extends Member {
   /// Start offset of the function in the source file it comes from.
   ///
@@ -2221,7 +2204,6 @@ class AssertInitializer extends Initializer {
 ///
 /// This may occur in a procedure, constructor, function expression, or local
 /// function declaration.
-@coq
 class FunctionNode extends TreeNode {
   /// End offset in the source file it comes from. Valid values are from 0 and
   /// up, or -1 ([TreeNode.noOffset]) if the file end offset is not available
@@ -2246,9 +2228,7 @@ class FunctionNode extends TreeNode {
 
   List<TypeParameter> typeParameters;
   int requiredParameterCount;
-  @coqsingledef
   List<VariableDeclaration> positionalParameters;
-  @nocoq
   List<VariableDeclaration> namedParameters;
   DartType returnType; // Not null.
   Statement _body;
@@ -2390,7 +2370,6 @@ enum AsyncMarker {
 //                                EXPRESSIONS
 // ------------------------------------------------------------------------
 
-@coq
 abstract class Expression extends TreeNode {
   /// Returns the static type of the expression.
   ///
@@ -2457,10 +2436,8 @@ class InvalidExpression extends Expression {
 }
 
 /// Read a local variable, a local function, or a function parameter.
-@coq
 class VariableGet extends Expression {
   VariableDeclaration variable;
-  @nocoq
   DartType promotedType; // Null if not promoted.
 
   VariableGet(this.variable, [this.promotedType]);
@@ -2514,13 +2491,10 @@ class VariableSet extends Expression {
 /// Expression of form `x.field`.
 ///
 /// This may invoke a getter, read a field, or tear off a method.
-@coq
 class PropertyGet extends Expression {
   Expression receiver;
-  @coq
   Name name;
 
-  @nocoq
   Reference interfaceTargetReference;
 
   PropertyGet(Expression receiver, Name name, [Member interfaceTarget])
@@ -2920,11 +2894,8 @@ class StaticSet extends Expression {
 
 /// The arguments to a function call, divided into type arguments,
 /// positional arguments, and named arguments.
-@coq
 class Arguments extends TreeNode {
-  @nocoq
   final List<DartType> types;
-  @coqsingle
   final List<Expression> positional;
   List<NamedExpression> named;
 
@@ -2992,7 +2963,6 @@ class NamedExpression extends TreeNode {
 
 /// Common super class for [DirectMethodInvocation], [MethodInvocation],
 /// [SuperMethodInvocation], [StaticInvocation], and [ConstructorInvocation].
-@coq
 abstract class InvocationExpression extends Expression {
   Arguments get arguments;
   set arguments(Arguments value);
@@ -3004,7 +2974,6 @@ abstract class InvocationExpression extends Expression {
 }
 
 /// Expression of form `x.foo(y)`.
-@coq
 class MethodInvocation extends InvocationExpression {
   Expression receiver;
   Name name;
@@ -3197,10 +3166,8 @@ class StaticInvocation extends InvocationExpression {
 // DESIGN TODO: Should we pass type arguments in a separate field
 // `classTypeArguments`? They are quite different from type arguments to
 // generic functions.
-@coq
 class ConstructorInvocation extends InvocationExpression {
   Reference targetReference;
-  @nocoq
   Arguments arguments;
   bool isConst;
 
@@ -4111,13 +4078,11 @@ class CheckLibraryIsLoaded extends Expression {
 //                              STATEMENTS
 // ------------------------------------------------------------------------
 
-@coq
 abstract class Statement extends TreeNode {
   accept(StatementVisitor v);
   accept1(StatementVisitor1 v, arg);
 }
 
-@coq
 class ExpressionStatement extends Statement {
   Expression expression;
 
@@ -4140,7 +4105,6 @@ class ExpressionStatement extends Statement {
   }
 }
 
-@coq
 class Block extends Statement {
   final List<Statement> statements;
 
@@ -4566,7 +4530,6 @@ class IfStatement extends Statement {
   }
 }
 
-@coq
 class ReturnStatement extends Statement {
   Expression expression; // May be null.
 
@@ -4736,7 +4699,6 @@ class YieldStatement extends Statement {
 /// When this occurs as a statement, it must be a direct child of a [Block].
 //
 // DESIGN TODO: Should we remove the 'final' modifier from variables?
-@coqref
 class VariableDeclaration extends Statement {
   /// Offset of the equals sign in the source file it comes from.
   ///
@@ -4767,7 +4729,6 @@ class VariableDeclaration extends Statement {
   /// For parameters, this is the default value.
   ///
   /// Should be null in other cases.
-  @coqopt
   Expression initializer; // May be null.
 
   VariableDeclaration(this.name,
@@ -4958,14 +4919,10 @@ class FunctionDeclaration extends Statement implements LocalFunction {
 ///
 /// The [toString] method returns a human-readable string that includes the
 /// library name for private names; uniqueness is not guaranteed.
-@coq
 abstract class Name implements Node {
   final int hashCode;
-  @coq
   final String name;
-  @nocoq
   Reference get libraryName;
-  @nocoq
   Library get library;
   bool get isPrivate;
 
@@ -5075,7 +5032,6 @@ enum Nullability {
 ///
 /// The `==` operator on [DartType]s compare based on type equality, not
 /// object identity.
-@coq
 abstract class DartType extends Node {
   const DartType();
 
@@ -5157,13 +5113,11 @@ class BottomType extends DartType {
   Nullability get nullability => Nullability.nonNullable;
 }
 
-@coq
 class InterfaceType extends DartType {
   Reference className;
 
   final Nullability nullability;
 
-  @nocoq
   final List<DartType> typeArguments;
 
   /// The [typeArguments] list must not be modified after this call. If the
@@ -5221,11 +5175,9 @@ class InterfaceType extends DartType {
 }
 
 /// A possibly generic function type.
-@coq
 class FunctionType extends DartType {
   final List<TypeParameter> typeParameters;
   final int requiredParameterCount;
-  @coqsingle
   final List<DartType> positionalParameters;
   final List<NamedType> namedParameters; // Must be sorted.
   final Nullability nullability;
@@ -5246,7 +5198,6 @@ class FunctionType extends DartType {
         this.requiredParameterCount =
             requiredParameterCount ?? positionalParameters.length;
 
-  @nocoq
   Reference get typedefReference => typedefType?.typedefReference;
 
   Typedef get typedef => typedefReference?.asTypedef;
