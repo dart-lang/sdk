@@ -6,7 +6,7 @@ library fasta.get_dependencies;
 
 import 'dart:async' show Future;
 
-import 'package:kernel/kernel.dart' show loadComponentFromBytes;
+import 'package:kernel/kernel.dart' show Component, loadComponentFromBytes;
 
 import 'package:kernel/target/targets.dart' show Target;
 
@@ -30,13 +30,14 @@ Future<List<Uri>> getDependencies(Uri script,
     Uri platform,
     bool verbose: false,
     Target target}) async {
-  var options = new CompilerOptions()
+  CompilerOptions options = new CompilerOptions()
     ..target = target
     ..verbose = verbose
     ..packagesFileUri = packages
     ..sdkSummary = platform
     ..sdkRoot = sdk;
-  var pOptions = new ProcessedOptions(options: options, inputs: <Uri>[script]);
+  ProcessedOptions pOptions =
+      new ProcessedOptions(options: options, inputs: <Uri>[script]);
   return await CompilerContext.runWithOptions(pOptions,
       (CompilerContext c) async {
     FileSystem fileSystem = c.options.fileSystem;
@@ -45,8 +46,8 @@ Future<List<Uri>> getDependencies(Uri script,
     DillTarget dillTarget =
         new DillTarget(c.options.ticker, uriTranslator, c.options.target);
     if (platform != null) {
-      var bytes = await fileSystem.entityForUri(platform).readAsBytes();
-      var platformComponent = loadComponentFromBytes(bytes);
+      List<int> bytes = await fileSystem.entityForUri(platform).readAsBytes();
+      Component platformComponent = loadComponentFromBytes(bytes);
       dillTarget.loader.appendLibraries(platformComponent);
     }
     KernelTarget kernelTarget =

@@ -1060,8 +1060,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
     Element element = type.element;
 
-    // No element, e.g. "void".
-    if (element == null) {
+    // The type `void` does not have an element.
+    if (type is VoidType) {
       write(type.displayName);
       return true;
     }
@@ -1074,14 +1074,12 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
 
     // Just a Function, not FunctionTypeAliasElement.
-    if (type is FunctionType &&
-        element is FunctionTypedElement &&
-        element is! FunctionTypeAliasElement) {
+    if (type is FunctionType && element is! FunctionTypeAliasElement) {
       if (_writeType(type.returnType, methodBeingCopied: methodBeingCopied)) {
         write(' ');
       }
       write('Function');
-      writeTypeParameters(element.typeParameters,
+      writeTypeParameters(type.typeFormals,
           methodBeingCopied: methodBeingCopied);
       writeParameters(type.parameters, methodBeingCopied: methodBeingCopied);
       return true;

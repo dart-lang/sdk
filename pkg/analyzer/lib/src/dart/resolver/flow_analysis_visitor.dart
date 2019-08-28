@@ -66,13 +66,10 @@ class FlowAnalysisHelper {
 
   factory FlowAnalysisHelper(
       TypeSystem typeSystem, AstNode node, bool retainDataForTesting) {
-    var assignedVariables = AssignedVariables<Statement, VariableElement>();
-    node.accept(_AssignedVariablesVisitor(assignedVariables));
-
     return FlowAnalysisHelper._(
         const AnalyzerNodeOperations(),
         _TypeSystemTypeOperations(typeSystem),
-        assignedVariables,
+        computeAssignedVariables(node),
         retainDataForTesting ? FlowAnalysisResult() : null);
   }
 
@@ -169,7 +166,7 @@ class FlowAnalysisHelper {
   }
 
   void breakStatement(BreakStatement node) {
-    var target = _getLabelTarget(node, node.label?.staticElement);
+    var target = getLabelTarget(node, node.label?.staticElement);
     flow.handleBreak(target);
   }
 
@@ -191,7 +188,7 @@ class FlowAnalysisHelper {
   }
 
   void continueStatement(ContinueStatement node) {
-    var target = _getLabelTarget(node, node.label?.staticElement);
+    var target = getLabelTarget(node, node.label?.staticElement);
     flow.handleContinue(target);
   }
 
@@ -288,7 +285,7 @@ class FlowAnalysisHelper {
   /// Return the target of the `break` or `continue` statement with the
   /// [element] label. The [element] might be `null` (when the statement does
   /// not specify a label), so the default enclosing target is returned.
-  AstNode _getLabelTarget(AstNode node, LabelElement element) {
+  static Statement getLabelTarget(AstNode node, LabelElement element) {
     for (; node != null; node = node.parent) {
       if (node is DoStatement ||
           node is ForStatement ||
@@ -317,6 +314,14 @@ class FlowAnalysisHelper {
       }
     }
     return null;
+  }
+
+  /// Computes the [AssignedVariables] map for the given [node].
+  static AssignedVariables<Statement, VariableElement> computeAssignedVariables(
+      AstNode node) {
+    var assignedVariables = AssignedVariables<Statement, VariableElement>();
+    node.accept(_AssignedVariablesVisitor(assignedVariables));
+    return assignedVariables;
   }
 }
 

@@ -188,8 +188,8 @@ class TypeCheck extends Step<Component, Component, ChainContext> {
 
   Future<Result<Component>> run(
       Component component, ChainContext context) async {
-    var errorFormatter = new ErrorFormatter();
-    var checker =
+    ErrorFormatter errorFormatter = new ErrorFormatter();
+    NaiveTypeChecker checker =
         new NaiveTypeChecker(errorFormatter, component, ignoreSdk: true);
     checker.checkComponent(component);
     if (errorFormatter.numberOfFailures == 0) {

@@ -56,11 +56,19 @@ void checkExtensionValue(bool x) {
 extension StaticExt on AGlobal {
   // Valid to overlap static names with the target type symbols
   static bool get fieldInInstanceScope => extensionValue;
+  //              ^^^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE
   static bool get getterInInstanceScope => extensionValue;
+  //              ^^^^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE
   static set setterInInstanceScope(bool x) {
+  //         ^^^^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE
     checkExtensionValue(x);
   }
   static bool methodInInstanceScope() => extensionValue;
+  //          ^^^^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE
 
   // Add the global symbols
   static bool get fieldInGlobalScope => extensionValue;
@@ -73,21 +81,17 @@ extension StaticExt on AGlobal {
   // Invalid to overlap the static and extension scopes
   bool get fieldInInstanceScope => extensionValue;
   //       ^^^
-  // [analyzer] unspecified
   // [cfe] unspecified
   bool get getterInInstanceScope => extensionValue;
   //       ^^^
-  // [analyzer] unspecified
   // [cfe] unspecified
   set setterInInstanceScope(bool x) {
   //  ^^^
-  // [analyzer] unspecified
   // [cfe] unspecified
     checkExtensionValue(x);
   }
   bool methodInInstanceScope() => extensionValue;
   //   ^^^
-  // [analyzer] unspecified
   // [cfe] unspecified
 
 

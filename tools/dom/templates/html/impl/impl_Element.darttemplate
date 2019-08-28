@@ -1492,28 +1492,28 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
   final Element offsetParent;
 
-  int get offsetHeight => JS('num', '#.offsetHeight', this).round();
+  int get offsetHeight => JS<num>('num', '#.offsetHeight', this).round();
 
-  int get offsetLeft => JS('num', '#.offsetLeft', this).round();
+  int get offsetLeft => JS<num>('num', '#.offsetLeft', this).round();
 
-  int get offsetTop => JS('num', '#.offsetTop', this).round();
+  int get offsetTop => JS<num>('num', '#.offsetTop', this).round();
 
-  int get offsetWidth => JS('num', '#.offsetWidth', this).round();
+  int get offsetWidth => JS<num>('num', '#.offsetWidth', this).round();
 
-  int get scrollHeight => JS('num', '#.scrollHeight', this).round();
-  int get scrollLeft => JS('num', '#.scrollLeft', this).round();
+  int get scrollHeight => JS<num>('num', '#.scrollHeight', this).round();
+  int get scrollLeft => JS<num>('num', '#.scrollLeft', this).round();
 
   set scrollLeft(int value) {
     JS("void", "#.scrollLeft = #", this, value.round());
   }
 
-  int get scrollTop => JS('num', '#.scrollTop', this).round();
+  int get scrollTop => JS<num>('num', '#.scrollTop', this).round();
 
   set scrollTop(int value) {
     JS("void", "#.scrollTop = #", this, value.round());
   }
 
-  int get scrollWidth => JS('num', '#.scrollWidth', this).round();
+  int get scrollWidth => JS<num>('num', '#.scrollWidth', this).round();
 
 $!MEMBERS
 }

@@ -124,14 +124,12 @@ Function '_scriptUri', static, reflectable, debuggable
 Bytecode {
   Entry                2
   CheckStack           0
-  PushConstant         CP#0
-  PushStatic           CP#0
+  LoadStatic           CP#0
   PushConstant         CP#1
   InterfaceCall        CP#2, 2
   AssertBoolean        0
   JumpIfTrue           L1
-  PushConstant         CP#0
-  PushStatic           CP#0
+  LoadStatic           CP#0
   PushConstant         CP#4
   InterfaceCall        CP#2, 2
   AssertBoolean        0
@@ -143,8 +141,7 @@ L1:
 L2:
   Push                 r1
   JumpIfTrue           L3
-  PushConstant         CP#0
-  PushStatic           CP#0
+  LoadStatic           CP#0
   PushConstant         CP#5
   InterfaceCall        CP#2, 2
   AssertBoolean        0
@@ -156,15 +153,13 @@ L3:
 L4:
   Push                 r0
   JumpIfFalse          L5
-  PushConstant         CP#0
-  PushStatic           CP#0
+  LoadStatic           CP#0
   DirectCall           CP#6, 1
   ReturnTOS
 L5:
   DirectCall           CP#8, 0
   PushNull
-  PushConstant         CP#0
-  PushStatic           CP#0
+  LoadStatic           CP#0
   DirectCall           CP#10, 2
   InterfaceCall        CP#12, 2
   ReturnTOS
@@ -214,12 +209,10 @@ Function 'get:stdin', getter, static, reflectable, debuggable
 Bytecode {
   Entry                2
   CheckStack           0
-  PushConstant         CP#0
-  PushStatic           CP#0
+  LoadStatic           CP#0
   EqualsNull
   JumpIfFalse          L1
-  PushConstant         CP#1
-  PushStatic           CP#1
+  LoadStatic           CP#1
   DirectCall           CP#2, 1
   StoreLocal           r1
   Push                 r1
@@ -232,8 +225,7 @@ L1:
 L2:
   Push                 r0
   Drop1
-  PushConstant         CP#0
-  PushStatic           CP#0
+  LoadStatic           CP#0
   ReturnTOS
 }
 ConstantPool {
@@ -390,8 +382,7 @@ Function 'get:_namespace', getter, static, reflectable, debuggable
 Bytecode {
   Entry                2
   CheckStack           0
-  PushConstant         CP#0
-  PushStatic           CP#0
+  LoadStatic           CP#0
   EqualsNull
   JumpIfFalse          L1
   Allocate             CP#1
@@ -403,8 +394,7 @@ Bytecode {
   DirectCall           CP#6, 2
   StoreStaticTOS       CP#0
 L1:
-  PushConstant         CP#0
-  PushStatic           CP#0
+  LoadStatic           CP#0
   ReturnTOS
 }
 ConstantPool {
@@ -592,12 +582,10 @@ Function 'get:platformScript', getter, static, reflectable, debuggable
 Bytecode {
   Entry                1
   CheckStack           0
-  PushConstant         CP#0
-  PushStatic           CP#0
+  LoadStatic           CP#0
   EqualsNull
   JumpIfFalse          L1
-  PushConstant         CP#1
-  PushStatic           CP#1
+  LoadStatic           CP#1
   EqualsNull
   BooleanNegateTOS
   PopLocal             r0
@@ -608,13 +596,11 @@ L1:
 L2:
   Push                 r0
   JumpIfFalse          L3
-  PushConstant         CP#1
-  PushStatic           CP#1
+  LoadStatic           CP#1
   DynamicCall          CP#3, 1
   StoreStaticTOS       CP#0
 L3:
-  PushConstant         CP#0
-  PushStatic           CP#0
+  LoadStatic           CP#0
   ReturnTOS
 }
 ConstantPool {

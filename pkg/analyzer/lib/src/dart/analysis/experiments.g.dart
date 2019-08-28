@@ -180,7 +180,7 @@ class IsEnabledByDefault {
 /// value in [IsEnabledByDefault]).
 class IsExpired {
   /// Expiration status of the experiment "constant-update-2018"
-  static const bool constant_update_2018 = false;
+  static const bool constant_update_2018 = true;
 
   /// Expiration status of the experiment "control-flow-collections"
   static const bool control_flow_collections = false;

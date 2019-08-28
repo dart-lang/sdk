@@ -184,10 +184,6 @@ $packagePaths
   waitSeconds: 30,
 };
 
-// Don't try to bring up the debugger on a runtime error.
-window.ddcSettings = {
-  trapRuntimeErrors: false
-};
 </script>
 <script type="text/javascript"
         src="/root_dart/third_party/requirejs/require.js"></script>

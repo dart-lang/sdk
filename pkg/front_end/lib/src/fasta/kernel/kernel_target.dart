@@ -204,7 +204,7 @@ class KernelTarget extends TargetImplementation {
   LibraryBuilder createLibraryBuilder(
       Uri uri, Uri fileUri, SourceLibraryBuilder origin) {
     if (dillTarget.isLoaded) {
-      var builder = dillTarget.loader.builders[uri];
+      LibraryBuilder builder = dillTarget.loader.builders[uri];
       if (builder != null) {
         return builder;
       }
@@ -247,11 +247,14 @@ class KernelTarget extends TargetImplementation {
       loader.createTypeInferenceEngine();
       await loader.buildOutlines();
       loader.coreLibrary.becomeCoreLibrary();
-      dynamicType.bind(loader.coreLibrary.getLocalMember("dynamic"));
+      dynamicType.bind(
+          loader.coreLibrary.lookupLocalMember("dynamic", required: true));
       loader.resolveParts();
       loader.computeLibraryScopes();
-      objectType.bind(loader.coreLibrary.getLocalMember("Object"));
-      bottomType.bind(loader.coreLibrary.getLocalMember("Null"));
+      objectType
+          .bind(loader.coreLibrary.lookupLocalMember("Object", required: true));
+      bottomType
+          .bind(loader.coreLibrary.lookupLocalMember("Null", required: true));
       loader.resolveTypes();
       loader.computeDefaultTypes(dynamicType, bottomType, objectClassBuilder);
       List<SourceClassBuilder> myClasses =
@@ -483,7 +486,7 @@ class KernelTarget extends TargetImplementation {
       Constructor constructor, Map<TypeParameter, DartType> substitutionMap) {
     VariableDeclaration copyFormal(VariableDeclaration formal) {
       // TODO(ahe): Handle initializers.
-      var copy = new VariableDeclaration(formal.name,
+      VariableDeclaration copy = new VariableDeclaration(formal.name,
           isFinal: formal.isFinal, isConst: formal.isConst);
       if (formal.type != null) {
         copy.type = substitute(formal.type, substitutionMap);

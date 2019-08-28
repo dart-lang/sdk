@@ -915,6 +915,12 @@ void KernelLoader::walk_incremental_kernel(BitVector* modified_libs,
                                            bool* is_empty_program,
                                            intptr_t* p_num_classes,
                                            intptr_t* p_num_procedures) {
+  if (FLAG_enable_interpreter || FLAG_use_bytecode_compiler) {
+    if (bytecode_metadata_helper_.FindModifiedLibrariesForHotReload(
+            modified_libs, is_empty_program, p_num_classes, p_num_procedures)) {
+      return;
+    }
+  }
   intptr_t length = program_->library_count();
   *is_empty_program = *is_empty_program && (length == 0);
   bool collect_library_stats =

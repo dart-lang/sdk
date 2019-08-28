@@ -203,8 +203,18 @@ class ClassPropertyModel {
       VirtualFieldModel fieldModel, Class class_) {
     // Visit superclasses to collect information about their fields/accessors.
     // This is expensive so we try to collect everything in one pass.
-    for (var base in getSuperclasses(class_)) {
+    var superclasses = [class_, ...getSuperclasses(class_)];
+    for (var base in superclasses) {
       for (var member in base.members) {
+        // Note, we treat noSuchMethodForwarders in the current class as
+        // inherited / potentially virtual.  Skip all other members of the
+        // current class.
+        if (base == class_ &&
+            (member is Field ||
+                (member is Procedure && !member.isNoSuchMethodForwarder))) {
+          continue;
+        }
+
         if (member is Constructor ||
             member is Procedure && (!member.isAccessor || member.isStatic)) {
           continue;

@@ -18,10 +18,8 @@ void foo(I1 x) {}
 @pragma('dart2js:noInline')
 void bar(I2 x) {}
 
-/*strong.member: main:calls=[call$1(new F.A()),call$1(new F.B()),foo(1),foo(1),main__bar$closure(0),main__bar$closure(0)],params=0*/
-/*omit.member: main:calls=[call$1(new F.A()),call$1(new F.B()),foo(1),foo(1),main__bar$closure(0),main__bar$closure(0)],params=0*/
-/*strongConst.member: main:calls=[bar(1),bar(1),foo(1),foo(1)],params=0*/
-/*omitConst.member: main:calls=[bar(1),bar(1),foo(1),foo(1)],params=0*/
+/*strong.member: main:calls=[bar(1),bar(1),foo(1),foo(1)],params=0*/
+/*omit.member: main:calls=[bar(1),bar(1),foo(1),foo(1)],params=0*/
 main() {
   dynamic f = bar;
 

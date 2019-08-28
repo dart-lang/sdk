@@ -70,6 +70,6 @@ main() {
   });
 
   int i = 0;
-  var x13 = [i++!]; // ignore: unnecessary_non_null_assertion
+  var x13 = [(i++)!]; // ignore: unnecessary_non_null_assertion
   listOfObject = x13;
 }

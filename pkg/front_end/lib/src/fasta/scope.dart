@@ -138,7 +138,7 @@ class Scope extends MutableScope {
     if (builder.next != null) {
       return new AmbiguousBuilder(name.isEmpty ? classNameOrDebugName : name,
           builder, charOffset, fileUri);
-    } else if (!isInstanceScope && builder.isInstanceMember) {
+    } else if (!isInstanceScope && builder.isDeclarationInstanceMember) {
       return null;
     } else {
       return builder;
@@ -357,28 +357,46 @@ class AccessErrorBuilder extends ProblemBuilder {
   AccessErrorBuilder(String name, Builder builder, int charOffset, Uri fileUri)
       : super(name, builder, charOffset, fileUri);
 
+  @override
   Builder get parent => builder;
 
+  @override
   bool get isFinal => builder.isFinal;
 
+  @override
   bool get isField => builder.isField;
 
+  @override
   bool get isRegularMethod => builder.isRegularMethod;
 
+  @override
   bool get isGetter => !builder.isGetter;
 
+  @override
   bool get isSetter => !builder.isSetter;
 
-  bool get isInstanceMember => builder.isInstanceMember;
+  @override
+  bool get isDeclarationInstanceMember => builder.isDeclarationInstanceMember;
 
+  @override
+  bool get isClassInstanceMember => builder.isClassInstanceMember;
+
+  @override
+  bool get isExtensionInstanceMember => builder.isExtensionInstanceMember;
+
+  @override
   bool get isStatic => builder.isStatic;
 
+  @override
   bool get isTopLevel => builder.isTopLevel;
 
+  @override
   bool get isTypeDeclaration => builder.isTypeDeclaration;
 
+  @override
   bool get isLocal => builder.isLocal;
 
+  @override
   Message get message => templateAccessError.withArguments(name);
 }
 
@@ -386,8 +404,10 @@ class AmbiguousBuilder extends ProblemBuilder {
   AmbiguousBuilder(String name, Builder builder, int charOffset, Uri fileUri)
       : super(name, builder, charOffset, fileUri);
 
+  @override
   Builder get parent => null;
 
+  @override
   Message get message => templateDuplicatedDeclarationUse.withArguments(name);
 
   // TODO(ahe): Also provide context.
@@ -404,12 +424,15 @@ class AmbiguousBuilder extends ProblemBuilder {
 class ScopeLocalDeclarationIterator implements Iterator<Builder> {
   Iterator<Builder> local;
   final Iterator<Builder> setters;
+
+  @override
   Builder current;
 
   ScopeLocalDeclarationIterator(Scope scope)
       : local = scope.local.values.iterator,
         setters = scope.setters.values.iterator;
 
+  @override
   bool moveNext() {
     Builder next = current?.next;
     if (next != null) {
@@ -438,6 +461,7 @@ class ScopeLocalDeclarationNameIterator extends ScopeLocalDeclarationIterator
   Iterator<String> localNames;
   final Iterator<String> setterNames;
 
+  @override
   String name;
 
   ScopeLocalDeclarationNameIterator(Scope scope)
@@ -445,6 +469,7 @@ class ScopeLocalDeclarationNameIterator extends ScopeLocalDeclarationIterator
         setterNames = scope.setters.keys.iterator,
         super(scope);
 
+  @override
   bool moveNext() {
     Builder next = current?.next;
     if (next != null) {

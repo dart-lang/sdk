@@ -8,6 +8,8 @@ import 'package:kernel/target/targets.dart' show TargetFlags, targets;
 
 import 'package:compiler/src/kernel/dart2js_target.dart' show Dart2jsTarget;
 
+import 'package:dev_compiler/src/kernel/target.dart' show DevCompilerTarget;
+
 import 'package:vm/target/install.dart' as vm_target_install
     show installAdditionalTargets;
 
@@ -18,5 +20,6 @@ void installAdditionalTargets() {
       (TargetFlags flags) => new Dart2jsTarget("dart2js", flags);
   targets["dart2js_server"] =
       (TargetFlags flags) => new Dart2jsTarget("dart2js_server", flags);
+  targets["dartdevc"] = (TargetFlags flags) => new DevCompilerTarget(flags);
   vm_target_install.installAdditionalTargets();
 }

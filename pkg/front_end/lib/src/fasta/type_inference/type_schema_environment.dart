@@ -35,13 +35,14 @@ FunctionType substituteTypeParams(
     FunctionType type,
     Map<TypeParameter, DartType> substitutionMap,
     List<TypeParameter> newTypeParameters) {
-  var substitution = Substitution.fromMap(substitutionMap);
+  Substitution substitution = Substitution.fromMap(substitutionMap);
   return new FunctionType(
       type.positionalParameters.map(substitution.substituteType).toList(),
       substitution.substituteType(type.returnType),
       namedParameters: type.namedParameters
           .map((named) => new NamedType(
-              named.name, substitution.substituteType(named.type)))
+              named.name, substitution.substituteType(named.type),
+              isRequired: named.isRequired))
           .toList(),
       typeParameters: newTypeParameters,
       requiredParameterCount: type.requiredParameterCount,
@@ -94,6 +95,10 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       : super(coreTypes, hierarchy);
 
   Class get functionClass => coreTypes.functionClass;
+
+  Class get futureClass => coreTypes.futureClass;
+
+  Class get futureOrClass => coreTypes.futureOrClass;
 
   InterfaceType getLegacyLeastUpperBound(
       InterfaceType type1, InterfaceType type2) {
@@ -161,7 +166,8 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     // to be inferred. It will optimistically assume these type parameters can
     // be subtypes (or supertypes) as necessary, and track the constraints that
     // are implied by this.
-    var gatherer = new TypeConstraintGatherer(this, typeParametersToInfer);
+    TypeConstraintGatherer gatherer =
+        new TypeConstraintGatherer(this, typeParametersToInfer);
 
     if (!isEmptyContext(returnContextType)) {
       if (isConst) {
@@ -223,7 +229,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     for (int i = 0; i < typeParametersToInfer.length; i++) {
       TypeParameter typeParam = typeParametersToInfer[i];
 
-      var typeParamBound = typeParam.bound;
+      DartType typeParamBound = typeParam.bound;
       DartType extendsConstraint;
       if (!hasOmittedBound(typeParam)) {
         extendsConstraint =
@@ -231,7 +237,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
                 .substituteType(typeParamBound);
       }
 
-      var constraint = constraints[typeParam];
+      TypeConstraint constraint = constraints[typeParam];
       if (downwardsInferPhase) {
         inferredTypes[i] =
             _inferTypeParameterFromContext(constraint, extendsConstraint);
@@ -248,19 +254,19 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     }
 
     // Check the inferred types against all of the constraints.
-    var knownTypes = <TypeParameter, DartType>{};
+    Map<TypeParameter, DartType> knownTypes = <TypeParameter, DartType>{};
     for (int i = 0; i < typeParametersToInfer.length; i++) {
       TypeParameter typeParam = typeParametersToInfer[i];
-      var constraint = constraints[typeParam];
-      var typeParamBound =
+      TypeConstraint constraint = constraints[typeParam];
+      DartType typeParamBound =
           Substitution.fromPairs(typeParametersToInfer, inferredTypes)
               .substituteType(typeParam.bound);
 
-      var inferred = inferredTypes[i];
+      DartType inferred = inferredTypes[i];
       bool success = typeSatisfiesConstraint(inferred, constraint);
       if (success && !hasOmittedBound(typeParam)) {
         // If everything else succeeded, check the `extends` constraint.
-        var extendsConstraint = typeParamBound;
+        DartType extendsConstraint = typeParamBound;
         success = isSubtypeOf(inferred, extendsConstraint);
       }
 

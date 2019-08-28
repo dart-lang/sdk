@@ -4,6 +4,7 @@
 
 import 'package:kernel/ast.dart';
 import '../fasta/builder/builder.dart';
+import '../fasta/builder/extension_builder.dart';
 import '../fasta/kernel/kernel_builder.dart';
 import '../fasta/messages.dart';
 import '../fasta/source/source_library_builder.dart';
@@ -39,7 +40,7 @@ Library lookupLibrary(Component component, Uri uri, {bool required: true}) {
   });
 }
 
-/// Finds the first [Class] in [component] with the given [className].
+/// Finds the first [Class] in [library] with the given [className].
 ///
 /// If [required] is `true` an error is thrown if no class was found.
 Class lookupClass(Library library, String className, {bool required: true}) {
@@ -47,6 +48,21 @@ Class lookupClass(Library library, String className, {bool required: true}) {
       orElse: () {
     if (required) {
       throw new ArgumentError("Class '$className' not found in '$library'.");
+    }
+    return null;
+  });
+}
+
+/// Finds the first [Extension] in [library] with the given [className].
+///
+/// If [required] is `true` an error is thrown if no class was found.
+Extension lookupExtension(Library library, String extensionName,
+    {bool required: true}) {
+  return library.extensions.firstWhere(
+      (Extension extension) => extension.name == extensionName, orElse: () {
+    if (required) {
+      throw new ArgumentError(
+          "Extension '$extensionName' not found in '$library'.");
     }
     return null;
   });
@@ -105,6 +121,19 @@ ClassBuilder lookupClassBuilder(
   return clsBuilder;
 }
 
+ExtensionBuilder lookupExtensionBuilder(
+    InternalCompilerResult compilerResult, Extension extension,
+    {bool required: true}) {
+  TypeParameterScopeBuilder libraryBuilder = lookupLibraryDeclarationBuilder(
+      compilerResult, extension.enclosingLibrary,
+      required: required);
+  ExtensionBuilder extensionBuilder = libraryBuilder.members[extension.name];
+  if (extensionBuilder == null && required) {
+    throw new ArgumentError("ExtensionBuilder for $extension not found.");
+  }
+  return extensionBuilder;
+}
+
 /// Look up the [MemberBuilder] for [member] through the [ClassBuilder] for
 /// [cls] using [memberName] as its name.
 MemberBuilder lookupClassMemberBuilder(InternalCompilerResult compilerResult,
@@ -132,7 +161,23 @@ MemberBuilder lookupMemberBuilder(
     InternalCompilerResult compilerResult, Member member,
     {bool required: true}) {
   MemberBuilder memberBuilder;
-  if (member.enclosingClass != null) {
+  if (member.isExtensionMember) {
+    String memberName = member.name.name;
+    String extensionName = memberName.substring(0, memberName.indexOf('|'));
+    memberName = memberName.substring(extensionName.length + 1);
+    bool isSetter = member is Procedure && member.isSetter;
+    if (memberName.startsWith('set#')) {
+      memberName = memberName.substring(4);
+      isSetter = true;
+    } else if (memberName.startsWith('get#')) {
+      memberName = memberName.substring(4);
+    }
+    Extension extension =
+        lookupExtension(member.enclosingLibrary, extensionName);
+    memberBuilder = lookupExtensionMemberBuilder(
+        compilerResult, extension, member, memberName,
+        isSetter: isSetter, required: required);
+  } else if (member.enclosingClass != null) {
     memberBuilder = lookupClassMemberBuilder(
         compilerResult, member.enclosingClass, member, member.name.name,
         required: required);
@@ -143,6 +188,31 @@ MemberBuilder lookupMemberBuilder(
       memberBuilder = libraryBuilder.members[member.name.name];
     } else {
       memberBuilder = libraryBuilder.setters[member.name.name];
+    }
+  }
+  if (memberBuilder == null && required) {
+    throw new ArgumentError("MemberBuilder for $member not found.");
+  }
+  return memberBuilder;
+}
+
+/// Look up the [MemberBuilder] for [member] through the [ClassBuilder] for
+/// [cls] using [memberName] as its name.
+MemberBuilder lookupExtensionMemberBuilder(
+    InternalCompilerResult compilerResult,
+    Extension extension,
+    Member member,
+    String memberName,
+    {bool isSetter: false,
+    bool required: true}) {
+  ExtensionBuilder extensionBuilder =
+      lookupExtensionBuilder(compilerResult, extension, required: required);
+  MemberBuilder memberBuilder;
+  if (extensionBuilder != null) {
+    if (isSetter) {
+      memberBuilder = extensionBuilder.scope.setters[memberName];
+    } else {
+      memberBuilder = extensionBuilder.scope.local[memberName];
     }
   }
   if (memberBuilder == null && required) {
@@ -444,4 +514,45 @@ String typeVariableBuilderToText(TypeVariableBuilder typeVariable) {
 /// Returns a textual representation of [errors] to be used in testing.
 String errorsToText(List<FormattedMessage> errors) {
   return errors.map((m) => m.message).join(',');
+}
+
+/// Returns a textual representation of [descriptor] to be used in testing.
+String extensionMethodDescriptorToText(ExtensionMemberDescriptor descriptor) {
+  StringBuffer sb = new StringBuffer();
+  if (descriptor.isExternal) {
+    sb.write('external ');
+  }
+  if (descriptor.isStatic) {
+    sb.write('static ');
+  }
+  if (descriptor.kind == null) {
+    sb.write('field ');
+  } else {
+    switch (descriptor.kind) {
+      case ProcedureKind.Method:
+        break;
+      case ProcedureKind.Getter:
+        sb.write('getter ');
+        break;
+      case ProcedureKind.Setter:
+        sb.write('setter ');
+        break;
+      case ProcedureKind.Operator:
+        sb.write('operator ');
+        break;
+      case ProcedureKind.Factory:
+        throw new UnsupportedError(
+            "Unexpected procedure kind ${descriptor.kind}.");
+    }
+  }
+  sb.write(descriptor.name.name);
+  sb.write('=');
+  Member member = descriptor.member.asMember;
+  String name = member.name.name;
+  if (member is Procedure && member.isSetter) {
+    sb.write('$name=');
+  } else {
+    sb.write(name);
+  }
+  return sb.toString();
 }

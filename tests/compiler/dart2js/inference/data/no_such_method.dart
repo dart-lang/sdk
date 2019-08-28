@@ -17,8 +17,6 @@ class Class1 {
           Invocation
               /*strong.[null|subclass=Object]*/
               /*omit.[null|exact=JSInvocationMirror]*/
-              /*strongConst.[null|subclass=Object]*/
-              /*omitConst.[null|exact=JSInvocationMirror]*/
               _) =>
       42;
 
@@ -43,8 +41,6 @@ class Class2 {
           Invocation
               /*strong.[null|subclass=Object]*/
               /*omit.[null|exact=JSInvocationMirror]*/
-              /*strongConst.[null|subclass=Object]*/
-              /*omitConst.[null|exact=JSInvocationMirror]*/
               _) =>
       42;
 
@@ -69,8 +65,6 @@ class Class3 {
       Invocation
           /*strong.[null|subclass=Object]*/
           /*omit.[null|exact=JSInvocationMirror]*/
-          /*strongConst.[null|subclass=Object]*/
-          /*omitConst.[null|exact=JSInvocationMirror]*/
           invocation) {
     return invocation
         .
@@ -107,8 +101,6 @@ class Class4 {
       Invocation
           /*strong.[null|subclass=Object]*/
           /*omit.[null|exact=JSInvocationMirror]*/
-          /*strongConst.[null|subclass=Object]*/
-          /*omitConst.[null|exact=JSInvocationMirror]*/
           invocation) {
     this. /*update: [exact=Class4]*/ field = invocation
         .

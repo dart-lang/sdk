@@ -17,6 +17,8 @@ import 'package:nnbd_migration/src/conditional_discard.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/expression_checks.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
+import 'package:nnbd_migration/src/utilities/annotation_tracker.dart';
+import 'package:nnbd_migration/src/utilities/permissive_mode.dart';
 
 import 'edge_origin.dart';
 
@@ -26,7 +28,10 @@ import 'edge_origin.dart';
 /// the static type of the element declared by the visited node, along with the
 /// constraint variables that will determine its nullability.  For `visit...`
 /// methods that don't visit declarations, `null` will be returned.
-class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
+class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
+    with
+        PermissiveModeVisitor<DecoratedType>,
+        AnnotationTracker<DecoratedType> {
   /// Constraint variables and decorated types are stored here.
   final VariableRecorder _variables;
 
@@ -42,6 +47,11 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
   /// [DecoratedType]s of the function's positional parameters that have been
   /// seen so far.  Otherwise `null`.
   List<DecoratedType> _positionalParameters;
+
+  /// If the type parameters of a function or method are being visited, the
+  /// [DecoratedType]s of the bounds of the function's type formals that have
+  /// been seen so far.  Otherwise `null`.
+  List<DecoratedType> _typeFormalBounds;
 
   final NullabilityMigrationListener /*?*/ listener;
 
@@ -129,11 +139,11 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
         node.declaredElement,
         node.metadata,
         null,
+        null,
         node.parameters,
         node.initializers,
         node.body,
-        node.redirectedConstructor,
-        node);
+        node.redirectedConstructor);
     return null;
   }
 
@@ -180,11 +190,18 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
         node.declaredElement,
         node.metadata,
         node.returnType,
+        node.functionExpression.typeParameters,
         node.functionExpression.parameters,
         null,
         node.functionExpression.body,
-        null,
-        node);
+        null);
+    return null;
+  }
+
+  @override
+  DecoratedType visitFunctionExpression(FunctionExpression node) {
+    _handleExecutableDeclaration(node.declaredElement, null, null,
+        node.typeParameters, node.parameters, null, node.body, null);
     return null;
   }
 
@@ -203,8 +220,15 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitMethodDeclaration(MethodDeclaration node) {
-    _handleExecutableDeclaration(node.declaredElement, node.metadata,
-        node.returnType, node.parameters, null, node.body, null, node);
+    _handleExecutableDeclaration(
+        node.declaredElement,
+        node.metadata,
+        node.returnType,
+        node.typeParameters,
+        node.parameters,
+        null,
+        node.body,
+        null);
     return null;
   }
 
@@ -217,23 +241,6 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
     _handleSupertypeClauses(
         node.declaredElement, null, null, node.implementsClause, node.onClause);
     return null;
-  }
-
-  @override
-  DecoratedType visitNode(AstNode node) {
-    if (listener != null) {
-      try {
-        return super.visitNode(node);
-      } catch (exception, stackTrace) {
-        listener.addDetail('''
-$exception
-
-$stackTrace''');
-        return null;
-      }
-    } else {
-      return super.visitNode(node);
-    }
   }
 
   @override
@@ -346,7 +353,8 @@ $stackTrace''');
           AlwaysNullableTypeOrigin(_source, node.offset));
       decoratedBound = DecoratedType(_typeProvider.objectType, nullabilityNode);
     }
-    _variables.recordDecoratedElementType(element, decoratedBound);
+    _typeFormalBounds?.add(decoratedBound);
+    _variables.recordDecoratedTypeParameterBound(element, decoratedBound);
     return null;
   }
 
@@ -387,12 +395,12 @@ $stackTrace''');
       ExecutableElement declaredElement,
       NodeList<Annotation> metadata,
       TypeAnnotation returnType,
+      TypeParameterList typeParameters,
       FormalParameterList parameters,
       NodeList<ConstructorInitializer> initializers,
       FunctionBody body,
-      ConstructorName redirectedConstructor,
-      AstNode enclosingNode) {
-    metadata.accept(this);
+      ConstructorName redirectedConstructor) {
+    metadata?.accept(this);
     var functionType = declaredElement.type;
     DecoratedType decoratedReturnType;
     if (returnType != null) {
@@ -409,14 +417,18 @@ $stackTrace''');
     }
     var previousPositionalParameters = _positionalParameters;
     var previousNamedParameters = _namedParameters;
+    var previousTypeFormalBounds = _typeFormalBounds;
     _positionalParameters = [];
     _namedParameters = {};
+    _typeFormalBounds = [];
     DecoratedType decoratedFunctionType;
     try {
+      typeParameters?.accept(this);
       parameters?.accept(this);
       redirectedConstructor?.accept(this);
       initializers?.accept(this);
       decoratedFunctionType = DecoratedType(functionType, _graph.never,
+          typeFormalBounds: _typeFormalBounds,
           returnType: decoratedReturnType,
           positionalParameters: _positionalParameters,
           namedParameters: _namedParameters);
@@ -424,6 +436,7 @@ $stackTrace''');
     } finally {
       _positionalParameters = previousPositionalParameters;
       _namedParameters = previousNamedParameters;
+      _typeFormalBounds = previousTypeFormalBounds;
     }
     _variables.recordDecoratedElementType(
         declaredElement, decoratedFunctionType);
@@ -548,6 +561,10 @@ abstract class VariableRecorder {
       Source source, TypeAnnotation node, DecoratedTypeAnnotation type,
       {bool potentialModification: true});
 
+  /// Stores he decorated bound of the given [typeParameter].
+  void recordDecoratedTypeParameterBound(
+      TypeParameterElement typeParameter, DecoratedType bound);
+
   /// Records that [node] is associated with the question of whether the named
   /// [parameter] should be optional (should not have a `required`
   /// annotation added to it).
@@ -579,6 +596,9 @@ abstract class VariableRepository {
   /// Gets the [DecoratedType] associated with the given [typeAnnotation].
   DecoratedType decoratedTypeAnnotation(
       Source source, TypeAnnotation typeAnnotation);
+
+  /// Retrieves the decorated bound of the given [typeParameter].
+  DecoratedType decoratedTypeParameterBound(TypeParameterElement typeParameter);
 
   /// Records conditional discard information for the given AST node (which is
   /// an `if` statement or a conditional (`?:`) expression).

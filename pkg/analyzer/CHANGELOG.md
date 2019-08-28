@@ -1,6 +1,22 @@
-## 0.37.1 (Not yet published)
+## 0.38.0
+* The deprecated method `AstFactory.compilationUnit2` has been removed.  Clients
+  should switch back to `AstFactory.compilationUnit`.
+* Removed the deprecated constructor `ParsedLibraryResultImpl.tmp` and the
+  deprecated method `ResolvedLibraryResultImpl.tmp`.  Please use
+  `AnalysisSession.getParsedLibraryByElement` and
+  `AnalysisSession.getResolvedLibraryByElement` instead.
+* Removed `MethodElement.getReifiedType`.
+* The return type of `ClassMemberElement.enclosingElement` was changed from
+  `ClassElement` to `Element`.
+
+## 0.37.1+1
+* Reverted an unintentional breaking API change (the return type of
+  `ClassMemberElement.enclosingElement` was changed from `ClassElement` to
+  `Element`).  This change will be postponed until 0.38.0.
+
+## 0.37.1
 * Added the getters `isDartCoreList`, `isDartCoreMap`, `isDartCoreNum`,
-  `isDartCoreSet`, and `isDartCoreSymbol` to `DartType`.
+  `isDartCoreSet`, `isDartCoreSymbol`, and `isDartCoreObject` to `DartType`.
 * Added the method `DartObject.toFunctionValue`.
 * Deprecated the `isEquivalentTo(DartType)` method of `DartType`.
   The operator `==` now correctly considers two types equal if and
@@ -16,6 +32,12 @@
 * Added the optional parameter `path` to `parseString`.
 * Changed `TypeSystem.resolveToBound(DartType)` implementation to do
   what its documentation says.
+* This version of the analyzer should contain all the necessary parsing support
+  and AST data structures for the experimental "extension-methods" feature.
+  Further element model improvements needed to support extension methods will be
+  published in 0.38.x.
+* Deprecated `InterfaceType.isDirectSupertypeOf`.  There is no replacement; this
+  method was not intended to be used outside of the analyzer.
 
 ## 0.37.0
 * Removed deprecated getter `DartType.isUndefined`.

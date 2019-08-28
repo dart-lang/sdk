@@ -189,17 +189,21 @@ void computeExpectedMap(Uri sourceUri, String filename, AnnotatedCode code,
 ///
 /// If [testLibDirectory] is not `null`, files in [testLibDirectory] with the
 /// [testFile] name as a prefix are included.
-TestData computeTestData(FileSystemEntity testFile, Directory testLibDirectory,
+TestData computeTestData(FileSystemEntity testFile,
     {Iterable<String> supportedMarkers,
-    Uri createUriForFileName(String fileName, {bool isLib}),
+    Uri createUriForFileName(String fileName),
     void onFailure(String message)}) {
-  Uri entryPoint = createUriForFileName('main.dart', isLib: false);
+  Uri entryPoint = createUriForFileName('main.dart');
 
+  String testName;
   File mainTestFile;
+  Uri testFileUri = testFile.uri;
   Map<String, File> additionalFiles;
   if (testFile is File) {
+    testName = testFileUri.pathSegments.last;
     mainTestFile = testFile;
   } else if (testFile is Directory) {
+    testName = testFileUri.pathSegments[testFileUri.pathSegments.length - 2];
     additionalFiles = new Map<String, File>();
     for (FileSystemEntity entry in testFile.listSync(recursive: true)) {
       if (entry is! File) continue;
@@ -228,55 +232,37 @@ TestData computeTestData(FileSystemEntity testFile, Directory testLibDirectory,
     entryPoint.path: code[entryPoint].sourceCode
   };
 
-  List<String> libFileNames;
-
-  addSupportingFile(String libFileName, File libEntity, bool isLib) {
-    libFileNames ??= [];
-    libFileNames.add(libFileName);
-    Uri libFileUri = createUriForFileName(libFileName, isLib: isLib);
-    String libCode = libEntity.readAsStringSync();
-    AnnotatedCode annotatedLibCode =
-        new AnnotatedCode.fromText(libCode, commentStart, commentEnd);
-    memorySourceFiles[libFileUri.path] = annotatedLibCode.sourceCode;
-    code[libFileUri] = annotatedLibCode;
-    computeExpectedMap(libFileUri, libFileName, annotatedLibCode, expectedMaps,
-        onFailure: onFailure);
-  }
-
-  if (testLibDirectory != null) {
-    String name = testFile.uri.pathSegments.last;
-    String filePrefix = name.substring(0, name.lastIndexOf('.'));
-    for (FileSystemEntity libEntity in testLibDirectory.listSync()) {
-      String libFileName = libEntity.uri.pathSegments.last;
-      if (libFileName.startsWith(filePrefix)) {
-        addSupportingFile(libFileName, libEntity, true);
-      }
-    }
-  }
   if (additionalFiles != null) {
     for (MapEntry<String, File> additionalFileData in additionalFiles.entries) {
-      addSupportingFile(
-          additionalFileData.key, additionalFileData.value, false);
+      String libFileName = additionalFileData.key;
+      File libEntity = additionalFileData.value;
+      Uri libFileUri = createUriForFileName(libFileName);
+      String libCode = libEntity.readAsStringSync();
+      AnnotatedCode annotatedLibCode =
+          new AnnotatedCode.fromText(libCode, commentStart, commentEnd);
+      memorySourceFiles[libFileUri.path] = annotatedLibCode.sourceCode;
+      code[libFileUri] = annotatedLibCode;
+      computeExpectedMap(
+          libFileUri, libFileName, annotatedLibCode, expectedMaps,
+          onFailure: onFailure);
     }
   }
 
-  return new TestData(testFile.uri, entryPoint, memorySourceFiles, code,
-      expectedMaps, libFileNames);
+  return new TestData(
+      testName, testFileUri, entryPoint, memorySourceFiles, code, expectedMaps);
 }
 
 /// Data for an annotated test.
 class TestData {
+  final String name;
   final Uri testFileUri;
   final Uri entryPoint;
   final Map<String, String> memorySourceFiles;
   final Map<Uri, AnnotatedCode> code;
   final Map<String, MemberAnnotations<IdValue>> expectedMaps;
-  final List<String> libFileNames;
 
-  TestData(this.testFileUri, this.entryPoint, this.memorySourceFiles, this.code,
-      this.expectedMaps, this.libFileNames);
-
-  String get name => testFileUri.pathSegments.last;
+  TestData(this.name, this.testFileUri, this.entryPoint, this.memorySourceFiles,
+      this.code, this.expectedMaps);
 }
 
 /// The actual result computed for an annotated test.
@@ -594,24 +580,14 @@ Future<bool> checkCode<T>(
 typedef Future<bool> RunTestFunction(TestData testData,
     {bool testAfterFailures, bool verbose, bool succinct, bool printCode});
 
-/// Check code for all test files int [data] using [computeFromAst] and
-/// [computeFromKernel] from the respective front ends. If [skipForKernel]
-/// contains the name of the test file it isn't tested for kernel.
-///
-/// [libDirectory] contains the directory for any supporting libraries that need
-/// to be loaded. We expect supporting libraries to have the same prefix as the
-/// original test in [dataDir]. So, for example, if testing `foo.dart` in
-/// [dataDir], then this function will consider any files named `foo.*\.dart`,
-/// such as `foo2.dart`, `foo_2.dart`, and `foo_blah_blah_blah.dart` in
-/// [libDirectory] to be supporting library files for `foo.dart`.
+/// Check code for all tests in [dataDir] using [runTest].
 Future runTests(Directory dataDir,
     {List<String> args: const <String>[],
-    Directory libDirectory: null,
     int shards: 1,
     int shardIndex: 0,
     void onTest(Uri uri),
     Iterable<String> supportedMarkers,
-    Uri createUriForFileName(String fileName, {bool isLib}),
+    Uri createUriForFileName(String fileName),
     void onFailure(String message),
     RunTestFunction runTest}) async {
   // TODO(johnniwinther): Support --show to show actual data for an input.
@@ -624,7 +600,7 @@ Future runTests(Directory dataDir,
   bool continued = false;
   bool hasFailures = false;
 
-  var relativeDir = dataDir.uri.path.replaceAll(Uri.base.path, '');
+  String relativeDir = dataDir.uri.path.replaceAll(Uri.base.path, '');
   print('Data dir: ${relativeDir}');
   List<FileSystemEntity> entities = dataDir.listSync();
   if (shards > 1) {
@@ -635,6 +611,9 @@ Future runTests(Directory dataDir,
   int testCount = 0;
   for (FileSystemEntity entity in entities) {
     String name = entity.uri.pathSegments.last;
+    if (entity is Directory) {
+      name = entity.uri.pathSegments[entity.uri.pathSegments.length - 2];
+    }
     if (args.isNotEmpty && !args.contains(name) && !continued) continue;
     if (shouldContinue) continued = true;
     testCount++;
@@ -644,18 +623,11 @@ Future runTests(Directory dataDir,
     }
     print('----------------------------------------------------------------');
 
-    TestData testData = computeTestData(
-        entity, entity is File ? libDirectory : null,
+    TestData testData = computeTestData(entity,
         supportedMarkers: supportedMarkers,
         createUriForFileName: createUriForFileName,
         onFailure: onFailure);
-    print('Test file: ${testData.testFileUri}');
-    if (!succinct && testData.libFileNames != null) {
-      print('Supporting libraries:');
-      for (String libFileName in testData.libFileNames) {
-        print('    - libs/$libFileName');
-      }
-    }
+    print('Test: ${testData.testFileUri}');
 
     if (await runTest(testData,
         testAfterFailures: testAfterFailures,

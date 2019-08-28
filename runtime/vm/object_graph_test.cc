@@ -8,6 +8,8 @@
 
 namespace dart {
 
+#if !defined(PRODUCT)
+
 class CounterVisitor : public ObjectGraph::Visitor {
  public:
   // Records the number of objects and total size visited, excluding 'skip'
@@ -191,5 +193,7 @@ ISOLATE_UNIT_TEST_CASE(RetainingPathGCRoot) {
   result = graph.RetainingPath(&path, path);
   EXPECT_STREQ(result.gc_root_type, "local handle");
 }
+
+#endif  // !defined(PRODUCT)
 
 }  // namespace dart

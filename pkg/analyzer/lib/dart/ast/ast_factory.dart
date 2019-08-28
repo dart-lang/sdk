@@ -167,23 +167,6 @@ abstract class AstFactory {
       @required Token endToken,
       @required FeatureSet featureSet});
 
-  /// Returns a newly created compilation unit to have the given directives and
-  /// declarations.  The [scriptTag] can be `null` (or omitted) if there is no
-  /// script tag in the compilation unit.  The list of [declarations] can be
-  /// `null` (or omitted) if there are no directives in the compilation unit.
-  /// The list of `declarations` can be `null` (or omitted) if there are no
-  /// declarations in the compilation unit.  The [featureSet] can be `null` if
-  /// the set of features for this compilation unit is not known (this
-  /// restricts what analysis can be done of the compilation unit).
-  @Deprecated('Use compilationUnit')
-  CompilationUnit compilationUnit2(
-      {@required Token beginToken,
-      ScriptTag scriptTag,
-      List<Directive> directives,
-      List<CompilationUnitMember> declarations,
-      @required Token endToken,
-      @required FeatureSet featureSet});
-
   /// Returns a newly created conditional expression.
   ConditionalExpression conditionalExpression(
       Expression condition,

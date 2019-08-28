@@ -48,12 +48,12 @@ void main() {
     final best = suggestions.entries.first;
     expect(best.key, 'length');
     expect(best.value, greaterThan(0.8));
+    expect(suggestions, hasLength(model.completions));
   });
 
   test('predict when no previous tokens', () {
     final tokens = <String>[];
     final suggestions = model.predict(tokens);
-    expect(suggestions, hasLength(model.completions));
     expect(suggestions.first, isNotEmpty);
   });
 

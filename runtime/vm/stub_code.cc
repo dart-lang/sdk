@@ -210,7 +210,7 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
 
       // We notify code observers after finalizing the code in order to be
       // outside a [SafepointOperationScope].
-      Code::NotifyCodeObservers(nullptr, stub, /*optimized=*/false);
+      Code::NotifyCodeObservers(name, stub, /*optimized=*/false);
     }
 #ifndef PRODUCT
     if (FLAG_support_disassembler && FLAG_disassemble_stubs) {

@@ -433,10 +433,10 @@ class CallSites : public ValueObject {
       return;
     }
 
-    // Recognized methods are not treated as normal calls. They don't have
-    // calls in themselves, so we keep adding those even when at the threshold.
-    const bool inline_only_recognized_methods =
-        (depth == inlining_depth_threshold_);
+    // At the maximum inlining depth, only profitable methods
+    // are further considered for inlining.
+    const bool inline_only_profitable_methods =
+        (depth >= inlining_depth_threshold_);
 
     // In AOT, compute loop hierarchy.
     if (FLAG_precompiled_mode) {
@@ -454,13 +454,15 @@ class CallSites : public ValueObject {
         if (current->IsPolymorphicInstanceCall()) {
           PolymorphicInstanceCallInstr* instance_call =
               current->AsPolymorphicInstanceCall();
-          if (!inline_only_recognized_methods ||
+          if (!inline_only_profitable_methods ||
               instance_call->IsSureToCallSingleRecognizedTarget() ||
               instance_call->HasOnlyDispatcherOrImplicitAccessorTargets()) {
+            // Consider instance call for further inlining. Note that it will
+            // still be subject to all the inlining heuristics.
             instance_calls_.Add(InstanceCallInfo(instance_call, graph, depth));
           } else {
-            // Method not inlined because inlining too deep and method
-            // not recognized.
+            // No longer consider the instance call because inlining is too
+            // deep and the method is not deemed profitable by other criteria.
             if (FLAG_print_inlining_tree) {
               const Function* caller = &graph->function();
               const Function* target = &instance_call->targets().FirstTarget();
@@ -470,13 +472,16 @@ class CallSites : public ValueObject {
           }
         } else if (current->IsStaticCall()) {
           StaticCallInstr* static_call = current->AsStaticCall();
-          if (!inline_only_recognized_methods ||
-              static_call->function().IsRecognized() ||
-              static_call->function().IsDispatcherOrImplicitAccessor()) {
+          const Function& function = static_call->function();
+          if (!inline_only_profitable_methods || function.IsRecognized() ||
+              function.IsDispatcherOrImplicitAccessor() ||
+              (function.is_const() && function.IsGenerativeConstructor())) {
+            // Consider static call for further inlining. Note that it will
+            // still be subject to all the inlining heuristics.
             static_calls_.Add(StaticCallInfo(static_call, graph, depth));
           } else {
-            // Method not inlined because inlining too deep and method
-            // not recognized.
+            // No longer consider the static call because inlining is too
+            // deep and the method is not deemed profitable by other criteria.
             if (FLAG_print_inlining_tree) {
               const Function* caller = &graph->function();
               const Function* target = &static_call->function();
@@ -485,9 +490,13 @@ class CallSites : public ValueObject {
             }
           }
         } else if (current->IsClosureCall()) {
-          if (!inline_only_recognized_methods) {
+          if (!inline_only_profitable_methods) {
+            // Consider closure for further inlining. Note that it will
+            // still be subject to all the inlining heuristics.
             ClosureCallInstr* closure_call = current->AsClosureCall();
             closure_calls_.Add(ClosureCallInfo(closure_call, graph));
+          } else {
+            // No longer consider the closure because inlining is too deep.
           }
         }
       }
@@ -1111,8 +1120,7 @@ class CallSiteInliner : public ValueObject {
           }
         }
 
-        BlockScheduler block_scheduler(callee_graph);
-        block_scheduler.AssignEdgeWeights();
+        BlockScheduler::AssignEdgeWeights(callee_graph);
 
         {
           // Compute SSA on the callee graph, catching bailouts.

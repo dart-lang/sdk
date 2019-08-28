@@ -33,46 +33,55 @@ abstract class ValueKind {
   /// Checks the [value] an returns `true` if the value is of the expected kind.
   bool check(Object value);
 
+  static const ValueKind Arguments = _SingleValueKind<type.Arguments>();
   static const ValueKind ArgumentsOrNull =
       _SingleValueKind<type.Arguments>(NullValue.Arguments);
-  static const ValueKind Expression = _SingleValueKind<type.Expression>();
-  static const ValueKind Identifier = _SingleValueKind<type.Identifier>();
-  static const ValueKind Integer = _SingleValueKind<int>();
+  static const ValueKind Expression = const _SingleValueKind<type.Expression>();
+  static const ValueKind Identifier = const _SingleValueKind<type.Identifier>();
+  static const ValueKind IdentifierOrNull =
+      const _SingleValueKind<type.Identifier>(NullValue.Identifier);
+  static const ValueKind Integer = const _SingleValueKind<int>();
   static const ValueKind Formals =
-      _SingleValueKind<List<type.FormalParameterBuilder>>();
+      const _SingleValueKind<List<type.FormalParameterBuilder>>();
   static const ValueKind FormalsOrNull =
-      _SingleValueKind<List<type.FormalParameterBuilder>>(
+      const _SingleValueKind<List<type.FormalParameterBuilder>>(
           NullValue.FormalParameters);
-  static const ValueKind Generator = _SingleValueKind<type.Generator>();
-  static const ValueKind MethodBody = _SingleValueKind<type.MethodBody>();
-  static const ValueKind Modifiers = _SingleValueKind<List<type.Modifier>>();
+  static const ValueKind Generator = const _SingleValueKind<type.Generator>();
+  static const ValueKind MethodBody = const _SingleValueKind<type.MethodBody>();
+  static const ValueKind Modifiers =
+      const _SingleValueKind<List<type.Modifier>>();
   static const ValueKind ModifiersOrNull =
-      _SingleValueKind<List<type.Modifier>>(NullValue.Modifiers);
-  static const ValueKind Name = _SingleValueKind<String>();
-  static const ValueKind NameOrNull = _SingleValueKind<String>(NullValue.Name);
+      const _SingleValueKind<List<type.Modifier>>(NullValue.Modifiers);
+  static const ValueKind Name = const _SingleValueKind<String>();
+  static const ValueKind NameOrNull =
+      const _SingleValueKind<String>(NullValue.Name);
   static const ValueKind NameOrOperator = _UnionValueKind([Name, Operator]);
   static const ValueKind NameOrQualifiedNameOrOperator =
-      _UnionValueKind([Name, QualifiedName, Operator]);
+      const _UnionValueKind([Name, QualifiedName, Operator]);
   static const ValueKind NameOrParserRecovery =
-      _UnionValueKind([Name, ParserRecovery]);
+      const _UnionValueKind([Name, ParserRecovery]);
   static const ValueKind MetadataListOrNull =
-      _SingleValueKind<List<type.MetadataBuilder>>(NullValue.Metadata);
-  static const ValueKind Operator = _SingleValueKind<type.Operator>();
+      const _SingleValueKind<List<type.MetadataBuilder>>(NullValue.Metadata);
+  static const ValueKind Operator = const _SingleValueKind<type.Operator>();
   static const ValueKind ParserRecovery =
       _SingleValueKind<type.ParserRecovery>();
   static const ValueKind ProblemBuilder =
       _SingleValueKind<type.ProblemBuilder>();
-  static const ValueKind QualifiedName = _SingleValueKind<type.QualifiedName>();
-  static const ValueKind Token = _SingleValueKind<type.Token>();
+  static const ValueKind QualifiedName =
+      const _SingleValueKind<type.QualifiedName>();
+  static const ValueKind Token = const _SingleValueKind<type.Token>();
   static const ValueKind TokenOrNull =
-      _SingleValueKind<type.Token>(NullValue.Token);
+      const _SingleValueKind<type.Token>(NullValue.Token);
   static const ValueKind TypeArgumentsOrNull =
-      _SingleValueKind<List<type.UnresolvedType>>(NullValue.TypeArguments);
-  static const ValueKind TypeBuilder = _SingleValueKind<type.TypeBuilder>();
+      const _SingleValueKind<List<type.UnresolvedType>>(
+          NullValue.TypeArguments);
+  static const ValueKind TypeBuilder =
+      const _SingleValueKind<type.TypeBuilder>();
   static const ValueKind TypeBuilderOrNull =
-      _SingleValueKind<type.TypeBuilder>(NullValue.Type);
+      const _SingleValueKind<type.TypeBuilder>(NullValue.Type);
   static const ValueKind TypeVariableListOrNull =
-      _SingleValueKind<List<type.TypeVariableBuilder>>(NullValue.TypeVariables);
+      const _SingleValueKind<List<type.TypeVariableBuilder>>(
+          NullValue.TypeVariables);
 }
 
 /// A [ValueKind] for a particular type [T], optionally with a recognized

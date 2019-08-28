@@ -23,6 +23,8 @@ import 'type_schema.dart' show UnknownType;
 
 abstract class StandardBounds {
   Class get functionClass;
+  Class get futureClass;
+  Class get futureOrClass;
   InterfaceType get nullType;
   InterfaceType get objectType;
   InterfaceType get rawFunctionType;
@@ -97,6 +99,43 @@ abstract class StandardBounds {
 
     if (isSubtypeOf(type2, type1)) {
       return type2;
+    }
+
+    // See https://github.com/dart-lang/sdk/issues/37439#issuecomment-519654959.
+    if (type1 is InterfaceType && type1.classNode == futureOrClass) {
+      if (type2 is InterfaceType) {
+        if (type2.classNode == futureOrClass) {
+          // GLB(FutureOr<A>, FutureOr<B>) == FutureOr<GLB(A, B)>
+          return new InterfaceType(futureOrClass, <DartType>[
+            getStandardLowerBound(
+                type1.typeArguments[0], type2.typeArguments[0])
+          ]);
+        }
+        if (type2.classNode == futureClass) {
+          // GLB(FutureOr<A>, Future<B>) == Future<GLB(A, B)>
+          return new InterfaceType(futureClass, <DartType>[
+            getStandardLowerBound(
+                type1.typeArguments[0], type2.typeArguments[0])
+          ]);
+        }
+      }
+      // GLB(FutureOr<A>, B) == GLB(A, B)
+      return getStandardLowerBound(type1.typeArguments[0], type2);
+    }
+    // The if-statement below handles the following rule:
+    //     GLB(A, FutureOr<B>) ==  GLB(FutureOr<B>, A)
+    // It's broken down into sub-cases instead of making a recursive call to
+    // avoid making the checks that were already made above.  Note that at this
+    // point it's not possible for type1 to be a FutureOr.
+    if (type2 is InterfaceType && type2.classNode == futureOrClass) {
+      if (type1 is InterfaceType && type1.classNode == futureClass) {
+        // GLB(Future<A>, FutureOr<B>) == Future<GLB(B, A)>
+        return new InterfaceType(futureClass, <DartType>[
+          getStandardLowerBound(type2.typeArguments[0], type1.typeArguments[0])
+        ]);
+      }
+      // GLB(A, FutureOr<B>) == GLB(B, A)
+      return getStandardLowerBound(type2.typeArguments[0], type1);
     }
 
     // No subtype relation, so the lower bound is bottom.
@@ -211,12 +250,12 @@ abstract class StandardBounds {
     // Calculate the SUB of each corresponding pair of parameters.
     int totalPositional =
         math.max(f.positionalParameters.length, g.positionalParameters.length);
-    var positionalParameters = new List<DartType>(totalPositional);
+    List<DartType> positionalParameters = new List<DartType>(totalPositional);
     for (int i = 0; i < totalPositional; i++) {
       if (i < f.positionalParameters.length) {
-        var fType = f.positionalParameters[i];
+        DartType fType = f.positionalParameters[i];
         if (i < g.positionalParameters.length) {
-          var gType = g.positionalParameters[i];
+          DartType gType = g.positionalParameters[i];
           positionalParameters[i] = getStandardUpperBound(fType, gType);
         } else {
           positionalParameters[i] = fType;
@@ -241,8 +280,8 @@ abstract class StandardBounds {
       while (true) {
         if (i < f.namedParameters.length) {
           if (j < g.namedParameters.length) {
-            var fName = f.namedParameters[i].name;
-            var gName = g.namedParameters[j].name;
+            String fName = f.namedParameters[i].name;
+            String gName = g.namedParameters[j].name;
             int order = fName.compareTo(gName);
             if (order < 0) {
               namedParameters.add(f.namedParameters[i++]);
@@ -307,7 +346,7 @@ abstract class StandardBounds {
     // other.
     int totalPositional =
         math.min(f.positionalParameters.length, g.positionalParameters.length);
-    var positionalParameters = new List<DartType>(totalPositional);
+    List<DartType> positionalParameters = new List<DartType>(totalPositional);
     for (int i = 0; i < totalPositional; i++) {
       positionalParameters[i] = getStandardLowerBound(
           f.positionalParameters[i], g.positionalParameters[i]);
@@ -321,8 +360,8 @@ abstract class StandardBounds {
       while (true) {
         if (i < f.namedParameters.length) {
           if (j < g.namedParameters.length) {
-            var fName = f.namedParameters[i].name;
-            var gName = g.namedParameters[j].name;
+            String fName = f.namedParameters[i].name;
+            String gName = g.namedParameters[j].name;
             int order = fName.compareTo(gName);
             if (order < 0) {
               i++;

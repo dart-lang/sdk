@@ -342,12 +342,15 @@ class FixProcessor {
       await _addFix_updateSdkConstraints('2.2.0');
     }
     if (errorCode == HintCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT ||
-        errorCode == HintCode.SDK_VERSION_BOOL_OPERATOR ||
+        errorCode == HintCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT ||
         errorCode == HintCode.SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT ||
         errorCode == HintCode.SDK_VERSION_GT_GT_GT_OPERATOR ||
         errorCode == HintCode.SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT ||
         errorCode == HintCode.SDK_VERSION_UI_AS_CODE) {
       await _addFix_updateSdkConstraints('2.2.2');
+    }
+    if (errorCode == HintCode.SDK_VERSION_EXTENSION_METHODS) {
+      await _addFix_updateSdkConstraints('2.6.0');
     }
     if (errorCode == HintCode.TYPE_CHECK_IS_NOT_NULL) {
       await _addFix_isNotNull();
@@ -2103,11 +2106,7 @@ class FixProcessor {
     String prefix = utils.getNodePrefix(target);
     // compute type
     DartType type = _inferUndefinedExpressionType(node);
-    if (!(type == null ||
-        type is InterfaceType ||
-        type is FunctionType &&
-            type.element != null &&
-            !type.element.isSynthetic)) {
+    if (!(type == null || type is InterfaceType || type is FunctionType)) {
       return;
     }
     // build variable declaration source
@@ -4012,21 +4011,18 @@ class FixProcessor {
    * the given [element].
    */
   Future<void> _addFix_useStaticAccess(AstNode target, Element element) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    Element declaringElement = element.enclosingElement;
-    if (declaringElement is ClassElement) {
-      DartType declaringType = declaringElement.type;
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        // replace "target" with class name
-        builder.addReplacement(range.node(target), (DartEditBuilder builder) {
-          builder.writeType(declaringType);
-        });
+    var declaringElement = element.enclosingElement;
+    var changeBuilder = _newDartChangeBuilder();
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      builder.addReplacement(range.node(target), (DartEditBuilder builder) {
+        builder.writeReference(declaringElement);
       });
-      _addFixFromBuilder(changeBuilder, DartFixKind.CHANGE_TO_STATIC_ACCESS,
-          args: [declaringType]);
-    }
+    });
+    _addFixFromBuilder(
+      changeBuilder,
+      DartFixKind.CHANGE_TO_STATIC_ACCESS,
+      args: [declaringElement.name],
+    );
   }
 
   Future<void> _addFix_useStaticAccess_method() async {

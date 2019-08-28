@@ -120,7 +120,7 @@ StreamInfo Service::isolate_stream("Isolate");
 StreamInfo Service::debug_stream("Debug");
 StreamInfo Service::gc_stream("GC");
 StreamInfo Service::echo_stream("_Echo");
-StreamInfo Service::graph_stream("_Graph");
+StreamInfo Service::heapsnapshot_stream("HeapSnapshot");
 StreamInfo Service::logging_stream("Logging");
 StreamInfo Service::extension_stream("Extension");
 StreamInfo Service::timeline_stream("Timeline");
@@ -131,7 +131,7 @@ intptr_t Service::dart_library_kernel_len_ = 0;
 static StreamInfo* streams_[] = {
     &Service::vm_stream,      &Service::isolate_stream,
     &Service::debug_stream,   &Service::gc_stream,
-    &Service::echo_stream,    &Service::graph_stream,
+    &Service::echo_stream,    &Service::heapsnapshot_stream,
     &Service::logging_stream, &Service::extension_stream,
     &Service::timeline_stream};
 
@@ -211,14 +211,6 @@ RawObject* Service::RequestAssets() {
     return Object::null();
   }
   return object.raw();
-}
-
-static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
-  void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
-  if (new_ptr == NULL) {
-    OUT_OF_MEMORY();
-  }
-  return reinterpret_cast<uint8_t*>(new_ptr);
 }
 
 static void PrintMissingParamError(JSONStream* js, const char* param) {
@@ -972,8 +964,6 @@ void Service::SendEvent(const char* stream_id,
 
   bool result;
   {
-    TransitionVMToNative transition(thread);
-
     Dart_CObject cbytes;
     cbytes.type = Dart_CObject_kExternalTypedData;
     cbytes.value.as_external_typed_data.type = Dart_TypedData_kUint8;
@@ -994,7 +984,14 @@ void Service::SendEvent(const char* stream_id,
     message.value.as_array.length = 2;
     message.value.as_array.values = elements;
 
-    result = Dart_PostCObject(ServiceIsolate::Port(), &message);
+    ApiMessageWriter writer;
+    std::unique_ptr<Message> msg = writer.WriteCMessage(
+        &message, ServiceIsolate::Port(), Message::kNormalPriority);
+    if (msg == nullptr) {
+      result = false;
+    } else {
+      result = PortMap::PostMessage(std::move(msg));
+    }
   }
 
   if (!result) {
@@ -1004,34 +1001,20 @@ void Service::SendEvent(const char* stream_id,
 
 void Service::SendEventWithData(const char* stream_id,
                                 const char* event_type,
+                                intptr_t reservation,
                                 const char* metadata,
                                 intptr_t metadata_size,
-                                const uint8_t* data,
+                                uint8_t* data,
                                 intptr_t data_size) {
-  // Bitstream: [metadata size (big-endian 64 bit)] [metadata (UTF-8)] [data]
-  const intptr_t total_bytes = sizeof(uint64_t) + metadata_size + data_size;
-
-  uint8_t* message = static_cast<uint8_t*>(malloc(total_bytes));
-  if (message == NULL) {
-    OUT_OF_MEMORY();
-  }
-  intptr_t offset = 0;
-
-  // Metadata size.
-  reinterpret_cast<uint64_t*>(message)[0] =
-      Utils::HostToBigEndian64(metadata_size);
-  offset += sizeof(uint64_t);
-
-  // Metadata.
-  memmove(&message[offset], metadata, metadata_size);
-  offset += metadata_size;
-
-  // Data.
-  memmove(&message[offset], data, data_size);
-  offset += data_size;
-
-  ASSERT(offset == total_bytes);
-  SendEvent(stream_id, event_type, message, total_bytes);
+  ASSERT(kInt32Size + metadata_size <= reservation);
+  // Using a SPACE creates valid JSON. Our goal here is to prevent the memory
+  // overhead of copying to concatenate metadata and payload together by
+  // over-allocating to underlying buffer before we know how long the metadata
+  // will be.
+  memset(data, ' ', reservation);
+  reinterpret_cast<uint32_t*>(data)[0] = reservation;
+  memmove(&(reinterpret_cast<uint32_t*>(data)[1]), metadata, metadata_size);
+  Service::SendEvent(stream_id, event_type, data, data_size);
 }
 
 static void ReportPauseOnConsole(ServiceEvent* event) {
@@ -1586,9 +1569,15 @@ void Service::SendEchoEvent(Isolate* isolate, const char* text) {
       }
     }
   }
-  uint8_t data[] = {0, 128, 255};
-  SendEventWithData(echo_stream.id(), "_Echo", js.buffer()->buf(),
-                    js.buffer()->length(), data, sizeof(data));
+
+  intptr_t reservation = js.buffer()->length() + sizeof(int32_t);
+  intptr_t data_size = reservation + 3;
+  uint8_t* data = reinterpret_cast<uint8_t*>(malloc(data_size));
+  data[reservation + 0] = 0;
+  data[reservation + 1] = 128;
+  data[reservation + 2] = 255;
+  SendEventWithData(echo_stream.id(), "_Echo", reservation, js.buffer()->buf(),
+                    js.buffer()->length(), data, data_size);
 }
 
 static bool TriggerEchoEvent(Thread* thread, JSONStream* js) {
@@ -4073,80 +4062,18 @@ static bool GetHeapMap(Thread* thread, JSONStream* js) {
   return true;
 }
 
-static const char* snapshot_roots_names[] = {
-    "User", "VM", NULL,
-};
-
-static ObjectGraph::SnapshotRoots snapshot_roots_values[] = {
-    ObjectGraph::kUser, ObjectGraph::kVM,
-};
-
 static const MethodParameter* request_heap_snapshot_params[] = {
     RUNNABLE_ISOLATE_PARAMETER,
-    new EnumParameter("roots", false /* not required */, snapshot_roots_names),
-    new BoolParameter("collectGarbage", false /* not required */), NULL,
 };
 
 static bool RequestHeapSnapshot(Thread* thread, JSONStream* js) {
-  ObjectGraph::SnapshotRoots roots = ObjectGraph::kVM;
-  const char* roots_arg = js->LookupParam("roots");
-  if (roots_arg != NULL) {
-    roots = EnumMapper(roots_arg, snapshot_roots_names, snapshot_roots_values);
-  }
-  const bool collect_garbage =
-      BoolParameter::Parse(js->LookupParam("collectGarbage"), true);
-  if (Service::graph_stream.enabled()) {
-    Service::SendGraphEvent(thread, roots, collect_garbage);
+  if (Service::heapsnapshot_stream.enabled()) {
+    HeapSnapshotWriter writer(thread);
+    writer.Write();
   }
   // TODO(koda): Provide some id that ties this request to async response(s).
   PrintSuccess(js);
   return true;
-}
-
-void Service::SendGraphEvent(Thread* thread,
-                             ObjectGraph::SnapshotRoots roots,
-                             bool collect_garbage) {
-  uint8_t* buffer = NULL;
-  WriteStream stream(&buffer, &allocator, 1 * MB);
-  ObjectGraph graph(thread);
-  intptr_t node_count = graph.Serialize(&stream, roots, collect_garbage);
-
-  // Chrome crashes receiving a single tens-of-megabytes blob, so send the
-  // snapshot in megabyte-sized chunks instead.
-  const intptr_t kChunkSize = 1 * MB;
-  intptr_t num_chunks =
-      (stream.bytes_written() + (kChunkSize - 1)) / kChunkSize;
-  for (intptr_t i = 0; i < num_chunks; i++) {
-    JSONStream js;
-    {
-      JSONObject jsobj(&js);
-      jsobj.AddProperty("jsonrpc", "2.0");
-      jsobj.AddProperty("method", "streamNotify");
-      {
-        JSONObject params(&jsobj, "params");
-        params.AddProperty("streamId", graph_stream.id());
-        {
-          JSONObject event(&params, "event");
-          event.AddProperty("type", "Event");
-          event.AddProperty("kind", "_Graph");
-          event.AddProperty("isolate", thread->isolate());
-          event.AddPropertyTimeMillis("timestamp", OS::GetCurrentTimeMillis());
-
-          event.AddProperty("chunkIndex", i);
-          event.AddProperty("chunkCount", num_chunks);
-          event.AddProperty("nodeCount", node_count);
-        }
-      }
-    }
-
-    uint8_t* chunk_start = buffer + (i * kChunkSize);
-    intptr_t chunk_size = (i + 1 == num_chunks)
-                              ? stream.bytes_written() - (i * kChunkSize)
-                              : kChunkSize;
-
-    SendEventWithData(graph_stream.id(), "_Graph", js.buffer()->buf(),
-                      js.buffer()->length(), chunk_start, chunk_size);
-  }
 }
 
 void Service::SendInspectEvent(Isolate* isolate, const Object& inspectee) {
@@ -4211,78 +4138,6 @@ void Service::SendExtensionEvent(Isolate* isolate,
   ServiceEvent event(isolate, ServiceEvent::kExtension);
   event.set_extension_event(extension_event);
   Service::HandleEvent(&event);
-}
-
-class ContainsAddressVisitor : public FindObjectVisitor {
- public:
-  explicit ContainsAddressVisitor(uword addr) : addr_(addr) {}
-  virtual ~ContainsAddressVisitor() {}
-
-  virtual uword filter_addr() const { return addr_; }
-
-  virtual bool FindObject(RawObject* obj) const {
-    if (obj->IsPseudoObject()) {
-      return false;
-    }
-    uword obj_begin = RawObject::ToAddr(obj);
-    uword obj_end = obj_begin + obj->HeapSize();
-    return obj_begin <= addr_ && addr_ < obj_end;
-  }
-
- private:
-  uword addr_;
-};
-
-static const MethodParameter* get_object_by_address_params[] = {
-    RUNNABLE_ISOLATE_PARAMETER, NULL,
-};
-
-static RawObject* GetObjectHelper(Thread* thread, uword addr) {
-  HeapIterationScope iteration(thread);
-  Object& object = Object::Handle(thread->zone());
-
-  {
-    NoSafepointScope no_safepoint;
-    Isolate* isolate = thread->isolate();
-    ContainsAddressVisitor visitor(addr);
-    object = isolate->heap()->FindObject(&visitor);
-  }
-
-  if (!object.IsNull()) {
-    return object.raw();
-  }
-
-  {
-    NoSafepointScope no_safepoint;
-    ContainsAddressVisitor visitor(addr);
-    object = Dart::vm_isolate()->heap()->FindObject(&visitor);
-  }
-
-  return object.raw();
-}
-
-static bool GetObjectByAddress(Thread* thread, JSONStream* js) {
-  const char* addr_str = js->LookupParam("address");
-  if (addr_str == NULL) {
-    PrintMissingParamError(js, "address");
-    return true;
-  }
-
-  // Handle heap objects.
-  uword addr = 0;
-  if (!GetUnsignedIntegerId(addr_str, &addr, 16)) {
-    PrintInvalidParamError(js, "address");
-    return true;
-  }
-  bool ref = js->HasParam("ref") && js->ParamIs("ref", "true");
-  const Object& obj =
-      Object::Handle(thread->zone(), GetObjectHelper(thread, addr));
-  if (obj.IsNull()) {
-    PrintSentinel(js, kFreeSentinel);
-  } else {
-    obj.PrintJSON(js, ref);
-  }
-  return true;
 }
 
 static const MethodParameter* get_persistent_handles_params[] = {
@@ -4969,8 +4824,6 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_object_params },
   { "_getObjectStore", GetObjectStore,
     get_object_store_params },
-  { "_getObjectByAddress", GetObjectByAddress,
-    get_object_by_address_params },
   { "_getPersistentHandles", GetPersistentHandles,
       get_persistent_handles_params, },
   { "_getPorts", GetPorts,
@@ -5019,7 +4872,7 @@ static const ServiceMethodDescriptor service_methods_[] = {
     reload_sources_params },
   { "resume", Resume,
     resume_params },
-  { "_requestHeapSnapshot", RequestHeapSnapshot,
+  { "requestHeapSnapshot", RequestHeapSnapshot,
     request_heap_snapshot_params },
   { "_evaluateCompiledExpression", EvaluateCompiledExpression,
     evaluate_compiled_expression_params },

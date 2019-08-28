@@ -25,6 +25,7 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ConstructorMember;
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/exit_detector.dart';
+import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
@@ -3050,6 +3051,9 @@ class ResolverVisitor extends ScopedVisitor {
 
   final bool _uiAsCodeEnabled;
 
+  /// Helper for extension method resolution.
+  ExtensionMemberResolver extensionResolver;
+
   /// The object used to resolve the element associated with the current node.
   ElementResolver elementResolver;
 
@@ -3159,6 +3163,7 @@ class ResolverVisitor extends ScopedVisitor {
             nameScope: nameScope) {
     this.typeSystem = definingLibrary.context.typeSystem;
     this._promoteManager = TypePromotionManager(typeSystem);
+    this.extensionResolver = ExtensionMemberResolver(this);
     this.elementResolver = new ElementResolver(this,
         reportConstEvaluationErrors: reportConstEvaluationErrors);
     bool strongModeHints = false;
@@ -3422,10 +3427,10 @@ class ResolverVisitor extends ScopedVisitor {
       left?.accept(this);
 
       if (_flowAnalysis != null) {
-        flow?.logicalAnd_rightBegin(node, left);
+        flow?.logicalBinaryOp_rightBegin(left, isAnd: true);
         _flowAnalysis.checkUnreachableNode(right);
         right.accept(this);
-        flow?.logicalAnd_end(node, right);
+        flow?.logicalBinaryOp_end(node, right, isAnd: true);
       } else {
         _promoteManager.visitBinaryExpression_and_rhs(
           left,
@@ -3443,10 +3448,10 @@ class ResolverVisitor extends ScopedVisitor {
 
       left?.accept(this);
 
-      flow?.logicalOr_rightBegin(node, left);
+      flow?.logicalBinaryOp_rightBegin(left, isAnd: false);
       _flowAnalysis?.checkUnreachableNode(right);
       right.accept(this);
-      flow?.logicalOr_end(node, right);
+      flow?.logicalBinaryOp_end(node, right, isAnd: false);
 
       node.accept(elementResolver);
     } else if (operator == TokenType.BANG_EQ || operator == TokenType.EQ_EQ) {
@@ -3605,7 +3610,7 @@ class ResolverVisitor extends ScopedVisitor {
 
     if (_flowAnalysis != null) {
       if (flow != null) {
-        flow.conditional_thenBegin(node, condition);
+        flow.conditional_thenBegin(condition);
         _flowAnalysis.checkUnreachableNode(thenExpression);
       }
       thenExpression.accept(this);
@@ -3623,11 +3628,10 @@ class ResolverVisitor extends ScopedVisitor {
     InferenceContext.setTypeFromNode(elseExpression, node);
 
     if (flow != null) {
-      var isBool = thenExpression.staticType.isDartCoreBool;
-      flow.conditional_elseBegin(node, thenExpression, isBool);
+      flow.conditional_elseBegin(thenExpression);
       _flowAnalysis.checkUnreachableNode(elseExpression);
       elseExpression.accept(this);
-      flow.conditional_end(node, elseExpression, isBool);
+      flow.conditional_end(node, elseExpression);
     } else {
       elseExpression.accept(this);
     }
@@ -3739,7 +3743,7 @@ class ResolverVisitor extends ScopedVisitor {
     _flowAnalysis?.flow?.doStatement_conditionBegin();
     condition.accept(this);
 
-    _flowAnalysis?.flow?.doStatement_end(node, node.condition);
+    _flowAnalysis?.flow?.doStatement_end(node.condition);
   }
 
   @override
@@ -3822,6 +3826,18 @@ class ResolverVisitor extends ScopedVisitor {
     } finally {
       typeAnalyzer.thisType = null;
     }
+  }
+
+  @override
+  void visitExtensionOverride(ExtensionOverride node) {
+    node.extensionName.accept(this);
+    node.typeArguments?.accept(this);
+
+    ExtensionMemberResolver(this).setOverrideReceiverContextType(node);
+    node.argumentList.accept(this);
+
+    node.accept(elementResolver);
+    node.accept(typeAnalyzer);
   }
 
   @override
@@ -5365,13 +5381,6 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
           enclosingExtension = extensionElement;
           nameScope = new TypeParameterScope(nameScope, extensionElement);
           visitExtensionDeclarationInScope(node);
-          DartType extendedType = extensionElement.extendedType;
-          if (extendedType is InterfaceType) {
-            nameScope = new ClassScope(nameScope, extendedType.element);
-          } else if (extendedType is FunctionType) {
-            nameScope =
-                new ClassScope(nameScope, typeProvider.functionType.element);
-          }
           nameScope = ExtensionScope(nameScope, extensionElement);
           visitExtensionMembersInScope(node);
         } finally {
@@ -6204,8 +6213,9 @@ class TypeNameResolver {
       }
     } else {
       if (element is GenericTypeAliasElementImpl) {
+        var ts = typeSystem as Dart2TypeSystem;
         List<DartType> typeArguments =
-            typeSystem.instantiateTypeFormalsToBounds(element.typeParameters);
+            ts.instantiateTypeFormalsToBounds2(element);
         type = GenericTypeAliasElementImpl.typeAfterSubstitution(
                 element, typeArguments) ??
             dynamicType;
@@ -6451,8 +6461,8 @@ class TypeNameResolver {
       if (redirectedType != null) {
         typeArguments = redirectedType.typeArguments;
       } else {
-        var typeFormals = typeParameters;
-        typeArguments = typeSystem.instantiateTypeFormalsToBounds(typeFormals);
+        var ts = typeSystem as Dart2TypeSystem;
+        typeArguments = ts.instantiateTypeFormalsToBounds2(element);
       }
     }
 

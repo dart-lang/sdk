@@ -241,8 +241,9 @@ class ScannerTest_Replacement extends ScannerTestBase {
     fasta.Token token = firstToken;
     while (!token.isEof) {
       if (token is analyzer.BeginToken) {
-        if (token.lexeme != '<')
+        if (token.lexeme != '<') {
           expect(token.endGroup, isNotNull, reason: token.lexeme);
+        }
         if (token.endGroup != null) openerStack.add(token);
       } else if (openerStack.isNotEmpty && openerStack.last.endGroup == token) {
         analyzer.BeginToken beginToken = openerStack.removeLast();

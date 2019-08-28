@@ -72,8 +72,9 @@ class _TypeSchemaEliminationVisitor extends TypeSchemaVisitor<DartType> {
       DartType substitution = node.namedParameters[i].type.accept(this);
       if (substitution != null) {
         newNamedParameters ??= node.namedParameters.toList(growable: false);
-        newNamedParameters[i] =
-            new NamedType(node.namedParameters[i].name, substitution);
+        newNamedParameters[i] = new NamedType(
+            node.namedParameters[i].name, substitution,
+            isRequired: node.namedParameters[i].isRequired);
       }
     }
     isLeastClosure = !isLeastClosure;
@@ -122,8 +123,9 @@ class _TypeSchemaEliminationVisitor extends TypeSchemaVisitor<DartType> {
   /// schema object is returned to avoid unnecessary allocation.
   static DartType run(
       CoreTypes coreTypes, bool isLeastClosure, DartType schema) {
-    var visitor = new _TypeSchemaEliminationVisitor(coreTypes, isLeastClosure);
-    var result = schema.accept(visitor);
+    _TypeSchemaEliminationVisitor visitor =
+        new _TypeSchemaEliminationVisitor(coreTypes, isLeastClosure);
+    DartType result = schema.accept(visitor);
     assert(visitor.isLeastClosure == isLeastClosure);
     return result ?? schema;
   }

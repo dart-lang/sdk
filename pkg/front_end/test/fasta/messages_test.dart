@@ -10,6 +10,8 @@ import "dart:io" show File;
 
 import "dart:typed_data" show Uint8List;
 
+import 'package:kernel/ast.dart' show Location, Source;
+
 import "package:kernel/target/targets.dart" show TargetFlags;
 
 import "package:testing/testing.dart"
@@ -30,6 +32,9 @@ import 'package:front_end/src/api_prototype/memory_file_system.dart'
 
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
+
+import 'package:front_end/src/fasta/command_line_reporting.dart'
+    as command_line_reporting;
 
 import 'package:front_end/src/fasta/severity.dart'
     show Severity, severityEnumValues;
@@ -70,7 +75,9 @@ class MessageTestSuite extends ChainContext {
 
   final BatchCompiler compiler;
 
-  MessageTestSuite()
+  final bool fastOnly;
+
+  MessageTestSuite(this.fastOnly)
       : fileSystem = new MemoryFileSystem(Uri.parse("org-dartlang-fasta:///")),
         compiler = new BatchCompiler(null);
 
@@ -82,7 +89,8 @@ class MessageTestSuite extends ChainContext {
   Stream<MessageTestDescription> list(Chain suite) async* {
     Uri uri = suite.uri.resolve("messages.yaml");
     File file = new File.fromUri(uri);
-    YamlMap messages = loadYamlNode(await file.readAsString(), sourceUrl: uri);
+    String fileContent = file.readAsStringSync();
+    YamlMap messages = loadYamlNode(fileContent, sourceUrl: uri);
     for (String name in messages.keys) {
       YamlNode messageNode = messages.nodes[name];
       var message = messageNode.value;
@@ -96,28 +104,76 @@ class MessageTestSuite extends ChainContext {
       Severity severity;
       YamlNode badSeverity;
       YamlNode unnecessarySeverity;
-      YamlNode misspelledTemplate;
-      Set<String> misspelledTemplateWords;
-      YamlNode misspelledTip;
-      Set<String> misspelledTipWords;
+      List<String> spellingMessages;
+      const String spellingPostMessage = "\nIf the word(s) look okay, update "
+          "'spell_checking_list_messages.txt' or "
+          "'spell_checking_list_common.txt'.";
+
+      Source source;
+      List<String> formatSpellingMistakes(
+          spell.SpellingResult spellResult, int offset, String message) {
+        if (source == null) {
+          List<int> bytes = file.readAsBytesSync();
+          List<int> lineStarts = new List<int>();
+          int indexOf = 0;
+          while (indexOf >= 0) {
+            lineStarts.add(indexOf);
+            indexOf = bytes.indexOf(10, indexOf + 1);
+          }
+          lineStarts.add(bytes.length);
+          source = new Source(lineStarts, bytes, uri, uri);
+        }
+        List<String> result = new List<String>();
+        for (int i = 0; i < spellResult.misspelledWords.length; i++) {
+          Location location = source.getLocation(
+              uri, offset + spellResult.misspelledWordsOffset[i]);
+          result.add(command_line_reporting.formatErrorMessage(
+              source.getTextLine(location.line),
+              location,
+              spellResult.misspelledWords[i].length,
+              relativize(uri),
+              "$message: '${spellResult.misspelledWords[i]}'."));
+        }
+        return result;
+      }
 
       for (String key in message.keys) {
         YamlNode node = message.nodes[key];
         var value = node.value;
+        // When positions matter, use node.span.text.
+        // When using node.span.text, replace r"\n" with "\n\n" to replace two
+        // characters with two characters without actually having the string
+        // "backslash n".
         switch (key) {
           case "template":
-            Set<String> misspelled = spell.spellcheckString(value);
-            if (misspelled != null) {
-              misspelledTemplate = node;
-              misspelledTemplateWords = misspelled;
+            spell.SpellingResult spellingResult = spell.spellcheckString(
+                node.span.text.replaceAll(r"\n", "\n\n"),
+                dictionaries: const [
+                  spell.Dictionaries.common,
+                  spell.Dictionaries.cfeMessages
+                ]);
+            if (spellingResult.misspelledWords != null) {
+              spellingMessages ??= new List<String>();
+              spellingMessages.addAll(formatSpellingMistakes(
+                  spellingResult,
+                  node.span.start.offset,
+                  "Template likely has the following spelling mistake"));
             }
             break;
 
           case "tip":
-            Set<String> misspelled = spell.spellcheckString(value);
-            if (misspelled != null) {
-              misspelledTip = node;
-              misspelledTipWords = misspelled;
+            spell.SpellingResult spellingResult = spell.spellcheckString(
+                node.span.text.replaceAll(r"\n", "\n\n"),
+                dictionaries: const [
+                  spell.Dictionaries.common,
+                  spell.Dictionaries.cfeMessages
+                ]);
+            if (spellingResult.misspelledWords != null) {
+              spellingMessages ??= new List<String>();
+              spellingMessages.addAll(formatSpellingMistakes(
+                  spellingResult,
+                  node.span.start.offset,
+                  "Tip likely has the following spelling mistake"));
             }
             break;
 
@@ -228,15 +284,18 @@ class MessageTestSuite extends ChainContext {
             name, messageNode, example, problem);
       }
 
-      for (Example example in examples) {
-        yield createDescription(example.name, example, null);
-      }
-      // "Wrap" example as a part.
-      for (Example example in examples) {
-        yield createDescription(
-            "part_wrapped_${example.name}",
-            new PartWrapExample("part_wrapped_${example.name}", name, example),
-            null);
+      if (!fastOnly) {
+        for (Example example in examples) {
+          yield createDescription(example.name, example, null);
+        }
+        // "Wrap" example as a part.
+        for (Example example in examples) {
+          yield createDescription(
+              "part_wrapped_${example.name}",
+              new PartWrapExample(
+                  "part_wrapped_${example.name}", name, example),
+              null);
+        }
       }
 
       yield createDescription(
@@ -261,26 +320,12 @@ class MessageTestSuite extends ChainContext {
               ? "The 'ERROR' severity is the default and not necessary."
               : null,
           location: unnecessarySeverity?.span?.start);
-
       yield createDescription(
-          "misspelledTemplate",
+          "spelling",
           null,
-          misspelledTemplate != null
-              ? "The template likely has the following spelling mistake(s) "
-                  "in it: ${misspelledTemplateWords.toList()}. "
-                  "If the word(s) look okay, update 'spell_checking_list.txt'."
-              : null,
-          location: misspelledTemplate?.span?.start);
-
-      yield createDescription(
-          "misspelledTip",
-          null,
-          misspelledTip != null
-              ? "The tip likely has the following spelling mistake(s) in "
-                  "it: ${misspelledTipWords.toList()}. "
-                  "If the word(s) look okay, update 'spell_checking_list.txt'."
-              : null,
-          location: misspelledTip?.span?.start);
+          spellingMessages != null
+              ? spellingMessages.join("\n") + spellingPostMessage
+              : null);
 
       bool exampleAndAnalyzerCodeRequired = severity != Severity.context &&
           severity != Severity.internalProblem &&
@@ -603,7 +648,8 @@ class Compile extends Step<Example, Null, MessageTestSuite> {
 
 Future<MessageTestSuite> createContext(
     Chain suite, Map<String, String> environment) async {
-  return new MessageTestSuite();
+  final bool fastOnly = environment["fastOnly"] == "true";
+  return new MessageTestSuite(fastOnly);
 }
 
 String relativize(Uri uri) {

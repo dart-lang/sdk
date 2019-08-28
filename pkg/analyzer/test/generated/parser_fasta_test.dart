@@ -97,6 +97,24 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     expect(rightHandSide.name, 'value');
   }
 
+  void test_parseConstructor_nullSuperArgList_openBrace_37735() {
+    // https://github.com/dart-lang/sdk/issues/37735
+    var unit = parseCompilationUnit('class{const():super.{n', errors: [
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 5, 1),
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 11, 1),
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 20, 1),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 20, 1),
+      expectedError(ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY, 20, 1),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 21, 1),
+      expectedError(ScannerErrorCode.EXPECTED_TOKEN, 22, 1),
+      expectedError(ScannerErrorCode.EXPECTED_TOKEN, 22, 1),
+    ]);
+    var classDeclaration = unit.declarations[0] as ClassDeclaration;
+    var constructor = classDeclaration.members[0] as ConstructorDeclaration;
+    var invocation = constructor.initializers[0] as SuperConstructorInvocation;
+    expect(invocation.argumentList.arguments, hasLength(0));
+  }
+
   void test_parseField_const_late() {
     createParser('const late T f = 0;', featureSet: nonNullable);
     ClassMember member = parser.parseClassMember('C');
@@ -1024,8 +1042,6 @@ main() { // missing async
       expectedError(ParserErrorCode.INVALID_SUPER_IN_INITIALIZER, 25, 5),
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 30, 2),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 33, 1),
-      expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 34, 1),
-      expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 36, 1),
     ]);
   }
 
@@ -1068,8 +1084,6 @@ main() { // missing async
       expectedError(ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER, 25, 4),
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 29, 2),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 32, 1),
-      expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 33, 1),
-      expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 35, 1),
     ]);
   }
 
@@ -1209,16 +1223,13 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
 
   void test_listLiteral_invalid_assert() {
     // https://github.com/dart-lang/sdk/issues/37674
-    parseExpression('n=<.["\$assert',
-        errors: [
-          expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 3, 1),
-          expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 4, 1),
-          expectedError(ParserErrorCode.MISSING_IDENTIFIER, 7, 6),
-          expectedError(ParserErrorCode.EXPECTED_STRING_LITERAL, 7, 6),
-          expectedError(ScannerErrorCode.EXPECTED_TOKEN, 7, 1),
-          expectedError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 12, 1),
-        ],
-        expectedEndOffset: 7);
+    parseExpression('n=<.["\$assert', errors: [
+      expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 3, 1),
+      expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 4, 1),
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 7, 6),
+      expectedError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 12, 1),
+      expectedError(ScannerErrorCode.EXPECTED_TOKEN, 13, 1),
+    ]);
   }
 
   void test_listLiteral_spread_disabled() {
@@ -1392,6 +1403,22 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     expect(map.constKeyword, isNull);
     expect(map.typeArguments.arguments, hasLength(2));
     expect(map.elements, hasLength(0));
+  }
+
+  void test_parseStringLiteral_interpolated_void() {
+    Expression expression = parseStringLiteral(r"'<html>$void</html>'");
+    expect(expression, isNotNull);
+    assertErrors(
+        errors: [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 4)]);
+    expect(expression, isStringInterpolation);
+    StringInterpolation literal = expression;
+    NodeList<InterpolationElement> elements = literal.elements;
+    expect(elements, hasLength(3));
+    expect(elements[0] is InterpolationString, isTrue);
+    expect(elements[1] is InterpolationExpression, isTrue);
+    expect(elements[2] is InterpolationString, isTrue);
+    expect((elements[1] as InterpolationExpression).leftBracket.lexeme, '\$');
+    expect((elements[1] as InterpolationExpression).rightBracket, isNull);
   }
 
   @override
@@ -3159,6 +3186,19 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
 @reflectiveTest
 class SimpleParserTest_Fasta extends FastaParserTestCase
     with SimpleParserTestMixin {
+  void test_method_name_notNull_37733() {
+    // https://github.com/dart-lang/sdk/issues/37733
+    var unit = parseCompilationUnit(r'class C { f(<T>()); }', errors: [
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 12, 1),
+    ]);
+    var classDeclaration = unit.declarations[0] as ClassDeclaration;
+    var method = classDeclaration.members[0] as MethodDeclaration;
+    expect(method.parameters.parameters, hasLength(1));
+    var parameter =
+        method.parameters.parameters[0] as FunctionTypedFormalParameter;
+    expect(parameter.identifier, isNotNull);
+  }
+
   test_parseArgument() {
     Expression result = parseArgument('3');
     expect(result, const TypeMatcher<IntegerLiteral>());
@@ -3234,6 +3274,38 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
     expect(declarationList.keyword, isNull);
     expect(declarationList.type, isNotNull);
     expect(declarationList.variables, hasLength(1));
+  }
+
+  void test_typeAlias_37733() {
+    // https://github.com/dart-lang/sdk/issues/37733
+    var unit = parseCompilationUnit(r'typedef K=Function(<>($', errors: [
+      expectedError(CompileTimeErrorCode.INVALID_INLINE_FUNCTION_TYPE, 19, 1),
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 19, 1),
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 20, 1),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 22, 1),
+      expectedError(ScannerErrorCode.EXPECTED_TOKEN, 23, 1),
+      expectedError(ScannerErrorCode.EXPECTED_TOKEN, 23, 1),
+    ]);
+    var typeAlias = unit.declarations[0] as GenericTypeAlias;
+    expect(typeAlias.name.toSource(), 'K');
+    var functionType = typeAlias.functionType;
+    expect(functionType.parameters.parameters, hasLength(1));
+    var parameter = functionType.parameters.parameters[0];
+    expect(parameter.identifier, isNotNull);
+  }
+
+  void test_typeAlias_parameter_missingIdentifier_37733() {
+    // https://github.com/dart-lang/sdk/issues/37733
+    var unit = parseCompilationUnit(r'typedef T=Function(<S>());', errors: [
+      expectedError(CompileTimeErrorCode.INVALID_INLINE_FUNCTION_TYPE, 19, 1),
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 19, 1),
+    ]);
+    var typeAlias = unit.declarations[0] as GenericTypeAlias;
+    expect(typeAlias.name.toSource(), 'T');
+    var functionType = typeAlias.functionType;
+    expect(functionType.parameters.parameters, hasLength(1));
+    var parameter = functionType.parameters.parameters[0];
+    expect(parameter.identifier, isNotNull);
   }
 }
 

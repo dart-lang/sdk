@@ -2362,10 +2362,22 @@ SwitchDispatch:
   }
 
   {
+    static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 19,
+                  "Cleanup PushStatic bytecode instruction");
     BYTECODE(PushStatic, D);
     RawField* field = reinterpret_cast<RawField*>(LOAD_CONSTANT(rD));
     // Note: field is also on the stack, hence no increment.
     *SP = field->ptr()->value_.static_value_;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadStatic, D);
+    RawField* field = reinterpret_cast<RawField*>(LOAD_CONSTANT(rD));
+    RawInstance* value = field->ptr()->value_.static_value_;
+    ASSERT((value != Object::sentinel().raw()) &&
+           (value != Object::transition_sentinel().raw()));
+    *++SP = value;
     DISPATCH();
   }
 
@@ -2544,7 +2556,6 @@ SwitchDispatch:
 
   {
     BYTECODE(Allocate, D);
-    DEBUG_CHECK;
     RawClass* cls = Class::RawCast(LOAD_CONSTANT(rD));
     if (LIKELY(InterpreterHelpers::IsFinalized(cls))) {
       const intptr_t class_id = cls->ptr()->id_;
@@ -2574,7 +2585,6 @@ SwitchDispatch:
 
   {
     BYTECODE(AllocateT, 0);
-    DEBUG_CHECK;
     RawClass* cls = Class::RawCast(SP[0]);
     RawTypeArguments* type_args = TypeArguments::RawCast(SP[-1]);
     if (LIKELY(InterpreterHelpers::IsFinalized(cls))) {

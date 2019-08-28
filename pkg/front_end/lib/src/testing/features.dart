@@ -256,8 +256,8 @@ class FeaturesDataInterpreter implements DataInterpreter<Features> {
                 "expected '$expectedValue', found '${actualValue}'");
           }
         } else if (expectedValue != actualValue) {
-          errorsFound.add(
-              "Mismatch for $key: expected '$expectedValue', found '${actualValue}'");
+          errorsFound.add("Mismatch for $key: expected '$expectedValue', "
+              "found '${actualValue}'");
         }
       });
       actualFeatures.forEach((String key, Object value) {

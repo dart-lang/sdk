@@ -11,5 +11,5 @@ void main() {
 
 class C {
   var x = this; //# 00: compile-time error
-  late x = this; //# 01: ok
+  late var x = this; //# 01: ok
 }

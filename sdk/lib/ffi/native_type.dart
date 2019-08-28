@@ -8,7 +8,7 @@ part of dart.ffi;
 ///
 /// [NativeType]'s subtypes are not constructible in the Dart code and serve
 /// purely as markers in type signatures.
-class NativeType {
+abstract class NativeType {
   const NativeType();
 }
 

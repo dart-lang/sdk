@@ -15,6 +15,7 @@ import '../js_backend/backend.dart' show CodegenInputs;
 import '../js_backend/inferred_data.dart';
 import '../js_backend/namer.dart' show Namer;
 import '../js_model/js_strategy.dart';
+import '../options.dart';
 import '../universe/codegen_world_builder.dart';
 import '../world.dart' show JClosedWorld;
 import 'program_builder/program_builder.dart';
@@ -38,6 +39,8 @@ class CodeEmitterTask extends CompilerTask {
   final bool _generateSourceMap;
 
   JsBackendStrategy get _backendStrategy => _compiler.backendStrategy;
+
+  CompilerOptions get options => _compiler.options;
 
   @deprecated
   // This field should be removed. It's currently only needed for dump-info and

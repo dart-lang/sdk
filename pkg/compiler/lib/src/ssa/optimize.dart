@@ -761,7 +761,9 @@ class SsaInstructionSimplifier extends HBaseVisitor
             _closedWorld.elementEnvironment.getFieldType(field);
         HInstruction closureCall = new HInvokeClosure(
             callSelector,
-            _abstractValueDomain.createFromStaticType(fieldType).abstractValue,
+            _abstractValueDomain
+                .createFromStaticType(fieldType, nullable: true)
+                .abstractValue,
             inputs,
             node.instructionType,
             node.typeArguments)
@@ -1333,41 +1335,64 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // Use `node.inputs.last` in case the call follows the interceptor calling
     // convention, but is not a call on an interceptor.
     HInstruction value = node.inputs.last;
-    if (_closedWorld.annotationsData.getParameterCheckPolicy(field).isEmitted) {
-      if (_options.experimentNewRti) {
-        // TODO(sra): Implement inlining of setters with checks for new rti.
-        node.needsCheck = true;
-        return node;
-      }
-      DartType type = _closedWorld.elementEnvironment.getFieldType(field);
-      if (!type.treatAsRaw ||
-          type.isTypeVariable ||
-          type.unaliased.isFunctionType ||
-          type.unaliased.isFutureOr) {
-        // We cannot generate the correct type representation here, so don't
-        // inline this access.
-        // TODO(sra): If the input is such that we don't need a type check, we
-        // can skip the test an generate the HFieldSet.
-        node.needsCheck = true;
-        return node;
-      }
-      HInstruction other =
-          value.convertType(_closedWorld, type, HTypeConversion.TYPE_CHECK);
-      if (other != value) {
-        node.block.addBefore(node, other);
-        value = other;
+
+    HInstruction assignField() {
+      if (_closedWorld.fieldAnalysis.getFieldData(field).isElided) {
+        _log?.registerFieldSet(node);
+        return value;
+      } else {
+        HFieldSet result =
+            new HFieldSet(_abstractValueDomain, field, receiver, value)
+              ..sourceInformation = node.sourceInformation;
+        _log?.registerFieldSet(node, result);
+        return result;
       }
     }
-    if (_closedWorld.fieldAnalysis.getFieldData(field).isElided) {
-      _log?.registerFieldSet(node);
-      return value;
-    } else {
-      HFieldSet result =
-          new HFieldSet(_abstractValueDomain, field, receiver, value)
-            ..sourceInformation = node.sourceInformation;
-      _log?.registerFieldSet(node, result);
-      return result;
+
+    if (!_closedWorld.annotationsData
+        .getParameterCheckPolicy(field)
+        .isEmitted) {
+      return assignField();
     }
+
+    DartType fieldType = _closedWorld.elementEnvironment.getFieldType(field);
+
+    if (_options.experimentNewRti) {
+      AbstractValueWithPrecision checkedType =
+          _abstractValueDomain.createFromStaticType(fieldType, nullable: true);
+      if (checkedType.isPrecise &&
+          _abstractValueDomain
+              .isIn(value.instructionType, checkedType.abstractValue)
+              .isDefinitelyTrue) {
+        return assignField();
+      }
+      // TODO(sra): Implement inlining of setters with checks for new rti. The
+      // check and field assignmeny for the setter should inlined if this is the
+      // only call to the setter, or the current function already computes the
+      // type of the field.
+      node.needsCheck = true;
+      return node;
+    }
+
+    if (!fieldType.treatAsRaw ||
+        fieldType.isTypeVariable ||
+        fieldType.unaliased.isFunctionType ||
+        fieldType.unaliased.isFutureOr) {
+      // We cannot generate the correct type representation here, so don't
+      // inline this access.
+      // TODO(sra): If the input is such that we don't need a type check, we
+      // can skip the test an generate the HFieldSet.
+      node.needsCheck = true;
+      return node;
+    }
+    HInstruction other =
+        value.convertType(_closedWorld, fieldType, HTypeConversion.TYPE_CHECK);
+    if (other != value) {
+      node.block.addBefore(node, other);
+      value = other;
+    }
+
+    return assignField();
   }
 
   @override
@@ -1877,7 +1902,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
           dartType, node.isTypeError, _closedWorld.commonElements);
       if (specializedCheck != null) {
         AbstractValueWithPrecision checkedType =
-            _abstractValueDomain.createFromStaticType(dartType);
+            _abstractValueDomain.createFromStaticType(dartType, nullable: true);
         return HAsCheckSimple(node.checkedInput, dartType, checkedType,
             node.isTypeError, specializedCheck, node.instructionType);
       }
@@ -1888,6 +1913,27 @@ class SsaInstructionSimplifier extends HBaseVisitor
   @override
   HInstruction visitAsCheckSimple(HAsCheckSimple node) {
     if (node.isRedundant(_closedWorld)) return node.checkedInput;
+    return node;
+  }
+
+  @override
+  HInstruction visitIsTest(HIsTest node) {
+    AbstractValueWithPrecision checkedAbstractValue = node.checkedAbstractValue;
+    HInstruction checkedInput = node.checkedInput;
+    AbstractValue inputType = checkedInput.instructionType;
+
+    AbstractBool isIn = _abstractValueDomain.isIn(
+        inputType, checkedAbstractValue.abstractValue);
+
+    if (isIn.isDefinitelyFalse) {
+      return _graph.addConstantBool(false, _closedWorld);
+    }
+    if (!checkedAbstractValue.isPrecise) return node;
+
+    if (isIn.isDefinitelyTrue) {
+      return _graph.addConstantBool(true, _closedWorld);
+    }
+
     return node;
   }
 
@@ -2952,6 +2998,27 @@ class SsaTypeConversionInserter extends HBaseVisitor
     }
     // TODO(sra): Also strengthen uses for when the condition is known
     // false. Avoid strengthening to `null`.
+  }
+
+  @override
+  void visitIsTest(HIsTest instruction) {
+    List<HBasicBlock> trueTargets = <HBasicBlock>[];
+    List<HBasicBlock> falseTargets = <HBasicBlock>[];
+
+    collectTargets(instruction, trueTargets, falseTargets);
+
+    if (trueTargets.isEmpty && falseTargets.isEmpty) return;
+
+    AbstractValue convertedType =
+        instruction.checkedAbstractValue.abstractValue;
+    HInstruction input = instruction.checkedInput;
+
+    for (HBasicBlock block in trueTargets) {
+      insertTypePropagationForDominatedUsers(block, input, convertedType);
+    }
+    // TODO(sra): Also strengthen uses for when the condition is precise and
+    // known false (e.g. int? x; ... if (x is! int) use(x)). Avoid strengthening
+    // to `null`.
   }
 
   @override

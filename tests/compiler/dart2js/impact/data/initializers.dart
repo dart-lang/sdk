@@ -29,11 +29,9 @@ main() {
 }
 
 /*strong.member: testDefaultValuesPositional:type=[inst:JSBool,param:bool]*/
-/*strongConst.member: testDefaultValuesPositional:type=[inst:JSBool,param:bool]*/
 testDefaultValuesPositional([bool value = false]) {}
 
 /*strong.member: testDefaultValuesNamed:type=[inst:JSBool,param:bool]*/
-/*strongConst.member: testDefaultValuesNamed:type=[inst:JSBool,param:bool]*/
 testDefaultValuesNamed({bool value: false}) {}
 
 class ClassFieldInitializer1 {

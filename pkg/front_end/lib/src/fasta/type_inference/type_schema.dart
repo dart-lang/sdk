@@ -9,6 +9,7 @@ import 'package:kernel/ast.dart'
         DartTypeVisitor1,
         FunctionType,
         InterfaceType,
+        NamedType,
         TypedefType,
         Visitor;
 
@@ -105,10 +106,10 @@ class _IsKnownVisitor extends TypeSchemaVisitor<bool> {
   @override
   bool visitFunctionType(FunctionType node) {
     if (!node.returnType.accept(this)) return false;
-    for (var parameterType in node.positionalParameters) {
+    for (DartType parameterType in node.positionalParameters) {
       if (!parameterType.accept(this)) return false;
     }
-    for (var namedParameterType in node.namedParameters) {
+    for (NamedType namedParameterType in node.namedParameters) {
       if (!namedParameterType.type.accept(this)) return false;
     }
     return true;
@@ -116,7 +117,7 @@ class _IsKnownVisitor extends TypeSchemaVisitor<bool> {
 
   @override
   bool visitInterfaceType(InterfaceType node) {
-    for (var typeArgument in node.typeArguments) {
+    for (DartType typeArgument in node.typeArguments) {
       if (!typeArgument.accept(this)) return false;
     }
     return true;
@@ -124,7 +125,7 @@ class _IsKnownVisitor extends TypeSchemaVisitor<bool> {
 
   @override
   bool visitTypedefType(TypedefType node) {
-    for (var typeArgument in node.typeArguments) {
+    for (DartType typeArgument in node.typeArguments) {
       if (!typeArgument.accept(this)) return false;
     }
     return true;

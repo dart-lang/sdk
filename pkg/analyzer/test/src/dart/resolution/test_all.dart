@@ -5,6 +5,7 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assignment_test.dart' as assignment;
+import 'ast_rewrite_test.dart' as ast_rewrite;
 import 'class_alias_test.dart' as class_alias;
 import 'class_test.dart' as class_resolution;
 import 'comment_test.dart' as comment;
@@ -41,6 +42,7 @@ import 'type_inference/test_all.dart' as type_inference;
 main() {
   defineReflectiveSuite(() {
     assignment.main();
+    ast_rewrite.main();
     class_alias.main();
     class_resolution.main();
     comment.main();

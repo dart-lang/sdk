@@ -10,7 +10,6 @@
 #include "vm/compiler/aot/aot_call_specializer.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler.h"
-#include "vm/compiler/backend/block_scheduler.h"
 #include "vm/compiler/backend/branch_optimizer.h"
 #include "vm/compiler/backend/constant_propagator.h"
 #include "vm/compiler/backend/flow_graph.h"
@@ -2281,10 +2280,8 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         FlowGraphPrinter::PrintGraph("Unoptimized Compilation", flow_graph);
       }
 
-      BlockScheduler block_scheduler(flow_graph);
       CompilerPassState pass_state(thread(), flow_graph, &speculative_policy,
                                    precompiler_);
-      pass_state.block_scheduler = &block_scheduler;
       pass_state.reorder_blocks =
           FlowGraph::ShouldReorderBlocks(function, optimized());
 

@@ -4,25 +4,56 @@
 
 import 'dart:io';
 
-Set<String> _dictionary;
-
-Set<String> spellcheckString(String s, {bool splitAsCode: false}) {
-  Set<String> wrongWords;
-  _dictionary ??= _loadDictionary();
-  List<String> words = splitStringIntoWords(s, splitAsCode: splitAsCode);
-  for (int i = 0; i < words.length; i++) {
-    String word = words[i].toLowerCase();
-    if (!_dictionary.contains(word)) {
-      wrongWords ??= new Set<String>();
-      wrongWords.add(word);
-    }
-  }
-  return wrongWords;
+enum Dictionaries {
+  common,
+  cfeMessages,
+  cfeCode,
+  cfeTests,
 }
 
-Set<String> _loadDictionary() {
-  Set<String> dictionary = new Set<String>();
-  addWords(Uri uri) {
+Map<Dictionaries, Set<String>> loadedDictionaries;
+
+SpellingResult spellcheckString(String s,
+    {List<Dictionaries> dictionaries, bool splitAsCode: false}) {
+  dictionaries ??= const [Dictionaries.common];
+  ensureDictionariesLoaded(dictionaries);
+
+  List<String> wrongWords;
+  List<int> wrongWordsOffset;
+  List<int> wordOffsets = new List<int>();
+  List<String> words =
+      splitStringIntoWords(s, wordOffsets, splitAsCode: splitAsCode);
+  for (int i = 0; i < words.length; i++) {
+    String word = words[i].toLowerCase();
+    int offset = wordOffsets[i];
+    bool found = false;
+    for (int j = 0; j < dictionaries.length; j++) {
+      Dictionaries dictionaryType = dictionaries[j];
+      Set<String> dictionary = loadedDictionaries[dictionaryType];
+      if (dictionary.contains(word)) {
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      wrongWords ??= new List<String>();
+      wrongWords.add(word);
+      wrongWordsOffset ??= new List<int>();
+      wrongWordsOffset.add(offset);
+    }
+  }
+  return new SpellingResult(wrongWords, wrongWordsOffset);
+}
+
+class SpellingResult {
+  final List<String> misspelledWords;
+  final List<int> misspelledWordsOffset;
+
+  SpellingResult(this.misspelledWords, this.misspelledWordsOffset);
+}
+
+void ensureDictionariesLoaded(List<Dictionaries> dictionaries) {
+  void addWords(Uri uri, Set<String> dictionary) {
     for (String word in File.fromUri(uri)
         .readAsStringSync()
         .split("\n")
@@ -39,17 +70,38 @@ Set<String> _loadDictionary() {
     }
   }
 
-  // TODO(jensj): Split list into several:
-  // * A common one with correctly spelled words.
-  // * A special one for messages.yaml.
-  // * A special one for source code in 'src'.
-  // * A special one for source code not in 'src'.
-  // and allow the caller to specify the combination of lists we want to use.
-  addWords(Uri.base.resolve("pkg/front_end/test/spell_checking_list.txt"));
-  return dictionary;
+  loadedDictionaries ??= new Map<Dictionaries, Set<String>>();
+  for (int j = 0; j < dictionaries.length; j++) {
+    Dictionaries dictionaryType = dictionaries[j];
+    Set<String> dictionary = loadedDictionaries[dictionaryType];
+    if (dictionary == null) {
+      dictionary = new Set<String>();
+      loadedDictionaries[dictionaryType] = dictionary;
+      addWords(dictionaryToUri(dictionaryType), dictionary);
+    }
+  }
 }
 
-List<String> splitStringIntoWords(String s, {bool splitAsCode: false}) {
+Uri dictionaryToUri(Dictionaries dictionaryType) {
+  switch (dictionaryType) {
+    case Dictionaries.common:
+      return Uri.base
+          .resolve("pkg/front_end/test/spell_checking_list_common.txt");
+    case Dictionaries.cfeMessages:
+      return Uri.base
+          .resolve("pkg/front_end/test/spell_checking_list_messages.txt");
+    case Dictionaries.cfeCode:
+      return Uri.base
+          .resolve("pkg/front_end/test/spell_checking_list_code.txt");
+    case Dictionaries.cfeTests:
+      return Uri.base
+          .resolve("pkg/front_end/test/spell_checking_list_tests.txt");
+  }
+  throw "Unknown Dictionary";
+}
+
+List<String> splitStringIntoWords(String s, List<int> splitOffsets,
+    {bool splitAsCode: false}) {
   List<String> result = new List<String>();
   // Match whitespace and the characters "-", "=", "|", "/", ",".
   String regExpStringInner = r"\s-=\|\/,";
@@ -66,9 +118,27 @@ List<String> splitStringIntoWords(String s, {bool splitAsCode: false}) {
     regExp = "([$regExpStringInner]|(\\\\n))+";
   }
 
-  List<String> split = s.split(new RegExp(regExp));
+  Iterator<RegExpMatch> matchesIterator =
+      new RegExp(regExp).allMatches(s).iterator;
+  int latestMatch = 0;
+  List<String> split = new List<String>();
+  List<int> splitOffset = new List<int>();
+  while (matchesIterator.moveNext()) {
+    RegExpMatch match = matchesIterator.current;
+    if (match.start > latestMatch) {
+      split.add(s.substring(latestMatch, match.start));
+      splitOffset.add(latestMatch);
+    }
+    latestMatch = match.end;
+  }
+  if (s.length > latestMatch) {
+    split.add(s.substring(latestMatch, s.length));
+    splitOffset.add(latestMatch);
+  }
+
   for (int i = 0; i < split.length; i++) {
-    String word = split[i].trim();
+    String word = split[i];
+    int offset = splitOffset[i];
     if (word.isEmpty) continue;
     int start = 0;
     int end = word.length;
@@ -147,6 +217,7 @@ List<String> splitStringIntoWords(String s, {bool splitAsCode: false}) {
             }
             if (doSpecialCase) {
               result.add(word.substring(start, i));
+              splitOffsets.add(offset + start);
               start = i;
             }
           }
@@ -158,6 +229,7 @@ List<String> splitStringIntoWords(String s, {bool splitAsCode: false}) {
             if (nextUnit >= 97 && nextUnit <= 122) {
               // Next is not capitalized.
               result.add(word.substring(start, i));
+              splitOffsets.add(offset + start);
               start = i;
             }
           }
@@ -165,6 +237,7 @@ List<String> splitStringIntoWords(String s, {bool splitAsCode: false}) {
           // Starting a new camel case word.
           if (i > start) {
             result.add(word.substring(start, i));
+            splitOffsets.add(offset + start);
             start = i;
           }
         } else if (prevCapitalized && !thisCapitalized) {
@@ -176,6 +249,7 @@ List<String> splitStringIntoWords(String s, {bool splitAsCode: false}) {
           // End of string.
           if (i >= start) {
             result.add(word.substring(start, end));
+            splitOffsets.add(offset + start);
           }
         }
         prevCapitalized = thisCapitalized;
@@ -183,6 +257,7 @@ List<String> splitStringIntoWords(String s, {bool splitAsCode: false}) {
     } else {
       result.add(
           (changedStart || changedEnd) ? word.substring(start, end) : word);
+      splitOffsets.add(offset + start);
     }
   }
   return result;

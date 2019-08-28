@@ -167,7 +167,21 @@ void JitCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
     // Type propagation has not run yet, we cannot eliminate the check.
     // TODO(erikcorry): The receiver check should use the off-heap targets
     // array, not the IC array.
-    AddReceiverCheck(instr);
+
+    // After we determined `targets.HasSingleTarget()` the mutator might have
+    // updated the megamorphic cache by adding more entries with *different*
+    // targets.
+    //
+    // We therefore have to ensure the class check we insert is only valid for
+    // precisely the [targets] classes we have based our decision upon.
+    //
+    // (i.e. we cannot use [AddReceiverCheck]/[AddCheckClass], since it
+    //  internally consults megmorphic cache again, which can return a superset
+    //  of the classes - possibly with different targets)
+    //
+    AddCheckClass(instr->Receiver()->definition(), targets, instr->deopt_id(),
+                  instr->env(), instr);
+
     // Call can still deoptimize, do not detach environment from instr.
     const Function& target =
         Function::ZoneHandle(Z, unary_checks.GetTargetAt(0));

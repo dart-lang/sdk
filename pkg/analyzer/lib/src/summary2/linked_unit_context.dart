@@ -238,10 +238,14 @@ class LinkedUnitContext {
 
   String getDefaultValueCode(AstNode node) {
     if (node is DefaultFormalParameter) {
-      LazyFormalParameter.readDefaultValue(_astReader, node);
-      return node.defaultValue?.toString();
+      return LazyFormalParameter.getDefaultValueCode(this, node);
     }
     return null;
+  }
+
+  String getDefaultValueCodeData(LinkedNode data) {
+    var informativeData = getInformativeData(data);
+    return informativeData?.defaultFormalParameter_defaultValueCode;
   }
 
   int getDirectiveOffset(Directive node) {
@@ -998,11 +1002,17 @@ class LinkedUnitContext {
       VariableDeclarationList variableList = node.parent;
       if (variableList.isConst) return true;
 
+      FieldDeclaration fieldDeclaration = variableList.parent;
+      if (fieldDeclaration.staticKeyword != null) return false;
+
       if (variableList.isFinal) {
-        ClassOrMixinDeclaration class_ = variableList.parent.parent;
-        for (var member in class_.members) {
-          if (member is ConstructorDeclaration && member.constKeyword != null) {
-            return true;
+        var class_ = fieldDeclaration.parent;
+        if (class_ is ClassOrMixinDeclaration) {
+          for (var member in class_.members) {
+            if (member is ConstructorDeclaration &&
+                member.constKeyword != null) {
+              return true;
+            }
           }
         }
       }

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -137,6 +138,48 @@ void f(A<int> a) {
     );
   }
 
+  test_override_downward_hasTypeArguments() async {
+    await assertNoErrorsInCode('''
+extension E<T> on Set<T> {
+  void foo() {}
+}
+
+main() {
+  E<int>({}).foo();
+}
+''');
+    var literal = findNode.setOrMapLiteral('{}).');
+    assertType(literal, 'Set<int>');
+  }
+
+  test_override_downward_hasTypeArguments_wrongNumber() async {
+    await assertNoErrorsInCode('''
+extension E<T> on Set<T> {
+  void foo() {}
+}
+
+main() {
+  E<int, bool>({}).foo();
+}
+''');
+    var literal = findNode.setOrMapLiteral('{}).');
+    assertType(literal, 'Set<dynamic>');
+  }
+
+  test_override_downward_noTypeArguments() async {
+    await assertNoErrorsInCode('''
+extension E<T> on Set<T> {
+  void foo() {}
+}
+
+main() {
+  E({}).foo();
+}
+''');
+    var literal = findNode.setOrMapLiteral('{}).');
+    assertType(literal, 'Set<dynamic>');
+  }
+
   test_override_hasTypeArguments_getter() async {
     await assertNoErrorsInCode('''
 class A<T> {}
@@ -239,6 +282,23 @@ void f(A<int> a) {
       findElement.setter('foo', of: 'E'),
       {'T': 'num'},
     );
+  }
+
+  test_override_inferTypeArguments_error_couldNotInfer() async {
+    await assertErrorsInCode('''
+extension E<T extends num> on T {
+  void foo() {}
+}
+
+f(String s) {
+  E(s).foo();
+}
+''', [
+      error(StrongModeCode.COULD_NOT_INFER, 69, 1),
+    ]);
+    var override = findNode.extensionOverride('E(s)');
+    assertElementTypeStrings(override.typeArgumentTypes, ['String']);
+    assertElementTypeString(override.extendedType, 'String');
   }
 
   test_override_inferTypeArguments_getter() async {

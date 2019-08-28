@@ -96,24 +96,18 @@ extension MyExt on A {
       // [cfe] unspecified
       //             ^^^^^^^^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
-      //             ^^^^^^^^^^^^^^^^^^
-      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
       checkExtensionValue(t0);
       bool t1 = this.getterInGlobalScope;
       //             ^^^
       // [cfe] unspecified
       //             ^^^^^^^^^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
-      //             ^^^^^^^^^^^^^^^^^^^
-      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
       checkExtensionValue(t1);
       this.setterInGlobalScope = extensionValue;
       //   ^^^
       // [cfe] unspecified
       //   ^^^^^^^^^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
-      //   ^^^^^^^^^^^^^^^^^^^
-      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_SETTER
       bool t2 = this.methodInGlobalScope();
       //             ^^^
       // [cfe] unspecified
@@ -135,24 +129,18 @@ extension MyExt on A {
       // [cfe] unspecified
       //             ^^^^^^^^^^^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
-      //             ^^^^^^^^^^^^^^^^^^^^^
-      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
       checkExtensionValue(t0);
       bool t1 = this.getterInExtensionScope;
       //             ^^^
       // [cfe] unspecified
       //             ^^^^^^^^^^^^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
-      //             ^^^^^^^^^^^^^^^^^^^^^^
-      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
       checkExtensionValue(t1);
       this.setterInExtensionScope = extensionValue;
       //   ^^^
       // [cfe] unspecified
       //   ^^^^^^^^^^^^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
-      //   ^^^^^^^^^^^^^^^^^^^^^^
-      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_SETTER
       bool t2 = this.methodInExtensionScope();
       //             ^^^
       // [cfe] unspecified
@@ -178,24 +166,18 @@ extension MyExt on A {
       // [cfe] unspecified
       //             ^^^^^^^^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
-      //             ^^^^^^^^^^^^^^^^^^
-      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
       checkExtensionValue(t0);
       bool t1 = self.getterInGlobalScope;
       //             ^^^
       // [cfe] unspecified
       //             ^^^^^^^^^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
-      //             ^^^^^^^^^^^^^^^^^^^
-      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
       checkExtensionValue(t1);
       self.setterInGlobalScope = extensionValue;
       //   ^^^
       // [cfe] unspecified
       //   ^^^^^^^^^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
-      //   ^^^^^^^^^^^^^^^^^^^
-      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_SETTER
       bool t2 = self.methodInGlobalScope();
       //             ^^^
       // [cfe] unspecified
@@ -217,24 +199,18 @@ extension MyExt on A {
       // [cfe] unspecified
       //             ^^^^^^^^^^^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
-      //             ^^^^^^^^^^^^^^^^^^^^^
-      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
       checkExtensionValue(t0);
       bool t1 = self.getterInExtensionScope;
       //             ^^^
       // [cfe] unspecified
       //             ^^^^^^^^^^^^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
-      //             ^^^^^^^^^^^^^^^^^^^^^^
-      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
       checkExtensionValue(t1);
       self.setterInExtensionScope = extensionValue;
       //   ^^^
       // [cfe] unspecified
       //   ^^^^^^^^^^^^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
-      //   ^^^^^^^^^^^^^^^^^^^^^^
-      // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_SETTER
       bool t2 = self.methodInExtensionScope();
       //             ^^^
       // [cfe] unspecified
@@ -330,22 +306,16 @@ void main() {
     // [cfe] unspecified
     //          ^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
-    //          ^^^^^^^^^^^^^^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
     checkExtensionValue(t0);
     bool t1 = a.getterInGlobalScope;
     //          ^^^
     // [cfe] unspecified
     //          ^^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
-    //          ^^^^^^^^^^^^^^^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
     checkExtensionValue(t1);
     a.setterInGlobalScope = extensionValue;
     //^^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
-    //^^^^^^^^^^^^^^^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_SETTER
     // ^^^
     // [cfe] unspecified
     bool t2 = a.methodInGlobalScope();
@@ -369,22 +339,16 @@ void main() {
     // [cfe] unspecified
     //          ^^^^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
-    //          ^^^^^^^^^^^^^^^^^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
     checkExtensionValue(t0);
     bool t1 = a.getterInExtensionScope;
     //          ^^^
     // [cfe] unspecified
     //          ^^^^^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
-    //          ^^^^^^^^^^^^^^^^^^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
     checkExtensionValue(t1);
     a.setterInExtensionScope = extensionValue;
     //^^^^^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_METHOD_ACCESS
-    //^^^^^^^^^^^^^^^^^^^^^^
-    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_SETTER
     // ^^^
     // [cfe] unspecified
     bool t2 = a.methodInExtensionScope();

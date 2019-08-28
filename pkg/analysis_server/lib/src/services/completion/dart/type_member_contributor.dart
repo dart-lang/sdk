@@ -236,56 +236,9 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
  * This class provides suggestions based upon the visible instance members in
  * an interface type.
  */
-class _SuggestionBuilder {
-  /**
-   * Enumerated value indicating that we have not generated any completions for
-   * a given identifier yet.
-   */
-  static const int _COMPLETION_TYPE_NONE = 0;
-
-  /**
-   * Enumerated value indicating that we have generated a completion for a
-   * getter.
-   */
-  static const int _COMPLETION_TYPE_GETTER = 1;
-
-  /**
-   * Enumerated value indicating that we have generated a completion for a
-   * setter.
-   */
-  static const int _COMPLETION_TYPE_SETTER = 2;
-
-  /**
-   * Enumerated value indicating that we have generated a completion for a
-   * field, a method, or a getter/setter pair.
-   */
-  static const int _COMPLETION_TYPE_FIELD_OR_METHOD_OR_GETSET = 3;
-
-  /**
-   * The library containing the unit in which the completion is requested.
-   */
-  final LibraryElement containingLibrary;
-
-  /**
-   * Map indicating, for each possible completion identifier, whether we have
-   * already generated completions for a getter, setter, or both.  The "both"
-   * case also handles the case where have generated a completion for a method
-   * or a field.
-   *
-   * Note: the enumerated values stored in this map are intended to be bitwise
-   * compared.
-   */
-  final Map<String, int> _completionTypesGenerated = new HashMap<String, int>();
-
-  /**
-   * Map from completion identifier to completion suggestion
-   */
-  final Map<String, CompletionSuggestion> _suggestionMap =
-      <String, CompletionSuggestion>{};
-
-  _SuggestionBuilder(this.containingLibrary);
-
-  Iterable<CompletionSuggestion> get suggestions => _suggestionMap.values;
+class _SuggestionBuilder extends MemberSuggestionBuilder {
+  _SuggestionBuilder(LibraryElement containingLibrary)
+      : super(containingLibrary);
 
   /**
    * Return completion suggestions for 'dot' completions on the given [type].
@@ -311,7 +264,7 @@ class _SuggestionBuilder {
         if (!method.isStatic) {
           // Boost the relevance of a super expression
           // calling a method of the same name as the containing method
-          _addSuggestion(method,
+          addSuggestion(method,
               relevance: method.name == containingMethodName
                   ? DART_RELEVANCE_HIGH
                   : DART_RELEVANCE_DEFAULT);
@@ -322,78 +275,13 @@ class _SuggestionBuilder {
           if (propertyAccessor.isSynthetic) {
             // Avoid visiting a field twice
             if (propertyAccessor.isGetter) {
-              _addSuggestion(propertyAccessor.variable);
+              addSuggestion(propertyAccessor.variable);
             }
           } else {
-            _addSuggestion(propertyAccessor);
+            addSuggestion(propertyAccessor);
           }
         }
       }
-    }
-  }
-
-  /**
-   * Add a suggestion based upon the given element, provided that it is not
-   * shadowed by a previously added suggestion.
-   */
-  void _addSuggestion(Element element,
-      {int relevance = DART_RELEVANCE_DEFAULT}) {
-    if (element.isPrivate) {
-      if (element.library != containingLibrary) {
-        // Do not suggest private members for imported libraries
-        return;
-      }
-    }
-    String identifier = element.displayName;
-
-    if (relevance == DART_RELEVANCE_DEFAULT && identifier != null) {
-      // Decrease relevance of suggestions starting with $
-      // https://github.com/dart-lang/sdk/issues/27303
-      if (identifier.startsWith(r'$')) {
-        relevance = DART_RELEVANCE_LOW;
-      }
-    }
-
-    int alreadyGenerated = _completionTypesGenerated.putIfAbsent(
-        identifier, () => _COMPLETION_TYPE_NONE);
-    if (element is MethodElement) {
-      // Anything shadows a method.
-      if (alreadyGenerated != _COMPLETION_TYPE_NONE) {
-        return;
-      }
-      _completionTypesGenerated[identifier] =
-          _COMPLETION_TYPE_FIELD_OR_METHOD_OR_GETSET;
-    } else if (element is PropertyAccessorElement) {
-      if (element.isGetter) {
-        // Getters, fields, and methods shadow a getter.
-        if ((alreadyGenerated & _COMPLETION_TYPE_GETTER) != 0) {
-          return;
-        }
-        _completionTypesGenerated[identifier] |= _COMPLETION_TYPE_GETTER;
-      } else {
-        // Setters, fields, and methods shadow a setter.
-        if ((alreadyGenerated & _COMPLETION_TYPE_SETTER) != 0) {
-          return;
-        }
-        _completionTypesGenerated[identifier] |= _COMPLETION_TYPE_SETTER;
-      }
-    } else if (element is FieldElement) {
-      // Fields and methods shadow a field.  A getter/setter pair shadows a
-      // field, but a getter or setter by itself doesn't.
-      if (alreadyGenerated == _COMPLETION_TYPE_FIELD_OR_METHOD_OR_GETSET) {
-        return;
-      }
-      _completionTypesGenerated[identifier] =
-          _COMPLETION_TYPE_FIELD_OR_METHOD_OR_GETSET;
-    } else {
-      // Unexpected element type; skip it.
-      assert(false);
-      return;
-    }
-    CompletionSuggestion suggestion =
-        createSuggestion(element, relevance: relevance);
-    if (suggestion != null) {
-      _suggestionMap[suggestion.completion] = suggestion;
     }
   }
 

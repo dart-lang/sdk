@@ -76,6 +76,7 @@ class CompletionRanking {
       return Future.value(null);
     }
 
+    request.checkAborted();
     final response = await makeRequest('predict', query);
     return response['data'];
   }
@@ -116,10 +117,7 @@ class CompletionRanking {
     if (testInsideQuotes(request)) {
       // If completion is requested inside of quotes, remove any suggestions
       // which are not string literal.
-      entries = entries
-          .where((MapEntry entry) =>
-              isStringLiteral(entry.key) && isNotWhitespace(entry.key))
-          .toList();
+      entries = selectStringLiterals(entries);
     } else if (request.opType.includeVarNameSuggestions &&
         suggestions.every((CompletionSuggestion suggestion) =>
             suggestion.kind == CompletionSuggestionKind.IDENTIFIER)) {
@@ -158,8 +156,10 @@ class CompletionRanking {
         } else {
           suggestions
               .add(createCompletionSuggestion(entry.key, featureSet, high--));
-          includedSuggestionRelevanceTags
-              .add(IncludedSuggestionRelevanceTag(entry.key, relevance));
+          if (includedSuggestionRelevanceTags != null) {
+            includedSuggestionRelevanceTags
+                .add(IncludedSuggestionRelevanceTag(entry.key, relevance));
+          }
         }
       } else if (completionSuggestions.isNotEmpty ||
           includedSuggestions.isNotEmpty) {
@@ -174,8 +174,10 @@ class CompletionRanking {
         final relevance = low--;
         suggestions
             .add(createCompletionSuggestion(entry.key, featureSet, relevance));
-        includedSuggestionRelevanceTags
-            .add(IncludedSuggestionRelevanceTag(entry.key, relevance));
+        if (includedSuggestionRelevanceTags != null) {
+          includedSuggestionRelevanceTags
+              .add(IncludedSuggestionRelevanceTag(entry.key, relevance));
+        }
       }
     });
 

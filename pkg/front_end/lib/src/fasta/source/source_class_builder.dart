@@ -55,7 +55,7 @@ Class initializeClass(
   cls ??= new Class(
       name: name,
       typeParameters:
-          TypeVariableBuilder.kernelTypeParametersFromBuilders(typeVariables));
+          TypeVariableBuilder.typeParametersFromBuilders(typeVariables));
   cls.fileUri ??= parent.fileUri;
   if (cls.startFileOffset == TreeNode.noOffset) {
     cls.startFileOffset = startCharOffset;
@@ -94,15 +94,15 @@ class SourceClassBuilder extends ClassBuilder
       LibraryBuilder parent,
       this.constructorReferences,
       int startCharOffset,
-      int charOffset,
+      int nameOffset,
       int charEndOffset,
       {Class cls,
       this.mixedInType,
       this.isMixinDeclaration = false})
       : actualCls = initializeClass(cls, typeVariables, name, parent,
-            startCharOffset, charOffset, charEndOffset),
+            startCharOffset, nameOffset, charEndOffset),
         super(metadata, modifiers, name, typeVariables, supertype, interfaces,
-            onTypes, scope, constructors, parent, charOffset);
+            onTypes, scope, constructors, parent, nameOffset);
 
   @override
   Class get cls => origin.actualCls;
@@ -130,13 +130,9 @@ class SourceClassBuilder extends ClassBuilder
           }
         } else if (declaration is FunctionBuilder) {
           Member function = declaration.build(library);
-          if (isExtension) {
-            library.target.addMember(function);
-          } else {
-            function.parent = cls;
-            if (!declaration.isPatch && declaration.next == null) {
-              cls.addMember(function);
-            }
+          function.parent = cls;
+          if (!declaration.isPatch && declaration.next == null) {
+            cls.addMember(function);
           }
         } else {
           unhandled("${declaration.runtimeType}", "buildBuilders",
@@ -219,7 +215,8 @@ class SourceClassBuilder extends ClassBuilder
               member.isRegularMethod && member.isStatic && setter.isStatic)) {
         return;
       }
-      if (member.isInstanceMember == setter.isInstanceMember) {
+      if (member.isDeclarationInstanceMember ==
+          setter.isDeclarationInstanceMember) {
         addProblem(templateConflictsWithMember.withArguments(name),
             setter.charOffset, noLength);
         // TODO(ahe): Context argument to previous message?

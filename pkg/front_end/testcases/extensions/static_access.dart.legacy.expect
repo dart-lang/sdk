@@ -1,0 +1,108 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/static_access.dart:7:1: Error: This requires the 'extension-methods' experiment to be enabled.
+// Try enabling this experiment by adding it to the command line when compiling and running.
+// extension Extension on Class {
+// ^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/static_access.dart:7:24: Error: A function declaration needs an explicit list of parameters.
+// Try adding a parameter list to the function declaration.
+// extension Extension on Class {
+//                        ^^^^^
+//
+// pkg/front_end/testcases/extensions/static_access.dart:7:24: Error: 'Class' is already declared in this scope.
+// extension Extension on Class {
+//                        ^^^^^
+// pkg/front_end/testcases/extensions/static_access.dart:5:7: Context: Previous declaration of 'Class'.
+// class Class {}
+//       ^^^^^
+//
+// pkg/front_end/testcases/extensions/static_access.dart:7:1: Warning: Type 'extension' not found.
+// extension Extension on Class {
+// ^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/static_access.dart:7:21: Warning: Type 'on' not found.
+// extension Extension on Class {
+//                     ^^
+//
+// pkg/front_end/testcases/extensions/static_access.dart:7:1: Warning: 'extension' isn't a type.
+// extension Extension on Class {
+// ^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/static_access.dart:8:3: Error: Can't have modifier 'static' here.
+// Try removing 'static'.
+//   static method() {}
+//   ^^^^^^
+//
+// pkg/front_end/testcases/extensions/static_access.dart:9:3: Error: Can't have modifier 'static' here.
+// Try removing 'static'.
+//   static genericMethod<T>(T t) {}
+//   ^^^^^^
+//
+// pkg/front_end/testcases/extensions/static_access.dart:10:3: Error: Can't have modifier 'static' here.
+// Try removing 'static'.
+//   static get property => 42;
+//   ^^^^^^
+//
+// pkg/front_end/testcases/extensions/static_access.dart:10:10: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+//   static get property => 42;
+//          ^^^
+//
+// pkg/front_end/testcases/extensions/static_access.dart:10:10: Error: Expected ';' after this.
+//   static get property => 42;
+//          ^^^
+//
+// pkg/front_end/testcases/extensions/static_access.dart:10:23: Error: A function declaration needs an explicit list of parameters.
+// Try adding a parameter list to the function declaration.
+//   static get property => 42;
+//                       ^^
+//
+// pkg/front_end/testcases/extensions/static_access.dart:11:3: Error: Can't have modifier 'static' here.
+// Try removing 'static'.
+//   static set property(value) {}
+//   ^^^^^^
+//
+// pkg/front_end/testcases/extensions/static_access.dart:11:10: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+//   static set property(value) {}
+//          ^^^
+//
+// pkg/front_end/testcases/extensions/static_access.dart:11:10: Error: Expected ';' after this.
+//   static set property(value) {}
+//          ^^^
+//
+// pkg/front_end/testcases/extensions/static_access.dart:11:14: Error: 'property' is already declared in this scope.
+//   static set property(value) {}
+//              ^^^^^^^^
+// pkg/front_end/testcases/extensions/static_access.dart:10:14: Context: Previous declaration of 'property'.
+//   static get property => 42;
+//              ^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/static_access.dart:12:3: Error: Can't have modifier 'static' here.
+// Try removing 'static'.
+//   static var field;
+//   ^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class*
+    : super core::Object::•()
+    ;
+}
+static field invalid-type Extension;
+static method main() → dynamic {
+  self::Extension.method();
+  self::Extension.genericMethod(42);
+  self::Extension.genericMethod<core::num*>(42);
+  self::Extension.method;
+  self::Extension.genericMethod;
+  self::Extension.property;
+  self::Extension.property = 42;
+  self::Extension.field;
+  self::Extension.field = 42;
+}

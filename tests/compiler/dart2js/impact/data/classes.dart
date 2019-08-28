@@ -190,24 +190,9 @@ testForwardingConstructorGeneric() {
   new ForwardingConstructorGenericClass<int>(null);
 }
 
-enum Enum {
-  /*strong.member: Enum.A:static=[Enum.(2)],
-   type=[
-    inst:JSBool,
-    inst:JSDouble,
-    inst:JSInt,
-    inst:JSNumber,
-    inst:JSPositiveInt,
-    inst:JSString,
-    inst:JSUInt31,
-    inst:JSUInt32,
-    param:Enum]
-  */
-  A
-}
+enum Enum { A }
 
-/*strong.member: testEnum:static=[Enum.A]*/
-/*strongConst.member: testEnum:
+/*strong.member: testEnum:
  static=[
   Enum._name=StringConstant("Enum.A"),
   Enum.index=IntConstant(0)],

@@ -55,9 +55,8 @@ class TypeAliasBuilder extends TypeDeclarationBuilder {
       [Typedef target])
       : target = target ??
             (new Typedef(name, null,
-                typeParameters:
-                    TypeVariableBuilder.kernelTypeParametersFromBuilders(
-                        typeVariables),
+                typeParameters: TypeVariableBuilder.typeParametersFromBuilders(
+                    typeVariables),
                 fileUri: parent.target.fileUri)
               ..fileOffset = charOffset),
         super(metadata, 0, name, parent, charOffset);
@@ -138,7 +137,7 @@ class TypeAliasBuilder extends TypeDeclarationBuilder {
   /// [arguments] have already been built.
   DartType buildTypesWithBuiltArguments(
       LibraryBuilder library, List<DartType> arguments) {
-    var thisType = buildThisType(library);
+    DartType thisType = buildThisType(library);
     if (const DynamicType() == thisType) return thisType;
     FunctionType result = thisType;
     if (target.typeParameters.isEmpty && arguments == null) return result;
@@ -193,7 +192,7 @@ class TypeAliasBuilder extends TypeDeclarationBuilder {
 
   @override
   DartType buildType(LibraryBuilder library, List<TypeBuilder> arguments) {
-    var thisType = buildThisType(library);
+    DartType thisType = buildThisType(library);
     if (thisType is InvalidType) return thisType;
     FunctionType result = thisType;
     if (target.typeParameters.isEmpty && arguments == null) return result;

@@ -47,7 +47,7 @@ class FastaLegacyUpperBoundTest extends LegacyUpperBoundTest {
     loader.appendLibraries(component);
     await target.buildOutlines();
     ClassBuilder objectClass =
-        loader.coreLibrary.getLocalMember("Object");
+        loader.coreLibrary.lookupLocalMember("Object", required: true);
     hierarchy = new ClassHierarchyBuilder(
         objectClass, loader, new CoreTypes(component));
   }

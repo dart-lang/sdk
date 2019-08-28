@@ -63,8 +63,9 @@ import 'builder.dart'
         Scope,
         ScopeBuilder,
         TypeBuilder,
-        TypeDeclarationBuilder,
         TypeVariableBuilder;
+
+import 'declaration_builder.dart';
 
 import '../fasta_codes.dart'
     show
@@ -137,7 +138,7 @@ import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import '../type_inference/type_schema.dart' show UnknownType;
 
-abstract class ClassBuilder extends TypeDeclarationBuilder {
+abstract class ClassBuilder extends DeclarationBuilder {
   /// The type variables declared on a class, extension or mixin declaration.
   List<TypeVariableBuilder> typeVariables;
 
@@ -153,11 +154,7 @@ abstract class ClassBuilder extends TypeDeclarationBuilder {
   /// The types in the `on` clause of an extension or mixin declaration.
   List<TypeBuilder> onTypes;
 
-  final Scope scope;
-
   final Scope constructors;
-
-  final ScopeBuilder scopeBuilder;
 
   final ScopeBuilder constructorScopeBuilder;
 
@@ -173,13 +170,12 @@ abstract class ClassBuilder extends TypeDeclarationBuilder {
       this.supertype,
       this.interfaces,
       this.onTypes,
-      this.scope,
+      Scope scope,
       this.constructors,
       LibraryBuilder parent,
       int charOffset)
-      : scopeBuilder = new ScopeBuilder(scope),
-        constructorScopeBuilder = new ScopeBuilder(constructors),
-        super(metadata, modifiers, name, parent, charOffset);
+      : constructorScopeBuilder = new ScopeBuilder(constructors),
+        super(metadata, modifiers, name, parent, charOffset, scope);
 
   String get debugName => "ClassBuilder";
 
@@ -197,11 +193,6 @@ abstract class ClassBuilder extends TypeDeclarationBuilder {
   void set mixedInType(TypeBuilder mixin);
 
   List<ConstructorReferenceBuilder> get constructorReferences => null;
-
-  LibraryBuilder get library {
-    LibraryBuilder library = parent;
-    return library.partOfLibrary ?? library;
-  }
 
   void buildOutlineExpressions(LibraryBuilder library) {
     void build(String ignore, Builder declaration) {
@@ -324,6 +315,7 @@ abstract class ClassBuilder extends TypeDeclarationBuilder {
   }
 
   /// Used to lookup a static member of this class.
+  @override
   Builder findStaticBuilder(
       String name, int charOffset, Uri fileUri, LibraryBuilder accessingLibrary,
       {bool isSetter: false}) {
@@ -358,33 +350,32 @@ abstract class ClassBuilder extends TypeDeclarationBuilder {
     scope.forEach(f);
   }
 
-  /// Don't use for scope lookup. Only use when an element is known to exist
-  /// (and isn't a setter).
-  MemberBuilder getLocalMember(String name) {
-    return scope.local[name] ??
-        internalProblem(
-            templateInternalProblemNotFoundIn.withArguments(
-                name, fullNameForErrors),
-            -1,
-            null);
-  }
-
-  void addProblem(Message message, int charOffset, int length,
-      {bool wasHandled: false, List<LocatedMessage> context}) {
-    library.addProblem(message, charOffset, length, fileUri,
-        wasHandled: wasHandled, context: context);
+  @override
+  Builder lookupLocalMember(String name, {bool required: false}) {
+    Builder builder = scope.local[name];
+    if (builder == null && isPatch) {
+      builder = origin.scope.local[name];
+    }
+    if (required && builder == null) {
+      internalProblem(
+          templateInternalProblemNotFoundIn.withArguments(
+              name, fullNameForErrors),
+          -1,
+          null);
+    }
+    return builder;
   }
 
   /// Find the first member of this class with [name]. This method isn't
   /// suitable for scope lookups as it will throw an error if the name isn't
   /// declared. The [scope] should be used for that. This method is used to
-  /// find a member that is known to exist and it wil pick the first
+  /// find a member that is known to exist and it will pick the first
   /// declaration if the name is ambiguous.
   ///
   /// For example, this method is convenient for use when building synthetic
   /// members, such as those of an enum.
   MemberBuilder firstMemberNamed(String name) {
-    Builder declaration = getLocalMember(name);
+    Builder declaration = lookupLocalMember(name, required: true);
     while (declaration.next != null) {
       declaration = declaration.next;
     }
@@ -399,6 +390,9 @@ abstract class ClassBuilder extends TypeDeclarationBuilder {
 
   @override
   ClassBuilder get origin => actualOrigin ?? this;
+
+  @override
+  InterfaceType get thisType => cls.thisType;
 
   /// [arguments] have already been built.
   InterfaceType buildTypesWithBuiltArguments(
@@ -1230,8 +1224,10 @@ abstract class ClassBuilder extends TypeDeclarationBuilder {
         i < declaredFunction.positionalParameters.length &&
             i < interfaceFunction.positionalParameters.length;
         i++) {
-      var declaredParameter = declaredFunction.positionalParameters[i];
-      var interfaceParameter = interfaceFunction.positionalParameters[i];
+      VariableDeclaration declaredParameter =
+          declaredFunction.positionalParameters[i];
+      VariableDeclaration interfaceParameter =
+          interfaceFunction.positionalParameters[i];
       _checkTypes(
           types,
           interfaceSubstitution,
@@ -1308,7 +1304,7 @@ abstract class ClassBuilder extends TypeDeclarationBuilder {
           break outer;
         }
       }
-      var declaredParameter = declaredNamedParameters.current;
+      VariableDeclaration declaredParameter = declaredNamedParameters.current;
       _checkTypes(
           types,
           interfaceSubstitution,
@@ -1331,8 +1327,8 @@ abstract class ClassBuilder extends TypeDeclarationBuilder {
         types, declaredMember, interfaceMember, null, null, isInterfaceCheck);
     Substitution declaredSubstitution =
         _computeDeclaredSubstitution(types, declaredMember);
-    var declaredType = declaredMember.getterType;
-    var interfaceType = interfaceMember.getterType;
+    DartType declaredType = declaredMember.getterType;
+    DartType interfaceType = interfaceMember.getterType;
     _checkTypes(
         types,
         interfaceSubstitution,
@@ -1354,9 +1350,9 @@ abstract class ClassBuilder extends TypeDeclarationBuilder {
         types, declaredMember, interfaceMember, null, null, isInterfaceCheck);
     Substitution declaredSubstitution =
         _computeDeclaredSubstitution(types, declaredMember);
-    var declaredType = declaredMember.setterType;
-    var interfaceType = interfaceMember.setterType;
-    var declaredParameter =
+    DartType declaredType = declaredMember.setterType;
+    DartType interfaceType = interfaceMember.setterType;
+    VariableDeclaration declaredParameter =
         declaredMember.function?.positionalParameters?.elementAt(0);
     bool isCovariant = declaredParameter?.isCovariant ?? false;
     if (!isCovariant && declaredMember is Field) {
@@ -1568,7 +1564,8 @@ abstract class ClassBuilder extends TypeDeclarationBuilder {
         DartType typeParameterBound =
             substitution.substituteType(typeParameter.bound);
         DartType typeArgument = typeArguments[i];
-        // Check whether the [typeArgument] respects the bounds of [typeParameter].
+        // Check whether the [typeArgument] respects the bounds of
+        // [typeParameter].
         if (!typeEnvironment.isSubtypeOf(typeArgument, typeParameterBound)) {
           addProblem(
               templateRedirectingFactoryIncompatibleTypeArgument.withArguments(

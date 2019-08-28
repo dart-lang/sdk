@@ -98,11 +98,13 @@ class _SetInformativeId extends SimpleAstVisitor<void> {
 
   @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
+    var defaultValueCode = node.defaultValue?.toSource();
     setData(
       node,
       UnlinkedInformativeDataBuilder.defaultFormalParameter(
         codeOffset: node.offset,
         codeLength: node.length,
+        defaultFormalParameter_defaultValueCode: defaultValueCode,
       ),
     );
 

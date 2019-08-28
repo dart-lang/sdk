@@ -30,6 +30,5 @@ abstract class HeapSnapshotLoadingProgress {
 }
 
 abstract class HeapSnapshotRepository {
-  Stream<HeapSnapshotLoadingProgressEvent> get(IsolateRef isolate,
-      {HeapSnapshotRoots roots: HeapSnapshotRoots.vm, bool gc: false});
+  Stream<HeapSnapshotLoadingProgressEvent> get(IsolateRef isolate);
 }

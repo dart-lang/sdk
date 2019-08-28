@@ -450,6 +450,10 @@ class Range : public ZoneAllocated {
                        RangeBoundary* min,
                        RangeBoundary* max);
 
+  static void Mod(const Range* right_range,
+                  RangeBoundary* min,
+                  RangeBoundary* max);
+
   static void Shr(const Range* left_range,
                   const Range* right_range,
                   RangeBoundary* min,
@@ -622,7 +626,7 @@ class RangeAnalysis : public ValueObject {
   GrowableArray<ShiftIntegerOpInstr*> shift_int64_ops_;
 
   // All CheckArrayBound/GenericCheckBound instructions.
-  GrowableArray<Instruction*> bounds_checks_;
+  GrowableArray<CheckBoundBase*> bounds_checks_;
 
   // All Constraints inserted during InsertConstraints phase. They are treated
   // as smi values.

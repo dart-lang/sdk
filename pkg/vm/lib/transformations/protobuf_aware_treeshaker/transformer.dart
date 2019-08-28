@@ -2,12 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/api_prototype/constant_evaluator.dart'
-    as constants;
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/core_types.dart';
-import 'package:kernel/vm/constants_native_effects.dart' as vm_constants;
 import 'package:meta/meta.dart';
 import 'package:vm/transformations/type_flow/transformer.dart' as globalTypeFlow
     show transformComponent;
@@ -25,14 +22,6 @@ TransformationInfo transformComponent(
   final coreTypes = new CoreTypes(component);
   component.computeCanonicalNames();
 
-  // Evaluate constants to ensure @pragma("vm:entry-point") is seen by the
-  // type-flow analysis.
-  final vmConstants = new vm_constants.VmConstantsBackend(coreTypes);
-  constants.transformComponent(component, vmConstants, environment, null,
-      keepFields: true,
-      evaluateAnnotations: true,
-      desugarSets: !target.supportsSetLiterals);
-
   TransformationInfo info = collectInfo ? TransformationInfo() : null;
 
   _treeshakeProtos(target, component, coreTypes, info);
@@ -42,19 +31,21 @@ TransformationInfo transformComponent(
 void _treeshakeProtos(Target target, Component component, CoreTypes coreTypes,
     TransformationInfo info) {
   globalTypeFlow.transformComponent(target, coreTypes, component);
+
   final collector = removeUnusedProtoReferences(component, coreTypes, info);
-  if (collector == null) {
-    return;
-  }
-  globalTypeFlow.transformComponent(target, coreTypes, component);
-  if (info != null) {
-    for (Class gmSubclass in collector.gmSubclasses) {
-      if (!gmSubclass.enclosingLibrary.classes.contains(gmSubclass)) {
-        info.removedMessageClasses.add(gmSubclass);
+  if (collector != null) {
+    globalTypeFlow.transformComponent(target, coreTypes, component);
+    if (info != null) {
+      for (Class gmSubclass in collector.gmSubclasses) {
+        if (!gmSubclass.enclosingLibrary.classes.contains(gmSubclass)) {
+          info.removedMessageClasses.add(gmSubclass);
+        }
       }
     }
   }
-  // Remove metadata added by the typeflow analysis.
+
+  // Remove metadata added by the typeflow analysis (even if the code doesn't
+  // use any protos).
   component.metadata.clear();
 }
 

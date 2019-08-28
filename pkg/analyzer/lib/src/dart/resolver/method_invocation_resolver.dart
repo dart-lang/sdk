@@ -8,9 +8,9 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
+import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -41,15 +41,14 @@ class MethodInvocationResolver {
   /// The object providing promoted or declared types of variables.
   final LocalVariableTypeProvider _localVariableTypeProvider;
 
+  /// Helper for extension method resolution.
+  final ExtensionMemberResolver _extensionResolver;
+
   /// The invocation being resolved.
   MethodInvocationImpl _invocation;
 
   /// The [Name] object of the invocation being resolved by [resolve].
   Name _currentName;
-
-  /// Helper for extension method resolution.
-  //todo(pq): consider sharing instance with element_resolver
-  final ExtensionMemberResolver _extensionResolver;
 
   MethodInvocationResolver(this._resolver)
       : _typeType = _resolver.typeProvider.typeType,
@@ -57,7 +56,7 @@ class MethodInvocationResolver {
         _definingLibrary = _resolver.definingLibrary,
         _definingLibraryUri = _resolver.definingLibrary.source.uri,
         _localVariableTypeProvider = _resolver.localVariableTypeProvider,
-        _extensionResolver = ExtensionMemberResolver(_resolver);
+        _extensionResolver = _resolver.extensionResolver;
 
   /// The scope used to resolve identifiers.
   Scope get nameScope => _resolver.nameScope;
@@ -338,8 +337,9 @@ class MethodInvocationResolver {
 
   /// If there is an extension matching the [receiverType] and defining a
   /// member with the given [name], resolve to the corresponding extension
-  /// method and return `true`. Otherwise return `false`.
-  ExtensionResolutionResult _resolveExtension(
+  /// method. Return a result indicating whether the [node] was resolved and if
+  /// not why.
+  ResolutionResult _resolveExtension(
     MethodInvocation node,
     DartType receiverType,
     SimpleIdentifier nameNode,
@@ -357,18 +357,18 @@ class MethodInvocationResolver {
       return result;
     }
 
-    ExecutableElement member = result.extension.instantiatedMember;
+    ExecutableElement member = result.element;
+    nameNode.staticElement = member;
 
     if (member.isStatic) {
       _setDynamicResolution(node);
       _resolver.errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.ACCESS_STATIC_EXTENSION_MEMBER,
-        nameNode,
-      );
+          StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
+          nameNode,
+          [name, member.kind.displayName, member.enclosingElement.name]);
       return result;
     }
 
-    nameNode.staticElement = member;
     var calleeType = _getCalleeType(node, member);
     _setResolution(node, calleeType);
     return result;
@@ -394,27 +394,22 @@ class MethodInvocationResolver {
 
   void _resolveExtensionOverride(MethodInvocation node,
       ExtensionOverride override, SimpleIdentifier nameNode, String name) {
-    ExtensionElement element = override.extensionName.staticElement;
-    ExecutableElement member =
-        element.getMethod(name) ?? element.getGetter(name);
+    var member = _extensionResolver.getOverrideMember(
+            override, name, ElementKind.METHOD) ??
+        _extensionResolver.getOverrideMember(
+            override, name, ElementKind.GETTER);
 
     if (member == null) {
       _setDynamicResolution(node);
       _resolver.errorReporter.reportErrorForNode(
         CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD,
         nameNode,
-        [name, element.name],
+        [name, override.staticElement.name],
       );
       return;
     }
 
-    member = ExecutableMember.from3(
-      member,
-      element.typeParameters,
-      override.typeArgumentTypes,
-    );
-
-    if (member is ExecutableElement && member.isStatic) {
+    if (member.isStatic) {
       _resolver.errorReporter.reportErrorForNode(
         CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
         nameNode,
@@ -446,9 +441,18 @@ class MethodInvocationResolver {
       return;
     }
 
+    ResolutionResult result = _extensionResolver.findExtension(
+        receiverType, name, nameNode, ElementKind.METHOD);
+    if (result.isSingle) {
+      nameNode.staticElement = result.element;
+      var calleeType = _getCalleeType(node, result.element);
+      return _setResolution(node, calleeType);
+    } else if (result.isAmbiguous) {
+      return;
+    }
     // We can invoke Object methods on Function.
     var member = _inheritance.getMember(
-      _resolver.typeProvider.objectType,
+      _resolver.typeProvider.functionType,
       new Name(null, name),
     );
     if (member != null) {
@@ -579,7 +583,7 @@ class MethodInvocationResolver {
     var result = _extensionResolver.findExtension(
         receiverType, name, nameNode, ElementKind.METHOD);
     if (result.isSingle) {
-      var target = result.extension.instantiatedMember;
+      var target = result.element;
       if (target != null) {
         nameNode.staticElement = target;
         var calleeType = _getCalleeType(node, target);
@@ -744,7 +748,9 @@ class MethodInvocationResolver {
         var result = _extensionResolver.findExtension(
             type, _nameCall.name, node.methodName, ElementKind.METHOD);
         if (result.isSingle) {
-          call = result.extension.instantiatedMember;
+          call = result.element;
+        } else if (result.isAmbiguous) {
+          return;
         }
       }
       if (call != null && call.kind == ElementKind.METHOD) {

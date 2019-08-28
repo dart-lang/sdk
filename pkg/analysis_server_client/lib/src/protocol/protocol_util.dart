@@ -32,13 +32,14 @@ class JenkinsSmiHash {
   }
 
   /// Combines together two hash codes.
-  static int hash2(a, b) => finish(combine(combine(0, a), b));
+  static int hash2(int a, int b) => finish(combine(combine(0, a), b));
 
   /// Combines together three hash codes.
-  static int hash3(a, b, c) => finish(combine(combine(combine(0, a), b), c));
+  static int hash3(int a, int b, int c) =>
+      finish(combine(combine(combine(0, a), b), c));
 
   /// Combines together four hash codes.
-  static int hash4(a, b, c, d) =>
+  static int hash4(int a, int b, int c, int d) =>
       finish(combine(combine(combine(combine(0, a), b), c), d));
 
   int _hash = 0;

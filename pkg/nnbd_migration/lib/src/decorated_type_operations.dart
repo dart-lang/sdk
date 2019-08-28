@@ -7,14 +7,17 @@ import 'package:analyzer/dart/element/type_system.dart';
 import 'package:front_end/src/fasta/flow_analysis/flow_analysis.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/node_builder.dart';
+import 'package:nnbd_migration/src/nullability_node.dart';
 
 /// [TypeOperations] that works with [DecoratedType]s.
 class DecoratedTypeOperations
     implements TypeOperations<VariableElement, DecoratedType> {
   final TypeSystem _typeSystem;
   final VariableRepository _variableRepository;
+  final NullabilityGraph _graph;
 
-  DecoratedTypeOperations(this._typeSystem, this._variableRepository);
+  DecoratedTypeOperations(
+      this._typeSystem, this._variableRepository, this._graph);
 
   @override
   bool isLocalVariable(VariableElement element) {
@@ -23,7 +26,7 @@ class DecoratedTypeOperations
 
   @override
   bool isSameType(DecoratedType type1, DecoratedType type2) {
-    throw new UnimplementedError('TODO(paulberry)');
+    return type1 == type2;
   }
 
   @override
@@ -33,7 +36,7 @@ class DecoratedTypeOperations
 
   @override
   DecoratedType promoteToNonNull(DecoratedType type) {
-    throw new UnimplementedError('TODO(paulberry)');
+    return type.withNode(_graph.never);
   }
 
   @override

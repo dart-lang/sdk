@@ -20,6 +20,17 @@ bool hasInstantiatorTypeArguments(Class c) {
   return false;
 }
 
+List<DartType> getTypeParameterTypes(List<TypeParameter> typeParameters) {
+  if (typeParameters.isEmpty) {
+    return const <DartType>[];
+  }
+  final types = new List<DartType>(typeParameters.length);
+  for (int i = 0; i < typeParameters.length; ++i) {
+    types[i] = new TypeParameterType(typeParameters[i]);
+  }
+  return types;
+}
+
 bool _canReuseSuperclassTypeArguments(List<DartType> superTypeArgs,
     List<TypeParameter> typeParameters, int overlap) {
   for (int i = 0; i < overlap; ++i) {
@@ -59,7 +70,9 @@ List<DartType> flattenInstantiatorTypeArguments(
   final substitution = Substitution.fromPairs(typeParameters, typeArgs);
 
   List<DartType> flatTypeArgs = <DartType>[];
-  flatTypeArgs.addAll(superTypeArgs.map((t) => substitution.substituteType(t)));
+  for (var type in superTypeArgs) {
+    flatTypeArgs.add(substitution.substituteType(type));
+  }
   flatTypeArgs.addAll(typeArgs.getRange(overlap, typeArgs.length));
 
   return flatTypeArgs;
@@ -76,11 +89,23 @@ List<DartType> getInstantiatorTypeArguments(
 }
 
 List<DartType> getDefaultFunctionTypeArguments(FunctionNode function) {
-  List<DartType> defaultTypes = function.typeParameters
-      .map((p) => p.defaultType ?? const DynamicType())
-      .toList();
-  if (isAllDynamic(defaultTypes)) {
+  final typeParameters = function.typeParameters;
+  if (typeParameters.isEmpty) {
     return null;
+  }
+  bool dynamicOnly = true;
+  for (var tp in typeParameters) {
+    if (tp.defaultType != null && tp.defaultType != const DynamicType()) {
+      dynamicOnly = false;
+      break;
+    }
+  }
+  if (dynamicOnly) {
+    return null;
+  }
+  List<DartType> defaultTypes = <DartType>[];
+  for (var tp in typeParameters) {
+    defaultTypes.add(tp.defaultType ?? const DynamicType());
   }
   return defaultTypes;
 }

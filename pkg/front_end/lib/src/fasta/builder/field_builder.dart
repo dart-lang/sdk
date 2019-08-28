@@ -46,6 +46,8 @@ import '../type_inference/type_inferrer.dart' show TypeInferrerImpl;
 
 import '../type_inference/type_schema.dart' show UnknownType;
 
+import 'extension_builder.dart';
+
 class FieldBuilder extends MemberBuilder {
   final String name;
 
@@ -80,11 +82,33 @@ class FieldBuilder extends MemberBuilder {
   bool get isEligibleForInference {
     return !library.legacyMode &&
         type == null &&
-        (hasInitializer || isInstanceMember);
+        (hasInitializer || isClassInstanceMember);
   }
 
   Field build(SourceLibraryBuilder library) {
-    field.name ??= new Name(name, library.target);
+    field
+      ..isCovariant = isCovariant
+      ..isFinal = isFinal
+      ..isConst = isConst
+      ..isLate = isLate;
+    if (isExtensionMember) {
+      ExtensionBuilder extension = parent;
+      field.name = new Name('${extension.name}|$name', library.target);
+      field
+        ..hasImplicitGetter = false
+        ..hasImplicitSetter = false
+        ..isStatic = true
+        ..isExtensionMember = true;
+    } else {
+      // TODO(johnniwinther): How can the name already have been computed.
+      field.name ??= new Name(name, library.target);
+      bool isInstanceMember = !isStatic && !isTopLevel;
+      field
+        ..hasImplicitGetter = isInstanceMember
+        ..hasImplicitSetter = isInstanceMember && !isConst && !isFinal
+        ..isStatic = !isInstanceMember
+        ..isExtensionMember = false;
+    }
     if (type != null) {
       field.type = type.build(library);
 
@@ -108,14 +132,6 @@ class FieldBuilder extends MemberBuilder {
         }
       }
     }
-    bool isInstanceMember = !isStatic && !isTopLevel;
-    field
-      ..isCovariant = isCovariant
-      ..isFinal = isFinal
-      ..isConst = isConst
-      ..hasImplicitGetter = isInstanceMember
-      ..hasImplicitSetter = isInstanceMember && !isConst && !isFinal
-      ..isStatic = !isInstanceMember;
     return field;
   }
 

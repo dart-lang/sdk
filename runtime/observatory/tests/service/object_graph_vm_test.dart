@@ -34,35 +34,32 @@ void script() {
   lst[1] = new List(1234569);
 }
 
-int fooId;
-
 var tests = <IsolateTest>[
   (Isolate isolate) async {
-    Library lib = await isolate.rootLibrary.load();
-    expect(lib.classes.length, equals(1));
-    Class fooClass = lib.classes.first;
-    fooId = fooClass.vmCid;
-
-    RawHeapSnapshot raw =
-        await isolate.fetchHeapSnapshot(M.HeapSnapshotRoots.vm, false).last;
+    var raw = await isolate.fetchHeapSnapshot().last;
     HeapSnapshot snapshot = new HeapSnapshot();
     await snapshot.loadProgress(isolate, raw).last;
-    ObjectGraph graph = snapshot.graph;
+    var graph = snapshot.graph;
 
-    expect(fooId, isNotNull);
-    Iterable<ObjectVertex> foos =
-        graph.vertices.where((ObjectVertex obj) => obj.vmCid == fooId);
+    Iterable<SnapshotObject> foos =
+        graph.objects.where((SnapshotObject obj) => obj.klass.name == "Foo");
     expect(foos.length, equals(3));
-    expect(foos.where((obj) => obj.successors.length == 0).length, equals(1));
-    expect(foos.where((obj) => obj.successors.length == 1).length, equals(1));
-    expect(foos.where((obj) => obj.successors.length == 2).length, equals(1));
 
-    ObjectVertex bVertex =
-        foos.where((ObjectVertex obj) => obj.successors.length == 0).first;
-    ObjectVertex aVertex =
-        foos.where((ObjectVertex obj) => obj.successors.length == 1).first;
-    ObjectVertex rVertex =
-        foos.where((ObjectVertex obj) => obj.successors.length == 2).first;
+    SnapshotObject bVertex = foos.singleWhere((SnapshotObject obj) {
+      List<SnapshotObject> successors = obj.successors.toList();
+      return successors[0].klass.name == "Null" &&
+          successors[1].klass.name == "Null";
+    });
+    SnapshotObject aVertex = foos.singleWhere((SnapshotObject obj) {
+      List<SnapshotObject> successors = obj.successors.toList();
+      return successors[0].klass.name == "Foo" &&
+          successors[1].klass.name == "Null";
+    });
+    SnapshotObject rVertex = foos.singleWhere((SnapshotObject obj) {
+      List<SnapshotObject> successors = obj.successors.toList();
+      return successors[0].klass.name == "Foo" &&
+          successors[1].klass.name == "Foo";
+    });
 
     // TODO(koda): Check actual byte sizes.
 
@@ -73,23 +70,17 @@ var tests = <IsolateTest>[
         equals(
             aVertex.shallowSize + bVertex.shallowSize + rVertex.shallowSize));
 
-    Library corelib =
-        isolate.libraries.singleWhere((lib) => lib.uri == 'dart:core');
-    await corelib.load();
-    Class _List =
-        corelib.classes.singleWhere((cls) => cls.vmName.startsWith('_List'));
-    int kArrayCid = _List.vmCid;
-    // startsWith to ignore the private mangling
-    List<ObjectVertex> lists = new List.from(
-        graph.vertices.where((ObjectVertex obj) => obj.vmCid == kArrayCid));
+    List<SnapshotObject> lists = new List.from(
+        graph.objects.where((SnapshotObject obj) => obj.klass.name == '_List'));
     expect(lists.length >= 2, isTrue);
     // Order by decreasing retained size.
     lists.sort((u, v) => v.retainedSize - u.retainedSize);
-    ObjectVertex first = lists[0];
-    ObjectVertex second = lists[1];
+    SnapshotObject first = lists[0];
+    expect(first.successors.length, greaterThanOrEqualTo(2));
+    SnapshotObject second = lists[1];
+    expect(second.successors.length, greaterThanOrEqualTo(1234569));
     // Check that the short list retains more than the long list inside.
-    expect(first.successors.length, equals(2 + second.successors.length));
-    // ... and specifically, that it retains exactly itself + the long one.
+    // and specifically, that it retains exactly itself + the long one.
     expect(first.retainedSize, equals(first.shallowSize + second.shallowSize));
   },
 ];

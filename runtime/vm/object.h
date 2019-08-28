@@ -349,6 +349,8 @@ class Object {
     return *obj;
   }
 
+  static Object& ZoneHandle(Zone* zone) { return ZoneHandle(zone, null_); }
+
   static Object& ZoneHandle() {
     return ZoneHandle(Thread::Current()->zone(), null_);
   }
@@ -857,6 +859,11 @@ class Class : public Object {
   RawString* Name() const;
   RawString* ScrubbedName() const;
   RawString* UserVisibleName() const;
+
+  // The mixin for this class if one exists. Otherwise, returns a raw pointer
+  // to this class.
+  RawClass* Mixin() const;
+
   bool IsInFullSnapshot() const;
 
   virtual RawString* DictionaryName() const { return Name(); }
@@ -2243,6 +2250,7 @@ class Function : public Object {
   void AttachCode(const Code& value) const;
   void SetInstructions(const Code& value) const;
   void ClearCode() const;
+  void ClearBytecode() const;
 
   // Disables optimized code and switches to unoptimized code.
   void SwitchToUnoptimizedCode() const;
@@ -7813,6 +7821,7 @@ class String : public Instance {
   friend class ExternalTwoByteString;
   friend class RawOneByteString;
   friend class RODataSerializationCluster;  // SetHash
+  friend class Pass2Visitor;                // Stack "handle"
 };
 
 class OneByteString : public AllStatic {

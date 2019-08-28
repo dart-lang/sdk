@@ -12,6 +12,7 @@ import 'package:analysis_server/src/services/refactoring/naming_conventions.dart
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
 import 'package:analysis_server/src/services/refactoring/rename.dart';
+import 'package:analysis_server/src/services/refactoring/visible_ranges_computer.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/analysis/session.dart';
@@ -257,22 +258,25 @@ class _ClassMemberValidator {
   }
 
   Future<_MatchShadowedByLocal> _getShadowingLocalElement() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     var localElementMap = <CompilationUnitElement, List<LocalElement>>{};
-    Future<List<LocalElement>> getLocalElements(Element element) async {
-      // TODO(brianwilkerson) Determine whether this await is necessary.
-      await null;
+    var visibleRangeMap = <LocalElement, SourceRange>{};
 
-      var resolvedUnit = await sessionHelper.getResolvedUnitByElement(element);
-      var unitElement = resolvedUnit.unit.declaredElement;
+    Future<List<LocalElement>> getLocalElements(Element element) async {
+      var unitElement = element.getAncestor((e) => e is CompilationUnitElement);
       var localElements = localElementMap[unitElement];
+
       if (localElements == null) {
+        var result = await sessionHelper.getResolvedUnitByElement(element);
+        var unit = result.unit;
+
         var collector = new _LocalElementsCollector(name);
-        resolvedUnit.unit.accept(collector);
+        unit.accept(collector);
         localElements = collector.elements;
         localElementMap[unitElement] = localElements;
+
+        visibleRangeMap.addAll(VisibleRangesComputer.forNode(unit));
       }
+
       return localElements;
     }
 
@@ -284,7 +288,7 @@ class _ClassMemberValidator {
       // Check local elements that might shadow the reference.
       var localElements = await getLocalElements(match.element);
       for (LocalElement localElement in localElements) {
-        SourceRange elementRange = localElement.visibleRange;
+        SourceRange elementRange = visibleRangeMap[localElement];
         if (elementRange != null &&
             elementRange.intersects(match.sourceRange)) {
           return new _MatchShadowedByLocal(match, localElement);

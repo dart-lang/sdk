@@ -36,7 +36,8 @@ import 'kernel_ast_api.dart'
         Name,
         Procedure,
         StaticGet,
-        TypeParameter;
+        TypeParameter,
+        VariableDeclaration;
 
 import 'kernel_builder.dart'
     show PrefixBuilder, LibraryBuilder, TypeDeclarationBuilder;
@@ -159,4 +160,41 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   Expression wrapUnresolvedVariableAssignment(
       Expression desugared, bool isCompound, Expression rhs, int charOffset);
+
+  /// Creates a [VariableGet] of the [variable] using [charOffset] as the file
+  /// offset of the created node.
+  Expression createVariableGet(VariableDeclaration variable, int charOffset);
+
+  /// Creates a tear off of the extension instance method [procedure].
+  ///
+  /// The tear off is created as a function expression that captures the
+  /// current `this` value from [extensionThis] and [extensionTypeParameters]
+  /// synthetically copied to the extension instance method.
+  ///
+  /// For instance the declaration of `B.m`:
+  ///
+  ///     class A<X, Y> {}
+  ///     class B<S, T> on A<S, T> {
+  ///       void m<U>(U u) {}
+  ///     }
+  ///
+  /// is converted into this top level method:
+  ///
+  ///     void B<S,T>|m<U>(A<S, T> #this, U u) {}
+  ///
+  /// and a tear off
+  ///
+  ///     A<X, Y> a = ...;
+  ///     var f = a.m;
+  ///
+  /// is converted into:
+  ///
+  ///     A<int, String> a = ...;
+  ///     var f = <#U>(#U u) => B<S,T>|m<int,String,#U>(a, u);
+  ///
+  Expression createExtensionTearOff(
+      Procedure procedure,
+      VariableDeclaration extensionThis,
+      List<TypeParameter> extensionTypeParameters,
+      Token token);
 }

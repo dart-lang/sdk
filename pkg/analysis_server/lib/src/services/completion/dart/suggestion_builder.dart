@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
+
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/protocol_server.dart'
     hide Element, ElementKind;
@@ -11,6 +13,8 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/util/comment.dart';
+
+import '../../../protocol_server.dart' show CompletionSuggestion;
 
 /**
  * Return a suggestion based upon the given element or `null` if a suggestion
@@ -235,6 +239,127 @@ class LibraryElementSuggestionBuilder extends SimpleElementVisitor
           ? DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE
           : DART_RELEVANCE_DEFAULT;
       addSuggestion(variable, relevance: relevance);
+    }
+  }
+}
+
+/**
+ * This class provides suggestions based upon the visible instance members in
+ * an interface type.
+ */
+class MemberSuggestionBuilder {
+  /**
+   * Enumerated value indicating that we have not generated any completions for
+   * a given identifier yet.
+   */
+  static const int _COMPLETION_TYPE_NONE = 0;
+
+  /**
+   * Enumerated value indicating that we have generated a completion for a
+   * getter.
+   */
+  static const int _COMPLETION_TYPE_GETTER = 1;
+
+  /**
+   * Enumerated value indicating that we have generated a completion for a
+   * setter.
+   */
+  static const int _COMPLETION_TYPE_SETTER = 2;
+
+  /**
+   * Enumerated value indicating that we have generated a completion for a
+   * field, a method, or a getter/setter pair.
+   */
+  static const int _COMPLETION_TYPE_FIELD_OR_METHOD_OR_GETSET = 3;
+
+  /**
+   * The library containing the unit in which the completion is requested.
+   */
+  final LibraryElement containingLibrary;
+
+  /**
+   * Map indicating, for each possible completion identifier, whether we have
+   * already generated completions for a getter, setter, or both.  The "both"
+   * case also handles the case where have generated a completion for a method
+   * or a field.
+   *
+   * Note: the enumerated values stored in this map are intended to be bitwise
+   * compared.
+   */
+  final Map<String, int> _completionTypesGenerated = new HashMap<String, int>();
+
+  /**
+   * Map from completion identifier to completion suggestion
+   */
+  final Map<String, CompletionSuggestion> _suggestionMap =
+      <String, CompletionSuggestion>{};
+
+  MemberSuggestionBuilder(this.containingLibrary);
+
+  Iterable<CompletionSuggestion> get suggestions => _suggestionMap.values;
+
+  /**
+   * Add a suggestion based upon the given element, provided that it is not
+   * shadowed by a previously added suggestion.
+   */
+  void addSuggestion(Element element,
+      {int relevance = DART_RELEVANCE_DEFAULT}) {
+    if (element.isPrivate) {
+      if (element.library != containingLibrary) {
+        // Do not suggest private members for imported libraries
+        return;
+      }
+    }
+    String identifier = element.displayName;
+
+    if (relevance == DART_RELEVANCE_DEFAULT && identifier != null) {
+      // Decrease relevance of suggestions starting with $
+      // https://github.com/dart-lang/sdk/issues/27303
+      if (identifier.startsWith(r'$')) {
+        relevance = DART_RELEVANCE_LOW;
+      }
+    }
+
+    int alreadyGenerated = _completionTypesGenerated.putIfAbsent(
+        identifier, () => _COMPLETION_TYPE_NONE);
+    if (element is MethodElement) {
+      // Anything shadows a method.
+      if (alreadyGenerated != _COMPLETION_TYPE_NONE) {
+        return;
+      }
+      _completionTypesGenerated[identifier] =
+          _COMPLETION_TYPE_FIELD_OR_METHOD_OR_GETSET;
+    } else if (element is PropertyAccessorElement) {
+      if (element.isGetter) {
+        // Getters, fields, and methods shadow a getter.
+        if ((alreadyGenerated & _COMPLETION_TYPE_GETTER) != 0) {
+          return;
+        }
+        _completionTypesGenerated[identifier] |= _COMPLETION_TYPE_GETTER;
+      } else {
+        // Setters, fields, and methods shadow a setter.
+        if ((alreadyGenerated & _COMPLETION_TYPE_SETTER) != 0) {
+          return;
+        }
+        _completionTypesGenerated[identifier] |= _COMPLETION_TYPE_SETTER;
+      }
+    } else if (element is FieldElement) {
+      // Fields and methods shadow a field.  A getter/setter pair shadows a
+      // field, but a getter or setter by itself doesn't.
+      if (alreadyGenerated == _COMPLETION_TYPE_FIELD_OR_METHOD_OR_GETSET) {
+        return;
+      }
+      _completionTypesGenerated[identifier] =
+          _COMPLETION_TYPE_FIELD_OR_METHOD_OR_GETSET;
+    } else {
+      // Unexpected element type; skip it.
+      assert(false);
+      return;
+    }
+    CompletionSuggestion suggestion =
+        createSuggestion(element, relevance: relevance);
+    if (suggestion != null) {
+      _suggestionMap[suggestion.completion] = suggestion;
     }
   }
 }

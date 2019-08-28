@@ -7863,38 +7863,6 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   @override
   MethodDeclaration computeNode() =>
       getNodeMatching((node) => node is MethodDeclaration);
-
-  @deprecated
-  @override
-  FunctionType getReifiedType(DartType objectType) {
-    // TODO(jmesserly): this implementation is completely wrong:
-    // It does not handle covariant parameters from a generic class.
-    // It drops type parameters from generic methods.
-    // Since this method was for DDC, it should be removed.
-    //
-    // Check whether we have any covariant parameters.
-    // Usually we don't, so we can use the same type.
-    bool hasCovariant = false;
-    for (ParameterElement parameter in parameters) {
-      if (parameter.isCovariant) {
-        hasCovariant = true;
-        break;
-      }
-    }
-
-    if (!hasCovariant) {
-      return type;
-    }
-
-    List<ParameterElement> covariantParameters = parameters.map((parameter) {
-      DartType type = parameter.isCovariant ? objectType : parameter.type;
-      return new ParameterElementImpl.synthetic(
-          parameter.name, type, parameter.parameterKind);
-    }).toList();
-
-    return new FunctionElementImpl.synthetic(covariantParameters, returnType)
-        .type;
-  }
 }
 
 /// A [ClassElementImpl] representing a mixin declaration.
@@ -10043,6 +10011,11 @@ class TypeParameterElementImpl extends ElementImpl
   /// The unlinked representation of the type parameter in the summary.
   final UnlinkedTypeParam _unlinkedTypeParam;
 
+  /// The default value of the type parameter. It is used to provide the
+  /// corresponding missing type argument in type annotations and as the
+  /// fall-back type value in type inference.
+  DartType _defaultType;
+
   /// The type defined by this type parameter.
   TypeParameterType _type;
 
@@ -10131,10 +10104,16 @@ class TypeParameterElementImpl extends ElementImpl
   /// corresponding missing type argument in type annotations and as the
   /// fall-back type value in type inference.
   DartType get defaultType {
+    if (_defaultType != null) return _defaultType;
+
     if (linkedNode != null) {
-      return linkedContext.getDefaultType(linkedNode);
+      return _defaultType = linkedContext.getDefaultType(linkedNode);
     }
     return null;
+  }
+
+  set defaultType(DartType defaultType) {
+    _defaultType = defaultType;
   }
 
   @override

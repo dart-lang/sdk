@@ -37,6 +37,7 @@ Future<String> compile(String code,
     bool trustJSInteropTypeAnnotations: false,
     bool disableTypeInference: true,
     bool omitImplicitChecks: true,
+    bool newRti: false,
     void check(String generatedEntry),
     bool returnAll: false}) async {
   OutputCollector outputCollector = returnAll ? new OutputCollector() : null;
@@ -58,6 +59,9 @@ Future<String> compile(String code,
   }
   if (disableInlining) {
     options.add(Flags.disableInlining);
+  }
+  if (newRti) {
+    options.add(Flags.experimentNewRti);
   }
 
   // Pretend this is a dart2js_native test to allow use of 'native' keyword

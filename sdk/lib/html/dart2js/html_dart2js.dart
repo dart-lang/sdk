@@ -13273,28 +13273,28 @@ class Element extends Node
 
   final Element offsetParent;
 
-  int get offsetHeight => JS('num', '#.offsetHeight', this).round();
+  int get offsetHeight => JS<num>('num', '#.offsetHeight', this).round();
 
-  int get offsetLeft => JS('num', '#.offsetLeft', this).round();
+  int get offsetLeft => JS<num>('num', '#.offsetLeft', this).round();
 
-  int get offsetTop => JS('num', '#.offsetTop', this).round();
+  int get offsetTop => JS<num>('num', '#.offsetTop', this).round();
 
-  int get offsetWidth => JS('num', '#.offsetWidth', this).round();
+  int get offsetWidth => JS<num>('num', '#.offsetWidth', this).round();
 
-  int get scrollHeight => JS('num', '#.scrollHeight', this).round();
-  int get scrollLeft => JS('num', '#.scrollLeft', this).round();
+  int get scrollHeight => JS<num>('num', '#.scrollHeight', this).round();
+  int get scrollLeft => JS<num>('num', '#.scrollLeft', this).round();
 
   set scrollLeft(int value) {
     JS("void", "#.scrollLeft = #", this, value.round());
   }
 
-  int get scrollTop => JS('num', '#.scrollTop', this).round();
+  int get scrollTop => JS<num>('num', '#.scrollTop', this).round();
 
   set scrollTop(int value) {
     JS("void", "#.scrollTop = #", this, value.round());
   }
 
-  int get scrollWidth => JS('num', '#.scrollWidth', this).round();
+  int get scrollWidth => JS<num>('num', '#.scrollWidth', this).round();
 
   // To suppress missing implicit constructor warnings.
   factory Element._() {
@@ -17194,13 +17194,11 @@ class HtmlOptionsCollection extends HtmlCollection {
   * and prints its length:
   *
   *     var path = 'myData.json';
-  *     HttpRequest.getString(path)
-  *         .then((String fileContents) {
-  *           print(fileContents.length);
-  *         })
-  *         .catchError((Error error) {
-  *           print(error.toString());
-  *         });
+  *     HttpRequest.getString(path).then((String fileContents) {
+  *       print(fileContents.length);
+  *     }).catchError((error) {
+  *       print(error.toString());
+  *     });
   *
   * ## Fetching data from other servers
   *
@@ -17718,7 +17716,7 @@ class HttpRequest extends HttpRequestEventTarget {
   final int status;
 
   /**
-   * The request response string (such as \"200 OK\").
+   * The request response string (such as \"OK\").
    * See also: [HTTP Status Codes](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
    */
   final String statusText;
@@ -28848,14 +28846,14 @@ class Touch extends Interceptor {
 
 // As of Chrome 37, these all changed from long to double.  This code
 // preserves backwards compatibility for the time being.
-  int get __clientX => JS('num', '#.clientX', this).round();
-  int get __clientY => JS('num', '#.clientY', this).round();
-  int get __screenX => JS('num', '#.screenX', this).round();
-  int get __screenY => JS('num', '#.screenY', this).round();
-  int get __pageX => JS('num', '#.pageX', this).round();
-  int get __pageY => JS('num', '#.pageY', this).round();
-  int get __radiusX => JS('num', '#.radiusX', this).round();
-  int get __radiusY => JS('num', '#.radiusY', this).round();
+  int get __clientX => JS<num>('num', '#.clientX', this).round();
+  int get __clientY => JS<num>('num', '#.clientY', this).round();
+  int get __screenX => JS<num>('num', '#.screenX', this).round();
+  int get __screenY => JS<num>('num', '#.screenY', this).round();
+  int get __pageX => JS<num>('num', '#.pageX', this).round();
+  int get __pageY => JS<num>('num', '#.pageY', this).round();
+  int get __radiusX => JS<num>('num', '#.radiusX', this).round();
+  int get __radiusY => JS<num>('num', '#.radiusY', this).round();
 
   Point get client => new Point(__clientX, __clientY);
 
@@ -30617,8 +30615,11 @@ class Window extends EventTarget
   void _cancelAnimationFrame(int id) native;
 
   _ensureRequestAnimationFrame() {
-    if (JS('bool', '!!(#.requestAnimationFrame && #.cancelAnimationFrame)',
-        this, this)) return;
+    if (JS<bool>(
+        'bool',
+        '!!(#.requestAnimationFrame && #.cancelAnimationFrame)',
+        this,
+        this)) return;
 
     JS(
         'void',
@@ -32110,9 +32111,9 @@ class Window extends EventTarget
     return db;
   }
 
-  int get pageXOffset => JS('num', '#.pageXOffset', this).round();
+  int get pageXOffset => JS<num>('num', '#.pageXOffset', this).round();
 
-  int get pageYOffset => JS('num', '#.pageYOffset', this).round();
+  int get pageYOffset => JS<num>('num', '#.pageYOffset', this).round();
 
   /**
    * The distance this window has been scrolled horizontally.
@@ -32124,8 +32125,8 @@ class Window extends EventTarget
    * * [scrollX](https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollX)
    *   from MDN.
    */
-  int get scrollX => JS('bool', '("scrollX" in #)', this)
-      ? JS('num', '#.scrollX', this).round()
+  int get scrollX => JS<bool>('bool', '("scrollX" in #)', this)
+      ? JS<num>('num', '#.scrollX', this).round()
       : document.documentElement.scrollLeft;
 
   /**
@@ -32138,8 +32139,8 @@ class Window extends EventTarget
    * * [scrollY](https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollY)
    *   from MDN.
    */
-  int get scrollY => JS('bool', '("scrollY" in #)', this)
-      ? JS('num', '#.scrollY', this).round()
+  int get scrollY => JS<bool>('bool', '("scrollY" in #)', this)
+      ? JS<num>('num', '#.scrollY', this).round()
       : document.documentElement.scrollTop;
 }
 
@@ -32154,7 +32155,7 @@ class _BeforeUnloadEvent extends _WrappedEvent implements BeforeUnloadEvent {
     _returnValue = value;
     // FF and IE use the value as the return value, Chrome will return this from
     // the event callback function.
-    if (JS('bool', '("returnValue" in #)', wrapped)) {
+    if (JS<bool>('bool', '("returnValue" in #)', wrapped)) {
       JS('void', '#.returnValue = #', wrapped, value);
     }
   }

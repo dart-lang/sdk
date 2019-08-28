@@ -160,6 +160,7 @@ static RawLibrary* LoadTestScript(const char* script) {
   {
     TransitionVMToNative transition(Thread::Current());
     api_lib = TestCase::LoadTestScript(script, NULL);
+    EXPECT_VALID(api_lib);
   }
   Library& lib = Library::Handle();
   lib ^= Api::UnwrapHandle(api_lib);
@@ -992,9 +993,9 @@ ISOLATE_UNIT_TEST_CASE(Profiler_IntrinsicAllocation) {
     } else {
       EXPECT_STREQ("Double_add", walker.CurrentName());
       EXPECT(walker.Down());
-      EXPECT_STREQ("[Unoptimized] _Double._add", walker.CurrentName());
+      EXPECT_STREQ("[Unoptimized] double._add", walker.CurrentName());
       EXPECT(walker.Down());
-      EXPECT_STREQ("[Unoptimized] _Double.+", walker.CurrentName());
+      EXPECT_STREQ("[Unoptimized] double.+", walker.CurrentName());
       EXPECT(walker.Down());
       EXPECT_STREQ("[Unoptimized] foo", walker.CurrentName());
       EXPECT(!walker.Down());
@@ -1483,11 +1484,9 @@ ISOLATE_UNIT_TEST_CASE(Profiler_StringInterpolation) {
       EXPECT_STREQ("[Bytecode] foo", walker.CurrentName());
       EXPECT(!walker.Down());
     } else {
-      EXPECT_STREQ("[Unoptimized] _OneByteString._allocate",
-                   walker.CurrentName());
+      EXPECT_STREQ("[Unoptimized] String._allocate", walker.CurrentName());
       EXPECT(walker.Down());
-      EXPECT_STREQ("[Unoptimized] _OneByteString._concatAll",
-                   walker.CurrentName());
+      EXPECT_STREQ("[Unoptimized] String._concatAll", walker.CurrentName());
       EXPECT(walker.Down());
       EXPECT_STREQ("[Unoptimized] _StringBase._interpolate",
                    walker.CurrentName());

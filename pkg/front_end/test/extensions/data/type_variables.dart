@@ -6,12 +6,14 @@ class A1<T> {}
 
 /*class: A2:
  builder-name=A2,
- builder-onTypes=[A1<T>],
- builder-supertype=Object,
+ builder-onType=A1<T>,
  builder-type-params=[T],
- cls-name=A2,
- cls-supertype=Object,
- cls-type-params=[T]
+ extension-members=[
+  method1=A2|method1,
+  method2=A2|method2],
+ extension-name=A2,
+ extension-onType=A1<T>,
+ extension-type-params=[T]
 */
 extension A2<T> on A1<T> {
   /*member: A2|method1:

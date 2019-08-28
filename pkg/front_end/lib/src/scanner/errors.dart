@@ -113,7 +113,7 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
     reportError(errorCode, charOffset, arguments);
   }
 
-  var errorCode = token.errorCode;
+  Code<dynamic> errorCode = token.errorCode;
   switch (errorCode.analyzerCodes?.first) {
     case "UNTERMINATED_STRING_LITERAL":
       // TODO(paulberry,ahe): Fasta reports the error location as the entire

@@ -9,14 +9,14 @@ $!MEMBERS
 
 // As of Chrome 37, these all changed from long to double.  This code
 // preserves backwards compatibility for the time being.
-  int get __clientX => JS('num', '#.clientX', this).round();
-  int get __clientY => JS('num', '#.clientY', this).round();
-  int get __screenX => JS('num', '#.screenX', this).round();
-  int get __screenY => JS('num', '#.screenY', this).round();
-  int get __pageX => JS('num', '#.pageX', this).round();
-  int get __pageY => JS('num', '#.pageY', this).round();
-  int get __radiusX => JS('num', '#.radiusX', this).round();
-  int get __radiusY => JS('num', '#.radiusY', this).round();
+  int get __clientX => JS<num>('num', '#.clientX', this).round();
+  int get __clientY => JS<num>('num', '#.clientY', this).round();
+  int get __screenX => JS<num>('num', '#.screenX', this).round();
+  int get __screenY => JS<num>('num', '#.screenY', this).round();
+  int get __pageX => JS<num>('num', '#.pageX', this).round();
+  int get __pageY => JS<num>('num', '#.pageY', this).round();
+  int get __radiusX => JS<num>('num', '#.radiusX', this).round();
+  int get __radiusY => JS<num>('num', '#.radiusY', this).round();
 
   Point get client => new Point(__clientX, __clientY);
 

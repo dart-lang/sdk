@@ -256,6 +256,8 @@ class FastaContext extends ChainContext with MatchContext {
           environment["enableSpreadCollections"] != "false" && !legacyMode,
       ExperimentalFlag.extensionMethods:
           environment["enableExtensionMethods"] != "false" && !legacyMode,
+      ExperimentalFlag.nonNullable:
+          environment["enableNonNullable"] != "false" && !legacyMode,
     };
     var options = new ProcessedOptions(
         options: new CompilerOptions()
@@ -317,7 +319,7 @@ class Run extends Step<Uri, int, FastaContext> {
       process = await StdioProcess.run(context.vm.toFilePath(), args);
       print(process.output);
     } finally {
-      generated.parent.delete(recursive: true);
+      await generated.parent.delete(recursive: true);
     }
     return process.toResult();
   }

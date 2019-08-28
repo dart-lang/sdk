@@ -189,10 +189,7 @@ invokeStaticFieldUninitialized() => _field1();
 /*member: _method1:[exact=JSUInt31]*/
 _method1() => 42;
 
-/*strong.member: _field2:[null|subclass=Closure]*/
-/*omit.member: _field2:[null|subclass=Closure]*/
-/*strongConst.member: _field2:[subclass=Closure]*/
-/*omitConst.member: _field2:[subclass=Closure]*/
+/*member: _field2:[subclass=Closure]*/
 dynamic _field2 = _method1;
 
 /*member: invokeStaticFieldTearOff:[null|subclass=Object]*/
@@ -205,10 +202,7 @@ invokeStaticFieldTearOff() => _field2();
 /*member: _method5:Value([exact=JSString], value: "")*/
 String _method5() => '';
 
-/*strong.member: _field5:[null|subclass=Closure]*/
-/*omit.member: _field5:[null|subclass=Closure]*/
-/*strongConst.member: _field5:[subclass=Closure]*/
-/*omitConst.member: _field5:[subclass=Closure]*/
+/*member: _field5:[subclass=Closure]*/
 String Function() _field5 = _method5;
 
 /*member: invokeStaticTypedFieldTearOff:[null|exact=JSString]*/
@@ -222,10 +216,7 @@ invokeStaticTypedFieldTearOff() => _field5();
 /*member: _method2:[exact=JSUInt31]*/
 _method2(/*[exact=JSUInt31]*/ o) => 42;
 
-/*strong.member: _field3:[null|subclass=Closure]*/
-/*omit.member: _field3:[null|subclass=Closure]*/
-/*strongConst.member: _field3:[subclass=Closure]*/
-/*omitConst.member: _field3:[subclass=Closure]*/
+/*member: _field3:[subclass=Closure]*/
 dynamic _field3 = _method2;
 
 /*member: invokeStaticFieldTearOffParameters:[null|subclass=Object]*/
@@ -251,16 +242,10 @@ invokeStaticGetterTearOff() => _getter1();
 /*member: _method6:[exact=JSUInt31]*/
 int _method6() => 0;
 
-/*strong.member: _field7:[null|subclass=Closure]*/
-/*omit.member: _field7:[null|subclass=Closure]*/
-/*strongConst.member: _field7:[subclass=Closure]*/
-/*omitConst.member: _field7:[subclass=Closure]*/
+/*member: _field7:[subclass=Closure]*/
 int Function() _field7 = _method6;
 
-/*strong.member: _getter3:[null|subclass=Closure]*/
-/*omit.member: _getter3:[null|subclass=Closure]*/
-/*strongConst.member: _getter3:[subclass=Closure]*/
-/*omitConst.member: _getter3:[subclass=Closure]*/
+/*member: _getter3:[subclass=Closure]*/
 int Function() get _getter3 => _field7;
 
 /*member: invokeStaticTypedGetterTearOff:[null|subclass=JSInt]*/
@@ -299,10 +284,7 @@ invokeStaticGenericGetter2() => _getter2('');
 /// arguments.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*strong.member: _field4:[null|subclass=Closure]*/
-/*omit.member: _field4:[null|subclass=Closure]*/
-/*strongConst.member: _field4:[subclass=Closure]*/
-/*omitConst.member: _field4:[subclass=Closure]*/
+/*member: _field4:[subclass=Closure]*/
 T Function<T>(T) _field4 = _method4;
 
 /*member: invokeStaticGenericField1:[null|subclass=JSInt]*/

@@ -511,8 +511,9 @@ abstract class AbstractScanner implements Scanner {
     // This recovers nicely from from situations like "{[}".
     while (!identical(originalStack, groupingStack)) {
       // Don't report unmatched errors for <; it is also the less-than operator.
-      if (!identical(groupingStack.head.kind, LT_TOKEN))
+      if (!identical(groupingStack.head.kind, LT_TOKEN)) {
         unmatchedBeginGroup(originalStack.head);
+      }
       originalStack = originalStack.tail;
     }
     return true;
@@ -1298,7 +1299,8 @@ abstract class AbstractScanner implements Scanner {
       return tokenizeSingleLineCommentRest(next, start, false);
     }
 
-    var languageVersion = createLanguageVersionToken(start, major, minor);
+    LanguageVersionToken languageVersion =
+        createLanguageVersionToken(start, major, minor);
     if (languageVersionChanged != null) {
       // TODO(danrubel): make this required and remove the languageVersion field
       languageVersionChanged(this, languageVersion);
@@ -1742,7 +1744,8 @@ abstract class AbstractScanner implements Scanner {
   }
 
   int unexpected(int character) {
-    var errorToken = buildUnexpectedCharacterToken(character, tokenStart);
+    ErrorToken errorToken =
+        buildUnexpectedCharacterToken(character, tokenStart);
     if (errorToken is NonAsciiIdentifierToken) {
       int charOffset;
       List<int> codeUnits = <int>[];
@@ -1864,7 +1867,7 @@ class LineStarts extends Object with ListMixin<int> {
     if (newLength < newLengthMinimum) newLength = newLengthMinimum;
 
     if (array is Uint16List) {
-      final newArray = new Uint16List(newLength);
+      final Uint16List newArray = new Uint16List(newLength);
       newArray.setRange(0, arrayLength, array);
       array = newArray;
     } else {
@@ -1873,7 +1876,7 @@ class LineStarts extends Object with ListMixin<int> {
   }
 
   void switchToUint32(int newLength) {
-    final newArray = new Uint32List(newLength);
+    final Uint32List newArray = new Uint32List(newLength);
     newArray.setRange(0, arrayLength, array);
     array = newArray;
   }

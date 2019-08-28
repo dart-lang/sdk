@@ -106,7 +106,7 @@ class LibrariesSpecification {
   /// The library specification for a given [target], or throws if none is
   /// available.
   TargetLibrariesSpecification specificationFor(String target) {
-    var targetSpec = _targets[target];
+    TargetLibrariesSpecification targetSpec = _targets[target];
     if (targetSpec == null) {
       throw new LibrariesSpecificationException(
           'No library specification for target "$target"');
@@ -121,9 +121,9 @@ class LibrariesSpecification {
   /// invalid values.
   static LibrariesSpecification parse(Uri baseUri, String json) {
     if (json == null) return const LibrariesSpecification();
-    var jsonData;
+    Map<String, dynamic> jsonData;
     try {
-      var data = jsonDecode(json);
+      dynamic data = jsonDecode(json);
       if (data is! Map) {
         return _reportError('top-level specification is not a map');
       }
@@ -131,7 +131,8 @@ class LibrariesSpecification {
     } on FormatException catch (e) {
       throw new LibrariesSpecificationException(e);
     }
-    var targets = <String, TargetLibrariesSpecification>{};
+    Map<String, TargetLibrariesSpecification> targets =
+        <String, TargetLibrariesSpecification>{};
     jsonData.forEach((String targetName, targetData) {
       if (targetName.startsWith("comment:")) return null;
       Map<String, LibraryInfo> libraries = <String, LibraryInfo>{};
@@ -143,7 +144,7 @@ class LibrariesSpecification {
         return _reportError("target specification "
             "for '$targetName' doesn't have a libraries entry");
       }
-      var librariesData = targetData["libraries"];
+      dynamic librariesData = targetData["libraries"];
       if (librariesData is! Map) {
         return _reportError("libraries entry for '$targetName' is not a map");
       }
@@ -157,14 +158,14 @@ class LibrariesSpecification {
             return _reportError("uri value '$uriString' is not a string"
                 "(from library '$name' in target '$targetName')");
           }
-          var uri = Uri.parse(uriString);
+          Uri uri = Uri.parse(uriString);
           if (uri.scheme != '' && uri.scheme != 'file') {
             return _reportError("uri scheme in '$uriString' is not supported.");
           }
           return baseUri.resolveUri(uri);
         }
 
-        var uri = checkAndResolve(data['uri']);
+        Uri uri = checkAndResolve(data['uri']);
         List<Uri> patches;
         if (data['patches'] is List) {
           patches =
@@ -178,7 +179,7 @@ class LibrariesSpecification {
               "patches entry for '$name' is not a list or a string");
         }
 
-        var supported = data['supported'] ?? true;
+        dynamic supported = data['supported'] ?? true;
         if (supported is! bool) {
           return _reportError("\"supported\" entry: expected a 'bool' but "
               "got a '${supported.runtimeType}' ('$supported')");
@@ -201,11 +202,11 @@ class LibrariesSpecification {
   String toJsonString(Uri outputUri) => jsonEncode(toJsonMap(outputUri));
 
   Map toJsonMap(Uri outputUri) {
-    var result = {};
-    var dir = outputUri.resolve('.');
+    Map result = {};
+    Uri dir = outputUri.resolve('.');
     String pathFor(Uri uri) => relativizeUri(dir, uri, isWindows);
     _targets.forEach((targetName, target) {
-      var libraries = {};
+      Map libraries = {};
       target._libraries.forEach((name, lib) {
         libraries[name] = {
           'uri': pathFor(lib.uri),

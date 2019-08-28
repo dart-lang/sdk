@@ -302,6 +302,13 @@ intptr_t RawObject::VisitPointersPredefined(ObjectPointerVisitor* visitor,
       size = RawDynamicLibrary::VisitDynamicLibraryPointers(raw_obj, visitor);
       break;
     }
+#define RAW_VISITPOINTERS(clazz) case kFfi##clazz##Cid:
+      CLASS_LIST_FFI_TYPE_MARKER(RAW_VISITPOINTERS) {
+        // NativeType do not have any fields or type arguments.
+        size = HeapSize();
+        break;
+      }
+#undef RAW_VISITPOINTERS
     case kFreeListElement: {
       uword addr = RawObject::ToAddr(this);
       FreeListElement* element = reinterpret_cast<FreeListElement*>(addr);
@@ -338,6 +345,27 @@ intptr_t RawObject::VisitPointersPredefined(ObjectPointerVisitor* visitor,
 #else
   return size;
 #endif
+}
+
+void RawObject::VisitPointersPrecise(ObjectPointerVisitor* visitor) {
+  intptr_t class_id = GetClassId();
+  if (class_id < kNumPredefinedCids) {
+    VisitPointersPredefined(visitor, class_id);
+    return;
+  }
+
+  // N.B.: Not using the heap size!
+  uword next_field_offset = visitor->isolate()
+                                ->GetClassForHeapWalkAt(class_id)
+                                ->ptr()
+                                ->next_field_offset_in_words_
+                            << kWordSizeLog2;
+  ASSERT(next_field_offset > 0);
+  uword obj_addr = RawObject::ToAddr(this);
+  uword from = obj_addr + sizeof(RawObject);
+  uword to = obj_addr + next_field_offset - kWordSize;
+  visitor->VisitPointers(reinterpret_cast<RawObject**>(from),
+                         reinterpret_cast<RawObject**>(to));
 }
 
 bool RawObject::FindObject(FindObjectVisitor* visitor) {

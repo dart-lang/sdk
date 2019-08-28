@@ -577,6 +577,9 @@ RawClass* TranslationHelper::LookupClassByKernelClass(NameIndex kernel_class) {
       Class::Handle(Z, library.LookupClassAllowPrivate(class_name));
   CheckStaticLookup(klass);
   ASSERT(!klass.IsNull());
+  if (klass.is_declared_in_bytecode()) {
+    klass.EnsureDeclarationLoaded();
+  }
   name_index_handle_ = Smi::New(kernel_class);
   return info_.InsertClass(thread_, name_index_handle_, klass);
 }
@@ -1002,7 +1005,11 @@ void FieldHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kFlags:
-      flags_ = helper_->ReadFlags();
+      if (helper_->translation_helper_.info().kernel_binary_version() >= 29) {
+        flags_ = helper_->ReadUInt();
+      } else {
+        flags_ = helper_->ReadFlags();
+      }
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kName:
@@ -1070,7 +1077,11 @@ void ProcedureHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kFlags:
-      flags_ = helper_->ReadFlags();
+      if (helper_->translation_helper_.info().kernel_binary_version() >= 29) {
+        flags_ = helper_->ReadUInt();
+      } else {
+        flags_ = helper_->ReadFlags();
+      }
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kName:
@@ -2023,6 +2034,9 @@ void KernelReaderHelper::SkipFunctionType(bool simple) {
       // read string reference (i.e. named_parameters[i].name).
       SkipStringReference();
       SkipDartType();  // read named_parameters[i].type.
+      if (translation_helper_.info().kernel_binary_version() >= 29) {
+        SkipBytes(1);  // read flags
+      }
     }
   }
 
@@ -2887,6 +2901,10 @@ void TypeTranslator::BuildFunctionType(bool simple) {
       // read string reference (i.e. named_parameters[i].name).
       String& name = H.DartSymbolObfuscate(helper_->ReadStringReference());
       BuildTypeInternal();  // read named_parameters[i].type.
+      if (translation_helper_.info().kernel_binary_version() >= 29) {
+        // TODO(markov): Store 'required' bit.
+        helper_->ReadFlags();  // read flags
+      }
       parameter_types.SetAt(pos, result_);
       parameter_names.SetAt(pos, name);
     }

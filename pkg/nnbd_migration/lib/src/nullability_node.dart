@@ -410,15 +410,14 @@ abstract class NullabilityNode {
   /// variable being eliminated by the substitution, and [innerNode] is the
   /// nullability node for the type being substituted in its place.
   ///
-  /// [innerNode] may be `null`.  TODO(paulberry): when?
-  ///
-  /// Additional constraints are recorded in [constraints] as necessary to make
-  /// the new nullability node behave consistently with the old nodes.
-  /// TODO(paulberry): this should become unnecessary once constraint solving is
-  /// performed directly using [NullabilityNode] objects.
+  /// If either [innerNode] or [outerNode] is `null`, then the other node is
+  /// returned.
   factory NullabilityNode.forSubstitution(
-          NullabilityNode innerNode, NullabilityNode outerNode) =
-      NullabilityNodeForSubstitution._;
+      NullabilityNode innerNode, NullabilityNode outerNode) {
+    if (innerNode == null) return outerNode;
+    if (outerNode == null) return innerNode;
+    return NullabilityNodeForSubstitution._(innerNode, outerNode);
+  }
 
   /// Creates a [NullabilityNode] representing the nullability of a type
   /// annotation appearing explicitly in the user's program.

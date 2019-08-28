@@ -80,17 +80,41 @@ MappedMemory* File::Map(MapType type, int64_t position, int64_t length) {
   ASSERT(handle_->fd() >= 0);
   ASSERT(length > 0);
   int prot = PROT_NONE;
+  int map_flags = MAP_PRIVATE;
   switch (type) {
     case kReadOnly:
       prot = PROT_READ;
       break;
     case kReadExecute:
       prot = PROT_READ | PROT_EXEC;
+      if (IsAtLeastOS10_14()) {
+        map_flags |= (MAP_JIT | MAP_ANONYMOUS);
+      }
       break;
     default:
       return NULL;
   }
-  void* addr = mmap(NULL, length, prot, MAP_PRIVATE, handle_->fd(), position);
+  void* addr = NULL;
+  if ((type == kReadExecute) && IsAtLeastOS10_14()) {
+    addr = mmap(NULL, length, (PROT_READ | PROT_WRITE), map_flags, -1, 0);
+    if (addr == MAP_FAILED) {
+      Syslog::PrintErr("mmap failed %s\n", strerror(errno));
+      return NULL;
+    }
+    SetPosition(position);
+    if (!ReadFully(addr, length)) {
+      Syslog::PrintErr("ReadFully failed\n");
+      munmap(addr, length);
+      return NULL;
+    }
+    if (mprotect(addr, length, prot) != 0) {
+      Syslog::PrintErr("mprotect failed %s\n", strerror(errno));
+      munmap(addr, length);
+      return NULL;
+    }
+  } else {
+    addr = mmap(NULL, length, prot, map_flags, handle_->fd(), position);
+  }
   if (addr == MAP_FAILED) {
     return NULL;
   }

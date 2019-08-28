@@ -210,6 +210,7 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
         /*shared_data=*/nullptr, /*shared_instructions=*/nullptr, flags,
         isolate_group_data, /*isolate_data=*/nullptr, error);
     if (*error != nullptr) {
+      OS::PrintErr("Error creating isolate group: %s\n", *error);
       free(*error);
       *error = nullptr;
     }

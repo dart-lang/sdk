@@ -13,6 +13,7 @@ const_native_factory_test: Skip # Uses `native`.
 deep_nesting_expression_test: Skip # JVM stack overflow.
 deep_nesting_statement_test: Skip # JVM stack overflow.
 double_invalid_test: Skip # Contains illegaly formatted double.
+extension_methods: Skip # Not yet supported.
 external_test/21: Fail # Test expects `runtime error`, it is a syntax error.
 getter_declaration_negative_test: Fail # Negative, uses getter with parameter.
 inst_field_initializer1_negative_test: Skip # Negative, not syntax.
@@ -34,7 +35,8 @@ map_literal_negative_test: Fail # Negative, uses `new Map<int>{..}`.
 new_expression1_negative_test: Fail # Negative, uses `new id`.
 new_expression2_negative_test: Fail # Negative, uses `new id(`.
 new_expression3_negative_test: Fail # Negative, uses `new id(...`.
-nnbd/*: Skip # Not yet included.
+nnbd/syntax/opt_out_nnbd_modifiers_test: Skip # Requires opt-out of NNBD.
+nnbd/syntax/pre_nnbd_modifiers_test: Skip # Requires opt-out of NNBD.
 no_such_method_negative_test: Skip # Negative, not syntax.
 non_const_super_negative_test: Skip # Negative, not syntax.
 operator1_negative_test: Fail # Negative, declares static operator.
@@ -65,4 +67,3 @@ test_negative_test: Fail # Negative, uses non-terminated string literal.
 unary_plus_negative_test: Fail # Negative, uses non-existing unary plus.
 vm/debug_break_enabled_vm_test/01: Fail # Uses debug break.
 vm/debug_break_enabled_vm_test/none: Fail # Uses debug break.
-void/void_type_function_types_test: Skip # Not yet supported.

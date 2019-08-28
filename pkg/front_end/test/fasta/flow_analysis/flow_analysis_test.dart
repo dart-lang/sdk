@@ -7,6 +7,87 @@ import 'package:test/test.dart';
 
 main() {
   group('API', () {
+    test('conditional_thenBegin promotes true branch', () {
+      var h = _Harness();
+      var x = h.addAssignedVar('x', 'int?');
+      h.flow.conditional_thenBegin(h.notNull(x)());
+      expect(h.flow.promotedType(x).type, 'int');
+      h.flow.conditional_elseBegin(_Expression());
+      expect(h.flow.promotedType(x), isNull);
+      h.flow.conditional_end(_Expression(), _Expression());
+      expect(h.flow.promotedType(x), isNull);
+      h.flow.finish();
+    });
+
+    test('conditional_elseBegin promotes false branch', () {
+      var h = _Harness();
+      var x = h.addAssignedVar('x', 'int?');
+      h.flow.conditional_thenBegin(h.eqNull(x)());
+      expect(h.flow.promotedType(x), isNull);
+      h.flow.conditional_elseBegin(_Expression());
+      expect(h.flow.promotedType(x).type, 'int');
+      h.flow.conditional_end(_Expression(), _Expression());
+      expect(h.flow.promotedType(x), isNull);
+      h.flow.finish();
+    });
+
+    test('conditional_end keeps promotions common to true and false branches',
+        () {
+      var h = _Harness();
+      var x = h.addAssignedVar('x', 'int?');
+      var y = h.addAssignedVar('x', 'int?');
+      var z = h.addAssignedVar('x', 'int?');
+      h.flow.conditional_thenBegin(_Expression());
+      h.promote(x, 'int');
+      h.promote(y, 'int');
+      h.flow.conditional_elseBegin(_Expression());
+      h.promote(x, 'int');
+      h.promote(z, 'int');
+      h.flow.conditional_end(_Expression(), _Expression());
+      expect(h.flow.promotedType(x).type, 'int');
+      expect(h.flow.promotedType(y), isNull);
+      expect(h.flow.promotedType(z), isNull);
+      h.flow.finish();
+    });
+
+    test('conditional joins true states', () {
+      // if (... ? (x != null && y != null) : (x != null && z != null)) {
+      //   promotes x, but not y or z
+      // }
+      var h = _Harness();
+      var x = h.addAssignedVar('x', 'int?');
+      var y = h.addAssignedVar('y', 'int?');
+      var z = h.addAssignedVar('z', 'int?');
+      h.if_(
+          h.conditional(h.expr, h.and(h.notNull(x), h.notNull(y)),
+              h.and(h.notNull(x), h.notNull(z))), () {
+        expect(h.flow.promotedType(x).type, 'int');
+        expect(h.flow.promotedType(y), isNull);
+        expect(h.flow.promotedType(z), isNull);
+      });
+      h.flow.finish();
+    });
+
+    test('conditional joins false states', () {
+      // if (... ? (x == null || y == null) : (x == null || z == null)) {
+      // } else {
+      //   promotes x, but not y or z
+      // }
+      var h = _Harness();
+      var x = h.addAssignedVar('x', 'int?');
+      var y = h.addAssignedVar('y', 'int?');
+      var z = h.addAssignedVar('z', 'int?');
+      h.ifElse(
+          h.conditional(h.expr, h.or(h.eqNull(x), h.eqNull(y)),
+              h.or(h.eqNull(x), h.eqNull(z))),
+          () {}, () {
+        expect(h.flow.promotedType(x).type, 'int');
+        expect(h.flow.promotedType(y), isNull);
+        expect(h.flow.promotedType(z), isNull);
+      });
+      h.flow.finish();
+    });
+
     test('conditionEqNull(notEqual: true) promotes true branch', () {
       var h = _Harness();
       var x = h.addAssignedVar('x', 'int?');
@@ -33,6 +114,47 @@ main() {
       h.flow.finish();
     });
 
+    test('doStatement_bodyBegin() un-promotes', () {
+      var h = _Harness();
+      var x = h.addAssignedVar('x', 'int?');
+      h.promote(x, 'int');
+      expect(h.flow.promotedType(x).type, 'int');
+      h.flow.doStatement_bodyBegin(_Statement(), {x});
+      expect(h.flow.promotedType(x), isNull);
+      h.flow.doStatement_conditionBegin();
+      h.flow.doStatement_end(_Expression());
+      h.flow.finish();
+    });
+
+    test('doStatement_conditionBegin() joins continue state', () {
+      var h = _Harness();
+      var x = h.addAssignedVar('x', 'int?');
+      var stmt = _Statement();
+      h.flow.doStatement_bodyBegin(stmt, {});
+      h.if_(h.notNull(x), () {
+        h.flow.handleContinue(stmt);
+      });
+      h.flow.handleExit();
+      expect(h.flow.isReachable, false);
+      expect(h.flow.promotedType(x), isNull);
+      h.flow.doStatement_conditionBegin();
+      expect(h.flow.isReachable, true);
+      expect(h.flow.promotedType(x).type, 'int');
+      h.flow.doStatement_end(_Expression());
+      h.flow.finish();
+    });
+
+    test('doStatement_end() promotes', () {
+      var h = _Harness();
+      var x = h.addAssignedVar('x', 'int?');
+      h.flow.doStatement_bodyBegin(_Statement(), {});
+      h.flow.doStatement_conditionBegin();
+      expect(h.flow.promotedType(x), isNull);
+      h.flow.doStatement_end(h.eqNull(x)());
+      expect(h.flow.promotedType(x).type, 'int');
+      h.flow.finish();
+    });
+
     test('finish checks proper nesting', () {
       var h = _Harness();
       var expr = _Expression();
@@ -50,12 +172,82 @@ main() {
     test('ifStatement_end(false) keeps else branch if then branch exits', () {
       var h = _Harness();
       var x = h.addAssignedVar('x', 'int?');
-      var expr = _Expression();
-      h.flow.conditionEqNull(expr, x);
-      h.flow.ifStatement_thenBegin(expr);
+      h.flow.ifStatement_thenBegin(h.eqNull(x)());
       h.flow.handleExit();
       h.flow.ifStatement_end(false);
       expect(h.flow.promotedType(x).type, 'int');
+      h.flow.finish();
+    });
+
+    test('logicalBinaryOp_rightBegin(isAnd: true) promotes in RHS', () {
+      var h = _Harness();
+      var x = h.addAssignedVar('x', 'int?');
+      h.flow.logicalBinaryOp_rightBegin(h.notNull(x)(), isAnd: true);
+      expect(h.flow.promotedType(x).type, 'int');
+      h.flow.logicalBinaryOp_end(_Expression(), _Expression(), isAnd: true);
+      h.flow.finish();
+    });
+
+    test('logicalBinaryOp_rightEnd(isAnd: true) keeps promotions from RHS', () {
+      var h = _Harness();
+      var x = h.addAssignedVar('x', 'int?');
+      h.flow.logicalBinaryOp_rightBegin(_Expression(), isAnd: true);
+      var wholeExpr = _Expression();
+      h.flow.logicalBinaryOp_end(wholeExpr, h.notNull(x)(), isAnd: true);
+      h.flow.ifStatement_thenBegin(wholeExpr);
+      expect(h.flow.promotedType(x).type, 'int');
+      h.flow.ifStatement_end(false);
+      h.flow.finish();
+    });
+
+    test('logicalBinaryOp_rightEnd(isAnd: false) keeps promotions from RHS',
+        () {
+      var h = _Harness();
+      var x = h.addAssignedVar('x', 'int?');
+      h.flow.logicalBinaryOp_rightBegin(_Expression(), isAnd: false);
+      var wholeExpr = _Expression();
+      h.flow.logicalBinaryOp_end(wholeExpr, h.eqNull(x)(), isAnd: false);
+      h.flow.ifStatement_thenBegin(wholeExpr);
+      h.flow.ifStatement_elseBegin();
+      expect(h.flow.promotedType(x).type, 'int');
+      h.flow.ifStatement_end(true);
+      h.flow.finish();
+    });
+
+    test('logicalBinaryOp_rightBegin(isAnd: false) promotes in RHS', () {
+      var h = _Harness();
+      var x = h.addAssignedVar('x', 'int?');
+      h.flow.logicalBinaryOp_rightBegin(h.eqNull(x)(), isAnd: false);
+      expect(h.flow.promotedType(x).type, 'int');
+      h.flow.logicalBinaryOp_end(_Expression(), _Expression(), isAnd: false);
+      h.flow.finish();
+    });
+
+    test('logicalBinaryOp(isAnd: true) joins promotions', () {
+      // if (x != null && y != null) {
+      //   promotes x and y
+      // }
+      var h = _Harness();
+      var x = h.addAssignedVar('x', 'int?');
+      var y = h.addAssignedVar('y', 'int?');
+      h.if_(h.and(h.notNull(x), h.notNull(y)), () {
+        expect(h.flow.promotedType(x).type, 'int');
+        expect(h.flow.promotedType(y).type, 'int');
+      });
+      h.flow.finish();
+    });
+
+    test('logicalBinaryOp(isAnd: false) joins promotions', () {
+      // if (x == null || y == null) {} else {
+      //   promotes x and y
+      // }
+      var h = _Harness();
+      var x = h.addAssignedVar('x', 'int?');
+      var y = h.addAssignedVar('y', 'int?');
+      h.ifElse(h.or(h.eqNull(x), h.eqNull(y)), () {}, () {
+        expect(h.flow.promotedType(x).type, 'int');
+        expect(h.flow.promotedType(y).type, 'int');
+      });
       h.flow.finish();
     });
 
@@ -70,21 +262,10 @@ main() {
       expect(h.flow.isAssigned(x), false);
     });
 
-    void _promote(_Harness h, _Var variable, String type) {
-      // if (variable is! type) {
-      var isExpression = _Expression();
-      h.flow.isExpression_end(isExpression, variable, true, _Type(type));
-      h.flow.ifStatement_thenBegin(isExpression);
-      //   return;
-      h.flow.handleExit();
-      // }
-      h.flow.ifStatement_end(false);
-    }
-
     test('If(false) does not discard promotions', () {
       var h = _Harness();
       var x = h.addAssignedVar('x', 'Object');
-      _promote(h, x, 'int');
+      h.promote(x, 'int');
       expect(h.flow.promotedType(x).type, 'int');
       // if (false) {
       var falseExpression = _Expression();
@@ -506,6 +687,16 @@ Matcher get _asserts {
   return matcher;
 }
 
+/// Representation of an expression to be visited by the test harness.  Calling
+/// the function causes the expression to be "visited" (in other words, the
+/// appropriate methods in [FlowAnalysis] are called in the appropriate order),
+/// and the [_Expression] object representing the whole expression is returned.
+///
+/// This is used by methods in [_Harness] as a lightweight way of building up
+/// complex sequences of calls to [FlowAnalysis] that represent large
+/// expressions.
+typedef _Expression LazyExpression();
+
 class _Expression {}
 
 class _Harness
@@ -519,6 +710,10 @@ class _Harness
     flow = FlowAnalysis<_Statement, _Expression, _Var, _Type>(this, this, this);
   }
 
+  /// Returns a [LazyExpression] representing an expression with now special
+  /// flow analysis semantics.
+  LazyExpression get expr => () => _Expression();
+
   _Var addAssignedVar(String name, String type) {
     var v = _Var(name, _Type(type));
     flow.add(v, assigned: true);
@@ -531,10 +726,70 @@ class _Harness
     return v;
   }
 
+  /// Given two [LazyExpression]s, produces a new [LazyExpression] representing
+  /// the result of combining them with `&&`.
+  LazyExpression and(LazyExpression lhs, LazyExpression rhs) {
+    return () {
+      var expr = _Expression();
+      flow.logicalBinaryOp_rightBegin(lhs(), isAnd: true);
+      flow.logicalBinaryOp_end(expr, rhs(), isAnd: true);
+      return expr;
+    };
+  }
+
+  /// Given three [LazyExpression]s, produces a new [LazyExpression]
+  /// representing the result of combining them with `?` and `:`.
+  LazyExpression conditional(
+      LazyExpression cond, LazyExpression ifTrue, LazyExpression ifFalse) {
+    return () {
+      var expr = _Expression();
+      flow.conditional_thenBegin(cond());
+      flow.conditional_elseBegin(ifTrue());
+      flow.conditional_end(expr, ifFalse());
+      return expr;
+    };
+  }
+
+  /// Creates a [LazyExpression] representing an `== null` check performed on
+  /// [variable].
+  LazyExpression eqNull(_Var variable) {
+    return () {
+      var expr = _Expression();
+      flow.conditionEqNull(expr, variable, notEqual: false);
+      return expr;
+    };
+  }
+
+  /// Invokes flow analysis of an `if` statement with no `else` part.
+  void if_(LazyExpression cond, void ifTrue()) {
+    flow.ifStatement_thenBegin(cond());
+    ifTrue();
+    flow.ifStatement_end(false);
+  }
+
+  /// Invokes flow analysis of an `if` statement with an `else` part.
+  void ifElse(LazyExpression cond, void ifTrue(), void ifFalse()) {
+    flow.ifStatement_thenBegin(cond());
+    ifTrue();
+    flow.ifStatement_elseBegin();
+    ifFalse();
+    flow.ifStatement_end(false);
+  }
+
   @override
   bool isLocalVariable(_Var variable) {
     // TODO(paulberry): make tests where this returns false
     return true;
+  }
+
+  /// Creates a [LazyExpression] representing an `is!` check, checking whether
+  /// [variable] has the given [type].
+  LazyExpression isNotType(_Var variable, String type) {
+    return () {
+      var expr = _Expression();
+      flow.isExpression_end(expr, variable, true, _Type(type));
+      return expr;
+    };
   }
 
   @override
@@ -571,6 +826,32 @@ class _Harness
     if (leftType.type == rightType.type) return true;
     var query = '$leftType <: $rightType';
     return _subtypes[query] ?? fail('Unknown subtype query: $query');
+  }
+
+  /// Creates a [LazyExpression] representing a `!= null` check performed on
+  /// [variable].
+  LazyExpression notNull(_Var variable) {
+    return () {
+      var expr = _Expression();
+      flow.conditionEqNull(expr, variable, notEqual: true);
+      return expr;
+    };
+  }
+
+  /// Given two [LazyExpression]s, produces a new [LazyExpression] representing
+  /// the result of combining them with `||`.
+  LazyExpression or(LazyExpression lhs, LazyExpression rhs) {
+    return () {
+      var expr = _Expression();
+      flow.logicalBinaryOp_rightBegin(lhs(), isAnd: false);
+      flow.logicalBinaryOp_end(expr, rhs(), isAnd: false);
+      return expr;
+    };
+  }
+
+  /// Causes [variable] to be promoted to [type].
+  void promote(_Var variable, String type) {
+    if_(isNotType(variable, type), flow.handleExit);
   }
 
   @override

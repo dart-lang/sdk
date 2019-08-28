@@ -138,48 +138,42 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
     }
   }
 
-  void conditional_elseBegin(Expression conditionalExpression,
-      Expression thenExpression, bool isBool) {
+  void conditional_elseBegin(Expression thenExpression) {
     var afterThen = _current;
     var falseCondition = _stack.removeLast();
 
-    if (isBool) {
-      _conditionalEnd(thenExpression);
-      // Tail of the stack: falseThen, trueThen
-    }
+    _conditionalEnd(thenExpression);
+    // Tail of the stack: falseThen, trueThen
 
     _stack.add(afterThen);
     _current = falseCondition;
   }
 
-  void conditional_end(Expression conditionalExpression,
-      Expression elseExpression, bool isBool) {
+  void conditional_end(
+      Expression conditionalExpression, Expression elseExpression) {
     var afterThen = _stack.removeLast();
     var afterElse = _current;
 
-    if (isBool) {
-      _conditionalEnd(elseExpression);
-      // Tail of the stack: falseThen, trueThen, falseElse, trueElse
+    _conditionalEnd(elseExpression);
+    // Tail of the stack: falseThen, trueThen, falseElse, trueElse
 
-      var trueElse = _stack.removeLast();
-      var falseElse = _stack.removeLast();
+    var trueElse = _stack.removeLast();
+    var falseElse = _stack.removeLast();
 
-      var trueThen = _stack.removeLast();
-      var falseThen = _stack.removeLast();
+    var trueThen = _stack.removeLast();
+    var falseThen = _stack.removeLast();
 
-      var trueResult = _join(trueThen, trueElse);
-      var falseResult = _join(falseThen, falseElse);
+    var trueResult = _join(trueThen, trueElse);
+    var falseResult = _join(falseThen, falseElse);
 
-      _condition = conditionalExpression;
-      _conditionTrue = trueResult;
-      _conditionFalse = falseResult;
-    }
+    _condition = conditionalExpression;
+    _conditionTrue = trueResult;
+    _conditionFalse = falseResult;
 
     _current = _join(afterThen, afterElse);
   }
 
-  void conditional_thenBegin(
-      Expression conditionalExpression, Expression condition) {
+  void conditional_thenBegin(Expression condition) {
     _conditionalEnd(condition);
     // Tail of the stack: falseCondition, trueCondition
 
@@ -224,7 +218,7 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
     _current = _join(_current, continueState);
   }
 
-  void doStatement_end(Statement doStatement, Expression condition) {
+  void doStatement_end(Expression condition) {
     _conditionalEnd(condition);
     // Tail of the stack:  break, falseCondition, trueCondition
 
@@ -399,33 +393,48 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
     }
   }
 
-  void logicalAnd_end(Expression andExpression, Expression rightOperand) {
+  void logicalBinaryOp_end(Expression wholeExpression, Expression rightOperand,
+      {@required bool isAnd}) {
     _conditionalEnd(rightOperand);
     // Tail of the stack: falseLeft, trueLeft, falseRight, trueRight
 
     var trueRight = _stack.removeLast();
     var falseRight = _stack.removeLast();
 
-    _stack.removeLast(); // trueLeft is not used
+    var trueLeft = _stack.removeLast();
     var falseLeft = _stack.removeLast();
 
-    var trueResult = trueRight;
-    var falseResult = _join(falseLeft, falseRight);
+    FlowModel<Variable, Type> trueResult;
+    FlowModel<Variable, Type> falseResult;
+    if (isAnd) {
+      trueResult = trueRight;
+      falseResult = _join(falseLeft, falseRight);
+    } else {
+      trueResult = _join(trueLeft, trueRight);
+      falseResult = falseRight;
+    }
+
     var afterResult = _join(trueResult, falseResult);
 
-    _condition = andExpression;
+    _condition = wholeExpression;
     _conditionTrue = trueResult;
     _conditionFalse = falseResult;
 
     _current = afterResult;
   }
 
-  void logicalAnd_rightBegin(Expression andExpression, Expression leftOperand) {
+  void logicalBinaryOp_rightBegin(Expression leftOperand,
+      {@required bool isAnd}) {
     _conditionalEnd(leftOperand);
     // Tail of the stack: falseLeft, trueLeft
 
-    var trueLeft = _stack.last;
-    _current = trueLeft;
+    if (isAnd) {
+      var trueLeft = _stack.last;
+      _current = trueLeft;
+    } else {
+      var falseLeft = _stack[_stack.length - 2];
+      _current = falseLeft;
+    }
   }
 
   void logicalNot_end(Expression notExpression, Expression operand) {
@@ -436,35 +445,6 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
     _condition = notExpression;
     _conditionTrue = falseExpr;
     _conditionFalse = trueExpr;
-  }
-
-  void logicalOr_end(Expression orExpression, Expression rightOperand) {
-    _conditionalEnd(rightOperand);
-    // Tail of the stack: falseLeft, trueLeft, falseRight, trueRight
-
-    var trueRight = _stack.removeLast();
-    var falseRight = _stack.removeLast();
-
-    var trueLeft = _stack.removeLast();
-    _stack.removeLast(); // falseLeft is not used
-
-    var trueResult = _join(trueLeft, trueRight);
-    var falseResult = falseRight;
-    var afterResult = _join(trueResult, falseResult);
-
-    _condition = orExpression;
-    _conditionTrue = trueResult;
-    _conditionFalse = falseResult;
-
-    _current = afterResult;
-  }
-
-  void logicalOr_rightBegin(Expression orExpression, Expression leftOperand) {
-    _conditionalEnd(leftOperand);
-    // Tail of the stack: falseLeft, trueLeft
-
-    var falseLeft = _stack[_stack.length - 2];
-    _current = falseLeft;
   }
 
   /// Retrieves the type that the [variable] is promoted to, if the [variable]

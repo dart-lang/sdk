@@ -215,6 +215,36 @@ class LocalVariable : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(LocalVariable);
 };
 
+// Accumulates local variable descriptors while building
+// LocalVarDescriptors object.
+class LocalVarDescriptorsBuilder : public ValueObject {
+ public:
+  struct VarDesc {
+    const String* name;
+    RawLocalVarDescriptors::VarInfo info;
+  };
+
+  LocalVarDescriptorsBuilder() : vars_(8) {}
+
+  // Add variable descriptor.
+  void Add(const VarDesc& var_desc) { vars_.Add(var_desc); }
+
+  // Add all variable descriptors from given [LocalVarDescriptors] object.
+  void AddAll(Zone* zone, const LocalVarDescriptors& var_descs);
+
+  // Record deopt-id -> context-level mappings, using ranges of deopt-ids with
+  // the same context-level. [context_level_array] contains (deopt_id,
+  // context_level) tuples.
+  void AddDeoptIdToContextLevelMappings(
+      ZoneGrowableArray<intptr_t>* context_level_array);
+
+  // Finish building LocalVarDescriptor object.
+  RawLocalVarDescriptors* Done();
+
+ private:
+  GrowableArray<VarDesc> vars_;
+};
+
 class NameReference : public ZoneAllocated {
  public:
   NameReference(TokenPosition token_pos, const String& name)
@@ -439,11 +469,6 @@ class LocalScope : public ZoneAllocated {
   static RawContextScope* CreateImplicitClosureScope(const Function& func);
 
  private:
-  struct VarDesc {
-    const String* name;
-    RawLocalVarDescriptors::VarInfo info;
-  };
-
   // Allocate the variable in the current context, possibly updating the current
   // context owner scope, if the variable is the first one to be allocated at
   // this loop level.
@@ -452,7 +477,8 @@ class LocalScope : public ZoneAllocated {
   void AllocateContextVariable(LocalVariable* variable,
                                LocalScope** context_owner);
 
-  void CollectLocalVariables(GrowableArray<VarDesc>* vars, int16_t* scope_id);
+  void CollectLocalVariables(LocalVarDescriptorsBuilder* vars,
+                             int16_t* scope_id);
 
   NameReference* FindReference(const String& name) const;
 

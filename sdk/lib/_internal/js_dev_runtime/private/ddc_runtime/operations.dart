@@ -677,7 +677,6 @@ noSuchMethod(obj, Invocation invocation) {
 
 /// The default implementation of `noSuchMethod` to match `Object.noSuchMethod`.
 defaultNoSuchMethod(obj, Invocation i) {
-  if (JS('!', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
   throw NoSuchMethodError.withInvocation(obj, i);
 }
 

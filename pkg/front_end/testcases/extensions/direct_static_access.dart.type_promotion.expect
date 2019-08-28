@@ -1,0 +1,6 @@
+pkg/front_end/testcases/extensions/direct_static_access.dart:101:11: Context: Write to field@408
+    field = property;
+          ^
+pkg/front_end/testcases/extensions/direct_static_access.dart:170:11: Context: Write to field@408
+    field = property;
+          ^

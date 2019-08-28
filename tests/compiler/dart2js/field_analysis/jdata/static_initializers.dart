@@ -134,7 +134,6 @@ final field4a = 2 + 3;
 /*member: field4b:constant=IntConstant(5)*/
 var field4b = 2 + 3;
 
-/*strong.member: field4c:constant=IntConstant(5)*/
 const field4c = 2 + 3;
 
 /*member: field5a:constant=FunctionConstant(method)*/
@@ -143,7 +142,6 @@ final field5a = method;
 /*member: field5b:constant=FunctionConstant(method)*/
 var field5b = method;
 
-/*strong.member: field5c:constant=FunctionConstant(method)*/
 const field5c = method;
 
 /*member: field6a:constant=ConstructedConstant(Class())*/

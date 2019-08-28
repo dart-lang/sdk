@@ -618,17 +618,15 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         FlowGraphPrinter::PrintGraph("Unoptimized Compilation", flow_graph);
       }
 
-      BlockScheduler block_scheduler(flow_graph);
       const bool reorder_blocks =
           FlowGraph::ShouldReorderBlocks(function, optimized());
       if (reorder_blocks) {
         TIMELINE_DURATION(thread(), CompilerVerbose,
                           "BlockScheduler::AssignEdgeWeights");
-        block_scheduler.AssignEdgeWeights();
+        BlockScheduler::AssignEdgeWeights(flow_graph);
       }
 
       CompilerPassState pass_state(thread(), flow_graph, &speculative_policy);
-      pass_state.block_scheduler = &block_scheduler;
       pass_state.reorder_blocks = reorder_blocks;
 
       if (optimized()) {
@@ -998,38 +996,43 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
   ASSERT(code.var_descriptors() == Object::null());
   // IsIrregexpFunction have eager var descriptors generation.
   ASSERT(!function.IsIrregexpFunction());
-  if (function.is_declared_in_bytecode()) {
-    auto& var_descs = LocalVarDescriptors::Handle();
-    if (function.HasBytecode()) {
-      const auto& bytecode = Bytecode::Handle(function.bytecode());
-      var_descs = bytecode.GetLocalVarDescriptors();
-    } else {
-      var_descs = Object::empty_var_descriptors().raw();
-    }
-    code.set_var_descriptors(var_descs);
-    return;
-  }
   // In background compilation, parser can produce 'errors": bailouts
   // if state changed while compiling in background.
-  CompilerState state(Thread::Current());
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  CompilerState state(thread);
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
-    ParsedFunction* parsed_function = new ParsedFunction(
-        Thread::Current(), Function::ZoneHandle(function.raw()));
+    ParsedFunction* parsed_function =
+        new ParsedFunction(thread, Function::ZoneHandle(zone, function.raw()));
     ZoneGrowableArray<const ICData*>* ic_data_array =
         new ZoneGrowableArray<const ICData*>();
     ZoneGrowableArray<intptr_t>* context_level_array =
         new ZoneGrowableArray<intptr_t>();
 
-    parsed_function->EnsureKernelScopes();
     kernel::FlowGraphBuilder builder(
         parsed_function, ic_data_array, context_level_array,
         /* not inlining */ NULL, false, Compiler::kNoOSRDeoptId);
     builder.BuildGraph();
 
-    const LocalVarDescriptors& var_descs =
-        LocalVarDescriptors::Handle(parsed_function->scope()->GetVarDescriptors(
-            function, context_level_array));
+    auto& var_descs = LocalVarDescriptors::Handle(zone);
+
+    if (function.is_declared_in_bytecode()) {
+      if (function.HasBytecode()) {
+        const auto& bytecode = Bytecode::Handle(zone, function.bytecode());
+        var_descs = bytecode.GetLocalVarDescriptors();
+        LocalVarDescriptorsBuilder builder;
+        builder.AddDeoptIdToContextLevelMappings(context_level_array);
+        builder.AddAll(zone, var_descs);
+        var_descs = builder.Done();
+      } else {
+        var_descs = Object::empty_var_descriptors().raw();
+      }
+    } else {
+      var_descs = parsed_function->scope()->GetVarDescriptors(
+          function, context_level_array);
+    }
+
     ASSERT(!var_descs.IsNull());
     code.set_var_descriptors(var_descs);
   } else {

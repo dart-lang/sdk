@@ -1880,7 +1880,8 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
         DartType caseExpressionType =
             inferrer.inferExpression(caseExpression, expressionType, true);
 
-        // Check whether the expression type is assignable to the case expression type.
+        // Check whether the expression type is assignable to the case
+        // expression type.
         if (!inferrer.isAssignable(expressionType, caseExpressionType)) {
           inferrer.helper.addProblem(
               templateSwitchExpressionNotAssignable.withArguments(

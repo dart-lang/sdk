@@ -136,7 +136,8 @@ class FreshTypeParameters {
   DartType substitute(DartType type) => substitution.substituteType(type);
 
   NamedType substituteNamed(NamedType type) =>
-      new NamedType(type.name, substitute(type.type));
+      new NamedType(type.name, substitute(type.type),
+          isRequired: type.isRequired);
 
   Supertype substituteSuper(Supertype type) {
     return substitution.substituteSupertype(type);
@@ -409,7 +410,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     int before = useCounter;
     var type = visit(node.type);
     if (useCounter == before) return node;
-    return new NamedType(node.name, type);
+    return new NamedType(node.name, type, isRequired: node.isRequired);
   }
 
   DartType visit(DartType node) => node.accept(this);

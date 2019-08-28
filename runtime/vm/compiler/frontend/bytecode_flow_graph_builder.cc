@@ -742,7 +742,12 @@ void BytecodeFlowGraphBuilder::BuildDebugCheck() {
   if (is_generating_interpreter()) {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
   }
-  code_ += B->DebugStepCheck(position_);
+  // DebugStepCheck instructions are emitted for all explicit DebugCheck
+  // opcodes as well as for implicit DEBUG_CHECK executed by the interpreter
+  // for some opcodes, but not before the first explicit DebugCheck opcode is
+  // encountered.
+  build_debug_step_checks_ = true;
+  BuildDebugStepCheck();
 }
 
 void BytecodeFlowGraphBuilder::BuildPushConstant() {
@@ -788,6 +793,8 @@ void BytecodeFlowGraphBuilder::BuildDirectCall() {
   if (is_generating_interpreter()) {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
   }
+
+  // A DebugStepCheck is performed as part of the calling stub.
 
   const Function& target = Function::Cast(ConstantAt(DecodeOperandD()).value());
   const intptr_t argc = DecodeOperandF().value();
@@ -854,6 +861,8 @@ void BytecodeFlowGraphBuilder::BuildInterfaceCallCommon(
   if (is_generating_interpreter()) {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
   }
+
+  // A DebugStepCheck is performed as part of the calling stub.
 
   const Function& interface_target =
       Function::Cast(ConstantAt(DecodeOperandD()).value());
@@ -929,6 +938,8 @@ void BytecodeFlowGraphBuilder::BuildUncheckedClosureCall() {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
   }
 
+  BuildDebugStepCheck();
+
   const Array& arg_desc_array =
       Array::Cast(ConstantAt(DecodeOperandD()).value());
   const ArgumentsDescriptor arg_desc(arg_desc_array);
@@ -958,8 +969,17 @@ void BytecodeFlowGraphBuilder::BuildDynamicCall() {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
   }
 
+  // A DebugStepCheck is performed as part of the calling stub.
+
   const ICData& icdata = ICData::Cast(ConstantAt(DecodeOperandD()).value());
-  ASSERT(ic_data_array_->At(icdata.deopt_id())->Original() == icdata.raw());
+  const intptr_t deopt_id = icdata.deopt_id();
+  ic_data_array_->EnsureLength(deopt_id + 1, nullptr);
+  if (ic_data_array_->At(deopt_id) == nullptr) {
+    (*ic_data_array_)[deopt_id] = &icdata;
+  } else {
+    ASSERT(ic_data_array_->At(deopt_id)->Original() == icdata.raw());
+  }
+  B->reset_context_depth_for_deopt_id(deopt_id);
 
   const intptr_t argc = DecodeOperandF().value();
   const ArgumentsDescriptor arg_desc(
@@ -1193,6 +1213,8 @@ void BytecodeFlowGraphBuilder::BuildStoreStaticTOS() {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
   }
 
+  BuildDebugStepCheck();
+
   LoadStackSlots(1);
   Operand cp_index = DecodeOperandD();
 
@@ -1201,6 +1223,25 @@ void BytecodeFlowGraphBuilder::BuildStoreStaticTOS() {
   code_ += B->StoreStaticField(position_, field);
 }
 
+void BytecodeFlowGraphBuilder::BuildLoadStatic() {
+  const Constant operand = ConstantAt(DecodeOperandD());
+  const auto& field = Field::Cast(operand.value());
+  // All constant expressions (including access to const fields) are evaluated
+  // in bytecode. However, values of injected cid fields are only available in
+  // the VM. In such case, evaluate const fields with known value here.
+  if (field.is_const() && !field.has_initializer()) {
+    const auto& value = Object::ZoneHandle(Z, field.StaticValue());
+    ASSERT((value.raw() != Object::sentinel().raw()) &&
+           (value.raw() != Object::transition_sentinel().raw()));
+    code_ += B->Constant(value);
+    return;
+  }
+  PushConstant(operand);
+  code_ += B->LoadStaticField();
+}
+
+static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 19,
+              "Cleanup PushStatic bytecode instruction");
 void BytecodeFlowGraphBuilder::BuildPushStatic() {
   // Note: Field object is both pushed into the stack and
   // available in constant pool entry D.
@@ -1509,6 +1550,7 @@ void BytecodeFlowGraphBuilder::BuildDrop1() {
 }
 
 void BytecodeFlowGraphBuilder::BuildReturnTOS() {
+  BuildDebugStepCheck();
   LoadStackSlots(1);
   ASSERT(code_.is_open());
   code_ += B->Return(position_);
@@ -1523,6 +1565,8 @@ void BytecodeFlowGraphBuilder::BuildThrow() {
   if (is_generating_interpreter()) {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
   }
+
+  BuildDebugStepCheck();
 
   if (DecodeOperandA().value() == 0) {
     // throw
@@ -1580,6 +1624,8 @@ void BytecodeFlowGraphBuilder::BuildSetFrame() {
 }
 
 void BytecodeFlowGraphBuilder::BuildEqualsNull() {
+  BuildDebugStepCheck();
+
   ASSERT(scratch_var_ != nullptr);
   LoadStackSlots(1);
 
@@ -1612,6 +1658,8 @@ void BytecodeFlowGraphBuilder::BuildPrimitiveOp(
     int num_args) {
   ASSERT((num_args == 1) || (num_args == 2));
   ASSERT(MethodTokenRecognizer::RecognizeTokenKind(name) == token_kind);
+
+  // A DebugStepCheck is performed as part of the calling stub.
 
   LoadStackSlots(num_args);
   const ArgumentArray arguments = GetArguments(num_args);
@@ -1769,6 +1817,14 @@ void BytecodeFlowGraphBuilder::BuildFfiAsFunction() {
   code_ += B->BuildFfiAsFunctionInternalCall(type_args);
 }
 
+void BytecodeFlowGraphBuilder::BuildDebugStepCheck() {
+#if !defined(PRODUCT)
+  if (build_debug_step_checks_) {
+    code_ += B->DebugStepCheck(position_);
+  }
+#endif  // !defined(PRODUCT)
+}
+
 static bool IsICDataEntry(const ObjectPool& object_pool, intptr_t index) {
   if (object_pool.TypeAt(index) != ObjectPool::EntryType::kTaggedObject) {
     return false;
@@ -1781,30 +1837,14 @@ static bool IsICDataEntry(const ObjectPool& object_pool, intptr_t index) {
 // pre-populate ic_data_array_.
 void BytecodeFlowGraphBuilder::ProcessICDataInObjectPool(
     const ObjectPool& object_pool) {
-  CompilerState& compiler_state = thread()->compiler_state();
-  ASSERT(compiler_state.deopt_id() == 0);
+  ASSERT(thread()->compiler_state().deopt_id() == 0);
 
   const intptr_t pool_length = object_pool.Length();
   for (intptr_t i = 0; i < pool_length; ++i) {
     if (IsICDataEntry(object_pool, i)) {
       const ICData& icdata = ICData::CheckedHandle(Z, object_pool.ObjectAt(i));
-      const intptr_t deopt_id = compiler_state.GetNextDeoptId();
-
+      const intptr_t deopt_id = B->GetNextDeoptId();
       ASSERT(icdata.deopt_id() == deopt_id);
-      ASSERT(ic_data_array_->is_empty() ||
-             (ic_data_array_->At(deopt_id)->Original() == icdata.raw()));
-    }
-  }
-
-  if (ic_data_array_->is_empty()) {
-    const intptr_t len = compiler_state.deopt_id();
-    ic_data_array_->EnsureLength(len, nullptr);
-    for (intptr_t i = 0; i < pool_length; ++i) {
-      if (IsICDataEntry(object_pool, i)) {
-        const ICData& icdata =
-            ICData::CheckedHandle(Z, object_pool.ObjectAt(i));
-        (*ic_data_array_)[icdata.deopt_id()] = &icdata;
-      }
     }
   }
 }
@@ -2007,6 +2047,35 @@ void BytecodeFlowGraphBuilder::CreateParameterVariables() {
   }
 }
 
+#if !defined(PRODUCT)
+intptr_t BytecodeFlowGraphBuilder::UpdateContextLevel(const Bytecode& bytecode,
+                                                      intptr_t pc) {
+  ASSERT(B->is_recording_context_levels());
+
+  kernel::BytecodeLocalVariablesIterator iter(Z, bytecode);
+  intptr_t context_level = 0;
+  intptr_t next_pc = bytecode_length_;
+  while (iter.MoveNext()) {
+    if (iter.IsScope()) {
+      if (iter.StartPC() <= pc) {
+        if (pc < iter.EndPC()) {
+          // Found enclosing scope. Keep looking as we might find more
+          // scopes (the last one is the most specific).
+          context_level = iter.ContextLevel();
+          next_pc = iter.EndPC();
+        }
+      } else {
+        next_pc = Utils::Minimum(next_pc, iter.StartPC());
+        break;
+      }
+    }
+  }
+
+  B->set_context_depth(context_level);
+  return next_pc;
+}
+#endif  // !defined(PRODUCT)
+
 FlowGraph* BytecodeFlowGraphBuilder::BuildGraph() {
   const Bytecode& bytecode = Bytecode::Handle(Z, function().bytecode());
 
@@ -2030,6 +2099,11 @@ FlowGraph* BytecodeFlowGraphBuilder::BuildGraph() {
 
   kernel::BytecodeSourcePositionsIterator source_pos_iter(Z, bytecode);
   bool update_position = source_pos_iter.MoveNext();
+
+#if !defined(PRODUCT)
+  intptr_t next_pc_to_update_context_level =
+      B->is_recording_context_levels() ? 0 : bytecode_length_;
+#endif
 
   code_ = Fragment(normal_entry);
 
@@ -2062,6 +2136,12 @@ FlowGraph* BytecodeFlowGraphBuilder::BuildGraph() {
       position_ = source_pos_iter.TokenPos();
       update_position = source_pos_iter.MoveNext();
     }
+
+#if !defined(PRODUCT)
+    if (pc_ >= next_pc_to_update_context_level) {
+      next_pc_to_update_context_level = UpdateContextLevel(bytecode, pc_);
+    }
+#endif
 
     BuildInstruction(KernelBytecode::DecodeOpcode(bytecode_instr_));
 

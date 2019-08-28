@@ -50,24 +50,24 @@ String format(LocatedMessage message, Severity severity, {Location location}) {
       length = 1;
     }
     String prefix = severityPrefixes[severity];
-    String text =
+    String messageText =
         prefix == null ? message.message : "$prefix: ${message.message}";
     if (message.tip != null) {
-      text += "\n${message.tip}";
+      messageText += "\n${message.tip}";
     }
     if (CompilerContext.enableColors) {
       switch (severity) {
         case Severity.error:
         case Severity.internalProblem:
-          text = red(text);
+          messageText = red(messageText);
           break;
 
         case Severity.warning:
-          text = magenta(text);
+          messageText = magenta(messageText);
           break;
 
         case Severity.context:
-          text = green(text);
+          messageText = green(messageText);
           break;
 
         default:
@@ -84,42 +84,10 @@ String format(LocatedMessage message, Severity severity, {Location location}) {
         location = null;
       }
       String sourceLine = getSourceLine(location);
-      if (sourceLine == null) {
-        sourceLine = "";
-      } else if (sourceLine.isNotEmpty) {
-        // TODO(askesc): Much more could be done to indent properly in the
-        // presence of all sorts of unicode weirdness.
-        // This handling covers the common case of single-width characters
-        // indented with spaces and/or tabs, using no surrogates.
-        int indentLength = location.column - 1;
-        Uint8List indentation = new Uint8List(indentLength + length)
-          ..fillRange(0, indentLength, $SPACE)
-          ..fillRange(indentLength, indentLength + length, $CARET);
-        int lengthInSourceLine = min(indentation.length, sourceLine.length);
-        for (int i = 0; i < lengthInSourceLine; i++) {
-          if (sourceLine.codeUnitAt(i) == $TAB) {
-            indentation[i] = $TAB;
-          }
-        }
-        String pointer = new String.fromCharCodes(indentation);
-        if (pointer.length > sourceLine.length) {
-          // Truncate the carets to handle messages that span multiple lines.
-          int pointerLength = sourceLine.length;
-          // Add one to cover the case of a parser error pointing to EOF when
-          // the last line doesn't end with a newline. For messages spanning
-          // multiple lines, this also provides a minor visual clue that can be
-          // useful for debugging Fasta.
-          pointerLength += 1;
-          pointer = pointer.substring(0, pointerLength);
-          pointer += "...";
-        }
-        sourceLine = "\n$sourceLine\n$pointer";
-      }
-      String position =
-          location == null ? "" : ":${location.line}:${location.column}";
-      return "$path$position: $text$sourceLine";
+      return formatErrorMessage(
+          sourceLine, location, length, path, messageText);
     } else {
-      return text;
+      return messageText;
     }
   } catch (error, trace) {
     print("Crash when formatting: "
@@ -128,6 +96,44 @@ String format(LocatedMessage message, Severity severity, {Location location}) {
         "$trace");
     throw new Crash(message.uri, message.charOffset, error, trace);
   }
+}
+
+String formatErrorMessage(String sourceLine, Location location,
+    int squigglyLength, String path, String messageText) {
+  if (sourceLine == null) {
+    sourceLine = "";
+  } else if (sourceLine.isNotEmpty) {
+    // TODO(askesc): Much more could be done to indent properly in the
+    // presence of all sorts of unicode weirdness.
+    // This handling covers the common case of single-width characters
+    // indented with spaces and/or tabs, using no surrogates.
+    int indentLength = location.column - 1;
+    Uint8List indentation = new Uint8List(indentLength + squigglyLength)
+      ..fillRange(0, indentLength, $SPACE)
+      ..fillRange(indentLength, indentLength + squigglyLength, $CARET);
+    int lengthInSourceLine = min(indentation.length, sourceLine.length);
+    for (int i = 0; i < lengthInSourceLine; i++) {
+      if (sourceLine.codeUnitAt(i) == $TAB) {
+        indentation[i] = $TAB;
+      }
+    }
+    String pointer = new String.fromCharCodes(indentation);
+    if (pointer.length > sourceLine.length) {
+      // Truncate the carets to handle messages that span multiple lines.
+      int pointerLength = sourceLine.length;
+      // Add one to cover the case of a parser error pointing to EOF when
+      // the last line doesn't end with a newline. For messages spanning
+      // multiple lines, this also provides a minor visual clue that can be
+      // useful for debugging Fasta.
+      pointerLength += 1;
+      pointer = pointer.substring(0, pointerLength);
+      pointer += "...";
+    }
+    sourceLine = "\n$sourceLine\n$pointer";
+  }
+  String position =
+      location == null ? "" : ":${location.line}:${location.column}";
+  return "$path$position: $messageText$sourceLine";
 }
 
 /// Are problems of [severity] suppressed?

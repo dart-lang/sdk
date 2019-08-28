@@ -80,7 +80,7 @@ class ValidatingInstrumentation implements Instrumentation {
   void finish() {
     _unsatisfiedExpectations.forEach((uri, expectationsForUri) {
       expectationsForUri.forEach((offset, expectationsAtOffset) {
-        for (var expectation in expectationsAtOffset) {
+        for (_Expectation expectation in expectationsAtOffset) {
           _problem(
               uri,
               offset,
@@ -97,10 +97,10 @@ class ValidatingInstrumentation implements Instrumentation {
   /// pairs that were observed.
   Future<Null> fixSource(Uri uri, bool offsetsCountCharacters) async {
     uri = Uri.base.resolveUri(uri);
-    var fixes = _fixes[uri];
+    List<_Fix> fixes = _fixes[uri];
     if (fixes == null) return;
     File file = new File.fromUri(uri);
-    var bytes = (await file.readAsBytes()).toList();
+    List<int> bytes = (await file.readAsBytes()).toList();
     int convertOffset(int offset) {
       if (offsetsCountCharacters) {
         return utf8.encode(utf8.decode(bytes).substring(0, offset)).length;
@@ -112,7 +112,7 @@ class ValidatingInstrumentation implements Instrumentation {
     // Apply the fixes in reverse order so that offsets don't need to be
     // adjusted after each fix.
     fixes.sort((a, b) => a.offset.compareTo(b.offset));
-    for (var fix in fixes.reversed) {
+    for (_Fix fix in fixes.reversed) {
       bytes.replaceRange(convertOffset(fix.offset),
           convertOffset(fix.offset + fix.length), utf8.encode(fix.replacement));
     }
@@ -124,10 +124,12 @@ class ValidatingInstrumentation implements Instrumentation {
   /// Should be called before [finish].
   Future<Null> loadExpectations(Uri uri) async {
     uri = Uri.base.resolveUri(uri);
-    var bytes = await readBytesFromFile(uri);
-    var expectations = _unsatisfiedExpectations.putIfAbsent(uri, () => {});
-    var testedFeaturesState = _testedFeaturesState.putIfAbsent(uri, () => {});
-    var tokenOffsets = _tokenOffsets.putIfAbsent(uri, () => []);
+    List<int> bytes = await readBytesFromFile(uri);
+    Map<int, List<_Expectation>> expectations =
+        _unsatisfiedExpectations.putIfAbsent(uri, () => {});
+    Map<int, Set<String>> testedFeaturesState =
+        _testedFeaturesState.putIfAbsent(uri, () => {});
+    List<int> tokenOffsets = _tokenOffsets.putIfAbsent(uri, () => []);
     ScannerResult result = scan(bytes, includeComments: true);
     for (Token token = result.tokens; !token.isEof; token = token.next) {
       tokenOffsets.add(token.offset);
@@ -136,8 +138,8 @@ class ValidatingInstrumentation implements Instrumentation {
           commentToken = commentToken.next) {
         String lexeme = commentToken.lexeme;
         if (lexeme.startsWith('/*@') && lexeme.endsWith('*/')) {
-          var expectation = lexeme.substring(3, lexeme.length - 2);
-          var equals = expectation.indexOf('=');
+          String expectation = lexeme.substring(3, lexeme.length - 2);
+          int equals = expectation.indexOf('=');
           String property;
           String value;
           if (equals == -1) {
@@ -161,8 +163,8 @@ class ValidatingInstrumentation implements Instrumentation {
             }
             testedFeaturesState[commentToken.offset] = state;
           } else {
-            var offset = token.charOffset;
-            var expectationsAtOffset =
+            int offset = token.charOffset;
+            List<_Expectation> expectationsAtOffset =
                 expectations.putIfAbsent(offset, () => []);
             expectationsAtOffset.add(new _Expectation(
                 property, value, commentToken.offset, commentToken.length));
@@ -179,13 +181,14 @@ class ValidatingInstrumentation implements Instrumentation {
     if (offset == -1) {
       throw _formatProblem(uri, 0, 'No offset for $property=$value', null);
     }
-    var expectationsForUri = _unsatisfiedExpectations[uri];
+    Map<int, List<_Expectation>> expectationsForUri =
+        _unsatisfiedExpectations[uri];
     if (expectationsForUri == null) return;
     offset = _normalizeOffset(offset, _tokenOffsets[uri]);
-    var expectationsAtOffset = expectationsForUri[offset];
+    List<_Expectation> expectationsAtOffset = expectationsForUri[offset];
     if (expectationsAtOffset != null) {
       for (int i = 0; i < expectationsAtOffset.length; i++) {
-        var expectation = expectationsAtOffset[i];
+        _Expectation expectation = expectationsAtOffset[i];
         if (expectation.property == property) {
           if (!value.matches(expectation.value)) {
             _problemWithStack(
@@ -273,12 +276,12 @@ class ValidatingInstrumentation implements Instrumentation {
   }
 
   bool _shouldCheck(String property, Uri uri, int offset) {
-    var state = false;
-    var testedFeaturesStateForUri = _testedFeaturesState[uri];
+    bool state = false;
+    Map<int, Set<String>> testedFeaturesStateForUri = _testedFeaturesState[uri];
     if (testedFeaturesStateForUri == null) return false;
     for (int i in testedFeaturesStateForUri.keys) {
       if (i > offset) break;
-      var testedFeaturesStateAtOffset = testedFeaturesStateForUri[i];
+      Set<String> testedFeaturesStateAtOffset = testedFeaturesStateForUri[i];
       state = testedFeaturesStateAtOffset.contains(property);
     }
     return state;

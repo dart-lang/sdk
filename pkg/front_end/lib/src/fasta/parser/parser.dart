@@ -1482,7 +1482,10 @@ class Parser {
       token = periodAfterThis;
     }
     next = token.next;
-    if (inFunctionType && !isNamedParameter && !next.isKeywordOrIdentifier) {
+    if (inFunctionType &&
+        !isNamedParameter &&
+        !next.isKeywordOrIdentifier &&
+        beforeInlineFunctionType == null) {
       nameToken = token.next;
       listener.handleNoName(nameToken);
     } else {
@@ -2545,9 +2548,6 @@ class Parser {
       ++count;
       next = token.next;
       if (!optional(',', next)) {
-        if (!next.isKeywordOrIdentifier) {
-          break;
-        }
         // Recovery: Found an identifier which could be
         // 1) missing preceding `,` thus it's another initializer, or
         // 2) missing preceding `;` thus it's a class member, or
@@ -2558,6 +2558,9 @@ class Parser {
             break;
           }
           // Looks like assert expression ... fall through to insert comma
+        } else if (!next.isIdentifier && !optional('this', next)) {
+          // An identifier that wasn't an initializer. Break.
+          break;
         } else {
           if (optional('this', next)) {
             next = next.next;
@@ -2565,7 +2568,7 @@ class Parser {
               break;
             }
             next = next.next;
-            if (!next.isKeywordOrIdentifier) {
+            if (!next.isIdentifier && !optional('assert', next)) {
               break;
             }
           }
@@ -4740,7 +4743,8 @@ class Parser {
   /// ;
   ///
   /// mapLiteral:
-  ///   'const'? typeArguments? '{' (mapLiteralEntry (',' mapLiteralEntry)* ','?)? '}'
+  ///   'const'? typeArguments?
+  ///     '{' (mapLiteralEntry (',' mapLiteralEntry)* ','?)? '}'
   /// ;
   ///
   /// mapLiteralEntry:

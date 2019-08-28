@@ -52,7 +52,7 @@ class Options {
         pedanticFixes = results[pedanticOption] as bool,
         requiredFixes = results[requiredOption] as bool,
         sdkPath = _getSdkPath(),
-        serverSnapshot = results[_serverSnapshot],
+        serverSnapshot = results[_serverSnapshot] as String,
         showHelp = results[_helpOption] as bool || results.arguments.isEmpty,
         targets = results.rest,
         useColor = results.wasParsed(_colorOption)

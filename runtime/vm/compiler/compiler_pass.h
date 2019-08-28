@@ -72,7 +72,6 @@ struct CompilerPassState {
         call_specializer(NULL),
         speculative_policy(speculative_policy),
         reorder_blocks(false),
-        block_scheduler(NULL),
         sticky_flags(0) {
   }
 
@@ -95,7 +94,6 @@ struct CompilerPassState {
   SpeculativeInliningPolicy* speculative_policy;
 
   bool reorder_blocks;
-  BlockScheduler* block_scheduler;
 
   intptr_t sticky_flags;
 };

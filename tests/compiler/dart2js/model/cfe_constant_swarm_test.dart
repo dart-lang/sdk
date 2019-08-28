@@ -4,7 +4,6 @@
 
 import 'package:args/args.dart';
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/commandline_options.dart';
 
 import '../helpers/args_helper.dart';
 import '../helpers/memory_compiler.dart';
@@ -23,7 +22,6 @@ main(List<String> args) {
         entryPoint: entryPoint,
         packageConfig: packageConfig,
         librariesSpecificationUri: librariesSpecificationUri,
-        options: ['${Flags.enableLanguageExperiments}=constant-update-2018']
-          ..addAll(options));
+        options: options);
   });
 }

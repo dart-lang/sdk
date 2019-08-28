@@ -3703,6 +3703,11 @@ abstract class UnlinkedInformativeData extends base.SummaryClass {
   @VariantId(5, variant: LinkedNodeKind.constructorDeclaration)
   int get constructorDeclaration_returnTypeOffset;
 
+  /// If the parameter has a default value, the source text of the constant
+  /// expression in the default value.  Otherwise the empty string.
+  @VariantId(10, variant: LinkedNodeKind.defaultFormalParameter)
+  String get defaultFormalParameter_defaultValueCode;
+
   @VariantId(1, variantList: [
     LinkedNodeKind.exportDirective,
     LinkedNodeKind.importDirective,

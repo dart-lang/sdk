@@ -789,8 +789,10 @@ intptr_t ActivationFrame::ContextLevel() {
       while (local_vars.MoveNext()) {
         if (local_vars.Kind() ==
             kernel::BytecodeLocalVariablesIterator::kScope) {
-          if (local_vars.StartPC() <= pc_offset &&
-              pc_offset <= local_vars.EndPC()) {
+          if (local_vars.StartPC() > pc_offset) {
+            break;
+          }
+          if (pc_offset <= local_vars.EndPC()) {
             ASSERT(context_level_ <= local_vars.ContextLevel());
             context_level_ = local_vars.ContextLevel();
           }
@@ -858,7 +860,7 @@ RawObject* ActivationFrame::GetAsyncContextVariable(const String& name) {
           // Bytecode uses absolute context levels, i.e. the frame context level
           // on entry must be calculated.
           const intptr_t frame_ctx_level =
-              IsInterpreted() ? ctx_.GetLevel() : 0;
+              function().is_declared_in_bytecode() ? ctx_.GetLevel() : 0;
           return GetRelativeContextVar(var_info.scope_id,
                                        variable_index.value(), frame_ctx_level);
         }
@@ -992,6 +994,13 @@ intptr_t ActivationFrame::GetAwaitJumpVariable() {
     if (var_descriptors_.GetName(i) == Symbols::AwaitJumpVar().raw()) {
       ASSERT(kind == RawLocalVarDescriptors::kContextVar);
       ASSERT(!ctx_.IsNull());
+      // Variable descriptors constructed from bytecode have all variables of
+      // enclosing functions, even shadowed by the current function.
+      // Check context level in order to pick correct :await_jump_var variable.
+      if (function().is_declared_in_bytecode() &&
+          (ctx_.GetLevel() != var_info.scope_id)) {
+        continue;
+      }
       Object& await_jump_index = Object::Handle(ctx_.At(var_info.index()));
       ASSERT(await_jump_index.IsSmi());
       await_jump_var = Smi::Cast(await_jump_index).Value();

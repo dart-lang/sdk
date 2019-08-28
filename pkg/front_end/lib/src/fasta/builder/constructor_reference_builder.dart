@@ -41,7 +41,7 @@ class ConstructorReferenceBuilder {
   }
 
   void resolveIn(Scope scope, LibraryBuilder accessingLibrary) {
-    final name = this.name;
+    final Object name = this.name;
     Builder declaration;
     if (name is QualifiedName) {
       String prefix = name.qualifier;

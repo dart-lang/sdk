@@ -52,7 +52,7 @@ main() {
     loader.appendLibraries(sdk);
     await target.buildOutlines();
     ClassBuilder objectClass =
-        loader.coreLibrary.getLocalMember("Object");
+        loader.coreLibrary.lookupLocalMember("Object", required: true);
     ClassHierarchyBuilder hierarchy =
         new ClassHierarchyBuilder(objectClass, loader, new CoreTypes(sdk));
     new FastaTypesTest(hierarchy, environment).run();

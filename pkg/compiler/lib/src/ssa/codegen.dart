@@ -27,7 +27,8 @@ import '../js_backend/native_data.dart';
 import '../js_backend/namer.dart' show ModularNamer;
 import '../js_backend/runtime_types.dart';
 import '../js_backend/runtime_types_codegen.dart';
-import '../js_backend/runtime_types_new.dart' show RecipeEncoder;
+import '../js_backend/runtime_types_new.dart'
+    show RecipeEncoder, RecipeEncoding;
 import '../js_emitter/code_emitter_task.dart' show ModularEmitter;
 import '../js_model/elements.dart' show JGeneratorBody;
 import '../js_model/type_recipe.dart' show TypeExpressionRecipe;
@@ -3404,18 +3405,63 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   @override
   visitInstanceEnvironment(HInstanceEnvironment node) {
-    use(node.inputs.single);
+    HInstruction input = node.inputs.single;
+    use(input);
     js.Expression receiver = pop();
-    // TODO(sra): Optimize to direct field access where possible.
-    //
-    //    push(js.js(r'#.#', [receiver, _namer.rtiFieldJsName]));
 
-    FunctionEntity helperElement = _commonElements.instanceType;
-    _registry.registerStaticUse(
-        new StaticUse.staticInvoke(helperElement, CallStructure.ONE_ARG));
-    js.Expression helper = _emitter.staticFunctionAccess(helperElement);
-    push(js.js(r'#(#)', [helper, receiver]).withSourceInformation(
-        node.sourceInformation));
+    void useRtiField() {
+      push(js.js(r'#.#', [receiver, _namer.rtiFieldJsName]));
+    }
+
+    void useHelper(FunctionEntity helper) {
+      _registry.registerStaticUse(
+          new StaticUse.staticInvoke(helper, CallStructure.ONE_ARG));
+      js.Expression helperAccess = _emitter.staticFunctionAccess(helper);
+      push(js.js(r'#(#)', [helperAccess, receiver]).withSourceInformation(
+          node.sourceInformation));
+    }
+
+    // Try to use the 'rti' field, or a specialization of 'instanceType'.
+    AbstractValue receiverMask = input.instructionType;
+
+    AbstractBool isArray = _abstractValueDomain.isInstanceOf(
+        receiverMask, _commonElements.jsArrayClass);
+
+    if (isArray.isDefinitelyTrue) {
+      useHelper(_commonElements.arrayInstanceType);
+      return;
+    }
+
+    if (isArray.isDefinitelyFalse) {
+      // See if the receiver type narrows the set of classes to ones that all
+      // have a stored type field.
+      // TODO(sra): Currently the only convenient query is [getExactClass]. We
+      // should have a (cached) query to iterate over all the concrete classes
+      // in [receiverMask].
+      // TODO(sra): Store the context class on the HInstanceEnvironment. This
+      // would allow the subtype classes to be iterated.
+      ClassEntity receiverClass =
+          _abstractValueDomain.getExactClass(receiverMask);
+      if (receiverClass != null) {
+        if (_closedWorld.rtiNeed.classNeedsTypeArguments(receiverClass)) {
+          useRtiField();
+          return;
+        }
+      }
+
+      // If the type is not intercepted and is not a closure, use the 'simple'
+      // helper.
+      if (_abstractValueDomain.isInterceptor(receiverMask).isDefinitelyFalse) {
+        if (_abstractValueDomain
+            .isInstanceOf(receiverMask, _commonElements.closureClass)
+            .isDefinitelyFalse) {
+          useHelper(_commonElements.simpleInstanceType);
+          return;
+        }
+      }
+    }
+
+    useHelper(_commonElements.instanceType);
   }
 
   @override
@@ -3423,8 +3469,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // Call `env._eval("recipe")`.
     use(node.inputs[0]);
     js.Expression environment = pop();
-    js.Expression recipe = _rtiRecipeEncoder.encodeRecipe(
+    RecipeEncoding encoding = _rtiRecipeEncoder.encodeRecipe(
         _emitter, node.envStructure, node.typeExpression);
+    js.Expression recipe = encoding.recipe;
+
+    for (TypeVariableType typeVariable in encoding.typeVariables) {
+      // TODO(fishythefish): Constraint the type variable to only be emitted on
+      // (subtypes of) the environment type.
+      _registry.registerTypeUse(TypeUse.namedTypeVariableNewRti(typeVariable));
+    }
 
     MemberEntity method = _commonElements.rtiEvalMethod;
     Selector selector = Selector.fromElement(method);

@@ -63,13 +63,6 @@ Future testAnnotatedCode(String code,
       writeJs: writeJs,
       verbose: verbose,
       inlineData: inlineData);
-  print('---from kernel with CFE constants-----------------------------------');
-  await runTest(test, kernelMarker,
-      printJs: printJs,
-      writeJs: writeJs,
-      verbose: verbose,
-      inlineData: inlineData,
-      options: ['${Flags.enableLanguageExperiments}=constant-update-2018']);
 }
 
 Future runTest(Test test, String config,

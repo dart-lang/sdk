@@ -1689,6 +1689,7 @@ void ClassFinalizer::RehashTypes() {
 void ClassFinalizer::ClearAllCode(bool including_nonchanging_cids) {
   class ClearCodeFunctionVisitor : public FunctionVisitor {
     void Visit(const Function& function) {
+      function.ClearBytecode();
       function.ClearCode();
       function.ClearICDataArray();
     }

@@ -404,13 +404,13 @@ class BytecodeAssembler {
     _emitInstructionD(Opcode.kNativeCall, rd);
   }
 
+  void emitLoadStatic(int rd) {
+    _emitInstructionD(Opcode.kLoadStatic, rd);
+  }
+
   void emitStoreStaticTOS(int rd) {
     emitSourcePosition();
     _emitInstructionD(Opcode.kStoreStaticTOS, rd);
-  }
-
-  void emitPushStatic(int rd) {
-    _emitInstructionD(Opcode.kPushStatic, rd);
   }
 
   void emitCreateArrayTOS() {

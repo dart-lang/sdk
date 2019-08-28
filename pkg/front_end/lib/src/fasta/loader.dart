@@ -8,7 +8,7 @@ import 'dart:async' show Future;
 
 import 'dart:collection' show Queue;
 
-import 'package:kernel/ast.dart' show Library;
+import 'package:kernel/ast.dart' show Class, DartType, Library;
 
 import 'builder/builder.dart'
     show ClassBuilder, Builder, LibraryBuilder, TypeBuilder;
@@ -126,9 +126,19 @@ abstract class Loader {
       int packageSpecifiedLanguageVersionMinor;
       if (packageFragment != null) {
         List<String> properties = packageFragment.split("&");
+        int foundEntries = 0;
         for (int i = 0; i < properties.length; ++i) {
           String property = properties[i];
           if (property.startsWith("dart=")) {
+            if (++foundEntries > 1) {
+              // Force error to be issued if more than one "dart=" entry.
+              // (The error will be issued in library.setLanguageVersion below
+              // when giving it `null` version numbers.)
+              packageSpecifiedLanguageVersionMajor = null;
+              packageSpecifiedLanguageVersionMinor = null;
+              break;
+            }
+
             hasPackageSpecifiedLanguageVersion = true;
             String langaugeVersionString = property.substring(5);
 
@@ -140,7 +150,6 @@ abstract class Loader {
               packageSpecifiedLanguageVersionMinor =
                   int.tryParse(dotSeparatedParts[1]);
             }
-            break;
           }
         }
       }
@@ -335,7 +344,7 @@ fileUri: ${contextMessage.uri}
 
   Builder getNativeAnnotation() => target.getNativeAnnotation(this);
 
-  ClassBuilder computeClassBuilderFromTargetClass(covariant Object cls);
+  ClassBuilder computeClassBuilderFromTargetClass(Class cls);
 
-  TypeBuilder computeTypeBuilder(covariant Object type);
+  TypeBuilder computeTypeBuilder(DartType type);
 }

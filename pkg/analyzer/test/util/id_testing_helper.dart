@@ -56,16 +56,15 @@ Future<bool> checkTests<T>(
   computeExpectedMap(testFileUri, testFileName, code, expectedMaps,
       onFailure: onFailure);
   Map<Uri, AnnotatedCode> codeMap = {testFileUri: code};
-  var libFileNames = <String>[];
-  var testData = TestData(testFileUri, testFileUri, memorySourceFiles, codeMap,
-      expectedMaps, libFileNames);
+  var testData = TestData(testFileName, testFileUri, testFileUri,
+      memorySourceFiles, codeMap, expectedMaps);
   var config =
       TestConfig(marker, 'provisional test config', featureSet: featureSet);
   return runTestForConfig<T>(testData, dataComputer, config);
 }
 
 /// Creates the testing URI used for [fileName] in annotated tests.
-Uri createUriForFileName(String fileName, {bool isLib}) => _toTestUri(fileName);
+Uri createUriForFileName(String fileName) => _toTestUri(fileName);
 
 void onFailure(String message) {
   throw StateError(message);

@@ -459,7 +459,7 @@ class ComplexTypeInfo implements TypeInfo {
           token, IdentifierContext.prefixedTypeReference);
     }
 
-    final typeVariableEndGroups = <Token>[];
+    final List<Token> typeVariableEndGroups = <Token>[];
     for (Link<Token> t = typeVariableStarters; t.isNotEmpty; t = t.tail) {
       typeVariableEndGroups.add(
           computeTypeParamOrArg(t.head, true).parseVariables(t.head, parser));
@@ -1092,7 +1092,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
 
         // Parse the type so that the token stream is properly modified,
         // but ensure that parser events are ignored by replacing the listener.
-        final originalListener = parser.listener;
+        final Listener originalListener = parser.listener;
         parser.listener = new ForwardingListener();
         token = invalidType.parseType(token, parser);
         next = token.next;
@@ -1115,7 +1115,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
 
       // Parse the type so that the token stream is properly modified,
       // but ensure that parser events are ignored by replacing the listener.
-      final originalListener = parser.listener;
+      final Listener originalListener = parser.listener;
       parser.listener = new ForwardingListener();
       token = isArguments
           ? invalidTypeVar.parseArguments(token, parser)
@@ -1166,7 +1166,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
 
 /// Return `true` if [token] is one of `>`, `>>`, `>>>`, `>=`, `>>=`, or `>>>=`.
 bool isCloser(Token token) {
-  final value = token.stringValue;
+  final String value = token.stringValue;
   return identical(value, '>') ||
       identical(value, '>>') ||
       identical(value, '>=') ||

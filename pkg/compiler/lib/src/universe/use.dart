@@ -702,6 +702,7 @@ enum TypeUseKind {
   PARAMETER_CHECK,
   RTI_VALUE,
   TYPE_ARGUMENT,
+  NAMED_TYPE_VARIABLE_NEW_RTI,
 }
 
 /// Use of a [DartType].
@@ -772,6 +773,9 @@ class TypeUse {
         break;
       case TypeUseKind.TYPE_ARGUMENT:
         sb.write('typeArg:');
+        break;
+      case TypeUseKind.NAMED_TYPE_VARIABLE_NEW_RTI:
+        sb.write('named:');
         break;
     }
     sb.write(type);
@@ -857,6 +861,10 @@ class TypeUse {
   factory TypeUse.typeArgument(DartType type) {
     return new TypeUse.internal(type, TypeUseKind.TYPE_ARGUMENT);
   }
+
+  /// [type] used as a named type variable in a recipe.
+  factory TypeUse.namedTypeVariableNewRti(TypeVariableType type) =>
+      TypeUse.internal(type, TypeUseKind.NAMED_TYPE_VARIABLE_NEW_RTI);
 
   @override
   bool operator ==(other) {

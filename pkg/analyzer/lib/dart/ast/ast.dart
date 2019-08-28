@@ -989,7 +989,10 @@ abstract class ClassDeclaration implements ClassOrMixinDeclaration {
   ConstructorDeclaration getConstructor(String name);
 }
 
-/// A node that declares a name within the scope of a class.
+/// A node that declares a name within the scope of a class declarations.
+///
+/// When the 'extension-methods' experiment is enabled, these nodes can also be
+/// located inside extension declarations.
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ClassMember implements Declaration {}
@@ -2188,6 +2191,10 @@ abstract class ExtensionOverride implements Expression {
 ///
 ///    fieldDeclaration ::=
 ///        'static'? [VariableDeclarationList] ';'
+///
+/// Prior to the 'extension-methods' experiment, these nodes were always
+/// children of a class declaration. When the experiment is enabled, these nodes
+/// can also be children of an extension declaration.
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FieldDeclaration implements ClassMember {
@@ -3738,6 +3745,10 @@ abstract class MapLiteralEntry implements CollectionElement {
 ///    methodName ::=
 ///        [SimpleIdentifier]
 ///      | 'operator' [SimpleIdentifier]
+///
+/// Prior to the 'extension-methods' experiment, these nodes were always
+/// children of a class declaration. When the experiment is enabled, these nodes
+/// can also be children of an extension declaration.
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class MethodDeclaration implements ClassMember {

@@ -26,57 +26,40 @@ export '../helpers/memory_compiler.dart' show CollectedMessage;
 
 const String strongMarker = 'strong';
 const String omitMarker = 'omit';
-const String strongConstMarker = 'strongConst';
-const String omitConstMarker = 'omitConst';
 
-const TestConfig strongConfig = const TestConfig(strongMarker, 'strong mode',
-    ['${Flags.enableLanguageExperiments}=no-constant-update-2018']);
+const TestConfig strongConfig =
+    const TestConfig(strongMarker, 'strong mode', []);
 
-const TestConfig omitConfig =
-    const TestConfig(omitMarker, 'strong mode without implicit checks', [
-  Flags.omitImplicitChecks,
-  Flags.laxRuntimeTypeToString,
-  '${Flags.enableLanguageExperiments}=no-constant-update-2018'
-]);
-
-const TestConfig strongConstConfig = const TestConfig(
-    strongConstMarker,
-    'strong mode with cfe constants',
-    ['${Flags.enableLanguageExperiments}=constant-update-2018']);
-
-const TestConfig omitConstConfig = const TestConfig(omitConstMarker,
-    'strong mode with cfe constants and without implicit checks', [
-  Flags.omitImplicitChecks,
-  Flags.laxRuntimeTypeToString,
-  '${Flags.enableLanguageExperiments}=constant-update-2018'
-]);
+const TestConfig omitConfig = const TestConfig(
+    omitMarker,
+    'strong mode without implicit checks',
+    [Flags.omitImplicitChecks, Flags.laxRuntimeTypeToString]);
 
 const List<String> allInternalMarkers = const [
   strongMarker,
   omitMarker,
-  strongConstMarker,
-  omitConstMarker,
 ];
 
+/// Default internal configurations not including experimental features.
 const List<TestConfig> defaultInternalConfigs = const [
   strongConfig,
   omitConfig
 ];
 
+/// All internal configurations including experimental features.
 const List<TestConfig> allInternalConfigs = const [
   strongConfig,
   omitConfig,
-  strongConstConfig,
-  omitConstConfig,
 ];
 
+/// Compliance mode configurations (with strong mode checks) including
+/// experimental features.
 const List<TestConfig> allStrongConfigs = const [
   strongConfig,
-  strongConstConfig,
 ];
 
-const TestConfig sharedConfig = const TestConfig(dart2jsMarker, 'dart2js',
-    ['${Flags.enableLanguageExperiments}=constant-update-2018']);
+/// Test configuration used in tests shared with CFE.
+const TestConfig sharedConfig = const TestConfig(dart2jsMarker, 'dart2js', []);
 
 abstract class DataComputer<T> {
   const DataComputer();
@@ -148,7 +131,7 @@ Future<CompiledData<T>> computeData<T>(Uri entryPoint,
   OutputCollector outputCollector = new OutputCollector();
   DiagnosticCollector diagnosticCollector = new DiagnosticCollector();
   Uri packageConfig;
-  Uri wantedPackageConfig = createUriForFileName(".packages", isLib: false);
+  Uri wantedPackageConfig = createUriForFileName(".packages");
   for (String key in memorySourceFiles.keys) {
     if (key == wantedPackageConfig.path) {
       packageConfig = wantedPackageConfig;
@@ -406,11 +389,10 @@ class TestConfig {
 /// If [forUserSourceFilesOnly] is true, we examine the elements in the main
 /// file and any supporting libraries.
 Future checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
-    {List<String> skipForStrong: const <String>[],
+    {List<String> skip: const <String>[],
     bool filterActualData(IdValue idValue, ActualData<T> actualData),
     List<String> options: const <String>[],
     List<String> args: const <String>[],
-    Directory libDirectory: null,
     bool forUserLibrariesOnly: true,
     Callback setUpFunction,
     int shards: 1,
@@ -447,7 +429,8 @@ Future checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
 
     if (setUpFunction != null) setUpFunction();
 
-    if (skipForStrong.contains(name)) {
+    print('name="${name}"');
+    if (skip.contains(name)) {
       print('--skipped ------------------------------------------------------');
     } else {
       for (TestConfig testConfiguration in testedConfigs) {
@@ -456,6 +439,7 @@ Future checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
             testConfiguration, dataComputer, testData, testOptions,
             filterActualData: filterActualData,
             verbose: verbose,
+            succinct: succinct,
             testAfterFailures: testAfterFailures,
             forUserLibrariesOnly: forUserLibrariesOnly,
             printCode: printCode)) {
@@ -471,28 +455,23 @@ Future checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
       shards: shards,
       shardIndex: shardIndex,
       onTest: onTest,
-      libDirectory: libDirectory,
       supportedMarkers: supportedMarkers,
       createUriForFileName: createUriForFileName,
       onFailure: Expect.fail,
       runTest: checkTest);
 }
 
-Uri createUriForFileName(String fileName, {bool isLib}) {
-  String commonTestPath = 'sdk/tests/compiler';
-  if (isLib) {
-    return Uri.parse('memory:$commonTestPath/libs/$fileName');
-  } else {
-    // Pretend this is a dart2js_native test to allow use of 'native'
-    // keyword and import of private libraries.
-    return Uri.parse('memory:$commonTestPath/dart2js_native/$fileName');
-  }
+Uri createUriForFileName(String fileName) {
+  // Pretend this is a dart2js_native test to allow use of 'native'
+  // keyword and import of private libraries.
+  return Uri.parse('memory:sdk/tests/compiler/dart2js_native/$fileName');
 }
 
 Future<bool> runTestForConfiguration<T>(TestConfig testConfiguration,
     DataComputer<T> dataComputer, TestData testData, List<String> options,
     {bool filterActualData(IdValue idValue, ActualData<T> actualData),
     bool verbose: false,
+    bool succinct: false,
     bool printCode: false,
     bool forUserLibrariesOnly: true,
     bool testAfterFailures: false}) async {
@@ -510,7 +489,8 @@ Future<bool> runTestForConfiguration<T>(TestConfig testConfiguration,
       testData.code, annotations, compiledData, dataComputer.dataValidator,
       filterActualData: filterActualData,
       fatalErrors: !testAfterFailures,
-      onFailure: Expect.fail);
+      onFailure: Expect.fail,
+      succinct: succinct);
 }
 
 /// Compute a [Spannable] from an [id] in the library [mainUri].

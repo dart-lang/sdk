@@ -221,16 +221,44 @@
     },
 
     {
-      "name": "spelling_test",
+      "name": "lint_test",
       "kind": "Chain",
-      "source": "test/spelling_test.dart",
+      "source": "test/lint_test.dart",
+      "path": "lib/",
+      "status": "test/lint_test.status",
+      "pattern": [
+        ".*\\.dart$"
+      ],
+      "exclude": [
+        "src/fasta/fasta_codes_generated\\.dart$"
+      ]
+    },
+
+    {
+      "name": "spelling_test_src_test",
+      "kind": "Chain",
+      "source": "test/spelling_test_src_test.dart",
+      "path": "lib/",
+      "status": "test/spelling_test.status",
+      "pattern": [
+        ".*\\.dart$"
+      ],
+      "exclude": [
+        "src/fasta/fasta_codes_generated\\.dart$"
+      ]
+    },
+
+    {
+      "name": "spelling_test_not_src_test",
+      "kind": "Chain",
+      "source": "test/spelling_test_not_src_test.dart",
       "path": ".",
       "status": "test/spelling_test.status",
       "pattern": [
         ".*\\.dart$"
       ],
       "exclude": [
-        "src/fasta/fasta_codes_generated\\.dart$",
+        "lib/",
         "test/fasta/super_mixins_test\\.dart$",
         "test/fasta/types/subtypes_benchmark\\.dart$",
         "test/fasta/unlinked_scope_test\\.dart$",
@@ -373,7 +401,7 @@
 
   "analyze": {
 
-    "options": "analysis_options.yaml",
+    "options": "analysis_options_no_lints.yaml",
 
     "uris": [
       "lib/",

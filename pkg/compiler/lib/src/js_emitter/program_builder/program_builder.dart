@@ -28,13 +28,15 @@ import '../../js_backend/namer.dart' show Namer, StringBackedName;
 import '../../js_backend/native_data.dart';
 import '../../js_backend/runtime_types.dart'
     show RuntimeTypesChecks, RuntimeTypesEncoder;
-import '../../js_backend/runtime_types_new.dart' show RecipeEncoder;
+import '../../js_backend/runtime_types_new.dart'
+    show RecipeEncoder, RecipeEncoding;
 import '../../js_backend/runtime_types_resolution.dart' show RuntimeTypesNeed;
 import '../../js_model/elements.dart' show JGeneratorBody, JSignatureMethod;
 import '../../js_model/type_recipe.dart'
     show FullTypeEnvironmentStructure, TypeExpressionRecipe;
 import '../../native/enqueue.dart' show NativeCodegenEnqueuer;
 import '../../options.dart';
+import '../../universe/class_hierarchy.dart';
 import '../../universe/codegen_world_builder.dart';
 import '../../universe/selector.dart' show Selector;
 import '../../universe/world_builder.dart' show SelectorConstraints;
@@ -101,6 +103,10 @@ class ProgramBuilder {
 
   /// True if the program should store function types in the metadata.
   bool _storeFunctionTypesInMetadata = false;
+
+  final Set<TypeVariableType> _lateNamedTypeVariablesNewRti = {};
+
+  ClassHierarchy get _classHierarchy => _closedWorld.classHierarchy;
 
   ProgramBuilder(
       this._options,
@@ -240,6 +246,10 @@ class ProgramBuilder {
     fragments.setAll(1, deferredFragments);
 
     _markEagerClasses();
+
+    if (_options.experimentNewRti) {
+      associateNamedTypeVariablesNewRti();
+    }
 
     List<Holder> holders = _registry.holders.toList(growable: false);
 
@@ -838,6 +848,18 @@ class ProgramBuilder {
     return result;
   }
 
+  void associateNamedTypeVariablesNewRti() {
+    for (TypeVariableType typeVariable in _codegenWorld.namedTypeVariablesNewRti
+        .union(_lateNamedTypeVariablesNewRti)) {
+      for (ClassEntity entity
+          in _classHierarchy.subtypesOf(typeVariable.element.typeDeclaration)) {
+        Class cls = _classes[entity];
+        if (cls == null) continue;
+        cls.namedTypeVariablesNewRti.add(typeVariable);
+      }
+    }
+  }
+
   bool _methodNeedsStubs(FunctionEntity method) {
     if (method is JGeneratorBody) return false;
     if (method is ConstructorBodyEntity) return false;
@@ -962,13 +984,13 @@ class ProgramBuilder {
       FunctionType type, OutputUnit outputUnit) {
     if (type.containsTypeVariables) {
       if (_options.experimentNewRti) {
-        // TODO(sra): The recipe might reference class type variables. Collect
-        // these for the type metadata.
-        return _rtiRecipeEncoder.encodeRecipe(
+        RecipeEncoding encoding = _rtiRecipeEncoder.encodeRecipe(
             _task.emitter,
             FullTypeEnvironmentStructure(
                 classType: _elementEnvironment.getThisType(enclosingClass)),
             TypeExpressionRecipe(type));
+        _lateNamedTypeVariablesNewRti.addAll(encoding.typeVariables);
+        return encoding.recipe;
       } else {
         js.Expression thisAccess = js.js(r'this.$receiver');
         return _rtiEncoder.getSignatureEncoding(

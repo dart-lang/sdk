@@ -199,4 +199,17 @@ void main() {
         'package::flutter/src/widgets/preferred_size.dart::::PreferredSizeWidget';
     expect(elementNameFromRelevanceTag(tag), equals('PreferredSizeWidget'));
   });
+
+  test('selectStringLiterals', () {
+    final result = selectStringLiterals([
+      MapEntry('foo', 0.2),
+      MapEntry("'bar'", 0.3),
+      MapEntry('\'baz\'', 0.1),
+      MapEntry("'qu\'ux'", 0.4),
+    ]);
+    expect(result[0].key, equals('bar'));
+    expect(result[1].key, equals('baz'));
+    expect(result[2].key, equals('qu\'ux'));
+    expect(result, hasLength(3));
+  });
 }

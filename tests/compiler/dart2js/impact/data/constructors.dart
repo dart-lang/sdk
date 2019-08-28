@@ -104,26 +104,22 @@ testRedirectingFactoryInvokeGenericDynamic() {
   new GenericClass<dynamic, dynamic>.redirect();
 }
 
-/*strong.member: testConstRedirectingFactoryInvoke:static=[Class.generative(0)]*/
-/*strongConst.member: testConstRedirectingFactoryInvoke:type=[const:Class]*/
+/*strong.member: testConstRedirectingFactoryInvoke:type=[const:Class]*/
 testConstRedirectingFactoryInvoke() {
   const Class.redirect();
 }
 
-/*strong.member: testConstRedirectingFactoryInvokeGeneric:static=[GenericClass.generative(0),assertIsSubtype(5),throwTypeError(1)]*/
-/*strongConst.member: testConstRedirectingFactoryInvokeGeneric:type=[const:GenericClass<int,String>]*/
+/*strong.member: testConstRedirectingFactoryInvokeGeneric:type=[const:GenericClass<int,String>]*/
 testConstRedirectingFactoryInvokeGeneric() {
   const GenericClass<int, String>.redirect();
 }
 
-/*strong.member: testConstRedirectingFactoryInvokeGenericRaw:static=[GenericClass.generative(0)]*/
-/*strongConst.member: testConstRedirectingFactoryInvokeGenericRaw:type=[const:GenericClass<dynamic,dynamic>]*/
+/*strong.member: testConstRedirectingFactoryInvokeGenericRaw:type=[const:GenericClass<dynamic,dynamic>]*/
 testConstRedirectingFactoryInvokeGenericRaw() {
   const GenericClass.redirect();
 }
 
-/*strong.member: testConstRedirectingFactoryInvokeGenericDynamic:static=[GenericClass.generative(0)]*/
-/*strongConst.member: testConstRedirectingFactoryInvokeGenericDynamic:type=[const:GenericClass<dynamic,dynamic>]*/
+/*strong.member: testConstRedirectingFactoryInvokeGenericDynamic:type=[const:GenericClass<dynamic,dynamic>]*/
 testConstRedirectingFactoryInvokeGenericDynamic() {
   const GenericClass<dynamic, dynamic>.redirect();
 }

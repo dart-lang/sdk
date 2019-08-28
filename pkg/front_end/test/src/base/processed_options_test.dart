@@ -89,7 +89,7 @@ class ProcessedOptionsTest {
   test_getSdkSummary_summaryLocationProvided() async {
     var uri = Uri.parse('org-dartlang-test:///sdkSummary');
     writeMockSummaryTo(uri);
-    checkMockSummary(new CompilerOptions()
+    await checkMockSummary(new CompilerOptions()
       ..fileSystem = fileSystem
       ..sdkSummary = uri);
   }

@@ -9,6 +9,7 @@
 #include "bin/isolate_data.h"
 #include "bin/process.h"
 #include "bin/reference_counting.h"
+#include "bin/vmservice_impl.h"
 
 #include "platform/assert.h"
 #include "platform/globals.h"
@@ -117,6 +118,8 @@ static int64_t GenKernelKernelBenchmark(const char* name,
   bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);
   bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
   bin::Builtin::SetNativeResolver(bin::Builtin::kCLILibrary);
+  bin::VmService::SetNativeResolver();
+
   char* dill_path = ComputeGenKernelKernelPath(Benchmark::Executable());
   File* file = File::Open(NULL, dill_path, File::kRead);
   EXPECT(file != NULL);
@@ -132,8 +135,7 @@ static int64_t GenKernelKernelBenchmark(const char* name,
   // Enabling interpreter also does the trick, but it causes flaky crashes
   // as unoptimized background compiler (which is required for interpreter)
   // was not initialized when isolate was created.
-  const bool use_bytecode_compiler_orig = FLAG_use_bytecode_compiler;
-  FLAG_use_bytecode_compiler = true;
+  SetFlagScope<bool> sfs(&FLAG_use_bytecode_compiler, true);
 
   Timer timer(true, name);
   if (benchmark_load) {
@@ -158,7 +160,6 @@ static int64_t GenKernelKernelBenchmark(const char* name,
 
   timer.Stop();
   int64_t elapsed_time = timer.TotalElapsedTime();
-  FLAG_use_bytecode_compiler = use_bytecode_compiler_orig;
   free(dill_path);
   free(kernel_buffer);
   return elapsed_time;

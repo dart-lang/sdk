@@ -39,6 +39,7 @@ import '../js_model/locals.dart' show JumpVisitor;
 import '../js_model/elements.dart' show JGeneratorBody;
 import '../js_model/element_map.dart';
 import '../js_model/js_strategy.dart';
+import '../js_model/type_recipe.dart';
 import '../kernel/invocation_mirror_constants.dart';
 import '../native/behavior.dart';
 import '../native/js.dart';
@@ -4038,14 +4039,32 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     List<HInstruction> inputs = <HInstruction>[closure];
     List<DartType> typeArguments = <DartType>[];
 
-    thisType.typeArguments.forEach((_typeVariable) {
-      TypeVariableType variable = _typeVariable;
-      typeArguments.add(variable);
-      HInstruction readType = new HTypeInfoReadVariable.intercepted(
-          variable, interceptor, object, _abstractValueDomain.dynamicType);
-      add(readType);
-      inputs.add(readType);
-    });
+    if (options.experimentNewRti) {
+      HInstruction instanceType =
+          HInstanceEnvironment(object, _abstractValueDomain.dynamicType);
+      add(instanceType);
+      TypeEnvironmentStructure envStructure =
+          FullTypeEnvironmentStructure(classType: thisType);
+
+      thisType.typeArguments.forEach((_typeVariable) {
+        TypeVariableType variable = _typeVariable;
+        typeArguments.add(variable);
+        TypeRecipe recipe = TypeExpressionRecipe(variable);
+        HInstruction typeEval = new HTypeEval(instanceType, envStructure,
+            recipe, _abstractValueDomain.dynamicType);
+        add(typeEval);
+        inputs.add(typeEval);
+      });
+    } else {
+      thisType.typeArguments.forEach((_typeVariable) {
+        TypeVariableType variable = _typeVariable;
+        typeArguments.add(variable);
+        HInstruction readType = new HTypeInfoReadVariable.intercepted(
+            variable, interceptor, object, _abstractValueDomain.dynamicType);
+        add(readType);
+        inputs.add(readType);
+      });
+    }
 
     // TODO(sra): In compliance mode, insert a check that [closure] is a
     // function of N type arguments.
@@ -4055,8 +4074,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     StaticType receiverStaticType =
         _getStaticType(invocation.arguments.positional[1]);
     AbstractValue receiverType = _abstractValueDomain
-        .createFromStaticType(
-            receiverStaticType.type, receiverStaticType.relation)
+        .createFromStaticType(receiverStaticType.type,
+            classRelation: receiverStaticType.relation, nullable: true)
         .abstractValue;
     push(new HInvokeClosure(selector, receiverType, inputs,
         _abstractValueDomain.dynamicType, typeArguments));
@@ -4811,8 +4830,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       List<DartType> typeArguments,
       SourceInformation sourceInformation) {
     AbstractValue typeBound = _abstractValueDomain
-        .createFromStaticType(
-            staticReceiverType.type, staticReceiverType.relation)
+        .createFromStaticType(staticReceiverType.type,
+            classRelation: staticReceiverType.relation, nullable: true)
         .abstractValue;
     receiverType = receiverType == null
         ? typeBound
@@ -5404,7 +5423,11 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     if (options.experimentNewRti) {
       HInstruction rti =
           _typeBuilder.analyzeTypeArgumentNewRti(typeValue, sourceElement);
-      push(HIsTest(typeValue, expression, rti, _abstractValueDomain.boolType));
+      AbstractValueWithPrecision checkedType =
+          _abstractValueDomain.createFromStaticType(typeValue, nullable: false);
+
+      push(HIsTest(typeValue, checkedType, expression, rti,
+          _abstractValueDomain.boolType));
       return;
     }
 

@@ -15,6 +15,7 @@ import 'package:kernel/ast.dart'
         DartType,
         DynamicType,
         Expression,
+        Extension,
         Field,
         FunctionNode,
         FunctionType,
@@ -79,6 +80,8 @@ import '../builder/builder.dart'
         UnresolvedType,
         flattenName;
 
+import '../builder/extension_builder.dart';
+
 import '../combinator.dart' show Combinator;
 
 import '../configuration.dart' show Configuration;
@@ -109,6 +112,7 @@ import '../fasta_codes.dart'
         messageTypeVariableDuplicatedName,
         messageTypeVariableSameNameAsEnclosing,
         noLength,
+        Template,
         templateConflictsWithMember,
         templateConflictsWithSetter,
         templateConflictsWithTypeVariable,
@@ -217,6 +221,8 @@ import '../severity.dart' show Severity;
 import '../type_inference/type_inferrer.dart' show TypeInferrerImpl;
 
 import 'source_class_builder.dart' show SourceClassBuilder;
+
+import 'source_extension_builder.dart' show SourceExtensionBuilder;
 
 import 'source_loader.dart' show SourceLoader;
 
@@ -503,7 +509,7 @@ class SourceLibraryBuilder extends LibraryBuilder {
       }
     }
 
-    var exportedLibrary = loader
+    LibraryBuilder exportedLibrary = loader
         .read(resolve(this.uri, uri, uriOffset), charOffset, accessor: this);
     exportedLibrary.addExporter(this, combinators, charOffset);
     exports.add(new Export(this, exportedLibrary, combinators, charOffset));
@@ -1040,7 +1046,9 @@ class SourceLibraryBuilder extends LibraryBuilder {
               // additionalExports either. Add the last one only (the one that
               // will eventually be added to the library).
               Builder memberLast = member;
-              while (memberLast.next != null) memberLast = memberLast.next;
+              while (memberLast.next != null) {
+                memberLast = memberLast.next;
+              }
               library.additionalExports.add(memberLast.target.reference);
             }
         }
@@ -1402,43 +1410,26 @@ class SourceLibraryBuilder extends LibraryBuilder {
         scope.withTypeVariables(typeVariables), "extension $extensionName",
         isModifiable: false);
 
-    // When looking up a constructor, we don't consider type variables or the
-    // library scope.
-    Scope constructorScope =
-        new Scope(constructors, null, null, extensionName, isModifiable: false);
-    bool isMixinDeclaration = false;
-    if (modifiers & mixinDeclarationMask != 0) {
-      isMixinDeclaration = true;
-      modifiers = (modifiers & ~mixinDeclarationMask) | abstractMask;
-    }
-    if (declaration.hasConstConstructor) {
-      modifiers |= hasConstConstructorMask;
-    }
-    ClassBuilder cls = new SourceClassBuilder(
+    ExtensionBuilder extension = new SourceExtensionBuilder(
         metadata,
         modifiers,
         extensionName,
         typeVariables,
-        null, // No explicit supertype.
-        null, // No implemented interfaces.
-        [type],
+        type,
         classScope,
-        constructorScope,
         this,
-        new List<ConstructorReferenceBuilder>.from(constructorReferences),
         startOffset,
         nameOffset,
-        endOffset,
-        isMixinDeclaration: isMixinDeclaration);
+        endOffset);
     loader.target.metadataCollector
-        ?.setDocumentationComment(cls.target, documentationComment);
+        ?.setDocumentationComment(extension.target, documentationComment);
 
     constructorReferences.clear();
     Map<String, TypeVariableBuilder> typeVariablesByName =
-        checkTypeVariables(typeVariables, cls);
+        checkTypeVariables(typeVariables, extension);
     void setParent(String name, MemberBuilder member) {
       while (member != null) {
-        member.parent = cls;
+        member.parent = extension;
         member = member.next;
       }
     }
@@ -1447,8 +1438,10 @@ class SourceLibraryBuilder extends LibraryBuilder {
       if (typeVariablesByName != null) {
         TypeVariableBuilder tv = typeVariablesByName[name];
         if (tv != null) {
-          cls.addProblem(templateConflictsWithTypeVariable.withArguments(name),
-              member.charOffset, name.length,
+          extension.addProblem(
+              templateConflictsWithTypeVariable.withArguments(name),
+              member.charOffset,
+              name.length,
               context: [
                 messageConflictsWithTypeVariableCause.withLocation(
                     tv.fileUri, tv.charOffset, name.length)
@@ -1461,7 +1454,7 @@ class SourceLibraryBuilder extends LibraryBuilder {
     members.forEach(setParentAndCheckConflicts);
     constructors.forEach(setParentAndCheckConflicts);
     setters.forEach(setParentAndCheckConflicts);
-    addBuilder(extensionName, cls, nameOffset);
+    addBuilder(extensionName, extension, nameOffset);
   }
 
   TypeBuilder applyMixins(TypeBuilder type, int startCharOffset, int charOffset,
@@ -1898,7 +1891,7 @@ class SourceLibraryBuilder extends LibraryBuilder {
           nativeMethodName);
     }
 
-    var metadataCollector = loader.target.metadataCollector;
+    MetadataCollector metadataCollector = loader.target.metadataCollector;
     metadataCollector?.setDocumentationComment(
         procedure.target, documentationComment);
     metadataCollector?.setConstructorNameOffset(procedure.target, name);
@@ -1958,7 +1951,8 @@ class SourceLibraryBuilder extends LibraryBuilder {
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
       int charOffset) {
-    var builder = new FunctionTypeBuilder(returnType, typeVariables, formals);
+    FunctionTypeBuilder builder =
+        new FunctionTypeBuilder(returnType, typeVariables, formals);
     checkTypeVariables(typeVariables, null);
     // Nested declaration began in `OutlineBuilder.beginFunctionType` or
     // `OutlineBuilder.beginFunctionTypedFormalParameter`.
@@ -1989,7 +1983,8 @@ class SourceLibraryBuilder extends LibraryBuilder {
 
   TypeVariableBuilder addTypeVariable(
       String name, TypeBuilder bound, int charOffset) {
-    var builder = new TypeVariableBuilder(name, this, charOffset, bound: bound);
+    TypeVariableBuilder builder =
+        new TypeVariableBuilder(name, this, charOffset, bound: bound);
     boundlessTypeVariables.add(builder);
     return builder;
   }
@@ -2001,10 +1996,13 @@ class SourceLibraryBuilder extends LibraryBuilder {
 
   void buildBuilder(Builder declaration, LibraryBuilder coreLibrary) {
     Class cls;
+    Extension extension;
     Member member;
     Typedef typedef;
     if (declaration is SourceClassBuilder) {
       cls = declaration.build(this, coreLibrary);
+    } else if (declaration is SourceExtensionBuilder) {
+      extension = declaration.build(this, coreLibrary);
     } else if (declaration is FieldBuilder) {
       member = declaration.build(this)..isStatic = true;
     } else if (declaration is ProcedureBuilder) {
@@ -2043,6 +2041,10 @@ class SourceLibraryBuilder extends LibraryBuilder {
         cls.name += "#$count";
       }
       library.addClass(cls);
+    } else if (extension != null) {
+      if (declaration.next == null) {
+        library.addExtension(extension);
+      }
     } else if (member != null) {
       if (declaration.next == null) {
         library.addMember(member);
@@ -2166,7 +2168,7 @@ class SourceLibraryBuilder extends LibraryBuilder {
     }
     if (preferred != null) {
       if (isLocal) {
-        var template = isExport
+        Template<Message Function(String name, Uri uri)> template = isExport
             ? templateLocalDefinitionHidesExport
             : templateLocalDefinitionHidesImport;
         addProblem(template.withArguments(name, hiddenUri), charOffset,
@@ -2175,7 +2177,7 @@ class SourceLibraryBuilder extends LibraryBuilder {
         addProblem(templateLoadLibraryHidesMember.withArguments(preferredUri),
             charOffset, noLength, fileUri);
       } else {
-        var template =
+        Template<Message Function(String name, Uri uri, Uri uri2)> template =
             isExport ? templateExportHidesExport : templateImportHidesImport;
         addProblem(template.withArguments(name, preferredUri, hiddenUri),
             charOffset, noLength, fileUri);
@@ -2195,13 +2197,14 @@ class SourceLibraryBuilder extends LibraryBuilder {
           });
       }
     }
-    var template =
+    Template<Message Function(String name, Uri uri, Uri uri2)> template =
         isExport ? templateDuplicatedExport : templateDuplicatedImport;
     Message message = template.withArguments(name, uri, otherUri);
     addProblem(message, charOffset, noLength, fileUri);
-    var builderTemplate = isExport
-        ? templateDuplicatedExportInType
-        : templateDuplicatedImportInType;
+    Template<Message Function(String name, Uri uri, Uri uri2)> builderTemplate =
+        isExport
+            ? templateDuplicatedExportInType
+            : templateDuplicatedImportInType;
     message = builderTemplate.withArguments(
         name,
         // TODO(ahe): We should probably use a context object here
@@ -2218,7 +2221,7 @@ class SourceLibraryBuilder extends LibraryBuilder {
 
   int finishDeferredLoadTearoffs() {
     int total = 0;
-    for (var import in imports) {
+    for (Import import in imports) {
       if (import.deferred) {
         Procedure tearoff = import.prefixBuilder.loadLibraryBuilder.tearoff;
         if (tearoff != null) library.addMember(tearoff);
@@ -2303,7 +2306,7 @@ class SourceLibraryBuilder extends LibraryBuilder {
     List<TypeBuilder> newTypes = <TypeBuilder>[];
     List<TypeVariableBuilder> copy = <TypeVariableBuilder>[];
     for (TypeVariableBuilder variable in original) {
-      var newVariable = new TypeVariableBuilder(
+      TypeVariableBuilder newVariable = new TypeVariableBuilder(
           variable.name, this, variable.charOffset,
           bound: variable.bound?.clone(newTypes),
           synthesizeTypeParameterName: synthesizeTypeParameterNames);
@@ -2379,7 +2382,7 @@ class SourceLibraryBuilder extends LibraryBuilder {
     }
 
     bool legacyMode = loader.target.legacyMode;
-    for (var declaration in libraryDeclaration.members.values) {
+    for (Builder declaration in libraryDeclaration.members.values) {
       if (declaration is ClassBuilder) {
         {
           List<Object> issues = legacyMode

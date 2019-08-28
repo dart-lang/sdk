@@ -207,7 +207,7 @@ abstract class AbstractValueDomain {
   /// reasoning, for example, that a dominating check uses the same type
   /// expression.
   AbstractValueWithPrecision createFromStaticType(DartType type,
-      [ClassRelation classRelation = ClassRelation.subtype]);
+      {ClassRelation classRelation = ClassRelation.subtype, bool nullable});
 
   /// Creates an [AbstractValue] for a non-null exact instance of [cls].
   AbstractValue createNonNullExact(ClassEntity cls);

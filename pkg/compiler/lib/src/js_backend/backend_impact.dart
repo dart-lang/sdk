@@ -760,8 +760,15 @@ class BackendImpacts {
       _genericInstantiation[typeArgumentCount] ??=
           new BackendImpact(staticUses: [
         _commonElements.getInstantiateFunction(typeArgumentCount),
-        _commonElements.instantiatedGenericFunctionType,
-        _commonElements.extractFunctionTypeObjectFromInternal,
+        ..._newRti
+            ? [
+                _commonElements.instantiatedGenericFunctionTypeNewRti,
+                _commonElements.closureFunctionType
+              ]
+            : [
+                _commonElements.instantiatedGenericFunctionType,
+                _commonElements.extractFunctionTypeObjectFromInternal
+              ],
       ], instantiatedClasses: [
         _commonElements.getInstantiationClass(typeArgumentCount),
       ]);
@@ -774,6 +781,8 @@ class BackendImpacts {
       BackendImpact(staticUses: [
         _commonElements.findType,
         _commonElements.instanceType,
+        _commonElements.arrayInstanceType,
+        _commonElements.simpleInstanceType,
         _commonElements.rtiEvalMethod,
         _commonElements.rtiBindMethod,
         _commonElements.generalIsTestImplementation,

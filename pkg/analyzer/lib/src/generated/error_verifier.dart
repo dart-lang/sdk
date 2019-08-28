@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
-import "dart:math" as math;
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -24,8 +23,10 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/error/duplicate_definition_verifier.dart';
 import 'package:analyzer/src/error/literal_element_verifier.dart';
 import 'package:analyzer/src/error/required_parameters_verifier.dart';
+import 'package:analyzer/src/error/type_arguments_verifier.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -301,6 +302,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   FeatureSet _featureSet;
 
   final RequiredParametersVerifier _requiredParametersVerifier;
+  final DuplicateDefinitionVerifier _duplicateDefinitionVerifier;
+  TypeArgumentsVerifier _typeArgumentsVerifier;
 
   /**
    * Initialize a newly created error verifier.
@@ -323,8 +326,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         _inheritanceManager = inheritanceManager.asInheritanceManager3,
         _uninstantiatedBoundChecker =
             new _UninstantiatedBoundChecker(errorReporter),
-        _requiredParametersVerifier =
-            RequiredParametersVerifier(errorReporter) {
+        _requiredParametersVerifier = RequiredParametersVerifier(errorReporter),
+        _duplicateDefinitionVerifier =
+            DuplicateDefinitionVerifier(_currentLibrary, errorReporter) {
     this._isInSystemLibrary = _currentLibrary.source.isInSystemLibrary;
     this._hasExtUri = _currentLibrary.hasExtUri;
     _isEnclosingConstructorConst = false;
@@ -339,6 +343,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT = _typeProvider.nonSubtypableTypes;
     _typeSystem = _currentLibrary.context.typeSystem;
     _options = _currentLibrary.context.analysisOptions;
+    _typeArgumentsVerifier =
+        TypeArgumentsVerifier(_options, _typeSystem, _errorReporter);
   }
 
   /**
@@ -460,7 +466,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void visitBlock(Block node) {
     _hiddenElements = new HiddenElements(_hiddenElements, node);
     try {
-      _checkDuplicateDeclarationInStatements(node.statements);
+      _duplicateDefinitionVerifier.checkStatements(node.statements);
       super.visitBlock(node);
     } finally {
       _hiddenElements = _hiddenElements.outerElements;
@@ -510,7 +516,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitCatchClause(CatchClause node) {
-    _checkDuplicateDefinitionInCatchClause(node);
+    _duplicateDefinitionVerifier.checkCatchClause(node);
     bool previousIsInCatchClause = _isInCatchClause;
     try {
       _isInCatchClause = true;
@@ -530,7 +536,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _enclosingClass = AbstractClassElementImpl.getImpl(node.declaredElement);
 
       List<ClassMember> members = node.members;
-      _checkDuplicateClassMembers(members);
+      _duplicateDefinitionVerifier.checkClass(node);
       _checkForBuiltInIdentifierAsName(
           node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
       _checkForMemberWithClassName();
@@ -588,7 +594,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitCompilationUnit(CompilationUnit node) {
     _featureSet = node.featureSet;
-    _checkDuplicateUnitMembers(node);
+    _duplicateDefinitionVerifier.checkUnit(node);
     _checkForDeferredPrefixCollisions(node);
     super.visitCompilationUnit(node);
     _featureSet = null;
@@ -678,7 +684,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     ClassElement outerEnum = _enclosingEnum;
     try {
       _enclosingEnum = node.declaredElement;
-      _checkDuplicateEnumMembers(node);
+      _duplicateDefinitionVerifier.checkEnum(node);
       super.visitEnumDeclaration(node);
     } finally {
       _enclosingEnum = outerEnum;
@@ -726,6 +732,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     _enclosingExtension = node.declaredElement;
+    _duplicateDefinitionVerifier.checkExtension(node);
+    _checkForMismatchedAccessorTypesInExtension(node);
     super.visitExtensionDeclaration(node);
     _enclosingExtension = null;
   }
@@ -795,7 +803,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitFormalParameterList(FormalParameterList node) {
-    _checkDuplicateDefinitionInParameterList(node);
+    _duplicateDefinitionVerifier.checkParameters(node);
     _checkUseOfCovariantInParameters(node);
     _checkUseOfDefaultValuesInParameters(node);
     super.visitFormalParameterList(node);
@@ -807,7 +815,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForNonBoolCondition(node.condition);
     }
     if (node.variables != null) {
-      _checkDuplicateVariables(node.variables);
+      _duplicateDefinitionVerifier.checkForVariables(node.variables);
     }
     super.visitForPartsWithDeclarations(node);
   }
@@ -880,12 +888,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     Expression functionExpression = node.function;
+
     if (functionExpression is ExtensionOverride) {
-      // TODO(brianwilkerson) Update `_checkTypeArguments` to handle extension
-      //  overrides.
-//      _checkTypeArguments(node);
       return super.visitFunctionExpressionInvocation(node);
     }
+
     DartType expressionType = functionExpression.staticType;
     if (!_checkForNullableDereference(functionExpression) &&
         !_checkForUseOfVoidResult(functionExpression) &&
@@ -896,9 +903,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
           functionExpression);
     } else if (expressionType is FunctionType) {
-      _checkTypeArguments(node);
+      _typeArgumentsVerifier.checkFunctionExpressionInvocation(node);
     }
-    _checkForImplicitDynamicInvoke(node);
     _checkForNullableDereference(functionExpression);
     _requiredParametersVerifier.visitFunctionExpressionInvocation(node);
     super.visitFunctionExpressionInvocation(node);
@@ -1047,19 +1053,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitListLiteral(ListLiteral node) {
-    TypeArgumentList typeArguments = node.typeArguments;
-    if (typeArguments != null) {
-      if (node.isConst) {
-        NodeList<TypeAnnotation> arguments = typeArguments.arguments;
-        if (arguments.isNotEmpty) {
-          _checkForInvalidTypeArgumentInConstTypedLiteral(arguments,
-              CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST);
-        }
-      }
-      _checkTypeArgumentCount(typeArguments, 1,
-          StaticTypeWarningCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS);
-    }
-    _checkForImplicitDynamicTypedLiteral(node);
+    _typeArgumentsVerifier.checkListLiteral(node);
     _checkForListElementTypeNotAssignable(node);
 
     super.visitListLiteral(node);
@@ -1101,14 +1095,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (target != null) {
       ClassElement typeReference = ElementResolver.getTypeReference(target);
       _checkForStaticAccessToInstanceMember(typeReference, methodName);
-      _checkForInstanceAccessToStaticMember(typeReference, methodName);
+      _checkForInstanceAccessToStaticMember(
+          typeReference, node.target, methodName);
       _checkForUnnecessaryNullAware(target, node.operator);
     } else {
       _checkForUnqualifiedReferenceToNonLocalStaticMember(methodName);
       _checkForNullableDereference(node.function);
     }
-    _checkTypeArguments(node);
-    _checkForImplicitDynamicInvoke(node);
+    _typeArgumentsVerifier.checkMethodInvocation(node);
     _checkForNullableDereference(methodName);
     _requiredParametersVerifier.visitMethodInvocation(node);
     if (node.operator?.type != TokenType.QUESTION_PERIOD &&
@@ -1127,7 +1121,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _enclosingClass = AbstractClassElementImpl.getImpl(node.declaredElement);
 
       List<ClassMember> members = node.members;
-      _checkDuplicateClassMembers(members);
+      _duplicateDefinitionVerifier.checkMixin(node);
       _checkForBuiltInIdentifierAsName(
           node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
       _checkForMemberWithClassName();
@@ -1189,7 +1183,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           ElementResolver.getTypeReference(node.prefix);
       SimpleIdentifier name = node.identifier;
       _checkForStaticAccessToInstanceMember(typeReference, name);
-      _checkForInstanceAccessToStaticMember(typeReference, name);
+      _checkForInstanceAccessToStaticMember(typeReference, node.prefix, name);
     }
     String property = node.identifier.name;
     if (node.staticElement is ExecutableElement &&
@@ -1222,7 +1216,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         ElementResolver.getTypeReference(node.realTarget);
     SimpleIdentifier propertyName = node.propertyName;
     _checkForStaticAccessToInstanceMember(typeReference, propertyName);
-    _checkForInstanceAccessToStaticMember(typeReference, propertyName);
+    _checkForInstanceAccessToStaticMember(
+        typeReference, node.target, propertyName);
     if (node.operator?.type != TokenType.QUESTION_PERIOD &&
         !_objectPropertyNames.contains(propertyName.name)) {
       _checkForNullableDereference(node.target);
@@ -1262,35 +1257,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
-    TypeArgumentList typeArguments = node.typeArguments;
     if (node.isMap) {
-      if (typeArguments != null) {
-        NodeList<TypeAnnotation> arguments = typeArguments.arguments;
-        if (node.isConst) {
-          if (arguments.isNotEmpty) {
-            _checkForInvalidTypeArgumentInConstTypedLiteral(arguments,
-                CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP);
-          }
-        }
-        _checkTypeArgumentCount(typeArguments, 2,
-            StaticTypeWarningCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS);
-      }
-      _checkForImplicitDynamicTypedLiteral(node);
+      _typeArgumentsVerifier.checkMapLiteral(node);
       _checkForMapTypeNotAssignable(node);
       _checkForNonConstMapAsExpressionStatement3(node);
     } else if (node.isSet) {
-      if (typeArguments != null) {
-        if (node.isConst) {
-          NodeList<TypeAnnotation> arguments = typeArguments.arguments;
-          if (arguments.isNotEmpty) {
-            _checkForInvalidTypeArgumentInConstTypedLiteral(arguments,
-                CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_SET);
-          }
-        }
-        _checkTypeArgumentCount(typeArguments, 1,
-            StaticTypeWarningCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS);
-      }
-      _checkForImplicitDynamicTypedLiteral(node);
+      _typeArgumentsVerifier.checkSetLiteral(node);
       _checkForSetElementTypeNotAssignable3(node);
     }
     super.visitSetOrMapLiteral(node);
@@ -1348,13 +1320,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitSwitchCase(SwitchCase node) {
-    _checkDuplicateDeclarationInStatements(node.statements);
+    _duplicateDefinitionVerifier.checkStatements(node.statements);
     super.visitSwitchCase(node);
   }
 
   @override
   void visitSwitchDefault(SwitchDefault node) {
-    _checkDuplicateDeclarationInStatements(node.statements);
+    _duplicateDefinitionVerifier.checkStatements(node.statements);
     super.visitSwitchDefault(node);
   }
 
@@ -1398,13 +1370,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitTypeName(TypeName node) {
-    _checkForTypeArgumentNotMatchingBounds(node);
-    if (node.parent is ConstructorName &&
-        node.parent.parent is InstanceCreationExpression) {
-      _checkForInferenceFailureOnInstanceCreation(node, node.parent.parent);
-    } else {
-      _checkForRawTypeName(node);
-    }
+    _typeArgumentsVerifier.checkTypeName(node);
     super.visitTypeName(node);
   }
 
@@ -1422,7 +1388,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitTypeParameterList(TypeParameterList node) {
-    _checkDuplicateDefinitionInTypeParameterList(node);
+    _duplicateDefinitionVerifier.checkTypeParameters(node);
     super.visitTypeParameterList(node);
   }
 
@@ -1550,338 +1516,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
               CompileTimeErrorCode.SHARED_DEFERRED_PREFIX, deferredToken);
         }
       }
-    }
-  }
-
-  /**
-   * Check that there are no members with the same name.
-   */
-  void _checkDuplicateClassMembers(List<ClassMember> members) {
-    Set<String> constructorNames = new HashSet<String>();
-    Map<String, Element> instanceGetters = new HashMap<String, Element>();
-    Map<String, Element> instanceSetters = new HashMap<String, Element>();
-    Map<String, Element> staticGetters = new HashMap<String, Element>();
-    Map<String, Element> staticSetters = new HashMap<String, Element>();
-
-    for (ClassMember member in members) {
-      if (member is ConstructorDeclaration) {
-        var name = member.name?.name ?? '';
-        if (!constructorNames.add(name)) {
-          if (name.isEmpty) {
-            _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, member);
-          } else {
-            _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME,
-                member,
-                [name]);
-          }
-        }
-      } else if (member is FieldDeclaration) {
-        for (VariableDeclaration field in member.fields.variables) {
-          SimpleIdentifier identifier = field.name;
-          _checkDuplicateIdentifier(
-            member.isStatic ? staticGetters : instanceGetters,
-            identifier,
-            setterScope: member.isStatic ? staticSetters : instanceSetters,
-          );
-        }
-      } else if (member is MethodDeclaration) {
-        _checkDuplicateIdentifier(
-          member.isStatic ? staticGetters : instanceGetters,
-          member.name,
-          setterScope: member.isStatic ? staticSetters : instanceSetters,
-        );
-      }
-    }
-
-    // Check for local static members conflicting with local instance members.
-    for (ClassMember member in members) {
-      if (member is ConstructorDeclaration) {
-        if (member.name != null) {
-          String name = member.name.name;
-          var staticMember = staticGetters[name] ?? staticSetters[name];
-          if (staticMember != null) {
-            if (staticMember is PropertyAccessorElement) {
-              _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD,
-                member.name,
-                [name],
-              );
-            } else {
-              _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD,
-                member.name,
-                [name],
-              );
-            }
-          }
-        }
-      } else if (member is FieldDeclaration) {
-        if (member.isStatic) {
-          for (VariableDeclaration field in member.fields.variables) {
-            SimpleIdentifier identifier = field.name;
-            String name = identifier.name;
-            if (instanceGetters.containsKey(name) ||
-                instanceSetters.containsKey(name)) {
-              String className = _enclosingClass.displayName;
-              _errorReporter.reportErrorForNode(
-                  CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
-                  identifier,
-                  [className, name, className]);
-            }
-          }
-        }
-      } else if (member is MethodDeclaration) {
-        if (member.isStatic) {
-          SimpleIdentifier identifier = member.name;
-          String name = identifier.name;
-          if (instanceGetters.containsKey(name) ||
-              instanceSetters.containsKey(name)) {
-            String className = identifier.staticElement.enclosingElement.name;
-            _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
-                identifier,
-                [className, name, className]);
-          }
-        }
-      }
-    }
-  }
-
-  /**
-   * Check that all of the parameters have unique names.
-   */
-  void _checkDuplicateDeclarationInStatements(List<Statement> statements) {
-    Map<String, Element> definedNames = new HashMap<String, Element>();
-    for (Statement statement in statements) {
-      if (statement is VariableDeclarationStatement) {
-        for (VariableDeclaration variable in statement.variables.variables) {
-          _checkDuplicateIdentifier(definedNames, variable.name);
-        }
-      } else if (statement is FunctionDeclarationStatement) {
-        _checkDuplicateIdentifier(
-            definedNames, statement.functionDeclaration.name);
-      }
-    }
-  }
-
-  /**
-   * Check that the exception and stack trace parameters have different names.
-   */
-  void _checkDuplicateDefinitionInCatchClause(CatchClause node) {
-    SimpleIdentifier exceptionParameter = node.exceptionParameter;
-    SimpleIdentifier stackTraceParameter = node.stackTraceParameter;
-    if (exceptionParameter != null && stackTraceParameter != null) {
-      String exceptionName = exceptionParameter.name;
-      if (exceptionName == stackTraceParameter.name) {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.DUPLICATE_DEFINITION,
-            stackTraceParameter,
-            [exceptionName]);
-      }
-    }
-  }
-
-  /**
-   * Check that all of the parameters have unique names.
-   */
-  void _checkDuplicateDefinitionInParameterList(FormalParameterList node) {
-    Map<String, Element> definedNames = new HashMap<String, Element>();
-    for (FormalParameter parameter in node.parameters) {
-      SimpleIdentifier identifier = parameter.identifier;
-      if (identifier != null) {
-        // The identifier can be null if this is a parameter list for a generic
-        // function type.
-        _checkDuplicateIdentifier(definedNames, identifier);
-      }
-    }
-  }
-
-  /**
-   * Check that all of the parameters have unique names.
-   */
-  void _checkDuplicateDefinitionInTypeParameterList(TypeParameterList node) {
-    Map<String, Element> definedNames = new HashMap<String, Element>();
-    for (TypeParameter parameter in node.typeParameters) {
-      _checkDuplicateIdentifier(definedNames, parameter.name);
-    }
-  }
-
-  /**
-   * Check that there are no members with the same name.
-   */
-  void _checkDuplicateEnumMembers(EnumDeclaration node) {
-    ClassElement element = node.declaredElement;
-
-    Map<String, Element> instanceGetters = new HashMap<String, Element>();
-    Map<String, Element> staticGetters = new HashMap<String, Element>();
-
-    String indexName = 'index';
-    String valuesName = 'values';
-    instanceGetters[indexName] = element.getGetter(indexName);
-    staticGetters[valuesName] = element.getGetter(valuesName);
-
-    for (EnumConstantDeclaration constant in node.constants) {
-      _checkDuplicateIdentifier(staticGetters, constant.name);
-    }
-
-    for (EnumConstantDeclaration constant in node.constants) {
-      SimpleIdentifier identifier = constant.name;
-      String name = identifier.name;
-      if (instanceGetters.containsKey(name)) {
-        String enumName = element.displayName;
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
-            identifier,
-            [enumName, name, enumName]);
-      }
-    }
-  }
-
-  /**
-   * Check whether the given [element] defined by the [identifier] is already
-   * in one of the scopes - [getterScope] or [setterScope], and produce an
-   * error if it is.
-   */
-  void _checkDuplicateIdentifier(
-      Map<String, Element> getterScope, SimpleIdentifier identifier,
-      {Element element, Map<String, Element> setterScope}) {
-    element ??= identifier.staticElement;
-
-    // Fields define getters and setters, so check them separately.
-    if (element is PropertyInducingElement) {
-      _checkDuplicateIdentifier(getterScope, identifier,
-          element: element.getter, setterScope: setterScope);
-      if (!element.isConst && !element.isFinal) {
-        _checkDuplicateIdentifier(getterScope, identifier,
-            element: element.setter, setterScope: setterScope);
-      }
-      return;
-    }
-
-    ErrorCode getError(Element previous, Element current) {
-      if (previous is PrefixElement) {
-        return CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER;
-      }
-      return CompileTimeErrorCode.DUPLICATE_DEFINITION;
-    }
-
-    bool isGetterSetterPair(Element a, Element b) {
-      if (a is PropertyAccessorElement && b is PropertyAccessorElement) {
-        return a.isGetter && b.isSetter || a.isSetter && b.isGetter;
-      }
-      return false;
-    }
-
-    String name = identifier.name;
-    if (element is MethodElement && element.isOperator && name == '-') {
-      if (element.parameters.isEmpty) {
-        name = 'unary-';
-      }
-    }
-
-    Element previous = getterScope[name];
-    if (previous != null) {
-      if (isGetterSetterPair(element, previous)) {
-        // OK
-      } else {
-        _errorReporter.reportErrorForNode(
-          getError(previous, element),
-          identifier,
-          [name],
-        );
-      }
-    } else {
-      getterScope[name] = element;
-    }
-
-    if (element is PropertyAccessorElement && element.isSetter) {
-      previous = setterScope[name];
-      if (previous != null) {
-        _errorReporter.reportErrorForNode(
-          getError(previous, element),
-          identifier,
-          [name],
-        );
-      } else {
-        setterScope[name] = element;
-      }
-    }
-  }
-
-  /**
-   * Check that there are no members with the same name.
-   */
-  void _checkDuplicateUnitMembers(CompilationUnit node) {
-    Map<String, Element> definedGetters = new HashMap<String, Element>();
-    Map<String, Element> definedSetters = new HashMap<String, Element>();
-
-    void addWithoutChecking(CompilationUnitElement element) {
-      for (PropertyAccessorElement accessor in element.accessors) {
-        String name = accessor.name;
-        if (accessor.isSetter) {
-          name += '=';
-        }
-        definedGetters[name] = accessor;
-      }
-      for (ClassElement type in element.enums) {
-        definedGetters[type.name] = type;
-      }
-      for (FunctionElement function in element.functions) {
-        definedGetters[function.name] = function;
-      }
-      for (FunctionTypeAliasElement alias in element.functionTypeAliases) {
-        definedGetters[alias.name] = alias;
-      }
-      for (TopLevelVariableElement variable in element.topLevelVariables) {
-        definedGetters[variable.name] = variable;
-        if (!variable.isFinal && !variable.isConst) {
-          definedGetters[variable.name + '='] = variable;
-        }
-      }
-      for (ClassElement type in element.types) {
-        definedGetters[type.name] = type;
-      }
-    }
-
-    for (ImportElement importElement in _currentLibrary.imports) {
-      PrefixElement prefix = importElement.prefix;
-      if (prefix != null) {
-        definedGetters[prefix.name] = prefix;
-      }
-    }
-    CompilationUnitElement element = node.declaredElement;
-    if (element != _currentLibrary.definingCompilationUnit) {
-      addWithoutChecking(_currentLibrary.definingCompilationUnit);
-      for (CompilationUnitElement part in _currentLibrary.parts) {
-        if (element == part) {
-          break;
-        }
-        addWithoutChecking(part);
-      }
-    }
-    for (CompilationUnitMember member in node.declarations) {
-      if (member is NamedCompilationUnitMember) {
-        _checkDuplicateIdentifier(definedGetters, member.name,
-            setterScope: definedSetters);
-      } else if (member is TopLevelVariableDeclaration) {
-        for (VariableDeclaration variable in member.variables.variables) {
-          _checkDuplicateIdentifier(definedGetters, variable.name,
-              setterScope: definedSetters);
-        }
-      }
-    }
-  }
-
-  /**
-   * Check that the given list of variable declarations does not define multiple
-   * variables of the same name.
-   */
-  void _checkDuplicateVariables(VariableDeclarationList node) {
-    Map<String, Element> definedNames = new HashMap<String, Element>();
-    for (VariableDeclaration variable in node.variables) {
-      _checkDuplicateIdentifier(definedNames, variable.name);
     }
   }
 
@@ -3574,50 +3208,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  void _checkForImplicitDynamicInvoke(InvocationExpression node) {
-    if (_options.implicitDynamic ||
-        node == null ||
-        node.typeArguments != null) {
-      return;
-    }
-    DartType invokeType = node.staticInvokeType;
-    DartType declaredType = node.function.staticType;
-    if (invokeType is FunctionType &&
-        declaredType is FunctionType &&
-        declaredType.typeFormals.isNotEmpty) {
-      List<DartType> typeArgs = node.typeArgumentTypes;
-      if (typeArgs.any((t) => t.isDynamic)) {
-        // Issue an error depending on what we're trying to call.
-        Expression function = node.function;
-        if (function is Identifier) {
-          Element element = function.staticElement;
-          if (element is MethodElement) {
-            _errorReporter.reportErrorForNode(
-                StrongModeCode.IMPLICIT_DYNAMIC_METHOD,
-                node.function,
-                [element.displayName, element.typeParameters.join(', ')]);
-            return;
-          }
-
-          if (element is FunctionElement) {
-            _errorReporter.reportErrorForNode(
-                StrongModeCode.IMPLICIT_DYNAMIC_FUNCTION,
-                node.function,
-                [element.displayName, element.typeParameters.join(', ')]);
-            return;
-          }
-        }
-
-        // The catch all case if neither of those matched.
-        // For example, invoking a function expression.
-        _errorReporter.reportErrorForNode(
-            StrongModeCode.IMPLICIT_DYNAMIC_INVOKE,
-            node.function,
-            [declaredType]);
-      }
-    }
-  }
-
   void _checkForImplicitDynamicReturn(
       AstNode functionName, ExecutableElement element) {
     if (_options.implicitDynamic) {
@@ -3646,21 +3236,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         type.typeArguments.any((t) => t.isDynamic)) {
       _errorReporter.reportErrorForNode(
           StrongModeCode.IMPLICIT_DYNAMIC_TYPE, node, [type]);
-    }
-  }
-
-  void _checkForImplicitDynamicTypedLiteral(TypedLiteral node) {
-    if (_options.implicitDynamic || node.typeArguments != null) {
-      return;
-    }
-    DartType type = node.staticType;
-    // It's an error if either the key or value was inferred as dynamic.
-    if (type is InterfaceType && type.typeArguments.any((t) => t.isDynamic)) {
-      // TODO(brianwilkerson) Add StrongModeCode.IMPLICIT_DYNAMIC_SET_LITERAL
-      ErrorCode errorCode = node is ListLiteral
-          ? StrongModeCode.IMPLICIT_DYNAMIC_LIST_LITERAL
-          : StrongModeCode.IMPLICIT_DYNAMIC_MAP_LITERAL;
-      _errorReporter.reportErrorForNode(errorCode, node);
     }
   }
 
@@ -3799,27 +3374,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         [directive.uri.stringValue]);
   }
 
-  /// Checks a type on an instance creation expression for an inference
-  /// failure, and reports the appropriate error if
-  /// [AnalysisOptionsImpl.strictInference] is set.
-  ///
-  /// This checks if [node] refers to a generic type and does not have explicit
-  /// or inferred type arguments. When that happens, it reports a
-  /// HintMode.INFERENCE_FAILURE_ON_INSTANCE_CREATION error.
-  void _checkForInferenceFailureOnInstanceCreation(
-      TypeName node, InstanceCreationExpression inferenceContextNode) {
-    if (!_options.strictInference || node == null) return;
-    if (node.typeArguments != null) {
-      // Type has explicit type arguments.
-      return;
-    }
-    if (_isMissingTypeArguments(
-        node, node.type, node.name.staticElement, inferenceContextNode)) {
-      _errorReporter.reportErrorForNode(
-          HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, node, [node.type]);
-    }
-  }
-
   /**
    * Check that the given [typeReference] is not a type reference and that then
    * the [name] is reference to an instance member.
@@ -3827,25 +3381,39 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * See [StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER].
    */
   void _checkForInstanceAccessToStaticMember(
-      ClassElement typeReference, SimpleIdentifier name) {
-    // OK, in comment
+      ClassElement typeReference, Expression target, SimpleIdentifier name) {
     if (_isInComment) {
-      return;
-    }
-    // OK, target is a type
-    if (typeReference != null) {
+      // OK, in comment
       return;
     }
     // prepare member Element
     Element element = name.staticElement;
     if (element is ExecutableElement) {
-      // OK, top-level element
-      if (element.enclosingElement is! ClassElement) {
+      if (!element.isStatic) {
+        // OK, instance member
         return;
       }
-      // OK, instance member
-      if (!element.isStatic) {
-        return;
+      Element enclosingElement = element.enclosingElement;
+      if (enclosingElement is ExtensionElement) {
+        if (target is ExtensionOverride) {
+          // OK, target is an extension override
+          return;
+        } else if (target is SimpleIdentifier &&
+            target.staticElement is ExtensionElement) {
+          return;
+        } else if (target is PrefixedIdentifier &&
+            target.staticElement is ExtensionElement) {
+          return;
+        }
+      } else {
+        if (typeReference != null) {
+          // OK, target is a type
+          return;
+        }
+        if (enclosingElement is! ClassElement) {
+          // OK, top-level element
+          return;
+        }
       }
       _errorReporter.reportErrorForNode(
           StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
@@ -3979,21 +3547,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (!_isThisInValidContext(expression)) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, expression);
-    }
-  }
-
-  /**
-   * Checks to ensure that the given list of type [arguments] does not have a
-   * type parameter as a type argument. The [errorCode] is either
-   * [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST] or
-   * [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP].
-   */
-  void _checkForInvalidTypeArgumentInConstTypedLiteral(
-      NodeList<TypeAnnotation> arguments, ErrorCode errorCode) {
-    for (TypeAnnotation type in arguments) {
-      if (type is TypeName && type.type is TypeParameterType) {
-        _errorReporter.reportErrorForNode(errorCode, type, [type.name]);
-      }
     }
   }
 
@@ -4155,6 +3708,36 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
             StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
             accessorDeclaration,
             [accessorTextName, getterType, setterType, accessorTextName]);
+      }
+    }
+  }
+
+  /**
+   * Check whether all similarly named accessors have consistent types.
+   */
+  void _checkForMismatchedAccessorTypesInExtension(
+      ExtensionDeclaration extension) {
+    for (ClassMember member in extension.members) {
+      if (member is MethodDeclaration && member.isGetter) {
+        PropertyAccessorElement getterElement =
+            member.declaredElement as PropertyAccessorElement;
+        PropertyAccessorElement setterElement =
+            getterElement.correspondingSetter;
+        if (setterElement != null) {
+          DartType getterType = _getGetterType(getterElement);
+          DartType setterType = _getSetterType(setterElement);
+          if (setterType != null &&
+              getterType != null &&
+              !_typeSystem.isAssignableTo(getterType, setterType,
+                  featureSet: _featureSet)) {
+            SimpleIdentifier nameNode = member.name;
+            String name = nameNode.name;
+            _errorReporter.reportTypeErrorForNode(
+                StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
+                nameNode,
+                [name, getterType, setterType, name]);
+          }
+        }
       }
     }
   }
@@ -4928,45 +4511,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, parameter);
   }
 
-  /// Checks a type annotation for a raw generic type, and reports the
-  /// appropriate error if [AnalysisOptionsImpl.strictRawTypes] is set.
-  ///
-  /// This checks if [node] refers to a generic type and does not have explicit
-  /// or inferred type arguments. When that happens, it reports error code
-  /// [StrongModeCode.STRICT_RAW_TYPE].
-  void _checkForRawTypeName(TypeName node) {
-    AstNode parentEscapingTypeArguments(TypeName node) {
-      AstNode parent = node.parent;
-      while (parent is TypeArgumentList || parent is TypeName) {
-        if (parent.parent == null) {
-          return parent;
-        }
-        parent = parent.parent;
-      }
-      return parent;
-    }
-
-    if (!_options.strictRawTypes || node == null) return;
-    if (node.typeArguments != null) {
-      // Type has explicit type arguments.
-      return;
-    }
-    if (_isMissingTypeArguments(
-        node, node.type, node.name.staticElement, null)) {
-      AstNode unwrappedParent = parentEscapingTypeArguments(node);
-      if (unwrappedParent is AsExpression) {
-        _errorReporter.reportErrorForNode(
-            HintCode.STRICT_RAW_TYPE_IN_AS, node, [node.type]);
-      } else if (unwrappedParent is IsExpression) {
-        _errorReporter.reportErrorForNode(
-            HintCode.STRICT_RAW_TYPE_IN_IS, node, [node.type]);
-      } else {
-        _errorReporter
-            .reportErrorForNode(HintCode.STRICT_RAW_TYPE, node, [node.type]);
-      }
-    }
-  }
-
   /**
    * Check whether the given constructor [declaration] is the redirecting
    * generative constructor and references itself directly or indirectly. The
@@ -5413,87 +4957,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (type is TypeName && type.isDeferred) {
       _errorReporter.reportErrorForNode(
           StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS, type, [type.name]);
-    }
-  }
-
-  /**
-   * Verify that the type arguments in the given [typeName] are all within
-   * their bounds.
-   */
-  void _checkForTypeArgumentNotMatchingBounds(TypeName typeName) {
-    // prepare Type
-    DartType type = typeName.type;
-    if (type == null) {
-      return;
-    }
-    if (type is ParameterizedType) {
-      var element = typeName.name.staticElement;
-      // prepare type parameters
-      List<TypeParameterElement> parameterElements;
-      if (element is ClassElement) {
-        parameterElements = element.typeParameters;
-      } else if (element is GenericTypeAliasElement) {
-        parameterElements = element.typeParameters;
-      } else if (element is GenericFunctionTypeElement) {
-        // TODO(paulberry): it seems like either this case or the one above
-        // should be unnecessary.
-        FunctionTypeAliasElement typedefElement = element.enclosingElement;
-        parameterElements = typedefElement.typeParameters;
-      } else if (type is FunctionType) {
-        parameterElements = type.typeFormals;
-      } else {
-        // There are no other kinds of parameterized types.
-        throw new UnimplementedError(
-            'Unexpected element associated with parameterized type: '
-            '${element.runtimeType}');
-      }
-      var parameterTypes =
-          parameterElements.map<DartType>((p) => p.type).toList();
-      List<DartType> arguments = type.typeArguments;
-      // iterate over each bounded type parameter and corresponding argument
-      NodeList<TypeAnnotation> argumentNodes =
-          typeName.typeArguments?.arguments;
-      var typeArguments = type.typeArguments;
-      int loopThroughIndex =
-          math.min(typeArguments.length, parameterElements.length);
-      bool shouldSubstitute =
-          arguments.isNotEmpty && arguments.length == parameterTypes.length;
-      for (int i = 0; i < loopThroughIndex; i++) {
-        DartType argType = typeArguments[i];
-        TypeAnnotation argumentNode =
-            argumentNodes != null && i < argumentNodes.length
-                ? argumentNodes[i]
-                : typeName;
-        if (argType is FunctionType && argType.typeFormals.isNotEmpty) {
-          _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
-            argumentNode,
-          );
-          continue;
-        }
-        DartType boundType = parameterElements[i].bound;
-        if (argType != null && boundType != null) {
-          if (shouldSubstitute) {
-            boundType = boundType.substitute2(arguments, parameterTypes);
-          }
-
-          if (!_typeSystem.isSubtypeOf(argType, boundType)) {
-            if (_shouldAllowSuperBoundedTypes(typeName)) {
-              var replacedType =
-                  (argType as TypeImpl).replaceTopAndBottom(_typeProvider);
-              if (!identical(replacedType, argType) &&
-                  _typeSystem.isSubtypeOf(replacedType, boundType)) {
-                // Bound is satisfied under super-bounded rules, so we're ok.
-                continue;
-              }
-            }
-            _errorReporter.reportTypeErrorForNode(
-                CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
-                argumentNode,
-                [argType, boundType]);
-          }
-        }
-      }
     }
   }
 
@@ -6013,75 +5476,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Verify that the given list of [typeArguments] contains exactly the
-   * [expectedCount] of elements, reporting an error with the given [errorCode]
-   * if not.
-   */
-  void _checkTypeArgumentCount(
-      TypeArgumentList typeArguments, int expectedCount, ErrorCode errorCode) {
-    int actualCount = typeArguments.arguments.length;
-    if (actualCount != expectedCount) {
-      _errorReporter
-          .reportErrorForNode(errorCode, typeArguments, [actualCount]);
-    }
-  }
-
-  /**
-   * Verify that the given [typeArguments] are all within their bounds, as
-   * defined by the given [element].
-   */
-  void _checkTypeArguments(InvocationExpression node) {
-    NodeList<TypeAnnotation> typeArgumentList = node.typeArguments?.arguments;
-    if (typeArgumentList == null) {
-      return;
-    }
-
-    var genericType = node.function.staticType;
-    var instantiatedType = node.staticInvokeType;
-    if (genericType is FunctionType && instantiatedType is FunctionType) {
-      var fnTypeParams =
-          TypeParameterTypeImpl.getTypes(genericType.typeFormals);
-      var typeArgs = typeArgumentList.map((t) => t.type).toList();
-
-      // If the amount mismatches, clean up the lists to be substitutable. The
-      // mismatch in size is reported elsewhere, but we must successfully
-      // perform substitution to validate bounds on mismatched lists.
-      final providedLength = math.min(typeArgs.length, fnTypeParams.length);
-      fnTypeParams = fnTypeParams.sublist(0, providedLength);
-      typeArgs = typeArgs.sublist(0, providedLength);
-
-      for (int i = 0; i < providedLength; i++) {
-        // Check the `extends` clause for the type parameter, if any.
-        //
-        // Also substitute to handle cases like this:
-        //
-        //     <TFrom, TTo extends TFrom>
-        //     <TFrom, TTo extends Iterable<TFrom>>
-        //     <T extends Clonable<T>>
-        //
-        DartType argType = typeArgs[i];
-
-        if (argType is FunctionType && argType.typeFormals.isNotEmpty) {
-          _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
-            typeArgumentList[i],
-          );
-          continue;
-        }
-
-        DartType bound =
-            fnTypeParams[i].bound.substitute2(typeArgs, fnTypeParams);
-        if (!_typeSystem.isSubtypeOf(argType, bound)) {
-          _errorReporter.reportTypeErrorForNode(
-              CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
-              typeArgumentList[i],
-              [argType, bound]);
-        }
-      }
-    }
-  }
-
   void _checkUseOfCovariantInParameters(FormalParameterList node) {
     AstNode parent = node.parent;
     if (_enclosingClass != null &&
@@ -6457,46 +5851,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     return false;
   }
 
-  /// Given a [node] without type arguments that refers to [element], issues
-  /// an error if [type] is a generic type, and the type arguments were not
-  /// supplied from inference or a non-dynamic default instantiation.
-  ///
-  /// This function is used by other node-specific type checking functions, and
-  /// should only be called when [node] has no explicit `typeArguments`.
-  ///
-  /// [inferenceContextNode] is the node that has the downwards context type,
-  /// if any. For example an [InstanceCreationExpression].
-  ///
-  /// This function will return false if any of the following are true:
-  ///
-  /// - [inferenceContextNode] has an inference context type that does not
-  ///   contain `?`
-  /// - [type] does not have any `dynamic` type arguments.
-  /// - the element is marked with `@optionalTypeArgs` from "package:meta".
-  bool _isMissingTypeArguments(AstNode node, DartType type, Element element,
-      Expression inferenceContextNode) {
-    // Check if this type has type arguments and at least one is dynamic.
-    // If so, we may need to issue a strict-raw-types error.
-    if (type is ParameterizedType &&
-        type.typeArguments.any((t) => t.isDynamic)) {
-      // If we have an inference context node, check if the type was inferred
-      // from it. Some cases will not have a context type, such as the type
-      // annotation `List` in `List list;`
-      if (inferenceContextNode != null) {
-        var contextType = InferenceContext.getContext(inferenceContextNode);
-        if (contextType != null && UnknownInferredType.isKnown(contextType)) {
-          // Type was inferred from downwards context: not an error.
-          return false;
-        }
-      }
-      if (element.hasOptionalTypeArgs) {
-        return false;
-      }
-      return true;
-    }
-    return false;
-  }
-
   /**
    * Return `true` if the given 'this' [expression] is in a valid context.
    */
@@ -6565,19 +5919,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return parameter.parameter.identifier;
     }
     return null;
-  }
-
-  /// Determines if the given [typeName] occurs in a context where super-bounded
-  /// types are allowed.
-  bool _shouldAllowSuperBoundedTypes(TypeName typeName) {
-    var parent = typeName.parent;
-    if (parent is ExtendsClause) return false;
-    if (parent is OnClause) return false;
-    if (parent is ClassTypeAlias) return false;
-    if (parent is WithClause) return false;
-    if (parent is ConstructorName) return false;
-    if (parent is ImplementsClause) return false;
-    return true;
   }
 
   /**

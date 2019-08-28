@@ -4,11 +4,15 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/src/conditional_discard.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
+import 'package:nnbd_migration/src/edge_builder.dart';
 import 'package:nnbd_migration/src/expression_checks.dart';
 import 'package:nnbd_migration/src/node_builder.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
@@ -16,6 +20,84 @@ import 'package:nnbd_migration/src/variables.dart';
 import 'package:test/test.dart';
 
 import 'abstract_single_unit.dart';
+
+/// Mixin allowing unit tests to create decorated types easily.
+mixin DecoratedTypeTester implements DecoratedTypeTesterBase {
+  int _offset = 0;
+
+  Map<TypeParameterElement, DecoratedType> _decoratedTypeParameterBounds =
+      Map.identity();
+
+  NullabilityNode get always => graph.always;
+
+  DecoratedType get bottom => DecoratedType(typeProvider.bottomType, never);
+
+  DecoratedType get dynamic_ => DecoratedType(typeProvider.dynamicType, always);
+
+  NullabilityNode get never => graph.never;
+
+  DecoratedType get null_ => DecoratedType(typeProvider.nullType, always);
+
+  DecoratedType get void_ => DecoratedType(typeProvider.voidType, always);
+
+  DecoratedType function(DecoratedType returnType,
+      {List<DecoratedType> required = const [],
+      List<DecoratedType> positional = const [],
+      Map<String, DecoratedType> named = const {},
+      List<TypeParameterElement> typeFormals = const [],
+      NullabilityNode node}) {
+    int i = 0;
+    var parameters = required
+        .map((t) => ParameterElementImpl.synthetic(
+            'p${i++}', t.type, ParameterKind.REQUIRED))
+        .toList();
+    parameters.addAll(positional.map((t) => ParameterElementImpl.synthetic(
+        'p${i++}', t.type, ParameterKind.POSITIONAL)));
+    parameters.addAll(named.entries.map((e) => ParameterElementImpl.synthetic(
+        e.key, e.value.type, ParameterKind.NAMED)));
+    return DecoratedType(
+        FunctionTypeImpl.synthetic(returnType.type, typeFormals, parameters),
+        node ?? newNode(),
+        typeFormalBounds: typeFormals
+            .map((formal) => _decoratedTypeParameterBounds[formal])
+            .toList(),
+        returnType: returnType,
+        positionalParameters: required.toList()..addAll(positional),
+        namedParameters: named);
+  }
+
+  DecoratedType int_({NullabilityNode node}) =>
+      DecoratedType(typeProvider.intType, node ?? newNode());
+
+  DecoratedType list(DecoratedType elementType, {NullabilityNode node}) =>
+      DecoratedType(typeProvider.listType.instantiate([elementType.type]),
+          node ?? newNode(),
+          typeArguments: [elementType]);
+
+  NullabilityNode newNode() => NullabilityNode.forTypeAnnotation(_offset++);
+
+  DecoratedType object({NullabilityNode node}) =>
+      DecoratedType(typeProvider.objectType, node ?? newNode());
+
+  TypeParameterElement typeParameter(String name, DecoratedType bound) {
+    var element = TypeParameterElementImpl.synthetic(name);
+    element.bound = bound.type;
+    _decoratedTypeParameterBounds[element] = bound;
+    return element;
+  }
+
+  DecoratedType typeParameterType(TypeParameterElement typeParameter,
+          {NullabilityNode node}) =>
+      DecoratedType(typeParameter.type, node ?? newNode());
+}
+
+/// Base functionality that must be implemented by classes mixing in
+/// [DecoratedTypeTester].
+abstract class DecoratedTypeTesterBase {
+  NullabilityGraph get graph;
+
+  TypeProvider get typeProvider;
+}
 
 /// Mixin allowing unit tests to check for the presence of graph edges.
 mixin EdgeTester {
@@ -124,6 +206,18 @@ class InstrumentedVariables extends Variables {
       expression = (expression as ParenthesizedExpression).expression;
     }
     return expression;
+  }
+}
+
+class EdgeBuilderTestBase extends MigrationVisitorTestBase {
+  /// Analyzes the given source code, producing constraint variables and
+  /// constraints for it.
+  @override
+  Future<CompilationUnit> analyze(String code) async {
+    var unit = await super.analyze(code);
+    unit.accept(EdgeBuilder(
+        typeProvider, typeSystem, variables, graph, testSource, null));
+    return unit;
   }
 }
 

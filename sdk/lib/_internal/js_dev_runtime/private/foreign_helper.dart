@@ -106,10 +106,7 @@ library dart._foreign_helper;
  */
 // Add additional optional arguments if needed. The method is treated internally
 // as a variable argument method.
-// TODO(vsm): Enforce that this doesn't fall back to dynamic by typing it as:
-//  `T JS<T extends Object>(...)`
-// once we clean up html libraries.
-T JS<T>(String typeDescription, String codeTemplate,
+T JS<T extends Object>(String typeDescription, String codeTemplate,
     [arg0,
     arg1,
     arg2,

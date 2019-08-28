@@ -1,0 +1,13 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+src/fasta/flow_analysis/flow_analysis: Fail
+src/fasta/kernel/body_builder: Fail
+src/fasta/kernel/expression_generator: Fail
+src/fasta/kernel/inference_visitor: Fail
+src/fasta/kernel/kernel_shadow_ast: Fail
+src/fasta/parser/parser: Fail
+src/fasta/type_inference/type_constraint_gatherer: Fail
+src/fasta/type_inference/type_inferrer: Fail
+src/fasta/type_inference/type_promotion: Fail

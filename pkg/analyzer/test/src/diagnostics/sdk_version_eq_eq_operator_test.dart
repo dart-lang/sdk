@@ -21,8 +21,8 @@ class SdkVersionEqEqOperatorTest extends SdkConstraintVerifierTest {
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
     ..enabledExperiments = [EnableString.constant_update_2018];
 
-  test_left_equals() {
-    verifyVersion('2.5.0', '''
+  test_left_equals() async {
+    await verifyVersion('2.5.0', '''
 class A {
   const A();
 }
@@ -31,8 +31,8 @@ const c = a == null;
 ''');
   }
 
-  test_left_lessThan() {
-    verifyVersion('2.2.0', '''
+  test_left_lessThan() async {
+    await verifyVersion('2.2.0', '''
 class A {
   const A();
 }
@@ -43,8 +43,8 @@ const c = a == null;
     ]);
   }
 
-  test_right_equals() {
-    verifyVersion('2.5.0', '''
+  test_right_equals() async {
+    await verifyVersion('2.5.0', '''
 class A {
   const A();
 }
@@ -53,8 +53,8 @@ const c = null == a;
 ''');
   }
 
-  test_right_lessThan() {
-    verifyVersion('2.2.0', '''
+  test_right_lessThan() async {
+    await verifyVersion('2.2.0', '''
 class A {
   const A();
 }

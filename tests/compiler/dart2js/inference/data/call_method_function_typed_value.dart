@@ -11,8 +11,6 @@ int f(
         int
             /*strong.[null|subclass=Object]*/
             /*omit.[null|subclass=JSInt]*/
-            /*strongConst.[null|subclass=Object]*/
-            /*omitConst.[null|subclass=JSInt]*/
             i) =>
     2 /*invoke: [exact=JSUInt31]*/ * i;
 

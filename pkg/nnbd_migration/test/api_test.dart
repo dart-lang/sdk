@@ -959,6 +959,56 @@ class C {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_flow_analysis_simple() async {
+    var content = '''
+int f(int x) {
+  if (x == null) {
+    return 0;
+  } else {
+    return x;
+  }
+}
+main() {
+  f(null);
+}
+''';
+    var expected = '''
+int f(int? x) {
+  if (x == null) {
+    return 0;
+  } else {
+    return x;
+  }
+}
+main() {
+  f(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_function_expression() async {
+    var content = '''
+int f(int i) {
+  var g = (int j) => i;
+  return g(i);
+}
+main() {
+  f(null);
+}
+''';
+    var expected = '''
+int? f(int? i) {
+  var g = (int? j) => i;
+  return g(i);
+}
+main() {
+  f(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_function_expression_invocation() async {
     var content = '''
 abstract class C {
@@ -1332,6 +1382,28 @@ class C {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_local_function() async {
+    var content = '''
+int f(int i) {
+  int g(int j) => i;
+  return g(i);
+}
+main() {
+  f(null);
+}
+''';
+    var expected = '''
+int? f(int? i) {
+  int? g(int? j) => i;
+  return g(i);
+}
+main() {
+  f(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_localVariable_type_inferred() async {
     var content = '''
 int f() => null;
@@ -1348,6 +1420,69 @@ int? f() => null;
 void main() {
   var x = 1;
   x = f()!;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_multiDeclaration_innerUsage() async {
+    var content = '''
+void test() {
+  // here non-null is OK.
+  int i1 = 0, i2 = i1.gcd(2);
+  // here non-null is not OK.
+  int i3 = 0, i4 = i3.gcd(2), i5 = null;
+}
+''';
+    var expected = '''
+void test() {
+  // here non-null is OK.
+  int i1 = 0, i2 = i1.gcd(2);
+  // here non-null is not OK.
+  int? i3 = 0, i4 = i3!.gcd(2), i5 = null;
+}
+''';
+
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_multiDeclaration_softEdges() async {
+    var content = '''
+int nullable(int i1, int i2) {
+  int i3 = i1, i4 = i2;
+  return i3;
+}
+int nonNull(int i1, int i2) {
+  int i3 = i1, i4 = i2;
+  return i3;
+}
+int both(int i1, int i2) {
+  int i3 = i1, i4 = i2;
+  return i3;
+}
+void main() {
+  nullable(null, null);
+  nonNull(0, 1);
+  both(0, null);
+}
+''';
+    var expected = '''
+int? nullable(int? i1, int? i2) {
+  int? i3 = i1, i4 = i2;
+  return i3;
+}
+int nonNull(int i1, int i2) {
+  int i3 = i1, i4 = i2;
+  return i3;
+}
+int? both(int i1, int? i2) {
+  int? i3 = i1, i4 = i2;
+  return i3;
+}
+void main() {
+  nullable(null, null);
+  nonNull(0, 1);
+  both(0, null);
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -1806,6 +1941,42 @@ int f(int x, int Function(int i) g) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_postdominating_usage_after_cfg_altered() async {
+    // By altering the control-flow graph, we can create new postdominators,
+    // which are not recognized as such. This is not a problem as we only do
+    // hard edges on a best-effort basis, and this case would be a lot of
+    // additional complexity.
+    var content = '''
+int f(int a, int b, int c) {
+  if (a != null) {
+    b.toDouble();
+  } else {
+    return null;
+  }
+  c.toDouble;
+}
+
+void main() {
+  f(1, null, null);
+}
+''';
+    var expected = '''
+int f(int a, int? b, int? c) {
+  /* if (a != null) {
+    */ b!.toDouble(); /*
+  } else {
+    return null;
+  } */
+  c!.toDouble;
+}
+
+void main() {
+  f(1, null, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_prefix_minus() async {
     var content = '''
 class C {
@@ -1933,6 +2104,31 @@ class C {
 }
 main() {
   C.named(null, 1);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  @failingTest
+  test_removed_if_element_doesnt_introduce_nullability() async {
+    // Failing for two reasons: 1. we don't add ! to recover(), and 2. we get
+    // an unimplemented error.
+    var content = '''
+f(int x) {
+  <int>[if (x == null) recover(), 0];
+}
+int recover() {
+  assert(false);
+  return null;
+}
+''';
+    var expected = '''
+f(int x) {
+  <int>[if (x == null) recover()!, 0];
+}
+int? recover() {
+  assert(false);
+  return null;
 }
 ''';
     await _checkSingleFileChanges(content, expected);

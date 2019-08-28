@@ -330,6 +330,10 @@ static uword GetInstanceSizeImpl(const dart::Class& handle) {
     case kByteBufferCid:
     case kByteDataViewCid:
     case kFfiPointerCid:
+    case kFfiDynamicLibraryCid:
+#define HANDLE_CASE(clazz) case kFfi##clazz##Cid:
+      CLASS_LIST_FFI_TYPE_MARKER(HANDLE_CASE)
+#undef HANDLE_CASE
 #define HANDLE_CASE(clazz)                                                     \
   case kTypedData##clazz##Cid:                                                 \
   case kTypedData##clazz##ViewCid:                                             \

@@ -649,11 +649,11 @@ class HintCode extends ErrorCode {
    * The operator '&', '|' or '^' is being used on boolean values in code that
    * is expected to run on versions of the SDK that did not support it.
    */
-  static const HintCode SDK_VERSION_BOOL_OPERATOR = const HintCode(
-      'SDK_VERSION_BOOL_OPERATOR',
-      "Using the operator '{0}' for 'bool's wasn't supported until version "
-          "2.3.2, but this code is required to be able to run on earlier "
-          "versions.",
+  static const HintCode SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT = const HintCode(
+      'SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT',
+      "Using the operator '{0}' for 'bool's in a constant expression wasn't "
+          "supported until version 2.3.2, but this code is required to be able "
+          "to run on earlier versions.",
       correction: "Try updating the SDK constraints.");
 
   /**
@@ -667,6 +667,16 @@ class HintCode extends ErrorCode {
               "until version 2.3.2, but this code is required to be able to "
               "run on earlier versions.",
           correction: "Try updating the SDK constraints.");
+
+  /**
+   * Extension method features are being used in code that is expected to run
+   * on versions of the SDK that did not support them.
+   */
+  static const HintCode SDK_VERSION_EXTENSION_METHODS = const HintCode(
+      'SDK_VERSION_EXTENSION_METHODS',
+      "Extension methods weren't supported until version 2.X.0, "
+          "but this code is required to be able to run on earlier versions.",
+      correction: "Try updating the SDK constraints.");
 
   /**
    * The operator '>>>' is being used in code that is expected to run on

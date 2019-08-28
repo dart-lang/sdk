@@ -149,11 +149,13 @@ topLevelDefinition
     |    setterSignature functionBody
     |    functionSignature functionBody
     |    (FINAL | CONST) type? staticFinalDeclarationList ';'
+    |    LATE FINAL type? initializedIdentifierList ';'
     |    topLevelVariableDeclaration ';'
     ;
 
 topLevelVariableDeclaration
-    :    varOrType identifier ('=' expression)? (',' initializedIdentifier)*
+    :    LATE? varOrType identifier ('=' expression)?
+         (',' initializedIdentifier)*
     ;
 
 declaredIdentifier
@@ -161,9 +163,9 @@ declaredIdentifier
     ;
 
 finalConstVarOrType
-    :    FINAL type?
+    :    LATE? FINAL type?
     |    CONST type?
-    |    varOrType
+    |    LATE? varOrType
     ;
 
 varOrType
@@ -207,15 +209,16 @@ formalParameterPart
 
 formalParameterList
     :    '(' ')'
-    |    '(' normalFormalParameters (','? | ',' optionalFormalParameters) ')'
-    |    '(' optionalFormalParameters ')'
+    |    '(' normalFormalParameters ','? ')'
+    |    '(' normalFormalParameters ',' optionalOrNamedFormalParameters ')'
+    |    '(' optionalOrNamedFormalParameters ')'
     ;
 
 normalFormalParameters
     :    normalFormalParameter (',' normalFormalParameter)*
     ;
 
-optionalFormalParameters
+optionalOrNamedFormalParameters
     :    optionalPositionalFormalParameters
     |    namedFormalParameters
     ;
@@ -240,7 +243,7 @@ normalFormalParameterNoMetadata
 
 // NB: It is an anomaly that a functionFormalParameter cannot be FINAL.
 functionFormalParameter
-    :    COVARIANT? type? identifierNotFUNCTION formalParameterPart
+    :    COVARIANT? type? identifierNotFUNCTION formalParameterPart '?'?
     ;
 
 simpleFormalParameter
@@ -258,7 +261,7 @@ defaultFormalParameter
     ;
 
 defaultNamedParameter
-    :    normalFormalParameter ((':' | '=') expression)?
+    :    REQUIRED? normalFormalParameter ((':' | '=') expression)?
     ;
 
 typeWithParameters
@@ -324,11 +327,12 @@ declaration
     |    EXTERNAL constructorSignature
     |    (EXTERNAL STATIC?)? getterSignature
     |    (EXTERNAL STATIC?)? setterSignature
+    |    (EXTERNAL STATIC?)? functionSignature
     |    EXTERNAL? operatorSignature
     |    STATIC (FINAL | CONST) type? staticFinalDeclarationList
-    |    FINAL type? initializedIdentifierList
-    |    (STATIC | COVARIANT)? (VAR | type) initializedIdentifierList
-    |    EXTERNAL? STATIC? functionSignature
+    |    STATIC LATE FINAL type? initializedIdentifierList
+    |    (STATIC | COVARIANT) LATE? varOrType initializedIdentifierList
+    |    LATE? (FINAL type? | varOrType) initializedIdentifierList
     |    redirectingFactoryConstructorSignature
     |    constantConstructorSignature (redirection | initializers)?
     |    constructorSignature (redirection | initializers)?
@@ -394,7 +398,7 @@ superCallOrFieldInitializer
     ;
 
 fieldInitializer
-    :    (THIS '.')? identifier '=' conditionalExpression cascadeSection*
+    :    (THIS '.')? identifier '=' conditionalExpression cascadeSequence?
     ;
 
 factoryConstructorSignature
@@ -455,7 +459,7 @@ expression
     :    functionExpression
     |    throwExpression
     |    assignableExpression assignmentOperator expression
-    |    conditionalExpression cascadeSection*
+    |    conditionalExpression cascadeSequence?
     ;
 
 expressionWithoutCascade
@@ -623,11 +627,21 @@ namedArgument
     :    label expression
     ;
 
+cascadeSequence
+    :     ('?..' | '..') cascadeSection ('..' cascadeSection)*
+    ;
+
 cascadeSection
-    :    '..'
-         (cascadeSelector argumentPart*)
-         (assignableSelector argumentPart*)*
-         (assignmentOperator expressionWithoutCascade)?
+    :    cascadeSelector cascadeSectionTail
+    ;
+
+cascadeSectionTail
+    :    cascadeAssignment
+    |    selector* (assignableSelector cascadeAssignment)?
+    ;
+
+cascadeAssignment
+    :    assignmentOperator expressionWithoutCascade
     ;
 
 cascadeSelector
@@ -795,7 +809,8 @@ postfixOperator
     ;
 
 selector
-    :    assignableSelector
+    :    '!'
+    |    assignableSelector
     |    argumentPart
     ;
 
@@ -810,13 +825,13 @@ incrementOperator
 
 assignableExpression
     :    SUPER unconditionalAssignableSelector
-    |    constructorInvocation assignableSelectorPart+
-    |    primary assignableSelectorPart+
+    |    constructorInvocation assignableSelectorPart
+    |    primary assignableSelectorPart
     |    identifier
     ;
 
 assignableSelectorPart
-    :    argumentPart* assignableSelector
+    :    selector* assignableSelector
     ;
 
 unconditionalAssignableSelector
@@ -827,6 +842,7 @@ unconditionalAssignableSelector
 assignableSelector
     :    unconditionalAssignableSelector
     |    '?.' identifier
+    |    '?.[' expression ']'
     ;
 
 identifierNotFUNCTION
@@ -847,6 +863,7 @@ identifierNotFUNCTION
     |    MIXIN // Built-in identifier.
     |    OPERATOR // Built-in identifier.
     |    PART // Built-in identifier.
+    |    REQUIRED // Built-in identifier.
     |    SET // Built-in identifier.
     |    STATIC // Built-in identifier.
     |    TYPEDEF // Built-in identifier.
@@ -1095,9 +1112,13 @@ uri
     ;
 
 type
-    :    functionTypeTails
-    |    typeNotFunction functionTypeTails
+    :    functionType '?'?
     |    typeNotFunction
+    ;
+
+typeNotVoid
+    :    functionType '?'?
+    |    typeNotVoidNotFunction
     ;
 
 typeNotFunction
@@ -1105,14 +1126,9 @@ typeNotFunction
     |    VOID
     ;
 
-typeNotVoid
-    :    functionType
-    |    typeNotVoidNotFunction
-    ;
-
 typeNotVoidNotFunction
-    :    typeName typeArguments?
-    |    FUNCTION
+    :    typeName typeArguments? '?'?
+    |    FUNCTION '?'?
     ;
 
 typeName
@@ -1150,7 +1166,7 @@ functionTypeTail
     ;
 
 functionTypeTails
-    :    functionTypeTail functionTypeTails
+    :    functionTypeTail '?'? functionTypeTails
     |    functionTypeTail
     ;
 
@@ -1185,7 +1201,11 @@ optionalPositionalParameterTypes
     ;
 
 namedParameterTypes
-    :    LBRACE typedIdentifier (',' typedIdentifier)* ','? RBRACE
+    :    LBRACE namedParameterType (',' namedParameterType)* ','? RBRACE
+    ;
+
+namedParameterType
+    :    REQUIRED? typedIdentifier
     ;
 
 typedIdentifier
@@ -1258,6 +1278,14 @@ HEX_DIGIT
 
 FINAL
     :    'final'
+    ;
+
+LATE
+    :    'late'
+    ;
+
+REQUIRED
+    :    'required'
     ;
 
 CONST

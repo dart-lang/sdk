@@ -83,7 +83,7 @@ class StringToken extends analyzer.SimpleToken implements analyzer.StringToken {
       return valueOrLazySubstring;
     } else {
       assert(valueOrLazySubstring is _LazySubstring);
-      var data = valueOrLazySubstring.data;
+      dynamic data = valueOrLazySubstring.data;
       int start = valueOrLazySubstring.start;
       int end = start + valueOrLazySubstring.length;
       if (data is String) {

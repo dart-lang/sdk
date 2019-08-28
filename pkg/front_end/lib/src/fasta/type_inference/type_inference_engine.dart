@@ -12,6 +12,7 @@ import 'package:kernel/ast.dart'
         FunctionType,
         InterfaceType,
         Member,
+        NamedType,
         TypeParameter,
         TypeParameterType,
         TypedefType,
@@ -68,14 +69,14 @@ class IncludesTypeParametersNonCovariantly extends DartTypeVisitor<bool> {
     if (node.returnType.accept(this)) return true;
     Variance oldVariance = _variance;
     _variance = Variance.invariant;
-    for (var parameter in node.typeParameters) {
+    for (TypeParameter parameter in node.typeParameters) {
       if (parameter.bound.accept(this)) return true;
     }
     _variance = invertVariance(oldVariance);
-    for (var parameter in node.positionalParameters) {
+    for (DartType parameter in node.positionalParameters) {
       if (parameter.accept(this)) return true;
     }
-    for (var parameter in node.namedParameters) {
+    for (NamedType parameter in node.namedParameters) {
       if (parameter.type.accept(this)) return true;
     }
     _variance = oldVariance;
@@ -84,7 +85,7 @@ class IncludesTypeParametersNonCovariantly extends DartTypeVisitor<bool> {
 
   @override
   bool visitInterfaceType(InterfaceType node) {
-    for (var argument in node.typeArguments) {
+    for (DartType argument in node.typeArguments) {
       if (argument.accept(this)) return true;
     }
     return false;
@@ -156,10 +157,12 @@ abstract class TypeInferenceEngine {
     // Field types have all been inferred so there cannot be a cyclic
     // dependency.
     for (Constructor constructor in toBeInferred.keys) {
-      for (var declaration in constructor.function.positionalParameters) {
+      for (VariableDeclaration declaration
+          in constructor.function.positionalParameters) {
         inferInitializingFormal(declaration, constructor);
       }
-      for (var declaration in constructor.function.namedParameters) {
+      for (VariableDeclaration declaration
+          in constructor.function.namedParameters) {
         inferInitializingFormal(declaration, constructor);
       }
     }

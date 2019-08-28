@@ -182,7 +182,7 @@ class ModifierRecoveryContext {
     // Process invalid and out-of-order modifiers
     Token next = token.next;
     while (true) {
-      final value = next.stringValue;
+      final String value = next.stringValue;
       if (isModifier(next)) {
         if (identical('abstract', value)) {
           token = parseAbstract(token);

@@ -8,9 +8,13 @@
 
 expression/eval: TextSerializationFailure # Was: Pass
 expression/main: TextSerializationFailure # Was: Pass
-extensions/instance_members: TextSerializationFailure
-extensions/implicit_this: TextSerializationFailure
 extensions/explicit_this: TextSerializationFailure
+extensions/implicit_this: TextSerializationFailure
+extensions/direct_instance_access: TextSerializationFailure
+extensions/direct_static_access: TextSerializationFailure
+extensions/instance_members: TextSerializationFailure
+extensions/other_kinds: TextSerializationFailure
+extensions/static_access: TextSerializationFailure
 extensions/type_variables: TextSerializationFailure
 extensions/use_this: TextSerializationFailure
 general/abstract_members: TypeCheckError
@@ -138,6 +142,7 @@ general/issue34899: TypeCheckError
 general/issue35875: TextSerializationFailure
 general/issue37027: TextSerializationFailure
 general/issue37381: TextSerializationFailure
+general/issue37776: TextSerializationFailure
 general/literals: TextSerializationFailure # Was: Pass
 general/local_generic_function: TextSerializationFailure # Was: Pass
 general/magic_const: TextSerializationFailure # Was: Pass
@@ -804,7 +809,9 @@ instantiate_to_bound/typedef_omitted_bound: TextSerializationFailure # Was: Pass
 instantiate_to_bound/typedef_raw_in_bound: TextSerializationFailure # Was: Pass
 instantiate_to_bound/typedef_super_bounded_type: TextSerializationFailure # Was: Pass
 new_const_insertion/simple: TextSerializationFailure # Was: Pass
+nnbd/late: TextSerializationFailure
 nnbd/nullable_param: TextSerializationFailure
+nnbd/required: TextSerializationFailure
 no_such_method_forwarders/abstract_accessors_from_field: TextSerializationFailure # Was: Pass
 no_such_method_forwarders/abstract_accessors_from_field_arent_mixed_in: TextSerializationFailure # Was: Pass
 no_such_method_forwarders/abstract_accessors_from_field_one_defined: TextSerializationFailure # Was: Pass

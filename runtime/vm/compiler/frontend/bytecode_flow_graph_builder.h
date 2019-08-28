@@ -152,6 +152,7 @@ class BytecodeFlowGraphBuilder {
 
   void BuildInstruction(KernelBytecode::Opcode opcode);
   void BuildFfiAsFunction();
+  void BuildDebugStepCheck();
 
 #define DECLARE_BUILD_METHOD(name, encoding, kind, op1, op2, op3)              \
   void Build##name();
@@ -166,6 +167,12 @@ class BytecodeFlowGraphBuilder {
   void CollectControlFlow(const PcDescriptors& descriptors,
                           const ExceptionHandlers& handlers,
                           GraphEntryInstr* graph_entry);
+
+#if !defined(PRODUCT)
+  // Update context level for the given bytecode PC. returns
+  // next PC where context level might need an update.
+  intptr_t UpdateContextLevel(const Bytecode& bytecode, intptr_t pc);
+#endif
 
   // Figure out entry points style.
   UncheckedEntryPointStyle ChooseEntryPointStyle(
@@ -207,6 +214,7 @@ class BytecodeFlowGraphBuilder {
   JoinEntryInstr* throw_no_such_method_;
   GraphEntryInstr* graph_entry_ = nullptr;
   UncheckedEntryPointStyle entry_point_style_ = UncheckedEntryPointStyle::kNone;
+  bool build_debug_step_checks_ = false;
 };
 
 }  // namespace kernel

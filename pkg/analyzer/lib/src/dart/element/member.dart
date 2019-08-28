@@ -217,6 +217,10 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
       combined = Substitution.fromMap(map);
     }
 
+    if (combined.map.isEmpty) {
+      return element;
+    }
+
     if (element is ConstructorElement) {
       return ConstructorMember(element, combined);
     } else if (element is MethodElement) {
@@ -226,20 +230,6 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
     } else {
       throw UnimplementedError('(${element.runtimeType}) $element');
     }
-  }
-
-  static ExecutableElement from3(
-    ExecutableElement element,
-    List<TypeParameterElement> typeParameters,
-    List<DartType> typeArguments,
-  ) {
-    if (typeParameters.isEmpty) {
-      return element;
-    }
-    return from2(
-      element,
-      Substitution.fromPairs(typeParameters, typeArguments),
-    );
   }
 }
 
@@ -541,18 +531,6 @@ abstract class Member implements Element {
     }
   }
 
-  /**
-   * Return the type that results from replacing the type parameters in the
-   * given [type] with the type arguments associated with this member.
-   */
-  @Deprecated("Used only by 'getReifiedType', which is deprecated")
-  DartType substituteFor(DartType type) {
-    if (type == null) {
-      return null;
-    }
-    return _substitution.substituteType(type);
-  }
-
   @override
   void visitChildren(ElementVisitor visitor) {
     // There are no children to visit
@@ -585,11 +563,6 @@ class MethodMember extends ExecutableMember implements MethodElement {
   @deprecated
   @override
   MethodDeclaration computeNode() => baseElement.computeNode();
-
-  @deprecated
-  @override
-  FunctionType getReifiedType(DartType objectType) =>
-      substituteFor(baseElement.getReifiedType(objectType));
 
   @override
   String toString() {

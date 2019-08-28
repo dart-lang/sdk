@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart' hide Declaration;
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
@@ -12,6 +13,7 @@ import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/testing/element_search.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -21,6 +23,7 @@ import 'base.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SearchTest);
+    defineReflectiveTests(SearchWithExtensionMethodsTest);
   });
 }
 
@@ -1634,5 +1637,154 @@ class NoMatchABCDEF {}
   static void _assertResults(
       List<SearchResult> matches, List<ExpectedResult> expectedMatches) {
     expect(matches, unorderedEquals(expectedMatches));
+  }
+}
+
+@reflectiveTest
+class SearchWithExtensionMethodsTest extends SearchTest {
+  @override
+  AnalysisOptionsImpl createAnalysisOptions() => AnalysisOptionsImpl()
+    ..contextFeatures = new FeatureSet.forTesting(
+        sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
+
+  test_searchReferences_ExtensionElement() async {
+    await _resolveTestUnit('''
+extension E on int {
+  void foo() {}
+  static void bar() {}
+}
+
+main() {
+  E(0).foo();
+  E.bar();
+}
+''');
+    var element = _findElement('E');
+    var main = _findElement('main');
+    var expected = [
+      _expectId(main, SearchResultKind.REFERENCE, 'E(0)'),
+      _expectId(main, SearchResultKind.REFERENCE, 'E.bar()'),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_MethodElement_ofExtension_instance() async {
+    await _resolveTestUnit('''
+extension E on int {
+  void foo() {}
+
+  void bar() {
+    foo(); // 1
+    this.foo(); // 2
+    foo; // 3
+    this.foo; // 4
+  }
+}
+
+main() {
+  E(0).foo(); // 5
+  0.foo(); // 6
+  E(0).foo; // 7
+  0.foo; // 8
+}
+''');
+    var element = _findElement('foo');
+    var bar = _findElement('bar');
+    var main = _findElement('main');
+    var expected = [
+      _expectId(bar, SearchResultKind.INVOCATION, 'foo(); // 1'),
+      _expectIdQ(bar, SearchResultKind.INVOCATION, 'foo(); // 2'),
+      _expectId(bar, SearchResultKind.REFERENCE, 'foo; // 3'),
+      _expectIdQ(bar, SearchResultKind.REFERENCE, 'foo; // 4'),
+      _expectIdQ(main, SearchResultKind.INVOCATION, 'foo(); // 5'),
+      _expectIdQ(main, SearchResultKind.INVOCATION, 'foo(); // 6'),
+      _expectIdQ(main, SearchResultKind.REFERENCE, 'foo; // 7'),
+      _expectIdQ(main, SearchResultKind.REFERENCE, 'foo; // 8'),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_MethodElement_ofExtension_static() async {
+    await _resolveTestUnit('''
+extension E on int {
+  static void foo() {}
+
+  static void bar() {
+    foo(); // 1
+    foo; // 2
+  }
+}
+
+main() {
+  E.foo(); // 3
+  E.foo; // 4
+}
+''');
+    var element = _findElement('foo');
+    var bar = _findElement('bar');
+    var main = _findElement('main');
+    var expected = [
+      _expectId(bar, SearchResultKind.INVOCATION, 'foo(); // 1'),
+      _expectId(bar, SearchResultKind.REFERENCE, 'foo; // 2'),
+      _expectIdQ(main, SearchResultKind.INVOCATION, 'foo(); // 3'),
+      _expectIdQ(main, SearchResultKind.REFERENCE, 'foo; // 4'),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_PropertyAccessor_getter_ofExtension_instance() async {
+    await _resolveTestUnit('''
+extension E on int {
+  int get foo => 0;
+
+  void bar() {
+    foo; // 1
+    this.foo; // 2
+  }
+}
+
+main() {
+  E(0).foo; // 3
+  0.foo; // 4
+}
+''');
+    var element = _findElement('foo', ElementKind.GETTER);
+    var bar = _findElement('bar');
+    var main = _findElement('main');
+    var expected = [
+      _expectId(bar, SearchResultKind.REFERENCE, 'foo; // 1'),
+      _expectIdQ(bar, SearchResultKind.REFERENCE, 'foo; // 2'),
+      _expectIdQ(main, SearchResultKind.REFERENCE, 'foo; // 3'),
+      _expectIdQ(main, SearchResultKind.REFERENCE, 'foo; // 4'),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_PropertyAccessor_setter_ofExtension_instance() async {
+    await _resolveTestUnit('''
+extension E on int {
+  set foo(int _) {}
+
+  void bar() {
+    foo = 1;
+    this.foo = 2;
+  }
+}
+
+main() {
+  E(0).foo = 3;
+  0.foo = 4;
+}
+''');
+    var element = _findElement('foo=');
+    var bar = _findElement('bar');
+    var main = _findElement('main');
+    var expected = [
+      _expectId(bar, SearchResultKind.REFERENCE, 'foo = 1;'),
+      _expectIdQ(bar, SearchResultKind.REFERENCE, 'foo = 2;'),
+      _expectIdQ(main, SearchResultKind.REFERENCE, 'foo = 3;'),
+      _expectIdQ(main, SearchResultKind.REFERENCE, 'foo = 4;'),
+    ];
+    await _verifyReferences(element, expected);
   }
 }

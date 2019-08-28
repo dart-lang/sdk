@@ -731,7 +731,7 @@ FileSystem _buildFileSystem(List sourceFiles, List<int> platformKernel,
   return fileSystem;
 }
 
-train(String scriptUri, String platformKernelPath) {
+train(String scriptUri, String platformKernelPath, bool bytecode) {
   var tag = kTrainTag;
   var responsePort = new RawReceivePort();
   responsePort.handler = (response) {
@@ -757,7 +757,7 @@ train(String scriptUri, String platformKernelPath) {
     false /* suppress warnings */,
     false /* enable asserts */,
     null /* experimental_flags */,
-    false /* generate bytecode */,
+    bytecode,
     null /* package_config */,
     null /* multirootFilepaths */,
     null /* multirootScheme */,
@@ -767,9 +767,20 @@ train(String scriptUri, String platformKernelPath) {
 
 main([args]) {
   if ((args?.length ?? 0) > 1 && args[0] == '--train') {
-    // This entry point is used when creating an app snapshot. The argument
-    // provides a script to compile to warm-up generated code.
-    train(args[1], args.length > 2 ? args[2] : null);
+    // This entry point is used when creating an app snapshot.
+    // It takes the following extra arguments:
+    // 1) Script to compile.
+    // 2) Optional '--bytecode' argument to train bytecode generation.
+    // 3) Optional platform kernel path.
+    int argIndex = 1;
+    final String script = args[argIndex++];
+    bool bytecode = false;
+    if ((argIndex < args.length) && (args[argIndex] == '--bytecode')) {
+      bytecode = true;
+      ++argIndex;
+    }
+    final String platform = (argIndex < args.length) ? args[argIndex] : null;
+    train(script, platform, bytecode);
   } else {
     // Entry point for the Kernel isolate.
     return new RawReceivePort()..handler = _processLoadRequest;

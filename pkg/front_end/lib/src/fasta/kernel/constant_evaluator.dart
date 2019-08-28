@@ -77,7 +77,8 @@ Component transformComponent(Component component, ConstantsBackend backend,
   coreTypes ??= new CoreTypes(component);
   hierarchy ??= new ClassHierarchy(component);
 
-  final typeEnvironment = new TypeEnvironment(coreTypes, hierarchy);
+  final TypeEnvironment typeEnvironment =
+      new TypeEnvironment(coreTypes, hierarchy);
 
   transformLibraries(component.libraries, backend, environmentDefines,
       typeEnvironment, errorReporter,
@@ -265,7 +266,7 @@ class ConstantsTransformer extends Transformer {
   // Handle definition of constants:
 
   visitFunctionNode(FunctionNode node) {
-    final positionalParameterCount = node.positionalParameters.length;
+    final int positionalParameterCount = node.positionalParameters.length;
     for (int i = 0; i < positionalParameterCount; ++i) {
       final VariableDeclaration variable = node.positionalParameters[i];
       transformAnnotations(variable.annotations, variable);
@@ -569,9 +570,10 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     } on _AbortDueToError catch (e) {
       final Uri uri = getFileUri(e.node);
       final int fileOffset = getFileOffset(uri, e.node);
-      final locatedMessage = e.message.withLocation(uri, fileOffset, noLength);
+      final LocatedMessage locatedMessage =
+          e.message.withLocation(uri, fileOffset, noLength);
 
-      final contextMessages = <LocatedMessage>[];
+      final List<LocatedMessage> contextMessages = <LocatedMessage>[];
       if (e.context != null) contextMessages.addAll(e.context);
       for (final TreeNode node in contextChain) {
         final Uri uri = getFileUri(node);
@@ -872,8 +874,9 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
           node, 'Constructor "$node" belongs to abstract class "${klass}".');
     }
 
-    final positionals = evaluatePositionalArguments(node.arguments);
-    final named = evaluateNamedArguments(node.arguments);
+    final List<Constant> positionals =
+        evaluatePositionalArguments(node.arguments);
+    final Map<String, Constant> named = evaluateNamedArguments(node.arguments);
 
     if (isSymbol && shouldBeUnevaluated) {
       return unevaluated(
@@ -895,7 +898,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
           templateConstEvalInvalidSymbolName.withArguments(nameValue));
     }
 
-    final typeArguments = evaluateTypeArguments(node, node.arguments);
+    final List<DartType> typeArguments =
+        evaluateTypeArguments(node, node.arguments);
 
     // Fill in any missing type arguments with "dynamic".
     for (int i = typeArguments.length; i < klass.typeParameters.length; i++) {
@@ -949,8 +953,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   bool isValidSymbolName(String name) {
     // See https://api.dartlang.org/stable/2.0.0/dart-core/Symbol/Symbol.html:
     //
-    //  A qualified name is a valid name preceded by a public identifier name and
-    //  a '.', e.g., foo.bar.baz= is a qualified version of baz=.
+    //  A qualified name is a valid name preceded by a public identifier name
+    //  and a '.', e.g., foo.bar.baz= is a qualified version of baz=.
     //
     //  That means that the content of the name String must be either
     //     - a valid public Dart identifier (that is, an identifier not
@@ -962,7 +966,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     //     - or the empty string (the default name of a library with no library
     //       name declaration).
 
-    const operatorNames = const <String>[
+    const List<String> operatorNames = const <String>[
       '+',
       '-',
       '*',
@@ -988,7 +992,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     if (name == null) return false;
     if (name == '') return true;
 
-    final parts = name.split('.');
+    final List<String> parts = name.split('.');
 
     // Each qualifier must be a public identifier.
     for (int i = 0; i < parts.length - 1; ++i) {
@@ -1082,7 +1086,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
 
         // We simulate now the constructor invocation.
 
-        // Step 1) Map type arguments and normal arguments from caller to callee.
+        // Step 1) Map type arguments and normal arguments from caller to
+        //         callee.
         for (int i = 0; i < klass.typeParameters.length; i++) {
           env.addTypeParameterValue(klass.typeParameters[i], typeArguments[i]);
         }
@@ -1100,7 +1105,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
           env.addVariableValue(parameter, value);
         }
 
-        // Step 2) Run all initializers (including super calls) with environment setup.
+        // Step 2) Run all initializers (including super calls) with environment
+        //         setup.
         for (final Field field in klass.fields) {
           if (!field.isStatic) {
             instanceBuilder.setFieldValue(
@@ -1213,10 +1219,12 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
               unevaluatedArguments(arguments, {}, node.arguments.types)));
     }
 
+    final String op = node.name.name;
+
     // Handle == and != first (it's common between all types). Since `a != b` is
     // parsed as `!(a == b)` it is handled implicitly through ==.
-    if (arguments.length == 1 && node.name.name == '==') {
-      final right = arguments[0];
+    if (arguments.length == 1 && op == '==') {
+      final Constant right = arguments[0];
 
       // [DoubleConstant] uses [identical] to determine equality, so we need two
       // special cases:
@@ -1248,7 +1256,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     // This is a white-listed set of methods we need to support on constants.
     if (receiver is StringConstant) {
       if (arguments.length == 1) {
-        switch (node.name.name) {
+        switch (op) {
           case '+':
             final Constant other = arguments[0];
             if (other is StringConstant) {
@@ -1266,7 +1274,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       }
     } else if (receiver is IntConstant || receiver is JavaScriptIntConstant) {
       if (arguments.length == 0) {
-        switch (node.name.name) {
+        switch (op) {
           case 'unary-':
             if (targetingJavaScript) {
               BigInt value = (receiver as JavaScriptIntConstant).bigIntValue;
@@ -1288,10 +1296,9 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         }
       } else if (arguments.length == 1) {
         final Constant other = arguments[0];
-        final op = node.name.name;
         if (other is IntConstant || other is JavaScriptIntConstant) {
           if ((op == '<<' || op == '>>' || op == '>>>')) {
-            var receiverValue = receiver is IntConstant
+            Object receiverValue = receiver is IntConstant
                 ? receiver.value
                 : (receiver as JavaScriptIntConstant).bigIntValue;
             int otherValue = other is IntConstant
@@ -1300,14 +1307,15 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
             if (otherValue < 0) {
               return report(
                   node.arguments.positional.first,
-                  // TODO(askesc): Change argument types in template to constants.
+                  // TODO(askesc): Change argument types in template to
+                  // constants.
                   templateConstEvalNegativeShift.withArguments(
                       op, '${receiverValue}', '${otherValue}'));
             }
           }
 
           if ((op == '%' || op == '~/')) {
-            var receiverValue = receiver is IntConstant
+            Object receiverValue = receiver is IntConstant
                 ? receiver.value
                 : (receiver as JavaScriptIntConstant).bigIntValue;
             int otherValue = other is IntConstant
@@ -1339,7 +1347,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
                       .toUnsigned(32)
                       .toInt();
               return evaluateBinaryBitOperation(
-                  node.name.name, receiverValue, otherValue, node);
+                  op, receiverValue, otherValue, node);
             case '<<':
             case '>>':
             case '>>>':
@@ -1358,7 +1366,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
                   : (other as JavaScriptIntConstant).bigIntValue.toInt();
 
               return evaluateBinaryShiftOperation(
-                  node.name.name, receiverValue, otherValue, node,
+                  op, receiverValue, otherValue, node,
                   negativeReceiver: negative);
             default:
               num receiverValue = receiver is IntConstant
@@ -1368,26 +1376,46 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
                   ? other.value
                   : (other as DoubleConstant).value;
               return evaluateBinaryNumericOperation(
-                  node.name.name, receiverValue, otherValue, node);
+                  op, receiverValue, otherValue, node);
           }
         } else if (other is DoubleConstant) {
+          if ((op == '|' || op == '&' || op == '^') ||
+              (op == '<<' || op == '>>' || op == '>>>')) {
+            return report(
+                node,
+                templateConstEvalInvalidBinaryOperandType.withArguments(
+                    op,
+                    other,
+                    typeEnvironment.intType,
+                    other.getType(typeEnvironment)));
+          }
           num receiverValue = receiver is IntConstant
               ? receiver.value
               : (receiver as DoubleConstant).value;
           return evaluateBinaryNumericOperation(
-              node.name.name, receiverValue, other.value, node);
+              op, receiverValue, other.value, node);
         }
         return report(
             node,
             templateConstEvalInvalidBinaryOperandType.withArguments(
-                node.name.name,
+                op,
                 receiver,
                 typeEnvironment.numType,
                 other.getType(typeEnvironment)));
       }
     } else if (receiver is DoubleConstant) {
+      if ((op == '|' || op == '&' || op == '^') ||
+          (op == '<<' || op == '>>' || op == '>>>')) {
+        return report(
+            node,
+            templateConstEvalInvalidBinaryOperandType.withArguments(
+                op,
+                receiver,
+                typeEnvironment.intType,
+                receiver.getType(typeEnvironment)));
+      }
       if (arguments.length == 0) {
-        switch (node.name.name) {
+        switch (op) {
           case 'unary-':
             return canonicalize(makeDoubleConstant(-receiver.value));
         }
@@ -1399,12 +1427,12 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
               ? other.value
               : (other as DoubleConstant).value;
           return evaluateBinaryNumericOperation(
-              node.name.name, receiver.value, value, node);
+              op, receiver.value, value, node);
         }
         return report(
             node,
             templateConstEvalInvalidBinaryOperandType.withArguments(
-                node.name.name,
+                op,
                 receiver,
                 typeEnvironment.numType,
                 other.getType(typeEnvironment)));
@@ -1413,7 +1441,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       if (arguments.length == 1) {
         final Constant other = arguments[0];
         if (other is BoolConstant) {
-          switch (node.name.name) {
+          switch (op) {
             case '|':
               return canonicalize(
                   new BoolConstant(receiver.value || other.value));
@@ -1430,10 +1458,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       return report(node, messageConstEvalNullValue);
     }
 
-    return report(
-        node,
-        templateConstEvalInvalidMethodInvocation.withArguments(
-            node.name.name, receiver));
+    return report(node,
+        templateConstEvalInvalidMethodInvocation.withArguments(op, receiver));
   }
 
   visitLogicalExpression(LogicalExpression node) {
@@ -1637,7 +1663,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       }
     }
     if (concatenated.length > 1) {
-      final expressions = new List<Expression>(concatenated.length);
+      final List<Expression> expressions =
+          new List<Expression>(concatenated.length);
       for (int i = 0; i < concatenated.length; i++) {
         Object value = concatenated[i];
         if (value is StringBuffer) {
@@ -1657,8 +1684,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   visitStaticInvocation(StaticInvocation node) {
     final Procedure target = node.target;
     final Arguments arguments = node.arguments;
-    final positionals = evaluatePositionalArguments(arguments);
-    final named = evaluateNamedArguments(arguments);
+    final List<Constant> positionals = evaluatePositionalArguments(arguments);
+    final Map<String, Constant> named = evaluateNamedArguments(arguments);
     if (shouldBeUnevaluated) {
       return unevaluated(
           node,
@@ -1721,7 +1748,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       }
     } else if (target.name.name == 'identical') {
       // Ensure the "identical()" function comes from dart:core.
-      final parent = target.parent;
+      final TreeNode parent = target.parent;
       if (parent is Library && parent == coreTypes.coreLibrary) {
         final Constant left = positionals[0];
         final Constant right = positionals[1];
@@ -1801,7 +1828,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   }
 
   visitSymbolLiteral(SymbolLiteral node) {
-    final libraryReference =
+    final Reference libraryReference =
         node.value.startsWith('_') ? libraryOf(node).reference : null;
     return canonicalize(new SymbolConstant(node.value, libraryReference));
   }
@@ -1817,7 +1844,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     if (constant is TearOffConstant) {
       if (node.typeArguments.length ==
           constant.procedure.function.typeParameters.length) {
-        final typeArguments = evaluateDartTypes(node, node.typeArguments);
+        final List<DartType> typeArguments =
+            evaluateDartTypes(node, node.typeArguments);
         return canonicalize(
             new PartialInstantiationConstant(constant, typeArguments));
       }
@@ -1878,7 +1906,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       // Convert to an integer when possible (matching the runtime behavior
       // of `is int`).
       if (value.isFinite && !identical(value, -0.0)) {
-        var i = value.toInt();
+        int i = value.toInt();
         if (value == i.toDouble()) return new JavaScriptIntConstant(i);
       }
     }
@@ -1931,7 +1959,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   }
 
   DartType evaluateDartType(TreeNode node, DartType type) {
-    final result = env.substituteType(type);
+    final DartType result = env.substituteType(type);
 
     if (!isInstantiated(result)) {
       return report(
@@ -1959,8 +1987,10 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
 
   Arguments unevaluatedArguments(List<Constant> positionalArgs,
       Map<String, Constant> namedArgs, List<DartType> types) {
-    final positional = new List<Expression>(positionalArgs.length);
-    final named = new List<NamedExpression>(namedArgs.length);
+    final List<Expression> positional =
+        new List<Expression>(positionalArgs.length);
+    final List<NamedExpression> named =
+        new List<NamedExpression>(namedArgs.length);
     for (int i = 0; i < positionalArgs.length; ++i) {
       positional[i] = extract(positionalArgs[i]);
     }
@@ -2025,7 +2055,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       case '>>':
         if (targetingJavaScript) {
           if (negativeReceiver) {
-            const signBit = 0x80000000;
+            const int signBit = 0x80000000;
             a -= (a & signBit) << 1;
           }
           result = a >> b;
@@ -2286,7 +2316,7 @@ class IsInstantiatedVisitor extends DartTypeVisitor<bool> {
   }
 
   bool visitFunctionType(FunctionType node) {
-    final parameters = node.typeParameters;
+    final List<TypeParameter> parameters = node.typeParameters;
     _availableVariables.addAll(parameters);
     final bool result = node.returnType.accept(this) &&
         node.positionalParameters.every((p) => p.accept(this)) &&
@@ -2301,7 +2331,7 @@ class IsInstantiatedVisitor extends DartTypeVisitor<bool> {
 }
 
 bool _isFormalParameter(VariableDeclaration variable) {
-  final parent = variable.parent;
+  final TreeNode parent = variable.parent;
   if (parent is FunctionNode) {
     return parent.positionalParameters.contains(variable) ||
         parent.namedParameters.contains(variable);

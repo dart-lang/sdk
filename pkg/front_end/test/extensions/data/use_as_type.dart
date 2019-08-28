@@ -6,24 +6,22 @@ class A1 {}
 
 /*class: A2:
  builder-name=A2,
- builder-onTypes=[A1],
- builder-supertype=Object,
- cls-name=A2,
- cls-supertype=Object
- */
+ builder-onType=A1,
+ extension-name=A2,
+ extension-onType=A1
+*/
 extension A2 on A1 {}
 
 class B1<T> {}
 
 /*class: B2:
  builder-name=B2,
- builder-onTypes=[B1<T>],
- builder-supertype=Object,
+ builder-onType=B1<T>,
  builder-type-params=[T],
- cls-name=B2,
- cls-supertype=Object,
- cls-type-params=[T]
- */
+ extension-name=B2,
+ extension-onType=B1<T>,
+ extension-type-params=[T]
+*/
 extension B2<T> on B1<T> {}
 
 main() {

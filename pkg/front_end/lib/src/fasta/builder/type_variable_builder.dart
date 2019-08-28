@@ -125,7 +125,7 @@ class TypeVariableBuilder extends TypeDeclarationBuilder {
   @override
   int get hashCode => target.hashCode;
 
-  static List<TypeParameter> kernelTypeParametersFromBuilders(
+  static List<TypeParameter> typeParametersFromBuilders(
       List<TypeVariableBuilder> builders) {
     if (builders == null) return null;
     List<TypeParameter> result =

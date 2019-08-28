@@ -194,6 +194,8 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
     // The mapping will be RX and stays that way until it will eventually be
     // unmapped.
     MemoryRegion region(region_ptr, size);
+    // DUAL_MAPPING_SUPPORTED is false in TARGET_OS_MACOS and hence support
+    // for MAP_JIT is not required here.
     const int alias_prot = PROT_READ | PROT_EXEC;
     void* alias_ptr =
         MapAligned(fd, alias_prot, size, alignment, allocated_size);
@@ -211,8 +213,13 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   const int prot =
       PROT_READ | PROT_WRITE |
       ((is_executable && !FLAG_write_protect_code) ? PROT_EXEC : 0);
-  void* address =
-      mmap(NULL, allocated_size, prot, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+  int map_flags = MAP_PRIVATE | MAP_ANONYMOUS;
+#if (defined(HOST_OS_MACOS) && !defined(HOST_OS_IOS))
+  if (is_executable && IsAtLeastOS10_14()) {
+    map_flags |= MAP_JIT;
+  }
+#endif  // defined(HOST_OS_MACOS)
+  void* address = mmap(NULL, allocated_size, prot, map_flags, -1, 0);
   LOG_INFO("mmap(NULL, 0x%" Px ", %u, ...): %p\n", allocated_size, prot,
            address);
   if (address == MAP_FAILED) {

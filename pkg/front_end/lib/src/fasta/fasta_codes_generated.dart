@@ -7,6 +7,8 @@
 // Instead modify 'pkg/front_end/messages.yaml' and run
 // 'pkg/front_end/tool/fasta generate-messages' to update.
 
+// ignore_for_file: lines_longer_than_80_chars
+
 part of fasta.codes;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3576,7 +3578,7 @@ const MessageCode messageFastaUsageLong =
     Read the SDK platform from <file>, which should be in Dill/Kernel IR format
     and contain the Dart SDK.
 
-  --target=dart2js|dart2js_server|dart_runner|flutter|flutter_runner|none|vm
+  --target=dart2js|dart2js_server|dart_runner|dartdevc|flutter|flutter_runner|none|vm
     Specify the target configuration.
 
   --enable-asserts

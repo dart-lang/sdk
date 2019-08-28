@@ -9,7 +9,7 @@ import 'package:async_helper/async_helper.dart';
 import 'constant_emission_test_helper.dart';
 
 void main() {
-  runTest({bool useCFEConstants: false}) async {
+  runTest() async {
     Map<String, Set<String>> expectedOutputUnits = {
       // Test that the deferred globals are not inlined into the main file.
       'ConstructedConstant(C(field=StringConstant("string1")))': {'lib1'},
@@ -21,15 +21,12 @@ void main() {
     await run(
         MEMORY_SOURCE_FILES,
         const [OutputUnitDescriptor('memory:lib1.dart', 'finalVar', 'lib1')],
-        expectedOutputUnits,
-        useCFEConstants: useCFEConstants);
+        expectedOutputUnits);
   }
 
   asyncTest(() async {
     print('--test from kernel------------------------------------------------');
     await runTest();
-    print('--test from kernel with CFE constants-----------------------------');
-    await runTest(useCFEConstants: true);
   });
 }
 

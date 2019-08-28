@@ -615,8 +615,8 @@ namespace dart {
   V(Unused17,                              0, RESV, ___, ___, ___)             \
   V(PopLocal,                              X, ORDN, xeg, ___, ___)             \
   V(PopLocal_Wide,                         X, WIDE, xeg, ___, ___)             \
-  V(Unused18,                              0, RESV, ___, ___, ___)             \
-  V(Unused19,                              0, RESV, ___, ___, ___)             \
+  V(LoadStatic,                            D, ORDN, lit, ___, ___)             \
+  V(LoadStatic_Wide,                       D, WIDE, lit, ___, ___)             \
   V(StoreLocal,                            X, ORDN, xeg, ___, ___)             \
   V(StoreLocal_Wide,                       X, WIDE, xeg, ___, ___)             \
   V(LoadFieldTOS,                          D, ORDN, lit, ___, ___)             \
@@ -749,7 +749,7 @@ class KernelBytecode {
   // Maximum bytecode format version supported by VM.
   // The range of supported versions should include version produced by bytecode
   // generator (currentBytecodeFormatVersion in pkg/vm/lib/bytecode/dbc.dart).
-  static const intptr_t kMaxSupportedBytecodeFormatVersion = 18;
+  static const intptr_t kMaxSupportedBytecodeFormatVersion = 19;
 
   enum Opcode {
 #define DECLARE_BYTECODE(name, encoding, kind, op1, op2, op3) k##name,
@@ -970,14 +970,14 @@ class KernelBytecode {
     return DecodeOpcode(instr) == KernelBytecode::kDebugCheck;
   }
 
-  // The interpreter, the bytecode generator, and this function must agree on
-  // this list of opcodes.
-  // The interpreter checks for a debug break at each instruction with listed
-  // opcode and the bytecode generator emits a source position at each
-  // instruction with listed opcode.
+  // The interpreter, the bytecode generator, the bytecode compiler, and this
+  // function must agree on this list of opcodes.
+  // For each instruction with listed opcode:
+  // - The interpreter checks for a debug break.
+  // - The bytecode generator emits a source position.
+  // - The bytecode compiler may emit a DebugStepCheck call.
   DART_FORCE_INLINE static bool IsDebugCheckedOpcode(const KBCInstr* instr) {
     switch (DecodeOpcode(instr)) {
-      case KernelBytecode::kAllocate:
       case KernelBytecode::kStoreStaticTOS:
       case KernelBytecode::kStoreStaticTOS_Wide:
       case KernelBytecode::kDebugCheck:

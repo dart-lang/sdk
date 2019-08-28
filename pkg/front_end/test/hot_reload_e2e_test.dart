@@ -126,6 +126,7 @@ abstract class TestCase {
       Expect.equals(expectedLines, i);
     });
 
+    // ignore: unawaited_futures
     vm.stderr.transform(utf8.decoder).transform(splitter).toList().then((err) {
       Expect.isTrue(err.isEmpty, err.join('\n'));
     });

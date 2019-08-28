@@ -1286,7 +1286,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * Initialize a newly created type to be declared by the given [element].
    */
   InterfaceTypeImpl(ClassElement element,
-      [this.prunedTypedefs, this.nullabilitySuffix = NullabilitySuffix.star])
+      {this.prunedTypedefs, this.nullabilitySuffix = NullabilitySuffix.star})
       : super(element, element.displayName);
 
   /**
@@ -1511,6 +1511,15 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return false;
     }
     return element.name == "num" && element.library.isDartCore;
+  }
+
+  @override
+  bool get isDartCoreObject {
+    ClassElement element = this.element;
+    if (element == null) {
+      return false;
+    }
+    return element.name == "Object" && element.library.isDartCore;
   }
 
   @override
@@ -2259,8 +2268,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     List<DartType> newTypeArguments = TypeImpl.substitute(
         typeArguments, argumentTypes, parameterTypes, prune);
 
-    InterfaceTypeImpl newType =
-        new InterfaceTypeImpl(element, prune, nullabilitySuffix);
+    InterfaceTypeImpl newType = new InterfaceTypeImpl(element,
+        prunedTypedefs: prune, nullabilitySuffix: nullabilitySuffix);
     newType.typeArguments = newTypeArguments;
     return newType;
   }
@@ -2503,8 +2512,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return NullabilitySuffix.none;
     }
 
-    InterfaceTypeImpl lub =
-        new InterfaceTypeImpl(firstElement, null, computeNullability());
+    InterfaceTypeImpl lub = new InterfaceTypeImpl(firstElement,
+        nullabilitySuffix: computeNullability());
     lub.typeArguments = lubArguments;
     return lub;
   }
@@ -2661,6 +2670,9 @@ abstract class TypeImpl implements DartType {
 
   @override
   bool get isDartCoreNum => false;
+
+  @override
+  bool get isDartCoreObject => false;
 
   @override
   bool get isDartCoreSet => false;

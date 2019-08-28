@@ -70,10 +70,6 @@
 # a warning that the experiment has been retired or rejected, but the tool
 # should continue to run.
 
-constant-update-2018:
-  help: "Enhanced constant expressions"
-  enabledIn: '2.4.1'
-
 extension-methods:
   help: "Extension Methods"
 
@@ -87,6 +83,11 @@ triple-shift:
 # Flags below this line are shipped, retired, or rejected, cannot be specified
 # on the command line, and will eventually be removed.
 #
+
+constant-update-2018:
+  help: "Enhanced constant expressions"
+  enabledIn: '2.4.1'
+  expired: true
 
 control-flow-collections:
   help: "Control Flow Collections"

@@ -8,10 +8,7 @@ method(/*[exact=JSUInt31]*/ a) {
   return a;
 }
 
-/*strong.member: foo:[null|subclass=Closure]*/
-/*omit.member: foo:[null|subclass=Closure]*/
-/*strongConst.member: foo:[subclass=Closure]*/
-/*omitConst.member: foo:[subclass=Closure]*/
+/*member: foo:[subclass=Closure]*/
 var foo = method;
 
 /*member: returnInt:[null|subclass=Object]*/

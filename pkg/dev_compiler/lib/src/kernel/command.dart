@@ -101,7 +101,9 @@ Future<CompilerResult> _compile(List<String> args,
     ..addFlag('compile-sdk',
         help: 'Build an SDK module.', defaultsTo: false, hide: true)
     ..addOption('libraries-file',
-        help: 'The path to the libraries.json file for the sdk.');
+        help: 'The path to the libraries.json file for the sdk.')
+    ..addOption('used-inputs-file',
+        help: 'If set, the file to record inputs used.', hide: true);
   SharedCompilerOptions.addArguments(argParser);
 
   var declaredVariables = parseAndRemoveDeclaredVariables(args);
@@ -237,6 +239,7 @@ Future<CompilerResult> _compile(List<String> args,
   List<Component> doneInputSummaries;
   fe.IncrementalCompiler incrementalCompiler;
   fe.WorkerInputComponent cachedSdkInput;
+  bool recordUsedInputs = argResults['used-inputs-file'] != null;
   if (useAnalyzer || !useIncrementalCompiler) {
     compilerState = await fe.initializeCompiler(
         oldCompilerState,
@@ -267,7 +270,8 @@ Future<CompilerResult> _compile(List<String> args,
             TargetFlags(trackWidgetCreation: trackWidgetCreation)),
         fileSystem: fileSystem,
         experiments: experiments,
-        environmentDefines: declaredVariables);
+        environmentDefines: declaredVariables,
+        trackNeededDillLibraries: recordUsedInputs);
     incrementalCompiler = compilerState.incrementalCompiler;
     cachedSdkInput =
         compilerState.workerInputCache[sourcePathToUri(sdkSummaryPath)];
@@ -384,6 +388,31 @@ Future<CompilerResult> _compile(List<String> args,
       outFiles.add(
           File(output + '.map').writeAsString(json.encode(jsCode.sourceMap)));
     }
+  }
+
+  if (recordUsedInputs) {
+    Set<Uri> usedOutlines = Set<Uri>();
+    if (!useAnalyzer && useIncrementalCompiler) {
+      compilerState.incrementalCompiler
+          .updateNeededDillLibrariesWithHierarchy(result.classHierarchy, null);
+      for (Library lib
+          in compilerState.incrementalCompiler.neededDillLibraries) {
+        if (lib.importUri.scheme == "dart") continue;
+        Uri uri = compilerState.libraryToInputDill[lib.importUri];
+        if (uri == null) {
+          throw StateError("Library ${lib.importUri} was recorded as used, "
+              "but was not in the list of known libraries.");
+        }
+        usedOutlines.add(uri);
+      }
+    } else {
+      // Used inputs wasn't recorded: Say we used everything.
+      usedOutlines.addAll(summaryModules.keys);
+    }
+
+    var outputUsedFile = File(argResults['used-inputs-file'] as String);
+    outputUsedFile.createSync(recursive: true);
+    outputUsedFile.writeAsStringSync(usedOutlines.join("\n"));
   }
 
   await Future.wait(outFiles);

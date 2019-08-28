@@ -40,6 +40,7 @@ import 'generics.dart'
         getDefaultFunctionTypeArguments,
         getInstantiatorTypeArguments,
         getStaticType,
+        getTypeParameterTypes,
         hasFreeTypeParameters,
         hasInstantiatorTypeArguments,
         isAllDynamic,
@@ -255,9 +256,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     }
     final name = objectTable.getNameHandle(null, library.name ?? '');
     final script = getScript(library.fileUri, true);
-    final extensionUris = getNativeExtensionUris(library)
-        .map((String uri) => objectTable.getNameHandle(null, uri))
-        .toList();
+    final extensionUris =
+        objectTable.getPublicNameHandles(getNativeExtensionUris(library));
     if (extensionUris.isNotEmpty) {
       flags |= LibraryDeclaration.hasExtensionsFlag;
     }
@@ -278,10 +278,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     if (hasInstantiatorTypeArguments(cls)) {
       flags |= ClassDeclaration.hasTypeArgumentsFlag;
       numTypeArguments = flattenInstantiatorTypeArguments(
-              cls,
-              cls.typeParameters
-                  .map((tp) => new TypeParameterType(tp))
-                  .toList())
+              cls, getTypeParameterTypes(cls.typeParameters))
           .length;
       assert(numTypeArguments > 0);
       if (cls.typeParameters.isNotEmpty) {
@@ -617,9 +614,12 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         objectTable.mangleMemberName(member, false, false));
 
     final parameters = <ParameterDeclaration>[];
-    parameters
-        .addAll(function.positionalParameters.map(getParameterDeclaration));
-    parameters.addAll(function.namedParameters.map(getParameterDeclaration));
+    for (var param in function.positionalParameters) {
+      parameters.add(getParameterDeclaration(param));
+    }
+    for (var param in function.namedParameters) {
+      parameters.add(getParameterDeclaration(param));
+    }
 
     return new FunctionDeclaration(
         flags,
@@ -667,10 +667,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   TypeParametersDeclaration getTypeParametersDeclaration(
       List<TypeParameter> typeParams) {
-    return new TypeParametersDeclaration(typeParams
-        .map((tp) => new NameAndType(objectTable.getNameHandle(null, tp.name),
-            objectTable.getHandle(tp.bound)))
-        .toList());
+    return new TypeParametersDeclaration(
+        objectTable.getTypeParameterHandles(typeParams));
   }
 
   ParameterDeclaration getParameterDeclaration(VariableDeclaration variable) {
@@ -694,9 +692,13 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       return flags;
     }
 
-    List<int> paramFlags = <int>[];
-    paramFlags.addAll(function.positionalParameters.map(getFlags));
-    paramFlags.addAll(function.namedParameters.map(getFlags));
+    final List<int> paramFlags = <int>[];
+    for (var param in function.positionalParameters) {
+      paramFlags.add(getFlags(param));
+    }
+    for (var param in function.namedParameters) {
+      paramFlags.add(getFlags(param));
+    }
 
     for (int flags in paramFlags) {
       if (flags != 0) {
@@ -1384,11 +1386,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         }
       }
       if (hasInstantiatorTypeArguments(enclosingClass)) {
-        final typeParameters = (isFactory
-                ? node.function.typeParameters
-                : enclosingClass.typeParameters)
-            .map((p) => new TypeParameterType(p))
-            .toList();
+        final typeParameters = getTypeParameterTypes(isFactory
+            ? node.function.typeParameters
+            : enclosingClass.typeParameters);
         instantiatorTypeArguments =
             flattenInstantiatorTypeArguments(enclosingClass, typeParameters);
       }
@@ -2174,11 +2174,15 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         break;
     }
 
-    final List<NameAndType> parameters = function.positionalParameters
-        .followedBy(function.namedParameters)
-        .map((v) => new NameAndType(objectTable.getNameHandle(null, v.name),
-            objectTable.getHandle(v.type)))
-        .toList();
+    final List<NameAndType> parameters = <NameAndType>[];
+    for (var v in function.positionalParameters) {
+      parameters.add(new NameAndType(objectTable.getNameHandle(null, v.name),
+          objectTable.getHandle(v.type)));
+    }
+    for (var v in function.namedParameters) {
+      parameters.add(new NameAndType(objectTable.getNameHandle(null, v.name),
+          objectTable.getHandle(v.type)));
+    }
     if (function.requiredParameterCount != parameters.length) {
       if (function.namedParameters.isNotEmpty) {
         flags |= ClosureDeclaration.hasOptionalNamedParamsFlag;
@@ -2187,10 +2191,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       }
     }
 
-    final typeParams = function.typeParameters
-        .map((tp) => new NameAndType(objectTable.getNameHandle(null, tp.name),
-            objectTable.getHandle(tp.bound)))
-        .toList();
+    final typeParams =
+        objectTable.getTypeParameterHandles(function.typeParameters);
     if (typeParams.isNotEmpty) {
       flags |= ClosureDeclaration.hasTypeParamsFlag;
     }
@@ -3074,10 +3076,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       if (target.isConst) {
         _genPushConstExpr(target.initializer);
       } else if (_hasTrivialInitializer(target)) {
-        final fieldIndex = cp.addStaticField(target);
-        asm.emitPushConstant(
-            fieldIndex); // TODO(alexmarkov): do we really need this?
-        asm.emitPushStatic(fieldIndex);
+        asm.emitLoadStatic(cp.addStaticField(target));
       } else {
         _genDirectCall(target, objectTable.getArgDescHandle(0), 0, isGet: true);
       }

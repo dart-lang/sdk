@@ -41,7 +41,7 @@ class AmbiguousExportWithExtensionMethodsTest extends DriverResolutionTest {
     ..contextFeatures = new FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
 
-  test_extension() async {
+  test_extensions_bothExported() async {
     newFile('/test/lib/lib1.dart', content: r'''
 extension E on String {}
 ''');
@@ -54,5 +54,16 @@ export 'lib2.dart';
 ''', [
       error(CompileTimeErrorCode.AMBIGUOUS_EXPORT, 20, 19),
     ]);
+  }
+
+  test_extensions_localAndExported() async {
+    newFile('/test/lib/lib1.dart', content: r'''
+extension E on String {}
+''');
+    await assertNoErrorsInCode(r'''
+export 'lib1.dart';
+
+extension E on String {}
+''');
   }
 }

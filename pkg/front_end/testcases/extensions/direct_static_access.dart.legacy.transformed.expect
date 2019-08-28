@@ -1,0 +1,366 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:9:11: Error: A function declaration needs an explicit list of parameters.
+// Try adding a parameter list to the function declaration.
+// extension Extension<T> on Class<T> {
+//           ^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:9:24: Error: Expected '{' before this.
+// extension Extension<T> on Class<T> {
+//                        ^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:9:27: Error: A function declaration needs an explicit list of parameters.
+// Try adding a parameter list to the function declaration.
+// extension Extension<T> on Class<T> {
+//                           ^^^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:9:27: Error: 'Class' is already declared in this scope.
+// extension Extension<T> on Class<T> {
+//                           ^^^^^
+// pkg/front_end/testcases/extensions/direct_static_access.dart:5:7: Context: Previous declaration of 'Class'.
+// class Class<T> {
+//       ^^^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:9:1: Warning: Type 'extension' not found.
+// extension Extension<T> on Class<T> {
+// ^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:9:24: Warning: Type 'on' not found.
+// extension Extension<T> on Class<T> {
+//                        ^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:11:3: Error: Can't have modifier 'static' here.
+// Try removing 'static'.
+//   static get property => Class.field;
+//   ^^^^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:11:10: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+//   static get property => Class.field;
+//          ^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:11:10: Error: Expected ';' after this.
+//   static get property => Class.field;
+//          ^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:11:23: Error: A function declaration needs an explicit list of parameters.
+// Try adding a parameter list to the function declaration.
+//   static get property => Class.field;
+//                       ^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:11:26: Error: Can't use 'Class' because it is declared more than once.
+//   static get property => Class.field;
+//                          ^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:13:3: Error: Can't have modifier 'static' here.
+// Try removing 'static'.
+//   static set property(value) {
+//   ^^^^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:13:10: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+//   static set property(value) {
+//          ^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:13:10: Error: Expected ';' after this.
+//   static set property(value) {
+//          ^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:13:14: Error: 'property' is already declared in this scope.
+//   static set property(value) {
+//              ^^^^^^^^
+// pkg/front_end/testcases/extensions/direct_static_access.dart:11:14: Context: Previous declaration of 'property'.
+//   static get property => Class.field;
+//              ^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:14:5: Error: Can't use 'Class' because it is declared more than once.
+//     Class.field = value;
+//     ^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:17:3: Error: Can't have modifier 'static' here.
+// Try removing 'static'.
+//   static var field;
+//   ^^^^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:19:3: Error: Can't have modifier 'static' here.
+// Try removing 'static'.
+//   static readGetter() {
+//   ^^^^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:23:3: Error: Can't have modifier 'static' here.
+// Try removing 'static'.
+//   static writeSetterRequired(value) {
+//   ^^^^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:24:5: Warning: Setter not found: 'property'.
+//     property = value;
+//     ^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:27:3: Error: Can't have modifier 'static' here.
+// Try removing 'static'.
+//   static writeSetterOptional([value]) {
+//   ^^^^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:28:5: Warning: Setter not found: 'property'.
+//     property = value;
+//     ^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:31:3: Error: Can't have modifier 'static' here.
+// Try removing 'static'.
+//   static writeSetterNamed({value}) {
+//   ^^^^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:32:5: Warning: Setter not found: 'property'.
+//     property = value;
+//     ^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:35:3: Error: Can't have modifier 'static' here.
+// Try removing 'static'.
+//   static genericWriteSetterRequired<S>(S value) {
+//   ^^^^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:36:5: Warning: Setter not found: 'property'.
+//     property = value;
+//     ^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:39:3: Error: Can't have modifier 'static' here.
+// Try removing 'static'.
+//   static genericWriteSetterOptional<S>([S value]) {
+//   ^^^^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:40:5: Warning: Setter not found: 'property'.
+//     property = value;
+//     ^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:43:3: Error: Can't have modifier 'static' here.
+// Try removing 'static'.
+//   static genericWriteSetterNamed<S>({S value}) {
+//   ^^^^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:44:5: Warning: Setter not found: 'property'.
+//     property = value;
+//     ^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:47:3: Error: Can't have modifier 'static' here.
+// Try removing 'static'.
+//   static get tearOffGetterNoArgs => readGetter;
+//   ^^^^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:47:10: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+//   static get tearOffGetterNoArgs => readGetter;
+//          ^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:47:10: Error: 'get' is already declared in this scope.
+//   static get tearOffGetterNoArgs => readGetter;
+//          ^^^
+// pkg/front_end/testcases/extensions/direct_static_access.dart:11:10: Context: Previous declaration of 'get'.
+//   static get property => Class.field;
+//          ^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:47:10: Error: Expected ';' after this.
+//   static get tearOffGetterNoArgs => readGetter;
+//          ^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:47:34: Error: A function declaration needs an explicit list of parameters.
+// Try adding a parameter list to the function declaration.
+//   static get tearOffGetterNoArgs => readGetter;
+//                                  ^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:48:3: Error: Can't have modifier 'static' here.
+// Try removing 'static'.
+//   static get tearOffGetterRequired => writeSetterRequired;
+//   ^^^^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:48:10: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+//   static get tearOffGetterRequired => writeSetterRequired;
+//          ^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:48:10: Error: 'get' is already declared in this scope.
+//   static get tearOffGetterRequired => writeSetterRequired;
+//          ^^^
+// pkg/front_end/testcases/extensions/direct_static_access.dart:11:10: Context: Previous declaration of 'get'.
+//   static get property => Class.field;
+//          ^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:48:10: Error: Expected ';' after this.
+//   static get tearOffGetterRequired => writeSetterRequired;
+//          ^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:48:36: Error: A function declaration needs an explicit list of parameters.
+// Try adding a parameter list to the function declaration.
+//   static get tearOffGetterRequired => writeSetterRequired;
+//                                    ^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:49:3: Error: Can't have modifier 'static' here.
+// Try removing 'static'.
+//   static get tearOffGetterOptional => writeSetterOptional;
+//   ^^^^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:49:10: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+//   static get tearOffGetterOptional => writeSetterOptional;
+//          ^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:49:10: Error: 'get' is already declared in this scope.
+//   static get tearOffGetterOptional => writeSetterOptional;
+//          ^^^
+// pkg/front_end/testcases/extensions/direct_static_access.dart:11:10: Context: Previous declaration of 'get'.
+//   static get property => Class.field;
+//          ^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:49:10: Error: Expected ';' after this.
+//   static get tearOffGetterOptional => writeSetterOptional;
+//          ^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:49:36: Error: A function declaration needs an explicit list of parameters.
+// Try adding a parameter list to the function declaration.
+//   static get tearOffGetterOptional => writeSetterOptional;
+//                                    ^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:50:3: Error: Can't have modifier 'static' here.
+// Try removing 'static'.
+//   static get tearOffGetterNamed => writeSetterNamed;
+//   ^^^^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:50:10: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+//   static get tearOffGetterNamed => writeSetterNamed;
+//          ^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:50:10: Error: 'get' is already declared in this scope.
+//   static get tearOffGetterNamed => writeSetterNamed;
+//          ^^^
+// pkg/front_end/testcases/extensions/direct_static_access.dart:11:10: Context: Previous declaration of 'get'.
+//   static get property => Class.field;
+//          ^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:50:10: Error: Expected ';' after this.
+//   static get tearOffGetterNamed => writeSetterNamed;
+//          ^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:50:33: Error: A function declaration needs an explicit list of parameters.
+// Try adding a parameter list to the function declaration.
+//   static get tearOffGetterNamed => writeSetterNamed;
+//                                 ^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:51:3: Error: Can't have modifier 'static' here.
+// Try removing 'static'.
+//   static get tearOffGetterGenericRequired => genericWriteSetterRequired;
+//   ^^^^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:51:10: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+//   static get tearOffGetterGenericRequired => genericWriteSetterRequired;
+//          ^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:51:10: Error: 'get' is already declared in this scope.
+//   static get tearOffGetterGenericRequired => genericWriteSetterRequired;
+//          ^^^
+// pkg/front_end/testcases/extensions/direct_static_access.dart:11:10: Context: Previous declaration of 'get'.
+//   static get property => Class.field;
+//          ^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:51:10: Error: Expected ';' after this.
+//   static get tearOffGetterGenericRequired => genericWriteSetterRequired;
+//          ^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:51:43: Error: A function declaration needs an explicit list of parameters.
+// Try adding a parameter list to the function declaration.
+//   static get tearOffGetterGenericRequired => genericWriteSetterRequired;
+//                                           ^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:52:3: Error: Can't have modifier 'static' here.
+// Try removing 'static'.
+//   static get tearOffGetterGenericOptional => genericWriteSetterOptional;
+//   ^^^^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:52:10: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+//   static get tearOffGetterGenericOptional => genericWriteSetterOptional;
+//          ^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:52:10: Error: 'get' is already declared in this scope.
+//   static get tearOffGetterGenericOptional => genericWriteSetterOptional;
+//          ^^^
+// pkg/front_end/testcases/extensions/direct_static_access.dart:11:10: Context: Previous declaration of 'get'.
+//   static get property => Class.field;
+//          ^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:52:10: Error: Expected ';' after this.
+//   static get tearOffGetterGenericOptional => genericWriteSetterOptional;
+//          ^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:52:43: Error: A function declaration needs an explicit list of parameters.
+// Try adding a parameter list to the function declaration.
+//   static get tearOffGetterGenericOptional => genericWriteSetterOptional;
+//                                           ^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:53:3: Error: Can't have modifier 'static' here.
+// Try removing 'static'.
+//   static get tearOffGetterGenericNamed => genericWriteSetterNamed;
+//   ^^^^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:53:10: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+//   static get tearOffGetterGenericNamed => genericWriteSetterNamed;
+//          ^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:53:10: Error: 'get' is already declared in this scope.
+//   static get tearOffGetterGenericNamed => genericWriteSetterNamed;
+//          ^^^
+// pkg/front_end/testcases/extensions/direct_static_access.dart:11:10: Context: Previous declaration of 'get'.
+//   static get property => Class.field;
+//          ^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:53:10: Error: Expected ';' after this.
+//   static get tearOffGetterGenericNamed => genericWriteSetterNamed;
+//          ^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:53:40: Error: A function declaration needs an explicit list of parameters.
+// Try adding a parameter list to the function declaration.
+//   static get tearOffGetterGenericNamed => genericWriteSetterNamed;
+//                                        ^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:55:3: Error: Can't have modifier 'static' here.
+// Try removing 'static'.
+//   static invocationsFromStaticContext(int value) {
+//   ^^^^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:74:3: Error: Can't have modifier 'static' here.
+// Try removing 'static'.
+//   static tearOffsFromStaticContext(int value) {
+//   ^^^^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:100:3: Error: Can't have modifier 'static' here.
+// Try removing 'static'.
+//   static fieldAccessFromStaticContext() {
+//   ^^^^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:102:5: Warning: Setter not found: 'property'.
+//     property = field;
+//     ^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:105:3: Error: Can't have modifier 'static' here.
+// Try removing 'static'.
+//   static getterCallsFromStaticContext(int value) {
+//   ^^^^^^
+//
+// pkg/front_end/testcases/extensions/direct_static_access.dart:171:5: Warning: Setter not found: 'property'.
+//     property = field;
+//     ^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class<T extends core::Object* = dynamic> extends core::Object {
+  static field dynamic field = null;
+  synthetic constructor •() → self::Class<self::Class::T*>*
+    : super core::Object::•()
+    ;
+}
+static method Extension<T extends core::Object* = dynamic>() → invalid-type {}
+static method main() → dynamic {}

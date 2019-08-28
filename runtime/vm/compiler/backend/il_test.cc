@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/compiler/backend/il.h"
+#include "vm/compiler/backend/il_test_helper.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -38,6 +39,50 @@ ISOLATE_UNIT_TEST_CASE(OptimizationTests) {
   ConstantInstr* c4 = new ConstantInstr(Object::ZoneHandle());
   EXPECT(c3->Equals(c4));
   EXPECT(!c3->Equals(c1));
+}
+
+ISOLATE_UNIT_TEST_CASE(IRTest_EliminateWriteBarrier) {
+  const char* kScript =
+      R"(
+      class Container<T> {
+        operator []=(var index, var value) {
+          return data[index] = value;
+        }
+
+        List<T> data = new List<T>()..length = 10;
+      }
+
+      Container<int> x = new Container<int>();
+
+      foo() {
+        for (int i = 0; i < 10; ++i) {
+          x[i] = i;
+        }
+      }
+    )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  const auto& function = Function::Handle(GetFunction(root_library, "foo"));
+
+  Invoke(root_library, "foo");
+
+  TestPipeline pipeline(function, CompilerPass::kJIT);
+  FlowGraph* flow_graph = pipeline.RunPasses({});
+
+  auto entry = flow_graph->graph_entry()->normal_entry();
+  EXPECT(entry != nullptr);
+
+  StoreIndexedInstr* store_indexed = nullptr;
+
+  ILMatcher cursor(flow_graph, entry, true);
+  RELEASE_ASSERT(cursor.TryMatch({
+      kMoveGlob,
+      kMatchAndMoveBranchTrue,
+      kMoveGlob,
+      {kMatchStoreIndexed, &store_indexed},
+  }));
+
+  EXPECT(!store_indexed->value()->NeedsWriteBarrier());
 }
 
 }  // namespace dart

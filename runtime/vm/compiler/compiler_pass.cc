@@ -449,7 +449,7 @@ COMPILER_PASS(AllocateRegistersForGraphIntrinsic, {
 
 COMPILER_PASS(ReorderBlocks, {
   if (state->reorder_blocks) {
-    state->block_scheduler->ReorderBlocks();
+    BlockScheduler::ReorderBlocks(flow_graph);
   }
 });
 

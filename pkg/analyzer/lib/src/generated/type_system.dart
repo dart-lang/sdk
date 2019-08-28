@@ -475,6 +475,31 @@ class Dart2TypeSystem extends TypeSystem {
     return orderedArguments;
   }
 
+  /// Given the type defining [element], instantiate its type formals to
+  /// their bounds.
+  List<DartType> instantiateTypeFormalsToBounds2(Element element) {
+    List<TypeParameterElement> typeParameters;
+    if (element is ClassElement) {
+      typeParameters = element.typeParameters;
+    } else if (element is GenericTypeAliasElement) {
+      typeParameters = element.typeParameters;
+    } else {
+      throw StateError('Unexpected: $element');
+    }
+
+    if (typeParameters.isEmpty) {
+      return const <DartType>[];
+    }
+
+    if (AnalysisDriver.useSummary2) {
+      return typeParameters
+          .map((p) => (p as TypeParameterElementImpl).defaultType)
+          .toList();
+    } else {
+      return instantiateTypeFormalsToBounds(typeParameters);
+    }
+  }
+
   @override
   bool isAssignableTo(DartType fromType, DartType toType,
       {FeatureSet featureSet}) {
@@ -1081,8 +1106,9 @@ class Dart2TypeSystem extends TypeSystem {
       var newTypeArgs = _transformList(
           type.typeArguments, (t) => _substituteType(t, lowerBound, visitType));
       if (identical(type.typeArguments, newTypeArgs)) return type;
-      return new InterfaceTypeImpl(
-          type.element, type.prunedTypedefs, type.nullabilitySuffix)
+      return new InterfaceTypeImpl(type.element,
+          prunedTypedefs: type.prunedTypedefs,
+          nullabilitySuffix: type.nullabilitySuffix)
         ..typeArguments = newTypeArgs;
     }
     if (type is FunctionType) {
@@ -1514,7 +1540,7 @@ class GenericInferrer {
   ///   - `GLB(FutureOr<A>, FutureOr<B>) == FutureOr<GLB(A, B)>`
   ///   - `GLB(FutureOr<A>, Future<B>) == Future<GLB(A, B)>`
   ///   - else `GLB(FutureOr<A>, B) == GLB(A, B)`
-  /// - `GLB(A, FutureOr<B>) ==  GLB(FutureOr<A>, B)` (defined above),
+  /// - `GLB(A, FutureOr<B>) ==  GLB(FutureOr<B>, A)` (defined above),
   /// - else `GLB(A, B) == Null`
   DartType _getGreatestLowerBound(DartType t1, DartType t2) {
     var result = _typeSystem.getGreatestLowerBound(t1, t2);
@@ -1540,7 +1566,7 @@ class GenericInferrer {
         return _getGreatestLowerBound(t1TypeArg, t2);
       }
       if (t2 is InterfaceType && t2.isDartAsyncFutureOr) {
-        // GLB(A, FutureOr<B>) ==  GLB(FutureOr<A>, B)
+        // GLB(A, FutureOr<B>) ==  GLB(FutureOr<B>, A)
         return _getGreatestLowerBound(t2, t1);
       }
       return typeProvider.nullType;

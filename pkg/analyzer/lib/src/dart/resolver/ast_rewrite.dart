@@ -3,12 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/ast_factory.dart';
+import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -56,7 +55,6 @@ class AstRewriteVisitor extends ScopedVisitor {
       }
       Element element = nameScope.lookup(methodName, definingLibrary);
       if (element is ClassElement) {
-        AstFactory astFactory = new AstFactoryImpl();
         TypeName typeName = astFactory.typeName(methodName, node.typeArguments);
         ConstructorName constructorName =
             astFactory.constructorName(typeName, null, null);
@@ -65,7 +63,6 @@ class AstRewriteVisitor extends ScopedVisitor {
                 _getKeyword(node), constructorName, node.argumentList);
         NodeReplacer.replace(node, instanceCreationExpression);
       } else if (element is ExtensionElement) {
-        AstFactory astFactory = new AstFactoryImpl();
         ExtensionOverride extensionOverride = astFactory.extensionOverride(
             extensionName: methodName,
             typeArguments: node.typeArguments,
@@ -91,10 +88,10 @@ class AstRewriteVisitor extends ScopedVisitor {
                 typeArguments,
                 [element.name, constructorElement.name]);
           }
-          AstFactory astFactory = new AstFactoryImpl();
           TypeName typeName = astFactory.typeName(target, null);
           ConstructorName constructorName =
               astFactory.constructorName(typeName, node.operator, methodName);
+          // TODO(scheglov) I think we should drop "typeArguments" below.
           InstanceCreationExpression instanceCreationExpression =
               astFactory.instanceCreationExpression(
                   _getKeyword(node), constructorName, node.argumentList,
@@ -103,7 +100,6 @@ class AstRewriteVisitor extends ScopedVisitor {
         }
       } else if (element is PrefixElement) {
         // Possible cases: p.C() or p.C<>()
-        AstFactory astFactory = new AstFactoryImpl();
         Identifier identifier = astFactory.prefixedIdentifier(
             astFactory.simpleIdentifier(target.token),
             null,
@@ -120,7 +116,6 @@ class AstRewriteVisitor extends ScopedVisitor {
                   _getKeyword(node), constructorName, node.argumentList);
           NodeReplacer.replace(node, instanceCreationExpression);
         } else if (prefixedElement is ExtensionElement) {
-          AstFactory astFactory = new AstFactoryImpl();
           PrefixedIdentifier extensionName =
               astFactory.prefixedIdentifier(target, node.operator, methodName);
           ExtensionOverride extensionOverride = astFactory.extensionOverride(
@@ -147,7 +142,6 @@ class AstRewriteVisitor extends ScopedVisitor {
                   typeArguments,
                   [element.name, constructorElement.name]);
             }
-            AstFactory astFactory = new AstFactoryImpl();
             TypeName typeName = astFactory.typeName(target, typeArguments);
             ConstructorName constructorName =
                 astFactory.constructorName(typeName, node.operator, methodName);

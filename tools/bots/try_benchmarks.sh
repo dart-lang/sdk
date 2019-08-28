@@ -84,6 +84,8 @@ for command; do
     tar -czf linux-ia32_profile.tar.gz \
       --exclude .git \
       --exclude .gitignore \
+      --exclude pkg/analysis_server/language_model \
+      --exclude out/ReleaseIA32/dart-sdk/model \
       -- \
       third_party/d8/linux/ia32/natives_blob.bin \
       third_party/d8/linux/ia32/snapshot_blob.bin \
@@ -167,6 +169,8 @@ for command; do
     tar -czf linux-ia32.tar.gz \
       --exclude .git \
       --exclude .gitignore \
+      --exclude pkg/analysis_server/language_model \
+      --exclude out/ReleaseIA32/dart-sdk/model \
       -- \
       third_party/d8/linux/ia32/natives_blob.bin \
       third_party/d8/linux/ia32/snapshot_blob.bin \
@@ -239,16 +243,13 @@ EOF
     ./tools/build.py --mode=release --arch=x64 runtime
     ./tools/build.py --mode=release --arch=x64 gen_snapshot
     ./tools/build.py --mode=release --arch=x64 dart_precompiled_runtime
-    ./tools/build.py --mode=release --arch=simdbc64 runtime
   elif [ "$command" = linux-x64-archive ] ||
        [ "$command" = linux-x64-bytecode-archive ]; then
-    simdbc_dart=out/ReleaseSIMDBC64/dart
-    if [ "$command" = linux-x64-bytecode-archive ]; then
-      simdbc_dart=
-    fi
     tar -czf linux-x64_profile.tar.gz \
       --exclude .git \
       --exclude .gitignore \
+      --exclude pkg/analysis_server/language_model \
+      --exclude out/ReleaseX64/dart-sdk/model \
       -- \
       third_party/d8/linux/x64/natives_blob.bin \
       third_party/d8/linux/x64/snapshot_blob.bin \
@@ -256,7 +257,6 @@ EOF
       out/ReleaseX64/vm_platform_strong.dill \
       out/ReleaseX64/gen/kernel_service.dill \
       out/ReleaseX64/dart-sdk \
-      $simdbc_dart \
       out/ReleaseX64/dart \
       out/ReleaseX64/gen_snapshot \
       out/ReleaseX64/gen_kernel_bytecode.dill \
@@ -352,6 +352,8 @@ EOF
     tar -czf linux-x64.tar.gz \
       --exclude .git \
       --exclude .gitignore \
+      --exclude pkg/analysis_server/language_model \
+      --exclude out/ReleaseX64/dart-sdk/model \
       -- \
       third_party/d8/linux/x64/natives_blob.bin \
       third_party/d8/linux/x64/snapshot_blob.bin \
@@ -359,7 +361,6 @@ EOF
       out/ReleaseX64/vm_platform_strong.dill \
       out/ReleaseX64/gen/kernel_service.dill \
       out/ReleaseX64/dart-sdk \
-      $simdbc_dart \
       out/ReleaseX64/dart \
       out/ReleaseX64/gen_snapshot \
       out/ReleaseX64/gen_kernel_bytecode.dill \
@@ -395,9 +396,6 @@ EOF
     out/ReleaseX64/dart --profile-period=10000 --packages=.packages --enable-interpreter --compilation-counter-threshold=-1 hello.dart
     out/ReleaseX64/dart --profile-period=10000 --packages=.packages --use-bytecode-compiler hello.dart
     out/ReleaseX64/dart --profile-period=10000 --packages=.packages --use-bytecode-compiler --optimization-counter-threshold=-1 hello.dart
-    if [ "$command" = linux-x64-benchmark ]; then
-      out/ReleaseSIMDBC64/dart --profile-period=10000 --packages=.packages hello.dart
-    fi
     out/ReleaseX64/dart pkg/front_end/tool/perf.dart parse hello.dart
     out/ReleaseX64/dart pkg/front_end/tool/perf.dart scan hello.dart
     out/ReleaseX64/dart pkg/front_end/tool/fasta_perf.dart --legacy kernel_gen_e2e hello.dart

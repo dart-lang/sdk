@@ -17,6 +17,7 @@
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/compiler/assembler/disassembler_kbc.h"
+#include "vm/compiler/frontend/bytecode_fingerprints.h"
 #include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/frontend/kernel_fingerprints.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
@@ -2283,6 +2284,16 @@ RawString* Class::UserVisibleName() const {
   return GenerateUserVisibleName();  // No caching in PRODUCT, regenerate.
 }
 
+RawClass* Class::Mixin() const {
+  if (is_transformed_mixin_application()) {
+    const Array& interfaces = Array::Handle(this->interfaces());
+    const Type& mixin_type =
+        Type::Handle(Type::RawCast(interfaces.At(interfaces.Length() - 1)));
+    return mixin_type.type_class();
+  }
+  return raw();
+}
+
 bool Class::IsInFullSnapshot() const {
   NoSafepointScope no_safepoint;
   return raw_ptr()->library_->ptr()->is_in_fullsnapshot_;
@@ -3088,6 +3099,7 @@ RawFunction* Function::CreateDynamicInvocationForwarder(
   forwarder.set_is_visible(false);
 
   forwarder.ClearICDataArray();
+  forwarder.ClearBytecode();
   forwarder.ClearCode();
   forwarder.set_usage_counter(0);
   forwarder.set_deoptimization_counter(0);
@@ -5752,9 +5764,20 @@ void Function::ClearCode() const {
   ASSERT(Thread::Current()->IsMutatorThread());
 
   StorePointer(&raw_ptr()->unoptimized_code_, Code::null());
-  StorePointer(&raw_ptr()->bytecode_, Bytecode::null());
 
-  SetInstructions(StubCode::LazyCompile());
+  if (FLAG_enable_interpreter && HasBytecode()) {
+    SetInstructions(StubCode::InterpretCall());
+  } else {
+    SetInstructions(StubCode::LazyCompile());
+  }
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+}
+
+void Function::ClearBytecode() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
+  StorePointer(&raw_ptr()->bytecode_, Bytecode::null());
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
@@ -7905,10 +7928,11 @@ RawString* Function::QualifiedName(NameVisibility name_visibility) const {
       result = String::Concat(Symbols::ConstructorStacktracePrefix(), result,
                               Heap::kOld);
     } else {
+      const Class& mixin = Class::Handle(cls.Mixin());
       result = String::Concat(Symbols::Dot(), result, Heap::kOld);
       const String& cls_name = String::Handle(name_visibility == kScrubbedName
                                                   ? cls.ScrubbedName()
-                                                  : cls.UserVisibleName());
+                                                  : mixin.UserVisibleName());
       result = String::Concat(cls_name, result, Heap::kOld);
     }
   }
@@ -7970,7 +7994,8 @@ RawString* Function::GetSource() const {
 int32_t Function::SourceFingerprint() const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (is_declared_in_bytecode()) {
-    return 0;  // TODO(37353): Implement or remove.
+    return kernel::BytecodeFingerprintHelper::CalculateFunctionFingerprint(
+        *this);
   }
   return kernel::KernelSourceFingerprintHelper::CalculateFunctionFingerprint(
       *this);
@@ -15039,6 +15064,7 @@ void Code::NotifyCodeObservers(const Function& function,
                                const Code& code,
                                bool optimized) {
 #if !defined(PRODUCT)
+  ASSERT(!function.IsNull());
   ASSERT(!Thread::Current()->IsAtSafepoint());
   // Calling ToLibNamePrefixedQualifiedCString is very expensive,
   // try to avoid it.
@@ -15053,6 +15079,8 @@ void Code::NotifyCodeObservers(const char* name,
                                const Code& code,
                                bool optimized) {
 #if !defined(PRODUCT)
+  ASSERT(name != nullptr);
+  ASSERT(!code.IsNull());
   ASSERT(!Thread::Current()->IsAtSafepoint());
   if (CodeObservers::AreActive()) {
     const auto& instrs = Instructions::Handle(code.instructions());
@@ -15187,7 +15215,7 @@ const char* Code::QualifiedName() const {
   if (obj.IsFunction()) {
     const char* opt = is_optimized() ? "[Optimized]" : "[Unoptimized]";
     const char* function_name =
-        String::Handle(zone, Function::Cast(obj).QualifiedScrubbedName())
+        String::Handle(zone, Function::Cast(obj).QualifiedUserVisibleName())
             .ToCString();
     return zone->PrintToString("%s %s", opt, function_name);
   }

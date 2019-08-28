@@ -226,6 +226,10 @@ class CodegenEnqueuer extends EnqueuerImpl {
         break;
       case TypeUseKind.CONST_INSTANTIATION:
         failedAt(CURRENT_ELEMENT_SPANNABLE, "Unexpected type use: $typeUse.");
+        break;
+      case TypeUseKind.NAMED_TYPE_VARIABLE_NEW_RTI:
+        assert(type is TypeVariableType);
+        _registerNamedTypeVariableNewRti(type);
     }
   }
 
@@ -241,6 +245,10 @@ class CodegenEnqueuer extends EnqueuerImpl {
 
   void _registerIsCheck(DartType type) {
     _worldBuilder.registerIsCheck(type);
+  }
+
+  void _registerNamedTypeVariableNewRti(TypeVariableType type) {
+    _worldBuilder.registerNamedTypeVariableNewRti(type);
   }
 
   void _registerClosurizedMember(FunctionEntity element) {

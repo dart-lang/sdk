@@ -105,6 +105,6 @@ class LanguageModel {
 
     // Get tokens with scores, limiting the length.
     return Map.fromEntries(entries.sublist(0, completions))
-        .map((k, v) => MapEntry(_idx2word[k], v));
+        .map((k, v) => MapEntry(_idx2word[k].replaceAll('"', '\''), v));
   }
 }

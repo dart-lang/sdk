@@ -2837,6 +2837,10 @@ table UnlinkedInformativeData {
 
   variantField_5:uint (id: 5);
 
+  /// If the parameter has a default value, the source text of the constant
+  /// expression in the default value.  Otherwise the empty string.
+  variantField_10:string (id: 10);
+
   variantField_1:uint (id: 1);
 
   variantField_4:[string] (id: 4);

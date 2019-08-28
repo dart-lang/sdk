@@ -25,6 +25,9 @@ import 'package:kernel/kernel.dart'
 import 'package:path/path.dart' as path;
 import 'package:usage/uuid/uuid.dart';
 
+import 'package:vm/bytecode/gen_bytecode.dart'
+    show generateBytecode, createFreshComponentWithBytecode;
+import 'package:vm/bytecode/options.dart' show BytecodeOptions;
 import 'package:vm/incremental_compiler.dart' show IncrementalCompiler;
 import 'package:vm/kernel_front_end.dart'
     show
@@ -34,6 +37,7 @@ import 'package:vm/kernel_front_end.dart'
         convertFileOrUriArgumentToUri,
         createFrontEndTarget,
         createFrontEndFileSystem,
+        runWithFrontEndCompilerContext,
         setVMEnvironmentDefines,
         writeDepfile;
 
@@ -116,6 +120,16 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
   ..addFlag('track-widget-creation',
       help: 'Run a kernel transformer to track creation locations for widgets.',
       defaultsTo: false)
+  ..addFlag('gen-bytecode', help: 'Generate bytecode', defaultsTo: false)
+  ..addMultiOption('bytecode-options',
+      help: 'Specify options for bytecode generation:',
+      valueHelp: 'opt1,opt2,...',
+      allowed: BytecodeOptions.commandLineFlags.keys,
+      allowedHelp: BytecodeOptions.commandLineFlags)
+  ..addFlag('drop-ast',
+      help: 'Include only bytecode into the output file', defaultsTo: false)
+  ..addFlag('enable-asserts',
+      help: 'Whether asserts will be enabled.', defaultsTo: false)
   ..addMultiOption('enable-experiment',
       help: 'Comma separated list of experimental features, eg set-literals.',
       hide: true);
@@ -238,6 +252,7 @@ class FrontendCompiler implements CompilerInterface {
   bool unsafePackageSerialization;
 
   CompilerOptions _compilerOptions;
+  BytecodeOptions _bytecodeOptions;
   FileSystem _fileSystem;
   Uri _mainSource;
   ArgResults _options;
@@ -323,6 +338,12 @@ class FrontendCompiler implements CompilerInterface {
       return false;
     }
 
+    compilerOptions.bytecode = options['gen-bytecode'];
+    final BytecodeOptions bytecodeOptions = new BytecodeOptions(
+        enableAsserts: options['enable-asserts'],
+        environmentDefines: environmentDefines)
+      ..parseCommandLineFlags(options['bytecode-options']);
+
     compilerOptions.target = createFrontEndTarget(
       options['target'],
       trackWidgetCreation: options['track-widget-creation'],
@@ -342,13 +363,15 @@ class FrontendCompiler implements CompilerInterface {
     Component component;
     if (options['incremental']) {
       _compilerOptions = compilerOptions;
+      _bytecodeOptions = bytecodeOptions;
       setVMEnvironmentDefines(environmentDefines, _compilerOptions);
 
       _compilerOptions.omitPlatform = false;
       _generator =
           generator ?? _createGenerator(new Uri.file(_initializeFromDill));
       await invalidateIfInitializingFromDill();
-      component = await _runWithPrintRedirection(() => _generator.compile());
+      component = await _runWithPrintRedirection(() async =>
+          await _generateBytecodeIfNeeded(await _generator.compile()));
     } else {
       if (options['link-platform']) {
         // TODO(aam): Remove linkedDependencies once platform is directly embedded
@@ -362,6 +385,9 @@ class FrontendCompiler implements CompilerInterface {
           aot: options['aot'],
           useGlobalTypeFlowAnalysis: options['tfa'],
           environmentDefines: environmentDefines,
+          genBytecode: compilerOptions.bytecode,
+          bytecodeOptions: bytecodeOptions,
+          dropAST: options['drop-ast'],
           useProtobufTreeShaker: options['protobuf-tree-shaker']));
     }
     if (component != null) {
@@ -388,6 +414,22 @@ class FrontendCompiler implements CompilerInterface {
     return errors.isEmpty;
   }
 
+  Future<Component> _generateBytecodeIfNeeded(Component component) async {
+    if (_compilerOptions.bytecode && errors.isEmpty) {
+      await runWithFrontEndCompilerContext(
+          _mainSource, _compilerOptions, component, () {
+        generateBytecode(component,
+            coreTypes: _generator.getCoreTypes(),
+            hierarchy: _generator.getClassHierarchy(),
+            options: _bytecodeOptions);
+        if (_options['drop-ast']) {
+          component = createFreshComponentWithBytecode(component);
+        }
+      });
+    }
+    return component;
+  }
+
   void _outputDependenciesDelta(Component component) async {
     Set<Uri> uris = new Set<Uri>();
     for (Uri uri in component.uriToSource.keys) {
@@ -399,11 +441,20 @@ class FrontendCompiler implements CompilerInterface {
       if (previouslyReportedDependencies.contains(uri)) {
         continue;
       }
-      _outputStream.writeln('+${await asFileUri(_fileSystem, uri)}');
+      try {
+        _outputStream.writeln('+${await asFileUri(_fileSystem, uri)}');
+      } on FileSystemException {
+        // Ignore errors from invalid import uris.
+      }
     }
     for (Uri uri in previouslyReportedDependencies) {
-      if (!uris.contains(uri)) {
+      if (uris.contains(uri)) {
+        continue;
+      }
+      try {
         _outputStream.writeln('-${await asFileUri(_fileSystem, uri)}');
+      } on FileSystemException {
+        // Ignore errors from invalid import uris.
       }
     }
     previouslyReportedDependencies = uris;
@@ -501,12 +552,12 @@ class FrontendCompiler implements CompilerInterface {
       _mainSource = _getFileOrUri(entryPoint);
     }
     errors.clear();
-    final Component deltaProgram =
-        await _generator.compile(entryPoint: _mainSource);
+    Component deltaProgram = await _generator.compile(entryPoint: _mainSource);
 
     if (deltaProgram != null && transformer != null) {
       transformer.transform(deltaProgram);
     }
+    deltaProgram = await _generateBytecodeIfNeeded(deltaProgram);
     await writeDillFile(deltaProgram, _kernelBinaryFilename);
     _outputStream.writeln(boundaryKey);
     await _outputDependenciesDelta(deltaProgram);
@@ -528,8 +579,10 @@ class FrontendCompiler implements CompilerInterface {
     Procedure procedure = await _generator.compileExpression(
         expression, definitions, typeDefinitions, libraryUri, klass, isStatic);
     if (procedure != null) {
+      Component component = createExpressionEvaluationComponent(procedure);
+      component = await _generateBytecodeIfNeeded(component);
       final IOSink sink = new File(_kernelBinaryFilename).openWrite();
-      sink.add(serializeProcedure(procedure));
+      sink.add(serializeComponent(component));
       await sink.close();
       _outputStream
           .writeln('$boundaryKey $_kernelBinaryFilename ${errors.length}');

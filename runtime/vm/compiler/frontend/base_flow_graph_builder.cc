@@ -993,6 +993,18 @@ Fragment BaseFlowGraphBuilder::StringInterpolate(TokenPosition position) {
   return Fragment(interpolate);
 }
 
+void BaseFlowGraphBuilder::reset_context_depth_for_deopt_id(intptr_t deopt_id) {
+  if (is_recording_context_levels()) {
+    for (intptr_t i = 0, n = context_level_array_->length(); i < n; i += 2) {
+      if (context_level_array_->At(i) == deopt_id) {
+        (*context_level_array_)[i + 1] = context_depth_;
+        return;
+      }
+      ASSERT(context_level_array_->At(i) < deopt_id);
+    }
+  }
+}
+
 }  // namespace kernel
 }  // namespace dart
 

@@ -26,15 +26,11 @@ method1(dynamic c) {
 class Class2a<T> {
   /*strong.member: Class2a.field2:checked,elided*/
   /*omit.member: Class2a.field2:elided*/
-  /*strongConst.member: Class2a.field2:checked,elided*/
-  /*omitConst.member: Class2a.field2:elided*/
   T field2;
 }
 
 /*strong.member: method2:calls=[set$field2(1)],params=1*/
 /*omit.member: method2:params=1*/
-/*strongConst.member: method2:calls=[set$field2(1)],params=1*/
-/*omitConst.member: method2:params=1*/
 @pragma('dart2js:noInline')
 method2(dynamic c) {
   c.field2 = 42;
@@ -43,16 +39,12 @@ method2(dynamic c) {
 class Class3a {
   /*strong.member: Class3a.field3:checked,elided*/
   /*omit.member: Class3a.field3:elided,set=simple*/
-  /*strongConst.member: Class3a.field3:checked,elided*/
-  /*omitConst.member: Class3a.field3:elided,set=simple*/
   int field3;
 }
 
 class Class3b {
   /*strong.member: Class3b.field3:checked,elided*/
   /*omit.member: Class3b.field3:elided,set=simple*/
-  /*strongConst.member: Class3b.field3:checked,elided*/
-  /*omitConst.member: Class3b.field3:elided,set=simple*/
   int field3;
 }
 
@@ -65,16 +57,12 @@ method3(dynamic c) {
 class Class4a {
   /*strong.member: Class4a.field4:checked,elided*/
   /*omit.member: Class4a.field4:elided,set=simple*/
-  /*strongConst.member: Class4a.field4:checked,elided*/
-  /*omitConst.member: Class4a.field4:elided,set=simple*/
   int field4;
 }
 
 class Class4b implements Class4a {
   /*strong.member: Class4b.field4:checked,elided*/
   /*omit.member: Class4b.field4:elided,set=simple*/
-  /*strongConst.member: Class4b.field4:checked,elided*/
-  /*omitConst.member: Class4b.field4:elided,set=simple*/
   @override
   int field4;
 }

@@ -2307,7 +2307,11 @@ A v = new A();
   }
 
   test_visitTypeName_parameters_noArguments() async {
-    ClassElement classA = ElementFactory.classElement2("A", ["E"]);
+    var tpE = ElementFactory.typeParameterElement('E');
+    tpE.defaultType = DynamicTypeImpl.instance;
+
+    ClassElement classA =
+        ElementFactory.classElement3(name: 'A', typeParameters: [tpE]);
     TypeName typeName = AstTestFactory.typeName(classA);
     typeName.type = null;
     _resolveNode(typeName, [classA]);

@@ -7,6 +7,7 @@ library dart2js.new_js_emitter.model;
 import '../constants/values.dart' show ConstantValue;
 import '../deferred_load.dart' show OutputUnit;
 import '../elements/entities.dart';
+import '../elements/types.dart';
 import '../js/js.dart' as js show Expression, Name, Statement, TokenFinalizer;
 import '../js/js_debug.dart' as js show nodeToString;
 import '../js_backend/runtime_types_codegen.dart';
@@ -233,6 +234,7 @@ class StaticField {
   }
 }
 
+// TODO(fishythefish, sra): Split type information into separate model object.
 class Class implements FieldContainer {
   /// The element should only be used during the transition to the new model.
   /// Uses indicate missing information in the model.
@@ -246,6 +248,7 @@ class Class implements FieldContainer {
   final List<Field> fields;
   final List<StubMethod> isChecks;
   final ClassChecks classChecksNewRti;
+  final Set<TypeVariableType> namedTypeVariablesNewRti = {};
   final List<StubMethod> checkedSetters;
 
   /// Stub methods for this class that are call stubs for getters.

@@ -10,6 +10,7 @@ import '../io/source_information.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_backend/namer.dart' show Namer;
+import '../options.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/codegen_world_builder.dart';
 import '../universe/selector.dart' show Selector;
@@ -37,6 +38,8 @@ class InstantiationStubGenerator {
   JCommonElements get _commonElements => _closedWorld.commonElements;
   JElementEnvironment get _elementEnvironment =>
       _closedWorld.elementEnvironment;
+
+  CompilerOptions get _options => _emitterTask.options;
 
   /// Generates a stub to forward a call selector with no type arguments to a
   /// call selector with stored types.
@@ -78,8 +81,18 @@ class InstantiationStubGenerator {
       parameters.add(new jsAst.Parameter(jsName));
     }
 
-    for (int i = 0; i < targetSelector.typeArgumentCount; i++) {
-      arguments.add(js('this.#[#]', [_namer.rtiFieldJsName, js.number(i)]));
+    if (_options.experimentNewRti) {
+      for (int i = 0; i < targetSelector.typeArgumentCount; i++) {
+        arguments.add(js('this.#.#[#]', [
+          _namer.rtiFieldJsName,
+          _namer.fieldPropertyName(_commonElements.rtiRestField),
+          js.number(i)
+        ]));
+      }
+    } else {
+      for (int i = 0; i < targetSelector.typeArgumentCount; i++) {
+        arguments.add(js('this.#[#]', [_namer.rtiFieldJsName, js.number(i)]));
+      }
     }
 
     jsAst.Fun function = js('function(#) { return this.#.#(#); }', [
@@ -109,19 +122,34 @@ class InstantiationStubGenerator {
     jsAst.Name operatorSignature =
         _namer.asName(_namer.fixedNames.operatorSignature);
 
-    jsAst.Fun function = js('function() { return #(#(this.#), this.#); }', [
-      _emitter.staticFunctionAccess(
-          _commonElements.instantiatedGenericFunctionType),
-      _emitter.staticFunctionAccess(
-          _commonElements.extractFunctionTypeObjectFromInternal),
-      _namer.fieldPropertyName(functionField),
-      _namer.rtiFieldJsName,
-    ]);
+    jsAst.Fun function = _options.experimentNewRti
+        ? _generateSignatureNewRti(functionField)
+        : _generateSignatureLegacy(functionField);
+
     // TODO(sra): Generate source information for stub that has no member.
     // TODO(sra): .withSourceInformation(sourceInformation);
 
     return new ParameterStubMethod(operatorSignature, null, function);
   }
+
+  jsAst.Fun _generateSignatureLegacy(FieldEntity functionField) =>
+      js('function() { return #(#(this.#), this.#); }', [
+        _emitter.staticFunctionAccess(
+            _commonElements.instantiatedGenericFunctionType),
+        _emitter.staticFunctionAccess(
+            _commonElements.extractFunctionTypeObjectFromInternal),
+        _namer.fieldPropertyName(functionField),
+        _namer.rtiFieldJsName,
+      ]);
+
+  jsAst.Fun _generateSignatureNewRti(FieldEntity functionField) =>
+      js('function() { return #(#(this.#), this.#); }', [
+        _emitter.staticFunctionAccess(
+            _commonElements.instantiatedGenericFunctionTypeNewRti),
+        _emitter.staticFunctionAccess(_commonElements.closureFunctionType),
+        _namer.fieldPropertyName(functionField),
+        _namer.rtiFieldJsName,
+      ]);
 
   // Returns all stubs for an instantiation class.
   //

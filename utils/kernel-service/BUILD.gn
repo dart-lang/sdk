@@ -31,6 +31,9 @@ kernel_application_snapshot("kernel-service_snapshot") {
     "--train",
     "file:///" + rebase_path("../../pkg/compiler/lib/src/dart2js.dart"),
   ]
+  if (dart_platform_bytecode) {
+    training_args += [ "--bytecode" ]
+  }
   output = "$root_gen_dir/kernel-service.dart.snapshot"
 }
 

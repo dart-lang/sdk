@@ -4,7 +4,7 @@
 
 import 'dart:async' show Future;
 
-import 'package:kernel/kernel.dart' show Component;
+import 'package:kernel/kernel.dart' show Component, Statement;
 
 import 'package:kernel/ast.dart' as ir;
 
@@ -17,6 +17,8 @@ import '../api_prototype/diagnostic_message.dart' show DiagnosticMessageHandler;
 import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
 
 import '../api_prototype/file_system.dart' show FileSystem;
+
+import '../api_prototype/kernel_generator.dart' show CompilerResult;
 
 import '../base/processed_options.dart' show ProcessedOptions;
 
@@ -159,9 +161,9 @@ Future<Component> compile(
   processedOpts.inputs.add(input);
   processedOpts.clearFileSystemCache();
 
-  var compilerResult = await CompilerContext.runWithOptions(processedOpts,
-      (CompilerContext context) async {
-    var compilerResult = await generateKernelInternal();
+  CompilerResult compilerResult = await CompilerContext.runWithOptions(
+      processedOpts, (CompilerContext context) async {
+    CompilerResult compilerResult = await generateKernelInternal();
     Component component = compilerResult?.component;
     if (component == null) return null;
     if (component.mainMethod == null) {
@@ -218,7 +220,7 @@ Iterable<String> getSupportedLibraryNames(
 // is implemented correctly for patch files (Issue #33495).
 bool isRedirectingFactory(ir.Procedure member) {
   if (member.kind == ir.ProcedureKind.Factory) {
-    var body = member.function.body;
+    Statement body = member.function.body;
     if (body is redirecting.RedirectingFactoryBody) return true;
     if (body is ir.ExpressionStatement) {
       ir.Expression expression = body.expression;

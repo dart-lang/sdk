@@ -1,4 +1,4 @@
-# Dart VM Service Protocol 3.25
+# Dart VM Service Protocol 3.26
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
@@ -261,7 +261,20 @@ _streamNotify_, and the _params_ will have _streamId_ and _event_ properties:
 It is considered a _backwards compatible_ change to add a new type of event to an existing stream.
 Clients should be written to handle this gracefully.
 
+### Binary Events
 
+Some events are associated with bulk binary data. These events are delivered as
+WebSocket binary frames instead of text frames. A binary event's metadata
+should be interpreted as UTF-8 encoded JSON, with the same properties as
+described above for ordinary events.
+
+```
+type BinaryEvent {
+  dataOffset : uint32,
+  metadata : uint8[dataOffset-4],
+  data : uint8[],
+}
+```
 
 ## Types
 
@@ -1003,6 +1016,20 @@ Note that breakpoints are added and removed on a per-isolate basis.
 
 See [Success](#success).
 
+### requestHeapSnapshot
+
+```
+Success requestHeapSnapshot(string isolateId)
+```
+
+Requests a dump of the Dart heap of the given isolate.
+
+This method immediately returns success. The VM will then begin delivering
+binary events on the `HeapSnapshot` event stream. The binary data in these
+events, when concatenated together, conforms to the SnapshotGraph type. The
+splitting of the SnapshotGraph into events can happen at any byte offset,
+including the middle of scalar fields.
+
 ### resume
 
 ```
@@ -1160,6 +1187,7 @@ Extension | Extension
 Timeline | TimelineEvents
 Logging | Logging
 Service | ServiceRegistered, ServiceUnregistered
+HeapSnapshot | HeapSnapshot
 
 Additionally, some embedders provide the _Stdout_ and _Stderr_
 streams.  These streams allow the client to subscribe to writes to
@@ -3294,5 +3322,6 @@ version | comments
 3.23 | Add `VMFlagUpdate` event kind to the `VM` stream.
 3.24 | Add `operatingSystem` property to `VM` object.
 3.25 | Add 'getInboundReferences', 'getRetainingPath' RPCs, and 'InboundReferences', 'InboundReference', 'RetainingPath', and 'RetainingObject' objects.
+3.26 | Add 'requestHeapSnapshot'.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

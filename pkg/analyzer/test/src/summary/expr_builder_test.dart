@@ -6,6 +6,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
@@ -22,6 +23,7 @@ import 'resynthesize_common.dart';
 import 'test_strategies.dart';
 
 main() {
+  if (AnalysisDriver.useSummary2) return;
   defineReflectiveSuite(() {
     defineReflectiveTests(ExprBuilderTest);
     defineReflectiveTests(ExprBuilderWithConstantUpdateTest);

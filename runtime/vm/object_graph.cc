@@ -8,13 +8,17 @@
 #include "vm/dart_api_state.h"
 #include "vm/growable_array.h"
 #include "vm/isolate.h"
+#include "vm/native_symbol.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/raw_object.h"
+#include "vm/raw_object_fields.h"
 #include "vm/reusable_handles.h"
 #include "vm/visitor.h"
 
 namespace dart {
+
+#if !defined(PRODUCT)
 
 static bool IsUserClass(intptr_t cid) {
   if (cid == kContextCid) return true;
@@ -514,101 +518,107 @@ intptr_t ObjectGraph::InboundReferences(Object* obj, const Array& references) {
   return visitor.length();
 }
 
-static void WritePtr(RawObject* raw, WriteStream* stream) {
-  ASSERT(raw->IsHeapObject());
-  ASSERT(raw->IsOldObject());
-  uword addr = RawObject::ToAddr(raw);
-  ASSERT(Utils::IsAligned(addr, kObjectAlignment));
-  // Using units of kObjectAlignment makes the ids fit into Smis when parsed
-  // in the Dart code of the Observatory.
-  // TODO(koda): Use delta-encoding/back-references to further compress this.
-  stream->WriteUnsigned(addr / kObjectAlignment);
+void HeapSnapshotWriter::EnsureAvailable(intptr_t needed) {
+  intptr_t available = capacity_ - size_;
+  if (available >= needed) {
+    return;
+  }
+
+  if (buffer_ != nullptr) {
+    Flush();
+  }
+  ASSERT(buffer_ == nullptr);
+
+  intptr_t chunk_size = kPreferredChunkSize;
+  if (chunk_size < needed + kMetadataReservation) {
+    chunk_size = needed + kMetadataReservation;
+  }
+  buffer_ = reinterpret_cast<uint8_t*>(malloc(chunk_size));
+  size_ = kMetadataReservation;
+  capacity_ = chunk_size;
 }
 
-class WritePointerVisitor : public ObjectPointerVisitor {
- public:
-  WritePointerVisitor(Isolate* isolate,
-                      WriteStream* stream,
-                      bool only_instances)
-      : ObjectPointerVisitor(isolate),
-        stream_(stream),
-        only_instances_(only_instances),
-        count_(0) {}
-  virtual void VisitPointers(RawObject** first, RawObject** last) {
-    for (RawObject** current = first; current <= last; ++current) {
-      RawObject* object = *current;
-      if (!object->IsHeapObject() || object->InVMIsolateHeap()) {
-        // Ignore smis and objects in the VM isolate for now.
-        // TODO(koda): To track which field each pointer corresponds to,
-        // we'll need to encode which fields were omitted here.
-        continue;
+void HeapSnapshotWriter::Flush(bool last) {
+  if (size_ == 0 && !last) {
+    return;
+  }
+
+  JSONStream js;
+  {
+    JSONObject jsobj(&js);
+    jsobj.AddProperty("jsonrpc", "2.0");
+    jsobj.AddProperty("method", "streamNotify");
+    {
+      JSONObject params(&jsobj, "params");
+      params.AddProperty("streamId", Service::heapsnapshot_stream.id());
+      {
+        JSONObject event(&params, "event");
+        event.AddProperty("type", "Event");
+        event.AddProperty("kind", "HeapSnapshot");
+        event.AddProperty("isolate", thread()->isolate());
+        event.AddPropertyTimeMillis("timestamp", OS::GetCurrentTimeMillis());
+        event.AddProperty("last", last);
       }
-      if (only_instances_ && !IsUserClass(object->GetClassId())) {
-        continue;
-      }
-      WritePtr(object, stream_);
-      ++count_;
     }
   }
 
-  intptr_t count() const { return count_; }
-
- private:
-  WriteStream* stream_;
-  bool only_instances_;
-  intptr_t count_;
-};
-
-static void WriteHeader(RawObject* raw,
-                        intptr_t size,
-                        intptr_t cid,
-                        WriteStream* stream) {
-  WritePtr(raw, stream);
-  ASSERT(Utils::IsAligned(size, kObjectAlignment));
-  stream->WriteUnsigned(size);
-  stream->WriteUnsigned(cid);
+  Service::SendEventWithData(Service::heapsnapshot_stream.id(), "HeapSnapshot",
+                             kMetadataReservation, js.buffer()->buf(),
+                             js.buffer()->length(), buffer_, size_);
+  buffer_ = nullptr;
+  size_ = 0;
+  capacity_ = 0;
 }
 
-class WriteGraphVisitor : public ObjectGraph::Visitor {
- public:
-  WriteGraphVisitor(Isolate* isolate,
-                    WriteStream* stream,
-                    ObjectGraph::SnapshotRoots roots)
-      : stream_(stream),
-        ptr_writer_(isolate, stream, roots == ObjectGraph::kUser),
-        roots_(roots),
-        count_(0) {}
+void HeapSnapshotWriter::AssignObjectId(RawObject* obj) {
+  // TODO(rmacnak): We're assigning IDs in iteration order, so we can use the
+  // compator's trick of using a finger table with bit counting to make the
+  // mapping much smaller.
+  ASSERT(obj->IsHeapObject());
+  thread()->heap()->SetObjectId(obj, ++object_count_);
+}
 
-  virtual Direction VisitObject(ObjectGraph::StackIterator* it) {
-    RawObject* raw_obj = it->Get();
-    Thread* thread = Thread::Current();
-    REUSABLE_OBJECT_HANDLESCOPE(thread);
-    Object& obj = thread->ObjectHandle();
-    obj = raw_obj;
-    if ((roots_ == ObjectGraph::kVM) || obj.IsField() || obj.IsInstance() ||
-        obj.IsContext()) {
-      // Each object is a header + a zero-terminated list of its neighbors.
-      WriteHeader(raw_obj, raw_obj->HeapSize(), obj.GetClassId(), stream_);
-      raw_obj->VisitPointers(&ptr_writer_);
-      stream_->WriteUnsigned(0);
-      ++count_;
-    }
-    return kProceed;
+intptr_t HeapSnapshotWriter::GetObjectId(RawObject* obj) {
+  if (!obj->IsHeapObject()) {
+    return 0;
+  }
+  return thread()->heap()->GetObjectId(obj);
+}
+
+void HeapSnapshotWriter::ClearObjectIds() {
+  thread()->heap()->ResetObjectIdTable();
+}
+
+void HeapSnapshotWriter::CountReferences(intptr_t count) {
+  reference_count_ += count;
+}
+
+void HeapSnapshotWriter::CountExternalProperty() {
+  external_property_count_ += 1;
+}
+
+class Pass1Visitor : public ObjectVisitor,
+                     public ObjectPointerVisitor,
+                     public HandleVisitor {
+ public:
+  explicit Pass1Visitor(HeapSnapshotWriter* writer)
+      : ObjectVisitor(),
+        ObjectPointerVisitor(Isolate::Current()),
+        HandleVisitor(Thread::Current()),
+        writer_(writer) {}
+
+  void VisitObject(RawObject* obj) {
+    if (obj->IsPseudoObject()) return;
+
+    writer_->AssignObjectId(obj);
+    obj->VisitPointers(this);
   }
 
-  intptr_t count() const { return count_; }
-
- private:
-  WriteStream* stream_;
-  WritePointerVisitor ptr_writer_;
-  ObjectGraph::SnapshotRoots roots_;
-  intptr_t count_;
-};
-
-class WriteGraphExternalSizesVisitor : public HandleVisitor {
- public:
-  WriteGraphExternalSizesVisitor(Thread* thread, WriteStream* stream)
-      : HandleVisitor(thread), stream_(stream) {}
+  void VisitPointers(RawObject** from, RawObject** to) {
+    intptr_t count = to - from + 1;
+    ASSERT(count >= 0);
+    writer_->CountReferences(count);
+  }
 
   void VisitHandle(uword addr) {
     FinalizablePersistentHandle* weak_persistent_handle =
@@ -617,76 +627,389 @@ class WriteGraphExternalSizesVisitor : public HandleVisitor {
       return;  // Free handle.
     }
 
-    WritePtr(weak_persistent_handle->raw(), stream_);
-    stream_->WriteUnsigned(weak_persistent_handle->external_size());
+    writer_->CountExternalProperty();
   }
 
  private:
-  WriteStream* stream_;
+  HeapSnapshotWriter* const writer_;
+
+  DISALLOW_COPY_AND_ASSIGN(Pass1Visitor);
 };
 
-intptr_t ObjectGraph::Serialize(WriteStream* stream,
-                                SnapshotRoots roots,
-                                bool collect_garbage) {
-  if (collect_garbage) {
-    isolate()->heap()->CollectAllGarbage();
+enum NonReferenceDataTags {
+  kNoData = 0,
+  kNullData,
+  kBoolData,
+  kIntData,
+  kDoubleData,
+  kLatin1Data,
+  kUTF16Data,
+  kLengthData,
+  kNameData,
+};
+
+static const intptr_t kMaxStringElements = 128;
+
+class Pass2Visitor : public ObjectVisitor,
+                     public ObjectPointerVisitor,
+                     public HandleVisitor {
+ public:
+  explicit Pass2Visitor(HeapSnapshotWriter* writer)
+      : ObjectVisitor(),
+        ObjectPointerVisitor(Isolate::Current()),
+        HandleVisitor(Thread::Current()),
+        writer_(writer) {}
+
+  void VisitObject(RawObject* obj) {
+    if (obj->IsPseudoObject()) return;
+
+    intptr_t cid = obj->GetClassId();
+    writer_->WriteUnsigned(cid);
+    writer_->WriteUnsigned(discount_sizes_ ? 0 : obj->HeapSize());
+
+    if (cid == kNullCid) {
+      writer_->WriteUnsigned(kNullData);
+    } else if (cid == kBoolCid) {
+      writer_->WriteUnsigned(kBoolData);
+      writer_->WriteUnsigned(static_cast<RawBool*>(obj)->ptr()->value_);
+    } else if (cid == kSmiCid) {
+      UNREACHABLE();
+    } else if (cid == kMintCid) {
+      writer_->WriteUnsigned(kIntData);
+      writer_->WriteSigned(static_cast<RawMint*>(obj)->ptr()->value_);
+    } else if (cid == kDoubleCid) {
+      writer_->WriteUnsigned(kDoubleData);
+      writer_->WriteBytes(&(static_cast<RawDouble*>(obj)->ptr()->value_),
+                          sizeof(double));
+    } else if (cid == kOneByteStringCid) {
+      RawOneByteString* str = static_cast<RawOneByteString*>(obj);
+      intptr_t len = Smi::Value(str->ptr()->length_);
+      intptr_t trunc_len = Utils::Minimum(len, kMaxStringElements);
+      writer_->WriteUnsigned(kLatin1Data);
+      writer_->WriteUnsigned(len);
+      writer_->WriteUnsigned(trunc_len);
+      writer_->WriteBytes(&str->ptr()->data()[0], trunc_len);
+    } else if (cid == kExternalOneByteStringCid) {
+      RawExternalOneByteString* str =
+          static_cast<RawExternalOneByteString*>(obj);
+      intptr_t len = Smi::Value(str->ptr()->length_);
+      intptr_t trunc_len = Utils::Minimum(len, kMaxStringElements);
+      writer_->WriteUnsigned(kLatin1Data);
+      writer_->WriteUnsigned(len);
+      writer_->WriteUnsigned(trunc_len);
+      writer_->WriteBytes(&str->ptr()->external_data_[0], trunc_len);
+    } else if (cid == kTwoByteStringCid) {
+      RawTwoByteString* str = static_cast<RawTwoByteString*>(obj);
+      intptr_t len = Smi::Value(str->ptr()->length_);
+      intptr_t trunc_len = Utils::Minimum(len, kMaxStringElements);
+      writer_->WriteUnsigned(kUTF16Data);
+      writer_->WriteUnsigned(len);
+      writer_->WriteUnsigned(trunc_len);
+      writer_->WriteBytes(&str->ptr()->data()[0], trunc_len * 2);
+    } else if (cid == kExternalTwoByteStringCid) {
+      RawExternalTwoByteString* str =
+          static_cast<RawExternalTwoByteString*>(obj);
+      intptr_t len = Smi::Value(str->ptr()->length_);
+      intptr_t trunc_len = Utils::Minimum(len, kMaxStringElements);
+      writer_->WriteUnsigned(kUTF16Data);
+      writer_->WriteUnsigned(len);
+      writer_->WriteUnsigned(trunc_len);
+      writer_->WriteBytes(&str->ptr()->external_data_[0], trunc_len * 2);
+    } else if (cid == kArrayCid || cid == kImmutableArrayCid) {
+      writer_->WriteUnsigned(kLengthData);
+      writer_->WriteUnsigned(
+          Smi::Value(static_cast<RawArray*>(obj)->ptr()->length_));
+    } else if (cid == kGrowableObjectArrayCid) {
+      writer_->WriteUnsigned(kLengthData);
+      writer_->WriteUnsigned(Smi::Value(
+          static_cast<RawGrowableObjectArray*>(obj)->ptr()->length_));
+    } else if (cid == kLinkedHashMapCid) {
+      writer_->WriteUnsigned(kLengthData);
+      writer_->WriteUnsigned(
+          Smi::Value(static_cast<RawLinkedHashMap*>(obj)->ptr()->used_data_));
+    } else if (cid == kObjectPoolCid) {
+      writer_->WriteUnsigned(kLengthData);
+      writer_->WriteUnsigned(static_cast<RawObjectPool*>(obj)->ptr()->length_);
+    } else if (RawObject::IsTypedDataClassId(cid)) {
+      writer_->WriteUnsigned(kLengthData);
+      writer_->WriteUnsigned(
+          Smi::Value(static_cast<RawTypedData*>(obj)->ptr()->length_));
+    } else if (RawObject::IsExternalTypedDataClassId(cid)) {
+      writer_->WriteUnsigned(kLengthData);
+      writer_->WriteUnsigned(
+          Smi::Value(static_cast<RawExternalTypedData*>(obj)->ptr()->length_));
+    } else if (cid == kFunctionCid) {
+      writer_->WriteUnsigned(kNameData);
+      ScrubAndWriteUtf8(static_cast<RawFunction*>(obj)->ptr()->name_);
+    } else if (cid == kCodeCid) {
+      RawObject* owner = static_cast<RawCode*>(obj)->ptr()->owner_;
+      if (owner->IsFunction()) {
+        writer_->WriteUnsigned(kNameData);
+        ScrubAndWriteUtf8(static_cast<RawFunction*>(owner)->ptr()->name_);
+      } else if (owner->IsClass()) {
+        writer_->WriteUnsigned(kNameData);
+        ScrubAndWriteUtf8(static_cast<RawClass*>(owner)->ptr()->name_);
+      } else {
+        writer_->WriteUnsigned(kNoData);
+      }
+    } else if (cid == kFieldCid) {
+      writer_->WriteUnsigned(kNameData);
+      ScrubAndWriteUtf8(static_cast<RawField*>(obj)->ptr()->name_);
+    } else if (cid == kClassCid) {
+      writer_->WriteUnsigned(kNameData);
+      ScrubAndWriteUtf8(static_cast<RawClass*>(obj)->ptr()->name_);
+    } else if (cid == kLibraryCid) {
+      writer_->WriteUnsigned(kNameData);
+      ScrubAndWriteUtf8(static_cast<RawLibrary*>(obj)->ptr()->url_);
+    } else if (cid == kScriptCid) {
+      writer_->WriteUnsigned(kNameData);
+      ScrubAndWriteUtf8(static_cast<RawScript*>(obj)->ptr()->url_);
+    } else {
+      writer_->WriteUnsigned(kNoData);
+    }
+
+    DoCount();
+    obj->VisitPointersPrecise(this);
+    DoWrite();
+    obj->VisitPointersPrecise(this);
   }
-  // Current encoding assumes objects do not move, so promote everything to old.
-  isolate()->heap()->new_space()->Evacuate();
-  HeapIterationScope iteration_scope(Thread::Current(), true);
 
-  RawObject* kRootAddress = reinterpret_cast<RawObject*>(kHeapObjectTag);
-  const intptr_t kRootCid = kIllegalCid;
-  RawObject* kStackAddress =
-      reinterpret_cast<RawObject*>(kObjectAlignment + kHeapObjectTag);
+  void ScrubAndWriteUtf8(RawString* str) {
+    if (str == String::null()) {
+      writer_->WriteUtf8("null");
+    } else {
+      String handle;
+      handle = str;
+      char* value = handle.ToMallocCString();
+      writer_->ScrubAndWriteUtf8(value);
+      free(value);
+    }
+  }
 
-  stream->WriteUnsigned(kObjectAlignment);
-  stream->WriteUnsigned(kStackCid);
-  stream->WriteUnsigned(kFieldCid);
-  stream->WriteUnsigned(isolate()->class_table()->NumCids());
+  void set_discount_sizes(bool value) { discount_sizes_ = value; }
 
-  if (roots == kVM) {
-    // Write root "object".
-    WriteHeader(kRootAddress, 0, kRootCid, stream);
-    WritePointerVisitor ptr_writer(isolate(), stream, false);
-    isolate()->VisitObjectPointers(&ptr_writer,
+  void DoCount() {
+    writing_ = false;
+    counted_ = 0;
+    written_ = 0;
+  }
+  void DoWrite() {
+    writing_ = true;
+    writer_->WriteUnsigned(counted_);
+  }
+
+  void VisitPointers(RawObject** from, RawObject** to) {
+    if (writing_) {
+      for (RawObject** ptr = from; ptr <= to; ptr++) {
+        RawObject* target = *ptr;
+        written_++;
+        total_++;
+        writer_->WriteUnsigned(writer_->GetObjectId(target));
+      }
+    } else {
+      intptr_t count = to - from + 1;
+      ASSERT(count >= 0);
+      counted_ += count;
+    }
+  }
+
+  void VisitHandle(uword addr) {
+    FinalizablePersistentHandle* weak_persistent_handle =
+        reinterpret_cast<FinalizablePersistentHandle*>(addr);
+    if (!weak_persistent_handle->raw()->IsHeapObject()) {
+      return;  // Free handle.
+    }
+
+    writer_->WriteUnsigned(writer_->GetObjectId(weak_persistent_handle->raw()));
+    writer_->WriteUnsigned(weak_persistent_handle->external_size());
+    // Attempt to include a native symbol name.
+    char* name = NativeSymbolResolver::LookupSymbolName(
+        reinterpret_cast<uintptr_t>(weak_persistent_handle->callback()), NULL);
+    writer_->WriteUtf8((name == NULL) ? "Unknown native function" : name);
+    if (name != NULL) {
+      NativeSymbolResolver::FreeSymbolName(name);
+    }
+  }
+
+ private:
+  HeapSnapshotWriter* const writer_;
+  bool writing_ = false;
+  intptr_t counted_ = 0;
+  intptr_t written_ = 0;
+  intptr_t total_ = 0;
+  bool discount_sizes_ = false;
+
+  DISALLOW_COPY_AND_ASSIGN(Pass2Visitor);
+};
+
+void HeapSnapshotWriter::Write() {
+  HeapIterationScope iteration(thread());
+
+  WriteBytes("dartheap", 8);  // Magic value.
+  WriteUnsigned(0);           // Flags.
+  WriteUtf8(isolate()->name());
+  Heap* H = thread()->heap();
+  WriteUnsigned(
+      (H->new_space()->UsedInWords() + H->old_space()->UsedInWords()) *
+      kWordSize);
+  WriteUnsigned(
+      (H->new_space()->CapacityInWords() + H->old_space()->CapacityInWords()) *
+      kWordSize);
+  WriteUnsigned(
+      (H->new_space()->ExternalInWords() + H->old_space()->ExternalInWords()) *
+      kWordSize);
+
+  {
+    HANDLESCOPE(thread());
+    ClassTable* class_table = isolate()->class_table();
+    class_count_ = class_table->NumCids() - 1;
+
+    Class& cls = Class::Handle();
+    Library& lib = Library::Handle();
+    String& str = String::Handle();
+    Array& fields = Array::Handle();
+    Field& field = Field::Handle();
+
+    WriteUnsigned(class_count_);
+    for (intptr_t cid = 1; cid <= class_count_; cid++) {
+      if (!class_table->HasValidClassAt(cid)) {
+        WriteUnsigned(0);  // Flags
+        WriteUtf8("");     // Name
+        WriteUtf8("");     // Library name
+        WriteUtf8("");     // Library uri
+        WriteUtf8("");     // Reserved
+        WriteUnsigned(0);  // Field count
+      } else {
+        cls = class_table->At(cid);
+        WriteUnsigned(0);  // Flags
+        str = cls.Name();
+        ScrubAndWriteUtf8(const_cast<char*>(str.ToCString()));
+        lib = cls.library();
+        if (lib.IsNull()) {
+          WriteUtf8("");
+          WriteUtf8("");
+        } else {
+          str = lib.name();
+          ScrubAndWriteUtf8(const_cast<char*>(str.ToCString()));
+          str = lib.url();
+          ScrubAndWriteUtf8(const_cast<char*>(str.ToCString()));
+        }
+        WriteUtf8("");  // Reserved
+
+        intptr_t field_count = 0;
+        intptr_t min_offset = kIntptrMax;
+        for (intptr_t j = 0; OffsetsTable::offsets_table[j].class_id != -1;
+             j++) {
+          if (OffsetsTable::offsets_table[j].class_id == cid) {
+            field_count++;
+            intptr_t offset = OffsetsTable::offsets_table[j].offset;
+            min_offset = Utils::Minimum(min_offset, offset);
+          }
+        }
+        if (cls.is_finalized()) {
+          do {
+            fields = cls.fields();
+            if (!fields.IsNull()) {
+              for (intptr_t i = 0; i < fields.Length(); i++) {
+                field ^= fields.At(i);
+                if (field.is_instance()) {
+                  field_count++;
+                }
+              }
+            }
+            cls = cls.SuperClass();
+          } while (!cls.IsNull());
+          cls = class_table->At(cid);
+        }
+
+        WriteUnsigned(field_count);
+        for (intptr_t j = 0; OffsetsTable::offsets_table[j].class_id != -1;
+             j++) {
+          if (OffsetsTable::offsets_table[j].class_id == cid) {
+            intptr_t flags = 1;  // Strong.
+            WriteUnsigned(flags);
+            intptr_t offset = OffsetsTable::offsets_table[j].offset;
+            intptr_t index = (offset - min_offset) / kWordSize;
+            ASSERT(index >= 0);
+            WriteUnsigned(index);
+            WriteUtf8(OffsetsTable::offsets_table[j].field_name);
+            WriteUtf8("");  // Reserved
+          }
+        }
+        if (cls.is_finalized()) {
+          do {
+            fields = cls.fields();
+            if (!fields.IsNull()) {
+              for (intptr_t i = 0; i < fields.Length(); i++) {
+                field ^= fields.At(i);
+                if (field.is_instance()) {
+                  intptr_t flags = 1;  // Strong.
+                  WriteUnsigned(flags);
+                  intptr_t index = field.Offset() / kWordSize - 1;
+                  ASSERT(index >= 0);
+                  WriteUnsigned(index);
+                  str = field.name();
+                  ScrubAndWriteUtf8(const_cast<char*>(str.ToCString()));
+                  WriteUtf8("");  // Reserved
+                }
+              }
+            }
+            cls = cls.SuperClass();
+          } while (!cls.IsNull());
+          cls = class_table->At(cid);
+        }
+      }
+    }
+  }
+
+  {
+    Pass1Visitor visitor(this);
+
+    // Root "object".
+    ++object_count_;
+    isolate()->VisitObjectPointers(&visitor,
                                    ValidationPolicy::kDontValidateFrames);
-    stream->WriteUnsigned(0);
-  } else {
-    {
-      // Write root "object".
-      WriteHeader(kRootAddress, 0, kRootCid, stream);
-      WritePointerVisitor ptr_writer(isolate(), stream, false);
-      IterateUserFields(&ptr_writer);
-      WritePtr(kStackAddress, stream);
-      stream->WriteUnsigned(0);
-    }
 
-    {
-      // Write stack "object".
-      WriteHeader(kStackAddress, 0, kStackCid, stream);
-      WritePointerVisitor ptr_writer(isolate(), stream, true);
-      isolate()->VisitStackPointers(&ptr_writer,
-                                    ValidationPolicy::kDontValidateFrames);
-      stream->WriteUnsigned(0);
-    }
+    // Heap objects.
+    iteration.IterateVMIsolateObjects(&visitor);
+    iteration.IterateObjects(&visitor);
+
+    // External properties.
+    isolate()->VisitWeakPersistentHandles(&visitor);
   }
 
-  WriteGraphVisitor visitor(isolate(), stream, roots);
-  IterateObjects(&visitor);
-  stream->WriteUnsigned(0);
+  {
+    Pass2Visitor visitor(this);
 
-  WriteGraphExternalSizesVisitor external_visitor(Thread::Current(), stream);
-  isolate()->VisitWeakPersistentHandles(&external_visitor);
-  stream->WriteUnsigned(0);
+    WriteUnsigned(reference_count_);
+    WriteUnsigned(object_count_);
 
-  intptr_t object_count = visitor.count();
-  if (roots == kVM) {
-    object_count += 1;  // root
-  } else {
-    object_count += 2;  // root and stack
+    // Root "object".
+    WriteUnsigned(0);  // cid
+    WriteUnsigned(0);  // shallowSize
+    WriteUnsigned(kNoData);
+    visitor.DoCount();
+    isolate()->VisitObjectPointers(&visitor,
+                                   ValidationPolicy::kDontValidateFrames);
+    visitor.DoWrite();
+    isolate()->VisitObjectPointers(&visitor,
+                                   ValidationPolicy::kDontValidateFrames);
+
+    // Heap objects.
+    visitor.set_discount_sizes(true);
+    iteration.IterateVMIsolateObjects(&visitor);
+    visitor.set_discount_sizes(false);
+    iteration.IterateObjects(&visitor);
+
+    // External properties.
+    WriteUnsigned(external_property_count_);
+    isolate()->VisitWeakPersistentHandles(&visitor);
   }
-  return object_count;
+
+  ClearObjectIds();
+  Flush(true);
 }
+
+#endif  // !defined(PRODUCT)
 
 }  // namespace dart

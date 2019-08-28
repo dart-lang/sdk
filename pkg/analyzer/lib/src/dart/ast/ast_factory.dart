@@ -190,18 +190,6 @@ class AstFactoryImpl extends AstFactory {
           endToken, featureSet);
 
   @override
-  @deprecated
-  CompilationUnit compilationUnit2(
-          {Token beginToken,
-          ScriptTag scriptTag,
-          List<Directive> directives,
-          List<CompilationUnitMember> declarations,
-          Token endToken,
-          FeatureSet featureSet}) =>
-      new CompilationUnitImpl(beginToken, scriptTag, directives, declarations,
-          endToken, featureSet);
-
-  @override
   ConditionalExpression conditionalExpression(
           Expression condition,
           Token question,

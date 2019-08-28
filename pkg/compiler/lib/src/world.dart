@@ -237,6 +237,9 @@ abstract class BuiltWorld {
   /// All types that are checked either through is, as or checked mode checks.
   Iterable<DartType> get isChecks;
 
+  /// All type variables named in recipes.
+  Set<TypeVariableType> get namedTypeVariablesNewRti;
+
   /// All directly instantiated types, that is, the types of
   /// [directlyInstantiatedClasses].
   // TODO(johnniwinther): Improve semantic precision.

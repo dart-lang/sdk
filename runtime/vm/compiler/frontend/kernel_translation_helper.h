@@ -469,7 +469,7 @@ class FieldHelper {
   NameIndex canonical_name_;
   TokenPosition position_;
   TokenPosition end_position_;
-  uint8_t flags_ = 0;
+  uint32_t flags_ = 0;
   intptr_t source_uri_index_ = 0;
   intptr_t annotation_count_ = 0;
 
@@ -555,7 +555,7 @@ class ProcedureHelper {
   TokenPosition position_;
   TokenPosition end_position_;
   Kind kind_;
-  uint8_t flags_ = 0;
+  uint32_t flags_ = 0;
   intptr_t source_uri_index_ = 0;
   intptr_t annotation_count_ = 0;
 

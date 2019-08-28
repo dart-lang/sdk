@@ -21,9 +21,10 @@ class C extends core::Object {
   get one() → core::int*
     return 1;
 }
-class E extends core::Object {
+extension E on self::C* {
+  get two = self::E|get#two;
 }
-method E|two(final self::C* #this) → core::int*
+static method E|get#two(final self::C* #this) → core::int*
   return 2;
 static method main() → dynamic {
   self::C* c = new self::C::•();

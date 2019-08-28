@@ -285,6 +285,8 @@ static bool IntrinsifyArraySetIndexed(FlowGraph* flow_graph,
     case kTypedDataUint16ArrayCid:
     case kExternalTypedDataUint8ArrayCid:
     case kExternalTypedDataUint8ClampedArrayCid:
+      builder.AddInstruction(new CheckSmiInstr(new Value(value), DeoptId::kNone,
+                                               builder.TokenPos()));
       value = builder.AddUnboxInstr(kUnboxedIntPtr, new Value(value),
                                     /* is_checked = */ false);
       value->AsUnboxInteger()->mark_truncating();

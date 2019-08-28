@@ -23,8 +23,9 @@ class NodeBuilderTest extends MigrationVisitorTestBase {
       variables.decoratedElementType(
           findNode.functionDeclaration(search).declaredElement);
 
-  DecoratedType decoratedTypeParameterBound(String search) => variables
-      .decoratedElementType(findNode.typeParameter(search).declaredElement);
+  DecoratedType decoratedTypeParameterBound(String search) =>
+      variables.decoratedTypeParameterBound(
+          findNode.typeParameter(search).declaredElement);
 
   test_class_alias_synthetic_constructors_no_parameters() async {
     await analyze('''
@@ -571,6 +572,29 @@ class C {
     // field.
   }
 
+  test_function_generic_bounded() async {
+    await analyze('''
+T f<T extends Object>(T t) => t;
+''');
+    var decoratedType = decoratedFunctionType('f');
+    var bound = decoratedTypeParameterBound('T extends');
+    expect(decoratedType.typeFormalBounds[0], same(bound));
+    expect(decoratedTypeAnnotation('Object'), same(bound));
+    expect(bound.node, isNot(always));
+    expect(bound.type, typeProvider.objectType);
+  }
+
+  test_function_generic_implicit_bound() async {
+    await analyze('''
+T f<T>(T t) => t;
+''');
+    var decoratedType = decoratedFunctionType('f');
+    var bound = decoratedTypeParameterBound('T>');
+    expect(decoratedType.typeFormalBounds[0], same(bound));
+    assertUnion(always, bound.node);
+    expect(bound.type, same(typeProvider.objectType));
+  }
+
   test_function_metadata() async {
     await analyze('''
 class A {
@@ -582,6 +606,23 @@ f() {}
 ''');
     var node = decoratedTypeAnnotation('int').node;
     expect(node, TypeMatcher<NullabilityNodeMutable>());
+  }
+
+  test_functionExpression() async {
+    await analyze('''
+void f() {
+  var x = (int i) => 1;
+}
+''');
+    var functionExpressionElement =
+        findNode.simpleParameter('int i').declaredElement.enclosingElement;
+    var decoratedType =
+        variables.decoratedElementType(functionExpressionElement);
+    expect(decoratedType.positionalParameters[0],
+        same(decoratedTypeAnnotation('int i')));
+    expect(decoratedType.node, same(never));
+    expect(
+        decoratedType.returnType.node, TypeMatcher<NullabilityNodeMutable>());
   }
 
   test_functionTypedFormalParameter_namedParameter_typed() async {
@@ -852,6 +893,19 @@ void f(List<int> x) {}
     expect(decoratedIntType.node, isNot(never));
   }
 
+  test_local_function() async {
+    await analyze('''
+void f() {
+  int g(int i) => 1;
+}
+''');
+    var decoratedType = decoratedFunctionType('g');
+    expect(decoratedType.returnType, same(decoratedTypeAnnotation('int g')));
+    expect(decoratedType.positionalParameters[0],
+        same(decoratedTypeAnnotation('int i')));
+    expect(decoratedType.node, same(never));
+  }
+
   test_localVariable_type_implicit_dynamic() async {
     await analyze('''
 main() {
@@ -884,6 +938,33 @@ main() {
     var decoratedType =
         variables.decoratedElementType(findNode.simple('x').staticElement);
     expect(decoratedType.node, same(always));
+  }
+
+  test_method_generic_bounded() async {
+    await analyze('''
+class C {
+  T f<T extends Object>(T t) => t;
+}
+''');
+    var decoratedType = decoratedMethodType('f');
+    var bound = decoratedTypeParameterBound('T extends');
+    expect(decoratedType.typeFormalBounds[0], same(bound));
+    expect(decoratedTypeAnnotation('Object'), same(bound));
+    expect(bound.node, isNot(always));
+    expect(bound.type, typeProvider.objectType);
+  }
+
+  test_method_generic_implicit_bound() async {
+    await analyze('''
+class C {
+  T f<T>(T t) => t;
+}
+''');
+    var decoratedType = decoratedMethodType('f');
+    var bound = decoratedTypeParameterBound('T>');
+    expect(decoratedType.typeFormalBounds[0], same(bound));
+    assertUnion(always, bound.node);
+    expect(bound.type, same(typeProvider.objectType));
   }
 
   test_method_metadata() async {

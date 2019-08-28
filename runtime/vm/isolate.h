@@ -1219,6 +1219,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   friend class GCMarker;  // VisitObjectPointers
   friend class SafepointHandler;
   friend class ObjectGraph;  // VisitObjectPointers
+  friend class HeapSnapshotWriter;  // VisitObjectPointers
   friend class Scavenger;    // VisitObjectPointers
   friend class HeapIterationScope;  // VisitObjectPointers
   friend class ServiceIsolate;

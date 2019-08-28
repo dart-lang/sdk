@@ -296,38 +296,8 @@ static bool IsFilteredIdentifier(const String& str) {
 RawLocalVarDescriptors* LocalScope::GetVarDescriptors(
     const Function& func,
     ZoneGrowableArray<intptr_t>* context_level_array) {
-  GrowableArray<VarDesc> vars(8);
-
-  // Record deopt-id -> context-level mappings, using ranges of deopt-ids with
-  // the same context-level. [context_level_array] contains (deopt_id,
-  // context_level) tuples.
-  for (intptr_t start = 0; start < context_level_array->length();) {
-    intptr_t start_deopt_id = (*context_level_array)[start];
-    intptr_t start_context_level = (*context_level_array)[start + 1];
-    intptr_t end = start;
-    intptr_t end_deopt_id = start_deopt_id;
-    for (intptr_t peek = start + 2; peek < context_level_array->length();
-         peek += 2) {
-      intptr_t peek_deopt_id = (*context_level_array)[peek];
-      intptr_t peek_context_level = (*context_level_array)[peek + 1];
-      // The range encoding assumes the tuples have ascending deopt_ids.
-      ASSERT(peek_deopt_id > end_deopt_id);
-      if (peek_context_level != start_context_level) break;
-      end = peek;
-      end_deopt_id = peek_deopt_id;
-    }
-
-    VarDesc desc;
-    desc.name = &Symbols::Empty();  // No name.
-    desc.info.set_kind(RawLocalVarDescriptors::kContextLevel);
-    desc.info.scope_id = 0;
-    desc.info.begin_pos = TokenPosition(start_deopt_id);
-    desc.info.end_pos = TokenPosition(end_deopt_id);
-    desc.info.set_index(start_context_level);
-    vars.Add(desc);
-
-    start = end + 2;
-  }
+  LocalVarDescriptorsBuilder vars;
+  vars.AddDeoptIdToContextLevelMappings(context_level_array);
 
   // First enter all variables from scopes of outer functions.
   const ContextScope& context_scope =
@@ -343,7 +313,7 @@ RawLocalVarDescriptors* LocalScope::GetVarDescriptors(
         continue;
       }
 
-      VarDesc desc;
+      LocalVarDescriptorsBuilder::VarDesc desc;
       desc.name = &name;
       desc.info.set_kind(kind);
       desc.info.scope_id = context_scope.ContextLevelAt(i);
@@ -359,20 +329,12 @@ RawLocalVarDescriptors* LocalScope::GetVarDescriptors(
   int16_t scope_id = 0;
   CollectLocalVariables(&vars, &scope_id);
 
-  if (vars.length() == 0) {
-    return Object::empty_var_descriptors().raw();
-  }
-  const LocalVarDescriptors& var_desc =
-      LocalVarDescriptors::Handle(LocalVarDescriptors::New(vars.length()));
-  for (int i = 0; i < vars.length(); i++) {
-    var_desc.SetVar(i, *(vars[i].name), &vars[i].info);
-  }
-  return var_desc.raw();
+  return vars.Done();
 }
 
 // Add visible variables that are declared in this scope to vars, then
 // collect visible variables of children, followed by siblings.
-void LocalScope::CollectLocalVariables(GrowableArray<VarDesc>* vars,
+void LocalScope::CollectLocalVariables(LocalVarDescriptorsBuilder* vars,
                                        int16_t* scope_id) {
   (*scope_id)++;
   for (int i = 0; i < this->variables_.length(); i++) {
@@ -381,7 +343,7 @@ void LocalScope::CollectLocalVariables(GrowableArray<VarDesc>* vars,
       if (var->name().raw() == Symbols::CurrentContextVar().raw()) {
         // This is the local variable in which the function saves its
         // own context before calling a closure function.
-        VarDesc desc;
+        LocalVarDescriptorsBuilder::VarDesc desc;
         desc.name = &var->name();
         desc.info.set_kind(RawLocalVarDescriptors::kSavedCurrentContext);
         desc.info.scope_id = 0;
@@ -392,7 +354,7 @@ void LocalScope::CollectLocalVariables(GrowableArray<VarDesc>* vars,
         vars->Add(desc);
       } else if (!IsFilteredIdentifier(var->name())) {
         // This is a regular Dart variable, either stack-based or captured.
-        VarDesc desc;
+        LocalVarDescriptorsBuilder::VarDesc desc;
         desc.name = &var->name();
         if (var->is_captured()) {
           desc.info.set_kind(RawLocalVarDescriptors::kContextVar);
@@ -711,6 +673,62 @@ bool LocalVariable::Equals(const LocalVariable& other) const {
     }
   }
   return false;
+}
+
+void LocalVarDescriptorsBuilder::AddAll(Zone* zone,
+                                        const LocalVarDescriptors& var_descs) {
+  for (intptr_t i = 0, n = var_descs.Length(); i < n; ++i) {
+    VarDesc desc;
+    desc.name = &String::Handle(zone, var_descs.GetName(i));
+    var_descs.GetInfo(i, &desc.info);
+    Add(desc);
+  }
+}
+
+void LocalVarDescriptorsBuilder::AddDeoptIdToContextLevelMappings(
+    ZoneGrowableArray<intptr_t>* context_level_array) {
+  // Record deopt-id -> context-level mappings, using ranges of deopt-ids with
+  // the same context-level. [context_level_array] contains (deopt_id,
+  // context_level) tuples.
+  for (intptr_t start = 0; start < context_level_array->length();) {
+    intptr_t start_deopt_id = (*context_level_array)[start];
+    intptr_t start_context_level = (*context_level_array)[start + 1];
+    intptr_t end = start;
+    intptr_t end_deopt_id = start_deopt_id;
+    for (intptr_t peek = start + 2; peek < context_level_array->length();
+         peek += 2) {
+      intptr_t peek_deopt_id = (*context_level_array)[peek];
+      intptr_t peek_context_level = (*context_level_array)[peek + 1];
+      // The range encoding assumes the tuples have ascending deopt_ids.
+      ASSERT(peek_deopt_id > end_deopt_id);
+      if (peek_context_level != start_context_level) break;
+      end = peek;
+      end_deopt_id = peek_deopt_id;
+    }
+
+    VarDesc desc;
+    desc.name = &Symbols::Empty();  // No name.
+    desc.info.set_kind(RawLocalVarDescriptors::kContextLevel);
+    desc.info.scope_id = 0;
+    desc.info.begin_pos = TokenPosition(start_deopt_id);
+    desc.info.end_pos = TokenPosition(end_deopt_id);
+    desc.info.set_index(start_context_level);
+    Add(desc);
+
+    start = end + 2;
+  }
+}
+
+RawLocalVarDescriptors* LocalVarDescriptorsBuilder::Done() {
+  if (vars_.is_empty()) {
+    return Object::empty_var_descriptors().raw();
+  }
+  const LocalVarDescriptors& var_desc =
+      LocalVarDescriptors::Handle(LocalVarDescriptors::New(vars_.length()));
+  for (int i = 0; i < vars_.length(); i++) {
+    var_desc.SetVar(i, *(vars_[i].name), &vars_[i].info);
+  }
+  return var_desc.raw();
 }
 
 }  // namespace dart

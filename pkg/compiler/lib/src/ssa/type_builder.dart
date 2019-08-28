@@ -480,7 +480,7 @@ abstract class TypeBuilder {
         type, builder.sourceElement,
         sourceInformation: sourceInformation);
     AbstractValueWithPrecision checkedType =
-        _abstractValueDomain.createFromStaticType(type);
+        _abstractValueDomain.createFromStaticType(type, nullable: true);
     AbstractValue instructionType = _abstractValueDomain.intersection(
         original.instructionType, checkedType.abstractValue);
     return HAsCheck(

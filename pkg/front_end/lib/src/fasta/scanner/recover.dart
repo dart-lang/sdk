@@ -22,7 +22,7 @@ Token scannerRecovery(List<int> bytes, Token tokens, List<int> lineStarts) {
   // TODO(danrubel): Remove this in a while after the dust has settled.
 
   // Skip over prepended error tokens
-  var token = tokens;
+  Token token = tokens;
   while (token is ErrorToken) {
     token = token.next;
   }
@@ -31,11 +31,11 @@ Token scannerRecovery(List<int> bytes, Token tokens, List<int> lineStarts) {
   while (!token.isEof) {
     if (token is ErrorToken) {
       for (int count = 0; count < 3; ++count) {
-        var previous = token.previous;
+        Token previous = token.previous;
         if (previous.isEof) break;
         token = previous;
       }
-      var msg = new StringBuffer(
+      StringBuffer msg = new StringBuffer(
           "Internal error: All error tokens should have been prepended:");
       for (int count = 0; count < 7; ++count) {
         if (token.isEof) break;
