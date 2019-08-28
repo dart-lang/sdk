@@ -2495,8 +2495,8 @@ class CompileTimeErrorCode extends ErrorCode {
   //
   // The analyzer produces this diagnostic when an element in a constant list
   // literal isn't a constant value. The list literal can be constant either
-  // explicitly (because it's prefixed by the keyword `const`) or implicitly
-  // (because it appears in a <a href=”#constant-context”>constant context</a>).
+  // explicitly (because it's prefixed by the `const` keyword) or implicitly
+  // (because it appears in a [constant context](#constant-context)).
   //
   // #### Example
   //
@@ -2511,8 +2511,8 @@ class CompileTimeErrorCode extends ErrorCode {
   // #### Common fixes
   //
   // If the list needs to be a constant list, then convert the element to be a
-  // constant. In the example above, you might add the keyword `const`
-  // to the declaration of `x`:
+  // constant. In the example above, you might add the `const` keyword to the
+  // declaration of `x`:
   //
   // ```dart
   // const int x = 2;

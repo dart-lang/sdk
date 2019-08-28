@@ -23,8 +23,8 @@ the `const` keyword because it's implied by the fact that everything in that
 region is required to be a constant. The following locations are constant
 contexts:
 
-* Everything inside a list, map or set literal that's prefixed by the keyword
-  `const`. Example:
+* Everything inside a list, map or set literal that's prefixed by the
+  `const` keyword. Example:
 
   ```dart
   var l = const [/*constant context*/];
@@ -36,7 +36,7 @@ contexts:
   var p = const Point(/*constant context*/);
   ```
 
-* The initializer for a variable that's prefixed by the keyword `const`.
+* The initializer for a variable that's prefixed by the `const` keyword.
   Example:
 
   ```dart
@@ -477,8 +477,8 @@ _The values in a const list literal must be constants._
 
 The analyzer produces this diagnostic when an element in a constant list
 literal isn't a constant value. The list literal can be constant either
-explicitly (because it's prefixed by the keyword `const`) or implicitly
-(because it appears in a <a href=”#constant-context”>constant context</a>).
+explicitly (because it's prefixed by the `const` keyword) or implicitly
+(because it appears in a [constant context](#constant-context)).
 
 #### Example
 
@@ -493,8 +493,8 @@ const y = <int>[0, 1, [!x!]];
 #### Common fixes
 
 If the list needs to be a constant list, then convert the element to be a
-constant. In the example above, you might add the keyword `const`
-to the declaration of `x`:
+constant. In the example above, you might add the `const` keyword to the
+declaration of `x`:
 
 {% prettify dart %}
 const int x = 2;

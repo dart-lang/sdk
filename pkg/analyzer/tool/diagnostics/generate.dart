@@ -213,8 +213,8 @@ the `const` keyword because it's implied by the fact that everything in that
 region is required to be a constant. The following locations are constant
 contexts:
 
-* Everything inside a list, map or set literal that's prefixed by the keyword
-  `const`. Example:
+* Everything inside a list, map or set literal that's prefixed by the
+  `const` keyword. Example:
 
   ```dart
   var l = const [/*constant context*/];
@@ -226,7 +226,7 @@ contexts:
   var p = const Point(/*constant context*/);
   ```
 
-* The initializer for a variable that's prefixed by the keyword `const`.
+* The initializer for a variable that's prefixed by the `const` keyword.
   Example:
 
   ```dart
