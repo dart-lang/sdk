@@ -162,8 +162,9 @@ class FieldBuilder extends MemberBuilder {
                 classBuilder.hasConstConstructor)) &&
         constInitializerToken != null) {
       Scope scope = classBuilder?.scope ?? library.scope;
-      BodyBuilder bodyBuilder = new BodyBuilder.forOutlineExpression(
-          library, classBuilder, this, scope, fileUri);
+      BodyBuilder bodyBuilder = library.loader
+          .createBodyBuilderForOutlineExpression(
+              library, classBuilder, this, scope, fileUri);
       bodyBuilder.constantContext =
           isConst ? ConstantContext.inferred : ConstantContext.none;
       initializer = bodyBuilder.parseFieldInitializer(constInitializerToken)
@@ -207,7 +208,8 @@ class FieldBuilder extends MemberBuilder {
     TypeInferrerImpl typeInferrer = library.loader.typeInferenceEngine
         .createTopLevelTypeInferrer(
             fileUri, field.enclosingClass?.thisType, null);
-    BodyBuilder bodyBuilder = new BodyBuilder.forField(this, typeInferrer);
+    BodyBuilder bodyBuilder =
+        library.loader.createBodyBuilderForField(this, typeInferrer);
     bodyBuilder.constantContext =
         isConst ? ConstantContext.inferred : ConstantContext.none;
     initializer = bodyBuilder.parseFieldInitializer(type.initializerToken);

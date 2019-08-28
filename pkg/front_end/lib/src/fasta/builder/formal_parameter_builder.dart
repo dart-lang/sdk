@@ -161,8 +161,9 @@ class FormalParameterBuilder extends ModifierBuilder {
         initializerToken != null) {
       final ClassBuilder classBuilder = parent.parent;
       Scope scope = classBuilder.scope;
-      BodyBuilder bodyBuilder = new BodyBuilder.forOutlineExpression(
-          library, classBuilder, this, scope, fileUri);
+      BodyBuilder bodyBuilder = library.loader
+          .createBodyBuilderForOutlineExpression(
+              library, classBuilder, this, scope, fileUri);
       bodyBuilder.constantContext = ConstantContext.required;
       variable.initializer = bodyBuilder.parseFieldInitializer(initializerToken)
         ..parent = variable;

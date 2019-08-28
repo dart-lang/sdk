@@ -726,8 +726,9 @@ class ConstructorBuilder extends FunctionBuilder {
     // for const constructors into the outline.
     if (isConst && beginInitializers != null) {
       ClassBuilder classBuilder = parent;
-      BodyBuilder bodyBuilder = new BodyBuilder.forOutlineExpression(
-          library, classBuilder, this, classBuilder.scope, fileUri);
+      BodyBuilder bodyBuilder = library.loader
+          .createBodyBuilderForOutlineExpression(
+              library, classBuilder, this, classBuilder.scope, fileUri);
       bodyBuilder.constantContext = ConstantContext.inferred;
       bodyBuilder.parseInitializers(beginInitializers);
       bodyBuilder.resolveRedirectingFactoryTargets();

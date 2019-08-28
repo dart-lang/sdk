@@ -649,6 +649,26 @@ class DietListener extends StackListener {
     ConstantContext constantContext = builder.isConstructor && builder.isConst
         ? ConstantContext.inferred
         : ConstantContext.none;
+    return createListenerInternal(
+        builder,
+        memberScope,
+        formalParameterScope,
+        isDeclarationInstanceMember,
+        extensionThis,
+        extensionTypeParameters,
+        typeInferrer,
+        constantContext);
+  }
+
+  StackListener createListenerInternal(
+      ModifierBuilder builder,
+      Scope memberScope,
+      Scope formalParameterScope,
+      bool isDeclarationInstanceMember,
+      VariableDeclaration extensionThis,
+      List<TypeParameter> extensionTypeParameters,
+      TypeInferrer typeInferrer,
+      ConstantContext constantContext) {
     return new BodyBuilder(
         libraryBuilder: libraryBuilder,
         member: builder,

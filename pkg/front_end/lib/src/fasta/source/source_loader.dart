@@ -113,6 +113,8 @@ import '../scanner.dart'
         Token,
         scan;
 
+import '../type_inference/type_inferrer.dart';
+
 import 'diet_listener.dart' show DietListener;
 
 import 'diet_parser.dart' show DietParser;
@@ -1121,6 +1123,11 @@ class SourceLoader extends Loader {
   @override
   TypeBuilder computeTypeBuilder(DartType type) {
     return type.accept(new TypeBuilderComputer(this));
+  }
+
+  BodyBuilder createBodyBuilderForField(
+      FieldBuilder field, TypeInferrer typeInferrer) {
+    return new BodyBuilder.forField(field, typeInferrer);
   }
 }
 

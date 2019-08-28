@@ -11,9 +11,15 @@ import 'dart:collection' show Queue;
 import 'package:kernel/ast.dart' show Class, DartType, Library;
 
 import 'builder/builder.dart'
-    show ClassBuilder, Builder, LibraryBuilder, TypeBuilder;
+    show Builder, ClassBuilder, LibraryBuilder, Scope, TypeBuilder;
+
+import 'builder/declaration_builder.dart' show DeclarationBuilder;
+
+import 'builder/modifier_builder.dart' show ModifierBuilder;
 
 import 'crash.dart' show firstSourceUri;
+
+import 'kernel/body_builder.dart' show BodyBuilder;
 
 import 'messages.dart'
     show
@@ -350,4 +356,14 @@ fileUri: ${contextMessage.uri}
   ClassBuilder computeClassBuilderFromTargetClass(Class cls);
 
   TypeBuilder computeTypeBuilder(DartType type);
+
+  BodyBuilder createBodyBuilderForOutlineExpression(
+      LibraryBuilder library,
+      DeclarationBuilder declarationBuilder,
+      ModifierBuilder member,
+      Scope scope,
+      Uri fileUri) {
+    return new BodyBuilder.forOutlineExpression(
+        library, declarationBuilder, member, scope, fileUri);
+  }
 }
