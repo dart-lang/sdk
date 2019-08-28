@@ -305,8 +305,7 @@ abstract class Generator {
     complexAssignment?.isPostIncDec = true;
     VariableDeclarationJudgment dummy =
         new VariableDeclarationJudgment.forValue(
-            _makeWrite(combiner, true, complexAssignment),
-            _helper.functionNestingLevel);
+            _makeWrite(combiner, true, complexAssignment));
     return _finish(
         makeLet(value, makeLet(dummy, valueAccess())), complexAssignment);
   }
@@ -317,7 +316,7 @@ abstract class Generator {
   Expression _makeInvalidRead() {
     return _helper.wrapSyntheticExpression(
         _helper.throwNoSuchMethodError(
-            _forest.createNullLiteral(token),
+            _forest.createNullLiteral(fileOffset),
             _plainNameForRead,
             _forest.createArgumentsEmpty(noLocation),
             fileOffset,
@@ -332,7 +331,7 @@ abstract class Generator {
   Expression _makeInvalidWrite(Expression value) {
     return _helper.wrapSyntheticExpression(
         _helper.throwNoSuchMethodError(
-            _forest.createNullLiteral(token),
+            _forest.createNullLiteral(fileOffset),
             _plainNameForRead,
             _forest.createArguments(noLocation, <Expression>[value]),
             fileOffset,
@@ -483,7 +482,7 @@ abstract class Generator {
     }
     return _helper.wrapInvalidConstructorInvocation(
         _helper.throwNoSuchMethodError(
-            _forest.createNullLiteral(token),
+            _forest.createNullLiteral(fileOffset),
             _helper.constructorNameForDiagnostics(name,
                 className: _plainNameForRead),
             arguments,
@@ -1115,8 +1114,7 @@ class IndexedAccessGenerator extends Generator {
       ..fileOffset = fileOffset;
     complexAssignment?.write = write;
     VariableDeclarationJudgment dummy =
-        new VariableDeclarationJudgment.forValue(
-            write, _helper.functionNestingLevel);
+        new VariableDeclarationJudgment.forValue(write);
     return makeLet(
         valueVariable, makeLet(dummy, new VariableGet(valueVariable)));
   }
@@ -1713,7 +1711,7 @@ class ExtensionInstanceAccessGenerator extends Generator {
           _helper.forest.createArguments(fileOffset,
               [_helper.createVariableGet(extensionThis, fileOffset)],
               types: typeArguments),
-          charOffset: token.charOffset);
+          charOffset: fileOffset);
     }
     complexAssignment?.read = read;
     return read;
@@ -2071,7 +2069,7 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
   Expression _makeInvalidWrite(Expression value) {
     return _helper.wrapSyntheticExpression(
         _helper.throwNoSuchMethodError(
-            _forest.createNullLiteral(token),
+            _forest.createNullLiteral(fileOffset),
             _plainNameForRead,
             _forest.createArguments(fileOffset, <Expression>[value]),
             fileOffset,
@@ -2708,7 +2706,7 @@ class PrefixUseGenerator extends Generator {
       int offset, Arguments arguments) {
     return _helper.wrapInLocatedProblem(
         _helper.evaluateArgumentsBefore(
-            arguments, _forest.createNullLiteral(token)),
+            arguments, _forest.createNullLiteral(fileOffset)),
         messageCantUsePrefixAsExpression.withLocation(
             _helper.uri, fileOffset, lengthForToken(token)));
   }

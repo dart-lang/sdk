@@ -190,9 +190,9 @@ class Forest {
       ..fileOffset = offsetForToken(constKeyword ?? leftBrace);
   }
 
-  /// Return a representation of a null literal at the given [location].
-  NullLiteral createNullLiteral(Token token) {
-    return new NullLiteral()..fileOffset = offsetForToken(token);
+  /// Return a representation of a null literal at the given [fileOffset].
+  NullLiteral createNullLiteral(int fileOffset) {
+    return new NullLiteral()..fileOffset = fileOffset ?? TreeNode.noOffset;
   }
 
   /// Return a representation of a simple string literal at the given
@@ -637,7 +637,7 @@ class Forest {
       bool isFieldFormal: false,
       bool isCovariant: false,
       bool isLocalFunction: false}) {
-    return VariableDeclarationJudgment(name, functionNestingLevel,
+    return new VariableDeclarationJudgment(name, functionNestingLevel,
         type: type,
         initializer: initializer,
         isFinal: isFinal,
@@ -645,6 +645,18 @@ class Forest {
         isFieldFormal: isFieldFormal,
         isCovariant: isCovariant,
         isLocalFunction: isLocalFunction);
+  }
+
+  VariableDeclaration createVariableDeclarationForValue(
+      int fileOffset, Expression initializer,
+      {DartType type = const DynamicType()}) {
+    return new VariableDeclarationJudgment.forValue(initializer)
+      ..type = type
+      ..fileOffset = fileOffset ?? TreeNode.noOffset;
+  }
+
+  Let createLet(VariableDeclaration variable, Expression body) {
+    return new Let(variable, body);
   }
 
   FunctionNode createFunctionNode(Statement body,
