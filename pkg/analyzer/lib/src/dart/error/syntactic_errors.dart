@@ -210,6 +210,9 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode EXTENSION_DECLARES_CONSTRUCTOR =
       _EXTENSION_DECLARES_CONSTRUCTOR;
 
+  static const ParserErrorCode EXTENSION_DECLARES_INSTANCE_FIELD =
+      _EXTENSION_DECLARES_INSTANCE_FIELD;
+
   static const ParserErrorCode EXTERNAL_AFTER_CONST = _MODIFIER_OUT_OF_ORDER;
 
   static const ParserErrorCode EXTERNAL_AFTER_FACTORY = _MODIFIER_OUT_OF_ORDER;

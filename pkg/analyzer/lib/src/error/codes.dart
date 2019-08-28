@@ -1286,16 +1286,6 @@ class CompileTimeErrorCode extends ErrorCode {
   /**
    * No parameters.
    */
-  static const CompileTimeErrorCode EXTENSION_DECLARES_INSTANCE_FIELD =
-      const CompileTimeErrorCode('EXTENSION_DECLARES_INSTANCE_FIELD',
-          "Extensions can't declare instance fields.",
-          correction:
-              "Try removing the field declaration or making it a static "
-              "field.");
-
-  /**
-   * No parameters.
-   */
   static const CompileTimeErrorCode EXTENSION_DECLARES_MEMBER_OF_OBJECT =
       const CompileTimeErrorCode(
           'EXTENSION_DECLARES_MEMBER_OF_OBJECT',

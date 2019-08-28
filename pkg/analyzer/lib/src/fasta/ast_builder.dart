@@ -946,17 +946,6 @@ class AstBuilder extends StackListener {
     Token covariantKeyword = covariantToken;
     List<Annotation> metadata = pop();
     Comment comment = _findComment(metadata, beginToken);
-    if (extensionDeclaration != null && staticToken == null) {
-      // TODO(brianwilkerson) Decide how to handle constructor and field
-      //  declarations within extensions. They are invalid, but we might want to
-      //  resolve them in order to get navigation, search, etc.
-      for (VariableDeclaration variable in variables) {
-        errorReporter.errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD,
-            variable.name);
-      }
-      return;
-    }
     currentDeclarationMembers.add(ast.fieldDeclaration2(
         comment: comment,
         metadata: metadata,
@@ -964,6 +953,32 @@ class AstBuilder extends StackListener {
         staticKeyword: staticToken,
         fieldList: variableList,
         semicolon: semicolon));
+  }
+
+  @override
+  void endMixinFields(Token staticToken, Token covariantToken, Token lateToken,
+      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
+    endClassFields(staticToken, covariantToken, lateToken, varFinalOrConst,
+        count, beginToken, endToken);
+  }
+
+  @override
+  void endExtensionFields(
+      Token staticToken,
+      Token covariantToken,
+      Token lateToken,
+      Token varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
+    if (staticToken == null) {
+      // TODO(danrubel) Decide how to handle instance field declarations
+      // within extensions. They are invalid and the parser has already reported
+      // an error at this point, but we include them in order to get navigation,
+      // search, etc.
+    }
+    endClassFields(staticToken, covariantToken, lateToken, varFinalOrConst,
+        count, beginToken, endToken);
   }
 
   @override

@@ -2400,7 +2400,7 @@ class Parser {
     IdentifierContext context = kind == DeclarationKind.TopLevel
         ? IdentifierContext.topLevelVariableDeclaration
         : IdentifierContext.fieldDeclaration;
-    name = ensureIdentifier(token, context);
+    Token firstName = name = ensureIdentifier(token, context);
 
     int fieldCount = 1;
     token =
@@ -2446,6 +2446,10 @@ class Parser {
             varFinalOrConst, fieldCount, beforeStart.next, token);
         break;
       case DeclarationKind.Extension:
+        if (staticToken == null) {
+          reportRecoverableError(
+              firstName, fasta.messageExtensionDeclaresInstanceField);
+        }
         listener.endExtensionFields(staticToken, covariantToken, lateToken,
             varFinalOrConst, fieldCount, beforeStart.next, token);
         break;

@@ -206,6 +206,7 @@ ExternalFactoryRedirection/example: Fail
 ExternalFactoryWithBody/part_wrapped_script1: Fail
 ExternalFactoryWithBody/script1: Fail
 ExtensionDeclaresConstructor/example: Fail
+ExtensionDeclaresInstanceField/example: Fail
 ExtraneousModifier/part_wrapped_script1: Fail
 ExtraneousModifier/part_wrapped_script2: Fail
 ExtraneousModifier/part_wrapped_script3: Fail
