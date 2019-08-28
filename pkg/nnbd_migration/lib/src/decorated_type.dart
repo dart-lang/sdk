@@ -414,18 +414,27 @@ class DecoratedType {
   DecoratedType _substituteFunctionAfterFormals(FunctionType undecoratedResult,
       Map<TypeParameterElement, DecoratedType> substitution) {
     var newPositionalParameters = <DecoratedType>[];
+    var numRequiredParameters = undecoratedResult.normalParameterTypes.length;
     for (int i = 0; i < positionalParameters.length; i++) {
-      var numRequiredParameters = undecoratedResult.normalParameterTypes.length;
       var undecoratedParameterType = i < numRequiredParameters
           ? undecoratedResult.normalParameterTypes[i]
           : undecoratedResult.optionalParameterTypes[i - numRequiredParameters];
       newPositionalParameters.add(positionalParameters[i]
           ._substitute(substitution, undecoratedParameterType));
     }
+    var newNamedParameters = <String, DecoratedType>{};
+    for (var entry in namedParameters.entries) {
+      var name = entry.key;
+      var undecoratedParameterType =
+          undecoratedResult.namedParameterTypes[name];
+      newNamedParameters[name] =
+          (entry.value._substitute(substitution, undecoratedParameterType));
+    }
     return DecoratedType(undecoratedResult, node,
         returnType:
             returnType._substitute(substitution, undecoratedResult.returnType),
-        positionalParameters: newPositionalParameters);
+        positionalParameters: newPositionalParameters,
+        namedParameters: newNamedParameters);
   }
 
   List<DecoratedType> _substituteList(List<DecoratedType> list,
