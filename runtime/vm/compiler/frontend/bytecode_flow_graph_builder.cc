@@ -1569,8 +1569,6 @@ void BytecodeFlowGraphBuilder::BuildThrow() {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
   }
 
-  BuildDebugStepCheck();
-
   if (DecodeOperandA().value() == 0) {
     // throw
     LoadStackSlots(1);

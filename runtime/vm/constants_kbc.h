@@ -994,7 +994,6 @@ class KernelBytecode {
       case KernelBytecode::kDynamicCall:
       case KernelBytecode::kDynamicCall_Wide:
       case KernelBytecode::kReturnTOS:
-      case KernelBytecode::kThrow:
       case KernelBytecode::kEqualsNull:
       case KernelBytecode::kNegateInt:
       case KernelBytecode::kNegateDouble:

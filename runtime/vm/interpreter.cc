@@ -1780,7 +1780,6 @@ SwitchDispatch:
 
   {
     BYTECODE(Throw, A);
-    DEBUG_CHECK;
     {
       SP[1] = 0;  // Space for result.
       Exit(thread, FP, SP + 2, pc);
