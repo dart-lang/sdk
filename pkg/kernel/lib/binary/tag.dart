@@ -117,15 +117,7 @@ class Tag {
   static const int SimpleInterfaceType = 96;
   static const int SimpleFunctionType = 97;
 
-  // References
-  static const int NullReference = 99;
-  static const int ClassReference = 100;
-  static const int MemberReference = 101;
-
   static const int ConstantExpression = 106;
-
-  // Tag is deprecated since version 24.
-  static const int Deprecated_ConstantExpression = 107;
 
   /// 108 is occupied by [RedirectingFactoryConstructor] (member).
   /// 109 is occupied by [SetLiteral] (expression).

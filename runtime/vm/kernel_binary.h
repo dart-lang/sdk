@@ -123,9 +123,6 @@ static const uint32_t kMaxSupportedKernelFormatVersion = 29;
   V(TypeParameterType, 95)                                                     \
   V(SimpleInterfaceType, 96)                                                   \
   V(SimpleFunctionType, 97)                                                    \
-  V(NullReference, 99)                                                         \
-  V(ClassReference, 100)                                                       \
-  V(MemberReference, 101)                                                      \
   V(ConstantExpression, 106)                                                   \
   V(Deprecated_ConstantExpression, 107)                                        \
   V(SpecializedVariableGet, 128)                                               \
