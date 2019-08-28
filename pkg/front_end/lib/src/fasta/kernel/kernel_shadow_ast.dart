@@ -787,7 +787,7 @@ abstract class InitializerJudgment implements Initializer {
 Expression checkWebIntLiteralsErrorIfUnexact(
     ShadowTypeInferrer inferrer, int value, String literal, int charOffset) {
   if (value >= 0 && value <= (1 << 53)) return null;
-  if (inferrer.library == null) return null;
+  if (inferrer.isTopLevel) return null;
   if (!inferrer.library.loader.target.backendTarget
       .errorOnUnexactWebIntLiterals) return null;
   BigInt asInt = BigInt.from(value).toUnsigned(64);

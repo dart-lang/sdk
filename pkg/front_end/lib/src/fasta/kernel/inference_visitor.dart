@@ -1881,8 +1881,10 @@ class InferenceVisitor
     DartType inferredType = inferrer.inferInvocation(typeContext,
         node.fileOffset, calleeType, calleeType.returnType, node.arguments);
     inferrer.storeInferredType(node, inferredType);
-    if (!hadExplicitTypeArguments && node.target != null) {
-      inferrer.library?.checkBoundsInStaticInvocation(
+    if (!inferrer.isTopLevel &&
+        !hadExplicitTypeArguments &&
+        node.target != null) {
+      inferrer.library.checkBoundsInStaticInvocation(
           node, inferrer.typeSchemaEnvironment, inferrer.helper.uri,
           inferred: true);
     }

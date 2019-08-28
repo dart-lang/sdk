@@ -541,7 +541,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   TypeInferrerImpl.private(
       this.engine, this.uri, bool topLevel, this.thisType, this.library)
-      : assert((topLevel && library == null) || (!topLevel && library != null)),
+      : assert(library != null),
         classHierarchy = engine.classHierarchy,
         instrumentation = topLevel ? null : engine.instrumentation,
         typeSchemaEnvironment = engine.typeSchemaEnvironment,
@@ -1623,8 +1623,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     }
 
     // If [arguments] were inferred, check them.
-    // TODO(dmitryas): Figure out why [library] is sometimes null.
-    if (library != null) {
+    // TODO(dmitryas): Figure out why [library] is sometimes null? Answer:
+    // because top level inference never got a library. This has changed so
+    // we always have a library. Should we still skip this for top level
+    // inference?
+    if (!isTopLevel) {
       // [actualReceiverType], [interfaceTarget], and [actualMethodName] below
       // are for a workaround for the cases like the following:
       //
@@ -1894,7 +1897,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       Class class_, Name name, bool setter, int charOffset) {
     Member member = engine.hierarchyBuilder.getCombinedMemberSignatureKernel(
         class_, name, setter, charOffset, library);
-    if (member == null && (library?.isPatch ?? false)) {
+    if (member == null && library.isPatch) {
       // TODO(dmitryas): Hack for parts.
       member ??=
           classHierarchy.getInterfaceMember(class_, name, setter: setter);

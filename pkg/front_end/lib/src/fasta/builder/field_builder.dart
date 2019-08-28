@@ -208,7 +208,7 @@ class FieldBuilder extends MemberBuilder {
     type.isStarted = true;
     TypeInferrerImpl typeInferrer = library.loader.typeInferenceEngine
         .createTopLevelTypeInferrer(
-            fileUri, field.enclosingClass?.thisType, null);
+            fileUri, field.enclosingClass?.thisType, library);
     BodyBuilder bodyBuilder =
         library.loader.createBodyBuilderForField(this, typeInferrer);
     bodyBuilder.constantContext =
