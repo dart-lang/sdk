@@ -6,9 +6,11 @@
 
 import 'foo2.dart';
 import 'foo3.dart';
+import 'foo4.dart';
 
 foo() {
   print("Hello from foo!");
   foo2();
   foo3();
+  foo4();
 }

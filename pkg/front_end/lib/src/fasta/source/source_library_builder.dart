@@ -387,15 +387,15 @@ class SourceLibraryBuilder extends LibraryBuilder {
       return;
     }
 
-    // If no language version has been set, the default is used.
-    // If trying to set a langauge version that is higher than the "already-set"
-    // version it's an error.
-    if (major > library.languageVersionMajor ||
-        (major == library.languageVersionMajor &&
-            minor > library.languageVersionMinor)) {
+    // If trying to set a langauge version that is higher than the "sdk-one"
+    // it's an error.
+    if (major > Library.defaultLanguageVersionMajor ||
+        (major == Library.defaultLanguageVersionMajor &&
+            minor > Library.defaultLanguageVersionMinor)) {
       addPostponedProblem(
           templateLanguageVersionTooHigh.withArguments(
-              library.languageVersionMajor, library.languageVersionMinor),
+              Library.defaultLanguageVersionMajor,
+              Library.defaultLanguageVersionMinor),
           offset,
           length,
           fileUri);

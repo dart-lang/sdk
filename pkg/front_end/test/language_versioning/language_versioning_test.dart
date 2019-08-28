@@ -21,8 +21,8 @@ import 'package:kernel/ast.dart' show Library;
 
 main(List<String> args) async {
   // Fix default/max major and minor version so we can test it.
-  Library.defaultLangaugeVersionMajor = 2;
-  Library.defaultLangaugeVersionMinor = 8;
+  Library.defaultLanguageVersionMajor = 2;
+  Library.defaultLanguageVersionMinor = 8;
 
   Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
   await runTests(dataDir,

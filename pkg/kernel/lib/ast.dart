@@ -285,15 +285,15 @@ class Library extends NamedNode
   Uri fileUri;
 
   // TODO(jensj): Do we have a better option than this?
-  static int defaultLangaugeVersionMajor = 2;
-  static int defaultLangaugeVersionMinor = 4;
+  static int defaultLanguageVersionMajor = 2;
+  static int defaultLanguageVersionMinor = 4;
 
   int _languageVersionMajor;
   int _languageVersionMinor;
   int get languageVersionMajor =>
-      _languageVersionMajor ?? defaultLangaugeVersionMajor;
+      _languageVersionMajor ?? defaultLanguageVersionMajor;
   int get languageVersionMinor =>
-      _languageVersionMinor ?? defaultLangaugeVersionMinor;
+      _languageVersionMinor ?? defaultLanguageVersionMinor;
   void setLanguageVersion(int languageVersionMajor, int languageVersionMinor) {
     if (languageVersionMajor == null || languageVersionMinor == null) {
       throw new StateError("Trying to set langauge version 'null'");
