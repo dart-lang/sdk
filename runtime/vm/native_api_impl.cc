@@ -146,7 +146,8 @@ DART_EXPORT bool Dart_InvokeVMServiceMethod(uint8_t* request_json,
   // will later on notify once the answer has been received.
   MonitorLocker monitor(vm_service_call_monitor);
 
-  if (ServiceIsolate::SendServiceRpc(request_json, request_json_length, port)) {
+  if (ServiceIsolate::SendServiceRpc(request_json, request_json_length, port,
+                                     error)) {
     // We posted successfully and expect the vm-service to send the reply, so
     // we will wait for it now.
     auto wait_result = monitor.Wait();
@@ -170,14 +171,6 @@ DART_EXPORT bool Dart_InvokeVMServiceMethod(uint8_t* request_json,
     // We couldn't post the message and will not receive any reply. Therefore we
     // clean up the port and return an error.
     Dart_CloseNativePort(port);
-
-    if (error != nullptr) {
-      if (ServiceIsolate::Port() == ILLEGAL_PORT) {
-        *error = strdup("No service isolate port was found.");
-      } else {
-        *error = strdup("Was unable to post message to service isolate.");
-      }
-    }
     return false;
   }
 }

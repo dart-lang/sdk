@@ -32,9 +32,14 @@ class ServiceIsolate : public AllStatic {
 
   // Returns `true` if the request was sucessfully sent.  If it was, the
   // [reply_port] will receive a Dart_TypedData_kUint8 response json.
+  //
+  // If sending the rpc failed and [error] is not `nullptr` then [error] might
+  // be set to a string containting the reason for the failure. If so, the
+  // caller is responsible for free()ing the error.
   static bool SendServiceRpc(uint8_t* request_json,
                              intptr_t request_json_length,
-                             Dart_Port reply_port);
+                             Dart_Port reply_port,
+                             char** error);
 
   static void Run();
   static bool SendIsolateStartupMessage();
@@ -66,7 +71,7 @@ class ServiceIsolate : public AllStatic {
   static void SetLoadPort(Dart_Port port);
   static void FinishedExiting();
   static void FinishedInitializing();
-  static void InitializingFailed();
+  static void InitializingFailed(char* error);
   static void MaybeMakeServiceIsolate(Isolate* isolate);
   static Dart_IsolateGroupCreateCallback create_group_callback() {
     return create_group_callback_;
@@ -86,6 +91,10 @@ class ServiceIsolate : public AllStatic {
   static Dart_Port load_port_;
   static Dart_Port origin_;
   static char* server_address_;
+
+  // If starting the service-isolate failed, this error might provide the reason
+  // for the failure.
+  static char* startup_failure_reason_;
 
   friend class Dart;
   friend class Isolate;
