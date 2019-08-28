@@ -1865,6 +1865,12 @@ IllegalMixinDueToConstructorsCause:
   template: "This constructor prevents using '#name' as a mixin."
   severity: CONTEXT
 
+ExtensionDeclaresConstructor:
+  index: 92
+  template: "Extensions can't declare constructors."
+  tip: "Try removing the constructor declaration."
+  analyzerCode: ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR
+
 ConflictsWithConstructor:
   template: "Conflicts with constructor '#name'."
   analyzerCode: CONFLICTS_WITH_CONSTRUCTOR

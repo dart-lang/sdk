@@ -99,6 +99,7 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _VAR_AND_TYPE,
   _INVALID_INITIALIZER,
   _ANNOTATION_WITH_TYPE_ARGUMENTS,
+  _EXTENSION_DECLARES_CONSTRUCTOR,
 ];
 
 const ParserErrorCode _ABSTRACT_CLASS_MEMBER = const ParserErrorCode(
@@ -243,6 +244,10 @@ const ParserErrorCode _EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE =
         r"Export directives must precede part directives.",
         correction:
             "Try moving the export directives before the part directives.");
+
+const ParserErrorCode _EXTENSION_DECLARES_CONSTRUCTOR = const ParserErrorCode(
+    'EXTENSION_DECLARES_CONSTRUCTOR', r"Extensions can't declare constructors.",
+    correction: "Try removing the constructor declaration.");
 
 const ParserErrorCode _EXTERNAL_CLASS = const ParserErrorCode(
     'EXTERNAL_CLASS', r"Classes can't be declared to be 'external'.",

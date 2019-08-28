@@ -1286,14 +1286,6 @@ class CompileTimeErrorCode extends ErrorCode {
   /**
    * No parameters.
    */
-  static const CompileTimeErrorCode EXTENSION_DECLARES_CONSTRUCTOR =
-      const CompileTimeErrorCode('EXTENSION_DECLARES_CONSTRUCTOR',
-          "Extensions can't declare constructors.",
-          correction: "Try removing the constructor declaration.");
-
-  /**
-   * No parameters.
-   */
   static const CompileTimeErrorCode EXTENSION_DECLARES_INSTANCE_FIELD =
       const CompileTimeErrorCode('EXTENSION_DECLARES_INSTANCE_FIELD',
           "Extensions can't declare instance fields.",

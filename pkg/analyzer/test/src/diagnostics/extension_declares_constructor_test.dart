@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -27,7 +28,7 @@ class ExtensionDeclaresConstructorTest extends DriverResolutionTest {
 extension E on String {
   E.named() : super();
 }
-''', [error(CompileTimeErrorCode.EXTENSION_DECLARES_CONSTRUCTOR, 28, 5)]);
+''', [error(ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR, 28, 5)]);
   }
 
   test_none() async {
@@ -41,6 +42,6 @@ extension E on String {}
 extension E on String {
   E() : super();
 }
-''', [error(CompileTimeErrorCode.EXTENSION_DECLARES_CONSTRUCTOR, 26, 1)]);
+''', [error(ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR, 26, 1)]);
   }
 }

@@ -15,6 +15,7 @@ import 'package:analyzer/src/dart/ast/ast.dart'
         CompilationUnitImpl,
         ExtensionDeclarationImpl,
         MixinDeclarationImpl;
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/fasta/error_converter.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -885,15 +886,6 @@ class AstBuilder extends StackListener {
           ast.simpleIdentifier(typeName.identifier.token, isDeclaration: true);
     }
 
-    if (extensionDeclaration != null) {
-      // TODO(brianwilkerson) Decide how to handle constructor and field
-      //  declarations within extensions. They are invalid, but we might want to
-      //  resolve them in order to get navigation, search, etc.
-      errorReporter.errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.EXTENSION_DECLARES_CONSTRUCTOR,
-          name ?? returnType);
-      return;
-    }
     currentDeclarationMembers.add(ast.constructorDeclaration(
         comment,
         metadata,
@@ -908,6 +900,24 @@ class AstBuilder extends StackListener {
         null,
         redirectedConstructor,
         body));
+  }
+
+  @override
+  void endMixinFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token endToken) {
+    debugEvent("MixinFactoryMethod");
+    endClassFactoryMethod(beginToken, factoryKeyword, endToken);
+  }
+
+  @override
+  void endExtensionFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token endToken) {
+    debugEvent("ExtensionFactoryMethod");
+    // TODO(danrubel) Decide how to handle constructor declarations within
+    // extensions. They are invalid and the parser has already reported an
+    // error at this point, but we include them in order to get navigation,
+    // search, etc.
+    endClassFactoryMethod(beginToken, factoryKeyword, endToken);
   }
 
   void endFieldInitializer(Token assignment, Token token) {
@@ -1572,7 +1582,7 @@ class AstBuilder extends StackListener {
         //  declarations within extensions. They are invalid, but we might want
         //  to resolve them in order to get navigation, search, etc.
         errorReporter.errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.EXTENSION_DECLARES_CONSTRUCTOR,
+            ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR,
             name ?? prefixOrName);
         return;
       }

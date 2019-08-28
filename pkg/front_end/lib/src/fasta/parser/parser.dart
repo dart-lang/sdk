@@ -3381,6 +3381,8 @@ class Parser {
         listener.endMixinFactoryMethod(beforeStart.next, factoryKeyword, token);
         break;
       case ClassKind.Extension:
+        reportRecoverableError(
+            factoryKeyword, fasta.messageExtensionDeclaresConstructor);
         listener.endExtensionFactoryMethod(
             beforeStart.next, factoryKeyword, token);
         break;
