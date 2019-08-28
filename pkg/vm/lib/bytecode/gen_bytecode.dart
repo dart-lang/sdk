@@ -3238,7 +3238,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       rhs is ConstantExpression ||
       rhs is StaticGet ||
       rhs is FunctionExpression ||
-      rhs is VariableGet;
+      rhs is VariableGet ||
+      rhs is AsExpression;
 
   void _genFutureNull() {
     asm.emitPushNull();
