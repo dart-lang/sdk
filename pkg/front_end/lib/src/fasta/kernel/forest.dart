@@ -8,6 +8,8 @@ import 'dart:core' hide MapEntry;
 
 import 'package:kernel/ast.dart';
 
+import '../names.dart';
+
 import '../parser.dart' show offsetForToken, optional;
 
 import '../problems.dart' show unsupported;
@@ -42,6 +44,7 @@ import 'kernel_shadow_ast.dart'
         ListLiteralJudgment,
         LoadLibraryJudgment,
         MapLiteralJudgment,
+        MethodInvocationJudgment,
         ReturnJudgment,
         SetLiteralJudgment,
         ShadowLargeIntLiteral,
@@ -495,10 +498,10 @@ class Forest {
   }
 
   /// Return a representation of a return statement.
-  Statement createReturnStatement(
-      Token returnKeyword, Expression expression, int charOffset) {
-    return new ReturnJudgment(returnKeyword?.lexeme, expression)
-      ..fileOffset = charOffset;
+  Statement createReturnStatement(int fileOffset, Expression expression,
+      {bool isArrow: true}) {
+    return new ReturnJudgment(isArrow, expression)
+      ..fileOffset = fileOffset ?? TreeNode.noOffset;
   }
 
   Expression createStringConcatenation(
@@ -686,8 +689,15 @@ class Forest {
   }
 
   FunctionExpression createFunctionExpression(
-      FunctionNode function, int fileOffset) {
-    return new FunctionExpression(function)..fileOffset = fileOffset;
+      int fileOffset, FunctionNode function) {
+    return new FunctionExpression(function)
+      ..fileOffset = fileOffset ?? TreeNode.noOffset;
+  }
+
+  MethodInvocation createFunctionInvocation(
+      int fileOffset, Expression expression, Arguments arguments) {
+    return new MethodInvocationJudgment(expression, callName, arguments)
+      ..fileOffset = fileOffset ?? TreeNode.noOffset;
   }
 
   NamedExpression createNamedExpression(String name, Expression expression) {

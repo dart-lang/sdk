@@ -1,0 +1,42 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class1 extends core::Object {
+  field core::int* field;
+  constructor •(core::int* field) → self::Class1*
+    ;
+  method toString() → core::String*
+    ;
+}
+class Class2 extends core::Object {
+  field core::int* field;
+  constructor •(core::int* field) → self::Class2*
+    ;
+  method toString() → core::String*
+    ;
+}
+extension Extension1 on self::Class1* {
+  method method = self::Extension1|method;
+  method genericMethod = self::Extension1|genericMethod;
+}
+extension Extension2 on self::Class2* {
+  method method = self::Extension2|method;
+  method genericMethod = self::Extension2|genericMethod;
+}
+static method Extension1|method(final self::Class1* #this) → core::int*
+  ;
+static method Extension1|genericMethod<T extends core::num* = dynamic>(final self::Class1* #this, self::Extension1|genericMethod::T* t) → core::int*
+  ;
+static method Extension2|method(final self::Class2* #this) → core::int*
+  ;
+static method Extension2|genericMethod<T extends core::num* = dynamic>(final self::Class2* #this, self::Extension2|genericMethod::T* t) → core::int*
+  ;
+static method main() → dynamic
+  ;
+static method testExtension1() → dynamic
+  ;
+static method testExtension2() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

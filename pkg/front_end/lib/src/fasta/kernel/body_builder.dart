@@ -1209,7 +1209,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
               .withLocation(uri, eof.charOffset, eof.length));
     }
 
-    ReturnJudgment fakeReturn = new ReturnJudgment(null, expression);
+    ReturnJudgment fakeReturn = new ReturnJudgment(true, expression);
 
     typeInferrer?.inferFunctionBody(
         this, const DynamicType(), AsyncMarker.Sync, fakeReturn);
@@ -1787,12 +1787,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   Expression createExtensionTearOff(
+      int fileOffset,
       Procedure procedure,
       VariableDeclaration extensionThis,
-      List<TypeParameter> extensionTypeParameters,
-      Token token) {
-    int fileOffset = offsetForToken(token);
-
+      List<TypeParameter> extensionTypeParameters) {
     FunctionNode function = procedure.function;
     List<TypeParameter> typeParameters = [];
     List<DartType> typeArguments = [];
@@ -1864,15 +1862,15 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
 
     Statement body = forest.createReturnStatement(
-        null,
+        fileOffset,
         buildStaticInvocation(
             procedure,
             forest.createArguments(fileOffset, positionalArguments,
                 types: typeArguments, named: namedArguments),
-            charOffset: fileOffset),
-        fileOffset);
+            charOffset: fileOffset));
 
     FunctionExpression expression = forest.createFunctionExpression(
+        fileOffset,
         forest.createFunctionNode(body,
             typeParameters: typeParameters,
             positionalParameters: positionalParameters,
@@ -1881,8 +1879,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
                 procedure.function.requiredParameterCount - 1,
             returnType: returnType,
             asyncMarker: procedure.function.asyncMarker,
-            dartAsyncMarker: procedure.function.dartAsyncMarker),
-        fileOffset);
+            dartAsyncMarker: procedure.function.dartAsyncMarker));
     functionNestingLevel--;
     return expression;
   }
@@ -2211,8 +2208,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       push(buildProblemStatement(
           fasta.messageConstructorWithReturnType, beginToken.charOffset));
     } else {
-      push(forest.createReturnStatement(
-          beginToken, expression, offsetForToken(beginToken)));
+      push(forest.createReturnStatement(offsetForToken(beginToken), expression,
+          isArrow: !identical(beginToken.lexeme, "return")));
     }
   }
 

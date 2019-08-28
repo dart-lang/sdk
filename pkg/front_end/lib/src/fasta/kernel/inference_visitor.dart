@@ -1766,8 +1766,7 @@ class InferenceVisitor
     } else {
       inferredType = inferrer.coreTypes.nullClass.rawType;
     }
-    closureContext.handleReturn(inferrer, node, inferredType,
-        !identical(node.returnKeywordLexeme, "return"));
+    closureContext.handleReturn(inferrer, node, inferredType, node.isArrow);
   }
 
   ExpressionInferenceResult visitSetLiteralJudgment(

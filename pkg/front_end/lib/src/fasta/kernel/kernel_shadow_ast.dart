@@ -1095,10 +1095,9 @@ class RedirectingInitializerJudgment extends RedirectingInitializer
 
 /// Concrete shadow object representing a return statement in kernel form.
 class ReturnJudgment extends ReturnStatement implements StatementJudgment {
-  final String returnKeywordLexeme;
+  final bool isArrow;
 
-  ReturnJudgment(this.returnKeywordLexeme, [Expression expression])
-      : super(expression);
+  ReturnJudgment(this.isArrow, [Expression expression]) : super(expression);
 
   Expression get judgment => expression;
 
@@ -1282,9 +1281,10 @@ class SyntheticExpressionJudgment extends Let implements ExpressionJudgment {
 
   /// Removes this expression from the expression tree, replacing it with
   /// [desugared].
-  void _replaceWithDesugared() {
+  Expression _replaceWithDesugared() {
     parent.replaceChild(this, desugared);
     parent = null;
+    return desugared;
   }
 
   /// Updates any [Let] nodes in the desugared expression to account for the

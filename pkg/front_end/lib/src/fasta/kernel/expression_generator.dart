@@ -1697,7 +1697,7 @@ class ExtensionInstanceAccessGenerator extends Generator {
       }
     } else if (readTargetIsRegularMethod) {
       read = _helper.createExtensionTearOff(
-          readTarget, extensionThis, extensionTypeParameters, token);
+          fileOffset, readTarget, extensionThis, extensionTypeParameters);
     } else {
       List<DartType> typeArguments;
       if (extensionTypeParameters != null) {

@@ -1852,18 +1852,86 @@ abstract class TypeInferrerImpl extends TypeInferrer {
             instantiateTearOff(inferredType, typeContext, replacedExpression);
       }
     } else if (readTarget.isExtensionMember) {
+      int fileOffset = expression.fileOffset;
       switch (readTarget.extensionMethodKind) {
         case kernel.ProcedureKind.Getter:
           expression.parent.replaceChild(
               expression,
               replacement = expression = helper.forest.createStaticInvocation(
-                  expression.fileOffset,
+                  fileOffset,
                   readTarget.member,
-                  helper.forest
-                      .createArguments(expression.fileOffset, [receiver])));
+                  helper.forest.createArguments(fileOffset, [receiver])));
           break;
         case kernel.ProcedureKind.Method:
-        // TODO(johnniwinther): Handle extension method tearoff.
+
+          // Create instance method tear off by converting
+          //
+          //    extension E on A {
+          //      method() {}
+          //    }
+          //    A a = ...
+          //    a.method;
+          //
+          // into
+          //
+          //    E|method(A #this) {}
+          //    A a ...
+          //    let #1 = a in () => E|method(#1);
+          //
+
+          //VariableDeclaration variable = helper.forest
+          //    .createVariableDeclarationForValue(fileOffset, receiver,
+          //        type: receiverType);
+          //expression.parent.replaceChild(
+          //    expression,
+          //    replacement = expression = helper.forest.createLet(
+          //        variable,
+          //        helper.createExtensionTearOff(
+          //            expression.fileOffset,
+          //            readTarget.member,
+          //            variable,
+          //            // TODO(johnniwinther): Support generic extensions.
+          //            [],
+          //            receiver)));
+
+          // TODO(johnniwinther): The encoding above doesn't work on the VM
+          // (silently stops execution!) and dart2js (crashes due to invalid
+          // closure scope result). We use this instead:
+
+          // Create instance method tear off by converting
+          //
+          //    extension E on A {
+          //      method() {}
+          //    }
+          //    A a = ...
+          //    a.method;
+          //
+          // into
+          //
+          //    E|method(A #this) {}
+          //    A a ...
+          //    ((#1) => () => E|method(#1))(a);
+          //
+
+          VariableDeclaration variable = helper.forest
+              .createVariableDeclaration("#", 0,
+                  isFinal: true, type: receiverType);
+          expression.parent.replaceChild(
+              expression,
+              replacement = expression = helper.forest.createFunctionInvocation(
+                  fileOffset,
+                  helper.forest.createFunctionExpression(
+                      fileOffset,
+                      helper.forest.createFunctionNode(
+                        helper.forest.createReturnStatement(
+                            fileOffset,
+                            helper.createExtensionTearOff(
+                                fileOffset, readTarget.member, variable, [])),
+                        positionalParameters: [variable],
+                        requiredParameterCount: 1,
+                      )),
+                  helper.forest.createArguments(fileOffset, [receiver])));
+          break;
         case kernel.ProcedureKind.Setter:
         case kernel.ProcedureKind.Factory:
         case kernel.ProcedureKind.Operator:

@@ -607,6 +607,7 @@ covered
 covers
 crash
 crashed
+crashes
 crashing
 create
 created
@@ -2418,6 +2419,7 @@ signature
 signatures
 signed
 silent
+silently
 silly
 similar
 similarly
