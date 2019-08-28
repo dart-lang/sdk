@@ -71,7 +71,7 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginClassOrMixinBody(ClassKind kind, Token token) {
+  void beginClassOrMixinBody(DeclarationKind kind, Token token) {
     listener?.beginClassOrMixinBody(kind, token);
   }
 
@@ -522,7 +522,7 @@ class ForwardingListener implements Listener {
 
   @override
   void endClassOrMixinBody(
-      ClassKind kind, int memberCount, Token beginToken, Token endToken) {
+      DeclarationKind kind, int memberCount, Token beginToken, Token endToken) {
     listener?.endClassOrMixinBody(kind, memberCount, beginToken, endToken);
   }
 

@@ -48,7 +48,7 @@ import 'package:front_end/src/fasta/messages.dart'
 import 'package:front_end/src/fasta/parser.dart'
     show
         Assert,
-        ClassKind,
+        DeclarationKind,
         FormalParameterKind,
         IdentifierContext,
         MemberKind,
@@ -650,8 +650,8 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endClassOrMixinBody(
-      ClassKind kind, int memberCount, Token leftBracket, Token rightBracket) {
+  void endClassOrMixinBody(DeclarationKind kind, int memberCount,
+      Token leftBracket, Token rightBracket) {
     // TODO(danrubel): consider renaming endClassOrMixinBody
     // to endClassOrMixinOrExtensionBody
     assert(optional('{', leftBracket));

@@ -45,7 +45,8 @@ import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/kernel_builder.dart'
     show FormalParameterBuilder, TypeAliasBuilder, TypeBuilder;
 
-import '../parser.dart' show Assert, ClassKind, MemberKind, Parser, optional;
+import '../parser.dart'
+    show Assert, DeclarationKind, MemberKind, Parser, optional;
 
 import '../problems.dart'
     show DebugAbort, internalProblem, unexpected, unhandled;
@@ -738,7 +739,7 @@ class DietListener extends StackListener {
   }
 
   @override
-  void beginClassOrMixinBody(ClassKind kind, Token token) {
+  void beginClassOrMixinBody(DeclarationKind kind, Token token) {
     assert(checkState(token, [
       ValueKind.Token,
       ValueKind.NameOrParserRecovery,
@@ -760,7 +761,7 @@ class DietListener extends StackListener {
 
   @override
   void endClassOrMixinBody(
-      ClassKind kind, int memberCount, Token beginToken, Token endToken) {
+      DeclarationKind kind, int memberCount, Token beginToken, Token endToken) {
     debugEvent("ClassOrMixinBody");
     currentDeclaration = null;
     currentClassIsParserRecovery = false;

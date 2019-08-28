@@ -53,7 +53,7 @@ import 'assert.dart' show Assert;
 
 import 'async_modifier.dart' show AsyncModifier;
 
-import 'class_kind.dart' show ClassKind;
+import 'declaration_kind.dart' show DeclarationKind;
 
 import 'directive_context.dart';
 
@@ -1798,7 +1798,7 @@ class Parser {
       token = parseClassHeaderRecovery(start, begin, classKeyword);
       ensureBlock(token, null, 'class declaration');
     }
-    token = parseClassOrMixinOrExtensionBody(token, ClassKind.Class);
+    token = parseClassOrMixinOrExtensionBody(token, DeclarationKind.Class);
     listener.endClassDeclaration(begin, token);
     return token;
   }
@@ -1965,7 +1965,7 @@ class Parser {
       token = parseMixinHeaderRecovery(token, mixinKeyword, headerStart);
       ensureBlock(token, null, 'mixin declaration');
     }
-    token = parseClassOrMixinOrExtensionBody(token, ClassKind.Mixin);
+    token = parseClassOrMixinOrExtensionBody(token, DeclarationKind.Mixin);
     listener.endMixinDeclaration(mixinKeyword, token);
     return token;
   }
@@ -2135,7 +2135,7 @@ class Parser {
       ensureBlock(token, null, 'extension declaration');
     }
     // TODO(danrubel): Do not allow fields or constructors
-    token = parseClassOrMixinOrExtensionBody(token, ClassKind.Extension);
+    token = parseClassOrMixinOrExtensionBody(token, DeclarationKind.Extension);
     listener.endExtensionDeclaration(extensionKeyword, onKeyword, token);
     return token;
   }
@@ -2903,7 +2903,7 @@ class Parser {
   ///   '{' classMember* '}'
   /// ;
   /// ```
-  Token parseClassOrMixinOrExtensionBody(Token token, ClassKind kind) {
+  Token parseClassOrMixinOrExtensionBody(Token token, DeclarationKind kind) {
     Token begin = token = token.next;
     assert(optional('{', token));
     listener.beginClassOrMixinBody(kind, token);
@@ -2931,7 +2931,7 @@ class Parser {
   /// last consumed token.
   Token parseClassMember(Token token) {
     return parseClassOrMixinOrExtensionMemberImpl(
-            ClassKind.Class, syntheticPreviousToken(token))
+            DeclarationKind.Class, syntheticPreviousToken(token))
         .next;
   }
 
@@ -2943,7 +2943,7 @@ class Parser {
   /// last consumed token.
   Token parseMixinMember(Token token) {
     return parseClassOrMixinOrExtensionMemberImpl(
-            ClassKind.Mixin, syntheticPreviousToken(token))
+            DeclarationKind.Mixin, syntheticPreviousToken(token))
         .next;
   }
 
@@ -2955,7 +2955,7 @@ class Parser {
   /// last consumed token.
   Token parseExtensionMember(Token token) {
     return parseClassOrMixinOrExtensionMemberImpl(
-            ClassKind.Extension, syntheticPreviousToken(token))
+            DeclarationKind.Extension, syntheticPreviousToken(token))
         .next;
   }
 
@@ -2976,7 +2976,8 @@ class Parser {
   ///   methodDeclaration
   /// ;
   /// ```
-  Token parseClassOrMixinOrExtensionMemberImpl(ClassKind kind, Token token) {
+  Token parseClassOrMixinOrExtensionMemberImpl(
+      DeclarationKind kind, Token token) {
     Token beforeStart = token = parseMetadataStar(token);
 
     Token covariantToken;
@@ -3312,7 +3313,7 @@ class Parser {
     return token;
   }
 
-  Token parseFactoryMethod(Token token, ClassKind kind, Token beforeStart,
+  Token parseFactoryMethod(Token token, DeclarationKind kind, Token beforeStart,
       Token externalToken, Token staticOrCovariant, Token varFinalOrConst) {
     Token factoryKeyword = token = token.next;
     assert(optional('factory', factoryKeyword));
@@ -3374,17 +3375,20 @@ class Parser {
       token = parseFunctionBody(token, false, false);
     }
     switch (kind) {
-      case ClassKind.Class:
+      case DeclarationKind.Class:
         listener.endClassFactoryMethod(beforeStart.next, factoryKeyword, token);
         break;
-      case ClassKind.Mixin:
+      case DeclarationKind.Mixin:
         listener.endMixinFactoryMethod(beforeStart.next, factoryKeyword, token);
         break;
-      case ClassKind.Extension:
+      case DeclarationKind.Extension:
         reportRecoverableError(
             factoryKeyword, fasta.messageExtensionDeclaresConstructor);
         listener.endExtensionFactoryMethod(
             beforeStart.next, factoryKeyword, token);
+        break;
+      case DeclarationKind.TopLevel:
+        throw "Internal error: TopLevel factory.";
         break;
     }
     return token;

@@ -19,7 +19,7 @@ import 'formal_parameter_kind.dart' show FormalParameterKind;
 
 import 'identifier_context.dart' show IdentifierContext;
 
-import 'class_kind.dart' show ClassKind;
+import 'declaration_kind.dart' show DeclarationKind;
 
 import 'member_kind.dart' show MemberKind;
 
@@ -91,14 +91,14 @@ class Listener implements UnescapeErrorListener {
   /// Handle the start of the body of a class, mixin or extension declaration
   /// beginning at [token]. The actual kind of declaration is indicated by
   /// [kind].
-  void beginClassOrMixinBody(ClassKind kind, Token token) {}
+  void beginClassOrMixinBody(DeclarationKind kind, Token token) {}
 
   /// Handle the end of the body of a class, mixin or extension declaration.
   /// The only substructures are the class, mixin or extension members.
   ///
   /// The actual kind of declaration is indicated by [kind].
   void endClassOrMixinBody(
-      ClassKind kind, int memberCount, Token beginToken, Token endToken) {
+      DeclarationKind kind, int memberCount, Token beginToken, Token endToken) {
     logEvent("ClassOrMixinBody");
   }
 

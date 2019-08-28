@@ -76,7 +76,7 @@ import '../operator.dart'
 import '../parser.dart'
     show
         Assert,
-        ClassKind,
+        DeclarationKind,
         FormalParameterKind,
         IdentifierContext,
         lengthOfSpan,
@@ -481,8 +481,8 @@ class OutlineBuilder extends StackListener {
   }
 
   @override
-  void beginClassOrMixinBody(ClassKind kind, Token token) {
-    if (kind == ClassKind.Extension) {
+  void beginClassOrMixinBody(DeclarationKind kind, Token token) {
+    if (kind == DeclarationKind.Extension) {
       assert(checkState(token, [
         unionOfKinds([ValueKind.ParserRecovery, ValueKind.TypeBuilder])
       ]));
@@ -1801,7 +1801,7 @@ class OutlineBuilder extends StackListener {
 
   @override
   void endClassOrMixinBody(
-      ClassKind kind, int memberCount, Token beginToken, Token endToken) {
+      DeclarationKind kind, int memberCount, Token beginToken, Token endToken) {
     debugEvent("ClassOrMixinBody");
   }
 

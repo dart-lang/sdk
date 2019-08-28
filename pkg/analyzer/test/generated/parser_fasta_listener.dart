@@ -95,7 +95,7 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginClassOrMixinBody(ClassKind kind, Token token) {
+  void beginClassOrMixinBody(DeclarationKind kind, Token token) {
     super.beginClassOrMixinBody(kind, token);
     begin('ClassOrMixinBody');
   }
@@ -608,7 +608,7 @@ class ForwardingTestListener extends ForwardingListener {
 
   @override
   void endClassOrMixinBody(
-      ClassKind kind, int memberCount, Token beginToken, Token endToken) {
+      DeclarationKind kind, int memberCount, Token beginToken, Token endToken) {
     end('ClassOrMixinBody');
     super.endClassOrMixinBody(kind, memberCount, beginToken, endToken);
   }
