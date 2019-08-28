@@ -132,6 +132,17 @@ void f<@A(() { Function() v; }) T>() {}
 ''');
   }
 
+  test_fuzz_11() async {
+    // Here `F` is a generic function, so it cannot be used as a bound for
+    // a type parameter. The reason it crashed was that we did not build
+    // the bound for `Y` (not `T`), because of the order in which types
+    // for `T extends F` and `typedef F` were built.
+    await _assertCanBeAnalyzed(r'''
+typedef F<X> = void Function<Y extends num>();
+class A<T extends F> {}
+''');
+  }
+
   test_fuzz_12() async {
     // This code crashed with summary2 because usually AST reader is lazy,
     // so we did not read metadata `@b` for `c`. But default values must be

@@ -185,15 +185,6 @@ class NamedTypeBuilder extends TypeBuilder {
     }
   }
 
-  /// If the [type] is a [TypeBuilder], build it; otherwise return as is.
-  DartType _buildType(DartType type) {
-    if (type is TypeBuilder) {
-      return type.build();
-    } else {
-      return type;
-    }
-  }
-
   DartType _getRawFunctionType(GenericTypeAliasElementImpl element) {
     // If the element is not being linked, there is no reason (or a way,
     // because the linked node might be read only partially) to go through
@@ -218,19 +209,28 @@ class NamedTypeBuilder extends TypeBuilder {
       );
     } else if (typedefNode is GenericTypeAlias) {
       var functionNode = typedefNode.functionType;
-      if (functionNode != null) {
-        return _buildFunctionType(
-          element,
-          _typeParameterTypes(typedefNode.typeParameters),
-          functionNode.typeParameters,
-          functionNode.returnType,
-          functionNode.parameters,
+      var functionType = _buildType(functionNode?.type);
+      if (functionType is FunctionType) {
+        return FunctionTypeImpl.synthetic(
+          functionType.returnType,
+          functionType.typeFormals,
+          functionType.parameters,
+          element: element,
+          typeArguments: _typeParameterTypes(typedefNode.typeParameters),
         );
-      } else {
-        return _dynamicType;
       }
+      return _dynamicType;
     } else {
       throw StateError('(${element.runtimeType}) $element');
+    }
+  }
+
+  /// If the [type] is a [TypeBuilder], build it; otherwise return as is.
+  static DartType _buildType(DartType type) {
+    if (type is TypeBuilder) {
+      return type.build();
+    } else {
+      return type;
     }
   }
 
