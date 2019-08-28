@@ -2471,21 +2471,8 @@ void g() {
     var t_ret = decoratedTypeAnnotation('T f').node;
     var t_param = decoratedTypeAnnotation('T t').node;
 
-    final x_upstream = graph.getUpstreamEdges(int_x);
-    expect(x_upstream.length, 1);
-    final x_upstreamSource = x_upstream.single.primarySource;
-    expect(x_upstreamSource is NullabilityNodeForSubstitution, true);
-    final t_ret_sub = x_upstreamSource as NullabilityNodeForSubstitution;
-    expect(t_ret_sub.outerNode, t_ret);
-
-    final y_downstream = graph.getDownstreamEdges(int_y);
-    expect(y_downstream.length, 1);
-    final y_downstreamSource = y_downstream.single.destinationNode;
-    expect(y_downstreamSource is NullabilityNodeForSubstitution, true);
-    final t_param_sub = y_downstreamSource as NullabilityNodeForSubstitution;
-    expect(t_param_sub.outerNode, t_param);
-
-    expect(t_param_sub.innerNode, t_ret_sub.innerNode);
+    assertEdge(substitutionNode(anyNode, t_ret), int_x, hard: false);
+    assertEdge(int_y, substitutionNode(anyNode, t_param), hard: true);
     assertEdge(t_param, t_ret, hard: true);
   }
 
