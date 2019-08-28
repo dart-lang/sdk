@@ -648,7 +648,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
 
   @override
   visitSwitchCase(SwitchCase node) {
-    _addSuggestion(Keyword.BREAK);
+    _addStatementKeywords(node);
     return super.visitSwitchCase(node);
   }
 
