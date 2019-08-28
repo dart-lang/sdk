@@ -1959,6 +1959,16 @@ C<int> f() => C<int>();
         hard: false);
   }
 
+  test_instanceCreation_generic_dynamic() async {
+    await analyze('''
+class C<T> {}
+C<Object> f() => C<dynamic>();
+''');
+    assertEdge(decoratedTypeAnnotation('dynamic').node,
+        decoratedTypeAnnotation('Object').node,
+        hard: false);
+  }
+
   test_instanceCreation_generic_parameter() async {
     await analyze('''
 class C<T> {

@@ -401,10 +401,10 @@ class DecoratedType {
         return inner
             .withNode(NullabilityNode.forSubstitution(inner.node, node));
       }
-    } else if (type is VoidType) {
+    } else if (type.isVoid || type.isDynamic) {
       return this;
     }
-    throw '$type.substitute($substitution)'; // TODO(paulberry)
+    throw '$type.substitute($type | $substitution)'; // TODO(paulberry)
   }
 
   /// Performs the logic that is common to substitution and function type
