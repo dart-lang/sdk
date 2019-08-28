@@ -399,7 +399,7 @@ type Procedure extends Member {
 }
 
 type RedirectingFactoryConstructor extends Member {
-  Byte tag = 108;
+  Byte tag = 107;
   CanonicalNameReference canonicalName;
   UriReference fileUri;
   FileOffset fileOffset;

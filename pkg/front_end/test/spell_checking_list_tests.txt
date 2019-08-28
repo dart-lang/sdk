@@ -100,6 +100,7 @@ dartfile
 dashes
 day
 db
+decrements
 def
 depended
 depfile
@@ -202,6 +203,7 @@ implementor
 inclosure
 increased
 incrementally
+increments
 individual
 insertion
 inspect
@@ -269,6 +271,7 @@ overlay
 parametrized
 party
 pause
+payloads
 periodic
 periodically
 person
@@ -309,6 +312,8 @@ reflective
 regenerate
 regressions
 reload
+remap
+remaps
 repeating
 repo
 repro
@@ -317,6 +322,7 @@ respected
 response
 retains
 rev
+risky
 say
 scans
 screen
@@ -398,12 +404,14 @@ unordered
 unreachable
 unregistered
 untransformed
+untrimmed
 uppercase
 upward
 usr
 usual
 val
 variants
+vars
 verbatim
 versa
 versioning

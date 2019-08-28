@@ -798,11 +798,20 @@ Future<bool> normalCompile(Uri input, Uri output,
   options ??= getOptions();
   TestIncrementalCompiler compiler =
       new TestIncrementalCompiler(options, input);
+  List<int> bytes =
+      await normalCompileToBytes(input, options: options, compiler: compiler);
+  new File.fromUri(output).writeAsBytesSync(bytes);
+  return compiler.initializedFromDill;
+}
+
+Future<List<int>> normalCompileToBytes(Uri input,
+    {CompilerOptions options, IncrementalCompiler compiler}) async {
+  options ??= getOptions();
+  compiler ??= new TestIncrementalCompiler(options, input);
   Component component = await compiler.computeDelta();
   util.throwOnEmptyMixinBodies(component);
   util.throwOnInsufficientUriToSource(component);
-  new File.fromUri(output).writeAsBytesSync(util.postProcess(component));
-  return compiler.initializedFromDill;
+  return util.postProcess(component);
 }
 
 Future<bool> initializedCompile(
