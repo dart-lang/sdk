@@ -13,7 +13,7 @@ import 'dartfuzz_values.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.24';
+const String version = '1.25';
 
 // Restriction on statements and expressions.
 const int stmtLength = 2;
@@ -1175,7 +1175,7 @@ class DartFuzz {
 
   List<List<DartType>> fillTypes2({bool isFfi = false}) {
     final list = <List<DartType>>[];
-    for (int i = 0, n = 1 + rand.nextInt(8); i < n; i++) {
+    for (int i = 0, n = 1 + rand.nextInt(4); i < n; i++) {
       list.add(fillTypes1(isFfi: isFfi));
     }
     return list;
