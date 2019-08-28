@@ -349,6 +349,13 @@ class VmTarget extends Target {
         ]));
   }
 
+  // In addition to the default implementation, we allow VM tests to import
+  // private platform libraries - such as `dart:_internal` - for testing
+  // purposes.
+  bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
+      super.allowPlatformPrivateLibraryAccess(importer, imported) ||
+      importer.path.contains('runtime/tests/vm/dart');
+
   // TODO(sigmund,ahe): limit this to `dart-ext` libraries only (see
   // https://github.com/dart-lang/sdk/issues/29763).
   @override
