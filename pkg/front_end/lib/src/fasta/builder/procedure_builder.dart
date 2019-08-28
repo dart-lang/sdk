@@ -4,12 +4,6 @@
 
 library fasta.procedure_builder;
 
-// Note: we're deliberately using AsyncMarker and ProcedureKind from kernel
-// outside the kernel-specific builders. This is simpler than creating
-// additional enums.
-import 'package:kernel/ast.dart'
-    show AsyncMarker, ProcedureKind, VariableDeclaration;
-
 import 'package:kernel/type_algebra.dart' show containsTypeVariable, substitute;
 import 'package:kernel/type_algebra.dart';
 
@@ -30,6 +24,7 @@ import 'package:kernel/ast.dart'
     show
         Arguments,
         AsyncMarker,
+        Block,
         Class,
         Constructor,
         ConstructorInvocation,
@@ -45,6 +40,7 @@ import 'package:kernel/ast.dart'
         Procedure,
         ProcedureKind,
         RedirectingInitializer,
+        ReturnStatement,
         Statement,
         StaticInvocation,
         StringLiteral,
@@ -53,6 +49,7 @@ import 'package:kernel/ast.dart'
         TypeParameter,
         TypeParameterType,
         VariableDeclaration,
+        VariableGet,
         setParents;
 
 import '../../scanner/token.dart' show Token;
@@ -235,7 +232,7 @@ abstract class FunctionBuilder extends MemberBuilder {
 
   FunctionNode function;
 
-  Statement actualBody;
+  Statement _body;
 
   FunctionBuilder get actualOrigin;
 
@@ -247,7 +244,7 @@ abstract class FunctionBuilder extends MemberBuilder {
 //            newBody.fileOffset, fileUri);
 //      }
 //    }
-    actualBody = newBody;
+    _body = newBody;
     if (function != null) {
       // A forwarding semi-stub is a method that is abstract in the source code,
       // but which needs to have a forwarding stub body in order to ensure that
@@ -264,18 +261,18 @@ abstract class FunctionBuilder extends MemberBuilder {
   }
 
   void setRedirectingFactoryBody(Member target, List<DartType> typeArguments) {
-    if (actualBody != null) {
-      unexpected("null", "${actualBody.runtimeType}", charOffset, fileUri);
+    if (_body != null) {
+      unexpected("null", "${_body.runtimeType}", charOffset, fileUri);
     }
-    actualBody = new RedirectingFactoryBody(target, typeArguments);
-    function.body = actualBody;
-    actualBody?.parent = function;
+    _body = new RedirectingFactoryBody(target, typeArguments);
+    function.body = _body;
+    _body?.parent = function;
     if (isPatch) {
       actualOrigin.setRedirectingFactoryBody(target, typeArguments);
     }
   }
 
-  Statement get body => actualBody ??= new EmptyStatement();
+  Statement get body => _body ??= new EmptyStatement();
 
   bool get isNative => nativeMethodName != null;
 
@@ -506,10 +503,63 @@ class ProcedureBuilder extends FunctionBuilder {
   AsyncMarker get asyncModifier => actualAsyncModifier;
 
   Statement get body {
-    if (actualBody == null && !isAbstract && !isExternal) {
-      actualBody = new EmptyStatement();
+    if (_body == null && !isAbstract && !isExternal) {
+      _body = new EmptyStatement();
     }
-    return actualBody;
+    return _body;
+  }
+
+  /// If this is an extension instance setter, wrap the setter body to return
+  /// the rhs value from the method.
+  ///
+  /// That is, this setter
+  ///
+  ///     extension E on A {
+  ///       void set property(B value) {
+  ///         value++;
+  ///       }
+  ///     }
+  ///
+  /// is converted into this top level method
+  ///
+  ///    B E|property(A #this, B value) {
+  ///      final #t1 = value;
+  ///      value++;
+  ///      return #t1;
+  ///    }
+  ///
+  void _updateExtensionSetterBody() {
+    if (isExtensionInstanceMember && isSetter) {
+      // TODO(johnniwinther): Avoid the synthetic variable if the parameter is
+      // never modified.
+      VariableDeclaration value = procedure.function.positionalParameters[1];
+      procedure.function.returnType = value.type;
+      Statement body = procedure.function.body;
+      List<Statement> statements = [];
+      Block block = new Block(statements);
+      VariableDeclaration variableDeclaration =
+          new VariableDeclarationJudgment.forValue(
+              new VariableGet(value)..fileOffset = procedure.fileOffset)
+            ..type = value.type;
+      statements.add(variableDeclaration);
+      if (body is Block) {
+        statements.addAll(body.statements);
+      } else {
+        statements.add(body);
+      }
+      ReturnStatement returnStatement = new ReturnStatement(
+          new VariableGet(variableDeclaration)
+            ..fileOffset = procedure.fileEndOffset);
+      statements.add(returnStatement);
+      setParents(block.statements, block);
+      procedure.function.body = block;
+      block.parent = procedure.function;
+    }
+  }
+
+  void set body(Statement newBody) {
+    super.body = newBody;
+    _updateExtensionSetterBody();
   }
 
   void set asyncModifier(AsyncMarker newModifier) {
@@ -896,12 +946,12 @@ class RedirectingFactoryBuilder extends ProcedureBuilder {
             nativeMethodName);
 
   @override
-  Statement get body => actualBody;
+  Statement get body => _body;
 
   @override
   void setRedirectingFactoryBody(Member target, List<DartType> typeArguments) {
-    if (actualBody != null) {
-      unexpected("null", "${actualBody.runtimeType}", charOffset, fileUri);
+    if (_body != null) {
+      unexpected("null", "${_body.runtimeType}", charOffset, fileUri);
     }
 
     // Ensure that constant factories only have constant targets/bodies.
@@ -910,9 +960,9 @@ class RedirectingFactoryBuilder extends ProcedureBuilder {
           noLength, fileUri);
     }
 
-    actualBody = new RedirectingFactoryBody(target, typeArguments);
-    function.body = actualBody;
-    actualBody?.parent = function;
+    _body = new RedirectingFactoryBody(target, typeArguments);
+    function.body = _body;
+    _body?.parent = function;
     if (isPatch) {
       if (function.typeParameters != null) {
         Map<TypeParameter, DartType> substitution = <TypeParameter, DartType>{};

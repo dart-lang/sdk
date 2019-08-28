@@ -293,7 +293,7 @@ abstract class ComplexAssignmentJudgment extends SyntheticExpressionJudgment {
   Expression read;
 
   /// The expression appearing on the RHS of the assignment.
-  final Expression rhs;
+  Expression rhs;
 
   /// The expression that performs the write (e.g. `a.[]=(b, a.[](b) + 1)` in
   /// `++a[b]`).
@@ -367,8 +367,8 @@ abstract class ComplexAssignmentJudgment extends SyntheticExpressionJudgment {
                 combinerTarget.member, readType);
       }
       DartType rhsType;
-      FunctionType combinerType = inferrer.getCalleeFunctionType(
-          inferrer.getCalleeType(combinerTarget, readType), false);
+      FunctionType combinerType =
+          inferrer.getFunctionType(combinerTarget, readType, false);
       if (isPreIncDec || isPostIncDec) {
         rhsType = inferrer.coreTypes.intClass.rawType;
       } else {
@@ -378,8 +378,12 @@ abstract class ComplexAssignmentJudgment extends SyntheticExpressionJudgment {
         assert(identical(combiner.arguments.positional.first, rhs));
         // Analyzer uses a null context for the RHS here.
         // TODO(paulberry): improve on this.
-        inferrer.inferExpression(rhs, const UnknownType(), true);
-        rhsType = getInferredType(rhs, inferrer);
+        ExpressionInferenceResult rhsResult =
+            inferrer.inferExpression(rhs, const UnknownType(), true);
+        if (rhsResult.replacement != null) {
+          rhs = rhsResult.replacement;
+        }
+        rhsType = rhsResult.inferredType;
         // Do not use rhs after this point because it may be a Shadow node
         // that has been replaced in the tree with its desugaring.
         DartType expectedType = getPositionalParameterType(combinerType, 0);
@@ -413,6 +417,9 @@ abstract class ComplexAssignmentJudgment extends SyntheticExpressionJudgment {
       ExpressionInferenceResult rhsResult = inferrer.inferExpression(
           rhs, writeContext ?? const UnknownType(), true,
           isVoidAllowed: true);
+      if (rhsResult.replacement != null) {
+        rhs = rhsResult.replacement;
+      }
       DartType rhsType = rhsResult.inferredType;
       Expression replacedRhs = inferrer.ensureAssignable(
           writeContext, rhsType, rhs, writeOffset,

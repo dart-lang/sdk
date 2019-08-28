@@ -6,7 +6,8 @@
 # Kernel ASTs directly, that is, code in pkg/fasta/lib/src/kernel/ with
 # strong-mode enabled.
 
-extensions/extension_methods: RuntimeError
+extensions/instance_access_of_static: RuntimeError
+extensions/static_access_of_instance: RuntimeError
 general/abstract_members: TypeCheckError
 general/accessors: RuntimeError
 general/ambiguous_exports: RuntimeError # Expected, this file exports two main methods.

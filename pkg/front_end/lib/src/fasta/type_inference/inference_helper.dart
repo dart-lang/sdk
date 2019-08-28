@@ -8,10 +8,14 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 import '../fasta_codes.dart' show LocatedMessage, Message;
 
+import '../kernel/forest.dart';
+
 abstract class InferenceHelper {
   CoreTypes get coreTypes;
 
   Uri get uri;
+
+  Forest get forest;
 
   set transformSetLiterals(bool value);
 

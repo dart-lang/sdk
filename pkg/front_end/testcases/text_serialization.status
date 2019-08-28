@@ -11,11 +11,14 @@ expression/main: TextSerializationFailure # Was: Pass
 extensions/explicit_this: TextSerializationFailure
 extensions/extension_methods: TextSerializationFailure
 extensions/implicit_this: TextSerializationFailure
+extensions/instance_access: TextSerializationFailure
+extensions/instance_access_of_static: TextSerializationFailure
 extensions/direct_instance_access: TextSerializationFailure
 extensions/direct_static_access: TextSerializationFailure
 extensions/instance_members: TextSerializationFailure
 extensions/other_kinds: TextSerializationFailure
 extensions/static_access: TextSerializationFailure
+extensions/static_access_of_instance: TextSerializationFailure
 extensions/type_variables: TextSerializationFailure
 extensions/use_this: TextSerializationFailure
 general/abstract_members: TypeCheckError

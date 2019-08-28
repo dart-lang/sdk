@@ -1412,6 +1412,7 @@ investigate
 invocation
 invocation's
 invocations
+invokable
 invoke
 invoked
 invokes
