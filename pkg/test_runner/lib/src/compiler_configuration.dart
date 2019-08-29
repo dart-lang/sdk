@@ -693,6 +693,8 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
           // TestConfiguration.validate().
           assert(false);
         }
+      } else if (_configuration.builderTag == "crossword") {
+        exec = "${buildDir}_X64/gen_snapshot";
       } else {
         exec = "$buildDir/gen_snapshot";
       }
