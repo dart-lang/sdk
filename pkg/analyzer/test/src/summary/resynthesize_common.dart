@@ -632,6 +632,21 @@ class C {
 ''');
   }
 
+  test_class_constructor_field_formal_functionTyped_withReturnType_generic() async {
+    var library = await checkLibrary(r'''
+class C {
+  Function() f;
+  C(List<U> this.f<T, U>(T t));
+}
+''');
+    checkElementText(library, r'''
+class C {
+  dynamic Function() f;
+  C(List<U> Function<T, U>(T) this.f/*(T t)*/);
+}
+''');
+  }
+
   test_class_constructor_field_formal_multiple_matching_fields() async {
     // This is a compile-time error but it should still analyze consistently.
     var library = await checkLibrary('class C { C(this.x); int x; String x; }',

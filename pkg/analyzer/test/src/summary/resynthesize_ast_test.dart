@@ -31,6 +31,13 @@ class ApplyCheckElementTextReplacements {
 @reflectiveTest
 class ResynthesizeAstStrongTest extends ResynthesizeTestStrategyTwoPhase
     with ResynthesizeTestCases, GetElementTestCases, ResynthesizeTestHelpers {
+  @override
+  @failingTest
+  test_class_constructor_field_formal_functionTyped_withReturnType_generic() async {
+    await super
+        .test_class_constructor_field_formal_functionTyped_withReturnType_generic();
+  }
+
   @failingTest // See dartbug.com/32290
   test_const_constructor_inferred_args() =>
       super.test_const_constructor_inferred_args();

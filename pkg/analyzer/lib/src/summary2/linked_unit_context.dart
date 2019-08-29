@@ -647,7 +647,7 @@ class LinkedUnitContext {
     } else if (node is ExtensionDeclaration) {
       return node.typeParameters;
     } else if (node is FieldFormalParameter) {
-      return null;
+      return node.typeParameters;
     } else if (node is FunctionDeclaration) {
       LazyFunctionDeclaration.readFunctionExpression(_astReader, node);
       return getTypeParameters2(node.functionExpression);

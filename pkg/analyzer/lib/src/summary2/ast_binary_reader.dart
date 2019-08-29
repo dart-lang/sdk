@@ -652,8 +652,8 @@ class AstBinaryReader {
       ),
       metadata: _readNodeList(data.normalFormalParameter_metadata),
       comment: _readDocumentationComment(data),
-      type: _readNode(data.fieldFormalParameter_type),
-      parameters: _readNode(data.fieldFormalParameter_formalParameters),
+      type: _readNodeLazy(data.fieldFormalParameter_type),
+      parameters: _readNodeLazy(data.fieldFormalParameter_formalParameters),
       requiredKeyword:
           AstBinaryFlags.isRequired(data.flags) ? _Tokens.REQUIRED : null,
     );
