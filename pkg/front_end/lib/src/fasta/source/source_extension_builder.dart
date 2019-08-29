@@ -15,7 +15,7 @@ import '../scope.dart';
 import 'source_library_builder.dart';
 import '../kernel/kernel_builder.dart';
 
-import '../problems.dart' show unexpected, unhandled;
+import '../problems.dart';
 
 import '../fasta_codes.dart'
     show
@@ -68,16 +68,45 @@ class SourceExtensionBuilder extends ExtensionBuilder {
           _extension.members.add(new ExtensionMemberDescriptor(
               name: new Name(declaration.name, libraryBuilder.library),
               member: field.reference,
-              isStatic: declaration.isStatic));
-        } else if (declaration is FunctionBuilder) {
+              isStatic: declaration.isStatic,
+              kind: ExtensionMemberKind.Field));
+        } else if (declaration is ProcedureBuilder) {
           Member function = declaration.build(libraryBuilder);
           libraryBuilder.library.addMember(function);
+          ExtensionMemberKind kind;
+          switch (declaration.kind) {
+            case ProcedureKind.Method:
+              kind = ExtensionMemberKind.Method;
+              break;
+            case ProcedureKind.Getter:
+              kind = ExtensionMemberKind.Getter;
+              break;
+            case ProcedureKind.Setter:
+              kind = ExtensionMemberKind.Setter;
+              break;
+            case ProcedureKind.Operator:
+              kind = ExtensionMemberKind.Operator;
+              break;
+            case ProcedureKind.Factory:
+              unsupported("Extension method kind: ${declaration.kind}",
+                  declaration.charOffset, declaration.fileUri);
+          }
           _extension.members.add(new ExtensionMemberDescriptor(
               name: new Name(declaration.name, libraryBuilder.library),
               member: function.reference,
               isStatic: declaration.isStatic,
               isExternal: declaration.isExternal,
-              kind: declaration.kind));
+              kind: kind));
+          Procedure tearOff = declaration.extensionTearOff;
+          if (tearOff != null) {
+            libraryBuilder.library.addMember(tearOff);
+            _extension.members.add(new ExtensionMemberDescriptor(
+                name: new Name(declaration.name, libraryBuilder.library),
+                member: tearOff.reference,
+                isStatic: false,
+                isExternal: false,
+                kind: ExtensionMemberKind.TearOff));
+          }
         } else {
           unhandled("${declaration.runtimeType}", "buildBuilders",
               declaration.charOffset, declaration.fileUri);

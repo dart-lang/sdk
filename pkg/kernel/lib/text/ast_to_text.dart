@@ -1194,10 +1194,25 @@ class Printer extends Visitor<Null> {
       writeIndentation();
       writeModifier(descriptor.isExternal, 'external');
       writeModifier(descriptor.isStatic, 'static');
-      if (descriptor.member.asMember is Procedure) {
-        writeWord(procedureKindToString(descriptor.kind));
-      } else {
-        writeWord('field');
+      switch (descriptor.kind) {
+        case ExtensionMemberKind.Method:
+          writeWord('method');
+          break;
+        case ExtensionMemberKind.Getter:
+          writeWord('get');
+          break;
+        case ExtensionMemberKind.Setter:
+          writeWord('set');
+          break;
+        case ExtensionMemberKind.Operator:
+          writeWord('operator');
+          break;
+        case ExtensionMemberKind.Field:
+          writeWord('field');
+          break;
+        case ExtensionMemberKind.TearOff:
+          writeWord('tearoff');
+          break;
       }
       writeName(descriptor.name);
       writeSpaced('=');

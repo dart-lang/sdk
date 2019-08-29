@@ -12,7 +12,9 @@ class A1<T> {}
  builder-type-params=[T],
  extension-members=[
   method1=A2|method1,
-  method2=A2|method2],
+  method2=A2|method2,
+  tearoff method1=A2|get#method1,
+  tearoff method2=A2|get#method2],
  extension-name=A2,
  extension-onType=A1<T>,
  extension-type-params=[T]
@@ -30,6 +32,15 @@ extension A2<T> on A1<T> {
     return this;
   }
 
+  /*member: A2|get#method1:
+   builder-name=method1,
+   builder-params=[#this],
+   builder-type-params=[T,S extends T],
+   member-name=A2|get#method1,
+   member-params=[#this],
+   member-type-params=[#T]
+  */
+
   /*member: A2|method2:
      builder-name=method2,
      builder-params=[#this,o],
@@ -42,6 +53,15 @@ extension A2<T> on A1<T> {
     print(o);
     return this;
   }
+
+  /*member: A2|get#method2:
+   builder-name=method2,
+   builder-params=[#this,o],
+   builder-type-params=[T,S extends A1<T>],
+   member-name=A2|get#method2,
+   member-params=[#this],
+   member-type-params=[#T]
+  */
 }
 
 // TODO(johnniwinther): Support F-bounded extensions. Currently the type

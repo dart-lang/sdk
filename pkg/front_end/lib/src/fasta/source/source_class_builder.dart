@@ -129,10 +129,10 @@ class SourceClassBuilder extends ClassBuilder
             cls.addMember(field);
           }
         } else if (declaration is FunctionBuilder) {
-          Member function = declaration.build(library);
-          function.parent = cls;
+          Member member = declaration.build(library);
+          member.parent = cls;
           if (!declaration.isPatch && declaration.next == null) {
-            cls.addMember(function);
+            cls.addMember(member);
           }
         } else {
           unhandled("${declaration.runtimeType}", "buildBuilders",

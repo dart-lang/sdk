@@ -1155,6 +1155,15 @@ class Extension extends NamedNode implements FileUriNode {
   transformChildren(Transformer v) => v.visitExtension(this);
 }
 
+enum ExtensionMemberKind {
+  Field,
+  Method,
+  Getter,
+  Setter,
+  Operator,
+  TearOff,
+}
+
 /// Information about an member declaration in an extension.
 class ExtensionMemberDescriptor {
   /// The name of the extension member.
@@ -1164,10 +1173,7 @@ class ExtensionMemberDescriptor {
   /// extension itself.
   Name name;
 
-  /// [ProcedureKind] kind of the original member, if the extension is a
-  /// [Procedure] and `null` otherwise.
-  ///
-  /// This can be either `Method`, `Getter`, `Setter`, or `Operator`.
+  /// [ExtensionMemberKind] kind of the original member.
   ///
   /// An extension method is converted into a regular top-level method. For
   /// instance:
@@ -1187,7 +1193,7 @@ class ExtensionMemberDescriptor {
   /// where `B|get#bar` is the synthesized name of the top-level method and
   /// `#this` is the synthesized parameter that holds represents `this`.
   ///
-  ProcedureKind kind;
+  ExtensionMemberKind kind;
 
   int flags = 0;
 

@@ -533,25 +533,24 @@ String extensionMethodDescriptorToText(ExtensionMemberDescriptor descriptor) {
   if (descriptor.isStatic) {
     sb.write('static ');
   }
-  if (descriptor.kind == null) {
-    sb.write('field ');
-  } else {
-    switch (descriptor.kind) {
-      case ProcedureKind.Method:
-        break;
-      case ProcedureKind.Getter:
-        sb.write('getter ');
-        break;
-      case ProcedureKind.Setter:
-        sb.write('setter ');
-        break;
-      case ProcedureKind.Operator:
-        sb.write('operator ');
-        break;
-      case ProcedureKind.Factory:
-        throw new UnsupportedError(
-            "Unexpected procedure kind ${descriptor.kind}.");
-    }
+  switch (descriptor.kind) {
+    case ExtensionMemberKind.Method:
+      break;
+    case ExtensionMemberKind.Getter:
+      sb.write('getter ');
+      break;
+    case ExtensionMemberKind.Setter:
+      sb.write('setter ');
+      break;
+    case ExtensionMemberKind.Operator:
+      sb.write('operator ');
+      break;
+    case ExtensionMemberKind.Field:
+      sb.write('field ');
+      break;
+    case ExtensionMemberKind.TearOff:
+      sb.write('tearoff ');
+      break;
   }
   sb.write(descriptor.name.name);
   sb.write('=');
