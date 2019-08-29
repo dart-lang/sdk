@@ -1,3 +1,12 @@
+# 0.1.97
+
+* internal: migrated away from using analyzer `resolutionMap`
+* various fixes and improvements to anticipate support for extension-methods
+* new lint: `camel_case_extensions`
+* rule template generation improvements
+* new lint: `avoid_equals_and_hash_code_on_mutable_classes`
+* extended `avoid_slow_async_io` to flag async `Directory` methods
+
 # 0.1.96
 
 * fixed false positives in `unnecessary_parens`
