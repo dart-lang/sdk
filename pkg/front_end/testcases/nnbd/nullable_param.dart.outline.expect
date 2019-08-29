@@ -2,26 +2,6 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/nullable_param.dart:5:6: Error: This requires the 'non-nullable' experiment to be enabled.
-// Try enabling this experiment by adding it to the command line when compiling and running.
-//   int? field;
-//      ^
-//
-// pkg/front_end/testcases/nnbd/nullable_param.dart:6:6: Error: This requires the 'non-nullable' experiment to be enabled.
-// Try enabling this experiment by adding it to the command line when compiling and running.
-//   int? bar(int? x);
-//      ^
-//
-// pkg/front_end/testcases/nnbd/nullable_param.dart:6:15: Error: This requires the 'non-nullable' experiment to be enabled.
-// Try enabling this experiment by adding it to the command line when compiling and running.
-//   int? bar(int? x);
-//               ^
-//
-// pkg/front_end/testcases/nnbd/nullable_param.dart:17:54: Error: This requires the 'non-nullable' experiment to be enabled.
-// Try enabling this experiment by adding it to the command line when compiling and running.
-// int test_nullable_function_type_formal_param({int f()? : null}) {
-//                                                      ^
-//
 // pkg/front_end/testcases/nnbd/nullable_param.dart:4:7: Error: The non-abstract class 'Foo' is missing implementations for these members:
 //  - Foo.bar
 // Try to either

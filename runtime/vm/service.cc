@@ -4064,6 +4064,7 @@ static bool GetHeapMap(Thread* thread, JSONStream* js) {
 
 static const MethodParameter* request_heap_snapshot_params[] = {
     RUNNABLE_ISOLATE_PARAMETER,
+    NULL,
 };
 
 static bool RequestHeapSnapshot(Thread* thread, JSONStream* js) {

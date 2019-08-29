@@ -498,6 +498,7 @@ const List<ErrorCode> errorCodeValues = const [
   ParserErrorCode.INVALID_CONSTRUCTOR_NAME,
   ParserErrorCode.INVALID_GENERIC_FUNCTION_TYPE,
   ParserErrorCode.INVALID_HEX_ESCAPE,
+  ParserErrorCode.INVALID_INITIALIZER,
   ParserErrorCode.INVALID_LITERAL_IN_CONFIGURATION,
   ParserErrorCode.INVALID_OPERATOR,
   ParserErrorCode.INVALID_OPERATOR_FOR_SUPER,

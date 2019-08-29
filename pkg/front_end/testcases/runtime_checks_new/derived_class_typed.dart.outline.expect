@@ -9,7 +9,7 @@ class B<T extends core::Object* = dynamic> extends core::Object {
     ;
   method g({generic-covariant-impl self::B::T* x}) → void
     ;
-  method h<generic-covariant-impl U extends self::B::T* = dynamic>() → void
+  method h<generic-covariant-impl U extends self::B::T* = self::B::T*>() → void
     ;
 }
 class C extends self::B<core::int*> {

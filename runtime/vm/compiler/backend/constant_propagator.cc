@@ -608,7 +608,7 @@ void ConstantPropagator::VisitTestSmi(TestSmiInstr* instr) {
           instr->kind(),
           Integer::Handle(Z, Integer::Cast(left).BitOp(Token::kBIT_AND,
                                                        Integer::Cast(right))),
-          Smi::Handle(Z, Smi::New(0)));
+          Object::smi_zero());
       SetValue(instr, result ? Bool::True() : Bool::False());
     } else {
       SetValue(instr, non_constant_);

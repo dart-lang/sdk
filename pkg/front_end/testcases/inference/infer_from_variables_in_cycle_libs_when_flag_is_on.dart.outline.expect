@@ -1,0 +1,51 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///infer_from_variables_in_cycle_libs_when_flag_is_on_a.dart";
+
+static field core::int* y;
+static method test1() → dynamic
+  ;
+static method main() → dynamic
+  ;
+
+library;
+import self as self2;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///infer_from_variables_in_cycle_libs_when_flag_is_on2.dart";
+
+static field core::int* x;
+static method main() → dynamic
+  ;
+
+library test;
+import self as self3;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///infer_from_variables_in_cycle_libs_when_flag_is_on2_a.dart";
+
+class B extends core::Object {
+  static field core::int* y;
+  synthetic constructor •() → self3::B*
+    ;
+}
+static method test1() → dynamic
+  ;
+static method main() → dynamic
+  ;
+
+library;
+import self as self4;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///infer_from_variables_in_cycle_libs_when_flag_is_on2.dart";
+
+class A extends core::Object {
+  static field core::int* x;
+  synthetic constructor •() → self4::A*
+    ;
+}
+static method main() → dynamic
+  ;

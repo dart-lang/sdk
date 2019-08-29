@@ -2891,7 +2891,7 @@ static void PrepareInlineTypedArrayBoundsCheck(FlowGraph* flow_graph,
   // Check adjusted_length > 0.
   // TODO(ajcbik): this is a synthetic check that cannot
   // be directly linked to a use, is that a sign of wrong use?
-  ConstantInstr* zero = flow_graph->GetConstant(Smi::Handle(Z, Smi::New(0)));
+  ConstantInstr* zero = flow_graph->GetConstant(Object::smi_zero());
   Definition* check =
       flow_graph->CreateCheckBound(adjusted_length, zero, call->deopt_id());
   *cursor =

@@ -67,11 +67,12 @@ abstract class TypeConstraintGatherer {
 
   /// Returns the set of type constraints that was gathered.
   Map<TypeParameter, TypeConstraint> computeConstraints() {
-    var result = <TypeParameter, TypeConstraint>{};
-    for (var parameter in _parametersToConstrain) {
+    Map<TypeParameter, TypeConstraint> result =
+        <TypeParameter, TypeConstraint>{};
+    for (TypeParameter parameter in _parametersToConstrain) {
       result[parameter] = new TypeConstraint();
     }
-    for (var protoConstraint in _protoConstraints) {
+    for (_ProtoConstraint protoConstraint in _protoConstraints) {
       if (protoConstraint.isUpper) {
         addUpperBound(result[protoConstraint.parameter], protoConstraint.bound);
       } else {
@@ -133,9 +134,11 @@ abstract class TypeConstraintGatherer {
       return false;
     }
     if (subtype.typeParameters.isNotEmpty) {
-      var subtypeSubstitution = <TypeParameter, DartType>{};
-      var supertypeSubstitution = <TypeParameter, DartType>{};
-      var freshTypeVariables = <TypeParameter>[];
+      Map<TypeParameter, DartType> subtypeSubstitution =
+          <TypeParameter, DartType>{};
+      Map<TypeParameter, DartType> supertypeSubstitution =
+          <TypeParameter, DartType>{};
+      List<TypeParameter> freshTypeVariables = <TypeParameter>[];
       if (!_matchTypeFormals(subtype.typeParameters, supertype.typeParameters,
           subtypeSubstitution, supertypeSubstitution, freshTypeVariables)) {
         return false;
@@ -155,8 +158,8 @@ abstract class TypeConstraintGatherer {
 
     // Test the parameter types.
     for (int i = 0; i < supertype.positionalParameters.length; ++i) {
-      var supertypeParameter = supertype.positionalParameters[i];
-      var subtypeParameter = subtype.positionalParameters[i];
+      DartType supertypeParameter = supertype.positionalParameters[i];
+      DartType subtypeParameter = subtype.positionalParameters[i];
       // Termination: Both types shrink in size.
       if (!_isSubtypeMatch(supertypeParameter, subtypeParameter)) {
         return false;
@@ -201,7 +204,7 @@ abstract class TypeConstraintGatherer {
     // of supertypes of a given type more than once, the order of the checks
     // above is irrelevant; we just need to find the matched superclass,
     // substitute, and then iterate through type variables.
-    var matchingSupertypeOfSubtype =
+    InterfaceType matchingSupertypeOfSubtype =
         getTypeAsInstanceOf(subtype, supertype.classNode);
     if (matchingSupertypeOfSubtype == null) return false;
     for (int i = 0; i < supertype.classNode.typeParameters.length; i++) {
@@ -266,14 +269,14 @@ abstract class TypeConstraintGatherer {
     // Handle FutureOr<T> union type.
     if (subtype is InterfaceType &&
         identical(subtype.classNode, futureOrClass)) {
-      var subtypeArg = subtype.typeArguments[0];
+      DartType subtypeArg = subtype.typeArguments[0];
       if (supertype is InterfaceType &&
           identical(supertype.classNode, futureOrClass)) {
         // `FutureOr<P>` is a subtype match for `FutureOr<Q>` with respect to
         // `L` under constraints `C`:
         // - If `P` is a subtype match for `Q` with respect to `L` under
         //   constraints `C`.
-        var supertypeArg = supertype.typeArguments[0];
+        DartType supertypeArg = supertype.typeArguments[0];
         return _isSubtypeMatch(subtypeArg, supertypeArg);
       }
 
@@ -283,7 +286,7 @@ abstract class TypeConstraintGatherer {
       //   constraints `C0`.
       // - And `P` is a subtype match for `Q` with respect to `L` under
       //   constraints `C1`.
-      var subtypeFuture = futureType(subtypeArg);
+      InterfaceType subtypeFuture = futureType(subtypeArg);
       return _isSubtypeMatch(subtypeFuture, supertype) &&
           _isSubtypeMatch(subtypeArg, supertype);
     }
@@ -298,8 +301,8 @@ abstract class TypeConstraintGatherer {
       //   under constraints `C`
       //   - And `P` is a subtype match for `Q` with respect to `L` under
       //     constraints `C`
-      var supertypeArg = supertype.typeArguments[0];
-      var supertypeFuture = futureType(supertypeArg);
+      DartType supertypeArg = supertype.typeArguments[0];
+      InterfaceType supertypeFuture = futureType(supertypeArg);
       return trySubtypeMatch(subtype, supertypeFuture) ||
           _isSubtypeMatch(subtype, supertypeArg);
     }
@@ -342,9 +345,9 @@ abstract class TypeConstraintGatherer {
     //   and `F` is a subtype match for a type `Q` with respect to `L` under
     //   constraints `C`.
     if (subtype is InterfaceType) {
-      var callMember = getInterfaceMember(subtype.classNode, callName);
+      Member callMember = getInterfaceMember(subtype.classNode, callName);
       if (callMember is Procedure && !callMember.isGetter) {
-        var callType = callMember.getterType;
+        DartType callType = callMember.getterType;
         if (callType != null) {
           callType =
               Substitution.fromInterfaceType(subtype).substituteType(callType);

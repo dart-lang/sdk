@@ -688,8 +688,9 @@ class Parser {
   /// Recover given out-of-order clauses in an import directive where [token] is
   /// the import keyword.
   Token parseImportRecovery(Token token) {
-    final primaryListener = listener;
-    final recoveryListener = new ImportRecoveryListener();
+    final Listener primaryListener = listener;
+    final ImportRecoveryListener recoveryListener =
+        new ImportRecoveryListener();
 
     // Reparse to determine which clauses have already been parsed
     // but intercept the events so they are not sent to the primary listener
@@ -1817,8 +1818,9 @@ class Parser {
 
   /// Recover given out-of-order clauses in a class header.
   Token parseClassHeaderRecovery(Token token, Token begin, Token classKeyword) {
-    final primaryListener = listener;
-    final recoveryListener = new ClassHeaderRecoveryListener();
+    final Listener primaryListener = listener;
+    final ClassHeaderRecoveryListener recoveryListener =
+        new ClassHeaderRecoveryListener();
 
     // Reparse to determine which clauses have already been parsed
     // but intercept the events so they are not sent to the primary listener.
@@ -1977,8 +1979,9 @@ class Parser {
 
   Token parseMixinHeaderRecovery(
       Token token, Token mixinKeyword, Token headerStart) {
-    final primaryListener = listener;
-    final recoveryListener = new MixinHeaderRecoveryListener();
+    final Listener primaryListener = listener;
+    final MixinHeaderRecoveryListener recoveryListener =
+        new MixinHeaderRecoveryListener();
 
     // Reparse to determine which clauses have already been parsed
     // but intercept the events so they are not sent to the primary listener.
@@ -3729,7 +3732,7 @@ class Parser {
       return parseExpressionStatementOrDeclarationAfterModifiers(
           token, token, null, null, null, false);
     }
-    final value = token.next.stringValue;
+    final String value = token.next.stringValue;
     if (identical(value, '{')) {
       // The scanner ensures that `{` always has a closing `}`.
       return parseBlock(token, null);
@@ -4243,7 +4246,7 @@ class Parser {
   }
 
   Token parsePrimary(Token token, IdentifierContext context) {
-    final kind = token.next.kind;
+    final int kind = token.next.kind;
     if (kind == IDENTIFIER_TOKEN) {
       return parseSendOrFunctionLiteral(token, context);
     } else if (kind == INT_TOKEN || kind == HEXADECIMAL_TOKEN) {
@@ -4468,8 +4471,8 @@ class Parser {
         }
         // This looks like the start of an expression.
         // Report an error, insert the comma, and continue parsing.
-        var comma = new SyntheticToken(TokenType.COMMA, next.offset);
-        var message = ifCount > 0
+        SyntheticToken comma = new SyntheticToken(TokenType.COMMA, next.offset);
+        Message message = ifCount > 0
             ? fasta.messageExpectedElseOrComma
             : fasta.templateExpectedButGot.withArguments(',');
         next = rewriteAndRecover(token, message, comma);
@@ -4492,7 +4495,7 @@ class Parser {
       return next;
     }
 
-    final old = mayParseFunctionExpressions;
+    final bool old = mayParseFunctionExpressions;
     mayParseFunctionExpressions = true;
     int count = 0;
     // TODO(danrubel): hasSetEntry parameter exists for replicating existing
@@ -4506,7 +4509,7 @@ class Parser {
         // TODO(danrubel): Remove this section and use the while loop below
         // once hasSetEntry is no longer needed.
         token = parseExpression(token);
-        var isMapEntry = optional(':', token.next);
+        bool isMapEntry = optional(':', token.next);
         hasSetEntry ??= !isMapEntry;
         if (isMapEntry) {
           Token colon = token.next;
@@ -4550,8 +4553,9 @@ class Parser {
           // If this looks like the start of an expression,
           // then report an error, insert the comma, and continue parsing.
           // TODO(danrubel): Consider better error message
-          var comma = new SyntheticToken(TokenType.COMMA, next.offset);
-          var message = ifCount > 0
+          SyntheticToken comma =
+              new SyntheticToken(TokenType.COMMA, next.offset);
+          Message message = ifCount > 0
               ? fasta.messageExpectedElseOrComma
               : fasta.templateExpectedButGot.withArguments(',');
           token = rewriteAndRecover(token, message, comma);
@@ -4868,7 +4872,7 @@ class Parser {
     // Parsing the prefix, for instance 'x of 'x${id}y${id}z'
     int interpolationCount = 0;
     Token next = token.next;
-    var kind = next.kind;
+    int kind = next.kind;
     while (kind != EOF_TOKEN) {
       if (identical(kind, STRING_INTERPOLATION_TOKEN)) {
         // Parsing ${expression}.
@@ -5285,7 +5289,7 @@ class Parser {
         // look past the next expression
         // to determine if this is part of a conditional expression
         //
-        final originalListener = listener;
+        Listener originalListener = listener;
         listener = new ForwardingListener();
         // TODO(danrubel): consider using TokenStreamGhostWriter here
         Token afterExpression =

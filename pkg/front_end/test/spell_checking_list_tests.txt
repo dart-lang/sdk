@@ -108,6 +108,7 @@ dictionaries
 dictionary
 differs
 dillfile
+dills
 dirname
 disagree
 disconnect
@@ -316,6 +317,8 @@ say
 scans
 screen
 scripts
+sdkroot
+sdks
 secondary
 seconds
 segment

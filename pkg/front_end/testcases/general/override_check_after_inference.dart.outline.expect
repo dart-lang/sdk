@@ -1,4 +1,17 @@
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/override_check_after_inference.dart:22:12: Error: The parameter 'x' of the method 'F.f' has type 'B', which does not match the corresponding type, 'A', in the overridden method, 'D.f'.
+//  - 'B' is from 'pkg/front_end/testcases/general/override_check_after_inference.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/general/override_check_after_inference.dart'.
+// Change to a supertype of 'A', or, for a covariant parameter, a subtype.
+//   void f(B x) {}
+//            ^
+// pkg/front_end/testcases/general/override_check_after_inference.dart:14:8: Context: This is the overridden method ('f').
+//   void f(x) {} // Inferred type: (A) -> void
+//        ^
+//
 import self as self;
 import "dart:core" as core;
 

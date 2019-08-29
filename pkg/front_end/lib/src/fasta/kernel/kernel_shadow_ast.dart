@@ -33,6 +33,8 @@ import '../../base/instrumentation.dart'
         InstrumentationValueForType,
         InstrumentationValueForTypeArgs;
 
+import '../builder/library_builder.dart' show LibraryBuilder;
+
 import '../fasta_codes.dart'
     show
         messageCantDisambiguateAmbiguousInformation,
@@ -65,7 +67,12 @@ import '../type_inference/type_inference_engine.dart'
     show IncludesTypeParametersNonCovariantly, TypeInferenceEngine;
 
 import '../type_inference/type_inferrer.dart'
-    show ExpressionInferenceResult, TypeInferrer, TypeInferrerImpl;
+    show
+        ClosureContext,
+        ExpressionInferenceResult,
+        MethodContravarianceCheckKind,
+        TypeInferrer,
+        TypeInferrerImpl;
 
 import '../type_inference/type_promotion.dart'
     show TypePromoter, TypePromoterImpl, TypePromotionFact, TypePromotionScope;
@@ -323,7 +330,7 @@ abstract class ComplexAssignmentJudgment extends SyntheticExpressionJudgment {
   ComplexAssignmentJudgment._(this.rhs) : super._(null);
 
   String toString() {
-    var parts = _getToStringParts();
+    List<String> parts = _getToStringParts();
     return '${runtimeType}(${parts.join(', ')})';
   }
 
@@ -350,7 +357,7 @@ abstract class ComplexAssignmentJudgment extends SyntheticExpressionJudgment {
       inferrer.helper
           ?.addProblem(messageVoidExpression, read.fileOffset, noLength);
     }
-    var writeOffset = write == null ? -1 : write.fileOffset;
+    int writeOffset = write == null ? -1 : write.fileOffset;
     Procedure combinerMember;
     DartType combinedType;
     if (combiner != null) {
@@ -362,7 +369,7 @@ abstract class ComplexAssignmentJudgment extends SyntheticExpressionJudgment {
             .isOverloadedArithmeticOperatorAndType(combinerMember, readType);
       }
       DartType rhsType;
-      var combinerType = inferrer.getCalleeFunctionType(
+      FunctionType combinerType = inferrer.getCalleeFunctionType(
           inferrer.getCalleeType(combinerMember, readType), false);
       if (isPreIncDec || isPostIncDec) {
         rhsType = inferrer.coreTypes.intClass.rawType;
@@ -377,7 +384,7 @@ abstract class ComplexAssignmentJudgment extends SyntheticExpressionJudgment {
         rhsType = getInferredType(rhs, inferrer);
         // Do not use rhs after this point because it may be a Shadow node
         // that has been replaced in the tree with its desugaring.
-        var expectedType = getPositionalParameterType(combinerType, 0);
+        DartType expectedType = getPositionalParameterType(combinerType, 0);
         inferrer.ensureAssignable(expectedType, rhsType,
             combiner.arguments.positional.first, combiner.fileOffset);
       }
@@ -387,9 +394,10 @@ abstract class ComplexAssignmentJudgment extends SyntheticExpressionJudgment {
       } else {
         combinedType = combinerType.returnType;
       }
-      var checkKind = inferrer.preCheckInvocationContravariance(read, readType,
-          combinerMember, combiner, combiner.arguments, combiner);
-      var replacedCombiner = inferrer.handleInvocationContravariance(
+      MethodContravarianceCheckKind checkKind =
+          inferrer.preCheckInvocationContravariance(read, readType,
+              combinerMember, combiner, combiner.arguments, combiner);
+      Expression replacedCombiner = inferrer.handleInvocationContravariance(
           checkKind,
           combiner,
           combiner.arguments,
@@ -397,7 +405,7 @@ abstract class ComplexAssignmentJudgment extends SyntheticExpressionJudgment {
           combinedType,
           combinerType,
           combiner.fileOffset);
-      var replacedCombiner2 = inferrer.ensureAssignable(
+      Expression replacedCombiner2 = inferrer.ensureAssignable(
           writeContext, combinedType, replacedCombiner, writeOffset);
       if (replacedCombiner2 != null) {
         replacedCombiner = replacedCombiner2;
@@ -406,8 +414,8 @@ abstract class ComplexAssignmentJudgment extends SyntheticExpressionJudgment {
     } else {
       inferrer.inferExpression(rhs, writeContext ?? const UnknownType(), true,
           isVoidAllowed: true);
-      var rhsType = getInferredType(rhs, inferrer);
-      var replacedRhs = inferrer.ensureAssignable(
+      DartType rhsType = getInferredType(rhs, inferrer);
+      Expression replacedRhs = inferrer.ensureAssignable(
           writeContext, rhsType, rhs, writeOffset,
           isVoidAllowed: writeContext is VoidType);
       _storeLetType(inferrer, replacedRhs ?? rhs, rhsType);
@@ -453,7 +461,7 @@ abstract class ComplexAssignmentJudgmentWithReceiver
 
   @override
   List<String> _getToStringParts() {
-    var parts = super._getToStringParts();
+    List<String> parts = super._getToStringParts();
     if (receiver != null) parts.add('receiver=$receiver');
     if (isSuper) parts.add('isSuper=true');
     return parts;
@@ -462,7 +470,7 @@ abstract class ComplexAssignmentJudgmentWithReceiver
   DartType _inferReceiver(ShadowTypeInferrer inferrer) {
     if (receiver != null) {
       inferrer.inferExpression(receiver, const UnknownType(), true);
-      var receiverType = getInferredType(receiver, inferrer);
+      DartType receiverType = getInferredType(receiver, inferrer);
       _storeLetType(inferrer, receiver, receiverType);
       return receiverType;
     } else if (isSuper) {
@@ -750,7 +758,7 @@ class IndexAssignmentJudgment extends ComplexAssignmentJudgmentWithReceiver {
 
   @override
   List<String> _getToStringParts() {
-    var parts = super._getToStringParts();
+    List<String> parts = super._getToStringParts();
     if (index != null) parts.add('index=$index');
     return parts;
   }
@@ -1029,7 +1037,7 @@ class PropertyAssignmentJudgment extends ComplexAssignmentJudgmentWithReceiver {
 
   @override
   List<String> _getToStringParts() {
-    var parts = super._getToStringParts();
+    List<String> parts = super._getToStringParts();
     if (nullAwareGuard != null) parts.add('nullAwareGuard=$nullAwareGuard');
     return parts;
   }
@@ -1256,7 +1264,7 @@ class SyntheticExpressionJudgment extends Let implements ExpressionJudgment {
     while (true) {
       if (desugared is Let) {
         Let desugaredLet = desugared;
-        var variable = desugaredLet.variable;
+        VariableDeclaration variable = desugaredLet.variable;
         if (identical(variable.initializer, expression)) {
           variable.type = type;
           return;

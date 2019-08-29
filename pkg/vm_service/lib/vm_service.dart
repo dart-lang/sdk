@@ -17,7 +17,7 @@ import 'src/service_extension_registry.dart';
 
 export 'src/service_extension_registry.dart' show ServiceExtensionRegistry;
 
-const String vmServiceVersion = '3.25.0';
+const String vmServiceVersion = '3.26.0';
 
 /// @optional
 const String optional = 'optional';
@@ -186,6 +186,7 @@ Map<String, List<String>> _methodReturnTypes = {
   'registerService': const ['Success'],
   'reloadSources': const ['ReloadReport'],
   'removeBreakpoint': const ['Success'],
+  'requestHeapSnapshot': const ['Success'],
   'resume': const ['Success'],
   'setExceptionPauseMode': const ['Success'],
   'setFlag': const ['Success'],
@@ -692,6 +693,15 @@ abstract class VmServiceInterface {
   /// See [Success].
   Future<Success> removeBreakpoint(String isolateId, String breakpointId);
 
+  /// Requests a dump of the Dart heap of the given isolate.
+  ///
+  /// This method immediately returns success. The VM will then begin delivering
+  /// binary events on the `HeapSnapshot` event stream. The binary data in these
+  /// events, when concatenated together, conforms to the SnapshotGraph type.
+  /// The splitting of the SnapshotGraph into events can happen at any byte
+  /// offset, including the middle of scalar fields.
+  Future<Success> requestHeapSnapshot(String isolateId);
+
   /// The `resume` RPC is used to resume execution of a paused isolate.
   ///
   /// If the `step` parameter is not provided, the program will resume regular
@@ -795,6 +805,7 @@ abstract class VmServiceInterface {
   /// Timeline | TimelineEvents
   /// Logging | Logging
   /// Service | ServiceRegistered, ServiceUnregistered
+  /// HeapSnapshot | HeapSnapshot
   ///
   /// Additionally, some embedders provide the `Stdout` and `Stderr` streams.
   /// These streams allow the client to subscribe to writes to stdout and
@@ -1052,6 +1063,11 @@ class VmServerConnection {
             params['breakpointId'],
           );
           break;
+        case 'requestHeapSnapshot':
+          response = await _serviceImplementation.requestHeapSnapshot(
+            params['isolateId'],
+          );
+          break;
         case 'resume':
           response = await _serviceImplementation.resume(
             params['isolateId'],
@@ -1232,6 +1248,10 @@ class VmService implements VmServiceInterface {
 
   // ServiceRegistered, ServiceUnregistered
   Stream<Event> get onServiceEvent => _getEventController('Service').stream;
+
+  // HeapSnapshot
+  Stream<Event> get onHeapSnapshotEvent =>
+      _getEventController('HeapSnapshot').stream;
 
   // WriteEvent
   Stream<Event> get onStdoutEvent => _getEventController('Stdout').stream;
@@ -1507,6 +1527,11 @@ class VmService implements VmServiceInterface {
   Future<Success> removeBreakpoint(String isolateId, String breakpointId) {
     return _call('removeBreakpoint',
         {'isolateId': isolateId, 'breakpointId': breakpointId});
+  }
+
+  @override
+  Future<Success> requestHeapSnapshot(String isolateId) {
+    return _call('requestHeapSnapshot', {'isolateId': isolateId});
   }
 
   @override
@@ -1841,6 +1866,7 @@ class EventStreams {
   static const String kTimeline = 'Timeline';
   static const String kLogging = 'Logging';
   static const String kService = 'Service';
+  static const String kHeapSnapshot = 'HeapSnapshot';
   static const String kStdout = 'Stdout';
   static const String kStderr = 'Stderr';
 }

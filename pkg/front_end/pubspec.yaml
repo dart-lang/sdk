@@ -9,7 +9,7 @@ environment:
   sdk: '>=2.2.2 <3.0.0'
 dependencies:
   kernel: 0.3.22
-  package_config: '^1.0.1'
+  package_config: '^1.1.0'
   path: '^1.3.9'
   yaml: '^2.1.12'
 dev_dependencies:

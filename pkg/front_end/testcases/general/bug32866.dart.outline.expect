@@ -9,9 +9,9 @@ abstract class B extends core::Object {
 }
 class A extends core::Object implements self::B {
   final field core::String* f;
-  constructor •(dynamic f) → self::A*
+  constructor •(core::String* f) → self::A*
     ;
 }
-static field dynamic a;
+static field self::A* a;
 static method main() → dynamic
   ;

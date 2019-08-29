@@ -97,6 +97,14 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     expect(rightHandSide.name, 'value');
   }
 
+  void test_parseConstructor_invalidInitializer() {
+    // https://github.com/dart-lang/sdk/issues/37693
+    parseCompilationUnit('class C{ C() : super() * (); }', errors: [
+      expectedError(ParserErrorCode.INVALID_INITIALIZER, 15, 12),
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 26, 1),
+    ]);
+  }
+
   void test_parseConstructor_nullSuperArgList_openBrace_37735() {
     // https://github.com/dart-lang/sdk/issues/37735
     var unit = parseCompilationUnit('class{const():super.{n', errors: [
@@ -1229,6 +1237,14 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 7, 6),
       expectedError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 12, 1),
       expectedError(ScannerErrorCode.EXPECTED_TOKEN, 13, 1),
+    ]);
+  }
+
+  void test_listLiteral_invalidElement_37697() {
+    // https://github.com/dart-lang/sdk/issues/37674
+    parseExpression('[<y.<z>(){}]', errors: [
+      expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 4, 1),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 6, 1),
     ]);
   }
 

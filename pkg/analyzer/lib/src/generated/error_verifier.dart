@@ -792,11 +792,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
     if (_checkForEachParts(node, identifier)) {
-      Element variableElement = identifier.staticElement;
-      if (variableElement is VariableElement && variableElement.isConst) {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.FOR_IN_WITH_CONST_VARIABLE, identifier);
-      }
+      _checkForAssignmentToFinal(identifier);
     }
     super.visitForEachPartsWithIdentifier(node);
   }

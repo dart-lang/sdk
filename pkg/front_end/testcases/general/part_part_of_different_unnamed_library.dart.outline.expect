@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/part_part_of_different_unnamed_library.dart:8:6: Warning: Using 'pkg/front_end/testcases/general/part_part_of_different_unnamed_library_lib1.dart' as part of 'pkg/front_end/testcases/general/part_part_of_different_unnamed_library.dart' but its 'part of' declaration says 'pkg/front_end/testcases/general/part_part_of_different_unnamed_library_lib2.dart'.
+// pkg/front_end/testcases/general/part_part_of_different_unnamed_library.dart:8:6: Error: Using 'pkg/front_end/testcases/general/part_part_of_different_unnamed_library_lib1.dart' as part of 'pkg/front_end/testcases/general/part_part_of_different_unnamed_library.dart' but its 'part of' declaration says 'pkg/front_end/testcases/general/part_part_of_different_unnamed_library_lib2.dart'.
 // part 'part_part_of_different_unnamed_library_lib1.dart';
 //      ^
 //

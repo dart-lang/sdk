@@ -372,6 +372,38 @@ class IsolateReloadContext {
   static Dart_FileModifiedCallback file_modified_callback_;
 };
 
+class CallSiteResetter : public ValueObject {
+ public:
+  explicit CallSiteResetter(Zone* zone);
+
+  void ZeroEdgeCounters(const Function& function);
+  void ResetICDatas(const Code& code);
+  void ResetICDatas(const Bytecode& code);
+  void ResetICDatas(const ObjectPool& pool);
+  void Reset(const ICData& ic);
+  void ResetSwitchableCalls(const Code& code);
+
+ private:
+  Zone* zone_;
+  Instructions& instrs_;
+  ObjectPool& pool_;
+  Object& object_;
+  String& name_;
+  Class& new_cls_;
+  Library& new_lib_;
+  Function& new_function_;
+  Field& new_field_;
+  Array& entries_;
+  Function& old_target_;
+  Function& new_target_;
+  Function& caller_;
+  Array& args_desc_array_;
+  Array& ic_data_array_;
+  Array& edge_counters_;
+  PcDescriptors& descriptors_;
+  ICData& ic_data_;
+};
+
 }  // namespace dart
 
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)

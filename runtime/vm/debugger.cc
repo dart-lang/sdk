@@ -17,6 +17,7 @@
 #include "vm/flags.h"
 #include "vm/globals.h"
 #include "vm/interpreter.h"
+#include "vm/isolate_reload.h"
 #include "vm/json_stream.h"
 #include "vm/kernel.h"
 #include "vm/longjump.h"
@@ -2032,6 +2033,7 @@ void Debugger::DeoptimizeWorld() {
   // TODO(hausner): Could possibly be combined with RemoveOptimizedCode()
   const ClassTable& class_table = *isolate_->class_table();
   Zone* zone = Thread::Current()->zone();
+  CallSiteResetter resetter(zone);
   Class& cls = Class::Handle(zone);
   Array& functions = Array::Handle(zone);
   GrowableObjectArray& closures = GrowableObjectArray::Handle(zone);
@@ -2060,7 +2062,7 @@ void Debugger::DeoptimizeWorld() {
           }
           code = function.unoptimized_code();
           if (!code.IsNull()) {
-            code.ResetSwitchableCalls(zone);
+            resetter.ResetSwitchableCalls(code);
           }
           // Also disable any optimized implicit closure functions.
           if (function.HasImplicitClosureFunction()) {
@@ -2070,7 +2072,7 @@ void Debugger::DeoptimizeWorld() {
             }
             code = function.unoptimized_code();
             if (!code.IsNull()) {
-              code.ResetSwitchableCalls(zone);
+              resetter.ResetSwitchableCalls(code);
             }
           }
         }
@@ -2089,7 +2091,7 @@ void Debugger::DeoptimizeWorld() {
     }
     code = function.unoptimized_code();
     if (!code.IsNull()) {
-      code.ResetSwitchableCalls(zone);
+      resetter.ResetSwitchableCalls(code);
     }
   }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)

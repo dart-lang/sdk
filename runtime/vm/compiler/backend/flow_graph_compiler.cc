@@ -223,9 +223,8 @@ void FlowGraphCompiler::InitCompiler() {
     const intptr_t num_counters = flow_graph_.preorder().length();
     const Array& edge_counters =
         Array::Handle(Array::New(num_counters, Heap::kOld));
-    const Smi& zero_smi = Smi::Handle(Smi::New(0));
     for (intptr_t i = 0; i < num_counters; ++i) {
-      edge_counters.SetAt(i, zero_smi);
+      edge_counters.SetAt(i, Object::smi_zero());
     }
     edge_counters_array_ = edge_counters.raw();
   }

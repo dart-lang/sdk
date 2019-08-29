@@ -1137,7 +1137,7 @@ class BoundsCheckGeneralizer {
         }
 
         if (left == NULL) {
-          left = flow_graph_->GetConstant(Smi::Handle(Smi::New(0)));
+          left = flow_graph_->GetConstant(Object::smi_zero());
         }
 
         if (right == NULL) {

@@ -1,0 +1,18 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method f0(core::List<core::int*>* a) → void
+  ;
+static method f1({core::List<core::int*>* a}) → void
+  ;
+static method f2(core::Iterable<core::int*>* a) → void
+  ;
+static method f3(core::Iterable<core::Iterable<core::int*>*>* a) → void
+  ;
+static method f4({core::Iterable<core::Iterable<core::int*>*>* a}) → void
+  ;
+static method test() → void
+  ;
+static method main() → dynamic
+  ;

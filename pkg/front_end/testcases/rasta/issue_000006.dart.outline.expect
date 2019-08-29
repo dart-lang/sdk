@@ -1,6 +1,7 @@
 library;
 import self as self;
+import "dart:core" as core;
 
-static field dynamic list;
+static field core::List<core::int*>* list;
 static method main() → dynamic
   ;

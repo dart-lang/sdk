@@ -2623,7 +2623,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
             new DeoptimizeInstr(ICData::kDeoptBinarySmiOp, GetDeoptId());
         flow_graph->InsertBefore(this, deopt, env(), FlowGraph::kEffect);
         // Replace with zero since it always throws.
-        return CreateConstantResult(flow_graph, Integer::Handle(Smi::New(0)));
+        return CreateConstantResult(flow_graph, Object::smi_zero());
       }
       break;
 
@@ -2633,7 +2633,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
         return left()->definition();
       } else if ((rhs >= kBitsPerInt64) ||
                  ((rhs >= result_bits) && is_truncating())) {
-        return CreateConstantResult(flow_graph, Integer::Handle(Smi::New(0)));
+        return CreateConstantResult(flow_graph, Object::smi_zero());
       } else if ((rhs < 0) || ((rhs >= result_bits) && !is_truncating())) {
         // Instruction will always throw on negative rhs operand or
         // deoptimize on large rhs operand.
@@ -2647,7 +2647,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
             new DeoptimizeInstr(ICData::kDeoptBinarySmiOp, GetDeoptId());
         flow_graph->InsertBefore(this, deopt, env(), FlowGraph::kEffect);
         // Replace with zero since it overshifted or always throws.
-        return CreateConstantResult(flow_graph, Integer::Handle(Smi::New(0)));
+        return CreateConstantResult(flow_graph, Object::smi_zero());
       }
       break;
     }
@@ -2898,7 +2898,7 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
                  MethodRecognizer::kByteDataFactory) {
         // A _ByteDataView returned from the ByteData constructor always
         // has an offset of 0.
-        return flow_graph->GetConstant(Smi::Handle(Smi::New(0)));
+        return flow_graph->GetConstant(Object::smi_zero());
       }
     }
   } else if (slot().IsTypeArguments()) {

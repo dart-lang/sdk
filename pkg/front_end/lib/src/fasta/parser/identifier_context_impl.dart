@@ -915,7 +915,7 @@ class TypeReferenceIdentifierContext extends IdentifierContext {
     }
     parser.reportRecoverableErrorWithToken(next, fasta.templateExpectedType);
     if (!isOneOfOrEof(
-        next, const ['>', ')', '[', ']', '[]', '{', '}', ',', ';'])) {
+        next, const ['<', '>', ')', '[', ']', '[]', '{', '}', ',', ';'])) {
       // When in doubt, consume the token to ensure we make progress
       token = next;
       next = token.next;

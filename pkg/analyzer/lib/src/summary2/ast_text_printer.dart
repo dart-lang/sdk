@@ -333,6 +333,26 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitExtensionDeclaration(ExtensionDeclaration node) {
+    _compilationUnitMember(node);
+    _token(node.extensionKeyword);
+    node.name?.accept(this);
+    node.typeParameters?.accept(this);
+    _token(node.onKeyword);
+    node.extendedType.accept(this);
+    _token(node.leftBracket);
+    node.members.accept(this);
+    _token(node.rightBracket);
+  }
+
+  @override
+  void visitExtensionOverride(ExtensionOverride node) {
+    node.extensionName.accept(this);
+    node.typeArguments.accept(this);
+    node.argumentList.accept(this);
+  }
+
+  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     _classMember(node);
     _token(node.staticKeyword);

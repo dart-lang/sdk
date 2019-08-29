@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/regress/issue_32200.dart:8:3: Warning: 'self.Foo' can't be used as a type because 'self' doesn't refer to an import prefix.
+// pkg/front_end/testcases/regress/issue_32200.dart:8:3: Error: 'self.Foo' can't be used as a type because 'self' doesn't refer to an import prefix.
 //   self.Foo self;
 //   ^^^^^^^^
 //

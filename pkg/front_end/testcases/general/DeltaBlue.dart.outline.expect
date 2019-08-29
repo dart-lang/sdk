@@ -183,13 +183,13 @@ class Plan extends core::Object {
   method execute() → void
     ;
 }
-static const field dynamic REQUIRED = const self::Strength::•(0, "required");
-static const field dynamic STRONG_PREFERRED = const self::Strength::•(1, "strongPreferred");
-static const field dynamic PREFERRED = const self::Strength::•(2, "preferred");
-static const field dynamic STRONG_DEFAULT = const self::Strength::•(3, "strongDefault");
-static const field dynamic NORMAL = const self::Strength::•(4, "normal");
-static const field dynamic WEAK_DEFAULT = const self::Strength::•(5, "weakDefault");
-static const field dynamic WEAKEST = const self::Strength::•(6, "weakest");
+static const field self::Strength* REQUIRED = const self::Strength::•(0, "required");
+static const field self::Strength* STRONG_PREFERRED = const self::Strength::•(1, "strongPreferred");
+static const field self::Strength* PREFERRED = const self::Strength::•(2, "preferred");
+static const field self::Strength* STRONG_DEFAULT = const self::Strength::•(3, "strongDefault");
+static const field self::Strength* NORMAL = const self::Strength::•(4, "normal");
+static const field self::Strength* WEAK_DEFAULT = const self::Strength::•(5, "weakDefault");
+static const field self::Strength* WEAKEST = const self::Strength::•(6, "weakest");
 static const field core::int* NONE = 1;
 static const field core::int* FORWARD = 2;
 static const field core::int* BACKWARD = 0;

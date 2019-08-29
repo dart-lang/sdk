@@ -50,6 +50,16 @@ class UriTranslator {
     return packageBaseUri.fragment;
   }
 
+  /// Get the fragment for the package specified as the default package, if any.
+  String getDefaultPackageFragment() {
+    Uri emptyPackageRedirect = packages.asMap()[""];
+    if (emptyPackageRedirect == null) return null;
+    String packageName = emptyPackageRedirect.toString();
+    Uri packageBaseUri = packages.asMap()[packageName];
+    if (packageBaseUri == null) return null;
+    return packageBaseUri.fragment;
+  }
+
   bool isLibrarySupported(String libraryName) {
     // TODO(sigmund): change this to `?? false` when all backends provide the
     // `libraries.json` file by default (Issue #32657).

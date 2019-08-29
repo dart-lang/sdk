@@ -894,8 +894,8 @@ DEFINE_RUNTIME_ENTRY(NonBoolTypeError, 1) {
 
     // No source code for this assertion, set url to null.
     args.SetAt(1, String::Handle(zone, String::null()));
-    args.SetAt(2, Smi::Handle(zone, Smi::New(0)));
-    args.SetAt(3, Smi::Handle(zone, Smi::New(0)));
+    args.SetAt(2, Object::smi_zero());
+    args.SetAt(3, Object::smi_zero());
     args.SetAt(4, String::Handle(zone, String::null()));
 
     Exceptions::ThrowByType(Exceptions::kAssertion, args);

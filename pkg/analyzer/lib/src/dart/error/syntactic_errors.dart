@@ -357,6 +357,8 @@ class ParserErrorCode extends ErrorCode {
 
   static const ParserErrorCode INVALID_HEX_ESCAPE = _INVALID_HEX_ESCAPE;
 
+  static const ParserErrorCode INVALID_INITIALIZER = _INVALID_INITIALIZER;
+
   static const ParserErrorCode INVALID_LITERAL_IN_CONFIGURATION =
       const ParserErrorCode('INVALID_LITERAL_IN_CONFIGURATION',
           "The literal in a configuration can't contain interpolation.",

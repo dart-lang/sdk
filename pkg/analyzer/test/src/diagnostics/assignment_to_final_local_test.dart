@@ -113,6 +113,18 @@ f() {
     ]);
   }
 
+  test_localVariable_inForEach() async {
+    await assertErrorsInCode('''
+f() {
+  final x = 0;
+  for (x in <int>[1, 2]) {
+    print(x);
+  }
+}''', [
+      error(StaticWarningCode.ASSIGNMENT_TO_FINAL_LOCAL, 28, 1),
+    ]);
+  }
+
   test_topLevelVariable() async {
     await assertErrorsInCode('''
 final x = 0;

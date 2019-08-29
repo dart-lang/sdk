@@ -10,7 +10,7 @@ library;
 // type T = Map<A, B>
 //                  ^
 //
-// pkg/front_end/testcases/regress/issue_31188.dart:7:1: Warning: Type 'type' not found.
+// pkg/front_end/testcases/regress/issue_31188.dart:7:1: Error: Type 'type' not found.
 // type T = Map<A, B>
 // ^^^^
 //

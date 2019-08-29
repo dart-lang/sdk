@@ -299,7 +299,7 @@ library;
 // typedef Typedef = Object Function();
 //         ^^^^^^^
 //
-// pkg/front_end/testcases/general/duplicated_declarations.dart:65:19: Warning: 'C' isn't a type.
+// pkg/front_end/testcases/general/duplicated_declarations.dart:65:19: Error: 'C' isn't a type.
 // class Sub extends C {
 //                   ^
 // pkg/front_end/testcases/general/duplicated_declarations.dart:65:19: Context: This isn't a type.
@@ -332,7 +332,7 @@ class C#3 extends core::Object { // from org-dartlang-testcase:///duplicated_dec
     ;
 }
 class C#2 extends core::Object { // from org-dartlang-testcase:///duplicated_declarations_part.dart
-  field dynamic field;
+  field core::String* field;
   constructor •(dynamic a) → self::C#2*
     ;
   method m() → dynamic
@@ -347,7 +347,7 @@ class C#1 extends core::Object {
     ;
 }
 class C extends core::Object {
-  field dynamic field;
+  field core::String* field;
   constructor •(dynamic a) → self::C*
     ;
   method m() → dynamic
@@ -439,7 +439,7 @@ class AnotherEnum extends core::Object {
   method toString() → core::String*
     return this.{=self::AnotherEnum::_name};
 }
-static field dynamic field;
+static field core::String* field;
 static method main() → dynamic
   ;
 static method foo() → dynamic

@@ -61,4 +61,16 @@ f() {
       error(StaticWarningCode.ASSIGNMENT_TO_CONST, 23, 1),
     ]);
   }
+
+  test_localVariable_inForEach() async {
+    await assertErrorsInCode('''
+f() {
+  const x = 0;
+  for (x in <int>[1, 2]) {
+    print(x);
+  }
+}''', [
+      error(StaticWarningCode.ASSIGNMENT_TO_CONST, 28, 1),
+    ]);
+  }
 }
