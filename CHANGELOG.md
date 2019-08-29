@@ -1,3 +1,7 @@
+# 0.1.97+1
+
+* enabled `camel_case_extensions` experimental lint
+
 # 0.1.97
 
 * internal: migrated away from using analyzer `resolutionMap`
@@ -17,7 +21,7 @@
 
 * improvements to `unsafe_html` error reporting
 * fixed false positive in `prefer_asserts_in_initializer_lists`
-* fixed `prefer_const_constructors` to not flag `@literal` annotated constructors.
+* fixed `prefer_const_constructors` to not flag `@literal` annotated constructors
 
 # 0.1.94
 
