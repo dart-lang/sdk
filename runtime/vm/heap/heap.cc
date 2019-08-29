@@ -877,26 +877,39 @@ void Heap::SetWeakEntry(RawObject* raw_obj, WeakSelector sel, intptr_t val) {
 
 void Heap::ForwardWeakEntries(RawObject* before_object,
                               RawObject* after_object) {
+  const auto before_space =
+      before_object->IsNewObject() ? Heap::kNew : Heap::kOld;
+  const auto after_space =
+      after_object->IsNewObject() ? Heap::kNew : Heap::kOld;
+
   for (int sel = 0; sel < Heap::kNumWeakSelectors; sel++) {
-    WeakTable* before_table =
-        GetWeakTable(before_object->IsNewObject() ? Heap::kNew : Heap::kOld,
-                     static_cast<Heap::WeakSelector>(sel));
+    const auto selector = static_cast<Heap::WeakSelector>(sel);
+    auto before_table = GetWeakTable(before_space, selector);
     intptr_t entry = before_table->RemoveValue(before_object);
     if (entry != 0) {
-      WeakTable* after_table =
-          GetWeakTable(after_object->IsNewObject() ? Heap::kNew : Heap::kOld,
-                       static_cast<Heap::WeakSelector>(sel));
+      auto after_table = GetWeakTable(after_space, selector);
       after_table->SetValue(after_object, entry);
     }
   }
+
+  // We only come here during hot reload, in which case we assume that none of
+  // the isolates is in the middle of sending messages.
+  RELEASE_ASSERT(isolate()->forward_table_new() == nullptr);
+  RELEASE_ASSERT(isolate()->forward_table_old() == nullptr);
 }
 
 void Heap::ForwardWeakTables(ObjectPointerVisitor* visitor) {
+  // NOTE: This method is only used by the compactor, so there is no need to
+  // process the `Heap::kNew` tables.
   for (int sel = 0; sel < Heap::kNumWeakSelectors; sel++) {
     WeakSelector selector = static_cast<Heap::WeakSelector>(sel);
-    GetWeakTable(Heap::kNew, selector)->Forward(visitor);
     GetWeakTable(Heap::kOld, selector)->Forward(visitor);
   }
+
+  // Isolates might have forwarding tables (used for during snapshoting in
+  // isolate communication).
+  auto table_old = isolate()->forward_table_old();
+  if (table_old != nullptr) table_old->Forward(visitor);
 }
 
 #ifndef PRODUCT

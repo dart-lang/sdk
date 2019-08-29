@@ -90,6 +90,7 @@ class StoreBuffer;
 class StubCode;
 class ThreadRegistry;
 class UserTag;
+class WeakTable;
 
 class PendingLazyDeopt {
  public:
@@ -945,6 +946,14 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
   void MaybeIncreaseReloadEveryNStackOverflowChecks();
 
+  // The weak table used in the snapshot writer for the purpose of fast message
+  // sending.
+  WeakTable* forward_table_new() { return forward_table_new_.get(); }
+  void set_forward_table_new(WeakTable* table);
+
+  WeakTable* forward_table_old() { return forward_table_old_.get(); }
+  void set_forward_table_old(WeakTable* table);
+
   static void NotifyLowMemory();
 
  private:
@@ -1175,6 +1184,10 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   const char** obfuscation_map_ = nullptr;
 
   ReversePcLookupCache* reverse_pc_lookup_cache_ = nullptr;
+
+  // Used during message sending of messages between isolates.
+  std::unique_ptr<WeakTable> forward_table_new_;
+  std::unique_ptr<WeakTable> forward_table_old_;
 
   static Dart_IsolateGroupCreateCallback create_group_callback_;
   static Dart_InitializeIsolateCallback initialize_callback_;

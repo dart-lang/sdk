@@ -2009,6 +2009,15 @@ void Isolate::MaybeIncreaseReloadEveryNStackOverflowChecks() {
 }
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
+void Isolate::set_forward_table_new(WeakTable* table) {
+  std::unique_ptr<WeakTable> value(table);
+  forward_table_new_ = std::move(value);
+}
+void Isolate::set_forward_table_old(WeakTable* table) {
+  std::unique_ptr<WeakTable> value(table);
+  forward_table_old_ = std::move(value);
+}
+
 void Isolate::Shutdown() {
   ASSERT(this == Isolate::Current());
   BackgroundCompiler::Stop(this);

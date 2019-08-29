@@ -959,10 +959,13 @@ ForwardList::ForwardList(Thread* thread, intptr_t first_object_id)
       nodes_(),
       first_unprocessed_object_id_(first_object_id) {
   ASSERT(first_object_id > 0);
+  isolate()->set_forward_table_new(new WeakTable());
+  isolate()->set_forward_table_old(new WeakTable());
 }
 
 ForwardList::~ForwardList() {
-  heap()->ResetObjectIdTable();
+  isolate()->set_forward_table_new(nullptr);
+  isolate()->set_forward_table_old(nullptr);
 }
 
 intptr_t ForwardList::AddObject(Zone* zone,
@@ -976,15 +979,31 @@ intptr_t ForwardList::AddObject(Zone* zone,
   ASSERT(node != NULL);
   nodes_.Add(node);
   ASSERT(object_id != 0);
-  heap()->SetObjectId(raw, object_id);
+  SetObjectId(raw, object_id);
   return object_id;
 }
 
 intptr_t ForwardList::FindObject(RawObject* raw) {
   NoSafepointScope no_safepoint;
-  intptr_t id = heap()->GetObjectId(raw);
+  intptr_t id = GetObjectId(raw);
   ASSERT(id == 0 || NodeForObjectId(id)->obj()->raw() == raw);
   return (id == 0) ? static_cast<intptr_t>(kInvalidIndex) : id;
+}
+
+void ForwardList::SetObjectId(RawObject* object, intptr_t id) {
+  if (object->IsNewObject()) {
+    isolate()->forward_table_new()->SetValue(object, id);
+  } else {
+    isolate()->forward_table_old()->SetValue(object, id);
+  }
+}
+
+intptr_t ForwardList::GetObjectId(RawObject* object) {
+  if (object->IsNewObject()) {
+    return isolate()->forward_table_new()->GetValue(object);
+  } else {
+    return isolate()->forward_table_old()->GetValue(object);
+  }
 }
 
 bool SnapshotWriter::CheckAndWritePredefinedObject(RawObject* rawobj) {

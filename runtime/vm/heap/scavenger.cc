@@ -847,12 +847,8 @@ uword Scavenger::ProcessWeakProperty(RawWeakProperty* raw_weak,
 }
 
 void Scavenger::ProcessWeakReferences() {
-  // Rehash the weak tables now that we know which objects survive this cycle.
-  for (int sel = 0; sel < Heap::kNumWeakSelectors; sel++) {
-    WeakTable* table =
-        heap_->GetWeakTable(Heap::kNew, static_cast<Heap::WeakSelector>(sel));
-    heap_->SetWeakTable(Heap::kNew, static_cast<Heap::WeakSelector>(sel),
-                        WeakTable::NewFrom(table));
+  auto rehash_weak_table = [](WeakTable* table, WeakTable* replacement_new,
+                              WeakTable* replacement_old) {
     intptr_t size = table->size();
     for (intptr_t i = 0; i < size; i++) {
       if (table->IsValidEntryAt(i)) {
@@ -864,14 +860,38 @@ void Scavenger::ProcessWeakReferences() {
           // The object has survived.  Preserve its record.
           uword new_addr = ForwardedAddr(header);
           raw_obj = RawObject::FromAddr(new_addr);
-          heap_->SetWeakEntry(raw_obj, static_cast<Heap::WeakSelector>(sel),
-                              table->ValueAt(i));
+          auto replacement =
+              raw_obj->IsNewObject() ? replacement_new : replacement_old;
+          replacement->SetValue(raw_obj, table->ValueAt(i));
         }
       }
     }
+  };
+
+  // Rehash the weak tables now that we know which objects survive this cycle.
+  for (int sel = 0; sel < Heap::kNumWeakSelectors; sel++) {
+    const auto selector = static_cast<Heap::WeakSelector>(sel);
+    auto table = heap_->GetWeakTable(Heap::kNew, selector);
+    auto table_old = heap_->GetWeakTable(Heap::kOld, selector);
+
+    // Create a new weak table for the new-space.
+    auto table_new = WeakTable::NewFrom(table);
+    rehash_weak_table(table, table_new, table_old);
+    heap_->SetWeakTable(Heap::kNew, selector, table_new);
+
     // Remove the old table as it has been replaced with the newly allocated
     // table above.
     delete table;
+  }
+
+  // Each isolate might have a weak table used for fast snapshot writing (i.e.
+  // isolate communication). Rehash those tables if need be.
+  auto isolate = heap_->isolate();
+  auto table = isolate->forward_table_new();
+  if (table != NULL) {
+    auto replacement = WeakTable::NewFrom(table);
+    rehash_weak_table(table, replacement, isolate->forward_table_old());
+    isolate->set_forward_table_new(replacement);
   }
 
   // The queued weak properties at this point do not refer to reachable keys,

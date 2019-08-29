@@ -605,12 +605,15 @@ class ForwardList {
  private:
   intptr_t first_object_id() const { return first_object_id_; }
   intptr_t next_object_id() const { return nodes_.length() + first_object_id_; }
-  Heap* heap() const { return thread_->isolate()->heap(); }
+  Isolate* isolate() const { return thread_->isolate(); }
 
   Thread* thread_;
   const intptr_t first_object_id_;
   GrowableArray<Node*> nodes_;
   intptr_t first_unprocessed_object_id_;
+
+  void SetObjectId(RawObject* object, intptr_t id);
+  intptr_t GetObjectId(RawObject* object);
 
   DISALLOW_COPY_AND_ASSIGN(ForwardList);
 };
