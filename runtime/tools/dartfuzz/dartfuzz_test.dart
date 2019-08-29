@@ -78,17 +78,21 @@ abstract class TestRunner {
         prefix += '-NOINTRINSIFY';
         extraFlags += ['--intrinsify=false'];
       } else if (r == 2) {
-        prefix += '-COMPACTEVERY';
-        extraFlags += ['--gc_every=1000', '--use_compactor=true'];
+        final freq = rand.nextInt(1000) + 500;
+        prefix += '-COMPACTEVERY-${freq}';
+        extraFlags += ['--gc_every=${freq}', '--use_compactor=true'];
       } else if (r == 3) {
-        prefix += '-MARKSWEEPEVERY';
-        extraFlags += ['--gc_every=1000', '--use_compactor=false'];
+        final freq = rand.nextInt(1000) + 500;
+        prefix += '-MARKSWEEPEVERY-${freq}';
+        extraFlags += ['--gc_every=${freq}', '--use_compactor=false'];
       } else if (r == 4) {
-        prefix += '-DEPOPTEVERY';
-        extraFlags += ['--deoptimize_every=100'];
+        final freq = rand.nextInt(100) + 50;
+        prefix += '-DEPOPTEVERY-${freq}';
+        extraFlags += ['--deoptimize_every=${freq}'];
       } else if (r == 5) {
-        prefix += '-STACKTRACEEVERY';
-        extraFlags += ['--stacktrace_every=100'];
+        final freq = rand.nextInt(100) + 50;
+        prefix += '-STACKTRACEEVERY-${freq}';
+        extraFlags += ['--stacktrace_every=${freq}'];
       } else if (r == 6) {
         prefix += '-OPTCOUNTER';
         extraFlags += ['--optimization_counter_threshold=1'];
