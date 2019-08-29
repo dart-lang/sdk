@@ -9,6 +9,7 @@
 #include "platform/globals.h"
 #include "vm/compiler/backend/locations.h"
 #include "vm/compiler/runtime_api.h"
+#include "vm/compiler/stub_code_compiler.h"
 #include "vm/growable_array.h"
 #include "vm/object_store.h"
 #include "vm/stack_frame.h"
@@ -67,7 +68,7 @@ static_assert(offsetof(AbiAlignmentDouble, d) == 8,
               "FFI transformation alignment");
 static_assert(offsetof(AbiAlignmentUint64, i) == 8,
               "FFI transformation alignment");
-#elif (defined(HOST_ARCH_IA32) &&                                              \
+#elif (defined(HOST_ARCH_IA32) && /* NOLINT(whitespace/parens) */              \
        (defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS) ||                    \
         defined(HOST_OS_ANDROID))) ||                                          \
     (defined(HOST_ARCH_ARM) && defined(HOST_OS_IOS))
@@ -89,7 +90,7 @@ static_assert(offsetof(AbiAlignmentUint64, i) == 8,
 static Abi HostAbi() {
 #if defined(HOST_ARCH_X64) || defined(HOST_ARCH_ARM64)
   return Abi::kWordSize64;
-#elif (defined(HOST_ARCH_IA32) &&                                              \
+#elif (defined(HOST_ARCH_IA32) && /* NOLINT(whitespace/parens) */              \
        (defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS) ||                    \
         defined(HOST_OS_ANDROID))) ||                                          \
     (defined(HOST_ARCH_ARM) && defined(HOST_OS_IOS))
@@ -108,7 +109,7 @@ Abi TargetAbi() {
   return HostAbi();
 #elif defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
   return Abi::kWordSize64;
-#elif (defined(TARGET_ARCH_IA32) &&                                            \
+#elif (defined(TARGET_ARCH_IA32) && /* NOLINT(whitespace/parens) */            \
        (defined(TARGET_OS_LINUX) || defined(TARGET_OS_MACOS) ||                \
         defined(TARGET_OS_ANDROID))) ||                                        \
     (defined(TARGET_ARCH_ARM) && defined(TARGET_OS_IOS))
@@ -354,6 +355,7 @@ class ArgumentAllocator : public ValueObject {
   intptr_t stack_height_in_slots = 0;
 };
 
+#if !defined(TARGET_ARCH_DBC)
 ZoneGrowableArray<Location>*
 CallbackArgumentTranslator::TranslateArgumentLocations(
     const ZoneGrowableArray<Location>& arg_locs) {
@@ -398,10 +400,17 @@ Location CallbackArgumentTranslator::TranslateArgument(Location arg) {
     // saved argument registers and stack arguments. Also add slots for the
     // shadow space if present (factored into
     // kCallbackSlotsBeforeSavedArguments).
+    //
+    // Finally, if we are using NativeCallbackTrampolines, factor in the extra
+    // stack space corresponding to those trampolines' frames (above the entry
+    // frame).
+    intptr_t stack_delta = kCallbackSlotsBeforeSavedArguments;
+    if (NativeCallbackTrampolines::Enabled()) {
+      stack_delta += StubCodeCompiler::kNativeCallbackTrampolineStackDelta;
+    }
     FrameRebase rebase(
         /*old_base=*/SPREG, /*new_base=*/SPREG,
-        /*stack_delta=*/argument_slots_required_ +
-            kCallbackSlotsBeforeSavedArguments);
+        /*stack_delta=*/argument_slots_required_ + stack_delta);
     return rebase.Rebase(arg);
   }
 
@@ -415,6 +424,7 @@ Location CallbackArgumentTranslator::TranslateArgument(Location arg) {
   argument_slots_used_ += 8 / target::kWordSize;
   return result;
 }
+#endif  // !defined(TARGET_ARCH_DBC)
 
 // Takes a list of argument representations, and converts it to a list of
 // argument locations based on calling convention.

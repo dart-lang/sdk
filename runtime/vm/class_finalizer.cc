@@ -8,6 +8,7 @@
 #include "vm/flags.h"
 #include "vm/hash_table.h"
 #include "vm/heap/heap.h"
+#include "vm/interpreter.h"
 #include "vm/isolate.h"
 #include "vm/kernel_loader.h"
 #include "vm/log.h"
@@ -1155,12 +1156,6 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   }
   // Mark as loaded and finalized.
   cls.Finalize();
-  // Every class should have at least a constructor, unless it is a top level
-  // class or a typedef class. The Kernel frontend does not create an implicit
-  // constructor for abstract classes.
-  // Moreover, Dart 2 precompiler (TFA) can tree shake all members if unused.
-  ASSERT(FLAG_precompiled_mode || cls.IsTopLevel() || cls.IsTypedefClass() ||
-         cls.is_abstract() || (Array::Handle(cls.functions()).Length() > 0));
   FinalizeMemberTypes(cls);
   // Run additional checks after all types are finalized.
   if (FLAG_use_cha_deopt) {
@@ -1687,12 +1682,41 @@ void ClassFinalizer::RehashTypes() {
 }
 
 void ClassFinalizer::ClearAllCode(bool including_nonchanging_cids) {
+#ifdef DART_PRECOMPILED_RUNTIME
+  UNREACHABLE();
+#else
+  Thread* mutator_thread = Isolate::Current()->mutator_thread();
+  if (mutator_thread != nullptr) {
+    Interpreter* interpreter = mutator_thread->interpreter();
+    if (interpreter != nullptr) {
+      interpreter->ClearLookupCache();
+    }
+  }
+
   class ClearCodeFunctionVisitor : public FunctionVisitor {
     void Visit(const Function& function) {
-      function.ClearBytecode();
+      bytecode_ = function.bytecode();
+      if (!bytecode_.IsNull()) {
+        pool_ = bytecode_.object_pool();
+        for (intptr_t i = 0; i < pool_.Length(); i++) {
+          ObjectPool::EntryType entry_type = pool_.TypeAt(i);
+          if (entry_type != ObjectPool::EntryType::kTaggedObject) {
+            continue;
+          }
+          entry_ = pool_.ObjectAt(i);
+          if (entry_.IsSubtypeTestCache()) {
+            SubtypeTestCache::Cast(entry_).Reset();
+          }
+        }
+      }
+
       function.ClearCode();
       function.ClearICDataArray();
     }
+
+    Bytecode& bytecode_ = Bytecode::Handle();
+    ObjectPool& pool_ = ObjectPool::Handle();
+    Object& entry_ = Object::Handle();
   };
   ClearCodeFunctionVisitor function_visitor;
   ProgramVisitor::VisitFunctions(&function_visitor);
@@ -1726,6 +1750,7 @@ void ClassFinalizer::ClearAllCode(bool including_nonchanging_cids) {
     miss_function.ClearCode();
     object_store->SetMegamorphicMissHandler(null_code, miss_function);
   }
+#endif  // !DART_PRECOMPILED_RUNTIME
 }
 
 }  // namespace dart

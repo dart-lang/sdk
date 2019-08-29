@@ -82,6 +82,11 @@ abstract class Compiler {
   final bool bytecode;
   final String packageConfig;
 
+  // Code coverage and hot reload are only supported by incremental compiler,
+  // which is used if vm-service is enabled.
+  final bool supportCodeCoverage;
+  final bool supportHotReload;
+
   final List<String> errors = new List<String>();
 
   CompilerOptions options;
@@ -91,6 +96,8 @@ abstract class Compiler {
       this.enableAsserts: false,
       this.experimentalFlags: null,
       this.bytecode: false,
+      this.supportCodeCoverage: false,
+      this.supportHotReload: false,
       this.packageConfig: null}) {
     Uri packagesUri = null;
     if (packageConfig != null) {
@@ -157,27 +164,31 @@ abstract class Compiler {
 
       if (options.bytecode && errors.isEmpty) {
         await runWithFrontEndCompilerContext(script, options, component, () {
-          // TODO(alexmarkov): disable source positions, local variables info,
+          // TODO(alexmarkov): disable local variables info,
           //  debugger stops and source files in VM PRODUCT mode.
           // TODO(rmacnak): disable annotations if mirrors are not enabled.
           generateBytecode(component,
               coreTypes: compilerResult.coreTypes,
               hierarchy: compilerResult.classHierarchy,
               options: new BytecodeOptions(
-                  enableAsserts: enableAsserts,
-                  environmentDefines: options.environmentDefines,
-                  // Needed both for stack traces and the debugger.
-                  emitSourcePositions: true,
-                  // Only needed when the debugger is available.
-                  emitLocalVarInfo: true,
-                  // Only needed when the debugger is available.
-                  emitDebuggerStops: true,
-                  // Only needed when the VM service is available.
-                  emitSourceFiles: true,
-                  // Only needed when reload is available.
-                  emitInstanceFieldInitializers: true,
-                  // Only needed when mirrors are available.
-                  emitAnnotations: true));
+                enableAsserts: enableAsserts,
+                environmentDefines: options.environmentDefines,
+                // Needed both for stack traces and the debugger.
+                emitSourcePositions: true,
+                // Only needed when the debugger is available.
+                emitLocalVarInfo: true,
+                // Only needed when the debugger is available.
+                emitDebuggerStops: true,
+                // Only needed when the VM service is available.
+                emitSourceFiles: true,
+                // Only needed when reload is available.
+                emitInstanceFieldInitializers: supportHotReload,
+                // Only needed when mirrors are available.
+                emitAnnotations: true,
+                // Only needed when observatory (source report) is available.
+                keepUnreachableCode: supportCodeCoverage,
+                avoidClosureCallInstructions: supportCodeCoverage,
+              ));
           component = createFreshComponentWithBytecode(component);
         });
       }
@@ -250,6 +261,8 @@ class IncrementalCompilerWrapper extends Compiler {
             enableAsserts: enableAsserts,
             experimentalFlags: experimentalFlags,
             bytecode: bytecode,
+            supportHotReload: true,
+            supportCodeCoverage: true,
             packageConfig: packageConfig);
 
   @override

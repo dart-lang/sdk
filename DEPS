@@ -36,7 +36,9 @@ vars = {
   "chromium_git": "https://chromium.googlesource.com",
   "fuchsia_git": "https://fuchsia.googlesource.com",
 
-  "co19_2_rev": "d2c051f7537e6fe47c8ccf0bd7a7e84b02010a2a",
+  # co19 is a cipd package. Use tests/co19_2/update.sh to update this hash.
+  # It requires access to the dart-build-access group, which EngProd has.
+  "co19_2_rev": "52daae49d7bff80039ff1eea36a24e98c2b9a837",
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
   # should be kept up to date with the revisions pulled by the Flutter engine.
@@ -119,6 +121,7 @@ vars = {
   "quiver-dart_tag": "2.0.0+1",
   "resource_rev": "f8e37558a1c4f54550aa463b88a6a831e3e33cd6",
   "root_certificates_rev": "16ef64be64c7dfdff2b9f4b910726e635ccc519e",
+  "rust_revision": "60960a260f7b5c695fd0717311d72ce62dd4eb43",
   "shelf_static_rev": "v0.2.8",
   "shelf_packages_handler_tag": "1.0.4",
   "shelf_tag": "0.7.3+3",
@@ -431,6 +434,17 @@ deps = {
               "version": "git_revision:" + Var("gn_revision"),
           },
       ],
+      "dep_type": "cipd",
+  },
+
+  Var("dart_root") + "/buildtools/" + Var("host_os") + "-" + Var("host_cpu") + "/rust": {
+      "packages": [
+          {
+              "package": "fuchsia/rust/${{platform}}",
+              "version": "git_revision:" + Var("rust_revision"),
+          },
+      ],
+      "condition": "(host_os == 'linux' or host_os == 'mac') and host_cpu == 'x64'",
       "dep_type": "cipd",
   },
 

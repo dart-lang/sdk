@@ -446,6 +446,11 @@ class DartTypePrinter implements DartTypeVisitor {
   }
 
   @override
+  visitAnyType(AnyType type, _) {
+    sb.write('any');
+  }
+
+  @override
   visitTypedefType(TypedefType type, _) {
     sb.write(type.element.name);
     if (type.typeArguments.any((type) => !type.isDynamic)) {

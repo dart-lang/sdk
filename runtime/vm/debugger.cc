@@ -10,6 +10,7 @@
 
 #include "vm/code_patcher.h"
 #include "vm/compiler/assembler/disassembler.h"
+#include "vm/compiler/assembler/disassembler_kbc.h"
 #include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart_entry.h"
@@ -745,16 +746,16 @@ void ActivationFrame::PrintDescriptorsError(const char* message) {
   OS::PrintErr("pc_ %" Px "\n", pc_);
   OS::PrintErr("deopt_id_ %" Px "\n", deopt_id_);
   OS::PrintErr("context_level_ %" Px "\n", context_level_);
-  DisassembleToStdout formatter;
+  OS::PrintErr("token_pos_ %s\n", token_pos_.ToCString());
   if (function().is_declared_in_bytecode()) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-    ASSERT(function().HasBytecode());
-    const Bytecode& bytecode = Bytecode::Handle(function().bytecode());
-    bytecode.Disassemble(&formatter);
+    KernelBytecodeDisassembler::Disassemble(function());
 #else
     UNREACHABLE();
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
-  } else {
+  }
+  if (!IsInterpreted()) {
+    DisassembleToStdout formatter;
     code().Disassemble(&formatter);
     PcDescriptors::Handle(code().pc_descriptors()).Print();
   }
@@ -827,7 +828,7 @@ intptr_t ActivationFrame::ContextLevel() {
         }
       }
       if (!found) {
-        PrintDescriptorsError("Missing context level");
+        PrintDescriptorsError("Missing context level in var descriptors");
       }
       ASSERT(context_level_ >= 0);
     }
@@ -3230,12 +3231,6 @@ void Debugger::FindCompiledFunctions(
   Array& functions = Array::Handle(zone);
   GrowableObjectArray& closures = GrowableObjectArray::Handle(zone);
   Function& function = Function::Handle(zone);
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  Bytecode& bytecode = Bytecode::Handle(zone);
-  ObjectPool& pool = ObjectPool::Handle(zone);
-  Object& object = Object::Handle(zone);
-  Function& closure = Function::Handle(zone);
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   closures = isolate_->object_store()->closure_functions();
   const intptr_t num_closures = closures.Length();
@@ -3289,54 +3284,17 @@ void Debugger::FindCompiledFunctions(
           function ^= functions.At(pos);
           ASSERT(!function.IsNull());
           bool function_added = false;
-#if !defined(DART_PRECOMPILED_RUNTIME)
-          // Note that a non-debuggable async function may refer to a debuggable
-          // async op closure function via its object pool.
-          if (function.HasBytecode()) {
-            // Check token position first to avoid unnecessary calls
-            // to script() which allocates handles.
-            if (function.token_pos() <= start_pos &&
-                function.end_token_pos() >= end_pos &&
-                function.script() == script.raw()) {
-              // Record the function if the token range matches exactly.
-              if (function.is_debuggable() &&
-                  function.token_pos() == start_pos &&
-                  function.end_token_pos() == end_pos) {
-                bytecode_function_list->Add(function);
-                function_added = true;
-              }
-              // Visit the closures declared in a bytecode function by
-              // traversing its object pool, because they do not appear in the
-              // object store's list of closures.
-              ASSERT(!function.IsLocalFunction());
-              bytecode = function.bytecode();
-              pool = bytecode.object_pool();
-              for (intptr_t i = 0; i < pool.Length(); i++) {
-                ObjectPool::EntryType entry_type = pool.TypeAt(i);
-                if (entry_type != ObjectPool::EntryType::kTaggedObject) {
-                  continue;
-                }
-                object = pool.ObjectAt(i);
-                if (object.IsFunction()) {
-                  closure ^= object.raw();
-                  if (closure.kind() == RawFunction::kClosureFunction &&
-                      closure.IsLocalFunction() && closure.is_debuggable() &&
-                      closure.token_pos() == start_pos &&
-                      closure.end_token_pos() == end_pos) {
-                    ASSERT(closure.HasBytecode());
-                    ASSERT(closure.script() == script.raw());
-                    bytecode_function_list->Add(closure);
-                  }
-                }
-              }
-            }
-          }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-          if (function.is_debuggable() && function.HasCode() &&
+          if (function.is_debuggable() &&
+              (function.HasCode() || function.HasBytecode()) &&
               function.token_pos() == start_pos &&
               function.end_token_pos() == end_pos &&
               function.script() == script.raw()) {
-            code_function_list->Add(function);
+            if (function.HasBytecode()) {
+              bytecode_function_list->Add(function);
+            }
+            if (function.HasCode()) {
+              code_function_list->Add(function);
+            }
             function_added = true;
           }
           if (function_added && function.HasImplicitClosureFunction()) {
@@ -3586,6 +3544,7 @@ BreakpointLocation* Debugger::SetBreakpoint(const Script& script,
             FindExactTokenPosition(script, token_pos, requested_column);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
       }
+      DeoptimizeWorld();
       // Since source positions may differ in code and bytecode, process
       // breakpoints in bytecode and code separately.
       BreakpointLocation* loc = NULL;
@@ -3595,7 +3554,6 @@ BreakpointLocation* Debugger::SetBreakpoint(const Script& script,
                                  exact_token_pos, bytecode_functions);
       }
       if (code_functions.Length() > 0) {
-        DeoptimizeWorld();
         loc = SetCodeBreakpoints(false, loc, script, token_pos, last_token_pos,
                                  requested_line, requested_column,
                                  exact_token_pos, code_functions);
@@ -4664,11 +4622,8 @@ void Debugger::NotifyIsolateCreated() {
 
 // Return innermost closure contained in 'function' that contains
 // the given token position.
-// Note: this should only be called for compiled functions and not for
-// bytecode functions.
 RawFunction* Debugger::FindInnermostClosure(const Function& function,
                                             TokenPosition token_pos) {
-  ASSERT(function.HasCode());
   Zone* zone = Thread::Current()->zone();
   const Script& outer_origin = Script::Handle(zone, function.script());
   const GrowableObjectArray& closures = GrowableObjectArray::Handle(
@@ -4736,16 +4691,26 @@ void Debugger::HandleCodeChange(bool bytecode_loaded, const Function& func) {
                                            loc->requested_column_number());
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
       }
-      if (bytecode_loaded) {
-        // func's bytecode was just loaded.
-        // If func has an inner closure, we got notified earlier.
-        // Therefore we will always resolve the breakpoint correctly to the
-        // innermost function without searching for it.
-      } else {
-        // func was just compiled.
-        const Function& inner_function =
-            Function::Handle(zone, FindInnermostClosure(func, token_pos));
-        if (!inner_function.IsNull()) {
+      const Function& inner_function =
+          Function::Handle(zone, FindInnermostClosure(func, token_pos));
+      if (!inner_function.IsNull()) {
+        if (bytecode_loaded) {
+          // func's bytecode was just loaded.
+          // If func is a closure and has an inner closure, the inner closure
+          // may not have been loaded yet.
+          if (inner_function.HasBytecode()) {
+            ASSERT(loc->IsResolved(bytecode_loaded));
+          } else {
+            if (FLAG_verbose_debug) {
+              OS::PrintErr(
+                  "Pending BP remains unresolved in inner bytecode function "
+                  "'%s'\n",
+                  inner_function.ToFullyQualifiedCString());
+            }
+          }
+          continue;
+        } else {
+          // func was just compiled.
           // The local function of a function we just compiled cannot
           // be compiled already.
           ASSERT(!inner_function.HasCode());

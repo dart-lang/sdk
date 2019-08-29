@@ -311,7 +311,7 @@ class Heap {
   void AbandonRemainingTLAB(Thread* thread);
   Space SpaceForExternal(intptr_t size) const;
 
-  void CollectOnNextAllocation();
+  void CollectOnNthAllocation(intptr_t num_allocations);
 
  private:
   class GCStats : public ValueObject {
@@ -384,7 +384,7 @@ class Heap {
 
   void AddRegionsToObjectSet(ObjectSet* set) const;
 
-  // Trigger major GC if 'gc_on_next_allocation_' is set.
+  // Trigger major GC if 'gc_on_nth_allocation_' is set.
   void CollectForDebugging();
 
   Isolate* isolate_;
@@ -410,10 +410,12 @@ class Heap {
   bool gc_new_space_in_progress_;
   bool gc_old_space_in_progress_;
 
+  static const intptr_t kNoForcedGarbageCollection = -1;
+
   // Whether the next heap allocation (new or old) should trigger
   // CollectAllGarbage. Used within unit tests for testing GC on certain
   // sensitive codepaths.
-  bool gc_on_next_allocation_;
+  intptr_t gc_on_nth_allocation_;
 
   friend class Become;       // VisitObjectPointers
   friend class GCCompactor;  // VisitObjectPointers

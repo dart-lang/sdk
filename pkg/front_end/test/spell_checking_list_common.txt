@@ -565,6 +565,7 @@ control
 controller
 convenience
 convenient
+conventional
 conventions
 convert
 converted
@@ -872,6 +873,7 @@ ensures
 ensuring
 entails
 enter
+entered
 entering
 entire
 entirely
@@ -1059,12 +1061,14 @@ flux
 fold
 folded
 folder
+folders
 follow
 followed
 following
 follows
 for
 force
+forced
 forest
 forget
 fork
@@ -1554,6 +1558,7 @@ looks
 lookup
 lookups
 loop
+loop's
 looping
 loops
 loosely
@@ -1794,6 +1799,7 @@ one
 ones
 only
 onto
+opaque
 open
 opener
 openers
@@ -2239,6 +2245,7 @@ responsible
 rest
 restore
 restored
+restores
 restrict
 restricted
 result

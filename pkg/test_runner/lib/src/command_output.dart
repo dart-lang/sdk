@@ -1225,52 +1225,18 @@ mixin _StaticErrorOutput on CommandOutput {
   Expectation _validateExpectedErrors(TestCase testCase,
       [OutputWriter writer]) {
     // Filter out errors that aren't for this configuration.
-    var expected = testCase.testFile.expectedErrors
-        .where((error) =>
-            testCase.configuration.compiler == Compiler.dart2analyzer
-                ? error.isAnalyzer
-                : error.isCfe)
-        .toList();
-    var actual = errors.toList();
+    var expected = testCase.testFile.expectedErrors.where((error) =>
+        testCase.configuration.compiler == Compiler.dart2analyzer
+            ? error.isAnalyzer
+            : error.isCfe);
 
-    // Don't require the test or analyzer to output in any specific order.
-    expected.sort();
-    actual.sort();
+    var validation = StaticError.validateExpectations(expected, errors);
+    if (validation == null) return Expectation.pass;
 
-    writer?.subsection("incorrect static errors");
+    writer?.subsection("static error failures");
+    writer?.write(validation);
 
-    var success = expected.length == actual.length;
-    for (var i = 0; i < expected.length && i < actual.length; i++) {
-      var differences = expected[i].describeDifferences(actual[i]);
-      if (differences == null) continue;
-
-      if (writer != null) {
-        writer.write(actual[i].location);
-        for (var difference in differences) {
-          writer.write("- $difference");
-        }
-        writer.separator();
-      }
-
-      success = false;
-    }
-
-    if (writer != null) {
-      writer.subsection("missing expected static errors");
-      for (var i = actual.length; i < expected.length; i++) {
-        writer.write(expected[i].toString());
-        writer.separator();
-      }
-
-      writer.subsection("reported unexpected static errors");
-      for (var i = expected.length; i < actual.length; i++) {
-        writer.write(actual[i].toString());
-        writer.separator();
-      }
-    }
-
-    // TODO(rnystrom): Is there a better expectation we can use?
-    return success ? Expectation.pass : Expectation.missingCompileTimeError;
+    return Expectation.missingCompileTimeError;
   }
 }
 

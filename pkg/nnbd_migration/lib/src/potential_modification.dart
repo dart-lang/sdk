@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' show SourceEdit;
 import 'package:nnbd_migration/src/conditional_discard.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
@@ -117,6 +118,23 @@ class PotentiallyAddImport extends PotentialModification {
   void addUsage(PotentialModification usage) {
     _usages.add(usage);
   }
+}
+
+/// Records information about the possible addition of a `?` suffix to a type in
+/// the source code.
+class PotentiallyAddQuestionSuffix extends PotentialModification {
+  final NullabilityNode node;
+  final DartType type;
+  final int _offset;
+
+  PotentiallyAddQuestionSuffix(this.node, this.type, this._offset);
+
+  @override
+  bool get isEmpty => !node.isNullable;
+
+  @override
+  Iterable<SourceEdit> get modifications =>
+      isEmpty ? [] : [SourceEdit(_offset, 0, '?')];
 }
 
 /// Records information about the possible addition of a `@required` annotation

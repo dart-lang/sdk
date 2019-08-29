@@ -4,6 +4,9 @@
 
 #include "include/dart_api.h"
 
+#include "bin/builtin.h"
+#include "bin/vmservice_impl.h"
+
 #include "platform/globals.h"
 
 #include "vm/class_finalizer.h"
@@ -3974,6 +3977,15 @@ class ObjectAccumulator : public ObjectVisitor {
 };
 
 ISOLATE_UNIT_TEST_CASE(PrintJSON) {
+  // Set native resolvers in case we need to read native methods.
+  {
+    TransitionVMToNative transition(thread);
+    bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);
+    bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
+    bin::Builtin::SetNativeResolver(bin::Builtin::kCLILibrary);
+    bin::VmService::SetNativeResolver();
+  }
+
   Heap* heap = Isolate::Current()->heap();
   heap->CollectAllGarbage();
   GrowableArray<Object*> objects;

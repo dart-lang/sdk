@@ -160,16 +160,7 @@ void Assembler::setcc(Condition condition, ByteRegister dst) {
   EmitUint8(0xC0 + (dst & 0x07));
 }
 
-void Assembler::TransitionGeneratedToNative(Register destination_address,
-                                            Register new_exit_frame) {
-  // Save exit frame information to enable stack walking.
-  movq(Address(THR, target::Thread::top_exit_frame_info_offset()),
-       new_exit_frame);
-
-  movq(Assembler::VMTagAddress(), destination_address);
-  movq(Address(THR, target::Thread::execution_state_offset()),
-       Immediate(target::Thread::native_execution_state()));
-
+void Assembler::EnterSafepoint() {
   // Compare and swap the value at Thread::safepoint_state from unacquired to
   // acquired. If the CAS fails, go to a slow-path stub.
   Label done;
@@ -186,14 +177,32 @@ void Assembler::TransitionGeneratedToNative(Register destination_address,
 
   movq(TMP, Address(THR, target::Thread::enter_safepoint_stub_offset()));
   movq(TMP, FieldAddress(TMP, target::Code::entry_point_offset()));
-  // Use call instead of CFunctionCall to prevent having to clean up shadow
-  // space afterwards. This is possible because safepoint stub has no arguments.
+
+  // Use call instead of CallCFunction to avoid having to clean up shadow space
+  // afterwards. This is possible because the safepoint stub does not use the
+  // shadow space as scratch and has no arguments.
   call(TMP);
 
   Bind(&done);
 }
 
-void Assembler::TransitionNativeToGenerated() {
+void Assembler::TransitionGeneratedToNative(Register destination_address,
+                                            Register new_exit_frame,
+                                            bool enter_safepoint) {
+  // Save exit frame information to enable stack walking.
+  movq(Address(THR, target::Thread::top_exit_frame_info_offset()),
+       new_exit_frame);
+
+  movq(Assembler::VMTagAddress(), destination_address);
+  movq(Address(THR, target::Thread::execution_state_offset()),
+       Immediate(target::Thread::native_execution_state()));
+
+  if (enter_safepoint) {
+    EnterSafepoint();
+  }
+}
+
+void Assembler::LeaveSafepoint() {
   // Compare and swap the value at Thread::safepoint_state from acquired to
   // unacquired. On success, jump to 'success'; otherwise, fallthrough.
   Label done;
@@ -210,11 +219,29 @@ void Assembler::TransitionNativeToGenerated() {
 
   movq(TMP, Address(THR, target::Thread::exit_safepoint_stub_offset()));
   movq(TMP, FieldAddress(TMP, target::Code::entry_point_offset()));
-  // Use call instead of CFunctionCall to prevent having to clean up shadow
-  // space afterwards. This is possible because safepoint stub has no arguments.
+
+  // Use call instead of CallCFunction to avoid having to clean up shadow space
+  // afterwards. This is possible because the safepoint stub does not use the
+  // shadow space as scratch and has no arguments.
   call(TMP);
 
   Bind(&done);
+}
+
+void Assembler::TransitionNativeToGenerated(bool leave_safepoint) {
+  if (leave_safepoint) {
+    LeaveSafepoint();
+  } else {
+#if defined(DEBUG)
+    // Ensure we've already left the safepoint.
+    movq(TMP, Address(THR, target::Thread::safepoint_state_offset()));
+    andq(TMP, Immediate((1 << target::Thread::safepoint_state_inside_bit())));
+    Label ok;
+    j(ZERO, &ok);
+    Breakpoint();
+    Bind(&ok);
+#endif
+  }
 
   movq(Assembler::VMTagAddress(),
        Immediate(target::Thread::vm_tag_compiled_id()));

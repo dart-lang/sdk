@@ -44,6 +44,9 @@ abstract class DartType {
   /// Is `true` if this type is the dynamic type.
   bool get isDynamic => false;
 
+  /// Is `true` if this type is the any type.
+  bool get isAny => false;
+
   /// Is `true` if this type is the void type.
   bool get isVoid => false;
 
@@ -429,6 +432,35 @@ class DynamicType extends DartType {
   }
 }
 
+/// Represents a type which is simultaneously top and bottom.
+///
+/// This is not a standard Dart type, but an extension of the standard Dart type
+/// system for dart2js. Because 'any' is both top and bottom, it is useful for
+/// ensuring that type checks succeed so that we can avoid spurious failures
+/// when our analysis is incorrect or incomplete.
+///
+/// Use cases include:
+/// * Representing inscrutable JS-interop types.
+/// * Representing types appearing as generic method bounds which contain type
+/// variables. (See issue 33422.)
+class AnyType extends DartType {
+  const AnyType();
+
+  @override
+  bool get isAny => true;
+
+  @override
+  R accept<R, A>(DartTypeVisitor<R, A> visitor, A argument) =>
+      visitor.visitAnyType(this, argument);
+
+  @override
+  int get hashCode => 95;
+
+  @override
+  bool _equals(DartType other, _Assumptions assumptions) =>
+      identical(this, other);
+}
+
 class FunctionType extends DartType {
   final DartType returnType;
   final List<DartType> parameterTypes;
@@ -626,6 +658,8 @@ abstract class DartTypeVisitor<R, A> {
 
   R visitDynamicType(covariant DynamicType type, A argument) => null;
 
+  R visitAnyType(covariant AnyType type, A argument) => null;
+
   R visitFutureOrType(covariant FutureOrType type, A argument) => null;
 }
 
@@ -657,6 +691,10 @@ abstract class BaseDartTypeVisitor<R, A> extends DartTypeVisitor<R, A> {
 
   @override
   R visitDynamicType(covariant DynamicType type, A argument) =>
+      visitType(type, argument);
+
+  @override
+  R visitAnyType(covariant AnyType type, A argument) =>
       visitType(type, argument);
 
   @override
@@ -849,6 +887,9 @@ abstract class DartTypeSubstitutionVisitor<A>
   DartType visitDynamicType(covariant DynamicType type, A argument) => type;
 
   @override
+  DartType visitAnyType(covariant AnyType type, A argument) => type;
+
+  @override
   DartType visitFutureOrType(covariant FutureOrType type, A argument) {
     DartType seen = _map[type];
     if (seen != null) return seen;
@@ -917,6 +958,7 @@ abstract class DartTypeStructuralPredicateVisitor
   bool handleInterfaceType(InterfaceType type) => false;
   bool handleTypedefType(TypedefType type) => false;
   bool handleDynamicType(DynamicType type) => false;
+  bool handleAnyType(AnyType type) => false;
   bool handleFutureOrType(FutureOrType type) => false;
 
   @override
@@ -976,6 +1018,10 @@ abstract class DartTypeStructuralPredicateVisitor
   bool visitDynamicType(
           DynamicType type, List<FunctionTypeVariable> bindings) =>
       handleDynamicType(type);
+
+  @override
+  bool visitAnyType(AnyType type, List<FunctionTypeVariable> bindings) =>
+      handleAnyType(type);
 
   @override
   bool visitFutureOrType(
@@ -1109,6 +1155,11 @@ class _DartTypeToStringVisitor extends DartTypeVisitor<void, void> {
   @override
   void visitDynamicType(covariant DynamicType type, _) {
     _identifier('dynamic');
+  }
+
+  @override
+  void visitAnyType(covariant AnyType type, _) {
+    _identifier('any');
   }
 
   @override
@@ -1477,6 +1528,7 @@ abstract class AbstractTypeRelation<T extends DartType>
   }
 }
 
+// TODO(fishythefish): Support 'any'.
 abstract class MoreSpecificVisitor<T extends DartType>
     extends AbstractTypeRelation<T> {
   bool isMoreSpecific(T t, T s) {
@@ -1530,6 +1582,7 @@ abstract class MoreSpecificVisitor<T extends DartType>
 }
 
 /// Type visitor that determines the subtype relation two types.
+// TODO(fishythefish): Support 'any'.
 abstract class SubtypeVisitor<T extends DartType>
     extends MoreSpecificVisitor<T> {
   bool isSubtype(DartType t, DartType s) {
@@ -1591,6 +1644,7 @@ abstract class SubtypeVisitor<T extends DartType>
 /// Type visitor that determines one type could a subtype of another given the
 /// right type variable substitution. The computation is approximate and returns
 /// `false` only if we are sure no such substitution exists.
+// TODO(fishythefish): Support 'any'.
 abstract class PotentialSubtypeVisitor<T extends DartType>
     extends SubtypeVisitor<T> {
   bool _assumeInstantiations = true;

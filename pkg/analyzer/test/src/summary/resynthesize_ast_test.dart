@@ -27,12 +27,6 @@ class ApplyCheckElementTextReplacements {
 @reflectiveTest
 class ResynthesizeAstStrongTest extends ResynthesizeTestStrategyTwoPhase
     with ResynthesizeTestCases, GetElementTestCases, ResynthesizeTestHelpers {
-  @override
-  @failingTest
-  test_codeRange_extensions() async {
-    await super.test_codeRange_extensions();
-  }
-
   @failingTest // See dartbug.com/32290
   test_const_constructor_inferred_args() =>
       super.test_const_constructor_inferred_args();
@@ -87,20 +81,7 @@ class ResynthesizeAstStrongTest extends ResynthesizeTestStrategyTwoPhase
 
   @override
   @failingTest
-  test_metadata_extensionDeclaration() async {
-    await super.test_metadata_extensionDeclaration();
-  }
-
-  @override
-  @failingTest
   test_syntheticFunctionType_inGenericClass() async {
     await super.test_syntheticFunctionType_inGenericClass();
-  }
-
-  @FailingTest(
-      reason: "NoSuchMethodError: Class 'ExtensionElementForLink' has no "
-          "instance method 'getGetter' with matching arguments.")
-  test_variable_initializer_staticMethod_ofExtension() async {
-    await super.test_variable_initializer_staticMethod_ofExtension();
   }
 }

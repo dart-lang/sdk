@@ -874,10 +874,7 @@ class Class : public Object {
 
   TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
   void set_token_pos(TokenPosition value) const;
-  TokenPosition end_token_pos() const {
-    ASSERT(is_declaration_loaded());
-    return raw_ptr()->end_token_pos_;
-  }
+  TokenPosition end_token_pos() const { return raw_ptr()->end_token_pos_; }
   void set_end_token_pos(TokenPosition value) const;
 
   int32_t SourceFingerprint() const;
@@ -1917,7 +1914,6 @@ class ICData : public Object {
   RawICData* AsUnaryClassChecksSortedByCount() const;
 
   RawUnlinkedCall* AsUnlinkedCall() const;
-  RawMegamorphicCache* AsMegamorphicCache() const;
 
   // Consider only used entries.
   bool HasOneTarget() const;
@@ -3791,6 +3787,7 @@ class Script : public Object {
   RawString* Source() const;
   bool IsPartOfDartColonLibrary() const;
 
+  void LookupSourceAndLineStarts(Zone* zone) const;
   RawGrowableObjectArray* GenerateLineNumberArray() const;
   RawScript::Kind kind() const {
     return static_cast<RawScript::Kind>(raw_ptr()->kind_);
@@ -6023,6 +6020,8 @@ class MegamorphicCache : public Object {
     return RoundedAllocationSize(sizeof(RawMegamorphicCache));
   }
 
+  static RawMegamorphicCache* Clone(const MegamorphicCache& from);
+
  private:
   friend class Class;
   friend class MegamorphicCacheTable;
@@ -6078,6 +6077,7 @@ class SubtypeTestCache : public Object {
                 TypeArguments* instance_parent_function_type_arguments,
                 TypeArguments* instance_delayed_type_arguments,
                 Bool* test_result) const;
+  void Reset() const;
 
   static RawSubtypeTestCache* New();
 
@@ -6089,7 +6089,13 @@ class SubtypeTestCache : public Object {
     return OFFSET_OF(RawSubtypeTestCache, cache_);
   }
 
+  static void Init();
+  static void Cleanup();
+
  private:
+  // A VM heap allocated preinitialized empty subtype entry array.
+  static RawArray* cached_array_;
+
   RawArray* cache() const { return raw_ptr()->cache_; }
 
   void set_cache(const Array& value) const;
@@ -6098,6 +6104,8 @@ class SubtypeTestCache : public Object {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(SubtypeTestCache, Object);
   friend class Class;
+  friend class Serializer;
+  friend class Deserializer;
 };
 
 class Error : public Object {

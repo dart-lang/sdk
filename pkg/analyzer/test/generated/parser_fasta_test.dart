@@ -1229,6 +1229,15 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     }
   }
 
+  void test_invalidExpression_37706() {
+    // https://github.com/dart-lang/sdk/issues/37706
+    parseExpression('<b?c>()', errors: [
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 1, 1),
+      expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 7, 0),
+      expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 7, 0),
+    ]);
+  }
+
   void test_listLiteral_invalid_assert() {
     // https://github.com/dart-lang/sdk/issues/37674
     parseExpression('n=<.["\$assert', errors: [
@@ -1419,6 +1428,13 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     expect(map.constKeyword, isNull);
     expect(map.typeArguments.arguments, hasLength(2));
     expect(map.elements, hasLength(0));
+  }
+
+  void test_parseConstructorInitializer_functionExpression() {
+    // https://github.com/dart-lang/sdk/issues/37414
+    parseCompilationUnit('class C { C.n() : this()(); }', errors: [
+      expectedError(ParserErrorCode.INVALID_INITIALIZER, 18, 8),
+    ]);
   }
 
   void test_parseStringLiteral_interpolated_void() {
@@ -3168,16 +3184,7 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
 
   void test_invalidTypeParameters_super() {
     parseCompilationUnit('class C<X super Y> {}', errors: [
-      // TODO(danrubel): Improve recovery.
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 8, 1),
-      expectedError(ParserErrorCode.MISSING_CLASS_BODY, 10, 5),
-      expectedError(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 10, 5),
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 10, 5),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 5),
-      expectedError(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 16, 1),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 16, 1),
-      expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 17, 1),
-      expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 19, 1),
     ]);
   }
 

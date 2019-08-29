@@ -236,6 +236,8 @@ abstract class AbstractDataSource extends DataSourceMixin
         return new TypedefType(typedef, typeArguments, unaliased);
       case DartTypeKind.dynamicType:
         return const DynamicType();
+      case DartTypeKind.anyType:
+        return const AnyType();
       case DartTypeKind.futureOr:
         DartType typeArgument = _readDartType(functionTypeVariables);
         return new FutureOrType(typeArgument);

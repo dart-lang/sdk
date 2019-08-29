@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -25,8 +26,7 @@ class Variables implements VariableRecorder, VariableRepository {
   final _decoratedDirectSupertypes =
       <ClassElement, Map<ClassElement, DecoratedType>>{};
 
-  final _decoratedTypeAnnotations =
-      <Source, Map<int, DecoratedTypeAnnotation>>{};
+  final _decoratedTypeAnnotations = <Source, Map<int, DecoratedType>>{};
 
   final _potentialModifications = <Source, List<PotentialModification>>{};
 
@@ -59,7 +59,7 @@ class Variables implements VariableRecorder, VariableRepository {
       throw StateError('No declarated type annotations in ${source.fullName}; '
           'expected one for ${typeAnnotation.toSource()}');
     }
-    DecoratedTypeAnnotation decoratedTypeAnnotation =
+    DecoratedType decoratedTypeAnnotation =
         annotationsInSource[_uniqueOffsetForTypeAnnotation(typeAnnotation)];
     if (decoratedTypeAnnotation == null) {
       throw StateError('Missing declarated type annotation'
@@ -138,10 +138,10 @@ class Variables implements VariableRecorder, VariableRepository {
 
   void recordDecoratedExpressionType(Expression node, DecoratedType type) {}
 
-  void recordDecoratedTypeAnnotation(
-      Source source, TypeAnnotation node, DecoratedTypeAnnotation type,
-      {bool potentialModification: true}) {
-    if (potentialModification) _addPotentialModification(source, type);
+  void recordDecoratedTypeAnnotation(Source source, TypeAnnotation node,
+      DecoratedType type, PotentiallyAddQuestionSuffix potentialModification) {
+    if (potentialModification != null)
+      _addPotentialModification(source, potentialModification);
     (_decoratedTypeAnnotations[source] ??=
         {})[_uniqueOffsetForTypeAnnotation(node)] = type;
   }
@@ -245,14 +245,18 @@ class Variables implements VariableRecorder, VariableRepository {
   /// class.
   Map<ClassElement, DecoratedType> _decorateDirectSupertypes(
       ClassElement class_) {
-    if (class_.type.isObject) {
-      // TODO(paulberry): this special case is just to get the basic
-      // infrastructure working (necessary since all classes derive from
-      // Object).  Once we have the full implementation this case shouldn't be
-      // needed.
-      return const {};
+    var result = <ClassElement, DecoratedType>{};
+    for (var supertype in class_.allSupertypes) {
+      var decoratedSupertype =
+          _alreadyMigratedCodeDecorator.decorate(supertype);
+      assert(identical(decoratedSupertype.node, _graph.never));
+      var class_ = (decoratedSupertype.type as InterfaceType).element;
+      if (class_ is ClassElementHandle) {
+        class_ = (class_ as ClassElementHandle).actualElement;
+      }
+      result[class_] = decoratedSupertype;
     }
-    throw UnimplementedError('TODO(paulberry)');
+    return result;
   }
 
   int _uniqueOffsetForTypeAnnotation(TypeAnnotation typeAnnotation) =>

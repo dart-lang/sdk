@@ -1979,6 +1979,12 @@
           "arguments": ["--fatal-warnings", "pkg/vm"]
         },
         {
+          "name": "analyze pkg/vm_service",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "arguments": ["--fatal-warnings", "pkg/vm_service"]
+        },
+
+        {
           "name": "analyze runtime/observatory",
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": [

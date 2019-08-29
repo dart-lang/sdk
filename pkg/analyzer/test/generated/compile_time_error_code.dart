@@ -3735,7 +3735,7 @@ main() {
   const A();
 }
 ''', [
-      error(CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS, 48, 2),
+      error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS, 48, 2),
     ]);
   }
 
@@ -3748,7 +3748,7 @@ class B extends A {
   const B() : super();
 }
 ''', [
-      error(CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS, 69, 2),
+      error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS, 69, 2),
     ]);
   }
 
@@ -4739,7 +4739,7 @@ var s5 = const Symbol('x', foo: 'x');
       error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 9, 17),
       error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 37, 15),
       error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 50, 1),
-      error(CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS, 75, 2),
+      error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS, 75, 2),
       error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 100, 10),
       error(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, 139, 3),
     ]);

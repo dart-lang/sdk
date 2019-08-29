@@ -25,10 +25,10 @@ import '../severity.dart' show Severity;
 /// Implementation of [Instrumentation] which checks property/value pairs
 /// against expectations encoded in source files using "/*@...*/" comments.
 class ValidatingInstrumentation implements Instrumentation {
-  static final _ESCAPE_SEQUENCE = new RegExp(r'\\(.)');
+  static final RegExp _ESCAPE_SEQUENCE = new RegExp(r'\\(.)');
 
   /// Map from feature names to the property names they are short for.
-  static const _FEATURES = const {
+  static const Map<String, List<String>> _FEATURES = const {
     'inference': const [
       'typeArg',
       'typeArgs',

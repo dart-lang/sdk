@@ -280,16 +280,7 @@ void BytecodeReaderHelper::ReadCode(const Function& function,
   // Create object pool and read pool entries.
   const intptr_t obj_count = reader_.ReadListLength();
   const ObjectPool& pool = ObjectPool::Handle(Z, ObjectPool::New(obj_count));
-
-  {
-    // While reading pool entries, deopt_ids are allocated for
-    // ICData objects.
-    //
-    // TODO(alexmarkov): allocate deopt_ids for closures separately
-    DeoptIdScope deopt_id_scope(thread_, 0);
-
-    ReadConstantPool(function, pool, 0);
-  }
+  ReadConstantPool(function, pool, 0);
 
   // Read bytecode and attach to function.
   const Bytecode& bytecode = Bytecode::Handle(Z, ReadBytecode(pool));
@@ -562,6 +553,8 @@ void BytecodeReaderHelper::ReadClosureDeclaration(const Function& function,
                                /* has_positional_param_names = */ true));
 
   closure.SetSignatureType(signature_type);
+
+  I->AddClosureFunction(closure);
 }
 
 static bool IsNonCanonical(const AbstractType& type) {
@@ -796,18 +789,6 @@ intptr_t BytecodeReaderHelper::ReadConstantPool(const Function& function,
           simpleInstanceOf =
               &Library::PrivateCoreLibName(Symbols::_simpleInstanceOf());
         }
-        intptr_t checked_argument_count = 1;
-        if (kind == InvocationKind::method) {
-          const Token::Kind token_kind =
-              MethodTokenRecognizer::RecognizeTokenKind(name);
-          if ((token_kind != Token::kILLEGAL) ||
-              (name.raw() == simpleInstanceOf->raw())) {
-            intptr_t argument_count = ArgumentsDescriptor(array).Count();
-            ASSERT(argument_count <= 2);
-            checked_argument_count =
-                (token_kind == Token::kSET) ? 1 : argument_count;
-          }
-        }
         // Do not mangle == or call:
         //   * operator == takes an Object so its either not checked or checked
         //     at the entry because the parameter is marked covariant, neither
@@ -819,11 +800,9 @@ intptr_t BytecodeReaderHelper::ReadConstantPool(const Function& function,
             (name.raw() != Symbols::Call().raw())) {
           name = Function::CreateDynamicInvocationForwarderName(name);
         }
-        obj =
-            ICData::New(function, name,
-                        array,  // Arguments descriptor.
-                        thread_->compiler_state().GetNextDeoptId(),
-                        checked_argument_count, ICData::RebindRule::kInstance);
+        obj = UnlinkedCall::New();
+        UnlinkedCall::Cast(obj).set_target_name(name);
+        UnlinkedCall::Cast(obj).set_args_descriptor(array);
       } break;
       case ConstantPoolTag::kStaticField:
         obj = ReadObject();
@@ -1242,16 +1221,18 @@ RawArray* BytecodeReaderHelper::ReadBytecodeComponent(intptr_t md_offset) {
 
   // Skip over contents of objects.
   const intptr_t objects_contents_offset = reader_.offset();
-  reader_.set_offset(objects_contents_offset + objects_size);
+  const intptr_t object_offsets_offset = objects_contents_offset + objects_size;
+  reader_.set_offset(object_offsets_offset);
 
   auto& bytecode_component_array = Array::Handle(
-      Z, BytecodeComponentData::New(
-             Z, version, num_objects, string_table_offset,
-             strings_contents_offset, objects_contents_offset, main_offset,
-             num_libraries, library_index_offset, libraries_offset, num_classes,
-             classes_offset, members_offset, num_codes, codes_offset,
-             source_positions_offset, source_files_offset, line_starts_offset,
-             local_variables_offset, annotations_offset, Heap::kOld));
+      Z,
+      BytecodeComponentData::New(
+          Z, version, num_objects, string_table_offset, strings_contents_offset,
+          object_offsets_offset, objects_contents_offset, main_offset,
+          num_libraries, library_index_offset, libraries_offset, num_classes,
+          classes_offset, members_offset, num_codes, codes_offset,
+          source_positions_offset, source_files_offset, line_starts_offset,
+          local_variables_offset, annotations_offset, Heap::kOld));
 
   BytecodeComponentData bytecode_component(&bytecode_component_array);
 
@@ -1265,6 +1246,18 @@ RawArray* BytecodeReaderHelper::ReadBytecodeComponent(intptr_t md_offset) {
   H.SetBytecodeComponent(bytecode_component_array);
 
   return bytecode_component_array.raw();
+}
+
+void BytecodeReaderHelper::ResetObjects() {
+  reader_.set_offset(bytecode_component_->GetObjectOffsetsOffset());
+  const intptr_t num_objects = bytecode_component_->GetNumObjects();
+
+  // Read object offsets.
+  Smi& offs = Smi::Handle(Z);
+  for (intptr_t i = 0; i < num_objects; ++i) {
+    offs = Smi::New(reader_.ReadUInt());
+    bytecode_component_->SetObject(i, offs);
+  }
 }
 
 RawObject* BytecodeReaderHelper::ReadObject() {
@@ -1404,6 +1397,9 @@ RawObject* BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
       RawClass* cls = library.LookupLocalClass(class_name);
       NoSafepointScope no_safepoint_scope(thread_);
       if (cls == Class::null()) {
+        if (IsExpressionEvaluationLibrary(library)) {
+          return H.GetExpressionEvaluationRealClass();
+        }
         FATAL2("Unable to find class %s in %s", class_name.ToCString(),
                library.ToCString());
       }
@@ -1930,6 +1926,13 @@ RawScript* BytecodeReaderHelper::ReadSourceFile(const String& uri,
     source = ReadString(/* is_canonical = */ false);
   }
 
+  if (source.IsNull() && line_starts.IsNull()) {
+    // This script provides a uri only, but no source or line_starts array.
+    // The source is set to the empty symbol, indicating that source and
+    // line_starts array are lazily looked up if needed.
+    source = Symbols::Empty().raw();  // Lookup is postponed.
+  }
+
   const Script& script = Script::Handle(
       Z, Script::New(import_uri, uri, source, RawScript::kKernelTag));
   script.set_line_starts(line_starts);
@@ -2390,6 +2393,11 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
       // or a function which are not registered and cannot be looked up.
       ASSERT(!function.is_abstract());
       ASSERT(function.bytecode_offset() != 0);
+      // Replace class of the function in scope as we're going to look for
+      // expression evaluation function in a real class.
+      if (!cls.IsTopLevel()) {
+        scoped_function_class_ = H.GetExpressionEvaluationRealClass();
+      }
       CompilerState compiler_state(thread_);
       ReadCode(function, function.bytecode_offset());
     }
@@ -2520,8 +2528,12 @@ void BytecodeReaderHelper::ReadClassDeclaration(const Class& cls) {
     cls.set_is_type_finalized();
   }
 
-  // TODO(alexmarkov): move this to class finalization.
-  ClassFinalizer::RegisterClassInHierarchy(Z, cls);
+  // Avoid registering expression evaluation class in a hierarchy, as
+  // it doesn't have cid and shouldn't be found when enumerating subclasses.
+  if (expression_evaluation_library_ == nullptr) {
+    // TODO(alexmarkov): move this to class finalization.
+    ClassFinalizer::RegisterClassInHierarchy(Z, cls);
+  }
 }
 
 void BytecodeReaderHelper::ReadLibraryDeclaration(const Library& library,
@@ -3059,6 +3071,14 @@ intptr_t BytecodeComponentData::GetStringsContentsOffset() const {
   return Smi::Value(Smi::RawCast(data_.At(kStringsContentsOffset)));
 }
 
+intptr_t BytecodeComponentData::GetObjectOffsetsOffset() const {
+  return Smi::Value(Smi::RawCast(data_.At(kObjectOffsetsOffset)));
+}
+
+intptr_t BytecodeComponentData::GetNumObjects() const {
+  return Smi::Value(Smi::RawCast(data_.At(kNumObjects)));
+}
+
 intptr_t BytecodeComponentData::GetObjectsContentsOffset() const {
   return Smi::Value(Smi::RawCast(data_.At(kObjectsContentsOffset)));
 }
@@ -3132,6 +3152,7 @@ RawArray* BytecodeComponentData::New(Zone* zone,
                                      intptr_t num_objects,
                                      intptr_t strings_header_offset,
                                      intptr_t strings_contents_offset,
+                                     intptr_t object_offsets_offset,
                                      intptr_t objects_contents_offset,
                                      intptr_t main_offset,
                                      intptr_t num_libraries,
@@ -3160,6 +3181,12 @@ RawArray* BytecodeComponentData::New(Zone* zone,
 
   smi_handle = Smi::New(strings_contents_offset);
   data.SetAt(kStringsContentsOffset, smi_handle);
+
+  smi_handle = Smi::New(object_offsets_offset);
+  data.SetAt(kObjectOffsetsOffset, smi_handle);
+
+  smi_handle = Smi::New(num_objects);
+  data.SetAt(kNumObjects, smi_handle);
 
   smi_handle = Smi::New(objects_contents_offset);
   data.SetAt(kObjectsContentsOffset, smi_handle);
@@ -3390,6 +3417,19 @@ RawArray* BytecodeReader::ReadExtendedAnnotations(const Field& annotation_field,
     result.SetAt(i, element);
   }
   return result.raw();
+}
+
+void BytecodeReader::ResetObjectTable(const KernelProgramInfo& info) {
+  Thread* thread = Thread::Current();
+  TranslationHelper translation_helper(thread);
+  translation_helper.InitFromKernelProgramInfo(info);
+  ActiveClass active_class;
+  BytecodeComponentData bytecode_component(&Array::Handle(
+      thread->zone(), translation_helper.GetBytecodeComponent()));
+  ASSERT(!bytecode_component.IsNull());
+  BytecodeReaderHelper bytecode_reader(&translation_helper, &active_class,
+                                       &bytecode_component);
+  bytecode_reader.ResetObjects();
 }
 
 void BytecodeReader::LoadClassDeclaration(const Class& cls) {

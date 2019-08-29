@@ -2087,7 +2087,7 @@ abstract class DelayedMember extends Builder {
   /// Conflicting declarations.
   final List<Builder> declarations;
 
-  final isSetter;
+  final bool isSetter;
 
   final bool modifyKernel;
 

@@ -399,6 +399,7 @@ class Assembler : public AssemblerBase {
 
   // Data-processing instructions.
   void and_(Register rd, Register rn, Operand o, Condition cond = AL);
+  void ands(Register rd, Register rn, Operand o, Condition cond = AL);
 
   void eor(Register rd, Register rn, Operand o, Condition cond = AL);
 
@@ -535,8 +536,13 @@ class Assembler : public AssemblerBase {
   void TransitionGeneratedToNative(Register destination_address,
                                    Register exit_frame_fp,
                                    Register scratch0,
-                                   Register scratch1);
-  void TransitionNativeToGenerated(Register scratch0, Register scratch1);
+                                   Register scratch1,
+                                   bool enter_safepoint);
+  void TransitionNativeToGenerated(Register scratch0,
+                                   Register scratch1,
+                                   bool exit_safepoint);
+  void EnterSafepoint(Register scratch0, Register scratch1);
+  void ExitSafepoint(Register scratch0, Register scratch1);
 
   // Miscellaneous instructions.
   void clrex();

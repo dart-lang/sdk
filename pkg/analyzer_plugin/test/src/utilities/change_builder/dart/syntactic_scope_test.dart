@@ -94,6 +94,38 @@ class B<S2> extends A {
     );
   }
 
+  test_notSyntacticScopeNames_constructorName_name() async {
+    var path = convertPath('/home/test/lib/test.dart');
+
+    newFile('/home/test/lib/a.dart', content: r'''
+class N1 {
+  N1.N2();
+}
+''');
+
+    newFile(path, content: r'''
+import 'package:test/a.dart';
+
+void f() {
+  N1.N2();
+}
+''');
+
+    var resolvedUnit = await session.getResolvedUnit(path);
+    var collector = NotSyntacticScopeReferencedNamesCollector(
+      resolvedUnit.libraryElement,
+      ['N1', 'N2'].toSet(),
+    );
+    resolvedUnit.unit.accept(collector);
+
+    expect(
+      collector.importedNames,
+      containsPair('N1', Uri.parse('package:test/a.dart')),
+    );
+
+    expect(collector.inheritedNames, isEmpty);
+  }
+
   test_referencedNames() async {
     var path = convertPath('/home/test/lib/test.dart');
     newFile(path, content: r'''

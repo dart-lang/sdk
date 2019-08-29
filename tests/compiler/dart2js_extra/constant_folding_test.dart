@@ -4,8 +4,6 @@
 
 import "package:expect/expect.dart";
 
-// SharedOptions=--enable-experiment=constant-update-2018
-
 void main() {
   const BitNot(42, 4294967253).check();
   const BitNot(4294967253, 42).check();

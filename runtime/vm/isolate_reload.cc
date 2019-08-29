@@ -1890,7 +1890,7 @@ void IsolateReloadContext::ResetUnoptimizedICsOnStack() {
   while (frame != NULL) {
     if (frame->is_interpreted()) {
       bytecode = frame->LookupDartBytecode();
-      resetter.ResetICDatas(bytecode);
+      resetter.RebindStaticTargets(bytecode);
     } else {
       code = frame->LookupDartCode();
       if (code.is_optimized() && !code.is_force_optimized()) {
@@ -1901,10 +1901,10 @@ void IsolateReloadContext::ResetUnoptimizedICsOnStack() {
         code = function.unoptimized_code();
         ASSERT(!code.IsNull());
         resetter.ResetSwitchableCalls(code);
-        resetter.ResetICDatas(code);
+        resetter.ResetCaches(code);
       } else {
         resetter.ResetSwitchableCalls(code);
-        resetter.ResetICDatas(code);
+        resetter.ResetCaches(code);
       }
     }
     frame = iterator.NextFrame();
@@ -1933,7 +1933,11 @@ class InvalidationCollector : public ObjectVisitor {
     }
     const Object& handle = Object::Handle(zone_, obj);
     if (handle.IsFunction()) {
-      functions_->Add(&Function::Cast(handle));
+      const auto& func = Function::Cast(handle);
+      if (!func.ForceOptimize()) {
+        // Force-optimized functions cannot deoptimize.
+        functions_->Add(&func);
+      }
     } else if (handle.IsKernelProgramInfo()) {
       kernel_infos_->Add(&KernelProgramInfo::Cast(handle));
     }
@@ -1953,6 +1957,14 @@ void IsolateReloadContext::RunInvalidationVisitors() {
   Thread* thread = Thread::Current();
   StackZone stack_zone(thread);
   Zone* zone = stack_zone.GetZone();
+
+  Thread* mutator_thread = isolate()->mutator_thread();
+  if (mutator_thread != nullptr) {
+    Interpreter* interpreter = mutator_thread->interpreter();
+    if (interpreter != nullptr) {
+      interpreter->ClearLookupCache();
+    }
+  }
 
   GrowableArray<const Function*> functions(4 * KB);
   GrowableArray<const KernelProgramInfo*> kernel_infos(KB);
@@ -1983,6 +1995,10 @@ void IsolateReloadContext::RunInvalidationVisitors() {
       IntHashMap table(&key, &value, &data);
       table.Clear();
       info.set_classes_cache(table.Release());
+    }
+    // Clear the bytecode object table.
+    if (info.bytecode_component() != Array::null()) {
+      kernel::BytecodeReader::ResetObjectTable(info);
     }
   }
 
@@ -2016,9 +2032,7 @@ void IsolateReloadContext::RunInvalidationVisitors() {
     resetter.ZeroEdgeCounters(func);
 
     if (!bytecode.IsNull()) {
-      // We are preserving the bytecode, fill all ICData arrays with
-      // the sentinel values so that we have no stale type feedback.
-      resetter.ResetICDatas(bytecode);
+      resetter.RebindStaticTargets(bytecode);
     }
 
     if (stub_code) {
@@ -2031,10 +2045,10 @@ void IsolateReloadContext::RunInvalidationVisitors() {
       func.ClearCode();
       func.SetWasCompiled(false);
     } else {
-      // We are preserving the unoptimized code, fill all ICData arrays with
-      // the sentinel values so that we have no stale type feedback.
+      // We are preserving the unoptimized code, reset instance calls and type
+      // test caches.
       resetter.ResetSwitchableCalls(code);
-      resetter.ResetICDatas(code);
+      resetter.ResetCaches(code);
     }
 
     // Clear counters.

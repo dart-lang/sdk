@@ -329,6 +329,11 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
   }
 
   @override
+  void visitAnyType(AnyType type, _) {
+    _emitExtensionOp(Recipe.pushAnyExtension);
+  }
+
+  @override
   void visitInterfaceType(InterfaceType type, _) {
     jsAst.Name name = _emitter.typeAccessNewRti(type.element);
     if (type.typeArguments.isEmpty) {

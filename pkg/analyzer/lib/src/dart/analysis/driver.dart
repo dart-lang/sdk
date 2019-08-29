@@ -1233,6 +1233,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     // We need the fully resolved unit, or the result is not cached.
     return _logger.run('Compute analysis result for $path', () {
+      _logger.writeln('Work in $name');
       try {
         _testView.numOfAnalyzedLibraries++;
 
@@ -1374,10 +1375,18 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       }
     }
 
-    var libraryContext = _createLibraryContext(library);
-    var element = libraryContext.computeUnitElement(library, file);
-    return new UnitElementResultImpl(
-        currentSession, path, file.uri, library.transitiveSignature, element);
+    return _logger.run('Compute unit element for $path', () {
+      _logger.writeln('Work in $name');
+      var libraryContext = _createLibraryContext(library);
+      var element = libraryContext.computeUnitElement(library, file);
+      return new UnitElementResultImpl(
+        currentSession,
+        path,
+        file.uri,
+        library.transitiveSignature,
+        element,
+      );
+    });
   }
 
   String _computeUnitElementSignature(String path,
@@ -1408,6 +1417,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       _byteStore,
       _contentOverlay,
       _resourceProvider,
+      name,
       sourceFactory,
       analysisOptions,
       _unlinkedSalt,

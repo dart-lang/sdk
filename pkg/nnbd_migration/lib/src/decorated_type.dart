@@ -6,9 +6,8 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart' show SourceEdit;
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
-import 'package:nnbd_migration/src/potential_modification.dart';
 
 /// Representation of a type in the code to be migrated.  In addition to
 /// tracking the (unmigrated) [DartType], we track the [ConstraintVariable]s
@@ -112,26 +111,27 @@ class DecoratedType {
   /// Creates a decorated type corresponding to [type], with fresh nullability
   /// nodes everywhere that don't correspond to any source location.  These
   /// nodes can later be unioned with other nodes.
-  factory DecoratedType.forImplicitFunction(
+  factory DecoratedType.forImplicitFunction(TypeProvider typeProvider,
       FunctionType type, NullabilityNode node, NullabilityGraph graph,
       {DecoratedType returnType}) {
-    if (type.typeFormals.isNotEmpty) {
-      throw new UnimplementedError('Decorating a generic function type');
-    }
     var positionalParameters = <DecoratedType>[];
     var namedParameters = <String, DecoratedType>{};
     for (var parameter in type.parameters) {
       if (parameter.isPositional) {
-        positionalParameters
-            .add(DecoratedType.forImplicitType(parameter.type, graph));
+        positionalParameters.add(
+            DecoratedType.forImplicitType(typeProvider, parameter.type, graph));
       } else {
         namedParameters[parameter.name] =
-            DecoratedType.forImplicitType(parameter.type, graph);
+            DecoratedType.forImplicitType(typeProvider, parameter.type, graph);
       }
     }
     return DecoratedType(type, node,
-        returnType:
-            returnType ?? DecoratedType.forImplicitType(type.returnType, graph),
+        typeFormalBounds: type.typeFormals
+            .map((e) => DecoratedType.forImplicitType(
+                typeProvider, e.bound ?? typeProvider.objectType, graph))
+            .toList(),
+        returnType: returnType ??
+            DecoratedType.forImplicitType(typeProvider, type.returnType, graph),
         namedParameters: namedParameters,
         positionalParameters: positionalParameters);
   }
@@ -139,18 +139,21 @@ class DecoratedType {
   /// Creates a DecoratedType corresponding to [type], with fresh nullability
   /// nodes everywhere that don't correspond to any source location.  These
   /// nodes can later be unioned with other nodes.
-  factory DecoratedType.forImplicitType(DartType type, NullabilityGraph graph) {
+  factory DecoratedType.forImplicitType(
+      TypeProvider typeProvider, DartType type, NullabilityGraph graph) {
     if (type.isDynamic || type.isVoid) {
       return DecoratedType(type, graph.always);
     } else if (type is InterfaceType) {
       return DecoratedType(type, NullabilityNode.forInferredType(),
           typeArguments: type.typeArguments
-              .map((t) => DecoratedType.forImplicitType(t, graph))
+              .map((t) => DecoratedType.forImplicitType(typeProvider, t, graph))
               .toList());
     } else if (type is FunctionType) {
       return DecoratedType.forImplicitFunction(
-          type, NullabilityNode.forInferredType(), graph);
+          typeProvider, type, NullabilityNode.forInferredType(), graph);
     } else if (type is TypeParameterType) {
+      return DecoratedType(type, NullabilityNode.forInferredType());
+    } else if (type is BottomTypeImpl) {
       return DecoratedType(type, NullabilityNode.forInferredType());
     }
     // TODO(paulberry)
@@ -489,33 +492,4 @@ class DecoratedType {
     }
     return true;
   }
-}
-
-/// A [DecoratedType] based on a type annotation appearing explicitly in the
-/// source code.
-///
-/// This class implements [PotentialModification] because it knows how to update
-/// the source code to reflect its nullability.
-class DecoratedTypeAnnotation extends DecoratedType
-    implements PotentialModification {
-  final int _offset;
-
-  DecoratedTypeAnnotation(
-      DartType type, NullabilityNode nullabilityNode, this._offset,
-      {List<DecoratedType> typeArguments = const [],
-      DecoratedType returnType,
-      List<DecoratedType> positionalParameters = const [],
-      Map<String, DecoratedType> namedParameters = const {}})
-      : super(type, nullabilityNode,
-            typeArguments: typeArguments,
-            returnType: returnType,
-            positionalParameters: positionalParameters,
-            namedParameters: namedParameters);
-
-  @override
-  bool get isEmpty => !node.isNullable;
-
-  @override
-  Iterable<SourceEdit> get modifications =>
-      isEmpty ? [] : [SourceEdit(_offset, 0, '?')];
 }

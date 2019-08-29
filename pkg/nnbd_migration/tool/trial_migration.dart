@@ -11,6 +11,8 @@
 import 'dart:io';
 
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 
@@ -69,6 +71,10 @@ main() async {
   }
 }
 
+/// Set this to a non-null value to cause any exception to be printed in full
+/// if its category contains the string.
+const String categoryOfInterest = null;
+
 class _Listener implements NullabilityMigrationListener {
   final groupedExceptions = <String, List<String>>{};
 
@@ -83,17 +89,6 @@ class _Listener implements NullabilityMigrationListener {
   int numRequiredAnnotationsAdded = 0;
 
   int numDeadCodeSegmentsFound = 0;
-
-  @override
-  void addDetail(String detail) {
-    var breakLocation = detail.indexOf('\n\n');
-    if (breakLocation == -1)
-      throw StateError('Could not decode exception $detail');
-    var stackTrace = detail.substring(breakLocation + 2).split('\n');
-    var category = _classifyStackTrace(stackTrace);
-    (groupedExceptions[category] ??= []).add(detail);
-    ++numExceptions;
-  }
 
   @override
   void addEdit(SingleNullabilityFix fix, SourceEdit edit) {
@@ -121,6 +116,23 @@ class _Listener implements NullabilityMigrationListener {
 
   @override
   void addFix(SingleNullabilityFix fix) {}
+
+  @override
+  void reportException(
+      Source source, AstNode node, Object exception, StackTrace stackTrace) {
+    var category = _classifyStackTrace(stackTrace.toString().split('\n'));
+    String detail = '''
+In file $source
+While processing $node
+Exception $exception
+$stackTrace
+''';
+    if (categoryOfInterest != null && category.contains(categoryOfInterest)) {
+      print(detail);
+    }
+    (groupedExceptions[category] ??= []).add(detail);
+    ++numExceptions;
+  }
 
   String _classifyStackTrace(List<String> stackTrace) {
     for (var entry in stackTrace) {

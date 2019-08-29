@@ -888,7 +888,6 @@ class _SnapshotGraph implements SnapshotGraph {
     for (var i = 1; i <= Nconnected; i++) {
       var v = vertex[i];
       ownedSizes[v] = shallowSizes[v] + externalSizes[v];
-      assert((ownedSizes[v] != 0) || cids[v] == kStackCid || v == ROOT);
     }
 
     for (var i = Nconnected; i > 1; i--) {
@@ -920,7 +919,7 @@ class _SnapshotGraph implements SnapshotGraph {
           (onlyPred != ROOT) &&
           (cids[onlyPred] != kStackCid) &&
           (cids[onlyPred] != kFieldCid)) {
-        assert(ownedSizes[w] != 0);
+        assert(onlyPred != w);
         ownedSizes[onlyPred] += ownedSizes[w];
         ownedSizes[w] = 0;
       }

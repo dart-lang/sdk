@@ -349,6 +349,8 @@ class CallingConventions {
 
   static constexpr bool kArgumentIntRegXorFpuReg = false;
 
+  static constexpr intptr_t kCalleeSaveCpuRegisters = kAbiPreservedCpuRegs;
+
   // Whether floating-point values should be passed as integers ("softfp" vs
   // "hardfp"). Android and iOS always use the "softfp" calling convention, even
   // when hardfp support is present.

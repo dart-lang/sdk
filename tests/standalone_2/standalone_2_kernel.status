@@ -14,16 +14,6 @@ io/process_sync_test: Pass, Fail # https://github.com/dart-lang/sdk/issues/34724
 io/signals_test: Fail # Issue 34724
 io/test_extension_fail_test: Fail # Issue 32187
 
-[ $compiler == app_jitk ]
-io/file_error_test: RuntimeError
-io/file_test: RuntimeError
-io/platform_test: RuntimeError
-io/regress_10026_test: RuntimeError
-io/test_extension_fail_test: RuntimeError
-io/test_extension_test: RuntimeError
-io/web_socket_pipe_test: RuntimeError
-io/zlib_test: RuntimeError
-
 [ $compiler == dartkb ]
 io/dart_std_io_pipe_test: Pass, Timeout # Please triage
 io/platform_test: RuntimeError # Platform.script points to dill file.
@@ -35,15 +25,6 @@ io/arguments_test: Fail # Test harness passes runtime arguments to the compiler
 [ $system == android ]
 entrypoints_verification_test: Skip # Requires shared objects which the test script doesn't "adb push".
 
-[ $fasta ]
-deferred_transitive_import_error_test: CompileTimeError
-package/package1_test: CompileTimeError
-package/package_isolate_test: CompileTimeError
-package/package_test: CompileTimeError
-package/scenarios/invalid/invalid_utf8_test: CompileTimeError
-package/scenarios/invalid/non_existent_packages_file_test: CompileTimeError
-package/scenarios/invalid/same_package_twice_test: CompileTimeError
-
 [ $arch == ia32 && $builder_tag == optimization_counter_threshold ]
 io/file_lock_test: SkipSlow # Timeout
 
@@ -51,7 +32,7 @@ io/file_lock_test: SkipSlow # Timeout
 io/dart_std_io_pipe_test: Timeout, Pass # Issue 34723
 
 [ $arch == simarm64 && ($compiler == dartk || $compiler == dartkb) ]
-io/http_bind_test: Pass, Slow
+io/http_bind_test: Slow
 
 [ $arch == x64 && $builder_tag == asan && $compiler == dartk ]
 io/file_test: Fail # Memory leak (issue 34724)
@@ -64,18 +45,14 @@ map_insert_remove_oom_test: Skip # Heap limit too low.
 
 [ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled ]
 io/raw_socket_test: Crash
-io/socket_exception_test: Pass, Crash
-io/socket_finalizer_test: Pass, Crash
-io/socket_info_ipv4_test: Pass, Crash
-io/socket_info_ipv6_test: Pass, Crash
-io/socket_port_test: Pass, Crash
-
-[ $compiler == dartkp && $mode == product && $runtime == dart_precompiled ]
-io/compile_all_test: Pass
+io/socket_exception_test: Crash
+io/socket_finalizer_test: Crash
+io/socket_info_ipv4_test: Crash
+io/socket_info_ipv6_test: Crash
+io/socket_port_test: Crash
 
 [ $compiler == dartkp && $runtime == dart_precompiled ]
 io/compile_all_test: Skip # We do not support --compile-all for precompilation
-io/file_fuzz_test: RuntimeError, Pass
 io/http_client_connect_test: Skip # Flaky.
 io/http_content_length_test: Skip # Flaky.
 io/http_proxy_advanced_test: Skip # Flaky
@@ -100,36 +77,27 @@ io/web_socket_ping_test: Skip # Flaky.
 io/web_socket_test: Skip # Flaky.
 map_insert_remove_oom_test: Skip # Heap limit too low.
 no_support_debugger_test: Skip # kernel-service snapshot not compatible with flag disabled
-regress_29350_test: MissingCompileTimeError
 regress_29350_test/none: Pass # Issue 31537
 
-# ===== dartkp + dart_precompiled status lines =====
-[ $compiler == dartkp && $runtime == dart_precompiled && $system != windows ]
-io/namespace_test: RuntimeError
-
 [ $mode == debug && $runtime == vm && ($compiler == dartk || $compiler == dartkb) ]
-io/file_lock_test: Slow, Pass
+io/file_lock_test: Slow
 io/raw_socket_test: Crash
-io/socket_exception_test: Pass, Crash
-io/socket_finalizer_test: Pass, Crash
-io/socket_info_ipv4_test: Pass, Crash
-io/socket_info_ipv6_test: Pass, Crash
-io/socket_port_test: Pass, Crash
+io/socket_exception_test: Crash
+io/socket_finalizer_test: Crash
+io/socket_info_ipv4_test: Crash
+io/socket_info_ipv6_test: Crash
+io/socket_port_test: Crash
 
 [ $mode == debug && $hot_reload && ($compiler == dartk || $compiler == dartkb) ]
-io/web_socket_ping_test: Crash, Pass
+io/web_socket_ping_test: Crash
 
 [ $runtime == vm && ($compiler == dartk || $compiler == dartkb) ]
-io/http_client_request_test: Pass, Timeout
-io/secure_builtin_roots_test: Pass, Timeout
-io/socket_finalizer_test: Pass, Timeout
 no_support_debugger_test: Skip # kernel-service snapshot not compatible with flag disabled
-regress_29350_test: MissingCompileTimeError
 regress_29350_test/none: Pass # Issue 31537
 
 [ $system == windows && ($compiler == dartk || $compiler == dartkb) ]
 io/compile_all_test: Pass, Fail # Possibly related to issue 32373
-io/dart_std_io_pipe_test: Pass, Slow
+io/dart_std_io_pipe_test: Slow
 io/secure_builtin_roots_test: Skip # Issues 32137 and 32138.
 io/test_extension_fail_test: RuntimeError, Pass # Issue 32137.
 io/test_extension_test: RuntimeError, Pass # Issue 32137.
@@ -137,24 +105,21 @@ io/wait_for_event_isolate_test: Skip # Issues 32137 and 32138.
 map_insert_remove_oom_test: Skip # Heap limit too low.
 
 [ $hot_reload && ($compiler == dartk || $compiler == dartkb) ]
-io/http_no_reason_phrase_test: Pass, Crash
-io/http_outgoing_size_test: Pass, Crash
+io/http_no_reason_phrase_test: Crash
+io/http_outgoing_size_test: Crash
 
 [ $hot_reload_rollback && ($compiler == dartk || $compiler == dartkb) ]
 io/directory_chdir_test: Skip # Timeout
-io/echo_server_stream_test: Pass, Slow
+io/echo_server_stream_test: Slow
 
 # Enabling of dartk for sim{arm,arm64,dbc64} revealed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
 [ ($arch == simarm || $arch == simarm64 || $arch == simdbc64) && ($compiler == dartk || $compiler == dartkb) ]
-fragmentation_test: Timeout, Pass
-io/dart_std_io_pipe_test: Timeout, Pass
 io/directory_list_sync_test: Timeout, Pass # Please triage.
 io/file_blocking_lock_test: Pass, Crash # Please triage.
-io/file_lock_test: Slow, Pass
+io/file_lock_test: Slow
 io/platform_test: RuntimeError # Platform.script points to dill file.
-io/process_sync_test: Timeout, Pass
 io/test_extension_fail_test: RuntimeError # Platform.script points to dill file.
 io/test_extension_test: RuntimeError # Platform.script points to dill file.
 map_insert_remove_oom_test: Skip # Heap limit too low.
@@ -167,9 +132,6 @@ io/http_auth_test: Skip # Timeout
 io/http_basic_test: Pass, Timeout # Issue 28046
 io/http_proxy_advanced_test: Skip # Timeout
 io/http_read_test: Skip # Timeout
-io/non_utf8_directory_test: Pass, Timeout
-io/non_utf8_file_test: Pass, Timeout
-io/non_utf8_link_test: Pass, Timeout
 io/pipe_server_test: Skip # Timeout
 io/socket_close_test: Skip # Timeout
 io/socket_many_connections_test: Skip # Timeout

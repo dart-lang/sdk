@@ -287,21 +287,25 @@ void LookupCache::Clear() {
 
 bool LookupCache::Lookup(intptr_t receiver_cid,
                          RawString* function_name,
+                         RawArray* arguments_descriptor,
                          RawFunction** target) const {
   ASSERT(receiver_cid != kIllegalCid);  // Sentinel value.
 
-  const intptr_t hash =
-      receiver_cid ^ reinterpret_cast<intptr_t>(function_name);
+  const intptr_t hash = receiver_cid ^
+                        reinterpret_cast<intptr_t>(function_name) ^
+                        reinterpret_cast<intptr_t>(arguments_descriptor);
   const intptr_t probe1 = hash & kTableMask;
   if (entries_[probe1].receiver_cid == receiver_cid &&
-      entries_[probe1].function_name == function_name) {
+      entries_[probe1].function_name == function_name &&
+      entries_[probe1].arguments_descriptor == arguments_descriptor) {
     *target = entries_[probe1].target;
     return true;
   }
 
   intptr_t probe2 = (hash >> 3) & kTableMask;
   if (entries_[probe2].receiver_cid == receiver_cid &&
-      entries_[probe2].function_name == function_name) {
+      entries_[probe2].function_name == function_name &&
+      entries_[probe2].arguments_descriptor == arguments_descriptor) {
     *target = entries_[probe2].target;
     return true;
   }
@@ -311,17 +315,21 @@ bool LookupCache::Lookup(intptr_t receiver_cid,
 
 void LookupCache::Insert(intptr_t receiver_cid,
                          RawString* function_name,
+                         RawArray* arguments_descriptor,
                          RawFunction* target) {
   // Otherwise we have to clear the cache or rehash on scavenges too.
   ASSERT(function_name->IsOldObject());
+  ASSERT(arguments_descriptor->IsOldObject());
   ASSERT(target->IsOldObject());
 
-  const intptr_t hash =
-      receiver_cid ^ reinterpret_cast<intptr_t>(function_name);
+  const intptr_t hash = receiver_cid ^
+                        reinterpret_cast<intptr_t>(function_name) ^
+                        reinterpret_cast<intptr_t>(arguments_descriptor);
   const intptr_t probe1 = hash & kTableMask;
   if (entries_[probe1].receiver_cid == kIllegalCid) {
     entries_[probe1].receiver_cid = receiver_cid;
     entries_[probe1].function_name = function_name;
+    entries_[probe1].arguments_descriptor = arguments_descriptor;
     entries_[probe1].target = target;
     return;
   }
@@ -330,12 +338,14 @@ void LookupCache::Insert(intptr_t receiver_cid,
   if (entries_[probe2].receiver_cid == kIllegalCid) {
     entries_[probe2].receiver_cid = receiver_cid;
     entries_[probe2].function_name = function_name;
+    entries_[probe2].arguments_descriptor = arguments_descriptor;
     entries_[probe2].target = target;
     return;
   }
 
   entries_[probe1].receiver_cid = receiver_cid;
   entries_[probe1].function_name = function_name;
+  entries_[probe1].arguments_descriptor = arguments_descriptor;
   entries_[probe1].target = target;
 }
 
@@ -755,13 +765,13 @@ void Interpreter::InlineCacheMiss(int checked_args,
   argdesc_ = Array::RawCast(top[1]);
 }
 
-DART_FORCE_INLINE bool Interpreter::InterfaceCall(Thread* thread,
-                                                  RawString* target_name,
-                                                  RawObject** call_base,
-                                                  RawObject** top,
-                                                  const KBCInstr** pc,
-                                                  RawObject*** FP,
-                                                  RawObject*** SP) {
+DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
+                                                 RawString* target_name,
+                                                 RawObject** call_base,
+                                                 RawObject** top,
+                                                 const KBCInstr** pc,
+                                                 RawObject*** FP,
+                                                 RawObject*** SP) {
   const intptr_t type_args_len =
       InterpreterHelpers::ArgDescTypeArgsLen(argdesc_);
   const intptr_t receiver_idx = type_args_len > 0 ? 1 : 0;
@@ -770,7 +780,8 @@ DART_FORCE_INLINE bool Interpreter::InterfaceCall(Thread* thread,
       InterpreterHelpers::GetClassId(call_base[receiver_idx]);
 
   RawFunction* target;
-  if (UNLIKELY(!lookup_cache_.Lookup(receiver_cid, target_name, &target))) {
+  if (UNLIKELY(!lookup_cache_.Lookup(receiver_cid, target_name, argdesc_,
+                                     &target))) {
     // Table lookup miss.
     top[0] = 0;  // Clean up slot as it may be visited by GC.
     top[1] = call_base[receiver_idx];
@@ -781,7 +792,7 @@ DART_FORCE_INLINE bool Interpreter::InterfaceCall(Thread* thread,
     Exit(thread, *FP, top + 5, *pc);
     NativeArguments native_args(thread, 3, /* argv */ top + 1,
                                 /* result */ top + 4);
-    if (!InvokeRuntime(thread, this, DRT_InterpretedInterfaceCallMissHandler,
+    if (!InvokeRuntime(thread, this, DRT_InterpretedInstanceCallMissHandler,
                        native_args)) {
       return false;
     }
@@ -790,103 +801,10 @@ DART_FORCE_INLINE bool Interpreter::InterfaceCall(Thread* thread,
     target_name = static_cast<RawString*>(top[2]);
     argdesc_ = static_cast<RawArray*>(top[3]);
     ASSERT(target->IsFunction());
-    lookup_cache_.Insert(receiver_cid, target_name, target);
+    lookup_cache_.Insert(receiver_cid, target_name, argdesc_, target);
   }
 
   top[0] = target;
-  return Invoke(thread, call_base, top, pc, FP, SP);
-}
-
-DART_FORCE_INLINE bool Interpreter::InstanceCall1(Thread* thread,
-                                                  RawICData* icdata,
-                                                  RawObject** call_base,
-                                                  RawObject** top,
-                                                  const KBCInstr** pc,
-                                                  RawObject*** FP,
-                                                  RawObject*** SP,
-                                                  bool optimized) {
-  ASSERT(icdata->GetClassId() == kICDataCid);
-
-  const intptr_t kCheckedArgs = 1;
-  RawObject** args = call_base;
-  RawArray* cache = icdata->ptr()->entries_->ptr();
-
-  const intptr_t type_args_len =
-      InterpreterHelpers::ArgDescTypeArgsLen(icdata->ptr()->args_descriptor_);
-  const intptr_t receiver_idx = type_args_len > 0 ? 1 : 0;
-  RawSmi* receiver_cid =
-      InterpreterHelpers::GetClassIdAsSmi(args[receiver_idx]);
-
-  bool found = false;
-  const intptr_t length = Smi::Value(cache->length_);
-  intptr_t i;
-  for (i = 0; i < (length - (kCheckedArgs + 2)); i += (kCheckedArgs + 2)) {
-    if (cache->data()[i + 0] == receiver_cid) {
-      top[0] = cache->data()[i + ICData::TargetIndexFor(kCheckedArgs)];
-      found = true;
-      break;
-    }
-  }
-
-  argdesc_ = icdata->ptr()->args_descriptor_;
-
-  if (found) {
-    if (!optimized) {
-      InterpreterHelpers::IncrementICUsageCount(cache->data(), i, kCheckedArgs);
-    }
-  } else {
-    InlineCacheMiss(kCheckedArgs, thread, icdata, call_base + receiver_idx, top,
-                    *pc, *FP, *SP);
-  }
-
-  return Invoke(thread, call_base, top, pc, FP, SP);
-}
-
-DART_FORCE_INLINE bool Interpreter::InstanceCall2(Thread* thread,
-                                                  RawICData* icdata,
-                                                  RawObject** call_base,
-                                                  RawObject** top,
-                                                  const KBCInstr** pc,
-                                                  RawObject*** FP,
-                                                  RawObject*** SP,
-                                                  bool optimized) {
-  ASSERT(icdata->GetClassId() == kICDataCid);
-
-  const intptr_t kCheckedArgs = 2;
-  RawObject** args = call_base;
-  RawArray* cache = icdata->ptr()->entries_->ptr();
-
-  const intptr_t type_args_len =
-      InterpreterHelpers::ArgDescTypeArgsLen(icdata->ptr()->args_descriptor_);
-  const intptr_t receiver_idx = type_args_len > 0 ? 1 : 0;
-  RawSmi* receiver_cid =
-      InterpreterHelpers::GetClassIdAsSmi(args[receiver_idx]);
-  RawSmi* arg0_cid =
-      InterpreterHelpers::GetClassIdAsSmi(args[receiver_idx + 1]);
-
-  bool found = false;
-  const intptr_t length = Smi::Value(cache->length_);
-  intptr_t i;
-  for (i = 0; i < (length - (kCheckedArgs + 2)); i += (kCheckedArgs + 2)) {
-    if ((cache->data()[i + 0] == receiver_cid) &&
-        (cache->data()[i + 1] == arg0_cid)) {
-      top[0] = cache->data()[i + ICData::TargetIndexFor(kCheckedArgs)];
-      found = true;
-      break;
-    }
-  }
-
-  argdesc_ = icdata->ptr()->args_descriptor_;
-
-  if (found) {
-    if (!optimized) {
-      InterpreterHelpers::IncrementICUsageCount(cache->data(), i, kCheckedArgs);
-    }
-  } else {
-    InlineCacheMiss(kCheckedArgs, thread, icdata, call_base + receiver_idx, top,
-                    *pc, *FP, *SP);
-  }
-
   return Invoke(thread, call_base, top, pc, FP, SP);
 }
 
@@ -1985,8 +1903,8 @@ SwitchDispatch:
       RawString* target_name =
           static_cast<RawFunction*>(LOAD_CONSTANT(kidx))->ptr()->name_;
       argdesc_ = static_cast<RawArray*>(LOAD_CONSTANT(kidx + 1));
-      if (!InterfaceCall(thread, target_name, call_base, call_top, &pc, &FP,
-                         &SP)) {
+      if (!InstanceCall(thread, target_name, call_base, call_top, &pc, &FP,
+                        &SP)) {
         HANDLE_EXCEPTION;
       }
     }
@@ -2007,8 +1925,8 @@ SwitchDispatch:
       RawString* target_name =
           static_cast<RawFunction*>(LOAD_CONSTANT(kidx))->ptr()->name_;
       argdesc_ = static_cast<RawArray*>(LOAD_CONSTANT(kidx + 1));
-      if (!InterfaceCall(thread, target_name, call_base, call_top, &pc, &FP,
-                         &SP)) {
+      if (!InstanceCall(thread, target_name, call_base, call_top, &pc, &FP,
+                        &SP)) {
         HANDLE_EXCEPTION;
       }
     }
@@ -2057,8 +1975,8 @@ SwitchDispatch:
       RawString* target_name =
           static_cast<RawFunction*>(LOAD_CONSTANT(kidx))->ptr()->name_;
       argdesc_ = static_cast<RawArray*>(LOAD_CONSTANT(kidx + 1));
-      if (!InterfaceCall(thread, target_name, call_base, call_top, &pc, &FP,
-                         &SP)) {
+      if (!InstanceCall(thread, target_name, call_base, call_top, &pc, &FP,
+                        &SP)) {
         HANDLE_EXCEPTION;
       }
     }
@@ -2076,21 +1994,13 @@ SwitchDispatch:
       RawObject** call_base = SP - argc + 1;
       RawObject** call_top = SP + 1;
 
-      RawICData* icdata = RAW_CAST(ICData, LOAD_CONSTANT(kidx));
-      InterpreterHelpers::IncrementUsageCounter(
-          RAW_CAST(Function, icdata->ptr()->owner_));
-      if (ICData::NumArgsTestedBits::decode(icdata->ptr()->state_bits_) == 1) {
-        if (!InstanceCall1(thread, icdata, call_base, call_top, &pc, &FP, &SP,
-                           false /* optimized */)) {
-          HANDLE_EXCEPTION;
-        }
-      } else {
-        ASSERT(ICData::NumArgsTestedBits::decode(icdata->ptr()->state_bits_) ==
-               2);
-        if (!InstanceCall2(thread, icdata, call_base, call_top, &pc, &FP, &SP,
-                           false /* optimized */)) {
-          HANDLE_EXCEPTION;
-        }
+      InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
+      RawUnlinkedCall* selector = RAW_CAST(UnlinkedCall, LOAD_CONSTANT(kidx));
+      RawString* target_name = selector->ptr()->target_name_;
+      argdesc_ = selector->ptr()->args_descriptor_;
+      if (!InstanceCall(thread, target_name, call_base, call_top, &pc, &FP,
+                        &SP)) {
+        HANDLE_EXCEPTION;
       }
     }
 

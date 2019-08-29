@@ -1738,7 +1738,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
     //
     ResolutionResult result = ResolutionResult.none;
     if (target is Identifier && target.staticElement is ExtensionElement) {
-      Element staticElement;
+      ExecutableElement staticElement;
       ExtensionElement extension = target.staticElement;
       String memberName = propertyName.name;
       if (propertyName.inSetterContext()) {
@@ -1746,7 +1746,19 @@ class ElementResolver extends SimpleAstVisitor<void> {
       }
       staticElement ??= extension.getGetter(memberName);
       staticElement ??= extension.getMethod(memberName);
-      if (staticElement is ExecutableElement && !staticElement.isStatic) {
+      if (staticElement == null) {
+        if (propertyName.inSetterContext()) {
+          _resolver.errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER,
+              propertyName,
+              [memberName, extension.name]);
+        } else {
+          _resolver.errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER,
+              propertyName,
+              [memberName, extension.name]);
+        }
+      } else if (!staticElement.isStatic) {
         _resolver.errorReporter.reportErrorForNode(
             StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER,
             propertyName,

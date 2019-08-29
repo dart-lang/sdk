@@ -231,6 +231,8 @@ class ErrorCodeValuesTest {
         removeCode(StrongModeCode.TOP_LEVEL_INSTANCE_METHOD);
       } else if (errorType == TodoCode) {
         declaredNames.remove('TODO_REGEX');
+      } else if (errorType == CompileTimeErrorCode) {
+        declaredNames.remove('ANNOTATION_WITH_TYPE_ARGUMENTS');
       } else if (errorType == ParserErrorCode) {
         declaredNames.remove('CONST_AFTER_FACTORY');
         declaredNames.remove('CONST_AND_COVARIANT');

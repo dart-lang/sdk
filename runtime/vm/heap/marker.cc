@@ -407,7 +407,7 @@ void GCMarker::Prologue() {
   if (mutator_thread != NULL) {
     Interpreter* interpreter = mutator_thread->interpreter();
     if (interpreter != NULL) {
-      interpreter->MajorGC();
+      interpreter->ClearLookupCache();
     }
   }
 #endif

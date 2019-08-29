@@ -211,29 +211,32 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     return members;
   }
 
-  ObjectHandle getScript(Uri uri, bool includeSource) {
+  ObjectHandle getScript(Uri uri, bool includeSourceInfo) {
     SourceFile source;
-    if (includeSource &&
-        (options.emitSourceFiles || options.emitSourcePositions)) {
-      source = bytecodeComponent.uriToSource[uri];
-      if (source == null) {
-        final astSource = astUriToSource[uri];
-        if (astSource != null) {
+    if (options.emitSourceFiles || options.emitSourcePositions) {
+      final astSource = astUriToSource[uri];
+      if (astSource != null) {
+        source = bytecodeComponent.uriToSource[uri];
+        if (source == null) {
           final importUri =
               objectTable.getNameHandle(null, astSource.importUri.toString());
-          LineStarts lineStarts;
-          if (options.emitSourcePositions) {
-            lineStarts = new LineStarts(astSource.lineStarts);
-            bytecodeComponent.lineStarts.add(lineStarts);
-          }
-          String text = '';
-          if (options.emitSourceFiles) {
-            text = astSource.cachedText ??
-                utf8.decode(astSource.source, allowMalformed: true);
-          }
-          source = new SourceFile(importUri, lineStarts, text);
+          source = new SourceFile(importUri);
           bytecodeComponent.sourceFiles.add(source);
           bytecodeComponent.uriToSource[uri] = source;
+        }
+        if (options.emitSourcePositions &&
+            includeSourceInfo &&
+            source.lineStarts == null) {
+          LineStarts lineStarts = new LineStarts(astSource.lineStarts);
+          bytecodeComponent.lineStarts.add(lineStarts);
+          source.lineStarts = lineStarts;
+        }
+        if (options.emitSourceFiles &&
+            includeSourceInfo &&
+            source.source == null) {
+          String text = astSource.cachedText ??
+              utf8.decode(astSource.source, allowMalformed: true);
+          source.source = text;
         }
       }
     }
@@ -777,6 +780,16 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       return false;
     }
     if (member is Field) {
+      // TODO(dartbug.com/34277)
+      // Front-end inserts synthetic static fields "_redirecting#" to record
+      // information about redirecting constructors in kernel.
+      // The problem is that initializers of these synthetic static fields
+      // contain incorrect kernel AST, e.g. StaticGet which takes tear-off
+      // of a constructor. Do not generate bytecode for them, as they should
+      // never be used.
+      if (member.isStatic && member.name.name == "_redirecting#") {
+        return false;
+      }
       return hasInitializerCode(member);
     }
     return true;
@@ -1277,6 +1290,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   /// Returns value of the given expression if it is a bool constant.
   /// Otherwise, returns `null`.
   bool _constantConditionValue(Expression condition) {
+    if (options.keepUnreachableCode) {
+      return null;
+    }
     // TODO(dartbug.com/34585): use constant evaluator to evaluate
     // expressions in a non-constant context.
     if (condition is Not) {
@@ -1695,6 +1711,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       }
       for (var v in locals.sortedNamedParameters) {
         _declareLocalVariable(v, function.fileOffset);
+      }
+      if (locals.hasFunctionTypeArgsVar) {
+        _declareLocalVariable(locals.functionTypeArgsVar, function.fileOffset);
       }
     }
 
@@ -2897,7 +2916,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     }
     // Front-end guarantees that all calls with known function type
     // do not need any argument type checks.
-    if (isUncheckedClosureCall(node, typeEnvironment)) {
+    if (isUncheckedClosureCall(node, typeEnvironment, options)) {
       final int receiverTemp = locals.tempIndexInFrame(node);
       _genArguments(node.receiver, args, storeReceiverToLocal: receiverTemp);
       // Duplicate receiver (closure) for UncheckedClosureCall.
@@ -3083,6 +3102,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     } else if (target is Procedure) {
       if (target.isGetter) {
         _genDirectCall(target, objectTable.getArgDescHandle(0), 0, isGet: true);
+      } else if (target.isFactory || target.isRedirectingFactoryConstructor) {
+        throw 'Unexpected target for StaticGet: factory $target';
       } else {
         asm.emitPushConstant(cp.addObjectRef(new TearOffConstant(target)));
       }
@@ -3500,6 +3521,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   @override
   visitFunctionDeclaration(ast.FunctionDeclaration node) {
+    if (options.emitDebuggerStops) {
+      asm.emitDebugCheck();
+    }
     _genPushContextIfCaptured(node.variable);
     _genClosure(node, node.variable.name, node.function);
     _genStoreVar(node.variable);

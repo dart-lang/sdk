@@ -162,6 +162,7 @@ class CompilerAnalysisDriver {
         MemoryByteStore(),
         FileContentOverlay(),
         _resourceProvider,
+        'contextName',
         sourceFactory,
         analysisOptions,
         unlinkedSalt,

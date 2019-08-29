@@ -33,7 +33,9 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   final LinkedElementFactory elementFactory;
   final LibraryElement _libraryElement;
   final Reference unitReference;
-  final bool nnbd;
+
+  /// Indicates whether the library is opted into NNBD.
+  final bool isNNBD;
 
   /// The depth-first number of the next [GenericFunctionType] node.
   int _nextGenericFunctionTypeId = 0;
@@ -49,7 +51,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     this.elementFactory,
     this._libraryElement,
     this.unitReference,
-    this.nnbd,
+    this.isNNBD,
     this.scope,
   ) : reference = unitReference;
 
@@ -265,7 +267,11 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     node.returnType?.accept(this);
     node.typeParameters?.accept(this);
+
+    reference = reference.getChild('@function');
+    reference.element = element;
     node.parameters.accept(this);
+
     nodesToBuildType.addDeclaration(node);
 
     scope = outerScope;
@@ -328,7 +334,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.parameters.accept(this);
 
     var nullabilitySuffix = _getNullabilitySuffix(node.question != null);
-    var builder = FunctionTypeBuilder.of(node, nullabilitySuffix);
+    var builder = FunctionTypeBuilder.of(isNNBD, node, nullabilitySuffix);
     (node as GenericFunctionTypeImpl).type = builder;
     nodesToBuildType.addTypeBuilder(builder);
 
@@ -530,7 +536,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   NullabilitySuffix _getNullabilitySuffix(bool hasQuestion) {
-    if (nnbd) {
+    if (isNNBD) {
       if (hasQuestion) {
         return NullabilitySuffix.question;
       } else {

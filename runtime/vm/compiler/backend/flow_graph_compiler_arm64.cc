@@ -1074,8 +1074,8 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   ASSERT(!arguments_descriptor.IsNull() && (arguments_descriptor.Length() > 0));
   const ArgumentsDescriptor args_desc(arguments_descriptor);
   const MegamorphicCache& cache = MegamorphicCache::ZoneHandle(
-      zone(),
-      MegamorphicCacheTable::Lookup(isolate(), name, arguments_descriptor));
+      zone(), MegamorphicCacheTable::LookupOriginal(thread(), name,
+                                                    arguments_descriptor));
 
   __ Comment("MegamorphicCall");
   // Load receiver into R0.

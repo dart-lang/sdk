@@ -377,9 +377,9 @@ class CallSiteResetter : public ValueObject {
   explicit CallSiteResetter(Zone* zone);
 
   void ZeroEdgeCounters(const Function& function);
-  void ResetICDatas(const Code& code);
-  void ResetICDatas(const Bytecode& code);
-  void ResetICDatas(const ObjectPool& pool);
+  void ResetCaches(const Code& code);
+  void ResetCaches(const ObjectPool& pool);
+  void RebindStaticTargets(const Bytecode& code);
   void Reset(const ICData& ic);
   void ResetSwitchableCalls(const Code& code);
 

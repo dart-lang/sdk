@@ -393,6 +393,7 @@ Future<CompilerResult> compile(ParsedArguments args,
   if (args.isKernel) {
     return kernel_compiler.compile(args.rest,
         compilerState: previousResult?.kernelState,
+        isWorker: args.isWorker,
         useIncrementalCompiler: args.useIncrementalCompiler,
         inputDigests: inputDigests);
   } else {

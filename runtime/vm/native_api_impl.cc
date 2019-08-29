@@ -251,12 +251,15 @@ struct RunInSafepointAndRWCodeArgs {
 DART_EXPORT void* Dart_ExecuteInternalCommand(const char* command, void* arg) {
   if (!FLAG_enable_testing_pragmas) return nullptr;
 
-  if (!strcmp(command, "gc-on-next-allocation")) {
+  if (!strcmp(command, "gc-on-nth-allocation")) {
     TransitionNativeToVM _(Thread::Current());
-    Isolate::Current()->heap()->CollectOnNextAllocation();
+    intptr_t argument = reinterpret_cast<intptr_t>(arg);
+    ASSERT(argument > 0);
+    Isolate::Current()->heap()->CollectOnNthAllocation(argument);
     return nullptr;
 
   } else if (!strcmp(command, "gc-now")) {
+    ASSERT(arg == nullptr);  // Don't pass an argument to this command.
     TransitionNativeToVM _(Thread::Current());
     Isolate::Current()->heap()->CollectAllGarbage();
     return nullptr;

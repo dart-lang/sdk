@@ -169,6 +169,113 @@ main() {
       expect(() => h.flow.finish(), _asserts);
     });
 
+    test('for_conditionBegin() un-promotes', () {
+      var h = _Harness();
+      var x = h.addAssignedVar('x', 'int?');
+      h.promote(x, 'int');
+      expect(h.flow.promotedType(x).type, 'int');
+      h.flow.for_conditionBegin({x});
+      expect(h.flow.promotedType(x), isNull);
+      h.flow.for_bodyBegin(_Statement(), _Expression());
+      h.flow.for_updaterBegin();
+      h.flow.for_end();
+      h.flow.finish();
+    });
+
+    test('for_bodyBegin() promotes', () {
+      var h = _Harness();
+      var x = h.addAssignedVar('x', 'int?');
+      h.flow.for_conditionBegin({});
+      h.flow.for_bodyBegin(_Statement(), h.notNull(x)());
+      expect(h.flow.promotedType(x).type, 'int');
+      h.flow.for_updaterBegin();
+      h.flow.for_end();
+      h.flow.finish();
+    });
+
+    test('for_bodyBegin() can be used with a null statement', () {
+      // This is needed for collection elements that are for-loops.
+      var h = _Harness();
+      var x = h.addAssignedVar('x', 'int?');
+      h.flow.for_conditionBegin({});
+      h.flow.for_bodyBegin(null, h.notNull(x)());
+      h.flow.for_updaterBegin();
+      h.flow.for_end();
+      h.flow.finish();
+    });
+
+    test('for_updaterBegin() joins current and continue states', () {
+      // To test that the states are properly joined, we have three variables:
+      // x, y, and z.  We promote x and y in the continue path, and x and z in
+      // the current path.  Inside the updater, only x should be promoted.
+      var h = _Harness();
+      var x = h.addAssignedVar('x', 'int?');
+      var y = h.addAssignedVar('y', 'int?');
+      var z = h.addAssignedVar('z', 'int?');
+      var stmt = _Statement();
+      h.flow.for_conditionBegin({});
+      h.flow.for_bodyBegin(stmt, h.expr());
+      h.if_(h.expr, () {
+        h.promote(x, 'int');
+        h.promote(y, 'int');
+        h.flow.handleContinue(stmt);
+      });
+      h.promote(x, 'int');
+      h.promote(z, 'int');
+      h.flow.for_updaterBegin();
+      expect(h.flow.promotedType(x).type, 'int');
+      expect(h.flow.promotedType(y), isNull);
+      expect(h.flow.promotedType(z), isNull);
+      h.flow.for_end();
+      h.flow.finish();
+    });
+
+    test('for_end() joins break and condition-false states', () {
+      // To test that the states are properly joined, we have three variables:
+      // x, y, and z.  We promote x and y in the break path, and x and z in the
+      // condition-false path.  After the loop, only x should be promoted.
+      var h = _Harness();
+      var x = h.addAssignedVar('x', 'int?');
+      var y = h.addAssignedVar('y', 'int?');
+      var z = h.addAssignedVar('z', 'int?');
+      var stmt = _Statement();
+      h.flow.for_conditionBegin({});
+      h.flow.for_bodyBegin(stmt, h.or(h.eqNull(x), h.eqNull(z))());
+      h.if_(h.expr, () {
+        h.promote(x, 'int');
+        h.promote(y, 'int');
+        h.flow.handleBreak(stmt);
+      });
+      h.flow.for_updaterBegin();
+      h.flow.for_end();
+      expect(h.flow.promotedType(x).type, 'int');
+      expect(h.flow.promotedType(y), isNull);
+      expect(h.flow.promotedType(z), isNull);
+      h.flow.finish();
+    });
+
+    test('forEach_bodyBegin() un-promotes', () {
+      var h = _Harness();
+      var x = h.addAssignedVar('x', 'int?');
+      h.promote(x, 'int');
+      expect(h.flow.promotedType(x).type, 'int');
+      h.flow.forEach_bodyBegin({x});
+      expect(h.flow.promotedType(x), isNull);
+      h.flow.forEach_end();
+      h.flow.finish();
+    });
+
+    test('forEach_end() restores state before loop', () {
+      var h = _Harness();
+      var x = h.addAssignedVar('x', 'int?');
+      h.flow.forEach_bodyBegin({});
+      h.promote(x, 'int');
+      expect(h.flow.promotedType(x).type, 'int');
+      h.flow.forEach_end();
+      expect(h.flow.promotedType(x), isNull);
+      h.flow.finish();
+    });
+
     test('ifStatement_end(false) keeps else branch if then branch exits', () {
       var h = _Harness();
       var x = h.addAssignedVar('x', 'int?');

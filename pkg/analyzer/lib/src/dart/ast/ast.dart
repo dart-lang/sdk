@@ -2175,11 +2175,12 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
 ///
 ///    compilationUnitMember ::=
 ///        [ClassDeclaration]
+///      | [MixinDeclaration]
+///      | [ExtensionDeclaration]
+///      | [EnumDeclaration]
 ///      | [TypeAlias]
 ///      | [FunctionDeclaration]
-///      | [MethodDeclaration]
-///      | [VariableDeclaration]
-///      | [VariableDeclaration]
+///      | [TopLevelVariableDeclaration]
 abstract class CompilationUnitMemberImpl extends DeclarationImpl
     implements CompilationUnitMember {
   /// Initialize a newly created generic compilation unit member. Either or both
@@ -3927,6 +3928,7 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
+    super.visitChildren(visitor);
     name?.accept(visitor);
     _typeParameters?.accept(visitor);
     _extendedType?.accept(visitor);

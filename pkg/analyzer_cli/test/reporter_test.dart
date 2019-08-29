@@ -45,7 +45,7 @@ main() {
       reporter.flush();
 
       expect(out.toString().trim(),
-          'error • MSG at /foo/bar/baz.dart:3:3 • mock_code');
+          'error • MSG • /foo/bar/baz.dart:3:3 • mock_code');
     });
 
     test('hint', () {
@@ -54,7 +54,7 @@ main() {
       reporter.flush();
 
       expect(out.toString().trim(),
-          'hint • MSG at /foo/bar/baz.dart:3:3 • mock_code');
+          'hint • MSG • /foo/bar/baz.dart:3:3 • mock_code');
     });
 
     test('stats', () {
@@ -64,7 +64,7 @@ main() {
       stats.print(out);
       expect(
           out.toString().trim(),
-          'hint • MSG at /foo/bar/baz.dart:3:3 • mock_code\n'
+          'hint • MSG • /foo/bar/baz.dart:3:3 • mock_code\n'
           '1 hint found.');
     });
   });

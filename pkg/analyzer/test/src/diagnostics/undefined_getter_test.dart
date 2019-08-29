@@ -125,7 +125,16 @@ class UndefinedGetterWithExtensionMethodsTest extends UndefinedGetterTest {
     ..contextFeatures = new FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
 
-  test_withExtension() async {
+  test_instance_withInference() async {
+    await assertErrorsInCode(r'''
+extension E on int {}
+var a = 3.v;
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_GETTER, 32, 1),
+    ]);
+  }
+
+  test_instance_withoutInference() async {
     await assertErrorsInCode(r'''
 class C {}
 

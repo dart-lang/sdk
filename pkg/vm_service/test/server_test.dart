@@ -66,6 +66,36 @@ void main() {
       requestsController.add(request);
     });
 
+    test('works for methods with list parameters', () {
+      var isolate = Isolate()
+        ..id = '123'
+        ..number = '0'
+        ..startTime = 1
+        ..runnable = true
+        ..livePorts = 2
+        ..pauseOnExit = false
+        ..pauseEvent = (Event()
+          ..kind = EventKind.kResume
+          ..timestamp = 3)
+        ..libraries = []
+        ..breakpoints = [];
+      var request = rpcRequest("setVMTimelineFlags", params: {
+        'isolateId': isolate.id,
+        // Note: the dynamic list below is intentional in order to exercise the
+        // code under test.
+        'recordedStreams': <dynamic>['GC', 'Dart', 'Embedder'],
+      });
+      var response = Success();
+      when(serviceMock.getIsolate(isolate.id))
+          .thenAnswer((Invocation invocation) {
+        expect(invocation.namedArguments,
+            equals({Symbol('isolateId'): null, Symbol('args'): null}));
+        return Future.value(isolate);
+      });
+      expect(responsesController.stream, emits(rpcResponse(response)));
+      requestsController.add(request);
+    });
+
     group('custom service extensions', () {
       test('with no params or isolateId', () {
         var extension = 'ext.cool';
@@ -440,4 +470,9 @@ class MockVmService extends Mock implements VmServiceInterface {
   Stream<Event> onEvent(String streamId) => streamControllers
       .putIfAbsent(streamId, () => StreamController<Event>())
       .stream;
+
+  @override
+  Future<Success> setVMTimelineFlags(List<String> recordedStreams) async {
+    return Success();
+  }
 }

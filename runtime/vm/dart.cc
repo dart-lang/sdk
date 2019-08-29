@@ -265,6 +265,7 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     Object::Init(vm_isolate_);
     ArgumentsDescriptor::Init();
     ICData::Init();
+    SubtypeTestCache::Init();
     if (vm_isolate_snapshot != NULL) {
 #if defined(SUPPORT_TIMELINE)
       TimelineDurationScope tds(Timeline::GetVMStream(), "ReadVMSnapshot");
@@ -576,6 +577,7 @@ char* Dart::Cleanup() {
   ASSERT(Isolate::IsolateListLength() == 0);
   PortMap::Cleanup();
   ICData::Cleanup();
+  SubtypeTestCache::Cleanup();
   ArgumentsDescriptor::Cleanup();
   TargetCPUFeatures::Cleanup();
   MarkingStack::Cleanup();

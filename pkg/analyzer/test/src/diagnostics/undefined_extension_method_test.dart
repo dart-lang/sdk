@@ -76,4 +76,24 @@ f() {
     assertInvokeTypeNull(binaryExpression);
     assertTypeDynamic(binaryExpression);
   }
+
+  test_static_withInference() async {
+    await assertErrorsInCode('''
+extension E on Object {}
+var a = E.m();
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD, 35, 1),
+    ]);
+  }
+
+  test_static_withoutInference() async {
+    await assertErrorsInCode('''
+extension E on Object {}
+void f() {
+  E.m();
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD, 40, 1),
+    ]);
+  }
 }

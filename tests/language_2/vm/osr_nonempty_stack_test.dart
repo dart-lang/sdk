@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=constant-update-2018
-
 // Test with OSR on non-empty stack (block expression).
 
 import 'dart:core';

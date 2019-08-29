@@ -5,8 +5,8 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'ambiguous_export_test.dart' as ambiguous_export;
-import 'ambiguous_extension_method_access_test.dart'
-    as ambiguous_extension_method_access;
+import 'ambiguous_extension_member_access_test.dart'
+    as ambiguous_extension_member_access;
 import 'ambiguous_import_test.dart' as ambiguous_import;
 import 'ambiguous_set_or_map_literal_test.dart' as ambiguous_set_or_map_literal;
 import 'argument_type_not_assignable_test.dart' as argument_type_not_assignable;
@@ -99,6 +99,10 @@ import 'import_deferred_library_with_load_function_test.dart'
 import 'import_duplicated_library_named_test.dart'
     as import_duplicated_library_named;
 import 'import_of_non_library_test.dart' as import_of_non_library;
+import 'inference_failure_on_uninitialized_variable_test.dart'
+    as inference_failure_on_uninitialized_variable;
+import 'inference_failure_on_untyped_parameter_test.dart'
+    as inference_failure_on_untyped_parameter;
 import 'instance_access_to_static_member_test.dart'
     as instance_access_to_static_member;
 import 'invalid_assignment_test.dart' as invalid_assignment;
@@ -297,7 +301,7 @@ import 'wrong_type_parameter_variance_in_superinterface_test.dart'
 main() {
   defineReflectiveSuite(() {
     ambiguous_export.main();
-    ambiguous_extension_method_access.main();
+    ambiguous_extension_member_access.main();
     ambiguous_import.main();
     ambiguous_set_or_map_literal.main();
     argument_type_not_assignable.main();
@@ -361,6 +365,8 @@ main() {
     import_deferred_library_with_load_function.main();
     import_duplicated_library_named.main();
     import_of_non_library.main();
+    inference_failure_on_uninitialized_variable.main();
+    inference_failure_on_untyped_parameter.main();
     instance_access_to_static_member.main();
     invalid_assignment.main();
     invalid_cast_new_expr.main();

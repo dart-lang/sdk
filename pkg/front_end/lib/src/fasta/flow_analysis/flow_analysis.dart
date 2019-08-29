@@ -4,33 +4,32 @@
 
 import 'package:meta/meta.dart';
 
-/// Sets of local variables that are potentially assigned in a statement.
-///
-/// These statements are loops, `switch`, and `try` statements.
-class AssignedVariables<Statement, Variable> {
+/// Sets of local variables that are potentially assigned in a loop statement,
+/// switch statement, try statement, or loop collection element.
+class AssignedVariables<StatementOrElement, Variable> {
   final emptySet = Set<Variable>();
 
-  /// Mapping from a [Statement] to the set of local variables that are
-  /// potentially assigned in that statement.
-  final Map<Statement, Set<Variable>> _map = {};
+  /// Mapping from a statement or element to the set of local variables that
+  /// are potentially assigned in that statement or element.
+  final Map<StatementOrElement, Set<Variable>> _map = {};
 
-  /// The stack of nested statements.
+  /// The stack of nested statements or collection elements.
   final List<Set<Variable>> _stack = [];
 
   AssignedVariables();
 
   /// Return the set of variables that are potentially assigned in the
-  /// [statement].
-  Set<Variable> operator [](Statement statement) {
-    return _map[statement] ?? emptySet;
+  /// [statementOrElement].
+  Set<Variable> operator [](StatementOrElement statementOrElement) {
+    return _map[statementOrElement] ?? emptySet;
   }
 
-  void beginStatement() {
+  void beginStatementOrElement() {
     Set<Variable> set = Set<Variable>.identity();
     _stack.add(set);
   }
 
-  void endStatement(Statement node) {
+  void endStatementOrElement(StatementOrElement node) {
     _map[node] = _stack.removeLast();
   }
 
@@ -244,36 +243,60 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
     }());
   }
 
-  void forEachStatement_bodyBegin(Set<Variable> loopAssigned) {
-    _variablesReferenced(loopAssigned);
-    _stack.add(_current);
-    _current = _current.removePromotedAll(loopAssigned);
-  }
-
-  void forEachStatement_end() {
-    FlowModel<Variable, Type> afterIterable = _stack.removeLast();
-    _current = _join(_current, afterIterable);
-  }
-
-  void forStatement_bodyBegin(Statement node, Expression condition) {
+  /// Call this method just before visiting the body of a conventional "for"
+  /// statement or collection element.  See [for_conditionBegin] for details.
+  ///
+  /// If a "for" statement is being entered, [node] is an opaque representation
+  /// of the loop, for use as the target of future calls to [handleBreak] or
+  /// [handleContinue].  If a "for" collection element is being entered, [node]
+  /// should be `null`.
+  ///
+  /// [condition] is an opaque representation of the loop condition; it is
+  /// matched against expressions passed to previous calls to determine whether
+  /// the loop condition should cause any promotions to occur.
+  void for_bodyBegin(Statement node, Expression condition) {
     _conditionalEnd(condition);
     // Tail of the stack: falseCondition, trueCondition
 
     FlowModel<Variable, Type> trueCondition = _stack.removeLast();
 
-    _statementToStackIndex[node] = _stack.length;
+    if (node != null) {
+      _statementToStackIndex[node] = _stack.length;
+    }
     _stack.add(null); // break
     _stack.add(null); // continue
 
     _current = trueCondition;
   }
 
-  void forStatement_conditionBegin(Set<Variable> loopAssigned) {
+  /// Call this method just before visiting the condition of a conventional
+  /// "for" statement or collection element.
+  ///
+  /// Note that a conventional "for" statement is a statement of the form
+  /// `for (initializers; condition; updaters) body`.  Statements of the form
+  /// `for (variable in iterable) body` should use [forEach_bodyBegin].  Similar
+  /// for "for" collection elements.
+  ///
+  /// The order of visiting a "for" statement or collection element should be:
+  /// - Visit the initializers.
+  /// - Call [for_conditionBegin].
+  /// - Visit the condition.
+  /// - Call [for_bodyBegin].
+  /// - Visit the body.
+  /// - Call [for_updaterBegin].
+  /// - Visit the updaters.
+  /// - Call [for_end].
+  ///
+  /// [loopAssigned] should be the set of variables that are assigned anywhere
+  /// in the loop's condition, updaters, or body.
+  void for_conditionBegin(Set<Variable> loopAssigned) {
     _variablesReferenced(loopAssigned);
     _current = _current.removePromotedAll(loopAssigned);
   }
 
-  void forStatement_end() {
+  /// Call this method just after visiting the updaters of a conventional "for"
+  /// statement or collection element.  See [for_conditionBegin] for details.
+  void for_end() {
     // Tail of the stack: falseCondition, break
     FlowModel<Variable, Type> breakState = _stack.removeLast();
     FlowModel<Variable, Type> falseCondition = _stack.removeLast();
@@ -281,12 +304,39 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
     _current = _join(falseCondition, breakState);
   }
 
-  void forStatement_updaterBegin() {
+  /// Call this method just before visiting the updaters of a conventional "for"
+  /// statement or collection element.  See [for_conditionBegin] for details.
+  void for_updaterBegin() {
     // Tail of the stack: falseCondition, break, continue
     FlowModel<Variable, Type> afterBody = _current;
     FlowModel<Variable, Type> continueState = _stack.removeLast();
 
     _current = _join(afterBody, continueState);
+  }
+
+  /// Call this method just before visiting the body of a "for-in" statement or
+  /// collection element.
+  ///
+  /// The order of visiting a "for-in" statement or collection element should
+  /// be:
+  /// - Visit the iterable expression.
+  /// - Call [forEach_bodyBegin].
+  /// - Visit the body.
+  /// - Call [forEach_end].
+  ///
+  /// [loopAssigned] should be the set of variables that are assigned anywhere
+  /// in the loop's body.
+  void forEach_bodyBegin(Set<Variable> loopAssigned) {
+    _variablesReferenced(loopAssigned);
+    _stack.add(_current);
+    _current = _current.removePromotedAll(loopAssigned);
+  }
+
+  /// Call this method just before visiting the body of a "for-in" statement or
+  /// collection element.  See [forEach_bodyBegin] for details.
+  void forEach_end() {
+    FlowModel<Variable, Type> afterIterable = _stack.removeLast();
+    _current = _join(_current, afterIterable);
   }
 
   void functionExpression_begin() {

@@ -2,16 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler == app_jitk ]
-symbol_operator_test/03: RuntimeError
-symbol_reserved_word_test/06: RuntimeError
-symbol_reserved_word_test/09: RuntimeError
-symbol_reserved_word_test/12: RuntimeError
-symbol_test/none: RuntimeError
-unicode_test: RuntimeError
-
 [ $compiler == dart2analyzer ]
-iterable_element_at_test/static: Pass
 num_sign_test: Crash, Pass # Issue 31768
 
 [ $compiler == dart2js ]
@@ -29,33 +20,16 @@ int_from_environment_int64_test: CompileTimeError, OK # Error if web int literal
 int_parse_radix_int64_test/01: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 int_parse_radix_int64_test/02: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 int_parse_radix_int64_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int_parse_radix_test/01: RuntimeError
 integer_arith_vm_test/modPow: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 integer_arith_vm_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-integer_to_radix_string_test/01: RuntimeError
-integer_to_radix_string_test/02: RuntimeError
-integer_to_radix_string_test/none: RuntimeError
-integer_to_string_test/01: RuntimeError
 integer_to_string_test/01: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 iterable_return_type_test/02: RuntimeError # Dart2js does not support Uint64*.
 list_unmodifiable_test: Pass, RuntimeError # Issue 28712
 
-[ $compiler != dartdevc ]
-error_stack_trace_test/static: MissingCompileTimeError
-
 [ $compiler == dartdevk ]
-bool_from_environment2_test/03: MissingCompileTimeError
-int_modulo_arith_test/modPow: RuntimeError
-int_modulo_arith_test/none: RuntimeError
 regexp/lookbehind_test/01: Skip # Flaky in uncatchable way.  Issue 36280
-string_from_environment3_test/03: MissingCompileTimeError
-
-[ $compiler == fasta ]
-bool_from_environment2_test/03: MissingCompileTimeError
-string_from_environment3_test/03: MissingCompileTimeError
 
 [ $compiler == none ]
-int_parse_radix_bad_handler_test: MissingCompileTimeError
 symbol_operator_test/03: Fail # Issue 11669
 symbol_reserved_word_test/02: CompileTimeError # Issue 20191
 symbol_reserved_word_test/04: MissingCompileTimeError # Issue 11669, 19972, With the exception of 'void', const Symbol() should not accept reserved words.
@@ -75,7 +49,6 @@ regexp/pcre_test: Pass, Slow # Issue 22008
 
 [ $runtime == jsshell ]
 string_case_test/01: Fail, OK # German double S.
-unicode_test: Fail
 
 [ $runtime != none ]
 nsm_invocation_generic_test: RuntimeError # Not implemented yet. Issue 27323.
@@ -85,13 +58,9 @@ double_round3_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1.
 double_round_to_double2_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1.
 string_trimlr_test/unicode63: RuntimeError # Uses Unicode 6.2.0 or earlier.
 
-[ $fasta ]
-symbol_reserved_word_test/04: MissingCompileTimeError
-symbol_reserved_word_test/07: MissingCompileTimeError
-
 [ $arch == simarmv5te && ($runtime == dart_precompiled || $runtime == vm) ]
-int_parse_radix_test/*: Pass, Slow
-integer_parsed_mul_div_vm_test: Pass, Slow
+int_parse_radix_test/*: Slow
+integer_parsed_mul_div_vm_test: Slow
 
 [ $arch == x64 && $system == windows ]
 stopwatch_test: Skip # Flaky test due to expected performance behaviour.
@@ -105,19 +74,6 @@ apply_test: Skip # Uses new Symbol via symbolMapToStringMap helper
 dynamic_nosuchmethod_test: SkipByDesign # Expects names in NSM
 error_stack_trace1_test: SkipByDesign # Expects unobfuscated stack trace
 type_tostring_test: SkipByDesign # Expects names in Type.toString()
-
-# All static_tests have expected compile-time errors.
-[ $compiler != app_jitk && $compiler != dart2analyzer && $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkb && $compiler != dartkp && $compiler != fasta ]
-core_runtime_types_static_test: MissingCompileTimeError
-iterable_mapping_test/01: MissingCompileTimeError
-splay_tree_test/01: MissingCompileTimeError
-splay_tree_test/02: MissingCompileTimeError
-string_base_vm_static_test: MissingCompileTimeError
-string_replace_static_test: MissingCompileTimeError
-string_static_test: MissingCompileTimeError
-
-[ $compiler != app_jitk && $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkb && $compiler != dartkp && $compiler != fasta ]
-iterable_element_at_test/static: MissingCompileTimeError
 
 [ $compiler != app_jitk && $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkb && $compiler != dartkp && $runtime != none ]
 map_keys2_test: RuntimeError # needs Dart 2 is checks
@@ -135,37 +91,11 @@ uri_base_test: RuntimeError # D8 uses a custom uri scheme for Uri.base
 [ $compiler == dart2js && $runtime != none ]
 regexp/pcre_test: Pass, Slow # Issue 21593
 
-[ $compiler == dart2js && $runtime == safari ]
-regexp/lookahead_test: RuntimeError
-regexp/no-extensions_test: RuntimeError
-regexp/no-extensions_test: Pass, RuntimeError
-regexp/overflow_test: RuntimeError
-
 [ $compiler == dart2js && !$browser ]
 package_resource_test: RuntimeError # Issue 26842
 
 [ $compiler == dart2js && $checked ]
-apply3_test: RuntimeError
-collection_of_test: RuntimeError
 error_stack_trace1_test: RuntimeError # Issue 12399
-from_environment_const_type_test/02: MissingCompileTimeError
-from_environment_const_type_test/03: MissingCompileTimeError
-from_environment_const_type_test/04: MissingCompileTimeError
-from_environment_const_type_test/06: MissingCompileTimeError
-from_environment_const_type_test/07: MissingCompileTimeError
-from_environment_const_type_test/08: MissingCompileTimeError
-from_environment_const_type_test/09: MissingCompileTimeError
-from_environment_const_type_test/11: MissingCompileTimeError
-from_environment_const_type_test/12: MissingCompileTimeError
-from_environment_const_type_test/13: MissingCompileTimeError
-from_environment_const_type_test/14: MissingCompileTimeError
-from_environment_const_type_test/16: MissingCompileTimeError
-from_environment_const_type_undefined_test/02: MissingCompileTimeError
-from_environment_const_type_undefined_test/03: MissingCompileTimeError
-from_environment_const_type_undefined_test/04: MissingCompileTimeError
-from_environment_const_type_undefined_test/06: MissingCompileTimeError
-from_environment_const_type_undefined_test/07: MissingCompileTimeError
-from_environment_const_type_undefined_test/08: MissingCompileTimeError
 iterable_return_type_test/01: RuntimeError # Issue 20085
 iterable_return_type_test/02: RuntimeError # Dart2js does not support Uint64*.
 iterable_to_list_test/01: Crash # Wrong number of template arguments, given 2, expected 1
@@ -177,41 +107,19 @@ map_test: Crash # tests/corelib_2/map_test.dart:903:7: Internal problem: Unhandl
 symbol_reserved_word_test/03: RuntimeError # Issue 19972, new Symbol('void') should be allowed.
 
 [ $compiler == dart2js && $minified ]
-dynamic_nosuchmethod_test: RuntimeError
 error_stack_trace1_test: RuntimeError # Issue 12399
 hash_set_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_CustomHashSet.#x), local(_CustomHashSet.#)) for j:closure_call(_CustomHashSet__CustomHashSet_closure.call).
-integer_to_radix_string_test/01: RuntimeError
-integer_to_radix_string_test/02: RuntimeError
-integer_to_radix_string_test/none: RuntimeError
-integer_to_string_test/01: RuntimeError
 iterable_return_type_test/02: RuntimeError # Dart2js does not support Uint64*.
 list_concurrent_modify_test: RuntimeError # dart2js does not fully implement these
-list_unmodifiable_test: RuntimeError
-main_test: RuntimeError
-nan_infinity_test/01: RuntimeError
 nsm_invocation_test: RuntimeError # Symbols don't match due to minifiaction.
-regexp/pcre_test: RuntimeError
-symbol_operator_test/03: RuntimeError
-symbol_operator_test/none: RuntimeError
 symbol_reserved_word_test/03: RuntimeError # Issue 19972, new Symbol('void') should be allowed.
 
 [ $compiler == dartdevc && $runtime != none ]
 compare_to2_test: CompileTimeError # invalid test
 symbol_operator_test: RuntimeError # Issue 29921
 
-[ $compiler != dartk && $runtime == vm && $checked ]
-apply_test/01: RuntimeError
-
-[ $compiler != dartkb && $compiler != dartkp && $fasta ]
-symbol_reserved_word_test/10: MissingCompileTimeError
-symbol_test/02: MissingCompileTimeError
-symbol_test/03: MissingCompileTimeError
-
 [ $compiler == dartkp && $runtime == dart_precompiled ]
-iterable_fold_test/02: RuntimeError
 iterable_reduce_test/01: CompileTimeError # Issue 31533
-iterable_reduce_test/none: RuntimeError
-regexp/stack-overflow_test: RuntimeError
 symbol_operator_test/03: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
 symbol_reserved_word_test/06: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
 symbol_reserved_word_test/09: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
@@ -220,23 +128,13 @@ symbol_test/none: RuntimeError # Issues 11669 and 31936 - throwing const constru
 unicode_test: RuntimeError # Issue 18061: German double S.
 
 [ $compiler == none && $runtime == vm ]
-from_environment_const_type_undefined_test/09: MissingCompileTimeError
-from_environment_const_type_undefined_test/11: MissingCompileTimeError
-from_environment_const_type_undefined_test/12: MissingCompileTimeError
-from_environment_const_type_undefined_test/13: MissingCompileTimeError
-from_environment_const_type_undefined_test/14: MissingCompileTimeError
-from_environment_const_type_undefined_test/16: MissingCompileTimeError
 iterable_to_set_test: RuntimeError # is-checks do not implement strong mode type system
-string_base_vm_static_test: MissingCompileTimeError
 
 # We no longer expect Dart2 tests to run with the standalone VM without the new
 # common front end, but for now we get better coverage by still running them in
 # checked mode, which is mostly Dart2-compatible.
 [ $compiler == none && !$checked && ($runtime == dart_precompiled || $runtime == vm) ]
 *: SkipByDesign
-
-[ $mode == release && $hot_reload && ($compiler == dartk || $compiler == dartkb) ]
-bigint_parse_radix_test: Crash
 
 [ $runtime != none && ($compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk) ]
 bit_twiddling_test/int64: RuntimeError, OK # Requires fixed-size int64 support.
@@ -257,9 +155,7 @@ typed_data_with_limited_ints_test: Skip # Requires fixed-size int64 support.
 
 # ===== dartk + vm status lines =====
 [ $runtime == vm && ($compiler == dartk || $compiler == dartkb) ]
-iterable_fold_test/02: RuntimeError
 iterable_reduce_test/01: CompileTimeError # Issue 31533
-iterable_reduce_test/none: RuntimeError
 symbol_operator_test/03: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
 symbol_reserved_word_test/06: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
 symbol_reserved_word_test/09: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
@@ -298,7 +194,6 @@ hash_set_test/01: RuntimeError # Issue 29921
 int_from_environment_int64_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 int_modulo_arith_test/none: RuntimeError # Issue 29921
 int_parse_radix_int64_test/01: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int_parse_radix_int64_test/02: RuntimeError
 int_parse_radix_int64_test/02: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 int_parse_radix_int64_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 int_parse_radix_test/01: RuntimeError # Issue 29921
@@ -362,8 +257,8 @@ symbol_reserved_word_test/09: RuntimeError # Issue 29921
 symbol_reserved_word_test/12: RuntimeError # Issue 29921
 symbol_test/none: RuntimeError # Issue 29921
 typed_data_with_limited_ints_test: Skip # Requires fixed-size int64 support.
-uri_parse_test: Pass, Slow
-uri_test: Pass, Slow
+uri_parse_test: Slow
+uri_test: Slow
 
 [ $compiler == dartkb || $compiler == dartkp ]
 bigint_parse_radix_test: Pass, Slow # --no_intrinsify
@@ -372,13 +267,12 @@ bigint_test/15: SkipSlow # --no_intrinsify
 
 [ $runtime == dart_precompiled || $runtime == vm ]
 regexp/global_test: Skip # Issue 21709
-regexp/pcre_test: Pass, Slow, Timeout
+regexp/pcre_test: Slow
 string_case_test/01: RuntimeError # Issue 18061: German double S.
 
 [ $runtime == ff || $runtime == jsshell ]
 double_parse_test: Fail, OK # Issue 30468
 double_try_parse_test: Fail, OK # Issue 30468
-regexp/UC16_test: RuntimeError
 
 [ $hot_reload || $hot_reload_rollback ]
 bigint_parse_radix_test: Skip # Issue 31659. Issue 34361.

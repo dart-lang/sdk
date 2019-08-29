@@ -322,32 +322,131 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub(
   // TransitionGeneratedToNative might clobber LR if it takes the slow path.
   __ mov(R4, Operand(LR));
 
-  __ TransitionGeneratedToNative(R8, FPREG, R9 /*volatile*/, NOTFP);
+  __ TransitionGeneratedToNative(R8, FPREG, R9 /*volatile*/, NOTFP,
+                                 /*enter_safepoint=*/true);
 
   __ blx(R8);
 
-  __ TransitionNativeToGenerated(R9 /*volatile*/, NOTFP);
+  __ TransitionNativeToGenerated(R9 /*volatile*/, NOTFP,
+                                 /*exit_safepoint=*/true);
 
   __ bx(R4);
 }
 
-void StubCodeCompiler::GenerateVerifyCallbackStub(Assembler* assembler) {
-  __ EnterFrame(1 << FP | 1 << LR, 0);
-  __ ReserveAlignedFrameSpace(0);
+#if !defined(DART_PRECOMPILER)
+void StubCodeCompiler::GenerateJITCallbackTrampolines(
+    Assembler* assembler,
+    intptr_t next_callback_id) {
+#if defined(USING_SIMULATOR)
+  // TODO(37299): FFI is not support in SIMARM.
+  __ Breakpoint();
+#else
+  Label done;
 
-  // First argument is already set up by the caller.
+  // TMP is volatile and not used for passing any arguments.
+  COMPILE_ASSERT(!IsCalleeSavedRegister(TMP) && !IsArgumentRegister(TMP));
+
+  for (intptr_t i = 0;
+       i < NativeCallbackTrampolines::NumCallbackTrampolinesPerPage(); ++i) {
+    // We don't use LoadImmediate because we need the trampoline size to be
+    // fixed independently of the callback ID.
+    //
+    // PC points two instructions ahead of the current one -- directly where we
+    // store the callback ID.
+    __ ldr(TMP, Address(PC, 0));
+    __ b(&done);
+    __ Emit(next_callback_id + i);
+  }
+
+  ASSERT(__ CodeSize() ==
+         kNativeCallbackTrampolineSize *
+             NativeCallbackTrampolines::NumCallbackTrampolinesPerPage());
+
+  __ Bind(&done);
+
+  const intptr_t shared_stub_start = __ CodeSize();
+
+  // Save THR (callee-saved), R4 & R5 (temporaries, callee-saved), and LR.
+  COMPILE_ASSERT(StubCodeCompiler::kNativeCallbackTrampolineStackDelta == 4);
+  __ PushList((1 << LR) | (1 << THR) | (1 << R4) | (1 << R5));
+
+  // Don't rely on TMP being preserved by assembler macros anymore.
+  __ mov(R4, Operand(TMP));
+
+  COMPILE_ASSERT(IsCalleeSavedRegister(R4));
+  COMPILE_ASSERT(!IsArgumentRegister(THR));
+
+  RegisterSet argument_registers;
+  argument_registers.AddAllArgumentRegisters();
+  __ PushRegisters(argument_registers);
+
+  // Load the thread, verify the callback ID and exit the safepoint.
   //
-  // Second argument is the return address of the caller.
-  __ mov(CallingConventions::ArgumentRegisters[1], Operand(LR));
-  ASSERT(R2 != CallingConventions::ArgumentRegisters[0] &&
-         R2 != CallingConventions::ArgumentRegisters[1]);
-  __ LoadFromOffset(kWord, R2, THR,
-                    kVerifyCallbackIsolateRuntimeEntry.OffsetFromThread());
-  __ blx(R2);
+  // We exit the safepoint inside DLRT_GetThreadForNativeCallbackTrampoline
+  // in order to safe code size on this shared stub.
+  {
+    __ EnterFrame(1 << FP, 0);
+    __ ReserveAlignedFrameSpace(0);
 
-  __ LeaveFrame(1 << FP | 1 << LR);
-  __ Ret();
+    __ mov(R0, Operand(R4));
+
+    // Since DLRT_GetThreadForNativeCallbackTrampoline can theoretically be
+    // loaded anywhere, we use the same trick as before to ensure a predictable
+    // instruction sequence.
+    Label call;
+    __ ldr(R1, Address(PC, 0));
+    __ b(&call);
+    __ Emit(
+        reinterpret_cast<int32_t>(&DLRT_GetThreadForNativeCallbackTrampoline));
+
+    __ Bind(&call);
+    __ blx(R1);
+    __ mov(THR, Operand(R0));
+
+    __ LeaveFrame(1 << FP);
+  }
+
+  __ PopRegisters(argument_registers);
+
+  COMPILE_ASSERT(!IsArgumentRegister(R8));
+
+  // Load the code object.
+  __ LoadFromOffset(kWord, R5, THR,
+                    compiler::target::Thread::callback_code_offset());
+  __ LoadFieldFromOffset(kWord, R5, R5,
+                         compiler::target::GrowableObjectArray::data_offset());
+  __ ldr(R5, __ ElementAddressForRegIndex(
+                 /*is_load=*/true,
+                 /*external=*/false,
+                 /*array_cid=*/kArrayCid,
+                 /*index, smi-tagged=*/compiler::target::kWordSize * 2,
+                 /*array=*/R5,
+                 /*index=*/R4));
+  __ LoadFieldFromOffset(kWord, R5, R5,
+                         compiler::target::Code::entry_point_offset());
+
+  // On entry to the function, there will be four extra slots on the stack:
+  // saved THR, R4, R5 and the return address. The target will know to skip
+  // them.
+  __ blx(R5);
+
+  // EnterSafepoint clobbers R4, R5 and TMP, all saved or volatile.
+  __ EnterSafepoint(R4, R5);
+
+  // Returns.
+  __ PopList((1 << PC) | (1 << THR) | (1 << R4) | (1 << R5));
+
+  ASSERT((__ CodeSize() - shared_stub_start) == kNativeCallbackSharedStubSize);
+  ASSERT(__ CodeSize() <= VirtualMemory::PageSize());
+
+#if defined(DEBUG)
+  while (__ CodeSize() < VirtualMemory::PageSize()) {
+    __ Breakpoint();
+  }
+#endif
+#endif
 }
+#endif  // !defined(DART_PRECOMPILER)
 
 void StubCodeCompiler::GenerateNullErrorSharedWithoutFPURegsStub(
     Assembler* assembler) {

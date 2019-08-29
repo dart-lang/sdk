@@ -16,7 +16,7 @@
 #include <unistd.h>
 
 // Only OK to use here because this is test code.
-#include <thread>
+#include <thread>  // NOLINT(build/c++11)
 #endif
 
 #include <setjmp.h>
@@ -499,30 +499,39 @@ DART_EXPORT float InventFloatValue() {
 // Functions for stress-testing.
 
 DART_EXPORT int64_t MinInt64() {
-  Dart_ExecuteInternalCommand("gc-on-next-allocation", nullptr);
+  Dart_ExecuteInternalCommand("gc-on-nth-allocation",
+                              reinterpret_cast<void*>(1));
   return 0x8000000000000000;
 }
 
 DART_EXPORT int64_t MinInt32() {
-  Dart_ExecuteInternalCommand("gc-on-next-allocation", nullptr);
+  Dart_ExecuteInternalCommand("gc-on-nth-allocation",
+                              reinterpret_cast<void*>(1));
   return 0x80000000;
 }
 
 DART_EXPORT double SmallDouble() {
-  Dart_ExecuteInternalCommand("gc-on-next-allocation", nullptr);
+  Dart_ExecuteInternalCommand("gc-on-nth-allocation",
+                              reinterpret_cast<void*>(1));
   return 0x80000000 * -1.0;
 }
 
 // Requires boxing on 32-bit and 64-bit systems, even if the top 32-bits are
 // truncated.
 DART_EXPORT void* LargePointer() {
-  Dart_ExecuteInternalCommand("gc-on-next-allocation", nullptr);
+  Dart_ExecuteInternalCommand("gc-on-nth-allocation",
+                              reinterpret_cast<void*>(1));
   uint64_t origin = 0x8100000082000000;
   return reinterpret_cast<void*>(origin);
 }
 
 DART_EXPORT void TriggerGC(uint64_t count) {
   Dart_ExecuteInternalCommand("gc-now", nullptr);
+}
+
+DART_EXPORT void CollectOnNthAllocation(intptr_t num_allocations) {
+  Dart_ExecuteInternalCommand("gc-on-nth-allocation",
+                              reinterpret_cast<void*>(num_allocations));
 }
 
 // Triggers GC. Has 11 dummy arguments as unboxed odd integers which should be
@@ -567,29 +576,42 @@ DART_EXPORT void* UnprotectCodeOtherThread(void* isolate,
   return nullptr;
 }
 
-DART_EXPORT void* UnprotectCode() {
+struct HelperThreadState {
   std::mutex mutex;
   std::condition_variable cvar;
-  std::unique_lock<std::mutex> lock(mutex);  // locks the mutex
-  std::thread* helper = new std::thread(UnprotectCodeOtherThread,
-                                        Dart_CurrentIsolate(), &cvar, &mutex);
+  std::unique_ptr<std::thread> helper;
+};
 
-  cvar.wait(lock);
+DART_EXPORT void* TestUnprotectCode(void (*fn)(void*)) {
+  HelperThreadState* state = new HelperThreadState;
 
-  return helper;
+  {
+    std::unique_lock<std::mutex> lock(state->mutex);  // locks the mutex
+    state->helper.reset(new std::thread(UnprotectCodeOtherThread,
+                                        Dart_CurrentIsolate(), &state->cvar,
+                                        &state->mutex));
+
+    state->cvar.wait(lock);
+  }
+
+  if (fn != nullptr) {
+    fn(state);
+    return nullptr;
+  } else {
+    return state;
+  }
 }
 
-DART_EXPORT void WaitForHelper(void* helper) {
-  std::thread* thread = reinterpret_cast<std::thread*>(helper);
-  thread->join();
-  delete thread;
+DART_EXPORT void WaitForHelper(HelperThreadState* helper) {
+  helper->helper->join();
+  delete helper;
 }
 #else
 // Our version of VSC++ doesn't support std::thread yet.
-DART_EXPORT void* UnprotectCode() {
+DART_EXPORT void WaitForHelper(void* helper) {}
+DART_EXPORT void* TestUnprotectCode(void (*fn)(void)) {
   return nullptr;
 }
-DART_EXPORT void WaitForHelper(void* helper) {}
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////

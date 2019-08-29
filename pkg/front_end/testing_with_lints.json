@@ -1,0 +1,23 @@
+{
+"ignored_1":"Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file",
+"ignored_2":"for details. All rights reserved. Use of this source code is governed by a",
+"ignored_3":"BSD-style license that can be found in the LICENSE.md file.",
+
+  "packages": "../../.packages",
+  "analyze": {
+    "options": "analysis_options.yaml",
+    "uris": [
+      "lib/"
+    ],
+
+    "exclude": [
+      "test/extensions/data/",
+      "test/id_testing/data/",
+      "test/language_versioning/data/",
+      "test/flow_analysis/definite_assignment/data/",
+      "test/flow_analysis/nullability/data/",
+      "test/flow_analysis/reachability/data/",
+      "test/flow_analysis/type_promotion/data/"
+    ]
+  }
+}

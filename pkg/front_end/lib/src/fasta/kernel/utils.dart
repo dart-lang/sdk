@@ -84,12 +84,13 @@ Component createExpressionEvaluationComponent(Procedure procedure) {
   if (procedure.parent is Class) {
     Class realClass = procedure.parent;
 
-    Class fakeClass = new Class(name: kDebugClassName);
+    Class fakeClass = new Class(name: kDebugClassName)..parent = fakeLibrary;
     Map<TypeParameter, TypeParameter> typeParams =
         <TypeParameter, TypeParameter>{};
     Map<TypeParameter, DartType> typeSubstitution = <TypeParameter, DartType>{};
     for (TypeParameter typeParam in realClass.typeParameters) {
-      TypeParameter newNode = new TypeParameter(typeParam.name);
+      TypeParameter newNode = new TypeParameter(typeParam.name)
+        ..parent = fakeClass;
       typeParams[typeParam] = newNode;
       typeSubstitution[typeParam] = new TypeParameterType(newNode);
     }
@@ -100,7 +101,6 @@ Component createExpressionEvaluationComponent(Procedure procedure) {
       fakeClass.typeParameters.add(typeParam.accept(cloner));
     }
 
-    fakeClass.parent = fakeLibrary;
     if (realClass.supertype != null) {
       // supertype is null for Object.
       fakeClass.supertype = new Supertype.byReference(

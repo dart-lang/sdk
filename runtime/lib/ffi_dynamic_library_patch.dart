@@ -29,7 +29,7 @@ class DynamicLibrary {
   Pointer<T> lookup<T extends NativeType>(String symbolName)
       native "Ffi_dl_lookup";
 
-  // The real implementation of this function lives in FfiUseSitesTransformer
+  // The real implementation of this function lives in FfiUseSiteTransformer
   // for interface calls. Only dynamic calls (which are illegal) reach this
   // implementation.
   @patch

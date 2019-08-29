@@ -21,7 +21,6 @@ enum_syntax_test/05: Fail # Issue 34341
 enum_syntax_test/06: Fail # Issue 34341
 f_bounded_quantification2_test: CompileTimeError # Issue 34583
 f_bounded_quantification4_test: CompileTimeError # Issue 34583
-for_test/01: MissingCompileTimeError
 forwarding_stub_tearoff_test: CompileTimeError # Issue 34329
 generic_local_functions_test: CompileTimeError # Issue 28515
 generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
@@ -66,38 +65,21 @@ issue31596_super_test/none: CompileTimeError # Issue #31596
 issue31596_tearoff_test: CompileTimeError # Issue #31596
 issue31596_test: CompileTimeError # Issue #31596
 issue34498_test: MissingCompileTimeError # Issue 34500
-large_class_declaration_test: Slow, Pass
+large_class_declaration_test: Slow
 malformed2_test: Pass, MissingCompileTimeError # Flaky: issue 31056.
-mixin_method_override_test/01: MissingCompileTimeError
-mixin_super_2_test: CompileTimeError
-mixin_super_use_test: CompileTimeError
 nested_generic_closure_test: CompileTimeError # Issue #28515
 no_main_test/01: Fail # failing-by-design, the analyzer has no restriction that a library include a main function.
-no_such_constructor2_test: StaticWarning
-override_inheritance_field_test/42: CompileTimeError
 part_of_multiple_libs_test/01: MissingCompileTimeError # Issue 33227
 part_refers_to_core_library_test/01: MissingCompileTimeError # Issue 29709
 prefix_shadow_test/01: MissingCompileTimeError # Issue 33005
-regress_22976_test/01: CompileTimeError
-regress_22976_test/02: CompileTimeError
-regress_22976_test/none: CompileTimeError
 regress_23408_test: Skip # don't care about the static warning.
-regress_27617_test/1: MissingCompileTimeError
 regress_29025_test: CompileTimeError # Issue 29081
 regress_29405_test: CompileTimeError # Issue 29421
 regress_29784_test/02: MissingCompileTimeError # Issue 29784
-regress_30339_test: CompileTimeError
 regress_33479_test/01: Crash # Issue #33479
 setter3_test/01: CompileTimeError # Invalid test, see https://github.com/dart-lang/sdk/issues/33837
 setter3_test/02: CompileTimeError # Invalid test, see https://github.com/dart-lang/sdk/issues/33837
-super_bound_closure_test/none: CompileTimeError
-super_call4_test/01: MissingCompileTimeError
 super_setter_test: CompileTimeError # Invalid test, see https://github.com/dart-lang/sdk/issues/33837
-syntax_test/60: MissingCompileTimeError
-syntax_test/61: MissingCompileTimeError
-try_catch_on_syntax_test/10: MissingCompileTimeError
-try_catch_on_syntax_test/11: MissingCompileTimeError
-type_inference_inconsistent_inheritance_test: MissingCompileTimeError
 type_variable_static_context_negative_test: Fail # Issue 12161
 vm/debug_break_enabled_vm_test: Skip
 vm/debug_break_vm_test/*: Skip
@@ -110,27 +92,3 @@ void/return_future_future_or_void_async_error1_test/none: CompileTimeError # iss
 void/return_future_or_future_or_void_sync_error2_test/none: CompileTimeError # issue #34319
 void/return_future_or_void_sync_error4_test/none: CompileTimeError # issue #34319
 void/void_type_usage_test/final_local_for_in2: MissingCompileTimeError # issue 35508
-web_int_literals_test/01: MissingCompileTimeError
-web_int_literals_test/02: MissingCompileTimeError
-web_int_literals_test/03: MissingCompileTimeError
-web_int_literals_test/10: MissingCompileTimeError
-web_int_literals_test/11: MissingCompileTimeError
-web_int_literals_test/12: MissingCompileTimeError
-web_int_literals_test/13: MissingCompileTimeError
-web_int_literals_test/14: MissingCompileTimeError
-web_int_literals_test/20: MissingCompileTimeError
-web_int_literals_test/21: MissingCompileTimeError
-web_int_literals_test/22: MissingCompileTimeError
-web_int_literals_test/23: MissingCompileTimeError
-web_int_literals_test/24: MissingCompileTimeError
-web_int_literals_test/25: MissingCompileTimeError
-web_int_literals_test/26: MissingCompileTimeError
-web_int_literals_test/27: MissingCompileTimeError
-web_int_literals_test/28: MissingCompileTimeError
-web_int_literals_test/29: MissingCompileTimeError
-web_int_literals_test/61: MissingCompileTimeError
-web_int_literals_test/62: MissingCompileTimeError
-web_int_literals_test/63: MissingCompileTimeError
-web_int_literals_test/64: MissingCompileTimeError
-web_int_literals_test/65: MissingCompileTimeError
-web_int_literals_test/70: MissingCompileTimeError

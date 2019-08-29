@@ -6,5 +6,3 @@
 # module context.
 dependencies:
   main: [def, expect]
-flags:
-  - constant-update-2018

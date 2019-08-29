@@ -279,6 +279,36 @@ A foo() => null;
 
 @reflectiveTest
 class ImportLibraryElement_newImport_withoutPrefix_Test extends _Base {
+  test_constructorName_name() async {
+    newFile('/home/test/lib/a.dart', content: r'''
+int foo;
+''');
+    newFile('/home/test/lib/b.dart', content: r'''
+class B {
+  B.foo();
+}
+''');
+    await _assertImportLibraryElement(
+      initialCode: r'''
+import 'package:test/b.dart';
+
+main() {
+  B.foo();
+}
+''',
+      uriStr: 'package:test/a.dart',
+      name: 'foo',
+      expectedCode: r'''
+import 'package:test/a.dart';
+import 'package:test/b.dart';
+
+main() {
+  B.foo();
+}
+''',
+    );
+  }
+
   test_exported() async {
     newFile('/home/test/lib/a.dart', content: 'class A {}');
     newFile('/home/test/lib/b.dart', content: r'''
@@ -308,6 +338,36 @@ import 'package:test/a.dart';
       expectedCode: r'''
 import 'package:test/a.dart';
 import 'package:test/b.dart';
+''',
+    );
+  }
+
+  test_methodInvocation_name() async {
+    newFile('/home/test/lib/a.dart', content: r'''
+int foo;
+''');
+    newFile('/home/test/lib/b.dart', content: r'''
+class B {
+  static void foo() {}
+}
+''');
+    await _assertImportLibraryElement(
+      initialCode: r'''
+import 'package:test/b.dart';
+
+main() {
+  B.foo();
+}
+''',
+      uriStr: 'package:test/a.dart',
+      name: 'foo',
+      expectedCode: r'''
+import 'package:test/a.dart';
+import 'package:test/b.dart';
+
+main() {
+  B.foo();
+}
 ''',
     );
   }
@@ -399,6 +459,36 @@ import 'package:test/a.dart';
 
 class C<A> {
   A f;
+}
+''',
+    );
+  }
+
+  test_prefixedIdentifier_identifier() async {
+    newFile('/home/test/lib/a.dart', content: r'''
+int foo;
+''');
+    newFile('/home/test/lib/b.dart', content: r'''
+class B {
+  static int foo;
+}
+''');
+    await _assertImportLibraryElement(
+      initialCode: r'''
+import 'package:test/b.dart';
+
+main() {
+  B.foo;
+}
+''',
+      uriStr: 'package:test/a.dart',
+      name: 'foo',
+      expectedCode: r'''
+import 'package:test/a.dart';
+import 'package:test/b.dart';
+
+main() {
+  B.foo;
 }
 ''',
     );

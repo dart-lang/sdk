@@ -107,6 +107,90 @@ class StaticError implements Comparable<StaticError> {
     return result;
   }
 
+  /// Determines whether all [actualErrors] match the given [expectedErrors].
+  ///
+  /// If they match, returns `null`. Otherwise returns a string describing the
+  /// mismatches. This for a human-friendly explanation of the difference
+  /// between the two sets of errors, while also being simple to implement.
+  /// An expected error that is completely identical to an actual error is
+  /// treated as a match. Everything else is a failure.
+  ///
+  /// It treats line number as the "identity" of an error. So if there are two
+  /// errors on the same line that differ in other properties, it reports that
+  /// as a "wrong" error. Any expected error on a line containing no actual
+  /// error is reported as a "missing" error. Conversely, an actual error on a
+  /// line containing no expected error is an "unexpected" error.
+  ///
+  /// By not treating the error's index in the list to be its identity, we
+  /// gracefully handle extra or missing errors without causing cascading
+  /// failures for later errors in the lists.
+  static String validateExpectations(Iterable<StaticError> expectedErrors,
+      Iterable<StaticError> actualErrors) {
+    // Don't require the test or front end to output in any specific order.
+    var sortedExpected = expectedErrors.toList();
+    var sortedActual = actualErrors.toList();
+    sortedExpected.sort();
+    sortedActual.sort();
+
+    var buffer = StringBuffer();
+
+    describeError(String adjective, StaticError error, String verb) {
+      buffer.writeln("$adjective static error at ${error.location}:");
+      if (error.code != null) {
+        buffer.writeln("- $verb error code ${error.code}.");
+      }
+
+      if (error.message != null) {
+        buffer.writeln("- $verb error message '${error.message}'.");
+      }
+      buffer.writeln();
+    }
+
+    var expectedIndex = 0;
+    var actualIndex = 0;
+    for (;
+        expectedIndex < sortedExpected.length &&
+            actualIndex < sortedActual.length;) {
+      var expected = sortedExpected[expectedIndex];
+      var actual = sortedActual[actualIndex];
+      var differences = expected.describeDifferences(actual);
+      if (differences == null) {
+        expectedIndex++;
+        actualIndex++;
+        continue;
+      }
+
+      if (expected.line == actual.line) {
+        buffer.writeln("Wrong static error at ${expected.location}:");
+        for (var difference in differences) {
+          buffer.writeln("- $difference");
+        }
+        buffer.writeln();
+        expectedIndex++;
+        actualIndex++;
+      } else if (expected.line < actual.line) {
+        describeError("Missing", expected, "Expected");
+        expectedIndex++;
+      } else {
+        describeError("Unexpected", actual, "Had");
+        actualIndex++;
+      }
+    }
+
+    // Output any trailing expected or actual errors if the lengths of the
+    // lists differ.
+    for (; expectedIndex < sortedExpected.length; expectedIndex++) {
+      describeError("Missing", sortedExpected[expectedIndex], "Expected");
+    }
+
+    for (; actualIndex < sortedActual.length; actualIndex++) {
+      describeError("Unexpected", sortedActual[actualIndex], "Had");
+    }
+
+    if (buffer.isEmpty) return null;
+    return buffer.toString().trimRight();
+  }
+
   /// The one-based line number of the beginning of the error's location.
   final int line;
 
@@ -171,13 +255,13 @@ class StaticError implements Comparable<StaticError> {
 
   /// A textual description of this error's location.
   String get location {
-    var result = "Error at line $line, column $column";
+    var result = "line $line, column $column";
     if (length != null) result += ", length $length";
     return result;
   }
 
   String toString() {
-    var result = location;
+    var result = "Error at $location";
     if (code != null) result += "\n$code";
     if (message != null) result += "\n$message";
     return result;

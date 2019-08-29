@@ -989,6 +989,7 @@ class TypeRepresentationGenerator
   jsAst.Expression getVoidValue() => js('-1');
 
   jsAst.Expression getJsInteropTypeArgumentValue() => js('-2');
+
   @override
   jsAst.Expression visit(DartType type, ModularEmitter emitter) =>
       type.accept(this, emitter);
@@ -1015,6 +1016,10 @@ class TypeRepresentationGenerator
   jsAst.Expression visitDynamicType(DynamicType type, ModularEmitter emitter) {
     return getDynamicValue();
   }
+
+  @override
+  jsAst.Expression visitAnyType(AnyType type, ModularEmitter emitter) =>
+      getJsInteropTypeArgumentValue();
 
   jsAst.Expression getJsInteropTypeArguments(int count,
       {jsAst.Expression name}) {

@@ -5120,6 +5120,15 @@ class ExtensionElementImpl extends ElementImpl
   ElementKind get kind => ElementKind.EXTENSION;
 
   @override
+  List<ElementAnnotation> get metadata {
+    if (_unlinkedExtension != null) {
+      return _metadata ??=
+          _buildAnnotations(enclosingUnit, _unlinkedExtension.annotations);
+    }
+    return super.metadata;
+  }
+
+  @override
   List<MethodElement> get methods {
     if (_methods != null) {
       return _methods;

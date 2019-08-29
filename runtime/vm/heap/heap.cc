@@ -44,7 +44,7 @@ Heap::Heap(Isolate* isolate,
       read_only_(false),
       gc_new_space_in_progress_(false),
       gc_old_space_in_progress_(false),
-      gc_on_next_allocation_(false) {
+      gc_on_nth_allocation_(kNoForcedGarbageCollection) {
   UpdateGlobalMaxUsed();
   for (int sel = 0; sel < kNumWeakSelectors; sel++) {
     new_weak_tables_[sel] = new WeakTable();
@@ -678,15 +678,22 @@ void Heap::AddRegionsToObjectSet(ObjectSet* set) const {
   old_space_.AddRegionsToObjectSet(set);
 }
 
-void Heap::CollectOnNextAllocation() {
+void Heap::CollectOnNthAllocation(intptr_t num_allocations) {
+  // Prevent generated code from using the TLAB fast path on next allocation.
   AbandonRemainingTLAB(Thread::Current());
-  gc_on_next_allocation_ = true;
+  gc_on_nth_allocation_ = num_allocations;
 }
 
 void Heap::CollectForDebugging() {
-  if (!gc_on_next_allocation_) return;
-  CollectAllGarbage(kDebugging);
-  gc_on_next_allocation_ = false;
+  if (gc_on_nth_allocation_ == kNoForcedGarbageCollection) return;
+  gc_on_nth_allocation_--;
+  if (gc_on_nth_allocation_ == 0) {
+    CollectAllGarbage(kDebugging);
+    gc_on_nth_allocation_ = kNoForcedGarbageCollection;
+  } else {
+    // Prevent generated code from using the TLAB fast path on next allocation.
+    AbandonRemainingTLAB(Thread::Current());
+  }
 }
 
 ObjectSet* Heap::CreateAllocatedObjectSet(

@@ -481,6 +481,34 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     _resolver.extensionResolver.resolveOverride(node);
   }
 
+  /// No inference is performed here; just static checking for the
+  /// "strict-inference" static analysis mode.
+  @override
+  void visitFormalParameterList(FormalParameterList node) {
+    void checkParameterTypeIsKnown(SimpleFormalParameter parameter) {
+      ParameterElement element = parameter.declaredElement;
+      if (parameter.type == null) {
+        _resolver.errorReporter.reportTypeErrorForNode(
+          HintCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER,
+          parameter,
+          [element.displayName],
+        );
+      }
+    }
+
+    if (_strictInference) {
+      for (FormalParameter parameter in node.parameters) {
+        if (parameter is SimpleFormalParameter) {
+          checkParameterTypeIsKnown(parameter);
+        } else if (parameter is DefaultFormalParameter) {
+          if (parameter.parameter is SimpleFormalParameter) {
+            checkParameterTypeIsKnown(parameter.parameter);
+          }
+        }
+      }
+    }
+  }
+
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     FunctionExpression function = node.functionExpression;

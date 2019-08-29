@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:ffi' as ffi;
 import 'dart:io';
 import 'dart:math';
+import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:path/path.dart' as path;
 
 import 'package:analysis_server/protocol/protocol_constants.dart'
@@ -309,6 +310,14 @@ class Driver implements ServerStarter {
   static const String TRAIN_USING = "train-using";
 
   /**
+   * The name of the flag to include into the analysis driver log all
+   * communications with the client - requests, responses, shortened
+   * notifications.
+   */
+  static const String INCLUDE_PROTOCOL_TO_DRIVER_LOG =
+      "include-protocol-to-driver-log";
+
+  /**
    * The instrumentation server that is to be used by the analysis server.
    */
   InstrumentationServer instrumentationServer;
@@ -466,6 +475,11 @@ class Driver implements ServerStarter {
       }
     }
 
+    RequestStatisticsHelper requestStatisticsHelper;
+    if (results[INCLUDE_PROTOCOL_TO_DRIVER_LOG] == true) {
+      requestStatisticsHelper = RequestStatisticsHelper();
+    }
+
     CompilerContext.runWithDefaultOptions((_) async {
       if (analysisServerOptions.useLanguageServerProtocol) {
         startLspServer(results, analysisServerOptions, dartSdkManager,
@@ -477,6 +491,7 @@ class Driver implements ServerStarter {
             parser,
             dartSdkManager,
             instrumentationService,
+            requestStatisticsHelper,
             analytics,
             diagnosticServerPort);
       }
@@ -489,6 +504,7 @@ class Driver implements ServerStarter {
     CommandLineParser parser,
     DartSdkManager dartSdkManager,
     InstrumentationService instrumentationService,
+    RequestStatisticsHelper requestStatistics,
     telemetry.Analytics analytics,
     int diagnosticServerPort,
   ) {
@@ -519,6 +535,7 @@ class Driver implements ServerStarter {
         analysisServerOptions,
         dartSdkManager,
         instrumentationService,
+        requestStatistics,
         diagnosticServer,
         fileResolverProvider,
         packageResolverProvider,
@@ -793,6 +810,9 @@ class Driver implements ServerStarter {
     parser.addOption(TRAIN_USING,
         help: "Pass in a directory to analyze for purposes of training an "
             "analysis server snapshot.");
+    parser.addFlag(INCLUDE_PROTOCOL_TO_DRIVER_LOG,
+        defaultsTo: false,
+        help: "Whether to use include protocol into the driver log");
 
     return parser;
   }

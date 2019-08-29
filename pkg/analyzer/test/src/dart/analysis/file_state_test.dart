@@ -62,6 +62,7 @@ class FileSystemStateTest with ResourceProviderMixin {
         byteStore,
         contentOverlay,
         resourceProvider,
+        'contextName',
         sourceFactory,
         analysisOptions,
         new Uint32List(0),

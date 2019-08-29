@@ -183,7 +183,7 @@ class IsExpired {
   static const bool constant_update_2018 = true;
 
   /// Expiration status of the experiment "control-flow-collections"
-  static const bool control_flow_collections = false;
+  static const bool control_flow_collections = true;
 
   /// Expiration status of the experiment "extension-methods"
   static const bool extension_methods = false;
@@ -195,7 +195,7 @@ class IsExpired {
   static const bool set_literals = true;
 
   /// Expiration status of the experiment "spread-collections"
-  static const bool spread_collections = false;
+  static const bool spread_collections = true;
 
   /// Expiration status of the experiment "triple-shift"
   static const bool triple_shift = false;

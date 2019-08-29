@@ -102,7 +102,9 @@ class DefaultValueResolver {
     }
     if (defaultValue == null) return;
 
-    defaultValue.accept(LocalElementBuilder(ElementHolder(), null));
+    var holder = ElementHolder();
+    defaultValue.accept(LocalElementBuilder(holder, null));
+    parameter.encloseElements(holder.localVariables);
 
     var contextType = TypeVariableEliminator(_linker.typeProvider)
         .substituteType(parameter.type);

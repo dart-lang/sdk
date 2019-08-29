@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=constant-update-2018,triple-shift
+// SharedOptions=--enable-experiment=triple-shift
 
 main() {
   const dynamic i1 = 3;

@@ -248,14 +248,14 @@ class HumanErrorFormatter extends ErrorFormatter {
         stats.hintCount++;
       }
 
-      // warning • 'foo' is not a bar at lib/foo.dart:1:2 • foo_warning
+      // warning • 'foo' is not a bar. • lib/foo.dart:1:2 • foo_warning
       String issueColor = (error.isError == ErrorSeverity.ERROR ||
               error.isWarning == ErrorSeverity.WARNING)
           ? ansi.red
           : '';
       out.write('  $issueColor${error.severity}${ansi.none} '
           '${ansi.bullet} ${ansi.bold}${error.message}${ansi.none} ');
-      out.write('at ${error.sourcePath}');
+      out.write('${ansi.bullet} ${error.sourcePath}');
       out.write(':${error.line}:${error.column} ');
       out.write('${ansi.bullet} ${error.errorCode}');
       out.writeln();
@@ -298,12 +298,7 @@ class HumanErrorFormatter extends ErrorFormatter {
       }
     }
 
-    // warning • 'foo' is not a bar at lib/foo.dart:1:2 • foo_warning
-    String message = error.message;
-    // Remove any terminating '.' from the end of the message.
-    if (message.endsWith('.')) {
-      message = message.substring(0, message.length - 1);
-    }
+    // warning • 'foo' is not a bar. • lib/foo.dart:1:2 • foo_warning
     String sourcePath;
     if (source.uriKind == UriKind.DART_URI) {
       sourcePath = source.uri.toString();
@@ -334,7 +329,7 @@ class HumanErrorFormatter extends ErrorFormatter {
       offset: error.offset,
       line: location.lineNumber,
       column: location.columnNumber,
-      message: message,
+      message: error.message,
       contextMessages: contextMessages,
       errorCode: error.errorCode.name.toLowerCase(),
       correction: error.correction,

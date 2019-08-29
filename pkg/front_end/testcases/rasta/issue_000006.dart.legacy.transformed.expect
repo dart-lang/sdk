@@ -1,7 +1,0 @@
-library;
-import self as self;
-
-static field dynamic list = <dynamic>[1, 2, 3];
-static method main() → dynamic {
-  self::list.add(1);
-}

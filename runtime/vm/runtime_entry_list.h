@@ -24,7 +24,7 @@ namespace dart {
   V(InlineCacheMissHandlerTwoArgs)                                             \
   V(StaticCallMissHandlerOneArg)                                               \
   V(StaticCallMissHandlerTwoArgs)                                              \
-  V(InterpretedInterfaceCallMissHandler)                                       \
+  V(InterpretedInstanceCallMissHandler)                                        \
   V(Instanceof)                                                                \
   V(SubtypeCheck)                                                              \
   V(TypeCheck)                                                                 \
@@ -87,7 +87,6 @@ namespace dart {
     RawSmi*)                                                                   \
   V(void, EnterSafepoint)                                                      \
   V(void, ExitSafepoint)                                                       \
-  V(void, VerifyCallbackIsolate, int32_t, uword)
 
 }  // namespace dart
 

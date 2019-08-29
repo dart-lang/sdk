@@ -13,7 +13,7 @@ import 'dartfuzz_api_table.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.19';
+const String version = '1.23';
 
 // Restriction on statements and expressions.
 const int stmtLength = 2;
@@ -115,7 +115,7 @@ class DartFuzz {
     for (int i = 0; i < methods.length; i++) {
       List<DartType> method = methods[i];
       currentMethod = i;
-      bool isFfiMethod = ffiStatus != null && ffiStatus[i];
+      final bool isFfiMethod = ffiStatus != null && ffiStatus[i];
       if (isFfiMethod) {
         emitFfiTypedef("${name}Ffi${i}Type", method);
         emitLn('${method[0].name} ${name}Ffi$i(', newline: false);
@@ -318,7 +318,7 @@ class DartFuzz {
 
   // Emit a simple increasing for-loop.
   bool emitFor(int depth) {
-    int i = localVars.length;
+    final int i = localVars.length;
     emitLn('for (int $localName$i = 0; $localName$i < ', newline: false);
     emitSmallPositiveInt();
     emit('; $localName$i++) {', newline: true);
@@ -337,7 +337,7 @@ class DartFuzz {
 
   // Emit a simple membership for-in-loop.
   bool emitForIn(int depth) {
-    int i = localVars.length;
+    final int i = localVars.length;
     emitLn('for (int $localName$i in ', newline: false);
     emitExpr(0, rand.nextBool() ? DartType.INT_LIST : DartType.INT_SET);
     emit(') {', newline: true);
@@ -352,9 +352,30 @@ class DartFuzz {
     return true;
   }
 
+  // Emit a simple membership forEach loop.
+  bool emitForEach(int depth) {
+    final int i = localVars.length;
+    emitLn("", newline: false);
+    emitScalarVar(DartType.INT_STRING_MAP, isLhs: true);
+    emit('.forEach(($localName$i, $localName${i + 1}) {\n');
+    indent += 2;
+    final int nestTmp = nest;
+    // Reset, since forEach cannot break out of own or enclosing context.
+    nest = 0;
+    localVars.add(DartType.INT);
+    localVars.add(DartType.STRING);
+    emitStatements(depth + 1);
+    localVars.removeLast();
+    localVars.removeLast();
+    nest = nestTmp;
+    indent -= 2;
+    emitLn('});');
+    return true;
+  }
+
   // Emit a while-loop.
   bool emitWhile(int depth) {
-    int i = localVars.length;
+    final int i = localVars.length;
     emitLn('{ int $localName$i = ', newline: false);
     emitSmallPositiveInt();
     emit(';', newline: true);
@@ -377,7 +398,7 @@ class DartFuzz {
 
   // Emit a do-while-loop.
   bool emitDoWhile(int depth) {
-    int i = localVars.length;
+    final int i = localVars.length;
     emitLn('{ int $localName$i = 0;');
     indent += 2;
     emitLn('do {');
@@ -513,6 +534,8 @@ class DartFuzz {
         return emitScope(depth);
       case 12:
         return emitTryCatch(depth);
+      case 13:
+        return emitForEach(depth);
       default:
         return emitAssign();
     }
@@ -628,7 +651,7 @@ class DartFuzz {
         break;
       case 2:
         {
-          int i = localVars.length;
+          final int i = localVars.length;
           emit('for (int $localName$i ');
           // For-loop (induction, list, set).
           switch (rand.nextInt(3)) {
@@ -847,7 +870,7 @@ class DartFuzz {
   // Emit library call.
   void emitLibraryCall(int depth, DartType tp) {
     DartLib lib = getLibraryMethod(tp);
-    String proto = lib.proto;
+    final String proto = lib.proto;
     // Receiver.
     if (proto[0] != 'V') {
       emit('(');
@@ -895,10 +918,10 @@ class DartFuzz {
       }
     } else {
       // Inside a class: try to call backwards in class methods first.
-      int m1 = currentMethod == null
+      final int m1 = currentMethod == null
           ? classMethods[currentClass].length
           : currentMethod;
-      int m2 = globalMethods.length;
+      final int m2 = globalMethods.length;
       if (pickedCall(depth, tp, '$methodName${currentClass}_',
               classMethods[currentClass], m1) ||
           pickedCall(depth, tp, methodName, globalMethods, m2)) {
@@ -1162,22 +1185,23 @@ class DartFuzz {
     return null;
   }
 
-  String getFfiType(String name) {
-    switch (name) {
-      case 'int':
-        return 'ffi.Int32';
-      case 'double':
-        return 'ffi.Double';
-      default:
-        throw 'Invalid FFI type ${name}';
+  void emitFfiType(DartType tp) {
+    if (tp == DartType.INT) {
+      emit(oneOf(['ffi.Int8', 'ffi.Int16', 'ffi.Int32', 'ffi.Int64']));
+    } else if (tp == DartType.DOUBLE) {
+      emit(oneOf(['ffi.Float', 'ffi.Double']));
+    } else {
+      throw 'Invalid FFI type ${tp.name}';
     }
   }
 
   void emitFfiTypedef(String typeName, List<DartType> pars) {
-    emit("typedef ${typeName} = ${getFfiType(pars[0].name)} Function(");
+    emit("typedef ${typeName} = ");
+    emitFfiType(pars[0]);
+    emit(" Function(");
     for (int i = 1; i < pars.length; i++) {
       DartType tp = pars[i];
-      emit('${getFfiType(tp.name)}');
+      emitFfiType(tp);
       if (i != (pars.length - 1)) {
         emit(', ');
       }

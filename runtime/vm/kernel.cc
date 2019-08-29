@@ -326,9 +326,9 @@ static void CollectBytecodeFunctionTokenPositions(
 }
 
 void CollectTokenPositionsFor(const Script& interesting_script) {
-  ASSERT(interesting_script.url() != String::null());
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
+  interesting_script.LookupSourceAndLineStarts(zone);
   TranslationHelper helper(thread);
   helper.InitFromScript(interesting_script);
 
@@ -383,6 +383,8 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
               continue;
             }
             if (temp_field.is_declared_in_bytecode()) {
+              token_positions.Add(temp_field.token_pos().value());
+              token_positions.Add(temp_field.end_token_pos().value());
               if (temp_field.is_static() && temp_field.has_initializer()) {
                 temp_function = temp_field.EnsureInitializerFunction();
                 CollectBytecodeFunctionTokenPositions(temp_function,
@@ -463,6 +465,8 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
           continue;
         }
         if (field.is_declared_in_bytecode()) {
+          token_positions.Add(field.token_pos().value());
+          token_positions.Add(field.end_token_pos().value());
           if (field.is_static() && field.has_initializer()) {
             temp_function = field.EnsureInitializerFunction();
             CollectBytecodeFunctionTokenPositions(temp_function,

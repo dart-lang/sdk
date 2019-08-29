@@ -238,6 +238,15 @@ class HintCode extends ErrorCode {
           correction: "Try specifying the type of the variable.");
 
   /**
+   * When "strict-inference" in enabled, function parameters must be
+   * declared with a specific type, or inherit a type.
+   */
+  static const HintCode INFERENCE_FAILURE_ON_UNTYPED_PARAMETER = const HintCode(
+      'INFERENCE_FAILURE_ON_UNTYPED_PARAMETER',
+      "The type of {0} can't be inferred; a type must be explicitly provided.",
+      correction: "Try specifying the type of the parameter.");
+
+  /**
    * This hint is generated anywhere a @factory annotation is associated with
    * anything other than a method.
    */
@@ -770,9 +779,9 @@ class HintCode extends ErrorCode {
    */
   static const HintCode SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT = const HintCode(
       'SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT',
-      "The for, if and spread elements were not supported in const contexts "
-          "until version 2.5.0, but this code is required to be able to run on "
-          "earlier versions.",
+      "The for, if and spread elements weren't supported in constant "
+          "expressions until version 2.5.0, but this code is required to be "
+          "able to run on earlier versions.",
       correction: "Try updating the SDK constraints.");
 
   /**

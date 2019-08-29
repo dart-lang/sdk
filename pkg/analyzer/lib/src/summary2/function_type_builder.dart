@@ -39,23 +39,15 @@ class FunctionTypeBuilder extends TypeBuilder {
     this.node,
   });
 
+  /// [isNNBD] indicates whether the containing library is opted into NNBD.
   factory FunctionTypeBuilder.of(
+    bool isNNBD,
     GenericFunctionType node,
     NullabilitySuffix nullabilitySuffix,
   ) {
     return FunctionTypeBuilder(
-      node.typeParameters?.typeParameters
-              ?.map((n) => n.declaredElement)
-              ?.toList() ??
-          [],
-      node.parameters.parameters.map((n) {
-        return ParameterElementImpl.synthetic(
-          n.identifier?.name ?? '',
-          _getParameterType(n),
-          // ignore: deprecated_member_use_from_same_package
-          n.kind,
-        );
-      }).toList(),
+      _getTypeParameters(node.typeParameters),
+      _getParameters(isNNBD, node.parameters),
       _getNodeType(node.returnType),
       nullabilitySuffix,
       node: node,
@@ -132,14 +124,52 @@ class FunctionTypeBuilder extends TypeBuilder {
     }
   }
 
+  /// [isNNBD] indicates whether the containing library is opted into NNBD.
+  static List<ParameterElementImpl> _getParameters(
+    bool isNNBD,
+    FormalParameterList node,
+  ) {
+    return node.parameters.map((parameter) {
+      return ParameterElementImpl.synthetic(
+        parameter.identifier?.name ?? '',
+        _getParameterType(isNNBD, parameter),
+        // ignore: deprecated_member_use_from_same_package
+        parameter.kind,
+      );
+    }).toList();
+  }
+
   /// Return the type of the [node] as is, possibly a [TypeBuilder].
-  static DartType _getParameterType(FormalParameter node) {
+  ///
+  /// [isNNBD] indicates whether the containing library is opted into NNBD.
+  static DartType _getParameterType(bool isNNBD, FormalParameter node) {
     if (node is DefaultFormalParameter) {
-      return _getParameterType(node.parameter);
+      return _getParameterType(isNNBD, node.parameter);
     } else if (node is SimpleFormalParameter) {
       return _getNodeType(node.type);
+    } else if (node is FunctionTypedFormalParameter) {
+      NullabilitySuffix nullabilitySuffix;
+      if (node.question != null) {
+        nullabilitySuffix = NullabilitySuffix.question;
+      } else if (isNNBD) {
+        nullabilitySuffix = NullabilitySuffix.none;
+      } else {
+        nullabilitySuffix = NullabilitySuffix.question;
+      }
+
+      return FunctionTypeBuilder(
+        _getTypeParameters(node.typeParameters),
+        _getParameters(isNNBD, node.parameters),
+        _getNodeType(node.returnType),
+        nullabilitySuffix,
+      );
     } else {
       throw UnimplementedError('(${node.runtimeType}) $node');
     }
+  }
+
+  static List<TypeParameterElement> _getTypeParameters(TypeParameterList node) {
+    if (node == null) return const [];
+    return node.typeParameters.map((n) => n.declaredElement).toList();
   }
 }

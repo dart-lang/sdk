@@ -43,6 +43,9 @@ class ParserErrorCode extends ErrorCode {
       'ABSTRACT_TYPEDEF', "Typedefs can't be declared to be 'abstract'.",
       correction: "Try removing the keyword 'abstract'.");
 
+  static const ParserErrorCode ANNOTATION_WITH_TYPE_ARGUMENTS =
+      _ANNOTATION_WITH_TYPE_ARGUMENTS;
+
   /**
    * 16.32 Identifier Reference: It is a compile-time error if any of the
    * identifiers async, await, or yield is used as an identifier in a function

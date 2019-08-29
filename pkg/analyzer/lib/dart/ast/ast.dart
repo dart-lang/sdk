@@ -1260,11 +1260,12 @@ abstract class CompilationUnit implements AstNode {
 ///
 ///    compilationUnitMember ::=
 ///        [ClassDeclaration]
+///      | [MixinDeclaration]
+///      | [ExtensionDeclaration]
+///      | [EnumDeclaration]
 ///      | [TypeAlias]
 ///      | [FunctionDeclaration]
-///      | [MethodDeclaration]
-///      | [VariableDeclaration]
-///      | [VariableDeclaration]
+///      | [TopLevelVariableDeclaration]
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class CompilationUnitMember implements Declaration {}
@@ -2814,6 +2815,9 @@ abstract class FunctionExpressionInvocation implements InvocationExpression {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FunctionTypeAlias implements TypeAlias {
+  @override
+  FunctionTypeAliasElement get declaredElement;
+
   /// Return the parameters associated with the function type.
   FormalParameterList get parameters;
 

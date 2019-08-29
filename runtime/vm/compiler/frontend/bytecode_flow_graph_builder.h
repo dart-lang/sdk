@@ -159,7 +159,6 @@ class BytecodeFlowGraphBuilder {
   KERNEL_BYTECODES_LIST(DECLARE_BUILD_METHOD)
 #undef DECLARE_BUILD_METHOD
 
-  void ProcessICDataInObjectPool(const ObjectPool& object_pool);
   intptr_t GetTryIndex(const PcDescriptors& descriptors, intptr_t pc);
   JoinEntryInstr* EnsureControlFlowJoin(const PcDescriptors& descriptors,
                                         intptr_t pc);

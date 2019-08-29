@@ -378,7 +378,14 @@ class MethodInvocationResolver {
       ExtensionElement extension, SimpleIdentifier nameNode, String name) {
     ExecutableElement element =
         extension.getMethod(name) ?? extension.getGetter(name);
-    if (element is ExecutableElement) {
+    if (element == null) {
+      _setDynamicResolution(node);
+      _resolver.errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD,
+        nameNode,
+        [name, extension.name],
+      );
+    } else {
       if (!element.isStatic) {
         _resolver.errorReporter.reportErrorForNode(
             StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER,
@@ -387,8 +394,6 @@ class MethodInvocationResolver {
       }
       nameNode.staticElement = element;
       _setResolution(node, _getCalleeType(node, element));
-    } else {
-      _reportUndefinedFunction(node, receiver);
     }
   }
 

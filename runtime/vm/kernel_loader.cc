@@ -822,6 +822,7 @@ RawObject* KernelLoader::LoadExpressionEvaluationFunction(
   // Load the "evaluate:source" expression evaluation library.
   ASSERT(expression_evaluation_library_.IsNull());
   ASSERT(H.GetExpressionEvaluationFunction().IsNull());
+  H.SetExpressionEvaluationRealClass(real_class);
   const Object& result = Object::Handle(Z, LoadProgram(true));
   if (result.IsError()) {
     return result.raw();

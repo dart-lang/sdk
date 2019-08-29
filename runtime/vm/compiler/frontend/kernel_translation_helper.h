@@ -205,6 +205,15 @@ class TranslationHelper {
     }
     return *expression_evaluation_function_;
   }
+  void SetExpressionEvaluationRealClass(const Class& real_class) {
+    ASSERT(expression_evaluation_real_class_ == nullptr);
+    ASSERT(!real_class.IsNull());
+    expression_evaluation_real_class_ = &Class::Handle(zone_, real_class.raw());
+  }
+  RawClass* GetExpressionEvaluationRealClass() {
+    ASSERT(expression_evaluation_real_class_ != nullptr);
+    return expression_evaluation_real_class_->raw();
+  }
 
  private:
   // This will mangle [name_to_modify] if necessary and make the result a symbol
@@ -236,6 +245,7 @@ class TranslationHelper {
   Smi& name_index_handle_;
   GrowableObjectArray* potential_extension_libraries_ = nullptr;
   Function* expression_evaluation_function_ = nullptr;
+  Class* expression_evaluation_real_class_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(TranslationHelper);
 };

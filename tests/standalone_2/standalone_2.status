@@ -23,8 +23,7 @@ packages_file_test: Skip # Issue 26715
 packages_file_test/none: Skip # contains no tests.
 
 [ $builder_tag == asan ]
-io/named_pipe_script_test: RuntimeError
-io/process_detached_test: Pass, Slow
+io/process_detached_test: Slow
 
 [ $builder_tag == no_ipv6 ]
 io/http_ipv6_test: SkipByDesign
@@ -70,10 +69,6 @@ io/wait_for_test: SkipByDesign # Uses mirrors.
 [ $builder_tag == swarming && $system == macos ]
 io/*: Skip # Issue 30618
 
-# All static_tests have expected compile-time errors.
-[ $compiler != app_jitk && $compiler != dart2analyzer && $compiler != dartdevc && $compiler != dartk && $compiler != dartkb && $compiler != dartkp && $runtime != none ]
-float_array_static_test: MissingCompileTimeError
-
 [ $compiler == none && $runtime == vm && $system == fuchsia ]
 *: Skip # Not yet triaged.
 
@@ -107,13 +102,6 @@ fragmentation_test: Skip
 [ $compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk ]
 *: SkipByDesign
 
-[ $compiler == dartk || $compiler == dartkb || $compiler == dartkp ]
-io/file_error_test: RuntimeError
-io/file_test: RuntimeError
-io/regress_10026_test: RuntimeError
-io/web_socket_pipe_test: RuntimeError
-io/zlib_test: RuntimeError
-
 [ $mode == product || $runtime == dart_precompiled ]
 no_assert_test: SkipByDesign
 
@@ -122,12 +110,10 @@ deferred_transitive_import_error_test: Skip
 io/https_client_certificate_test: RuntimeError # Issue 24070 Failures in secure networking while NSS is replaced with BoringSSL
 io/non_utf8_output_test: NonUtf8Output, OK # This test checks that the test runner correctly detects and reports non-utf8 output from a test.
 io/secure_socket_bad_data_test: RuntimeError # An error in a secure connection just puts a READ_CLOSED on the stream, rather than signaling an error on the stream.
-io/secure_socket_renegotiate_test: RuntimeError
 package/package_isolate_test: Fail # Issue 12474
 package/scenarios/invalid/same_package_twice_test: Pass # Issue 24119
 
 [ $hot_reload || $hot_reload_rollback ]
-deferred_transitive_import_error_test: Crash
 fragmentation_test: Pass, Crash # Issue 31421
 io/addlatexhash_test: Pass, Crash # Issue 31252
 io/many_directory_operations_test: SkipSlow

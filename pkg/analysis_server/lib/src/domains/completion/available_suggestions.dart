@@ -211,8 +211,6 @@ protocol.AvailableSuggestion _protocolAvailableSuggestion(
     _protocolElement(declaration),
     defaultArgumentListString: declaration.defaultArgumentListString,
     defaultArgumentListTextRanges: declaration.defaultArgumentListTextRanges,
-    docComplete: declaration.docComplete,
-    docSummary: declaration.docSummary,
     parameterNames: declaration.parameterNames,
     parameterTypes: declaration.parameterTypes,
     requiredParameterCount: declaration.requiredParameterCount,

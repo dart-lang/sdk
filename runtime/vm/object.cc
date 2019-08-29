@@ -12,6 +12,7 @@
 #include "vm/bit_vector.h"
 #include "vm/bootstrap.h"
 #include "vm/class_finalizer.h"
+#include "vm/code_comments.h"
 #include "vm/code_observers.h"
 #include "vm/compiler/aot/precompiler.h"
 #include "vm/compiler/assembler/assembler.h"
@@ -99,6 +100,8 @@ static const intptr_t kInitPrefixLength = strlen(kInitPrefix);
 
 // A cache of VM heap allocated preinitialized empty ic data entry arrays.
 RawArray* ICData::cached_icdata_arrays_[kCachedICDataArrayCount];
+// A VM heap allocated preinitialized empty subtype entry array.
+RawArray* SubtypeTestCache::cached_array_;
 
 cpp_vtable Object::handle_vtable_ = 0;
 cpp_vtable Object::builtin_vtables_[kNumPredefinedCids] = {0};
@@ -7970,7 +7973,7 @@ RawString* Function::GetSource() const {
       // (3) "var foo = () => null;": End token is `;', but in this case the
       // token semicolon belongs to the assignment so we skip it.
       const String& src = String::Handle(func_script.Source());
-      if (src.IsNull()) {
+      if (src.IsNull() || src.Length() == 0) {
         return Symbols::OptimizedOut().raw();
       }
       uint16_t end_char = src.CharAt(end_token_pos().value());
@@ -9369,63 +9372,93 @@ RawTypedData* Script::kernel_string_offsets() const {
   return program_info.string_offsets();
 }
 
+void Script::LookupSourceAndLineStarts(Zone* zone) const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (Source() == String::null()) {
+    // This is a script without source info.
+    return;
+  }
+  const String& uri = String::Handle(zone, resolved_url());
+  ASSERT(uri.IsSymbol());
+  if (uri.Length() > 0 && Source() == Symbols::Empty().raw()) {
+    // Entry included only to provide URI - actual source should already exist
+    // in the VM, so try to find it.
+    Library& lib = Library::Handle(zone);
+    Script& script = Script::Handle(zone);
+    const GrowableObjectArray& libs = GrowableObjectArray::Handle(
+        zone, Isolate::Current()->object_store()->libraries());
+    for (intptr_t i = 0; i < libs.Length(); i++) {
+      lib ^= libs.At(i);
+      script = lib.LookupScript(uri, /* useResolvedUri = */ true);
+      if (!script.IsNull() && script.kind() == RawScript::kKernelTag &&
+          script.Source() != Symbols::Empty().raw()) {
+        set_source(String::Handle(zone, script.Source()));
+        set_line_starts(TypedData::Handle(zone, script.line_starts()));
+        // Note that we may find a script without source info (null source).
+        // We will not repeat the lookup in this case.
+        return;
+      }
+    }
+    set_source(Object::null_string());
+    // No script found. Set source to null to prevent further lookup.
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+}
+
 RawGrowableObjectArray* Script::GenerateLineNumberArray() const {
+  ASSERT(kind() == RawScript::kKernelTag);
   Zone* zone = Thread::Current()->zone();
   const GrowableObjectArray& info =
       GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
   const Object& line_separator = Object::Handle(zone);
-
-  if (kind() == RawScript::kKernelTag) {
-    const TypedData& line_starts_data = TypedData::Handle(zone, line_starts());
-    if (line_starts_data.IsNull()) {
-      // Scripts in the AOT snapshot do not have a line starts array.
-      // A well-formed line number array has a leading null.
-      info.Add(line_separator);  // New line.
-      return info.raw();
-    }
-#if !defined(DART_PRECOMPILED_RUNTIME)
-    Smi& value = Smi::Handle(zone);
-    intptr_t line_count = line_starts_data.Length();
-    const Array& debug_positions_array = Array::Handle(debug_positions());
-    intptr_t token_count = debug_positions_array.Length();
-    int token_index = 0;
-
-    kernel::KernelLineStartsReader line_starts_reader(line_starts_data, zone);
-    intptr_t previous_start = 0;
-    for (int line_index = 0; line_index < line_count; ++line_index) {
-      intptr_t start = previous_start + line_starts_reader.DeltaAt(line_index);
-      // Output the rest of the tokens if we have no next line.
-      intptr_t end = TokenPosition::kMaxSourcePos;
-      if (line_index + 1 < line_count) {
-        end = start + line_starts_reader.DeltaAt(line_index + 1);
-      }
-      bool first = true;
-      while (token_index < token_count) {
-        value ^= debug_positions_array.At(token_index);
-        intptr_t debug_position = value.Value();
-        if (debug_position >= end) break;
-
-        if (first) {
-          info.Add(line_separator);          // New line.
-          value = Smi::New(line_index + 1);  // Line number.
-          info.Add(value);
-          first = false;
-        }
-
-        value ^= debug_positions_array.At(token_index);
-        info.Add(value);                               // Token position.
-        value = Smi::New(debug_position - start + 1);  // Column.
-        info.Add(value);
-        ++token_index;
-      }
-      previous_start = start;
-    }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  LookupSourceAndLineStarts(zone);
+  if (line_starts() == TypedData::null()) {
+    // Scripts in the AOT snapshot do not have a line starts array.
+    // Neither do some scripts coming from bytecode.
+    // A well-formed line number array has a leading null.
+    info.Add(line_separator);  // New line.
     return info.raw();
   }
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  Smi& value = Smi::Handle(zone);
+  const TypedData& line_starts_data = TypedData::Handle(zone, line_starts());
+  intptr_t line_count = line_starts_data.Length();
+  const Array& debug_positions_array = Array::Handle(debug_positions());
+  intptr_t token_count = debug_positions_array.Length();
+  int token_index = 0;
 
-  UNREACHABLE();
-  return GrowableObjectArray::null();
+  kernel::KernelLineStartsReader line_starts_reader(line_starts_data, zone);
+  intptr_t previous_start = 0;
+  for (int line_index = 0; line_index < line_count; ++line_index) {
+    intptr_t start = previous_start + line_starts_reader.DeltaAt(line_index);
+    // Output the rest of the tokens if we have no next line.
+    intptr_t end = TokenPosition::kMaxSourcePos;
+    if (line_index + 1 < line_count) {
+      end = start + line_starts_reader.DeltaAt(line_index + 1);
+    }
+    bool first = true;
+    while (token_index < token_count) {
+      value ^= debug_positions_array.At(token_index);
+      intptr_t debug_position = value.Value();
+      if (debug_position >= end) break;
+
+      if (first) {
+        info.Add(line_separator);          // New line.
+        value = Smi::New(line_index + 1);  // Line number.
+        info.Add(value);
+        first = false;
+      }
+
+      value ^= debug_positions_array.At(token_index);
+      info.Add(value);                               // Token position.
+      value = Smi::New(debug_position - start + 1);  // Column.
+      info.Add(value);
+      ++token_index;
+    }
+    previous_start = start;
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  return info.raw();
 }
 
 const char* Script::GetKindAsCString() const {
@@ -9579,80 +9612,76 @@ void Script::GetTokenLocation(TokenPosition token_pos,
   ASSERT(line != NULL);
   Zone* zone = Thread::Current()->zone();
 
-  if (kind() == RawScript::kKernelTag) {
-    const TypedData& line_starts_data = TypedData::Handle(zone, line_starts());
-    if (line_starts_data.IsNull()) {
-      // Scripts in the AOT snapshot do not have a line starts array.
-      *line = -1;
-      if (column != NULL) {
-        *column = -1;
-      }
-      if (token_len != NULL) {
-        *token_len = 1;
-      }
-      return;
+  ASSERT(kind() == RawScript::kKernelTag);
+  LookupSourceAndLineStarts(zone);
+  if (line_starts() == TypedData::null()) {
+    // Scripts in the AOT snapshot do not have a line starts array.
+    // Neither do some scripts coming from bytecode.
+    *line = -1;
+    if (column != NULL) {
+      *column = -1;
     }
-#if !defined(DART_PRECOMPILED_RUNTIME)
-    ASSERT(line_starts_data.Length() > 0);
-    kernel::KernelLineStartsReader line_starts_reader(line_starts_data, zone);
-    line_starts_reader.LocationForPosition(token_pos.value(), line, column);
     if (token_len != NULL) {
       *token_len = 1;
-      // We don't explicitly save this data: Load the source
-      // and find it from there.
-      const String& source = String::Handle(zone, Source());
-      if (!source.IsNull()) {
-        intptr_t offset = token_pos.value();
-        if (offset < source.Length() &&
-            IsIdentStartChar(source.CharAt(offset))) {
-          for (intptr_t i = offset + 1;
-               i < source.Length() && IsIdentChar(source.CharAt(i)); ++i) {
-            ++*token_len;
-          }
+    }
+    return;
+  }
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  const TypedData& line_starts_data = TypedData::Handle(zone, line_starts());
+  kernel::KernelLineStartsReader line_starts_reader(line_starts_data, zone);
+  line_starts_reader.LocationForPosition(token_pos.value(), line, column);
+  if (token_len != NULL) {
+    *token_len = 1;
+    // We don't explicitly save this data: Load the source
+    // and find it from there.
+    const String& source = String::Handle(zone, Source());
+    if (!source.IsNull()) {
+      intptr_t offset = token_pos.value();
+      if (offset < source.Length() && IsIdentStartChar(source.CharAt(offset))) {
+        for (intptr_t i = offset + 1;
+             i < source.Length() && IsIdentChar(source.CharAt(i)); ++i) {
+          ++*token_len;
         }
       }
     }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-    return;
   }
-
-  UNREACHABLE();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 void Script::TokenRangeAtLine(intptr_t line_number,
                               TokenPosition* first_token_index,
                               TokenPosition* last_token_index) const {
+  ASSERT(kind() == RawScript::kKernelTag);
   ASSERT(first_token_index != NULL && last_token_index != NULL);
   ASSERT(line_number > 0);
 
-  if (kind() == RawScript::kKernelTag) {
-    const TypedData& line_starts_data = TypedData::Handle(line_starts());
-    if (line_starts_data.IsNull()) {
-      // Scripts in the AOT snapshot do not have a line starts array.
-      *first_token_index = TokenPosition::kNoSource;
-      *last_token_index = TokenPosition::kNoSource;
-      return;
-    }
-#if !defined(DART_PRECOMPILED_RUNTIME)
-    const String& source = String::Handle(Source());
-    intptr_t source_length;
-    if (source.IsNull()) {
-      Smi& value = Smi::Handle();
-      const Array& debug_positions_array = Array::Handle(debug_positions());
-      value ^= debug_positions_array.At(debug_positions_array.Length() - 1);
-      source_length = value.Value();
-    } else {
-      source_length = source.Length();
-    }
-    kernel::KernelLineStartsReader line_starts_reader(
-        line_starts_data, Thread::Current()->zone());
-    line_starts_reader.TokenRangeAtLine(source_length, line_number,
-                                        first_token_index, last_token_index);
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  LookupSourceAndLineStarts(zone);
+  if (line_starts() == TypedData::null()) {
+    // Scripts in the AOT snapshot do not have a line starts array.
+    // Neither do some scripts coming from bytecode.
+    *first_token_index = TokenPosition::kNoSource;
+    *last_token_index = TokenPosition::kNoSource;
     return;
   }
-
-  UNREACHABLE();
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  const String& source = String::Handle(zone, Source());
+  intptr_t source_length;
+  if (source.IsNull()) {
+    Smi& value = Smi::Handle(zone);
+    const Array& debug_positions_array = Array::Handle(zone, debug_positions());
+    value ^= debug_positions_array.At(debug_positions_array.Length() - 1);
+    source_length = value.Value();
+  } else {
+    source_length = source.Length();
+  }
+  const TypedData& line_starts_data = TypedData::Handle(zone, line_starts());
+  kernel::KernelLineStartsReader line_starts_reader(line_starts_data,
+                                                    Thread::Current()->zone());
+  line_starts_reader.TokenRangeAtLine(source_length, line_number,
+                                      first_token_index, last_token_index);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 RawString* Script::GetLine(intptr_t line_number, Heap::Space space) const {
@@ -12460,22 +12489,6 @@ RawError* Library::ReadAllBytecode() {
     }
   }
 
-  // Inner functions get added to the closures array. As part of compilation
-  // more closures can be added to the end of the array. Compile all the
-  // closures until we have reached the end of the "worklist".
-  const GrowableObjectArray& closures = GrowableObjectArray::Handle(
-      zone, Isolate::Current()->object_store()->closure_functions());
-  Function& func = Function::Handle(zone);
-  for (int i = 0; i < closures.Length(); i++) {
-    func ^= closures.At(i);
-    if (func.IsBytecodeAllowed(zone) && !func.HasBytecode()) {
-      RawError* error =
-          kernel::BytecodeReader::ReadFunctionBytecode(thread, func);
-      if (error != Error::null()) {
-        return error;
-      }
-    }
-  }
   return Error::null();
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
@@ -13756,17 +13769,17 @@ bool ICData::AddSmiSmiCheckForFastSmiStubs() const {
   bool is_smi_two_args_op = false;
 
   ASSERT(NumArgsTested() == 2);
-  const String& name = String::Handle(target_name());
-  const Class& smi_class = Class::Handle(Smi::Class());
   Zone* zone = Thread::Current()->zone();
-  Function& smi_op_target =
-      Function::Handle(Resolver::ResolveDynamicAnyArgs(zone, smi_class, name));
+  const String& name = String::Handle(zone, target_name());
+  const Class& smi_class = Class::Handle(zone, Smi::Class());
+  Function& smi_op_target = Function::Handle(
+      zone, Resolver::ResolveDynamicAnyArgs(zone, smi_class, name));
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (smi_op_target.IsNull() &&
       Function::IsDynamicInvocationForwarderName(name)) {
-    const String& demangled =
-        String::Handle(Function::DemangleDynamicInvocationForwarderName(name));
+    const String& demangled = String::Handle(
+        zone, Function::DemangleDynamicInvocationForwarderName(name));
     smi_op_target = Resolver::ResolveDynamicAnyArgs(zone, smi_class, demangled);
   }
 #endif
@@ -14307,14 +14320,6 @@ RawUnlinkedCall* ICData::AsUnlinkedCall() const {
   return result.raw();
 }
 
-RawMegamorphicCache* ICData::AsMegamorphicCache() const {
-  ASSERT(NumArgsTested() == 1);
-  ASSERT(!is_tracking_exactness());
-  const String& name = String::Handle(target_name());
-  const Array& descriptor = Array::Handle(arguments_descriptor());
-  return MegamorphicCacheTable::Lookup(Isolate::Current(), name, descriptor);
-}
-
 bool ICData::HasReceiverClassId(intptr_t class_id) const {
   ASSERT(NumArgsTested() > 0);
   const intptr_t len = NumberOfChecks();
@@ -14343,9 +14348,12 @@ bool ICData::HasOneTarget() const {
     }
   }
   if (is_megamorphic()) {
-    const MegamorphicCache& cache =
-        MegamorphicCache::Handle(AsMegamorphicCache());
-    SafepointMutexLocker ml(Isolate::Current()->megamorphic_mutex());
+    Thread* thread = Thread::Current();
+    Zone* zone = thread->zone();
+    const String& name = String::Handle(zone, target_name());
+    const Array& descriptor = Array::Handle(zone, arguments_descriptor());
+    const MegamorphicCache& cache = MegamorphicCache::Handle(
+        zone, MegamorphicCacheTable::LookupClone(thread, name, descriptor));
     MegamorphicCacheEntries entries(Array::Handle(cache.buckets()));
     for (intptr_t i = 0; i < entries.Length(); i++) {
       const intptr_t id =
@@ -14896,42 +14904,6 @@ RawCode* Code::New(intptr_t pointer_offsets_length) {
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-#if !defined(PRODUCT)
-class CodeCommentsWrapper final : public CodeComments {
- public:
-  explicit CodeCommentsWrapper(const Code::Comments& comments)
-      : comments_(comments), string_(String::Handle()) {}
-
-  intptr_t Length() const override { return comments_.Length(); }
-
-  intptr_t PCOffsetAt(intptr_t i) const override {
-    return comments_.PCOffsetAt(i);
-  }
-
-  const char* CommentAt(intptr_t i) const override {
-    string_ = comments_.CommentAt(i);
-    return string_.ToCString();
-  }
-
- private:
-  const Code::Comments& comments_;
-  String& string_;
-};
-
-static const Code::Comments& CreateCommentsFrom(
-    compiler::Assembler* assembler) {
-  const auto& comments = assembler->comments();
-  Code::Comments& result = Code::Comments::New(comments.length());
-
-  for (intptr_t i = 0; i < comments.length(); i++) {
-    result.SetPCOffsetAt(i, comments[i]->pc_offset());
-    result.SetCommentAt(i, comments[i]->comment());
-  }
-
-  return result;
-}
-#endif
-
 RawCode* Code::FinalizeCodeAndNotify(const Function& function,
                                      FlowGraphCompiler* compiler,
                                      compiler::Assembler* assembler,
@@ -15130,7 +15102,6 @@ void Code::NotifyCodeObservers(const char* name,
   }
 #endif
 }
-
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 bool Code::SlowFindRawCodeVisitor::FindObject(RawObject* raw_obj) const {
@@ -16002,6 +15973,45 @@ void MegamorphicCache::SwitchToBareInstructions() {
   }
 }
 
+RawMegamorphicCache* MegamorphicCache::Clone(const MegamorphicCache& from) {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  MegamorphicCache& result = MegamorphicCache::Handle(zone);
+  {
+    RawObject* raw =
+        Object::Allocate(MegamorphicCache::kClassId,
+                         MegamorphicCache::InstanceSize(), Heap::kNew);
+    NoSafepointScope no_safepoint;
+    result ^= raw;
+  }
+
+  SafepointMutexLocker ml(thread->isolate()->megamorphic_mutex());
+  const Array& from_buckets = Array::Handle(zone, from.buckets());
+  const intptr_t len = from_buckets.Length();
+  const Array& cloned_buckets =
+      Array::Handle(zone, Array::New(len, Heap::kNew));
+  Object& obj = Object::Handle(zone);
+  for (intptr_t i = 0; i < len; i++) {
+    obj = from_buckets.At(i);
+    cloned_buckets.SetAt(i, obj);
+  }
+  result.set_buckets(cloned_buckets);
+  result.set_mask(from.mask());
+  result.set_target_name(String::Handle(zone, from.target_name()));
+  result.set_arguments_descriptor(
+      Array::Handle(zone, from.arguments_descriptor()));
+  result.set_filled_entry_count(from.filled_entry_count());
+  return result.raw();
+}
+
+void SubtypeTestCache::Init() {
+  cached_array_ = Array::New(kTestEntryLength, Heap::kOld);
+}
+
+void SubtypeTestCache::Cleanup() {
+  cached_array_ = NULL;
+}
+
 RawSubtypeTestCache* SubtypeTestCache::New() {
   ASSERT(Object::subtypetestcache_class() != Class::null());
   SubtypeTestCache& result = SubtypeTestCache::Handle();
@@ -16014,8 +16024,7 @@ RawSubtypeTestCache* SubtypeTestCache::New() {
     NoSafepointScope no_safepoint;
     result ^= raw;
   }
-  const Array& cache = Array::Handle(Array::New(kTestEntryLength, Heap::kOld));
-  result.set_cache(cache);
+  result.set_cache(Array::Handle(cached_array_));
   return result.raw();
 }
 
@@ -16077,6 +16086,10 @@ void SubtypeTestCache::GetCheck(
   *instance_delayed_type_arguments =
       entry.Get<kInstanceDelayedFunctionTypeArguments>();
   *test_result ^= entry.Get<kTestResult>();
+}
+
+void SubtypeTestCache::Reset() const {
+  set_cache(Array::Handle(cached_array_));
 }
 
 const char* SubtypeTestCache::ToCString() const {

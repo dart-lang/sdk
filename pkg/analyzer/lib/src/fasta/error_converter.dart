@@ -26,12 +26,6 @@ class FastaErrorReporter {
     String lexeme() => (arguments['token'] as Token).lexeme;
 
     switch (analyzerCode) {
-      case "ANNOTATION_WITH_TYPE_ARGUMENTS":
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS,
-            offset,
-            length);
-        return;
       case "ASYNC_FOR_IN_WRONG_CONTEXT":
         errorReporter?.reportErrorForOffset(
             CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT, offset, length);
