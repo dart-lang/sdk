@@ -4,14 +4,27 @@
 
 import 'dart:async';
 
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(InvalidCodeTest);
+    if (AnalysisDriver.useSummary2) {
+      defineReflectiveTests(InvalidCodeSummary2Test);
+    } else {
+      defineReflectiveTests(InvalidCodeTest);
+    }
   });
+}
+
+@reflectiveTest
+class InvalidCodeSummary2Test extends InvalidCodeTest {
+  @failingTest
+  test_fuzz_12() {
+    return test_fuzz_12();
+  }
 }
 
 /// Tests for various end-to-end cases when invalid code caused exceptions

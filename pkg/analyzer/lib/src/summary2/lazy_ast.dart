@@ -943,11 +943,9 @@ class LazyFormalParameter {
   ) {
     var lazy = get(node);
     if (lazy != null && !lazy._hasDefaultValue) {
-      reader.isLazy = false;
       node.defaultValue = reader.readNode(
         lazy.data.defaultFormalParameter_defaultValue,
       );
-      reader.isLazy = true;
       lazy._hasDefaultValue = true;
     }
   }
