@@ -13,7 +13,7 @@ import 'dartfuzz_values.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.25';
+const String version = '1.27';
 
 // Restriction on statements and expressions.
 const int stmtLength = 2;
@@ -121,6 +121,14 @@ class DartFuzz {
         emitLn('${method[0].name} $name$i(', newline: false);
       }
       emitParDecls(method);
+      if (!isFfiMethod && rand.nextInt(10) == 0) {
+        // Emit a method using "=>" syntax.
+        emit(') => ');
+        emitExpr(0, method[0]);
+        emit(';', newline: true);
+        currentMethod = null;
+        continue;
+      }
       emit(') {', newline: true);
       indent += 2;
       assert(localVars.isEmpty);
