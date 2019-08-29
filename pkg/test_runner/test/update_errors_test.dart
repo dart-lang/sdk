@@ -192,12 +192,12 @@ int j =
 /\/ [cfe] Error.
 """);
 
-  // Uses an explicit error location if there's no length.
+  // Uses length one if there's no length.
   expectUpdate("""
 int i = "bad";
 """, errors: [StaticError(line: 1, column: 9, message: "Error.")], expected: """
 int i = "bad";
-/\/ [error line 1, column 9]
+/\/      ^
 /\/ [cfe] Error.
 """);
 
@@ -322,7 +322,7 @@ class A {
     yy(4);
 /\/  ^^^^^^^^^^^^^^
 /\/ [analyzer] unspecified
-/\/ [error line 12, column 7]
+/\/    ^
 /\/ [cfe] The method 'call' isn't defined for the class 'int'.
 
   }

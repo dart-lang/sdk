@@ -921,6 +921,14 @@ class ErrorExpectationParser {
           "error.");
     }
 
+    // Hack: If the error is CFE-only and the length is one, treat it as no
+    // length. The CFE does not output length information, and when the update
+    // tool writes a CFE-only error, it implicitly uses a length of one. Thus,
+    // when we parse back in a length one CFE error, we ignore the length so
+    // that the error round-trips correctly.
+    // TODO(rnystrom): Stop doing this when the CFE reports error lengths.
+    if (code == null && length == 1) length = null;
+
     _errors.add(StaticError(
         line: line,
         column: column,

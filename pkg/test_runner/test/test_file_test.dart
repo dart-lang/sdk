@@ -457,6 +457,22 @@ int i = "s";
 /\/      ^^^
 /\/ [analyzer] Not error code.
 """);
+
+  // A CFE-only error with length one is treated as having no length.
+  expectParseErrorExpectations("""
+int i = "s";
+/\/      ^
+/\/ [cfe] Message.
+
+int j = "s";
+/\/      ^
+/\/ [analyzer] Error.BAD
+/\/ [cfe] Message.
+""", [
+    StaticError(line: 1, column: 9, length: null, message: "Message."),
+    StaticError(
+        line: 5, column: 9, length: 1, code: "Error.BAD", message: "Message."),
+  ]);
 }
 
 void testName() {

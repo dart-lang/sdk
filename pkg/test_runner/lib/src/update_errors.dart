@@ -96,13 +96,15 @@ String updateErrorExpectations(String source, List<StaticError> errors,
 
       var comment = (" " * indent) + "//";
 
-      // If the error can't fit in a line comment or doesn't have a length, use
-      // an explicit location.
-      if (error.length == null) {
-        result.add("$comment [error line $codeLine, column ${error.column}]");
-      } else if (error.column <= 2) {
-        result.add("$comment [error line $codeLine, column ${error.column}, "
-            "length ${error.length}]");
+      // If the error can't fit in a line comment, use an explicit location.
+      if (error.column <= 2) {
+        if (error.length == null) {
+          result.add("$comment [error line $codeLine, column "
+              "${error.column}]");
+        } else {
+          result.add("$comment [error line $codeLine, column "
+              "${error.column}, length ${error.length}]");
+        }
       } else {
         var spacing = " " * (error.column - 1 - 2 - indent);
         // A CFE-only error may not have a length, so treat it as length 1.
