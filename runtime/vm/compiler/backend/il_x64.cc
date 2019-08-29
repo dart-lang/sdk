@@ -5690,6 +5690,64 @@ static void EmitInt64ModTruncDiv(FlowGraphCompiler* compiler,
                                  Register out) {
   ASSERT(op_kind == Token::kMOD || op_kind == Token::kTRUNCDIV);
 
+  // Special case 64-bit div/mod by compile-time constant. Note that various
+  // special constants (such as powers of two) should have been optimized
+  // earlier in the pipeline. Div or mod by zero falls into general code
+  // to implement the exception.
+  if (auto c = instruction->right()->definition()->AsConstant()) {
+    if (c->value().IsInteger()) {
+      const int64_t divisor = Integer::Cast(c->value()).AsInt64Value();
+      if (divisor <= -2 || divisor >= 2) {
+        // For x DIV c or x MOD c: use magic operations.
+        compiler::Label pos;
+        int64_t magic = 0;
+        int64_t shift = 0;
+        Utils::CalculateMagicAndShiftForDivRem(divisor, &magic, &shift);
+        // RDX:RAX = magic * numerator.
+        ASSERT(left == RAX);
+        __ MoveRegister(TMP, RAX);  // save numerator
+        __ LoadImmediate(RAX, compiler::Immediate(magic));
+        __ imulq(TMP);
+        // RDX +/-= numerator.
+        if (divisor > 0 && magic < 0) {
+          __ addq(RDX, TMP);
+        } else if (divisor < 0 && magic > 0) {
+          __ subq(RDX, TMP);
+        }
+        // Shift if needed.
+        if (shift != 0) {
+          __ sarq(RDX, compiler::Immediate(shift));
+        }
+        // RDX += 1 if RDX < 0.
+        __ movq(RAX, RDX);
+        __ shrq(RDX, compiler::Immediate(63));
+        __ addq(RDX, RAX);
+        // Finalize DIV or MOD.
+        if (op_kind == Token::kTRUNCDIV) {
+          ASSERT(out == RAX && tmp == RDX);
+          __ movq(RAX, RDX);
+        } else {
+          ASSERT(out == RDX && tmp == RAX);
+          __ movq(RAX, TMP);
+          __ LoadImmediate(TMP, compiler::Immediate(divisor));
+          __ imulq(RDX, TMP);
+          __ subq(RAX, RDX);
+          // Compensate for Dart's Euclidean view of MOD.
+          __ testq(RAX, RAX);
+          __ j(GREATER_EQUAL, &pos);
+          if (divisor > 0) {
+            __ addq(RAX, TMP);
+          } else {
+            __ subq(RAX, TMP);
+          }
+          __ Bind(&pos);
+          __ movq(RDX, RAX);
+        }
+        return;
+      }
+    }
+  }
+
   // Prepare a slow path.
   Range* right_range = instruction->right()->definition()->range();
   Int64DivideSlowPath* slow_path = new (Z) Int64DivideSlowPath(

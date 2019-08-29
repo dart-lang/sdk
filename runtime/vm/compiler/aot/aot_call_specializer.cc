@@ -445,12 +445,12 @@ Definition* AotCallSpecializer::TryOptimizeMod(TemplateDartCall<0>* instr,
   right_definition = new (Z)
       IntConverterInstr(kUnboxedInt32, kUnboxedInt64,
                         new (Z) Value(right_definition), DeoptId::kNone);
-  InsertBefore(instr, right_definition, /*env=*/NULL, FlowGraph::kValue);
 #else
   Definition* right_definition = new (Z) UnboxedConstantInstr(
       Smi::ZoneHandle(Z, Smi::New(modulus - 1)), kUnboxedInt64);
-  InsertBefore(instr, right_definition, /*env=*/NULL, FlowGraph::kValue);
 #endif
+  if (modulus == 1) return right_definition;
+  InsertBefore(instr, right_definition, /*env=*/NULL, FlowGraph::kValue);
   right_value = new (Z) Value(right_definition);
   return new (Z)
       BinaryInt64OpInstr(Token::kBIT_AND, left_value, right_value,

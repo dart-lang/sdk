@@ -2616,6 +2616,12 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
       }
       break;
 
+    case Token::kMOD:
+      if (std::abs(rhs) == 1) {
+        return CreateConstantResult(flow_graph, Object::smi_zero());
+      }
+      break;
+
     case Token::kSHR:
       if (rhs == 0) {
         return left()->definition();
@@ -3129,10 +3135,18 @@ Definition* BoxInt64Instr::Canonicalize(FlowGraph* flow_graph) {
     return replacement;
   }
 
-  IntConverterInstr* conv = value()->definition()->AsIntConverter();
-  if (conv != NULL) {
-    Definition* replacement = this;
+  // For all x, box(unbox(x)) = x.
+  if (auto unbox = value()->definition()->AsUnboxInt64()) {
+    if (unbox->speculative_mode() == kNotSpeculative) {
+      return unbox->value()->definition();
+    }
+  } else if (auto unbox = value()->definition()->AsUnboxedConstant()) {
+    return flow_graph->GetConstant(unbox->value());
+  }
 
+  // Find a more precise box instruction.
+  if (auto conv = value()->definition()->AsIntConverter()) {
+    Definition* replacement = this;
     switch (conv->from()) {
       case kUnboxedInt32:
         replacement = new BoxInt32Instr(conv->value()->CopyWithType());
@@ -3144,11 +3158,9 @@ Definition* BoxInt64Instr::Canonicalize(FlowGraph* flow_graph) {
         UNREACHABLE();
         break;
     }
-
     if (replacement != this) {
       flow_graph->InsertBefore(this, replacement, NULL, FlowGraph::kValue);
     }
-
     return replacement;
   }
 
