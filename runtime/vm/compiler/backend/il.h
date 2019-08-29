@@ -1506,6 +1506,12 @@ class GraphEntryInstr : public BlockEntryWithInitialDefs {
   PRINT_TO_SUPPORT
 
  private:
+  friend class FlowGraphDeserializer;  // For the constructor with deopt_id arg.
+
+  GraphEntryInstr(const ParsedFunction& parsed_function,
+                  intptr_t osr_id,
+                  intptr_t deopt_id);
+
   virtual void ClearPredecessors() {}
   virtual void AddPredecessor(BlockEntryInstr* predecessor) { UNREACHABLE(); }
 
@@ -8454,6 +8460,7 @@ class Environment : public ZoneAllocated {
  private:
   friend class ShallowIterator;
   friend class compiler::BlockBuilder;  // For Environment constructor.
+  friend class FlowGraphDeserializer;   // For constructor and deopt_id_.
 
   Environment(intptr_t length,
               intptr_t fixed_parameter_count,

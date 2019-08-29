@@ -6,6 +6,10 @@
 // VMOptions=--early-round-trip-serialization
 // VMOptions=--late-round-trip-serialization
 // VMOptions=--early-round-trip-serialization --late-round-trip-serialization
+// VMOptions=--deterministic
+// VMOptions=--deterministic --early-round-trip-serialization
+// VMOptions=--deterministic --late-round-trip-serialization
+// VMOptions=--deterministic --early-round-trip-serialization --late-round-trip-serialization
 
 // Just use the existing hello world test for now.
 // TODO(36882): Add more interesting code as the deserializer grows.

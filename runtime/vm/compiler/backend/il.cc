@@ -1113,9 +1113,14 @@ const Object& Value::BoundConstant() const {
 
 GraphEntryInstr::GraphEntryInstr(const ParsedFunction& parsed_function,
                                  intptr_t osr_id)
-    : BlockEntryWithInitialDefs(0,
-                                kInvalidTryIndex,
-                                CompilerState::Current().GetNextDeoptId()),
+    : GraphEntryInstr(parsed_function,
+                      osr_id,
+                      CompilerState::Current().GetNextDeoptId()) {}
+
+GraphEntryInstr::GraphEntryInstr(const ParsedFunction& parsed_function,
+                                 intptr_t osr_id,
+                                 intptr_t deopt_id)
+    : BlockEntryWithInitialDefs(0, kInvalidTryIndex, deopt_id),
       parsed_function_(parsed_function),
       catch_entries_(),
       indirect_entries_(),

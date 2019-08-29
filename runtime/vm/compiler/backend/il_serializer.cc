@@ -61,6 +61,22 @@ SExpression* FlowGraphSerializer::SerializeToSExp(Zone* zone,
   return serializer.FlowGraphToSExp();
 }
 
+#define KIND_STR(name) #name,
+static const char* block_entry_kind_tags[FlowGraphSerializer::kNumEntryKinds] =
+    {FOR_EACH_BLOCK_ENTRY_KIND(KIND_STR)};
+#undef KIND_STR
+
+FlowGraphSerializer::BlockEntryKind FlowGraphSerializer::BlockEntryTagToKind(
+    SExpSymbol* tag) {
+  if (tag == nullptr) return kTarget;
+  auto const str = tag->value();
+  for (intptr_t i = 0; i < kNumEntryKinds; i++) {
+    auto const current = block_entry_kind_tags[i];
+    if (strcmp(str, current) == 0) return static_cast<BlockEntryKind>(i);
+  }
+  return kInvalid;
+}
+
 void FlowGraphSerializer::AddBool(SExpList* sexp, bool b) {
   sexp->Add(new (zone()) SExpBool(b));
 }
@@ -168,34 +184,41 @@ SExpression* FlowGraphSerializer::CanonicalNameToSExp(const Object& obj) {
   return new (zone()) SExpSymbol(OS::SCreate(zone(), "%s", b.buf()));
 }
 
+SExpSymbol* FlowGraphSerializer::BlockEntryKindToTag(BlockEntryKind k) {
+  ASSERT(k >= 0 && k < kNumEntryKinds);
+  return new (zone()) SExpSymbol(block_entry_kind_tags[k]);
+}
+
+#define KIND_TAG(name) block_entry_kind_tags[k##name]
 SExpSymbol* FlowGraphSerializer::BlockEntryTag(const BlockEntryInstr* entry) {
   if (entry == nullptr) return nullptr;
   BlockEntryInstr* const to_test = const_cast<BlockEntryInstr*>(entry);
   if (to_test->IsGraphEntry()) {
-    return new (zone()) SExpSymbol("Graph");
+    return BlockEntryKindToTag(kGraph);
   }
   if (to_test->IsOsrEntry()) {
-    return new (zone()) SExpSymbol("OSR");
+    return BlockEntryKindToTag(kOSR);
   }
   if (to_test->IsCatchBlockEntry()) {
-    return new (zone()) SExpSymbol("Catch");
+    return BlockEntryKindToTag(kCatch);
   }
   if (to_test->IsIndirectEntry()) {
-    return new (zone()) SExpSymbol("Indirect");
+    return BlockEntryKindToTag(kIndirect);
   }
   if (to_test->IsFunctionEntry()) {
     if (entry == flow_graph()->graph_entry()->normal_entry()) {
-      return new (zone()) SExpSymbol("Normal");
+      return BlockEntryKindToTag(kNormal);
     }
     if (entry == flow_graph()->graph_entry()->unchecked_entry()) {
-      return new (zone()) SExpSymbol("Unchecked");
+      return BlockEntryKindToTag(kUnchecked);
     }
   }
   if (to_test->IsJoinEntry()) {
-    return new (zone()) SExpSymbol("Join");
+    return BlockEntryKindToTag(kJoin);
   }
   return nullptr;
 }
+#undef KIND_TAG
 
 SExpression* FlowGraphSerializer::FunctionEntryToSExp(BlockEntryInstr* entry) {
   if (entry == nullptr) return nullptr;
@@ -208,6 +231,11 @@ SExpression* FlowGraphSerializer::FunctionEntryToSExp(BlockEntryInstr* entry) {
       sexp->Add(initial_defs->At(i)->ToSExpression(this));
     }
   }
+
+  // Also include the extra info here, to avoid having to find the
+  // corresponding block to get it.
+  entry->BlockEntryInstr::AddExtraInfoToSExpression(sexp, this);
+
   return sexp;
 }
 
@@ -612,10 +640,13 @@ SExpression* BlockEntryInstr::ToSExpression(FlowGraphSerializer* s) const {
 void BlockEntryInstr::AddExtraInfoToSExpression(SExpList* sexp,
                                                 FlowGraphSerializer* s) const {
   Instruction::AddExtraInfoToSExpression(sexp, s);
+  if (try_index() != kInvalidTryIndex) {
+    s->AddExtraInteger(sexp, "try_index", try_index());
+  }
+  if (auto const entry_tag = s->BlockEntryTag(this)) {
+    sexp->AddExtra("block_type", entry_tag);
+  }
   if (FLAG_verbose_flow_graph_serialization) {
-    if (auto const entry_tag = s->BlockEntryTag(this)) {
-      sexp->AddExtra("block_type", entry_tag);
-    }
     if (PredecessorCount() > 0) {
       auto const preds = new (s->zone()) SExpList(s->zone());
       for (intptr_t i = 0; i < PredecessorCount(); i++) {
@@ -1022,6 +1053,8 @@ SExpression* CompileType::ToSExpression(FlowGraphSerializer* s) const {
 
 void CompileType::AddExtraInfoToSExpression(SExpList* sexp,
                                             FlowGraphSerializer* s) const {
+  // TODO(sstrickl): Currently we only print out nullable if it's false
+  // (or during verbose printing). Switch this when NNBD is the standard.
   if (!is_nullable() || FLAG_verbose_flow_graph_serialization) {
     s->AddExtraBool(sexp, "nullable", is_nullable());
   }
@@ -1052,7 +1085,11 @@ SExpression* Environment::ToSExpression(FlowGraphSerializer* s) const {
     ASSERT(locations_ == nullptr || locations_[i].IsInvalid());
   }
   if (outer_ != NULL) {
-    sexp->Add(outer_->ToSExpression(s));
+    auto outer_sexp = outer_->ToSExpression(s)->AsList();
+    if (outer_->deopt_id_ != DeoptId::kNone) {
+      s->AddExtraInteger(outer_sexp, "deopt_id", outer_->deopt_id_);
+    }
+    sexp->AddExtra("outer", outer_sexp);
   }
   return sexp;
 }
