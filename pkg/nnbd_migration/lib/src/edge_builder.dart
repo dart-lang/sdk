@@ -529,7 +529,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitDoStatement(DoStatement node) {
-    _flowAnalysis.doStatement_bodyBegin(node, _assignedVariables[node]);
+    _flowAnalysis.doStatement_bodyBegin(
+        node, _assignedVariables.writtenInNode(node));
     node.body.accept(this);
     _flowAnalysis.doStatement_conditionBegin();
     _checkExpressionNotNull(node.condition);
@@ -1096,7 +1097,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType visitSwitchStatement(SwitchStatement node) {
     node.expression.accept(this);
     _flowAnalysis.switchStatement_expressionEnd(node);
-    var notPromoted = _assignedVariables[node];
+    var notPromoted = _assignedVariables.writtenInNode(node);
     var hasDefault = false;
     for (var member in node.members) {
       var hasLabel = member.labels.isNotEmpty;
@@ -1157,7 +1158,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
     var body = node.body;
     body.accept(this);
-    var assignedInBody = _assignedVariables[body];
+    var assignedInBody = _assignedVariables.writtenInNode(body);
     if (catchClauses.isNotEmpty) {
       _flowAnalysis.tryCatchStatement_bodyEnd(assignedInBody);
       catchClauses.accept(this);
@@ -1166,7 +1167,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     if (finallyBlock != null) {
       _flowAnalysis.tryFinallyStatement_finallyBegin(assignedInBody);
       finallyBlock.accept(this);
-      _flowAnalysis.tryFinallyStatement_end(_assignedVariables[finallyBlock]);
+      _flowAnalysis.tryFinallyStatement_end(
+          _assignedVariables.writtenInNode(finallyBlock));
     }
     return null;
   }
@@ -1253,7 +1255,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType visitWhileStatement(WhileStatement node) {
     // Note: we do not create guards. A null check here is *very* unlikely to be
     // unnecessary after analysis.
-    _flowAnalysis.whileStatement_conditionBegin(_assignedVariables[node]);
+    _flowAnalysis
+        .whileStatement_conditionBegin(_assignedVariables.writtenInNode(node));
     _checkExpressionNotNull(node.condition);
     _flowAnalysis.whileStatement_bodyBegin(node, node.condition);
     _postDominatedLocals.doScoped(action: () => node.body.accept(this));
@@ -1613,7 +1616,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       } else if (parts is ForPartsWithExpression) {
         parts.initialization?.accept(this);
       }
-      _flowAnalysis.for_conditionBegin(_assignedVariables[node]);
+      _flowAnalysis.for_conditionBegin(_assignedVariables.writtenInNode(node));
       if (parts.condition != null) {
         _checkExpressionNotNull(parts.condition);
       }
@@ -1624,7 +1627,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         _flowAnalysis.add(parts.loopVariable.declaredElement, assigned: true);
       }
       _checkExpressionNotNull(parts.iterable);
-      _flowAnalysis.forEach_bodyBegin(_assignedVariables[node]);
+      _flowAnalysis.forEach_bodyBegin(_assignedVariables.writtenInNode(node));
     }
 
     // The condition may fail/iterable may be empty, so the body gets a new

@@ -153,7 +153,7 @@ class FlowAnalysisHelper {
   }
 
   void for_conditionBegin(AstNode node, Expression condition) {
-    var assigned = assignedVariables[node];
+    var assigned = assignedVariables.writtenInNode(node);
     flow.for_conditionBegin(assigned);
   }
 
@@ -356,9 +356,9 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitDoStatement(DoStatement node) {
-    assignedVariables.beginStatementOrElement();
+    assignedVariables.beginNode();
     super.visitDoStatement(node);
-    assignedVariables.endStatementOrElement(node);
+    assignedVariables.endNode(node);
   }
 
   @override
@@ -378,32 +378,32 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
 
     expression.accept(this);
 
-    assignedVariables.beginStatementOrElement();
+    assignedVariables.beginNode();
     members.accept(this);
-    assignedVariables.endStatementOrElement(node);
+    assignedVariables.endNode(node);
   }
 
   @override
   void visitTryStatement(TryStatement node) {
-    assignedVariables.beginStatementOrElement();
+    assignedVariables.beginNode();
     node.body.accept(this);
-    assignedVariables.endStatementOrElement(node.body);
+    assignedVariables.endNode(node.body);
 
     node.catchClauses.accept(this);
 
     var finallyBlock = node.finallyBlock;
     if (finallyBlock != null) {
-      assignedVariables.beginStatementOrElement();
+      assignedVariables.beginNode();
       finallyBlock.accept(this);
-      assignedVariables.endStatementOrElement(finallyBlock);
+      assignedVariables.endNode(finallyBlock);
     }
   }
 
   @override
   void visitWhileStatement(WhileStatement node) {
-    assignedVariables.beginStatementOrElement();
+    assignedVariables.beginNode();
     super.visitWhileStatement(node);
-    assignedVariables.endStatementOrElement(node);
+    assignedVariables.endNode(node);
   }
 
   void _handleFor(AstNode node, ForLoopParts forLoopParts, AstNode body) {
@@ -416,19 +416,19 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
         throw new StateError('Unrecognized for loop parts');
       }
 
-      assignedVariables.beginStatementOrElement();
+      assignedVariables.beginNode();
       forLoopParts.condition?.accept(this);
       body.accept(this);
       forLoopParts.updaters?.accept(this);
-      assignedVariables.endStatementOrElement(node);
+      assignedVariables.endNode(node);
     } else if (forLoopParts is ForEachParts) {
       var iterable = forLoopParts.iterable;
 
       iterable.accept(this);
 
-      assignedVariables.beginStatementOrElement();
+      assignedVariables.beginNode();
       body.accept(this);
-      assignedVariables.endStatementOrElement(node);
+      assignedVariables.endNode(node);
     } else {
       throw new StateError('Unrecognized for loop parts');
     }

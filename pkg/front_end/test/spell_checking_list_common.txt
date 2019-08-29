@@ -337,6 +337,7 @@ canonicalize
 canonicalized
 capabilities
 capability
+capable
 capital
 capture
 captured
@@ -597,6 +598,7 @@ could
 couldn't
 count
 counter
+counting
 counts
 couple
 covariance
@@ -614,6 +616,7 @@ created
 creates
 creating
 creation
+crossed
 curly
 current
 currently
@@ -2098,6 +2101,7 @@ qualified
 qualifier
 qualifiers
 quality
+queried
 query
 question
 queue
@@ -2252,6 +2256,7 @@ resolves
 resolving
 resources
 respect
+respected
 respective
 respectively
 respects
