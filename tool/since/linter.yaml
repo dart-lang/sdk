@@ -13,6 +13,7 @@ avoid_catches_without_on_clauses: 0.1.31
 avoid_classes_with_only_static_members: 0.1.31
 avoid_double_and_int_checks: 0.1.47
 avoid_empty_else: 0.1.8
+avoid_equals_and_hash_code_on_mutable_classes : 0.1.97
 avoid_field_initializers_in_const_classes: 0.1.48
 avoid_function_literals_in_foreach_calls: 0.1.30
 avoid_implementing_value_types: 0.1.62
@@ -38,6 +39,7 @@ avoid_unused_constructor_parameters: 0.1.36
 avoid_void_async: 0.1.60
 await_only_futures: 0.1.16
 camel_case_types: 0.1.1
+camel_case_extensions: 0.1.97+1
 cancel_subscriptions: 0.1.20
 cascade_invocations: 0.1.29
 close_sinks: 0.1.19
