@@ -350,6 +350,18 @@ class CompileTimeErrorCode extends ErrorCode {
               "Try marking the function body with either 'async' or 'async*'.");
 
   /**
+   * It is a compile-time error if a built-in identifier is used as the declared
+   * name of an extension.
+   *
+   * Parameters:
+   * 0: the built-in identifier that is being used
+   */
+  static const CompileTimeErrorCode BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME =
+      const CompileTimeErrorCode('BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME',
+          "The built-in identifier '{0}' can't be used as an extension name.",
+          correction: "Try choosing a different name for the extension.");
+
+  /**
    * 16.33 Identifier Reference: It is a compile-time error if a built-in
    * identifier is used as the declared name of a prefix, class, type parameter
    * or type alias.

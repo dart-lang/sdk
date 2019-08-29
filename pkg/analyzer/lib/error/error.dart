@@ -73,6 +73,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS,
   CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT,
   CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT,
+  CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME,
   CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_PREFIX_NAME,
   CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE,
   CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME,

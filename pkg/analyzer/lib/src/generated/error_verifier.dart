@@ -734,6 +734,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _duplicateDefinitionVerifier.checkExtension(node);
     _checkForFinalNotInitializedInClass(node.members);
     _checkForMismatchedAccessorTypesInExtension(node);
+    final name = node.name;
+    if (name != null) {
+      _checkForBuiltInIdentifierAsName(
+          name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME);
+    }
     super.visitExtensionDeclaration(node);
     _enclosingExtension = null;
   }
@@ -2157,7 +2162,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * Verify that the given [identifier] is not a keyword, and generates the
    * given [errorCode] on the identifier if it is a keyword.
    *
-   * See [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME],
+   * See [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME],
+   * [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME],
    * [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME], and
    * [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME].
    */
