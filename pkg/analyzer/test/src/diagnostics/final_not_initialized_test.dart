@@ -13,6 +13,7 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FinalNotInitializedTest);
+    defineReflectiveTests(FinalNotInitializedWithExtensionMethodsTest);
     defineReflectiveTests(FinalNotInitializedWithNnbdTest);
   });
 }
@@ -52,6 +53,23 @@ f() {
 }''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 1),
       error(StaticWarningCode.FINAL_NOT_INITIALIZED, 18, 1),
+    ]);
+  }
+}
+
+@reflectiveTest
+class FinalNotInitializedWithExtensionMethodsTest extends DriverResolutionTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = new FeatureSet.forTesting(
+        sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
+
+  test_static() async {
+    await assertErrorsInCode('''
+extension E on String {
+  static final F;
+}''', [
+      error(StaticWarningCode.FINAL_NOT_INITIALIZED, 39, 1),
     ]);
   }
 }

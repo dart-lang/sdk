@@ -34,6 +34,7 @@ import 'const_constructor_with_mixin_with_field_test.dart'
 import 'const_eval_throws_exception_test.dart' as const_eval_throws_exception;
 import 'const_map_key_expression_type_implements_equals_test.dart'
     as const_map_key_expression_type_implements_equals;
+import 'const_not_initialized_test.dart' as const_not_initialized;
 import 'const_set_element_type_implements_equals_test.dart'
     as const_set_element_type_implements_equals;
 import 'const_spread_expected_list_or_set_test.dart'
@@ -326,6 +327,7 @@ main() {
     const_constructor_with_mixin_with_field.main();
     const_eval_throws_exception.main();
     const_map_key_expression_type_implements_equals.main();
+    const_not_initialized.main();
     const_set_element_type_implements_equals.main();
     const_spread_expected_list_or_set.main();
     const_spread_expected_map.main();

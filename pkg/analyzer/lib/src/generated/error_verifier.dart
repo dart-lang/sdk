@@ -732,6 +732,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     _enclosingExtension = node.declaredElement;
     _duplicateDefinitionVerifier.checkExtension(node);
+    _checkForFinalNotInitializedInClass(node.members);
     _checkForMismatchedAccessorTypesInExtension(node);
     super.visitExtensionDeclaration(node);
     _enclosingExtension = null;
