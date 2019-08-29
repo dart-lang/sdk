@@ -209,12 +209,12 @@ class TestCase {
 Future<Context> createContext(
     Chain suite, Map<String, String> environment) async {
   /// The custom URI used to locate the dill file in the MemoryFileSystem.
-  final Uri sdkSummary = base.resolve("vm_platform.dill");
+  final Uri sdkSummary = base.resolve("vm_platform_strong.dill");
 
   /// The actual location of the dill file.
   final Uri sdkSummaryFile =
       computePlatformBinariesLocation(forceBuildDir: true)
-          .resolve("vm_platform.dill");
+          .resolve("vm_platform_strong.dill");
 
   final MemoryFileSystem fs = new MemoryFileSystem(base);
 

@@ -142,22 +142,11 @@ template("gen_vm_platform") {
     if (defined(invoker.exclude_source) && invoker.exclude_source) {
       args += [ "--exclude-source" ]
     }
-    if (defined(invoker.legacy) && invoker.legacy) {
-      args += [ "--legacy-mode" ]
-      outline = "vm_outline_strong.dill"
-    } else {
-      outline = "vm_outline" + output_postfix + ".dill"
-    }
+    outline = "vm_outline" + output_postfix + ".dill"
     if (dart_platform_bytecode) {
       args += [ "--bytecode" ]
     }
   }
-}
-
-gen_vm_platform("vm_legacy_platform") {
-  exclude_source = false
-  legacy = true
-  output_postfix = ""
 }
 
 gen_vm_platform("vm_platform") {
@@ -174,7 +163,6 @@ gen_vm_platform("vm_platform_stripped") {
 
 group("kernel_platform_files") {
   public_deps = [
-    ":vm_legacy_platform",
     ":vm_platform",
     ":vm_platform_stripped",
   ]

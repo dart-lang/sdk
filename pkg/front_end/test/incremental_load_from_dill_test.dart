@@ -196,7 +196,7 @@ Future<Null> basicTest(YamlMap sourceFiles, String entryPoint,
 Future<Map<String, List<int>>> createModules(
     Map module, final List<int> sdkSummaryData) async {
   final Uri base = Uri.parse("org-dartlang-test:///");
-  final Uri sdkSummary = base.resolve("vm_platform.dill");
+  final Uri sdkSummary = base.resolve("vm_platform_strong.dill");
 
   MemoryFileSystem fs = new MemoryFileSystem(base);
   fs.entityForUri(sdkSummary).writeAsBytesSync(sdkSummaryData);
@@ -263,7 +263,7 @@ Future<Map<String, List<int>>> createModules(
 Future<Null> newWorldTest(List worlds, Map modules, bool omitPlatform) async {
   final Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
   final Uri base = Uri.parse("org-dartlang-test:///");
-  final Uri sdkSummary = base.resolve("vm_platform.dill");
+  final Uri sdkSummary = base.resolve("vm_platform_strong.dill");
   final Uri initializeFrom = base.resolve("initializeFrom.dill");
   Uri platformUri = sdkRoot.resolve("vm_platform_strong.dill");
   final List<int> sdkSummaryData =
