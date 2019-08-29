@@ -327,7 +327,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       flags |= ClassDeclaration.hasSourcePositionsFlag;
       position = library.fileOffset;
     }
-    Annotations annotations = getAnnotations(library.annotations);
+    Annotations annotations = getLibraryAnnotations(library);
     if (annotations.object != null) {
       flags |= ClassDeclaration.hasAnnotationsFlag;
       if (annotations.hasPragma) {
@@ -418,6 +418,66 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     }
 
     return new Annotations(functionDecl, hasPragma);
+  }
+
+  // Insert annotations for library and its dependencies into the
+  // annotations section. Returns annotations for the library only.
+  // Bytecode reader will implicitly find library dependencies by reading
+  // an extra object after reading library annotations.
+  Annotations getLibraryAnnotations(Library library) {
+    Annotations annotations = getAnnotations(library.annotations);
+    final bool emitDependencies =
+        options.emitAnnotations && library.dependencies.isNotEmpty;
+    if (annotations.object == null && !emitDependencies) {
+      return annotations;
+    }
+
+    // We need to emit both annotations and dependencies objects, appending
+    // null if an object is missing.
+    if (annotations.object == null) {
+      final annotationsDecl = new AnnotationsDeclaration(null);
+      bytecodeComponent.annotations.add(annotationsDecl);
+      annotations = new Annotations(annotationsDecl, false);
+    }
+    if (!emitDependencies) {
+      bytecodeComponent.annotations.add(new AnnotationsDeclaration(null));
+      return annotations;
+    }
+
+    // Create a constant object representing library dependencies.
+    // These objects are used by dart:mirrors and vm-service implementation.
+    final deps = <Constant>[];
+    for (var dependency in library.dependencies) {
+      final prefix = dependency.name != null
+          ? StringConstant(dependency.name)
+          : NullConstant();
+      final showNames = dependency.combinators
+          .where((c) => c.isShow)
+          .expand((c) => c.names)
+          .map((name) => StringConstant(name))
+          .toList();
+      final hideNames = dependency.combinators
+          .where((c) => c.isHide)
+          .expand((c) => c.names)
+          .map((name) => StringConstant(name))
+          .toList();
+      final depAnnots = dependency.annotations.map(_getConstant).toList();
+      deps.add(ListConstant(const DynamicType(), <Constant>[
+        StringConstant(dependency.targetLibrary.importUri.toString()),
+        BoolConstant(dependency.isExport),
+        BoolConstant(dependency.isDeferred),
+        prefix,
+        ListConstant(const DynamicType(), showNames),
+        ListConstant(const DynamicType(), hideNames),
+        ListConstant(const DynamicType(), depAnnots),
+      ]));
+    }
+    final ObjectHandle dependenciesObject =
+        objectTable.getHandle(ListConstant(const DynamicType(), deps));
+    final dependenciesDecl = new AnnotationsDeclaration(dependenciesObject);
+    bytecodeComponent.annotations.add(dependenciesDecl);
+
+    return annotations;
   }
 
   FieldDeclaration getFieldDeclaration(Field field, Code initializer) {

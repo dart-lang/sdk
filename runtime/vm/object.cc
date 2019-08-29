@@ -10264,10 +10264,16 @@ RawObject* Library::GetMetadata(const Object& obj) const {
       metadata = kernel::EvaluateMetadata(
           field, /* is_annotations_offset = */ obj.IsLibrary());
     }
-    if (metadata.IsArray()) {
-      ASSERT(Array::Cast(metadata).raw() != Object::empty_array().raw());
-      field.SetStaticValue(Array::Cast(metadata), true);
+    if (metadata.IsArray() || metadata.IsNull()) {
+      ASSERT(metadata.raw() != Object::empty_array().raw());
+      field.SetStaticValue(
+          metadata.IsNull() ? Object::null_array() : Array::Cast(metadata),
+          true);
     }
+  }
+  if (metadata.IsNull()) {
+    // Metadata field exists in order to reference extended metadata.
+    return Object::empty_array().raw();
   }
   return metadata.raw();
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
@@ -10278,9 +10284,7 @@ RawArray* Library::GetExtendedMetadata(const Object& obj,
 #if defined(DART_PRECOMPILED_RUNTIME)
   return Object::empty_array().raw();
 #else
-  if (!obj.IsFunction()) {
-    UNREACHABLE();
-  }
+  RELEASE_ASSERT(obj.IsFunction() || obj.IsLibrary());
   const String& metaname = String::Handle(MakeMetadataName(obj));
   Field& field = Field::Handle(GetMetadataField(metaname));
   if (field.IsNull()) {
