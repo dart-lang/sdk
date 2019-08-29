@@ -43,6 +43,7 @@ import 'package:linter/src/rules/avoid_types_on_closure_parameters.dart';
 import 'package:linter/src/rules/avoid_unused_constructor_parameters.dart';
 import 'package:linter/src/rules/avoid_void_async.dart';
 import 'package:linter/src/rules/await_only_futures.dart';
+import 'package:linter/src/rules/camel_case_extensions.dart';
 import 'package:linter/src/rules/camel_case_types.dart';
 import 'package:linter/src/rules/cancel_subscriptions.dart';
 import 'package:linter/src/rules/cascade_invocations.dart';
@@ -197,6 +198,7 @@ void registerLintRules() {
     ..register(AvoidUnusedConstructorParameters())
     ..register(AvoidVoidAsync())
     ..register(AwaitOnlyFutures())
+    ..register(CamelCaseExtensions())
     ..register(CamelCaseTypes())
     ..register(CancelSubscriptions())
     ..register(CascadeInvocations())
