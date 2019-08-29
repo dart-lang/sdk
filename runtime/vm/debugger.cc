@@ -4748,6 +4748,8 @@ void Debugger::HandleCodeChange(bool bytecode_loaded, const Function& func) {
       // There is no local function within func that contains the
       // breakpoint token position. Resolve the breakpoint if necessary
       // and set the code breakpoints.
+      const bool resolved_in_bytecode =
+          !bytecode_loaded && loc->IsResolved(/* in_bytecode = */ true);
       if (!loc->IsResolved(bytecode_loaded)) {
         // Resolve source breakpoint in the newly compiled function.
         TokenPosition bp_pos = ResolveBreakpointPos(
@@ -4774,7 +4776,11 @@ void Debugger::HandleCodeChange(bool bytecode_loaded, const Function& func) {
                 func.ToFullyQualifiedCString(), requested_pos.ToCString(),
                 requested_end_pos.ToCString(), loc->requested_column_number());
           }
-          SendBreakpointEvent(ServiceEvent::kBreakpointResolved, bpt);
+          // Do not signal resolution in code if already signaled resolution
+          // in bytecode.
+          if (!resolved_in_bytecode) {
+            SendBreakpointEvent(ServiceEvent::kBreakpointResolved, bpt);
+          }
           bpt = bpt->next();
         }
       }
