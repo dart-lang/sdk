@@ -3278,13 +3278,25 @@ class AssertBooleanInstr : public TemplateDefinition<1, Throws, Pure> {
 // the type arguments of a generic function or an arguments descriptor.
 class SpecialParameterInstr : public TemplateDefinition<0, NoThrow> {
  public:
-  enum SpecialParameterKind {
-    kContext,
-    kTypeArgs,
-    kArgDescriptor,
-    kException,
-    kStackTrace
-  };
+#define FOR_EACH_SPECIAL_PARAMETER_KIND(M)                                     \
+  M(Context)                                                                   \
+  M(TypeArgs)                                                                  \
+  M(ArgDescriptor)                                                             \
+  M(Exception)                                                                 \
+  M(StackTrace)
+
+#define KIND_DECL(name) k##name,
+  enum SpecialParameterKind { FOR_EACH_SPECIAL_PARAMETER_KIND(KIND_DECL) };
+#undef KIND_DECL
+
+  // Defined as a static intptr_t instead of inside the enum since some
+  // switch statements depend on the exhaustibility checking.
+#define KIND_INC(name) +1
+  static const intptr_t kNumKinds = 0 FOR_EACH_SPECIAL_PARAMETER_KIND(KIND_INC);
+#undef KIND_INC
+
+  static const char* KindToCString(SpecialParameterKind k);
+  static bool KindFromCString(const char* str, SpecialParameterKind* out);
 
   SpecialParameterInstr(SpecialParameterKind kind,
                         intptr_t deopt_id,
@@ -3310,23 +3322,6 @@ class SpecialParameterInstr : public TemplateDefinition<0, NoThrow> {
 
   PRINT_OPERANDS_TO_SUPPORT
   ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
-
-  static const char* KindToCString(SpecialParameterKind kind) {
-    switch (kind) {
-      case kContext:
-        return "kContext";
-      case kTypeArgs:
-        return "kTypeArgs";
-      case kArgDescriptor:
-        return "kArgDescriptor";
-      case kException:
-        return "kException";
-      case kStackTrace:
-        return "kStackTrace";
-    }
-    UNREACHABLE();
-    return NULL;
-  }
 
  private:
   const SpecialParameterKind kind_;

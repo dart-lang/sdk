@@ -6648,6 +6648,11 @@ class TypeArguments : public Instance {
   // Return true if this vector contains a recursive type argument.
   bool IsRecursive() const;
 
+  virtual RawInstance* CheckAndCanonicalize(Thread* thread,
+                                            const char** error_str) const {
+    return Canonicalize();
+  }
+
   // Canonicalize only if instantiated, otherwise returns 'this'.
   RawTypeArguments* Canonicalize(TrailPtr trail = NULL) const;
 

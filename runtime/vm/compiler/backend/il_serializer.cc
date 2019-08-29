@@ -362,6 +362,7 @@ SExpression* FlowGraphSerializer::AbstractTypeToSExp(const AbstractType& t) {
   ASSERT(t.IsType());
   AddSymbol(sexp, "Type");
   const auto& typ = Type::Cast(t);
+  ASSERT(typ.IsFinalized());
   if (typ.HasTypeClass()) {
     type_class_ = typ.type_class();
     // This avoids re-entry as long as serializing a class doesn't involve
@@ -728,6 +729,7 @@ void ParameterInstr::AddOperandsToSExpression(SExpList* sexp,
 void SpecialParameterInstr::AddOperandsToSExpression(
     SExpList* sexp,
     FlowGraphSerializer* s) const {
+  ASSERT(kind() < SpecialParameterInstr::kNumKinds);
   s->AddSymbol(sexp, KindToCString(kind()));
 }
 
@@ -1021,6 +1023,10 @@ void CheckStackOverflowInstr::AddExtraInfoToSExpression(
   }
   if (in_loop() || FLAG_verbose_flow_graph_serialization) {
     s->AddExtraInteger(sexp, "loop_depth", loop_depth());
+  }
+  if (kind_ != kOsrAndPreemption) {
+    ASSERT(kind_ == kOsrOnly);
+    s->AddExtraSymbol(sexp, "kind", "OsrOnly");
   }
 }
 

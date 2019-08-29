@@ -4244,6 +4244,30 @@ void MaterializeObjectInstr::RemapRegisters(intptr_t* cpu_reg_slots,
   }
 }
 
+const char* SpecialParameterInstr::KindToCString(SpecialParameterKind k) {
+  switch (k) {
+#define KIND_CASE(Name)                                                        \
+  case SpecialParameterKind::k##Name:                                          \
+    return #Name;
+    FOR_EACH_SPECIAL_PARAMETER_KIND(KIND_CASE)
+#undef KIND_CASE
+  }
+  return nullptr;
+}
+
+bool SpecialParameterInstr::KindFromCString(const char* str,
+                                            SpecialParameterKind* out) {
+  ASSERT(str != nullptr && out != nullptr);
+#define KIND_CASE(Name)                                                        \
+  if (strcmp(str, #Name) == 0) {                                               \
+    *out = SpecialParameterKind::k##Name;                                      \
+    return true;                                                               \
+  }
+  FOR_EACH_SPECIAL_PARAMETER_KIND(KIND_CASE)
+#undef KIND_CASE
+  return false;
+}
+
 LocationSummary* SpecialParameterInstr::MakeLocationSummary(Zone* zone,
                                                             bool opt) const {
   // Only appears in initial definitions, never in normal code.

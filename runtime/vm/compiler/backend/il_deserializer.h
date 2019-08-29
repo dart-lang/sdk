@@ -46,7 +46,8 @@ class FlowGraphDeserializer : ValueObject {
         root_sexp_(ASSERT_NOTNULL(root)),
         parsed_function_(pf),
         block_map_(zone_),
-        definition_map_(zone_) {
+        definition_map_(zone_),
+        values_map_(zone_) {
     // See canonicalization comment in ParseDartValue as to why this is
     // currently necessary.
     ASSERT(thread->zone() == zone);
@@ -67,7 +68,11 @@ class FlowGraphDeserializer : ValueObject {
   M(GraphEntry)                                                                \
   M(TargetEntry)
 
-#define FOR_EACH_HANDLED_INSTRUCTION_IN_DESERIALIZER(M) M(Return)
+#define FOR_EACH_HANDLED_INSTRUCTION_IN_DESERIALIZER(M)                        \
+  M(CheckStackOverflow)                                                        \
+  M(Parameter)                                                                 \
+  M(Return)                                                                    \
+  M(SpecialParameter)
 
   // Helper method for FirstUnhandledInstruction that returns whether a given
   // object should be (de)serializable. Any work done on ParseDartValue may
@@ -162,6 +167,14 @@ class FlowGraphDeserializer : ValueObject {
   bool ParseUse(SExpSymbol* sym, intptr_t* out);
   bool ParseSymbolAsPrefixedInt(SExpSymbol* sym, char prefix, intptr_t* out);
 
+  // Helper function for creating a placeholder value when the definition
+  // has not yet been seen.
+  Value* AddPendingValue(intptr_t index);
+
+  // Helper function for rebinding pending values once the definition has
+  // been located.
+  void FixPendingValues(intptr_t index, Definition* def);
+
   // Utility functions for checking the shape of an S-expression.
   // If these functions return nullptr for a non-null argument, they have the
   // side effect of setting the stored error message.
@@ -201,6 +214,10 @@ class FlowGraphDeserializer : ValueObject {
 
   // Map from variable indexes to definitions.
   IntMap<Definition*> definition_map_;
+
+  // Map from variable indices to lists of values. The list of values are
+  // values that were parsed prior to the corresponding definition being found.
+  IntMap<ZoneGrowableArray<Value*>*> values_map_;
 
   // Stores a message appropriate to surfacing to the user when an error
   // occurs.

@@ -126,9 +126,12 @@ Instruction* FlowGraphDeserializer::FirstUnhandledInstruction(
   return nullptr;
 }
 
-// Keep in sync with work in ParseDartValue.
+// Keep in sync with work in ParseDartValue. Right now, this is just a shallow
+// check, not a deep one.
 bool FlowGraphDeserializer::IsHandledConstant(const Object& obj) {
-  return obj.IsNull() || obj.IsBool() || obj.IsString();
+  return obj.IsNull() || obj.IsBool() || obj.IsString() || obj.IsInteger() ||
+         obj.IsDouble() || obj.IsClass() || obj.IsType() ||
+         obj.IsTypeArguments();
 }
 
 SExpression* FlowGraphDeserializer::Retrieve(SExpList* list, intptr_t index) {
@@ -220,6 +223,16 @@ FlowGraph* FlowGraphDeserializer::ParseFlowGraph() {
     if (!ParseBlockContents(root->At(i)->AsList())) {
       return nullptr;
     }
+  }
+
+  // Before we return the new graph, make sure all definitions were found for
+  // all pending values.
+  if (values_map_.Length() > 0) {
+    auto it = values_map_.GetIterator();
+    auto const kv = it.Next();
+    StoreError(new (zone()) SExpInteger(kv->key),
+               "no definition found for variable index in flow graph");
+    return nullptr;
   }
 
   flow_graph_->set_max_block_id(max_block_id_);
@@ -406,6 +419,7 @@ bool FlowGraphDeserializer::ParseDefinitionWithParsedBody(SExpList* list,
   }
 
   definition_map_.Insert(index, def);
+  FixPendingValues(index, def);
   return true;
 }
 
@@ -460,11 +474,61 @@ Instruction* FlowGraphDeserializer::ParseInstruction(SExpList* list) {
   return inst;
 }
 
+CheckStackOverflowInstr* FlowGraphDeserializer::HandleCheckStackOverflow(
+    SExpList* sexp,
+    const CommonInstrInfo& info) {
+  intptr_t stack_depth = 0;
+  if (auto const stack_sexp =
+          CheckInteger(sexp->ExtraLookupValue("stack_depth"))) {
+    stack_depth = stack_sexp->value();
+  }
+
+  intptr_t loop_depth = 0;
+  if (auto const loop_sexp =
+          CheckInteger(sexp->ExtraLookupValue("loop_depth"))) {
+    loop_depth = loop_sexp->value();
+  }
+
+  auto kind = CheckStackOverflowInstr::kOsrAndPreemption;
+  if (auto const kind_sexp = CheckSymbol(sexp->ExtraLookupValue("kind"))) {
+    ASSERT(strcmp(kind_sexp->value(), "OsrOnly") == 0);
+    kind = CheckStackOverflowInstr::kOsrOnly;
+  }
+
+  return new (zone()) CheckStackOverflowInstr(info.token_pos, stack_depth,
+                                              loop_depth, info.deopt_id, kind);
+}
+
+ParameterInstr* FlowGraphDeserializer::HandleParameter(
+    SExpList* sexp,
+    const CommonInstrInfo& info) {
+  ASSERT(current_block_ != nullptr);
+  if (auto const index_sexp = CheckInteger(Retrieve(sexp, 1))) {
+    return new (zone()) ParameterInstr(index_sexp->value(), current_block_);
+  }
+  return nullptr;
+}
+
 ReturnInstr* FlowGraphDeserializer::HandleReturn(SExpList* list,
                                                  const CommonInstrInfo& info) {
   Value* val = ParseValue(Retrieve(list, 1));
   if (val == nullptr) return nullptr;
   return new (zone()) ReturnInstr(info.token_pos, val, info.deopt_id);
+}
+
+SpecialParameterInstr* FlowGraphDeserializer::HandleSpecialParameter(
+    SExpList* sexp,
+    const CommonInstrInfo& info) {
+  ASSERT(current_block_ != nullptr);
+  auto const kind_sexp = CheckSymbol(Retrieve(sexp, 1));
+  if (kind_sexp == nullptr) return nullptr;
+  SpecialParameterInstr::SpecialParameterKind kind;
+  if (!SpecialParameterInstr::KindFromCString(kind_sexp->value(), &kind)) {
+    StoreError(kind_sexp, "unknown special parameter kind");
+    return nullptr;
+  }
+  return new (zone())
+      SpecialParameterInstr(kind, info.deopt_id, current_block_);
 }
 
 Value* FlowGraphDeserializer::ParseValue(SExpression* sexp) {
@@ -485,9 +549,7 @@ Value* FlowGraphDeserializer::ParseValue(SExpression* sexp) {
   auto const def = definition_map_.LookupValue(index);
   Value* val;
   if (def == nullptr) {
-    // TODO(sstrickl): Handle uses that come before parsed definitions.
-    StoreError(name, "use found before definition");
-    return nullptr;
+    val = AddPendingValue(index);
   } else {
     val = new (zone()) Value(def);
   }
@@ -581,10 +643,47 @@ bool FlowGraphDeserializer::ParseDartValue(SExpression* sexp, Object* out) {
 
   // Other instance values may need to be canonicalized, so do that before
   // returning.
-  if (auto const b = sexp->AsBool()) {
+  if (auto const list = CheckTaggedList(sexp)) {
+    auto const tag = list->At(0)->AsSymbol();
+    if (strcmp(tag->value(), "Class") == 0) {
+      auto const cid_sexp = CheckInteger(Retrieve(list, 1));
+      if (cid_sexp == nullptr) return false;
+      ClassTable* table = thread()->isolate()->class_table();
+      if (!table->IsValidIndex(cid_sexp->value())) {
+        StoreError(cid_sexp, "no class found for cid");
+        return false;
+      }
+      *out = table->At(cid_sexp->value());
+    } else if (strcmp(tag->value(), "Type") == 0) {
+      if (const auto cls_sexp = CheckTaggedList(Retrieve(list, 1), "Class")) {
+        auto& cls = Class::ZoneHandle(zone());
+        if (!ParseDartValue(cls_sexp, &cls)) return false;
+        auto& type_args = TypeArguments::ZoneHandle(zone());
+        if (const auto ta_sexp = CheckTaggedList(
+                list->ExtraLookupValue("type_args"), "TypeArguments")) {
+          if (!ParseDartValue(ta_sexp, &type_args)) return false;
+        }
+        *out = Type::New(cls, type_args, TokenPosition::kNoSource, Heap::kOld);
+        // Need to set this for canonicalization.
+        Type::Cast(*out).SetIsFinalized();
+      }
+      // TODO(sstrickl): Handle types not derived from classes.
+    } else if (strcmp(tag->value(), "TypeArguments") == 0) {
+      *out = TypeArguments::New(list->Length() - 1, Heap::kOld);
+      auto& typ = AbstractType::Handle(zone());
+      for (intptr_t i = 1; i < list->Length(); i++) {
+        if (!ParseDartValue(Retrieve(list, i), &typ)) return false;
+        TypeArguments::Cast(*out).SetTypeAt(i - 1, typ);
+      }
+    }
+  } else if (auto const b = sexp->AsBool()) {
     *out = Bool::Get(b->value()).raw();
   } else if (auto const str = sexp->AsString()) {
     *out = String::New(str->value(), Heap::kOld);
+  } else if (auto const i = sexp->AsInteger()) {
+    *out = Integer::New(i->value(), Heap::kOld);
+  } else if (auto const d = sexp->AsDouble()) {
+    *out = Double::New(d->value(), Heap::kOld);
   }
 
   // If we're here and still haven't gotten a non-null value, then something
@@ -645,6 +744,29 @@ bool FlowGraphDeserializer::ParseSymbolAsPrefixedInt(SExpSymbol* sym,
   return true;
 }
 
+Value* FlowGraphDeserializer::AddPendingValue(intptr_t index) {
+  ASSERT(flow_graph_ != nullptr);
+  ASSERT(!definition_map_.HasKey(index));
+  auto value_list = values_map_.LookupValue(index);
+  if (value_list == nullptr) {
+    value_list = new (zone()) ZoneGrowableArray<Value*>(zone(), 2);
+    values_map_.Insert(index, value_list);
+  }
+  auto const val = new (zone()) Value(flow_graph_->constant_null());
+  value_list->Add(val);
+  return val;
+}
+
+void FlowGraphDeserializer::FixPendingValues(intptr_t index, Definition* def) {
+  if (auto value_list = values_map_.LookupValue(index)) {
+    for (intptr_t i = 0; i < value_list->length(); i++) {
+      auto const val = value_list->At(i);
+      val->BindTo(def);
+    }
+    values_map_.Remove(index);
+  }
+}
+
 #define BASE_CHECK_DEF(name, type)                                             \
   SExp##name* FlowGraphDeserializer::Check##name(SExpression* sexp) {          \
     if (sexp == nullptr) return nullptr;                                       \
@@ -656,6 +778,8 @@ bool FlowGraphDeserializer::ParseSymbolAsPrefixedInt(SExpSymbol* sym,
   }
 
 FOR_EACH_S_EXPRESSION(BASE_CHECK_DEF)
+
+#undef BASE_CHECK_DEF
 
 bool FlowGraphDeserializer::IsTag(SExpression* sexp, const char* label) {
   auto const sym = CheckSymbol(sexp);
