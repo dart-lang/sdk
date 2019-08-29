@@ -367,6 +367,8 @@ class TreeShaker {
     _pass2.transform(component);
   }
 
+  bool isClassReferencedFromNativeCode(Class c) =>
+      typeFlowAnalysis.nativeCodeOracle.isClassReferencedFromNativeCode(c);
   bool isClassUsed(Class c) => _usedClasses.contains(c);
   bool isClassUsedInType(Class c) => _classesUsedInType.contains(c);
   bool isClassAllocated(Class c) => typeFlowAnalysis.isClassAllocated(c);
@@ -581,7 +583,8 @@ class _TreeShakerPass1 extends Transformer {
 
   @override
   TreeNode visitClass(Class node) {
-    if (shaker.isClassAllocated(node)) {
+    if (shaker.isClassAllocated(node) ||
+        shaker.isClassReferencedFromNativeCode(node)) {
       shaker.addClassUsedInType(node);
     }
     transformList(node.constructors, this, node);
