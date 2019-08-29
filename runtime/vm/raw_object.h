@@ -1375,7 +1375,9 @@ class RawBytecode : public RawObject {
   VISIT_TO(RawObject*, var_descriptors_);
 #endif
 
-  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
+  RawObject** to_snapshot(Snapshot::Kind kind) {
+    return reinterpret_cast<RawObject**>(&ptr()->pc_descriptors_);
+  }
 
   int32_t instructions_binary_offset_;
   int32_t source_positions_binary_offset_;
