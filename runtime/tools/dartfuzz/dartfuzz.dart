@@ -7,13 +7,14 @@ import 'dart:math';
 
 import 'package:args/args.dart';
 
-import 'dartfuzz_api_table.dart';
 import 'dartfuzz_values.dart';
+import 'dartfuzz_api_table.dart';
+import 'dartfuzz_ffiapi.dart';
 
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.27';
+const String version = '1.30';
 
 // Restriction on statements and expressions.
 const int stmtLength = 2;
@@ -27,6 +28,59 @@ const localName = 'loc';
 const fieldName = 'fld';
 const methodName = 'foo';
 
+/// Class that specifies the api for calling library and ffi functions (if
+/// enabled).
+class DartApi {
+  DartApi(bool ffi)
+      : intLibs = [
+          if (ffi) ...[
+            DartLib('intComputation', 'VIIII'),
+            DartLib('takeMaxUint16', 'VI'),
+            DartLib('sumPlus42', 'VII'),
+            DartLib('returnMaxUint8', 'VV'),
+            DartLib('returnMaxUint16', 'VV'),
+            DartLib('returnMaxUint32', 'VV'),
+            DartLib('returnMinInt8', 'VV'),
+            DartLib('returnMinInt16', 'VV'),
+            DartLib('returnMinInt32', 'VV'),
+            DartLib('takeMinInt16', 'VI'),
+            DartLib('takeMinInt32', 'VI'),
+            DartLib('uintComputation', 'VIIII'),
+            DartLib('sumSmallNumbers', 'VIIIIII'),
+            DartLib('takeMinInt8', 'VI'),
+            DartLib('takeMaxUint32', 'VI'),
+            DartLib('takeMaxUint8', 'VI'),
+            DartLib('minInt64', 'VV'),
+            DartLib('minInt32', 'VV'),
+            // Use small int to avoid overflow divergences due to size
+            // differences in intptr_t on 32-bit and 64-bit platforms.
+            DartLib('sumManyIntsOdd', 'Viiiiiiiiiii'),
+            DartLib('sumManyInts', 'Viiiiiiiiii'),
+            DartLib('regress37069', 'Viiiiiiiiiii'),
+          ],
+          ...DartLib.intLibs,
+        ],
+        doubleLibs = [
+          if (ffi) ...[
+            DartLib('times1_337Float', 'VD'),
+            DartLib('sumManyDoubles', 'VDDDDDDDDDD'),
+            DartLib('times1_337Double', 'VD'),
+            DartLib('sumManyNumbers', 'VIDIDIDIDIDIDIDIDIDID'),
+            DartLib('inventFloatValue', 'VV'),
+            DartLib('smallDouble', 'VV'),
+          ],
+          ...DartLib.doubleLibs,
+        ];
+
+  final boolLibs = DartLib.boolLibs;
+  final stringLibs = DartLib.stringLibs;
+  final listLibs = DartLib.listLibs;
+  final setLibs = DartLib.setLibs;
+  final mapLibs = DartLib.mapLibs;
+  final List<DartLib> intLibs;
+  final List<DartLib> doubleLibs;
+}
+
 /// Class that generates a random, but runnable Dart program for fuzz testing.
 class DartFuzz {
   DartFuzz(this.seed, this.fp, this.ffi, this.file);
@@ -38,6 +92,8 @@ class DartFuzz {
     nest = 0;
     currentClass = null;
     currentMethod = null;
+    // Setup the library and ffi api.
+    api = DartApi(ffi);
     // Setup the types.
     localVars = <DartType>[];
     iterVars = <String>[];
@@ -89,7 +145,10 @@ class DartFuzz {
     emitLn("import 'dart:isolate';");
     emitLn("import 'dart:math';");
     emitLn("import 'dart:typed_data';");
-    if (ffi) emitLn("import 'dart:ffi' as ffi;");
+    if (ffi) {
+      emitLn("import 'dart:ffi' as ffi;");
+      emitLn(DartFuzzFfiApi.ffiapi);
+    }
   }
 
   void emitFfiCast(String dartFuncName, String ffiFuncName, String typeName,
@@ -1088,19 +1147,19 @@ class DartFuzz {
   // Get a library method that returns given type.
   DartLib getLibraryMethod(DartType tp) {
     if (tp == DartType.BOOL) {
-      return oneOf(DartLib.boolLibs);
+      return oneOf(api.boolLibs);
     } else if (tp == DartType.INT) {
-      return oneOf(DartLib.intLibs);
+      return oneOf(api.intLibs);
     } else if (tp == DartType.DOUBLE) {
-      return oneOf(DartLib.doubleLibs);
+      return oneOf(api.doubleLibs);
     } else if (tp == DartType.STRING) {
-      return oneOf(DartLib.stringLibs);
+      return oneOf(api.stringLibs);
     } else if (tp == DartType.INT_LIST) {
-      return oneOf(DartLib.listLibs);
+      return oneOf(api.listLibs);
     } else if (tp == DartType.INT_SET) {
-      return oneOf(DartLib.setLibs);
+      return oneOf(api.setLibs);
     } else if (tp == DartType.INT_STRING_MAP) {
-      return oneOf(DartLib.mapLibs);
+      return oneOf(api.mapLibs);
     }
     throw ArgumentError('Invalid DartType: $tp');
   }
@@ -1273,6 +1332,9 @@ class DartFuzz {
 
   // File used for output.
   final RandomAccessFile file;
+
+  // Library and ffi api.
+  DartApi api;
 
   // Program variables.
   Random rand;

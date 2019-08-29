@@ -39,6 +39,9 @@ namespace dart {
 
 ////////////////////////////////////////////////////////////////////////////////
 // Tests for Dart -> native calls.
+//
+// Note: If this interface is changed please also update
+// sdk/runtime/tools/dartfuzz/ffiapi.dart
 
 // Sums two ints and adds 42.
 // Simple function to test trampolines.
