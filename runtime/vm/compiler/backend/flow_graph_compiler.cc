@@ -1413,6 +1413,7 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
           GetOrAddStaticCallICData(deopt_id, function, arguments_descriptor,
                                    kNumArgsChecked, rebind_rule)
               ->raw();
+      call_ic_data = call_ic_data.Original();
     }
     AddCurrentDescriptor(RawPcDescriptors::kRewind, deopt_id, token_pos);
     EmitUnoptimizedStaticCall(args_info.count_with_type_args, deopt_id,
