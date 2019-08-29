@@ -101,6 +101,9 @@ mixin NotificationHandler {
         onServerError(
             new ServerErrorParams.fromJson(decoder, 'params', params));
         break;
+      case SERVER_NOTIFICATION_LOG:
+        onServerLog(new ServerLogParams.fromJson(decoder, 'params', params));
+        break;
       case SERVER_NOTIFICATION_STATUS:
         onServerStatus(
             new ServerStatusParams.fromJson(decoder, 'params', params));
@@ -278,6 +281,9 @@ mixin NotificationHandler {
   /// It is not possible to subscribe to or unsubscribe from this
   /// notification.
   void onServerError(ServerErrorParams params) {}
+
+  /// The stream of entries describing events happened in the server.
+  void onServerLog(ServerLogParams params) {}
 
   /// Reports the current status of the server. Parameters are
   /// omitted if there has been no change in the status

@@ -1704,13 +1704,41 @@ final Matcher isSearchResultKind = new MatchesEnum("SearchResultKind", [
 ]);
 
 /**
+ * ServerLogEntry
+ *
+ * {
+ *   "time": int
+ *   "kind": ServerLogEntryKind
+ *   "data": String
+ * }
+ */
+final Matcher isServerLogEntry = new LazyMatcher(() => new MatchesJsonObject(
+    "ServerLogEntry",
+    {"time": isInt, "kind": isServerLogEntryKind, "data": isString}));
+
+/**
+ * ServerLogEntryKind
+ *
+ * enum {
+ *   NOTIFICATION
+ *   RAW
+ *   REQUEST
+ *   RESPONSE
+ * }
+ */
+final Matcher isServerLogEntryKind = new MatchesEnum(
+    "ServerLogEntryKind", ["NOTIFICATION", "RAW", "REQUEST", "RESPONSE"]);
+
+/**
  * ServerService
  *
  * enum {
+ *   LOG
  *   STATUS
  * }
  */
-final Matcher isServerService = new MatchesEnum("ServerService", ["STATUS"]);
+final Matcher isServerService =
+    new MatchesEnum("ServerService", ["LOG", "STATUS"]);
 
 /**
  * SourceChange
@@ -3511,6 +3539,16 @@ final Matcher isServerGetVersionParams = isNull;
  */
 final Matcher isServerGetVersionResult = new LazyMatcher(() =>
     new MatchesJsonObject("server.getVersion result", {"version": isString}));
+
+/**
+ * server.log params
+ *
+ * {
+ *   "entry": ServerLogEntry
+ * }
+ */
+final Matcher isServerLogParams = new LazyMatcher(() =>
+    new MatchesJsonObject("server.log params", {"entry": isServerLogEntry}));
 
 /**
  * server.setSubscriptions params
