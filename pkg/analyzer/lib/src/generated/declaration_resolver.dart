@@ -298,6 +298,14 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
         _walk(new ElementWalker.forGenericFunctionType(element), () {
           super.visitGenericFunctionType(node);
         });
+      } else {
+        var builder = new LocalElementBuilder(ElementHolder(), _enclosingUnit);
+        node.accept(builder);
+
+        var nodeImpl = node as GenericFunctionTypeImpl;
+        _enclosingUnit.encloseElement(
+          nodeImpl.declaredElement as GenericFunctionTypeElementImpl,
+        );
       }
     }
   }
