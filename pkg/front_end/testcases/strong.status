@@ -7,6 +7,7 @@
 # strong-mode enabled.
 
 extensions/instance_access_of_static: RuntimeError
+extensions/invalid_explicit_access: RuntimeError
 extensions/static_access_of_instance: RuntimeError
 general/abstract_members: TypeCheckError
 general/accessors: RuntimeError

@@ -19,6 +19,7 @@ extensions/instance_access: TextSerializationFailure
 extensions/instance_access_of_static: TextSerializationFailure
 extensions/instance_members: TextSerializationFailure
 extensions/instance_tearoff: TextSerializationFailure
+extensions/invalid_explicit_access: TextSerializationFailure
 extensions/other_kinds: TextSerializationFailure
 extensions/static_access: TextSerializationFailure
 extensions/static_access_of_instance: TextSerializationFailure

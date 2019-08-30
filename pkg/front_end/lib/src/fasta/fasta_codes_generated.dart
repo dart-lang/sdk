@@ -3300,6 +3300,47 @@ Message _withArgumentsExperimentNotEnabled(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExplicitExtensionArgumentMismatch =
+    messageExplicitExtensionArgumentMismatch;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExplicitExtensionArgumentMismatch = const MessageCode(
+    "ExplicitExtensionArgumentMismatch",
+    message:
+        r"""Explicit extension application requires exactly 1 positional argument.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        int
+            count)> templateExplicitExtensionTypeArgumentMismatch = const Template<
+        Message Function(String name, int count)>(
+    messageTemplate:
+        r"""Explicit extension application of extension '#name' takes '#count' type argument(s).""",
+    withArguments: _withArgumentsExplicitExtensionTypeArgumentMismatch);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, int count)>
+    codeExplicitExtensionTypeArgumentMismatch =
+    const Code<Message Function(String name, int count)>(
+  "ExplicitExtensionTypeArgumentMismatch",
+  templateExplicitExtensionTypeArgumentMismatch,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExplicitExtensionTypeArgumentMismatch(
+    String name, int count) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (count == null) throw 'No count provided';
+  return new Message(codeExplicitExtensionTypeArgumentMismatch,
+      message:
+          """Explicit extension application of extension '${name}' takes '${count}' type argument(s).""",
+      arguments: {'name': name, 'count': count});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExportAfterPart = messageExportAfterPart;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

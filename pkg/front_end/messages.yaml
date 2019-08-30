@@ -3652,3 +3652,9 @@ LanguageVersionMismatchInPart:
       // @dart = 2.3
 
       part of 'main.dart';
+
+ExplicitExtensionArgumentMismatch:
+  template: "Explicit extension application requires exactly 1 positional argument."
+
+ExplicitExtensionTypeArgumentMismatch:
+  template: "Explicit extension application of extension '#name' takes '#count' type argument(s)."

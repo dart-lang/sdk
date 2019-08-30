@@ -34,33 +34,7 @@ import '../builder/declaration_builder.dart';
 import '../builder/extension_builder.dart';
 import '../builder/procedure_builder.dart';
 
-import '../fasta_codes.dart'
-    show
-        LocatedMessage,
-        Message,
-        Template,
-        messageCannotAssignToSuper,
-        messageCannotAssignToParenthesizedExpression,
-        messageCantUsePrefixAsExpression,
-        messageCantUsePrefixWithNullAware,
-        messageIllegalAssignmentToNonAssignable,
-        messageInvalidInitializer,
-        messageInvalidUseOfNullAwareAccess,
-        messageLoadLibraryTakesNoArguments,
-        messageNotAConstantExpression,
-        messageNotAnLvalue,
-        messageSuperAsExpression,
-        noLength,
-        templateCantUseDeferredPrefixAsConstant,
-        templateConstructorNotFound,
-        templateDeferredTypeAnnotation,
-        templateMissingExplicitTypeArguments,
-        templateNotConstantExpression,
-        templateNotAPrefixInTypeAnnotation,
-        templateNotAType,
-        templateSuperclassHasNoConstructor,
-        templateThisOrSuperAccessInFieldInitializer,
-        templateUnresolvedPrefixInTypeAnnotation;
+import '../fasta_codes.dart';
 
 import '../names.dart'
     show
@@ -1861,27 +1835,28 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
       Expression receiver,
       List<DartType> explicitTypeArguments,
       int extensionTypeParameterCount) {
-    if (getterBuilder is AccessErrorBuilder) {
-      AccessErrorBuilder error = getterBuilder;
-      getterBuilder = error.builder;
-      // We should only see an access error here if we've looked up a setter
-      // when not explicitly looking for a setter.
-      assert(getterBuilder.isSetter);
-    } else if (getterBuilder.target == null) {
-      return unhandled(
-          "${getterBuilder.runtimeType}",
-          "InstanceExtensionAccessGenerator.fromBuilder",
-          offsetForToken(token),
-          helper.uri);
-    }
     Procedure readTarget;
     Procedure invokeTarget;
-    if (getterBuilder.isGetter) {
-      readTarget = getterBuilder.target;
-    } else if (getterBuilder.isRegularMethod) {
-      ProcedureBuilder procedureBuilder = getterBuilder;
-      readTarget = procedureBuilder.extensionTearOff;
-      invokeTarget = procedureBuilder.procedure;
+    if (getterBuilder != null) {
+      if (getterBuilder is AccessErrorBuilder) {
+        AccessErrorBuilder error = getterBuilder;
+        getterBuilder = error.builder;
+        // We should only see an access error here if we've looked up a setter
+        // when not explicitly looking for a setter.
+        assert(getterBuilder.isSetter);
+      } else if (getterBuilder.isGetter) {
+        readTarget = getterBuilder.target;
+      } else if (getterBuilder.isRegularMethod) {
+        ProcedureBuilder procedureBuilder = getterBuilder;
+        readTarget = procedureBuilder.extensionTearOff;
+        invokeTarget = procedureBuilder.procedure;
+      } else {
+        return unhandled(
+            "${getterBuilder.runtimeType}",
+            "InstanceExtensionAccessGenerator.fromBuilder",
+            offsetForToken(token),
+            helper.uri);
+      }
     }
     Procedure writeTarget;
     if (setterBuilder != null && setterBuilder.isSetter) {
@@ -2038,6 +2013,9 @@ class ExplicitExtensionAccessGenerator extends Generator {
     Builder getter = extensionBuilder.lookupLocalMember(send.name.name);
     Builder setter =
         extensionBuilder.lookupLocalMember(send.name.name, setter: true);
+    if (getter == null && setter == null) {
+      return new UnresolvedNameGenerator(_helper, token, send.name);
+    }
     Generator generator =
         new ExplicitExtensionInstanceAccessGenerator.fromBuilder(
             _helper,
@@ -2423,9 +2401,26 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
   @override
   doInvocation(int offset, Arguments arguments) {
     if (declaration.isExtension) {
+      ExtensionBuilder extensionBuilder = declaration;
+      if (arguments.positional.length != 1 || arguments.named.isNotEmpty) {
+        return _helper.buildProblem(messageExplicitExtensionArgumentMismatch,
+            fileOffset, lengthForToken(token));
+      }
+      List<DartType> explicitTypeArguments =
+          getExplicitTypeArguments(arguments);
+      if (explicitTypeArguments != null) {
+        int typeParameterCount = extensionBuilder.typeParameters?.length ?? 0;
+        if (explicitTypeArguments.length != typeParameterCount) {
+          return _helper.buildProblem(
+              templateExplicitExtensionTypeArgumentMismatch.withArguments(
+                  extensionBuilder.name, typeParameterCount),
+              fileOffset,
+              lengthForToken(token));
+        }
+      }
       // TODO(johnniwinther): Check argument and type argument count.
       return new ExplicitExtensionAccessGenerator(_helper, token, declaration,
-          arguments.positional.single, getExplicitTypeArguments(arguments));
+          arguments.positional.single, explicitTypeArguments);
     } else {
       return _helper.buildConstructorInvocation(declaration, token, token,
           arguments, "", null, token.charOffset, Constness.implicit);
