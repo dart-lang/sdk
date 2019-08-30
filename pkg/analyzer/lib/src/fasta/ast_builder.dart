@@ -15,7 +15,6 @@ import 'package:analyzer/src/dart/ast/ast.dart'
         CompilationUnitImpl,
         ExtensionDeclarationImpl,
         MixinDeclarationImpl;
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/fasta/error_converter.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -1592,15 +1591,6 @@ class AstBuilder extends StackListener {
           initializers,
           redirectedConstructor,
           body);
-      if (extensionDeclaration != null) {
-        // TODO(brianwilkerson) Decide how to handle constructor and field
-        //  declarations within extensions. They are invalid, but we might want
-        //  to resolve them in order to get navigation, search, etc.
-        errorReporter.errorReporter.reportErrorForNode(
-            ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR,
-            name ?? prefixOrName);
-        return;
-      }
       currentDeclarationMembers.add(constructor);
       if (mixinDeclaration != null) {
         // TODO (danrubel): Report an error if this is a mixin declaration.
@@ -1648,6 +1638,52 @@ class AstBuilder extends StackListener {
     } else {
       throw new UnimplementedError();
     }
+  }
+
+  @override
+  void endMixinMethod(Token getOrSet, Token beginToken, Token beginParam,
+      Token beginInitializers, Token endToken) {
+    debugEvent("MixinMethod");
+    endClassMethod(
+        getOrSet, beginToken, beginParam, beginInitializers, endToken);
+  }
+
+  @override
+  void endExtensionMethod(Token getOrSet, Token beginToken, Token beginParam,
+      Token beginInitializers, Token endToken) {
+    debugEvent("ExtensionMethod");
+    endClassMethod(
+        getOrSet, beginToken, beginParam, beginInitializers, endToken);
+  }
+
+  @override
+  void endClassConstructor(Token getOrSet, Token beginToken, Token beginParam,
+      Token beginInitializers, Token endToken) {
+    debugEvent("ClassConstructor");
+    endClassMethod(
+        getOrSet, beginToken, beginParam, beginInitializers, endToken);
+  }
+
+  @override
+  void endMixinConstructor(Token getOrSet, Token beginToken, Token beginParam,
+      Token beginInitializers, Token endToken) {
+    debugEvent("MixinConstructor");
+    // TODO(danrubel) Decide how to handle constructor declarations within
+    // mixins. They are invalid, but we include them in order to get navigation,
+    // search, etc. Currently the error is reported by multiple listeners,
+    // but should be moved into the parser.
+    endClassConstructor(
+        getOrSet, beginToken, beginParam, beginInitializers, endToken);
+  }
+
+  @override
+  void endExtensionConstructor(Token getOrSet, Token beginToken,
+      Token beginParam, Token beginInitializers, Token endToken) {
+    debugEvent("ExtensionConstructor");
+    // TODO(danrubel) Decide how to handle constructor declarations within
+    // extensions. They are invalid and the parser has already reported an
+    // error at this point. In the future, we should include them in order
+    // to get navigation, search, etc.
   }
 
   @override

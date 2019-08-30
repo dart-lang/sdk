@@ -3351,25 +3351,40 @@ class Parser {
           (staticToken == null || externalToken != null) && inPlainSync);
     }
     asyncState = savedAsyncModifier;
-    if (name.lexeme == enclosingDeclarationName ||
-        beforeInitializers != null ||
-        optional('.', name.next)) {
+    bool isConstructor = name.lexeme == enclosingDeclarationName;
+    if (!isConstructor &&
+        (optional('.', name.next) || beforeInitializers != null)) {
+      // Recovery: The name does not match,
+      // but the name is prefixed or the declaration contains initializers.
+      isConstructor = true;
+      // TODO(danrubel): report invalid constructor name
+      // Currently multiple listeners report this error, but that logic should
+      // be removed and the error reported here instead.
+    }
+    if (isConstructor) {
       //
       // constructor
-      // - name matches enclosing declaration, or
-      // - has initializers, or
-      // - name is prefixed
       //
+      if (getOrSet != null) {
+        // TODO(danrubel): report an error on get/set token
+        // This is currently reported by listeners other than AstBuilder.
+        // It should be reported here rather than in the listeners.
+      }
       switch (kind) {
         case DeclarationKind.Class:
           listener.endClassConstructor(getOrSet, beforeStart.next,
               beforeParam.next, beforeInitializers?.next, token);
           break;
         case DeclarationKind.Mixin:
+          // TODO(danrubel): Mixin constructors are invalid. Currently multiple
+          // listeners report this error, but that logic should be removed
+          // and the error reported here instead.
           listener.endMixinConstructor(getOrSet, beforeStart.next,
               beforeParam.next, beforeInitializers?.next, token);
           break;
         case DeclarationKind.Extension:
+          reportRecoverableError(
+              name, fasta.messageExtensionDeclaresConstructor);
           listener.endExtensionConstructor(getOrSet, beforeStart.next,
               beforeParam.next, beforeInitializers?.next, token);
           break;
