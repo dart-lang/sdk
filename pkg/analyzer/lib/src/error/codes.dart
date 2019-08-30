@@ -5,6 +5,8 @@
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 
+import 'analyzer_error_code.dart';
+
 export 'package:analyzer/src/analysis_options/error/option_codes.dart';
 export 'package:analyzer/src/dart/error/hint_codes.dart';
 export 'package:analyzer/src/dart/error/lint_codes.dart';
@@ -18,7 +20,7 @@ export 'package:analyzer/src/dart/error/todo_codes.dart';
  * treat these errors differently depending whether it is compiling it "checked"
  * mode).
  */
-class CheckedModeCompileTimeErrorCode extends ErrorCode {
+class CheckedModeCompileTimeErrorCode extends AnalyzerErrorCode {
   // TODO(paulberry): improve the text of these error messages so that it's
   // clear to the user that the error is coming from constant evaluation (and
   // hence the constant needs to be a subtype of the annotated type) as opposed
@@ -102,7 +104,7 @@ class CheckedModeCompileTimeErrorCode extends ErrorCode {
  * error to be generated and for the error message to explain what is wrong and,
  * when appropriate, how the problem can be corrected.
  */
-class CompileTimeErrorCode extends ErrorCode {
+class CompileTimeErrorCode extends AnalyzerErrorCode {
   /**
    * Member lookups ignore abstract declarations, which means that there will
    * be a compile-time error if the targeted member `m` is abstract, as well as
@@ -219,7 +221,8 @@ class CompileTimeErrorCode extends ErrorCode {
               "a map or a set.",
           correction:
               "Try removing or changing some of the elements so that all of "
-              "the elements are consistent.");
+              "the elements are consistent.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -299,7 +302,8 @@ class CompileTimeErrorCode extends ErrorCode {
               "have enough information for type inference to work.",
           correction:
               "Try adding type arguments to the literal (one for sets, two "
-              "for maps).");
+              "for maps).",
+          hasPublishedDocs: true);
 
   /**
    * 15 Metadata: The constant expression given in an annotation is type checked
@@ -705,7 +709,8 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode('CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE',
           "Const variables must be initialized with a constant value.",
           correction:
-              "Try changing the initializer to be a constant expression.");
+              "Try changing the initializer to be a constant expression.",
+          hasPublishedDocs: true);
 
   /**
    * 5 Variables: A constant variable must be initialized to a compile-time
@@ -1143,7 +1148,9 @@ class CompileTimeErrorCode extends ErrorCode {
   // ```
   static const CompileTimeErrorCode EQUAL_KEYS_IN_CONST_MAP =
       const CompileTimeErrorCode('EQUAL_KEYS_IN_CONST_MAP',
-          "Two keys in a constant map literal can't be equal.");
+          "Two keys in a constant map literal can't be equal.",
+          correction: "Change or remove the duplicate key.",
+          hasPublishedDocs: true);
 
   /**
    * 16.11 Sets: It is a compile-time error if two elements of a constant set
@@ -1205,7 +1212,8 @@ class CompileTimeErrorCode extends ErrorCode {
           'EXPRESSION_IN_MAP', "Expressions can't be used in a map literal.",
           correction:
               "Try removing the expression or converting it to be a map "
-              "entry.");
+              "entry.",
+          hasPublishedDocs: true);
 
   /**
    * 7.9 Superclasses: It is a compile-time error if the extends clause of a
@@ -2533,8 +2541,8 @@ class CompileTimeErrorCode extends ErrorCode {
   static const CompileTimeErrorCode NON_CONSTANT_LIST_ELEMENT =
       const CompileTimeErrorCode('NON_CONSTANT_LIST_ELEMENT',
           "The values in a const list literal must be constants.",
-          correction:
-              "Try removing the keyword 'const' from the list literal.");
+          correction: "Try removing the keyword 'const' from the list literal.",
+          hasPublishedDocs: true);
 
   /**
    * 12.6 Lists: It is a compile time error if an element of a constant list
@@ -2750,7 +2758,8 @@ class CompileTimeErrorCode extends ErrorCode {
   // ```
   static const CompileTimeErrorCode NOT_ITERABLE_SPREAD =
       const CompileTimeErrorCode('NOT_ITERABLE_SPREAD',
-          "Spread elements in list or set literals must implement 'Iterable'.");
+          "Spread elements in list or set literals must implement 'Iterable'.",
+          hasPublishedDocs: true);
 
   static const CompileTimeErrorCode NOT_MAP_SPREAD = const CompileTimeErrorCode(
       'NOT_MAP_SPREAD',
@@ -3098,7 +3107,8 @@ class CompileTimeErrorCode extends ErrorCode {
           'REDIRECT_TO_NON_CLASS',
           "The name '{0}' isn't a type and can't be used in a redirected "
               "constructor.",
-          correction: "Try redirecting to a different constructor.");
+          correction: "Try redirecting to a different constructor.",
+          hasPublishedDocs: true);
 
   /**
    * 7.6.2 Factories: It is a compile-time error if <i>k</i> is prefixed with
@@ -3275,7 +3285,8 @@ class CompileTimeErrorCode extends ErrorCode {
   static const CompileTimeErrorCode TYPE_ARGUMENT_NOT_MATCHING_BOUNDS =
       const CompileTimeErrorCode(
           'TYPE_ARGUMENT_NOT_MATCHING_BOUNDS', "'{0}' doesn't extend '{1}'.",
-          correction: "Try using a type that is or is a subclass of '{1}'.");
+          correction: "Try using a type that is or is a subclass of '{1}'.",
+          hasPublishedDocs: true);
 
   /**
    * It is a compile-time error if a generic function type is used as a bound
@@ -3457,7 +3468,8 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'URI_DOES_NOT_EXIST', "Target of URI doesn't exist: '{0}'.",
           correction: "Try creating the file referenced by the URI, or "
-              "Try using a URI for a file that does exist.");
+              "Try using a URI for a file that does exist.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -3496,7 +3508,8 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode('URI_HAS_NOT_BEEN_GENERATED',
           "Target of URI hasn't been generated: '{0}'.",
           correction: "Try running the generator that will generate the file "
-              "referenced by the URI.");
+              "referenced by the URI.",
+          hasPublishedDocs: true);
 
   /**
    * 14.1 Imports: It is a compile-time error if <i>x</i> is not a compile-time
@@ -3620,7 +3633,7 @@ class CompileTimeErrorCode extends ErrorCode {
  * error to be generated and for the error message to explain what is wrong and,
  * when appropriate, how the problem can be corrected.
  */
-class StaticTypeWarningCode extends ErrorCode {
+class StaticTypeWarningCode extends AnalyzerErrorCode {
   /**
    * 12.7 Lists: A fresh instance (7.6.1) <i>a</i>, of size <i>n</i>, whose
    * class implements the built-in class <i>List&lt;E></i> is allocated.
@@ -3768,7 +3781,8 @@ class StaticTypeWarningCode extends ErrorCode {
           // better error and correction messages.
           correction:
               "Try correcting the name to match an existing function, or "
-              "define a method or function named '{0}'.");
+              "define a method or function named '{0}'.",
+          hasPublishedDocs: true);
 
   /**
    * 12.14.4 Function Expression Invocation: A function expression invocation
@@ -3868,6 +3882,7 @@ class StaticTypeWarningCode extends ErrorCode {
           "The name '{0}' isn't a type so it can't be used as a type argument.",
           correction: "Try correcting the name to an existing type, or "
               "defining a type named '{0}'.",
+          hasPublishedDocs: true,
           isUnresolvedIdentifier: true);
 
   /**
@@ -3974,6 +3989,7 @@ class StaticTypeWarningCode extends ErrorCode {
           correction: "Try importing the library that defines '{0}', "
               "correcting the name to the name of an existing function, or "
               "defining a function named '{0}'.",
+          hasPublishedDocs: true,
           isUnresolvedIdentifier: true);
 
   /**
@@ -4021,7 +4037,8 @@ class StaticTypeWarningCode extends ErrorCode {
           "The getter '{0}' isn't defined for the class '{1}'.",
           correction: "Try importing the library that defines '{0}', "
               "correcting the name to the name of an existing getter, or "
-              "defining a getter or field named '{0}'.");
+              "defining a getter or field named '{0}'.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -4056,7 +4073,8 @@ class StaticTypeWarningCode extends ErrorCode {
           "The method '{0}' isn't defined for the class '{1}'.",
           correction:
               "Try correcting the name to the name of an existing method, or "
-              "defining a method named '{0}'.");
+              "defining a method named '{0}'.",
+          hasPublishedDocs: true);
 
   /**
    * 12.18 Assignment: Evaluation of an assignment of the form
@@ -4141,7 +4159,8 @@ class StaticTypeWarningCode extends ErrorCode {
           "The setter '{0}' isn't defined for the class '{1}'.",
           correction: "Try importing the library that defines '{0}', "
               "correcting the name to the name of an existing setter, or "
-              "defining a setter or field named '{0}'.");
+              "defining a setter or field named '{0}'.",
+          hasPublishedDocs: true);
 
   /**
    * 12.17 Getter Invocation: Let <i>T</i> be the static type of <i>e</i>. It is
@@ -4365,7 +4384,7 @@ class StaticTypeWarningCode extends ErrorCode {
  * to be generated and for the error message to explain what is wrong and, when
  * appropriate, how the problem can be corrected.
  */
-class StaticWarningCode extends ErrorCode {
+class StaticWarningCode extends AnalyzerErrorCode {
   /**
    * 14.1 Imports: If a name <i>N</i> is referenced by a library <i>L</i> and
    * <i>N</i> is introduced into the top level scope <i>L</i> by more than one
@@ -4442,7 +4461,8 @@ class StaticWarningCode extends ErrorCode {
       const StaticWarningCode(
           'ARGUMENT_TYPE_NOT_ASSIGNABLE',
           "The argument type '{0}' can't be assigned to the parameter type "
-              "'{1}'.");
+              "'{1}'.",
+          hasPublishedDocs: true);
 
   /**
    * 5 Variables: Attempting to assign to a final variable elsewhere will cause
@@ -5192,7 +5212,8 @@ class StaticWarningCode extends ErrorCode {
   // Replace the name with the name of a type.
   static const StaticWarningCode NOT_A_TYPE = const StaticWarningCode(
       'NOT_A_TYPE', "{0} isn't a type.",
-      correction: "Try correcting the name to match an existing type.");
+      correction: "Try correcting the name to match an existing type.",
+      hasPublishedDocs: true);
 
   /**
    * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m &lt;
@@ -5416,6 +5437,7 @@ class StaticWarningCode extends ErrorCode {
       'UNDEFINED_CLASS', "Undefined class '{0}'.",
       correction: "Try changing the name to the name of an existing class, or "
           "creating a class with the name '{0}'.",
+      hasPublishedDocs: true,
       isUnresolvedIdentifier: true);
 
   /**
@@ -5460,6 +5482,7 @@ class StaticWarningCode extends ErrorCode {
       const StaticWarningCode('UNDEFINED_IDENTIFIER', "Undefined name '{0}'.",
           correction: "Try correcting the name to one that is defined, or "
               "defining the name.",
+          hasPublishedDocs: true,
           isUnresolvedIdentifier: true);
 
   /**
@@ -5539,7 +5562,8 @@ class StaticWarningCode extends ErrorCode {
           "The named parameter '{0}' isn't defined.",
           correction:
               "Try correcting the name to an existing named parameter, or "
-              "defining a new parameter with this name.");
+              "defining a new parameter with this name.",
+          hasPublishedDocs: true);
 
   /**
    * For the purposes of experimenting with potential non-null type semantics.
