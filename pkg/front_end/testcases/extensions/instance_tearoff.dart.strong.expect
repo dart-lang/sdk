@@ -61,36 +61,36 @@ static method main() → dynamic {
 static method testExtension1() → dynamic {
   self::Class1* c0 = new self::Class1::•(0);
   self::Class1* c1 = new self::Class1::•(1);
-  () →* core::int* tearOff0 = ((final self::Class1* #) → dynamic => () → core::int* => self::Extension1|method(#)).call(c0);
+  () →* core::int* tearOff0 = self::Extension1|get#method(c0);
   self::expect(0, tearOff0.call());
   c0 = new self::Class1::•(4.{core::int::unary-}());
   self::expect(0, tearOff0.call());
-  () →* core::int* tearOff1 = ((final self::Class1* #) → dynamic => () → core::int* => self::Extension1|method(#)).call(c1);
+  () →* core::int* tearOff1 = self::Extension1|get#method(c1);
   self::expect(1, tearOff1.call());
   c1 = new self::Class1::•(7.{core::int::unary-}());
   self::expect(1, tearOff1.call());
-  <T extends core::num* = dynamic>(self::Extension1|genericMethod::T*) →* core::int* genericTearOff0 = ((final self::Class1* #) → dynamic => <T extends core::num* = dynamic>(T* t) → core::int* => self::Extension1|genericMethod<T*>(#, t)).call(c0);
+  <T extends core::num* = dynamic>(self::Extension1|genericMethod::T*) →* core::int* genericTearOff0 = self::Extension1|get#genericMethod(c0);
   self::expect(38, genericTearOff0.call<core::int*>(42));
   self::expect(38, genericTearOff0.call<core::num*>(42));
-  <T extends core::num* = dynamic>(self::Extension1|genericMethod::T*) →* core::int* genericTearOff1 = ((final self::Class1* #) → dynamic => <T extends core::num* = dynamic>(T* t) → core::int* => self::Extension1|genericMethod<T*>(#, t)).call(c1);
+  <T extends core::num* = dynamic>(self::Extension1|genericMethod::T*) →* core::int* genericTearOff1 = self::Extension1|get#genericMethod(c1);
   self::expect(35, genericTearOff1.call<core::int*>(42));
   self::expect(35, genericTearOff1.call<core::num*>(42));
 }
 static method testExtension2() → dynamic {
   self::Class2* c0 = new self::Class2::•(0);
   self::Class2* c1 = new self::Class2::•(1);
-  () →* core::int* tearOff0 = ((final self::Class2* #) → dynamic => () → core::int* => self::Extension2|method(#)).call(c0);
+  () →* core::int* tearOff0 = self::Extension2|get#method(c0);
   self::expect(2, tearOff0.call());
   c0 = new self::Class2::•(4.{core::int::unary-}());
   self::expect(2, tearOff0.call());
-  () →* core::int* tearOff1 = ((final self::Class2* #) → dynamic => () → core::int* => self::Extension2|method(#)).call(c1);
+  () →* core::int* tearOff1 = self::Extension2|get#method(c1);
   self::expect(3, tearOff1.call());
   c1 = new self::Class2::•(7.{core::int::unary-}());
   self::expect(3, tearOff1.call());
-  <T extends core::num* = dynamic>(self::Extension2|genericMethod::T*) →* core::int* genericTearOff0 = ((final self::Class2* #) → dynamic => <T extends core::num* = dynamic>(T* t) → core::int* => self::Extension2|genericMethod<T*>(#, t)).call(c0);
+  <T extends core::num* = dynamic>(self::Extension2|genericMethod::T*) →* core::int* genericTearOff0 = self::Extension2|get#genericMethod(c0);
   self::expect(41, genericTearOff0.call<core::int*>(42));
   self::expect(41, genericTearOff0.call<core::num*>(42));
-  <T extends core::num* = dynamic>(self::Extension2|genericMethod::T*) →* core::int* genericTearOff1 = ((final self::Class2* #) → dynamic => <T extends core::num* = dynamic>(T* t) → core::int* => self::Extension2|genericMethod<T*>(#, t)).call(c1);
+  <T extends core::num* = dynamic>(self::Extension2|genericMethod::T*) →* core::int* genericTearOff1 = self::Extension2|get#genericMethod(c1);
   self::expect(38, genericTearOff1.call<core::int*>(42));
   self::expect(38, genericTearOff1.call<core::num*>(42));
 }

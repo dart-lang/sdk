@@ -784,7 +784,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
             // TODO(johnniwinther): Handle generic extensions.
             if (typeSchemaEnvironment.isSubtypeOf(receiverType, onType)) {
               target = new ObjectAccessTarget.extensionMember(
-                  procedureBuilder.target,
+                  procedureBuilder.procedure,
+                  procedureBuilder.extensionTearOff,
                   procedureBuilder.kind,
                   extensionBuilder.typeParameters?.length ?? 0);
             }
@@ -1863,73 +1864,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
                   helper.forest.createArguments(fileOffset, [receiver])));
           break;
         case kernel.ProcedureKind.Method:
-
-          // Create instance method tear off by converting
-          //
-          //    extension E on A {
-          //      method() {}
-          //    }
-          //    A a = ...
-          //    a.method;
-          //
-          // into
-          //
-          //    E|method(A #this) {}
-          //    A a ...
-          //    let #1 = a in () => E|method(#1);
-          //
-
-          //VariableDeclaration variable = helper.forest
-          //    .createVariableDeclarationForValue(fileOffset, receiver,
-          //        type: receiverType);
-          //expression.parent.replaceChild(
-          //    expression,
-          //    replacement = expression = helper.forest.createLet(
-          //        variable,
-          //        helper.createExtensionTearOff(
-          //            expression.fileOffset,
-          //            readTarget.member,
-          //            variable,
-          //            // TODO(johnniwinther): Support generic extensions.
-          //            [],
-          //            receiver)));
-
-          // TODO(johnniwinther): The encoding above doesn't work on the VM
-          // (silently stops execution!) and dart2js (crashes due to invalid
-          // closure scope result). We use this instead:
-
-          // Create instance method tear off by converting
-          //
-          //    extension E on A {
-          //      method() {}
-          //    }
-          //    A a = ...
-          //    a.method;
-          //
-          // into
-          //
-          //    E|method(A #this) {}
-          //    A a ...
-          //    ((#1) => () => E|method(#1))(a);
-          //
-
-          VariableDeclaration variable = helper.forest
-              .createVariableDeclaration("#", 0,
-                  isFinal: true, type: receiverType);
           expression.parent.replaceChild(
               expression,
-              replacement = expression = helper.forest.createFunctionInvocation(
+              replacement = expression = helper.forest.createStaticInvocation(
                   fileOffset,
-                  helper.forest.createFunctionExpression(
-                      fileOffset,
-                      helper.forest.createFunctionNode(
-                        helper.forest.createReturnStatement(
-                            fileOffset,
-                            helper.createExtensionTearOff(
-                                fileOffset, readTarget.member, variable, [])),
-                        positionalParameters: [variable],
-                        requiredParameterCount: 1,
-                      )),
+                  readTarget.tearoffTarget,
                   helper.forest.createArguments(fileOffset, [receiver])));
           break;
         case kernel.ProcedureKind.Setter:
@@ -2363,8 +2302,10 @@ class ObjectAccessTarget {
 
   /// Creates an access to the extension [member].
   factory ObjectAccessTarget.extensionMember(
-          Member member, ProcedureKind kind, int typeParameters) =
-      ExtensionAccessTarget;
+      Member member,
+      Member tearoffTarget,
+      ProcedureKind kind,
+      int typeParameters) = ExtensionAccessTarget;
 
   /// Creates an access to a 'call' method on a function, i.e. a function
   /// invocation.
@@ -2404,16 +2345,25 @@ class ObjectAccessTarget {
   int get extensionTypeParameterCount => throw new UnsupportedError(
       'ObjectAccessTarget.extensionTypeParameterCount');
 
+  /// Returns the member to use for a tearoff.
+  ///
+  /// This is currently used for extension methods.
+  // TODO(johnniwinther): Normalize use by having `readTarget` and
+  //  `invokeTarget`?
+  Member get tearoffTarget =>
+      throw new UnsupportedError('ObjectAccessTarget.tearoffTarget');
+
   @override
   String toString() => 'ObjectAccessTarget($kind,$member)';
 }
 
 class ExtensionAccessTarget extends ObjectAccessTarget {
+  final Member tearoffTarget;
   final ProcedureKind extensionMethodKind;
   final int extensionTypeParameterCount;
 
-  ExtensionAccessTarget(
-      Member member, this.extensionMethodKind, this.extensionTypeParameterCount)
+  ExtensionAccessTarget(Member member, this.tearoffTarget,
+      this.extensionMethodKind, this.extensionTypeParameterCount)
       : super.internal(ObjectAccessTargetKind.extensionMember, member);
 
   @override
