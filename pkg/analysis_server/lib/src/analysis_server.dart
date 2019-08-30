@@ -49,6 +49,7 @@ import 'package:analysis_server/src/services/search/search_engine_internal.dart'
 import 'package:analysis_server/src/utilities/file_string_sink.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
+import 'package:analysis_server/src/utilities/tee_string_sink.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -204,8 +205,10 @@ class AnalysisServer extends AbstractAnalysisServer {
         } else if (name.startsWith('file:')) {
           String path = name.substring('file:'.length);
           sink = FileStringSink(path);
-          requestStatistics?.sink = sink;
         }
+      }
+      if (requestStatistics != null) {
+        sink = TeeStringSink(sink, requestStatistics.perfLoggerStringSink);
       }
       _analysisPerformanceLogger = new PerformanceLog(sink);
     }

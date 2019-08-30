@@ -310,14 +310,6 @@ class Driver implements ServerStarter {
   static const String TRAIN_USING = "train-using";
 
   /**
-   * The name of the flag to include into the analysis driver log all
-   * communications with the client - requests, responses, shortened
-   * notifications.
-   */
-  static const String INCLUDE_PROTOCOL_TO_DRIVER_LOG =
-      "include-protocol-to-driver-log";
-
-  /**
    * The instrumentation server that is to be used by the analysis server.
    */
   InstrumentationServer instrumentationServer;
@@ -475,11 +467,6 @@ class Driver implements ServerStarter {
       }
     }
 
-    RequestStatisticsHelper requestStatisticsHelper;
-    if (results[INCLUDE_PROTOCOL_TO_DRIVER_LOG] == true) {
-      requestStatisticsHelper = RequestStatisticsHelper();
-    }
-
     CompilerContext.runWithDefaultOptions((_) async {
       if (analysisServerOptions.useLanguageServerProtocol) {
         startLspServer(results, analysisServerOptions, dartSdkManager,
@@ -491,7 +478,7 @@ class Driver implements ServerStarter {
             parser,
             dartSdkManager,
             instrumentationService,
-            requestStatisticsHelper,
+            RequestStatisticsHelper(),
             analytics,
             diagnosticServerPort);
       }
@@ -810,9 +797,6 @@ class Driver implements ServerStarter {
     parser.addOption(TRAIN_USING,
         help: "Pass in a directory to analyze for purposes of training an "
             "analysis server snapshot.");
-    parser.addFlag(INCLUDE_PROTOCOL_TO_DRIVER_LOG,
-        defaultsTo: false,
-        help: "Whether to use include protocol into the driver log");
 
     return parser;
   }

@@ -93,7 +93,9 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
   ByteStreamServerChannel(
       this._input, this._output, this._instrumentationService,
       {RequestStatisticsHelper requestStatistics})
-      : _requestStatistics = requestStatistics;
+      : _requestStatistics = requestStatistics {
+    _requestStatistics?.serverChannel = this;
+  }
 
   /**
    * Future that will be completed when the input stream is closed.
@@ -132,8 +134,10 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
     ServerPerformanceStatistics.serverChannel.makeCurrentWhile(() {
       String jsonEncoding = json.encode(notification.toJson());
       _outputLine(jsonEncoding);
-      _instrumentationService.logNotification(jsonEncoding);
-      _requestStatistics?.logNotification(notification);
+      if (!identical(notification.event, 'server.log')) {
+        _instrumentationService.logNotification(jsonEncoding);
+        _requestStatistics?.logNotification(notification);
+      }
     });
   }
 
