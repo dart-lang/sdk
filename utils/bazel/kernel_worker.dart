@@ -272,6 +272,12 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
     // TODO(sigmund): add support for experiments with the incremental compiler.
     state = await fe.initializeIncrementalCompiler(
         previousState,
+        {
+          "target=$targetName",
+          "trackWidgetCreation=$trackWidgetCreation",
+          "multiRootScheme=${fileSystem.markerScheme}",
+          "multiRootRoots=${fileSystem.roots}",
+        },
         _toUri(parsedArgs['dart-sdk-summary']),
         _toUri(parsedArgs['packages-file']),
         _toUri(parsedArgs['libraries-file']),

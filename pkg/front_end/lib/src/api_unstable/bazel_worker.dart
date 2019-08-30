@@ -48,7 +48,7 @@ export '../fasta/severity.dart' show Severity;
 
 export 'compiler_state.dart' show InitializedCompilerState;
 
-import 'util.dart' show equalMaps;
+import 'util.dart' show equalMaps, equalSets;
 
 /// Initializes the compiler for a modular build.
 ///
@@ -56,6 +56,7 @@ import 'util.dart' show equalMaps;
 /// as necessary based on [workerInputDigests].
 Future<InitializedCompilerState> initializeIncrementalCompiler(
     InitializedCompilerState oldState,
+    Set<String> tags,
     Uri sdkSummary,
     Uri packagesFile,
     Uri librariesSpecificationUri,
@@ -84,7 +85,8 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
   if (oldState == null ||
       oldState.incrementalCompiler == null ||
       oldState.incrementalCompiler.outlineOnly != outlineOnly ||
-      !equalMaps(oldState.options.experimentalFlags, experimentalFlags)) {
+      !equalMaps(oldState.options.experimentalFlags, experimentalFlags) ||
+      !equalSets(oldState.tags, tags)) {
     // No - or immediately not correct - previous state.
     startOver = true;
 
@@ -212,6 +214,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
   return new InitializedCompilerState(options, processedOpts,
       workerInputCache: workerInputCache,
       incrementalCompiler: incrementalCompiler,
+      tags: tags,
       libraryToInputDill: libraryToInputDill);
 }
 

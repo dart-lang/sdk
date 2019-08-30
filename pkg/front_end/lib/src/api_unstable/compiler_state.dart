@@ -16,11 +16,13 @@ class InitializedCompilerState {
   final ProcessedOptions processedOpts;
   final Map<Uri, WorkerInputComponent> workerInputCache;
   final IncrementalCompiler incrementalCompiler;
+  final Set<String> tags;
   final Map<Uri, Uri> libraryToInputDill;
 
   InitializedCompilerState(this.options, this.processedOpts,
       {this.workerInputCache,
       this.incrementalCompiler,
+      this.tags,
       this.libraryToInputDill});
 }
 

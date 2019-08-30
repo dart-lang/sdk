@@ -275,6 +275,11 @@ Future<CompilerResult> _compile(List<String> args,
     doneInputSummaries = List<Component>(summaryModules.length);
     compilerState = await fe.initializeIncrementalCompiler(
         oldCompilerState,
+        {
+          "trackWidgetCreation=$trackWidgetCreation",
+          "multiRootScheme=${fileSystem.markerScheme}",
+          "multiRootRoots=${fileSystem.roots}",
+        },
         doneInputSummaries,
         compileSdk,
         sourcePathToUri(getSdkPath()),

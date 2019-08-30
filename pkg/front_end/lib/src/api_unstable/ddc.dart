@@ -33,7 +33,7 @@ import '../kernel_generator_impl.dart' show generateKernel;
 import 'compiler_state.dart'
     show InitializedCompilerState, WorkerInputComponent, digestsEqual;
 
-import 'util.dart' show equalLists, equalMaps;
+import 'util.dart' show equalLists, equalMaps, equalSets;
 
 export '../api_prototype/compiler_options.dart'
     show CompilerOptions, parseExperimentalFlags, parseExperimentalArguments;
@@ -134,6 +134,7 @@ Future<InitializedCompilerState> initializeCompiler(
 
 Future<InitializedCompilerState> initializeIncrementalCompiler(
     InitializedCompilerState oldState,
+    Set<String> tags,
     List<Component> doneInputSummaries,
     bool compileSdk,
     Uri sdkRoot,
@@ -169,8 +170,9 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       cachedSdkInput == null ||
       !digestsEqual(cachedSdkInput.digest, sdkDigest) ||
       !equalMaps(oldState.options.experimentalFlags, experiments) ||
-      !equalMaps(oldState.options.environmentDefines, environmentDefines)) {
-    // No previous state.
+      !equalMaps(oldState.options.environmentDefines, environmentDefines) ||
+      !equalSets(oldState.tags, tags)) {
+    // No - or immediately not correct - previous state.
     options = new CompilerOptions()
       ..compileSdk = compileSdk
       ..sdkRoot = sdkRoot
@@ -283,6 +285,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
   return new InitializedCompilerState(options, processedOpts,
       workerInputCache: workerInputCache,
       incrementalCompiler: incrementalCompiler,
+      tags: tags,
       libraryToInputDill: libraryToInputDill);
 }
 
