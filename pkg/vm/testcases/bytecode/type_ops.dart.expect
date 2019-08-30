@@ -735,7 +735,7 @@ ConstantPool {
       : super #lib::G::•()
       ;
     method foo8<generic-covariant-impl Q extends #lib::H::T* = #lib::H::T*>(#lib::H::foo8::Q* a, dart.core::int* b, generic-covariant-impl #lib::H::T* c) → void {}
-    forwarding-stub method foo7<generic-covariant-impl Q extends #lib::H::T*>(#lib::H::foo7::Q a, covariant dart.core::num* b, generic-covariant-impl #lib::H::T* c) → void
+    forwarding-stub method foo7<generic-covariant-impl Q extends #lib::H::T*>(#lib::H::foo7::Q* a, covariant dart.core::num* b, generic-covariant-impl #lib::H::T* c) → void
       return super.{#lib::G::foo7}<#lib::H::foo7::Q*>(a, b, c);
   }
   static field dart.core::List<dart.core::Iterable<dynamic>*>* globalVar;

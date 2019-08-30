@@ -24,7 +24,7 @@ static field self::A<core::num*>* a = new self::A::•<core::int*>();
 static field self::B<core::num*>* b = new self::B::•<core::int*>();
 static method main() → dynamic {
   try {
-    self::a.{self::A::foo}() as{TypeError} <S extends core::num* = dynamic>(S) →* void;
+    self::a.{self::A::foo}() as{TypeError} <S extends core::num* = dynamic>(S*) →* void;
     throw "Expected TypeError";
   }
   on core::TypeError* catch(final core::TypeError* e) {

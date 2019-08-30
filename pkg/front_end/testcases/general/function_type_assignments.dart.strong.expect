@@ -40,7 +40,7 @@ static method identity<T extends core::Object* = dynamic>(self::identity::T* t) 
   return t;
 static method identityObject<T extends core::Object* = core::Object*>(self::identityObject::T* t) → self::identityObject::T*
   return t;
-static method identityList<T extends core::List<self::identityList::T>* = core::List<dynamic>*>(self::identityList::T* t) → self::identityList::T*
+static method identityList<T extends core::List<self::identityList::T*>* = core::List<dynamic>*>(self::identityList::T* t) → self::identityList::T*
   return t;
 static method main() → dynamic {}
 

@@ -44,8 +44,8 @@ static method Extension1|genericMethod<T extends core::num* = dynamic>(final sel
   core::print("Extension1.genericMethod<${self::Extension1|genericMethod::T*}>(${t}) on ${#this}");
   return #this.{self::Class1::field}.{core::num::+}(t) as{TypeError} core::int*;
 }
-static method Extension1|get#genericMethod(final self::Class1* #this) → <T extends core::num* = dynamic>(T) →* core::int*
-  return <T extends core::num* = dynamic>(T t) → core::int* => self::Extension1|genericMethod<T>(#this, t);
+static method Extension1|get#genericMethod(final self::Class1* #this) → <T extends core::num* = dynamic>(T*) →* core::int*
+  return <T extends core::num* = dynamic>(T* t) → core::int* => self::Extension1|genericMethod<T*>(#this, t);
 static method Extension1|get#property(final self::Class1* #this) → core::int* {
   core::print("Extension1.property get on ${#this}");
   return #this.{self::Class1::field};
@@ -67,8 +67,8 @@ static method Extension2|genericMethod<T extends core::num* = dynamic>(final sel
   core::print("Extension2.genericMethod<${self::Extension2|genericMethod::T*}>(${t}) on ${#this}");
   return #this.{self::Class2::field}.{core::num::+}(t).{core::num::+}(4) as{TypeError} core::int*;
 }
-static method Extension2|get#genericMethod(final self::Class2* #this) → <T extends core::num* = dynamic>(T) →* core::int*
-  return <T extends core::num* = dynamic>(T t) → core::int* => self::Extension2|genericMethod<T>(#this, t);
+static method Extension2|get#genericMethod(final self::Class2* #this) → <T extends core::num* = dynamic>(T*) →* core::int*
+  return <T extends core::num* = dynamic>(T* t) → core::int* => self::Extension2|genericMethod<T*>(#this, t);
 static method Extension2|get#property(final self::Class2* #this) → core::int* {
   core::print("Extension2.property get on ${#this}");
   return #this.{self::Class2::field}.{core::num::+}(5);

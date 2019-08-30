@@ -10,7 +10,8 @@ String _shortenInstrumentationString(String s) => s
     .replaceAll('→', '->')
     .replaceAll('dart.core::', '')
     .replaceAll('dart.async::', '')
-    .replaceAll('test::', '');
+    .replaceAll('test::', '')
+    .replaceAll(new RegExp(r'\s*/\*.*?\*/\s*'), '');
 
 /// Interface providing the ability to record property/value pairs associated
 /// with source file locations.  Intended to facilitate testing.
