@@ -4325,6 +4325,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
 
+    if (node.isLate) {
+      return;
+    }
+
     if (node.type == null) {
       return;
     }
