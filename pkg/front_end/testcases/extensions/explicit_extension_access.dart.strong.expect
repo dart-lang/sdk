@@ -38,8 +38,8 @@ static method Extension1|get#method(final self::Class* #this) → () →* core::
   return () → core::int* => self::Extension1|method(#this);
 static method Extension1|genericMethod<T extends core::num* = dynamic>(final self::Class* #this, self::Extension1|genericMethod::T* t) → core::int*
   return #this.{self::Class::field1}.{core::num::+}(t) as{TypeError} core::int*;
-static method Extension1|get#genericMethod(final self::Class* #this) → <T extends core::num* = dynamic>(T) →* core::int*
-  return <T extends core::num* = dynamic>(T t) → core::int* => self::Extension1|genericMethod<T>(#this, t);
+static method Extension1|get#genericMethod(final self::Class* #this) → <T extends core::num* = dynamic>(T*) →* core::int*
+  return <T extends core::num* = dynamic>(T* t) → core::int* => self::Extension1|genericMethod<T*>(#this, t);
 static method Extension2|get#field(final self::Class* #this) → core::int*
   return #this.{self::Class::field2};
 static method Extension2|set#field(final self::Class* #this, core::int* value) → core::int* {
@@ -53,8 +53,8 @@ static method Extension2|get#method(final self::Class* #this) → () →* core::
   return () → core::int* => self::Extension2|method(#this);
 static method Extension2|genericMethod<T extends core::num* = dynamic>(final self::Class* #this, self::Extension2|genericMethod::T* t) → core::int*
   return #this.{self::Class::field2}.{core::num::+}(t) as{TypeError} core::int*;
-static method Extension2|get#genericMethod(final self::Class* #this) → <T extends core::num* = dynamic>(T) →* core::int*
-  return <T extends core::num* = dynamic>(T t) → core::int* => self::Extension2|genericMethod<T>(#this, t);
+static method Extension2|get#genericMethod(final self::Class* #this) → <T extends core::num* = dynamic>(T*) →* core::int*
+  return <T extends core::num* = dynamic>(T* t) → core::int* => self::Extension2|genericMethod<T*>(#this, t);
 static method main() → dynamic {
   self::Class* c = new self::Class::•();
   self::expect(42, self::Extension1|get#field(c));
@@ -69,8 +69,8 @@ static method main() → dynamic {
   self::expect(97, self::Extension2|genericMethod<core::int*>(c, 10));
   self::expect(52, self::Extension1|genericMethod<core::num*>(c, 10));
   self::expect(97, self::Extension2|genericMethod<core::num*>(c, 10));
-  <T extends core::num* = dynamic>(T) →* core::int* genericTearOff1 = self::Extension1|get#genericMethod(c);
-  <T extends core::num* = dynamic>(T) →* core::int* genericTearOff2 = self::Extension2|get#genericMethod(c);
+  <T extends core::num* = dynamic>(T*) →* core::int* genericTearOff1 = self::Extension1|get#genericMethod(c);
+  <T extends core::num* = dynamic>(T*) →* core::int* genericTearOff2 = self::Extension2|get#genericMethod(c);
   self::expect(52, genericTearOff1.call<core::int*>(10));
   self::expect(97, genericTearOff2.call<core::int*>(10));
   self::expect(52, genericTearOff1.call<core::num*>(10));
