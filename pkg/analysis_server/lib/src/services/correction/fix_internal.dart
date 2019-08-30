@@ -15,6 +15,7 @@ import 'package:analysis_server/src/services/correction/levenshtein.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/analysis/session.dart';
@@ -4557,51 +4558,6 @@ class FixProcessor {
     return source.replaceAll(
         new RegExp('^$indentOld', multiLine: true), indentNew);
   }
-}
-
-/**
- * An enumeration of lint names.
- */
-class LintNames {
-  static const String always_require_non_null_named_parameters =
-      'always_require_non_null_named_parameters';
-  static const String annotate_overrides = 'annotate_overrides';
-  static const String avoid_annotating_with_dynamic =
-      'avoid_annotating_with_dynamic';
-  static const String avoid_empty_else = 'avoid_empty_else';
-  static const String avoid_init_to_null = 'avoid_init_to_null';
-  static const String avoid_return_types_on_setters =
-      'avoid_return_types_on_setters';
-  static const String avoid_types_on_closure_parameters =
-      'avoid_types_on_closure_parameters';
-  static const String await_only_futures = 'await_only_futures';
-  static const String empty_catches = 'empty_catches';
-  static const String empty_constructor_bodies = 'empty_constructor_bodies';
-  static const String empty_statements = 'empty_statements';
-  static const String no_duplicate_case_values = 'no_duplicate_case_values';
-  static const String non_constant_identifier_names =
-      'non_constant_identifier_names';
-  static const String null_closures = 'null_closures';
-  static const String prefer_collection_literals = 'prefer_collection_literals';
-  static const String prefer_conditional_assignment =
-      'prefer_conditional_assignment';
-  static const String prefer_const_declarations = 'prefer_const_declarations';
-  static const String prefer_equal_for_default_values =
-      'prefer_equal_for_default_values';
-  static const String prefer_final_fields = 'prefer_final_fields';
-  static const String prefer_final_locals = 'prefer_final_locals';
-  static const String prefer_is_empty = 'prefer_is_empty';
-  static const String prefer_is_not_empty = 'prefer_is_not_empty';
-  static const String type_init_formals = 'type_init_formals';
-  static const String unawaited_futures = 'unawaited_futures';
-  static const String unnecessary_brace_in_string_interps =
-      'unnecessary_brace_in_string_interps';
-  static const String unnecessary_const = 'unnecessary_const';
-  static const String unnecessary_lambdas = 'unnecessary_lambdas';
-  static const String unnecessary_new = 'unnecessary_new';
-  static const String unnecessary_overrides = 'unnecessary_overrides';
-  static const String unnecessary_this = 'unnecessary_this';
-  static const String use_rethrow_when_possible = 'use_rethrow_when_possible';
 }
 
 /**

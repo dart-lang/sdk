@@ -30,11 +30,11 @@ main() {
   /// Ensure server lint name representations correspond w/ actual lint rules.
   /// See, e.g., https://dart-review.googlesource.com/c/sdk/+/95743.
   group('lint_names', () {
-    var fixFileContents = new File(path.join(pathPrefix, 'lib', 'src',
-            'services', 'correction', 'fix_internal.dart'))
+    var fixFileContents = new File(path.join(
+            pathPrefix, 'lib', 'src', 'services', 'linter', 'lint_names.dart'))
         .readAsStringSync();
     var parser = new CompilationUnitParser();
-    var cu = parser.parse(contents: fixFileContents, name: 'fix_internal.dart');
+    var cu = parser.parse(contents: fixFileContents, name: 'lint_names.dart');
     var lintNamesClass = cu.declarations
         .firstWhere((m) => m is ClassDeclaration && m.name.name == 'LintNames');
 
