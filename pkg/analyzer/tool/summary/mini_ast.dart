@@ -400,7 +400,7 @@ class MiniAstBuilder extends StackListener {
         NullValue.Metadata);
   }
 
-  void endMethod(Token getOrSet, Token beginToken, Token beginParam,
+  void endClassMethod(Token getOrSet, Token beginToken, Token beginParam,
       Token beginInitializers, Token endToken) {
     debugEvent("Method");
     pop(); // Body

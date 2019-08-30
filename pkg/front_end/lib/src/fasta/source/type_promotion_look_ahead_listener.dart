@@ -982,7 +982,7 @@ class TypePromotionLookAheadListener extends Listener {
   }
 
   @override
-  void endMethod(Token getOrSet, Token beginToken, Token beginParam,
+  void endClassMethod(Token getOrSet, Token beginToken, Token beginParam,
       Token beginInitializers, Token endToken) {
     debugEvent("endMethod", endToken);
     state.pop(); // Method name.

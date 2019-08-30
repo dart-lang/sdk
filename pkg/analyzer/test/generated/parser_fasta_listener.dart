@@ -593,6 +593,14 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
+  void endClassConstructor(Token getOrSet, Token beginToken, Token beginParam,
+      Token beginInitializers, Token endToken) {
+    end('Method');
+    super.endClassConstructor(
+        getOrSet, beginToken, beginParam, beginInitializers, endToken);
+  }
+
+  @override
   void endClassDeclaration(Token beginToken, Token endToken) {
     end('ClassDeclaration');
     end('ClassOrNamedMixinApplication');
@@ -613,6 +621,14 @@ class ForwardingTestListener extends ForwardingListener {
     expectIn('Member');
     super.endClassFields(staticToken, covariantToken, lateToken,
         varFinalOrConst, count, beginToken, endToken);
+  }
+
+  @override
+  void endClassMethod(Token getOrSet, Token beginToken, Token beginParam,
+      Token beginInitializers, Token endToken) {
+    end('Method');
+    super.endClassMethod(
+        getOrSet, beginToken, beginParam, beginInitializers, endToken);
   }
 
   @override
@@ -698,6 +714,14 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
+  void endExtensionConstructor(Token getOrSet, Token beginToken,
+      Token beginParam, Token beginInitializers, Token endToken) {
+    end('Method');
+    super.endExtensionConstructor(
+        getOrSet, beginToken, beginParam, beginInitializers, endToken);
+  }
+
+  @override
   void endExtensionDeclaration(
       Token extensionKeyword, Token onKeyword, Token token) {
     super.endExtensionDeclaration(extensionKeyword, onKeyword, token);
@@ -724,6 +748,14 @@ class ForwardingTestListener extends ForwardingListener {
     expectIn('Member');
     super.endExtensionFields(staticToken, covariantToken, lateToken,
         varFinalOrConst, count, beginToken, endToken);
+  }
+
+  @override
+  void endExtensionMethod(Token getOrSet, Token beginToken, Token beginParam,
+      Token beginInitializers, Token endToken) {
+    end('Method');
+    super.endExtensionMethod(
+        getOrSet, beginToken, beginParam, beginInitializers, endToken);
   }
 
   @override
@@ -930,10 +962,10 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endMethod(Token getOrSet, Token beginToken, Token beginParam,
+  void endMixinConstructor(Token getOrSet, Token beginToken, Token beginParam,
       Token beginInitializers, Token endToken) {
     end('Method');
-    super.endMethod(
+    super.endMixinConstructor(
         getOrSet, beginToken, beginParam, beginInitializers, endToken);
   }
 
@@ -958,6 +990,14 @@ class ForwardingTestListener extends ForwardingListener {
     expectIn('Member');
     super.endMixinFields(staticToken, covariantToken, lateToken,
         varFinalOrConst, count, beginToken, endToken);
+  }
+
+  @override
+  void endMixinMethod(Token getOrSet, Token beginToken, Token beginParam,
+      Token beginInitializers, Token endToken) {
+    end('Method');
+    super.endMixinMethod(
+        getOrSet, beginToken, beginParam, beginInitializers, endToken);
   }
 
   @override

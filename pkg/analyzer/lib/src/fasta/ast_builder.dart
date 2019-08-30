@@ -1524,7 +1524,7 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endMethod(Token getOrSet, Token beginToken, Token beginParam,
+  void endClassMethod(Token getOrSet, Token beginToken, Token beginParam,
       Token beginInitializers, Token endToken) {
     assert(getOrSet == null ||
         optional('get', getOrSet) ||

@@ -510,6 +510,13 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void endClassConstructor(Token getOrSet, Token beginToken, Token beginParam,
+      Token beginInitializers, Token endToken) {
+    listener?.endClassConstructor(
+        getOrSet, beginToken, beginParam, beginInitializers, endToken);
+  }
+
+  @override
   void endClassDeclaration(Token beginToken, Token endToken) {
     listener?.endClassDeclaration(beginToken, endToken);
   }
@@ -525,6 +532,13 @@ class ForwardingListener implements Listener {
       Token varFinalOrConst, int count, Token beginToken, Token endToken) {
     listener?.endClassFields(staticToken, covariantToken, lateToken,
         varFinalOrConst, count, beginToken, endToken);
+  }
+
+  @override
+  void endClassMethod(Token getOrSet, Token beginToken, Token beginParam,
+      Token beginInitializers, Token endToken) {
+    listener?.endClassMethod(
+        getOrSet, beginToken, beginParam, beginInitializers, endToken);
   }
 
   @override
@@ -601,6 +615,13 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void endExtensionConstructor(Token getOrSet, Token beginToken,
+      Token beginParam, Token beginInitializers, Token endToken) {
+    listener?.endExtensionConstructor(
+        getOrSet, beginToken, beginParam, beginInitializers, endToken);
+  }
+
+  @override
   void endExtensionDeclaration(
       Token extensionKeyword, Token onKeyword, Token token) {
     listener?.endExtensionDeclaration(extensionKeyword, onKeyword, token);
@@ -623,6 +644,13 @@ class ForwardingListener implements Listener {
       Token endToken) {
     listener?.endExtensionFields(staticToken, covariantToken, lateToken,
         varFinalOrConst, count, beginToken, endToken);
+  }
+
+  @override
+  void endExtensionMethod(Token getOrSet, Token beginToken, Token beginParam,
+      Token beginInitializers, Token endToken) {
+    listener?.endExtensionMethod(
+        getOrSet, beginToken, beginParam, beginInitializers, endToken);
   }
 
   @override
@@ -807,9 +835,9 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endMethod(Token getOrSet, Token beginToken, Token beginParam,
+  void endMixinConstructor(Token getOrSet, Token beginToken, Token beginParam,
       Token beginInitializers, Token endToken) {
-    listener?.endMethod(
+    listener?.endMixinConstructor(
         getOrSet, beginToken, beginParam, beginInitializers, endToken);
   }
 
@@ -829,6 +857,13 @@ class ForwardingListener implements Listener {
       Token varFinalOrConst, int count, Token beginToken, Token endToken) {
     listener?.endMixinFields(staticToken, covariantToken, lateToken,
         varFinalOrConst, count, beginToken, endToken);
+  }
+
+  @override
+  void endMixinMethod(Token getOrSet, Token beginToken, Token beginParam,
+      Token beginInitializers, Token endToken) {
+    listener?.endMixinMethod(
+        getOrSet, beginToken, beginParam, beginInitializers, endToken);
   }
 
   @override

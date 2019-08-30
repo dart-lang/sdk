@@ -133,7 +133,7 @@ abstract class ParserAdapter implements Parser {
       null /* rightBracket */,
     );
     // TODO(danrubel): disambiguate between class and mixin
-    currentToken = fastaParser.parseClassMember(currentToken);
+    currentToken = fastaParser.parseClassMember(currentToken, className);
     //currentToken = fastaParser.parseMixinMember(currentToken);
     ClassDeclaration declaration = astBuilder.classDeclaration;
     astBuilder.classDeclaration = null;
