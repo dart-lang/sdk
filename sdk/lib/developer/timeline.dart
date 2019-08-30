@@ -262,14 +262,14 @@ class _AsyncBlock {
 
   // Emit the start event.
   void _start() {
-    _reportTaskEvent(
-        _getTraceClock(), _taskId, 'b', category, name, _argumentsAsJson(null));
+    _reportTaskEvent(_getTraceClock(), _taskId, 'b', category, name,
+        _argumentsAsJson(_arguments));
   }
 
   // Emit the finish event.
   void _finish() {
-    _reportTaskEvent(_getTraceClock(), _taskId, 'e', category, name,
-        _argumentsAsJson(_arguments));
+    _reportTaskEvent(
+        _getTraceClock(), _taskId, 'e', category, name, _argumentsAsJson(null));
   }
 }
 
