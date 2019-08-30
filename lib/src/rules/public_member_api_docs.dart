@@ -77,7 +77,7 @@ class PublicMemberApiDocs extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    final visitor = _Visitor(this, context);
     registry.addClassDeclaration(this, visitor);
     registry.addClassTypeAlias(this, visitor);
     registry.addCompilationUnit(this, visitor);
@@ -93,12 +93,12 @@ class PublicMemberApiDocs extends LintRule implements NodeLintRule {
 }
 
 class _Visitor extends SimpleAstVisitor {
-  InheritanceManager2 manager;
+  final LintRule rule;
+  final LinterContext context;
+
   bool isInLibFolder;
 
-  final LintRule rule;
-
-  _Visitor(this.rule);
+  _Visitor(this.rule, this.context);
 
   bool check(Declaration node) {
     if (node.documentationComment == null && !isOverridingMember(node)) {
@@ -109,7 +109,7 @@ class _Visitor extends SimpleAstVisitor {
   }
 
   Element getOverriddenMember(Element member) {
-    if (member == null || manager == null) {
+    if (member == null) {
       return null;
     }
 
@@ -119,9 +119,10 @@ class _Visitor extends SimpleAstVisitor {
       return null;
     }
     Uri libraryUri = classElement.library.source.uri;
-    return manager
-        .getInherited(classElement.type, Name(libraryUri, member.name))
-        ?.element;
+    return context.inheritanceManager.getInherited(
+      classElement.type,
+      Name(libraryUri, member.name),
+    );
   }
 
   bool isOverridingMember(Declaration node) =>
@@ -170,10 +171,10 @@ class _Visitor extends SimpleAstVisitor {
       if (getter == null) {
         Uri libraryUri = node.declaredElement.library.source.uri;
         // Look for an inherited getter.
-        Element getter = manager
-            .getMember(
-                node.declaredElement.type, Name(libraryUri, setter.name.name))
-            ?.element;
+        Element getter = context.inheritanceManager.getMember(
+          node.declaredElement.type,
+          Name(libraryUri, setter.name.name),
+        );
         if (getter is PropertyAccessorElement) {
           if (getter.documentationComment != null) {
             continue;
@@ -203,11 +204,6 @@ class _Visitor extends SimpleAstVisitor {
     // Ignore this compilation unit if its not in the lib/ folder.
     isInLibFolder = isDefinedInLib(node);
     if (!isInLibFolder) return;
-
-    LibraryElement library = node.declaredElement?.library;
-    manager = library == null
-        ? null
-        : InheritanceManager2(library.context.typeSystem);
 
     Map<String, FunctionDeclaration> getters = <String, FunctionDeclaration>{};
     List<FunctionDeclaration> setters = <FunctionDeclaration>[];

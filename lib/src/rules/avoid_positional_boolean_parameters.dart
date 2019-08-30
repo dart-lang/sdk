@@ -58,11 +58,9 @@ class AvoidPositionalBooleanParameters extends LintRule
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+  final LinterContext context;
 
-  InheritanceManager2 manager;
-
-  _Visitor(this.rule, LinterContext context)
-      : manager = InheritanceManager2(context.typeSystem);
+  _Visitor(this.rule, this.context);
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
@@ -117,8 +115,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       return false;
     }
     Uri libraryUri = classElement.library.source.uri;
-    return manager.getInherited(
-            classElement.type, Name(libraryUri, member.name)) !=
+    return context.inheritanceManager
+            .getInherited(classElement.type, Name(libraryUri, member.name)) !=
         null;
   }
 }

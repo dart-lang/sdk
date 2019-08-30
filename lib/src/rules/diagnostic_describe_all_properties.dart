@@ -91,10 +91,9 @@ class DiagnosticsDescribeAllProperties extends LintRule
 
 class _Visitor extends SimpleAstVisitor {
   final LintRule rule;
-  final InheritanceManager2 inheritanceManager;
+  final LinterContext context;
 
-  _Visitor(this.rule, LinterContext context)
-      : inheritanceManager = InheritanceManager2(context.typeSystem);
+  _Visitor(this.rule, this.context);
 
   // todo (pq): for experiments and book-keeping; remove before landing
   LineInfo lineInfo;
@@ -118,8 +117,8 @@ class _Visitor extends SimpleAstVisitor {
       return false;
     }
     Uri libraryUri = classElement.library.source.uri;
-    return inheritanceManager.getInherited(
-            classElement.type, Name(libraryUri, member.name)) !=
+    return context.inheritanceManager
+            .getInherited(classElement.type, Name(libraryUri, member.name)) !=
         null;
   }
 

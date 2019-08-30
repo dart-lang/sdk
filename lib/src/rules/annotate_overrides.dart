@@ -64,11 +64,9 @@ class AnnotateOverrides extends LintRule implements NodeLintRule {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+  final LinterContext context;
 
-  InheritanceManager2 manager;
-
-  _Visitor(this.rule, LinterContext context)
-      : manager = InheritanceManager2(context.typeSystem);
+  _Visitor(this.rule, this.context);
 
   Element getOverriddenMember(Element member) {
     if (member == null) {
@@ -82,9 +80,10 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     Uri libraryUri = classElement.library.source.uri;
-    return manager
-        .getInherited(classElement.type, Name(libraryUri, member.name))
-        ?.element;
+    return context.inheritanceManager.getInherited(
+      classElement.type,
+      Name(libraryUri, member.name),
+    );
   }
 
   @override

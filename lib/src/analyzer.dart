@@ -21,8 +21,8 @@ export 'package:analyzer/src/dart/ast/token.dart';
 export 'package:analyzer/src/dart/constant/evaluation.dart'
     show ConstantEvaluationEngine, ConstantVisitor;
 export 'package:analyzer/src/dart/constant/value.dart' show DartObjectImpl;
-export 'package:analyzer/src/dart/element/inheritance_manager2.dart'
-    show InheritanceManager2, Name;
+export 'package:analyzer/src/dart/element/inheritance_manager3.dart'
+    show InheritanceManager3, Name;
 export 'package:analyzer/src/dart/error/lint_codes.dart';
 export 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisErrorInfo;
