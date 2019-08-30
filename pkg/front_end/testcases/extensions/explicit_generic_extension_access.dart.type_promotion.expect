@@ -1,0 +1,12 @@
+pkg/front_end/testcases/extensions/explicit_generic_extension_access.dart:15:16: Context: Write to latestType@375
+    latestType = '$T';
+               ^
+pkg/front_end/testcases/extensions/explicit_generic_extension_access.dart:19:16: Context: Write to latestType@375
+    latestType = '$T';
+               ^
+pkg/front_end/testcases/extensions/explicit_generic_extension_access.dart:23:16: Context: Write to latestType@375
+    latestType = '$T';
+               ^
+pkg/front_end/testcases/extensions/explicit_generic_extension_access.dart:27:16: Context: Write to latestType@375
+    latestType = '$T:$S';
+               ^
