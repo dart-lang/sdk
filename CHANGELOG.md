@@ -161,11 +161,14 @@ const int x = (s == null) ? 0 : s.length;
 
 #### Linter
 
-The Linter was updated to `0.1.96`, which includes:
+The Linter was updated to `0.1.97+1`, which includes:
 
-* fixed false positives in `unnecessary_parens`
-* various changes to migrate to preferred analyzer APIs
-* rule test fixes
+* internal migration away from using analyzer `resolutionMap`
+* various fixes and improvements to anticipate support for extension-methods
+* new lint: `camel_case_extensions`
+* rule template generation improvements
+* new lint: `avoid_equals_and_hash_code_on_mutable_classes`
+* extended `avoid_slow_async_io` to flag async `Directory` methods
 
 #### Dartdoc
 
