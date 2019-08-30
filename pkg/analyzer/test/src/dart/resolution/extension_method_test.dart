@@ -233,7 +233,6 @@ f(Object o, A a, B b) {
 ''');
   }
 
-  @failingTest
   test_visibility_withPrefix() async {
     newFile('/test/lib/lib.dart', content: '''
 class C {}
@@ -342,13 +341,16 @@ extension on A {}
     assertType(extendedType, 'A');
   }
 
-  @failingTest
   test_unnamed_onFunctionType() async {
     await assertNoErrorsInCode('''
-extension on int Function(int) {}
+extension on int Function(String) {}
 ''');
-    var extendedType = findNode.typeAnnotation('int ');
-    assertType(extendedType, 'int Function(int)');
+    var extendedType = findNode.typeAnnotation('Function');
+    assertType(extendedType, 'int Function(String)');
+    var returnType = findNode.typeAnnotation('int');
+    assertType(returnType, 'int');
+    var parameterType = findNode.typeAnnotation('String');
+    assertType(parameterType, 'String');
   }
 
   test_unnamed_onInterface() async {
