@@ -205,7 +205,8 @@ class InstrumentedVariables extends Variables {
 
   final _possiblyOptional = <DefaultFormalParameter, NullabilityNode>{};
 
-  InstrumentedVariables(NullabilityGraph graph) : super(graph);
+  InstrumentedVariables(NullabilityGraph graph, TypeProvider typeProvider)
+      : super(graph, typeProvider);
 
   /// Gets the [ExpressionChecks] associated with the given [expression].
   ExpressionChecks checkExpression(Expression expression) =>
@@ -260,14 +261,13 @@ class InstrumentedVariables extends Variables {
 }
 
 class MigrationVisitorTestBase extends AbstractSingleUnitTest with EdgeTester {
-  final InstrumentedVariables variables;
+  InstrumentedVariables variables;
 
   final NullabilityGraphForTesting graph;
 
   MigrationVisitorTestBase() : this._(NullabilityGraphForTesting());
 
-  MigrationVisitorTestBase._(this.graph)
-      : variables = InstrumentedVariables(graph);
+  MigrationVisitorTestBase._(this.graph);
 
   NullabilityNode get always => graph.always;
 
@@ -279,6 +279,7 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest with EdgeTester {
 
   Future<CompilationUnit> analyze(String code) async {
     await resolveTestUnit(code);
+    variables = InstrumentedVariables(graph, typeProvider);
     testUnit
         .accept(NodeBuilder(variables, testSource, null, graph, typeProvider));
     return testUnit;

@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:nnbd_migration/src/already_migrated_code_decorator.dart';
 import 'package:nnbd_migration/src/conditional_discard.dart';
@@ -32,8 +33,9 @@ class Variables implements VariableRecorder, VariableRepository {
 
   final AlreadyMigratedCodeDecorator _alreadyMigratedCodeDecorator;
 
-  Variables(this._graph)
-      : _alreadyMigratedCodeDecorator = AlreadyMigratedCodeDecorator(_graph);
+  Variables(this._graph, TypeProvider typeProvider)
+      : _alreadyMigratedCodeDecorator =
+            AlreadyMigratedCodeDecorator(_graph, typeProvider);
 
   @override
   Map<ClassElement, DecoratedType> decoratedDirectSupertypes(

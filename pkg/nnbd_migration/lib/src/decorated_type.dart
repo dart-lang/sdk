@@ -70,7 +70,7 @@ class DecoratedType {
         for (int i = 0; i < typeFormalBounds.length; i++) {
           var declaredBound = type.typeFormals[i].bound;
           if (declaredBound == null) {
-            assert(typeFormalBounds[i].type.isDartCoreObject);
+            assert(typeFormalBounds[i].type.toString() == 'Object');
           } else {
             assert(typeFormalBounds[i].type == declaredBound);
           }

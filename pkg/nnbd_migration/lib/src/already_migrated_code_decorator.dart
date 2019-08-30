@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 
@@ -13,7 +14,9 @@ import 'package:nnbd_migration/src/nullability_node.dart';
 class AlreadyMigratedCodeDecorator {
   final NullabilityGraph _graph;
 
-  AlreadyMigratedCodeDecorator(this._graph);
+  final TypeProvider _typeProvider;
+
+  AlreadyMigratedCodeDecorator(this._graph, this._typeProvider);
 
   /// Transforms [type], which should have come from code that has already been
   /// migrated to NNBD, into the corresponding [DecoratedType].
@@ -21,12 +24,10 @@ class AlreadyMigratedCodeDecorator {
     if (type.isVoid || type.isDynamic) {
       return DecoratedType(type, _graph.always);
     }
+    NullabilityNode node;
     var nullabilitySuffix = (type as TypeImpl).nullabilitySuffix;
     if (nullabilitySuffix == NullabilitySuffix.question) {
-      // TODO(paulberry): add support for depending on already-migrated packages
-      // containing nullable types.
-      throw UnimplementedError(
-          'Migration depends on an already-migrated nullable type');
+      node = _graph.always;
     } else {
       // Currently, all types passed to this method have nullability suffix `star`
       // because (a) we don't yet have a migrated SDK, and (b) we haven't added
@@ -34,11 +35,18 @@ class AlreadyMigratedCodeDecorator {
       // migrated with NNBD enabled.
       // TODO(paulberry): fix this assertion when things change.
       assert(nullabilitySuffix == NullabilitySuffix.star);
+      node = _graph.never;
     }
     if (type is FunctionType) {
-      if (type.typeFormals.isNotEmpty) {
-        throw UnimplementedError('Decorating generic function type');
-      }
+      var typeFormalBounds = type.typeFormals.map((e) {
+        var bound = e.bound;
+        if (bound == null) {
+          return decorate((_typeProvider.objectType as TypeImpl)
+              .withNullability(NullabilitySuffix.question));
+        } else {
+          return decorate(bound);
+        }
+      }).toList();
       var positionalParameters = <DecoratedType>[];
       var namedParameters = <String, DecoratedType>{};
       for (var parameter in type.parameters) {
@@ -48,19 +56,20 @@ class AlreadyMigratedCodeDecorator {
           namedParameters[parameter.name] = decorate(parameter.type);
         }
       }
-      return DecoratedType(type, _graph.never,
+      return DecoratedType(type, node,
+          typeFormalBounds: typeFormalBounds,
           returnType: decorate(type.returnType),
           namedParameters: namedParameters,
           positionalParameters: positionalParameters);
     } else if (type is InterfaceType) {
       if (type.typeParameters.isNotEmpty) {
         assert(type.typeArguments.length == type.typeParameters.length);
-        return DecoratedType(type, _graph.never,
+        return DecoratedType(type, node,
             typeArguments: type.typeArguments.map(decorate).toList());
       }
-      return DecoratedType(type, _graph.never);
+      return DecoratedType(type, node);
     } else if (type is TypeParameterType) {
-      return DecoratedType(type, _graph.never);
+      return DecoratedType(type, node);
     } else {
       // TODO(paulberry)
       throw UnimplementedError(
