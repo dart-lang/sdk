@@ -169,6 +169,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   /// nullable.
   final Map<Expression, NullabilityNode> _conditionalNodes = {};
 
+  List<String> _objectGetNames;
+
   EdgeBuilder(this._typeProvider, this._typeSystem, this._variables,
       this._graph, this.source, this.listener)
       : _decoratedClassHierarchy = DecoratedClassHierarchy(_variables, _graph),
@@ -850,8 +852,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       if (isConditional) {
         targetType = target.accept(this);
       } else {
-        _checkNonObjectMember(node.methodName.name); // TODO(paulberry)
-        targetType = _checkExpressionNotNull(target);
+        targetType = _handleTarget(target, node.methodName.name);
       }
     }
     var callee = node.methodName.staticElement;
@@ -1287,16 +1288,19 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     return _handleAssignment(expression, destinationType: _notNullType);
   }
 
-  /// Double checks that [name] is not the name of a method or getter declared
-  /// on [Object].
-  ///
-  /// TODO(paulberry): get rid of this method and put the correct logic into the
-  /// call sites.
-  void _checkNonObjectMember(String name) {
-    assert(name != 'toString');
-    assert(name != 'hashCode');
-    assert(name != 'noSuchMethod');
-    assert(name != 'runtimeType');
+  List<String> _computeObjectGetNames() {
+    var result = <String>[];
+    var objectClass = _typeProvider.objectType.element;
+    for (var accessor in objectClass.accessors) {
+      assert(accessor.isGetter);
+      assert(!accessor.name.startsWith('_'));
+      result.add(accessor.name);
+    }
+    for (var method in objectClass.methods) {
+      assert(!method.name.startsWith('_'));
+      result.add(method.name);
+    }
+    return result;
   }
 
   @override
@@ -1738,8 +1742,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       if (isConditional) {
         targetType = target.accept(this);
       } else {
-        _checkNonObjectMember(propertyName.name); // TODO(paulberry)
-        targetType = _checkExpressionNotNull(target);
+        targetType = _handleTarget(target, propertyName.name);
       }
     }
     var callee = propertyName.staticElement;
@@ -1764,6 +1767,14 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         _variables.recordDecoratedExpressionType(node, expressionType);
       }
       return expressionType;
+    }
+  }
+
+  DecoratedType _handleTarget(Expression target, String name) {
+    if ((_objectGetNames ??= _computeObjectGetNames()).contains(name)) {
+      return target.accept(this);
+    } else {
+      return _checkExpressionNotNull(target);
     }
   }
 
