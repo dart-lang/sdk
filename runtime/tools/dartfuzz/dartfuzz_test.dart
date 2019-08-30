@@ -300,8 +300,11 @@ class DartFuzzTest {
     rand = Random();
     tmpDir = Directory.systemTemp.createTempSync('dart_fuzz');
     fileName = '${tmpDir.path}/fuzz.dart';
+    // Testcase generation flags.
+    // Necessary To avoid false divergences between 64 and 32 bit versions.
     fp = samePrecision(mode1, mode2);
-    ffi = ffiCapable(mode1, mode2);
+    // Occasionally test FFI.
+    ffi = ffiCapable(mode1, mode2) && (rand.nextInt(5) == 0);
     runner1 =
         TestRunner.getTestRunner(mode1, top, tmpDir.path, env, fileName, rand);
     runner2 =
