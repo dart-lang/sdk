@@ -8,9 +8,10 @@
 [ $builder_tag == asan ]
 data_not_asan_test: SkipByDesign # This test tries to allocate too much memory on purpose.
 
-# These tests trigger and catch an abort (intentionally) and terminate the VM
-# before it can generate a snapshot.
-[ $compiler == app_jitk ]
+# These tests trigger and catch an abort (intentionally) and terminate the VM.
+# They're incompatible with ASAN because not all memory is freed when aborting and
+# with AppJit because the abort the VM before it can generate a snapshot.
+[ $compiler == app_jitk || $builder_tag == asan ]
 function_callbacks_test/01: Skip
 function_callbacks_test/02: Skip
 function_callbacks_test/03: Skip
