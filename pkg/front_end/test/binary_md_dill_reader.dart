@@ -13,8 +13,8 @@ class BinaryMdDillReader {
   String _currentlyUnparsed = "";
   Map<String, List<String>> _readingInstructions;
   Map<String, List<String>> _generics;
-  Map<int, String> _tagToName;
-  Map<int, String> _constantTagToName;
+  Map<int, String> tagToName;
+  Map<int, String> constantTagToName;
   Map<String, String> _extends;
   int _binaryMdNestingDepth;
   String _binaryMdCurrentClass;
@@ -28,10 +28,10 @@ class BinaryMdDillReader {
 
   BinaryMdDillReader(this._binaryMdContent, this._dillContent);
 
-  attemptRead() {
+  Map attemptRead() {
     _setupFields();
     _readBinaryMd();
-    _readDill();
+    return _readDill();
   }
 
   /// Initialize the bare essentials, e.g. that a double is 8 bytes.
@@ -42,8 +42,8 @@ class BinaryMdDillReader {
       "Double": ["byte", "byte", "byte", "byte", "byte", "byte", "byte", "byte"]
     };
     _generics = {};
-    _tagToName = {};
-    _constantTagToName = {};
+    tagToName = {};
+    constantTagToName = {};
     _extends = {};
     _binaryMdNestingDepth = 0;
     _binaryMdCurrentClass = "";
@@ -255,15 +255,15 @@ class BinaryMdDillReader {
       if (tag.endsWith(";")) tag = tag.substring(0, tag.length - 1);
       if (tag == "128 + N; // Where 0 <= N < 8.") {
         for (int n = 0; n < 8; ++n) {
-          _tagToName[128 + n] = _binaryMdCurrentClass;
+          tagToName[128 + n] = _binaryMdCurrentClass;
         }
       } else if (tag == "136 + N; // Where 0 <= N < 8.") {
         for (int n = 0; n < 8; ++n) {
-          _tagToName[136 + n] = _binaryMdCurrentClass;
+          tagToName[136 + n] = _binaryMdCurrentClass;
         }
       } else if (tag == "144 + N; // Where 0 <= N < 8.") {
         for (int n = 0; n < 8; ++n) {
-          _tagToName[144 + n] = _binaryMdCurrentClass;
+          tagToName[144 + n] = _binaryMdCurrentClass;
         }
       } else {
         if (tag.contains("; // Note: tag is out of order")) {
@@ -271,9 +271,9 @@ class BinaryMdDillReader {
         }
         Map<int, String> tagMap;
         if (_isA(_binaryMdCurrentClass, "Constant")) {
-          tagMap = _constantTagToName;
+          tagMap = constantTagToName;
         } else {
-          tagMap = _tagToName;
+          tagMap = tagToName;
         }
         if (tagMap[int.parse(tag)] != null) {
           throw "Two tags with same name!: "
@@ -430,6 +430,9 @@ class BinaryMdDillReader {
       if (name.contains("//")) {
         name = name.substring(0, name.indexOf("//")).trim();
       }
+      if (name.contains("=")) {
+        name = name.substring(0, name.indexOf("=")).trim();
+      }
       if (name.endsWith(";")) name = name.substring(0, name.length - 1);
       int oldOffset = _binaryOffset;
 
@@ -579,9 +582,9 @@ class BinaryMdDillReader {
   String _remapWhat(String what) {
     Map<int, String> tagMap;
     if (_isA(what, "Constant")) {
-      tagMap = _constantTagToName;
+      tagMap = constantTagToName;
     } else {
-      tagMap = _tagToName;
+      tagMap = tagToName;
     }
 
     if (what == "Expression") {
@@ -704,5 +707,99 @@ class BinaryMdDillReader {
         _dillContent[_binaryOffset + 1] << 16 |
         _dillContent[_binaryOffset + 2] << 8 |
         _dillContent[_binaryOffset + 3];
+  }
+}
+
+class DillComparer {
+  Map<int, String> tagToName;
+  StringBuffer outputTo;
+
+  bool compare(List<int> a, List<int> b, String binaryMd,
+      [StringBuffer outputTo]) {
+    this.outputTo = outputTo;
+    bool printOnExit = false;
+    if (this.outputTo == null) {
+      this.outputTo = new StringBuffer();
+      printOnExit = true;
+    }
+    BinaryMdDillReader readerA = new BinaryMdDillReader(binaryMd, a);
+    dynamic aResult = readerA.attemptRead();
+    tagToName = readerA.tagToName;
+
+    BinaryMdDillReader readerB = new BinaryMdDillReader(binaryMd, b);
+    dynamic bResult = readerB.attemptRead();
+
+    bool result = _compareInternal(aResult, bResult);
+    if (printOnExit) print(outputTo);
+    return result;
+  }
+
+  bool _compareInternal(dynamic a, dynamic b) {
+    if (a.runtimeType != b.runtimeType) {
+      outputTo.writeln(
+          "Different runtime types (${a.runtimeType} and ${b.runtimeType})");
+      return false;
+    }
+    if (a is List) {
+      List listA = a;
+      List listB = b;
+      if (listA.length != listB.length) {
+        outputTo.writeln(
+            "Lists have different length (${listA.length} vs ${listB.length} "
+            "${_getTag(a)}");
+        return false;
+      }
+      for (int i = 0; i < listA.length; i++) {
+        if (!_compareInternal(listA[i], listB[i])) {
+          outputTo
+              .writeln("Lists have different values at index $i ${_getTag(a)}");
+          return false;
+        }
+      }
+      return true;
+    }
+
+    if (a is Map<String, dynamic>) {
+      Map<String, dynamic> mapA = a;
+      Map<String, dynamic> mapB = b;
+      for (String key in mapA.keys) {
+        dynamic valueA = mapA[key];
+        dynamic valueB = mapB[key];
+        if (!_compareInternal(valueA, valueB)) {
+          outputTo.writeln(
+              "Map with key '$key' has different values ${_getTag(a)}");
+          return false;
+        }
+      }
+      if (mapA.length != mapB.length) {
+        outputTo.writeln("Maps have different number of entries "
+            "(${mapA.length} vs ${mapB.length}). ${_getTag(a)}");
+        return false;
+      }
+      return true;
+    }
+
+    if (a is int) {
+      if (a != b) {
+        outputTo.writeln("Integers differ: $a vs $b");
+        return false;
+      }
+      return true;
+    }
+
+    throw "Unsupported: ${a.runtimeType}";
+  }
+
+  String _getTag(dynamic input) {
+    if (input is Map) {
+      dynamic tag = input["tag"];
+      if (tag != null) {
+        if (tagToName[tag] != null) {
+          return "(tag $tag, likely '${tagToName[tag]}')";
+        }
+        return "(tag $tag)";
+      }
+    }
+    return "";
   }
 }

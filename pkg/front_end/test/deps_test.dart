@@ -14,8 +14,9 @@ import 'package:kernel/target/targets.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 import "package:vm/target/vm.dart" show VmTarget;
+import 'utils/io_utils.dart' show computeRepoDirUri;
 
-final Uri repoDir = _computeRepoDir();
+final Uri repoDir = computeRepoDirUri();
 
 Set<String> whitelistedExternalDartFiles = {
   "third_party/pkg/charcode/lib/ascii.dart",
@@ -27,15 +28,6 @@ Set<String> whitelistedExternalDartFiles = {
   // The package isn't even in pubspec.yaml.
   "pkg/meta/lib/meta.dart",
 };
-
-Uri _computeRepoDir() {
-  ProcessResult result = Process.runSync(
-      'git', ['rev-parse', '--show-toplevel'],
-      runInShell: true,
-      workingDirectory: new File.fromUri(Platform.script).parent.path);
-  String dirPath = (result.stdout as String).trim();
-  return new Directory(dirPath).uri;
-}
 
 Future<void> main() async {
   Ticker ticker = new Ticker(isVerbose: false);

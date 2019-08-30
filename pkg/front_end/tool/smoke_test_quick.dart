@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
+import 'dart:io' show Platform, Process, ProcessResult, exitCode;
 
-final String repoDir = _computeRepoDir();
+import '../test/utils/io_utils.dart' show computeRepoDir;
+
+final String repoDir = computeRepoDir();
 
 String get dartVm => Platform.executable;
 
@@ -68,12 +70,4 @@ Future<void> run(String script, List<String> scriptArguments,
   } else {
     print("Running: $runWhat: Done in ${stopwatch.elapsedMilliseconds} ms.");
   }
-}
-
-String _computeRepoDir() {
-  ProcessResult result = Process.runSync(
-      'git', ['rev-parse', '--show-toplevel'],
-      runInShell: true,
-      workingDirectory: new File.fromUri(Platform.script).parent.path);
-  return (result.stdout as String).trim();
 }

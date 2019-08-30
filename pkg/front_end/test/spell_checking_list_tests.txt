@@ -71,6 +71,7 @@ codepath
 collisions
 commit
 companion
+comparer
 comparisons
 compilations
 compiler's

@@ -3,13 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async' show Future;
-import 'dart:io';
 
-import 'package:kernel/target/targets.dart';
+import 'dart:io' show File, Platform;
 
-import 'binary_md_dill_reader.dart';
+import 'package:kernel/target/targets.dart' show NoneTarget, TargetFlags;
+
+import 'binary_md_dill_reader.dart' show BinaryMdDillReader;
+
 import 'incremental_load_from_dill_test.dart'
     show getOptions, normalCompileToBytes;
+
+import 'utils/io_utils.dart' show computeRepoDir;
 
 main() async {
   await testDart2jsCompile();
@@ -35,14 +39,6 @@ Future<void> testDart2jsCompile() async {
       "in ${stopwatch.elapsedMilliseconds} ms");
 }
 
-final String repoDir = _computeRepoDir();
+final String repoDir = computeRepoDir();
 
 String get dartVm => Platform.executable;
-
-String _computeRepoDir() {
-  ProcessResult result = Process.runSync(
-      'git', ['rev-parse', '--show-toplevel'],
-      runInShell: true,
-      workingDirectory: new File.fromUri(Platform.script).parent.path);
-  return (result.stdout as String).trim();
-}

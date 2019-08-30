@@ -54,10 +54,14 @@ import "package:vm/target/vm.dart" show VmTarget;
 
 import "package:yaml/yaml.dart" show YamlList, YamlMap, loadYamlNode;
 
+import 'binary_md_dill_reader.dart' show DillComparer;
+
 import "incremental_utils.dart" as util;
 
 import 'package:front_end/src/fasta/fasta_codes.dart'
     show DiagnosticMessageFromJson, FormattedMessage;
+
+import 'utils/io_utils.dart' show computeRepoDir;
 
 main([List<String> arguments = const []]) =>
     runMe(arguments, createContext, configurationPath: "../testing.json");
@@ -768,7 +772,24 @@ void checkIsEqual(List<int> a, List<int> b) {
   }
   for (int i = 0; i < length; ++i) {
     if (a[i] != b[i]) {
-      Expect.fail("Data differs at byte ${i + 1}.");
+      print("Data differs at byte ${i + 1}.");
+
+      StringBuffer message = new StringBuffer();
+      message.writeln("Data differs at byte ${i + 1}.");
+      message.writeln("");
+      message.writeln("Will try to find more useful information:");
+
+      final String repoDir = computeRepoDir();
+      File binaryMd = new File("$repoDir/pkg/kernel/binary.md");
+      String binaryMdContent = binaryMd.readAsStringSync();
+
+      DillComparer dillComparer = new DillComparer();
+      if (dillComparer.compare(a, b, binaryMdContent, message)) {
+        message.writeln(
+            "Somehow the two different byte-lists compared to the same.");
+      }
+
+      Expect.fail(message.toString());
     }
   }
   Expect.equals(a.length, b.length);
