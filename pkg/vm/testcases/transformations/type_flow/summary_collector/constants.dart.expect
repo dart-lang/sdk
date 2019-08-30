@@ -1,0 +1,25 @@
+------------ #lib::smiLiteral ------------
+
+RESULT: _T (dart.core::_Smi)
+------------ #lib::intLiteral ------------
+
+RESULT: _T (dart.core::int*)+
+------------ #lib::strLiteral ------------
+
+RESULT: _T (dart.core::_OneByteString)
+------------ #lib::indexingIntoConstantList1 ------------
+%i = _Parameter #0 [_T (dart.core::int*)+?]
+RESULT: _T (dart.core::_Smi)
+------------ #lib::indexingIntoConstantList2 ------------
+%i = _Parameter #0 [_T (dart.core::int*)+?]
+t1 = _Join [dart.core::Object*] (_T (dart.core::_OneByteString), _T (dart.core::_Smi), _T {}?)
+RESULT: t1
+------------ #lib::main ------------
+
+RESULT: _T {}?
+------------ #lib::_constList1 ------------
+
+RESULT: _T (dart.core::_ImmutableList)
+------------ #lib::_constList2 ------------
+
+RESULT: _T (dart.core::_ImmutableList)

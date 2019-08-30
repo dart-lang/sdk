@@ -945,9 +945,16 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   @override
   TypeExpr visitMethodInvocation(MethodInvocation node) {
-    final receiver = _visit(node.receiver);
+    final receiverNode = node.receiver;
+    final receiver = _visit(receiverNode);
     final args = _visitArguments(receiver, node.arguments);
     final target = node.interfaceTarget;
+    if (receiverNode is ConstantExpression && node.name.name == '[]') {
+      Constant constant = receiverNode.constant;
+      if (constant is ListConstant) {
+        return _handleIndexingIntoListConstant(constant);
+      }
+    }
     if (target == null) {
       if (node.name.name == '==') {
         assertx(args.values.length == 2);
@@ -990,6 +997,24 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
               ? new VirtualSelector(target)
               : new InterfaceSelector(target),
           args);
+    }
+  }
+
+  TypeExpr _handleIndexingIntoListConstant(ListConstant list) {
+    final elementTypes = new Set<Type>();
+    for (var element in list.entries) {
+      elementTypes.add(constantAllocationCollector.typeFor(element));
+    }
+    switch (elementTypes.length) {
+      case 0:
+        return new Type.empty();
+      case 1:
+        return elementTypes.single;
+      default:
+        final join = new Join(null, list.typeArgument);
+        join.values.addAll(elementTypes);
+        _summary.add(join);
+        return join;
     }
   }
 
