@@ -213,22 +213,22 @@ class ForInElement extends Expression with ControlFlowElement {
 mixin ControlFlowMapEntry implements MapEntry {
   @override
   Expression get key {
-    throw UnsupportedError('ControlFlowMapEntry.key getter');
+    throw new UnsupportedError('ControlFlowMapEntry.key getter');
   }
 
   @override
   void set key(Expression expr) {
-    throw UnsupportedError('ControlFlowMapEntry.key setter');
+    throw new UnsupportedError('ControlFlowMapEntry.key setter');
   }
 
   @override
   Expression get value {
-    throw UnsupportedError('ControlFlowMapEntry.value getter');
+    throw new UnsupportedError('ControlFlowMapEntry.value getter');
   }
 
   @override
   void set value(Expression expr) {
-    throw UnsupportedError('ControlFlowMapEntry.value setter');
+    throw new UnsupportedError('ControlFlowMapEntry.value setter');
   }
 
   @override

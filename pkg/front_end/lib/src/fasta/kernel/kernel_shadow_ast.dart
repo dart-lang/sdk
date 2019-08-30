@@ -797,8 +797,8 @@ Expression checkWebIntLiteralsErrorIfUnexact(
   if (inferrer.isTopLevel) return null;
   if (!inferrer.library.loader.target.backendTarget
       .errorOnUnexactWebIntLiterals) return null;
-  BigInt asInt = BigInt.from(value).toUnsigned(64);
-  BigInt asDouble = BigInt.from(asInt.toDouble());
+  BigInt asInt = new BigInt.from(value).toUnsigned(64);
+  BigInt asDouble = new BigInt.from(asInt.toDouble());
   if (asInt == asDouble) return null;
   String text = literal ?? value.toString();
   String nearest = text.startsWith('0x') || text.startsWith('0X')
@@ -822,9 +822,9 @@ class IntJudgment extends IntLiteral implements ExpressionJudgment {
 
   double asDouble({bool negated: false}) {
     if (value == 0 && negated) return -0.0;
-    BigInt intValue = BigInt.from(negated ? -value : value);
+    BigInt intValue = new BigInt.from(negated ? -value : value);
     double doubleValue = intValue.toDouble();
-    return intValue == BigInt.from(doubleValue) ? doubleValue : null;
+    return intValue == new BigInt.from(doubleValue) ? doubleValue : null;
   }
 
   @override
@@ -849,7 +849,7 @@ class ShadowLargeIntLiteral extends IntLiteral implements ExpressionJudgment {
     double doubleValue = intValue.toDouble();
     return !doubleValue.isNaN &&
             !doubleValue.isInfinite &&
-            intValue == BigInt.from(doubleValue)
+            intValue == new BigInt.from(doubleValue)
         ? doubleValue
         : null;
   }

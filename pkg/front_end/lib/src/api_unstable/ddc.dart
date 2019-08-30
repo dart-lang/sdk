@@ -265,7 +265,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       throw new StateError("Expected to get digest for $summary");
     }
     List<int> bytes = await fileSystem.entityForUri(summary).readAsBytes();
-    WorkerInputComponent cachedInput = WorkerInputComponent(
+    WorkerInputComponent cachedInput = new WorkerInputComponent(
         digest,
         await compilerState.processedOpts
             .loadComponent(bytes, nameRoot, alwaysCreateNewNamedNodes: true));

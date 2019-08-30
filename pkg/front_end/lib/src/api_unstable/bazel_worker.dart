@@ -115,7 +115,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       ..experimentalFlags = experimentalFlags;
 
     processedOpts = new ProcessedOptions(options: options);
-    cachedSdkInput = WorkerInputComponent(
+    cachedSdkInput = new WorkerInputComponent(
         sdkDigest, await processedOpts.loadSdkSummary(null));
     workerInputCache[sdkSummary] = cachedSdkInput;
 
@@ -193,7 +193,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     if (summaryDigest == null) {
       throw new StateError("Expected to get digest for $summary");
     }
-    WorkerInputComponent cachedInput = WorkerInputComponent(
+    WorkerInputComponent cachedInput = new WorkerInputComponent(
         summaryDigest,
         await processedOpts.loadComponent(
             await fileSystem.entityForUri(summary).readAsBytes(), nameRoot,

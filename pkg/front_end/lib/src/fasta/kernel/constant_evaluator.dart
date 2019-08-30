@@ -117,14 +117,14 @@ void transformLibraries(
 
 class JavaScriptIntConstant extends DoubleConstant {
   final BigInt bigIntValue;
-  JavaScriptIntConstant(int value) : this.fromBigInt(BigInt.from(value));
+  JavaScriptIntConstant(int value) : this.fromBigInt(new BigInt.from(value));
   JavaScriptIntConstant.fromDouble(double value)
-      : bigIntValue = BigInt.from(value),
+      : bigIntValue = new BigInt.from(value),
         super(value);
   JavaScriptIntConstant.fromBigInt(this.bigIntValue)
       : super(bigIntValue.toDouble());
   JavaScriptIntConstant.fromUInt64(int value)
-      : this.fromBigInt(BigInt.from(value).toUnsigned(64));
+      : this.fromBigInt(new BigInt.from(value).toUnsigned(64));
 
   DartType getType(TypeEnvironment types) => types.intType;
 

@@ -262,7 +262,7 @@ class ConstantToTextVisitor implements ConstantVisitor<void> {
     }
   }
 
-  void defaultConstant(Constant node) => throw UnimplementedError(
+  void defaultConstant(Constant node) => throw new UnimplementedError(
       'Unexpected constant $node (${node.runtimeType})');
 
   void visitNullConstant(NullConstant node) {
@@ -386,8 +386,8 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
     }
   }
 
-  void defaultDartType(DartType node) =>
-      throw UnimplementedError('Unexpected type $node (${node.runtimeType})');
+  void defaultDartType(DartType node) => throw new UnimplementedError(
+      'Unexpected type $node (${node.runtimeType})');
 
   void visitInvalidType(InvalidType node) {
     sb.write('<invalid>');

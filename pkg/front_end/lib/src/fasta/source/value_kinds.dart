@@ -33,9 +33,9 @@ abstract class ValueKind {
   /// Checks the [value] an returns `true` if the value is of the expected kind.
   bool check(Object value);
 
-  static const ValueKind Arguments = _SingleValueKind<type.Arguments>();
+  static const ValueKind Arguments = const _SingleValueKind<type.Arguments>();
   static const ValueKind ArgumentsOrNull =
-      _SingleValueKind<type.Arguments>(NullValue.Arguments);
+      const _SingleValueKind<type.Arguments>(NullValue.Arguments);
   static const ValueKind Expression = const _SingleValueKind<type.Expression>();
   static const ValueKind Identifier = const _SingleValueKind<type.Identifier>();
   static const ValueKind IdentifierOrNull =
@@ -55,7 +55,8 @@ abstract class ValueKind {
   static const ValueKind Name = const _SingleValueKind<String>();
   static const ValueKind NameOrNull =
       const _SingleValueKind<String>(NullValue.Name);
-  static const ValueKind NameOrOperator = _UnionValueKind([Name, Operator]);
+  static const ValueKind NameOrOperator =
+      const _UnionValueKind([Name, Operator]);
   static const ValueKind NameOrQualifiedNameOrOperator =
       const _UnionValueKind([Name, QualifiedName, Operator]);
   static const ValueKind NameOrParserRecovery =
@@ -64,9 +65,9 @@ abstract class ValueKind {
       const _SingleValueKind<List<type.MetadataBuilder>>(NullValue.Metadata);
   static const ValueKind Operator = const _SingleValueKind<type.Operator>();
   static const ValueKind ParserRecovery =
-      _SingleValueKind<type.ParserRecovery>();
+      const _SingleValueKind<type.ParserRecovery>();
   static const ValueKind ProblemBuilder =
-      _SingleValueKind<type.ProblemBuilder>();
+      const _SingleValueKind<type.ProblemBuilder>();
   static const ValueKind QualifiedName =
       const _SingleValueKind<type.QualifiedName>();
   static const ValueKind Token = const _SingleValueKind<type.Token>();
@@ -143,5 +144,5 @@ List<ValueKind> repeatedKinds(ValueKind kind, int count) {
 
 /// Helper method for creating a union of a list of [ValueKind]s.
 ValueKind unionOfKinds(List<ValueKind> kinds) {
-  return _UnionValueKind(kinds);
+  return new _UnionValueKind(kinds);
 }

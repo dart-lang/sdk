@@ -107,7 +107,7 @@ abstract class LibraryBuilder extends ModifierBuilder {
   Uri get uri;
 
   Iterator<Builder> get iterator {
-    return LibraryLocalDeclarationIterator(this);
+    return new LibraryLocalDeclarationIterator(this);
   }
 
   NameIterator get nameIterator {

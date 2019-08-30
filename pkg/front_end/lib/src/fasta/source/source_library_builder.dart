@@ -1798,7 +1798,8 @@ class SourceLibraryBuilder extends LibraryBuilder {
       currentTypeParameterScopeBuilder?.hasConstConstructor = true;
       // const constructors will have their initializers compiled and written
       // into the outline.
-      constructorBuilder.beginInitializers = beginInitializers ?? Token.eof(-1);
+      constructorBuilder.beginInitializers =
+          beginInitializers ?? new Token.eof(-1);
     }
   }
 

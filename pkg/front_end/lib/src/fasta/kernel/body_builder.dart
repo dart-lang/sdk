@@ -3606,7 +3606,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
               arguments,
               charOffset);
         }
-        StaticInvocation node = FactoryConstructorInvocationJudgment(
+        StaticInvocation node = new FactoryConstructorInvocationJudgment(
             target, arguments,
             isConst: isConst)
           ..fileOffset = charOffset;

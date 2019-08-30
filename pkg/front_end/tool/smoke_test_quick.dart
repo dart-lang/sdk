@@ -11,6 +11,8 @@ String get dartVm => Platform.executable;
 main(List<String> args) async {
   Stopwatch stopwatch = new Stopwatch()..start();
   List<Future> futures = new List<Future>();
+  futures.add(
+      run("pkg/front_end/test/explicit_creation_test.dart", [], filter: false));
   futures.add(run(
     "pkg/front_end/test/fasta/messages_test.dart",
     ["-DfastOnly=true"],
@@ -18,7 +20,7 @@ main(List<String> args) async {
   futures.add(run("pkg/front_end/test/spelling_test_not_src_test.dart", []));
   futures.add(run("pkg/front_end/test/spelling_test_src_test.dart", []));
   futures.add(run("pkg/front_end/test/lint_test.dart", []));
-  futures.add(run("pkg/front_end/test/deps_test.dart", []));
+  futures.add(run("pkg/front_end/test/deps_test.dart", [], filter: false));
   await Future.wait(futures);
   print("\n-----------------------\n");
   print("Done with exitcode $exitCode in ${stopwatch.elapsedMilliseconds} ms");
@@ -52,8 +54,16 @@ Future<void> run(String script, List<String> scriptArguments,
     }
     stdout = stdout.trim();
     if (stdout.isNotEmpty) {
+      print("--- stdout start ---");
       print(stdout);
-      print("-----");
+      print("--- stdout end ---");
+    }
+
+    String stderr = result.stderr.toString().trim();
+    if (stderr.isNotEmpty) {
+      print("--- stderr start ---");
+      print(stderr);
+      print("--- stderr end ---");
     }
   } else {
     print("Running: $runWhat: Done in ${stopwatch.elapsedMilliseconds} ms.");

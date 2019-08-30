@@ -685,8 +685,8 @@ class InferenceVisitor
       node.inferredType = const BottomType();
       return const ExpressionInferenceResult(const BottomType());
     }
-    node.parent
-        .replaceChild(node, IntLiteral(intValue)..fileOffset = node.fileOffset);
+    node.parent.replaceChild(
+        node, new IntLiteral(intValue)..fileOffset = node.fileOffset);
     node.inferredType = inferrer.coreTypes.intClass.rawType;
     return new ExpressionInferenceResult(node.inferredType);
   }
@@ -1471,7 +1471,7 @@ class InferenceVisitor
 
         node.inferredType = setLiteral.inferredType =
             new InterfaceType(inferrer.coreTypes.setClass, inferredTypesForSet);
-        return ExpressionInferenceResult(node.inferredType);
+        return new ExpressionInferenceResult(node.inferredType);
       }
       if (canBeSet && canBeMap && node.entries.isNotEmpty) {
         node.parent.replaceChild(
@@ -1552,8 +1552,8 @@ class InferenceVisitor
         if (inferrer.isDoubleContext(typeContext)) {
           double doubleValue = receiver.asDouble(negated: true);
           if (doubleValue != null) {
-            node.parent.replaceChild(
-                node, DoubleLiteral(doubleValue)..fileOffset = node.fileOffset);
+            node.parent.replaceChild(node,
+                new DoubleLiteral(doubleValue)..fileOffset = node.fileOffset);
             node.inferredType = inferrer.coreTypes.doubleClass.rawType;
             return new ExpressionInferenceResult(node.inferredType);
           }
@@ -1572,7 +1572,7 @@ class InferenceVisitor
             double doubleValue = receiver.asDouble(negated: true);
             if (doubleValue != null) {
               node.parent.replaceChild(node,
-                  DoubleLiteral(doubleValue)..fileOffset = node.fileOffset);
+                  new DoubleLiteral(doubleValue)..fileOffset = node.fileOffset);
               node.inferredType = inferrer.coreTypes.doubleClass.rawType;
               return new ExpressionInferenceResult(node.inferredType);
             }
@@ -1597,7 +1597,7 @@ class InferenceVisitor
               node.inferredType = const BottomType();
               return const ExpressionInferenceResult(const BottomType());
             }
-            node.receiver = IntLiteral(-intValue)
+            node.receiver = new IntLiteral(-intValue)
               ..fileOffset = node.receiver.fileOffset
               ..parent = node;
           }
