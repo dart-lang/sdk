@@ -938,6 +938,9 @@ abstract class AnalysisOptions {
   /// Return `true` if analyzer should use the Dart 2.0 Front End parser.
   bool get useFastaParser;
 
+  /// Return `true` the lint with the given [name] is enabled.
+  bool isLintEnabled(String name);
+
   /// Reset the state of this set of analysis options to its original state.
   void resetToDefaults();
 
@@ -1347,6 +1350,11 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       _unlinkedSignature = new Uint8List.fromList(bytes).buffer.asUint32List();
     }
     return _unlinkedSignature;
+  }
+
+  @override
+  bool isLintEnabled(String name) {
+    return lintRules.any((rule) => rule.name == name);
   }
 
   @override

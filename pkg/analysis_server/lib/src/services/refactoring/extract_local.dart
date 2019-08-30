@@ -73,7 +73,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
   String get _declarationKeyword {
     if (_isPartOfConstantExpression(rootExpression)) {
       return "const";
-    } else if (_hasLintEnabled(LintNames.prefer_final_locals)) {
+    } else if (_isLintEnabled(LintNames.prefer_final_locals)) {
       return "final";
     } else {
       return "var";
@@ -455,11 +455,6 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     return null;
   }
 
-  bool _hasLintEnabled(String lintName) {
-    var analysisOptions = unitElement.context.analysisOptions;
-    return analysisOptions.lintRules.any((rule) => rule.name == lintName);
-  }
-
   /**
    * Checks if it is OK to extract the node with the given [SourceRange].
    */
@@ -467,6 +462,11 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     _ExtractExpressionAnalyzer analyzer = new _ExtractExpressionAnalyzer(range);
     utils.unit.accept(analyzer);
     return analyzer.status.isOK;
+  }
+
+  bool _isLintEnabled(String name) {
+    var analysisOptions = unitElement.context.analysisOptions;
+    return analysisOptions.isLintEnabled(name);
   }
 
   bool _isPartOfConstantExpression(AstNode node) {
