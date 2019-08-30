@@ -355,8 +355,8 @@ HeapPage* PageSpace::AllocateLargePage(intptr_t size, HeapPage::PageType type) {
     page->set_next(large_pages_);
     large_pages_ = page;
 
-    // Only one object in this page (at least until String::MakeExternal or
-    // Array::MakeFixedLength is called).
+    // Only one object in this page (at least until Array::MakeFixedLength
+    // is called).
     page->set_object_end(page->object_start() + size);
   }
   return page;
@@ -410,6 +410,9 @@ void PageSpace::FreePage(HeapPage* page, HeapPage* previous_page) {
 }
 
 void PageSpace::FreeLargePage(HeapPage* page, HeapPage* previous_page) {
+  // Thread should be at a safepoint when this code is called and hence
+  // it is not necessary to lock large_pages_.
+  ASSERT(Thread::Current()->IsAtSafepoint());
   IncreaseCapacityInWords(-(page->memory_->size() >> kWordSizeLog2));
   // Remove the page from the list.
   if (previous_page != NULL) {
@@ -775,6 +778,7 @@ void PageSpace::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
 }
 
 void PageSpace::VisitRememberedCards(ObjectPointerVisitor* visitor) const {
+  ASSERT(Thread::Current()->IsAtSafepoint());
   for (HeapPage* page = large_pages_; page != NULL; page = page->next()) {
     page->VisitRememberedCards(visitor);
   }
