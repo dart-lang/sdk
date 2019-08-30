@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
+import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
 import 'package:analysis_server/src/services/correction/selection_analyzer.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
@@ -72,6 +73,8 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
   String get _declarationKeyword {
     if (_isPartOfConstantExpression(rootExpression)) {
       return "const";
+    } else if (_hasLintEnabled(LintNames.prefer_final_locals)) {
+      return "final";
     } else {
       return "var";
     }
@@ -450,6 +453,11 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
       node = node.parent;
     }
     return null;
+  }
+
+  bool _hasLintEnabled(String lintName) {
+    var analysisOptions = unitElement.context.analysisOptions;
+    return analysisOptions.lintRules.any((rule) => rule.name == lintName);
   }
 
   /**

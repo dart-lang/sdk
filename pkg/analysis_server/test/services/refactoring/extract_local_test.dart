@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/extract_local.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
@@ -732,6 +733,23 @@ main() {
 ''');
     _createRefactoringForString('1 + 2');
     expect(refactoring.isAvailable(), isTrue);
+  }
+
+  test_lint_prefer_final_locals() async {
+    createAnalysisOptionsFile(lints: [LintNames.prefer_final_locals]);
+    await indexTestUnit('''
+main() {
+  print(1 + 2);
+}
+''');
+    _createRefactoringForString('1 + 2');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+main() {
+  final res = 1 + 2;
+  print(res);
+}
+''');
   }
 
   test_occurrences_differentName_samePrefix() async {
