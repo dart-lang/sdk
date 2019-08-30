@@ -78,10 +78,10 @@ ConstantPool {
 Closure #lib::asyncInFieldInitializer (field)::'<anonymous closure>' async (dart:async::Future < dart:core::int > x) -> dart:async::Future < dart:core::Null >
 ClosureCode {
   EntryFixed           2, 4
-  CheckStack           0
   Push                 FP[-6]
   LoadFieldTOS         CP#1
   PopLocal             r0
+  CheckStack           0
   AllocateContext      0, 9
   PopLocal             r0
   Push                 r0
@@ -177,10 +177,10 @@ ClosureCode {
   LoadConstant         r2, CP#11
   LoadConstant         r3, CP#11
   Frame                6
-  CheckStack           0
   Push                 r0
   LoadFieldTOS         CP#1
   PopLocal             r4
+  CheckStack           0
   Push                 r4
   LoadContextVar       0, 5
   StoreLocal           r5
@@ -370,10 +370,10 @@ ClosureCode {
   LoadConstant         r2, CP#5
   LoadConstant         r3, CP#5
   Frame                6
-  CheckStack           0
   Push                 r0
   LoadFieldTOS         CP#6
   PopLocal             r4
+  CheckStack           0
   Push                 r4
   LoadContextVar       0, 2
   StoreLocal           r5
@@ -558,10 +558,10 @@ ClosureCode {
   LoadConstant         r2, CP#5
   LoadConstant         r3, CP#5
   Frame                6
-  CheckStack           0
   Push                 r0
   LoadFieldTOS         CP#6
   PopLocal             r4
+  CheckStack           0
   Push                 r4
   LoadContextVar       0, 6
   StoreLocal           r5
@@ -821,10 +821,10 @@ ClosureCode {
   LoadConstant         r2, CP#5
   LoadConstant         r3, CP#5
   Frame                7
-  CheckStack           0
   Push                 r0
   LoadFieldTOS         CP#6
   PopLocal             r4
+  CheckStack           0
   Push                 r4
   LoadContextVar       0, 5
   StoreLocal           r5
@@ -1219,10 +1219,10 @@ ClosureCode {
   LoadConstant         r2, CP#5
   LoadConstant         r3, CP#5
   Frame                10
-  CheckStack           0
   Push                 r0
   LoadFieldTOS         CP#6
   PopLocal             r4
+  CheckStack           0
   Push                 r4
   LoadContextVar       0, 7
   StoreLocal           r5
@@ -1713,10 +1713,10 @@ ConstantPool {
 Closure #lib::closure::'nested' async () -> dart:async::Future < dart:core::int >
 ClosureCode {
   EntryFixed           1, 4
-  CheckStack           0
   Push                 FP[-5]
   LoadFieldTOS         CP#1
   PopLocal             r0
+  CheckStack           0
   AllocateContext      1, 9
   StoreLocal           r1
   Push                 r1
@@ -1807,10 +1807,10 @@ ClosureCode {
   LoadConstant         r2, CP#8
   LoadConstant         r3, CP#8
   Frame                8
-  CheckStack           0
   Push                 r0
   LoadFieldTOS         CP#1
   PopLocal             r4
+  CheckStack           0
   Push                 r4
   LoadContextVar       1, 4
   StoreLocal           r5
@@ -2091,10 +2091,10 @@ ClosureCode {
   LoadConstant         r2, CP#5
   LoadConstant         r3, CP#5
   Frame                6
-  CheckStack           0
   Push                 r0
   LoadFieldTOS         CP#6
   PopLocal             r4
+  CheckStack           0
   Push                 r4
   LoadContextVar       0, 5
   StoreLocal           r5

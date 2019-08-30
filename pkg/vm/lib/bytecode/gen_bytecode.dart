@@ -1643,13 +1643,16 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     } else {
       asm.emitEntry(locals.frameSize);
     }
-    asm.emitCheckStack(0);
 
     if (isClosure) {
       asm.emitPush(locals.closureVarIndexInFrame);
       asm.emitLoadFieldTOS(cp.addInstanceField(closureContext));
       asm.emitPopLocal(locals.contextVarIndexInFrame);
     }
+
+    // CheckStack must see a properly initialized context when stress-testing
+    // stack trace collection.
+    asm.emitCheckStack(0);
 
     if (locals.hasFunctionTypeArgsVar) {
       if (function.typeParameters.isNotEmpty) {
