@@ -124,8 +124,6 @@ CovariantMember/part_wrapped_script1: Fail
 CovariantMember/part_wrapped_script2: Fail
 CovariantMember/script1: Fail
 CovariantMember/script2: Fail
-CycleInTypeVariables/part_wrapped_script1: Fail
-CycleInTypeVariables/script1: Fail # We report an error for each type variable involved in the cycle.
 CyclicClassHierarchy/part_wrapped_script1: Fail
 CyclicClassHierarchy/part_wrapped_script2: Fail
 CyclicClassHierarchy/script1: Fail # We report an error for each class involved in the cycle.
