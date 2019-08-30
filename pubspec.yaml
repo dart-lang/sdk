@@ -7,6 +7,7 @@ description: >-
   The implementation of the lint rules supported by the analyzer framework.
   This package is not intended to be used directly.
 homepage: https://github.com/dart-lang/linter
+repository: https://github.com/dart-lang/linter
 documentation: https://dart-lang.github.io/linter/lints
 
 environment:
