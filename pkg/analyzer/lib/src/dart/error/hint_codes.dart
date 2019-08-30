@@ -1030,8 +1030,7 @@ class HintCode extends AnalyzerErrorCode {
   // ```dart
   // import [!'dart:async'!];
   //
-  // void main() {
-  // }
+  // void main() {}
   // ```
   //
   // #### Common fixes

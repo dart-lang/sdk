@@ -3080,6 +3080,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // ```dart
   // C f() {}
+  //
   // class C {
   //   factory C() = [!f!];
   // }
@@ -3098,6 +3099,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // ```dart
   // C f() {}
+  //
   // class C {
   //   factory C() => f();
   // }
@@ -3271,6 +3273,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // ```dart
   // class A<E extends num> {}
+  //
   // var a = A<[!String!]>();
   // ```
   //
@@ -3280,6 +3283,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // ```dart
   // class A<E extends num> {}
+  //
   // var a = A<int>();
   // ```
   static const CompileTimeErrorCode TYPE_ARGUMENT_NOT_MATCHING_BOUNDS =
@@ -3766,6 +3770,7 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
   //
   // ```dart
   // typedef Binary = int Function(int, int);
+  //
   // int f() {
   //   return [!Binary!](1, 2);
   // }
@@ -3963,6 +3968,7 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
   //
   // ```dart
   // List<int> empty() => [];
+  //
   // void main() {
   //   print([!emty!]());
   // }
@@ -3976,6 +3982,7 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
   //
   // ```dart
   // List<int> empty() => [];
+  //
   // void main() {
   //   print(empty());
   // }
@@ -4008,12 +4015,7 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
   // The following code produces this diagnostic:
   //
   // ```dart
-  // class Point {
-  //   final int x;
-  //   final int y;
-  //   Point(this.x, this.y);
-  //   operator +(Point other) => Point(x + other.x, y + other.[!z!]);
-  // }
+  // int f(String s) => s.[!len!];
   // ```
   //
   // #### Common fix
@@ -4023,12 +4025,7 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
   // fixing the spelling of the getter:
   //
   // ```dart
-  // class Point {
-  //   final int x;
-  //   final int y;
-  //   Point(this.x, this.y);
-  //   operator +(Point other) => Point(x + other.x, y + other.y);
-  // }
+  // int f(String s) => s.length;
   // ```
   static const StaticTypeWarningCode UNDEFINED_GETTER =
       // TODO(brianwilkerson) When the "target" is an enum, report
@@ -5413,6 +5410,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
   //
   // ```dart
   // class Point {}
+  //
   // void main() {
   //   [!Piont!] p;
   // }
@@ -5426,6 +5424,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
   //
   // ```dart
   // class Point {}
+  //
   // void main() {
   //   Point p;
   // }
@@ -5513,6 +5512,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // class C {
   //   m({int b}) {}
   // }
+  //
   // void f(C c) {
   //   c.m([!a!]: 1);
   // }
@@ -5527,6 +5527,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // class C {
   //   m({int b}) {}
   // }
+  //
   // void f(C c) {
   //   c.m(b: 1);
   // }
@@ -5539,9 +5540,11 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // class C {
   //   m({int b}) {}
   // }
+  //
   // class D extends C {
   //   m({int a, int b}) {}
   // }
+  //
   // void f(C c) {
   //   (c as D).m(a: 1);
   // }
@@ -5553,6 +5556,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // class C {
   //   m({int a, int b}) {}
   // }
+  //
   // void f(C c) {
   //   c.m(a: 1);
   // }
