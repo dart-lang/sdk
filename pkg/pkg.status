@@ -39,7 +39,10 @@ front_end/test/fasta/outline_test: Pass, Slow
 front_end/test/fasta/rasta/*: SkipByDesign # Anything in rasta is input to fasta unit tests and shouldn't be run as tests.
 front_end/test/fasta/sdk_test: SkipByDesign # sdk_test would take too long to complete, and should be run in a different way.
 front_end/test/fasta/shaker_test: Skip # Issue http://dartbug.com/32531
-front_end/test/fasta/strong_test: Pass, ExtraSlow
+front_end/test/fasta/strong1_test: Pass, ExtraSlow
+front_end/test/fasta/strong2_test: Pass, ExtraSlow
+front_end/test/fasta/strong3_test: Pass, ExtraSlow
+front_end/test/fasta/strong4_test: Pass, ExtraSlow
 front_end/test/fasta/text_serialization_test: Pass, ExtraSlow
 front_end/test/fasta/types/dart2js_benchmark_test: Pass, Slow
 front_end/test/fasta/types/large_app_benchmark_test: Pass, ExtraSlow
