@@ -251,22 +251,22 @@ _platform_sdk_libraries = _full_sdk_libraries
 copy_tree_specs = []
 
 # This rule copies dartdoc templates to
-# bin/snapshots/resources/dartdoc/templates
+# bin/resources/dartdoc/templates
 copy_tree_specs += [ {
       target = "copy_dartdoc_templates"
       visibility = [ ":copy_dartdoc_files" ]
       source = "../third_party/pkg/dartdoc/lib/templates"
-      dest = "$root_out_dir/dart-sdk/bin/snapshots/resources/dartdoc/templates"
+      dest = "$root_out_dir/dart-sdk/bin/resources/dartdoc/templates"
       ignore_patterns = "{}"
     } ]
 
 # This rule copies dartdoc resources to
-# bin/snapshots/resources/dartdoc/resources
+# bin/resources/dartdoc/resources
 copy_tree_specs += [ {
       target = "copy_dartdoc_resources"
       visibility = [ ":copy_dartdoc_files" ]
       source = "../third_party/pkg/dartdoc/lib/resources"
-      dest = "$root_out_dir/dart-sdk/bin/snapshots/resources/dartdoc/resources"
+      dest = "$root_out_dir/dart-sdk/bin/resources/dartdoc/resources"
       ignore_patterns = "{}"
     } ]
 
@@ -568,7 +568,7 @@ group("copy_full_sdk_snapshots") {
 }
 
 # This rule writes the .packages file for dartdoc resources.
-write_file("$root_out_dir/dart-sdk/bin/snapshots/resources/dartdoc/.packages",
+write_file("$root_out_dir/dart-sdk/bin/resources/dartdoc/.packages",
            "dartdoc:.")
 
 # This is the main rule for copying the files that dartdoc needs.
