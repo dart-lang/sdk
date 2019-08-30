@@ -14,7 +14,7 @@ import 'dartfuzz_ffiapi.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.30';
+const String version = '1.31';
 
 // Restriction on statements and expressions.
 const int stmtLength = 2;
@@ -241,13 +241,47 @@ class DartFuzz {
   void emitMain() {
     emitLn('main() {');
     indent += 2;
+
+    // Call each global method once.
+    for (int i = 0; i < globalMethods.length; i++) {
+      emitLn('try {');
+      indent += 2;
+      emitLn("", newline: false);
+      emitCall(1, "$methodName${i}", globalMethods[i]);
+      emit(";", newline: true);
+      indent -= 2;
+      emitLn('} catch (exception, stackTrace) {');
+      indent += 2;
+      emitLn("print('$methodName$i throws');");
+      indent -= 2;
+      emitLn('}');
+    }
+
+    // Call each class method once.
+    for (int i = 0; i < classMethods.length; i++) {
+      emitLn("X${i} x${i} = new X${i}();");
+      for (int j = 0; j < classMethods[i].length; j++) {
+        emitLn('try {');
+        indent += 2;
+        emitLn("", newline: false);
+        emitCall(1, "x${i}.$methodName${i}_${j}", classMethods[i][j]);
+        emit(";", newline: true);
+        indent -= 2;
+        emitLn('} catch (exception, stackTrace) {');
+        indent += 2;
+        emitLn("print('x${i}.$methodName${i}_${j} throws');");
+        indent -= 2;
+        emitLn('}');
+      }
+    }
+
     emitLn('try {');
     indent += 2;
     emitLn('new X${classFields.length - 1}().run();');
     indent -= 2;
     emitLn('} catch (exception, stackTrace) {');
     indent += 2;
-    emitLn("print('throws');");
+    emitLn("print('new X${classFields.length - 1}().run() throws');");
     indent -= 2;
     emitLn('} finally {');
     indent += 2;
@@ -806,10 +840,10 @@ class DartFuzz {
         if (tp == proto[i]) choices.add('$paramName$i');
       }
     }
-    // Remove possible modification of the iteration variable from the loop
-    // body.
+    // Make modification of the iteration variable from the loop
+    // body less likely.
     if (isLhs) {
-      if (rand.nextInt(10) != 0) {
+      if (rand.nextInt(100) != 0) {
         Set<String> cleanChoices = choices.difference(Set.from(iterVars));
         if (cleanChoices.isNotEmpty) {
           choices = cleanChoices;
@@ -966,13 +1000,18 @@ class DartFuzz {
     }
   }
 
+  // Emit call to a specific method.
+  void emitCall(int depth, String name, List<DartType> proto) {
+    emit(name);
+    emitExprList(depth + 1, proto);
+  }
+
   // Helper for a method call.
   bool pickedCall(
       int depth, DartType tp, String name, List<List<DartType>> protos, int m) {
     for (int i = m - 1; i >= 0; i--) {
       if (tp == protos[i][0]) {
-        emit('$name$i');
-        emitExprList(depth + 1, protos[i]);
+        emitCall(depth + 1, "$name$i", protos[i]);
         return true;
       }
     }
