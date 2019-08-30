@@ -2545,7 +2545,7 @@ void Profile::PrintBacktrace(ProfileTrieNode* node, TextBuffer* buf) {
 }
 
 void Profile::AddToTimeline(bool code_trie) {
-  TimelineStream* stream = Timeline::GetProfilerStream();
+  TimelineStream* stream = Timeline::GetDeveloperStream();
   if (stream == NULL) {
     return;
   }

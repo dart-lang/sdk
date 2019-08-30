@@ -27,7 +27,6 @@ class ObjectPointerVisitor;
   M(Isolate, isolate)                                                          \
   M(Math, math)                                                                \
   M(Mirrors, mirrors)                                                          \
-  M(Profiler, profiler)                                                        \
   M(TypedData, typed_data)                                                     \
   M(VMService, _vmservice)                                                     \
   M(Wasm, wasm)

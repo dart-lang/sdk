@@ -127,11 +127,6 @@ void Bootstrap::SetupNativeResolver() {
   library.set_native_entry_symbol_resolver(symbol_resolver);
 #endif
 
-  library = Library::ProfilerLibrary();
-  ASSERT(!library.IsNull());
-  library.set_native_entry_resolver(resolver);
-  library.set_native_entry_symbol_resolver(symbol_resolver);
-
   library = Library::TypedDataLibrary();
   ASSERT(!library.IsNull());
   library.set_native_entry_resolver(resolver);
