@@ -141,6 +141,8 @@ class DartFixKind {
   static const ADD_EXPLICIT_CAST = const FixKind(
       'ADD_EXPLICIT_CAST', 50, "Add cast",
       appliedTogetherMessage: "Add all casts in file");
+  static const ADD_CONST =
+      const FixKind('ADD_CONST', 50, "Add 'const' modifier");
   static const ADD_FIELD_FORMAL_PARAMETERS = const FixKind(
       'ADD_FIELD_FORMAL_PARAMETERS', 70, "Add final field formal parameters");
   static const ADD_MISSING_ENUM_CASE_CLAUSES = const FixKind(
@@ -301,6 +303,8 @@ class DartFixKind {
       const FixKind('REPLACE_COLON_WITH_EQUALS', 50, "Replace ':' with '='");
   static const REPLACE_FINAL_WITH_CONST = const FixKind(
       'REPLACE_FINAL_WITH_CONST', 50, "Replace 'final' with 'const'");
+  static const REPLACE_NEW_WITH_CONST =
+      const FixKind('REPLACE_NEW_WITH_CONST', 50, "Replace 'new' with 'const'");
   static const REPLACE_NULL_WITH_CLOSURE = const FixKind(
       'REPLACE_NULL_WITH_CLOSURE', 50, "Replace 'null' with a closure");
   static const REPLACE_RETURN_TYPE_FUTURE = const FixKind(

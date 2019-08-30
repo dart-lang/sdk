@@ -6,6 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'add_async_test.dart' as add_async;
 import 'add_await_test.dart' as add_await;
+import 'add_const_test.dart' as add_const;
 import 'add_explicit_cast_test.dart' as add_explicit_cast;
 import 'add_field_formal_parameters_test.dart' as add_field_formal_parameters;
 import 'add_missing_enum_case_clauses_test.dart'
@@ -89,6 +90,7 @@ import 'rename_to_camel_case_test.dart' as rename_to_camel_case;
 import 'replace_boolean_with_bool_test.dart' as replace_boolean_with_bool;
 import 'replace_colon_with_equals_test.dart' as replace_colon_with_equals;
 import 'replace_final_with_const_test.dart' as replace_final_with_const;
+import 'replace_new_with_const_test.dart' as replace_new_with_const;
 import 'replace_null_with_closure_test.dart' as replace_null_with_closure;
 import 'replace_return_type_future_test.dart' as replace_return_type_future;
 import 'replace_var_with_dynamic_test.dart' as replace_var_with_dynamic;
@@ -113,6 +115,7 @@ main() {
   defineReflectiveSuite(() {
     add_async.main();
     add_await.main();
+    add_const.main();
     add_explicit_cast.main();
     add_field_formal_parameters.main();
     add_missing_enum_case_clauses.main();
@@ -186,6 +189,7 @@ main() {
     replace_boolean_with_bool.main();
     replace_colon_with_equals.main();
     replace_final_with_const.main();
+    replace_new_with_const.main();
     replace_null_with_closure.main();
     replace_return_type_future.main();
     replace_var_with_dynamic.main();

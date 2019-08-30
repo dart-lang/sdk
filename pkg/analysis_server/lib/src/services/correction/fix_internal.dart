@@ -633,6 +633,10 @@ class FixProcessor {
       if (name == LintNames.prefer_is_not_empty) {
         await _addFix_isNotEmpty();
       }
+      if (errorCode.name == LintNames.prefer_const_constructors) {
+        await _addFix_addConst();
+        await _addFix_replaceNewWithConst();
+      }
       if (name == LintNames.type_init_formals) {
         await _addFix_removeTypeAnnotation();
       }
@@ -689,6 +693,22 @@ class FixProcessor {
       builder.addSimpleInsertion(node.offset, 'await ');
     });
     _addFixFromBuilder(changeBuilder, DartFixKind.ADD_AWAIT);
+  }
+
+  Future<void> _addFix_addConst() async {
+    var node = coveredNode;
+    if (node is ConstructorName) {
+      node = node.parent;
+    }
+    if (node is InstanceCreationExpression) {
+      if ((node as InstanceCreationExpression).keyword == null) {
+        final changeBuilder = _newDartChangeBuilder();
+        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+          builder.addSimpleInsertion(node.offset, 'const ');
+        });
+        _addFixFromBuilder(changeBuilder, DartFixKind.ADD_CONST);
+      }
+    }
   }
 
   Future<void> _addFix_addExplicitCast() async {
@@ -3169,6 +3189,23 @@ class FixProcessor {
             range.token((node as VariableDeclarationList).keyword), 'const');
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_FINAL_WITH_CONST);
+    }
+  }
+
+  Future<void> _addFix_replaceNewWithConst() async {
+    var node = coveredNode;
+    if (node is ConstructorName) {
+      node = node.parent;
+    }
+    if (node is InstanceCreationExpression) {
+      final keyword = node.keyword;
+      if (keyword != null) {
+        final changeBuilder = _newDartChangeBuilder();
+        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+          builder.addSimpleReplacement(range.token(keyword), 'const');
+        });
+        _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_NEW_WITH_CONST);
+      }
     }
   }
 
