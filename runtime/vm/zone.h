@@ -82,12 +82,12 @@ class Zone {
     return false;
   }
 
+  // All pointers returned from AllocateUnsafe() and New() have this alignment.
+  static const intptr_t kAlignment = kDoubleSize;
+
  private:
   Zone();
   ~Zone();  // Delete all memory associated with the zone.
-
-  // All pointers returned from AllocateUnsafe() and New() have this alignment.
-  static const intptr_t kAlignment = kDoubleSize;
 
   // Default initial chunk size.
   static const intptr_t kInitialChunkSize = 1 * KB;

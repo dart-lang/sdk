@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include <memory>
+
 #include "vm/dart_api_message.h"
 #include "platform/unicode.h"
 #include "vm/object.h"
@@ -557,29 +559,43 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
       return object;
     }
 
-#define READ_TYPED_DATA_HEADER(type)                                           \
-  intptr_t len = ReadSmiValue();                                               \
-  Dart_CObject* object =                                                       \
-      AllocateDartCObjectTypedData(Dart_TypedData_k##type, len);               \
-  AddBackRef(object_id, object, kIsDeserialized);
-
-#define READ_TYPED_DATA(type, ctype)                                           \
+#define READ_TYPED_DATA(tname, ctype)                                          \
   {                                                                            \
-    READ_TYPED_DATA_HEADER(type);                                              \
-    uint8_t* p =                                                               \
-        reinterpret_cast<uint8_t*>(object->value.as_typed_data.values);        \
-    ReadBytes(p, len * sizeof(ctype));                                         \
+    intptr_t len = ReadSmiValue();                                             \
+    auto type = Dart_TypedData_k##tname;                                       \
+    intptr_t length_in_bytes = GetTypedDataSizeInBytes(type) * len;            \
+    Dart_CObject* object =                                                     \
+        reinterpret_cast<Dart_CObject*>(allocator(sizeof(Dart_CObject)));      \
+    ASSERT(object != NULL);                                                    \
+    object->type = Dart_CObject_kTypedData;                                    \
+    object->value.as_typed_data.type = type;                                   \
+    object->value.as_typed_data.length = length_in_bytes;                      \
+    if (len > 0) {                                                             \
+      Align(Zone::kAlignment);                                                 \
+      object->value.as_typed_data.values =                                     \
+          const_cast<uint8_t*>(CurrentBufferAddress());                        \
+      Advance(length_in_bytes);                                                \
+    } else {                                                                   \
+      object->value.as_typed_data.values = NULL;                               \
+    }                                                                          \
+    AddBackRef(object_id, object, kIsDeserialized);                            \
     return object;                                                             \
   }
 
-#define READ_EXTERNAL_TYPED_DATA(type, ctype)                                  \
+#define READ_EXTERNAL_TYPED_DATA(tname, ctype)                                 \
   {                                                                            \
-    READ_TYPED_DATA_HEADER(type);                                              \
-    uint8_t* p =                                                               \
-        reinterpret_cast<uint8_t*>(object->value.as_typed_data.values);        \
-    FinalizableData finalizable_data = finalizable_data_->Take();              \
-    memmove(p, finalizable_data.data, len * sizeof(ctype));                    \
-    finalizable_data.callback(NULL, NULL, finalizable_data.peer);              \
+    intptr_t len = ReadSmiValue();                                             \
+    auto type = Dart_TypedData_k##tname;                                       \
+    intptr_t length_in_bytes = GetTypedDataSizeInBytes(type) * len;            \
+    Dart_CObject* object =                                                     \
+        reinterpret_cast<Dart_CObject*>(allocator(sizeof(Dart_CObject)));      \
+    ASSERT(object != NULL);                                                    \
+    object->type = Dart_CObject_kTypedData;                                    \
+    object->value.as_typed_data.type = type;                                   \
+    object->value.as_typed_data.length = length_in_bytes;                      \
+    object->value.as_typed_data.values =                                       \
+        reinterpret_cast<uint8_t*>(finalizable_data_->Get().data);             \
+    AddBackRef(object_id, object, kIsDeserialized);                            \
     return object;                                                             \
   }
 
@@ -635,7 +651,6 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
 #undef READ_TYPED_DATA
 #undef READ_EXTERNAL_TYPED_DATA
 #undef READ_TYPED_DATA_VIEW
-#undef READ_TYPED_DATA_HEADER
 
     case kGrowableObjectArrayCid: {
       // A GrowableObjectArray is serialized as its type arguments and
@@ -1069,11 +1084,13 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
         case kTypedDataInt8ArrayCid:
         case kTypedDataUint8ArrayCid: {
           uint8_t* bytes = object->value.as_typed_data.values;
+          Align(Zone::kAlignment);
           WriteBytes(bytes, len);
           break;
         }
         case kTypedDataUint32ArrayCid: {
           uint8_t* bytes = object->value.as_typed_data.values;
+          Align(Zone::kAlignment);
           WriteBytes(bytes, len * sizeof(uint32_t));
           break;
         }

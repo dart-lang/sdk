@@ -255,6 +255,7 @@ class BaseReader {
     return stream_.AddressOfCurrentPosition();
   }
 
+  void Align(intptr_t value) { stream_.Align(value); }
   void Advance(intptr_t value) { stream_.Advance(value); }
 
   intptr_t PendingBytes() const { return stream_.PendingBytes(); }
@@ -516,6 +517,8 @@ class BaseWriter : public StackResource {
     const intptr_t flags = tags & 0xff;
     Write<int8_t>(static_cast<int8_t>(flags));
   }
+
+  void Align(intptr_t value) { stream_.Align(value); }
 
   // Write out a buffer of bytes.
   void WriteBytes(const uint8_t* addr, intptr_t len) {
