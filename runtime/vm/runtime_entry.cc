@@ -2054,12 +2054,12 @@ static void HandleStackOverflowTestCases(Thread* thread) {
       }
     }
   }
-  if ((FLAG_deoptimize_filter != NULL) || (FLAG_stacktrace_filter != NULL) ||
+  if (FLAG_deoptimize_filter != nullptr || FLAG_stacktrace_filter != nullptr ||
       FLAG_reload_every) {
     DartFrameIterator iterator(thread,
                                StackFrameIterator::kNoCrossThreadIteration);
     StackFrame* frame = iterator.NextFrame();
-    ASSERT(frame != NULL);
+    ASSERT(frame != nullptr);
     Code& code = Code::Handle();
     Function& function = Function::Handle();
     if (frame->is_interpreted()) {
@@ -2071,21 +2071,22 @@ static void HandleStackOverflowTestCases(Thread* thread) {
     }
     ASSERT(!function.IsNull());
     const char* function_name = function.ToFullyQualifiedCString();
-    ASSERT(function_name != NULL);
+    ASSERT(function_name != nullptr);
     if (!code.IsNull()) {
       if (!code.is_optimized() && FLAG_reload_every_optimized) {
         // Don't do the reload if we aren't inside optimized code.
         do_reload = false;
       }
-      if (code.is_optimized() && FLAG_deoptimize_filter != NULL &&
-          strstr(function_name, FLAG_deoptimize_filter) != NULL) {
+      if (code.is_optimized() && FLAG_deoptimize_filter != nullptr &&
+          strstr(function_name, FLAG_deoptimize_filter) != nullptr &&
+          !function.ForceOptimize()) {
         OS::PrintErr("*** Forcing deoptimization (%s)\n",
                      function.ToFullyQualifiedCString());
         do_deopt = true;
       }
     }
-    if (FLAG_stacktrace_filter != NULL &&
-        strstr(function_name, FLAG_stacktrace_filter) != NULL) {
+    if (FLAG_stacktrace_filter != nullptr &&
+        strstr(function_name, FLAG_stacktrace_filter) != nullptr) {
       OS::PrintErr("*** Computing stacktrace (%s)\n",
                    function.ToFullyQualifiedCString());
       do_stacktrace = true;
