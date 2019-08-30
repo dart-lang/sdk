@@ -14,7 +14,7 @@ import 'dartfuzz_ffiapi.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.31';
+const String version = '1.33';
 
 // Restriction on statements and expressions.
 const int stmtLength = 2;
@@ -215,7 +215,18 @@ class DartFuzz {
       } else {
         final int parentClass = rand.nextInt(i);
         classParents.add(parentClass);
-        emitLn('class X$i extends X${parentClass} {');
+        if (rand.nextInt(2) != 0) {
+          // Inheritance
+          emitLn('class X$i extends X${parentClass} {');
+        } else {
+          // Mixin
+          if (classParents[parentClass] >= 0) {
+            emitLn(
+                'class X$i extends X${classParents[parentClass]} with X${parentClass} {');
+          } else {
+            emitLn('class X$i with X${parentClass} {');
+          }
+        }
       }
       indent += 2;
       emitVarDecls('$fieldName${i}_', classFields[i]);
