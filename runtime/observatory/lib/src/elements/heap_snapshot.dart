@@ -27,6 +27,7 @@ import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
+import 'package:observatory/src/elements/tree_map.dart';
 import 'package:observatory/utils.dart';
 
 enum HeapSnapshotTreeMode {
@@ -35,9 +36,108 @@ enum HeapSnapshotTreeMode {
   mergedDominatorTree,
   mergedDominatorTreeMap,
   ownershipTable,
+  ownershipTreeMap,
+  classesTable,
+  classesTreeMap,
   successors,
   predecessors,
-  classes,
+}
+
+class DominatorTreeMap extends TreeMap<SnapshotObject> {
+  HeapSnapshotElement element;
+  DominatorTreeMap(this.element);
+
+  int getSize(SnapshotObject node) => node.retainedSize;
+  String getType(SnapshotObject node) => node.klass.name;
+  String getLabel(SnapshotObject node) => node.description;
+  SnapshotObject getParent(SnapshotObject node) => node.parent;
+  Iterable<SnapshotObject> getChildren(SnapshotObject node) => node.children;
+  void onSelect(SnapshotObject node) {
+    element.selection = node.objects;
+    element._r.dirty();
+  }
+
+  void onDetails(SnapshotObject node) {
+    element.selection = node.objects;
+    element._mode = HeapSnapshotTreeMode.successors;
+    element._r.dirty();
+  }
+}
+
+class MergedDominatorTreeMap
+    extends TreeMap<M.HeapSnapshotMergedDominatorNode> {
+  HeapSnapshotElement element;
+  MergedDominatorTreeMap(this.element);
+
+  int getSize(M.HeapSnapshotMergedDominatorNode node) => node.retainedSize;
+  String getType(M.HeapSnapshotMergedDominatorNode node) => node.klass.name;
+  String getLabel(M.HeapSnapshotMergedDominatorNode node) =>
+      (node as dynamic).description;
+  M.HeapSnapshotMergedDominatorNode getParent(
+          M.HeapSnapshotMergedDominatorNode node) =>
+      (node as dynamic).parent;
+  Iterable<M.HeapSnapshotMergedDominatorNode> getChildren(
+          M.HeapSnapshotMergedDominatorNode node) =>
+      node.children;
+  void onSelect(M.HeapSnapshotMergedDominatorNode node) {
+    element.mergedSelection = node;
+    element._r.dirty();
+  }
+
+  void onDetails(M.HeapSnapshotMergedDominatorNode node) {
+    dynamic n = node;
+    element.selection = n.objects;
+    element._mode = HeapSnapshotTreeMode.successors;
+    element._r.dirty();
+  }
+}
+
+// Using `null` to represent the root.
+class ClassesShallowTreeMap extends TreeMap<SnapshotClass> {
+  HeapSnapshotElement element;
+  M.HeapSnapshot snapshot;
+
+  ClassesShallowTreeMap(this.element, this.snapshot);
+
+  int getSize(SnapshotClass node) =>
+      node == null ? snapshot.size : node.shallowSize;
+  String getType(SnapshotClass node) => node == null ? "Classes" : node.name;
+  String getLabel(SnapshotClass node) => node == null
+      ? "${snapshot.classes.length} classes"
+      : "${node.instanceCount} instances of ${node.name}";
+  SnapshotClass getParent(SnapshotClass node) => null;
+  Iterable<SnapshotClass> getChildren(SnapshotClass node) =>
+      node == null ? snapshot.classes : <SnapshotClass>[];
+  void onSelect(SnapshotClass node) {}
+  void onDetails(SnapshotClass node) {
+    element.selection = node.instances.toList();
+    element._mode = HeapSnapshotTreeMode.successors;
+    element._r.dirty();
+  }
+}
+
+// Using `null` to represent the root.
+class ClassesOwnershipTreeMap extends TreeMap<SnapshotClass> {
+  HeapSnapshotElement element;
+  M.HeapSnapshot snapshot;
+
+  ClassesOwnershipTreeMap(this.element, this.snapshot);
+
+  int getSize(SnapshotClass node) =>
+      node == null ? snapshot.size : node.ownedSize;
+  String getType(SnapshotClass node) => node == null ? "classes" : node.name;
+  String getLabel(SnapshotClass node) => node == null
+      ? "${snapshot.classes.length} Classes"
+      : "${node.instanceCount} instances of ${node.name}";
+  SnapshotClass getParent(SnapshotClass node) => null;
+  Iterable<SnapshotClass> getChildren(SnapshotClass node) =>
+      node == null ? snapshot.classes : <SnapshotClass>[];
+  void onSelect(SnapshotClass node) {}
+  void onDetails(SnapshotClass node) {
+    element.selection = node.instances.toList();
+    element._mode = HeapSnapshotTreeMode.successors;
+    element._r.dirty();
+  }
 }
 
 class HeapSnapshotElement extends CustomElement implements Renderable {
@@ -298,7 +398,7 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
         ]);
         break;
       case HeapSnapshotTreeMode.dominatorTreeMap:
-        var content = new DivElement();
+        final content = new DivElement();
         content.style.border = '1px solid black';
         content.style.width = '100%';
         content.style.height = '100%';
@@ -310,7 +410,7 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
           if (selection == null) {
             selection = _snapshot.root.objects;
           }
-          _showTreemap(selection.first, content);
+          new DominatorTreeMap(this).showIn(selection.first, content);
         });
 
         final text =
@@ -342,7 +442,7 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
         ]);
         break;
       case HeapSnapshotTreeMode.mergedDominatorTreeMap:
-        var content = new DivElement();
+        final content = new DivElement();
         content.style.border = '1px solid black';
         content.style.width = '100%';
         content.style.height = '100%';
@@ -354,7 +454,7 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
           if (mergedSelection == null) {
             mergedSelection = _snapshot.mergedDominatorTree;
           }
-          _showTreemap(mergedSelection, content);
+          new MergedDominatorTreeMap(this).showIn(mergedSelection, content);
         });
 
         final text =
@@ -386,6 +486,33 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
             ..classes = ['content-centered-big', 'explanation']
             ..text = text,
           _tree.element
+        ]);
+        break;
+      case HeapSnapshotTreeMode.ownershipTreeMap:
+        final content = new DivElement();
+        content.style.border = '1px solid black';
+        content.style.width = '100%';
+        content.style.height = '100%';
+        content.text = 'Performing layout...';
+        Timer.run(() {
+          // Generate the treemap after the content div has been added to the
+          // document so that we can ask the browser how much space is
+          // available for treemap layout.
+          new ClassesOwnershipTreeMap(this, _snapshot).showIn(null, content);
+        });
+        final text = 'An object X is said to "own" object Y if X is the only '
+            'object that references Y, or X owns the only object that '
+            'references Y. In particular, objects "own" the space of any '
+            'unshared lists or maps they reference.';
+        report.addAll([
+          new DivElement()
+            ..classes = ['content-centered-big', 'explanation']
+            ..text = text,
+          new DivElement()
+            ..classes = ['content-centered-big']
+            ..style.width = '100%'
+            ..style.height = '100%'
+            ..children = [content]
         ]);
         break;
       case HeapSnapshotTreeMode.successors:
@@ -424,7 +551,7 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
           _tree.element
         ]);
         break;
-      case HeapSnapshotTreeMode.classes:
+      case HeapSnapshotTreeMode.classesTable:
         final items = _snapshot.classes.toList();
         items.sort((a, b) => b.shallowSize - a.shallowSize);
         _tree = new VirtualTreeElement(
@@ -432,7 +559,26 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
             items: items, queue: _r.queue);
         report.add(_tree.element);
         break;
-
+      case HeapSnapshotTreeMode.classesTreeMap:
+        final content = new DivElement();
+        content.style.border = '1px solid black';
+        content.style.width = '100%';
+        content.style.height = '100%';
+        content.text = 'Performing layout...';
+        Timer.run(() {
+          // Generate the treemap after the content div has been added to the
+          // document so that we can ask the browser how much space is
+          // available for treemap layout.
+          new ClassesShallowTreeMap(this, _snapshot).showIn(null, content);
+        });
+        report.addAll([
+          new DivElement()
+            ..classes = ['content-centered-big']
+            ..style.width = '100%'
+            ..style.height = '100%'
+            ..children = [content]
+        ]);
+        break;
       default:
         break;
     }
@@ -734,198 +880,6 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
     element.children[5].text = node.name;
   }
 
-  String color(String string) {
-    int hue = string.hashCode % 360;
-    return "hsl($hue,60%,60%)";
-  }
-
-  String prettySize(num size) {
-    if (size < 1024) return size.toStringAsFixed(0) + "B";
-    size /= 1024;
-    if (size < 1024) return size.toStringAsFixed(1) + "KiB";
-    size /= 1024;
-    if (size < 1024) return size.toStringAsFixed(1) + "MiB";
-    size /= 1024;
-    return size.toStringAsFixed(1) + "GiB";
-  }
-
-  /* SnapshotObject | M.MergedDominatorNode */
-  void _showTreemap(dynamic node, DivElement content) {
-    final w = content.offsetWidth.toDouble();
-    final h = content.offsetHeight.toDouble();
-    final topTile = _createTreemapTile(node, w, h, 0, content);
-    topTile.style.width = "${w}px";
-    topTile.style.height = "${h}px";
-    topTile.style.border = "none";
-    content.children = [topTile];
-  }
-
-  Element _createTreemapTile(dynamic node, double width, double height,
-      int depth, DivElement content) {
-    final div = new DivElement();
-    div.className = "treemapTile";
-    div.style.backgroundColor = color(node.klass.name);
-    div.onDoubleClick.listen((event) {
-      event.stopPropagation();
-      if (depth == 0) {
-        // Zoom out.
-        if (node is SnapshotObject) {
-          selection = node.parent.objects;
-        } else {
-          mergedSelection = node.parent;
-        }
-      } else {
-        // Zoom in.
-        if (node is SnapshotObject) {
-          selection = node.objects;
-        } else {
-          mergedSelection = node;
-        }
-      }
-      _r.dirty();
-    });
-    div.onContextMenu.listen((event) {
-      event.stopPropagation();
-      if (node is SnapshotObject) {
-        selection = node.objects;
-        _mode = HeapSnapshotTreeMode.successors;
-      } else {
-        selection = node.objects;
-        _mode = HeapSnapshotTreeMode.successors;
-      }
-      _r.dirty();
-    });
-
-    double left = 0.0;
-    double top = 0.0;
-
-    const kPadding = 5;
-    const kBorder = 1;
-    left += kPadding - kBorder;
-    top += kPadding - kBorder;
-    width -= 2 * kPadding;
-    height -= 2 * kPadding;
-
-    final label = "${node.description} [${prettySize(node.retainedSize)}]";
-    div.title = label; // I.e., tooltip.
-
-    if (width < 10 || height < 10) {
-      // Too small: don't render label or children.
-      return div;
-    }
-
-    div.append(new SpanElement()..text = label);
-    const kLabelHeight = 9.0;
-    top += kLabelHeight;
-    height -= kLabelHeight;
-
-    if (depth > 2) {
-      // Too deep: don't render children.
-      return div;
-    }
-    if (width < 4 || height < 4) {
-      // Too small: don't render children.
-      return div;
-    }
-
-    final children = new List<dynamic>();
-    for (var c in node.children) {
-      // Size 0 children seem to confuse the layout algorithm (accumulating
-      // rounding errors?).
-      if (c.retainedSize > 0) {
-        children.add(c);
-      }
-    }
-    children.sort((a, b) => b.retainedSize - a.retainedSize);
-
-    final double scale = width * height / node.retainedSize;
-
-    // Bruls M., Huizing K., van Wijk J.J. (2000) Squarified Treemaps. In: de
-    // Leeuw W.C., van Liere R. (eds) Data Visualization 2000. Eurographics.
-    // Springer, Vienna.
-    for (int rowStart = 0; // Index of first child in the next row.
-        rowStart < children.length;) {
-      // Prefer wider rectangles, the better to fit text labels.
-      const double GOLDEN_RATIO = 1.61803398875;
-      final bool verticalSplit = (width / height) > GOLDEN_RATIO;
-
-      double space;
-      if (verticalSplit) {
-        space = height;
-      } else {
-        space = width;
-      }
-
-      double rowMin = children[rowStart].retainedSize * scale;
-      double rowMax = rowMin;
-      double rowSum = 0.0;
-      double lastRatio = 0.0;
-
-      int rowEnd; // One after index of last child in the next row.
-      for (rowEnd = rowStart; rowEnd < children.length; rowEnd++) {
-        double size = children[rowEnd].retainedSize * scale;
-        if (size < rowMin) rowMin = size;
-        if (size > rowMax) rowMax = size;
-        rowSum += size;
-
-        double ratio = Math.max((space * space * rowMax) / (rowSum * rowSum),
-            (rowSum * rowSum) / (space * space * rowMin));
-        if ((lastRatio != 0) && (ratio > lastRatio)) {
-          // Adding the next child makes the aspect ratios worse: remove it and
-          // add the row.
-          rowSum -= size;
-          break;
-        }
-        lastRatio = ratio;
-      }
-
-      double rowLeft = left;
-      double rowTop = top;
-      double rowSpace = rowSum / space;
-
-      for (var i = rowStart; i < rowEnd; i++) {
-        var child = children[i];
-        double size = child.retainedSize * scale;
-
-        double childWidth;
-        double childHeight;
-        if (verticalSplit) {
-          childWidth = rowSpace;
-          childHeight = size / childWidth;
-        } else {
-          childHeight = rowSpace;
-          childWidth = size / childHeight;
-        }
-
-        var childDiv = _createTreemapTile(
-            child, childWidth, childHeight, depth + 1, content);
-        childDiv.style.left = "${rowLeft}px";
-        childDiv.style.top = "${rowTop}px";
-        // Oversize the final div by kBorder to make the borders overlap.
-        childDiv.style.width = "${childWidth + kBorder}px";
-        childDiv.style.height = "${childHeight + kBorder}px";
-        div.append(childDiv);
-
-        if (verticalSplit)
-          rowTop += childHeight;
-        else
-          rowLeft += childWidth;
-      }
-
-      if (verticalSplit) {
-        left += rowSpace;
-        width -= rowSpace;
-      } else {
-        top += rowSpace;
-        height -= rowSpace;
-      }
-
-      rowStart = rowEnd;
-    }
-
-    return div;
-  }
-
   static _updateLines(List<Element> lines, int n) {
     n = Math.max(0, n);
     while (lines.length > n) {
@@ -947,13 +901,17 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
       case HeapSnapshotTreeMode.mergedDominatorTreeMap:
         return 'Dominators (treemap, siblings merged by class)';
       case HeapSnapshotTreeMode.ownershipTable:
-        return 'Ownership';
+        return 'Ownership (table)';
+      case HeapSnapshotTreeMode.ownershipTreeMap:
+        return 'Ownership (treemap)';
+      case HeapSnapshotTreeMode.classesTable:
+        return 'Classes (table)';
+      case HeapSnapshotTreeMode.classesTreeMap:
+        return 'Classes (treemap)';
       case HeapSnapshotTreeMode.successors:
         return 'Successors / outgoing references';
       case HeapSnapshotTreeMode.predecessors:
         return 'Predecessors / incoming references';
-      case HeapSnapshotTreeMode.classes:
-        return 'Classes';
     }
     throw new Exception('Unknown HeapSnapshotTreeMode: $mode');
   }
