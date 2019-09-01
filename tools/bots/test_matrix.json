@@ -596,7 +596,8 @@
     },
     {
       "builders": [
-        "vm-kernel-precomp-android-release-arm"
+        "vm-kernel-precomp-android-release-arm",
+        "vm-kernel-precomp-android-release-arm64"
       ],
       "meta": {
         "description": "This configuration is used by the vm precomp builders on Android."
