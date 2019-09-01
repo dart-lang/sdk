@@ -525,10 +525,6 @@ dart_vm_extra_builder(
 
 # vm|kernel-precomp
 dart_vm_extra_builder(
-    "vm-kernel-precomp-android-release-arm",
-    category="vm|kernel-precomp|and",
-    properties={"shard_timeout": 5400})  # 1.5h
-dart_vm_extra_builder(
     "vm-kernel-precomp-linux-debug-x64", category="vm|kernel-precomp|d")
 dart_vm_extra_builder(
     "vm-kernel-precomp-linux-product-x64", category="vm|kernel-precomp|p")
@@ -572,6 +568,16 @@ dart_vm_extra_builder(
     category="vm|kernel-precomp|wr",
     dimensions=windows())
 
+# vm|kernel-precomp|android
+dart_vm_extra_builder(
+    "vm-kernel-precomp-android-release-arm",
+    category="vm|kernel-precomp|android|a32",
+    properties={"shard_timeout": 5400})  # 1.5h
+dart_vm_extra_builder(
+    "vm-kernel-precomp-android-release-arm64",
+    category="vm|kernel-precomp|android|a64",
+    properties={"shard_timeout": 5400})  # 1.5h
+
 # vm|misc
 dart_vm_extra_builder(
     "vm-kernel-asan-linux-release-x64", category="vm|misc|a64")
@@ -603,10 +609,14 @@ dart_vm_extra_builder(
 dart_vm_extra_builder(
     "vm-kernel-reload-rollback-linux-release-x64",
     category="vm|reload-kernel|rrb")
+
 # vm|ffi
 dart_vm_extra_builder("vm-ffi-android-debug-arm", category="vm|ffi|d32")
 dart_vm_extra_builder("vm-ffi-android-release-arm", category="vm|ffi|r32")
 dart_vm_extra_builder("vm-ffi-android-product-arm", category="vm|ffi|p32")
+dart_vm_extra_builder("vm-ffi-android-debug-arm64", category="vm|ffi|d64")
+dart_vm_extra_builder("vm-ffi-android-release-arm64", category="vm|ffi|r64")
+dart_vm_extra_builder("vm-ffi-android-product-arm64", category="vm|ffi|p64")
 
 # dart2js
 dart_ci_sandbox_builder(
