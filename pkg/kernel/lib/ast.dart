@@ -6070,10 +6070,11 @@ class TearOffConstant extends Constant {
     return '${runtimeType}(${procedure})';
   }
 
-  int get hashCode => procedure.hashCode;
+  int get hashCode => procedureReference.hashCode;
 
   bool operator ==(Object other) {
-    return other is TearOffConstant && other.procedure == procedure;
+    return other is TearOffConstant &&
+        other.procedureReference == procedureReference;
   }
 
   FunctionType getType(TypeEnvironment types) =>

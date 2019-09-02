@@ -208,6 +208,8 @@ demands
 demangle
 demangled
 deps
+dereferenced
+dereferencing
 descent
 deserializer
 deserializers
