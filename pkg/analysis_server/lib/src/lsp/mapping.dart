@@ -313,6 +313,8 @@ lsp.SymbolKind elementKindToSymbolKind(
       case server.ElementKind.ENUM:
       case server.ElementKind.ENUM_CONSTANT:
         return const [lsp.SymbolKind.Enum];
+      case server.ElementKind.EXTENSION:
+        return const [lsp.SymbolKind.Class];
       case server.ElementKind.FIELD:
         return const [lsp.SymbolKind.Field];
       case server.ElementKind.FILE:
@@ -357,7 +359,10 @@ lsp.SymbolKind elementKindToSymbolKind(
     }
   }
 
-  return getKindPreferences().firstWhere(isSupported, orElse: () => null);
+  // LSP requires we specify *some* kind, so in the case where the above code doesn't
+  // match we'll just have to send a value to avoid a crash.
+  return getKindPreferences()
+      .firstWhere(isSupported, orElse: () => lsp.SymbolKind.Obj);
 }
 
 String getCompletionDetail(
