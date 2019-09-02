@@ -214,9 +214,6 @@ class SourceLoader extends Loader {
             enableExtensionMethods: target.enableExtensionMethods,
             enableNonNullable: target.enableNonNullable),
         languageVersionChanged: (_, LanguageVersionToken version) {
-      // TODO(jensj): What if we have several? What if it is unsupported?
-      // What if the language version was already set via packages and this is
-      // higher? Etc
       library.setLanguageVersion(version.major, version.minor,
           offset: version.offset, length: version.length, explicit: true);
     });

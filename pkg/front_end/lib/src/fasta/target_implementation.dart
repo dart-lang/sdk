@@ -153,4 +153,37 @@ abstract class TargetImplementation extends Target {
     }
     return rewriteSeverity(severity, message.code, fileUri);
   }
+
+  String get currentSdkVersion {
+    return CompilerContext.current.options.currentSdkVersion;
+  }
+
+  int _currentSdkVersionMajor;
+  int _currentSdkVersionMinor;
+  int get currentSdkVersionMajor {
+    if (_currentSdkVersionMajor != null) return _currentSdkVersionMajor;
+    _parseCurrentSdkVersion();
+    return _currentSdkVersionMajor;
+  }
+
+  int get currentSdkVersionMinor {
+    if (_currentSdkVersionMinor != null) return _currentSdkVersionMinor;
+    _parseCurrentSdkVersion();
+    return _currentSdkVersionMinor;
+  }
+
+  void _parseCurrentSdkVersion() {
+    bool good = false;
+    if (currentSdkVersion != null) {
+      List<String> dotSeparatedParts = currentSdkVersion.split(".");
+      if (dotSeparatedParts.length >= 2) {
+        _currentSdkVersionMajor = int.tryParse(dotSeparatedParts[0]);
+        _currentSdkVersionMinor = int.tryParse(dotSeparatedParts[1]);
+        good = true;
+      }
+    }
+    if (!good) {
+      throw new StateError("Unparsable sdk version given: $currentSdkVersion");
+    }
+  }
 }

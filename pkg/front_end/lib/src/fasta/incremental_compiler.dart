@@ -861,6 +861,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         scope: libraryBuilder.scope.createNestedScope("expression"),
         nameOrigin: libraryBuilder.library,
       );
+      debugLibrary.setLanguageVersion(
+          libraryBuilder.library.languageVersionMajor,
+          libraryBuilder.library.languageVersionMinor);
 
       if (libraryBuilder is DillLibraryBuilder) {
         for (LibraryDependency dependency

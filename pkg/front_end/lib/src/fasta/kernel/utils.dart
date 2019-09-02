@@ -78,8 +78,11 @@ Uint8List serializeComponent(Component component,
 const String kDebugClassName = "#DebugClass";
 
 Component createExpressionEvaluationComponent(Procedure procedure) {
-  Library fakeLibrary =
-      new Library(new Uri(scheme: 'evaluate', path: 'source'));
+  Library realLibrary = procedure.enclosingLibrary;
+
+  Library fakeLibrary = new Library(new Uri(scheme: 'evaluate', path: 'source'))
+    ..setLanguageVersion(
+        realLibrary.languageVersionMajor, realLibrary.languageVersionMinor);
 
   if (procedure.parent is Class) {
     Class realClass = procedure.parent;

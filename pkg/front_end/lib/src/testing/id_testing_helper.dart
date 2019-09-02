@@ -44,6 +44,8 @@ class TestConfig {
   final Map<ExperimentalFlag, bool> experimentalFlags;
 
   const TestConfig(this.marker, this.name, {this.experimentalFlags = const {}});
+
+  void customizeCompilerOptions(CompilerOptions options) {}
 }
 
 // TODO(johnniwinther): Support annotations for compile-time errors.
@@ -240,6 +242,7 @@ Future<bool> runTestForConfig<T>(
   };
   options.debugDump = printCode;
   options.experimentalFlags.addAll(config.experimentalFlags);
+  config.customizeCompilerOptions(options);
   InternalCompilerResult compilerResult = await compileScript(
       testData.memorySourceFiles,
       options: options,

@@ -621,6 +621,7 @@ curly
 current
 currently
 custom
+customize
 cyan
 cycle
 cycles
@@ -1623,6 +1624,7 @@ mathematical
 matter
 maturity
 max
+maximum
 may
 maybe
 mean
@@ -2828,6 +2830,7 @@ unmodified
 unnamed
 unnecessarily
 unnecessary
+unparsable
 unpromoted
 unread
 unrecognized
@@ -2901,6 +2904,7 @@ verifies
 verify
 verifying
 version
+versioning
 versions
 vertex
 vertical

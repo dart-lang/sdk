@@ -709,6 +709,7 @@ server
 service
 setaf
 sh
+sha1hash
 shadowed
 shallow
 shas

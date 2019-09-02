@@ -270,6 +270,7 @@ pubspec
 pv
 px
 py
+python
 quot
 r"\s
 rd

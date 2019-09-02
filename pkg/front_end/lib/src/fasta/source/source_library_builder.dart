@@ -358,7 +358,9 @@ class SourceLibraryBuilder extends LibraryBuilder {
             scope,
             actualOrigin,
             target ??
-                (actualOrigin?.library ?? new Library(uri, fileUri: fileUri)),
+                (actualOrigin?.library ?? new Library(uri, fileUri: fileUri)
+                  ..setLanguageVersion(loader.target.currentSdkVersionMajor,
+                      loader.target.currentSdkVersionMinor)),
             nameOrigin);
 
   @override
@@ -377,7 +379,7 @@ class SourceLibraryBuilder extends LibraryBuilder {
 
   @override
   void setLanguageVersion(int major, int minor,
-      {int offset: 0, int length: noLength, bool explicit}) {
+      {int offset: 0, int length: noLength, bool explicit: false}) {
     if (languageVersionExplicitlySet) return;
     if (explicit) languageVersionExplicitlySet = true;
 
@@ -387,15 +389,15 @@ class SourceLibraryBuilder extends LibraryBuilder {
       return;
     }
 
-    // If trying to set a langauge version that is higher than the "sdk-one"
-    // it's an error.
-    if (major > Library.defaultLanguageVersionMajor ||
-        (major == Library.defaultLanguageVersionMajor &&
-            minor > Library.defaultLanguageVersionMinor)) {
+    // If trying to set a langauge version that is higher than the current sdk
+    // version it's an error.
+    if (major > loader.target.currentSdkVersionMajor ||
+        (major == loader.target.currentSdkVersionMajor &&
+            minor > loader.target.currentSdkVersionMinor)) {
       addPostponedProblem(
           templateLanguageVersionTooHigh.withArguments(
-              Library.defaultLanguageVersionMajor,
-              Library.defaultLanguageVersionMinor),
+              loader.target.currentSdkVersionMajor,
+              loader.target.currentSdkVersionMinor),
           offset,
           length,
           fileUri);
