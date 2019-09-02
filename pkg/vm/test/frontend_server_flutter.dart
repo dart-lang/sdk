@@ -90,9 +90,19 @@ void attemptStuff(Directory tempDir, Directory flutterPlatformDirectory,
     // '--unsafe-package-serialization',
   ];
 
+  bool shouldSkip(File f) {
+    // TODO(jensj): Come up with a better way to (temporarily) skip some tests.
+    List<String> pathSegments = f.uri.pathSegments;
+    if (pathSegments.sublist(pathSegments.length - 5).join("/") ==
+        "packages/flutter/test/widgets/html_element_view_test.dart") {
+      return true;
+    }
+    return false;
+  }
+
   List<File> testFiles = new List<File>.from(testDir
       .listSync(recursive: true)
-      .where((f) => f.path.endsWith("_test.dart")));
+      .where((f) => f.path.endsWith("_test.dart") && !shouldSkip(f)));
   if (testFiles.isEmpty) return;
 
   Stopwatch stopwatch = new Stopwatch()..start();
