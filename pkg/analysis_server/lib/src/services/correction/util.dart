@@ -1358,6 +1358,17 @@ class CorrectionUtils_InsertDesc {
  * Utilities to work with [Token]s.
  */
 class TokenUtils {
+  static List<Token> getNodeTokens(AstNode node) {
+    var result = <Token>[];
+    for (var token = node.beginToken;; token = token.next) {
+      result.add(token);
+      if (token == node.endToken) {
+        break;
+      }
+    }
+    return result;
+  }
+
   /**
    * @return [Token]s of the given Dart source, not <code>null</code>, may be empty if no
    *         tokens or some exception happens.

@@ -91,9 +91,11 @@ main() {
 
   test_checkInitialConditions_namePartOfDeclaration_function() async {
     await indexTestUnit('''
-void main() {}
+void main() {
+  void foo() {}
+}
 ''');
-    _createRefactoringWithSuffix('main', '()');
+    _createRefactoringWithSuffix('foo', '()');
     // check conditions
     RefactoringStatus status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
