@@ -226,6 +226,12 @@ luci.notifier(
     on_failure=True,
     notify_emails=["ajcbik@google.com", "athom@google.com"])
 
+luci.notifier(
+    name="frontend-team",
+    on_failure = True,
+    notify_emails = ["jensj@google.com"]
+)
+
 luci.cq(
     submit_max_burst=2,
     submit_burst_delay=8 * time.minute,
@@ -442,7 +448,7 @@ dart_ci_sandbox_builder(
     category="fasta|fl",
     channels=["try"],
     properties={"new_workflow_enabled": False},
-    notifies=None)
+    notifies="frontend-team")
 
 # flutter
 dart_ci_sandbox_builder(
