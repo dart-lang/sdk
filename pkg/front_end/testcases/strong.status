@@ -25,6 +25,9 @@ general/covariant_generic: RuntimeError
 general/duplicated_declarations: TypeCheckError
 general/duplicated_field_initializer: RuntimeError
 general/dynamic_and_void: InstrumentationMismatch # Test assumes Dart 1.0 semantics
+general/error_locations/error_location_01: RuntimeError
+general/error_locations/error_location_02: RuntimeError
+general/error_locations/error_location_03: RuntimeError
 general/expressions: RuntimeError
 general/external_import: RuntimeError # The native extension to import doesn't exist. This is ok.
 general/fallthrough: ExpectationFileMismatch

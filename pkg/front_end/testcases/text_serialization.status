@@ -25,6 +25,10 @@ extensions/static_access: TextSerializationFailure
 extensions/static_access_of_instance: TextSerializationFailure
 extensions/type_variables: TextSerializationFailure
 extensions/use_this: TextSerializationFailure
+general/error_locations/error_location_01: TextSerializationFailure
+general/error_locations/error_location_02: TextSerializationFailure
+general/error_locations/error_location_03: TextSerializationFailure
+general/error_locations/error_location_04: TextSerializationFailure
 general/abstract_members: TypeCheckError
 general/abstract_overrides_concrete_with_no_such_method: TextSerializationFailure
 general/accessors: TextSerializationFailure # Was: RuntimeError
