@@ -641,7 +641,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       FunctionExpressionInvocation node) {
     DecoratedType calleeType = node.function.accept(this);
     return _handleInvocationArguments(node, node.argumentList.arguments,
-        node.typeArguments, calleeType, null);
+        node.typeArguments, node.typeArgumentTypes, calleeType, null);
   }
 
   @override
@@ -754,20 +754,24 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       InstanceCreationExpression node) {
     var callee = node.staticElement;
     var typeParameters = callee.enclosingElement.typeParameters;
+    List<DartType> typeArgumentTypes;
     List<DecoratedType> decoratedTypeArguments;
     var typeArguments = node.constructorName.type.typeArguments;
     if (typeArguments != null) {
+      typeArgumentTypes = typeArguments.arguments.map((t) => t.type).toList();
       decoratedTypeArguments = typeArguments.arguments
           .map((t) => _variables.decoratedTypeAnnotation(source, t))
           .toList();
     } else {
       var staticType = node.staticType;
       if (staticType is InterfaceType) {
-        decoratedTypeArguments = staticType.typeArguments
+        typeArgumentTypes = staticType.typeArguments;
+        decoratedTypeArguments = typeArgumentTypes
             .map((t) => DecoratedType.forImplicitType(_typeProvider, t, _graph))
             .toList();
       } else {
         // Note: this could happen if the code being migrated has errors.
+        typeArgumentTypes = const [];
         decoratedTypeArguments = const [];
       }
     }
@@ -775,7 +779,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         typeArguments: decoratedTypeArguments);
     var calleeType = getOrComputeElementType(callee, targetType: createdType);
     _handleInvocationArguments(node, node.argumentList.arguments, typeArguments,
-        calleeType, typeParameters);
+        typeArgumentTypes, calleeType, typeParameters);
     return createdType;
   }
 
@@ -867,7 +871,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       calleeType = calleeType.returnType;
     }
     var expressionType = _handleInvocationArguments(
-        node, node.argumentList.arguments, node.typeArguments, calleeType, null,
+        node,
+        node.argumentList.arguments,
+        node.typeArguments,
+        node.typeArgumentTypes,
+        calleeType,
+        null,
         invokeType: node.staticInvokeType);
     if (isConditional) {
       expressionType = expressionType.withNode(
@@ -954,7 +963,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     } else {
       var callee = node.staticElement;
       var calleeType = getOrComputeElementType(callee, targetType: targetType);
-      return _handleInvocationArguments(node, [], null, calleeType, null);
+      return _handleInvocationArguments(node, [], null, null, calleeType, null);
     }
   }
 
@@ -969,7 +978,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var callee = node.staticElement;
     var calleeType = _variables.decoratedElementType(callee);
     _handleInvocationArguments(
-        node, node.argumentList.arguments, null, calleeType, null);
+        node, node.argumentList.arguments, null, null, calleeType, null);
     return null;
   }
 
@@ -1497,10 +1506,14 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
     var redirectedClass = callee.enclosingElement;
     var calleeType = _variables.decoratedElementType(callee);
+    var typeArguments = redirectedConstructor.type.typeArguments;
+    var typeArgumentTypes =
+        typeArguments?.arguments?.map((t) => t.type)?.toList();
     _handleInvocationArguments(
         redirectedConstructor,
         parameters.parameters,
-        redirectedConstructor.type.typeArguments,
+        typeArguments,
+        typeArgumentTypes,
         calleeType,
         redirectedClass.typeParameters);
   }
@@ -1658,6 +1671,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       AstNode node,
       Iterable<AstNode> arguments,
       TypeArgumentList typeArguments,
+      List<DartType> typeArgumentTypes,
       DecoratedType calleeType,
       List<TypeParameterElement> constructorTypeParameters,
       {DartType invokeType}) {
@@ -1676,7 +1690,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         }
       } else {
         if (invokeType is FunctionType) {
-          var argumentTypes = invokeType.typeArguments
+          var argumentTypes = typeArgumentTypes
               .map((argType) =>
                   DecoratedType.forImplicitType(_typeProvider, argType, _graph))
               .toList();
