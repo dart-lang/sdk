@@ -290,7 +290,12 @@ Future<Null> newWorldTest(List worlds, Map modules, bool omitPlatform) async {
         .readComponent(newestWholeComponent);
   }
 
+  int worldNum = 0;
   for (YamlMap world in worlds) {
+    worldNum++;
+    print("----------------");
+    print("World #$worldNum");
+    print("----------------");
     List<Component> modulesToUse;
     if (world["modules"] != null) {
       moduleComponents ??= new Map<String, Component>();
