@@ -4,198 +4,20 @@
 
 # Sections in this file should contain "$compiler == dartdevc" or dartdevk.
 [ $compiler == dartdevc ]
-accessor_conflict_export2_test: CompileTimeError # Issue 25626
-accessor_conflict_export_test: CompileTimeError # Issue 25626
-accessor_conflict_import2_test: CompileTimeError # Issue 25626
-accessor_conflict_import_prefixed2_test: CompileTimeError # Issue 25626
-accessor_conflict_import_prefixed_test: CompileTimeError # Issue 25626
-accessor_conflict_import_test: CompileTimeError # Issue 25626
-assertion_test: RuntimeError # Issue 30326; Expect.equals(expected: <1>, actual: <0>) fails.
-await_future_test: Pass, Timeout # Issue 29920
-bit_operations_test: RuntimeError # No bigints on web.
-built_in_identifier_type_annotation_test/dynamic-funarg: RuntimeError # Issue 28816
-built_in_identifier_type_annotation_test/dynamic-funret: RuntimeError # Issue 28816
-built_in_identifier_type_annotation_test/dynamic-list: RuntimeError # Issue 28816
-const_constructor3_test/04: MissingCompileTimeError # Side-effect of working around issue 33441 for int-to-double
 const_double_in_int_op_test/dd6: Skip # Triple shift
 const_double_in_int_op_test/di6: Skip # Triple shift
 const_double_in_int_op_test/id6: Skip # Triple shift
 const_double_in_int_op_test/ii6: Skip # Triple shift
-covariant_override/tear_off_type_test: RuntimeError # Issue 28395
-covariant_subtyping_with_mixin_test: CompileTimeError # Issue 34329
-deferred_load_library_wrong_args_test/01: MissingRuntimeError, RuntimeError # Issue 29920
-double_identical_test: RuntimeError # Negative and positive zero are distinct, but not in ddc
-execute_finally6_test: RuntimeError # Issue 29920
-expect_test: RuntimeError # Issue 29920
-export_private_test/01: MissingCompileTimeError # Issue 29920
 extension_methods/*: SkipByDesign # Analyzer DDC is expected to be turned down before releasing extension methods.
-f_bounded_quantification2_test: CompileTimeError # Issue 34583
-f_bounded_quantification3_test: RuntimeError # Issue 29920
-f_bounded_quantification4_test: CompileTimeError # Issue 34583
-generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30208
 generic_no_such_method_dispatcher_simple_test: Skip # This test is just for kernel.
-getter_closure_execution_order_test: RuntimeError # Issue 29920
-import_private_test/01: MissingCompileTimeError # Issue 29920
-internal_library_test/01: MissingCompileTimeError # Issue 29920
-invalid_returns/async_invalid_return_00_test/none: CompileTimeError # issue #34319
-invalid_returns/async_invalid_return_01_test/none: CompileTimeError # issue #34319
-invalid_returns/async_invalid_return_02_test/none: CompileTimeError # issue #34319
-invalid_returns/async_invalid_return_03_test/none: CompileTimeError # issue #34319
-invalid_returns/async_invalid_return_04_test/none: CompileTimeError # issue #34319
-invalid_returns/sync_invalid_return_00_test/none: CompileTimeError # issue #34319
-invalid_returns/sync_invalid_return_01_test/none: CompileTimeError # issue #34319
-invalid_returns/sync_invalid_return_02_test/none: CompileTimeError # issue #34319
-invalid_returns/sync_invalid_return_03_test/none: CompileTimeError # issue #34319
-invalid_returns/sync_invalid_return_04_test/none: CompileTimeError # issue #34319
-invalid_returns/sync_invalid_return_05_test/none: CompileTimeError # issue #34319
-issue31596_implement_covariant_test: CompileTimeError # Issue #31596
-issue34498_test: MissingCompileTimeError # Issue 34500
 large_class_declaration_test: Slow
-left_shift_test: RuntimeError # Ints and doubles are unified.
-mixin_super_2_test: CompileTimeError # Issue 34806
-mixin_super_use_test: CompileTimeError # Issue 34806
 nnbd/*: Skip
-prefix_shadow_test/01: MissingCompileTimeError # Issue 33005
-regress_22976_test: CompileTimeError # Issue 31935, test is not legal in Dart 2.
-regress_24283_test: RuntimeError # Intended to fail, requires 64-bit numbers.
-regress_29025_test: CompileTimeError # Issue 29081
-regress_29405_test: CompileTimeError # Issue 29421
-regress_29784_test/02: Crash # assert initializers not implemented
-regress_30339_test: CompileTimeError # As expected. Should we make this a multi test?
-regress_33479_test/01: Crash # Issue #33479
-setter3_test/01: CompileTimeError # Invalid test, see https://github.com/dart-lang/sdk/issues/33837
-setter3_test/02: CompileTimeError # Invalid test, see https://github.com/dart-lang/sdk/issues/33837
-stacktrace_test: RuntimeError # Issue 29920
-super_operator_index5_test: RuntimeError # 33470
-super_operator_index7_test: RuntimeError # 33470
-super_operator_index8_test: RuntimeError # 33470
-super_setter_test: CompileTimeError # Invalid test, see https://github.com/dart-lang/sdk/issues/33837
-truncdiv_test: RuntimeError # Issue 29920
-void/return_future_future_or_void_async_error1_test/none: CompileTimeError # issue #34319
-void/return_future_or_future_or_void_sync_error2_test/none: CompileTimeError # issue #34319
-void/return_future_or_void_sync_error4_test/none: CompileTimeError # issue #34319
-
-[ $compiler == dartdevk ]
-built_in_identifier_type_annotation_test/dynamic-funarg: RuntimeError # Issue 30450, test name contains hyphen
-built_in_identifier_type_annotation_test/dynamic-funret: RuntimeError # Issue 30450, test name contains hyphen
-built_in_identifier_type_annotation_test/dynamic-list: RuntimeError # Issue 30450, test name contains hyphen
-call_method_as_cast_test/06: RuntimeError # Kernel allows classes to subtype `Function` so DDK elides the explicit cast.
-call_method_implicit_tear_off_implements_function_test/05: RuntimeError # Kernel is missing the implicit `call` tearoff for assignment `Function`
-call_method_implicit_tear_off_implements_function_test/06: RuntimeError # Kernel is missing the implicit `call` tearoff for assignment `Function`
-call_method_must_not_be_field_test/06: RuntimeError # Kernel does not distinguish `d()` from `d.call()`
-call_method_must_not_be_getter_test/06: RuntimeError # Kernel does not distinguish `d()` from `d.call()`
-compile_time_constant_static5_test/11: CompileTimeError # Issue 31537
-compile_time_constant_static5_test/16: CompileTimeError # Issue 31537
-compile_time_constant_static5_test/21: CompileTimeError # Issue 31537
-compile_time_constant_static5_test/23: CompileTimeError # Issue 31537
-double_identical_test: RuntimeError # Negative and positive zero are distinct, but not in ddk
-generic_no_such_method_dispatcher_simple_test: CompileTimeError # Warning: Superclass has no method named 'foo'.
-generic_no_such_method_dispatcher_test: CompileTimeError # Issue 31533
-mixin_super_2_test: RuntimeError # Issue 34807
-mixin_super_use_test: RuntimeError # Issue 34808
-no_such_method_mock_test: RuntimeError # Issue 31426 - Kernel does not introduce nSM for implemented fields.
-null_no_such_method_test: CompileTimeError # Issue 31533
-redirecting_factory_reflection_test: RuntimeError # UnimplementedError: node <InvalidExpression> `invalid-expression`
-regress_23408_test: CompileTimeError # Issue 31533
-regress_24283_test: RuntimeError # Expect.equals(expected: <-1>, actual: <4294967295>) fails.
-regress_29405_test: CompileTimeError # Issue 31402 Error: A value of type '#lib2::Foo' can't be assigned to a variable of type '(#lib2::Foo) → void'.
-regress_30339_test: RuntimeError # Uncaught Expect.isTrue(false) fails.
-super_bound_closure_test/none: CompileTimeError # Issue 31533
-syncstar_yield_test/copyParameters: RuntimeError # Expect.equals(expected: <2>, actual: <3>) fails.
-type_promotion_more_specific_test/04: CompileTimeError # Issue 31533
 
 [ $compiler == dartdevk && !$checked ]
 assertion_initializer_const_error2_test/*: SkipByDesign # DDC does not support non-checked mode.
 
 [ $compiler == dartdevc || $compiler == dartdevk ]
-arithmetic_int64_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-async_covariant_type_test: RuntimeError # Check too late
-async_star_cancel_while_paused_test: RuntimeError # Issue 29920; Uncaught Expect.listEquals(list length, expected: <4>, actual: <3>) fails: Next element <*3>
-async_star_pause_test: RuntimeError # Uncaught Expect.listEquals(at index 2, expected: <0+>, actual: <0!>) fails
-asyncstar_covariant_type_test: RuntimeError # Check too late
 asyncstar_throw_in_catch_test: Skip # Times out. Issue 29920
-bit_operations_test: RuntimeError # No bigints on web.; Expect.equals(expected: <-25>, actual: <4294967271>) fails.
-bit_operations_test/03: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-bit_operations_test/04: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-bit_operations_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-canonical_const2_test: RuntimeError # Ints and doubles are unified.; Expect.isFalse(true) fails.
-compile_time_constant_d_test: RuntimeError # Issue 30876; Expect.isTrue(false) fails.
-compile_time_constant_e_test: RuntimeError # Issue 30876; Expect.identical(expected: <A 3 499 99 100>, actual: <A 3 499 99 100>) fails.
-const_evaluation_test/01: RuntimeError # dart:mirrors not supported in DDC
-const_list_test: RuntimeError # Expect.equals(expected: <false>, actual: <true>) fails.
-const_switch_test/02: RuntimeError # Issue 29920; Expect.equals(expected: <0>, actual: <0.0>) fails.
-const_switch_test/04: RuntimeError # Ints and doubles are unified.; Expect.equals(expected: <1>, actual: <1.0>) fails.
-ct_const_test: RuntimeError # Issue 2992; RangeError: Maximum call stack size exceeded
-cyclic_type2_test: RuntimeError # Issue 29920; Uncaught ReferenceError: V is not defined
-cyclic_type_test/02: RuntimeError # Issue 29920; Uncaught RangeError: Maximum call stack size exceeded
-cyclic_type_test/03: RuntimeError # Issue 29920; Uncaught ReferenceError: U is not defined
-cyclic_type_test/04: RuntimeError # Issue 29920; Uncaught ReferenceError: U is not defined
-deferred_call_empty_before_load_test: RuntimeError # Issue 27777; Expect.throws fails: Did not throw
-deferred_load_constants_test/none: RuntimeError # Issue 27394; Expect.throws fails: Did not throw
-deferred_not_loaded_check_test: RuntimeError # Issue 27777; Expect.throws fails: Did not throw
-deferred_redirecting_factory_test: RuntimeError # Issue 27777; Uncaught Expect.throws fails: Did not throw
-deferred_static_seperate_test: RuntimeError # Issue 27777; Expect.throws fails: Did not throw
-deopt_inlined_function_lazy_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-deopt_smi_op_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-double_int_to_string_test: RuntimeError # Issue 29920; Expect.equals(expected: <0.0>, actual: <0>) fails.
-double_to_string_as_fixed2_test/none: RuntimeError # Issue 29920; Expect.throws(ArgumentError) fails: Did not throw
-example_constructor_test: RuntimeError # Expect.equals(expected: <0 1 2 3 4 5 6 >, actual: <0 3 4 1 2 5 6 >) fails.
-exception_test: RuntimeError # DDC doesn't implement NullThrownError?; Expect.isTrue(false) fails.
-expect_test: RuntimeError # Issue 29920; Expect.identical did not fail
-f_bounded_quantification3_test: RuntimeError # Issue 29920; Uncaught Error: type arguments should not be null: (F1, F2) => {
-flatten_test/05: MissingRuntimeError # Issue 29920
-flatten_test/08: MissingRuntimeError # Issue 29920
-flatten_test/09: MissingRuntimeError # Issue 29920
-flatten_test/12: MissingRuntimeError # Issue 29920
-for_variable_capture_test: RuntimeError # Issue 29920; Expect.equals(expected: <1>, actual: <0>) fails.
-function_subtype_inline2_test: RuntimeError # Expect.fail('Missing type error: 'new C.c1(m2)'.')
-generic_instanceof2_test: RuntimeError # Issue 29920; ReferenceError: FooOfK$String is not defined
-generic_is_check_test: RuntimeError # Issue 29920; Expect.isTrue(false) fails.
-guess_cid_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-identical_closure2_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-identical_closure2_test: RuntimeError # Issue 29920; Expect.isFalse(true) fails.
-infinite_switch_label_test: RuntimeError # Issue 29920; NoSuchMethodError: method not found: '<Unexpected Null Value>'
-infinity_test: RuntimeError # Issue 29920; Expect.isFalse(true) fails.
-instance_creation_in_function_annotation_test: RuntimeError # Issue 29920; UnimplementedError: JsClosureMirror.function unimplemented
-int2_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 int64_literal_test/*: Skip # This is testing Dart 2.0 int64 semantics.
-integer_division_by_zero_test: RuntimeError # Issue 29920; Expect.throws: Unexpected 'Unsupported operation: Infinity'
-invocation_mirror_invoke_on2_test: RuntimeError # UnimplementedError: JsInstanceMirror.delegate unimplemented
-invocation_mirror_invoke_on_test: RuntimeError # UnimplementedError: JsInstanceMirror.delegate unimplemented
-invocation_mirror_test: RuntimeError # Type 'NativeJavaScriptObject' is not a subtype of type 'int' in strong mode
-issue23244_test: RuntimeError # Issue 29920; Uncaught Unsupported operation: only top-level functions can be spawned.
-least_upper_bound_expansive_test/none: RuntimeError # 30908; Uncaught RangeError: Maximum call stack size exceeded
-left_shift_test: RuntimeError # Ints and doubles are unified.; Expect.equals(expected: <1>, actual: <-4294967295>) fails.
-library_env_test/has_io_support: RuntimeError, OK # Intended to fail, bool.fromEnvironment("dart.library.async") is false
-library_env_test/has_mirror_support: RuntimeError, OK # Intended to fail, bool.fromEnvironment("dart.library.async") is false
-library_env_test/has_no_html_support: RuntimeError, OK # Intended to fail, bool.fromEnvironment("dart.library.async") is false
-local_function2_test/none: RuntimeError # ReferenceError: TToNull is not defined
-local_function3_test/none: RuntimeError # Expect.equals(expected: <true>, actual: <false>) fails.
-local_function_test/none: RuntimeError # Expect.equals(expected: <true>, actual: <false>) fails.
-mint_arithmetic_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-mint_arithmetic_test: RuntimeError # Issue 29920; Expect.equals(expected: <4294967297>, actual: <1>) fails.
-mint_compares_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-mint_identical_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-modulo_test: RuntimeError # Ints and doubles are unified.; Expect.throws fails: Did not throw
-named_parameters_default_eq_test/none: RuntimeError # Expect.isTrue(false) fails.
-nan_identical_test: RuntimeError # Issue 29920; Unsupported operation: Uint64 accessor not supported by dart2js.
-nested_switch_label_test: RuntimeError # Issue 29920; UnimplementedError: node <ShadowContinueSwitchStatement> see https://github.com/dart-lang/sdk/issues/29352 `continue #L1;
-null_test/mirrors: RuntimeError # Uses mirrors.; ReferenceError: GenericOfT is not defined
-number_identity2_test: RuntimeError # Issue 29920; Expect.isTrue(false) fails.
-number_identity_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-numbers_test: RuntimeError # Issue 29920; Expect.equals(expected: <false>, actual: <true>) fails.
-regress_16640_test: RuntimeError # Issue 29920; Uncaught Error: type arguments should not be null: E => {
-regress_22443_test: RuntimeError # Uncaught Expect.isTrue(false) fails.
-stack_overflow_stacktrace_test: RuntimeError # Issue 29920; RangeError: Maximum call stack size exceeded
-stack_overflow_test: RuntimeError # Issue 29920; RangeError: Maximum call stack size exceeded
-stacktrace_demangle_ctors_test: RuntimeError # Issue 31089; Expect.isTrue(false) fails.
-stacktrace_test: RuntimeError # Issue 29920; Expect.isTrue(false) fails.
-string_literals_test: RuntimeError # Expect.equals(expected: <\x00\x0A\x0D\x7F\xFF\u{FFFF}\u{D800}\u{DC00}\u{DBFF}\u{DFFF}>, actual: <\x00\x0A\x0D\x7F\xFF\u{FFFF}\u{FFFD}\u{FFFD}\u{FFFD}\u{FFFD}\u{FFFD}\u{FFFD}\u{FFFD}\u{FFFD}\u{FFFD}\u{FFFD}\u{FFFD}\u{FFFD}>) fails.
-super_test: RuntimeError # Expect.equals(expected: <0>, actual: <2>) fails.
 superinterface_variance/*: Skip # Issue dart-lang/language#113
-switch_label2_test: RuntimeError # Issue 29920; UnimplementedError: node <ShadowContinueSwitchStatement> see https://github.com/dart-lang/sdk/issues/29352 `continue #L1;
-switch_label_test: RuntimeError # Issue 29920; UnimplementedError: node <ShadowContinueSwitchStatement> see https://github.com/dart-lang/sdk/issues/29352 `continue #L1;
-switch_try_catch_test: RuntimeError # Issue 29920; Expect.throws: Unexpected 'UnimplementedError: node <ShadowContinueSwitchStatement> see https://github.com/dart-lang/sdk/issues/29352 `continue #L1;
-syncstar_covariant_type_test: RuntimeError # Check too late
-truncdiv_test: RuntimeError # Issue 29920; Expect.throws fails: Did not throw
 vm/*: SkipByDesign # VM only tests.; VM only tests.
