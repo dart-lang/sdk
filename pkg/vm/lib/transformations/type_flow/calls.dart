@@ -38,7 +38,8 @@ abstract class Selector {
   int get hashCode => callKind.hashCode;
 
   @override
-  bool operator ==(other) => other is Selector && other.callKind == callKind;
+  bool operator ==(other) =>
+      identical(this, other) || other is Selector && other.callKind == callKind;
 
   /// Static approximation of Dart return type.
   DartType get staticReturnType {
@@ -107,6 +108,7 @@ class DirectSelector extends Selector {
 
   @override
   bool operator ==(other) =>
+      identical(this, other) ||
       other is DirectSelector && super == (other) && other.member == member;
 
   @override
@@ -125,6 +127,7 @@ class InterfaceSelector extends Selector {
 
   @override
   bool operator ==(other) =>
+      identical(this, other) ||
       other is InterfaceSelector && super == (other) && other.member == member;
 
   @override
@@ -140,7 +143,8 @@ class VirtualSelector extends InterfaceSelector {
   int get hashCode => (super.hashCode + 37) & kHashMask;
 
   @override
-  bool operator ==(other) => other is VirtualSelector && super == (other);
+  bool operator ==(other) =>
+      identical(this, other) || other is VirtualSelector && super == (other);
 
   @override
   String toString() => 'virtual ${_callKindPrefix}[$member]';
@@ -163,6 +167,7 @@ class DynamicSelector extends Selector {
 
   @override
   bool operator ==(other) =>
+      identical(this, other) ||
       other is DynamicSelector && super == (other) && other.name == name;
 
   @override
@@ -207,6 +212,7 @@ class Args<T extends TypeExpr> {
 
   @override
   bool operator ==(other) {
+    if (identical(this, other)) return true;
     if (other is Args<T> &&
         (this.values.length == other.values.length) &&
         (this.names.length == other.names.length)) {
