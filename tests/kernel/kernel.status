@@ -9,8 +9,5 @@ unsorted/simple_literal_test/01: Skip # The test expects error for large integer
 [ !$fasta ]
 unsorted/loop_test: Skip # This test uses optional new/const.
 
-[ $builder_tag == obfuscated && $runtime == dart_precompiled ]
-unsorted/symbol_literal_test: RuntimeError # Issue 34911
-
 [ !$preview_dart_2 && ($runtime == dart_precompiled || $runtime == vm) ]
 *: SkipByDesign # Deprecating all Dart1 modes of execution
