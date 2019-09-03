@@ -82,6 +82,9 @@ AsciiControlCharacter:
   analyzerCode: ILLEGAL_CHARACTER
   expression: "\x1b 1"
 
+ConstEvalStartingPoint:
+  template: "Constant evaluation error:"
+
 ConstEvalContext:
   template: "While analyzing:"
 

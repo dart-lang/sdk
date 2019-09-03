@@ -1719,6 +1719,14 @@ const MessageCode messageConstEvalNullValue = const MessageCode(
     message: r"""Null value during constant evaluation.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstEvalStartingPoint = messageConstEvalStartingPoint;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstEvalStartingPoint = const MessageCode(
+    "ConstEvalStartingPoint",
+    message: r"""Constant evaluation error:""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstEvalUnevaluated = messageConstEvalUnevaluated;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

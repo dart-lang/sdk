@@ -600,7 +600,9 @@ Future testData(TestData data) async {
                   (ir.LocatedMessage message, List<ir.LocatedMessage> context) {
             // TODO(johnniwinther): Assert that `message.uri != null`. Currently
             // all unevaluated constants have no uri.
-            errors.add(message.code.name);
+            // The actual message is a "constant errors starts here" message,
+            // the "real error message" is the first in the context.
+            errors.add(context.first.code.name);
             reportLocatedMessage(elementMap.reporter, message, context);
           }, environment: environment, supportReevaluationForTesting: true);
           ir.Constant evaluatedConstant = evaluator.evaluate(initializer);

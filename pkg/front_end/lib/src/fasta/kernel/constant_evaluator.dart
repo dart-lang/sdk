@@ -42,6 +42,7 @@ import '../fasta_codes.dart'
         messageConstEvalNotListOrSetInSpread,
         messageConstEvalNotMapInSpread,
         messageConstEvalNullValue,
+        messageConstEvalStartingPoint,
         messageConstEvalUnevaluated,
         noLength,
         templateConstEvalDeferredLibrary,
@@ -596,18 +597,28 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     } on _AbortDueToError catch (e) {
       final Uri uri = getFileUri(e.node);
       final int fileOffset = getFileOffset(uri, e.node);
-      final LocatedMessage locatedMessage =
+      final LocatedMessage locatedMessageActualError =
           e.message.withLocation(uri, fileOffset, noLength);
 
-      final List<LocatedMessage> contextMessages = <LocatedMessage>[];
+      final List<LocatedMessage> contextMessages = <LocatedMessage>[
+        locatedMessageActualError
+      ];
       if (e.context != null) contextMessages.addAll(e.context);
       for (final TreeNode node in contextChain) {
+        if (node == e.node) continue;
         final Uri uri = getFileUri(node);
         final int fileOffset = getFileOffset(uri, node);
         contextMessages.add(
             messageConstEvalContext.withLocation(uri, fileOffset, noLength));
       }
-      errorReporter.report(locatedMessage, contextMessages);
+
+      {
+        final Uri uri = getFileUri(node);
+        final int fileOffset = getFileOffset(uri, node);
+        final LocatedMessage locatedMessage = messageConstEvalStartingPoint
+            .withLocation(uri, fileOffset, noLength);
+        errorReporter.report(locatedMessage, contextMessages);
+      }
       return new UnevaluatedConstant(new InvalidExpression(e.message.message));
     } on _AbortDueToInvalidExpression catch (e) {
       // TODO(askesc): Copy position from erroneous node.
