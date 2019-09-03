@@ -10,7 +10,7 @@ class DartFuzzFfiApi {
   static const ffiapi = """
 
 ffi.DynamicLibrary ffiTestFunctions =
-    ffi.DynamicLibrary.open("ffi_test_functions.so");
+    ffi.DynamicLibrary.open("libffi_test_functions.so");
 
 typedef NativeBinaryOp = ffi.Int32 Function(ffi.Int32, ffi.Int32);
 typedef BinaryOp = int Function(int, int);

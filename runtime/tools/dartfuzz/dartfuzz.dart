@@ -249,9 +249,28 @@ class DartFuzz {
     }
   }
 
+  void emitLoadFfiLib() {
+    if (ffi) {
+      emitLn(
+          '// The following throws an uncaught exception if the ffi library ' +
+              'is not found.');
+      emitLn(
+          '// By not catching this exception, we terminate the program with ' +
+              'a full stack trace');
+      emitLn('// which, in turn, flags the problem prominently');
+      emitLn('if (ffiTestFunctions == null) {');
+      indent += 2;
+      emitLn('print(\'Did not load ffi test functions\');');
+      indent -= 2;
+      emitLn('}');
+    }
+  }
+
   void emitMain() {
     emitLn('main() {');
     indent += 2;
+
+    emitLoadFfiLib();
 
     // Call each global method once.
     for (int i = 0; i < globalMethods.length; i++) {
