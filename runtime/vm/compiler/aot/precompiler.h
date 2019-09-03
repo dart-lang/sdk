@@ -72,37 +72,17 @@ class UnlinkedCallKeyValueTrait {
 
 typedef DirectChainedHashMap<UnlinkedCallKeyValueTrait> UnlinkedCallSet;
 
-static inline intptr_t SimplePointerHash(void* ptr) {
-  return reinterpret_cast<intptr_t>(ptr) * 2654435761UL;
-}
-
-class FunctionKeyValueTrait {
- public:
-  // Typedefs needed for the DirectChainedHashMap template.
-  typedef const Function* Key;
-  typedef const Function* Value;
-  typedef const Function* Pair;
-
-  static Key KeyOf(Pair kv) { return kv; }
-
-  static Value ValueOf(Pair kv) { return kv; }
-
-  static inline intptr_t Hashcode(Key key) {
-    // We are using pointer hash for objects originating from Kernel because
-    // Fasta currently does not assign any position information to them.
-    if (key->kernel_offset() > 0) {
-      return key->kernel_offset();
-    } else {
-      return key->token_pos().value();
-    }
+// Traits for the HashTable template.
+struct FunctionKeyTraits {
+  static uint32_t Hash(const Object& key) { return Function::Cast(key).Hash(); }
+  static const char* Name() { return "FunctionKeyTraits"; }
+  static bool IsMatch(const Object& x, const Object& y) {
+    return x.raw() == y.raw();
   }
-
-  static inline bool IsKeyEqual(Pair pair, Key key) {
-    return pair->raw() == key->raw();
-  }
+  static bool ReportStats() { return false; }
 };
 
-typedef DirectChainedHashMap<FunctionKeyValueTrait> FunctionSet;
+typedef UnorderedHashSet<FunctionKeyTraits> FunctionSet;
 
 class FieldKeyValueTrait {
  public:
