@@ -1711,9 +1711,11 @@ class InferenceVisitor
               writeTarget.member,
               inferrer.helper.forest.createArgumentsForExtensionMethod(
                   node.fileOffset,
-                  writeTarget.extensionTypeParameterCount,
+                  writeTarget.inferredExtensionTypeArguments.length,
                   0,
                   node.receiver,
+                  extensionTypeArguments:
+                      writeTarget.inferredExtensionTypeArguments,
                   positionalArguments: [node.rhs])));
       inferrer.storeInferredType(replacement, inferredType);
     } else {

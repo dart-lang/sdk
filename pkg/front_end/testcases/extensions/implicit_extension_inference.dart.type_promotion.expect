@@ -1,0 +1,54 @@
+pkg/front_end/testcases/extensions/implicit_extension_inference.dart:27:13: Context: Write to cVariable@468
+  cVariable = aClass.property;
+            ^
+pkg/front_end/testcases/extensions/implicit_extension_inference.dart:28:13: Context: Write to cVariable@468
+  cVariable = bClass.property;
+            ^
+pkg/front_end/testcases/extensions/implicit_extension_inference.dart:29:13: Context: Write to aVariable@453
+  aVariable = cClass.property;
+            ^
+pkg/front_end/testcases/extensions/implicit_extension_inference.dart:31:13: Context: Write to cVariable@468
+  cVariable = aClass.method(aVariable);
+            ^
+pkg/front_end/testcases/extensions/implicit_extension_inference.dart:32:13: Context: Write to cVariable@468
+  cVariable = bClass.method(aVariable);
+            ^
+pkg/front_end/testcases/extensions/implicit_extension_inference.dart:33:13: Context: Write to aVariable@453
+  aVariable = cClass.method(aVariable);
+            ^
+pkg/front_end/testcases/extensions/implicit_extension_inference.dart:35:13: Context: Write to cVariable@468
+  cVariable = aClass.genericMethod1(aVariable);
+            ^
+pkg/front_end/testcases/extensions/implicit_extension_inference.dart:36:13: Context: Write to cVariable@468
+  cVariable = aClass.genericMethod1<A>(aVariable);
+            ^
+pkg/front_end/testcases/extensions/implicit_extension_inference.dart:37:13: Context: Write to cVariable@468
+  cVariable = aClass.genericMethod1<B>(aVariable);
+            ^
+pkg/front_end/testcases/extensions/implicit_extension_inference.dart:38:13: Context: Write to cVariable@468
+  cVariable = aClass.genericMethod1<C>(aVariable);
+            ^
+pkg/front_end/testcases/extensions/implicit_extension_inference.dart:40:13: Context: Write to cVariable@468
+  cVariable = bClass.genericMethod1(aVariable);
+            ^
+pkg/front_end/testcases/extensions/implicit_extension_inference.dart:41:13: Context: Write to cVariable@468
+  cVariable = bClass.genericMethod1<A>(aVariable);
+            ^
+pkg/front_end/testcases/extensions/implicit_extension_inference.dart:42:13: Context: Write to cVariable@468
+  cVariable = bClass.genericMethod1<B>(aVariable);
+            ^
+pkg/front_end/testcases/extensions/implicit_extension_inference.dart:43:13: Context: Write to cVariable@468
+  cVariable = bClass.genericMethod1<C>(aVariable);
+            ^
+pkg/front_end/testcases/extensions/implicit_extension_inference.dart:45:13: Context: Write to cVariable@468
+  cVariable = cClass.genericMethod1(aVariable);
+            ^
+pkg/front_end/testcases/extensions/implicit_extension_inference.dart:46:13: Context: Write to cVariable@468
+  cVariable = cClass.genericMethod1<A>(aVariable);
+            ^
+pkg/front_end/testcases/extensions/implicit_extension_inference.dart:47:13: Context: Write to cVariable@468
+  cVariable = cClass.genericMethod1<B>(aVariable);
+            ^
+pkg/front_end/testcases/extensions/implicit_extension_inference.dart:48:13: Context: Write to cVariable@468
+  cVariable = cClass.genericMethod1<C>(aVariable);
+            ^

@@ -110,7 +110,7 @@ class OccurrenceCollectorVisitor extends DartTypeVisitor {
   }
 }
 
-DartType instantiateToBounds(DartType type, Class object) {
+DartType instantiateToBounds(DartType type, Class objectClass) {
   if (type is InterfaceType) {
     for (var typeArgument in type.typeArguments) {
       // If at least one of the arguments is not dynamic, we assume that the
@@ -120,8 +120,8 @@ DartType instantiateToBounds(DartType type, Class object) {
         return type;
       }
     }
-    return new InterfaceType.byReference(
-        type.className, calculateBounds(type.classNode.typeParameters, object));
+    return new InterfaceType.byReference(type.className,
+        calculateBounds(type.classNode.typeParameters, objectClass));
   }
   if (type is TypedefType) {
     for (var typeArgument in type.typeArguments) {
@@ -130,7 +130,7 @@ DartType instantiateToBounds(DartType type, Class object) {
       }
     }
     return new TypedefType.byReference(type.typedefReference,
-        calculateBounds(type.typedefNode.typeParameters, object));
+        calculateBounds(type.typedefNode.typeParameters, objectClass));
   }
   return type;
 }
@@ -142,15 +142,16 @@ DartType instantiateToBounds(DartType type, Class object) {
 /// (https://github.com/dart-lang/sdk/blob/master/docs/language/informal/instantiate-to-bound.md)
 /// of the algorithm for details.
 List<DartType> calculateBounds(
-    List<TypeParameter> typeParameters, Class object) {
+    List<TypeParameter> typeParameters, Class objectClass) {
   List<DartType> bounds = new List<DartType>(typeParameters.length);
   for (int i = 0; i < typeParameters.length; i++) {
     DartType bound = typeParameters[i].bound;
     if (bound == null) {
       bound = const DynamicType();
-    } else if (bound is InterfaceType && bound.classNode == object) {
+    } else if (bound is InterfaceType && bound.classNode == objectClass) {
       DartType defaultType = typeParameters[i].defaultType;
-      if (!(defaultType is InterfaceType && defaultType.classNode == object)) {
+      if (!(defaultType is InterfaceType &&
+          defaultType.classNode == objectClass)) {
         bound = const DynamicType();
       }
     }

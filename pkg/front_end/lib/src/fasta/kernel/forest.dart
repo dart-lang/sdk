@@ -67,8 +67,11 @@ class Forest {
       ..fileOffset = fileOffset ?? TreeNode.noOffset;
   }
 
-  Arguments createArgumentsForExtensionMethod(int fileOffset,
-      int extensionTypeParameterCount, typeParameterCount, Expression receiver,
+  Arguments createArgumentsForExtensionMethod(
+      int fileOffset,
+      int extensionTypeParameterCount,
+      int typeParameterCount,
+      Expression receiver,
       {List<DartType> extensionTypeArguments = const <DartType>[],
       List<DartType> typeArguments = const <DartType>[],
       List<Expression> positionalArguments = const <Expression>[],
