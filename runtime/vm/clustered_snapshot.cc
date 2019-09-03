@@ -6,6 +6,7 @@
 
 #include "platform/assert.h"
 #include "vm/bootstrap.h"
+#include "vm/bss_relocs.h"
 #include "vm/class_id.h"
 #include "vm/code_observers.h"
 #include "vm/compiler/backend/code_statistics.h"
@@ -613,7 +614,7 @@ class FunctionDeserializationCluster : public DeserializationCluster {
           func.SetInstructions(StubCode::InterpretCall());
         } else if (FLAG_use_bytecode_compiler && func.HasBytecode()) {
           func.SetInstructions(StubCode::LazyCompile());
-#endif                                 // !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
         } else {
           func.ClearCode();  // Set code and entrypoint to lazy compile stub.
         }
@@ -800,9 +801,12 @@ class FfiTrampolineDataSerializationCluster : public SerializationCluster {
       AutoTraceObject(data);
       WriteFromTo(data);
 
-      // TODO(37295): FFI callbacks shouldn't be written to a snapshot. They
-      // should only be referenced by the callback registry in Thread.
-      ASSERT(data->ptr()->callback_id_ == 0);
+      if (s->kind() == Snapshot::kFullAOT) {
+        s->WriteUnsigned(data->ptr()->callback_id_);
+      } else {
+        // FFI callbacks can only be written to AOT snapshots.
+        ASSERT(data->ptr()->callback_target_ == Object::null());
+      }
     }
   }
 
@@ -834,7 +838,8 @@ class FfiTrampolineDataDeserializationCluster : public DeserializationCluster {
       Deserializer::InitializeHeader(data, kFfiTrampolineDataCid,
                                      FfiTrampolineData::InstanceSize());
       ReadFromTo(data);
-      data->ptr()->callback_id_ = 0;
+      data->ptr()->callback_id_ =
+          d->kind() == Snapshot::kFullAOT ? d->ReadUnsigned() : 0;
     }
   }
 };
@@ -5749,6 +5754,17 @@ RawApiError* FullSnapshotReader::ReadIsolateSnapshot() {
         }
       }
     }
+  }
+
+  // Initialize symbols in the BSS, if present.
+  ASSERT(Snapshot::IncludesCode(kind_));
+  Image image(instructions_image_);
+  if (image.bss_offset() != 0) {
+    // The const cast is safe because we're translating from the start of the
+    // instructions (read-only) to the start of the BSS (read-write).
+    uword* const bss_start = const_cast<uword*>(reinterpret_cast<const uword*>(
+        instructions_image_ + image.bss_offset()));
+    BSS::Initialize(thread_, bss_start);
   }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 

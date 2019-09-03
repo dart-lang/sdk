@@ -23,6 +23,25 @@ DS _asFunctionInternal<DS extends Function, NS extends Function>(
 dynamic _asExternalTypedData(Pointer ptr, int count)
     native "Ffi_asExternalTypedData";
 
+// Returns a Function object for a native callback.
+//
+// Calls to [Pointer.fromFunction] are re-written by the FE into calls to this
+// method + _pointerFromFunction. All three arguments must be constants.
+//
+// In AOT we evaluate calls to this function during precompilation and replace
+// them with Constant instruction referencing the callback trampoline, to ensure
+// that it will be precompiled.
+//
+// In all JIT modes we call a native runtime entry. We *cannot* use the IL
+// implementation, since that would pull the callback trampoline into JIT
+// snapshots. The callback trampolines can only be serialized into AOT snapshots
+// because they embed the addresses of runtime routines in JIT mode.
+Object _nativeCallbackFunction<NS extends Function>(Function target,
+    Object exceptionalReturn) native "Ffi_nativeCallbackFunction";
+
+Pointer<NS> _pointerFromFunction<NS extends NativeFunction>(Object function)
+    native "Ffi_pointerFromFunction";
+
 @patch
 @pragma("vm:entry-point")
 class Pointer<T extends NativeType> {
@@ -32,10 +51,18 @@ class Pointer<T extends NativeType> {
   @patch
   factory Pointer.fromAddress(int ptr) => _fromAddress(ptr);
 
+  // All static calls to this method are replaced by the FE into
+  // _nativeCallbackFunction + _pointerFromFunction.
+  //
+  // We still need to throw an error on a dynamic invocations, invocations
+  // through tearoffs or reflective calls.
   @patch
   static Pointer<NativeFunction<T>> fromFunction<T extends Function>(
       @DartRepresentationOf("T") Function f,
-      Object exceptionalReturn) native "Ffi_fromFunction";
+      [Object exceptionalReturn]) {
+    throw UnsupportedError(
+        "Pointer.fromFunction cannot be called dynamically.");
+  }
 
   // TODO(sjindel): When NNBD is available, we should change `value` to be
   // non-null.
