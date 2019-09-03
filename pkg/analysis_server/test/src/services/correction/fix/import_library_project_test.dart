@@ -386,11 +386,8 @@ main() {
 ''');
   }
 
-  test_withFunction_identifier() async {
-    addSource('/home/test/lib/lib.dart', '''
-library lib;
-myFunction() {}
-''');
+  test_withFunction_functionTopLevelVariableIdentifier() async {
+    addSource('/home/test/lib/lib.dart', 'var myFunction = () {};');
     await resolveTestUnit('''
 main() {
   myFunction;
@@ -405,8 +402,11 @@ main() {
 ''');
   }
 
-  test_withFunction_functionTopLevelVariableIdentifier() async {
-    addSource('/home/test/lib/lib.dart', 'var myFunction = () {};');
+  test_withFunction_identifier() async {
+    addSource('/home/test/lib/lib.dart', '''
+library lib;
+myFunction() {}
+''');
     await resolveTestUnit('''
 main() {
   myFunction;
@@ -488,7 +488,7 @@ import 'package:test/lib.dart';
 
 class X = Object with Test;
 ''', errorFilter: (error) {
-      return error.errorCode == StaticWarningCode.UNDEFINED_CLASS;
+      return error.errorCode == CompileTimeErrorCode.UNDEFINED_CLASS;
     });
   }
 

@@ -1588,8 +1588,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    *
    * Parameters:
    * 0: the uri pointing to a non-library declaration
-   *
-   * See [StaticWarningCode.IMPORT_OF_NON_LIBRARY].
    */
   static const CompileTimeErrorCode IMPORT_OF_NON_LIBRARY =
       const CompileTimeErrorCode('IMPORT_OF_NON_LIBRARY',
@@ -2676,7 +2674,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "{0} positional argument(s) expected, but {1} found.",
           correction: "Try adding the missing arguments.");
 
-  @deprecated
+  @Deprecated('Use CompileTimeErrorCode NOT_ENOUGH_POSITIONAL_ARGUMENTS')
   static const CompileTimeErrorCode NOT_ENOUGH_REQUIRED_ARGUMENTS =
       NOT_ENOUGH_POSITIONAL_ARGUMENTS;
 
@@ -3349,12 +3347,50 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           isUnresolvedIdentifier: true);
 
   /**
-   * 16.12.2 Const: It is a compile-time error if <i>T</i> is not a class
-   * accessible in the current scope, optionally followed by type arguments.
+   * Parameters:
+   * 0: the name of the undefined class
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when it encounters an identifier that
+  // appears to be the name of a class but either isn't defined or isn't visible
+  // in the scope in which it's being referenced.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // class Point {}
+  //
+  // void main() {
+  //   [!Piont!] p;
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the identifier isn't defined, then either define it or replace it with
+  // the name of a class that is defined. The example above can be corrected by
+  // fixing the spelling of the class:
+  //
+  // ```dart
+  // class Point {}
+  //
+  // void main() {
+  //   Point p;
+  // }
+  // ```
+  //
+  // If the class is defined but isn't visible, then you probably need to add an
+  // import.
   static const CompileTimeErrorCode UNDEFINED_CLASS =
       const CompileTimeErrorCode('UNDEFINED_CLASS', "Undefined class '{0}'.",
-          correction: "Try defining the class.", isUnresolvedIdentifier: true);
+          correction:
+              "Try changing the name to the name of an existing class, or "
+              "creating a class with the name '{0}'.",
+          hasPublishedDocs: true,
+          isUnresolvedIdentifier: true);
 
   /**
    * 7.6.1 Generative Constructors: Let <i>C</i> be the class in which the
@@ -3427,23 +3463,79 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "defining a setter named '{0}'.");
 
   /**
-   * 12.14.2 Binding Actuals to Formals: Furthermore, each <i>q<sub>i</sub></i>,
-   * <i>1<=i<=l</i>, must have a corresponding named parameter in the set
-   * {<i>p<sub>n+1</sub></i> ... <i>p<sub>n+k</sub></i>} or a static warning
-   * occurs.
-   *
-   * 16.12.2 Const: It is a compile-time error if evaluation of a constant
-   * object results in an uncaught exception being thrown.
-   *
    * Parameters:
    * 0: the name of the requested named parameter
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a method or function invocation
+  // has a named argument, but the method or function being invoked doesn’t
+  // define a parameter with the same name.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // class C {
+  //   m({int b}) {}
+  // }
+  //
+  // void f(C c) {
+  //   c.m([!a!]: 1);
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the argument name is mistyped, then replace it with the correct name.
+  // The example above can be fixed by changing `a` to `b`:
+  //
+  // ```dart
+  // class C {
+  //   m({int b}) {}
+  // }
+  //
+  // void f(C c) {
+  //   c.m(b: 1);
+  // }
+  // ```
+  //
+  // If a subclass adds a parameter with the name in question, then cast the
+  // target to the subclass:
+  //
+  // ```dart
+  // class C {
+  //   m({int b}) {}
+  // }
+  //
+  // class D extends C {
+  //   m({int a, int b}) {}
+  // }
+  //
+  // void f(C c) {
+  //   (c as D).m(a: 1);
+  // }
+  // ```
+  //
+  // If the parameter should be added to the function, then add it:
+  //
+  // ```dart
+  // class C {
+  //   m({int a, int b}) {}
+  // }
+  //
+  // void f(C c) {
+  //   c.m(a: 1);
+  // }
+  // ```
   static const CompileTimeErrorCode UNDEFINED_NAMED_PARAMETER =
       const CompileTimeErrorCode('UNDEFINED_NAMED_PARAMETER',
           "The named parameter '{0}' isn't defined.",
           correction:
               "Try correcting the name to an existing named parameter's name, "
-              "or defining a named parameter with the name '{0}'.");
+              "or defining a named parameter with the name '{0}'.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -4597,32 +4689,14 @@ class StaticWarningCode extends AnalyzerErrorCode {
           correction:
               "Try adding a hide clause to one of the export directives.");
 
-  /**
-   * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m &lt;
-   * h</i> or if <i>m &gt; n</i>.
-   *
-   * Parameters:
-   * 0: the maximum number of positional arguments
-   * 1: the actual number of positional arguments given
-   */
-  static const StaticWarningCode EXTRA_POSITIONAL_ARGUMENTS =
-      const StaticWarningCode('EXTRA_POSITIONAL_ARGUMENTS',
-          "Too many positional arguments: {0} expected, but {1} found.",
-          correction: "Try removing the extra positional arguments.");
+  @Deprecated('Use CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS')
+  static const CompileTimeErrorCode EXTRA_POSITIONAL_ARGUMENTS =
+      CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS;
 
-  /**
-   * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m &lt;
-   * h</i> or if <i>m &gt; n</i>.
-   *
-   * Parameters:
-   * 0: the maximum number of positional arguments
-   * 1: the actual number of positional arguments given
-   */
-  static const StaticWarningCode EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED =
-      const StaticWarningCode('EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED',
-          "Too many positional arguments: {0} expected, but {1} found.",
-          correction: "Try removing the extra positional arguments, "
-              "or specifying the name for named arguments.");
+  @Deprecated(
+      'Use CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED')
+  static const CompileTimeErrorCode EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED =
+      CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED;
 
   /**
    * 5. Variables: It is a static warning if a final instance variable that has
@@ -4779,19 +4853,9 @@ class StaticWarningCode extends AnalyzerErrorCode {
               "'{2}'.",
           correction: "Try adding a hide clause to one of the imports.");
 
-  /**
-   * 14.1 Imports: It is a static warning if the specified URI of a deferred
-   * import does not refer to a library declaration.
-   *
-   * Parameters:
-   * 0: the uri pointing to a non-library declaration
-   *
-   * See [CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY].
-   */
-  static const StaticWarningCode IMPORT_OF_NON_LIBRARY =
-      const StaticWarningCode('IMPORT_OF_NON_LIBRARY',
-          "The imported library '{0}' can't have a part-of directive.",
-          correction: "Try importing the library that the part is a part of.");
+  @Deprecated('Use CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY')
+  static const CompileTimeErrorCode IMPORT_OF_NON_LIBRARY =
+      CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY;
 
   /**
    * 7.1 Instance Methods: It is a static warning if an instance method
@@ -5212,18 +5276,9 @@ class StaticWarningCode extends AnalyzerErrorCode {
       correction: "Try correcting the name to match an existing type.",
       hasPublishedDocs: true);
 
-  /**
-   * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m &lt;
-   * h</i> or if <i>m &gt; n</i>.
-   *
-   * Parameters:
-   * 0: the expected number of required arguments
-   * 1: the actual number of positional arguments given
-   */
-  static const StaticWarningCode NOT_ENOUGH_REQUIRED_ARGUMENTS =
-      const StaticWarningCode('NOT_ENOUGH_REQUIRED_ARGUMENTS',
-          "{0} required argument(s) expected, but {1} found.",
-          correction: "Try adding the additional required arguments.");
+  @Deprecated('Use CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS')
+  static const CompileTimeErrorCode NOT_ENOUGH_REQUIRED_ARGUMENTS =
+      CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS;
 
   /**
    * 14.3 Parts: It is a static warning if the referenced part declaration
@@ -5274,31 +5329,13 @@ class StaticWarningCode extends AnalyzerErrorCode {
               "invoking the desired constructor rather than redirecting to "
               "it.");
 
-  /**
-   * 7.6.2 Factories: It is a static warning if type does not denote a class
-   * accessible in the current scope; if type does denote such a class <i>C</i>
-   * it is a static warning if the referenced constructor (be it <i>type</i> or
-   * <i>type.id</i>) is not a constructor of <i>C</i>.
-   */
-  static const StaticWarningCode REDIRECT_TO_MISSING_CONSTRUCTOR =
-      const StaticWarningCode('REDIRECT_TO_MISSING_CONSTRUCTOR',
-          "The constructor '{0}' couldn't be found in '{1}'.",
-          correction:
-              "Try correcting the constructor name to an existing constructor, "
-              "or defining the constructor in '{1}'.");
+  @Deprecated('Use CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR')
+  static const CompileTimeErrorCode REDIRECT_TO_MISSING_CONSTRUCTOR =
+      CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR;
 
-  /**
-   * 7.6.2 Factories: It is a static warning if type does not denote a class
-   * accessible in the current scope; if type does denote such a class <i>C</i>
-   * it is a static warning if the referenced constructor (be it <i>type</i> or
-   * <i>type.id</i>) is not a constructor of <i>C</i>.
-   */
-  static const StaticWarningCode REDIRECT_TO_NON_CLASS =
-      const StaticWarningCode(
-          'REDIRECT_TO_NON_CLASS',
-          "The name '{0}' isn't a type and can't be used in a redirected "
-              "constructor.",
-          correction: "Try correcting the name to match an existing class.");
+  @Deprecated('Use CompileTimeErrorCode.REDIRECT_TO_NON_CLASS')
+  static const CompileTimeErrorCode REDIRECT_TO_NON_CLASS =
+      CompileTimeErrorCode.REDIRECT_TO_NON_CLASS;
 
   /**
    * 13.12 Return: Let <i>f</i> be the function immediately enclosing a return
@@ -5394,53 +5431,13 @@ class StaticWarningCode extends AnalyzerErrorCode {
           correction: "Try removing the reference to the type parameter, or "
               "making the member an instance member.");
 
-  /**
-   * Parameters:
-   * 0: the name of the undefined class
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when it encounters an identifier that
-  // appears to be the name of a class but either isn't defined or isn't visible
-  // in the scope in which it's being referenced.
-  //
-  // #### Example
-  //
-  // The following code produces this diagnostic:
-  //
-  // ```dart
-  // class Point {}
-  //
-  // void main() {
-  //   [!Piont!] p;
-  // }
-  // ```
-  //
-  // #### Common fixes
-  //
-  // If the identifier isn't defined, then either define it or replace it with
-  // the name of a class that is defined. The example above can be corrected by
-  // fixing the spelling of the class:
-  //
-  // ```dart
-  // class Point {}
-  //
-  // void main() {
-  //   Point p;
-  // }
-  // ```
-  //
-  // If the class is defined but isn't visible, then you probably need to add an
-  // import.
-  static const StaticWarningCode UNDEFINED_CLASS = const StaticWarningCode(
-      'UNDEFINED_CLASS', "Undefined class '{0}'.",
-      correction: "Try changing the name to the name of an existing class, or "
-          "creating a class with the name '{0}'.",
-      hasPublishedDocs: true,
-      isUnresolvedIdentifier: true);
+  @Deprecated('Use CompileTimeErrorCode.UNDEFINED_CLASS')
+  static const CompileTimeErrorCode UNDEFINED_CLASS =
+      CompileTimeErrorCode.UNDEFINED_CLASS;
 
   /**
-   * Same as [UNDEFINED_CLASS], but to catch using "boolean" instead of "bool".
+   * Same as [CompileTimeErrorCode.UNDEFINED_CLASS], but to catch using
+   * "boolean" instead of "bool".
    */
   static const StaticWarningCode UNDEFINED_CLASS_BOOLEAN =
       const StaticWarningCode(
@@ -5494,80 +5491,9 @@ class StaticWarningCode extends AnalyzerErrorCode {
               "defining the name, or "
               "adding 'async' to the enclosing function body.");
 
-  /**
-   * Parameters:
-   * 0: the name of the requested named parameter
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when a method or function invocation
-  // has a named argument, but the method or function being invoked doesn’t
-  // define a parameter with the same name.
-  //
-  // #### Example
-  //
-  // The following code produces this diagnostic:
-  //
-  // ```dart
-  // class C {
-  //   m({int b}) {}
-  // }
-  //
-  // void f(C c) {
-  //   c.m([!a!]: 1);
-  // }
-  // ```
-  //
-  // #### Common fixes
-  //
-  // If the argument name is mistyped, then replace it with the correct name.
-  // The example above can be fixed by changing `a` to `b`:
-  //
-  // ```dart
-  // class C {
-  //   m({int b}) {}
-  // }
-  //
-  // void f(C c) {
-  //   c.m(b: 1);
-  // }
-  // ```
-  //
-  // If a subclass adds a parameter with the name in question, then cast the
-  // target to the subclass:
-  //
-  // ```dart
-  // class C {
-  //   m({int b}) {}
-  // }
-  //
-  // class D extends C {
-  //   m({int a, int b}) {}
-  // }
-  //
-  // void f(C c) {
-  //   (c as D).m(a: 1);
-  // }
-  // ```
-  //
-  // If the parameter should be added to the function, then add it:
-  //
-  // ```dart
-  // class C {
-  //   m({int a, int b}) {}
-  // }
-  //
-  // void f(C c) {
-  //   c.m(a: 1);
-  // }
-  // ```
-  static const StaticWarningCode UNDEFINED_NAMED_PARAMETER =
-      const StaticWarningCode('UNDEFINED_NAMED_PARAMETER',
-          "The named parameter '{0}' isn't defined.",
-          correction:
-              "Try correcting the name to an existing named parameter, or "
-              "defining a new parameter with this name.",
-          hasPublishedDocs: true);
+  @Deprecated('Use CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER')
+  static const CompileTimeErrorCode UNDEFINED_NAMED_PARAMETER =
+      CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER;
 
   /**
    * For the purposes of experimenting with potential non-null type semantics.

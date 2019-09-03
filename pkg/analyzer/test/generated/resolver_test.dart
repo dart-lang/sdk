@@ -2283,7 +2283,7 @@ A v = new A();
     _resolveNode(typeName, []);
     expect(typeName.type, DynamicTypeImpl.instance);
     expect(typeName.name.staticElement, null);
-    _listener.assertErrorsWithCodes([StaticWarningCode.UNDEFINED_CLASS]);
+    _listener.assertErrorsWithCodes([CompileTimeErrorCode.UNDEFINED_CLASS]);
   }
 
   test_visitTypeName_parameters_arguments() async {
@@ -2329,7 +2329,7 @@ A v = new A();
     expect(typeName.type, DynamicTypeImpl.instance);
     expect(prefix.staticElement, null);
     expect(suffix.staticElement, null);
-    _listener.assertErrorsWithCodes([StaticWarningCode.UNDEFINED_CLASS]);
+    _listener.assertErrorsWithCodes([CompileTimeErrorCode.UNDEFINED_CLASS]);
   }
 
   test_visitTypeName_void() async {

@@ -1972,10 +1972,10 @@ main() {
   // resolving these shouldn't crash.
   foo/*error:EXTRA_POSITIONAL_ARGUMENTS*/(1, 2, 3);
   x = foo/*error:EXTRA_POSITIONAL_ARGUMENTS*/('1', '2', '3');
-  foo/*error:NOT_ENOUGH_REQUIRED_ARGUMENTS*/(1);
-  x = foo/*error:NOT_ENOUGH_REQUIRED_ARGUMENTS*/('1');
+  foo/*error:NOT_ENOUGH_POSITIONAL_ARGUMENTS*/(1);
+  x = foo/*error:NOT_ENOUGH_POSITIONAL_ARGUMENTS*/('1');
   x = foo/*error:EXTRA_POSITIONAL_ARGUMENTS*/(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/1, /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/2, 3);
-  x = foo/*error:NOT_ENOUGH_REQUIRED_ARGUMENTS*/(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/1);
+  x = foo/*error:NOT_ENOUGH_POSITIONAL_ARGUMENTS*/(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/1);
 
   // named arguments
   bar(y: 1, x: 2, /*error:UNDEFINED_NAMED_PARAMETER*/z: 3);

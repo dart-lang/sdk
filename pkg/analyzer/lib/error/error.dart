@@ -664,7 +664,9 @@ const List<ErrorCode> errorCodeValues = const [
   StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
   StaticWarningCode.CONST_WITH_ABSTRACT_CLASS,
   StaticWarningCode.EXPORT_DUPLICATED_LIBRARY_NAMED,
+  // ignore: deprecated_member_use_from_same_package
   StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS,
+  // ignore: deprecated_member_use_from_same_package
   StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED,
   StaticWarningCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION,
   StaticWarningCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR,
@@ -675,6 +677,7 @@ const List<ErrorCode> errorCodeValues = const [
   StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2,
   StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS,
   StaticWarningCode.IMPORT_DUPLICATED_LIBRARY_NAMED,
+  // ignore: deprecated_member_use_from_same_package
   StaticWarningCode.IMPORT_OF_NON_LIBRARY,
   StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED,
   StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL,
@@ -698,11 +701,14 @@ const List<ErrorCode> errorCodeValues = const [
   StaticWarningCode.NON_VOID_RETURN_FOR_OPERATOR,
   StaticWarningCode.NON_VOID_RETURN_FOR_SETTER,
   StaticWarningCode.NOT_A_TYPE,
+  // ignore: deprecated_member_use_from_same_package
   StaticWarningCode.NOT_ENOUGH_REQUIRED_ARGUMENTS,
   StaticWarningCode.PART_OF_DIFFERENT_LIBRARY,
   StaticWarningCode.REDIRECT_TO_INVALID_FUNCTION_TYPE,
   StaticWarningCode.REDIRECT_TO_INVALID_RETURN_TYPE,
+  // ignore: deprecated_member_use_from_same_package
   StaticWarningCode.REDIRECT_TO_MISSING_CONSTRUCTOR,
+  // ignore: deprecated_member_use_from_same_package
   StaticWarningCode.REDIRECT_TO_NON_CLASS,
   StaticWarningCode.RETURN_WITHOUT_VALUE,
   StaticWarningCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE,
@@ -713,10 +719,12 @@ const List<ErrorCode> errorCodeValues = const [
   StaticWarningCode.TYPE_TEST_WITH_NON_TYPE,
   StaticWarningCode.TYPE_TEST_WITH_UNDEFINED_NAME,
   StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE,
+  // ignore: deprecated_member_use_from_same_package
   StaticWarningCode.UNDEFINED_CLASS,
   StaticWarningCode.UNDEFINED_CLASS_BOOLEAN,
   StaticWarningCode.UNDEFINED_IDENTIFIER,
   StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT,
+  // ignore: deprecated_member_use_from_same_package
   StaticWarningCode.UNDEFINED_NAMED_PARAMETER,
   StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION,
   StaticWarningCode.UNNECESSARY_NULL_AWARE_CALL,

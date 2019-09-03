@@ -1761,10 +1761,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   /**
    * Check for errors related to the redirected constructors.
-   *
-   * See [StaticWarningCode.REDIRECT_TO_INVALID_RETURN_TYPE],
-   * [StaticWarningCode.REDIRECT_TO_INVALID_FUNCTION_TYPE], and
-   * [StaticWarningCode.REDIRECT_TO_MISSING_CONSTRUCTOR].
    */
   void _checkForAllRedirectConstructorErrorCodes(
       ConstructorDeclaration declaration) {
@@ -1789,10 +1785,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         if (redirectedConstructor.name != null) {
           constructorStrName += ".${redirectedConstructor.name.name}";
         }
-        ErrorCode errorCode = (declaration.constKeyword != null
-            ? CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR
-            : StaticWarningCode.REDIRECT_TO_MISSING_CONSTRUCTOR);
-        _errorReporter.reportErrorForNode(errorCode, redirectedConstructor,
+        _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR,
+            redirectedConstructor,
             [constructorStrName, redirectedType.displayName]);
       }
       return;

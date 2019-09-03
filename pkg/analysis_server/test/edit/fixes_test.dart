@@ -44,9 +44,6 @@ main() {
     List<AnalysisErrorFixes> errorFixes =
         await _getFixesAt('Completer<String>');
     expect(errorFixes, hasLength(1));
-    AnalysisError error = errorFixes[0].error;
-    expect(error.severity, AnalysisErrorSeverity.ERROR);
-    expect(error.type, AnalysisErrorType.STATIC_WARNING);
     List<SourceChange> fixes = errorFixes[0].fixes;
     expect(fixes, hasLength(3));
     expect(fixes[0].message, matches('Import library'));

@@ -1843,14 +1843,11 @@ class DirectiveResolver extends SimpleAstVisitor {
           if (importedTime >= 0 &&
               importSourceKindMap[importedSource] != SourceKind.LIBRARY) {
             StringLiteral uriLiteral = node.uri;
-            ErrorCode errorCode = element.isDeferred
-                ? StaticWarningCode.IMPORT_OF_NON_LIBRARY
-                : CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY;
             errors.add(new AnalysisError(
                 _enclosingLibrary.source,
                 uriLiteral.offset,
                 uriLiteral.length,
-                errorCode,
+                CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY,
                 [uriLiteral.toSource()]));
           }
         }
@@ -2967,35 +2964,6 @@ class PartialResolverVisitor extends ResolverVisitor {
     }
     return false;
   }
-}
-
-/// Kind of the redirecting constructor.
-class RedirectingConstructorKind
-    implements Comparable<RedirectingConstructorKind> {
-  static const RedirectingConstructorKind CONST =
-      const RedirectingConstructorKind('CONST', 0);
-
-  static const RedirectingConstructorKind NORMAL =
-      const RedirectingConstructorKind('NORMAL', 1);
-
-  static const List<RedirectingConstructorKind> values = const [CONST, NORMAL];
-
-  /// The name of this redirecting constructor kind.
-  final String name;
-
-  /// The ordinal value of the redirecting constructor kind.
-  final int ordinal;
-
-  const RedirectingConstructorKind(this.name, this.ordinal);
-
-  @override
-  int get hashCode => ordinal;
-
-  @override
-  int compareTo(RedirectingConstructorKind other) => ordinal - other.ordinal;
-
-  @override
-  String toString() => name;
 }
 
 /// The enumeration `ResolverErrorCode` defines the error codes used for errors
@@ -4984,16 +4952,13 @@ class ResolverVisitor extends ScopedVisitor {
   /// An error will be reported to [onError] if any of the arguments cannot be
   /// matched to a parameter. onError can be null to ignore the error.
   ///
-  /// The flag [reportAsError] should be `true` if a compile-time error should
-  /// be reported; or `false` if a compile-time warning should be reported.
-  ///
   /// Returns the parameters that correspond to the arguments. If no parameter
   /// matched an argument, that position will be `null` in the list.
   static List<ParameterElement> resolveArgumentsToParameters(
       ArgumentList argumentList,
       List<ParameterElement> parameters,
-      void onError(ErrorCode errorCode, AstNode node, [List<Object> arguments]),
-      {bool reportAsError: false}) {
+      void onError(ErrorCode errorCode, AstNode node,
+          [List<Object> arguments])) {
     if (parameters.isEmpty && argumentList.arguments.isEmpty) {
       return const <ParameterElement>[];
     }
@@ -5032,11 +4997,9 @@ class ResolverVisitor extends ScopedVisitor {
         ParameterElement element =
             namedParameters != null ? namedParameters[name] : null;
         if (element == null) {
-          ErrorCode errorCode = (reportAsError
-              ? CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER
-              : StaticWarningCode.UNDEFINED_NAMED_PARAMETER);
           if (onError != null) {
-            onError(errorCode, nameNode, [name]);
+            onError(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, nameNode,
+                [name]);
           }
         } else {
           resolvedParameters[i] = element;
@@ -5060,12 +5023,9 @@ class ResolverVisitor extends ScopedVisitor {
       }
     }
     if (positionalArgumentCount < requiredParameterCount && noBlankArguments) {
-      ErrorCode errorCode = (reportAsError
-          ? CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS
-          : StaticWarningCode.NOT_ENOUGH_REQUIRED_ARGUMENTS);
       if (onError != null) {
-        onError(errorCode, argumentList,
-            [requiredParameterCount, positionalArgumentCount]);
+        onError(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS,
+            argumentList, [requiredParameterCount, positionalArgumentCount]);
       }
     } else if (positionalArgumentCount > unnamedParameterCount &&
         noBlankArguments) {
@@ -5073,13 +5033,10 @@ class ResolverVisitor extends ScopedVisitor {
       int namedParameterCount = namedParameters?.length ?? 0;
       int namedArgumentCount = usedNames?.length ?? 0;
       if (namedParameterCount > namedArgumentCount) {
-        errorCode = (reportAsError
-            ? CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED
-            : StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED);
+        errorCode =
+            CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED;
       } else {
-        errorCode = (reportAsError
-            ? CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS
-            : StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS);
+        errorCode = CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS;
       }
       if (onError != null) {
         onError(errorCode, argumentList,
@@ -6037,7 +5994,6 @@ class TypeNameResolver {
       // identifier being used as a class name.
       // See CompileTimeErrorCodeTest.test_builtInIdentifierAsType().
       SimpleIdentifier typeNameSimple = _getTypeSimpleIdentifier(typeName);
-      RedirectingConstructorKind redirectingConstructorKind;
       if (_isBuiltInIdentifier(node) && _isTypeAnnotation(node)) {
         reportErrorForNode(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE,
             typeName, [typeName.name]);
@@ -6053,14 +6009,9 @@ class TypeNameResolver {
       } else if (_isTypeNameInIsExpression(node)) {
         reportErrorForNode(StaticWarningCode.TYPE_TEST_WITH_UNDEFINED_NAME,
             typeName, [typeName.name]);
-      } else if ((redirectingConstructorKind =
-              _getRedirectingConstructorKind(node)) !=
-          null) {
-        ErrorCode errorCode =
-            (redirectingConstructorKind == RedirectingConstructorKind.CONST
-                ? CompileTimeErrorCode.REDIRECT_TO_NON_CLASS
-                : StaticWarningCode.REDIRECT_TO_NON_CLASS);
-        reportErrorForNode(errorCode, typeName, [typeName.name]);
+      } else if (_isRedirectingConstructor(node)) {
+        reportErrorForNode(CompileTimeErrorCode.REDIRECT_TO_NON_CLASS, typeName,
+            [typeName.name]);
       } else if (_isTypeNameInTypeArgumentList(node)) {
         reportErrorForNode(StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT,
             typeName, [typeName.name]);
@@ -6111,11 +6062,11 @@ class TypeNameResolver {
           }
         } else {
           reportErrorForNode(
-              StaticWarningCode.UNDEFINED_CLASS, typeName, [typeName.name]);
+              CompileTimeErrorCode.UNDEFINED_CLASS, typeName, [typeName.name]);
         }
       } else {
         reportErrorForNode(
-            StaticWarningCode.UNDEFINED_CLASS, typeName, [typeName.name]);
+            CompileTimeErrorCode.UNDEFINED_CLASS, typeName, [typeName.name]);
       }
     }
     if (!elementValid) {
@@ -6150,7 +6101,6 @@ class TypeNameResolver {
       type = _getTypeWhenMultiplyDefined(elements) as TypeImpl;
     } else {
       // The name does not represent a type.
-      RedirectingConstructorKind redirectingConstructorKind;
       if (_isTypeNameInCatchClause(node)) {
         reportErrorForNode(StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE, typeName,
             [typeName.name]);
@@ -6160,14 +6110,9 @@ class TypeNameResolver {
       } else if (_isTypeNameInIsExpression(node)) {
         reportErrorForNode(StaticWarningCode.TYPE_TEST_WITH_NON_TYPE, typeName,
             [typeName.name]);
-      } else if ((redirectingConstructorKind =
-              _getRedirectingConstructorKind(node)) !=
-          null) {
-        ErrorCode errorCode =
-            (redirectingConstructorKind == RedirectingConstructorKind.CONST
-                ? CompileTimeErrorCode.REDIRECT_TO_NON_CLASS
-                : StaticWarningCode.REDIRECT_TO_NON_CLASS);
-        reportErrorForNode(errorCode, typeName, [typeName.name]);
+      } else if (_isRedirectingConstructor(node)) {
+        reportErrorForNode(CompileTimeErrorCode.REDIRECT_TO_NON_CLASS, typeName,
+            [typeName.name]);
       } else if (_isTypeNameInTypeArgumentList(node)) {
         reportErrorForNode(StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT,
             typeName, [typeName.name]);
@@ -6279,23 +6224,6 @@ class TypeNameResolver {
     return nullability;
   }
 
-  /// Checks if the given [typeName] is the target in a redirected constructor.
-  RedirectingConstructorKind _getRedirectingConstructorKind(TypeName typeName) {
-    AstNode parent = typeName.parent;
-    if (parent is ConstructorName) {
-      AstNode grandParent = parent.parent;
-      if (grandParent is ConstructorDeclaration) {
-        if (identical(grandParent.redirectedConstructor, parent)) {
-          if (grandParent.constKeyword != null) {
-            return RedirectingConstructorKind.CONST;
-          }
-          return RedirectingConstructorKind.NORMAL;
-        }
-      }
-    }
-    return null;
-  }
-
   /// Return the type represented by the given type [annotation].
   DartType _getType(TypeAnnotation annotation) {
     DartType type = annotation.type;
@@ -6373,6 +6301,21 @@ class TypeNameResolver {
       }
     }
     return null;
+  }
+
+  /// Return `true` if the given [typeName] is the target in a redirected
+  /// constructor.
+  bool _isRedirectingConstructor(TypeName typeName) {
+    AstNode parent = typeName.parent;
+    if (parent is ConstructorName) {
+      AstNode grandParent = parent.parent;
+      if (grandParent is ConstructorDeclaration) {
+        if (identical(grandParent.redirectedConstructor, parent)) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   /// Checks if the given [typeName] is used as the type in an as expression.

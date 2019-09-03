@@ -114,6 +114,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
   InterfaceType _typeType;
 
   /// Whether constant evaluation errors should be reported during resolution.
+  @Deprecated('This field is no longer used')
   final bool reportConstEvaluationErrors;
 
   /// Helper for extension method resolution.
@@ -525,10 +526,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
     ConstructorElement invokedConstructor = node.constructorName.staticElement;
     node.staticElement = invokedConstructor;
     ArgumentList argumentList = node.argumentList;
-    List<ParameterElement> parameters = _resolveArgumentsToFunction(
-        reportConstEvaluationErrors && node.isConst,
-        argumentList,
-        invokedConstructor);
+    List<ParameterElement> parameters =
+        _resolveArgumentsToFunction(argumentList, invokedConstructor);
     if (parameters != null) {
       argumentList.correspondingStaticParameters = parameters;
     }
@@ -786,7 +785,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
     node.staticElement = element;
     ArgumentList argumentList = node.argumentList;
     List<ParameterElement> parameters =
-        _resolveArgumentsToFunction(false, argumentList, element);
+        _resolveArgumentsToFunction(argumentList, element);
     if (parameters != null) {
       argumentList.correspondingStaticParameters = parameters;
     }
@@ -939,8 +938,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
       return;
     }
     ArgumentList argumentList = node.argumentList;
-    List<ParameterElement> parameters = _resolveArgumentsToFunction(
-        isInConstConstructor, argumentList, element);
+    List<ParameterElement> parameters =
+        _resolveArgumentsToFunction(argumentList, element);
     if (parameters != null) {
       argumentList.correspondingStaticParameters = parameters;
     }
@@ -1020,11 +1019,10 @@ class ElementResolver extends SimpleAstVisitor<void> {
     if (type is InterfaceType) {
       MethodElement callMethod = invocation.staticElement;
       if (callMethod != null) {
-        return _resolveArgumentsToFunction(false, argumentList, callMethod);
+        return _resolveArgumentsToFunction(argumentList, callMethod);
       }
     } else if (type is FunctionType) {
-      return _resolveArgumentsToParameters(
-          false, argumentList, type.parameters);
+      return _resolveArgumentsToParameters(argumentList, type.parameters);
     }
     return null;
   }
@@ -1401,7 +1399,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
     }
     // resolve arguments to parameters
     List<ParameterElement> parameters =
-        _resolveArgumentsToFunction(true, argumentList, constructor);
+        _resolveArgumentsToFunction(argumentList, constructor);
     if (parameters != null) {
       argumentList.correspondingStaticParameters = parameters;
     }
@@ -1543,35 +1541,29 @@ class ElementResolver extends SimpleAstVisitor<void> {
    * Given an [argumentList] and the [executableElement] that will be invoked
    * using those argument, compute the list of parameters that correspond to the
    * list of arguments. An error will be reported if any of the arguments cannot
-   * be matched to a parameter. The flag [reportAsError] should be `true` if a
-   * compile-time error should be reported; or `false` if a compile-time warning
-   * should be reported. Return the parameters that correspond to the arguments,
-   * or `null` if no correspondence could be computed.
+   * be matched to a parameter. Return the parameters that correspond to the
+   * arguments, or `null` if no correspondence could be computed.
    */
-  List<ParameterElement> _resolveArgumentsToFunction(bool reportAsError,
+  List<ParameterElement> _resolveArgumentsToFunction(
       ArgumentList argumentList, ExecutableElement executableElement) {
     if (executableElement == null) {
       return null;
     }
     List<ParameterElement> parameters = executableElement.parameters;
-    return _resolveArgumentsToParameters(
-        reportAsError, argumentList, parameters);
+    return _resolveArgumentsToParameters(argumentList, parameters);
   }
 
   /**
    * Given an [argumentList] and the [parameters] related to the element that
    * will be invoked using those arguments, compute the list of parameters that
    * correspond to the list of arguments. An error will be reported if any of
-   * the arguments cannot be matched to a parameter. The flag [reportAsError]
-   * should be `true` if a compile-time error should be reported; or `false` if
-   * a compile-time warning should be reported. Return the parameters that
+   * the arguments cannot be matched to a parameter. Return the parameters that
    * correspond to the arguments.
    */
-  List<ParameterElement> _resolveArgumentsToParameters(bool reportAsError,
+  List<ParameterElement> _resolveArgumentsToParameters(
       ArgumentList argumentList, List<ParameterElement> parameters) {
     return ResolverVisitor.resolveArgumentsToParameters(
-        argumentList, parameters, _resolver.errorReporter.reportErrorForNode,
-        reportAsError: reportAsError);
+        argumentList, parameters, _resolver.errorReporter.reportErrorForNode);
   }
 
   void _resolveBinaryExpression(BinaryExpression node, String methodName) {

@@ -9,18 +9,18 @@ import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(NotEnoughRequiredArgumentsTest);
+    defineReflectiveTests(NotEnoughPositionalArgumentsTest);
   });
 }
 
 @reflectiveTest
-class NotEnoughRequiredArgumentsTest extends DriverResolutionTest {
+class NotEnoughPositionalArgumentsTest extends DriverResolutionTest {
   test_functionExpression() async {
     await assertErrorsInCode('''
 main() {
   (int x) {} ();
 }''', [
-      error(StaticWarningCode.NOT_ENOUGH_REQUIRED_ARGUMENTS, 22, 2),
+      error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS, 22, 2),
     ]);
   }
 
@@ -30,7 +30,7 @@ f(int a, String b) {}
 main() {
   f();
 }''', [
-      error(StaticWarningCode.NOT_ENOUGH_REQUIRED_ARGUMENTS, 34, 2),
+      error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS, 34, 2),
     ]);
   }
 
@@ -41,7 +41,7 @@ Getter getter = (x) => x;
 main() {
   getter();
 }''', [
-      error(StaticWarningCode.NOT_ENOUGH_REQUIRED_ARGUMENTS, 65, 2),
+      error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS, 65, 2),
     ]);
   }
 }

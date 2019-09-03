@@ -16,8 +16,6 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 bool hasFix(ErrorCode errorCode) =>
     errorCode == StaticWarningCode.UNDEFINED_CLASS_BOOLEAN ||
     errorCode == StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER ||
-    errorCode == StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS ||
-    errorCode == StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED ||
     errorCode == StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR ||
     errorCode ==
         StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE ||
@@ -32,7 +30,6 @@ bool hasFix(ErrorCode errorCode) =>
             .NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS ||
     errorCode == StaticWarningCode.CAST_TO_NON_TYPE ||
     errorCode == StaticWarningCode.TYPE_TEST_WITH_UNDEFINED_NAME ||
-    errorCode == StaticWarningCode.UNDEFINED_CLASS ||
     errorCode == StaticWarningCode.FINAL_NOT_INITIALIZED ||
     errorCode == StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1 ||
     errorCode == StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2 ||

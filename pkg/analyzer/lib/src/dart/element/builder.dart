@@ -992,11 +992,8 @@ class DirectiveElementBuilder extends SimpleAstVisitor<void> {
         offset = uriLiteral.offset;
         length = uriLiteral.length;
       }
-      ErrorCode errorCode = importElement.isDeferred
-          ? StaticWarningCode.IMPORT_OF_NON_LIBRARY
-          : CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY;
       errors.add(new AnalysisError(libraryElement.source, offset, length,
-          errorCode, [uriLiteral.toSource()]));
+          CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, [uriLiteral.toSource()]));
     }
   }
 

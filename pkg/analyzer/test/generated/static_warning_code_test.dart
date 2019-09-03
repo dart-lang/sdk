@@ -422,7 +422,7 @@ f(var p) {
     await assertErrorsInCode('''
 f() { new C(); }
 ''', [
-      error(StaticWarningCode.UNDEFINED_CLASS, 10, 1),
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 10, 1),
     ]);
   }
 
@@ -430,7 +430,7 @@ f() { new C(); }
     await assertErrorsInCode('''
 f() { C c; }
 ''', [
-      error(StaticWarningCode.UNDEFINED_CLASS, 6, 1),
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 6, 1),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 8, 1),
     ]);
   }
@@ -549,7 +549,7 @@ f({a, b}) {}
 main() {
   f(c: 1);
 }''', [
-      error(StaticWarningCode.UNDEFINED_NAMED_PARAMETER, 26, 1),
+      error(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, 26, 1),
     ]);
   }
 

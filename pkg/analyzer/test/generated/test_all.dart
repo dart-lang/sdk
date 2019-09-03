@@ -8,6 +8,7 @@ import 'all_the_rest_test.dart' as all_the_rest;
 import 'checked_mode_compile_time_error_code_test.dart'
     as checked_mode_compile_time_error_code;
 import 'compile_time_error_code_test.dart' as compile_time_error_code;
+// ignore: deprecated_member_use_from_same_package
 import 'constant_test.dart' as constant_test;
 import 'declaration_resolver_test.dart' as declaration_resolver_test;
 import 'element_resolver_test.dart' as element_resolver_test;
