@@ -82,7 +82,7 @@ class _LazyMangledInstanceNamesMap extends _LazyMangledNamesMap {
 }
 
 /// Implements the inverse of [_LazyMangledNamesMap]. As it would be too
-/// expensive to seach the mangled names map for a value that corresponds to
+/// expensive to search the mangled names map for a value that corresponds to
 /// the lookup key on each invocation, we compute the full mapping in demand
 /// and cache it. The cache is invalidated when the underlying [_jsMangledNames]
 /// object changes its length. This condition is sufficient as the name mapping

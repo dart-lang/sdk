@@ -164,7 +164,7 @@ class TestingServers {
   }
 
   void _onError(e) {
-    DebugLogger.error('HttpServer: an error occured', e);
+    DebugLogger.error('HttpServer: an error occurred', e);
   }
 
   Future<DispatchingServer> _startHttpServer(String host,

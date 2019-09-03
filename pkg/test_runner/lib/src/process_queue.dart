@@ -1009,7 +1009,7 @@ class BatchRunnerProcess {
     _arguments = arguments;
     _processEnvironmentOverrides = command.environmentOverrides;
 
-    // TOOD(jmesserly): this restarts `dartdevc --batch` to work around a
+    // TODO(jmesserly): this restarts `dartdevc --batch` to work around a
     // memory leak, see https://github.com/dart-lang/sdk/issues/30314.
     var clearMemoryLeak = command is CompilationCommand &&
         command.displayName == 'dartdevc' &&

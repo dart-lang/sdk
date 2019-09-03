@@ -895,7 +895,7 @@ class FeedbackPage extends DiagnosticPage {
     );
     ul([
       'what you were doing',
-      'what occured',
+      'what occurred',
       'what you think the expected behavior should have been',
     ], (line) => buf.writeln(line));
 

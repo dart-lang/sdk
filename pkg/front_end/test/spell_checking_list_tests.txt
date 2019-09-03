@@ -38,6 +38,7 @@ benchmark
 besides
 beta
 bigger
+blacklist
 blah
 blindly
 blocked
@@ -321,6 +322,7 @@ strongest
 stub's
 stupid
 subcommand
+subdir
 subtool
 subtools
 suite

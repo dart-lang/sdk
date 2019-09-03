@@ -334,7 +334,7 @@ class VMTestSuite extends TestSuite {
       doTest = null;
       if (onDone != null) onDone();
     } catch (error, s) {
-      print("Fatal error occured: $error");
+      print("Fatal error occurred: $error");
       print(s);
       exit(1);
     }

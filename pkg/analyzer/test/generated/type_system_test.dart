@@ -945,19 +945,19 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
   }
 
   void test_boundedRecursively() {
-    // class Clonable<T extends Clonable<T>>
-    ClassElementImpl clonable =
-        ElementFactory.classElement('Clonable', objectType, ['T']);
-    (clonable.typeParameters[0] as TypeParameterElementImpl).bound =
-        clonable.type;
-    // class Foo extends Clonable<Foo>
+    // class Cloneable<T extends Cloneable<T>>
+    ClassElementImpl cloneable =
+        ElementFactory.classElement('Cloneable', objectType, ['T']);
+    (cloneable.typeParameters[0] as TypeParameterElementImpl).bound =
+        cloneable.type;
+    // class Foo extends Cloneable<Foo>
     ClassElementImpl foo = ElementFactory.classElement('Foo', null);
-    foo.supertype = clonable.type.instantiate([foo.type]);
+    foo.supertype = cloneable.type.instantiate([foo.type]);
 
-    // <S extends Clonable<S>>
+    // <S extends Cloneable<S>>
     var s = TypeBuilder.variable('S');
     (s.element as TypeParameterElementImpl).bound =
-        clonable.type.instantiate([s]);
+        cloneable.type.instantiate([s]);
     // (S, S) -> S
     var clone = TypeBuilder.function(types: [s], required: [s, s], result: s);
     expect(_inferCall(clone, [foo.type, foo.type]), [foo.type]);

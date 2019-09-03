@@ -5083,7 +5083,7 @@ class Wrong<T> {
     MethodInvocation methodInvocation = parseCascadeSection('..()');
     expectNotNullIfNoErrors(methodInvocation);
     listener.assertErrors([
-      // Cascade section is preceeded by `null` in this test
+      // Cascade section is preceded by `null` in this test
       // and error is reported on '('.
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 6, 1)
     ]);
@@ -5097,7 +5097,7 @@ class Wrong<T> {
     MethodInvocation methodInvocation = parseCascadeSection('..<E>()');
     expectNotNullIfNoErrors(methodInvocation);
     listener.assertErrors([
-      // Cascade section is preceeded by `null` in this test
+      // Cascade section is preceded by `null` in this test
       // and error is reported on '<'.
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 6, 1)
     ]);

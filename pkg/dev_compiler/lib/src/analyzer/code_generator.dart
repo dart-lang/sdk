@@ -5840,7 +5840,7 @@ class CodeGenerator extends Object
   /// Returns a [js_ast.Expression] for each [CollectionElement] in [nodes].
   ///
   /// Visits all [nodes] in order and nested [CollectionElement]s depth first
-  /// to produce [JS.Expresison]s intended to be used when outputing a
+  /// to produce [JS.Expression]s intended to be used when outputing a
   /// collection literal.
   ///
   /// [IfElement]s and [ForElement]s will be transformed into a spread of a

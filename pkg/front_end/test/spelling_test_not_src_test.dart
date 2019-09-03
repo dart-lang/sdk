@@ -13,16 +13,19 @@ import 'spell_checking_utils.dart' as spell;
 main([List<String> arguments = const []]) =>
     runMe(arguments, createContext, configurationPath: "../testing.json");
 
-Future<Context> createContext(
+Future<SpellContext> createContext(
     Chain suite, Map<String, String> environment) async {
-  return new ContextTest();
+  return new SpellContextTest();
 }
 
-class ContextTest extends Context {
+class SpellContextTest extends SpellContext {
   @override
   List<spell.Dictionaries> get dictionaries => const <spell.Dictionaries>[
         spell.Dictionaries.common,
         spell.Dictionaries.cfeCode,
         spell.Dictionaries.cfeTests
       ];
+
+  @override
+  bool get onlyBlacklisted => false;
 }
