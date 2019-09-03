@@ -377,18 +377,14 @@ class BecomeMapTraits {
     if (obj.IsLibrary()) {
       return Library::Cast(obj).UrlHash();
     } else if (obj.IsClass()) {
-      if (Class::Cast(obj).id() == kFreeListElement) {
-        return 0;
-      }
       return String::HashRawSymbol(Class::Cast(obj).Name());
     } else if (obj.IsField()) {
       return String::HashRawSymbol(Field::Cast(obj).name());
-    } else if (obj.IsInstance()) {
-      Object& hashObj = Object::Handle(Instance::Cast(obj).HashCode());
-      if (hashObj.IsError()) {
-        Exceptions::PropagateError(Error::Cast(hashObj));
-      }
-      return Smi::Cast(hashObj).Value();
+    } else if (obj.IsClosure()) {
+      return String::HashRawSymbol(
+          Function::Handle(Closure::Cast(obj).function()).name());
+    } else {
+      FATAL1("Unexpected type in become: %s\n", obj.ToCString());
     }
     return 0;
   }
