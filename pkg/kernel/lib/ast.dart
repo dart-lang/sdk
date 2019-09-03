@@ -5415,8 +5415,37 @@ final Map<TypeParameter, int> _temporaryHashCodeTable = <TypeParameter, int>{};
 /// is the same as the [TypeParameter]'s bound.  This allows one to detect
 /// whether the bound has been promoted.
 class TypeParameterType extends DartType {
-  /// Declared by the programmer on the type.
-  final Nullability declaredNullability;
+  /// The nullability declared on the type.
+  ///
+  /// Declarations of type-parameter types can set it to [Nullability.nullable]
+  /// or [Nullability.legacy].  Otherwise, it's computed from the nullability
+  /// of the type parameter bound.
+  Nullability declaredNullability;
+
+  TypeParameter parameter;
+
+  /// An optional promoted bound on the type parameter.
+  ///
+  /// 'null' indicates that the type parameter's bound has not been promoted and
+  /// is therefore the same as the bound of [parameter].
+  DartType promotedBound;
+
+  TypeParameterType(this.parameter,
+      [this.promotedBound, this.declaredNullability = Nullability.legacy]);
+
+  accept(DartTypeVisitor v) => v.visitTypeParameterType(this);
+  accept1(DartTypeVisitor1 v, arg) => v.visitTypeParameterType(this, arg);
+
+  visitChildren(Visitor v) {}
+
+  bool operator ==(Object other) {
+    return other is TypeParameterType && parameter == other.parameter;
+  }
+
+  int get hashCode => _temporaryHashCodeTable[parameter] ?? parameter.hashCode;
+
+  /// Returns the bound of the type parameter, accounting for promotions.
+  DartType get bound => promotedBound ?? parameter.bound;
 
   /// Actual nullability of the type, calculated from its parts.
   ///
@@ -5437,34 +5466,24 @@ class TypeParameterType extends DartType {
   ///         }
   ///       }
   ///     }
-  final Nullability nullability;
+  Nullability get nullability =>
+      getNullability(parameter, promotedBound, declaredNullability);
 
-  TypeParameter parameter;
-
-  /// An optional promoted bound on the type parameter.
-  ///
-  /// 'null' indicates that the type parameter's bound has not been promoted and
-  /// is therefore the same as the bound of [parameter].
-  DartType promotedBound;
-
-  TypeParameterType(this.parameter,
-      [this.promotedBound, this.declaredNullability = Nullability.legacy])
-      : this.nullability =
-            getNullability(parameter, promotedBound, declaredNullability);
-
-  accept(DartTypeVisitor v) => v.visitTypeParameterType(this);
-  accept1(DartTypeVisitor1 v, arg) => v.visitTypeParameterType(this, arg);
-
-  visitChildren(Visitor v) {}
-
-  bool operator ==(Object other) {
-    return other is TypeParameterType && parameter == other.parameter;
+  static Nullability computeNullabilityFromBound(TypeParameter typeParameter) {
+    // If the bound is nullable, both nullable and non-nullable types can be
+    // passed in for the type parameter, making the corresponding type
+    // parameter types 'neither.'  Otherwise, the nullability matches that of
+    // the bound.
+    DartType bound = typeParameter.bound;
+    if (bound == null) {
+      throw new StateError("Can't compute nullability from absent bound.");
+    }
+    Nullability boundNullability =
+        bound is InvalidType ? Nullability.neither : bound.nullability;
+    return boundNullability == Nullability.nullable
+        ? Nullability.neither
+        : boundNullability;
   }
-
-  int get hashCode => _temporaryHashCodeTable[parameter] ?? parameter.hashCode;
-
-  /// Returns the bound of the type parameter, accounting for promotions.
-  DartType get bound => promotedBound ?? parameter.bound;
 
   /// Get nullability of [TypeParameterType] from arguments to its constructor.
   ///
@@ -5487,22 +5506,12 @@ class TypeParameterType extends DartType {
 
     Nullability lhsNullability;
 
-    // If the nullability is explicitly nullable, that is, if the type parameter
-    // type is followed by '?' in the code, the nullability of the type is
-    // 'nullable.'
-    if (declaredNullability == Nullability.nullable) {
-      lhsNullability = Nullability.nullable;
+    // If the nullability is declared explicitly, use it as the nullability of
+    // the LHS of the intersection.  Otherwise, compute it from the bound.
+    if (declaredNullability != null) {
+      lhsNullability = declaredNullability;
     } else {
-      // If the bound is nullable, both nullable and non-nullable types can be
-      // passed in for the type parameter, making the corresponding type
-      // parameter types 'neither.'  Otherwise, the nullability matches that of
-      // the bound.
-      DartType bound = parameter.bound ?? const DynamicType();
-      Nullability boundNullability =
-          bound is InvalidType ? Nullability.neither : bound.nullability;
-      lhsNullability = boundNullability == Nullability.nullable
-          ? Nullability.neither
-          : boundNullability;
+      lhsNullability = computeNullabilityFromBound(parameter);
     }
     if (promotedBound == null) {
       return lhsNullability;
