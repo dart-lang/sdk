@@ -52,7 +52,7 @@ var tests = <IsolateTest>[
       expect(event['pid'], isInt);
       expect(event['tid'], isInt);
       expect(event['ts'], isInt);
-      expect(event['cat'], equals("Developer"));
+      expect(event['cat'], equals("Profiler"));
       expect(event['args']['backtrace'], isString);
     }
   },
@@ -62,7 +62,7 @@ var vmArgs = [
   '--profiler=true',
   '--profile-vm=false', // So this also works with DBC and KBC.
   '--timeline_recorder=ring',
-  '--timeline_streams=Developer'
+  '--timeline_streams=Profiler'
 ];
 
 main(args) async =>

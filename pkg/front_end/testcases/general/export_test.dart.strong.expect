@@ -5,7 +5,7 @@ import "dart:developer" as dev;
 additionalExports = (core::print)
 
 
-import "dart:developer";
+import "dart:profiler";
 export "dart:core";
 
 static method main() → dynamic {

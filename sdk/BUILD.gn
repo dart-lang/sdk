@@ -222,6 +222,7 @@ _full_sdk_libraries = [
   "js_util",
   "math",
   "mirrors",
+  "profiler",
   "svg",
   "typed_data",
   "wasm",
@@ -248,6 +249,7 @@ _full_sdk_libraries = [
 #   "isolate",
 #   "math",
 #   "mirrors",
+#   "profiler",
 #   "typed_data",
 # ]
 _platform_sdk_libraries = _full_sdk_libraries

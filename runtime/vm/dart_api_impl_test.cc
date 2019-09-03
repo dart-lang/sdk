@@ -7912,7 +7912,7 @@ TEST_CASE(DartAPI_NotifyLowMemory) {
 TEST_CASE(DartAPI_InvokeImportedFunction) {
   const char* kScriptChars =
       "import 'dart:math';\n"
-      "import 'dart:developer';\n"
+      "import 'dart:profiler';\n"
       "main() {}";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT_VALID(lib);
@@ -7924,6 +7924,11 @@ TEST_CASE(DartAPI_InvokeImportedFunction) {
   EXPECT_ERROR(result,
                "NoSuchMethodError: No top-level method 'max' declared.");
 
+  // The function 'getCurrentTag' is actually defined in the library
+  // dart:developer. However, the library dart:profiler exports dart:developer
+  // and exposes the function 'getCurrentTag'.
+  // NOTE: dart:profiler is deprecated. So, its use in this test is only
+  // an interim solution until we fix DartAPI_Invoke_CrossLibrary.
   Dart_Handle getCurrentTag = Dart_NewStringFromCString("getCurrentTag");
   result = Dart_Invoke(lib, getCurrentTag, 0, NULL);
   EXPECT_ERROR(

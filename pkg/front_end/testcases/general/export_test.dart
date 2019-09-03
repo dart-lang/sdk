@@ -4,9 +4,10 @@
 
 /// Test that exports are serialized in platform.dill.
 
-// This is somewhat brittle and we should extend this test framework to be
-// able to deal with multiple .dill files.
-import 'dart:developer' show UserTag;
+// Note: "dart:profiler" exports UserTag from "dart:developer". This is
+// somewhat brittle and we should extend this test framework to be able to deal
+// with multiple .dill files.
+import 'dart:profiler' show UserTag;
 
 export 'dart:core' show print;
 
