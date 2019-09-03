@@ -799,13 +799,8 @@ void BytecodeFlowGraphBuilder::BuildDirectCall() {
   const Function& target = Function::Cast(ConstantAt(DecodeOperandD()).value());
   const intptr_t argc = DecodeOperandF().value();
 
-  const auto recognized_kind = MethodRecognizer::RecognizeKind(target);
-  if (recognized_kind == MethodRecognizer::kFfiAsFunctionInternal) {
+  if (compiler::ffi::IsAsFunctionInternal(Z, isolate(), target)) {
     BuildFfiAsFunction();
-    return;
-  } else if (FLAG_precompiled_mode &&
-             recognized_kind == MethodRecognizer::kFfiNativeCallbackFunction) {
-    BuildFfiNativeCallbackFunction();
     return;
   }
 
@@ -823,7 +818,7 @@ void BytecodeFlowGraphBuilder::BuildDirectCall() {
   }
 
   if (!FLAG_causal_async_stacks &&
-      recognized_kind == MethodRecognizer::kAsyncStackTraceHelper) {
+      target.recognized_kind() == MethodRecognizer::kAsyncStackTraceHelper) {
     ASSERT(argc == 1);
     // Drop the ignored parameter to _asyncStackTraceHelper(:async_op).
     code_ += B->Drop();
@@ -831,7 +826,7 @@ void BytecodeFlowGraphBuilder::BuildDirectCall() {
     return;
   }
 
-  if (recognized_kind == MethodRecognizer::kStringBaseInterpolate) {
+  if (target.recognized_kind() == MethodRecognizer::kStringBaseInterpolate) {
     ASSERT(argc == 1);
     code_ += B->StringInterpolate(position_);
     return;
@@ -1821,45 +1816,6 @@ void BytecodeFlowGraphBuilder::BuildFfiAsFunction() {
   // Drop type arguments, preserving pointer.
   code_ += B->DropTempsPreserveTop(1);
   code_ += B->BuildFfiAsFunctionInternalCall(type_args);
-}
-
-// Builds graph for a call to 'dart:ffi::_nativeCallbackFunction'.
-// The call-site must look like this (guaranteed by the FE which inserts it):
-//
-//   _nativeCallbackFunction<NativeSignatureType>(target, exceptionalReturn)
-//
-// Therefore the stack shall look like:
-//
-// <exceptional return value> => ensured (by FE) to be a constant
-// <target> => closure, ensured (by FE) to be a (non-partially-instantiated)
-//             static tearoff
-// <type args> => [NativeSignatureType]
-void BytecodeFlowGraphBuilder::BuildFfiNativeCallbackFunction() {
-#if defined(TARGET_ARCH_DBC)
-  UNREACHABLE();
-#else
-  const TypeArguments& type_args =
-      TypeArguments::Cast(B->Peek(/*depth=*/2)->AsConstant()->value());
-  ASSERT(type_args.IsInstantiated() && type_args.Length() == 1);
-  const Function& native_sig = Function::Handle(
-      Z, Type::Cast(AbstractType::Handle(Z, type_args.TypeAt(0))).signature());
-
-  const Closure& target_closure =
-      Closure::Cast(B->Peek(/*depth=*/1)->AsConstant()->value());
-  ASSERT(!target_closure.IsNull());
-  Function& target = Function::Handle(Z, target_closure.function());
-  ASSERT(!target.IsNull() && target.IsImplicitClosureFunction());
-  target = target.parent_function();
-
-  const Instance& exceptional_return =
-      Instance::Cast(B->Peek(/*depth=*/0)->AsConstant()->value());
-
-  const Function& result =
-      Function::ZoneHandle(Z, compiler::ffi::NativeCallbackFunction(
-                                  native_sig, target, exceptional_return));
-  code_ += B->Constant(result);
-  code_ += B->DropTempsPreserveTop(3);
-#endif
 }
 
 void BytecodeFlowGraphBuilder::BuildDebugStepCheck() {

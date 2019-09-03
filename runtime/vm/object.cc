@@ -12667,8 +12667,8 @@ RawInstructions* Instructions::New(intptr_t size,
     result ^= raw;
     result.SetSize(size);
     result.SetHasSingleEntryPoint(has_single_entry_point);
-    result.set_unchecked_entrypoint_pc_offset(unchecked_entrypoint_pc_offset);
     result.set_stats(nullptr);
+    result.set_unchecked_entrypoint_pc_offset(unchecked_entrypoint_pc_offset);
   }
   return result.raw();
 }
@@ -12871,8 +12871,6 @@ const char* PcDescriptors::KindAsStr(RawPcDescriptors::Kind kind) {
       return "osr-entry    ";
     case RawPcDescriptors::kRewind:
       return "rewind       ";
-    case RawPcDescriptors::kBSSRelocation:
-      return "bss reloc    ";
     case RawPcDescriptors::kOther:
       return "other        ";
     case RawPcDescriptors::kAnyKind:
@@ -15449,25 +15447,6 @@ void Code::DumpSourcePositions() const {
   const Function& root = Function::Handle(function());
   CodeSourceMapReader reader(map, id_map, root);
   reader.DumpSourcePositions(PayloadStart());
-}
-
-bool Code::VerifyBSSRelocations() const {
-  const auto& descriptors = PcDescriptors::Handle(pc_descriptors());
-  const auto& insns = Instructions::Handle(instructions());
-  PcDescriptors::Iterator iterator(descriptors,
-                                   RawPcDescriptors::kBSSRelocation);
-  while (iterator.MoveNext()) {
-    const uword reloc = insns.PayloadStart() + iterator.PcOffset();
-    const word target = *reinterpret_cast<word*>(reloc);
-    // The relocation is in its original unpatched form -- the addend
-    // representing the target symbol itself.
-    if (target >= 0 &&
-        target <
-            BSS::RelocationIndex(BSS::Relocation::NumRelocations) * kWordSize) {
-      return false;
-    }
-  }
-  return true;
 }
 
 void Bytecode::Disassemble(DisassemblyFormatter* formatter) const {

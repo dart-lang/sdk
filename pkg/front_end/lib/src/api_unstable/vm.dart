@@ -40,23 +40,19 @@ export '../fasta/fasta_codes.dart'
     show
         LocatedMessage,
         messageBytecodeLimitExceededTooManyArguments,
-        messageFfiExceptionalReturnNull,
-        messageFfiExpectedConstant,
         noLength,
-        templateFfiDartTypeMismatch,
-        templateFfiExpectedExceptionalReturn,
-        templateFfiExpectedNoExceptionalReturn,
-        templateFfiExtendsOrImplementsSealedClass,
         templateFfiFieldAnnotation,
-        templateFfiFieldInitializer,
         templateFfiFieldNoAnnotation,
         templateFfiNotStatic,
-        templateFfiStructGeneric,
         templateFfiTypeInvalid,
         templateFfiTypeMismatch,
         templateFfiTypeUnsized,
-        templateFfiWrongStructInheritance,
-        templateIllegalRecursiveType;
+        templateFfiFieldInitializer,
+        templateIllegalRecursiveType,
+        templateFfiDartTypeMismatch,
+        templateFfiExtendsOrImplementsSealedClass,
+        templateFfiStructGeneric,
+        templateFfiWrongStructInheritance;
 
 export '../fasta/hybrid_file_system.dart' show HybridFileSystem;
 

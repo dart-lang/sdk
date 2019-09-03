@@ -1461,8 +1461,7 @@ class RawPcDescriptors : public RawObject {
     kRuntimeCall = kUnoptStaticCall << 1,  // Runtime call.
     kOsrEntry = kRuntimeCall << 1,         // OSR entry point in unopt. code.
     kRewind = kOsrEntry << 1,              // Call rewind target address.
-    kBSSRelocation = kRewind << 1,         // Target-word-size relocation.
-    kOther = kBSSRelocation << 1,
+    kOther = kRewind << 1,
     kLastKind = kOther,
     kAnyKind = -1
   };

@@ -50,8 +50,7 @@ class Pointer<T extends NativeType> extends NativeType {
   /// Does not accept dynamic invocations -- where the type of the receiver is
   /// [dynamic].
   external static Pointer<NativeFunction<T>> fromFunction<T extends Function>(
-      @DartRepresentationOf("T") Function f,
-      [Object exceptionalReturn]);
+      @DartRepresentationOf("T") Function f, Object exceptionalReturn);
 
   /// Store a Dart value into this location.
   ///

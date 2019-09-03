@@ -14,7 +14,6 @@
 #include "platform/atomic.h"
 #include "platform/safe_stack.h"
 #include "vm/bitfield.h"
-#include "vm/compiler/runtime_api.h"
 #include "vm/constants.h"
 #include "vm/globals.h"
 #include "vm/handles.h"
@@ -24,6 +23,7 @@
 #include "vm/runtime_entry_list.h"
 #include "vm/thread_stack_resource.h"
 #include "vm/thread_state.h"
+
 namespace dart {
 
 class AbstractType;
@@ -786,11 +786,7 @@ class Thread : public ThreadState {
     }
   }
 
-  int32_t AllocateFfiCallbackId();
-
-  // Store 'code' for the native callback identified by 'callback_id'.
-  //
-  // Expands the callback code array as necessary to accomodate the callback ID.
+  int32_t AllocateFfiCallbackId(uword* trampoline);
   void SetFfiCallbackCode(int32_t callback_id, const Code& code);
 
   // Ensure that 'callback_id' refers to a valid callback in this isolate.

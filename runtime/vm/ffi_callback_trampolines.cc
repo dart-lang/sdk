@@ -14,22 +14,7 @@ namespace dart {
 DECLARE_FLAG(bool, disassemble_stubs);
 
 #if !defined(DART_PRECOMPILED_RUNTIME) && !defined(TARGET_ARCH_DBC)
-uword NativeCallbackTrampolines::TrampolineForId(int32_t callback_id) {
-#if defined(DART_PRECOMPILER)
-  ASSERT(!Enabled());
-  UNREACHABLE();
-#else
-  const intptr_t trampolines_per_page = NumCallbackTrampolinesPerPage();
-  const intptr_t page_index = callback_id / trampolines_per_page;
-  const uword entry_point = trampoline_pages_[page_index]->start();
-
-  return entry_point +
-         (callback_id % trampolines_per_page) *
-             compiler::StubCodeCompiler::kNativeCallbackTrampolineSize;
-#endif
-}
-
-void NativeCallbackTrampolines::AllocateTrampoline() {
+uword NativeCallbackTrampolines::AllocateTrampoline() {
 #if defined(DART_PRECOMPILER)
   ASSERT(!Enabled());
   UNREACHABLE();
@@ -91,11 +76,16 @@ void NativeCallbackTrampolines::AllocateTrampoline() {
     }
 #endif
 
+    next_callback_trampoline_ = memory->start();
     trampolines_left_on_page_ = NumCallbackTrampolinesPerPage();
   }
 
   trampolines_left_on_page_--;
   next_callback_id_++;
+  const uword entrypoint = next_callback_trampoline_;
+  next_callback_trampoline_ +=
+      compiler::StubCodeCompiler::kNativeCallbackTrampolineSize;
+  return entrypoint;
 #endif  // defined(DART_PRECOMPILER)
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME) && !defined(TARGET_ARCH_DBC)

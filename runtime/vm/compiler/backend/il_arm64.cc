@@ -1020,6 +1020,10 @@ void NativeEntryInstr::SaveArgument(FlowGraphCompiler* compiler,
 }
 
 void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (FLAG_precompiled_mode) {
+    UNREACHABLE();
+  }
+
   // Constant pool cannot be used until we enter the actual Dart frame.
   __ set_constant_pool_allowed(false);
 
@@ -1048,33 +1052,8 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Load the thread object. If we were called by a trampoline, the thread is
   // already loaded.
-  if (FLAG_precompiled_mode) {
-    compiler::Label skip_reloc;
-    __ b(&skip_reloc);
-    compiler->InsertBSSRelocation(
-        BSS::Relocation::DRT_GetThreadForNativeCallback);
-    __ Bind(&skip_reloc);
-
-    __ adr(R0, compiler::Immediate(-compiler::target::kWordSize));
-
-    // R0 holds the address of the relocation.
-    __ ldr(R1, compiler::Address(R0));
-
-    // R1 holds the relocation itself: R0 - bss_start.
-    // R0 = R0 + (bss_start - R0) = bss_start
-    __ add(R0, R0, compiler::Operand(R1));
-
-    // R0 holds the start of the BSS section.
-    // Load the "get-thread" routine: *bss_start.
-    __ ldr(R1, compiler::Address(R0));
-  } else if (!NativeCallbackTrampolines::Enabled()) {
-    // In JIT mode, we can just paste the address of the runtime entry into the
-    // generated code directly. This is not a problem since we don't save
-    // callbacks into JIT snapshots.
-    __ LoadImmediate(
-        R1, reinterpret_cast<int64_t>(DLRT_GetThreadForNativeCallback));
-  }
-
+  //
+  // TODO(35765): Fix linking issue on AOT.
   if (!NativeCallbackTrampolines::Enabled()) {
     // Create another frame to align the frame before continuing in "native"
     // code.
@@ -1082,6 +1061,8 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ ReserveAlignedFrameSpace(0);
 
     __ LoadImmediate(R0, callback_id_);
+    __ LoadImmediate(
+        R1, reinterpret_cast<int64_t>(DLRT_GetThreadForNativeCallback));
     __ blr(R1);
     __ mov(THR, R0);
 

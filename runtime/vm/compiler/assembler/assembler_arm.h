@@ -392,7 +392,7 @@ class Assembler : public AssemblerBase {
 #endif  // TESTING || DEBUG
 
   // Debugging and bringup support.
-  void Breakpoint() override { bkpt(0); }
+  void Breakpoint() { bkpt(0); }
   void Stop(const char* message) override;
 
   static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);
