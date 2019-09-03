@@ -126,7 +126,9 @@ void FlowGraphSerializer::SerializeCanonicalName(TextBuffer* b,
   ASSERT(!obj.IsNull());
   if (obj.IsFunction()) {
     const auto& function = Function::Cast(obj);
-    tmp_string_ = function.UserVisibleName();
+    tmp_string_ = function.name();
+    // We only want private keys removed, no other changes.
+    tmp_string_ = String::RemovePrivateKey(tmp_string_);
     const char* function_name = tmp_string_.ToCString();
     // If this function is an inner closure then the parent points to its
     // containing function, which will also be part of the canonical name.
@@ -857,8 +859,8 @@ void NativeCallInstr::AddOperandsToSExpression(SExpList* sexp,
   }
 }
 
-template <>
-void TemplateDartCall<0l>::AddExtraInfoToSExpression(
+template <intptr_t kInputCount>
+void TemplateDartCall<kInputCount>::AddExtraInfoToSExpression(
     SExpList* sexp,
     FlowGraphSerializer* s) const {
   Instruction::AddExtraInfoToSExpression(sexp, s);
@@ -866,23 +868,44 @@ void TemplateDartCall<0l>::AddExtraInfoToSExpression(
     s->AddExtraInteger(sexp, "type_args_len", type_args_len());
   }
   s->AddExtraInteger(sexp, "args_len", ArgumentCountWithoutTypeArgs());
+  if (this->CallCount() > 0 || FLAG_verbose_flow_graph_serialization) {
+    s->AddExtraInteger(sexp, "call_count", this->CallCount());
+  }
+  const auto& arg_names = argument_names();
+  if (!arg_names.IsNull()) {
+    auto arg_names_sexp = new (s->zone()) SExpList(s->zone());
+    auto& str = String::Handle(s->zone());
+    for (intptr_t i = 0; i < arg_names.Length(); i++) {
+      str = String::RawCast(arg_names.At(i));
+      arg_names_sexp->Add(s->ObjectToSExp(str));
+    }
+    sexp->AddExtra("arg_names", arg_names_sexp);
+  }
 }
 
-template <>
-void TemplateDartCall<1l>::AddExtraInfoToSExpression(
-    SExpList* sexp,
-    FlowGraphSerializer* s) const {
-  Instruction::AddExtraInfoToSExpression(sexp, s);
-  if (type_args_len() > 0 || FLAG_verbose_flow_graph_serialization) {
-    s->AddExtraInteger(sexp, "type_args_len", type_args_len());
-  }
-  s->AddExtraInteger(sexp, "args_len", ArgumentCountWithoutTypeArgs());
+void ClosureCallInstr::AddExtraInfoToSExpression(SExpList* sexp,
+                                                 FlowGraphSerializer* s) const {
+  // For now, just here to ensure TemplateDartCall<1>::AddExtraInfoToSExpression
+  // gets instantiated.
+  TemplateDartCall<1>::AddExtraInfoToSExpression(sexp, s);
 }
 
 void StaticCallInstr::AddOperandsToSExpression(SExpList* sexp,
                                                FlowGraphSerializer* s) const {
   if (auto const func = s->DartValueToSExp(function())) {
     sexp->Add(func);
+  }
+}
+
+void StaticCallInstr::AddExtraInfoToSExpression(SExpList* sexp,
+                                                FlowGraphSerializer* s) const {
+  TemplateDartCall<0>::AddExtraInfoToSExpression(sexp, s);
+
+  if (rebind_rule_ != ICData::kInstance ||
+      FLAG_verbose_flow_graph_serialization) {
+    auto const str = ICData::RebindRuleToCString(rebind_rule_);
+    ASSERT(str != nullptr);
+    s->AddExtraSymbol(sexp, "rebind_rule", str);
   }
 }
 
@@ -1080,7 +1103,7 @@ SExpression* Environment::ToSExpression(FlowGraphSerializer* s) const {
 
   for (intptr_t i = 0; i < values_.length(); ++i) {
     if (values_[i]->definition()->IsPushArgument()) {
-      s->AddSymbol(sexp, OS::SCreate(s->zone(), "arg[%" Pd "]", arg_count++));
+      s->AddSymbol(sexp, OS::SCreate(s->zone(), "a%" Pd "", arg_count++));
     } else {
       sexp->Add(values_[i]->ToSExpression(s));
     }

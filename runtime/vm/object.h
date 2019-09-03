@@ -1783,15 +1783,22 @@ class ICData : public Object {
 
   // Call site classification that is helpful for hot-reload. Call sites with
   // different `RebindRule` have to be rebound differently.
+#define FOR_EACH_REBIND_RULE(V)                                                \
+  V(Instance)                                                                  \
+  V(NoRebind)                                                                  \
+  V(NSMDispatch)                                                               \
+  V(Optimized)                                                                 \
+  V(Static)                                                                    \
+  V(Super)
+
   enum RebindRule {
-    kInstance,
-    kNoRebind,
-    kNSMDispatch,
-    kOptimized,
-    kStatic,
-    kSuper,
-    kNumRebindRules,
+#define REBIND_ENUM_DEF(name) k##name,
+    FOR_EACH_REBIND_RULE(REBIND_ENUM_DEF)
+#undef REBIND_ENUM_DEF
+        kNumRebindRules,
   };
+  static const char* RebindRuleToCString(RebindRule r);
+  static bool RebindRuleFromCString(const char* str, RebindRule* out);
   RebindRule rebind_rule() const;
   void set_rebind_rule(uint32_t rebind_rule) const;
 

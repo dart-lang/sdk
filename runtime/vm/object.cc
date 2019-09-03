@@ -13624,6 +13624,29 @@ void ICData::AddDeoptReason(DeoptReasonId reason) const {
   }
 }
 
+const char* ICData::RebindRuleToCString(RebindRule r) {
+  switch (r) {
+#define RULE_CASE(Name)                                                        \
+  case RebindRule::k##Name:                                                    \
+    return #Name;
+    FOR_EACH_REBIND_RULE(RULE_CASE)
+#undef RULE_CASE
+    default:
+      return nullptr;
+  }
+}
+
+bool ICData::RebindRuleFromCString(const char* str, RebindRule* out) {
+#define RULE_CASE(Name)                                                        \
+  if (strcmp(str, #Name) == 0) {                                               \
+    *out = RebindRule::k##Name;                                                \
+    return true;                                                               \
+  }
+  FOR_EACH_REBIND_RULE(RULE_CASE)
+#undef RULE_CASE
+  return false;
+}
+
 ICData::RebindRule ICData::rebind_rule() const {
   return (ICData::RebindRule)RebindRuleBits::decode(raw_ptr()->state_bits_);
 }

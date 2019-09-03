@@ -22,15 +22,17 @@ namespace dart {
 // Deserializes FlowGraphs from S-expressions.
 class FlowGraphDeserializer : ValueObject {
  public:
-  // Returns the first instruction that is guaranteed not to be handled by
-  // the current implementation of the FlowGraphDeserializer. This way,
-  // we can filter out graphs that are guaranteed not to be deserializable
-  // before going through the round-trip serialization process.
+  // Adds to the given array all the instructions in the flow graph that are
+  // guaranteed not to be handled by the current implementation of the
+  // FlowGraphDeserializer. This way, we can filter out graphs that are
+  // guaranteed not to be deserializable before going through the round-trip
+  // serialization process.
   //
   // Note that there may be other reasons that the deserializer may fail on
-  // a given flow graph, so getting back nullptr here is necessary, but not
+  // a given flow graph, so no new members of the array is necessary, but not
   // sufficient, for a successful round-trip pass.
-  static Instruction* FirstUnhandledInstruction(const FlowGraph* graph);
+  static void AllUnhandledInstructions(const FlowGraph* graph,
+                                       GrowableArray<Instruction*>* out);
 
   // Takes the FlowGraph from [state] and runs it through the serializer
   // and deserializer. If the deserializer successfully deserializes the
@@ -47,7 +49,20 @@ class FlowGraphDeserializer : ValueObject {
         parsed_function_(pf),
         block_map_(zone_),
         definition_map_(zone_),
-        values_map_(zone_) {
+        values_map_(zone_),
+        pushed_stack_(zone_, 2),
+        instance_class_(Class::Handle(zone)),
+        instance_field_(Field::Handle(zone)),
+        instance_object_(Object::Handle(zone)),
+        name_class_(Class::Handle(zone)),
+        name_field_(Field::Handle(zone)),
+        name_function_(Function::Handle(zone)),
+        name_library_(Library::Handle(zone)),
+        value_class_(Class::Handle(zone)),
+        value_object_(Object::Handle(zone)),
+        value_type_(AbstractType::Handle(zone)),
+        value_type_args_(TypeArguments::Handle(zone)),
+        tmp_string_(String::Handle(zone)) {
     // See canonicalization comment in ParseDartValue as to why this is
     // currently necessary.
     ASSERT(thread->zone() == zone);
@@ -66,17 +81,22 @@ class FlowGraphDeserializer : ValueObject {
 #define FOR_EACH_HANDLED_BLOCK_TYPE_IN_DESERIALIZER(M)                         \
   M(FunctionEntry)                                                             \
   M(GraphEntry)                                                                \
+  M(JoinEntry)                                                                 \
   M(TargetEntry)
 
 #define FOR_EACH_HANDLED_INSTRUCTION_IN_DESERIALIZER(M)                        \
+  M(Branch)                                                                    \
   M(CheckStackOverflow)                                                        \
+  M(Constant)                                                                  \
+  M(Goto)                                                                      \
+  M(PushArgument)                                                              \
   M(Parameter)                                                                 \
   M(Return)                                                                    \
-  M(SpecialParameter)
+  M(SpecialParameter)                                                          \
+  M(StaticCall)
 
-  // Helper method for FirstUnhandledInstruction that returns whether a given
-  // object should be (de)serializable. Any work done on ParseDartValue may
-  // require changing this method.
+  // Helper methods for AllUnhandledInstructions.
+  static bool IsHandledInstruction(Instruction* inst);
   static bool IsHandledConstant(const Object& obj);
 
   // **GENERAL DESIGN NOTES FOR PARSING METHODS**
@@ -103,6 +123,19 @@ class FlowGraphDeserializer : ValueObject {
   bool ParseConstantPool(SExpList* pool);
   bool ParseEntries(SExpList* list);
 
+  struct CommonEntryInfo {
+    intptr_t block_id;
+    intptr_t try_index;
+    intptr_t deopt_id;
+  };
+
+#define HANDLER_DECL(name)                                                     \
+  name##Instr* Handle##name(SExpList* list, const CommonEntryInfo& info);
+
+  FOR_EACH_HANDLED_BLOCK_TYPE_IN_DESERIALIZER(HANDLER_DECL);
+
+#undef HANDLER_DECL
+
   // Block parsing is split into two passes. This pass checks the
   // block ID and other extra information needed for certain block types.
   // In addition, it parses initial definitions found in the entry list.
@@ -111,6 +144,12 @@ class FlowGraphDeserializer : ValueObject {
 
   // Expects [current_block_] to be set before calling.
   bool ParseInitialDefinitions(SExpList* list);
+
+  // Expects [current_block_] to be set before calling.
+  // Takes the tagged list to parse and the index where parsing should start.
+  // Returns the index of the first non-Phi instruction or definition or -1 on
+  // error.
+  intptr_t ParsePhis(SExpList* list, intptr_t pos);
 
   // Parses the instructions in the body of a block. [current_block_] must be
   // set before calling.
@@ -161,7 +200,16 @@ class FlowGraphDeserializer : ValueObject {
 
   // Parsing functions for which there are no good distinguished error
   // values, so use out parameters and a boolean return instead.
+
+  // Parses a Dart value and returns a canonicalized result.
   bool ParseDartValue(SExpression* sexp, Object* out);
+
+  // Helper function for ParseDartValue for parsing instances.
+  // Does not canonicalize (that is currently done in ParseDartValue), so
+  // do not call this method directly.
+  bool ParseInstance(SExpList* list, Instance* out);
+
+  bool ParseCanonicalName(SExpSymbol* sym, Object* out);
   bool ParseBlockId(SExpSymbol* sym, intptr_t* out);
   bool ParseSSATemp(SExpSymbol* sym, intptr_t* out);
   bool ParseUse(SExpSymbol* sym, intptr_t* out);
@@ -169,11 +217,25 @@ class FlowGraphDeserializer : ValueObject {
 
   // Helper function for creating a placeholder value when the definition
   // has not yet been seen.
-  Value* AddPendingValue(intptr_t index);
+  Value* AddNewPendingValue(intptr_t index);
+
+  // Similar helper, but where we already have a created value.
+  void AddPendingValue(intptr_t index, Value* val);
 
   // Helper function for rebinding pending values once the definition has
   // been located.
   void FixPendingValues(intptr_t index, Definition* def);
+
+  // Creates a PushArgumentsArray of size [len] from [pushed_stack_] if there
+  // are enough and pops the fetched arguments from the stack.
+  //
+  // The [sexp] argument should be the serialized form of the instruction that
+  // needs the pushed arguments and is only used for error reporting.
+  PushArgumentsArray* FetchPushedArguments(SExpList* sexp, intptr_t len);
+
+  // Retrieves the block corresponding to the given block ID symbol from
+  // [block_map_]. Assumes all blocks have had their header parsed.
+  BlockEntryInstr* FetchBlock(SExpSymbol* sym);
 
   // Utility functions for checking the shape of an S-expression.
   // If these functions return nullptr for a non-null argument, they have the
@@ -218,6 +280,26 @@ class FlowGraphDeserializer : ValueObject {
   // Map from variable indices to lists of values. The list of values are
   // values that were parsed prior to the corresponding definition being found.
   IntMap<ZoneGrowableArray<Value*>*> values_map_;
+
+  // Stack of currently pushed arguments, used by environment parsing and calls.
+  GrowableArray<PushArgumentInstr*> pushed_stack_;
+
+  // Temporary handles used by functions that are not re-entrant or where the
+  // handle is not live after the re-entrant call. Comments show which handles
+  // are expected to only be used within a single method.
+  Class& instance_class_;           // ParseInstance
+  Field& instance_field_;           // ParseInstance
+  Object& instance_object_;         // ParseInstance
+  Class& name_class_;               // ParseCanonicalName
+  Field& name_field_;               // ParseCanonicalName
+  Function& name_function_;         // ParseCanonicalName
+  Library& name_library_;           // ParseCanonicalName
+  Class& value_class_;              // ParseDartValue
+  Object& value_object_;            // ParseDartValue
+  AbstractType& value_type_;        // ParseDartValue
+  TypeArguments& value_type_args_;  // ParseDartValue
+  // Uses of string handles tend to be immediate, so we only need one.
+  String& tmp_string_;
 
   // Stores a message appropriate to surfacing to the user when an error
   // occurs.
