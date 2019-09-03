@@ -14,7 +14,7 @@ import 'dartfuzz_ffiapi.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.33';
+const String version = '1.34';
 
 // Restriction on statements and expressions.
 const int stmtLength = 2;
@@ -473,7 +473,8 @@ class DartFuzz {
   bool emitForEach(int depth) {
     final int i = localVars.length;
     emitLn("", newline: false);
-    emitScalarVar(DartType.INT_STRING_MAP, isLhs: true);
+    final emittedVar = emitScalarVar(DartType.INT_STRING_MAP, isLhs: false);
+    iterVars.add(emittedVar);
     emit('.forEach(($localName$i, $localName${i + 1}) {\n');
     indent += 2;
     final int nestTmp = nest;
@@ -830,7 +831,7 @@ class DartFuzz {
     }
   }
 
-  void emitScalarVar(DartType tp, {bool isLhs = false}) {
+  String emitScalarVar(DartType tp, {bool isLhs = false}) {
     // Collect all choices from globals, fields, locals, and parameters.
     Set<String> choices = <String>{};
     for (int i = 0; i < globalVars.length; i++) {
@@ -863,7 +864,9 @@ class DartFuzz {
     }
     // Then pick one.
     assert(choices.isNotEmpty);
-    emit('${choices.elementAt(rand.nextInt(choices.length))}');
+    final emittedVar = '${choices.elementAt(rand.nextInt(choices.length))}';
+    emit(emittedVar);
+    return emittedVar;
   }
 
   void emitSubscriptedVar(int depth, DartType tp, {bool isLhs = false}) {
