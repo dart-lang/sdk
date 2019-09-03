@@ -273,13 +273,19 @@ void FlowGraph::MergeBlocks() {
     if (merged->Contains(block->postorder_number())) continue;
 
     Instruction* last = block->last_instruction();
-    BlockEntryInstr* successor = NULL;
-    while ((!last->IsIndirectGoto()) && (last->SuccessorCount() == 1) &&
-           (!last->SuccessorAt(0)->IsIndirectEntry()) &&
-           (last->SuccessorAt(0)->PredecessorCount() == 1) &&
-           (block->try_index() == last->SuccessorAt(0)->try_index())) {
-      successor = last->SuccessorAt(0);
-      ASSERT(last->IsGoto());
+    BlockEntryInstr* last_merged_block = nullptr;
+    while (auto goto_instr = last->AsGoto()) {
+      JoinEntryInstr* successor = goto_instr->successor();
+      if (successor->PredecessorCount() > 1) break;
+      if (block->try_index() != successor->try_index()) break;
+
+      // Replace all phis with their arguments prior to removing successor.
+      for (PhiIterator it(successor); !it.Done(); it.Advance()) {
+        PhiInstr* phi = it.Current();
+        Value* input = phi->InputAt(0);
+        phi->ReplaceUsesWith(input->definition());
+        input->RemoveFromUseList();
+      }
 
       // Remove environment uses and unlink goto and block entry.
       successor->UnuseAllInputs();
@@ -288,6 +294,7 @@ void FlowGraph::MergeBlocks() {
 
       last = successor->last_instruction();
       merged->Add(successor->postorder_number());
+      last_merged_block = successor;
       changed = true;
       if (FLAG_trace_optimization) {
         THR_Print("Merged blocks B%" Pd " and B%" Pd "\n", block->block_id(),
@@ -296,8 +303,8 @@ void FlowGraph::MergeBlocks() {
     }
     // The new block inherits the block id of the last successor to maintain
     // the order of phi inputs at its successors consistent with block ids.
-    if (successor != NULL) {
-      block->set_block_id(successor->block_id());
+    if (last_merged_block != nullptr) {
+      block->set_block_id(last_merged_block->block_id());
     }
   }
   // Recompute block order after changes were made.
