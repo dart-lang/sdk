@@ -95,6 +95,44 @@ main(C c) {
 ''');
   }
 
+  test_methodInvocation_functionTypedGetter() async {
+    await resolveTestUnit('''
+class A {
+  void Function({int aaa}) get g => null;
+}
+
+main(A a) {
+  a.g(0);
+}
+''');
+    await assertHasFix('''
+class A {
+  void Function({int aaa}) get g => null;
+}
+
+main(A a) {
+  a.g(aaa: 0);
+}
+''');
+  }
+
+  test_methodInvocation_functionTypedVariable() async {
+    await resolveTestUnit('''
+typedef F = void Function({int aaa});
+
+main(F f) {
+  f(0);
+}
+''');
+    await assertHasFix('''
+typedef F = void Function({int aaa});
+
+main(F f) {
+  f(aaa: 0);
+}
+''');
+  }
+
   test_noCompatibleParameter() async {
     await resolveTestUnit('''
 class A {

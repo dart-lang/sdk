@@ -1301,22 +1301,25 @@ class FixProcessor {
   Future<void> _addFix_convertToNamedArgument() async {
     var argumentList = this.node;
     if (argumentList is ArgumentList) {
-      // Prepare ExecutableElement.
-      ExecutableElement executable;
+      // Prepare parameters.
+      List<ParameterElement> parameters;
       var parent = argumentList.parent;
       if (parent is InstanceCreationExpression) {
-        executable = parent.staticElement;
+        parameters = parent.staticElement?.parameters;
       } else if (parent is MethodInvocation) {
-        executable = parent.methodName.staticElement;
+        var invokeType = parent.staticInvokeType;
+        if (invokeType is FunctionType) {
+          parameters = invokeType.parameters;
+        }
       }
-      if (executable == null) {
+      if (parameters == null) {
         return;
       }
 
       // Prepare named parameters.
       int numberOfPositionalParameters = 0;
       var namedParameters = <ParameterElement>[];
-      for (var parameter in executable.parameters) {
+      for (var parameter in parameters) {
         if (parameter.isNamed) {
           namedParameters.add(parameter);
         } else {
