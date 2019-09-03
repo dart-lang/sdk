@@ -136,3 +136,10 @@ void collection_forEach_outerIsType_loopAssigned(Object x) {
     x;
   }
 }
+
+void assign_var_declared_in_loop() {
+  for (int x = 0; x < 10; x++) {
+    bool b = true;
+    b = false;
+  }
+}

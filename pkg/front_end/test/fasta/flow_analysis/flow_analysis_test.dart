@@ -182,6 +182,19 @@ main() {
       h.flow.finish();
     });
 
+    test('for_conditionBegin() handles not-yet-seen variables', () {
+      var h = _Harness();
+      var x = _Var('x', _Type('int?'));
+      var y = h.addAssignedVar('y', 'int?');
+      h.promote(y, 'int');
+      h.flow.for_conditionBegin({x});
+      h.flow.add(x, assigned: true);
+      h.flow.for_bodyBegin(_Statement(), _Expression());
+      h.flow.for_updaterBegin();
+      h.flow.for_end();
+      h.flow.finish();
+    });
+
     test('for_bodyBegin() handles empty condition', () {
       var h = _Harness();
       h.flow.for_conditionBegin({});
