@@ -106,17 +106,11 @@ class InheritedReferenceContributor extends DartCompletionContributor
   }
 
   List<CompletionSuggestion> _computeSuggestionsForClass2(
-      ClassElement classElement, DartCompletionRequest request,
-      {bool skipChildClass = true}) {
+      ClassElement classElement, DartCompletionRequest request) {
     bool isFunctionalArgument = request.target.isFunctionalArgument();
     kind = isFunctionalArgument
         ? CompletionSuggestionKind.IDENTIFIER
         : CompletionSuggestionKind.INVOCATION;
-    if (!skipChildClass) {
-      _addSuggestionsForType(classElement.type, request,
-          isFunctionalArgument: isFunctionalArgument);
-    }
-
     for (InterfaceType type in classElement.allSupertypes) {
       _addSuggestionsForType(type, request,
           isFunctionalArgument: isFunctionalArgument);
