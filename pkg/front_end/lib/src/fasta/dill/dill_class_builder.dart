@@ -18,7 +18,7 @@ import '../kernel/kernel_builder.dart'
         Scope,
         TypeVariableBuilder;
 
-import '../modifier.dart' show abstractMask;
+import '../modifier.dart' show abstractMask, namedMixinApplicationMask;
 
 import 'dill_library_builder.dart' show DillLibraryBuilder;
 
@@ -142,7 +142,14 @@ class DillClassBuilder extends ClassBuilder {
 }
 
 int computeModifiers(Class cls) {
-  return cls.isAbstract ? abstractMask : 0;
+  int modifiers = 0;
+  if (cls.isAbstract) {
+    modifiers |= abstractMask;
+  }
+  if (cls.isMixinApplication && cls.name != null) {
+    modifiers |= namedMixinApplicationMask;
+  }
+  return modifiers;
 }
 
 TypeBuilder computeTypeBuilder(
