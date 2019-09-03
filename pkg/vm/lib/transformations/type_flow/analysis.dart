@@ -111,10 +111,9 @@ abstract class _Invocation extends _DependencyTracker
   // are cached in _InvocationsCache using selector and args as a key.
   @override
   bool operator ==(other) =>
-      identical(this, other) ||
       (other is _Invocation) &&
-          (this.selector == other.selector) &&
-          (this.args == other.args);
+      (this.selector == other.selector) &&
+      (this.args == other.args);
 
   @override
   int get hashCode => (selector.hashCode ^ args.hashCode + 31) & kHashMask;
@@ -921,9 +920,7 @@ class _ClassData extends _DependencyTracker implements ClassId<_ClassData> {
   int get hashCode => _id;
 
   @override
-  bool operator ==(other) =>
-      identical(this, other) ||
-      (other is _ClassData) && (this._id == other._id);
+  bool operator ==(other) => (other is _ClassData) && (this._id == other._id);
 
   @override
   int compareTo(_ClassData other) => this._id.compareTo(other._id);

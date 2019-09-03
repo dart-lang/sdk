@@ -215,7 +215,6 @@ class NullableType extends Type {
 
   @override
   bool operator ==(other) =>
-      identical(this, other) ||
       (other is NullableType) && (this.baseType == other.baseType);
 
   @override
@@ -330,7 +329,6 @@ class SetType extends Type {
 
   @override
   bool operator ==(other) {
-    if (identical(this, other)) return true;
     if ((other is SetType) && (types.length == other.types.length)) {
       for (int i = 0; i < types.length; i++) {
         if (types[i] != other.types[i]) {
@@ -504,7 +502,6 @@ class ConeType extends Type {
 
   @override
   bool operator ==(other) =>
-      identical(this, other) ||
       (other is ConeType) && (this.dartType == other.dartType);
 
   @override
@@ -707,7 +704,6 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
 
   @override
   bool operator ==(other) {
-    if (identical(this, other)) return true;
     if (other is ConcreteType) {
       if (this.classId != other.classId ||
           this.numImmediateTypeArgs != other.numImmediateTypeArgs) {
@@ -874,7 +870,6 @@ class RuntimeType extends Type {
 
   @override
   operator ==(other) {
-    if (identical(this, other)) return true;
     if (other is RuntimeType) {
       if (other._type != _type) return false;
       assertx(numImmediateTypeArgs == other.numImmediateTypeArgs);
