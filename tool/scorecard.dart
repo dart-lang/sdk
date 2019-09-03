@@ -192,10 +192,10 @@ class ScoreCard {
   static Future<List<String>> _getLintsWithFixes() async {
     var client = http.Client();
     var req = await client.get(
-        'https://raw.githubusercontent.com/dart-lang/sdk/master/pkg/analysis_server/lib/src/services/correction/fix_internal.dart');
+        'https://raw.githubusercontent.com/dart-lang/sdk/master/pkg/analysis_server/lib/src/services/linter/lint_names.dart');
 
     var parser = CompilationUnitParser();
-    var cu = parser.parse(contents: req.body, name: 'fix_internal.dart');
+    var cu = parser.parse(contents: req.body, name: 'lint_names.dart');
     var lintNamesClass = cu.declarations
         .firstWhere((m) => m is ClassDeclaration && m.name.name == 'LintNames');
 
