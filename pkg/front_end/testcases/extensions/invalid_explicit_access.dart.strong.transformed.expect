@@ -63,9 +63,9 @@ library;
 //   method(a) {}
 //   ^^^^^^^^^^^^^...
 //
-// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:39:17: Error: Expected 0 type arguments.
+// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:39:3: Error: Expected 0 type arguments.
 //   Extension(c1).method<int>(null);
-//                 ^
+//   ^
 // pkg/front_end/testcases/extensions/invalid_explicit_access.dart:8:3: Context: Found this candidate, but the arguments don't match.
 //   method(a) {}
 //   ^^^^^^^^^^^^^...
@@ -196,9 +196,9 @@ Try removing the extra positional arguments.
   invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:38:27: Error: No named parameter with the name 'a'.
   Extension(c1).method(1, a: 2);
                           ^";
-  invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:39:17: Error: Expected 0 type arguments.
+  invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:39:3: Error: Expected 0 type arguments.
   Extension(c1).method<int>(null);
-                ^";
+  ^";
   self::GenericClass<core::int*>* c2 = new self::GenericClass::•<core::int*>();
   invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:42:3: Error: Explicit extension application requires exactly 1 positional argument.
   GenericExtension().method();

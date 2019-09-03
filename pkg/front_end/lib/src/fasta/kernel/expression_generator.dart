@@ -1659,6 +1659,20 @@ class ExtensionInstanceAccessGenerator extends Generator {
   @override
   String get _plainNameForRead => (readTarget ?? writeTarget).name.name;
 
+  int get _extensionTypeParameterCount => extensionTypeParameters?.length ?? 0;
+
+  List<DartType> _createExtensionTypeArguments() {
+    List<DartType> extensionTypeArguments = const <DartType>[];
+    if (extensionTypeParameters != null) {
+      extensionTypeArguments = [];
+      for (TypeParameter typeParameter in extensionTypeParameters) {
+        extensionTypeArguments
+            .add(_forest.createTypeParameterType(typeParameter));
+      }
+    }
+    return extensionTypeArguments;
+  }
+
   @override
   Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
     Expression read;
@@ -1668,19 +1682,15 @@ class ExtensionInstanceAccessGenerator extends Generator {
         read = _helper.desugarSyntheticExpression(read);
       }
     } else {
-      List<DartType> typeArguments;
-      if (extensionTypeParameters != null) {
-        typeArguments = [];
-        for (TypeParameter typeParameter in extensionTypeParameters) {
-          typeArguments.add(_forest.createTypeParameterType(typeParameter));
-        }
-      }
-      read = _helper.buildStaticInvocation(
+      read = _helper.buildExtensionMethodInvocation(
+          fileOffset,
           readTarget,
-          _helper.forest.createArguments(fileOffset,
-              [_helper.createVariableGet(extensionThis, fileOffset)],
-              types: typeArguments),
-          charOffset: fileOffset);
+          _helper.forest.createArgumentsForExtensionMethod(
+              fileOffset,
+              _extensionTypeParameterCount,
+              0,
+              _helper.createVariableGet(extensionThis, fileOffset),
+              extensionTypeArguments: _createExtensionTypeArguments()));
     }
     complexAssignment?.read = read;
     return read;
@@ -1696,19 +1706,16 @@ class ExtensionInstanceAccessGenerator extends Generator {
         write = _helper.desugarSyntheticExpression(write);
       }
     } else {
-      List<DartType> typeArguments;
-      if (extensionTypeParameters != null) {
-        typeArguments = [];
-        for (TypeParameter typeParameter in extensionTypeParameters) {
-          typeArguments.add(_forest.createTypeParameterType(typeParameter));
-        }
-      }
-      write = _helper.buildStaticInvocation(
+      write = _helper.buildExtensionMethodInvocation(
+          fileOffset,
           writeTarget,
-          _helper.forest.createArguments(fileOffset,
-              [_helper.createVariableGet(extensionThis, fileOffset), value],
-              types: typeArguments),
-          charOffset: token.charOffset);
+          _helper.forest.createArgumentsForExtensionMethod(
+              fileOffset,
+              _extensionTypeParameterCount,
+              0,
+              _helper.createVariableGet(extensionThis, fileOffset),
+              extensionTypeArguments: _createExtensionTypeArguments(),
+              positionalArguments: [value]));
     }
     complexAssignment?.write = write;
     write.fileOffset = fileOffset;
@@ -1718,26 +1725,19 @@ class ExtensionInstanceAccessGenerator extends Generator {
   @override
   Expression doInvocation(int offset, Arguments arguments) {
     if (invokeTarget != null) {
-      List<Expression> positionalArguments = [
-        _helper.createVariableGet(extensionThis, offset)
-      ]..addAll(arguments.positional);
-      List<DartType> typeArguments;
-      if (extensionTypeParameters != null) {
-        typeArguments = [];
-        for (TypeParameter typeParameter in extensionTypeParameters) {
-          typeArguments.add(_forest.createTypeParameterType(typeParameter));
-        }
-        if (arguments.types.isNotEmpty) {
-          typeArguments.addAll(arguments.types);
-        }
-      } else if (arguments.types.isNotEmpty) {
-        typeArguments = arguments.types;
-      }
-      return _helper.buildStaticInvocation(
+      return _helper.buildExtensionMethodInvocation(
+          offset,
           invokeTarget,
-          _forest.createArguments(fileOffset, positionalArguments,
-              named: arguments.named, types: typeArguments),
-          charOffset: offset);
+          _forest.createArgumentsForExtensionMethod(
+              fileOffset,
+              _extensionTypeParameterCount,
+              invokeTarget.function.typeParameters.length -
+                  _extensionTypeParameterCount,
+              _helper.createVariableGet(extensionThis, offset),
+              extensionTypeArguments: _createExtensionTypeArguments(),
+              typeArguments: arguments.types,
+              positionalArguments: arguments.positional,
+              namedArguments: arguments.named));
     } else {
       return _helper.buildMethodInvocation(buildSimpleRead(), callName,
           arguments, adjustForImplicitCall(_plainNameForRead, offset),
@@ -1879,6 +1879,10 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
   @override
   String get _plainNameForRead => (readTarget ?? writeTarget).name.name;
 
+  List<DartType> _createExtensionTypeArguments() {
+    return explicitTypeArguments ?? const <DartType>[];
+  }
+
   @override
   Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
     Expression read;
@@ -1888,11 +1892,12 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
         read = _helper.desugarSyntheticExpression(read);
       }
     } else {
-      read = _helper.buildStaticInvocation(
+      read = _helper.buildExtensionMethodInvocation(
+          fileOffset,
           readTarget,
-          _helper.forest.createArguments(fileOffset, [receiver],
-              types: explicitTypeArguments),
-          charOffset: fileOffset);
+          _helper.forest.createArgumentsForExtensionMethod(
+              fileOffset, extensionTypeParameterCount, 0, receiver,
+              extensionTypeArguments: _createExtensionTypeArguments()));
     }
     complexAssignment?.read = read;
     return read;
@@ -1908,11 +1913,13 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
         write = _helper.desugarSyntheticExpression(write);
       }
     } else {
-      write = _helper.buildStaticInvocation(
+      write = _helper.buildExtensionMethodInvocation(
+          fileOffset,
           writeTarget,
-          _helper.forest.createArguments(fileOffset, [receiver, value],
-              types: explicitTypeArguments),
-          charOffset: token.charOffset);
+          _helper.forest.createArgumentsForExtensionMethod(
+              fileOffset, extensionTypeParameterCount, 0, receiver,
+              extensionTypeArguments: _createExtensionTypeArguments(),
+              positionalArguments: [value]));
     }
     complexAssignment?.write = write;
     write.fileOffset = fileOffset;
@@ -1922,22 +1929,19 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
   @override
   Expression doInvocation(int offset, Arguments arguments) {
     if (invokeTarget != null) {
-      List<Expression> positionalArguments = [receiver]
-        ..addAll(arguments.positional);
-      List<DartType> typeArguments;
-      if (explicitTypeArguments != null) {
-        typeArguments = []..addAll(explicitTypeArguments);
-        if (arguments.types.isNotEmpty) {
-          typeArguments.addAll(arguments.types);
-        }
-      } else if (arguments.types.isNotEmpty) {
-        typeArguments = arguments.types;
-      }
-      return _helper.buildStaticInvocation(
+      return _helper.buildExtensionMethodInvocation(
+          fileOffset,
           invokeTarget,
-          _forest.createArguments(fileOffset, positionalArguments,
-              named: arguments.named, types: typeArguments),
-          charOffset: offset);
+          _forest.createArgumentsForExtensionMethod(
+              fileOffset,
+              extensionTypeParameterCount,
+              invokeTarget.function.typeParameters.length -
+                  extensionTypeParameterCount,
+              receiver,
+              extensionTypeArguments: _createExtensionTypeArguments(),
+              typeArguments: arguments.types,
+              positionalArguments: arguments.positional,
+              namedArguments: arguments.named));
     } else {
       return _helper.buildMethodInvocation(buildSimpleRead(), callName,
           arguments, adjustForImplicitCall(_plainNameForRead, offset),
@@ -1968,7 +1972,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
 ///   extension B on A<int> {
 ///     method() {}
 ///   }
-///   extension C<T> {
+///   extension C<T> on A<T> {
 ///     T get field => 0;
 ///     set field(T _) {}
 ///   }

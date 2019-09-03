@@ -83,6 +83,9 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   Expression buildStaticInvocation(Procedure target, Arguments arguments,
       {Constness constness, int charOffset});
 
+  Expression buildExtensionMethodInvocation(
+      int fileOffset, Procedure target, Arguments arguments);
+
   Expression throwNoSuchMethodError(
       Expression receiver, String name, Arguments arguments, int offset,
       {Member candidate,

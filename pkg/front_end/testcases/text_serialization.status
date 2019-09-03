@@ -11,6 +11,7 @@ expression/main: TextSerializationFailure # Was: Pass
 extensions/direct_instance_access: TextSerializationFailure
 extensions/direct_static_access: TextSerializationFailure
 extensions/explicit_extension_access: TextSerializationFailure
+extensions/explicit_extension_inference: TextSerializationFailure
 extensions/explicit_generic_extension_access: TextSerializationFailure
 extensions/explicit_this: TextSerializationFailure
 extensions/extension_methods: TextSerializationFailure

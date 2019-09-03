@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
+import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
 import 'package:kernel/ast.dart' as kernel;
 
 import 'package:kernel/ast.dart'
@@ -49,7 +50,8 @@ import 'package:kernel/ast.dart'
         TypeParameterType,
         VariableDeclaration,
         VariableGet,
-        VoidType;
+        VoidType,
+        setParents;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
@@ -108,7 +110,8 @@ import '../kernel/kernel_shadow_ast.dart'
         ShadowTypeInferenceEngine,
         ShadowTypeInferrer,
         VariableDeclarationJudgment,
-        getExplicitTypeArguments;
+        getExplicitTypeArguments,
+        getExtensionTypeParameterCount;
 
 import '../kernel/type_algorithms.dart' show hasAnyTypeVariables;
 
@@ -1320,9 +1323,96 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     this.helper = null;
   }
 
+  DartType inferInvocation(DartType typeContext, int offset,
+      FunctionType calleeType, DartType returnType, Arguments arguments,
+      {bool isOverloadedArithmeticOperator: false,
+      DartType receiverType,
+      bool skipTypeArgumentInference: false,
+      bool isConst: false}) {
+    int extensionTypeParameterCount = getExtensionTypeParameterCount(arguments);
+    if (extensionTypeParameterCount != 0) {
+      return _inferGenericExtensionMethodInvocation(extensionTypeParameterCount,
+          typeContext, offset, calleeType, returnType, arguments,
+          isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
+          receiverType: receiverType,
+          skipTypeArgumentInference: skipTypeArgumentInference,
+          isConst: isConst);
+    }
+    return _inferInvocation(
+        typeContext, offset, calleeType, returnType, arguments,
+        isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
+        receiverType: receiverType,
+        skipTypeArgumentInference: skipTypeArgumentInference,
+        isConst: isConst);
+  }
+
+  DartType _inferGenericExtensionMethodInvocation(
+      int extensionTypeParameterCount,
+      DartType typeContext,
+      int offset,
+      FunctionType calleeType,
+      DartType returnType,
+      Arguments arguments,
+      {bool isOverloadedArithmeticOperator: false,
+      DartType receiverType,
+      bool skipTypeArgumentInference: false,
+      bool isConst: false}) {
+    FunctionType extensionFunctionType = new FunctionType(
+        [calleeType.positionalParameters.first], const DynamicType(),
+        requiredParameterCount: 1,
+        typeParameters: calleeType.typeParameters
+            .take(extensionTypeParameterCount)
+            .toList());
+    Arguments extensionArguments = helper.forest.createArguments(
+        arguments.fileOffset, [arguments.positional.first],
+        types: getExplicitExtensionTypeArguments(arguments));
+    _inferInvocation(null, offset, extensionFunctionType, const DynamicType(),
+        extensionArguments,
+        skipTypeArgumentInference: skipTypeArgumentInference);
+    Substitution extensionSubstitution = Substitution.fromPairs(
+        extensionFunctionType.typeParameters, extensionArguments.types);
+    List<TypeParameter> targetTypeParameters = const <TypeParameter>[];
+    if (calleeType.typeParameters.length > extensionTypeParameterCount) {
+      targetTypeParameters =
+          calleeType.typeParameters.skip(extensionTypeParameterCount).toList();
+    }
+    FunctionType targetFunctionType = new FunctionType(
+        calleeType.positionalParameters.skip(1).toList(), calleeType.returnType,
+        requiredParameterCount: calleeType.requiredParameterCount - 1,
+        namedParameters: calleeType.namedParameters,
+        typeParameters: targetTypeParameters);
+    targetFunctionType =
+        extensionSubstitution.substituteType(targetFunctionType);
+    DartType targetReturnType =
+        extensionSubstitution.substituteType(returnType);
+    DartType targetReceiverType = receiverType != null
+        ? extensionSubstitution.substituteType(receiverType)
+        : null;
+    Arguments targetArguments = helper.forest.createArguments(
+        arguments.fileOffset, arguments.positional.skip(1).toList(),
+        named: arguments.named, types: getExplicitTypeArguments(arguments));
+    DartType inferredType = _inferInvocation(typeContext, offset,
+        targetFunctionType, targetReturnType, targetArguments,
+        isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
+        receiverType: targetReceiverType,
+        skipTypeArgumentInference: skipTypeArgumentInference,
+        isConst: isConst);
+    arguments.positional.clear();
+    arguments.positional.addAll(extensionArguments.positional);
+    arguments.positional.addAll(targetArguments.positional);
+    setParents(arguments.positional, arguments);
+    // The `targetArguments.named` is the same list as `arguments.named` so
+    // we just need to ensure that parent relations are realigned.
+    setParents(arguments.named, arguments);
+    arguments.types.clear();
+    arguments.types.addAll(extensionArguments.types);
+    arguments.types.addAll(targetArguments.types);
+    return inferredType;
+  }
+
   /// Performs the type inference steps that are shared by all kinds of
   /// invocations (constructors, instance methods, and static methods).
-  DartType inferInvocation(DartType typeContext, int offset,
+  DartType _inferInvocation(DartType typeContext, int offset,
       FunctionType calleeType, DartType returnType, Arguments arguments,
       {bool isOverloadedArithmeticOperator: false,
       DartType receiverType,
@@ -1724,15 +1814,21 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         expression);
     Expression replacement;
     if (target.isExtensionMember) {
+      Procedure procedure = target.member;
       expression.parent.replaceChild(
           expression,
           replacement = helper.forest.createStaticInvocation(
               expression.fileOffset,
               target.member,
-              arguments = helper.forest.createArguments(
-                  arguments.fileOffset, [receiver, ...arguments.positional],
-                  named: arguments.named,
-                  types: getExplicitTypeArguments(arguments))));
+              arguments = helper.forest.createArgumentsForExtensionMethod(
+                  arguments.fileOffset,
+                  target.extensionTypeParameterCount,
+                  procedure.function.typeParameters.length -
+                      target.extensionTypeParameterCount,
+                  receiver,
+                  positionalArguments: arguments.positional,
+                  namedArguments: arguments.named,
+                  typeArguments: arguments.types)));
     }
     DartType inferredType = inferInvocation(typeContext, fileOffset,
         functionType, functionType.returnType, arguments,
@@ -1861,7 +1957,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
               replacement = expression = helper.forest.createStaticInvocation(
                   fileOffset,
                   readTarget.member,
-                  helper.forest.createArguments(fileOffset, [receiver])));
+                  helper.forest.createArgumentsForExtensionMethod(fileOffset,
+                      readTarget.extensionTypeParameterCount, 0, receiver)));
           break;
         case kernel.ProcedureKind.Method:
           expression.parent.replaceChild(
@@ -1869,7 +1966,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
               replacement = expression = helper.forest.createStaticInvocation(
                   fileOffset,
                   readTarget.tearoffTarget,
-                  helper.forest.createArguments(fileOffset, [receiver])));
+                  helper.forest.createArgumentsForExtensionMethod(fileOffset,
+                      readTarget.extensionTypeParameterCount, 0, receiver)));
           break;
         case kernel.ProcedureKind.Setter:
         case kernel.ProcedureKind.Factory:

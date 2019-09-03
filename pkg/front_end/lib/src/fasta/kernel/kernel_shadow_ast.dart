@@ -109,9 +109,50 @@ InterfaceType computeConstructorReturnType(Member constructor) {
   }
 }
 
+int getExtensionTypeParameterCount(Arguments arguments) {
+  if (arguments is ArgumentsJudgment) {
+    return arguments._extensionTypeParameterCount;
+  } else {
+    // TODO(johnniwinther): Remove this path or assert why it is accepted.
+    return 0;
+  }
+}
+
+int getExtensionTypeArgumentCount(Arguments arguments) {
+  if (arguments is ArgumentsJudgment) {
+    return arguments._extensionTypeArgumentCount;
+  } else {
+    // TODO(johnniwinther): Remove this path or assert why it is accepted.
+    return 0;
+  }
+}
+
+List<DartType> getExplicitExtensionTypeArguments(Arguments arguments) {
+  if (arguments is ArgumentsJudgment) {
+    if (arguments._extensionTypeArgumentCount == 0) {
+      return null;
+    } else {
+      return arguments.types
+          .take(arguments._extensionTypeArgumentCount)
+          .toList();
+    }
+  } else {
+    // TODO(johnniwinther): Remove this path or assert why it is accepted.
+    return null;
+  }
+}
+
 List<DartType> getExplicitTypeArguments(Arguments arguments) {
   if (arguments is ArgumentsJudgment) {
-    return arguments._hasExplicitTypeArguments ? arguments.types : null;
+    if (arguments._explicitTypeArgumentCount == 0) {
+      return null;
+    } else if (arguments._extensionTypeParameterCount == 0) {
+      return arguments.types;
+    } else {
+      return arguments.types
+          .skip(arguments._extensionTypeParameterCount)
+          .toList();
+    }
   } else {
     // This code path should only be taken in situations where there are no
     // type arguments at all, e.g. calling a user-definable operator.
@@ -140,25 +181,61 @@ class ClassInferenceInfo {
 
 /// Concrete shadow object representing a set of invocation arguments.
 class ArgumentsJudgment extends Arguments {
-  bool _hasExplicitTypeArguments;
+  // TODO(johnniwinther): Move this to the static invocation instead.
+  final int _extensionTypeParameterCount;
+
+  final int _extensionTypeArgumentCount;
+
+  int _explicitTypeArgumentCount;
 
   List<Expression> get positionalJudgments => positional.cast();
 
   ArgumentsJudgment(List<Expression> positional,
       {List<DartType> types, List<NamedExpression> named})
-      : _hasExplicitTypeArguments = types != null && types.isNotEmpty,
+      : _explicitTypeArgumentCount = types?.length ?? 0,
+        _extensionTypeParameterCount = 0,
+        _extensionTypeArgumentCount = 0,
         super(positional, types: types, named: named);
+
+  ArgumentsJudgment.forExtensionMethod(int extensionTypeParameterCount,
+      int typeParameterCount, Expression receiver,
+      {List<DartType> extensionTypeArguments = const <DartType>[],
+      List<DartType> typeArguments = const <DartType>[],
+      List<Expression> positionalArguments = const <Expression>[],
+      List<NamedExpression> namedArguments = const <NamedExpression>[]})
+      : _extensionTypeParameterCount = extensionTypeParameterCount,
+        _extensionTypeArgumentCount = extensionTypeArguments.length,
+        _explicitTypeArgumentCount = typeArguments.length,
+        assert(
+            extensionTypeArguments.isEmpty ||
+                extensionTypeArguments.length == extensionTypeParameterCount,
+            "Extension type arguments must be empty or complete."),
+        super(<Expression>[receiver]..addAll(positionalArguments),
+            named: namedArguments,
+            types: <DartType>[]
+              ..addAll(_normalizeTypeArguments(
+                  extensionTypeParameterCount, extensionTypeArguments))
+              ..addAll(
+                  _normalizeTypeArguments(typeParameterCount, typeArguments)));
+
+  static List<DartType> _normalizeTypeArguments(
+      int length, List<DartType> arguments) {
+    if (arguments.isEmpty && length > 0) {
+      return new List<DartType>.filled(length, const UnknownType());
+    }
+    return arguments;
+  }
 
   static void setNonInferrableArgumentTypes(
       ArgumentsJudgment arguments, List<DartType> types) {
     arguments.types.clear();
     arguments.types.addAll(types);
-    arguments._hasExplicitTypeArguments = true;
+    arguments._explicitTypeArgumentCount = types.length;
   }
 
   static void removeNonInferrableArgumentTypes(ArgumentsJudgment arguments) {
     arguments.types.clear();
-    arguments._hasExplicitTypeArguments = false;
+    arguments._explicitTypeArgumentCount = 0;
   }
 }
 

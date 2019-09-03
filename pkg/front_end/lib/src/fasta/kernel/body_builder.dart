@@ -3525,6 +3525,31 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
   }
 
+  Expression buildExtensionMethodInvocation(
+      int fileOffset, Procedure target, Arguments arguments) {
+    // TODO(johnniwinther): Check type argument count.
+    List<TypeParameter> typeParameters = target.function.typeParameters;
+    LocatedMessage argMessage = checkArgumentsForFunction(
+        target.function, arguments, fileOffset, typeParameters);
+    if (argMessage != null) {
+      return wrapSyntheticExpression(
+          throwNoSuchMethodError(
+              forest.createNullLiteral(null)..fileOffset = fileOffset,
+              target.name.name,
+              arguments,
+              fileOffset,
+              candidate: target,
+              message: argMessage),
+          fileOffset);
+    }
+
+    StaticInvocation node = new StaticInvocation(target, arguments)
+      ..fileOffset = fileOffset;
+    // TODO(johnniwinther): Check type argument bounds.
+    //libraryBuilder.checkBoundsInStaticInvocation(node, typeEnvironment, uri);
+    return node;
+  }
+
   @override
   LocatedMessage checkArgumentsForFunction(FunctionNode function,
       Arguments arguments, int offset, List<TypeParameter> typeParameters) {

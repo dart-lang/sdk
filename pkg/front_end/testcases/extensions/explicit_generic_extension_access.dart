@@ -59,11 +59,22 @@ main() {
   expect(42, tearOffInteger1());
   expect('int', Extension1.latestType);
   expect(87, tearOff2());
-  // TODO(johnniwinther): Handle partially provided type arguments
-  //expect(52, Extension1<num>(c).genericMethod(10));
-  //expect(97, Extension2<num>(c).genericMethod(10));
-  //expect(52, Extension1<num>(c).genericMethod<num>(10));
-  //expect(97, Extension2<num>(c).genericMethod<num>(10));
+  expect(52, Extension1<num>(c).genericMethod(10));
+  expect('num:int', Extension1.latestType);
+  expect(52, Extension1<int>(c).genericMethod(10));
+  expect('int:int', Extension1.latestType);
+  expect(97, Extension2<num>(c).genericMethod(10));
+  expect(52, Extension1<num>(c).genericMethod<num>(10));
+  expect('num:num', Extension1.latestType);
+  expect(52, Extension1<int>(c).genericMethod<num>(10));
+  expect('int:num', Extension1.latestType);
+  expect(97, Extension2<num>(c).genericMethod<num>(10));
+  expect(52, Extension1(c).genericMethod(10));
+  expect('int:int', Extension1.latestType);
+  expect(52, Extension1(c).genericMethod<num>(10));
+  expect('int:num', Extension1.latestType);
+  expect(52, Extension1(c).genericMethod<int>(10));
+  expect('int:int', Extension1.latestType);
   var genericTearOffNumber1 = Extension1<num>(c).genericMethod;
   var genericTearOffInteger1 = Extension1<int>(c).genericMethod;
   var genericTearOff2 = Extension2<num>(c).genericMethod;
