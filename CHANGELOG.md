@@ -22,7 +22,7 @@ expressions under the appropriate conditions:
 
 ```dart
 // Example: these are now valid constants.
-const i = 3;
+const Object i = 3;
 const list = [i as int];
 const set = {if (list is List<int>) ...list};
 const map = {if (i is int) i : "int"};
