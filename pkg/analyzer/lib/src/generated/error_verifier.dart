@@ -2086,11 +2086,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       if (element.isConst) {
         _errorReporter.reportErrorForNode(
             StaticWarningCode.ASSIGNMENT_TO_CONST, expression);
-      } else if (element.isFinal) {
-        if (element is PropertyInducingElement && element.isLate ||
-            element is LocalVariableElement && element.isLate) {
-          return;
-        }
+      } else if (element.isFinal && !element.isLate) {
         if (element is FieldElementImpl) {
           if (element.setter == null && element.isSynthetic) {
             _errorReporter.reportErrorForNode(

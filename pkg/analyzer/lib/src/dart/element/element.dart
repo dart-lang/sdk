@@ -8915,6 +8915,9 @@ class ParameterElementImpl extends VariableElementImpl
   bool get isInitializingFormal => false;
 
   @override
+  bool get isLate => false;
+
+  @override
   bool get isPotentiallyMutatedInClosure => true;
 
   @override

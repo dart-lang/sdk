@@ -993,9 +993,6 @@ class LocalVariableElementHandle extends VariableElementHandle
       super.actualElement as LocalVariableElement;
 
   @override
-  bool get isLate => actualElement.isLate;
-
-  @override
   ElementKind get kind => ElementKind.LOCAL_VARIABLE;
 
   @override
@@ -1181,9 +1178,6 @@ abstract class PropertyInducingElementHandle extends VariableElementHandle
   @override
   bool get isConstantEvaluated => actualElement.isConstantEvaluated;
 
-  @override
-  bool get isLate => actualElement.isLate;
-
   @deprecated
   @override
   DartType get propagatedType => null;
@@ -1276,6 +1270,9 @@ abstract class VariableElementHandle extends ElementHandle
 
   @override
   bool get isFinal => actualElement.isFinal;
+
+  @override
+  bool get isLate => actualElement.isLate;
 
   @deprecated
   @override

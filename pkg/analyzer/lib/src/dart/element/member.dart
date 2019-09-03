@@ -297,9 +297,6 @@ class FieldMember extends VariableMember implements FieldElement {
   @override
   bool get isEnumConstant => baseElement.isEnumConstant;
 
-  @override
-  bool get isLate => baseElement.isLate;
-
   @deprecated
   @override
   bool get isVirtual => baseElement.isVirtual;
@@ -1022,6 +1019,9 @@ abstract class VariableMember extends Member implements VariableElement {
 
   @override
   bool get isFinal => baseElement.isFinal;
+
+  @override
+  bool get isLate => baseElement.isLate;
 
   @override
   @deprecated
