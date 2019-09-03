@@ -224,6 +224,13 @@ void FlowGraphChecker::VisitInstructions(BlockEntryInstr* block) {
 
 void FlowGraphChecker::VisitInstruction(Instruction* instruction) {
   ASSERT(!instruction->IsBlockEntry());
+
+  // In JIT mode, any instruction which may throw must have a deopt-id, except
+  // tail-call because it replaces the stack frame.
+  ASSERT(!FLAG_precompiled_mode || !instruction->MayThrow() ||
+         instruction->IsTailCall() ||
+         instruction->deopt_id() != DeoptId::kNone);
+
   // Check all regular inputs.
   for (intptr_t i = 0, n = instruction->InputCount(); i < n; ++i) {
     VisitUseDef(instruction, instruction->InputAt(i), i, /*is_env*/ false);

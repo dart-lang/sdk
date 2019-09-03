@@ -4238,10 +4238,7 @@ class MakeTempInstr : public TemplateDefinition<0, NoThrow, Pure> {
     return false;
   }
 
-  virtual bool MayThrow() const {
-    UNREACHABLE();
-    return false;
-  }
+  virtual bool MayThrow() const { return false; }
 
   virtual TokenPosition token_pos() const { return TokenPosition::kTempMove; }
 
@@ -7641,8 +7638,9 @@ class CheckNullInstr : public TemplateDefinition<1, Throws, Pure> {
   virtual bool RecomputeType();
 
   // CheckNull can implicitly call Dart code (NoSuchMethodError constructor),
-  // so it can lazily deopt.
+  // so it needs a deopt ID in optimized and unoptimized code.
   virtual bool ComputeCanDeoptimize() const { return true; }
+  virtual bool CanBecomeDeoptimizationTarget() const { return true; }
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
