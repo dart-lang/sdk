@@ -906,6 +906,7 @@ class ClosureDeclaration {
   static const int isAsyncFlag = 1 << 4;
   static const int isAsyncStarFlag = 1 << 5;
   static const int isSyncStarFlag = 1 << 6;
+  static const int isDebuggableFlag = 1 << 7;
 
   final int flags;
   final ObjectHandle parent;

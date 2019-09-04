@@ -503,6 +503,7 @@ void BytecodeReaderHelper::ReadClosureDeclaration(const Function& function,
   const int kIsAsyncFlag = 1 << 4;
   const int kIsAsyncStarFlag = 1 << 5;
   const int kIsSyncStarFlag = 1 << 6;
+  const int kIsDebuggableFlag = 1 << 7;
 
   const intptr_t flags = reader_.ReadUInt();
 
@@ -542,6 +543,7 @@ void BytecodeReaderHelper::ReadClosureDeclaration(const Function& function,
   if (Function::Cast(parent).IsAsyncOrGenerator()) {
     closure.set_is_generated_body(true);
   }
+  closure.set_is_debuggable((flags & kIsDebuggableFlag) != 0);
 
   closures_->SetAt(closureIndex, closure);
 

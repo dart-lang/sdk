@@ -2223,6 +2223,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         flags |= ClosureDeclaration.isSyncStarFlag;
         break;
       default:
+        flags |= ClosureDeclaration.isDebuggableFlag;
         break;
     }
 
@@ -3096,6 +3097,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       }
     }
     tryCatches[tryCatch].needsStackTrace = true;
+
+    if (options.emitDebuggerStops) {
+      asm.emitDebugCheck(); // Allow breakpoint on explicit rethrow statement.
+    }
     _genRethrow(tryCatch);
   }
 

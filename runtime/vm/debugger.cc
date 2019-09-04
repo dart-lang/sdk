@@ -3972,6 +3972,11 @@ void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace,
           // Step out to the awaiter.
           ASSERT(async_op.IsClosure());
           AsyncStepInto(Closure::Cast(async_op));
+          if (FLAG_verbose_debug) {
+            OS::PrintErr("HandleSteppingRequest- kContinue to async_op %s\n",
+                         Function::Handle(Closure::Cast(async_op).function())
+                             .ToFullyQualifiedCString());
+          }
           return;
         }
       }
@@ -4780,7 +4785,7 @@ void Debugger::HandleCodeChange(bool bytecode_loaded, const Function& func) {
         if (!bp_pos.IsDebugPause()) {
           if (FLAG_verbose_debug) {
             OS::PrintErr("Failed resolving breakpoint for function '%s'\n",
-                         String::Handle(func.name()).ToCString());
+                         func.ToFullyQualifiedCString());
           }
           continue;
         }
@@ -4812,7 +4817,7 @@ void Debugger::HandleCodeChange(bool bytecode_loaded, const Function& func) {
         while (bpt != NULL) {
           OS::PrintErr("Setting breakpoint %" Pd " for %s '%s'\n", bpt->id(),
                        func.IsClosureFunction() ? "closure" : "function",
-                       String::Handle(func.name()).ToCString());
+                       func.ToFullyQualifiedCString());
           bpt = bpt->next();
         }
       }
