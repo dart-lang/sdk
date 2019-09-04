@@ -7,20 +7,42 @@ import 'dart:io';
 
 import 'vm_service.dart';
 
+@Deprecated('Prefer vmServiceConnectUri')
 Future<VmService> vmServiceConnect(String host, int port, {Log log}) async {
-  WebSocket socket = await WebSocket.connect('ws://$host:$port/ws');
-  StreamController<String> controller = new StreamController();
-  socket.listen((data) => controller.add(data));
+  final WebSocket socket = await WebSocket.connect('ws://$host:$port/ws');
+  final StreamController<dynamic> controller = new StreamController();
+  final Completer streamClosedCompleter = new Completer();
+
+  socket.listen(
+    (data) => controller.add(data),
+    onDone: () => streamClosedCompleter.complete(),
+  );
+
   return new VmService(
-      controller.stream, (String message) => socket.add(message),
-      log: log, disposeHandler: () => socket.close());
+    controller.stream,
+    (String message) => socket.add(message),
+    log: log,
+    disposeHandler: () => socket.close(),
+    streamClosed: streamClosedCompleter.future,
+  );
 }
 
+/// Connect to the given uri and return a new [VmService] instance.
 Future<VmService> vmServiceConnectUri(String wsUri, {Log log}) async {
-  WebSocket socket = await WebSocket.connect(wsUri);
-  StreamController<String> controller = new StreamController();
-  socket.listen((data) => controller.add(data));
+  final WebSocket socket = await WebSocket.connect(wsUri);
+  final StreamController<dynamic> controller = new StreamController();
+  final Completer streamClosedCompleter = new Completer();
+
+  socket.listen(
+    (data) => controller.add(data),
+    onDone: () => streamClosedCompleter.complete(),
+  );
+
   return new VmService(
-      controller.stream, (String message) => socket.add(message),
-      log: log, disposeHandler: () => socket.close());
+    controller.stream,
+    (String message) => socket.add(message),
+    log: log,
+    disposeHandler: () => socket.close(),
+    streamClosed: streamClosedCompleter.future,
+  );
 }

@@ -94,8 +94,15 @@ final String _implCode = r'''
   void dispose() {
     _streamSub.cancel();
     _completers.values.forEach((c) => c.completeError('disposed'));
-    if (_disposeHandler != null) _disposeHandler();
+    if (_disposeHandler != null) {
+      _disposeHandler();
+    }
+    if (!_onDoneCompleter.isCompleted) {
+      _onDoneCompleter.complete();
+    }
   }
+
+  Future get onDone => _onDoneCompleter.future;
 
   Future<T> _call<T>(String method, [Map args]) {
     String id = '${++_id}';
@@ -736,6 +743,8 @@ abstract class VmServiceInterface {
 StreamController<String> _onSend = new StreamController.broadcast(sync: true);
 StreamController<String> _onReceive = new StreamController.broadcast(sync: true);
 
+final Completer _onDoneCompleter = new Completer();
+
 Map<String, StreamController<Event>> _eventControllers = {};
 
 StreamController<Event> _getEventController(String eventName) {
@@ -751,12 +760,18 @@ DisposeHandler _disposeHandler;
 
 VmService(Stream<dynamic> /*String|List<int>*/ inStream, void writeMessage(String message), {
   Log log,
-  DisposeHandler disposeHandler
+  DisposeHandler disposeHandler,
+  Future streamClosed,
 }) {
-  _streamSub = inStream.listen(_processMessage);
+  _streamSub = inStream.listen(_processMessage, onDone: ()=> _onDoneCompleter.complete());
   _writeMessage = writeMessage;
   _log = log == null ? new _NullLog() : log;
   _disposeHandler = disposeHandler;
+  streamClosed?.then((_) {
+    if (!_onDoneCompleter.isCompleted) {
+      _onDoneCompleter.complete();
+    }
+  });
 }
 
 @override
