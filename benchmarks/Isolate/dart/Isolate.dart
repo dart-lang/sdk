@@ -10,24 +10,24 @@ import 'package:benchmark_harness/benchmark_harness.dart'
     show PrintEmitter, ScoreEmitter;
 import 'package:meta/meta.dart';
 
-class SendReceive extends AsyncBenchmarkBase {
-  SendReceive(String name,
+class SendReceiveBytes extends AsyncBenchmarkBase {
+  SendReceiveBytes(String name,
       {@required int this.size, @required bool this.useTransferable})
       : super(name);
 
   @override
-  run() async {
+  Future<void> run() async {
     await helper.run();
   }
 
   @override
-  setup() async {
+  Future<void> setup() async {
     helper = SendReceiveHelper(size, useTransferable: useTransferable);
     await helper.setup();
   }
 
   @override
-  teardown() async {
+  Future<void> teardown() async {
     await helper.finalize();
   }
 
@@ -41,17 +41,17 @@ abstract class AsyncBenchmarkBase {
   final String name;
   final ScoreEmitter emitter;
 
-  run();
-  setup();
-  teardown();
+  Future<void> run();
+  Future<void> setup();
+  Future<void> teardown();
 
   const AsyncBenchmarkBase(this.name, {this.emitter = const PrintEmitter()});
 
   // Returns the number of microseconds per call.
   Future<double> measureFor(int minimumMillis) async {
-    int minimumMicros = minimumMillis * 1000;
+    final minimumMicros = minimumMillis * 1000;
     int iter = 0;
-    Stopwatch watch = Stopwatch();
+    final watch = Stopwatch();
     watch.start();
     int elapsed = 0;
     while (elapsed < minimumMicros) {
@@ -66,12 +66,12 @@ abstract class AsyncBenchmarkBase {
   Future<double> measure() async {
     await setup();
     await measureFor(500); // warm-up
-    double result = await measureFor(4000); // actual measurement
+    final result = await measureFor(4000); // actual measurement
     await teardown();
     return result;
   }
 
-  void report() async {
+  Future<void> report() async {
     emitter.emit(name, await measure());
   }
 }
@@ -88,24 +88,22 @@ class StartMessage {
 class SendReceiveHelper {
   SendReceiveHelper(this.size, {@required bool this.useTransferable});
 
-  setup() async {
+  Future<void> setup() async {
     data = new Uint8List(size);
 
     port = ReceivePort();
     inbox = StreamIterator<dynamic>(port);
-    worker = await Isolate.spawn(
-        isolate, StartMessage(port.sendPort, useTransferable, size),
-        paused: true);
     workerCompleted = Completer<bool>();
     workerExitedPort = ReceivePort()
       ..listen((_) => workerCompleted.complete(true));
-    worker.addOnExitListener(workerExitedPort.sendPort);
-    worker.resume(worker.pauseCapability);
+    worker = await Isolate.spawn(
+        isolate, StartMessage(port.sendPort, useTransferable, size),
+        onExit: workerExitedPort.sendPort);
     await inbox.moveNext();
     outbox = inbox.current;
   }
 
-  finalize() async {
+  Future<void> finalize() async {
     outbox.send(null);
     await workerCompleted.future;
     workerExitedPort.close();
@@ -113,12 +111,13 @@ class SendReceiveHelper {
   }
 
   // Send data to worker, wait for an answer.
-  run() async {
+  Future<void> run() async {
     outbox.send(packageList(data, useTransferable));
     await inbox.moveNext();
     final received = inbox.current;
     if (useTransferable) {
-      received.materialize();
+      final TransferableTypedData transferable = received;
+      transferable.materialize();
     }
   }
 
@@ -136,11 +135,12 @@ class SendReceiveHelper {
 packageList(Uint8List data, bool useTransferable) =>
     useTransferable ? TransferableTypedData.fromList(<Uint8List>[data]) : data;
 
-Future<Null> isolate(StartMessage startMessage) async {
-  final port = new ReceivePort();
-  final inbox = new StreamIterator<dynamic>(port);
-  startMessage.sendPort.send(port.sendPort);
+Future<void> isolate(StartMessage startMessage) async {
+  final port = ReceivePort();
+  final inbox = StreamIterator<dynamic>(port);
   final data = Uint8List.view(new Uint8List(startMessage.size).buffer);
+
+  startMessage.sendPort.send(port.sendPort);
   while (true) {
     await inbox.moveNext();
     final received = inbox.current;
@@ -148,26 +148,37 @@ Future<Null> isolate(StartMessage startMessage) async {
       break;
     }
     if (startMessage.useTransferable) {
-      received.materialize();
+      final TransferableTypedData transferable = received;
+      transferable.materialize();
     }
     startMessage.sendPort.send(packageList(data, startMessage.useTransferable));
   }
   port.close();
 }
 
-const int TEN_MB = 10 * 1024 * 1024;
-const int HUNDRED_MB = 100 * 1024 * 1024;
+class SizeName {
+  const SizeName(this.size, this.name);
 
-main() async {
-  await SendReceive("SendReceive10MB", size: TEN_MB, useTransferable: false)
-      .report();
-  await SendReceive("SendReceiveTransferable10MB",
-          size: TEN_MB, useTransferable: true)
-      .report();
-  await SendReceive("SendReceive100MB",
-          size: HUNDRED_MB, useTransferable: false)
-      .report();
-  await SendReceive("SendReceiveTransferable100MB",
-          size: HUNDRED_MB, useTransferable: true)
-      .report();
+  final int size;
+  final String name;
+}
+
+final List<SizeName> sizes = <SizeName>[
+  SizeName(1 * 1024, "1KB"),
+  SizeName(10 * 1024, "10KB"),
+  SizeName(100 * 1024, "100KB"),
+  SizeName(1 * 1024 * 1024, "1MB"),
+  SizeName(10 * 1024 * 1024, "10MB"),
+  SizeName(100 * 1024 * 1024, "100MB")
+];
+
+Future<void> main() async {
+  for (SizeName sizeName in sizes) {
+    await SendReceiveBytes("Isolate.SendReceive${sizeName.name}",
+            size: sizeName.size, useTransferable: false)
+        .report();
+    await SendReceiveBytes("Isolate.SendReceiveTransferable${sizeName.name}",
+            size: sizeName.size, useTransferable: true)
+        .report();
+  }
 }
