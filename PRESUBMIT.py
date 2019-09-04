@@ -232,6 +232,9 @@ def _CheckClangTidy(input_api, output_api):
         path = f.LocalPath()
         if is_cpp_file(path): files.append(path)
 
+    if not files:
+        return []
+
     args = [
         './buildtools/linux-x64/clang/bin/clang-tidy',
         '-checks=readability-implicit-bool-conversion',
