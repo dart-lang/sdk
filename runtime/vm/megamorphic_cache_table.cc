@@ -13,10 +13,9 @@
 
 namespace dart {
 
-RawMegamorphicCache* MegamorphicCacheTable::LookupOriginal(
-    Thread* thread,
-    const String& name,
-    const Array& descriptor) {
+RawMegamorphicCache* MegamorphicCacheTable::Lookup(Thread* thread,
+                                                   const String& name,
+                                                   const Array& descriptor) {
   Isolate* isolate = thread->isolate();
   // Multiple compilation threads could access this lookup.
   SafepointMutexLocker ml(isolate->megamorphic_mutex());
@@ -43,31 +42,6 @@ RawMegamorphicCache* MegamorphicCacheTable::LookupOriginal(
   cache = MegamorphicCache::New(name, descriptor);
   table.Add(cache, Heap::kOld);
   return cache.raw();
-}
-
-RawMegamorphicCache* MegamorphicCacheTable::LookupClone(
-    Thread* thread,
-    const String& name,
-    const Array& descriptor) {
-  if (!Compiler::IsBackgroundCompilation()) {
-    return LookupOriginal(thread, name, descriptor);
-  }
-
-  auto& cloned_caches = thread->compiler_state().cloned_megamorphic_caches();
-  for (intptr_t i = 0; i < cloned_caches.length(); i++) {
-    const MegamorphicCache& cache = *cloned_caches[i];
-    if ((cache.target_name() == name.raw()) &&
-        (cache.arguments_descriptor() == descriptor.raw())) {
-      return cache.raw();
-    }
-  }
-
-  const auto& original =
-      MegamorphicCache::Handle(LookupOriginal(thread, name, descriptor));
-  const auto& clone =
-      MegamorphicCache::ZoneHandle(MegamorphicCache::Clone(original));
-  cloned_caches.Add(&clone);
-  return clone.raw();
 }
 
 RawFunction* MegamorphicCacheTable::miss_handler(Isolate* isolate) {

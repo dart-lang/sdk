@@ -109,10 +109,9 @@ bool AotCallSpecializer::TryCreateICDataForUniqueTarget(
     return false;
   }
 
-  const ICData& ic_data =
-      ICData::ZoneHandle(Z, ICData::NewFrom(*call->ic_data(), 1));
-  ic_data.AddReceiverCheck(cls.id(), target_function);
-  call->set_ic_data(&ic_data);
+  call->SetTargets(
+      CallTargets::CreateMonomorphic(Z, cls.id(), target_function));
+  ASSERT(call->Targets().IsMonomorphic());
 
   // If we know that the only noSuchMethod is Object.noSuchMethod then
   // this call is guaranteed to either succeed or throw.
@@ -242,14 +241,9 @@ bool AotCallSpecializer::TryInlineFieldAccess(InstanceCallInstr* call) {
   if ((op_kind == Token::kGET) && TryInlineInstanceGetter(call)) {
     return true;
   }
-
-  const ICData& unary_checks =
-      ICData::Handle(Z, call->ic_data()->AsUnaryClassChecks());
-  if (!unary_checks.NumberOfChecksIs(0) && (op_kind == Token::kSET) &&
-      TryInlineInstanceSetter(call, unary_checks)) {
+  if ((op_kind == Token::kSET) && TryInlineInstanceSetter(call)) {
     return true;
   }
-
   return false;
 }
 
@@ -787,22 +781,18 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
     return;
   }
 
+  const CallTargets& targets = instr->Targets();
   const intptr_t receiver_idx = instr->FirstArgIndex();
-  const ICData& unary_checks =
-      ICData::ZoneHandle(Z, instr->ic_data()->AsUnaryClassChecks());
-  const intptr_t number_of_checks = unary_checks.NumberOfChecks();
   if (I->can_use_strong_mode_types()) {
     // In AOT strong mode, we avoid deopting speculation.
     // TODO(ajcbik): replace this with actual analysis phase
     //               that determines if checks are removed later.
   } else if (speculative_policy_->IsAllowedForInlining(instr->deopt_id()) &&
-             number_of_checks > 0) {
-    if ((op_kind == Token::kINDEX) &&
-        TryReplaceWithIndexedOp(instr, &unary_checks)) {
+             !targets.is_empty()) {
+    if ((op_kind == Token::kINDEX) && TryReplaceWithIndexedOp(instr)) {
       return;
     }
-    if ((op_kind == Token::kASSIGN_INDEX) &&
-        TryReplaceWithIndexedOp(instr, &unary_checks)) {
+    if ((op_kind == Token::kASSIGN_INDEX) && TryReplaceWithIndexedOp(instr)) {
       return;
     }
     if ((op_kind == Token::kEQ) && TryReplaceWithEqualityOp(instr, op_kind)) {
@@ -833,25 +823,22 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
     return;
   }
 
-  bool has_one_target = number_of_checks > 0 && unary_checks.HasOneTarget();
+  bool has_one_target = targets.HasSingleTarget();
   if (has_one_target) {
     // Check if the single target is a polymorphic target, if it is,
     // we don't have one target.
-    const Function& target = Function::Handle(Z, unary_checks.GetTargetAt(0));
+    const Function& target = targets.FirstTarget();
     const bool polymorphic_target = MethodRecognizer::PolymorphicTarget(target);
     has_one_target = !polymorphic_target;
   }
 
   if (has_one_target) {
-    RawFunction::Kind function_kind =
-        Function::Handle(Z, unary_checks.GetTargetAt(0)).kind();
+    const Function& target = targets.FirstTarget();
+    RawFunction::Kind function_kind = target.kind();
     if (flow_graph()->CheckForInstanceCall(instr, function_kind) ==
         FlowGraph::ToCheck::kNoCheck) {
-      CallTargets* targets = CallTargets::Create(Z, unary_checks);
-      ASSERT(targets->HasSingleTarget());
-      const Function& target = targets->FirstTarget();
       StaticCallInstr* call = StaticCallInstr::FromCall(
-          Z, instr, target, targets->AggregateCallCount());
+          Z, instr, target, targets.AggregateCallCount());
       instr->ReplaceWith(call, current_iterator());
       return;
     }
@@ -864,7 +851,7 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
     case Token::kLTE:
     case Token::kGT:
     case Token::kGTE: {
-      if (HasOnlyTwoOf(*instr->ic_data(), kSmiCid) ||
+      if (instr->BinaryFeedback().OperandsAre(kSmiCid) ||
           HasLikelySmiOperand(instr)) {
         ASSERT(receiver_idx == 0);
         Definition* left = instr->ArgumentAt(0);
@@ -885,7 +872,7 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
     case Token::kADD:
     case Token::kSUB:
     case Token::kMUL: {
-      if (HasOnlyTwoOf(*instr->ic_data(), kSmiCid) ||
+      if (instr->BinaryFeedback().OperandsAre(kSmiCid) ||
           HasLikelySmiOperand(instr)) {
         ASSERT(receiver_idx == 0);
         Definition* left = instr->ArgumentAt(0);
@@ -1033,7 +1020,8 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
         return;
       } else if ((ic_data.raw() != ICData::null()) &&
                  !ic_data.NumberOfChecksIs(0)) {
-        CallTargets* targets = CallTargets::Create(Z, ic_data);
+        const CallTargets* targets = CallTargets::Create(Z, ic_data);
+        ASSERT(!targets->is_empty());
         PolymorphicInstanceCallInstr* call =
             new (Z) PolymorphicInstanceCallInstr(instr, *targets,
                                                  /* complete = */ true);
@@ -1051,13 +1039,12 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
 
   // More than one target. Generate generic polymorphic call without
   // deoptimization.
-  if (instr->ic_data()->NumberOfUsedChecks() > 0) {
+  if (targets.length() > 0) {
     ASSERT(!FLAG_polymorphic_with_deopt);
     // OK to use checks with PolymorphicInstanceCallInstr since no
     // deoptimization is allowed.
-    CallTargets* targets = CallTargets::Create(Z, *instr->ic_data());
     PolymorphicInstanceCallInstr* call =
-        new (Z) PolymorphicInstanceCallInstr(instr, *targets,
+        new (Z) PolymorphicInstanceCallInstr(instr, targets,
                                              /* complete = */ false);
     instr->ReplaceWith(call, current_iterator());
     return;

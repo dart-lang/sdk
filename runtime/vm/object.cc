@@ -14388,59 +14388,6 @@ bool ICData::HasReceiverClassId(intptr_t class_id) const {
   }
   return false;
 }
-
-// Returns true if all targets are the same.
-// TODO(srdjan): if targets are native use their C_function to compare.
-// TODO(rmacnak): this question should only be asked against a CallTargets,
-// not an ICData.
-bool ICData::HasOneTarget() const {
-  ASSERT(!NumberOfChecksIs(0));
-  const Function& first_target = Function::Handle(GetTargetAt(0));
-  const intptr_t len = NumberOfChecks();
-  for (intptr_t i = 1; i < len; i++) {
-    if (IsUsedAt(i) && (GetTargetAt(i) != first_target.raw())) {
-      return false;
-    }
-  }
-  if (is_megamorphic()) {
-    Thread* thread = Thread::Current();
-    Zone* zone = thread->zone();
-    const String& name = String::Handle(zone, target_name());
-    const Array& descriptor = Array::Handle(zone, arguments_descriptor());
-    const MegamorphicCache& cache = MegamorphicCache::Handle(
-        zone, MegamorphicCacheTable::LookupClone(thread, name, descriptor));
-    MegamorphicCacheEntries entries(Array::Handle(cache.buckets()));
-    for (intptr_t i = 0; i < entries.Length(); i++) {
-      const intptr_t id =
-          Smi::Value(entries[i].Get<MegamorphicCache::kClassIdIndex>());
-      if (id == kIllegalCid) {
-        continue;
-      }
-      if (entries[i].Get<MegamorphicCache::kTargetFunctionIndex>() !=
-          first_target.raw()) {
-        return false;
-      }
-    }
-  }
-  return true;
-}
-
-void ICData::GetUsedCidsForTwoArgs(GrowableArray<intptr_t>* first,
-                                   GrowableArray<intptr_t>* second) const {
-  ASSERT(NumArgsTested() == 2);
-  first->Clear();
-  second->Clear();
-  GrowableArray<intptr_t> class_ids;
-  const intptr_t len = NumberOfChecks();
-  for (intptr_t i = 0; i < len; i++) {
-    if (GetCountAt(i) > 0) {
-      GetClassIdsAt(i, &class_ids);
-      ASSERT(class_ids.length() == 2);
-      first->Add(class_ids[0]);
-      second->Add(class_ids[1]);
-    }
-  }
-}
 #endif
 
 bool ICData::IsUsedAt(intptr_t i) const {
@@ -16042,37 +15989,6 @@ void MegamorphicCache::SwitchToBareInstructions() {
       ASSERT(cid == kSmiCid);
     }
   }
-}
-
-RawMegamorphicCache* MegamorphicCache::Clone(const MegamorphicCache& from) {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  MegamorphicCache& result = MegamorphicCache::Handle(zone);
-  {
-    RawObject* raw =
-        Object::Allocate(MegamorphicCache::kClassId,
-                         MegamorphicCache::InstanceSize(), Heap::kNew);
-    NoSafepointScope no_safepoint;
-    result ^= raw;
-  }
-
-  SafepointMutexLocker ml(thread->isolate()->megamorphic_mutex());
-  const Array& from_buckets = Array::Handle(zone, from.buckets());
-  const intptr_t len = from_buckets.Length();
-  const Array& cloned_buckets =
-      Array::Handle(zone, Array::New(len, Heap::kNew));
-  Object& obj = Object::Handle(zone);
-  for (intptr_t i = 0; i < len; i++) {
-    obj = from_buckets.At(i);
-    cloned_buckets.SetAt(i, obj);
-  }
-  result.set_buckets(cloned_buckets);
-  result.set_mask(from.mask());
-  result.set_target_name(String::Handle(zone, from.target_name()));
-  result.set_arguments_descriptor(
-      Array::Handle(zone, from.arguments_descriptor()));
-  result.set_filled_entry_count(from.filled_entry_count());
-  return result.raw();
 }
 
 void SubtypeTestCache::Init() {
