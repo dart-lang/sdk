@@ -865,6 +865,7 @@ encoded
 encoder
 encodes
 encoding
+encounter
 encountered
 encounters
 end
@@ -2178,6 +2179,7 @@ referred
 refers
 refine
 refinement
+reflecting
 regardless
 region
 regions
@@ -2201,6 +2203,7 @@ relationships
 relative
 release
 relevant
+relied
 relies
 reloads
 rely
