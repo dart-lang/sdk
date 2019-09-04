@@ -14,7 +14,7 @@ import 'dartfuzz_ffiapi.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.36';
+const String version = '1.37';
 
 // Restriction on statements and expressions.
 const int stmtLength = 2;
@@ -289,17 +289,16 @@ class DartFuzz {
 
     // Call each class method once.
     for (int i = 0; i < classMethods.length; i++) {
-      emitLn("X${i} x${i} = new X${i}();");
       for (int j = 0; j < classMethods[i].length; j++) {
         emitLn('try {');
         indent += 2;
         emitLn("", newline: false);
-        emitCall(1, "x${i}.$methodName${i}_${j}", classMethods[i][j]);
+        emitCall(1, "X${i}().$methodName${i}_${j}", classMethods[i][j]);
         emit(";", newline: true);
         indent -= 2;
         emitLn('} catch (exception, stackTrace) {');
         indent += 2;
-        emitLn("print('x${i}.$methodName${i}_${j} throws');");
+        emitLn("print('X${i}().$methodName${i}_${j}() throws');");
         indent -= 2;
         emitLn('}');
       }
@@ -307,11 +306,11 @@ class DartFuzz {
 
     emitLn('try {');
     indent += 2;
-    emitLn('new X${classFields.length - 1}().run();');
+    emitLn('X${classFields.length - 1}().run();');
     indent -= 2;
     emitLn('} catch (exception, stackTrace) {');
     indent += 2;
-    emitLn("print('new X${classFields.length - 1}().run() throws');");
+    emitLn("print('X${classFields.length - 1}().run() throws');");
     indent -= 2;
     emitLn('} finally {');
     indent += 2;
@@ -769,8 +768,7 @@ class DartFuzz {
 
   void emitCollectionElement(int depth, DartType tp) {
     int r = depth <= exprDepth ? rand.nextInt(10) : 10;
-    switch (r + 3) {
-      // TODO(ajcbik): enable when on by default
+    switch (r) {
       // Favors elements over control-flow collections.
       case 0:
         emit('...'); // spread
@@ -1242,7 +1240,7 @@ class DartFuzz {
       case 'B':
         emitExpr(depth, DartType.BOOL);
         break;
-      case 'i':
+      case 'i': // emit small int
         emitSmallPositiveInt();
         break;
       case 'I':
@@ -1254,12 +1252,7 @@ class DartFuzz {
       case 'S':
         emitExpr(depth, DartType.STRING);
         break;
-      case 's':
-        // Emit string literal of 2 characters maximum length
-        // for 'small string' parameters to avoid recursively constructed
-        // strings which might lead to exponentially growing data structures
-        // e.g. loop { var = 'x'.padLeft(8, var); }
-        // TODO (felih): detect recursion to eliminate such cases specifically
+      case 's': // emit small string
         emitString(length: 2);
         break;
       case 'L':
