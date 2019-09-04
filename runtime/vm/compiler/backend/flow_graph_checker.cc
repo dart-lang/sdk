@@ -227,9 +227,10 @@ void FlowGraphChecker::VisitInstruction(Instruction* instruction) {
 
   // In JIT mode, any instruction which may throw must have a deopt-id, except
   // tail-call because it replaces the stack frame.
-  ASSERT(!FLAG_precompiled_mode || !instruction->MayThrow() ||
-         instruction->IsTailCall() ||
+#if !defined(DART_PRECOMPILER)
+  ASSERT(!instruction->MayThrow() || instruction->IsTailCall() ||
          instruction->deopt_id() != DeoptId::kNone);
+#endif  // !defined(DART_PRECOMPILER)
 
   // Check all regular inputs.
   for (intptr_t i = 0, n = instruction->InputCount(); i < n; ++i) {
