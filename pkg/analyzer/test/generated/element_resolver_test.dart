@@ -723,36 +723,6 @@ class ElementResolverTest extends EngineTestCase with ResourceProviderMixin {
     _listener.assertNoErrors();
   }
 
-  test_visitIndexExpression_get() async {
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    InterfaceType intType = _typeProvider.intType;
-    MethodElement getter =
-        ElementFactory.methodElement("[]", intType, [intType]);
-    classA.methods = <MethodElement>[getter];
-    SimpleIdentifier array = AstTestFactory.identifier3("a");
-    array.staticType = classA.type;
-    IndexExpression expression =
-        AstTestFactory.indexExpression(array, AstTestFactory.identifier3("i"));
-    expect(_resolveIndexExpression(expression), same(getter));
-    _listener.assertNoErrors();
-  }
-
-  test_visitIndexExpression_set() async {
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    InterfaceType intType = _typeProvider.intType;
-    MethodElement setter =
-        ElementFactory.methodElement("[]=", intType, [intType]);
-    classA.methods = <MethodElement>[setter];
-    SimpleIdentifier array = AstTestFactory.identifier3("a");
-    array.staticType = classA.type;
-    IndexExpression expression =
-        AstTestFactory.indexExpression(array, AstTestFactory.identifier3("i"));
-    AstTestFactory.assignmentExpression(
-        expression, TokenType.EQ, AstTestFactory.integer(0));
-    expect(_resolveIndexExpression(expression), same(setter));
-    _listener.assertNoErrors();
-  }
-
   test_visitInstanceCreationExpression_named() async {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String constructorName = "a";

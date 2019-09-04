@@ -12,7 +12,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -978,79 +977,6 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
     DartType resultType = _analyze(node);
     _assertFunctionType(
         dynamicType, null, <DartType>[dynamicType], null, resultType);
-    _listener.assertNoErrors();
-  }
-
-  void test_visitIndexExpression_getter() {
-    // List a;
-    // a[2]
-    InterfaceType listType = _typeProvider.listType;
-    SimpleIdentifier identifier = _resolvedVariable(listType, "a");
-    IndexExpression node =
-        AstTestFactory.indexExpression(identifier, _resolvedInteger(2));
-    MethodElement indexMethod = listType.element.methods[0];
-    node.staticElement = indexMethod;
-    expect(_analyze(node), same(listType.typeArguments[0]));
-    _listener.assertNoErrors();
-  }
-
-  void test_visitIndexExpression_setter() {
-    // List a;
-    // a[2] = 0
-    InterfaceType listType = _typeProvider.listType;
-    SimpleIdentifier identifier = _resolvedVariable(listType, "a");
-    IndexExpression node =
-        AstTestFactory.indexExpression(identifier, _resolvedInteger(2));
-    MethodElement indexMethod = listType.element.methods[1];
-    node.staticElement = indexMethod;
-    AstTestFactory.assignmentExpression(
-        node, TokenType.EQ, AstTestFactory.integer(0));
-    expect(_analyze(node), same(listType.typeArguments[0]));
-    _listener.assertNoErrors();
-  }
-
-  void test_visitIndexExpression_typeParameters() {
-    // List<int> list = ...
-    // list[0]
-    InterfaceType intType = _typeProvider.intType;
-    InterfaceType listType = _typeProvider.listType;
-    // (int) -> E
-    MethodElement methodElement = getMethod(listType, "[]");
-    // "list" has type List<int>
-    SimpleIdentifier identifier = AstTestFactory.identifier3("list");
-    InterfaceType listOfIntType = listType.instantiate(<DartType>[intType]);
-    identifier.staticType = listOfIntType;
-    // list[0] has MethodElement element (int) -> E
-    IndexExpression indexExpression =
-        AstTestFactory.indexExpression(identifier, AstTestFactory.integer(0));
-    MethodElement indexMethod = MethodMember.from(methodElement, listOfIntType);
-    indexExpression.staticElement = indexMethod;
-    // analyze and assert result of the index expression
-    expect(_analyze(indexExpression), same(intType));
-    _listener.assertNoErrors();
-  }
-
-  void test_visitIndexExpression_typeParameters_inSetterContext() {
-    // List<int> list = ...
-    // list[0] = 0;
-    InterfaceType intType = _typeProvider.intType;
-    InterfaceType listType = _typeProvider.listType;
-    // (int, E) -> void
-    MethodElement methodElement = getMethod(listType, "[]=");
-    // "list" has type List<int>
-    SimpleIdentifier identifier = AstTestFactory.identifier3("list");
-    InterfaceType listOfIntType = listType.instantiate(<DartType>[intType]);
-    identifier.staticType = listOfIntType;
-    // list[0] has MethodElement element (int) -> E
-    IndexExpression indexExpression =
-        AstTestFactory.indexExpression(identifier, AstTestFactory.integer(0));
-    MethodElement indexMethod = MethodMember.from(methodElement, listOfIntType);
-    indexExpression.staticElement = indexMethod;
-    // list[0] should be in a setter context
-    AstTestFactory.assignmentExpression(
-        indexExpression, TokenType.EQ, AstTestFactory.integer(0));
-    // analyze and assert result of the index expression
-    expect(_analyze(indexExpression), same(intType));
     _listener.assertNoErrors();
   }
 
