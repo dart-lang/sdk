@@ -84,7 +84,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
   "dart_style_tag": "1.2.8",  # Please see the note above before updating.
 
-  "dartdoc_tag" : "v0.28.5",
+  "dartdoc_rev" : "6934accd88c29a73cae26d0c4def3323efc2119c",
   "fixnum_tag": "0.10.9",
   "glob_tag": "1.1.7",
   "html_tag" : "0.14.0+1",
@@ -276,7 +276,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/dart2js_info":
       Var("dart_git") + "dart2js_info.git" + "@" + Var("dart2js_info_tag"),
   Var("dart_root") + "/third_party/pkg/dartdoc":
-      Var("dart_git") + "dartdoc.git" + "@" + Var("dartdoc_tag"),
+      Var("dart_git") + "dartdoc.git" + "@" + Var("dartdoc_rev"),
   Var("dart_root") + "/third_party/pkg/fixnum":
       Var("dart_git") + "fixnum.git" + "@" + Var("fixnum_tag"),
   Var("dart_root") + "/third_party/pkg/glob":
