@@ -204,6 +204,7 @@ isolate
 isolates
 iter
 jumped
+kernels
 ko
 la
 lc
@@ -223,6 +224,7 @@ mac
 maker
 matters
 mc
+mds
 measured
 met
 metric
@@ -273,7 +275,9 @@ px
 py
 python
 quot
+r"
 r"\s
+r"k
 rd
 reachability
 reality
@@ -360,6 +364,7 @@ untransformed
 untrimmed
 uppercase
 upward
+uses8
 usual
 val
 vars

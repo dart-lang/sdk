@@ -279,8 +279,8 @@ type Typedef {
   List<TypeParameter> typeParameters;
   DartType type;
   List<TypeParameter> typeParametersOfFunctionType;
-  List<VariableDeclaration> positionalParameters;
-  List<VariableDeclaration> namedParameters;
+  List<VariableDeclarationPlain> positionalParameters;
+  List<VariableDeclarationPlain> namedParameters;
 }
 
 type Combinator {
@@ -399,7 +399,7 @@ type Procedure extends Member {
 }
 
 type RedirectingFactoryConstructor extends Member {
-  Byte tag = 107;
+  Byte tag = 108;
   CanonicalNameReference canonicalName;
   UriReference fileUri;
   FileOffset fileOffset;
@@ -412,8 +412,8 @@ type RedirectingFactoryConstructor extends Member {
   List<TypeParameter> typeParameters;
   UInt parameterCount; // positionalParameters.length + namedParameters.length.
   UInt requiredParameterCount;
-  List<VariableDeclaration> positionalParameters;
-  List<VariableDeclaration> namedParameters;
+  List<VariableDeclarationPlain> positionalParameters;
+  List<VariableDeclarationPlain> namedParameters;
 }
 
 abstract type Initializer extends Node {}
@@ -449,7 +449,7 @@ type RedirectingInitializer extends Initializer {
 type LocalInitializer extends Initializer {
   Byte tag = 11;
   Byte isSynthetic;
-  VariableDeclaration variable;
+  VariableDeclarationPlain variable;
 }
 
 type AssertInitializer extends Initializer {
@@ -477,8 +477,8 @@ type FunctionNode {
   List<TypeParameter> typeParameters;
   UInt parameterCount; // positionalParameters.length + namedParameters.length.
   UInt requiredParameterCount;
-  List<VariableDeclaration> positionalParameters;
-  List<VariableDeclaration> namedParameters;
+  List<VariableDeclarationPlain> positionalParameters;
+  List<VariableDeclarationPlain> namedParameters;
   DartType returnType;
   Option<Statement> body;
 }
@@ -886,7 +886,7 @@ type FunctionExpression extends Expression {
 
 type Let extends Expression {
   Byte tag = 53;
-  VariableDeclaration variable;
+  VariableDeclarationPlain variable;
   Expression body;
 }
 
@@ -1062,7 +1062,7 @@ type DoStatement extends Statement {
 type ForStatement extends Statement {
   Byte tag = 69;
   FileOffset fileOffset;
-  List<VariableDeclaration> variables;
+  List<VariableDeclarationPlain> variables;
   Option<Expression> condition;
   List<Expression> updates;
   Statement body;
@@ -1072,7 +1072,7 @@ type ForInStatement extends Statement {
   Byte tag = 70;
   FileOffset fileOffset;
   FileOffset bodyOffset;
-  VariableDeclaration variable;
+  VariableDeclarationPlain variable;
   Expression iterable;
   Statement body;
 }
@@ -1081,7 +1081,7 @@ type AsyncForInStatement extends Statement {
   Byte tag = 80; // Note: tag is out of order.
   FileOffset fileOffset;
   FileOffset bodyOffset;
-  VariableDeclaration variable;
+  VariableDeclarationPlain variable;
   Expression iterable;
   Statement body;
 }
@@ -1141,8 +1141,8 @@ type TryCatch extends Statement {
 type Catch {
   FileOffset fileOffset;
   DartType guard;
-  Option<VariableDeclaration> exception;
-  Option<VariableDeclaration> stackTrace;
+  Option<VariableDeclarationPlain> exception;
+  Option<VariableDeclarationPlain> stackTrace;
   Statement body;
 }
 
@@ -1159,12 +1159,12 @@ type YieldStatement extends Statement {
   Expression expression;
 }
 
-type VariableDeclarationStatement extends Statement {
+type VariableDeclaration extends Statement {
   Byte tag = 78;
-  VariableDeclaration variable;
+  VariableDeclarationPlain variable;
 }
 
-type VariableDeclaration {
+type VariableDeclarationPlain {
   // The offset for the variable declaration, i.e. the offset of the start of
   // the declaration.
   FileOffset fileOffset;
@@ -1196,7 +1196,7 @@ type FunctionDeclaration extends Statement {
   // within the function for use as a self-reference.
   // Some of the fields in the variable are redundant, but its presence here
   // simplifies the rule for variable indexing.
-  VariableDeclaration variable;
+  VariableDeclarationPlain variable;
   FunctionNode function;
 }
 

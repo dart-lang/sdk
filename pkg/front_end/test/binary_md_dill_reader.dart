@@ -15,6 +15,7 @@ class BinaryMdDillReader {
   Map<String, List<String>> _generics;
   Map<int, String> tagToName;
   Map<int, String> constantTagToName;
+  int version;
   Map<String, String> _extends;
   int _binaryMdNestingDepth;
   String _binaryMdCurrentClass;
@@ -25,12 +26,20 @@ class BinaryMdDillReader {
   int _depth;
   Map _dillStringsPointer;
   int verboseLevel = 0;
+  bool _ranSetup = false;
 
   BinaryMdDillReader(this._binaryMdContent, this._dillContent);
 
+  void setup() {
+    if (!_ranSetup) {
+      _setupFields();
+      _readBinaryMd();
+      _ranSetup = true;
+    }
+  }
+
   Map attemptRead() {
-    _setupFields();
-    _readBinaryMd();
+    setup();
     return _readDill();
   }
 
@@ -250,6 +259,18 @@ class BinaryMdDillReader {
   /// There is special handling around tags, and around lines that are split,
   /// i.e. not yet finished (not ending in a semi-colon).
   void _binaryMdHandleContent(String s) {
+    if (s.trim().startsWith("UInt32 formatVersion = ")) {
+      String versionString =
+          s.trim().substring("UInt32 formatVersion = ".length);
+      if (versionString.endsWith(";")) {
+        versionString = versionString.substring(0, versionString.length - 1);
+      }
+      if (version != null) {
+        throw "Already have a version set ($version), "
+            "now trying to set $versionString";
+      }
+      version = int.parse(versionString);
+    }
     if (s.trim().startsWith("Byte tag = ")) {
       String tag = s.trim().substring("Byte tag = ".length);
       if (tag.endsWith(";")) tag = tag.substring(0, tag.length - 1);
@@ -347,7 +368,7 @@ class BinaryMdDillReader {
 
   /// Get a string from the string table after the string table has been read
   /// from the dill file.
-  String _getDillString(int num) {
+  String getDillString(int num) {
     List<int> endOffsets =
         (_dillStringsPointer["endOffsets"]["items"] as List<dynamic>).cast();
     List<int> utf8 = (_dillStringsPointer["utf8Bytes"] as List<dynamic>).cast();
@@ -402,7 +423,7 @@ class BinaryMdDillReader {
       // binary.md file.
       if (what == "Name" && instruction == "LibraryReference library;") {
         // Special-case if sentence in Name.
-        String name = _getDillString(vars["name"]["index"]);
+        String name = getDillString(vars["name"]["index"]);
         if (!name.startsWith("_")) continue;
       } else if (what == "ComponentFile" &&
           instruction == "MetadataPayload[] metadataPayloads;") {
