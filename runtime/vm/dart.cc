@@ -648,7 +648,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
   // Initialize the new isolate.
   Thread* T = Thread::Current();
   Isolate* I = T->isolate();
-#if defined(SUPPORT_TIMLINE)
+#if defined(SUPPORT_TIMELINE)
   TimelineDurationScope tds(T, Timeline::GetIsolateStream(),
                             "InitializeIsolate");
   tds.SetNumArguments(1);
