@@ -59,6 +59,7 @@ import 'insert_semicolon_test.dart' as insert_semicolon;
 import 'make_class_abstract_test.dart' as make_class_abstract;
 import 'make_field_not_final_test.dart' as make_field_not_final;
 import 'make_final_test.dart' as make_final;
+import 'make_variable_not_final_test.dart' as make_variable_not_final;
 import 'move_type_arguments_to_class_test.dart' as move_type_arguments_to_class;
 import 'remove_annotation_test.dart' as remove_annotation;
 import 'remove_await_test.dart' as remove_await;
@@ -161,6 +162,7 @@ main() {
     make_class_abstract.main();
     make_field_not_final.main();
     make_final.main();
+    make_variable_not_final.main();
     move_type_arguments_to_class.main();
     remove_annotation.main();
     remove_await.main();

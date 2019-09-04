@@ -412,6 +412,9 @@ class FixProcessor {
     if (errorCode == StaticWarningCode.ASSIGNMENT_TO_FINAL) {
       await _addFix_makeFieldNotFinal();
     }
+    if (errorCode == StaticWarningCode.ASSIGNMENT_TO_FINAL_LOCAL) {
+      await _addFix_makeVariableNotFinal();
+    }
     if (errorCode == StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER) {
       await _addFix_makeEnclosingClassAbstract();
     }
@@ -2643,6 +2646,37 @@ class FixProcessor {
           }
         });
         _addFixFromBuilder(changeBuilder, DartFixKind.MAKE_FINAL);
+      }
+    }
+  }
+
+  Future<void> _addFix_makeVariableNotFinal() async {
+    AstNode node = this.node;
+    if (node is SimpleIdentifier &&
+        node.staticElement is LocalVariableElement) {
+      LocalVariableElement variable = node.staticElement;
+      var id = NodeLocator(variable.nameOffset).searchWithin(unit);
+      var decl = id?.parent;
+      if (decl is VariableDeclaration &&
+          decl.parent is VariableDeclarationList) {
+        VariableDeclarationList declarationList = decl.parent;
+        var keywordToken = declarationList.keyword;
+        if (declarationList.variables.length == 1 &&
+            keywordToken.keyword == Keyword.FINAL) {
+          var changeBuilder = _newDartChangeBuilder();
+          await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+            if (declarationList.type != null) {
+              builder.addDeletion(
+                  range.startStart(keywordToken, declarationList.type));
+            } else {
+              builder.addSimpleReplacement(range.token(keywordToken), 'var');
+            }
+          });
+          declarationList.variables[0].name.name;
+          var varName = declarationList.variables[0].name.name;
+          _addFixFromBuilder(changeBuilder, DartFixKind.MAKE_VARIABLE_NOT_FINAL,
+              args: [varName]);
+        }
       }
     }
   }
