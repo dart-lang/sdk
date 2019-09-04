@@ -236,20 +236,10 @@ def _CheckClangTidy(input_api, output_api):
         return []
 
     args = [
-        './buildtools/linux-x64/clang/bin/clang-tidy',
-        '-checks=readability-implicit-bool-conversion',
+        'tools/sdks/dart-sdk/bin/dart',
+        'runtime/tools/run_clang_tidy.dart',
     ]
     args.extend(files)
-    args.append('--')
-    args.extend([
-        '-I.',
-        '-Iruntime',
-        '-Iruntime/include',
-        '-Ithird_party/tcmalloc/gperftools/src ',
-        '-DTARGET_ARCH_X64',
-        '-DDEBUG',
-        '-DTARGET_OS_LINUX',
-    ])
     stdout = input_api.subprocess.check_output(args).strip()
     if not stdout:
         return []
