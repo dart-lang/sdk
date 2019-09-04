@@ -149,10 +149,10 @@ const _Literal literal = const _Literal();
 ///   without invoking the overridden method.
 const _MustCallSuper mustCallSuper = const _MustCallSuper();
 
-/// Used to annotate a class declaration `C`. Indicates that any type arguments
-/// declared on `C` are to be treated as optional.  Tools such as the analyzer
-/// and linter can use this information to suppress warnings that would
-/// otherwise require type arguments to be provided for instances of `C`.
+/// Used to annotate a class, mixin, or extension declaration `C`. Indicates
+/// that any type arguments declared on `C` are to be treated as optional.
+/// Tools such as the analyzer and linter can use this information to suppress
+/// warnings that would otherwise require type arguments on `C` to be provided.
 const _OptionalTypeArgs optionalTypeArgs = const _OptionalTypeArgs();
 
 /// Used to annotate an instance member (method, getter, setter, operator, or
@@ -216,7 +216,7 @@ const _Virtual virtual = const _Virtual();
 /// Tools, such as the analyzer, can provide feedback if
 ///
 /// * the annotation is associated with a declaration other than a public
-///   instance member in a class, or
+///   instance member in a class or mixin, or
 /// * the member is referenced outside of the defining library.
 const _VisibleForOverriding visibleForOverriding =
     const _VisibleForOverriding();
@@ -227,7 +227,8 @@ const _VisibleForOverriding visibleForOverriding =
 /// Tools, such as the analyzer, can provide feedback if
 ///
 /// * the annotation is associated with a declaration not in the `lib` folder
-///   of a package, or
+///   of a package, or a private declaration, or a declaration in an unnamed
+///   static extension, or
 /// * the declaration is referenced outside of its the defining library or a
 ///   library which is in the `test` folder of the defining package.
 const _VisibleForTesting visibleForTesting = const _VisibleForTesting();
