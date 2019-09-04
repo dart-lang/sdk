@@ -5,7 +5,6 @@
 # Tests using the multitest feature where failure is expected should *also* be
 # listed in tests/lib/analyzer/analyze_tests.status without the "standalone"
 # prefix.
-io/http_linklocal_ipv6_test: SkipByDesign # This needs manual test.
 io/non_utf8_directory_test: Skip # Issue 33519. Temp files causing bots to go purple.
 io/non_utf8_file_test: Skip # Issue 33519. Temp files causing bots to go purple.
 io/non_utf8_link_test: Skip # Issue 33519. Temp files causing bots to go purple.

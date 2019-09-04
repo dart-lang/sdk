@@ -129,12 +129,12 @@ namespace bin {
   V(SecurityContext_TrustBuiltinRoots, 1)                                      \
   V(SecurityContext_UseCertificateChainBytes, 3)                               \
   V(ServerSocket_Accept, 2)                                                    \
-  V(ServerSocket_CreateBindListen, 7)                                          \
+  V(ServerSocket_CreateBindListen, 6)                                          \
   V(SocketBase_IsBindError, 2)                                                 \
   V(Socket_Available, 1)                                                       \
-  V(Socket_CreateBindConnect, 5)                                               \
+  V(Socket_CreateBindConnect, 4)                                               \
   V(Socket_CreateBindDatagram, 6)                                              \
-  V(Socket_CreateConnect, 4)                                                   \
+  V(Socket_CreateConnect, 3)                                                   \
   V(Socket_GetPort, 1)                                                         \
   V(Socket_GetRemotePeer, 1)                                                   \
   V(Socket_GetError, 1)                                                        \

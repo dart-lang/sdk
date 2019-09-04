@@ -73,8 +73,6 @@ class SocketAddress {
   static intptr_t GetAddrPort(const RawAddr& addr);
   static Dart_Handle ToTypedData(const RawAddr& addr);
   static CObjectUint8Array* ToCObject(const RawAddr& addr);
-  static void SetAddrScope(RawAddr* addr, intptr_t scope_id);
-  static intptr_t GetAddrScope(const RawAddr& addr);
 
  private:
   char as_string_[INET6_ADDRSTRLEN];
