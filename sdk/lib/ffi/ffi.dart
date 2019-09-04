@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file
 
 /// {@category VM}
-/// {@nodoc}
 library dart.ffi;
 
 import 'dart:typed_data' show TypedData;
