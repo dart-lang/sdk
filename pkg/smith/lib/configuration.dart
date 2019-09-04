@@ -123,7 +123,7 @@ class Configuration {
 
     // Infer option values from the words in the configuration name.
     var words = name.split("-").toSet();
-    var optionsCopy = new Map.of(optionsJson);
+    var optionsCopy = Map.of(optionsJson);
 
     T enumOption<T extends NamedEnum>(
         String option, List<String> allowed, T Function(String) parse) {
@@ -210,7 +210,7 @@ class Configuration {
         throw FormatException('Option "$option" had value "$value", which is '
             'not a List.');
       }
-      return new List<String>.from(value as List);
+      return List<String>.from(value as List);
     }
 
     // Extract options from the name and map.
@@ -268,7 +268,7 @@ class Configuration {
 
     // Should have consumed the whole map.
     if (optionsCopy.isNotEmpty) {
-      throw new FormatException('Unknown option "${optionsCopy.keys.first}".');
+      throw FormatException('Unknown option "${optionsCopy.keys.first}".');
     }
 
     return configuration;
@@ -425,7 +425,7 @@ class Configuration {
       ]);
 
   String toString() {
-    var buffer = new StringBuffer();
+    var buffer = StringBuffer();
     buffer.write(name);
     buffer.write("(");
 
@@ -462,7 +462,7 @@ class Configuration {
   }
 
   String visualCompare(Configuration other) {
-    var buffer = new StringBuffer();
+    var buffer = StringBuffer();
     buffer.writeln(name);
     buffer.writeln(other.name);
 
@@ -543,22 +543,22 @@ class Configuration {
 }
 
 class Architecture extends NamedEnum {
-  static const ia32 = const Architecture._('ia32');
-  static const x64 = const Architecture._('x64');
-  static const arm = const Architecture._('arm');
-  static const armv6 = const Architecture._('armv6');
-  static const armv5te = const Architecture._('armv5te');
-  static const arm64 = const Architecture._('arm64');
-  static const simarm = const Architecture._('simarm');
-  static const simarmv6 = const Architecture._('simarmv6');
-  static const simarmv5te = const Architecture._('simarmv5te');
-  static const simarm64 = const Architecture._('simarm64');
-  static const simdbc = const Architecture._('simdbc');
-  static const simdbc64 = const Architecture._('simdbc64');
+  static const ia32 = Architecture._('ia32');
+  static const x64 = Architecture._('x64');
+  static const arm = Architecture._('arm');
+  static const armv6 = Architecture._('armv6');
+  static const armv5te = Architecture._('armv5te');
+  static const arm64 = Architecture._('arm64');
+  static const simarm = Architecture._('simarm');
+  static const simarmv6 = Architecture._('simarmv6');
+  static const simarmv5te = Architecture._('simarmv5te');
+  static const simarm64 = Architecture._('simarm64');
+  static const simdbc = Architecture._('simdbc');
+  static const simdbc64 = Architecture._('simdbc64');
 
   static final List<String> names = _all.keys.toList();
 
-  static final _all = new Map<String, Architecture>.fromIterable([
+  static final _all = Map<String, Architecture>.fromIterable([
     ia32,
     x64,
     arm,
@@ -577,29 +577,29 @@ class Architecture extends NamedEnum {
     var architecture = _all[name];
     if (architecture != null) return architecture;
 
-    throw new ArgumentError('Unknown architecture "$name".');
+    throw ArgumentError('Unknown architecture "$name".');
   }
 
   const Architecture._(String name) : super(name);
 }
 
 class Compiler extends NamedEnum {
-  static const none = const Compiler._('none');
-  static const dart2js = const Compiler._('dart2js');
-  static const dart2analyzer = const Compiler._('dart2analyzer');
-  static const compareAnalyzerCfe = const Compiler._('compare_analyzer_cfe');
-  static const dartdevc = const Compiler._('dartdevc');
-  static const dartdevk = const Compiler._('dartdevk');
-  static const appJitk = const Compiler._('app_jitk');
-  static const dartk = const Compiler._('dartk');
-  static const dartkp = const Compiler._('dartkp');
-  static const dartkb = const Compiler._('dartkb');
-  static const specParser = const Compiler._('spec_parser');
-  static const fasta = const Compiler._('fasta');
+  static const none = Compiler._('none');
+  static const dart2js = Compiler._('dart2js');
+  static const dart2analyzer = Compiler._('dart2analyzer');
+  static const compareAnalyzerCfe = Compiler._('compare_analyzer_cfe');
+  static const dartdevc = Compiler._('dartdevc');
+  static const dartdevk = Compiler._('dartdevk');
+  static const appJitk = Compiler._('app_jitk');
+  static const dartk = Compiler._('dartk');
+  static const dartkp = Compiler._('dartkp');
+  static const dartkb = Compiler._('dartkb');
+  static const specParser = Compiler._('spec_parser');
+  static const fasta = Compiler._('fasta');
 
   static final List<String> names = _all.keys.toList();
 
-  static final _all = new Map<String, Compiler>.fromIterable([
+  static final _all = Map<String, Compiler>.fromIterable([
     none,
     dart2js,
     dart2analyzer,
@@ -618,7 +618,7 @@ class Compiler extends NamedEnum {
     var compiler = _all[name];
     if (compiler != null) return compiler;
 
-    throw new ArgumentError('Unknown compiler "$name".');
+    throw ArgumentError('Unknown compiler "$name".');
   }
 
   const Compiler._(String name) : super(name);
@@ -722,21 +722,20 @@ class Compiler extends NamedEnum {
 }
 
 class Mode extends NamedEnum {
-  static const debug = const Mode._('debug');
-  static const product = const Mode._('product');
-  static const release = const Mode._('release');
+  static const debug = Mode._('debug');
+  static const product = Mode._('product');
+  static const release = Mode._('release');
 
   static final List<String> names = _all.keys.toList();
 
-  static final _all = new Map<String, Mode>.fromIterable(
-      [debug, product, release],
+  static final _all = Map<String, Mode>.fromIterable([debug, product, release],
       key: (mode) => (mode as Mode).name);
 
   static Mode find(String name) {
     var mode = _all[name];
     if (mode != null) return mode;
 
-    throw new ArgumentError('Unknown mode "$name".');
+    throw ArgumentError('Unknown mode "$name".');
   }
 
   const Mode._(String name) : super(name);
@@ -745,25 +744,25 @@ class Mode extends NamedEnum {
 }
 
 class Runtime extends NamedEnum {
-  static const vm = const Runtime._('vm');
-  static const flutter = const Runtime._('flutter');
-  static const dartPrecompiled = const Runtime._('dart_precompiled');
-  static const d8 = const Runtime._('d8');
-  static const jsshell = const Runtime._('jsshell');
-  static const firefox = const Runtime._('firefox');
-  static const chrome = const Runtime._('chrome');
-  static const safari = const Runtime._('safari');
-  static const ie9 = const Runtime._('ie9');
-  static const ie10 = const Runtime._('ie10');
-  static const ie11 = const Runtime._('ie11');
-  static const edge = const Runtime._('edge');
-  static const chromeOnAndroid = const Runtime._('chromeOnAndroid');
-  static const selfCheck = const Runtime._('self_check');
-  static const none = const Runtime._('none');
+  static const vm = Runtime._('vm');
+  static const flutter = Runtime._('flutter');
+  static const dartPrecompiled = Runtime._('dart_precompiled');
+  static const d8 = Runtime._('d8');
+  static const jsshell = Runtime._('jsshell');
+  static const firefox = Runtime._('firefox');
+  static const chrome = Runtime._('chrome');
+  static const safari = Runtime._('safari');
+  static const ie9 = Runtime._('ie9');
+  static const ie10 = Runtime._('ie10');
+  static const ie11 = Runtime._('ie11');
+  static const edge = Runtime._('edge');
+  static const chromeOnAndroid = Runtime._('chromeOnAndroid');
+  static const selfCheck = Runtime._('self_check');
+  static const none = Runtime._('none');
 
   static final List<String> names = _all.keys.toList();
 
-  static final _all = new Map<String, Runtime>.fromIterable([
+  static final _all = Map<String, Runtime>.fromIterable([
     vm,
     flutter,
     dartPrecompiled,
@@ -785,7 +784,7 @@ class Runtime extends NamedEnum {
     var runtime = _all[name];
     if (runtime != null) return runtime;
 
-    throw new ArgumentError('Unknown runtime "$name".');
+    throw ArgumentError('Unknown runtime "$name".');
   }
 
   const Runtime._(String name) : super(name);
@@ -847,15 +846,15 @@ class Runtime extends NamedEnum {
 }
 
 class System extends NamedEnum {
-  static const android = const System._('android');
-  static const fuchsia = const System._('fuchsia');
-  static const linux = const System._('linux');
-  static const mac = const System._('mac');
-  static const win = const System._('win');
+  static const android = System._('android');
+  static const fuchsia = System._('fuchsia');
+  static const linux = System._('linux');
+  static const mac = System._('mac');
+  static const win = System._('win');
 
   static final List<String> names = _all.keys.toList();
 
-  static final _all = new Map<String, System>.fromIterable(
+  static final _all = Map<String, System>.fromIterable(
       [android, fuchsia, linux, mac, win],
       key: (system) => (system as System).name);
 
@@ -875,7 +874,7 @@ class System extends NamedEnum {
     }
     // TODO(rnystrom): What about ios?
 
-    throw new ArgumentError('Unknown operating system "$name".');
+    throw ArgumentError('Unknown operating system "$name".');
   }
 
   const System._(String name) : super(name);

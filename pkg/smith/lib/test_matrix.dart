@@ -13,7 +13,7 @@ class TestMatrix {
 
   /// Reads a test matrix from the file at [path].
   static TestMatrix fromPath(String path) {
-    var json = jsonDecode(new File(path).readAsStringSync());
+    var json = jsonDecode(File(path).readAsStringSync());
     return fromJson(json as Map<String, dynamic>);
   }
 
