@@ -96,7 +96,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   static int allowedNumberOfContextsToWrite = 10;
 
   /// Whether summary2 should be used to resynthesize elements.
-  static bool useSummary2 = false;
+  static bool useSummary2 = true;
 
   /// The scheduler that schedules analysis work in this, and possibly other
   /// analysis drivers.
