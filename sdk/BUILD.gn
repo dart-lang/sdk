@@ -117,10 +117,6 @@ _platform_sdk_snapshots = [
     "../utils/dartanalyzer:generate_dartanalyzer_snapshot",
   ],
   [
-    "dart2native",
-    "../utils/dart2native:generate_dart2native_snapshot",
-  ],
-  [
     "dartdoc",
     "../utils/dartdoc",
   ],
@@ -158,10 +154,6 @@ _full_sdk_snapshots = [
   [
     "dartanalyzer",
     "../utils/dartanalyzer:generate_dartanalyzer_snapshot",
-  ],
-  [
-    "dart2native",
-    "../utils/dart2native:generate_dart2native_snapshot",
   ],
   [
     "dartdevc",
@@ -446,23 +438,6 @@ copy("copy_dart2aot") {
   }
   sources = [
     "bin/dart2aot$ext",
-  ]
-  outputs = [
-    "$root_out_dir/dart-sdk/bin/{{source_file_part}}",
-  ]
-}
-
-copy("copy_dart2native") {
-  deps = [
-    ":copy_gen_kernel_snapshot",
-    ":copy_gen_snapshot",
-  ]
-  ext = ""
-  if (is_win) {
-    ext = ".bat"
-  }
-  sources = [
-    "bin/dart2native$ext",
   ]
   outputs = [
     "$root_out_dir/dart-sdk/bin/{{source_file_part}}",
@@ -1005,7 +980,6 @@ group("create_common_sdk") {
     ":copy_analysis_summaries",
     ":copy_api_readme",
     ":copy_dart",
-    ":copy_dart2native",
     ":copy_dartdoc_files",
     ":copy_headers",
     ":copy_libraries_dart",
