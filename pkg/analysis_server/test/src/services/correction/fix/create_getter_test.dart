@@ -12,6 +12,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CreateGetterTest);
     defineReflectiveTests(CreateGetterMixinTest);
+    defineReflectiveTests(CreateGetterWithExtensionMethodsTest);
   });
 }
 
@@ -357,6 +358,61 @@ class A {
   main() {
     test;
   }
+}
+''');
+  }
+}
+
+@reflectiveTest
+class CreateGetterWithExtensionMethodsTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.CREATE_GETTER;
+
+  void setUp() {
+    createAnalysisOptionsFile(experiments: ['extension-methods']);
+    super.setUp();
+  }
+
+  test_override() async {
+    await resolveTestUnit('''
+extension E on String {
+}
+
+main(String s) {
+  int v = E(s).test;
+  print(v);
+}
+''');
+    await assertHasFix('''
+extension E on String {
+  int get test => null;
+}
+
+main(String s) {
+  int v = E(s).test;
+  print(v);
+}
+''');
+  }
+
+  test_static() async {
+    await resolveTestUnit('''
+extension E on String {
+}
+
+main(String s) {
+  int v = E.test;
+  print(v);
+}
+''');
+    await assertHasFix('''
+extension E on String {
+  static int get test => null;
+}
+
+main(String s) {
+  int v = E.test;
+  print(v);
 }
 ''');
   }

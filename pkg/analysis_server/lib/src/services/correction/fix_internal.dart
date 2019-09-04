@@ -527,6 +527,9 @@ class FixProcessor {
       await _addFix_importLibrary_withTopLevelVariable();
       await _addFix_importLibrary_withType();
     }
+    if (errorCode == CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER) {
+      await _addFix_createGetter();
+    }
     if (errorCode == StaticTypeWarningCode.UNDEFINED_METHOD) {
       await _addFix_createClass();
       await _addFix_importLibrary_withFunction();
@@ -1948,7 +1951,7 @@ class FixProcessor {
     if (!nameNode.inGetterContext()) {
       return;
     }
-    // prepare target Expression
+    // prepare target
     Expression target;
     {
       AstNode nameParent = nameNode.parent;
@@ -1958,46 +1961,53 @@ class FixProcessor {
         target = nameParent.realTarget;
       }
     }
-    // prepare target ClassElement
+    // prepare target element
     bool staticModifier = false;
-    ClassElement targetClassElement;
-    if (target != null) {
-      // prepare target interface type
-      DartType targetType = target.staticType;
-      if (targetType is! InterfaceType) {
-        return;
-      }
-      targetClassElement = targetType.element;
-      // maybe static
-      if (target is Identifier) {
-        Identifier targetIdentifier = target;
-        Element targetElement = targetIdentifier.staticElement;
-        staticModifier = targetElement?.kind == ElementKind.CLASS;
+    Element targetElement;
+    if (target is ExtensionOverride) {
+      targetElement = target.staticElement;
+    } else if (target != null) {
+      if (target is Identifier && target.staticElement is ExtensionElement) {
+        targetElement = target.staticElement;
+        staticModifier = true;
+      } else {
+        // prepare target interface type
+        DartType targetType = target.staticType;
+        if (targetType is! InterfaceType) {
+          return;
+        }
+        targetElement = targetType.element;
+        // maybe static
+        if (target is Identifier) {
+          Identifier targetIdentifier = target;
+          Element targetElement = targetIdentifier.staticElement;
+          staticModifier = targetElement?.kind == ElementKind.CLASS;
+        }
       }
     } else {
-      targetClassElement = getEnclosingClassElement(node);
-      if (targetClassElement == null) {
+      targetElement = getEnclosingClassElement(node);
+      if (targetElement == null) {
         return;
       }
       staticModifier = _inStaticContext();
     }
-    if (targetClassElement.librarySource.isInSystemLibrary) {
+    if (targetElement.librarySource.isInSystemLibrary) {
       return;
     }
-    utils.targetClassElement = targetClassElement;
-    // prepare target ClassOrMixinDeclaration
+    // prepare target declaration
     var targetDeclarationResult =
-        await sessionHelper.getElementDeclaration(targetClassElement);
-    if (targetDeclarationResult.node is! ClassOrMixinDeclaration) {
+        await sessionHelper.getElementDeclaration(targetElement);
+    if (targetDeclarationResult.node is! ClassOrMixinDeclaration &&
+        targetDeclarationResult.node is! ExtensionDeclaration) {
       return;
     }
-    ClassOrMixinDeclaration targetNode = targetDeclarationResult.node;
+    CompilationUnitMember targetNode = targetDeclarationResult.node;
     // prepare location
     ClassMemberLocation targetLocation =
         CorrectionUtils(targetDeclarationResult.resolvedUnit)
             .prepareNewGetterLocation(targetNode);
     // build method source
-    Source targetSource = targetClassElement.source;
+    Source targetSource = targetElement.source;
     String targetFile = targetSource.fullName;
     var changeBuilder = _newDartChangeBuilder();
     await changeBuilder.addFileEdit(targetFile, (DartFileEditBuilder builder) {

@@ -1042,22 +1042,22 @@ class CorrectionUtils {
   }
 
   /**
-   * @return the source of the inverted condition for the given logical expression.
+   * Return the source of the inverted condition for the given logical expression.
    */
   String invertCondition(Expression expression) =>
       _invertCondition0(expression)._source;
 
   /**
-   * Return `true` if the given [classDeclaration] has open '{' and close '}'
-   * at the same line, e.g. `class X {}`.
+   * Return `true` if the given class, mixin, enum or extension [declaration]
+   * has open '{' and close '}' on the same line, e.g. `class X {}`.
    */
-  bool isClassWithEmptyBody(ClassOrMixinDeclaration classDeclaration) {
-    return getLineThis(classDeclaration.leftBracket.offset) ==
-        getLineThis(classDeclaration.rightBracket.offset);
+  bool isClassWithEmptyBody(CompilationUnitMember declaration) {
+    return getLineThis(_getLeftBracket(declaration).offset) ==
+        getLineThis(_getRightBracket(declaration).offset);
   }
 
   /**
-   * @return <code>true</code> if selection range contains only whitespace or comments
+   * Return <code>true</code> if [range] contains only whitespace or comments.
    */
   bool isJustWhitespaceOrComment(SourceRange range) {
     String trimmedText = getRangeText(range).trim();
@@ -1070,12 +1070,15 @@ class CorrectionUtils {
   }
 
   ClassMemberLocation prepareNewClassMemberLocation(
-      ClassOrMixinDeclaration classDeclaration,
+      CompilationUnitMember declaration,
       bool shouldSkip(ClassMember existingMember)) {
     String indent = getIndent(1);
     // Find the last target member.
     ClassMember targetMember = null;
-    List<ClassMember> members = classDeclaration.members;
+    List<ClassMember> members = _getMembers(declaration);
+    if (members == null) {
+      return null;
+    }
     for (ClassMember member in members) {
       if (shouldSkip(member)) {
         targetMember = member;
@@ -1089,11 +1092,11 @@ class CorrectionUtils {
           endOfLine + endOfLine + indent, targetMember.end, '');
     }
     // At the beginning of the class.
-    String suffix = members.isNotEmpty || isClassWithEmptyBody(classDeclaration)
+    String suffix = members.isNotEmpty || isClassWithEmptyBody(declaration)
         ? endOfLine
         : '';
     return new ClassMemberLocation(
-        endOfLine + indent, classDeclaration.leftBracket.end, suffix);
+        endOfLine + indent, _getLeftBracket(declaration).end, suffix);
   }
 
   ClassMemberLocation prepareNewConstructorLocation(
@@ -1105,15 +1108,15 @@ class CorrectionUtils {
   }
 
   ClassMemberLocation prepareNewFieldLocation(
-      ClassOrMixinDeclaration classDeclaration) {
+      CompilationUnitMember declaration) {
     return prepareNewClassMemberLocation(
-        classDeclaration, (member) => member is FieldDeclaration);
+        declaration, (member) => member is FieldDeclaration);
   }
 
   ClassMemberLocation prepareNewGetterLocation(
-      ClassOrMixinDeclaration classDeclaration) {
+      CompilationUnitMember declaration) {
     return prepareNewClassMemberLocation(
-        classDeclaration,
+        declaration,
         (member) =>
             member is FieldDeclaration ||
             member is ConstructorDeclaration ||
@@ -1121,9 +1124,9 @@ class CorrectionUtils {
   }
 
   ClassMemberLocation prepareNewMethodLocation(
-      ClassOrMixinDeclaration classDeclaration) {
+      CompilationUnitMember declaration) {
     return prepareNewClassMemberLocation(
-        classDeclaration,
+        declaration,
         (member) =>
             member is FieldDeclaration ||
             member is ConstructorDeclaration ||
@@ -1232,6 +1235,33 @@ class CorrectionUtils {
       if (definedNames.containsValue(element)) {
         return imp;
       }
+    }
+    return null;
+  }
+
+  Token _getLeftBracket(CompilationUnitMember declaration) {
+    if (declaration is ClassOrMixinDeclaration) {
+      return declaration.leftBracket;
+    } else if (declaration is ExtensionDeclaration) {
+      return declaration.leftBracket;
+    }
+    return null;
+  }
+
+  List<ClassMember> _getMembers(CompilationUnitMember declaration) {
+    if (declaration is ClassOrMixinDeclaration) {
+      return declaration.members;
+    } else if (declaration is ExtensionDeclaration) {
+      return declaration.members;
+    }
+    return null;
+  }
+
+  Token _getRightBracket(CompilationUnitMember declaration) {
+    if (declaration is ClassOrMixinDeclaration) {
+      return declaration.rightBracket;
+    } else if (declaration is ExtensionDeclaration) {
+      return declaration.rightBracket;
     }
     return null;
   }
