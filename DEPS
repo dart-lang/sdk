@@ -54,7 +54,7 @@ vars = {
   "gperftools_revision": "e9ab4c53041ac62feefbbb076d326e9a77dd1567",
 
   # Revisions of /third_party/* dependencies.
-  "args_tag": "1.4.4",
+  "args_tag": "1.5.0",
   "async_tag": "2.0.8",
   "bazel_worker_tag": "bazel_worker-v0.1.20",
   "benchmark_harness_tag": "81641290dea44c34138a109a37e215482f405f81",
@@ -84,7 +84,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
   "dart_style_tag": "1.2.8",  # Please see the note above before updating.
 
-  "dartdoc_tag" : "0.28.4",
+  "dartdoc_tag" : "v0.28.5",
   "fixnum_tag": "0.10.9",
   "glob_tag": "1.1.7",
   "html_tag" : "0.14.0+1",
