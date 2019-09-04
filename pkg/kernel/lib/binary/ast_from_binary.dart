@@ -415,6 +415,7 @@ class BinaryBuilder {
   }
 
   List<int> _indexComponents() {
+    _checkEmptyInput();
     int savedByteOffset = _byteOffset;
     _byteOffset = _bytes.length - 4;
     List<int> index = <int>[];
@@ -431,6 +432,10 @@ class BinaryBuilder {
     return new List.from(index.reversed);
   }
 
+  void _checkEmptyInput() {
+    if (_bytes.length == 0) throw new StateError("Empty input given.");
+  }
+
   /// Deserializes a kernel component and stores it in [component].
   ///
   /// When linking with a non-empty component, canonical names must have been
@@ -438,6 +443,8 @@ class BinaryBuilder {
   ///
   /// The input bytes may contain multiple files concatenated.
   void readComponent(Component component, {bool checkCanonicalNames: false}) {
+    _checkEmptyInput();
+
     // Check that we have a .dill file and it has the correct version before we
     // start decoding it.  Otherwise we will fail for cryptic reasons.
     int offset = _byteOffset;
