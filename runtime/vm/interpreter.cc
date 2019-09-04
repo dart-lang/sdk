@@ -13,6 +13,7 @@
 
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler_kbc.h"
+#include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/cpu.h"
@@ -389,6 +390,9 @@ Interpreter::Interpreter()
     }
   }
 #endif
+  // Make sure interpreter's unboxing view is consistent with compiler.
+  supports_unboxed_doubles_ = FlowGraphCompiler::SupportsUnboxedDoubles();
+  supports_unboxed_simd128_ = FlowGraphCompiler::SupportsUnboxedSimd128();
 }
 
 Interpreter::~Interpreter() {
@@ -2317,7 +2321,7 @@ SwitchDispatch:
         (field->ptr()->is_nullable_ != kNullCid) &&
         Field::UnboxingCandidateBit::decode(field->ptr()->kind_bits_);
     classid_t guarded_cid = field->ptr()->guarded_cid_;
-    if (unboxing && (guarded_cid == kDoubleCid)) {
+    if (unboxing && (guarded_cid == kDoubleCid) && supports_unboxed_doubles_) {
       double raw_value = Double::RawCast(value)->ptr()->value_;
       ASSERT(*(reinterpret_cast<RawDouble**>(instance->ptr()) +
                offset_in_words) == null_value);  // Initializing store.
@@ -2329,7 +2333,8 @@ SwitchDispatch:
       instance->StorePointer(
           reinterpret_cast<RawDouble**>(instance->ptr()) + offset_in_words, box,
           thread);
-    } else if (unboxing && (guarded_cid == kFloat32x4Cid)) {
+    } else if (unboxing && (guarded_cid == kFloat32x4Cid) &&
+               supports_unboxed_simd128_) {
       simd128_value_t raw_value;
       raw_value.readFrom(Float32x4::RawCast(value)->ptr()->value_);
       ASSERT(*(reinterpret_cast<RawFloat32x4**>(instance->ptr()) +
@@ -2342,7 +2347,8 @@ SwitchDispatch:
       instance->StorePointer(
           reinterpret_cast<RawFloat32x4**>(instance->ptr()) + offset_in_words,
           box, thread);
-    } else if (unboxing && (guarded_cid == kFloat64x2Cid)) {
+    } else if (unboxing && (guarded_cid == kFloat64x2Cid) &&
+               supports_unboxed_simd128_) {
       simd128_value_t raw_value;
       raw_value.readFrom(Float64x2::RawCast(value)->ptr()->value_);
       ASSERT(*(reinterpret_cast<RawFloat64x2**>(instance->ptr()) +
@@ -3078,20 +3084,23 @@ SwitchDispatch:
         (field->ptr()->is_nullable_ != kNullCid) &&
         Field::UnboxingCandidateBit::decode(field->ptr()->kind_bits_);
     classid_t guarded_cid = field->ptr()->guarded_cid_;
-    if (unboxing && (guarded_cid == kDoubleCid)) {
+    if (unboxing && (guarded_cid == kDoubleCid) && supports_unboxed_doubles_) {
+      ASSERT(FlowGraphCompiler::SupportsUnboxedDoubles());
       double raw_value = Double::RawCast(value)->ptr()->value_;
       // AllocateDouble places result at SP[0]
       if (!AllocateDouble(thread, raw_value, pc, FP, SP)) {
         HANDLE_EXCEPTION;
       }
-    } else if (unboxing && (guarded_cid == kFloat32x4Cid)) {
+    } else if (unboxing && (guarded_cid == kFloat32x4Cid) &&
+               supports_unboxed_simd128_) {
       simd128_value_t raw_value;
       raw_value.readFrom(Float32x4::RawCast(value)->ptr()->value_);
       // AllocateFloat32x4 places result at SP[0]
       if (!AllocateFloat32x4(thread, raw_value, pc, FP, SP)) {
         HANDLE_EXCEPTION;
       }
-    } else if (unboxing && (guarded_cid == kFloat64x2Cid)) {
+    } else if (unboxing && (guarded_cid == kFloat64x2Cid) &&
+               supports_unboxed_simd128_) {
       simd128_value_t raw_value;
       raw_value.readFrom(Float64x2::RawCast(value)->ptr()->value_);
       // AllocateFloat64x2 places result at SP[0]
@@ -3193,20 +3202,22 @@ SwitchDispatch:
         (field->ptr()->is_nullable_ != kNullCid) &&
         Field::UnboxingCandidateBit::decode(field->ptr()->kind_bits_);
     classid_t guarded_cid = field->ptr()->guarded_cid_;
-    if (unboxing && (guarded_cid == kDoubleCid)) {
+    if (unboxing && (guarded_cid == kDoubleCid) && supports_unboxed_doubles_) {
       double raw_value = Double::RawCast(value)->ptr()->value_;
       RawDouble* box =
           *(reinterpret_cast<RawDouble**>(instance->ptr()) + offset_in_words);
       ASSERT(box != null_value);  // Non-initializing store.
       box->ptr()->value_ = raw_value;
-    } else if (unboxing && (guarded_cid == kFloat32x4Cid)) {
+    } else if (unboxing && (guarded_cid == kFloat32x4Cid) &&
+               supports_unboxed_simd128_) {
       simd128_value_t raw_value;
       raw_value.readFrom(Float32x4::RawCast(value)->ptr()->value_);
       RawFloat32x4* box = *(reinterpret_cast<RawFloat32x4**>(instance->ptr()) +
                             offset_in_words);
       ASSERT(box != null_value);  // Non-initializing store.
       raw_value.writeTo(box->ptr()->value_);
-    } else if (unboxing && (guarded_cid == kFloat64x2Cid)) {
+    } else if (unboxing && (guarded_cid == kFloat64x2Cid) &&
+               supports_unboxed_simd128_) {
       simd128_value_t raw_value;
       raw_value.readFrom(Float64x2::RawCast(value)->ptr()->value_);
       RawFloat64x2* box = *(reinterpret_cast<RawFloat64x2**>(instance->ptr()) +
