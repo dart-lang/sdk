@@ -310,6 +310,36 @@ main() {
       h.flow.finish();
     });
 
+    void _checkIs(String declaredType, String tryPromoteType,
+        String expectedPromotedType) {
+      var h = _Harness();
+      var x = h.addAssignedVar('x', 'int?');
+      var expr = _Expression();
+      h.flow.isExpression_end(expr, x, false, _Type(tryPromoteType));
+      h.flow.ifStatement_thenBegin(expr);
+      if (expectedPromotedType == null) {
+        expect(h.flow.promotedType(x), isNull);
+      } else {
+        expect(h.flow.promotedType(x).type, expectedPromotedType);
+      }
+      h.flow.ifStatement_elseBegin();
+      expect(h.flow.promotedType(x), isNull);
+      h.flow.ifStatement_end(true);
+      h.flow.finish();
+    }
+
+    test('isExpression_end promotes to a subtype', () {
+      _checkIs('int?', 'int', 'int');
+    });
+
+    test('isExpression_end does not promote to a supertype', () {
+      _checkIs('int', 'int?', null);
+    });
+
+    test('isExpression_end does not promote to an unrelated type', () {
+      _checkIs('int', 'String', null);
+    });
+
     test('logicalBinaryOp_rightBegin(isAnd: true) promotes in RHS', () {
       var h = _Harness();
       var x = h.addAssignedVar('x', 'int?');
@@ -517,36 +547,6 @@ main() {
       h.flow.ifStatement_thenBegin(falseExpression);
       expect(h.flow.promotedType(x).type, 'int');
       h.flow.ifStatement_end(false);
-    });
-
-    void _checkIs(String declaredType, String tryPromoteType,
-        String expectedPromotedType) {
-      var h = _Harness();
-      var x = h.addAssignedVar('x', 'int?');
-      var expr = _Expression();
-      h.flow.isExpression_end(expr, x, false, _Type(tryPromoteType));
-      h.flow.ifStatement_thenBegin(expr);
-      if (expectedPromotedType == null) {
-        expect(h.flow.promotedType(x), isNull);
-      } else {
-        expect(h.flow.promotedType(x).type, expectedPromotedType);
-      }
-      h.flow.ifStatement_elseBegin();
-      expect(h.flow.promotedType(x), isNull);
-      h.flow.ifStatement_end(true);
-      h.flow.finish();
-    }
-
-    test('isExpression_end promotes to a subtype', () {
-      _checkIs('int?', 'int', 'int');
-    });
-
-    test('isExpression_end does not promote to a supertype', () {
-      _checkIs('int', 'int?', null);
-    });
-
-    test('isExpression_end does not promote to an unrelated type', () {
-      _checkIs('int', 'String', null);
     });
   });
 
