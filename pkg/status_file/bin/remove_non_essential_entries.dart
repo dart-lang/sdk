@@ -19,6 +19,14 @@
 //
 // When using the option to keep crashes, there will be an additional line
 //   a: Crash
+//
+// The option -r can be used to also process expectations in lines with
+// comments. In this mode, deleted comments are collected and either printed
+// out or written to a separate file (with -w).
+//
+// The option -i (with -r) tries to resolve the status of issues mentioned in
+// comments and adds it to the collected comments. This requires an issue.log
+// file as described in [parseIssueFile].
 
 import 'dart:io';
 
@@ -37,8 +45,93 @@ StatusEntry filterExpectations(
       : StatusEntry(entry.path, entry.lineNumber, remaining, entry.comment);
 }
 
-StatusFile removeNonEssentialEntries(
-    StatusFile statusFile, List<Expectation> expectationsToKeep) {
+Map<String, Map<int, String>> issues;
+
+String getIssueState(String project, int issue) {
+  Map projectIssues = issues[project];
+  if (projectIssues == null) {
+    throw "Cannot find project $project, not one of {${issues.keys.join(",")}}";
+  }
+  String state = projectIssues[issue] ?? "";
+  return "\t$state";
+}
+
+// This method assumes the following data format:
+//  <project>, <state>, <issue number>, <update timestamp>
+// sorted by issue number then timestamp ascending.
+//
+// The first line is expected to contain the field names and is skipped.
+void parseIssueFile() async {
+  issues = {};
+  String issuesLog = await File("issues.log").readAsString();
+  List<String> lines = issuesLog.split("\n");
+  for (String line in lines.skip(1).where((line) => line.isNotEmpty)) {
+    List<String> fields = line.split(",");
+    if (fields.length != 4) {
+      throw "invalid issue state line $line";
+    }
+    String project = fields[0];
+    String state = fields[1];
+    int issueNumber = int.parse(fields[2]);
+    issues.putIfAbsent(project, () => {})[issueNumber] = state;
+  }
+}
+
+List<RegExp> co19IssuePatterns = [
+  RegExp(r"https://github.com/dart-lang/co19/issues/(\d+)"),
+  RegExp(r"co19 issue (\d+)"),
+];
+
+List<RegExp> sdkIssuePatterns = [
+  RegExp(r"[Ii]ssue (\d+)"),
+  RegExp(r"#(\d+)"),
+  RegExp(r"^(\d+)$"),
+  RegExp(r"http://dartbug.com/(\d+)"),
+  RegExp(r"https://github.com/dart-lang/sdk/issues/(\d+)"),
+];
+
+String getIssueText(String comment, bool resolveState) {
+  int issue;
+  String prefix;
+  String project;
+  for (RegExp pattern in co19IssuePatterns) {
+    Match match = pattern.firstMatch(comment);
+    if (match != null) {
+      issue = int.tryParse(match[1]);
+      if (issue != null) {
+        prefix = "https://github.com/dart-lang/co19/issues/";
+        project = "dart-lang/co19";
+        break;
+      }
+    }
+  }
+  if (issue == null) {
+    for (RegExp pattern in sdkIssuePatterns) {
+      Match match = pattern.firstMatch(comment);
+      if (match != null) {
+        issue = int.tryParse(match[1]);
+        if (issue != null) {
+          prefix = "https://dartbug.com/";
+          project = "dart-lang/sdk";
+          break;
+        }
+      }
+    }
+  }
+  if (issue != null) {
+    String state = resolveState ? getIssueState(project, issue) : "";
+    return "$prefix$issue$state";
+  } else {
+    return "";
+  }
+}
+
+Future<StatusFile> removeNonEssentialEntries(
+    StatusFile statusFile,
+    List<Expectation> expectationsToKeep,
+    bool removeComments,
+    List<String> comments,
+    bool resolveIssueState) async {
   List<StatusSection> sections = <StatusSection>[];
   for (StatusSection section in statusFile.sections) {
     bool hasStatusEntries = false;
@@ -46,12 +139,30 @@ StatusFile removeNonEssentialEntries(
     for (Entry entry in section.entries) {
       if (entry is EmptyEntry) {
         entries.add(entry);
-      } else if (entry is StatusEntry && entry.comment != null ||
-          entry is CommentEntry) {
+      } else if (entry is CommentEntry) {
         entries.add(entry);
         hasStatusEntries = true;
       } else if (entry is StatusEntry) {
-        StatusEntry newEntry = filterExpectations(entry, expectationsToKeep);
+        StatusEntry newEntry = entry;
+        if (entry.comment == null) {
+          newEntry = filterExpectations(entry, expectationsToKeep);
+        } else if (removeComments) {
+          newEntry = filterExpectations(entry, expectationsToKeep);
+          // Store comment if entry will be removed.
+          if (newEntry == null) {
+            String comment = entry.comment.toString().substring(1).trim();
+            String testName = entry.path;
+            String expectations = entry.expectations.toString();
+            // Remove '[' and ']'.
+            expectations = expectations.substring(1, expectations.length - 1);
+            String conditionPrefix =
+                section.condition != null ? "${section.condition}" : "";
+            String issueText = await getIssueText(comment, resolveIssueState);
+            String statusLine = "$conditionPrefix\t$testName\t$expectations"
+                "\t$comment\t$issueText";
+            comments.add(statusLine);
+          }
+        }
         if (newEntry != null) {
           entries.add(newEntry);
           hasStatusEntries = true;
@@ -83,6 +194,10 @@ ArgParser buildParser() {
       help: "Overwrite input file with output.");
   parser.addFlag("keep-crashes",
       abbr: 'c', negatable: false, defaultsTo: false);
+  parser.addFlag("remove-comments",
+      abbr: 'r', negatable: false, defaultsTo: false);
+  parser.addFlag("resolve-issue-states",
+      abbr: 'i', negatable: false, defaultsTo: false);
   parser.addFlag("help",
       abbr: "h",
       negatable: false,
@@ -97,7 +212,15 @@ void printHelp(ArgParser parser) {
   print(parser.usage);
 }
 
-main(List<String> arguments) {
+String formatComments(List<String> comments) {
+  StringBuffer sb = new StringBuffer();
+  for (String statusLine in comments) {
+    sb.writeln(statusLine);
+  }
+  return sb.toString();
+}
+
+main(List<String> arguments) async {
   var parser = buildParser();
   var results = parser.parse(arguments);
   if (results["help"] || results.rest.isEmpty) {
@@ -117,15 +240,32 @@ main(List<String> arguments) {
     expectationsToKeep.add(Expectation.crash);
   }
 
+  bool removeComments = results["remove-comments"];
+
   for (String path in results.rest) {
+    List<String> comments = [];
+
     bool writeFile = results["overwrite"];
+    bool resolveGithubIssueState = results["resolve-issue-states"];
     var statusFile = StatusFile.read(path);
-    statusFile = removeNonEssentialEntries(statusFile, expectationsToKeep);
+    if (resolveGithubIssueState) {
+      await parseIssueFile();
+    }
+    statusFile = await removeNonEssentialEntries(statusFile, expectationsToKeep,
+        removeComments, comments, resolveGithubIssueState);
     if (writeFile) {
-      File(path).writeAsStringSync(statusFile.toString());
-      print("Modified $path.");
+      await File(path).writeAsString(statusFile.toString());
+      print("Wrote $path.");
+      if (removeComments) {
+        await File("$path.csv").writeAsString(formatComments(comments));
+        print("Wrote $path.csv.");
+      }
     } else {
       print(statusFile);
+      if (removeComments) {
+        print("");
+        print(formatComments(comments));
+      }
     }
   }
 }
