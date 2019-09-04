@@ -41,7 +41,7 @@ class Variables implements VariableRecorder, VariableRepository {
   Map<ClassElement, DecoratedType> decoratedDirectSupertypes(
       ClassElement class_) {
     assert(class_ is! ClassElementHandle);
-    return _decoratedDirectSupertypes[class_] ??
+    return _decoratedDirectSupertypes[class_] ??=
         _decorateDirectSupertypes(class_);
   }
 
