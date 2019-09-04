@@ -259,6 +259,12 @@ void FUNCTION_NAME(Socket_CreateConnect)(Dart_NativeArguments args) {
   Dart_Handle port_arg = Dart_GetNativeArgument(args, 2);
   int64_t port = DartUtils::GetInt64ValueCheckRange(port_arg, 0, 65535);
   SocketAddress::SetAddrPort(&addr, static_cast<intptr_t>(port));
+  if (addr.addr.sa_family == AF_INET6) {
+    Dart_Handle scope_id_arg = Dart_GetNativeArgument(args, 3);
+    int64_t scope_id =
+        DartUtils::GetInt64ValueCheckRange(scope_id_arg, 0, 65535);
+    SocketAddress::SetAddrScope(&addr, scope_id);
+  }
   intptr_t socket = Socket::CreateConnect(addr);
   OSError error;
   if (socket >= 0) {
@@ -278,6 +284,12 @@ void FUNCTION_NAME(Socket_CreateBindConnect)(Dart_NativeArguments args) {
   SocketAddress::SetAddrPort(&addr, static_cast<intptr_t>(port));
   RawAddr sourceAddr;
   SocketAddress::GetSockAddr(Dart_GetNativeArgument(args, 3), &sourceAddr);
+  if (addr.addr.sa_family == AF_INET6) {
+    Dart_Handle scope_id_arg = Dart_GetNativeArgument(args, 4);
+    int64_t scope_id =
+        DartUtils::GetInt64ValueCheckRange(scope_id_arg, 0, 65535);
+    SocketAddress::SetAddrScope(&addr, scope_id);
+  }
   intptr_t socket = Socket::CreateBindConnect(addr, sourceAddr);
   OSError error;
   if (socket >= 0) {
@@ -627,6 +639,12 @@ void FUNCTION_NAME(ServerSocket_CreateBindListen)(Dart_NativeArguments args) {
       Dart_GetNativeArgument(args, 3), 0, 65535);
   bool v6_only = DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 4));
   bool shared = DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 5));
+  if (addr.addr.sa_family == AF_INET6) {
+    Dart_Handle scope_id_arg = Dart_GetNativeArgument(args, 6);
+    int64_t scope_id =
+        DartUtils::GetInt64ValueCheckRange(scope_id_arg, 0, 65535);
+    SocketAddress::SetAddrScope(&addr, scope_id);
+  }
 
   Dart_Handle socket_object = Dart_GetNativeArgument(args, 0);
   Dart_Handle result = ListeningSocketRegistry::Instance()->CreateBindListen(
@@ -664,7 +682,7 @@ CObject* Socket::LookupRequest(const CObjectArray& request) {
       array->SetAt(0, new CObjectInt32(CObject::NewInt32(0)));
       for (intptr_t i = 0; i < addresses->count(); i++) {
         SocketAddress* addr = addresses->GetAt(i);
-        CObjectArray* entry = new CObjectArray(CObject::NewArray(3));
+        CObjectArray* entry = new CObjectArray(CObject::NewArray(4));
 
         CObjectInt32* type =
             new CObjectInt32(CObject::NewInt32(addr->GetType()));
@@ -677,6 +695,10 @@ CObject* Socket::LookupRequest(const CObjectArray& request) {
         RawAddr raw = addr->addr();
         CObjectUint8Array* data = SocketAddress::ToCObject(raw);
         entry->SetAt(2, data);
+
+        CObjectInt64* scope_id = new CObjectInt64(
+            CObject::NewInt64(SocketAddress::GetAddrScope(raw)));
+        entry->SetAt(3, scope_id);
 
         array->SetAt(i + 1, entry);
       }
