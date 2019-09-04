@@ -1023,34 +1023,50 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitSetOrMapLiteral(SetOrMapLiteral node) {
-    var listType = node.staticType as InterfaceType;
+    var setOrMapType = node.staticType as InterfaceType;
     var typeArguments = node.typeArguments?.arguments;
-    if (typeArguments == null) {
-      // TODO(brianwilkerson) We might want to create fake nodes in the graph to
-      //  represent the type arguments so that we can still create edges from
-      //  the elements to them.
-      // TODO(brianwilkerson)
-      _unimplemented(node, 'Set or map literal with no type arguments');
-    } else if (typeArguments.length == 1) {
-      var elementType =
-          _variables.decoratedTypeAnnotation(source, typeArguments[0]);
+
+    if (node.isSet) {
+      DecoratedType elementType;
+      if (typeArguments == null) {
+        assert(setOrMapType.typeArguments.length == 1);
+        elementType = DecoratedType.forImplicitType(
+            _typeProvider, setOrMapType.typeArguments[0], _graph);
+      } else {
+        assert(typeArguments.length == 1);
+        elementType =
+            _variables.decoratedTypeAnnotation(source, typeArguments[0]);
+      }
       for (var element in node.elements) {
         if (element is Expression) {
           _handleAssignment(element, destinationType: elementType);
         } else {
           // Handle spread and control flow elements.
           element.accept(this);
-          // TODO(brianwilkerson)
+          // TODO(mfairhurst)
           _unimplemented(node, 'Spread or control flow element');
         }
       }
-      return DecoratedType(listType, _graph.never,
+      return DecoratedType(setOrMapType, _graph.never,
           typeArguments: [elementType]);
-    } else if (typeArguments.length == 2) {
-      var keyType =
-          _variables.decoratedTypeAnnotation(source, typeArguments[0]);
-      var valueType =
-          _variables.decoratedTypeAnnotation(source, typeArguments[1]);
+    } else {
+      assert(node.isMap);
+      DecoratedType keyType;
+      DecoratedType valueType;
+
+      if (typeArguments == null) {
+        assert(setOrMapType.typeArguments.length == 2);
+        keyType = DecoratedType.forImplicitType(
+            _typeProvider, setOrMapType.typeArguments[0], _graph);
+        valueType = DecoratedType.forImplicitType(
+            _typeProvider, setOrMapType.typeArguments[1], _graph);
+      } else {
+        assert(typeArguments.length == 2);
+        keyType = _variables.decoratedTypeAnnotation(source, typeArguments[0]);
+        valueType =
+            _variables.decoratedTypeAnnotation(source, typeArguments[1]);
+      }
+
       for (var element in node.elements) {
         if (element is MapLiteralEntry) {
           _handleAssignment(element.key, destinationType: keyType);
@@ -1058,16 +1074,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         } else {
           // Handle spread and control flow elements.
           element.accept(this);
-          // TODO(brianwilkerson)
+          // TODO(mfairhurst)
           _unimplemented(node, 'Spread or control flow element');
         }
       }
-      return DecoratedType(listType, _graph.never,
+      return DecoratedType(setOrMapType, _graph.never,
           typeArguments: [keyType, valueType]);
-    } else {
-      // TODO(brianwilkerson)
-      _unimplemented(
-          node, 'Set or map literal with more than two type arguments');
     }
   }
 

@@ -1017,6 +1017,38 @@ class C {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_field_initializer_untyped_map_literal() async {
+    var content = '''
+class C {
+  Map<String, int> f;
+  C() : f = {"foo": null};
+}
+''';
+    var expected = '''
+class C {
+  Map<String, int?> f;
+  C() : f = {"foo": null};
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_field_initializer_untyped_set_literal() async {
+    var content = '''
+class C {
+  Set<int> f;
+  C() : f = {null};
+}
+''';
+    var expected = '''
+class C {
+  Set<int?> f;
+  C() : f = {null};
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_field_type_inferred() async {
     var content = '''
 int f() => null;
