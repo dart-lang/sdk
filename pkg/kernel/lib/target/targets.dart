@@ -86,6 +86,17 @@ abstract class Target {
   /// Libraries will be loaded in order.
   List<String> get extraRequiredLibraries => const <String>[];
 
+  /// A list of URIs of extra required libraries when compiling the platform.
+  ///
+  /// Libraries will be loaded in order after the [extraRequiredLibraries]
+  /// above.
+  ///
+  /// Normally not needed, but can be useful if removing libraries from the
+  /// [extraRequiredLibraries] list so libraries will still be available in the
+  /// platform if having a weird mix of current and not-quite-current as can
+  /// sometimes be the case.
+  List<String> get extraRequiredLibrariesPlatform => const <String>[];
+
   /// A list of URIs of libraries to be indexed in the CoreTypes index, not
   /// including dart:_internal, dart:async, dart:core and dart:mirrors.
   List<String> get extraIndexedLibraries => const <String>[];

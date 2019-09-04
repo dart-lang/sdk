@@ -125,6 +125,11 @@ abstract class TargetImplementation extends Target {
     for (String uri in backendTarget.extraRequiredLibraries) {
       loader.read(Uri.parse(uri), 0, accessor: loader.coreLibrary);
     }
+    if (context.compilingPlatform) {
+      for (String uri in backendTarget.extraRequiredLibrariesPlatform) {
+        loader.read(Uri.parse(uri), 0, accessor: loader.coreLibrary);
+      }
+    }
   }
 
   void addSourceInformation(

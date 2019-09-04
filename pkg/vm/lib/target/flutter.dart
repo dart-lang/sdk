@@ -37,7 +37,6 @@ class FlutterTarget extends VmTarget {
         // PRODUCT mode.
         'dart:mirrors',
 
-        'dart:profiler',
         'dart:typed_data',
         'dart:nativewrappers',
         'dart:io',
@@ -46,6 +45,11 @@ class FlutterTarget extends VmTarget {
         // Required for flutter.
         'dart:ui',
         'dart:vmservice_io',
+      ];
+
+  @override
+  List<String> get extraRequiredLibrariesPlatform => const <String>[
+        'dart:profiler',
       ];
 
   @override

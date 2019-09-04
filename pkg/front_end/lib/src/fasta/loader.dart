@@ -164,6 +164,11 @@ abstract class Loader {
       }
       LibraryBuilder library =
           target.createLibraryBuilder(uri, fileUri, origin);
+      if (library == null) {
+        throw new StateError("createLibraryBuilder for uri $uri, "
+            "fileUri $fileUri returned null.");
+      }
+
       if (hasPackageSpecifiedLanguageVersion) {
         library.setLanguageVersion(packageSpecifiedLanguageVersionMajor,
             packageSpecifiedLanguageVersionMinor,
