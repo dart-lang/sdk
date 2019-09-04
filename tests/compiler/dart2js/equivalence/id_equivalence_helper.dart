@@ -429,7 +429,6 @@ Future checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
 
     if (setUpFunction != null) setUpFunction();
 
-    print('name="${name}"');
     if (skip.contains(name)) {
       print('--skipped ------------------------------------------------------');
     } else {
