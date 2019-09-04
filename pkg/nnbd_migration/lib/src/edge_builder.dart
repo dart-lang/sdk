@@ -852,14 +852,19 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     DecoratedType targetType;
     var target = node.realTarget;
     bool isConditional = _isConditionalExpression(node);
-    if (target != null && !_isPrefix(target)) {
-      if (isConditional) {
+    var callee = node.methodName.staticElement;
+    bool calleeIsStatic = callee is ExecutableElement && callee.isStatic;
+    if (target != null) {
+      if (_isPrefix(target)) {
+        // Nothing to do.
+      } else if (calleeIsStatic) {
+        target.accept(this);
+      } else if (isConditional) {
         targetType = target.accept(this);
       } else {
         targetType = _handleTarget(target, node.methodName.name);
       }
     }
-    var callee = node.methodName.staticElement;
     if (callee == null) {
       // Dynamic dispatch.  The return type is `dynamic`.
       // TODO(paulberry): would it be better to assume a return type of `Never`
@@ -1752,14 +1757,17 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       Expression node, Expression target, SimpleIdentifier propertyName) {
     DecoratedType targetType;
     bool isConditional = _isConditionalExpression(node);
-    if (!_isPrefix(target)) {
-      if (isConditional) {
-        targetType = target.accept(this);
-      } else {
-        targetType = _handleTarget(target, propertyName.name);
-      }
-    }
     var callee = propertyName.staticElement;
+    bool calleeIsStatic = callee is ExecutableElement && callee.isStatic;
+    if (_isPrefix(target)) {
+      // Nothing to do.
+    } else if (calleeIsStatic) {
+      target.accept(this);
+    } else if (isConditional) {
+      targetType = target.accept(this);
+    } else {
+      targetType = _handleTarget(target, propertyName.name);
+    }
     if (callee == null) {
       // Dynamic dispatch.
       return _dynamicType;

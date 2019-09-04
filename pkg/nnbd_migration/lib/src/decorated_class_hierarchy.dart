@@ -56,7 +56,7 @@ class DecoratedClassHierarchy {
       return DecoratedType(superclass.type, _graph.never);
     }
     return _getGenericSupertypeDecorations(class_)[superclass] ??
-        (throw StateError('Unrelated types'));
+        (throw StateError('Unrelated types: $class_ and $superclass'));
   }
 
   /// Computes a map whose keys are all the superclasses of [class_], and whose

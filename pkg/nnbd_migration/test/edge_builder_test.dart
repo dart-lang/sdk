@@ -2472,6 +2472,21 @@ bool f(C c) => (c?.m());
     assertEdge(lubNode, decoratedTypeAnnotation('bool f').node, hard: false);
   }
 
+  test_methodInvocation_static_on_generic_class() async {
+    await analyze('''
+class C<T> {
+  static int f(int x) => 0;
+}
+int g(int y) => C.f(y);
+''');
+    assertEdge(decoratedTypeAnnotation('int y').node,
+        decoratedTypeAnnotation('int x').node,
+        hard: true);
+    assertEdge(decoratedTypeAnnotation('int f').node,
+        decoratedTypeAnnotation('int g').node,
+        hard: false);
+  }
+
   test_methodInvocation_target_check() async {
     await analyze('''
 class C {
@@ -3569,6 +3584,18 @@ bool f(C c) => (c?.b);
     expect(lubNode.left, same(decoratedTypeAnnotation('C c').node));
     expect(lubNode.right, same(decoratedTypeAnnotation('bool get b').node));
     assertEdge(lubNode, decoratedTypeAnnotation('bool f').node, hard: false);
+  }
+
+  test_propertyAccess_static_on_generic_class() async {
+    await analyze('''
+class C<T> {
+  static int x = 1;
+}
+int f() => C.x;
+''');
+    assertEdge(decoratedTypeAnnotation('int x').node,
+        decoratedTypeAnnotation('int f').node,
+        hard: false);
   }
 
   test_propertyAccess_target_check() async {
