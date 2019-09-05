@@ -816,8 +816,12 @@ void StoreInstanceFieldInstr::AddExtraInfoToSExpression(
   }
   if (emit_store_barrier_ != kNoStoreBarrier ||
       FLAG_verbose_flow_graph_serialization) {
-    ASSERT(emit_store_barrier_ == kEmitStoreBarrier);
-    s->AddExtraBool(sexp, "emit_barrier", emit_store_barrier_);
+    // Make sure that we aren't seeing a new value added to the StoreBarrierType
+    // enum that isn't handled by the serializer.
+    ASSERT(emit_store_barrier_ == kNoStoreBarrier ||
+           emit_store_barrier_ == kEmitStoreBarrier);
+    s->AddExtraBool(sexp, "emit_barrier",
+                    emit_store_barrier_ != kNoStoreBarrier);
   }
 }
 
