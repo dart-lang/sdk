@@ -195,4 +195,90 @@ class IndexExpressionWithNnbdTest extends IndexExpressionTest {
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
     ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
+
+  @override
+  bool get typeToStringWithNullability => true;
+
+  test_read_nullable() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  bool operator[](int index) => false;
+}
+
+main(A? a) {
+  a?.[0];
+}
+''');
+
+    var indexElement = findElement.method('[]');
+
+    var indexExpression = findNode.index('a?.[0]');
+    assertElement(indexExpression, indexElement);
+    assertAuxElement(indexExpression, null);
+    assertType(indexExpression, 'bool?');
+  }
+
+  @failingTest
+  test_readWrite_nullable() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  num operator[](int index) => 0;
+  void operator[]=(int index, num value) {}
+}
+
+main(A? a) {
+  a?.[0] += 1.2;
+}
+''');
+
+    var indexElement = findElement.method('[]');
+    var indexEqElement = findElement.method('[]=');
+    var numPlusElement = numElement.getMethod('+');
+
+    var indexExpression = findNode.index('a?.[0]');
+    assertElement(indexExpression, indexEqElement);
+    assertAuxElement(indexExpression, indexElement);
+    assertParameterElement(
+      indexExpression.index,
+      indexEqElement.parameters[0],
+    );
+    assertType(indexExpression, 'num?');
+
+    var assignment = indexExpression.parent as AssignmentExpression;
+    assertElement(assignment, numPlusElement);
+    assertType(assignment, 'num?');
+    assertParameterElement(
+      assignment.rightHandSide,
+      numPlusElement.parameters[0],
+    );
+  }
+
+  @failingTest
+  test_write_nullable() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  void operator[]=(int index, num value) {}
+}
+
+main(A? a) {
+  a?.[0] = 1.2;
+}
+''');
+
+    var indexEqElement = findElement.method('[]=');
+
+    var indexExpression = findNode.index('a?.[0]');
+    assertElement(indexExpression, indexEqElement);
+    assertAuxElement(indexExpression, null);
+    assertParameterElement(
+      indexExpression.index,
+      indexEqElement.parameters[0],
+    );
+    assertType(indexExpression, 'num?');
+
+    var assignment = indexExpression.parent as AssignmentExpression;
+    assertElement(assignment, null);
+    assertType(assignment, 'double?');
+    assertParameterElement(assignment.rightHandSide, null);
+  }
 }

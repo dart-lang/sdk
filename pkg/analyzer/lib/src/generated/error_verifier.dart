@@ -998,7 +998,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitIndexExpression(IndexExpression node) {
     _checkForArgumentTypeNotAssignableForArgument(node.index);
-    _checkForNullableDereference(node.target);
+    if (node.leftBracket.type !=
+        TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET) {
+      _checkForNullableDereference(node.target);
+    }
     super.visitIndexExpression(node);
   }
 
