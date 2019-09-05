@@ -1156,6 +1156,27 @@ void KernelLoader::FinishTopLevelClassLoading(
   helper_.SetOffset(library_index.ClassOffset(library_index.class_count()) +
                     correction);
 
+  if (kernel_binary_version_ >= 30) {
+    const intptr_t extension_count = helper_.ReadListLength();
+    for (intptr_t i = 0; i < extension_count; ++i) {
+      helper_.ReadTag();                     // read tag.
+      helper_.SkipCanonicalNameReference();  // skip canonical name.
+      helper_.SkipStringReference();         // skip name.
+      helper_.ReadUInt();                    // read source uri index.
+      helper_.ReadPosition();                // read file offset.
+      helper_.SkipTypeParametersList();      // skip type parameter list.
+      helper_.SkipDartType();                // skip on-type.
+
+      const intptr_t extension_member_count = helper_.ReadListLength();
+      for (intptr_t j = 0; j < extension_member_count; ++j) {
+        helper_.SkipName();                    // skip name.
+        helper_.ReadByte();                    // read kind.
+        helper_.ReadByte();                    // read flags.
+        helper_.SkipCanonicalNameReference();  // skip member reference
+      }
+    }
+  }
+
   fields_.Clear();
   functions_.Clear();
 

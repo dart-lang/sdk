@@ -447,6 +447,10 @@ class Library extends NamedNode
       canonicalName.getChild(class_.name).bindTo(class_.reference);
       class_.computeCanonicalNames();
     }
+    for (int i = 0; i < extensions.length; ++i) {
+      Extension extension = extensions[i];
+      canonicalName.getChild(extension.name).bindTo(extension.reference);
+    }
   }
 
   void addDependency(LibraryDependency node) {
@@ -1166,6 +1170,9 @@ enum ExtensionMemberKind {
 
 /// Information about an member declaration in an extension.
 class ExtensionMemberDescriptor {
+  static const int FlagStatic = 1 << 0; // Must match serialized bit positions.
+  static const int FlagExternal = 1 << 1;
+
   /// The name of the extension member.
   ///
   /// The name of the generated top-level member is mangled to ensure
@@ -1211,21 +1218,17 @@ class ExtensionMemberDescriptor {
   }
 
   /// Return `true` if the extension method was declared as `static`.
-  bool get isStatic => flags & Procedure.FlagStatic != 0;
+  bool get isStatic => flags & FlagStatic != 0;
 
   /// Return `true` if the extension method was declared as `external`.
-  bool get isExternal => flags & Procedure.FlagExternal != 0;
+  bool get isExternal => flags & FlagExternal != 0;
 
   void set isStatic(bool value) {
-    flags = value
-        ? (flags | Procedure.FlagStatic)
-        : (flags & ~Procedure.FlagStatic);
+    flags = value ? (flags | FlagStatic) : (flags & ~FlagStatic);
   }
 
   void set isExternal(bool value) {
-    flags = value
-        ? (flags | Procedure.FlagExternal)
-        : (flags & ~Procedure.FlagExternal);
+    flags = value ? (flags | FlagExternal) : (flags & ~FlagExternal);
   }
 }
 
@@ -6594,6 +6597,18 @@ CanonicalName getCanonicalNameOfClass(Class class_) {
     throw '$class_ has no canonical name';
   }
   return class_.canonicalName;
+}
+
+/// Returns the canonical name of [extension], or throws an exception if the
+/// class has not been assigned a canonical name yet.
+///
+/// Returns `null` if the extension is `null`.
+CanonicalName getCanonicalNameOfExtension(Extension extension) {
+  if (extension == null) return null;
+  if (extension.canonicalName == null) {
+    throw '$extension has no canonical name';
+  }
+  return extension.canonicalName;
 }
 
 /// Returns the canonical name of [library], or throws an exception if the

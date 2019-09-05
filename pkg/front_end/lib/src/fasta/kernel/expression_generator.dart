@@ -32,7 +32,7 @@ import '../constant_context.dart' show ConstantContext;
 import '../builder/builder.dart' show PrefixBuilder, TypeDeclarationBuilder;
 import '../builder/declaration_builder.dart';
 import '../builder/extension_builder.dart';
-import '../builder/procedure_builder.dart';
+import '../builder/member_builder.dart';
 
 import '../fasta_codes.dart';
 
@@ -1641,7 +1641,7 @@ class ExtensionInstanceAccessGenerator extends Generator {
     if (declaration.isGetter) {
       readTarget = declaration.target;
     } else if (declaration.isRegularMethod) {
-      ProcedureBuilder procedureBuilder = declaration;
+      MemberBuilder procedureBuilder = declaration;
       readTarget = procedureBuilder.extensionTearOff;
       invokeTarget = procedureBuilder.procedure;
     }
@@ -1847,7 +1847,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
       } else if (getterBuilder.isGetter) {
         readTarget = getterBuilder.target;
       } else if (getterBuilder.isRegularMethod) {
-        ProcedureBuilder procedureBuilder = getterBuilder;
+        MemberBuilder procedureBuilder = getterBuilder;
         readTarget = procedureBuilder.extensionTearOff;
         invokeTarget = procedureBuilder.procedure;
       } else {

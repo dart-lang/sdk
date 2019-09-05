@@ -143,7 +143,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 29;
+  UInt32 formatVersion = 30;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
   UriSource sourceMap;
@@ -242,6 +242,7 @@ type Library {
   List<LibraryPart> libraryParts;
   List<Typedef> typedefs;
   List<Class> classes;
+  List<Extension> extensions;
   List<Field> fields;
   List<Procedure> procedures;
 
@@ -334,6 +335,26 @@ type Class extends Node {
   // a specific procedure. Note the "+1" to account for needing the end of the last entry.
   UInt32[procedures.length + 1] procedureOffsets;
   UInt32 procedureCount = procedures.length;
+}
+
+type Extension extends Node {
+  Byte tag = 115;
+  CanonicalNameReference canonicalName;
+  StringReference name;
+  UriReference fileUri;
+  FileOffset fileOffset;
+  List<TypeParameter> typeParameters;
+  DartType onType;
+  List<ExtensionMemberDescriptor> members;
+}
+
+enum ExtensionMemberKind { Field = 0, Method = 1, Getter = 2, Setter = 3, Operator = 4, TearOff = 5, }
+
+type ExtensionMemberDescriptor {
+  StringReference name;
+  ExtensionMemberKind kind;
+  Byte flags (isStatic, isExternal);
+  MemberReference member;
 }
 
 abstract type Member extends Node {}

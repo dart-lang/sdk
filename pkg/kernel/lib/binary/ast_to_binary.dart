@@ -326,6 +326,15 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     }
   }
 
+  void writeExtensionNodeList(List<Extension> nodes) {
+    final len = nodes.length;
+    writeUInt30(len);
+    for (int i = 0; i < len; i++) {
+      final node = nodes[i];
+      writeExtensionNode(node);
+    }
+  }
+
   void writeConstructorNodeList(List<Constructor> nodes) {
     final len = nodes.length;
     writeUInt30(len);
@@ -415,6 +424,13 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   void writeClassNode(Class node) {
+    if (_metadataSubsections != null) {
+      _writeNodeMetadata(node);
+    }
+    node.accept(this);
+  }
+
+  void writeExtensionNode(Extension node) {
     if (_metadataSubsections != null) {
       _writeNodeMetadata(node);
     }
@@ -932,6 +948,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     classOffsets = new List<int>();
     writeClassNodeList(node.classes);
     classOffsets.add(getBufferOffset());
+    writeExtensionNodeList(node.extensions);
     writeFieldNodeList(node.fields);
     procedureOffsets = new List<int>();
     writeProcedureNodeList(node.procedures);
@@ -2096,8 +2113,29 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   @override
   void visitExtension(Extension node) {
-    // TODO(johnniwinther): Support serialization of extension nodes.
-    throw new UnsupportedError('serialization of extension nodes');
+    if (node.canonicalName == null) {
+      throw new ArgumentError('Missing canonical name for $node');
+    }
+    writeByte(Tag.Extension);
+    writeNonNullCanonicalNameReference(getCanonicalNameOfExtension(node));
+    writeStringReference(node.name ?? '');
+    writeUriReference(node.fileUri);
+    writeOffset(node.fileOffset);
+
+    enterScope(typeParameters: node.typeParameters);
+    writeNodeList(node.typeParameters);
+    writeDartType(node.onType);
+    leaveScope(typeParameters: node.typeParameters);
+
+    final int len = node.members.length;
+    writeUInt30(len);
+    for (int i = 0; i < len; i++) {
+      final ExtensionMemberDescriptor descriptor = node.members[i];
+      writeName(descriptor.name);
+      writeByte(descriptor.kind.index);
+      writeByte(descriptor.flags);
+      writeNonNullCanonicalNameReference(descriptor.member.canonicalName);
+    }
   }
 
   // ================================================================

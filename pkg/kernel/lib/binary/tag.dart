@@ -8,6 +8,7 @@ class Tag {
   static const int Something = 1;
 
   static const int Class = 2;
+  static const int Extension = 115;
 
   static const int FunctionNode = 3;
 
@@ -142,7 +143,7 @@ class Tag {
   /// Internal version of kernel binary format.
   /// Bump it when making incompatible changes in kernel binaries.
   /// Keep in sync with runtime/vm/kernel_binary.h, pkg/kernel/binary.md.
-  static const int BinaryFormatVersion = 29;
+  static const int BinaryFormatVersion = 30;
 }
 
 abstract class ConstantTag {

@@ -73,6 +73,16 @@ abstract class MemberBuilder extends ModifierBuilder {
   // TODO(johnniwinther): Deprecate this.
   Member get target => member;
 
+  // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
+  Member get extensionTearOff =>
+      unsupported("extensionTearOff", charOffset, fileUri);
+
+  // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
+  Procedure get procedure => unsupported("procedure", charOffset, fileUri);
+
+  // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
+  ProcedureKind get kind => unsupported("kind", charOffset, fileUri);
+
   void buildOutlineExpressions(LibraryBuilder library) {}
 
   @override

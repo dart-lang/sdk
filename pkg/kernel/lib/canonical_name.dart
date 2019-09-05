@@ -20,6 +20,10 @@ import 'ast.dart';
 ///         Canonical name of enclosing library
 ///         Name of class
 ///
+///      Extension:
+///         Canonical name of enclosing library
+///         Name of extension
+///
 ///      Constructor:
 ///         Canonical name of enclosing class or library
 ///         "@constructors"

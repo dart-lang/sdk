@@ -11,6 +11,7 @@ import 'package:kernel/ast.dart'
         Class,
         DartType,
         DynamicType,
+        Extension,
         Field,
         FunctionType,
         Library,
@@ -45,6 +46,8 @@ import '../kernel/kernel_builder.dart'
 import '../kernel/redirecting_factory_body.dart' show RedirectingFactoryBody;
 
 import 'dill_class_builder.dart' show DillClassBuilder;
+
+import 'dill_extension_builder.dart';
 
 import 'dill_member_builder.dart' show DillMemberBuilder;
 
@@ -117,6 +120,7 @@ class DillLibraryBuilder extends LibraryBuilder {
     if (isBuilt) return;
     isBuilt = true;
     library.classes.forEach(addClass);
+    library.extensions.forEach(addExtension);
     library.procedures.forEach(addMember);
     library.typedefs.forEach(addTypedef);
     library.fields.forEach(addMember);
@@ -162,6 +166,12 @@ class DillLibraryBuilder extends LibraryBuilder {
         classBulder.addMember(field);
       }
     }
+  }
+
+  void addExtension(Extension extension) {
+    DillExtensionBuilder extensionBuilder =
+        new DillExtensionBuilder(extension, this);
+    addBuilder(extension.name, extensionBuilder, extension.fileOffset);
   }
 
   void addMember(Member member) {

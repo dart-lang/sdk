@@ -880,6 +880,11 @@ class BinaryBuilder {
       return readClass(classOffsets[index + 1]);
     }, library);
     _byteOffset = classOffsets.last;
+
+    _mergeNamedNodeList(library.extensions, (index) {
+      return readExtension();
+    }, library);
+
     _mergeNamedNodeList(library.fields, (index) => readField(), library);
     _mergeNamedNodeList(library.procedures, (index) {
       _byteOffset = procedureOffsets[index];
@@ -1061,6 +1066,57 @@ class BinaryBuilder {
 
     _byteOffset = endOffset;
 
+    return node;
+  }
+
+  Extension readExtension() {
+    int tag = readByte();
+    assert(tag == Tag.Extension);
+
+    CanonicalName canonicalName = readCanonicalNameReference();
+    Reference reference = canonicalName.getReference();
+    Extension node = reference.node;
+    if (alwaysCreateNewNamedNodes) {
+      node = null;
+    }
+    bool shouldWriteData = node == null || _isReadingLibraryImplementation;
+    if (node == null) {
+      node = new Extension(reference: reference);
+    }
+
+    String name = readStringOrNullIfEmpty();
+    assert(() {
+      debugPath.add(node.name ?? 'extension');
+      return true;
+    }());
+
+    Uri fileUri = readUriReference();
+    node.fileOffset = readOffset();
+
+    readAndPushTypeParameterList(node.typeParameters, node);
+    DartType onType = readDartType();
+    typeParameterStack.length = 0;
+
+    if (shouldWriteData) {
+      node.name = name;
+      node.fileUri = fileUri;
+      node.onType = onType;
+    }
+
+    int length = readUInt();
+    for (int i = 0; i < length; i++) {
+      Name name = readName();
+      int kind = readByte();
+      int flags = readByte();
+      CanonicalName canonicalName = readCanonicalNameReference();
+      if (shouldWriteData) {
+        node.members.add(new ExtensionMemberDescriptor(
+            name: name,
+            kind: ExtensionMemberKind.values[kind],
+            member: canonicalName.getReference())
+          ..flags = flags);
+      }
+    }
     return node;
   }
 
