@@ -18,8 +18,6 @@ import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
-import 'package:analysis_server/src/utilities/flutter.dart';
-import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -167,14 +165,10 @@ class FixProcessor extends BaseProcessor {
 
   final DartFixContext context;
   final ResourceProvider resourceProvider;
-  final AnalysisSession session;
-  final AnalysisSessionHelper sessionHelper;
-  final TypeProvider typeProvider;
   final TypeSystem typeSystem;
 
   final LibraryElement unitLibraryElement;
   final CompilationUnit unit;
-  final Flutter flutter;
 
   final AnalysisError error;
   final int errorOffset;
@@ -186,13 +180,9 @@ class FixProcessor extends BaseProcessor {
 
   FixProcessor(this.context)
       : resourceProvider = context.resolveResult.session.resourceProvider,
-        session = context.resolveResult.session,
-        sessionHelper = AnalysisSessionHelper(context.resolveResult.session),
-        typeProvider = context.resolveResult.typeProvider,
         typeSystem = context.resolveResult.typeSystem,
         unitLibraryElement = context.resolveResult.libraryElement,
         unit = context.resolveResult.unit,
-        flutter = Flutter.of(context.resolveResult),
         error = context.error,
         errorOffset = context.error.offset,
         errorLength = context.error.length,
@@ -564,6 +554,10 @@ class FixProcessor extends BaseProcessor {
     // lints
     if (errorCode is LintCode) {
       String name = errorCode.name;
+      if (name == LintNames.always_specify_types ||
+          name == LintNames.type_annotate_public_apis) {
+        await _addFix_addTypeAnnotation();
+      }
       if (name == LintNames.always_require_non_null_named_parameters) {
         await _addFix_addRequiredAnnotation();
       }
@@ -1112,6 +1106,19 @@ class FixProcessor extends BaseProcessor {
       builder.addSimpleInsertion(declaration.offset, 'static ');
     });
     _addFixFromBuilder(changeBuilder, DartFixKind.ADD_STATIC);
+  }
+
+  Future<void> _addFix_addTypeAnnotation() async {
+    var changeBuilder =
+        await createBuilder_addTypeAnnotation_DeclaredIdentifier();
+    _addFixFromBuilder(changeBuilder, DartFixKind.ADD_TYPE_ANNOTATION);
+
+    changeBuilder =
+        await createBuilder_addTypeAnnotation_SimpleFormalParameter();
+    _addFixFromBuilder(changeBuilder, DartFixKind.ADD_TYPE_ANNOTATION);
+
+    changeBuilder = await createBuilder_addTypeAnnotation_VariableDeclaration();
+    _addFixFromBuilder(changeBuilder, DartFixKind.ADD_TYPE_ANNOTATION);
   }
 
   Future<void> _addFix_boolInsteadOfBoolean() async {
@@ -3980,6 +3987,7 @@ class FixProcessor extends BaseProcessor {
 
   void _addFixFromBuilder(ChangeBuilder builder, FixKind kind,
       {List args = null, bool importsOnly = false}) {
+    if (builder == null) return;
     SourceChange change = builder.sourceChange;
     if (change.edits.isEmpty && !importsOnly) {
       return;

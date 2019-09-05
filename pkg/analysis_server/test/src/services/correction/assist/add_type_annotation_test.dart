@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/assist.dart';
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -18,6 +19,17 @@ main() {
 class AddTypeAnnotationTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.ADD_TYPE_ANNOTATION;
+
+  test_classField_final_no_assist_with_lint() async {
+    createAnalysisOptionsFile(lints: [LintNames.always_specify_types]);
+    verifyNoTestUnitErrors = false;
+    await resolveTestUnit('''
+class A {
+  /*caret*/final f = 0;
+}
+''');
+    await assertNoAssist();
+  }
 
   test_classField_final() async {
     await resolveTestUnit('''
