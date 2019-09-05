@@ -247,8 +247,6 @@ config("compiler") {
   # Linux-specific compiler flags setup.
   # ------------------------------------
   if (is_linux) {
-    cflags += [ "-pthread" ]
-    ldflags += [ "-pthread" ]
     if (is_clang) {
       if (current_cpu == "arm") {
         cflags += [ "--target=armv7-linux-gnueabihf" ]
