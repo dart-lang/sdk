@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -20,6 +21,9 @@ class UncheckedUseOfNullableValueTest extends DriverResolutionTest {
   @override
   AnalysisOptionsImpl get analysisOptions =>
       AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
+
+  @override
+  bool get typeToStringWithNullability => true;
 
   test_and_nonNullable() async {
     await assertNoErrorsInCode(r'''
@@ -70,6 +74,127 @@ m() {
     ]);
   }
 
+  test_assignment_eq_propertyAccess3_short1() async {
+    await assertErrorsInCode(r'''
+class A {
+  int x;
+  A(this.x);
+}
+
+class B {
+  final A? a;
+  B(this.a);
+}
+
+m(B b) {
+  b.a?.x = 1;
+  b.a.x = 2;
+}
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 100, 3),
+    ]);
+    var assignment1 = findNode.assignment('b.a?.x = 1');
+    var assignment2 = findNode.assignment('b.a.x = 2');
+    assertType(assignment1.leftHandSide, 'int');
+    assertType(assignment2.leftHandSide, 'int');
+    assertType(assignment1, 'int?');
+    assertType(assignment2, 'int');
+  }
+
+  test_assignment_eq_simpleIdentifier() async {
+    await assertNoErrorsInCode(r'''
+m(int x, int? y) {
+  x = 0;
+  y = 0;
+}
+''');
+    var assignment1 = findNode.assignment('x =');
+    var assignment2 = findNode.assignment('y =');
+    assertType(assignment1.leftHandSide, 'int');
+    assertType(assignment2.leftHandSide, 'int?');
+    assertType(assignment1, 'int');
+    assertType(assignment2, 'int');
+  }
+
+  test_assignment_plusEq_propertyAccess3() async {
+    await assertErrorsInCode(r'''
+class A {
+  int x;
+  int? y;
+  A(this.x);
+}
+
+class B {
+  final A a;
+  B(this.a);
+}
+
+m(B b) {
+  b.a.x += 0;
+  b.a.y += 0;
+}
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 109, 5),
+    ]);
+    var assignment1 = findNode.assignment('b.a.x +=');
+    var assignment2 = findNode.assignment('b.a.y +=');
+    assertType(assignment1.leftHandSide, 'int');
+    assertType(assignment2.leftHandSide, 'int?');
+    assertType(assignment1, 'int');
+    assertType(assignment2, 'int');
+  }
+
+  @FailingTest(reason: r'''
+This test fails because verifier checks that the type of `b.a?.x += 1`, which
+is the type of `+` invocation, is assignable to `b.a?.x` type. But with NNBD
+it is not. The type of `b.a?.x += 1` is `int?`, because of shortening. But
+because of the same shortening the assignment is performed only when `b.a` is
+not null, and the type to check should be `int`.
+''')
+  test_assignment_plusEq_propertyAccess3_short1() async {
+    await assertErrorsInCode(r'''
+class A {
+  int x;
+  A(this.x);
+}
+
+class B {
+  final A? a;
+  B(this.a);
+}
+
+m(B b) {
+  b.a?.x += 1;
+  b.a.x += 2;
+}
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 101, 3),
+    ]);
+    var assignment1 = findNode.assignment('b.a?.x += 1');
+    var assignment2 = findNode.assignment('b.a.x += 2');
+    assertType(assignment1.leftHandSide, 'int');
+    assertType(assignment2.leftHandSide, 'int');
+    assertType(assignment1, 'int?');
+    assertType(assignment2, 'int');
+  }
+
+  test_assignment_plusEq_simpleIdentifier() async {
+    await assertErrorsInCode(r'''
+m(int x, int? y) {
+  x += 0;
+  y += 0;
+}
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 31, 1),
+    ]);
+    var assignment1 = findNode.assignment('x +=');
+    var assignment2 = findNode.assignment('y +=');
+    assertType(assignment1.leftHandSide, 'int');
+    assertType(assignment2.leftHandSide, 'int?');
+    assertType(assignment1, 'int');
+    assertType(assignment2, 'int');
+  }
+
   test_await_nonNullable() async {
     await assertNoErrorsInCode(r'''
 m() async {
@@ -108,7 +233,7 @@ m() {
     ]);
   }
 
-  test_eq_nullable() async {
+  test_eqEq_nullable() async {
     await assertNoErrorsInCode(r'''
 m() {
   int? x;
@@ -611,6 +736,174 @@ m(int? x) {
 ''', [
       error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 14, 1),
     ]);
+  }
+
+  test_read_propertyAccess2_short1() async {
+    await assertErrorsInCode(r'''
+class A {
+  final int x;
+  A(this.x);
+}
+
+m(A? a) {
+  a?.x; // 1
+  a.x; // 2
+}
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 66, 1),
+    ]);
+    var propertyAccess1 = findNode.propertyAccess('a?.x; // 1');
+    var propertyAccess2 = findNode.prefixed('a.x; // 2');
+    assertType(propertyAccess1.target, 'A?');
+    assertType(propertyAccess2.prefix, 'A?');
+
+    assertType(propertyAccess1.propertyName, 'int');
+    assertType(propertyAccess2.identifier, 'int');
+
+    assertType(propertyAccess1, 'int?');
+    assertType(propertyAccess2, 'int');
+  }
+
+  test_read_propertyAccess3_short1() async {
+    await assertErrorsInCode(r'''
+class A {
+  int x;
+  A(this.x);
+}
+
+class B {
+  final A? a;
+  B(this.a);
+}
+
+m(B b) {
+  b.a?.x; // 1
+  b.a.x; // 2
+}
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 101, 3),
+    ]);
+    var propertyAccess1 = findNode.propertyAccess('b.a?.x; // 1');
+    var propertyAccess2 = findNode.propertyAccess('b.a.x; // 2');
+    assertType(propertyAccess1.target, 'A?');
+    assertType(propertyAccess2.target, 'A?');
+
+    assertType(propertyAccess1.propertyName, 'int');
+    assertType(propertyAccess2.propertyName, 'int');
+
+    assertType(propertyAccess1, 'int?');
+    assertType(propertyAccess2, 'int');
+  }
+
+  test_read_propertyAccess3_short2() async {
+    await assertErrorsInCode(r'''
+class A {
+  int x;
+  A(this.x);
+}
+
+class B {
+  final A a;
+  B(this.a);
+}
+
+m(B? b) {
+  b?.a.x; // 1
+  b.a.x; // 2
+}
+''', [
+      // TODO(scheglov) Remove HintCode.CAN_BE_NULL_AFTER_NULL_AWARE
+      error(HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, 86, 4),
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 101, 1),
+    ]);
+    var propertyAccess1 = findNode.propertyAccess('x; // 1');
+    var propertyAccess2 = findNode.propertyAccess('x; // 2');
+    assertType(propertyAccess1.target, 'A');
+    assertType(propertyAccess2.target, 'A');
+
+    assertType(propertyAccess1.propertyName, 'int');
+    assertType(propertyAccess2.propertyName, 'int');
+
+    assertType(propertyAccess1, 'int?');
+    assertType(propertyAccess2, 'int');
+  }
+
+  test_read_propertyAccess4_short1() async {
+    await assertErrorsInCode(r'''
+class A {
+  int x;
+  A(this.x);
+}
+
+class B {
+  final A? a;
+  B(this.a);
+}
+
+class C {
+  final B b;
+  C(this.b);
+}
+
+m(C c) {
+  c.b.a?.x; // 1
+  c.b.a.x; // 2
+}
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 142, 5),
+    ]);
+    var propertyAccess1 = findNode.propertyAccess('x; // 1');
+    var propertyAccess2 = findNode.propertyAccess('x; // 2');
+    assertType(propertyAccess1.target, 'A?');
+    assertType(propertyAccess2.target, 'A?');
+
+    assertType(propertyAccess1.propertyName, 'int');
+    assertType(propertyAccess2.propertyName, 'int');
+
+    assertType(propertyAccess1, 'int?');
+    assertType(propertyAccess2, 'int');
+  }
+
+  test_read_propertyAccess4_short2() async {
+    await assertErrorsInCode(r'''
+class A {
+  final int x;
+  A(this.x);
+}
+
+class B {
+  final A a;
+  B(this.a);
+}
+
+class C {
+  final B? b;
+  C(this.b);
+}
+
+m(C c) {
+  c.b?.a.x; // 1
+  c.b.a.x; // 2
+}
+''', [
+      // TODO(scheglov) Remove HintCode.CAN_BE_NULL_AFTER_NULL_AWARE
+      error(HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, 131, 6),
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 148, 3),
+    ]);
+    var propertyAccess1 = findNode.propertyAccess('x; // 1');
+    var propertyAccess2 = findNode.propertyAccess('x; // 2');
+    PropertyAccess propertyAccess1t = propertyAccess1.target;
+    PropertyAccess propertyAccess2t = propertyAccess1.target;
+    assertType(propertyAccess1t.target, 'B?');
+    assertType(propertyAccess2t.target, 'B?');
+    assertType(propertyAccess1t, 'A');
+    assertType(propertyAccess2t, 'A');
+
+    assertType(propertyAccess1.propertyName, 'int');
+    assertType(propertyAccess2.propertyName, 'int');
+
+    assertType(propertyAccess1, 'int?');
+    assertType(propertyAccess2, 'int');
   }
 
   test_spread_nonNullable() async {

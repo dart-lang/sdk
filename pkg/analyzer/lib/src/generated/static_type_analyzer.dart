@@ -332,6 +332,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
           _featureSet);
       _recordStaticType(node, staticType);
     }
+    _nullShortingTermination(node);
   }
 
   /**
@@ -967,15 +968,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       // TODO(brianwilkerson) Report this internal error.
     }
 
-    if (node.operator.type == TokenType.QUESTION_PERIOD &&
-        _nonNullableEnabled) {
-      staticType = _typeSystem.makeNullable(staticType);
-    }
     staticType = _inferTearOff(node, node.propertyName, staticType);
 
     if (!_inferObjectAccess(node, staticType, propertyName)) {
       _recordStaticType(propertyName, staticType);
       _recordStaticType(node, staticType);
+      _nullShortingTermination(node);
     }
   }
 
@@ -2006,6 +2004,25 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     return type;
   }
 
+  /// If we reached a null-shorting termination, and the [node] has null
+  /// shorting, make the type of the [node] nullable.
+  void _nullShortingTermination(Expression node) {
+    if (!_nonNullableEnabled) return;
+
+    var parent = node.parent;
+    if (parent is AssignmentExpression && parent.leftHandSide == node) {
+      return;
+    }
+    if (parent is PropertyAccess) {
+      return;
+    }
+
+    if (_hasNullShorting(node)) {
+      var type = node.staticType;
+      node.staticType = _typeSystem.makeNullable(type);
+    }
+  }
+
   /**
    * Record that the static type of the given node is the given type.
    *
@@ -2119,6 +2136,18 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     } else {
       return type;
     }
+  }
+
+  /// Return `true` if the [node] has null-aware shorting, e.g. `foo?.bar`.
+  static bool _hasNullShorting(Expression node) {
+    if (node is AssignmentExpression) {
+      return _hasNullShorting(node.leftHandSide);
+    }
+    if (node is PropertyAccess) {
+      return node.operator.type == TokenType.QUESTION_PERIOD ||
+          _hasNullShorting(node.target);
+    }
+    return false;
   }
 }
 
