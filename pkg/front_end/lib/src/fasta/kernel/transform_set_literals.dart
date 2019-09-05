@@ -62,7 +62,7 @@ class SetLiteralTransformer extends Transformer {
     Expression setExp = new VariableGet(setVar);
     for (int i = node.expressions.length - 1; i >= 0; i--) {
       // let _ = setVar.add(expression) in rest
-      Expression entry = node.expressions[i].accept(this);
+      Expression entry = node.expressions[i].accept<TreeNode>(this);
       setExp = new Let(
           new VariableDeclaration.forValue(new MethodInvocation(
               new VariableGet(setVar),

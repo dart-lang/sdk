@@ -12,14 +12,15 @@ import 'package:kernel/clone.dart' show CloneVisitor;
 
 import 'package:kernel/ast.dart'
     show
+        Class,
+        Component,
         DartType,
         Library,
-        Component,
         Procedure,
-        Class,
+        Supertype,
+        TreeNode,
         TypeParameter,
-        TypeParameterType,
-        Supertype;
+        TypeParameterType;
 
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 
@@ -101,7 +102,7 @@ Component createExpressionEvaluationComponent(Procedure procedure) {
         typeSubstitution: typeSubstitution, typeParams: typeParams);
 
     for (TypeParameter typeParam in realClass.typeParameters) {
-      fakeClass.typeParameters.add(typeParam.accept(cloner));
+      fakeClass.typeParameters.add(typeParam.accept<TreeNode>(cloner));
     }
 
     if (realClass.supertype != null) {
@@ -112,7 +113,7 @@ Component createExpressionEvaluationComponent(Procedure procedure) {
     }
 
     // Rebind the type parameters in the procedure.
-    procedure = procedure.accept(cloner);
+    procedure = procedure.accept<TreeNode>(cloner);
     procedure.parent = fakeClass;
     fakeClass.procedures.add(procedure);
     fakeLibrary.classes.add(fakeClass);

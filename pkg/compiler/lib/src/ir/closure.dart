@@ -392,7 +392,7 @@ class TypeVariableTypeWithContext implements ir.Node {
       this.type, this.context, this.kind, this.typeDeclaration);
 
   @override
-  accept(ir.Visitor v) {
+  R accept<R>(ir.Visitor<R> v) {
     throw new UnsupportedError('TypeVariableTypeWithContext.accept');
   }
 

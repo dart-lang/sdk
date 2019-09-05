@@ -1395,17 +1395,17 @@ class SyntheticExpressionJudgment extends Let implements ExpressionJudgment {
   }
 
   @override
-  accept(ExpressionVisitor<dynamic> v) {
+  R accept<R>(ExpressionVisitor<R> v) {
     // This is designed to throw an exception during serialization. It can also
     // lead to exceptions during transformations, but we have to accept a
     // [Transformer] as this is used to implement `replaceChild`.
     if (v is Transformer) return super.accept(v);
-    unsupported("accept", fileOffset, getFileUri(this));
+    throw unsupported("accept", fileOffset, getFileUri(this));
   }
 
   @override
-  accept1(ExpressionVisitor1<dynamic, dynamic> v, arg) {
-    unsupported("accept1", fileOffset, getFileUri(this));
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) {
+    throw unsupported("accept1", fileOffset, getFileUri(this));
   }
 
   @override
@@ -1863,9 +1863,9 @@ class _ComplexAssignmentInferenceResult {
 }
 
 class _UnfinishedCascade extends Expression {
-  accept(v) => unsupported("accept", -1, null);
+  R accept<R>(v) => unsupported("accept", -1, null);
 
-  accept1(v, arg) => unsupported("accept1", -1, null);
+  R accept1<R, A>(v, arg) => unsupported("accept1", -1, null);
 
   getStaticType(types) => unsupported("getStaticType", -1, null);
 

@@ -77,8 +77,8 @@ class UnknownType extends DartType {
   }
 
   @override
-  accept(DartTypeVisitor<dynamic> v) {
-    if (v is TypeSchemaVisitor<dynamic>) {
+  R accept<R>(DartTypeVisitor<R> v) {
+    if (v is TypeSchemaVisitor<R>) {
       return v.visitUnknownType(this);
     } else {
       // Note: in principle it seems like this should throw, since any visitor
@@ -91,7 +91,7 @@ class UnknownType extends DartType {
   }
 
   @override
-  accept1(DartTypeVisitor1<dynamic, dynamic> v, arg) =>
+  R accept1<R, A>(DartTypeVisitor1<R, A> v, arg) =>
       v.defaultDartType(this, arg);
 
   @override

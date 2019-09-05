@@ -53,8 +53,7 @@ class NullableInference extends ExpressionVisitor<bool> {
   void exitFunction(FunctionNode fn) => _variableInference.exitFunction(fn);
 
   /// Returns true if [expr] can be null.
-  bool isNullable(Expression expr) =>
-      expr != null ? expr.accept(this) as bool : false;
+  bool isNullable(Expression expr) => expr != null ? expr.accept(this) : false;
 
   @override
   defaultExpression(Expression node) => true;
@@ -230,7 +229,7 @@ class NullableInference extends ExpressionVisitor<bool> {
   @override
   visitConstantExpression(ConstantExpression node) {
     var c = node.constant;
-    if (c is UnevaluatedConstant) return c.expression.accept(this) as bool;
+    if (c is UnevaluatedConstant) return c.expression.accept(this);
     if (c is PrimitiveConstant) return c.value == null;
     return false;
   }

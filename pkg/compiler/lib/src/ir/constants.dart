@@ -168,7 +168,7 @@ class ConstantReference extends ir.TreeNode {
   }
 
   @override
-  accept(ir.TreeVisitor v) {
+  R accept<R>(ir.TreeVisitor<R> v) {
     throw new UnsupportedError("ConstantReference.accept");
   }
 

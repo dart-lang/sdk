@@ -213,7 +213,7 @@ class ConstantsTransformer extends Transformer {
   Procedure visitProcedure(Procedure node) {
     constantEvaluator.withNewEnvironment(() {
       transformAnnotations(node.annotations, node);
-      node.function = node.function.accept(this)..parent = node;
+      node.function = node.function.accept<TreeNode>(this)..parent = node;
     });
     return node;
   }
@@ -223,7 +223,7 @@ class ConstantsTransformer extends Transformer {
     constantEvaluator.withNewEnvironment(() {
       transformAnnotations(node.annotations, node);
       transformList(node.initializers, this, node);
-      node.function = node.function.accept(this)..parent = node;
+      node.function = node.function.accept<TreeNode>(this)..parent = node;
     });
     return node;
   }
@@ -296,7 +296,7 @@ class ConstantsTransformer extends Transformer {
       }
     }
     if (node.body != null) {
-      node.body = node.body.accept(this)..parent = node;
+      node.body = node.body.accept<TreeNode>(this)..parent = node;
     }
     return node;
   }
@@ -322,7 +322,8 @@ class ConstantsTransformer extends Transformer {
           }
         }
       } else {
-        node.initializer = node.initializer.accept(this)..parent = node;
+        node.initializer = node.initializer.accept<TreeNode>(this)
+          ..parent = node;
       }
     }
     return node;
@@ -344,7 +345,8 @@ class ConstantsTransformer extends Transformer {
       } else {
         transformAnnotations(node.annotations, node);
         if (node.initializer != null) {
-          node.initializer = node.initializer.accept(this)..parent = node;
+          node.initializer = node.initializer.accept<TreeNode>(this)
+            ..parent = node;
         }
       }
       return node;

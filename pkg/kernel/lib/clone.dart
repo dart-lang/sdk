@@ -13,7 +13,7 @@ import 'type_algebra.dart';
 ///
 /// It is safe to clone members, but cloning a class or library is not
 /// supported.
-class CloneVisitor implements TreeVisitor {
+class CloneVisitor implements TreeVisitor<TreeNode> {
   final Map<VariableDeclaration, VariableDeclaration> variables =
       <VariableDeclaration, VariableDeclaration>{};
   final Map<LabeledStatement, LabeledStatement> labels =

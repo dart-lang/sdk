@@ -2503,8 +2503,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   /// Emits a Dart [type] into code.
-  js_ast.Expression _emitType(DartType type) =>
-      type.accept(this) as js_ast.Expression;
+  js_ast.Expression _emitType(DartType type) => type.accept(this);
 
   js_ast.Expression _emitInvalidNode(Node node, [String message = '']) {
     if (message.isNotEmpty) message += ' ';
@@ -3085,7 +3084,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   js_ast.Statement _visitStatement(Statement s) {
     if (s == null) return null;
-    var result = s.accept(this) as js_ast.Statement;
+    var result = s.accept(this);
     // TODO(jmesserly): is the `is! Block` still necessary?
     if (s is! Block) result.sourceInformation = _nodeStart(s);
 
@@ -3156,7 +3155,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (e is ConstantExpression) {
       return visitConstant(e.constant);
     }
-    var result = e.accept(this) as js_ast.Expression;
+    var result = e.accept(this);
     result.sourceInformation ??= _nodeStart(e);
     return result;
   }

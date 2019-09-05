@@ -737,19 +737,19 @@ class _VariablesDeclaration extends Statement {
     setParents(declarations, this);
   }
 
-  accept(v) {
-    unsupported("accept", fileOffset, uri);
+  R accept<R>(v) {
+    throw unsupported("accept", fileOffset, uri);
   }
 
-  accept1(v, arg) {
-    unsupported("accept1", fileOffset, uri);
+  R accept1<R, A>(v, arg) {
+    throw unsupported("accept1", fileOffset, uri);
   }
 
   visitChildren(v) {
-    unsupported("visitChildren", fileOffset, uri);
+    throw unsupported("visitChildren", fileOffset, uri);
   }
 
   transformChildren(v) {
-    unsupported("transformChildren", fileOffset, uri);
+    throw unsupported("transformChildren", fileOffset, uri);
   }
 }

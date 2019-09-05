@@ -403,7 +403,7 @@ class _ConstantCallbackVisitor<R> implements ConstantVisitor<R> {
 /// value for each subnode. The visitor caches the computed values ensuring that
 /// each subnode is only visited once.
 class ComputeOnceConstantVisitor<R> implements _ConstantCallback<R> {
-  _ConstantCallbackVisitor _visitor;
+  _ConstantCallbackVisitor<R> _visitor;
   Map<Constant, R> cache = new LinkedHashMap.identity();
 
   ComputeOnceConstantVisitor() {

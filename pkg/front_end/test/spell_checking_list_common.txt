@@ -1997,6 +1997,7 @@ precisely
 precision
 preclude
 precondition
+predefined
 predicate
 preemptively
 prefer
