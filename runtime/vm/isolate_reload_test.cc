@@ -2151,6 +2151,7 @@ TEST_CASE(IsolateReload_EnumToNotEnum) {
       "  final int zero = 0;\n"
       "}\n"
       "main() {\n"
+      "  return new Fruit().zero.toString();\n"
       "}\n";
 
   Dart_Handle result = TestCase::ReloadTestScript(kReloadScript);
@@ -2163,12 +2164,12 @@ TEST_CASE(IsolateReload_NotEnumToEnum) {
       "  final int zero = 0;\n"
       "}\n"
       "main() {\n"
-      "  return 'yes';\n"
+      "  return new Fruit().zero.toString();\n"
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(lib);
-  EXPECT_STREQ("yes", SimpleInvokeStr(lib, "main"));
+  EXPECT_STREQ("0", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
       "enum Fruit {\n"

@@ -693,6 +693,12 @@ void Class::CheckReload(const Class& replacement,
                         IsolateReloadContext* context) const {
   ASSERT(IsolateReloadContext::IsSameClass(*this, replacement));
 
+  if (!is_declaration_loaded()) {
+    // The old class hasn't been used in any meanfully way, so the VM is okay
+    // with any change.
+    return;
+  }
+
   // Ensure is_enum_class etc have been set.
   replacement.EnsureDeclarationLoaded();
 

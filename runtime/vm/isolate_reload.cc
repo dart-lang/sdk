@@ -1377,8 +1377,7 @@ static void RecordChanges(const GrowableObjectArray& changed_in_last_reload,
     return;
   }
 
-  ASSERT(new_cls.is_finalized() == old_cls.is_finalized());
-  if (!new_cls.is_finalized()) {
+  if (!old_cls.is_finalized()) {
     if (new_cls.SourceFingerprint() == old_cls.SourceFingerprint()) {
       return;
     }
@@ -1387,6 +1386,7 @@ static void RecordChanges(const GrowableObjectArray& changed_in_last_reload,
     changed_in_last_reload.Add(new_cls);
     return;
   }
+  ASSERT(new_cls.is_finalized());
 
   Zone* zone = Thread::Current()->zone();
   const Array& functions = Array::Handle(zone, new_cls.functions());
