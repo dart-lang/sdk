@@ -696,12 +696,7 @@ class StandardTestSuite extends TestSuite {
     String tempDir;
     if (compilerConfiguration.hasCompiler) {
       compileTimeArguments = compilerConfiguration.computeCompilerArguments(
-          vmOptions,
-          testFile.sharedOptions,
-          testFile.dartOptions,
-          testFile.dart2jsOptions,
-          testFile.ddcOptions,
-          args);
+          testFile, vmOptions, args);
       // Avoid doing this for analyzer.
       var path = testFile.path;
       if (vmOptionsVariant != 0) {
@@ -868,13 +863,8 @@ class StandardTestSuite extends TestSuite {
     };
     assert(supportedCompilers.contains(configuration.compiler));
 
-    var args = configuration.compilerConfiguration.computeCompilerArguments(
-        null,
-        testFile.sharedOptions,
-        null,
-        testFile.dart2jsOptions,
-        testFile.ddcOptions,
-        commonArguments);
+    var args = configuration.compilerConfiguration
+        .computeCompilerArguments(testFile, null, commonArguments);
     var compilation = configuration.compilerConfiguration
         .computeCompilationArtifact(outputDir, args, environmentOverrides);
     commands.addAll(compilation.commands);

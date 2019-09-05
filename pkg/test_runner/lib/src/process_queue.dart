@@ -500,7 +500,7 @@ abstract class CommandExecutor {
   Future cleanup();
   // TODO(kustermann): The [timeout] parameter should be a property of Command.
   Future<CommandOutput> runCommand(
-      Node<Command> node, covariant Command command, int timeout);
+      Node<Command> node, Command command, int timeout);
 }
 
 class CommandExecutorImpl implements CommandExecutor {
