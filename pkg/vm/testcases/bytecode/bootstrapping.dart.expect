@@ -210,8 +210,7 @@ Bytecode {
   Entry                2
   CheckStack           0
   LoadStatic           CP#0
-  EqualsNull
-  JumpIfFalse          L1
+  JumpIfNotNull        L1
   LoadStatic           CP#1
   DirectCall           CP#2, 1
   StoreLocal           r1
@@ -383,8 +382,7 @@ Bytecode {
   Entry                2
   CheckStack           0
   LoadStatic           CP#0
-  EqualsNull
-  JumpIfFalse          L1
+  JumpIfNotNull        L1
   Allocate             CP#1
   StoreLocal           r1
   Push                 r1
@@ -583,8 +581,7 @@ Bytecode {
   Entry                1
   CheckStack           0
   LoadStatic           CP#0
-  EqualsNull
-  JumpIfFalse          L1
+  JumpIfNotNull        L1
   LoadStatic           CP#1
   EqualsNull
   BooleanNegateTOS

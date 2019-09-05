@@ -1366,6 +1366,29 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       }
       return;
     }
+    if (condition is MethodInvocation &&
+        condition.name.name == '==' &&
+        (condition.receiver is NullLiteral ||
+            condition.arguments.positional.single is NullLiteral)) {
+      if (condition.receiver is NullLiteral) {
+        _generateNode(condition.arguments.positional.single);
+      } else {
+        _generateNode(condition.receiver);
+      }
+      if (options.emitDebuggerStops &&
+          condition.fileOffset != TreeNode.noOffset) {
+        final savedSourcePosition = asm.currentSourcePosition;
+        _recordSourcePosition(condition.fileOffset);
+        asm.emitDebugCheck();
+        asm.currentSourcePosition = savedSourcePosition;
+      }
+      if (value) {
+        asm.emitJumpIfNull(dest);
+      } else {
+        asm.emitJumpIfNotNull(dest);
+      }
+      return;
+    }
     bool negated = _genCondition(condition);
     if (value) {
       _genJumpIfTrue(negated, dest);
