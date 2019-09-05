@@ -454,7 +454,7 @@ class OutlineBuilder extends StackListener {
   }
 
   @override
-  void beginClassOrNamedMixinApplication(Token token) {
+  void beginClassOrNamedMixinApplicationPrelude(Token token) {
     debugEvent("beginClassOrNamedMixinApplication");
     library.beginNestedDeclaration(
         TypeParameterScopeKind.classOrNamedMixinApplication,
@@ -633,12 +633,18 @@ class OutlineBuilder extends StackListener {
   }
 
   @override
+  void beginExtensionDeclarationPrelude(Token extensionKeyword) {
+    assert(checkState(extensionKeyword, [ValueKind.MetadataListOrNull]));
+    debugEvent("beginExtensionDeclaration");
+    library.beginNestedDeclaration(
+        TypeParameterScopeKind.extensionDeclaration, "extension");
+  }
+
+  @override
   void beginExtensionDeclaration(Token extensionKeyword, Token nameToken) {
     assert(checkState(extensionKeyword,
         [ValueKind.TypeVariableListOrNull, ValueKind.MetadataListOrNull]));
     debugEvent("beginExtensionDeclaration");
-    library.beginNestedDeclaration(
-        TypeParameterScopeKind.extensionDeclaration, "extension");
     List<TypeVariableBuilder> typeVariables = pop();
     int offset = nameToken?.charOffset ?? extensionKeyword.charOffset;
     String name = nameToken?.lexeme ??
@@ -965,12 +971,9 @@ class OutlineBuilder extends StackListener {
         // We synthesize the names of the generated [TypeParameter]s, i.e.
         // rename 'T' to '#T'. We cannot do it on the builders because their
         // names are used to create the scope.
-        // TODO(johnniwinther): Handle shadowing of extension type variables.
         List<TypeVariableBuilder> synthesizedTypeVariables = library
             .copyTypeVariables(extension.typeVariables, declarationBuilder,
-                // TODO(johnniwinther): The synthesized names show up in
-                // messages. Move synthesizing of names later to avoid this.
-                synthesizeTypeParameterNames: true);
+                isExtensionTypeParameter: true);
         substitution = {};
         for (int i = 0; i < synthesizedTypeVariables.length; i++) {
           substitution[extension.typeVariables[i]] =

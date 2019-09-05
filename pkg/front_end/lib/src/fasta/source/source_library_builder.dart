@@ -1383,14 +1383,18 @@ class SourceLibraryBuilder extends LibraryBuilder {
     for (TypeVariableBuilder tv in typeVariables) {
       TypeVariableBuilder existing = typeVariablesByName[tv.name];
       if (existing != null) {
-        addProblem(messageTypeVariableDuplicatedName, tv.charOffset,
-            tv.name.length, fileUri,
-            context: [
-              templateTypeVariableDuplicatedNameCause
-                  .withArguments(tv.name)
-                  .withLocation(
-                      fileUri, existing.charOffset, existing.name.length)
-            ]);
+        if (existing.isExtensionTypeParameter) {
+          typeVariablesByName[tv.name] = tv;
+        } else {
+          addProblem(messageTypeVariableDuplicatedName, tv.charOffset,
+              tv.name.length, fileUri,
+              context: [
+                templateTypeVariableDuplicatedNameCause
+                    .withArguments(tv.name)
+                    .withLocation(
+                        fileUri, existing.charOffset, existing.name.length)
+              ]);
+        }
       } else {
         typeVariablesByName[tv.name] = tv;
         if (owner is ClassBuilder) {
@@ -2333,14 +2337,14 @@ class SourceLibraryBuilder extends LibraryBuilder {
   /// [TypeParameter] are prefix with '#' to indicate that their synthesized.
   List<TypeVariableBuilder> copyTypeVariables(
       List<TypeVariableBuilder> original, TypeParameterScopeBuilder declaration,
-      {bool synthesizeTypeParameterNames: false}) {
+      {bool isExtensionTypeParameter: false}) {
     List<TypeBuilder> newTypes = <TypeBuilder>[];
     List<TypeVariableBuilder> copy = <TypeVariableBuilder>[];
     for (TypeVariableBuilder variable in original) {
       TypeVariableBuilder newVariable = new TypeVariableBuilder(
           variable.name, this, variable.charOffset,
           bound: variable.bound?.clone(newTypes),
-          synthesizeTypeParameterName: synthesizeTypeParameterNames);
+          isExtensionTypeParameter: isExtensionTypeParameter);
       copy.add(newVariable);
       boundlessTypeVariables.add(newVariable);
     }

@@ -29,17 +29,22 @@ class TypeVariableBuilder extends TypeDeclarationBuilder {
 
   TypeVariableBuilder actualOrigin;
 
+  final bool isExtensionTypeParameter;
+
   TypeVariableBuilder(
       String name, SourceLibraryBuilder compilationUnit, int charOffset,
-      {this.bound, bool synthesizeTypeParameterName: false})
-      : actualParameter = new TypeParameter(
-            synthesizeTypeParameterName ? '#$name' : name, null)
-          ..fileOffset = charOffset,
+      {this.bound, this.isExtensionTypeParameter: false})
+      : actualParameter =
+            new TypeParameter(isExtensionTypeParameter ? '#$name' : name, null)
+              ..fileOffset = charOffset,
         super(null, 0, name, compilationUnit, charOffset);
 
   TypeVariableBuilder.fromKernel(
       TypeParameter parameter, LibraryBuilder compilationUnit)
       : actualParameter = parameter,
+        // TODO(johnniwinther): Do we need to support synthesized type
+        //  parameters from kernel?
+        this.isExtensionTypeParameter = false,
         super(null, 0, parameter.name, compilationUnit, parameter.fileOffset);
 
   bool get isTypeVariable => true;

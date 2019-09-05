@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*library: scope=[A2]*/
+/*library: scope=[A2,A3,A4]*/
 
 class A1<T> {}
 
@@ -64,7 +64,46 @@ extension A2<T> on A1<T> {
   */
 }
 
-// TODO(johnniwinther): Support F-bounded extensions. Currently the type
-// variable is not recognized as a type within the bound.
+/*class: A3:
+ builder-name=A3,
+ builder-onType=A1<T>,
+ builder-type-params=[T extends A1<T>],
+ extension-name=A3,
+ extension-onType=A1<T>,
+ extension-type-params=[T extends A1<T>]
+*/
+extension A3<T extends A1<T>> on A1<T> {
+}
+
+/*class: A4:
+ builder-name=A4,
+ builder-onType=A1<T>,
+ builder-type-params=[T],
+ extension-members=[
+  method=A4|method,
+  tearoff method=A4|get#method],
+ extension-name=A4,
+ extension-onType=A1<T>,
+ extension-type-params=[T]
+*/
+extension A4<T> on A1<T> {
+  /*member: A4|method:
+   builder-name=method,
+   builder-params=[#this],
+   builder-type-params=[T,T],
+   member-name=A4|method,
+   member-params=[#this],
+   member-type-params=[#T,T]*/
+  method<T>() {}
+
+  /*member: A4|get#method:
+   builder-name=method,
+   builder-params=[#this],
+   builder-type-params=[T,T],
+   member-name=A4|get#method,
+   member-params=[#this],
+   member-type-params=[#T]
+  */
+}
 
 main() {}

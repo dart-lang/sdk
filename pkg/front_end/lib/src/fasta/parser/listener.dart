@@ -103,11 +103,16 @@ class Listener implements UnescapeErrorListener {
   }
 
   /// Called before parsing a class or named mixin application.
-  void beginClassOrNamedMixinApplication(Token token) {}
+  ///
+  /// At this point only the `class` keyword have been seen, so we know a
+  /// declaration is coming but not its name or type parameter declarations.
+  void beginClassOrNamedMixinApplicationPrelude(Token token) {}
 
   /// Handle the beginning of a class declaration.
   /// [begin] may be the same as [name], or may point to modifiers
   /// (or extraneous modifiers in the case of recovery) preceding [name].
+  ///
+  /// At this point we have parsed the name and type parameter declarations.
   void beginClassDeclaration(Token begin, Token abstractToken, Token name) {}
 
   /// Handle an extends clause in a class declaration. Substructures:
@@ -195,7 +200,15 @@ class Listener implements UnescapeErrorListener {
 
   /// Handle the beginning of an extension methods declaration.  Substructures:
   /// - metadata
+  ///
+  /// At this point only the `extension` keyword have been seen, so we know a
+  /// declaration is coming but not its name or type parameter declarations.
+  void beginExtensionDeclarationPrelude(Token extensionKeyword) {}
+
+  /// Handle the beginning of an extension methods declaration.  Substructures:
   /// - type variables
+  ///
+  /// At this point we have parsed the name and type parameter declarations.
   void beginExtensionDeclaration(Token extensionKeyword, Token name) {}
 
   /// Handle the end of an extension methods declaration.  Substructures:
@@ -560,6 +573,8 @@ class Listener implements UnescapeErrorListener {
   /// Handle the beginning of a named mixin application.
   /// [beginToken] may be the same as [name], or may point to modifiers
   /// (or extraneous modifiers in the case of recovery) preceding [name].
+  ///
+  /// At this point we have parsed the name and type parameter declarations.
   void beginNamedMixinApplication(
       Token begin, Token abstractToken, Token name) {}
 

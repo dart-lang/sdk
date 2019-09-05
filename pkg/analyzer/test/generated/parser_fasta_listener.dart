@@ -101,8 +101,8 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginClassOrNamedMixinApplication(Token token) {
-    super.beginClassOrNamedMixinApplication(token);
+  void beginClassOrNamedMixinApplicationPrelude(Token token) {
+    super.beginClassOrNamedMixinApplicationPrelude(token);
     begin('ClassOrNamedMixinApplication');
   }
 
@@ -178,6 +178,12 @@ class ForwardingTestListener extends ForwardingListener {
   void beginExport(Token token) {
     super.beginExport(token);
     begin('Export');
+  }
+
+  @override
+  void beginExtensionDeclarationPrelude(Token extensionKeyword) {
+    super.beginExtensionDeclarationPrelude(extensionKeyword);
+    begin('ExtensionDeclarationPrelude');
   }
 
   @override

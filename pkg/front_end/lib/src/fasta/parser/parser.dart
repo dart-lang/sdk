@@ -1749,7 +1749,7 @@ class Parser {
       Token abstractToken, Token classKeyword) {
     assert(optional('class', classKeyword));
     Token begin = abstractToken ?? classKeyword;
-    listener.beginClassOrNamedMixinApplication(begin);
+    listener.beginClassOrNamedMixinApplicationPrelude(begin);
     Token name = ensureIdentifier(
         classKeyword, IdentifierContext.classOrMixinOrExtensionDeclaration);
     Token token = computeTypeParamOrArg(name, true).parseVariables(name, this);
@@ -1955,7 +1955,7 @@ class Parser {
   /// ```
   Token parseMixin(Token mixinKeyword) {
     assert(optional('mixin', mixinKeyword));
-    listener.beginClassOrNamedMixinApplication(mixinKeyword);
+    listener.beginClassOrNamedMixinApplicationPrelude(mixinKeyword);
     Token name = ensureIdentifier(
         mixinKeyword, IdentifierContext.classOrMixinOrExtensionDeclaration);
     Token headerStart =
@@ -2089,6 +2089,7 @@ class Parser {
   Token parseExtension(Token extensionKeyword) {
     assert(optional('extension', extensionKeyword));
     Token token = extensionKeyword;
+    listener.beginExtensionDeclarationPrelude(extensionKeyword);
     Token name = token.next;
     if (name.isIdentifier && !optional('on', name)) {
       token = name;
