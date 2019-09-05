@@ -729,6 +729,92 @@ main() {
       });
     });
 
+    test('tryFinallyStatement_finallyBegin() restores pre-try state', () {
+      var h = _Harness();
+      var x = h.addVar('x', 'int?');
+      var y = h.addVar('y', 'int?');
+      h.run((flow) {
+        h.declare(x, initialized: true);
+        h.declare(y, initialized: true);
+        h.promote(y, 'int');
+        flow.tryFinallyStatement_bodyBegin();
+        h.promote(x, 'int');
+        expect(flow.promotedType(x).type, 'int');
+        expect(flow.promotedType(y).type, 'int');
+        flow.tryFinallyStatement_finallyBegin({});
+        expect(flow.promotedType(x), isNull);
+        expect(flow.promotedType(y).type, 'int');
+        flow.tryFinallyStatement_end({});
+      });
+    });
+
+    test(
+        'tryFinallyStatement_finallyBegin() un-promotes variables assigned in '
+        'body', () {
+      var h = _Harness();
+      var x = h.addVar('x', 'int?');
+      h.run((flow) {
+        h.declare(x, initialized: true);
+        h.promote(x, 'int');
+        expect(flow.promotedType(x).type, 'int');
+        flow.tryFinallyStatement_bodyBegin();
+        flow.write(x);
+        h.promote(x, 'int');
+        expect(flow.promotedType(x).type, 'int');
+        flow.tryFinallyStatement_finallyBegin({x});
+        expect(flow.promotedType(x), isNull);
+        flow.tryFinallyStatement_end({});
+      });
+    });
+
+    test('tryFinallyStatement_end() restores promotions from try body', () {
+      var h = _Harness();
+      var x = h.addVar('x', 'int?');
+      var y = h.addVar('y', 'int?');
+      h.run((flow) {
+        h.declare(x, initialized: true);
+        h.declare(y, initialized: true);
+        flow.tryFinallyStatement_bodyBegin();
+        h.promote(x, 'int');
+        expect(flow.promotedType(x).type, 'int');
+        flow.tryFinallyStatement_finallyBegin({});
+        expect(flow.promotedType(x), isNull);
+        h.promote(y, 'int');
+        expect(flow.promotedType(y).type, 'int');
+        flow.tryFinallyStatement_end({});
+        // Both x and y should now be promoted.
+        expect(flow.promotedType(x).type, 'int');
+        expect(flow.promotedType(y).type, 'int');
+      });
+    });
+
+    test(
+        'tryFinallyStatement_end() does not restore try body promotions for '
+        'variables assigned in finally', () {
+      var h = _Harness();
+      var x = h.addVar('x', 'int?');
+      var y = h.addVar('y', 'int?');
+      h.run((flow) {
+        h.declare(x, initialized: true);
+        h.declare(y, initialized: true);
+        flow.tryFinallyStatement_bodyBegin();
+        h.promote(x, 'int');
+        expect(flow.promotedType(x).type, 'int');
+        flow.tryFinallyStatement_finallyBegin({});
+        expect(flow.promotedType(x), isNull);
+        flow.write(x);
+        flow.write(y);
+        h.promote(y, 'int');
+        expect(flow.promotedType(y).type, 'int');
+        flow.tryFinallyStatement_end({x, y});
+        // x should not be re-promoted, because it might have been assigned a
+        // non-promoted value in the "finally" block.  But y's promotion still
+        // stands, because y was promoted in the finally block.
+        expect(flow.promotedType(x), isNull);
+        expect(flow.promotedType(y).type, 'int');
+      });
+    });
+
     test('whileStatement_conditionBegin() un-promotes', () {
       var h = _Harness();
       var x = h.addVar('x', 'int?');

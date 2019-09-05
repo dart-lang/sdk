@@ -2518,6 +2518,7 @@ stage
 stamps
 standalone
 standard
+stands
 star
 start
 started
