@@ -373,6 +373,36 @@ class CreateGetterWithExtensionMethodsTest extends FixProcessorTest {
     super.setUp();
   }
 
+  test_internal_instance() async {
+    await resolveTestUnit('''
+extension E on String {
+  int m()  => g;
+}
+''');
+    await assertHasFix('''
+extension E on String {
+  get g => null;
+
+  int m()  => g;
+}
+''');
+  }
+
+  test_internal_static() async {
+    await resolveTestUnit('''
+extension E on String {
+  static int m()  => g;
+}
+''');
+    await assertHasFix('''
+extension E on String {
+  static get g => null;
+
+  static int m()  => g;
+}
+''');
+  }
+
   test_override() async {
     await resolveTestUnit('''
 extension E on String {

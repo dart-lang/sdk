@@ -232,18 +232,10 @@ String getElementQualifiedName(Element element) {
   }
 }
 
-/**
- * If the given [AstNode] is in a [ClassOrMixinDeclaration], returns the
- * [ClassElement]. Otherwise returns `null`.
- */
-ClassElement getEnclosingClassElement(AstNode node) {
-  ClassOrMixinDeclaration enclosingClassNode =
-      node.thisOrAncestorOfType<ClassOrMixinDeclaration>();
-  if (enclosingClassNode != null) {
-    return enclosingClassNode.declaredElement;
-  }
-  return null;
-}
+/// If the given [node] is in a class, enum or mixin declaration, return the
+/// declared [ClassElement]. Otherwise return `null`.
+ClassElement getEnclosingClassElement(AstNode node) =>
+    node.thisOrAncestorOfType<ClassOrMixinDeclaration>()?.declaredElement;
 
 /**
  * Returns a class or an unit member enclosing the given [node].
@@ -300,6 +292,11 @@ AstNode getEnclosingExecutableNode(AstNode node) {
   }
   return null;
 }
+
+/// If the given [node] is in an extension, return the declared
+/// [ExtensionElement]. Otherwise return `null`.
+ExtensionElement getEnclosingExtensionElement(AstNode node) =>
+    node.thisOrAncestorOfType<ExtensionDeclaration>()?.declaredElement;
 
 /**
  * Returns [getExpressionPrecedence] for the parent of [node], or

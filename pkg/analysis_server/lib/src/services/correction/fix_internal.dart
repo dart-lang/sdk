@@ -1989,7 +1989,8 @@ class FixProcessor extends BaseProcessor {
         }
       }
     } else {
-      targetElement = getEnclosingClassElement(node);
+      targetElement =
+          getEnclosingClassElement(node) ?? getEnclosingExtensionElement(node);
       if (targetElement == null) {
         return;
       }
