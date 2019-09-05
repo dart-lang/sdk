@@ -1409,6 +1409,8 @@ class BlockEntryInstr : public Instruction {
                              BitVector* block_marks);
 
  private:
+  friend class FlowGraphDeserializer;  // Access to AddPredecessor().
+
   virtual void RawSetInputAt(intptr_t i, Value* value) { UNREACHABLE(); }
 
   virtual void ClearPredecessors() = 0;
@@ -3812,6 +3814,7 @@ class StrictCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
   bool AttributesEqual(Instruction* other) const;
 
   PRINT_OPERANDS_TO_SUPPORT
+  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT;
 
  private:
   // True if the comparison must check for double or Mint and
@@ -7755,6 +7758,8 @@ class CheckNullInstr : public TemplateDefinition<1, Throws, Pure> {
                                         FlowGraphCompiler* compiler);
 
   virtual Value* RedefinedValue() const;
+
+  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  private:
   const TokenPosition token_pos_;

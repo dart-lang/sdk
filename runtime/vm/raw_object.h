@@ -838,32 +838,77 @@ class RawPatchClass : public RawObject {
 
 class RawFunction : public RawObject {
  public:
+  // When you add a new kind, please also update the observatory to account
+  // for the new string returned by KindToCString().
+  // - runtime/observatory/lib/src/models/objects/function.dart (FunctionKind)
+  // - runtime/observatory/lib/src/elements/function_view.dart
+  //   (_functionKindToString)
+  // - runtime/observatory/lib/src/service/object.dart (stringToFunctionKind)
+#define FOR_EACH_RAW_FUNCTION_KIND(V)                                          \
+  /* an ordinary or operator method */                                         \
+  V(RegularFunction)                                                           \
+  /* a user-declared closure function */                                       \
+  V(ClosureFunction)                                                           \
+  /* an implicit closure (i.e., tear-off) */                                   \
+  V(ImplicitClosureFunction)                                                   \
+  /* a signature only without actual code */                                   \
+  V(SignatureFunction)                                                         \
+  /* getter functions e.g: get foo() { .. } */                                 \
+  V(GetterFunction)                                                            \
+  /* setter functions e.g: set foo(..) { .. } */                               \
+  V(SetterFunction)                                                            \
+  /* a generative (is_static=false) or factory (is_static=true) constructor */ \
+  V(Constructor)                                                               \
+  /* an implicit getter for instance fields */                                 \
+  V(ImplicitGetter)                                                            \
+  /* an implicit setter for instance fields */                                 \
+  V(ImplicitSetter)                                                            \
+  /* represents an implicit getter for static fields with initializers */      \
+  V(ImplicitStaticGetter)                                                      \
+  /* the initialization expression for a static or instance field */           \
+  V(FieldInitializer)                                                          \
+  /* return a closure on the receiver for tear-offs */                         \
+  V(MethodExtractor)                                                           \
+  /* builds an Invocation and invokes noSuchMethod */                          \
+  V(NoSuchMethodDispatcher)                                                    \
+  /* invokes a field as a closure (i.e., call-through-getter) */               \
+  V(InvokeFieldDispatcher)                                                     \
+  /* a generated irregexp matcher function. */                                 \
+  V(IrregexpFunction)                                                          \
+  /* a forwarder which performs type checks for arguments of a dynamic call */ \
+  /* (i.e., those checks omitted by the caller for interface calls). */        \
+  V(DynamicInvocationForwarder)                                                \
+  V(FfiTrampoline)
+
   enum Kind {
-    kRegularFunction,          // an ordinary or operator method
-    kClosureFunction,          // a user-declared closure function
-    kImplicitClosureFunction,  // an implicit closure (i.e., tear-off)
-    kSignatureFunction,        // a signature only without actual code
-    kGetterFunction,           // getter functions e.g: get foo() { .. }
-    kSetterFunction,           // setter functions e.g: set foo(..) { .. }
-    kConstructor,              // a generative (is_static=false) or
-                               // factory (is_static=true) constructor
-    kImplicitGetter,           // an implicit getter for instance fields
-    kImplicitSetter,           // an implicit setter for instance fields
-    kImplicitStaticGetter,     // represents an implicit getter for static
-                               // fields with initializers
-    kFieldInitializer,         // the initialization expression for a static
-                               // or instance field
-    kMethodExtractor,          // return a closure on the receiver for tear-offs
-    kNoSuchMethodDispatcher,   // builds an Invocation and invokes noSuchMethod
-    kInvokeFieldDispatcher,    // invokes a field as a closure (i.e.,
-                               // call-through-getter)
-    kIrregexpFunction,         // a generated irregexp matcher function.
-    kDynamicInvocationForwarder,  // a forwarder which performs type checks for
-                                  // arguments of a dynamic call (i.e., those
-                                  // checks omitted by the caller for interface
-                                  // calls).
-    kFfiTrampoline,
+#define KIND_DEFN(Name) k##Name,
+    FOR_EACH_RAW_FUNCTION_KIND(KIND_DEFN)
+#undef KIND_DEFN
   };
+
+  static const char* KindToCString(Kind k) {
+    switch (k) {
+#define KIND_CASE(Name)                                                        \
+  case Kind::k##Name:                                                          \
+    return #Name;
+      FOR_EACH_RAW_FUNCTION_KIND(KIND_CASE)
+#undef KIND_CASE
+      default:
+        UNREACHABLE();
+        return nullptr;
+    }
+  }
+
+  static bool KindFromCString(const char* str, Kind* out) {
+#define KIND_CASE(Name)                                                        \
+  if (strcmp(str, #Name) == 0) {                                               \
+    *out = Kind::k##Name;                                                      \
+    return true;                                                               \
+  }
+    FOR_EACH_RAW_FUNCTION_KIND(KIND_CASE)
+#undef KIND_CASE
+    return false;
+  }
 
   enum AsyncModifier {
     kNoModifier = 0x0,

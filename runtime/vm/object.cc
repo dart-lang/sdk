@@ -6211,66 +6211,7 @@ RawType* Function::RedirectionType() const {
 }
 
 const char* Function::KindToCString(RawFunction::Kind kind) {
-  switch (kind) {
-    case RawFunction::kRegularFunction:
-      return "RegularFunction";
-      break;
-    case RawFunction::kClosureFunction:
-      return "ClosureFunction";
-      break;
-    case RawFunction::kImplicitClosureFunction:
-      return "ImplicitClosureFunction";
-      break;
-    case RawFunction::kSignatureFunction:
-      return "SignatureFunction";
-      break;
-    case RawFunction::kGetterFunction:
-      return "GetterFunction";
-      break;
-    case RawFunction::kSetterFunction:
-      return "SetterFunction";
-      break;
-    case RawFunction::kConstructor:
-      return "Constructor";
-      break;
-    case RawFunction::kImplicitGetter:
-      return "ImplicitGetter";
-      break;
-    case RawFunction::kImplicitSetter:
-      return "ImplicitSetter";
-      break;
-    case RawFunction::kImplicitStaticGetter:
-      return "ImplicitStaticGetter";
-      break;
-    case RawFunction::kFieldInitializer:
-      return "FieldInitializer";
-      break;
-    case RawFunction::kMethodExtractor:
-      return "MethodExtractor";
-      break;
-    case RawFunction::kNoSuchMethodDispatcher:
-      return "NoSuchMethodDispatcher";
-      break;
-    case RawFunction::kInvokeFieldDispatcher:
-      return "InvokeFieldDispatcher";
-      break;
-    case RawFunction::kIrregexpFunction:
-      return "IrregexpFunction";
-      break;
-    case RawFunction::kDynamicInvocationForwarder:
-      return "DynamicInvocationForwarder";
-      break;
-    case RawFunction::kFfiTrampoline:
-      return "FfiTrampoline";
-      break;
-  }
-  // When you add a case to this switch, please also update the observatory.
-  // - runtime/observatory/lib/src/models/objects/function.dart (FunctionKind)
-  // - runtime/observatory/lib/src/elements/function_view.dart
-  //   (_functionKindToString)
-  // - runtime/observatory/lib/src/service/object.dart (stringToFunctionKind)
-  UNREACHABLE();
-  return NULL;
+  return RawFunction::KindToCString(kind);
 }
 
 void Function::SetRedirectionType(const Type& type) const {

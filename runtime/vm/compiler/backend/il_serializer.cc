@@ -490,8 +490,9 @@ SExpression* FlowGraphSerializer::FunctionToSExp(const Function& func) {
       AddExtraSymbol(sexp, "native_name", tmp_string_.ToCString());
     }
   }
-  if (FLAG_verbose_flow_graph_serialization) {
-    AddExtraSymbol(sexp, "kind", Function::KindToCString(func.kind()));
+  if (func.kind() != RawFunction::Kind::kRegularFunction ||
+      FLAG_verbose_flow_graph_serialization) {
+    AddExtraSymbol(sexp, "kind", RawFunction::KindToCString(func.kind()));
   }
   function_type_args_ = func.type_parameters();
   if (auto const ta_sexp = NonEmptyTypeArgumentsToSExp(function_type_args_)) {
@@ -513,6 +514,10 @@ SExpression* FlowGraphSerializer::ArrayToSExp(const Array& arr) {
   for (intptr_t i = 0; i < arr.Length(); i++) {
     array_elem = arr.At(i);
     sexp->Add(DartValueToSExp(array_elem));
+  }
+  array_type_args_ = arr.GetTypeArguments();
+  if (auto const type_args_sexp = TypeArgumentsToSExp(array_type_args_)) {
+    sexp->AddExtra("type_args", type_args_sexp);
   }
   return sexp;
 }
@@ -840,6 +845,15 @@ void ComparisonInstr::AddOperandsToSExpression(SExpList* sexp,
   Instruction::AddOperandsToSExpression(sexp, s);
 }
 
+void StrictCompareInstr::AddExtraInfoToSExpression(
+    SExpList* sexp,
+    FlowGraphSerializer* s) const {
+  Instruction::AddExtraInfoToSExpression(sexp, s);
+  if (needs_number_check_ || FLAG_verbose_flow_graph_serialization) {
+    s->AddExtraBool(sexp, "needs_check", needs_number_check_);
+  }
+}
+
 void DoubleTestOpInstr::AddOperandsToSExpression(SExpList* sexp,
                                                  FlowGraphSerializer* s) const {
   const bool negated = kind() != Token::kEQ;
@@ -1078,6 +1092,14 @@ void CheckStackOverflowInstr::AddExtraInfoToSExpression(
   if (kind_ != kOsrAndPreemption) {
     ASSERT(kind_ == kOsrOnly);
     s->AddExtraSymbol(sexp, "kind", "OsrOnly");
+  }
+}
+
+void CheckNullInstr::AddExtraInfoToSExpression(SExpList* sexp,
+                                               FlowGraphSerializer* s) const {
+  Instruction::AddExtraInfoToSExpression(sexp, s);
+  if (!function_name_.IsNull()) {
+    s->AddExtraString(sexp, "function_name", function_name_.ToCString());
   }
 }
 

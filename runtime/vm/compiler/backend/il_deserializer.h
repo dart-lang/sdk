@@ -48,9 +48,9 @@ class FlowGraphDeserializer : ValueObject {
         root_sexp_(ASSERT_NOTNULL(root)),
         parsed_function_(pf),
         block_map_(zone_),
+        pushed_stack_map_(zone_),
         definition_map_(zone_),
         values_map_(zone_),
-        pushed_stack_(zone_, 2),
         instance_class_(Class::Handle(zone)),
         instance_field_(Field::Handle(zone)),
         instance_object_(Object::Handle(zone)),
@@ -85,17 +85,21 @@ class FlowGraphDeserializer : ValueObject {
   M(TargetEntry)
 
 #define FOR_EACH_HANDLED_INSTRUCTION_IN_DESERIALIZER(M)                        \
+  M(AllocateObject)                                                            \
   M(Branch)                                                                    \
+  M(CheckNull)                                                                 \
   M(CheckStackOverflow)                                                        \
   M(Constant)                                                                  \
   M(DebugStepCheck)                                                            \
   M(Goto)                                                                      \
-  M(PushArgument)                                                              \
+  M(LoadField)                                                                 \
   M(Parameter)                                                                 \
+  M(PushArgument)                                                              \
   M(Return)                                                                    \
   M(SpecialParameter)                                                          \
   M(StaticCall)                                                                \
-  M(StoreInstanceField)
+  M(StoreInstanceField)                                                        \
+  M(StrictCompare)
 
   // Helper methods for AllUnhandledInstructions.
   static bool IsHandledInstruction(Instruction* inst);
@@ -125,37 +129,38 @@ class FlowGraphDeserializer : ValueObject {
   bool ParseConstantPool(SExpList* pool);
   bool ParseEntries(SExpList* list);
 
-  struct CommonEntryInfo {
-    intptr_t block_id;
-    intptr_t try_index;
-    intptr_t deopt_id;
-  };
+  using PushStack = ZoneGrowableArray<PushArgumentInstr*>;
+  using BlockWorklist = GrowableArray<intptr_t>;
 
-#define HANDLER_DECL(name)                                                     \
-  name##Instr* Handle##name(SExpList* list, const CommonEntryInfo& info);
+  // Starts parsing the contents of [list], where the blocks begin at position
+  // [pos] and [worklist] contains the blocks whose body instructions should
+  // be parsed first.
+  bool ParseBlocks(SExpList* list, intptr_t pos, BlockWorklist* worklist);
 
-  FOR_EACH_HANDLED_BLOCK_TYPE_IN_DESERIALIZER(HANDLER_DECL);
-
-#undef HANDLER_DECL
-
-  // Block parsing is split into two passes. This pass checks the
-  // block ID and other extra information needed for certain block types.
-  // In addition, it parses initial definitions found in the entry list.
-  // The block is added to the [block_map_] as well as returned.
-  BlockEntryInstr* ParseBlockHeader(SExpList* list, SExpSymbol* tag);
+  // Block parsing is split into two passes. This pass adds function entries
+  // to the flow graph and also parses initial definitions found in the Entries
+  // list. The block is added to the [block_map_] before returning.
+  BlockEntryInstr* ParseBlockHeader(SExpList* list,
+                                    intptr_t block_id,
+                                    SExpSymbol* tag);
 
   // Expects [current_block_] to be set before calling.
   bool ParseInitialDefinitions(SExpList* list);
 
   // Expects [current_block_] to be set before calling.
   // Takes the tagged list to parse and the index where parsing should start.
-  // Returns the index of the first non-Phi instruction or definition or -1 on
-  // error.
-  intptr_t ParsePhis(SExpList* list, intptr_t pos);
+  // Attempts to parse Phi definitions until the first non-Phi instruction.
+  bool ParsePhis(SExpList* list);
 
-  // Parses the instructions in the body of a block. [current_block_] must be
-  // set before calling.
-  bool ParseBlockContents(SExpList* list);
+  // Expects [current_block_] to be set before calling.
+  // Returns the position of the first non-Phi instruction in a block.
+  intptr_t SkipPhis(SExpList* list);
+
+  // Parses the deopt environment, Phi definitions for JoinEntrys, and the
+  // instructions in the body of the block. Adds the IDs of the block successors
+  // to the worklist, if any. [current_block_] and [pushed_stack_] must be set
+  // before calling.
+  bool ParseBlockContents(SExpList* list, BlockWorklist* worklist);
 
   // Helper function used by ParseConstantPool, ParsePhis, and ParseDefinition.
   // This handles all the extra information stored in (def ...) expressions,
@@ -166,7 +171,20 @@ class FlowGraphDeserializer : ValueObject {
   Definition* ParseDefinition(SExpList* list);
   Instruction* ParseInstruction(SExpList* list);
 
-  struct CommonInstrInfo {
+  struct EntryInfo {
+    intptr_t block_id;
+    intptr_t try_index;
+    intptr_t deopt_id;
+  };
+
+#define HANDLER_DECL(name)                                                     \
+  name##Instr* Deserialize##name(SExpList* list, const EntryInfo& info);
+
+  FOR_EACH_HANDLED_BLOCK_TYPE_IN_DESERIALIZER(HANDLER_DECL);
+
+#undef HANDLER_DECL
+
+  struct InstrInfo {
     intptr_t deopt_id;
     TokenPosition token_pos;
   };
@@ -190,14 +208,25 @@ class FlowGraphDeserializer : ValueObject {
 #undef HANDLE_CASE
 
 #define HANDLER_DECL(name)                                                     \
-  name##Instr* Handle##name(SExpList* list, const CommonInstrInfo& info);
+  name##Instr* Deserialize##name(SExpList* list, const InstrInfo& info);
 
   FOR_EACH_HANDLED_INSTRUCTION_IN_DESERIALIZER(HANDLER_DECL);
 
 #undef HANDLER_DECL
 
-  Value* ParseValue(SExpression* sexp);
+  // Parses [sexp] as a value form, that is, either the binding name for
+  // a definition as a symbol or the form (value <name> { ... }).
+  // If [allow_pending], then values for definitions not already in the
+  // [definition_map_] will be added to the [values_map_], otherwise,
+  // values for definitions not yet seen cause an error to be stored and
+  // nullptr to be returned.
+  Value* ParseValue(SExpression* sexp, bool allow_pending = true);
   CompileType* ParseCompileType(SExpList* list);
+
+  // Parses [list] as an environment form: a list containing either binding
+  // names for definitions or a# for pushed arguments (where # is the depth
+  // of the argument from the top of the stack). Requires [pushed_stack_] to
+  // be set if any references to pushed arguments are found.
   Environment* ParseEnvironment(SExpList* list);
 
   // Parsing functions for which there are no good distinguished error
@@ -243,6 +272,14 @@ class FlowGraphDeserializer : ValueObject {
   // [block_map_]. Assumes all blocks have had their header parsed.
   BlockEntryInstr* FetchBlock(SExpSymbol* sym);
 
+  // Checks that the pushed argument stacks for all predecessors of [succ_block]
+  // are the same as [curr_stack]. This check ensures that we can choose an
+  // arbitrary predecessor's pushed argument stack when parsing [succ_block]'s
+  // contents. [list] is used for error reporting.
+  bool AreStacksConsistent(SExpList* list,
+                           PushStack* curr_stack,
+                           BlockEntryInstr* succ_block);
+
   // Utility functions for checking the shape of an S-expression.
   // If these functions return nullptr for a non-null argument, they have the
   // side effect of setting the stored error message.
@@ -280,15 +317,18 @@ class FlowGraphDeserializer : ValueObject {
   // available via [flow_graph_].
   IntMap<BlockEntryInstr*> block_map_;
 
+  // Map from block IDs to pushed argument stacks. Used for PushArgument
+  // instructions, environment parsing, and calls during block parsing. Also
+  // used to check that the final pushed argument stacks for predecessor blocks
+  // are consistent when parsing a JoinEntry.
+  IntMap<PushStack*> pushed_stack_map_;
+
   // Map from variable indexes to definitions.
   IntMap<Definition*> definition_map_;
 
   // Map from variable indices to lists of values. The list of values are
   // values that were parsed prior to the corresponding definition being found.
   IntMap<ZoneGrowableArray<Value*>*> values_map_;
-
-  // Stack of currently pushed arguments, used by environment parsing and calls.
-  GrowableArray<PushArgumentInstr*> pushed_stack_;
 
   // Temporary handles used by functions that are not re-entrant or where the
   // handle is not live after the re-entrant call. Comments show which handles

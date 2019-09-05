@@ -111,6 +111,7 @@ class FlowGraphSerializer : ValueObject {
       : flow_graph_(ASSERT_NOTNULL(flow_graph)),
         zone_(zone),
         tmp_string_(String::Handle(zone_)),
+        array_type_args_((TypeArguments::Handle(zone_))),
         closure_context_(Context::Handle(zone_)),
         closure_function_(Function::Handle(zone_)),
         closure_type_args_(TypeArguments::Handle(zone_)),
@@ -156,6 +157,7 @@ class FlowGraphSerializer : ValueObject {
   // DartValueToSExp with a sub-element of type Object, but any call to a
   // FlowGraphSerializer method that may eventually enter one of the methods
   // listed below should be examined with care.
+  TypeArguments& array_type_args_;     // ArrayToSExp
   Context& closure_context_;           // ClosureToSExp
   Function& closure_function_;         // ClosureToSExp
   TypeArguments& closure_type_args_;   // ClosureToSExp
