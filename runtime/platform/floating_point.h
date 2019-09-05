@@ -5,6 +5,8 @@
 #ifndef RUNTIME_PLATFORM_FLOATING_POINT_H_
 #define RUNTIME_PLATFORM_FLOATING_POINT_H_
 
+#include <cmath>
+
 inline double fmod_ieee(double x, double y) {
   return fmod(x, y);
 }

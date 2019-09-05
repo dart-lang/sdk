@@ -410,7 +410,9 @@ bool FlowGraphDeserializer::ParseBlocks(SExpList* list,
         CheckSymbol(block_sexp->ExtraLookupValue("block_type"));
     // Entry block headers are already parsed, but others aren't.
     if (block_map_.LookupValue(block_id) == nullptr) {
-      if (!ParseBlockHeader(block_sexp, block_id, type_tag)) return false;
+      if (ParseBlockHeader(block_sexp, block_id, type_tag) == nullptr) {
+        return false;
+      }
     }
     if (max_block_id_ < block_id) max_block_id_ = block_id;
   }

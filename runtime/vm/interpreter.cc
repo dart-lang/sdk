@@ -2595,7 +2595,7 @@ SwitchDispatch:
   {
     BYTECODE(AssertBoolean, A);
     RawObject* value = SP[0];
-    if (rA) {  // Should we perform type check?
+    if (rA != 0u) {  // Should we perform type check?
       if ((value == true_value) || (value == false_value)) {
         goto AssertBooleanOk;
       }

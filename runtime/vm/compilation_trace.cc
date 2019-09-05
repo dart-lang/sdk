@@ -500,7 +500,7 @@ void TypeFeedbackSaver::SaveFields() {
       WriteString(str_);
 
       WriteInt(field_.guarded_cid());
-      WriteInt(field_.is_nullable());
+      WriteInt(static_cast<intptr_t>(field_.is_nullable()));
     }
   }
 }
@@ -673,7 +673,7 @@ RawObject* TypeFeedbackLoader::CheckHeader() {
   const char* version =
       reinterpret_cast<const char*>(stream_->AddressOfCurrentPosition());
   ASSERT(version != NULL);
-  if (strncmp(version, expected_version, version_len)) {
+  if (strncmp(version, expected_version, version_len) != 0) {
     const intptr_t kMessageBufferSize = 256;
     char message_buffer[kMessageBufferSize];
     char* actual_version = Utils::StrNDup(version, version_len);
@@ -695,7 +695,7 @@ RawObject* TypeFeedbackLoader::CheckHeader() {
   ASSERT(features != NULL);
   intptr_t buffer_len = Utils::StrNLen(features, stream_->PendingBytes());
   if ((buffer_len != expected_len) ||
-      strncmp(features, expected_features, expected_len)) {
+      (strncmp(features, expected_features, expected_len) != 0)) {
     const String& msg = String::Handle(String::NewFormatted(
         Heap::kOld,
         "Feedback not compatible with the current VM configuration: "
@@ -783,7 +783,7 @@ RawObject* TypeFeedbackLoader::LoadFields() {
         field_.set_is_nullable(true);
       } else {
         field_.set_guarded_cid(guarded_cid);
-        field_.set_is_nullable(is_nullable || field_.is_nullable());
+        field_.set_is_nullable((is_nullable != 0) || field_.is_nullable());
       }
 
       // TODO(rmacnak): Merge other field type feedback.

@@ -24,7 +24,7 @@ DEFINE_NATIVE_ENTRY(Developer_debugger, 0, 2) {
 #if !defined(PRODUCT)
   GET_NATIVE_ARGUMENT(String, msg, arguments->NativeArgAt(1));
   Debugger* debugger = isolate->debugger();
-  if (!debugger) {
+  if (debugger == nullptr) {
     return when.raw();
   }
   if (when.value()) {

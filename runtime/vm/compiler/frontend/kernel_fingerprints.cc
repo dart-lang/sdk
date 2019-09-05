@@ -645,7 +645,7 @@ void KernelFingerprintHelper::CalculateStatementFingerprint() {
           ReadPosition();                    // read jth position.
           CalculateExpressionFingerprint();  // read jth expression.
         }
-        BuildHash(ReadBool());            // read is_default.
+        BuildHash(static_cast<uint32_t>(ReadBool()));  // read is_default.
         CalculateStatementFingerprint();  // read body.
       }
       return;

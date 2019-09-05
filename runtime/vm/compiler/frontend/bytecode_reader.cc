@@ -167,10 +167,10 @@ bool BytecodeMetadataHelper::FindModifiedLibrariesForHotReload(
     *is_empty_program = (bytecode_component.GetNumLibraries() == 0);
   }
   if (p_num_classes != nullptr) {
-    *p_num_classes = (bytecode_component.GetNumClasses() == 0);
+    *p_num_classes = bytecode_component.GetNumClasses();
   }
   if (p_num_procedures != nullptr) {
-    *p_num_procedures = (bytecode_component.GetNumCodes() == 0);
+    *p_num_procedures = bytecode_component.GetNumCodes();
   }
   return true;
 }

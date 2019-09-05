@@ -5,6 +5,9 @@
 #ifndef RUNTIME_VM_POINTER_TAGGING_H_
 #define RUNTIME_VM_POINTER_TAGGING_H_
 
+#include "platform/assert.h"
+#include "platform/globals.h"
+
 // This header defines constants associated with pointer tagging:
 //
 //    * which bits determine whether or not this is a Smi value or a heap

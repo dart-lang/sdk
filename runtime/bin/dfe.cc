@@ -233,7 +233,7 @@ class WindowsPathSanitizer {
     if (len > 2 && path[1] == ':') {
       *s++ = '/';
     }
-    for (const char *p = path; *p; ++p, ++s) {
+    for (const char* p = path; *p != '\0'; ++p, ++s) {
       *s = *p == '\\' ? '/' : *p;
     }
     *s = '\0';

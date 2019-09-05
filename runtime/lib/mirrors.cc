@@ -253,20 +253,27 @@ static RawInstance* CreateMethodMirror(const Function& func,
   args.SetAt(4, Bool::Get(func.is_static()));
 
   intptr_t kind_flags = 0;
-  kind_flags |= (func.is_abstract() << Mirrors::kAbstract);
-  kind_flags |= (func.IsGetterFunction() << Mirrors::kGetter);
-  kind_flags |= (func.IsSetterFunction() << Mirrors::kSetter);
+  kind_flags |=
+      (static_cast<intptr_t>(func.is_abstract()) << Mirrors::kAbstract);
+  kind_flags |=
+      (static_cast<intptr_t>(func.IsGetterFunction()) << Mirrors::kGetter);
+  kind_flags |=
+      (static_cast<intptr_t>(func.IsSetterFunction()) << Mirrors::kSetter);
   bool is_ctor = (func.kind() == RawFunction::kConstructor);
-  kind_flags |= (is_ctor << Mirrors::kConstructor);
-  kind_flags |= ((is_ctor && func.is_const()) << Mirrors::kConstCtor);
+  kind_flags |= (static_cast<intptr_t>(is_ctor) << Mirrors::kConstructor);
+  kind_flags |= (static_cast<intptr_t>(is_ctor && func.is_const())
+                 << Mirrors::kConstCtor);
   kind_flags |=
-      ((is_ctor && func.IsGenerativeConstructor()) << Mirrors::kGenerativeCtor);
+      (static_cast<intptr_t>(is_ctor && func.IsGenerativeConstructor())
+       << Mirrors::kGenerativeCtor);
+  kind_flags |= (static_cast<intptr_t>(is_ctor && func.is_redirecting())
+                 << Mirrors::kRedirectingCtor);
+  kind_flags |= (static_cast<intptr_t>(is_ctor && func.IsFactory())
+                 << Mirrors::kFactoryCtor);
   kind_flags |=
-      ((is_ctor && func.is_redirecting()) << Mirrors::kRedirectingCtor);
-  kind_flags |= ((is_ctor && func.IsFactory()) << Mirrors::kFactoryCtor);
-  kind_flags |= (func.is_external() << Mirrors::kExternal);
+      (static_cast<intptr_t>(func.is_external()) << Mirrors::kExternal);
   bool is_synthetic = func.is_no_such_method_forwarder();
-  kind_flags |= (is_synthetic << Mirrors::kSynthetic);
+  kind_flags |= (static_cast<intptr_t>(is_synthetic) << Mirrors::kSynthetic);
   args.SetAt(5, Smi::Handle(Smi::New(kind_flags)));
 
   return CreateMirror(Symbols::_LocalMethodMirror(), args);

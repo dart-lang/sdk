@@ -636,7 +636,7 @@ RawApiError* SnapshotReader::VerifyVersionAndFeatures(Isolate* isolate) {
 
   const char* version = reinterpret_cast<const char*>(CurrentBufferAddress());
   ASSERT(version != NULL);
-  if (strncmp(version, expected_version, version_len)) {
+  if (strncmp(version, expected_version, version_len) != 0) {
     const intptr_t kMessageBufferSize = 256;
     char message_buffer[kMessageBufferSize];
     char* actual_version = Utils::StrNDup(version, version_len);
@@ -660,7 +660,7 @@ RawApiError* SnapshotReader::VerifyVersionAndFeatures(Isolate* isolate) {
   ASSERT(features != NULL);
   intptr_t buffer_len = Utils::StrNLen(features, PendingBytes());
   if ((buffer_len != expected_len) ||
-      strncmp(features, expected_features, expected_len)) {
+      (strncmp(features, expected_features, expected_len) != 0)) {
     const intptr_t kMessageBufferSize = 256;
     char message_buffer[kMessageBufferSize];
     char* actual_features =

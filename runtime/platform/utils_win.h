@@ -5,6 +5,10 @@
 #ifndef RUNTIME_PLATFORM_UTILS_WIN_H_
 #define RUNTIME_PLATFORM_UTILS_WIN_H_
 
+#if !defined(RUNTIME_PLATFORM_UTILS_H_)
+#error Do not include utils_win.h directly; use utils.h instead.
+#endif
+
 #include <intrin.h>
 #include <stdlib.h>
 

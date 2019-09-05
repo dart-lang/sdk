@@ -46,7 +46,7 @@ bool SocketBase::FormatNumericAddress(const RawAddr& addr,
                                       int len) {
   socklen_t salen = SocketAddress::GetAddrLength(addr);
   return (NO_RETRY_EXPECTED(getnameinfo(&addr.addr, salen, address, len, NULL,
-                                        0, NI_NUMERICHOST) == 0));
+                                        0, NI_NUMERICHOST) == 0)) != 0;
 }
 
 bool SocketBase::IsBindError(intptr_t error_number) {

@@ -4802,7 +4802,7 @@ LocationSummary* MathMinMaxInstr::MakeLocationSummary(Zone* zone,
 void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT((op_kind() == MethodRecognizer::kMathMin) ||
          (op_kind() == MethodRecognizer::kMathMax));
-  const intptr_t is_min = (op_kind() == MethodRecognizer::kMathMin);
+  const bool is_min = op_kind() == MethodRecognizer::kMathMin;
   if (result_cid() == kDoubleCid) {
     compiler::Label done, returns_nan, are_equal;
     XmmRegister left = locs()->in(0).fpu_reg();

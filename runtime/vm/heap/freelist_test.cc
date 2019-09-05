@@ -10,7 +10,7 @@ namespace dart {
 
 static uword Allocate(FreeList* free_list, intptr_t size, bool is_protected) {
   uword result = free_list->TryAllocate(size, is_protected);
-  if (result && is_protected) {
+  if ((result != 0u) && is_protected) {
     VirtualMemory::Protect(reinterpret_cast<void*>(result), size,
                            VirtualMemory::kReadExecute);
   }

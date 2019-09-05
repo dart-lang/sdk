@@ -5,6 +5,10 @@
 #ifndef RUNTIME_VM_CPU_DBC_H_
 #define RUNTIME_VM_CPU_DBC_H_
 
+#if !defined(RUNTIME_VM_CPU_H_)
+#error Do not include cpu_dbc.h directly; use cpu.h instead.
+#endif
+
 #include "vm/allocation.h"
 #include "vm/simulator.h"
 

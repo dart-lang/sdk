@@ -147,7 +147,7 @@ class Slot : public ZoneAllocated {
   bool is_immutable() const { return IsImmutableBit::decode(flags_); }
 
   intptr_t nullable_cid() const { return cid_; }
-  intptr_t is_nullable() const { return IsNullableBit::decode(flags_); }
+  bool is_nullable() const { return IsNullableBit::decode(flags_); }
 
   // Returns true if properties of this slot were based on the guarded state
   // of the corresponding Dart field.

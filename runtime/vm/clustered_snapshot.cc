@@ -5149,7 +5149,7 @@ char* SnapshotHeaderReader::VerifyVersion() {
   const char* version =
       reinterpret_cast<const char*>(stream_.AddressOfCurrentPosition());
   ASSERT(version != NULL);
-  if (strncmp(version, expected_version, version_len)) {
+  if (strncmp(version, expected_version, version_len) != 0) {
     const intptr_t kMessageBufferSize = 256;
     char message_buffer[kMessageBufferSize];
     char* actual_version = Utils::StrNDup(version, version_len);
@@ -5180,7 +5180,7 @@ char* SnapshotHeaderReader::VerifyFeatures(Isolate* isolate) {
   }
 
   if (features_length != expected_len ||
-      strncmp(features, expected_features, expected_len)) {
+      (strncmp(features, expected_features, expected_len) != 0)) {
     const intptr_t kMessageBufferSize = 1024;
     char message_buffer[kMessageBufferSize];
     char* actual_features = Utils::StrNDup(

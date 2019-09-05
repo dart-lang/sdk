@@ -1998,7 +1998,7 @@ void Assembler::Align(int alignment, intptr_t offset) {
     nop(MAX_NOP_SIZE);
     bytes_needed -= MAX_NOP_SIZE;
   }
-  if (bytes_needed) {
+  if (bytes_needed != 0) {
     nop(bytes_needed);
   }
   ASSERT(((offset + buffer_.GetPosition()) & (alignment - 1)) == 0);

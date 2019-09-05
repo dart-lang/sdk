@@ -312,7 +312,7 @@ typedef Coord* (*CoordUnOp)(Coord* coord);
 // Coordinate.
 // Used for testing function pointers with structs.
 DART_EXPORT Coord* CoordinateUnOpTrice(CoordUnOp unop, Coord* coord) {
-  std::cout << "CoordinateUnOpTrice(" << unop << ", " << coord << ")\n";
+  std::cout << "CoordinateUnOpTrice(" << &unop << ", " << coord << ")\n";
   Coord* retval = unop(unop(unop(coord)));
   std::cout << "returning " << retval << "\n";
   return retval;
@@ -327,7 +327,7 @@ typedef intptr_t (*IntptrBinOp)(intptr_t a, intptr_t b);
 DART_EXPORT IntptrBinOp IntptrAdditionClosure() {
   std::cout << "IntptrAdditionClosure()\n";
   IntptrBinOp retval = [](intptr_t a, intptr_t b) { return a + b; };
-  std::cout << "returning " << retval << "\n";
+  std::cout << "returning " << &retval << "\n";
   return retval;
 }
 
@@ -346,7 +346,7 @@ DART_EXPORT intptr_t ApplyTo42And74(IntptrBinOp binop) {
 DART_EXPORT int64_t* NullableInt64ElemAt1(int64_t* a) {
   std::cout << "NullableInt64ElemAt1(" << a << ")\n";
   int64_t* retval;
-  if (a) {
+  if (a != nullptr) {
     std::cout << "not null pointer, address: " << a << "\n";
     retval = a + 1;
   } else {
@@ -439,7 +439,7 @@ DART_EXPORT int64_t SumVeryLargeStruct(VeryLargeStruct* vls) {
   retval += vls->k;
   retval += vls->smallLastField;
   std::cout << retval << "\n";
-  if (vls->parent) {
+  if (vls->parent != nullptr) {
     std::cout << "has parent\n";
     retval += vls->parent->a;
   }

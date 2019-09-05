@@ -146,7 +146,7 @@ bool Service::ListenStream(const char* stream_id) {
       return true;
     }
   }
-  if (stream_listen_callback_) {
+  if (stream_listen_callback_ != nullptr) {
     Thread* T = Thread::Current();
     TransitionVMToNative transition(T);
     return (*stream_listen_callback_)(stream_id);
@@ -165,7 +165,7 @@ void Service::CancelStream(const char* stream_id) {
       return;
     }
   }
-  if (stream_cancel_callback_) {
+  if (stream_cancel_callback_ != nullptr) {
     Thread* T = Thread::Current();
     TransitionVMToNative transition(T);
     return (*stream_cancel_callback_)(stream_id);
@@ -2041,7 +2041,7 @@ static Breakpoint* LookupBreakpoint(Isolate* isolate,
     Breakpoint* bpt = NULL;
     if (GetIntegerId(rest, &bpt_id)) {
       bpt = isolate->debugger()->GetBreakpointById(bpt_id);
-      if (bpt) {
+      if (bpt != nullptr) {
         *result = ObjectIdRing::kValid;
         return bpt;
       }

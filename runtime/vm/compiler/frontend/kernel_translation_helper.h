@@ -689,12 +689,12 @@ class ClassHelper {
   void SetNext(Field field) { next_read_ = field; }
   void SetJustRead(Field field) { next_read_ = field + 1; }
 
-  bool is_abstract() const { return flags_ & Flag::kIsAbstract; }
+  bool is_abstract() const { return (flags_ & Flag::kIsAbstract) != 0; }
 
-  bool is_enum_class() const { return flags_ & Flag::kIsEnumClass; }
+  bool is_enum_class() const { return (flags_ & Flag::kIsEnumClass) != 0; }
 
   bool is_transformed_mixin_application() const {
-    return flags_ & Flag::kIsEliminatedMixin;
+    return (flags_ & Flag::kIsEliminatedMixin) != 0;
   }
 
   NameIndex canonical_name_;

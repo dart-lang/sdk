@@ -256,7 +256,7 @@ class SymbolTable : public Section {
 
 static uint32_t ElfHash(const unsigned char* name) {
   uint32_t h = 0;
-  while (*name) {
+  while (*name != '\0') {
     h = (h << 4) + *name++;
     uint32_t g = h & 0xf0000000;
     h ^= g;

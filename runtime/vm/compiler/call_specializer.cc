@@ -1107,7 +1107,7 @@ RawBool* CallSpecializer::InstanceOfAsBool(
             : Class::IsSubtypeOf(cls, Object::null_type_arguments(), type_class,
                                  Object::null_type_arguments(), Heap::kOld);
     results->Add(cls.id());
-    results->Add(is_subtype);
+    results->Add(static_cast<intptr_t>(is_subtype));
     if (prev.IsNull()) {
       prev = Bool::Get(is_subtype).raw();
     } else {
@@ -1391,7 +1391,7 @@ static void TryAddTest(ZoneGrowableArray<intptr_t>* results,
                        bool result) {
   if (!CidTestResultsContains(*results, test_cid)) {
     results->Add(test_cid);
-    results->Add(result);
+    results->Add(static_cast<intptr_t>(result));
   }
 }
 
@@ -1427,7 +1427,7 @@ bool CallSpecializer::SpecializeTestCidsForNumericTypes(
       (*results)[i] = (*results)[i - 2];
     }
     (*results)[0] = kSmiCid;
-    (*results)[1] = smi_is_subtype;
+    (*results)[1] = static_cast<intptr_t>(smi_is_subtype);
   }
 
   ASSERT(type.IsInstantiated());

@@ -677,7 +677,7 @@ int SSLFilter::ProcessReadEncryptedBuffer(int start, int end) {
     bytes_processed =
         BIO_write(socket_side_, buffers_[kReadEncrypted] + start, length);
     if (bytes_processed <= 0) {
-      bool retry = BIO_should_retry(socket_side_);
+      bool retry = BIO_should_retry(socket_side_) != 0;
       if (!retry) {
         if (SSL_LOG_DATA)
           Syslog::Print("BIO_write failed in ReadEncryptedBuffer\n");

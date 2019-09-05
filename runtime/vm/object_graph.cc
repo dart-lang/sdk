@@ -671,7 +671,8 @@ class Pass2Visitor : public ObjectVisitor,
       writer_->WriteUnsigned(kNullData);
     } else if (cid == kBoolCid) {
       writer_->WriteUnsigned(kBoolData);
-      writer_->WriteUnsigned(static_cast<RawBool*>(obj)->ptr()->value_);
+      writer_->WriteUnsigned(
+          static_cast<uintptr_t>(static_cast<RawBool*>(obj)->ptr()->value_));
     } else if (cid == kSmiCid) {
       UNREACHABLE();
     } else if (cid == kMintCid) {

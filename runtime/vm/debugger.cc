@@ -1945,7 +1945,7 @@ bool Debugger::SetupStepOverAsyncSuspension(const char** error) {
   ActivationFrame* top_frame = TopDartFrame();
   if (!IsAtAsyncJump(top_frame)) {
     // Not at an async operation.
-    if (error) {
+    if (error != nullptr) {
       *error = "Isolate must be paused at an async suspension point";
     }
     return false;
@@ -1957,7 +1957,7 @@ bool Debugger::SetupStepOverAsyncSuspension(const char** error) {
   Breakpoint* bpt = SetBreakpointAtActivation(Instance::Cast(closure), true);
   if (bpt == NULL) {
     // Unable to set the breakpoint.
-    if (error) {
+    if (error != nullptr) {
       *error = "Unable to set breakpoint at async suspension point";
     }
     return false;
@@ -1968,7 +1968,7 @@ bool Debugger::SetupStepOverAsyncSuspension(const char** error) {
 bool Debugger::SetResumeAction(ResumeAction action,
                                intptr_t frame_index,
                                const char** error) {
-  if (error) {
+  if (error != nullptr) {
     *error = NULL;
   }
   resume_frame_index_ = -1;
@@ -4051,7 +4051,7 @@ bool Debugger::CanRewindFrame(intptr_t frame_index, const char** error) const {
   DebuggerStackTrace* stack = Isolate::Current()->debugger()->StackTrace();
   intptr_t num_frames = stack->Length();
   if (frame_index < 1 || frame_index >= num_frames) {
-    if (error) {
+    if (error != nullptr) {
       *error = Thread::Current()->zone()->PrintToString(
           "Frame must be in bounds [1..%" Pd
           "]: "

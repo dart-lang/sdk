@@ -619,7 +619,7 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
     return result;
   }
   if (tag == Dart_kImportExtensionTag) {
-    if (strncmp(url_string, "dart-ext:", 9)) {
+    if (strncmp(url_string, "dart-ext:", 9) != 0) {
       return DartUtils::NewError(
           "Native extensions must use the dart-ext: scheme.");
     }

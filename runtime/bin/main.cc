@@ -275,7 +275,7 @@ static bool OnIsolateInitialize(void** child_callback_data, char** error) {
     }
   } else {
     result = DartUtils::ResolveScript(Dart_NewStringFromCString(script_uri));
-    if (Dart_IsError(result)) return result;
+    if (Dart_IsError(result)) return result != nullptr;
 
     if (isolate_group_data->kernel_buffer().get() != nullptr) {
       // Various core-library parts will send requests to the Loader to resolve
@@ -284,7 +284,7 @@ static bool OnIsolateInitialize(void** child_callback_data, char** error) {
       // bypasses normal source code loading paths that initialize it.
       const char* resolved_script_uri = NULL;
       result = Dart_StringToCString(result, &resolved_script_uri);
-      if (Dart_IsError(result)) return result;
+      if (Dart_IsError(result)) return result != nullptr;
       Loader::InitForSnapshot(resolved_script_uri, isolate_data);
     }
   }
@@ -661,7 +661,7 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
     }
   }
 
-  if (flags->copy_parent_code && callback_data) {
+  if (flags->copy_parent_code && callback_data != nullptr) {
     auto parent_isolate_group_data =
         reinterpret_cast<IsolateData*>(callback_data)->isolate_group_data();
     parent_kernel_buffer = parent_isolate_group_data->kernel_buffer();

@@ -5,6 +5,10 @@
 #ifndef RUNTIME_VM_STACK_FRAME_ARM_H_
 #define RUNTIME_VM_STACK_FRAME_ARM_H_
 
+#if !defined(RUNTIME_VM_STACK_FRAME_H_)
+#error Do not include stack_frame_arm.h directly; use stack_frame.h instead.
+#endif
+
 namespace dart {
 
 /* ARM Dart Frame Layout

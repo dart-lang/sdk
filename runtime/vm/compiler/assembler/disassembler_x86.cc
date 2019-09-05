@@ -1767,7 +1767,7 @@ int DisassemblerX64::InstructionDecode(uword pc) {
         // mov reg8,imm8 or mov reg32,imm32
         uint8_t opcode = *data;
         data++;
-        uint8_t is_not_8bit = (opcode >= 0xB8);
+        const bool is_not_8bit = opcode >= 0xB8;
         int reg = (opcode & 0x7) | (rex_b() ? 8 : 0);
         if (is_not_8bit) {
           Print("mov%s %s,", operand_size_code(), NameOfCPURegister(reg));
@@ -1970,7 +1970,7 @@ void Disassembler::DecodeInstruction(char* hex_buffer,
     remaining_size -= 2;
   }
   hex_buffer[hex_index] = '\0';
-  if (out_instr_len) {
+  if (out_instr_len != nullptr) {
     *out_instr_len = instruction_length;
   }
 

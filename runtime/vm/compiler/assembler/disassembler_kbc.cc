@@ -315,7 +315,7 @@ void KernelBytecodeDisassembler::DecodeInstruction(char* hex_buffer,
                      hex_size - (i * kCharactersPerByte), " %02x", instr[i]);
     }
   }
-  if (out_instr_size) {
+  if (out_instr_size != nullptr) {
     *out_instr_size = instr_size;
   }
 

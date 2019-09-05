@@ -357,7 +357,7 @@ uword Class::GetInstanceSize(const dart::Class& handle) {
 }
 
 intptr_t Class::NumTypeArguments(const dart::Class& klass) {
-  return klass.NumTypeArguments() > 0;
+  return klass.NumTypeArguments();
 }
 
 bool Class::HasTypeArgumentsField(const dart::Class& klass) {

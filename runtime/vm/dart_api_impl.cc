@@ -6479,7 +6479,7 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
   BackgroundCompiler::Stop(I);
   DropRegExpMatchCode(Z);
 
-  if (reused_instructions) {
+  if (reused_instructions != nullptr) {
     DropCodeWithoutReusableInstructions(reused_instructions);
   }
   ProgramVisitor::Dedup();
@@ -6506,7 +6506,7 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
   *isolate_snapshot_instructions_size =
       isolate_image_writer.InstructionsBlobSize();
 
-  if (reused_instructions) {
+  if (reused_instructions != nullptr) {
     *isolate_snapshot_instructions_buffer = NULL;
   }
 

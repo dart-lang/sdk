@@ -83,7 +83,7 @@ void InstanceMorpher::AddObject(RawObject* object) const {
 }
 
 void InstanceMorpher::ComputeMapping() {
-  if (from_.NumTypeArguments()) {
+  if (from_.NumTypeArguments() > 0) {
     // Add copying of the optional type argument field.
     intptr_t from_offset = from_.type_arguments_field_offset();
     ASSERT(from_offset != Class::kNoTypeArguments);
@@ -217,7 +217,7 @@ void InstanceMorpher::CreateMorphedCopies() const {
 
 void InstanceMorpher::DumpFormatFor(const Class& cls) const {
   THR_Print("%s\n", cls.ToCString());
-  if (cls.NumTypeArguments()) {
+  if (cls.NumTypeArguments() > 0) {
     intptr_t field_offset = cls.type_arguments_field_offset();
     ASSERT(field_offset != Class::kNoTypeArguments);
     THR_Print("  - @%" Pd " <type arguments>\n", field_offset);

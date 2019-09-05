@@ -1316,7 +1316,7 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library,
       for (intptr_t n = 0; n < name_count; ++n) {
         String& show_hide_name =
             H.DartSymbolObfuscate(helper_.ReadStringReference());
-        if (flags & LibraryDependencyHelper::Show) {
+        if ((flags & LibraryDependencyHelper::Show) != 0) {
           show_list.Add(show_hide_name, Heap::kOld);
         } else {
           hide_list.Add(show_hide_name, Heap::kOld);
@@ -1351,7 +1351,7 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library,
     }
     String& prefix = H.DartSymbolPlain(dependency_helper.name_index_);
     ns = Namespace::New(target_library, show_names, hide_names);
-    if (dependency_helper.flags_ & LibraryDependencyHelper::Export) {
+    if ((dependency_helper.flags_ & LibraryDependencyHelper::Export) != 0) {
       library->AddExport(ns);
     } else {
       if (prefix.IsNull() || prefix.Length() == 0) {
@@ -1363,7 +1363,8 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library,
         } else {
           library_prefix = LibraryPrefix::New(
               prefix, ns,
-              dependency_helper.flags_ & LibraryDependencyHelper::Deferred,
+              (dependency_helper.flags_ & LibraryDependencyHelper::Deferred) !=
+                  0,
               *library);
           library->AddObject(library_prefix, prefix);
         }

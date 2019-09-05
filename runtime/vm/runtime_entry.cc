@@ -2054,7 +2054,7 @@ static void HandleStackOverflowTestCases(Thread* thread) {
     }
   }
   if (FLAG_deoptimize_filter != nullptr || FLAG_stacktrace_filter != nullptr ||
-      FLAG_reload_every) {
+      (FLAG_reload_every != 0)) {
     DartFrameIterator iterator(thread,
                                StackFrameIterator::kNoCrossThreadIteration);
     StackFrame* frame = iterator.NextFrame();
@@ -2753,11 +2753,11 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t,
     THR_Print("== Deoptimizing code for '%s', %s, %s\n",
               function.ToFullyQualifiedCString(),
               deoptimizing_code ? "code & frame" : "frame",
-              is_lazy_deopt ? "lazy-deopt" : "");
+              (is_lazy_deopt != 0u) ? "lazy-deopt" : "");
   }
 
 #if !defined(TARGET_ARCH_DBC)
-  if (is_lazy_deopt) {
+  if (is_lazy_deopt != 0u) {
     uword deopt_pc = isolate->FindPendingDeopt(caller_frame->fp());
     if (FLAG_trace_deoptimization) {
       THR_Print("Lazy deopt fp=%" Pp " pc=%" Pp "\n", caller_frame->fp(),

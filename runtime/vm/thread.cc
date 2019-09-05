@@ -42,7 +42,7 @@ Thread::~Thread() {
   // There should be no top api scopes at this point.
   ASSERT(api_top_scope() == NULL);
   // Delete the resusable api scope if there is one.
-  if (api_reusable_scope_) {
+  if (api_reusable_scope_ != nullptr) {
     delete api_reusable_scope_;
     api_reusable_scope_ = NULL;
   }

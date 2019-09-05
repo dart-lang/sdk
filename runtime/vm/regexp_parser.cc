@@ -1506,7 +1506,7 @@ bool LookupPropertyValueName(UProperty property,
   UErrorCode ec = U_ZERO_ERROR;
   icu::UnicodeSet set;
   set.applyIntPropertyValue(property, property_value, ec);
-  bool success = ec == U_ZERO_ERROR && !set.isEmpty();
+  bool success = ec == U_ZERO_ERROR && (set.isEmpty() == 0);
 
   if (success) {
     set.removeAllStrings();

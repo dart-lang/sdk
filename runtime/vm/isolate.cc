@@ -676,7 +676,7 @@ void IsolateMessageHandler::MessageNotify(Message::Priority priority) {
     I->ScheduleInterrupts(Thread::kMessageInterrupt);
   }
   Dart_MessageNotifyCallback callback = I->message_notify_callback();
-  if (callback) {
+  if (callback != nullptr) {
     // Allow the embedder to handle message notification.
     (*callback)(Api::CastIsolate(I));
   }
@@ -2819,7 +2819,7 @@ void Isolate::VisitIsolates(IsolateVisitor* visitor) {
   // SafepointMonitorLocker to ensure the lock has safepoint checks.
   SafepointMonitorLocker ml(isolates_list_monitor_);
   Isolate* current = isolates_list_head_;
-  while (current) {
+  while (current != nullptr) {
     visitor->VisitIsolate(current);
     current = current->next_;
   }
@@ -2887,7 +2887,7 @@ void Isolate::RemoveIsolateFromList(Isolate* isolate) {
   }
   Isolate* previous = nullptr;
   Isolate* current = isolates_list_head_;
-  while (current) {
+  while (current != nullptr) {
     if (current == isolate) {
       ASSERT(previous != nullptr);
       previous->next_ = current->next_;

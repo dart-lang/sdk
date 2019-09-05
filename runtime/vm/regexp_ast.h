@@ -204,10 +204,10 @@ class RegExpCharacterClass : public RegExpTree {
   // * : All characters
   uint16_t standard_type() const { return set_.standard_set_type(); }
   ZoneGrowableArray<CharacterRange>* ranges() { return set_.ranges(); }
-  bool is_negated() const { return character_class_flags_ & NEGATED; }
+  bool is_negated() const { return (character_class_flags_ & NEGATED) != 0; }
   RegExpFlags flags() const { return flags_; }
   bool contains_split_surrogate() const {
-    return character_class_flags_ & CONTAINS_SPLIT_SURROGATE;
+    return (character_class_flags_ & CONTAINS_SPLIT_SURROGATE) != 0;
   }
 
  private:

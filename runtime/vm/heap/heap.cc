@@ -585,7 +585,7 @@ void Heap::CheckStartConcurrentMarking(Thread* thread, GCReason reason) {
   if (old_space_.AlmostNeedsGarbageCollection()) {
     if (BeginOldSpaceGC(thread)) {
       TIMELINE_FUNCTION_GC_DURATION_BASIC(thread, "StartConcurrentMarking");
-      old_space_.CollectGarbage(kMarkSweep, false /* finish */);
+      old_space_.CollectGarbage(/*compact=*/false, /*finalize=*/false);
       EndOldSpaceGC();
     }
   }

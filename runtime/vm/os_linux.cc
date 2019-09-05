@@ -599,7 +599,7 @@ char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
   va_end(measure_args);
 
   char* buffer;
-  if (zone) {
+  if (zone != nullptr) {
     buffer = zone->Alloc<char>(len + 1);
   } else {
     buffer = reinterpret_cast<char*>(malloc(len + 1));
