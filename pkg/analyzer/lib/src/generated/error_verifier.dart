@@ -418,7 +418,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         operatorType == TokenType.QUESTION_QUESTION_EQ) {
       _checkForInvalidAssignment(lhs, rhs);
     } else {
-      _checkForInvalidCompoundAssignment(node, lhs, rhs);
       _checkForArgumentTypeNotAssignableForArgument(rhs);
       _checkForNullableDereference(lhs);
     }
@@ -3472,27 +3471,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
     _checkForAssignableExpression(
         rhs, leftType, StaticTypeWarningCode.INVALID_ASSIGNMENT);
-  }
-
-  /**
-   * Given an [assignment] using a compound assignment operator, this verifies
-   * that the given assignment is valid. The [lhs] is the left hand side
-   * expression. The [rhs] is the right hand side expression.
-   *
-   * See [StaticTypeWarningCode.INVALID_ASSIGNMENT].
-   */
-  void _checkForInvalidCompoundAssignment(
-      AssignmentExpression assignment, Expression lhs, Expression rhs) {
-    if (lhs == null) {
-      return;
-    }
-    DartType leftType = getStaticType(lhs);
-    DartType rightType = getStaticType(assignment);
-    if (!_typeSystem.isAssignableTo(rightType, leftType,
-        featureSet: _featureSet)) {
-      _errorReporter.reportTypeErrorForNode(
-          StaticTypeWarningCode.INVALID_ASSIGNMENT, rhs, [rightType, leftType]);
-    }
   }
 
   /**

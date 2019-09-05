@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -129,6 +130,63 @@ class C {
 
     var right = assignment.rightHandSide;
     assertType(right, 'int');
+  }
+
+  test_compound_refineType_int_double() async {
+    await assertErrorsInCode(r'''
+main(int i) {
+  i += 1.2;
+  i -= 1.2;
+  i *= 1.2;
+  i %= 1.2;
+}
+''', [
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 21, 3),
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 33, 3),
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 45, 3),
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 57, 3),
+    ]);
+    assertType(findNode.assignment('+='), 'double');
+    assertType(findNode.assignment('-='), 'double');
+    assertType(findNode.assignment('*='), 'double');
+    assertType(findNode.assignment('%='), 'double');
+  }
+
+  test_compound_refineType_int_int() async {
+    await assertNoErrorsInCode(r'''
+main(int i) {
+  i += 1;
+  i -= 1;
+  i *= 1;
+  i ~/= 1;
+  i %= 1;
+}
+''');
+    assertType(findNode.assignment('+='), 'int');
+    assertType(findNode.assignment('-='), 'int');
+    assertType(findNode.assignment('*='), 'int');
+    assertType(findNode.assignment('~/='), 'int');
+    assertType(findNode.assignment('%='), 'int');
+  }
+
+  test_compoundIfNull_differentTypes() async {
+    await assertErrorsInCode(r'''
+main(double a, int b) {
+  a ??= b;
+}
+''', [
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 32, 1),
+    ]);
+    assertType(findNode.assignment('??='), 'num');
+  }
+
+  test_compoundIfNull_sameTypes() async {
+    await assertNoErrorsInCode(r'''
+main(int a) {
+  a ??= 0;
+}
+''');
+    assertType(findNode.assignment('??='), 'int');
   }
 
   test_in_const_context() async {

@@ -322,15 +322,26 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         operator == TokenType.BAR_BAR_EQ) {
       _recordStaticType(node, _nonNullable(_typeProvider.boolType));
     } else {
-      ExecutableElement staticMethodElement = node.staticElement;
-      DartType staticType = _computeStaticReturnType(staticMethodElement);
-      staticType = _typeSystem.refineBinaryExpressionType(
-          _getStaticType(node.leftHandSide, read: true),
-          operator,
-          node.rightHandSide.staticType,
-          staticType,
-          _featureSet);
-      _recordStaticType(node, staticType);
+      var operatorElement = node.staticElement;
+      var type = operatorElement?.returnType ?? _dynamicType;
+      type = _typeSystem.refineBinaryExpressionType(
+        _getStaticType(node.leftHandSide, read: true),
+        operator,
+        node.rightHandSide.staticType,
+        type,
+        _featureSet,
+      );
+      _recordStaticType(node, type);
+
+      var leftWriteType = _getStaticType(node.leftHandSide);
+      if (!_typeSystem.isAssignableTo(type, leftWriteType,
+          featureSet: _featureSet)) {
+        _resolver.errorReporter.reportTypeErrorForNode(
+          StaticTypeWarningCode.INVALID_ASSIGNMENT,
+          node.rightHandSide,
+          [type, leftWriteType],
+        );
+      }
     }
     _nullShortingTermination(node);
   }
