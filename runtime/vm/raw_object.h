@@ -690,7 +690,7 @@ class RawObject {
   friend class RawInstance;
   friend class Scavenger;
   friend class ScavengerVisitor;
-  friend class ImageReader;                // tags_ check
+  friend class ImageReader;  // tags_ check
   friend class ImageWriter;
   friend class AssemblyImageWriter;
   friend class BlobImageWriter;
@@ -717,9 +717,9 @@ class RawObject {
 class RawClass : public RawObject {
  public:
   enum ClassFinalizedState {
-    kAllocated = 0,         // Initial state.
-    kPreFinalized,          // VM classes: size precomputed, but no checks done.
-    kFinalized,             // Class parsed, finalized and ready for use.
+    kAllocated = 0,  // Initial state.
+    kPreFinalized,   // VM classes: size precomputed, but no checks done.
+    kFinalized,      // Class parsed, finalized and ready for use.
   };
   enum ClassLoadingState {
     // Class object is created, but it is not filled up.
@@ -751,13 +751,13 @@ class RawClass : public RawObject {
   RawTypeArguments* type_parameters_;  // Array of TypeParameter.
   RawAbstractType* super_type_;
   RawFunction* signature_function_;  // Associated function for typedef class.
-  RawArray* constants_;      // Canonicalized const instances of this class.
-  RawType* declaration_type_;              // Declaration type for this class.
+  RawArray* constants_;        // Canonicalized const instances of this class.
+  RawType* declaration_type_;  // Declaration type for this class.
   RawArray* invocation_dispatcher_cache_;  // Cache for dispatcher functions.
   RawCode* allocation_stub_;  // Stub code for allocation of instances.
   RawGrowableObjectArray* direct_implementors_;  // Array of Class.
-  RawGrowableObjectArray* direct_subclasses_;  // Array of Class.
-  RawArray* dependent_code_;                   // CHA optimized codes.
+  RawGrowableObjectArray* direct_subclasses_;    // Array of Class.
+  RawArray* dependent_code_;                     // CHA optimized codes.
   VISIT_TO(RawObject*, dependent_code_);
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
@@ -927,7 +927,7 @@ class RawFunction : public RawObject {
 
   RAW_HEAP_OBJECT_IMPLEMENTATION(Function);
 
-  uword entry_point_;  // Accessed from generated code.
+  uword entry_point_;            // Accessed from generated code.
   uword unchecked_entry_point_;  // Accessed from generated code.
 
   VISIT_FROM(RawObject*, name_);
@@ -970,11 +970,10 @@ class RawFunction : public RawObject {
 
   NOT_IN_PRECOMPILED(TokenPosition token_pos_);
   NOT_IN_PRECOMPILED(TokenPosition end_token_pos_);
-  uint32_t kind_tag_;                          // See Function::KindTagBits.
+  uint32_t kind_tag_;  // See Function::KindTagBits.
   uint32_t packed_fields_;
 
-  typedef BitField<uint32_t, bool, 0, 1>
-      PackedHasNamedOptionalParameters;
+  typedef BitField<uint32_t, bool, 0, 1> PackedHasNamedOptionalParameters;
   typedef BitField<uint32_t,
                    bool,
                    PackedHasNamedOptionalParameters::kNextBit,
@@ -1304,7 +1303,7 @@ class RawKernelProgramInfo : public RawObject {
 class RawCode : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Code);
 
-  uword entry_point_;          // Accessed from generated code.
+  uword entry_point_;  // Accessed from generated code.
 
   // In AOT this entry-point supports switchable calls. It checks the type of
   // the receiver on entry to the function and calls a stub to patch up the
@@ -1340,7 +1339,7 @@ class RawCode : public RawObject {
   // type checks are necessary or this Code belongs to a stub). In this case
   // 'unchecked_entry_point_' will refer to the same position as 'entry_point_'.
   //
-  uword unchecked_entry_point_;  // Accessed from generated code.
+  uword unchecked_entry_point_;              // Accessed from generated code.
   uword monomorphic_unchecked_entry_point_;  // Accessed from generated code.
 
   VISIT_FROM(RawObject*, object_pool_);
@@ -1517,7 +1516,9 @@ class RawPcDescriptors : public RawObject {
   V(OsrEntry, kRuntimeCall << 1)                                               \
   /* Call rewind target address. */                                            \
   V(Rewind, kOsrEntry << 1)                                                    \
-  V(Other, kRewind << 1)                                                       \
+  /* Target-word-size relocation. */                                           \
+  V(BSSRelocation, kRewind << 1)                                               \
+  V(Other, kBSSRelocation << 1)                                                \
   V(AnyKind, -1)
 
   enum Kind {
