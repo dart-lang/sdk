@@ -613,6 +613,73 @@ main() {
       });
     });
 
+    test('whileStatement_conditionBegin() un-promotes', () {
+      var h = _Harness();
+      var x = h.addVar('x', 'int?');
+      h.run((flow) {
+        h.declare(x, initialized: true);
+        h.promote(x, 'int');
+        expect(flow.promotedType(x).type, 'int');
+        flow.whileStatement_conditionBegin({x});
+        expect(flow.promotedType(x), isNull);
+        flow.whileStatement_bodyBegin(_Statement(), _Expression());
+        flow.whileStatement_end();
+      });
+    });
+
+    test('whileStatement_conditionBegin() handles not-yet-seen variables', () {
+      var h = _Harness();
+      var x = h.addVar('x', 'int?');
+      var y = h.addVar('y', 'int?');
+      h.run((flow) {
+        h.declare(y, initialized: true);
+        h.promote(y, 'int');
+        flow.whileStatement_conditionBegin({x});
+        flow.add(x, assigned: true);
+        flow.whileStatement_bodyBegin(_Statement(), _Expression());
+        flow.whileStatement_end();
+      });
+    });
+
+    test('whileStatement_bodyBegin() promotes', () {
+      var h = _Harness();
+      var x = h.addVar('x', 'int?');
+      h.run((flow) {
+        h.declare(x, initialized: true);
+        flow.whileStatement_conditionBegin({});
+        flow.whileStatement_bodyBegin(_Statement(), h.notNull(x)());
+        expect(flow.promotedType(x).type, 'int');
+        flow.whileStatement_end();
+      });
+    });
+
+    test('whileStatement_end() joins break and condition-false states', () {
+      // To test that the states are properly joined, we have three variables:
+      // x, y, and z.  We promote x and y in the break path, and x and z in the
+      // condition-false path.  After the loop, only x should be promoted.
+      var h = _Harness();
+      var x = h.addVar('x', 'int?');
+      var y = h.addVar('y', 'int?');
+      var z = h.addVar('z', 'int?');
+      h.run((flow) {
+        h.declare(x, initialized: true);
+        h.declare(y, initialized: true);
+        h.declare(z, initialized: true);
+        var stmt = _Statement();
+        flow.whileStatement_conditionBegin({});
+        flow.whileStatement_bodyBegin(stmt, h.or(h.eqNull(x), h.eqNull(z))());
+        h.if_(h.expr, () {
+          h.promote(x, 'int');
+          h.promote(y, 'int');
+          flow.handleBreak(stmt);
+        });
+        flow.whileStatement_end();
+        expect(flow.promotedType(x).type, 'int');
+        expect(flow.promotedType(y), isNull);
+        expect(flow.promotedType(z), isNull);
+      });
+    });
+
     test('Infinite loop does not implicitly assign variables', () {
       var h = _Harness();
       var x = h.addVar('x', 'int');
