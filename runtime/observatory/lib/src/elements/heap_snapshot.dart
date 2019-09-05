@@ -284,7 +284,7 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
   }
 
   _save() async {
-    var blob = new Blob(_snapshot.chunks, 'application/octet-stream');
+    var blob = new Blob([_snapshot.encoded], 'application/octet-stream');
     var blobUrl = Url.createObjectUrl(blob);
     var link = new AnchorElement();
     link.href = blobUrl;
@@ -301,10 +301,9 @@ class HeapSnapshotElement extends CustomElement implements Renderable {
       var file = input.files[0];
       var reader = new FileReader();
       reader.onLoad.listen((event) async {
-        Uint8List blob = reader.result;
-        var chunks = [new ByteData.view(blob.buffer)];
+        Uint8List encoded = reader.result;
         var snapshot = new S.HeapSnapshot();
-        await snapshot.loadProgress(null, chunks).last;
+        await snapshot.loadProgress(null, encoded).last;
         _snapshot = snapshot;
         selection = null;
         mergedSelection = null;

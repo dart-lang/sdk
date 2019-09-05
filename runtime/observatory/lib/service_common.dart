@@ -205,7 +205,7 @@ abstract class CommonWebSocketVM extends VM {
       var dataLength = bytes.lengthInBytes - dataOffset;
       var metadata = _utf8Decoder.convert(new Uint8List.view(
           bytes.buffer, bytes.offsetInBytes + metadataOffset, metadataLength));
-      var data = new ByteData.view(
+      var data = new Uint8List.view(
           bytes.buffer, bytes.offsetInBytes + dataOffset, dataLength);
       var map = _parseJSON(metadata);
       if (map == null || map['method'] != 'streamNotify') {

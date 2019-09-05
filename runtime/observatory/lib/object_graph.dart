@@ -12,19 +12,12 @@ import 'dart:typed_data';
 import 'package:logging/logging.dart';
 
 class _ReadStream {
-  final List<ByteData> _chunks;
-  int _chunkIndex = 0;
-  int _byteIndex = 0;
+  final Uint8List _buffer;
+  int _position = 0;
 
-  _ReadStream(this._chunks);
+  _ReadStream(this._buffer);
 
-  int readByte() {
-    while (_byteIndex >= _chunks[_chunkIndex].lengthInBytes) {
-      _chunkIndex++;
-      _byteIndex = 0;
-    }
-    return _chunks[_chunkIndex].getUint8(_byteIndex++);
-  }
+  int readByte() => _buffer[_position++];
 
   /// Read one ULEB128 number.
   int readUnsigned() {
@@ -420,7 +413,7 @@ abstract class SnapshotGraph {
   Iterable<SnapshotClass> get classes;
   Iterable<SnapshotObject> get objects;
 
-  factory SnapshotGraph(List<ByteData> chunks) => new _SnapshotGraph(chunks);
+  factory SnapshotGraph(Uint8List encoded) => new _SnapshotGraph(encoded);
   Stream<String> process();
 }
 
@@ -439,7 +432,7 @@ const kRootName = "Root";
 const kUnknownFieldName = "<unknown>";
 
 class _SnapshotGraph implements SnapshotGraph {
-  _SnapshotGraph(List<ByteData> chunks) : this._chunks = chunks;
+  _SnapshotGraph(Uint8List encoded) : this._encoded = encoded;
 
   int get size => _liveShallowSize + _liveExternalSize;
   int get shallowSize => _liveShallowSize;
@@ -502,8 +495,8 @@ class _SnapshotGraph implements SnapshotGraph {
     (() async {
       // We build futures here instead of marking the steps as async to avoid the
       // heavy lifting being inside a transformed method.
-      var stream = new _ReadStream(_chunks);
-      _chunks = null;
+      var stream = new _ReadStream(_encoded);
+      _encoded = null;
 
       controller.add("Loading classes...");
       await new Future(() => _readClasses(stream));
@@ -556,7 +549,7 @@ class _SnapshotGraph implements SnapshotGraph {
     return controller.stream;
   }
 
-  List<ByteData> _chunks;
+  Uint8List _encoded;
 
   int _kStackCid;
   int _kFieldCid;

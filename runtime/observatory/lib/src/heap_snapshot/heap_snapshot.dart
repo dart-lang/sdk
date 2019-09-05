@@ -15,13 +15,13 @@ class HeapSnapshot implements M.HeapSnapshot {
   HeapSnapshotMergedDominatorNode mergedDominatorTree;
   List<SnapshotClass> classes;
   SnapshotObject get root => graph.root;
-  List<ByteData> chunks;
+  Uint8List encoded;
 
-  Stream<String> loadProgress(S.Isolate isolate, List<ByteData> chunks) {
+  Stream<String> loadProgress(S.Isolate isolate, Uint8List encoded) {
     final progress = new StreamController<String>.broadcast();
     progress.add('Loading...');
-    this.chunks = chunks;
-    graph = new SnapshotGraph(chunks);
+    this.encoded = encoded;
+    graph = new SnapshotGraph(encoded);
     (() async {
       timestamp = new DateTime.now();
       final stream = graph.process();
