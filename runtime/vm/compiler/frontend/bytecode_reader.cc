@@ -1372,7 +1372,6 @@ RawObject* BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
         uri ^= ReadObject();
       }
       RawLibrary* library = Library::LookupLibrary(thread_, uri);
-      NoSafepointScope no_safepoint_scope(thread_);
       if (library == Library::null()) {
         // We do not register expression evaluation libraries with the VM:
         // The expression evaluation functions should be GC-able as soon as
@@ -1381,7 +1380,15 @@ RawObject* BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
           ASSERT(expression_evaluation_library_ != nullptr);
           return expression_evaluation_library_->raw();
         }
+#if !defined(PRODUCT)
+        ASSERT(Isolate::Current()->HasAttemptedReload());
+        const String& msg = String::Handle(
+            Z,
+            String::NewFormatted("Unable to find library %s", uri.ToCString()));
+        Report::LongJump(LanguageError::Handle(Z, LanguageError::New(msg)));
+#else
         FATAL1("Unable to find library %s", uri.ToCString());
+#endif
       }
       return library;
     }
@@ -1397,13 +1404,21 @@ RawObject* BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
         return cls;
       }
       RawClass* cls = library.LookupLocalClass(class_name);
-      NoSafepointScope no_safepoint_scope(thread_);
       if (cls == Class::null()) {
         if (IsExpressionEvaluationLibrary(library)) {
           return H.GetExpressionEvaluationRealClass();
         }
+#if !defined(PRODUCT)
+        ASSERT(Isolate::Current()->HasAttemptedReload());
+        const String& msg = String::Handle(
+            Z,
+            String::NewFormatted("Unable to find class %s in %s",
+                                 class_name.ToCString(), library.ToCString()));
+        Report::LongJump(LanguageError::Handle(Z, LanguageError::New(msg)));
+#else
         FATAL2("Unable to find class %s in %s", class_name.ToCString(),
                library.ToCString());
+#endif
       }
       return cls;
     }
@@ -1412,10 +1427,17 @@ RawObject* BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
       String& name = String::CheckedHandle(Z, ReadObject());
       if ((flags & kFlagIsField) != 0) {
         RawField* field = cls.LookupField(name);
-        NoSafepointScope no_safepoint_scope(thread_);
         if (field == Field::null()) {
+#if !defined(PRODUCT)
+          ASSERT(Isolate::Current()->HasAttemptedReload());
+          const String& msg = String::Handle(
+              Z, String::NewFormatted("Unable to find field %s in %s",
+                                      name.ToCString(), cls.ToCString()));
+          Report::LongJump(LanguageError::Handle(Z, LanguageError::New(msg)));
+#else
           FATAL2("Unable to find field %s in %s", name.ToCString(),
                  cls.ToCString());
+#endif
         }
         return field;
       } else {
@@ -1428,10 +1450,6 @@ RawObject* BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
           return scoped_function_.raw();
         }
         RawFunction* function = cls.LookupFunction(name);
-        {
-          // To verify that it's OK to hold raw function pointer at this point.
-          NoSafepointScope no_safepoint_scope(thread_);
-        }
         if (function == Function::null()) {
           // When requesting a getter, also return method extractors.
           if (Field::IsGetterName(name)) {
@@ -1446,8 +1464,16 @@ RawObject* BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
               }
             }
           }
+#if !defined(PRODUCT)
+          ASSERT(Isolate::Current()->HasAttemptedReload());
+          const String& msg = String::Handle(
+              Z, String::NewFormatted("Unable to find function %s in %s",
+                                      name.ToCString(), cls.ToCString()));
+          Report::LongJump(LanguageError::Handle(Z, LanguageError::New(msg)));
+#else
           FATAL2("Unable to find function %s in %s", name.ToCString(),
                  cls.ToCString());
+#endif
         }
         return function;
       }
