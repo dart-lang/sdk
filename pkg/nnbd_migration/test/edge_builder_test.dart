@@ -392,6 +392,77 @@ int f(dynamic d) => d;
         hard: true);
   }
 
+  test_assign_future_to_futureOr_complex() async {
+    await analyze('''
+import 'dart:async';
+FutureOr<List<int>> f(Future<List<int>> x) => x;
+''');
+    // If `x` is `Future<List<int?>>`, then the only way to migrate is to make
+    // the return type `FutureOr<List<int?>>`.
+    assertEdge(decoratedTypeAnnotation('int>> x').node,
+        decoratedTypeAnnotation('int>> f').node,
+        hard: false);
+    assertNoEdge(decoratedTypeAnnotation('int>> x').node,
+        decoratedTypeAnnotation('List<int>> f').node);
+    assertNoEdge(decoratedTypeAnnotation('int>> x').node,
+        decoratedTypeAnnotation('FutureOr<List<int>> f').node);
+  }
+
+  test_assign_future_to_futureOr_simple() async {
+    await analyze('''
+import 'dart:async';
+FutureOr<int> f(Future<int> x) => x;
+''');
+    // If `x` is nullable, then there are two migrations possible: we could make
+    // the return type `FutureOr<int?>` or we could make it `FutureOr<int>?`.
+    // We choose `FutureOr<int>?` because it's strictly more conservative (it's
+    // a subtype of `FutureOr<int?>`).
+    assertEdge(decoratedTypeAnnotation('Future<int> x').node,
+        decoratedTypeAnnotation('FutureOr<int>').node,
+        hard: true);
+    assertNoEdge(decoratedTypeAnnotation('Future<int> x').node,
+        decoratedTypeAnnotation('int> f').node);
+    // If `x` is `Future<int?>`, then the only way to migrate is to make the
+    // return type `FutureOr<int?>`.
+    assertEdge(substitutionNode(decoratedTypeAnnotation('int> x').node, never),
+        decoratedTypeAnnotation('int> f').node,
+        hard: false);
+    assertNoEdge(decoratedTypeAnnotation('int> x').node,
+        decoratedTypeAnnotation('FutureOr<int>').node);
+  }
+
+  test_assign_non_future_to_futureOr_complex() async {
+    await analyze('''
+import 'dart:async';
+FutureOr<List<int>> f(List<int> x) => x;
+''');
+    // If `x` is `List<int?>`, then the only way to migrate is to make the
+    // return type `FutureOr<List<int?>>`.
+    assertEdge(decoratedTypeAnnotation('int> x').node,
+        decoratedTypeAnnotation('int>> f').node,
+        hard: false);
+    assertNoEdge(decoratedTypeAnnotation('int> x').node,
+        decoratedTypeAnnotation('List<int>> f').node);
+    assertNoEdge(decoratedTypeAnnotation('int> x').node,
+        decoratedTypeAnnotation('FutureOr<List<int>> f').node);
+  }
+
+  test_assign_non_future_to_futureOr_simple() async {
+    await analyze('''
+import 'dart:async';
+FutureOr<int> f(int x) => x;
+''');
+    // If `x` is nullable, then there are two migrations possible: we could make
+    // the return type `FutureOr<int?>` or we could make it `FutureOr<int>?`.
+    // We choose `FutureOr<int>?` because it's strictly more conservative (it's
+    // a subtype of `FutureOr<int?>`).
+    assertEdge(decoratedTypeAnnotation('int x').node,
+        decoratedTypeAnnotation('FutureOr<int>').node,
+        hard: true);
+    assertNoEdge(decoratedTypeAnnotation('int x').node,
+        decoratedTypeAnnotation('int>').node);
+  }
+
   test_assign_null_to_generic_type() async {
     await analyze('''
 main() {

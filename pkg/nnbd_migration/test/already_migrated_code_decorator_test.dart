@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:nnbd_migration/src/already_migrated_code_decorator.dart';
@@ -45,6 +47,15 @@ class _AlreadyMigratedCodeDecoratorTest {
     expect(decoratedType.node, same(always));
   }
 
+  void checkFutureOr(
+      DecoratedType decoratedType,
+      NullabilityNode expectedNullability,
+      void Function(DecoratedType) checkArgument) {
+    expect(decoratedType.type.element, typeProvider.futureOrType.element);
+    expect(decoratedType.node, expectedNullability);
+    checkArgument(decoratedType.typeArguments[0]);
+  }
+
   void checkInt(
       DecoratedType decoratedType, NullabilityNode expectedNullability) {
     expect(decoratedType.type.element, typeProvider.intType.element);
@@ -76,7 +87,7 @@ class _AlreadyMigratedCodeDecoratorTest {
   void checkTypeParameter(
       DecoratedType decoratedType,
       NullabilityNode expectedNullability,
-      TypeParameterElementImpl expectedElement) {
+      TypeParameterElement expectedElement) {
     var type = decoratedType.type as TypeParameterTypeImpl;
     expect(type.element, same(expectedElement));
     expect(decoratedType.node, expectedNullability);
@@ -201,5 +212,64 @@ class _AlreadyMigratedCodeDecoratorTest {
 
   test_decorate_void() {
     checkVoid(decorate(typeProvider.voidType));
+  }
+
+  test_getImmediateSupertypes_future() {
+    var element = typeProvider.futureType.element;
+    var decoratedSupertypes =
+        decorator.getImmediateSupertypes(element).toList();
+    var typeParam = element.typeParameters[0];
+    expect(decoratedSupertypes, hasLength(2));
+    checkObject(decoratedSupertypes[0], never);
+    // Since Future<T> is a subtype of FutureOr<T>, we consider FutureOr<T> to
+    // be an immediate supertype, even though the class declaration for Future
+    // doesn't mention FutureOr.
+    checkFutureOr(decoratedSupertypes[1], never,
+        (t) => checkTypeParameter(t, never, typeParam));
+  }
+
+  test_getImmediateSupertypes_generic() {
+    var t = ElementFactory.typeParameterElement('T');
+    var class_ = ElementFactory.classElement3(
+        name: 'C',
+        typeParameters: [t],
+        supertype: typeProvider.iterableType.instantiate([t.type]));
+    var decoratedSupertypes = decorator.getImmediateSupertypes(class_).toList();
+    expect(decoratedSupertypes, hasLength(1));
+    checkIterable(decoratedSupertypes[0], never,
+        (type) => checkTypeParameter(type, never, t));
+  }
+
+  test_getImmediateSupertypes_interface() {
+    var class_ = ElementFactory.classElement('C', typeProvider.objectType);
+    class_.interfaces = [typeProvider.numType];
+    var decoratedSupertypes = decorator.getImmediateSupertypes(class_).toList();
+    expect(decoratedSupertypes, hasLength(2));
+    checkObject(decoratedSupertypes[0], never);
+    checkNum(decoratedSupertypes[1], never);
+  }
+
+  test_getImmediateSupertypes_mixin() {
+    var class_ = ElementFactory.classElement('C', typeProvider.objectType);
+    class_.mixins = [typeProvider.numType];
+    var decoratedSupertypes = decorator.getImmediateSupertypes(class_).toList();
+    expect(decoratedSupertypes, hasLength(2));
+    checkObject(decoratedSupertypes[0], never);
+    checkNum(decoratedSupertypes[1], never);
+  }
+
+  test_getImmediateSupertypes_superclassConstraint() {
+    var class_ = ElementFactory.mixinElement(
+        name: 'C', constraints: [typeProvider.numType]);
+    var decoratedSupertypes = decorator.getImmediateSupertypes(class_).toList();
+    expect(decoratedSupertypes, hasLength(1));
+    checkNum(decoratedSupertypes[0], never);
+  }
+
+  test_getImmediateSupertypes_supertype() {
+    var class_ = ElementFactory.classElement('C', typeProvider.objectType);
+    var decoratedSupertypes = decorator.getImmediateSupertypes(class_).toList();
+    expect(decoratedSupertypes, hasLength(1));
+    checkObject(decoratedSupertypes[0], never);
   }
 }
