@@ -8,10 +8,12 @@ import 'dart:collection';
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
+import 'package:analysis_server/src/services/correction/base_processor.dart';
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
 import 'package:analysis_server/src/services/correction/selection_analyzer.dart';
 import 'package:analysis_server/src/services/correction/statement_analyzer.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/analysis/session.dart';
@@ -36,45 +38,34 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart'
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:meta/meta.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' hide context;
 
 typedef _SimpleIdentifierVisitor(SimpleIdentifier node);
 
 /**
  * The computer for Dart assists.
  */
-class AssistProcessor {
+class AssistProcessor extends BaseProcessor {
   final DartAssistContext context;
-  final int selectionOffset;
-  final int selectionLength;
-  final int selectionEnd;
 
   final AnalysisSession session;
   final AnalysisSessionHelper sessionHelper;
   final TypeProvider typeProvider;
-  final String file;
-  final CorrectionUtils utils;
   final Flutter flutter;
 
   final List<Assist> assists = <Assist>[];
 
-  AstNode node;
-
   AssistProcessor(this.context)
-      : selectionOffset = context.selectionOffset,
-        selectionLength = context.selectionLength,
-        selectionEnd = context.selectionOffset + context.selectionLength,
-        session = context.resolveResult.session,
+      : session = context.resolveResult.session,
         sessionHelper = AnalysisSessionHelper(context.resolveResult.session),
         typeProvider = context.resolveResult.typeProvider,
-        file = context.resolveResult.path,
-        utils = new CorrectionUtils(context.resolveResult),
-        flutter = Flutter.of(context.resolveResult);
-
-  /**
-   * Returns the EOL to use for this [CompilationUnit].
-   */
-  String get eol => utils.endOfLine;
+        flutter = Flutter.of(context.resolveResult),
+        super(
+          selectionOffset: context.selectionOffset,
+          selectionLength: context.selectionLength,
+          resolvedResult: context.resolveResult,
+          workspace: context.workspace,
+        );
 
   /**
    * Return the status of the known experiments.
@@ -84,7 +75,7 @@ class AssistProcessor {
           .experimentStatus;
 
   Future<List<Assist>> compute() async {
-    if (!_setupCompute()) {
+    if (!setupCompute()) {
       return assists;
     }
 
@@ -147,7 +138,11 @@ class AssistProcessor {
     await _addProposal_splitAndCondition();
     await _addProposal_splitVariableDeclaration();
     await _addProposal_surroundWith();
-    await _addProposal_useCurlyBraces();
+    if (!_containsDiagnostic(
+      LintNames.curly_braces_in_flow_control_structures,
+    )) {
+      await _addProposal_useCurlyBraces();
+    }
 
     if (experimentStatus.control_flow_collections) {
       await _addProposal_convertConditionalExpressionToIfElement();
@@ -161,7 +156,7 @@ class AssistProcessor {
   }
 
   Future<List<Assist>> computeAssist(AssistKind assistKind) async {
-    if (!_setupCompute()) {
+    if (!setupCompute()) {
       return assists;
     }
 
@@ -221,6 +216,9 @@ class AssistProcessor {
 
   void _addAssistFromBuilder(DartChangeBuilder builder, AssistKind kind,
       {List args = null}) {
+    if (builder == null) {
+      return;
+    }
     SourceChange change = builder.sourceChange;
     if (change.edits.isEmpty) {
       _coverageMarker();
@@ -3855,129 +3853,8 @@ class AssistProcessor {
   }
 
   Future<void> _addProposal_useCurlyBraces() async {
-    Future<void> doStatement(DoStatement node) async {
-      var body = node.body;
-      if (body is Block) return;
-
-      var prefix = utils.getLinePrefix(node.offset);
-      var indent = prefix + utils.getIndent(1);
-
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (builder) {
-        builder.addSimpleReplacement(
-          range.endStart(node.doKeyword, body),
-          ' {$eol$indent',
-        );
-        builder.addSimpleReplacement(
-          range.endStart(body, node.whileKeyword),
-          '$eol$prefix} ',
-        );
-      });
-
-      _addAssistFromBuilder(changeBuilder, DartAssistKind.USE_CURLY_BRACES);
-    }
-
-    Future<void> forStatement(ForStatement node) async {
-      var body = node.body;
-      if (body is Block) return;
-
-      var prefix = utils.getLinePrefix(node.offset);
-      var indent = prefix + utils.getIndent(1);
-
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (builder) {
-        builder.addSimpleReplacement(
-          range.endStart(node.rightParenthesis, body),
-          ' {$eol$indent',
-        );
-        builder.addSimpleInsertion(body.end, '$eol$prefix}');
-      });
-
-      _addAssistFromBuilder(changeBuilder, DartAssistKind.USE_CURLY_BRACES);
-    }
-
-    Future<void> ifStatement(IfStatement node, Statement thenOrElse) async {
-      var prefix = utils.getLinePrefix(node.offset);
-      var indent = prefix + utils.getIndent(1);
-
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (builder) {
-        var thenStatement = node.thenStatement;
-        if (thenStatement is! Block &&
-            (thenOrElse == null || thenOrElse == thenStatement)) {
-          builder.addSimpleReplacement(
-            range.endStart(node.rightParenthesis, thenStatement),
-            ' {$eol$indent',
-          );
-          if (node.elseKeyword != null) {
-            builder.addSimpleReplacement(
-              range.endStart(thenStatement, node.elseKeyword),
-              '$eol$prefix} ',
-            );
-          } else {
-            builder.addSimpleInsertion(thenStatement.end, '$eol$prefix}');
-          }
-        }
-
-        var elseStatement = node.elseStatement;
-        if (elseStatement != null &&
-            elseStatement is! Block &&
-            (thenOrElse == null || thenOrElse == elseStatement)) {
-          builder.addSimpleReplacement(
-            range.endStart(node.elseKeyword, elseStatement),
-            ' {$eol$indent',
-          );
-          builder.addSimpleInsertion(elseStatement.end, '$eol$prefix}');
-        }
-      });
-
-      _addAssistFromBuilder(changeBuilder, DartAssistKind.USE_CURLY_BRACES);
-    }
-
-    Future<void> whileStatement(WhileStatement node) async {
-      var body = node.body;
-      if (body is Block) return;
-
-      var prefix = utils.getLinePrefix(node.offset);
-      var indent = prefix + utils.getIndent(1);
-
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (builder) {
-        builder.addSimpleReplacement(
-          range.endStart(node.rightParenthesis, body),
-          ' {$eol$indent',
-        );
-        builder.addSimpleInsertion(body.end, '$eol$prefix}');
-      });
-
-      _addAssistFromBuilder(changeBuilder, DartAssistKind.USE_CURLY_BRACES);
-    }
-
-    var statement = this.node.thisOrAncestorOfType<Statement>();
-    var parent = statement?.parent;
-
-    if (statement is DoStatement) {
-      return doStatement(statement);
-    } else if (parent is DoStatement) {
-      return doStatement(parent);
-    } else if (statement is ForStatement) {
-      return forStatement(statement);
-    } else if (parent is ForStatement) {
-      return forStatement(parent);
-    } else if (statement is IfStatement) {
-      if (statement.elseKeyword != null &&
-          range.token(statement.elseKeyword).contains(selectionOffset)) {
-        return ifStatement(statement, statement.elseStatement);
-      } else {
-        return ifStatement(statement, null);
-      }
-    } else if (parent is IfStatement) {
-      return ifStatement(parent, statement);
-    } else if (statement is WhileStatement) {
-      return whileStatement(statement);
-    } else if (parent is WhileStatement) {
-      return whileStatement(parent);
-    }
+    final changeBuilder = await createBuilder_useCurlyBraces();
+    _addAssistFromBuilder(changeBuilder, DartAssistKind.USE_CURLY_BRACES);
   }
 
   /**
@@ -4012,6 +3889,22 @@ class AssistProcessor {
         utils.targetClassElement = targetClassDeclaration.declaredElement;
       }
     }
+  }
+
+  bool _containsDiagnostic(String diagnosticCode) {
+    final fileOffset = node.offset;
+    for (var error in context.resolveResult.errors) {
+      final errorSource = error.source;
+      if (file == errorSource.fullName) {
+        if (fileOffset >= error.offset &&
+            fileOffset <= error.offset + error.length) {
+          if (error.errorCode.name == diagnosticCode) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
   }
 
   void _convertFlutterChildToChildren(
@@ -4211,12 +4104,6 @@ class AssistProcessor {
 
   DartChangeBuilder _newDartChangeBuilder() {
     return new DartChangeBuilderImpl.forWorkspace(context.workspace);
-  }
-
-  bool _setupCompute() {
-    var locator = new NodeLocator(selectionOffset, selectionEnd);
-    node = locator.searchWithin(context.resolveResult.unit);
-    return node != null;
   }
 
   Future<void> _swapParentAndChild(InstanceCreationExpression parent,

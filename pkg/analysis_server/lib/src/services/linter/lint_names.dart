@@ -16,6 +16,8 @@ class LintNames {
   static const String avoid_types_on_closure_parameters =
       'avoid_types_on_closure_parameters';
   static const String await_only_futures = 'await_only_futures';
+  static const String curly_braces_in_flow_control_structures =
+      'curly_braces_in_flow_control_structures';
   static const String empty_catches = 'empty_catches';
   static const String empty_constructor_bodies = 'empty_constructor_bodies';
   static const String empty_statements = 'empty_statements';

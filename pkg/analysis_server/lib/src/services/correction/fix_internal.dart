@@ -9,6 +9,7 @@ import 'dart:core';
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
+import 'package:analysis_server/src/services/correction/base_processor.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/levenshtein.dart';
@@ -161,7 +162,7 @@ class DartFixContributor implements FixContributor {
 /**
  * The computer for Dart fixes.
  */
-class FixProcessor {
+class FixProcessor extends BaseProcessor {
   static const int MAX_LEVENSHTEIN_DISTANCE = 3;
 
   final DartFixContext context;
@@ -171,10 +172,8 @@ class FixProcessor {
   final TypeProvider typeProvider;
   final TypeSystem typeSystem;
 
-  final String file;
   final LibraryElement unitLibraryElement;
   final CompilationUnit unit;
-  final CorrectionUtils utils;
   final Flutter flutter;
 
   final AnalysisError error;
@@ -183,7 +182,6 @@ class FixProcessor {
 
   final List<Fix> fixes = <Fix>[];
 
-  AstNode node;
   AstNode coveredNode;
 
   FixProcessor(this.context)
@@ -192,21 +190,18 @@ class FixProcessor {
         sessionHelper = AnalysisSessionHelper(context.resolveResult.session),
         typeProvider = context.resolveResult.typeProvider,
         typeSystem = context.resolveResult.typeSystem,
-        file = context.resolveResult.path,
         unitLibraryElement = context.resolveResult.libraryElement,
         unit = context.resolveResult.unit,
-        utils = CorrectionUtils(context.resolveResult),
         flutter = Flutter.of(context.resolveResult),
         error = context.error,
         errorOffset = context.error.offset,
-        errorLength = context.error.length;
+        errorLength = context.error.length,
+        super(
+          resolvedResult: context.resolveResult,
+          workspace: context.workspace,
+        );
 
   DartType get coreTypeBool => _getCoreType('bool');
-
-  /**
-   * Returns the EOL to use for this [CompilationUnit].
-   */
-  String get eol => utils.endOfLine;
 
   Future<List<Fix>> compute() async {
     node = new NodeLocator2(errorOffset).searchWithin(unit);
@@ -592,6 +587,9 @@ class FixProcessor {
       if (name == LintNames.await_only_futures) {
         await _addFix_removeAwait();
       }
+      if (name == LintNames.curly_braces_in_flow_control_structures) {
+        await _addFix_addCurlyBraces();
+      }
       if (name == LintNames.empty_catches) {
         await _addFix_removeEmptyCatch();
       }
@@ -707,6 +705,11 @@ class FixProcessor {
         _addFixFromBuilder(changeBuilder, DartFixKind.ADD_CONST);
       }
     }
+  }
+
+  Future<void> _addFix_addCurlyBraces() async {
+    final changeBuilder = await createBuilder_useCurlyBraces();
+    _addFixFromBuilder(changeBuilder, DartFixKind.ADD_CURLY_BRACES);
   }
 
   Future<void> _addFix_addExplicitCast() async {
