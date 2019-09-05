@@ -5,17 +5,20 @@
 import("//build/config/sysroot.gni")
 
 config("sdk") {
-  ldflags = []
+  # Don't allow visible symbols from libc++ to be re-exported.
+  ldflags = [
+    "-nodefaultlibs",
+    "-lc++",
+    "-lc",
+    "-lm",
+    "-lclang_rt.builtins",
+    "-Wl,--exclude-libs=libc++.a",
+  ]
 
-  if (!is_asan) {
-    # Don't allow visible symbols from libc++ to be re-exported.
-    ldflags = [
-      "-nodefaultlibs",
-      "-lc++",
-      "-lc",
-      "-lm",
-      "-lclang_rt.builtins",
-      "-Wl,--exclude-libs=libc++.a",
+  if (is_asan) {
+    ldflags += [
+      "-lpthread",
+      "-lrt",
     ]
   }
 
