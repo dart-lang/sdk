@@ -613,6 +613,122 @@ main() {
       });
     });
 
+    test('tryCatchStatement_bodyEnd() restores pre-try state', () {
+      var h = _Harness();
+      var x = h.addVar('x', 'int?');
+      var y = h.addVar('y', 'int?');
+      h.run((flow) {
+        h.declare(x, initialized: true);
+        h.declare(y, initialized: true);
+        h.promote(y, 'int');
+        flow.tryCatchStatement_bodyBegin();
+        h.promote(x, 'int');
+        expect(flow.promotedType(x).type, 'int');
+        expect(flow.promotedType(y).type, 'int');
+        flow.tryCatchStatement_bodyEnd({});
+        flow.tryCatchStatement_catchBegin();
+        expect(flow.promotedType(x), isNull);
+        expect(flow.promotedType(y).type, 'int');
+        flow.tryCatchStatement_catchEnd();
+        flow.tryCatchStatement_end();
+      });
+    });
+
+    test('tryCatchStatement_bodyEnd() un-promotes variables assigned in body',
+        () {
+      var h = _Harness();
+      var x = h.addVar('x', 'int?');
+      h.run((flow) {
+        h.declare(x, initialized: true);
+        h.promote(x, 'int');
+        expect(flow.promotedType(x).type, 'int');
+        flow.tryCatchStatement_bodyBegin();
+        flow.write(x);
+        h.promote(x, 'int');
+        expect(flow.promotedType(x).type, 'int');
+        flow.tryCatchStatement_bodyEnd({x});
+        flow.tryCatchStatement_catchBegin();
+        expect(flow.promotedType(x), isNull);
+        flow.tryCatchStatement_catchEnd();
+        flow.tryCatchStatement_end();
+      });
+    });
+
+    test('tryCatchStatement_catchBegin() restores previous post-body state',
+        () {
+      var h = _Harness();
+      var x = h.addVar('x', 'int?');
+      h.run((flow) {
+        h.declare(x, initialized: true);
+        flow.tryCatchStatement_bodyBegin();
+        flow.tryCatchStatement_bodyEnd({});
+        flow.tryCatchStatement_catchBegin();
+        h.promote(x, 'int');
+        expect(flow.promotedType(x).type, 'int');
+        flow.tryCatchStatement_catchEnd();
+        flow.tryCatchStatement_catchBegin();
+        expect(flow.promotedType(x), isNull);
+        flow.tryCatchStatement_catchEnd();
+        flow.tryCatchStatement_end();
+      });
+    });
+
+    test('tryCatchStatement_catchEnd() joins catch state with after-try state',
+        () {
+      var h = _Harness();
+      var x = h.addVar('x', 'int?');
+      var y = h.addVar('y', 'int?');
+      var z = h.addVar('z', 'int?');
+      h.run((flow) {
+        h.declare(x, initialized: true);
+        h.declare(y, initialized: true);
+        h.declare(z, initialized: true);
+        flow.tryCatchStatement_bodyBegin();
+        h.promote(x, 'int');
+        h.promote(y, 'int');
+        flow.tryCatchStatement_bodyEnd({});
+        flow.tryCatchStatement_catchBegin();
+        h.promote(x, 'int');
+        h.promote(z, 'int');
+        flow.tryCatchStatement_catchEnd();
+        flow.tryCatchStatement_end();
+        // Only x should be promoted, because it's the only variable promoted
+        // in both the try body and the catch handler.
+        expect(flow.promotedType(x).type, 'int');
+        expect(flow.promotedType(y), isNull);
+        expect(flow.promotedType(z), isNull);
+      });
+    });
+
+    test('tryCatchStatement_catchEnd() joins catch states', () {
+      var h = _Harness();
+      var x = h.addVar('x', 'int?');
+      var y = h.addVar('y', 'int?');
+      var z = h.addVar('z', 'int?');
+      h.run((flow) {
+        h.declare(x, initialized: true);
+        h.declare(y, initialized: true);
+        h.declare(z, initialized: true);
+        flow.tryCatchStatement_bodyBegin();
+        flow.handleExit();
+        flow.tryCatchStatement_bodyEnd({});
+        flow.tryCatchStatement_catchBegin();
+        h.promote(x, 'int');
+        h.promote(y, 'int');
+        flow.tryCatchStatement_catchEnd();
+        flow.tryCatchStatement_catchBegin();
+        h.promote(x, 'int');
+        h.promote(z, 'int');
+        flow.tryCatchStatement_catchEnd();
+        flow.tryCatchStatement_end();
+        // Only x should be promoted, because it's the only variable promoted
+        // in both catch handlers.
+        expect(flow.promotedType(x).type, 'int');
+        expect(flow.promotedType(y), isNull);
+        expect(flow.promotedType(z), isNull);
+      });
+    });
+
     test('whileStatement_conditionBegin() un-promotes', () {
       var h = _Harness();
       var x = h.addVar('x', 'int?');
