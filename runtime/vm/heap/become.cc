@@ -191,15 +191,15 @@ void Become::CrashDump(RawObject* before_obj, RawObject* after_obj) {
   OS::PrintErr("DETECTED FATAL ISSUE IN BECOME MAPPINGS\n");
 
   OS::PrintErr("BEFORE ADDRESS: %p\n", before_obj);
-  OS::PrintErr("BEFORE IS HEAP OBJECT: %s",
+  OS::PrintErr("BEFORE IS HEAP OBJECT: %s\n",
                before_obj->IsHeapObject() ? "YES" : "NO");
-  OS::PrintErr("BEFORE IN VMISOLATE HEAP OBJECT: %s",
+  OS::PrintErr("BEFORE IN VMISOLATE HEAP OBJECT: %s\n",
                before_obj->InVMIsolateHeap() ? "YES" : "NO");
 
   OS::PrintErr("AFTER ADDRESS: %p\n", after_obj);
-  OS::PrintErr("AFTER IS HEAP OBJECT: %s",
+  OS::PrintErr("AFTER IS HEAP OBJECT: %s\n",
                after_obj->IsHeapObject() ? "YES" : "NO");
-  OS::PrintErr("AFTER IN VMISOLATE HEAP OBJECT: %s",
+  OS::PrintErr("AFTER IN VMISOLATE HEAP OBJECT: %s\n",
                after_obj->InVMIsolateHeap() ? "YES" : "NO");
 
   if (before_obj->IsHeapObject()) {
