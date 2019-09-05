@@ -38,6 +38,15 @@ final pool = new Pool(max(1, Platform.numberOfProcessors ~/ 2));
 // TODO(dartbug.com/38196): Ensure all VM sources are clang-tidy clean.
 final Set<String> migratedFiles = Set<String>.from([
   'runtime/vm/native_api_impl.cc',
+  'runtime/vm/compiler/backend/constant_propagator.cc',
+  'runtime/vm/compiler/backend/flow_graph.cc',
+  'runtime/vm/compiler/backend/flow_graph_checker.cc',
+  'runtime/vm/compiler/backend/il.cc',
+  'runtime/vm/compiler/backend/inliner.cc',
+  'runtime/vm/compiler/backend/linearscan.cc',
+  'runtime/vm/compiler/backend/loops.cc',
+  'runtime/vm/compiler/backend/loops_test.cc',
+  'runtime/vm/compiler/backend/range_analysis.cc',
 ]);
 
 main(List<String> files) async {

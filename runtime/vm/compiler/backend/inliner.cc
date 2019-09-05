@@ -1895,6 +1895,7 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
         // Unshared.  Graft the normal entry on after the check class
         // instruction.
         auto target = callee_entry->AsGraphEntry()->normal_entry();
+        ASSERT(cursor != nullptr);
         cursor->LinkTo(target->next());
         target->ReplaceAsPredecessorWith(current_block);
         // Unuse all inputs of the graph entry and the normal entry. They are
@@ -1955,6 +1956,7 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
             new TargetEntryInstr(AllocateBlockId(), try_idx, DeoptId::kNone);
         below_target->InheritDeoptTarget(zone(), call_);
         current_block->AddDominatedBlock(below_target);
+        ASSERT(cursor != nullptr);  // read before overwrite
         cursor = current_block = below_target;
         *branch_top->true_successor_address() = below_target;
 
@@ -1972,9 +1974,9 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
       }
 
       branch->InheritDeoptTarget(zone(), call_);
-      cursor = AppendInstruction(cursor, branch);
+      AppendInstruction(cursor, branch);
+      cursor = nullptr;
       current_block->set_last_instruction(branch);
-      cursor = NULL;
 
       // 2. Handle a match by linking to the inlined body.  There are three
       // cases (unshared, shared first predecessor, and shared subsequent
@@ -3369,7 +3371,7 @@ bool FlowGraphInliner::TryReplaceInstanceCallWithInline(
     }
     // Replace all uses of this definition with the result.
     if (call->HasUses()) {
-      ASSERT(result->HasSSATemp());
+      ASSERT(result != nullptr && result->HasSSATemp());
       call->ReplaceUsesWith(result);
     }
     // Finally insert the sequence other definition in place of this one in the

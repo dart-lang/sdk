@@ -7395,8 +7395,8 @@ class Smi : public Integer {
   static intptr_t InstanceSize() { return 0; }
 
   static RawSmi* New(intptr_t value) {
-    RawSmi* raw_smi =
-        reinterpret_cast<RawSmi*>((value << kSmiTagShift) | kSmiTag);
+    RawSmi* raw_smi = reinterpret_cast<RawSmi*>(
+        (static_cast<uintptr_t>(value) << kSmiTagShift) | kSmiTag);
     ASSERT(ValueFromRawSmi(raw_smi) == value);
     return raw_smi;
   }

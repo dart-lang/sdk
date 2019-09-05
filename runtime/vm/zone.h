@@ -119,6 +119,7 @@ class Zone {
   void Free(ElementType* old_array, intptr_t len) {
 #ifdef DEBUG
     if (len > 0) {
+      ASSERT(old_array != nullptr);
       memset(old_array, kZapUninitializedByte, len * sizeof(ElementType));
     }
 #endif
