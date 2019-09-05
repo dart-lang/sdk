@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.2
+- Fixed issue where `closureFunction` and `closureContext` were only expected in
+  `Instance` objects rather than `InstanceRef`.
+
 ## 1.1.1
 - Fixed issue serializing list arguments for certain VM service methods.
   - Issue #37872

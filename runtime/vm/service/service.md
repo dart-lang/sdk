@@ -2,7 +2,7 @@
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.25_ of the Dart VM Service Protocol. This
+This document describes of _version 3.26_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -2088,6 +2088,18 @@ class @Instance extends @Object {
   // Provided for instance kinds:
   //   RegExp
   @Instance pattern [optional];
+
+  // The function associated with a Closure instance.
+  //
+  // Provided for instance kinds:
+  //   Closure
+  @Function closureFunction [optional];
+
+  // The context associated with a Closure instance.
+  //
+  // Provided for instance kinds:
+  //   Closure
+  @Context closureContext [optional];
 }
 ```
 
@@ -2238,18 +2250,6 @@ class Instance extends Object {
   //   Float32x4List
   //   Float64x2List
   string bytes [optional];
-
-  // The function associated with a Closure instance.
-  //
-  // Provided for instance kinds:
-  //   Closure
-  @Function closureFunction [optional];
-
-  // The context associated with a Closure instance.
-  //
-  // Provided for instance kinds:
-  //   Closure
-  @Context closureContext [optional];
 
   // The referent of a MirrorReference instance.
   //

@@ -3511,6 +3511,20 @@ class InstanceRef extends ObjRef {
   @optional
   InstanceRef pattern;
 
+  /// The function associated with a Closure instance.
+  ///
+  /// Provided for instance kinds:
+  ///  - Closure
+  @optional
+  FuncRef closureFunction;
+
+  /// The context associated with a Closure instance.
+  ///
+  /// Provided for instance kinds:
+  ///  - Closure
+  @optional
+  ContextRef closureContext;
+
   InstanceRef();
 
   InstanceRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
@@ -3524,6 +3538,10 @@ class InstanceRef extends ObjRef {
     parameterizedClass =
         createServiceObject(json['parameterizedClass'], const ['ClassRef']);
     pattern = createServiceObject(json['pattern'], const ['InstanceRef']);
+    closureFunction =
+        createServiceObject(json['closureFunction'], const ['FuncRef']);
+    closureContext =
+        createServiceObject(json['closureContext'], const ['ContextRef']);
   }
 
   @override
@@ -3542,6 +3560,8 @@ class InstanceRef extends ObjRef {
     _setIfNotNull(json, 'typeClass', typeClass?.toJson());
     _setIfNotNull(json, 'parameterizedClass', parameterizedClass?.toJson());
     _setIfNotNull(json, 'pattern', pattern?.toJson());
+    _setIfNotNull(json, 'closureFunction', closureFunction?.toJson());
+    _setIfNotNull(json, 'closureContext', closureContext?.toJson());
     return json;
   }
 
@@ -3715,20 +3735,6 @@ class Instance extends Obj {
   @optional
   String bytes;
 
-  /// The function associated with a Closure instance.
-  ///
-  /// Provided for instance kinds:
-  ///  - Closure
-  @optional
-  FuncRef closureFunction;
-
-  /// The context associated with a Closure instance.
-  ///
-  /// Provided for instance kinds:
-  ///  - Closure
-  @optional
-  ContextRef closureContext;
-
   /// The referent of a MirrorReference instance.
   ///
   /// Provided for instance kinds:
@@ -3835,10 +3841,6 @@ class Instance extends Obj {
         : new List<MapAssociation>.from(
             _createSpecificObject(json['associations'], MapAssociation.parse));
     bytes = json['bytes'];
-    closureFunction =
-        createServiceObject(json['closureFunction'], const ['FuncRef']);
-    closureContext =
-        createServiceObject(json['closureContext'], const ['ContextRef']);
     mirrorReferent =
         createServiceObject(json['mirrorReferent'], const ['InstanceRef']);
     pattern = json['pattern'];
@@ -3878,8 +3880,6 @@ class Instance extends Obj {
     _setIfNotNull(
         json, 'associations', associations?.map((f) => f?.toJson())?.toList());
     _setIfNotNull(json, 'bytes', bytes);
-    _setIfNotNull(json, 'closureFunction', closureFunction?.toJson());
-    _setIfNotNull(json, 'closureContext', closureContext?.toJson());
     _setIfNotNull(json, 'mirrorReferent', mirrorReferent?.toJson());
     _setIfNotNull(json, 'pattern', pattern);
     _setIfNotNull(json, 'isCaseSensitive', isCaseSensitive);
