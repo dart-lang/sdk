@@ -102,6 +102,9 @@ class Slot : public ZoneAllocated {
   };
   // clang-format on
 
+  static const char* KindToCString(Kind k);
+  static bool KindFromCString(const char* str, Kind* k);
+
   // Returns a slot that represents length field for the given [array_cid].
   static const Slot& GetLengthFieldForArrayCid(intptr_t array_cid);
 
@@ -171,6 +174,8 @@ class Slot : public ZoneAllocated {
   bool IsIdentical(const Slot& other) const { return this == &other; }
 
  private:
+  friend class FlowGraphDeserializer;  // For GetNativeSlot.
+
   Slot(Kind kind,
        int8_t bits,
        int16_t cid,

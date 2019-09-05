@@ -4544,6 +4544,8 @@ class DebugStepCheckInstr : public TemplateInstruction<0, NoThrow> {
   virtual bool HasUnknownSideEffects() const { return true; }
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
+  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
+
  private:
   const TokenPosition token_pos_;
   const RawPcDescriptors::Kind stub_kind_;
@@ -4660,6 +4662,7 @@ class StoreInstanceFieldInstr : public TemplateInstruction<2, NoThrow> {
 
   PRINT_OPERANDS_TO_SUPPORT
   ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
+  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  private:
   friend class JitCallSpecializer;  // For ASSERT(initialization_).

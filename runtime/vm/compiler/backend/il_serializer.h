@@ -72,6 +72,7 @@ class FlowGraphSerializer : ValueObject {
   SExpression* ArrayToSExp(const Array& arr);
   SExpression* ClassToSExp(const Class& cls);
   SExpression* ClosureToSExp(const Closure& c);
+  SExpression* ContextToSExp(const Context& c);
   SExpression* CodeToSExp(const Code& c);
   SExpression* FieldToSExp(const Field& f);
   SExpression* FunctionToSExp(const Function& f);
@@ -110,9 +111,12 @@ class FlowGraphSerializer : ValueObject {
       : flow_graph_(ASSERT_NOTNULL(flow_graph)),
         zone_(zone),
         tmp_string_(String::Handle(zone_)),
+        closure_context_(Context::Handle(zone_)),
         closure_function_(Function::Handle(zone_)),
         closure_type_args_(TypeArguments::Handle(zone_)),
         code_owner_(Object::Handle(zone_)),
+        context_parent_(Context::Handle(zone_)),
+        context_elem_(Object::Handle(zone_)),
         function_type_args_(TypeArguments::Handle(zone_)),
         instance_field_(Field::Handle(zone_)),
         instance_type_args_(TypeArguments::Handle(zone_)),
@@ -152,9 +156,12 @@ class FlowGraphSerializer : ValueObject {
   // DartValueToSExp with a sub-element of type Object, but any call to a
   // FlowGraphSerializer method that may eventually enter one of the methods
   // listed below should be examined with care.
+  Context& closure_context_;           // ClosureToSExp
   Function& closure_function_;         // ClosureToSExp
   TypeArguments& closure_type_args_;   // ClosureToSExp
   Object& code_owner_;                 // CodeToSExp
+  Context& context_parent_;            // ContextToSExp
+  Object& context_elem_;               // ContextToSExp
   TypeArguments& function_type_args_;  // FunctionToSExp
   Field& instance_field_;              // InstanceToSExp
   TypeArguments& instance_type_args_;  // InstanceToSExp

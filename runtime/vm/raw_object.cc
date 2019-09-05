@@ -637,4 +637,29 @@ DEFINE_LEAF_RUNTIME_ENTRY(void,
 }
 END_LEAF_RUNTIME_ENTRY
 
+const char* RawPcDescriptors::KindToCString(Kind k) {
+  switch (k) {
+#define ENUM_CASE(name, init)                                                  \
+  case Kind::k##name:                                                          \
+    return #name;
+    FOR_EACH_RAW_PC_DESCRIPTOR(ENUM_CASE)
+#undef ENUM_CASE
+    default:
+      return nullptr;
+  }
+}
+
+bool RawPcDescriptors::KindFromCString(const char* cstr, Kind* out) {
+  ASSERT(cstr != nullptr && out != nullptr);
+#define ENUM_CASE(name, init)                                                  \
+  if (strcmp(#name, cstr) == 0) {                                              \
+    *out = Kind::k##name;                                                      \
+    return true;                                                               \
+  }
+  FOR_EACH_RAW_PC_DESCRIPTOR(ENUM_CASE)
+#undef ENUM_CASE
+  return false;
+}
+#undef PREFIXED_NAME
+
 }  // namespace dart

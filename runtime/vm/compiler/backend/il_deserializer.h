@@ -88,12 +88,14 @@ class FlowGraphDeserializer : ValueObject {
   M(Branch)                                                                    \
   M(CheckStackOverflow)                                                        \
   M(Constant)                                                                  \
+  M(DebugStepCheck)                                                            \
   M(Goto)                                                                      \
   M(PushArgument)                                                              \
   M(Parameter)                                                                 \
   M(Return)                                                                    \
   M(SpecialParameter)                                                          \
-  M(StaticCall)
+  M(StaticCall)                                                                \
+  M(StoreInstanceField)
 
   // Helper methods for AllUnhandledInstructions.
   static bool IsHandledInstruction(Instruction* inst);
@@ -210,6 +212,10 @@ class FlowGraphDeserializer : ValueObject {
   bool ParseInstance(SExpList* list, Instance* out);
 
   bool ParseCanonicalName(SExpSymbol* sym, Object* out);
+
+  const Field& MayCloneField(const Field& field);
+  bool ParseSlot(SExpList* list, const Slot** out);
+
   bool ParseBlockId(SExpSymbol* sym, intptr_t* out);
   bool ParseSSATemp(SExpSymbol* sym, intptr_t* out);
   bool ParseUse(SExpSymbol* sym, intptr_t* out);

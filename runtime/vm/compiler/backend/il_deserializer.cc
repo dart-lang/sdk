@@ -137,8 +137,8 @@ void FlowGraphDeserializer::AllUnhandledInstructions(
 // check, not a deep one.
 bool FlowGraphDeserializer::IsHandledConstant(const Object& obj) {
   if (obj.IsArray()) return Array::Cast(obj).IsImmutable();
-  if (obj.IsInstance()) return !obj.IsClosure();
-  return obj.IsNull() || obj.IsClass() || obj.IsFunction() || obj.IsField();
+  return obj.IsNull() || obj.IsClass() || obj.IsFunction() || obj.IsField() ||
+         obj.IsInstance();
 }
 
 SExpression* FlowGraphDeserializer::Retrieve(SExpList* list, intptr_t index) {
@@ -642,6 +642,19 @@ ConstantInstr* FlowGraphDeserializer::HandleConstant(
   return new (zone()) ConstantInstr(obj, info.token_pos);
 }
 
+DebugStepCheckInstr* FlowGraphDeserializer::HandleDebugStepCheck(
+    SExpList* sexp,
+    const CommonInstrInfo& info) {
+  auto kind = RawPcDescriptors::kAnyKind;
+  if (auto const kind_sexp = CheckSymbol(Retrieve(sexp, "stub_kind"))) {
+    if (!RawPcDescriptors::KindFromCString(kind_sexp->value(), &kind)) {
+      StoreError(kind_sexp, "not a valid RawPcDescriptors::Kind name");
+      return nullptr;
+    }
+  }
+  return new (zone()) DebugStepCheckInstr(info.token_pos, kind, info.deopt_id);
+}
+
 GotoInstr* FlowGraphDeserializer::HandleGoto(SExpList* sexp,
                                              const CommonInstrInfo& info) {
   auto const block = FetchBlock(CheckSymbol(Retrieve(sexp, 1)));
@@ -725,7 +738,11 @@ StaticCallInstr* FlowGraphDeserializer::HandleStaticCall(
           CheckInteger(sexp->ExtraLookupValue("args_len"))) {
     args_len = args_len_sexp->value();
   }
-  auto const arguments = FetchPushedArguments(sexp, type_args_len + args_len);
+
+  // Type arguments are wrapped in a TypeArguments array, so no matter how
+  // many there are, they are contained in a single pushed argument.
+  auto const all_args_len = (type_args_len > 0 ? 1 : 0) + args_len;
+  auto const arguments = FetchPushedArguments(sexp, all_args_len);
   if (arguments == nullptr) return nullptr;
 
   intptr_t call_count = 0;
@@ -746,6 +763,34 @@ StaticCallInstr* FlowGraphDeserializer::HandleStaticCall(
   return new (zone())
       StaticCallInstr(info.token_pos, function, type_args_len, argument_names,
                       arguments, info.deopt_id, call_count, rebind_rule);
+}
+
+StoreInstanceFieldInstr* FlowGraphDeserializer::HandleStoreInstanceField(
+    SExpList* sexp,
+    const CommonInstrInfo& info) {
+  auto const instance = ParseValue(Retrieve(sexp, 1));
+  if (instance == nullptr) return nullptr;
+
+  const Slot* slot = nullptr;
+  if (!ParseSlot(CheckTaggedList(Retrieve(sexp, 2), "Slot"), &slot)) {
+    return nullptr;
+  }
+
+  auto const value = ParseValue(Retrieve(sexp, 3));
+  if (value == nullptr) return nullptr;
+
+  auto barrier_type = kNoStoreBarrier;
+  if (auto const bar_sexp = CheckBool(sexp->ExtraLookupValue("emit_barrier"))) {
+    if (bar_sexp->value()) barrier_type = kEmitStoreBarrier;
+  }
+
+  auto kind = StoreInstanceFieldInstr::Kind::kOther;
+  if (auto const init_sexp = CheckBool(sexp->ExtraLookupValue("is_init"))) {
+    if (init_sexp->value()) kind = StoreInstanceFieldInstr::Kind::kInitializing;
+  }
+
+  return new (zone()) StoreInstanceFieldInstr(
+      *slot, instance, value, barrier_type, info.token_pos, kind);
 }
 
 Value* FlowGraphDeserializer::ParseValue(SExpression* sexp) {
@@ -864,12 +909,22 @@ bool FlowGraphDeserializer::ParseDartValue(SExpression* sexp, Object* out) {
 
     // The only other symbols that should appear in Dart value position are
     // names of constant definitions.
-    if (auto const val = ParseValue(sym)) {
-      if (!val->BindsToConstant()) {
+    intptr_t def_index;
+    // Don't use ParseValue, as it'll return a Value bound to v0 if the
+    // corresponding definition hasn't yet been parsed.
+    if (ParseUse(sym, &def_index)) {
+      auto const def = definition_map_.LookupValue(def_index);
+      if (def == nullptr) {
+        StoreError(sym, "use prior to definition");
+        return false;
+      } else if (!def->IsConstant()) {
         StoreError(sym, "not a reference to a constant definition");
         return false;
       }
-      *out = val->BoundConstant().raw();
+      *out = def->AsConstant()->value().raw();
+      // Values used in constant definitions have already been canonicalized,
+      // so just exit.
+      return true;
     }
   }
 
@@ -942,6 +997,36 @@ bool FlowGraphDeserializer::ParseDartValue(SExpression* sexp, Object* out) {
       *out = arr.raw();
     } else if (strcmp(tag->value(), "Instance") == 0) {
       if (!ParseInstance(list, reinterpret_cast<Instance*>(out))) return false;
+    } else if (strcmp(tag->value(), "Closure") == 0) {
+      auto& function = Function::ZoneHandle(zone());
+      if (!ParseDartValue(Retrieve(list, 1), &function)) return false;
+
+      auto& context = Context::ZoneHandle(zone());
+      if (list->ExtraLookupValue("context") != nullptr) {
+        StoreError(list, "closures with contexts currently unhandled");
+        return false;
+      }
+
+      auto& inst_type_args = TypeArguments::ZoneHandle(zone());
+      if (auto const type_args_sexp = CheckTaggedList(
+              Retrieve(list, "inst_type_args"), "TypeArguments")) {
+        if (!ParseDartValue(type_args_sexp, &inst_type_args)) return false;
+      }
+
+      auto& func_type_args = TypeArguments::ZoneHandle(zone());
+      if (auto const type_args_sexp = CheckTaggedList(
+              Retrieve(list, "func_type_args"), "TypeArguments")) {
+        if (!ParseDartValue(type_args_sexp, &func_type_args)) return false;
+      }
+
+      auto& delayed_type_args = TypeArguments::ZoneHandle(zone());
+      if (auto const type_args_sexp = CheckTaggedList(
+              Retrieve(list, "delayed_type_args"), "TypeArguments")) {
+        if (!ParseDartValue(type_args_sexp, &delayed_type_args)) return false;
+      }
+
+      *out = Closure::New(inst_type_args, func_type_args, delayed_type_args,
+                          function, context, Heap::kOld);
     }
   } else if (auto const b = sexp->AsBool()) {
     *out = Bool::Get(b->value()).raw();
@@ -1097,20 +1182,34 @@ bool FlowGraphDeserializer::ParseCanonicalName(SExpSymbol* sym, Object* obj) {
   name_function_ = Function::null();
   while (true) {
     const char* func_end = strchr(func_start, ':');
+    intptr_t name_len = func_end - func_start;
     // Special case for getters/setters, where they are prefixed with "get:"
     // or "set:", as those colons should not be used as separators.
-    if ((func_end != nullptr) && (func_end - func_start == 3) &&
+    if (func_end != nullptr && name_len == 3 &&
         (strncmp(func_start, "get", 3) == 0 ||
          strncmp(func_start, "set", 3) == 0)) {
       func_end = strchr(func_end + 1, ':');
     }
     if (func_end == nullptr) func_end = strchr(func_start, '\0');
-    tmp_string_ = String::FromUTF8(reinterpret_cast<const uint8_t*>(func_start),
-                                   func_end - func_start);
+    name_len = func_end - func_start;
+
+    // Check for tearoff names before we overwrite the contents of tmp_string_.
     if (!name_function_.IsNull()) {
+      ASSERT(!tmp_string_.IsNull());
+      auto const parent_name = tmp_string_.ToCString();
+      // ImplicitClosureFunctions (tearoffs) have the same name as the Function
+      // to which they are attached. We won't handle any further nesting.
+      if (name_function_.HasImplicitClosureFunction() && *func_end == '\0' &&
+          strncmp(parent_name, func_start, name_len) == 0) {
+        *obj = name_function_.ImplicitClosureFunction();
+        return true;
+      }
       StoreError(sym, "no handling for local functions");
       return false;
     }
+
+    tmp_string_ = String::FromUTF8(reinterpret_cast<const uint8_t*>(func_start),
+                                   name_len);
     name_function_ = name_class_.LookupFunctionAllowPrivate(tmp_string_);
     if (name_function_.IsNull()) {
       StoreError(sym, "failure looking up function %s in class %s",
@@ -1125,6 +1224,46 @@ bool FlowGraphDeserializer::ParseCanonicalName(SExpSymbol* sym, Object* obj) {
     func_start = func_end + 1;
   }
   *obj = name_function_.raw();
+  return true;
+}
+
+// Following the lead of BaseFlowGraphBuilder::MayCloneField here.
+const Field& FlowGraphDeserializer::MayCloneField(const Field& field) {
+  if ((Compiler::IsBackgroundCompilation() ||
+       FLAG_force_clone_compiler_objects) &&
+      field.IsOriginal()) {
+    return Field::ZoneHandle(zone(), field.CloneFromOriginal());
+  }
+  ASSERT(field.IsZoneHandle());
+  return field;
+}
+
+bool FlowGraphDeserializer::ParseSlot(SExpList* list, const Slot** out) {
+  ASSERT(out != nullptr);
+  const auto kind_sexp = CheckSymbol(Retrieve(list, "kind"));
+  if (kind_sexp == nullptr) return false;
+  Slot::Kind kind;
+  if (!Slot::KindFromCString(kind_sexp->value(), &kind)) {
+    StoreError(kind_sexp, "unknown Slot kind");
+    return false;
+  }
+
+  switch (kind) {
+    case Slot::Kind::kDartField: {
+      auto& field = Field::ZoneHandle(zone());
+      const auto field_sexp = CheckTaggedList(Retrieve(list, "field"), "Field");
+      if (!ParseDartValue(field_sexp, &field)) return false;
+      *out = &Slot::Get(MayCloneField(field), parsed_function_);
+      break;
+    }
+    case Slot::Kind::kTypeArguments:
+    case Slot::Kind::kCapturedVariable:
+      StoreError(kind_sexp, "unhandled Slot kind");
+      return false;
+    default:
+      *out = &Slot::GetNativeSlot(kind);
+      break;
+  }
   return true;
 }
 
@@ -1193,11 +1332,13 @@ PushArgumentsArray* FlowGraphDeserializer::FetchPushedArguments(SExpList* list,
   if (len > stack_len) {
     StoreError(list, "expected %" Pd " pushed arguments, only %" Pd " on stack",
                len, stack_len);
+    return nullptr;
   }
   auto const arr = new (zone()) PushArgumentsArray(zone(), len);
   for (intptr_t i = 0; i < len; i++) {
-    arr->InsertAt(0, pushed_stack_.RemoveLast());
+    arr->Add(pushed_stack_.At(stack_len - len + i));
   }
+  pushed_stack_.TruncateTo(stack_len - len);
   return arr;
 }
 

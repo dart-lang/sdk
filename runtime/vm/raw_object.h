@@ -1454,17 +1454,36 @@ class RawInstructions : public RawObject {
 
 class RawPcDescriptors : public RawObject {
  public:
+// The macro argument V is passed two arguments, the raw name of the enum value
+// and the initialization expression used within the enum definition.  The uses
+// of enum values inside the initialization expression are hardcoded currently,
+// so the second argument is useless outside the enum definition and should be
+// dropped by other users of this macro.
+#define FOR_EACH_RAW_PC_DESCRIPTOR(V)                                          \
+  /* Deoptimization continuation point. */                                     \
+  V(Deopt, 1)                                                                  \
+  /* IC call. */                                                               \
+  V(IcCall, kDeopt << 1)                                                       \
+  /* Call to a known target via stub. */                                       \
+  V(UnoptStaticCall, kIcCall << 1)                                             \
+  /* Runtime call. */                                                          \
+  V(RuntimeCall, kUnoptStaticCall << 1)                                        \
+  /* OSR entry point in unopt. code. */                                        \
+  V(OsrEntry, kRuntimeCall << 1)                                               \
+  /* Call rewind target address. */                                            \
+  V(Rewind, kOsrEntry << 1)                                                    \
+  V(Other, kRewind << 1)                                                       \
+  V(AnyKind, -1)
+
   enum Kind {
-    kDeopt = 1,                            // Deoptimization continuation point.
-    kIcCall = kDeopt << 1,                 // IC call.
-    kUnoptStaticCall = kIcCall << 1,       // Call to a known target via stub.
-    kRuntimeCall = kUnoptStaticCall << 1,  // Runtime call.
-    kOsrEntry = kRuntimeCall << 1,         // OSR entry point in unopt. code.
-    kRewind = kOsrEntry << 1,              // Call rewind target address.
-    kOther = kRewind << 1,
-    kLastKind = kOther,
-    kAnyKind = -1
+#define ENUM_DEF(name, init) k##name = init,
+    FOR_EACH_RAW_PC_DESCRIPTOR(ENUM_DEF)
+#undef ENUM_DEF
+        kLastKind = kOther,
   };
+
+  static const char* KindToCString(Kind k);
+  static bool KindFromCString(const char* cstr, Kind* out);
 
   class MergedKindTry {
    public:
