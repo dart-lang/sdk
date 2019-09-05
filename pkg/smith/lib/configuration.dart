@@ -3,14 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'dart:io';
 
-// TODO(rnystrom): Differences from test.dart's version:
-// - Remove special handling for "ff" as firefox.
-// - "windows" -> "win".
-// - "macos" -> "mac".
-// - toString() on enum classes is just name.
-// - builderTag and babel default to empty string, not null.
-// Need to migrate test.dart to not expect the above before it can use this.
-
 // READ ME! If you add a new field to this, make sure to add it to
 // [parse()], [optionsEqual()], [hashCode], and [toString()]. A good check is to
 // comment out an existing field and see what breaks. Every error is a place
@@ -257,7 +249,6 @@ class Configuration {
         isCsp: boolOption("csp"),
         isHostChecked: boolOption("host-checked"),
         isMinified: boolOption("minified"),
-        previewDart2: boolOption("preview-dart-2"),
         useAnalyzerCfe: boolOption("use-cfe"),
         useAnalyzerFastaParser: boolOption("analyzer-use-fasta-parser"),
         useBlobs: boolOption("use-blobs"),
@@ -308,9 +299,6 @@ class Configuration {
 
   final bool isMinified;
 
-  // TODO(rnystrom): Remove this when Dart 1.0 is no longer supported.
-  final bool previewDart2;
-
   // TODO(whesse): Remove these when only fasta front end is in analyzer.
   final bool useAnalyzerCfe;
   final bool useAnalyzerFastaParser;
@@ -336,7 +324,6 @@ class Configuration {
       bool isCsp,
       bool isHostChecked,
       bool isMinified,
-      bool previewDart2,
       bool useAnalyzerCfe,
       bool useAnalyzerFastaParser,
       bool useBlobs,
@@ -354,7 +341,6 @@ class Configuration {
         isCsp = isCsp ?? false,
         isHostChecked = isHostChecked ?? false,
         isMinified = isMinified ?? false,
-        previewDart2 = previewDart2 ?? true,
         useAnalyzerCfe = useAnalyzerCfe ?? false,
         useAnalyzerFastaParser = useAnalyzerFastaParser ?? false,
         useBlobs = useBlobs ?? false,
@@ -381,7 +367,6 @@ class Configuration {
       isCsp == other.isCsp &&
       isHostChecked == other.isHostChecked &&
       isMinified == other.isMinified &&
-      previewDart2 == other.previewDart2 &&
       useAnalyzerCfe == other.useAnalyzerCfe &&
       useAnalyzerFastaParser == other.useAnalyzerFastaParser &&
       useBlobs == other.useBlobs &&
@@ -414,7 +399,6 @@ class Configuration {
         isCsp,
         isHostChecked,
         isMinified,
-        previewDart2,
         useAnalyzerCfe,
         useAnalyzerFastaParser,
         useBlobs,
@@ -448,7 +432,6 @@ class Configuration {
     if (isCsp) fields.add("csp");
     if (isHostChecked) fields.add("host-checked");
     if (isMinified) fields.add("minified");
-    if (previewDart2) fields.add("preview-dart-2");
     if (useAnalyzerCfe) fields.add("use-cfe");
     if (useAnalyzerFastaParser) fields.add("analyzer-use-fasta-parser");
     if (useBlobs) fields.add("use-blobs");
@@ -508,9 +491,6 @@ class Configuration {
     }
     if (isMinified || other.isMinified) {
       fields.add("isMinified $isMinified ${other.isMinified}");
-    }
-    if (previewDart2 || other.previewDart2) {
-      fields.add("previewDart2 $previewDart2 ${other.previewDart2}");
     }
     if (useAnalyzerCfe || other.useAnalyzerCfe) {
       fields.add("useAnalyzerCfe $useAnalyzerCfe ${other.useAnalyzerCfe}");

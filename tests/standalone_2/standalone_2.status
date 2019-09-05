@@ -94,9 +94,6 @@ io/secure_server_client_certificate_test: Skip # Re-enable once the bots have be
 io/socket_connect_stream_data_close_cancel_test: Pass, Timeout # Issue 27453
 io/socket_many_connections_test: Skip # This test fails with "Too many open files" on the Mac OS buildbot. This is expected as MacOS by default runs with a very low number of allowed open files ('ulimit -n' says something like 256).
 
-[ !$preview_dart_2 && ($runtime == dart_precompiled || $runtime == vm) ]
-*: SkipByDesign # Deprecating all Dart1 modes of execution
-
 [ $arch == arm || $arch == arm64 || $runtime != vm || $mode == debug && $system == windows ]
 fragmentation_test: Skip
 

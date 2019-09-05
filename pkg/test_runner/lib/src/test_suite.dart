@@ -257,22 +257,20 @@ abstract class TestSuite {
   /// pubspec checkouts ...).
   String createOutputDirectory(Path testPath) {
     var checked = configuration.isChecked ? '-checked' : '';
-    var legacy = configuration.noPreviewDart2 ? '-legacy' : '';
     var minified = configuration.isMinified ? '-minified' : '';
     var sdk = configuration.useSdk ? '-sdk' : '';
     var dirName = "${configuration.compiler.name}-${configuration.runtime.name}"
-        "$checked$legacy$minified$sdk";
+        "$checked$minified$sdk";
     return createGeneratedTestDirectoryHelper("tests", dirName, testPath);
   }
 
   String createCompilationOutputDirectory(Path testPath) {
     var checked = configuration.isChecked ? '-checked' : '';
-    var legacy = configuration.noPreviewDart2 ? '-legacy' : '';
     var minified = configuration.isMinified ? '-minified' : '';
     var csp = configuration.isCsp ? '-csp' : '';
     var sdk = configuration.useSdk ? '-sdk' : '';
     var dirName = "${configuration.compiler.name}"
-        "$checked$legacy$minified$csp$sdk";
+        "$checked$minified$csp$sdk";
     return createGeneratedTestDirectoryHelper(
         "compilations", dirName, testPath);
   }
@@ -362,21 +360,18 @@ class VMTestSuite extends TestSuite {
         hasStaticWarning: false,
         hasCrash: testExpectation == Expectation.crash);
 
-    var args = configuration.standardOptions.toList();
-    if (configuration.compilerConfiguration.previewDart2) {
-      var filename = configuration.architecture == Architecture.x64
-          ? '$buildDir/gen/kernel-service.dart.snapshot'
-          : '$buildDir/gen/kernel_service.dill';
-      var dfePath = Path(filename).absolute.toNativePath();
+    var filename = configuration.architecture == Architecture.x64
+        ? '$buildDir/gen/kernel-service.dart.snapshot'
+        : '$buildDir/gen/kernel_service.dill';
+    var dfePath = Path(filename).absolute.toNativePath();
+    var args = [
+      if (expectations.contains(Expectation.crash)) '--suppress-core-dump',
       // '--dfe' has to be the first argument for run_vm_test to pick it up.
-      args.insert(0, '--dfe=$dfePath');
-      args.addAll(configuration.vmOptions);
-    }
-    if (expectations.contains(Expectation.crash)) {
-      args.insert(0, '--suppress-core-dump');
-    }
-
-    args.add(test.name);
+      '--dfe=$dfePath',
+      ...configuration.standardOptions,
+      ...configuration.vmOptions,
+      test.name
+    ];
 
     var command = ProcessCommand(
         'run_vm_unittest', targetRunnerPath, args, environmentOverrides);

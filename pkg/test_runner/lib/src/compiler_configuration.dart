@@ -44,8 +44,6 @@ abstract class CompilerConfiguration {
 
   bool get _useEnableAsserts => _configuration.useEnableAsserts;
 
-  bool get previewDart2 => !_configuration.noPreviewDart2;
-
   /// Whether to run the runtime on the compilation result of a test which
   /// expects a compile-time error and the compiler did not emit one.
   bool get runRuntimeDespiteMissingCompileTimeError => false;
@@ -941,10 +939,6 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
 
   CommandArtifact computeCompilationArtifact(String tempDir,
       List<String> arguments, Map<String, String> environmentOverrides) {
-    if (!previewDart2) {
-      throw ArgumentError('--no-preview-dart-2 not supported');
-    }
-
     var args = [
       ...arguments,
       if (_configuration.useAnalyzerCfe) '--use-cfe',
@@ -985,10 +979,6 @@ class CompareAnalyzerCfeCompilerConfiguration extends CompilerConfiguration {
 
   CommandArtifact computeCompilationArtifact(String tempDir,
       List<String> arguments, Map<String, String> environmentOverrides) {
-    if (!previewDart2) {
-      throw ArgumentError('--no-preview-dart-2 not supported');
-    }
-
     // Since this is not a real compilation, no artifacts are produced.
     return CommandArtifact([
       CompareAnalyzerCfeCommand(
@@ -1113,8 +1103,6 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
 
   final Uri _vmExecutable;
 
-  bool get _isLegacy => _configuration.noPreviewDart2;
-
   factory FastaCompilerConfiguration(TestConfiguration configuration) {
     var buildDirectory =
         Uri.base.resolveUri(Uri.directory(configuration.buildDirectory));
@@ -1124,8 +1112,7 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
       dillDir = buildDirectory.resolve("dart-sdk/lib/_internal/");
     }
 
-    var suffix = !configuration.noPreviewDart2 ? "_strong" : "";
-    var platformDill = dillDir.resolve("vm_platform$suffix.dill");
+    var platformDill = dillDir.resolve("vm_platform_strong.dill");
 
     var vmExecutable = buildDirectory
         .resolve(configuration.useSdk ? "dart-sdk/bin/dart" : "dart");
@@ -1152,7 +1139,6 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
 
     var compilerArguments = [
       '--verify',
-      if (_isLegacy) "--legacy-mode",
       "-o",
       outputFileName,
       "--platform",

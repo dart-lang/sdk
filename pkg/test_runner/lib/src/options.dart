@@ -164,9 +164,6 @@ test options, specifying how tests should be run.''',
         'Only run tests that are not marked `Slow` or `Timeout`.'),
     _Option.bool('enable_asserts',
         'Pass the --enable-asserts flag to dart2js or to the vm.'),
-    _Option.bool('no_preview_dart_2',
-        'Enable legacy Dart 1 behavior for some runtimes and compilers.',
-        hide: true),
     _Option.bool('use_cfe', 'Pass the --use-cfe flag to analyzer', hide: true),
     _Option.bool('analyzer_use_fasta_parser',
         'Pass the --use-fasta-parser flag to analyzer',
@@ -380,18 +377,14 @@ compiler.''',
       return null;
     }
     if (arguments.contains("--list-configurations")) {
-      final testMatrixFile = "tools/bots/test_matrix.json";
-      TestMatrix testMatrix = TestMatrix.fromPath(testMatrixFile);
-      for (final configuration in testMatrix.configurations
+      var testMatrixFile = "tools/bots/test_matrix.json";
+      var testMatrix = TestMatrix.fromPath(testMatrixFile);
+      for (var configuration in testMatrix.configurations
           .map((configuration) => configuration.name)
           .toList()
             ..sort()) {
         print(configuration);
       }
-      return null;
-    }
-    // Dart1 mode has been deprecated.
-    if (arguments.contains("--no-preview-dart-2")) {
       return null;
     }
 
@@ -698,8 +691,7 @@ compiler.''',
                     vmOptions: vmOptions,
                     dart2jsOptions: dart2jsOptions,
                     babel: data['babel'] as String,
-                    builderTag: data["builder_tag"] as String,
-                    previewDart2: true);
+                    builderTag: data["builder_tag"] as String);
             var configuration = TestConfiguration(
                 configuration: innerConfiguration,
                 progress: Progress.find(data["progress"] as String),

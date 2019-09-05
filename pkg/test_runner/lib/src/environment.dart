@@ -30,11 +30,8 @@ final _variables = {
   "jscl": _Variable.bool((c) => c.runtime.isJSCommandLine),
   "minified": _Variable.bool((c) => c.isMinified),
   "mode": _Variable((c) => c.mode.name, Mode.names),
-  "no_preview_dart_2": _Variable.bool((c) => c.noPreviewDart2),
-  "preview_dart_2": _Variable.bool((c) => !c.noPreviewDart2),
   "runtime": _Variable(_runtimeName, _runtimeNames),
   "spec_parser": _Variable.bool((c) => c.compiler == Compiler.specParser),
-  "strong": _Variable.bool((c) => !c.noPreviewDart2),
   "system": _Variable(_systemName, _systemNames),
   "use_sdk": _Variable.bool((c) => c.useSdk)
 };

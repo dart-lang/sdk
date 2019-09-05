@@ -112,7 +112,6 @@ class TestConfiguration {
   bool get isHostChecked => configuration.isHostChecked;
   bool get isCsp => configuration.isCsp;
   bool get isMinified => configuration.isMinified;
-  bool get noPreviewDart2 => !configuration.previewDart2;
   bool get useAnalyzerCfe => configuration.useAnalyzerCfe;
   bool get useAnalyzerFastaParser => configuration.useAnalyzerFastaParser;
   bool get useBlobs => configuration.useBlobs;
@@ -461,7 +460,6 @@ class TestConfiguration {
       'use_sdk': useSdk,
       'builder_tag': builderTag,
       'timeout': timeout,
-      'no_preview_dart_2': noPreviewDart2,
       'use_cfe': useAnalyzerCfe,
       'analyzer_use_fasta_parser': useAnalyzerFastaParser,
       'enable_asserts': useEnableAsserts,
