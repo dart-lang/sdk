@@ -942,10 +942,9 @@ class FlowModel<Variable, Type> {
       if (!identical(restricted, otherModel)) variableInfoMatchesOther = false;
     }
     assert(variableInfoMatchesThis ==
-        _variableInfosEqual(typeOperations, newVariableInfo, variableInfo));
+        _variableInfosEqual(newVariableInfo, variableInfo));
     assert(variableInfoMatchesOther ==
-        _variableInfosEqual(
-            typeOperations, newVariableInfo, other.variableInfo));
+        _variableInfosEqual(newVariableInfo, other.variableInfo));
     if (variableInfoMatchesThis) {
       newVariableInfo = variableInfo;
     } else if (variableInfoMatchesOther) {
@@ -1072,8 +1071,10 @@ class FlowModel<Variable, Type> {
   }
 
   /// Determines whether the given "variableInfo" maps are equivalent.
+  ///
+  /// The equivalence check is shallow; if two variables' models are not
+  /// identical, we return `false`.
   static bool _variableInfosEqual<Variable, Type>(
-      TypeOperations<Variable, Type> typeOperations,
       Map<Variable, VariableModel<Type>> p1,
       Map<Variable, VariableModel<Type>> p2) {
     if (p1.length != p2.length) return false;
@@ -1081,14 +1082,8 @@ class FlowModel<Variable, Type> {
     for (MapEntry<Variable, VariableModel<Type>> entry in p1.entries) {
       VariableModel<Type> p1Value = entry.value;
       VariableModel<Type> p2Value = p2[entry.key];
-      if (p1Value == null) {
-        if (p2Value != null) return false;
-      } else {
-        if (p2Value == null) return false;
-        if (!VariableModel._variableModelsEqual<Type>(
-            typeOperations, p1Value, p2Value)) {
-          return false;
-        }
+      if (!identical(p1Value, p2Value)) {
+        return false;
       }
     }
     return true;
@@ -1222,22 +1217,5 @@ class VariableModel<Type> {
     } else {
       return new VariableModel<Type>(newPromotedType, newAssigned);
     }
-  }
-
-  /// Determines whether the given variable models are equivalent.
-  static bool _variableModelsEqual<Type>(
-      TypeOperations<Object, Type> typeOperations,
-      VariableModel<Type> model1,
-      VariableModel<Type> model2) {
-    Type p1Type = model1.promotedType;
-    Type p2Type = model2.promotedType;
-    if (p1Type == null) {
-      if (p2Type != null) return false;
-    } else {
-      if (p2Type == null) return false;
-      if (!typeOperations.isSameType(p1Type, p2Type)) return false;
-    }
-    if (model1.assigned != model2.assigned) return false;
-    return true;
   }
 }

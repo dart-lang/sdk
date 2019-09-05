@@ -902,6 +902,7 @@ environment
 equal
 equality
 equals
+equivalence
 equivalent
 equivalents
 erroneous
