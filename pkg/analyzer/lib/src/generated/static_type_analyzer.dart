@@ -616,14 +616,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     }
 
     type ??= _dynamicType;
-    if (_nonNullableEnabled) {
-      if (node.leftBracket.type ==
-          TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET) {
-        type = _typeSystem.makeNullable(type);
-      }
-    }
 
     _recordStaticType(node, type);
+    _nullShortingTermination(node);
   }
 
   /**
@@ -2153,6 +2148,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   static bool _hasNullShorting(Expression node) {
     if (node is AssignmentExpression) {
       return _hasNullShorting(node.leftHandSide);
+    }
+    if (node is IndexExpression) {
+      return node.leftBracket.type ==
+              TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET ||
+          _hasNullShorting(node.target);
     }
     if (node is PropertyAccess) {
       return node.operator.type == TokenType.QUESTION_PERIOD ||

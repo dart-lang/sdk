@@ -218,7 +218,6 @@ main(A? a) {
     assertType(indexExpression, 'bool?');
   }
 
-  @failingTest
   test_readWrite_nullable() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -242,7 +241,7 @@ main(A? a) {
       indexExpression.index,
       indexEqElement.parameters[0],
     );
-    assertType(indexExpression, 'num?');
+    assertType(indexExpression, 'num');
 
     var assignment = indexExpression.parent as AssignmentExpression;
     assertElement(assignment, numPlusElement);
@@ -253,7 +252,6 @@ main(A? a) {
     );
   }
 
-  @failingTest
   test_write_nullable() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -274,7 +272,7 @@ main(A? a) {
       indexExpression.index,
       indexEqElement.parameters[0],
     );
-    assertType(indexExpression, 'num?');
+    assertType(indexExpression, 'num');
 
     var assignment = indexExpression.parent as AssignmentExpression;
     assertElement(assignment, null);
