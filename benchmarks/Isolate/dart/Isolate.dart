@@ -174,11 +174,13 @@ final List<SizeName> sizes = <SizeName>[
 
 Future<void> main() async {
   for (SizeName sizeName in sizes) {
-    await SendReceiveBytes("Isolate.SendReceive${sizeName.name}",
+    await SendReceiveBytes("Isolate.SendReceiveBytes${sizeName.name}",
             size: sizeName.size, useTransferable: false)
         .report();
-    await SendReceiveBytes("Isolate.SendReceiveTransferable${sizeName.name}",
-            size: sizeName.size, useTransferable: true)
+    await SendReceiveBytes(
+            "Isolate.SendReceiveBytesTransferable${sizeName.name}",
+            size: sizeName.size,
+            useTransferable: true)
         .report();
   }
 }
