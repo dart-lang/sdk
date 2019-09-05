@@ -1982,6 +1982,26 @@ static int64_t RepresentationMask(Representation r) {
                               (64 - RepresentationBits(r)));
 }
 
+static int64_t TruncateTo(int64_t v, Representation r) {
+  switch (r) {
+    case kTagged: {
+      // Smi occupies word minus kSmiTagShift bits.
+      const intptr_t kTruncateBits =
+          (kBitsPerInt64 - kBitsPerWord) + kSmiTagShift;
+      return Utils::ShiftLeftWithTruncation(v, kTruncateBits) >> kTruncateBits;
+    }
+    case kUnboxedInt32:
+      return Utils::ShiftLeftWithTruncation(v, kBitsPerInt32) >> kBitsPerInt32;
+    case kUnboxedUint32:
+      return v & kMaxUint32;
+    case kUnboxedInt64:
+      return v;
+    default:
+      UNREACHABLE();
+      return 0;
+  }
+}
+
 static bool ToIntegerConstant(Value* value, int64_t* result) {
   if (!value->BindsToConstant()) {
     UnboxInstr* unbox = value->definition()->AsUnbox();
@@ -1993,7 +2013,7 @@ static bool ToIntegerConstant(Value* value, int64_t* result) {
 
         case kUnboxedUint32:
           if (ToIntegerConstant(unbox->value(), result)) {
-            *result &= RepresentationMask(kUnboxedUint32);
+            *result = TruncateTo(*result, kUnboxedUint32);
             return true;
           }
           break;
@@ -2341,8 +2361,8 @@ RawInteger* BinaryIntegerOpInstr::Evaluate(const Integer& left,
 
   if (!result.IsNull()) {
     if (is_truncating()) {
-      int64_t truncated = result.AsTruncatedInt64Value();
-      truncated &= RepresentationMask(representation());
+      const int64_t truncated =
+          TruncateTo(result.AsTruncatedInt64Value(), representation());
       result = Integer::New(truncated, Heap::kOld);
       ASSERT(IsRepresentable(result, representation()));
     } else if (!IsRepresentable(result, representation())) {
@@ -2475,7 +2495,6 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
     return this;
   }
 
-  const int64_t range_mask = RepresentationMask(representation());
   if (is_truncating()) {
     switch (op_kind()) {
       case Token::kMUL:
@@ -2484,7 +2503,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
       case Token::kBIT_AND:
       case Token::kBIT_OR:
       case Token::kBIT_XOR:
-        rhs = (rhs & range_mask);
+        rhs = TruncateTo(rhs, representation());
         break;
       default:
         break;
@@ -2527,21 +2546,21 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
     case Token::kBIT_AND:
       if (rhs == 0) {
         return right()->definition();
-      } else if (rhs == range_mask) {
+      } else if (rhs == RepresentationMask(representation())) {
         return left()->definition();
       }
       break;
     case Token::kBIT_OR:
       if (rhs == 0) {
         return left()->definition();
-      } else if (rhs == range_mask) {
+      } else if (rhs == RepresentationMask(representation())) {
         return right()->definition();
       }
       break;
     case Token::kBIT_XOR:
       if (rhs == 0) {
         return left()->definition();
-      } else if (rhs == range_mask) {
+      } else if (rhs == RepresentationMask(representation())) {
         UnaryIntegerOpInstr* bit_not = UnaryIntegerOpInstr::Make(
             representation(), Token::kBIT_NOT, left()->CopyWithType(),
             GetDeoptId(), range());
