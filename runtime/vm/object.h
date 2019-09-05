@@ -78,48 +78,46 @@ class Symbols;
   using RawObjectType = Raw##object;                                           \
   Raw##object* raw() const { return reinterpret_cast<Raw##object*>(raw_); }    \
   bool Is##object() const { return true; }                                     \
-  static object& Handle(Zone* zone, Raw##object* raw_ptr) {                    \
-    object* obj = reinterpret_cast<object*>(VMHandles::AllocateHandle(zone));  \
-    initializeHandle(obj, raw_ptr);                                            \
-    return *obj;                                                               \
+  DART_NOINLINE static object& Handle() {                                      \
+    return HandleImpl(Thread::Current()->zone(), object::null());              \
   }                                                                            \
-  static object& Handle() {                                                    \
-    return Handle(Thread::Current()->zone(), object::null());                  \
+  DART_NOINLINE static object& Handle(Zone* zone) {                            \
+    return HandleImpl(zone, object::null());                                   \
   }                                                                            \
-  static object& Handle(Zone* zone) { return Handle(zone, object::null()); }   \
-  static object& Handle(Raw##object* raw_ptr) {                                \
-    return Handle(Thread::Current()->zone(), raw_ptr);                         \
+  DART_NOINLINE static object& Handle(Raw##object* raw_ptr) {                  \
+    return HandleImpl(Thread::Current()->zone(), raw_ptr);                     \
   }                                                                            \
-  static object& CheckedHandle(Zone* zone, RawObject* raw_ptr) {               \
-    object* obj = reinterpret_cast<object*>(VMHandles::AllocateHandle(zone));  \
-    initializeHandle(obj, raw_ptr);                                            \
-    if (!obj->Is##object()) {                                                  \
-      FATAL2("Handle check failed: saw %s expected %s", obj->ToCString(),      \
-             #object);                                                         \
-    }                                                                          \
-    return *obj;                                                               \
+  DART_NOINLINE static object& Handle(Zone* zone, Raw##object* raw_ptr) {      \
+    return HandleImpl(zone, raw_ptr);                                          \
   }                                                                            \
-  static object& ZoneHandle(Zone* zone, Raw##object* raw_ptr) {                \
-    object* obj =                                                              \
-        reinterpret_cast<object*>(VMHandles::AllocateZoneHandle(zone));        \
-    initializeHandle(obj, raw_ptr);                                            \
-    return *obj;                                                               \
+  DART_NOINLINE static object& ZoneHandle() {                                  \
+    return ZoneHandleImpl(Thread::Current()->zone(), object::null());          \
   }                                                                            \
-  static object* ReadOnlyHandle() {                                            \
+  DART_NOINLINE static object& ZoneHandle(Zone* zone) {                        \
+    return ZoneHandleImpl(zone, object::null());                               \
+  }                                                                            \
+  DART_NOINLINE static object& ZoneHandle(Raw##object* raw_ptr) {              \
+    return ZoneHandleImpl(Thread::Current()->zone(), raw_ptr);                 \
+  }                                                                            \
+  DART_NOINLINE static object& ZoneHandle(Zone* zone, Raw##object* raw_ptr) {  \
+    return ZoneHandleImpl(zone, raw_ptr);                                      \
+  }                                                                            \
+  DART_NOINLINE static object* ReadOnlyHandle() {                              \
     object* obj = reinterpret_cast<object*>(Dart::AllocateReadOnlyHandle());   \
     initializeHandle(obj, object::null());                                     \
     return obj;                                                                \
   }                                                                            \
-  static object& ZoneHandle(Zone* zone) {                                      \
-    return ZoneHandle(zone, object::null());                                   \
+  DART_NOINLINE static object& CheckedHandle(Zone* zone, RawObject* raw_ptr) { \
+    object* obj = reinterpret_cast<object*>(VMHandles::AllocateHandle(zone));  \
+    initializeHandle(obj, raw_ptr);                                            \
+    if (!obj->Is##object()) {                                                  \
+      FATAL2("Handle check failed: saw %s expected %s", obj->ToCString(),      \
+             #object);                                                         \
+    }                                                                          \
+    return *obj;                                                               \
   }                                                                            \
-  static object& ZoneHandle() {                                                \
-    return ZoneHandle(Thread::Current()->zone(), object::null());              \
-  }                                                                            \
-  static object& ZoneHandle(Raw##object* raw_ptr) {                            \
-    return ZoneHandle(Thread::Current()->zone(), raw_ptr);                     \
-  }                                                                            \
-  static object& CheckedZoneHandle(Zone* zone, RawObject* raw_ptr) {           \
+  DART_NOINLINE static object& CheckedZoneHandle(Zone* zone,                   \
+                                                 RawObject* raw_ptr) {         \
     object* obj =                                                              \
         reinterpret_cast<object*>(VMHandles::AllocateZoneHandle(zone));        \
     initializeHandle(obj, raw_ptr);                                            \
@@ -129,7 +127,7 @@ class Symbols;
     }                                                                          \
     return *obj;                                                               \
   }                                                                            \
-  static object& CheckedZoneHandle(RawObject* raw_ptr) {                       \
+  DART_NOINLINE static object& CheckedZoneHandle(RawObject* raw_ptr) {         \
     return CheckedZoneHandle(Thread::Current()->zone(), raw_ptr);              \
   }                                                                            \
   /* T::Cast cannot be applied to a null Object, because the object vtable */  \
@@ -150,6 +148,17 @@ class Symbols;
   static const ClassId kClassId = k##object##Cid;                              \
                                                                                \
  private: /* NOLINT */                                                         \
+  static object& HandleImpl(Zone* zone, Raw##object* raw_ptr) {                \
+    object* obj = reinterpret_cast<object*>(VMHandles::AllocateHandle(zone));  \
+    initializeHandle(obj, raw_ptr);                                            \
+    return *obj;                                                               \
+  }                                                                            \
+  static object& ZoneHandleImpl(Zone* zone, Raw##object* raw_ptr) {            \
+    object* obj =                                                              \
+        reinterpret_cast<object*>(VMHandles::AllocateZoneHandle(zone));        \
+    initializeHandle(obj, raw_ptr);                                            \
+    return *obj;                                                               \
+  }                                                                            \
   /* Initialize the handle based on the raw_ptr in the presence of null. */    \
   static void initializeHandle(object* obj, RawObject* raw_ptr) {              \
     if (raw_ptr != Object::null()) {                                           \
