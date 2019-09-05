@@ -93,6 +93,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// The [LinterContext] used for possible const calculations.
   LinterContext _linterContext;
 
+  /// Is `true` if NNBD is enabled for the library being analyzed.
+  final bool _isNonNullable;
+
   /// Create a new instance of the [BestPracticesVerifier].
   ///
   /// @param errorReporter the error reporter
@@ -110,6 +113,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   })  : _nullType = typeProvider.nullType,
         _futureNullType = typeProvider.futureNullType,
         _typeSystem = typeSystem ?? new Dart2TypeSystem(typeProvider),
+        _isNonNullable = unit.featureSet.isEnabled(Feature.non_nullable),
         _inheritanceManager = inheritanceManager,
         _invalidAccessVerifier =
             new _InvalidAccessVerifier(_errorReporter, _currentLibrary) {
@@ -918,6 +922,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   /// Produce several null-aware related hints.
   void _checkForNullAwareHints(Expression node, Token operator) {
+    if (_isNonNullable) {
+      return;
+    }
+
     if (operator == null || operator.type != TokenType.QUESTION_PERIOD) {
       return;
     }

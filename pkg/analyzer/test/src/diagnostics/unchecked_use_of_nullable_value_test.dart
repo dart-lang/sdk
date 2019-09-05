@@ -805,8 +805,6 @@ m(B? b) {
   b.a.x; // 2
 }
 ''', [
-      // TODO(scheglov) Remove HintCode.CAN_BE_NULL_AFTER_NULL_AWARE
-      error(HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, 86, 4),
       error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 101, 1),
     ]);
     var propertyAccess1 = findNode.propertyAccess('x; // 1');
@@ -879,8 +877,6 @@ m(C c) {
   c.b.a.x; // 2
 }
 ''', [
-      // TODO(scheglov) Remove HintCode.CAN_BE_NULL_AFTER_NULL_AWARE
-      error(HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, 131, 6),
       error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 148, 3),
     ]);
     var propertyAccess1 = findNode.propertyAccess('x; // 1');
