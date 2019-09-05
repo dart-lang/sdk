@@ -472,6 +472,7 @@ class FixProcessor extends BaseProcessor {
       await _addFix_createFunction_forFunctionType();
       await _addFix_createMixin();
       await _addFix_importLibrary_withType();
+      await _addFix_importLibrary_withExtension();
       await _addFix_importLibrary_withFunction();
       await _addFix_importLibrary_withTopLevelVariable();
       await _addFix_createLocalVariable();
@@ -2469,6 +2470,14 @@ class FixProcessor extends BaseProcessor {
         await _addFix_importLibrary(fixKind, declaration.uri, relativeURI);
       }
     }
+  }
+
+  Future<void> _addFix_importLibrary_withExtension() async {
+    String extensionName = (node as SimpleIdentifier).name;
+    await _addFix_importLibrary_withElement(
+        extensionName,
+        const [ElementKind.EXTENSION],
+        const [TopLevelDeclarationKind.extension]);
   }
 
   Future<void> _addFix_importLibrary_withFunction() async {
