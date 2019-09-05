@@ -797,33 +797,42 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           ProcedureBuilder procedureBuilder = memberBuilder;
           if (procedureBuilder != null) {
             Extension extension = extensionBuilder.extension;
-            List<TypeParameter> typeParameters =
-                extensionBuilder.extension.typeParameters;
-            List<DartType> inferredTypeArguments = _inferExtensionTypeArguments(
-                extensionBuilder.extension.typeParameters,
-                extensionBuilder.extension.onType,
-                receiverType);
-            Substitution inferredSubstitution =
-                Substitution.fromPairs(typeParameters, inferredTypeArguments);
+            DartType onType;
+            DartType onTypeInstantiateToBounds;
+            List<DartType> inferredTypeArguments;
+            if (extensionBuilder.extension.typeParameters.isEmpty) {
+              onTypeInstantiateToBounds =
+                  onType = extensionBuilder.extension.onType;
+              inferredTypeArguments = const <DartType>[];
+            } else {
+              List<TypeParameter> typeParameters =
+                  extensionBuilder.extension.typeParameters;
+              inferredTypeArguments = _inferExtensionTypeArguments(
+                  extensionBuilder.extension.typeParameters,
+                  extensionBuilder.extension.onType,
+                  receiverType);
+              Substitution inferredSubstitution =
+                  Substitution.fromPairs(typeParameters, inferredTypeArguments);
 
-            for (int index = 0; index < typeParameters.length; index++) {
-              TypeParameter typeParameter = typeParameters[index];
-              DartType typeArgument = inferredTypeArguments[index];
-              DartType bound =
-                  inferredSubstitution.substituteType(typeParameter.bound);
-              if (!typeSchemaEnvironment.isSubtypeOf(typeArgument, bound)) {
-                return;
+              for (int index = 0; index < typeParameters.length; index++) {
+                TypeParameter typeParameter = typeParameters[index];
+                DartType typeArgument = inferredTypeArguments[index];
+                DartType bound =
+                    inferredSubstitution.substituteType(typeParameter.bound);
+                if (!typeSchemaEnvironment.isSubtypeOf(typeArgument, bound)) {
+                  return;
+                }
               }
+              onType = inferredSubstitution
+                  .substituteType(extensionBuilder.extension.onType);
+              List<DartType> instantiateToBoundTypeArguments =
+                  calculateBounds(typeParameters, coreTypes.objectClass);
+              Substitution instantiateToBoundsSubstitution =
+                  Substitution.fromPairs(
+                      typeParameters, instantiateToBoundTypeArguments);
+              onTypeInstantiateToBounds = instantiateToBoundsSubstitution
+                  .substituteType(extensionBuilder.extension.onType);
             }
-            DartType onType = inferredSubstitution
-                .substituteType(extensionBuilder.extension.onType);
-            List<DartType> instantiateToBoundTypeArguments =
-                calculateBounds(typeParameters, coreTypes.objectClass);
-            Substitution instantiateToBoundsSubstitution =
-                Substitution.fromPairs(
-                    typeParameters, instantiateToBoundTypeArguments);
-            DartType onTypeInstantiateToBounds = instantiateToBoundsSubstitution
-                .substituteType(extensionBuilder.extension.onType);
 
             if (typeSchemaEnvironment.isSubtypeOf(receiverType, onType)) {
               ExtensionAccessCandidate candidate = new ExtensionAccessCandidate(
@@ -870,6 +879,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       });
       if (bestSoFar != null) {
         target = bestSoFar.target;
+      } else {
+        // TODO(johnniwinther): Report a better error message when more than
+        // one potential targets were found.
       }
     }
 

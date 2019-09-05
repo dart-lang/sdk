@@ -1608,7 +1608,8 @@ class InferenceVisitor
         node, node.receiver, node.fileOffset, node._isImplicitCall, typeContext,
         desugaredInvocation: node);
     node.inferredType = result.inferredType;
-    return new ExpressionInferenceResult(result.inferredType);
+    return new ExpressionInferenceResult(
+        result.inferredType, result.replacement);
   }
 
   ExpressionInferenceResult visitNamedFunctionExpressionJudgment(
