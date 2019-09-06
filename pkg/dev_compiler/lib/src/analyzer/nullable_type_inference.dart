@@ -3,12 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
+
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart' show TokenType;
 import 'package:analyzer/dart/ast/visitor.dart' show RecursiveAstVisitor;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+
 import 'element_helpers.dart' show getStaticType, isInlineJS, findAnnotation;
 import 'js_interop.dart' show isNotNullAnnotation, isNullCheckAnnotation;
 import 'js_typerep.dart';
@@ -53,7 +54,7 @@ abstract class NullableTypeInference {
   bool _isNonNullMethodInvocation(MethodInvocation expr) {
     // TODO(vsm): This logic overlaps with the resolver.
     // Where is the best place to put this?
-    var e = resolutionMap.staticElementForIdentifier(expr.methodName);
+    var e = expr.methodName.staticElement;
     if (e == null) return false;
     if (isInlineJS(e)) {
       // Fix types for JS builtin calls.
@@ -220,7 +221,7 @@ abstract class NullableTypeInference {
       return _isNullable(expr.expression, localIsNullable);
     }
     if (expr is InstanceCreationExpression) {
-      var e = resolutionMap.staticElementForConstructorReference(expr);
+      var e = expr.staticElement;
       if (e == null) return true;
 
       // Follow redirects.

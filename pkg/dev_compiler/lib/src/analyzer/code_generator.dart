@@ -8,7 +8,6 @@ import 'dart:math' show min, max;
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -300,9 +299,7 @@ class CodeGenerator extends Object
     }
     if (compilationUnits.isNotEmpty) {
       _constants = ConstFieldVisitor(types, declaredVariables,
-          dummySource: resolutionMap
-              .elementDeclaredByCompilationUnit(compilationUnits.first)
-              .source);
+          dummySource: compilationUnits.first.declaredElement.source);
     }
 
     // Add implicit dart:core dependency so it is first.
@@ -2618,7 +2615,7 @@ class CodeGenerator extends Object
     }
     fn.sourceInformation = _functionEnd(node);
 
-    var element = resolutionMap.elementDeclaredByFunctionDeclaration(node);
+    var element = node.declaredElement;
     var nameExpr = _emitTopLevelName(element);
     body.add(js.statement('# = #', [
       nameExpr,
@@ -3018,7 +3015,7 @@ class CodeGenerator extends Object
   /// inferred generic function instantiation.
   js_ast.Expression _emitSimpleIdentifier(SimpleIdentifier node,
       [PrefixedIdentifier prefix]) {
-    var accessor = resolutionMap.staticElementForIdentifier(node);
+    var accessor = node.staticElement;
     if (accessor == null) {
       return _throwUnsafe('unresolved identifier: ' + (node.name ?? '<null>'));
     }
@@ -3529,7 +3526,7 @@ class CodeGenerator extends Object
       return _badAssignment("Unimplemented: unknown name '$node'", node, right);
     }
 
-    var accessor = resolutionMap.staticElementForIdentifier(node);
+    var accessor = node.staticElement;
     if (accessor == null) return unimplemented();
 
     // Get the original declaring element. If we had a property accessor, this
@@ -4516,7 +4513,7 @@ class CodeGenerator extends Object
 
   @override
   visitInstanceCreationExpression(InstanceCreationExpression node) {
-    var element = resolutionMap.staticElementForConstructorReference(node);
+    var element = node.staticElement;
     var constructor = node.constructorName;
     if (node.isConst &&
         element?.name == 'fromEnvironment' &&
@@ -6747,9 +6744,8 @@ bool _isDeferredLoadLibrary(Expression target, SimpleIdentifier name) {
   var prefix = targetIdentifier.staticElement as PrefixElement;
 
   // The library the prefix is referring to must come from a deferred import.
-  var containingLibrary = resolutionMap
-      .elementDeclaredByCompilationUnit(target.root as CompilationUnit)
-      .library;
+  var containingLibrary =
+      (target.root as CompilationUnit).declaredElement.library;
   var imports = containingLibrary.getImportsWithPrefix(prefix);
   return imports.length == 1 && imports[0].isDeferred;
 }
