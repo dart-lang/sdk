@@ -85,6 +85,12 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       : super(index, coreTypes, hierarchy, diagnosticReporter) {}
 
   @override
+  visitExtension(Extension node) {
+    // The extension and it's members are only metadata.
+    return node;
+  }
+
+  @override
   visitClass(Class node) {
     if (!hierarchy.isSubclassOf(node, structClass) || node == structClass) {
       return node;

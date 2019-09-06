@@ -469,6 +469,7 @@ class Library extends NamedNode
     visitList(parts, v);
     visitList(typedefs, v);
     visitList(classes, v);
+    visitList(extensions, v);
     visitList(procedures, v);
     visitList(fields, v);
   }
@@ -479,6 +480,7 @@ class Library extends NamedNode
     transformList(parts, v, this);
     transformList(typedefs, v, this);
     transformList(classes, v, this);
+    transformList(extensions, v, this);
     transformList(procedures, v, this);
     transformList(fields, v, this);
   }
@@ -1145,7 +1147,9 @@ class Extension extends NamedNode implements FileUriNode {
       Reference reference})
       : this.typeParameters = typeParameters ?? <TypeParameter>[],
         this.members = members ?? <ExtensionMemberDescriptor>[],
-        super(reference);
+        super(reference) {
+    setParents(this.typeParameters, this);
+  }
 
   Library get enclosingLibrary => parent;
 
@@ -1153,10 +1157,18 @@ class Extension extends NamedNode implements FileUriNode {
   R accept<R>(TreeVisitor<R> v) => v.visitExtension(this);
 
   @override
-  visitChildren(Visitor v) {}
+  visitChildren(Visitor v) {
+    visitList(typeParameters, v);
+    onType?.accept(v);
+  }
 
   @override
-  transformChildren(Transformer v) => v.visitExtension(this);
+  transformChildren(Transformer v) {
+    transformList(typeParameters, v, this);
+    if (onType != null) {
+      onType = v.visitDartType(onType);
+    }
+  }
 }
 
 enum ExtensionMemberKind {
