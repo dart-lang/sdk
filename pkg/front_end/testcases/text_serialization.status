@@ -23,6 +23,7 @@ extensions/instance_access_of_static: TextSerializationFailure
 extensions/instance_members: TextSerializationFailure
 extensions/instance_tearoff: TextSerializationFailure
 extensions/invalid_explicit_access: TextSerializationFailure
+extensions/nested_on_types: TextSerializationFailure
 extensions/on_type_inference: TextSerializationFailure
 extensions/on_type_variable_inference: TextSerializationFailure
 extensions/operators: TextSerializationFailure

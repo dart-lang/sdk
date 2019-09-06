@@ -8,8 +8,11 @@ import 'package:kernel/ast.dart' show DartType, Supertype;
 
 import '../fasta_codes.dart' show LocatedMessage;
 
-import 'builder.dart'
-    show LibraryBuilder, Scope, TypeDeclarationBuilder, TypeVariableBuilder;
+import '../scope.dart';
+import 'library_builder.dart';
+import 'named_type_builder.dart';
+import 'type_declaration_builder.dart';
+import 'type_variable_builder.dart';
 
 abstract class TypeBuilder {
   const TypeBuilder();
@@ -36,7 +39,18 @@ abstract class TypeBuilder {
 
   String toString() => "$debugName(${printOn(new StringBuffer())})";
 
-  TypeBuilder subst(Map<TypeVariableBuilder, TypeBuilder> substitution) => this;
+  /// Returns the [TypeBuilder] for this type in which [TypeVariableBuilder]s
+  /// in [substitution] have been replaced by the corresponding [TypeBuilder]s.
+  ///
+  /// If [unboundTypes] is provided, created type builders that are not bound
+  /// are added to [unboundTypes]. Otherwise, creating an unbound type builder
+  /// throws an error.
+  // TODO(johnniwinther): Change [NamedTypeBuilder] to hold the
+  // [TypeParameterScopeBuilder] should resolve it, so that we cannot create
+  // [NamedTypeBuilder]s that are orphaned.
+  TypeBuilder subst(Map<TypeVariableBuilder, TypeBuilder> substitution,
+          [List<NamedTypeBuilder> unboundTypes]) =>
+      this;
 
   /// Clones the type builder recursively without binding the subterms to
   /// existing declaration or type variable builders.  All newly built types

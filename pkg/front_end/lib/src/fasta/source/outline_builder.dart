@@ -990,8 +990,11 @@ class OutlineBuilder extends StackListener {
       List<FormalParameterBuilder> synthesizedFormals = [];
       TypeBuilder thisType = extension.extensionThisType;
       if (substitution != null) {
-        thisType = thisType.subst(substitution);
-        declarationBuilder.addType(new UnresolvedType(thisType, -1, null));
+        List<NamedTypeBuilder> unboundTypes = [];
+        thisType = thisType.subst(substitution, unboundTypes);
+        for (NamedTypeBuilder unboundType in unboundTypes) {
+          extension.addType(new UnresolvedType(unboundType, -1, null));
+        }
       }
       synthesizedFormals.add(new FormalParameterBuilder(
           null, finalMask, thisType, "#this", null, charOffset));
