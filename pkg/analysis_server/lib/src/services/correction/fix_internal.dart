@@ -633,6 +633,10 @@ class FixProcessor extends BaseProcessor {
       if (name == LintNames.prefer_final_locals) {
         await _addFix_makeVariableFinal();
       }
+      if (errorCode.name ==
+          LintNames.prefer_if_elements_to_conditional_expressions) {
+        await _addFix_convertConditionalToIfElement();
+      }
       if (name == LintNames.prefer_is_empty) {
         await _addFix_replaceWithIsEmpty();
       }
@@ -1263,6 +1267,12 @@ class FixProcessor extends BaseProcessor {
         }
       }
     }
+  }
+
+  Future<void> _addFix_convertConditionalToIfElement() async {
+    final changeBuilder =
+        await createBuilder_convertConditionalExpressionToIfElement();
+    _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_TO_IF_ELEMENT);
   }
 
   Future<void> _addFix_convertDocumentationIntoLine() async {

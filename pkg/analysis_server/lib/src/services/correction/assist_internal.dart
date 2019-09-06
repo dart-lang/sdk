@@ -127,7 +127,11 @@ class AssistProcessor extends BaseProcessor {
     }
 
     if (experimentStatus.control_flow_collections) {
-      await _addProposal_convertConditionalExpressionToIfElement();
+      if (!_containsErrorCode(
+        {LintNames.prefer_if_elements_to_conditional_expressions},
+      )) {
+        await _addProposal_convertConditionalExpressionToIfElement();
+      }
       if (!_containsErrorCode(
         {LintNames.prefer_for_elements_to_map_fromIterable},
       )) {
@@ -405,38 +409,9 @@ class AssistProcessor extends BaseProcessor {
   }
 
   Future<void> _addProposal_convertConditionalExpressionToIfElement() async {
-    AstNode node = this.node.thisOrAncestorOfType<ConditionalExpression>();
-    if (node == null) {
-      _coverageMarker();
-      return;
-    }
-    AstNode nodeToReplace = node;
-    AstNode parent = node.parent;
-    while (parent is ParenthesizedExpression) {
-      nodeToReplace = parent;
-      parent = parent.parent;
-    }
-    if (parent is ListLiteral || (parent is SetOrMapLiteral && parent.isSet)) {
-      ConditionalExpression conditional = node;
-      Expression condition = conditional.condition.unParenthesized;
-      Expression thenExpression = conditional.thenExpression.unParenthesized;
-      Expression elseExpression = conditional.elseExpression.unParenthesized;
-
-      DartChangeBuilder changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addReplacement(range.node(nodeToReplace),
-            (DartEditBuilder builder) {
-          builder.write('if (');
-          builder.write(utils.getNodeText(condition));
-          builder.write(') ');
-          builder.write(utils.getNodeText(thenExpression));
-          builder.write(' else ');
-          builder.write(utils.getNodeText(elseExpression));
-        });
-      });
-      _addAssistFromBuilder(
-          changeBuilder, DartAssistKind.CONVERT_TO_IF_ELEMENT);
-    }
+    final changeBuilder =
+        await createBuilder_convertConditionalExpressionToIfElement();
+    _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_TO_IF_ELEMENT);
   }
 
   Future<void> _addProposal_convertDocumentationIntoBlock() async {

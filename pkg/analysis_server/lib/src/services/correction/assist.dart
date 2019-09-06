@@ -91,7 +91,6 @@ class DartAssistKind {
       ]);
   static const CONVERT_TO_IF_ELEMENT = const AssistKind(
       'dart.assist.convertToIfElement', 30, "Convert to an 'if' element",
-      // todo (pq): migrate to (conditional) fix
       associatedErrorCodes: <String>[
         'prefer_if_elements_to_conditional_expressions'
       ]);

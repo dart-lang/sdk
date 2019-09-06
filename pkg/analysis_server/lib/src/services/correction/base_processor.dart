@@ -214,6 +214,43 @@ abstract class BaseProcessor {
     return validChange ? changeBuilder : null;
   }
 
+  Future<ChangeBuilder>
+      createBuilder_convertConditionalExpressionToIfElement() async {
+    AstNode node = this.node.thisOrAncestorOfType<ConditionalExpression>();
+    if (node == null) {
+      _coverageMarker();
+      return null;
+    }
+    AstNode nodeToReplace = node;
+    AstNode parent = node.parent;
+    while (parent is ParenthesizedExpression) {
+      nodeToReplace = parent;
+      parent = parent.parent;
+    }
+    if (parent is ListLiteral || (parent is SetOrMapLiteral && parent.isSet)) {
+      ConditionalExpression conditional = node;
+      Expression condition = conditional.condition.unParenthesized;
+      Expression thenExpression = conditional.thenExpression.unParenthesized;
+      Expression elseExpression = conditional.elseExpression.unParenthesized;
+
+      DartChangeBuilder changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addReplacement(range.node(nodeToReplace),
+            (DartEditBuilder builder) {
+          builder.write('if (');
+          builder.write(utils.getNodeText(condition));
+          builder.write(') ');
+          builder.write(utils.getNodeText(thenExpression));
+          builder.write(' else ');
+          builder.write(utils.getNodeText(elseExpression));
+        });
+      });
+      return changeBuilder;
+    }
+
+    return null;
+  }
+
   Future<ChangeBuilder> createBuilder_convertDocumentationIntoLine() async {
     Comment comment = node.thisOrAncestorOfType<Comment>();
     if (comment == null ||
