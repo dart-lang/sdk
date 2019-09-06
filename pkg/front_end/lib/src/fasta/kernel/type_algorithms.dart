@@ -145,7 +145,8 @@ TypeBuilder substituteRange(
       }
     }
     if (arguments != null) {
-      return new NamedTypeBuilder(type.name, arguments)..bind(type.declaration);
+      return new NamedTypeBuilder(type.name, type.nullabilityBuilder, arguments)
+        ..bind(type.declaration);
     }
     return type;
   }

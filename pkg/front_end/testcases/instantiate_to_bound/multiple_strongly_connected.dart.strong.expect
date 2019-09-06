@@ -50,12 +50,12 @@ class H<S extends self::A<self::H::S*>* = self::A<dynamic>*, T extends self::B<s
     : super core::Object::•()
     ;
 }
-class I<T extends invalid-type = invalid-type, U extends self::I::Y* = invalid-type, V extends (self::I::W*) →* dynamic = (core::Null*) →* dynamic, W extends (self::I::X*) →* dynamic = (core::Null*) →* dynamic, X extends (self::I::V*) →* dynamic = (core::Null*) →* dynamic, Y extends self::I::Z* = invalid-type, Z extends self::I::T* = invalid-type> extends core::Object {
+class I<T extends invalid-type = invalid-type, U extends self::I::Y* = invalid-type, V extends (self::I::W*) →* dynamic = (core::Null?) →* dynamic, W extends (self::I::X*) →* dynamic = (core::Null?) →* dynamic, X extends (self::I::V*) →* dynamic = (core::Null?) →* dynamic, Y extends self::I::Z* = invalid-type, Z extends self::I::T* = invalid-type> extends core::Object {
   synthetic constructor •() → self::I<self::I::T*, self::I::U*, self::I::V*, self::I::W*, self::I::X*, self::I::Y*, self::I::Z*>*
     : super core::Object::•()
     ;
 }
-class J<S extends (self::J::U*) →* self::J::T* = (core::Null*) →* dynamic, T extends (self::J::S*) →* self::J::U* = (core::Null*) →* dynamic, U extends (self::J::T*) →* self::J::S* = (core::Null*) →* dynamic, V extends self::J::W* = dynamic, W extends self::J::X* = dynamic, X extends (self::J::V*) →* self::J::Y* = (core::Null*) →* dynamic, Y extends self::J::Z* = dynamic, Z extends self::J::X* = dynamic> extends core::Object {
+class J<S extends (self::J::U*) →* self::J::T* = (core::Null?) →* dynamic, T extends (self::J::S*) →* self::J::U* = (core::Null?) →* dynamic, U extends (self::J::T*) →* self::J::S* = (core::Null?) →* dynamic, V extends self::J::W* = dynamic, W extends self::J::X* = dynamic, X extends (self::J::V*) →* self::J::Y* = (core::Null?) →* dynamic, Y extends self::J::Z* = dynamic, Z extends self::J::X* = dynamic> extends core::Object {
   synthetic constructor •() → self::J<self::J::S*, self::J::T*, self::J::U*, self::J::V*, self::J::W*, self::J::X*, self::J::Y*, self::J::Z*>*
     : super core::Object::•()
     ;
@@ -65,6 +65,6 @@ static field self::E<self::B<dynamic, dynamic>*, self::C<dynamic, dynamic>*, sel
 static field self::F<core::num*, self::B<dynamic, dynamic>*, self::C<dynamic, dynamic>*, self::B<self::B<dynamic, dynamic>*, self::C<dynamic, dynamic>*>*, self::C<self::B<self::B<dynamic, dynamic>*, self::C<dynamic, dynamic>*>*, dynamic>*>* f;
 static field self::G<core::num*, self::B<core::num*, dynamic>*, self::C<dynamic, core::num*>*, self::B<self::B<core::num*, dynamic>*, self::C<dynamic, core::num*>*>*, self::C<self::B<self::B<core::num*, dynamic>*, self::C<dynamic, core::num*>*>*, dynamic>*>* g;
 static field self::H<self::A<dynamic>*, self::B<dynamic, dynamic>*, self::C<dynamic, dynamic>*, self::A<dynamic>*, self::A<dynamic>*, self::B<dynamic, dynamic>*, self::C<dynamic, dynamic>*, self::A<dynamic>*>* h;
-static field self::I<invalid-type, invalid-type, (core::Null*) →* dynamic, (core::Null*) →* dynamic, (core::Null*) →* dynamic, invalid-type, invalid-type>* i;
-static field self::J<(core::Null*) →* dynamic, (core::Null*) →* dynamic, (core::Null*) →* dynamic, dynamic, dynamic, (core::Null*) →* dynamic, dynamic, dynamic>* j;
+static field self::I<invalid-type, invalid-type, (core::Null?) →* dynamic, (core::Null?) →* dynamic, (core::Null?) →* dynamic, invalid-type, invalid-type>* i;
+static field self::J<(core::Null?) →* dynamic, (core::Null?) →* dynamic, (core::Null?) →* dynamic, dynamic, dynamic, (core::Null?) →* dynamic, dynamic, dynamic>* j;
 static method main() → dynamic {}

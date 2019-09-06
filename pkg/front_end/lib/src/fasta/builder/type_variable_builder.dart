@@ -4,10 +4,15 @@
 
 library fasta.type_variable_builder;
 
-import 'builder.dart' show LibraryBuilder, TypeBuilder, TypeDeclarationBuilder;
+import 'builder.dart'
+    show
+        LibraryBuilder,
+        NullabilityBuilder,
+        TypeBuilder,
+        TypeDeclarationBuilder;
 
 import 'package:kernel/ast.dart'
-    show DartType, TypeParameter, TypeParameterType;
+    show DartType, Nullability, TypeParameter, TypeParameterType;
 
 import '../fasta_codes.dart' show templateTypeArgumentsOnTypeVariable;
 
@@ -75,7 +80,9 @@ class TypeVariableBuilder extends TypeDeclarationBuilder {
       charOffset,
       fileUri);
 
-  DartType buildType(LibraryBuilder library, List<TypeBuilder> arguments) {
+  DartType buildType(LibraryBuilder library, Nullability nullability,
+      List<TypeBuilder> arguments) {
+    // TODO(dmitryas): Use [nullability].
     if (arguments != null) {
       int charOffset = -1; // TODO(ahe): Provide these.
       Uri fileUri = null; // TODO(ahe): Provide these.
@@ -88,8 +95,8 @@ class TypeVariableBuilder extends TypeDeclarationBuilder {
     return new TypeParameterType(parameter);
   }
 
-  DartType buildTypesWithBuiltArguments(
-      LibraryBuilder library, List<DartType> arguments) {
+  DartType buildTypesWithBuiltArguments(LibraryBuilder library,
+      Nullability nullability, List<DartType> arguments) {
     if (arguments != null) {
       int charOffset = -1; // TODO(ahe): Provide these.
       Uri fileUri = null; // TODO(ahe): Provide these.
@@ -99,17 +106,20 @@ class TypeVariableBuilder extends TypeDeclarationBuilder {
           name.length,
           fileUri);
     }
-    return buildType(library, null);
+    return buildType(library, nullability, null);
   }
 
   TypeBuilder asTypeBuilder() {
-    return new NamedTypeBuilder(name, null)..bind(this);
+    return new NamedTypeBuilder(
+        name, const NullabilityBuilder.pendingImplementation(), null)
+      ..bind(this);
   }
 
   void finish(
       LibraryBuilder library, ClassBuilder object, TypeBuilder dynamicType) {
     if (isPatch) return;
-    DartType objectType = object.buildType(library, null);
+    // TODO(dmitryas): Set the nullability of objectType correctly.
+    DartType objectType = object.buildType(library, Nullability.legacy, null);
     parameter.bound ??= bound?.build(library) ?? objectType;
     // If defaultType is not set, initialize it to dynamic, unless the bound is
     // explicitly specified as Object, in which case defaultType should also be

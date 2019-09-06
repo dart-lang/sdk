@@ -10,6 +10,7 @@ import 'package:kernel/ast.dart'
         DynamicType,
         FunctionType,
         InvalidType,
+        Nullability,
         TypeParameter,
         Typedef,
         VariableDeclaration;
@@ -146,8 +147,9 @@ class TypeAliasBuilder extends TypeDeclarationBuilder {
   }
 
   /// [arguments] have already been built.
-  DartType buildTypesWithBuiltArguments(
-      LibraryBuilder library, List<DartType> arguments) {
+  DartType buildTypesWithBuiltArguments(LibraryBuilder library,
+      Nullability nullability, List<DartType> arguments) {
+    // TODO(dmitryas): Use [nullability].
     DartType thisType = buildThisType(library);
     if (const DynamicType() == thisType) return thisType;
     FunctionType result = thisType;
@@ -202,14 +204,15 @@ class TypeAliasBuilder extends TypeDeclarationBuilder {
   int get typeVariablesCount => typeVariables?.length ?? 0;
 
   @override
-  DartType buildType(LibraryBuilder library, List<TypeBuilder> arguments) {
+  DartType buildType(LibraryBuilder library, Nullability nullability,
+      List<TypeBuilder> arguments) {
     DartType thisType = buildThisType(library);
     if (thisType is InvalidType) return thisType;
     FunctionType result = thisType;
     if (typedef.typeParameters.isEmpty && arguments == null) return result;
     // Otherwise, substitute.
     return buildTypesWithBuiltArguments(
-        library, buildTypeArguments(library, arguments));
+        library, nullability, buildTypeArguments(library, arguments));
   }
 }
 

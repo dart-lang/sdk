@@ -32,6 +32,7 @@ import 'builder.dart'
         FieldBuilder,
         ModifierBuilder,
         NameIterator,
+        NullabilityBuilder,
         PrefixBuilder,
         Scope,
         ScopeBuilder,
@@ -272,6 +273,19 @@ abstract class LibraryBuilder extends ModifierBuilder {
   void buildOutlineExpressions() {}
 
   List<FieldBuilder> takeImplicitlyTypedFields() => null;
+
+  // TODO(dmitryas): Compute the predicate using the library version instead.
+  bool get isNonNullableByDefault => loader.target.enableNonNullable;
+
+  NullabilityBuilder computeNullabilityFromToken(bool markedAsNullable) {
+    if (!isNonNullableByDefault) {
+      return const NullabilityBuilder.legacy();
+    }
+    if (markedAsNullable) {
+      return const NullabilityBuilder.nullable();
+    }
+    return const NullabilityBuilder.omitted();
+  }
 }
 
 class LibraryLocalDeclarationIterator implements Iterator<Builder> {

@@ -21,6 +21,7 @@ import 'package:kernel/ast.dart'
         Member,
         MethodInvocation,
         Name,
+        Nullability,
         Procedure,
         ProcedureKind,
         RedirectingFactoryConstructor,
@@ -407,10 +408,12 @@ abstract class ClassBuilder extends DeclarationBuilder {
   InterfaceType get thisType => cls.thisType;
 
   /// [arguments] have already been built.
-  InterfaceType buildTypesWithBuiltArguments(
-      LibraryBuilder library, List<DartType> arguments) {
+  InterfaceType buildTypesWithBuiltArguments(LibraryBuilder library,
+      Nullability nullability, List<DartType> arguments) {
     assert(arguments == null || cls.typeParameters.length == arguments.length);
-    return arguments == null ? cls.rawType : new InterfaceType(cls, arguments);
+    return arguments == null
+        ? cls.rawType
+        : new InterfaceType(cls, arguments, nullability);
   }
 
   @override
@@ -455,9 +458,10 @@ abstract class ClassBuilder extends DeclarationBuilder {
   }
 
   /// If [arguments] are null, the default types for the variables are used.
-  InterfaceType buildType(LibraryBuilder library, List<TypeBuilder> arguments) {
+  InterfaceType buildType(LibraryBuilder library, Nullability nullability,
+      List<TypeBuilder> arguments) {
     return buildTypesWithBuiltArguments(
-        library, buildTypeArguments(library, arguments));
+        library, nullability, buildTypeArguments(library, arguments));
   }
 
   Supertype buildSupertype(

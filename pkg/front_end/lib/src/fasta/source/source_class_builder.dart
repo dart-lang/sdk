@@ -33,6 +33,7 @@ import '../kernel/kernel_builder.dart'
         NamedTypeBuilder,
         LibraryBuilder,
         MetadataBuilder,
+        NullabilityBuilder,
         Scope,
         TypeBuilder,
         TypeVariableBuilder,
@@ -257,7 +258,8 @@ class SourceClassBuilder extends ClassBuilder
       }
     }
     if (message != null) {
-      return new NamedTypeBuilder(supertype.name, null)
+      return new NamedTypeBuilder(supertype.name,
+          const NullabilityBuilder.pendingImplementation(), null)
         ..bind(new InvalidTypeBuilder(supertype.name,
             message.withLocation(fileUri, charOffset, noLength)));
     }

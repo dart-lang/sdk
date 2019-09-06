@@ -72,6 +72,7 @@ import '../builder/builder.dart'
         NameIterator,
         PrefixBuilder,
         FunctionBuilder,
+        NullabilityBuilder,
         QualifiedName,
         Scope,
         TypeBuilder,
@@ -1162,9 +1163,10 @@ class SourceLibraryBuilder extends LibraryBuilder {
         "dynamic", new DynamicTypeBuilder(const DynamicType(), this, -1), -1);
   }
 
-  TypeBuilder addNamedType(
-      Object name, List<TypeBuilder> arguments, int charOffset) {
-    return addType(new NamedTypeBuilder(name, arguments), charOffset);
+  TypeBuilder addNamedType(Object name, NullabilityBuilder nullabilityBuilder,
+      List<TypeBuilder> arguments, int charOffset) {
+    return addType(
+        new NamedTypeBuilder(name, nullabilityBuilder, arguments), charOffset);
   }
 
   TypeBuilder addMixinApplication(
@@ -1173,7 +1175,9 @@ class SourceLibraryBuilder extends LibraryBuilder {
   }
 
   TypeBuilder addVoidType(int charOffset) {
-    return addNamedType("void", null, charOffset)
+    // 'void' is always nullable.
+    return addNamedType(
+        "void", const NullabilityBuilder.nullable(), null, charOffset)
       ..bind(new VoidTypeBuilder(const VoidType(), this, charOffset));
   }
 
@@ -1650,13 +1654,17 @@ class SourceLibraryBuilder extends LibraryBuilder {
 
             applicationTypeArguments = <TypeBuilder>[];
             for (TypeVariableBuilder typeVariable in typeVariables) {
-              applicationTypeArguments
-                  .add(addNamedType(typeVariable.name, null, charOffset)..bind(
-                      // The type variable types passed as arguments to the
-                      // generic class representing the anonymous mixin
-                      // application should refer back to the type variables of
-                      // the class that extend the anonymous mixin application.
-                      typeVariable));
+              applicationTypeArguments.add(addNamedType(
+                  typeVariable.name,
+                  const NullabilityBuilder.pendingImplementation(),
+                  null,
+                  charOffset)
+                ..bind(
+                    // The type variable types passed as arguments to the
+                    // generic class representing the anonymous mixin
+                    // application should refer back to the type variables of
+                    // the class that extend the anonymous mixin application.
+                    typeVariable));
             }
           }
         }
@@ -1701,8 +1709,11 @@ class SourceLibraryBuilder extends LibraryBuilder {
         // handle that :(
         application.cls.isAnonymousMixin = !isNamedMixinApplication;
         addBuilder(fullname, application, charOffset);
-        supertype =
-            addNamedType(fullname, applicationTypeArguments, charOffset);
+        supertype = addNamedType(
+            fullname,
+            const NullabilityBuilder.pendingImplementation(),
+            applicationTypeArguments,
+            charOffset);
       }
       return supertype;
     } else {
@@ -1870,6 +1881,7 @@ class SourceLibraryBuilder extends LibraryBuilder {
       String nativeMethodName) {
     TypeBuilder returnType = addNamedType(
         currentTypeParameterScopeBuilder.parent.name,
+        const NullabilityBuilder.omitted(),
         <TypeBuilder>[],
         charOffset);
     // Nested declaration began in `OutlineBuilder.beginFactoryMethod`.
@@ -1936,7 +1948,8 @@ class SourceLibraryBuilder extends LibraryBuilder {
     currentTypeParameterScopeBuilder = factoryDeclaration;
     for (TypeVariableBuilder tv in procedureBuilder.typeVariables) {
       NamedTypeBuilder t = procedureBuilder.returnType;
-      t.arguments.add(addNamedType(tv.name, null, procedureBuilder.charOffset));
+      t.arguments.add(addNamedType(tv.name, const NullabilityBuilder.omitted(),
+          null, procedureBuilder.charOffset));
     }
     currentTypeParameterScopeBuilder = savedDeclaration;
 

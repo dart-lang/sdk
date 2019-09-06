@@ -29,7 +29,8 @@ import '../../scanner/token.dart' show Token;
 
 import '../constant_context.dart' show ConstantContext;
 
-import '../builder/builder.dart' show PrefixBuilder, TypeDeclarationBuilder;
+import '../builder/builder.dart'
+    show NullabilityBuilder, PrefixBuilder, TypeDeclarationBuilder;
 import '../builder/declaration_builder.dart';
 import '../builder/extension_builder.dart';
 import '../builder/member_builder.dart';
@@ -431,8 +432,10 @@ abstract class Generator {
   ///
   /// The type arguments have not been resolved and should be resolved to
   /// create a [TypeBuilder] for a valid type.
-  TypeBuilder buildTypeWithResolvedArguments(List<UnresolvedType> arguments) {
-    NamedTypeBuilder result = new NamedTypeBuilder(token.lexeme, null);
+  TypeBuilder buildTypeWithResolvedArguments(
+      NullabilityBuilder nullabilityBuilder, List<UnresolvedType> arguments) {
+    NamedTypeBuilder result =
+        new NamedTypeBuilder(token.lexeme, nullabilityBuilder, null);
     Message message = templateNotAType.withArguments(token.lexeme);
     _helper.libraryBuilder
         .addProblem(message, fileOffset, lengthForToken(token), _uri);
@@ -2151,11 +2154,12 @@ class DeferredAccessGenerator extends Generator {
   String get _debugName => "DeferredAccessGenerator";
 
   @override
-  TypeBuilder buildTypeWithResolvedArguments(List<UnresolvedType> arguments) {
+  TypeBuilder buildTypeWithResolvedArguments(
+      NullabilityBuilder nullabilityBuilder, List<UnresolvedType> arguments) {
     String name = "${prefixGenerator._plainNameForRead}."
         "${suffixGenerator._plainNameForRead}";
-    TypeBuilder type =
-        suffixGenerator.buildTypeWithResolvedArguments(arguments);
+    TypeBuilder type = suffixGenerator.buildTypeWithResolvedArguments(
+        nullabilityBuilder, arguments);
     LocatedMessage message;
     if (type is NamedTypeBuilder && type.declaration is InvalidTypeBuilder) {
       InvalidTypeBuilder declaration = type.declaration;
@@ -2169,7 +2173,8 @@ class DeferredAccessGenerator extends Generator {
           .withLocation(
               _uri, charOffset, lengthOfSpan(prefixGenerator.token, token));
     }
-    NamedTypeBuilder result = new NamedTypeBuilder(name, null);
+    NamedTypeBuilder result =
+        new NamedTypeBuilder(name, nullabilityBuilder, null);
     _helper.libraryBuilder.addProblem(
         message.messageObject, message.charOffset, message.length, message.uri);
     result.bind(result.buildInvalidType(message));
@@ -2238,10 +2243,12 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
   String get _debugName => "TypeUseGenerator";
 
   @override
-  TypeBuilder buildTypeWithResolvedArguments(List<UnresolvedType> arguments) {
+  TypeBuilder buildTypeWithResolvedArguments(
+      NullabilityBuilder nullabilityBuilder, List<UnresolvedType> arguments) {
     if (declaration.isExtension) {
       // Extension declarations cannot be used as types.
-      return super.buildTypeWithResolvedArguments(arguments);
+      return super
+          .buildTypeWithResolvedArguments(nullabilityBuilder, arguments);
     }
     if (arguments != null) {
       int expected = declaration.typeVariablesCount;
@@ -2272,7 +2279,8 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
             _helper.validateTypeUse(arguments[i], false).builder;
       }
     }
-    return new NamedTypeBuilder(_plainNameForRead, argumentBuilders)
+    return new NamedTypeBuilder(
+        _plainNameForRead, nullabilityBuilder, argumentBuilders)
       ..bind(declaration);
   }
 
@@ -2319,7 +2327,10 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
         super.expression = _forest.createTypeLiteral(
             _helper.buildDartType(
                 new UnresolvedType(
-                    buildTypeWithResolvedArguments(null), fileOffset, _uri),
+                    buildTypeWithResolvedArguments(
+                        const NullabilityBuilder.legacy(), null),
+                    fileOffset,
+                    _uri),
                 nonInstanceAccessIsError: true),
             token);
       }
@@ -3068,11 +3079,13 @@ class UnexpectedQualifiedUseGenerator extends Generator {
   }
 
   @override
-  TypeBuilder buildTypeWithResolvedArguments(List<UnresolvedType> arguments) {
+  TypeBuilder buildTypeWithResolvedArguments(
+      NullabilityBuilder nullabilityBuilder, List<UnresolvedType> arguments) {
     Template<Message Function(String, String)> template = isUnresolved
         ? templateUnresolvedPrefixInTypeAnnotation
         : templateNotAPrefixInTypeAnnotation;
-    NamedTypeBuilder result = new NamedTypeBuilder(_plainNameForRead, null);
+    NamedTypeBuilder result =
+        new NamedTypeBuilder(_plainNameForRead, nullabilityBuilder, null);
     Message message =
         template.withArguments(prefixGenerator.token.lexeme, token.lexeme);
     _helper.libraryBuilder.addProblem(
@@ -3168,8 +3181,10 @@ class ParserErrorGenerator extends Generator {
     return buildProblem();
   }
 
-  TypeBuilder buildTypeWithResolvedArguments(List<UnresolvedType> arguments) {
-    NamedTypeBuilder result = new NamedTypeBuilder(token.lexeme, null);
+  TypeBuilder buildTypeWithResolvedArguments(
+      NullabilityBuilder nullabilityBuilder, List<UnresolvedType> arguments) {
+    NamedTypeBuilder result =
+        new NamedTypeBuilder(token.lexeme, nullabilityBuilder, null);
     _helper.libraryBuilder.addProblem(message, fileOffset, noLength, _uri);
     result.bind(result
         .buildInvalidType(message.withLocation(_uri, fileOffset, noLength)));

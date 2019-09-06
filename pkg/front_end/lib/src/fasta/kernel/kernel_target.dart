@@ -95,6 +95,7 @@ import 'kernel_builder.dart'
         NamedTypeBuilder,
         ProcedureBuilder,
         LibraryBuilder,
+        NullabilityBuilder,
         TypeBuilder,
         TypeDeclarationBuilder;
 
@@ -120,11 +121,16 @@ class KernelTarget extends TargetImplementation {
 
   Component component;
 
-  final TypeBuilder dynamicType = new NamedTypeBuilder("dynamic", null);
+  // 'dynamic' is always nullable.
+  final TypeBuilder dynamicType = new NamedTypeBuilder(
+      "dynamic", const NullabilityBuilder.nullable(), null);
 
-  final NamedTypeBuilder objectType = new NamedTypeBuilder("Object", null);
+  final NamedTypeBuilder objectType =
+      new NamedTypeBuilder("Object", const NullabilityBuilder.omitted(), null);
 
-  final TypeBuilder bottomType = new NamedTypeBuilder("Null", null);
+  // Null is always nullable.
+  final TypeBuilder bottomType =
+      new NamedTypeBuilder("Null", const NullabilityBuilder.nullable(), null);
 
   bool get legacyMode => backendTarget.legacyMode;
 
@@ -234,8 +240,9 @@ class KernelTarget extends TargetImplementation {
     cls.implementedTypes.clear();
     cls.supertype = null;
     cls.mixedInType = null;
-    builder.supertype = new NamedTypeBuilder("Object", null)
-      ..bind(objectClassBuilder);
+    builder.supertype =
+        new NamedTypeBuilder("Object", const NullabilityBuilder.omitted(), null)
+          ..bind(objectClassBuilder);
     builder.interfaces = null;
     builder.mixedInType = null;
   }
@@ -377,7 +384,8 @@ class KernelTarget extends TargetImplementation {
             Class cls = declaration.cls;
             if (cls != objectClass) {
               cls.supertype ??= objectClass.asRawSupertype;
-              declaration.supertype ??= new NamedTypeBuilder("Object", null)
+              declaration.supertype ??= new NamedTypeBuilder(
+                  "Object", const NullabilityBuilder.omitted(), null)
                 ..bind(objectClassBuilder);
             }
             if (declaration.isMixinApplication) {

@@ -2789,6 +2789,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (!libraryBuilder.loader.target.enableNonNullable) {
       reportErrorIfNullableType(questionMark);
     }
+    bool isMarkedAsNullable = questionMark != null;
     List<UnresolvedType> arguments = pop();
     Object name = pop();
     if (name is QualifiedName) {
@@ -2805,7 +2806,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         libraryBuilder.addProblem(
             message, offset, lengthOfSpan(beginToken, suffix), uri);
         push(new UnresolvedType(
-            new NamedTypeBuilder(name, null)
+            new NamedTypeBuilder(
+                name,
+                libraryBuilder.computeNullabilityFromToken(isMarkedAsNullable),
+                null)
               ..bind(new InvalidTypeBuilder(
                   name,
                   message.withLocation(
@@ -2817,7 +2821,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
     TypeBuilder result;
     if (name is Generator) {
-      result = name.buildTypeWithResolvedArguments(arguments);
+      result = name.buildTypeWithResolvedArguments(
+          libraryBuilder.computeNullabilityFromToken(isMarkedAsNullable),
+          arguments);
       if (result == null) {
         unhandled("null", "result", beginToken.charOffset, uri);
       }
@@ -2825,7 +2831,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       // TODO(ahe): Arguments could be passed here.
       libraryBuilder.addProblem(
           name.message, name.charOffset, name.name.length, name.fileUri);
-      result = new NamedTypeBuilder(name.name, null)
+      result = new NamedTypeBuilder(name.name,
+          libraryBuilder.computeNullabilityFromToken(isMarkedAsNullable), null)
         ..bind(new InvalidTypeBuilder(
             name.name,
             name.message.withLocation(
@@ -2878,8 +2885,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void handleVoidKeyword(Token token) {
     debugEvent("VoidKeyword");
     int offset = offsetForToken(token);
+    // "void" is always nullable.
     push(new UnresolvedType(
-        new NamedTypeBuilder("void", null)
+        new NamedTypeBuilder("void", const NullabilityBuilder.nullable(), null)
           ..bind(new VoidTypeBuilder(const VoidType(), libraryBuilder, offset)),
         offset,
         uri));
@@ -5231,7 +5239,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       }
       addProblem(message.messageObject, message.charOffset, message.length);
       return new UnresolvedType(
-          new NamedTypeBuilder(typeParameter.name, null)
+          new NamedTypeBuilder(
+              typeParameter.name, builder.nullabilityBuilder, null)
             ..bind(new InvalidTypeBuilder(typeParameter.name, message)),
           unresolved.charOffset,
           unresolved.fileUri);

@@ -85,6 +85,7 @@ import 'kernel_builder.dart'
         ProcedureBuilder,
         LibraryBuilder,
         MemberBuilder,
+        NullabilityBuilder,
         TypeBuilder,
         TypeVariableBuilder;
 
@@ -246,7 +247,8 @@ class ClassHierarchyBuilder {
   TypeBuilder asSupertypeOf(Class cls, Class supertype) {
     ClassHierarchyNode clsNode = getNodeFromKernelClass(cls);
     if (cls == supertype) {
-      return new NamedTypeBuilder(clsNode.classBuilder.name, null)
+      return new NamedTypeBuilder(clsNode.classBuilder.name,
+          const NullabilityBuilder.pendingImplementation(), null)
         ..bind(clsNode.classBuilder);
     }
     ClassHierarchyNode supertypeNode = getNodeFromKernelClass(supertype);
