@@ -710,15 +710,8 @@ class B {}
   }
 }
 
-/// TODO(paulberry): migrate this test away from the task model.
-/// See dartbug.com/35734.
 @reflectiveTest
 class AnalysisDriverTest extends BaseAnalysisDriverTest {
-  void configurePreviewDart2() {
-    driver.configure(
-        analysisOptions: new AnalysisOptionsImpl.from(driver.analysisOptions));
-  }
-
   test_addedFiles() async {
     var a = convertPath('/test/lib/a.dart');
     var b = convertPath('/test/lib/b.dart');
@@ -1277,8 +1270,6 @@ class B {}
   }
 
   test_const_implicitCreation() async {
-    configurePreviewDart2();
-
     var a = convertPath('/test/bin/a.dart');
     var b = convertPath('/test/bin/b.dart');
     newFile(a, content: r'''
@@ -1303,8 +1294,6 @@ const d = D.WARNING;
   }
 
   test_const_implicitCreation_rewrite() async {
-    configurePreviewDart2();
-
     var a = convertPath('/test/bin/a.dart');
     var b = convertPath('/test/bin/b.dart');
     newFile(a, content: r'''
