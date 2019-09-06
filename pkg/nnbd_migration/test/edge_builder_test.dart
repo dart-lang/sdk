@@ -392,6 +392,15 @@ int f(dynamic d) => d;
         hard: true);
   }
 
+  test_assign_function_type_to_function_interface_type() async {
+    await analyze('''
+Function f(void Function() x) => x;
+''');
+    assertEdge(decoratedGenericFunctionTypeAnnotation('void Function()').node,
+        decoratedTypeAnnotation('Function f').node,
+        hard: true);
+  }
+
   test_assign_future_to_futureOr_complex() async {
     await analyze('''
 import 'dart:async';
