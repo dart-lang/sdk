@@ -320,9 +320,9 @@ class DartFuzzTest {
 
     numTests = 0;
     numSuccess = 0;
-    numNotRun = 0;
-    numReRun = 0;
-    numTimeOut = 0;
+    numSkipped = 0;
+    numRerun = 0;
+    numTimeout = 0;
     numDivergences = 0;
   }
 
@@ -355,8 +355,8 @@ class DartFuzzTest {
   }
 
   void showStatistics() {
-    stdout.write('\rTests: $numTests Success: $numSuccess (Re-Run: $numReRun) '
-        'Not-Run: $numNotRun Re-Run: $numReRun Time-Out: $numTimeOut '
+    stdout.write('\rTests: $numTests Success: $numSuccess (Rerun: $numRerun) '
+        'Skipped: $numSkipped Timeout: $numTimeout '
         'Divergences: $numDivergences');
   }
 
@@ -376,7 +376,7 @@ class DartFuzzTest {
       result2 = runner2.run();
       if (checkDivergence(result1, result2) == ReportStatus.no_divergence) {
         print("\nNo error on re-run\n");
-        numReRun++;
+        numRerun++;
       }
     }
   }
@@ -396,11 +396,11 @@ class DartFuzzTest {
           break;
         case -sigkill:
           // Both had a time out.
-          numTimeOut++;
+          numTimeout++;
           break;
         default:
           // Both had an error.
-          numNotRun++;
+          numSkipped++;
           break;
       }
     } else {
@@ -409,7 +409,7 @@ class DartFuzzTest {
         // When only true divergences are requested, any divergence
         // with at least one time out is treated as a regular time out.
         if (result1.exitCode == -sigkill || result2.exitCode == -sigkill) {
-          numTimeOut++;
+          numTimeout++;
           return ReportStatus.ignored;
         }
       }
@@ -486,9 +486,9 @@ class DartFuzzTest {
   // Stats.
   int numTests;
   int numSuccess;
-  int numNotRun;
-  int numReRun;
-  int numTimeOut;
+  int numSkipped;
+  int numRerun;
+  int numTimeout;
   int numDivergences;
 }
 

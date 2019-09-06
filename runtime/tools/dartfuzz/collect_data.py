@@ -32,8 +32,10 @@ import requests
 P_DIV = re.compile("(Isolate.+? !DIVERGENCE! (\n|.)+?)Isolate ", re.MULTILINE)
 
 # Matches shard raw stdout to extract report summaries.
-P_SUM = re.compile(r"^Tests: (\d+) Success: (\d+) Not-Run: (\d+): "
-                   r"Time-Out: (\d+) Divergences: (\d+)$", re.MULTILINE)
+P_SUM = re.compile(
+    r"^Tests: (\d+) Success: (\d+) "
+    r"\(Rerun: (\d+)\) Skipped: (\d+) "
+    r"Timeout: (\d+) Divergences: (\d+)", re.MULTILINE)
 
 # Matches uri to extract shard number.
 P_SHARD = re.compile(r".*make_a_fuzz_shard_(\d+)")
@@ -74,7 +76,7 @@ def print_output_div(shard, text, keywords):
                 print_reencoded(x[0])
 
 
-def print_output_sum(shard, text, s=[0, 0, 0, 0, 0], divs=[]):
+def print_output_sum(shard, text, s=[0, 0, 0, 0, 0, 0], divs=[]):
     m = P_SUM.findall(text)
     if not m:
         sys.stderr.write("Failed to parse shard %s stdout for summary" % shard)
@@ -85,7 +87,7 @@ def print_output_sum(shard, text, s=[0, 0, 0, 0, 0], divs=[]):
         for i in range(len(s)):
             s[i] += int(test[i])
     print(
-        "Tests: %d Success: %d Not-Run: %d Time-Out: %d Divergences: %d "
+        "Tests: %d Success: %d (Rerun: %d) Skipped: %d Timeout: %d Divergences: %d"
         "(failing shards: %s)    \r" %
         tuple(s + [", ".join(divs) if divs else "none"]),
         end="")
