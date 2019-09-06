@@ -1664,6 +1664,11 @@ class BinaryBuilder {
         return new InstanceCreation(classReference, typeArguments, fieldValues,
             asserts, unusedArguments)
           ..fileOffset = offset;
+      case Tag.FileUriExpression:
+        Uri fileUri = readUriReference();
+        int offset = readOffset();
+        return new FileUriExpression(readExpression(), fileUri)
+          ..fileOffset = offset;
       case Tag.IsExpression:
         int offset = readOffset();
         return new IsExpression(readExpression(), readDartType())

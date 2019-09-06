@@ -725,6 +725,11 @@ class TypeCheckingVisitor
   }
 
   @override
+  DartType visitFileUriExpression(FileUriExpression node) {
+    return visitExpression(node.expression);
+  }
+
+  @override
   DartType visitStringLiteral(StringLiteral node) {
     return environment.stringType;
   }

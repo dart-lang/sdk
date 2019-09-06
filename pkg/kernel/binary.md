@@ -143,7 +143,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 30;
+  UInt32 formatVersion = 31;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
   UriSource sourceMap;
@@ -758,6 +758,13 @@ type InstanceCreation extends Expression {
   List<Pair<FieldReference, Expression>> fieldValues;
   List<AssertStatement> asserts;
   List<Expression> unusedArguments;
+}
+
+type FileUriExpression extends Expression {
+  Byte tag = 116;
+  UriReference fileUri;
+  FileOffset fileOffset;
+  Expression expression;
 }
 
 type IsExpression extends Expression {

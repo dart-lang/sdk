@@ -2248,8 +2248,9 @@ void KernelReaderHelper::SkipExpression() {
     case kSetConcatenation:
     case kMapConcatenation:
     case kInstanceCreation:
-      // Collection concatenation and instance creation operations are removed
-      // by the constant evaluator.
+    case kFileUriExpression:
+      // Collection concatenation, instance creation operations and
+      // in-expression URI changes are removed by the constant evaluator.
       UNREACHABLE();
       break;
     case kIsExpression:

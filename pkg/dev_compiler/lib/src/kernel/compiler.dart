@@ -4946,6 +4946,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   @override
+  js_ast.Expression visitFileUriExpression(FileUriExpression node) {
+    // Only occurs inside unevaluated constants.
+    throw UnsupportedError("File URI expression");
+  }
+
+  @override
   js_ast.Expression visitIsExpression(IsExpression node) {
     return _emitIsExpression(node.operand, node.type);
   }

@@ -222,6 +222,10 @@ class CloneVisitor implements TreeVisitor<TreeNode> {
         node.unusedArguments.map(clone).toList());
   }
 
+  visitFileUriExpression(FileUriExpression node) {
+    return new FileUriExpression(clone(node.expression), _activeFileUri);
+  }
+
   visitIsExpression(IsExpression node) {
     return new IsExpression(clone(node.operand), visitType(node.type));
   }

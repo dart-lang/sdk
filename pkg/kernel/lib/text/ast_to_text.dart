@@ -1437,6 +1437,10 @@ class Printer extends Visitor<Null> {
     writeSymbol('}');
   }
 
+  visitFileUriExpression(FileUriExpression node) {
+    writeExpression(node.expression);
+  }
+
   visitIsExpression(IsExpression node) {
     writeExpression(node.operand, Precedence.BITWISE_OR);
     writeSpaced('is');

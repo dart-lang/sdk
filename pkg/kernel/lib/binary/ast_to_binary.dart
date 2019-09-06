@@ -1570,6 +1570,14 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
+  void visitFileUriExpression(FileUriExpression node) {
+    writeByte(Tag.FileUriExpression);
+    writeUriReference(node.fileUri);
+    writeOffset(node.fileOffset);
+    writeNode(node.expression);
+  }
+
+  @override
   void visitIsExpression(IsExpression node) {
     writeByte(Tag.IsExpression);
     writeOffset(node.fileOffset);

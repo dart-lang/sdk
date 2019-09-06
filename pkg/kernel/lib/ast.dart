@@ -3540,7 +3540,7 @@ class MapConcatenation extends Expression {
 
 /// Create an instance directly from the field values.
 ///
-/// This expression arises from const constructor calls when one or more field
+/// These expressions arise from const constructor calls when one or more field
 /// initializing expressions, field initializers, assert initializers or unused
 /// arguments contain unevaluated expressions. They only ever occur within
 /// unevaluated constants in constant expressions.
@@ -3589,6 +3589,43 @@ class InstanceCreation extends Expression {
     });
     transformList(asserts, v, this);
     transformList(unusedArguments, v, this);
+  }
+}
+
+/// A marker indicating that a subexpression originates in a different source
+/// file than the surrounding context.
+///
+/// These expressions arise from inlining of const variables during constant
+/// evaluation. They only ever occur within unevaluated constants in constant
+/// expressions.
+class FileUriExpression extends Expression implements FileUriNode {
+  /// The URI of the source file in which the subexpression is located.
+  /// Can be different from the file containing the [FileUriExpression].
+  Uri fileUri;
+
+  Expression expression;
+
+  FileUriExpression(this.expression, this.fileUri) {
+    expression.parent = this;
+  }
+
+  DartType getStaticType(TypeEnvironment types) =>
+      expression.getStaticType(types);
+
+  R accept<R>(ExpressionVisitor<R> v) => v.visitFileUriExpression(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitFileUriExpression(this, arg);
+
+  visitChildren(Visitor v) {
+    expression.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    expression = expression.accept<TreeNode>(v)..parent = this;
+  }
+
+  Location _getLocationInEnclosingFile(int offset) {
+    return _getLocationInComponent(enclosingComponent, fileUri, offset);
   }
 }
 

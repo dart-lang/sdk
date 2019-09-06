@@ -81,6 +81,7 @@ class Tag {
   static const int ConstMapLiteral = 59;
   static const int SetLiteral = 109;
   static const int ConstSetLiteral = 110;
+  static const int FileUriExpression = 116;
 
   // Statements
   static const int ExpressionStatement = 61;
@@ -127,6 +128,8 @@ class Tag {
   /// 112 is occupied by [SetConcatenation] (expression).
   /// 113 is occupied by [MapConcatenation] (expression).
   /// 114 is occupied by [InstanceCreation] (expression).
+  /// 115 is occupied by [Extension].
+  /// 116 is occupied by [FileUriExpression] (expression).
 
   static const int SpecializedTagHighBit = 0x80; // 10000000
   static const int SpecializedTagMask = 0xF8; // 11111000
@@ -143,7 +146,7 @@ class Tag {
   /// Internal version of kernel binary format.
   /// Bump it when making incompatible changes in kernel binaries.
   /// Keep in sync with runtime/vm/kernel_binary.h, pkg/kernel/binary.md.
-  static const int BinaryFormatVersion = 30;
+  static const int BinaryFormatVersion = 31;
 }
 
 abstract class ConstantTag {
