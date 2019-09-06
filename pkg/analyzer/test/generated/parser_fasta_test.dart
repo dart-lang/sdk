@@ -2835,6 +2835,23 @@ main() {
     expect(target.operator.lexeme, '!');
   }
 
+  void test_nullCheckOnIndex2() {
+    // https://github.com/dart-lang/sdk/issues/37708
+    var unit = parseCompilationUnit('f() { obj![arg]![arg2]; }');
+    var funct = unit.declarations[0] as FunctionDeclaration;
+    var body = funct.functionExpression.body as BlockFunctionBody;
+    var statement = body.block.statements[0] as ExpressionStatement;
+    var expression = statement.expression as IndexExpression;
+    expect(expression.index.toSource(), 'arg2');
+    var target = expression.target as PostfixExpression;
+    expect(target.operator.lexeme, '!');
+    expression = target.operand as IndexExpression;
+    expect(expression.index.toSource(), 'arg');
+    target = expression.target as PostfixExpression;
+    expect(target.operator.lexeme, '!');
+    expect(target.operand.toSource(), 'obj');
+  }
+
   void test_nullCheckOnLiteral_disabled() {
     parseCompilationUnit('f() { var x = 0!; }',
         errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 15, 1)],
@@ -2886,6 +2903,23 @@ main() {
     var target = expression.function as PostfixExpression;
     expect(target.operand.toSource(), 'obj');
     expect(target.operator.lexeme, '!');
+  }
+
+  void test_nullCheckOnSend2() {
+    // https://github.com/dart-lang/sdk/issues/37708
+    var unit = parseCompilationUnit('f() { obj!(arg)!(arg2); }');
+    var funct = unit.declarations[0] as FunctionDeclaration;
+    var body = funct.functionExpression.body as BlockFunctionBody;
+    var statement = body.block.statements[0] as ExpressionStatement;
+    var expression = statement.expression as FunctionExpressionInvocation;
+    expect(expression.argumentList.toSource(), '(arg2)');
+    var target = expression.function as PostfixExpression;
+    expect(target.operator.lexeme, '!');
+    expression = target.operand as FunctionExpressionInvocation;
+    expect(expression.argumentList.toSource(), '(arg)');
+    target = expression.function as PostfixExpression;
+    expect(target.operator.lexeme, '!');
+    expect(target.operand.toSource(), 'obj');
   }
 
   void test_nullCheckOnSymbol() {
