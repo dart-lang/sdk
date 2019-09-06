@@ -4,7 +4,7 @@
 
 import 'package:expect/expect.dart';
 
-import 'package:test_runner/src/test_file.dart';
+import 'package:test_runner/src/static_error.dart';
 
 void main() {
   testFlags();

@@ -4,7 +4,7 @@
 
 import 'package:expect/expect.dart';
 
-import 'package:test_runner/src/test_file.dart';
+import 'package:test_runner/src/static_error.dart';
 import 'package:test_runner/src/update_errors.dart';
 
 // Note: This test file validates how some of the special markers used by the

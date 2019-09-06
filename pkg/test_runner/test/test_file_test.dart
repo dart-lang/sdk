@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:expect/expect.dart';
 
 import 'package:test_runner/src/path.dart';
+import 'package:test_runner/src/static_error.dart';
 import 'package:test_runner/src/test_file.dart';
 
 // Note: This test file validates how some of the special markers used by the

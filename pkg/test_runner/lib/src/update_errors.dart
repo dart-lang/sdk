@@ -1,7 +1,7 @@
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-import 'test_file.dart';
+import 'static_error.dart';
 
 /// Matches leading indentation in a string.
 final _indentationRegExp = RegExp(r"^(\s*)");
@@ -19,7 +19,7 @@ String updateErrorExpectations(String source, List<StaticError> errors,
   removeAnalyzer ??= true;
   removeCfe ??= true;
 
-  var existingErrors = ErrorExpectationParser.parse(source);
+  var existingErrors = StaticError.parseExpectations(source);
   var lines = source.split("\n");
 
   // Keep track of the indentation on any existing expectation markers. If

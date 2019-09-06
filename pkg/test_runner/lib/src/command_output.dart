@@ -8,7 +8,7 @@ import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:status_file/expectation.dart';
-import 'package:test_runner/src/test_file.dart';
+import 'package:test_runner/src/static_error.dart';
 
 import 'browser_controller.dart';
 import 'command.dart';
