@@ -14,7 +14,7 @@ import 'dartfuzz_ffiapi.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.38';
+const String version = '1.39';
 
 // Restriction on statements and expressions.
 const int stmtLength = 2;
@@ -163,7 +163,7 @@ class DartFuzz {
     }
     emit(') ${dartFuncName} = ' +
         'ffi.Pointer.fromFunction<${typeName}>(${ffiFuncName}, ');
-    emitLiteral(0, pars[0]);
+    emitLiteral(0, pars[0], smallPositiveValue: true);
     emitLn(').cast<ffi.NativeFunction<${typeName}>>().asFunction();');
   }
 
@@ -831,11 +831,15 @@ class DartFuzz {
     emit(tp == DartType.INT_LIST ? ' ]' : ' }');
   }
 
-  void emitLiteral(int depth, DartType tp) {
+  void emitLiteral(int depth, DartType tp, {bool smallPositiveValue = false}) {
     if (tp == DartType.BOOL) {
       emitBool();
     } else if (tp == DartType.INT) {
-      emitInt();
+      if (smallPositiveValue) {
+        emitSmallPositiveInt();
+      } else {
+        emitInt();
+      }
     } else if (tp == DartType.DOUBLE) {
       emitDouble();
     } else if (tp == DartType.STRING) {
