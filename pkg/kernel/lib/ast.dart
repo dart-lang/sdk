@@ -2442,6 +2442,9 @@ abstract class Expression extends TreeNode {
 /// An expression containing compile-time errors.
 ///
 /// Should throw a runtime error when evaluated.
+///
+/// The [fileOffset] of an [InvalidExpression] indicates the location in the
+/// tree where the expression occurs, rather than the location of the error.
 class InvalidExpression extends Expression {
   String message;
 

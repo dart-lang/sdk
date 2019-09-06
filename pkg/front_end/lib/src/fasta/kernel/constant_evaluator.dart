@@ -592,8 +592,12 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     lazyDepth = 0;
     try {
       Constant result = _evaluateSubexpression(node);
-      if (errorOnUnevaluatedConstant && result is UnevaluatedConstant) {
-        return report(node, messageConstEvalUnevaluated);
+      if (result is UnevaluatedConstant) {
+        if (errorOnUnevaluatedConstant) {
+          return report(node, messageConstEvalUnevaluated);
+        }
+        return new UnevaluatedConstant(
+            removeRedundantFileUriExpressions(result.expression));
       }
       return result;
     } on _AbortDueToError catch (e) {
@@ -623,13 +627,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       }
       return new UnevaluatedConstant(new InvalidExpression(e.message.message));
     } on _AbortDueToInvalidExpression catch (e) {
-      // TODO(askesc): Copy position from erroneous node.
-      // Currently not possible, as it might be in a different file.
-      // Can be done if we add an explicit URI to InvalidExpression.
-      InvalidExpression invalid = new InvalidExpression(e.message);
-      if (invalid.fileOffset == TreeNode.noOffset) {
-        invalid.fileOffset = node.fileOffset;
-      }
+      InvalidExpression invalid = new InvalidExpression(e.message)
+        ..fileOffset = node.fileOffset;
       errorReporter.reportInvalidExpression(invalid);
       return new UnevaluatedConstant(invalid);
     }
@@ -649,8 +648,13 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   /// Produce an unevaluated constant node for an expression.
   Constant unevaluated(Expression original, Expression replacement) {
     replacement.fileOffset = original.fileOffset;
-    // TODO(askesc,johnniwinther): Preserve fileUri on [replacement].
-    return new UnevaluatedConstant(replacement);
+    return new UnevaluatedConstant(
+        new FileUriExpression(replacement, getFileUri(original))
+          ..fileOffset = original.fileOffset);
+  }
+
+  Expression removeRedundantFileUriExpressions(Expression node) {
+    return node.accept(new RedundantFileUriExpressionRemover()) as Expression;
   }
 
   /// Extract an expression from a (possibly unevaluated) constant to become
@@ -772,6 +776,11 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     // evaluation.
     return reportInvalid(
         node, 'Constant evaluation has no support for ${node.runtimeType}!');
+  }
+
+  @override
+  Constant visitFileUriExpression(FileUriExpression node) {
+    return _evaluateSubexpression(node.expression);
   }
 
   @override
@@ -2309,6 +2318,23 @@ class EvaluationEnvironment {
   DartType substituteType(DartType type) {
     if (_typeVariables.isEmpty) return type;
     return substitute(type, _typeVariables);
+  }
+}
+
+class RedundantFileUriExpressionRemover extends Transformer {
+  Uri currentFileUri = null;
+
+  TreeNode visitFileUriExpression(FileUriExpression node) {
+    if (node.fileUri == currentFileUri) {
+      return node.expression.accept(this);
+    } else {
+      Uri oldFileUri = currentFileUri;
+      currentFileUri = node.fileUri;
+      node.expression = node.expression.accept(this) as Expression
+        ..parent = node;
+      currentFileUri = oldFileUri;
+      return node;
+    }
   }
 }
 
