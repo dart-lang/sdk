@@ -219,6 +219,8 @@ class DartFixKind {
       const FixKind('CREATE_MIXIN', 50, "Create mixin '{0}'");
   static const CREATE_NO_SUCH_METHOD = const FixKind(
       'CREATE_NO_SUCH_METHOD', 49, "Create 'noSuchMethod' method");
+  static const CREATE_SETTER =
+      const FixKind('CREATE_SETTER', 50, "Create setter '{0}'");
   static const EXTEND_CLASS_FOR_MIXIN =
       const FixKind('EXTEND_CLASS_FOR_MIXIN', 50, "Extend the class '{0}'");
   static const IMPORT_ASYNC =

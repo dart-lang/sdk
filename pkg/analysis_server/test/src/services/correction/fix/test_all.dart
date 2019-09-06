@@ -33,12 +33,12 @@ import 'change_to_nearest_precise_value_test.dart'
 import 'change_to_static_access_test.dart' as change_to_static_access;
 import 'change_to_test.dart' as change_to;
 import 'change_type_annotation_test.dart' as change_type_annotation;
+import 'convert_documentation_into_line_test.dart'
+    as convert_documentation_into_line;
 import 'convert_flutter_child_test.dart' as convert_flutter_child;
 import 'convert_flutter_children_test.dart' as convert_flutter_children;
 import 'convert_to_for_element_test.dart' as convert_to_for_element;
 import 'convert_to_named_arguments_test.dart' as convert_to_named_arguments;
-import 'convert_documentation_into_line_test.dart'
-    as convert_documentation_into_line;
 import 'create_class_test.dart' as create_class;
 import 'create_constructor_for_final_fields_test.dart'
     as create_constructor_for_final_field;
@@ -53,6 +53,7 @@ import 'create_method_test.dart' as create_method;
 import 'create_missing_overrides_test.dart' as create_missing_overrides;
 import 'create_mixin_test.dart' as create_mixin;
 import 'create_no_such_method_test.dart' as create_no_such_method;
+import 'create_setter_test.dart' as create_setter;
 import 'extend_class_for_mixin_test.dart' as extend_class_for_mixin;
 import 'fix_test.dart' as fix;
 import 'import_async_test.dart' as import_async;
@@ -160,6 +161,7 @@ main() {
     create_missing_overrides.main();
     create_mixin.main();
     create_no_such_method.main();
+    create_setter.main();
     extend_class_for_mixin.main();
     fix.main();
     import_async.main();

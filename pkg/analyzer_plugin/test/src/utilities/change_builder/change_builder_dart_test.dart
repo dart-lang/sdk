@@ -1111,6 +1111,91 @@ import 'a.dart' as p;
     expect(edits[1].replacement, equalsIgnoringWhitespace('a'));
   }
 
+  test_writeSetterDeclaration_bodyWriter() async {
+    String path = convertPath('/home/test/lib/test.dart');
+    String content = 'class A {}';
+    addSource(path, content);
+
+    DartChangeBuilderImpl builder = newBuilder();
+    await builder.addFileEdit(path, (FileEditBuilder builder) {
+      builder.addInsertion(content.length - 1, (EditBuilder builder) {
+        (builder as DartEditBuilder).writeSetterDeclaration('s',
+            bodyWriter: () {
+          builder.write('{/* TODO */}');
+        });
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('set s(s) {/* TODO */}'));
+  }
+
+  test_writeSetterDeclaration_isStatic() async {
+    String path = convertPath('/home/test/lib/test.dart');
+    String content = 'class A {}';
+    addSource(path, content);
+
+    DartChangeBuilderImpl builder = newBuilder();
+    await builder.addFileEdit(path, (FileEditBuilder builder) {
+      builder.addInsertion(content.length - 1, (EditBuilder builder) {
+        (builder as DartEditBuilder)
+            .writeSetterDeclaration('s', isStatic: true);
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('static set s(s) {}'));
+  }
+
+  test_writeSetterDeclaration_nameGroupName() async {
+    String path = convertPath('/home/test/lib/test.dart');
+    String content = 'class A {}';
+    addSource(path, content);
+
+    DartChangeBuilderImpl builder = newBuilder();
+    await builder.addFileEdit(path, (FileEditBuilder builder) {
+      builder.addInsertion(content.length - 1, (EditBuilder builder) {
+        (builder as DartEditBuilder)
+            .writeSetterDeclaration('s', nameGroupName: 'name');
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('set s(s) {}'));
+
+    List<LinkedEditGroup> linkedEditGroups =
+        builder.sourceChange.linkedEditGroups;
+    expect(linkedEditGroups, hasLength(1));
+    LinkedEditGroup group = linkedEditGroups[0];
+    expect(group.length, 1);
+    expect(group.positions, hasLength(1));
+    Position position = group.positions[0];
+    expect(position.offset, equals(13));
+  }
+
+  test_writeSetterDeclaration_parameterType() async {
+    String path = convertPath('/home/test/lib/test.dart');
+    String content = 'class A {} class B {}';
+    addSource(path, content);
+    DartType typeA = await _getType(path, 'A');
+
+    DartChangeBuilderImpl builder = newBuilder();
+    await builder.addFileEdit(path, (FileEditBuilder builder) {
+      builder.addInsertion(content.length - 1, (EditBuilder builder) {
+        (builder as DartEditBuilder).writeSetterDeclaration('s',
+            parameterType: typeA, parameterTypeGroupName: 'returnType');
+      });
+    });
+    SourceEdit edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('set s(A s) {}'));
+
+    List<LinkedEditGroup> linkedEditGroups =
+        builder.sourceChange.linkedEditGroups;
+    expect(linkedEditGroups, hasLength(1));
+    LinkedEditGroup group = linkedEditGroups[0];
+    expect(group.length, 1);
+    expect(group.positions, hasLength(1));
+    Position position = group.positions[0];
+    expect(position.offset, equals(26));
+  }
+
   test_writeType_dynamic() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = 'class A {}';

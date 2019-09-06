@@ -461,6 +461,7 @@ class FixProcessor extends BaseProcessor {
       await _addFix_createGetter();
       await _addFix_createFunction_forFunctionType();
       await _addFix_createMixin();
+      await _addFix_createSetter();
       await _addFix_importLibrary_withType();
       await _addFix_importLibrary_withExtension();
       await _addFix_importLibrary_withFunction();
@@ -532,9 +533,11 @@ class FixProcessor extends BaseProcessor {
     if (errorCode == StaticTypeWarningCode.UNDEFINED_SETTER) {
       await _addFix_undefinedClassAccessor_useSimilar();
       await _addFix_createField();
+      await _addFix_createSetter();
     }
     if (errorCode == CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER) {
       await _addFix_undefinedClassAccessor_useSimilar();
+      await _addFix_createSetter();
     }
     if (errorCode == CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER) {
       await _addFix_convertFlutterChild();
@@ -2439,6 +2442,91 @@ class FixProcessor extends BaseProcessor {
             args: [source.shortName]);
       }
     }
+  }
+
+  Future<void> _addFix_createSetter() async {
+    if (node is! SimpleIdentifier) {
+      return;
+    }
+    SimpleIdentifier nameNode = node;
+    if (!nameNode.inSetterContext()) {
+      return;
+    }
+    // prepare target
+    Expression target;
+    {
+      AstNode nameParent = nameNode.parent;
+      if (nameParent is PrefixedIdentifier) {
+        target = nameParent.prefix;
+      } else if (nameParent is PropertyAccess) {
+        target = nameParent.realTarget;
+      }
+    }
+    // prepare target element
+    bool staticModifier = false;
+    Element targetElement;
+    if (target is ExtensionOverride) {
+      targetElement = target.staticElement;
+    } else if (target is Identifier &&
+        target.staticElement is ExtensionElement) {
+      targetElement = target.staticElement;
+      staticModifier = true;
+    } else if (target != null) {
+      // prepare target interface type
+      DartType targetType = target.staticType;
+      if (targetType is! InterfaceType) {
+        return;
+      }
+      targetElement = targetType.element;
+      // maybe static
+      if (target is Identifier) {
+        Identifier targetIdentifier = target;
+        Element targetElement = targetIdentifier.staticElement;
+        staticModifier = targetElement?.kind == ElementKind.CLASS;
+      }
+    } else {
+      targetElement =
+          getEnclosingClassElement(node) ?? getEnclosingExtensionElement(node);
+      if (targetElement == null) {
+        return;
+      }
+      staticModifier = _inStaticContext();
+    }
+    if (targetElement.librarySource.isInSystemLibrary) {
+      return;
+    }
+    // prepare target declaration
+    var targetDeclarationResult =
+        await sessionHelper.getElementDeclaration(targetElement);
+    if (targetDeclarationResult.node is! ClassOrMixinDeclaration &&
+        targetDeclarationResult.node is! ExtensionDeclaration) {
+      return;
+    }
+    CompilationUnitMember targetNode = targetDeclarationResult.node;
+    // prepare location
+    ClassMemberLocation targetLocation = CorrectionUtils(
+            targetDeclarationResult.resolvedUnit)
+        .prepareNewGetterLocation(targetNode); // Rename to "AccessorLocation"
+    // build method source
+    Source targetSource = targetElement.source;
+    String targetFile = targetSource.fullName;
+    String name = nameNode.name;
+    var changeBuilder = _newDartChangeBuilder();
+    await changeBuilder.addFileEdit(targetFile, (DartFileEditBuilder builder) {
+      builder.addInsertion(targetLocation.offset, (DartEditBuilder builder) {
+        Expression parameterTypeNode = climbPropertyAccess(nameNode);
+        DartType parameterType =
+            _inferUndefinedExpressionType(parameterTypeNode);
+        builder.write(targetLocation.prefix);
+        builder.writeSetterDeclaration(name,
+            isStatic: staticModifier,
+            nameGroupName: 'NAME',
+            parameterType: parameterType,
+            parameterTypeGroupName: 'TYPE');
+        builder.write(targetLocation.suffix);
+      });
+    });
+    _addFixFromBuilder(changeBuilder, DartFixKind.CREATE_SETTER, args: [name]);
   }
 
   Future<void> _addFix_extendClassForMixin() async {
