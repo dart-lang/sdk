@@ -1520,6 +1520,22 @@ class C {
         decoratedTypeAnnotation('int i').node);
   }
 
+  test_for_element_list() async {
+    await analyze('''
+void f(List<int> ints) {
+  <int>[for(int i in ints) i];
+}
+''');
+
+    assertNullCheck(
+        checkExpression('ints) i'),
+        assertEdge(decoratedTypeAnnotation('List<int> ints').node, never,
+            hard: true));
+    assertEdge(decoratedTypeAnnotation('int i').node,
+        decoratedTypeAnnotation('int>[').node,
+        hard: false);
+  }
+
   test_for_with_declaration() async {
     await analyze('''
 main() {

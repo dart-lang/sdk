@@ -589,13 +589,15 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitForElement(ForElement node) {
-    _handleForLoopParts(node, node.forLoopParts, node.body);
+    _handleForLoopParts(node, node.forLoopParts, node.body,
+        (body) => _handleCollectionElement(body as CollectionElement));
     return null;
   }
 
   @override
   DecoratedType visitForStatement(ForStatement node) {
-    _handleForLoopParts(node, node.forLoopParts, node.body);
+    _handleForLoopParts(
+        node, node.forLoopParts, node.body, (body) => body.accept(this));
     return null;
   }
 
@@ -1640,7 +1642,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
   }
 
-  void _handleForLoopParts(AstNode node, ForLoopParts parts, AstNode body) {
+  void _handleForLoopParts(AstNode node, ForLoopParts parts, AstNode body,
+      DecoratedType Function(AstNode) bodyHandler) {
     if (parts is ForParts) {
       if (parts is ForPartsWithDeclarations) {
         parts.variables?.accept(this);
@@ -1664,7 +1667,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     // The condition may fail/iterable may be empty, so the body gets a new
     // post-dominator scope.
     _postDominatedLocals.doScoped(action: () {
-      body.accept(this);
+      bodyHandler(body);
 
       if (parts is ForParts) {
         _flowAnalysis.for_updaterBegin();
