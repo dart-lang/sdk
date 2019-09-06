@@ -522,11 +522,12 @@ class FixProcessor extends BaseProcessor {
       await _addFix_importLibrary_withFunction();
       await _addFix_importLibrary_withType();
       await _addFix_undefinedMethod_useSimilar();
-      await _addFix_undefinedMethod_create();
+      await _addFix_createMethod();
       await _addFix_undefinedFunction_create();
     }
     if (errorCode == CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD) {
       await _addFix_undefinedMethod_useSimilar();
+      await _addFix_createMethod();
     }
     if (errorCode == StaticTypeWarningCode.UNDEFINED_SETTER) {
       await _addFix_undefinedClassAccessor_useSimilar();
@@ -1992,23 +1993,22 @@ class FixProcessor extends BaseProcessor {
     Element targetElement;
     if (target is ExtensionOverride) {
       targetElement = target.staticElement;
+    } else if (target is Identifier &&
+        target.staticElement is ExtensionElement) {
+      targetElement = target.staticElement;
+      staticModifier = true;
     } else if (target != null) {
-      if (target is Identifier && target.staticElement is ExtensionElement) {
-        targetElement = target.staticElement;
-        staticModifier = true;
-      } else {
-        // prepare target interface type
-        DartType targetType = target.staticType;
-        if (targetType is! InterfaceType) {
-          return;
-        }
-        targetElement = targetType.element;
-        // maybe static
-        if (target is Identifier) {
-          Identifier targetIdentifier = target;
-          Element targetElement = targetIdentifier.staticElement;
-          staticModifier = targetElement?.kind == ElementKind.CLASS;
-        }
+      // prepare target interface type
+      DartType targetType = target.staticType;
+      if (targetType is! InterfaceType) {
+        return;
+      }
+      targetElement = targetType.element;
+      // maybe static
+      if (target is Identifier) {
+        Identifier targetIdentifier = target;
+        Element targetElement = targetIdentifier.staticElement;
+        staticModifier = targetElement?.kind == ElementKind.CLASS;
       }
     } else {
       targetElement =
@@ -2121,6 +2121,103 @@ class FixProcessor extends BaseProcessor {
     });
     _addFixFromBuilder(changeBuilder, DartFixKind.CREATE_LOCAL_VARIABLE,
         args: [name]);
+  }
+
+  Future<void> _addFix_createMethod() async {
+    if (node is! SimpleIdentifier || node.parent is! MethodInvocation) {
+      return;
+    }
+    String name = (node as SimpleIdentifier).name;
+    MethodInvocation invocation = node.parent as MethodInvocation;
+    // prepare environment
+    Element targetElement;
+    bool staticModifier = false;
+
+    CompilationUnitMember targetNode;
+    Expression target = invocation.realTarget;
+    CorrectionUtils utils = this.utils;
+    if (target is ExtensionOverride) {
+      targetElement = target.staticElement;
+      targetNode = await _getExtensionDeclaration(targetElement);
+      if (targetNode == null) {
+        return;
+      }
+    } else if (target is Identifier &&
+        target.staticElement is ExtensionElement) {
+      targetElement = target.staticElement;
+      targetNode = await _getExtensionDeclaration(targetElement);
+      if (targetNode == null) {
+        return;
+      }
+      staticModifier = true;
+    } else if (target == null) {
+      targetElement = unit.declaredElement;
+      ClassMember enclosingMember = node.thisOrAncestorOfType<ClassMember>();
+      if (enclosingMember == null) {
+        // If the undefined identifier isn't inside a class member, then it
+        // doesn't make sense to create a method.
+        return;
+      }
+      targetNode = enclosingMember.parent;
+      staticModifier = _inStaticContext();
+    } else {
+      // prepare target interface type
+      DartType targetType = target.staticType;
+      if (targetType is! InterfaceType) {
+        return;
+      }
+      ClassElement targetClassElement = targetType.element as ClassElement;
+      if (targetClassElement.librarySource.isInSystemLibrary) {
+        return;
+      }
+      targetElement = targetClassElement;
+      // prepare target ClassDeclaration
+      targetNode = await _getClassDeclaration(targetClassElement);
+      if (targetNode == null) {
+        return;
+      }
+      // maybe static
+      if (target is Identifier) {
+        staticModifier = target.staticElement.kind == ElementKind.CLASS;
+      }
+      // use different utils
+      var targetPath = targetClassElement.source.fullName;
+      var targetResolveResult = await session.getResolvedUnit(targetPath);
+      utils = CorrectionUtils(targetResolveResult);
+    }
+    ClassMemberLocation targetLocation =
+        utils.prepareNewMethodLocation(targetNode);
+    String targetFile = targetElement.source.fullName;
+    // build method source
+    var changeBuilder = _newDartChangeBuilder();
+    await changeBuilder.addFileEdit(targetFile, (DartFileEditBuilder builder) {
+      builder.addInsertion(targetLocation.offset, (DartEditBuilder builder) {
+        builder.write(targetLocation.prefix);
+        // maybe "static"
+        if (staticModifier) {
+          builder.write('static ');
+        }
+        // append return type
+        {
+          DartType type = _inferUndefinedExpressionType(invocation);
+          if (builder.writeType(type, groupName: 'RETURN_TYPE')) {
+            builder.write(' ');
+          }
+        }
+        // append name
+        builder.addLinkedEdit('NAME', (DartLinkedEditBuilder builder) {
+          builder.write(name);
+        });
+        builder.write('(');
+        builder.writeParametersMatchingArguments(invocation.argumentList);
+        builder.write(') {}');
+        builder.write(targetLocation.suffix);
+      });
+      if (targetFile == file) {
+        builder.addLinkedPosition(range.node(node), 'NAME');
+      }
+    });
+    _addFixFromBuilder(changeBuilder, DartFixKind.CREATE_METHOD, args: [name]);
   }
 
   Future<void> _addFix_createMissingOverrides() async {
@@ -3739,91 +3836,6 @@ class FixProcessor extends BaseProcessor {
     }
   }
 
-  Future<void> _addFix_undefinedMethod_create() async {
-    if (node is SimpleIdentifier && node.parent is MethodInvocation) {
-      String name = (node as SimpleIdentifier).name;
-      MethodInvocation invocation = node.parent as MethodInvocation;
-      // prepare environment
-      Element targetElement;
-      bool staticModifier = false;
-
-      ClassOrMixinDeclaration targetClassNode;
-      Expression target = invocation.realTarget;
-      CorrectionUtils utils = this.utils;
-      if (target == null) {
-        targetElement = unit.declaredElement;
-        ClassMember enclosingMember = node.thisOrAncestorOfType<ClassMember>();
-        if (enclosingMember == null) {
-          // If the undefined identifier isn't inside a class member, then it
-          // doesn't make sense to create a method.
-          return;
-        }
-        targetClassNode = enclosingMember.parent;
-        utils.targetClassElement = targetClassNode.declaredElement;
-        staticModifier = _inStaticContext();
-      } else {
-        // prepare target interface type
-        DartType targetType = target.staticType;
-        if (targetType is! InterfaceType) {
-          return;
-        }
-        ClassElement targetClassElement = targetType.element as ClassElement;
-        if (targetClassElement.librarySource.isInSystemLibrary) {
-          return;
-        }
-        targetElement = targetClassElement;
-        // prepare target ClassDeclaration
-        targetClassNode = await _getClassDeclaration(targetClassElement);
-        if (targetClassNode == null) {
-          return;
-        }
-        // maybe static
-        if (target is Identifier) {
-          staticModifier = target.staticElement.kind == ElementKind.CLASS;
-        }
-        // use different utils
-        var targetPath = targetClassElement.source.fullName;
-        var targetResolveResult = await session.getResolvedUnit(targetPath);
-        utils = CorrectionUtils(targetResolveResult);
-      }
-      ClassMemberLocation targetLocation =
-          utils.prepareNewMethodLocation(targetClassNode);
-      String targetFile = targetElement.source.fullName;
-      // build method source
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(targetFile,
-          (DartFileEditBuilder builder) {
-        builder.addInsertion(targetLocation.offset, (DartEditBuilder builder) {
-          builder.write(targetLocation.prefix);
-          // maybe "static"
-          if (staticModifier) {
-            builder.write('static ');
-          }
-          // append return type
-          {
-            DartType type = _inferUndefinedExpressionType(invocation);
-            if (builder.writeType(type, groupName: 'RETURN_TYPE')) {
-              builder.write(' ');
-            }
-          }
-          // append name
-          builder.addLinkedEdit('NAME', (DartLinkedEditBuilder builder) {
-            builder.write(name);
-          });
-          builder.write('(');
-          builder.writeParametersMatchingArguments(invocation.argumentList);
-          builder.write(') {}');
-          builder.write(targetLocation.suffix);
-        });
-        if (targetFile == file) {
-          builder.addLinkedPosition(range.node(node), 'NAME');
-        }
-      });
-      _addFixFromBuilder(changeBuilder, DartFixKind.CREATE_METHOD,
-          args: [name]);
-    }
-  }
-
   Future<void> _addFix_undefinedMethod_useSimilar() async {
     if (node.parent is MethodInvocation) {
       MethodInvocation invocation = node.parent as MethodInvocation;
@@ -4150,9 +4162,7 @@ class FixProcessor extends BaseProcessor {
     _addFixFromBuilder(changeBuilder, DartFixKind.CREATE_METHOD, args: [name]);
   }
 
-  /**
-   * Returns the [ClassOrMixinDeclaration] for the given [element].
-   */
+  /// Return the class, enum or mixin declaration for the given [element].
   Future<ClassOrMixinDeclaration> _getClassDeclaration(
       ClassElement element) async {
     var result = await sessionHelper.getElementDeclaration(element);
@@ -4191,6 +4201,16 @@ class FixProcessor extends BaseProcessor {
         }
         return null;
       }
+    }
+    return null;
+  }
+
+  /// Return the extension declaration for the given [element].
+  Future<ExtensionDeclaration> _getExtensionDeclaration(
+      ExtensionElement element) async {
+    var result = await sessionHelper.getElementDeclaration(element);
+    if (result.node is ExtensionDeclaration) {
+      return result.node;
     }
     return null;
   }

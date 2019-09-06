@@ -13,6 +13,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CreateMethodTest);
     defineReflectiveTests(CreateMethodMixinTest);
+    defineReflectiveTests(CreateMethodWithExtensionMethodsTest);
   });
 }
 
@@ -701,5 +702,84 @@ main() {
 }
 ''');
     await assertNoFix();
+  }
+}
+
+@reflectiveTest
+class CreateMethodWithExtensionMethodsTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.CREATE_METHOD;
+
+  void setUp() {
+    createAnalysisOptionsFile(experiments: ['extension-methods']);
+    super.setUp();
+  }
+
+  test_internal_instance() async {
+    await resolveTestUnit('''
+extension E on String {
+  int m() => n();
+}
+''');
+    await assertHasFix('''
+extension E on String {
+  int m() => n();
+
+  n() {}
+}
+''');
+  }
+
+  test_internal_static() async {
+    await resolveTestUnit('''
+extension E on String {
+  static int m() => n();
+}
+''');
+    await assertHasFix('''
+extension E on String {
+  static int m() => n();
+
+  static n() {}
+}
+''');
+  }
+
+  test_override() async {
+    await resolveTestUnit('''
+extension E on String {}
+
+void f() {
+  E('a').m();
+}
+''');
+    await assertHasFix('''
+extension E on String {
+  void m() {}
+}
+
+void f() {
+  E('a').m();
+}
+''');
+  }
+
+  test_static() async {
+    await resolveTestUnit('''
+extension E on String {}
+
+void f() {
+  E.m();
+}
+''');
+    await assertHasFix('''
+extension E on String {
+  static void m() {}
+}
+
+void f() {
+  E.m();
+}
+''');
   }
 }
