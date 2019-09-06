@@ -1280,6 +1280,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "removing the extends clause.");
 
   /**
+   * Parameters:
+   * 0: the name of the extension
+   */
+  static const CompileTimeErrorCode EXTENSION_AS_EXPRESSION =
+      const CompileTimeErrorCode('EXTENSION_AS_EXPRESSION',
+          "Extension '{0}' can't be used as an expression.",
+          correction: "Try replacing it with a valid expression.");
+
+  /**
    * It is for an extension to define a static member and an instance member
    * with the same base name.
    *

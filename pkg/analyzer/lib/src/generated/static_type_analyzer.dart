@@ -857,6 +857,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     Element staticElement = prefixedIdentifier.staticElement;
 
     if (staticElement is ExtensionElement) {
+      _setExtensionIdentifierType(node);
       return;
     }
 
@@ -1092,6 +1093,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     Element element = node.staticElement;
 
     if (element is ExtensionElement) {
+      _setExtensionIdentifierType(node);
       return;
     }
 
@@ -2040,6 +2042,40 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       expression.staticType = _dynamicType;
     } else {
       expression.staticType = type;
+    }
+  }
+
+  void _setExtensionIdentifierType(Identifier node) {
+    if (node is SimpleIdentifier && node.inDeclarationContext()) {
+      return;
+    }
+
+    var parent = node.parent;
+
+    if (parent is PrefixedIdentifier && parent.identifier == node) {
+      node = parent;
+      parent = node.parent;
+    }
+
+    if (parent is CommentReference ||
+        parent is ExtensionOverride && parent.extensionName == node ||
+        parent is MethodInvocation && parent.target == node ||
+        parent is PrefixedIdentifier && parent.prefix == node ||
+        parent is PropertyAccess && parent.target == node) {
+      return;
+    }
+
+    _resolver.errorReporter.reportErrorForNode(
+      CompileTimeErrorCode.EXTENSION_AS_EXPRESSION,
+      node,
+      [node.name],
+    );
+
+    if (node is PrefixedIdentifier) {
+      node.identifier.staticType = _dynamicType;
+      node.staticType = _dynamicType;
+    } else if (node is SimpleIdentifier) {
+      node.staticType = _dynamicType;
     }
   }
 

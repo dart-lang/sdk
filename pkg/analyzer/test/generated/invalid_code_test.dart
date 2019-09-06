@@ -4,7 +4,9 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/driver_resolution.dart';
@@ -16,6 +18,7 @@ main() {
     } else {
       defineReflectiveTests(InvalidCodeTest);
     }
+    defineReflectiveTests(InvalidCodeWithExtensionMethodsTest);
   });
 }
 
@@ -209,6 +212,32 @@ class C {
     await _assertCanBeAnalyzed('''
 class C {
   C() : this = 0;
+}
+''');
+  }
+
+  Future<void> _assertCanBeAnalyzed(String text) async {
+    addTestFile(text);
+    await resolveTestFile();
+    assertHasTestErrors();
+  }
+}
+
+@reflectiveTest
+class InvalidCodeWithExtensionMethodsTest extends DriverResolutionTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = new FeatureSet.forTesting(
+        sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
+
+  @failingTest
+  test_fuzz_14() async {
+    // This crashes because parser produces `ConstructorDeclaration`.
+    // So, we try to create `ConstructorElement` for it, and it wants
+    // `ClassElement` as the enclosing element. But we have `ExtensionElement`.
+    await _assertCanBeAnalyzed(r'''
+extension E {
+  factory S() {}
 }
 ''');
   }

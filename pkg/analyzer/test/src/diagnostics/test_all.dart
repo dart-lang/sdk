@@ -65,6 +65,7 @@ import 'export_suplicated_library_named_test.dart'
     as export_suplicated_library_named;
 import 'expression_in_map_test.dart' as expression_in_map;
 import 'extends_non_class_test.dart' as extends_non_class;
+import 'extension_as_expression_test.dart' as extension_as_expression;
 import 'extension_conflicting_static_and_instance_test.dart'
     as extension_conflicting_static_and_instance;
 import 'extension_declares_abstract_method_test.dart'
@@ -353,6 +354,7 @@ main() {
     export_suplicated_library_named.main();
     expression_in_map.main();
     extends_non_class.main();
+    extension_as_expression.main();
     extension_conflicting_static_and_instance.main();
     extension_declares_abstract_method.main();
     extension_declares_constructor.main();
