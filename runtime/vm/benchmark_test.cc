@@ -547,7 +547,8 @@ static void BenchmarkSnapshotSize(Benchmark* benchmark, const char* script) {
   const Snapshot* snapshot =
       Snapshot::SetupFromBuffer(isolate_snapshot_data_buffer);
   ASSERT(snapshot->kind() == Snapshot::kFull);
-  benchmark->set_score(snapshot->length());
+  benchmark->set_score(writer.IsolateSnapshotSize() +
+                       isolate_image_writer.data_size());
 
   free(vm_snapshot_data_buffer);
   free(vm_snapshot_text_buffer);
