@@ -82,10 +82,8 @@ class Mapping {
 class LibraryIndex {
  public:
   // |kernel_data| is the kernel data for one library alone.
-  // binary_version can be -1 in which case some parts of the index might not
-  // be read.
   explicit LibraryIndex(const ExternalTypedData& kernel_data,
-                        int32_t binary_version);
+                        uint32_t binary_version);
 
   intptr_t class_count() const { return class_count_; }
   intptr_t procedure_count() const { return procedure_count_; }
@@ -118,7 +116,7 @@ class LibraryIndex {
 
  private:
   Reader reader_;
-  int32_t binary_version_;
+  uint32_t binary_version_;
   intptr_t source_references_offset_;
   intptr_t class_index_offset_;
   intptr_t class_count_;
@@ -196,6 +194,9 @@ class KernelLoader : public ValueObject {
   // was no main procedure, or a failure object if there was an error.
   RawObject* LoadProgram(bool process_pending_classes = true);
 
+  // Load given library.
+  void LoadLibrary(const Library& library);
+
   // Returns the function which will evaluate the expression, or a failure
   // object if there was an error.
   RawObject* LoadExpressionEvaluationFunction(const String& library_url,
@@ -219,8 +220,6 @@ class KernelLoader : public ValueObject {
                                         intptr_t kernel_buffer_length,
                                         const String& url);
 
-  RawLibrary* LoadLibrary(intptr_t index);
-
   void FinishTopLevelClassLoading(const Class& toplevel_class,
                                   const Library& library,
                                   const LibraryIndex& library_index);
@@ -228,8 +227,6 @@ class KernelLoader : public ValueObject {
   static void FinishLoading(const Class& klass);
 
   void ReadObfuscationProhibitions();
-
-  const Array& ReadConstantTable();
 
   // Check for the presence of a (possibly const) constructor for the
   // 'ExternalName' class. If found, returns the name parameter to the
@@ -242,11 +239,13 @@ class KernelLoader : public ValueObject {
 
   bool IsClassName(NameIndex name, const String& library, const String& klass);
 
-  void AnnotateNativeProcedures(const Array& constant_table);
-  void LoadNativeExtensionLibraries(const Array& constant_table);
+  void AnnotateNativeProcedures();
+  void LoadNativeExtensionLibraries();
+  void LoadNativeExtension(const Library& library, const String& uri_path);
   void EvaluateDelayedPragmas();
 
-  void ReadVMAnnotations(intptr_t annotation_count,
+  void ReadVMAnnotations(const Library& library,
+                         intptr_t annotation_count,
                          String* native_name,
                          bool* is_potential_native,
                          bool* has_pragma_annotation);
@@ -257,6 +256,17 @@ class KernelLoader : public ValueObject {
   const String& DartSymbolObfuscate(StringIndex index) {
     return translation_helper_.DartSymbolObfuscate(index);
   }
+
+ private:
+  KernelLoader(const Script& script,
+               const ExternalTypedData& kernel_data,
+               intptr_t data_program_offset,
+               uint32_t kernel_binary_version);
+
+  void InitializeFields(
+      DirectChainedHashMap<UriToSourceTableTrait>* uri_to_source_table);
+
+  RawLibrary* LoadLibrary(intptr_t index);
 
   const String& LibraryUri(intptr_t library_index) {
     return translation_helper_.DartSymbolPlain(
@@ -278,21 +288,17 @@ class KernelLoader : public ValueObject {
     reader.set_offset(library_offset(index));
 
     // Start reading library.
+    // Note that this needs to be keep in sync with LibraryHelper.
     reader.ReadFlags();
+    if (program_->binary_version() >= 27) {
+      reader.ReadUInt();  // Read major language version.
+      reader.ReadUInt();  // Read minor language version.
+    }
     return reader.ReadCanonicalNameReference();
   }
 
   uint8_t CharacterAt(StringIndex string_index, intptr_t index);
 
- private:
-  friend class BuildingTranslationHelper;
-
-  KernelLoader(const Script& script,
-               const ExternalTypedData& kernel_data,
-               intptr_t data_program_offset);
-
-  void InitializeFields(
-      DirectChainedHashMap<UriToSourceTableTrait>* uri_to_source_table);
   static void index_programs(kernel::Reader* reader,
                              GrowableArray<intptr_t>* subprogram_file_starts);
   void walk_incremental_kernel(BitVector* modified_libs,
@@ -359,9 +365,10 @@ class KernelLoader : public ValueObject {
           Library::Handle(zone_, dart::Library::InternalLibrary());
       external_name_class_ = internal_lib.LookupClass(Symbols::ExternalName());
       external_name_field_ = external_name_class_.LookupField(Symbols::name());
-    } else {
-      ASSERT(!external_name_field_.IsNull());
     }
+    ASSERT(!external_name_class_.IsNull());
+    ASSERT(!external_name_field_.IsNull());
+    ASSERT(external_name_class_.is_declaration_loaded());
   }
 
   void EnsurePragmaClassIsLookedUp() {
@@ -369,8 +376,9 @@ class KernelLoader : public ValueObject {
       const Library& core_lib =
           Library::Handle(zone_, dart::Library::CoreLibrary());
       pragma_class_ = core_lib.LookupLocalClass(Symbols::Pragma());
-      ASSERT(!pragma_class_.IsNull());
     }
+    ASSERT(!pragma_class_.IsNull());
+    ASSERT(pragma_class_.is_declaration_loaded());
   }
 
   void EnsurePotentialNatives() {
@@ -388,12 +396,6 @@ class KernelLoader : public ValueObject {
         translation_helper_.EnsurePotentialPragmaFunctions();
   }
 
-  void EnsurePotentialExtensionLibraries() {
-    if (potential_extension_libraries_.IsNull()) {
-      potential_extension_libraries_ = GrowableObjectArray::New();
-    }
-  }
-
   Program* program_;
 
   Thread* thread_;
@@ -404,6 +406,7 @@ class KernelLoader : public ValueObject {
   // This is the offset of the current library within
   // the whole kernel program.
   intptr_t library_kernel_offset_;
+  uint32_t kernel_binary_version_;
   // This is the offset by which offsets, which are set relative
   // to their library's kernel data, have to be corrected.
   intptr_t correction_offset_;
@@ -423,7 +426,6 @@ class KernelLoader : public ValueObject {
   Field& external_name_field_;
   GrowableObjectArray& potential_natives_;
   GrowableObjectArray& potential_pragma_functions_;
-  GrowableObjectArray& potential_extension_libraries_;
 
   Class& pragma_class_;
 
@@ -450,14 +452,17 @@ class KernelLoader : public ValueObject {
   //      |> procedure ":Eval"
   //
   // See
-  //   * pkg/front_end/lib/src/fasta/incremental_compiler.dart:compileExpression
-  //   * pkg/front_end/lib/src/fasta/kernel/utils.dart:serializeProcedure
+  //   * pkg/front_end/lib/src/fasta/incremental_compiler.dart,
+  //       compileExpression
+  //   * pkg/front_end/lib/src/fasta/kernel/utils.dart,
+  //       createExpressionEvaluationComponent
   //
   Library& expression_evaluation_library_;
-  Function& expression_evaluation_function_;
 
   GrowableArray<const Function*> functions_;
   GrowableArray<const Field*> fields_;
+
+  friend class BuildingTranslationHelper;
 
   DISALLOW_COPY_AND_ASSIGN(KernelLoader);
 };

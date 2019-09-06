@@ -11,6 +11,7 @@ import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
 import '../elements/entities.dart';
 import '../js_backend/inferred_data.dart';
+import '../js_model/element_map.dart';
 import '../inferrer/type_graph_inferrer.dart' show TypeGraphInferrer;
 import '../serialization/serialization.dart';
 import '../universe/selector.dart' show Selector;
@@ -30,12 +31,13 @@ import '../inferrer/inferrer_engine.dart';
 /// based queries (the runtime value could be anything).
 abstract class GlobalTypeInferenceMemberResult {
   /// Deserializes a [GlobalTypeInferenceMemberResult] object from [source].
-  factory GlobalTypeInferenceMemberResult.readFromDataSource(
-          DataSource source, AbstractValueDomain abstractValueDomain) =
+  factory GlobalTypeInferenceMemberResult.readFromDataSource(DataSource source,
+          ir.Member context, AbstractValueDomain abstractValueDomain) =
       GlobalTypeInferenceMemberResultImpl.readFromDataSource;
 
   /// Serializes this [GlobalTypeInferenceMemberResult] to [sink].
-  void writeToDataSink(DataSink sink, AbstractValueDomain abstractValueDomain);
+  void writeToDataSink(DataSink sink, ir.Member context,
+      AbstractValueDomain abstractValueDomain);
 
   /// The inferred type when this result belongs to a field, null otherwise.
   AbstractValue get type;
@@ -72,12 +74,13 @@ abstract class GlobalTypeInferenceMemberResult {
 /// a single element.
 abstract class GlobalTypeInferenceElementData {
   /// Deserializes a [GlobalTypeInferenceElementData] object from [source].
-  factory GlobalTypeInferenceElementData.readFromDataSource(
-          DataSource source, AbstractValueDomain abstractValueDomain) =
+  factory GlobalTypeInferenceElementData.readFromDataSource(DataSource source,
+          ir.Member context, AbstractValueDomain abstractValueDomain) =
       KernelGlobalTypeInferenceElementData.readFromDataSource;
 
   /// Serializes this [GlobalTypeInferenceElementData] to [sink].
-  void writeToDataSink(DataSink sink, AbstractValueDomain abstractValueDomain);
+  void writeToDataSink(DataSink sink, ir.Member context,
+      AbstractValueDomain abstractValueDomain);
 
   /// Compresses the inner representation by removing [AbstractValue] mappings
   /// to `null`. Returns the data object itself or `null` if the data object
@@ -109,17 +112,20 @@ abstract class TypesInferrer {
 abstract class GlobalTypeInferenceResults {
   /// Deserializes a [GlobalTypeInferenceResults] object from [source].
   factory GlobalTypeInferenceResults.readFromDataSource(
-      DataSource source, JClosedWorld closedWorld, InferredData inferredData) {
+      DataSource source,
+      JsToElementMap elementMap,
+      JClosedWorld closedWorld,
+      InferredData inferredData) {
     bool isTrivial = source.readBool();
     if (isTrivial) {
       return new TrivialGlobalTypeInferenceResults(closedWorld);
     }
     return new GlobalTypeInferenceResultsImpl.readFromDataSource(
-        source, closedWorld, inferredData);
+        source, elementMap, closedWorld, inferredData);
   }
 
   /// Serializes this [GlobalTypeInferenceResults] to [sink].
-  void writeToDataSink(DataSink sink);
+  void writeToDataSink(DataSink sink, JsToElementMap elementMap);
 
   JClosedWorld get closedWorld;
 
@@ -217,12 +223,17 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
         _trivialParameterResult = closedWorld.abstractValueDomain.dynamicType;
 
   factory GlobalTypeInferenceResultsImpl.readFromDataSource(
-      DataSource source, JClosedWorld closedWorld, InferredData inferredData) {
+      DataSource source,
+      JsToElementMap elementMap,
+      JClosedWorld closedWorld,
+      InferredData inferredData) {
     source.begin(tag);
     Map<MemberEntity, GlobalTypeInferenceMemberResult> memberResults =
-        source.readMemberMap(() =>
+        source.readMemberMap((MemberEntity member) =>
             new GlobalTypeInferenceMemberResult.readFromDataSource(
-                source, closedWorld.abstractValueDomain));
+                source,
+                elementMap.getMemberContextNode(member),
+                closedWorld.abstractValueDomain));
     Map<Local, AbstractValue> parameterResults = source.readLocalMap(() =>
         closedWorld.abstractValueDomain
             .readAbstractValueFromDataSource(source));
@@ -244,13 +255,16 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
   }
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSink sink, JsToElementMap elementMap) {
     sink.writeBool(false); // Is _not_ trivial.
     sink.begin(tag);
     sink.writeMemberMap(
         memberResults,
-        (GlobalTypeInferenceMemberResult result) =>
-            result.writeToDataSink(sink, closedWorld.abstractValueDomain));
+        (MemberEntity member, GlobalTypeInferenceMemberResult result) =>
+            result.writeToDataSink(
+                sink,
+                elementMap.getMemberContextNode(member),
+                closedWorld.abstractValueDomain));
     sink.writeLocalMap(
         parameterResults,
         (AbstractValue value) => closedWorld.abstractValueDomain
@@ -395,11 +409,13 @@ class GlobalTypeInferenceMemberResultImpl
       {this.throwsAlways, this.isCalledOnce});
 
   factory GlobalTypeInferenceMemberResultImpl.readFromDataSource(
-      DataSource source, AbstractValueDomain abstractValueDomain) {
+      DataSource source,
+      ir.Member context,
+      AbstractValueDomain abstractValueDomain) {
     source.begin(tag);
     GlobalTypeInferenceElementData data = source.readValueOrNull(() {
       return new GlobalTypeInferenceElementData.readFromDataSource(
-          source, abstractValueDomain);
+          source, context, abstractValueDomain);
     });
     AbstractValue returnType =
         abstractValueDomain.readAbstractValueFromDataSource(source);
@@ -413,10 +429,11 @@ class GlobalTypeInferenceMemberResultImpl
   }
 
   @override
-  void writeToDataSink(DataSink sink, AbstractValueDomain abstractValueDomain) {
+  void writeToDataSink(DataSink sink, ir.Member context,
+      AbstractValueDomain abstractValueDomain) {
     sink.begin(tag);
     sink.writeValueOrNull(_data, (GlobalTypeInferenceElementData data) {
-      data.writeToDataSink(sink, abstractValueDomain);
+      data.writeToDataSink(sink, context, abstractValueDomain);
     });
     abstractValueDomain.writeAbstractValueToDataSink(sink, returnType);
     abstractValueDomain.writeAbstractValueToDataSink(sink, type);
@@ -453,7 +470,7 @@ class TrivialGlobalTypeInferenceResults implements GlobalTypeInferenceResults {
         _trivialParameterResult = closedWorld.abstractValueDomain.dynamicType;
 
   @override
-  void writeToDataSink(DataSink sink) {
+  void writeToDataSink(DataSink sink, JsToElementMap elementMap) {
     sink.writeBool(true); // Is trivial.
   }
 
@@ -516,7 +533,8 @@ class TrivialGlobalTypeInferenceMemberResult
   bool get isCalledOnce => false;
 
   @override
-  void writeToDataSink(DataSink sink, AbstractValueDomain abstractValueDomain) {
+  void writeToDataSink(DataSink sink, ir.Member context,
+      AbstractValueDomain abstractValueDomain) {
     throw new UnsupportedError(
         "TrivialGlobalTypeInferenceMemberResult.writeToDataSink");
   }
@@ -559,7 +577,8 @@ class DeadFieldGlobalTypeInferenceResult
   bool get isCalledOnce => false;
 
   @override
-  void writeToDataSink(DataSink sink, AbstractValueDomain abstractValueDomain) {
+  void writeToDataSink(DataSink sink, ir.Member context,
+      AbstractValueDomain abstractValueDomain) {
     throw new UnsupportedError(
         "DeadFieldGlobalTypeInferenceResult.writeToDataSink");
   }
@@ -602,7 +621,8 @@ class DeadMethodGlobalTypeInferenceResult
   bool get isCalledOnce => false;
 
   @override
-  void writeToDataSink(DataSink sink, AbstractValueDomain abstractValueDomain) {
+  void writeToDataSink(DataSink sink, ir.Member context,
+      AbstractValueDomain abstractValueDomain) {
     throw new UnsupportedError(
         "DeadFieldGlobalTypeInferenceResult.writeToDataSink");
   }

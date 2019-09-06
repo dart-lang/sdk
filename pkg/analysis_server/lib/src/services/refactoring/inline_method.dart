@@ -10,6 +10,7 @@ import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
+import 'package:analysis_server/src/services/refactoring/visible_ranges_computer.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -156,13 +157,12 @@ Set<String> _getNamesConflictingAt(AstNode node) {
   {
     SourceRange localsRange = _getLocalsConflictingRange(node);
     AstNode enclosingExecutable = getEnclosingExecutableNode(node);
-    List<LocalElement> elements = getDefinedLocalElements(enclosingExecutable);
-    for (LocalElement element in elements) {
-      SourceRange elementRange = element.visibleRange;
-      if (elementRange != null && elementRange.intersects(localsRange)) {
+    var visibleRangeMap = VisibleRangesComputer.forNode(enclosingExecutable);
+    visibleRangeMap.forEach((element, elementRange) {
+      if (elementRange.intersects(localsRange)) {
         result.add(element.displayName);
       }
-    }
+    });
   }
   // fields
   {
@@ -388,7 +388,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     } else if (_methodBody is BlockFunctionBody) {
       Block body = (_methodBody as BlockFunctionBody).block;
       List<Statement> statements = body.statements;
-      if (statements.length >= 1) {
+      if (statements.isNotEmpty) {
         Statement lastStatement = statements[statements.length - 1];
         // "return" statement requires special handling
         if (lastStatement is ReturnStatement) {
@@ -399,7 +399,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
           statements = statements.sublist(0, statements.length - 1);
         }
         // if there are statements, process them
-        if (!statements.isEmpty) {
+        if (statements.isNotEmpty) {
           SourceRange statementsRange =
               _methodUtils.getLinesRangeStatements(statements);
           _methodStatementsPart = _createSourcePart(statementsRange);

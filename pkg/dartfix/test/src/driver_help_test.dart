@@ -10,9 +10,9 @@ import 'test_context.dart';
 
 main() {
   test('help explicit', () async {
-    final driver = new Driver();
-    final testContext = new TestContext();
-    final testLogger = new TestLogger();
+    final driver = Driver();
+    final testContext = TestContext();
+    final testLogger = TestLogger();
     try {
       await driver.start(
         ['--help'], // display help and list fixes
@@ -26,15 +26,15 @@ main() {
     final errText = testLogger.stderrBuffer.toString();
     final outText = testLogger.stdoutBuffer.toString();
     expect(errText, isEmpty);
-    expect(outText, contains('--$excludeOption'));
+    expect(outText, contains('--$excludeFixOption'));
     expect(outText, isNot(contains('Use --help to display the fixes')));
     expect(outText, contains('use-mixin'));
   });
 
   test('help implicit', () async {
-    final driver = new Driver();
-    final testContext = new TestContext();
-    final testLogger = new TestLogger();
+    final driver = Driver();
+    final testContext = TestContext();
+    final testLogger = TestLogger();
     try {
       await driver.start(
         [], // no options or arguments should display help and list fixes
@@ -50,7 +50,7 @@ main() {
     print(errText);
     print(outText);
     expect(errText, isEmpty);
-    expect(outText, contains('--$excludeOption'));
+    expect(outText, contains('--$excludeFixOption'));
     expect(outText, isNot(contains('Use --help to display the fixes')));
     expect(outText, contains('use-mixin'));
   });

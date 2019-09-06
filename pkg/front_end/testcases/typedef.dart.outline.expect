@@ -1,8 +1,0 @@
-library;
-import self as self;
-
-typedef _NullaryFunction = () → dynamic;
-typedef _UnaryFunction = (dynamic) → dynamic;
-typedef _BinaryFunction = (dynamic, dynamic) → dynamic;
-static method main() → dynamic
-  ;

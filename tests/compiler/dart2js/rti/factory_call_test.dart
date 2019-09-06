@@ -6,8 +6,9 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/js_backend/runtime_types.dart';
+import 'package:compiler/src/js_backend/runtime_types_resolution.dart';
 import 'package:compiler/src/js_emitter/model.dart';
+import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:compiler/src/js/js.dart' as js;
 import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
@@ -40,13 +41,14 @@ main() {
         await runCompiler(memorySourceFiles: {'main.dart': code});
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
+    JsBackendStrategy backendStrategy = compiler.backendStrategy;
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     RuntimeTypesNeed rtiNeed = closedWorld.rtiNeed;
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
-    ProgramLookup programLookup = new ProgramLookup(compiler);
+    ProgramLookup programLookup = new ProgramLookup(backendStrategy);
 
     js.Name getName(String name) {
-      return compiler.backend.namerForTesting
+      return backendStrategy.namerForTesting
           .globalPropertyNameForMember(lookupMember(elementEnvironment, name));
     }
 

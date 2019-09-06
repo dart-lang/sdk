@@ -4,7 +4,7 @@
 
 import "dart:ffi";
 
-import "../ffi/cstring.dart";
+import "../ffi/utf8.dart";
 
 /// Database Connection Handle
 ///
@@ -15,7 +15,7 @@ import "../ffi/cstring.dart";
 /// is its destructor.  There are many other interfaces (such as
 /// [sqlite3_prepare_v2()], [sqlite3_create_function()], and
 /// [sqlite3_busy_timeout()] to name but three) that are methods on an
-class DatabasePointer extends Pointer<Void> {}
+class Database extends Struct<Database> {}
 
 /// SQL Statement Object
 ///
@@ -38,7 +38,7 @@ class DatabasePointer extends Pointer<Void> {}
 ///
 /// Refer to documentation on individual methods above for additional
 /// information.
-class StatementPointer extends Pointer<Void> {}
+class Statement extends Struct<Statement> {}
 
 /// Dynamically Typed Value Object
 ///
@@ -74,4 +74,4 @@ class StatementPointer extends Pointer<Void> {}
 /// [sqlite3_result_value()] and [sqlite3_bind_value()].
 /// The [sqlite3_value_blob | sqlite3_value_type()] family of
 /// interfaces require protected sqlite3_value objects.
-class ValuePointer extends Pointer<Void> {}
+class Value extends Struct<Value> {}

@@ -233,6 +233,8 @@ class Precompiler : public ValueObject {
     return &global_object_pool_builder_;
   }
 
+  void* il_serialization_stream() const { return il_serialization_stream_; }
+
   static Precompiler* Instance() { return singleton_; }
 
  private:
@@ -279,8 +281,13 @@ class Precompiler : public ValueObject {
   void DropClasses();
   void DropLibraries();
 
+  // Remove the indirection of the CallStaticFunction stub from all static call
+  // sites now that Code is available for all call targets. Allows for dropping
+  // the static call table from each Code object.
   void BindStaticCalls();
-  void SwitchICCalls();
+  // Deduplicate the UnlinkedCall objects in all ObjectPools to reduce snapshot
+  // size.
+  void DedupUnlinkedCalls();
 
   void Obfuscate();
 
@@ -290,6 +297,10 @@ class Precompiler : public ValueObject {
   void PrecompileConstructors();
 
   void FinalizeAllClasses();
+
+  void set_il_serialization_stream(void* file) {
+    il_serialization_stream_ = file;
+  }
 
   Thread* thread() const { return thread_; }
   Zone* zone() const { return zone_; }
@@ -325,6 +336,7 @@ class Precompiler : public ValueObject {
   Error& error_;
 
   bool get_runtime_type_is_unique_;
+  void* il_serialization_stream_;
 };
 
 class FunctionsTraits {

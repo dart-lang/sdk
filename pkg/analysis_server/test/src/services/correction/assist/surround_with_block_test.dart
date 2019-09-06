@@ -19,6 +19,18 @@ class SurroundWithBlockTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.SURROUND_WITH_BLOCK;
 
+  test_notStatementInBlock() async {
+    await resolveTestUnit('''
+main() {
+  while (true)
+// start
+    print(0);
+// end
+}
+''');
+    await assertNoAssist();
+  }
+
   test_twoStatements() async {
     await resolveTestUnit('''
 main() {

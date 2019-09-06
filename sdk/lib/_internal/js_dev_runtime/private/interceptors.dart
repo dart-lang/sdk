@@ -20,7 +20,7 @@ abstract class Interceptor {
   const Interceptor();
 
   // Use native JS toString method instead of standard Dart Object.toString.
-  String toString() => JS('String', '#.toString()', this);
+  String toString() => JS<String>('!', '#.toString()', this);
 }
 
 // TODO(jmesserly): remove
@@ -35,7 +35,7 @@ class JSBool extends Interceptor implements bool {
 
   // Note: if you change this, also change the function [S].
   @notNull
-  String toString() => JS('String', r'String(#)', this);
+  String toString() => JS<String>('!', r'String(#)', this);
 
   // The values here are SMIs, co-prime and differ about half of the bit
   // positions, including the low bit, so they are different mod 2^k.
@@ -43,10 +43,12 @@ class JSBool extends Interceptor implements bool {
   int get hashCode => this ? (2 * 3 * 23 * 3761) : (269 * 811);
 
   @notNull
-  bool operator &(@nullCheck bool other) => JS('bool', "# && #", other, this);
+  bool operator &(@nullCheck bool other) =>
+      JS<bool>('!', "# && #", other, this);
 
   @notNull
-  bool operator |(@nullCheck bool other) => JS('bool', "# || #", other, this);
+  bool operator |(@nullCheck bool other) =>
+      JS<bool>('!', "# || #", other, this);
 
   @notNull
   bool operator ^(@nullCheck bool other) => !identical(this, other);
@@ -102,11 +104,11 @@ class PlainJavaScriptObject extends JavaScriptObject {
 class UnknownJavaScriptObject extends JavaScriptObject {
   const UnknownJavaScriptObject();
 
-  String toString() => JS('String', 'String(#)', this);
+  String toString() => JS<String>('!', 'String(#)', this);
 }
 
 class NativeError extends Interceptor {
-  String dartStack() => JS('String', '#.stack', this);
+  String dartStack() => JS<String>('!', '#.stack', this);
 }
 
 // Note that this needs to be in interceptors.dart in order for
@@ -153,7 +155,7 @@ class JSNoSuchMethodError extends NativeError implements NoSuchMethodError {
     var name = _fieldName(message);
     if (name == null) {
       // Not a Null NSM error: fallback to JS.
-      return JS('String', '#.toString()', this);
+      return JS<String>('!', '#.toString()', this);
     }
     return "NoSuchMethodError: invalid member on null: '$name'";
   }
@@ -169,7 +171,7 @@ class JSFunction extends Interceptor {
     // exposed to Dart code via JS interop or debugging tools.
     if (dart.isType(this)) return dart.typeName(this);
 
-    return JS('String', r'"Closure: " + # + " from: " + #',
+    return JS<String>('!', r'"Closure: " + # + " from: " + #',
         dart.typeName(dart.getReifiedType(this)), this);
   }
 
@@ -177,7 +179,7 @@ class JSFunction extends Interceptor {
   operator ==(other) {
     if (other == null) return false;
     var boundObj = JS<Object>('', '#._boundObject', this);
-    if (boundObj == null) return JS('bool', '# === #', this, other);
+    if (boundObj == null) return JS<bool>('!', '# === #', this, other);
     return JS(
         'bool',
         '# === #._boundObject && #._boundMethod === #._boundMethod',
@@ -215,7 +217,7 @@ class JSRangeError extends Interceptor implements ArgumentError {
 
   get invalidValue => null;
   get name => null;
-  get message => JS('String', '#.message', this);
+  get message => JS<String>('!', '#.message', this);
 
   String toString() => "Invalid argument: $message";
 }

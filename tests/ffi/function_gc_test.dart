@@ -4,6 +4,8 @@
 //
 // VMOptions=--deterministic --optimization-counter-threshold=500 --enable-testing-pragmas
 // VMOptions=--deterministic --optimization-counter-threshold=-1 --enable-testing-pragmas
+// VMOptions=--deterministic --optimization-counter-threshold=500 --enable-testing-pragmas --no-dual-map-code --write-protect-code
+// VMOptions=--deterministic --optimization-counter-threshold=-1 --enable-testing-pragmas --no-dual-map-code --write-protect-code
 //
 // Dart test program for stress-testing boxing and GC in return paths from FFI
 // trampolines.
@@ -16,6 +18,7 @@
 import 'dart:ffi' as ffi;
 import 'dylib_utils.dart';
 import "package:expect/expect.dart";
+import 'ffi_test_helpers.dart';
 
 main() async {
   testBoxInt64();
@@ -23,23 +26,33 @@ main() async {
   testBoxDouble();
   testBoxPointer();
   testAllocateInNative();
-  testAllocateInDart();
+  testRegress37069();
+  testWriteProtection();
 }
-
-ffi.DynamicLibrary ffiTestFunctions =
-    dlopenPlatformSpecific("ffi_test_functions");
 
 typedef NativeNullaryOp64 = ffi.Int64 Function();
 typedef NativeNullaryOp32 = ffi.Int32 Function();
 typedef NativeNullaryOpDouble = ffi.Double Function();
 typedef NativeNullaryOpPtr = ffi.Pointer<ffi.Void> Function();
-typedef NativeNullaryOp = ffi.Void Function();
 typedef NativeUnaryOp = ffi.Void Function(ffi.Uint64);
+typedef NativeUndenaryOp = ffi.Uint64 Function(
+    ffi.Uint64,
+    ffi.Uint64,
+    ffi.Uint64,
+    ffi.Uint64,
+    ffi.Uint64,
+    ffi.Uint64,
+    ffi.Uint64,
+    ffi.Uint64,
+    ffi.Uint64,
+    ffi.Uint64,
+    ffi.Uint64);
 typedef NullaryOp = int Function();
 typedef NullaryOpDbl = double Function();
 typedef NullaryOpPtr = ffi.Pointer<ffi.Void> Function();
 typedef UnaryOp = void Function(int);
-typedef NullaryOpVoid = void Function();
+typedef UndenaryOp = int Function(
+    int, int, int, int, int, int, int, int, int, int, int);
 
 //// These functions return values that require boxing into different types.
 
@@ -82,19 +95,28 @@ void testBoxPointer() {
   }
 }
 
-final triggerGc = ffiTestFunctions
-    .lookupFunction<NativeNullaryOp, NullaryOpVoid>("TriggerGC");
-
 // Test GC in the FFI call path by calling a C function which triggers GC
 // directly.
 void testAllocateInNative() => triggerGc();
 
-@pragma("vm:entry-point", "call")
-void testAllocationsInDartHelper() => triggerGc();
+// This also works as a regression test for 37176.
 
-final allocateThroughDart = ffiTestFunctions
-    .lookupFunction<NativeNullaryOp, NullaryOpVoid>("AllocateThroughDart");
+final regress37069 = ffiTestFunctions
+    .lookupFunction<NativeUndenaryOp, UndenaryOp>("Regress37069");
 
-// Test GC in the FFI call path by calling a C function which allocates by
-// calling back into Dart ('testAllocationsInDartHelper').
-void testAllocateInDart() => allocateThroughDart();
+// Test GC in the FFI call path by calling a C function which triggers GC
+// directly.
+void testRegress37069() {
+  regress37069(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+}
+
+final unprotectCode = ffiTestFunctions.lookupFunction<
+    ffi.Pointer<ffi.Void> Function(),
+    ffi.Pointer<ffi.Void> Function()>("UnprotectCode");
+final waitForHelper = ffiTestFunctions.lookupFunction<
+    ffi.Void Function(ffi.Pointer<ffi.Void>),
+    void Function(ffi.Pointer<ffi.Void>)>("WaitForHelper");
+
+void testWriteProtection() {
+  waitForHelper(unprotectCode());
+}

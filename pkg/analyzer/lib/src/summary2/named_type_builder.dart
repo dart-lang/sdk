@@ -82,6 +82,8 @@ class NamedTypeBuilder extends TypeBuilder {
         var substitution = Substitution.fromPairs(parameters, arguments);
         _type = substitution.substituteType(rawType);
       }
+    } else if (element is NeverElementImpl) {
+      _type = element.type.withNullability(nullabilitySuffix);
     } else if (element is TypeParameterElement) {
       _type = TypeParameterTypeImpl(element);
     } else {
@@ -134,6 +136,8 @@ class NamedTypeBuilder extends TypeBuilder {
       return _buildFormalParameterType(node.parameter);
     } else if (node is FunctionTypedFormalParameter) {
       return _buildFunctionType(
+        null,
+        null,
         node.typeParameters,
         node.returnType,
         node.parameters,
@@ -146,20 +150,14 @@ class NamedTypeBuilder extends TypeBuilder {
   }
 
   FunctionType _buildFunctionType(
+    GenericTypeAliasElement typedefElement,
+    List<DartType> typedefTypeParameterTypes,
     TypeParameterList typeParameterList,
     TypeAnnotation returnTypeNode,
     FormalParameterList parameterList,
   ) {
     var returnType = _buildNodeType(returnTypeNode);
-
-    List<TypeParameterElement> typeParameters;
-    if (typeParameterList != null) {
-      typeParameters = typeParameterList.typeParameters
-          .map<TypeParameterElement>((p) => p.declaredElement)
-          .toList();
-    } else {
-      typeParameters = const <TypeParameterElement>[];
-    }
+    var typeParameters = _typeParameters(typeParameterList);
 
     var formalParameters = parameterList.parameters.map((parameter) {
       return ParameterElementImpl.synthetic(
@@ -174,6 +172,8 @@ class NamedTypeBuilder extends TypeBuilder {
       returnType,
       typeParameters,
       formalParameters,
+      element: typedefElement,
+      typeArguments: typedefTypeParameterTypes,
     );
   }
 
@@ -210,6 +210,8 @@ class NamedTypeBuilder extends TypeBuilder {
     var typedefNode = element.linkedNode;
     if (typedefNode is FunctionTypeAlias) {
       return _buildFunctionType(
+        element,
+        _typeParameterTypes(typedefNode.typeParameters),
         null,
         typedefNode.returnType,
         typedefNode.parameters,
@@ -218,6 +220,8 @@ class NamedTypeBuilder extends TypeBuilder {
       var functionNode = typedefNode.functionType;
       if (functionNode != null) {
         return _buildFunctionType(
+          element,
+          _typeParameterTypes(typedefNode.typeParameters),
           functionNode.typeParameters,
           functionNode.returnType,
           functionNode.parameters,
@@ -232,5 +236,20 @@ class NamedTypeBuilder extends TypeBuilder {
 
   static List<DartType> _listOfDynamic(int length) {
     return List<DartType>.filled(length, _dynamicType);
+  }
+
+  static List<TypeParameterElement> _typeParameters(TypeParameterList node) {
+    if (node != null) {
+      return node.typeParameters
+          .map<TypeParameterElement>((p) => p.declaredElement)
+          .toList();
+    } else {
+      return const <TypeParameterElement>[];
+    }
+  }
+
+  static List<DartType> _typeParameterTypes(TypeParameterList node) {
+    var elements = _typeParameters(node);
+    return TypeParameterTypeImpl.getTypes(elements);
   }
 }

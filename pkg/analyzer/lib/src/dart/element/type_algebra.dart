@@ -84,6 +84,13 @@ class FreshTypeParameters {
   DartType substitute(DartType type) => substitution.substituteType(type);
 }
 
+/// Substitution that is based on the [map].
+abstract class MapSubstitution extends Substitution {
+  const MapSubstitution();
+
+  Map<TypeParameterElement, DartType> get map;
+}
+
 abstract class Substitution {
   static const Substitution empty = _NullSubstitution.instance;
 
@@ -93,6 +100,20 @@ abstract class Substitution {
 
   DartType substituteType(DartType type, {bool contravariant: false}) {
     return new _TopSubstitutor(this, contravariant).visit(type);
+  }
+
+  /// Substitutes both variables from [first] and [second], favoring those from
+  /// [first] if they overlap.
+  ///
+  /// Neither substitution is applied to the results of the other, so this does
+  /// *not* correspond to a sequence of two substitutions. For example,
+  /// combining `{T -> List<G>}` with `{G -> String}` does not correspond to
+  /// `{T -> List<String>}` because the result from substituting `T` is not
+  /// searched for occurrences of `G`.
+  static Substitution combine(Substitution first, Substitution second) {
+    if (first == _NullSubstitution.instance) return second;
+    if (second == _NullSubstitution.instance) return first;
+    return new _CombinedSubstitution(first, second);
   }
 
   /// Substitutes the type parameters on the class of [type] with the
@@ -109,7 +130,7 @@ abstract class Substitution {
     if (map.isEmpty) {
       return _NullSubstitution.instance;
     }
-    return new _MapSubstitution(map, map);
+    return new _MapSubstitution(map);
   }
 
   /// Substitutes the Nth parameter in [parameters] with the Nth type in
@@ -147,7 +168,20 @@ abstract class Substitution {
     if (upper.isEmpty && lower.isEmpty) {
       return _NullSubstitution.instance;
     }
-    return new _MapSubstitution(upper, lower);
+    return new _UpperLowerBoundsSubstitution(upper, lower);
+  }
+}
+
+class _CombinedSubstitution extends Substitution {
+  final Substitution first;
+  final Substitution second;
+
+  _CombinedSubstitution(this.first, this.second);
+
+  @override
+  DartType getSubstitute(TypeParameterElement parameter, bool upperBound) {
+    return first.getSubstitute(parameter, upperBound) ??
+        second.getSubstitute(parameter, upperBound);
   }
 }
 
@@ -172,21 +206,26 @@ class _FreshTypeParametersSubstitutor extends _TypeSubstitutor {
   }
 }
 
-class _MapSubstitution extends Substitution {
-  final Map<TypeParameterElement, DartType> upper;
-  final Map<TypeParameterElement, DartType> lower;
+class _MapSubstitution extends MapSubstitution {
+  final Map<TypeParameterElement, DartType> map;
 
-  _MapSubstitution(this.upper, this.lower);
+  _MapSubstitution(this.map);
 
   DartType getSubstitute(TypeParameterElement parameter, bool upperBound) {
-    return upperBound ? upper[parameter] : lower[parameter];
+    return map[parameter];
   }
+
+  @override
+  String toString() => '_MapSubstitution($map)';
 }
 
-class _NullSubstitution extends Substitution {
+class _NullSubstitution extends MapSubstitution {
   static const _NullSubstitution instance = const _NullSubstitution();
 
   const _NullSubstitution();
+
+  @override
+  Map<TypeParameterElement, DartType> get map => const {};
 
   DartType getSubstitute(TypeParameterElement parameter, bool upperBound) {
     return new TypeParameterTypeImpl(parameter);
@@ -194,6 +233,9 @@ class _NullSubstitution extends Substitution {
 
   @override
   DartType substituteType(DartType type, {bool contravariant: false}) => type;
+
+  @override
+  String toString() => "Substitution.empty";
 }
 
 class _TopSubstitutor extends _TypeSubstitutor {
@@ -307,21 +349,18 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
 
     var parameters = type.parameters.map((parameter) {
       var type = inner.visit(parameter.type);
-      return ParameterElementImpl.synthetic(
-        parameter.name,
-        type,
-        // ignore: deprecated_member_use_from_same_package
-        parameter.parameterKind,
-      );
+      return _parameterElement(parameter, type);
     }).toList();
 
     inner.invertVariance();
 
     var returnType = inner.visit(type.returnType);
+    var typeArguments = type.typeArguments.map(visit).toList();
 
     if (this.useCounter == before) return type;
 
-    return FunctionTypeImpl.synthetic(returnType, typeFormals, parameters);
+    return FunctionTypeImpl.synthetic(returnType, typeFormals, parameters,
+        element: type.element, typeArguments: typeArguments);
   }
 
   @override
@@ -347,12 +386,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
 
     var parameters = type.parameters.map((parameter) {
       var type = inner.visit(parameter.type);
-      return ParameterElementImpl.synthetic(
-        parameter.name,
-        type,
-        // ignore: deprecated_member_use_from_same_package
-        parameter.parameterKind,
-      );
+      return _parameterElement(parameter, type);
     }).toList();
 
     inner.invertVariance();
@@ -410,4 +444,32 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
 
   @override
   DartType visitVoidType(VoidType type) => type;
+
+  static ParameterElementImpl _parameterElement(
+    ParameterElement parameter,
+    DartType type,
+  ) {
+    var result = ParameterElementImpl.synthetic(
+      parameter.name,
+      type,
+      // ignore: deprecated_member_use_from_same_package
+      parameter.parameterKind,
+    );
+    result.isExplicitlyCovariant = parameter.isCovariant;
+    return result;
+  }
+}
+
+class _UpperLowerBoundsSubstitution extends Substitution {
+  final Map<TypeParameterElement, DartType> upper;
+  final Map<TypeParameterElement, DartType> lower;
+
+  _UpperLowerBoundsSubstitution(this.upper, this.lower);
+
+  DartType getSubstitute(TypeParameterElement parameter, bool upperBound) {
+    return upperBound ? upper[parameter] : lower[parameter];
+  }
+
+  @override
+  String toString() => '_UpperLowerBoundsSubstitution($upper, $lower)';
 }

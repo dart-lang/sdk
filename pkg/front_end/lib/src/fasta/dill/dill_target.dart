@@ -60,7 +60,9 @@ class DillTarget extends TargetImplementation {
   @override
   DillLibraryBuilder createLibraryBuilder(Uri uri, Uri fileUri, origin) {
     assert(origin == null);
-    return libraryBuilders.remove(uri);
+    DillLibraryBuilder libraryBuilder = libraryBuilders.remove(uri);
+    assert(libraryBuilder != null, "No library found for $uri.");
+    return libraryBuilder;
   }
 
   @override

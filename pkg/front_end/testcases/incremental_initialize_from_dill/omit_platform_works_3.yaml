@@ -7,7 +7,6 @@
 # component again etc.
 
 type: newworld
-strong: true
 omitPlatform: false
 worlds:
   - entry: main.dart

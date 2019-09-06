@@ -5,15 +5,15 @@ import "dart:core" as core;
 import "package:expect/expect.dart";
 
 class B extends core::Object {
-  synthetic constructor •() → self::B
+  synthetic constructor •() → self::B*
     ;
 }
-class X<T extends self::B = dynamic> extends core::Object {
-  synthetic constructor •() → self::X<self::X::T>
+class X<T extends self::B* = dynamic> extends core::Object {
+  synthetic constructor •() → self::X<self::X::T*>*
     ;
 }
 class Y extends self::X<dynamic> {
-  synthetic constructor •() → self::Y
+  synthetic constructor •() → self::Y*
     ;
 }
 static method main() → void

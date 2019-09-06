@@ -8,6 +8,18 @@
 # developed and are not yet shipped. Experimental feature flags are expected
 # to be relatively short-lived.
 #
+# ### Code Generation
+#
+# When you change this file, run the following to update analyzer and kernel:
+#
+# analyzer:
+#   dart pkg/analyzer/tool/experiments/generate.dart
+#
+# kernel:
+#   pkg/front_end/tool/fasta generate-experimental-flags
+#
+# ### Overview
+#
 # Each entry in this map corresponds to an experiment,
 # and contains the following parts:
 #
@@ -58,9 +70,6 @@
 # a warning that the experiment has been retired or rejected, but the tool
 # should continue to run.
 
-constant-update-2018:
-  help: "Enhanced constant expressions"
-
 extension-methods:
   help: "Extension Methods"
 
@@ -71,14 +80,18 @@ triple-shift:
   help: "Triple-shift operator"
 
 #
-# Flags below this line are either retired or rejected, cannot be specified
+# Flags below this line are shipped, retired, or rejected, cannot be specified
 # on the command line, and will eventually be removed.
 #
+
+constant-update-2018:
+  help: "Enhanced constant expressions"
+  enabledIn: '2.4.1'
+  expired: true
 
 control-flow-collections:
   help: "Control Flow Collections"
   enabledIn: '2.2.2'
-  expired: true
 
 set-literals:
   help: "Set Literals"
@@ -88,4 +101,3 @@ set-literals:
 spread-collections:
   help: "Spread Collections"
   enabledIn: '2.2.2'
-  expired: true

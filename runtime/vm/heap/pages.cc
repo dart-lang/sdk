@@ -346,15 +346,19 @@ HeapPage* PageSpace::AllocateLargePage(intptr_t size, HeapPage::PageType type) {
   Heap::RegionName(heap_, is_exec ? Heap::kCode : Heap::kOld, vm_name,
                    kVmNameSize);
   HeapPage* page = HeapPage::Allocate(page_size_in_words, type, vm_name);
-  if (page == NULL) {
-    IncreaseCapacityInWords(-page_size_in_words);
-    return NULL;
+  {
+    MutexLocker ml(&pages_lock_);
+    if (page == nullptr) {
+      IncreaseCapacityInWordsLocked(-page_size_in_words);
+      return nullptr;
+    }
+    page->set_next(large_pages_);
+    large_pages_ = page;
+
+    // Only one object in this page (at least until String::MakeExternal or
+    // Array::MakeFixedLength is called).
+    page->set_object_end(page->object_start() + size);
   }
-  page->set_next(large_pages_);
-  large_pages_ = page;
-  // Only one object in this page (at least until String::MakeExternal or
-  // Array::MakeFixedLength is called).
-  page->set_object_end(page->object_start() + size);
   return page;
 }
 

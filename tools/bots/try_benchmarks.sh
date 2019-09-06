@@ -84,11 +84,14 @@ for command; do
     tar -czf linux-ia32_profile.tar.gz \
       --exclude .git \
       --exclude .gitignore \
+      --exclude pkg/analysis_server/language_model \
+      --exclude out/ReleaseIA32/dart-sdk/model \
       -- \
       third_party/d8/linux/ia32/natives_blob.bin \
       third_party/d8/linux/ia32/snapshot_blob.bin \
       out/ReleaseIA32/vm_outline_strong.dill \
       out/ReleaseIA32/vm_platform_strong.dill \
+      out/ReleaseIA32/gen/kernel_service.dill \
       third_party/firefox_jsshell/linux/ \
       out/ReleaseIA32/dart-sdk \
       tools/dart2js/angular2_testing_deps \
@@ -104,6 +107,7 @@ for command; do
       pkg \
       runtime/bin \
       runtime/lib \
+      benchmarks \
       || (rm -f linux-ia32_profile.tar.gz; exit 1)
     strip -w \
       -K 'kDartVmSnapshotData' \
@@ -165,11 +169,14 @@ for command; do
     tar -czf linux-ia32.tar.gz \
       --exclude .git \
       --exclude .gitignore \
+      --exclude pkg/analysis_server/language_model \
+      --exclude out/ReleaseIA32/dart-sdk/model \
       -- \
       third_party/d8/linux/ia32/natives_blob.bin \
       third_party/d8/linux/ia32/snapshot_blob.bin \
       out/ReleaseIA32/vm_outline_strong.dill \
       out/ReleaseIA32/vm_platform_strong.dill \
+      out/ReleaseIA32/gen/kernel_service.dill \
       third_party/firefox_jsshell/linux/ \
       out/ReleaseIA32/dart-sdk \
       tools/dart2js/angular2_testing_deps \
@@ -186,6 +193,7 @@ for command; do
       pkg \
       runtime/bin \
       runtime/lib \
+      benchmarks \
       || (rm -f linux-ia32.tar.gz; exit 1)
   elif [ "$command" = linux-ia32-benchmark ]; then
     rm -rf tmp
@@ -216,6 +224,12 @@ EOF
     out/ReleaseIA32/dart --print_metrics pkg/analyzer_cli/bin/analyzer.dart --dart-sdk=sdk hello.dart
     out/ReleaseIA32/run_vm_tests InitialRSS
     out/ReleaseIA32/run_vm_tests GenKernelKernelLoadKernel
+    out/ReleaseIA32/run_vm_tests KernelServiceCompileAll
+    out/ReleaseIA32/dart --profile-period=10000 --packages=.packages benchmarks/Example/dart/Example.dart
+    out/ReleaseIA32/dart benchmarks/FfiBoringssl/dart/FfiBoringssl.dart
+    out/ReleaseIA32/dart benchmarks/FfiCall/dart/FfiCall.dart
+    out/ReleaseIA32/dart benchmarks/FfiMemory/dart/FfiMemory.dart
+    out/ReleaseIA32/dart benchmarks/FfiStruct/dart/FfiStruct.dart
     cd ..
     rm -rf tmp
   elif [ "$command" = linux-x64-build ] ||
@@ -239,11 +253,14 @@ EOF
     tar -czf linux-x64_profile.tar.gz \
       --exclude .git \
       --exclude .gitignore \
+      --exclude pkg/analysis_server/language_model \
+      --exclude out/ReleaseX64/dart-sdk/model \
       -- \
       third_party/d8/linux/x64/natives_blob.bin \
       third_party/d8/linux/x64/snapshot_blob.bin \
       out/ReleaseX64/vm_outline_strong.dill \
       out/ReleaseX64/vm_platform_strong.dill \
+      out/ReleaseX64/gen/kernel_service.dill \
       out/ReleaseX64/dart-sdk \
       $simdbc_dart \
       out/ReleaseX64/dart \
@@ -260,6 +277,7 @@ EOF
       pkg \
       runtime/bin \
       runtime/lib \
+      benchmarks \
       || (rm -f linux-x64_profile.tar.gz; exit 1)
     strip -w \
       -K 'kDartVmSnapshotData' \
@@ -340,11 +358,14 @@ EOF
     tar -czf linux-x64.tar.gz \
       --exclude .git \
       --exclude .gitignore \
+      --exclude pkg/analysis_server/language_model \
+      --exclude out/ReleaseX64/dart-sdk/model \
       -- \
       third_party/d8/linux/x64/natives_blob.bin \
       third_party/d8/linux/x64/snapshot_blob.bin \
       out/ReleaseX64/vm_outline_strong.dill \
       out/ReleaseX64/vm_platform_strong.dill \
+      out/ReleaseX64/gen/kernel_service.dill \
       out/ReleaseX64/dart-sdk \
       $simdbc_dart \
       out/ReleaseX64/dart \
@@ -361,6 +382,7 @@ EOF
       pkg \
       runtime/bin \
       runtime/lib \
+      benchmarks \
       || (rm -f linux-x64.tar.gz; exit 1)
   elif [ "$command" = linux-x64-benchmark ] ||
        [ "$command" = linux-x64-bytecode-benchmark ]; then
@@ -397,6 +419,8 @@ EOF
     out/ReleaseX64/dart --packages=.packages pkg/kernel/test/binary_bench.dart --golem AstFromBinaryLazy out/ReleaseX64/vm_platform_strong.dill
     out/ReleaseX64/run_vm_tests InitialRSS
     out/ReleaseX64/run_vm_tests GenKernelKernelLoadKernel
+    out/ReleaseX64/run_vm_tests KernelServiceCompileAll
+    out/ReleaseX64/dart --profile-period=10000 --packages=.packages benchmarks/Example/dart/Example.dart
     cd ..
     rm -rf tmp
   else

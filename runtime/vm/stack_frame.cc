@@ -181,8 +181,10 @@ const char* StackFrame::ToCString() const {
       const Bytecode& bytecode = Bytecode::Handle(zone, LookupDartBytecode());
       ASSERT(!bytecode.IsNull());
       return zone->PrintToString("[%-8s : sp(%#" Px ") fp(%#" Px ") pc(%#" Px
-                                 ") %s ]",
-                                 GetName(), sp(), fp(), pc(), bytecode.Name());
+                                 " offset:0x%" Px ") %s ]",
+                                 GetName(), sp(), fp(), pc(),
+                                 pc() - bytecode.PayloadStart(),
+                                 bytecode.FullyQualifiedName());
     }
     const Code& code = Code::Handle(zone, LookupDartCode());
     ASSERT(!code.IsNull());

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: main:[]*/
+/*member: main:[]*/
 main() {
   outsideLoopNoArgsCalledOnce();
   outsideLoopNoArgsCalledTwice();
@@ -19,10 +19,10 @@ main() {
 // static no-arg calls in its body.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _method1:[outsideLoopNoArgsCalledOnce]*/
+/*member: _method1:[outsideLoopNoArgsCalledOnce]*/
 _method1() {}
 
-/*element: _outsideLoopNoArgsCalledOnce:[outsideLoopNoArgsCalledOnce]*/
+/*member: _outsideLoopNoArgsCalledOnce:[outsideLoopNoArgsCalledOnce]*/
 _outsideLoopNoArgsCalledOnce() {
   _method1();
   _method1();
@@ -32,7 +32,7 @@ _outsideLoopNoArgsCalledOnce() {
   _method1();
 }
 
-/*element: outsideLoopNoArgsCalledOnce:[]*/
+/*member: outsideLoopNoArgsCalledOnce:[]*/
 @pragma('dart2js:noInline')
 outsideLoopNoArgsCalledOnce() {
   _outsideLoopNoArgsCalledOnce();
@@ -43,10 +43,10 @@ outsideLoopNoArgsCalledOnce() {
 // static no-arg calls in its body.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _method2:[_outsideLoopNoArgs2,outsideLoopNoArgsCalledTwice]*/
+/*member: _method2:[_outsideLoopNoArgs2,outsideLoopNoArgsCalledTwice]*/
 _method2() {}
 
-/*element: _outsideLoopNoArgs1:[outsideLoopNoArgsCalledTwice]*/
+/*member: _outsideLoopNoArgs1:[outsideLoopNoArgsCalledTwice]*/
 _outsideLoopNoArgs1() {
   _method2();
   _method2();
@@ -54,7 +54,7 @@ _outsideLoopNoArgs1() {
   _method2();
 }
 
-/*element: _outsideLoopNoArgs2:[]*/
+/*member: _outsideLoopNoArgs2:[]*/
 _outsideLoopNoArgs2() {
   _method2();
   _method2();
@@ -64,7 +64,7 @@ _outsideLoopNoArgs2() {
   _method2();
 }
 
-/*element: outsideLoopNoArgsCalledTwice:[]*/
+/*member: outsideLoopNoArgsCalledTwice:[]*/
 @pragma('dart2js:noInline')
 outsideLoopNoArgsCalledTwice() {
   _outsideLoopNoArgs1();
@@ -78,10 +78,10 @@ outsideLoopNoArgsCalledTwice() {
 // static no-arg calls in its body.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _method3:[outsideLoopOneArgCalledOnce]*/
+/*member: _method3:[outsideLoopOneArgCalledOnce]*/
 _method3() {}
 
-/*element: _outsideLoopOneArgCalledOnce:[outsideLoopOneArgCalledOnce]*/
+/*member: _outsideLoopOneArgCalledOnce:[outsideLoopOneArgCalledOnce]*/
 _outsideLoopOneArgCalledOnce(arg) {
   _method3();
   _method3();
@@ -102,7 +102,7 @@ _outsideLoopOneArgCalledOnce(arg) {
   _method3();
 }
 
-/*element: outsideLoopOneArgCalledOnce:[]*/
+/*member: outsideLoopOneArgCalledOnce:[]*/
 @pragma('dart2js:noInline')
 outsideLoopOneArgCalledOnce() {
   _outsideLoopOneArgCalledOnce(0);
@@ -113,10 +113,10 @@ outsideLoopOneArgCalledOnce() {
 // static no-arg calls in its body.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _method4:[_outsideLoopOneArg2,outsideLoopOneArgCalledTwice]*/
+/*member: _method4:[_outsideLoopOneArg2,outsideLoopOneArgCalledTwice]*/
 _method4() {}
 
-/*element: _outsideLoopOneArg1:[outsideLoopOneArgCalledTwice]*/
+/*member: _outsideLoopOneArg1:[outsideLoopOneArgCalledTwice]*/
 _outsideLoopOneArg1(arg) {
   _method4();
   _method4();
@@ -126,7 +126,7 @@ _outsideLoopOneArg1(arg) {
   _method4();
 }
 
-/*element: _outsideLoopOneArg2:[]*/
+/*member: _outsideLoopOneArg2:[]*/
 _outsideLoopOneArg2(arg) {
   _method4();
   _method4();
@@ -138,7 +138,7 @@ _outsideLoopOneArg2(arg) {
   _method4();
 }
 
-/*element: outsideLoopOneArgCalledTwice:[]*/
+/*member: outsideLoopOneArgCalledTwice:[]*/
 @pragma('dart2js:noInline')
 outsideLoopOneArgCalledTwice() {
   _outsideLoopOneArg1(0);
@@ -152,10 +152,10 @@ outsideLoopOneArgCalledTwice() {
 // static no-arg calls in its body.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _method5:[insideLoopNoArgsCalledOnce]*/
+/*member: _method5:[insideLoopNoArgsCalledOnce]*/
 _method5() {}
 
-/*element: _insideLoopNoArgsCalledOnce:[insideLoopNoArgsCalledOnce]*/
+/*member: _insideLoopNoArgsCalledOnce:[insideLoopNoArgsCalledOnce]*/
 _insideLoopNoArgsCalledOnce() {
   _method5();
   _method5();
@@ -170,7 +170,7 @@ _insideLoopNoArgsCalledOnce() {
   _method5();
 }
 
-/*element: insideLoopNoArgsCalledOnce:loop*/
+/*member: insideLoopNoArgsCalledOnce:loop*/
 @pragma('dart2js:noInline')
 insideLoopNoArgsCalledOnce() {
   // ignore: UNUSED_LOCAL_VARIABLE
@@ -184,10 +184,10 @@ insideLoopNoArgsCalledOnce() {
 // static no-arg calls in its body.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _method6:[_insideLoopNoArgs2,insideLoopNoArgsCalledTwice]*/
+/*member: _method6:[_insideLoopNoArgs2,insideLoopNoArgsCalledTwice]*/
 _method6() {}
 
-/*element: _insideLoopNoArgs1:[insideLoopNoArgsCalledTwice]*/
+/*member: _insideLoopNoArgs1:[insideLoopNoArgsCalledTwice]*/
 _insideLoopNoArgs1() {
   _method6();
   _method6();
@@ -201,7 +201,7 @@ _insideLoopNoArgs1() {
   _method6();
 }
 
-/*element: _insideLoopNoArgs2:[]*/
+/*member: _insideLoopNoArgs2:[]*/
 _insideLoopNoArgs2() {
   _method6();
   _method6();
@@ -219,7 +219,7 @@ _insideLoopNoArgs2() {
   _method6();
 }
 
-/*element: insideLoopNoArgsCalledTwice:loop*/
+/*member: insideLoopNoArgsCalledTwice:loop*/
 @pragma('dart2js:noInline')
 insideLoopNoArgsCalledTwice() {
   // ignore: UNUSED_LOCAL_VARIABLE
@@ -236,10 +236,10 @@ insideLoopNoArgsCalledTwice() {
 // static no-arg calls in its body.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _method7:[insideLoopOneArgCalledOnce]*/
+/*member: _method7:[insideLoopOneArgCalledOnce]*/
 _method7() {}
 
-/*element: _insideLoopOneArgCalledOnce:[insideLoopOneArgCalledOnce]*/
+/*member: _insideLoopOneArgCalledOnce:[insideLoopOneArgCalledOnce]*/
 _insideLoopOneArgCalledOnce(arg) {
   _method7();
   _method7();
@@ -260,7 +260,7 @@ _insideLoopOneArgCalledOnce(arg) {
   _method7();
 }
 
-/*element: insideLoopOneArgCalledOnce:loop*/
+/*member: insideLoopOneArgCalledOnce:loop*/
 @pragma('dart2js:noInline')
 insideLoopOneArgCalledOnce() {
   for (var e in [1, 2, 3, 4]) {
@@ -273,10 +273,10 @@ insideLoopOneArgCalledOnce() {
 // static no-arg calls in its body.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _method8:[_insideLoopOneArg2,insideLoopOneArgCalledTwice]*/
+/*member: _method8:[_insideLoopOneArg2,insideLoopOneArgCalledTwice]*/
 _method8() {}
 
-/*element: _insideLoopOneArg1:[insideLoopOneArgCalledTwice]*/
+/*member: _insideLoopOneArg1:[insideLoopOneArgCalledTwice]*/
 _insideLoopOneArg1(arg) {
   _method8();
   _method8();
@@ -292,7 +292,7 @@ _insideLoopOneArg1(arg) {
   _method8();
 }
 
-/*element: _insideLoopOneArg2:[]*/
+/*member: _insideLoopOneArg2:[]*/
 _insideLoopOneArg2(arg) {
   _method8();
   _method8();
@@ -310,7 +310,7 @@ _insideLoopOneArg2(arg) {
   _method8();
 }
 
-/*element: insideLoopOneArgCalledTwice:loop*/
+/*member: insideLoopOneArgCalledTwice:loop*/
 @pragma('dart2js:noInline')
 insideLoopOneArgCalledTwice() {
   for (var e in [1, 2, 3, 4]) {

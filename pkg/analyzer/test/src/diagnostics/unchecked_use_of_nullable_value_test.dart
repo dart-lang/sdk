@@ -305,23 +305,21 @@ m() {
 
   test_member_potentiallyNullable() async {
     await assertErrorsInCode(r'''
-m<T extends int?>() {
-  T x;
+m<T extends int?>(T x) {
   x.isEven;
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 31, 1),
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 27, 1),
     ]);
   }
 
   test_member_potentiallyNullable_called() async {
     await assertErrorsInCode(r'''
-m<T extends Function>() {
-  List<T?> x;
+m<T extends Function>(List<T?> x) {
   x.first();
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 44, 5),
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 40, 5),
     ]);
   }
 
@@ -354,8 +352,7 @@ m() {
 
   test_method_noSuchMethod_nullable() async {
     await assertNoErrorsInCode(r'''
-m() {
-  int x;
+m(int x) {
   x.noSuchMethod(throw '');
 }
 ''');
@@ -383,8 +380,7 @@ m() {
 
   test_method_toString_nullable() async {
     await assertNoErrorsInCode(r'''
-m() {
-  int x;
+m(int x) {
   x.toString();
 }
 ''');
@@ -503,8 +499,7 @@ m() {
 
   test_operatorPostfixInc_nonNullable() async {
     await assertNoErrorsInCode(r'''
-m() {
-  int x;
+m(int x) {
   x++;
 }
 ''');
@@ -512,13 +507,11 @@ m() {
 
   test_operatorPostfixInc_nullable() async {
     await assertErrorsInCode(r'''
-m() {
-  int? x;
+m(int? x) {
   x++;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 18, 1),
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 14, 1),
     ]);
   }
 
@@ -545,8 +538,7 @@ m() {
 
   test_operatorPrefixInc_nonNullable() async {
     await assertNoErrorsInCode(r'''
-m() {
-  int x;
+m(int x) {
   ++x;
 }
 ''');
@@ -554,13 +546,11 @@ m() {
 
   test_operatorPrefixInc_nullable() async {
     await assertErrorsInCode(r'''
-m() {
-  int? x;
+m(int? x) {
   ++x;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 20, 1),
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 16, 1),
     ]);
   }
 
@@ -607,8 +597,7 @@ m() {
 
   test_plusEq_nonNullable() async {
     await assertNoErrorsInCode(r'''
-m() {
-  int x;
+m(int x) {
   x += 1;
 }
 ''');
@@ -616,14 +605,41 @@ m() {
 
   test_plusEq_nullable() async {
     await assertErrorsInCode(r'''
-m() {
-  int? x;
+m(int? x) {
   x += 1;
 }
 ''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 18, 1),
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 14, 1),
     ]);
+  }
+
+  test_spread_nonNullable() async {
+    await assertNoErrorsInCode(r'''
+m() {
+  var list = [];
+  [...list];
+}
+''');
+  }
+
+  test_spread_nullable() async {
+    await assertErrorsInCode(r'''
+m() {
+  List? list;
+  [...list];
+}
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 26, 4),
+    ]);
+  }
+
+  test_spread_nullable_question() async {
+    await assertNoErrorsInCode(r'''
+m() {
+  List? list;
+  [...?list];
+}
+''');
   }
 
   test_ternary_condition_nullable() async {

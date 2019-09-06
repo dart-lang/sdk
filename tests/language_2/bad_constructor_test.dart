@@ -4,7 +4,7 @@
 
 // A constructor can't be static.
 class A {
-  static //# 00: compile-time error
+  static //# 00: syntax error
   A();
 }
 

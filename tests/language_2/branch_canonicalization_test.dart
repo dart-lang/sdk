@@ -47,7 +47,7 @@ fooPoly(a, b) => barPoly(a, b) ? 1 : 0;
 
 main() {
   final a = 1.0;
-  final b = 1 << 62;
+  final b = 0x4000000000000000; // 1 << 62
   final x = new A(), y = new B(), z = new C();
   for (var i = 0; i < 20; i++) {
     Expect.equals(1, fooDouble(a, a));

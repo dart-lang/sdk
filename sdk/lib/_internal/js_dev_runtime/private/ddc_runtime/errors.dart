@@ -9,27 +9,11 @@ part of dart._runtime;
 // The default values for these properties are set when the global_ final field
 // in runtime.dart is initialized.
 
-// Override, e.g., for testing
-void trapRuntimeErrors(bool flag) {
-  JS('', 'dart.__trapRuntimeErrors = #', flag);
-}
-
-void ignoreWhitelistedErrors(bool flag) {
-  JS('', 'dart.__ignoreWhitelistedErrors = #', flag);
-}
-
-// TODO(jmesserly): remove this?
-void ignoreAllErrors(bool flag) {
-  JS('', 'dart.__ignoreAllErrors = #', flag);
-}
-
 argumentError(value) {
-  if (JS('!', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
   throw ArgumentError.value(value);
 }
 
 throwUnimplementedError(String message) {
-  if (JS('!', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
   throw UnimplementedError(message);
 }
 
@@ -37,13 +21,10 @@ throwUnimplementedError(String message) {
 // from the stacktrace.
 assertFailed(String message,
     [String fileUri, int line, int column, String conditionSource]) {
-  if (JS('!', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
-
   throw AssertionErrorImpl(message, fileUri, line, column, conditionSource);
 }
 
 throwCyclicInitializationError([Object field]) {
-  if (JS('!', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
   throw CyclicInitializationError(field);
 }
 
@@ -51,7 +32,6 @@ throwNullValueError() {
   // TODO(vsm): Per spec, we should throw an NSM here.  Technically, we ought
   // to thread through method info, but that uglifies the code and can't
   // actually be queried ... it only affects how the error is printed.
-  if (JS('!', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
   throw NoSuchMethodError(
       null, Symbol('<Unexpected Null Value>'), null, null, null);
 }
@@ -59,11 +39,6 @@ throwNullValueError() {
 castError(obj, expectedType, [@notNull bool isImplicit = false]) {
   var actualType = getReifiedType(obj);
   var message = _castErrorMessage(actualType, expectedType);
-  if (JS('!', 'dart.__ignoreAllErrors')) {
-    JS('', 'console.error(#)', message);
-    return obj;
-  }
-  if (JS('!', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
   var error = isImplicit ? TypeErrorImpl(message) : CastErrorImpl(message);
   throw error;
 }
@@ -275,7 +250,7 @@ class _StackTrace implements StackTrace {
 
     var e = _jsError;
     String trace = '';
-    if (e != null && JS('bool', 'typeof # === "object"', e)) {
+    if (e != null && JS<bool>('!', 'typeof # === "object"', e)) {
       trace = e is NativeError ? e.dartStack() : JS<String>('', '#.stack', e);
       if (trace != null && stackTraceMapper != null) {
         trace = stackTraceMapper(trace);

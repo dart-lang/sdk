@@ -203,9 +203,9 @@ class MatchProcedureExpectations extends Step<List<TestCase>, Null, Context> {
         if (primary != secondary) {
           return fail(
               null,
-              "Multiple expectations don't match on $test:" +
-                  "\nFirst expectation:\n$actual\n" +
-                  "\nSecond expectation:\n$secondary\n");
+              "Multiple expectations don't match on $test:"
+              "\nFirst expectation:\n$actual\n"
+              "\nSecond expectation:\n$secondary\n");
         }
       }
     }
@@ -412,7 +412,8 @@ Future<Context> createContext(
     ..onDiagnostic = (DiagnosticMessage message) {
       printDiagnosticMessage(message, print);
       errors.add(message);
-    };
+    }
+    ..environmentDefines = const {};
 
   final ProcessedOptions options =
       new ProcessedOptions(options: optionBuilder, inputs: [entryPoint]);

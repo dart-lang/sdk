@@ -25,6 +25,12 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool,
+            android_log_to_stderr,
+            false,
+            "Send Dart VM logs to stdout and stderr instead of the Android "
+            "system logs.");
+
 // Android CodeObservers.
 
 #ifndef PRODUCT
@@ -175,9 +181,13 @@ int64_t OS::GetCurrentThreadCPUMicros() {
 // into a architecture specific file e.g: os_ia32_linux.cc
 intptr_t OS::ActivationFrameAlignment() {
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
-    defined(TARGET_ARCH_ARM64)
+    defined(TARGET_ARCH_ARM64) ||                                              \
+    defined(TARGET_ARCH_DBC) &&                                                \
+        (defined(HOST_ARCH_IA32) || defined(HOST_ARCH_X64) ||                  \
+         defined(HOST_ARCH_ARM64))
   const int kMinimumAlignment = 16;
-#elif defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_DBC)
+#elif defined(TARGET_ARCH_ARM) ||                                              \
+    defined(TARGET_ARCH_DBC) && defined(HOST_ARCH_ARM)
   const int kMinimumAlignment = 8;
 #else
 #error Unsupported architecture.
@@ -251,8 +261,12 @@ DART_NOINLINE uintptr_t OS::GetProgramCounter() {
 void OS::Print(const char* format, ...) {
   va_list args;
   va_start(args, format);
-  // Forward to the Android log for remote access.
-  __android_log_vprint(ANDROID_LOG_INFO, "DartVM", format, args);
+  if (FLAG_android_log_to_stderr) {
+    vfprintf(stderr, format, args);
+  } else {
+    // Forward to the Android log for remote access.
+    __android_log_vprint(ANDROID_LOG_INFO, "DartVM", format, args);
+  }
   va_end(args);
 }
 
@@ -328,8 +342,12 @@ void OS::RegisterCodeObservers() {
 void OS::PrintErr(const char* format, ...) {
   va_list args;
   va_start(args, format);
-  // Forward to the Android log for remote access.
-  __android_log_vprint(ANDROID_LOG_ERROR, "DartVM", format, args);
+  if (FLAG_android_log_to_stderr) {
+    vfprintf(stderr, format, args);
+  } else {
+    // Forward to the Android log for remote access.
+    __android_log_vprint(ANDROID_LOG_ERROR, "DartVM", format, args);
+  }
   va_end(args);
 }
 
@@ -340,6 +358,7 @@ void OS::Cleanup() {}
 void OS::PrepareToAbort() {}
 
 void OS::Abort() {
+  PrepareToAbort();
   abort();
 }
 

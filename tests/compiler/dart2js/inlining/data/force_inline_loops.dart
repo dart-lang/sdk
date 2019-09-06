@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: main:[]*/
+/*member: main:[]*/
 main() {
   forceInlineLoops();
 }
@@ -10,7 +10,7 @@ main() {
 // Force inline a top level method with loops.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _forLoop:loop,[forceInlineLoops]*/
+/*member: _forLoop:loop,[forceInlineLoops]*/
 @pragma('dart2js:tryInline')
 _forLoop() {
   for (int i = 0; i < 10; i++) {
@@ -18,7 +18,7 @@ _forLoop() {
   }
 }
 
-/*element: _forInLoop:loop,[forceInlineLoops]*/
+/*member: _forInLoop:loop,[forceInlineLoops]*/
 @pragma('dart2js:tryInline')
 _forInLoop() {
   for (var e in [0, 1, 2]) {
@@ -26,7 +26,7 @@ _forInLoop() {
   }
 }
 
-/*element: _whileLoop:loop,[forceInlineLoops]*/
+/*member: _whileLoop:loop,[forceInlineLoops]*/
 @pragma('dart2js:tryInline')
 _whileLoop() {
   int i = 0;
@@ -36,7 +36,7 @@ _whileLoop() {
   }
 }
 
-/*element: _doLoop:loop,[forceInlineLoops]*/
+/*member: _doLoop:loop,[forceInlineLoops]*/
 @pragma('dart2js:tryInline')
 _doLoop() {
   int i = 0;
@@ -46,7 +46,7 @@ _doLoop() {
   } while (i < 10);
 }
 
-/*element: _hardLoop:loop,(allowLoops)code after return*/
+/*member: _hardLoop:loop,(allowLoops)code after return*/
 @pragma('dart2js:tryInline')
 _hardLoop() {
   for (int i = 0; i < 10; i++) {
@@ -56,7 +56,7 @@ _hardLoop() {
   return 1;
 }
 
-/*element: forceInlineLoops:[]*/
+/*member: forceInlineLoops:[]*/
 @pragma('dart2js:noInline')
 forceInlineLoops() {
   _forLoop();

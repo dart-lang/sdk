@@ -75,7 +75,7 @@ class TypeEnvironment {
     if (testBackendWorld) {
       return compiler.backendClosedWorldForTesting.dartTypes;
     } else {
-      KernelFrontEndStrategy frontendStrategy = compiler.frontendStrategy;
+      KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
       return frontendStrategy.elementMap.types;
     }
   }

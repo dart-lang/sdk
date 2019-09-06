@@ -314,7 +314,8 @@ void CallSpecializer::SpecializePolymorphicInstanceCall(
 
   ASSERT(targets->HasSingleTarget());
   const Function& target = targets->FirstTarget();
-  StaticCallInstr* specialized = StaticCallInstr::FromCall(Z, call, target);
+  StaticCallInstr* specialized =
+      StaticCallInstr::FromCall(Z, call, target, targets->AggregateCallCount());
   call->ReplaceWith(specialized, current_iterator());
 }
 

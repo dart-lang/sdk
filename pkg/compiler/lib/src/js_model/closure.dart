@@ -13,10 +13,10 @@ import '../elements/types.dart';
 import '../ir/closure.dart';
 import '../ir/element_map.dart';
 import '../ir/static_type_cache.dart';
+import '../js_backend/annotations.dart';
 import '../js_model/element_map.dart';
 import '../js_model/env.dart';
 import '../ordered_typeset.dart';
-import '../options.dart';
 import '../serialization/serialization.dart';
 import '../ssa/type_builder.dart';
 import '../universe/selector.dart';
@@ -38,8 +38,7 @@ class ClosureDataImpl implements ClosureData {
   // Signature function.
   final Map<MemberEntity, CapturedScope> _capturedScopeForSignatureMap;
 
-  // The key is either a [ir.FunctionDeclaration] or [ir.FunctionExpression].
-  final Map<ir.TreeNode, ClosureRepresentationInfo>
+  final Map<ir.LocalFunction, ClosureRepresentationInfo>
       _localClosureRepresentationMap;
 
   ClosureDataImpl(this._elementMap, this._scopeMap, this._capturedScopesMap,
@@ -50,14 +49,15 @@ class ClosureDataImpl implements ClosureData {
       JsToElementMap elementMap, DataSource source) {
     source.begin(tag);
     // TODO(johnniwinther): Support shared [ScopeInfo].
-    Map<MemberEntity, ScopeInfo> scopeMap =
-        source.readMemberMap(() => new ScopeInfo.readFromDataSource(source));
+    Map<MemberEntity, ScopeInfo> scopeMap = source.readMemberMap(
+        (MemberEntity member) => new ScopeInfo.readFromDataSource(source));
     Map<ir.TreeNode, CapturedScope> capturedScopesMap = source
         .readTreeNodeMap(() => new CapturedScope.readFromDataSource(source));
-    Map<MemberEntity, CapturedScope> capturedScopeForSignatureMap = source
-        .readMemberMap(() => new CapturedScope.readFromDataSource(source));
-    Map<ir.TreeNode, ClosureRepresentationInfo> localClosureRepresentationMap =
-        source.readTreeNodeMap(
+    Map<MemberEntity, CapturedScope> capturedScopeForSignatureMap =
+        source.readMemberMap((MemberEntity member) =>
+            new CapturedScope.readFromDataSource(source));
+    Map<ir.LocalFunction, ClosureRepresentationInfo>
+        localClosureRepresentationMap = source.readTreeNodeMap(
             () => new ClosureRepresentationInfo.readFromDataSource(source));
     source.end(tag);
     return new ClosureDataImpl(elementMap, scopeMap, capturedScopesMap,
@@ -68,13 +68,15 @@ class ClosureDataImpl implements ClosureData {
   @override
   void writeToDataSink(DataSink sink) {
     sink.begin(tag);
-    sink.writeMemberMap(
-        _scopeMap, (ScopeInfo info) => info.writeToDataSink(sink));
+    sink.writeMemberMap(_scopeMap,
+        (MemberEntity member, ScopeInfo info) => info.writeToDataSink(sink));
     sink.writeTreeNodeMap(_capturedScopesMap, (CapturedScope scope) {
       scope.writeToDataSink(sink);
     });
-    sink.writeMemberMap(_capturedScopeForSignatureMap,
-        (CapturedScope scope) => scope.writeToDataSink(sink));
+    sink.writeMemberMap(
+        _capturedScopeForSignatureMap,
+        (MemberEntity member, CapturedScope scope) =>
+            scope.writeToDataSink(sink));
     sink.writeTreeNodeMap(_localClosureRepresentationMap,
         (ClosureRepresentationInfo info) {
       info.writeToDataSink(sink);
@@ -123,8 +125,7 @@ class ClosureDataImpl implements ClosureData {
       _capturedScopesMap[loopNode] ?? const CapturedLoopScope();
 
   @override
-  ClosureRepresentationInfo getClosureInfo(ir.Node node) {
-    assert(node is ir.FunctionExpression || node is ir.FunctionDeclaration);
+  ClosureRepresentationInfo getClosureInfo(ir.LocalFunction node) {
     var closure = _localClosureRepresentationMap[node];
     assert(
         closure != null,
@@ -150,7 +151,7 @@ class ClosureDataImpl implements ClosureData {
 class ClosureDataBuilder {
   final JsToElementMap _elementMap;
   final GlobalLocalsMap _globalLocalsMap;
-  final CompilerOptions _options;
+  final AnnotationsData _annotationsData;
 
   /// Map of the scoping information that corresponds to a particular entity.
   Map<MemberEntity, ScopeInfo> _scopeMap = {};
@@ -159,11 +160,11 @@ class ClosureDataBuilder {
   // Signature function.
   Map<MemberEntity, CapturedScope> _capturedScopeForSignatureMap = {};
 
-  // The key is either a [ir.FunctionDeclaration] or [ir.FunctionExpression].
-  Map<ir.TreeNode, ClosureRepresentationInfo> _localClosureRepresentationMap =
-      {};
+  Map<ir.LocalFunction, ClosureRepresentationInfo>
+      _localClosureRepresentationMap = {};
 
-  ClosureDataBuilder(this._elementMap, this._globalLocalsMap, this._options);
+  ClosureDataBuilder(
+      this._elementMap, this._globalLocalsMap, this._annotationsData);
 
   void _updateScopeBasedOnRtiNeed(KernelScopeInfo scope, ClosureRtiNeed rtiNeed,
       MemberEntity outermostEntity) {
@@ -174,16 +175,14 @@ class ClosureDataBuilder {
             return true;
             break;
           case VariableUseKind.implicitCast:
-            if (_options.implicitDowncastCheckPolicy.isEmitted) {
+            if (_annotationsData
+                .getImplicitDowncastCheckPolicy(outermostEntity)
+                .isEmitted) {
               return true;
             }
             break;
           case VariableUseKind.localType:
-            if (_options.assignmentCheckPolicy.isEmitted) {
-              return true;
-            }
             break;
-
           case VariableUseKind.constructorTypeArgument:
             ConstructorEntity constructor =
                 _elementMap.getConstructor(usage.member);
@@ -213,7 +212,9 @@ class ClosureDataBuilder {
             }
             break;
           case VariableUseKind.memberParameter:
-            if (_options.parameterCheckPolicy.isEmitted) {
+            if (_annotationsData
+                .getParameterCheckPolicy(outermostEntity)
+                .isEmitted) {
               return true;
             } else {
               FunctionEntity method = _elementMap.getMethod(usage.member);
@@ -223,7 +224,9 @@ class ClosureDataBuilder {
             }
             break;
           case VariableUseKind.localParameter:
-            if (_options.parameterCheckPolicy.isEmitted) {
+            if (_annotationsData
+                .getParameterCheckPolicy(outermostEntity)
+                .isEmitted) {
               return true;
             } else if (rtiNeed
                 .localFunctionNeedsSignature(usage.localFunction)) {
@@ -231,26 +234,20 @@ class ClosureDataBuilder {
             }
             break;
           case VariableUseKind.memberReturnType:
-            if (_options.assignmentCheckPolicy.isEmitted) {
+            FunctionEntity method = _elementMap.getMethod(usage.member);
+            if (rtiNeed.methodNeedsSignature(method)) {
               return true;
-            } else {
-              FunctionEntity method = _elementMap.getMethod(usage.member);
-              if (rtiNeed.methodNeedsSignature(method)) {
-                return true;
-              }
             }
             break;
           case VariableUseKind.localReturnType:
-            if (_options.assignmentCheckPolicy.isEmitted) {
-              return true;
-            } else if (rtiNeed
-                .localFunctionNeedsSignature(usage.localFunction)) {
+            if (rtiNeed.localFunctionNeedsSignature(usage.localFunction)) {
               return true;
             }
             break;
           case VariableUseKind.fieldType:
-            if (_options.assignmentCheckPolicy.isEmitted ||
-                _options.parameterCheckPolicy.isEmitted) {
+            if (_annotationsData
+                .getParameterCheckPolicy(outermostEntity)
+                .isEmitted) {
               return true;
             }
             break;
@@ -323,17 +320,10 @@ class ClosureDataBuilder {
         allBoxedVariables.addAll(boxedVariables);
       });
 
-      Map<ir.TreeNode, KernelScopeInfo> closuresToGenerate =
+      Map<ir.LocalFunction, KernelScopeInfo> closuresToGenerate =
           model.closuresToGenerate;
-      for (ir.TreeNode node in closuresToGenerate.keys) {
-        ir.FunctionNode functionNode;
-        if (node is ir.FunctionDeclaration) {
-          functionNode = node.function;
-        } else if (node is ir.FunctionExpression) {
-          functionNode = node.function;
-        } else {
-          failedAt(member, "Unexpected closure node ${node}");
-        }
+      for (ir.LocalFunction node in closuresToGenerate.keys) {
+        ir.FunctionNode functionNode = node.function;
         KernelClosureClassInfo closureClassInfo = _produceSyntheticElements(
             closedWorldBuilder,
             member,
@@ -402,8 +392,7 @@ class ClosureDataBuilder {
     if (node.parent is ir.Member) {
       assert(_elementMap.getMember(node.parent) == member);
     } else {
-      assert(node.parent is ir.FunctionExpression ||
-          node.parent is ir.FunctionDeclaration);
+      assert(node.parent is ir.LocalFunction);
       _localClosureRepresentationMap[node.parent] = closureClassInfo;
     }
     return closureClassInfo;
@@ -1281,9 +1270,9 @@ abstract class ClosureRtiNeed {
 
   bool methodNeedsSignature(MemberEntity method);
 
-  bool localFunctionNeedsTypeArguments(ir.Node node);
+  bool localFunctionNeedsTypeArguments(ir.LocalFunction node);
 
-  bool localFunctionNeedsSignature(ir.Node node);
+  bool localFunctionNeedsSignature(ir.LocalFunction node);
 
   bool selectorNeedsTypeArguments(Selector selector);
 

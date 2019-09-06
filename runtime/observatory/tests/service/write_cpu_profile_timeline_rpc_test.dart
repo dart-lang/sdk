@@ -27,8 +27,8 @@ var tests = <IsolateTest>[
     print(result);
     expect(result['type'], equals('Success'));
 
-    result = await isolate.vm.invokeRpcNoUpgrade('_getVMTimeline', {});
-    expect(result['type'], equals('_Timeline'));
+    result = await isolate.vm.invokeRpcNoUpgrade('getVMTimeline', {});
+    expect(result['type'], equals('Timeline'));
     expect(result['traceEvents'], new isInstanceOf<List>());
 
     var events = result['traceEvents'];

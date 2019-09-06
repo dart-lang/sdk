@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -276,7 +277,7 @@ class AstTestFactory {
           String scriptTag,
           List<Directive> directives,
           List<CompilationUnitMember> declarations) =>
-      astFactory.compilationUnit2(
+      astFactory.compilationUnit(
           beginToken: TokenFactory.tokenFromType(TokenType.EOF),
           scriptTag:
               scriptTag == null ? null : AstTestFactory.scriptTag(scriptTag),
@@ -286,6 +287,22 @@ class AstTestFactory {
               : declarations,
           endToken: TokenFactory.tokenFromType(TokenType.EOF),
           featureSet: null);
+
+  static CompilationUnit compilationUnit9(
+          {String scriptTag,
+          List<Directive> directives,
+          List<CompilationUnitMember> declarations,
+          FeatureSet featureSet}) =>
+      astFactory.compilationUnit(
+          beginToken: TokenFactory.tokenFromType(TokenType.EOF),
+          scriptTag:
+              scriptTag == null ? null : AstTestFactory.scriptTag(scriptTag),
+          directives: directives == null ? new List<Directive>() : directives,
+          declarations: declarations == null
+              ? new List<CompilationUnitMember>()
+              : declarations,
+          endToken: TokenFactory.tokenFromType(TokenType.EOF),
+          featureSet: featureSet);
 
   static ConditionalExpression conditionalExpression(Expression condition,
           Expression thenExpression, Expression elseExpression) =>
@@ -487,6 +504,15 @@ class AstTestFactory {
           members: members,
           rightBracket:
               TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
+
+  static ExtensionOverride extensionOverride(
+          {@required Identifier extensionName,
+          TypeArgumentList typeArguments,
+          @required ArgumentList argumentList}) =>
+      astFactory.extensionOverride(
+          extensionName: extensionName,
+          typeArguments: typeArguments,
+          argumentList: argumentList);
 
   static FieldDeclaration fieldDeclaration(bool isStatic, Keyword keyword,
           TypeAnnotation type, List<VariableDeclaration> variables) =>
@@ -1277,7 +1303,7 @@ class AstTestFactory {
           TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
   static TypeArgumentList typeArgumentList(List<TypeAnnotation> types) {
-    if (types == null || types.length == 0) {
+    if (types == null || types.isEmpty) {
       return null;
     }
     return astFactory.typeArgumentList(TokenFactory.tokenFromType(TokenType.LT),
@@ -1319,7 +1345,7 @@ class AstTestFactory {
 
   static TypeParameterList typeParameterList([List<String> typeNames]) {
     List<TypeParameter> typeParameters = null;
-    if (typeNames != null && !typeNames.isEmpty) {
+    if (typeNames != null && typeNames.isNotEmpty) {
       typeParameters = new List<TypeParameter>();
       for (String typeName in typeNames) {
         typeParameters.add(typeParameter(typeName));

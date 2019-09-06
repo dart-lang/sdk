@@ -19,7 +19,7 @@ class A<T> extends B {
   A(p)
       : captured = (() => p),
         super(p++) {
-    // Make non-inlinable.
+    // Make constructor body non-inlinable.
     try {} catch (e) {}
 
     captured2 = () => p++;
@@ -49,8 +49,9 @@ main() {
   Expect.equals(3, b.z);
   Expect.isTrue(a is A<int>);
   Expect.isFalse(a is A<String>);
-  Expect.isTrue(a2 is A<int>);
-  Expect.isTrue(a2 is A<String>);
+  Expect.isFalse(a2 is A<int>);
+  Expect.isFalse(a2 is A<String>);
+  Expect.isTrue(a2 is A<Object>);
   Expect.equals(2, a.bar());
   Expect.equals(3, a2.bar());
   Expect.equals(3, a.foo());
@@ -61,7 +62,7 @@ main() {
   Expect.equals(1, a.typedList.length);
   Expect.equals(0, a2.typedList.length);
   Expect.isTrue(a.typedList is List<int>);
-  Expect.isTrue(a2.typedList is List<int>);
+  Expect.isFalse(a2.typedList is List<int>);
   Expect.isFalse(a.typedList is List<String>);
-  Expect.isTrue(a2.typedList is List<String>);
+  Expect.isFalse(a2.typedList is List<String>);
 }

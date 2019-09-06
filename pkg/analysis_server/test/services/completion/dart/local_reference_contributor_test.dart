@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/local_reference_contributor.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -13,6 +14,7 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LocalReferenceContributorTest);
+    defineReflectiveTests(LocalReferenceContributorWithExtensionMethodsTest);
   });
 }
 
@@ -20,9 +22,9 @@ main() {
 class LocalReferenceContributorTest extends DartCompletionContributorTest {
   CompletionSuggestion assertSuggestLocalVariable(
       String name, String returnType,
-      {int relevance: DART_RELEVANCE_LOCAL_VARIABLE,
-      bool hasTypeBoost: false,
-      bool hasSubtypeBoost: false}) {
+      {int relevance = DART_RELEVANCE_LOCAL_VARIABLE,
+      bool hasTypeBoost = false,
+      bool hasSubtypeBoost = false}) {
     if (hasTypeBoost) {
       relevance += DART_RELEVANCE_BOOST_TYPE;
     } else if (hasSubtypeBoost) {
@@ -43,7 +45,7 @@ class LocalReferenceContributorTest extends DartCompletionContributorTest {
   }
 
   CompletionSuggestion assertSuggestParameter(String name, String returnType,
-      {int relevance: DART_RELEVANCE_PARAMETER}) {
+      {int relevance = DART_RELEVANCE_PARAMETER}) {
     CompletionSuggestion cs = assertSuggest(name,
         csKind: CompletionSuggestionKind.INVOCATION, relevance: relevance);
     expect(cs.returnType, returnType != null ? returnType : 'dynamic');
@@ -58,7 +60,7 @@ class LocalReferenceContributorTest extends DartCompletionContributorTest {
   }
 
   CompletionSuggestion assertSuggestTypeParameter(String name,
-      {int relevance: DART_RELEVANCE_TYPE_PARAMETER}) {
+      {int relevance = DART_RELEVANCE_TYPE_PARAMETER}) {
     CompletionSuggestion cs = assertSuggest(name,
         csKind: CompletionSuggestionKind.IDENTIFIER, relevance: relevance);
     expect(cs.returnType, isNull);
@@ -2921,6 +2923,17 @@ main() {
     assertSuggestFunctionTypeAlias('F', 'void');
   }
 
+  test_functionTypeAlias_genericTypeAlias_incomplete() async {
+    addTestSource(r'''
+typedef F = int;
+main() {
+  ^
+}
+''');
+    await computeSuggestions();
+    assertSuggestFunctionTypeAlias('F', 'dynamic');
+  }
+
   test_functionTypeAlias_old() async {
     addTestSource(r'''
 typedef void F();
@@ -3936,6 +3949,35 @@ class X{}''');
     await computeSuggestions();
   }
 
+  test_mixinDeclaration_body() async {
+    // MixinDeclaration  CompilationUnit
+    addSource('/home/test/lib/b.dart', '''
+class B { }''');
+    addTestSource('''
+import "b.dart" as x;
+mixin M {^}
+class _B {}
+A T;''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    CompletionSuggestion suggestionM = assertSuggestMixin('M');
+    if (suggestionM != null) {
+      expect(suggestionM.element.isDeprecated, isFalse);
+      expect(suggestionM.element.isPrivate, isFalse);
+    }
+    CompletionSuggestion suggestionB = assertSuggestClass('_B');
+    if (suggestionB != null) {
+      expect(suggestionB.element.isDeprecated, isFalse);
+      expect(suggestionB.element.isPrivate, isTrue);
+    }
+    assertNotSuggested('Object');
+    assertNotSuggested('T');
+    // Suggested by LibraryPrefixContributor
+    assertNotSuggested('x');
+  }
+
   test_new_instance() async {
     addTestSource('import "dart:math"; class A {x() {new Random().^}}');
     await computeSuggestions();
@@ -4892,5 +4934,44 @@ class B extends A with ^
 ''');
     await computeSuggestions();
     assertSuggestMixin('M');
+  }
+}
+
+@reflectiveTest
+class LocalReferenceContributorWithExtensionMethodsTest
+    extends LocalReferenceContributorTest {
+  @override
+  void setUp() {
+    createAnalysisOptionsFile(
+      experiments: [
+        EnableString.extension_methods,
+      ],
+    );
+    super.setUp();
+  }
+
+  test_extensionDeclaration_body() async {
+    // ExtensionDeclaration  CompilationUnit
+    addSource('/home/test/lib/b.dart', '''
+class B { }''');
+    addTestSource('''
+import "b.dart" as x;
+extension E on int {^}
+class _B {}
+A T;''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    CompletionSuggestion suggestionB = assertSuggestClass('_B');
+    if (suggestionB != null) {
+      expect(suggestionB.element.isDeprecated, isFalse);
+      expect(suggestionB.element.isPrivate, isTrue);
+    }
+    assertNotSuggested('Object');
+    assertNotSuggested('T');
+    assertNotSuggested('E');
+    // Suggested by LibraryPrefixContributor
+    assertNotSuggested('x');
   }
 }

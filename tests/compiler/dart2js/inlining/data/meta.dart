@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: main:[]*/
+/*member: main:[]*/
 main() {
   tryInlineOnce();
   tryInlineTwice1();
@@ -13,11 +13,11 @@ main() {
 // Use `tryInline` to inline a top level method once.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _tryInlineOnce:[tryInlineOnce]*/
+/*member: _tryInlineOnce:[tryInlineOnce]*/
 @pragma('dart2js:tryInline')
 _tryInlineOnce() {}
 
-/*element: tryInlineOnce:[]*/
+/*member: tryInlineOnce:[]*/
 @pragma('dart2js:noInline')
 tryInlineOnce() {
   _tryInlineOnce();
@@ -27,17 +27,17 @@ tryInlineOnce() {
 // Use `tryInline`to inline a top level method twice.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _tryInlineTwice:[tryInlineTwice1,tryInlineTwice2]*/
+/*member: _tryInlineTwice:[tryInlineTwice1,tryInlineTwice2]*/
 @pragma('dart2js:tryInline')
 _tryInlineTwice() {}
 
-/*element: tryInlineTwice1:[]*/
+/*member: tryInlineTwice1:[]*/
 @pragma('dart2js:noInline')
 tryInlineTwice1() {
   _tryInlineTwice();
 }
 
-/*element: tryInlineTwice2:[]*/
+/*member: tryInlineTwice2:[]*/
 @pragma('dart2js:noInline')
 tryInlineTwice2() {
   _tryInlineTwice();

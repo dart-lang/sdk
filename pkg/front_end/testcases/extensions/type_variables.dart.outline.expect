@@ -1,0 +1,44 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/type_variables.dart:7:11: Error: A function declaration needs an explicit list of parameters.
+// Try adding a parameter list to the function declaration.
+// extension A2<T> on A1<T> {
+//           ^^
+//
+// pkg/front_end/testcases/extensions/type_variables.dart:7:17: Error: Expected '{' before this.
+// extension A2<T> on A1<T> {
+//                 ^^
+//
+// pkg/front_end/testcases/extensions/type_variables.dart:7:20: Error: A function declaration needs an explicit list of parameters.
+// Try adding a parameter list to the function declaration.
+// extension A2<T> on A1<T> {
+//                    ^^
+//
+// pkg/front_end/testcases/extensions/type_variables.dart:7:20: Error: 'A1' is already declared in this scope.
+// extension A2<T> on A1<T> {
+//                    ^^
+// pkg/front_end/testcases/extensions/type_variables.dart:5:7: Context: Previous declaration of 'A1'.
+// class A1<T> {}
+//       ^^
+//
+// pkg/front_end/testcases/extensions/type_variables.dart:7:1: Warning: Type 'extension' not found.
+// extension A2<T> on A1<T> {
+// ^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/type_variables.dart:7:17: Warning: Type 'on' not found.
+// extension A2<T> on A1<T> {
+//                 ^^
+//
+import self as self;
+import "dart:core" as core;
+
+class A1<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::A1<self::A1::T*>*
+    ;
+}
+static method A2<T extends core::Object* = dynamic>() → invalid-type
+  ;
+static method main() → dynamic
+  ;

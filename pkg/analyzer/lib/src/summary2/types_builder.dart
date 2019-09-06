@@ -83,11 +83,15 @@ class TypesBuilder {
 
   void _classDeclaration(ClassDeclaration node) {}
 
+  void _classTypeAlias(ClassTypeAlias node) {}
+
   void _declaration(AstNode node) {
     if (node is ClassDeclaration) {
       _classDeclaration(node);
     } else if (node is ClassTypeAlias) {
-      // TODO(scheglov) ???
+      _classTypeAlias(node);
+    } else if (node is ExtensionDeclaration) {
+      _extensionDeclaration(node);
     } else if (node is FieldFormalParameter) {
       _fieldFormalParameter(node);
     } else if (node is FunctionDeclaration) {
@@ -133,6 +137,8 @@ class TypesBuilder {
       throw UnimplementedError('${node.runtimeType}');
     }
   }
+
+  void _extensionDeclaration(ExtensionDeclaration node) {}
 
   void _fieldFormalParameter(FieldFormalParameter node) {
     var parameterList = node.parameters;

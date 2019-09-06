@@ -131,7 +131,7 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
         _visitTypeParameters(declaration, declaration.typeParameters);
         _visitTypeParameters(
           declaration.functionType,
-          declaration.functionType.typeParameters,
+          declaration.functionType?.typeParameters,
         );
       } else if (declaration is MixinDeclaration) {
         declaredMixin(declaration);

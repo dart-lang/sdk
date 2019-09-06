@@ -15,28 +15,6 @@ valid_source_locations_test: Pass, Slow # Generally slow, even in release-x64.
 [ $arch == arm ]
 process_service_test: Pass, Fail # Issue 24344
 
-[ $compiler == app_jit ]
-bad_reload_test: RuntimeError # Issue 27806
-complex_reload_test: RuntimeError # Issue 27806
-debugger_location_second_test: Skip # Issue 28180
-evaluate_activation_test/instance: RuntimeError # Issue 27806
-evaluate_activation_test/scope: RuntimeError # Issue 27806
-get_object_rpc_test: RuntimeError # Issue 27806
-get_source_report_test: RuntimeError # Issue 27806
-next_through_closure_test: RuntimeError # Snapshots don't include source and generated source is not 1-to-1. The column offsets are thus off.
-next_through_create_list_and_map_test: RuntimeError # Snapshots don't include source and generated source is not 1-to-1. The column offsets are thus off.
-next_through_for_each_loop_test: RuntimeError # Snapshots don't include source and generated source is not 1-to-1. The column offsets are thus off.
-next_through_implicit_call_test: RuntimeError # Snapshots don't include source and generated source is not 1-to-1. The column offsets are thus off.
-pause_on_unhandled_async_exceptions2_test: Pass, RuntimeError, Timeout, Crash # Issue 29178
-process_service_test: RuntimeError # Spawned process runs in Dart2 mode
-set_name_rpc_test: RuntimeError # Issue 27806
-simple_reload_test: RuntimeError # Issue 27806
-step_through_constructor_calls_test: RuntimeError # Snapshots don't include source and generated source is not 1-to-1. The column offsets are thus off.
-step_through_function_test: RuntimeError # Snapshots don't include source and generated source is not 1-to-1. The column offsets are thus off.
-step_through_switch_test: RuntimeError # Snapshots don't include source and generated source is not 1-to-1. The column offsets are thus off.
-step_through_switch_with_continue_test: RuntimeError # Snapshots don't include source and generated source is not 1-to-1. The column offsets are thus off.
-unused_changes_in_last_reload_test: RuntimeError # Issue 27806
-
 # Tests with known analyzer issues
 [ $compiler == dart2analyzer ]
 developer_extension_test: SkipByDesign
@@ -46,9 +24,6 @@ get_isolate_after_language_error_test: SkipByDesign
 [ $compiler != dartk ]
 add_breakpoint_rpc_kernel_test: SkipByDesign # kernel specific version of add_breakpoint_rpc_test
 evaluate_function_type_parameters_test: SkipByDesign # only supported in kernel
-
-[ $compiler == precompiler ]
-*: Skip # Issue 24651
 
 # Service protocol is not supported in product mode.
 [ $mode == product ]
@@ -62,6 +37,10 @@ dev_fs_weird_char_test: Skip # Windows disallows question mark in paths
 [ $compiler == none && $runtime == vm && $system == fuchsia ]
 *: Skip # Not yet triaged.
 
+[ $compiler == none && ($runtime == dart_precompiled || $runtime == vm) ]
+evaluate_activation_test/instance: RuntimeError # http://dartbug.com/20047
+evaluate_activation_test/scope: RuntimeError # http://dartbug.com/20047
+
 [ $mode == debug && $system == windows && $checked ]
 async_scope_test: Pass, Slow
 
@@ -74,19 +53,13 @@ async_scope_test: Pass, Slow
 [ !$strong && ($compiler == dartk || $compiler == dartkp) ]
 *: Skip
 
-[ ($compiler == none || $compiler == precompiler) && ($runtime == dart_precompiled || $runtime == vm) ]
-evaluate_activation_test/instance: RuntimeError # http://dartbug.com/20047
-evaluate_activation_test/scope: RuntimeError # http://dartbug.com/20047
-
-[ $arch != ia32 || $arch != x64 || $system != linux ]
-get_native_allocation_samples_test: Skip # Unsupported.
-
 # These tests are slow on simulators.
 [ $arch == simarm || $arch == simarm64 ]
 *: Pass, Slow
 
 [ $arch == simdbc || $arch == simdbc64 ]
 async_single_step_exception_test: RuntimeError # Issue 29218
+get_cpu_profile_timeline_rpc_test: SkipByDesign
 implicit_getter_setter_test: RuntimeError # Field guards unimplemented.
 next_through_catch_test: RuntimeError # Debugging StringConcatenation doesn't work the same on simdbc as on other platforms (bug #28975).
 next_through_simple_async_test: RuntimeError # Debugging StringConcatenation doesn't work the same on simdbc as on other platforms (bug #28975).
@@ -105,6 +78,9 @@ debugger_location_test: Pass, Slow
 
 [ $compiler == dartk || $compiler == dartkp ]
 rewind_test: Pass, Slow
+
+[ $system != linux || $arch != ia32 && $arch != x64 ]
+get_native_allocation_samples_test: Skip # Unsupported.
 
 # Skip all service tests because random reloads interfere.
 [ $hot_reload || $hot_reload_rollback ]

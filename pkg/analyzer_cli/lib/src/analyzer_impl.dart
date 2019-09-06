@@ -46,7 +46,7 @@ class AnalyzerImpl {
   final Set<String> files = new Set<String>();
 
   /// All [AnalysisErrorInfo]s in the analyzed library.
-  final List<AnalysisErrorInfo> errorInfos = new List<AnalysisErrorInfo>();
+  final List<ErrorsResult> errorsResults = [];
 
   /// If the file specified on the command line is part of a package, the name
   /// of that package.  Otherwise `null`.  This allows us to analyze the file
@@ -108,8 +108,8 @@ class AnalyzerImpl {
   /// Returns the maximal [ErrorSeverity] of the recorded errors.
   ErrorSeverity computeMaxErrorSeverity() {
     ErrorSeverity status = ErrorSeverity.NONE;
-    for (AnalysisErrorInfo errorInfo in errorInfos) {
-      for (AnalysisError error in errorInfo.errors) {
+    for (ErrorsResult result in errorsResults) {
+      for (AnalysisError error in result.errors) {
         if (_defaultSeverityProcessor(error) == null) {
           continue;
         }
@@ -119,7 +119,7 @@ class AnalyzerImpl {
     return status;
   }
 
-  /// Fills [errorInfos] using [files].
+  /// Fills [errorsResults] using [files].
   Future<void> prepareErrors() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
@@ -127,8 +127,7 @@ class AnalyzerImpl {
     try {
       for (String path in files) {
         ErrorsResult errorsResult = await analysisDriver.getErrors(path);
-        errorInfos.add(new AnalysisErrorInfoImpl(
-            errorsResult.errors, errorsResult.lineInfo));
+        errorsResults.add(errorsResult);
       }
     } finally {
       previous.makeCurrent();
@@ -145,7 +144,7 @@ class AnalyzerImpl {
   /// Setup local fields such as the analysis context for analysis.
   void setupForAnalysis() {
     files.clear();
-    errorInfos.clear();
+    errorsResults.clear();
     Uri libraryUri = libraryFile.uri;
     if (libraryUri.scheme == 'package' && libraryUri.pathSegments.length > 0) {
       _selfPackageName = libraryUri.pathSegments[0];
@@ -170,7 +169,7 @@ class AnalyzerImpl {
 
     // Print errors and performance numbers.
     if (printMode == 1) {
-      formatter.formatErrors(errorInfos);
+      formatter.formatErrors(errorsResults);
     } else if (printMode == 2) {
       _printColdPerf();
     }

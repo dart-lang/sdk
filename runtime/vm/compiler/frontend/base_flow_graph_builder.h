@@ -108,6 +108,32 @@ class TestFragment {
 
 typedef ZoneGrowableArray<PushArgumentInstr*>* ArgumentArray;
 
+// Indicates which form of the unchecked entrypoint we are compiling.
+//
+// kNone:
+//
+//   There is no unchecked entrypoint: the unchecked entry is set to NULL in
+//   the 'GraphEntryInstr'.
+//
+// kSeparate:
+//
+//   The normal and unchecked entrypoint each point to their own versions of
+//   the prologue, containing exactly those checks which need to be performed
+//   on either side. Both sides jump directly to the body after performing
+//   their prologue.
+//
+// kSharedWithVariable:
+//
+//   A temporary variable is allocated and initialized to 0 on normal entry
+//   and 2 on unchecked entry. Code which should be ommitted on the unchecked
+//   entrypoint is made conditional on this variable being equal to 0.
+//
+enum class UncheckedEntryPointStyle {
+  kNone = 0,
+  kSeparate = 1,
+  kSharedWithVariable = 2,
+};
+
 class BaseFlowGraphBuilder {
  public:
   BaseFlowGraphBuilder(
@@ -169,7 +195,7 @@ class BaseFlowGraphBuilder {
   Fragment StoreIndexed(intptr_t class_id);
 
   void Push(Definition* definition);
-  Definition* Peek();
+  Definition* Peek(intptr_t depth = 0);
   Value* Pop();
   Fragment Drop();
   // Drop given number of temps from the stack but preserve top of the stack.
@@ -275,7 +301,7 @@ class BaseFlowGraphBuilder {
 
   Fragment AssertBool(TokenPosition position);
   Fragment BooleanNegate();
-  Fragment AllocateContext(const GrowableArray<LocalVariable*>& scope);
+  Fragment AllocateContext(const ZoneGrowableArray<const Slot*>& scope);
   Fragment AllocateClosure(TokenPosition position,
                            const Function& closure_function);
   Fragment CreateArray();
@@ -291,6 +317,64 @@ class BaseFlowGraphBuilder {
   intptr_t GetStackDepth() const {
     return stack_ == nullptr ? 0 : stack_->definition()->temp_index() + 1;
   }
+
+  // Builds the graph for an invocation of '_asFunctionInternal'.
+  //
+  // 'signatures' contains the pair [<dart signature>, <native signature>].
+  Fragment BuildFfiAsFunctionInternalCall(const TypeArguments& signatures);
+
+  Fragment AllocateObject(TokenPosition position,
+                          const Class& klass,
+                          intptr_t argument_count);
+
+  Fragment DebugStepCheck(TokenPosition position);
+
+  // Loads 'receiver' and checks it for null. Throws NoSuchMethod if it is null.
+  // 'function_name' is a selector which is being called (reported in
+  // NoSuchMethod message).
+  // Sets 'receiver' to 'null' after the check if 'clear_the_temp'.
+  Fragment CheckNull(TokenPosition position,
+                     LocalVariable* receiver,
+                     const String& function_name,
+                     bool clear_the_temp = true);
+
+  // Records extra unchecked entry point 'unchecked_entry' in 'graph_entry'.
+  void RecordUncheckedEntryPoint(GraphEntryInstr* graph_entry,
+                                 FunctionEntryInstr* unchecked_entry);
+
+  // Pop the index of the current entry-point off the stack. If there is any
+  // entrypoint-tracing hook registered in a pragma for the function, it is
+  // called with the name of the current function and the current entry-point
+  // index.
+  Fragment BuildEntryPointsIntrospection();
+
+  // Builds closure call with given number of arguments. Target closure
+  // function is taken from top of the stack.
+  // PushArgument instructions should be already added for arguments.
+  Fragment ClosureCall(TokenPosition position,
+                       intptr_t type_args_len,
+                       intptr_t argument_count,
+                       const Array& argument_names,
+                       bool use_unchecked_entry = false);
+
+  // Builds StringInterpolate instruction, an equivalent of
+  // _StringBase._interpolate call.
+  Fragment StringInterpolate(TokenPosition position);
+
+  // Returns true if we're currently recording deopt_id -> context level
+  // mapping.
+  bool is_recording_context_levels() const {
+    return context_level_array_ != nullptr;
+  }
+
+  // Sets current context level. It will be recorded for all subsequent
+  // deopt ids (until it is adjusted again).
+  void set_context_depth(intptr_t context_level) {
+    context_depth_ = context_level;
+  }
+
+  // Reset context level for the given deopt id (which was allocated earlier).
+  void reset_context_depth_for_deopt_id(intptr_t deopt_id);
 
  protected:
   intptr_t AllocateBlockId() { return ++last_used_block_id_; }

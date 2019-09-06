@@ -15,10 +15,6 @@ MethodRecognizer::Kind MethodRecognizer::RecognizeKind(
   return function.recognized_kind();
 }
 
-bool MethodRecognizer::AlwaysInline(const Function& function) {
-  return function.always_inline();
-}
-
 bool MethodRecognizer::PolymorphicTarget(const Function& function) {
   return function.is_polymorphic_target();
 }
@@ -219,22 +215,13 @@ void MethodRecognizer::InitializeState() {
     UNREACHABLE();                                                             \
   }
 
-#define SET_IS_ALWAYS_INLINE(class_name, function_name, dest, fp)              \
-  SET_FUNCTION_BIT(class_name, function_name, dest, fp, set_always_inline, true)
-
-#define SET_IS_NEVER_INLINE(class_name, function_name, dest, fp)               \
-  SET_FUNCTION_BIT(class_name, function_name, dest, fp, set_is_inlinable, false)
-
 #define SET_IS_POLYMORPHIC_TARGET(class_name, function_name, dest, fp)         \
   SET_FUNCTION_BIT(class_name, function_name, dest, fp,                        \
                    set_is_polymorphic_target, true)
 
-  INLINE_WHITE_LIST(SET_IS_ALWAYS_INLINE);
-  INLINE_BLACK_LIST(SET_IS_NEVER_INLINE);
   POLYMORPHIC_TARGET_LIST(SET_IS_POLYMORPHIC_TARGET);
 
 #undef SET_RECOGNIZED_KIND
-#undef SET_IS_ALWAYS_INLINE
 #undef SET_IS_POLYMORPHIC_TARGET
 #undef SET_FUNCTION_BIT
 }
@@ -247,6 +234,7 @@ void MethodRecognizer::Libraries(GrowableArray<Library*>* libs) {
   libs->Add(&Library::ZoneHandle(Library::InternalLibrary()));
   libs->Add(&Library::ZoneHandle(Library::DeveloperLibrary()));
   libs->Add(&Library::ZoneHandle(Library::AsyncLibrary()));
+  libs->Add(&Library::ZoneHandle(Library::FfiLibrary()));
 }
 
 RawGrowableObjectArray* MethodRecognizer::QueryRecognizedMethods(Zone* zone) {
@@ -352,6 +340,28 @@ intptr_t FactoryRecognizer::ResultCid(const Function& factory) {
     }
   }
   return kDynamicCid;
+}
+
+intptr_t FactoryRecognizer::GetResultCidOfListFactory(Zone* zone,
+                                                      const Function& function,
+                                                      intptr_t argument_count) {
+  if (!function.IsFactory()) {
+    return kDynamicCid;
+  }
+
+  const Class& owner = Class::Handle(zone, function.Owner());
+  if ((owner.library() != Library::CoreLibrary()) &&
+      (owner.library() != Library::TypedDataLibrary())) {
+    return kDynamicCid;
+  }
+
+  if ((owner.Name() == Symbols::List().raw()) &&
+      (function.name() == Symbols::ListFactory().raw())) {
+    ASSERT(argument_count == 1 || argument_count == 2);
+    return (argument_count == 1) ? kGrowableObjectArrayCid : kArrayCid;
+  }
+
+  return ResultCid(function);
 }
 
 }  // namespace dart

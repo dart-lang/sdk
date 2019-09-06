@@ -1,3 +1,6 @@
+# 1.1.3
+ * update dartfix protocol to include --pedantic
+
 # 1.1.1
  * Update ConnectionHandler to call checkServerProtocolVersion
 

@@ -2,6 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+import("build/config/gclient_args.gni")
 import("build/dart/dart_host_sdk_toolchain.gni")
 
 targetting_fuchsia = target_os == "fuchsia"
@@ -15,15 +16,20 @@ group("default") {
   deps = [
     ":runtime",
   ]
+  if (defined(checkout_llvm) && checkout_llvm) {
+    deps += [
+      ":llvm_codegen"
+    ]
+  }
 }
 
 group("most") {
+  import("runtime/runtime_args.gni")
   if (targetting_fuchsia) {
     # Fuchsia has run_vm_tests marked testonly.
     testonly = true
   }
   deps = [
-    ":analysis_server",
     ":create_sdk",
     ":dart2js",
     ":dartanalyzer",
@@ -31,6 +37,9 @@ group("most") {
     ":runtime",
     ":samples",
   ]
+  if (dart_target_arch != "arm") {
+    deps += [ ":analysis_server" ]
+  }
 }
 
 group("runtime") {
@@ -114,6 +123,23 @@ group("analysis_server") {
   deps = [
     "utils/analysis_server",
   ]
+}
+
+group("check_llvm") {
+  if (defined(checkout_llvm) && checkout_llvm) {
+    deps = [
+      "runtime/llvm_codegen/test",
+    ]
+  }
+}
+
+group("llvm_codegen") {
+  if (defined(checkout_llvm) && checkout_llvm) {
+    deps = [
+      "runtime/llvm_codegen/codegen",
+      "runtime/llvm_codegen/bit",
+    ]
+  }
 }
 
 # This is the target that is built on the dart2js build bots.

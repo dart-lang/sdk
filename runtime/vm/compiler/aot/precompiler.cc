@@ -10,7 +10,6 @@
 #include "vm/compiler/aot/aot_call_specializer.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler.h"
-#include "vm/compiler/backend/block_scheduler.h"
 #include "vm/compiler/backend/branch_optimizer.h"
 #include "vm/compiler/backend/constant_propagator.h"
 #include "vm/compiler/backend/flow_graph.h"
@@ -66,6 +65,10 @@ DEFINE_FLAG(
     max_speculative_inlining_attempts,
     1,
     "Max number of attempts with speculative inlining (precompilation only)");
+DEFINE_FLAG(charp,
+            serialize_flow_graphs_to,
+            nullptr,
+            "Serialize flow graphs to the given file");
 
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, print_flow_graph_optimized);
@@ -108,7 +111,7 @@ class PrecompileParsedFunctionHelper : public ValueObject {
   Thread* thread() const { return thread_; }
   Isolate* isolate() const { return thread_->isolate(); }
 
-  void FinalizeCompilation(Assembler* assembler,
+  void FinalizeCompilation(compiler::Assembler* assembler,
                            FlowGraphCompiler* graph_compiler,
                            FlowGraph* flow_graph,
                            CodeStatistics* stats);
@@ -163,7 +166,8 @@ Precompiler::Precompiler(Thread* thread)
       types_to_retain_(),
       consts_to_retain_(),
       error_(Error::Handle()),
-      get_runtime_type_is_unique_(false) {
+      get_runtime_type_is_unique_(false),
+      il_serialization_stream_(nullptr) {
   ASSERT(Precompiler::singleton_ == NULL);
   Precompiler::singleton_ = this;
 }
@@ -179,6 +183,16 @@ void Precompiler::DoCompileAll() {
   {
     StackZone stack_zone(T);
     zone_ = stack_zone.GetZone();
+
+    // Check that both the file open and write callbacks are available, though
+    // we only use the latter during IL processing.
+    if (FLAG_serialize_flow_graphs_to != nullptr &&
+        Dart::file_write_callback() != nullptr) {
+      if (auto file_open = Dart::file_open_callback()) {
+        auto file = file_open(FLAG_serialize_flow_graphs_to, /*write=*/true);
+        set_il_serialization_stream(file);
+      }
+    }
 
     if (FLAG_use_bare_instructions) {
       // Since we keep the object pool until the end of AOT compilation, it
@@ -337,10 +351,17 @@ void Precompiler::DoCompileAll() {
     DropLibraries();
 
     BindStaticCalls();
-    SwitchICCalls();
+    DedupUnlinkedCalls();
     Obfuscate();
 
     ProgramVisitor::Dedup();
+
+    if (il_serialization_stream() != nullptr) {
+      auto file_close = Dart::file_close_callback();
+      ASSERT(file_close != nullptr);
+      file_close(il_serialization_stream());
+      set_il_serialization_stream(nullptr);
+    }
 
     zone_ = NULL;
   }
@@ -612,16 +633,15 @@ void Precompiler::AddCalleesOf(const Function& function, intptr_t gop_offset) {
 void Precompiler::AddCalleesOfHelper(const Object& entry,
                                      String* temp_selector,
                                      Class* temp_cls) {
-  if (entry.IsICData()) {
-    const auto& call_site = ICData::Cast(entry);
+  if (entry.IsUnlinkedCall()) {
+    const auto& call_site = UnlinkedCall::Cast(entry);
     // A dynamic call.
-    ASSERT(!call_site.is_static_call());
     *temp_selector = call_site.target_name();
     AddSelector(*temp_selector);
     if (temp_selector->raw() == Symbols::Call().raw()) {
       // Potential closure call.
       const Array& arguments_descriptor =
-          Array::Handle(Z, call_site.arguments_descriptor());
+          Array::Handle(Z, call_site.args_descriptor());
       AddClosureCall(arguments_descriptor);
     }
   } else if (entry.IsMegamorphicCache()) {
@@ -1986,49 +2006,27 @@ void Precompiler::BindStaticCalls() {
   }
 }
 
-void Precompiler::SwitchICCalls() {
+void Precompiler::DedupUnlinkedCalls() {
   ASSERT(!I->compilation_allowed());
 #if !defined(TARGET_ARCH_DBC)
-  // Now that all functions have been compiled, we can switch to an instance
-  // call sequence that loads the Code object and entry point directly from
-  // the ic data array instead indirectly through a Function in the ic data
-  // array. Iterate all the object pools and rewrite the ic data from
-  // (cid, target function, count) to (cid, target code, entry point), and
-  // replace the ICCallThroughFunction stub with ICCallThroughCode.
-  class ICCallSwitcher {
+  class UnlinkedCallDeduper {
    public:
-    explicit ICCallSwitcher(Zone* zone)
+    explicit UnlinkedCallDeduper(Zone* zone)
         : zone_(zone),
           entry_(Object::Handle(zone)),
-          ic_(ICData::Handle(zone)),
-          target_name_(String::Handle(zone)),
-          args_descriptor_(Array::Handle(zone)),
           unlinked_(UnlinkedCall::Handle(zone)),
-          target_code_(Code::Handle(zone)),
           canonical_unlinked_calls_() {}
 
-    void SwitchPool(const ObjectPool& pool) {
+    void DedupPool(const ObjectPool& pool) {
       for (intptr_t i = 0; i < pool.Length(); i++) {
         if (pool.TypeAt(i) != ObjectPool::EntryType::kTaggedObject) {
           continue;
         }
         entry_ = pool.ObjectAt(i);
-        if (entry_.IsICData()) {
-          // The only IC calls generated by precompilation are for switchable
-          // calls.
-          ic_ ^= entry_.raw();
-          ic_.ResetSwitchable(zone_);
-
-          unlinked_ = UnlinkedCall::New();
-          target_name_ = ic_.target_name();
-          unlinked_.set_target_name(target_name_);
-          args_descriptor_ = ic_.arguments_descriptor();
-          unlinked_.set_args_descriptor(args_descriptor_);
+        if (entry_.IsUnlinkedCall()) {
+          unlinked_ ^= entry_.raw();
           unlinked_ = DedupUnlinkedCall(unlinked_);
           pool.SetObjectAt(i, unlinked_);
-        } else if (entry_.raw() == StubCode::ICCallThroughFunction().raw()) {
-          target_code_ = StubCode::UnlinkedCall().raw();
-          pool.SetObjectAt(i, target_code_);
         }
       }
     }
@@ -2048,18 +2046,14 @@ void Precompiler::SwitchICCalls() {
    private:
     Zone* zone_;
     Object& entry_;
-    ICData& ic_;
-    String& target_name_;
-    Array& args_descriptor_;
     UnlinkedCall& unlinked_;
-    Code& target_code_;
     UnlinkedCallSet canonical_unlinked_calls_;
   };
 
-  class SwitchICCallsVisitor : public FunctionVisitor {
+  class DedupUnlinkedCallsVisitor : public FunctionVisitor {
    public:
-    SwitchICCallsVisitor(ICCallSwitcher* ic_call_switcher, Zone* zone)
-        : ic_call_switcher_(*ic_call_switcher),
+    DedupUnlinkedCallsVisitor(UnlinkedCallDeduper* deduper, Zone* zone)
+        : deduper_(*deduper),
           code_(Code::Handle(zone)),
           pool_(ObjectPool::Handle(zone)) {}
 
@@ -2069,22 +2063,22 @@ void Precompiler::SwitchICCalls() {
       }
       code_ = function.CurrentCode();
       pool_ = code_.object_pool();
-      ic_call_switcher_.SwitchPool(pool_);
+      deduper_.DedupPool(pool_);
     }
 
    private:
-    ICCallSwitcher& ic_call_switcher_;
+    UnlinkedCallDeduper& deduper_;
     Code& code_;
     ObjectPool& pool_;
   };
 
-  ICCallSwitcher switcher(Z);
+  UnlinkedCallDeduper deduper(Z);
   auto& gop = ObjectPool::Handle(I->object_store()->global_object_pool());
   ASSERT(gop.IsNull() != FLAG_use_bare_instructions);
   if (FLAG_use_bare_instructions) {
-    switcher.SwitchPool(gop);
+    deduper.DedupPool(gop);
   } else {
-    SwitchICCallsVisitor visitor(&switcher, Z);
+    DedupUnlinkedCallsVisitor visitor(&deduper, Z);
 
     // We need both iterations to ensure we visit all the functions that might
     // end up in the snapshot. The ProgramVisitor will miss closures from
@@ -2179,9 +2173,8 @@ void Precompiler::FinalizeAllClasses() {
   I->set_all_classes_finalized(true);
 }
 
-
 void PrecompileParsedFunctionHelper::FinalizeCompilation(
-    Assembler* assembler,
+    compiler::Assembler* assembler,
     FlowGraphCompiler* graph_compiler,
     FlowGraph* flow_graph,
     CodeStatistics* stats) {
@@ -2287,10 +2280,8 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         FlowGraphPrinter::PrintGraph("Unoptimized Compilation", flow_graph);
       }
 
-      BlockScheduler block_scheduler(flow_graph);
       CompilerPassState pass_state(thread(), flow_graph, &speculative_policy,
                                    precompiler_);
-      pass_state.block_scheduler = &block_scheduler;
       pass_state.reorder_blocks =
           FlowGraph::ShouldReorderBlocks(function, optimized());
 
@@ -2319,12 +2310,13 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
       ASSERT(!FLAG_use_bare_instructions || precompiler_ != nullptr);
 
-      ObjectPoolBuilder object_pool;
-      ObjectPoolBuilder* active_object_pool_builder =
+      compiler::ObjectPoolBuilder object_pool;
+      compiler::ObjectPoolBuilder* active_object_pool_builder =
           FLAG_use_bare_instructions
               ? precompiler_->global_object_pool_builder()
               : &object_pool;
-      Assembler assembler(active_object_pool_builder, use_far_branches);
+      compiler::Assembler assembler(active_object_pool_builder,
+                                    use_far_branches);
 
       CodeStatistics* function_stats = NULL;
       if (FLAG_print_instruction_stats) {
@@ -2592,8 +2584,6 @@ void Obfuscator::InitializeRenamingMap(Isolate* isolate) {
     PreventRenaming(#class_name);                                              \
     PreventRenaming(#function_name);                                           \
   } while (0);
-  INLINE_WHITE_LIST(PREVENT_RENAMING)
-  INLINE_BLACK_LIST(PREVENT_RENAMING)
   POLYMORPHIC_TARGET_LIST(PREVENT_RENAMING)
 #undef PREVENT_RENAMING
 

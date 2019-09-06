@@ -39,11 +39,11 @@ void main() {
     });
     test('List', () async {
       await expectNotNull(
-          'main() { print([42, null]); }', '<dart.core::int>[42, null], 42');
+          'main() { print([42, null]); }', '<dart.core::int*>[42, null], 42');
     });
     test('Map', () async {
       await expectNotNull('main() { print({"x": null}); }',
-          '<dart.core::String, dart.core::Null>{"x": null}, "x"');
+          '<dart.core::String*, dart.core::Null*>{"x": null}, "x"');
     });
 
     test('Symbol', () async {
@@ -51,7 +51,7 @@ void main() {
     });
 
     test('Type', () async {
-      await expectNotNull('main() { print(Object); }', 'dart.core::Object');
+      await expectNotNull('main() { print(Object); }', 'dart.core::Object*');
     });
   });
 
@@ -61,12 +61,12 @@ void main() {
 
   test('is', () async {
     await expectNotNull('main() { 42 is int; null is int; }',
-        '42 is dart.core::int, 42, null is dart.core::int');
+        '42 is dart.core::int*, 42, null is dart.core::int*');
   });
 
   test('as', () async {
     await expectNotNull(
-        'main() { 42 as int; null as int; }', '42 as dart.core::int, 42');
+        'main() { 42 as int; null as int; }', '42 as dart.core::int*, 42');
   });
 
   test('constructor', () async {
@@ -248,8 +248,8 @@ void main() {
   });
 
   test('function expression', () async {
-    await expectNotNull(
-        'main() { () => null; f() {}; f; }', '() → dart.core::Null => null, f');
+    await expectNotNull('main() { () => null; f() {}; f; }',
+        '() → dart.core::Null* => null, f');
   });
 
   test('cascades (kernel let)', () async {
@@ -390,7 +390,8 @@ void main() {
       await expectNotNull('''main() {
         var x = () => 42;
         var y = (() => x = null);
-      }''', '() → dart.core::int => 42, 42, () → dart.core::Null => x = null');
+      }''',
+          '() → dart.core::int* => 42, 42, () → dart.core::Null* => x = null');
     });
     test('do not depend on unrelated variables', () async {
       await expectNotNull('''main() {
@@ -406,6 +407,27 @@ void main() {
         x = null;
         y; // this is still non-null even though `x` is nullable
       }''', '1, dart.core::identical(x, 1), 1, y');
+    });
+  });
+  group('functions parameters in SDK', () {
+    setUp(() {
+      // Using annotations here to test how the parameter is detected when
+      // compiling functions from the SDK.
+      // A regression test for: https://github.com/dart-lang/sdk/issues/37700
+      useAnnotations = true;
+    });
+    tearDown(() {
+      useAnnotations = false;
+    });
+    test('optional with default value', () async {
+      await expectNotNull('''
+        f(x, [y = 1]) { x; y; }
+      ''', '1');
+    });
+    test('named with default value', () async {
+      await expectNotNull('''
+        f(x, {y = 1}) { x; y; }
+      ''', '1');
     });
   });
 
@@ -470,8 +492,14 @@ Future expectNotNull(String code, String expectedNotNull) async {
   var component = await kernelCompile(code);
   var collector = NotNullCollector();
   component.accept(collector);
-  var actualNotNull =
-      collector.notNullExpressions.map((e) => e.toString()).join(', ');
+  var actualNotNull = collector.notNullExpressions
+      // ConstantExpressions print the table offset - we want to compare
+      // against the underlying constant value instead.
+      .map((e) => (e is ConstantExpression ? e.constant : e).toString())
+      // Filter out our own NotNull annotations.  The library prefix changes
+      // per test, so just filter on the suffix.
+      .where((s) => !s.endsWith('::_NotNull {}'))
+      .join(', ');
   expect(actualNotNull, equals(expectedNotNull));
 }
 
@@ -578,7 +606,9 @@ const nullCheck = const _NullCheck();
   var oldCompilerState = _compilerState;
   _compilerState = await fe.initializeCompiler(oldCompilerState, false, null,
       sdkUri, packagesUri, null, [], DevCompilerTarget(TargetFlags()),
-      fileSystem: _fileSystem, experiments: const {});
+      fileSystem: _fileSystem,
+      experiments: const {},
+      environmentDefines: const {});
   if (!identical(oldCompilerState, _compilerState)) inference = null;
   fe.DdcResult result =
       await fe.compile(_compilerState, [mainUri], diagnosticMessageHandler);

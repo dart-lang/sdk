@@ -3,11 +3,11 @@ import self as self;
 import "dart:core" as core;
 
 abstract class A extends core::Object {
-  synthetic constructor •() → self::A
+  synthetic constructor •() → self::A*
     ;
 }
 class B extends self::A {
-  constructor •() → self::B
+  constructor •() → self::B*
     ;
 }
 static method bad() → dynamic

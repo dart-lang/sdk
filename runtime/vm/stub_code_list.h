@@ -36,7 +36,6 @@ namespace dart {
   V(UnlinkedCall)                                                              \
   V(MonomorphicMiss)                                                           \
   V(SingleTargetCall)                                                          \
-  V(ICCallThroughFunction)                                                     \
   V(ICCallThroughCode)                                                         \
   V(MegamorphicCall)                                                           \
   V(FixAllocationStubTarget)                                                   \
@@ -46,6 +45,7 @@ namespace dart {
   V(UnoptimizedIdenticalWithNumberCheck)                                       \
   V(OptimizedIdenticalWithNumberCheck)                                         \
   V(ICCallBreakpoint)                                                          \
+  V(UnoptStaticCallBreakpoint)                                                 \
   V(RuntimeCallBreakpoint)                                                     \
   V(OneArgCheckInlineCache)                                                    \
   V(TwoArgsCheckInlineCache)                                                   \
@@ -78,7 +78,8 @@ namespace dart {
   V(OneArgOptimizedCheckInlineCacheWithExactnessCheck)                         \
   V(EnterSafepoint)                                                            \
   V(ExitSafepoint)                                                             \
-  V(VerifyCallback)
+  V(VerifyCallback)                                                            \
+  V(CallNativeThroughSafepoint)
 
 #else
 #define VM_STUB_CODE_LIST(V)                                                   \

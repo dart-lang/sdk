@@ -820,6 +820,10 @@ class BinaryBuilder {
     int flags = readByte();
     bool isExternal = (flags & Library.ExternalFlag) != 0;
     _isReadingLibraryImplementation = !isExternal;
+
+    int languageVersionMajor = readUInt();
+    int languageVersionMinor = readUInt();
+
     var canonicalName = readCanonicalNameReference();
     Reference reference = canonicalName.getReference();
     Library library = reference.node;
@@ -842,6 +846,7 @@ class BinaryBuilder {
 
     if (shouldWriteData) {
       library.flags = flags;
+      library.setLanguageVersion(languageVersionMajor, languageVersionMinor);
       library.name = name;
       library.fileUri = fileUri;
       library.problemsAsJson = problemsAsJson;
@@ -1079,7 +1084,7 @@ class BinaryBuilder {
     var fileUri = readUriReference();
     int fileOffset = readOffset();
     int fileEndOffset = readOffset();
-    int flags = readByte();
+    int flags = readUInt();
     var name = readName();
     var annotations = readAnnotationList(node);
     assert(() {
@@ -1173,7 +1178,7 @@ class BinaryBuilder {
     var fileEndOffset = readOffset();
     int kindIndex = readByte();
     var kind = ProcedureKind.values[kindIndex];
-    var flags = readByte();
+    var flags = readUInt();
     var name = readName();
     var annotations = readAnnotationList(node);
     assert(() {
@@ -1592,8 +1597,9 @@ class BinaryBuilder {
         for (int i = 0; i < assertCount; i++) {
           asserts[i] = readStatement();
         }
-        return new InstanceCreation(
-            classReference, typeArguments, fieldValues, asserts)
+        List<Expression> unusedArguments = readExpressionList();
+        return new InstanceCreation(classReference, typeArguments, fieldValues,
+            asserts, unusedArguments)
           ..fileOffset = offset;
       case Tag.IsExpression:
         int offset = readOffset();
@@ -1944,7 +1950,11 @@ class BinaryBuilder {
   }
 
   NamedType readNamedType() {
-    return new NamedType(readStringReference(), readDartType());
+    String name = readStringReference();
+    DartType type = readDartType();
+    int flags = readByte();
+    return new NamedType(name, type,
+        isRequired: (flags & NamedType.FlagRequiredNamedType) != 0);
   }
 
   DartType readDartTypeOption() {
@@ -1955,8 +1965,9 @@ class BinaryBuilder {
     int tag = readByte();
     switch (tag) {
       case Tag.TypedefType:
-        return new TypedefType.byReference(
-            readTypedefReference(), readDartTypeList());
+        int nullabilityIndex = readByte();
+        return new TypedefType.byReference(readTypedefReference(),
+            readDartTypeList(), Nullability.values[nullabilityIndex]);
       case Tag.BottomType:
         return const BottomType();
       case Tag.InvalidType:
@@ -1966,13 +1977,16 @@ class BinaryBuilder {
       case Tag.VoidType:
         return const VoidType();
       case Tag.InterfaceType:
-        return new InterfaceType.byReference(
-            readClassReference(), readDartTypeList());
+        int nullabilityIndex = readByte();
+        return new InterfaceType.byReference(readClassReference(),
+            readDartTypeList(), Nullability.values[nullabilityIndex]);
       case Tag.SimpleInterfaceType:
-        return new InterfaceType.byReference(
-            readClassReference(), const <DartType>[]);
+        int nullabilityIndex = readByte();
+        return new InterfaceType.byReference(readClassReference(),
+            const <DartType>[], Nullability.values[nullabilityIndex]);
       case Tag.FunctionType:
         int typeParameterStackHeight = typeParameterStack.length;
+        int nullabilityIndex = readByte();
         var typeParameters = readAndPushTypeParameterList();
         var requiredParameterCount = readUInt();
         var totalParameterCount = readUInt();
@@ -1986,15 +2000,20 @@ class BinaryBuilder {
             typeParameters: typeParameters,
             requiredParameterCount: requiredParameterCount,
             namedParameters: named,
-            typedefType: typedefType);
+            typedefType: typedefType,
+            nullability: Nullability.values[nullabilityIndex]);
       case Tag.SimpleFunctionType:
+        int nullabilityIndex = readByte();
         var positional = readDartTypeList();
         var returnType = readDartType();
-        return new FunctionType(positional, returnType);
+        return new FunctionType(positional, returnType,
+            nullability: Nullability.values[nullabilityIndex]);
       case Tag.TypeParameterType:
+        int declaredNullabilityIndex = readByte();
         int index = readUInt();
         var bound = readDartTypeOption();
-        return new TypeParameterType(typeParameterStack[index], bound);
+        return new TypeParameterType(typeParameterStack[index], bound,
+            Nullability.values[declaredNullabilityIndex]);
       default:
         throw fail('unexpected dart type tag: $tag');
     }

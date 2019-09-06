@@ -2,40 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler == precompiler ]
-convert/chunked_conversion_utf88_test: Pass, Timeout
-convert/utf85_test: Pass, Timeout
-html/*: SkipByDesign # dart:html not supported on AOT.
-mirrors/*: SkipByDesign # Mirrors not supported on AOT.
-async/async_no_await_zones_test: RuntimeError # Issue 33700
-
-[ $compiler == app_jit || $compiler == none || $compiler == precompiler ]
+[ $compiler == none ]
 async/future_or_strong_test: RuntimeError
 async/timer_not_available_test: SkipByDesign # only meant to test when there is no way to implement timer (currently only in d8)
 isolate/compile_time_error_test/01: Skip # Issue 12587
-isolate/ping_pause_test: Skip # Resolve test issues
 isolate/ping_test: Skip # Resolve test issues
 mirrors/symbol_validation_test: RuntimeError # Issue 13596
-
-[ $compiler == precompiler ]
-isolate/count_test: SkipByDesign
-isolate/cross_isolate_message_test: SkipByDesign
-isolate/illegal_msg_function_test: SkipByDesign
-isolate/illegal_msg_mirror_test: SkipByDesign
-isolate/isolate_complex_messages_test: SkipByDesign
-isolate/mandel_isolate_test: SkipByDesign
-isolate/message2_test: SkipByDesign
-isolate/message_test: SkipByDesign
-isolate/mint_maker_test: SkipByDesign
-isolate/nested_spawn2_test: SkipByDesign
-isolate/nested_spawn_test: SkipByDesign
-isolate/raw_port_test: SkipByDesign
-isolate/request_reply_test: SkipByDesign
-isolate/spawn_function_custom_class_test: SkipByDesign
-isolate/spawn_function_test: SkipByDesign
-isolate/stacktrace_message_test: SkipByDesign
-isolate/static_function_test: SkipByDesign
-isolate/unresolved_ports_test: SkipByDesign
-js/datetime_roundtrip_test: CompileTimeError
-js/null_test: CompileTimeError
-js/prototype_access_test: CompileTimeError

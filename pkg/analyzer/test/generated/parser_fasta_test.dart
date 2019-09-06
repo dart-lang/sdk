@@ -23,7 +23,6 @@ import 'package:front_end/src/fasta/scanner.dart' as fasta;
 import 'package:front_end/src/fasta/scanner.dart'
     show LanguageVersionToken, ScannerConfiguration, ScannerResult, scanString;
 import 'package:front_end/src/fasta/scanner/error_token.dart' show ErrorToken;
-import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:pub_semver/src/version.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -1019,6 +1018,17 @@ main() { // missing async
     ]);
   }
 
+  void test_constructor_super_cascade_synthetic() {
+    // https://github.com/dart-lang/sdk/issues/37110
+    parseCompilationUnit('class B extends A { B(): super.. {} }', errors: [
+      expectedError(ParserErrorCode.INVALID_SUPER_IN_INITIALIZER, 25, 5),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 30, 2),
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 33, 1),
+      expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 34, 1),
+      expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 36, 1),
+    ]);
+  }
+
   void test_constructor_super_field() {
     // https://github.com/dart-lang/sdk/issues/36262
     // https://github.com/dart-lang/sdk/issues/31198
@@ -1036,6 +1046,33 @@ main() { // missing async
         ]);
   }
 
+  void test_constructor_super_named_method() {
+    // https://github.com/dart-lang/sdk/issues/37600
+    parseCompilationUnit('class B extends A { B(): super.c().create() {} }',
+        errors: [
+          expectedError(ParserErrorCode.INVALID_SUPER_IN_INITIALIZER, 25, 5),
+        ]);
+  }
+
+  void test_constructor_super_named_method_method() {
+    // https://github.com/dart-lang/sdk/issues/37600
+    parseCompilationUnit('class B extends A { B(): super.c().create().x() {} }',
+        errors: [
+          expectedError(ParserErrorCode.INVALID_SUPER_IN_INITIALIZER, 25, 5),
+        ]);
+  }
+
+  void test_constructor_this_cascade_synthetic() {
+    // https://github.com/dart-lang/sdk/issues/37110
+    parseCompilationUnit('class B extends A { B(): this.. {} }', errors: [
+      expectedError(ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER, 25, 4),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 29, 2),
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 32, 1),
+      expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 33, 1),
+      expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 35, 1),
+    ]);
+  }
+
   void test_constructor_this_field() {
     // https://github.com/dart-lang/sdk/issues/36262
     // https://github.com/dart-lang/sdk/issues/31198
@@ -1050,6 +1087,22 @@ main() { // missing async
     parseCompilationUnit('class B extends A { B(): this().foo(); }', errors: [
       expectedError(ParserErrorCode.INVALID_THIS_IN_INITIALIZER, 25, 4),
     ]);
+  }
+
+  void test_constructor_this_named_method() {
+    // https://github.com/dart-lang/sdk/issues/37600
+    parseCompilationUnit('class B extends A { B(): super.c().create() {} }',
+        errors: [
+          expectedError(ParserErrorCode.INVALID_SUPER_IN_INITIALIZER, 25, 5),
+        ]);
+  }
+
+  void test_constructor_this_named_method_field() {
+    // https://github.com/dart-lang/sdk/issues/37600
+    parseCompilationUnit('class B extends A { B(): super.c().create().x {} }',
+        errors: [
+          expectedError(ParserErrorCode.INVALID_SUPER_IN_INITIALIZER, 25, 5),
+        ]);
   }
 
   @override
@@ -1096,6 +1149,22 @@ main() { // missing async
         ]);
   }
 
+  void test_missing_closing_bracket_issue37528() {
+    final code = '\${foo';
+    createParser(code);
+    final result = fasta.scanString(code);
+    expect(result.hasErrors, isTrue);
+    var token = _parserProxy.fastaParser.syntheticPreviousToken(result.tokens);
+    try {
+      _parserProxy.fastaParser.parseExpression(token);
+      // TODO(danrubel): Replace this test once root cause is found
+      fail('exception expected');
+    } catch (e) {
+      var msg = e.toString();
+      expect(msg.contains('test_missing_closing_bracket_issue37528'), isTrue);
+    }
+  }
+
   void test_partialNamedConstructor() {
     parseCompilationUnit('class C { C. }', errors: [
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 13, 1),
@@ -1138,6 +1207,20 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     }
   }
 
+  void test_listLiteral_invalid_assert() {
+    // https://github.com/dart-lang/sdk/issues/37674
+    parseExpression('n=<.["\$assert',
+        errors: [
+          expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 3, 1),
+          expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 4, 1),
+          expectedError(ParserErrorCode.MISSING_IDENTIFIER, 7, 6),
+          expectedError(ParserErrorCode.EXPECTED_STRING_LITERAL, 7, 6),
+          expectedError(ScannerErrorCode.EXPECTED_TOKEN, 7, 1),
+          expectedError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 12, 1),
+        ],
+        expectedEndOffset: 7);
+  }
+
   void test_listLiteral_spread_disabled() {
     ListLiteral list =
         parseExpression('[1, ...[2]]', featureSet: beforeUiAsCode, errors: [
@@ -1156,6 +1239,28 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     expect(list.elements, hasLength(1));
     IntegerLiteral first = list.elements[0];
     expect(first.value, 1);
+  }
+
+  void test_lt_dot_bracket_quote() {
+    // https://github.com/dart-lang/sdk/issues/37674
+    ListLiteral list = parseExpression('<.["', errors: [
+      expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 1, 1),
+      expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 2, 1),
+      expectedError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 3, 1),
+      expectedError(ScannerErrorCode.EXPECTED_TOKEN, 4, 1),
+    ]);
+    expect(list.elements, hasLength(1));
+    StringLiteral first = list.elements[0];
+    expect(first.length, 1);
+  }
+
+  void test_lt_dot_listLiteral() {
+    // https://github.com/dart-lang/sdk/issues/37674
+    ListLiteral list = parseExpression('<.[]', errors: [
+      expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 1, 1),
+      expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 2, 2),
+    ]);
+    expect(list.elements, hasLength(0));
   }
 
   void test_mapLiteral() {
@@ -1495,6 +1600,30 @@ class ExtensionMethodsParserTest_Fasta extends FastaParserTestCase {
     expect(extension.members, hasLength(0));
   }
 
+  void test_complex_type2() {
+    var unit = parseCompilationUnit('extension E<T> on C<T> { }');
+    expect(unit.declarations, hasLength(1));
+    var extension = unit.declarations[0] as ExtensionDeclaration;
+    expect(extension.name.name, 'E');
+    expect(extension.onKeyword.lexeme, 'on');
+    var namedType = (extension.extendedType as NamedType);
+    expect(namedType.name.name, 'C');
+    expect(namedType.typeArguments.arguments, hasLength(1));
+    expect(extension.members, hasLength(0));
+  }
+
+  void test_complex_type2_no_name() {
+    var unit = parseCompilationUnit('extension<T> on C<T> { }');
+    expect(unit.declarations, hasLength(1));
+    var extension = unit.declarations[0] as ExtensionDeclaration;
+    expect(extension.name, isNull);
+    expect(extension.onKeyword.lexeme, 'on');
+    var namedType = (extension.extendedType as NamedType);
+    expect(namedType.name.name, 'C');
+    expect(namedType.typeArguments.arguments, hasLength(1));
+    expect(extension.members, hasLength(0));
+  }
+
   void test_missing_on() {
     var unit = parseCompilationUnit('extension E', errors: [
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 1),
@@ -1571,6 +1700,19 @@ class ExtensionMethodsParserTest_Fasta extends FastaParserTestCase {
     expect(extension.members, hasLength(0));
   }
 
+  void test_simple_no_name() {
+    var unit = parseCompilationUnit('extension on C { }');
+    expect(unit.declarations, hasLength(1));
+    var extension = unit.declarations[0] as ExtensionDeclaration;
+    expect(extension.name, isNull);
+    expect(extension.onKeyword.lexeme, 'on');
+    expect((extension.extendedType as NamedType).name.name, 'C');
+    var namedType = (extension.extendedType as NamedType);
+    expect(namedType.name.name, 'C');
+    expect(namedType.typeArguments, isNull);
+    expect(extension.members, hasLength(0));
+  }
+
   void test_simple_not_enabled() {
     parseCompilationUnit('extension E on C { }',
         errors: [
@@ -1589,6 +1731,16 @@ class ExtensionMethodsParserTest_Fasta extends FastaParserTestCase {
     expect(extension.name.name, 'E');
     expect(extension.onKeyword.lexeme, 'with');
     expect((extension.extendedType as NamedType).name.name, 'C');
+    expect(extension.members, hasLength(0));
+  }
+
+  void test_void_type() {
+    var unit = parseCompilationUnit('extension E on void { }');
+    expect(unit.declarations, hasLength(1));
+    var extension = unit.declarations[0] as ExtensionDeclaration;
+    expect(extension.name.name, 'E');
+    expect(extension.onKeyword.lexeme, 'on');
+    expect((extension.extendedType as NamedType).name.name, 'void');
     expect(extension.members, hasLength(0));
   }
 }
@@ -1669,9 +1821,12 @@ class FastaParserTestCase
   void createParser(String content,
       {int expectedEndOffset, FeatureSet featureSet}) {
     featureSet ??= FeatureSet.forTesting();
-    var scanner = new StringScanner(content,
-        configuration: ScannerConfiguration.nonNullable, includeComments: true);
-    _fastaTokens = scanner.tokenize();
+    var result = scanString(content,
+        configuration: featureSet.isEnabled(Feature.non_nullable)
+            ? ScannerConfiguration.nonNullable
+            : ScannerConfiguration.classic,
+        includeComments: true);
+    _fastaTokens = result.tokens;
     _parserProxy = new ParserProxy(_fastaTokens, featureSet,
         allowNativeClause: allowNativeClause,
         expectedEndOffset: expectedEndOffset);
@@ -1806,8 +1961,8 @@ class FastaParserTestCase
     // Run parser
     ErrorReporter errorReporter = new ErrorReporter(listener, source);
     fasta.Parser parser = new fasta.Parser(null);
-    AstBuilder astBuilder = new AstBuilder(errorReporter, source.uri, true)
-      ..configureFeatures(featureSet);
+    AstBuilder astBuilder =
+        new AstBuilder(errorReporter, source.uri, true, featureSet);
     parser.listener = astBuilder;
     astBuilder.parser = parser;
     astBuilder.allowNativeClause = allowNativeClause;
@@ -2417,6 +2572,39 @@ class NNBDParserTest_Fasta extends FastaParserTestCase {
     parseCompilationUnit('main() { C.a? Function()? x = 7; }');
   }
 
+  void test_indexed() {
+    CompilationUnit unit = parseCompilationUnit('main() { a[7]; }');
+    FunctionDeclaration method = unit.declarations[0];
+    BlockFunctionBody body = method.functionExpression.body;
+    ExpressionStatement statement = body.block.statements[0];
+    IndexExpression expression = statement.expression;
+    expect(expression.leftBracket.lexeme, '[');
+  }
+
+  void test_indexed_nullAware() {
+    CompilationUnit unit = parseCompilationUnit('main() { a?.[7]; }');
+    FunctionDeclaration method = unit.declarations[0];
+    BlockFunctionBody body = method.functionExpression.body;
+    ExpressionStatement statement = body.block.statements[0];
+    IndexExpression expression = statement.expression;
+    expect(expression.leftBracket.lexeme, '?.[');
+    expect(expression.rightBracket.lexeme, ']');
+    expect(expression.leftBracket.endGroup, expression.rightBracket);
+  }
+
+  void test_indexed_nullAware_optOut() {
+    CompilationUnit unit = parseCompilationUnit('''
+// @dart = 2.2
+main() { a?.[7]; }''',
+        errors: [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 27, 1)]);
+    FunctionDeclaration method = unit.declarations[0];
+    BlockFunctionBody body = method.functionExpression.body;
+    ExpressionStatement statement = body.block.statements[0];
+    PropertyAccess expression = statement.expression;
+    expect(expression.target.toSource(), 'a');
+    expect(expression.operator.lexeme, '?.');
+  }
+
   void test_is_nullable() {
     CompilationUnit unit =
         parseCompilationUnit('main() { x is String? ? (x + y) : z; }');
@@ -2576,6 +2764,18 @@ main() {
     parseCompilationUnit('f() { var x = new Foo()!; }');
   }
 
+  void test_nullCheckOnIndex() {
+    // https://github.com/dart-lang/sdk/issues/37708
+    var unit = parseCompilationUnit('f() { obj![arg]; }');
+    var funct = unit.declarations[0] as FunctionDeclaration;
+    var body = funct.functionExpression.body as BlockFunctionBody;
+    var statement = body.block.statements[0] as ExpressionStatement;
+    var expression = statement.expression as IndexExpression;
+    var target = expression.target as PostfixExpression;
+    expect(target.operand.toSource(), 'obj');
+    expect(target.operator.lexeme, '!');
+  }
+
   void test_nullCheckOnLiteral_disabled() {
     parseCompilationUnit('f() { var x = 0!; }',
         errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 15, 1)],
@@ -2615,6 +2815,18 @@ main() {
   void test_nullCheckOnNull() {
     // Issues like this should be caught during later analysis
     parseCompilationUnit('f() { var x = null!; }');
+  }
+
+  void test_nullCheckOnSend() {
+    // https://github.com/dart-lang/sdk/issues/37708
+    var unit = parseCompilationUnit('f() { obj!(arg); }');
+    var funct = unit.declarations[0] as FunctionDeclaration;
+    var body = funct.functionExpression.body as BlockFunctionBody;
+    var statement = body.block.statements[0] as ExpressionStatement;
+    var expression = statement.expression as FunctionExpressionInvocation;
+    var target = expression.function as PostfixExpression;
+    expect(target.operand.toSource(), 'obj');
+    expect(target.operator.lexeme, '!');
   }
 
   void test_nullCheckOnSymbol() {
@@ -2708,9 +2920,8 @@ class ParserProxy extends analyzer.ParserAdapter {
   ParserProxy._(analyzer.Token firstToken, ErrorReporter errorReporter,
       Uri fileUri, this._errorListener, FeatureSet featureSet,
       {bool allowNativeClause: false, this.expectedEndOffset})
-      : super(firstToken, errorReporter, fileUri,
+      : super(firstToken, errorReporter, fileUri, featureSet,
             allowNativeClause: allowNativeClause) {
-    configureFeatures(featureSet);
     _eventListener = new ForwardingTestListener(astBuilder);
     fastaParser.listener = _eventListener;
   }

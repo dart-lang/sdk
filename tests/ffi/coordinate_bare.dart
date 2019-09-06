@@ -4,17 +4,15 @@
 
 library FfiTestCoordinateBare;
 
-import 'dart:ffi' as ffi;
+import 'dart:ffi';
 
 /// Stripped down sample struct for dart:ffi library.
-@ffi.struct
-class Coordinate extends ffi.Pointer<ffi.Void> {
-  @ffi.Double()
+class Coordinate extends Struct<Coordinate> {
+  @Double()
   double x;
 
-  @ffi.Double()
+  @Double()
   double y;
 
-  @ffi.Pointer()
-  Coordinate next;
+  Pointer<Coordinate> next;
 }

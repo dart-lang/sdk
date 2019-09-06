@@ -15,6 +15,7 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(KeywordContributorTest);
+    defineReflectiveTests(KeywordContributorWithExtensionMethodsTest);
     defineReflectiveTests(KeywordContributorWithNnbdTest);
   });
 }
@@ -236,8 +237,8 @@ class KeywordContributorTest extends DartCompletionContributorTest {
       [Keyword.CONST, Keyword.COVARIANT, Keyword.FINAL];
 
   void assertSuggestKeywords(Iterable<Keyword> expectedKeywords,
-      {List<String> pseudoKeywords: NO_PSEUDO_KEYWORDS,
-      int relevance: DART_RELEVANCE_KEYWORD}) {
+      {List<String> pseudoKeywords = NO_PSEUDO_KEYWORDS,
+      int relevance = DART_RELEVANCE_KEYWORD}) {
     Set<String> expectedCompletions = new Set<String>();
     Map<String, int> expectedOffsets = <String, int>{};
     Set<String> actualCompletions = new Set<String>();
@@ -2021,6 +2022,96 @@ f() => [...^];
     if (iter1.any((c) => !iter2.contains(c))) return false;
     if (iter2.any((c) => !iter1.contains(c))) return false;
     return true;
+  }
+}
+
+@reflectiveTest
+class KeywordContributorWithExtensionMethodsTest
+    extends KeywordContributorTest {
+  @override
+  List<Keyword> get declarationKeywords =>
+      super.declarationKeywords..add(Keyword.EXTENSION);
+
+  @override
+  List<Keyword> get directiveAndDeclarationKeywords =>
+      super.directiveAndDeclarationKeywords..add(Keyword.EXTENSION);
+
+  @override
+  List<Keyword> get directiveDeclarationKeywords =>
+      super.directiveDeclarationKeywords..add(Keyword.EXTENSION);
+
+  List<Keyword> get extensionBodyKeywords => [
+        Keyword.CONST,
+        Keyword.DYNAMIC,
+        Keyword.FINAL,
+        Keyword.GET,
+        Keyword.OPERATOR,
+        Keyword.SET,
+        Keyword.STATIC,
+        Keyword.VAR,
+        Keyword.VOID
+      ];
+
+  @override
+  void setupResourceProvider() {
+    super.setupResourceProvider();
+    createAnalysisOptionsFile(experiments: [EnableString.extension_methods]);
+  }
+
+  test_class_body_empty() async {
+    addTestSource('extension E on int {^}');
+    await computeSuggestions();
+    assertSuggestKeywords(extensionBodyKeywords);
+  }
+
+  test_extension_body_beginning() async {
+    addTestSource('extension E on int {^ foo() {}}');
+    await computeSuggestions();
+    assertSuggestKeywords(extensionBodyKeywords);
+  }
+
+  test_extension_body_between() async {
+    addTestSource('extension E on int {foo() {} ^ void bar() {}}');
+    await computeSuggestions();
+    assertSuggestKeywords(extensionBodyKeywords);
+  }
+
+  test_extension_body_end() async {
+    addTestSource('extension E on int {foo() {} ^}');
+    await computeSuggestions();
+    assertSuggestKeywords(extensionBodyKeywords);
+  }
+
+  test_extension_member_const_afterStatic() async {
+    addTestSource('''
+extension E on int {
+  static c^
+}
+''');
+    await computeSuggestions();
+    assertSuggestKeywords(staticMember);
+  }
+
+  test_extension_member_final_afterStatic() async {
+    addTestSource('''
+extension E on int {
+  static f^
+}
+''');
+    await computeSuggestions();
+    assertSuggestKeywords(staticMember);
+  }
+
+  test_extension_noBody_named() async {
+    addTestSource('extension E ^');
+    await computeSuggestions();
+    assertSuggestKeywords([Keyword.ON], relevance: DART_RELEVANCE_HIGH);
+  }
+
+  test_extension_noBody_unnamed() async {
+    addTestSource('extension ^');
+    await computeSuggestions();
+    assertSuggestKeywords([Keyword.ON], relevance: DART_RELEVANCE_HIGH);
   }
 }
 

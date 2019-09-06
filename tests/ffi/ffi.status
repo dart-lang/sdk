@@ -2,45 +2,36 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $runtime != dart_precompiled && $runtime != vm ]
-*: SkipByDesign # FFI is a VM-only feature. (This test suite is part of the default set.)
+[ $arch == simdbc ]
+*: Skip # FFI not yet supported on SimDBC32: dartbug.com/36809
+
+[ $arch == simdbc64 ]
+function_callbacks_test: Skip # Issue 37140
 
 [ $builder_tag == asan ]
 data_not_asan_test: SkipByDesign # This test tries to allocate too much memory on purpose.
 
-# dartbug.com/35768: Structs not supported on 32-bit.
-[ $arch == ia32 || $arch == arm || $arch == simdbc ]
-function_structs_test: Skip
-structs_test: Skip
-
-# dartbug.com/35934
+# These tests trigger and catch an abort (intentionally) and terminate the VM
+# before it can generate a snapshot.
 [ $compiler == app_jitk ]
-dynamic_library_test: Skip
-function_callbacks_test: Skip
-function_structs_test: Skip
-function_test: Skip
-negative_function_test: Skip
-
-[ $arch == x64 || $arch == arm64 || $arch == simdbc64 ]
-enable_structs_test: SkipByDesign  # Tests that structs don't work on 32-bit systems.
+function_callbacks_test/01: Skip
+function_callbacks_test/02: Skip
+function_callbacks_test/03: Skip
 
 [ $runtime == dart_precompiled ]
-*: Skip # AOT is not yet supported: dartbug.com/35765
+function_callbacks_test: Skip  # Issue dartbug.com/37295
 
-[ $arch == simarm || $arch == simarm64 ]
-*: Skip # FFI not yet supported on the arm simulator.
-
-[ $arch == simdbc ]
-*: Skip # FFI not yet supported on SimDBC32: dartbug.com/36809
+[ $arch == arm && $system != android ]
+*: Skip # "hardfp" calling convention is not yet supported (iOS is also supported but not tested): dartbug.com/36309
 
 [ $arch == simdbc64 && $system != linux && $system != macos ]
-*: Skip # FFI not yet supported outside x64 Linux: dartbug.com/36809
+*: Skip # DBC is only supported on MacOS and Linux for testing
+
+[ $runtime != dart_precompiled && $runtime != vm ]
+*: SkipByDesign # FFI is a VM-only feature. (This test suite is part of the default set.)
 
 [ $system != android && $system != linux && $system != macos && $system != windows ]
 *: Skip # FFI not yet supported on other OSes.
 
-[ $system != android && $arch == arm ]
-*: Skip # "hardfp" calling convention is not yet supported (iOS is also supported but not tested): dartbug.com/36309
-
-[ $arch == simdbc64 ]
-function_callbacks_test: Skip  # Issue 37140
+[ $arch == simarm || $arch == simarm64 ]
+*: Skip # FFI not yet supported on the arm simulator.

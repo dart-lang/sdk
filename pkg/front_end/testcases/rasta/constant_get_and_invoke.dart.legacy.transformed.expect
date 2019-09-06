@@ -1,8 +1,13 @@
 library;
 import self as self;
+import "dart:core" as core;
 
-static const field dynamic c = 1;
+static const field dynamic c = #C1;
 static method main() → dynamic {
-  self::c;
-  self::c.call();
+  #C1;
+  (#C1).call();
+}
+
+constants  {
+  #C1 = 1
 }

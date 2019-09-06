@@ -2,20 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   typeLiteral();
   typeLiteralToString();
   typeLiteralSubstring();
 }
 
-/*element: typeLiteral:[exact=TypeImpl]*/
+/*member: typeLiteral:[exact=TypeImpl]*/
 typeLiteral() => Object;
 
-/*element: typeLiteralToString:[exact=JSString]*/
+/*member: typeLiteralToString:[exact=JSString]*/
 typeLiteralToString() => (Object). /*invoke: [exact=TypeImpl]*/ toString();
 
-/*element: typeLiteralSubstring:[exact=JSString]*/
+/*member: typeLiteralSubstring:[exact=JSString]*/
 typeLiteralSubstring() {
   String name = (List). /*invoke: [exact=TypeImpl]*/ toString();
   name = name. /*invoke: [exact=JSString]*/ substring(

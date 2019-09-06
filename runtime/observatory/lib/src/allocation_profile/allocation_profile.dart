@@ -16,8 +16,8 @@ class AllocationProfile implements M.AllocationProfile {
   AllocationProfile(S.ServiceMap map, {Map/*<String, List<String>>*/ defaults})
       : lastAccumulatorReset = _intString2DateTime(map[_lastAccumulatorReset]),
         lastServiceGC = _intString2DateTime(map[_lastServiceGC]),
-        oldSpace = new S.HeapSpace()..update(map['heaps']['old']),
-        newSpace = new S.HeapSpace()..update(map['heaps']['new']),
+        oldSpace = new S.HeapSpace()..update(map['_heaps']['old']),
+        newSpace = new S.HeapSpace()..update(map['_heaps']['new']),
         members = _convertMembers(map['members'], defaults: defaults);
 
   static DateTime _intString2DateTime(String milliseconds) {
@@ -71,10 +71,10 @@ class ClassHeapStats implements M.ClassHeapStats {
 
   ClassHeapStats(Map map)
       : clazz = map['class'],
-        oldSpace = new S.Allocations()..update(map['old']),
-        newSpace = new S.Allocations()..update(map['new']),
-        promotedInstances = map['promotedInstances'],
-        promotedBytes = map['promotedBytes'];
+        oldSpace = new S.Allocations()..update(map['_old']),
+        newSpace = new S.Allocations()..update(map['_new']),
+        promotedInstances = map['_promotedInstances'],
+        promotedBytes = map['_promotedBytes'];
 }
 
 class ClassesHeapStats implements M.ClassHeapStats {

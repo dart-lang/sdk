@@ -17,7 +17,16 @@ main() {
     String generated = await generateMessagesFile();
     String actual = (await new File.fromUri(generatedFile).readAsString())
         .replaceAll('\r\n', '\n');
-    Expect.stringEquals(
-        generated, actual, "${generatedFile.path} is out of date");
+    Expect.stringEquals(generated, actual, """
+------------------------
+
+The generated file
+  ${generatedFile.path}
+
+is out of date. To regenerate the file, run
+  pkg/front_end/tool/fasta generate-experimental-flags
+
+------------------------
+""");
   });
 }

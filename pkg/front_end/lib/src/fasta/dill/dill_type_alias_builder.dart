@@ -4,13 +4,13 @@
 
 library fasta.dill_typedef_builder;
 
-import 'package:kernel/ast.dart' show DartType, Library, Typedef;
+import 'package:kernel/ast.dart' show DartType, Typedef;
 
 import '../kernel/kernel_builder.dart'
     show
-        KernelTypeAliasBuilder,
-        KernelFunctionTypeBuilder,
-        KernelTypeBuilder,
+        TypeAliasBuilder,
+        FunctionTypeBuilder,
+        TypeBuilder,
         LibraryBuilder,
         MetadataBuilder;
 
@@ -18,7 +18,7 @@ import '../problems.dart' show unimplemented;
 
 import 'dill_library_builder.dart' show DillLibraryBuilder;
 
-class DillTypeAliasBuilder extends KernelTypeAliasBuilder {
+class DillTypeAliasBuilder extends TypeAliasBuilder {
   DillTypeAliasBuilder(Typedef typedef, DillLibraryBuilder parent)
       : super(null, typedef.name, null, null, parent, typedef.fileOffset,
             typedef);
@@ -31,19 +31,18 @@ class DillTypeAliasBuilder extends KernelTypeAliasBuilder {
   int get typeVariablesCount => target.typeParameters.length;
 
   @override
-  KernelFunctionTypeBuilder get type {
+  FunctionTypeBuilder get type {
     return unimplemented("type", -1, null);
   }
 
   @override
-  DartType buildThisType(LibraryBuilder<KernelTypeBuilder, Library> library) {
+  DartType buildThisType(LibraryBuilder library) {
     return thisType ??= target.type;
   }
 
   @override
   List<DartType> buildTypeArguments(
-      LibraryBuilder<KernelTypeBuilder, Library> library,
-      List<KernelTypeBuilder> arguments) {
+      LibraryBuilder library, List<TypeBuilder> arguments) {
     // For performance reasons, [typeVariables] aren't restored from [target].
     // So, if [arguments] is null, the default types should be retrieved from
     // [cls.typeParameters].

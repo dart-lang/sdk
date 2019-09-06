@@ -48,7 +48,10 @@ class FakeFlutter {
 import 'package:flutter/widgets.dart';
 class FakeFlutter {
   main() {
-    return /*caret*/Padding();
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Container(),
+    );
   }
 }
 ''');

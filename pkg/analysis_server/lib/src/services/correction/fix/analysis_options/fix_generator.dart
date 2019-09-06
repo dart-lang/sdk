@@ -149,7 +149,7 @@ class AnalysisOptionsFixGenerator {
   /// [kind]. If [args] are provided, they will be used to fill in the message
   /// for the fix.
   void _addFixFromBuilder(ChangeBuilder builder, FixKind kind,
-      {List args: null}) {
+      {List args = null}) {
     SourceChange change = builder.sourceChange;
     if (change.edits.isEmpty) {
       return;

@@ -121,7 +121,7 @@ void printToLog(void log({String})) {}
 
   test_genericFunctionType() async {
     await assertNoErrorsInCode('''
-void Function({String s}) log;
+void Function({String s})? log;
 ''');
   }
 

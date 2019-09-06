@@ -25,6 +25,16 @@ constexpr intptr_t kMinimumArgumentWidth = 4;
 // Storage size for an FFI type (extends 'ffi.NativeType').
 size_t ElementSizeInBytes(intptr_t class_id);
 
+// These ABIs should be kept in sync with pkg/vm/lib/transformations/ffi.dart.
+enum class Abi {
+  kWordSize64 = 0,
+  kWordSize32Align32 = 1,
+  kWordSize32Align64 = 2
+};
+
+// The target ABI. Defines sizes and alignment of native types.
+Abi TargetAbi();
+
 // Unboxed representation of an FFI type (extends 'ffi.NativeType').
 Representation TypeRepresentation(const AbstractType& result_type);
 
@@ -40,6 +50,9 @@ bool NativeTypeIsVoid(const AbstractType& result_type);
 
 // Location for the result of a C signature function.
 Location ResultLocation(Representation result_rep);
+
+RawFunction* TrampolineFunction(const Function& dart_signature,
+                                const Function& c_signature);
 
 #if !defined(TARGET_ARCH_DBC)
 
@@ -132,6 +145,8 @@ class CallbackArgumentTranslator : public ValueObject {
   intptr_t argument_slots_used_ = 0;
   intptr_t argument_slots_required_ = 0;
 };
+
+bool IsAsFunctionInternal(Zone* zone, Isolate* isolate, const Function& func);
 
 }  // namespace ffi
 

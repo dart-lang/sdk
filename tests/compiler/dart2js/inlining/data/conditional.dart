@@ -5,7 +5,7 @@
 // Tests for the heuristics on conditional expression whose condition is a
 // parameter for which the max, instead of the sum, of the branch sizes is used.
 
-/*element: main:[]*/
+/*member: main:[]*/
 main() {
   conditionalField();
   conditionalParameter();
@@ -16,19 +16,19 @@ main() {
 // size of the condition is the sum of the nodes in the conditional expression.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _method1:[_conditionalField]*/
+/*member: _method1:[_conditionalField]*/
 _method1() => 42;
 
 bool _field1;
 
-/*element: _conditionalField:[]*/
+/*member: _conditionalField:[]*/
 _conditionalField() {
   return _field1
       ? _method1() + _method1() + _method1()
       : _method1() + _method1() + _method1();
 }
 
-/*element: conditionalField:[]*/
+/*member: conditionalField:[]*/
 @pragma('dart2js:noInline')
 conditionalField() {
   _field1 = false;
@@ -42,17 +42,17 @@ conditionalField() {
 // max of the branches + the condition itself.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _method2:[conditionalParameter]*/
+/*member: _method2:[conditionalParameter]*/
 _method2() => 42;
 
-/*element: _conditionalParameter:[conditionalParameter]*/
+/*member: _conditionalParameter:[conditionalParameter]*/
 _conditionalParameter(bool o) {
   return o
       ? _method2() + _method2() + _method2()
       : _method2() + _method2() + _method2();
 }
 
-/*element: conditionalParameter:[]*/
+/*member: conditionalParameter:[]*/
 @pragma('dart2js:noInline')
 conditionalParameter() {
   _conditionalParameter(true);

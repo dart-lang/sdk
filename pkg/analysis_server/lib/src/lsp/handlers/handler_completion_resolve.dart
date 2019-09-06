@@ -61,7 +61,7 @@ class CompletionResolveHandler
     }
 
     // The label might be `MyEnum.myValue`, but we import only `MyEnum`.
-    var requestedName = item.label;
+    var requestedName = item.insertText ?? item.label;
     if (requestedName.contains('.')) {
       requestedName = requestedName.substring(
         0,
@@ -113,7 +113,7 @@ class CompletionResolveHandler
           );
         }
 
-        var newLabel = item.label;
+        var newInsertText = item.insertText ?? item.label;
         final builder = DartChangeBuilder(session);
         await builder.addFileEdit(libraryPath, (builder) {
           final result = builder.importLibraryElement(
@@ -124,7 +124,7 @@ class CompletionResolveHandler
             requestedElement: requestedElement,
           );
           if (result.prefix != null) {
-            newLabel = '${result.prefix}.$newLabel';
+            newInsertText = '${result.prefix}.$newInsertText';
           }
         });
 
@@ -155,9 +155,9 @@ class CompletionResolveHandler
         final documentation = asStringOrMarkupContent(formats, dartDoc);
 
         return success(CompletionItem(
-          newLabel,
+          item.label,
           item.kind,
-          data.displayUri != null
+          data.displayUri != null && thisFilesChanges.isNotEmpty
               ? "Auto import from '${data.displayUri}'\n\n${item.detail ?? ''}"
                   .trim()
               : item.detail,
@@ -166,13 +166,13 @@ class CompletionResolveHandler
           item.preselect,
           item.sortText,
           item.filterText,
-          newLabel,
+          newInsertText,
           item.insertTextFormat,
           new TextEdit(
             // TODO(dantup): If `clientSupportsSnippets == true` then we should map
             // `selection` in to a snippet (see how Dart Code does this).
             toRange(lineInfo, item.data.rOffset, item.data.rLength),
-            newLabel,
+            newInsertText,
           ),
           thisFilesChanges
               .expand((change) =>

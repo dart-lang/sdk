@@ -4,9 +4,9 @@
 
 /// Regression test for [ClosureCallSiteTypeInformation] in loops.
 
-/*element: Class.:[exact=Class]*/
+/*member: Class.:[exact=Class]*/
 class Class<T> {
-  /*element: Class.method:[null]*/
+  /*member: Class.method:[null]*/
   method() {
     /*iterator: Container([exact=JSExtendableArray], element: [empty], length: 0)*/
     /*current: [exact=ArrayIterator]*/
@@ -20,7 +20,7 @@ class Class<T> {
   }
 }
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   new Class(). /*invoke: [exact=Class]*/ method();
 }

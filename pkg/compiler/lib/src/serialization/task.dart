@@ -29,7 +29,7 @@ void serializeGlobalTypeInferenceResults(
   InferredData inferredData = results.inferredData;
   closedWorld.writeToDataSink(sink);
   inferredData.writeToDataSink(sink);
-  results.writeToDataSink(sink);
+  results.writeToDataSink(sink, closedWorld.elementMap);
   sink.close();
 }
 
@@ -45,7 +45,7 @@ GlobalTypeInferenceResults deserializeGlobalTypeInferenceResults(
   InferredData newInferredData =
       new InferredData.readFromDataSource(source, newClosedWorld);
   return new GlobalTypeInferenceResults.readFromDataSource(
-      source, newClosedWorld, newInferredData);
+      source, newClosedWorld.elementMap, newClosedWorld, newInferredData);
 }
 
 class SerializationTask extends CompilerTask {
@@ -134,7 +134,9 @@ class SerializationTask extends CompilerTask {
       sink.registerEntityWriter(entityWriter);
       sink.registerCodegenWriter(new CodegenWriterImpl(closedWorld));
       sink.writeMemberMap(
-          results, (CodegenResult result) => result.writeToDataSink(sink));
+          results,
+          (MemberEntity member, CodegenResult result) =>
+              result.writeToDataSink(sink));
       sink.close();
     });
   }
@@ -155,7 +157,7 @@ class SerializationTask extends CompilerTask {
         DataSource source = new BinarySourceImpl(dataInput.data);
         backendStrategy.prepareCodegenReader(source);
         Map<MemberEntity, CodegenResult> codegenResults =
-            source.readMemberMap(() {
+            source.readMemberMap((MemberEntity member) {
           List<ModularName> modularNames = [];
           List<ModularExpression> modularExpressions = [];
           CodegenReader reader = new CodegenReaderImpl(

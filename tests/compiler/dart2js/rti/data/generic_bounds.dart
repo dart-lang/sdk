@@ -14,19 +14,19 @@ class Class2a<T> {}
 
 class Class2b<T> extends Class2a<T> {}
 
-/*strong.element: method1:needsArgs,selectors=[Selector(call, call, arity=0, types=1)]*/
+/*strong.member: method1:needsArgs,selectors=[Selector(call, call, arity=0, types=1)]*/
 method1<T extends Class1a>() => null;
 
-/*strong.element: method2:needsArgs,selectors=[Selector(call, call, arity=0, types=1)]*/
+/*strong.member: method2:needsArgs,selectors=[Selector(call, call, arity=0, types=1)]*/
 method2<T extends Class2a<num>>() => null;
 
 method3<T>() => null;
 
 class Class3 {
-  /*strong.element: Class3.method4:needsArgs,selectors=[Selector(call, method4, arity=0, types=1)]*/
+  /*strong.member: Class3.method4:needsArgs,selectors=[Selector(call, method4, arity=0, types=1)]*/
   method4<T extends Class1a>() => null;
 
-  /*strong.element: Class3.method5:needsArgs,selectors=[Selector(call, method5, arity=0, types=1)]*/
+  /*strong.member: Class3.method5:needsArgs,selectors=[Selector(call, method5, arity=0, types=1)]*/
   method5<T extends Class2a<num>>() => null;
 
   method6<T>() => null;
@@ -35,7 +35,7 @@ class Class3 {
 /*strong.class: Class4:explicit=[Class4]*/
 class Class4 {}
 
-/*strong.element: method10:needsArgs*/
+/*strong.member: method10:needsArgs*/
 method10<T extends Class4>() => null;
 
 main() {

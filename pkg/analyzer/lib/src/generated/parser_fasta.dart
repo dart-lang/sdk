@@ -24,39 +24,18 @@ abstract class ParserAdapter implements Parser {
   final AstBuilder astBuilder;
 
   ParserAdapter(this.currentToken, ErrorReporter errorReporter, Uri fileUri,
-      {bool allowNativeClause: false, FeatureSet featureSet})
+      FeatureSet featureSet,
+      {bool allowNativeClause: false})
       : fastaParser = new fasta.Parser(null),
-        astBuilder = new AstBuilder(errorReporter, fileUri, true) {
+        astBuilder = new AstBuilder(errorReporter, fileUri, true, featureSet) {
     fastaParser.listener = astBuilder;
     astBuilder.parser = fastaParser;
     astBuilder.allowNativeClause = allowNativeClause;
-    if (featureSet != null) {
-      astBuilder.configureFeatures(featureSet);
-    }
   }
 
   @override
   set allowNativeClause(bool value) {
     astBuilder.allowNativeClause = value;
-  }
-
-  @override
-  void set enableControlFlowCollections(bool value) {
-    if (IsExpired.control_flow_collections &&
-        value != IsEnabledByDefault.control_flow_collections) {
-      throw new StateError('control_flow_collections may only be set'
-          ' to ${IsEnabledByDefault.control_flow_collections}');
-    }
-    astBuilder.enableControlFlowCollections = value;
-  }
-
-  /// Enables or disables non-nullable by default.
-  void set enableNonNullable(bool value) {
-    if (IsExpired.non_nullable && value != IsEnabledByDefault.non_nullable) {
-      throw new StateError(
-          'non_nullable may only be set to ${IsEnabledByDefault.non_nullable}');
-    }
-    astBuilder.enableNonNullable = value;
   }
 
   @override
@@ -69,25 +48,6 @@ abstract class ParserAdapter implements Parser {
   void set enableSetLiterals(bool value) {
     // TODO(danrubel): Remove this method once the reference to this flag
     // has been removed from dartfmt.
-  }
-
-  @override
-  void set enableSpreadCollections(bool value) {
-    if (IsExpired.spread_collections &&
-        value != IsEnabledByDefault.spread_collections) {
-      throw new StateError('spread_collections may only be set'
-          ' to ${IsEnabledByDefault.spread_collections}');
-    }
-    astBuilder.enableSpreadCollections = value;
-  }
-
-  @override
-  void set enableTripleShift(bool value) {
-    if (IsExpired.triple_shift && value != IsEnabledByDefault.triple_shift) {
-      throw new StateError('triple_shift may only be set'
-          ' to ${IsEnabledByDefault.triple_shift}');
-    }
-    astBuilder.enableTripleShift = value;
   }
 
   @override
@@ -108,11 +68,6 @@ abstract class ParserAdapter implements Parser {
       ..offset = token.end
       ..setNext(token.next);
     token.setNext(newToken);
-  }
-
-  @override
-  void configureFeatures(FeatureSet featureSet) {
-    astBuilder.configureFeatures(featureSet);
   }
 
   @override
@@ -423,16 +378,17 @@ class _Parser2 extends ParserAdapter {
   @override
   bool enableUriInPartOf = true;
 
-  factory _Parser2(Source source, AnalysisErrorListener errorListener,
+  factory _Parser2(
+      Source source, AnalysisErrorListener errorListener, FeatureSet featureSet,
       {bool allowNativeClause: false}) {
     var errorReporter = new ErrorReporter(errorListener, source);
-    return new _Parser2._(source, errorReporter, source.uri,
+    return new _Parser2._(source, errorReporter, source.uri, featureSet,
         allowNativeClause: allowNativeClause);
   }
 
   _Parser2._(this._source, ErrorReporter errorReporter, Uri fileUri,
-      {bool allowNativeClause: false})
-      : super(null, errorReporter, fileUri,
+      FeatureSet featureSet, {bool allowNativeClause: false})
+      : super(null, errorReporter, fileUri, featureSet,
             allowNativeClause: allowNativeClause);
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

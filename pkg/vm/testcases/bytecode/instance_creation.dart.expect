@@ -1,20 +1,18 @@
 main = #lib::main;
  [@vm.bytecode=
-ComponentBytecodeMetadata {
-
+BytecodeMetadata {
 Bytecode (version: stable)
 Main library: #lib
+Library '#lib'
+    name '#lib'
+    script '#lib'
 
-}
-] [@vm.bytecode=
-MembersBytecodeMetadata {
+Class '', script = '#lib'
 
-Members {
 
 Function 'foo1', static, reflectable, debuggable
     parameters [] (required: 0)
     return-type dynamic
-
 
 Bytecode {
   Entry                1
@@ -38,7 +36,6 @@ ConstantPool {
 Function 'foo2', static, reflectable, debuggable
     parameters [] (required: 0)
     return-type void
-
 
 Bytecode {
   Entry                1
@@ -81,7 +78,6 @@ Function 'foo3', static, reflectable, debuggable
     parameters [] (required: 0)
     return-type void
 
-
 Bytecode {
   Entry                2
   CheckStack           0
@@ -111,7 +107,6 @@ Function 'foo4', static, reflectable, debuggable
     parameters [] (required: 0)
     return-type void
 
-
 Bytecode {
   Entry                0
   CheckStack           0
@@ -131,7 +126,6 @@ ConstantPool {
 Function 'foo5', static, reflectable, debuggable
     parameters [] (required: 0)
     return-type void
-
 
 Bytecode {
   Entry                0
@@ -158,7 +152,6 @@ Function 'foo6', static, reflectable, debuggable
     parameters [] (required: 0)
     return-type dynamic
 
-
 Bytecode {
   Entry                0
   CheckStack           0
@@ -178,7 +171,6 @@ Function 'foo7', static, reflectable, debuggable
     parameters [dart:core::int 'n'] (required: 1)
     return-type dynamic
 
-
 Bytecode {
   Entry                0
   CheckStack           0
@@ -197,7 +189,6 @@ ConstantPool {
 Function 'main', static, reflectable, debuggable
     parameters [] (required: 0)
     return-type dynamic
-
 
 Bytecode {
   Entry                0
@@ -222,15 +213,10 @@ ConstantPool {
   [6] = Reserved
 }
 
-}
+Class 'Base', script = '#lib'
+    type-params <dart:core::Object T1, dart:core::Object T2> (args: 2)
+    extends dart:core::Object
 
-}
-]library #lib from "#lib" as #lib {
-
-[@vm.bytecode=
-MembersBytecodeMetadata {
-
-Members {
 Field 't1', type = #lib::Base::TypeParam/0, getter = 'get:t1', setter = 'set:t1', reflectable
     value = null
 
@@ -240,7 +226,6 @@ Field 't2', type = #lib::Base::TypeParam/1, getter = 'get:t2', setter = 'set:t2'
 Function '', constructor, reflectable, debuggable
     parameters [] (required: 0)
     return-type #lib::Base < #lib::Base::TypeParam/0, #lib::Base::TypeParam/1 >
-
 
 Bytecode {
   Entry                1
@@ -295,26 +280,13 @@ ConstantPool {
   [10] = Reserved
 }
 
-}
+Class 'A', script = '#lib'
+    extends #lib::Base < dart:core::int, dart:core::String >
 
-}
-]  class Base<T1 extends dart.core::Object = dynamic, T2 extends dart.core::Object = dynamic> extends dart.core::Object {
-    generic-covariant-impl field #lib::Base::T1 t1 = null;
-    generic-covariant-impl field #lib::Base::T2 t2 = null;
-    constructor •() → #lib::Base<#lib::Base::T1, #lib::Base::T2>
-      : super dart.core::Object::•() {
-      dart.core::print("Base: ${#lib::Base::T1}, ${#lib::Base::T2}");
-    }
-  }
-[@vm.bytecode=
-MembersBytecodeMetadata {
-
-Members {
 
 Function '', constructor, reflectable, debuggable
     parameters [dart:core::String 's'] (required: 1)
-    return-type #lib::A
-
+    return-type #lib::A < dart:core::int, dart:core::String >
 
 Bytecode {
   Entry                0
@@ -330,23 +302,14 @@ ConstantPool {
   [1] = Reserved
 }
 
-}
+Class 'B', script = '#lib'
+    type-params <dart:core::Object T> (args: 3)
+    extends #lib::Base < dart:core::List < #lib::B::TypeParam/0 >, dart:core::String >
 
-}
-]  class A extends #lib::Base<dart.core::int, dart.core::String> {
-    constructor •(dart.core::String s) → #lib::A
-      : super #lib::Base::•()
-      ;
-  }
-[@vm.bytecode=
-MembersBytecodeMetadata {
-
-Members {
 
 Function '', constructor, reflectable, debuggable
     parameters [] (required: 0)
     return-type #lib::B < dart:core::List < #lib::B::TypeParam/0 >, dart:core::String, #lib::B::TypeParam/0 >
-
 
 Bytecode {
   Entry                1
@@ -387,24 +350,13 @@ ConstantPool {
   [8] = Reserved
 }
 
-}
+Class 'C', script = '#lib'
+    extends dart:core::Object
 
-}
-]  class B<T extends dart.core::Object = dynamic> extends #lib::Base<dart.core::List<#lib::B::T>, dart.core::String> {
-    constructor •() → #lib::B<#lib::B::T>
-      : super #lib::Base::•() {
-      dart.core::print("B: ${#lib::B::T}");
-    }
-  }
-[@vm.bytecode=
-MembersBytecodeMetadata {
-
-Members {
 
 Function '', constructor, reflectable, debuggable
     parameters [dart:core::String 's'] (required: 1)
     return-type #lib::C
-
 
 Bytecode {
   Entry                1
@@ -440,24 +392,14 @@ ConstantPool {
   [6] = Reserved
 }
 
-}
+Class 'E', script = '#lib'
+    type-params <dart:core::Object K, dart:core::Object V> (args: 2)
+    extends dart:core::Object
 
-}
-]  class C extends dart.core::Object {
-    constructor •(dart.core::String s) → #lib::C
-      : super dart.core::Object::•() {
-      dart.core::print("C: ${s}");
-    }
-  }
-[@vm.bytecode=
-MembersBytecodeMetadata {
-
-Members {
 
 Function '', constructor, reflectable
     parameters [] (required: 0)
     return-type #lib::E < #lib::E::TypeParam/0, #lib::E::TypeParam/1 >
-
 
 Bytecode {
   Entry                0
@@ -478,7 +420,6 @@ Function 'test_reuse1', reflectable, debuggable
     parameters [] (required: 0)
     return-type dynamic
 
-
 Bytecode {
   Entry                0
   CheckStack           0
@@ -493,25 +434,14 @@ ConstantPool {
   [2] = Reserved
 }
 
-}
+Class 'F', script = '#lib'
+    type-params <dart:core::Object K, dart:core::Object V> (args: 4)
+    extends #lib::E < dart:core::String, dart:core::List < #lib::F::TypeParam/1 > >
 
-}
-]  class E<K extends dart.core::Object = dynamic, V extends dart.core::Object = dynamic> extends dart.core::Object {
-    synthetic constructor •() → #lib::E<#lib::E::K, #lib::E::V>
-      : super dart.core::Object::•()
-      ;
-    method test_reuse1() → dynamic
-      return dart.core::Map::•<#lib::E::K, #lib::E::V>();
-  }
-[@vm.bytecode=
-MembersBytecodeMetadata {
-
-Members {
 
 Function '', constructor, reflectable
     parameters [] (required: 0)
     return-type #lib::F < dart:core::String, dart:core::List < #lib::F::TypeParam/1 >, #lib::F::TypeParam/0, #lib::F::TypeParam/1 >
-
 
 Bytecode {
   Entry                0
@@ -532,7 +462,6 @@ Function 'test_reuse2', reflectable, debuggable
     parameters [] (required: 0)
     return-type dynamic
 
-
 Bytecode {
   Entry                0
   CheckStack           0
@@ -547,25 +476,14 @@ ConstantPool {
   [2] = Reserved
 }
 
-}
+Class 'G', script = '#lib'
+    type-params <dart:core::Object K, dart:core::Object V> (args: 2)
+    extends dart:core::Object
 
-}
-]  class F<K extends dart.core::Object = dynamic, V extends dart.core::Object = dynamic> extends #lib::E<dart.core::String, dart.core::List<#lib::F::V>> {
-    synthetic constructor •() → #lib::F<#lib::F::K, #lib::F::V>
-      : super #lib::E::•()
-      ;
-    method test_reuse2() → dynamic
-      return dart.core::Map::•<dart.core::String, dart.core::List<#lib::F::V>>();
-  }
-[@vm.bytecode=
-MembersBytecodeMetadata {
-
-Members {
 
 Function '', constructor, reflectable, debuggable
     parameters [] (required: 0)
     return-type #lib::G < #lib::G::TypeParam/0, #lib::G::TypeParam/1 >
-
 
 Bytecode {
   Entry                0
@@ -586,7 +504,6 @@ Function 'test_factory', factory, static, reflectable, debuggable
     type-params <dart:core::Object K, dart:core::Object V>
     parameters [] (required: 0)
     return-type #lib::G < #lib::G::test_factory (constructor)::TypeParam/0, #lib::G::test_factory (constructor)::TypeParam/1 >
-
 
 Bytecode {
   Entry                1
@@ -609,25 +526,14 @@ ConstantPool {
   [3] = Reserved
 }
 
-}
+Class 'H', script = '#lib'
+    type-params <dart:core::Object P1, dart:core::Object P2, dart:core::Object P3> (args: 5)
+    extends #lib::G < #lib::H::TypeParam/1, #lib::H::TypeParam/2 >
 
-}
-]  class G<K extends dart.core::Object = dynamic, V extends dart.core::Object = dynamic> extends dart.core::Object {
-    constructor •() → #lib::G<#lib::G::K, #lib::G::V>
-      : super dart.core::Object::•()
-      ;
-    static factory test_factory<K extends dart.core::Object = dynamic, V extends dart.core::Object = dynamic>() → #lib::G<#lib::G::test_factory::K, #lib::G::test_factory::V>
-      return new #lib::H::•<dart.core::String, #lib::G::test_factory::K, #lib::G::test_factory::V>();
-  }
-[@vm.bytecode=
-MembersBytecodeMetadata {
-
-Members {
 
 Function '', constructor, reflectable
     parameters [] (required: 0)
     return-type #lib::H < #lib::H::TypeParam/1, #lib::H::TypeParam/2, #lib::H::TypeParam/0, #lib::H::TypeParam/1, #lib::H::TypeParam/2 >
-
 
 Bytecode {
   Entry                0
@@ -643,23 +549,13 @@ ConstantPool {
   [1] = Reserved
 }
 
-}
+Class 'I', script = '#lib'
+    extends dart:core::Object
 
-}
-]  class H<P1 extends dart.core::Object = dynamic, P2 extends dart.core::Object = dynamic, P3 extends dart.core::Object = dynamic> extends #lib::G<#lib::H::P2, #lib::H::P3> {
-    synthetic constructor •() → #lib::H<#lib::H::P1, #lib::H::P2, #lib::H::P3>
-      : super #lib::G::•()
-      ;
-  }
-[@vm.bytecode=
-MembersBytecodeMetadata {
-
-Members {
 
 Function '', constructor, reflectable, debuggable
     parameters [dynamic 'param'] (required: 1)
     return-type #lib::I
-
 
 Bytecode {
   Entry                0
@@ -679,7 +575,6 @@ ConstantPool {
 Function 'test_factory2', factory, static, has-optional-named-params, reflectable, debuggable
     parameters [dynamic 'param'] (required: 0)
     return-type #lib::I
-
 
 Bytecode {
   EntryOptional        1, 0, 1
@@ -703,25 +598,13 @@ ConstantPool {
   [4] = Reserved
 }
 
-}
+Class 'J', script = '#lib'
+    extends dart:core::Object
 
-}
-]  class I extends dart.core::Object {
-    constructor •(dynamic param) → #lib::I
-      : super dart.core::Object::•()
-      ;
-    static factory test_factory2({dynamic param = null}) → #lib::I
-      return new #lib::I::•(param);
-  }
-[@vm.bytecode=
-MembersBytecodeMetadata {
-
-Members {
 
 Function '', factory, static, reflectable, debuggable, native 'agent_J'
     parameters [] (required: 0)
     return-type #lib::J
-
 
 Bytecode {
   Entry                0
@@ -734,23 +617,15 @@ ConstantPool {
   [0] = NativeEntry agent_J
 }
 
-}
+Class 'K', script = '#lib', abstract
+    type-params <dart:core::Object A, dart:core::Object B> (args: 2)
+    extends dart:core::Object
 
-}
-]  class J extends dart.core::Object {
-    @dart._internal::ExternalName::•("agent_J")
-    external static factory •() → #lib::J;
-  }
-[@vm.bytecode=
-MembersBytecodeMetadata {
-
-Members {
 
 Function '', factory, static, reflectable, debuggable
     type-params <dart:core::Object A, dart:core::Object B>
     parameters [] (required: 0)
     return-type #lib::K < #lib::K:: (constructor)::TypeParam/0, #lib::K:: (constructor)::TypeParam/1 >
-
 
 Bytecode {
   Entry                1
@@ -770,22 +645,15 @@ ConstantPool {
   [2] = Reserved
 }
 
-}
+Class 'TestTypeArgReuse', script = '#lib'
+    type-params <dart:core::Object P, dart:core::Object Q> (args: 2)
+    extends #lib::Base < #lib::TestTypeArgReuse::TypeParam/0, #lib::TestTypeArgReuse::TypeParam/1 >
+    implements [#lib::K < #lib::TestTypeArgReuse::TypeParam/0, #lib::TestTypeArgReuse::TypeParam/1 >]
 
-}
-]  abstract class K<A extends dart.core::Object = dynamic, B extends dart.core::Object = dynamic> extends dart.core::Object {
-    static factory •<A extends dart.core::Object = dynamic, B extends dart.core::Object = dynamic>() → #lib::K<#lib::K::•::A, #lib::K::•::B>
-      return new #lib::TestTypeArgReuse::•<#lib::K::•::A, #lib::K::•::B>();
-  }
-[@vm.bytecode=
-MembersBytecodeMetadata {
-
-Members {
 
 Function '', constructor, reflectable
     parameters [] (required: 0)
     return-type #lib::TestTypeArgReuse < #lib::TestTypeArgReuse::TypeParam/0, #lib::TestTypeArgReuse::TypeParam/1 >
-
 
 Bytecode {
   Entry                0
@@ -801,11 +669,78 @@ ConstantPool {
   [1] = Reserved
 }
 
-}
 
 }
-]  class TestTypeArgReuse<P extends dart.core::Object = dynamic, Q extends dart.core::Object = dynamic> extends #lib::Base<#lib::TestTypeArgReuse::P, #lib::TestTypeArgReuse::Q> implements #lib::K<#lib::TestTypeArgReuse::P, #lib::TestTypeArgReuse::Q> {
-    synthetic constructor •() → #lib::TestTypeArgReuse<#lib::TestTypeArgReuse::P, #lib::TestTypeArgReuse::Q>
+]library #lib from "#lib" as #lib {
+
+  class Base<T1 extends dart.core::Object* = dynamic, T2 extends dart.core::Object* = dynamic> extends dart.core::Object {
+    generic-covariant-impl field #lib::Base::T1* t1 = null;
+    generic-covariant-impl field #lib::Base::T2* t2 = null;
+    constructor •() → #lib::Base<#lib::Base::T1*, #lib::Base::T2*>*
+      : super dart.core::Object::•() {
+      dart.core::print("Base: ${#lib::Base::T1*}, ${#lib::Base::T2*}");
+    }
+  }
+  class A extends #lib::Base<dart.core::int*, dart.core::String*> {
+    constructor •(dart.core::String* s) → #lib::A*
+      : super #lib::Base::•()
+      ;
+  }
+  class B<T extends dart.core::Object* = dynamic> extends #lib::Base<dart.core::List<#lib::B::T*>*, dart.core::String*> {
+    constructor •() → #lib::B<#lib::B::T*>*
+      : super #lib::Base::•() {
+      dart.core::print("B: ${#lib::B::T*}");
+    }
+  }
+  class C extends dart.core::Object {
+    constructor •(dart.core::String* s) → #lib::C*
+      : super dart.core::Object::•() {
+      dart.core::print("C: ${s}");
+    }
+  }
+  class E<K extends dart.core::Object* = dynamic, V extends dart.core::Object* = dynamic> extends dart.core::Object {
+    synthetic constructor •() → #lib::E<#lib::E::K*, #lib::E::V*>*
+      : super dart.core::Object::•()
+      ;
+    method test_reuse1() → dynamic
+      return dart.core::Map::•<#lib::E::K*, #lib::E::V*>();
+  }
+  class F<K extends dart.core::Object* = dynamic, V extends dart.core::Object* = dynamic> extends #lib::E<dart.core::String*, dart.core::List<#lib::F::V*>*> {
+    synthetic constructor •() → #lib::F<#lib::F::K*, #lib::F::V*>*
+      : super #lib::E::•()
+      ;
+    method test_reuse2() → dynamic
+      return dart.core::Map::•<dart.core::String*, dart.core::List<#lib::F::V*>*>();
+  }
+  class G<K extends dart.core::Object* = dynamic, V extends dart.core::Object* = dynamic> extends dart.core::Object {
+    constructor •() → #lib::G<#lib::G::K*, #lib::G::V*>*
+      : super dart.core::Object::•()
+      ;
+    static factory test_factory<K extends dart.core::Object* = dynamic, V extends dart.core::Object* = dynamic>() → #lib::G<#lib::G::test_factory::K*, #lib::G::test_factory::V*>*
+      return new #lib::H::•<dart.core::String*, #lib::G::test_factory::K*, #lib::G::test_factory::V*>();
+  }
+  class H<P1 extends dart.core::Object* = dynamic, P2 extends dart.core::Object* = dynamic, P3 extends dart.core::Object* = dynamic> extends #lib::G<#lib::H::P2*, #lib::H::P3*> {
+    synthetic constructor •() → #lib::H<#lib::H::P1*, #lib::H::P2*, #lib::H::P3*>*
+      : super #lib::G::•()
+      ;
+  }
+  class I extends dart.core::Object {
+    constructor •(dynamic param) → #lib::I*
+      : super dart.core::Object::•()
+      ;
+    static factory test_factory2({dynamic param = #C1}) → #lib::I*
+      return new #lib::I::•(param);
+  }
+  class J extends dart.core::Object {
+    @#C3
+    external static factory •() → #lib::J*;
+  }
+  abstract class K<A extends dart.core::Object* = dynamic, B extends dart.core::Object* = dynamic> extends dart.core::Object {
+    static factory •<A extends dart.core::Object* = dynamic, B extends dart.core::Object* = dynamic>() → #lib::K<#lib::K::•::A*, #lib::K::•::B*>*
+      return new #lib::TestTypeArgReuse::•<#lib::K::•::A*, #lib::K::•::B*>();
+  }
+  class TestTypeArgReuse<P extends dart.core::Object* = dynamic, Q extends dart.core::Object* = dynamic> extends #lib::Base<#lib::TestTypeArgReuse::P*, #lib::TestTypeArgReuse::Q*> implements #lib::K<#lib::TestTypeArgReuse::P*, #lib::TestTypeArgReuse::Q*> {
+    synthetic constructor •() → #lib::TestTypeArgReuse<#lib::TestTypeArgReuse::P*, #lib::TestTypeArgReuse::Q*>*
       : super #lib::Base::•()
       ;
   }
@@ -813,25 +748,30 @@ ConstantPool {
     return new #lib::C::•("hello");
   static method foo2() → void {
     new #lib::A::•("hi");
-    new #lib::B::•<dart.core::int>();
+    new #lib::B::•<dart.core::int*>();
   }
-  static method foo3<T extends dart.core::Object = dynamic>() → void {
-    new #lib::B::•<dart.core::List<#lib::foo3::T>>();
+  static method foo3<T extends dart.core::Object* = dynamic>() → void {
+    new #lib::B::•<dart.core::List<#lib::foo3::T*>*>();
   }
   static method foo4() → void {
-    #lib::G::test_factory<dart.core::int, dart.core::List<dart.core::String>>();
+    #lib::G::test_factory<dart.core::int*, dart.core::List<dart.core::String*>*>();
   }
   static method foo5() → void {
     #lib::I::test_factory2();
     #lib::I::test_factory2(param: 42);
   }
   static method foo6() → dynamic
-    return dart.core::_GrowableList::•<dart.core::String>(0);
-  static method foo7(dart.core::int n) → dynamic
-    return dart.core::_List::•<dart.core::int>(n);
+    return dart.core::_GrowableList::•<dart.core::String*>(0);
+  static method foo7(dart.core::int* n) → dynamic
+    return dart.core::_List::•<dart.core::int*>(n);
   static method main() → dynamic {
     #lib::foo1();
     #lib::foo2();
-    #lib::foo3<dart.core::String>();
+    #lib::foo3<dart.core::String*>();
   }
+}
+constants  {
+  #C1 = null
+  #C2 = "agent_J"
+  #C3 = dart._internal::ExternalName {name:#C2}
 }

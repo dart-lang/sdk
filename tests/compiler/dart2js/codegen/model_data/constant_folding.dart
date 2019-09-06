@@ -6,7 +6,7 @@
 
 import "package:expect/expect.dart";
 
-/*element: main:calls=[checkAll$1(1),checkAll$1(1),checkAll$1(1),checkAll$1(1),checkAll$1(1),checkAll$1(1),checkAll$1(1)],params=0*/
+/*member: main:calls=[checkAll$1(1),checkAll$1(1),checkAll$1(1),checkAll$1(1),checkAll$1(1),checkAll$1(1),checkAll$1(1)],params=0*/
 void main() {
   const BitNot(42, 4294967253).check();
   const BitNot(4294967253, 42).check();
@@ -17,7 +17,7 @@ void main() {
   const BitNot(0x12121212121212, 0xEDEDEDED).check();
 }
 
-/*element: jsEquals:calls=[Expect_equals(3),Expect_equals(3),get$isNegative(1),get$isNegative(1),toString$0(1),toString$0(1)],params=3*/
+/*member: jsEquals:calls=[Expect_equals(3),Expect_equals(3),get$isNegative(1),get$isNegative(1),toString$0(1),toString$0(1)],params=3*/
 void jsEquals(expected, actual, [String reason = null]) {
   if (expected is num && actual is num) {
     if (expected.isNaN && actual.isNaN) return;
@@ -42,7 +42,7 @@ abstract class TestOp {
 
   const TestOp(this.expected, this.result);
 
-  /*element: TestOp.checkAll:access=[arg,expected,result],calls=[jsEquals(3),jsEquals(3),jsEquals(3)],params=1*/
+  /*member: TestOp.checkAll:access=[arg,expected,result],calls=[jsEquals(3),jsEquals(3),jsEquals(3)],params=1*/
   @pragma('dart2js:noInline')
   checkAll(evalResult) {
     jsEquals(expected, result,
@@ -56,7 +56,7 @@ abstract class TestOp {
 }
 
 class BitNot extends TestOp {
-  /*element: BitNot.arg:emitted*/
+  /*member: BitNot.arg:emitted*/
   final arg;
 
   const BitNot(this.arg, expected) : super(expected, ~arg);

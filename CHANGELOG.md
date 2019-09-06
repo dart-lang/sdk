@@ -1,15 +1,187 @@
+## 2.5.0 - 2019-09-10
+
+### Language
+
+The set of operations allowed in constant expressions has been expanded as
+described in
+the [constant update proposal](https://github.com/dart-lang/language/issues/61).
+The control flow and spread collection features shipped in Dart 2.3 are now also
+supported in constants
+as
+[described in the specification here](https://github.com/dart-lang/language/blob/master/accepted/2.3/unified-collections/feature-specification.md#constant-semantics).
+
+Specifically, it is now valid to use the following operations in constant
+expressions under the appropriate conditions:
+  - Casts (`e as T`) and type tests (`e is T`).
+  - Comparisons to `null`, even for types which override the `==` operator.
+  - The `&`, `|`, and `^` binary operators on booleans.
+  - The spread operators (`...` and `...?`).
+  - An `if` element in a collection literal.
+
+```dart
+// Example: these are now valid constants.
+const i = 3;
+const list = [i as int];
+const set = {if (list is List<int>) ...list};
+const map = {if (i is int) i : "int"};
+```
+
+In addition, the semantics of constant evaluation has been changed as follows:
+  - The `&&` operator only evaluates its second operand if the first evaluates
+  to true.
+  - The `||` operator only evaluates its second operand if the first evaluates
+  to false.
+  - The `??` operator only evaluates its second operand if the first evaluates
+  to null.
+  - The conditional operator (`e ? e1 : e2`) only evaluates one of the two
+    branches, depending on the value of the first operand.
+
+```dart
+// Example: x is now a valid constant definition.
+const String s = null;
+const int x = (s == null) ? 0 : s.length;
+```
+
+### Core libraries
+
+* **Breaking change** [#36900](https://github.com/dart-lang/sdk/issues/36900):
+  The following methods and
+  properties across various core libraries, which used to declare a return type
+  of `List<int>`, were updated to declare a return type of `Uint8List`:
+
+  * `BytesBuilder.takeBytes()`
+  * `BytesBuilder.toBytes()`
+  * `Datagram.data`
+  * `File.readAsBytes()` (`Future<Uint8List>`)
+  * `File.readAsBytesSync()`
+  * `InternetAddress.rawAddress`
+  * `RandomAccessFile.read()` (`Future<Uint8List>`)
+  * `RandomAccessFile.readSync()`
+  * `RawSocket.read()`
+  * `Utf8Codec.encode()` (and `Utf8Encoder.convert()`)
+
+  In addition, the following classes were updated to implement
+  `Stream<Uint8List>` rather than `Stream<List<int>>`:
+
+  * `HttpRequest`
+  * `Socket`
+
+  **Possible errors and how to fix them**
+
+    * > The argument type 'Utf8Decoder' can't be assigned to the parameter type 'StreamTransformer<Uint8List, dynamic>'
+
+      > type 'Utf8Decoder' is not a subtype of type 'StreamTransformer' of 'streamTransformer'"
+
+      You can fix these call sites by updating your code to use
+      `StreamTransformer.bind()` instead of `Stream.transform()`, like so:
+
+      *Before:* `stream.transform(utf8.decoder)`
+      *After:* `utf8.decoder.bind(stream)`
+
+    * > The argument type 'IOSink' can't be assigned to the parameter type 'StreamConsumer<Uint8List>'
+
+      > type '_IOSinkImpl' is not a subtype of type 'StreamConsumer<Uint8List>' of 'streamConsumer'
+
+      You can fix these call sites by casting your stream instance to a `Stream<List<int>>` before calling `.pipe()` on the stream, like so:
+
+      *Before:* `stream.pipe(consumer)`
+      *After:* `stream.cast<List<int>>().pipe(consumer)`
+
+  Finally, the following typed lists were updated to have their `sublist()`
+  methods declare a return type that is the same as the source list:
+
+  * `Int8List.sublist()` → `Int8List`
+  * `Int16List.sublist()` → `Int16List`
+  * `Int32List.sublist()` → `Int32List`
+  * `Int64List.sublist()` → `Int64List`
+  * `Int32x4List.sublist()` → `Int32x4List`
+  * `Float32List.sublist()` → `Float32List`
+  * `Float64List.sublist()` → `Float64List`
+  * `Float32x4List.sublist()` → `Float32x4List`
+  * `Float64x2List.sublist()` → `Float64x2List`
+  * `Uint8List.sublist()` → `Uint8List`
+  * `Uint8ClampedList.sublist()` → `Uint8ClampedList`
+  * `Uint16List.sublist()` → `Uint16List`
+  * `Uint32List.sublist()` → `Uint32List`
+  * `Uint64List.sublist()` → `Uint64List`
+
+#### `dart:async`
+
+* Add `value` and `error` constructors on `Stream`
+  to allow easily creating single-value or single-error streams.
+
+#### `dart:core`
+
+* Update `Uri` class to support [RFC6874](https://tools.ietf.org/html/rfc6874):
+  "%25" or "%" can be appended to the end of a valid IPv6 representing a Zone
+  Identifier. A valid zone ID consists of unreversed character or Percent
+  encoded octet, which was defined in RFC3986.
+  IPv6addrz = IPv6address "%25" ZoneID
+
+  [29456]: https://github.com/dart-lang/sdk/issues/29456
+
+#### `dart:io`
+
+* **Breaking change** [#37192](https://github.com/dart-lang/sdk/issues/37192): 
+  The `Cookie` class's constructor's `name` and `value`
+  optional positional parameters are now mandatory. The
+  signature changes from:
+
+      Cookie([String name, String value])
+
+  to
+
+      Cookie(String name, String value)
+
+  However, it has not been possible to set `name` and `value` to null since Dart
+  1.3.0 (2014) where a bug made it impossible. Any code not using both
+  parameters or setting any to null would necessarily get a noSuchMethod
+  exception at runtime. This change catches such erroneous uses at compile time.
+  Since code could not previously correctly omit the parameters, this is not
+  really a breaking change.
+
+* **Breaking change** [#37192](https://github.com/dart-lang/sdk/issues/37192): 
+  The `Cookie` class's `name` and `value` setters now
+  validates that the strings are made from the allowed character set and are not
+  null. The constructor already made these checks and this
+  fixes the loophole where the setters didn't also validate.
+
+### Dart VM
+
+### Tools
+
+#### Pub
+
+ * Clean-up invalid git repositories in cache when fetching from git.
+ * **Breaking change**  [#36765](https://github.com/dart-lang/sdk/issues/36765):
+   Packages published to [pub.dev](https://pub.dev) can no longer contain git
+   dependencies. These packages will be rejected by the server.
+
+#### Linter
+
+The Linter was updated to `0.1.96`, which includes:
+
+* fixed false positives in `unnecessary_parens`
+* various changes to migrate to preferred analyzer APIs
+* rule test fixes
+
+#### Dartdoc
+
+Dartdoc was updated to `0.28.4`; this version includes several fixes and is based
+on a newer version of the analyzer package.
+
 ## 2.4.1 - 2019-08-07
 
-This is a patch version release which fixes a performance regression in JIT as
+This is a patch release that fixes a performance regression in JIT mode, as
 well as a potential crash of our AOT compiler.
 
 ### Dart VM
 
-* Working with `Int32List` could cause repeated deoptimizations leading to a big
-  performance regression in JIT mode. The Issue [37551][] was fixed.
+* Fixed a performance regression where usage of `Int32List` could trigger
+  repeated deoptimizations in JIT mode (Issue [37551][]).
 
-* Using a static getter with name `length` could cause a crash in our AOT
-  compiler. The Issue [35121][] was fixed.
+* Fixed a bug where usage of a static getter with name `length` could cause a
+  crash in our AOT compiler (Issue [35121][]).
 
 [37551]: https://github.com/dart-lang/sdk/issues/37551
 [35121]: https://github.com/dart-lang/sdk/issues/35121
@@ -47,28 +219,28 @@ communication of `Uint8List` data.
   [33327]: https://github.com/dart-lang/sdk/issues/33327
   [35804]: https://github.com/dart-lang/sdk/issues/35804
 
-* The `HttpClientResponse` interface has been extended with the addition of a
+* [#36971](https://github.com/dart-lang/sdk/issues/36971):
+  The `HttpClientResponse` interface has been extended with the addition of a
   new `compressionState` getter, which specifies whether the body of a
   response was compressed when it was received and whether it has been
-  automatically uncompressed via `HttpClient.autoUncompress` (Issue [36971][]).
+  automatically uncompressed via `HttpClient.autoUncompress`.
 
   As part of this change, a corresponding new enum was added to `dart:io`:
   `HttpClientResponseCompressionState`.
 
-  [36971]: https://github.com/dart-lang/sdk/issues/36971
-
-  * **Breaking change**: For those implementing the `HttpClientResponse`
-    interface, this is a breaking change, as implementing classes will need to
-    implement the new getter.
+  This is a **breaking change** for those implementing the `HttpClientResponse`
+  interface as subclasses will need to implement the new getter.
 
 #### `dart:async`
 
-* **Breaking change:** The `await for` allowed `null` as a stream due to a bug
+* **Breaking change** [#36382](https://github.com/dart-lang/sdk/issues/36382):
+  The `await for` allowed `null` as a stream due to a bug
   in `StreamIterator` class. This bug has now been fixed.
 
 #### `dart:core`
 
-* **Breaking change:** The `RegExp` interface has been extended with two new
+* [#36171](https://github.com/dart-lang/sdk/issues/36171):
+  The `RegExp` interface has been extended with two new
   constructor named parameters:
 
   * `unicode:` (`bool`, default: `false`), for Unicode patterns
@@ -86,13 +258,15 @@ communication of `Uint8List` data.
   * `String namedGroup(String name)`, a method that retrieves the match for
     the given named capture group
 
-  This change only affects implementers of the `RegExp` interface; current
-  code using Dart regular expressions will not be affected.
+  This is a **breaking change** for implementers of the `RegExp` interface.
+  Subclasses will need to add the new properties and may have to update the
+  return types on overridden methods.
 
 ### Language
 
-*   **Breaking change:** Covariance of type variables used in super-interfaces
-    is now enforced (issue [35097][]).  For example, the following code was
+*   **Breaking change** [#35097](https://github.com/dart-lang/sdk/issues/35097):
+    Covariance of type variables used in super-interfaces
+    is now enforced. For example, the following code was
     previously accepted and will now be rejected:
 
 ```dart
@@ -103,7 +277,18 @@ class B<X> extends A<void Function(X)> {};
 * The identifier `async` can now be used in asynchronous and generator
   functions.
 
-[35097]: https://github.com/dart-lang/sdk/issues/35097
+### Dart for the Web
+
+#### Dart Dev Compiler (DDC)
+
+* Improve `NoSuchMethod` errors for failing dynamic calls. Now they include
+  specific information about the nature of the error such as:
+  * Attempting to call a null value.
+  * Calling an object instance with a null `call()` method.
+  * Passing too few or too many arguments.
+  * Passing incorrect named arguments.
+  * Passing too few or too many type arguments.
+  * Passing type arguments to a non-generic method.
 
 ### Tools
 
@@ -120,7 +305,6 @@ The Linter was updated to `0.1.91`, which includes the following changes:
 * Added `prefer_if_null_operators`.
 * Fixed `prefer_contains` false positives.
 * Fixed `unnecessary_parenthesis` false positives.
-* New lint: `prefer_double_quotes`
 * Fixed `prefer_asserts_in_initializer_lists` false positives
 * Fixed `curly_braces_in_flow_control_structures` to handle more cases
 * New lint: `prefer_double_quotes`

@@ -3,7 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2analyzer ]
-html/debugger_test: CompileTimeError # Issue 28969
 html/element_types_keygen_test: CompileTimeError # Chrome 57 keygen removed
 html/js_function_getter_trust_types_test: Skip # dart2js specific flags.
 html/js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue #25759

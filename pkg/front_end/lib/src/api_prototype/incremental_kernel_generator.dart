@@ -4,6 +4,10 @@
 
 import 'dart:async' show Future;
 
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+
+import 'package:kernel/core_types.dart' show CoreTypes;
+
 import 'package:kernel/kernel.dart'
     show Component, Procedure, DartType, TypeParameter;
 
@@ -44,6 +48,14 @@ abstract class IncrementalKernelGenerator {
   /// Returns a component whose libraries are the recompiled libraries,
   /// or - in the case of [fullComponent] - a full Component.
   Future<Component> computeDelta({List<Uri> entryPoints, bool fullComponent});
+
+  /// Returns [CoreTypes] used during compilation.
+  /// Valid after [computeDelta] is called.
+  CoreTypes getCoreTypes();
+
+  /// Returns [ClassHierarchy] used during compilation.
+  /// Valid after [computeDelta] is called.
+  ClassHierarchy getClassHierarchy();
 
   /// Remove the file associated with the given file [uri] from the set of
   /// valid files.  This guarantees that those files will be re-read on the

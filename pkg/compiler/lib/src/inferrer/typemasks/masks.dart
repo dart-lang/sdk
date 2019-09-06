@@ -264,31 +264,51 @@ class CommonMasks implements AbstractValueDomain {
   }
 
   @override
-  AbstractValue createFromStaticType(DartType type,
-      [ClassRelation classRelation = ClassRelation.subtype]) {
+  AbstractValueWithPrecision createFromStaticType(DartType type,
+      {ClassRelation classRelation = ClassRelation.subtype, bool nullable}) {
+    assert(nullable != null);
+    AbstractValueWithPrecision finish(TypeMask value, bool isPrecise) {
+      return AbstractValueWithPrecision(
+          nullable ? value : value.nonNullable(), isPrecise);
+    }
+
+    bool isPrecise = true;
     while (type is TypeVariableType) {
       TypeVariableType typeVariable = type;
       type = _closedWorld.elementEnvironment
           .getTypeVariableBound(typeVariable.element);
       classRelation = ClassRelation.subtype;
+      isPrecise = false;
     }
+
     if (type is InterfaceType) {
+      if (isPrecise) {
+        // TODO(sra): Could be precise if instantiated-to-bounds.
+        for (DartType argument in type.typeArguments) {
+          if (argument is DynamicType) continue;
+          isPrecise = false;
+        }
+      }
       switch (classRelation) {
         case ClassRelation.exact:
-          return new TypeMask.exact(type.element, _closedWorld);
+          return finish(TypeMask.exact(type.element, _closedWorld), isPrecise);
         case ClassRelation.thisExpression:
           if (!_closedWorld.isUsedAsMixin(type.element)) {
-            return new TypeMask.subclass(type.element, _closedWorld);
+            return finish(
+                TypeMask.subclass(type.element, _closedWorld), isPrecise);
           }
           break;
         case ClassRelation.subtype:
           break;
       }
-      return new TypeMask.subtype(type.element, _closedWorld);
+      return finish(TypeMask.subtype(type.element, _closedWorld), isPrecise);
     } else if (type is FunctionType) {
-      return new TypeMask.subtype(commonElements.functionClass, _closedWorld);
+      return finish(
+          TypeMask.subtype(commonElements.functionClass, _closedWorld), false);
+    } else if (type is DynamicType) {
+      return AbstractValueWithPrecision(dynamicType, true);
     } else {
-      return dynamicType;
+      return finish(dynamicType, false);
     }
   }
 

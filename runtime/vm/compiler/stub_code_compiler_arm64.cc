@@ -208,35 +208,82 @@ void StubCodeCompiler::GenerateSharedStub(
 void StubCodeCompiler::GenerateEnterSafepointStub(Assembler* assembler) {
   RegisterSet all_registers;
   all_registers.AddAllGeneralRegisters();
-  __ PushRegisters(all_registers);
 
   __ EnterFrame(0);
+  __ PushRegisters(all_registers);
+
+  __ mov(CALLEE_SAVED_TEMP, SP);
   __ ReserveAlignedFrameSpace(0);
+
   __ mov(CSP, SP);
   __ ldr(R0, Address(THR, kEnterSafepointRuntimeEntry.OffsetFromThread()));
   __ blr(R0);
-  __ LeaveFrame();
+  __ mov(SP, CALLEE_SAVED_TEMP);
 
   __ PopRegisters(all_registers);
-  __ mov(CSP, SP);
+  __ LeaveFrame();
   __ Ret();
 }
 
 void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
   RegisterSet all_registers;
   all_registers.AddAllGeneralRegisters();
-  __ PushRegisters(all_registers);
 
   __ EnterFrame(0);
+  __ PushRegisters(all_registers);
+
+  __ mov(CALLEE_SAVED_TEMP, SP);
   __ ReserveAlignedFrameSpace(0);
+
   __ mov(CSP, SP);
+
+  // Set the execution state to VM while waiting for the safepoint to end.
+  // This isn't strictly necessary but enables tests to check that we're not
+  // in native code anymore. See tests/ffi/function_gc_test.dart for example.
+  __ LoadImmediate(R0, target::Thread::vm_execution_state());
+  __ str(R0, Address(THR, target::Thread::execution_state_offset()));
+
   __ ldr(R0, Address(THR, kExitSafepointRuntimeEntry.OffsetFromThread()));
   __ blr(R0);
-  __ LeaveFrame();
+  __ mov(SP, CALLEE_SAVED_TEMP);
 
   __ PopRegisters(all_registers);
-  __ mov(CSP, SP);
+  __ LeaveFrame();
   __ Ret();
+}
+
+// Calls native code within a safepoint.
+//
+// On entry:
+//   R8: target to call
+//   Stack: set up for native call (SP), aligned, CSP < SP
+//
+// On exit:
+//   R19: clobbered, although normally callee-saved
+//   Stack: preserved, CSP == SP
+void StubCodeCompiler::GenerateCallNativeThroughSafepointStub(
+    Assembler* assembler) {
+  COMPILE_ASSERT((1 << R19) & kAbiPreservedCpuRegs);
+
+  __ mov(R19, LR);
+  __ TransitionGeneratedToNative(R8, FPREG, R9 /*volatile*/);
+  __ mov(CSP, SP);
+
+#if defined(DEBUG)
+  // Check CSP alignment.
+  __ andi(R10 /*volatile*/, SP,
+          Immediate(~(OS::ActivationFrameAlignment() - 1)));
+  __ cmp(R10, Operand(SP));
+  Label done;
+  __ b(&done, EQ);
+  __ Breakpoint();
+  __ Bind(&done);
+#endif
+
+  __ blr(R8);
+  __ mov(SP, CSP);
+  __ TransitionNativeToGenerated(R9);
+  __ ret(R19);
 }
 
 void StubCodeCompiler::GenerateVerifyCallbackStub(Assembler* assembler) {
@@ -263,8 +310,7 @@ void StubCodeCompiler::GenerateBuildMethodExtractorStub(
     Assembler* assembler,
     const Object& closure_allocation_stub,
     const Object& context_allocation_stub) {
-  const intptr_t kReceiverOffset =
-      compiler::target::frame_layout.param_end_from_fp + 1;
+  const intptr_t kReceiverOffset = target::frame_layout.param_end_from_fp + 1;
 
   __ EnterStubFrame();
 
@@ -618,6 +664,9 @@ void StubCodeCompiler::GenerateCallStaticFunctionStub(Assembler* assembler) {
 // (invalid because its function was optimized or deoptimized).
 // R4: arguments descriptor array.
 void StubCodeCompiler::GenerateFixCallersTargetStub(Assembler* assembler) {
+  Label monomorphic;
+  __ BranchOnMonomorphicCheckedEntryJIT(&monomorphic);
+
   // Load code pointer to this stub from the thread:
   // The one that is passed in, is not correct - it points to the code object
   // that needs to be replaced.
@@ -638,6 +687,30 @@ void StubCodeCompiler::GenerateFixCallersTargetStub(Assembler* assembler) {
   // Jump to the dart function.
   __ LoadFieldFromOffset(R0, CODE_REG, target::Code::entry_point_offset());
   __ br(R0);
+
+  __ Bind(&monomorphic);
+  // Load code pointer to this stub from the thread:
+  // The one that is passed in, is not correct - it points to the code object
+  // that needs to be replaced.
+  __ ldr(CODE_REG,
+         Address(THR, target::Thread::fix_callers_target_code_offset()));
+  // Create a stub frame as we are pushing some objects on the stack before
+  // calling into the runtime.
+  __ EnterStubFrame();
+  __ Push(R5);  // Preserve cache (guarded CID as Smi).
+  __ Push(R0);  // Preserve receiver.
+  __ Push(ZR);
+  __ CallRuntime(kFixCallersTargetMonomorphicRuntimeEntry, 0);
+  __ Pop(CODE_REG);
+  __ Pop(R0);  // Restore receiver.
+  __ Pop(R5);  // Restore cache (guarded CID as Smi).
+  // Remove the stub frame.
+  __ LeaveStubFrame();
+  // Jump to the dart function.
+  __ LoadFieldFromOffset(
+      R1, CODE_REG,
+      target::Code::entry_point_offset(CodeEntryKind::kMonomorphic));
+  __ br(R1);
 }
 
 // Called from object allocate instruction when the allocation stub has been
@@ -729,13 +802,13 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // The code in this frame may not cause GC. kDeoptimizeCopyFrameRuntimeEntry
   // and kDeoptimizeFillFrameRuntimeEntry are leaf runtime calls.
   const intptr_t saved_result_slot_from_fp =
-      compiler::target::frame_layout.first_local_from_fp + 1 -
+      target::frame_layout.first_local_from_fp + 1 -
       (kNumberOfCpuRegisters - R0);
   const intptr_t saved_exception_slot_from_fp =
-      compiler::target::frame_layout.first_local_from_fp + 1 -
+      target::frame_layout.first_local_from_fp + 1 -
       (kNumberOfCpuRegisters - R0);
   const intptr_t saved_stacktrace_slot_from_fp =
-      compiler::target::frame_layout.first_local_from_fp + 1 -
+      target::frame_layout.first_local_from_fp + 1 -
       (kNumberOfCpuRegisters - R1);
   // Result in R0 is preserved as part of pushing all registers below.
 
@@ -749,6 +822,12 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
       COMPILE_ASSERT(R25 > CODE_REG);
       __ ldr(R25, Address(FP, 2 * target::kWordSize));
       __ str(R25, Address(SP, -1 * target::kWordSize, Address::PreIndex));
+    } else if (r == R15) {
+      // Because we save registers in decreasing order, IP0 will already be
+      // saved.
+      COMPILE_ASSERT(IP0 == R16);
+      __ mov(IP0, R15);
+      __ str(IP0, Address(SP, -1 * target::kWordSize, Address::PreIndex));
     } else {
       __ str(r, Address(SP, -1 * target::kWordSize, Address::PreIndex));
     }
@@ -798,16 +877,14 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   if (kind == kLazyDeoptFromReturn) {
     // Restore result into R1.
     __ LoadFromOffset(
-        R1, FP,
-        compiler::target::frame_layout.first_local_from_fp * target::kWordSize);
+        R1, FP, target::frame_layout.first_local_from_fp * target::kWordSize);
   } else if (kind == kLazyDeoptFromThrow) {
     // Restore result into R1.
     __ LoadFromOffset(
-        R1, FP,
-        compiler::target::frame_layout.first_local_from_fp * target::kWordSize);
-    __ LoadFromOffset(R2, FP,
-                      (compiler::target::frame_layout.first_local_from_fp - 1) *
-                          target::kWordSize);
+        R1, FP, target::frame_layout.first_local_from_fp * target::kWordSize);
+    __ LoadFromOffset(
+        R2, FP,
+        (target::frame_layout.first_local_from_fp - 1) * target::kWordSize);
   }
   // Code above cannot cause GC.
   // There is a Dart Frame on the stack. We must restore PP and leave frame.
@@ -922,9 +999,8 @@ void StubCodeCompiler::GenerateMegamorphicMissStub(Assembler* assembler) {
   // Load the receiver.
   __ LoadFieldFromOffset(R2, R4, target::ArgumentsDescriptor::count_offset());
   __ add(TMP, FP, Operand(R2, LSL, 2));  // R2 is Smi.
-  __ LoadFromOffset(
-      R6, TMP,
-      compiler::target::frame_layout.param_end_from_fp * target::kWordSize);
+  __ LoadFromOffset(R6, TMP,
+                    target::frame_layout.param_end_from_fp * target::kWordSize);
 
   // Preserve IC data and arguments descriptor.
   __ Push(R5);
@@ -2489,6 +2565,23 @@ void StubCodeCompiler::GenerateICCallBreakpointStub(Assembler* assembler) {
 #endif  // defined(PRODUCT)
 }
 
+void StubCodeCompiler::GenerateUnoptStaticCallBreakpointStub(
+    Assembler* assembler) {
+#if defined(PRODUCT)
+  __ Stop("No debugging in PRODUCT mode");
+#else
+  __ EnterStubFrame();
+  __ Push(R5);  // Preserve IC data.
+  __ Push(ZR);  // Space for result.
+  __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
+  __ Pop(CODE_REG);  // Original stub.
+  __ Pop(R5);        // Restore IC data.
+  __ LeaveStubFrame();
+  __ LoadFieldFromOffset(TMP, CODE_REG, target::Code::entry_point_offset());
+  __ br(TMP);
+#endif  // defined(PRODUCT)
+}
+
 void StubCodeCompiler::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
 #if defined(PRODUCT)
   __ Stop("No debugging in PRODUCT mode");
@@ -2988,7 +3081,7 @@ void StubCodeCompiler::GenerateDeoptForRewindStub(Assembler* assembler) {
 // R6: function to be re-optimized.
 // R4: argument descriptor (preserved).
 void StubCodeCompiler::GenerateOptimizeFunctionStub(Assembler* assembler) {
-  __ LoadFromOffset(CODE_REG, THR, Thread::optimize_stub_offset());
+  __ LoadFromOffset(CODE_REG, THR, target::Thread::optimize_stub_offset());
   __ EnterStubFrame();
   __ Push(R4);
   // Setup space on stack for the return value.
@@ -3173,50 +3266,6 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
   __ b(&cid_loaded);
 }
 
-// Called from switchable IC calls.
-//  R0: receiver
-//  R5: ICData (preserved)
-// Passed to target:
-//  CODE_REG: target Code object
-//  R4: arguments descriptor
-void StubCodeCompiler::GenerateICCallThroughFunctionStub(Assembler* assembler) {
-  Label loop, found, miss;
-  __ ldr(ARGS_DESC_REG,
-         FieldAddress(R5, target::ICData::arguments_descriptor_offset()));
-  __ ldr(R8, FieldAddress(R5, target::ICData::entries_offset()));
-  __ AddImmediate(R8, target::Array::data_offset() - kHeapObjectTag);
-  // R8: first IC entry
-  __ LoadTaggedClassIdMayBeSmi(R1, R0);
-  // R1: receiver cid as Smi
-
-  __ Bind(&loop);
-  __ ldr(R2, Address(R8, 0));
-  __ cmp(R1, Operand(R2));
-  __ b(&found, EQ);
-  __ CompareImmediate(R2, target::ToRawSmi(kIllegalCid));
-  __ b(&miss, EQ);
-
-  const intptr_t entry_length =
-      target::ICData::TestEntryLengthFor(1, /*tracking_exactness=*/false) *
-      target::kWordSize;
-  __ AddImmediate(R8, entry_length);  // Next entry.
-  __ b(&loop);
-
-  __ Bind(&found);
-  const intptr_t target_offset =
-      target::ICData::TargetIndexFor(1) * target::kWordSize;
-  __ ldr(R0, Address(R8, target_offset));
-  __ ldr(R1, FieldAddress(R0, target::Function::entry_point_offset()));
-  __ ldr(CODE_REG, FieldAddress(R0, target::Function::code_offset()));
-  __ br(R1);
-
-  __ Bind(&miss);
-  __ LoadIsolate(R2);
-  __ ldr(CODE_REG, Address(R2, target::Isolate::ic_miss_code_offset()));
-  __ ldr(R1, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
-  __ br(R1);
-}
-
 void StubCodeCompiler::GenerateICCallThroughCodeStub(Assembler* assembler) {
   Label loop, found, miss;
   __ ldr(R8, FieldAddress(R5, target::ICData::entries_offset()));
@@ -3265,17 +3314,17 @@ void StubCodeCompiler::GenerateUnlinkedCallStub(Assembler* assembler) {
   __ Push(R0);  // Preserve receiver.
 
   __ Push(ZR);  // Result slot.
-  __ Push(R0);  // Arg0: Receiver
-  __ Push(R5);  // Arg1: UnlinkedCall
-  __ CallRuntime(kUnlinkedCallRuntimeEntry, 2);
+  __ Push(ZR);  // Arg0: stub out.
+  __ Push(R0);  // Arg1: Receiver
+  __ Push(R5);  // Arg2: UnlinkedCall
+  __ CallRuntime(kUnlinkedCallRuntimeEntry, 3);
   __ Drop(2);
-  __ Pop(R5);  // result = IC
+  __ Pop(CODE_REG);  // result = stub
+  __ Pop(R5);        // result = IC
 
   __ Pop(R0);  // Restore receiver.
   __ LeaveStubFrame();
 
-  __ ldr(CODE_REG,
-         Address(THR, target::Thread::ic_lookup_through_code_stub_offset()));
   __ ldr(R1, FieldAddress(CODE_REG, target::Code::entry_point_offset(
                                         CodeEntryKind::kMonomorphic)));
   __ br(R1);
@@ -3309,16 +3358,16 @@ void StubCodeCompiler::GenerateSingleTargetCallStub(Assembler* assembler) {
   __ Push(R0);  // Preserve receiver.
 
   __ Push(ZR);  // Result slot.
-  __ Push(R0);  // Arg0: Receiver
-  __ CallRuntime(kSingleTargetMissRuntimeEntry, 1);
+  __ Push(ZR);  // Arg0: Stub out.
+  __ Push(R0);  // Arg1: Receiver
+  __ CallRuntime(kSingleTargetMissRuntimeEntry, 2);
   __ Drop(1);
-  __ Pop(R5);  // result = IC
+  __ Pop(CODE_REG);  // result = stub
+  __ Pop(R5);        // result = IC
 
   __ Pop(R0);  // Restore receiver.
   __ LeaveStubFrame();
 
-  __ ldr(CODE_REG,
-         Address(THR, target::Thread::ic_lookup_through_code_stub_offset()));
   __ ldr(R1, FieldAddress(CODE_REG, target::Code::entry_point_offset(
                                         CodeEntryKind::kMonomorphic)));
   __ br(R1);
@@ -3333,16 +3382,16 @@ void StubCodeCompiler::GenerateMonomorphicMissStub(Assembler* assembler) {
   __ Push(R0);  // Preserve receiver.
 
   __ Push(ZR);  // Result slot.
-  __ Push(R0);  // Arg0: Receiver
-  __ CallRuntime(kMonomorphicMissRuntimeEntry, 1);
+  __ Push(ZR);  // Arg0: stub out
+  __ Push(R0);  // Arg1: Receiver
+  __ CallRuntime(kMonomorphicMissRuntimeEntry, 2);
   __ Drop(1);
-  __ Pop(R5);  // result = IC
+  __ Pop(CODE_REG);  // result = stub
+  __ Pop(R5);        // result = IC
 
   __ Pop(R0);  // Restore receiver.
   __ LeaveStubFrame();
 
-  __ ldr(CODE_REG,
-         Address(THR, target::Thread::ic_lookup_through_code_stub_offset()));
   __ ldr(R1, FieldAddress(CODE_REG, target::Code::entry_point_offset(
                                         CodeEntryKind::kMonomorphic)));
   __ br(R1);

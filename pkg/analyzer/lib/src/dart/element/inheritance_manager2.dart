@@ -4,6 +4,9 @@
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart'
+    show InheritanceManagerBase, InheritanceManager3;
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 
@@ -29,7 +32,7 @@ class Conflict {
 }
 
 /// Manages knowledge about interface types and their members.
-class InheritanceManager2 {
+class InheritanceManager2 extends InheritanceManagerBase {
   static final _noSuchMethodName = Name(null, 'noSuchMethod');
 
   final TypeSystem _typeSystem;
@@ -42,6 +45,10 @@ class InheritanceManager2 {
   final Set<ClassElement> _processingClasses = new Set<ClassElement>();
 
   InheritanceManager2(this._typeSystem);
+
+  @override
+  InheritanceManager3 get asInheritanceManager3 =>
+      InheritanceManager3(_typeSystem);
 
   /// Return the most specific signature of the member with the given [name]
   /// that the [type] inherits from the mixins, superclasses, or interfaces;

@@ -110,6 +110,17 @@ class Address : public ValueObject {
     Unknown,
   };
 
+  // If we are doing pre-/post-indexing, and the base and result registers are
+  // the same, then the result is unpredictable. This kind of instruction is
+  // actually illegal on some microarchitectures.
+  bool can_writeback_to(Register r) const {
+    if (type() == PreIndex || type() == PostIndex || type() == PairPreIndex ||
+        type() == PairPostIndex) {
+      return base() != r;
+    }
+    return true;
+  }
+
   // Offset is in bytes. For the unsigned imm12 case, we unscale based on the
   // operand size, and assert that offset is aligned accordingly.
   // For the smaller signed imm9 case, the offset is the number of bytes, but
@@ -869,12 +880,6 @@ class Assembler : public AssemblerBase {
       ASSERT(sz == kDoubleWord);
       EmitLoadRegLiteral(LDRpc, rt, a, sz);
     } else {
-      // If we are doing pre-/post-indexing, and the base and result registers
-      // are the same, then the result of the load will be clobbered by the
-      // writeback, which is unlikely to be useful.
-      ASSERT(((a.type() != Address::PreIndex) &&
-              (a.type() != Address::PostIndex)) ||
-             (rt != a.base()));
       if (IsSignedOperand(sz)) {
         EmitLoadStoreReg(LDRS, rt, a, sz);
       } else {
@@ -1561,7 +1566,9 @@ class Assembler : public AssemblerBase {
   void EnterStubFrame();
   void LeaveStubFrame();
 
-  void MonomorphicCheckedEntry();
+  void MonomorphicCheckedEntryJIT();
+  void MonomorphicCheckedEntryAOT();
+  void BranchOnMonomorphicCheckedEntryJIT(Label* label);
 
   void UpdateAllocationStats(intptr_t cid);
 
@@ -2065,6 +2072,9 @@ class Assembler : public AssemblerBase {
                         Register rt,
                         Address a,
                         OperandSize sz) {
+    // Unpredictable, illegal on some microarchitectures.
+    ASSERT((op != LDR && op != STR && op != LDRS) || a.can_writeback_to(rt));
+
     const int32_t size = Log2OperandSizeBytes(sz);
     const int32_t encoding =
         op | ((size & 0x3) << kSzShift) | Arm64Encode::Rt(rt) | a.encoding();
@@ -2087,6 +2097,10 @@ class Assembler : public AssemblerBase {
                             Register rt2,
                             Address a,
                             OperandSize sz) {
+    // Unpredictable, illegal on some microarchitectures.
+    ASSERT(a.can_writeback_to(rt) && a.can_writeback_to(rt2));
+    ASSERT(op != LDP || rt != rt2);
+
     ASSERT((sz == kDoubleWord) || (sz == kWord) || (sz == kUnsignedWord));
     ASSERT((rt != CSP) && (rt != R31));
     ASSERT((rt2 != CSP) && (rt2 != R31));
@@ -2269,12 +2283,6 @@ class Assembler : public AssemblerBase {
 };
 
 }  // namespace compiler
-
-using compiler::Address;
-using compiler::FieldAddress;
-using compiler::Immediate;
-using compiler::Operand;
-
 }  // namespace dart
 
 #endif  // RUNTIME_VM_COMPILER_ASSEMBLER_ASSEMBLER_ARM64_H_

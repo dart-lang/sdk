@@ -23,8 +23,8 @@ Future main(List<String> args, [SendPort sendPort]) async {
 
   if (parsedArgs.isWorker) {
     var workerConnection = sendPort == null
-        ? new StdAsyncWorkerConnection()
-        : new SendPortAsyncWorkerConnection(sendPort);
+        ? StdAsyncWorkerConnection()
+        : SendPortAsyncWorkerConnection(sendPort);
     await _CompilerWorker(parsedArgs, workerConnection).run();
   } else if (parsedArgs.isBatch) {
     await runBatch(parsedArgs);
@@ -52,7 +52,16 @@ class _CompilerWorker extends AsyncWorkerLoop {
     var args = _startupArgs.merge(request.arguments);
     var output = StringBuffer();
     var context = args.reuseResult ? lastResult : null;
-    lastResult = await runZoned(() => compile(args, previousResult: context),
+
+    /// Build a map of uris to digests.
+    final inputDigests = <Uri, List<int>>{};
+    for (var input in request.inputs) {
+      inputDigests[sourcePathToUri(input.path)] = input.digest;
+    }
+
+    lastResult = await runZoned(
+        () =>
+            compile(args, previousResult: context, inputDigests: inputDigests),
         zoneSpecification:
             ZoneSpecification(print: (self, parent, zone, message) {
       output.writeln(message.toString());

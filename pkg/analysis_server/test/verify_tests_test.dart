@@ -19,9 +19,13 @@ main() {
   String analysisServerPath =
       provider.pathContext.join(packageRoot, 'analysis_server');
   String testDirPath = provider.pathContext.join(analysisServerPath, 'test');
+  String mocksDirPath = provider.pathContext.join(testDirPath, 'mock_packages');
 
   AnalysisContextCollection collection = new AnalysisContextCollection(
-      includedPaths: <String>[testDirPath], resourceProvider: provider);
+    resourceProvider: provider,
+    includedPaths: <String>[testDirPath],
+    excludedPaths: <String>[mocksDirPath],
+  );
   List<AnalysisContext> contexts = collection.contexts;
   if (contexts.length != 1) {
     fail('The test directory contains multiple analysis contexts.');

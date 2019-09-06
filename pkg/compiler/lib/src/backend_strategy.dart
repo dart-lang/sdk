@@ -12,18 +12,24 @@ import 'enqueue.dart';
 import 'elements/entities.dart';
 import 'inferrer/types.dart';
 import 'io/source_information.dart';
+import 'js_backend/backend.dart';
+import 'js_backend/enqueuer.dart';
 import 'js_backend/inferred_data.dart';
-import 'js_backend/interceptor_data.dart';
-import 'js_backend/native_data.dart';
+import 'js_emitter/code_emitter_task.dart';
 import 'serialization/serialization.dart';
 import 'ssa/ssa.dart';
 import 'universe/codegen_world_builder.dart';
-import 'universe/world_builder.dart';
 import 'world.dart';
 
 /// Strategy pattern that defines the element model used in type inference
 /// and code generation.
 abstract class BackendStrategy {
+  List<CompilerTask> get tasks;
+
+  FunctionCompiler get functionCompiler;
+
+  CodeEmitterTask get emitterTask;
+
   /// Create the [JClosedWorld] from [closedWorld].
   JClosedWorld createJClosedWorld(
       KClosedWorld closedWorld, OutputUnitData outputUnitData);
@@ -34,23 +40,26 @@ abstract class BackendStrategy {
   /// This is used to support serialization after type inference.
   void registerJClosedWorld(JClosedWorld closedWorld);
 
-  /// Creates the [CodegenWorldBuilder] used by the codegen enqueuer.
-  CodegenWorldBuilder createCodegenWorldBuilder(
-      NativeBasicData nativeBasicData,
-      JClosedWorld closedWorld,
-      SelectorConstraintsStrategy selectorConstraintsStrategy,
-      OneShotInterceptorData oneShotInterceptorData);
+  /// Called when the compiler starts running the codegen.
+  ///
+  /// Returns the [CodegenInputs] objects with the needed data.
+  CodegenInputs onCodegenStart(
+      GlobalTypeInferenceResults globalTypeInferenceResults);
 
-  /// Creates the [WorkItemBuilder] used by the codegen enqueuer.
-  WorkItemBuilder createCodegenWorkItemBuilder(
-      JClosedWorld closedWorld, CodegenResults codegenResults);
+  /// Creates an [Enqueuer] for code generation specific to this backend.
+  CodegenEnqueuer createCodegenEnqueuer(
+      CompilerTask task,
+      JClosedWorld closedWorld,
+      GlobalTypeInferenceResults globalInferenceResults,
+      CodegenInputs codegen,
+      CodegenResults codegenResults);
+
+  /// Called when code generation has been completed.
+  void onCodegenEnd(CodegenInputs codegen);
 
   /// Creates the [SsaBuilder] used for the element model.
   SsaBuilder createSsaBuilder(
       CompilerTask task, SourceInformationStrategy sourceInformationStrategy);
-
-  /// Returns the [SourceInformationStrategy] use for the element model.
-  SourceInformationStrategy get sourceInformationStrategy;
 
   /// Creates a [SourceSpan] from [spannable] in context of [currentElement].
   SourceSpan spanFromSpannable(Spannable spannable, Entity currentElement);
@@ -69,4 +78,8 @@ abstract class BackendStrategy {
 
   /// Prepare [source] to deserialize modular code generation data.
   void prepareCodegenReader(DataSource source);
+
+  /// Generates the output and returns the total size of the generated code.
+  int assembleProgram(JClosedWorld closedWorld, InferredData inferredData,
+      CodegenInputs codegenInputs, CodegenWorld codegenWorld);
 }

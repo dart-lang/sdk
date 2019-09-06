@@ -20,19 +20,19 @@ T f<T>() => null;
 
 void test() {
   B local;
-  local = /*@typeArgs=B*/ f();
-  local ??= /*@typeArgs=B*/ f();
-  local += /*@typeArgs=dynamic*/ f();
-  local *= /*@typeArgs=dynamic*/ f();
-  local &= /*@typeArgs=dynamic*/ f();
+  local = /*@ typeArgs=B* */ f();
+  local ??= /*@ typeArgs=B* */ f();
+  local += /*@ typeArgs=dynamic */ f();
+  local *= /*@ typeArgs=dynamic */ f();
+  local &= /*@ typeArgs=dynamic */ f();
   --local;
   local--;
-  var /*@type=B*/ v1 = local = /*@typeArgs=B*/ f();
-  var /*@type=B*/ v2 = local ??= /*@typeArgs=B*/ f();
-  var /*@type=B*/ v4 = local *= /*@typeArgs=dynamic*/ f();
-  var /*@type=C*/ v5 = local &= /*@typeArgs=dynamic*/ f();
-  var /*@type=B*/ v6 = --local;
-  var /*@type=B*/ v7 = local--;
+  var /*@ type=B* */ v1 = local = /*@ typeArgs=B* */ f();
+  var /*@ type=B* */ v2 = local ??= /*@ typeArgs=B* */ f();
+  var /*@ type=B* */ v4 = local *= /*@ typeArgs=dynamic */ f();
+  var /*@ type=C* */ v5 = local &= /*@ typeArgs=dynamic */ f();
+  var /*@ type=B* */ v6 = --local;
+  var /*@ type=B* */ v7 = local--;
 }
 
 main() {}

@@ -114,7 +114,7 @@ class UnionTypeMask implements TypeMask {
   static TypeMask flatten(List<FlatTypeMask> masks, JClosedWorld closedWorld) {
     // TODO(johnniwinther): Move this computation to [ClosedWorld] and use the
     // class set structures.
-    assert(masks.length > 1);
+    if (masks.isEmpty) throw ArgumentError.value(masks, 'masks');
     // If either type mask is a subtype type mask, we cannot use a
     // subclass type mask to represent their union.
     bool useSubclass = masks.every((e) => !e.isSubtype);

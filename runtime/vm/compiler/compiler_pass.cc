@@ -11,6 +11,7 @@
 #include "vm/compiler/backend/constant_propagator.h"
 #include "vm/compiler/backend/flow_graph_checker.h"
 #include "vm/compiler/backend/il_printer.h"
+#include "vm/compiler/backend/il_serializer.h"
 #include "vm/compiler/backend/inliner.h"
 #include "vm/compiler/backend/linearscan.h"
 #include "vm/compiler/backend/range_analysis.h"
@@ -19,6 +20,7 @@
 #include "vm/compiler/call_specializer.h"
 #if defined(DART_PRECOMPILER)
 #include "vm/compiler/aot/aot_call_specializer.h"
+#include "vm/compiler/aot/precompiler.h"
 #endif
 #include "vm/timeline.h"
 
@@ -217,6 +219,9 @@ void CompilerPass::RunInliningPipeline(PipelineMode mode,
   INVOKE_PASS(TypePropagation);
   INVOKE_PASS(ApplyICData);
   INVOKE_PASS(Canonicalize);
+  // Run constant propagation to make sure we specialize for
+  // (optional) constant arguments passed into the inlined method.
+  INVOKE_PASS(ConstantPropagation);
   // Optimize (a << b) & c patterns, merge instructions. Must occur
   // before 'SelectRepresentations' which inserts conversion nodes.
   INVOKE_PASS(TryOptimizePatterns);
@@ -284,6 +289,13 @@ void CompilerPass::RunPipeline(PipelineMode mode,
   INVOKE_PASS(AllocationSinking_DetachMaterializations);
   INVOKE_PASS(WriteBarrierElimination);
   INVOKE_PASS(FinalizeGraph);
+#if defined(DART_PRECOMPILER)
+  if (mode == kAOT) {
+    // If we are serializing the flow graph, do it now before we start
+    // doing register allocation.
+    INVOKE_PASS(SerializeGraph);
+  }
+#endif
   INVOKE_PASS(AllocateRegisters);
   INVOKE_PASS(ReorderBlocks);
 }
@@ -437,7 +449,7 @@ COMPILER_PASS(AllocateRegistersForGraphIntrinsic, {
 
 COMPILER_PASS(ReorderBlocks, {
   if (state->reorder_blocks) {
-    state->block_scheduler->ReorderBlocks();
+    BlockScheduler::ReorderBlocks(flow_graph);
   }
 });
 
@@ -475,12 +487,37 @@ COMPILER_PASS(WriteBarrierElimination,
               { WriteBarrierElimination(flow_graph); });
 
 COMPILER_PASS(FinalizeGraph, {
-  // Compute and store graph informations (call & instruction counts)
-  // to be later used by the inliner.
-  FlowGraphInliner::CollectGraphInfo(flow_graph, true);
+  // At the end of the pipeline, force recomputing and caching graph
+  // information (instruction and call site counts) for the (assumed)
+  // non-specialized case with better values, for future inlining.
+  intptr_t instruction_count = 0;
+  intptr_t call_site_count = 0;
+  FlowGraphInliner::CollectGraphInfo(flow_graph,
+                                     /*constants_count*/ 0,
+                                     /*force*/ true, &instruction_count,
+                                     &call_site_count);
   flow_graph->function().set_inlining_depth(state->inlining_depth);
+  // Remove redefinitions for the rest of the pipeline.
   flow_graph->RemoveRedefinitions();
 });
+
+#if defined(DART_PRECOMPILER)
+COMPILER_PASS(SerializeGraph, {
+  if (state->precompiler == nullptr) return state;
+  if (auto stream = state->precompiler->il_serialization_stream()) {
+    auto file_write = Dart::file_write_callback();
+    ASSERT(file_write != nullptr);
+
+    const intptr_t kInitialBufferSize = 1 * MB;
+    TextBuffer buffer(kInitialBufferSize);
+    StackZone stack_zone(Thread::Current());
+    FlowGraphSerializer::SerializeToBuffer(stack_zone.GetZone(), flow_graph,
+                                           &buffer);
+
+    file_write(buffer.buf(), buffer.length(), stream);
+  }
+});
+#endif
 
 }  // namespace dart
 

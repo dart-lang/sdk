@@ -60,7 +60,7 @@ const int KernelIsolate::kListDependenciesTag = 5;
 const int KernelIsolate::kNotifyIsolateShutdown = 6;
 
 const char* KernelIsolate::kName = DART_KERNEL_ISOLATE_NAME;
-Dart_IsolateCreateCallback KernelIsolate::create_callback_ = NULL;
+Dart_IsolateGroupCreateCallback KernelIsolate::create_group_callback_ = NULL;
 Monitor* KernelIsolate::monitor_ = new Monitor();
 KernelIsolate::State KernelIsolate::state_ = KernelIsolate::kStopped;
 Isolate* KernelIsolate::isolate_ = NULL;
@@ -76,9 +76,9 @@ class RunKernelTask : public ThreadPool::Task {
     char* error = NULL;
     Isolate* isolate = NULL;
 
-    Dart_IsolateCreateCallback create_callback =
-        KernelIsolate::create_callback();
-    ASSERT(create_callback != NULL);
+    Dart_IsolateGroupCreateCallback create_group_callback =
+        KernelIsolate::create_group_callback();
+    ASSERT(create_group_callback != NULL);
 
     // Note: these flags must match those passed to the VM during
     // the app-jit training run (see //utils/kernel-service/BUILD.gn).
@@ -94,8 +94,8 @@ class RunKernelTask : public ThreadPool::Task {
 #endif
 
     isolate = reinterpret_cast<Isolate*>(
-        create_callback(KernelIsolate::kName, KernelIsolate::kName, NULL, NULL,
-                        &api_flags, NULL, &error));
+        create_group_callback(KernelIsolate::kName, KernelIsolate::kName, NULL,
+                              NULL, &api_flags, NULL, &error));
     if (isolate == NULL) {
       if (FLAG_trace_kernel) {
         OS::PrintErr(DART_KERNEL_ISOLATE_NAME ": Isolate creation error: %s\n",
@@ -134,7 +134,6 @@ class RunKernelTask : public ThreadPool::Task {
       OS::PrintErr(DART_KERNEL_ISOLATE_NAME ": ShutdownIsolate\n");
     }
     Isolate* I = reinterpret_cast<Isolate*>(parameter);
-    I->WaitForOutstandingSpawns();
     {
       // Print the error if there is one.  This may execute dart code to
       // print the exception object, so we need to use a StartIsolateScope.
@@ -142,6 +141,7 @@ class RunKernelTask : public ThreadPool::Task {
       StartIsolateScope start_scope(I);
       Thread* T = Thread::Current();
       ASSERT(I == T->isolate());
+      I->WaitForOutstandingSpawns();
       StackZone zone(T);
       HandleScope handle_scope(T);
       Error& error = Error::Handle(Z);
@@ -227,12 +227,12 @@ void KernelIsolate::Run() {
   }
   // Grab the isolate create callback here to avoid race conditions with tests
   // that change this after Dart_Initialize returns.
-  create_callback_ = Isolate::CreateCallback();
-  if (create_callback_ == NULL) {
+  create_group_callback_ = Isolate::CreateGroupCallback();
+  if (create_group_callback_ == NULL) {
     KernelIsolate::InitializingFailed();
     return;
   }
-  bool task_started = Dart::thread_pool()->Run(new RunKernelTask());
+  bool task_started = Dart::thread_pool()->Run<RunKernelTask>();
   ASSERT(task_started);
 }
 
@@ -485,23 +485,6 @@ class KernelCompilationRequest : public ValueObject {
     isolate_id.value.as_int64 =
         isolate != NULL ? static_cast<int64_t>(isolate->main_port()) : 0;
 
-    Dart_CObject suppress_warnings;
-    suppress_warnings.type = Dart_CObject_kBool;
-    suppress_warnings.value.as_bool = FLAG_suppress_fe_warnings;
-
-    intptr_t num_experimental_flags = experimental_flags->length();
-    Dart_CObject** experimental_flags_array =
-        new Dart_CObject*[num_experimental_flags];
-    for (intptr_t i = 0; i < num_experimental_flags; ++i) {
-      experimental_flags_array[i] = new Dart_CObject;
-      experimental_flags_array[i]->type = Dart_CObject_kString;
-      experimental_flags_array[i]->value.as_string = (*experimental_flags)[i];
-    }
-    Dart_CObject experimental_flags_object;
-    experimental_flags_object.type = Dart_CObject_kArray;
-    experimental_flags_object.value.as_array.values = experimental_flags_array;
-    experimental_flags_object.value.as_array.length = num_experimental_flags;
-
     Dart_CObject message;
     message.type = Dart_CObject_kArray;
     Dart_CObject* message_arr[] = {&tag,
@@ -512,9 +495,7 @@ class KernelCompilationRequest : public ValueObject {
                                    &type_definitions_object,
                                    &library_uri_object,
                                    &class_object,
-                                   &is_static_object,
-                                   &suppress_warnings,
-                                   &experimental_flags_object};
+                                   &is_static_object};
     message.value.as_array.values = message_arr;
     message.value.as_array.length = ARRAY_SIZE(message_arr);
 
@@ -542,11 +523,6 @@ class KernelCompilationRequest : public ValueObject {
     }
     delete[] type_definitions_array;
 
-    for (intptr_t i = 0; i < num_experimental_flags; ++i) {
-      delete experimental_flags_array[i];
-    }
-    delete[] experimental_flags_array;
-
     return result_;
   }
 
@@ -563,8 +539,7 @@ class KernelCompilationRequest : public ValueObject {
       const char* multiroot_filepaths,
       const char* multiroot_scheme,
       const MallocGrowableArray<char*>* experimental_flags) {
-    // Build the [null, send_port, script_uri, platform_kernel,
-    // incremental_compile, isolate_id, [files]] message for the Kernel isolate.
+    // Build the message for the Kernel isolate.
     // tag is used to specify which operation the frontend should perform.
     Dart_CObject tag;
     tag.type = Dart_CObject_kInt32;
@@ -631,6 +606,11 @@ class KernelCompilationRequest : public ValueObject {
     Dart_CObject suppress_warnings;
     suppress_warnings.type = Dart_CObject_kBool;
     suppress_warnings.value.as_bool = FLAG_suppress_fe_warnings;
+
+    Dart_CObject enable_asserts;
+    enable_asserts.type = Dart_CObject_kBool;
+    enable_asserts.value.as_bool =
+        isolate != NULL ? isolate->asserts() : FLAG_enable_asserts;
 
     intptr_t num_experimental_flags = experimental_flags->length();
     Dart_CObject** experimental_flags_array =
@@ -700,6 +680,7 @@ class KernelCompilationRequest : public ValueObject {
                                    &isolate_id,
                                    &files,
                                    &suppress_warnings,
+                                   &enable_asserts,
                                    &experimental_flags_object,
                                    &bytecode,
                                    &package_config_uri,
@@ -911,6 +892,7 @@ Dart_KernelCompilationResult KernelIsolate::CompileExpressionToKernel(
 
   TransitionVMToNative transition(Thread::Current());
   KernelCompilationRequest request;
+  ASSERT(is_static || (klass != nullptr));
   return request.SendAndWaitForResponse(kernel_port, expression, definitions,
                                         type_definitions, library_url, klass,
                                         is_static, experimental_flags_);

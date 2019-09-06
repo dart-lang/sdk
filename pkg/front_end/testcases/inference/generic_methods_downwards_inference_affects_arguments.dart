@@ -7,10 +7,10 @@ library test;
 
 T f<T>(List<T> s) => null;
 test() {
-  String x = /*@typeArgs=String*/ f(/*@typeArgs=String*/ ['hi']);
+  String x = /*@ typeArgs=String* */ f(/*@ typeArgs=String* */ ['hi']);
   String y =
-      /*@typeArgs=String*/ f(
-          /*@typeArgs=String*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ 42]);
+      /*@ typeArgs=String* */ f(
+          /*@ typeArgs=String* */ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ 42]);
 }
 
 main() {}

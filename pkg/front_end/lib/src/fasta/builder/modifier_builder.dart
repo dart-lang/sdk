@@ -14,13 +14,15 @@ import '../modifier.dart'
         hasConstConstructorMask,
         hasInitializerMask,
         initializingFormalMask,
+        lateMask,
+        mixinDeclarationMask,
         namedMixinApplicationMask,
         staticMask;
 
-import 'builder.dart' show Declaration;
+import 'builder.dart' show Builder;
 
-abstract class ModifierBuilder extends Declaration {
-  Declaration parent;
+abstract class ModifierBuilder extends Builder {
+  Builder parent;
 
   final int charOffset;
 
@@ -43,6 +45,13 @@ abstract class ModifierBuilder extends Declaration {
 
   bool get isStatic => (modifiers & staticMask) != 0;
 
+  bool get isLate => (modifiers & lateMask) != 0;
+
+  // TODO(johnniwinther): Add this when semantics for
+  // `FormalParameterBuilder.isRequired` has been updated to support required
+  // named parameters.
+  //bool get isRequired => (modifiers & requiredMask) != 0;
+
   bool get isNamedMixinApplication {
     return (modifiers & namedMixinApplicationMask) != 0;
   }
@@ -53,7 +62,7 @@ abstract class ModifierBuilder extends Declaration {
 
   bool get hasConstConstructor => (modifiers & hasConstConstructorMask) != 0;
 
-  bool get isClassMember => false;
+  bool get isMixin => (modifiers & mixinDeclarationMask) != 0;
 
   String get name;
 

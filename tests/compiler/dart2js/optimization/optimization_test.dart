@@ -10,12 +10,12 @@ import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/js_backend/backend.dart';
 import 'package:compiler/src/js_model/element_map.dart';
+import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:compiler/src/js_model/js_world.dart';
 import 'package:compiler/src/ssa/logging.dart';
 import 'package:compiler/src/ssa/ssa.dart';
-import 'package:compiler/src/util/features.dart';
+import 'package:front_end/src/testing/features.dart';
 import 'package:kernel/ast.dart' as ir;
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
@@ -142,7 +142,7 @@ class OptimizationDataComputer extends DataComputer<OptimizationTestLog> {
     JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
     new OptimizationIrComputer(compiler.reporter, actualMap, elementMap, member,
-            compiler.backend, closedWorld.closureDataLookup)
+            compiler.backendStrategy, closedWorld.closureDataLookup)
         .run(definition.node);
   }
 
@@ -153,7 +153,7 @@ class OptimizationDataComputer extends DataComputer<OptimizationTestLog> {
 
 /// AST visitor for computing inference data for a member.
 class OptimizationIrComputer extends IrDataExtractor<OptimizationTestLog> {
-  final JavaScriptBackend backend;
+  final JsBackendStrategy _backendStrategy;
   final JsToElementMap _elementMap;
   final ClosureData _closureDataLookup;
 
@@ -162,12 +162,12 @@ class OptimizationIrComputer extends IrDataExtractor<OptimizationTestLog> {
       Map<Id, ActualData<OptimizationTestLog>> actualMap,
       this._elementMap,
       MemberEntity member,
-      this.backend,
+      this._backendStrategy,
       this._closureDataLookup)
       : super(reporter, actualMap);
 
   OptimizationTestLog getLog(MemberEntity member) {
-    SsaFunctionCompiler functionCompiler = backend.functionCompiler;
+    SsaFunctionCompiler functionCompiler = _backendStrategy.functionCompiler;
     return functionCompiler.optimizer.loggersForTesting[member];
   }
 

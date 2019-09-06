@@ -10,12 +10,12 @@ import "package:expect/expect.dart";
 
 import 'dylib_utils.dart';
 
-class EVP_MD extends Pointer<Void> {}
+class EVP_MD extends Struct<EVP_MD> {}
 
 DynamicLibrary ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 
-final EVP_sha1 = ffiTestFunctions
-    .lookupFunction<EVP_MD Function(), EVP_MD Function()>('LargePointer');
+final EVP_sha1 = ffiTestFunctions.lookupFunction<Pointer<EVP_MD> Function(),
+    Pointer<EVP_MD> Function()>('LargePointer');
 
 main() {
   int result = EVP_sha1().address;

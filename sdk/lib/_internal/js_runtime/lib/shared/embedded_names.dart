@@ -192,6 +192,11 @@ const IS_HUNK_INITIALIZED = 'isHunkInitialized';
 /// globals don't clash with it.
 const DEFERRED_INITIALIZED = 'deferredInitialized';
 
+/// A 'Universe' object used by 'dart:_rti'.
+///
+/// This embedded global is used for --experiment-new-rti.
+const RTI_UNIVERSE = 'typeUniverse';
+
 /// Returns a function that creates all precompiled functions (in particular
 /// constructors).
 ///
@@ -320,6 +325,24 @@ enum JsGetName {
 
   /// String representation of the type of the function class.
   FUNCTION_CLASS_TYPE_NAME,
+
+  /// String recipe for the [bool] type.
+  BOOL_RECIPE,
+
+  /// String recipe for the [double] type.
+  DOUBLE_RECIPE,
+
+  /// String recipe for the [int] type.
+  INT_RECIPE,
+
+  /// String recipe for the [num] type.
+  NUM_RECIPE,
+
+  /// String recipe for the [String] type.
+  STRING_RECIPE,
+
+  /// Property name for Rti._is field.
+  RTI_FIELD_IS,
 }
 
 enum JsBuiltin {
@@ -330,6 +353,15 @@ enum JsBuiltin {
   ///     if (JS('bool', '# instanceof #', obj, constructor))
   ///       ...
   dartObjectConstructor,
+
+  /// Returns the JavaScript constructor function for the runtime's Closure
+  /// class, the base class of all closure objects.  This can be used for type
+  /// tests, as in
+  ///
+  ///     var constructor = JS_BUILTIN('', JsBuiltin.dartClosureConstructor);
+  ///     if (JS('bool', '# instanceof #', obj, constructor))
+  ///       ...
+  dartClosureConstructor,
 
   /// Returns the JavaScript-constructor name given an [isCheckProperty].
   ///
@@ -410,4 +442,11 @@ enum JsBuiltin {
   ///     JS_BUILTIN('returns:var;effects:none;depends:none',
   ///                JsBuiltin.getType, index);
   getType,
+}
+
+/// Names of fields of the Rti Universe object.
+class RtiUniverseFieldNames {
+  static String evalCache = 'eC';
+  static String typeRules = 'tR';
+  static String sharedEmptyArray = 'sEA';
 }

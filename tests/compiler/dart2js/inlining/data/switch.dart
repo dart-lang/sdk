@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: main:[]*/
+/*member: main:[]*/
 main() {
   switchThrowing();
 }
 
-/*element: switchThrowing:[]*/
+/*member: switchThrowing:[]*/
 @pragma('dart2js:noInline')
 switchThrowing() {
   switch (0) {
@@ -19,7 +19,7 @@ switchThrowing() {
   }
 }
 
-/*element: _switchThrowing:[]*/
+/*member: _switchThrowing:[]*/
 _switchThrowing() {
   throw '';
 }

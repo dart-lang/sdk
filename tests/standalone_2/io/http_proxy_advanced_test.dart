@@ -35,8 +35,9 @@ class Server {
 
   Future<Server> start() {
     return (secure
-        ? HttpServer.bindSecure("localhost", 0, serverContext)
-        : HttpServer.bind("localhost", 0)).then((s) {
+            ? HttpServer.bindSecure("localhost", 0, serverContext)
+            : HttpServer.bind("localhost", 0))
+        .then((s) {
       server = s;
       server.listen(requestHandler);
       return this;
@@ -233,8 +234,8 @@ class ProxyServer {
           Socket.connect(tmp[0], int.parse(tmp[1])).then((socket) {
             request.response.reasonPhrase = "Connection established";
             request.response.detachSocket().then((detached) {
-              socket.pipe(detached);
-              detached.pipe(socket);
+              socket.cast<List<int>>().pipe(detached);
+              detached.cast<List<int>>().pipe(socket);
             });
           });
         } else {
@@ -256,9 +257,11 @@ class ProxyServer {
             clientRequest.headers
                 .add(HttpHeaders.viaHeader, "${viaPrefix}1.1 localhost:$port");
             // Copy all content.
-            return request.pipe(clientRequest);
+            return request.cast<List<int>>().pipe(clientRequest);
           }).then((clientResponse) {
-            (clientResponse as HttpClientResponse).pipe(request.response);
+            (clientResponse as HttpClientResponse)
+                .cast<List<int>>()
+                .pipe(request.response);
           });
         }
       });

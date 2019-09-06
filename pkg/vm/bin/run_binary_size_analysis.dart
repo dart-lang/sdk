@@ -39,6 +39,7 @@ $ google-chrome <output-directory>/index.html
   // a tree.
   final symbols = await input
       .openRead()
+      .cast<List<int>>()
       .transform(utf8.decoder)
       .transform(json.decoder)
       .first;

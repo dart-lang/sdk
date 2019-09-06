@@ -11,7 +11,7 @@ class CardComponent {
 }
 
 class ViewCardComponent extends AppView<CardComponent> {
-  /*element: ViewCardComponent.method1:
+  /*member: ViewCardComponent.method1:
    FieldGet=[name=AppView.ctx],
    FieldSet=[name=CardComponent.title]
   */
@@ -20,7 +20,7 @@ class ViewCardComponent extends AppView<CardComponent> {
     ctx.title = value;
   }
 
-  /*element: ViewCardComponent.method2:
+  /*member: ViewCardComponent.method2:
    FieldGet=[name=AppView.ctx,name=CardComponent.title]
   */
   @pragma('dart2js:noInline')
@@ -34,7 +34,7 @@ class CardComponent2 {
 }
 
 class ViewCardComponent2 extends AppView<CardComponent2> {
-  /*element: ViewCardComponent2.method1:
+  /*member: ViewCardComponent2.method1:
    FieldGet=[name=AppView.ctx],
    FieldSet=[name=CardComponent2.title]
   */
@@ -43,7 +43,7 @@ class ViewCardComponent2 extends AppView<CardComponent2> {
     ctx.title = value;
   }
 
-  /*element: ViewCardComponent2.method2:
+  /*member: ViewCardComponent2.method2:
    FieldGet=[name=AppView.ctx,name=CardComponent2.title]
   */
   @pragma('dart2js:noInline')
@@ -52,8 +52,8 @@ class ViewCardComponent2 extends AppView<CardComponent2> {
   }
 }
 
-/*strong.element: main:*/
-/*omit.element: main:FieldSet=[name=AppView.ctx,name=AppView.ctx]*/
+/*strong.member: main:*/
+/*omit.member: main:FieldSet=[name=AppView.ctx,name=AppView.ctx]*/
 main() {
   var c1 = new ViewCardComponent();
   c1.ctx = new CardComponent();

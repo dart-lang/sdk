@@ -37,13 +37,11 @@ final Function(Object) getPrototypeOf = JS('', 'Object.getPrototypeOf');
 /// This error indicates a strong mode specific failure, other than a type
 /// assertion failure (TypeError) or CastError.
 void throwTypeError(String message) {
-  if (JS('!', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
   throw TypeErrorImpl(message);
 }
 
 /// This error indicates a bug in the runtime or the compiler.
 void throwInternalError(String message) {
-  if (JS('!', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
   JS('', 'throw Error(#)', message);
 }
 

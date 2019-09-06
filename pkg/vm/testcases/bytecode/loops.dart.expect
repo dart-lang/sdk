@@ -1,20 +1,18 @@
 main = #lib::main;
  [@vm.bytecode=
-ComponentBytecodeMetadata {
-
+BytecodeMetadata {
 Bytecode (version: stable)
 Main library: #lib
+Library '#lib'
+    name '#lib'
+    script '#lib'
 
-}
-] [@vm.bytecode=
-MembersBytecodeMetadata {
+Class '', script = '#lib'
 
-Members {
 
 Function 'test_for', static, reflectable, debuggable
     parameters [dart:core::List < dart:core::int > 'list'] (required: 1)
     return-type dart:core::int
-
 
 Bytecode {
   Entry                2
@@ -57,7 +55,6 @@ ConstantPool {
 Function 'test_for_break', static, reflectable, debuggable
     parameters [dart:core::List < dart:core::int > 'list'] (required: 1)
     return-type dart:core::int
-
 
 Bytecode {
   Entry                2
@@ -106,7 +103,6 @@ ConstantPool {
 Function 'test_for_continue', static, reflectable, debuggable
     parameters [dart:core::List < dart:core::int > 'list'] (required: 1)
     return-type dart:core::int
-
 
 Bytecode {
   Entry                2
@@ -158,7 +154,6 @@ Function 'test_while', static, reflectable, debuggable
     parameters [dart:core::List < dart:core::int > 'list'] (required: 1)
     return-type dart:core::int
 
-
 Bytecode {
   Entry                4
   CheckStack           0
@@ -203,7 +198,6 @@ Function 'test_do_while', static, reflectable, debuggable
     parameters [dart:core::List < dart:core::int > 'list'] (required: 1)
     return-type dart:core::int
 
-
 Bytecode {
   Entry                2
   CheckStack           0
@@ -243,7 +237,6 @@ Function 'test_for_in', static, reflectable, debuggable
     parameters [dart:core::List < dart:core::int > 'list'] (required: 1)
     return-type dart:core::int
 
-
 Bytecode {
   Entry                3
   CheckStack           0
@@ -282,7 +275,6 @@ ConstantPool {
 Function 'test_for_in_with_outer_var', static, reflectable, debuggable
     parameters [dart:core::List < dart:core::int > 'list'] (required: 1)
     return-type dart:core::int
-
 
 Bytecode {
   Entry                4
@@ -327,7 +319,6 @@ Function 'main', static, reflectable, debuggable
     parameters [] (required: 0)
     return-type dynamic
 
-
 Bytecode {
   Entry                0
   CheckStack           0
@@ -337,22 +328,21 @@ Bytecode {
 ConstantPool {
 }
 
-}
 
 }
 ]library #lib from "#lib" as #lib {
 
-  static method test_for(dart.core::List<dart.core::int> list) → dart.core::int {
-    dart.core::int sum = 0;
-    for (dart.core::int i = 0; i.{dart.core::num::<}(list.{dart.core::List::length}); i = i.{dart.core::num::+}(1)) {
+  static method test_for(dart.core::List<dart.core::int*>* list) → dart.core::int* {
+    dart.core::int* sum = 0;
+    for (dart.core::int* i = 0; i.{dart.core::num::<}(list.{dart.core::List::length}); i = i.{dart.core::num::+}(1)) {
       sum = sum.{dart.core::num::+}(list.{dart.core::List::[]}(i));
     }
     return sum;
   }
-  static method test_for_break(dart.core::List<dart.core::int> list) → dart.core::int {
-    dart.core::int sum = 0;
+  static method test_for_break(dart.core::List<dart.core::int*>* list) → dart.core::int* {
+    dart.core::int* sum = 0;
     #L1:
-    for (dart.core::int i = 0; i.{dart.core::num::>=}(0); i = i.{dart.core::num::+}(1)) {
+    for (dart.core::int* i = 0; i.{dart.core::num::>=}(0); i = i.{dart.core::num::+}(1)) {
       if(i.{dart.core::num::>=}(list.{dart.core::List::length})) {
         break #L1;
       }
@@ -360,9 +350,9 @@ ConstantPool {
     }
     return sum;
   }
-  static method test_for_continue(dart.core::List<dart.core::int> list) → dart.core::int {
-    dart.core::int sum = 0;
-    for (dart.core::int i = 100.{dart.core::int::unary-}(); i.{dart.core::num::<}(list.{dart.core::List::length}); i = i.{dart.core::num::+}(1))
+  static method test_for_continue(dart.core::List<dart.core::int*>* list) → dart.core::int* {
+    dart.core::int* sum = 0;
+    for (dart.core::int* i = 100.{dart.core::int::unary-}(); i.{dart.core::num::<}(list.{dart.core::List::length}); i = i.{dart.core::num::+}(1))
       #L2:
       {
         if(i.{dart.core::num::<}(0)) {
@@ -372,17 +362,17 @@ ConstantPool {
       }
     return sum;
   }
-  static method test_while(dart.core::List<dart.core::int> list) → dart.core::int {
-    dart.core::int sum = 0;
-    dart.core::int i = 0;
+  static method test_while(dart.core::List<dart.core::int*>* list) → dart.core::int* {
+    dart.core::int* sum = 0;
+    dart.core::int* i = 0;
     while (i.{dart.core::num::<}(list.{dart.core::List::length})) {
-      sum = sum.{dart.core::num::+}(list.{dart.core::List::[]}(let final dart.core::int #t1 = i in let final dart.core::int #t2 = i = #t1.{dart.core::num::+}(1) in #t1));
+      sum = sum.{dart.core::num::+}(list.{dart.core::List::[]}(let final dart.core::int* #t1 = i in let final dart.core::int* #t2 = i = #t1.{dart.core::num::+}(1) in #t1));
     }
     return sum;
   }
-  static method test_do_while(dart.core::List<dart.core::int> list) → dart.core::int {
-    dart.core::int sum = 0;
-    dart.core::int i = 0;
+  static method test_do_while(dart.core::List<dart.core::int*>* list) → dart.core::int* {
+    dart.core::int* sum = 0;
+    dart.core::int* i = 0;
     do {
       sum = sum.{dart.core::num::+}(list.{dart.core::List::[]}(i));
       i = i.{dart.core::num::+}(1);
@@ -390,17 +380,17 @@ ConstantPool {
     while (i.{dart.core::num::<}(list.{dart.core::List::length}))
     return sum;
   }
-  static method test_for_in(dart.core::List<dart.core::int> list) → dart.core::int {
-    dart.core::int sum = 0;
-    for (dart.core::int e in list) {
+  static method test_for_in(dart.core::List<dart.core::int*>* list) → dart.core::int* {
+    dart.core::int* sum = 0;
+    for (dart.core::int* e in list) {
       sum = sum.{dart.core::num::+}(e);
     }
     return sum;
   }
-  static method test_for_in_with_outer_var(dart.core::List<dart.core::int> list) → dart.core::int {
-    dart.core::int sum = 0;
-    dart.core::int e = 42;
-    for (final dart.core::int #t3 in list) {
+  static method test_for_in_with_outer_var(dart.core::List<dart.core::int*>* list) → dart.core::int* {
+    dart.core::int* sum = 0;
+    dart.core::int* e = 42;
+    for (final dart.core::int* #t3 in list) {
       e = #t3;
       sum = sum.{dart.core::num::+}(e);
     }

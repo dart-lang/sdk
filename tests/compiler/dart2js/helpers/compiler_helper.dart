@@ -6,12 +6,12 @@ library compiler_helper;
 
 import 'dart:async';
 import 'package:compiler/compiler_new.dart';
-import 'package:compiler/src/common_elements.dart';
-import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/js_backend/js_backend.dart' as js;
 import 'package:compiler/src/commandline_options.dart';
-import 'package:compiler/src/world.dart';
+import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart' show Compiler;
+import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/js_model/js_strategy.dart';
+import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
 import 'package:front_end/src/fasta/util/link.dart' show Link;
 import 'memory_compiler.dart';
@@ -37,6 +37,7 @@ Future<String> compile(String code,
     bool trustJSInteropTypeAnnotations: false,
     bool disableTypeInference: true,
     bool omitImplicitChecks: true,
+    bool newRti: false,
     void check(String generatedEntry),
     bool returnAll: false}) async {
   OutputCollector outputCollector = returnAll ? new OutputCollector() : null;
@@ -58,6 +59,9 @@ Future<String> compile(String code,
   }
   if (disableInlining) {
     options.add(Flags.disableInlining);
+  }
+  if (newRti) {
+    options.add(Flags.experimentNewRti);
   }
 
   // Pretend this is a dart2js_native test to allow use of 'native' keyword
@@ -85,8 +89,8 @@ Future<String> compile(String code,
   LibraryEntity mainLibrary = elementEnvironment.mainLibrary;
   FunctionEntity element =
       elementEnvironment.lookupLibraryMember(mainLibrary, methodName);
-  js.JavaScriptBackend backend = compiler.backend;
-  String generated = backend.getGeneratedCode(element);
+  JsBackendStrategy backendStrategy = compiler.backendStrategy;
+  String generated = backendStrategy.getGeneratedCodeForTesting(element);
   if (check != null) {
     check(generated);
   }

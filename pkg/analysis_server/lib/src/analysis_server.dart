@@ -43,6 +43,7 @@ import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/features.dart';
+import 'package:analysis_server/src/services/flutter/widget_descriptions.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
@@ -120,6 +121,9 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// notifications should be sent.
   Map<FlutterService, Set<String>> flutterServices = {};
 
+  /// The support for Flutter properties.
+  WidgetDescriptions flutterWidgetDescriptions = WidgetDescriptions();
+
   /// The [Completer] that completes when analysis is complete.
   Completer _onAnalysisCompleteCompleter;
 
@@ -167,9 +171,9 @@ class AnalysisServer extends AbstractAnalysisServer {
     this.sdkManager,
     this.instrumentationService, {
     DiagnosticServer diagnosticServer,
-    ResolverProvider fileResolverProvider: null,
-    ResolverProvider packageResolverProvider: null,
-    this.detachableFileSystemManager: null,
+    ResolverProvider fileResolverProvider = null,
+    ResolverProvider packageResolverProvider = null,
+    this.detachableFileSystemManager = null,
   }) : super(options, diagnosticServer, baseResourceProvider) {
     notificationManager = new NotificationManager(channel, resourceProvider);
 
@@ -403,7 +407,7 @@ class AnalysisServer extends AbstractAnalysisServer {
     String message,
     dynamic exception,
     /*StackTrace*/ stackTrace, {
-    bool fatal: false,
+    bool fatal = false,
   }) {
     StringBuffer buffer = new StringBuffer();
     buffer.write(exception ?? 'null exception');
@@ -740,6 +744,12 @@ class AnalysisServerOptions {
   /// Whether to use the Language Server Protocol.
   bool useLanguageServerProtocol = false;
 
+  /// Whether or not to enable ML code completion.
+  bool enableCompletionModel = false;
+
+  /// Base path to locate trained completion language model files.
+  String completionModelFolder;
+
   /// Whether to enable parsing via the Fasta parser.
   bool useFastaParser = true;
 
@@ -770,13 +780,8 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
       String path = result.path;
       if (analysisServer.shouldSendErrorsNotificationFor(path)) {
         if (notificationManager != null) {
-          notificationManager.recordAnalysisErrors(
-              NotificationManager.serverId,
-              path,
-              server.doAnalysisError_listFromEngine(
-                  result.session.analysisContext.analysisOptions,
-                  result.lineInfo,
-                  result.errors));
+          notificationManager.recordAnalysisErrors(NotificationManager.serverId,
+              path, server.doAnalysisError_listFromEngine(result));
         } else {
           new_sendErrorNotification(analysisServer, result);
         }

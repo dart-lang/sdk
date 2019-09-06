@@ -310,6 +310,24 @@ class Address : public ValueObject {
            (mode() == NegPreIndex) || (mode() == NegPostIndex);
   }
 
+  static bool has_writeback(BlockAddressMode am) {
+    switch (am) {
+      case DA:
+      case IA:
+      case DB:
+      case IB:
+        return false;
+      case DA_W:
+      case IA_W:
+      case DB_W:
+      case IB_W:
+        return true;
+      default:
+        UNREACHABLE();
+        return false;
+    }
+  }
+
   uint32_t encoding() const { return encoding_; }
 
   // Encoding for addressing mode 3.
@@ -1058,7 +1076,9 @@ class Assembler : public AssemblerBase {
   void EnterStubFrame();
   void LeaveStubFrame();
 
-  void MonomorphicCheckedEntry();
+  void MonomorphicCheckedEntryJIT();
+  void MonomorphicCheckedEntryAOT();
+  void BranchOnMonomorphicCheckedEntryJIT(Label* label);
 
   // The register into which the allocation stats table is loaded with
   // LoadAllocationStatsAddress should be passed to MaybeTraceAllocation and
@@ -1324,13 +1344,6 @@ class Assembler : public AssemblerBase {
 };
 
 }  // namespace compiler
-
-// TODO(vegorov) temporary export commonly used classes into dart namespace
-// to ease migration.
-using compiler::Address;
-using compiler::FieldAddress;
-using compiler::Operand;
-
 }  // namespace dart
 
 #endif  // RUNTIME_VM_COMPILER_ASSEMBLER_ASSEMBLER_ARM_H_

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class C {
-  /*element: C.noSuchMethod:*/
+  /*member: C.noSuchMethod:*/
   noSuchMethod(i) => null;
 }
 

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:nnbd_migration/src/edge_origin.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:nnbd_migration/src/potential_modification.dart';
 
@@ -10,38 +11,51 @@ import 'package:nnbd_migration/src/potential_modification.dart';
 /// set of runtime checks that might need to be performed on the value of an
 /// expression.
 ///
-/// TODO(paulberry): the only check we support now is [nullCheck], which checks
-/// that the expression is not null.  We need to add other checks, e.g. to check
-/// that a List<int?> is actually a List<int>.
-class ExpressionChecks extends PotentialModification {
+/// TODO(paulberry): we don't currently have any way of distinguishing checks
+/// based on the nullability of the type itself (which can be checked by adding
+/// a trailing `!`) from checks based on type parameters (which will have to be
+/// checked using an `as` expression).
+class ExpressionChecks extends PotentialModification implements EdgeOrigin {
   /// Source offset where a trailing `!` might need to be inserted.
   final int offset;
 
-  /// Nullability node indicating whether the expression's value is nullable.
-  final NullabilityNode valueNode;
+  /// List of all nullability edges that are related to this potential check.
+  ///
+  /// TODO(paulberry): update this data structure to keep track of all the ways
+  /// in which edges can be related to an [ExpressionChecks], including:
+  ///
+  /// - An edge which, if unsatisfied, indicates that the expression needs to be
+  ///   null-checked.
+  /// - An edge which, if unsatisfied, indicates that a type parameter of the
+  ///   expression needs to be checked for nullability (e.g. by the migration
+  ///   engine inserting a test like `as List<int>?`)
+  /// - An edge which, if unsatisfied, indicates that a return type of the
+  ///   expression needs to be checked for nullability (e.g. by the migration
+  ///   engine inserting a test like `as int Function(...)?`)
+  /// - An edge which, if unsatisfied, indicates that a parameter type of the
+  ///   expression needs to be checked for nullability (e.g. by the migration
+  ///   engine inserting a test like `as void Function(int?)?`)
+  ///
+  /// ...and so on.
+  final List<NullabilityEdge> edges = [];
 
-  /// Nullability node indicating whether the expression's context requires a
-  /// nullable value.
-  final NullabilityNode contextNode;
-
-  /// Nullability nodes guarding execution of the expression.  If any of the
-  /// nodes in this list turns out to be non-nullable, the expression is dead
-  /// code and will be removed by the migration tool.
-  final List<NullabilityNode> guards;
-
-  ExpressionChecks(this.offset, this.valueNode, this.contextNode,
-      Iterable<NullabilityNode> guards)
-      : guards = guards.toList();
+  ExpressionChecks(this.offset);
 
   @override
   bool get isEmpty {
-    for (var guard in guards) {
-      if (!guard.isNullable) return true;
+    for (var edge in edges) {
+      if (!edge.isSatisfied) return false;
     }
-    return !valueNode.isNullable || contextNode.isNullable;
+    return true;
   }
 
   @override
-  Iterable<SourceEdit> get modifications =>
-      isEmpty ? [] : [SourceEdit(offset, 0, '!')];
+  Iterable<SourceEdit> get modifications {
+    // TODO(paulberry): this assumes that the check that needs to be done is for
+    // the nullability of the type itself (in which case all we need is a simple
+    // null check).  Need to support checks that will have to be addressed by
+    // adding an `as` expression, e.g. `as List<int>?` to verify that a list is
+    // reified to contain only non-null ints.
+    return isEmpty ? [] : [SourceEdit(offset, 0, '!')];
+  }
 }

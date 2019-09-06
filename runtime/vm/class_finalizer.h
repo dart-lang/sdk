@@ -57,6 +57,9 @@ class ClassFinalizer : public AllStatic {
   // is an anonymous top level class).
   static void FinalizeTypesInClass(const Class& cls);
 
+  // Register class in the lists of direct subclasses and direct implementors.
+  static void RegisterClassInHierarchy(Zone* zone, const Class& cls);
+
   // Finalize the class including its fields and functions.
   static void FinalizeClass(const Class& cls);
 

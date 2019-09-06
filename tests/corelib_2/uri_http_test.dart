@@ -33,6 +33,11 @@ testHttpUri() {
       new Uri.http("host", "/a/b", {"c=": "&d"}), "http://host/a/b?c%3D=%26d");
   check(new Uri.http("[::]", "a"), "http://[::]/a");
   check(new Uri.http("[::127.0.0.1]", "a"), "http://[::127.0.0.1]/a");
+  check(new Uri.http('[fe80::8eae:4c4d:fee9:8434%rename3]', ''),
+      'http://[fe80::8eae:4c4d:fee9:8434%25rename3]');
+  check(new Uri.http('[ff02::1%1%41]', ''), 'http://[ff02::1%251a]');
+  check(new Uri.http('[ff02::1%321]', ''), 'http://[ff02::1%25321]');
+  check(new Uri.http('[ff02::1%%321]', ''), 'http://[ff02::1%2521]');
 }
 
 testHttpsUri() {

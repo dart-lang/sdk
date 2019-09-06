@@ -256,8 +256,8 @@ TEST_CASE(TimelineEventBufferPrintJSON) {
   JSONStream js;
   TimelineEventFilter filter;
   recorder->PrintJSON(&js, &filter);
-  // Check the type. This test will fail if we ever make Timeline public.
-  EXPECT_SUBSTRING("\"type\":\"_Timeline\"", js.ToCString());
+  // Check the type.
+  EXPECT_SUBSTRING("\"type\":\"Timeline\"", js.ToCString());
   // Check that there is a traceEvents array.
   EXPECT_SUBSTRING("\"traceEvents\":[", js.ToCString());
 }

@@ -208,6 +208,9 @@ mixin GetElementTestCases implements ResynthesizeTestHelpers {
 mixin ResynthesizeTestCases implements ResynthesizeTestHelpers {
   FeatureSet get disableNnbd => FeatureSet.forTesting(sdkVersion: '2.2.2');
 
+  FeatureSet get enableExtensionMethods =>
+      FeatureSet.forTesting(additionalFeatures: [Feature.extension_methods]);
+
   FeatureSet get enableNnbd =>
       FeatureSet.forTesting(additionalFeatures: [Feature.non_nullable]);
 
@@ -1104,6 +1107,19 @@ class C {
 ''');
   }
 
+  test_class_getter_native() async {
+    var library = await checkLibrary('''
+class C {
+  int get x() native;
+}
+''');
+    checkElementText(library, r'''
+class C {
+  external int get x;
+}
+''');
+  }
+
   test_class_getter_static() async {
     var library = await checkLibrary('class C { static int get x => null; }');
     checkElementText(library, r'''
@@ -1214,6 +1230,19 @@ class A {
 }
 class B extends A {
   void A() {}
+}
+''');
+  }
+
+  test_class_method_native() async {
+    var library = await checkLibrary('''
+class C {
+  int m() native;
+}
+''');
+    checkElementText(library, r'''
+class C {
+  external int m() {}
 }
 ''');
   }
@@ -1618,6 +1647,19 @@ class C {
 ''');
   }
 
+  test_class_setter_native() async {
+    var library = await checkLibrary('''
+class C {
+  void set x(int value) native;
+}
+''');
+    checkElementText(library, r'''
+class C {
+  external void set x(int value);
+}
+''');
+  }
+
   test_class_setter_static() async {
     var library =
         await checkLibrary('class C { static void set x(int value) {} }');
@@ -2012,6 +2054,68 @@ class C/*codeOffset=0, codeLength=462*/ {
   /// Comment 2.
   @Object()
   factory C.commentAroundAnnotation/*codeOffset=387, codeLength=73*/();
+}
+''',
+        withCodeRanges: true,
+        withConstElements: false);
+  }
+
+  test_codeRange_extensions() async {
+    featureSet = enableExtensionMethods;
+    var library = await checkLibrary('''
+class A {}
+
+extension Raw on A {}
+
+/// Comment 1.
+/// Comment 2.
+extension HasDocComment on A {}
+
+@Object()
+extension HasAnnotation on A {}
+
+@Object()
+/// Comment 1.
+/// Comment 2.
+extension AnnotationThenComment on A {}
+
+/// Comment 1.
+/// Comment 2.
+@Object()
+extension CommentThenAnnotation on A {}
+
+/// Comment 1.
+@Object()
+/// Comment 2.
+extension CommentAroundAnnotation on A {}
+''');
+    checkElementText(
+        library,
+        r'''
+class A/*codeOffset=0, codeLength=10*/ {
+}
+extension Raw/*codeOffset=12, codeLength=21*/ on A {
+}
+/// Comment 1.
+/// Comment 2.
+extension HasDocComment/*codeOffset=35, codeLength=61*/ on A {
+}
+@Object()
+extension HasAnnotation/*codeOffset=98, codeLength=41*/ on A {
+}
+/// Comment 1.
+/// Comment 2.
+@Object()
+extension AnnotationThenComment/*codeOffset=141, codeLength=79*/ on A {
+}
+/// Comment 1.
+/// Comment 2.
+@Object()
+extension CommentThenAnnotation/*codeOffset=222, codeLength=79*/ on A {
+}
+/// Comment 2.
+@Object()
+extension CommentAroundAnnotation/*codeOffset=318, codeLength=66*/ on A {
 }
 ''',
         withCodeRanges: true,
@@ -3605,6 +3709,27 @@ const int Function(int, String) V =
 ''');
   }
 
+  test_const_reference_staticMethod_ofExtension() async {
+    featureSet = enableExtensionMethods;
+    var library = await checkLibrary('''
+class A {}
+extension E on A {
+  static void f() {}
+}
+const x = E.f;
+''');
+    checkElementText(library, r'''
+class A {
+}
+extension E on A {
+  static void f() {}
+}
+const void Function() x =
+        E/*location: test.dart;E*/.
+        f/*location: test.dart;E;f*/;
+''');
+  }
+
   test_const_reference_topLevelFunction() async {
     var library = await checkLibrary(r'''
 foo() {}
@@ -5121,6 +5246,26 @@ void defaultF<T>(T v) {}
 ''');
   }
 
+  test_defaultValue_refersToExtension_method_inside() async {
+    featureSet = enableExtensionMethods;
+    var library = await checkLibrary('''
+class A {}
+extension E on A {
+  static void f() {}
+  static void g([Object p = f]) {}
+}
+''');
+    checkElementText(library, r'''
+class A {
+}
+extension E on A {
+  static void f() {}
+  static void g([Object p =
+        f/*location: test.dart;E;f*/]) {}
+}
+''');
+  }
+
   test_defaultValue_refersToGenericClass() async {
     var library = await checkLibrary('''
 class B<T1, T2> {
@@ -5353,6 +5498,165 @@ class C<T> {
     }
   }
 
+  test_duplicateDeclaration_class() async {
+    var library = await checkLibrary(r'''
+class A {}
+class A {
+  var x;
+}
+class A {
+  var y = 0;
+}
+''');
+    checkElementText(library, r'''
+class A {
+}
+class A {
+  dynamic x;
+}
+class A {
+  int y;
+}
+''');
+  }
+
+  test_duplicateDeclaration_classTypeAlias() async {
+    var library = await checkLibrary(r'''
+class A {}
+class B {}
+class X = A with M;
+class X = B with M;
+mixin M {}
+''');
+    checkElementText(library, r'''
+class A {
+}
+class B {
+}
+class alias X extends A with M {
+  synthetic X() = A;
+}
+class alias X extends B with M {
+  synthetic X() = B;
+}
+mixin M on Object {
+}
+''');
+  }
+
+  test_duplicateDeclaration_enum() async {
+    var library = await checkLibrary(r'''
+enum E {a, b}
+enum E {c, d, e}
+''');
+    checkElementText(library, r'''
+enum E {
+  synthetic final int index;
+  synthetic static const List<E> values;
+  static const E a;
+  static const E b;
+  String toString() {}
+}
+enum E {
+  synthetic final int index;
+  synthetic static const List<E> values;
+  static const E c;
+  static const E d;
+  static const E e;
+  String toString() {}
+}
+''');
+  }
+
+  test_duplicateDeclaration_extension() async {
+    featureSet = enableExtensionMethods;
+    var library = await checkLibrary(r'''
+class A {}
+extension E on A {}
+extension E on A {
+  static var x;
+}
+extension E on A {
+  static var y = 0;
+}
+''');
+    checkElementText(library, r'''
+class A {
+}
+extension E on A {
+}
+extension E on A {
+  static dynamic x;
+}
+extension E on A {
+  static int y;
+}
+''');
+  }
+
+  test_duplicateDeclaration_function() async {
+    var library = await checkLibrary(r'''
+void f() {}
+void f(int a) {}
+void f([int b, double c]) {}
+''');
+    checkElementText(library, r'''
+void f() {}
+void f(int a) {}
+void f([int b], [double c]) {}
+''');
+  }
+
+  test_duplicateDeclaration_functionTypeAlias() async {
+    var library = await checkLibrary(r'''
+typedef void F();
+typedef void F(int a);
+typedef void F([int b, double c]);
+''');
+    checkElementText(library, r'''
+typedef F = void Function();
+typedef F = void Function(int a);
+typedef F = void Function([int b], [double c]);
+''');
+  }
+
+  test_duplicateDeclaration_mixin() async {
+    var library = await checkLibrary(r'''
+mixin A {}
+mixin A {
+  var x;
+}
+mixin A {
+  var y = 0;
+}
+''');
+    checkElementText(library, r'''
+mixin A on Object {
+}
+mixin A on Object {
+  dynamic x;
+}
+mixin A on Object {
+  int y;
+}
+''');
+  }
+
+  test_duplicateDeclaration_topLevelVariable() async {
+    var library = await checkLibrary(r'''
+bool x;
+var x;
+var x = 1;
+var x = 2.3;
+''');
+    checkElementText(library, r'''
+bool x;
+dynamic x;
+int x;
+double x;
+''');
+  }
+
   test_enum_documented() async {
     var library = await checkLibrary('''
 // Extra comment so doc comment offset != 0
@@ -5522,8 +5826,9 @@ Exports:
   }
 
   test_export_configurations_useDefault() async {
-    declaredVariables =
-        new DeclaredVariables.fromMap({'dart.library.io': 'false'});
+    declaredVariables = new DeclaredVariables.fromMap({
+      'dart.library.io': 'false',
+    });
     addLibrarySource('/foo.dart', 'class A {}');
     addLibrarySource('/foo_io.dart', 'class A {}');
     addLibrarySource('/foo_html.dart', 'class A {}');
@@ -5546,8 +5851,10 @@ Exports:
   }
 
   test_export_configurations_useFirst() async {
-    declaredVariables = new DeclaredVariables.fromMap(
-        {'dart.library.io': 'true', 'dart.library.html': 'true'});
+    declaredVariables = new DeclaredVariables.fromMap({
+      'dart.library.io': 'true',
+      'dart.library.html': 'true',
+    });
     addLibrarySource('/foo.dart', 'class A {}');
     addLibrarySource('/foo_io.dart', 'class A {}');
     addLibrarySource('/foo_html.dart', 'class A {}');
@@ -5570,8 +5877,10 @@ Exports:
   }
 
   test_export_configurations_useSecond() async {
-    declaredVariables = new DeclaredVariables.fromMap(
-        {'dart.library.io': 'false', 'dart.library.html': 'true'});
+    declaredVariables = new DeclaredVariables.fromMap({
+      'dart.library.io': 'false',
+      'dart.library.html': 'true',
+    });
     addLibrarySource('/foo.dart', 'class A {}');
     addLibrarySource('/foo_io.dart', 'class A {}');
     addLibrarySource('/foo_html.dart', 'class A {}');
@@ -5720,6 +6029,14 @@ Exports:
         withExportScope: true);
   }
 
+  test_export_uri() async {
+    allowMissingFiles = true;
+    var library = await checkLibrary('''
+export 'foo.dart';
+''');
+    expect(library.exports[0].uri, 'foo.dart');
+  }
+
   test_export_variable() async {
     addLibrarySource('/a.dart', 'var x;');
     var library = await checkLibrary('export "a.dart";');
@@ -5767,8 +6084,9 @@ Exports:
   }
 
   test_exportImport_configurations_useDefault() async {
-    declaredVariables =
-        new DeclaredVariables.fromMap({'dart.library.io': 'false'});
+    declaredVariables = new DeclaredVariables.fromMap({
+      'dart.library.io': 'false',
+    });
     addLibrarySource('/foo.dart', 'class A {}');
     addLibrarySource('/foo_io.dart', 'class A {}');
     addLibrarySource('/foo_html.dart', 'class A {}');
@@ -5791,8 +6109,10 @@ class B extends A {
   }
 
   test_exportImport_configurations_useFirst() async {
-    declaredVariables = new DeclaredVariables.fromMap(
-        {'dart.library.io': 'true', 'dart.library.html': 'true'});
+    declaredVariables = new DeclaredVariables.fromMap({
+      'dart.library.io': 'true',
+      'dart.library.html': 'false',
+    });
     addLibrarySource('/foo.dart', 'class A {}');
     addLibrarySource('/foo_io.dart', 'class A {}');
     addLibrarySource('/foo_html.dart', 'class A {}');
@@ -5812,6 +6132,32 @@ class B extends A {
 ''');
     var typeA = library.definingCompilationUnit.getType('B').supertype;
     expect(typeA.element.source.shortName, 'foo_io.dart');
+  }
+
+  test_exportImport_configurations_useSecond() async {
+    declaredVariables = new DeclaredVariables.fromMap({
+      'dart.library.io': 'false',
+      'dart.library.html': 'true',
+    });
+    addLibrarySource('/foo.dart', 'class A {}');
+    addLibrarySource('/foo_io.dart', 'class A {}');
+    addLibrarySource('/foo_html.dart', 'class A {}');
+    addLibrarySource('/bar.dart', r'''
+export 'foo.dart'
+  if (dart.library.io) 'foo_io.dart'
+  if (dart.library.html) 'foo_html.dart';
+''');
+    var library = await checkLibrary(r'''
+import 'bar.dart';
+class B extends A {}
+''');
+    checkElementText(library, r'''
+import 'bar.dart';
+class B extends A {
+}
+''');
+    var typeA = library.definingCompilationUnit.getType('B').supertype;
+    expect(typeA.element.source.shortName, 'foo_html.dart');
   }
 
   test_exports() async {
@@ -5839,6 +6185,35 @@ class C<T> {
     checkElementText(library, r'''
 class C<T> {
   final dynamic f;
+}
+''');
+  }
+
+  test_extension_documented_tripleSlash() async {
+    featureSet = enableExtensionMethods;
+    var library = await checkLibrary('''
+/// aaa
+/// bbbb
+/// cc
+extension E on int {}''');
+    checkElementText(library, r'''
+/// aaa
+/// bbbb
+/// cc
+extension E on int {
+}
+''');
+  }
+
+  test_extension_field_inferredType_const() async {
+    featureSet = enableExtensionMethods;
+    var library = await checkLibrary('''
+extension E on int {
+  static const x = 0;
+}''');
+    checkElementText(library, r'''
+extension E on int {
+  static const int x = 0;
 }
 ''');
   }
@@ -6452,6 +6827,32 @@ int Function(int, String) v;
 ''');
   }
 
+  test_genericFunction_typeParameter_asTypedefArgument() async {
+    var library = await checkLibrary(r'''
+typedef F1 = Function<V1>(F2<V1>);
+typedef F2<V2> = V2 Function();
+''');
+    checkElementText(library, r'''
+typedef F1 = dynamic Function<V1>(V1 Function() );
+typedef F2<V2> = V2 Function();
+''');
+  }
+
+  test_genericTypeAlias_recursive() async {
+    var library = await checkLibrary('''
+typedef F<X extends F> = Function(F);
+''');
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+notSimplyBounded typedef F<X> = dynamic Function();
+''');
+    } else {
+      checkElementText(library, r'''
+notSimplyBounded typedef F<X extends dynamic Function(...)> = dynamic Function(dynamic Function(...) );
+''');
+    }
+  }
+
   test_getter_documented() async {
     var library = await checkLibrary('''
 // Extra comment so doc comment offset != 0
@@ -6591,6 +6992,78 @@ class B extends A {
     expect(typeA.element.source.shortName, 'foo_io.dart');
   }
 
+  test_import_configurations_useFirst_eqTrue() async {
+    declaredVariables = new DeclaredVariables.fromMap({
+      'dart.library.io': 'true',
+      'dart.library.html': 'true',
+    });
+    addLibrarySource('/foo.dart', 'class A {}');
+    addLibrarySource('/foo_io.dart', 'class A {}');
+    addLibrarySource('/foo_html.dart', 'class A {}');
+    var library = await checkLibrary(r'''
+import 'foo.dart'
+  if (dart.library.io == 'true') 'foo_io.dart'
+  if (dart.library.html == 'true') 'foo_html.dart';
+
+class B extends A {}
+''');
+    checkElementText(library, r'''
+import 'foo_io.dart';
+class B extends A {
+}
+''');
+    var typeA = library.definingCompilationUnit.getType('B').supertype;
+    expect(typeA.element.source.shortName, 'foo_io.dart');
+  }
+
+  test_import_configurations_useSecond() async {
+    declaredVariables = new DeclaredVariables.fromMap({
+      'dart.library.io': 'false',
+      'dart.library.html': 'true',
+    });
+    addLibrarySource('/foo.dart', 'class A {}');
+    addLibrarySource('/foo_io.dart', 'class A {}');
+    addLibrarySource('/foo_html.dart', 'class A {}');
+    var library = await checkLibrary(r'''
+import 'foo.dart'
+  if (dart.library.io) 'foo_io.dart'
+  if (dart.library.html) 'foo_html.dart';
+
+class B extends A {}
+''');
+    checkElementText(library, r'''
+import 'foo_html.dart';
+class B extends A {
+}
+''');
+    var typeA = library.definingCompilationUnit.getType('B').supertype;
+    expect(typeA.element.source.shortName, 'foo_html.dart');
+  }
+
+  test_import_configurations_useSecond_eqTrue() async {
+    declaredVariables = new DeclaredVariables.fromMap({
+      'dart.library.io': 'false',
+      'dart.library.html': 'true',
+    });
+    addLibrarySource('/foo.dart', 'class A {}');
+    addLibrarySource('/foo_io.dart', 'class A {}');
+    addLibrarySource('/foo_html.dart', 'class A {}');
+    var library = await checkLibrary(r'''
+import 'foo.dart'
+  if (dart.library.io == 'true') 'foo_io.dart'
+  if (dart.library.html == 'true') 'foo_html.dart';
+
+class B extends A {}
+''');
+    checkElementText(library, r'''
+import 'foo_html.dart';
+class B extends A {
+}
+''');
+    var typeA = library.definingCompilationUnit.getType('B').supertype;
+    expect(typeA.element.source.shortName, 'foo_html.dart');
+  }
+
   test_import_deferred() async {
     addLibrarySource('/a.dart', 'f() {}');
     var library = await checkLibrary('''
@@ -6717,6 +7190,14 @@ import 'dart:async' show Future, Stream;
 Future<dynamic> f;
 Stream<dynamic> s;
 ''');
+  }
+
+  test_import_uri() async {
+    allowMissingFiles = true;
+    var library = await checkLibrary('''
+import 'foo.dart';
+''');
+    expect(library.imports[0].uri, 'foo.dart');
   }
 
   test_imports() async {
@@ -8174,6 +8655,27 @@ const dynamic a = null;
 ''');
   }
 
+  test_metadata_extensionDeclaration() async {
+    featureSet = enableExtensionMethods;
+    var library = await checkLibrary(r'''
+const a = null;
+class A {}
+@a
+@Object()
+extension E on A {}''');
+    checkElementText(library, r'''
+class A {
+}
+@
+        a/*location: test.dart;a?*/
+@
+        Object/*location: dart:core;Object*/()
+extension E on A {
+}
+const dynamic a = null;
+''');
+  }
+
   test_metadata_fieldDeclaration() async {
     var library = await checkLibrary('const a = null; class C { @a int x; }');
     checkElementText(library, r'''
@@ -9227,6 +9729,14 @@ void named({dynamic x: 1}) {}
 ''');
   }
 
+  test_part_uri() async {
+    allowMissingFiles = true;
+    var library = await checkLibrary('''
+part 'foo.dart';
+''');
+    expect(library.parts[0].uri, 'foo.dart');
+  }
+
   test_parts() async {
     addSource('/a.dart', 'part of my.lib;');
     addSource('/b.dart', 'part of my.lib;');
@@ -9396,7 +9906,7 @@ final v = f() ? <T>(T t) => 0 : <T>(T t) => 1;
 bool f() => true;
 ''');
     checkElementText(library, r'''
-final int Function(Never) v;
+final int Function<T>(T) v;
 bool f() {}
 ''');
   }
@@ -9545,6 +10055,44 @@ int y;
 ''');
   }
 
+  test_type_inference_field_depends_onFieldFormal() async {
+    var library = await checkLibrary('''
+class A<T> {
+  T value;
+
+  A(this.value);
+}
+
+class B {
+  var a = new A('');
+}
+''');
+    checkElementText(library, r'''
+class A<T> {
+  T value;
+  A(T this.value);
+}
+class B {
+  A<String> a;
+}
+''');
+  }
+
+  test_type_inference_fieldFormal_depends_onField() async {
+    var library = await checkLibrary('''
+class A<T> {
+  var f = 0;
+  A(this.f);
+}
+''');
+    checkElementText(library, r'''
+class A<T> {
+  int f;
+  A(int this.f);
+}
+''');
+  }
+
   test_type_inference_multiplyDefinedElement() async {
     addLibrarySource('/a.dart', 'class C {}');
     addLibrarySource('/b.dart', 'class C {}');
@@ -9584,6 +10132,34 @@ var x = ([y: 0]) => y;
 ''');
     checkElementText(library, '''
 dynamic Function([dynamic]) x;
+''');
+  }
+
+  test_type_inference_topVariable_depends_onFieldFormal() async {
+    var library = await checkLibrary('''
+class A {}
+
+class B extends A {}
+
+class C<T extends A> {
+  final T f;
+  const C(this.f);
+}
+
+final b = B();
+final c = C(b);
+''');
+    checkElementText(library, r'''
+class A {
+}
+class B extends A {
+}
+class C<T extends A> {
+  final T f;
+  const C(T this.f);
+}
+final B b;
+final C<B> c;
 ''');
   }
 
@@ -9636,6 +10212,28 @@ p.C v;
     checkElementText(library, r'''
 dynamic v;
 ''');
+  }
+
+  test_type_never_disableNnbd() async {
+    featureSet = disableNnbd;
+    var library = await checkLibrary('Never d;');
+    checkElementText(
+        library,
+        r'''
+Never* d;
+''',
+        annotateNullability: true);
+  }
+
+  test_type_never_enableNnbd() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary('Never d;');
+    checkElementText(
+        library,
+        r'''
+Never d;
+''',
+        annotateNullability: true);
   }
 
   test_type_param_generic_function_type_nullability_legacy() async {
@@ -10677,6 +11275,25 @@ final int v;
     var library = await checkLibrary('final v = 0;');
     checkElementText(library, r'''
 final int v;
+''');
+  }
+
+  test_variable_initializer_staticMethod_ofExtension() async {
+    featureSet = enableExtensionMethods;
+    var library = await checkLibrary('''
+class A {}
+extension E on A {
+  static int f() => 0;
+}
+var x = E.f();
+''');
+    checkElementText(library, r'''
+class A {
+}
+extension E on A {
+  static int f() {}
+}
+int x;
 ''');
   }
 

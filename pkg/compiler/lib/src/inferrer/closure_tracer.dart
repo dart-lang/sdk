@@ -4,9 +4,8 @@
 
 library compiler.src.inferrer.closure_tracer;
 
-import '../common/names.dart' show Names;
+import '../common/names.dart' show Identifiers, Names;
 import '../elements/entities.dart';
-import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../universe/selector.dart' show Selector;
 import 'abstract_value_domain.dart';
 import 'debug.dart' as debug;
@@ -85,7 +84,7 @@ class ClosureTracerVisitor extends TracerVisitor {
     MemberEntity called = info.calledElement;
     if (inferrer.closedWorld.commonElements.isForeign(called)) {
       String name = called.name;
-      if (name == JavaScriptBackend.JS || name == 'DART_CLOSURE_TO_JS') {
+      if (name == Identifiers.JS || name == Identifiers.DART_CLOSURE_TO_JS) {
         bailout('Used in JS ${info.debugName}');
       }
     }

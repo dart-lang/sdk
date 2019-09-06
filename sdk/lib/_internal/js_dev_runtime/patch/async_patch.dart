@@ -37,14 +37,14 @@ _async<T>(Function() initGenerator) {
     } else {
       f = _Future.value(value);
     }
-    f = JS('', '#', f._thenNoZoneRegistration(onValue, onError));
+    f = JS('', '#', f._thenAwait(onValue, onError));
     return f;
   }
 
   onValue = (value) {
     var iteratorResult = JS('', '#.next(#)', iter, value);
     value = JS('', '#.value', iteratorResult);
-    return JS('bool', '#.done', iteratorResult) ? value : onAwait(value);
+    return JS<bool>('!', '#.done', iteratorResult) ? value : onAwait(value);
   };
 
   // If the awaited Future throws, we want to convert this to an exception
@@ -59,7 +59,7 @@ _async<T>(Function() initGenerator) {
     var iteratorResult = JS(
         '', '#.throw(#)', iter, dart.createErrorWithStack(value, stackTrace));
     value = JS('', '#.value', iteratorResult);
-    return JS('bool', '#.done', iteratorResult) ? value : onAwait(value);
+    return JS<bool>('!', '#.done', iteratorResult) ? value : onAwait(value);
   };
 
   var zone = Zone.current;
@@ -83,7 +83,7 @@ _async<T>(Function() initGenerator) {
       iter = JS('', '#[Symbol.iterator]()', initGenerator());
       var iteratorValue = JS('', '#.next(null)', iter);
       var value = JS('', '#.value', iteratorValue);
-      if (JS('bool', '#.done', iteratorValue)) {
+      if (JS<bool>('!', '#.done', iteratorValue)) {
         // TODO(jmesserly): this is a workaround for ignored cast failures.
         // Remove it once we've fixed those. We should be able to call:
         //
@@ -363,7 +363,7 @@ class _AsyncStarImpl<T> {
     } else {
       f = _Future.value(value);
     }
-    f._thenNoZoneRegistration(_runBodyCallback, handleError);
+    f._thenAwait(_runBodyCallback, handleError);
   }
 
   /// Adds element to [stream] and returns true if the caller should terminate

@@ -2,36 +2,36 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: Class.:static=[Object.(0)]*/
+/*member: Class.:static=[Object.(0)]*/
 class Class {
-  /*element: Class.field1:type=[inst:JSNull]*/
+  /*member: Class.field1:type=[inst:JSNull]*/
   var field1;
 
-  /*element: Class.field2:type=[inst:JSNull]*/
+  /*member: Class.field2:type=[inst:JSNull]*/
   var field2;
 
-  /*element: Class.method1:dynamic=[this:Class.method2(0)]*/
+  /*member: Class.method1:dynamic=[this:Class.method2(0)]*/
   method1() {
     method2();
   }
 
-  /*element: Class.method2:dynamic=[this:Class.field1=,this:Class.field2]*/
+  /*member: Class.method2:dynamic=[this:Class.field1=,this:Class.field2]*/
   method2() {
     field1 = field2;
   }
 }
 
-/*element: Subclass.:static=[Class.(0)]*/
+/*member: Subclass.:static=[Class.(0)]*/
 class Subclass extends Class {
-  /*element: Subclass.field1:type=[inst:JSNull]*/
+  /*member: Subclass.field1:type=[inst:JSNull]*/
   var field1;
-  /*element: Subclass.field2:type=[inst:JSNull]*/
+  /*member: Subclass.field2:type=[inst:JSNull]*/
   var field2;
 
-  /*element: Subclass.method1:*/
+  /*member: Subclass.method1:*/
   method1() {}
 
-  /*element: Subclass.method2:dynamic=[this:Subclass.method3(0)]*/
+  /*member: Subclass.method2:dynamic=[this:Subclass.method3(0)]*/
   method2() {
     method3();
   }
@@ -39,11 +39,11 @@ class Subclass extends Class {
   method3() {}
 }
 
-/*element: Subtype.:static=[Object.(0)]*/
+/*member: Subtype.:static=[Object.(0)]*/
 class Subtype implements Class {
-  /*element: Subtype.field1:type=[inst:JSNull]*/
+  /*member: Subtype.field1:type=[inst:JSNull]*/
   var field1;
-  /*element: Subtype.field2:type=[inst:JSNull]*/
+  /*member: Subtype.field2:type=[inst:JSNull]*/
   var field2;
 
   method1() {}
@@ -57,7 +57,7 @@ class Subtype implements Class {
   }
 }
 
-/*element: main:
+/*member: main:
  dynamic=[Class.method1(0)],
  static=[Class.(0),Subclass.(0),Subtype.(0)]
 */

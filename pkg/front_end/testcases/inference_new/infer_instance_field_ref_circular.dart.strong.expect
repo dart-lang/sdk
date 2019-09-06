@@ -4,25 +4,20 @@ library test;
 //
 // pkg/front_end/testcases/inference_new/infer_instance_field_ref_circular.dart:11:7: Error: Can't infer the type of 'b': circularity found during type inference.
 // Specify the type explicitly.
-//   var b = /*@returnType=invalid-type*/ () => x;
+//   var b = /*@ returnType=() ->* invalid-type */ () => x;
 //       ^
-//
-// pkg/front_end/testcases/inference_new/infer_instance_field_ref_circular.dart:16:5: Error: Can't infer the type of 'x': circularity found during type inference.
-// Specify the type explicitly.
-// var x = /*@returnType=invalid-type*/ () => a. /*@target=A::b*/ b;
-//     ^
 //
 import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  field invalid-type b = (() → invalid-type => self::x) as{TypeError} invalid-type;
-  field () → invalid-type c = () → invalid-type => self::x;
-  synthetic constructor •() → self::A
+  field invalid-type b = (() → () →* invalid-type => self::x) as{TypeError} invalid-type;
+  field () →* () →* invalid-type c = () → () →* invalid-type => self::x;
+  synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
 }
-static field self::A a = new self::A::•();
-static field invalid-type x = (() → invalid-type => self::a.{self::A::b}) as{TypeError} invalid-type;
-static field () → () → invalid-type y = () → () → invalid-type => self::a.{self::A::c};
+static field self::A* a = new self::A::•();
+static field () →* invalid-type x = () → invalid-type => self::a.{self::A::b};
+static field () →* () →* () →* invalid-type y = () → () →* () →* invalid-type => self::a.{self::A::c};
 static method main() → dynamic {}

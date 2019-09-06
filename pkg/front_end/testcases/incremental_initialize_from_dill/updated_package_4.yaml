@@ -7,7 +7,6 @@
 # This should be an error.
 
 type: newworld
-strong: false
 worlds:
   - entry: main.dart
     sources:
@@ -32,5 +31,4 @@ worlds:
     sources:
       .packages:
     errors: true
-    warnings: true
     expectedLibraryCount: 1

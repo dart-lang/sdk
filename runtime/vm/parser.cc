@@ -49,7 +49,7 @@ ParsedFunction::ParsedFunction(Thread* thread, const Function& function)
     : thread_(thread),
       function_(function),
       code_(Code::Handle(zone(), function.unoptimized_code())),
-      node_sequence_(NULL),
+      scope_(NULL),
       regexp_compile_data_(NULL),
       function_type_arguments_(NULL),
       parent_type_arguments_(NULL),
@@ -177,12 +177,6 @@ void ParsedFunction::EnsureFinallyReturnTemp(bool is_async) {
   ASSERT(has_finally_return_temp_var());
 }
 
-void ParsedFunction::SetNodeSequence(SequenceNode* node_sequence) {
-  ASSERT(node_sequence_ == NULL);
-  ASSERT(node_sequence != NULL);
-  node_sequence_ = node_sequence;
-}
-
 void ParsedFunction::SetRegExpCompileData(
     RegExpCompileData* regexp_compile_data) {
   ASSERT(regexp_compile_data_ == NULL);
@@ -206,7 +200,7 @@ void ParsedFunction::AddDeferredPrefix(const LibraryPrefix& prefix) {
 
 void ParsedFunction::AllocateVariables() {
   ASSERT(!function().IsIrregexpFunction());
-  LocalScope* scope = node_sequence()->scope();
+  LocalScope* scope = this->scope();
   const intptr_t num_fixed_params = function().num_fixed_parameters();
   const intptr_t num_opt_params = function().NumOptionalParameters();
   const intptr_t num_params = num_fixed_params + num_opt_params;

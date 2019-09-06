@@ -44,7 +44,7 @@ var tests = <IsolateTest>[
       'targetId': target1['id'],
       'limit': 100,
     };
-    var result = await isolate.invokeRpcNoUpgrade('_getRetainingPath', params);
+    var result = await isolate.invokeRpcNoUpgrade('getRetainingPath', params);
     expect(result['type'], equals('RetainingPath'));
     expect(result['elements'].length, equals(2));
     expect(
@@ -60,7 +60,7 @@ var tests = <IsolateTest>[
       'targetId': target2['id'],
       'limit': 100,
     };
-    var result = await isolate.invokeRpcNoUpgrade('_getRetainingPath', params);
+    var result = await isolate.invokeRpcNoUpgrade('getRetainingPath', params);
     expect(result['type'], equals('RetainingPath'));
     expect(result['elements'].length, equals(2));
     expect(result['elements'][0]['value']['class']['name'], equals('_Closure'));

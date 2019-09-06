@@ -90,7 +90,7 @@ abstract class ScopeListener<J> extends StackListener {
   void beginForStatement(Token token) {
     debugEvent("beginForStatement");
     enterLoop(token.charOffset);
-    enterLocalScope("for statment");
+    enterLocalScope("for statement");
   }
 
   @override

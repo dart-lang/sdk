@@ -297,7 +297,6 @@ class ActivationFrame : public ZoneAllocated {
   uword fp() const { return fp_; }
   uword sp() const { return sp_; }
   const Function& function() const {
-    ASSERT(!function_.IsNull());
     return function_;
   }
   const Code& code() const {
@@ -309,6 +308,14 @@ class ActivationFrame : public ZoneAllocated {
     return bytecode_;
   }
   bool IsInterpreted() const { return !bytecode_.IsNull(); }
+
+  enum Relation {
+    kCallee,
+    kSelf,
+    kCaller,
+  };
+
+  Relation CompareTo(uword other_fp, bool other_is_interpreted) const;
 
   RawString* QualifiedFunctionName();
   RawString* SourceUrl();
@@ -388,6 +395,7 @@ class ActivationFrame : public ZoneAllocated {
   RawObject* GetAsyncStreamControllerStream();
   RawObject* GetAsyncCompleterAwaiter(const Object& completer);
   RawObject* GetAsyncCompleter();
+  intptr_t GetAwaitJumpVariable();
   void ExtractTokenPositionFromAsyncClosure();
 
   bool IsAsyncMachinery() const;
@@ -779,6 +787,7 @@ class Debugger {
   void RewindToOptimizedFrame(StackFrame* frame,
                               const Code& code,
                               intptr_t post_deopt_frame_index);
+  void RewindToInterpretedFrame(StackFrame* frame, const Bytecode& bytecode);
 
   void ResetSteppingFramePointers();
   bool SteppedForSyntheticAsyncBreakpoint() const;
@@ -821,8 +830,16 @@ class Debugger {
   // frame corresponds to this fp value, or if the top frame is
   // lower on the stack.
   uword stepping_fp_;
+  bool interpreted_stepping_;
+
+  // When stepping through code, do not stop more than once in the same
+  // token position range.
+  uword last_stepping_fp_;
+  TokenPosition last_stepping_pos_;
+
   // Used to track the current async/async* function.
   uword async_stepping_fp_;
+  bool interpreted_async_stepping_;
   RawObject* top_frame_awaiter_;
 
   // If we step while at a breakpoint, we would hit the same pc twice.

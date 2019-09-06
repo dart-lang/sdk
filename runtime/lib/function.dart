@@ -6,6 +6,10 @@
 
 @pragma("vm:entry-point")
 class _Closure implements Function {
+  factory _Closure._uninstantiable() {
+    throw "Unreachable";
+  }
+
   bool operator ==(Object other) native "Closure_equals";
 
   int get hashCode {

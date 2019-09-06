@@ -24,7 +24,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class DartPostfixCompletion {
   static const NO_TEMPLATE =
       const PostfixCompletionKind('', 'no change', null, null);
-  static const ALL_TEMPLATES = const [
+
+  static const List<PostfixCompletionKind> ALL_TEMPLATES = const [
     const PostfixCompletionKind("assert", "expr.assert -> assert(expr);",
         isAssertContext, expandAssert),
     const PostfixCompletionKind(
@@ -318,6 +319,8 @@ class PostfixCompletionProcessor {
 
   TypeProvider get typeProvider => completionContext.resolveResult.typeProvider;
 
+  TypeSystem get typeSystem => completionContext.resolveResult.typeSystem;
+
   Future<PostfixCompletion> compute() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
@@ -331,7 +334,7 @@ class PostfixCompletionProcessor {
 
   Future<PostfixCompletion> expand(
       PostfixCompletionKind kind, Function contexter, Function sourcer,
-      {bool withBraces: true}) async {
+      {bool withBraces = true}) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     AstNode expr = contexter();
@@ -368,7 +371,7 @@ class PostfixCompletionProcessor {
 
   Future<PostfixCompletion> expandTry(
       PostfixCompletionKind kind, Function contexter,
-      {bool withOn: false}) async {
+      {bool withOn = false}) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     AstNode stmt = contexter();
@@ -448,7 +451,7 @@ class PostfixCompletionProcessor {
       _findOuterExpression(node, typeProvider.intType);
 
   Expression findIterableExpression() =>
-      _findOuterExpression(node, typeProvider.iterableType);
+      _findOuterExpression(node, typeProvider.iterableDynamicType);
 
   Expression findObjectExpression() =>
       _findOuterExpression(node, typeProvider.objectType);
@@ -541,7 +544,7 @@ class PostfixCompletionProcessor {
     Expression expr = list.firstWhere((expr) {
       DartType type = expr.staticType;
       if (type == null) return false;
-      if (type.isSubtypeOf(builtInType)) return true;
+      if (typeSystem.isSubtypeOf(type, builtInType)) return true;
       Element element = type.element;
       if (element is TypeDefiningElement) {
         TypeDefiningElement typeDefElem = element;
@@ -552,7 +555,7 @@ class PostfixCompletionProcessor {
               pType.typeParameters.length, typeProvider.dynamicType));
         }
       }
-      return type.isSubtypeOf(builtInType);
+      return typeSystem.isSubtypeOf(type, builtInType);
     }, orElse: () => null);
     if (expr is SimpleIdentifier && expr.parent is PropertyAccess) {
       expr = expr.parent;
@@ -563,7 +566,7 @@ class PostfixCompletionProcessor {
     return expr;
   }
 
-  AstNode _selectedNode({int at: null}) =>
+  AstNode _selectedNode({int at = null}) =>
       new NodeLocator(at == null ? selectionOffset : at)
           .searchWithin(completionContext.resolveResult.unit);
 

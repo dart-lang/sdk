@@ -6,7 +6,6 @@
 # results in getting both libraries (aka that multiple entry points work).
 
 type: newworld
-strong: true
 worlds:
   - entry:
       - a.dart

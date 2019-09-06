@@ -67,6 +67,9 @@ class _FutureListener<S, T> {
   static const int stateCatcherror = maskError;
   static const int stateCatcherrorTest = maskError | maskTestError;
   static const int stateWhencomplete = maskWhencomplete;
+  static const int maskType =
+      maskValue | maskError | maskTestError | maskWhencomplete;
+  static const int stateIsAwait = 16;
   // Listeners on the same future are linked through this link.
   _FutureListener _nextListener;
   // The future to complete when this listener is activated.
@@ -84,6 +87,13 @@ class _FutureListener<S, T> {
         errorCallback = errorCallback,
         state = (errorCallback == null) ? stateThen : stateThenOnerror;
 
+  _FutureListener.thenAwait(
+      this.result, _FutureOnValue<S, T> onValue, Function errorCallback)
+      : callback = onValue,
+        errorCallback = errorCallback,
+        state = ((errorCallback == null) ? stateThen : stateThenOnerror)
+              | stateIsAwait ;
+
   _FutureListener.catchError(this.result, this.errorCallback, this.callback)
       : state = (callback == null) ? stateCatcherror : stateCatcherrorTest;
 
@@ -95,8 +105,9 @@ class _FutureListener<S, T> {
 
   bool get handlesValue => (state & maskValue != 0);
   bool get handlesError => (state & maskError != 0);
-  bool get hasErrorTest => (state == stateCatcherrorTest);
-  bool get handlesComplete => (state == stateWhencomplete);
+  bool get hasErrorTest => (state & maskType == stateCatcherrorTest);
+  bool get handlesComplete => (state & maskType == stateWhencomplete);
+  bool get isAwait => (state & stateIsAwait != 0);
 
   _FutureOnValue<S, T> get _onValue {
     assert(handlesValue);
@@ -229,6 +240,27 @@ class _Future<T> implements Future<T> {
   bool get _isComplete => _state >= _stateValue;
   bool get _hasError => _state == _stateError;
 
+  static List<Function> _continuationFunctions(_Future<Object> future) {
+    List<Function> result = null;
+    while (true) {
+      if (future._mayAddListener) return result;
+      assert(!future._isComplete);
+      assert(!future._isChained);
+      // So _resultOrListeners contains listeners.
+      _FutureListener<Object, Object> listener = future._resultOrListeners;
+      if (listener != null &&
+          listener._nextListener == null &&
+          listener.isAwait) {
+        (result ??= <Function>[]).add(listener.handleValue);
+        future = listener.result;
+        assert(!future._isComplete);
+      } else {
+        break;
+      }
+    }
+    return result;
+  }
+
   void _setChained(_Future source) {
     assert(_mayAddListener);
     _state = _stateChained;
@@ -246,14 +278,21 @@ class _Future<T> implements Future<T> {
         onError = _registerErrorHandler(onError, currentZone);
       }
     }
-    return _thenNoZoneRegistration<R>(f, onError);
+    _Future<R> result = new _Future<R>();
+    _addListener(new _FutureListener<T, R>.then(result, f, onError));
+    return result;
   }
 
-  // This method is used by async/await.
-  Future<E> _thenNoZoneRegistration<E>(
+  /// Registers a system created result and error continuation.
+  ///
+  /// Used by the implementation of `await` to listen to a future.
+  /// The system created liseners are not registered in the zone,
+  /// and the listener is marked as being from an `await`.
+  /// This marker is used in [_continuationFunctions].
+  Future<E> _thenAwait<E>(
       FutureOr<E> f(T value), Function onError) {
     _Future<E> result = new _Future<E>();
-    _addListener(new _FutureListener<T, E>.then(result, f, onError));
+    _addListener(new _FutureListener<T, E>.thenAwait(result, f, onError));
     return result;
   }
 

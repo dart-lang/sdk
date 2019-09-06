@@ -8,7 +8,7 @@ class SubClass extends Class {
   method() {}
 }
 
-/*element: main:
+/*member: main:
  static=[
   dynamicToEquals(1),
   dynamicToHashCode(1),
@@ -37,58 +37,58 @@ main() {
   dynamicToNoSuchMethodTearOff(null);
 }
 
-/*element: positiveTyped:dynamic=[SubClass.method(0)],type=[inst:JSBool,is:SubClass,param:Class]*/
+/*member: positiveTyped:dynamic=[SubClass.method(0)],type=[inst:JSBool,is:SubClass,param:Class]*/
 positiveTyped(Class cls) {
   if (cls is SubClass) cls.method();
 }
 
-/*element: positiveDynamic:dynamic=[SubClass.method(0)],type=[inst:JSBool,is:SubClass]*/
+/*member: positiveDynamic:dynamic=[SubClass.method(0)],type=[inst:JSBool,is:SubClass]*/
 positiveDynamic(dynamic cls) {
   if (cls is SubClass) cls.method();
 }
 
-/*element: negativeDynamic:dynamic=[SubClass.method(0)],type=[inst:JSBool,is:SubClass]*/
+/*member: negativeDynamic:dynamic=[SubClass.method(0)],type=[inst:JSBool,is:SubClass]*/
 negativeDynamic(dynamic cls) {
   if (cls is! SubClass) return;
   cls.method();
 }
 
-/*element: dynamicToString:dynamic=[Object.toString(0)]*/
+/*member: dynamicToString:dynamic=[Object.toString(0)]*/
 dynamicToString(dynamic cls) {
   cls.toString();
 }
 
-/*element: dynamicToStringWrong:dynamic=[call(1),toString(1)],type=[inst:JSNull]*/
+/*member: dynamicToStringWrong:dynamic=[call(1),toString(1)],type=[inst:JSNull]*/
 dynamicToStringWrong(dynamic cls) {
   cls.toString(null);
 }
 
-/*element: dynamicToStringTearOff:dynamic=[Object.toString]*/
+/*member: dynamicToStringTearOff:dynamic=[Object.toString]*/
 dynamicToStringTearOff(dynamic cls) {
   cls.toString;
 }
 
-/*element: dynamicToEquals:dynamic=[Object.==],type=[inst:JSNull]*/
+/*member: dynamicToEquals:dynamic=[Object.==],type=[inst:JSNull]*/
 dynamicToEquals(dynamic cls) {
   cls == null;
 }
 
-/*element: dynamicToHashCode:dynamic=[Object.hashCode]*/
+/*member: dynamicToHashCode:dynamic=[Object.hashCode]*/
 dynamicToHashCode(dynamic cls) {
   cls.hashCode;
 }
 
-/*element: dynamicToNoSuchMethod:dynamic=[Object.noSuchMethod(1)],type=[inst:JSNull]*/
+/*member: dynamicToNoSuchMethod:dynamic=[Object.noSuchMethod(1)],type=[inst:JSNull]*/
 dynamicToNoSuchMethod(dynamic cls) {
   cls.noSuchMethod(null);
 }
 
-/*element: dynamicToNoSuchMethodWrong:dynamic=[call(0),noSuchMethod(0)]*/
+/*member: dynamicToNoSuchMethodWrong:dynamic=[call(0),noSuchMethod(0)]*/
 dynamicToNoSuchMethodWrong(dynamic cls) {
   cls.noSuchMethod();
 }
 
-/*element: dynamicToNoSuchMethodTearOff:dynamic=[Object.noSuchMethod]*/
+/*member: dynamicToNoSuchMethodTearOff:dynamic=[Object.noSuchMethod]*/
 dynamicToNoSuchMethodTearOff(dynamic cls) {
   cls.noSuchMethod;
 }

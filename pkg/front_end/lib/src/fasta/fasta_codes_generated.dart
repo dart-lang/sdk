@@ -7,6 +7,8 @@
 // Instead modify 'pkg/front_end/messages.yaml' and run
 // 'pkg/front_end/tool/fasta generate-messages' to update.
 
+// ignore_for_file: lines_longer_than_80_chars
+
 part of fasta.codes;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -461,6 +463,15 @@ Message _withArgumentsBuiltInIdentifierInDeclaration(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeBytecodeLimitExceededTooManyArguments =
+    messageBytecodeLimitExceededTooManyArguments;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageBytecodeLimitExceededTooManyArguments =
+    const MessageCode("BytecodeLimitExceededTooManyArguments",
+        message: r"""Dart bytecode limit exceeded: too many arguments.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeCandidateFound = messageCandidateFound;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -579,6 +590,36 @@ const MessageCode messageCantInferPackagesFromPackageUri = const MessageCode(
     "CantInferPackagesFromPackageUri",
     message: r"""Can't infer a .packages file from an input 'package:*' URI.""",
     tip: r"""Try specifying the file explicitly with the --packages option.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateCantInferReturnTypeDueToInconsistentOverrides =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""Can't infer a return type for '#name' as some of the inherited members have different types.""",
+        tipTemplate: r"""Try adding an explicit type.""",
+        withArguments:
+            _withArgumentsCantInferReturnTypeDueToInconsistentOverrides);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeCantInferReturnTypeDueToInconsistentOverrides =
+    const Code<Message Function(String name)>(
+        "CantInferReturnTypeDueToInconsistentOverrides",
+        templateCantInferReturnTypeDueToInconsistentOverrides,
+        analyzerCodes: <String>["INVALID_METHOD_OVERRIDE"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsCantInferReturnTypeDueToInconsistentOverrides(
+    String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeCantInferReturnTypeDueToInconsistentOverrides,
+      message:
+          """Can't infer a return type for '${name}' as some of the inherited members have different types.""",
+      tip: """Try adding an explicit type.""",
+      arguments: {'name': name});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -773,6 +814,38 @@ const MessageCode messageColonInPlaceOfIn = const MessageCode(
     index: 54,
     message: r"""For-in loops use 'in' rather than a colon.""",
     tip: r"""Try replacing the colon with the keyword 'in'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        String
+            name2)> templateCombinedMemberSignatureFailed = const Template<
+        Message Function(String name, String name2)>(
+    messageTemplate:
+        r"""Class '#name' inherits multiple members named '#name2' with incompatible signatures.""",
+    tipTemplate: r"""Try adding a declaration of '#name2' to '#name'.""",
+    withArguments: _withArgumentsCombinedMemberSignatureFailed);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2)>
+    codeCombinedMemberSignatureFailed =
+    const Code<Message Function(String name, String name2)>(
+        "CombinedMemberSignatureFailed", templateCombinedMemberSignatureFailed,
+        analyzerCodes: <String>["INCONSISTENT_INHERITANCE"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsCombinedMemberSignatureFailed(String name, String name2) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  return new Message(codeCombinedMemberSignatureFailed,
+      message:
+          """Class '${name}' inherits multiple members named '${name2}' with incompatible signatures.""",
+      tip: """Try adding a declaration of '${name2}' to '${name}'.""",
+      arguments: {'name': name, 'name2': name2});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -1761,7 +1834,7 @@ const Code<Null> codeConstructorCyclic = messageConstructorCyclic;
 const MessageCode messageConstructorCyclic = const MessageCode(
     "ConstructorCyclic",
     analyzerCodes: <String>["RECURSIVE_CONSTRUCTOR_REDIRECT"],
-    message: r"""Redirecting constructers can't be cyclic.""",
+    message: r"""Redirecting constructors can't be cyclic.""",
     tip:
         r"""Try to have all constructors eventually redirect to a non-redirecting constructor.""");
 
@@ -2629,7 +2702,8 @@ Message _withArgumentsDuplicatedLibraryImportContext(String name) {
 const Template<Message Function(Token token)> templateDuplicatedModifier =
     const Template<Message Function(Token token)>(
         messageTemplate: r"""The modifier '#lexeme' was already specified.""",
-        tipTemplate: r"""Try removing all but one occurence of the modifier.""",
+        tipTemplate:
+            r"""Try removing all but one occurrence of the modifier.""",
         withArguments: _withArgumentsDuplicatedModifier);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2643,7 +2717,7 @@ Message _withArgumentsDuplicatedModifier(Token token) {
   String lexeme = token.lexeme;
   return new Message(codeDuplicatedModifier,
       message: """The modifier '${lexeme}' was already specified.""",
-      tip: """Try removing all but one occurence of the modifier.""",
+      tip: """Try removing all but one occurrence of the modifier.""",
       arguments: {'token': token});
 }
 
@@ -3504,7 +3578,7 @@ const MessageCode messageFastaUsageLong =
     Read the SDK platform from <file>, which should be in Dill/Kernel IR format
     and contain the Dart SDK.
 
-  --target=dart2js|dart2js_server|dart_runner|flutter|flutter_runner|none|vm
+  --target=dart2js|dart2js_server|dart_runner|dartdevc|flutter|flutter_runner|none|vm
     Specify the target configuration.
 
   --enable-asserts
@@ -3544,7 +3618,7 @@ const MessageCode messageFastaUsageLong =
 
     When specified, the compiler can be invoked with inputs using the custom
     URI scheme. The compiler can ignore the exact location of files on disk
-    and as a result to produce output that is independendent of the absolute
+    and as a result to produce output that is independent of the absolute
     location of files on disk. This is mostly useful for integrating with
     build systems.
 
@@ -3571,11 +3645,64 @@ const MessageCode messageFastaUsageShort =
   -h        Display this message (add -v for information about all options).""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(DartType _type, DartType _type2)>
+    templateFfiDartTypeMismatch =
+    const Template<Message Function(DartType _type, DartType _type2)>(
+        messageTemplate: r"""Expected '#type' to be a subtype of '#type2'.""",
+        withArguments: _withArgumentsFfiDartTypeMismatch);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, DartType _type2)>
+    codeFfiDartTypeMismatch =
+    const Code<Message Function(DartType _type, DartType _type2)>(
+  "FfiDartTypeMismatch",
+  templateFfiDartTypeMismatch,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFfiDartTypeMismatch(DartType _type, DartType _type2) {
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeFfiDartTypeMismatch,
+      message: """Expected '${type}' to be a subtype of '${type2}'.""" +
+          labeler.originMessages,
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateFfiExtendsOrImplementsSealedClass =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""Class '#name' cannot be extended or implemented.""",
+        withArguments: _withArgumentsFfiExtendsOrImplementsSealedClass);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeFfiExtendsOrImplementsSealedClass =
+    const Code<Message Function(String name)>(
+  "FfiExtendsOrImplementsSealedClass",
+  templateFfiExtendsOrImplementsSealedClass,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFfiExtendsOrImplementsSealedClass(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeFfiExtendsOrImplementsSealedClass,
+      message: """Class '${name}' cannot be extended or implemented.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(String name)> templateFfiFieldAnnotation = const Template<
         Message Function(String name)>(
     messageTemplate:
-        r"""Field '#name' requires exactly one annotation to declare its C++ type, which cannot be Void. dart:ffi structs (Pointer<Void>) cannot have regular Dart fields.""",
+        r"""Field '#name' requires exactly one annotation to declare its C++ type, which cannot be Void. dart:ffi Structs cannot have regular Dart fields.""",
     withArguments: _withArgumentsFfiFieldAnnotation);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3591,7 +3718,7 @@ Message _withArgumentsFfiFieldAnnotation(String name) {
   name = demangleMixinApplicationName(name);
   return new Message(codeFfiFieldAnnotation,
       message:
-          """Field '${name}' requires exactly one annotation to declare its C++ type, which cannot be Void. dart:ffi structs (Pointer<Void>) cannot have regular Dart fields.""",
+          """Field '${name}' requires exactly one annotation to declare its C++ type, which cannot be Void. dart:ffi Structs cannot have regular Dart fields.""",
       arguments: {'name': name});
 }
 
@@ -3622,6 +3749,33 @@ Message _withArgumentsFfiFieldInitializer(String name) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
+    Message Function(
+        String
+            name)> templateFfiFieldNoAnnotation = const Template<
+        Message Function(String name)>(
+    messageTemplate:
+        r"""Field '#name' requires no annotation to declare its C++ type, it is a Pointer which is represented by the same type in Dart and C++.""",
+    withArguments: _withArgumentsFfiFieldNoAnnotation);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeFfiFieldNoAnnotation =
+    const Code<Message Function(String name)>(
+  "FfiFieldNoAnnotation",
+  templateFfiFieldNoAnnotation,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFfiFieldNoAnnotation(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeFfiFieldNoAnnotation,
+      message:
+          """Field '${name}' requires no annotation to declare its C++ type, it is a Pointer which is represented by the same type in Dart and C++.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
     Message Function(String name)> templateFfiNotStatic = const Template<
         Message Function(String name)>(
     messageTemplate:
@@ -3646,27 +3800,24 @@ Message _withArgumentsFfiNotStatic(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-    Message Function(String name)> templateFfiStructAnnotation = const Template<
-        Message Function(String name)>(
-    messageTemplate:
-        r"""Class '#name' is a dart:ffi Pointer but has no struct annotation. Only struct Pointers can have fields.""",
-    withArguments: _withArgumentsFfiStructAnnotation);
+const Template<Message Function(String name)> templateFfiStructGeneric =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Struct '#name' should not be generic.""",
+        withArguments: _withArgumentsFfiStructGeneric);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeFfiStructAnnotation =
+const Code<Message Function(String name)> codeFfiStructGeneric =
     const Code<Message Function(String name)>(
-  "FfiStructAnnotation",
-  templateFfiStructAnnotation,
+  "FfiStructGeneric",
+  templateFfiStructGeneric,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiStructAnnotation(String name) {
+Message _withArgumentsFfiStructGeneric(String name) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
-  return new Message(codeFfiStructAnnotation,
-      message:
-          """Class '${name}' is a dart:ffi Pointer but has no struct annotation. Only struct Pointers can have fields.""",
+  return new Message(codeFfiStructGeneric,
+      message: """Struct '${name}' should not be generic.""",
       arguments: {'name': name});
 }
 
@@ -3764,6 +3915,30 @@ Message _withArgumentsFfiTypeUnsized(String name, DartType _type) {
           """Method '${name}' cannot be called on something of type '${type}' as this type is unsized.""" +
               labeler.originMessages,
       arguments: {'name': name, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateFfiWrongStructInheritance =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""Struct '#name' must inherit from 'Struct<#name>'.""",
+        withArguments: _withArgumentsFfiWrongStructInheritance);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeFfiWrongStructInheritance =
+    const Code<Message Function(String name)>(
+  "FfiWrongStructInheritance",
+  templateFfiWrongStructInheritance,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFfiWrongStructInheritance(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeFfiWrongStructInheritance,
+      message: """Struct '${name}' must inherit from 'Struct<${name}>'.""",
+      arguments: {'name': name});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4274,6 +4449,29 @@ Message _withArgumentsIllegalMixinDueToConstructorsCause(String name) {
   return new Message(codeIllegalMixinDueToConstructorsCause,
       message: """This constructor prevents using '${name}' as a mixin.""",
       arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(DartType _type)> templateIllegalRecursiveType =
+    const Template<Message Function(DartType _type)>(
+        messageTemplate: r"""Illegal recursive type '#type'.""",
+        withArguments: _withArgumentsIllegalRecursiveType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type)> codeIllegalRecursiveType =
+    const Code<Message Function(DartType _type)>(
+  "IllegalRecursiveType",
+  templateIllegalRecursiveType,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsIllegalRecursiveType(DartType _type) {
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeIllegalRecursiveType,
+      message: """Illegal recursive type '${type}'.""" + labeler.originMessages,
+      arguments: {'type': _type});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6376,6 +6574,54 @@ Message _withArgumentsLabelNotFound(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeLanguageVersionInvalidInDotPackages =
+    messageLanguageVersionInvalidInDotPackages;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageLanguageVersionInvalidInDotPackages = const MessageCode(
+    "LanguageVersionInvalidInDotPackages",
+    message:
+        r"""The language version is not specified correctly in the .packages file.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeLanguageVersionMismatchInPart =
+    messageLanguageVersionMismatchInPart;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageLanguageVersionMismatchInPart = const MessageCode(
+    "LanguageVersionMismatchInPart",
+    message:
+        r"""The language version override has to be the same in the library and its part(s).""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        int count,
+        int
+            count2)> templateLanguageVersionTooHigh = const Template<
+        Message Function(int count, int count2)>(
+    messageTemplate:
+        r"""The specified language version is too high. The highest supported language version is #count.#count2.""",
+    withArguments: _withArgumentsLanguageVersionTooHigh);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(int count, int count2)> codeLanguageVersionTooHigh =
+    const Code<Message Function(int count, int count2)>(
+  "LanguageVersionTooHigh",
+  templateLanguageVersionTooHigh,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsLanguageVersionTooHigh(int count, int count2) {
+  if (count == null) throw 'No count provided';
+  if (count2 == null) throw 'No count provided';
+  return new Message(codeLanguageVersionTooHigh,
+      message:
+          """The specified language version is too high. The highest supported language version is ${count}.${count2}.""",
+      arguments: {'count': count, 'count2': count2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeLibraryDirectiveNotFirst = messageLibraryDirectiveNotFirst;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8357,14 +8603,6 @@ const MessageCode messageSetLiteralTooManyTypeArguments = const MessageCode(
     "SetLiteralTooManyTypeArguments",
     severity: Severity.errorLegacyWarning,
     message: r"""A set literal requires exactly one type argument.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeSetLiteralsNotSupported = messageSetLiteralsNotSupported;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageSetLiteralsNotSupported = const MessageCode(
-    "SetLiteralsNotSupported",
-    message: r"""Set literals are not supported yet.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeSetOrMapLiteralTooManyTypeArguments =

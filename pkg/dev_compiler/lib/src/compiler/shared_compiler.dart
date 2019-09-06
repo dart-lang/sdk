@@ -5,10 +5,8 @@
 import 'dart:collection';
 import 'package:meta/meta.dart';
 
-import '../compiler/js_metalet.dart' as JS;
-import '../compiler/js_names.dart' as JS;
-import '../compiler/js_utils.dart' as JS;
-import '../js_ast/js_ast.dart' as JS;
+import '../compiler/js_names.dart' as js_ast;
+import '../js_ast/js_ast.dart' as js_ast;
 import '../js_ast/js_ast.dart' show js;
 
 /// Shared code between Analyzer and Kernel backends.
@@ -20,34 +18,34 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   /// returned by any `return;` statement.
   ///
   /// This lets DDC use the setter method's return value directly.
-  final List<JS.Identifier> _operatorSetResultStack = [];
+  final List<js_ast.Identifier> _operatorSetResultStack = [];
 
   /// Private member names in this module, organized by their library.
-  final _privateNames = HashMap<Library, HashMap<String, JS.TemporaryId>>();
+  final _privateNames = HashMap<Library, HashMap<String, js_ast.TemporaryId>>();
 
   /// Extension member symbols for adding Dart members to JS types.
   ///
   /// These are added to the [extensionSymbolsModule]; see that field for more
   /// information.
-  final _extensionSymbols = <String, JS.TemporaryId>{};
+  final _extensionSymbols = <String, js_ast.TemporaryId>{};
 
   /// The set of libraries we are currently compiling, and the temporaries used
   /// to refer to them.
-  final _libraries = <Library, JS.Identifier>{};
+  final _libraries = <Library, js_ast.Identifier>{};
 
   /// Imported libraries, and the temporaries used to refer to them.
-  final _imports = <Library, JS.TemporaryId>{};
+  final _imports = <Library, js_ast.TemporaryId>{};
 
   /// The identifier used to reference DDC's core "dart:_runtime" library from
   /// generated JS code, typically called "dart" e.g. `dart.dcall`.
   @protected
-  JS.Identifier runtimeModule;
+  js_ast.Identifier runtimeModule;
 
   /// The identifier used to reference DDC's "extension method" symbols, used to
   /// safely add Dart-specific member names to JavaScript classes, such as
   /// primitive types (e.g. String) or DOM types in "dart:html".
   @protected
-  JS.Identifier extensionSymbolsModule;
+  js_ast.Identifier extensionSymbolsModule;
 
   /// Whether we're currently building the SDK, which may require special
   /// bootstrapping logic.
@@ -60,18 +58,18 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   /// The temporary variable that stores named arguments (these are passed via a
   /// JS object literal, to match JS conventions).
   @protected
-  final namedArgumentTemp = JS.TemporaryId('opts');
+  final namedArgumentTemp = js_ast.TemporaryId('opts');
 
   /// The list of output module items, in the order they need to be emitted in.
   @protected
-  final moduleItems = <JS.ModuleItem>[];
+  final moduleItems = <js_ast.ModuleItem>[];
 
   /// Like [moduleItems] but for items that should be emitted after classes.
   ///
   /// This is used for deferred supertypes of mutually recursive non-generic
   /// classes.
   @protected
-  final afterClassDefItems = <JS.ModuleItem>[];
+  final afterClassDefItems = <js_ast.ModuleItem>[];
 
   /// The type used for private Dart [Symbol]s.
   @protected
@@ -98,11 +96,18 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   FunctionNode get currentFunction;
 
   /// Choose a canonical name from the [library] element.
+  @protected
+  String jsLibraryName(Library library);
+
+  /// Choose a module-unique name from the [library] element.
+  ///
+  /// Returns null if no alias exists or there are multiple output paths
+  /// (e.g., when compiling the Dart SDK).
   ///
   /// This never uses the library's name (the identifier in the `library`
   /// declaration) as it doesn't have any meaningful rules enforced.
   @protected
-  String jsLibraryName(Library library);
+  String jsLibraryAlias(Library library);
 
   /// Debugger friendly name for a Dart [library].
   @protected
@@ -126,12 +131,12 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
 
   /// Emits the expression necessary to access a constructor of [type];
   @protected
-  JS.Expression emitConstructorAccess(InterfaceType type);
+  js_ast.Expression emitConstructorAccess(InterfaceType type);
 
   /// When compiling the body of a `operator []=` method, this will be non-null
   /// and will indicate the the value that should be returned from any `return;`
   /// statements.
-  JS.Identifier get _operatorSetResult {
+  js_ast.Identifier get _operatorSetResult {
     var stack = _operatorSetResultStack;
     return stack.isEmpty ? null : stack.last;
   }
@@ -141,12 +146,12 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   ///
   /// See also [exitFunction] and [emitReturnStatement].
   @protected
-  void enterFunction(String name, List<JS.Parameter> formals,
+  void enterFunction(String name, List<js_ast.Parameter> formals,
       bool Function() isLastParamMutated) {
     if (name == '[]=') {
       _operatorSetResultStack.add(isLastParamMutated()
-          ? JS.TemporaryId((formals.last as JS.Identifier).name)
-          : formals.last as JS.Identifier);
+          ? js_ast.TemporaryId((formals.last as js_ast.Identifier).name)
+          : formals.last as js_ast.Identifier);
     } else {
       _operatorSetResultStack.add(null);
     }
@@ -155,8 +160,8 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   /// Called when finished emitting methods/functions, and must correspond to a
   /// previous [enterFunction] call.
   @protected
-  JS.Block exitFunction(
-      String name, List<JS.Parameter> formals, JS.Block code) {
+  js_ast.Block exitFunction(
+      String name, List<js_ast.Parameter> formals, js_ast.Block code) {
     if (name == "==" &&
         formals.isNotEmpty &&
         currentLibraryUri.scheme != 'dart') {
@@ -177,7 +182,7 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
       var valueParam = formals.last;
       var statements = code.statements;
       if (statements.isEmpty || !statements.last.alwaysReturns) {
-        statements.add(JS.Return(setOperatorResult));
+        statements.add(js_ast.Return(setOperatorResult));
       }
       if (!identical(setOperatorResult, valueParam)) {
         // If the value parameter was mutated, then we use a temporary
@@ -193,12 +198,14 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   /// Emits a return statement `return <value>;`, handling special rules for
   /// the `operator []=` method.
   @protected
-  JS.Statement emitReturnStatement(JS.Expression value) {
+  js_ast.Statement emitReturnStatement(js_ast.Expression value) {
     if (_operatorSetResult != null) {
-      var result = JS.Return(_operatorSetResult);
-      return value != null ? JS.Block([value.toStatement(), result]) : result;
+      var result = js_ast.Return(_operatorSetResult);
+      return value != null
+          ? js_ast.Block([value.toStatement(), result])
+          : result;
     }
-    return value != null ? value.toReturn() : JS.Return();
+    return value != null ? value.toReturn() : js_ast.Return();
   }
 
   /// Prepends the `dart.` and then uses [js.call] to parse the specified JS
@@ -213,13 +220,13 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   ///     dart.asInt(<expr>)
   ///
   @protected
-  JS.Expression runtimeCall(String code, [List<Object> args]) =>
+  js_ast.Expression runtimeCall(String code, [List<Object> args]) =>
       js.call('#.$code', <Object>[runtimeModule, ...?args]);
 
   /// Calls [runtimeCall] and uses `toStatement()` to convert the resulting
   /// expression into a statement.
   @protected
-  JS.Statement runtimeStatement(String code, [List<Object> args]) =>
+  js_ast.Statement runtimeStatement(String code, [List<Object> args]) =>
       runtimeCall(code, args).toStatement();
 
   /// Emits a private name JS Symbol for [name] scoped to the Dart [library].
@@ -229,7 +236,7 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   /// member names, that won't collide at runtime, as required by the Dart
   /// language spec.
   @protected
-  JS.TemporaryId emitPrivateNameSymbol(Library library, String name) {
+  js_ast.TemporaryId emitPrivateNameSymbol(Library library, String name) {
     /// Initializes the JS `Symbol` for the private member [name] in [library].
     ///
     /// If the library is in the current JS module ([_libraries] contains it),
@@ -243,9 +250,9 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
     /// If the library is imported, then the existing private name will be
     /// retrieved from it. In both cases, we use the same `dart.privateName`
     /// runtime call.
-    JS.TemporaryId initPrivateNameSymbol() {
+    js_ast.TemporaryId initPrivateNameSymbol() {
       var idName = name.endsWith('=') ? name.replaceAll('=', '_') : name;
-      var id = JS.TemporaryId(idName);
+      var id = js_ast.TemporaryId(idName);
       moduleItems.add(js.statement('const # = #.privateName(#, #)',
           [id, runtimeModule, emitLibraryName(library), js.string(name)]));
       return id;
@@ -262,12 +269,13 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   /// `dart.defineValue(className, name, value)`. This is required when
   /// `FunctionNode.prototype` already defins a getters with the same name.
   @protected
-  JS.Expression defineValueOnClass(Class c, JS.Expression className,
-      JS.Expression nameExpr, JS.Expression value) {
+  js_ast.Expression defineValueOnClass(Class c, js_ast.Expression className,
+      js_ast.Expression nameExpr, js_ast.Expression value) {
     var args = [className, nameExpr, value];
-    if (nameExpr is JS.LiteralString) {
+    if (nameExpr is js_ast.LiteralString) {
       var name = nameExpr.valueWithoutQuotes;
-      if (JS.isFunctionPrototypeGetter(name) || superclassHasStatic(c, name)) {
+      if (js_ast.isFunctionPrototypeGetter(name) ||
+          superclassHasStatic(c, name)) {
         return runtimeCall('defineValue(#, #, #)', args);
       }
     }
@@ -300,10 +308,10 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   /// per-module, though, as that would be relatively easy for the compiler to
   /// implement once we have a single Kernel backend).
   @protected
-  JS.Expression cacheConst(JS.Expression jsExpr) {
+  js_ast.Expression cacheConst(js_ast.Expression jsExpr) {
     if (currentFunction == null) return jsExpr;
 
-    var temp = JS.TemporaryId('const');
+    var temp = js_ast.TemporaryId('const');
     moduleItems.add(js.statement('let #;', [temp]));
     return js.call('# || (# = #)', [temp, temp, jsExpr]);
   }
@@ -313,11 +321,11 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   /// If the symbol refers to a private name, its library will be set to the
   /// [currentLibrary], so the Symbol is scoped properly.
   @protected
-  JS.Expression emitDartSymbol(String symbolName) {
+  js_ast.Expression emitDartSymbol(String symbolName) {
     // TODO(vsm): Handle qualified symbols correctly.
     var last = symbolName.split('.').last;
     var name = js.escapedString(symbolName, "'");
-    JS.Expression result;
+    js_ast.Expression result;
     if (last.startsWith('_')) {
       var nativeSymbol = emitPrivateNameSymbol(currentLibrary, last);
       result = js.call('new #.new(#, #)',
@@ -332,7 +340,7 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   /// Calls the `dart.const` function in "dart:_runtime" to canonicalize a
   /// constant instance of a user-defined class stored in [expr].
   @protected
-  JS.Expression canonicalizeConstObject(JS.Expression expr) =>
+  js_ast.Expression canonicalizeConstObject(js_ast.Expression expr) =>
       cacheConst(runtimeCall('const(#)', [expr]));
 
   /// Emits preamble for the module containing [libraries], and returns the
@@ -351,31 +359,31 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   /// [extensionSymbolsModule], as well as the [_libraries] map needed by
   /// [emitLibraryName].
   @protected
-  List<JS.ModuleItem> startModule(Iterable<Library> libraries) {
+  List<js_ast.ModuleItem> startModule(Iterable<Library> libraries) {
     isBuildingSdk = libraries.any(isSdkInternalRuntime);
     if (isBuildingSdk) {
       // Don't allow these to be renamed when we're building the SDK.
       // There is JS code in dart:* that depends on their names.
-      runtimeModule = JS.Identifier('dart');
-      extensionSymbolsModule = JS.Identifier('dartx');
+      runtimeModule = js_ast.Identifier('dart');
+      extensionSymbolsModule = js_ast.Identifier('dartx');
     } else {
       // Otherwise allow these to be renamed so users can write them.
-      runtimeModule = JS.TemporaryId('dart');
-      extensionSymbolsModule = JS.TemporaryId('dartx');
+      runtimeModule = js_ast.TemporaryId('dart');
+      extensionSymbolsModule = js_ast.TemporaryId('dartx');
     }
 
     // Initialize our library variables.
-    var items = <JS.ModuleItem>[];
-    var exports = <JS.NameSpecifier>[];
+    var items = <js_ast.ModuleItem>[];
+    var exports = <js_ast.NameSpecifier>[];
 
     if (isBuildingSdk) {
       // Bootstrap the ability to create Dart library objects.
-      var libraryProto = JS.TemporaryId('_library');
+      var libraryProto = js_ast.TemporaryId('_library');
       items.add(js.statement('const # = Object.create(null)', libraryProto));
       items.add(js.statement(
           'const # = Object.create(#)', [runtimeModule, libraryProto]));
       items.add(js.statement('#.library = #', [runtimeModule, libraryProto]));
-      exports.add(JS.NameSpecifier(runtimeModule));
+      exports.add(js_ast.NameSpecifier(runtimeModule));
     }
 
     for (var library in libraries) {
@@ -383,12 +391,14 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
         _libraries[library] = runtimeModule;
         continue;
       }
-      var id = JS.TemporaryId(jsLibraryName(library));
-      _libraries[library] = id;
+      var libraryId = js_ast.TemporaryId(jsLibraryName(library));
+      _libraries[library] = libraryId;
+      var alias = jsLibraryAlias(library);
+      var aliasId = alias == null ? null : js_ast.TemporaryId(alias);
 
       items.add(js.statement(
-          'const # = Object.create(#.library)', [id, runtimeModule]));
-      exports.add(JS.NameSpecifier(id));
+          'const # = Object.create(#.library)', [libraryId, runtimeModule]));
+      exports.add(js_ast.NameSpecifier(libraryId, asName: aliasId));
     }
 
     // dart:_runtime has a magic module that holds extension method symbols.
@@ -397,15 +407,15 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
       var id = extensionSymbolsModule;
       items.add(js.statement(
           'const # = Object.create(#.library)', [id, runtimeModule]));
-      exports.add(JS.NameSpecifier(id));
+      exports.add(js_ast.NameSpecifier(id));
     }
 
-    items.add(JS.ExportDeclaration(JS.ExportClause(exports)));
+    items.add(js_ast.ExportDeclaration(js_ast.ExportClause(exports)));
 
     if (isBuildingSdk) {
       // Initialize the private name function.
       // To bootstrap the SDK, this needs to be emitted before other code.
-      var symbol = JS.TemporaryId('_privateNames');
+      var symbol = js_ast.TemporaryId('_privateNames');
       items.add(js.statement('const # = Symbol("_privateNames")', symbol));
       items.add(js.statement(r'''
         #.privateName = function(library, name) {
@@ -423,16 +433,16 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
 
   /// Returns the canonical name to refer to the Dart library.
   @protected
-  JS.Identifier emitLibraryName(Library library) {
+  js_ast.Identifier emitLibraryName(Library library) {
     // It's either one of the libraries in this module, or it's an import.
+    var libraryId = js_ast.TemporaryId(jsLibraryName(library));
     return _libraries[library] ??
-        _imports.putIfAbsent(
-            library, () => JS.TemporaryId(jsLibraryName(library)));
+        _imports.putIfAbsent(library, () => libraryId);
   }
 
   /// Emits imports and extension methods into [items].
   @protected
-  void emitImportsAndExtensionSymbols(List<JS.ModuleItem> items) {
+  void emitImportsAndExtensionSymbols(List<js_ast.ModuleItem> items) {
     var modules = Map<String, List<Library>>();
 
     for (var import in _imports.keys) {
@@ -453,21 +463,27 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
       //     import {foo} from 'foo';         // if no rename needed
       //     import {foo as foo$} from 'foo'; // if rename was needed
       //
-      var imports =
-          libraries.map((l) => JS.NameSpecifier(_imports[l])).toList();
+      var imports = libraries.map((library) {
+        var alias = jsLibraryAlias(library);
+        if (alias != null) {
+          var aliasId = js_ast.TemporaryId(alias);
+          return js_ast.NameSpecifier(aliasId, asName: _imports[library]);
+        }
+        return js_ast.NameSpecifier(_imports[library]);
+      }).toList();
       if (module == coreModuleName) {
-        imports.add(JS.NameSpecifier(runtimeModule));
-        imports.add(JS.NameSpecifier(extensionSymbolsModule));
+        imports.add(js_ast.NameSpecifier(runtimeModule));
+        imports.add(js_ast.NameSpecifier(extensionSymbolsModule));
       }
 
-      items.add(JS.ImportDeclaration(
+      items.add(js_ast.ImportDeclaration(
           namedImports: imports, from: js.string(module, "'")));
     });
 
     // Initialize extension symbols
     _extensionSymbols.forEach((name, id) {
-      JS.Expression value =
-          JS.PropertyAccess(extensionSymbolsModule, propertyName(name));
+      js_ast.Expression value =
+          js_ast.PropertyAccess(extensionSymbolsModule, propertyName(name));
       if (isBuildingSdk) {
         value = js.call('# = Symbol(#)', [value, js.string("dartx.$name")]);
       }
@@ -476,20 +492,20 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   }
 
   void _emitDebuggerExtensionInfo(String name) {
-    var properties = <JS.Property>[];
-    var parts = <JS.Property>[];
+    var properties = <js_ast.Property>[];
+    var parts = <js_ast.Property>[];
     _libraries.forEach((library, value) {
       // TODO(jacobr): we could specify a short library name instead of the
       // full library uri if we wanted to save space.
       var libraryName = js.escapedString(jsLibraryDebuggerName(library));
-      properties.add(JS.Property(libraryName, value));
+      properties.add(js_ast.Property(libraryName, value));
       var partNames = jsPartDebuggerNames(library);
       if (partNames.isNotEmpty) {
-        parts.add(JS.Property(libraryName, js.stringArray(partNames)));
+        parts.add(js_ast.Property(libraryName, js.stringArray(partNames)));
       }
     });
-    var module = JS.ObjectInitializer(properties, multiline: true);
-    var partMap = JS.ObjectInitializer(parts, multiline: true);
+    var module = js_ast.ObjectInitializer(properties, multiline: true);
+    var partMap = js_ast.ObjectInitializer(parts, multiline: true);
 
     // Track the module name for each library in the module.
     // This data is only required for debugging.
@@ -509,7 +525,8 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   /// Note, this function mutates the items list and returns it as the `body`
   /// field of the result.
   @protected
-  JS.Program finishModule(List<JS.ModuleItem> items, String moduleName) {
+  js_ast.Program finishModule(
+      List<js_ast.ModuleItem> items, String moduleName) {
     // TODO(jmesserly): there's probably further consolidation we can do
     // between DDC's two backends, by moving more code into this method, as the
     // code between `startModule` and `finishModule` is very similar in both.
@@ -520,16 +537,16 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
     moduleItems.clear();
 
     // Build the module.
-    return JS.Program(items, name: moduleName);
+    return js_ast.Program(items, name: moduleName);
   }
 
   /// Flattens blocks in [items] to a single list.
   ///
   /// This will not flatten blocks that are marked as being scopes.
   void _copyAndFlattenBlocks(
-      List<JS.ModuleItem> result, Iterable<JS.ModuleItem> items) {
+      List<js_ast.ModuleItem> result, Iterable<js_ast.ModuleItem> items) {
     for (var item in items) {
-      if (item is JS.Block && !item.isScope) {
+      if (item is js_ast.Block && !item.isScope) {
         _copyAndFlattenBlocks(result, item.statements);
       } else if (item != null) {
         result.add(item);
@@ -544,11 +561,11 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   /// Do not call this directly; you want [_emitMemberName], which knows how to
   /// handle the many details involved in naming.
   @protected
-  JS.TemporaryId getExtensionSymbolInternal(String name) {
+  js_ast.TemporaryId getExtensionSymbolInternal(String name) {
     return _extensionSymbols.putIfAbsent(
         name,
-        () => JS.TemporaryId(
-            '\$${JS.friendlyNameForDartOperator[name] ?? name}'));
+        () => js_ast.TemporaryId(
+            '\$${js_ast.friendlyNameForDartOperator[name] ?? name}'));
   }
 
   /// Shorthand for identifier-like property names.
@@ -556,7 +573,7 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   /// identifiers if it can.
   // TODO(jmesserly): avoid the round tripping through quoted form.
   @protected
-  JS.LiteralString propertyName(String name) => js.string(name, "'");
+  js_ast.LiteralString propertyName(String name) => js.string(name, "'");
 
   /// Unique identifier indicating the location to inline the source map.
   ///
@@ -568,7 +585,7 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
 }
 
 /// Whether a variable with [name] is referenced in the [node].
-bool variableIsReferenced(String name, JS.Node node) {
+bool variableIsReferenced(String name, js_ast.Node node) {
   var finder = _IdentifierFinder.instance;
   finder.nameToFind = name;
   finder.found = false;
@@ -576,7 +593,7 @@ bool variableIsReferenced(String name, JS.Node node) {
   return finder.found;
 }
 
-class _IdentifierFinder extends JS.BaseVisitor<void> {
+class _IdentifierFinder extends js_ast.BaseVisitor<void> {
   String nameToFind;
   bool found = false;
 
@@ -593,18 +610,18 @@ class _IdentifierFinder extends JS.BaseVisitor<void> {
   }
 }
 
-class YieldFinder extends JS.BaseVisitor {
+class YieldFinder extends js_ast.BaseVisitor {
   bool hasYield = false;
   bool hasThis = false;
   bool _nestedFunction = false;
 
   @override
-  visitThis(JS.This node) {
+  visitThis(js_ast.This node) {
     hasThis = true;
   }
 
   @override
-  visitFunctionExpression(JS.FunctionExpression node) {
+  visitFunctionExpression(js_ast.FunctionExpression node) {
     var savedNested = _nestedFunction;
     _nestedFunction = true;
     super.visitFunctionExpression(node);
@@ -612,13 +629,13 @@ class YieldFinder extends JS.BaseVisitor {
   }
 
   @override
-  visitYield(JS.Yield node) {
+  visitYield(js_ast.Yield node) {
     if (!_nestedFunction) hasYield = true;
     super.visitYield(node);
   }
 
   @override
-  visitNode(JS.Node node) {
+  visitNode(js_ast.Node node) {
     if (hasYield && hasThis) return; // found both, nothing more to do.
     super.visitNode(node);
   }
@@ -626,39 +643,40 @@ class YieldFinder extends JS.BaseVisitor {
 
 /// Given the function [fn], returns a function declaration statement, binding
 /// `this` and `super` if necessary (using an arrow function).
-JS.Statement toBoundFunctionStatement(JS.Fun fn, JS.Identifier name) {
+js_ast.Statement toBoundFunctionStatement(
+    js_ast.Fun fn, js_ast.Identifier name) {
   if (usesThisOrSuper(fn)) {
     return js.statement('const # = (#) => {#}', [name, fn.params, fn.body]);
   } else {
-    return JS.FunctionDeclaration(name, fn);
+    return js_ast.FunctionDeclaration(name, fn);
   }
 }
 
 /// Returns whether [node] uses `this` or `super`.
-bool usesThisOrSuper(JS.Expression node) {
+bool usesThisOrSuper(js_ast.Expression node) {
   var finder = _ThisOrSuperFinder.instance;
   finder.found = false;
   node.accept(finder);
   return finder.found;
 }
 
-class _ThisOrSuperFinder extends JS.BaseVisitor<void> {
+class _ThisOrSuperFinder extends js_ast.BaseVisitor<void> {
   bool found = false;
 
   static final instance = _ThisOrSuperFinder();
 
   @override
-  visitThis(JS.This node) {
+  visitThis(js_ast.This node) {
     found = true;
   }
 
   @override
-  visitSuper(JS.Super node) {
+  visitSuper(js_ast.Super node) {
     found = true;
   }
 
   @override
-  visitNode(JS.Node node) {
+  visitNode(js_ast.Node node) {
     if (!found) super.visitNode(node);
   }
 }

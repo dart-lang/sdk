@@ -20,11 +20,17 @@ enum AvailableDeclarationKind : byte {
 
   ENUM_CONSTANT,
 
+  EXTENSION,
+
+  FIELD,
+
   FUNCTION,
 
   FUNCTION_TYPE_ALIAS,
 
   GETTER,
+
+  METHOD,
 
   MIXIN,
 
@@ -264,6 +270,8 @@ enum LinkedNodeKind : byte {
   expressionStatement,
 
   extendsClause,
+
+  extensionDeclaration,
 
   fieldDeclaration,
 
@@ -1455,6 +1463,9 @@ table AnalysisDriverSubtype {
 
 /// Information about an error in a resolved unit.
 table AnalysisDriverUnitError {
+  /// The context messages associated with the error.
+  contextMessages:[DiagnosticMessage] (id: 5);
+
   /// The optional correction hint for the error.
   correction:string (id: 4);
 
@@ -1591,54 +1602,58 @@ table AnalysisDriverUnlinkedUnit {
 table AvailableDeclaration {
   children:[AvailableDeclaration] (id: 0);
 
-  defaultArgumentListString:string (id: 1);
+  codeLength:uint (id: 1);
 
-  defaultArgumentListTextRanges:[uint] (id: 2);
+  codeOffset:uint (id: 2);
 
-  docComplete:string (id: 3);
+  defaultArgumentListString:string (id: 3);
 
-  docSummary:string (id: 4);
+  defaultArgumentListTextRanges:[uint] (id: 4);
 
-  fieldMask:uint (id: 5);
+  docComplete:string (id: 5);
 
-  isAbstract:bool (id: 6);
+  docSummary:string (id: 6);
 
-  isConst:bool (id: 7);
+  fieldMask:uint (id: 7);
 
-  isDeprecated:bool (id: 8);
+  isAbstract:bool (id: 8);
 
-  isFinal:bool (id: 9);
+  isConst:bool (id: 9);
+
+  isDeprecated:bool (id: 10);
+
+  isFinal:bool (id: 11);
 
   /// The kind of the declaration.
-  kind:AvailableDeclarationKind (id: 10);
+  kind:AvailableDeclarationKind (id: 12);
 
-  locationOffset:uint (id: 11);
+  locationOffset:uint (id: 13);
 
-  locationStartColumn:uint (id: 12);
+  locationStartColumn:uint (id: 14);
 
-  locationStartLine:uint (id: 13);
+  locationStartLine:uint (id: 15);
 
   /// The first part of the declaration name, usually the only one, for example
   /// the name of a class like `MyClass`, or a function like `myFunction`.
-  name:string (id: 14);
+  name:string (id: 16);
 
-  parameterNames:[string] (id: 15);
+  parameterNames:[string] (id: 17);
 
-  parameters:string (id: 16);
+  parameters:string (id: 18);
 
-  parameterTypes:[string] (id: 17);
+  parameterTypes:[string] (id: 19);
 
   /// The partial list of relevance tags.  Not every declaration has one (for
   /// example, function do not currently), and not every declaration has to
   /// store one (for classes it can be computed when we know the library that
   /// includes this file).
-  relevanceTags:[string] (id: 18);
+  relevanceTags:[string] (id: 20);
 
-  requiredParameterCount:uint (id: 19);
+  requiredParameterCount:uint (id: 21);
 
-  returnType:string (id: 20);
+  returnType:string (id: 22);
 
-  typeParameters:string (id: 21);
+  typeParameters:string (id: 23);
 }
 
 /// Information about an available, even if not yet imported file.
@@ -1647,19 +1662,22 @@ table AvailableFile {
   declarations:[AvailableDeclaration] (id: 0);
 
   /// The Dartdoc directives in the file.
-  directiveInfo:DirectiveInfo (id: 5);
+  directiveInfo:DirectiveInfo (id: 1);
 
   /// Exports directives of the file.
-  exports:[AvailableFileExport] (id: 1);
+  exports:[AvailableFileExport] (id: 2);
 
   /// Is `true` if this file is a library.
-  isLibrary:bool (id: 2);
+  isLibrary:bool (id: 3);
 
   /// Is `true` if this file is a library, and it is deprecated.
-  isLibraryDeprecated:bool (id: 3);
+  isLibraryDeprecated:bool (id: 4);
+
+  /// Offsets of the first character of each line in the source code.
+  lineStarts:[uint] (id: 5);
 
   /// URIs of `part` directives.
-  parts:[string] (id: 4);
+  parts:[string] (id: 6);
 }
 
 /// Information about an export directive.
@@ -1687,6 +1705,21 @@ table CodeRange {
 
   /// Offset of the element code relative to the beginning of the file.
   offset:uint (id: 0);
+}
+
+table DiagnosticMessage {
+  /// The absolute and normalized path of the file associated with this message.
+  filePath:string (id: 0);
+
+  /// The length of the source range associated with this message.
+  length:uint (id: 1);
+
+  /// The text of the message.
+  message:string (id: 2);
+
+  /// The zero-based offset from the start of the file to the beginning of the
+  /// source range associated with this message.
+  offset:uint (id: 3);
 }
 
 /// Information about the Dartdoc directives in an [AvailableFile].
@@ -1894,9 +1927,9 @@ table LinkedNode {
 
   variantField_17:uint (id: 17);
 
-  variantField_23:LinkedNodeType (id: 23);
-
   variantField_8:LinkedNode (id: 8);
+
+  variantField_38:LinkedNodeTypeSubstitution (id: 38);
 
   variantField_15:uint (id: 15);
 
@@ -1926,6 +1959,8 @@ table LinkedNode {
 
   variantField_25:LinkedNodeType (id: 25);
 
+  variantField_20:string (id: 20);
+
   flags:uint (id: 18);
 
   variantField_1:string (id: 1);
@@ -1944,13 +1979,13 @@ table LinkedNode {
 
   name:string (id: 37);
 
-  variantField_20:string (id: 20);
-
   variantField_31:bool (id: 31);
 
   variantField_35:UnlinkedTokenType (id: 35);
 
   variantField_32:TopLevelInferenceError (id: 32);
+
+  variantField_23:LinkedNodeType (id: 23);
 
   variantField_11:LinkedNode (id: 11);
 
@@ -1996,11 +2031,12 @@ table LinkedNodeType {
 
   functionReturnType:LinkedNodeType (id: 1);
 
+  /// The typedef this function type is created for.
+  functionTypedef:uint (id: 9);
+
+  functionTypedefTypeArguments:[LinkedNodeType] (id: 10);
+
   functionTypeParameters:[LinkedNodeTypeTypeParameter] (id: 2);
-
-  genericTypeAliasReference:uint (id: 8);
-
-  genericTypeAliasTypeArguments:[LinkedNodeType] (id: 9);
 
   /// Reference to a [LinkedNodeReferences].
   interfaceClass:uint (id: 3);
@@ -2009,7 +2045,7 @@ table LinkedNodeType {
 
   kind:LinkedNodeTypeKind (id: 5);
 
-  nullabilitySuffix:EntityRefNullabilitySuffix (id: 10);
+  nullabilitySuffix:EntityRefNullabilitySuffix (id: 8);
 
   typeParameterElement:uint (id: 6);
 
@@ -2023,6 +2059,13 @@ table LinkedNodeTypeFormalParameter {
   name:string (id: 1);
 
   type:LinkedNodeType (id: 2);
+}
+
+/// Information about a type substitution.
+table LinkedNodeTypeSubstitution {
+  typeArguments:[LinkedNodeType] (id: 1);
+
+  typeParameters:[uint] (id: 0);
 }
 
 /// Information about a type parameter in a function type.
@@ -2040,8 +2083,13 @@ table LinkedNodeUnit {
 
   node:LinkedNode (id: 2);
 
+  /// If the unit is a part, the URI specified in the `part` directive.
+  /// Otherwise empty.
+  partUriStr:string (id: 5);
+
   tokens:UnlinkedTokens (id: 1);
 
+  /// The absolute URI.
   uriStr:string (id: 0);
 }
 
@@ -2696,6 +2744,39 @@ table UnlinkedExpr {
   strings:[string] (id: 3);
 }
 
+/// Unlinked summary information about an extension declaration.
+table UnlinkedExtension {
+  /// Annotations for this extension.
+  annotations:[UnlinkedExpr] (id: 4);
+
+  /// Code range of the extension.
+  codeRange:CodeRange (id: 7);
+
+  /// Documentation comment for the extension, or `null` if there is no
+  /// documentation comment.
+  documentationComment:UnlinkedDocumentationComment (id: 5);
+
+  /// Executable objects (methods, getters, and setters) contained in the
+  /// extension.
+  executables:[UnlinkedExecutable] (id: 2);
+
+  /// The type being extended.
+  extendedType:EntityRef (id: 3);
+
+  /// Field declarations contained in the extension.
+  fields:[UnlinkedVariable] (id: 8);
+
+  /// Name of the extension, or an empty string if there is no name.
+  name:string (id: 0);
+
+  /// Offset of the extension name relative to the beginning of the file, or
+  /// zero if there is no name.
+  nameOffset:uint (id: 1);
+
+  /// Type parameters of the extension, if any.
+  typeParameters:[UnlinkedTypeParam] (id: 6);
+}
+
 /// Unlinked summary information about an import declaration.
 table UnlinkedImport {
   /// Annotations for this import declaration.
@@ -2745,19 +2826,27 @@ table UnlinkedInformativeData {
 
   variantField_3:uint (id: 3);
 
+  variantField_9:uint (id: 9);
+
+  variantField_8:uint (id: 8);
+
+  /// Offsets of the first character of each line in the source code.
+  variantField_7:[uint] (id: 7);
+
+  variantField_6:uint (id: 6);
+
+  variantField_5:uint (id: 5);
+
+  /// If the parameter has a default value, the source text of the constant
+  /// expression in the default value.  Otherwise the empty string.
+  variantField_10:string (id: 10);
+
   variantField_1:uint (id: 1);
 
   variantField_4:[string] (id: 4);
 
   /// The kind of the node.
   kind:LinkedNodeKind (id: 0);
-
-  variantField_5:uint (id: 5);
-
-  variantField_6:uint (id: 6);
-
-  /// Offsets of the first character of each line in the source code.
-  variantField_7:[uint] (id: 7);
 }
 
 /// Unlinked summary information about a function parameter.
@@ -3028,6 +3117,9 @@ table UnlinkedUnit {
 
   /// Export declarations in the compilation unit.
   exports:[UnlinkedExportNonPublic] (id: 13);
+
+  /// Extensions declared in the compilation unit.
+  extensions:[UnlinkedExtension] (id: 22);
 
   /// If this compilation unit was summarized in fallback mode, the path where
   /// the compilation unit may be found on disk.  Otherwise empty.

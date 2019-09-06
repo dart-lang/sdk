@@ -84,6 +84,7 @@ status_file/test/normalize_test: SkipByDesign # Uses dart:io
 status_file/test/parse_and_normalize_test: SkipByDesign # Uses dart:io
 status_file/test/repo_status_files_test: SkipByDesign # Uses dart:io
 telemetry/test/*: SkipByDesign # Only meant to run on vm
+test_runner/test/*: SkipByDesign # Only meant to run on vm
 testing/*: SkipByDesign # Only meant to run on vm
 typed_data/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64List.
 

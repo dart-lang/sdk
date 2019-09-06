@@ -41,27 +41,42 @@ class TranslationHelper {
   Heap::Space allocation_space() { return allocation_space_; }
 
   // Access to strings.
-  const TypedData& string_offsets() { return string_offsets_; }
+  const TypedData& string_offsets() const { return string_offsets_; }
   void SetStringOffsets(const TypedData& string_offsets);
 
-  const ExternalTypedData& string_data() { return string_data_; }
+  const ExternalTypedData& string_data() const { return string_data_; }
   void SetStringData(const ExternalTypedData& string_data);
 
-  const TypedData& canonical_names() { return canonical_names_; }
+  const TypedData& canonical_names() const { return canonical_names_; }
   void SetCanonicalNames(const TypedData& canonical_names);
 
-  const ExternalTypedData& metadata_payloads() { return metadata_payloads_; }
+  const ExternalTypedData& metadata_payloads() const {
+    return metadata_payloads_;
+  }
   void SetMetadataPayloads(const ExternalTypedData& metadata_payloads);
 
-  const ExternalTypedData& metadata_mappings() { return metadata_mappings_; }
+  const ExternalTypedData& metadata_mappings() const {
+    return metadata_mappings_;
+  }
   void SetMetadataMappings(const ExternalTypedData& metadata_mappings);
 
+  // Access to previously evaluated constants from the constants table.
   const Array& constants() { return constants_; }
   void SetConstants(const Array& constants);
 
+  // Access to the raw bytes of the constants table.
+  const ExternalTypedData& constants_table() const { return constants_table_; }
+  void SetConstantsTable(const ExternalTypedData& constants_table);
+
+  KernelProgramInfo& info() { return info_; }
+
   RawGrowableObjectArray* EnsurePotentialPragmaFunctions();
 
+  void AddPotentialExtensionLibrary(const Library& library);
+  RawGrowableObjectArray* GetPotentialExtensionLibraries();
+
   void SetKernelProgramInfo(const KernelProgramInfo& info);
+  const KernelProgramInfo& GetKernelProgramInfo() const { return info_; }
 
   intptr_t StringOffset(StringIndex index) const;
   intptr_t StringSize(StringIndex index) const;
@@ -180,6 +195,17 @@ class TranslationHelper {
     info_.set_bytecode_component(bytecode_component);
   }
 
+  void SetExpressionEvaluationFunction(const Function& function) {
+    ASSERT(expression_evaluation_function_ == nullptr);
+    expression_evaluation_function_ = &Function::Handle(zone_, function.raw());
+  }
+  const Function& GetExpressionEvaluationFunction() {
+    if (expression_evaluation_function_ == nullptr) {
+      return Function::null_function();
+    }
+    return *expression_evaluation_function_;
+  }
+
  private:
   // This will mangle [name_to_modify] if necessary and make the result a symbol
   // if asked.  The result will be available in [name_to_modify] and it is also
@@ -205,8 +231,11 @@ class TranslationHelper {
   ExternalTypedData& metadata_payloads_;
   ExternalTypedData& metadata_mappings_;
   Array& constants_;
+  ExternalTypedData& constants_table_;
   KernelProgramInfo& info_;
   Smi& name_index_handle_;
+  GrowableObjectArray* potential_extension_libraries_ = nullptr;
+  Function* expression_evaluation_function_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(TranslationHelper);
 };
@@ -440,7 +469,7 @@ class FieldHelper {
   NameIndex canonical_name_;
   TokenPosition position_;
   TokenPosition end_position_;
-  uint8_t flags_ = 0;
+  uint32_t flags_ = 0;
   intptr_t source_uri_index_ = 0;
   intptr_t annotation_count_ = 0;
 
@@ -526,7 +555,7 @@ class ProcedureHelper {
   TokenPosition position_;
   TokenPosition end_position_;
   Kind kind_;
-  uint8_t flags_ = 0;
+  uint32_t flags_ = 0;
   intptr_t source_uri_index_ = 0;
   intptr_t annotation_count_ = 0;
 
@@ -686,6 +715,7 @@ class LibraryHelper {
  public:
   enum Field {
     kFlags,
+    kLanguageVersion /* from binary version 27 */,
     kCanonicalName,
     kName,
     kSourceUriIndex,
@@ -710,8 +740,8 @@ class LibraryHelper {
     kSynthetic = 1 << 1,
   };
 
-  explicit LibraryHelper(KernelReaderHelper* helper)
-      : helper_(helper), next_read_(kFlags) {}
+  explicit LibraryHelper(KernelReaderHelper* helper, uint32_t binary_version)
+      : helper_(helper), binary_version_(binary_version), next_read_(kFlags) {}
 
   void ReadUntilIncluding(Field field) {
     ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
@@ -732,6 +762,7 @@ class LibraryHelper {
 
  private:
   KernelReaderHelper* helper_;
+  uint32_t binary_version_;
   intptr_t next_read_;
 
   DISALLOW_COPY_AND_ASSIGN(LibraryHelper);
@@ -1048,9 +1079,10 @@ class KernelReaderHelper {
   void SkipLibraryDependency();
   void SkipLibraryPart();
   void SkipLibraryTypedef();
-  TokenPosition ReadPosition(bool record = true);
+  TokenPosition ReadPosition();
   Tag ReadTag(uint8_t* payload = NULL);
   uint8_t ReadFlags() { return reader_.ReadFlags(); }
+  Nullability ReadNullability();
 
   intptr_t SourceTableSize();
   intptr_t GetOffsetForSourceInfo(intptr_t index);
@@ -1180,6 +1212,23 @@ class ActiveMemberScope {
   ActiveClass saved_;
 
   DISALLOW_COPY_AND_ASSIGN(ActiveMemberScope);
+};
+
+class ActiveEnclosingFunctionScope {
+ public:
+  ActiveEnclosingFunctionScope(ActiveClass* active_class,
+                               const Function* enclosing)
+      : active_class_(active_class), saved_(*active_class) {
+    active_class_->enclosing = enclosing;
+  }
+
+  ~ActiveEnclosingFunctionScope() { *active_class_ = saved_; }
+
+ private:
+  ActiveClass* active_class_;
+  ActiveClass saved_;
+
+  DISALLOW_COPY_AND_ASSIGN(ActiveEnclosingFunctionScope);
 };
 
 class ActiveTypeParametersScope {

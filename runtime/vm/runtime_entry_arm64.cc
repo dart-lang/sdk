@@ -43,7 +43,7 @@ uword RuntimeEntry::GetEntryPoint() const {
 //   R5 : address of the runtime function to call.
 //   R4 : number of arguments to the call.
 void RuntimeEntry::CallInternal(const RuntimeEntry* runtime_entry,
-                                Assembler* assembler,
+                                compiler::Assembler* assembler,
                                 intptr_t argument_count) {
   if (runtime_entry->is_leaf()) {
     ASSERT(argument_count == runtime_entry->argument_count());
@@ -62,11 +62,12 @@ void RuntimeEntry::CallInternal(const RuntimeEntry* runtime_entry,
     __ mov(R25, SP);
     __ ReserveAlignedFrameSpace(0);
     __ mov(CSP, SP);
-    __ ldr(TMP, Address(THR, Thread::OffsetFromThread(runtime_entry)));
-    __ str(TMP, Address(THR, Thread::vm_tag_offset()));
+    __ ldr(TMP,
+           compiler::Address(THR, Thread::OffsetFromThread(runtime_entry)));
+    __ str(TMP, compiler::Address(THR, Thread::vm_tag_offset()));
     __ blr(TMP);
     __ LoadImmediate(TMP, VMTag::kDartCompiledTagId);
-    __ str(TMP, Address(THR, Thread::vm_tag_offset()));
+    __ str(TMP, compiler::Address(THR, Thread::vm_tag_offset()));
     __ mov(SP, R25);
     __ mov(CSP, R23);
     ASSERT((kAbiPreservedCpuRegs & (1 << THR)) != 0);
@@ -74,7 +75,7 @@ void RuntimeEntry::CallInternal(const RuntimeEntry* runtime_entry,
   } else {
     // Argument count is not checked here, but in the runtime entry for a more
     // informative error message.
-    __ ldr(R5, Address(THR, Thread::OffsetFromThread(runtime_entry)));
+    __ ldr(R5, compiler::Address(THR, Thread::OffsetFromThread(runtime_entry)));
     __ LoadImmediate(R4, argument_count);
     __ BranchLinkToRuntime();
   }

@@ -90,7 +90,7 @@ int OS::GetTimeZoneOffsetInSeconds(int64_t seconds_since_epoch) {
 int OS::GetLocalTimeZoneAdjustmentInSeconds() {
   int32_t local_offset, dst_offset;
   zx_time_t now = 0;
-  zx_clock_get_new(ZX_CLOCK_UTC, &now);
+  zx_clock_get(ZX_CLOCK_UTC, &now);
   zx_status_t status = GetLocalAndDstOffsetInSeconds(
       now / ZX_SEC(1), &local_offset, &dst_offset);
   return status == ZX_OK ? local_offset : 0;
@@ -102,7 +102,7 @@ int64_t OS::GetCurrentTimeMillis() {
 
 int64_t OS::GetCurrentTimeMicros() {
   zx_time_t now = 0;
-  zx_clock_get_new(ZX_CLOCK_UTC, &now);
+  zx_clock_get(ZX_CLOCK_UTC, &now);
   return now / kNanosecondsPerMicrosecond;
 }
 
@@ -122,7 +122,7 @@ int64_t OS::GetCurrentMonotonicMicros() {
 
 int64_t OS::GetCurrentThreadCPUMicros() {
   zx_time_t now = 0;
-  zx_clock_get_new(ZX_CLOCK_THREAD, &now);
+  zx_clock_get(ZX_CLOCK_THREAD, &now);
   return now / kNanosecondsPerMicrosecond;
 }
 
@@ -130,9 +130,13 @@ int64_t OS::GetCurrentThreadCPUMicros() {
 // into a architecture specific file e.g: os_ia32_fuchsia.cc
 intptr_t OS::ActivationFrameAlignment() {
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
-    defined(TARGET_ARCH_ARM64)
+    defined(TARGET_ARCH_ARM64) ||                                              \
+    defined(TARGET_ARCH_DBC) &&                                                \
+        (defined(HOST_ARCH_IA32) || defined(HOST_ARCH_X64) ||                  \
+         defined(HOST_ARCH_ARM64))
   const int kMinimumAlignment = 16;
-#elif defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_DBC)
+#elif defined(TARGET_ARCH_ARM) ||                                              \
+    defined(TARGET_ARCH_DBC) && defined(HOST_ARCH_ARM)
   const int kMinimumAlignment = 8;
 #else
 #error Unsupported architecture.
@@ -281,6 +285,7 @@ void OS::Cleanup() {}
 void OS::PrepareToAbort() {}
 
 void OS::Abort() {
+  PrepareToAbort();
   abort();
 }
 

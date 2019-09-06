@@ -14,6 +14,7 @@ class Object {
   // The VM has its own implementation of equals.
   @patch
   @pragma("vm:exact-result-type", bool)
+  @pragma("vm:prefer-inline")
   bool operator ==(other) native "Object_equals";
 
   // Helpers used to implement hashCode. If a hashCode is used, we remember it

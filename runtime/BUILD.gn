@@ -146,6 +146,10 @@ config("dart_config") {
     include_dirs += [ "../third_party/tcmalloc/gperftools/src" ]
   }
 
+  if (dart_platform_bytecode) {
+    defines += [ "DART_USE_BYTECODE" ]
+  }
+
   if (is_fuchsia) {
     if (using_fuchsia_sdk) {
       # TODO(chinmaygarde): Currenty these targets need to be build in the

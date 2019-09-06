@@ -26,8 +26,10 @@ void CodeBreakpoint::PatchCode() {
   Code& stub_target = Code::Handle();
   switch (breakpoint_kind_) {
     case RawPcDescriptors::kIcCall:
-    case RawPcDescriptors::kUnoptStaticCall:
       stub_target = StubCode::ICCallBreakpoint().raw();
+      break;
+    case RawPcDescriptors::kUnoptStaticCall:
+      stub_target = StubCode::UnoptStaticCallBreakpoint().raw();
       break;
     case RawPcDescriptors::kRuntimeCall:
       stub_target = StubCode::RuntimeCallBreakpoint().raw();

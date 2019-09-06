@@ -26,4 +26,7 @@ main() {
 }
 
 @pragma('dart2js:noInline')
-void test(C<A> c) {}
+void test(Object o) => test1(o);
+
+@pragma('dart2js:noInline')
+void test1(C<A> c) {}

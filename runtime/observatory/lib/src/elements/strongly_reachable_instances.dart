@@ -92,7 +92,7 @@ class StronglyReachableInstancesElement extends CustomElement
     if (_result == null) {
       return [new SpanElement()..text = 'Loading...'];
     }
-    final content = _result.samples
+    final content = _result.instances
         .map<Element>((sample) => new DivElement()
           ..children = <Element>[
             anyRef(_isolate, sample, _objects, queue: _r.queue)
@@ -106,7 +106,7 @@ class StronglyReachableInstancesElement extends CustomElement
   }
 
   List<Element> _createShowMoreButton() {
-    final samples = _result.samples.toList();
+    final samples = _result.instances.toList();
     if (samples.length == _result.count) {
       return [];
     }

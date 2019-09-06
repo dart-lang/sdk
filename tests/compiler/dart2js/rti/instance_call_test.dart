@@ -8,8 +8,9 @@ import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/names.dart';
-import 'package:compiler/src/js_backend/runtime_types.dart';
+import 'package:compiler/src/js_backend/runtime_types_resolution.dart';
 import 'package:compiler/src/js_emitter/model.dart';
+import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:compiler/src/js/js.dart' as js;
 import 'package:compiler/src/world.dart';
 import 'package:compiler/src/universe/call_structure.dart';
@@ -101,13 +102,14 @@ main() {
         options: [Flags.omitImplicitChecks]);
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
+    JsBackendStrategy backendStrategy = compiler.backendStrategy;
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     RuntimeTypesNeed rtiNeed = closedWorld.rtiNeed;
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
-    ProgramLookup programLookup = new ProgramLookup(compiler);
+    ProgramLookup programLookup = new ProgramLookup(backendStrategy);
 
     js.Name getName(String name, int typeArguments) {
-      return compiler.backend.namerForTesting.invocationName(new Selector.call(
+      return backendStrategy.namerForTesting.invocationName(new Selector.call(
           new PublicName(name),
           new CallStructure(1, const <String>[], typeArguments)));
     }

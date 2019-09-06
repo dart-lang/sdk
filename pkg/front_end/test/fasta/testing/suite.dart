@@ -10,7 +10,8 @@ import 'dart:convert' show jsonDecode;
 
 import 'dart:io' show File, Platform;
 
-import 'package:kernel/ast.dart' show Library, Component;
+import 'package:kernel/ast.dart'
+    show AwaitExpression, Component, Library, Node, Visitor;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
@@ -111,6 +112,10 @@ const String EXPECTATIONS = '''
     "group": "Fail"
   },
   {
+    "name": "TransformVerificationError",
+    "group": "Fail"
+  },
+  {
     "name": "TextSerializationFailure",
     "group": "Fail"
   }
@@ -131,9 +136,7 @@ class FastaContext extends ChainContext with MatchContext {
   final Uri vm;
   final bool legacyMode;
   final bool onlyCrashes;
-  final bool enableControlFlowCollections;
-  final bool enableSetLiterals;
-  final bool enableSpreadCollections;
+  final Map<ExperimentalFlag, bool> experimentalFlags;
   final bool skipVm;
   final Map<Component, KernelTarget> componentToTarget =
       <Component, KernelTarget>{};
@@ -157,9 +160,7 @@ class FastaContext extends ChainContext with MatchContext {
       this.legacyMode,
       this.platformBinaries,
       this.onlyCrashes,
-      this.enableControlFlowCollections,
-      this.enableSetLiterals,
-      this.enableSpreadCollections,
+      this.experimentalFlags,
       bool ignoreExpectations,
       this.updateExpectations,
       bool updateComments,
@@ -248,11 +249,16 @@ class FastaContext extends ChainContext with MatchContext {
     Uri vm = Uri.base.resolveUri(new Uri.file(Platform.resolvedExecutable));
     Uri packages = Uri.base.resolve(".packages");
     bool legacyMode = environment.containsKey(LEGACY_MODE);
-    bool enableControlFlowCollections =
-        environment["enableControlFlowCollections"] != "false" && !legacyMode;
-    bool enableSetLiterals = environment["enableSetLiterals"] != "false";
-    bool enableSpreadCollections =
-        environment["enableSpreadCollections"] != "false" && !legacyMode;
+    Map<ExperimentalFlag, bool> experimentalFlags = <ExperimentalFlag, bool>{
+      ExperimentalFlag.controlFlowCollections:
+          environment["enableControlFlowCollections"] != "false" && !legacyMode,
+      ExperimentalFlag.spreadCollections:
+          environment["enableSpreadCollections"] != "false" && !legacyMode,
+      ExperimentalFlag.extensionMethods:
+          environment["enableExtensionMethods"] != "false" && !legacyMode,
+      ExperimentalFlag.nonNullable:
+          environment["enableNonNullable"] != "false" && !legacyMode,
+    };
     var options = new ProcessedOptions(
         options: new CompilerOptions()
           ..onDiagnostic = (DiagnosticMessage message) {
@@ -260,12 +266,8 @@ class FastaContext extends ChainContext with MatchContext {
           }
           ..sdkRoot = sdk
           ..packagesFileUri = packages
-          ..experimentalFlags = <ExperimentalFlag, bool>{
-            ExperimentalFlag.controlFlowCollections:
-                enableControlFlowCollections,
-            ExperimentalFlag.setLiterals: enableSetLiterals,
-            ExperimentalFlag.spreadCollections: enableSpreadCollections,
-          });
+          ..environmentDefines = {}
+          ..experimentalFlags = experimentalFlags);
     UriTranslator uriTranslator = await options.getUriTranslator();
     bool onlyCrashes = environment["onlyCrashes"] == "true";
     bool ignoreExpectations = environment["ignoreExpectations"] == "true";
@@ -285,9 +287,7 @@ class FastaContext extends ChainContext with MatchContext {
             ? computePlatformBinariesLocation(forceBuildDir: true)
             : Uri.base.resolve(platformBinaries),
         onlyCrashes,
-        enableControlFlowCollections,
-        enableSetLiterals,
-        enableSpreadCollections,
+        experimentalFlags,
         ignoreExpectations,
         updateExpectations,
         updateComments,
@@ -319,7 +319,7 @@ class Run extends Step<Uri, int, FastaContext> {
       process = await StdioProcess.run(context.vm.toFilePath(), args);
       print(process.output);
     } finally {
-      generated.parent.delete(recursive: true);
+      await generated.parent.delete(recursive: true);
     }
     return process.toResult();
   }
@@ -353,12 +353,8 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
             }
             errors.writeAll(message.plainTextFormatted, "\n");
           }
-          ..experimentalFlags = <ExperimentalFlag, bool>{
-            ExperimentalFlag.controlFlowCollections:
-                context.enableControlFlowCollections,
-            ExperimentalFlag.setLiterals: context.enableSetLiterals,
-            ExperimentalFlag.spreadCollections: context.enableSpreadCollections,
-          },
+          ..environmentDefines = {}
+          ..experimentalFlags = context.experimentalFlags,
         inputs: <Uri>[description.uri]);
     return await CompilerContext.runWithOptions(options, (_) async {
       // Disable colors to ensure that expectation files are the same across
@@ -374,7 +370,7 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
       UriTranslator uriTranslator = new UriTranslator(
           const TargetLibrariesSpecification('vm'),
           context.uriTranslator.packages);
-      KernelTarget sourceTarget = new KernelTestingTarget(
+      KernelTarget sourceTarget = new KernelTarget(
           StandardFileSystem.instance, false, dillTarget, uriTranslator);
 
       sourceTarget.setEntryPoints(<Uri>[description.uri]);
@@ -428,7 +424,38 @@ class Transform extends Step<Component, Component, FastaContext> {
     } finally {
       backendTarget.enabled = false;
     }
+    List<String> errors = VerifyTransformed.verify(component);
+    if (errors.isNotEmpty) {
+      return new Result<Component>(
+          component,
+          context.expectationSet["TransformVerificationError"],
+          errors.join('\n'),
+          null);
+    }
     return pass(component);
+  }
+}
+
+/// Visitor that checks that the component has been transformed properly.
+// TODO(johnniwinther): Add checks for all nodes that are unsupported after
+// transformation.
+class VerifyTransformed extends Visitor<void> {
+  List<String> errors = [];
+
+  @override
+  void defaultNode(Node node) {
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitAwaitExpression(AwaitExpression node) {
+    errors.add("ERROR: Untransformed await expression: $node");
+  }
+
+  static List<String> verify(Component component) {
+    VerifyTransformed visitor = new VerifyTransformed();
+    component.accept(visitor);
+    return visitor.errors;
   }
 }
 
@@ -445,11 +472,12 @@ class TestVmTarget extends VmTarget {
       CoreTypes coreTypes,
       ClassHierarchy hierarchy,
       List<Library> libraries,
+      Map<String, String> environmentDefines,
       DiagnosticReporter diagnosticReporter,
       {void logger(String msg)}) {
     if (enabled) {
-      super.performModularTransformationsOnLibraries(
-          component, coreTypes, hierarchy, libraries, diagnosticReporter,
+      super.performModularTransformationsOnLibraries(component, coreTypes,
+          hierarchy, libraries, environmentDefines, diagnosticReporter,
           logger: logger);
     }
   }
@@ -469,15 +497,6 @@ class EnsureNoErrors extends Step<Component, Component, FastaContext> {
   }
 }
 
-class KernelTestingTarget extends KernelTarget {
-  @override
-  ClassHierarchyBuilder builderHierarchy;
-
-  KernelTestingTarget(StandardFileSystem fileSystem, bool includeComments,
-      DillTarget dillTarget, UriTranslator uriTranslator)
-      : super(fileSystem, includeComments, dillTarget, uriTranslator);
-}
-
 class MatchHierarchy extends Step<Component, Component, FastaContext> {
   const MatchHierarchy();
 
@@ -487,8 +506,8 @@ class MatchHierarchy extends Step<Component, Component, FastaContext> {
       Component component, FastaContext context) async {
     Uri uri =
         component.uriToSource.keys.firstWhere((uri) => uri?.scheme == "file");
-    KernelTestingTarget target = context.componentToTarget[component];
-    ClassHierarchyBuilder hierarchy = target.builderHierarchy;
+    KernelTarget target = context.componentToTarget[component];
+    ClassHierarchyBuilder hierarchy = target.loader.builderHierarchy;
     StringBuffer sb = new StringBuffer();
     for (ClassHierarchyNode node in hierarchy.nodes.values) {
       node.toString(sb);

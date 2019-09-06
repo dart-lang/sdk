@@ -119,7 +119,8 @@ int CombinedCodeStatistics::CompareEntries(const void* a, const void* b) {
   }
 }
 
-CodeStatistics::CodeStatistics(Assembler* assembler) : assembler_(assembler) {
+CodeStatistics::CodeStatistics(compiler::Assembler* assembler)
+    : assembler_(assembler) {
   memset(entries_, 0, CombinedCodeStatistics::kNumEntries * sizeof(Entry));
   instruction_bytes_ = 0;
   unaccounted_bytes_ = 0;

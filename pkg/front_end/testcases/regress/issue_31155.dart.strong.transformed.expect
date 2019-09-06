@@ -34,12 +34,12 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  synthetic constructor •() → self::A
+  synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
 }
 class B extends core::Object {
-  synthetic constructor •() → self::B
+  synthetic constructor •() → self::B*
     : super core::Object::•()
     ;
 }
@@ -50,7 +50,7 @@ Try correcting the name to the name of an existing method, or defining a method 
   var f = Map<A, B> {};
              ^";
   field dynamic B = null;
-  synthetic constructor •() → self::C
+  synthetic constructor •() → self::C*
     : super core::Object::•()
     ;
   operator >() → dynamic {}

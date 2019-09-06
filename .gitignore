@@ -3,7 +3,6 @@
 /.project
 /Makefile
 /base
-/benchmarks
 /buildtools
 /ipch
 /out
@@ -22,6 +21,11 @@
 *.vcxproj.filters
 /*.vcxproj.user
 *.stamp
+
+# LLVM prebuilts
+/third_party/llvm/include
+/third_party/llvm/lib
+/third_party/llvm/.versions
 
 # Gyp generated files
 *.xcodeproj
@@ -46,15 +50,17 @@ cmake-build-debug
 .vscode
 .history
 
+# https://github.com/Dart-Code/Dart-Code/issues/1295
+/analysis_options.yaml
+
 # analysis server files
-analysis_options.yaml
 compile_commands.json
 
 # GDB files
 .gdb_history
 
-# https://github.com/Dart-Code/Dart-Code/issues/1295
-analysis_options.yaml
+# Clangd files
+.clangd
 
 # Built by chromebot and downloaded from Google Storage
 client/tests/drt
@@ -97,3 +103,4 @@ editor/util/testing/mac/Samples.suite/Results
 /outline.dill
 /generated/
 /crash_logs/
+/build/config/gclient_args.gni

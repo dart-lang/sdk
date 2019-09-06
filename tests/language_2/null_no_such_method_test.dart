@@ -4,10 +4,10 @@
 
 import "package:expect/expect.dart";
 
-var array = <dynamic>[1];
-
 main() {
-  Expect.throwsNoSuchMethodError(() => -null);
+  Expect.throwsNoSuchMethodError(() => -(null as dynamic));
   // Make sure we have an untyped call to operator-.
   print(-array[0]);
 }
+
+var array = <dynamic>[1];

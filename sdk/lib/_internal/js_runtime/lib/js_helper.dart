@@ -59,7 +59,14 @@ import 'dart:_js_names'
         unmangleGlobalNameIfPreservedAnyways,
         unmangleAllIdentifiersIfPreservedAnyways;
 
-import 'dart:_rti' as newRti show getRuntimeType;
+import 'dart:_rti' as newRti
+    show
+        createRuntimeType,
+        evalInInstance,
+        getRuntimeType,
+        getTypeFromTypesTable,
+        instanceTypeName,
+        instantiatedGenericFunctionType;
 
 part 'annotations.dart';
 part 'constant_map.dart';
@@ -350,8 +357,14 @@ class JSInvocationMirror implements Invocation {
     if (_typeArgumentCount == 0) return const <Type>[];
     int start = _arguments.length - _typeArgumentCount;
     var list = <Type>[];
-    for (int index = 0; index < _typeArgumentCount; index++) {
-      list.add(createRuntimeType(_arguments[start + index]));
+    if (JS_GET_FLAG('USE_NEW_RTI')) {
+      for (int index = 0; index < _typeArgumentCount; index++) {
+        list.add(newRti.createRuntimeType(_arguments[start + index]));
+      }
+    } else {
+      for (int index = 0; index < _typeArgumentCount; index++) {
+        list.add(createRuntimeType(_arguments[start + index]));
+      }
     }
     return list;
   }
@@ -476,7 +489,7 @@ class Primitives {
     if (!JS(
         'bool',
         r'/^\s*[+-]?(?:Infinity|NaN|'
-        r'(?:\.\d+|\d+(?:\.\d*)?)(?:[eE][+-]?\d+)?)\s*$/.test(#)',
+            r'(?:\.\d+|\d+(?:\.\d*)?)(?:[eE][+-]?\d+)?)\s*$/.test(#)',
         source)) {
       return null;
     }
@@ -507,10 +520,15 @@ class Primitives {
   }
 
   /// Returns the type of [object] as a string (including type arguments).
+  /// Tries to return a sensible name for non-Dart objects.
   ///
-  /// In minified mode, uses the unminified names if available.
+  /// In minified mode, uses the unminified names if available, otherwise tags
+  /// them with 'minified:'.
   @pragma('dart2js:noInline')
   static String objectTypeName(Object object) {
+    if (JS_GET_FLAG('USE_NEW_RTI')) {
+      return _objectTypeNameNewRti(object);
+    }
     String className = _objectClassName(object);
     String arguments = joinArguments(getRuntimeTypeInfo(object), 0);
     return '${className}${arguments}';
@@ -581,6 +599,54 @@ class Primitives {
     }
     return unminifyOrTag(name);
   }
+
+  /// Returns the type of [object] as a string (including type arguments).
+  /// Tries to return a sensible name for non-Dart objects.
+  ///
+  /// In minified mode, uses the unminified names if available, otherwise tags
+  /// them with 'minified:'.
+  static String _objectTypeNameNewRti(Object object) {
+    var dartObjectConstructor = JS_BUILTIN(
+        'depends:none;effects:none;', JsBuiltin.dartObjectConstructor);
+    if (JS('bool', '# instanceof #', object, dartObjectConstructor)) {
+      return newRti.instanceTypeName(object);
+    }
+
+    var interceptor = getInterceptor(object);
+    if (identical(interceptor, JS_INTERCEPTOR_CONSTANT(Interceptor)) ||
+        object is UnknownJavaScriptObject) {
+      // Try to do better.  If we do not find something better, fallthrough to
+      // Dart-type based name that leave the name as 'UnknownJavaScriptObject'
+      // or 'Interceptor' (or the minified versions thereof).
+      //
+      // When we get here via the UnknownJavaScriptObject test (for JavaScript
+      // objects from outside the program), the object's constructor has a
+      // better name that 'UnknownJavaScriptObject'.
+      //
+      // When we get here the Interceptor test (for Native classes that are
+      // declared in the Dart program but have been 'folded' into Interceptor),
+      // the native class's constructor name is better than the generic
+      // 'Interceptor' (an abstract class).
+
+      // Try the [constructorNameFallback]. This gets the constructor name for
+      // any browser (used by [getNativeInterceptor]).
+      String dispatchName = constructorNameFallback(object);
+      if (_saneNativeClassName(dispatchName)) return dispatchName;
+      var constructor = JS('', '#.constructor', object);
+      if (JS('bool', 'typeof # == "function"', constructor)) {
+        var constructorName = JS('', '#.name', constructor);
+        if (constructorName is String &&
+            _saneNativeClassName(constructorName)) {
+          return constructorName;
+        }
+      }
+    }
+
+    return newRti.instanceTypeName(object);
+  }
+
+  static bool _saneNativeClassName(name) =>
+      name != null && name != 'Object' && name != '';
 
   /// In minified mode, uses the unminified names if available.
   static String objectToHumanReadableString(Object object) {
@@ -729,15 +795,15 @@ class Primitives {
         'JSArray|Null',
         // Thu followed by a space.
         r'/^[A-Z,a-z]{3}\s'
-        // Oct 31 followed by space.
-        r'[A-Z,a-z]{3}\s\d+\s'
-        // Time followed by a space.
-        r'\d{2}:\d{2}:\d{2}\s'
-        // The time zone name followed by a space.
-        r'([A-Z]{3,5})\s'
-        // The year.
-        r'\d{4}$/'
-        '.exec(#.toString())',
+            // Oct 31 followed by space.
+            r'[A-Z,a-z]{3}\s\d+\s'
+            // Time followed by a space.
+            r'\d{2}:\d{2}:\d{2}\s'
+            // The time zone name followed by a space.
+            r'([A-Z]{3,5})\s'
+            // The year.
+            r'\d{4}$/'
+            '.exec(#.toString())',
         d);
     if (match != null) return match[1];
 
@@ -1479,7 +1545,7 @@ class TypeErrorDecoder {
     return JS(
         '',
         r'{ $method$: null, '
-        r'toString: function() { return "$receiver$"; } }');
+            r'toString: function() { return "$receiver$"; } }');
   }
 
   /// Extract a pattern from a JavaScript TypeError message.
@@ -1527,13 +1593,13 @@ class TypeErrorDecoder {
     String pattern = JS(
         'String',
         r"#.replace(new RegExp('\\\\\\$arguments\\\\\\$', 'g'), "
-        r"'((?:x|[^x])*)')"
-        r".replace(new RegExp('\\\\\\$argumentsExpr\\\\\\$', 'g'),  "
-        r"'((?:x|[^x])*)')"
-        r".replace(new RegExp('\\\\\\$expr\\\\\\$', 'g'),  '((?:x|[^x])*)')"
-        r".replace(new RegExp('\\\\\\$method\\\\\\$', 'g'),  '((?:x|[^x])*)')"
-        r".replace(new RegExp('\\\\\\$receiver\\\\\\$', 'g'),  "
-        r"'((?:x|[^x])*)')",
+            r"'((?:x|[^x])*)')"
+            r".replace(new RegExp('\\\\\\$argumentsExpr\\\\\\$', 'g'),  "
+            r"'((?:x|[^x])*)')"
+            r".replace(new RegExp('\\\\\\$expr\\\\\\$', 'g'),  '((?:x|[^x])*)')"
+            r".replace(new RegExp('\\\\\\$method\\\\\\$', 'g'),  '((?:x|[^x])*)')"
+            r".replace(new RegExp('\\\\\\$receiver\\\\\\$', 'g'),  "
+            r"'((?:x|[^x])*)')",
         message);
 
     return new TypeErrorDecoder(
@@ -2038,8 +2104,12 @@ abstract class Closure implements Function {
       // The functions are called here to model the calls from JS forms below.
       // The types in the JS forms in the arguments are propagated in type
       // inference.
-      BoundClosure.receiverOf(JS('BoundClosure', '0'));
-      BoundClosure.selfOf(JS('BoundClosure', '0'));
+      var aBoundClosure = JS('BoundClosure', '0');
+      var aString = JS('String', '0');
+      BoundClosure.receiverOf(aBoundClosure);
+      BoundClosure.selfOf(aBoundClosure);
+      BoundClosure.evalRecipeIntercepted(aBoundClosure, aString);
+      BoundClosure.evalRecipe(aBoundClosure, aString);
       getType(JS('int', '0'));
     });
     // TODO(ahe): All the place below using \$ should be rewritten to go
@@ -2098,7 +2168,7 @@ abstract class Closure implements Function {
             : JS(
                 '',
                 'new Function("a,b,c,d" + #,'
-                ' "this.\$initialize(a,b,c,d" + # + ")")',
+                    ' "this.\$initialize(a,b,c,d" + # + ")")',
                 functionCounter,
                 functionCounter++);
 
@@ -2118,42 +2188,10 @@ abstract class Closure implements Function {
           propertyName);
     }
 
-    var signatureFunction;
-    if (JS('bool', 'typeof # == "number"', functionType)) {
-      // We cannot call [getType] here, since the types-metadata might not be
-      // set yet. This is, because fromTearOff might be called for constants
-      // when the program isn't completely set up yet.
-      //
-      // Note that we cannot just textually inline the call
-      // `getType(functionType)` since we cannot guarantee that the (then)
-      // captured variable `functionType` isn't reused.
-      signatureFunction = JS(
-          '',
-          '''(function(getType, t) {
-                    return function(){ return getType(t); };
-                })(#, #)''',
-          RAW_DART_FUNCTION_REF(getType),
-          functionType);
-    } else if (JS('bool', 'typeof # == "function"', functionType)) {
-      if (isStatic) {
-        signatureFunction = functionType;
-      } else {
-        var getReceiver = isIntercepted
-            ? RAW_DART_FUNCTION_REF(BoundClosure.receiverOf)
-            : RAW_DART_FUNCTION_REF(BoundClosure.selfOf);
-        signatureFunction = JS(
-            '',
-            'function(f,r){'
-            'return function(){'
-            'return f.apply({\$receiver:r(this)},arguments)'
-            '}'
-            '}(#,#)',
-            functionType,
-            getReceiver);
-      }
-    } else {
-      throw 'Error in reflectionInfo.';
-    }
+    var signatureFunction = JS_GET_FLAG('USE_NEW_RTI')
+        ? _computeSignatureFunctionNewRti(functionType, isStatic, isIntercepted)
+        : _computeSignatureFunctionLegacy(
+            functionType, isStatic, isIntercepted);
 
     JS('', '#[#] = #', prototype, JS_GET_NAME(JsGetName.SIGNATURE_NAME),
         signatureFunction);
@@ -2183,6 +2221,83 @@ abstract class Closure implements Function {
     return constructor;
   }
 
+  static _computeSignatureFunctionLegacy(
+      Object functionType, bool isStatic, bool isIntercepted) {
+    if (JS('bool', 'typeof # == "number"', functionType)) {
+      // We cannot call [getType] here, since the types-metadata might not be
+      // set yet. This is, because fromTearOff might be called for constants
+      // when the program isn't completely set up yet.
+      //
+      // Note that we cannot just textually inline the call
+      // `getType(functionType)` since we cannot guarantee that the (then)
+      // captured variable `functionType` isn't reused.
+      return JS(
+          '',
+          '''(function(getType, t) {
+                    return function(){ return getType(t); };
+                })(#, #)''',
+          RAW_DART_FUNCTION_REF(getType),
+          functionType);
+    }
+    if (JS('bool', 'typeof # == "function"', functionType)) {
+      if (isStatic) {
+        return functionType;
+      } else {
+        var getReceiver = isIntercepted
+            ? RAW_DART_FUNCTION_REF(BoundClosure.receiverOf)
+            : RAW_DART_FUNCTION_REF(BoundClosure.selfOf);
+        return JS(
+            '',
+            'function(f,r){'
+                'return function(){'
+                'return f.apply({\$receiver:r(this)},arguments)'
+                '}'
+                '}(#,#)',
+            functionType,
+            getReceiver);
+      }
+    }
+    throw 'Error in functionType of tearoff';
+  }
+
+  static _computeSignatureFunctionNewRti(
+      Object functionType, bool isStatic, bool isIntercepted) {
+    if (JS('bool', 'typeof # == "number"', functionType)) {
+      // Index into types table.
+      //
+      // We cannot call [getTypeFromTypesTable] here, since the types-metadata
+      // might not be set yet. This is, because fromTearOff might be called for
+      // constants when the program isn't completely set up yet. We also want to
+      // avoid creating lots of types at startup.
+      return JS(
+          '',
+          '''(function(getType, t) {
+                 return function(){ return getType(t); };
+             })(#, #)''',
+          RAW_DART_FUNCTION_REF(newRti.getTypeFromTypesTable),
+          functionType);
+    }
+    if (JS('bool', 'typeof # == "string"', functionType)) {
+      // A recipe to evaluate against the instance type.
+      if (isStatic) {
+        throw 'TODO: Recipe for static tearoff.';
+      }
+      var typeEvalMethod = isIntercepted
+          ? RAW_DART_FUNCTION_REF(BoundClosure.evalRecipeIntercepted)
+          : RAW_DART_FUNCTION_REF(BoundClosure.evalRecipe);
+      return JS(
+          '',
+          '    function(recipe, evalOnReceiver) {'
+              '  return function() {'
+              '    return evalOnReceiver(this, recipe);'
+              '  };'
+              '}(#,#)',
+          functionType,
+          typeEvalMethod);
+    }
+    throw 'Error in functionType of tearoff';
+  }
+
   static cspForwardCall(
       int arity, bool isSuperCall, String stubName, function) {
     var getSelf = RAW_DART_FUNCTION_REF(BoundClosure.selfOf);
@@ -2193,70 +2308,70 @@ abstract class Closure implements Function {
         return JS(
             '',
             'function(n,S){'
-            'return function(){'
-            'return S(this)[n]()'
-            '}'
-            '}(#,#)',
+                'return function(){'
+                'return S(this)[n]()'
+                '}'
+                '}(#,#)',
             stubName,
             getSelf);
       case 1:
         return JS(
             '',
             'function(n,S){'
-            'return function(a){'
-            'return S(this)[n](a)'
-            '}'
-            '}(#,#)',
+                'return function(a){'
+                'return S(this)[n](a)'
+                '}'
+                '}(#,#)',
             stubName,
             getSelf);
       case 2:
         return JS(
             '',
             'function(n,S){'
-            'return function(a,b){'
-            'return S(this)[n](a,b)'
-            '}'
-            '}(#,#)',
+                'return function(a,b){'
+                'return S(this)[n](a,b)'
+                '}'
+                '}(#,#)',
             stubName,
             getSelf);
       case 3:
         return JS(
             '',
             'function(n,S){'
-            'return function(a,b,c){'
-            'return S(this)[n](a,b,c)'
-            '}'
-            '}(#,#)',
+                'return function(a,b,c){'
+                'return S(this)[n](a,b,c)'
+                '}'
+                '}(#,#)',
             stubName,
             getSelf);
       case 4:
         return JS(
             '',
             'function(n,S){'
-            'return function(a,b,c,d){'
-            'return S(this)[n](a,b,c,d)'
-            '}'
-            '}(#,#)',
+                'return function(a,b,c,d){'
+                'return S(this)[n](a,b,c,d)'
+                '}'
+                '}(#,#)',
             stubName,
             getSelf);
       case 5:
         return JS(
             '',
             'function(n,S){'
-            'return function(a,b,c,d,e){'
-            'return S(this)[n](a,b,c,d,e)'
-            '}'
-            '}(#,#)',
+                'return function(a,b,c,d,e){'
+                'return S(this)[n](a,b,c,d,e)'
+                '}'
+                '}(#,#)',
             stubName,
             getSelf);
       default:
         return JS(
             '',
             'function(f,s){'
-            'return function(){'
-            'return f.apply(s(this),arguments)'
-            '}'
-            '}(#,#)',
+                'return function(){'
+                'return f.apply(s(this),arguments)'
+                '}'
+                '}(#,#)',
             function,
             getSelf);
     }
@@ -2286,9 +2401,9 @@ abstract class Closure implements Function {
           '',
           '(new Function(#))()',
           'return function(){'
-          'var $selfName = this.${BoundClosure.selfFieldName()};'
-          'return $selfName.$stubName();'
-          '}');
+              'var $selfName = this.${BoundClosure.selfFieldName()};'
+              'return $selfName.$stubName();'
+              '}');
     }
     assert(1 <= arity && arity < 27);
     String arguments = JS('String',
@@ -2298,8 +2413,8 @@ abstract class Closure implements Function {
         '',
         '(new Function(#))()',
         'return function($arguments){'
-        'return this.${BoundClosure.selfFieldName()}.$stubName($arguments);'
-        '}');
+            'return this.${BoundClosure.selfFieldName()}.$stubName($arguments);'
+            '}');
   }
 
   static cspForwardInterceptedCall(
@@ -2317,10 +2432,10 @@ abstract class Closure implements Function {
         return JS(
             '',
             'function(n,s,r){'
-            'return function(){'
-            'return s(this)[n](r(this))'
-            '}'
-            '}(#,#,#)',
+                'return function(){'
+                'return s(this)[n](r(this))'
+                '}'
+                '}(#,#,#)',
             name,
             getSelf,
             getReceiver);
@@ -2328,10 +2443,10 @@ abstract class Closure implements Function {
         return JS(
             '',
             'function(n,s,r){'
-            'return function(a){'
-            'return s(this)[n](r(this),a)'
-            '}'
-            '}(#,#,#)',
+                'return function(a){'
+                'return s(this)[n](r(this),a)'
+                '}'
+                '}(#,#,#)',
             name,
             getSelf,
             getReceiver);
@@ -2339,10 +2454,10 @@ abstract class Closure implements Function {
         return JS(
             '',
             'function(n,s,r){'
-            'return function(a,b){'
-            'return s(this)[n](r(this),a,b)'
-            '}'
-            '}(#,#,#)',
+                'return function(a,b){'
+                'return s(this)[n](r(this),a,b)'
+                '}'
+                '}(#,#,#)',
             name,
             getSelf,
             getReceiver);
@@ -2350,10 +2465,10 @@ abstract class Closure implements Function {
         return JS(
             '',
             'function(n,s,r){'
-            'return function(a,b,c){'
-            'return s(this)[n](r(this),a,b,c)'
-            '}'
-            '}(#,#,#)',
+                'return function(a,b,c){'
+                'return s(this)[n](r(this),a,b,c)'
+                '}'
+                '}(#,#,#)',
             name,
             getSelf,
             getReceiver);
@@ -2361,10 +2476,10 @@ abstract class Closure implements Function {
         return JS(
             '',
             'function(n,s,r){'
-            'return function(a,b,c,d){'
-            'return s(this)[n](r(this),a,b,c,d)'
-            '}'
-            '}(#,#,#)',
+                'return function(a,b,c,d){'
+                'return s(this)[n](r(this),a,b,c,d)'
+                '}'
+                '}(#,#,#)',
             name,
             getSelf,
             getReceiver);
@@ -2372,10 +2487,10 @@ abstract class Closure implements Function {
         return JS(
             '',
             'function(n,s,r){'
-            'return function(a,b,c,d,e){'
-            'return s(this)[n](r(this),a,b,c,d,e)'
-            '}'
-            '}(#,#,#)',
+                'return function(a,b,c,d,e){'
+                'return s(this)[n](r(this),a,b,c,d,e)'
+                '}'
+                '}(#,#,#)',
             name,
             getSelf,
             getReceiver);
@@ -2383,12 +2498,12 @@ abstract class Closure implements Function {
         return JS(
             '',
             'function(f,s,r,a){'
-            'return function(){'
-            'a=[r(this)];'
-            'Array.prototype.push.apply(a,arguments);'
-            'return f.apply(s(this),a)'
-            '}'
-            '}(#,#,#)',
+                'return function(){'
+                'a=[r(this)];'
+                'Array.prototype.push.apply(a,arguments);'
+                'return f.apply(s(this),a)'
+                '}'
+                '}(#,#,#)',
             function,
             getSelf,
             getReceiver);
@@ -2416,9 +2531,9 @@ abstract class Closure implements Function {
           '',
           '(new Function(#))()',
           'return function(){'
-          'return this.$selfField.$stubName(this.$receiverField);'
-          '${functionCounter++}'
-          '}');
+              'return this.$selfField.$stubName(this.$receiverField);'
+              '${functionCounter++}'
+              '}');
     }
     assert(1 < arity && arity < 28);
     String arguments = JS(
@@ -2429,9 +2544,9 @@ abstract class Closure implements Function {
         '',
         '(new Function(#))()',
         'return function($arguments){'
-        'return this.$selfField.$stubName(this.$receiverField, $arguments);'
-        '${functionCounter++}'
-        '}');
+            'return this.$selfField.$stubName(this.$receiverField, $arguments);'
+            '${functionCounter++}'
+            '}');
   }
 
   // The backend adds a special getter of the form
@@ -2443,9 +2558,10 @@ abstract class Closure implements Function {
   // to be visible to resolution and the generation of extra stubs.
 
   String toString() {
-    String name = Primitives.objectTypeName(this);
-    // Mirrors puts a space in front of some names, so remove it.
-    name = JS('String', '#.trim()', name);
+    var constructor = JS('', '#.constructor', this);
+    String name =
+        constructor == null ? null : JS('String|Null', '#.name', constructor);
+    if (name == null) name = 'unknown';
     return "Closure '$name'";
   }
 }
@@ -2456,7 +2572,7 @@ closureFromTearOff(receiver, functions, applyTrampolineIndex, reflectionInfo,
   return Closure.fromTearOff(
       receiver,
       JS('JSArray', '#', functions),
-      applyTrampolineIndex,
+      JS('int|Null', '#', applyTrampolineIndex),
       reflectionInfo,
       JS('bool', '!!#', isStatic),
       JS('bool', '!!#', isIntercepted),
@@ -2526,6 +2642,14 @@ class BoundClosure extends TearOffClosure {
     // e.g. 'minified-property:' so that it can be unminified.
     return "Closure '$_name' of "
         "${Primitives.objectToHumanReadableString(receiver)}";
+  }
+
+  static evalRecipe(BoundClosure closure, String recipe) {
+    return newRti.evalInInstance(closure._self, recipe);
+  }
+
+  static evalRecipeIntercepted(BoundClosure closure, String recipe) {
+    return newRti.evalInInstance(closure._receiver, recipe);
   }
 
   @pragma('dart2js:noInline')
@@ -3248,8 +3372,8 @@ String _computeThisScriptFromTrace() {
     stack = JS(
         'String|Null',
         '(function() {'
-        'try { throw new Error() } catch(e) { return e.stack }'
-        '})()');
+            'try { throw new Error() } catch(e) { return e.stack }'
+            '})()');
     if (stack == null) throw new UnsupportedError('No stack trace');
   }
   var pattern, matches;

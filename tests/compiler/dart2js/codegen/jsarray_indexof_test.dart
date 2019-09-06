@@ -12,6 +12,7 @@ import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/names.dart';
 import 'package:compiler/src/world.dart';
 import 'package:compiler/src/js_emitter/model.dart';
+import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:compiler/src/js/js.dart' as js;
 import 'package:compiler/src/universe/selector.dart';
 import 'package:expect/expect.dart';
@@ -44,14 +45,15 @@ runTest(List<String> options) async {
       memorySourceFiles: {'main.dart': source}, options: options);
   Expect.isTrue(result.isSuccess);
   Compiler compiler = result.compiler;
+  JsBackendStrategy backendStrategy = compiler.backendStrategy;
   JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
   MemberEntity jsArrayIndexOf =
       findClassMember(closedWorld, 'JSArray', 'indexOf');
-  ProgramLookup programLookup = new ProgramLookup(result.compiler);
+  ProgramLookup programLookup = new ProgramLookup(backendStrategy);
 
   Selector getLengthSelector = new Selector.getter(const PublicName('length'));
   js.Name getLengthName =
-      compiler.backend.namerForTesting.invocationName(getLengthSelector);
+      backendStrategy.namerForTesting.invocationName(getLengthSelector);
 
   Method method = programLookup.getMethod(jsArrayIndexOf);
   int lengthCount = 0;

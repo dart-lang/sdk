@@ -54,7 +54,7 @@ DEFINE_FLAG(int,
             "Always inline functions containing threshold or fewer calls.");
 DEFINE_FLAG(int,
             inlining_callee_size_threshold,
-            80,
+            160,
             "Do not inline callees larger than threshold");
 DEFINE_FLAG(int,
             inlining_small_leaf_size_threshold,
@@ -64,21 +64,6 @@ DEFINE_FLAG(int,
             inlining_caller_size_threshold,
             50000,
             "Stop inlining once caller reaches the threshold.");
-DEFINE_FLAG(int,
-            inlining_constant_arguments_count,
-            1,
-            "Inline function calls with sufficient constant arguments "
-            "and up to the increased threshold on instructions");
-DEFINE_FLAG(
-    int,
-    inlining_constant_arguments_max_size_threshold,
-    200,
-    "Do not inline callees larger than threshold if constant arguments");
-DEFINE_FLAG(int,
-            inlining_constant_arguments_min_size_threshold,
-            60,
-            "Inline function calls with sufficient constant arguments "
-            "and up to the increased threshold on instructions");
 DEFINE_FLAG(int,
             inlining_hotness,
             10,
@@ -93,10 +78,6 @@ DEFINE_FLAG(int,
             500,
             "Max. number of inlined calls per depth");
 DEFINE_FLAG(bool, print_inlining_tree, false, "Print inlining tree");
-DEFINE_FLAG(bool,
-            enable_inlining_annotations,
-            false,
-            "Enable inlining annotations");
 
 DECLARE_FLAG(int, max_deoptimization_counter_threshold);
 DECLARE_FLAG(bool, print_flow_graph);
@@ -144,6 +125,16 @@ static bool IsCallRecursive(const Function& function, Definition* call) {
 static ConstantInstr* GetDefaultValue(intptr_t i,
                                       const ParsedFunction& parsed_function) {
   return new ConstantInstr(parsed_function.DefaultParameterValueAt(i));
+}
+
+// Helper to get result type from call (or nullptr otherwise).
+static CompileType* ResultType(Definition* call) {
+  if (auto static_call = call->AsStaticCall()) {
+    return static_call->result_type();
+  } else if (auto instance_call = call->AsInstanceCall()) {
+    return instance_call->result_type();
+  }
+  return nullptr;
 }
 
 // Pair of an argument name and its value.
@@ -442,10 +433,10 @@ class CallSites : public ValueObject {
       return;
     }
 
-    // Recognized methods are not treated as normal calls. They don't have
-    // calls in themselves, so we keep adding those even when at the threshold.
-    const bool inline_only_recognized_methods =
-        (depth == inlining_depth_threshold_);
+    // At the maximum inlining depth, only profitable methods
+    // are further considered for inlining.
+    const bool inline_only_profitable_methods =
+        (depth >= inlining_depth_threshold_);
 
     // In AOT, compute loop hierarchy.
     if (FLAG_precompiled_mode) {
@@ -463,13 +454,15 @@ class CallSites : public ValueObject {
         if (current->IsPolymorphicInstanceCall()) {
           PolymorphicInstanceCallInstr* instance_call =
               current->AsPolymorphicInstanceCall();
-          if (!inline_only_recognized_methods ||
+          if (!inline_only_profitable_methods ||
               instance_call->IsSureToCallSingleRecognizedTarget() ||
               instance_call->HasOnlyDispatcherOrImplicitAccessorTargets()) {
+            // Consider instance call for further inlining. Note that it will
+            // still be subject to all the inlining heuristics.
             instance_calls_.Add(InstanceCallInfo(instance_call, graph, depth));
           } else {
-            // Method not inlined because inlining too deep and method
-            // not recognized.
+            // No longer consider the instance call because inlining is too
+            // deep and the method is not deemed profitable by other criteria.
             if (FLAG_print_inlining_tree) {
               const Function* caller = &graph->function();
               const Function* target = &instance_call->targets().FirstTarget();
@@ -479,13 +472,16 @@ class CallSites : public ValueObject {
           }
         } else if (current->IsStaticCall()) {
           StaticCallInstr* static_call = current->AsStaticCall();
-          if (!inline_only_recognized_methods ||
-              static_call->function().IsRecognized() ||
-              static_call->function().IsDispatcherOrImplicitAccessor()) {
+          const Function& function = static_call->function();
+          if (!inline_only_profitable_methods || function.IsRecognized() ||
+              function.IsDispatcherOrImplicitAccessor() ||
+              (function.is_const() && function.IsGenerativeConstructor())) {
+            // Consider static call for further inlining. Note that it will
+            // still be subject to all the inlining heuristics.
             static_calls_.Add(StaticCallInfo(static_call, graph, depth));
           } else {
-            // Method not inlined because inlining too deep and method
-            // not recognized.
+            // No longer consider the static call because inlining is too
+            // deep and the method is not deemed profitable by other criteria.
             if (FLAG_print_inlining_tree) {
               const Function* caller = &graph->function();
               const Function* target = &static_call->function();
@@ -494,9 +490,13 @@ class CallSites : public ValueObject {
             }
           }
         } else if (current->IsClosureCall()) {
-          if (!inline_only_recognized_methods) {
+          if (!inline_only_profitable_methods) {
+            // Consider closure for further inlining. Note that it will
+            // still be subject to all the inlining heuristics.
             ClosureCallInstr* closure_call = current->AsClosureCall();
             closure_calls_.Add(ClosureCallInfo(closure_call, graph));
+          } else {
+            // No longer consider the closure because inlining is too deep.
           }
         }
       }
@@ -528,14 +528,16 @@ static bool IsSmallLeaf(FlowGraph* graph) {
       } else if (current->IsStaticCall()) {
         const Function& function = current->AsStaticCall()->function();
         const intptr_t inl_size = function.optimized_instruction_count();
+        const bool always_inline =
+            FlowGraphInliner::FunctionHasPreferInlinePragma(function);
         // Accept a static call is always inlined in some way and add the
         // cached size to the total instruction count. A reasonable guess
         // is made if the count has not been collected yet (listed methods
         // are never very large).
-        if (!function.always_inline() && !function.IsRecognized()) {
+        if (!always_inline && !function.IsRecognized()) {
           return false;
         }
-        if (!function.always_inline()) {
+        if (!always_inline) {
           static constexpr intptr_t kAvgListedMethodSize = 20;
           instruction_count +=
               (inl_size == 0 ? kAvgListedMethodSize : inl_size);
@@ -615,27 +617,6 @@ class PolymorphicInliner : public ValueObject {
   const intptr_t caller_inlining_id_;
 };
 
-static bool HasAnnotation(const Function& function, const char* annotation) {
-  const Class& owner = Class::Handle(function.Owner());
-  const Library& library = Library::Handle(owner.library());
-
-  auto& metadata_or_error = Object::Handle(library.GetMetadata(function));
-  if (metadata_or_error.IsError()) {
-    Report::LongJump(Error::Cast(metadata_or_error));
-  }
-  const Array& metadata = Array::Cast(metadata_or_error);
-  if (metadata.Length() > 0) {
-    Object& val = Object::Handle();
-    for (intptr_t i = 0; i < metadata.Length(); i++) {
-      val = metadata.At(i);
-      if (val.IsString() && String::Cast(val).Equals(annotation)) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
 static void ReplaceParameterStubs(Zone* zone,
                                   FlowGraph* caller_graph,
                                   InlinedCallData* call_data,
@@ -673,6 +654,11 @@ static void ReplaceParameterStubs(Zone* zone,
       }
       redefinition->InsertAfter(callee_entry);
       defn = redefinition;
+      // Since the redefinition does not dominate the callee entry, replace
+      // uses of the receiver argument in this entry with the redefined value.
+      callee_entry->ReplaceInEnvironment(
+          call_data->parameter_stubs->At(first_arg_stub_index + i),
+          actual->definition());
     } else if (actual != NULL) {
       defn = actual->definition();
     }
@@ -781,40 +767,33 @@ class CallSiteInliner : public ValueObject {
   // Inlining heuristics based on Cooper et al. 2008.
   InliningDecision ShouldWeInline(const Function& callee,
                                   intptr_t instr_count,
-                                  intptr_t call_site_count,
-                                  intptr_t const_arg_count) {
+                                  intptr_t call_site_count) {
+    // Pragma or size heuristics.
     if (inliner_->AlwaysInline(callee)) {
       return InliningDecision::Yes("AlwaysInline");
-    }
-    if (inlined_size_ > FLAG_inlining_caller_size_threshold) {
-      // Prevent methods becoming humongous and thus slow to compile.
+    } else if (inlined_size_ > FLAG_inlining_caller_size_threshold) {
+      // Prevent caller methods becoming humongous and thus slow to compile.
       return InliningDecision::No("--inlining-caller-size-threshold");
-    }
-    if (const_arg_count > 0) {
-      if (instr_count > FLAG_inlining_constant_arguments_max_size_threshold) {
-        return InliningDecision(
-            false, "--inlining-constant-arguments-max-size-threshold");
-      }
     } else if (instr_count > FLAG_inlining_callee_size_threshold) {
+      // Prevent inlining of callee methods that exceed certain size.
       return InliningDecision::No("--inlining-callee-size-threshold");
     }
-    int callee_inlining_depth = callee.inlining_depth();
-    if (callee_inlining_depth > 0 && callee_inlining_depth + inlining_depth_ >
-                                         FLAG_inlining_depth_threshold) {
+    // Inlining depth.
+    const int callee_inlining_depth = callee.inlining_depth();
+    if (callee_inlining_depth > 0 &&
+        ((callee_inlining_depth + inlining_depth_) >
+         FLAG_inlining_depth_threshold)) {
       return InliningDecision::No("--inlining-depth-threshold");
     }
-    // 'instr_count' can be 0 if it was not computed yet.
-    if ((instr_count != 0) && (instr_count <= FLAG_inlining_size_threshold)) {
+    // Situation instr_count == 0 denotes no counts have been computed yet.
+    // In that case, we say ok to the early heuristic and come back with the
+    // late heuristic.
+    if (instr_count == 0) {
+      return InliningDecision::Yes("need to count first");
+    } else if (instr_count <= FLAG_inlining_size_threshold) {
       return InliningDecision::Yes("--inlining-size-threshold");
-    }
-    if (call_site_count <= FLAG_inlining_callee_call_sites_threshold) {
+    } else if (call_site_count <= FLAG_inlining_callee_call_sites_threshold) {
       return InliningDecision::Yes("--inlining-callee-call-sites-threshold");
-    }
-    if ((const_arg_count >= FLAG_inlining_constant_arguments_count) &&
-        (instr_count <= FLAG_inlining_constant_arguments_min_size_threshold)) {
-      return InliningDecision(true,
-                              "--inlining-constant-arguments-count and "
-                              "inlining-constant-arguments-min-size-threshold");
     }
     return InliningDecision::No("default");
   }
@@ -910,6 +889,11 @@ class CallSiteInliner : public ValueObject {
       return false;
     }
 
+    if (FlowGraphInliner::FunctionHasNeverInlinePragma(function)) {
+      TRACE_INLINING(THR_Print("     Bailout: vm:never-inline pragma\n"));
+      return false;
+    }
+
     // Don't inline any intrinsified functions in precompiled mode
     // to reduce code size and make sure we use the intrinsic code.
     if (FLAG_precompiled_mode && function.is_intrinsic() &&
@@ -948,18 +932,19 @@ class CallSiteInliner : public ValueObject {
       return false;
     }
 
-    const char* kNeverInlineAnnotation = "NeverInline";
-    if (FLAG_enable_inlining_annotations &&
-        HasAnnotation(function, kNeverInlineAnnotation)) {
-      TRACE_INLINING(THR_Print("     Bailout: NeverInline annotation\n"));
-      return false;
-    }
-
+    // Apply early heuristics. For a specialized case
+    // (constants_arg_counts > 0), don't use a previously
+    // estimate of the call site and instruction counts.
+    // Note that at this point, optional constant parameters
+    // are not counted yet, which makes this decision approximate.
     GrowableArray<Value*>* arguments = call_data->arguments;
-    const intptr_t constant_arguments = CountConstants(*arguments);
-    InliningDecision decision = ShouldWeInline(
-        function, function.optimized_instruction_count(),
-        function.optimized_call_site_count(), constant_arguments);
+    const intptr_t constant_arg_count = CountConstants(*arguments);
+    const intptr_t instruction_count =
+        constant_arg_count == 0 ? function.optimized_instruction_count() : 0;
+    const intptr_t call_site_count =
+        constant_arg_count == 0 ? function.optimized_call_site_count() : 0;
+    InliningDecision decision =
+        ShouldWeInline(function, instruction_count, call_site_count);
     if (!decision.value) {
       TRACE_INLINING(
           THR_Print("     Bailout: early heuristics (%s) with "
@@ -967,9 +952,8 @@ class CallSiteInliner : public ValueObject {
                     "call sites: %" Pd ", "
                     "inlining depth of callee: %d, "
                     "const args: %" Pd "\n",
-                    decision.reason, function.optimized_instruction_count(),
-                    function.optimized_call_site_count(),
-                    function.inlining_depth(), constant_arguments));
+                    decision.reason, instruction_count, call_site_count,
+                    function.inlining_depth(), constant_arg_count));
       PRINT_INLINING_TREE("Early heuristic", &call_data->caller, &function,
                           call_data->call);
       return false;
@@ -1136,8 +1120,7 @@ class CallSiteInliner : public ValueObject {
           }
         }
 
-        BlockScheduler block_scheduler(callee_graph);
-        block_scheduler.AssignEdgeWeights();
+        BlockScheduler::AssignEdgeWeights(callee_graph);
 
         {
           // Compute SSA on the callee graph, catching bailouts.
@@ -1193,26 +1176,26 @@ class CallSiteInliner : public ValueObject {
           printer.PrintBlocks();
         }
 
-        // Collect information about the call site and caller graph.
-        // TODO(zerny): Do this after CP and dead code elimination.
+        // Collect information about the call site and caller graph. At this
+        // point, optional constant parameters are counted too, making the
+        // specialized vs. non-specialized decision accurate.
         intptr_t constants_count = 0;
-        for (intptr_t i = 0; i < param_stubs->length(); ++i) {
+        for (intptr_t i = 0, n = param_stubs->length(); i < n; ++i) {
           if ((*param_stubs)[i]->IsConstant()) ++constants_count;
         }
-
-        FlowGraphInliner::CollectGraphInfo(callee_graph);
-        const intptr_t size = function.optimized_instruction_count();
-        const intptr_t call_site_count = function.optimized_call_site_count();
+        intptr_t instruction_count = 0;
+        intptr_t call_site_count = 0;
+        FlowGraphInliner::CollectGraphInfo(callee_graph, constants_count,
+                                           /*force*/ false, &instruction_count,
+                                           &call_site_count);
 
         // Use heuristics do decide if this call should be inlined.
         InliningDecision decision =
-            ShouldWeInline(function, size, call_site_count, constants_count);
+            ShouldWeInline(function, instruction_count, call_site_count);
         if (!decision.value) {
           // If size is larger than all thresholds, don't consider it again.
-          if ((size > FLAG_inlining_size_threshold) &&
-              (call_site_count > FLAG_inlining_callee_call_sites_threshold) &&
-              (size > FLAG_inlining_constant_arguments_min_size_threshold) &&
-              (size > FLAG_inlining_constant_arguments_max_size_threshold)) {
+          if ((instruction_count > FLAG_inlining_size_threshold) &&
+              (call_site_count > FLAG_inlining_callee_call_sites_threshold)) {
             function.set_is_inlinable(false);
           }
           TRACE_INLINING(
@@ -1221,7 +1204,7 @@ class CallSiteInliner : public ValueObject {
                         "call sites: %" Pd ", "
                         "inlining depth of callee: %d, "
                         "const args: %" Pd "\n",
-                        decision.reason, size, call_site_count,
+                        decision.reason, instruction_count, call_site_count,
                         function.inlining_depth(), constants_count));
           PRINT_INLINING_TREE("Heuristic fail", &call_data->caller, &function,
                               call_data->call);
@@ -1231,6 +1214,7 @@ class CallSiteInliner : public ValueObject {
         // If requested, a stricter heuristic is applied to this inlining. This
         // heuristic always scans the method (rather than possibly reusing
         // cached results) to make sure all specializations are accounted for.
+        // TODO(ajcbik): with the now better bookkeeping, explore removing this
         if (stricter_heuristic) {
           if (!IsSmallLeaf(callee_graph)) {
             TRACE_INLINING(
@@ -1254,7 +1238,7 @@ class CallSiteInliner : public ValueObject {
 
         // Build succeeded so we restore the bailout jump.
         inlined_ = true;
-        inlined_size_ += size;
+        inlined_size_ += instruction_count;
         if (is_recursive_call) {
           inlined_recursive_call_ = true;
         }
@@ -1284,8 +1268,7 @@ class CallSiteInliner : public ValueObject {
         TRACE_INLINING(THR_Print("     Success\n"));
         TRACE_INLINING(THR_Print(
             "       with reason %s, code size %" Pd ", call sites: %" Pd "\n",
-            decision.reason, function.optimized_instruction_count(),
-            call_site_count));
+            decision.reason, instruction_count, call_site_count));
         PRINT_INLINING_TREE(NULL, &call_data->caller, &function, call);
         return true;
       } else {
@@ -1481,6 +1464,10 @@ class CallSiteInliner : public ValueObject {
   }
 
   bool InlineClosureCalls() {
+    // Under this flag, tear off testing closure calls appear before the
+    // StackOverflowInstr, which breaks assertions in our compiler when inlined.
+    // TODO(sjindel): move testing closure calls after first check
+    if (FLAG_enable_testing_pragmas) return false;  // keep all closures
     bool inlined = false;
     const GrowableArray<CallSites::ClosureCallInfo>& call_info =
         inlining_call_sites_->closure_calls();
@@ -2237,15 +2224,37 @@ FlowGraphInliner::FlowGraphInliner(
       speculative_policy_(speculative_policy),
       precompiler_(precompiler) {}
 
-void FlowGraphInliner::CollectGraphInfo(FlowGraph* flow_graph, bool force) {
+void FlowGraphInliner::CollectGraphInfo(FlowGraph* flow_graph,
+                                        intptr_t constants_count,
+                                        bool force,
+                                        intptr_t* instruction_count,
+                                        intptr_t* call_site_count) {
   const Function& function = flow_graph->function();
+  // For OSR, don't even bother.
+  if (flow_graph->IsCompiledForOsr()) {
+    *instruction_count = 0;
+    *call_site_count = 0;
+    return;
+  }
+  // Specialized case: always recompute, never cache.
+  if (constants_count > 0) {
+    ASSERT(!force);
+    GraphInfoCollector info;
+    info.Collect(*flow_graph);
+    *instruction_count = info.instruction_count();
+    *call_site_count = info.call_site_count();
+    return;
+  }
+  // Non-specialized case: unless forced, only recompute on a cache miss.
+  ASSERT(constants_count == 0);
   if (force || (function.optimized_instruction_count() == 0)) {
     GraphInfoCollector info;
     info.Collect(*flow_graph);
-
     function.SetOptimizedInstructionCountClamped(info.instruction_count());
     function.SetOptimizedCallSiteCountClamped(info.call_site_count());
   }
+  *instruction_count = function.optimized_instruction_count();
+  *call_site_count = function.optimized_call_site_count();
 }
 
 // TODO(srdjan): This is only needed when disassembling and/or profiling.
@@ -2276,12 +2285,22 @@ static bool IsInlineableOperator(const Function& function) {
          (function.name() == Symbols::Minus().raw());
 }
 
+bool FlowGraphInliner::FunctionHasPreferInlinePragma(const Function& function) {
+  Object& options = Object::Handle();
+  return Library::FindPragma(dart::Thread::Current(), /*only_core=*/false,
+                             function, Symbols::vm_prefer_inline(), &options);
+}
+
+bool FlowGraphInliner::FunctionHasNeverInlinePragma(const Function& function) {
+  Object& options = Object::Handle();
+  return Library::FindPragma(dart::Thread::Current(), /*only_core=*/false,
+                             function, Symbols::vm_never_inline(), &options);
+}
+
 bool FlowGraphInliner::AlwaysInline(const Function& function) {
-  const char* kAlwaysInlineAnnotation = "AlwaysInline";
-  if (FLAG_enable_inlining_annotations &&
-      HasAnnotation(function, kAlwaysInlineAnnotation)) {
+  if (FunctionHasPreferInlinePragma(function)) {
     TRACE_INLINING(
-        THR_Print("AlwaysInline annotation for %s\n", function.ToCString()));
+        THR_Print("vm:prefer-inline pragma for %s\n", function.ToCString()));
     return true;
   }
 
@@ -2308,13 +2327,19 @@ bool FlowGraphInliner::AlwaysInline(const Function& function) {
       return true;
     }
   }
-  return MethodRecognizer::AlwaysInline(function);
+  return false;
 }
 
 int FlowGraphInliner::Inline() {
-  // Collect graph info and store it on the function.
-  // We might later use it for an early bailout from the inlining.
-  CollectGraphInfo(flow_graph_);
+  // Collect some early graph information assuming it is non-specialized
+  // so that the cached approximation may be used later for an early
+  // bailout from inlining.
+  intptr_t instruction_count = 0;
+  intptr_t call_site_count = 0;
+  FlowGraphInliner::CollectGraphInfo(flow_graph_,
+                                     /*constants_count*/ 0,
+                                     /*force*/ false, &instruction_count,
+                                     &call_site_count);
 
   const Function& top = flow_graph_->function();
   if ((FLAG_inlining_filter != NULL) &&
@@ -2435,7 +2460,7 @@ static intptr_t PrepareInlineIndexedOp(FlowGraph* flow_graph,
 
 static bool InlineGetIndexed(FlowGraph* flow_graph,
                              MethodRecognizer::Kind kind,
-                             Instruction* call,
+                             Definition* call,
                              Definition* receiver,
                              GraphEntryInstr* graph_entry,
                              FunctionEntryInstr** entry,
@@ -2464,9 +2489,9 @@ static bool InlineGetIndexed(FlowGraph* flow_graph,
 
   // Array load and return.
   intptr_t index_scale = compiler::target::Instance::ElementSizeFor(array_cid);
-  LoadIndexedInstr* load = new (Z)
-      LoadIndexedInstr(new (Z) Value(array), new (Z) Value(index), index_scale,
-                       array_cid, kAlignedAccess, deopt_id, call->token_pos());
+  LoadIndexedInstr* load = new (Z) LoadIndexedInstr(
+      new (Z) Value(array), new (Z) Value(index), index_scale, array_cid,
+      kAlignedAccess, deopt_id, call->token_pos(), ResultType(call));
 
   *last = load;
   cursor = flow_graph->AppendTo(cursor, load,
@@ -2904,19 +2929,8 @@ static void PrepareInlineByteArrayBaseOp(FlowGraph* flow_graph,
   }
 }
 
-static LoadIndexedInstr* NewLoad(FlowGraph* flow_graph,
-                                 Instruction* call,
-                                 Definition* array,
-                                 Definition* index,
-                                 intptr_t view_cid) {
-  return new (Z) LoadIndexedInstr(new (Z) Value(array), new (Z) Value(index),
-                                  1,  // Index scale
-                                  view_cid, kUnalignedAccess, DeoptId::kNone,
-                                  call->token_pos());
-}
-
 static bool InlineByteArrayBaseLoad(FlowGraph* flow_graph,
-                                    Instruction* call,
+                                    Definition* call,
                                     Definition* receiver,
                                     intptr_t array_cid,
                                     intptr_t view_cid,
@@ -2962,15 +2976,16 @@ static bool InlineByteArrayBaseLoad(FlowGraph* flow_graph,
                                &cursor);
 
   // Fill out the generated template with loads.
-  {
-    // Load from either external or internal.
-    LoadIndexedInstr* load = NewLoad(flow_graph, call, array, index, view_cid);
-    flow_graph->AppendTo(
-        cursor, load,
-        call->deopt_id() != DeoptId::kNone ? call->env() : nullptr,
-        FlowGraph::kValue);
-    cursor = *last = load;
-  }
+  // Load from either external or internal.
+  LoadIndexedInstr* load =
+      new (Z) LoadIndexedInstr(new (Z) Value(array), new (Z) Value(index),
+                               1,  // Index scale
+                               view_cid, kUnalignedAccess, DeoptId::kNone,
+                               call->token_pos(), ResultType(call));
+  flow_graph->AppendTo(
+      cursor, load, call->deopt_id() != DeoptId::kNone ? call->env() : nullptr,
+      FlowGraph::kValue);
+  cursor = *last = load;
 
   if (view_cid == kTypedDataFloat32ArrayCid) {
     *last = new (Z) FloatToDoubleInstr(new (Z) Value((*last)->AsDefinition()),

@@ -5,9 +5,70 @@
 #ifndef RUNTIME_PLATFORM_UTILS_MACOS_H_
 #define RUNTIME_PLATFORM_UTILS_MACOS_H_
 
+#include <AvailabilityMacros.h>
 #include <libkern/OSByteOrder.h>  // NOLINT
 
 namespace dart {
+
+namespace internal {
+
+// Returns the system's Mac OS X minor version. This is the |y| value
+// in 10.y or 10.y.z.
+int32_t MacOSXMinorVersion();
+
+}  // namespace internal
+
+// Run-time OS version checks.
+#define DEFINE_IS_OS_FUNCS(V, TEST_DEPLOYMENT_TARGET)                          \
+  inline bool IsOS10_##V() {                                                   \
+    TEST_DEPLOYMENT_TARGET(>, V, false)                                        \
+    return internal::MacOSXMinorVersion() == V;                                \
+  }                                                                            \
+  inline bool IsAtLeastOS10_##V() {                                            \
+    TEST_DEPLOYMENT_TARGET(>=, V, true)                                        \
+    return internal::MacOSXMinorVersion() >= V;                                \
+  }                                                                            \
+  inline bool IsAtMostOS10_##V() {                                             \
+    TEST_DEPLOYMENT_TARGET(>, V, false)                                        \
+    return internal::MacOSXMinorVersion() <= V;                                \
+  }
+
+#define TEST_DEPLOYMENT_TARGET(OP, V, RET)                                     \
+  if (MAC_OS_X_VERSION_MIN_REQUIRED OP MAC_OS_X_VERSION_10_##V) return RET;
+#define IGNORE_DEPLOYMENT_TARGET(OP, V, RET)
+
+DEFINE_IS_OS_FUNCS(9, TEST_DEPLOYMENT_TARGET)
+DEFINE_IS_OS_FUNCS(10, TEST_DEPLOYMENT_TARGET)
+
+#ifdef MAC_OS_X_VERSION_10_11
+DEFINE_IS_OS_FUNCS(11, TEST_DEPLOYMENT_TARGET)
+#else
+DEFINE_IS_OS_FUNCS(11, IGNORE_DEPLOYMENT_TARGET)
+#endif
+
+#ifdef MAC_OS_X_VERSION_10_12
+DEFINE_IS_OS_FUNCS(12, TEST_DEPLOYMENT_TARGET)
+#else
+DEFINE_IS_OS_FUNCS(12, IGNORE_DEPLOYMENT_TARGET)
+#endif
+
+#ifdef MAC_OS_X_VERSION_10_13
+DEFINE_IS_OS_FUNCS(13, TEST_DEPLOYMENT_TARGET)
+#else
+DEFINE_IS_OS_FUNCS(13, IGNORE_DEPLOYMENT_TARGET)
+#endif
+
+#ifdef MAC_OS_X_VERSION_10_14
+DEFINE_IS_OS_FUNCS(14, TEST_DEPLOYMENT_TARGET)
+#else
+DEFINE_IS_OS_FUNCS(14, IGNORE_DEPLOYMENT_TARGET)
+#endif
+
+#ifdef MAC_OS_X_VERSION_10_15
+DEFINE_IS_OS_FUNCS(15, TEST_DEPLOYMENT_TARGET)
+#else
+DEFINE_IS_OS_FUNCS(15, IGNORE_DEPLOYMENT_TARGET)
+#endif
 
 inline int Utils::CountLeadingZeros(uword x) {
 #if defined(ARCH_IS_32_BIT)

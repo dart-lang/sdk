@@ -29,7 +29,7 @@ abstract class SimpleEditCommandHandler
       List<SourceEdit> edits) async {
     // If there are no edits to apply, just complete the command without going
     // back to the client.
-    if (edits.length == 0) {
+    if (edits.isEmpty) {
       return success();
     }
 

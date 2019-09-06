@@ -17,7 +17,7 @@ namespace dart {
 #define __ assembler->
 
 ASSEMBLER_TEST_GENERATE(Call, assembler) {
-  ExternalLabel label(StubCode::InvokeDartCode().EntryPoint());
+  compiler::ExternalLabel label(StubCode::InvokeDartCode().EntryPoint());
   __ call(&label);
   __ ret();
 }

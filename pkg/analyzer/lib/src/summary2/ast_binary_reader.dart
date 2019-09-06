@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -65,6 +66,15 @@ class AstBinaryReader {
     return _readType(data);
   }
 
+  Token _combinatorKeyword(LinkedNode data, Keyword keyword, Token def) {
+    var informativeData = _unitContext.getInformativeData(data);
+    if (informativeData != null) {
+      return TokenFactory.tokenFromKeyword(keyword)
+        ..offset = informativeData.combinatorKeywordOffset;
+    }
+    return def;
+  }
+
   SimpleIdentifier _declaredIdentifier(LinkedNode data) {
     var informativeData = _unitContext.getInformativeData(data);
     var offset = informativeData?.nameOffset ?? 0;
@@ -85,21 +95,18 @@ class AstBinaryReader {
 
   Element _elementOfComponents(
     int rawElementIndex,
-    LinkedNodeType definingTypeNode,
+    LinkedNodeTypeSubstitution substitutionNode,
   ) {
     var element = _getElement(rawElementIndex);
-    if (definingTypeNode == null) return element;
+    if (substitutionNode == null) return element;
 
-    var definingType = _readType(definingTypeNode);
-    if (element is ConstructorElement) {
-      return ConstructorMember.from(element, definingType);
-    } else if (element is MethodElement) {
-      return MethodMember.from(element, definingType);
-    } else if (element is PropertyAccessorElement) {
-      return PropertyAccessorMember.from(element, definingType);
-    } else {
-      throw UnimplementedError('(${element.runtimeType}) $element');
-    }
+    var typeParameters = substitutionNode.typeParameters
+        .map<TypeParameterElement>(_getElement)
+        .toList();
+    var typeArguments = substitutionNode.typeArguments.map(_readType).toList();
+    var substitution = Substitution.fromPairs(typeParameters, typeArguments);
+
+    return ExecutableMember.from2(element, substitution);
   }
 
   T _getElement<T extends Element>(int index) {
@@ -126,7 +133,7 @@ class AstBinaryReader {
       _readNode(data.annotation_arguments),
     )..element = _elementOfComponents(
         data.annotation_element,
-        data.annotation_elementType,
+        data.annotation_substitution,
       );
   }
 
@@ -177,7 +184,7 @@ class AstBinaryReader {
     )
       ..staticElement = _elementOfComponents(
         data.assignmentExpression_element,
-        data.assignmentExpression_elementType,
+        data.assignmentExpression_substitution,
       )
       ..staticType = _readType(data.expression_type);
   }
@@ -197,7 +204,7 @@ class AstBinaryReader {
     )
       ..staticElement = _elementOfComponents(
         data.binaryExpression_element,
-        data.binaryExpression_elementType,
+        data.binaryExpression_substitution,
       )
       ..staticType = _readType(data.expression_type);
   }
@@ -344,7 +351,7 @@ class AstBinaryReader {
   }
 
   CompilationUnit _read_compilationUnit(LinkedNode data) {
-    return astFactory.compilationUnit2(
+    return astFactory.compilationUnit(
         beginToken: null,
         scriptTag: _readNode(data.compilationUnit_scriptTag),
         directives: _readNodeList(data.compilationUnit_directives),
@@ -384,6 +391,16 @@ class AstBinaryReader {
     returnType.token.offset =
         informativeData?.constructorDeclaration_returnTypeOffset ?? 0;
 
+    Token periodToken;
+    SimpleIdentifier nameIdentifier;
+    if (AstBinaryFlags.hasName(data.flags)) {
+      periodToken = Token(
+        TokenType.PERIOD,
+        informativeData?.constructorDeclaration_periodOffset ?? 0,
+      );
+      nameIdentifier = _declaredIdentifier(data);
+    }
+
     var node = astFactory.constructorDeclaration(
       _readDocumentationComment(data),
       _readNodeListLazy(data.annotatedNode_metadata),
@@ -391,13 +408,8 @@ class AstBinaryReader {
       AstBinaryFlags.isConst(data.flags) ? _Tokens.CONST : null,
       AstBinaryFlags.isFactory(data.flags) ? _Tokens.FACTORY : null,
       returnType,
-      data.name.isNotEmpty
-          ? Token(
-              TokenType.PERIOD,
-              informativeData?.constructorDeclaration_periodOffset ?? 0,
-            )
-          : null,
-      data.name.isNotEmpty ? _declaredIdentifier(data) : null,
+      periodToken,
+      nameIdentifier,
       _readNodeLazy(data.constructorDeclaration_parameters),
       _Tokens.choose(
         AstBinaryFlags.hasSeparatorColon(data.flags),
@@ -432,7 +444,7 @@ class AstBinaryReader {
       _readNode(data.constructorName_name),
     )..staticElement = _elementOfComponents(
         data.constructorName_element,
-        data.constructorName_elementType,
+        data.constructorName_substitution,
       );
   }
 
@@ -583,6 +595,28 @@ class AstBinaryReader {
       _Tokens.EXTENDS,
       _readNode(data.extendsClause_superclass),
     );
+  }
+
+  ExtensionDeclaration _read_extensionDeclaration(LinkedNode data) {
+    timerAstBinaryReaderClass.start();
+    try {
+      var node = astFactory.extensionDeclaration(
+        comment: _readDocumentationComment(data),
+        metadata: _readNodeListLazy(data.annotatedNode_metadata),
+        extensionKeyword: _Tokens.EXTENSION,
+        name: data.name.isNotEmpty ? _declaredIdentifier(data) : null,
+        typeParameters: _readNode(data.extensionDeclaration_typeParameters),
+        onKeyword: _Tokens.ON,
+        extendedType: _readNodeLazy(data.extensionDeclaration_extendedType),
+        leftBracket: _Tokens.OPEN_CURLY_BRACKET,
+        members: _readNodeListLazy(data.extensionDeclaration_members),
+        rightBracket: _Tokens.CLOSE_CURLY_BRACKET,
+      );
+      LazyExtensionDeclaration(node, data);
+      return node;
+    } finally {
+      timerAstBinaryReaderClass.stop();
+    }
   }
 
   FieldDeclaration _read_fieldDeclaration(LinkedNode data) {
@@ -831,7 +865,6 @@ class AstBinaryReader {
       question:
           AstBinaryFlags.hasQuestion(data.flags) ? _Tokens.QUESTION : null,
     );
-    node.type = _readType(data.genericFunctionType_type);
 
     // Create the node element, so now type parameter elements are available.
     LazyAst.setGenericFunctionTypeId(node, id);
@@ -849,6 +882,7 @@ class AstBinaryReader {
     }
     node.returnType = readNode(data.genericFunctionType_returnType);
     node.parameters = _readNode(data.genericFunctionType_formalParameters);
+    node.type = _readType(data.genericFunctionType_type);
 
     return node;
   }
@@ -873,10 +907,12 @@ class AstBinaryReader {
   }
 
   HideCombinator _read_hideCombinator(LinkedNode data) {
-    return astFactory.hideCombinator(
-      _Tokens.HIDE,
+    var node = astFactory.hideCombinator(
+      _combinatorKeyword(data, Keyword.HIDE, _Tokens.HIDE),
       data.names.map((name) => AstTestFactory.identifier3(name)).toList(),
     );
+    LazyCombinator(node, data);
+    return node;
   }
 
   IfElement _read_ifElement(LinkedNode data) {
@@ -919,9 +955,12 @@ class AstBinaryReader {
       SimpleIdentifier prefix;
       if (data.importDirective_prefix.isNotEmpty) {
         prefix = astFactory.simpleIdentifier(
-          TokenFactory.tokenFromString(data.importDirective_prefix)
-            ..offset = data.importDirective_prefixOffset,
+          TokenFactory.tokenFromString(data.importDirective_prefix),
         );
+
+        var informativeData = _unitContext.getInformativeData(data);
+        prefix.token.offset =
+            informativeData?.importDirective_prefixOffset ?? 0;
       }
 
       var node = astFactory.importDirective(
@@ -955,7 +994,7 @@ class AstBinaryReader {
           AstBinaryFlags.hasPeriod(data.flags) ? _Tokens.PERIOD_PERIOD : null
       ..staticElement = _elementOfComponents(
         data.indexExpression_element,
-        data.indexExpression_elementType,
+        data.indexExpression_substitution,
       )
       ..staticType = _readType(data.expression_type);
   }
@@ -1080,6 +1119,15 @@ class AstBinaryReader {
   }
 
   MethodDeclaration _read_methodDeclaration(LinkedNode data) {
+    FunctionBody body;
+    if (AstBinaryFlags.isNative(data.flags)) {
+      body = AstTestFactory.nativeFunctionBody('');
+    } else if (AstBinaryFlags.isAbstract(data.flags)) {
+      body = AstTestFactory.emptyFunctionBody();
+    } else {
+      body = AstTestFactory.blockFunctionBody(AstTestFactory.block());
+    }
+
     var node = astFactory.methodDeclaration(
       _readDocumentationComment(data),
       _readNodeListLazy(data.annotatedNode_metadata),
@@ -1096,9 +1144,7 @@ class AstBinaryReader {
       _declaredIdentifier(data),
       _readNode(data.methodDeclaration_typeParameters),
       _readNodeLazy(data.methodDeclaration_formalParameters),
-      AstBinaryFlags.isAbstract(data.flags)
-          ? AstTestFactory.emptyFunctionBody()
-          : AstTestFactory.blockFunctionBody(AstTestFactory.block()),
+      body,
     );
     LazyMethodDeclaration.setData(node, data);
     return node;
@@ -1232,7 +1278,7 @@ class AstBinaryReader {
     )
       ..staticElement = _elementOfComponents(
         data.postfixExpression_element,
-        data.postfixExpression_elementType,
+        data.postfixExpression_substitution,
       )
       ..staticType = _readType(data.expression_type);
   }
@@ -1252,7 +1298,7 @@ class AstBinaryReader {
     )
       ..staticElement = _elementOfComponents(
         data.prefixExpression_element,
-        data.prefixExpression_elementType,
+        data.prefixExpression_substitution,
       )
       ..staticType = _readType(data.expression_type);
   }
@@ -1275,7 +1321,7 @@ class AstBinaryReader {
       _readNode(data.redirectingConstructorInvocation_arguments),
     )..staticElement = _elementOfComponents(
         data.redirectingConstructorInvocation_element,
-        data.redirectingConstructorInvocation_elementType,
+        data.redirectingConstructorInvocation_substitution,
       );
   }
 
@@ -1316,10 +1362,12 @@ class AstBinaryReader {
   }
 
   ShowCombinator _read_showCombinator(LinkedNode data) {
-    return astFactory.showCombinator(
-      _Tokens.SHOW,
+    var node = astFactory.showCombinator(
+      _combinatorKeyword(data, Keyword.SHOW, _Tokens.SHOW),
       data.names.map((name) => AstTestFactory.identifier3(name)).toList(),
     );
+    LazyCombinator(node, data);
+    return node;
   }
 
   SimpleFormalParameter _read_simpleFormalParameter(LinkedNode data) {
@@ -1353,7 +1401,7 @@ class AstBinaryReader {
     )
       ..staticElement = _elementOfComponents(
         data.simpleIdentifier_element,
-        data.simpleIdentifier_elementType,
+        data.simpleIdentifier_substitution,
       )
       ..staticType = _readType(data.expression_type);
   }
@@ -1387,7 +1435,7 @@ class AstBinaryReader {
       _readNode(data.superConstructorInvocation_arguments),
     )..staticElement = _elementOfComponents(
         data.superConstructorInvocation_element,
-        data.superConstructorInvocation_elementType,
+        data.superConstructorInvocation_substitution,
       );
   }
 
@@ -1669,6 +1717,8 @@ class AstBinaryReader {
         return _read_expressionStatement(data);
       case LinkedNodeKind.extendsClause:
         return _read_extendsClause(data);
+      case LinkedNodeKind.extensionDeclaration:
+        return _read_extensionDeclaration(data);
       case LinkedNodeKind.fieldDeclaration:
         return _read_fieldDeclaration(data);
       case LinkedNodeKind.fieldFormalParameter:
@@ -1908,6 +1958,7 @@ class _Tokens {
   static final EQ = TokenFactory.tokenFromType(TokenType.EQ);
   static final EXPORT = TokenFactory.tokenFromKeyword(Keyword.EXPORT);
   static final EXTENDS = TokenFactory.tokenFromKeyword(Keyword.EXTENDS);
+  static final EXTENSION = TokenFactory.tokenFromKeyword(Keyword.EXTENSION);
   static final FINAL = TokenFactory.tokenFromKeyword(Keyword.FINAL);
   static final FINALLY = TokenFactory.tokenFromKeyword(Keyword.FINALLY);
   static final FOR = TokenFactory.tokenFromKeyword(Keyword.FOR);

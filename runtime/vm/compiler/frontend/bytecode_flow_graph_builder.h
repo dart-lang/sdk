@@ -44,6 +44,9 @@ class BytecodeFlowGraphBuilder {
 
   FlowGraph* BuildGraph();
 
+  // Create parameter variables without building a flow graph.
+  void CreateParameterVariables();
+
  protected:
   // Returns `true` if building a flow graph for a bytecode interpreter, or
   // `false` if compiling a function from bytecode.
@@ -122,6 +125,12 @@ class BytecodeFlowGraphBuilder {
   LocalVariable* AllocateParameter(intptr_t param_index,
                                    VariableIndex var_index);
   void AllocateFixedParameters();
+
+  // Allocates parameters and local variables in case of EntryOptional.
+  // Returns pointer to the instruction after EntryOptional/LoadConstant/Frame
+  // bytecodes.
+  const KBCInstr* AllocateParametersAndLocalsForEntryOptional();
+
   LocalVariable* LocalVariableAt(intptr_t local_index);
   void StoreLocal(Operand local_index);
   void LoadLocal(Operand local_index);
@@ -138,9 +147,12 @@ class BytecodeFlowGraphBuilder {
                         int num_args);
   void BuildIntOp(const String& name, Token::Kind token_kind, int num_args);
   void BuildDoubleOp(const String& name, Token::Kind token_kind, int num_args);
-  void BuildInterfaceCallCommon(bool is_unchecked_call);
+  void BuildInterfaceCallCommon(bool is_unchecked_call,
+                                bool is_instantiated_call);
 
   void BuildInstruction(KernelBytecode::Opcode opcode);
+  void BuildFfiAsFunction();
+  void BuildDebugStepCheck();
 
 #define DECLARE_BUILD_METHOD(name, encoding, kind, op1, op2, op3)              \
   void Build##name();
@@ -155,6 +167,16 @@ class BytecodeFlowGraphBuilder {
   void CollectControlFlow(const PcDescriptors& descriptors,
                           const ExceptionHandlers& handlers,
                           GraphEntryInstr* graph_entry);
+
+#if !defined(PRODUCT)
+  // Update context level for the given bytecode PC. returns
+  // next PC where context level might need an update.
+  intptr_t UpdateContextLevel(const Bytecode& bytecode, intptr_t pc);
+#endif
+
+  // Figure out entry points style.
+  UncheckedEntryPointStyle ChooseEntryPointStyle(
+      const KBCInstr* jump_if_unchecked);
 
   Thread* thread() const { return flow_graph_builder_->thread_; }
   Isolate* isolate() const { return thread()->isolate(); }
@@ -179,7 +201,7 @@ class BytecodeFlowGraphBuilder {
   intptr_t pc_;
   intptr_t next_pc_ = -1;
   const KBCInstr* bytecode_instr_ = nullptr;
-  TokenPosition position_;  // TODO(alexmarkov): Set/update.
+  TokenPosition position_;
   Fragment code_;
   ZoneGrowableArray<LocalVariable*> local_vars_;
   ZoneGrowableArray<LocalVariable*> parameters_;
@@ -190,6 +212,9 @@ class BytecodeFlowGraphBuilder {
   IntMap<Value*> stack_states_;
   PrologueInfo prologue_info_;
   JoinEntryInstr* throw_no_such_method_;
+  GraphEntryInstr* graph_entry_ = nullptr;
+  UncheckedEntryPointStyle entry_point_style_ = UncheckedEntryPointStyle::kNone;
+  bool build_debug_step_checks_ = false;
 };
 
 }  // namespace kernel

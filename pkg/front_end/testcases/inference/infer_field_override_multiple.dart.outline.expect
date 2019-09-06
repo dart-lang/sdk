@@ -1,45 +1,63 @@
 library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/infer_field_override_multiple.dart:32:7: Error: Can't infer a type for 'x' as some of the inherited members have different types.
+// Try adding an explicit type.
+//   var x;
+//       ^
+//
+// pkg/front_end/testcases/inference/infer_field_override_multiple.dart:36:7: Error: Can't infer a type for 'x' as some of the inherited members have different types.
+// Try adding an explicit type.
+//   var x;
+//       ^
+//
+// pkg/front_end/testcases/inference/infer_field_override_multiple.dart:40:7: Error: Can't infer a type for 'x' as some of the inherited members have different types.
+// Try adding an explicit type.
+//   var x;
+//       ^
+//
 import self as self;
 import "dart:core" as core;
 
 abstract class A extends core::Object {
-  synthetic constructor •() → self::A
+  synthetic constructor •() → self::A*
     ;
-  abstract get x() → core::int;
+  abstract get x() → core::int*;
 }
 abstract class B extends core::Object {
-  synthetic constructor •() → self::B
+  synthetic constructor •() → self::B*
     ;
-  abstract get x() → core::int;
+  abstract get x() → core::int*;
 }
 abstract class C extends core::Object {
-  synthetic constructor •() → self::C
+  synthetic constructor •() → self::C*
     ;
-  abstract get x() → core::num;
+  abstract get x() → core::num*;
 }
 abstract class D extends core::Object {
-  synthetic constructor •() → self::D
+  synthetic constructor •() → self::D*
     ;
-  abstract get x() → core::double;
+  abstract get x() → core::double*;
 }
 class E extends self::A implements self::B {
-  field dynamic x;
-  synthetic constructor •() → self::E
+  field core::int* x;
+  synthetic constructor •() → self::E*
     ;
 }
 class F extends self::A implements self::C {
-  field dynamic x;
-  synthetic constructor •() → self::F
+  field invalid-type x;
+  synthetic constructor •() → self::F*
     ;
 }
 class G extends self::A implements self::D {
-  field dynamic x;
-  synthetic constructor •() → self::G
+  field invalid-type x;
+  synthetic constructor •() → self::G*
     ;
 }
 class H extends self::C implements self::D {
-  field dynamic x;
-  synthetic constructor •() → self::H
+  field invalid-type x;
+  synthetic constructor •() → self::H*
     ;
 }
 static method main() → dynamic

@@ -303,7 +303,7 @@ class Configuration {
 
   final bool isCsp;
 
-  // TODO(rnystrom): Remove this when Dart 1.0 is no longer supported.
+  /// Enables asserts in the dart2js compiler.
   final bool isHostChecked;
 
   final bool isMinified;
@@ -585,13 +585,11 @@ class Architecture extends NamedEnum {
 
 class Compiler extends NamedEnum {
   static const none = const Compiler._('none');
-  static const precompiler = const Compiler._('precompiler');
   static const dart2js = const Compiler._('dart2js');
   static const dart2analyzer = const Compiler._('dart2analyzer');
   static const compareAnalyzerCfe = const Compiler._('compare_analyzer_cfe');
   static const dartdevc = const Compiler._('dartdevc');
   static const dartdevk = const Compiler._('dartdevk');
-  static const appJit = const Compiler._('app_jit');
   static const appJitk = const Compiler._('app_jitk');
   static const dartk = const Compiler._('dartk');
   static const dartkp = const Compiler._('dartkp');
@@ -603,13 +601,11 @@ class Compiler extends NamedEnum {
 
   static final _all = new Map<String, Compiler>.fromIterable([
     none,
-    precompiler,
     dart2js,
     dart2analyzer,
     compareAnalyzerCfe,
     dartdevc,
     dartdevk,
-    appJit,
     appJitk,
     dartk,
     dartkp,
@@ -664,12 +660,10 @@ class Compiler extends NamedEnum {
       case Compiler.dart2analyzer:
       case Compiler.compareAnalyzerCfe:
         return const [Runtime.none];
-      case Compiler.appJit:
       case Compiler.appJitk:
       case Compiler.dartk:
       case Compiler.dartkb:
         return const [Runtime.vm, Runtime.selfCheck];
-      case Compiler.precompiler:
       case Compiler.dartkp:
         return const [Runtime.dartPrecompiled];
       case Compiler.specParser:
@@ -695,12 +689,10 @@ class Compiler extends NamedEnum {
       case Compiler.dart2analyzer:
       case Compiler.compareAnalyzerCfe:
         return Runtime.none;
-      case Compiler.appJit:
       case Compiler.appJitk:
       case Compiler.dartk:
       case Compiler.dartkb:
         return Runtime.vm;
-      case Compiler.precompiler:
       case Compiler.dartkp:
         return Runtime.dartPrecompiled;
       case Compiler.specParser:
@@ -828,7 +820,7 @@ class Runtime extends NamedEnum {
         return Compiler.none;
 
       case dartPrecompiled:
-        return Compiler.precompiler;
+        return Compiler.dartkp;
 
       case d8:
       case jsshell:

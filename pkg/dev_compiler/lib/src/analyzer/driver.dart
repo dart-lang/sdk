@@ -2,31 +2,25 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
 import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart' show ResourceProvider;
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/dart/analysis/ddc.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' show AnalysisDriver;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_analyzer.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
-import 'package:analyzer/src/dart/analysis/session.dart';
-import 'package:analyzer/src/dart/analysis/restricted_analysis_context.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/summary/link.dart' as summary_link;
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
-import 'package:analyzer/src/summary/summarize_ast.dart';
-import 'package:analyzer/src/summary/summarize_elements.dart';
+import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:meta/meta.dart';
 
 import '../compiler/shared_command.dart' show sdkLibraryVariables;
@@ -114,26 +108,6 @@ class CompilerAnalysisDriver {
   /// [SourceFactory]) and declared variables, if any (`-Dfoo=bar`).
   LinkedAnalysisDriver linkLibraries(
       List<Uri> explicitSources, AnalyzerOptions options) {
-    /// This code was ported from analyzer_cli (with a few changes/improvements).
-    ///
-    /// Here's a summary of the process:
-    ///
-    /// 1. starting with [explicitSources], visit all transitive
-    ///    imports/exports/parts, and create an unlinked unit for each
-    ///    (unless it's provided by an input summary). Add these to [assembler].
-    ///
-    /// 2. call [summary_link.link] to create the linked libraries, and add the
-    ///    results to the assembler.
-    ///
-    /// 3. serialize the data into [summaryBytes], then deserialize it back into
-    ///    the [bundle] that contains the summary for all [explicitSources] and
-    ///    their transitive dependencies.
-    ///
-    /// 4. create the analysis [context] and element [resynthesizer], and use
-    ///    them to return a new [LinkedAnalysisDriver] that can analyze all of
-    ///    the compilation units (and provide the resolved AST/errors for each).
-    var assembler = PackageBundleAssembler();
-
     /// The URI resolution logic for this build unit.
     var sourceFactory = createSourceFactory(options,
         sdkResolver: DartUriResolver(dartSdk), summaryData: summaryData);
@@ -141,133 +115,36 @@ class CompilerAnalysisDriver {
     /// A fresh file system state for this list of [explicitSources].
     var fsState = _createFileSystemState(sourceFactory);
 
-    var uriToUnit = <String, UnlinkedUnit>{};
-
-    /// The sources that have been added to [sourcesToProcess], used to ensure
-    /// we only visit a given source once.
-    var knownSources = HashSet<Uri>.from(explicitSources);
-
-    /// The pending list of sources to visit.
-    var sourcesToProcess = Queue<Uri>.from(explicitSources);
-
-    /// Prepare URIs of unlinked units (for libraries) that should be linked.
-    var libraryUris = <String>[];
-
-    /// Ensure that the [UnlinkedUnit] for [absoluteUri] is available.
-    ///
-    /// If the unit is in the input [summaryData], do nothing.
-    /// Otherwise compute it and store into the [uriToUnit] and [assembler].
-    void prepareUnlinkedUnit(Uri uri) {
-      var absoluteUri = uri.toString();
-      // Maybe an input package contains the source.
-      if (summaryData.unlinkedMap[absoluteUri] != null) {
-        return;
-      }
-      // Parse the source and serialize its AST.
-      var source = sourceFactory.forUri2(uri);
-      if (source == null || !source.exists()) {
-        // Skip this source. We don't need to report an error here because it
-        // will be reported later during analysis.
-        return;
-      }
-      var file = fsState.getFileForPath(source.fullName);
-      var unit = file.parse();
-      var unlinkedUnit = serializeAstUnlinked(unit);
-      uriToUnit[absoluteUri] = unlinkedUnit;
-      assembler.addUnlinkedUnit(source, unlinkedUnit);
-
-      /// The URI to resolve imports/exports/parts against.
-      var baseUri = uri;
-      if (baseUri.scheme == 'dart' && baseUri.pathSegments.length == 1) {
-        // Add a trailing slash so relative URIs will resolve correctly, e.g.
-        // "map.dart" from "dart:core/" yields "dart:core/map.dart".
-        baseUri = Uri(scheme: 'dart', path: baseUri.path + '/');
-      }
-
-      void enqueueSource(String relativeUri) {
-        var sourceUri = baseUri.resolve(relativeUri);
-        if (knownSources.add(sourceUri)) {
-          sourcesToProcess.add(sourceUri);
-        }
-      }
-
-      // Add reachable imports/exports/parts, if any.
-      var isPart = false;
-      for (var directive in unit.directives) {
-        if (directive is UriBasedDirective) {
-          enqueueSource(directive.uri.stringValue);
-          // Handle conditional imports.
-          if (directive is NamespaceDirective) {
-            for (var config in directive.configurations) {
-              enqueueSource(config.uri.stringValue);
-            }
-          }
-        } else if (directive is PartOfDirective) {
-          isPart = true;
-        }
-      }
-
-      // Remember library URIs, so we can use it for linking libraries and
-      // compiling them.
-      if (!isPart) libraryUris.add(absoluteUri);
-    }
-
-    // Collect the unlinked units for all transitive sources.
-    //
-    // TODO(jmesserly): consider using parallelism via asynchronous IO here,
-    // once we fix debugger extension (web/web_command.dart) to allow async.
-    //
-    // It would let computation tasks (parsing/serializing unlinked units)
-    // proceed in parallel with reading the sources from disk.
-    while (sourcesToProcess.isNotEmpty) {
-      prepareUnlinkedUnit(sourcesToProcess.removeFirst());
-    }
-
     var declaredVariables = DeclaredVariables.fromMap(
         Map.of(options.declaredVariables)..addAll(sdkLibraryVariables));
 
-    /// Perform the linking step and store the result.
-    ///
-    /// TODO(jmesserly): can we pass in `getAst` to reuse existing ASTs we
-    /// created when we did `file.parse()` in [prepareUnlinkedUnit]?
-    var linkResult = summary_link.link(
-        libraryUris.toSet(),
-        (uri) => summaryData.linkedMap[uri],
-        (uri) => summaryData.unlinkedMap[uri] ?? uriToUnit[uri],
-        declaredVariables,
-        analysisOptions);
-    linkResult.forEach(assembler.addLinkedLibrary);
-
-    var summaryBytes = assembler.assemble().toBuffer();
-    var bundle = PackageBundle.fromBuffer(summaryBytes);
-
-    /// Create an analysis context to contain the state for this build unit.
-    var synchronousSession =
-        SynchronousSession(analysisOptions, declaredVariables);
-    var context = RestrictedAnalysisContext(synchronousSession, sourceFactory);
-    var resynthesizer = StoreBasedSummaryResynthesizer(
-      context,
-      null,
-      context.sourceFactory,
-      /*strongMode*/ true,
-      SummaryDataStore([])
-        ..addStore(summaryData)
-        ..addBundle(null, bundle),
+    var resynthesizerBuilder = DevCompilerResynthesizerBuilder(
+      fsState: fsState,
+      analysisOptions: analysisOptions,
+      declaredVariables: declaredVariables,
+      sourceFactory: sourceFactory,
+      summaryData: summaryData,
+      explicitSources: explicitSources,
     );
-    resynthesizer.finishCoreAsyncLibraries();
-    context.typeProvider = resynthesizer.typeProvider;
+    resynthesizerBuilder.build();
 
-    _extensionTypes ??= ExtensionTypeSet(context.typeProvider, resynthesizer);
+    _extensionTypes ??= ExtensionTypeSet(
+      resynthesizerBuilder.context.typeProvider,
+      resynthesizerBuilder.resynthesizer,
+      resynthesizerBuilder.elementFactory,
+    );
 
     return LinkedAnalysisDriver(
-        analysisOptions,
-        resynthesizer,
-        sourceFactory,
-        libraryUris,
-        declaredVariables,
-        summaryBytes,
-        fsState,
-        _resourceProvider);
+      analysisOptions,
+      resynthesizerBuilder.resynthesizer,
+      resynthesizerBuilder.elementFactory,
+      sourceFactory,
+      resynthesizerBuilder.libraryUris,
+      declaredVariables,
+      resynthesizerBuilder.summaryBytes,
+      fsState,
+      _resourceProvider,
+    );
   }
 
   FileSystemState _createFileSystemState(SourceFactory sourceFactory) {
@@ -298,6 +175,7 @@ class CompilerAnalysisDriver {
 class LinkedAnalysisDriver {
   final AnalysisOptions analysisOptions;
   final SummaryResynthesizer resynthesizer;
+  final LinkedElementFactory elementFactory;
   final SourceFactory sourceFactory;
   final List<String> libraryUris;
   final DeclaredVariables declaredVariables;
@@ -312,6 +190,7 @@ class LinkedAnalysisDriver {
   LinkedAnalysisDriver(
       this.analysisOptions,
       this.resynthesizer,
+      this.elementFactory,
       this.sourceFactory,
       this.libraryUris,
       this.declaredVariables,
@@ -319,12 +198,22 @@ class LinkedAnalysisDriver {
       this._fsState,
       this._resourceProvider);
 
-  TypeProvider get typeProvider => resynthesizer.typeProvider;
+  TypeProvider get typeProvider {
+    if (resynthesizer != null) {
+      return resynthesizer.typeProvider;
+    } else {
+      return elementFactory.analysisContext.typeProvider;
+    }
+  }
 
   /// True if [uri] refers to a Dart library (i.e. a Dart source file exists
   /// with this uri, and it is not a part file).
   bool _isLibraryUri(String uri) {
-    return resynthesizer.hasLibrarySummary(uri);
+    if (resynthesizer != null) {
+      return resynthesizer.hasLibrarySummary(uri);
+    } else {
+      return elementFactory.isLibraryUri(uri);
+    }
   }
 
   /// Analyzes the library at [uri] and returns the results of analysis for all
@@ -334,16 +223,23 @@ class LinkedAnalysisDriver {
       throw ArgumentError('"$libraryUri" is not a library');
     }
 
+    AnalysisContext analysisContext;
+    if (resynthesizer != null) {
+      analysisContext = resynthesizer.context;
+    } else {
+      analysisContext = elementFactory.analysisContext;
+    }
+
     var libraryFile = _fsState.getFileForUri(Uri.parse(libraryUri));
     var analyzer = LibraryAnalyzer(
         analysisOptions as AnalysisOptionsImpl,
         declaredVariables,
-        resynthesizer.sourceFactory,
+        sourceFactory,
         (uri) => _isLibraryUri('$uri'),
-        resynthesizer.context,
+        analysisContext,
         resynthesizer,
-        null,
-        InheritanceManager2(resynthesizer.typeSystem),
+        elementFactory,
+        InheritanceManager3(analysisContext.typeSystem),
         libraryFile,
         _resourceProvider);
     // TODO(jmesserly): ideally we'd use the existing public `analyze()` method,
@@ -359,6 +255,10 @@ class LinkedAnalysisDriver {
   }
 
   LibraryElement getLibrary(String uri) {
-    return resynthesizer.getLibraryElement(uri);
+    if (resynthesizer != null) {
+      return resynthesizer.getLibraryElement(uri);
+    } else {
+      return elementFactory.libraryOfUri(uri);
+    }
   }
 }

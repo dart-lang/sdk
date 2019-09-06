@@ -1,20 +1,18 @@
 main = #lib::main;
  [@vm.bytecode=
-ComponentBytecodeMetadata {
-
+BytecodeMetadata {
 Bytecode (version: stable)
 Main library: #lib
+Library '#lib'
+    name '#lib'
+    script '#lib'
 
-}
-] [@vm.bytecode=
-MembersBytecodeMetadata {
+Class '', script = '#lib'
 
-Members {
 
 Function 'main', static, reflectable, debuggable
     parameters [] (required: 0)
     return-type dynamic
-
 
 Bytecode {
   Entry                0
@@ -25,15 +23,9 @@ Bytecode {
 ConstantPool {
 }
 
-}
+Class 'A', script = '#lib'
+    extends dart:core::Object
 
-}
-]library #lib from "#lib" as #lib {
-
-[@vm.bytecode=
-MembersBytecodeMetadata {
-
-Members {
 Field 'foo1', type = dart:core::int, getter = 'get:foo1', setter = 'set:foo1', reflectable
     value = null
 
@@ -52,7 +44,6 @@ Field 'foo5', type = dart:core::int, getter = 'get:foo5', setter = 'set:foo5', r
 Function '', constructor, reflectable, debuggable
     parameters [dart:core::int 'foo4'] (required: 1)
     return-type #lib::A
-
 
 Bytecode {
   Entry                0
@@ -91,7 +82,6 @@ ConstantPool {
 Function 'constr2', constructor, reflectable, debuggable
     parameters [dart:core::int 'x', dart:core::int 'y'] (required: 2)
     return-type #lib::A
-
 
 Bytecode {
   Entry                0
@@ -133,7 +123,6 @@ Function 'redirecting1', constructor, reflectable, debuggable
     parameters [] (required: 0)
     return-type #lib::A
 
-
 Bytecode {
   Entry                0
   CheckStack           0
@@ -154,7 +143,6 @@ Function 'redirecting2', constructor, reflectable, debuggable
     parameters [dart:core::int 'a', dart:core::int 'b', dart:core::int 'c'] (required: 3)
     return-type #lib::A
 
-
 Bytecode {
   Entry                0
   CheckStack           0
@@ -173,32 +161,9 @@ ConstantPool {
   [1] = Reserved
 }
 
-}
+Class 'B', script = '#lib'
+    extends #lib::A
 
-}
-]  class A extends dart.core::Object {
-    field dart.core::int foo1;
-    field dart.core::int foo2 = null;
-    field dart.core::int foo3 = 42;
-    field dart.core::int foo4;
-    field dart.core::int foo5 = 43;
-    constructor •(dart.core::int foo4) → #lib::A
-      : #lib::A::foo1 = null, #lib::A::foo4 = foo4, #lib::A::foo5 = 44, super dart.core::Object::•()
-      ;
-    constructor constr2(dart.core::int x, dart.core::int y) → #lib::A
-      : #lib::A::foo4 = null, #lib::A::foo1 = x, #lib::A::foo5 = y.{dart.core::num::+}(1), super dart.core::Object::•()
-      ;
-    constructor redirecting1() → #lib::A
-      : this #lib::A::•(45)
-      ;
-    constructor redirecting2(dart.core::int a, dart.core::int b, dart.core::int c) → #lib::A
-      : this #lib::A::constr2(a, b.{dart.core::num::*}(c))
-      ;
-  }
-[@vm.bytecode=
-MembersBytecodeMetadata {
-
-Members {
 Field 'foo6', type = dart:core::int, getter = 'get:foo6', setter = 'set:foo6', reflectable
     value = const 46
 
@@ -211,7 +176,6 @@ Field 'foo8', type = dart:core::int, reflectable, static, const, final
 Function '', constructor, reflectable, debuggable
     parameters [] (required: 0)
     return-type #lib::B
-
 
 Bytecode {
   Entry                0
@@ -238,7 +202,6 @@ Function 'c2', constructor, reflectable, debuggable
     parameters [dart:core::int 'i', dart:core::int 'j'] (required: 2)
     return-type #lib::B
 
-
 Bytecode {
   Entry                0
   CheckStack           0
@@ -264,19 +227,42 @@ ConstantPool {
   [3] = Reserved
 }
 
-}
 
 }
-]  class B extends #lib::A {
-    field dart.core::int foo6 = 46;
-    static field dart.core::int foo7 = 47;
-    static const field dart.core::int foo8 = 48;
-    constructor •() → #lib::B
+]library #lib from "#lib" as #lib {
+
+  class A extends dart.core::Object {
+    field dart.core::int* foo1;
+    field dart.core::int* foo2 = null;
+    field dart.core::int* foo3 = 42;
+    field dart.core::int* foo4;
+    field dart.core::int* foo5 = 43;
+    constructor •(dart.core::int* foo4) → #lib::A*
+      : #lib::A::foo1 = null, #lib::A::foo4 = foo4, #lib::A::foo5 = 44, super dart.core::Object::•()
+      ;
+    constructor constr2(dart.core::int* x, dart.core::int* y) → #lib::A*
+      : #lib::A::foo4 = null, #lib::A::foo1 = x, #lib::A::foo5 = y.{dart.core::num::+}(1), super dart.core::Object::•()
+      ;
+    constructor redirecting1() → #lib::A*
+      : this #lib::A::•(45)
+      ;
+    constructor redirecting2(dart.core::int* a, dart.core::int* b, dart.core::int* c) → #lib::A*
+      : this #lib::A::constr2(a, b.{dart.core::num::*}(c))
+      ;
+  }
+  class B extends #lib::A {
+    field dart.core::int* foo6 = 46;
+    static field dart.core::int* foo7 = 47;
+    static const field dart.core::int* foo8 = #C1;
+    constructor •() → #lib::B*
       : super #lib::A::•(49)
       ;
-    constructor c2(dart.core::int i, dart.core::int j) → #lib::B
+    constructor c2(dart.core::int* i, dart.core::int* j) → #lib::B*
       : #lib::B::foo6 = 50, super #lib::A::redirecting2(i, j, 51)
       ;
   }
   static method main() → dynamic {}
+}
+constants  {
+  #C1 = 48
 }

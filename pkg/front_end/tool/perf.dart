@@ -134,10 +134,10 @@ CompilationUnit parseFull(Source source) {
 /// Report that metric [name] took [time] micro-seconds to process
 /// [inputSize] characters.
 void report(String name, int time) {
-  var sb = new StringBuffer();
-  var padding = ' ' * (20 - name.length);
+  StringBuffer sb = new StringBuffer();
+  String padding = ' ' * (20 - name.length);
   sb.write('$name:$padding $time us, ${time ~/ 1000} ms');
-  var invSpeed = (time * 1000 / inputSize).toStringAsFixed(2);
+  String invSpeed = (time * 1000 / inputSize).toStringAsFixed(2);
   sb.write(', $invSpeed ns/char');
   print('$sb');
 }
@@ -184,7 +184,9 @@ Set<Source> scanReachableFiles(Uri entryUri) {
   loadTimer.stop();
 
   inputSize = 0;
-  for (var s in files) inputSize += s.contents.data.length;
+  for (var s in files) {
+    inputSize += s.contents.data.length;
+  }
   print('input size: ${inputSize} chars');
   var loadTime = loadTimer.elapsedMicroseconds - scanTimer.elapsedMicroseconds;
   report('load', loadTime);

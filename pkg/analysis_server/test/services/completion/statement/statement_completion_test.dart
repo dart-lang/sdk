@@ -41,7 +41,7 @@ class StatementCompletionTest extends AbstractSingleUnitTest {
     int Function(String) cmp,
   ]) {
     if (change.message == message) {
-      if (!change.edits.isEmpty) {
+      if (change.edits.isNotEmpty) {
         String resultCode =
             SourceEdit.applySequence(testCode, change.edits[0].edits);
         expect(resultCode, expectedCode.replaceAll('////', ''));
@@ -72,7 +72,7 @@ class StatementCompletionTest extends AbstractSingleUnitTest {
   }
 
   _prepareCompletion(String search, String sourceCode,
-      {bool atEnd: false, int delta: 0}) async {
+      {bool atEnd = false, int delta = 0}) async {
     testCode = sourceCode.replaceAll('////', '');
     int offset = findOffset(search);
     if (atEnd) {

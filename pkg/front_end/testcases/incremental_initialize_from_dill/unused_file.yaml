@@ -2,13 +2,12 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE.md file.
 
-# Compile an application where we use an import, then recomile without changing
+# Compile an application where we use an import, then recompile without changing
 # the import but where we no longer use it.
 # The imported file is still included in the dill file we initialize from,
 # but shouldn't cause trouble, nor be included in the output.
 
 type: newworld
-strong: false
 worlds:
   - entry: main.dart
     sources:

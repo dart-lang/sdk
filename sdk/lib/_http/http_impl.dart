@@ -85,14 +85,14 @@ class _CopyingBytesBuilder implements BytesBuilder {
     _buffer = newBuffer;
   }
 
-  List<int> takeBytes() {
+  Uint8List takeBytes() {
     if (_length == 0) return _emptyList;
     var buffer = new Uint8List.view(_buffer.buffer, 0, _length);
     clear();
     return buffer;
   }
 
-  List<int> toBytes() {
+  Uint8List toBytes() {
     if (_length == 0) return _emptyList;
     return new Uint8List.fromList(
         new Uint8List.view(_buffer.buffer, 0, _length));
@@ -125,10 +125,10 @@ const int _OUTGOING_BUFFER_SIZE = 8 * 1024;
 
 typedef void _BytesConsumer(List<int> bytes);
 
-class _HttpIncoming extends Stream<List<int>> {
+class _HttpIncoming extends Stream<Uint8List> {
   final int _transferLength;
   final Completer _dataCompleter = new Completer();
-  Stream<List<int>> _stream;
+  Stream<Uint8List> _stream;
 
   bool fullBodyRead = false;
 
@@ -154,7 +154,7 @@ class _HttpIncoming extends Stream<List<int>> {
 
   _HttpIncoming(this.headers, this._transferLength, this._stream);
 
-  StreamSubscription<List<int>> listen(void onData(List<int> event),
+  StreamSubscription<Uint8List> listen(void onData(Uint8List event),
       {Function onError, void onDone(), bool cancelOnError}) {
     hasSubscriber = true;
     return _stream.handleError((error) {
@@ -173,7 +173,24 @@ class _HttpIncoming extends Stream<List<int>> {
   }
 }
 
-abstract class _HttpInboundMessage extends Stream<List<int>> {
+abstract class _HttpInboundMessageListInt extends Stream<List<int>> {
+  final _HttpIncoming _incoming;
+  List<Cookie> _cookies;
+
+  _HttpInboundMessageListInt(this._incoming);
+
+  List<Cookie> get cookies {
+    if (_cookies != null) return _cookies;
+    return _cookies = headers._parseCookies();
+  }
+
+  _HttpHeaders get headers => _incoming.headers;
+  String get protocolVersion => headers.protocolVersion;
+  int get contentLength => headers.contentLength;
+  bool get persistentConnection => headers.persistentConnection;
+}
+
+abstract class _HttpInboundMessage extends Stream<Uint8List> {
   final _HttpIncoming _incoming;
   List<Cookie> _cookies;
 
@@ -225,7 +242,7 @@ class _HttpRequest extends _HttpInboundMessage implements HttpRequest {
     }
   }
 
-  StreamSubscription<List<int>> listen(void onData(List<int> event),
+  StreamSubscription<Uint8List> listen(void onData(Uint8List event),
       {Function onError, void onDone(), bool cancelOnError}) {
     return _incoming.listen(onData,
         onError: onError, onDone: onDone, cancelOnError: cancelOnError);
@@ -282,7 +299,7 @@ class _HttpRequest extends _HttpInboundMessage implements HttpRequest {
   }
 }
 
-class _HttpClientResponse extends _HttpInboundMessage
+class _HttpClientResponse extends _HttpInboundMessageListInt
     implements HttpClientResponse {
   List<RedirectInfo> get redirects => _httpRequest._responseRedirects;
 
@@ -382,18 +399,21 @@ class _HttpClientResponse extends _HttpInboundMessage
     });
   }
 
-  StreamSubscription<List<int>> listen(void onData(List<int> event),
+  StreamSubscription<Uint8List> listen(void onData(Uint8List event),
       {Function onError, void onDone(), bool cancelOnError}) {
     if (_incoming.upgraded) {
       // If upgraded, the connection is already 'removed' form the client.
       // Since listening to upgraded data is 'bogus', simply close and
       // return empty stream subscription.
       _httpRequest._httpClientConnection.destroy();
-      return new Stream<List<int>>.empty().listen(null, onDone: onDone);
+      return new Stream<Uint8List>.empty().listen(null, onDone: onDone);
     }
-    Stream<List<int>> stream = _incoming;
+    Stream<Uint8List> stream = _incoming;
     if (compressionState == HttpClientResponseCompressionState.decompressed) {
-      stream = stream.transform(gzip.decoder);
+      stream = stream
+          .cast<List<int>>()
+          .transform(gzip.decoder)
+          .transform(const _ToUint8List());
     }
     return stream.listen(onData,
         onError: onError, onDone: onDone, cancelOnError: cancelOnError);
@@ -531,6 +551,30 @@ class _HttpClientResponse extends _HttpInboundMessage
         return this;
       }
     });
+  }
+}
+
+class _ToUint8List extends Converter<List<int>, Uint8List> {
+  const _ToUint8List();
+
+  Uint8List convert(List<int> input) => Uint8List.fromList(input);
+
+  Sink<List<int>> startChunkedConversion(Sink<Uint8List> sink) {
+    return _Uint8ListConversionSink(sink);
+  }
+}
+
+class _Uint8ListConversionSink implements Sink<List<int>> {
+  const _Uint8ListConversionSink(this._target);
+
+  final Sink<Uint8List> _target;
+
+  void add(List<int> data) {
+    _target.add(Uint8List.fromList(data));
+  }
+
+  void close() {
+    _target.close();
   }
 }
 
@@ -1946,14 +1990,26 @@ class _ConnectionTarget {
     return connectionTask.then((ConnectionTask task) {
       _socketTasks.add(task);
       Future socketFuture = task.socket;
-      if (client.connectionTimeout != null) {
-        socketFuture =
-            socketFuture.timeout(client.connectionTimeout, onTimeout: () {
+      final Duration connectionTimeout = client.connectionTimeout;
+      if (connectionTimeout != null) {
+        socketFuture = socketFuture.timeout(connectionTimeout, onTimeout: () {
           _socketTasks.remove(task);
           task.cancel();
+          return null;
         });
       }
       return socketFuture.then((socket) {
+        // When there is a timeout, there is a race in which the connectionTask
+        // Future won't be completed with an error before the socketFuture here
+        // is completed with 'null' by the onTimeout callback above. In this
+        // case, propagate a SocketException as specified by the
+        // HttpClient.connectionTimeout docs.
+        if (socket == null) {
+          assert(connectionTimeout != null);
+          throw new SocketException(
+              "HTTP connection timed out after ${connectionTimeout}, "
+              "host: ${host}, port: ${port}");
+        }
         _connecting--;
         socket.setOption(SocketOption.tcpNoDelay, true);
         var connection =
@@ -2865,13 +2921,13 @@ class _HttpConnectionInfo implements HttpConnectionInfo {
   }
 }
 
-class _DetachedSocket extends Stream<List<int>> implements Socket {
-  final Stream<List<int>> _incoming;
+class _DetachedSocket extends Stream<Uint8List> implements Socket {
+  final Stream<Uint8List> _incoming;
   final Socket _socket;
 
   _DetachedSocket(this._socket, this._incoming);
 
-  StreamSubscription<List<int>> listen(void onData(List<int> event),
+  StreamSubscription<Uint8List> listen(void onData(Uint8List event),
       {Function onError, void onDone(), bool cancelOnError}) {
     return _incoming.listen(onData,
         onError: onError, onDone: onDone, cancelOnError: cancelOnError);

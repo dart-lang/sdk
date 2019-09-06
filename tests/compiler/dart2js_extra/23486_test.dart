@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Regression test for http://dartbug.com/23486/
+// Regression test for http://dartbug.com/23486
 //
 // Dart2js used to crash when using `super` and prefixes inside parenthesized
 // expressions.

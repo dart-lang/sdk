@@ -5,7 +5,6 @@
 # Compile an application with the option of only getting an outline.
 
 type: newworld
-strong: true
 worlds:
   - entry: main.dart
     sources:

@@ -8,5 +8,5 @@ library test;
 var a = 1.2;
 
 main() {
-  var /*@type=double*/ b = 3.4;
+  var /*@ type=double* */ b = 3.4;
 }

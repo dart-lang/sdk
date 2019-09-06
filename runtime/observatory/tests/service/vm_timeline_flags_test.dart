@@ -31,7 +31,7 @@ var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   (Isolate isolate) async {
     // Get the flags.
-    Map flags = await isolate.vm.invokeRpcNoUpgrade('_getVMTimelineFlags', {});
+    Map flags = await isolate.vm.invokeRpcNoUpgrade('getVMTimelineFlags', {});
     expect(flags['type'], 'TimelineFlags');
     // Confirm that 'Dart' is available.
     expect(flags['availableStreams'].contains('Dart'), isTrue);
@@ -40,21 +40,21 @@ var tests = <IsolateTest>[
   },
   (Isolate isolate) async {
     // Get the timeline.
-    Map result = await isolate.vm.invokeRpcNoUpgrade('_getVMTimeline', {});
-    expect(result['type'], equals('_Timeline'));
+    Map result = await isolate.vm.invokeRpcNoUpgrade('getVMTimeline', {});
+    expect(result['type'], equals('Timeline'));
     expect(result['traceEvents'], new isInstanceOf<List>());
     // Confirm that it as no non-meta data events.
     expect(filterEvents(result['traceEvents'], isNotMetaData).length, 0);
   },
   (Isolate isolate) async {
     // Enable the Dart category.
-    await isolate.vm.invokeRpcNoUpgrade('_setVMTimelineFlags', {
+    await isolate.vm.invokeRpcNoUpgrade('setVMTimelineFlags', {
       "recordedStreams": ["Dart"]
     });
   },
   (Isolate isolate) async {
     // Get the flags.
-    Map flags = await isolate.vm.invokeRpcNoUpgrade('_getVMTimelineFlags', {});
+    Map flags = await isolate.vm.invokeRpcNoUpgrade('getVMTimelineFlags', {});
     expect(flags['type'], 'TimelineFlags');
     // Confirm that only Dart is being recorded.
     expect(flags['recordedStreams'].length, equals(1));
@@ -65,8 +65,8 @@ var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   (Isolate isolate) async {
     // Get the timeline.
-    Map result = await isolate.vm.invokeRpcNoUpgrade('_getVMTimeline', {});
-    expect(result['type'], equals('_Timeline'));
+    Map result = await isolate.vm.invokeRpcNoUpgrade('getVMTimeline', {});
+    expect(result['type'], equals('Timeline'));
     expect(result['traceEvents'], new isInstanceOf<List>());
     print(result['traceEvents']);
     // Confirm that Dart events are added.
@@ -79,16 +79,16 @@ var tests = <IsolateTest>[
   (Isolate isolate) async {
     // Disable the Dart category.
     await isolate.vm
-        .invokeRpcNoUpgrade('_setVMTimelineFlags', {"recordedStreams": []});
+        .invokeRpcNoUpgrade('setVMTimelineFlags', {"recordedStreams": []});
     // Grab the timeline and remember the number of Dart events.
-    Map result = await isolate.vm.invokeRpcNoUpgrade('_getVMTimeline', {});
-    expect(result['type'], equals('_Timeline'));
+    Map result = await isolate.vm.invokeRpcNoUpgrade('getVMTimeline', {});
+    expect(result['type'], equals('Timeline'));
     expect(result['traceEvents'], new isInstanceOf<List>());
     dartEventCount = filterEvents(result['traceEvents'], isDart).length;
   },
   (Isolate isolate) async {
     // Get the flags.
-    Map flags = await isolate.vm.invokeRpcNoUpgrade('_getVMTimelineFlags', {});
+    Map flags = await isolate.vm.invokeRpcNoUpgrade('getVMTimelineFlags', {});
     expect(flags['type'], 'TimelineFlags');
     // Confirm that 'Dart' is not being recorded.
     expect(flags['recordedStreams'].length, equals(0));
@@ -97,8 +97,8 @@ var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   (Isolate isolate) async {
     // Grab the timeline and verify that we haven't added any new Dart events.
-    Map result = await isolate.vm.invokeRpcNoUpgrade('_getVMTimeline', {});
-    expect(result['type'], equals('_Timeline'));
+    Map result = await isolate.vm.invokeRpcNoUpgrade('getVMTimeline', {});
+    expect(result['type'], equals('Timeline'));
     expect(result['traceEvents'], new isInstanceOf<List>());
     expect(filterEvents(result['traceEvents'], isDart).length, dartEventCount);
     // Confirm that zero non-Dart events are added.

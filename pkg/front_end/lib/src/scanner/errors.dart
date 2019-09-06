@@ -49,7 +49,7 @@ class ScannerErrorCode extends ErrorCode {
       const ScannerErrorCode(
           'UNEXPECTED_DOLLAR_IN_STRING',
           "A '\$' has special meaning inside a string, and must be followed by "
-          "an identifier or an expression in curly braces ({}).",
+              "an identifier or an expression in curly braces ({}).",
           correction: "Try adding a backslash (\\) to escape the '\$'.");
 
   /**
@@ -113,13 +113,11 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
     reportError(errorCode, charOffset, arguments);
   }
 
-  var errorCode = token.errorCode;
+  Code<dynamic> errorCode = token.errorCode;
   switch (errorCode.analyzerCodes?.first) {
     case "UNTERMINATED_STRING_LITERAL":
       // TODO(paulberry,ahe): Fasta reports the error location as the entire
       // string; analyzer expects the end of the string.
-      // TODO(danrubel): Remove this once all analyzer clients
-      // can process errors via the scanner's errors list.
       reportError(
           ScannerErrorCode.UNTERMINATED_STRING_LITERAL, endOffset - 1, null);
       return;
@@ -127,8 +125,9 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
     case "UNTERMINATED_MULTI_LINE_COMMENT":
       // TODO(paulberry,ahe): Fasta reports the error location as the entire
       // comment; analyzer expects the end of the comment.
-      charOffset = endOffset;
-      return _makeError(ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT, null);
+      reportError(ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT,
+          endOffset - 1, null);
+      return;
 
     case "MISSING_DIGIT":
       // TODO(paulberry,ahe): Fasta reports the error location as the entire
@@ -157,7 +156,8 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
             type == TokenType.STRING_INTERPOLATION_EXPRESSION) {
           return _makeError(ScannerErrorCode.EXPECTED_TOKEN, ['}']);
         }
-        if (type == TokenType.OPEN_SQUARE_BRACKET) {
+        if (type == TokenType.OPEN_SQUARE_BRACKET ||
+            type == TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET) {
           return _makeError(ScannerErrorCode.EXPECTED_TOKEN, [']']);
         }
         if (type == TokenType.OPEN_PAREN) {

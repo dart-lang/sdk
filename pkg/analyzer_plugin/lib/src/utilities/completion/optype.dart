@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
@@ -21,6 +22,11 @@ typedef int SuggestionsFilter(DartType dartType, int relevance);
  * suggestions were requested.
  */
 class OpType {
+  /**
+   * The [TypeSystem] used during resolution of the current unit.
+   */
+  TypeSystem _typeSystem;
+
   /**
    * Indicates whether constructor suggestions should be included.
    */
@@ -139,6 +145,8 @@ class OpType {
     if (target.isDoubleOrIntLiteral()) {
       return optype;
     }
+
+    optype._typeSystem = target.unit?.declaredElement?.context?.typeSystem;
 
     var targetNode = target.containingNode;
     targetNode.accept(new _OpTypeAstVisitor(optype, target.entity, offset));
@@ -259,12 +267,21 @@ class OpType {
       if (dartType != null) {
         if (dartType == _requiredType) {
           return relevance + DART_RELEVANCE_BOOST_TYPE;
-        } else if (dartType.isSubtypeOf(_requiredType)) {
+        } else if (_isSubtypeOf(dartType, _requiredType)) {
           return relevance + DART_RELEVANCE_BOOST_SUBTYPE;
         }
       }
       return relevance;
     };
+  }
+
+  /// Return `true` if the [leftType] is a subtype of the [rightType].
+  bool _isSubtypeOf(DartType leftType, DartType rightType) {
+    if (_typeSystem == null) {
+      return false;
+    }
+
+    return _typeSystem.isSubtypeOf(leftType, rightType);
   }
 
   /// Return the statement before [entity]
@@ -385,7 +402,8 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
         DartType staticType = node.expression.staticType;
         if (staticType != null &&
             (staticType.isDynamic ||
-                (dartType.isSubtypeOf(staticType) && dartType != staticType))) {
+                (optype._isSubtypeOf(dartType, staticType) &&
+                    dartType != staticType))) {
           return relevance;
         } else {
           return null;
@@ -594,6 +612,14 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
     if (identical(entity, node.superclass)) {
       optype.includeTypeNameSuggestions = true;
       optype.typeNameSuggestionsFilter = _nonMixinClasses;
+    }
+  }
+
+  @override
+  void visitExtensionDeclaration(ExtensionDeclaration node) {
+    // Make suggestions in the body of the extension declaration
+    if (node.members.contains(entity) || identical(entity, node.rightBracket)) {
+      optype.includeTypeNameSuggestions = true;
     }
   }
 
@@ -814,7 +840,8 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
         DartType staticType = node.expression.staticType;
         if (staticType != null &&
             (staticType.isDynamic ||
-                (dartType.isSubtypeOf(staticType) && dartType != staticType))) {
+                (optype._isSubtypeOf(dartType, staticType) &&
+                    dartType != staticType))) {
           return relevance;
         } else {
           return null;
@@ -854,6 +881,14 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
       optype.includeTypeNameSuggestions = !isThis;
       optype.includeVoidReturnSuggestions = true;
       optype.isPrefixed = true;
+    }
+  }
+
+  @override
+  visitMixinDeclaration(MixinDeclaration node) {
+    // Make suggestions in the body of the mixin declaration
+    if (node.members.contains(entity) || identical(entity, node.rightBracket)) {
+      optype.includeTypeNameSuggestions = true;
     }
   }
 

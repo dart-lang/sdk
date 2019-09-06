@@ -19,7 +19,7 @@ uword RuntimeEntry::GetEntryPoint() const {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 void RuntimeEntry::CallInternal(const RuntimeEntry* runtime_entry,
-                                Assembler* assembler,
+                                compiler::Assembler* assembler,
                                 intptr_t argument_count) {
   UNIMPLEMENTED();
 }

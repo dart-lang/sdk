@@ -47,32 +47,6 @@ enum class TypeChecksToBuild {
   kCheckCovariantTypeParameterBounds,
 };
 
-// Indicates which form of the unchecked entrypoint we are compiling.
-//
-// kNone:
-//
-//   There is no unchecked entrypoint: the unchecked entry is set to NULL in
-//   the 'GraphEntryInstr'.
-//
-// kSeparate:
-//
-//   The normal and unchecked entrypoint each point to their own versions of
-//   the prologue, containing exactly those checks which need to be performed
-//   on either side. Both sides jump directly to the body after performing
-//   their prologue.
-//
-// kSharedWithVariable:
-//
-//   A temporary variable is allocated and initialized to 0 on normal entry
-//   and 2 on unchecked entry. Code which should be ommitted on the unchecked
-//   entrypoint is made conditional on this variable being equal to 0.
-//
-enum class UncheckedEntryPointStyle {
-  kNone = 0,
-  kSeparate = 1,
-  kSharedWithVariable = 2,
-};
-
 class FlowGraphBuilder : public BaseFlowGraphBuilder {
  public:
   FlowGraphBuilder(ParsedFunction* parsed_function,
@@ -107,6 +81,9 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment NativeFunctionBody(const Function& function,
                               LocalVariable* first_parameter);
 
+  bool IsRecognizedMethodForFlowGraph(const Function& function);
+  FlowGraph* BuildGraphOfRecognizedMethod(const Function& function);
+
   Fragment BuildTypedDataViewFactoryConstructor(const Function& function,
                                                 classid_t cid);
 
@@ -124,16 +101,13 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment TranslateInstantiatedTypeArguments(
       const TypeArguments& type_arguments);
 
-  Fragment AllocateObject(TokenPosition position,
-                          const Class& klass,
-                          intptr_t argument_count);
   Fragment CatchBlockEntry(const Array& handler_types,
                            intptr_t handler_index,
                            bool needs_stacktrace,
                            bool is_synthesized);
   Fragment TryCatch(int try_handler_index);
   Fragment CheckStackOverflowInPrologue(TokenPosition position);
-  Fragment CloneContext(const GrowableArray<LocalVariable*>& context_variables);
+  Fragment CloneContext(const ZoneGrowableArray<const Slot*>& context_slots);
 
   Fragment InstanceCall(
       TokenPosition position,
@@ -148,12 +122,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
       bool use_unchecked_entry = false,
       const CallSiteAttributesMetadata* call_site_attrs = nullptr);
 
-  Fragment ClosureCall(TokenPosition position,
-                       intptr_t type_args_len,
-                       intptr_t argument_count,
-                       const Array& argument_names,
-                       bool use_unchecked_entry = false);
-
   Fragment FfiCall(
       const Function& signature,
       const ZoneGrowableArray<Representation>& arg_reps,
@@ -165,10 +133,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment InitStaticField(const Field& field);
   Fragment NativeCall(const String* name, const Function* function);
   Fragment Return(TokenPosition position, bool omit_result_type_check = false);
-  Fragment CheckNull(TokenPosition position,
-                     LocalVariable* receiver,
-                     const String& function_name,
-                     bool clear_the_temp = true);
   void SetResultTypeForStaticCall(StaticCallInstr* call,
                                   const Function& target,
                                   intptr_t argument_count,
@@ -185,7 +149,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
                       const InferredTypeMetadata* result_type = NULL,
                       intptr_t type_args_len = 0,
                       bool use_unchecked_entry = false);
-  Fragment StringInterpolate(TokenPosition position);
   Fragment StringInterpolateSingle(TokenPosition position);
   Fragment ThrowTypeError();
   Fragment ThrowNoSuchMethodError();
@@ -212,7 +175,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
 
   bool NeedsDebugStepCheck(const Function& function, TokenPosition position);
   bool NeedsDebugStepCheck(Value* value, TokenPosition position);
-  Fragment DebugStepCheck(TokenPosition position);
 
   // Truncates (instead of deoptimizing) if the origin does not fit into the
   // target representation.
@@ -226,16 +188,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment FfiUnboxedExtend(Representation representation,
                             const AbstractType& ffi_type);
 
-  // Pops an 'ffi.Pointer' off the stack.
-  // If it's null, pushes 0.
-  // Otherwise pushes the address (in boxed representation).
-  Fragment LoadAddressFromFfiPointer();
-
-  // Reverse of 'LoadPointerFromFfiPointer':
-  // Pops an integer off the the stack.
-  // If it's zero, pushes null.
-  // If it's nonzero, creates an 'ffi.Pointer' holding the address and pushes
-  // the pointer.
+  // Creates an ffi.Pointer holding a given address (TOS).
   Fragment FfiPointerFromAddress(const Type& result_type);
 
   // Pushes an (unboxed) bogus value returned when a native -> Dart callback
@@ -306,7 +259,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   //  - function_type_arguments()
   Fragment BuildDefaultTypeHandling(const Function& function);
 
-  Fragment BuildEntryPointsIntrospection();
   FunctionEntryInstr* BuildSharedUncheckedEntryPoint(
       Fragment prologue_from_normal_entry,
       Fragment skippable_checks,
@@ -318,7 +270,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
       Fragment extra_prologue,
       Fragment shared_prologue,
       Fragment body);
-  void RecordUncheckedEntryPoint(FunctionEntryInstr* extra_entry);
 
   // Builds flow graph for implicit closure function (tear-off).
   //

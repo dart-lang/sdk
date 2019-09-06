@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   assumeDynamic();
   notAssumeDynamic();
@@ -18,11 +18,11 @@ main() {
 // the 'dynamic' type.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _assumeDynamic:[null|subclass=Object]*/
+/*member: _assumeDynamic:[null|subclass=Object]*/
 @pragma('dart2js:assumeDynamic')
 _assumeDynamic(/*[null|subclass=Object]*/ o) => o;
 
-/*element: assumeDynamic:[null]*/
+/*member: assumeDynamic:[null]*/
 assumeDynamic() {
   _assumeDynamic(0);
 }
@@ -31,10 +31,10 @@ assumeDynamic() {
 // As above but without the annotation.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _notAssumeDynamic:[exact=JSUInt31]*/
+/*member: _notAssumeDynamic:[exact=JSUInt31]*/
 _notAssumeDynamic(/*[exact=JSUInt31]*/ o) => o;
 
-/*element: notAssumeDynamic:[null]*/
+/*member: notAssumeDynamic:[null]*/
 notAssumeDynamic() {
   _notAssumeDynamic(0);
 }
@@ -43,7 +43,7 @@ notAssumeDynamic() {
 // No annotation is needed to trust return type annotation.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: trustReturnTypeString:[null|exact=JSString]*/
+/*member: trustReturnTypeString:[null|exact=JSString]*/
 String trustReturnTypeString() {
   return _assumeDynamic(0);
 }
@@ -52,10 +52,10 @@ String trustReturnTypeString() {
 // No annotation is needed to trust parameter type annotation.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _trustParameterTypeString:[null]*/
+/*member: _trustParameterTypeString:[null]*/
 _trustParameterTypeString(String /*[null|exact=JSString]*/ o) {}
 
-/*element: trustParameterTypeString:[null]*/
+/*member: trustParameterTypeString:[null]*/
 trustParameterTypeString() {
   _trustParameterTypeString(_assumeDynamic(0));
 }

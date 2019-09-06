@@ -45,13 +45,13 @@ class PipeServerGame {
     void connectHandler() {
       String srcFileName = getDataFilename("readline_test1.dat");
       Stream fileInput = new File(srcFileName).openRead();
-      fileInput.pipe(_socket).then((_) {
+      fileInput.cast<List<int>>().pipe(_socket).then((_) {
         var tempDir = Directory.systemTemp.createTempSync('dart_pipe_server');
         var dstFileName = tempDir.path + "/readline_test1.dat";
         var dstFile = new File(dstFileName);
         dstFile.createSync();
         var fileOutput = dstFile.openWrite();
-        _socket.pipe(fileOutput).then((_) {
+        _socket.cast<List<int>>().pipe(fileOutput).then((_) {
           // Check that the resulting file is equal to the initial
           // file.
           bool result = compareFileContent(srcFileName, dstFileName);
@@ -109,7 +109,7 @@ void startPipeServer(Object replyPortObj) {
 // stream to its output stream.
 class PipeServer extends TestingServer {
   void onConnection(Socket connection) {
-    connection.pipe(connection);
+    connection.cast<List<int>>().pipe(connection);
   }
 }
 

@@ -25,7 +25,7 @@ import '../api_prototype/compiler_options.dart'
     show CompilerOptions, DiagnosticMessage;
 
 import '../api_prototype/experimental_flags.dart'
-    show defaultExperimentalFlags, ExperimentalFlag;
+    show defaultExperimentalFlags, ExperimentalFlag, expiredExperimentalFlags;
 
 import '../api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
@@ -142,7 +142,7 @@ class ProcessedOptions {
   Future<List<int>> loadSdkSummaryBytes() async {
     if (_sdkSummaryBytes == null) {
       if (sdkSummary == null) return null;
-      var entry = fileSystem.entityForUri(sdkSummary);
+      FileSystemEntity entry = fileSystem.entityForUri(sdkSummary);
       _sdkSummaryBytes = await _readAsBytes(entry);
     }
     return _sdkSummaryBytes;
@@ -157,8 +157,6 @@ class ProcessedOptions {
   Ticker ticker;
 
   Uri get packagesUriRaw => _raw.packagesFileUri;
-
-  bool get enableAsserts => _raw.enableAsserts;
 
   bool get verbose => _raw.verbose;
 
@@ -260,7 +258,7 @@ class ProcessedOptions {
       return false;
     }
 
-    var summary = sdkSummary;
+    Uri summary = sdkSummary;
     if (summary != null && !await fileSystem.entityForUri(summary).exists()) {
       reportWithoutLocation(
           templateSdkSummaryNotFound.withArguments(summary), Severity.error);
@@ -315,7 +313,11 @@ class ProcessedOptions {
   bool isExperimentEnabled(ExperimentalFlag flag) {
     assert(defaultExperimentalFlags.containsKey(flag),
         "No default value for $flag.");
-    // TODO(askesc): Determine default flag value from specification file.
+    assert(expiredExperimentalFlags.containsKey(flag),
+        "No expired value for $flag.");
+    if (expiredExperimentalFlags[flag]) {
+      return defaultExperimentalFlags[flag];
+    }
     return _raw.experimentalFlags[flag] ?? defaultExperimentalFlags[flag];
   }
 
@@ -324,7 +326,7 @@ class ProcessedOptions {
   Future<Component> loadSdkSummary(CanonicalName nameRoot) async {
     if (_sdkSummaryComponent == null) {
       if (sdkSummary == null) return null;
-      var bytes = await loadSdkSummaryBytes();
+      List<int> bytes = await loadSdkSummaryBytes();
       if (bytes != null && bytes.isNotEmpty) {
         _sdkSummaryComponent = loadComponent(bytes, nameRoot);
       }
@@ -344,10 +346,10 @@ class ProcessedOptions {
   // TODO(sigmund): move, this doesn't feel like an "option".
   Future<List<Component>> loadInputSummaries(CanonicalName nameRoot) async {
     if (_inputSummariesComponents == null) {
-      var uris = _raw.inputSummaries;
+      List<Uri> uris = _raw.inputSummaries;
       if (uris == null || uris.isEmpty) return const <Component>[];
-      // TODO(sigmund): throttle # of concurrent opreations.
-      var allBytes = await Future.wait(
+      // TODO(sigmund): throttle # of concurrent operations.
+      List<List<int>> allBytes = await Future.wait(
           uris.map((uri) => _readAsBytes(fileSystem.entityForUri(uri))));
       _inputSummariesComponents =
           allBytes.map((bytes) => loadComponent(bytes, nameRoot)).toList();
@@ -366,10 +368,10 @@ class ProcessedOptions {
   // TODO(sigmund): move, this doesn't feel like an "option".
   Future<List<Component>> loadLinkDependencies(CanonicalName nameRoot) async {
     if (_linkedDependencies == null) {
-      var uris = _raw.linkedDependencies;
+      List<Uri> uris = _raw.linkedDependencies;
       if (uris == null || uris.isEmpty) return const <Component>[];
-      // TODO(sigmund): throttle # of concurrent opreations.
-      var allBytes = await Future.wait(
+      // TODO(sigmund): throttle # of concurrent operations.
+      List<List<int>> allBytes = await Future.wait(
           uris.map((uri) => _readAsBytes(fileSystem.entityForUri(uri))));
       _linkedDependencies =
           allBytes.map((bytes) => loadComponent(bytes, nameRoot)).toList();
@@ -403,9 +405,10 @@ class ProcessedOptions {
     }
     if (_uriTranslator == null) {
       ticker.logMs("Started building UriTranslator");
-      var libraries = await _computeLibrarySpecification();
+      TargetLibrariesSpecification libraries =
+          await _computeLibrarySpecification();
       ticker.logMs("Read libraries file");
-      var packages = await _getPackages();
+      Packages packages = await _getPackages();
       ticker.logMs("Read packages file");
       _uriTranslator = new UriTranslator(libraries, packages);
     }
@@ -413,7 +416,7 @@ class ProcessedOptions {
   }
 
   Future<TargetLibrariesSpecification> _computeLibrarySpecification() async {
-    var name = target.name;
+    String name = target.name;
     // TODO(sigmund): Eek! We should get to the point where there is no
     // fasta-specific targets and the target names are meaningful.
     if (name.endsWith('_fasta')) name = name.substring(0, name.length - 6);
@@ -429,10 +432,10 @@ class ProcessedOptions {
       return new TargetLibrariesSpecification(name);
     }
 
-    var json =
+    String json =
         await fileSystem.entityForUri(librariesSpecificationUri).readAsString();
     try {
-      var spec =
+      LibrariesSpecification spec =
           await LibrariesSpecification.parse(librariesSpecificationUri, json);
       return spec.specificationFor(name);
     } on LibrariesSpecificationException catch (e) {
@@ -462,9 +465,9 @@ class ProcessedOptions {
       return _packages = Packages.noPackages;
     }
 
-    var input = inputs.first;
+    Uri input = inputs.first;
 
-    // When compiling the SDK the input files are normaly `dart:` URIs.
+    // When compiling the SDK the input files are normally `dart:` URIs.
     if (input.scheme == 'dart') return _packages = Packages.noPackages;
 
     if (input.scheme == 'packages') {
@@ -528,7 +531,7 @@ class ProcessedOptions {
   ///    * Unlike package:package_config, it does not look for a `packages/`
   ///    directory, as that won't be supported in Dart 2.
   Future<Packages> _findPackages(Uri scriptUri) async {
-    var dir = scriptUri.resolve('.');
+    Uri dir = scriptUri.resolve('.');
     if (!dir.isAbsolute) {
       reportWithoutLocation(
           templateInternalProblemUnsupported
@@ -544,11 +547,11 @@ class ProcessedOptions {
     }
 
     // Check for $cwd/.packages
-    var candidate = await checkInDir(dir);
+    Uri candidate = await checkInDir(dir);
     if (candidate != null) return createPackagesFromFile(candidate);
 
     // Check for cwd(/..)+/.packages
-    var parentDir = dir.resolve('..');
+    Uri parentDir = dir.resolve('..');
     while (parentDir.path != dir.path) {
       candidate = await checkInDir(parentDir);
       if (candidate != null) break;
@@ -564,12 +567,12 @@ class ProcessedOptions {
 
   /// Ensure [_sdkRoot], [_sdkSummary] and [_librarySpecUri] are initialized.
   ///
-  /// If they are not set explicitly, they are infered based on the default
+  /// If they are not set explicitly, they are inferred based on the default
   /// behavior described in [CompilerOptions].
   void _ensureSdkDefaults() {
     if (_computedSdkDefaults) return;
     _computedSdkDefaults = true;
-    var root = _raw.sdkRoot;
+    Uri root = _raw.sdkRoot;
     if (root != null) {
       // Normalize to always end in '/'
       if (!root.path.endsWith('/')) {
@@ -604,7 +607,7 @@ class ProcessedOptions {
   }
 
   String debugString() {
-    var sb = new StringBuffer();
+    StringBuffer sb = new StringBuffer();
     writeList(String name, List elements) {
       if (elements.isEmpty) {
         sb.writeln('$name: <empty>');

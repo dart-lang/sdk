@@ -49,12 +49,18 @@ class CodePatcher : public AllStatic {
   // in given code.
   static RawCode* GetStaticCallTargetAt(uword return_address, const Code& code);
 
-  // Get instance call information.  Returns the call target and sets each
-  // of the output parameters ic_data and arguments_descriptor if they are
-  // non-NULL.
+  // Get instance call information. Returns the call target and sets the output
+  // parameter data if non-NULL.
   static RawCode* GetInstanceCallAt(uword return_address,
-                                    const Code& code,
-                                    ICData* ic_data);
+                                    const Code& caller_code,
+                                    Object* data);
+
+  // Change the state of an instance call by patching the corresponding object
+  // pool entries (non-IA32) or instructions (IA32).
+  static void PatchInstanceCallAt(uword return_address,
+                                  const Code& caller_code,
+                                  const Object& data,
+                                  const Code& target);
 
   // Return target of an unoptimized static call and its ICData object
   // (calls target via a stub).
@@ -79,22 +85,22 @@ class CodePatcher : public AllStatic {
 
 #if defined(TARGET_ARCH_DBC)
   static NativeFunctionWrapper GetNativeCallAt(uword return_address,
-                                               const Code& code,
+                                               const Code& caller_code,
                                                NativeFunction* target);
 #else
   static RawCode* GetNativeCallAt(uword return_address,
-                                  const Code& code,
+                                  const Code& caller_code,
                                   NativeFunction* target);
 #endif
 
 #if defined(TARGET_ARCH_DBC)
   static void PatchNativeCallAt(uword return_address,
-                                const Code& code,
+                                const Code& caller_code,
                                 NativeFunction target,
                                 NativeFunctionWrapper trampoline);
 #else
   static void PatchNativeCallAt(uword return_address,
-                                const Code& code,
+                                const Code& caller_code,
                                 NativeFunction target,
                                 const Code& trampoline);
 #endif

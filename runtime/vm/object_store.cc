@@ -29,7 +29,9 @@ ObjectStore::~ObjectStore() {}
 
 void ObjectStore::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   ASSERT(visitor != NULL);
+  visitor->set_gc_root_type("object store");
   visitor->VisitPointers(from(), to());
+  visitor->clear_gc_root_type();
 }
 
 void ObjectStore::Init(Isolate* isolate) {
@@ -140,7 +142,7 @@ void ObjectStore::InitKnownObjects() {
   set_linked_hash_set_class(cls);
 
 #ifdef DART_PRECOMPILED_RUNTIME
-  // These objects are only needed for code generation.
+  // The rest of these objects are only needed for code generation.
   return;
 #else
   Isolate* isolate = thread->isolate();

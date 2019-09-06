@@ -53,7 +53,7 @@ bool GCSweeper::SweepPage(HeapPage* page, FreeList* freelist, bool locked) {
         uword end = current + obj_size;
         while (cursor < end) {
           *reinterpret_cast<uword*>(cursor) =
-              Assembler::GetBreakInstructionFiller();
+              compiler::Assembler::GetBreakInstructionFiller();
           cursor += kWordSize;
         }
       } else {
@@ -182,8 +182,8 @@ void GCSweeper::SweepConcurrent(Isolate* isolate,
                                 HeapPage* first,
                                 HeapPage* last,
                                 FreeList* freelist) {
-  bool result = Dart::thread_pool()->Run(new ConcurrentSweeperTask(
-      isolate, isolate->heap()->old_space(), first, last, freelist));
+  bool result = Dart::thread_pool()->Run<ConcurrentSweeperTask>(
+      isolate, isolate->heap()->old_space(), first, last, freelist);
   ASSERT(result);
 }
 

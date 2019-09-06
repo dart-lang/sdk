@@ -14,16 +14,16 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  synthetic constructor •() → self::C
+  synthetic constructor •() → self::C*
     : super core::Object::•()
     ;
-  static set C(dynamic v) → dynamic {}
+  static set C(dynamic v) → void {}
 }
 class D extends core::Object {
-  synthetic constructor •() → self::D
+  synthetic constructor •() → self::D*
     : super core::Object::•()
     ;
-  set D(dynamic v) → dynamic {}
+  set D(dynamic v) → void {}
 }
 static method main() → dynamic {
   dynamic c = new self::C::•();

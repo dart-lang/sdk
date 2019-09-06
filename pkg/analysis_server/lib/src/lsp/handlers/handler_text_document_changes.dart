@@ -118,7 +118,6 @@ class TextDocumentOpenHandler
     final doc = params.textDocument;
     final path = pathOfDocItem(doc);
     return path.mapResult((path) {
-      server.addPriorityFile(path);
       // We don't get a VersionedTextDocumentIdentifier with a didOpen but we
       // do get the necessary info to create one.
       server.documentVersions[path] = new VersionedTextDocumentIdentifier(
@@ -160,6 +159,8 @@ class TextDocumentOpenHandler
           }
         }
       }
+
+      server.addPriorityFile(path);
 
       return success();
     });

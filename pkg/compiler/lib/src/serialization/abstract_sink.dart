@@ -31,6 +31,7 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
   IndexedSink<Uri> _uriIndex;
   IndexedSink<ir.Member> _memberNodeIndex;
   IndexedSink<ImportEntity> _importIndex;
+  IndexedSink<ConstantValue> _constantIndex;
 
   Map<Type, IndexedSink> _generalCaches = {};
 
@@ -39,6 +40,9 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
 
   final Map<String, int> tagFrequencyMap;
 
+  ir.Member _currentMemberContext;
+  _MemberData _currentMemberData;
+
   AbstractDataSink({this.useDataKinds: false, this.tagFrequencyMap}) {
     _dartTypeWriter = new DartTypeWriter(this);
     _dartTypeNodeWriter = new DartTypeNodeWriter(this);
@@ -46,6 +50,7 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
     _uriIndex = new IndexedSink<Uri>(this);
     _memberNodeIndex = new IndexedSink<ir.Member>(this);
     _importIndex = new IndexedSink<ImportEntity>(this);
+    _constantIndex = new IndexedSink<ConstantValue>(this);
   }
 
   @override
@@ -70,6 +75,24 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
       assert(existingTag == tag,
           "Unexpected tag end. Expected $existingTag, found $tag.");
     }
+  }
+
+  @override
+  void inMemberContext(ir.Member context, void f()) {
+    ir.Member oldMemberContext = _currentMemberContext;
+    _MemberData oldMemberData = _currentMemberData;
+    _currentMemberContext = context;
+    _currentMemberData = null;
+    f();
+    _currentMemberData = oldMemberData;
+    _currentMemberContext = oldMemberContext;
+  }
+
+  _MemberData get currentMemberData {
+    assert(_currentMemberContext != null,
+        "DataSink has no current member context.");
+    return _currentMemberData ??= _memberData[_currentMemberContext] ??=
+        new _MemberData(_currentMemberContext);
   }
 
   @override
@@ -221,10 +244,71 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
   @override
   void writeTreeNode(ir.TreeNode value) {
     _writeDataKind(DataKind.treeNode);
-    _writeTreeNode(value);
+    _writeTreeNode(value, null);
   }
 
-  void _writeTreeNode(ir.TreeNode value) {
+  @override
+  void writeTreeNodeInContext(ir.TreeNode value) {
+    writeTreeNodeInContextInternal(value, currentMemberData);
+  }
+
+  void writeTreeNodeInContextInternal(
+      ir.TreeNode value, _MemberData memberData) {
+    _writeDataKind(DataKind.treeNode);
+    _writeTreeNode(value, memberData);
+  }
+
+  @override
+  void writeTreeNodeOrNullInContext(ir.TreeNode value) {
+    writeBool(value != null);
+    if (value != null) {
+      writeTreeNodeInContextInternal(value, currentMemberData);
+    }
+  }
+
+  @override
+  void writeTreeNodesInContext(Iterable<ir.TreeNode> values,
+      {bool allowNull: false}) {
+    if (values == null) {
+      assert(allowNull);
+      writeInt(0);
+    } else {
+      writeInt(values.length);
+      for (ir.TreeNode value in values) {
+        writeTreeNodeInContextInternal(value, currentMemberData);
+      }
+    }
+  }
+
+  @override
+  void writeTreeNodeMapInContext<V>(Map<ir.TreeNode, V> map, void f(V value),
+      {bool allowNull: false}) {
+    if (map == null) {
+      assert(allowNull);
+      writeInt(0);
+    } else {
+      writeInt(map.length);
+      map.forEach((ir.TreeNode key, V value) {
+        writeTreeNodeInContextInternal(key, currentMemberData);
+        f(value);
+      });
+    }
+  }
+
+  _MemberData _getMemberData(ir.TreeNode node) {
+    ir.TreeNode member = node;
+    while (member is! ir.Member) {
+      if (member == null) {
+        throw new UnsupportedError("No enclosing member of TreeNode "
+            "$node (${node.runtimeType})");
+      }
+      member = member.parent;
+    }
+    _writeMemberNode(member);
+    return _memberData[member] ??= new _MemberData(member);
+  }
+
+  void _writeTreeNode(ir.TreeNode value, _MemberData memberData) {
     if (value is ir.Class) {
       _writeEnumInternal(_TreeNodeKind.cls);
       _writeClassNode(value);
@@ -234,39 +318,33 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
     } else if (value is ir.VariableDeclaration &&
         value.parent is ir.FunctionDeclaration) {
       _writeEnumInternal(_TreeNodeKind.functionDeclarationVariable);
-      _writeTreeNode(value.parent);
+      _writeTreeNode(value.parent, memberData);
     } else if (value is ir.FunctionNode) {
       _writeEnumInternal(_TreeNodeKind.functionNode);
-      _writeFunctionNode(value);
+      _writeFunctionNode(value, memberData);
     } else if (value is ir.TypeParameter) {
       _writeEnumInternal(_TreeNodeKind.typeParameter);
-      _writeTypeParameter(value);
+      _writeTypeParameter(value, memberData);
     } else if (value is ConstantReference) {
       _writeEnumInternal(_TreeNodeKind.constant);
-      _writeTreeNode(value.expression);
-      _ConstantNodeIndexerVisitor indexer = new _ConstantNodeIndexerVisitor();
-      value.expression.constant.accept(indexer);
-      _writeIntInternal(indexer.getIndex(value.constant));
+      memberData ??= _getMemberData(value.expression);
+      _writeTreeNode(value.expression, memberData);
+      int index =
+          memberData.getIndexByConstant(value.expression, value.constant);
+      _writeIntInternal(index);
     } else {
       _writeEnumInternal(_TreeNodeKind.node);
-      ir.TreeNode member = value;
-      while (member is! ir.Member) {
-        if (member == null) {
-          throw new UnsupportedError("No enclosing member of TreeNode "
-              "$value (${value.runtimeType})");
-        }
-        member = member.parent;
-      }
-      _writeMemberNode(member);
-      _MemberData memberData = _memberData[member] ??= new _MemberData(member);
+      memberData ??= _getMemberData(value);
       int index = memberData.getIndexByTreeNode(value);
       assert(
-          index != null, "No TreeNode index found for ${value.runtimeType}.");
+          index != null,
+          "No TreeNode index found for ${value.runtimeType} "
+          "found in ${memberData}.");
       _writeIntInternal(index);
     }
   }
 
-  void _writeFunctionNode(ir.FunctionNode value) {
+  void _writeFunctionNode(ir.FunctionNode value, _MemberData memberData) {
     ir.TreeNode parent = value.parent;
     if (parent is ir.Procedure) {
       _writeEnumInternal(_FunctionNodeKind.procedure);
@@ -276,10 +354,10 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
       _writeMemberNode(parent);
     } else if (parent is ir.FunctionExpression) {
       _writeEnumInternal(_FunctionNodeKind.functionExpression);
-      _writeTreeNode(parent);
+      _writeTreeNode(parent, memberData);
     } else if (parent is ir.FunctionDeclaration) {
       _writeEnumInternal(_FunctionNodeKind.functionDeclaration);
-      _writeTreeNode(parent);
+      _writeTreeNode(parent, memberData);
     } else {
       throw new UnsupportedError(
           "Unsupported FunctionNode parent ${parent.runtimeType}");
@@ -289,10 +367,10 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
   @override
   void writeTypeParameterNode(ir.TypeParameter value) {
     _writeDataKind(DataKind.typeParameterNode);
-    _writeTypeParameter(value);
+    _writeTypeParameter(value, null);
   }
 
-  void _writeTypeParameter(ir.TypeParameter value) {
+  void _writeTypeParameter(ir.TypeParameter value, _MemberData memberData) {
     ir.TreeNode parent = value.parent;
     if (parent is ir.Class) {
       _writeEnumInternal(_TypeParameterKind.cls);
@@ -300,7 +378,7 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
       _writeIntInternal(parent.typeParameters.indexOf(value));
     } else if (parent is ir.FunctionNode) {
       _writeEnumInternal(_TypeParameterKind.functionNode);
-      _writeFunctionNode(parent);
+      _writeFunctionNode(parent, memberData);
       _writeIntInternal(parent.typeParameters.indexOf(value));
     } else {
       throw new UnsupportedError(
@@ -332,6 +410,7 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
     _entityWriter.writeMemberToDataSink(this, value);
   }
 
+  @override
   void writeTypeVariable(IndexedTypeVariable value) {
     _entityWriter.writeTypeVariableToDataSink(this, value);
   }
@@ -391,6 +470,10 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
   }
 
   void _writeConstant(ConstantValue value) {
+    _constantIndex.write(value, _writeConstantInternal);
+  }
+
+  void _writeConstantInternal(ConstantValue value) {
     _writeEnumInternal(value.kind);
     switch (value.kind) {
       case ConstantValueKind.BOOL:
@@ -438,7 +521,8 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
       case ConstantValueKind.CONSTRUCTED:
         ConstructedConstantValue constant = value;
         writeDartType(constant.type);
-        writeMemberMap(constant.fields, writeConstant);
+        writeMemberMap(constant.fields,
+            (MemberEntity member, ConstantValue value) => writeConstant(value));
         break;
       case ConstantValueKind.TYPE:
         TypeConstantValue constant = value;

@@ -6,13 +6,17 @@
 
 abstract class _IntegerImplementation implements int {
   @pragma("vm:non-nullable-result-type")
+  @pragma("vm:never-inline")
   num operator +(num other) => other._addFromInteger(this);
   @pragma("vm:non-nullable-result-type")
+  @pragma("vm:never-inline")
   num operator -(num other) => other._subFromInteger(this);
   @pragma("vm:non-nullable-result-type")
+  @pragma("vm:never-inline")
   num operator *(num other) => other._mulFromInteger(this);
 
   @pragma("vm:non-nullable-result-type")
+  @pragma("vm:never-inline")
   int operator ~/(num other) {
     if ((other is int) && (other == 0)) {
       throw const IntegerDivisionByZeroException();
@@ -33,15 +37,19 @@ abstract class _IntegerImplementation implements int {
   }
 
   @pragma("vm:non-nullable-result-type")
+  @pragma("vm:never-inline")
   int operator -() {
     return 0 - this;
   }
 
   @pragma("vm:non-nullable-result-type")
+  @pragma("vm:never-inline")
   int operator &(int other) => other._bitAndFromInteger(this);
   @pragma("vm:non-nullable-result-type")
+  @pragma("vm:never-inline")
   int operator |(int other) => other._bitOrFromInteger(this);
   @pragma("vm:non-nullable-result-type")
+  @pragma("vm:never-inline")
   int operator ^(int other) => other._bitXorFromInteger(this);
 
   num remainder(num other) {
@@ -75,26 +83,32 @@ abstract class _IntegerImplementation implements int {
   }
 
   @pragma("vm:non-nullable-result-type")
+  @pragma("vm:never-inline")
   int operator >>(int other) => other._shrFromInteger(this);
   @pragma("vm:non-nullable-result-type")
+  @pragma("vm:never-inline")
   int operator <<(int other) => other._shlFromInteger(this);
 
   @pragma("vm:exact-result-type", bool)
+  @pragma("vm:never-inline")
   bool operator <(num other) {
     return other > this;
   }
 
   @pragma("vm:exact-result-type", bool)
+  @pragma("vm:never-inline")
   bool operator >(num other) {
     return other._greaterThanFromInteger(this);
   }
 
   @pragma("vm:exact-result-type", bool)
+  @pragma("vm:never-inline")
   bool operator >=(num other) {
     return (this == other) || (this > other);
   }
 
   @pragma("vm:exact-result-type", bool)
+  @pragma("vm:never-inline")
   bool operator <=(num other) {
     return (this == other) || (this < other);
   }
@@ -104,6 +118,7 @@ abstract class _IntegerImplementation implements int {
       native "Integer_greaterThanFromInteger";
 
   @pragma("vm:exact-result-type", bool)
+  @pragma("vm:never-inline")
   bool operator ==(Object other) {
     if (other is num) {
       return other._equalToInteger(this);
@@ -360,6 +375,14 @@ abstract class _IntegerImplementation implements int {
     if (e < 0) throw new RangeError.range(e, 0, null, "exponent");
     if (m <= 0) throw new RangeError.range(m, 1, null, "modulus");
     if (e == 0) return 1;
+
+    // This is floor(sqrt(2^63)).
+    const int maxValueThatCanBeSquaredWithoutTruncation = 3037000499;
+    if (m > maxValueThatCanBeSquaredWithoutTruncation) {
+      // Use BigInt version to avoid truncation in multiplications below.
+      return BigInt.from(this).modPow(BigInt.from(e), BigInt.from(m)).toInt();
+    }
+
     int b = this;
     if (b < 0 || b > m) {
       b %= m;
@@ -480,8 +503,9 @@ abstract class _IntegerImplementation implements int {
 @pragma("vm:entry-point")
 class _Smi extends _IntegerImplementation {
   factory _Smi._uninstantiable() {
-    throw new UnsupportedError("_Smi can only be allocated by the VM");
+    throw "Unreachable";
   }
+
   int get hashCode => this;
   int get _identityHashCode => this;
   @pragma("vm:exact-result-type", "dart:core#_Smi")
@@ -682,8 +706,9 @@ class _Smi extends _IntegerImplementation {
 @pragma("vm:entry-point")
 class _Mint extends _IntegerImplementation {
   factory _Mint._uninstantiable() {
-    throw new UnsupportedError("_Mint can only be allocated by the VM");
+    throw "Unreachable";
   }
+
   int get hashCode => this;
   int get _identityHashCode => this;
   @pragma("vm:non-nullable-result-type")

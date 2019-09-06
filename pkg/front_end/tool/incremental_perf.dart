@@ -30,7 +30,7 @@
 ///      ]
 ///    },
 ///    {
-///      "name" : "small_chnage",
+///      "name" : "small_change",
 ///      "edits" : [
 ///        ["input1.dart", "green", "blue"]
 ///      ]
@@ -113,7 +113,8 @@ Future benchmark(
     ..fileSystem = overlayFs
     ..legacyMode = legacyMode
     ..onDiagnostic = onDiagnosticMessageHandler(legacyMode: legacyMode)
-    ..target = createTarget(isFlutter: isFlutter, legacyMode: legacyMode);
+    ..target = createTarget(isFlutter: isFlutter, legacyMode: legacyMode)
+    ..environmentDefines = const {};
   if (sdkSummary != null) {
     compilerOptions.sdkSummary = _resolveOverlayUri(sdkSummary);
   }

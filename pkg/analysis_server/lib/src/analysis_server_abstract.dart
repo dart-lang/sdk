@@ -270,7 +270,7 @@ abstract class AbstractAnalysisServer {
   /// analyzed in one of the analysis drivers to which the file was added,
   /// otherwise in the first driver, otherwise `null` is returned.
   Future<ResolvedUnitResult> getResolvedUnit(String path,
-      {bool sendCachedToStream: false}) {
+      {bool sendCachedToStream = false}) {
     if (!AnalysisEngine.isDartFileName(path)) {
       return null;
     }

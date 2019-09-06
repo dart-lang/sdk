@@ -359,9 +359,12 @@ class TrivialAbstractValueDomain implements AbstractValueDomain {
       const TrivialAbstractValue();
 
   @override
-  AbstractValue createFromStaticType(DartType type,
-          [ClassRelation classRelation = ClassRelation.subtype]) =>
-      const TrivialAbstractValue();
+  AbstractValueWithPrecision createFromStaticType(DartType type,
+      {ClassRelation classRelation = ClassRelation.subtype, bool nullable}) {
+    assert(nullable != null);
+    return const AbstractValueWithPrecision(
+        const TrivialAbstractValue(), false);
+  }
 
   @override
   AbstractValue get asyncStarStreamType => const TrivialAbstractValue();

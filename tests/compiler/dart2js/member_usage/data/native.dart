@@ -5,7 +5,7 @@
 // ignore: import_internal_library
 import 'dart:_js_helper';
 
-/*element: field2a:read*/
+/*member: field2a:read*/
 @JSName('field2a')
 get field2a => 42;
 
@@ -15,54 +15,54 @@ set field2a(_) {}
 @JSName('field2b')
 get field2b => 42;
 
-/*element: field2b=:write*/
+/*member: field2b=:write*/
 @JSName('field2b')
 set field2b(_) {}
 
-/*element: field2c:read*/
+/*member: field2c:read*/
 @JSName('field2c')
 get field2c => 42;
 
-/*element: field2c=:write*/
+/*member: field2c=:write*/
 @JSName('field2c')
 set field2c(_) {}
 
 @Native('Class')
 class Class {
-  /*element: Class.field1a:read*/
+  /*member: Class.field1a:read*/
   var field1a;
 
-  /*element: Class.field1b:write*/
+  /*member: Class.field1b:write*/
   var field1b;
 
-  /*element: Class.field1c:read,write*/
+  /*member: Class.field1c:read,write*/
   var field1c;
 
-  /*element: Class.field2a:read*/
+  /*member: Class.field2a:read*/
   get field2a => 42;
 
   set field2a(_) {}
 
   get field2b => 42;
 
-  /*element: Class.field2b=:write*/
+  /*member: Class.field2b=:write*/
   set field2b(_) {}
 
-  /*element: Class.field2c:read*/
+  /*member: Class.field2c:read*/
   get field2c => 42;
 
-  /*element: Class.field2c=:write*/
+  /*member: Class.field2c=:write*/
   set field2c(_) {}
 
   var field3a = 0;
 
-  /*element: Class.field3b:init*/
+  /*member: Class.field3b:init*/
   var field3b;
 
-  /*element: Class.:invoke=(0)*/
+  /*member: Class.:invoke=(0)*/
   Class([this.field3b]);
 
-  /*element: Class.test:invoke*/
+  /*member: Class.test:invoke*/
   test() {
     field1a;
     field1b = 42;
@@ -74,7 +74,7 @@ class Class {
   }
 }
 
-/*element: main:invoke*/
+/*member: main:invoke*/
 main() {
   field2a;
   field2b = 42;

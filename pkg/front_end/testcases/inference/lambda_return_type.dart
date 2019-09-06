@@ -10,12 +10,12 @@ typedef num FunctionReturningNum();
 test() {
   int i = 1;
   Object o = 1;
-  FunctionReturningNum a = /*@returnType=int*/ () => i;
-  FunctionReturningNum b = /*@returnType=num*/ () => o;
-  FunctionReturningNum c = /*@returnType=int*/ () {
+  FunctionReturningNum a = /*@ returnType=int* */ () => i;
+  FunctionReturningNum b = /*@ returnType=num* */ () => o;
+  FunctionReturningNum c = /*@ returnType=int* */ () {
     return i;
   };
-  FunctionReturningNum d = /*@returnType=num*/ () {
+  FunctionReturningNum d = /*@ returnType=num* */ () {
     return o;
   };
 }

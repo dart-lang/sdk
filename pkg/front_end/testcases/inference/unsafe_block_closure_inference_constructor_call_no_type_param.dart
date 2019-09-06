@@ -9,7 +9,7 @@ class C {
   C(x());
 }
 
-var v = new C(/*@returnType=int*/ () {
+var v = new C(/*@ returnType=int* */ () {
   return 1;
 });
 

@@ -36,7 +36,11 @@ const intptr_t kSmiMin32 = -(static_cast<intptr_t>(1) << kSmiBits32);
 const intptr_t kBytesPerBigIntDigit = 4;
 
 // The default old gen heap size in MB, where 0 == unlimited.
-const intptr_t kDefaultMaxOldGenHeapSize = (kWordSize <= 4) ? 1536 : 0;
+// 32-bit: OS limit is 2 or 3 GB
+// 64-bit: OS limit is 2^16 page table entries * 256 KB HeapPages = 16 GB
+// Set the VM limit below the OS limit to increase the likelihood of failing
+// gracefully with a Dart OutOfMemory exception instead of SIGABORT.
+const intptr_t kDefaultMaxOldGenHeapSize = (kWordSize <= 4) ? 1536 : 15360;
 
 #define kPosInfinity bit_cast<double>(DART_UINT64_C(0x7ff0000000000000))
 #define kNegInfinity bit_cast<double>(DART_UINT64_C(0xfff0000000000000))
@@ -96,7 +100,7 @@ const intptr_t kDefaultMaxOldGenHeapSize = (kWordSize <= 4) ? 1536 : 0;
 #define SUPPORT_TIMELINE 1
 #endif
 
-#if defined(ARCH_IS_64_BIT)
+#if defined(ARCH_IS_64_BIT) && !defined(IS_SIMARM_X64)
 #define HASH_IN_OBJECT_HEADER 1
 #endif
 

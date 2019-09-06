@@ -55,13 +55,13 @@ class CustomHashMap<K, V> extends InternalMap<K, V> {
   CustomHashMap(this._equals, this._hashCode);
 
   @notNull
-  int get length => JS('int', '#.size', _map);
+  int get length => JS<int>('!', '#.size', _map);
 
   @notNull
-  bool get isEmpty => JS('bool', '#.size == 0', _map);
+  bool get isEmpty => JS<bool>('!', '#.size == 0', _map);
 
   @notNull
-  bool get isNotEmpty => JS('bool', '#.size != 0', _map);
+  bool get isNotEmpty => JS<bool>('!', '#.size != 0', _map);
 
   Iterable<K> get keys => _JSMapIterable<K>(this, true);
   Iterable<V> get values => _JSMapIterable<V>(this, false);
@@ -72,7 +72,7 @@ class CustomHashMap<K, V> extends InternalMap<K, V> {
       var buckets = JS('', '#.get(# & 0x3ffffff)', _keyMap, _hashCode(key));
       if (buckets != null) {
         var equals = _equals;
-        for (int i = 0, n = JS('int', '#.length', buckets); i < n; i++) {
+        for (int i = 0, n = JS<int>('!', '#.length', buckets); i < n; i++) {
           K k = JS('', '#[#]', buckets, i);
           if (equals(k, key)) return true;
         }
@@ -99,7 +99,7 @@ class CustomHashMap<K, V> extends InternalMap<K, V> {
       var buckets = JS('', '#.get(# & 0x3ffffff)', _keyMap, _hashCode(key));
       if (buckets != null) {
         var equals = _equals;
-        for (int i = 0, n = JS('int', '#.length', buckets); i < n; i++) {
+        for (int i = 0, n = JS<int>('!', '#.length', buckets); i < n; i++) {
           K k = JS('', '#[#]', buckets, i);
           if (equals(k, key)) {
             V value = JS('', '#.get(#)', _map, k);
@@ -119,7 +119,7 @@ class CustomHashMap<K, V> extends InternalMap<K, V> {
       JS('', '#.set(#, [#])', keyMap, hash, key);
     } else {
       var equals = _equals;
-      for (int i = 0, n = JS('int', '#.length', buckets);;) {
+      for (int i = 0, n = JS<int>('!', '#.length', buckets);;) {
         K k = JS('', '#[#]', buckets, i);
         if (equals(k, key)) {
           key = k;
@@ -143,7 +143,7 @@ class CustomHashMap<K, V> extends InternalMap<K, V> {
       JS('', '#.set(#, [#])', keyMap, hash, key);
     } else {
       var equals = _equals;
-      for (int i = 0, n = JS('int', '#.length', buckets); i < n; i++) {
+      for (int i = 0, n = JS<int>('!', '#.length', buckets); i < n; i++) {
         K k = JS('', '#[#]', buckets, i);
         if (equals(k, key)) return JS('', '#.get(#)', _map, k);
       }
@@ -163,7 +163,7 @@ class CustomHashMap<K, V> extends InternalMap<K, V> {
       var buckets = JS('', '#.get(#)', keyMap, hash);
       if (buckets == null) return null; // not found
       var equals = _equals;
-      for (int i = 0, n = JS('int', '#.length', buckets); i < n; i++) {
+      for (int i = 0, n = JS<int>('!', '#.length', buckets); i < n; i++) {
         K k = JS('', '#[#]', buckets, i);
         if (equals(k, key)) {
           if (n == 1) {

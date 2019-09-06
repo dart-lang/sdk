@@ -5,7 +5,6 @@
 # Compile a hello world program, check that omit platform works as expected.
 
 type: newworld
-strong: true
 omitPlatform: true
 worlds:
   - entry: main.dart

@@ -28,8 +28,8 @@ void main() {
     var outputUnitForClass = closedWorld.outputUnitData.outputUnitForClass;
 
     var mainOutputUnit = closedWorld.outputUnitData.mainOutputUnit;
-    var backend = compiler.backend;
-    var classes = backend.emitterTask.neededClasses;
+    var backendStrategy = compiler.backendStrategy;
+    var classes = backendStrategy.emitterTask.neededClasses;
     var inputElement = classes.where((e) => e.name == 'InputElement').single;
     dynamic lib1 = lookupLibrary("memory:lib1.dart");
     var foo1 = env.lookupLibraryMember(lib1, "foo1");

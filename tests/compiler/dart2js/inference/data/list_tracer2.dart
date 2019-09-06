@@ -5,10 +5,10 @@
 // We used to always nullify the element type of a list we are tracing in
 // the presence of a fixed length list constructor call.
 
-/*element: myList:Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/
+/*member: myList:Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/
 var myList = [42];
 
-/*element: main:[exact=JSUInt31]*/
+/*member: main:[exact=JSUInt31]*/
 main() {
   /// ignore: unused_local_variable
   var a = new List(42);

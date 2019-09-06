@@ -7,7 +7,6 @@
 # exist in the old library.
 
 type: newworld
-strong: true
 worlds:
   - entry: main.dart
     sources:

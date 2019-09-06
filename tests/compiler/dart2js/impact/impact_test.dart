@@ -7,12 +7,11 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common/resolution.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/ir/util.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/universe/feature.dart';
 import 'package:compiler/src/universe/use.dart';
 import 'package:compiler/src/universe/world_impact.dart';
-import 'package:compiler/src/util/features.dart';
+import 'package:front_end/src/testing/features.dart';
 import 'package:kernel/ast.dart' as ir;
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
@@ -20,22 +19,18 @@ import '../equivalence/id_equivalence_helper.dart';
 main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-    Directory libDirectory =
-        new Directory.fromUri(Platform.script.resolve('libs'));
     print('Testing direct computation of ResolutionImpact');
     print('==================================================================');
     useImpactDataForTesting = false;
     await checkTests(dataDir, const ImpactDataComputer(),
-        libDirectory: libDirectory, args: args, testOmit: false);
+        args: args, testedConfigs: [strongConfig]);
 
     print('Testing computation of ResolutionImpact through ImpactData');
     print('==================================================================');
     useImpactDataForTesting = true;
     await checkTests(dataDir, const ImpactDataComputer(),
-        libDirectory: libDirectory,
         args: args,
-        testOmit: false,
-        testCFEConstants: true);
+        testedConfigs: allStrongConfigs);
   });
 }
 
@@ -54,7 +49,7 @@ class ImpactDataComputer extends DataComputer<Features> {
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<Features>> actualMap,
       {bool verbose: false}) {
-    KernelFrontEndStrategy frontendStrategy = compiler.frontendStrategy;
+    KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
     WorldImpact impact = compiler.impactCache[member];
     ir.Member node = frontendStrategy.elementMap.getMemberNode(member);
     Features features = new Features();
@@ -85,9 +80,10 @@ class ImpactDataComputer extends DataComputer<Features> {
         features.addElement(Tags.runtimeTypeUse, use.shortText);
       }
     }
-    Id id = computeEntityId(node);
-    actualMap[id] = new ActualData<Features>(
-        id, features, computeSourceSpanFromTreeNode(node), member);
+    Id id = computeMemberId(node);
+    ir.TreeNode nodeWithOffset = computeTreeNodeWithOffset(node);
+    actualMap[id] = new ActualData<Features>(id, features,
+        nodeWithOffset?.location?.file, nodeWithOffset?.fileOffset, member);
   }
 
   @override

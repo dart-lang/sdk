@@ -1,20 +1,18 @@
 main = #lib::main;
  [@vm.bytecode=
-ComponentBytecodeMetadata {
-
+BytecodeMetadata {
 Bytecode (version: stable)
 Main library: #lib
+Library '#lib'
+    name '#lib'
+    script '#lib'
 
-}
-] [@vm.bytecode=
-MembersBytecodeMetadata {
+Class '', script = '#lib'
 
-Members {
 
 Function 'foo1', static, has-optional-positional-params, reflectable, debuggable
     parameters [dynamic 'x', dynamic 'a', dynamic 'b'] (required: 1)
     return-type void
-
 
 Bytecode {
   EntryOptional        1, 2, 0
@@ -86,7 +84,6 @@ ConstantPool {
 Function 'foo2', static, has-optional-named-params, reflectable, debuggable
     parameters [dynamic 'y', dynamic 'z', dynamic 'c', dynamic 'a', dynamic 'b'] (required: 2)
     return-type void
-
 
 Bytecode {
   EntryOptional        2, 0, 3
@@ -200,7 +197,6 @@ Function 'foo3', static, has-optional-named-params, reflectable, debuggable
     parameters [dynamic 'z', dynamic 'y', dart:core::bool 'a', dart:core::Map < #lib::foo3::TypeParam/0, #lib::foo3::TypeParam/1 > 'b'] (required: 2)
     return-type void
 
-
 Bytecode {
   EntryOptional        2, 0, 2
   LoadConstant         r2, CP#0
@@ -239,7 +235,6 @@ Function 'main', static, reflectable, debuggable
     parameters [] (required: 0)
     return-type dynamic
 
-
 Bytecode {
   Entry                0
   CheckStack           0
@@ -266,25 +261,24 @@ ConstantPool {
   [7] = Reserved
 }
 
-}
 
 }
 ]library #lib from "#lib" as #lib {
 
-  static method foo1(dynamic x, [dynamic a = "default_a", dynamic b = "default_b"]) → void {
+  static method foo1(dynamic x, [dynamic a = #C1, dynamic b = #C2]) → void {
     dart.core::print("x = ${x}");
     dart.core::print("a = ${a}");
     dart.core::print("b = ${b}");
   }
-  static method foo2(dynamic y, dynamic z, {dynamic c = "default_c", dynamic a = 42, dynamic b = const <dart.core::String>["default_b"]}) → void {
+  static method foo2(dynamic y, dynamic z, {dynamic c = #C3, dynamic a = #C4, dynamic b = #C5}) → void {
     dart.core::print("y = ${y}");
     dart.core::print("z = ${z}");
     dart.core::print("a = ${a}");
     dart.core::print("b = ${b}");
     dart.core::print("c = ${c}");
   }
-  static method foo3<P extends dart.core::Object = dynamic, Q extends dart.core::Object = dynamic>(dynamic z, dynamic y, {dart.core::bool a = false, dart.core::Map<#lib::foo3::P, #lib::foo3::Q> b = null}) → void {
-    dart.core::print(#lib::foo3::P);
+  static method foo3<P extends dart.core::Object* = dynamic, Q extends dart.core::Object* = dynamic>(dynamic z, dynamic y, {dart.core::bool* a = #C6, dart.core::Map<#lib::foo3::P*, #lib::foo3::Q*>* b = #C7}) → void {
+    dart.core::print(#lib::foo3::P*);
     dart.core::print(y);
     dart.core::print(b);
   }
@@ -292,4 +286,13 @@ ConstantPool {
     #lib::foo1("fixed_x", "concrete_a");
     #lib::foo2("fixed_y", "fixed_z", a: "concrete_a");
   }
+}
+constants  {
+  #C1 = "default_a"
+  #C2 = "default_b"
+  #C3 = "default_c"
+  #C4 = 42
+  #C5 = <dart.core::String*>[#C2]
+  #C6 = false
+  #C7 = null
 }

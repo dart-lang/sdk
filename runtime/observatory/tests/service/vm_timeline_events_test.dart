@@ -45,7 +45,7 @@ var tests = <IsolateTest>[
   },
   (Isolate isolate) async {
     // Get the flags.
-    Map flags = await isolate.vm.invokeRpcNoUpgrade('_getVMTimelineFlags', {});
+    Map flags = await isolate.vm.invokeRpcNoUpgrade('getVMTimelineFlags', {});
     expect(flags['type'], 'TimelineFlags');
     // Confirm that 'Dart' is available.
     expect(flags['availableStreams'].contains('Dart'), isTrue);
@@ -54,7 +54,7 @@ var tests = <IsolateTest>[
   },
   (Isolate isolate) async {
     // Enable the Dart category.
-    await isolate.vm.invokeRpcNoUpgrade('_setVMTimelineFlags', {
+    await isolate.vm.invokeRpcNoUpgrade('setVMTimelineFlags', {
       "recordedStreams": ["Dart"]
     });
   },

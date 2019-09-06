@@ -4,19 +4,22 @@
 
 library fasta.builtin_type_builder;
 
+import 'package:kernel/ast.dart' show DartType;
+
 import 'builder.dart' show LibraryBuilder, TypeBuilder, TypeDeclarationBuilder;
 
-abstract class BuiltinTypeBuilder<T extends TypeBuilder, R>
-    extends TypeDeclarationBuilder<T, R> {
-  final R type;
+abstract class BuiltinTypeBuilder extends TypeDeclarationBuilder {
+  final DartType type;
 
   BuiltinTypeBuilder(
       String name, this.type, LibraryBuilder compilationUnit, int charOffset)
       : super(null, 0, name, compilationUnit, charOffset);
 
-  R buildType(LibraryBuilder library, List<T> arguments) => type;
+  DartType buildType(LibraryBuilder library, List<TypeBuilder> arguments) =>
+      type;
 
-  R buildTypesWithBuiltArguments(LibraryBuilder library, List<R> arguments) {
+  DartType buildTypesWithBuiltArguments(
+      LibraryBuilder library, List<DartType> arguments) {
     return type;
   }
 

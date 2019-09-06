@@ -725,13 +725,8 @@ class InferrerEngineImpl extends InferrerEngine {
         }
         break;
       case MemberKind.closureCall:
-        ir.TreeNode node = definition.node;
-        if (node is ir.FunctionDeclaration) {
-          return node.function;
-        } else if (node is ir.FunctionExpression) {
-          return node.function;
-        }
-        break;
+        ir.LocalFunction node = definition.node;
+        return node.function;
       case MemberKind.closureField:
       case MemberKind.signature:
       case MemberKind.generatorBody:
@@ -1361,8 +1356,7 @@ class KernelTypeSystemStrategy implements TypeSystemStrategy {
     bool isClosure = false;
     if (functionNode.parent is ir.Member) {
       member = _closedWorld.elementMap.getMember(functionNode.parent);
-    } else if (functionNode.parent is ir.FunctionExpression ||
-        functionNode.parent is ir.FunctionDeclaration) {
+    } else if (functionNode.parent is ir.LocalFunction) {
       ClosureRepresentationInfo info =
           _closedWorld.closureDataLookup.getClosureInfo(functionNode.parent);
       member = info.callMethod;
@@ -1439,49 +1433,59 @@ class KernelGlobalTypeInferenceElementData
 
   /// Deserializes a [GlobalTypeInferenceElementData] object from [source].
   factory KernelGlobalTypeInferenceElementData.readFromDataSource(
-      DataSource source, AbstractValueDomain abstractValueDomain) {
-    source.begin(tag);
-    Map<ir.TreeNode, AbstractValue> sendMap = source.readTreeNodeMap(
-        () => abstractValueDomain.readAbstractValueFromDataSource(source),
-        emptyAsNull: true);
-    Map<ir.ForInStatement, AbstractValue> iteratorMap = source.readTreeNodeMap(
-        () => abstractValueDomain.readAbstractValueFromDataSource(source),
-        emptyAsNull: true);
-    Map<ir.ForInStatement, AbstractValue> currentMap = source.readTreeNodeMap(
-        () => abstractValueDomain.readAbstractValueFromDataSource(source),
-        emptyAsNull: true);
-    Map<ir.ForInStatement, AbstractValue> moveNextMap = source.readTreeNodeMap(
-        () => abstractValueDomain.readAbstractValueFromDataSource(source),
-        emptyAsNull: true);
-    source.end(tag);
-    return new KernelGlobalTypeInferenceElementData.internal(
-        sendMap, iteratorMap, currentMap, moveNextMap);
+      DataSource source,
+      ir.Member context,
+      AbstractValueDomain abstractValueDomain) {
+    return source.inMemberContext(context, () {
+      source.begin(tag);
+      Map<ir.TreeNode, AbstractValue> sendMap = source.readTreeNodeMapInContext(
+          () => abstractValueDomain.readAbstractValueFromDataSource(source),
+          emptyAsNull: true);
+      Map<ir.ForInStatement, AbstractValue> iteratorMap =
+          source.readTreeNodeMapInContext(
+              () => abstractValueDomain.readAbstractValueFromDataSource(source),
+              emptyAsNull: true);
+      Map<ir.ForInStatement, AbstractValue> currentMap =
+          source.readTreeNodeMapInContext(
+              () => abstractValueDomain.readAbstractValueFromDataSource(source),
+              emptyAsNull: true);
+      Map<ir.ForInStatement, AbstractValue> moveNextMap =
+          source.readTreeNodeMapInContext(
+              () => abstractValueDomain.readAbstractValueFromDataSource(source),
+              emptyAsNull: true);
+      source.end(tag);
+      return new KernelGlobalTypeInferenceElementData.internal(
+          sendMap, iteratorMap, currentMap, moveNextMap);
+    });
   }
 
   @override
-  void writeToDataSink(DataSink sink, AbstractValueDomain abstractValueDomain) {
-    sink.begin(tag);
-    sink.writeTreeNodeMap(
-        _sendMap,
-        (AbstractValue value) =>
-            abstractValueDomain.writeAbstractValueToDataSink(sink, value),
-        allowNull: true);
-    sink.writeTreeNodeMap(
-        _iteratorMap,
-        (AbstractValue value) =>
-            abstractValueDomain.writeAbstractValueToDataSink(sink, value),
-        allowNull: true);
-    sink.writeTreeNodeMap(
-        _currentMap,
-        (AbstractValue value) =>
-            abstractValueDomain.writeAbstractValueToDataSink(sink, value),
-        allowNull: true);
-    sink.writeTreeNodeMap(
-        _moveNextMap,
-        (AbstractValue value) =>
-            abstractValueDomain.writeAbstractValueToDataSink(sink, value),
-        allowNull: true);
-    sink.end(tag);
+  void writeToDataSink(DataSink sink, ir.Member context,
+      AbstractValueDomain abstractValueDomain) {
+    sink.inMemberContext(context, () {
+      sink.begin(tag);
+      sink.writeTreeNodeMapInContext(
+          _sendMap,
+          (AbstractValue value) =>
+              abstractValueDomain.writeAbstractValueToDataSink(sink, value),
+          allowNull: true);
+      sink.writeTreeNodeMapInContext(
+          _iteratorMap,
+          (AbstractValue value) =>
+              abstractValueDomain.writeAbstractValueToDataSink(sink, value),
+          allowNull: true);
+      sink.writeTreeNodeMapInContext(
+          _currentMap,
+          (AbstractValue value) =>
+              abstractValueDomain.writeAbstractValueToDataSink(sink, value),
+          allowNull: true);
+      sink.writeTreeNodeMapInContext(
+          _moveNextMap,
+          (AbstractValue value) =>
+              abstractValueDomain.writeAbstractValueToDataSink(sink, value),
+          allowNull: true);
+      sink.end(tag);
+    });
   }
 
   @override

@@ -17,7 +17,7 @@ import 'package:compiler/src/io/position_information.dart';
 import 'package:compiler/src/js/js.dart' as js;
 import 'package:compiler/src/js/js_debug.dart';
 import 'package:compiler/src/js/js_source_mapping.dart';
-import 'package:compiler/src/js_backend/js_backend.dart';
+import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:compiler/src/source_file_provider.dart';
 import '../../helpers/memory_compiler.dart';
 import '../../helpers/output_collector.dart';
@@ -342,29 +342,29 @@ class SourceMapProcessor {
         options: ['--out=$targetUri', '--source-map=$sourceMapFileUri']
           ..addAll(options),
         beforeRun: (compiler) {
-          JavaScriptBackend backend = compiler.backend;
+          JsBackendStrategy backendStrategy = compiler.backendStrategy;
           dynamic handler = compiler.handler;
           SourceFileProvider sourceFileProvider = handler.provider;
           sourceFileManager =
               new ProviderSourceFileManager(sourceFileProvider, outputProvider);
           RecordingSourceInformationStrategy strategy =
               new RecordingSourceInformationStrategy(
-                  backend.sourceInformationStrategy);
-          backend.sourceInformationStrategy = strategy;
+                  backendStrategy.sourceInformationStrategy);
+          backendStrategy.sourceInformationStrategy = strategy;
         });
     if (!result.isSuccess) {
       throw "Compilation failed.";
     }
 
     api.CompilerImpl compiler = result.compiler;
-    JavaScriptBackend backend = compiler.backend;
+    JsBackendStrategy backendStrategy = compiler.backendStrategy;
     RecordingSourceInformationStrategy strategy =
-        backend.sourceInformationStrategy;
+        backendStrategy.sourceInformationStrategy;
     SourceMapInfo mainSourceMapInfo;
     Map<MemberEntity, SourceMapInfo> elementSourceMapInfos =
         <MemberEntity, SourceMapInfo>{};
     if (perElement) {
-      backend.generatedCode.forEach((_element, js.Expression node) {
+      backendStrategy.generatedCode.forEach((_element, js.Expression node) {
         MemberEntity element = _element;
         RecordedSourceInformationProcess subProcess =
             strategy.subProcessForNode(node);

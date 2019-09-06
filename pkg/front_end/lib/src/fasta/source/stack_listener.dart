@@ -28,6 +28,8 @@ import '../quote.dart' show unescapeString;
 
 import '../scanner.dart' show Token;
 
+import 'value_kinds.dart';
+
 enum NullValue {
   Arguments,
   As,
@@ -58,10 +60,12 @@ enum NullValue {
   Labels,
   Metadata,
   Modifiers,
+  Name,
   ParameterDefaultValue,
   Prefix,
   StringLiteral,
   SwitchScope,
+  Token,
   Type,
   TypeArguments,
   TypeBuilderList,
@@ -74,6 +78,131 @@ enum NullValue {
 
 abstract class StackListener extends Listener {
   final Stack stack = new Stack();
+
+  /// Checks that [value] matches the expected [kind].
+  ///
+  /// Use this in assert statements like
+  ///
+  ///     assert(checkValue(token, ValueKind.Token, value));
+  ///
+  /// to document and validate the expected value kind.
+  bool checkValue(Token token, ValueKind kind, Object value) {
+    if (!kind.check(value)) {
+      String message = 'Unexpected value `${value}` (${value.runtimeType}). '
+          'Expected ${kind}.';
+      if (token != null) {
+        // If offset is available report and internal problem to show the
+        // parsed code in the output.
+        throw internalProblem(
+            new Message(null, message: message), token.charOffset, uri);
+      } else {
+        throw message;
+      }
+    }
+    return true;
+  }
+
+  /// Checks the top of the current stack against [kinds]. If a mismatch is
+  /// found, a top of the current stack is print along with the expected [kinds]
+  /// marking the frames that don't match, and throws an exception.
+  ///
+  /// Use this in assert statements like
+  ///
+  ///     assert(checkState(token, [ValueKind.Integer, ValueKind.StringOrNull]))
+  ///
+  /// to document the expected stack and get earlier errors on unexpected stack
+  /// content.
+  bool checkState(Token token, List<ValueKind> kinds) {
+    bool success = true;
+    for (int kindIndex = 0; kindIndex < kinds.length; kindIndex++) {
+      int stackIndex = stack.arrayLength - kindIndex - 1;
+      ValueKind kind = kinds[kindIndex];
+      if (stackIndex >= 0) {
+        Object value = stack.array[stackIndex];
+        if (!kind.check(value)) {
+          success = false;
+        }
+      } else {
+        success = false;
+      }
+    }
+    if (!success) {
+      StringBuffer sb = new StringBuffer();
+
+      String safeToString(Object object) {
+        try {
+          return '$object';
+        } catch (e) {
+          // Judgments fail on toString.
+          return object.runtimeType.toString();
+        }
+      }
+
+      String padLeft(Object object, int length) {
+        String text = safeToString(object);
+        if (text.length < length) {
+          return ' ' * (length - text.length) + text;
+        }
+        return text;
+      }
+
+      String padRight(Object object, int length) {
+        String text = safeToString(object);
+        if (text.length < length) {
+          return text + ' ' * (length - text.length);
+        }
+        return text;
+      }
+
+      // Compute kind/stack frame information for all expected values plus 3 more
+      // stack elements if available.
+      for (int kindIndex = 0; kindIndex < kinds.length + 3; kindIndex++) {
+        int stackIndex = stack.arrayLength - kindIndex - 1;
+        if (stackIndex < 0 && kindIndex >= kinds.length) {
+          // No more stack elements nor kinds to display.
+          break;
+        }
+        sb.write(padLeft(kindIndex, 4));
+        sb.write(': ');
+        ValueKind kind;
+        if (kindIndex < kinds.length) {
+          kind = kinds[kindIndex];
+          sb.write(padRight(kind, 60));
+        } else {
+          sb.write(padRight('---', 60));
+        }
+        if (stackIndex >= 0) {
+          Object value = stack.array[stackIndex];
+          if (kind == null || kind.check(value)) {
+            sb.write(' ');
+          } else {
+            sb.write('*');
+          }
+          sb.write(safeToString(value));
+          sb.write(' (${value.runtimeType})');
+        } else {
+          if (kind == null) {
+            sb.write(' ');
+          } else {
+            sb.write('*');
+          }
+          sb.write('---');
+        }
+        sb.writeln();
+      }
+
+      String message = '$runtimeType failure\n$sb';
+      if (token != null) {
+        // If offset is available report and internal problem to show the
+        // parsed code in the output.
+        throw internalProblem(
+            new Message(null, message: message), token.charOffset, uri);
+      } else {
+        throw message;
+      }
+    }
+    return success;
+  }
 
   @override
   Uri get uri;
@@ -364,7 +493,7 @@ abstract class StackListener extends Listener {
         lengthOfSpan(startToken, endToken));
   }
 
-  bool isIgnoredError(Code code, Token token) {
+  bool isIgnoredError(Code<dynamic> code, Token token) {
     if (code == codeNativeClauseShouldBeAnnotation) {
       // TODO(danrubel): Ignore this error until we deprecate `native`
       // support.

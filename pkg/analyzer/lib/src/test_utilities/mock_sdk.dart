@@ -222,6 +222,7 @@ abstract class int extends num {
   int operator ~();
 
   int gcd(int other);
+  int abs();
 
   external static int parse(String source,
       {int radix, int onError(String source)});
@@ -461,6 +462,7 @@ class Random {
   double nextDouble() => 2.0;
   int nextInt() => 1;
 }
+class Point<T extends num> {}
 ''');
 
 const List<SdkLibrary> _LIBRARIES = const [

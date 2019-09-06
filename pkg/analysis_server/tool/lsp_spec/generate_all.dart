@@ -87,7 +87,7 @@ List<AstNode> getCustomClasses() {
   }
 
   field(String name,
-      {String type, array: false, canBeNull: false, canBeUndefined: false}) {
+      {String type, array = false, canBeNull = false, canBeUndefined = false}) {
     var fieldType =
         array ? ArrayType(Type.identifier(type)) : Type.identifier(type);
 
@@ -165,6 +165,7 @@ import 'dart:core' as core show deprecated;
 import 'dart:convert' show JsonEncoder;
 import 'package:analysis_server/lsp_protocol/protocol${importCustom ? '_custom' : ''}_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart'
     show listEqual, mapEqual;
 import 'package:analyzer/src/generated/utilities_general.dart';

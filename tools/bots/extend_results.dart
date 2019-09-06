@@ -25,6 +25,8 @@ main(List<String> args) async {
   final priorResults = await loadResultsMap(priorResultsPath);
   final flakes = await loadResultsMap(flakyPath);
   final priorFlakes = await loadResultsMap(priorFlakyPath);
+  final firstPriorResult =
+      priorResults.isEmpty ? null : priorResults.values.first;
 
   for (final String key in results.keys) {
     final Map<String, dynamic> result = results[key];
@@ -37,11 +39,13 @@ main(List<String> args) async {
     result['builder_name'] = builderName;
     result['flaky'] = (flaky != null);
     result['previous_flaky'] = (priorFlaky != null);
+    if (firstPriorResult != null) {
+      result['previous_commit_hash'] = firstPriorResult['commit_hash'];
+      result['previous_commit_time'] = firstPriorResult['commit_time'];
+      result['previous_build_number'] = firstPriorResult['build_number'];
+    }
     if (priorResult != null) {
       result['previous_result'] = priorResult['result'];
-      result['previous_commit_hash'] = priorResult['commit_hash'];
-      result['previous_commit_time'] = priorResult['commit_time'];
-      result['previous_build_number'] = priorResult['build_number'];
     }
     result['changed'] = (result['result'] != result['previous_result'] ||
         result['flaky'] != result['previous_flaky']);

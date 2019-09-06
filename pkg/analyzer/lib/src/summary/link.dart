@@ -68,8 +68,9 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/resolver/ast_rewrite.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -207,7 +208,7 @@ EntityRefBuilder _createLinkedType(
     result.reference = compilationUnit.addRawReference('*bottom*');
     return result;
   } else if (type is TypeParameterType) {
-    TypeParameterElementImpl element = type.element;
+    TypeParameterElement element = type.element;
     var deBruijnIndex = typeParameterContext?.computeDeBruijnIndex(element);
     if (deBruijnIndex != null) {
       result.paramReference = deBruijnIndex;
@@ -1075,6 +1076,7 @@ abstract class CompilationUnitElementForLink
   Map<String, ReferenceableElementForLink> _containedNames;
   List<TopLevelVariableElementForLink> _topLevelVariables;
   List<ClassElementForLink_Enum> _enums;
+  List<ExtensionElementForLink> _extensions;
   List<TopLevelFunctionElementForLink> _functions;
   List<PropertyAccessorElementForLink> _accessors;
   List<FunctionTypeAliasElementForLink> _functionTypeAliases;
@@ -1150,6 +1152,17 @@ abstract class CompilationUnitElementForLink
       }
     }
     return _enums;
+  }
+
+  @override
+  List<ExtensionElementForLink> get extensions {
+    if (_extensions == null) {
+      _extensions = <ExtensionElementForLink>[];
+      for (UnlinkedExtension unlinkedExtension in _unlinkedUnit.extensions) {
+        _extensions.add(ExtensionElementForLink(this, unlinkedExtension));
+      }
+    }
+    return _extensions;
   }
 
   @override
@@ -2462,7 +2475,7 @@ class ExprTypeComputer {
       nameScope = new ClassScope(
           new TypeParameterScope(nameScope, enclosingClass), enclosingClass);
     }
-    var inheritance = new InheritanceManager2(linker.typeSystem);
+    var inheritance = new InheritanceManager3(linker.typeSystem);
     // Note: this is a bit of a hack; we ought to use the feature set for the
     // compilation unit being analyzed, but that's not feasible because sumaries
     // don't record the feature set.  This should be resolved when we switch to
@@ -2551,6 +2564,23 @@ class ExprTypeComputer {
     expression.accept(_resolverVisitor);
     return expression.staticType;
   }
+}
+
+class ExtensionElementForLink
+    with ReferenceableElementForLink
+    implements ExtensionElementImpl {
+  @override
+  final CompilationUnitElementForLink enclosingElement;
+
+  final UnlinkedExtension _unlinkedExtension;
+
+  ExtensionElementForLink(this.enclosingElement, this._unlinkedExtension);
+
+  @override
+  String get name => _unlinkedExtension.name;
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /// Element representing a field resynthesized from a summary during
@@ -3605,9 +3635,6 @@ abstract class LibraryElementForLink<
   }
 
   @override
-  bool get isNonNullableByDefault => _unlinkedDefiningUnit.isNNBD;
-
-  @override
   ContextForLink get context => _linker.context;
 
   @override
@@ -3642,6 +3669,9 @@ abstract class LibraryElementForLink<
 
   @override
   bool get isInSdk => _absoluteUri.scheme == 'dart';
+
+  @override
+  bool get isNonNullableByDefault => _unlinkedDefiningUnit.isNNBD;
 
   @override
   bool get isSynthetic => _linkedLibrary == null;
@@ -3968,7 +3998,7 @@ class Linker {
   SpecialTypeElementForLink _voidElement;
   SpecialTypeElementForLink _dynamicElement;
   SpecialTypeElementForLink _bottomElement;
-  InheritanceManager2 _inheritanceManager;
+  InheritanceManager3 _inheritanceManager;
   ContextForLink _context;
   AnalysisSessionForLink _session;
 
@@ -4007,9 +4037,9 @@ class Linker {
   SpecialTypeElementForLink get dynamicElement => _dynamicElement ??=
       new SpecialTypeElementForLink(this, DynamicTypeImpl.instance);
 
-  /// Get an instance of [InheritanceManager2] for use during linking.
-  InheritanceManager2 get inheritanceManager =>
-      _inheritanceManager ??= new InheritanceManager2(typeSystem);
+  /// Get an instance of [InheritanceManager3] for use during linking.
+  InheritanceManager3 get inheritanceManager =>
+      _inheritanceManager ??= new InheritanceManager3(typeSystem);
 
   /// Get a stub implementation of [AnalysisContext] which can be used during
   /// linking.
@@ -5529,6 +5559,9 @@ class TypeProviderForLink extends TypeProviderBase {
   @override
   InterfaceType get typeType =>
       _typeType ??= _buildInterfaceType(_linker.coreLibrary, 'Type');
+
+  @override
+  VoidType get voidType => VoidTypeImpl.instance;
 
   InterfaceType _buildInterfaceType(
       LibraryElementForLink library, String name) {

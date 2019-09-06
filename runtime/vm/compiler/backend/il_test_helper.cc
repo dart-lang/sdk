@@ -45,6 +45,10 @@ RawFunction* GetFunction(const Library& lib, const char* name) {
 }
 
 void Invoke(const Library& lib, const char* name) {
+  // These tests rely on running unoptimized code to collect type feedback. The
+  // interpreter does not collect type feedback for interface calls.
+  SetFlagScope<bool> sfs(&FLAG_enable_interpreter, false);
+
   Thread* thread = Thread::Current();
   Dart_Handle api_lib = Api::NewHandle(thread, lib.raw());
   TransitionVMToNative transition(thread);
@@ -80,16 +84,14 @@ FlowGraph* TestPipeline::RunPasses(
     flow_graph_->PopulateWithICData(function_);
   }
 
-  BlockScheduler block_scheduler(flow_graph_);
   const bool reorder_blocks =
       FlowGraph::ShouldReorderBlocks(function_, optimized);
   if (mode_ == CompilerPass::kJIT && reorder_blocks) {
-    block_scheduler.AssignEdgeWeights();
+    BlockScheduler::AssignEdgeWeights(flow_graph_);
   }
 
   SpeculativeInliningPolicy speculative_policy(/*enable_blacklist=*/false);
   pass_state_ = new CompilerPassState(thread, flow_graph_, &speculative_policy);
-  pass_state_->block_scheduler = &block_scheduler;
   pass_state_->reorder_blocks = reorder_blocks;
 
   if (optimized) {
@@ -136,8 +138,8 @@ void TestPipeline::CompileGraphAndAttachFunction() {
 
   ASSERT(pass_state_->inline_id_to_function.length() ==
          pass_state_->caller_inline_id.length());
-  ObjectPoolBuilder object_pool_builder;
-  Assembler assembler(&object_pool_builder, use_far_branches);
+  compiler::ObjectPoolBuilder object_pool_builder;
+  compiler::Assembler assembler(&object_pool_builder, use_far_branches);
   FlowGraphCompiler graph_compiler(
       &assembler, flow_graph_, *parsed_function_, optimized,
       &speculative_policy, pass_state_->inline_id_to_function,

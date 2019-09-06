@@ -58,11 +58,7 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
       return;
     }
 
-    List<AnalysisError> protocolErrors = doAnalysisError_listFromEngine(
-      result.session.analysisContext.analysisOptions,
-      result.lineInfo,
-      result.errors,
-    );
+    List<AnalysisError> protocolErrors = doAnalysisError_listFromEngine(result);
     server.sendResponse(
         new AnalysisGetErrorsResult(protocolErrors).toResponse(request.id));
   }

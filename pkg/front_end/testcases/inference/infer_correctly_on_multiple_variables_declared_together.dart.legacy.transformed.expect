@@ -6,7 +6,7 @@ class A extends core::Object {
   field dynamic x = null;
   field dynamic y = 2;
   field dynamic z = "hi";
-  synthetic constructor •() → self::A
+  synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
 }
@@ -15,13 +15,13 @@ class B extends core::Object implements self::A {
   field dynamic y = 3;
   field dynamic z = null;
   field dynamic w = 2;
-  synthetic constructor •() → self::B
+  synthetic constructor •() → self::B*
     : super core::Object::•()
     ;
 }
 static method foo() → dynamic {
-  core::String s;
-  core::int i;
+  core::String* s;
+  core::int* i;
   s = new self::B::•().x;
   s = new self::B::•().y;
   s = new self::B::•().z;

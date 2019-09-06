@@ -2,9 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler == app_jit ]
-deferred_inheritance_constraints_test/redirecting_constructor: Crash
-
 [ $compiler == compare_analyzer_cfe ]
 const_native_factory_test: Fail # Issue 29763
 deferred_global_test: Fail # Issue 34503
@@ -21,14 +18,13 @@ issue34488_test/none: Fail # Issue 34488
 mixin_class_from_core_library_test: Fail # Issue 34488
 nested_generic_closure_test: Fail # Issue 28515
 
-[ $compiler != compare_analyzer_cfe && $compiler != spec_parser ]
-mixin_constructor_forwarding/const_constructor_test/none: CompileTimeError # Issue 32223
-mixin_constructor_forwarding/const_constructor_with_field_test/none: CompileTimeError # Issue 32223
-mixin_constructor_forwarding/optional_named_parameters_test/none: CompileTimeError # Issue 31543
-mixin_constructor_forwarding/optional_positional_parameters_test/none: CompileTimeError # Issue 31543
-
 [ $compiler != dart2analyzer ]
 switch_case_warn_test: Skip # Analyzer only, see language_analyzer2.status
+
+[ $compiler == none ]
+invalid_returns/*: Skip # https://github.com/dart-lang/sdk/issues/34013
+library_env_test/has_no_mirror_support: RuntimeError, OK
+void/*: Skip # https://github.com/dart-lang/sdk/issues/34013
 
 [ $compiler == spec_parser ]
 double_literals/*: Skip # https://github.com/dart-lang/sdk/issues/34355
@@ -64,15 +60,18 @@ partial_instantiation_static_bounds_check_test/01: MissingCompileTimeError # Iss
 partial_instantiation_static_bounds_check_test/02: MissingCompileTimeError # Issue 34327
 partial_instantiation_static_bounds_check_test/03: MissingCompileTimeError # Issue 34327
 
-[ $compiler != app_jitk && $compiler != dartk && $compiler != dartkb && $compiler != dartkp && $mode == debug && $runtime == vm ]
-built_in_identifier_type_annotation_test/set: Crash # Not supported by legacy VM front-end.
-
 [ $compiler != compare_analyzer_cfe && $compiler != dart2js && $compiler != spec_parser && !$fasta ]
 compile_time_constant_static5_test/11: CompileTimeError # Issue 30546
 compile_time_constant_static5_test/16: CompileTimeError # Issue 30546
 compile_time_constant_static5_test/21: CompileTimeError # Issue 30546
 compile_time_constant_static5_test/23: CompileTimeError # Issue 30546
 type_promotion_more_specific_test/04: CompileTimeError # Issue 30906.
+
+[ $compiler != compare_analyzer_cfe && $compiler != spec_parser ]
+mixin_constructor_forwarding/const_constructor_test/none: CompileTimeError # Issue 32223
+mixin_constructor_forwarding/const_constructor_with_field_test/none: CompileTimeError # Issue 32223
+mixin_constructor_forwarding/optional_named_parameters_test/none: CompileTimeError # Issue 31543
+mixin_constructor_forwarding/optional_positional_parameters_test/none: CompileTimeError # Issue 31543
 
 # Detection of compile-time errors that are related to constants can't be fully
 # done at the front end, because constants are evaluated at back ends.  So, some
@@ -93,13 +92,11 @@ implicit_creation/implicit_const_not_default_values_test/e9: MissingCompileTimeE
 [ $compiler != dart2js && $compiler != dartdevc && !$checked ]
 function_type/*: Skip # Needs checked mode.
 
+[ $compiler != dartk && $compiler != dartkb && $compiler != dartkp && $mode == debug && $runtime == vm ]
+built_in_identifier_type_annotation_test/set: Crash # Not supported by legacy VM front-end.
+
 [ !$preview_dart_2 && ($runtime == dart_precompiled || $runtime == vm) ]
 *: SkipByDesign # Deprecating all Dart1 modes of execution
-
-[ $compiler == app_jit || $compiler == none ]
-invalid_returns/*: Skip # https://github.com/dart-lang/sdk/issues/34013
-library_env_test/has_no_mirror_support: RuntimeError, OK
-void/*: Skip # https://github.com/dart-lang/sdk/issues/34013
 
 [ $hot_reload || $hot_reload_rollback ]
 cha_deopt1_test: Crash # Requires deferred libraries

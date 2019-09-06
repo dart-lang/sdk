@@ -112,6 +112,14 @@ type ConstantInterfaceCall extends ConstantPoolEntry {
   PackedObject argDesc;
 }
 
+// Occupies 3 entries in the constant pool.
+type ConstantInstantiatedInterfaceCall extends ConstantPoolEntry {
+  Byte tag = 30;
+  PackedObject target;
+  PackedObject argDesc;
+  PackedObject staticReceiverType;
+}
+
 */
 
 enum ConstantTag {
@@ -145,6 +153,7 @@ enum ConstantTag {
   kObjectRef,
   kDirectCall,
   kInterfaceCall,
+  kInstantiatedInterfaceCall,
 }
 
 String constantTagToString(ConstantTag tag) =>
@@ -199,6 +208,8 @@ abstract class ConstantPoolEntry {
         return new ConstantDirectCall.read(reader);
       case ConstantTag.kInterfaceCall:
         return new ConstantInterfaceCall.read(reader);
+      case ConstantTag.kInstantiatedInterfaceCall:
+        return new ConstantInstantiatedInterfaceCall.read(reader);
       // Make analyzer happy.
       case ConstantTag.kUnused1:
       case ConstantTag.kUnused2:
@@ -639,6 +650,49 @@ class ConstantInterfaceCall extends ConstantPoolEntry {
       this.argDesc == other.argDesc;
 }
 
+class ConstantInstantiatedInterfaceCall extends ConstantPoolEntry {
+  final ObjectHandle target;
+  final ObjectHandle argDesc;
+  final ObjectHandle staticReceiverType;
+
+  ConstantInstantiatedInterfaceCall(
+      this.target, this.argDesc, this.staticReceiverType);
+
+  // Reserve 2 extra slots (3 slots total).
+  int get numReservedEntries => 2;
+
+  @override
+  ConstantTag get tag => ConstantTag.kInstantiatedInterfaceCall;
+
+  @override
+  void writeValue(BufferedWriter writer) {
+    writer.writePackedObject(target);
+    writer.writePackedObject(argDesc);
+    writer.writePackedObject(staticReceiverType);
+  }
+
+  ConstantInstantiatedInterfaceCall.read(BufferedReader reader)
+      : target = reader.readPackedObject(),
+        argDesc = reader.readPackedObject(),
+        staticReceiverType = reader.readPackedObject();
+
+  @override
+  String toString() =>
+      "InstantiatedInterfaceCall '$target', $argDesc, receiver $staticReceiverType";
+
+  @override
+  int get hashCode => _combineHashes(
+      _combineHashes(target.hashCode, argDesc.hashCode),
+      staticReceiverType.hashCode);
+
+  @override
+  bool operator ==(other) =>
+      other is ConstantInstantiatedInterfaceCall &&
+      this.target == other.target &&
+      this.argDesc == other.argDesc &&
+      this.staticReceiverType == other.staticReceiverType;
+}
+
 /// Reserved constant pool entry.
 class _ReservedConstantPoolEntry extends ConstantPoolEntry {
   const _ReservedConstantPoolEntry();
@@ -698,6 +752,15 @@ class ConstantPool {
               isGetter: invocationKind == InvocationKind.getter,
               isSetter: invocationKind == InvocationKind.setter),
           argDesc));
+
+  int addInstantiatedInterfaceCall(InvocationKind invocationKind, Member target,
+          ObjectHandle argDesc, DartType staticReceiverType) =>
+      _add(new ConstantInstantiatedInterfaceCall(
+          objectTable.getMemberHandle(target,
+              isGetter: invocationKind == InvocationKind.getter,
+              isSetter: invocationKind == InvocationKind.setter),
+          argDesc,
+          objectTable.getHandle(staticReceiverType)));
 
   int addInstanceCall(InvocationKind invocationKind, Member target,
           Name targetName, ObjectHandle argDesc) =>

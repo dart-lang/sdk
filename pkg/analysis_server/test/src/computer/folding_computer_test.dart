@@ -78,6 +78,32 @@ class MyClass2 {/*4:INC*/
     _compareRegions(regions, content);
   }
 
+  test_assertInitializer() async {
+    String content = '''
+class C {/*1:INC*/
+  C() : assert(/*2:INC*/
+    true,
+    ''
+  /*2:INC:INVOCATION*/);
+/*1:INC:CLASS_BODY*/}
+''';
+    final regions = await _computeRegions(content);
+    _compareRegions(regions, content);
+  }
+
+  test_assertStatement() async {
+    String content = '''
+main() {/*1:INC*/
+  assert(/*2:INC*/
+    true,
+    ''
+  /*2:INC:INVOCATION*/);
+/*1:INC:FUNCTION_BODY*/}
+''';
+    final regions = await _computeRegions(content);
+    _compareRegions(regions, content);
+  }
+
   test_class() async {
     String content = """
 // Content before

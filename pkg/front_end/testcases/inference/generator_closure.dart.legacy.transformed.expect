@@ -5,10 +5,10 @@ import "dart:core" as core;
 
 import "dart:async";
 
-static method foo(() → asy::Stream<core::int> values) → void {}
+static method foo(() →* asy::Stream<core::int*>* values) → void {}
 static method main() → void {
-  self::foo(() → asy::Stream<dynamic> /* originally async* */ {
-    asy::_AsyncStarStreamController<dynamic> :controller;
+  self::foo(() → asy::Stream<dynamic>* /* originally async* */ {
+    asy::_AsyncStarStreamController<dynamic>* :controller;
     dynamic :controller_stream;
     dynamic :async_stack_trace;
     dynamic :async_op_then;

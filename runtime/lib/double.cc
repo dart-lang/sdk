@@ -4,7 +4,7 @@
 
 #include "vm/bootstrap_natives.h"
 
-#include "platform/math.h"
+#include <math.h>
 
 #include "vm/dart_entry.h"
 #include "vm/double_conversion.h"
@@ -20,8 +20,7 @@ namespace dart {
 DEFINE_NATIVE_ENTRY(Double_doubleFromInteger, 0, 2) {
   ASSERT(
       TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0)).IsNull());
-  const Integer& value =
-      Integer::CheckedHandle(zone, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, value, arguments->NativeArgAt(1));
   if (FLAG_trace_intrinsified_natives) {
     OS::PrintErr("Double_doubleFromInteger %s\n", value.ToCString());
   }

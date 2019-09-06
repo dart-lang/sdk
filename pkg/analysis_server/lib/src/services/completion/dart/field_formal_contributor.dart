@@ -44,7 +44,7 @@ class FieldFormalContributor extends DartCompletionContributor {
         SimpleIdentifier fieldId = param.identifier;
         if (fieldId != null && fieldId != request.target.entity) {
           String fieldName = fieldId.name;
-          if (fieldName != null && fieldName.length > 0) {
+          if (fieldName != null && fieldName.isNotEmpty) {
             referencedFields.add(fieldName);
           }
         }
@@ -61,7 +61,7 @@ class FieldFormalContributor extends DartCompletionContributor {
           SimpleIdentifier fieldId = varDecl.name;
           if (fieldId != null) {
             String fieldName = fieldId.name;
-            if (fieldName != null && fieldName.length > 0) {
+            if (fieldName != null && fieldName.isNotEmpty) {
               if (!referencedFields.contains(fieldName)) {
                 CompletionSuggestion suggestion = createSuggestion(
                     fieldId.staticElement,

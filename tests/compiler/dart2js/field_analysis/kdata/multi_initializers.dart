@@ -8,30 +8,30 @@ main() {
 }
 
 class Class1 {
-  /*element: Class1.field1:
+  /*member: Class1.field1:
     Class1.a=IntConstant(1),
     initial=IntConstant(0)
    */
   var field1 = 0;
 
-  /*element: Class1.field2:
+  /*member: Class1.field2:
    Class1.a=IntConstant(1),
    Class1.b=IntConstant(2),
    initial=NullConstant
   */
   var field2;
 
-  /*element: Class1.field3:
+  /*member: Class1.field3:
    Class1.a=IntConstant(3),
    Class1.b=IntConstant(3),
    initial=NullConstant
   */
   var field3;
 
-  /*element: Class1.field4:initial=IntConstant(4)*/
+  /*member: Class1.field4:initial=IntConstant(4)*/
   var field4 = 4;
 
-  /*element: Class1.field5:
+  /*member: Class1.field5:
    Class1.a=IntConstant(5),
    Class1.b=IntConstant(5),
    initial=IntConstant(5)

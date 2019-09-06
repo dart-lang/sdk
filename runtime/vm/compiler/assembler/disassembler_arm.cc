@@ -403,11 +403,17 @@ int ARMDecoder::FormatOption(Instr* instr, const char* format) {
     case 'd': {
       if (format[1] == 'e') {  // 'dest: branch destination
         ASSERT(STRING_STARTS_WITH(format, "dest"));
-        int off = (instr->SImmed24Field() << 2) + 8;
-        uword destination = reinterpret_cast<uword>(instr) + off;
-        buffer_pos_ +=
-            Utils::SNPrint(current_position_in_buffer(),
-                           remaining_size_in_buffer(), "%#" Px "", destination);
+        const int32_t off = (instr->SImmed24Field() << 2) + 8;
+        if (FLAG_disassemble_relative) {
+          buffer_pos_ +=
+              Utils::SNPrint(current_position_in_buffer(),
+                             remaining_size_in_buffer(), "%+" Pd32 "", off);
+        } else {
+          uword destination = reinterpret_cast<uword>(instr) + off;
+          buffer_pos_ += Utils::SNPrint(current_position_in_buffer(),
+                                        remaining_size_in_buffer(), "%#" Px "",
+                                        destination);
+        }
         return 4;
       } else {
         return FormatDRegister(instr, format);
@@ -1494,12 +1500,15 @@ void Disassembler::DecodeInstruction(char* hex_buffer,
   }
 
   *object = NULL;
+  // TODO(36839): Make DecodeLoadObjectFromPoolOrThread work on simarm_x64.
+#if !defined(IS_SIMARM_X64)
   if (!code.IsNull()) {
     *object = &Object::Handle();
     if (!DecodeLoadObjectFromPoolOrThread(pc, code, *object)) {
       *object = NULL;
     }
   }
+#endif  // !defined(IS_SIMARM_X64)
 }
 
 #endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)

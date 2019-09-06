@@ -17,10 +17,10 @@ class C<T> {
 }
 
 void test(C<num> c) {
-  c. /*@checkReturn=B<(num) -> void>*/ x += new B<num>();
-  var y = c. /*@checkReturn=B<(num) -> void>*/ x += new B<num>();
-  c. /*@checkReturn=B<(num) -> void>*/ x ??= new B<num>();
-  var z = c. /*@checkReturn=B<(num) -> void>*/ x ??= new B<num>();
+  c. /*@ checkReturn=B<(num*) ->* void>* */ x += new B<num>();
+  var y = c. /*@ checkReturn=B<(num*) ->* void>* */ x += new B<num>();
+  c. /*@ checkReturn=B<(num*) ->* void>* */ x ??= new B<num>();
+  var z = c. /*@ checkReturn=B<(num*) ->* void>* */ x ??= new B<num>();
 }
 
 main() {}

@@ -200,9 +200,11 @@ void ClassTable::Remap(intptr_t* old_to_new_cid) {
 
 void ClassTable::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   ASSERT(visitor != NULL);
+  visitor->set_gc_root_type("class table");
   for (intptr_t i = 0; i < top_; i++) {
     visitor->VisitPointer(reinterpret_cast<RawObject**>(&(table_[i].class_)));
   }
+  visitor->clear_gc_root_type();
 }
 
 void ClassTable::CopySizesFromClassObjects() {
@@ -367,42 +369,67 @@ void ClassHeapStats::UpdatePromotedAfterNewGC() {
 }
 
 void ClassHeapStats::PrintToJSONObject(const Class& cls,
-                                       JSONObject* obj) const {
+                                       JSONObject* obj,
+                                       bool internal) const {
   if (!FLAG_support_service) {
     return;
   }
   obj->AddProperty("type", "ClassHeapStats");
   obj->AddProperty("class", cls);
-  {
-    JSONArray new_stats(obj, "new");
-    new_stats.AddValue(pre_gc.new_count);
-    new_stats.AddValue(pre_gc.new_size + pre_gc.new_external_size);
-    new_stats.AddValue(post_gc.new_count);
-    new_stats.AddValue(post_gc.new_size + post_gc.new_external_size);
-    new_stats.AddValue(recent.new_count);
-    new_stats.AddValue(recent.new_size + recent.new_external_size);
-    new_stats.AddValue64(accumulated.new_count + recent.new_count -
-                         last_reset.new_count);
-    new_stats.AddValue64(accumulated.new_size + accumulated.new_external_size +
-                         recent.new_size + recent.new_external_size -
-                         last_reset.new_size - last_reset.new_external_size);
+  int64_t accumulated_new =
+      accumulated.new_count + recent.new_count - last_reset.new_count;
+  int64_t accumulated_old =
+      accumulated.old_count + recent.old_count - last_reset.old_count;
+  int64_t accumulated_new_size =
+      accumulated.new_size + accumulated.new_external_size + recent.new_size +
+      recent.new_external_size - last_reset.new_size -
+      last_reset.new_external_size;
+  int64_t accumulated_old_size =
+      accumulated.old_size + accumulated.old_external_size + recent.old_size +
+      recent.old_external_size - last_reset.old_size -
+      last_reset.old_external_size;
+  int64_t instances_new = post_gc.new_count + recent.new_count;
+  int64_t instances_old = post_gc.old_count + recent.old_count;
+  int64_t live_after_gc_size_new = post_gc.new_size + post_gc.new_external_size;
+  int64_t live_after_gc_size_old = post_gc.old_size + post_gc.old_external_size;
+  int64_t allocated_since_gc_size_new =
+      recent.new_size + recent.new_external_size;
+  int64_t allocated_since_gc_size_old =
+      recent.old_size + recent.old_external_size;
+  int64_t bytes_current = live_after_gc_size_new + live_after_gc_size_old +
+                          allocated_since_gc_size_new +
+                          allocated_since_gc_size_old;
+  if (internal) {
+    {
+      JSONArray new_stats(obj, "_new");
+      new_stats.AddValue(pre_gc.new_count);
+      new_stats.AddValue(pre_gc.new_size + pre_gc.new_external_size);
+      new_stats.AddValue(post_gc.new_count);
+      new_stats.AddValue64(live_after_gc_size_new);
+      new_stats.AddValue(recent.new_count);
+      new_stats.AddValue64(allocated_since_gc_size_new);
+      new_stats.AddValue64(accumulated_new);
+      new_stats.AddValue64(accumulated_new_size);
+    }
+    {
+      JSONArray old_stats(obj, "_old");
+      old_stats.AddValue(pre_gc.old_count);
+      old_stats.AddValue(pre_gc.old_size + pre_gc.old_external_size);
+      old_stats.AddValue(post_gc.old_count);
+      old_stats.AddValue64(live_after_gc_size_old);
+      old_stats.AddValue(recent.old_count);
+      old_stats.AddValue64(allocated_since_gc_size_old);
+      old_stats.AddValue64(accumulated_old);
+      old_stats.AddValue64(accumulated_old_size);
+    }
+    obj->AddProperty("_promotedInstances", promoted_count);
+    obj->AddProperty("_promotedBytes", promoted_size);
   }
-  {
-    JSONArray old_stats(obj, "old");
-    old_stats.AddValue(pre_gc.old_count);
-    old_stats.AddValue(pre_gc.old_size + pre_gc.old_external_size);
-    old_stats.AddValue(post_gc.old_count);
-    old_stats.AddValue(post_gc.old_size + post_gc.old_external_size);
-    old_stats.AddValue(recent.old_count);
-    old_stats.AddValue(recent.old_size + recent.old_external_size);
-    old_stats.AddValue64(accumulated.old_count + recent.old_count -
-                         last_reset.old_count);
-    old_stats.AddValue64(accumulated.old_size + accumulated.old_external_size +
-                         recent.old_size + recent.old_external_size -
-                         last_reset.old_size - last_reset.old_external_size);
-  }
-  obj->AddProperty("promotedInstances", promoted_count);
-  obj->AddProperty("promotedBytes", promoted_size);
+  obj->AddProperty64("instancesAccumulated", accumulated_new + accumulated_old);
+  obj->AddProperty64("accumulatedSize",
+                     accumulated_new_size + accumulated_old_size);
+  obj->AddProperty64("instancesCurrent", instances_new + instances_old);
+  obj->AddProperty64("bytesCurrent", bytes_current);
 }
 
 void ClassTable::UpdateAllocatedOldGC(intptr_t cid, intptr_t size) {
@@ -486,7 +513,7 @@ intptr_t ClassTable::NewSpaceSizeOffsetFor(intptr_t cid) {
   return class_offset + size_field_offset;
 }
 
-void ClassTable::AllocationProfilePrintJSON(JSONStream* stream) {
+void ClassTable::AllocationProfilePrintJSON(JSONStream* stream, bool internal) {
   if (!FLAG_support_service) {
     return;
   }
@@ -506,11 +533,17 @@ void ClassTable::AllocationProfilePrintJSON(JSONStream* stream) {
                      isolate->last_allocationprofile_gc_timestamp());
   }
 
-  {
-    JSONObject heaps(&obj, "heaps");
+  if (internal) {
+    JSONObject heaps(&obj, "_heaps");
     { heap->PrintToJSONObject(Heap::kNew, &heaps); }
     { heap->PrintToJSONObject(Heap::kOld, &heaps); }
   }
+
+  {
+    JSONObject memory(&obj, "memoryUsage");
+    { heap->PrintMemoryUsageJSON(&memory); }
+  }
+
   {
     JSONArray arr(&obj, "members");
     Class& cls = Class::Handle();
@@ -519,7 +552,7 @@ void ClassTable::AllocationProfilePrintJSON(JSONStream* stream) {
       if (stats != NULL) {
         JSONObject obj(&arr);
         cls = At(i);
-        stats->PrintToJSONObject(cls, &obj);
+        stats->PrintToJSONObject(cls, &obj, internal);
       }
     }
   }

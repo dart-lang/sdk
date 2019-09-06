@@ -39,7 +39,14 @@ export 'package:analyzer/src/generated/utilities_dart.dart';
 /// [suppressErrors] is `true`, in which case any errors are discarded.
 ///
 /// If [parseFunctionBodies] is [false] then only function signatures will be
-/// parsed.
+/// parsed.  (Currently broken; function bodies are always parsed).
+///
+/// Deprecated - please use the `parseString` function
+/// (from package:analyzer/dart/analysis/utilities.dart) instead.
+///
+/// Note that `parseString` does not support the `parseFunctionBodies` option;
+/// callers that don't require function bodies should simply ignore them.
+@Deprecated('Please use parseString instead')
 CompilationUnit parseCompilationUnit(String contents,
     {String name,
     bool suppressErrors: false,
@@ -58,7 +65,14 @@ CompilationUnit parseCompilationUnit(String contents,
 /// [suppressErrors] is `true`, in which case any errors are discarded.
 ///
 /// If [parseFunctionBodies] is [false] then only function signatures will be
-/// parsed.
+/// parsed.  (Currently broken; function bodies are always parsed).
+///
+/// Deprecated - please use the `parseFile2` function
+/// (from package:analyzer/dart/analysis/utilities.dart) instead.
+///
+/// Note that `parseFile2` does not support the `parseFunctionBodies` option;
+/// callers that don't require function bodies should simply ignore them.
+@Deprecated('Please use parseFile2 instead')
 CompilationUnit parseDartFile(String path,
     {bool suppressErrors: false,
     bool parseFunctionBodies: true,
@@ -83,6 +97,7 @@ CompilationUnit parseDartFile(String path,
 }
 
 /// Parses the script tag and directives in a string of Dart code into an AST.
+/// (Currently broken; the entire file is parsed).
 ///
 /// Stops parsing when the first non-directive is encountered. The rest of the
 /// string will not be parsed.
@@ -92,6 +107,13 @@ CompilationUnit parseDartFile(String path,
 ///
 /// Throws an [AnalyzerErrorGroup] if any errors occurred, unless
 /// [suppressErrors] is `true`, in which case any errors are discarded.
+///
+/// Deprecated - please use the `parseString` function
+/// (from package:analyzer/dart/analysis/utilities.dart) instead.
+///
+/// Note that `parseString` parses the whole file; callers that only require
+/// directives should simply ignore the rest of the parse result.
+@Deprecated('Please use parseString instead')
 CompilationUnit parseDirectives(String contents,
     {String name, bool suppressErrors: false, FeatureSet featureSet}) {
   // TODO(paulberry): make featureSet a required parameter.
@@ -112,6 +134,7 @@ CompilationUnit parseDirectives(String contents,
 }
 
 /// Converts an AST node representing a string literal into a [String].
+@Deprecated('Please use StringLiteral.stringValue instead')
 String stringLiteralToString(StringLiteral literal) {
   return literal.stringValue;
 }
@@ -145,7 +168,7 @@ class _ErrorCollector extends AnalysisErrorListener {
       new AnalyzerErrorGroup.fromAnalysisErrors(_errors);
 
   /// Whether any errors where collected.
-  bool get hasErrors => !_errors.isEmpty;
+  bool get hasErrors => _errors.isNotEmpty;
 
   @override
   void onError(AnalysisError error) => _errors.add(error);

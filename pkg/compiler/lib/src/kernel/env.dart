@@ -4,8 +4,8 @@
 
 library dart2js.kernel.env;
 
-import 'package:front_end/src/api_unstable/dart2js.dart' as ir
-    show RedirectingFactoryBody;
+import 'package:front_end/src/api_unstable/dart2js.dart'
+    show isRedirectingFactory;
 
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/clone.dart';
@@ -403,6 +403,9 @@ class KClassEnvImpl implements KClassEnv {
         // `Mixin.method` is inherited by `Class`.
         return;
       }
+      if (member.isForwardingStub && cls.isAnonymousMixin) {
+        return;
+      }
       if (!includeStatic && member.isStatic) return;
       if (member.isNoSuchMethodForwarder) {
         // TODO(sigmund): remove once #33732 is fixed.
@@ -415,7 +418,7 @@ class KClassEnvImpl implements KClassEnv {
       var name = member.name.name;
       assert(!name.contains('#'));
       if (member.kind == ir.ProcedureKind.Factory) {
-        if (member.function.body is ir.RedirectingFactoryBody) {
+        if (isRedirectingFactory(member)) {
           // Don't include redirecting factories.
           return;
         }

@@ -87,7 +87,6 @@
     "Dynamic access of 'firstChild'.": 2,
     "Dynamic invocation of 'append'.": 1,
     "Dynamic access of 'tagName'.": 2,
-    "Dynamic invocation of 'round'.": 20,
     "Dynamic invocation of 'call'.": 1,
     "Dynamic invocation of 'dart.dom.html::_initKeyboardEvent'.": 1,
     "Dynamic access of 'attributes'.": 1,
@@ -99,9 +98,7 @@
     "Dynamic invocation of 'createElement'.": 1
   },
   "org-dartlang-sdk:///sdk/lib/html/html_common/conversions.dart": {
-    "Dynamic invocation of '[]='.": 2,
-    "Dynamic access of 'length'.": 1,
-    "Dynamic invocation of '[]'.": 1
+    "Dynamic invocation of '[]='.": 1
   },
   "org-dartlang-sdk:///sdk/lib/html/html_common/filtered_element_list.dart": {
     "Dynamic invocation of 'remove'.": 1
@@ -237,8 +234,6 @@
     "Dynamic invocation of 'close'.": 1
   },
   "org-dartlang-sdk:///sdk/lib/_http/websocket_impl.dart": {
-    "Dynamic invocation of 'transform'.": 1,
-    "Dynamic invocation of 'listen'.": 1,
     "Dynamic access of 'address'.": 1,
     "Dynamic access of 'host'.": 1,
     "Dynamic access of 'port'.": 1,

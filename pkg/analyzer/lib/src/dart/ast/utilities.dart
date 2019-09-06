@@ -30,9 +30,7 @@ typedef void ExceptionInDelegateHandler(
  * will only clone the structure, it will not preserve any resolution results or
  * properties associated with the nodes.
  */
-class AstCloner
-    with UIAsCodeVisitorMixin<AstNode>
-    implements AstVisitor<AstNode> {
+class AstCloner implements AstVisitor<AstNode> {
   /**
    * A flag indicating whether tokens should be cloned while cloning an AST
    * structure.
@@ -285,7 +283,7 @@ class AstCloner
 
   @override
   CompilationUnit visitCompilationUnit(CompilationUnit node) {
-    CompilationUnit clone = astFactory.compilationUnit2(
+    CompilationUnit clone = astFactory.compilationUnit(
         beginToken: cloneToken(node.beginToken),
         scriptTag: cloneNode(node.scriptTag),
         directives: cloneNodeList(node.directives),
@@ -462,6 +460,13 @@ class AstCloner
           leftBracket: cloneToken(node.leftBracket),
           members: cloneNodeList(node.members),
           rightBracket: cloneToken(node.rightBracket));
+
+  @override
+  ExtensionOverride visitExtensionOverride(ExtensionOverride node) =>
+      astFactory.extensionOverride(
+          extensionName: cloneNode(node.extensionName),
+          typeArguments: cloneNode(node.typeArguments),
+          argumentList: cloneNode(node.argumentList));
 
   @override
   FieldDeclaration visitFieldDeclaration(FieldDeclaration node) =>
@@ -1128,9 +1133,7 @@ class AstCloner
  * An AstVisitor that compares the structure of two AstNodes to see whether they
  * are equal.
  */
-class AstComparator
-    with UIAsCodeVisitorMixin<bool>
-    implements AstVisitor<bool> {
+class AstComparator implements AstVisitor<bool> {
   /**
    * The AST node with which the node being visited is to be compared. This is
    * only valid at the beginning of each visit method (until [isEqualNodes] is
@@ -1605,6 +1608,14 @@ class AstComparator
         isEqualTokens(node.leftBracket, other.leftBracket) &&
         _isEqualNodeLists(node.members, other.members) &&
         isEqualTokens(node.rightBracket, other.rightBracket);
+  }
+
+  @override
+  bool visitExtensionOverride(ExtensionOverride node) {
+    ExtensionOverride other = _other as ExtensionOverride;
+    return isEqualNodes(node.extensionName, other.extensionName) &&
+        isEqualNodes(node.typeArguments, other.typeArguments) &&
+        isEqualNodes(node.argumentList, other.argumentList);
   }
 
   @override
@@ -2477,9 +2488,7 @@ class ExceptionHandlingDelegatingAstVisitor<T> extends DelegatingAstVisitor<T> {
  * results.
  */
 @deprecated
-class IncrementalAstCloner
-    with UIAsCodeVisitorMixin<AstNode>
-    implements AstVisitor<AstNode> {
+class IncrementalAstCloner implements AstVisitor<AstNode> {
   /**
    * The node to be replaced during the cloning process.
    */
@@ -2674,7 +2683,7 @@ class IncrementalAstCloner
 
   @override
   CompilationUnit visitCompilationUnit(CompilationUnit node) {
-    CompilationUnitImpl copy = astFactory.compilationUnit2(
+    CompilationUnitImpl copy = astFactory.compilationUnit(
         beginToken: _mapToken(node.beginToken),
         scriptTag: _cloneNode(node.scriptTag),
         directives: _cloneNodeList(node.directives),
@@ -2860,6 +2869,13 @@ class IncrementalAstCloner
           leftBracket: _mapToken(node.leftBracket),
           members: _cloneNodeList(node.members),
           rightBracket: _mapToken(node.rightBracket));
+
+  @override
+  ExtensionOverride visitExtensionOverride(ExtensionOverride node) =>
+      astFactory.extensionOverride(
+          extensionName: _cloneNode(node.extensionName),
+          typeArguments: _cloneNode(node.typeArguments),
+          argumentList: _cloneNode(node.argumentList));
 
   @override
   FieldDeclaration visitFieldDeclaration(FieldDeclaration node) =>
@@ -3825,7 +3841,7 @@ class NodeLocator2 extends UnifyingAstVisitor<void> {
 /**
  * An object that will replace one child node in an AST node with another node.
  */
-class NodeReplacer with UIAsCodeVisitorMixin<bool> implements AstVisitor<bool> {
+class NodeReplacer implements AstVisitor<bool> {
   /**
    * The node being replaced.
    */
@@ -4294,6 +4310,22 @@ class NodeReplacer with UIAsCodeVisitorMixin<bool> implements AstVisitor<bool> {
           _newNode as TypeAnnotation;
       return true;
     } else if (_replaceInList(node.members)) {
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitExtensionOverride(ExtensionOverride node) {
+    if (identical(node.extensionName, _oldNode)) {
+      (node as ExtensionOverrideImpl).extensionName = _newNode as Identifier;
+      return true;
+    } else if (identical(node.typeArguments, _oldNode)) {
+      (node as ExtensionOverrideImpl).typeArguments =
+          _newNode as TypeArgumentList;
+      return true;
+    } else if (identical(node.argumentList, _oldNode)) {
+      (node as ExtensionOverrideImpl).argumentList = _newNode as ArgumentList;
       return true;
     }
     return visitNode(node);
@@ -5187,9 +5219,7 @@ class NodeReplacer with UIAsCodeVisitorMixin<bool> implements AstVisitor<bool> {
  * another as long as the structures of the corresponding children of a pair of
  * nodes are the same.
  */
-class ResolutionCopier
-    with UIAsCodeVisitorMixin<bool>
-    implements AstVisitor<bool> {
+class ResolutionCopier implements AstVisitor<bool> {
   /**
    * The AST node with which the node being visited is to be compared. This is
    * only valid at the beginning of each visit method (until [isEqualNodes] is
@@ -5670,6 +5700,15 @@ class ResolutionCopier
       return true;
     }
     return false;
+  }
+
+  @override
+  bool visitExtensionOverride(ExtensionOverride node) {
+    ExtensionOverride toNode = this._toNode as ExtensionOverride;
+    return _and(
+        _isEqualNodes(node.extensionName, toNode.extensionName),
+        _isEqualNodes(node.typeArguments, toNode.typeArguments),
+        _isEqualNodes(node.argumentList, toNode.argumentList));
   }
 
   @override
@@ -6347,6 +6386,8 @@ class ResolutionCopier
       toNode.staticElement = node.staticElement;
       toNode.staticType = node.staticType;
       toNode.auxiliaryElements = node.auxiliaryElements;
+      (toNode as SimpleIdentifierImpl).tearOffTypeArgumentTypes =
+          node.tearOffTypeArgumentTypes;
       return true;
     }
     return false;
@@ -6896,9 +6937,7 @@ class ScopedNameFinder extends GeneralizingAstVisitor<void> {
  * This class has been deprecated. Use the class ToSourceVisitor2 instead.
  */
 @deprecated
-class ToSourceVisitor
-    with UIAsCodeVisitorMixin<void>
-    implements AstVisitor<void> {
+class ToSourceVisitor implements AstVisitor<void> {
   /**
    * The writer to which the source is to be written.
    */
@@ -7255,6 +7294,13 @@ class ToSourceVisitor
     _visitToken(node.leftBracket);
     _visitNodeListWithSeparator(node.members, ' ');
     _visitToken(node.rightBracket);
+  }
+
+  @override
+  void visitExtensionOverride(ExtensionOverride node) {
+    _visitNode(node.extensionName);
+    _visitNode(node.typeArguments);
+    _visitNode(node.argumentList);
   }
 
   @override
@@ -8057,9 +8103,7 @@ class ToSourceVisitor
  * A visitor used to write a source representation of a visited AST node (and
  * all of it's children) to a sink.
  */
-class ToSourceVisitor2
-    with UIAsCodeVisitorMixin<void>
-    implements AstVisitor<void> {
+class ToSourceVisitor2 implements AstVisitor<void> {
   /**
    * The sink to which the source is to be written.
    */
@@ -8557,6 +8601,13 @@ class ToSourceVisitor2
     safelyVisitToken(node.leftBracket);
     safelyVisitNodeListWithSeparator(node.members, ' ');
     safelyVisitToken(node.rightBracket);
+  }
+
+  @override
+  void visitExtensionOverride(ExtensionOverride node) {
+    safelyVisitNode(node.extensionName);
+    safelyVisitNode(node.typeArguments);
+    safelyVisitNode(node.argumentList);
   }
 
   @override
@@ -9238,15 +9289,5 @@ class ToSourceVisitor2
         sink.write(')');
       }
     }
-  }
-}
-
-/// Mixin allowing visitor classes to forward the visit method for
-/// `ForStatement2` to `ForStatement`
-mixin UIAsCodeVisitorMixin<R> implements AstVisitor<R> {
-  @override
-  @deprecated
-  R visitForStatement2(ForStatement2 node) {
-    return visitForStatement(node);
   }
 }

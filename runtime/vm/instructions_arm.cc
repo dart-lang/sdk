@@ -18,18 +18,33 @@ namespace dart {
 
 CallPattern::CallPattern(uword pc, const Code& code)
     : object_pool_(ObjectPool::Handle(code.GetObjectPool())),
-      end_(pc),
-      ic_data_load_end_(0),
-      target_code_pool_index_(-1),
-      ic_data_(ICData::Handle()) {
+      target_code_pool_index_(-1) {
   ASSERT(code.ContainsInstructionAt(pc));
   // Last instruction: blx lr.
-  ASSERT(*(reinterpret_cast<uword*>(end_) - 1) == 0xe12fff3e);
+  ASSERT(*(reinterpret_cast<uword*>(pc) - 1) == 0xe12fff3e);
 
   Register reg;
-  ic_data_load_end_ = InstructionPattern::DecodeLoadWordFromPool(
-      end_ - 2 * Instr::kInstrSize, &reg, &target_code_pool_index_);
+  InstructionPattern::DecodeLoadWordFromPool(pc - 2 * Instr::kInstrSize, &reg,
+                                             &target_code_pool_index_);
   ASSERT(reg == CODE_REG);
+}
+
+ICCallPattern::ICCallPattern(uword pc, const Code& code)
+    : object_pool_(ObjectPool::Handle(code.GetObjectPool())),
+      target_pool_index_(-1),
+      data_pool_index_(-1) {
+  ASSERT(code.ContainsInstructionAt(pc));
+  // Last instruction: blx lr.
+  ASSERT(*(reinterpret_cast<uword*>(pc) - 1) == 0xe12fff3e);
+
+  Register reg;
+  uword data_load_end = InstructionPattern::DecodeLoadWordFromPool(
+      pc - 2 * Instr::kInstrSize, &reg, &target_pool_index_);
+  ASSERT(reg == CODE_REG);
+
+  InstructionPattern::DecodeLoadWordFromPool(data_load_end, &reg,
+                                             &data_pool_index_);
+  ASSERT(reg == R9);
 }
 
 NativeCallPattern::NativeCallPattern(uword pc, const Code& code)
@@ -245,16 +260,6 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
   return false;
 }
 
-RawICData* CallPattern::IcData() {
-  if (ic_data_.IsNull()) {
-    Register reg;
-    InstructionPattern::DecodeLoadObject(ic_data_load_end_, object_pool_, &reg,
-                                         &ic_data_);
-    ASSERT(reg == R9);
-  }
-  return ic_data_.raw();
-}
-
 RawCode* CallPattern::TargetCode() const {
   return reinterpret_cast<RawCode*>(
       object_pool_.ObjectAt(target_code_pool_index_));
@@ -262,6 +267,23 @@ RawCode* CallPattern::TargetCode() const {
 
 void CallPattern::SetTargetCode(const Code& target_code) const {
   object_pool_.SetObjectAt(target_code_pool_index_, target_code);
+}
+
+RawObject* ICCallPattern::Data() const {
+  return object_pool_.ObjectAt(data_pool_index_);
+}
+
+void ICCallPattern::SetData(const Object& data) const {
+  ASSERT(data.IsArray() || data.IsICData() || data.IsMegamorphicCache());
+  object_pool_.SetObjectAt(data_pool_index_, data);
+}
+
+RawCode* ICCallPattern::TargetCode() const {
+  return reinterpret_cast<RawCode*>(object_pool_.ObjectAt(target_pool_index_));
+}
+
+void ICCallPattern::SetTargetCode(const Code& target_code) const {
+  object_pool_.SetObjectAt(target_pool_index_, target_code);
 }
 
 SwitchableCallPatternBase::SwitchableCallPatternBase(const Code& code)

@@ -79,6 +79,7 @@ enum BinaryOperatorKind {
   MOD,
   SHL,
   SHR,
+  SHRU,
   GTEQ,
   GT,
   LTEQ,
@@ -148,6 +149,10 @@ class BinaryOperator {
   /// The binary >> operator.
   static const BinaryOperator SHR =
       const BinaryOperator._(BinaryOperatorKind.SHR, '>>');
+
+  /// The binary >>> operator.
+  static const BinaryOperator SHRU =
+      const BinaryOperator._(BinaryOperatorKind.SHRU, '>>');
 
   /// The binary >= operator.
   static const BinaryOperator GTEQ =
@@ -226,6 +231,8 @@ class BinaryOperator {
         return SHL;
       case '>>':
         return SHR;
+      case '>>>':
+        return SHRU;
       case '>=':
         return GTEQ;
       case '>':
@@ -270,6 +277,8 @@ class BinaryOperator {
         return SHL;
       case BinaryOperatorKind.SHR:
         return SHR;
+      case BinaryOperatorKind.SHRU:
+        return SHRU;
       case BinaryOperatorKind.GTEQ:
         return GTEQ;
       case BinaryOperatorKind.GT:

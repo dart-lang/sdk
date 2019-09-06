@@ -18,7 +18,11 @@ abstract class Instantiation extends Closure {
     if (JS('bool', 'false')) {
       // [instantiatedGenericFunctionType] is called from injected $signature
       // methods with runtime type representations.
-      instantiatedGenericFunctionType(JS('', '0'), JS('', '0'));
+      if (JS_GET_FLAG('USE_NEW_RTI')) {
+        newRti.instantiatedGenericFunctionType(JS('', '0'), JS('', '0'));
+      } else {
+        instantiatedGenericFunctionType(JS('', '0'), JS('', '0'));
+      }
     }
   }
 

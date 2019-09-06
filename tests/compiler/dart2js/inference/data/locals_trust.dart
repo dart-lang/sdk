@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   trustLocals();
   trustFunctions();
@@ -13,13 +13,13 @@ main() {
 // Test that we trust the explicit type of a local.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _trustLocals:[exact=JSBool]*/ _trustLocals(
+/*member: _trustLocals:[exact=JSBool]*/ _trustLocals(
     int Function(int) /*[null|subclass=Closure]*/ f) {
   int c = f(0);
   return c /*invoke: [null|subclass=JSInt]*/ == 0;
 }
 
-/*element: trustLocals:[null]*/
+/*member: trustLocals:[null]*/
 trustLocals() {
   _trustLocals(/*[exact=JSUInt31]*/ (/*[exact=JSUInt31]*/ o) => o);
   _trustLocals(null);
@@ -29,14 +29,14 @@ trustLocals() {
 // Test that we infer the type of a dynamic local from the type of the function.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _trustFunctions:[exact=JSBool]*/
+/*member: _trustFunctions:[exact=JSBool]*/
 _trustFunctions(int Function(int) /*[null|subclass=Closure]*/ f) {
   dynamic c = f(0);
   c = f(0);
   return c /*invoke: [null|subclass=JSInt]*/ == 0;
 }
 
-/*element: trustFunctions:[null]*/
+/*member: trustFunctions:[null]*/
 trustFunctions() {
   _trustFunctions(/*[exact=JSUInt31]*/ (/*[exact=JSUInt31]*/ o) => o);
   _trustFunctions(null);
@@ -46,13 +46,13 @@ trustFunctions() {
 // Test that we infer the type of a 'var' local from the type of the function.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _inferFromFunctions:[exact=JSBool]*/
+/*member: _inferFromFunctions:[exact=JSBool]*/
 _inferFromFunctions(int Function(int) /*[null|subclass=Closure]*/ f) {
   var c = f(0);
   return c /*invoke: [null|subclass=JSInt]*/ == 0;
 }
 
-/*element: inferFromFunctions:[null]*/
+/*member: inferFromFunctions:[null]*/
 inferFromFunctions() {
   _inferFromFunctions(/*[exact=JSUInt31]*/ (/*[exact=JSUInt31]*/ o) => o);
   _inferFromFunctions(null);

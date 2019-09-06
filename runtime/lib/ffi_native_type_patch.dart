@@ -2,11 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// All imports must be in all FFI patch files to not depend on the order
+// the patches are applied.
 import "dart:_internal" show patch;
+import 'dart:typed_data' show TypedData;
 
+// NativeType is not private, because it is used in type arguments.
+// NativeType is abstract because it not used with const constructors in
+// annotations directly, so it should never be instantiated at runtime.
 @patch
 @pragma("vm:entry-point")
-class NativeType {}
+abstract class NativeType {}
 
 @patch
 @pragma("vm:entry-point")

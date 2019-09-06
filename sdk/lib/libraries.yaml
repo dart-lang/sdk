@@ -90,9 +90,9 @@ vm:
     ffi:
       uri: "ffi/ffi.dart"
       patches:
+        - "../../runtime/lib/ffi_patch.dart"
         - "../../runtime/lib/ffi_dynamic_library_patch.dart"
         - "../../runtime/lib/ffi_native_type_patch.dart"
-        - "../../runtime/lib/ffi_patch.dart"
 
     _http:
       uri: "_http/http.dart"
@@ -266,6 +266,9 @@ dart2js:
     _async_await_error_codes:
       uri: "_internal/js_runtime/lib/shared/async_await_error_codes.dart"
 
+    _recipe_syntax:
+      uri: "_internal/js_runtime/lib/shared/recipe_syntax.dart"
+
     _metadata:
       uri: "html/html_common/metadata.dart"
 
@@ -357,6 +360,9 @@ dart2js_server:
 
     _async_await_error_codes:
       uri: "_internal/js_runtime/lib/shared/async_await_error_codes.dart"
+
+    _recipe_syntax:
+      uri: "_internal/js_runtime/lib/shared/recipe_syntax.dart"
 
 dartdevc:
     libraries:

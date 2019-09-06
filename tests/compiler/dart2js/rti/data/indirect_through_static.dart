@@ -26,8 +26,8 @@ void setup() {
   map['x'] = new C<B>();
 }
 
-/*strong.element: lookup:direct,explicit=[C<lookup.T>],needsArgs*/
-/*omit.element: lookup:direct,explicit=[C<lookup.T>],needsArgs*/
+/*strong.member: lookup:direct,explicit=[C<lookup.T>],needsArgs*/
+/*omit.member: lookup:direct,explicit=[C<lookup.T>],needsArgs*/
 C<T> lookup<T>(String key) {
   final value = map[key];
   if (value != null && value is C<T>) {

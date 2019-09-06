@@ -109,14 +109,9 @@ DEFINE_NATIVE_ENTRY(Ffi_dl_lookup, 1, 2) {
 
   void* handle = dlib.GetHandle();
 
-  const intptr_t pointer = reinterpret_cast<intptr_t>(
-      ResolveSymbol(handle, argSymbolName.ToCString()));
-
-  // TODO(dacoharkes): should this return Object::null() if address is 0?
-  // https://github.com/dart-lang/sdk/issues/35756
-  RawPointer* result =
-      Pointer::New(type_arg, Integer::Handle(zone, Integer::New(pointer)));
-  return result;
+  const uword pointer =
+      reinterpret_cast<uword>(ResolveSymbol(handle, argSymbolName.ToCString()));
+  return Pointer::New(type_arg, pointer);
 }
 
 DEFINE_NATIVE_ENTRY(Ffi_dl_getHandle, 0, 1) {

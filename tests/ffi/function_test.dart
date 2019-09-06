@@ -7,11 +7,14 @@
 // VMOptions=
 // VMOptions=--deterministic --optimization-counter-threshold=10
 // VMOptions=--use-slow-path
+// VMOptions=--write-protect-code --no-dual-map-code
+// VMOptions=--write-protect-code --no-dual-map-code --use-slow-path
 // SharedObjects=ffi_test_functions
 
 library FfiTest;
 
 import 'dart:ffi' as ffi;
+import 'dart:ffi' show Pointer;
 
 import 'dylib_utils.dart';
 
@@ -29,6 +32,7 @@ void main() {
     testNativeFunctionManyArguments1();
     testNativeFunctionManyArguments2();
     testNativeFunctionManyArguments3();
+    testNativeFunctionManyArguments4();
     testNativeFunctionPointer();
     testNullInt();
     testNullDouble();
@@ -37,6 +41,7 @@ void main() {
     testFloatRounding();
     testVoidReturn();
     testNoArgs();
+    testException();
   }
 }
 
@@ -49,7 +54,7 @@ typedef BinaryOp = int Function(int, int);
 typedef GenericBinaryOp<T> = int Function(int, T);
 
 void testNativeFunctionFromCast() {
-  ffi.Pointer<ffi.IntPtr> p1 = ffi.allocate();
+  ffi.Pointer<ffi.IntPtr> p1 = Pointer.allocate();
   ffi.Pointer<ffi.NativeFunction<NativeBinaryOp>> p2 = p1.cast();
   p2.asFunction<BinaryOp>();
   p2.asFunction<GenericBinaryOp<int>>();
@@ -82,73 +87,73 @@ void testNativeFunctionFromLookup() {
 typedef NativeReturnMaxUint8 = ffi.Uint8 Function();
 int Function() returnMaxUint8 = ffiTestFunctions
     .lookup("ReturnMaxUint8")
-    .cast<ffi.Pointer<ffi.NativeFunction<NativeReturnMaxUint8>>>()
+    .cast<ffi.NativeFunction<NativeReturnMaxUint8>>()
     .asFunction();
 
 typedef NativeReturnMaxUint16 = ffi.Uint16 Function();
 int Function() returnMaxUint16 = ffiTestFunctions
     .lookup("ReturnMaxUint16")
-    .cast<ffi.Pointer<ffi.NativeFunction<NativeReturnMaxUint16>>>()
+    .cast<ffi.NativeFunction<NativeReturnMaxUint16>>()
     .asFunction();
 
 typedef NativeReturnMaxUint32 = ffi.Uint32 Function();
 int Function() returnMaxUint32 = ffiTestFunctions
     .lookup("ReturnMaxUint32")
-    .cast<ffi.Pointer<ffi.NativeFunction<NativeReturnMaxUint32>>>()
+    .cast<ffi.NativeFunction<NativeReturnMaxUint32>>()
     .asFunction();
 
 typedef NativeReturnMinInt8 = ffi.Int8 Function();
 int Function() returnMinInt8 = ffiTestFunctions
     .lookup("ReturnMinInt8")
-    .cast<ffi.Pointer<ffi.NativeFunction<NativeReturnMinInt8>>>()
+    .cast<ffi.NativeFunction<NativeReturnMinInt8>>()
     .asFunction();
 
 typedef NativeReturnMinInt16 = ffi.Int16 Function();
 int Function() returnMinInt16 = ffiTestFunctions
     .lookup("ReturnMinInt16")
-    .cast<ffi.Pointer<ffi.NativeFunction<NativeReturnMinInt16>>>()
+    .cast<ffi.NativeFunction<NativeReturnMinInt16>>()
     .asFunction();
 
 typedef NativeReturnMinInt32 = ffi.Int32 Function();
 int Function() returnMinInt32 = ffiTestFunctions
     .lookup("ReturnMinInt32")
-    .cast<ffi.Pointer<ffi.NativeFunction<NativeReturnMinInt32>>>()
+    .cast<ffi.NativeFunction<NativeReturnMinInt32>>()
     .asFunction();
 
 typedef NativeTakeMaxUint8 = ffi.IntPtr Function(ffi.Uint8);
 int Function(int) takeMaxUint8 = ffiTestFunctions
     .lookup("TakeMaxUint8")
-    .cast<ffi.Pointer<ffi.NativeFunction<NativeTakeMaxUint8>>>()
+    .cast<ffi.NativeFunction<NativeTakeMaxUint8>>()
     .asFunction();
 
 typedef NativeTakeMaxUint16 = ffi.IntPtr Function(ffi.Uint16);
 int Function(int) takeMaxUint16 = ffiTestFunctions
     .lookup("TakeMaxUint16")
-    .cast<ffi.Pointer<ffi.NativeFunction<NativeTakeMaxUint16>>>()
+    .cast<ffi.NativeFunction<NativeTakeMaxUint16>>()
     .asFunction();
 
 typedef NativeTakeMaxUint32 = ffi.IntPtr Function(ffi.Uint32);
 int Function(int) takeMaxUint32 = ffiTestFunctions
     .lookup("TakeMaxUint32")
-    .cast<ffi.Pointer<ffi.NativeFunction<NativeTakeMaxUint32>>>()
+    .cast<ffi.NativeFunction<NativeTakeMaxUint32>>()
     .asFunction();
 
 typedef NativeTakeMinInt8 = ffi.IntPtr Function(ffi.Int8);
 int Function(int) takeMinInt8 = ffiTestFunctions
     .lookup("TakeMinInt8")
-    .cast<ffi.Pointer<ffi.NativeFunction<NativeTakeMinInt8>>>()
+    .cast<ffi.NativeFunction<NativeTakeMinInt8>>()
     .asFunction();
 
 typedef NativeTakeMinInt16 = ffi.IntPtr Function(ffi.Int16);
 int Function(int) takeMinInt16 = ffiTestFunctions
     .lookup("TakeMinInt16")
-    .cast<ffi.Pointer<ffi.NativeFunction<NativeTakeMinInt16>>>()
+    .cast<ffi.NativeFunction<NativeTakeMinInt16>>()
     .asFunction();
 
 typedef NativeTakeMinInt32 = ffi.IntPtr Function(ffi.Int32);
 int Function(int) takeMinInt32 = ffiTestFunctions
     .lookup("TakeMinInt32")
-    .cast<ffi.Pointer<ffi.NativeFunction<NativeTakeMinInt32>>>()
+    .cast<ffi.NativeFunction<NativeTakeMinInt32>>()
     .asFunction();
 
 void testExtension() {
@@ -225,7 +230,7 @@ void testNativeFunctionFloats() {
   Expect.approxEquals(1337.0, times1_337Float(1000.0));
 }
 
-typedef NativeOctenaryOp = ffi.IntPtr Function(
+typedef NativeDecenaryOp = ffi.IntPtr Function(
     ffi.IntPtr,
     ffi.IntPtr,
     ffi.IntPtr,
@@ -236,17 +241,39 @@ typedef NativeOctenaryOp = ffi.IntPtr Function(
     ffi.IntPtr,
     ffi.IntPtr,
     ffi.IntPtr);
-typedef OctenaryOp = int Function(
+typedef DecenaryOp = int Function(
     int, int, int, int, int, int, int, int, int, int);
 
-OctenaryOp sumManyInts = ffiTestFunctions
-    .lookupFunction<NativeOctenaryOp, OctenaryOp>("SumManyInts");
+DecenaryOp sumManyInts = ffiTestFunctions
+    .lookupFunction<NativeDecenaryOp, DecenaryOp>("SumManyInts");
 
 void testNativeFunctionManyArguments1() {
   Expect.equals(55, sumManyInts(1, 2, 3, 4, 5, 6, 7, 8, 9, 10));
 }
 
-typedef NativeDoubleOctenaryOp = ffi.Double Function(
+typedef NativeUndenaryOp = ffi.IntPtr Function(
+    ffi.IntPtr,
+    ffi.IntPtr,
+    ffi.IntPtr,
+    ffi.IntPtr,
+    ffi.IntPtr,
+    ffi.IntPtr,
+    ffi.IntPtr,
+    ffi.IntPtr,
+    ffi.IntPtr,
+    ffi.IntPtr,
+    ffi.IntPtr);
+typedef UndenaryOp = int Function(
+    int, int, int, int, int, int, int, int, int, int, int);
+
+UndenaryOp sumManyIntsOdd = ffiTestFunctions
+    .lookupFunction<NativeUndenaryOp, UndenaryOp>("SumManyIntsOdd");
+
+void testNativeFunctionManyArguments4() {
+  Expect.equals(66, sumManyIntsOdd(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11));
+}
+
+typedef NativeDoubleDecenaryOp = ffi.Double Function(
     ffi.Double,
     ffi.Double,
     ffi.Double,
@@ -257,11 +284,11 @@ typedef NativeDoubleOctenaryOp = ffi.Double Function(
     ffi.Double,
     ffi.Double,
     ffi.Double);
-typedef DoubleOctenaryOp = double Function(double, double, double, double,
+typedef DoubleDecenaryOp = double Function(double, double, double, double,
     double, double, double, double, double, double);
 
-DoubleOctenaryOp sumManyDoubles = ffiTestFunctions
-    .lookupFunction<NativeDoubleOctenaryOp, DoubleOctenaryOp>("SumManyDoubles");
+DoubleDecenaryOp sumManyDoubles = ffiTestFunctions
+    .lookupFunction<NativeDoubleDecenaryOp, DoubleDecenaryOp>("SumManyDoubles");
 
 void testNativeFunctionManyArguments2() {
   Expect.approxEquals(
@@ -328,7 +355,7 @@ Int64PointerUnOp assign1337Index1 = ffiTestFunctions
     .lookupFunction<Int64PointerUnOp, Int64PointerUnOp>("Assign1337Index1");
 
 void testNativeFunctionPointer() {
-  ffi.Pointer<ffi.Int64> p2 = ffi.allocate(count: 2);
+  ffi.Pointer<ffi.Int64> p2 = Pointer.allocate(count: 2);
   p2.store(42);
   p2.elementAt(1).store(1000);
   ffi.Pointer<ffi.Int64> result = assign1337Index1(p2);
@@ -358,12 +385,12 @@ Int64PointerUnOp nullableInt64ElemAt1 = ffiTestFunctions
     .lookupFunction<Int64PointerUnOp, Int64PointerUnOp>("NullableInt64ElemAt1");
 
 void testNullPointers() {
-  ffi.Pointer<ffi.Int64> result = nullableInt64ElemAt1(null);
-  Expect.isNull(result);
+  Pointer<ffi.Int64> result = nullableInt64ElemAt1(ffi.nullptr.cast());
+  Expect.equals(result, ffi.nullptr);
 
-  ffi.Pointer<ffi.Int64> p2 = ffi.allocate(count: 2);
+  Pointer<ffi.Int64> p2 = Pointer.allocate(count: 2);
   result = nullableInt64ElemAt1(p2);
-  Expect.isNotNull(result);
+  Expect.notEquals(result, ffi.nullptr);
   p2.free();
 }
 
@@ -374,7 +401,7 @@ FloatPointerToBool isRoughly1337 = ffiTestFunctions.lookupFunction<
     NativeFloatPointerToBool, FloatPointerToBool>("IsRoughly1337");
 
 void testFloatRounding() {
-  ffi.Pointer<ffi.Float> p2 = ffi.allocate();
+  Pointer<ffi.Float> p2 = Pointer.allocate();
   p2.store(1337.0);
 
   int result = isRoughly1337(p2);
@@ -406,4 +433,16 @@ VoidToDouble inventFloatValue = ffiTestFunctions
 void testNoArgs() {
   double result = inventFloatValue();
   Expect.approxEquals(1337.0, result);
+}
+
+// Throw an exception from within the trampoline and collect a stacktrace
+// include its frame.
+void testException() {
+  try {
+    sumPlus42(null, null);
+  } catch (e, s) {
+    print("$e, $s");
+    return;
+  }
+  throw "Didn't throw!";
 }

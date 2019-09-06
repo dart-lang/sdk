@@ -654,7 +654,7 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
   @override
   void handleConstantExpression(ir.ConstantExpression node) {
     ir.LibraryDependency import = getDeferredImport(node);
-    node.constant.accept(new ConstantImpactVisitor(this, import, node));
+    new ConstantImpactVisitor(this, import, node).visitConstant(node.constant);
   }
 }
 
@@ -694,7 +694,7 @@ class ImpactBuilderData {
       this.impactData, this.typeMapsForTesting, this.cachedStaticTypes);
 }
 
-class ConstantImpactVisitor implements ir.ConstantVisitor<void> {
+class ConstantImpactVisitor extends ir.VisitOnceConstantVisitor {
   final ImpactRegistry registry;
   final ir.LibraryDependency import;
   final ir.ConstantExpression expression;
@@ -727,7 +727,7 @@ class ConstantImpactVisitor implements ir.ConstantVisitor<void> {
   void visitPartialInstantiationConstant(ir.PartialInstantiationConstant node) {
     registry.registerGenericInstantiation(
         node.tearOffConstant.procedure.function.functionType, node.types);
-    node.tearOffConstant.accept(this);
+    visitConstant(node.tearOffConstant);
   }
 
   @override
@@ -738,7 +738,7 @@ class ConstantImpactVisitor implements ir.ConstantVisitor<void> {
       ir.Field field = reference.asField;
       registry.registerFieldConstantInitialization(
           field, new ConstantReference(expression, value));
-      value.accept(this);
+      visitConstant(value);
     });
   }
 
@@ -747,7 +747,7 @@ class ConstantImpactVisitor implements ir.ConstantVisitor<void> {
     registry.registerSetLiteral(node.typeArgument,
         isConst: true, isEmpty: node.entries.isEmpty);
     for (ir.Constant element in node.entries) {
-      element.accept(this);
+      visitConstant(element);
     }
   }
 
@@ -756,7 +756,7 @@ class ConstantImpactVisitor implements ir.ConstantVisitor<void> {
     registry.registerListLiteral(node.typeArgument,
         isConst: true, isEmpty: node.entries.isEmpty);
     for (ir.Constant element in node.entries) {
-      element.accept(this);
+      visitConstant(element);
     }
   }
 
@@ -765,8 +765,8 @@ class ConstantImpactVisitor implements ir.ConstantVisitor<void> {
     registry.registerMapLiteral(node.keyType, node.valueType,
         isConst: true, isEmpty: node.entries.isEmpty);
     for (ir.ConstantMapEntry entry in node.entries) {
-      entry.key.accept(this);
-      entry.value.accept(this);
+      visitConstant(entry.key);
+      visitConstant(entry.value);
     }
   }
 

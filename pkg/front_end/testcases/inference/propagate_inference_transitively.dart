@@ -10,7 +10,7 @@ class A {
 }
 
 test5() {
-  var /*@type=A*/ a1 = new A();
+  var /*@ type=A* */ a1 = new A();
   a1. /*@target=A::x*/ x = /*error:INVALID_ASSIGNMENT*/ "hi";
 
   A a2 = new A();

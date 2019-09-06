@@ -7,6 +7,9 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
+
+import 'package:pool/pool.dart';
 
 /// The path to the gsutil script.
 String gsutilPy;
@@ -18,30 +21,36 @@ const testResultsStoragePath = "gs://dart-test-results/builders";
 const approvedResultsStoragePath =
     "gs://dart-test-results-approved-results/builders";
 
+/// Limit the number of concurrent subprocesses by half the number of cores.
+final gsutilPool = new Pool(max(1, Platform.numberOfProcessors ~/ 2));
+
 /// Runs gsutil with the provided [arguments] and returns the standard output.
 /// Returns null if the requested URL didn't exist.
 Future<String> runGsutil(List<String> arguments) async {
-  final processResult = await Process.run(
-      "python", [gsutilPy]..addAll(arguments),
-      runInShell: Platform.isWindows);
-  if (processResult.exitCode != 0) {
-    if (processResult.exitCode == 1 &&
-            processResult.stderr.contains("No URLs matched") ||
-        processResult.stderr.contains("One or more URLs matched no objects")) {
-      return null;
+  return gsutilPool.withResource(() async {
+    final processResult = await Process.run(
+        "python", [gsutilPy]..addAll(arguments),
+        runInShell: Platform.isWindows);
+    if (processResult.exitCode != 0) {
+      if (processResult.exitCode == 1 &&
+              processResult.stderr.contains("No URLs matched") ||
+          processResult.stderr
+              .contains("One or more URLs matched no objects")) {
+        return null;
+      }
+      String error = "Failed to run: python $gsutilPy $arguments\n"
+          "exitCode: ${processResult.exitCode}\n"
+          "stdout:\n${processResult.stdout}\n"
+          "stderr:\n${processResult.stderr}";
+      if (processResult.exitCode == 1 &&
+          processResult.stderr.contains("401 Anonymous caller")) {
+        error =
+            "\n\nYou need to authenticate by running:\npython $gsutilPy config\n";
+      }
+      throw new Exception(error);
     }
-    String error = "Failed to run: python $gsutilPy $arguments\n"
-        "exitCode: ${processResult.exitCode}\n"
-        "stdout:\n${processResult.stdout}\n"
-        "stderr:\n${processResult.stderr}";
-    if (processResult.exitCode == 1 &&
-        processResult.stderr.contains("401 Anonymous caller")) {
-      error =
-          "\n\nYou need to authenticate by running:\npython $gsutilPy config\n";
-    }
-    throw new Exception(error);
-  }
-  return processResult.stdout;
+    return processResult.stdout;
+  });
 }
 
 /// Returns the contents of the provided cloud storage [path], or null if it
@@ -111,6 +120,7 @@ Future<List<Map<String, dynamic>>> loadResults(String path) async {
   final results = <Map<String, dynamic>>[];
   final lines = new File(path)
       .openRead()
+      .cast<List<int>>()
       .transform(utf8.decoder)
       .transform(new LineSplitter());
   await for (final line in lines) {

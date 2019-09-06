@@ -12,7 +12,7 @@
 # 3. Examples that produce the message (one of expression, statement,
 #    declaration, member, script, bytes or external). Note that 'external'
 #    should be the path to an external test. The external test will not be run,
-#    but the existance of the file will be verified.
+#    but the existence of the file will be verified.
 #
 # A message shouldn't indicate which kind of diagnostic it is, for example,
 # warning or error. Tools are expected to prepend "Warning: ", or "Error: ",
@@ -41,7 +41,7 @@
 # which will be used when generating code in Analyzer for translating
 # fasta error codes to Analyzer error codes.
 #
-# In some cases a mesage is internal to the frontend, and no meaningful
+# In some cases a message is internal to the frontend, and no meaningful
 # analyzer code can be provided. In such cases set `frontendInternal: true`.
 #
 # ## Parameter Substitution in Template and Tip
@@ -659,7 +659,7 @@ CovariantAndStatic:
 DuplicatedModifier:
   index: 70
   template: "The modifier '#lexeme' was already specified."
-  tip: "Try removing all but one occurence of the modifier."
+  tip: "Try removing all but one occurrence of the modifier."
   analyzerCode: ParserErrorCode.DUPLICATED_MODIFIER
   script:
     - "class C { const const m; }"
@@ -1301,7 +1301,7 @@ ConstructorWithWrongNameContext:
   severity: CONTEXT
 
 ConstructorCyclic:
-  template: "Redirecting constructers can't be cyclic."
+  template: "Redirecting constructors can't be cyclic."
   tip: "Try to have all constructors eventually redirect to a non-redirecting constructor."
   analyzerCode: RECURSIVE_CONSTRUCTOR_REDIRECT
   script:
@@ -1438,9 +1438,6 @@ SetOrMapLiteralTooManyTypeArguments:
   template: "A set or map literal requires exactly one or two type arguments, respectively."
   severity: ERROR_LEGACY_WARNING
 
-SetLiteralsNotSupported:
-  template: "Set literals are not supported yet."
-
 LoadLibraryTakesNoArguments:
   template: "'loadLibrary' takes no arguments."
   severity: ERROR_LEGACY_WARNING
@@ -1525,7 +1522,7 @@ FastaUsageLong:
         Read the SDK platform from <file>, which should be in Dill/Kernel IR format
         and contain the Dart SDK.
 
-      --target=dart2js|dart2js_server|dart_runner|flutter|flutter_runner|none|vm
+      --target=dart2js|dart2js_server|dart_runner|dartdevc|flutter|flutter_runner|none|vm
         Specify the target configuration.
 
       --enable-asserts
@@ -1565,7 +1562,7 @@ FastaUsageLong:
 
         When specified, the compiler can be invoked with inputs using the custom
         URI scheme. The compiler can ignore the exact location of files on disk
-        and as a result to produce output that is independendent of the absolute
+        and as a result to produce output that is independent of the absolute
         location of files on disk. This is mostly useful for integrating with
         build systems.
 
@@ -2508,6 +2505,7 @@ ThisAsIdentifier:
   template: "Expected identifier, but got 'this'."
   analyzerCode: INVALID_REFERENCE_TO_THIS
 
+# TODO(johnniwinther): Confusing message, it should probably mention that `super` is not available.
 SuperAsIdentifier:
   template: "Expected identifier, but got 'super'."
   analyzerCode: SUPER_AS_EXPRESSION
@@ -2929,6 +2927,13 @@ CantInferTypeDueToInconsistentOverrides:
   template: "Can't infer a type for '#name' as some of the inherited members have different types."
   tip: "Try adding an explicit type."
   analyzerCode: INVALID_METHOD_OVERRIDE
+  external: testcases/inference/inconsistent_overrides.dart
+
+CantInferReturnTypeDueToInconsistentOverrides:
+  template: "Can't infer a return type for '#name' as some of the inherited members have different types."
+  tip: "Try adding an explicit type."
+  analyzerCode: INVALID_METHOD_OVERRIDE
+  external: testcases/inference/inconsistent_overrides.dart
 
 CantInferTypeDueToCircularity:
   template: "Can't infer the type of '#string': circularity found during type inference."
@@ -3455,7 +3460,12 @@ FfiTypeUnsized:
 
 FfiFieldAnnotation:
   # Used by dart:ffi
-  template: "Field '#name' requires exactly one annotation to declare its C++ type, which cannot be Void. dart:ffi structs (Pointer<Void>) cannot have regular Dart fields."
+  template: "Field '#name' requires exactly one annotation to declare its C++ type, which cannot be Void. dart:ffi Structs cannot have regular Dart fields."
+  external: test/ffi_test.dart
+
+FfiFieldNoAnnotation:
+  # Used by dart:ffi
+  template: "Field '#name' requires no annotation to declare its C++ type, it is a Pointer which is represented by the same type in Dart and C++."
   external: test/ffi_test.dart
 
 FfiNotStatic:
@@ -3468,9 +3478,24 @@ FfiFieldInitializer:
   template: "Field '#name' is a dart:ffi Pointer to a struct field and therefore cannot be initialized before constructor execution."
   external: test/ffi_test.dart
 
-FfiStructAnnotation:
+FfiExtendsOrImplementsSealedClass:
   # Used by dart:ffi
-  template: "Class '#name' is a dart:ffi Pointer but has no struct annotation. Only struct Pointers can have fields."
+  template: "Class '#name' cannot be extended or implemented."
+  external: test/ffi_test.dart
+
+FfiStructGeneric:
+  # Used by dart:ffi
+  template: "Struct '#name' should not be generic."
+  external: test/ffi_test.dart
+
+FfiWrongStructInheritance:
+  # Used by dart:ffi
+  template: "Struct '#name' must inherit from 'Struct<#name>'."
+  external: test/ffi_test.dart
+
+FfiDartTypeMismatch:
+  # Used by dart:ffi
+  template: "Expected '#type' to be a subtype of '#type2'."
   external: test/ffi_test.dart
 
 SpreadTypeMismatch:
@@ -3563,3 +3588,52 @@ BadTypeVariableInSupertype:
   script: >
     class A<X> {}
     class B<Y> extends A<Function(Y)> {}
+
+IllegalRecursiveType:
+  template: "Illegal recursive type '#type'."
+  script: >
+    class Base<T> {}
+    class Derived<T> extends Base<Derived<Derived<T>>> {}
+
+BytecodeLimitExceededTooManyArguments:
+  template: "Dart bytecode limit exceeded: too many arguments."
+
+CombinedMemberSignatureFailed:
+  template: "Class '#name' inherits multiple members named '#name2' with incompatible signatures."
+  tip: "Try adding a declaration of '#name2' to '#name'."
+  analyzerCode: INCONSISTENT_INHERITANCE
+  script:
+    - |
+      abstract class I1 {
+        foo(x);
+      }
+
+      abstract class I2 {
+        foo();
+      }
+
+      abstract class C implements I2, I1 {}
+
+LanguageVersionTooHigh:
+  template: "The specified language version is too high. The highest supported language version is #count.#count2."
+  script: >
+    // @dart = 100.200
+
+LanguageVersionInvalidInDotPackages:
+  template: "The language version is not specified correctly in the .packages file."
+  script:
+    main.dart: "import 'package:foo/foo.dart';"
+    lib/foo.dart: "// blah blah blah"
+    .packages: "foo:lib/#dart=arglebargle"
+
+LanguageVersionMismatchInPart:
+  template: "The language version override has to be the same in the library and its part(s)."
+  script:
+    main.dart: >
+      // @dart = 2.4
+
+      part 'part.dart';
+    part.dart: >
+      // @dart = 2.3
+
+      part of 'main.dart';

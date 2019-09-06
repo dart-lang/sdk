@@ -43,8 +43,15 @@ class DartUnitHoverComputer {
     }
     if (node is Expression) {
       Expression expression = node;
-      HoverInformation hover =
-          new HoverInformation(expression.offset, expression.length);
+      // For constructor calls the whole expression is selected (above) but this
+      // results in the range covering the whole call so narrow it to just the
+      // ConstructorName.
+      HoverInformation hover = expression is InstanceCreationExpression
+          ? new HoverInformation(
+              expression.constructorName.offset,
+              expression.constructorName.length,
+            )
+          : new HoverInformation(expression.offset, expression.length);
       // element
       Element element = ElementLocator.locate(expression);
       if (element != null) {

@@ -5,7 +5,7 @@
 /*@testedFeatures=inference*/
 library test;
 
-var x = /*@returnType=invalid-type*/ () => y;
-var y = /*@returnType=invalid-type*/ () => x;
+var x = /*@ returnType=() ->* invalid-type */ () => y;
+var y = /*@ returnType=invalid-type */ () => x;
 
 main() {}

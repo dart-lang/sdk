@@ -35,7 +35,7 @@ class MemoryFileSystem implements FileSystem {
   }
 
   String get debugString {
-    var sb = new StringBuffer();
+    StringBuffer sb = new StringBuffer();
     _files.forEach((uri, _) => sb.write("- $uri\n"));
     _directories.forEach((uri) => sb.write("- $uri\n"));
     return '$sb';

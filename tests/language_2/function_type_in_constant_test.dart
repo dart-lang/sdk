@@ -18,12 +18,6 @@ test(a, b) {
 
 main() {
   test(const A<int Function()>(), const A<String Function()>());
-
-  /// 01: ok
   test(const A<int>(), const A<String Function()>());
-
-  /// 02: ok
   test(const A<int Function()>(), const A<String>());
-
-  /// 03: ok
 }

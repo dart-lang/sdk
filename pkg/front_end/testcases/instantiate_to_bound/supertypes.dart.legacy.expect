@@ -6,20 +6,20 @@ import "package:expect/expect.dart" as exp;
 import "package:expect/expect.dart";
 
 class B extends core::Object {
-  synthetic constructor •() → self::B
+  synthetic constructor •() → self::B*
     : super core::Object::•()
     ;
 }
-class X<T extends self::B = dynamic> extends core::Object {
-  synthetic constructor •() → self::X<self::X::T>
+class X<T extends self::B* = dynamic> extends core::Object {
+  synthetic constructor •() → self::X<self::X::T*>*
     : super core::Object::•()
     ;
 }
 class Y extends self::X<dynamic> {
-  synthetic constructor •() → self::Y
+  synthetic constructor •() → self::Y*
     : super self::X::•()
     ;
 }
 static method main() → void {
-  exp::Expect::isTrue(new self::Y::•() is self::X<dynamic>);
+  exp::Expect::isTrue(new self::Y::•() is self::X<dynamic>*);
 }

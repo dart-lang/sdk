@@ -38,11 +38,21 @@ ExperimentalFlag parseExperimentalFlag(String flag) {
 }
 
 const Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
-  ExperimentalFlag.constantUpdate2018: false,
+  ExperimentalFlag.constantUpdate2018: true,
   ExperimentalFlag.controlFlowCollections: true,
   ExperimentalFlag.extensionMethods: false,
   ExperimentalFlag.nonNullable: false,
   ExperimentalFlag.setLiterals: true,
   ExperimentalFlag.spreadCollections: true,
+  ExperimentalFlag.tripleShift: false,
+};
+
+const Map<ExperimentalFlag, bool> expiredExperimentalFlags = {
+  ExperimentalFlag.constantUpdate2018: true,
+  ExperimentalFlag.controlFlowCollections: false,
+  ExperimentalFlag.extensionMethods: false,
+  ExperimentalFlag.nonNullable: false,
+  ExperimentalFlag.setLiterals: true,
+  ExperimentalFlag.spreadCollections: false,
   ExperimentalFlag.tripleShift: false,
 };

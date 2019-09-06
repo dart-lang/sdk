@@ -19,9 +19,10 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/error_processor.dart' show ErrorProcessor;
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/error/codes.dart' show StrongModeCode;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
@@ -97,9 +98,8 @@ Element _getKnownElement(Expression expression) {
   return null;
 }
 
-/// Looks up the declaration that matches [member] in [type] and returns it's
-/// declared type.
-FunctionType _getMemberType(InterfaceType type, ExecutableElement member) {
+/// Looks up the declaration that matches [member] in [type].
+ExecutableElement _getMember(InterfaceType type, ExecutableElement member) {
   if (member.isPrivate && type.element.library != member.library) {
     return null;
   }
@@ -112,14 +112,14 @@ FunctionType _getMemberType(InterfaceType type, ExecutableElement member) {
       ? (member.isGetter ? type.getGetter(name) : type.getSetter(name))
       : type.getMethod(name);
   if (baseMember == null || baseMember.isStatic) return null;
-  return baseMember.type;
+  return baseMember;
 }
 
 /// Checks the body of functions and properties.
 class CodeChecker extends RecursiveAstVisitor {
   final Dart2TypeSystem rules;
   final TypeProvider typeProvider;
-  final InheritanceManager2 inheritance;
+  final InheritanceManager3 inheritance;
   final AnalysisErrorListener reporter;
   final AnalysisOptionsImpl _options;
   _OverrideChecker _overrideChecker;
@@ -499,14 +499,14 @@ class CodeChecker extends RecursiveAstVisitor {
     DartType type = DynamicTypeImpl.instance;
     if (node.typeArguments != null) {
       NodeList<TypeAnnotation> targs = node.typeArguments.arguments;
-      if (targs.length > 0) {
+      if (targs.isNotEmpty) {
         type = targs[0].type;
       }
     } else {
       DartType staticType = node.staticType;
       if (staticType is InterfaceType) {
         List<DartType> targs = staticType.typeArguments;
-        if (targs != null && targs.length > 0) {
+        if (targs != null && targs.isNotEmpty) {
           type = targs[0];
         }
       }
@@ -605,7 +605,7 @@ class CodeChecker extends RecursiveAstVisitor {
       DartType valueType = DynamicTypeImpl.instance;
       if (node.typeArguments != null) {
         NodeList<TypeAnnotation> typeArguments = node.typeArguments.arguments;
-        if (typeArguments.length > 0) {
+        if (typeArguments.isNotEmpty) {
           keyType = typeArguments[0].type;
         }
         if (typeArguments.length > 1) {
@@ -616,7 +616,7 @@ class CodeChecker extends RecursiveAstVisitor {
         if (staticType is InterfaceType) {
           List<DartType> typeArguments = staticType.typeArguments;
           if (typeArguments != null) {
-            if (typeArguments.length > 0) {
+            if (typeArguments.isNotEmpty) {
               keyType = typeArguments[0];
             }
             if (typeArguments.length > 1) {
@@ -633,14 +633,14 @@ class CodeChecker extends RecursiveAstVisitor {
       DartType type = DynamicTypeImpl.instance;
       if (node.typeArguments != null) {
         NodeList<TypeAnnotation> typeArguments = node.typeArguments.arguments;
-        if (typeArguments.length > 0) {
+        if (typeArguments.isNotEmpty) {
           type = typeArguments[0].type;
         }
       } else {
         DartType staticType = node.staticType;
         if (staticType is InterfaceType) {
           List<DartType> typeArguments = staticType.typeArguments;
-          if (typeArguments != null && typeArguments.length > 0) {
+          if (typeArguments != null && typeArguments.isNotEmpty) {
             type = typeArguments[0];
           }
         }
@@ -896,9 +896,16 @@ class CodeChecker extends RecursiveAstVisitor {
       // parameters are properly substituted.
       var classType = targetType.element.type;
       var classLowerBound = classType.instantiate(new List.filled(
-          classType.typeParameters.length, typeProvider.bottomType));
+          classType.typeParameters.length, BottomTypeImpl.instance));
       var memberLowerBound = inheritance.getMember(
           classLowerBound, Name(element.librarySource.uri, element.name));
+      if (memberLowerBound == null &&
+          element.enclosingElement is ExtensionElement) {
+        // TODO(brianwilkerson) At this point, I think we need to search for the
+        //  extension member in the lower bound of the extended type. For now we
+        //  return in order to stop it from crashing.
+        return;
+      }
       var expectedType = invokeType.returnType;
 
       if (!rules.isSubtypeOf(memberLowerBound.returnType, expectedType)) {
@@ -1278,7 +1285,7 @@ class CodeChecker extends RecursiveAstVisitor {
       _failure = true;
     }
     if (errorCode.type == ErrorType.HINT &&
-        errorCode.name.startsWith('STRONG_MODE_TOP_LEVEL_')) {
+        errorCode.name.startsWith('TOP_LEVEL_')) {
       severity = ErrorSeverity.ERROR;
     }
     if (severity != ErrorSeverity.INFO || _options.strongModeHints) {
@@ -1570,24 +1577,36 @@ class _OverrideChecker {
   ///   of `D.g`.
   void _findCovariantChecksForMember(ExecutableElement member,
       InterfaceType unsafeSupertype, Set<Element> covariantChecks) {
-    var f2 = _getMemberType(unsafeSupertype, member);
+    var f2 = _getMember(unsafeSupertype, member);
     if (f2 == null) return;
-    var f1 = member.type;
+    var f1 = member;
 
     // Find parameter or type formal checks that we need to ensure `f2 <: f1`.
     //
     // The static type system allows this subtyping, but it is not sound without
     // these runtime checks.
-    var fresh = FunctionTypeImpl.relateTypeFormals(f1, f2, (b2, b1, p2, p1) {
-      if (!rules.isSubtypeOf(b2, b1)) covariantChecks.add(p1);
-      return true;
-    });
+    var fresh = FunctionTypeImpl.relateTypeFormals2(
+      f1.typeParameters,
+      f2.typeParameters,
+      (b2, b1, p2, p1) {
+        if (!rules.isSubtypeOf(b2, b1)) {
+          covariantChecks.add(p1);
+        }
+        return true;
+      },
+    );
+
     if (fresh != null) {
-      f1 = f1.instantiate(fresh);
-      f2 = f2.instantiate(fresh);
+      var subst1 = Substitution.fromPairs(f1.typeParameters, fresh);
+      var subst2 = Substitution.fromPairs(f2.typeParameters, fresh);
+      f1 = ExecutableMember.from2(f1, subst1);
+      f2 = ExecutableMember.from2(f2, subst2);
     }
+
     FunctionTypeImpl.relateParameters(f1.parameters, f2.parameters, (p1, p2) {
-      if (!rules.isOverrideSubtypeOfParameter(p1, p2)) covariantChecks.add(p1);
+      if (!rules.isOverrideSubtypeOfParameter(p1, p2)) {
+        covariantChecks.add(p1);
+      }
       return true;
     });
   }

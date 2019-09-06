@@ -15,7 +15,7 @@ void clientSocketAddCloseNoErrorTest() {
     var completer = new Completer();
     server.listen((socket) {
       // The socket is 'paused' until the future completes.
-      completer.future.then((_) => socket.pipe(socket));
+      completer.future.then((_) => socket.cast<List<int>>().pipe(socket));
     });
     Socket.connect("127.0.0.1", server.port).then((client) {
       const int SIZE = 1024 * 1024;

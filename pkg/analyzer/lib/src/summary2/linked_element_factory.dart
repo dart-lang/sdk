@@ -10,6 +10,7 @@ import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/core_types.dart';
+import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
 import 'package:analyzer/src/summary2/linked_unit_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
@@ -155,6 +156,11 @@ class _ElementRequest {
       return _enum(unit, reference);
     }
 
+    if (parentName == '@extension') {
+      var unit = elementOfReference(parent2);
+      return _extension(unit, reference);
+    }
+
     if (parentName == '@field') {
       var enclosing = elementOfReference(parent2);
       return _field(enclosing, reference);
@@ -213,6 +219,12 @@ class _ElementRequest {
       return reference.element;
     }
 
+    if (reference.name == '@function' && parent2.name == '@typeAlias') {
+      var parent = reference.parent;
+      GenericTypeAliasElementImpl alias = elementOfReference(parent);
+      return alias.function;
+    }
+
     throw StateError('Not found: $input');
   }
 
@@ -242,11 +254,11 @@ class _ElementRequest {
 
   ClassElementImpl _class(
       CompilationUnitElementImpl unit, Reference reference) {
-    if (reference.node2 == null) {
+    if (reference.node == null) {
       _indexUnitElementDeclarations(unit);
-      assert(reference.node2 != null, '$reference');
+      assert(reference.node != null, '$reference');
     }
-    ClassElementImpl.forLinkedNode(unit, reference, reference.node2);
+    ClassElementImpl.forLinkedNode(unit, reference, reference.node);
     return reference.element;
   }
 
@@ -281,7 +293,7 @@ class _ElementRequest {
       elementFactory.analysisSession,
       libraryNode.name,
       hasName ? libraryNode.nameOffset : -1,
-      libraryNode.name.length,
+      libraryNode.nameLength,
       definingUnitContext,
       reference,
       definingUnitContext.unit_withDeclarations,
@@ -302,6 +314,7 @@ class _ElementRequest {
       unitElement.lineInfo = unitNode.lineInfo;
       unitElement.source = unitSource;
       unitElement.librarySource = librarySource;
+      unitElement.uri = unitContext.partUriStr;
       units.add(unitElement);
       unitContainerRef.getChild(unitContext.uriStr).element = unitElement;
     }
@@ -319,11 +332,21 @@ class _ElementRequest {
   }
 
   EnumElementImpl _enum(CompilationUnitElementImpl unit, Reference reference) {
-    if (reference.node2 == null) {
+    if (reference.node == null) {
       _indexUnitElementDeclarations(unit);
-      assert(reference.node2 != null, '$reference');
+      assert(reference.node != null, '$reference');
     }
-    EnumElementImpl.forLinkedNode(unit, reference, reference.node2);
+    EnumElementImpl.forLinkedNode(unit, reference, reference.node);
+    return reference.element;
+  }
+
+  ExtensionElementImpl _extension(
+      CompilationUnitElementImpl unit, Reference reference) {
+    if (reference.node == null) {
+      _indexUnitElementDeclarations(unit);
+      assert(reference.node != null, '$reference');
+    }
+    ExtensionElementImpl.forLinkedNode(unit, reference, reference.node);
     return reference.element;
   }
 
@@ -356,11 +379,11 @@ class _ElementRequest {
 
   MixinElementImpl _mixin(
       CompilationUnitElementImpl unit, Reference reference) {
-    if (reference.node2 == null) {
+    if (reference.node == null) {
       _indexUnitElementDeclarations(unit);
-      assert(reference.node2 != null, '$reference');
+      assert(reference.node != null, '$reference');
     }
-    MixinElementImpl.forLinkedNode(unit, reference, reference.node2);
+    MixinElementImpl.forLinkedNode(unit, reference, reference.node);
     return reference.element;
   }
 
@@ -380,11 +403,11 @@ class _ElementRequest {
 
   GenericTypeAliasElementImpl _typeAlias(
       CompilationUnitElementImpl unit, Reference reference) {
-    if (reference.node2 == null) {
+    if (reference.node == null) {
       _indexUnitElementDeclarations(unit);
-      assert(reference.node2 != null, '$reference');
+      assert(reference.node != null, '$reference');
     }
-    GenericTypeAliasElementImpl.forLinkedNode(unit, reference, reference.node2);
+    GenericTypeAliasElementImpl.forLinkedNode(unit, reference, reference.node);
     return reference.element;
   }
 
@@ -398,6 +421,7 @@ class _ElementRequest {
   ) {
     var classRef = unitRef.getChild('@class');
     var enumRef = unitRef.getChild('@enum');
+    var extensionRef = unitRef.getChild('@extension');
     var functionRef = unitRef.getChild('@function');
     var mixinRef = unitRef.getChild('@mixin');
     var typeAliasRef = unitRef.getChild('@typeAlias');
@@ -405,29 +429,32 @@ class _ElementRequest {
     for (var declaration in unitNode.declarations) {
       if (declaration is ClassDeclaration) {
         var name = declaration.name.name;
-        classRef.getChild(name).node2 = declaration;
+        classRef.getChild(name).node = declaration;
       } else if (declaration is ClassTypeAlias) {
         var name = declaration.name.name;
-        classRef.getChild(name).node2 = declaration;
+        classRef.getChild(name).node = declaration;
+      } else if (declaration is ExtensionDeclaration) {
+        var refName = LazyExtensionDeclaration.get(declaration).refName;
+        extensionRef.getChild(refName).node = declaration;
       } else if (declaration is EnumDeclaration) {
         var name = declaration.name.name;
-        enumRef.getChild(name).node2 = declaration;
+        enumRef.getChild(name).node = declaration;
       } else if (declaration is FunctionDeclaration) {
         var name = declaration.name.name;
-        functionRef.getChild(name).node2 = declaration;
+        functionRef.getChild(name).node = declaration;
       } else if (declaration is FunctionTypeAlias) {
         var name = declaration.name.name;
-        typeAliasRef.getChild(name).node2 = declaration;
+        typeAliasRef.getChild(name).node = declaration;
       } else if (declaration is GenericTypeAlias) {
         var name = declaration.name.name;
-        typeAliasRef.getChild(name).node2 = declaration;
+        typeAliasRef.getChild(name).node = declaration;
       } else if (declaration is MixinDeclaration) {
         var name = declaration.name.name;
-        mixinRef.getChild(name).node2 = declaration;
+        mixinRef.getChild(name).node = declaration;
       } else if (declaration is TopLevelVariableDeclaration) {
         for (var variable in declaration.variables.variables) {
           var name = variable.name.name;
-          variableRef.getChild(name).node2 = declaration;
+          variableRef.getChild(name).node = declaration;
         }
       }
     }

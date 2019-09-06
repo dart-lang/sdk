@@ -72,7 +72,7 @@ class TypeConstraintGathererTest {
   InterfaceType get Q => classQ.rawType;
 
   void test_any_subtype_parameter() {
-    _checkConstraints(Q, T1, ['lib::Q <: T1']);
+    _checkConstraints(Q, T1, ['lib::Q* <: T1']);
   }
 
   void test_any_subtype_top() {
@@ -87,7 +87,7 @@ class TypeConstraintGathererTest {
   }
 
   void test_different_classes() {
-    _checkConstraints(_list(T1), _iterable(Q), ['T1 <: lib::Q']);
+    _checkConstraints(_list(T1), _iterable(Q), ['T1 <: lib::Q*']);
     _checkConstraints(_iterable(T1), _list(Q), null);
   }
 
@@ -142,20 +142,20 @@ class TypeConstraintGathererTest {
   void test_function_parameter_types() {
     // (T1) -> dynamic <: (Q) -> dynamic, under constraint Q <: T1
     _checkConstraints(new FunctionType([T1], dynamicType),
-        new FunctionType([Q], dynamicType), ['lib::Q <: T1']);
+        new FunctionType([Q], dynamicType), ['lib::Q* <: T1']);
     // ({x: T1}) -> dynamic <: ({x: Q}) -> dynamic, under constraint Q <: T1
     _checkConstraints(
         new FunctionType([], dynamicType,
             namedParameters: [new NamedType('x', T1)]),
         new FunctionType([], dynamicType,
             namedParameters: [new NamedType('x', Q)]),
-        ['lib::Q <: T1']);
+        ['lib::Q* <: T1']);
   }
 
   void test_function_return_type() {
     // () -> T1 <: () -> Q, under constraint T1 <: Q
     _checkConstraints(
-        new FunctionType([], T1), new FunctionType([], Q), ['T1 <: lib::Q']);
+        new FunctionType([], T1), new FunctionType([], Q), ['T1 <: lib::Q*']);
     // () -> P <: () -> void, always
     _checkConstraints(
         new FunctionType([], P), new FunctionType([], voidType), []);
@@ -176,25 +176,25 @@ class TypeConstraintGathererTest {
 
   void test_nonInferredParameter_subtype_any() {
     var U = new TypeParameterType(new TypeParameter('U', _list(P)));
-    _checkConstraints(U, _list(T1), ['lib::P <: T1']);
+    _checkConstraints(U, _list(T1), ['lib::P* <: T1']);
   }
 
   void test_null_subtype_any() {
-    _checkConstraints(nullType, T1, ['dart.core::Null <: T1']);
+    _checkConstraints(nullType, T1, ['dart.core::Null* <: T1']);
     _checkConstraints(nullType, Q, []);
   }
 
   void test_parameter_subtype_any() {
-    _checkConstraints(T1, Q, ['T1 <: lib::Q']);
+    _checkConstraints(T1, Q, ['T1 <: lib::Q*']);
   }
 
   void test_same_classes() {
-    _checkConstraints(_list(T1), _list(Q), ['T1 <: lib::Q']);
+    _checkConstraints(_list(T1), _list(Q), ['T1 <: lib::Q*']);
   }
 
   void test_typeParameters() {
     _checkConstraints(
-        _map(T1, T2), _map(P, Q), ['T1 <: lib::P', 'T2 <: lib::Q']);
+        _map(T1, T2), _map(P, Q), ['T1 <: lib::P*', 'T2 <: lib::Q*']);
   }
 
   void test_unknown_subtype_any() {

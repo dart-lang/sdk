@@ -4,7 +4,7 @@
 
 import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:args/command_runner.dart' show UsageException;
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 
 import '../js_ast/js_ast.dart';
 import 'js_names.dart';
@@ -206,8 +206,9 @@ class LegacyModuleBuilder extends _ModuleBuilder {
         var names = export.exportedNames;
         assert(names != null); // export * not supported in legacy modules.
         for (var name in names) {
-          statements
-              .add(js.statement('#.# = #;', [exportsVar, name.name, name]));
+          var alias = name.asName ?? name.name;
+          statements.add(
+              js.statement('#.# = #;', [exportsVar, alias.name, name.name]));
         }
       }
     }
@@ -266,8 +267,9 @@ class CommonJSModuleBuilder extends _ModuleBuilder {
         // export * is not emitted by the compiler, so we don't handle it here.
         assert(names != null);
         for (var name in names) {
-          statements
-              .add(js.statement('#.# = #;', [exportsVar, name.name, name]));
+          var alias = name.asName ?? name.name;
+          statements.add(
+              js.statement('#.# = #;', [exportsVar, alias.name, name.name]));
         }
       }
     }
@@ -315,7 +317,8 @@ class AmdModuleBuilder extends _ModuleBuilder {
         // export * is not emitted by the compiler, so we don't handle it here.
         assert(names != null);
         for (var name in names) {
-          exportedProps.add(Property(js.string(name.name), name));
+          var alias = name.asName ?? name.name;
+          exportedProps.add(Property(js.string(alias.name), name.name));
         }
       }
       statements.add(js.comment('Exports:'));
@@ -338,9 +341,22 @@ class AmdModuleBuilder extends _ModuleBuilder {
   }
 }
 
-/// Escape [name] to make it into a valid identifier.
-String pathToJSIdentifier(String name) {
-  return toJSIdentifier(path.basenameWithoutExtension(name));
+/// Converts an entire arbitrary path string into a string compatible with
+/// JS identifier naming rules while conserving path information.
+///
+/// NOT guaranteed to result in a unique string. E.g.,
+///   1) '__' appears in a file name.
+///   2) An escaped '/' or '\' appears in a filename (a/b and a$47b).
+String pathToJSIdentifier(String path) {
+  path = p.normalize(path);
+  if (path.startsWith('/') || path.startsWith('\\')) {
+    path = path.substring(1, path.length);
+  }
+  return toJSIdentifier(path
+      .replaceAll('\\', '__')
+      .replaceAll('/', '__')
+      .replaceAll('..', '__')
+      .replaceAll('-', '_'));
 }
 
 /// Escape [name] to make it into a valid identifier.
@@ -371,3 +387,6 @@ String toJSIdentifier(String name) {
 
 // Invalid characters for identifiers, which would need to be escaped.
 final _invalidCharInIdentifier = RegExp(r'[^A-Za-z_$0-9]');
+
+// Replacement string for path separators (i.e., '/', '\', '..').
+final encodedSeparator = "__";

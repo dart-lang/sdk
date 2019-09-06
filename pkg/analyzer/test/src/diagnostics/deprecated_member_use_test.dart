@@ -25,7 +25,7 @@ library deprecated_library;
 class A {}
 ''');
 
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'deprecated_library.dart';
 f(A a) {}
 ''', [HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE],
@@ -43,7 +43,7 @@ library deprecated_library;
 class A {}
 ''');
 
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'deprecated_library.dart';
 f(A a) {}
 ''', [HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE],
@@ -127,7 +127,7 @@ library deprecated_library;
 class A {}
 ''');
 
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'deprecated_library.dart';
 f(A a) {}
 ''', [HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE],
@@ -300,7 +300,7 @@ class A {
   }
 
   test_methodInvocation_constructor() async {
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   @Deprecated('0.9')
   m() {}
@@ -333,7 +333,7 @@ library deprecated_library;
 class A {}
 ''');
 
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'deprecated_library.dart';
 f(A a) {}
 ''', [HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE],
@@ -458,7 +458,7 @@ library deprecated_library;
 class A {}
 ''');
 
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:foo/foo.dart';
 f(A a) {}
 ''', // This is a cross-package deprecated member usage.
@@ -477,7 +477,7 @@ class A {}
     newFile('/workspace/project/BUILD');
     newFolder('/workspace/bazel-genfiles');
 
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:foo/foo.dart';
 f(A a) {}
 ''', // This is a cross-package deprecated member usage.
@@ -497,7 +497,7 @@ library deprecated_library;
 class A {}
 ''');
 
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import '../../project_a/lib/deprecated_library.dart';
 f(A a) {}
 ''', // This is a same-workspace, cross-package deprecated member usage.
@@ -513,7 +513,7 @@ class A {}
 ''');
 
     newPubPackage('/pkg1');
-    assertErrorsInCode('''
+    await assertErrorsInCode('''
 export 'package:foo/foo.dart';
 ''', [HintCode.DEPRECATED_MEMBER_USE], sourceName: '/pkg1/lib/lib1.dart');
   }
@@ -534,7 +534,7 @@ class A {}
             'BAR=bar\n');
     newFile('/workspace/out/debug-x87_128/dartlang/gen/project/foo.packages');
 
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:foo/foo.dart';
 f(A a) {}
 ''', // This is a cross-package deprecated member usage.
@@ -560,7 +560,7 @@ library deprecated_library;
 class A {}
 ''');
 
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import '../../project_a/lib/deprecated_library.dart';
 f(A a) {}
 ''', // This is a same-workspace, cross-package deprecated member usage.
@@ -596,7 +596,7 @@ class A {
 ''');
 
     newPubPackage('/pkg1');
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:foo/foo.dart';
 void main() => A().m();
 ''', [HintCode.DEPRECATED_MEMBER_USE], sourceName: '/pkg1/lib/lib1.dart');
@@ -611,7 +611,7 @@ class A {
 ''');
 
     newPubPackage('/pkg1');
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:foo/foo.dart';
 void main() => A().m();
 ''', [HintCode.DEPRECATED_MEMBER_USE], sourceName: '/pkg1/lib/lib1.dart');
@@ -626,7 +626,7 @@ class A {}
 
     newFolder('/workspace/.dart_tool/build/generated/project/lib');
     newFileWithBytes('/workspace/pubspec.yaml', 'name: project'.codeUnits);
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:foo/foo.dart';
 f(A a) {}
 ''', // This is a cross-package deprecated member usage.

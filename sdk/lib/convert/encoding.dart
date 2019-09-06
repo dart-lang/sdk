@@ -19,8 +19,8 @@ abstract class Encoding extends Codec<String, List<int>> {
   Converter<List<int>, String> get decoder;
 
   Future<String> decodeStream(Stream<List<int>> byteStream) {
-    return byteStream
-        .transform<String>(decoder)
+    return decoder
+        .bind(byteStream)
         .fold(StringBuffer(),
             (StringBuffer buffer, String string) => buffer..write(string))
         .then((StringBuffer buffer) => buffer.toString());

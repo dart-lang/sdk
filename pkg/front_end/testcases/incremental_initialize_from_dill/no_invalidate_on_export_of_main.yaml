@@ -7,7 +7,6 @@
 
 type: basic
 entry: a.dart
-strong: true
 invalidate:
 sources:
   a.dart: |

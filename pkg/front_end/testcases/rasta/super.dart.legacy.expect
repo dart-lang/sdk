@@ -248,42 +248,42 @@ class A extends core::Object {
   field dynamic c = null;
   field dynamic d = null;
   final field dynamic f = null;
-  synthetic constructor •() → self::A
+  synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
   get e() → dynamic
     return null;
-  set g(dynamic _) → dynamic {}
+  set g(dynamic _) → void {}
   get h() → dynamic
     return null;
-  set h(dynamic _) → dynamic {}
+  set h(dynamic _) → void {}
   get i() → dynamic
     return null;
   operator [](dynamic _) → dynamic
     return null;
-  operator []=(dynamic a, dynamic b) → dynamic {}
+  operator []=(dynamic a, dynamic b) → void {}
   operator ~() → dynamic
     return 117;
   operator unary-() → dynamic
     return 117;
-  operator ==(dynamic other) → dynamic
+  operator ==(dynamic other) → core::bool*
     return true;
   method m() → void {}
   method n() → void {}
-  set n(dynamic _) → dynamic {}
+  set n(dynamic _) → void {}
 }
 class B extends self::A {
   final field dynamic d = null;
-  synthetic constructor •() → self::B
+  synthetic constructor •() → self::B*
     : super self::A::•()
     ;
   get b() → dynamic
     return null;
-  set c(dynamic x) → dynamic {}
-  set i(dynamic x) → dynamic {}
+  set c(dynamic x) → void {}
+  set i(dynamic x) → void {}
 }
 class C extends self::B {
-  synthetic constructor •() → self::C
+  synthetic constructor •() → self::C*
     : super self::B::•()
     ;
   method test() → dynamic {

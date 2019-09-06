@@ -574,7 +574,7 @@ class ImpactDataImpl implements ImpactData {
         emptyAsNull: true);
     _fieldInitializers = source.readMemberNodes(emptyAsNull: true);
     _fieldConstantInitializers =
-        source.readMemberMap(() => source.readTreeNodes(), emptyAsNull: true);
+        source.readMemberNodeMap(source.readTreeNodes, emptyAsNull: true);
     _typeLiterals = source.readList(
         () => new _TypeLiteral.fromDataSource(source),
         emptyAsNull: true);

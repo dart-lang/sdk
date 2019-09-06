@@ -83,8 +83,8 @@ main() {
 ''');
     void onConstructor(HoverInformation hover) {
       // range
-      expect(hover.offset, findOffset('new A'));
-      expect(hover.length, 'new A.named()'.length);
+      expect(hover.offset, findOffset('new A') + 'new '.length);
+      expect(hover.length, 'A.named'.length);
       // element
       expect(hover.dartdoc, 'my doc');
       expect(hover.elementDescription, 'A A.named()');
@@ -114,7 +114,7 @@ main() {
     HoverInformation hover = await prepareHover('A(0)');
     // range
     expect(hover.offset, findOffset('A(0)'));
-    expect(hover.length, 'A(0)'.length);
+    expect(hover.length, 'A'.length);
     // element
     expect(hover.containingLibraryName, 'bin/test.dart');
     expect(hover.containingLibraryPath, testFile);
@@ -139,7 +139,7 @@ main() {
     HoverInformation hover = await prepareHover('A()');
     // range
     expect(hover.offset, findOffset('A()'));
-    expect(hover.length, 'A()'.length);
+    expect(hover.length, 'A'.length);
     // element
     expect(hover.containingLibraryName, 'bin/test.dart');
     expect(hover.containingLibraryPath, testFile);
@@ -164,8 +164,8 @@ main() {
 ''');
     HoverInformation hover = await prepareHover('new A');
     // range
-    expect(hover.offset, findOffset('new A'));
-    expect(hover.length, 'new A()'.length);
+    expect(hover.offset, findOffset('new A') + 'new '.length);
+    expect(hover.length, 'A'.length);
     // element
     expect(hover.containingLibraryName, 'bin/test.dart');
     expect(hover.containingLibraryPath, testFile);
@@ -189,8 +189,8 @@ main() {
 ''');
     void onConstructor(HoverInformation hover) {
       // range
-      expect(hover.offset, findOffset('new A<String>'));
-      expect(hover.length, 'new A<String>()'.length);
+      expect(hover.offset, findOffset('A<String>'));
+      expect(hover.length, 'A<String>'.length);
       // element
       expect(hover.containingLibraryName, 'bin/test.dart');
       expect(hover.containingLibraryPath, testFile);
@@ -316,6 +316,20 @@ enum MyEnum {AAA, BBB, CCC}
 ''');
     HoverInformation hover = await prepareHover('MyEnum');
     expect(hover.elementDescription, 'enum MyEnum');
+    expect(hover.staticType, isNull);
+    expect(hover.propagatedType, isNull);
+  }
+
+  test_extensionDeclaration() async {
+    createAnalysisOptionsFile(experiments: ['extension-methods']);
+    addTestFile('''
+class A {}
+/// Comment
+extension E on A {}
+''');
+    HoverInformation hover = await prepareHover('E');
+    expect(hover.elementDescription, 'extension E on A');
+    expect(hover.dartdoc, 'Comment');
     expect(hover.staticType, isNull);
     expect(hover.propagatedType, isNull);
   }

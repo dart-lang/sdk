@@ -69,6 +69,7 @@ const kIsolateMustHaveReloaded = 110;
 const kServiceAlreadyRegistered = 111;
 const kServiceDisappeared = 112;
 const kExpressionCompilationError = 113;
+const kInvalidTimelineRequest = 114;
 
 // Experimental (used in private rpcs).
 const kFileSystemAlreadyExists = 1001;
@@ -87,6 +88,8 @@ var _errorMessages = {
   kServiceAlreadyRegistered: 'Service already registered',
   kServiceDisappeared: 'Service has disappeared',
   kExpressionCompilationError: 'Expression compilation error',
+  kInvalidTimelineRequest: 'The timeline related request could not be completed'
+      'due to the current configuration',
 };
 
 String encodeRpcError(Message message, int code, {String details}) {
@@ -225,12 +228,12 @@ class VMService extends MessageRouter {
     }
     for (var service in client.services.keys) {
       _eventMessageHandler(
-          '_Service',
+          'Service',
           new Response.json({
             'jsonrpc': '2.0',
             'method': 'streamNotify',
             'params': {
-              'streamId': '_Service',
+              'streamId': 'Service',
               'event': {
                 "type": "Event",
                 "kind": "ServiceUnregistered",
@@ -417,7 +420,7 @@ class VMService extends MessageRouter {
     return null;
   }
 
-  static const kServiceStream = '_Service';
+  static const kServiceStream = 'Service';
   static const serviceStreams = const [kServiceStream];
 
   Future<String> _streamListen(Message message) async {
@@ -594,7 +597,13 @@ class VMService extends MessageRouter {
   }
 
   Future<Response> routeRequest(VMService _, Message message) async {
-    return new Response.from(await _routeRequestImpl(message));
+    final response = await _routeRequestImpl(message);
+    if (response == null) {
+      // We should only have a null response for Notifications.
+      assert(message.type == MessageType.Notification);
+      return null;
+    }
+    return new Response.from(response);
   }
 
   Future _routeRequestImpl(Message message) async {
@@ -608,7 +617,7 @@ class VMService extends MessageRouter {
       if (message.method == 'streamCancel') {
         return await _streamCancel(message);
       }
-      if (message.method == '_registerService') {
+      if (message.method == 'registerService') {
         return await _registerService(message);
       }
       if (message.method == '_spawnUri') {

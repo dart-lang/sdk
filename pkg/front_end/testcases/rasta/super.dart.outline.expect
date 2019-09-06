@@ -18,48 +18,48 @@ class A extends core::Object {
   field dynamic c;
   field dynamic d;
   final field dynamic f;
-  synthetic constructor •() → self::A
+  synthetic constructor •() → self::A*
     ;
   get e() → dynamic
     ;
-  set g(dynamic _) → dynamic
+  set g(dynamic _) → void
     ;
   get h() → dynamic
     ;
-  set h(dynamic _) → dynamic
+  set h(dynamic _) → void
     ;
   get i() → dynamic
     ;
   operator [](dynamic _) → dynamic
     ;
-  operator []=(dynamic a, dynamic b) → dynamic
+  operator []=(dynamic a, dynamic b) → void
     ;
   operator ~() → dynamic
     ;
   operator unary-() → dynamic
     ;
-  operator ==(dynamic other) → dynamic
+  operator ==(dynamic other) → core::bool*
     ;
   method m() → void
     ;
   method n() → void
     ;
-  set n(dynamic _) → dynamic
+  set n(dynamic _) → void
     ;
 }
 class B extends self::A {
   final field dynamic d;
-  synthetic constructor •() → self::B
+  synthetic constructor •() → self::B*
     ;
   get b() → dynamic
     ;
-  set c(dynamic x) → dynamic
+  set c(dynamic x) → void
     ;
-  set i(dynamic x) → dynamic
+  set i(dynamic x) → void
     ;
 }
 class C extends self::B {
-  synthetic constructor •() → self::C
+  synthetic constructor •() → self::C*
     ;
   method test() → dynamic
     ;

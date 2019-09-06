@@ -8,8 +8,10 @@ import 'dart:async' show Future;
 
 import 'dart:collection' show Queue;
 
+import 'package:kernel/ast.dart' show Class, DartType, Library;
+
 import 'builder/builder.dart'
-    show ClassBuilder, Declaration, LibraryBuilder, TypeBuilder;
+    show ClassBuilder, Builder, LibraryBuilder, TypeBuilder;
 
 import 'crash.dart' show firstSourceUri;
 
@@ -35,12 +37,12 @@ import 'ticker.dart' show Ticker;
 
 const String untranslatableUriScheme = "org-dartlang-untranslatable-uri";
 
-abstract class Loader<L> {
+abstract class Loader {
   final Map<Uri, LibraryBuilder> builders = <Uri, LibraryBuilder>{};
 
   final Queue<LibraryBuilder> unparsedLibraries = new Queue<LibraryBuilder>();
 
-  final List<L> libraries = <L>[];
+  final List<Library> libraries = <Library>[];
 
   final TargetImplementation target;
 
@@ -102,6 +104,7 @@ abstract class Loader<L> {
               fileUri.scheme == "dart-ext")) {
         fileUri = null;
       }
+      String packageFragment;
       if (fileUri == null) {
         switch (uri.scheme) {
           case "package":
@@ -110,6 +113,7 @@ abstract class Loader<L> {
                 new Uri(
                     scheme: untranslatableUriScheme,
                     path: Uri.encodeComponent("$uri"));
+            packageFragment = target.uriTranslator.getPackageFragment(uri);
             break;
 
           default:
@@ -117,8 +121,45 @@ abstract class Loader<L> {
             break;
         }
       }
+      bool hasPackageSpecifiedLanguageVersion = false;
+      int packageSpecifiedLanguageVersionMajor;
+      int packageSpecifiedLanguageVersionMinor;
+      if (packageFragment != null) {
+        List<String> properties = packageFragment.split("&");
+        int foundEntries = 0;
+        for (int i = 0; i < properties.length; ++i) {
+          String property = properties[i];
+          if (property.startsWith("dart=")) {
+            if (++foundEntries > 1) {
+              // Force error to be issued if more than one "dart=" entry.
+              // (The error will be issued in library.setLanguageVersion below
+              // when giving it `null` version numbers.)
+              packageSpecifiedLanguageVersionMajor = null;
+              packageSpecifiedLanguageVersionMinor = null;
+              break;
+            }
+
+            hasPackageSpecifiedLanguageVersion = true;
+            String langaugeVersionString = property.substring(5);
+
+            // Verify that the version is x.y[whatever]
+            List<String> dotSeparatedParts = langaugeVersionString.split(".");
+            if (dotSeparatedParts.length >= 2) {
+              packageSpecifiedLanguageVersionMajor =
+                  int.tryParse(dotSeparatedParts[0]);
+              packageSpecifiedLanguageVersionMinor =
+                  int.tryParse(dotSeparatedParts[1]);
+            }
+          }
+        }
+      }
       LibraryBuilder library =
           target.createLibraryBuilder(uri, fileUri, origin);
+      if (hasPackageSpecifiedLanguageVersion) {
+        library.setLanguageVersion(packageSpecifiedLanguageVersionMajor,
+            packageSpecifiedLanguageVersionMinor,
+            explicit: false);
+      }
       if (uri.scheme == "dart" && uri.path == "core") {
         coreLibrary = library;
       }
@@ -291,20 +332,19 @@ fileUri: ${contextMessage.uri}
     return formattedMessage;
   }
 
-  Declaration getAbstractClassInstantiationError() {
+  Builder getAbstractClassInstantiationError() {
     return target.getAbstractClassInstantiationError(this);
   }
 
-  Declaration getCompileTimeError() => target.getCompileTimeError(this);
+  Builder getCompileTimeError() => target.getCompileTimeError(this);
 
-  Declaration getDuplicatedFieldInitializerError() {
+  Builder getDuplicatedFieldInitializerError() {
     return target.getDuplicatedFieldInitializerError(this);
   }
 
-  Declaration getNativeAnnotation() => target.getNativeAnnotation(this);
+  Builder getNativeAnnotation() => target.getNativeAnnotation(this);
 
-  ClassBuilder<TypeBuilder, Object> computeClassBuilderFromTargetClass(
-      covariant Object cls);
+  ClassBuilder computeClassBuilderFromTargetClass(Class cls);
 
-  TypeBuilder computeTypeBuilder(covariant Object type);
+  TypeBuilder computeTypeBuilder(DartType type);
 }

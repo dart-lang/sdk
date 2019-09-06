@@ -54,7 +54,6 @@ DEFINE_FLAG(bool,
 
 DECLARE_FLAG(bool, enable_interpreter);
 DECLARE_FLAG(int, max_deoptimization_counter_threshold);
-DECLARE_FLAG(bool, enable_inlining_annotations);
 DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, trace_optimizing_compiler);
 DECLARE_FLAG(int, max_polymorphic_checks);
@@ -74,6 +73,15 @@ DEFINE_FLAG(charp,
             deoptimize_filter,
             NULL,
             "Deoptimize in named function on stack overflow checks");
+
+DEFINE_FLAG(bool,
+            unopt_monomorphic_calls,
+            true,
+            "Enable specializing monomorphic calls from unoptimized code.");
+DEFINE_FLAG(bool,
+            unopt_megamorphic_calls,
+            true,
+            "Enable specializing megamorphic calls from unoptimized code.");
 
 DECLARE_FLAG(int, reload_every);
 DECLARE_FLAG(bool, reload_every_optimized);
@@ -356,7 +364,7 @@ DEFINE_RUNTIME_ENTRY(InstantiateType, 3) {
       TypeArguments::CheckedHandle(zone, arguments.ArgAt(1));
   const TypeArguments& function_type_arguments =
       TypeArguments::CheckedHandle(zone, arguments.ArgAt(2));
-  ASSERT(!type.IsNull() && !type.IsInstantiated());
+  ASSERT(!type.IsNull());
   ASSERT(instantiator_type_arguments.IsNull() ||
          instantiator_type_arguments.IsInstantiated());
   ASSERT(function_type_arguments.IsNull() ||
@@ -1075,6 +1083,99 @@ RawFunction* InlineCacheMissHelper(const Instance& receiver,
   return result.raw();
 }
 
+static void TrySwitchInstanceCall(const ICData& ic_data,
+                                  const Function& target_function) {
+#if !defined(TARGET_ARCH_DBC) && !defined(DART_PRECOMPILED_RUNTIME)
+  // Monomorphic/megamorphic calls only check the receiver CID.
+  if (ic_data.NumArgsTested() != 1) return;
+
+  ASSERT(ic_data.rebind_rule() == ICData::kInstance);
+
+  // Monomorphic/megamorphic calls don't record exactness.
+  if (ic_data.is_tracking_exactness()) return;
+
+#if !defined(PRODUCT)
+  // Monomorphic/megamorphic do not check the isolate's stepping flag.
+  if (Isolate::Current()->has_attempted_stepping()) return;
+#endif
+
+  Thread* thread = Thread::Current();
+  DartFrameIterator iterator(thread,
+                             StackFrameIterator::kNoCrossThreadIteration);
+  StackFrame* caller_frame = iterator.NextFrame();
+  ASSERT(caller_frame->IsDartFrame());
+
+  // Monomorphic/megamorphic calls are only for unoptimized code.
+  if (caller_frame->is_interpreted()) return;
+  Zone* zone = thread->zone();
+  const Code& caller_code = Code::Handle(zone, caller_frame->LookupDartCode());
+  if (caller_code.is_optimized()) return;
+
+  // Code is detached from its function. This will prevent us from resetting
+  // the switchable call later because resets are function based and because
+  // the ic_data_array belongs to the function instead of the code. This should
+  // only happen because of reload, but it sometimes happens with KBC mixed mode
+  // probably through a race between foreground and background compilation.
+  const Function& caller_function =
+      Function::Handle(zone, caller_code.function());
+  if (caller_function.unoptimized_code() != caller_code.raw()) {
+    return;
+  }
+#if !defined(PRODUCT)
+  // Skip functions that contain breakpoints or when debugger is in single
+  // stepping mode.
+  if (Debugger::IsDebugging(thread, caller_function)) return;
+#endif
+
+  intptr_t num_checks = ic_data.NumberOfChecks();
+
+  // Monomorphic call.
+  if (FLAG_unopt_monomorphic_calls && (num_checks == 1)) {
+    // A call site in the monomorphic state does not load the arguments
+    // descriptor, so do not allow transition to this state if the callee
+    // needs it.
+    if (target_function.HasOptionalParameters() ||
+        target_function.IsGeneric()) {
+      return;
+    }
+
+    // Avoid forcing foreground compilation if target function is still
+    // interpreted.
+    if (FLAG_enable_interpreter && !target_function.HasCode()) {
+      return;
+    }
+
+    const Array& data = Array::Handle(zone, ic_data.entries());
+    const Code& target = Code::Handle(zone, target_function.EnsureHasCode());
+    CodePatcher::PatchInstanceCallAt(caller_frame->pc(), caller_code, data,
+                                     target);
+    if (FLAG_trace_ic) {
+      OS::PrintErr("Instance call at %" Px
+                   " switching to monomorphic dispatch, %s\n",
+                   caller_frame->pc(), ic_data.ToCString());
+    }
+    return;  // Success.
+  }
+
+  // Megamorphic call.
+  if (FLAG_unopt_megamorphic_calls &&
+      (num_checks > FLAG_max_polymorphic_checks)) {
+    const MegamorphicCache& cache =
+        MegamorphicCache::Handle(zone, ic_data.AsMegamorphicCache());
+    ic_data.set_is_megamorphic(true);
+    CodePatcher::PatchInstanceCallAt(caller_frame->pc(), caller_code, cache,
+                                     StubCode::MegamorphicCall());
+    if (FLAG_trace_ic) {
+      OS::PrintErr("Instance call at %" Px
+                   " switching to megamorphic dispatch, %s\n",
+                   caller_frame->pc(), ic_data.ToCString());
+    }
+    return;  // Success.
+  }
+
+#endif  // !defined(TARGET_ARCH_DBC) && !defined(DART_PRECOMPILED_RUNTIME)
+}
+
 // Perform the subtype and return constant function based on the result.
 static RawFunction* ComputeTypeCheckTarget(const Instance& receiver,
                                            const AbstractType& type,
@@ -1091,7 +1192,8 @@ static RawFunction* ComputeTypeCheckTarget(const Instance& receiver,
 
 static RawFunction* InlineCacheMissHandler(
     const GrowableArray<const Instance*>& args,  // Checked arguments only.
-    const ICData& ic_data) {
+    const ICData& ic_data,
+    intptr_t count = 1) {
   const Instance& receiver = *args[0];
   ArgumentsDescriptor arguments_descriptor(
       Array::Handle(ic_data.arguments_descriptor()));
@@ -1136,13 +1238,13 @@ static RawFunction* InlineCacheMissHandler(
                                        ic_data.receivers_static_type())),
                                    receiver);
       ic_data.AddReceiverCheck(
-          receiver.GetClassId(), target_function,
-          /*count=*/1, /*exactness=*/state.CollapseSuperTypeExactness());
+          receiver.GetClassId(), target_function, count,
+          /*exactness=*/state.CollapseSuperTypeExactness());
 #else
       UNREACHABLE();
 #endif
     } else {
-      ic_data.AddReceiverCheck(args[0]->GetClassId(), target_function);
+      ic_data.AddReceiverCheck(args[0]->GetClassId(), target_function, count);
     }
   } else {
     GrowableArray<intptr_t> class_ids(args.length());
@@ -1150,7 +1252,7 @@ static RawFunction* InlineCacheMissHandler(
     for (intptr_t i = 0; i < args.length(); i++) {
       class_ids.Add(args[i]->GetClassId());
     }
-    ic_data.AddCheck(class_ids, target_function);
+    ic_data.AddCheck(class_ids, target_function, count);
   }
   if (FLAG_trace_ic_miss_in_optimized || FLAG_trace_ic) {
     DartFrameIterator iterator(Thread::Current(),
@@ -1174,6 +1276,9 @@ static RawFunction* InlineCacheMissHandler(
                    receiver.GetClassId(), target_function.ToCString());
     }
   }
+
+  TrySwitchInstanceCall(ic_data, target_function);
+
   return target_function.raw();
 }
 
@@ -1289,14 +1394,15 @@ static bool IsSingleTarget(Isolate* isolate,
 #endif
 
 // Handle a miss of a single target cache.
-//   Arg0: Receiver.
+//   Arg1: Receiver.
+//   Arg0: Stub out.
 //   Returns: the ICData used to continue with a polymorphic call.
-DEFINE_RUNTIME_ENTRY(SingleTargetMiss, 1) {
+DEFINE_RUNTIME_ENTRY(SingleTargetMiss, 2) {
 #if defined(TARGET_ARCH_DBC)
   // DBC does not use switchable calls.
   UNREACHABLE();
 #else
-  const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
+  const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(1));
 
   DartFrameIterator iterator(thread,
                              StackFrameIterator::kNoCrossThreadIteration);
@@ -1360,6 +1466,7 @@ DEFINE_RUNTIME_ENTRY(SingleTargetMiss, 1) {
       cache.set_upper_limit(upper);
       // Return the ICData. The single target stub will jump to continue in the
       // IC call stub.
+      arguments.SetArgAt(0, StubCode::ICCallThroughCode());
       arguments.SetReturn(ic_data);
       return;
     }
@@ -1373,18 +1480,24 @@ DEFINE_RUNTIME_ENTRY(SingleTargetMiss, 1) {
 
   // Return the ICData. The single target stub will jump to continue in the
   // IC call stub.
+  arguments.SetArgAt(0, stub);
   arguments.SetReturn(ic_data);
 #endif
 }
 
-DEFINE_RUNTIME_ENTRY(UnlinkedCall, 2) {
+// Handle the first use of an instance call
+//   Arg2: UnlinkedCall.
+//   Arg1: Receiver.
+//   Arg0: Stub out.
+//   Returns: the ICData used to continue with a polymorphic call.
+DEFINE_RUNTIME_ENTRY(UnlinkedCall, 3) {
 #if defined(TARGET_ARCH_DBC)
   // DBC does not use switchable calls.
   UNREACHABLE();
 #else
-  const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
+  const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(1));
   const UnlinkedCall& unlinked =
-      UnlinkedCall::CheckedHandle(zone, arguments.ArgAt(1));
+      UnlinkedCall::CheckedHandle(zone, arguments.ArgAt(2));
 
   DartFrameIterator iterator(thread,
                              StackFrameIterator::kNoCrossThreadIteration);
@@ -1426,6 +1539,7 @@ DEFINE_RUNTIME_ENTRY(UnlinkedCall, 2) {
 
     // Return the ICData. The miss stub will jump to continue in the IC call
     // stub.
+    arguments.SetArgAt(0, StubCode::ICCallThroughCode());
     arguments.SetReturn(ic_data);
     return;
   }
@@ -1438,19 +1552,41 @@ DEFINE_RUNTIME_ENTRY(UnlinkedCall, 2) {
 
   // Return the ICData. The miss stub will jump to continue in the IC lookup
   // stub.
+  arguments.SetArgAt(0, stub);
   arguments.SetReturn(ic_data);
 #endif  // !DBC
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(TARGET_ARCH_DBC)
+static RawICData* FindICDataForInstanceCall(Zone* zone,
+                                            const Code& code,
+                                            uword pc) {
+  uword pc_offset = pc - code.PayloadStart();
+  const PcDescriptors& descriptors =
+      PcDescriptors::Handle(zone, code.pc_descriptors());
+  PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kIcCall);
+  intptr_t deopt_id = -1;
+  while (iter.MoveNext()) {
+    if (iter.PcOffset() == pc_offset) {
+      deopt_id = iter.DeoptId();
+      break;
+    }
+  }
+  ASSERT(deopt_id != -1);
+  return Function::Handle(zone, code.function()).FindICData(deopt_id);
+}
+#endif  // !defined(DART_PRECOMPILED_RUNTIME) && !defined(TARGET_ARCH_DBC)
+
 // Handle a miss of a megamorphic cache.
-//   Arg0: Receiver.
+//   Arg1: Receiver.
+//   Arg0: continuation Code (out parameter).
 //   Returns: the ICData used to continue with a polymorphic call.
-DEFINE_RUNTIME_ENTRY(MonomorphicMiss, 1) {
+DEFINE_RUNTIME_ENTRY(MonomorphicMiss, 2) {
 #if defined(TARGET_ARCH_DBC)
   // DBC does not use switchable calls.
   UNREACHABLE();
-#else
-  const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
+#elif defined(DART_PRECOMPILED_RUNTIME)
+  const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(1));
 
   DartFrameIterator iterator(thread,
                              StackFrameIterator::kNoCrossThreadIteration);
@@ -1520,6 +1656,7 @@ DEFINE_RUNTIME_ENTRY(MonomorphicMiss, 1) {
                                          stub);
       // Return the ICData. The miss stub will jump to continue in the IC call
       // stub.
+      arguments.SetArgAt(0, StubCode::ICCallThroughCode());
       arguments.SetReturn(ic_data);
       return;
     }
@@ -1533,6 +1670,46 @@ DEFINE_RUNTIME_ENTRY(MonomorphicMiss, 1) {
 
   // Return the ICData. The miss stub will jump to continue in the IC lookup
   // stub.
+  arguments.SetArgAt(0, stub);
+  arguments.SetReturn(ic_data);
+#else   // JIT
+  DartFrameIterator iterator(thread,
+                             StackFrameIterator::kNoCrossThreadIteration);
+  StackFrame* caller_frame = iterator.NextFrame();
+  ASSERT(caller_frame->IsDartFrame());
+  ASSERT(!caller_frame->is_interpreted());
+  const Code& caller_code = Code::Handle(zone, caller_frame->LookupDartCode());
+  ASSERT(!caller_code.is_optimized());
+
+  const ICData& ic_data = ICData::Handle(
+      zone, FindICDataForInstanceCall(zone, caller_code, caller_frame->pc()));
+  RELEASE_ASSERT(!ic_data.IsNull());
+
+  ASSERT(ic_data.NumArgsTested() == 1);
+  const Code& stub = ic_data.is_tracking_exactness()
+                         ? StubCode::OneArgCheckInlineCacheWithExactnessCheck()
+                         : StubCode::OneArgCheckInlineCache();
+  CodePatcher::PatchInstanceCallAt(caller_frame->pc(), caller_code, ic_data,
+                                   stub);
+  if (FLAG_trace_ic) {
+    OS::PrintErr("Instance call at %" Px
+                 " switching to polymorphic dispatch, %s\n",
+                 caller_frame->pc(), ic_data.ToCString());
+  }
+
+  const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(1));
+  // ICData can be shared between unoptimized and optimized code, so beware that
+  // the new receiver class may have already been added through the optimized
+  // code.
+  if (!ic_data.HasReceiverClassId(receiver.GetClassId())) {
+    GrowableArray<const Instance*> args(1);
+    args.Add(&receiver);
+    // Don't count during insertion because the IC stub we continue through will
+    // do an increment.
+    intptr_t count = 0;
+    InlineCacheMissHandler(args, ic_data, count);
+  }
+  arguments.SetArgAt(0, stub);
   arguments.SetReturn(ic_data);
 #endif  // !defined(TARGET_ARCH_DBC)
 }
@@ -1629,7 +1806,6 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
   } else {
     const MegamorphicCache& cache = MegamorphicCache::Cast(ic_data_or_cache);
     // Insert function found into cache and return it.
-    cache.EnsureCapacity();
     const Smi& class_id = Smi::Handle(zone, Smi::New(cls.id()));
     cache.Insert(class_id, target_function);
   }
@@ -1966,13 +2142,11 @@ static void HandleStackOverflowTestCases(Thread* thread) {
     for (intptr_t i = 0; i < num_frames; i++) {
       ActivationFrame* frame = stack->FrameAt(i);
 #ifndef DART_PRECOMPILED_RUNTIME
-      if (!frame->IsInterpreted()) {
+      if (!frame->IsInterpreted() && !frame->function().ForceOptimize()) {
         // Ensure that we have unoptimized code.
         frame->function().EnsureHasCompiledUnoptimizedCode();
       }
-      // TODO(regis): Provide var descriptors in kernel bytecode.
-      const int num_vars =
-          frame->IsInterpreted() ? 0 : frame->NumLocalVariables();
+      const int num_vars = frame->NumLocalVariables();
 #else
       // Variable locations and number are unknown when precompiling.
       const int num_vars = 0;
@@ -1983,7 +2157,7 @@ static void HandleStackOverflowTestCases(Thread* thread) {
       }
     }
     if (FLAG_stress_async_stacks) {
-      Debugger::CollectAwaiterReturnStackTrace();
+      isolate->debugger()->CollectAwaiterReturnStackTrace();
     }
     FLAG_stacktrace_every = saved_stacktrace_every;
   }
@@ -2053,6 +2227,13 @@ static void HandleOSRRequest(Thread* thread) {
 DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
 #if defined(USING_SIMULATOR)
   uword stack_pos = Simulator::Current()->get_sp();
+  // If simulator was never called (for example, in pure
+  // interpreted mode) it may return 0 as a value of SPREG.
+  if (stack_pos == 0) {
+    // Use any reasonable value which would not be treated
+    // as stack overflow.
+    stack_pos = thread->saved_stack_limit();
+  }
 #else
   uword stack_pos = OSThread::GetCurrentStackPointer();
 #endif
@@ -2077,7 +2258,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
   // process the stack overflow now and leave the interrupt for next
   // time.
   // TODO(regis): Warning: IsCalleeFrameOf is overridden in stack_frame_dbc.h.
-  if (interpreter_stack_overflow ||
+  if (interpreter_stack_overflow || !thread->os_thread()->HasStackHeadroom() ||
       IsCalleeFrameOf(thread->saved_stack_limit(), stack_pos)) {
     // Use the preallocated stack overflow exception to avoid calling
     // into dart code.
@@ -2119,6 +2300,46 @@ DEFINE_RUNTIME_ENTRY(TraceICCall, 2) {
                ic_data.NumberOfChecks(), function.ToFullyQualifiedCString());
 }
 
+// This is called from interpreter when function usage counter reached
+// compilation threshold and function needs to be compiled.
+DEFINE_RUNTIME_ENTRY(CompileInterpretedFunction, 1) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  const Function& function = Function::CheckedHandle(zone, arguments.ArgAt(0));
+  ASSERT(!function.IsNull());
+  ASSERT(FLAG_enable_interpreter);
+
+#if !defined(PRODUCT)
+  if (Debugger::IsDebugging(thread, function)) {
+    return;
+  }
+#endif  // !defined(PRODUCT)
+
+  if (FLAG_background_compilation) {
+    if (!BackgroundCompiler::IsDisabled(isolate,
+                                        /* optimizing_compilation = */ false) &&
+        function.is_background_optimizable()) {
+      // Ensure background compiler is running, if not start it.
+      BackgroundCompiler::Start(isolate);
+      // Reduce the chance of triggering a compilation while the function is
+      // being compiled in the background. INT_MIN should ensure that it
+      // takes long time to trigger a compilation.
+      // Note that the background compilation queue rejects duplicate entries.
+      function.SetUsageCounter(INT_MIN);
+      isolate->background_compiler()->Compile(function);
+      return;
+    }
+  }
+
+  // Reset usage counter for future optimization.
+  function.SetUsageCounter(0);
+  Object& result =
+      Object::Handle(zone, Compiler::CompileFunction(thread, function));
+  ThrowIfError(result);
+#else
+  UNREACHABLE();
+#endif  // !DART_PRECOMPILED_RUNTIME
+}
+
 // This is called from function that needs to be optimized.
 // The requesting function can be already optimized (reoptimization).
 // Returns the Code object where to continue execution.
@@ -2126,24 +2347,10 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   const Function& function = Function::CheckedHandle(zone, arguments.ArgAt(0));
   ASSERT(!function.IsNull());
+  ASSERT(function.HasCode());
 
-  // If running with interpreter, do the unoptimized compilation first.
-  const bool optimizing_compilation = function.ShouldCompilerOptimize();
-  ASSERT(FLAG_enable_interpreter || optimizing_compilation);
-  ASSERT((!optimizing_compilation) || function.HasCode());
-
-#if defined(PRODUCT)
-  if (!optimizing_compilation ||
-      Compiler::CanOptimizeFunction(thread, function)) {
-#else
-  if ((!optimizing_compilation && !Debugger::IsDebugging(thread, function)) ||
-      (optimizing_compilation &&
-       Compiler::CanOptimizeFunction(thread, function))) {
-#endif  // defined(PRODUCT)
+  if (Compiler::CanOptimizeFunction(thread, function)) {
     if (FLAG_background_compilation) {
-      if (FLAG_enable_inlining_annotations) {
-        FATAL("Cannot enable inlining annotations and background compilation");
-      }
       Field& field = Field::Handle(zone, isolate->GetDeoptimizingBoxedField());
       while (!field.IsNull()) {
         if (FLAG_trace_optimization || FLAG_trace_field_guards) {
@@ -2154,7 +2361,8 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
         // Get next field.
         field = isolate->GetDeoptimizingBoxedField();
       }
-      if (!BackgroundCompiler::IsDisabled(isolate, optimizing_compilation) &&
+      if (!BackgroundCompiler::IsDisabled(isolate,
+                                          /* optimizing_compiler = */ true) &&
           function.is_background_optimizable()) {
         // Ensure background compiler is running, if not start it.
         BackgroundCompiler::Start(isolate);
@@ -2163,12 +2371,7 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
         // takes long time to trigger a compilation.
         // Note that the background compilation queue rejects duplicate entries.
         function.SetUsageCounter(INT_MIN);
-        if (optimizing_compilation) {
-          isolate->optimizing_background_compiler()->Compile(function);
-        } else {
-          ASSERT(FLAG_enable_interpreter);
-          isolate->background_compiler()->Compile(function);
-        }
+        isolate->optimizing_background_compiler()->Compile(function);
         // Continue in the same code.
         arguments.SetReturn(function);
         return;
@@ -2184,12 +2387,8 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
                   function.ToFullyQualifiedCString());
       }
     }
-    Object& result = Object::Handle(zone);
-    if (optimizing_compilation) {
-      result = Compiler::CompileOptimizedFunction(thread, function);
-    } else {
-      result = Compiler::CompileFunction(thread, function);
-    }
+    Object& result = Object::Handle(
+        zone, Compiler::CompileOptimizedFunction(thread, function));
     ThrowIfError(result);
   }
   arguments.SetReturn(function);
@@ -2217,7 +2416,7 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
   }
   ASSERT(frame->IsDartFrame());
   const Code& caller_code = Code::Handle(zone, frame->LookupDartCode());
-  ASSERT(caller_code.is_optimized());
+  RELEASE_ASSERT(caller_code.is_optimized());
   const Function& target_function = Function::Handle(
       zone, caller_code.GetStaticCallTargetFunctionAt(frame->pc()));
 
@@ -2228,6 +2427,52 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
   if (FLAG_trace_patching) {
     OS::PrintErr(
         "FixCallersTarget: caller %#" Px
+        " "
+        "target '%s' -> %#" Px " (%s)\n",
+        frame->pc(), target_function.ToFullyQualifiedCString(),
+        current_target_code.EntryPoint(),
+        current_target_code.is_optimized() ? "optimized" : "unoptimized");
+  }
+  ASSERT(!current_target_code.IsDisabled());
+  arguments.SetReturn(current_target_code);
+#else
+  UNREACHABLE();
+#endif
+}
+
+// The caller must be a monomorphic call from unoptimized code.
+// Patch call to point to new target.
+DEFINE_RUNTIME_ENTRY(FixCallersTargetMonomorphic, 0) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  StackFrameIterator iterator(ValidationPolicy::kDontValidateFrames, thread,
+                              StackFrameIterator::kNoCrossThreadIteration);
+  StackFrame* frame = iterator.NextFrame();
+  ASSERT(frame != NULL);
+  while (frame->IsStubFrame() || frame->IsExitFrame()) {
+    frame = iterator.NextFrame();
+    ASSERT(frame != NULL);
+  }
+  if (frame->IsEntryFrame()) {
+    // Since function's current code is always unpatched, the entry frame always
+    // calls to unpatched code.
+    UNREACHABLE();
+  }
+  ASSERT(frame->IsDartFrame());
+  const Code& caller_code = Code::Handle(zone, frame->LookupDartCode());
+  RELEASE_ASSERT(!caller_code.is_optimized());
+
+  Object& cache = Object::Handle(zone);
+  const Code& old_target_code = Code::Handle(
+      zone, CodePatcher::GetInstanceCallAt(frame->pc(), caller_code, &cache));
+  const Function& target_function =
+      Function::Handle(zone, old_target_code.function());
+  const Code& current_target_code =
+      Code::Handle(zone, target_function.EnsureHasCode());
+  CodePatcher::PatchInstanceCallAt(frame->pc(), caller_code, cache,
+                                   current_target_code);
+  if (FLAG_trace_patching) {
+    OS::PrintErr(
+        "FixCallersTargetMonomorphic: caller %#" Px
         " "
         "target '%s' -> %#" Px " (%s)\n",
         frame->pc(), target_function.ToFullyQualifiedCString(),
@@ -2298,6 +2543,11 @@ const char* DeoptReasonToCString(ICData::DeoptReasonId deopt_reason) {
 
 void DeoptimizeAt(const Code& optimized_code, StackFrame* frame) {
   ASSERT(optimized_code.is_optimized());
+
+  // Force-optimized code is optimized code which cannot deoptimize and doesn't
+  // have unoptimized code to fall back to.
+  ASSERT(!optimized_code.is_force_optimized());
+
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   const Function& function = Function::Handle(zone, optimized_code.function());
@@ -2353,6 +2603,7 @@ void DeoptimizeAt(const Code& optimized_code, StackFrame* frame) {
 
     // N.B.: Update the pending deopt table before updating the frame. The
     // profiler may attempt a stack walk in between.
+    ASSERT(!frame->is_interpreted());
     thread->isolate()->AddPendingDeopt(frame->fp(), deopt_pc);
     frame->MarkForLazyDeopt();
 
@@ -2377,7 +2628,8 @@ void DeoptimizeFunctionsOnStack() {
   while (frame != NULL) {
     if (!frame->is_interpreted()) {
       optimized_code = frame->LookupDartCode();
-      if (optimized_code.is_optimized()) {
+      if (optimized_code.is_optimized() &&
+          !optimized_code.is_force_optimized()) {
         DeoptimizeAt(optimized_code, frame);
       }
     }
@@ -2771,7 +3023,8 @@ extern "C" void DFLRT_ExitSafepoint(NativeArguments __unusable_) {
   CHECK_STACK_ALIGNMENT;
   Thread* thread = Thread::Current();
   ASSERT(thread->top_exit_frame_info() != 0);
-  ASSERT(thread->execution_state() == Thread::kThreadInNative);
+
+  ASSERT(thread->execution_state() == Thread::kThreadInVM);
   thread->ExitSafepoint();
 }
 DEFINE_RAW_LEAF_RUNTIME_ENTRY(ExitSafepoint, 0, false, &DFLRT_ExitSafepoint);

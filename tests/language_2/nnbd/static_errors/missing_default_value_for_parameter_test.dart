@@ -30,7 +30,7 @@ class A {
 }
 typedef void f13({String});
 void printToLog(void f({String})) {}
-void Function({String s}) f14;
+void Function({String s})? f14;
 
 class B<T extends Object?> {
   // Potentially non-nullable types

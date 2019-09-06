@@ -105,10 +105,11 @@ class StringCanonicalizer {
       t = t.next;
     }
     String payload;
-    if (data is String)
+    if (data is String) {
       payload = data.substring(start, end);
-    else
+    } else {
       payload = decode(data, start, end, asciiOnly);
+    }
     _nodes[index] = new Node(data, start, end, payload, s);
     _count++;
     return payload;

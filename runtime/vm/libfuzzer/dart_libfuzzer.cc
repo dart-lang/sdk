@@ -31,7 +31,7 @@ static int TestUnicode(const uint8_t* Data, size_t Size) {
 }
 
 // Target function that stresses various utilities.
-// Found: http:/dartbug.com/36818
+// Found: http://dartbug.com/36818
 static int TestUtilities(const uint8_t* Data, size_t Size) {
   dart::Utils::StringHash(reinterpret_cast<const char*>(Data), Size);
   dart::bin::DartUtils::SniffForMagicNumber(Data, Size);

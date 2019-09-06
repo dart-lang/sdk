@@ -138,17 +138,6 @@ f() async {
     ]);
   }
 
-  test_duplicateDefinition_for_initializers() async {
-    await assertErrorsInCode(r'''
-f() {
-  for (int i = 0, i = 0; i < 5;) {}
-}
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 24, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 24, 1),
-    ]);
-  }
-
   test_expectedOneListTypeArgument() async {
     await assertErrorsInCode(r'''
 main() {

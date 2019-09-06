@@ -3,10 +3,10 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  synthetic constructor •() → self::C
+  synthetic constructor •() → self::C*
     : super core::Object::•()
     ;
-  method f(dynamic x) → core::double
+  method f(dynamic x) → core::double*
     return 1.0;
 }
 static field dynamic v = new self::C::•().f(() → dynamic {

@@ -16,6 +16,7 @@ import 'inferrer/abstract_value_domain.dart';
 import 'js_backend/native_data.dart' show NativeBasicData;
 import 'js_model/locals.dart';
 import 'kernel/dart2js_target.dart';
+import 'options.dart';
 import 'universe/selector.dart' show Selector;
 
 /// The common elements and types in Dart.
@@ -97,6 +98,9 @@ abstract class CommonElements {
 
   /// The dart:_foreign_helper library.
   LibraryEntity get foreignLibrary;
+
+  /// The dart:_internal library.
+  LibraryEntity get rtiLibrary;
 
   /// The dart:_internal library.
   LibraryEntity get internalLibrary;
@@ -475,6 +479,44 @@ abstract class CommonElements {
 
   FunctionEntity get extractFunctionTypeObjectFromInternal;
 
+  // From dart:_rti
+
+  FunctionEntity get findType;
+  FunctionEntity get instanceType;
+  FunctionEntity get arrayInstanceType;
+  FunctionEntity get simpleInstanceType;
+  FunctionEntity get typeLiteralMaker;
+  FunctionEntity get checkTypeBound;
+  FieldEntity get rtiAsField;
+  FieldEntity get rtiCheckField;
+  FieldEntity get rtiIsField;
+  FieldEntity get rtiRestField;
+  FunctionEntity get rtiEvalMethod;
+  FunctionEntity get rtiBindMethod;
+  FunctionEntity get rtiAddRulesMethod;
+
+  FunctionEntity get generalIsTestImplementation;
+  FunctionEntity get generalAsCheckImplementation;
+  FunctionEntity get generalTypeCheckImplementation;
+
+  FunctionEntity get specializedIsBool;
+  FunctionEntity get specializedAsBoolNullable;
+  FunctionEntity get specializedCheckBoolNullable;
+  FunctionEntity get specializedAsDoubleNullable;
+  FunctionEntity get specializedCheckDoubleNullable;
+  FunctionEntity get specializedIsInt;
+  FunctionEntity get specializedAsIntNullable;
+  FunctionEntity get specializedCheckIntNullable;
+  FunctionEntity get specializedIsNum;
+  FunctionEntity get specializedAsNumNullable;
+  FunctionEntity get specializedCheckNumNullable;
+  FunctionEntity get specializedIsString;
+  FunctionEntity get specializedAsStringNullable;
+  FunctionEntity get specializedCheckStringNullable;
+
+  FunctionEntity get instantiatedGenericFunctionTypeNewRti;
+  FunctionEntity get closureFunctionType;
+
   // From dart:_internal
 
   ClassEntity get symbolImplementationClass;
@@ -601,8 +643,9 @@ abstract class JCommonElements implements CommonElements {
 class CommonElementsImpl
     implements CommonElements, KCommonElements, JCommonElements {
   final ElementEnvironment _env;
+  final CompilerOptions _options;
 
-  CommonElementsImpl(this._env);
+  CommonElementsImpl(this._env, this._options);
 
   ClassEntity _objectClass;
   @override
@@ -728,6 +771,11 @@ class CommonElementsImpl
   @override
   LibraryEntity get foreignLibrary =>
       _foreignLibrary ??= _env.lookupLibrary(Uris.dart__foreign_helper);
+
+  LibraryEntity _rtiLibrary;
+  @override
+  LibraryEntity get rtiLibrary =>
+      _rtiLibrary ??= _env.lookupLibrary(Uris.dart__rti, required: true);
 
   /// Reference to the internal library to lookup functions to always inline.
   LibraryEntity _internalLibrary;
@@ -1425,7 +1473,9 @@ class CommonElementsImpl
   ClassEntity _typeLiteralClass;
   @override
   ClassEntity get typeLiteralClass =>
-      _typeLiteralClass ??= _findHelperClass('TypeImpl');
+      _typeLiteralClass ??= _options.experimentNewRti
+          ? _findRtiClass('_Type')
+          : _findHelperClass('TypeImpl');
 
   ClassEntity _constMapLiteralClass;
   @override
@@ -1712,8 +1762,9 @@ class CommonElementsImpl
       _findHelperFunction('throwNoSuchMethod');
 
   @override
-  FunctionEntity get createRuntimeType =>
-      _findHelperFunction('createRuntimeType');
+  FunctionEntity get createRuntimeType => _options.experimentNewRti
+      ? _findRtiFunction('createRuntimeType')
+      : _findHelperFunction('createRuntimeType');
 
   @override
   FunctionEntity get fallThroughError =>
@@ -1784,6 +1835,157 @@ class CommonElementsImpl
         cls.name != 'Instantiation' &&
         cls.name.startsWith('Instantiation');
   }
+
+  // From dart:_rti
+
+  ClassEntity _findRtiClass(String name) => _findClass(rtiLibrary, name);
+
+  FunctionEntity _findRtiFunction(String name) =>
+      _findLibraryMember(rtiLibrary, name);
+
+  FunctionEntity _findType;
+  @override
+  FunctionEntity get findType => _findType ??= _findRtiFunction('findType');
+
+  FunctionEntity _instanceType;
+  @override
+  FunctionEntity get instanceType =>
+      _instanceType ??= _findRtiFunction('instanceType');
+
+  FunctionEntity _arrayInstanceType;
+  @override
+  FunctionEntity get arrayInstanceType =>
+      _arrayInstanceType ??= _findRtiFunction('_arrayInstanceType');
+
+  FunctionEntity _simpleInstanceType;
+  @override
+  FunctionEntity get simpleInstanceType =>
+      _simpleInstanceType ??= _findRtiFunction('_instanceType');
+
+  FunctionEntity _typeLiteralMaker;
+  @override
+  FunctionEntity get typeLiteralMaker =>
+      _typeLiteralMaker ??= _findRtiFunction('typeLiteral');
+
+  FunctionEntity _checkTypeBound;
+  @override
+  FunctionEntity get checkTypeBound =>
+      _checkTypeBound ??= _findRtiFunction('checkTypeBound');
+
+  ClassEntity get _rtiImplClass => _findClass(rtiLibrary, 'Rti');
+  ClassEntity get _rtiUniverseClass => _findClass(rtiLibrary, '_Universe');
+  FieldEntity _findRtiClassField(String name) =>
+      _findClassMember(_rtiImplClass, name);
+
+  FieldEntity _rtiAsField;
+  @override
+  FieldEntity get rtiAsField => _rtiAsField ??= _findRtiClassField('_as');
+
+  FieldEntity _rtiIsField;
+  @override
+  FieldEntity get rtiIsField => _rtiIsField ??= _findRtiClassField('_is');
+
+  FieldEntity _rtiCheckField;
+  @override
+  FieldEntity get rtiCheckField =>
+      _rtiCheckField ??= _findRtiClassField('_check');
+
+  FieldEntity _rtiRestField;
+  @override
+  FieldEntity get rtiRestField => _rtiRestField ??= _findRtiClassField('_rest');
+
+  FunctionEntity _rtiEvalMethod;
+  @override
+  FunctionEntity get rtiEvalMethod =>
+      _rtiEvalMethod ??= _findClassMember(_rtiImplClass, '_eval');
+
+  FunctionEntity _rtiBindMethod;
+  @override
+  FunctionEntity get rtiBindMethod =>
+      _rtiBindMethod ??= _findClassMember(_rtiImplClass, '_bind');
+
+  FunctionEntity _rtiAddRulesMethod;
+  @override
+  FunctionEntity get rtiAddRulesMethod =>
+      _rtiAddRulesMethod ??= _findClassMember(_rtiUniverseClass, 'addRules');
+
+  FunctionEntity _generalIsTestImplementation;
+  @override
+  FunctionEntity get generalIsTestImplementation =>
+      _generalIsTestImplementation ??=
+          _findRtiFunction('_generalIsTestImplementation');
+
+  FunctionEntity _generalAsCheckImplementation;
+  @override
+  FunctionEntity get generalAsCheckImplementation =>
+      _generalAsCheckImplementation ??=
+          _findRtiFunction('_generalAsCheckImplementation');
+
+  FunctionEntity _generalTypeCheckImplementation;
+  @override
+  FunctionEntity get generalTypeCheckImplementation =>
+      _generalTypeCheckImplementation ??=
+          _findRtiFunction('_generalTypeCheckImplementation');
+
+  @override
+  FunctionEntity get specializedIsBool => _findRtiFunction('_isBool');
+
+  @override
+  FunctionEntity get specializedAsBoolNullable =>
+      _findRtiFunction('_asBoolNullable');
+
+  @override
+  FunctionEntity get specializedCheckBoolNullable =>
+      _findRtiFunction('_checkBoolNullable');
+
+  @override
+  FunctionEntity get specializedAsDoubleNullable =>
+      _findRtiFunction('_asDoubleNullable');
+
+  @override
+  FunctionEntity get specializedCheckDoubleNullable =>
+      _findRtiFunction('_checkDoubleNullable');
+
+  @override
+  FunctionEntity get specializedIsInt => _findRtiFunction('_isInt');
+
+  @override
+  FunctionEntity get specializedAsIntNullable =>
+      _findRtiFunction('_asIntNullable');
+
+  @override
+  FunctionEntity get specializedCheckIntNullable =>
+      _findRtiFunction('_checkIntNullable');
+
+  @override
+  FunctionEntity get specializedIsNum => _findRtiFunction('_isNum');
+
+  @override
+  FunctionEntity get specializedAsNumNullable =>
+      _findRtiFunction('_asNumNullable');
+
+  @override
+  FunctionEntity get specializedCheckNumNullable =>
+      _findRtiFunction('_checkNumNullable');
+
+  @override
+  FunctionEntity get specializedIsString => _findRtiFunction('_isString');
+
+  @override
+  FunctionEntity get specializedAsStringNullable =>
+      _findRtiFunction('_asStringNullable');
+
+  @override
+  FunctionEntity get specializedCheckStringNullable =>
+      _findRtiFunction('_checkStringNullable');
+
+  @override
+  FunctionEntity get instantiatedGenericFunctionTypeNewRti =>
+      _findRtiFunction('instantiatedGenericFunctionType');
+
+  @override
+  FunctionEntity get closureFunctionType =>
+      _findRtiFunction('closureFunctionType');
 
   // From dart:_internal
 

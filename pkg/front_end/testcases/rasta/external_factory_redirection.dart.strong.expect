@@ -4,5 +4,5 @@ import "dart:core" as core;
 
 static method main() → dynamic {
   "Should redirect to LinkedHashMap constructor.";
-  core::Map::•<core::Symbol, dynamic>();
+  core::Map::•<core::Symbol*, dynamic>();
 }

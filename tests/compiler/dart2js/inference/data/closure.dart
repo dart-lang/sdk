@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   returnInClosure();
   accessInClosure();
@@ -17,7 +17,7 @@ main() {
   postfixInClosure();
 }
 
-/*element: returnInClosure:[exact=JSUInt31]*/
+/*member: returnInClosure:[exact=JSUInt31]*/
 returnInClosure() {
   /*[null|subclass=Object]*/ local(/*[subclass=Closure]*/ f) => f();
 
@@ -28,7 +28,7 @@ returnInClosure() {
   return lines;
 }
 
-/*element: accessInClosure:[exact=JSUInt31]*/
+/*member: accessInClosure:[exact=JSUInt31]*/
 accessInClosure() {
   /*[null|subclass=Object]*/ local(/*[subclass=Closure]*/ f) => f();
 
@@ -39,7 +39,7 @@ accessInClosure() {
   return lines;
 }
 
-/*element: invokeInClosure:[exact=JSUInt31]*/
+/*member: invokeInClosure:[exact=JSUInt31]*/
 invokeInClosure() {
   /*[null|subclass=Object]*/ local(/*[subclass=Closure]*/ f) => f();
 
@@ -50,7 +50,7 @@ invokeInClosure() {
   return lines;
 }
 
-/*element: operatorInClosure:[exact=JSUInt31]*/
+/*member: operatorInClosure:[exact=JSUInt31]*/
 operatorInClosure() {
   /*[null|subclass=Object]*/ local(/*[subclass=Closure]*/ f) => f();
 
@@ -61,7 +61,7 @@ operatorInClosure() {
   return lines;
 }
 
-/*element: assignInClosure:[subclass=JSInt]*/
+/*member: assignInClosure:[subclass=JSInt]*/
 assignInClosure() {
   /*[null|subclass=Object]*/ local(/*[subclass=Closure]*/ f) => f();
 
@@ -72,7 +72,7 @@ assignInClosure() {
   return lines;
 }
 
-/*element: assignInTwoClosures:[subclass=JSInt]*/
+/*member: assignInTwoClosures:[subclass=JSInt]*/
 assignInTwoClosures() {
   /*[null|subclass=Object]*/ local(/*[subclass=Closure]*/ f) => f();
 
@@ -86,7 +86,7 @@ assignInTwoClosures() {
   return lines;
 }
 
-/*element: accessAssignInClosure:[subclass=JSInt]*/
+/*member: accessAssignInClosure:[subclass=JSInt]*/
 accessAssignInClosure() {
   /*[null|subclass=Object]*/ local(/*[subclass=Closure]*/ f) => f();
 
@@ -97,7 +97,7 @@ accessAssignInClosure() {
   return lines;
 }
 
-/*element: accessBeforeAssignInClosure:[exact=JSUInt31]*/
+/*member: accessBeforeAssignInClosure:[exact=JSUInt31]*/
 accessBeforeAssignInClosure() {
   /*[null|subclass=Object]*/ local(/*[subclass=Closure]*/ f) => f();
 
@@ -109,7 +109,7 @@ accessBeforeAssignInClosure() {
   return lines;
 }
 
-/*element: accessAfterAssignInClosure:[exact=JSUInt31]*/
+/*member: accessAfterAssignInClosure:[exact=JSUInt31]*/
 accessAfterAssignInClosure() {
   /*[null|subclass=Object]*/ local(/*[subclass=Closure]*/ f) => f();
 
@@ -121,7 +121,7 @@ accessAfterAssignInClosure() {
   return lines;
 }
 
-/*element: compoundInClosure:[subclass=JSInt]*/
+/*member: compoundInClosure:[subclass=JSInt]*/
 compoundInClosure() {
   /*[null|subclass=Object]*/ local(/*[subclass=Closure]*/ f) => f();
 
@@ -132,7 +132,7 @@ compoundInClosure() {
   return lines;
 }
 
-/*element: postfixInClosure:[subclass=JSPositiveInt]*/
+/*member: postfixInClosure:[subclass=JSPositiveInt]*/
 postfixInClosure() {
   /*[null|subclass=Object]*/ local(/*[subclass=Closure]*/ f) => f();
 

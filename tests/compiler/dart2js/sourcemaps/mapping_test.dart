@@ -9,7 +9,7 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler_new.dart';
 import 'package:expect/expect.dart';
 import 'package:source_maps/source_maps.dart';
-import 'package:sourcemap_testing/src/annotated_code_helper.dart';
+import 'package:front_end/src/testing/annotated_code_helper.dart';
 
 import '../helpers/memory_compiler.dart';
 
@@ -72,7 +72,7 @@ void main(List<String> arguments) {
     } else if (arg == '--write-js') {
       writeJs = true;
     } else {
-      int index = int.parse(arg, onError: (_) => null);
+      int index = int.tryParse(arg);
       if (index != null) {
         indices ??= <int>[];
         if (index < 0 || index >= TESTS.length) {

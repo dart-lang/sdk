@@ -5,22 +5,22 @@ import "dart:async" as asy;
 
 import "dart:async";
 
-abstract class MyFuture extends core::Object implements asy::Future<core::int> {
-  synthetic constructor •() → self::MyFuture
+abstract class MyFuture extends core::Object implements asy::Future<core::int*> {
+  synthetic constructor •() → self::MyFuture*
     : super core::Object::•()
     ;
 }
 static method test() → void async {
-  core::int x0;
-  asy::Future<core::int> x1;
-  asy::Future<asy::Future<core::int>> x2;
-  asy::Future<asy::FutureOr<core::int>> x3;
-  asy::Future<self::MyFuture> x4;
-  asy::FutureOr<core::int> x5;
-  asy::FutureOr<asy::Future<core::int>> x6;
-  asy::FutureOr<asy::FutureOr<core::int>> x7;
-  asy::FutureOr<self::MyFuture> x8;
-  self::MyFuture x9;
+  core::int* x0;
+  asy::Future<core::int*>* x1;
+  asy::Future<asy::Future<core::int*>*>* x2;
+  asy::Future<asy::FutureOr<core::int*>*>* x3;
+  asy::Future<self::MyFuture*>* x4;
+  asy::FutureOr<core::int*>* x5;
+  asy::FutureOr<asy::Future<core::int*>*>* x6;
+  asy::FutureOr<asy::FutureOr<core::int*>*>* x7;
+  asy::FutureOr<self::MyFuture*>* x8;
+  self::MyFuture* x9;
   function test0() → dynamic async 
     return x0;
   function test1() → dynamic async 

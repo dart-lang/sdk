@@ -4,6 +4,8 @@
 
 #include "vm/isolate_reload.h"
 
+#include <memory>
+
 #include "vm/bit_vector.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart_api_impl.h"
@@ -133,11 +135,8 @@ void InstanceMorpher::ComputeMapping() {
     }
 
     if (new_field) {
-      if (to_field.has_initializer()) {
-        // This is a new field with an initializer.
-        const Field& field = Field::Handle(to_field.raw());
-        new_fields_->Add(&field);
-      }
+      const Field& field = Field::Handle(to_field.raw());
+      new_fields_->Add(&field);
     }
   }
 }
@@ -165,33 +164,46 @@ void InstanceMorpher::RunNewFieldInitializers() const {
   TIR_Print("Running new field initializers for class: %s\n", to_.ToCString());
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  Function& eval_func = Function::Handle(zone);
+  Function& init_func = Function::Handle(zone);
   Object& result = Object::Handle(zone);
   // For each new field.
   for (intptr_t i = 0; i < new_fields_->length(); i++) {
     // Create a function that returns the expression.
     const Field* field = new_fields_->At(i);
-    if (field->kernel_offset() > 0) {
-      eval_func = kernel::CreateFieldInitializerFunction(thread, zone, *field);
-    } else {
-      UNREACHABLE();
-    }
-
-    for (intptr_t j = 0; j < after_->length(); j++) {
-      const Instance* instance = after_->At(j);
-      TIR_Print("Initializing instance %" Pd " / %" Pd "\n", j + 1,
-                after_->length());
-      // Run the function and assign the field.
-      result = DartEntry::InvokeFunction(eval_func, Array::empty_array());
-      if (result.IsError()) {
-        // TODO(johnmccutchan): Report this error in the reload response?
-        OS::PrintErr(
-            "RELOAD: Running initializer for new field `%s` resulted in "
-            "an error: %s\n",
-            field->ToCString(), Error::Cast(result).ToErrorCString());
-        continue;
+    if (field->has_initializer()) {
+      if (field->is_declared_in_bytecode() && (field->bytecode_offset() == 0)) {
+        FATAL1(
+            "Missing field initializer for '%s'. Reload requires bytecode "
+            "to be generated with 'instance-field-initializers'",
+            field->ToCString());
       }
-      instance->RawSetFieldAtOffset(field->Offset(), result);
+      init_func = kernel::CreateFieldInitializerFunction(thread, zone, *field);
+      const Array& args = Array::Handle(zone, Array::New(1));
+      for (intptr_t j = 0; j < after_->length(); j++) {
+        const Instance* instance = after_->At(j);
+        TIR_Print("Initializing instance %" Pd " / %" Pd "\n", j + 1,
+                  after_->length());
+        // Run the function and assign the field.
+        args.SetAt(0, *instance);
+        result = DartEntry::InvokeFunction(init_func, args);
+        if (result.IsError()) {
+          // TODO(johnmccutchan): Report this error in the reload response?
+          OS::PrintErr(
+              "RELOAD: Running initializer for new field `%s` resulted in "
+              "an error: %s\n",
+              field->ToCString(), Error::Cast(result).ToErrorCString());
+          continue;
+        }
+        instance->RawSetFieldAtOffset(field->Offset(), result);
+      }
+    } else {
+      result = field->saved_initial_value();
+      for (intptr_t j = 0; j < after_->length(); j++) {
+        const Instance* instance = after_->At(j);
+        TIR_Print("Initializing instance %" Pd " / %" Pd "\n", j + 1,
+                  after_->length());
+        instance->RawSetFieldAtOffset(field->Offset(), result);
+      }
     }
   }
 }
@@ -526,17 +538,6 @@ static intptr_t CommonSuffixLength(const char* a, const char* b) {
   return (a_length - a_cursor);
 }
 
-template <class T>
-class ResourceHolder : ValueObject {
-  T* resource_;
-
- public:
-  ResourceHolder() : resource_(NULL) {}
-  void set(T* resource) { resource_ = resource; }
-  T* get() { return resource_; }
-  ~ResourceHolder() { delete (resource_); }
-};
-
 static void AcceptCompilation(Thread* thread) {
   TransitionVMToNative transition(thread);
   Dart_KernelCompilationResult result = KernelIsolate::AcceptCompilation();
@@ -582,7 +583,7 @@ void IsolateReloadContext::Reload(bool force_reload,
   }
 
   Object& result = Object::Handle(thread->zone());
-  ResourceHolder<kernel::Program> kernel_program;
+  std::unique_ptr<kernel::Program> kernel_program;
   String& packages_url = String::Handle();
   if (packages_url_ != NULL) {
     packages_url = String::New(packages_url_);
@@ -609,10 +610,10 @@ void IsolateReloadContext::Reload(bool force_reload,
     // root_script_url is a valid .dill file. If that's the case, a Program*
     // is returned. Otherwise, this is likely a source file that needs to be
     // compiled, so ReadKernelFromFile returns NULL.
-    kernel_program.set(kernel::Program::ReadFromFile(root_script_url));
-    if (kernel_program.get() != NULL) {
-      num_received_libs_ = kernel_program.get()->library_count();
-      bytes_received_libs_ = kernel_program.get()->kernel_data_size();
+    kernel_program = kernel::Program::ReadFromFile(root_script_url);
+    if (kernel_program != nullptr) {
+      num_received_libs_ = kernel_program->library_count();
+      bytes_received_libs_ = kernel_program->kernel_data_size();
       p_num_received_classes = &num_received_classes_;
       p_num_received_procedures = &num_received_procedures_;
     } else {
@@ -669,7 +670,7 @@ void IsolateReloadContext::Reload(bool force_reload,
       // into the middle of c-allocated buffer and don't have a finalizer).
       I->RetainKernelBlob(typed_data);
 
-      kernel_program.set(kernel::Program::ReadFromTypedData(typed_data));
+      kernel_program = kernel::Program::ReadFromTypedData(typed_data);
     }
 
     kernel::KernelLoader::FindModifiedLibraries(
@@ -735,26 +736,11 @@ void IsolateReloadContext::Reload(bool force_reload,
   DeoptimizeDependentCode();
   Checkpoint();
 
-  // WEIRD CONTROL FLOW BEGINS.
+  // We synchronously load the hot-reload kernel diff (which includes changed
+  // libraries and any libraries transitively depending on them).
   //
-  // The flow of execution until we return from the tag handler can be complex.
-  //
-  // On a successful load, the following will occur:
-  //   1) Tag Handler is invoked and the embedder is in control.
-  //   2) All sources and libraries are loaded.
-  //   3) Dart_FinalizeLoading is called by the embedder.
-  //   4) Dart_FinalizeLoading invokes IsolateReloadContext::FinalizeLoading
-  //      and we are temporarily back in control.
-  //      This is where we validate the reload and commit or reject.
-  //   5) Dart_FinalizeLoading invokes Dart code related to deferred libraries.
-  //   6) The tag handler returns and we move on.
-  //
-  // Even after a successful reload the Dart code invoked in (5) can result
-  // in an Unwind error or an UnhandledException error. This error will be
-  // returned by the tag handler. The tag handler can return other errors,
-  // for example, top level parse errors. We want to capture these errors while
-  // propagating the UnwindError or an UnhandledException error.
-
+  // If loading the hot-reload diff succeeded we'll finalize the loading, which
+  // will either commit or reject the reload request.
   {
     const Object& tmp =
         kernel::KernelLoader::LoadEntireProgram(kernel_program.get());
@@ -781,8 +767,6 @@ void IsolateReloadContext::Reload(bool force_reload,
       result = tmp.raw();
     }
   }
-  //
-  // WEIRD CONTROL FLOW ENDS.
 
   // Re-enable the background compiler. Do this before propagating any errors.
   BackgroundCompiler::Enable(I);
@@ -808,6 +792,8 @@ void IsolateReloadContext::Reload(bool force_reload,
   // Other errors (e.g. a parse error) are captured by the reload system.
   if (result.IsError()) {
     FinalizeFailedLoad(Error::Cast(result));
+  } else {
+    ReportSuccess();
   }
 }
 
@@ -837,8 +823,6 @@ void IsolateReloadContext::RegisterClass(const Class& new_cls) {
   AddClassMapping(new_cls, old_cls);
 }
 
-// FinalizeLoading will be called *before* Reload() returns but will not be
-// called if the embedder fails to load sources.
 void IsolateReloadContext::FinalizeLoading() {
   if (reload_skipped_ || reload_finalized_) {
     return;
@@ -933,7 +917,11 @@ void IsolateReloadContext::EnsuredUnoptimizedCodeForStack() {
     if (frame->IsDartFrame() && !frame->is_interpreted()) {
       func = frame->LookupDartFunction();
       ASSERT(!func.IsNull());
-      func.EnsureHasCompiledUnoptimizedCode();
+      // Force-optimized functions don't need unoptimized code because their
+      // optimized code cannot deopt.
+      if (!func.ForceOptimize()) {
+        func.EnsureHasCompiledUnoptimizedCode();
+      }
     }
   }
 }
@@ -1389,6 +1377,10 @@ static void RecordChanges(const GrowableObjectArray& changed_in_last_reload,
     return;
   }
 
+  if (old_cls.IsTopLevel()) {
+    return;
+  }
+
   ASSERT(new_cls.is_finalized() == old_cls.is_finalized());
   if (!new_cls.is_finalized()) {
     if (new_cls.SourceFingerprint() == old_cls.SourceFingerprint()) {
@@ -1447,6 +1439,36 @@ void IsolateReloadContext::Commit() {
   VerifyMaps();
 #endif
 
+  // Copy over certain properties of libraries, e.g. is the library
+  // debuggable?
+  {
+    TIMELINE_SCOPE(CopyLibraryBits);
+    Library& lib = Library::Handle();
+    Library& new_lib = Library::Handle();
+
+    UnorderedHashMap<LibraryMapTraits> lib_map(library_map_storage_);
+
+    {
+      // Reload existing libraries.
+      UnorderedHashMap<LibraryMapTraits>::Iterator it(&lib_map);
+
+      while (it.MoveNext()) {
+        const intptr_t entry = it.Current();
+        ASSERT(entry != -1);
+        new_lib = Library::RawCast(lib_map.GetKey(entry));
+        lib = Library::RawCast(lib_map.GetPayload(entry, 0));
+        new_lib.set_debuggable(lib.IsDebuggable());
+        // Native extension support.
+        new_lib.set_native_entry_resolver(lib.native_entry_resolver());
+        new_lib.set_native_entry_symbol_resolver(
+            lib.native_entry_symbol_resolver());
+      }
+    }
+
+    // Release the library map.
+    lib_map.Release();
+  }
+
   const GrowableObjectArray& changed_in_last_reload =
       GrowableObjectArray::Handle(GrowableObjectArray::New());
 
@@ -1468,9 +1490,9 @@ void IsolateReloadContext::Commit() {
         if (new_cls.raw() != old_cls.raw()) {
           ASSERT(new_cls.is_enum_class() == old_cls.is_enum_class());
           if (new_cls.is_enum_class() && new_cls.is_finalized()) {
-            new_cls.ReplaceEnum(old_cls);
+            new_cls.ReplaceEnum(this, old_cls);
           } else {
-            new_cls.CopyStaticFieldValues(old_cls);
+            new_cls.CopyStaticFieldValues(this, old_cls);
           }
           old_cls.PatchFieldsAndFunctions();
           old_cls.MigrateImplicitStaticClosures(this, new_cls);
@@ -1502,36 +1524,6 @@ void IsolateReloadContext::Commit() {
     }
   }
   I->object_store()->set_changed_in_last_reload(changed_in_last_reload);
-
-  // Copy over certain properties of libraries, e.g. is the library
-  // debuggable?
-  {
-    TIMELINE_SCOPE(CopyLibraryBits);
-    Library& lib = Library::Handle();
-    Library& new_lib = Library::Handle();
-
-    UnorderedHashMap<LibraryMapTraits> lib_map(library_map_storage_);
-
-    {
-      // Reload existing libraries.
-      UnorderedHashMap<LibraryMapTraits>::Iterator it(&lib_map);
-
-      while (it.MoveNext()) {
-        const intptr_t entry = it.Current();
-        ASSERT(entry != -1);
-        new_lib = Library::RawCast(lib_map.GetKey(entry));
-        lib = Library::RawCast(lib_map.GetPayload(entry, 0));
-        new_lib.set_debuggable(lib.IsDebuggable());
-        // Native extension support.
-        new_lib.set_native_entry_resolver(lib.native_entry_resolver());
-        new_lib.set_native_entry_symbol_resolver(
-            lib.native_entry_symbol_resolver());
-      }
-    }
-
-    // Release the library map.
-    lib_map.Release();
-  }
 
   {
     TIMELINE_SCOPE(UpdateLibrariesArray);
@@ -1900,15 +1892,17 @@ void IsolateReloadContext::ResetUnoptimizedICsOnStack() {
       bytecode.ResetICDatas(zone);
     } else {
       code = frame->LookupDartCode();
-      if (code.is_optimized()) {
+      if (code.is_optimized() && !code.is_force_optimized()) {
         // If this code is optimized, we need to reset the ICs in the
         // corresponding unoptimized code, which will be executed when the stack
         // unwinds to the optimized code.
         function = code.function();
         code = function.unoptimized_code();
         ASSERT(!code.IsNull());
+        code.ResetSwitchableCalls(zone);
         code.ResetICDatas(zone);
       } else {
+        code.ResetSwitchableCalls(zone);
         code.ResetICDatas(zone);
       }
     }
@@ -2014,29 +2008,30 @@ void IsolateReloadContext::RunInvalidationVisitors() {
     const bool clear_code = IsDirty(owning_lib);
     const bool stub_code = code.IsStubCode();
 
-    // Zero edge counters.
+    // Zero edge counters, before clearing the ICDataArray, since that's where
+    // they're held.
     func.ZeroEdgeCounters();
 
-    if (!stub_code || !bytecode.IsNull()) {
-      if (clear_code) {
-        VTIR_Print("Marking %s for recompilation, clearing code\n",
-                   func.ToCString());
-        // Null out the ICData array and code.
-        func.ClearICDataArray();
-        func.ClearCode();
-        func.SetWasCompiled(false);
-      } else {
-        if (!stub_code) {
-          // We are preserving the unoptimized code, fill all ICData arrays with
-          // the sentinel values so that we have no stale type feedback.
-          code.ResetICDatas(zone);
-        }
-        if (!bytecode.IsNull()) {
-          // We are preserving the bytecode, fill all ICData arrays with
-          // the sentinel values so that we have no stale type feedback.
-          bytecode.ResetICDatas(zone);
-        }
-      }
+    if (!bytecode.IsNull()) {
+      // We are preserving the bytecode, fill all ICData arrays with
+      // the sentinel values so that we have no stale type feedback.
+      bytecode.ResetICDatas(zone);
+    }
+
+    if (stub_code) {
+      // Nothing to reset.
+    } else if (clear_code) {
+      VTIR_Print("Marking %s for recompilation, clearing code\n",
+                 func.ToCString());
+      // Null out the ICData array and code.
+      func.ClearICDataArray();
+      func.ClearCode();
+      func.SetWasCompiled(false);
+    } else {
+      // We are preserving the unoptimized code, fill all ICData arrays with
+      // the sentinel values so that we have no stale type feedback.
+      code.ResetSwitchableCalls(zone);
+      code.ResetICDatas(zone);
     }
 
     // Clear counters.
@@ -2311,6 +2306,9 @@ void IsolateReloadContext::RebuildDirectSubclasses() {
   for (intptr_t i = 1; i < num_cids; i++) {
     if (class_table->HasValidClassAt(i)) {
       cls = class_table->At(i);
+      if (!cls.is_declaration_loaded()) {
+        continue;  // Can't have any subclasses or implementors yet.
+      }
       subclasses = cls.direct_subclasses();
       if (!subclasses.IsNull()) {
         cls.ClearDirectSubclasses();
@@ -2334,6 +2332,9 @@ void IsolateReloadContext::RebuildDirectSubclasses() {
   for (intptr_t i = 1; i < num_cids; i++) {
     if (class_table->HasValidClassAt(i)) {
       cls = class_table->At(i);
+      if (!cls.is_declaration_loaded()) {
+        continue;  // Will register itself later when loaded.
+      }
       super_type = cls.super_type();
       if (!super_type.IsNull() && !super_type.IsObjectType()) {
         super_cls = cls.SuperClass();

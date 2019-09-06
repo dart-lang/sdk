@@ -90,8 +90,9 @@ class BackendImpact {
 /// The JavaScript backend dependencies for various features.
 class BackendImpacts {
   final CommonElements _commonElements;
+  final bool _newRti;
 
-  BackendImpacts(this._commonElements);
+  BackendImpacts(this._commonElements, this._newRti);
 
   BackendImpact _getRuntimeTypeArgument;
 
@@ -100,7 +101,7 @@ class BackendImpacts {
       _commonElements.getRuntimeTypeArgumentIntercepted,
       _commonElements.getRuntimeTypeArgument,
       _commonElements.getTypeArgumentByIndex,
-    ]);
+    ], otherImpacts: newRtiImpacts('getRuntimeTypeArgument'));
   }
 
   BackendImpact _computeSignature;
@@ -110,7 +111,7 @@ class BackendImpacts {
       _commonElements.setRuntimeTypeInfo,
       _commonElements.getRuntimeTypeInfo,
       _commonElements.computeSignature,
-      _commonElements.getRuntimeTypeArguments
+      _commonElements.getRuntimeTypeArguments,
     ], otherImpacts: [
       listValues
     ]);
@@ -164,7 +165,8 @@ class BackendImpacts {
   BackendImpact get typeVariableBoundCheck {
     return _typeVariableBoundCheck ??= new BackendImpact(staticUses: [
       _commonElements.throwTypeError,
-      _commonElements.assertIsSubtype
+      _commonElements.assertIsSubtype,
+      if (_newRti) _commonElements.checkTypeBound,
     ]);
   }
 
@@ -186,8 +188,9 @@ class BackendImpacts {
   BackendImpact _asCheck;
 
   BackendImpact get asCheck {
-    return _asCheck ??=
-        new BackendImpact(staticUses: [_commonElements.throwRuntimeError]);
+    return _asCheck ??= new BackendImpact(staticUses: [
+      _commonElements.throwRuntimeError,
+    ], otherImpacts: newRtiImpacts('asCheck'));
   }
 
   BackendImpact _throwNoSuchMethod;
@@ -421,9 +424,12 @@ class BackendImpacts {
   BackendImpact _typeLiteral;
 
   BackendImpact get typeLiteral {
-    return _typeLiteral ??= new BackendImpact(
-        instantiatedClasses: [_commonElements.typeLiteralClass],
-        staticUses: [_commonElements.createRuntimeType]);
+    return _typeLiteral ??= new BackendImpact(instantiatedClasses: [
+      _commonElements.typeLiteralClass
+    ], staticUses: [
+      _commonElements.createRuntimeType,
+      if (_newRti) _commonElements.typeLiteralMaker,
+    ]);
   }
 
   BackendImpact _stackTraceInCatch;
@@ -754,9 +760,59 @@ class BackendImpacts {
       _genericInstantiation[typeArgumentCount] ??=
           new BackendImpact(staticUses: [
         _commonElements.getInstantiateFunction(typeArgumentCount),
-        _commonElements.instantiatedGenericFunctionType,
-        _commonElements.extractFunctionTypeObjectFromInternal,
+        ..._newRti
+            ? [
+                _commonElements.instantiatedGenericFunctionTypeNewRti,
+                _commonElements.closureFunctionType
+              ]
+            : [
+                _commonElements.instantiatedGenericFunctionType,
+                _commonElements.extractFunctionTypeObjectFromInternal
+              ],
       ], instantiatedClasses: [
         _commonElements.getInstantiationClass(typeArgumentCount),
       ]);
+
+  /// Backend impact for --experiment-new-rti.
+  List<BackendImpact> newRtiImpacts(String what) {
+    if (!_newRti) return [];
+    // TODO(sra): Split into refined impacts.
+    return [
+      BackendImpact(staticUses: [
+        _commonElements.findType,
+        _commonElements.instanceType,
+        _commonElements.arrayInstanceType,
+        _commonElements.simpleInstanceType,
+        _commonElements.rtiEvalMethod,
+        _commonElements.rtiBindMethod,
+        _commonElements.generalIsTestImplementation,
+        _commonElements.generalAsCheckImplementation,
+        _commonElements.generalTypeCheckImplementation,
+        // Specialized checks.
+        _commonElements.specializedIsBool,
+        _commonElements.specializedAsBoolNullable,
+        _commonElements.specializedCheckBoolNullable,
+        // no specializedIsDouble.
+        _commonElements.specializedAsDoubleNullable,
+        _commonElements.specializedCheckDoubleNullable,
+        _commonElements.specializedIsInt,
+        _commonElements.specializedAsIntNullable,
+        _commonElements.specializedCheckIntNullable,
+        _commonElements.specializedIsNum,
+        _commonElements.specializedAsNumNullable,
+        _commonElements.specializedCheckNumNullable,
+        _commonElements.specializedIsString,
+        _commonElements.specializedAsStringNullable,
+        _commonElements.specializedCheckStringNullable,
+      ], globalClasses: [
+        _commonElements.closureClass, // instanceOrFunctionType uses this.
+      ], globalUses: [])
+    ];
+  }
+
+  BackendImpact _rtiAddRules;
+
+  BackendImpact get rtiAddRules => _rtiAddRules ??= BackendImpact(
+      globalUses: [_commonElements.rtiAddRulesMethod],
+      otherImpacts: [_needsString('Needed to encode the new RTI ruleset.')]);
 }

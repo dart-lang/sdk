@@ -14,6 +14,9 @@ namespace dart {
 class AbstractType;
 class BufferFormatter;
 class Definition;
+class FlowGraphSerializer;
+class SExpression;
+class SExpList;
 
 // CompileType describes type of a value produced by a definition.
 //
@@ -126,6 +129,9 @@ class CompileType : public ZoneAllocated {
   // Create non-nullable Int type.
   static CompileType Int();
 
+  // Create non-nullable 32-bit Int type (arch dependent).
+  static CompileType Int32();
+
   // Create nullable Int type.
   static CompileType NullableInt();
 
@@ -210,6 +216,9 @@ class CompileType : public ZoneAllocated {
   }
 
   void PrintTo(BufferFormatter* f) const;
+  SExpression* ToSExpression(FlowGraphSerializer* s) const;
+  void AddExtraInfoToSExpression(SExpList* sexp, FlowGraphSerializer* s) const;
+
   const char* ToCString() const;
 
   // CompileType object might be unowned or owned by a definition.

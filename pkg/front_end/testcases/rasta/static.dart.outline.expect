@@ -5,13 +5,13 @@ import "dart:core" as core;
 class Foo extends core::Object {
   static const field dynamic staticConstant = 42;
   static field dynamic staticField;
-  synthetic constructor •() → self::Foo
+  synthetic constructor •() → self::Foo*
     ;
   static method staticFunction() → dynamic
     ;
   static get staticGetter() → dynamic
     ;
-  static set staticSetter(dynamic _) → dynamic
+  static set staticSetter(dynamic _) → void
     ;
 }
 static method use(dynamic x) → dynamic

@@ -6,7 +6,7 @@
 /// file 'assert_message_throw_ea.dart' contains similar tests for when
 /// assertions are _enabled_.
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main(/*[null|subclass=Object]*/ args) {
   test0();
   test1(args == null);
@@ -15,7 +15,7 @@ main(/*[null|subclass=Object]*/ args) {
 }
 
 // Check that `throw` in the message is handled conditionally.
-/*element: test0:Container([exact=JSExtendableArray], element: [empty], length: 0)*/
+/*member: test0:Container([exact=JSExtendableArray], element: [empty], length: 0)*/
 test0() {
   assert(true, throw "unreachable");
   var list = [];
@@ -24,7 +24,7 @@ test0() {
 
 // Check that side-effects of the assert message is not included after the
 // assert.
-/*element: test1:[null]*/
+/*member: test1:[null]*/
 test1(/*[exact=JSBool]*/ b) {
   var a;
   assert(b, a = 42);
@@ -33,7 +33,7 @@ test1(/*[exact=JSBool]*/ b) {
 
 // Check that side-effects of the assert message is included after the assert
 // through the thrown exception.
-/*element: test2:[null]*/
+/*member: test2:[null]*/
 test2(/*[exact=JSBool]*/ b) {
   var a;
   try {
@@ -43,7 +43,7 @@ test2(/*[exact=JSBool]*/ b) {
 }
 
 // Check that type tests are preserved after the assert.
-/*element: test3:[null|subclass=Object]*/
+/*member: test3:[null|subclass=Object]*/
 test3(/*[null|subclass=Object]*/ a) {
   assert(a is int);
   return a;

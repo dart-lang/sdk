@@ -5,6 +5,9 @@
 #ifndef RUNTIME_VM_SNAPSHOT_H_
 #define RUNTIME_VM_SNAPSHOT_H_
 
+#include <memory>
+#include <utility>
+
 #include "platform/assert.h"
 #include "vm/allocation.h"
 #include "vm/bitfield.h"
@@ -700,6 +703,7 @@ class SnapshotWriter : public BaseWriter {
   friend class RawClosureData;
   friend class RawCode;
   friend class RawContextScope;
+  friend class RawDynamicLibrary;
   friend class RawExceptionHandlers;
   friend class RawField;
   friend class RawFunction;
@@ -711,6 +715,7 @@ class SnapshotWriter : public BaseWriter {
   friend class RawLocalVarDescriptors;
   friend class RawMirrorReference;
   friend class RawObjectPool;
+  friend class RawPointer;
   friend class RawReceivePort;
   friend class RawRegExp;
   friend class RawScript;
@@ -718,10 +723,10 @@ class SnapshotWriter : public BaseWriter {
   friend class RawSubtypeTestCache;
   friend class RawTransferableTypedData;
   friend class RawType;
-  friend class RawTypedDataView;
-  friend class RawTypeRef;
   friend class RawTypeArguments;
   friend class RawTypeParameter;
+  friend class RawTypeRef;
+  friend class RawTypedDataView;
   friend class RawUserTag;
   friend class SnapshotWriterVisitor;
   friend class WriteInlinedObjectVisitor;

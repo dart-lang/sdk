@@ -71,12 +71,10 @@ malformed2_test: Pass, MissingCompileTimeError # Flaky: issue 31056.
 mixin_method_override_test/01: MissingCompileTimeError
 mixin_super_2_test: CompileTimeError
 mixin_super_use_test: CompileTimeError
-mock_writable_final_private_field_test: CompileTimeError # failing-by-design, see Issue #34377
 nested_generic_closure_test: CompileTimeError # Issue #28515
 no_main_test/01: Fail # failing-by-design, the analyzer has no restriction that a library include a main function.
 no_such_constructor2_test: StaticWarning
 override_inheritance_field_test/42: CompileTimeError
-parser_quirks_test: CompileTimeError
 part_of_multiple_libs_test/01: MissingCompileTimeError # Issue 33227
 part_refers_to_core_library_test/01: MissingCompileTimeError # Issue 29709
 prefix_shadow_test/01: MissingCompileTimeError # Issue 33005

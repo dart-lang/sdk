@@ -5,9 +5,11 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'declared_variables_test.dart' as declared_variables;
+import 'utilities_test.dart' as utilities;
 
 main() {
   defineReflectiveSuite(() {
     declared_variables.main();
+    utilities.main();
   }, name: 'analysis');
 }

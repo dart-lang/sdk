@@ -5,6 +5,7 @@
 #include "vm/compiler/frontend/bytecode_flow_graph_builder.h"
 
 #include "vm/compiler/backend/il_printer.h"
+#include "vm/compiler/ffi.h"
 #include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/frontend/prologue_builder.h"
 #include "vm/compiler/jit/compiler.h"
@@ -173,6 +174,9 @@ void BytecodeFlowGraphBuilder::AllocateLocalVariables(
     if (parsed_function()->has_arg_desc_var()) {
       ++num_locals;
     }
+    if (parsed_function()->has_entry_points_temp_var()) {
+      ++num_locals;
+    }
 
     if (num_locals == 0) {
       return;
@@ -206,9 +210,14 @@ void BytecodeFlowGraphBuilder::AllocateLocalVariables(
       parsed_function()->arg_desc_var()->set_index(VariableIndex(-idx));
       ++idx;
     }
+    if (parsed_function()->has_entry_points_temp_var()) {
+      parsed_function()->entry_points_temp_var()->set_index(
+          VariableIndex(-idx));
+      ++idx;
+    }
     ASSERT(idx == num_locals);
 
-    ASSERT(parsed_function()->node_sequence() == nullptr);
+    ASSERT(parsed_function()->scope() == nullptr);
     parsed_function()->AllocateBytecodeVariables(num_locals);
   }
 }
@@ -250,6 +259,110 @@ void BytecodeFlowGraphBuilder::AllocateFixedParameters() {
   }
 
   parsed_function()->SetRawParameters(parameters);
+}
+
+const KBCInstr*
+BytecodeFlowGraphBuilder::AllocateParametersAndLocalsForEntryOptional() {
+  ASSERT(KernelBytecode::IsEntryOptionalOpcode(bytecode_instr_));
+
+  const intptr_t num_fixed_params = DecodeOperandA().value();
+  const intptr_t num_opt_pos_params = DecodeOperandB().value();
+  const intptr_t num_opt_named_params = DecodeOperandC().value();
+
+  ASSERT(num_fixed_params == function().num_fixed_parameters());
+  ASSERT(num_opt_pos_params == function().NumOptionalPositionalParameters());
+  ASSERT(num_opt_named_params == function().NumOptionalNamedParameters());
+
+  ASSERT((num_opt_pos_params == 0) || (num_opt_named_params == 0));
+  const intptr_t num_load_const = num_opt_pos_params + 2 * num_opt_named_params;
+
+  const KBCInstr* instr = KernelBytecode::Next(bytecode_instr_);
+  const KBCInstr* frame_instr = instr;
+  for (intptr_t i = 0; i < num_load_const; ++i) {
+    frame_instr = KernelBytecode::Next(frame_instr);
+  }
+  ASSERT(KernelBytecode::IsFrameOpcode(frame_instr));
+  const intptr_t num_extra_locals = KernelBytecode::DecodeD(frame_instr);
+  const intptr_t num_params =
+      num_fixed_params + num_opt_pos_params + num_opt_named_params;
+  const intptr_t total_locals = num_params + num_extra_locals;
+
+  AllocateLocalVariables(Operand(total_locals), num_params);
+
+  ZoneGrowableArray<const Instance*>* default_values =
+      new (Z) ZoneGrowableArray<const Instance*>(
+          Z, num_opt_pos_params + num_opt_named_params);
+  ZoneGrowableArray<LocalVariable*>* raw_parameters =
+      new (Z) ZoneGrowableArray<LocalVariable*>(Z, num_params);
+
+  intptr_t param = 0;
+  for (; param < num_fixed_params; ++param) {
+    LocalVariable* param_var = AllocateParameter(param, VariableIndex(-param));
+    raw_parameters->Add(param_var);
+  }
+
+  for (intptr_t i = 0; i < num_opt_pos_params; ++i, ++param) {
+    const KBCInstr* load_value_instr = instr;
+    instr = KernelBytecode::Next(instr);
+    ASSERT(KernelBytecode::IsLoadConstantOpcode(load_value_instr));
+    ASSERT(KernelBytecode::DecodeA(load_value_instr) == param);
+    const Object& default_value =
+        ConstantAt(Operand(KernelBytecode::DecodeE(load_value_instr))).value();
+
+    LocalVariable* param_var = AllocateParameter(param, VariableIndex(-param));
+    raw_parameters->Add(param_var);
+    default_values->Add(
+        &Instance::ZoneHandle(Z, Instance::RawCast(default_value.raw())));
+  }
+
+  if (num_opt_named_params > 0) {
+    default_values->EnsureLength(num_opt_named_params, nullptr);
+    raw_parameters->EnsureLength(num_params, nullptr);
+
+    ASSERT(scratch_var_ != nullptr);
+
+    for (intptr_t i = 0; i < num_opt_named_params; ++i, ++param) {
+      const KBCInstr* load_name_instr = instr;
+      const KBCInstr* load_value_instr = KernelBytecode::Next(load_name_instr);
+      instr = KernelBytecode::Next(load_value_instr);
+      ASSERT(KernelBytecode::IsLoadConstantOpcode(load_name_instr));
+      ASSERT(KernelBytecode::IsLoadConstantOpcode(load_value_instr));
+      const String& param_name = String::Cast(
+          ConstantAt(Operand(KernelBytecode::DecodeE(load_name_instr)))
+              .value());
+      ASSERT(param_name.IsSymbol());
+      const Object& default_value =
+          ConstantAt(Operand(KernelBytecode::DecodeE(load_value_instr)))
+              .value();
+
+      intptr_t param_index = num_fixed_params;
+      for (; param_index < num_params; ++param_index) {
+        if (function().ParameterNameAt(param_index) == param_name.raw()) {
+          break;
+        }
+      }
+      ASSERT(param_index < num_params);
+
+      ASSERT(default_values->At(param_index - num_fixed_params) == nullptr);
+      (*default_values)[param_index - num_fixed_params] =
+          &Instance::ZoneHandle(Z, Instance::RawCast(default_value.raw()));
+
+      const intptr_t local_index = KernelBytecode::DecodeA(load_name_instr);
+      ASSERT(local_index == KernelBytecode::DecodeA(load_value_instr));
+
+      LocalVariable* param_var =
+          AllocateParameter(param_index, VariableIndex(-param));
+      ASSERT(raw_parameters->At(param_index) == nullptr);
+      (*raw_parameters)[param_index] = param_var;
+    }
+  }
+
+  ASSERT(instr == frame_instr);
+
+  parsed_function()->set_default_parameter_values(default_values);
+  parsed_function()->SetRawParameters(raw_parameters);
+
+  return KernelBytecode::Next(frame_instr);
 }
 
 LocalVariable* BytecodeFlowGraphBuilder::LocalVariableAt(intptr_t local_index) {
@@ -388,12 +501,10 @@ void BytecodeFlowGraphBuilder::BuildInstruction(KernelBytecode::Opcode opcode) {
 #define BUILD_BYTECODE_CASE(name, encoding, kind, op1, op2, op3)               \
   BUILD_BYTECODE_CASE_##kind(name, encoding)
 
-#define BUILD_BYTECODE_CASE_OLD(name, encoding)
 #define BUILD_BYTECODE_CASE_WIDE(name, encoding)
 #define BUILD_BYTECODE_CASE_RESV(name, encoding)
 #define BUILD_BYTECODE_CASE_ORDN(name, encoding)                               \
   case KernelBytecode::k##name:                                                \
-  case KernelBytecode::k##name##_Old:                                          \
     WIDE_CASE_##encoding(name) Build##name();                                  \
     break;
 
@@ -410,7 +521,6 @@ void BytecodeFlowGraphBuilder::BuildInstruction(KernelBytecode::Opcode opcode) {
 #undef WIDE_CASE_D_F
 #undef WIDE_CASE_A_B_C
 #undef BUILD_BYTECODE_CASE
-#undef BUILD_BYTECODE_CASE_OLD
 #undef BUILD_BYTECODE_CASE_WIDE
 #undef BUILD_BYTECODE_CASE_RESV
 #undef BUILD_BYTECODE_CASE_ORDN
@@ -472,103 +582,13 @@ void BytecodeFlowGraphBuilder::BuildEntryOptional() {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
   }
 
-  const intptr_t num_fixed_params = DecodeOperandA().value();
-  const intptr_t num_opt_pos_params = DecodeOperandB().value();
-  const intptr_t num_opt_named_params = DecodeOperandC().value();
-  ASSERT(num_fixed_params == function().num_fixed_parameters());
-  ASSERT(num_opt_pos_params == function().NumOptionalPositionalParameters());
-  ASSERT(num_opt_named_params == function().NumOptionalNamedParameters());
+  const KBCInstr* next_instr = AllocateParametersAndLocalsForEntryOptional();
 
-  ASSERT((num_opt_pos_params == 0) || (num_opt_named_params == 0));
-  const intptr_t num_load_const = num_opt_pos_params + 2 * num_opt_named_params;
-
-  const KBCInstr* instr = KernelBytecode::Next(bytecode_instr_);
-  const KBCInstr* frame_instr = instr;
-  for (intptr_t i = 0; i < num_load_const; ++i) {
-    frame_instr = KernelBytecode::Next(frame_instr);
-  }
-  ASSERT(KernelBytecode::IsFrameOpcode(frame_instr));
-  const intptr_t num_extra_locals = KernelBytecode::DecodeD(frame_instr);
-  const intptr_t num_params =
-      num_fixed_params + num_opt_pos_params + num_opt_named_params;
-  const intptr_t total_locals = num_params + num_extra_locals;
-
-  AllocateLocalVariables(Operand(total_locals), num_params);
-
-  ZoneGrowableArray<const Instance*>* default_values =
-      new (Z) ZoneGrowableArray<const Instance*>(
-          Z, num_opt_pos_params + num_opt_named_params);
-  ZoneGrowableArray<LocalVariable*>* raw_parameters =
-      new (Z) ZoneGrowableArray<LocalVariable*>(Z, num_params);
   LocalVariable* temp_var = nullptr;
-
-  intptr_t param = 0;
-  for (; param < num_fixed_params; ++param) {
-    LocalVariable* param_var = AllocateParameter(param, VariableIndex(-param));
-    raw_parameters->Add(param_var);
-  }
-
-  for (intptr_t i = 0; i < num_opt_pos_params; ++i, ++param) {
-    const KBCInstr* load_value_instr = instr;
-    instr = KernelBytecode::Next(instr);
-    ASSERT(KernelBytecode::IsLoadConstantOpcode(load_value_instr));
-    ASSERT(KernelBytecode::DecodeA(load_value_instr) == param);
-    const Object& default_value =
-        ConstantAt(Operand(KernelBytecode::DecodeE(load_value_instr))).value();
-
-    LocalVariable* param_var = AllocateParameter(param, VariableIndex(-param));
-    raw_parameters->Add(param_var);
-    default_values->Add(
-        &Instance::ZoneHandle(Z, Instance::RawCast(default_value.raw())));
-  }
-
-  if (num_opt_named_params > 0) {
-    default_values->EnsureLength(num_opt_named_params, nullptr);
-    raw_parameters->EnsureLength(num_params, nullptr);
-
+  if (function().HasOptionalNamedParameters()) {
     ASSERT(scratch_var_ != nullptr);
     temp_var = scratch_var_;
-
-    for (intptr_t i = 0; i < num_opt_named_params; ++i, ++param) {
-      const KBCInstr* load_name_instr = instr;
-      const KBCInstr* load_value_instr = KernelBytecode::Next(load_name_instr);
-      instr = KernelBytecode::Next(load_value_instr);
-      ASSERT(KernelBytecode::IsLoadConstantOpcode(load_name_instr));
-      ASSERT(KernelBytecode::IsLoadConstantOpcode(load_value_instr));
-      const String& param_name = String::Cast(
-          ConstantAt(Operand(KernelBytecode::DecodeE(load_name_instr)))
-              .value());
-      ASSERT(param_name.IsSymbol());
-      const Object& default_value =
-          ConstantAt(Operand(KernelBytecode::DecodeE(load_value_instr)))
-              .value();
-
-      intptr_t param_index = num_fixed_params;
-      for (; param_index < num_params; ++param_index) {
-        if (function().ParameterNameAt(param_index) == param_name.raw()) {
-          break;
-        }
-      }
-      ASSERT(param_index < num_params);
-
-      ASSERT(default_values->At(param_index - num_fixed_params) == nullptr);
-      (*default_values)[param_index - num_fixed_params] =
-          &Instance::ZoneHandle(Z, Instance::RawCast(default_value.raw()));
-
-      const intptr_t local_index = KernelBytecode::DecodeA(load_name_instr);
-      ASSERT(local_index == KernelBytecode::DecodeA(load_value_instr));
-
-      LocalVariable* param_var =
-          AllocateParameter(param_index, VariableIndex(-param));
-      ASSERT(raw_parameters->At(param_index) == nullptr);
-      (*raw_parameters)[param_index] = param_var;
-    }
   }
-
-  ASSERT(instr == frame_instr);
-
-  parsed_function()->set_default_parameter_values(default_values);
-  parsed_function()->SetRawParameters(raw_parameters);
 
   Fragment copy_args_prologue;
 
@@ -602,7 +622,7 @@ void BytecodeFlowGraphBuilder::BuildEntryOptional() {
       PrologueInfo(prologue_entry->block_id(), prologue_exit->block_id() - 1);
 
   // Skip LoadConstant and Frame instructions.
-  next_pc_ = pc_ + (KernelBytecode::Next(instr) - bytecode_instr_);
+  next_pc_ = pc_ + (next_instr - bytecode_instr_);
 
   ASSERT(IsStackEmpty());
 }
@@ -718,6 +738,18 @@ void BytecodeFlowGraphBuilder::BuildCheckStack() {
   }
 }
 
+void BytecodeFlowGraphBuilder::BuildDebugCheck() {
+  if (is_generating_interpreter()) {
+    UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
+  }
+  // DebugStepCheck instructions are emitted for all explicit DebugCheck
+  // opcodes as well as for implicit DEBUG_CHECK executed by the interpreter
+  // for some opcodes, but not before the first explicit DebugCheck opcode is
+  // encountered.
+  build_debug_step_checks_ = true;
+  BuildDebugStepCheck();
+}
+
 void BytecodeFlowGraphBuilder::BuildPushConstant() {
   PushConstant(ConstantAt(DecodeOperandD()));
 }
@@ -762,8 +794,15 @@ void BytecodeFlowGraphBuilder::BuildDirectCall() {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
   }
 
+  // A DebugStepCheck is performed as part of the calling stub.
+
   const Function& target = Function::Cast(ConstantAt(DecodeOperandD()).value());
   const intptr_t argc = DecodeOperandF().value();
+
+  if (compiler::ffi::IsAsFunctionInternal(Z, isolate(), target)) {
+    BuildFfiAsFunction();
+    return;
+  }
 
   // Recognize identical() call.
   // Note: similar optimization is performed in AST flow graph builder - see
@@ -776,6 +815,21 @@ void BytecodeFlowGraphBuilder::BuildDirectCall() {
       code_ += B->StrictCompare(Token::kEQ_STRICT, /*number_check=*/true);
       return;
     }
+  }
+
+  if (!FLAG_causal_async_stacks &&
+      target.recognized_kind() == MethodRecognizer::kAsyncStackTraceHelper) {
+    ASSERT(argc == 1);
+    // Drop the ignored parameter to _asyncStackTraceHelper(:async_op).
+    code_ += B->Drop();
+    code_ += B->NullConstant();
+    return;
+  }
+
+  if (target.recognized_kind() == MethodRecognizer::kStringBaseInterpolate) {
+    ASSERT(argc == 1);
+    code_ += B->StringInterpolate(position_);
+    return;
   }
 
   const Array& arg_desc_array =
@@ -791,18 +845,24 @@ void BytecodeFlowGraphBuilder::BuildDirectCall() {
       Array::ZoneHandle(Z, arg_desc.GetArgumentNames()), arguments,
       *ic_data_array_, B->GetNextDeoptId(), ICData::kStatic);
 
-  // TODO(alexmarkov): add type info
-  // SetResultTypeForStaticCall(call, target, argument_count, result_type);
+  if (target.MayHaveUncheckedEntryPoint(isolate())) {
+    call->set_entry_kind(Code::EntryKind::kUnchecked);
+  }
+
+  call->InitResultType(Z);
 
   code_ <<= call;
   B->Push(call);
 }
 
 void BytecodeFlowGraphBuilder::BuildInterfaceCallCommon(
-    bool is_unchecked_call) {
+    bool is_unchecked_call,
+    bool is_instantiated_call) {
   if (is_generating_interpreter()) {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
   }
+
+  // A DebugStepCheck is performed as part of the calling stub.
 
   const Function& interface_target =
       Function::Cast(ConstantAt(DecodeOperandD()).value());
@@ -820,7 +880,7 @@ void BytecodeFlowGraphBuilder::BuildInterfaceCallCommon(
   if (token_kind != Token::kILLEGAL) {
     intptr_t argument_count = arg_desc.Count();
     ASSERT(argument_count <= 2);
-    checked_argument_count = argument_count;
+    checked_argument_count = (token_kind == Token::kSET) ? 1 : argument_count;
   } else if (Library::IsPrivateCoreLibName(name,
                                            Symbols::_simpleInstanceOf())) {
     ASSERT(arg_desc.Count() == 2);
@@ -843,16 +903,65 @@ void BytecodeFlowGraphBuilder::BuildInterfaceCallCommon(
     call->set_entry_kind(Code::EntryKind::kUnchecked);
   }
 
+  if (is_instantiated_call) {
+    const AbstractType& static_receiver_type =
+        AbstractType::Cast(ConstantAt(DecodeOperandD(), 2).value());
+    call->set_receivers_static_type(&static_receiver_type);
+  } else {
+    const Class& owner = Class::Handle(Z, interface_target.Owner());
+    const AbstractType& type =
+        AbstractType::ZoneHandle(Z, owner.DeclarationType());
+    call->set_receivers_static_type(&type);
+  }
+
   code_ <<= call;
   B->Push(call);
 }
 
 void BytecodeFlowGraphBuilder::BuildInterfaceCall() {
-  BuildInterfaceCallCommon(/*is_unchecked_call=*/false);
+  BuildInterfaceCallCommon(/*is_unchecked_call=*/false,
+                           /*is_instantiated_call=*/false);
+}
+
+void BytecodeFlowGraphBuilder::BuildInstantiatedInterfaceCall() {
+  BuildInterfaceCallCommon(/*is_unchecked_call=*/false,
+                           /*is_instantiated_call=*/true);
 }
 
 void BytecodeFlowGraphBuilder::BuildUncheckedInterfaceCall() {
-  BuildInterfaceCallCommon(/*is_unchecked_call=*/true);
+  BuildInterfaceCallCommon(/*is_unchecked_call=*/true,
+                           /*is_instantiated_call=*/false);
+}
+
+void BytecodeFlowGraphBuilder::BuildUncheckedClosureCall() {
+  if (is_generating_interpreter()) {
+    UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
+  }
+
+  BuildDebugStepCheck();
+
+  const Array& arg_desc_array =
+      Array::Cast(ConstantAt(DecodeOperandD()).value());
+  const ArgumentsDescriptor arg_desc(arg_desc_array);
+
+  const intptr_t argc = DecodeOperandF().value();
+
+  LocalVariable* receiver_temp = B->MakeTemporary();
+  code_ += B->CheckNull(position_, receiver_temp, Symbols::Call(),
+                        /*clear_temp=*/false);
+
+  code_ += B->LoadNativeField(Slot::Closure_function());
+  Value* function = Pop();
+
+  const ArgumentArray arguments = GetArguments(argc);
+
+  ClosureCallInstr* call = new (Z) ClosureCallInstr(
+      function, arguments, arg_desc.TypeArgsLen(),
+      Array::ZoneHandle(Z, arg_desc.GetArgumentNames()), position_,
+      B->GetNextDeoptId(), Code::EntryKind::kUnchecked);
+
+  code_ <<= call;
+  B->Push(call);
 }
 
 void BytecodeFlowGraphBuilder::BuildDynamicCall() {
@@ -860,8 +969,17 @@ void BytecodeFlowGraphBuilder::BuildDynamicCall() {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
   }
 
+  // A DebugStepCheck is performed as part of the calling stub.
+
   const ICData& icdata = ICData::Cast(ConstantAt(DecodeOperandD()).value());
-  ASSERT(ic_data_array_->At(icdata.deopt_id())->Original() == icdata.raw());
+  const intptr_t deopt_id = icdata.deopt_id();
+  ic_data_array_->EnsureLength(deopt_id + 1, nullptr);
+  if (ic_data_array_->At(deopt_id) == nullptr) {
+    (*ic_data_array_)[deopt_id] = &icdata;
+  } else {
+    ASSERT(ic_data_array_->At(deopt_id)->Original() == icdata.raw());
+  }
+  B->reset_context_depth_for_deopt_id(deopt_id);
 
   const intptr_t argc = DecodeOperandF().value();
   const ArgumentsDescriptor arg_desc(
@@ -895,194 +1013,17 @@ void BytecodeFlowGraphBuilder::BuildNativeCall() {
   }
 
   ASSERT(function().is_native());
+  B->InlineBailout("BytecodeFlowGraphBuilder::BuildNativeCall");
 
-  // TODO(alexmarkov): find a way to avoid code duplication with
-  // FlowGraphBuilder::NativeFunctionBody.
-  const MethodRecognizer::Kind kind =
-      MethodRecognizer::RecognizeKind(function());
-  switch (kind) {
-    case MethodRecognizer::kObjectEquals:
-      ASSERT((function().NumParameters() == 2) && !function().IsGeneric());
-      code_ += B->StrictCompare(Token::kEQ_STRICT);
-      break;
-    case MethodRecognizer::kStringBaseLength:
-    case MethodRecognizer::kStringBaseIsEmpty:
-      ASSERT((function().NumParameters() == 1) && !function().IsGeneric());
-      code_ += B->LoadNativeField(Slot::String_length());
-      if (kind == MethodRecognizer::kStringBaseIsEmpty) {
-        code_ += B->IntConstant(0);
-        code_ += B->StrictCompare(Token::kEQ_STRICT);
-      }
-      break;
-    case MethodRecognizer::kGrowableArrayLength:
-      ASSERT((function().NumParameters() == 1) && !function().IsGeneric());
-      code_ += B->LoadNativeField(Slot::GrowableObjectArray_length());
-      break;
-    case MethodRecognizer::kObjectArrayLength:
-    case MethodRecognizer::kImmutableArrayLength:
-      ASSERT((function().NumParameters() == 1) && !function().IsGeneric());
-      code_ += B->LoadNativeField(Slot::Array_length());
-      break;
-    case MethodRecognizer::kTypedListLength:
-    case MethodRecognizer::kTypedListViewLength:
-    case MethodRecognizer::kByteDataViewLength:
-      ASSERT((function().NumParameters() == 1) && !function().IsGeneric());
-      code_ += B->LoadNativeField(Slot::TypedDataBase_length());
-      break;
-    case MethodRecognizer::kClassIDgetID:
-      ASSERT((function().NumParameters() == 1) && !function().IsGeneric());
-      code_ += B->LoadClassId();
-      break;
-    case MethodRecognizer::kGrowableArrayCapacity:
-      ASSERT((function().NumParameters() == 1) && !function().IsGeneric());
-      code_ += B->LoadNativeField(Slot::GrowableObjectArray_data());
-      code_ += B->LoadNativeField(Slot::Array_length());
-      break;
-    case MethodRecognizer::kListFactory: {
-      ASSERT((function().NumParameters() == 2) && !function().IsGeneric() &&
-             function().HasOptionalParameters());
-      ASSERT(scratch_var_ != nullptr);
-      // Generate code that performs:
-      //
-      // factory List<E>([int length]) {
-      //   return (:arg_desc.positional_count == 2) ? new _List<E>(length)
-      //                                            : new _GrowableList<E>(0);
-      // }
-      const auto& core_lib = Library::Handle(Z, Library::CoreLibrary());
-
-      TargetEntryInstr *allocate_non_growable, *allocate_growable;
-
-      code_ += B->Drop();  // Drop 'length'.
-      code_ += B->Drop();  // Drop 'type arguments'.
-      code_ += B->LoadArgDescriptor();
-      code_ += B->LoadNativeField(Slot::ArgumentsDescriptor_positional_count());
-      code_ += B->IntConstant(2);
-      code_ +=
-          B->BranchIfStrictEqual(&allocate_non_growable, &allocate_growable);
-
-      JoinEntryInstr* join = B->BuildJoinEntry();
-
-      {
-        const auto& cls = Class::Handle(
-            Z, core_lib.LookupClass(
-                   Library::PrivateCoreLibName(Symbols::_List())));
-        ASSERT(!cls.IsNull());
-        const auto& func = Function::ZoneHandle(
-            Z, cls.LookupFactoryAllowPrivate(Symbols::_ListFactory()));
-        ASSERT(!func.IsNull());
-
-        code_ = Fragment(allocate_non_growable);
-        code_ += B->LoadLocal(LocalVariableAt(0));
-        code_ += B->LoadLocal(LocalVariableAt(1));
-        auto* call = new (Z) StaticCallInstr(
-            TokenPosition::kNoSource, func, 0, Array::null_array(),
-            GetArguments(2), *ic_data_array_, B->GetNextDeoptId(),
-            ICData::kStatic);
-        code_ <<= call;
-        B->Push(call);
-        code_ += B->StoreLocal(TokenPosition::kNoSource, scratch_var_);
-        code_ += B->Drop();
-        code_ += B->Goto(join);
-      }
-
-      {
-        const auto& cls = Class::Handle(
-            Z, core_lib.LookupClass(
-                   Library::PrivateCoreLibName(Symbols::_GrowableList())));
-        ASSERT(!cls.IsNull());
-        const auto& func = Function::ZoneHandle(
-            Z, cls.LookupFactoryAllowPrivate(Symbols::_GrowableListFactory()));
-        ASSERT(!func.IsNull());
-
-        code_ = Fragment(allocate_growable);
-        code_ += B->LoadLocal(LocalVariableAt(0));
-        code_ += B->IntConstant(0);
-        auto* call = new (Z) StaticCallInstr(
-            TokenPosition::kNoSource, func, 0, Array::null_array(),
-            GetArguments(2), *ic_data_array_, B->GetNextDeoptId(),
-            ICData::kStatic);
-        code_ <<= call;
-        B->Push(call);
-        code_ += B->StoreLocal(TokenPosition::kNoSource, scratch_var_);
-        code_ += B->Drop();
-        code_ += B->Goto(join);
-      }
-
-      code_ = Fragment(join);
-      code_ += B->LoadLocal(scratch_var_);
-      break;
-    }
-    case MethodRecognizer::kObjectArrayAllocate:
-      ASSERT((function().NumParameters() == 2) && !function().IsGeneric());
-      code_ += B->CreateArray();
-      break;
-    case MethodRecognizer::kLinkedHashMap_getIndex:
-      ASSERT((function().NumParameters() == 1) && !function().IsGeneric());
-      code_ += B->LoadNativeField(Slot::LinkedHashMap_index());
-      break;
-    case MethodRecognizer::kLinkedHashMap_setIndex:
-      ASSERT((function().NumParameters() == 2) && !function().IsGeneric());
-      code_ += B->StoreInstanceField(TokenPosition::kNoSource,
-                                     Slot::LinkedHashMap_index());
-      code_ += B->NullConstant();
-      break;
-    case MethodRecognizer::kLinkedHashMap_getData:
-      ASSERT((function().NumParameters() == 1) && !function().IsGeneric());
-      code_ += B->LoadNativeField(Slot::LinkedHashMap_data());
-      break;
-    case MethodRecognizer::kLinkedHashMap_setData:
-      ASSERT((function().NumParameters() == 2) && !function().IsGeneric());
-      code_ += B->StoreInstanceField(TokenPosition::kNoSource,
-                                     Slot::LinkedHashMap_data());
-      code_ += B->NullConstant();
-      break;
-    case MethodRecognizer::kLinkedHashMap_getHashMask:
-      ASSERT((function().NumParameters() == 1) && !function().IsGeneric());
-      code_ += B->LoadNativeField(Slot::LinkedHashMap_hash_mask());
-      break;
-    case MethodRecognizer::kLinkedHashMap_setHashMask:
-      ASSERT((function().NumParameters() == 2) && !function().IsGeneric());
-      code_ += B->StoreInstanceField(TokenPosition::kNoSource,
-                                     Slot::LinkedHashMap_hash_mask(),
-                                     kNoStoreBarrier);
-      code_ += B->NullConstant();
-      break;
-    case MethodRecognizer::kLinkedHashMap_getUsedData:
-      ASSERT((function().NumParameters() == 1) && !function().IsGeneric());
-      code_ += B->LoadNativeField(Slot::LinkedHashMap_used_data());
-      break;
-    case MethodRecognizer::kLinkedHashMap_setUsedData:
-      ASSERT((function().NumParameters() == 2) && !function().IsGeneric());
-      code_ += B->StoreInstanceField(TokenPosition::kNoSource,
-                                     Slot::LinkedHashMap_used_data(),
-                                     kNoStoreBarrier);
-      code_ += B->NullConstant();
-      break;
-    case MethodRecognizer::kLinkedHashMap_getDeletedKeys:
-      ASSERT((function().NumParameters() == 1) && !function().IsGeneric());
-      code_ += B->LoadNativeField(Slot::LinkedHashMap_deleted_keys());
-      break;
-    case MethodRecognizer::kLinkedHashMap_setDeletedKeys:
-      ASSERT((function().NumParameters() == 2) && !function().IsGeneric());
-      code_ += B->StoreInstanceField(TokenPosition::kNoSource,
-                                     Slot::LinkedHashMap_deleted_keys(),
-                                     kNoStoreBarrier);
-      code_ += B->NullConstant();
-      break;
-    default: {
-      B->InlineBailout("BytecodeFlowGraphBuilder::BuildNativeCall");
-      const auto& name = String::ZoneHandle(Z, function().native_name());
-      const intptr_t num_args =
-          function().NumParameters() + (function().IsGeneric() ? 1 : 0);
-      ArgumentArray arguments = GetArguments(num_args);
-      auto* call =
-          new (Z) NativeCallInstr(&name, &function(), FLAG_link_natives_lazily,
-                                  function().end_token_pos(), arguments);
-      code_ <<= call;
-      B->Push(call);
-      break;
-    }
-  }
+  const auto& name = String::ZoneHandle(Z, function().native_name());
+  const intptr_t num_args =
+      function().NumParameters() + (function().IsGeneric() ? 1 : 0);
+  ArgumentArray arguments = GetArguments(num_args);
+  auto* call =
+      new (Z) NativeCallInstr(&name, &function(), FLAG_link_natives_lazily,
+                              function().end_token_pos(), arguments);
+  code_ <<= call;
+  B->Push(call);
 }
 
 void BytecodeFlowGraphBuilder::BuildAllocate() {
@@ -1125,9 +1066,9 @@ void BytecodeFlowGraphBuilder::BuildAllocateContext() {
   const intptr_t context_id = DecodeOperandA().value();
   const intptr_t num_context_vars = DecodeOperandE().value();
 
-  auto& context_variables = CompilerState::Current().GetDummyContextVariables(
+  auto& context_slots = CompilerState::Current().GetDummyContextSlots(
       context_id, num_context_vars);
-  code_ += B->AllocateContext(context_variables);
+  code_ += B->AllocateContext(context_slots);
 }
 
 void BytecodeFlowGraphBuilder::BuildCloneContext() {
@@ -1139,10 +1080,10 @@ void BytecodeFlowGraphBuilder::BuildCloneContext() {
   const intptr_t context_id = DecodeOperandA().value();
   const intptr_t num_context_vars = DecodeOperandE().value();
 
-  auto& context_variables = CompilerState::Current().GetDummyContextVariables(
+  auto& context_slots = CompilerState::Current().GetDummyContextSlots(
       context_id, num_context_vars);
   CloneContextInstr* clone_instruction = new (Z) CloneContextInstr(
-      TokenPosition::kNoSource, Pop(), context_variables, B->GetNextDeoptId());
+      TokenPosition::kNoSource, Pop(), context_slots, B->GetNextDeoptId());
   code_ <<= clone_instruction;
   B->Push(clone_instruction);
 }
@@ -1272,6 +1213,8 @@ void BytecodeFlowGraphBuilder::BuildStoreStaticTOS() {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
   }
 
+  BuildDebugStepCheck();
+
   LoadStackSlots(1);
   Operand cp_index = DecodeOperandD();
 
@@ -1280,6 +1223,25 @@ void BytecodeFlowGraphBuilder::BuildStoreStaticTOS() {
   code_ += B->StoreStaticField(position_, field);
 }
 
+void BytecodeFlowGraphBuilder::BuildLoadStatic() {
+  const Constant operand = ConstantAt(DecodeOperandD());
+  const auto& field = Field::Cast(operand.value());
+  // All constant expressions (including access to const fields) are evaluated
+  // in bytecode. However, values of injected cid fields are only available in
+  // the VM. In such case, evaluate const fields with known value here.
+  if (field.is_const() && !field.has_initializer()) {
+    const auto& value = Object::ZoneHandle(Z, field.StaticValue());
+    ASSERT((value.raw() != Object::sentinel().raw()) &&
+           (value.raw() != Object::transition_sentinel().raw()));
+    code_ += B->Constant(value);
+    return;
+  }
+  PushConstant(operand);
+  code_ += B->LoadStaticField();
+}
+
+static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 19,
+              "Cleanup PushStatic bytecode instruction");
 void BytecodeFlowGraphBuilder::BuildPushStatic() {
   // Note: Field object is both pushed into the stack and
   // available in constant pool entry D.
@@ -1472,6 +1434,112 @@ void BytecodeFlowGraphBuilder::BuildJumpIfNotNull() {
   BuildJumpIfStrictCompare(Token::kNE);
 }
 
+void BytecodeFlowGraphBuilder::BuildJumpIfUnchecked() {
+  if (is_generating_interpreter()) {
+    UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
+  }
+
+  ASSERT(IsStackEmpty());
+
+  const intptr_t target_pc = pc_ + DecodeOperandT().value();
+  JoinEntryInstr* target = jump_targets_.Lookup(target_pc);
+  ASSERT(target != nullptr);
+  FunctionEntryInstr* unchecked_entry = nullptr;
+  const intptr_t kCheckedEntry =
+      static_cast<intptr_t>(UncheckedEntryPointStyle::kNone);
+  const intptr_t kUncheckedEntry =
+      static_cast<intptr_t>(UncheckedEntryPointStyle::kSharedWithVariable);
+
+  switch (entry_point_style_) {
+    case UncheckedEntryPointStyle::kNone: {
+      JoinEntryInstr* do_checks = B->BuildJoinEntry();
+      code_ += B->Goto(B->InliningUncheckedEntry() ? target : do_checks);
+      code_ = Fragment(do_checks);
+    } break;
+
+    case UncheckedEntryPointStyle::kSeparate: {
+      // Route normal entry to checks.
+      if (FLAG_enable_testing_pragmas) {
+        code_ += B->IntConstant(kCheckedEntry);
+        code_ += B->BuildEntryPointsIntrospection();
+      }
+      Fragment do_checks = code_;
+
+      // Create a separate unchecked entry point.
+      unchecked_entry = B->BuildFunctionEntry(graph_entry_);
+      code_ = Fragment(unchecked_entry);
+
+      // Re-build prologue for unchecked entry point. It can only contain
+      // Entry, CheckStack and DebugCheck instructions.
+      bytecode_instr_ = raw_bytecode_;
+      ASSERT(KernelBytecode::IsEntryOpcode(bytecode_instr_));
+      bytecode_instr_ = KernelBytecode::Next(bytecode_instr_);
+      while (!KernelBytecode::IsJumpIfUncheckedOpcode(bytecode_instr_)) {
+        ASSERT(KernelBytecode::IsCheckStackOpcode(bytecode_instr_) ||
+               KernelBytecode::IsDebugCheckOpcode(bytecode_instr_));
+        ASSERT(jump_targets_.Lookup(bytecode_instr_ - raw_bytecode_) ==
+               nullptr);
+        BuildInstruction(KernelBytecode::DecodeOpcode(bytecode_instr_));
+        bytecode_instr_ = KernelBytecode::Next(bytecode_instr_);
+      }
+      ASSERT((bytecode_instr_ - raw_bytecode_) == pc_);
+
+      if (FLAG_enable_testing_pragmas) {
+        code_ += B->IntConstant(
+            static_cast<intptr_t>(UncheckedEntryPointStyle::kSeparate));
+        code_ += B->BuildEntryPointsIntrospection();
+      }
+      code_ += B->Goto(target);
+
+      code_ = do_checks;
+    } break;
+
+    case UncheckedEntryPointStyle::kSharedWithVariable: {
+      LocalVariable* ep_var = parsed_function()->entry_points_temp_var();
+
+      // Dispatch based on the value of entry_points_temp_var.
+      TargetEntryInstr *do_checks, *skip_checks;
+      if (FLAG_enable_testing_pragmas) {
+        code_ += B->LoadLocal(ep_var);
+        code_ += B->BuildEntryPointsIntrospection();
+      }
+      code_ += B->LoadLocal(ep_var);
+      code_ += B->IntConstant(kUncheckedEntry);
+      code_ += B->BranchIfEqual(&skip_checks, &do_checks, /*negate=*/false);
+
+      code_ = Fragment(skip_checks);
+      code_ += B->Goto(target);
+
+      // Relink the body of the function from normal entry to 'prologue_join'.
+      JoinEntryInstr* prologue_join = B->BuildJoinEntry();
+      FunctionEntryInstr* normal_entry = graph_entry_->normal_entry();
+      if (normal_entry->next() != nullptr) {
+        prologue_join->LinkTo(normal_entry->next());
+        normal_entry->set_next(nullptr);
+      }
+
+      unchecked_entry = B->BuildFunctionEntry(graph_entry_);
+      code_ = Fragment(unchecked_entry);
+      code_ += B->IntConstant(kUncheckedEntry);
+      code_ += B->StoreLocal(TokenPosition::kNoSource, ep_var);
+      code_ += B->Drop();
+      code_ += B->Goto(prologue_join);
+
+      code_ = Fragment(normal_entry);
+      code_ += B->IntConstant(kCheckedEntry);
+      code_ += B->StoreLocal(TokenPosition::kNoSource, ep_var);
+      code_ += B->Drop();
+      code_ += B->Goto(prologue_join);
+
+      code_ = Fragment(do_checks);
+    } break;
+  }
+
+  if (unchecked_entry != nullptr) {
+    B->RecordUncheckedEntryPoint(graph_entry_, unchecked_entry);
+  }
+}
+
 void BytecodeFlowGraphBuilder::BuildDrop1() {
   if (is_generating_interpreter()) {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
@@ -1482,6 +1550,7 @@ void BytecodeFlowGraphBuilder::BuildDrop1() {
 }
 
 void BytecodeFlowGraphBuilder::BuildReturnTOS() {
+  BuildDebugStepCheck();
   LoadStackSlots(1);
   ASSERT(code_.is_open());
   code_ += B->Return(position_);
@@ -1496,6 +1565,8 @@ void BytecodeFlowGraphBuilder::BuildThrow() {
   if (is_generating_interpreter()) {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
   }
+
+  BuildDebugStepCheck();
 
   if (DecodeOperandA().value() == 0) {
     // throw
@@ -1553,6 +1624,8 @@ void BytecodeFlowGraphBuilder::BuildSetFrame() {
 }
 
 void BytecodeFlowGraphBuilder::BuildEqualsNull() {
+  BuildDebugStepCheck();
+
   ASSERT(scratch_var_ != nullptr);
   LoadStackSlots(1);
 
@@ -1585,6 +1658,8 @@ void BytecodeFlowGraphBuilder::BuildPrimitiveOp(
     int num_args) {
   ASSERT((num_args == 1) || (num_args == 2));
   ASSERT(MethodTokenRecognizer::RecognizeTokenKind(name) == token_kind);
+
+  // A DebugStepCheck is performed as part of the calling stub.
 
   LoadStackSlots(num_args);
   const ArgumentArray arguments = GetArguments(num_args);
@@ -1726,6 +1801,30 @@ void BytecodeFlowGraphBuilder::BuildAllocateClosure() {
   code_ += B->AllocateClosure(position_, target);
 }
 
+// Builds graph for a call to 'dart:ffi::_asFunctionInternal'. The stack must
+// look like:
+//
+// <receiver> => pointer argument
+// <type arguments vector> => signatures
+// ...
+void BytecodeFlowGraphBuilder::BuildFfiAsFunction() {
+  // The bytecode FGB doesn't eagerly insert PushArguments, so the type
+  // arguments won't be wrapped in a PushArgumentsInstr.
+  const TypeArguments& type_args =
+      TypeArguments::Cast(B->Peek(/*depth=*/1)->AsConstant()->value());
+  // Drop type arguments, preserving pointer.
+  code_ += B->DropTempsPreserveTop(1);
+  code_ += B->BuildFfiAsFunctionInternalCall(type_args);
+}
+
+void BytecodeFlowGraphBuilder::BuildDebugStepCheck() {
+#if !defined(PRODUCT)
+  if (build_debug_step_checks_) {
+    code_ += B->DebugStepCheck(position_);
+  }
+#endif  // !defined(PRODUCT)
+}
+
 static bool IsICDataEntry(const ObjectPool& object_pool, intptr_t index) {
   if (object_pool.TypeAt(index) != ObjectPool::EntryType::kTaggedObject) {
     return false;
@@ -1738,30 +1837,14 @@ static bool IsICDataEntry(const ObjectPool& object_pool, intptr_t index) {
 // pre-populate ic_data_array_.
 void BytecodeFlowGraphBuilder::ProcessICDataInObjectPool(
     const ObjectPool& object_pool) {
-  CompilerState& compiler_state = thread()->compiler_state();
-  ASSERT(compiler_state.deopt_id() == 0);
+  ASSERT(thread()->compiler_state().deopt_id() == 0);
 
   const intptr_t pool_length = object_pool.Length();
   for (intptr_t i = 0; i < pool_length; ++i) {
     if (IsICDataEntry(object_pool, i)) {
       const ICData& icdata = ICData::CheckedHandle(Z, object_pool.ObjectAt(i));
-      const intptr_t deopt_id = compiler_state.GetNextDeoptId();
-
+      const intptr_t deopt_id = B->GetNextDeoptId();
       ASSERT(icdata.deopt_id() == deopt_id);
-      ASSERT(ic_data_array_->is_empty() ||
-             (ic_data_array_->At(deopt_id)->Original() == icdata.raw()));
-    }
-  }
-
-  if (ic_data_array_->is_empty()) {
-    const intptr_t len = compiler_state.deopt_id();
-    ic_data_array_->EnsureLength(len, nullptr);
-    for (intptr_t i = 0; i < pool_length; ++i) {
-      if (IsICDataEntry(object_pool, i)) {
-        const ICData& icdata =
-            ICData::CheckedHandle(Z, object_pool.ObjectAt(i));
-        (*ic_data_array_)[icdata.deopt_id()] = &icdata;
-      }
     }
   }
 }
@@ -1804,16 +1887,13 @@ JoinEntryInstr* BytecodeFlowGraphBuilder::EnsureControlFlowJoin(
 bool BytecodeFlowGraphBuilder::RequiresScratchVar(const KBCInstr* instr) {
   switch (KernelBytecode::DecodeOpcode(instr)) {
     case KernelBytecode::kEntryOptional:
-    case KernelBytecode::kEntryOptional_Old:
       return KernelBytecode::DecodeC(instr) > 0;
 
     case KernelBytecode::kEqualsNull:
-    case KernelBytecode::kEqualsNull_Old:
       return true;
 
     case KernelBytecode::kNativeCall:
     case KernelBytecode::kNativeCall_Wide:
-    case KernelBytecode::kNativeCall_Old:
       return MethodRecognizer::RecognizeKind(function()) ==
              MethodRecognizer::kListFactory;
 
@@ -1826,12 +1906,29 @@ void BytecodeFlowGraphBuilder::CollectControlFlow(
     const PcDescriptors& descriptors,
     const ExceptionHandlers& handlers,
     GraphEntryInstr* graph_entry) {
+  bool seen_jump_if_unchecked = false;
   for (intptr_t pc = 0; pc < bytecode_length_;) {
     const KBCInstr* instr = &(raw_bytecode_[pc]);
 
     if (KernelBytecode::IsJumpOpcode(instr)) {
       const intptr_t target = pc + KernelBytecode::DecodeT(instr);
       EnsureControlFlowJoin(descriptors, target);
+
+      if (KernelBytecode::IsJumpIfUncheckedOpcode(instr)) {
+        if (seen_jump_if_unchecked) {
+          FATAL1(
+              "Multiple JumpIfUnchecked bytecode instructions are not allowed: "
+              "%s.",
+              function().ToFullyQualifiedCString());
+        }
+        seen_jump_if_unchecked = true;
+        ASSERT(entry_point_style_ == UncheckedEntryPointStyle::kNone);
+        entry_point_style_ = ChooseEntryPointStyle(instr);
+        if (entry_point_style_ ==
+            UncheckedEntryPointStyle::kSharedWithVariable) {
+          parsed_function_->EnsureEntryPointsTemp();
+        }
+      }
     } else if (KernelBytecode::IsCheckStackOpcode(instr) &&
                (KernelBytecode::DecodeA(instr) != 0)) {
       // (dartbug.com/36590) BlockEntryInstr::FindOsrEntryAndRelink assumes
@@ -1900,6 +1997,85 @@ void BytecodeFlowGraphBuilder::CollectControlFlow(
   }
 }
 
+UncheckedEntryPointStyle BytecodeFlowGraphBuilder::ChooseEntryPointStyle(
+    const KBCInstr* jump_if_unchecked) {
+  ASSERT(KernelBytecode::IsJumpIfUncheckedOpcode(jump_if_unchecked));
+
+  if (!function().MayHaveUncheckedEntryPoint(isolate())) {
+    return UncheckedEntryPointStyle::kNone;
+  }
+
+  // Separate entry points are used if bytecode has the following pattern:
+  //   Entry
+  //   CheckStack (optional)
+  //   DebugCheck (optional)
+  //   JumpIfUnchecked
+  //
+  const KBCInstr* instr = raw_bytecode_;
+  if (!KernelBytecode::IsEntryOpcode(instr)) {
+    return UncheckedEntryPointStyle::kSharedWithVariable;
+  }
+  instr = KernelBytecode::Next(instr);
+  if (KernelBytecode::IsCheckStackOpcode(instr)) {
+    instr = KernelBytecode::Next(instr);
+  }
+  if (KernelBytecode::IsDebugCheckOpcode(instr)) {
+    instr = KernelBytecode::Next(instr);
+  }
+  if (instr != jump_if_unchecked) {
+    return UncheckedEntryPointStyle::kSharedWithVariable;
+  }
+  return UncheckedEntryPointStyle::kSeparate;
+}
+
+void BytecodeFlowGraphBuilder::CreateParameterVariables() {
+  const Bytecode& bytecode = Bytecode::Handle(Z, function().bytecode());
+  object_pool_ = bytecode.object_pool();
+  bytecode_instr_ = reinterpret_cast<const KBCInstr*>(bytecode.PayloadStart());
+
+  if (KernelBytecode::IsEntryOptionalOpcode(bytecode_instr_)) {
+    scratch_var_ = parsed_function_->EnsureExpressionTemp();
+    AllocateParametersAndLocalsForEntryOptional();
+  } else if (KernelBytecode::IsEntryOpcode(bytecode_instr_)) {
+    AllocateLocalVariables(DecodeOperandD());
+    AllocateFixedParameters();
+  } else if (KernelBytecode::IsEntryFixedOpcode(bytecode_instr_)) {
+    AllocateLocalVariables(DecodeOperandE());
+    AllocateFixedParameters();
+  } else {
+    UNREACHABLE();
+  }
+}
+
+#if !defined(PRODUCT)
+intptr_t BytecodeFlowGraphBuilder::UpdateContextLevel(const Bytecode& bytecode,
+                                                      intptr_t pc) {
+  ASSERT(B->is_recording_context_levels());
+
+  kernel::BytecodeLocalVariablesIterator iter(Z, bytecode);
+  intptr_t context_level = 0;
+  intptr_t next_pc = bytecode_length_;
+  while (iter.MoveNext()) {
+    if (iter.IsScope()) {
+      if (iter.StartPC() <= pc) {
+        if (pc < iter.EndPC()) {
+          // Found enclosing scope. Keep looking as we might find more
+          // scopes (the last one is the most specific).
+          context_level = iter.ContextLevel();
+          next_pc = iter.EndPC();
+        }
+      } else {
+        next_pc = Utils::Minimum(next_pc, iter.StartPC());
+        break;
+      }
+    }
+  }
+
+  B->set_context_depth(context_level);
+  return next_pc;
+}
+#endif  // !defined(PRODUCT)
+
 FlowGraph* BytecodeFlowGraphBuilder::BuildGraph() {
   const Bytecode& bytecode = Bytecode::Handle(Z, function().bytecode());
 
@@ -1909,21 +2085,25 @@ FlowGraph* BytecodeFlowGraphBuilder::BuildGraph() {
 
   ProcessICDataInObjectPool(object_pool_);
 
-  GraphEntryInstr* graph_entry =
-      new (Z) GraphEntryInstr(*parsed_function_, B->osr_id_);
+  graph_entry_ = new (Z) GraphEntryInstr(*parsed_function_, B->osr_id_);
 
-  auto normal_entry = B->BuildFunctionEntry(graph_entry);
-  graph_entry->set_normal_entry(normal_entry);
+  auto normal_entry = B->BuildFunctionEntry(graph_entry_);
+  graph_entry_->set_normal_entry(normal_entry);
 
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(Z, bytecode.pc_descriptors());
   const ExceptionHandlers& handlers =
       ExceptionHandlers::Handle(Z, bytecode.exception_handlers());
 
-  CollectControlFlow(descriptors, handlers, graph_entry);
+  CollectControlFlow(descriptors, handlers, graph_entry_);
 
   kernel::BytecodeSourcePositionsIterator source_pos_iter(Z, bytecode);
   bool update_position = source_pos_iter.MoveNext();
+
+#if !defined(PRODUCT)
+  intptr_t next_pc_to_update_context_level =
+      B->is_recording_context_levels() ? 0 : bytecode_length_;
+#endif
 
   code_ = Fragment(normal_entry);
 
@@ -1957,6 +2137,12 @@ FlowGraph* BytecodeFlowGraphBuilder::BuildGraph() {
       update_position = source_pos_iter.MoveNext();
     }
 
+#if !defined(PRODUCT)
+    if (pc_ >= next_pc_to_update_context_level) {
+      next_pc_to_update_context_level = UpdateContextLevel(bytecode, pc_);
+    }
+#endif
+
     BuildInstruction(KernelBytecode::DecodeOpcode(bytecode_instr_));
 
     if (code_.is_closed()) {
@@ -1969,11 +2155,11 @@ FlowGraph* BytecodeFlowGraphBuilder::BuildGraph() {
   // Catch entries are always considered reachable, even if they
   // become unreachable after OSR.
   if (B->IsCompiledForOsr()) {
-    graph_entry->RelinkToOsrEntry(Z, B->last_used_block_id_ + 1);
+    graph_entry_->RelinkToOsrEntry(Z, B->last_used_block_id_ + 1);
   }
 
   FlowGraph* flow_graph = new (Z) FlowGraph(
-      *parsed_function_, graph_entry, B->last_used_block_id_, prologue_info_);
+      *parsed_function_, graph_entry_, B->last_used_block_id_, prologue_info_);
 
   if (FLAG_print_flow_graph_from_bytecode) {
     FlowGraphPrinter::PrintGraph("Constructed from bytecode", flow_graph);

@@ -6,6 +6,7 @@
 #define RUNTIME_VM_ELF_H_
 
 #include "vm/allocation.h"
+#include "vm/compiler/runtime_api.h"
 #include "vm/datastream.h"
 #include "vm/growable_array.h"
 #include "vm/zone.h"
@@ -42,10 +43,10 @@ class Elf : public ZoneAllocated {
   void WriteWord(uint32_t value) {
     stream_->WriteBytes(reinterpret_cast<uint8_t*>(&value), sizeof(value));
   }
-  void WriteAddr(uword value) {
+  void WriteAddr(compiler::target::uword value) {
     stream_->WriteBytes(reinterpret_cast<uint8_t*>(&value), sizeof(value));
   }
-  void WriteOff(uword value) {
+  void WriteOff(compiler::target::uword value) {
     stream_->WriteBytes(reinterpret_cast<uint8_t*>(&value), sizeof(value));
   }
 #if defined(TARGET_ARCH_IS_64_BIT)

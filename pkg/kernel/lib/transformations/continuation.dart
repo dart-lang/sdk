@@ -15,6 +15,7 @@ import 'async.dart';
 class ContinuationVariables {
   static const awaitJumpVar = ':await_jump_var';
   static const awaitContextVar = ':await_ctx_var';
+  static const asyncStackTraceVar = ':async_stack_trace';
   static const exceptionParam = ':exception';
   static const stackTraceParam = ':stack_trace';
 
@@ -23,22 +24,25 @@ class ContinuationVariables {
   static String stackTraceVar(int depth) => ':stack_trace$depth';
 }
 
-void transformLibraries(CoreTypes coreTypes, List<Library> libraries) {
-  var helper = new HelperNodes.fromCoreTypes(coreTypes);
+void transformLibraries(CoreTypes coreTypes, List<Library> libraries,
+    {bool productMode}) {
+  var helper = new HelperNodes.fromCoreTypes(coreTypes, productMode);
   var rewriter = new RecursiveContinuationRewriter(helper);
   for (var library in libraries) {
     rewriter.rewriteLibrary(library);
   }
 }
 
-Component transformComponent(CoreTypes coreTypes, Component component) {
-  var helper = new HelperNodes.fromCoreTypes(coreTypes);
+Component transformComponent(CoreTypes coreTypes, Component component,
+    {bool productMode}) {
+  var helper = new HelperNodes.fromCoreTypes(coreTypes, productMode);
   var rewriter = new RecursiveContinuationRewriter(helper);
   return rewriter.rewriteComponent(component);
 }
 
-Procedure transformProcedure(CoreTypes coreTypes, Procedure procedure) {
-  var helper = new HelperNodes.fromCoreTypes(coreTypes);
+Procedure transformProcedure(CoreTypes coreTypes, Procedure procedure,
+    {bool productMode}) {
+  var helper = new HelperNodes.fromCoreTypes(coreTypes, productMode);
   var rewriter = new RecursiveContinuationRewriter(helper);
   return rewriter.visitProcedure(procedure);
 }
@@ -270,7 +274,7 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
   final VariableDeclaration nestedClosureVariable =
       new VariableDeclaration(":async_op");
   final VariableDeclaration stackTraceVariable =
-      new VariableDeclaration(":async_stack_trace");
+      new VariableDeclaration(ContinuationVariables.asyncStackTraceVar);
   final VariableDeclaration thenContinuationVariable =
       new VariableDeclaration(":async_op_then");
   final VariableDeclaration catchErrorContinuationVariable =
@@ -693,17 +697,31 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
       //
       //   await for (T variable in <stream-expression>) { ... }
       //
-      // To:
+      // To (in product mode):
       //
       //   {
       //     :stream = <stream-expression>;
       //     _asyncStarListenHelper(:stream, :async_op);
       //     _StreamIterator<T> :for-iterator = new _StreamIterator<T>(:stream);
-      //     const bool :product-mode =
-      //         const bool.fromEnvironment("dart.vm.product");
       //     try {
-      //       while (let _ = :product-mode ?
-      //           null : _asyncStarMoveNextHelper(:stream) in
+      //       while (await :for-iterator.moveNext()) {
+      //         T <variable> = :for-iterator.current;
+      //         ...
+      //       }
+      //     } finally {
+      //       if (:for-iterator._subscription != null)
+      //           await :for-iterator.cancel();
+      //     }
+      //   }
+      //
+      // Or (in non-product mode):
+      //
+      //   {
+      //     :stream = <stream-expression>;
+      //     _asyncStarListenHelper(:stream, :async_op);
+      //     _StreamIterator<T> :for-iterator = new _StreamIterator<T>(:stream);
+      //     try {
+      //       while (let _ = _asyncStarMoveNextHelper(:stream) in
       //           await :for-iterator.moveNext()) {
       //         T <variable> = :for-iterator.current;
       //         ...
@@ -733,15 +751,6 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
           type: new InterfaceType(
               helper.streamIteratorClass, [valueVariable.type]));
 
-      // const bool :product-mode =
-      //    const bool.fromEnvironment("dart.vm.product");
-      var productMode = new VariableDeclaration(':product-mode',
-          isConst: true,
-          type: new InterfaceType(helper.boolClass),
-          initializer: new StaticInvocation(helper.boolFromEnvironment,
-              new Arguments([new StringLiteral("dart.vm.product")]),
-              isConst: true));
-
       // await :for-iterator.moveNext()
       var condition = new AwaitExpression(new MethodInvocation(
           new VariableGet(iteratorVariable),
@@ -750,21 +759,21 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
           helper.streamIteratorMoveNext))
         ..fileOffset = stmt.fileOffset;
 
-      // _asyncStarMoveNextHelper(:stream)
-      var asyncStarMoveNextCall = new StaticInvocation(
-          helper.asyncStarMoveNextHelper,
-          new Arguments([new VariableGet(streamVariable)]))
-        ..fileOffset = stmt.fileOffset;
+      Expression whileCondition;
+      if (helper.productMode) {
+        whileCondition = condition;
+      } else {
+        // _asyncStarMoveNextHelper(:stream)
+        var asyncStarMoveNextCall = new StaticInvocation(
+            helper.asyncStarMoveNextHelper,
+            new Arguments([new VariableGet(streamVariable)]))
+          ..fileOffset = stmt.fileOffset;
 
-      // let _ = :product-mode ? null : asyncStarMoveNextCall in (condition)
-      var whileCondition = new Let(
-          new VariableDeclaration(null,
-              initializer: new ConditionalExpression(
-                  new VariableGet(productMode),
-                  new NullLiteral(),
-                  asyncStarMoveNextCall,
-                  new DynamicType())),
-          condition);
+        // let _ = asyncStarMoveNextCall in (condition)
+        whileCondition = new Let(
+            new VariableDeclaration(null, initializer: asyncStarMoveNextCall),
+            condition);
+      }
 
       // T <variable> = :for-iterator.current;
       valueVariable.initializer = new PropertyGet(
@@ -800,7 +809,6 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
         streamVariable,
         asyncStarListenHelper,
         iteratorVariable,
-        productMode,
         tryFinally
       ]);
       block.accept(this);
@@ -1140,7 +1148,8 @@ class HelperNodes {
   final Member syncIteratorCurrent;
   final Member syncIteratorYieldEachIterable;
   final Class boolClass;
-  final Member boolFromEnvironment;
+
+  bool productMode;
 
   HelperNodes._(
       this.asyncErrorWrapper,
@@ -1178,9 +1187,9 @@ class HelperNodes {
       this.syncIteratorCurrent,
       this.syncIteratorYieldEachIterable,
       this.boolClass,
-      this.boolFromEnvironment);
+      this.productMode);
 
-  factory HelperNodes.fromCoreTypes(CoreTypes coreTypes) {
+  factory HelperNodes.fromCoreTypes(CoreTypes coreTypes, bool productMode) {
     return new HelperNodes._(
         coreTypes.asyncErrorWrapperHelperProcedure,
         coreTypes.asyncLibrary,
@@ -1217,6 +1226,6 @@ class HelperNodes {
         coreTypes.syncIteratorCurrent,
         coreTypes.syncIteratorYieldEachIterable,
         coreTypes.boolClass,
-        coreTypes.boolFromEnvironment);
+        productMode);
   }
 }

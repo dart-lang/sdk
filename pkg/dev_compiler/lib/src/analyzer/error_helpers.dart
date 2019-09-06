@@ -9,7 +9,7 @@ import 'package:analyzer/source/error_processor.dart' show ErrorProcessor;
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptions;
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 
 class ErrorCollector {
   final bool _replCompile;
@@ -63,7 +63,7 @@ class ErrorCollector {
     return (StringBuffer()
           ..write('[${_errorSeverity(error).displayName}] ')
           ..write(error.message)
-          ..write(' (${path.prettyUri(error.source.uri)}')
+          ..write(' (${p.prettyUri(error.source.uri)}')
           ..write(
               ', line ${location.lineNumber}, col ${location.columnNumber})'))
         .toString();

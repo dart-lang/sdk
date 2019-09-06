@@ -8,5 +8,5 @@ library test;
 var a = true;
 
 main() {
-  var /*@type=bool*/ b = false;
+  var /*@ type=bool* */ b = false;
 }

@@ -9,12 +9,12 @@ import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/ir/util.dart';
 import 'package:compiler/src/js_backend/runtime_types.dart';
 import 'package:compiler/src/js_emitter/model.dart';
 import 'package:compiler/src/js_model/element_map.dart';
+import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:compiler/src/js_model/js_world.dart';
-import 'package:compiler/src/util/features.dart';
+import 'package:front_end/src/testing/features.dart';
 import 'package:kernel/ast.dart' as ir;
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
@@ -43,11 +43,13 @@ abstract class ComputeValueMixin {
   Compiler get compiler;
   ProgramLookup lookup;
 
+  JsBackendStrategy get backendStrategy => compiler.backendStrategy;
+
   RuntimeTypesImpl get checksBuilder =>
-      compiler.backend.rtiChecksBuilderForTesting;
+      backendStrategy.rtiChecksBuilderForTesting;
 
   String getClassValue(ClassEntity element) {
-    lookup ??= new ProgramLookup(compiler);
+    lookup ??= new ProgramLookup(backendStrategy);
     Class cls = lookup.getClass(element);
     Features features = new Features();
     if (cls != null) {
@@ -95,17 +97,14 @@ class RtiEmissionDataComputer extends DataComputer<String> {
   const RtiEmissionDataComputer();
 
   @override
-  bool get computesClassData => true;
-
-  @override
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<String>> actualMap,
       {bool verbose: false}) {
     JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
-    new RtiMemberEmissionIrComputer(compiler.reporter, actualMap, elementMap,
-            member, compiler, closedWorld.closureDataLookup)
+    new RtiEmissionIrComputer(compiler.reporter, actualMap, elementMap,
+            compiler, closedWorld.closureDataLookup)
         .run(definition.node);
   }
 
@@ -115,50 +114,34 @@ class RtiEmissionDataComputer extends DataComputer<String> {
       {bool verbose: false}) {
     JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
-    new RtiClassEmissionIrComputer(compiler, elementMap, actualMap)
-        .computeClassValue(cls);
+    new RtiEmissionIrComputer(compiler.reporter, actualMap, elementMap,
+            compiler, closedWorld.closureDataLookup)
+        .computeForClass(elementMap.getClassDefinition(cls).node);
   }
 
   @override
   DataInterpreter<String> get dataValidator => const StringDataInterpreter();
 }
 
-class RtiClassEmissionIrComputer extends DataRegistry<String>
-    with ComputeValueMixin {
-  @override
-  final Compiler compiler;
-  final JsToElementMap _elementMap;
-  @override
-  final Map<Id, ActualData<String>> actualMap;
-
-  RtiClassEmissionIrComputer(this.compiler, this._elementMap, this.actualMap);
-
-  @override
-  DiagnosticReporter get reporter => compiler.reporter;
-
-  void computeClassValue(ClassEntity cls) {
-    Id id = new ClassId(cls.name);
-    ir.TreeNode node = _elementMap.getClassDefinition(cls).node;
-    registerValue(
-        computeSourceSpanFromTreeNode(node), id, getClassValue(cls), cls);
-  }
-}
-
-class RtiMemberEmissionIrComputer extends IrDataExtractor<String>
+class RtiEmissionIrComputer extends IrDataExtractor<String>
     with ComputeValueMixin {
   final JsToElementMap _elementMap;
   final ClosureData _closureDataLookup;
   @override
   final Compiler compiler;
 
-  RtiMemberEmissionIrComputer(
+  RtiEmissionIrComputer(
       DiagnosticReporter reporter,
       Map<Id, ActualData<String>> actualMap,
       this._elementMap,
-      MemberEntity member,
       this.compiler,
       this._closureDataLookup)
       : super(reporter, actualMap);
+
+  @override
+  String computeClassValue(Id id, ir.Class node) {
+    return getClassValue(_elementMap.getClass(node));
+  }
 
   @override
   String computeMemberValue(Id id, ir.Member node) {

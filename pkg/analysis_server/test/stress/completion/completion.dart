@@ -89,7 +89,7 @@ bool validArguments(ArgParser parser, ArgResults result) {
   if (result.wasParsed('help')) {
     printUsage(parser);
     return false;
-  } else if (result.rest.length < 1) {
+  } else if (result.rest.isEmpty) {
     printUsage(parser, error: 'Missing path to files');
     return false;
   } else if (result.rest.length > 1) {

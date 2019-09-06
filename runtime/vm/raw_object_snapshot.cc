@@ -71,22 +71,6 @@ void RawClass::WriteTo(SnapshotWriter* writer,
   }
 }
 
-RawAbstractType* AbstractType::ReadFrom(SnapshotReader* reader,
-                                        intptr_t object_id,
-                                        intptr_t tags,
-                                        Snapshot::Kind kind,
-                                        bool as_reference) {
-  UNREACHABLE();  // AbstractType is an abstract class.
-  return NULL;
-}
-
-void RawAbstractType::WriteTo(SnapshotWriter* writer,
-                              intptr_t object_id,
-                              Snapshot::Kind kind,
-                              bool as_reference) {
-  UNREACHABLE();  // AbstractType is an abstract class.
-}
-
 RawType* Type::ReadFrom(SnapshotReader* reader,
                         intptr_t object_id,
                         intptr_t tags,
@@ -364,22 +348,6 @@ void RawTypeArguments::WriteTo(SnapshotWriter* writer,
   }
 }
 
-RawPatchClass* PatchClass::ReadFrom(SnapshotReader* reader,
-                                    intptr_t object_id,
-                                    intptr_t tags,
-                                    Snapshot::Kind kind,
-                                    bool as_reference) {
-  UNREACHABLE();
-  return PatchClass::null();
-}
-
-void RawPatchClass::WriteTo(SnapshotWriter* writer,
-                            intptr_t object_id,
-                            Snapshot::Kind kind,
-                            bool as_reference) {
-  UNREACHABLE();
-}
-
 RawClosure* Closure::ReadFrom(SnapshotReader* reader,
                               intptr_t object_id,
                               intptr_t tags,
@@ -404,326 +372,6 @@ void RawClosure::WriteTo(SnapshotWriter* writer,
     return;
   }
 
-  UNREACHABLE();
-}
-
-RawClosureData* ClosureData::ReadFrom(SnapshotReader* reader,
-                                      intptr_t object_id,
-                                      intptr_t tags,
-                                      Snapshot::Kind kind,
-                                      bool as_reference) {
-  UNREACHABLE();
-  return ClosureData::null();
-}
-
-void RawClosureData::WriteTo(SnapshotWriter* writer,
-                             intptr_t object_id,
-                             Snapshot::Kind kind,
-                             bool as_reference) {
-  UNREACHABLE();
-}
-
-RawSignatureData* SignatureData::ReadFrom(SnapshotReader* reader,
-                                          intptr_t object_id,
-                                          intptr_t tags,
-                                          Snapshot::Kind kind,
-                                          bool as_reference) {
-  UNREACHABLE();
-  return SignatureData::null();
-}
-
-void RawSignatureData::WriteTo(SnapshotWriter* writer,
-                               intptr_t object_id,
-                               Snapshot::Kind kind,
-                               bool as_reference) {
-  UNREACHABLE();
-}
-
-RawRedirectionData* RedirectionData::ReadFrom(SnapshotReader* reader,
-                                              intptr_t object_id,
-                                              intptr_t tags,
-                                              Snapshot::Kind kind,
-                                              bool as_reference) {
-  UNREACHABLE();
-  return RedirectionData::null();
-}
-
-void RawRedirectionData::WriteTo(SnapshotWriter* writer,
-                                 intptr_t object_id,
-                                 Snapshot::Kind kind,
-                                 bool as_reference) {
-  UNREACHABLE();
-}
-
-RawFfiTrampolineData* FfiTrampolineData::ReadFrom(SnapshotReader* reader,
-                                                  intptr_t object_id,
-                                                  intptr_t tags,
-                                                  Snapshot::Kind kind,
-                                                  bool as_reference) {
-  UNREACHABLE();
-  return FfiTrampolineData::null();
-}
-
-void RawFfiTrampolineData::WriteTo(SnapshotWriter* writer,
-                                   intptr_t object_id,
-                                   Snapshot::Kind kind,
-                                   bool as_reference) {
-  UNREACHABLE();
-}
-
-RawFunction* Function::ReadFrom(SnapshotReader* reader,
-                                intptr_t object_id,
-                                intptr_t tags,
-                                Snapshot::Kind kind,
-                                bool as_reference) {
-  UNREACHABLE();
-  return Function::null();
-}
-
-void RawFunction::WriteTo(SnapshotWriter* writer,
-                          intptr_t object_id,
-                          Snapshot::Kind kind,
-                          bool as_reference) {
-  UNREACHABLE();
-}
-
-RawField* Field::ReadFrom(SnapshotReader* reader,
-                          intptr_t object_id,
-                          intptr_t tags,
-                          Snapshot::Kind kind,
-                          bool as_reference) {
-  UNREACHABLE();
-  return Field::null();
-}
-
-void RawField::WriteTo(SnapshotWriter* writer,
-                       intptr_t object_id,
-                       Snapshot::Kind kind,
-                       bool as_reference) {
-  UNREACHABLE();
-}
-
-RawScript* Script::ReadFrom(SnapshotReader* reader,
-                            intptr_t object_id,
-                            intptr_t tags,
-                            Snapshot::Kind kind,
-                            bool as_reference) {
-  UNREACHABLE();
-  return Script::null();
-}
-
-void RawScript::WriteTo(SnapshotWriter* writer,
-                        intptr_t object_id,
-                        Snapshot::Kind kind,
-                        bool as_reference) {
-  UNREACHABLE();
-}
-
-RawLibrary* Library::ReadFrom(SnapshotReader* reader,
-                              intptr_t object_id,
-                              intptr_t tags,
-                              Snapshot::Kind kind,
-                              bool as_reference) {
-  UNREACHABLE();
-  return Library::null();
-}
-
-void RawLibrary::WriteTo(SnapshotWriter* writer,
-                         intptr_t object_id,
-                         Snapshot::Kind kind,
-                         bool as_reference) {
-  UNREACHABLE();
-}
-
-RawLibraryPrefix* LibraryPrefix::ReadFrom(SnapshotReader* reader,
-                                          intptr_t object_id,
-                                          intptr_t tags,
-                                          Snapshot::Kind kind,
-                                          bool as_reference) {
-  UNREACHABLE();
-  return LibraryPrefix::null();
-}
-
-void RawLibraryPrefix::WriteTo(SnapshotWriter* writer,
-                               intptr_t object_id,
-                               Snapshot::Kind kind,
-                               bool as_reference) {
-  UNREACHABLE();
-}
-
-RawNamespace* Namespace::ReadFrom(SnapshotReader* reader,
-                                  intptr_t object_id,
-                                  intptr_t tags,
-                                  Snapshot::Kind kind,
-                                  bool as_reference) {
-  UNREACHABLE();
-  return Namespace::null();
-}
-
-void RawNamespace::WriteTo(SnapshotWriter* writer,
-                           intptr_t object_id,
-                           Snapshot::Kind kind,
-                           bool as_reference) {
-  UNREACHABLE();
-}
-
-RawKernelProgramInfo* KernelProgramInfo::ReadFrom(SnapshotReader* reader,
-                                                  intptr_t object_id,
-                                                  intptr_t tags,
-                                                  Snapshot::Kind kind,
-                                                  bool as_reference) {
-  UNREACHABLE();
-  return KernelProgramInfo::null();
-}
-
-void RawKernelProgramInfo::WriteTo(SnapshotWriter* writer,
-                                   intptr_t object_id,
-                                   Snapshot::Kind kind,
-                                   bool as_reference) {
-  UNREACHABLE();
-}
-
-RawCode* Code::ReadFrom(SnapshotReader* reader,
-                        intptr_t object_id,
-                        intptr_t tags,
-                        Snapshot::Kind kind,
-                        bool as_reference) {
-  UNREACHABLE();
-  return Code::null();
-}
-
-void RawCode::WriteTo(SnapshotWriter* writer,
-                      intptr_t object_id,
-                      Snapshot::Kind kind,
-                      bool as_reference) {
-  UNREACHABLE();
-}
-
-RawBytecode* Bytecode::ReadFrom(SnapshotReader* reader,
-                                intptr_t object_id,
-                                intptr_t tags,
-                                Snapshot::Kind kind,
-                                bool as_reference) {
-  UNREACHABLE();
-  return Bytecode::null();
-}
-
-void RawBytecode::WriteTo(SnapshotWriter* writer,
-                          intptr_t object_id,
-                          Snapshot::Kind kind,
-                          bool as_reference) {
-  UNREACHABLE();
-}
-
-RawInstructions* Instructions::ReadFrom(SnapshotReader* reader,
-                                        intptr_t object_id,
-                                        intptr_t tags,
-                                        Snapshot::Kind kind,
-                                        bool as_reference) {
-  UNREACHABLE();
-  return Instructions::null();
-}
-
-void RawInstructions::WriteTo(SnapshotWriter* writer,
-                              intptr_t object_id,
-                              Snapshot::Kind kind,
-                              bool as_reference) {
-  UNREACHABLE();
-}
-
-RawObjectPool* ObjectPool::ReadFrom(SnapshotReader* reader,
-                                    intptr_t object_id,
-                                    intptr_t tags,
-                                    Snapshot::Kind kind,
-                                    bool as_reference) {
-  UNREACHABLE();
-  return ObjectPool::null();
-}
-
-void RawObjectPool::WriteTo(SnapshotWriter* writer,
-                            intptr_t object_id,
-                            Snapshot::Kind kind,
-                            bool as_reference) {
-  UNREACHABLE();
-}
-
-RawPcDescriptors* PcDescriptors::ReadFrom(SnapshotReader* reader,
-                                          intptr_t object_id,
-                                          intptr_t tags,
-                                          Snapshot::Kind kind,
-                                          bool as_reference) {
-  UNREACHABLE();
-  return PcDescriptors::null();
-}
-
-void RawPcDescriptors::WriteTo(SnapshotWriter* writer,
-                               intptr_t object_id,
-                               Snapshot::Kind kind,
-                               bool as_reference) {
-  UNREACHABLE();
-}
-
-RawCodeSourceMap* CodeSourceMap::ReadFrom(SnapshotReader* reader,
-                                          intptr_t object_id,
-                                          intptr_t tags,
-                                          Snapshot::Kind kind,
-                                          bool as_reference) {
-  UNREACHABLE();
-  return CodeSourceMap::null();
-}
-
-void RawCodeSourceMap::WriteTo(SnapshotWriter* writer,
-                               intptr_t object_id,
-                               Snapshot::Kind kind,
-                               bool as_reference) {
-  UNREACHABLE();
-}
-
-RawStackMap* StackMap::ReadFrom(SnapshotReader* reader,
-                                intptr_t object_id,
-                                intptr_t tags,
-                                Snapshot::Kind kind,
-                                bool as_reference) {
-  UNREACHABLE();
-  return StackMap::null();
-}
-
-void RawStackMap::WriteTo(SnapshotWriter* writer,
-                          intptr_t object_id,
-                          Snapshot::Kind kind,
-                          bool as_reference) {
-  UNREACHABLE();
-}
-
-RawLocalVarDescriptors* LocalVarDescriptors::ReadFrom(SnapshotReader* reader,
-                                                      intptr_t object_id,
-                                                      intptr_t tags,
-                                                      Snapshot::Kind kind,
-                                                      bool as_reference) {
-  UNREACHABLE();
-  return LocalVarDescriptors::null();
-}
-
-void RawLocalVarDescriptors::WriteTo(SnapshotWriter* writer,
-                                     intptr_t object_id,
-                                     Snapshot::Kind kind,
-                                     bool as_reference) {
-  UNREACHABLE();
-}
-
-RawExceptionHandlers* ExceptionHandlers::ReadFrom(SnapshotReader* reader,
-                                                  intptr_t object_id,
-                                                  intptr_t tags,
-                                                  Snapshot::Kind kind,
-                                                  bool as_reference) {
-  UNREACHABLE();
-  return ExceptionHandlers::null();
-}
-
-void RawExceptionHandlers::WriteTo(SnapshotWriter* writer,
-                                   intptr_t object_id,
-                                   Snapshot::Kind kind,
-                                   bool as_reference) {
   UNREACHABLE();
 }
 
@@ -836,101 +484,72 @@ void RawContextScope::WriteTo(SnapshotWriter* writer,
   UNREACHABLE();
 }
 
-RawSingleTargetCache* SingleTargetCache::ReadFrom(SnapshotReader* reader,
-                                                  intptr_t object_id,
-                                                  intptr_t tags,
-                                                  Snapshot::Kind kind,
-                                                  bool as_reference) {
-  UNREACHABLE();
-  return SingleTargetCache::null();
-}
+#define MESSAGE_SNAPSHOT_UNREACHABLE(type)                                     \
+  Raw##type* type::ReadFrom(SnapshotReader* reader, intptr_t object_id,        \
+                            intptr_t tags, Snapshot::Kind kind,                \
+                            bool as_reference) {                               \
+    UNREACHABLE();                                                             \
+    return type::null();                                                       \
+  }                                                                            \
+  void Raw##type::WriteTo(SnapshotWriter* writer, intptr_t object_id,          \
+                          Snapshot::Kind kind, bool as_reference) {            \
+    UNREACHABLE();                                                             \
+  }
 
-void RawSingleTargetCache::WriteTo(SnapshotWriter* writer,
-                                   intptr_t object_id,
-                                   Snapshot::Kind kind,
-                                   bool as_reference) {
-  UNREACHABLE();
-}
+#define MESSAGE_SNAPSHOT_ILLEGAL(type)                                         \
+  Raw##type* type::ReadFrom(SnapshotReader* reader, intptr_t object_id,        \
+                            intptr_t tags, Snapshot::Kind kind,                \
+                            bool as_reference) {                               \
+    UNREACHABLE();                                                             \
+    return type::null();                                                       \
+  }                                                                            \
+  void Raw##type::WriteTo(SnapshotWriter* writer, intptr_t object_id,          \
+                          Snapshot::Kind kind, bool as_reference) {            \
+    writer->SetWriteException(Exceptions::kArgument,                           \
+                              "Illegal argument in isolate message"            \
+                              " : (object is a " #type ")");                   \
+  }
 
-RawUnlinkedCall* UnlinkedCall::ReadFrom(SnapshotReader* reader,
-                                        intptr_t object_id,
-                                        intptr_t tags,
-                                        Snapshot::Kind kind,
-                                        bool as_reference) {
-  UNREACHABLE();
-  return UnlinkedCall::null();
-}
+MESSAGE_SNAPSHOT_UNREACHABLE(AbstractType);
+MESSAGE_SNAPSHOT_UNREACHABLE(Bool);
+MESSAGE_SNAPSHOT_UNREACHABLE(Bytecode);
+MESSAGE_SNAPSHOT_UNREACHABLE(ClosureData);
+MESSAGE_SNAPSHOT_UNREACHABLE(Code);
+MESSAGE_SNAPSHOT_UNREACHABLE(CodeSourceMap);
+MESSAGE_SNAPSHOT_UNREACHABLE(Error);
+MESSAGE_SNAPSHOT_UNREACHABLE(ExceptionHandlers);
+MESSAGE_SNAPSHOT_UNREACHABLE(FfiTrampolineData);
+MESSAGE_SNAPSHOT_UNREACHABLE(Field);
+MESSAGE_SNAPSHOT_UNREACHABLE(Function);
+MESSAGE_SNAPSHOT_UNREACHABLE(ICData);
+MESSAGE_SNAPSHOT_UNREACHABLE(Instructions);
+MESSAGE_SNAPSHOT_UNREACHABLE(KernelProgramInfo);
+MESSAGE_SNAPSHOT_UNREACHABLE(Library);
+MESSAGE_SNAPSHOT_UNREACHABLE(LibraryPrefix);
+MESSAGE_SNAPSHOT_UNREACHABLE(LocalVarDescriptors);
+MESSAGE_SNAPSHOT_UNREACHABLE(MegamorphicCache);
+MESSAGE_SNAPSHOT_UNREACHABLE(Namespace);
+MESSAGE_SNAPSHOT_UNREACHABLE(ObjectPool);
+MESSAGE_SNAPSHOT_UNREACHABLE(ParameterTypeCheck);
+MESSAGE_SNAPSHOT_UNREACHABLE(PatchClass);
+MESSAGE_SNAPSHOT_UNREACHABLE(PcDescriptors);
+MESSAGE_SNAPSHOT_UNREACHABLE(RedirectionData);
+MESSAGE_SNAPSHOT_UNREACHABLE(Script);
+MESSAGE_SNAPSHOT_UNREACHABLE(SignatureData);
+MESSAGE_SNAPSHOT_UNREACHABLE(SingleTargetCache);
+MESSAGE_SNAPSHOT_UNREACHABLE(StackMap);
+MESSAGE_SNAPSHOT_UNREACHABLE(String);
+MESSAGE_SNAPSHOT_UNREACHABLE(SubtypeTestCache);
+MESSAGE_SNAPSHOT_UNREACHABLE(TypedDataBase);
+MESSAGE_SNAPSHOT_UNREACHABLE(UnlinkedCall);
+MESSAGE_SNAPSHOT_UNREACHABLE(UnwindError);
 
-void RawUnlinkedCall::WriteTo(SnapshotWriter* writer,
-                              intptr_t object_id,
-                              Snapshot::Kind kind,
-                              bool as_reference) {
-  UNREACHABLE();
-}
-
-RawICData* ICData::ReadFrom(SnapshotReader* reader,
-                            intptr_t object_id,
-                            intptr_t tags,
-                            Snapshot::Kind kind,
-                            bool as_reference) {
-  UNREACHABLE();
-  return ICData::null();
-}
-
-void RawICData::WriteTo(SnapshotWriter* writer,
-                        intptr_t object_id,
-                        Snapshot::Kind kind,
-                        bool as_reference) {
-  UNREACHABLE();
-}
-
-RawMegamorphicCache* MegamorphicCache::ReadFrom(SnapshotReader* reader,
-                                                intptr_t object_id,
-                                                intptr_t tags,
-                                                Snapshot::Kind kind,
-                                                bool as_reference) {
-  UNREACHABLE();
-  return MegamorphicCache::null();
-}
-
-void RawMegamorphicCache::WriteTo(SnapshotWriter* writer,
-                                  intptr_t object_id,
-                                  Snapshot::Kind kind,
-                                  bool as_reference) {
-  UNREACHABLE();
-}
-
-RawSubtypeTestCache* SubtypeTestCache::ReadFrom(SnapshotReader* reader,
-                                                intptr_t object_id,
-                                                intptr_t tags,
-                                                Snapshot::Kind kind,
-                                                bool as_reference) {
-  UNREACHABLE();
-  return SubtypeTestCache::null();
-}
-
-void RawSubtypeTestCache::WriteTo(SnapshotWriter* writer,
-                                  intptr_t object_id,
-                                  Snapshot::Kind kind,
-                                  bool as_reference) {
-  UNREACHABLE();
-}
-
-RawError* Error::ReadFrom(SnapshotReader* reader,
-                          intptr_t object_id,
-                          intptr_t tags,
-                          Snapshot::Kind kind,
-                          bool as_referenec) {
-  UNREACHABLE();
-  return Error::null();  // Error is an abstract class.
-}
-
-void RawError::WriteTo(SnapshotWriter* writer,
-                       intptr_t object_id,
-                       Snapshot::Kind kind,
-                       bool as_reference) {
-  UNREACHABLE();  // Error is an abstract class.
-}
+MESSAGE_SNAPSHOT_ILLEGAL(DynamicLibrary);
+MESSAGE_SNAPSHOT_ILLEGAL(MirrorReference);
+MESSAGE_SNAPSHOT_ILLEGAL(Pointer);
+MESSAGE_SNAPSHOT_ILLEGAL(ReceivePort);
+MESSAGE_SNAPSHOT_ILLEGAL(StackTrace);
+MESSAGE_SNAPSHOT_ILLEGAL(UserTag);
 
 RawApiError* ApiError::ReadFrom(SnapshotReader* reader,
                                 intptr_t object_id,
@@ -1045,22 +664,6 @@ void RawUnhandledException::WriteTo(SnapshotWriter* writer,
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer, kAsReference);
   visitor.VisitPointers(from(), to());
-}
-
-RawUnwindError* UnwindError::ReadFrom(SnapshotReader* reader,
-                                      intptr_t object_id,
-                                      intptr_t tags,
-                                      Snapshot::Kind kind,
-                                      bool as_reference) {
-  UNREACHABLE();
-  return UnwindError::null();
-}
-
-void RawUnwindError::WriteTo(SnapshotWriter* writer,
-                             intptr_t object_id,
-                             Snapshot::Kind kind,
-                             bool as_reference) {
-  UNREACHABLE();
 }
 
 RawInstance* Instance::ReadFrom(SnapshotReader* reader,
@@ -1194,22 +797,6 @@ void RawDouble::WriteTo(SnapshotWriter* writer,
 
   // Write out the double value.
   writer->WriteDouble(ptr()->value_);
-}
-
-RawString* String::ReadFrom(SnapshotReader* reader,
-                            intptr_t object_id,
-                            intptr_t tags,
-                            Snapshot::Kind kind,
-                            bool as_reference) {
-  UNREACHABLE();  // String is an abstract class.
-  return String::null();
-}
-
-void RawString::WriteTo(SnapshotWriter* writer,
-                        intptr_t object_id,
-                        Snapshot::Kind kind,
-                        bool as_reference) {
-  UNREACHABLE();  // String is an abstract class.
 }
 
 template <typename StringType, typename CharacterType, typename CallbackType>
@@ -1363,22 +950,6 @@ void RawExternalTwoByteString::WriteTo(SnapshotWriter* writer,
   StringWriteTo(writer, object_id, kind, kTwoByteStringCid,
                 writer->GetObjectTags(this), ptr()->length_,
                 ptr()->external_data_);
-}
-
-RawBool* Bool::ReadFrom(SnapshotReader* reader,
-                        intptr_t object_id,
-                        intptr_t tags,
-                        Snapshot::Kind kind,
-                        bool as_reference) {
-  UNREACHABLE();
-  return Bool::null();
-}
-
-void RawBool::WriteTo(SnapshotWriter* writer,
-                      intptr_t object_id,
-                      Snapshot::Kind kind,
-                      bool as_reference) {
-  UNREACHABLE();
 }
 
 RawArray* Array::ReadFrom(SnapshotReader* reader,
@@ -1722,22 +1293,6 @@ void RawFloat64x2::WriteTo(SnapshotWriter* writer,
   writer->Write<double>(ptr()->value_[1]);
 }
 
-RawTypedDataBase* TypedDataBase::ReadFrom(SnapshotReader* reader,
-                                          intptr_t object_id,
-                                          intptr_t tags,
-                                          Snapshot::Kind kind,
-                                          bool as_reference) {
-  UNREACHABLE();  // TypedDataBase is an abstract class.
-  return NULL;
-}
-
-void RawTypedDataBase::WriteTo(SnapshotWriter* writer,
-                               intptr_t object_id,
-                               Snapshot::Kind kind,
-                               bool as_reference) {
-  UNREACHABLE();  // TypedDataBase is an abstract class.
-}
-
 RawTypedData* TypedData::ReadFrom(SnapshotReader* reader,
                                   intptr_t object_id,
                                   intptr_t tags,
@@ -2021,38 +1576,6 @@ RawTypedDataView* TypedDataView::ReadFrom(SnapshotReader* reader,
   return view.raw();
 }
 
-RawPointer* Pointer::ReadFrom(SnapshotReader* reader,
-                              intptr_t object_id,
-                              intptr_t tags,
-                              Snapshot::Kind kind,
-                              bool as_reference) {
-  FATAL("Snapshotting Pointers is not supported");
-  UNREACHABLE();
-}
-
-void RawPointer::WriteTo(SnapshotWriter* writer,
-                         intptr_t object_id,
-                         Snapshot::Kind kind,
-                         bool as_reference) {
-  FATAL("Snapshotting Pointers is not supported");
-}
-
-RawDynamicLibrary* DynamicLibrary::ReadFrom(SnapshotReader* reader,
-                                            intptr_t object_id,
-                                            intptr_t tags,
-                                            Snapshot::Kind kind,
-                                            bool as_reference) {
-  FATAL("Snapshotting DynamicLibraries is not supported");
-  UNREACHABLE();
-}
-
-void RawDynamicLibrary::WriteTo(SnapshotWriter* writer,
-                                intptr_t object_id,
-                                Snapshot::Kind kind,
-                                bool as_reference) {
-  FATAL("Snapshotting DynamicLibraries is not supported");
-}
-
 RawCapability* Capability::ReadFrom(SnapshotReader* reader,
                                     intptr_t object_id,
                                     intptr_t tags,
@@ -2078,29 +1601,6 @@ void RawCapability::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   writer->Write<uint64_t>(ptr()->id_);
-}
-
-RawReceivePort* ReceivePort::ReadFrom(SnapshotReader* reader,
-                                      intptr_t object_id,
-                                      intptr_t tags,
-                                      Snapshot::Kind kind,
-                                      bool as_reference) {
-  UNREACHABLE();
-  return ReceivePort::null();
-}
-
-void RawReceivePort::WriteTo(SnapshotWriter* writer,
-                             intptr_t object_id,
-                             Snapshot::Kind kind,
-                             bool as_reference) {
-  if (kind == Snapshot::kMessage) {
-    // We do not allow objects with native fields in an isolate message.
-    writer->SetWriteException(Exceptions::kArgument,
-                              "Illegal argument in isolate message"
-                              " : (object is a RawReceivePort)");
-  } else {
-    UNREACHABLE();
-  }
 }
 
 RawSendPort* SendPort::ReadFrom(SnapshotReader* reader,
@@ -2196,25 +1696,6 @@ void RawTransferableTypedData::WriteTo(SnapshotWriter* writer,
       });
 }
 
-RawStackTrace* StackTrace::ReadFrom(SnapshotReader* reader,
-                                    intptr_t object_id,
-                                    intptr_t tags,
-                                    Snapshot::Kind kind,
-                                    bool as_reference) {
-  UNREACHABLE();  // StackTraces are not sent in a snapshot.
-  return StackTrace::null();
-}
-
-void RawStackTrace::WriteTo(SnapshotWriter* writer,
-                            intptr_t object_id,
-                            Snapshot::Kind kind,
-                            bool as_reference) {
-  ASSERT(kind == Snapshot::kMessage);
-  writer->SetWriteException(Exceptions::kArgument,
-                            "Illegal argument in isolate message"
-                            " : (object is a stacktrace)");
-}
-
 RawRegExp* RegExp::ReadFrom(SnapshotReader* reader,
                             intptr_t object_id,
                             intptr_t tags,
@@ -2307,52 +1788,6 @@ void RawWeakProperty::WriteTo(SnapshotWriter* writer,
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer, kAsReference);
   visitor.VisitPointers(from(), to());
-}
-
-RawMirrorReference* MirrorReference::ReadFrom(SnapshotReader* reader,
-                                              intptr_t object_id,
-                                              intptr_t tags,
-                                              Snapshot::Kind kind,
-                                              bool as_referenec) {
-  UNREACHABLE();
-  return MirrorReference::null();
-}
-
-void RawMirrorReference::WriteTo(SnapshotWriter* writer,
-                                 intptr_t object_id,
-                                 Snapshot::Kind kind,
-                                 bool as_reference) {
-  if (kind == Snapshot::kMessage) {
-    // We do not allow objects with native fields in an isolate message.
-    writer->SetWriteException(Exceptions::kArgument,
-                              "Illegal argument in isolate message"
-                              " : (object is a MirrorReference)");
-  } else {
-    UNREACHABLE();
-  }
-}
-
-RawUserTag* UserTag::ReadFrom(SnapshotReader* reader,
-                              intptr_t object_id,
-                              intptr_t tags,
-                              Snapshot::Kind kind,
-                              bool as_reference) {
-  UNREACHABLE();
-  return UserTag::null();
-}
-
-void RawUserTag::WriteTo(SnapshotWriter* writer,
-                         intptr_t object_id,
-                         Snapshot::Kind kind,
-                         bool as_reference) {
-  if (kind == Snapshot::kMessage) {
-    // We do not allow objects with native fields in an isolate message.
-    writer->SetWriteException(Exceptions::kArgument,
-                              "Illegal argument in isolate message"
-                              " : (object is a UserTag)");
-  } else {
-    UNREACHABLE();
-  }
 }
 
 }  // namespace dart

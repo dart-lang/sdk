@@ -479,12 +479,6 @@ class ClassElementImpl extends AbstractClassElementImpl
       this._unlinkedClass, CompilationUnitElementImpl enclosingUnit)
       : super.forSerialized(enclosingUnit);
 
-  /// Set whether this class is abstract.
-  @Deprecated('Use isAbstract instead')
-  void set abstract(bool isAbstract) {
-    this.isAbstract = isAbstract;
-  }
-
   @override
   List<PropertyAccessorElement> get accessors {
     if (_accessors != null) return _accessors;
@@ -696,7 +690,7 @@ class ClassElementImpl extends AbstractClassElementImpl
     List<ClassElement> classesToVisit = new List<ClassElement>();
     HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
     classesToVisit.add(this);
-    while (!classesToVisit.isEmpty) {
+    while (classesToVisit.isNotEmpty) {
       ClassElement currentElement = classesToVisit.removeAt(0);
       if (visitedClasses.add(currentElement)) {
         // check fields
@@ -1323,8 +1317,8 @@ class ClassElementImpl extends AbstractClassElementImpl
     assert(_fields == null);
 
     var context = enclosingUnit.linkedContext;
-    var accessorList = <PropertyAccessorElementImpl>[];
-    var fieldList = <FieldElementImpl>[];
+    var accessorList = <PropertyAccessorElement>[];
+    var fieldList = <FieldElement>[];
 
     var fields = context.getFields(linkedNode);
     for (var field in fields) {
@@ -1376,9 +1370,9 @@ class ClassElementImpl extends AbstractClassElementImpl
 
       accessorElement.variable = field;
       if (isGetter) {
-        field.getter = accessorElement;
+        field.getter ??= accessorElement;
       } else {
-        field.setter = accessorElement;
+        field.setter ??= accessorElement;
       }
     }
 
@@ -1540,7 +1534,7 @@ class ClassElementImpl extends AbstractClassElementImpl
     List<InterfaceType> typesToVisit = new List<InterfaceType>();
     List<ClassElement> visitedClasses = new List<ClassElement>();
     typesToVisit.add(startingType);
-    while (!typesToVisit.isEmpty) {
+    while (typesToVisit.isNotEmpty) {
       InterfaceType currentType = typesToVisit.removeAt(0);
       ClassElement currentElement = currentType.element;
       if (!visitedClasses.contains(currentElement)) {
@@ -1617,6 +1611,10 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
   /// A list containing all of the enums contained in this compilation unit.
   List<ClassElement> _enums;
+
+  /// A list containing all of the extensions contained in this compilation
+  /// unit.
+  List<ExtensionElement> _extensions;
 
   /// A list containing all of the top-level functions contained in this
   /// compilation unit.
@@ -1771,6 +1769,48 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       (enumDeclaration as EnumElementImpl).enclosingElement = this;
     }
     this._enums = enums;
+  }
+
+  @override
+  List<ExtensionElement> get extensions {
+    if (_extensions != null) {
+      return _extensions;
+    }
+
+    if (linkedNode != null) {
+      CompilationUnit linkedNode = this.linkedNode;
+      var containerRef = reference.getChild('@extension');
+      _extensions = <ExtensionElement>[];
+      for (var node in linkedNode.declarations) {
+        if (node is ExtensionDeclaration) {
+          var refName = linkedContext.getExtensionRefName(node);
+          var reference = containerRef.getChild(refName);
+          if (reference.hasElementFor(node)) {
+            _extensions.add(reference.element);
+          } else {
+            _extensions.add(
+              ExtensionElementImpl.forLinkedNode(this, reference, node),
+            );
+          }
+        }
+      }
+      return _extensions;
+    } else if (_unlinkedUnit != null) {
+      return _extensions = _unlinkedUnit.extensions
+          .map((e) => ExtensionElementImpl.forSerialized(e, this))
+          .toList(growable: false);
+    }
+
+    return _extensions ?? const <ExtensionElement>[];
+  }
+
+  /// Set the extensions contained in this compilation unit to the given
+  /// [extensions].
+  void set extensions(List<ExtensionElement> extensions) {
+    for (ExtensionElement extension in extensions) {
+      (extension as ExtensionElementImpl).enclosingElement = this;
+    }
+    this._extensions = extensions;
   }
 
   @override
@@ -2142,6 +2182,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     super.visitChildren(visitor);
     safelyVisitChildren(accessors, visitor);
     safelyVisitChildren(enums, visitor);
+    safelyVisitChildren(extensions, visitor);
     safelyVisitChildren(functions, visitor);
     safelyVisitChildren(functionTypeAliases, visitor);
     safelyVisitChildren(mixins, visitor);
@@ -2164,18 +2205,18 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     assert(unit._accessors == null);
 
     var accessorMap =
-        <CompilationUnitElementImpl, List<PropertyAccessorElementImpl>>{};
+        <CompilationUnitElementImpl, List<PropertyAccessorElement>>{};
     var variableMap =
-        <CompilationUnitElementImpl, List<TopLevelVariableElementImpl>>{};
+        <CompilationUnitElementImpl, List<TopLevelVariableElement>>{};
 
     var units = unit.library.units;
     for (CompilationUnitElementImpl unit in units) {
       var context = unit.linkedContext;
 
-      var accessorList = <PropertyAccessorElementImpl>[];
+      var accessorList = <PropertyAccessorElement>[];
       accessorMap[unit] = accessorList;
 
-      var variableList = <TopLevelVariableElementImpl>[];
+      var variableList = <TopLevelVariableElement>[];
       variableMap[unit] = variableList;
 
       var unitNode = unit.linkedContext.unit_withDeclarations;
@@ -2574,7 +2615,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   bool get isDefaultConstructor {
     // unnamed
     String name = this.name;
-    if (name != null && name.length != 0) {
+    if (name != null && name.isNotEmpty) {
       return false;
     }
     // no required parameters
@@ -2728,7 +2769,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
     String constructorName = displayName;
     if (enclosingElement == null) {
       String message;
-      if (constructorName != null && !constructorName.isEmpty) {
+      if (constructorName != null && constructorName.isNotEmpty) {
         message =
             'Found constructor element named $constructorName with no enclosing element';
       } else {
@@ -2739,7 +2780,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
     } else {
       name = enclosingElement.displayName;
     }
-    if (constructorName != null && !constructorName.isEmpty) {
+    if (constructorName != null && constructorName.isNotEmpty) {
       name = '$name.$constructorName';
     }
     appendToWithName(buffer, name);
@@ -4036,12 +4077,6 @@ class EnumElementImpl extends AbstractClassElementImpl {
       this._unlinkedEnum, CompilationUnitElementImpl enclosingUnit)
       : super.forSerialized(enclosingUnit);
 
-  /// Set whether this class is abstract.
-  @Deprecated('This setter will be removed')
-  void set abstract(bool isAbstract) {
-    _assertNotResynthesized(_unlinkedEnum);
-  }
-
   @override
   List<PropertyAccessorElement> get accessors {
     if (_accessors == null) {
@@ -4851,6 +4886,11 @@ class ExportElementImpl extends UriReferencedElementImpl
 
   @override
   String get uri {
+    if (linkedNode != null) {
+      ExportDirective node = linkedNode;
+      return node.uri.stringValue;
+    }
+
     if (_unlinkedExportPublic != null) {
       return _selectedUri ??= _selectUri(
           _unlinkedExportPublic.uri, _unlinkedExportPublic.configurations);
@@ -4902,6 +4942,530 @@ class ExportElementImpl extends UriReferencedElementImpl
   }
 }
 
+/// A concrete implementation of an [ExtensionElement].
+class ExtensionElementImpl extends ElementImpl
+    with TypeParameterizedElementMixin
+    implements ExtensionElement {
+  /// The unlinked representation of the extension in the summary.
+  final UnlinkedExtension _unlinkedExtension;
+
+  /// The type being extended.
+  DartType _extendedType;
+
+  /// A list containing all of the accessors (getters and setters) contained in
+  /// this extension.
+  List<PropertyAccessorElement> _accessors;
+
+  /// A list containing all of the fields contained in this extension.
+  List<FieldElement> _fields;
+
+  /// A list containing all of the methods contained in this extension.
+  List<MethodElement> _methods;
+
+  /// Initialize a newly created extension element to have the given [name] at
+  /// the given [offset] in the file that contains the declaration of this
+  /// element.
+  ExtensionElementImpl(String name, int nameOffset)
+      : _unlinkedExtension = null,
+        super(name, nameOffset);
+
+  /// Initialize using the given linked information.
+  ExtensionElementImpl.forLinkedNode(CompilationUnitElementImpl enclosing,
+      Reference reference, AstNode linkedNode)
+      : _unlinkedExtension = null,
+        super.forLinkedNode(enclosing, reference, linkedNode);
+
+  /// Initialize a newly created extension element to have the given [name].
+  ExtensionElementImpl.forNode(Identifier name)
+      : _unlinkedExtension = null,
+        super.forNode(name);
+
+  /// Initialize using the given serialized information.
+  ExtensionElementImpl.forSerialized(
+      this._unlinkedExtension, CompilationUnitElementImpl enclosingUnit)
+      : super.forSerialized(enclosingUnit);
+
+  @override
+  List<PropertyAccessorElement> get accessors {
+    if (_accessors != null) {
+      return _accessors;
+    }
+
+    if (linkedNode != null) {
+      if (linkedNode is ExtensionDeclaration) {
+        _createPropertiesAndAccessors();
+        assert(_accessors != null);
+        return _accessors;
+      } else {
+        return _accessors = const [];
+      }
+    } else if (_unlinkedExtension != null) {
+      _resynthesizeFieldsAndPropertyAccessors();
+    }
+
+    return _accessors ??= const <PropertyAccessorElement>[];
+  }
+
+  void set accessors(List<PropertyAccessorElement> accessors) {
+    _assertNotResynthesized(_unlinkedExtension);
+    for (PropertyAccessorElement accessor in accessors) {
+      (accessor as PropertyAccessorElementImpl).enclosingElement = this;
+    }
+    _accessors = accessors;
+  }
+
+  @override
+  int get codeLength {
+    if (linkedNode != null) {
+      return linkedContext.getCodeLength(linkedNode);
+    }
+    if (_unlinkedExtension != null) {
+      return _unlinkedExtension.codeRange?.length;
+    }
+    return super.codeLength;
+  }
+
+  @override
+  int get codeOffset {
+    if (linkedNode != null) {
+      return linkedContext.getCodeOffset(linkedNode);
+    }
+    if (_unlinkedExtension != null) {
+      return _unlinkedExtension.codeRange?.offset;
+    }
+    return super.codeOffset;
+  }
+
+  @override
+  String get displayName => name;
+
+  @override
+  String get documentationComment {
+    if (linkedNode != null) {
+      var context = enclosingUnit.linkedContext;
+      var comment = context.getDocumentationComment(linkedNode);
+      return getCommentNodeRawText(comment);
+    }
+    if (_unlinkedExtension != null) {
+      return _unlinkedExtension.documentationComment?.text;
+    }
+    return super.documentationComment;
+  }
+
+  @override
+  TypeParameterizedElementMixin get enclosingTypeParameterContext => null;
+
+  @override
+  DartType get extendedType {
+    if (_extendedType != null) {
+      return _extendedType;
+    }
+
+    if (linkedNode != null) {
+      return _extendedType = linkedContext.getExtendedType(linkedNode).type;
+    } else if (_unlinkedExtension != null) {
+      return _extendedType = enclosingUnit.resynthesizerContext
+          .resolveTypeRef(this, _unlinkedExtension.extendedType);
+    }
+
+    return _extendedType;
+  }
+
+  void set extendedType(DartType extendedType) {
+    _assertNotResynthesized(_unlinkedExtension);
+    _extendedType = extendedType;
+  }
+
+  @override
+  List<FieldElement> get fields {
+    if (_fields != null) {
+      return _fields;
+    }
+
+    if (linkedNode != null) {
+      if (linkedNode is ExtensionDeclaration) {
+        _createPropertiesAndAccessors();
+        assert(_fields != null);
+        return _fields;
+      } else {
+        return _fields = const [];
+      }
+    } else if (_unlinkedExtension != null) {
+      _resynthesizeFieldsAndPropertyAccessors();
+    }
+
+    return _fields ?? const <FieldElement>[];
+  }
+
+  void set fields(List<FieldElement> fields) {
+    _assertNotResynthesized(_unlinkedExtension);
+    for (FieldElement field in fields) {
+      (field as FieldElementImpl).enclosingElement = this;
+    }
+    _fields = fields;
+  }
+
+  @override
+  String get identifier {
+    if (linkedNode != null) {
+      return reference.name;
+    }
+    return super.identifier;
+  }
+
+  @override
+  bool get isSimplyBounded => true;
+
+  @override
+  ElementKind get kind => ElementKind.EXTENSION;
+
+  @override
+  List<MethodElement> get methods {
+    if (_methods != null) {
+      return _methods;
+    }
+
+    if (linkedNode != null) {
+      var context = enclosingUnit.linkedContext;
+      var containerRef = reference.getChild('@method');
+      return _methods = context
+          .getMethods(linkedNode)
+          .where((node) => node.propertyKeyword == null)
+          .map((node) {
+        var name = node.name.name;
+        var reference = containerRef.getChild(name);
+        if (reference.hasElementFor(node)) {
+          return reference.element as MethodElement;
+        }
+        return MethodElementImpl.forLinkedNode(this, reference, node);
+      }).toList();
+    } else if (_unlinkedExtension != null) {
+      var unlinkedExecutables = _unlinkedExtension.executables;
+
+      var length = unlinkedExecutables.length;
+      if (length == 0) {
+        return _methods = const <MethodElement>[];
+      }
+
+      var count = 0;
+      for (var i = 0; i < length; i++) {
+        var e = unlinkedExecutables[i];
+        if (e.kind == UnlinkedExecutableKind.functionOrMethod) {
+          count++;
+        }
+      }
+      if (count == 0) {
+        return _methods = const <MethodElement>[];
+      }
+
+      var methods = new List<MethodElement>(count);
+      var index = 0;
+      for (var i = 0; i < length; i++) {
+        var e = unlinkedExecutables[i];
+        if (e.kind == UnlinkedExecutableKind.functionOrMethod) {
+          methods[index++] = new MethodElementImpl.forSerialized(e, this);
+        }
+      }
+      return _methods = methods;
+    }
+    return _methods = const <MethodElement>[];
+  }
+
+  /// Set the methods contained in this extension to the given [methods].
+  void set methods(List<MethodElement> methods) {
+    _assertNotResynthesized(_unlinkedExtension);
+    for (MethodElement method in methods) {
+      (method as MethodElementImpl).enclosingElement = this;
+    }
+    _methods = methods;
+  }
+
+  @override
+  String get name {
+    if (linkedNode != null) {
+      return (linkedNode as ExtensionDeclaration).name?.name ?? '';
+    }
+    if (_unlinkedExtension != null) {
+      return _unlinkedExtension.name;
+    }
+    return super.name;
+  }
+
+  @override
+  int get nameOffset {
+    if (linkedNode != null) {
+      return enclosingUnit.linkedContext.getNameOffset(linkedNode);
+    }
+
+    int offset = super.nameOffset;
+    if (offset == 0 && _unlinkedExtension != null) {
+      return _unlinkedExtension.nameOffset;
+    }
+    return offset;
+  }
+
+  /// Set the type parameters defined by this extension to the given
+  /// [typeParameters].
+  void set typeParameters(List<TypeParameterElement> typeParameters) {
+    _assertNotResynthesized(_unlinkedExtension);
+    for (TypeParameterElement typeParameter in typeParameters) {
+      (typeParameter as TypeParameterElementImpl).enclosingElement = this;
+    }
+    this._typeParameterElements = typeParameters;
+  }
+
+  @override
+  List<UnlinkedTypeParam> get unlinkedTypeParams =>
+      _unlinkedExtension?.typeParameters;
+
+  @override
+  T accept<T>(ElementVisitor<T> visitor) {
+    return visitor.visitExtensionElement(this);
+  }
+
+  @override
+  void appendTo(StringBuffer buffer) {
+    buffer.write('extension ');
+    String name = displayName;
+    if (name == null) {
+      buffer.write("(unnamed)");
+    } else {
+      buffer.write(name);
+    }
+    int variableCount = typeParameters.length;
+    if (variableCount > 0) {
+      buffer.write("<");
+      for (int i = 0; i < variableCount; i++) {
+        if (i > 0) {
+          buffer.write(", ");
+        }
+        (typeParameters[i] as TypeParameterElementImpl).appendTo(buffer);
+      }
+      buffer.write(">");
+    }
+    if (extendedType != null && !extendedType.isObject) {
+      buffer.write(' on ');
+      buffer.write(extendedType.displayName);
+    }
+  }
+
+  @override
+  PropertyAccessorElement getGetter(String getterName) {
+    int length = accessors.length;
+    for (int i = 0; i < length; i++) {
+      PropertyAccessorElement accessor = accessors[i];
+      if (accessor.isGetter && accessor.name == getterName) {
+        return accessor;
+      }
+    }
+    return null;
+  }
+
+  @override
+  MethodElement getMethod(String methodName) {
+    int length = methods.length;
+    for (int i = 0; i < length; i++) {
+      MethodElement method = methods[i];
+      if (method.name == methodName) {
+        return method;
+      }
+    }
+    return null;
+  }
+
+  @override
+  PropertyAccessorElement getSetter(String setterName) {
+    return AbstractClassElementImpl.getSetterFromAccessors(
+        setterName, accessors);
+  }
+
+  @override
+  void visitChildren(ElementVisitor visitor) {
+    super.visitChildren(visitor);
+    safelyVisitChildren(accessors, visitor);
+    safelyVisitChildren(fields, visitor);
+    safelyVisitChildren(methods, visitor);
+    safelyVisitChildren(typeParameters, visitor);
+  }
+
+  /// Create the accessors and fields when [linkedNode] is not `null`.
+  void _createPropertiesAndAccessors() {
+    assert(_accessors == null);
+    assert(_fields == null);
+
+    var context = enclosingUnit.linkedContext;
+    var accessorList = <PropertyAccessorElement>[];
+    var fieldList = <FieldElement>[];
+
+    var fields = context.getFields(linkedNode);
+    for (var field in fields) {
+      var name = field.name.name;
+      var fieldElement = FieldElementImpl.forLinkedNodeFactory(
+        this,
+        reference.getChild('@field').getChild(name),
+        field,
+      );
+      fieldList.add(fieldElement);
+
+      accessorList.add(fieldElement.getter);
+      if (fieldElement.setter != null) {
+        accessorList.add(fieldElement.setter);
+      }
+    }
+
+    var methods = context.getMethods(linkedNode);
+    for (var method in methods) {
+      var isGetter = method.isGetter;
+      var isSetter = method.isSetter;
+      if (!isGetter && !isSetter) continue;
+
+      var name = method.name.name;
+      var containerRef = isGetter
+          ? reference.getChild('@getter')
+          : reference.getChild('@setter');
+
+      var accessorElement = PropertyAccessorElementImpl.forLinkedNode(
+        this,
+        containerRef.getChild(name),
+        method,
+      );
+      accessorList.add(accessorElement);
+
+      var fieldRef = reference.getChild('@field').getChild(name);
+      FieldElementImpl field = fieldRef.element;
+      if (field == null) {
+        field = new FieldElementImpl(name, -1);
+        fieldRef.element = field;
+        field.enclosingElement = this;
+        field.isSynthetic = true;
+        field.isFinal = isGetter;
+        field.isStatic = accessorElement.isStatic;
+        fieldList.add(field);
+      } else {
+        // TODO(brianwilkerson) Shouldn't this depend on whether there is a
+        //  setter?
+        field.isFinal = false;
+      }
+
+      accessorElement.variable = field;
+      if (isGetter) {
+        field.getter = accessorElement;
+      } else {
+        field.setter = accessorElement;
+      }
+    }
+
+    _accessors = accessorList;
+    _fields = fieldList;
+  }
+
+  /// Resynthesize explicit fields and property accessors and fill [_fields] and
+  /// [_accessors] with explicit and implicit elements.
+  void _resynthesizeFieldsAndPropertyAccessors() {
+    assert(_fields == null);
+    assert(_accessors == null);
+
+    var unlinkedFields = _unlinkedExtension.fields;
+    var unlinkedExecutables = _unlinkedExtension.executables;
+
+    // Build explicit fields and implicit property accessors.
+    List<FieldElement> explicitFields;
+    List<PropertyAccessorElement> implicitAccessors;
+    var unlinkedFieldsLength = unlinkedFields.length;
+    if (unlinkedFieldsLength != 0) {
+      explicitFields = new List<FieldElement>(unlinkedFieldsLength);
+      implicitAccessors = <PropertyAccessorElement>[];
+      for (var i = 0; i < unlinkedFieldsLength; i++) {
+        var v = unlinkedFields[i];
+        FieldElementImpl field =
+            new FieldElementImpl.forSerializedFactory(v, this);
+        explicitFields[i] = field;
+        implicitAccessors.add(
+            new PropertyAccessorElementImpl_ImplicitGetter(field)
+              ..enclosingElement = this);
+        if (!field.isConst && !field.isFinal) {
+          implicitAccessors.add(
+              new PropertyAccessorElementImpl_ImplicitSetter(field)
+                ..enclosingElement = this);
+        }
+      }
+    } else {
+      explicitFields = const <FieldElement>[];
+      implicitAccessors = const <PropertyAccessorElement>[];
+    }
+
+    var unlinkedExecutablesLength = unlinkedExecutables.length;
+    var getterSetterCount = 0;
+    for (var i = 0; i < unlinkedExecutablesLength; i++) {
+      var e = unlinkedExecutables[i];
+      if (e.kind == UnlinkedExecutableKind.getter ||
+          e.kind == UnlinkedExecutableKind.setter) {
+        getterSetterCount++;
+      }
+    }
+
+    // Build explicit property accessors and implicit fields.
+    List<PropertyAccessorElement> explicitAccessors;
+    Map<String, FieldElementImpl> implicitFields;
+    if (getterSetterCount != 0) {
+      explicitAccessors = new List<PropertyAccessorElement>(getterSetterCount);
+      implicitFields = <String, FieldElementImpl>{};
+      var index = 0;
+      for (var i = 0; i < unlinkedExecutablesLength; i++) {
+        var e = unlinkedExecutables[i];
+        if (e.kind == UnlinkedExecutableKind.getter ||
+            e.kind == UnlinkedExecutableKind.setter) {
+          PropertyAccessorElementImpl accessor =
+              new PropertyAccessorElementImpl.forSerialized(e, this);
+          explicitAccessors[index++] = accessor;
+          // Create or update the implicit field.
+          String fieldName = accessor.displayName;
+          FieldElementImpl field = implicitFields[fieldName];
+          if (field == null) {
+            field = new FieldElementImpl(fieldName, -1);
+            implicitFields[fieldName] = field;
+            field.enclosingElement = this;
+            field.isSynthetic = true;
+            field.isFinal = e.kind == UnlinkedExecutableKind.getter;
+            field.isStatic = e.isStatic;
+          } else {
+            field.isFinal = false;
+          }
+          accessor.variable = field;
+          if (e.kind == UnlinkedExecutableKind.getter) {
+            field.getter = accessor;
+          } else {
+            field.setter = accessor;
+          }
+        }
+      }
+    } else {
+      explicitAccessors = const <PropertyAccessorElement>[];
+      implicitFields = const <String, FieldElementImpl>{};
+    }
+
+    // Combine explicit and implicit fields and property accessors.
+    if (implicitFields.isEmpty) {
+      _fields = explicitFields;
+    } else if (explicitFields.isEmpty) {
+      _fields = implicitFields.values.toList(growable: false);
+    } else {
+      _fields = <FieldElement>[]
+        ..addAll(explicitFields)
+        ..addAll(implicitFields.values);
+    }
+    if (explicitAccessors.isEmpty) {
+      _accessors = implicitAccessors;
+    } else if (implicitAccessors.isEmpty) {
+      _accessors = explicitAccessors;
+    } else {
+      _accessors = <PropertyAccessorElement>[]
+        ..addAll(explicitAccessors)
+        ..addAll(implicitAccessors);
+    }
+  }
+}
+
 /// A concrete implementation of a [FieldElement].
 class FieldElementImpl extends PropertyInducingElementImpl
     implements FieldElement {
@@ -4930,7 +5494,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
   }
 
   factory FieldElementImpl.forLinkedNodeFactory(
-      ClassElementImpl enclosing, Reference reference, AstNode linkedNode) {
+      ElementImpl enclosing, Reference reference, AstNode linkedNode) {
     var context = enclosing.enclosingUnit.linkedContext;
     if (context.shouldBeConstFieldElement(linkedNode)) {
       return ConstFieldElementImpl.forLinkedNode(
@@ -4952,22 +5516,20 @@ class FieldElementImpl extends PropertyInducingElementImpl
 
   /// Initialize using the given serialized information.
   factory FieldElementImpl.forSerializedFactory(
-      UnlinkedVariable unlinkedVariable, ClassElementImpl enclosingClass) {
+      UnlinkedVariable unlinkedVariable, ElementImpl enclosingElement) {
     if (unlinkedVariable.initializer?.bodyExpr != null &&
         (unlinkedVariable.isConst ||
             unlinkedVariable.isFinal &&
                 !unlinkedVariable.isStatic &&
-                enclosingClass._hasConstConstructor)) {
+                enclosingElement is ClassElementImpl &&
+                enclosingElement._hasConstConstructor)) {
       return new ConstFieldElementImpl.forSerialized(
-          unlinkedVariable, enclosingClass);
+          unlinkedVariable, enclosingElement);
     } else {
       return new FieldElementImpl.forSerialized(
-          unlinkedVariable, enclosingClass);
+          unlinkedVariable, enclosingElement);
     }
   }
-
-  @override
-  ClassElement get enclosingElement => super.enclosingElement as ClassElement;
 
   @override
   bool get isCovariant {
@@ -4990,7 +5552,9 @@ class FieldElementImpl extends PropertyInducingElementImpl
 
   @override
   bool get isEnumConstant =>
-      enclosingElement != null && enclosingElement.isEnum && !isSynthetic;
+      enclosingElement is ClassElement &&
+      (enclosingElement as ClassElement).isEnum &&
+      !isSynthetic;
 
   @override
   bool get isStatic {
@@ -5611,7 +6175,9 @@ class GenericTypeAliasElementImpl extends ElementImpl
         var function = context.getGeneticTypeAliasFunction(linkedNode);
         if (function != null) {
           var reference = context.getGenericFunctionTypeReference(function);
-          return _function = reference.element;
+          _function = reference.element;
+          encloseElement(_function);
+          return _function;
         } else {
           return null;
         }
@@ -6110,6 +6676,10 @@ class ImportElementImpl extends UriReferencedElementImpl
 
   @override
   int get prefixOffset {
+    if (linkedNode != null) {
+      ImportDirective node = linkedNode;
+      return node.prefix?.offset ?? -1;
+    }
     if (_unlinkedImport != null) {
       return _unlinkedImport.prefixOffset;
     }
@@ -6123,6 +6693,11 @@ class ImportElementImpl extends UriReferencedElementImpl
 
   @override
   String get uri {
+    if (linkedNode != null) {
+      ImportDirective node = linkedNode;
+      return node.uri.stringValue;
+    }
+
     if (_unlinkedImport != null) {
       if (_unlinkedImport.isImplicit) {
         return null;
@@ -7150,13 +7725,15 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
 
   @override
   bool get isLate {
-    if (linkedNode != null) {
-      return enclosingUnit.linkedContext.isLate(linkedNode);
-    }
     if (_unlinkedVariable != null) {
       return _unlinkedVariable.isLate;
     }
     return hasModifier(Modifier.LATE);
+  }
+
+  /// Set whether this variable is late.
+  void set isLate(bool isLate) {
+    setModifier(Modifier.LATE, isLate);
   }
 
   @override
@@ -7206,7 +7783,7 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   /// given [offset].
   MethodElementImpl(String name, int offset) : super(name, offset);
 
-  MethodElementImpl.forLinkedNode(ClassElementImpl enclosingClass,
+  MethodElementImpl.forLinkedNode(TypeParameterizedElementMixin enclosingClass,
       Reference reference, MethodDeclaration linkedNode)
       : super.forLinkedNode(enclosingClass, reference, linkedNode);
 
@@ -7214,15 +7791,9 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   MethodElementImpl.forNode(Identifier name) : super.forNode(name);
 
   /// Initialize using the given serialized information.
-  MethodElementImpl.forSerialized(
-      UnlinkedExecutable serializedExecutable, ClassElementImpl enclosingClass)
+  MethodElementImpl.forSerialized(UnlinkedExecutable serializedExecutable,
+      TypeParameterizedElementMixin enclosingClass)
       : super.forSerialized(serializedExecutable, enclosingClass);
-
-  /// Set whether this method is abstract.
-  @Deprecated('Use isAbstract instead')
-  void set abstract(bool isAbstract) {
-    this.isAbstract = isAbstract;
-  }
 
   @override
   String get displayName {
@@ -7234,11 +7805,8 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   }
 
   @override
-  ClassElement get enclosingElement => super.enclosingElement as ClassElement;
-
-  @override
   TypeParameterizedElementMixin get enclosingTypeParameterContext =>
-      super.enclosingElement as ClassElementImpl;
+      super.enclosingElement as TypeParameterizedElementMixin;
 
   /// Set whether this class is abstract.
   void set isAbstract(bool isAbstract) {
@@ -7295,38 +7863,6 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   @override
   MethodDeclaration computeNode() =>
       getNodeMatching((node) => node is MethodDeclaration);
-
-  @deprecated
-  @override
-  FunctionType getReifiedType(DartType objectType) {
-    // TODO(jmesserly): this implementation is completely wrong:
-    // It does not handle covariant parameters from a generic class.
-    // It drops type parameters from generic methods.
-    // Since this method was for DDC, it should be removed.
-    //
-    // Check whether we have any covariant parameters.
-    // Usually we don't, so we can use the same type.
-    bool hasCovariant = false;
-    for (ParameterElement parameter in parameters) {
-      if (parameter.isCovariant) {
-        hasCovariant = true;
-        break;
-      }
-    }
-
-    if (!hasCovariant) {
-      return type;
-    }
-
-    List<ParameterElement> covariantParameters = parameters.map((parameter) {
-      DartType type = parameter.isCovariant ? objectType : parameter.type;
-      return new ParameterElementImpl.synthetic(
-          parameter.name, type, parameter.parameterKind);
-    }).toList();
-
-    return new FunctionElementImpl.synthetic(covariantParameters, returnType)
-        .type;
-  }
 }
 
 /// A [ClassElementImpl] representing a mixin declaration.
@@ -8282,7 +8818,9 @@ class ParameterElementImpl extends VariableElementImpl
     if (_initializer == null) {
       if (linkedNode != null) {
         if (linkedContext.hasDefaultValue(linkedNode)) {
-          _initializer = new FunctionElementImpl('', -1)..isSynthetic = true;
+          _initializer = FunctionElementImpl('', -1)
+            ..enclosingElement = this
+            ..isSynthetic = true;
         }
       }
       if (unlinkedParam != null) {
@@ -8648,7 +9186,7 @@ class ParameterElementImpl extends VariableElementImpl
         NormalFormalParameter parameterNode = node.parameter;
         var name = parameterNode.identifier?.name ?? '';
         var reference = containerRef.getChild(name);
-        reference.node2 = node;
+        reference.node = node;
         if (parameterNode is FieldFormalParameter) {
           return DefaultFieldFormalParameterElementImpl.forLinkedNode(
             enclosing,
@@ -8928,12 +9466,6 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
     this.variable = variable;
     isStatic = variable.isStatic;
     isSynthetic = true;
-  }
-
-  /// Set whether this accessor is abstract.
-  @Deprecated('Use isAbstract instead')
-  void set abstract(bool isAbstract) {
-    this.isAbstract = isAbstract;
   }
 
   @override
@@ -9315,6 +9847,9 @@ class ShowElementCombinatorImpl implements ShowElementCombinator {
 
   @override
   int get end {
+    if (linkedNode != null) {
+      return linkedContext.getCombinatorEnd(linkedNode);
+    }
     if (_unlinkedCombinator != null) {
       return _unlinkedCombinator.end;
     }
@@ -9476,6 +10011,11 @@ class TypeParameterElementImpl extends ElementImpl
   /// The unlinked representation of the type parameter in the summary.
   final UnlinkedTypeParam _unlinkedTypeParam;
 
+  /// The default value of the type parameter. It is used to provide the
+  /// corresponding missing type argument in type annotations and as the
+  /// fall-back type value in type inference.
+  DartType _defaultType;
+
   /// The type defined by this type parameter.
   TypeParameterType _type;
 
@@ -9502,7 +10042,7 @@ class TypeParameterElementImpl extends ElementImpl
 
   /// Initialize using the given serialized information.
   TypeParameterElementImpl.forSerialized(
-      this._unlinkedTypeParam, TypeParameterizedElementMixin enclosingElement)
+      this._unlinkedTypeParam, ElementImpl enclosingElement)
       : super.forSerialized(enclosingElement);
 
   /// Initialize a newly created synthetic type parameter element to have the
@@ -9564,10 +10104,16 @@ class TypeParameterElementImpl extends ElementImpl
   /// corresponding missing type argument in type annotations and as the
   /// fall-back type value in type inference.
   DartType get defaultType {
+    if (_defaultType != null) return _defaultType;
+
     if (linkedNode != null) {
-      return linkedContext.getDefaultType(linkedNode);
+      return _defaultType = linkedContext.getDefaultType(linkedNode);
     }
     return null;
+  }
+
+  set defaultType(DartType defaultType) {
+    _defaultType = defaultType;
   }
 
   @override

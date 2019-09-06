@@ -274,6 +274,7 @@ _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName) =>
       originalTarget = f;
       $f = ${bindCall(f, _canonicalMember(f, 'call'))};
       $ftype = null;
+      $displayName = "call";
     }
     if ($f == null) return callNSM(
         "Dynamic call of object has no instance method 'call'.");
@@ -325,8 +326,8 @@ _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName) =>
   return callNSM(errorMessage);
 })()''');
 
-dcall(f, args, [@undefined named]) =>
-    _checkAndCall(f, null, JS('', 'void 0'), null, args, named, 'call');
+dcall(f, args, [@undefined named]) => _checkAndCall(
+    f, null, JS('', 'void 0'), null, args, named, JS('', 'f.name'));
 
 dgcall(f, typeArgs, args, [@undefined named]) =>
     _checkAndCall(f, null, JS('', 'void 0'), typeArgs, args, named, 'call');
@@ -411,56 +412,6 @@ dindex(obj, index) => callMethod(obj, '_get', null, [index], null, '[]');
 dsetindex(obj, index, value) =>
     callMethod(obj, '_set', null, [index, value], null, '[]=');
 
-final _ignoreSubtypeCache = JS('', 'new Map()');
-
-/// Whether [t1] <: [t2], or if [isImplicit] is set and we should ignore the
-/// cast failure from t1 to t2.
-///
-/// See [_isSubtypeOrLegacySubtype] and [ignoreWhitelistedErrors].
-@notNull
-bool _isSubtypeOrIgnorableCastFailure(
-    Object t1, Object t2, @notNull bool isImplicit) {
-  var result = _isSubtypeOrLegacySubtype(t1, t2);
-  return result == true ||
-      result == null &&
-          isImplicit &&
-          JS<bool>('!', 'dart.__ignoreWhitelistedErrors') &&
-          _ignoreTypeFailure(t1, t2);
-}
-
-@notNull
-bool _ignoreTypeFailure(Object t1, Object t2) {
-  var map = JS('', '#.get(#)', _ignoreSubtypeCache, t1);
-  if (map != null) {
-    bool result = JS('', '#.get(#)', map, t2);
-    if (JS('!', '# !== void 0', result)) return result;
-  } else {
-    map = JS('', 'new Map()');
-    JS('', '#.set(#, #)', _ignoreSubtypeCache, t1, map);
-  }
-
-  // TODO(vsm): Remove this hack ...
-  // This is primarily due to the lack of generic methods,
-  // but we need to triage all the types.
-  @notNull
-  bool result;
-  if (_isFutureOr(t2)) {
-    // Ignore if we would ignore either side of union.
-    var typeArg = getGenericArgs(t2)[0];
-    var typeFuture = JS('', '#(#)', getGenericClass(Future), typeArg);
-    result =
-        _ignoreTypeFailure(t1, typeFuture) || _ignoreTypeFailure(t1, typeArg);
-  } else {
-    result = isSubtypeOf(t2, unwrapType(Iterable)) &&
-        isSubtypeOf(t1, unwrapType(Iterable));
-    if (result) {
-      _warn('Ignoring cast fail from ${typeName(t1)} to ${typeName(t2)}');
-    }
-  }
-  JS('', '#.set(#, #)', map, t2, result);
-  return result;
-}
-
 @notNull
 @JSExportName('is')
 bool instanceOf(obj, type) {
@@ -474,7 +425,7 @@ bool instanceOf(obj, type) {
 cast(obj, type, @notNull bool isImplicit) {
   if (obj == null) return obj;
   var actual = getReifiedType(obj);
-  if (_isSubtypeOrIgnorableCastFailure(actual, type, isImplicit)) {
+  if (isSubtypeOf(actual, type)) {
     return obj;
   }
   return castError(obj, type, isImplicit);
@@ -624,7 +575,7 @@ final constants = JS('', 'new Map()');
 /// - nested values of the object are themselves already canonicalized.
 ///
 @JSExportName('const')
-const_(obj) => JS('', '''(() => {  
+const_(obj) => JS('', '''(() => {
   let names = $getOwnNamesAndSymbols($obj);
   let count = names.length;
   // Index by count.  All of the paths through this map
@@ -726,7 +677,6 @@ noSuchMethod(obj, Invocation invocation) {
 
 /// The default implementation of `noSuchMethod` to match `Object.noSuchMethod`.
 defaultNoSuchMethod(obj, Invocation i) {
-  if (JS('!', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
   throw NoSuchMethodError.withInvocation(obj, i);
 }
 

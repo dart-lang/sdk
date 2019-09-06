@@ -32,7 +32,7 @@ main() async {
       target.loader.appendLibraries(component);
       DillLibraryBuilder builder = target.loader.read(library.importUri, -1);
       await target.loader.buildOutline(builder);
-      builder.finalizeExports();
+      builder.markAsReadyToFinalizeExports();
       var mainExport = builder.exportScope.local["main"];
       Expect.isTrue(mainExport is InvalidTypeBuilder);
     });

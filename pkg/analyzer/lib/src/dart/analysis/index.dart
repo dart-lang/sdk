@@ -398,7 +398,8 @@ class _IndexAssembler {
       nameIdParameter = _getStringInfo(element.name);
       element = element.enclosingElement;
     }
-    if (element?.enclosingElement is ClassElement) {
+    if (element?.enclosingElement is ClassElement ||
+        element?.enclosingElement is ExtensionElement) {
       nameIdClassMember = _getStringInfo(element.name);
       element = element.enclosingElement;
     }
@@ -468,6 +469,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
         elementKind == ElementKind.ERROR ||
         elementKind == ElementKind.LABEL ||
         elementKind == ElementKind.LOCAL_VARIABLE ||
+        elementKind == ElementKind.NEVER ||
         elementKind == ElementKind.PREFIX ||
         elementKind == ElementKind.TYPE_PARAMETER ||
         elementKind == ElementKind.FUNCTION &&
@@ -533,9 +535,8 @@ class _IndexContributor extends GeneralizingAstVisitor {
     }
   }
 
-  void recordUriReference(Element element, UriBasedDirective directive) {
-    recordRelation(
-        element, IndexRelationKind.IS_REFERENCED_BY, directive.uri, true);
+  void recordUriReference(Element element, StringLiteral uri) {
+    recordRelation(element, IndexRelationKind.IS_REFERENCED_BY, uri, true);
   }
 
   @override
@@ -603,7 +604,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   visitExportDirective(ExportDirective node) {
     ExportElement element = node.element;
-    recordUriReference(element?.exportedLibrary, node);
+    recordUriReference(element?.exportedLibrary, node.uri);
     super.visitExportDirective(node);
   }
 
@@ -632,7 +633,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   visitImportDirective(ImportDirective node) {
     ImportElement element = node.element;
-    recordUriReference(element?.importedLibrary, node);
+    recordUriReference(element?.importedLibrary, node.uri);
     super.visitImportDirective(node);
   }
 
@@ -686,7 +687,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   visitPartDirective(PartDirective node) {
     CompilationUnitElement element = node.element;
     if (element?.source != null) {
-      recordUriReference(element, node);
+      recordUriReference(element, node.uri);
     }
     super.visitPartDirective(node);
   }

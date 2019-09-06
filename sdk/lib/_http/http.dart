@@ -912,60 +912,78 @@ abstract class ContentType implements HeaderValue {
 }
 
 /**
- * Representation of a cookie. For cookies received by the server as
- * Cookie header values only [:name:] and [:value:] fields will be
- * set. When building a cookie for the 'set-cookie' header in the server
- * and when receiving cookies in the client as 'set-cookie' headers all
- * fields can be used.
+ * Representation of a cookie. For cookies received by the server as Cookie
+ * header values only [name] and [value] properties will be set. When building a
+ * cookie for the 'set-cookie' header in the server and when receiving cookies
+ * in the client as 'set-cookie' headers all fields can be used.
  */
 abstract class Cookie {
   /**
-   * Gets and sets the name.
+   * The name of the cookie.
+   *
+   * Must be a `token` as specified in RFC 6265.
+   *
+   * The allowed characters in a `token` are the visible ASCII characters,
+   * U+0021 (`!`) through U+007E (`~`), except the separator characters:
+   * `(`, `)`, `<`, `>`, `@`, `,`, `;`, `:`, `\`, `"`, `/`, `[`, `]`, `?`, `=`,
+   * `{`, and `}`.
    */
   String name;
 
   /**
-   * Gets and sets the value.
+   * The value of the cookie.
+   *
+   * Must be a `cookie-value` as specified in RFC 6265.
+   *
+   * The allowed characters in a cookie value are the visible ASCII characters,
+   * U+0021 (`!`) through U+007E (`~`) except the characters:
+   * `"`, `,`, `;` and `\`.
+   * Cookie values may be wrapped in a single pair of double quotes
+   * (U+0022, `"`).
    */
   String value;
 
   /**
-   * Gets and sets the expiry date.
+   * The time at which the cookie expires.
    */
   DateTime expires;
 
   /**
-   * Gets and sets the max age. A value of [:0:] means delete cookie
-   * now.
+   * The number of seconds until the cookie expires. A zero or negative value
+   * means the cookie has expired.
    */
   int maxAge;
 
   /**
-   * Gets and sets the domain.
+   * The domain the cookie applies to.
    */
   String domain;
 
   /**
-   * Gets and sets the path.
+   * The path within the [domain] the cookie applies to.
    */
   String path;
 
   /**
-   * Gets and sets whether this cookie is secure.
+   * Whether to only send this cookie on secure connections.
    */
   bool secure;
 
   /**
-   * Gets and sets whether this cookie is HTTP only.
+   * Whether the cookie is only sent in the HTTP request and is not made
+   * available to client side scripts.
    */
   bool httpOnly;
 
   /**
-   * Creates a new cookie optionally setting the name and value.
+   * Creates a new cookie setting the name and value.
+   *
+   * [name] and [value] must be composed of valid characters according to RFC
+   * 6265.
    *
    * By default the value of `httpOnly` will be set to `true`.
    */
-  factory Cookie([String name, String value]) => new _Cookie(name, value);
+  factory Cookie(String name, String value) => new _Cookie(name, value);
 
   /**
    * Creates a new cookie by parsing a header value from a 'set-cookie'
@@ -1033,7 +1051,7 @@ abstract class Cookie {
  *       res.close();
  *     }
  */
-abstract class HttpRequest implements Stream<List<int>> {
+abstract class HttpRequest implements Stream<Uint8List> {
   /**
    * The content length of the request body.
    *

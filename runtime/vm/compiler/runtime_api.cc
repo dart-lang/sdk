@@ -3,12 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/compiler/runtime_api.h"
+#include "platform/utils.h"
 
 namespace dart {
 namespace compiler {
 namespace target {
 
 #include "vm/compiler/runtime_offsets_extracted.h"
+
+bool IsSmi(int64_t v) {
+  return Utils::IsInt(kSmiBits + 1, v);
+}
 
 }  // namespace target
 }  // namespace compiler
@@ -325,6 +330,10 @@ static uword GetInstanceSizeImpl(const dart::Class& handle) {
     case kByteBufferCid:
     case kByteDataViewCid:
     case kFfiPointerCid:
+    case kFfiDynamicLibraryCid:
+#define HANDLE_CASE(clazz) case kFfi##clazz##Cid:
+      CLASS_LIST_FFI_TYPE_MARKER(HANDLE_CASE)
+#undef HANDLE_CASE
 #define HANDLE_CASE(clazz)                                                     \
   case kTypedData##clazz##Cid:                                                 \
   case kTypedData##clazz##ViewCid:                                             \
@@ -458,7 +467,10 @@ word Context::variable_offset(word n) {
     return clazz##_elements_start_offset + index * clazz##_element_size;       \
   }
 
-#define DEFINE_ARRAY_STRUCTFIELD(clazz, name, element_offset, field_offset)
+#define DEFINE_ARRAY_STRUCTFIELD(clazz, name, element_offset, field_offset)    \
+  word clazz::name(intptr_t index) {                                           \
+    return element_offset(index) + field_offset;                               \
+  }
 
 #define DEFINE_SIZEOF(clazz, name, what)                                       \
   word clazz::name() { return clazz##_##name; }
@@ -524,6 +536,10 @@ uword Thread::native_execution_state() {
   return dart::Thread::ExecutionState::kThreadInNative;
 }
 
+uword Thread::vm_execution_state() {
+  return dart::Thread::ExecutionState::kThreadInVM;
+}
+
 uword Thread::vm_tag_compiled_id() {
   return dart::VMTag::kDartCompiledTagId;
 }
@@ -553,32 +569,12 @@ bool CanLoadFromThread(const dart::Object& object,
   return false;
 }
 
-#if !defined(PRODUCT)
-word ClassTable::StateOffsetFor(intptr_t cid) {
-  return dart::ClassTable::StateOffsetFor(cid);
-}
-
-word ClassTable::NewSpaceCounterOffsetFor(intptr_t index) {
-  return ClassOffsetFor(index) +
-         ClassHeapStats::allocated_since_gc_new_space_offset();
-}
-
-word ClassTable::NewSpaceSizeOffsetFor(intptr_t index) {
-  return ClassOffsetFor(index) +
-         ClassHeapStats::allocated_size_since_gc_new_space_offset();
-}
-#endif  // !defined(PRODUCT)
-
 static_assert(
     kSmiBits <= dart::kSmiBits,
     "Expected that size of Smi on HOST is at least as large as on target.");
 
 bool IsSmi(const dart::Object& a) {
-  return a.IsSmi() && Utils::IsInt(kSmiBits + 1, dart::Smi::Cast(a).Value());
-}
-
-bool IsSmi(int64_t v) {
-  return Utils::IsInt(kSmiBits + 1, v);
+  return a.IsSmi() && IsSmi(dart::Smi::Cast(a).Value());
 }
 
 word ToRawSmi(const dart::Object& a) {

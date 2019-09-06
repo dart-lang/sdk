@@ -6,7 +6,8 @@ library fasta.parser.listener;
 
 import '../../scanner/token.dart' show Token;
 
-import '../fasta_codes.dart' show Message, templateExperimentNotEnabled;
+import '../fasta_codes.dart'
+    show Message, MessageCode, templateExperimentNotEnabled;
 
 import '../quote.dart' show UnescapeErrorListener;
 
@@ -17,6 +18,8 @@ import 'assert.dart' show Assert;
 import 'formal_parameter_kind.dart' show FormalParameterKind;
 
 import 'identifier_context.dart' show IdentifierContext;
+
+import 'class_kind.dart' show ClassKind;
 
 import 'member_kind.dart' show MemberKind;
 
@@ -57,6 +60,11 @@ class Listener implements UnescapeErrorListener {
     logEvent("AwaitExpression");
   }
 
+  void endInvalidAwaitExpression(
+      Token beginToken, Token endToken, MessageCode errorCode) {
+    logEvent("InvalidAwaitExpression");
+  }
+
   void beginBlock(Token token) {}
 
   void endBlock(int count, Token beginToken, Token endToken) {
@@ -80,11 +88,17 @@ class Listener implements UnescapeErrorListener {
     logEvent("CaseExpression");
   }
 
-  void beginClassOrMixinBody(Token token) {}
+  /// Handle the start of the body of a class, mixin or extension declaration
+  /// beginning at [token]. The actual kind of declaration is indicated by
+  /// [kind].
+  void beginClassOrMixinBody(ClassKind kind, Token token) {}
 
-  /// Handle the end of the body of a class or mixin declaration.
-  /// The only substructures are the class or mixin members.
-  void endClassOrMixinBody(int memberCount, Token beginToken, Token endToken) {
+  /// Handle the end of the body of a class, mixin or extension declaration.
+  /// The only substructures are the class, mixin or extension members.
+  ///
+  /// The actual kind of declaration is indicated by [kind].
+  void endClassOrMixinBody(
+      ClassKind kind, int memberCount, Token beginToken, Token endToken) {
     logEvent("ClassOrMixinBody");
   }
 
@@ -181,7 +195,6 @@ class Listener implements UnescapeErrorListener {
 
   /// Handle the beginning of an extension methods declaration.  Substructures:
   /// - metadata
-  /// - extension name
   /// - type variables
   void beginExtensionDeclaration(Token extensionKeyword, Token name) {}
 
@@ -189,7 +202,8 @@ class Listener implements UnescapeErrorListener {
   /// - substructures from [beginExtensionDeclaration]
   /// - on type
   /// - body
-  void endExtensionDeclaration(Token onKeyword, Token token) {
+  void endExtensionDeclaration(
+      Token extensionKeyword, Token onKeyword, Token token) {
     logEvent('ExtensionDeclaration');
   }
 
@@ -289,8 +303,14 @@ class Listener implements UnescapeErrorListener {
   void beginFormalParameter(Token token, MemberKind kind, Token requiredToken,
       Token covariantToken, Token varFinalOrConst) {}
 
-  void endFormalParameter(Token thisKeyword, Token periodAfterThis,
-      Token nameToken, FormalParameterKind kind, MemberKind memberKind) {
+  void endFormalParameter(
+      Token thisKeyword,
+      Token periodAfterThis,
+      Token nameToken,
+      Token initializerStart,
+      Token initializerEnd,
+      FormalParameterKind kind,
+      MemberKind memberKind) {
     logEvent("FormalParameter");
   }
 
@@ -380,7 +400,7 @@ class Listener implements UnescapeErrorListener {
 
   /// Handle the beginning of a named function expression which isn't legal
   /// syntax in Dart.  Useful for recovering from Javascript code being pasted
-  /// into a Dart proram, as it will interpret `function foo() {}` as a named
+  /// into a Dart program, as it will interpret `function foo() {}` as a named
   /// function expression with return type `function` and name `foo`.
   ///
   /// Substructures:
@@ -389,7 +409,7 @@ class Listener implements UnescapeErrorListener {
 
   /// A named function expression which isn't legal syntax in Dart.
   /// Useful for recovering from Javascript code being pasted into a Dart
-  /// proram, as it will interpret `function foo() {}` as a named function
+  /// program, as it will interpret `function foo() {}` as a named function
   /// expression with return type `function` and name `foo`.
   ///
   /// Substructures:
@@ -673,7 +693,7 @@ class Listener implements UnescapeErrorListener {
 
   /// Called after the listener has recovered from an invalid function
   /// body. The parser expected an open curly brace `{` and will resume parsing
-  /// from [token] as if a function body had preceeded it.
+  /// from [token] as if a function body had preceded it.
   void handleInvalidFunctionBody(Token token) {
     logEvent("InvalidFunctionBody");
   }
@@ -748,8 +768,8 @@ class Listener implements UnescapeErrorListener {
   /// - initializers
   /// - async marker
   /// - body
-  void endMethod(
-      Token getOrSet, Token beginToken, Token beginParam, Token endToken) {
+  void endMethod(Token getOrSet, Token beginToken, Token beginParam,
+      Token beginInitializers, Token endToken) {
     logEvent("Method");
   }
 

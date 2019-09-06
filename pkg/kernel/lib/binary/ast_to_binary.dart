@@ -75,6 +75,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   void writeByte(int byte) {
+    assert((byte & 0xFF) == byte);
     _sink.addByte(byte);
   }
 
@@ -912,6 +913,10 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     insideExternalLibrary = node.isExternal;
     libraryOffsets.add(getBufferOffset());
     writeByte(node.flags);
+
+    writeUInt30(node.languageVersionMajor);
+    writeUInt30(node.languageVersionMinor);
+
     writeNonNullCanonicalNameReference(getCanonicalNameOfLibrary(node));
     writeStringReference(node.name ?? '');
     writeUriReference(node.fileUri);
@@ -1159,7 +1164,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
     writeByte(node.kind.index);
-    writeByte(node.flags);
+    writeUInt30(node.flags);
     writeName(node.name ?? _emptyName);
     writeAnnotationList(node.annotations);
     writeNullAllowedReference(node.forwardingStubSuperTargetReference);
@@ -1183,7 +1188,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeUriReference(node.fileUri);
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
-    writeByte(node.flags);
+    writeUInt30(node.flags);
     writeName(node.name);
     writeAnnotationList(node.annotations);
     writeNode(node.type);
@@ -1544,6 +1549,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       writeNode(value);
     });
     writeNodeList(node.asserts);
+    writeNodeList(node.unusedArguments);
   }
 
   @override
@@ -2001,9 +2007,11 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitInterfaceType(InterfaceType node) {
     if (node.typeArguments.isEmpty) {
       writeByte(Tag.SimpleInterfaceType);
+      writeByte(node.nullability.index);
       writeNonNullReference(node.className);
     } else {
       writeByte(Tag.InterfaceType);
+      writeByte(node.nullability.index);
       writeNonNullReference(node.className);
       writeNodeList(node.typeArguments);
     }
@@ -2011,11 +2019,17 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   @override
   void visitSupertype(Supertype node) {
+    // Writing nullability below is only necessary because
+    // BinaryBuilder.readSupertype reads the supertype as an InterfaceType and
+    // breaks it into components afterwards, and reading an InterfaceType
+    // requires the nullability byte.
     if (node.typeArguments.isEmpty) {
       writeByte(Tag.SimpleInterfaceType);
+      writeByte(Nullability.nonNullable.index);
       writeNonNullReference(node.className);
     } else {
       writeByte(Tag.InterfaceType);
+      writeByte(Nullability.nonNullable.index);
       writeNonNullReference(node.className);
       writeNodeList(node.typeArguments);
     }
@@ -2028,10 +2042,12 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
         node.namedParameters.isEmpty &&
         node.typedefType == null) {
       writeByte(Tag.SimpleFunctionType);
+      writeByte(node.nullability.index);
       writeNodeList(node.positionalParameters);
       writeNode(node.returnType);
     } else {
       writeByte(Tag.FunctionType);
+      writeByte(node.nullability.index);
       enterScope(typeParameters: node.typeParameters);
       writeNodeList(node.typeParameters);
       writeUInt30(node.requiredParameterCount);
@@ -2049,11 +2065,14 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitNamedType(NamedType node) {
     writeStringReference(node.name);
     writeNode(node.type);
+    int flags = (node.isRequired ? NamedType.FlagRequiredNamedType : 0);
+    writeByte(flags);
   }
 
   @override
   void visitTypeParameterType(TypeParameterType node) {
     writeByte(Tag.TypeParameterType);
+    writeByte(node.declaredNullability.index);
     writeUInt30(_typeParameterIndexer[node.parameter]);
     writeOptionalNode(node.promotedBound);
   }
@@ -2061,6 +2080,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitTypedefType(TypedefType node) {
     writeByte(Tag.TypedefType);
+    writeByte(node.nullability.index);
     writeNullAllowedReference(node.typedefReference);
     writeNodeList(node.typeArguments);
   }
@@ -2072,6 +2092,12 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeStringReference(node.name ?? '');
     writeNode(node.bound);
     writeOptionalNode(node.defaultType);
+  }
+
+  @override
+  void visitExtension(Extension node) {
+    // TODO(johnniwinther): Support serialization of extension nodes.
+    throw new UnsupportedError('serialization of extension nodes');
   }
 
   // ================================================================

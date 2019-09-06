@@ -8,6 +8,7 @@ library front_end.tool.fasta_perf;
 import 'dart:async';
 import 'dart:io';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/fasta/ast_builder.dart';
 import 'package:args/args.dart';
 
@@ -147,7 +148,9 @@ Future<Map<Uri, List<int>>> scanReachableFiles(Uri entryUri) async {
 
   inputSize = 0;
   // adjust size because there is a null-terminator on the contents.
-  for (var source in files.values) inputSize += (source.length - 1);
+  for (var source in files.values) {
+    inputSize += (source.length - 1);
+  }
   print('input size: $inputSize chars');
   var loadTime = loadTimer.elapsedMicroseconds - scanTimer.elapsedMicroseconds;
   report('load', loadTime);
@@ -213,7 +216,8 @@ parseFull(Uri uri, List<int> source) {
 // Note: AstBuilder doesn't build compilation-units or classes, only method
 // bodies. So this listener is not feature complete.
 class _PartialAstBuilder extends AstBuilder {
-  _PartialAstBuilder(Uri uri) : super(null, null, true, uri);
+  _PartialAstBuilder(Uri uri)
+      : super(null, null, true, FeatureSet.fromEnableFlags([]), uri);
 
   // Note: this method converts the body to kernel, so we skip that here.
   @override
@@ -225,7 +229,7 @@ generateKernel(Uri entryUri,
     {bool compileSdk: true, bool legacyMode: false}) async {
   // TODO(sigmund): this is here only to compute the input size,
   // we should extract the input size from the frontend instead.
-  scanReachableFiles(entryUri);
+  await scanReachableFiles(entryUri);
 
   var timer = new Stopwatch()..start();
   var options = new CompilerOptions()
@@ -234,7 +238,8 @@ generateKernel(Uri entryUri,
     ..legacyMode = legacyMode
     ..target = createTarget(isFlutter: false, legacyMode: legacyMode)
     ..packagesFileUri = Uri.base.resolve('.packages')
-    ..compileSdk = compileSdk;
+    ..compileSdk = compileSdk
+    ..environmentDefines = const {};
   if (!compileSdk) {
     // TODO(sigmund): fix this: this is broken since the change to move .dill
     // files out of the patched_sdk folder. It is not failing anywhere because
@@ -242,7 +247,7 @@ generateKernel(Uri entryUri,
     options.sdkSummary = sdkRoot.resolve('outline.dill');
   }
 
-  var program = await kernelForComponent([entryUri], options);
+  var program = await kernelForModule([entryUri], options);
 
   timer.stop();
   var name = 'kernel_gen_e2e${compileSdk ? "" : "_sum"}';
@@ -253,10 +258,10 @@ generateKernel(Uri entryUri,
 /// Report that metric [name] took [time] micro-seconds to process
 /// [inputSize] characters.
 void report(String name, int time) {
-  var sb = new StringBuffer();
-  var padding = ' ' * (20 - name.length);
+  StringBuffer sb = new StringBuffer();
+  String padding = ' ' * (20 - name.length);
   sb.write('$name:$padding $time us, ${time ~/ 1000} ms');
-  var invSpeed = (time * 1000 / inputSize).toStringAsFixed(2);
+  String invSpeed = (time * 1000 / inputSize).toStringAsFixed(2);
   sb.write(', $invSpeed ns/char');
   print('$sb');
 }

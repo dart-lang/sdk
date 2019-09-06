@@ -7,7 +7,9 @@
 
 import 'dart:async' show Future;
 
-import 'package:kernel/kernel.dart' show Component, CanonicalName;
+import 'package:front_end/src/api_prototype/compiler_options.dart';
+
+import 'package:kernel/kernel.dart' show Component, CanonicalName, Library;
 
 import 'package:kernel/target/targets.dart' show Target;
 
@@ -18,6 +20,8 @@ import '../api_prototype/diagnostic_message.dart' show DiagnosticMessageHandler;
 
 import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
 
+import '../api_prototype/front_end.dart' show CompilerResult;
+
 import '../api_prototype/file_system.dart' show FileSystem;
 
 import '../base/processed_options.dart' show ProcessedOptions;
@@ -26,7 +30,7 @@ import '../fasta/compiler_context.dart' show CompilerContext;
 
 import '../fasta/incremental_compiler.dart' show IncrementalCompiler;
 
-import '../kernel_generator_impl.dart' show CompilerResult, generateKernel;
+import '../kernel_generator_impl.dart' show generateKernel;
 
 import 'compiler_state.dart'
     show InitializedCompilerState, WorkerInputComponent, digestsEqual;
@@ -60,7 +64,8 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     Target target,
     FileSystem fileSystem,
     Iterable<String> experiments,
-    bool outlineOnly) async {
+    bool outlineOnly,
+    {bool trackNeededDillLibraries: false}) async {
   final List<int> sdkDigest = workerInputDigests[sdkSummary];
   if (sdkDigest == null) {
     throw new StateError("Expected to get digest for $sdkSummary");
@@ -72,8 +77,9 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
   Map<Uri, WorkerInputComponent> workerInputCache =
       oldState?.workerInputCache ?? new Map<Uri, WorkerInputComponent>();
   bool startOver = false;
-  Map<ExperimentalFlag, bool> experimentalFlags =
-      parseExperimentalFlags(experiments, (e) => throw e);
+  Map<ExperimentalFlag, bool> experimentalFlags = parseExperimentalFlags(
+      parseExperimentalArguments(experiments),
+      onError: (e) => throw e);
 
   if (oldState == null ||
       oldState.incrementalCompiler == null ||
@@ -105,7 +111,8 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       ..target = target
       ..fileSystem = fileSystem
       ..omitPlatform = true
-      ..environmentDefines = const {};
+      ..environmentDefines = const {}
+      ..experimentalFlags = experimentalFlags;
 
     processedOpts = new ProcessedOptions(options: options);
     cachedSdkInput = WorkerInputComponent(
@@ -116,12 +123,13 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
         new CompilerContext(processedOpts),
         cachedSdkInput.component,
         outlineOnly);
+    incrementalCompiler.trackNeededDillLibraries = trackNeededDillLibraries;
   } else {
     options = oldState.options;
     processedOpts = oldState.processedOpts;
-    var sdkComponent = cachedSdkInput.component;
+    Component sdkComponent = cachedSdkInput.component;
     // Reset the state of the component.
-    for (var lib in sdkComponent.libraries) {
+    for (Library lib in sdkComponent.libraries) {
       lib.isExternal = cachedSdkInput.externalLibs.contains(lib.importUri);
     }
 
@@ -129,7 +137,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     // won't be able to link to it when loading more outlines.
     sdkComponent.adoptChildren();
 
-    // TODO(jensj): This is - at least currently - neccessary,
+    // TODO(jensj): This is - at least currently - necessary,
     // although it's not entirely obvious why.
     // It likely has to do with several outlines containing the same libraries.
     // Once that stops (and we check for it) we can probably remove this,
@@ -142,6 +150,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     // Reuse the incremental compiler, but reset as needed.
     incrementalCompiler = oldState.incrementalCompiler;
     incrementalCompiler.invalidateAllSources();
+    incrementalCompiler.trackNeededDillLibraries = trackNeededDillLibraries;
     options.packagesFileUri = packagesFile;
     options.fileSystem = fileSystem;
     processedOpts.clearFileSystemCache();
@@ -149,11 +158,15 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
 
   // Then read all the input summary components.
   CanonicalName nameRoot = cachedSdkInput.component.root;
-  final inputSummaries = <Component>[];
+  final List<Component> inputSummaries = <Component>[];
+  Map<Uri, Uri> libraryToInputDill;
+  if (trackNeededDillLibraries) {
+    libraryToInputDill = new Map<Uri, Uri>();
+  }
   List<Uri> loadFromDill = new List<Uri>();
   for (Uri summary in summaryInputs) {
-    var cachedInput = workerInputCache[summary];
-    var summaryDigest = workerInputDigests[summary];
+    WorkerInputComponent cachedInput = workerInputCache[summary];
+    List<int> summaryDigest = workerInputDigests[summary];
     if (summaryDigest == null) {
       throw new StateError("Expected to get digest for $summary");
     }
@@ -163,9 +176,12 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       loadFromDill.add(summary);
     } else {
       // Need to reset cached components so they are usable again.
-      var component = cachedInput.component;
-      for (var lib in component.libraries) {
+      Component component = cachedInput.component;
+      for (Library lib in component.libraries) {
         lib.isExternal = cachedInput.externalLibs.contains(lib.importUri);
+        if (trackNeededDillLibraries) {
+          libraryToInputDill[lib.importUri] = summary;
+        }
       }
       inputSummaries.add(component);
     }
@@ -184,13 +200,19 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
             alwaysCreateNewNamedNodes: true));
     workerInputCache[summary] = cachedInput;
     inputSummaries.add(cachedInput.component);
+    if (trackNeededDillLibraries) {
+      for (Library lib in cachedInput.component.libraries) {
+        libraryToInputDill[lib.importUri] = summary;
+      }
+    }
   }
 
   incrementalCompiler.setModulesToLoadOnNextComputeDelta(inputSummaries);
 
   return new InitializedCompilerState(options, processedOpts,
       workerInputCache: workerInputCache,
-      incrementalCompiler: incrementalCompiler);
+      incrementalCompiler: incrementalCompiler,
+      libraryToInputDill: libraryToInputDill);
 }
 
 Future<InitializedCompilerState> initializeCompiler(
@@ -217,7 +239,9 @@ Future<InitializedCompilerState> initializeCompiler(
     ..target = target
     ..fileSystem = fileSystem
     ..environmentDefines = const {}
-    ..experimentalFlags = parseExperimentalFlags(experiments, (e) => throw e);
+    ..experimentalFlags = parseExperimentalFlags(
+        parseExperimentalArguments(experiments),
+        onError: (e) => throw e);
 
   ProcessedOptions processedOpts = new ProcessedOptions(options: options);
 
@@ -244,19 +268,21 @@ Future<CompilerResult> _compile(InitializedCompilerState compilerState,
 Future<List<int>> compileSummary(InitializedCompilerState compilerState,
     List<Uri> inputs, DiagnosticMessageHandler diagnosticMessageHandler,
     {bool includeOffsets: false}) async {
-  var result = await _compile(compilerState, inputs, diagnosticMessageHandler,
+  CompilerResult result = await _compile(
+      compilerState, inputs, diagnosticMessageHandler,
       summaryOnly: true, includeOffsets: includeOffsets);
   return result?.summary;
 }
 
 Future<Component> compileComponent(InitializedCompilerState compilerState,
     List<Uri> inputs, DiagnosticMessageHandler diagnosticMessageHandler) async {
-  var result = await _compile(compilerState, inputs, diagnosticMessageHandler,
+  CompilerResult result = await _compile(
+      compilerState, inputs, diagnosticMessageHandler,
       summaryOnly: false);
 
-  var component = result?.component;
+  Component component = result?.component;
   if (component != null) {
-    for (var lib in component.libraries) {
+    for (Library lib in component.libraries) {
       if (!inputs.contains(lib.importUri)) {
         // Excluding the library also means that their canonical names will not
         // be computed as part of serialization, so we need to do that

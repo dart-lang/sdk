@@ -771,11 +771,13 @@ testShiftAmount() {
   Expect.equals(BigInt.zero, BigInt.zero >> 1234567890);
   Expect.equals(BigInt.two.pow(999), BigInt.one << 999);
   Expect.equals(BigInt.one, BigInt.two.pow(999) >> 999);
-  Expect.equals(BigInt.zero, new BigInt.from(12) >> 0x7FFFFFFFFFFFFFFF);
-  Expect.equals(-BigInt.one, -new BigInt.from(12) >> 0x7FFFFFFFFFFFFFFF);
+  // 0x7FFFFFFFFFFFFFFF on VM, slightly rounded up on web platform.
+  const int maxInt64 = 0x7FFFFFFFFFFFF000 + 0xFFF;
+  Expect.equals(BigInt.zero, new BigInt.from(12) >> maxInt64);
+  Expect.equals(-BigInt.one, -new BigInt.from(12) >> maxInt64);
   bool exceptionCaught = false;
   try {
-    var a = BigInt.one << 0x7FFFFFFFFFFFFFFF;
+    var a = BigInt.one << maxInt64;
   } on OutOfMemoryError catch (e) {
     exceptionCaught = true;
   } catch (e) {
@@ -1041,39 +1043,39 @@ void testFromToDouble() {
 
 main() {
   for (int i = 0; i < 8; i++) {
-    Expect.equals(BigInt.parse("1234567890123456789"), foo()); /// 01: ok
-    Expect.equals(BigInt.parse("12345678901234567890"), bar()); /// 02: ok
-    testModPow(); /// 03: ok
-    testModInverse(); /// 04: ok
-    testGcd(); /// 05: ok
-    testSmiOverflow(); /// 06: ok
-    testBigintAnd(); /// 07: ok
-    testBigintOr(); /// 08: ok
-    testBigintXor(); /// 09: ok
-    testBigintAdd(); /// 10: ok
-    testBigintSub(); /// 11: ok
-    testBigintMul(); /// 12: ok
-    testBigintTruncDiv(); /// 12: ok
-    testBigintDiv(); /// 13: ok
-    testBigintModulo(); /// 14: ok
-    testBigintModPow(); /// 15: ok
-    testBigintModInverse(); /// 16: ok
-    testBigintGcd(); /// 17: ok
-    testBigintNegate(); /// 18: ok
-    testShiftAmount(); /// 19: ok
-    testPow(); /// 20: ok
-    testToRadixString(); /// 21: ok
-    testToString(); /// 22: ok
-    testFromToInt(); /// 23: ok
-    testFromToDouble(); /// 24: ok
-    Expect.equals(BigInt.parse("12345678901234567890"), /// 25: ok
-        BigInt.parse("12345678901234567890").abs()); /// 25: ok
-    Expect.equals(BigInt.parse("12345678901234567890"), /// 26: ok
-        BigInt.parse("-12345678901234567890").abs()); /// 26: ok
-    var a = BigInt.parse("10000000000000000000"); /// 27: ok
-    var b = BigInt.parse("10000000000000000001"); /// 27: ok
-    Expect.equals(false, a.hashCode == b.hashCode); /// 27: ok
-    Expect.equals(true, a.hashCode == (b - BigInt.one).hashCode); /// 27: ok
+    Expect.equals(BigInt.parse("1234567890123456789"), foo()); //# 01: ok
+    Expect.equals(BigInt.parse("12345678901234567890"), bar()); //# 02: ok
+    testModPow(); //# 03: ok
+    testModInverse(); //# 04: ok
+    testGcd(); //# 05: ok
+    testSmiOverflow(); //# 06: ok
+    testBigintAnd(); //# 07: ok
+    testBigintOr(); //# 08: ok
+    testBigintXor(); //# 09: ok
+    testBigintAdd(); //# 10: ok
+    testBigintSub(); //# 11: ok
+    testBigintMul(); //# 12: ok
+    testBigintTruncDiv(); //# 12: ok
+    testBigintDiv(); //# 13: ok
+    testBigintModulo(); //# 14: ok
+    testBigintModPow(); //# 15: ok
+    testBigintModInverse(); //# 16: ok
+    testBigintGcd(); //# 17: ok
+    testBigintNegate(); //# 18: ok
+    testShiftAmount(); //# 19: ok
+    testPow(); //# 20: ok
+    testToRadixString(); //# 21: ok
+    testToString(); //# 22: ok
+    testFromToInt(); //# 23: ok
+    testFromToDouble(); //# 24: ok
+    Expect.equals(BigInt.parse("12345678901234567890"), //# 25: ok
+        BigInt.parse("12345678901234567890").abs()); //# 25: ok
+    Expect.equals(BigInt.parse("12345678901234567890"), //# 26: ok
+        BigInt.parse("-12345678901234567890").abs()); //# 26: ok
+    var a = BigInt.parse("10000000000000000000"); //# 27: ok
+    var b = BigInt.parse("10000000000000000001"); //# 27: ok
+    Expect.equals(false, a.hashCode == b.hashCode); //# 27: ok
+    Expect.equals(true, a.hashCode == (b - BigInt.one).hashCode); //# 27: ok
 
     // Regression test for http://dartbug.com/36105
     var overbig = -BigInt.from(10).pow(309);

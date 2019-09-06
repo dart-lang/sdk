@@ -238,6 +238,10 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   /// [UnlinkedClass.executables] or [UnlinkedExecutable.localFunctions].
   List<UnlinkedExecutableBuilder> executables = <UnlinkedExecutableBuilder>[];
 
+  /// List of objects which should be written to [UnlinkedUnit.extensions].
+  final List<UnlinkedExtensionBuilder> extensions =
+      <UnlinkedExtensionBuilder>[];
+
   /// List of objects which should be written to [UnlinkedUnit.exports].
   final List<UnlinkedExportNonPublicBuilder> exports =
       <UnlinkedExportNonPublicBuilder>[];
@@ -288,6 +292,9 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
 
   /// True if the 'dart:core' library is been summarized.
   bool isCoreLibrary = false;
+
+  /// True if the 'dart:core' library defining unit is been summarized.
+  bool isCoreLibraryDefiningUnit = false;
 
   /// True is a [PartOfDirective] was found, so the unit is a part.
   bool isPartOf = false;
@@ -504,6 +511,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     b.classes = classes;
     b.enums = enums;
     b.executables = executables;
+    b.extensions = extensions;
     b.exports = exports;
     b.imports = unlinkedImports;
     b.mixins = mixins;
@@ -511,7 +519,17 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     b.references = unlinkedReferences;
     b.typedefs = typedefs;
     b.variables = variables;
+
     b.publicNamespace = computePublicNamespace(compilationUnit);
+    if (isCoreLibraryDefiningUnit) {
+      b.publicNamespace.names.add(
+        UnlinkedPublicNameBuilder(
+          name: 'Never',
+          kind: ReferenceKind.classOrEnum,
+        ),
+      );
+    }
+
     _computeApiSignature(b);
     return b;
   }
@@ -1184,6 +1202,43 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   }
 
   @override
+  visitExtensionDeclaration(ExtensionDeclaration node) {
+    int oldScopesLength = scopes.length;
+    enclosingClassHasConstConstructor = false;
+    List<UnlinkedExecutableBuilder> oldExecutables = executables;
+    executables = <UnlinkedExecutableBuilder>[];
+    List<UnlinkedVariableBuilder> oldVariables = variables;
+    variables = <UnlinkedVariableBuilder>[];
+    _TypeParameterScope typeParameterScope = new _TypeParameterScope();
+    scopes.add(typeParameterScope);
+
+    UnlinkedExtensionBuilder b = UnlinkedExtensionBuilder();
+    b.name = node.name?.name;
+    b.nameOffset = node.name?.offset ?? 0;
+    b.typeParameters =
+        serializeTypeParameters(node.typeParameters, typeParameterScope);
+    b.extendedType = serializeType(node.extendedType);
+    if (node.members != null) {
+      scopes.add(buildClassMemberScope(node.name?.name, node.members));
+      for (ClassMember member in node.members) {
+        member.accept(this);
+      }
+      scopes.removeLast();
+    }
+    b.executables = executables;
+    b.fields = variables;
+    b.documentationComment = serializeDocumentation(node.documentationComment);
+    b.annotations = serializeAnnotations(node.metadata);
+    b.codeRange = serializeCodeRange(node);
+    extensions.add(b);
+
+    scopes.removeLast();
+    assert(scopes.length == oldScopesLength);
+    executables = oldExecutables;
+    variables = oldVariables;
+  }
+
+  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     serializeVariables(node.fields, node.staticKeyword != null,
         node.documentationComment, node.metadata, true);
@@ -1343,6 +1398,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     libraryNameOffset = node.name.offset;
     libraryNameLength = node.name.length;
     isCoreLibrary = libraryName == 'dart.core';
+    isCoreLibraryDefiningUnit = isCoreLibrary;
     libraryDocumentationComment =
         serializeDocumentation(node.documentationComment);
     libraryAnnotations = serializeAnnotations(node.metadata);

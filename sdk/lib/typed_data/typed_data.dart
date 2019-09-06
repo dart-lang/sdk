@@ -772,6 +772,31 @@ abstract class Int8List implements List<int>, _TypedIntList {
     return buffer.asInt8List(offsetInBytes, length);
   }
 
+  /**
+   * Returns a new list containing the elements between [start] and [end].
+   *
+   * The new list is an `Int8List` containing the elements of this list at
+   * positions greater than or equal to [start] and less than [end] in the same
+   * order as they occur in this list.
+   *
+   * ```dart
+   * var numbers = Int8List.fromList([0, 1, 2, 3, 4]);
+   * print(numbers.sublist(1, 3)); // [1, 2]
+   * print(numbers.sublist(1, 3).runtimeType); // Int8List
+   * ```
+   *
+   * If [end] is omitted, it defaults to the [length] of this list.
+   *
+   * ```dart
+   * print(numbers.sublist(1)); // [1, 2, 3, 4]
+   * ```
+   *
+   * The `start` and `end` positions must satisfy the relations
+   * 0 ≤ `start` ≤ `end` ≤ `this.length`
+   * If `end` is equal to `start`, then the returned list is empty.
+   */
+  Int8List sublist(int start, [int end]);
+
   static const int bytesPerElement = 1;
 }
 
@@ -829,6 +854,31 @@ abstract class Uint8List implements List<int>, _TypedIntList {
    */
   List<int> operator +(List<int> other);
 
+  /**
+   * Returns a new list containing the elements between [start] and [end].
+   *
+   * The new list is a `Uint8List` containing the elements of this list at
+   * positions greater than or equal to [start] and less than [end] in the same
+   * order as they occur in this list.
+   *
+   * ```dart
+   * var numbers = Uint8List.fromList([0, 1, 2, 3, 4]);
+   * print(numbers.sublist(1, 3)); // [1, 2]
+   * print(numbers.sublist(1, 3).runtimeType); // Uint8List
+   * ```
+   *
+   * If [end] is omitted, it defaults to the [length] of this list.
+   *
+   * ```dart
+   * print(numbers.sublist(1)); // [1, 2, 3, 4]
+   * ```
+   *
+   * The `start` and `end` positions must satisfy the relations
+   * 0 ≤ `start` ≤ `end` ≤ `this.length`
+   * If `end` is equal to `start`, then the returned list is empty.
+   */
+  Uint8List sublist(int start, [int end]);
+
   static const int bytesPerElement = 1;
 }
 
@@ -877,6 +927,31 @@ abstract class Uint8ClampedList implements List<int>, _TypedIntList {
       [int offsetInBytes = 0, int length]) {
     return buffer.asUint8ClampedList(offsetInBytes, length);
   }
+
+  /**
+   * Returns a new list containing the elements between [start] and [end].
+   *
+   * The new list is a `Uint8ClampedList` containing the elements of this
+   * list at positions greater than or equal to [start] and less than [end] in
+   * the same order as they occur in this list.
+   *
+   * ```dart
+   * var numbers = Uint8ClampedList.fromList([0, 1, 2, 3, 4]);
+   * print(numbers.sublist(1, 3)); // [1, 2]
+   * print(numbers.sublist(1, 3).runtimeType); // Uint8ClampedList
+   * ```
+   *
+   * If [end] is omitted, it defaults to the [length] of this list.
+   *
+   * ```dart
+   * print(numbers.sublist(1)); // [1, 2, 3, 4]
+   * ```
+   *
+   * The `start` and `end` positions must satisfy the relations
+   * 0 ≤ `start` ≤ `end` ≤ `this.length`
+   * If `end` is equal to `start`, then the returned list is empty.
+   */
+  Uint8ClampedList sublist(int start, [int end]);
 
   static const int bytesPerElement = 1;
 }
@@ -929,6 +1004,31 @@ abstract class Int16List implements List<int>, _TypedIntList {
       [int offsetInBytes = 0, int length]) {
     return buffer.asInt16List(offsetInBytes, length);
   }
+
+  /**
+   * Returns a new list containing the elements between [start] and [end].
+   *
+   * The new list is an `Int16List` containing the elements of this
+   * list at positions greater than or equal to [start] and less than [end] in
+   * the same order as they occur in this list.
+   *
+   * ```dart
+   * var numbers = Int16List.fromList([0, 1, 2, 3, 4]);
+   * print(numbers.sublist(1, 3)); // [1, 2]
+   * print(numbers.sublist(1, 3).runtimeType); // Int16List
+   * ```
+   *
+   * If [end] is omitted, it defaults to the [length] of this list.
+   *
+   * ```dart
+   * print(numbers.sublist(1)); // [1, 2, 3, 4]
+   * ```
+   *
+   * The `start` and `end` positions must satisfy the relations
+   * 0 ≤ `start` ≤ `end` ≤ `this.length`
+   * If `end` is equal to `start`, then the returned list is empty.
+   */
+  Int16List sublist(int start, [int end]);
 
   static const int bytesPerElement = 2;
 }
@@ -983,6 +1083,31 @@ abstract class Uint16List implements List<int>, _TypedIntList {
     return buffer.asUint16List(offsetInBytes, length);
   }
 
+  /**
+   * Returns a new list containing the elements between [start] and [end].
+   *
+   * The new list is a `Uint16List` containing the elements of this
+   * list at positions greater than or equal to [start] and less than [end] in
+   * the same order as they occur in this list.
+   *
+   * ```dart
+   * var numbers = Uint16List.fromList([0, 1, 2, 3, 4]);
+   * print(numbers.sublist(1, 3)); // [1, 2]
+   * print(numbers.sublist(1, 3).runtimeType); // Uint16List
+   * ```
+   *
+   * If [end] is omitted, it defaults to the [length] of this list.
+   *
+   * ```dart
+   * print(numbers.sublist(1)); // [1, 2, 3, 4]
+   * ```
+   *
+   * The `start` and `end` positions must satisfy the relations
+   * 0 ≤ `start` ≤ `end` ≤ `this.length`
+   * If `end` is equal to `start`, then the returned list is empty.
+   */
+  Uint16List sublist(int start, [int end]);
+
   static const int bytesPerElement = 2;
 }
 
@@ -1034,6 +1159,31 @@ abstract class Int32List implements List<int>, _TypedIntList {
       [int offsetInBytes = 0, int length]) {
     return buffer.asInt32List(offsetInBytes, length);
   }
+
+  /**
+   * Returns a new list containing the elements between [start] and [end].
+   *
+   * The new list is an `Int32List` containing the elements of this
+   * list at positions greater than or equal to [start] and less than [end] in
+   * the same order as they occur in this list.
+   *
+   * ```dart
+   * var numbers = Int32List.fromList([0, 1, 2, 3, 4]);
+   * print(numbers.sublist(1, 3)); // [1, 2]
+   * print(numbers.sublist(1, 3).runtimeType); // Int32List
+   * ```
+   *
+   * If [end] is omitted, it defaults to the [length] of this list.
+   *
+   * ```dart
+   * print(numbers.sublist(1)); // [1, 2, 3, 4]
+   * ```
+   *
+   * The `start` and `end` positions must satisfy the relations
+   * 0 ≤ `start` ≤ `end` ≤ `this.length`
+   * If `end` is equal to `start`, then the returned list is empty.
+   */
+  Int32List sublist(int start, [int end]);
 
   static const int bytesPerElement = 4;
 }
@@ -1088,6 +1238,31 @@ abstract class Uint32List implements List<int>, _TypedIntList {
     return buffer.asUint32List(offsetInBytes, length);
   }
 
+  /**
+   * Returns a new list containing the elements between [start] and [end].
+   *
+   * The new list is a `Uint32List` containing the elements of this
+   * list at positions greater than or equal to [start] and less than [end] in
+   * the same order as they occur in this list.
+   *
+   * ```dart
+   * var numbers = Uint32List.fromList([0, 1, 2, 3, 4]);
+   * print(numbers.sublist(1, 3)); // [1, 2]
+   * print(numbers.sublist(1, 3).runtimeType); // Uint32List
+   * ```
+   *
+   * If [end] is omitted, it defaults to the [length] of this list.
+   *
+   * ```dart
+   * print(numbers.sublist(1)); // [1, 2, 3, 4]
+   * ```
+   *
+   * The `start` and `end` positions must satisfy the relations
+   * 0 ≤ `start` ≤ `end` ≤ `this.length`
+   * If `end` is equal to `start`, then the returned list is empty.
+   */
+  Uint32List sublist(int start, [int end]);
+
   static const int bytesPerElement = 4;
 }
 
@@ -1139,6 +1314,31 @@ abstract class Int64List implements List<int>, _TypedIntList {
       [int offsetInBytes = 0, int length]) {
     return buffer.asInt64List(offsetInBytes, length);
   }
+
+  /**
+   * Returns a new list containing the elements between [start] and [end].
+   *
+   * The new list is an `Int64List` containing the elements of this
+   * list at positions greater than or equal to [start] and less than [end] in
+   * the same order as they occur in this list.
+   *
+   * ```dart
+   * var numbers = Int64List.fromList([0, 1, 2, 3, 4]);
+   * print(numbers.sublist(1, 3)); // [1, 2]
+   * print(numbers.sublist(1, 3).runtimeType); // Int64List
+   * ```
+   *
+   * If [end] is omitted, it defaults to the [length] of this list.
+   *
+   * ```dart
+   * print(numbers.sublist(1)); // [1, 2, 3, 4]
+   * ```
+   *
+   * The `start` and `end` positions must satisfy the relations
+   * 0 ≤ `start` ≤ `end` ≤ `this.length`
+   * If `end` is equal to `start`, then the returned list is empty.
+   */
+  Int64List sublist(int start, [int end]);
 
   static const int bytesPerElement = 8;
 }
@@ -1193,6 +1393,31 @@ abstract class Uint64List implements List<int>, _TypedIntList {
     return buffer.asUint64List(offsetInBytes, length);
   }
 
+  /**
+   * Returns a new list containing the elements between [start] and [end].
+   *
+   * The new list is a `Uint64List` containing the elements of this
+   * list at positions greater than or equal to [start] and less than [end] in
+   * the same order as they occur in this list.
+   *
+   * ```dart
+   * var numbers = Uint64List.fromList([0, 1, 2, 3, 4]);
+   * print(numbers.sublist(1, 3)); // [1, 2]
+   * print(numbers.sublist(1, 3).runtimeType); // Uint64List
+   * ```
+   *
+   * If [end] is omitted, it defaults to the [length] of this list.
+   *
+   * ```dart
+   * print(numbers.sublist(1)); // [1, 2, 3, 4]
+   * ```
+   *
+   * The `start` and `end` positions must satisfy the relations
+   * 0 ≤ `start` ≤ `end` ≤ `this.length`
+   * If `end` is equal to `start`, then the returned list is empty.
+   */
+  Uint64List sublist(int start, [int end]);
+
   static const int bytesPerElement = 8;
 }
 
@@ -1246,6 +1471,31 @@ abstract class Float32List implements List<double>, _TypedFloatList {
     return buffer.asFloat32List(offsetInBytes, length);
   }
 
+  /**
+   * Returns a new list containing the elements between [start] and [end].
+   *
+   * The new list is a `Float32List` containing the elements of this
+   * list at positions greater than or equal to [start] and less than [end] in
+   * the same order as they occur in this list.
+   *
+   * ```dart
+   * var numbers = Float32List.fromList([0, 1, 2, 3, 4]);
+   * print(numbers.sublist(1, 3)); // [1, 2]
+   * print(numbers.sublist(1, 3).runtimeType); // Float32List
+   * ```
+   *
+   * If [end] is omitted, it defaults to the [length] of this list.
+   *
+   * ```dart
+   * print(numbers.sublist(1)); // [1, 2, 3, 4]
+   * ```
+   *
+   * The `start` and `end` positions must satisfy the relations
+   * 0 ≤ `start` ≤ `end` ≤ `this.length`
+   * If `end` is equal to `start`, then the returned list is empty.
+   */
+  Float32List sublist(int start, [int end]);
+
   static const int bytesPerElement = 4;
 }
 
@@ -1291,6 +1541,31 @@ abstract class Float64List implements List<double>, _TypedFloatList {
       [int offsetInBytes = 0, int length]) {
     return buffer.asFloat64List(offsetInBytes, length);
   }
+
+  /**
+   * Returns a new list containing the elements between [start] and [end].
+   *
+   * The new list is a `Float64List` containing the elements of this
+   * list at positions greater than or equal to [start] and less than [end] in
+   * the same order as they occur in this list.
+   *
+   * ```dart
+   * var numbers = Float64List.fromList([0, 1, 2, 3, 4]);
+   * print(numbers.sublist(1, 3)); // [1, 2]
+   * print(numbers.sublist(1, 3).runtimeType); // Float64List
+   * ```
+   *
+   * If [end] is omitted, it defaults to the [length] of this list.
+   *
+   * ```dart
+   * print(numbers.sublist(1)); // [1, 2, 3, 4]
+   * ```
+   *
+   * The `start` and `end` positions must satisfy the relations
+   * 0 ≤ `start` ≤ `end` ≤ `this.length`
+   * If `end` is equal to `start`, then the returned list is empty.
+   */
+  Float64List sublist(int start, [int end]);
 
   static const int bytesPerElement = 8;
 }
@@ -1345,6 +1620,31 @@ abstract class Float32x4List implements List<Float32x4>, TypedData {
    */
   List<Float32x4> operator +(List<Float32x4> other);
 
+  /**
+   * Returns a new list containing the elements between [start] and [end].
+   *
+   * The new list is a `Float32x4List` containing the elements of this
+   * list at positions greater than or equal to [start] and less than [end] in
+   * the same order as they occur in this list.
+   *
+   * ```dart
+   * var numbers = Float32x4List.fromList([0, 1, 2, 3, 4]);
+   * print(numbers.sublist(1, 3)); // [1, 2]
+   * print(numbers.sublist(1, 3).runtimeType); // Float32x4List
+   * ```
+   *
+   * If [end] is omitted, it defaults to the [length] of this list.
+   *
+   * ```dart
+   * print(numbers.sublist(1)); // [1, 2, 3, 4]
+   * ```
+   *
+   * The `start` and `end` positions must satisfy the relations
+   * 0 ≤ `start` ≤ `end` ≤ `this.length`
+   * If `end` is equal to `start`, then the returned list is empty.
+   */
+  Float32x4List sublist(int start, [int end]);
+
   static const int bytesPerElement = 16;
 }
 
@@ -1398,6 +1698,31 @@ abstract class Int32x4List implements List<Int32x4>, TypedData {
    */
   List<Int32x4> operator +(List<Int32x4> other);
 
+  /**
+   * Returns a new list containing the elements between [start] and [end].
+   *
+   * The new list is an `Int32x4list` containing the elements of this
+   * list at positions greater than or equal to [start] and less than [end] in
+   * the same order as they occur in this list.
+   *
+   * ```dart
+   * var numbers = Int32x4list.fromList([0, 1, 2, 3, 4]);
+   * print(numbers.sublist(1, 3)); // [1, 2]
+   * print(numbers.sublist(1, 3).runtimeType); // Int32x4list
+   * ```
+   *
+   * If [end] is omitted, it defaults to the [length] of this list.
+   *
+   * ```dart
+   * print(numbers.sublist(1)); // [1, 2, 3, 4]
+   * ```
+   *
+   * The `start` and `end` positions must satisfy the relations
+   * 0 ≤ `start` ≤ `end` ≤ `this.length`
+   * If `end` is equal to `start`, then the returned list is empty.
+   */
+  Int32x4List sublist(int start, [int end]);
+
   static const int bytesPerElement = 16;
 }
 
@@ -1450,6 +1775,31 @@ abstract class Float64x2List implements List<Float64x2>, TypedData {
       [int offsetInBytes = 0, int length]) {
     return buffer.asFloat64x2List(offsetInBytes, length);
   }
+
+  /**
+   * Returns a new list containing the elements between [start] and [end].
+   *
+   * The new list is a `Float64x2List` containing the elements of this
+   * list at positions greater than or equal to [start] and less than [end] in
+   * the same order as they occur in this list.
+   *
+   * ```dart
+   * var numbers = Float64x2List.fromList([0, 1, 2, 3, 4]);
+   * print(numbers.sublist(1, 3)); // [1, 2]
+   * print(numbers.sublist(1, 3).runtimeType); // Float64x2List
+   * ```
+   *
+   * If [end] is omitted, it defaults to the [length] of this list.
+   *
+   * ```dart
+   * print(numbers.sublist(1)); // [1, 2, 3, 4]
+   * ```
+   *
+   * The `start` and `end` positions must satisfy the relations
+   * 0 ≤ `start` ≤ `end` ≤ `this.length`
+   * If `end` is equal to `start`, then the returned list is empty.
+   */
+  Float64x2List sublist(int start, [int end]);
 
   static const int bytesPerElement = 16;
 }

@@ -7,9 +7,9 @@
 /// variable.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: Class1.:hasThis*/
+/*member: Class1.:hasThis*/
 class Class1<T> {
-  /*element: Class1.method1:hasThis*/
+  /*member: Class1.method1:hasThis*/
   method1(T o) {
     /*fields=[o],free=[o],hasThis*/
     dynamic local() {
@@ -25,9 +25,9 @@ class Class1<T> {
 /// A sound assignment to a local variable doesn't capture the type variable.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: Class1b.:hasThis*/
+/*member: Class1b.:hasThis*/
 class Class1b<T> {
-  /*element: Class1b.method1b:hasThis*/
+  /*member: Class1b.method1b:hasThis*/
   method1b(T o) {
     /*fields=[o],free=[o],hasThis*/
     dynamic local() {
@@ -44,9 +44,9 @@ class Class1b<T> {
 /// A local function parameter type is only captured in strong mode.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: Class2.:hasThis*/
+/*member: Class2.:hasThis*/
 class Class2<T> {
-  /*element: Class2.method2:hasThis*/
+  /*member: Class2.method2:hasThis*/
   method2() {
     /*omit.hasThis*/
     /*strong.fields=[this],free=[this],hasThis*/
@@ -59,9 +59,9 @@ class Class2<T> {
 /// A local function return type is only captured in strong mode.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: Class3.:hasThis*/
+/*member: Class3.:hasThis*/
 class Class3<T> {
-  /*element: Class3.method3:hasThis*/
+  /*member: Class3.method3:hasThis*/
   method3(dynamic o) {
     /*omit.fields=[o],free=[o],hasThis*/
     /*strong.fields=[o,this],free=[o,this],hasThis*/
@@ -74,9 +74,9 @@ class Class3<T> {
 /// A member parameter type is not captured.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: Class4.:hasThis*/
+/*member: Class4.:hasThis*/
 class Class4<T> {
-  /*element: Class4.method4:hasThis*/
+  /*member: Class4.method4:hasThis*/
   method4(T o) {
     /*fields=[o],free=[o],hasThis*/
     dynamic local() => o;
@@ -88,9 +88,9 @@ class Class4<T> {
 /// A member return type is not captured.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: Class5.:hasThis*/
+/*member: Class5.:hasThis*/
 class Class5<T> {
-  /*element: Class5.method5:hasThis*/
+  /*member: Class5.method5:hasThis*/
   T method5(dynamic o) {
     /*fields=[o],free=[o],hasThis*/
     dynamic local() => o;
@@ -102,9 +102,9 @@ class Class5<T> {
 /// A local function parameter type is not captured by an inner local function.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: Class6.:hasThis*/
+/*member: Class6.:hasThis*/
 class Class6<T> {
-  /*element: Class6.method6:hasThis*/
+  /*member: Class6.method6:hasThis*/
   method6() {
     /*omit.hasThis*/
     /*strong.fields=[this],free=[this],hasThis*/
@@ -122,9 +122,9 @@ class Class6<T> {
 /// A local function return type is not captured by an inner local function.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: Class7.:hasThis*/
+/*member: Class7.:hasThis*/
 class Class7<T> {
-  /*element: Class7.method7:hasThis*/
+  /*member: Class7.method7:hasThis*/
   method7(dynamic o) {
     /*omit.fields=[o],free=[o],hasThis*/
     /*strong.fields=[o,this],free=[o,this],hasThis*/
@@ -142,9 +142,9 @@ class Class7<T> {
 /// A field type is not captured.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: Class8.:hasThis*/
+/*member: Class8.:hasThis*/
 class Class8<T> {
-  /*element: Class8.field8:hasThis*/
+  /*member: Class8.field8:hasThis*/
   T field8 = /*hasThis*/ () {
     return null;
   }();

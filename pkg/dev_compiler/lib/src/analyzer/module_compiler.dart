@@ -12,15 +12,15 @@ import 'package:analyzer/error/error.dart';
 
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:args/args.dart' show ArgParser, ArgResults;
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 import 'package:source_maps/source_maps.dart';
 
-import '../compiler/js_names.dart' as JS;
+import '../compiler/js_names.dart' as js_ast;
 import '../compiler/module_builder.dart'
     show transformModuleFormat, ModuleFormat;
 import '../compiler/shared_command.dart';
 import '../compiler/shared_compiler.dart';
-import '../js_ast/js_ast.dart' as JS;
+import '../js_ast/js_ast.dart' as js_ast;
 import '../js_ast/js_ast.dart' show js;
 import '../js_ast/source_map_printer.dart' show SourceMapPrintingContext;
 import 'code_generator.dart' show CodeGenerator;
@@ -95,7 +95,7 @@ JSModuleFile compileWithAnalyzer(
     }
   }
 
-  JS.Program jsProgram;
+  js_ast.Program jsProgram;
   if (options.unsafeForceCompile || !errors.hasFatalErrors) {
     var codeGenerator = CodeGenerator(
         driver,
@@ -115,6 +115,13 @@ JSModuleFile compileWithAnalyzer(
     if (!options.unsafeForceCompile && errors.hasFatalErrors) {
       jsProgram = null;
     }
+  }
+
+  if (analyzerOptions.dependencyTracker != null) {
+    var file = File(analyzerOptions.dependencyTracker.outputPath);
+    file.writeAsStringSync(
+        (analyzerOptions.dependencyTracker.dependencies.toList()..sort())
+            .join('\n'));
   }
 
   var jsModule = JSModuleFile(
@@ -205,6 +212,9 @@ class CompilerOptions extends SharedCompilerOptions {
           hide: hide)
       ..addOption('summary-out',
           help: 'location to write the summary file', hide: hide)
+      ..addOption('summary-deps-output',
+          help: 'Path to a file to dump summary dependency info to.',
+          hide: hide)
       ..addOption('module-root',
           help: '(deprecated) used to determine the default module name and\n'
               'summary import name if those are not provided.',
@@ -213,7 +223,7 @@ class CompilerOptions extends SharedCompilerOptions {
 
   static String _getLibraryRoot(ArgResults args) {
     var root = args['library-root'] as String;
-    return root != null ? path.absolute(root) : path.current;
+    return root != null ? p.absolute(root) : p.current;
   }
 }
 
@@ -227,7 +237,7 @@ class JSModuleFile {
 
   /// The AST that will be used to generate the [code] and [sourceMap] for this
   /// module.
-  final JS.Program moduleTree;
+  final js_ast.Program moduleTree;
 
   /// The compiler options used to generate this module.
   final CompilerOptions options;
@@ -256,30 +266,31 @@ class JSModuleFile {
   // TODO(jmesserly): this should match our old logic, but I'm not sure we are
   // correctly handling the pointer from the .js file to the .map file.
   JSModuleCode getCode(ModuleFormat format, String jsUrl, String mapUrl) {
-    var opts = JS.JavaScriptPrintingOptions(
+    var opts = js_ast.JavaScriptPrintingOptions(
         allowKeywordsInProperties: true, allowSingleLineIfStatements: true);
-    JS.SimpleJavaScriptPrintingContext printer;
+    js_ast.SimpleJavaScriptPrintingContext printer;
     SourceMapBuilder sourceMap;
     if (options.sourceMap) {
       var sourceMapContext = SourceMapPrintingContext();
       sourceMap = sourceMapContext.sourceMap;
       printer = sourceMapContext;
     } else {
-      printer = JS.SimpleJavaScriptPrintingContext();
+      printer = js_ast.SimpleJavaScriptPrintingContext();
     }
 
     var tree = transformModuleFormat(format, moduleTree);
-    tree.accept(JS.Printer(opts, printer, localNamer: JS.TemporaryNamer(tree)));
+    tree.accept(
+        js_ast.Printer(opts, printer, localNamer: js_ast.TemporaryNamer(tree)));
 
     Map builtMap;
     if (options.sourceMap && sourceMap != null) {
       builtMap = placeSourceMap(
           sourceMap.build(jsUrl), mapUrl, options.bazelMapping, null);
       if (options.sourceMapComment) {
-        var jsDir = path.dirname(path.fromUri(jsUrl));
-        var relative = path.relative(path.fromUri(mapUrl), from: jsDir);
-        var relativeMapUrl = path.toUri(relative).toString();
-        assert(path.dirname(jsUrl) == path.dirname(mapUrl));
+        var jsDir = p.dirname(p.fromUri(jsUrl));
+        var relative = p.relative(p.fromUri(mapUrl), from: jsDir);
+        var relativeMapUrl = p.toUri(relative).toString();
+        assert(p.dirname(jsUrl) == p.dirname(mapUrl));
         printer.emit('\n//# sourceMappingURL=');
         printer.emit(relativeMapUrl);
         printer.emit('\n');
@@ -302,7 +313,7 @@ class JSModuleFile {
   void writeCodeSync(ModuleFormat format, String jsPath) {
     String mapPath = jsPath + '.map';
     var code = getCode(
-        format, path.toUri(jsPath).toString(), path.toUri(mapPath).toString());
+        format, p.toUri(jsPath).toString(), p.toUri(mapPath).toString());
     var c = code.code;
     if (format == ModuleFormat.amdConcat ||
         format == ModuleFormat.legacyConcat) {

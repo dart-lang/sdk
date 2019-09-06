@@ -36,7 +36,6 @@ class StubCode : public AllStatic {
   static void Init();
 
   static void Cleanup();
-  static void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
   // Returns true if stub code has been initialized.
   static bool HasBeenInitialized();
@@ -61,14 +60,15 @@ class StubCode : public AllStatic {
   static RawCode* GetAllocationStubForClass(const Class& cls);
 
 #if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
-  static RawCode* GetBuildMethodExtractorStub(ObjectPoolBuilder* pool);
+  static RawCode* GetBuildMethodExtractorStub(
+      compiler::ObjectPoolBuilder* pool);
 #endif
 
   // Generate the stub and finalize the generated code into the stub
   // code executable area.
   static RawCode* Generate(
       const char* name,
-      ObjectPoolBuilder* object_pool_builder,
+      compiler::ObjectPoolBuilder* object_pool_builder,
       void (*GenerateStub)(compiler::Assembler* assembler));
 
   static const Code& UnoptimizedStaticCallEntry(intptr_t num_args_tested);
@@ -86,7 +86,8 @@ class StubCode : public AllStatic {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #define GENERATE_STUB(name)                                                    \
-  static RawCode* BuildIsolateSpecific##name##Stub(ObjectPoolBuilder* opw) {   \
+  static RawCode* BuildIsolateSpecific##name##Stub(                            \
+      compiler::ObjectPoolBuilder* opw) {                                      \
     return StubCode::Generate(                                                 \
         "_iso_stub_" #name, opw,                                               \
         compiler::StubCodeCompiler::Generate##name##Stub);                     \

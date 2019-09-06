@@ -5,75 +5,75 @@
 /// Regression test for Issue #33761: is-checks and null-checks were assumed to
 /// be true even in nested non-condition contexts.
 
-/*element: argIsNonNull1:[null]*/
+/*member: argIsNonNull1:[null]*/
 argIsNonNull1(/*[exact=JSUInt31]*/ x) {
   print('>> is null: ${x == null}');
 }
 
-/*element: nonNull1:[null]*/
+/*member: nonNull1:[null]*/
 void nonNull1() {
   var x = 1;
   if (x == null) return;
   argIsNonNull1(x);
 }
 
-/*element: argIsNonNull2:[null]*/
+/*member: argIsNonNull2:[null]*/
 argIsNonNull2(/*[exact=JSUInt31]*/ x) {
   print('>> is null: ${x == null}');
 }
 
-/*element: nonNull2:[null]*/
+/*member: nonNull2:[null]*/
 void nonNull2() {
   var x = 1;
   if ((x == null) /*invoke: [exact=JSBool]*/ == true) return;
   argIsNonNull2(x);
 }
 
-/*element: argIsNonNull3:[null]*/
+/*member: argIsNonNull3:[null]*/
 argIsNonNull3(/*[exact=JSUInt31]*/ x) {
   print('>> is null: ${x == null}');
 }
 
-/*element: nonNull3:[null]*/
+/*member: nonNull3:[null]*/
 void nonNull3() {
   var x = 1;
   if ((x == null) /*invoke: [exact=JSBool]*/ != false) return;
   argIsNonNull3(x);
 }
 
-/*element: argIsNonNull4:[null]*/
+/*member: argIsNonNull4:[null]*/
 argIsNonNull4(/*[exact=JSUInt31]*/ x) {
   print('>> is null: ${x == null}');
 }
 
-/*element: discard:Value([exact=JSBool], value: false)*/
+/*member: discard:Value([exact=JSBool], value: false)*/
 discard(/*[exact=JSBool]*/ x) => false;
 
-/*element: nonNull4:[null]*/
+/*member: nonNull4:[null]*/
 void nonNull4() {
   var x = 1;
   if (discard(x != null)) return;
   argIsNonNull4(x);
 }
 
-/*element: argIsNonNull5:[null]*/
+/*member: argIsNonNull5:[null]*/
 argIsNonNull5(/*[null|exact=JSUInt31]*/ x) {
   print('>> is null: ${x == null}');
 }
 
-/*element: nonNull5:[null]*/
+/*member: nonNull5:[null]*/
 void nonNull5() {
   var x = 1;
   if (x != null ? false : false) return;
   argIsNonNull5(x);
 }
 
-/*element: argIsNonNull6:[null]*/
+/*member: argIsNonNull6:[null]*/
 argIsNonNull6(/*[exact=JSUInt31]*/ x) {
   print('>> is null: ${x == null}');
 }
 
-/*element: nonNull6:[null]*/
+/*member: nonNull6:[null]*/
 void nonNull6() {
   var x = 1;
   if ((/*[exact=JSBool]*/ (/*[exact=JSBool]*/ y) => y && false)(x != null))
@@ -81,12 +81,12 @@ void nonNull6() {
   argIsNonNull6(x);
 }
 
-/*element: argIsNonNull7:[null]*/
+/*member: argIsNonNull7:[null]*/
 argIsNonNull7(/*[exact=JSUInt31]*/ x) {
   print('>> is null: ${x == null}');
 }
 
-/*element: nonNull7:[null]*/
+/*member: nonNull7:[null]*/
 void nonNull7() {
   var f = false;
   var x = 1;
@@ -94,12 +94,12 @@ void nonNull7() {
   argIsNonNull7(x);
 }
 
-/*element: argIsNonNull8:[null]*/
+/*member: argIsNonNull8:[null]*/
 argIsNonNull8(/*[exact=JSUInt31]*/ x) {
   print('>> is null: ${x == null}');
 }
 
-/*element: nonNull8:[null]*/
+/*member: nonNull8:[null]*/
 void nonNull8() {
   var f = false;
   var x = 1;
@@ -107,7 +107,7 @@ void nonNull8() {
   argIsNonNull8(x);
 }
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 void main() {
   nonNull1();
   nonNull2();

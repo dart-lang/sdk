@@ -261,7 +261,7 @@ class AstValidator extends UnifyingAstVisitor<void> {
    * visited.
    */
   void assertValid() {
-    if (!_errors.isEmpty) {
+    if (_errors.isNotEmpty) {
       StringBuffer buffer = new StringBuffer();
       buffer.write("Invalid AST structure:");
       for (String message in _errors) {
@@ -1562,6 +1562,54 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(constructor.parameters.parameters, isEmpty);
     expect(constructor.separator, isNull);
     expect(constructor.initializers, isEmpty);
+    expect(constructor.redirectedConstructor, isNull);
+    expect(constructor.body, isEmptyFunctionBody);
+  }
+
+  void test_parseConstructor_superIndexed() {
+    createParser('C() : super()[];');
+    var constructor = parser.parseClassMember('C') as ConstructorDeclaration;
+    listener.assertErrors([
+      expectedError(ParserErrorCode.INVALID_SUPER_IN_INITIALIZER, 6, 5),
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 14, 1),
+    ]);
+    expect(constructor, isNotNull);
+    expect(constructor.externalKeyword, isNull);
+    expect(constructor.constKeyword, isNull);
+    expect(constructor.factoryKeyword, isNull);
+    expect(constructor.returnType.name, 'C');
+    _assertIsDeclarationName(constructor.returnType, false);
+    expect(constructor.name, isNull);
+    expect(constructor.parameters, isNotNull);
+    expect(constructor.parameters.parameters, isEmpty);
+    expect(constructor.separator.lexeme, ':');
+    expect(constructor.initializers, hasLength(1));
+    SuperConstructorInvocation initializer = constructor.initializers[0];
+    expect(initializer.argumentList.arguments, isEmpty);
+    expect(constructor.redirectedConstructor, isNull);
+    expect(constructor.body, isEmptyFunctionBody);
+  }
+
+  void test_parseConstructor_thisIndexed() {
+    createParser('C() : this()[];');
+    var constructor = parser.parseClassMember('C') as ConstructorDeclaration;
+    listener.assertErrors([
+      expectedError(ParserErrorCode.INVALID_THIS_IN_INITIALIZER, 6, 4),
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 13, 1),
+    ]);
+    expect(constructor, isNotNull);
+    expect(constructor.externalKeyword, isNull);
+    expect(constructor.constKeyword, isNull);
+    expect(constructor.factoryKeyword, isNull);
+    expect(constructor.returnType.name, 'C');
+    _assertIsDeclarationName(constructor.returnType, false);
+    expect(constructor.name, isNull);
+    expect(constructor.parameters, isNotNull);
+    expect(constructor.parameters.parameters, isEmpty);
+    expect(constructor.separator.lexeme, ':');
+    expect(constructor.initializers, hasLength(1));
+    RedirectingConstructorInvocation initializer = constructor.initializers[0];
+    expect(initializer.argumentList.arguments, isEmpty);
     expect(constructor.redirectedConstructor, isNull);
     expect(constructor.body, isEmptyFunctionBody);
   }

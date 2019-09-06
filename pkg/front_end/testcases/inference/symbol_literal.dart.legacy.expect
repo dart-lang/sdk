@@ -1,7 +1,12 @@
 library test;
 import self as self;
+import "dart:core" as core;
 
 static method test() → void {
-  dynamic x = #foo;
+  dynamic x = #C1;
 }
 static method main() → dynamic {}
+
+constants  {
+  #C1 = #foo
+}

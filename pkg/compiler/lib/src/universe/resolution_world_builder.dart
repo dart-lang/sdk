@@ -16,7 +16,7 @@ import '../js_backend/backend_usage.dart'
 import '../js_backend/interceptor_data.dart' show InterceptorDataBuilder;
 import '../js_backend/native_data.dart' show NativeBasicData, NativeDataBuilder;
 import '../js_backend/no_such_method_registry.dart';
-import '../js_backend/runtime_types.dart';
+import '../js_backend/runtime_types_resolution.dart';
 import '../kernel/element_map_impl.dart';
 import '../kernel/kernel_world.dart';
 import '../native/enqueue.dart' show NativeResolutionEnqueuer;
@@ -92,6 +92,8 @@ abstract class ResolutionEnqueuerWorldBuilder extends ResolutionWorldBuilder {
   /// Registers that [type] is checked in this world builder. The unaliased type
   /// is returned.
   void registerIsCheck(DartType type);
+
+  void registerNamedTypeVariableNewRti(TypeVariableType typeVariable);
 
   void registerTypeVariableTypeLiteral(TypeVariableType typeVariable);
 }
@@ -313,6 +315,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
   final Set<FieldEntity> _fieldSetters = new Set<FieldEntity>();
 
   final Set<DartType> _isChecks = new Set<DartType>();
+  final Set<TypeVariableType> _namedTypeVariablesNewRti = {};
 
   /// Set of all closures in the program. Used by the mirror tracking system
   /// to find all live closure instances.
@@ -590,6 +593,11 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
   @override
   void registerIsCheck(covariant DartType type) {
     _isChecks.add(type);
+  }
+
+  @override
+  void registerNamedTypeVariableNewRti(TypeVariableType type) {
+    _namedTypeVariablesNewRti.add(type);
   }
 
   @override
@@ -1056,7 +1064,7 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
         mixinUses: _classHierarchyBuilder.mixinUses,
         typesImplementedBySubclasses: typesImplementedBySubclasses,
         classHierarchy: _classHierarchyBuilder.close(),
-        annotationsData: _annotationsDataBuilder.close(),
+        annotationsData: _annotationsDataBuilder.close(_options),
         isChecks: _isChecks,
         staticTypeArgumentDependencies: staticTypeArgumentDependencies,
         dynamicTypeArgumentDependencies: dynamicTypeArgumentDependencies,

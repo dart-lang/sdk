@@ -62,27 +62,24 @@
 
 #if !defined(_WIN32)
 #include <arpa/inet.h>
-#include <inttypes.h>
-#include <stdint.h>
 #include <unistd.h>
 #endif  // !defined(_WIN32)
 
 #include <float.h>
+#include <inttypes.h>
 #include <limits.h>
+#include <math.h>
 #include <stdarg.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
 
 #if defined(_WIN32)
-#include "platform/c99_support_win.h"
 #include "platform/floating_point_win.h"
-#include "platform/inttypes_support_win.h"
 #endif  // defined(_WIN32)
-
-#include "platform/math.h"
 
 #if !defined(_WIN32)
 #include "platform/floating_point.h"
@@ -337,12 +334,16 @@ typedef simd128_value_t fpu_register_t;
 #if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
 #if !defined(ARCH_IS_64_BIT)
 #error Mismatched Host/Target architectures.
-#endif
+#endif  // !defined(ARCH_IS_64_BIT)
 #elif defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_ARM)
-#if !defined(ARCH_IS_32_BIT)
+#if defined(HOST_ARCH_X64) && defined(TARGET_ARCH_ARM)
+// This is simarm_x64, which is the only case where host/target architecture
+// mismatch is allowed.
+#define IS_SIMARM_X64 1
+#elif !defined(ARCH_IS_32_BIT)
 #error Mismatched Host/Target architectures.
-#endif
-#endif
+#endif  // !defined(ARCH_IS_32_BIT)
+#endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_ARM)
 
 // Determine whether we will be using the simulator.
 #if defined(TARGET_ARCH_IA32)
@@ -351,7 +352,10 @@ typedef simd128_value_t fpu_register_t;
 // No simulator used.
 #elif defined(TARGET_ARCH_ARM)
 #if !defined(HOST_ARCH_ARM)
+#define TARGET_HOST_MISMATCH 1
+#if !defined(IS_SIMARM_X64)
 #define USING_SIMULATOR 1
+#endif
 #endif
 
 #elif defined(TARGET_ARCH_ARM64)
@@ -364,6 +368,12 @@ typedef simd128_value_t fpu_register_t;
 
 #else
 #error Unknown architecture.
+#endif
+
+#if defined(ARCH_IS_32_BIT) || defined(IS_SIMARM_X64)
+#define TARGET_ARCH_IS_32_BIT 1
+#elif defined(ARCH_IS_64_BIT)
+#define TARGET_ARCH_IS_64_BIT 1
 #endif
 
 // Determine whether HOST_ARCH equals TARGET_ARCH.

@@ -1,8 +1,13 @@
+// Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 // This file contains code that is modified by running dartfix.
-// After running dartfix, the content of this file matches example-fixed.dart.
+// After running dartfix, this content matches a file in the "fixed" directory.
 
 // Dart will automatically convert int literals to doubles.
-// Running dartfix converts this double literal to an int.
+// Running dartfix converts this double literal to an int
+// if --double-to-int is specified on the command line.
 const double myDouble = 4.0;
 
 // This class is used as a mixin but does not use the new mixin syntax.
@@ -13,6 +18,8 @@ class MyMixin {
 
 class MyClass with MyMixin {}
 
-main() {
-  print('myDouble = ${MyClass().someValue}');
+main(List<String> args) {
+  if (args.length == 0) {
+    print('myDouble = ${MyClass().someValue}');
+  }
 }

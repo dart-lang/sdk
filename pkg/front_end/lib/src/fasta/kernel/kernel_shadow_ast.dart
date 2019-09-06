@@ -57,12 +57,12 @@ import '../problems.dart' show getFileUri, unhandled, unsupported;
 
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 
+import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+
 import '../type_inference/inference_helper.dart' show InferenceHelper;
 
-import '../type_inference/interface_resolver.dart' show InterfaceResolver;
-
 import '../type_inference/type_inference_engine.dart'
-    show IncludesTypeParametersCovariantly, InferenceNode, TypeInferenceEngine;
+    show IncludesTypeParametersNonCovariantly, TypeInferenceEngine;
 
 import '../type_inference/type_inferrer.dart'
     show ExpressionInferenceResult, TypeInferrer, TypeInferrerImpl;
@@ -92,11 +92,9 @@ import 'collections.dart'
         SpreadMapEntry,
         convertToElement;
 
+import 'expression_generator.dart' show makeLet;
+
 import 'implicit_type_argument.dart' show ImplicitTypeArgument;
-
-import 'kernel_builder.dart' show KernelLibraryBuilder;
-
-import 'kernel_expression_generator.dart' show makeLet;
 
 part "inference_visitor.dart";
 part "inferred_type_visitor.dart";
@@ -128,7 +126,7 @@ class ClassInferenceInfo {
 
   /// The visitor for determining if a given type makes covariant use of one of
   /// the class's generic parameters, and therefore requires covariant checks.
-  IncludesTypeParametersCovariantly needsCheckVisitor;
+  IncludesTypeParametersNonCovariantly needsCheckVisitor;
 
   /// Getters and methods in the class's API.  May include forwarding nodes.
   final gettersAndMethods = <Member>[];
@@ -277,59 +275,6 @@ class CascadeJudgment extends Let implements ExpressionJudgment {
   @override
   void acceptInference(InferenceVisitor visitor, DartType typeContext) {
     return visitor.visitCascadeJudgment(this, typeContext);
-  }
-}
-
-/// Shadow object representing a class in kernel form.
-class ShadowClass extends Class {
-  ClassInferenceInfo _inferenceInfo;
-
-  ShadowClass(
-      {String name,
-      Supertype supertype,
-      Supertype mixedInType,
-      List<TypeParameter> typeParameters,
-      List<Supertype> implementedTypes,
-      List<Procedure> procedures,
-      List<Field> fields})
-      : super(
-            name: name,
-            supertype: supertype,
-            mixedInType: mixedInType,
-            typeParameters: typeParameters,
-            implementedTypes: implementedTypes,
-            procedures: procedures,
-            fields: fields);
-
-  /// Resolves all forwarding nodes for this class, propagates covariance
-  /// annotations, and creates forwarding stubs as needed.
-  void finalizeCovariance(InterfaceResolver interfaceResolver) {
-    interfaceResolver.finalizeCovariance(
-        this, _inferenceInfo.gettersAndMethods, _inferenceInfo.builder.library);
-    interfaceResolver.finalizeCovariance(
-        this, _inferenceInfo.setters, _inferenceInfo.builder.library);
-  }
-
-  /// Creates API members for this class.
-  void setupApiMembers(InterfaceResolver interfaceResolver) {
-    interfaceResolver.createApiMembers(this, _inferenceInfo.gettersAndMethods,
-        _inferenceInfo.setters, _inferenceInfo.builder.library);
-  }
-
-  static void clearClassInferenceInfo(ShadowClass class_) {
-    class_._inferenceInfo = null;
-  }
-
-  static ClassInferenceInfo getClassInferenceInfo(Class class_) {
-    if (class_ is ShadowClass) return class_._inferenceInfo;
-    return null;
-  }
-
-  /// Initializes the class inference information associated with the given
-  /// [class_], starting with the fact that it is associated with the given
-  /// [builder].
-  static void setBuilder(ShadowClass class_, SourceClassBuilder builder) {
-    class_._inferenceInfo = new ClassInferenceInfo(builder);
   }
 }
 
@@ -635,32 +580,6 @@ class FactoryConstructorInvocationJudgment extends StaticInvocation
   }
 }
 
-/// Concrete shadow object representing a field in kernel form.
-class ShadowField extends Field implements ShadowMember {
-  @override
-  InferenceNode inferenceNode;
-
-  ShadowTypeInferrer _typeInferrer;
-
-  final bool _isImplicitlyTyped;
-
-  ShadowField(Name name, this._isImplicitlyTyped, {Uri fileUri})
-      : super(name, fileUri: fileUri) {}
-
-  @override
-  void setInferredType(
-      TypeInferenceEngine engine, Uri uri, DartType inferredType) {
-    type = inferredType;
-  }
-
-  static bool isImplicitlyTyped(ShadowField field) => field._isImplicitlyTyped;
-
-  static void setInferenceNode(ShadowField field, InferenceNode node) {
-    assert(field.inferenceNode == null);
-    field.inferenceNode = node;
-  }
-}
-
 /// Concrete shadow object representing a field initializer in kernel form.
 class ShadowFieldInitializer extends FieldInitializer
     implements InitializerJudgment {
@@ -845,8 +764,8 @@ class IndexAssignmentJudgment extends ComplexAssignmentJudgmentWithReceiver {
 /// Common base class for shadow objects representing initializers in kernel
 /// form.
 abstract class InitializerJudgment implements Initializer {
-  /// Performs type inference for whatever concrete type of [InitializerJudgment]
-  /// this is.
+  /// Performs type inference for whatever concrete type of
+  /// [InitializerJudgment] this is.
   void acceptInference(InferenceVisitor visitor);
 }
 
@@ -1000,18 +919,6 @@ class MapLiteralJudgment extends MapLiteral implements ExpressionJudgment {
   }
 }
 
-/// Abstract shadow object representing a field or procedure in kernel form.
-abstract class ShadowMember implements Member {
-  Uri get fileUri;
-
-  InferenceNode get inferenceNode;
-
-  void set inferenceNode(InferenceNode value);
-
-  void setInferredType(
-      TypeInferenceEngine engine, Uri uri, DartType inferredType);
-}
-
 /// Shadow object for [MethodInvocation].
 class MethodInvocationJudgment extends MethodInvocation
     implements ExpressionJudgment {
@@ -1107,37 +1014,6 @@ class NullAwarePropertyGetJudgment extends Let implements ExpressionJudgment {
   @override
   void acceptInference(InferenceVisitor visitor, DartType typeContext) {
     return visitor.visitNullAwarePropertyGetJudgment(this, typeContext);
-  }
-}
-
-/// Concrete shadow object representing a procedure in kernel form.
-class ShadowProcedure extends Procedure implements ShadowMember {
-  @override
-  InferenceNode inferenceNode;
-
-  final bool _hasImplicitReturnType;
-
-  ShadowProcedure(Name name, ProcedureKind kind, FunctionNode function,
-      this._hasImplicitReturnType,
-      {Uri fileUri, bool isAbstract: false})
-      : super(name, kind, function, fileUri: fileUri, isAbstract: isAbstract);
-
-  @override
-  void setInferredType(
-      TypeInferenceEngine engine, Uri uri, DartType inferredType) {
-    if (isSetter) {
-      if (function.positionalParameters.length > 0) {
-        function.positionalParameters[0].type = inferredType;
-      }
-    } else if (isGetter) {
-      function.returnType = inferredType;
-    } else {
-      unhandled("setInferredType", "not accessor", fileOffset, uri);
-    }
-  }
-
-  static bool hasImplicitReturnType(ShadowProcedure procedure) {
-    return procedure._hasImplicitReturnType;
   }
 }
 
@@ -1403,7 +1279,7 @@ class SyntheticExpressionJudgment extends Let implements ExpressionJudgment {
   }
 
   @override
-  accept(ExpressionVisitor v) {
+  accept(ExpressionVisitor<dynamic> v) {
     // This is designed to throw an exception during serialization. It can also
     // lead to exceptions during transformations, but we have to accept a
     // [Transformer] as this is used to implement `replaceChild`.
@@ -1412,12 +1288,12 @@ class SyntheticExpressionJudgment extends Let implements ExpressionJudgment {
   }
 
   @override
-  accept1(ExpressionVisitor1 v, arg) {
+  accept1(ExpressionVisitor1<dynamic, dynamic> v, arg) {
     unsupported("accept1", fileOffset, getFileUri(this));
   }
 
   @override
-  visitChildren(Visitor v) {
+  visitChildren(Visitor<dynamic> v) {
     unsupported("visitChildren", fileOffset, getFileUri(this));
   }
 }
@@ -1464,20 +1340,14 @@ class ShadowTypeInferenceEngine extends TypeInferenceEngine {
 
   @override
   ShadowTypeInferrer createLocalTypeInferrer(
-      Uri uri, InterfaceType thisType, KernelLibraryBuilder library) {
+      Uri uri, InterfaceType thisType, SourceLibraryBuilder library) {
     return new TypeInferrer(this, uri, false, thisType, library);
   }
 
   @override
   ShadowTypeInferrer createTopLevelTypeInferrer(
-      InterfaceType thisType, ShadowField field, KernelLibraryBuilder library) {
-    return field._typeInferrer =
-        new TypeInferrer(this, field.fileUri, true, thisType, library);
-  }
-
-  @override
-  ShadowTypeInferrer getFieldTypeInferrer(ShadowField field) {
-    return field._typeInferrer;
+      Uri uri, InterfaceType thisType, SourceLibraryBuilder library) {
+    return new TypeInferrer(this, uri, true, thisType, library);
   }
 }
 
@@ -1488,12 +1358,12 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
   final typePromoter;
 
   ShadowTypeInferrer.private(ShadowTypeInferenceEngine engine, Uri uri,
-      bool topLevel, InterfaceType thisType, KernelLibraryBuilder library)
+      bool topLevel, InterfaceType thisType, SourceLibraryBuilder library)
       : typePromoter = new TypePromoter(engine.typeSchemaEnvironment),
         super.private(engine, uri, topLevel, thisType, library);
 
   @override
-  Expression getFieldInitializer(ShadowField field) {
+  Expression getFieldInitializer(Field field) {
     return field.initializer;
   }
 
@@ -1533,13 +1403,6 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
       }
     }
     return inferredType;
-  }
-
-  @override
-  DartType inferFieldTopLevel(ShadowField field) {
-    if (field.initializer == null) return const DynamicType();
-    return inferExpression(field.initializer, const UnknownType(), true,
-        isVoidAllowed: true);
   }
 
   @override
@@ -1705,7 +1568,9 @@ class VariableDeclarationJudgment extends VariableDeclaration
       bool isConst: false,
       bool isFieldFormal: false,
       bool isCovariant: false,
-      bool isLocalFunction: false})
+      bool isLocalFunction: false,
+      bool isLate: false,
+      bool isRequired: false})
       : _implicitlyTyped = type == null,
         _isLocalFunction = isLocalFunction,
         super(name,
@@ -1714,7 +1579,9 @@ class VariableDeclarationJudgment extends VariableDeclaration
             isFinal: isFinal,
             isConst: isConst,
             isFieldFormal: isFieldFormal,
-            isCovariant: isCovariant);
+            isCovariant: isCovariant,
+            isLate: isLate,
+            isRequired: isRequired);
 
   VariableDeclarationJudgment.forEffect(
       Expression initializer, this._functionNestingLevel)

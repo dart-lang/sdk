@@ -121,11 +121,6 @@ class TestTypeProvider extends TypeProviderBase {
   InterfaceType _mapObjectObjectType;
 
   /**
-   * The type representing the built-in type 'Never'.
-   */
-  InterfaceType _neverType;
-
-  /**
    * An shared object representing the value 'null'.
    */
   DartObjectImpl _nullObject;
@@ -446,13 +441,8 @@ class TestTypeProvider extends TypeProviderBase {
   }
 
   @override
-  InterfaceType get neverType {
-    if (_neverType == null) {
-      ClassElementImpl neverElement =
-          ElementFactory.classElement('Never', objectType);
-      _neverType = neverElement.type;
-    }
-    return _neverType;
+  DartType get neverType {
+    return BottomTypeImpl.instance;
   }
 
   @override
@@ -614,6 +604,9 @@ class TestTypeProvider extends TypeProviderBase {
     }
     return _typeType;
   }
+
+  @override
+  VoidType get voidType => VoidTypeImpl.instance;
 
   void _initDartAsync() {
     Source asyncSource;

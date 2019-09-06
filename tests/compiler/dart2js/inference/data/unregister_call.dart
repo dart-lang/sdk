@@ -2,16 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: a:Value([exact=JSString], value: "")*/
+/*member: a:Value([exact=JSString], value: "")*/
 var a = '';
 
-/*element: A.:[exact=A]*/
+/*member: A.:[exact=A]*/
 class A {
-  /*element: A.+:[exact=JSUInt31]*/
+  /*member: A.+:[exact=JSUInt31]*/
   operator +(/*[exact=JSUInt31]*/ other) => other;
 }
 
-/*element: foo:[exact=JSString]*/
+/*member: foo:[exact=JSString]*/
 foo() {
   // The following '+' call will first say that it may call A::+,
   // String::+, or int::+. After all methods have been analyzed, we know
@@ -21,7 +21,7 @@ foo() {
   return a /*invoke: Value([exact=JSString], value: "")*/ + 'foo';
 }
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   new A() /*invoke: [exact=A]*/ + 42;
   foo();

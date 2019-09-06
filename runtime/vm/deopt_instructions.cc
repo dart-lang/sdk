@@ -1046,7 +1046,7 @@ class DeoptInfoBuilder::TrieNode : public ZoneAllocated {
 
 DeoptInfoBuilder::DeoptInfoBuilder(Zone* zone,
                                    const intptr_t num_args,
-                                   Assembler* assembler)
+                                   compiler::Assembler* assembler)
     : zone_(zone),
       instructions_(),
       num_args_(num_args),
@@ -1165,6 +1165,7 @@ void DeoptInfoBuilder::AddCopy(Value* value,
         deopt_instr =
             new (zone()) DeoptUint32Instr(ToCpuRegisterSource(source_loc));
         break;
+      case kUnboxedFloat:
       case kUnboxedDouble:
         deopt_instr = new (zone()) DeoptDoubleInstr(
             ToFpuRegisterSource(source_loc, Location::kDoubleStackSlot));

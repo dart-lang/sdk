@@ -7,31 +7,31 @@ import 'package:expect/expect.dart';
 /*strong.class: Class1:*/
 /*omit.class: Class1:*/
 class Class1<S> {
-  /*strong.element: Class1.:*/
-  /*omit.element: Class1.:*/
+  /*strong.member: Class1.:*/
+  /*omit.member: Class1.:*/
   Class1();
 
-  /*element: Class1.method1a:*/
+  /*member: Class1.method1a:*/
   T method1a<T>() => null;
 
-  /*element: Class1.method1b:*/
+  /*member: Class1.method1b:*/
   T method1b<T>() => null;
 
-  /*strong.element: Class1.method2:direct,explicit=[method2.T],needsArgs*/
-  /*omit.element: Class1.method2:*/
+  /*strong.member: Class1.method2:direct,explicit=[method2.T],needsArgs*/
+  /*omit.member: Class1.method2:*/
   T method2<T>(T t, String s) => t;
 }
 
 /*strong.class: Class2:*/
 /*omit.class: Class2:*/
 class Class2<T> {
-  /*strong.element: Class2.:*/
-  /*omit.element: Class2.:*/
+  /*strong.member: Class2.:*/
+  /*omit.member: Class2.:*/
   Class2();
 }
 
-/*strong.element: main:*/
-/*omit.element: main:*/
+/*strong.member: main:*/
+/*omit.member: main:*/
 main() {
   var c = new Class1<int>();
 

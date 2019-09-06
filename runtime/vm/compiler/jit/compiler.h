@@ -82,20 +82,12 @@ class Compiler : public AllStatic {
   // The result for a function may change if debugging gets turned on/off.
   static bool CanOptimizeFunction(Thread* thread, const Function& function);
 
-  // Extracts top level entities from the script and populates
-  // the class dictionary of the library.
-  //
-  // Returns Error::null() if there is no compilation error.
-  static RawError* Compile(const Library& library, const Script& script);
-
   // Generates code for given function without optimization and sets its code
   // field.
   //
   // Returns the raw code object if compilation succeeds.  Otherwise returns a
   // RawError.  Also installs the generated code on the function.
   static RawObject* CompileFunction(Thread* thread, const Function& function);
-  // Returns Error::null() if there is no compilation error.
-  static RawError* ParseFunction(Thread* thread, const Function& function);
 
   // Generates unoptimized code if not present, current code is unchanged.
   // Bytecode is considered unoptimized code.
@@ -112,20 +104,6 @@ class Compiler : public AllStatic {
   static RawObject* CompileOptimizedFunction(Thread* thread,
                                              const Function& function,
                                              intptr_t osr_id = kNoOSRDeoptId);
-
-  // Generates code for given parsed function (without parsing it again) and
-  // sets its code field.
-  //
-  // Returns Error::null() if there is no compilation error.
-  static RawError* CompileParsedFunction(ParsedFunction* parsed_function);
-
-  // Generates and executes code for a given code fragment, e.g. a
-  // compile time constant expression. Returns the result returned
-  // by the fragment.
-  //
-  // The return value is either a RawInstance on success or a RawError
-  // on compilation failure.
-  static RawObject* ExecuteOnce(SequenceNode* fragment);
 
   // Generates local var descriptors and sets it in 'code'. Do not call if the
   // local var descriptor already exists.
@@ -152,7 +130,7 @@ class Compiler : public AllStatic {
 // No OSR compilation in the background compiler.
 class BackgroundCompiler {
  public:
-  explicit BackgroundCompiler(Isolate* isolate);
+  explicit BackgroundCompiler(Isolate* isolate, bool optimizing);
   virtual ~BackgroundCompiler();
 
   static void Start(Isolate* isolate) {
@@ -213,6 +191,7 @@ class BackgroundCompiler {
 
   BackgroundCompilationQueue* function_queue() const { return function_queue_; }
   bool is_running() const { return running_; }
+  bool is_optimizing() const { return optimizing_; }
 
   void Run();
 
@@ -232,6 +211,7 @@ class BackgroundCompiler {
   Monitor done_monitor_;    // Notify/wait that the thread is done.
   bool running_;            // While true, will try to read queue and compile.
   bool done_;               // True if the thread is done.
+  bool optimizing_;
 
   int16_t disabled_depth_;
 

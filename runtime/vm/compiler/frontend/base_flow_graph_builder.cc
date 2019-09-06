@@ -7,6 +7,7 @@
 #include "vm/compiler/frontend/flow_graph_builder.h"  // For InlineExitCollector.
 #include "vm/compiler/jit/compiler.h"  // For Compiler::IsBackgroundCompilation().
 #include "vm/compiler/runtime_api.h"
+#include "vm/growable_array.h"
 #include "vm/object_store.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -601,9 +602,14 @@ void BaseFlowGraphBuilder::Push(Definition* definition) {
   Value::AddToList(new (Z) Value(definition), &stack_);
 }
 
-Definition* BaseFlowGraphBuilder::Peek() {
-  ASSERT(stack_ != NULL);
-  return stack_->definition();
+Definition* BaseFlowGraphBuilder::Peek(intptr_t depth) {
+  Value* head = stack_;
+  for (intptr_t i = 0; i < depth; ++i) {
+    ASSERT(head != nullptr);
+    head = head->next_use();
+  }
+  ASSERT(head != nullptr);
+  return head->definition();
 }
 
 Value* BaseFlowGraphBuilder::Pop() {
@@ -756,9 +762,9 @@ Fragment BaseFlowGraphBuilder::BooleanNegate() {
 }
 
 Fragment BaseFlowGraphBuilder::AllocateContext(
-    const GrowableArray<LocalVariable*>& context_variables) {
+    const ZoneGrowableArray<const Slot*>& context_slots) {
   AllocateContextInstr* allocate =
-      new (Z) AllocateContextInstr(TokenPosition::kNoSource, context_variables);
+      new (Z) AllocateContextInstr(TokenPosition::kNoSource, context_slots);
   Push(allocate);
   return Fragment(allocate);
 }
@@ -811,6 +817,192 @@ Fragment BaseFlowGraphBuilder::LoadClassId() {
   LoadClassIdInstr* load = new (Z) LoadClassIdInstr(Pop());
   Push(load);
   return Fragment(load);
+}
+
+Fragment BaseFlowGraphBuilder::AllocateObject(TokenPosition position,
+                                              const Class& klass,
+                                              intptr_t argument_count) {
+  ArgumentArray arguments = GetArguments(argument_count);
+  AllocateObjectInstr* allocate =
+      new (Z) AllocateObjectInstr(position, klass, arguments);
+  Push(allocate);
+  return Fragment(allocate);
+}
+
+Fragment BaseFlowGraphBuilder::BuildFfiAsFunctionInternalCall(
+    const TypeArguments& signatures) {
+  ASSERT(signatures.IsInstantiated() && signatures.Length() == 2);
+
+  const AbstractType& dart_type = AbstractType::Handle(signatures.TypeAt(0));
+  const AbstractType& native_type = AbstractType::Handle(signatures.TypeAt(1));
+
+  ASSERT(dart_type.IsFunctionType() && native_type.IsFunctionType());
+  const Function& target =
+      Function::ZoneHandle(compiler::ffi::TrampolineFunction(
+          Function::Handle(Z, Type::Cast(dart_type).signature()),
+          Function::Handle(Z, Type::Cast(native_type).signature())));
+
+  Fragment code;
+  code += LoadNativeField(Slot::Pointer_c_memory_address());
+  LocalVariable* address = MakeTemporary();
+
+  auto& context_slots = CompilerState::Current().GetDummyContextSlots(
+      /*context_id=*/0, /*num_variables=*/1);
+  code += AllocateContext(context_slots);
+  LocalVariable* context = MakeTemporary();
+
+  code += LoadLocal(context);
+  code += LoadLocal(address);
+  code += StoreInstanceField(TokenPosition::kNoSource, *context_slots[0]);
+
+  code += AllocateClosure(TokenPosition::kNoSource, target);
+  LocalVariable* closure = MakeTemporary();
+
+  code += LoadLocal(closure);
+  code += LoadLocal(context);
+  code += StoreInstanceField(TokenPosition::kNoSource, Slot::Closure_context());
+
+  code += LoadLocal(closure);
+  code += Constant(target);
+  code +=
+      StoreInstanceField(TokenPosition::kNoSource, Slot::Closure_function());
+
+  // Drop address and context.
+  code += DropTempsPreserveTop(2);
+
+  return code;
+}
+
+Fragment BaseFlowGraphBuilder::DebugStepCheck(TokenPosition position) {
+#ifdef PRODUCT
+  return Fragment();
+#else
+  return Fragment(new (Z) DebugStepCheckInstr(
+      position, RawPcDescriptors::kRuntimeCall, GetNextDeoptId()));
+#endif
+}
+
+Fragment BaseFlowGraphBuilder::CheckNull(TokenPosition position,
+                                         LocalVariable* receiver,
+                                         const String& function_name,
+                                         bool clear_the_temp /* = true */) {
+  Fragment instructions = LoadLocal(receiver);
+
+  CheckNullInstr* check_null =
+      new (Z) CheckNullInstr(Pop(), function_name, GetNextDeoptId(), position);
+
+  instructions <<= check_null;
+
+  if (clear_the_temp) {
+    // Null out receiver to make sure it is not saved into the frame before
+    // doing the call.
+    instructions += NullConstant();
+    instructions += StoreLocal(TokenPosition::kNoSource, receiver);
+    instructions += Drop();
+  }
+
+  return instructions;
+}
+
+void BaseFlowGraphBuilder::RecordUncheckedEntryPoint(
+    GraphEntryInstr* graph_entry,
+    FunctionEntryInstr* unchecked_entry) {
+  // Closures always check all arguments on their checked entry-point, most
+  // call-sites are unchecked, and they're inlined less often, so it's very
+  // beneficial to build multiple entry-points for them. Regular methods however
+  // have fewer checks to begin with since they have dynamic invocation
+  // forwarders, so in AOT we implement a more conservative time-space tradeoff
+  // by only building the unchecked entry-point when inlining. We should
+  // reconsider this heuristic if we identify non-inlined type-checks in
+  // hotspots of new benchmarks.
+  if (!IsInlining() && (parsed_function_->function().IsClosureFunction() ||
+                        !FLAG_precompiled_mode)) {
+    graph_entry->set_unchecked_entry(unchecked_entry);
+  } else if (InliningUncheckedEntry()) {
+    graph_entry->set_normal_entry(unchecked_entry);
+  }
+}
+
+Fragment BaseFlowGraphBuilder::BuildEntryPointsIntrospection() {
+  if (!FLAG_enable_testing_pragmas) return Drop();
+
+  auto& function = Function::Handle(Z, parsed_function_->function().raw());
+
+  if (function.IsImplicitClosureFunction()) {
+    const auto& parent = Function::Handle(Z, function.parent_function());
+    const auto& func_name = String::Handle(Z, parent.name());
+    const auto& owner = Class::Handle(Z, parent.Owner());
+    function = owner.LookupFunction(func_name);
+  }
+
+  Object& options = Object::Handle(Z);
+  if (!Library::FindPragma(thread_, /*only_core=*/false, function,
+                           Symbols::vm_trace_entrypoints(), &options) ||
+      options.IsNull() || !options.IsClosure()) {
+    return Drop();
+  }
+  auto& closure = Closure::ZoneHandle(Z, Closure::Cast(options).raw());
+  LocalVariable* entry_point_num = MakeTemporary();
+
+  auto& function_name = String::ZoneHandle(
+      Z, String::New(function.ToLibNamePrefixedQualifiedCString(), Heap::kOld));
+  if (parsed_function_->function().IsImplicitClosureFunction()) {
+    function_name = String::Concat(
+        function_name, String::Handle(Z, String::New("#tearoff", Heap::kNew)),
+        Heap::kOld);
+  }
+
+  Fragment call_hook;
+  call_hook += Constant(closure);
+  call_hook += PushArgument();
+  call_hook += Constant(function_name);
+  call_hook += PushArgument();
+  call_hook += LoadLocal(entry_point_num);
+  call_hook += PushArgument();
+  call_hook += Constant(Function::ZoneHandle(Z, closure.function()));
+  call_hook += ClosureCall(TokenPosition::kNoSource,
+                           /*type_args_len=*/0, /*argument_count=*/3,
+                           /*argument_names=*/Array::ZoneHandle(Z));
+  call_hook += Drop();  // result of closure call
+  call_hook += Drop();  // entrypoint number
+  return call_hook;
+}
+
+Fragment BaseFlowGraphBuilder::ClosureCall(TokenPosition position,
+                                           intptr_t type_args_len,
+                                           intptr_t argument_count,
+                                           const Array& argument_names,
+                                           bool is_statically_checked) {
+  Value* function = Pop();
+  const intptr_t total_count = argument_count + (type_args_len > 0 ? 1 : 0);
+  ArgumentArray arguments = GetArguments(total_count);
+  ClosureCallInstr* call = new (Z)
+      ClosureCallInstr(function, arguments, type_args_len, argument_names,
+                       position, GetNextDeoptId(),
+                       is_statically_checked ? Code::EntryKind::kUnchecked
+                                             : Code::EntryKind::kNormal);
+  Push(call);
+  return Fragment(call);
+}
+
+Fragment BaseFlowGraphBuilder::StringInterpolate(TokenPosition position) {
+  Value* array = Pop();
+  StringInterpolateInstr* interpolate =
+      new (Z) StringInterpolateInstr(array, position, GetNextDeoptId());
+  Push(interpolate);
+  return Fragment(interpolate);
+}
+
+void BaseFlowGraphBuilder::reset_context_depth_for_deopt_id(intptr_t deopt_id) {
+  if (is_recording_context_levels()) {
+    for (intptr_t i = 0, n = context_level_array_->length(); i < n; i += 2) {
+      if (context_level_array_->At(i) == deopt_id) {
+        (*context_level_array_)[i + 1] = context_depth_;
+        return;
+      }
+      ASSERT(context_level_array_->At(i) < deopt_id);
+    }
+  }
 }
 
 }  // namespace kernel

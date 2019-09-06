@@ -52,6 +52,10 @@ class CloneVisitor implements TreeVisitor {
     throw 'Cloning of classes is not implemented';
   }
 
+  TreeNode visitExtension(Extension node) {
+    throw 'Cloning of extensions is not implemented';
+  }
+
   // The currently active file uri where we are cloning [TreeNode]s from.  If
   // this is set to `null` we cannot clone file offsets to newly created nodes.
   // The [_cloneFileOffset] helper function will ensure this.
@@ -214,7 +218,8 @@ class CloneVisitor implements TreeVisitor {
         node.classReference,
         node.typeArguments.map(visitType).toList(),
         fieldValues,
-        node.asserts.map(clone).toList());
+        node.asserts.map(clone).toList(),
+        node.unusedArguments.map(clone).toList());
   }
 
   visitIsExpression(IsExpression node) {
@@ -471,6 +476,7 @@ class CloneVisitor implements TreeVisitor {
         isFinal: node.isFinal,
         isConst: node.isConst,
         isStatic: node.isStatic,
+        isLate: node.isLate,
         hasImplicitGetter: node.hasImplicitGetter,
         hasImplicitSetter: node.hasImplicitSetter,
         transformerFlags: node.transformerFlags,

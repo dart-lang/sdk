@@ -9,7 +9,7 @@ void test() {
   for (num x = 0;; x++) {
     if (x /*@target=num::>=*/ >= 10) break;
     if (x is int) {
-      var /*@type=int*/ y = /*@promotedType=int*/ x;
+      var /*@ type=int* */ y = /*@ promotedType=int* */ x;
     }
   }
 }

@@ -35,8 +35,10 @@
   CONSTANT(Array, kMaxElements)                                                \
   CONSTANT(Array, kMaxNewSpaceElements)                                        \
   CONSTANT(ClassTable, kSizeOfClassPairLog2)                                   \
-  CONSTANT(Instructions, kMonomorphicEntryOffset)                              \
-  CONSTANT(Instructions, kPolymorphicEntryOffset)                              \
+  CONSTANT(Instructions, kMonomorphicEntryOffsetJIT)                           \
+  CONSTANT(Instructions, kPolymorphicEntryOffsetJIT)                           \
+  CONSTANT(Instructions, kMonomorphicEntryOffsetAOT)                           \
+  CONSTANT(Instructions, kPolymorphicEntryOffsetAOT)                           \
   CONSTANT(HeapPage, kBytesPerCardLog2)                                        \
   CONSTANT(NativeEntry, kNumCallWrapperArguments)                              \
   CONSTANT(String, kMaxElements)                                               \
@@ -155,6 +157,8 @@
   NOT_IN_DBC(FIELD(Thread, call_to_runtime_entry_point_offset))                \
   NOT_IN_DBC(FIELD(Thread, call_to_runtime_stub_offset))                       \
   FIELD(Thread, dart_stream_offset)                                            \
+  NOT_IN_DBC(FIELD(Thread, optimize_entry_offset))                             \
+  NOT_IN_DBC(FIELD(Thread, optimize_stub_offset))                              \
   NOT_IN_DBC(FIELD(Thread, deoptimize_entry_offset))                           \
   NOT_IN_DBC(FIELD(Thread, deoptimize_stub_offset))                            \
   FIELD(Thread, double_abs_address_offset)                                     \
@@ -163,6 +167,8 @@
   NOT_IN_DBC(FIELD(Thread, enter_safepoint_stub_offset))                       \
   FIELD(Thread, execution_state_offset)                                        \
   NOT_IN_DBC(FIELD(Thread, exit_safepoint_stub_offset))                        \
+  NOT_IN_DBC(FIELD(Thread, call_native_through_safepoint_stub_offset))         \
+  NOT_IN_DBC(FIELD(Thread, call_native_through_safepoint_entry_point_offset))  \
   NOT_IN_DBC(FIELD(Thread, fix_allocation_stub_code_offset))                   \
   NOT_IN_DBC(FIELD(Thread, fix_callers_target_code_offset))                    \
   FIELD(Thread, float_absolute_address_offset)                                 \
@@ -170,7 +176,6 @@
   FIELD(Thread, float_not_address_offset)                                      \
   FIELD(Thread, float_zerow_address_offset)                                    \
   FIELD(Thread, global_object_pool_offset)                                     \
-  NOT_IN_DBC(FIELD(Thread, ic_lookup_through_code_stub_offset))                \
   NOT_IN_DBC(FIELD(Thread, interpret_call_entry_point_offset))                 \
   NOT_IN_DBC(FIELD(Thread, invoke_dart_code_from_bytecode_stub_offset))        \
   NOT_IN_DBC(FIELD(Thread, invoke_dart_code_stub_offset))                      \
@@ -235,9 +240,8 @@
   NOT_IN_PRODUCT(ARRAY_STRUCTFIELD(                                            \
       ClassTable, NewSpaceCounterOffsetFor, ClassOffsetFor,                    \
       ClassHeapStats::allocated_since_gc_new_space_offset()))                  \
-  NOT_IN_PRODUCT(ARRAY_STRUCTFIELD(                                            \
-      ClassTable, StateOffsetFor, ClassOffsetFor,                              \
-      ClassHeapStats::allocated_since_gc_new_space_offset()))                  \
+  NOT_IN_PRODUCT(ARRAY_STRUCTFIELD(ClassTable, StateOffsetFor, ClassOffsetFor, \
+                                   ClassHeapStats::state_offset()))            \
   NOT_IN_PRODUCT(ARRAY_STRUCTFIELD(                                            \
       ClassTable, NewSpaceSizeOffsetFor, ClassOffsetFor,                       \
       ClassHeapStats::allocated_size_since_gc_new_space_offset()))             \

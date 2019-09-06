@@ -33,7 +33,7 @@ abstract class TypeSystem {
   /// Other type systems may define this operation differently.
   DartType flatten(DartType type);
 
-  /// Return `true` if the [rightType] is assignable to the [leftType].
+  /// Return `true` if the [leftType] is assignable to the [rightType].
   ///
   /// For the Dart 2.0 type system, the definition of this relationship is given
   /// in the Dart Language Specification, section 19.4 Subtypes:
@@ -46,8 +46,8 @@ abstract class TypeSystem {
   /// The subtype relationship (<:) can be tested using [isSubtypeOf].
   ///
   /// Other type systems may define this operation differently. In particular,
-  /// while the operation is commutative in the Dart 2.0 type system, that is
-  /// not a requirement of a type system, so the order of the arguments is
+  /// while the operation is commutative in the Dart 2.0 type system, it will
+  /// not be commutative when NNBD is enabled, so the order of the arguments is
   /// important.
   bool isAssignableTo(DartType leftType, DartType rightType);
 
@@ -94,7 +94,7 @@ abstract class TypeSystem {
   @experimental
   bool isPotentiallyNonNullable(DartType type);
 
-  /// Return `true` if the [type] is not a potentially nullable type.
+  /// Return `true` if the [type] is a potentially nullable type.
   ///
   /// We say that a type `T` is potentially nullable if `T` is not non-nullable.
   /// Note that this is different from saying that `T` is nullable. For example,
@@ -124,6 +124,10 @@ abstract class TypeSystem {
   ///
   /// Other type systems may define this operation differently.
   DartType leastUpperBound(DartType leftType, DartType rightType);
+
+  /// Returns a non-nullable version of [type].  This is equivalent to the
+  /// operation `NonNull` defined in the spec.
+  DartType promoteToNonNull(DartType type);
 
   /// Return the result of resolving the bounds of the given [type].
   ///

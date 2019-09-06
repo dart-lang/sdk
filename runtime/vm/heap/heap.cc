@@ -179,21 +179,23 @@ void Heap::AllocateExternal(intptr_t cid, intptr_t size, Space space) {
   if (space == kNew) {
     isolate()->AssertCurrentThreadIsMutator();
     new_space_.AllocateExternal(cid, size);
-    if (new_space_.ExternalInWords() > (4 * new_space_.CapacityInWords())) {
-      // Attempt to free some external allocation by a scavenge. (If the total
-      // remains above the limit, next external alloc will trigger another.)
-      CollectGarbage(kScavenge, kExternal);
-      // Promotion may have pushed old space over its limit.
-      if (old_space_.NeedsGarbageCollection()) {
-        CollectGarbage(kMarkSweep, kExternal);
-      }
+    if (new_space_.ExternalInWords() <= (4 * new_space_.CapacityInWords())) {
+      return;
     }
+    // Attempt to free some external allocation by a scavenge. (If the total
+    // remains above the limit, next external alloc will trigger another.)
+    CollectGarbage(kScavenge, kExternal);
+    // Promotion may have pushed old space over its limit. Fall through for old
+    // space GC check.
   } else {
     ASSERT(space == kOld);
     old_space_.AllocateExternal(cid, size);
-    if (old_space_.NeedsGarbageCollection()) {
-      CollectMostGarbage(kExternal);
-    }
+  }
+
+  if (old_space_.NeedsGarbageCollection()) {
+    CollectGarbage(kMarkSweep, kExternal);
+  } else {
+    CheckStartConcurrentMarking(Thread::Current(), kExternal);
   }
 }
 
@@ -439,6 +441,13 @@ void Heap::NotifyLowMemory() {
 
 void Heap::EvacuateNewSpace(Thread* thread, GCReason reason) {
   ASSERT((reason != kOldSpace) && (reason != kPromotion));
+  if (thread->isolate() == Dart::vm_isolate()) {
+    // The vm isolate cannot safely collect garbage due to unvisited read-only
+    // handles and slots bootstrapped with RAW_NULL. Ignore GC requests to
+    // trigger a nice out-of-memory message instead of a crash in the middle of
+    // visiting pointers.
+    return;
+  }
   if (BeginNewSpaceGC(thread)) {
     RecordBeforeGC(kScavenge, reason);
     VMTagScope tagScope(thread, reason == kIdle ? VMTag::kGCIdleTagId
@@ -454,6 +463,13 @@ void Heap::EvacuateNewSpace(Thread* thread, GCReason reason) {
 
 void Heap::CollectNewSpaceGarbage(Thread* thread, GCReason reason) {
   ASSERT((reason != kOldSpace) && (reason != kPromotion));
+  if (thread->isolate() == Dart::vm_isolate()) {
+    // The vm isolate cannot safely collect garbage due to unvisited read-only
+    // handles and slots bootstrapped with RAW_NULL. Ignore GC requests to
+    // trigger a nice out-of-memory message instead of a crash in the middle of
+    // visiting pointers.
+    return;
+  }
   if (BeginNewSpaceGC(thread)) {
     RecordBeforeGC(kScavenge, reason);
     {
@@ -483,6 +499,13 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
   ASSERT(type != kScavenge);
   if (FLAG_use_compactor) {
     type = kMarkCompact;
+  }
+  if (thread->isolate() == Dart::vm_isolate()) {
+    // The vm isolate cannot safely collect garbage due to unvisited read-only
+    // handles and slots bootstrapped with RAW_NULL. Ignore GC requests to
+    // trigger a nice out-of-memory message instead of a crash in the middle of
+    // visiting pointers.
+    return;
   }
   if (BeginOldSpaceGC(thread)) {
     RecordBeforeGC(type, reason);
@@ -808,16 +831,9 @@ int64_t Heap::PeerCount() const {
   return new_weak_tables_[kPeers]->count() + old_weak_tables_[kPeers]->count();
 }
 
-#if !defined(HASH_IN_OBJECT_HEADER)
-int64_t Heap::HashCount() const {
-  return new_weak_tables_[kHashes]->count() +
-         old_weak_tables_[kHashes]->count();
-}
-#endif
-
-int64_t Heap::ObjectIdCount() const {
-  return new_weak_tables_[kObjectIds]->count() +
-         old_weak_tables_[kObjectIds]->count();
+void Heap::ResetCanonicalHashTable() {
+  new_weak_tables_[kCanonicalHashes]->Reset();
+  old_weak_tables_[kCanonicalHashes]->Reset();
 }
 
 void Heap::ResetObjectIdTable() {
@@ -876,11 +892,15 @@ void Heap::PrintToJSONObject(Space space, JSONObject* object) const {
 }
 
 void Heap::PrintMemoryUsageJSON(JSONStream* stream) const {
-  JSONObject jsobj(stream);
-  jsobj.AddProperty("type", "MemoryUsage");
-  jsobj.AddProperty64("heapUsage", TotalUsedInWords() * kWordSize);
-  jsobj.AddProperty64("heapCapacity", TotalCapacityInWords() * kWordSize);
-  jsobj.AddProperty64("externalUsage", TotalExternalInWords() * kWordSize);
+  JSONObject obj(stream);
+  PrintMemoryUsageJSON(&obj);
+}
+
+void Heap::PrintMemoryUsageJSON(JSONObject* jsobj) const {
+  jsobj->AddProperty("type", "MemoryUsage");
+  jsobj->AddProperty64("heapUsage", TotalUsedInWords() * kWordSize);
+  jsobj->AddProperty64("heapCapacity", TotalCapacityInWords() * kWordSize);
+  jsobj->AddProperty64("externalUsage", TotalExternalInWords() * kWordSize);
 }
 #endif  // PRODUCT
 
@@ -1043,13 +1063,13 @@ Heap::Space Heap::SpaceForExternal(intptr_t size) const {
 
 NoHeapGrowthControlScope::NoHeapGrowthControlScope()
     : ThreadStackResource(Thread::Current()) {
-  Heap* heap = reinterpret_cast<Isolate*>(isolate())->heap();
+  Heap* heap = isolate()->heap();
   current_growth_controller_state_ = heap->GrowthControlState();
   heap->DisableGrowthControl();
 }
 
 NoHeapGrowthControlScope::~NoHeapGrowthControlScope() {
-  Heap* heap = reinterpret_cast<Isolate*>(isolate())->heap();
+  Heap* heap = isolate()->heap();
   heap->SetGrowthControlState(current_growth_controller_state_);
 }
 

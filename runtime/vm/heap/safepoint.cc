@@ -4,6 +4,7 @@
 
 #include "vm/heap/safepoint.h"
 
+#include "vm/heap/heap.h"
 #include "vm/thread.h"
 #include "vm/thread_registry.h"
 
@@ -17,7 +18,7 @@ SafepointOperationScope::SafepointOperationScope(Thread* T)
   Isolate* I = T->isolate();
   ASSERT(I != NULL);
 
-  SafepointHandler* handler = I->safepoint_handler();
+  SafepointHandler* handler = I->group()->safepoint_handler();
   ASSERT(handler != NULL);
 
   // Signal all threads to get to a safepoint and wait for them to
@@ -37,8 +38,52 @@ SafepointOperationScope::~SafepointOperationScope() {
   handler->ResumeThreads(T);
 }
 
-SafepointHandler::SafepointHandler(Isolate* isolate)
-    : isolate_(isolate),
+ForceGrowthSafepointOperationScope::ForceGrowthSafepointOperationScope(
+    Thread* T)
+    : ThreadStackResource(T) {
+  ASSERT(T != NULL);
+  Isolate* I = T->isolate();
+  ASSERT(I != NULL);
+
+  Heap* heap = I->heap();
+  current_growth_controller_state_ = heap->GrowthControlState();
+  heap->DisableGrowthControl();
+
+  SafepointHandler* handler = I->group()->safepoint_handler();
+  ASSERT(handler != NULL);
+
+  // Signal all threads to get to a safepoint and wait for them to
+  // get to a safepoint.
+  handler->SafepointThreads(T);
+}
+
+ForceGrowthSafepointOperationScope::~ForceGrowthSafepointOperationScope() {
+  Thread* T = thread();
+  ASSERT(T != NULL);
+  Isolate* I = T->isolate();
+  ASSERT(I != NULL);
+
+  // Resume all threads which are blocked for the safepoint operation.
+  SafepointHandler* handler = I->safepoint_handler();
+  ASSERT(handler != NULL);
+  handler->ResumeThreads(T);
+
+  Heap* heap = I->heap();
+  heap->SetGrowthControlState(current_growth_controller_state_);
+
+  if (current_growth_controller_state_) {
+    ASSERT(T->CanCollectGarbage());
+    // Check if we passed the growth limit during the scope.
+    if (heap->old_space()->NeedsGarbageCollection()) {
+      heap->CollectGarbage(Heap::kMarkSweep, Heap::kOldSpace);
+    } else {
+      heap->CheckStartConcurrentMarking(T, Heap::kOldSpace);
+    }
+  }
+}
+
+SafepointHandler::SafepointHandler(IsolateGroup* isolate_group)
+    : isolate_group_(isolate_group),
       safepoint_lock_(),
       number_threads_not_at_safepoint_(0),
       safepoint_operation_count_(0),
@@ -47,7 +92,7 @@ SafepointHandler::SafepointHandler(Isolate* isolate)
 SafepointHandler::~SafepointHandler() {
   ASSERT(owner_ == NULL);
   ASSERT(safepoint_operation_count_ == 0);
-  isolate_ = NULL;
+  isolate_group_ = NULL;
 }
 
 void SafepointHandler::SafepointThreads(Thread* T) {
@@ -79,7 +124,7 @@ void SafepointHandler::SafepointThreads(Thread* T) {
 
     // Go over the active thread list and ensure that all threads active
     // in the isolate reach a safepoint.
-    Thread* current = isolate()->thread_registry()->active_list();
+    Thread* current = isolate_group()->thread_registry()->active_list();
     while (current != NULL) {
       MonitorLocker tl(current->thread_lock());
       if (!current->BypassSafepoints()) {
@@ -113,8 +158,15 @@ void SafepointHandler::SafepointThreads(Thread* T) {
         if (FLAG_trace_safepoint && num_attempts > 10) {
           // We have been waiting too long, start logging this as we might
           // have an issue where a thread is not checking in for a safepoint.
-          OS::PrintErr("Attempt:%" Pd " waiting for %d threads to check in\n",
-                       num_attempts, number_threads_not_at_safepoint_);
+          for (Thread* current =
+                   isolate_group()->thread_registry()->active_list();
+               current != NULL; current = current->next()) {
+            if (!current->IsAtSafepoint()) {
+              OS::PrintErr("Attempt:%" Pd
+                           " waiting for thread %s to check in\n",
+                           num_attempts, current->os_thread()->name());
+            }
+          }
         }
       }
     }
@@ -133,7 +185,7 @@ void SafepointHandler::ResumeThreads(Thread* T) {
     decrement_safepoint_operation_count();
     return;
   }
-  Thread* current = isolate()->thread_registry()->active_list();
+  Thread* current = isolate_group()->thread_registry()->active_list();
   while (current != NULL) {
     MonitorLocker tl(current->thread_lock());
     if (!current->BypassSafepoints()) {

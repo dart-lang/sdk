@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/fasta/messages.dart' show MessageCode;
 import 'package:front_end/src/fasta/parser.dart';
 import 'package:front_end/src/fasta/parser/forwarding_listener.dart';
 import 'package:front_end/src/scanner/token.dart';
@@ -115,8 +116,8 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginClassOrMixinBody(Token token) {
-    super.beginClassOrMixinBody(token);
+  void beginClassOrMixinBody(ClassKind kind, Token token) {
+    super.beginClassOrMixinBody(kind, token);
     begin('ClassOrMixinBody');
   }
 
@@ -578,6 +579,13 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
+  void endInvalidAwaitExpression(
+      Token beginToken, Token endToken, MessageCode errorCode) {
+    end('InvalidAwaitExpression');
+    super.endInvalidAwaitExpression(beginToken, endToken, errorCode);
+  }
+
+  @override
   void endBlock(int count, Token beginToken, Token endToken) {
     end('Block');
     super.endBlock(count, beginToken, endToken);
@@ -615,9 +623,10 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endClassOrMixinBody(int memberCount, Token beginToken, Token endToken) {
+  void endClassOrMixinBody(
+      ClassKind kind, int memberCount, Token beginToken, Token endToken) {
     end('ClassOrMixinBody');
-    super.endClassOrMixinBody(memberCount, beginToken, endToken);
+    super.endClassOrMixinBody(kind, memberCount, beginToken, endToken);
   }
 
   @override
@@ -696,8 +705,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endExtensionDeclaration(Token onKeyword, Token token) {
-    super.endExtensionDeclaration(onKeyword, token);
+  void endExtensionDeclaration(
+      Token extensionKeyword, Token onKeyword, Token token) {
+    super.endExtensionDeclaration(extensionKeyword, onKeyword, token);
     end('ExtensionDeclaration');
   }
 
@@ -754,11 +764,17 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endFormalParameter(Token thisKeyword, Token periodAfterThis,
-      Token nameToken, FormalParameterKind kind, MemberKind memberKind) {
+  void endFormalParameter(
+      Token thisKeyword,
+      Token periodAfterThis,
+      Token nameToken,
+      Token initializerStart,
+      Token initializerEnd,
+      FormalParameterKind kind,
+      MemberKind memberKind) {
     end('FormalParameter');
-    super.endFormalParameter(
-        thisKeyword, periodAfterThis, nameToken, kind, memberKind);
+    super.endFormalParameter(thisKeyword, periodAfterThis, nameToken,
+        initializerStart, initializerEnd, kind, memberKind);
   }
 
   @override
@@ -908,10 +924,11 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endMethod(
-      Token getOrSet, Token beginToken, Token beginParam, Token endToken) {
+  void endMethod(Token getOrSet, Token beginToken, Token beginParam,
+      Token beginInitializers, Token endToken) {
     end('Method');
-    super.endMethod(getOrSet, beginToken, beginParam, endToken);
+    super.endMethod(
+        getOrSet, beginToken, beginParam, beginInitializers, endToken);
   }
 
   @override

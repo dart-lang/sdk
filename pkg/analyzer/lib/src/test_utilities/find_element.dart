@@ -87,6 +87,15 @@ class FindElement {
     throw StateError('Not found: $targetUri');
   }
 
+  ExtensionElement extension_(String name) {
+    for (var extension_ in unitElement.extensions) {
+      if (extension_.name == name) {
+        return extension_;
+      }
+    }
+    throw StateError('Not found: $name');
+  }
+
   FieldElement field(String name, {String of}) {
     FieldElement result;
 
@@ -120,6 +129,13 @@ class FindElement {
         continue;
       }
       findIn(mixin.fields);
+    }
+
+    for (var extension in unitElement.extensions) {
+      if (of != null && extension.name != of) {
+        continue;
+      }
+      findIn(extension.fields);
     }
 
     if (result != null) {
@@ -169,6 +185,13 @@ class FindElement {
         continue;
       }
       findIn(enum_.accessors);
+    }
+
+    for (var extension_ in unitElement.extensions) {
+      if (of != null && extension_.name != of) {
+        continue;
+      }
+      findIn(extension_.accessors);
     }
 
     for (var class_ in unitElement.types) {
@@ -275,6 +298,13 @@ class FindElement {
       }
     }
 
+    for (var extension_ in unitElement.extensions) {
+      if (of != null && extension_.name != of) {
+        continue;
+      }
+      findIn(extension_.methods);
+    }
+
     for (var class_ in unitElement.types) {
       if (of != null && class_.name != of) {
         continue;
@@ -330,6 +360,15 @@ class FindElement {
       findIn(function.parameters);
     }
 
+    for (var extension_ in unitElement.extensions) {
+      for (var method in extension_.methods) {
+        findIn(method.parameters);
+      }
+      for (var accessor in extension_.accessors) {
+        findIn(accessor.parameters);
+      }
+    }
+
     for (var class_ in unitElement.types) {
       for (var constructor in class_.constructors) {
         findIn(constructor.parameters);
@@ -370,6 +409,13 @@ class FindElement {
           result = accessor;
         }
       }
+    }
+
+    for (var extension_ in unitElement.extensions) {
+      if (of != null && extension_.name != of) {
+        continue;
+      }
+      findIn(extension_.accessors);
     }
 
     for (var class_ in unitElement.types) {
@@ -476,6 +522,24 @@ class ImportFindElement {
     for (var class_ in definingUnit.types) {
       if (class_.name == name) {
         return class_;
+      }
+    }
+    throw StateError('Not found: $name');
+  }
+
+  ExtensionElement extension_(String name) {
+    for (var element in definingUnit.extensions) {
+      if (element.name == name) {
+        return element;
+      }
+    }
+    throw StateError('Not found: $name');
+  }
+
+  GenericTypeAliasElement functionTypeAlias(String name) {
+    for (var element in definingUnit.functionTypeAliases) {
+      if (element.name == name) {
+        return element;
       }
     }
     throw StateError('Not found: $name');

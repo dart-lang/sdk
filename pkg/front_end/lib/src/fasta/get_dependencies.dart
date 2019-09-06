@@ -36,7 +36,8 @@ Future<List<Uri>> getDependencies(Uri script,
     ..packagesFileUri = packages
     ..sdkSummary = platform
     ..sdkRoot = sdk;
-  var pOptions = new ProcessedOptions(options: options, inputs: <Uri>[script]);
+  ProcessedOptions pOptions =
+      new ProcessedOptions(options: options, inputs: <Uri>[script]);
   return await CompilerContext.runWithOptions(pOptions,
       (CompilerContext c) async {
     FileSystem fileSystem = c.options.fileSystem;

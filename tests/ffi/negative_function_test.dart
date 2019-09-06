@@ -13,6 +13,8 @@ import "package:expect/expect.dart";
 main() {
   testWrongArity();
   testWrongTypes();
+  testDynamicAsFunction();
+  testDynamicLookupFunction();
 }
 
 ffi.DynamicLibrary ffiTestFunctions =
@@ -60,4 +62,22 @@ void testWrongTypes() {
         .lookupFunction<NativeUnaryOp, UnaryOp>("Assign1337Index1");
     Expect.throwsTypeError(() => pointerOp(0));
   }
+}
+
+// Test that invoking 'Pointer.asFunction' with a dynamic receiver type throws
+// an exception.
+void testDynamicAsFunction() {
+  dynamic x = ffi.nullptr.cast<ffi.NativeFunction<ffi.Void Function()>>();
+  Expect.throwsUnsupportedError(() {
+    x.asFunction<void Function()>();
+  });
+}
+
+// Test that invoking 'DynamicLibrary.lookupFunction' with a dynamic receiver
+// type throws an exception.
+void testDynamicLookupFunction() {
+  dynamic lib = ffiTestFunctions;
+  Expect.throwsUnsupportedError(() {
+    lib.lookupFunction<ffi.Void Function(), void Function()>("_");
+  });
 }

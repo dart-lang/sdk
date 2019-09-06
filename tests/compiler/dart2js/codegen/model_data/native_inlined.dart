@@ -15,7 +15,7 @@ class Class {
       // ignore: NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE
       native;
 
-  /*element: Class.method2:
+  /*member: Class.method2:
    calls=[method2(a,b,c)],
    params=4,
    stubs=[
@@ -30,7 +30,7 @@ class Class {
   // TODO(johnniwinther): Control the order of the named arguments. Currently
   // we sort them lexicographically but that doesn't match the target
   // expectations.
-  /*element: Class.method3:
+  /*member: Class.method3:
    calls=[method3(a,c,b)],
    params=4,
    stubs=[
@@ -45,7 +45,7 @@ class Class {
   // TODO(johnniwinther): Control the order of the named arguments. Currently
   // we sort them lexicographically but that doesn't match the target
   // expectations.
-  /*element: Class.method4:
+  /*member: Class.method4:
    calls=[method4(a,c,d,b)],
    params=5,
    stubs=[
@@ -61,18 +61,18 @@ class Class {
       native;
 }
 
-/*element: makeClass:params=0*/
+/*member: makeClass:params=0*/
 @Creates('Class')
 makeClass()
     // ignore: NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE
     native;
 
-/*element: main:calls=[test(1),*],params=0*/
+/*member: main:calls=[test(1),*],params=0*/
 main() {
   test(makeClass());
 }
 
-/*element: test:
+/*member: test:
  calls=[
   method1(0),
   method1(0,1),

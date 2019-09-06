@@ -297,8 +297,7 @@ class FlowGraphBuilderHelper {
     Zone* zone = thread->zone();
     ParsedFunction* parsed_function = new (zone) ParsedFunction(thread, func);
 
-    parsed_function->SetNodeSequence(new SequenceNode(
-        TokenPosition::kNoSource, new LocalScope(nullptr, 0, 0)));
+    parsed_function->set_scope(new LocalScope(nullptr, 0, 0));
 
     auto graph_entry =
         new GraphEntryInstr(*parsed_function, Compiler::kNoOSRDeoptId);

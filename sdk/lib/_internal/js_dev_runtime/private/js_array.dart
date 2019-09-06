@@ -57,13 +57,13 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
   }
 
   checkMutable(reason) {
-    if (JS('bool', r'#.immutable$list', this)) {
+    if (JS<bool>('!', r'#.immutable$list', this)) {
       throw UnsupportedError(reason);
     }
   }
 
   checkGrowable(reason) {
-    if (JS('bool', r'#.fixed$length', this)) {
+    if (JS<bool>('!', r'#.fixed$length', this)) {
       throw UnsupportedError(reason);
     }
   }
@@ -215,7 +215,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     for (int i = 0; i < length; i++) {
       list[i] = "${this[i]}";
     }
-    return JS('String', "#.join(#)", list, separator);
+    return JS<String>('!', "#.join(#)", list, separator);
   }
 
   Iterable<E> take(int n) {
@@ -554,7 +554,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
   bool operator ==(other) => identical(this, other);
 
   @notNull
-  int get length => JS('int', r'#.length', this);
+  int get length => JS<int>('!', r'#.length', this);
 
   void set length(@nullCheck int newLength) {
     checkGrowable('set length');
@@ -570,8 +570,8 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
   E operator [](int index) {
     // Suppress redundant null checks via JS.
     if (index == null ||
-        JS('int', '#', index) >= JS('int', '#.length', this) ||
-        JS('int', '#', index) < 0) {
+        JS<int>('!', '#', index) >= JS<int>('!', '#.length', this) ||
+        JS<int>('!', '#', index) < 0) {
       throw diagnoseIndexError(this, index);
     }
     return JS('var', '#[#]', this, index);
@@ -580,8 +580,8 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
   void operator []=(int index, E value) {
     checkMutable('indexed set');
     if (index == null ||
-        JS('int', '#', index) >= JS('int', '#.length', this) ||
-        JS('int', '#', index) < 0) {
+        JS<int>('!', '#', index) >= JS<int>('!', '#.length', this) ||
+        JS<int>('!', '#', index) < 0) {
       throw diagnoseIndexError(this, index);
     }
     JS('void', r'#[#] = #', this, index, value);

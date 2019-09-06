@@ -73,6 +73,11 @@ Future<Set<ClassMemberElement>> getHierarchyMembers(
   // TODO(brianwilkerson) Determine whether this await is necessary.
   await null;
   Set<ClassMemberElement> result = new HashSet<ClassMemberElement>();
+  // extension member
+  if (member.enclosingElement is ExtensionElement) {
+    result.add(member);
+    return new Future.value(result);
+  }
   // static elements
   if (member.isStatic || member is ConstructorElement) {
     result.add(member);
@@ -160,7 +165,7 @@ Set<ClassElement> getSuperClasses(ClassElement seed) {
   List<ClassElement> queue = new List<ClassElement>();
   queue.add(seed);
   // process queue
-  while (!queue.isEmpty) {
+  while (queue.isNotEmpty) {
     ClassElement current = queue.removeLast();
     // add if not checked already
     if (!result.add(current)) {

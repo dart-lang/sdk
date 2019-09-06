@@ -13,8 +13,8 @@ import "dart:core" as core;
 
 import "dart:collection";
 
-class Hest<X extends col::LinkedListEntry<col::LinkedListEntry<dynamic>> = dynamic> extends core::Object {
-  synthetic constructor •() → self::Hest<self::Hest::X>
+class Hest<X extends col::LinkedListEntry<col::LinkedListEntry<dynamic>*>* = dynamic> extends core::Object {
+  synthetic constructor •() → self::Hest<self::Hest::X*>*
     : super core::Object::•()
     ;
 }

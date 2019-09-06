@@ -88,62 +88,62 @@ import "issue_34403_lib.dart" as iss;
 
 import "org-dartlang-testcase:///issue_34403_lib.dart" as p;
 
-class C<T extends core::Object = dynamic> extends core::Object {
-  constructor bar() → self::C<self::C::T>
+class C<T extends core::Object* = dynamic> extends core::Object {
+  constructor bar() → self::C<self::C::T*>*
     : super core::Object::•()
     ;
 }
-class D<T extends core::Object = dynamic> extends core::Object {
-  const constructor foo() → self::D<self::D::T>
+class D<T extends core::Object* = dynamic> extends core::Object {
+  const constructor foo() → self::D<self::D::T*>*
     : super core::Object::•()
     ;
 }
 static method main() → dynamic {
-  dynamic c1 = new self::C::bar<core::int>();
+  dynamic c1 = new self::C::bar<core::int*>();
   c1.toString();
-  dynamic c2 = new self::C::bar<core::int>();
+  dynamic c2 = new self::C::bar<core::int*>();
   c2.toString();
-  dynamic c3 = new self::C::bar<core::String>();
+  dynamic c3 = new self::C::bar<core::String*>();
   c3.toString();
-  dynamic c4 = new self::C::bar<core::String>();
+  dynamic c4 = new self::C::bar<core::String*>();
   c4.toString();
-  const dynamic d1 = const self::D::foo<core::int>();
-  d1.toString();
-  const dynamic d2 = const self::D::foo<core::int>();
-  d2.toString();
-  const dynamic d3 = const self::D::foo<core::String>();
-  d3.toString();
-  const dynamic d4 = const self::D::foo<core::String>();
-  d4.toString();
-  dynamic e1 = new iss::E::bar<core::int>();
+  (#C1).toString();
+  (#C1).toString();
+  (#C2).toString();
+  (#C2).toString();
+  dynamic e1 = new iss::E::bar<core::int*>();
   e1.toString();
   dynamic e2 = new iss::E::bar<dynamic>();
   e2.toString();
-  dynamic e3 = new iss::E::bar<core::String>();
+  dynamic e3 = new iss::E::bar<core::String*>();
   e3.toString();
-  dynamic e4 = new iss::E::bar<core::String>();
+  dynamic e4 = new iss::E::bar<core::String*>();
   e4.toString();
-  const dynamic f1 = const iss::F::foo<core::int>();
-  f1.toString();
-  const dynamic f2 = const iss::F::foo<dynamic>();
-  f2.toString();
-  const dynamic f3 = const iss::F::foo<core::String>();
-  f3.toString();
-  const dynamic f4 = const iss::F::foo<core::String>();
-  f4.toString();
+  (#C3).toString();
+  (#C4).toString();
+  (#C5).toString();
+  (#C5).toString();
 }
 
 library;
 import self as iss;
 import "dart:core" as core;
 
-class E<T extends core::Object = dynamic> extends core::Object {
-  constructor bar() → iss::E<iss::E::T>
+class E<T extends core::Object* = dynamic> extends core::Object {
+  constructor bar() → iss::E<iss::E::T*>*
     : super core::Object::•()
     ;
 }
-class F<T extends core::Object = dynamic> extends core::Object {
-  const constructor foo() → iss::F<iss::F::T>
+class F<T extends core::Object* = dynamic> extends core::Object {
+  const constructor foo() → iss::F<iss::F::T*>*
     : super core::Object::•()
     ;
+}
+
+constants  {
+  #C1 = self::D<core::int*> {}
+  #C2 = self::D<core::String*> {}
+  #C3 = iss::F<core::int*> {}
+  #C4 = iss::F<dynamic> {}
+  #C5 = iss::F<core::String*> {}
 }

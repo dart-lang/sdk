@@ -76,7 +76,7 @@ $(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
   // TODO: consider forcing users to do: window.location.assign('string').
   /**
    * Sets the window's location, which causes the browser to navigate to the new
-   * location. [value] may be a Location object or a String.
+   * location.
    */
   set location(value) {
     _location = value;
@@ -129,7 +129,7 @@ $(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
   void _cancelAnimationFrame(int id) native;
 
   _ensureRequestAnimationFrame() {
-    if (JS('bool',
+    if (JS<bool>('bool',
            '!!(#.requestAnimationFrame && #.cancelAnimationFrame)', this, this))
       return;
 
@@ -241,9 +241,9 @@ $!MEMBERS
     return db;
   }
 
-  int get pageXOffset => JS('num', '#.pageXOffset', this).round();
+  int get pageXOffset => JS<num>('num', '#.pageXOffset', this).round();
 
-  int get pageYOffset => JS('num', '#.pageYOffset', this).round();
+  int get pageYOffset => JS<num>('num', '#.pageYOffset', this).round();
 
   /**
    * The distance this window has been scrolled horizontally.
@@ -255,8 +255,8 @@ $!MEMBERS
    * * [scrollX](https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollX)
    *   from MDN.
    */
-  int get scrollX => JS('bool', '("scrollX" in #)', this) ?
-      JS('num', '#.scrollX', this).round() :
+  int get scrollX => JS<bool>('bool', '("scrollX" in #)', this) ?
+      JS<num>('num', '#.scrollX', this).round() :
       document.documentElement.scrollLeft;
 
   /**
@@ -269,8 +269,8 @@ $!MEMBERS
    * * [scrollY](https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollY)
    *   from MDN.
    */
-  int get scrollY => JS('bool', '("scrollY" in #)', this) ?
-      JS('num', '#.scrollY', this).round() :
+  int get scrollY => JS<bool>('bool', '("scrollY" in #)', this) ?
+      JS<num>('num', '#.scrollY', this).round() :
       document.documentElement.scrollTop;
 }
 
@@ -285,7 +285,7 @@ class _BeforeUnloadEvent extends _WrappedEvent implements BeforeUnloadEvent {
     _returnValue = value;
     // FF and IE use the value as the return value, Chrome will return this from
     // the event callback function.
-    if (JS('bool', '("returnValue" in #)', wrapped)) {
+    if (JS<bool>('bool', '("returnValue" in #)', wrapped)) {
       JS('void', '#.returnValue = #', wrapped, value);
     }
   }

@@ -515,6 +515,7 @@ class Namer extends ModularNamer {
   final Map<String, jsAst.Name> userInstanceOperators = HashMap();
   final Map<jsAst.Name, jsAst.Name> userGetters = HashMap();
   final Map<jsAst.Name, jsAst.Name> userSetters = HashMap();
+  final Map<TypeVariableEntity, jsAst.Name> _typeVariableNames = {};
 
   Map<String, String> createMinifiedInstanceNameMap() {
     var map = <String, String>{};
@@ -826,6 +827,28 @@ class Namer extends ModularNamer {
   @override
   jsAst.Name globalPropertyNameForType(Entity element) =>
       _disambiguateGlobalType(element);
+
+  @override
+  jsAst.Name globalNameForInterfaceTypeVariable(TypeVariableEntity element) {
+    return _typeVariableNames[element] ??=
+        _globalNameForInterfaceTypeVariable(element);
+  }
+
+  jsAst.Name _globalNameForInterfaceTypeVariable(TypeVariableEntity element) {
+    // Construct a name from the class name and type variable,
+    // e.g. "ListMixin.E". The class name is unique which ensures the type
+    // variable name is unique.
+    //
+    // TODO(sra): Better minified naming. Type variable names are used in type
+    // recipes and must contain a period ('.'). They can be frequency-assigned
+    // independently of the class name, e.g. '.a', '.2', 'a.', etc.
+    String name = element.name;
+    if (name.length > 1) name = '${element.index}'; // Avoid long names (rare).
+    return CompoundName([
+      globalPropertyNameForClass(element.typeDeclaration),
+      StringBackedName('.$name')
+    ]);
+  }
 
   @override
   jsAst.Name instanceFieldPropertyName(FieldEntity element) {
@@ -1565,6 +1588,8 @@ class Namer extends ModularNamer {
       return r'$shl';
     } else if (name == '>>') {
       return r'$shr';
+    } else if (name == '>>>') {
+      return r'$shru';
     } else if (name == '>=') {
       return r'$ge';
     } else if (name == '>') {
@@ -2314,6 +2339,14 @@ abstract class ModularNamer {
   /// object on which the returned property name should be used.
   jsAst.Name globalPropertyNameForType(Entity element);
 
+  /// Returns a name, the string of which is a globally unique key distinct from
+  /// other global property names.
+  ///
+  /// The name is not necessarily a valid JavaScript identifier, so it needs to
+  /// be quoted.
+  jsAst.Name globalNameForInterfaceTypeVariable(
+      TypeVariableEntity typeVariable);
+
   /// Returns the name for the instance field that holds runtime type arguments
   /// on generic classes.
   jsAst.Name get rtiFieldJsName;
@@ -2569,6 +2602,18 @@ abstract class ModularNamer {
         return runtimeTypeName(_commonElements.functionClass);
       case JsGetName.FUTURE_CLASS_TYPE_NAME:
         return runtimeTypeName(_commonElements.futureClass);
+      case JsGetName.BOOL_RECIPE:
+        return runtimeTypeName(_commonElements.boolClass);
+      case JsGetName.DOUBLE_RECIPE:
+        return runtimeTypeName(_commonElements.doubleClass);
+      case JsGetName.INT_RECIPE:
+        return runtimeTypeName(_commonElements.intClass);
+      case JsGetName.NUM_RECIPE:
+        return runtimeTypeName(_commonElements.numClass);
+      case JsGetName.STRING_RECIPE:
+        return runtimeTypeName(_commonElements.stringClass);
+      case JsGetName.RTI_FIELD_IS:
+        return instanceFieldPropertyName(_commonElements.rtiIsField);
       default:
         throw failedAt(spannable, 'Error: Namer has no name for "$name".');
     }
@@ -2735,6 +2780,15 @@ class ModularNamerImpl extends ModularNamer {
   jsAst.Name globalPropertyNameForMember(MemberEntity element) {
     jsAst.Name name = new ModularName(
         ModularNameKind.globalPropertyNameForMember,
+        data: element);
+    _registry.registerModularName(name);
+    return name;
+  }
+
+  @override
+  jsAst.Name globalNameForInterfaceTypeVariable(TypeVariableEntity element) {
+    jsAst.Name name = new ModularName(
+        ModularNameKind.globalNameForInterfaceTypeVariable,
         data: element);
     _registry.registerModularName(name);
     return name;

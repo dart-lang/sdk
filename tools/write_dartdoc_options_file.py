@@ -7,34 +7,34 @@ import argparse
 import sys
 import utils
 
+
 def ParseArgs(args):
-  args = args[1:]
-  parser = argparse.ArgumentParser(
-      description='A script to write a custom dartdoc_options.yaml to a file')
+    args = args[1:]
+    parser = argparse.ArgumentParser(
+        description='A script to write a custom dartdoc_options.yaml to a file')
 
-  parser.add_argument('--output', '-o',
-      type=str,
-      required=True,
-      help='File to write')
+    parser.add_argument(
+        '--output', '-o', type=str, required=True, help='File to write')
 
-  return parser.parse_args(args)
+    return parser.parse_args(args)
 
 
 def Main(argv):
-  args = ParseArgs(argv)
-  # TODO(jcollins-g): switch to version numbers when github has its tags synced
-  revision = utils.GetGitRevision()
-  if revision is None:
-    revision = 'master'
-  output = '''dartdoc:
+    args = ParseArgs(argv)
+    # TODO(jcollins-g): switch to version numbers when github has its tags synced
+    revision = utils.GetGitRevision()
+    if revision is None:
+        revision = 'master'
+    output = '''dartdoc:
   categoryOrder: ["Core", "VM", "Web"]
   linkToSource:
     root: '.'
     uriTemplate: 'https://github.com/dart-lang/sdk/blob/%s/sdk/%%f%%#L%%l%%'
 ''' % revision
-  with open(args.output, 'w') as f:
-    f.write(output)
-  return 0
+    with open(args.output, 'w') as f:
+        f.write(output)
+    return 0
+
 
 if __name__ == '__main__':
-  sys.exit(Main(sys.argv))
+    sys.exit(Main(sys.argv))

@@ -130,7 +130,7 @@ class JavaSystemIO {
     }
     if (name == 'com.google.dart.sdk') {
       String exec = Platform.executable;
-      if (exec.length != 0) {
+      if (exec.isNotEmpty) {
         String sdkPath;
         // may be "xcodebuild/ReleaseIA32/dart" with "sdk" sibling
         {

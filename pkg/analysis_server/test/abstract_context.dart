@@ -20,7 +20,7 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 
-import 'src/utilities/flutter_util.dart';
+import 'src/utilities/mock_packages.dart';
 
 /**
  * Finds an [Element] with the given [name].
@@ -63,116 +63,21 @@ class AbstractContextTest with ResourceProviderMixin {
 
   void addFlutterPackage() {
     addMetaPackage();
-    Folder libFolder = configureFlutterPackage(resourceProvider);
-    addTestPackageDependency('flutter', libFolder.parent.path);
+
+    addTestPackageDependency(
+      'ui',
+      MockPackages.instance.addUI(resourceProvider).parent.path,
+    );
+
+    addTestPackageDependency(
+      'flutter',
+      MockPackages.instance.addFlutter(resourceProvider).parent.path,
+    );
   }
 
   void addMetaPackage() {
-    addPackageFile('meta', 'meta.dart', r'''
-library meta;
-
-const _AlwaysThrows alwaysThrows = const _AlwaysThrows();
-
-@deprecated
-const _Checked checked = const _Checked();
-
-const _Experimental experimental = const _Experimental();
-
-const _Factory factory = const _Factory();
-
-const Immutable immutable = const Immutable();
-
-const _IsTest isTest = const _IsTest();
-
-const _IsTestGroup isTestGroup = const _IsTestGroup();
-
-const _Literal literal = const _Literal();
-
-const _MustCallSuper mustCallSuper = const _MustCallSuper();
-
-const _OptionalTypeArgs optionalTypeArgs = const _OptionalTypeArgs();
-
-const _Protected protected = const _Protected();
-
-const Required required = const Required();
-
-const _Sealed sealed = const _Sealed();
-
-@deprecated
-const _Virtual virtual = const _Virtual();
-
-const _VisibleForOverriding visibleForOverriding =
-    const _VisibleForOverriding();
-
-const _VisibleForTesting visibleForTesting = const _VisibleForTesting();
-
-class Immutable {
-  final String reason;
-  const Immutable([this.reason]);
-}
-
-class Required {
-  final String reason;
-  const Required([this.reason]);
-}
-
-class _AlwaysThrows {
-  const _AlwaysThrows();
-}
-
-class _Checked {
-  const _Checked();
-}
-
-class _Experimental {
-  const _Experimental();
-}
-
-class _Factory {
-  const _Factory();
-}
-
-class _IsTest {
-  const _IsTest();
-}
-
-class _IsTestGroup {
-  const _IsTestGroup();
-}
-
-class _Literal {
-  const _Literal();
-}
-
-class _MustCallSuper {
-  const _MustCallSuper();
-}
-
-class _OptionalTypeArgs {
-  const _OptionalTypeArgs();
-}
-
-class _Protected {
-  const _Protected();
-}
-
-class _Sealed {
-  const _Sealed();
-}
-
-@deprecated
-class _Virtual {
-  const _Virtual();
-}
-
-class _VisibleForOverriding {
-  const _VisibleForOverriding();
-}
-
-class _VisibleForTesting {
-  const _VisibleForTesting();
-}
-''');
+    Folder libFolder = MockPackages.instance.addMeta(resourceProvider);
+    addTestPackageDependency('meta', libFolder.parent.path);
   }
 
   /// Add a new file with the given [pathInLib] to the package with the
@@ -194,7 +99,8 @@ class _VisibleForTesting {
 
   void addTestPackageDependency(String name, String rootPath) {
     var packagesFile = getFile('/home/test/.packages');
-    var packagesContent = packagesFile.readAsStringSync();
+    var packagesContent =
+        packagesFile.exists ? packagesFile.readAsStringSync() : '';
 
     // Ignore if there is already the same package dependency.
     if (packagesContent.contains('$name:file://')) {

@@ -49,15 +49,15 @@ namespace arch_arm {
 
 // iOS ABI
 // See "iOS ABI Function Call Guide"
-// R0-R1: Argument / result / volatile
-// R2-R3: Argument / volatile
-// R4-R6: Preserved
-// R7:    Frame pointer
-// R8-R9: Preserved
-// R12:   Volatile
-// R13:   Stack pointer
-// R14:   Link register
-// R15:   Program counter
+// R0-R1:  Argument / result / volatile
+// R2-R3:  Argument / volatile
+// R4-R6:  Preserved
+// R7:     Frame pointer
+// R8-R11: Preserved
+// R12:    Volatile
+// R13:    Stack pointer
+// R14:    Link register
+// R15:    Program counter
 // Stack alignment: 4 bytes always, 4 bytes at public interfaces
 
 // iOS passes floating point arguments in integer registers (softfp)
@@ -371,6 +371,7 @@ class CallingConventions {
   static constexpr Register kFirstNonArgumentRegister = R8;
   static constexpr Register kSecondNonArgumentRegister = R9;
   static constexpr Register kFirstCalleeSavedCpuReg = NOTFP;
+  static constexpr Register kSecondCalleeSavedCpuReg = R4;
   static constexpr Register kStackPointerRegister = SPREG;
 };
 

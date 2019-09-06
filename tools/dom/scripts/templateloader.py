@@ -16,11 +16,12 @@
 
 import os
 
-class TemplateLoader(object):
-  """Loads template files from a path."""
 
-  def __init__(self, root, subpaths, conditions = {}):
-    """Initializes loader.
+class TemplateLoader(object):
+    """Loads template files from a path."""
+
+    def __init__(self, root, subpaths, conditions={}):
+        """Initializes loader.
 
     Args:
       root - a string, the directory under which the templates are stored.
@@ -28,92 +29,94 @@ class TemplateLoader(object):
       conditions - a dictionay from strings to booleans.  Any conditional
         expression must be a key in the map.
     """
-    self._root = root
-    self._subpaths = subpaths
-    self._conditions = conditions
-    self._cache = {}
+        self._root = root
+        self._subpaths = subpaths
+        self._conditions = conditions
+        self._cache = {}
 
-  def TryLoad(self, name, more_conditions={}):
-    """Returns content of template file as a string, or None of not found."""
-    conditions = dict(self._conditions, **more_conditions)
-    cache_key = (name, tuple(sorted(conditions.items())))
-    if cache_key in self._cache:
-      return self._cache[cache_key]
+    def TryLoad(self, name, more_conditions={}):
+        """Returns content of template file as a string, or None of not found."""
+        conditions = dict(self._conditions, **more_conditions)
+        cache_key = (name, tuple(sorted(conditions.items())))
+        if cache_key in self._cache:
+            return self._cache[cache_key]
 
-    for subpath in self._subpaths:
-      template_file = os.path.join(self._root, subpath, name)
-      if os.path.exists(template_file):
-        template = ''.join(open(template_file).readlines())
-        template = self._Preprocess(template, template_file, conditions)
-        self._cache[cache_key] = template
-        return template
+        for subpath in self._subpaths:
+            template_file = os.path.join(self._root, subpath, name)
+            if os.path.exists(template_file):
+                template = ''.join(open(template_file).readlines())
+                template = self._Preprocess(template, template_file, conditions)
+                self._cache[cache_key] = template
+                return template
 
-    return None
+        return None
 
-  def Load(self, name, more_conditions={}):
-    """Returns contents of template file as a string, or raises an exception."""
-    template = self.TryLoad(name, more_conditions)
-    if template is not None:  # Can be empty string
-      return template
-    raise Exception("Could not find template '%s' on %s / %s" % (
-        name, self._root, self._subpaths))
+    def Load(self, name, more_conditions={}):
+        """Returns contents of template file as a string, or raises an exception."""
+        template = self.TryLoad(name, more_conditions)
+        if template is not None:  # Can be empty string
+            return template
+        raise Exception("Could not find template '%s' on %s / %s" %
+                        (name, self._root, self._subpaths))
 
-  def _Preprocess(self, template, filename, conditions):
-    def error(lineno, message):
-      raise Exception('%s:%s: %s' % (filename, lineno, message))
+    def _Preprocess(self, template, filename, conditions):
 
-    lines = template.splitlines(True)
-    out = []
+        def error(lineno, message):
+            raise Exception('%s:%s: %s' % (filename, lineno, message))
 
-    condition_stack = []
-    active = True
-    seen_else = False
+        lines = template.splitlines(True)
+        out = []
 
-    for (lineno, full_line) in enumerate(lines):
-      line = full_line.strip()
+        condition_stack = []
+        active = True
+        seen_else = False
 
-      if line.startswith('$'):
-        words = line.split()
-        directive = words[0]
+        for (lineno, full_line) in enumerate(lines):
+            line = full_line.strip()
 
-        if directive == '$if':
-          if len(words) != 2:
-            error(lineno, '$if does not have single variable')
-          variable = words[1]
-          if variable in conditions:
-            condition_stack.append((active, seen_else))
-            active = active and conditions[variable]
-            seen_else = False
-          else:
-            error(lineno, "Unknown $if variable '%s'" % variable)
+            if line.startswith('$'):
+                words = line.split()
+                directive = words[0]
 
-        elif directive == '$else':
-          if not condition_stack:
-            error(lineno, '$else without $if')
-          if seen_else:
-            raise error(lineno, 'Double $else')
-          seen_else = True
-          (parentactive, _) = condition_stack[len(condition_stack) - 1]
-          active = not active and parentactive
+                if directive == '$if':
+                    if len(words) != 2:
+                        error(lineno, '$if does not have single variable')
+                    variable = words[1]
+                    if variable in conditions:
+                        condition_stack.append((active, seen_else))
+                        active = active and conditions[variable]
+                        seen_else = False
+                    else:
+                        error(lineno, "Unknown $if variable '%s'" % variable)
 
-        elif directive == '$endif':
-          if not condition_stack:
-            error(lineno, '$endif without $if')
-          (active, seen_else) = condition_stack.pop()
+                elif directive == '$else':
+                    if not condition_stack:
+                        error(lineno, '$else without $if')
+                    if seen_else:
+                        raise error(lineno, 'Double $else')
+                    seen_else = True
+                    (parentactive,
+                     _) = condition_stack[len(condition_stack) - 1]
+                    active = not active and parentactive
 
-        else:
-          # Something else, like '$!MEMBERS'
-          if active:
-            out.append(full_line)
-      elif line.startswith('//$'):
-        pass  # Ignore pre-processor comment.
+                elif directive == '$endif':
+                    if not condition_stack:
+                        error(lineno, '$endif without $if')
+                    (active, seen_else) = condition_stack.pop()
 
-      else:
-        if active:
-          out.append(full_line)
-        continue
+                else:
+                    # Something else, like '$!MEMBERS'
+                    if active:
+                        out.append(full_line)
+            elif line.startswith('//$'):
+                pass  # Ignore pre-processor comment.
 
-    if condition_stack:
-      error(len(lines), 'Unterminated $if')
+            else:
+                if active:
+                    out.append(full_line)
+                continue
 
-    return ''.join(out)
+        if condition_stack:
+            error(len(lines), 'Unterminated $if')
+
+        return ''.join(out)

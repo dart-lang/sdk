@@ -27,8 +27,8 @@ class ColdAnalysisBenchmark extends Benchmark {
 
   @override
   Future<BenchMarkResult> run({
-    bool quick: false,
-    bool verbose: false,
+    bool quick = false,
+    bool verbose = false,
   }) async {
     if (!quick) {
       deleteServerCache();
@@ -71,8 +71,8 @@ class AnalysisBenchmark extends Benchmark {
 
   @override
   Future<BenchMarkResult> run({
-    bool quick: false,
-    bool verbose: false,
+    bool quick = false,
+    bool verbose = false,
   }) async {
     Stopwatch stopwatch = new Stopwatch()..start();
 
@@ -127,7 +127,7 @@ class AnalysisBenchmark extends Benchmark {
       contents = contents.substring(0, index + 1) +
           ' ' +
           contents.substring(index + 1);
-      test.sendAnalysisUpdateContent(
+      await test.sendAnalysisUpdateContent(
           {filePath: new AddContentOverlay(contents)});
       await test.analysisFinished;
     }
@@ -152,10 +152,18 @@ class AnalysisBenchmark extends Benchmark {
     final Stopwatch stopwatch = new Stopwatch()..start();
 
     Future _complete(int offset) async {
+      // Create a new non-broadcast stream and subscribe to
+      // test.onCompletionResults before sending a request.
+      // Otherwise we could skip results which where posted to
+      // test.onCompletionResults after request is sent but
+      // before subscribing to test.onCompletionResults.
+      final completionResults = new StreamController<CompletionResultsParams>();
+      completionResults.sink.addStream(test.onCompletionResults);
+
       CompletionGetSuggestionsResult result =
           await test.sendCompletionGetSuggestions(filePath, offset);
 
-      Future<CompletionResultsParams> future = test.onCompletionResults
+      Future<CompletionResultsParams> future = completionResults.stream
           .where((CompletionResultsParams params) =>
               params.id == result.id && params.isLast)
           .first;

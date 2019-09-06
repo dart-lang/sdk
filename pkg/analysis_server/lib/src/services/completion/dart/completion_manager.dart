@@ -13,7 +13,9 @@ import 'package:analysis_server/src/services/completion/completion_performance.d
 import 'package:analysis_server/src/services/completion/dart/arglist_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/combinator_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/common_usage_sorter.dart';
+import 'package:analysis_server/src/services/completion/dart/completion_ranking.dart';
 import 'package:analysis_server/src/services/completion/dart/contribution_sorter.dart';
+import 'package:analysis_server/src/services/completion/dart/extension_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/field_formal_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/imported_reference_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/inherited_reference_contributor.dart';
@@ -93,6 +95,10 @@ class DartCompletionManager implements CompletionContributor {
       return const <CompletionSuggestion>[];
     }
 
+    final ranking = CompletionRanking.instance;
+    Future<Map<String, double>> probabilityFuture =
+        ranking != null ? ranking.predict(dartRequest) : Future.value(null);
+
     SourceRange range =
         dartRequest.target.computeReplacementRange(dartRequest.offset);
     (request as CompletionRequestImpl)
@@ -105,6 +111,7 @@ class DartCompletionManager implements CompletionContributor {
     List<DartCompletionContributor> contributors = <DartCompletionContributor>[
       new ArgListContributor(),
       new CombinatorContributor(),
+      new ExtensionMemberContributor(),
       new FieldFormalContributor(),
       new InheritedReferenceContributor(),
       new KeywordContributor(),
@@ -173,6 +180,15 @@ class DartCompletionManager implements CompletionContributor {
     const SORT_TAG = 'DartCompletionManager - sort';
     performance.logStartTime(SORT_TAG);
     await contributionSorter.sort(dartRequest, suggestions);
+    if (ranking != null) {
+      request.checkAborted();
+      suggestions = await ranking.rerank(
+          probabilityFuture,
+          suggestions,
+          includedSuggestionRelevanceTags,
+          dartRequest,
+          request.result.unit.featureSet);
+    }
     performance.logElapseTime(SORT_TAG);
     request.checkAborted();
     return suggestions;

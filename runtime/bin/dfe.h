@@ -26,7 +26,7 @@ class DFE {
   char* frontend_filename() const { return frontend_filename_; }
 
   void set_frontend_filename(const char* name) {
-    if (frontend_filename_ != NULL) {
+    if (frontend_filename_ != nullptr) {
       free(frontend_filename_);
     }
     frontend_filename_ = strdup(name);
@@ -107,8 +107,10 @@ class DFE {
   char* frontend_filename_;
   const uint8_t* kernel_service_dill_;
   intptr_t kernel_service_dill_size_;
-  const uint8_t* platform_strong_dill_;
-  intptr_t platform_strong_dill_size_;
+  const uint8_t* platform_strong_dill_for_compilation_;
+  intptr_t platform_strong_dill_for_compilation_size_;
+  const uint8_t* platform_strong_dill_for_execution_;
+  intptr_t platform_strong_dill_for_execution_size_;
 
   // Kernel binary specified on the cmd line.
   uint8_t* application_kernel_buffer_;

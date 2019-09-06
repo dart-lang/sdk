@@ -1134,6 +1134,11 @@ const intptr_t CODE_REG = 0;
 const intptr_t kExceptionObjectReg = 0;
 const intptr_t kStackTraceObjectReg = 0;
 
+// The maximum number of fixed registers that are used by some
+// DBC instructions. The register allocator must avoid clashing
+// with these when assigning registers to catch parameters.
+const intptr_t kMaxNumberOfFixedInputRegistersUsedByIL = 3;
+
 enum FpuRegister {
   kNoFpuRegister = -1,
   kFakeFpuRegister,

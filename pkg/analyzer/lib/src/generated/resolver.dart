@@ -19,13 +19,14 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
-import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ConstructorMember;
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/exit_detector.dart';
+import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
+import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -35,7 +36,9 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/static_type_analyzer.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
+import 'package:analyzer/src/generated/type_promotion_manager.dart';
 import 'package:analyzer/src/generated/type_system.dart';
+import 'package:analyzer/src/generated/variable_type_provider.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:meta/meta.dart';
@@ -46,172 +49,6 @@ export 'package:analyzer/src/dart/resolver/exit_detector.dart';
 export 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 export 'package:analyzer/src/dart/resolver/scope.dart';
 export 'package:analyzer/src/generated/type_system.dart';
-
-/// A visitor that will re-write an AST to support the optional `new` and
-/// `const` feature.
-class AstRewriteVisitor extends ScopedVisitor {
-  final bool addConstKeyword;
-  final TypeSystem typeSystem;
-
-  /// Initialize a newly created visitor.
-  AstRewriteVisitor(
-      this.typeSystem,
-      LibraryElement definingLibrary,
-      Source source,
-      TypeProvider typeProvider,
-      AnalysisErrorListener errorListener,
-      {Scope nameScope,
-      this.addConstKeyword: false})
-      : super(definingLibrary, source, typeProvider, errorListener,
-            nameScope: nameScope);
-
-  @override
-  void visitMethodInvocation(MethodInvocation node) {
-    super.visitMethodInvocation(node);
-
-    SimpleIdentifier methodName = node.methodName;
-    if (methodName.isSynthetic) {
-      // This isn't a constructor invocation because the method name is
-      // synthetic.
-      return;
-    }
-
-    Expression target = node.target;
-    if (target == null) {
-      // Possible cases: C() or C<>()
-      if (node.realTarget != null) {
-        // This isn't a constructor invocation because it's in a cascade.
-        return;
-      }
-      Element element = nameScope.lookup(methodName, definingLibrary);
-      if (element is ClassElement) {
-        AstFactory astFactory = new AstFactoryImpl();
-        TypeName typeName = astFactory.typeName(methodName, node.typeArguments);
-        ConstructorName constructorName =
-            astFactory.constructorName(typeName, null, null);
-        InstanceCreationExpression instanceCreationExpression =
-            astFactory.instanceCreationExpression(
-                _getKeyword(node), constructorName, node.argumentList);
-        NodeReplacer.replace(node, instanceCreationExpression);
-      }
-    } else if (target is SimpleIdentifier) {
-      // Possible cases: C.n(), p.C() or p.C<>()
-      if (node.operator.type == TokenType.QUESTION_PERIOD) {
-        // This isn't a constructor invocation because a null aware operator is
-        // being used.
-      }
-      Element element = nameScope.lookup(target, definingLibrary);
-      if (element is ClassElement) {
-        // Possible case: C.n()
-        var constructorElement = element.getNamedConstructor(methodName.name);
-        if (constructorElement != null) {
-          var typeArguments = node.typeArguments;
-          if (typeArguments != null) {
-            errorReporter.reportErrorForNode(
-                StaticTypeWarningCode
-                    .WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
-                typeArguments,
-                [element.name, constructorElement.name]);
-          }
-          AstFactory astFactory = new AstFactoryImpl();
-          TypeName typeName = astFactory.typeName(target, null);
-          ConstructorName constructorName =
-              astFactory.constructorName(typeName, node.operator, methodName);
-          InstanceCreationExpression instanceCreationExpression =
-              astFactory.instanceCreationExpression(
-                  _getKeyword(node), constructorName, node.argumentList,
-                  typeArguments: typeArguments);
-          NodeReplacer.replace(node, instanceCreationExpression);
-        }
-      } else if (element is PrefixElement) {
-        // Possible cases: p.C() or p.C<>()
-        AstFactory astFactory = new AstFactoryImpl();
-        Identifier identifier = astFactory.prefixedIdentifier(
-            astFactory.simpleIdentifier(target.token),
-            null,
-            astFactory.simpleIdentifier(methodName.token));
-        Element prefixedElement = nameScope.lookup(identifier, definingLibrary);
-        if (prefixedElement is ClassElement) {
-          TypeName typeName = astFactory.typeName(
-              astFactory.prefixedIdentifier(target, node.operator, methodName),
-              node.typeArguments);
-          ConstructorName constructorName =
-              astFactory.constructorName(typeName, null, null);
-          InstanceCreationExpression instanceCreationExpression =
-              astFactory.instanceCreationExpression(
-                  _getKeyword(node), constructorName, node.argumentList);
-          NodeReplacer.replace(node, instanceCreationExpression);
-        }
-      }
-    } else if (target is PrefixedIdentifier) {
-      // Possible case: p.C.n()
-      Element prefixElement = nameScope.lookup(target.prefix, definingLibrary);
-      target.prefix.staticElement = prefixElement;
-      if (prefixElement is PrefixElement) {
-        Element element = nameScope.lookup(target, definingLibrary);
-        if (element is ClassElement) {
-          var constructorElement = element.getNamedConstructor(methodName.name);
-          if (constructorElement != null) {
-            var typeArguments = node.typeArguments;
-            if (typeArguments != null) {
-              errorReporter.reportErrorForNode(
-                  StaticTypeWarningCode
-                      .WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
-                  typeArguments,
-                  [element.name, constructorElement.name]);
-            }
-            AstFactory astFactory = new AstFactoryImpl();
-            TypeName typeName = astFactory.typeName(target, typeArguments);
-            ConstructorName constructorName =
-                astFactory.constructorName(typeName, node.operator, methodName);
-            InstanceCreationExpression instanceCreationExpression =
-                astFactory.instanceCreationExpression(
-                    _getKeyword(node), constructorName, node.argumentList);
-            NodeReplacer.replace(node, instanceCreationExpression);
-          }
-        }
-      }
-    }
-  }
-
-  /// Return the token that should be used in the [InstanceCreationExpression]
-  /// that corresponds to the given invocation [node].
-  Token _getKeyword(MethodInvocation node) {
-    return addConstKeyword
-        ? new KeywordToken(Keyword.CONST, node.offset)
-        : null;
-  }
-
-  /// Return the type of the given class [element] after substituting any type
-  /// arguments from the list of [typeArguments] for the class' type parameters.
-  static InterfaceType getType(TypeSystem typeSystem, ClassElement element,
-      TypeArgumentList typeArguments) {
-    DartType type = element.type;
-
-    List<TypeParameterElement> typeParameters = element.typeParameters;
-    if (typeParameters.isEmpty) {
-      return type;
-    }
-
-    if (typeArguments == null) {
-      return typeSystem.instantiateToBounds(type);
-    }
-
-    List<DartType> argumentTypes;
-    if (typeArguments.arguments.length == typeParameters.length) {
-      argumentTypes = typeArguments.arguments
-          .map((TypeAnnotation argument) => argument.type)
-          .toList();
-    } else {
-      argumentTypes = List<DartType>.filled(
-          typeParameters.length, DynamicTypeImpl.instance);
-    }
-    List<DartType> parameterTypes = typeParameters
-        .map((TypeParameterElement parameter) => parameter.type)
-        .toList();
-    return type.substitute2(argumentTypes, parameterTypes);
-  }
-}
 
 /// Instances of the class `BestPracticesVerifier` traverse an AST structure
 /// looking for violations of Dart best practices.
@@ -243,6 +80,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// The type system primitives
   final TypeSystem _typeSystem;
 
+  /// The inheritance manager to access interface type hierarchy.
+  final InheritanceManager3 _inheritanceManager;
+
   /// The current library
   final LibraryElement _currentLibrary;
 
@@ -264,12 +104,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     CompilationUnit unit,
     String content, {
     TypeSystem typeSystem,
+    @required InheritanceManager3 inheritanceManager,
     ResourceProvider resourceProvider,
     DeclaredVariables declaredVariables,
     AnalysisOptions analysisOptions,
   })  : _nullType = typeProvider.nullType,
         _futureNullType = typeProvider.futureNullType,
         _typeSystem = typeSystem ?? new Dart2TypeSystem(typeProvider),
+        _inheritanceManager = inheritanceManager,
         _invalidAccessVerifier =
             new _InvalidAccessVerifier(_errorReporter, _currentLibrary) {
     _inDeprecatedMember = _currentLibrary.hasDeprecated;
@@ -285,6 +127,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         declaredVariables,
         typeProvider,
         _typeSystem,
+        _inheritanceManager,
         analysisOptions);
   }
 
@@ -725,7 +568,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         // or have the logic centralized elsewhere, instead of doing this logic
         // here.
         displayName = element.enclosingElement.displayName;
-        if (!element.displayName.isEmpty) {
+        if (element.displayName.isNotEmpty) {
           displayName = "$displayName.${element.displayName}";
         }
       } else if (element is LibraryElement) {
@@ -1053,7 +896,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         if (contextType is FunctionType) {
           returnType = contextType.returnType;
           flattenedType = body.isAsynchronous
-              ? returnType.flattenFutures(_typeSystem)
+              ? _typeSystem.flatten(returnType)
               : returnType;
         }
       }
@@ -1177,8 +1020,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           elseType != null &&
           !thenType.isDynamic &&
           !elseType.isDynamic &&
-          !thenType.isMoreSpecificThan(elseType) &&
-          !elseType.isMoreSpecificThan(thenType)) {
+          !_typeSystem.isSubtypeOf(thenType, elseType) &&
+          !_typeSystem.isSubtypeOf(elseType, thenType)) {
         return false;
       }
     }
@@ -1188,7 +1031,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         rhsType != null &&
         !lhsType.isDynamic &&
         !rhsType.isDynamic &&
-        _typeSystem.isMoreSpecificThan(lhsType, rhsType)) {
+        _typeSystem.isSubtypeOf(lhsType, rhsType)) {
       _errorReporter.reportErrorForNode(HintCode.UNNECESSARY_CAST, node);
       return true;
     }
@@ -2489,107 +2332,6 @@ class EnumMemberBuilder extends RecursiveAstVisitor<void> {
   }
 }
 
-/// A visitor that visits ASTs and fills [UsedImportedElements].
-class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor {
-  final LibraryElement library;
-  final UsedImportedElements usedElements = new UsedImportedElements();
-
-  GatherUsedImportedElementsVisitor(this.library);
-
-  @override
-  void visitExportDirective(ExportDirective node) {
-    _visitDirective(node);
-  }
-
-  @override
-  void visitImportDirective(ImportDirective node) {
-    _visitDirective(node);
-  }
-
-  @override
-  void visitLibraryDirective(LibraryDirective node) {
-    _visitDirective(node);
-  }
-
-  @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    _visitIdentifier(node, node.staticElement);
-  }
-
-  /// If the given [identifier] is prefixed with a [PrefixElement], fill the
-  /// corresponding `UsedImportedElements.prefixMap` entry and return `true`.
-  bool _recordPrefixMap(SimpleIdentifier identifier, Element element) {
-    bool recordIfTargetIsPrefixElement(Expression target) {
-      if (target is SimpleIdentifier && target.staticElement is PrefixElement) {
-        List<Element> prefixedElements = usedElements.prefixMap
-            .putIfAbsent(target.staticElement, () => <Element>[]);
-        prefixedElements.add(element);
-        return true;
-      }
-      return false;
-    }
-
-    AstNode parent = identifier.parent;
-    if (parent is MethodInvocation && parent.methodName == identifier) {
-      return recordIfTargetIsPrefixElement(parent.target);
-    }
-    if (parent is PrefixedIdentifier && parent.identifier == identifier) {
-      return recordIfTargetIsPrefixElement(parent.prefix);
-    }
-    return false;
-  }
-
-  /// Visit identifiers used by the given [directive].
-  void _visitDirective(Directive directive) {
-    directive.documentationComment?.accept(this);
-    directive.metadata.accept(this);
-  }
-
-  void _visitIdentifier(SimpleIdentifier identifier, Element element) {
-    if (element == null) {
-      return;
-    }
-    // If the element is multiply defined then call this method recursively for
-    // each of the conflicting elements.
-    if (element is MultiplyDefinedElement) {
-      List<Element> conflictingElements = element.conflictingElements;
-      int length = conflictingElements.length;
-      for (int i = 0; i < length; i++) {
-        Element elt = conflictingElements[i];
-        _visitIdentifier(identifier, elt);
-      }
-      return;
-    }
-
-    // Record `importPrefix.identifier` into 'prefixMap'.
-    if (_recordPrefixMap(identifier, element)) {
-      return;
-    }
-
-    if (element is PrefixElement) {
-      usedElements.prefixMap.putIfAbsent(element, () => <Element>[]);
-      return;
-    } else if (element.enclosingElement is! CompilationUnitElement) {
-      // Identifiers that aren't a prefix element and whose enclosing element
-      // isn't a CompilationUnit are ignored- this covers the case the
-      // identifier is a relative-reference, a reference to an identifier not
-      // imported by this library.
-      return;
-    }
-    // Ignore if an unknown library.
-    LibraryElement containingLibrary = element.library;
-    if (containingLibrary == null) {
-      return;
-    }
-    // Ignore if a local element.
-    if (library == containingLibrary) {
-      return;
-    }
-    // Remember the element.
-    usedElements.elements.add(element);
-  }
-}
-
 /// An [AstVisitor] that fills [UsedLocalElements].
 class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor {
   final UsedLocalElements usedElements = new UsedLocalElements();
@@ -2747,383 +2489,6 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor {
     }
     // OK
     return true;
-  }
-}
-
-/// Instances of the class `ImportsVerifier` visit all of the referenced
-/// libraries in the source code verifying that all of the imports are used,
-/// otherwise a [HintCode.UNUSED_IMPORT] hint is generated with
-/// [generateUnusedImportHints].
-///
-/// Additionally, [generateDuplicateImportHints] generates
-/// [HintCode.DUPLICATE_IMPORT] hints and [HintCode.UNUSED_SHOWN_NAME] hints.
-///
-/// While this class does not yet have support for an "Organize Imports" action,
-/// this logic built up in this class could be used for such an action in the
-/// future.
-class ImportsVerifier {
-  /// All [ImportDirective]s of the current library.
-  final List<ImportDirective> _allImports = <ImportDirective>[];
-
-  /// A list of [ImportDirective]s that the current library imports, but does
-  /// not use.
-  ///
-  /// As identifiers are visited by this visitor and an import has been
-  /// identified as being used by the library, the [ImportDirective] is removed
-  /// from this list. After all the sources in the library have been evaluated,
-  /// this list represents the set of unused imports.
-  ///
-  /// See [ImportsVerifier.generateUnusedImportErrors].
-  final List<ImportDirective> _unusedImports = <ImportDirective>[];
-
-  /// After the list of [unusedImports] has been computed, this list is a proper
-  /// subset of the unused imports that are listed more than once.
-  final List<ImportDirective> _duplicateImports = <ImportDirective>[];
-
-  /// The cache of [Namespace]s for [ImportDirective]s.
-  final HashMap<ImportDirective, Namespace> _namespaceMap =
-      new HashMap<ImportDirective, Namespace>();
-
-  /// This is a map between prefix elements and the import directives from which
-  /// they are derived. In cases where a type is referenced via a prefix
-  /// element, the import directive can be marked as used (removed from the
-  /// unusedImports) by looking at the resolved `lib` in `lib.X`, instead of
-  /// looking at which library the `lib.X` resolves.
-  ///
-  /// TODO (jwren) Since multiple [ImportDirective]s can share the same
-  /// [PrefixElement], it is possible to have an unreported unused import in
-  /// situations where two imports use the same prefix and at least one import
-  /// directive is used.
-  final HashMap<PrefixElement, List<ImportDirective>> _prefixElementMap =
-      new HashMap<PrefixElement, List<ImportDirective>>();
-
-  /// A map of identifiers that the current library's imports show, but that the
-  /// library does not use.
-  ///
-  /// Each import directive maps to a list of the identifiers that are imported
-  /// via the "show" keyword.
-  ///
-  /// As each identifier is visited by this visitor, it is identified as being
-  /// used by the library, and the identifier is removed from this map (under
-  /// the import that imported it). After all the sources in the library have
-  /// been evaluated, each list in this map's values present the set of unused
-  /// shown elements.
-  ///
-  /// See [ImportsVerifier.generateUnusedShownNameHints].
-  final HashMap<ImportDirective, List<SimpleIdentifier>> _unusedShownNamesMap =
-      new HashMap<ImportDirective, List<SimpleIdentifier>>();
-
-  /// A map of names that are hidden more than once.
-  final HashMap<NamespaceDirective, List<SimpleIdentifier>>
-      _duplicateHiddenNamesMap =
-      new HashMap<NamespaceDirective, List<SimpleIdentifier>>();
-
-  /// A map of names that are shown more than once.
-  final HashMap<NamespaceDirective, List<SimpleIdentifier>>
-      _duplicateShownNamesMap =
-      new HashMap<NamespaceDirective, List<SimpleIdentifier>>();
-
-  void addImports(CompilationUnit node) {
-    for (Directive directive in node.directives) {
-      if (directive is ImportDirective) {
-        LibraryElement libraryElement = directive.uriElement;
-        if (libraryElement == null) {
-          continue;
-        }
-        _allImports.add(directive);
-        _unusedImports.add(directive);
-        //
-        // Initialize prefixElementMap
-        //
-        if (directive.asKeyword != null) {
-          SimpleIdentifier prefixIdentifier = directive.prefix;
-          if (prefixIdentifier != null) {
-            Element element = prefixIdentifier.staticElement;
-            if (element is PrefixElement) {
-              List<ImportDirective> list = _prefixElementMap[element];
-              if (list == null) {
-                list = new List<ImportDirective>();
-                _prefixElementMap[element] = list;
-              }
-              list.add(directive);
-            }
-            // TODO (jwren) Can the element ever not be a PrefixElement?
-          }
-        }
-        _addShownNames(directive);
-      }
-      if (directive is NamespaceDirective) {
-        _addDuplicateShownHiddenNames(directive);
-      }
-    }
-    if (_unusedImports.length > 1) {
-      // order the list of unusedImports to find duplicates in faster than
-      // O(n^2) time
-      List<ImportDirective> importDirectiveArray =
-          new List<ImportDirective>.from(_unusedImports);
-      importDirectiveArray.sort(ImportDirective.COMPARATOR);
-      ImportDirective currentDirective = importDirectiveArray[0];
-      for (int i = 1; i < importDirectiveArray.length; i++) {
-        ImportDirective nextDirective = importDirectiveArray[i];
-        if (ImportDirective.COMPARATOR(currentDirective, nextDirective) == 0) {
-          // Add either the currentDirective or nextDirective depending on which
-          // comes second, this guarantees that the first of the duplicates
-          // won't be highlighted.
-          if (currentDirective.offset < nextDirective.offset) {
-            _duplicateImports.add(nextDirective);
-          } else {
-            _duplicateImports.add(currentDirective);
-          }
-        }
-        currentDirective = nextDirective;
-      }
-    }
-  }
-
-  /// Any time after the defining compilation unit has been visited by this
-  /// visitor, this method can be called to report an
-  /// [HintCode.DUPLICATE_IMPORT] hint for each of the import directives in the
-  /// [duplicateImports] list.
-  ///
-  /// @param errorReporter the error reporter to report the set of
-  ///        [HintCode.DUPLICATE_IMPORT] hints to
-  void generateDuplicateImportHints(ErrorReporter errorReporter) {
-    int length = _duplicateImports.length;
-    for (int i = 0; i < length; i++) {
-      errorReporter.reportErrorForNode(
-          HintCode.DUPLICATE_IMPORT, _duplicateImports[i].uri);
-    }
-  }
-
-  /// Report a [HintCode.DUPLICATE_SHOWN_HIDDEN_NAME] hint for each duplicate
-  /// shown or hidden name.
-  ///
-  /// Only call this method after all of the compilation units have been visited
-  /// by this visitor.
-  ///
-  /// @param errorReporter the error reporter used to report the set of
-  ///          [HintCode.UNUSED_SHOWN_NAME] hints
-  void generateDuplicateShownHiddenNameHints(ErrorReporter reporter) {
-    _duplicateHiddenNamesMap.forEach(
-        (NamespaceDirective directive, List<SimpleIdentifier> identifiers) {
-      int length = identifiers.length;
-      for (int i = 0; i < length; i++) {
-        Identifier identifier = identifiers[i];
-        reporter.reportErrorForNode(
-            HintCode.DUPLICATE_HIDDEN_NAME, identifier, [identifier.name]);
-      }
-    });
-    _duplicateShownNamesMap.forEach(
-        (NamespaceDirective directive, List<SimpleIdentifier> identifiers) {
-      int length = identifiers.length;
-      for (int i = 0; i < length; i++) {
-        Identifier identifier = identifiers[i];
-        reporter.reportErrorForNode(
-            HintCode.DUPLICATE_SHOWN_NAME, identifier, [identifier.name]);
-      }
-    });
-  }
-
-  /// Report an [HintCode.UNUSED_IMPORT] hint for each unused import.
-  ///
-  /// Only call this method after all of the compilation units have been visited
-  /// by this visitor.
-  ///
-  /// @param errorReporter the error reporter used to report the set of
-  ///        [HintCode.UNUSED_IMPORT] hints
-  void generateUnusedImportHints(ErrorReporter errorReporter) {
-    int length = _unusedImports.length;
-    for (int i = 0; i < length; i++) {
-      ImportDirective unusedImport = _unusedImports[i];
-      // Check that the imported URI exists and isn't dart:core
-      ImportElement importElement = unusedImport.element;
-      if (importElement != null) {
-        LibraryElement libraryElement = importElement.importedLibrary;
-        if (libraryElement == null ||
-            libraryElement.isDartCore ||
-            libraryElement.isSynthetic) {
-          continue;
-        }
-      }
-      StringLiteral uri = unusedImport.uri;
-      errorReporter
-          .reportErrorForNode(HintCode.UNUSED_IMPORT, uri, [uri.stringValue]);
-    }
-  }
-
-  /// Use the error [reporter] to report an [HintCode.UNUSED_SHOWN_NAME] hint
-  /// for each unused shown name.
-  ///
-  /// This method should only be invoked after all of the compilation units have
-  /// been visited by this visitor.
-  void generateUnusedShownNameHints(ErrorReporter reporter) {
-    _unusedShownNamesMap.forEach(
-        (ImportDirective importDirective, List<SimpleIdentifier> identifiers) {
-      if (_unusedImports.contains(importDirective)) {
-        // The whole import is unused, not just one or more shown names from it,
-        // so an "unused_import" hint will be generated, making it unnecessary
-        // to generate hints for the individual names.
-        return;
-      }
-      int length = identifiers.length;
-      for (int i = 0; i < length; i++) {
-        Identifier identifier = identifiers[i];
-        List<SimpleIdentifier> duplicateNames =
-            _duplicateShownNamesMap[importDirective];
-        if (duplicateNames == null || !duplicateNames.contains(identifier)) {
-          // Only generate a hint if we won't also generate a
-          // "duplicate_shown_name" hint for the same identifier.
-          reporter.reportErrorForNode(
-              HintCode.UNUSED_SHOWN_NAME, identifier, [identifier.name]);
-        }
-      }
-    });
-  }
-
-  /// Remove elements from [_unusedImports] using the given [usedElements].
-  void removeUsedElements(UsedImportedElements usedElements) {
-    // Stop if all the imports and shown names are known to be used.
-    if (_unusedImports.isEmpty && _unusedShownNamesMap.isEmpty) {
-      return;
-    }
-    // Process import prefixes.
-    usedElements.prefixMap
-        .forEach((PrefixElement prefix, List<Element> elements) {
-      List<ImportDirective> importDirectives = _prefixElementMap[prefix];
-      if (importDirectives != null) {
-        int importLength = importDirectives.length;
-        for (int i = 0; i < importLength; i++) {
-          ImportDirective importDirective = importDirectives[i];
-          _unusedImports.remove(importDirective);
-          int elementLength = elements.length;
-          for (int j = 0; j < elementLength; j++) {
-            Element element = elements[j];
-            _removeFromUnusedShownNamesMap(element, importDirective);
-          }
-        }
-      }
-    });
-    // Process top-level elements.
-    for (Element element in usedElements.elements) {
-      // Stop if all the imports and shown names are known to be used.
-      if (_unusedImports.isEmpty && _unusedShownNamesMap.isEmpty) {
-        return;
-      }
-      // Find import directives using namespaces.
-      String name = element.name;
-      for (ImportDirective importDirective in _allImports) {
-        Namespace namespace = _computeNamespace(importDirective);
-        if (namespace?.get(name) != null) {
-          _unusedImports.remove(importDirective);
-          _removeFromUnusedShownNamesMap(element, importDirective);
-        }
-      }
-    }
-  }
-
-  /// Add duplicate shown and hidden names from [directive] into
-  /// [_duplicateHiddenNamesMap] and [_duplicateShownNamesMap].
-  void _addDuplicateShownHiddenNames(NamespaceDirective directive) {
-    if (directive.combinators == null) {
-      return;
-    }
-    for (Combinator combinator in directive.combinators) {
-      // Use a Set to find duplicates in faster than O(n^2) time.
-      Set<Element> identifiers = new Set<Element>();
-      if (combinator is HideCombinator) {
-        for (SimpleIdentifier name in combinator.hiddenNames) {
-          if (name.staticElement != null) {
-            if (!identifiers.add(name.staticElement)) {
-              // [name] is a duplicate.
-              List<SimpleIdentifier> duplicateNames = _duplicateHiddenNamesMap
-                  .putIfAbsent(directive, () => new List<SimpleIdentifier>());
-              duplicateNames.add(name);
-            }
-          }
-        }
-      } else if (combinator is ShowCombinator) {
-        for (SimpleIdentifier name in combinator.shownNames) {
-          if (name.staticElement != null) {
-            if (!identifiers.add(name.staticElement)) {
-              // [name] is a duplicate.
-              List<SimpleIdentifier> duplicateNames = _duplicateShownNamesMap
-                  .putIfAbsent(directive, () => new List<SimpleIdentifier>());
-              duplicateNames.add(name);
-            }
-          }
-        }
-      }
-    }
-  }
-
-  /// Add every shown name from [importDirective] into [_unusedShownNamesMap].
-  void _addShownNames(ImportDirective importDirective) {
-    if (importDirective.combinators == null) {
-      return;
-    }
-    List<SimpleIdentifier> identifiers = new List<SimpleIdentifier>();
-    _unusedShownNamesMap[importDirective] = identifiers;
-    for (Combinator combinator in importDirective.combinators) {
-      if (combinator is ShowCombinator) {
-        for (SimpleIdentifier name in combinator.shownNames) {
-          if (name.staticElement != null) {
-            identifiers.add(name);
-          }
-        }
-      }
-    }
-  }
-
-  /// Lookup and return the [Namespace] from the [_namespaceMap].
-  ///
-  /// If the map does not have the computed namespace, compute it and cache it
-  /// in the map. If [importDirective] is not resolved or is not resolvable,
-  /// `null` is returned.
-  ///
-  /// @param importDirective the import directive used to compute the returned
-  ///        namespace
-  /// @return the computed or looked up [Namespace]
-  Namespace _computeNamespace(ImportDirective importDirective) {
-    Namespace namespace = _namespaceMap[importDirective];
-    if (namespace == null) {
-      // If the namespace isn't in the namespaceMap, then compute and put it in
-      // the map.
-      ImportElement importElement = importDirective.element;
-      if (importElement != null) {
-        namespace = importElement.namespace;
-        _namespaceMap[importDirective] = namespace;
-      }
-    }
-    return namespace;
-  }
-
-  /// Remove [element] from the list of names shown by [importDirective].
-  void _removeFromUnusedShownNamesMap(
-      Element element, ImportDirective importDirective) {
-    List<SimpleIdentifier> identifiers = _unusedShownNamesMap[importDirective];
-    if (identifiers == null) {
-      return;
-    }
-    int length = identifiers.length;
-    for (int i = 0; i < length; i++) {
-      Identifier identifier = identifiers[i];
-      if (element is PropertyAccessorElement) {
-        // If the getter or setter of a variable is used, then the variable (the
-        // shown name) is used.
-        if (identifier.staticElement == element.variable) {
-          identifiers.remove(identifier);
-          break;
-        }
-      } else {
-        if (identifier.staticElement == element) {
-          identifiers.remove(identifier);
-          break;
-        }
-      }
-    }
-    if (identifiers.isEmpty) {
-      _unusedShownNamesMap.remove(importDirective);
-    }
   }
 }
 
@@ -3318,7 +2683,7 @@ class InstanceFieldResolverVisitor extends ResolverVisitor {
   /// the node that will first be visited.  If `null` or unspecified, a new
   /// [LibraryScope] will be created based on the [definingLibrary].
   InstanceFieldResolverVisitor(
-      InheritanceManager2 inheritance,
+      InheritanceManager3 inheritance,
       LibraryElement definingLibrary,
       Source source,
       TypeProvider typeProvider,
@@ -3422,7 +2787,7 @@ class NonNullableTypeProvider extends TypeProviderImpl {
 /// being used correctly.
 class OverrideVerifier extends RecursiveAstVisitor {
   /// The inheritance manager used to find overridden methods.
-  final InheritanceManager2 _inheritance;
+  final InheritanceManager3 _inheritance;
 
   /// The URI of the library being verified.
   final Uri _libraryUri;
@@ -3524,7 +2889,7 @@ class PartialResolverVisitor extends ResolverVisitor {
   /// [LibraryScope] will be created based on [definingLibrary] and
   /// [typeProvider].
   PartialResolverVisitor(
-      InheritanceManager2 inheritance,
+      InheritanceManager3 inheritance,
       LibraryElement definingLibrary,
       Source source,
       TypeProvider typeProvider,
@@ -3680,11 +3045,14 @@ class ResolverVisitor extends ScopedVisitor {
   /**
    * The manager for the inheritance mappings.
    */
-  final InheritanceManager2 inheritance;
+  final InheritanceManager3 inheritance;
 
   final AnalysisOptionsImpl _analysisOptions;
 
   final bool _uiAsCodeEnabled;
+
+  /// Helper for extension method resolution.
+  ExtensionMemberResolver extensionResolver;
 
   /// The object used to resolve the element associated with the current node.
   ElementResolver elementResolver;
@@ -3715,7 +3083,9 @@ class ResolverVisitor extends ScopedVisitor {
   InferenceContext inferenceContext = null;
 
   /// The object keeping track of which elements have had their types promoted.
-  TypePromotionManager _promoteManager = new TypePromotionManager();
+  TypePromotionManager _promoteManager;
+
+  final FlowAnalysisHelper _flowAnalysis;
 
   /// A comment before a function should be resolved in the context of the
   /// function. But when we incrementally resolve a comment, we don't want to
@@ -3725,14 +3095,18 @@ class ResolverVisitor extends ScopedVisitor {
   /// be built and the comment resolved.
   bool resolveOnlyCommentInFunctionBody = false;
 
-  /// Body of the function currently being analyzed, if any.
-  FunctionBody _currentFunctionBody;
-
   /// The type of the expression of the immediately enclosing [SwitchStatement],
   /// or `null` if not in a [SwitchStatement].
   DartType _enclosingSwitchStatementExpressionType;
 
   /// Initialize a newly created visitor to resolve the nodes in an AST node.
+  ///
+  /// [inheritanceManager] should be an instance of either [InheritanceManager2]
+  /// or [InheritanceManager3].  If an [InheritanceManager2] is supplied, it
+  /// will be converted into an [InheritanceManager3] internally.  The ability
+  /// to pass in [InheritanceManager2] exists for backward compatibility; in a
+  /// future major version of the analyzer, an [InheritanceManager3] will
+  /// be required.
   ///
   /// The [definingLibrary] is the element for the library containing the node
   /// being visited. The [source] is the source representing the compilation
@@ -3747,7 +3121,7 @@ class ResolverVisitor extends ScopedVisitor {
   /// TODO(paulberry): make [featureSet] a required parameter (this will be a
   /// breaking change).
   ResolverVisitor(
-      InheritanceManager2 inheritance,
+      InheritanceManagerBase inheritanceManager,
       LibraryElement definingLibrary,
       Source source,
       TypeProvider typeProvider,
@@ -3755,9 +3129,10 @@ class ResolverVisitor extends ScopedVisitor {
       {FeatureSet featureSet,
       Scope nameScope,
       bool propagateTypes: true,
-      reportConstEvaluationErrors: true})
+      reportConstEvaluationErrors: true,
+      FlowAnalysisHelper flowAnalysisHelper})
       : this._(
-            inheritance,
+            inheritanceManager.asInheritanceManager3,
             definingLibrary,
             source,
             typeProvider,
@@ -3766,7 +3141,8 @@ class ResolverVisitor extends ScopedVisitor {
                 definingLibrary.context.analysisOptions.contextFeatures,
             nameScope,
             propagateTypes,
-            reportConstEvaluationErrors);
+            reportConstEvaluationErrors,
+            flowAnalysisHelper);
 
   ResolverVisitor._(
       this.inheritance,
@@ -3777,16 +3153,19 @@ class ResolverVisitor extends ScopedVisitor {
       FeatureSet featureSet,
       Scope nameScope,
       bool propagateTypes,
-      reportConstEvaluationErrors)
+      reportConstEvaluationErrors,
+      this._flowAnalysis)
       : _analysisOptions = definingLibrary.context.analysisOptions,
         _uiAsCodeEnabled =
             featureSet.isEnabled(Feature.control_flow_collections) ||
                 featureSet.isEnabled(Feature.spread_collections),
         super(definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope) {
+    this.typeSystem = definingLibrary.context.typeSystem;
+    this._promoteManager = TypePromotionManager(typeSystem);
+    this.extensionResolver = ExtensionMemberResolver(this);
     this.elementResolver = new ElementResolver(this,
         reportConstEvaluationErrors: reportConstEvaluationErrors);
-    this.typeSystem = definingLibrary.context.typeSystem;
     bool strongModeHints = false;
     AnalysisOptions options = _analysisOptions;
     if (options is AnalysisOptionsImpl) {
@@ -3803,12 +3182,14 @@ class ResolverVisitor extends ScopedVisitor {
   /// @return the element representing the function containing the current node
   ExecutableElement get enclosingFunction => _enclosingFunction;
 
-  /// Return the object keeping track of which elements have had their types
-  /// promoted.
-  ///
-  /// @return the object keeping track of which elements have had their types
-  ///         promoted
-  TypePromotionManager get promoteManager => _promoteManager;
+  /// Return the object providing promoted or declared types of variables.
+  LocalVariableTypeProvider get localVariableTypeProvider {
+    if (_flowAnalysis != null) {
+      return _flowAnalysis.localVariableTypeProvider;
+    } else {
+      return _promoteManager.localVariableTypeProvider;
+    }
+  }
 
   /// Return the static element associated with the given expression whose type
   /// can be overridden, or `null` if there is no element whose type can be
@@ -3827,24 +3208,6 @@ class ResolverVisitor extends ScopedVisitor {
     }
     if (element is VariableElement) {
       return element;
-    }
-    return null;
-  }
-
-  /// Return the static element associated with the given expression whose type
-  /// can be promoted, or `null` if there is no element whose type can be
-  /// promoted.
-  VariableElement getPromotionStaticElement(Expression expression) {
-    expression = expression?.unParenthesized;
-    if (expression is SimpleIdentifier) {
-      Element element = expression.staticElement;
-      if (element is VariableElement) {
-        ElementKind kind = element.kind;
-        if (kind == ElementKind.LOCAL_VARIABLE ||
-            kind == ElementKind.PARAMETER) {
-          return element;
-        }
-      }
     }
     return null;
   }
@@ -3907,7 +3270,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   /// Set the enclosing function body when partial AST is resolved.
   void prepareCurrentFunctionBody(FunctionBody body) {
-    _currentFunctionBody = body;
+    _promoteManager.enterFunctionBody(body);
   }
 
   /// Set information about enclosing declarations.
@@ -4019,14 +3382,22 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
-    node.leftHandSide?.accept(this);
+    var left = node.leftHandSide;
+    var right = node.rightHandSide;
+
+    left?.accept(this);
+
+    var leftLocalVariable = _flowAnalysis?.assignmentExpression(node);
+
     TokenType operator = node.operator.type;
     if (operator == TokenType.EQ ||
         operator == TokenType.QUESTION_QUESTION_EQ) {
-      InferenceContext.setType(
-          node.rightHandSide, node.leftHandSide.staticType);
+      InferenceContext.setType(right, left.staticType);
     }
-    node.rightHandSide?.accept(this);
+
+    right?.accept(this);
+    _flowAnalysis?.assignmentExpression_afterRight(leftLocalVariable, right);
+
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
   }
@@ -4043,66 +3414,88 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
-    TokenType operatorType = node.operator.type;
-    Expression leftOperand = node.leftOperand;
-    Expression rightOperand = node.rightOperand;
-    if (operatorType == TokenType.AMPERSAND_AMPERSAND) {
-      InferenceContext.setType(leftOperand, typeProvider.boolType);
-      InferenceContext.setType(rightOperand, typeProvider.boolType);
-      leftOperand?.accept(this);
-      if (rightOperand != null) {
-        _promoteManager.enterScope();
-        try {
-          // Type promotion.
-          _promoteTypes(leftOperand);
-          _clearTypePromotionsIfPotentiallyMutatedIn(leftOperand);
-          _clearTypePromotionsIfPotentiallyMutatedIn(rightOperand);
-          _clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(
-              rightOperand);
-          // Visit right operand.
-          rightOperand.accept(this);
-        } finally {
-          _promoteManager.exitScope();
-        }
+    TokenType operator = node.operator.type;
+    Expression left = node.leftOperand;
+    Expression right = node.rightOperand;
+    var flow = _flowAnalysis?.flow;
+
+    if (operator == TokenType.AMPERSAND_AMPERSAND) {
+      InferenceContext.setType(left, typeProvider.boolType);
+      InferenceContext.setType(right, typeProvider.boolType);
+
+      // TODO(scheglov) Do we need these checks for null?
+      left?.accept(this);
+
+      if (_flowAnalysis != null) {
+        flow?.logicalBinaryOp_rightBegin(left, isAnd: true);
+        _flowAnalysis.checkUnreachableNode(right);
+        right.accept(this);
+        flow?.logicalBinaryOp_end(node, right, isAnd: true);
+      } else {
+        _promoteManager.visitBinaryExpression_and_rhs(
+          left,
+          right,
+          () {
+            right.accept(this);
+          },
+        );
       }
+
       node.accept(elementResolver);
-    } else if (operatorType == TokenType.BAR_BAR) {
-      InferenceContext.setType(leftOperand, typeProvider.boolType);
-      InferenceContext.setType(rightOperand, typeProvider.boolType);
-      leftOperand?.accept(this);
-      if (rightOperand != null) {
-        rightOperand.accept(this);
-      }
+    } else if (operator == TokenType.BAR_BAR) {
+      InferenceContext.setType(left, typeProvider.boolType);
+      InferenceContext.setType(right, typeProvider.boolType);
+
+      left?.accept(this);
+
+      flow?.logicalBinaryOp_rightBegin(left, isAnd: false);
+      _flowAnalysis?.checkUnreachableNode(right);
+      right.accept(this);
+      flow?.logicalBinaryOp_end(node, right, isAnd: false);
+
       node.accept(elementResolver);
+    } else if (operator == TokenType.BANG_EQ || operator == TokenType.EQ_EQ) {
+      left.accept(this);
+      right.accept(this);
+      node.accept(elementResolver);
+      _flowAnalysis?.binaryExpression_equal(node, left, right,
+          notEqual: operator == TokenType.BANG_EQ);
     } else {
-      if (operatorType == TokenType.QUESTION_QUESTION) {
-        InferenceContext.setTypeFromNode(leftOperand, node);
+      if (operator == TokenType.QUESTION_QUESTION) {
+        InferenceContext.setTypeFromNode(left, node);
       }
-      leftOperand?.accept(this);
+      left?.accept(this);
 
       // Call ElementResolver.visitBinaryExpression to resolve the user-defined
       // operator method, if applicable.
       node.accept(elementResolver);
 
-      if (operatorType == TokenType.QUESTION_QUESTION) {
+      if (operator == TokenType.QUESTION_QUESTION) {
         // Set the right side, either from the context, or using the information
         // from the left side if it is more precise.
         DartType contextType = InferenceContext.getContext(node);
-        DartType leftType = leftOperand?.staticType;
+        DartType leftType = left?.staticType;
         if (contextType == null || contextType.isDynamic) {
           contextType = leftType;
         }
-        InferenceContext.setType(rightOperand, contextType);
+        InferenceContext.setType(right, contextType);
       } else {
         var invokeType = node.staticInvokeType;
         if (invokeType != null && invokeType.parameters.isNotEmpty) {
           // If this is a user-defined operator, set the right operand context
           // using the operator method's parameter type.
           var rightParam = invokeType.parameters[0];
-          InferenceContext.setType(rightOperand, rightParam.type);
+          InferenceContext.setType(right, rightParam.type);
         }
       }
-      rightOperand?.accept(this);
+
+      if (operator == TokenType.QUESTION_QUESTION) {
+        flow?.ifNullExpression_rightBegin();
+        right.accept(this);
+        flow?.ifNullExpression_end();
+      } else {
+        right?.accept(this);
+      }
     }
     node.accept(typeAnalyzer);
   }
@@ -4110,11 +3503,19 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   void visitBlockFunctionBody(BlockFunctionBody node) {
     try {
+      _flowAnalysis?.blockFunctionBody_enter(node);
       inferenceContext.pushReturnContext(node);
       super.visitBlockFunctionBody(node);
     } finally {
       inferenceContext.popReturnContext(node);
+      _flowAnalysis?.blockFunctionBody_exit(node);
     }
+  }
+
+  @override
+  void visitBooleanLiteral(BooleanLiteral node) {
+    _flowAnalysis?.flow?.booleanLiteral(node, node.value);
+    super.visitBooleanLiteral(node);
   }
 
   @override
@@ -4125,6 +3526,7 @@ class ResolverVisitor extends ScopedVisitor {
     //
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
+    _flowAnalysis?.breakStatement(node);
   }
 
   @override
@@ -4155,23 +3557,6 @@ class ResolverVisitor extends ScopedVisitor {
       enclosingClass = outerType;
       _enclosingClassDeclaration = null;
     }
-  }
-
-  /// Implementation of this method should be synchronized with
-  /// [visitClassDeclaration].
-  void visitClassDeclarationIncrementally(ClassDeclaration node) {
-    //
-    // Resolve the metadata in the library scope.
-    //
-    node.metadata?.accept(this);
-    _enclosingClassDeclaration = node;
-    //
-    // Continue the class resolution.
-    //
-    enclosingClass = node.declaredElement;
-    typeAnalyzer.thisType = enclosingClass?.type;
-    node.accept(elementResolver);
-    node.accept(typeAnalyzer);
   }
 
   @override
@@ -4215,28 +3600,42 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   void visitConditionalExpression(ConditionalExpression node) {
     Expression condition = node.condition;
+    var flow = _flowAnalysis?.flow;
+
+    // TODO(scheglov) Do we need these checks for null?
     condition?.accept(this);
+
     Expression thenExpression = node.thenExpression;
-    if (thenExpression != null) {
-      _promoteManager.enterScope();
-      try {
-        // Type promotion.
-        _promoteTypes(condition);
-        _clearTypePromotionsIfPotentiallyMutatedIn(thenExpression);
-        _clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(
-            thenExpression);
-        // Visit "then" expression.
-        InferenceContext.setTypeFromNode(thenExpression, node);
-        thenExpression.accept(this);
-      } finally {
-        _promoteManager.exitScope();
+    InferenceContext.setTypeFromNode(thenExpression, node);
+
+    if (_flowAnalysis != null) {
+      if (flow != null) {
+        flow.conditional_thenBegin(condition);
+        _flowAnalysis.checkUnreachableNode(thenExpression);
       }
+      thenExpression.accept(this);
+    } else {
+      _promoteManager.visitConditionalExpression_then(
+        condition,
+        thenExpression,
+        () {
+          thenExpression.accept(this);
+        },
+      );
     }
+
     Expression elseExpression = node.elseExpression;
-    if (elseExpression != null) {
-      InferenceContext.setTypeFromNode(elseExpression, node);
+    InferenceContext.setTypeFromNode(elseExpression, node);
+
+    if (flow != null) {
+      flow.conditional_elseBegin(thenExpression);
+      _flowAnalysis.checkUnreachableNode(elseExpression);
+      elseExpression.accept(this);
+      flow.conditional_end(node, elseExpression);
+    } else {
       elseExpression.accept(this);
     }
+
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
   }
@@ -4244,15 +3643,14 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
-    FunctionBody outerFunctionBody = _currentFunctionBody;
     try {
-      _currentFunctionBody = node.body;
+      _promoteManager.enterFunctionBody(node.body);
       _enclosingFunction = node.declaredElement;
       FunctionType type = _enclosingFunction.type;
       InferenceContext.setType(node.body, type.returnType);
       super.visitConstructorDeclaration(node);
     } finally {
-      _currentFunctionBody = outerFunctionBody;
+      _promoteManager.exitFunctionBody();
       _enclosingFunction = outerFunction;
     }
     ConstructorElementImpl constructor = node.declaredElement;
@@ -4304,6 +3702,7 @@ class ResolverVisitor extends ScopedVisitor {
     //
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
+    _flowAnalysis?.continueStatement(node);
   }
 
   @override
@@ -4327,9 +3726,24 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
-  void visitDoStatement(DoStatement node) {
+  void visitDoStatementInScope(DoStatement node) {
+    _flowAnalysis?.checkUnreachableNode(node);
+
+    var body = node.body;
+    var condition = node.condition;
+
     InferenceContext.setType(node.condition, typeProvider.boolType);
-    super.visitDoStatement(node);
+
+    _flowAnalysis?.flow?.doStatement_bodyBegin(
+      node,
+      _flowAnalysis?.assignedVariables[node],
+    );
+    visitStatementInScope(body);
+
+    _flowAnalysis?.flow?.doStatement_conditionBegin();
+    condition.accept(this);
+
+    _flowAnalysis?.flow?.doStatement_end(node, node.condition);
   }
 
   @override
@@ -4391,6 +3805,42 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
+  void visitExtensionDeclaration(ExtensionDeclaration node) {
+    //
+    // Resolve the metadata in the library scope
+    // and associate the annotations with the element.
+    //
+    if (node.metadata != null) {
+      node.metadata.accept(this);
+      ElementResolver.resolveMetadata(node);
+    }
+    //
+    // Continue the extension resolution.
+    //
+    try {
+      DartType extendedType = node.declaredElement.extendedType;
+      typeAnalyzer.thisType = typeSystem.resolveToBound(extendedType);
+      super.visitExtensionDeclaration(node);
+      node.accept(elementResolver);
+      node.accept(typeAnalyzer);
+    } finally {
+      typeAnalyzer.thisType = null;
+    }
+  }
+
+  @override
+  void visitExtensionOverride(ExtensionOverride node) {
+    node.extensionName.accept(this);
+    node.typeArguments?.accept(this);
+
+    ExtensionMemberResolver(this).setOverrideReceiverContextType(node);
+    node.argumentList.accept(this);
+
+    node.accept(elementResolver);
+    node.accept(typeAnalyzer);
+  }
+
+  @override
   void visitForElementInScope(ForElement node) {
     ForLoopParts forLoopParts = node.forLoopParts;
     if (forLoopParts is ForParts) {
@@ -4444,6 +3894,8 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitForStatementInScope(ForStatement node) {
+    _flowAnalysis?.checkUnreachableNode(node);
+
     ForLoopParts forLoopParts = node.forLoopParts;
     if (forLoopParts is ForParts) {
       if (forLoopParts is ForPartsWithDeclarations) {
@@ -4451,10 +3903,22 @@ class ResolverVisitor extends ScopedVisitor {
       } else if (forLoopParts is ForPartsWithExpression) {
         forLoopParts.initialization?.accept(this);
       }
-      InferenceContext.setType(forLoopParts.condition, typeProvider.boolType);
-      forLoopParts.condition?.accept(this);
+
+      var condition = forLoopParts.condition;
+      InferenceContext.setType(condition, typeProvider.boolType);
+
+      _flowAnalysis?.forStatement_conditionBegin(node, condition);
+      if (condition != null) {
+        condition.accept(this);
+      }
+
+      _flowAnalysis?.forStatement_bodyBegin(node, condition);
       visitStatementInScope(node.body);
+
+      _flowAnalysis?.flow?.forStatement_updaterBegin();
       forLoopParts.updaters.accept(this);
+
+      _flowAnalysis?.flow?.forStatement_end();
     } else if (forLoopParts is ForEachParts) {
       Expression iterable = forLoopParts.iterable;
       DeclaredIdentifier loopVariable;
@@ -4492,11 +3956,20 @@ class ResolverVisitor extends ScopedVisitor {
       // cannot be in scope while visiting the iterator.
       //
       iterable?.accept(this);
+      _flowAnalysis?.loopVariable(loopVariable);
       loopVariable?.accept(this);
+
+      _flowAnalysis?.flow?.forEachStatement_bodyBegin(
+        _flowAnalysis?.assignedVariables[node],
+      );
+
       Statement body = node.body;
       if (body != null) {
         visitStatementInScope(body);
       }
+
+      _flowAnalysis?.flow?.forEachStatement_end();
+
       node.accept(elementResolver);
       node.accept(typeAnalyzer);
     }
@@ -4505,16 +3978,15 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
-    FunctionBody outerFunctionBody = _currentFunctionBody;
     try {
       SimpleIdentifier functionName = node.name;
-      _currentFunctionBody = node.functionExpression.body;
+      _promoteManager.enterFunctionBody(node.functionExpression.body);
       _enclosingFunction = functionName.staticElement as ExecutableElement;
       InferenceContext.setType(
           node.functionExpression, _enclosingFunction.type);
       super.visitFunctionDeclaration(node);
     } finally {
-      _currentFunctionBody = outerFunctionBody;
+      _promoteManager.exitFunctionBody();
       _enclosingFunction = outerFunction;
     }
   }
@@ -4528,9 +4000,13 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   void visitFunctionExpression(FunctionExpression node) {
     ExecutableElement outerFunction = _enclosingFunction;
-    FunctionBody outerFunctionBody = _currentFunctionBody;
     try {
-      _currentFunctionBody = node.body;
+      if (_flowAnalysis != null) {
+        _flowAnalysis.flow?.functionExpression_begin();
+      } else {
+        _promoteManager.enterFunctionBody(node.body);
+      }
+
       _enclosingFunction = node.declaredElement;
       DartType functionType = InferenceContext.getContext(node);
       if (functionType is FunctionType) {
@@ -4544,7 +4020,12 @@ class ResolverVisitor extends ScopedVisitor {
       }
       super.visitFunctionExpression(node);
     } finally {
-      _currentFunctionBody = outerFunctionBody;
+      if (_flowAnalysis != null) {
+        _flowAnalysis.flow?.functionExpression_end();
+      } else {
+        _promoteManager.exitFunctionBody();
+      }
+
       _enclosingFunction = outerFunction;
     }
   }
@@ -4592,22 +4073,16 @@ class ResolverVisitor extends ScopedVisitor {
   void visitIfElement(IfElement node) {
     Expression condition = node.condition;
     InferenceContext.setType(condition, typeProvider.boolType);
+    // TODO(scheglov) Do we need these checks for null?
     condition?.accept(this);
     CollectionElement thenElement = node.thenElement;
-    if (thenElement != null) {
-      _promoteManager.enterScope();
-      try {
-        // Type promotion.
-        _promoteTypes(condition);
-        _clearTypePromotionsIfPotentiallyMutatedIn(thenElement);
-        _clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(
-            thenElement);
-        // Visit "then".
+    _promoteManager.visitIfElement_thenElement(
+      condition,
+      thenElement,
+      () {
         thenElement.accept(this);
-      } finally {
-        _promoteManager.exitScope();
-      }
-    }
+      },
+    );
     node.elseElement?.accept(this);
 
     node.accept(elementResolver);
@@ -4616,28 +4091,35 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitIfStatement(IfStatement node) {
+    _flowAnalysis?.checkUnreachableNode(node);
+
     Expression condition = node.condition;
+
     InferenceContext.setType(condition, typeProvider.boolType);
     condition?.accept(this);
+
     Statement thenStatement = node.thenStatement;
-    if (thenStatement != null) {
-      _promoteManager.enterScope();
-      try {
-        // Type promotion.
-        _promoteTypes(condition);
-        _clearTypePromotionsIfPotentiallyMutatedIn(thenStatement);
-        _clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(
-            thenStatement);
-        // Visit "then".
-        visitStatementInScope(thenStatement);
-      } finally {
-        _promoteManager.exitScope();
-      }
+    if (_flowAnalysis != null) {
+      _flowAnalysis.flow.ifStatement_thenBegin(condition);
+      visitStatementInScope(thenStatement);
+    } else {
+      _promoteManager.visitIfStatement_thenStatement(
+        condition,
+        thenStatement,
+        () {
+          visitStatementInScope(thenStatement);
+        },
+      );
     }
+
     Statement elseStatement = node.elseStatement;
     if (elseStatement != null) {
+      _flowAnalysis?.flow?.ifStatement_elseBegin();
       visitStatementInScope(elseStatement);
     }
+
+    _flowAnalysis?.flow?.ifStatement_end(elseStatement != null);
+
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
   }
@@ -4662,6 +4144,12 @@ class ResolverVisitor extends ScopedVisitor {
     node.argumentList?.accept(this);
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
+  }
+
+  @override
+  void visitIsExpression(IsExpression node) {
+    super.visitIsExpression(node);
+    _flowAnalysis?.isExpression(node);
   }
 
   @override
@@ -4701,16 +4189,15 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
-    FunctionBody outerFunctionBody = _currentFunctionBody;
     try {
-      _currentFunctionBody = node.body;
+      _promoteManager.enterFunctionBody(node.body);
       _enclosingFunction = node.declaredElement;
       DartType returnType =
           _computeReturnOrYieldType(_enclosingFunction.type?.returnType);
       InferenceContext.setType(node.body, returnType);
       super.visitMethodDeclaration(node);
     } finally {
-      _currentFunctionBody = outerFunctionBody;
+      _promoteManager.exitFunctionBody();
       _enclosingFunction = outerFunction;
     }
   }
@@ -4767,6 +4254,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitNode(AstNode node) {
+    _flowAnalysis?.checkUnreachableNode(node);
     node.visitChildren(this);
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
@@ -4787,6 +4275,16 @@ class ResolverVisitor extends ScopedVisitor {
     node.prefix?.accept(this);
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
+  }
+
+  @override
+  void visitPrefixExpression(PrefixExpression node) {
+    super.visitPrefixExpression(node);
+
+    var operator = node.operator.type;
+    if (operator == TokenType.BANG) {
+      _flowAnalysis?.flow?.logicalNot_end(node, node.operand);
+    }
   }
 
   @override
@@ -4816,6 +4314,12 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
+  void visitRethrowExpression(RethrowExpression node) {
+    super.visitRethrowExpression(node);
+    _flowAnalysis?.flow?.handleExit();
+  }
+
+  @override
   void visitReturnStatement(ReturnStatement node) {
     Expression e = node.expression;
     InferenceContext.setType(e, inferenceContext.returnContext);
@@ -4829,6 +4333,7 @@ class ResolverVisitor extends ScopedVisitor {
       }
       inferenceContext.addReturnOrYieldType(type);
     }
+    _flowAnalysis?.flow?.handleExit();
   }
 
   @override
@@ -4889,6 +4394,21 @@ class ResolverVisitor extends ScopedVisitor {
   void visitShowCombinator(ShowCombinator node) {}
 
   @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    if (_flowAnalysis != null &&
+        _flowAnalysis.isPotentiallyNonNullableLocalReadBeforeWrite(node)) {
+      errorReporter.reportErrorForNode(
+        CompileTimeErrorCode
+            .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+        node,
+        [node.name],
+      );
+    }
+
+    super.visitSimpleIdentifier(node);
+  }
+
+  @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     //
     // We visit the argument list, but do not visit the optional identifier
@@ -4904,6 +4424,8 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitSwitchCase(SwitchCase node) {
+    _flowAnalysis?.checkUnreachableNode(node);
+
     InferenceContext.setType(
         node.expression, _enclosingSwitchStatementExpressionType);
     super.visitSwitchCase(node);
@@ -4911,13 +4433,99 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitSwitchStatementInScope(SwitchStatement node) {
+    _flowAnalysis?.checkUnreachableNode(node);
+
     var previousExpressionType = _enclosingSwitchStatementExpressionType;
     try {
-      node.expression?.accept(this);
-      _enclosingSwitchStatementExpressionType = node.expression.staticType;
-      node.members.accept(this);
+      var expression = node.expression;
+      expression.accept(this);
+      _enclosingSwitchStatementExpressionType = expression.staticType;
+
+      if (_flowAnalysis != null) {
+        var flow = _flowAnalysis.flow;
+        var assignedInCases = _flowAnalysis.assignedVariables[node];
+
+        flow.switchStatement_expressionEnd(node);
+
+        var hasDefault = false;
+        var members = node.members;
+        for (var member in members) {
+          flow.switchStatement_beginCase(
+            member.labels.isNotEmpty
+                ? assignedInCases
+                : _flowAnalysis.assignedVariables.emptySet,
+          );
+          member.accept(this);
+
+          // Implicit `break` at the end of `default`.
+          if (member is SwitchDefault) {
+            hasDefault = true;
+            flow.handleBreak(node);
+          }
+        }
+
+        flow.switchStatement_end(node, hasDefault);
+      } else {
+        node.members.accept(this);
+      }
     } finally {
       _enclosingSwitchStatementExpressionType = previousExpressionType;
+    }
+  }
+
+  @override
+  void visitThrowExpression(ThrowExpression node) {
+    super.visitThrowExpression(node);
+    _flowAnalysis?.flow?.handleExit();
+  }
+
+  @override
+  void visitTryStatement(TryStatement node) {
+    if (_flowAnalysis == null) {
+      return super.visitTryStatement(node);
+    }
+
+    _flowAnalysis.checkUnreachableNode(node);
+    var flow = _flowAnalysis.flow;
+
+    var body = node.body;
+    var catchClauses = node.catchClauses;
+    var finallyBlock = node.finallyBlock;
+
+    if (finallyBlock != null) {
+      flow.tryFinallyStatement_bodyBegin();
+    }
+
+    flow.tryCatchStatement_bodyBegin();
+    body.accept(this);
+    flow.tryCatchStatement_bodyEnd(
+      _flowAnalysis.assignedVariables[body],
+    );
+
+    var catchLength = catchClauses.length;
+    for (var i = 0; i < catchLength; ++i) {
+      var catchClause = catchClauses[i];
+      flow.tryCatchStatement_catchBegin();
+      if (catchClause.exceptionParameter != null) {
+        flow.add(catchClause.exceptionParameter.staticElement, assigned: true);
+      }
+      if (catchClause.stackTraceParameter != null) {
+        flow.add(catchClause.stackTraceParameter.staticElement, assigned: true);
+      }
+      catchClause.accept(this);
+      flow.tryCatchStatement_catchEnd();
+    }
+
+    flow.tryCatchStatement_end();
+
+    if (finallyBlock != null) {
+      flow.tryFinallyStatement_finallyBegin(
+        _flowAnalysis.assignedVariables[body],
+      );
+      finallyBlock.accept(this);
+      flow.tryFinallyStatement_end(
+        _flowAnalysis.assignedVariables[finallyBlock],
+      );
     }
   }
 
@@ -4945,6 +4553,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
+    _flowAnalysis?.variableDeclarationList(node);
     for (VariableDeclaration decl in node.variables) {
       VariableElement variableElement =
           resolutionMap.elementDeclaredByVariableDeclaration(decl);
@@ -4955,17 +4564,27 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitWhileStatement(WhileStatement node) {
+    _flowAnalysis?.checkUnreachableNode(node);
+
     // Note: since we don't call the base class, we have to maintain
     // _implicitLabelScope ourselves.
     ImplicitLabelScope outerImplicitScope = _implicitLabelScope;
     try {
       _implicitLabelScope = _implicitLabelScope.nest(node);
+
       Expression condition = node.condition;
       InferenceContext.setType(condition, typeProvider.boolType);
+
+      _flowAnalysis?.flow?.whileStatement_conditionBegin(
+        _flowAnalysis?.assignedVariables[node],
+      );
       condition?.accept(this);
+
       Statement body = node.body;
       if (body != null) {
+        _flowAnalysis?.flow?.whileStatement_bodyBegin(node, condition);
         visitStatementInScope(body);
+        _flowAnalysis?.flow?.whileStatement_end();
       }
     } finally {
       _implicitLabelScope = outerImplicitScope;
@@ -5017,36 +4636,6 @@ class ResolverVisitor extends ScopedVisitor {
       }
       if (type != null) {
         inferenceContext.addReturnOrYieldType(type);
-      }
-    }
-  }
-
-  /// Checks each promoted variable in the current scope for compliance with the
-  /// following specification statement:
-  ///
-  /// If the variable <i>v</i> is accessed by a closure in <i>s<sub>1</sub></i>
-  /// then the variable <i>v</i> is not potentially mutated anywhere in the
-  /// scope of <i>v</i>.
-  void _clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(
-      AstNode target) {
-    for (Element element in _promoteManager.promotedElements) {
-      if (_currentFunctionBody.isPotentiallyMutatedInScope(element)) {
-        if (_isVariableAccessedInClosure(element, target)) {
-          _promoteManager.setType(element, null);
-        }
-      }
-    }
-  }
-
-  /// Checks each promoted variable in the current scope for compliance with the
-  /// following specification statement:
-  ///
-  /// <i>v</i> is not potentially mutated in <i>s<sub>1</sub></i> or within a
-  /// closure.
-  void _clearTypePromotionsIfPotentiallyMutatedIn(AstNode target) {
-    for (Element element in _promoteManager.promotedElements) {
-      if (_isVariablePotentiallyMutatedIn(element, target)) {
-        _promoteManager.setType(element, null);
       }
     }
   }
@@ -5333,86 +4922,6 @@ class ResolverVisitor extends ScopedVisitor {
     }
   }
 
-  /// Return `true` if the given variable is accessed within a closure in the
-  /// given [AstNode] and also mutated somewhere in variable scope. This
-  /// information is only available for local variables (including parameters).
-  ///
-  /// @param variable the variable to check
-  /// @param target the [AstNode] to check within
-  /// @return `true` if this variable is potentially mutated somewhere in the
-  ///         given ASTNode
-  bool _isVariableAccessedInClosure(Element variable, AstNode target) {
-    _ResolverVisitor_isVariableAccessedInClosure visitor =
-        new _ResolverVisitor_isVariableAccessedInClosure(variable);
-    target.accept(visitor);
-    return visitor.result;
-  }
-
-  /// Return `true` if the given variable is potentially mutated somewhere in
-  /// the given [AstNode]. This information is only available for local
-  /// variables (including parameters).
-  ///
-  /// @param variable the variable to check
-  /// @param target the [AstNode] to check within
-  /// @return `true` if this variable is potentially mutated somewhere in the
-  ///         given ASTNode
-  bool _isVariablePotentiallyMutatedIn(Element variable, AstNode target) {
-    _ResolverVisitor_isVariablePotentiallyMutatedIn visitor =
-        new _ResolverVisitor_isVariablePotentiallyMutatedIn(variable);
-    target.accept(visitor);
-    return visitor.result;
-  }
-
-  /// If it is appropriate to do so, promotes the current type of the static
-  /// element associated with the given expression with the given type.
-  /// Generally speaking, it is appropriate if the given type is more specific
-  /// than the current type.
-  ///
-  /// @param expression the expression used to access the static element whose
-  ///        types might be promoted
-  /// @param potentialType the potential type of the elements
-  void _promote(Expression expression, DartType potentialType) {
-    VariableElement element = getPromotionStaticElement(expression);
-    if (element != null) {
-      // may be mutated somewhere in closure
-      if (_currentFunctionBody.isPotentiallyMutatedInClosure(element)) {
-        return;
-      }
-      // prepare current variable type
-      DartType type = _promoteManager.getType(element) ??
-          expression.staticType ??
-          DynamicTypeImpl.instance;
-
-      potentialType ??= DynamicTypeImpl.instance;
-
-      // Check if we can promote to potentialType from type.
-      DartType promoteType = typeSystem.tryPromoteToType(potentialType, type);
-      if (promoteType != null) {
-        // Do promote type of variable.
-        _promoteManager.setType(element, promoteType);
-      }
-    }
-  }
-
-  /// Promotes type information using given condition.
-  void _promoteTypes(Expression condition) {
-    if (condition is BinaryExpression) {
-      if (condition.operator.type == TokenType.AMPERSAND_AMPERSAND) {
-        Expression left = condition.leftOperand;
-        Expression right = condition.rightOperand;
-        _promoteTypes(left);
-        _promoteTypes(right);
-        _clearTypePromotionsIfPotentiallyMutatedIn(right);
-      }
-    } else if (condition is IsExpression) {
-      if (condition.notOperator == null) {
-        _promote(condition.expression, condition.type.type);
-      }
-    } else if (condition is ParenthesizedExpression) {
-      _promoteTypes(condition.expression);
-    }
-  }
-
   void _pushCollectionTypesDown(CollectionElement element,
       {DartType elementType,
       @required DartType iterableType,
@@ -5602,6 +5111,10 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   /// The class containing the AST nodes being visited,
   /// or `null` if we are not in the scope of a class.
   ClassElement enclosingClass;
+
+  /// The element representing the extension containing the AST nodes being
+  /// visited, or `null` if we are not in the scope of an extension.
+  ExtensionElement enclosingExtension;
 
   /// Initialize a newly created visitor to resolve the nodes in a compilation
   /// unit.
@@ -5809,11 +5322,15 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     ImplicitLabelScope outerImplicitScope = _implicitLabelScope;
     try {
       _implicitLabelScope = _implicitLabelScope.nest(node);
-      visitStatementInScope(node.body);
-      node.condition?.accept(this);
+      visitDoStatementInScope(node);
     } finally {
       _implicitLabelScope = outerImplicitScope;
     }
+  }
+
+  void visitDoStatementInScope(DoStatement node) {
+    visitStatementInScope(node.body);
+    node.condition?.accept(this);
   }
 
   @override
@@ -5845,6 +5362,46 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     node.documentationComment?.accept(this);
     node.metadata.accept(this);
     node.constants.accept(this);
+  }
+
+  @override
+  void visitExtensionDeclaration(ExtensionDeclaration node) {
+    ExtensionElement extensionElement = node.declaredElement;
+    Scope outerScope = nameScope;
+    try {
+      if (extensionElement == null) {
+        AnalysisEngine.instance.logger.logInformation(
+            "Missing element for extension declaration ${node.name.name} "
+            "in ${definingLibrary.source.fullName}",
+            new CaughtException(new AnalysisException(), null));
+        super.visitExtensionDeclaration(node);
+      } else {
+        ExtensionElement outerExtension = enclosingExtension;
+        try {
+          enclosingExtension = extensionElement;
+          nameScope = new TypeParameterScope(nameScope, extensionElement);
+          visitExtensionDeclarationInScope(node);
+          nameScope = ExtensionScope(nameScope, extensionElement);
+          visitExtensionMembersInScope(node);
+        } finally {
+          enclosingExtension = outerExtension;
+        }
+      }
+    } finally {
+      nameScope = outerScope;
+    }
+  }
+
+  void visitExtensionDeclarationInScope(ExtensionDeclaration node) {
+    node.name?.accept(this);
+    node.typeParameters?.accept(this);
+    node.extendedType?.accept(this);
+  }
+
+  void visitExtensionMembersInScope(ExtensionDeclaration node) {
+    node.documentationComment?.accept(this);
+    node.metadata.accept(this);
+    node.members.accept(this);
   }
 
   @override
@@ -6656,8 +6213,9 @@ class TypeNameResolver {
       }
     } else {
       if (element is GenericTypeAliasElementImpl) {
+        var ts = typeSystem as Dart2TypeSystem;
         List<DartType> typeArguments =
-            typeSystem.instantiateTypeFormalsToBounds(element.typeParameters);
+            ts.instantiateTypeFormalsToBounds2(element);
         type = GenericTypeAliasElementImpl.typeAfterSubstitution(
                 element, typeArguments) ??
             dynamicType;
@@ -6903,8 +6461,8 @@ class TypeNameResolver {
       if (redirectedType != null) {
         typeArguments = redirectedType.typeArguments;
       } else {
-        var typeFormals = typeParameters;
-        typeArguments = typeSystem.instantiateTypeFormalsToBounds(typeFormals);
+        var ts = typeSystem as Dart2TypeSystem;
+        typeArguments = ts.instantiateTypeFormalsToBounds2(element);
       }
     }
 
@@ -7110,93 +6668,6 @@ class TypeParameterBoundsResolver {
   }
 }
 
-/// Instances of the class `TypePromotionManager` manage the ability to promote
-/// types of local variables and formal parameters from their declared types
-/// based on control flow.
-class TypePromotionManager {
-  /// The current promotion scope, or `null` if no scope has been entered.
-  TypePromotionManager_TypePromoteScope currentScope;
-
-  /// Returns the elements with promoted types.
-  Iterable<Element> get promotedElements => currentScope.promotedElements;
-
-  /// Enter a new promotions scope.
-  void enterScope() {
-    currentScope = new TypePromotionManager_TypePromoteScope(currentScope);
-  }
-
-  /// Exit the current promotion scope.
-  void exitScope() {
-    if (currentScope == null) {
-      throw new StateError("No scope to exit");
-    }
-    currentScope = currentScope._outerScope;
-  }
-
-  /// Return the static type of the given [variable] - declared or promoted.
-  DartType getStaticType(VariableElement variable) =>
-      getType(variable) ?? variable.type;
-
-  /// Return the promoted type of the given [element], or `null` if the type of
-  /// the element has not been promoted.
-  DartType getType(Element element) => currentScope?.getType(element);
-
-  /// Set the promoted type of the given element to the given type.
-  ///
-  /// @param element the element whose type might have been promoted
-  /// @param type the promoted type of the given element
-  void setType(Element element, DartType type) {
-    if (currentScope == null) {
-      throw new StateError("Cannot promote without a scope");
-    }
-    currentScope.setType(element, type);
-  }
-}
-
-/// Instances of the class `TypePromoteScope` represent a scope in which the
-/// types of elements can be promoted.
-class TypePromotionManager_TypePromoteScope {
-  /// The outer scope in which types might be promoter.
-  final TypePromotionManager_TypePromoteScope _outerScope;
-
-  /// A table mapping elements to the promoted type of that element.
-  Map<Element, DartType> _promotedTypes = new HashMap<Element, DartType>();
-
-  /// Initialize a newly created scope to be an empty child of the given scope.
-  ///
-  /// @param outerScope the outer scope in which types might be promoted
-  TypePromotionManager_TypePromoteScope(this._outerScope);
-
-  /// Returns the elements with promoted types.
-  Iterable<Element> get promotedElements => _promotedTypes.keys.toSet();
-
-  /// Return the promoted type of the given element, or `null` if the type of
-  /// the element has not been promoted.
-  ///
-  /// @param element the element whose type might have been promoted
-  /// @return the promoted type of the given element
-  DartType getType(Element element) {
-    DartType type = _promotedTypes[element];
-    if (type == null && element is PropertyAccessorElement) {
-      type = _promotedTypes[element.variable];
-    }
-    if (type != null) {
-      return type;
-    } else if (_outerScope != null) {
-      return _outerScope.getType(element);
-    }
-    return null;
-  }
-
-  /// Set the promoted type of the given element to the given type.
-  ///
-  /// @param element the element whose type might have been promoted
-  /// @param type the promoted type of the given element
-  void setType(Element element, DartType type) {
-    _promotedTypes[element] = type;
-  }
-}
-
 /// The interface `TypeProvider` defines the behavior of objects that provide
 /// access to types defined by the language.
 abstract class TypeProvider {
@@ -7293,6 +6764,9 @@ abstract class TypeProvider {
 
   /// Return the type representing the built-in type 'Type'.
   InterfaceType get typeType;
+
+  /// Return the type representing the built-in type `void`.
+  VoidType get voidType;
 
   /// Return 'true' if [id] is the name of a getter on
   /// the Object type.
@@ -7530,6 +7004,9 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceType get typeType => _typeType;
+
+  @override
+  VoidType get voidType => VoidTypeImpl.instance;
 
   /// Return the type with the given [typeName] from the given [namespace], or
   /// `null` if there is no class with the given name.
@@ -8001,7 +7478,7 @@ class TypeResolverVisitor extends ScopedVisitor {
         variable.declaredType = element.returnType;
       } else if (variable.type == null) {
         List<ParameterElement> parameters = element.parameters;
-        DartType type = parameters != null && parameters.length > 0
+        DartType type = parameters != null && parameters.isNotEmpty
             ? parameters[0].type
             : _dynamicType;
         variable.declaredType = type;
@@ -8467,8 +7944,8 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor {
 
   _visitClassElement(ClassElement element) {
     if (!_isUsedElement(element)) {
-      _reportErrorForElement(HintCode.UNUSED_ELEMENT, element,
-          [element.kind.displayName, element.displayName]);
+      _reportErrorForElement(
+          HintCode.UNUSED_ELEMENT, element, [element.displayName]);
     }
   }
 
@@ -8481,15 +7958,15 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor {
 
   _visitFunctionElement(FunctionElement element) {
     if (!_isUsedElement(element)) {
-      _reportErrorForElement(HintCode.UNUSED_ELEMENT, element,
-          [element.kind.displayName, element.displayName]);
+      _reportErrorForElement(
+          HintCode.UNUSED_ELEMENT, element, [element.displayName]);
     }
   }
 
   _visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
     if (!_isUsedElement(element)) {
-      _reportErrorForElement(HintCode.UNUSED_ELEMENT, element,
-          [element.kind.displayName, element.displayName]);
+      _reportErrorForElement(
+          HintCode.UNUSED_ELEMENT, element, [element.displayName]);
     }
   }
 
@@ -8509,36 +7986,24 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor {
 
   _visitMethodElement(MethodElement element) {
     if (!_isUsedMember(element)) {
-      _reportErrorForElement(HintCode.UNUSED_ELEMENT, element,
-          [element.kind.displayName, element.displayName]);
+      _reportErrorForElement(
+          HintCode.UNUSED_ELEMENT, element, [element.displayName]);
     }
   }
 
   _visitPropertyAccessorElement(PropertyAccessorElement element) {
     if (!_isUsedMember(element)) {
-      _reportErrorForElement(HintCode.UNUSED_ELEMENT, element,
-          [element.kind.displayName, element.displayName]);
+      _reportErrorForElement(
+          HintCode.UNUSED_ELEMENT, element, [element.displayName]);
     }
   }
 
   _visitTopLevelVariableElement(TopLevelVariableElement element) {
     if (!_isUsedElement(element)) {
-      _reportErrorForElement(HintCode.UNUSED_ELEMENT, element,
-          [element.kind.displayName, element.displayName]);
+      _reportErrorForElement(
+          HintCode.UNUSED_ELEMENT, element, [element.displayName]);
     }
   }
-}
-
-/// A container with information about used imports prefixes and used imported
-/// elements.
-class UsedImportedElements {
-  /// The map of referenced [PrefixElement]s and the [Element]s that they
-  /// prefix.
-  final Map<PrefixElement, List<Element>> prefixMap =
-      new HashMap<PrefixElement, List<Element>>();
-
-  /// The set of referenced top-level [Element]s.
-  final Set<Element> elements = new HashSet<Element>();
 }
 
 /// A container with sets of used [Element]s.
@@ -9076,56 +8541,3 @@ class _LiteralResolution {
 
 /// The kind of literal to which an unknown literal should be resolved.
 enum _LiteralResolutionKind { ambiguous, map, set }
-
-class _ResolverVisitor_isVariableAccessedInClosure
-    extends RecursiveAstVisitor<void> {
-  final Element variable;
-
-  bool result = false;
-
-  bool _inClosure = false;
-
-  _ResolverVisitor_isVariableAccessedInClosure(this.variable);
-
-  @override
-  void visitFunctionExpression(FunctionExpression node) {
-    bool inClosure = this._inClosure;
-    try {
-      this._inClosure = true;
-      super.visitFunctionExpression(node);
-    } finally {
-      this._inClosure = inClosure;
-    }
-  }
-
-  @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (result) {
-      return;
-    }
-    if (_inClosure && identical(node.staticElement, variable)) {
-      result = true;
-    }
-  }
-}
-
-class _ResolverVisitor_isVariablePotentiallyMutatedIn
-    extends RecursiveAstVisitor<void> {
-  final Element variable;
-
-  bool result = false;
-
-  _ResolverVisitor_isVariablePotentiallyMutatedIn(this.variable);
-
-  @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (result) {
-      return;
-    }
-    if (identical(node.staticElement, variable)) {
-      if (node.inSetterContext()) {
-        result = true;
-      }
-    }
-  }
-}

@@ -5,6 +5,9 @@
 #ifndef RUNTIME_VM_THREAD_POOL_H_
 #define RUNTIME_VM_THREAD_POOL_H_
 
+#include <memory>
+#include <utility>
+
 #include "vm/allocation.h"
 #include "vm/globals.h"
 #include "vm/os_thread.h"
@@ -35,7 +38,10 @@ class ThreadPool {
   ~ThreadPool();
 
   // Runs a task on the thread pool.
-  bool Run(Task* task);
+  template <typename T, typename... Args>
+  bool Run(Args&&... args) {
+    return RunImpl(std::unique_ptr<Task>(new T(std::forward<Args>(args)...)));
+  }
 
   // Some simple stats.
   uint64_t workers_running() const { return count_running_; }
@@ -49,7 +55,7 @@ class ThreadPool {
     explicit Worker(ThreadPool* pool);
 
     // Sets a task on the worker.
-    void SetTask(Task* task);
+    void SetTask(std::unique_ptr<Task> task);
 
     // Starts the thread for the worker.  This should only be called
     // after a task has been set by the initial call to SetTask().
@@ -76,7 +82,7 @@ class ThreadPool {
     // Fields owned by Worker.
     Monitor monitor_;
     ThreadPool* pool_;
-    Task* task_;
+    std::unique_ptr<Task> task_;
     ThreadId id_;
     bool done_;
 
@@ -110,6 +116,7 @@ class ThreadPool {
     DISALLOW_COPY_AND_ASSIGN(JoinList);
   };
 
+  bool RunImpl(std::unique_ptr<Task> task);
   void Shutdown();
 
   // Expensive.  Use only in assertions.

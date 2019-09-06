@@ -17,13 +17,15 @@ import 'package:kernel/ast.dart'
         ProcedureKind,
         ReturnStatement;
 
-import 'kernel_builder.dart' show Declaration, KernelLibraryBuilder;
+import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+
+import 'kernel_builder.dart' show Builder;
 
 import 'forest.dart' show Forest;
 
 /// Builder to represent the `deferLibrary.loadLibrary` calls and tear-offs.
-class LoadLibraryBuilder extends Declaration {
-  final KernelLibraryBuilder parent;
+class LoadLibraryBuilder extends Builder {
+  final SourceLibraryBuilder parent;
 
   final LibraryDependency importDependency;
 
@@ -40,7 +42,7 @@ class LoadLibraryBuilder extends Declaration {
 
   LoadLibrary createLoadLibrary(
       int charOffset, Forest forest, Arguments arguments) {
-    return forest.loadLibrary(importDependency, arguments)
+    return forest.createLoadLibrary(importDependency, arguments)
       ..fileOffset = charOffset;
   }
 

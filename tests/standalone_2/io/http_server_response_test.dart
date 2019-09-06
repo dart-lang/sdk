@@ -67,6 +67,7 @@ void testResponseDone() {
   testServerRequest((server, request) {
     new File("__nonexistent_file_")
         .openRead()
+        .cast<List<int>>()
         .pipe(request.response)
         .catchError((e) {
       server.close();
@@ -103,7 +104,7 @@ void testResponseAddStream() {
   }, bytes: bytes * 2);
 
   testServerRequest((server, request) {
-    var controller = new StreamController(sync: true);
+    var controller = new StreamController<List<int>>(sync: true);
     request.response.addStream(controller.stream).then((response) {
       response.close();
       response.done.then((_) => server.close());
@@ -122,6 +123,7 @@ void testResponseAddStream() {
   testServerRequest((server, request) {
     new File("__nonexistent_file_")
         .openRead()
+        .cast<List<int>>()
         .pipe(request.response)
         .catchError((e) {
       server.close();

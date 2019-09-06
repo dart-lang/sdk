@@ -763,7 +763,10 @@ class Printer implements NodeVisitor {
       // Output 'a += 1' as '++a' and 'a -= 1' as '--a'.
       _outputIncDec(op, assignment.leftHandSide);
       return;
-    } else if (leftHandSide is VariableUse && rightHandSide is Binary) {
+    }
+    if (!assignment.isCompound &&
+        leftHandSide is VariableUse &&
+        rightHandSide is Binary) {
       Node rLeft = undefer(rightHandSide.left);
       Node rRight = undefer(rightHandSide.right);
       String op = rightHandSide.op;

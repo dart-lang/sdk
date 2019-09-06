@@ -9,9 +9,7 @@ import '../../scanner/token.dart' show Token, SyntheticStringToken, TokenType;
 import '../../scanner/token.dart' as analyzer show StringToken;
 
 import 'abstract_scanner.dart'
-    show LanguageVersionChanged, ScannerConfiguration;
-
-import 'array_based_scanner.dart' show ArrayBasedScanner;
+    show AbstractScanner, LanguageVersionChanged, ScannerConfiguration;
 
 import 'token.dart'
     show CommentToken, DartDocToken, LanguageVersionToken, StringToken;
@@ -22,7 +20,7 @@ import 'error_token.dart' show ErrorToken;
  * Scanner that reads from a String and creates tokens that points to
  * substrings.
  */
-class StringScanner extends ArrayBasedScanner {
+class StringScanner extends AbstractScanner {
   /** The file content. */
   String string;
 

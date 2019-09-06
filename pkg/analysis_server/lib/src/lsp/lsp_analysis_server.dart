@@ -32,6 +32,7 @@ import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -147,7 +148,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     this.sdkManager,
     this.instrumentationService, {
     DiagnosticServer diagnosticServer,
-    ResolverProvider packageResolverProvider: null,
+    ResolverProvider packageResolverProvider = null,
   }) : super(options, diagnosticServer, baseResourceProvider) {
     messageHandler = new UninitializedStateMessageHandler(this);
     // TODO(dantup): This code is almost identical to AnalysisServer, consider
@@ -599,9 +600,10 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
       String path = result.path;
       if (analysisServer.shouldSendErrorsNotificationFor(path)) {
         final serverErrors = protocol.mapEngineErrors(
-            result.session.analysisContext.analysisOptions,
-            result.lineInfo,
-            result.errors,
+            result,
+            result.errors
+                .where((e) => e.errorCode.type != ErrorType.TODO)
+                .toList(),
             toDiagnostic);
 
         analysisServer.publishDiagnostics(result.path, serverErrors);

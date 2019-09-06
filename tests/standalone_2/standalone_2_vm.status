@@ -6,24 +6,6 @@
 link_natives_lazily_test: SkipByDesign # Not supported.
 no_allow_absolute_addresses_test: SkipByDesign # Not supported.
 
-[ $compiler == app_jit ]
-full_coverage_test: Skip # Platform.executable
-io/namespace_test: RuntimeError # Issue 33168
-io/platform_resolved_executable_test/00: RuntimeError # Issue 33168
-io/platform_resolved_executable_test/01: RuntimeError # Issue 33168
-io/platform_resolved_executable_test/02: RuntimeError # Issue 33168
-io/platform_resolved_executable_test/03: RuntimeError # Issue 33168
-io/platform_resolved_executable_test/04: RuntimeError # Issue 33168
-io/platform_resolved_executable_test/05: RuntimeError # Issue 33168
-io/platform_test: Skip # Platform.executable
-io/test_extension_fail_test: Skip # Platform.executable
-io/test_extension_test: Skip # Platform.executable
-io/test_runner_test: RuntimeError # Issue 33168
-regress_26031_test: Skip # Platform.resolvedExecutable
-
-[ $runtime == vm ]
-io/test_runner_test: Skip # Spawns a process which runs in Dart2 mode.
-
 [ $system == android ]
 io/file_stat_test: Skip # Issue 26376
 io/file_system_watcher_test: Skip # Issue 26376
@@ -58,7 +40,6 @@ io/socket_upgrade_to_secure_test: Skip # Issue 27638
 
 [ $system == windows ]
 io/process_sync_test: Pass, Timeout # Issue 24596
-io/skipping_dart2js_compilations_test: Skip # Issue 19551.
 io/sleep_test: Pass, Fail # Issue 25757
 io/socket_info_ipv6_test: Skip
 verbose_gc_to_bmu_test: Skip
@@ -99,7 +80,6 @@ io/process_sync_test: Timeout, Pass
 io/dart_std_io_pipe_test: Timeout, Pass
 io/http_client_stays_alive_test: Skip # Spawns process in Dart2 mode.
 io/process_sync_test: Timeout, Pass
-io/skipping_dart2js_compilations_test: Skip # Spawns process in Dart2 mode.
 
 [ $arch == simdbc || $arch == simdbc64 ]
 full_coverage_test: Skip # TODO(vegorov) SIMDBC interpreter doesn't support coverage yet.

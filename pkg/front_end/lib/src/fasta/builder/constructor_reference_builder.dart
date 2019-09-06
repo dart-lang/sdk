@@ -9,7 +9,7 @@ import '../messages.dart' show noLength, templateConstructorNotFound;
 import 'builder.dart'
     show
         ClassBuilder,
-        Declaration,
+        Builder,
         LibraryBuilder,
         PrefixBuilder,
         QualifiedName,
@@ -29,10 +29,10 @@ class ConstructorReferenceBuilder {
   /// This is the name of a named constructor. As `bar` in `new Foo<T>.bar()`.
   final String suffix;
 
-  Declaration target;
+  Builder target;
 
   ConstructorReferenceBuilder(this.name, this.typeArguments, this.suffix,
-      Declaration parent, this.charOffset)
+      Builder parent, this.charOffset)
       : fileUri = parent.fileUri;
 
   String get fullNameForErrors {
@@ -42,7 +42,7 @@ class ConstructorReferenceBuilder {
 
   void resolveIn(Scope scope, LibraryBuilder accessingLibrary) {
     final name = this.name;
-    Declaration declaration;
+    Builder declaration;
     if (name is QualifiedName) {
       String prefix = name.qualifier;
       String middle = name.name;

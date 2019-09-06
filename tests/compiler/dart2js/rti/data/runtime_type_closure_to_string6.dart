@@ -4,17 +4,17 @@
 
 /*class: Class:*/
 class Class<T> {
-  /*element: Class.:*/
+  /*member: Class.:*/
   Class();
 }
 
-/*element: method1:*/
+/*member: method1:*/
 method1<T>() {}
 
-/*element: method2:*/
+/*member: method2:*/
 method2<T>(t, s) => t;
 
-/*element: main:*/
+/*member: main:*/
 main() {
   print('${method1.runtimeType}');
   method2(0, '');

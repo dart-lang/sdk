@@ -46,7 +46,7 @@ class TypePromotionDataComputer extends DataComputer<String> {
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<String>> actualMap,
       {bool verbose: false}) {
-    KernelFrontEndStrategy frontendStrategy = compiler.frontendStrategy;
+    KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
     KernelToElementMapImpl elementMap = frontendStrategy.elementMap;
     Map<ir.Expression, TypeMap> typeMaps =
         elementMap.getTypeMapsForTesting(member);
@@ -69,11 +69,6 @@ class TypePromotionIrComputer extends IrDataExtractor<String> {
   TypePromotionIrComputer(DiagnosticReporter reporter,
       Map<Id, ActualData<String>> actualMap, this.typeMaps)
       : super(reporter, actualMap);
-
-  @override
-  String computeMemberValue(Id id, ir.Member node) {
-    return null;
-  }
 
   @override
   String computeNodeValue(Id id, ir.TreeNode node) {

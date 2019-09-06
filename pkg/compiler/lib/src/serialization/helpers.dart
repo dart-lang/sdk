@@ -335,8 +335,7 @@ class DartTypeNodeWriter
 /// Data sink helper that canonicalizes [E] values using indices.
 class IndexedSink<E> {
   final AbstractDataSink _sink;
-  final Map<E, int> _cache = {};
-  Set<E> _current = {};
+  final Map<E, int> _cache = {null: 0}; // slot 0 is pre-allocated to `null`.
 
   IndexedSink(this._sink);
 
@@ -345,16 +344,16 @@ class IndexedSink<E> {
   /// If [value] has not been canonicalized yet, [writeValue] is called to
   /// serialize the [value] itself.
   void write(E value, void writeValue(E value)) {
+    const int pending = -1;
     int index = _cache[value];
     if (index == null) {
-      if (!_current.add(value)) {
-        throw new ArgumentError("Cyclic dependency on cached value: $value");
-      }
       index = _cache.length;
       _sink._writeIntInternal(index);
+      _cache[value] = pending; // Increments length to allocate slot.
       writeValue(value);
       _cache[value] = index;
-      _current.remove(value);
+    } else if (index == pending) {
+      throw ArgumentError("Cyclic dependency on cached value: $value");
     } else {
       _sink._writeIntInternal(index);
     }
@@ -364,7 +363,7 @@ class IndexedSink<E> {
 /// Data source helper reads canonicalized [E] values through indices.
 class IndexedSource<E> {
   final AbstractDataSource _source;
-  final List<E> _cache = [];
+  final List<E> _cache = [null]; // slot 0 is pre-allocated to `null`.
 
   IndexedSource(this._source);
 
@@ -375,11 +374,17 @@ class IndexedSource<E> {
   E read(E readValue()) {
     int index = _source._readIntInternal();
     if (index >= _cache.length) {
+      assert(index == _cache.length);
+      _cache.add(null); // placeholder.
       E value = readValue();
-      _cache.add(value);
+      _cache[index] = value;
       return value;
     } else {
-      return _cache[index];
+      E value = _cache[index];
+      if (value == null && index != 0) {
+        throw StateError('Unfilled index $index of $E');
+      }
+      return value;
     }
   }
 }

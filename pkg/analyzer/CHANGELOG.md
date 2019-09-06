@@ -1,4 +1,73 @@
-## 0.36.4-dev (not yet published)
+## 0.38.0
+* The deprecated method `AstFactory.compilationUnit2` has been removed.  Clients
+  should switch back to `AstFactory.compilationUnit`.
+* Removed the deprecated constructor `ParsedLibraryResultImpl.tmp` and the
+  deprecated method `ResolvedLibraryResultImpl.tmp`.  Please use
+  `AnalysisSession.getParsedLibraryByElement` and
+  `AnalysisSession.getResolvedLibraryByElement` instead.
+* Removed `MethodElement.getReifiedType`.
+* The return type of `ClassMemberElement.enclosingElement` was changed from
+  `ClassElement` to `Element`.
+
+## 0.37.1+1
+* Reverted an unintentional breaking API change (the return type of
+  `ClassMemberElement.enclosingElement` was changed from `ClassElement` to
+  `Element`).  This change will be postponed until 0.38.0.
+
+## 0.37.1
+* Added the getters `isDartCoreList`, `isDartCoreMap`, `isDartCoreNum`,
+  `isDartCoreSet`, `isDartCoreSymbol`, and `isDartCoreObject` to `DartType`.
+* Added the method `DartObject.toFunctionValue`.
+* Deprecated the `isEquivalentTo(DartType)` method of `DartType`.
+  The operator `==` now correctly considers two types equal if and
+  only if they represent the same type as defined by the spec.
+* Deprecated the `isMoreSpecificThan(DartType)` method of `DartType`.
+  Deprecated the `isMoreSpecificThan(DartType)` method of `TypeSystem`.
+  Deprecated the `isSupertypeOf(DartType)` method of `TypeSystem`.
+  Use `TypeSystem.isSubtypeOf(DartType)` instead.
+* Deprecated methods `flattenFutures`, `isAssignableTo` of `DartType`.
+  Use `TypeSystem.flatten()` and `TypeSystem.isAssignableTo` instead.
+* Deprecated InheritanceManager2, and replaced with InheritanceManager3.
+  InheritanceManager3 returns ExecutableElements, not FunctionType(s).
+* Added the optional parameter `path` to `parseString`.
+* Changed `TypeSystem.resolveToBound(DartType)` implementation to do
+  what its documentation says.
+* This version of the analyzer should contain all the necessary parsing support
+  and AST data structures for the experimental "extension-methods" feature.
+  Further element model improvements needed to support extension methods will be
+  published in 0.38.x.
+* Deprecated `InterfaceType.isDirectSupertypeOf`.  There is no replacement; this
+  method was not intended to be used outside of the analyzer.
+
+## 0.37.0
+* Removed deprecated getter `DartType.isUndefined`.
+* Removed deprecated class `SdkLibrariesReader`.
+* Removed deprecated method `InstanceCreationExpressionImpl.canBeConst`.
+* The `AstFactory.compilationUnit` method now uses named parameters.  Clients
+  that prepared for this change by switching to `AstFactory.compilationUnit2`
+  should now switch back to `AstFactory.compilationUnit`.
+* Removed `AstNode.getAncestor`.  Please use `AstNode.thisOrAncestorMatching` or
+  `AstNode.thisOrAncestorOfType`.
+* Removed deprecated getter `TypeSystem.isStrong`, and its override
+  `Dart2TypeSystem.isStrong`.
+* Removed the deprecated getter `AnalysisError.isStaticOnly` and the deprecated
+  setters `AnalysisError.isStaticOnly` and `AnalysisError.offset`.
+* Removed the `abstract` setter in `ClassElementImpl`, `EnumElementImpl`,
+  `MethodElementImpl`, and `PropertyAccessorElementImpl`.  `isAbstract` should
+  be used instead.
+* Removed methods `AstVisitor.ForStatement2`, `ListLiteral.elements2`,
+  `SetOrMapLiteral.elements2`, `AstFactory.forStatement2`, and
+  `NodeLintRegistry.addForStatement2`, as well as class `ForStatement2`.  Use
+  the variants with out the "2" suffix instead.
+* Changed the signature and behavior of `parseFile` to match `parseFile2`.
+  Clients that switched to using `parseFile2` when `parseFile` was deprecated
+  should now switch back to `parseFile`.
+* Removed Parser setters `enableControlFlowCollections`, `enableNonNullable`,
+  `enableSpreadCollections`, and `enableTripleShift`, and the method
+  `configureFeatures`.  Made the `featureSet` parameter of the Parser
+  constructor a required parameter.
+
+## 0.36.4
 * Deprecated the `isNonNullableUnit` parameter of the `TypeResolverVisitor`
   constructor.  TypeResolverVisitor should now be configured using the
   `featureSet` parameter.
@@ -13,6 +82,24 @@
   impacts to value returned by `FunctionType.displayName` and
   `FunctionType.toString` and `ExecutableElement.toString`. Client code might be
   broken if it depends on the content of the returned value.
+* Introduced the function `parseString` to the public API.  This can be used in
+  place of the deprecated functions `parseCompilationUnit` and
+  `parseDirectives`.  Note that there is no option to parse only directives,
+  since this functionality is broken anyway (`parseDirectives`, despite its
+  name, parses the entire compilation unit).
+* Changed the return type of `ClassTypeAlias.declaredElement` to `ClassElement`.
+  There is no functional change; it has always returned an instance of
+  `ClassElement`.
+* Deprecated `parseFile`.  Please use `parseFile2` instead--in addition to
+  supporting the same `featureSet` and `throwIfDiagnostics` parameters as
+  `parseString`, it is much more efficient than `parseFile`.
+* Added more specific deprecation notices to `package:analyzer/analyzer.dart` to
+  direct clients to suitable replacements.
+* Deprecated the enable flags `bogus-disabled` and `bogus-enabled`.  Clients
+  should not be relying on the presence of these flags.
+* Deprecated the constructor parameter
+  ConstantEvaluationEngine.forAnalysisDriver, which no longer has any effect.
+* Deprecated ElementImpl.RIGHT_ARROW.
 
 ## 0.36.3
 * Deprecated `AstFactory.compilationUnit`.  In a future analyzer release, this

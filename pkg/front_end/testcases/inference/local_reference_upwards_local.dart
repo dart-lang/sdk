@@ -9,5 +9,5 @@ import 'dart:async';
 
 main() {
   Future<int> futureInt = null;
-  var /*@type=Future<int>*/ x = futureInt;
+  var /*@ type=Future<int*>* */ x = futureInt;
 }

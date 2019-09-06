@@ -43,10 +43,12 @@ abstract class Commands {
     sortMembers,
     organizeImports,
     sendWorkspaceEdit,
+    performRefactor,
   ];
   static const sortMembers = 'edit.sortMembers';
   static const organizeImports = 'edit.organizeImports';
   static const sendWorkspaceEdit = 'edit.sendWorkspaceEdit';
+  static const performRefactor = 'refactor.perform';
 }
 
 abstract class CustomMethods {
@@ -84,6 +86,7 @@ abstract class ServerErrorCodes {
   static const FileHasErrors = const ErrorCodes(-32008);
   static const ClientFailedToApplyEdit = const ErrorCodes(-32009);
   static const RenameNotValid = const ErrorCodes(-32010);
+  static const RefactorFailed = const ErrorCodes(-32011);
 
   /// An error raised when the server detects that the server and client are out
   /// of sync and cannot recover. For example if a textDocument/didChange notification

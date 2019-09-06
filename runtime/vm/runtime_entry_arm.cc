@@ -43,17 +43,19 @@ uword RuntimeEntry::GetEntryPoint() const {
 //   R9 : address of the runtime function to call.
 //   R4 : number of arguments to the call.
 void RuntimeEntry::CallInternal(const RuntimeEntry* runtime_entry,
-                                Assembler* assembler,
+                                compiler::Assembler* assembler,
                                 intptr_t argument_count) {
   if (runtime_entry->is_leaf()) {
     ASSERT(argument_count == runtime_entry->argument_count());
     __ LoadFromOffset(
         kWord, TMP, THR,
         compiler::target::Thread::OffsetFromThread(runtime_entry));
-    __ str(TMP, Address(THR, compiler::target::Thread::vm_tag_offset()));
+    __ str(TMP,
+           compiler::Address(THR, compiler::target::Thread::vm_tag_offset()));
     __ blx(TMP);
     __ LoadImmediate(TMP, VMTag::kDartCompiledTagId);
-    __ str(TMP, Address(THR, compiler::target::Thread::vm_tag_offset()));
+    __ str(TMP,
+           compiler::Address(THR, compiler::target::Thread::vm_tag_offset()));
     ASSERT((kAbiPreservedCpuRegs & (1 << THR)) != 0);
     ASSERT((kAbiPreservedCpuRegs & (1 << PP)) != 0);
   } else {

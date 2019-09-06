@@ -13,12 +13,14 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart'
     show InconsistentAnalysisException;
@@ -164,7 +166,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       _getSourceActions(
           kinds, supportsLiterals, supportsWorkspaceApplyEdit, path),
       _getAssistActions(kinds, supportsLiterals, offset, length, unit),
-      _getRefactorActions(kinds, supportsLiterals, path, range, unit),
+      _getRefactorActions(kinds, supportsLiterals, path, offset, length, unit),
       _getFixActions(kinds, supportsLiterals, range, unit),
     ]);
     final flatResults = results.expand((x) => x).toList();
@@ -205,7 +207,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
           if (fixes.isNotEmpty) {
             fixes.sort(Fix.SORT_BY_RELEVANCE);
 
-            final diagnostic = toDiagnostic(lineInfo, error);
+            final diagnostic = toDiagnostic(unit, error);
             codeActions.addAll(
               fixes.map((fix) => _createFixAction(fix, diagnostic)),
             );
@@ -225,18 +227,61 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     HashSet<CodeActionKind> clientSupportedCodeActionKinds,
     bool clientSupportsLiteralCodeActions,
     String path,
-    Range range,
+    int offset,
+    int length,
     ResolvedUnitResult unit,
   ) async {
-    // We only support these for clients that advertise codeActionLiteralSupport.
-    if (!clientSupportsLiteralCodeActions ||
+    // The refactor actions supported are only valid for Dart files.
+    if (!AnalysisEngine.isDartFileName(path)) {
+      return const [];
+    }
+
+    // If the client told us what kinds they support but it does not include
+    // Refactor then don't return any.
+    if (clientSupportsLiteralCodeActions &&
         !clientSupportedCodeActionKinds.contains(CodeActionKind.Refactor)) {
       return const [];
     }
 
+    /// Helper to create refactors that execute commands provided with
+    /// the current file, location and document version.
+    createRefactor(
+      CodeActionKind actionKind,
+      String name,
+      RefactoringKind refactorKind, [
+      Map<String, dynamic> options,
+    ]) {
+      return _commandOrCodeAction(
+          clientSupportsLiteralCodeActions,
+          actionKind,
+          new Command(name, Commands.performRefactor, [
+            refactorKind.toJson(),
+            path,
+            server.getVersionedDocumentIdentifier(path).version,
+            offset,
+            length,
+            options,
+          ]));
+    }
+
     try {
-      // TODO(dantup): Implement refactors.
-      return [];
+      final refactorActions = <Either2<Command, CodeAction>>[];
+
+      // Extract Method
+      if (ExtractMethodRefactoring(server.searchEngine, unit, offset, length)
+          .isAvailable()) {
+        refactorActions.add(createRefactor(CodeActionKind.RefactorExtract,
+            'Extract Method', RefactoringKind.EXTRACT_METHOD));
+      }
+
+      // Extract Widget
+      if (ExtractWidgetRefactoring(server.searchEngine, unit, offset, length)
+          .isAvailable()) {
+        refactorActions.add(createRefactor(CodeActionKind.RefactorExtract,
+            'Extract Widget', RefactoringKind.EXTRACT_WIDGET));
+      }
+
+      return refactorActions;
     } on InconsistentAnalysisException {
       // If an InconsistentAnalysisException occurs, it's likely the user modified
       // the source and therefore is no longer interested in the results, so

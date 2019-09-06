@@ -373,8 +373,15 @@ bool SimpleInstanceOfType(const AbstractType& type) {
 
   ASSERT(type.HasTypeClass());
   const Class& type_class = Class::Handle(type.type_class());
+
   // Bail if the type has any type parameters.
-  if (type_class.IsGeneric()) return false;
+  if (type_class.IsGeneric()) {
+    // If the interface type we check against is generic but has all-dynamic
+    // type arguments, then we can still use the _simpleInstanceOf
+    // implementation (see also runtime/lib/object.cc:Object_SimpleInstanceOf).
+    const auto& rare_type = AbstractType::Handle(type_class.RareType());
+    return rare_type.Equals(type);
+  }
 
   // Finally a simple class for instance of checking.
   return true;

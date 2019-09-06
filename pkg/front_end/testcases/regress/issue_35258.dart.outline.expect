@@ -14,7 +14,7 @@ import "dart:core" as core;
 
 class C extends core::Object {
   final field dynamic d;
-  constructor •() → self::C
+  constructor •() → self::C*
     ;
 }
 static method main() → dynamic

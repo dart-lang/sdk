@@ -10,10 +10,10 @@ class Foo {
   const Foo.named(List<String> l);
 }
 
-@Foo(/*@typeArgs=String*/ const [])
+@Foo(/*@ typeArgs=String* */ const [])
 class Bar {}
 
-@Foo.named(/*@typeArgs=String*/ const [])
+@Foo.named(/*@ typeArgs=String* */ const [])
 class Baz {}
 
 main() {}

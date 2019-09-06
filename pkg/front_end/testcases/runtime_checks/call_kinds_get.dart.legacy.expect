@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class C extends core::Object {
   field dynamic y = null;
-  synthetic constructor •() → self::C
+  synthetic constructor •() → self::C*
     : super core::Object::•()
     ;
   get x() → dynamic
@@ -16,7 +16,7 @@ class C extends core::Object {
     dynamic v4 = this.{self::C::y};
   }
 }
-static method test(self::C c, dynamic d) → void {
+static method test(self::C* c, dynamic d) → void {
   dynamic v1 = c.x;
   dynamic v2 = c.y;
   dynamic v3 = d.x;

@@ -13,6 +13,6 @@ class B<T> {
   B(T x);
 }
 
-var t3 = /*@typeArgs=B<int>*/ [new /*@typeArgs=int*/ B(3)];
+var t3 = /*@ typeArgs=B<int*>* */ [new /*@ typeArgs=int* */ B(3)];
 
 main() {}

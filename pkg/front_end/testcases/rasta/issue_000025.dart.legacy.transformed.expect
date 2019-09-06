@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 static get x() → dynamic
   return 42;
-static set x(dynamic val) → dynamic {}
+static set x(dynamic val) → void {}
 static method main() → dynamic {
   core::print(self::x);
   core::print(self::x = 87);

@@ -324,6 +324,7 @@ class DisassemblerX64 : public ValueObject {
   }
 
   void Print(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
+  void PrintJump(uint8_t* pc, int32_t disp);
   void PrintAddress(uint8_t* addr);
 
   int PrintOperands(const char* mnem, OperandType op_order, uint8_t* data);
@@ -772,6 +773,14 @@ int DisassemblerX64::PrintOperands(const char* mnem,
   return advance;
 }
 
+void DisassemblerX64::PrintJump(uint8_t* pc, int32_t disp) {
+  if (FLAG_disassemble_relative) {
+    Print("%+d", disp);
+  } else {
+    PrintAddress(pc + disp);
+  }
+}
+
 void DisassemblerX64::PrintAddress(uint8_t* addr_byte_ptr) {
 #if defined(TARGET_ARCH_X64)
   Print("%#018" Px64 "", reinterpret_cast<uint64_t>(addr_byte_ptr));
@@ -790,9 +799,9 @@ void DisassemblerX64::PrintAddress(uint8_t* addr_byte_ptr) {
 int DisassemblerX64::JumpShort(uint8_t* data) {
   ASSERT(0xEB == *data);
   uint8_t b = *(data + 1);
-  uint8_t* dest = data + static_cast<int8_t>(b) + 2;
+  int32_t disp = static_cast<int8_t>(b) + 2;
   Print("jmp ");
-  PrintAddress(dest);
+  PrintJump(data, disp);
   return 2;
 }
 
@@ -800,10 +809,10 @@ int DisassemblerX64::JumpShort(uint8_t* data) {
 int DisassemblerX64::JumpConditional(uint8_t* data) {
   ASSERT(0x0F == *data);
   uint8_t cond = *(data + 1) & 0x0F;
-  uint8_t* dest = data + *reinterpret_cast<int32_t*>(data + 2) + 6;
+  int32_t disp = *reinterpret_cast<int32_t*>(data + 2) + 6;
   const char* mnem = conditional_code_suffix[cond];
   Print("j%s ", mnem);
-  PrintAddress(dest);
+  PrintJump(data, disp);
   return 6;  // includes 0x0F
 }
 
@@ -811,10 +820,10 @@ int DisassemblerX64::JumpConditional(uint8_t* data) {
 int DisassemblerX64::JumpConditionalShort(uint8_t* data) {
   uint8_t cond = *data & 0x0F;
   uint8_t b = *(data + 1);
-  uint8_t* dest = data + static_cast<int8_t>(b) + 2;
+  int32_t disp = static_cast<int8_t>(b) + 2;
   const char* mnem = conditional_code_suffix[cond];
   Print("j%s ", mnem);
-  PrintAddress(dest);
+  PrintJump(data, disp);
   return 2;
 }
 
@@ -1190,9 +1199,9 @@ bool DisassemblerX64::DecodeInstructionType(uint8_t** data) {
     }
 
     case CALL_JUMP_INSTR: {
-      uint8_t* addr = *data + *reinterpret_cast<int32_t*>(*data + 1) + 5;
+      int32_t disp = *reinterpret_cast<int32_t*>(*data + 1) + 5;
       Print("%s ", idesc.mnem);
-      PrintAddress(addr);
+      PrintJump(*data, disp);
       (*data) += 5;
       break;
     }

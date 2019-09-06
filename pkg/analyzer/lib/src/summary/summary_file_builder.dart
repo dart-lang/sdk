@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
@@ -88,18 +89,20 @@ class _Builder {
   List<int> build() {
     librarySources.forEach(_addLibrary);
 
-    Map<String, LinkedLibraryBuilder> map = link(libraryUris, (uri) {
-      throw new StateError('Unexpected call to GetDependencyCallback($uri).');
-    }, (uri) {
-      UnlinkedUnit unlinked = unlinkedMap[uri];
-      if (unlinked == null) {
-        throw new StateError('Unable to find unresolved unit $uri.');
-      }
-      return unlinked;
-    }, DeclaredVariables(), context.analysisOptions);
-    map.forEach(bundleAssembler.addLinkedLibrary);
-
-    _link2();
+    if (AnalysisDriver.useSummary2) {
+      _link2();
+    } else {
+      Map<String, LinkedLibraryBuilder> map = link(libraryUris, (uri) {
+        throw new StateError('Unexpected call to GetDependencyCallback($uri).');
+      }, (uri) {
+        UnlinkedUnit unlinked = unlinkedMap[uri];
+        if (unlinked == null) {
+          throw new StateError('Unable to find unresolved unit $uri.');
+        }
+        return unlinked;
+      }, DeclaredVariables(), context.analysisOptions);
+      map.forEach(bundleAssembler.addLinkedLibrary);
+    }
 
     return bundleAssembler.assemble().toBuffer();
   }
@@ -115,7 +118,7 @@ class _Builder {
     CompilationUnit definingUnit = _parse(source);
     _addUnlinked(source, definingUnit);
     inputUnits.add(
-      summary2.LinkInputUnit(source, false, definingUnit),
+      summary2.LinkInputUnit(null, source, false, definingUnit),
     );
 
     for (Directive directive in definingUnit.directives) {
@@ -129,7 +132,7 @@ class _Builder {
         CompilationUnit partUnit = _parse(partSource);
         _addUnlinked(partSource, partUnit);
         inputUnits.add(
-          summary2.LinkInputUnit(partSource, false, partUnit),
+          summary2.LinkInputUnit(partUri, partSource, false, partUnit),
         );
       }
     }

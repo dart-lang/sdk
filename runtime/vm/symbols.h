@@ -18,8 +18,6 @@ class ObjectPointerVisitor;
 // One-character symbols are added implicitly.
 #define PREDEFINED_SYMBOLS_LIST(V)                                             \
   V(AbstractClassInstantiationError, "AbstractClassInstantiationError")        \
-  V(AddError, "addError")                                                      \
-  V(AddStream, "addStream")                                                    \
   V(AllocateInvocationMirror, "_allocateInvocationMirror")                     \
   V(AllocateInvocationMirrorForClosure, "_allocateInvocationMirrorForClosure") \
   V(AnonymousClosure, "<anonymous closure>")                                   \
@@ -27,28 +25,15 @@ class ObjectPointerVisitor;
   V(ApiError, "ApiError")                                                      \
   V(ArgDescVar, ":arg_desc")                                                   \
   V(ArgumentError, "ArgumentError")                                            \
+  V(AsFunctionInternal, "_asFunctionInternal")                                 \
   V(AssertionError, "_AssertionError")                                         \
   V(AssignIndexToken, "[]=")                                                   \
-  V(Async, "async")                                                            \
-  V(AsyncAwaitHelper, "_awaitHelper")                                          \
-  V(AsyncCatchErrorCallback, ":async_op_catch_error")                          \
-  V(AsyncCatchHelper, "_asyncCatchHelper")                                     \
   V(AsyncCompleter, ":async_completer")                                        \
-  V(AsyncErrorWrapperHelper, "_asyncErrorWrapperHelper")                       \
   V(AsyncOperation, ":async_op")                                               \
-  V(AsyncOperationErrorParam, ":async_error_param")                            \
-  V(AsyncOperationParam, ":async_result")                                      \
-  V(AsyncOperationStackTraceParam, ":async_stack_trace_param")                 \
-  V(AsyncSavedTryCtxVarPrefix, ":async_saved_try_ctx_var_")                    \
-  V(AsyncStackTraceHelper, "_asyncStackTraceHelper")                           \
   V(AsyncStackTraceVar, ":async_stack_trace")                                  \
   V(AsyncStarMoveNextHelper, "_asyncStarMoveNextHelper")                       \
-  V(AsyncThenCallback, ":async_op_then")                                       \
-  V(AsyncThenWrapperHelper, "_asyncThenWrapperHelper")                         \
-  V(Await, "await")                                                            \
   V(AwaitContextVar, ":await_ctx_var")                                         \
   V(AwaitJumpVar, ":await_jump_var")                                           \
-  V(AwaitTempVarPrefix, ":await_temp_var_")                                    \
   V(Bool, "bool")                                                              \
   V(BooleanExpression, "boolean expression")                                   \
   V(BoundsCheckForPartialInstantiation, "_boundsCheckForPartialInstantiation") \
@@ -62,18 +47,13 @@ class ObjectPointerVisitor;
   V(Class, "Class")                                                            \
   V(ClassID, "ClassID")                                                        \
   V(ClearAsyncThreadStackTrace, "_clearAsyncThreadStackTrace")                 \
-  V(Close, "close")                                                            \
   V(ClosureData, "ClosureData")                                                \
   V(ClosureParameter, ":closure")                                              \
   V(Code, "Code")                                                              \
   V(CodeSourceMap, "CodeSourceMap")                                            \
-  V(ColonController, ":controller")                                            \
   V(ColonMatcher, ":matcher")                                                  \
-  V(ColonStream, ":stream")                                                    \
   V(CommaSpace, ", ")                                                          \
   V(Completer, "Completer")                                                    \
-  V(CompleterComplete, "complete")                                             \
-  V(CompleterCompleteError, "completeError")                                   \
   V(CompleterFuture, "future")                                                 \
   V(CompleterGetFuture, "get:future")                                          \
   V(CompleterSyncConstructor, "Completer.sync")                                \
@@ -94,7 +74,6 @@ class ObjectPointerVisitor;
   V(DartFfiLibName, "ffi")                                                     \
   V(DartIOLibName, "dart.io")                                                  \
   V(DartInternal, "dart:_internal")                                            \
-  V(DartInternalPackage, "package:dart_internal/")                             \
   V(DartIsVM, "dart.isVM")                                                     \
   V(DartIsolate, "dart:isolate")                                               \
   V(DartLibrary, "dart.library.")                                              \
@@ -107,14 +86,15 @@ class ObjectPointerVisitor;
   V(DartSchemePrivate, "dart:_")                                               \
   V(DartTypedData, "dart:typed_data")                                          \
   V(DartVMProduct, "dart.vm.product")                                          \
+  V(DartVMServiceIO, "dart:vmservice_io")                                      \
   V(DartVMService, "dart:_vmservice")                                          \
   V(DebugClassName, "#DebugClass")                                             \
   V(DebugProcedureName, ":Eval")                                               \
   V(Default, "Default")                                                        \
   V(DefaultLabel, ":L")                                                        \
-  V(DeoptInfo, "DeoptInfo")                                                    \
   V(DotCreate, "._create")                                                     \
   V(DotRange, ".range")                                                        \
+  V(DotUnder, "._")                                                            \
   V(DotValue, ".value")                                                        \
   V(DotWithType, "._withType")                                                 \
   V(Double, "double")                                                          \
@@ -159,7 +139,6 @@ class ObjectPointerVisitor;
   V(Float64List, "Float64List")                                                \
   V(Float64x2, "Float64x2")                                                    \
   V(Float64x2List, "Float64x2List")                                            \
-  V(ForInIter, ":for-in-iter")                                                 \
   V(FormatException, "FormatException")                                        \
   V(ForwardingCorpse, "ForwardingCorpse")                                      \
   V(FreeListElement, "FreeListElement")                                        \
@@ -181,12 +160,10 @@ class ObjectPointerVisitor;
   V(GrowRegExpStack, "_growRegExpStack")                                       \
   V(HandleExposedException, "_handleExposedException")                         \
   V(HaveSameRuntimeType, "_haveSameRuntimeType")                               \
-  V(Hide, "hide")                                                              \
   V(ICData, "ICData")                                                          \
   V(Identical, "identical")                                                    \
   V(ImmutableMap, "_ImmutableMap")                                             \
   V(ImmutableMapConstructor, "_ImmutableMap._create")                          \
-  V(ImplicitClosure, "<implicit closure>")                                     \
   V(InTypeCast, " in type cast")                                               \
   V(Index, "index")                                                            \
   V(IndexToken, "[]")                                                          \
@@ -216,9 +193,7 @@ class ObjectPointerVisitor;
   V(LibraryPrefix, "LibraryPrefix")                                            \
   V(List, "List")                                                              \
   V(ListFactory, "List.")                                                      \
-  V(ListLiteralElement, "list literal element")                                \
   V(ListLiteralFactory, "List._fromLiteral")                                   \
-  V(LoadLibrary, "loadLibrary")                                                \
   V(LocalVarDescriptors, "LocalVarDescriptors")                                \
   V(Map, "Map")                                                                \
   V(MapLiteralFactory, "Map._fromLiteral")                                     \
@@ -236,14 +211,13 @@ class ObjectPointerVisitor;
   V(Number, "num")                                                             \
   V(Object, "Object")                                                          \
   V(ObjectPool, "ObjectPool")                                                  \
-  V(Of, "of")                                                                  \
-  V(On, "on")                                                                  \
   V(OneByteString, "_OneByteString")                                           \
   V(OptimizedOut, "<optimized out>")                                           \
   V(OriginalParam, ":original:")                                               \
   V(Other, "other")                                                            \
   V(OutOfMemoryError, "OutOfMemoryError")                                      \
   V(PackageScheme, "package:")                                                 \
+  V(ParameterTypeCheck, "ParameterTypeCheck")                                  \
   V(Patch, "patch")                                                            \
   V(PatchClass, "PatchClass")                                                  \
   V(PcDescriptors, "PcDescriptors")                                            \
@@ -255,16 +229,14 @@ class ObjectPointerVisitor;
   V(RedirectionData, "RedirectionData")                                        \
   V(RegExp, "RegExp")                                                          \
   V(RightShiftOperator, ">>")                                                  \
-  V(SavedExceptionVar, ":saved_exception_var")                                 \
-  V(SavedStackTraceVar, ":saved_stack_trace_var")                              \
   V(SavedTryContextVar, ":saved_try_context_var")                              \
   V(Script, "Script")                                                          \
   V(Set, "set")                                                                \
   V(SetAsyncThreadStackTrace, "_setAsyncThreadStackTrace")                     \
   V(SetterPrefix, "set:")                                                      \
-  V(Show, "show")                                                              \
   V(SignatureData, "SignatureData")                                            \
   V(SingleTargetCache, "SingleTargetCache")                                    \
+  V(SizeOfStructField, "#sizeOf")                                              \
   V(SpaceExtendsSpace, " extends ")                                            \
   V(SpaceIsFromSpace, " is from ")                                             \
   V(SpaceOfSpace, " of ")                                                      \
@@ -277,12 +249,12 @@ class ObjectPointerVisitor;
   V(StreamIterator, "StreamIterator")                                          \
   V(StreamIteratorConstructor, "StreamIterator.")                              \
   V(StringBase, "_StringBase")                                                 \
+  V(Struct, "Struct")                                                          \
+  V(StructFromPointer, "#fromPointer")                                         \
   V(SubtypeTestCache, "SubtypeTestCache")                                      \
   V(SwitchExpr, ":switch_expr")                                                \
   V(Symbol, "Symbol")                                                          \
   V(SymbolCtor, "Symbol.")                                                     \
-  V(Sync, "sync")                                                              \
-  V(TempParam, ":temp_param")                                                  \
   V(ThrowNew, "_throwNew")                                                     \
   V(ThrowNewInvocation, "_throwNewInvocation")                                 \
   V(TopLevel, "::")                                                            \
@@ -290,7 +262,6 @@ class ObjectPointerVisitor;
   V(TransferableTypedData, "TransferableTypedData")                            \
   V(TryFinallyReturnValue, ":try_finally_return_value")                        \
   V(TwoByteString, "_TwoByteString")                                           \
-  V(TwoNewlines, "\n\n")                                                       \
   V(TwoSpaces, "  ")                                                           \
   V(Type, "Type")                                                              \
   V(TypeArguments, "TypeArguments")                                            \
@@ -330,8 +301,6 @@ class ObjectPointerVisitor;
   V(_DeletedEnumPrefix, "Deleted enum value from ")                            \
   V(_DeletedEnumSentinel, "_deleted_enum_sentinel")                            \
   V(_Double, "_Double")                                                        \
-  V(_EnumHelper, "_EnumHelper")                                                \
-  V(_EnumNames, "_enum_names")                                                 \
   V(_ExternalFloat32Array, "_ExternalFloat32Array")                            \
   V(_ExternalFloat32x4Array, "_ExternalFloat32x4Array")                        \
   V(_ExternalFloat64Array, "_ExternalFloat64Array")                            \
@@ -362,7 +331,7 @@ class ObjectPointerVisitor;
   V(_Float64x2List, "_Float64x2List")                                          \
   V(_GrowableList, "_GrowableList")                                            \
   V(_GrowableListFactory, "_GrowableList.")                                    \
-  V(_GrowableListWithData, "_GrowableList.withData")                           \
+  V(_GrowableListWithData, "_GrowableList._withData")                          \
   V(_ImmutableList, "_ImmutableList")                                          \
   V(_Int16ArrayFactory, "Int16List.")                                          \
   V(_Int16ArrayView, "_Int16ArrayView")                                        \
@@ -435,7 +404,6 @@ class ObjectPointerVisitor;
   V(_UserTag, "_UserTag")                                                      \
   V(_WeakProperty, "_WeakProperty")                                            \
   V(_classRangeCheck, "_classRangeCheck")                                      \
-  V(_classRangeCheckNegative, "_classRangeCheckNegative")                      \
   V(_current, "_current")                                                      \
   V(_ensureScheduleImmediate, "_ensureScheduleImmediate")                      \
   V(_get, "_get")                                                              \
@@ -453,7 +421,6 @@ class ObjectPointerVisitor;
   V(_stackTrace, "_stackTrace")                                                \
   V(_state, "_state")                                                          \
   V(_wordCharacterMap, "_wordCharacterMap")                                    \
-  V(_yieldEachIterable, "_yieldEachIterable")                                  \
   V(add, "add")                                                                \
   V(capture_length, ":capture_length")                                         \
   V(capture_start_index, ":capture_start_index")                               \
@@ -483,11 +450,12 @@ class ObjectPointerVisitor;
   V(string_param, ":string_param")                                             \
   V(string_param_length, ":string_param_length")                               \
   V(toString, "toString")                                                      \
+  V(vm_prefer_inline, "vm:prefer-inline")                                      \
   V(vm_entry_point, "vm:entry-point")                                          \
   V(vm_exact_result_type, "vm:exact-result-type")                              \
+  V(vm_never_inline, "vm:never-inline")                                        \
   V(vm_non_nullable_result_type, "vm:non-nullable-result-type")                \
-  V(vm_trace_entrypoints, "vm:testing.unsafe.trace-entrypoints-fn")            \
-  V(word_character_map, ":word_character_map")
+  V(vm_trace_entrypoints, "vm:testing.unsafe.trace-entrypoints-fn")
 
 // Contains a list of frequently used strings in a canonicalized form. This
 // list is kept in the vm_isolate in order to share the copy across isolates

@@ -78,11 +78,18 @@ class Hashing {
   /// Mix the bits of the hash codes of the unordered key/value from [map] with
   /// [existing].
   static int unorderedMapHash(Map map, [int existing = 0]) {
-    int h = 0;
-    for (var key in map.keys) {
-      h ^= objectHash(key, objectHash(map[key]));
+    if (map.length == 0) return existing;
+    List<int> hashCodes = List(map.length);
+    int i = 0;
+    for (var entry in map.entries) {
+      hashCodes[i++] = objectHash(entry.key, objectHash(entry.value));
     }
-    return mixHashCodeBits(h, existing);
+    hashCodes.sort();
+    int h = existing;
+    for (int hashCode in hashCodes) {
+      h = mixHashCodeBits(h, hashCode);
+    }
+    return h;
   }
 
   /// Mix the bits of the key/value hash codes from [map] with [existing].

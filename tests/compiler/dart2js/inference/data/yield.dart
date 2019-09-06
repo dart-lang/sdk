@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   yieldZero();
   yieldList();
@@ -15,7 +15,7 @@ main() {
 // Yield a single integer.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: yieldZero:[exact=_SyncStarIterable]*/
+/*member: yieldZero:[exact=_SyncStarIterable]*/
 yieldZero() sync* {
   yield 0;
 }
@@ -24,7 +24,7 @@ yieldZero() sync* {
 // Yield a list of integers.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: yieldList:[exact=_SyncStarIterable]*/
+/*member: yieldList:[exact=_SyncStarIterable]*/
 yieldList() sync* {
   yield [0, 1, 2, 3];
 }
@@ -33,7 +33,7 @@ yieldList() sync* {
 // Yield star of a list of integers.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: yieldStarList:[exact=_SyncStarIterable]*/
+/*member: yieldStarList:[exact=_SyncStarIterable]*/
 yieldStarList() sync* {
   yield* [0, 1, 2, 3];
 }
@@ -42,7 +42,7 @@ yieldStarList() sync* {
 // Yield multiple integers.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: yieldMany:[exact=_SyncStarIterable]*/
+/*member: yieldMany:[exact=_SyncStarIterable]*/
 yieldMany() sync* {
   yield 0;
   yield 1;
@@ -54,7 +54,7 @@ yieldMany() sync* {
 // Yield an integer and a string.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: yieldIntAndString:[exact=_SyncStarIterable]*/
+/*member: yieldIntAndString:[exact=_SyncStarIterable]*/
 yieldIntAndString() sync* {
   yield 0;
   yield '';

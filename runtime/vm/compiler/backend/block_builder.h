@@ -30,7 +30,7 @@ class BlockBuilder : public ValueObject {
 
   template <typename T>
   T* AddDefinition(T* def) {
-    def->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
+    flow_graph_->AllocateSSAIndexes(def);
     AddInstruction(def);
     return def;
   }

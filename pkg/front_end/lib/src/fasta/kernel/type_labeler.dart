@@ -152,7 +152,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
     while (parent is! Library && parent != null) {
       parent = parent.parent;
     }
-    // Note that this can be null if, for instance, the errornious code is not
+    // Note that this can be null if, for instance, the erroneous code is not
     // actually in the tree - then we don't know where it comes from!
     Library enclosingLibrary = parent;
 

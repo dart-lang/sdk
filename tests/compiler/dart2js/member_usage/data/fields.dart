@@ -2,89 +2,89 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: field1a:init,read*/
+/*member: field1a:init,read*/
 var field1a;
 
-/*element: field1b:init,write*/
+/*member: field1b:init,write*/
 var field1b;
 
-/*element: field1c:init,read,write*/
+/*member: field1c:init,read,write*/
 var field1c;
 
 // Invocations of static/top level fields are converted into 'field1d.call(...)`
 // so we don't have an invocation of the field but instead an additional dynamic
 // call to 'call'.
-/*element: field1d:init,read*/
+/*member: field1d:init,read*/
 var field1d;
 
-/*element: field2a:read*/
+/*member: field2a:read*/
 get field2a => 42;
 
 set field2a(_) {}
 
 get field2b => 42;
 
-/*element: field2b=:write*/
+/*member: field2b=:write*/
 set field2b(_) {}
 
-/*element: field2c:read*/
+/*member: field2c:read*/
 get field2c => 42;
 
-/*element: field2c=:write*/
+/*member: field2c=:write*/
 set field2c(_) {}
 
 // Invocations of static/top level getters are converted into
 // 'field2d.call(...)` so we don't have an invocation of the field but instead
 // an additional dynamic call to 'call'.
-/*element: field2d:read*/
+/*member: field2d:read*/
 get field2d => 42;
 
 set field2d(_) {}
 
 class Class {
-  /*element: Class.field1a:init,read*/
+  /*member: Class.field1a:init,read*/
   var field1a;
 
-  /*element: Class.field1b:init,write*/
+  /*member: Class.field1b:init,write*/
   var field1b;
 
-  /*element: Class.field1c:init,read,write*/
+  /*member: Class.field1c:init,read,write*/
   var field1c;
 
-  /*element: Class.field1d:init,invoke,read=static*/
+  /*member: Class.field1d:init,invoke,read=static*/
   var field1d;
 
-  /*element: Class.field2a:read*/
+  /*member: Class.field2a:read*/
   get field2a => 42;
 
   set field2a(_) {}
 
   get field2b => 42;
 
-  /*element: Class.field2b=:write*/
+  /*member: Class.field2b=:write*/
   set field2b(_) {}
 
-  /*element: Class.field2c:read*/
+  /*member: Class.field2c:read*/
   get field2c => 42;
 
-  /*element: Class.field2c=:write*/
+  /*member: Class.field2c=:write*/
   set field2c(_) {}
 
-  /*element: Class.field2d:invoke,read=static*/
+  /*member: Class.field2d:invoke,read=static*/
   get field2d => null;
 
   set field2d(_) {}
 
-  /*element: Class.field3a:init*/
+  /*member: Class.field3a:init*/
   var field3a = 0;
 
-  /*element: Class.field3b:init*/
+  /*member: Class.field3b:init*/
   var field3b;
 
-  /*element: Class.:invoke=(0)*/
+  /*member: Class.:invoke=(0)*/
   Class([this.field3b]);
 
-  /*element: Class.test:invoke*/
+  /*member: Class.test:invoke*/
   test() {
     field1a;
     field1b = 42;
@@ -98,7 +98,7 @@ class Class {
   }
 }
 
-/*element: main:invoke*/
+/*member: main:invoke*/
 main() {
   field1a;
   field1b = 42;

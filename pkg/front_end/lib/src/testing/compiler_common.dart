@@ -10,9 +10,15 @@ import 'dart:async' show Future;
 import 'package:kernel/ast.dart' show Library, Component;
 
 import '../api_prototype/front_end.dart'
-    show CompilerOptions, kernelForComponent, kernelForProgram, summaryFor;
+    show
+        CompilerOptions,
+        CompilerResult,
+        kernelForModule,
+        kernelForProgramInternal,
+        summaryFor;
 
-import '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
+import '../api_prototype/memory_file_system.dart'
+    show MemoryFileSystem, MemoryFileSystemEntity;
 
 import '../compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
@@ -26,11 +32,12 @@ import '../fasta/hybrid_file_system.dart' show HybridFileSystem;
 /// compiles the entry whose name is [fileName].
 ///
 /// Wraps [kernelForProgram] with some default testing options (see [setup]).
-Future<Component> compileScript(dynamic scriptOrSources,
+Future<CompilerResult> compileScript(dynamic scriptOrSources,
     {fileName: 'main.dart',
     List<String> inputSummaries: const [],
     List<String> linkedDependencies: const [],
-    CompilerOptions options}) async {
+    CompilerOptions options,
+    bool retainDataForTesting: false}) async {
   options ??= new CompilerOptions();
   Map<String, dynamic> sources;
   if (scriptOrSources is String) {
@@ -41,12 +48,13 @@ Future<Component> compileScript(dynamic scriptOrSources,
   }
   await setup(options, sources,
       inputSummaries: inputSummaries, linkedDependencies: linkedDependencies);
-  return await kernelForProgram(toTestUri(fileName), options);
+  return await kernelForProgramInternal(toTestUri(fileName), options,
+      retainDataForTesting: retainDataForTesting);
 }
 
-/// Generate a component for a modular complation unit.
+/// Generate a component for a modular compilation unit.
 ///
-/// Wraps [kernelForComponent] with some default testing options (see [setup]).
+/// Wraps [kernelForModule] with some default testing options (see [setup]).
 Future<Component> compileUnit(List<String> inputs, Map<String, dynamic> sources,
     {List<String> inputSummaries: const [],
     List<String> linkedDependencies: const [],
@@ -54,10 +62,11 @@ Future<Component> compileUnit(List<String> inputs, Map<String, dynamic> sources,
   options ??= new CompilerOptions();
   await setup(options, sources,
       inputSummaries: inputSummaries, linkedDependencies: linkedDependencies);
-  return await kernelForComponent(inputs.map(toTestUri).toList(), options);
+  return (await kernelForModule(inputs.map(toTestUri).toList(), options))
+      .component;
 }
 
-/// Generate a summary for a modular complation unit.
+/// Generate a summary for a modular compilation unit.
 ///
 /// Wraps [summaryFor] with some default testing options (see [setup]).
 Future<List<int>> summarize(List<String> inputs, Map<String, dynamic> sources,
@@ -77,22 +86,24 @@ Future<List<int>> summarize(List<String> inputs, Map<String, dynamic> sources,
 ///   contain either source files (value is [String]) or .dill files (value
 ///   is [List<int>]).
 ///
-///   * define an empty .packages file
+///   * define an empty .packages file (if one isn't defined in sources)
 ///
 ///   * specify the location of the sdk summaries.
 Future<Null> setup(CompilerOptions options, Map<String, dynamic> sources,
     {List<String> inputSummaries: const [],
     List<String> linkedDependencies: const []}) async {
-  var fs = new MemoryFileSystem(_defaultDir);
+  MemoryFileSystem fs = new MemoryFileSystem(_defaultDir);
   sources.forEach((name, data) {
-    var entity = fs.entityForUri(toTestUri(name));
+    MemoryFileSystemEntity entity = fs.entityForUri(toTestUri(name));
     if (data is String) {
       entity.writeAsStringSync(data);
     } else {
       entity.writeAsBytesSync(data);
     }
   });
-  fs.entityForUri(toTestUri('.packages')).writeAsStringSync('');
+  MemoryFileSystemEntity dotPackagesFile =
+      fs.entityForUri(toTestUri('.packages'));
+  if (!await dotPackagesFile.exists()) dotPackagesFile.writeAsStringSync('');
   fs
       .entityForUri(invalidCoreLibsSpecUri)
       .writeAsStringSync(_invalidLibrariesSpec);

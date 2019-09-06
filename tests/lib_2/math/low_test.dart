@@ -9,7 +9,7 @@ import "package:expect/expect.dart";
 import 'dart:math';
 
 void main() {
-  var n = (2 * (1 << 32)) ~/ 3;
+  var n = (2 * 0x100000000) ~/ 3;
   var n2 = n ~/ 2;
 
   var iterations = 200000;

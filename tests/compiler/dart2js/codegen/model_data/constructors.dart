@@ -3,94 +3,94 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class Class {
-  /*element: Class.constructor1:params=0*/
+  /*member: Class.constructor1:params=0*/
   @pragma('dart2js:noInline')
   Class.constructor1() {}
 
-  /*element: Class.constructor2a:params=0*/
+  /*member: Class.constructor2a:params=0*/
   @pragma('dart2js:noInline')
   Class.constructor2a([a]) {}
 
-  /*element: Class.constructor2b:params=1*/
+  /*member: Class.constructor2b:params=1*/
   @pragma('dart2js:noInline')
   Class.constructor2b([a]) {}
 
-  /*element: Class.constructor2c:params=1*/
+  /*member: Class.constructor2c:params=1*/
   @pragma('dart2js:noInline')
   Class.constructor2c([a]) {}
 
-  /*element: Class.constructor3a:params=0*/
+  /*member: Class.constructor3a:params=0*/
   @pragma('dart2js:noInline')
   Class.constructor3a([a, b]) {}
 
-  /*element: Class.constructor3b:params=1*/
+  /*member: Class.constructor3b:params=1*/
   @pragma('dart2js:noInline')
   Class.constructor3b([a, b]) {}
 
-  /*element: Class.constructor3c:params=2*/
+  /*member: Class.constructor3c:params=2*/
   @pragma('dart2js:noInline')
   Class.constructor3c([a, b]) {}
 
-  /*element: Class.constructor4a:params=0*/
+  /*member: Class.constructor4a:params=0*/
   @pragma('dart2js:noInline')
   Class.constructor4a({a}) {}
 
-  /*element: Class.constructor4b:params=1*/
+  /*member: Class.constructor4b:params=1*/
   @pragma('dart2js:noInline')
   Class.constructor4b({a}) {}
 
-  /*element: Class.constructor4c:params=1*/
+  /*member: Class.constructor4c:params=1*/
   @pragma('dart2js:noInline')
   Class.constructor4c({a}) {}
 
-  /*element: Class.constructor5a:params=0*/
+  /*member: Class.constructor5a:params=0*/
   @pragma('dart2js:noInline')
   Class.constructor5a({a, b}) {}
 
-  /*element: Class.constructor5b:params=1*/
+  /*member: Class.constructor5b:params=1*/
   @pragma('dart2js:noInline')
   Class.constructor5b({a, b}) {}
 
-  /*element: Class.constructor5c:params=1*/
+  /*member: Class.constructor5c:params=1*/
   @pragma('dart2js:noInline')
   Class.constructor5c({a, b}) {}
 
-  /*element: Class.constructor6a:params=1*/
+  /*member: Class.constructor6a:params=1*/
   @pragma('dart2js:noInline')
   Class.constructor6a(a, [b, c]) {}
 
-  /*element: Class.constructor6b:params=2*/
+  /*member: Class.constructor6b:params=2*/
   @pragma('dart2js:noInline')
   Class.constructor6b(a, [b, c]) {}
 
-  /*element: Class.constructor6c:params=3*/
+  /*member: Class.constructor6c:params=3*/
   @pragma('dart2js:noInline')
   Class.constructor6c(a, [b, c]) {}
 
-  /*element: Class.constructor7a:params=1*/
+  /*member: Class.constructor7a:params=1*/
   @pragma('dart2js:noInline')
   Class.constructor7a(a, {b, c}) {}
 
-  /*element: Class.constructor7b:params=2*/
+  /*member: Class.constructor7b:params=2*/
   @pragma('dart2js:noInline')
   Class.constructor7b(a, {b, c}) {}
 
-  /*element: Class.constructor7c:params=2*/
+  /*member: Class.constructor7c:params=2*/
   @pragma('dart2js:noInline')
   Class.constructor7c(a, {b, c}) {}
 
-  /*element: Class.constructor8a:params=2*/
+  /*member: Class.constructor8a:params=2*/
   @pragma('dart2js:noInline')
   @pragma('dart2js:noElision')
   Class.constructor8a([a, b]) {}
 
-  /*element: Class.constructor8b:params=2*/
+  /*member: Class.constructor8b:params=2*/
   @pragma('dart2js:noInline')
   @pragma('dart2js:noElision')
   Class.constructor8b({a, b}) {}
 }
 
-/*element: main:
+/*member: main:
  calls=[
   Class$constructor1(0),
   Class$constructor2a(0),

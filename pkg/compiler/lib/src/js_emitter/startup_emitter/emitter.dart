@@ -17,6 +17,7 @@ import '../../js/js.dart' as js;
 import '../../js_backend/constant_emitter.dart';
 import '../../js_backend/namer.dart';
 import '../../js_backend/runtime_types.dart';
+import '../../js_backend/runtime_types_new.dart' show RecipeEncoder;
 import '../../options.dart';
 import '../../universe/codegen_world_builder.dart' show CodegenWorld;
 import '../../world.dart' show JClosedWorld;
@@ -86,6 +87,16 @@ abstract class ModularEmitterBase implements ModularEmitter {
   }
 
   @override
+  js.Name typeAccessNewRti(Entity element) {
+    return _namer.globalPropertyNameForType(element);
+  }
+
+  @override
+  js.Name typeVariableAccessNewRti(TypeVariableEntity element) {
+    return _namer.globalNameForInterfaceTypeVariable(element);
+  }
+
+  @override
   js.Expression staticClosureAccess(FunctionEntity element) {
     return new js.Call(
         new js.PropertyAccess(_namer.readGlobalObjectForMember(element),
@@ -138,6 +149,7 @@ class EmitterImpl extends ModularEmitterBase implements Emitter {
   final DiagnosticReporter _reporter;
   final JClosedWorld _closedWorld;
   final RuntimeTypesEncoder _rtiEncoder;
+  final RecipeEncoder _rtiRecipeEncoder;
   final CompilerTask _task;
   ModelEmitter _emitter;
 
@@ -152,6 +164,7 @@ class EmitterImpl extends ModularEmitterBase implements Emitter {
       Namer namer,
       this._closedWorld,
       this._rtiEncoder,
+      this._rtiRecipeEncoder,
       SourceInformationStrategy sourceInformationStrategy,
       this._task,
       bool shouldGenerateSourceMap)
@@ -167,6 +180,7 @@ class EmitterImpl extends ModularEmitterBase implements Emitter {
         this,
         sourceInformationStrategy,
         _rtiEncoder,
+        _rtiRecipeEncoder,
         shouldGenerateSourceMap);
   }
 

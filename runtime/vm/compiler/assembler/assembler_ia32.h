@@ -646,7 +646,9 @@ class Assembler : public AssemblerBase {
   void LeaveFrame();
   void ReserveAlignedFrameSpace(intptr_t frame_space);
 
-  void MonomorphicCheckedEntry() {}
+  void MonomorphicCheckedEntryJIT();
+  void MonomorphicCheckedEntryAOT();
+  void BranchOnMonomorphicCheckedEntryJIT(Label* label);
 
   // In debug mode, this generates code to check that:
   //   FP + kExitLinkSlotFromEntryFp == SP
@@ -743,8 +745,6 @@ class Assembler : public AssemblerBase {
   // Moves one word from the memory at [from] to the memory at [to].
   // Needs a temporary register.
   void MoveMemoryToMemory(Address to, Address from, Register tmp);
-
-  bool has_single_entry_point() const { return true; }
 
   // Set up a Dart frame on entry with a frame pointer and PC information to
   // enable easy access to the RawInstruction object of code corresponding
@@ -936,11 +936,6 @@ inline void Assembler::EmitOperandSizeOverride() {
 }
 
 }  // namespace compiler
-
-using compiler::Address;
-using compiler::FieldAddress;
-using compiler::Immediate;
-
 }  // namespace dart
 
 #endif  // RUNTIME_VM_COMPILER_ASSEMBLER_ASSEMBLER_IA32_H_

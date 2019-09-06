@@ -23,17 +23,23 @@ library runtime.tools.kernel_service;
 import 'dart:async' show Future, ZoneSpecification, runZoned;
 import 'dart:collection' show UnmodifiableMapBase;
 import 'dart:convert' show utf8;
-import 'dart:io' show Platform, stderr hide FileSystemEntity;
+import 'dart:io' show File, Platform, stderr hide FileSystemEntity;
 import 'dart:isolate';
 import 'dart:typed_data' show Uint8List;
 
 import 'package:build_integration/file_system/multi_root.dart';
+import 'package:front_end/src/api_prototype/front_end.dart' as fe
+    show CompilerResult;
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:front_end/src/api_unstable/vm.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/kernel.dart' show Component, Procedure;
 import 'package:kernel/target/targets.dart' show TargetFlags;
-import 'package:vm/bytecode/gen_bytecode.dart' show generateBytecode;
+import 'package:vm/bytecode/gen_bytecode.dart'
+    show createFreshComponentWithBytecode, generateBytecode;
+import 'package:vm/bytecode/options.dart' show BytecodeOptions;
 import 'package:vm/incremental_compiler.dart';
 import 'package:vm/kernel_front_end.dart' show runWithFrontEndCompilerContext;
 import 'package:vm/http_filesystem.dart';
@@ -42,6 +48,7 @@ import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions, parseExperimentalFlags;
 
 final bool verbose = new bool.fromEnvironment('DFE_VERBOSE');
+final bool dumpKernel = new bool.fromEnvironment('DFE_DUMP_KERNEL');
 const String platformKernelFile = 'virtual_platform_kernel.dill';
 
 // NOTE: Any changes to these tags need to be reflected in kernel_isolate.cc
@@ -69,10 +76,11 @@ bool allowDartInternalImport = false;
 abstract class Compiler {
   final FileSystem fileSystem;
   final Uri platformKernelPath;
-  bool suppressWarnings;
-  List<String> experimentalFlags;
-  bool bytecode;
-  String packageConfig;
+  final bool suppressWarnings;
+  final bool enableAsserts;
+  final List<String> experimentalFlags;
+  final bool bytecode;
+  final String packageConfig;
 
   final List<String> errors = new List<String>();
 
@@ -80,6 +88,7 @@ abstract class Compiler {
 
   Compiler(this.fileSystem, this.platformKernelPath,
       {this.suppressWarnings: false,
+      this.enableAsserts: false,
       this.experimentalFlags: null,
       this.bytecode: false,
       this.packageConfig: null}) {
@@ -112,9 +121,11 @@ abstract class Compiler {
       ..verbose = verbose
       ..omitPlatform = true
       ..bytecode = bytecode
-      ..experimentalFlags =
-          parseExperimentalFlags(expFlags, (msg) => errors.add(msg))
+      ..experimentalFlags = parseExperimentalFlags(
+          parseExperimentalArguments(expFlags),
+          onError: (msg) => errors.add(msg))
       ..environmentDefines = new EnvironmentMap()
+      ..enableAsserts = enableAsserts
       ..onDiagnostic = (DiagnosticMessage message) {
         bool printMessage;
         switch (message.severity) {
@@ -141,15 +152,33 @@ abstract class Compiler {
 
   Future<Component> compile(Uri script) {
     return runWithPrintToStderr(() async {
-      final component = await compileInternal(script);
+      CompilerResult compilerResult = await compileInternal(script);
+      Component component = compilerResult.component;
 
       if (options.bytecode && errors.isEmpty) {
         await runWithFrontEndCompilerContext(script, options, component, () {
-          // TODO(alexmarkov): pass environment defines
-          // TODO(alexmarkov): disable source positions and local variables
-          // in VM PRODUCT mode.
+          // TODO(alexmarkov): disable source positions, local variables info,
+          //  debugger stops and source files in VM PRODUCT mode.
+          // TODO(rmacnak): disable annotations if mirrors are not enabled.
           generateBytecode(component,
-              emitSourcePositions: true, emitLocalVarInfo: true);
+              coreTypes: compilerResult.coreTypes,
+              hierarchy: compilerResult.classHierarchy,
+              options: new BytecodeOptions(
+                  enableAsserts: enableAsserts,
+                  environmentDefines: options.environmentDefines,
+                  // Needed both for stack traces and the debugger.
+                  emitSourcePositions: true,
+                  // Only needed when the debugger is available.
+                  emitLocalVarInfo: true,
+                  // Only needed when the debugger is available.
+                  emitDebuggerStops: true,
+                  // Only needed when the VM service is available.
+                  emitSourceFiles: true,
+                  // Only needed when reload is available.
+                  emitInstanceFieldInitializers: true,
+                  // Only needed when mirrors are available.
+                  emitAnnotations: true));
+          component = createFreshComponentWithBytecode(component);
         });
       }
 
@@ -157,7 +186,18 @@ abstract class Compiler {
     });
   }
 
-  Future<Component> compileInternal(Uri script);
+  Future<CompilerResult> compileInternal(Uri script);
+}
+
+class CompilerResult {
+  final Component component;
+  final ClassHierarchy classHierarchy;
+  final CoreTypes coreTypes;
+
+  CompilerResult(this.component, this.classHierarchy, this.coreTypes)
+      : assert(component != null),
+        assert(classHierarchy != null),
+        assert(coreTypes != null);
 }
 
 // Environment map which looks up environment defines in the VM environment
@@ -201,22 +241,26 @@ class IncrementalCompilerWrapper extends Compiler {
 
   IncrementalCompilerWrapper(FileSystem fileSystem, Uri platformKernelPath,
       {bool suppressWarnings: false,
+      bool enableAsserts: false,
       List<String> experimentalFlags: null,
       bool bytecode: false,
       String packageConfig: null})
       : super(fileSystem, platformKernelPath,
             suppressWarnings: suppressWarnings,
+            enableAsserts: enableAsserts,
             experimentalFlags: experimentalFlags,
             bytecode: bytecode,
             packageConfig: packageConfig);
 
   @override
-  Future<Component> compileInternal(Uri script) async {
+  Future<CompilerResult> compileInternal(Uri script) async {
     if (generator == null) {
       generator = new IncrementalCompiler(options, script);
     }
     errors.clear();
-    return await generator.compile(entryPoint: script);
+    final component = await generator.compile(entryPoint: script);
+    return new CompilerResult(
+        component, generator.getClassHierarchy(), generator.getCoreTypes());
   }
 
   void accept() => generator.accept();
@@ -226,6 +270,7 @@ class IncrementalCompilerWrapper extends Compiler {
     IncrementalCompilerWrapper clone = IncrementalCompilerWrapper(
         fileSystem, platformKernelPath,
         suppressWarnings: suppressWarnings,
+        enableAsserts: enableAsserts,
         experimentalFlags: experimentalFlags,
         bytecode: bytecode,
         packageConfig: packageConfig);
@@ -254,20 +299,24 @@ class SingleShotCompilerWrapper extends Compiler {
   SingleShotCompilerWrapper(FileSystem fileSystem, Uri platformKernelPath,
       {this.requireMain: false,
       bool suppressWarnings: false,
+      bool enableAsserts: false,
       List<String> experimentalFlags: null,
       bool bytecode: false,
       String packageConfig: null})
       : super(fileSystem, platformKernelPath,
             suppressWarnings: suppressWarnings,
+            enableAsserts: enableAsserts,
             experimentalFlags: experimentalFlags,
             bytecode: bytecode,
             packageConfig: packageConfig);
 
   @override
-  Future<Component> compileInternal(Uri script) async {
-    return requireMain
-        ? kernelForProgram(script, options)
-        : kernelForComponent([script], options);
+  Future<CompilerResult> compileInternal(Uri script) async {
+    fe.CompilerResult compilerResult = requireMain
+        ? await kernelForProgram(script, options)
+        : await kernelForModule([script], options);
+    return new CompilerResult(compilerResult.component,
+        compilerResult.classHierarchy, compilerResult.coreTypes);
   }
 }
 
@@ -283,6 +332,7 @@ IncrementalCompilerWrapper lookupIncrementalCompiler(int isolateId) {
 Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateId,
     List sourceFiles, Uri platformKernelPath, List<int> platformKernel,
     {bool suppressWarnings: false,
+    bool enableAsserts: false,
     List<String> experimentalFlags: null,
     bool bytecode: false,
     String packageConfig: null,
@@ -312,6 +362,7 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateId,
       // isolate was shut down. Message should be handled here in this script.
       compiler = new IncrementalCompilerWrapper(fileSystem, platformKernelPath,
           suppressWarnings: suppressWarnings,
+          enableAsserts: enableAsserts,
           experimentalFlags: experimentalFlags,
           bytecode: bytecode,
           packageConfig: packageConfig);
@@ -388,7 +439,21 @@ Future _processExpressionCompilationRequest(request) async {
       // shouldn't print those messages again here.
       result = new CompilationResult.errors(compiler.errors, null);
     } else {
-      result = new CompilationResult.ok(serializeProcedure(procedure));
+      Component component = createExpressionEvaluationComponent(procedure);
+      if (compiler.bytecode) {
+        await runWithFrontEndCompilerContext(
+            compiler.generator.entryPoint, compiler.options, component, () {
+          generateBytecode(component,
+              coreTypes: compiler.generator.getCoreTypes(),
+              hierarchy: compiler.generator.getClassHierarchy(),
+              options: new BytecodeOptions(
+                enableAsserts: compiler.enableAsserts,
+                environmentDefines: compiler.options.environmentDefines,
+              ));
+          component = createFreshComponentWithBytecode(component);
+        });
+      }
+      result = new CompilationResult.ok(serializeComponent(component));
     }
   } catch (error, stack) {
     result = new CompilationResult.crash(error, stack);
@@ -490,20 +555,13 @@ Future _processLoadRequest(request) async {
   final int isolateId = request[6];
   final List sourceFiles = request[7];
   final bool suppressWarnings = request[8];
+  final bool enableAsserts = request[9];
   final List<String> experimentalFlags =
-      request[9] != null ? request[9].cast<String>() : null;
-  final bool bytecode = request[10];
-  final String packageConfig = request[11];
-  final String multirootFilepaths = request[12];
-  final String multirootScheme = request[13];
-
-  if (bytecode) {
-    // Bytecode generator is hooked into kernel service after kernel component
-    // is produced. In case of incremental compilation resulting component
-    // doesn't have core libraries which are needed for bytecode generation.
-    // TODO(alexmarkov): Support bytecode generation in incremental compiler.
-    incremental = false;
-  }
+      request[10] != null ? request[10].cast<String>() : null;
+  final bool bytecode = request[11];
+  final String packageConfig = request[12];
+  final String multirootFilepaths = request[13];
+  final String multirootScheme = request[14];
 
   Uri platformKernelPath = null;
   List<int> platformKernel = null;
@@ -526,7 +584,12 @@ Future _processLoadRequest(request) async {
     assert(incremental,
         "Incremental compiler required for use of 'kUpdateSourcesTag'");
     compiler = lookupIncrementalCompiler(isolateId);
-    assert(compiler != null);
+    if (compiler == null) {
+      port.send(new CompilationResult.errors(
+              ["No incremental compiler available for this isolate."], null)
+          .toResponse());
+      return;
+    }
     updateSources(compiler, sourceFiles);
     port.send(new CompilationResult.ok(null).toResponse());
     return;
@@ -554,6 +617,7 @@ Future _processLoadRequest(request) async {
     compiler = await lookupOrBuildNewIncrementalCompiler(
         isolateId, sourceFiles, platformKernelPath, platformKernel,
         suppressWarnings: suppressWarnings,
+        enableAsserts: enableAsserts,
         experimentalFlags: experimentalFlags,
         bytecode: bytecode,
         packageConfig: packageConfig,
@@ -565,6 +629,7 @@ Future _processLoadRequest(request) async {
     compiler = new SingleShotCompilerWrapper(fileSystem, platformKernelPath,
         requireMain: false,
         suppressWarnings: suppressWarnings,
+        enableAsserts: enableAsserts,
         experimentalFlags: experimentalFlags,
         bytecode: bytecode,
         packageConfig: packageConfig);
@@ -666,7 +731,7 @@ FileSystem _buildFileSystem(List sourceFiles, List<int> platformKernel,
   return fileSystem;
 }
 
-train(String scriptUri, String platformKernelPath) {
+train(String scriptUri, String platformKernelPath, bool bytecode) {
   var tag = kTrainTag;
   var responsePort = new RawReceivePort();
   responsePort.handler = (response) {
@@ -690,8 +755,9 @@ train(String scriptUri, String platformKernelPath) {
     1 /* isolateId chosen randomly */,
     [] /* source files */,
     false /* suppress warnings */,
+    false /* enable asserts */,
     null /* experimental_flags */,
-    false /* generate bytecode */,
+    bytecode,
     null /* package_config */,
     null /* multirootFilepaths */,
     null /* multirootScheme */,
@@ -701,9 +767,20 @@ train(String scriptUri, String platformKernelPath) {
 
 main([args]) {
   if ((args?.length ?? 0) > 1 && args[0] == '--train') {
-    // This entry point is used when creating an app snapshot. The argument
-    // provides a script to compile to warm-up generated code.
-    train(args[1], args.length > 2 ? args[2] : null);
+    // This entry point is used when creating an app snapshot.
+    // It takes the following extra arguments:
+    // 1) Script to compile.
+    // 2) Optional '--bytecode' argument to train bytecode generation.
+    // 3) Optional platform kernel path.
+    int argIndex = 1;
+    final String script = args[argIndex++];
+    bool bytecode = false;
+    if ((argIndex < args.length) && (args[argIndex] == '--bytecode')) {
+      bytecode = true;
+      ++argIndex;
+    }
+    final String platform = (argIndex < args.length) ? args[argIndex] : null;
+    train(script, platform, bytecode);
   } else {
     // Entry point for the Kernel isolate.
     return new RawReceivePort()..handler = _processLoadRequest;
@@ -747,7 +824,11 @@ abstract class CompilationResult {
 class _CompilationOk extends CompilationResult {
   final Uint8List bytes;
 
-  _CompilationOk(this.bytes) : super._();
+  _CompilationOk(this.bytes) : super._() {
+    if (dumpKernel && bytes != null) {
+      _debugDumpKernel(bytes);
+    }
+  }
 
   @override
   Status get status => Status.ok;
@@ -803,4 +884,10 @@ Future<T> runWithPrintToStderr<T>(Future<T> f()) {
   return runZoned(() => new Future<T>(f),
       zoneSpecification: new ZoneSpecification(
           print: (_1, _2, _3, String line) => stderr.writeln(line)));
+}
+
+int _debugDumpCounter = 0;
+void _debugDumpKernel(Uint8List bytes) {
+  new File('kernel_service.tmp${_debugDumpCounter++}.dill')
+      .writeAsBytesSync(bytes);
 }

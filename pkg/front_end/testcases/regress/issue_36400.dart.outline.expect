@@ -11,6 +11,6 @@ import self as self;
 import "dart:core" as core;
 
 class Test extends core::Object {
-  static factory •() → self::Test
+  static factory •() → self::Test*
     ;
 }

@@ -106,8 +106,8 @@ class CompilerContext {
     if (context == null) {
       // Note: we throw directly and don't use internalProblem, because
       // internalProblem depends on having a compiler context available.
-      var message = messageInternalProblemMissingContext.message;
-      var tip = messageInternalProblemMissingContext.tip;
+      String message = messageInternalProblemMissingContext.message;
+      String tip = messageInternalProblemMissingContext.tip;
       throw "Internal problem: $message\nTip: $tip";
     }
     return context;

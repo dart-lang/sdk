@@ -90,8 +90,8 @@ void testConstructor() {
   testGrowable(new List<int>()..length = 5);
   testGrowable(new List<int>.filled(5, null, growable: true));
   Expect.throwsArgumentError(() => new List<int>(-1), "-1");
-  // There must be limits. Fix this test if we ever allow 10^30 elements.
-  Expect.throwsArgumentError(() => new List<int>(0x7fffffffffffffff), "bignum");
+  // There must be limits. Fix this test if we ever allow 2^63 elements.
+  Expect.throwsArgumentError(() => new List<int>(0x7ffffffffffff000), "bignum");
   Expect.throwsArgumentError(() => new List<int>(null), "null");
   testThrowsOrTypeError(
       () => new List([] as Object), // Cast to avoid warning.

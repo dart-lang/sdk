@@ -179,6 +179,6 @@ DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle Dart_FinalizeAllClasses();
  *
  *  It should not be used outside internal tests.
  */
-DART_EXPORT void Dart_ExecuteInternalCommand(const char* command);
+DART_EXPORT void* Dart_ExecuteInternalCommand(const char* command, void* arg);
 
 #endif /* INCLUDE_DART_NATIVE_API_H_ */ /* NOLINT */

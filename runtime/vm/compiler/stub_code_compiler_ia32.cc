@@ -162,6 +162,13 @@ void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
 
   __ EnterFrame(0);
   __ ReserveAlignedFrameSpace(0);
+
+  // Set the execution state to VM while waiting for the safepoint to end.
+  // This isn't strictly necessary but enables tests to check that we're not
+  // in native code anymore. See tests/ffi/function_gc_test.dart for example.
+  __ movl(Address(THR, target::Thread::execution_state_offset()),
+          Immediate(target::Thread::vm_execution_state()));
+
   __ movl(EAX, Address(THR, kExitSafepointRuntimeEntry.OffsetFromThread()));
   __ call(EAX);
   __ LeaveFrame();
@@ -170,6 +177,26 @@ void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
   __ addl(SPREG, Immediate(8));
   __ popal();
   __ ret();
+}
+
+// Calls a native function inside a safepoint.
+//
+// On entry:
+//   Stack: set up for native call
+//   EAX: target to call
+//
+// On exit:
+//   Stack: preserved
+//   EBX: clobbered (even though it's normally callee-saved)
+void StubCodeCompiler::GenerateCallNativeThroughSafepointStub(
+    Assembler* assembler) {
+  __ popl(EBX);
+
+  __ TransitionGeneratedToNative(EAX, FPREG, ECX /*volatile*/);
+  __ call(EAX);
+  __ TransitionNativeToGenerated(ECX /*volatile*/);
+
+  __ jmp(EBX);
 }
 
 void StubCodeCompiler::GenerateVerifyCallbackStub(Assembler* assembler) {
@@ -407,8 +434,10 @@ void StubCodeCompiler::GenerateCallStaticFunctionStub(Assembler* assembler) {
 // (invalid because its function was optimized or deoptimized).
 // EDX: arguments descriptor array.
 void StubCodeCompiler::GenerateFixCallersTargetStub(Assembler* assembler) {
-  // Create a stub frame as we are pushing some objects on the stack before
-  // calling into the runtime.
+  Label monomorphic;
+  __ BranchOnMonomorphicCheckedEntryJIT(&monomorphic);
+
+  // This was a static call.
   __ EnterStubFrame();
   __ pushl(EDX);           // Preserve arguments descriptor array.
   __ pushl(Immediate(0));  // Setup space on stack for return value.
@@ -416,6 +445,22 @@ void StubCodeCompiler::GenerateFixCallersTargetStub(Assembler* assembler) {
   __ popl(EAX);  // Get Code object.
   __ popl(EDX);  // Restore arguments descriptor array.
   __ movl(EAX, FieldAddress(EAX, target::Code::entry_point_offset()));
+  __ LeaveFrame();
+  __ jmp(EAX);
+  __ int3();
+
+  __ Bind(&monomorphic);
+  // This was a switchable call.
+  __ EnterStubFrame();
+  __ pushl(ECX);           // Preserve cache (guarded CID as Smi).
+  __ pushl(EBX);           // Preserve receiver.
+  __ pushl(Immediate(0));  // Result slot.
+  __ CallRuntime(kFixCallersTargetMonomorphicRuntimeEntry, 0);
+  __ popl(CODE_REG);  // Get Code object.
+  __ popl(EBX);       // Restore receiver.
+  __ popl(ECX);       // Restore cache (guarded CID as Smi).
+  __ movl(EAX, FieldAddress(CODE_REG, target::Code::entry_point_offset(
+                                          CodeEntryKind::kMonomorphic)));
   __ LeaveFrame();
   __ jmp(EAX);
   __ int3();
@@ -496,13 +541,13 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // The code in this frame may not cause GC. kDeoptimizeCopyFrameRuntimeEntry
   // and kDeoptimizeFillFrameRuntimeEntry are leaf runtime calls.
   const intptr_t saved_result_slot_from_fp =
-      compiler::target::frame_layout.first_local_from_fp + 1 -
+      target::frame_layout.first_local_from_fp + 1 -
       (kNumberOfCpuRegisters - EAX);
   const intptr_t saved_exception_slot_from_fp =
-      compiler::target::frame_layout.first_local_from_fp + 1 -
+      target::frame_layout.first_local_from_fp + 1 -
       (kNumberOfCpuRegisters - EAX);
   const intptr_t saved_stacktrace_slot_from_fp =
-      compiler::target::frame_layout.first_local_from_fp + 1 -
+      target::frame_layout.first_local_from_fp + 1 -
       (kNumberOfCpuRegisters - EDX);
   // Result in EAX is preserved as part of pushing all registers below.
 
@@ -565,18 +610,14 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   __ CallRuntime(kDeoptimizeFillFrameRuntimeEntry, 1);
   if (kind == kLazyDeoptFromReturn) {
     // Restore result into EBX.
-    __ movl(EBX,
-            Address(EBP, compiler::target::frame_layout.first_local_from_fp *
-                             target::kWordSize));
+    __ movl(EBX, Address(EBP, target::frame_layout.first_local_from_fp *
+                                  target::kWordSize));
   } else if (kind == kLazyDeoptFromThrow) {
     // Restore result into EBX.
-    __ movl(EBX,
-            Address(EBP, compiler::target::frame_layout.first_local_from_fp *
-                             target::kWordSize));
-    __ movl(
-        ECX,
-        Address(EBP, (compiler::target::frame_layout.first_local_from_fp - 1) *
-                         target::kWordSize));
+    __ movl(EBX, Address(EBP, target::frame_layout.first_local_from_fp *
+                                  target::kWordSize));
+    __ movl(ECX, Address(EBP, (target::frame_layout.first_local_from_fp - 1) *
+                                  target::kWordSize));
   }
   // Code above cannot cause GC.
   __ LeaveFrame();
@@ -2119,6 +2160,23 @@ void StubCodeCompiler::GenerateICCallBreakpointStub(Assembler* assembler) {
 #endif  // defined(PRODUCT)
 }
 
+void StubCodeCompiler::GenerateUnoptStaticCallBreakpointStub(
+    Assembler* assembler) {
+#if defined(PRODUCT)
+  __ Stop("No debugging in PRODUCT mode");
+#else
+  __ EnterStubFrame();
+  __ pushl(ECX);           // Preserve ICData.
+  __ pushl(Immediate(0));  // Room for result.
+  __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
+  __ popl(EAX);  // Code of original stub.
+  __ popl(ECX);  // Restore ICData.
+  __ LeaveFrame();
+  // Jump to original stub.
+  __ jmp(FieldAddress(EAX, target::Code::entry_point_offset()));
+#endif  // defined(PRODUCT)
+}
+
 void StubCodeCompiler::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
 #if defined(PRODUCT)
   __ Stop("No debugging in PRODUCT mode");
@@ -2449,7 +2507,7 @@ void StubCodeCompiler::GenerateDeoptForRewindStub(Assembler* assembler) {
 // EBX: function to be reoptimized.
 // EDX: argument descriptor (preserved).
 void StubCodeCompiler::GenerateOptimizeFunctionStub(Assembler* assembler) {
-  __ movl(CODE_REG, Address(THR, Thread::optimize_stub_offset()));
+  __ movl(CODE_REG, Address(THR, target::Thread::optimize_stub_offset()));
   __ EnterStubFrame();
   __ pushl(EDX);
   __ pushl(Immediate(0));  // Setup space on stack for return value.
@@ -2639,15 +2697,6 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
   __ jmp(&cid_loaded);
 }
 
-// Called from switchable IC calls.
-//  EBX: receiver
-//  ECX: ICData (preserved)
-// Passed to target:
-//  EDX: arguments descriptor
-void StubCodeCompiler::GenerateICCallThroughFunctionStub(Assembler* assembler) {
-  __ int3();  // AOT only.
-}
-
 void StubCodeCompiler::GenerateICCallThroughCodeStub(Assembler* assembler) {
   __ int3();  // AOT only.
 }
@@ -2661,7 +2710,23 @@ void StubCodeCompiler::GenerateSingleTargetCallStub(Assembler* assembler) {
 }
 
 void StubCodeCompiler::GenerateMonomorphicMissStub(Assembler* assembler) {
-  __ int3();  // AOT only.
+  __ EnterStubFrame();
+  __ pushl(EBX);  // Preserve receiver.
+
+  __ pushl(Immediate(0));  // Result slot.
+  __ pushl(Immediate(0));  // Arg0: stub out
+  __ pushl(EBX);           // Arg1: Receiver
+  __ CallRuntime(kMonomorphicMissRuntimeEntry, 2);
+  __ popl(ECX);
+  __ popl(CODE_REG);  // result = stub
+  __ popl(ECX);       // result = IC
+
+  __ popl(EBX);  // Restore receiver.
+  __ LeaveFrame();
+
+  __ movl(EAX, FieldAddress(CODE_REG, target::Code::entry_point_offset(
+                                          CodeEntryKind::kMonomorphic)));
+  __ jmp(EAX);
 }
 
 void StubCodeCompiler::GenerateFrameAwaitingMaterializationStub(

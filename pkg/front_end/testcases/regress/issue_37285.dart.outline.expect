@@ -1,0 +1,17 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_37285.dart:6:17: Error: Expected an identifier, but got ']'.
+//   C() : super()[];
+//                 ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  constructor •() → self::C*
+    ;
+}
+static method main() → dynamic
+  ;

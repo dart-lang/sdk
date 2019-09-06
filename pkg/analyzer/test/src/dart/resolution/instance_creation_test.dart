@@ -34,6 +34,7 @@ final foo = Map<int>();
       mapElement,
       'Map<dynamic, dynamic>',
       expectedConstructorMember: true,
+      expectedSubstitution: {'K': 'dynamic', 'V': 'dynamic'},
     );
   }
 
@@ -113,9 +114,14 @@ main() {
     assertInstanceCreation(
       creation,
       findElement.class_('Foo'),
+      // TODO(scheglov) Move type arguments
       'Foo<dynamic>',
+//      'Foo<int>',
       constructorName: 'bar',
       expectedConstructorMember: true,
+      // TODO(scheglov) Move type arguments
+      expectedSubstitution: {'X': 'dynamic'},
+//      expectedSubstitution: {'X': 'int'},
     );
   }
 
@@ -147,6 +153,7 @@ main() {
       constructorName: 'bar',
       expectedConstructorMember: true,
       expectedPrefix: import.prefix,
+      expectedSubstitution: {'X': 'int'},
     );
   }
 }

@@ -76,7 +76,7 @@ class TypeGraphInferrer implements TypesInferrer {
         _compiler.reporter,
         _compiler.outputProvider,
         closedWorld,
-        _compiler.backend.noSuchMethodRegistry,
+        _compiler.frontendStrategy.noSuchMethodRegistry,
         main,
         _inferredDataBuilder);
   }

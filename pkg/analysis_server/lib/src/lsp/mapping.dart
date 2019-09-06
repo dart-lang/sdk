@@ -22,11 +22,12 @@ import 'package:analysis_server/src/lsp/lsp_analysis_server.dart' as lsp;
 import 'package:analysis_server/src/lsp/source_edits.dart';
 import 'package:analysis_server/src/protocol_server.dart' as server
     hide AnalysisError;
+import 'package:analysis_server/src/search/workspace_symbols.dart' as server
+    show DeclarationKind;
 import 'package:analyzer/dart/analysis/results.dart' as server;
+import 'package:analyzer/diagnostic/diagnostic.dart' as analyzer;
 import 'package:analyzer/error/error.dart' as server;
 import 'package:analyzer/source/line_info.dart' as server;
-import 'package:analyzer/src/dart/analysis/search.dart' as server
-    show DeclarationKind;
 import 'package:analyzer/src/generated/source.dart' as server;
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer/src/services/available_declarations.dart' as dec;
@@ -152,7 +153,34 @@ lsp.CompletionItem declarationToCompletionItem(
   int replacementOffset,
   int replacementLength,
 ) {
-  final label = declaration.name;
+  // Build display labels and text to insert. insertText and filterText may
+  // differ from label (for ex. if the label includes things like (…)). If
+  // either are missing then label will be used by the client.
+  String label;
+  String insertText;
+  String filterText;
+  switch (declaration.kind) {
+    case DeclarationKind.ENUM_CONSTANT:
+      label = '${declaration.parent.name}.${declaration.name}';
+      break;
+    case DeclarationKind.CONSTRUCTOR:
+      label = declaration.parent.name;
+      if (declaration.name.isNotEmpty) {
+        label += '.${declaration.name}';
+      }
+      insertText = label;
+      filterText = label;
+      label += declaration.parameterNames?.isNotEmpty ?? false ? '(…)' : '()';
+      break;
+    case DeclarationKind.FUNCTION:
+      label = declaration.name;
+      insertText = label;
+      filterText = label;
+      label += declaration.parameterNames?.isNotEmpty ?? false ? '(…)' : '()';
+      break;
+    default:
+      label = declaration.name;
+  }
 
   final useDeprecated =
       completionCapabilities?.completionItem?.deprecatedSupport == true;
@@ -182,8 +210,8 @@ lsp.CompletionItem declarationToCompletionItem(
     //  10 -> 999990
     //   1 -> 999999
     (1000000 - itemRelevance).toString(),
-    null, // filterText uses label if not set
-    null, // insertText is deprecated, but also uses label if not set
+    filterText != label ? filterText : null, // filterText uses label if not set
+    insertText != label ? insertText : null, // insertText uses label if not set
     null, // insertTextFormat (we always use plain text so can ommit this)
     null, // textEdit - added on during resolve
     null, // additionalTextEdits, used for adding imports, etc.
@@ -540,9 +568,30 @@ lsp.CompletionItem toCompletionItem(
   int replacementOffset,
   int replacementLength,
 ) {
-  final label = suggestion.displayText != null
-      ? suggestion.displayText
-      : suggestion.completion;
+  // Build display labels and text to insert. insertText and filterText may
+  // differ from label (for ex. if the label includes things like (…)). If
+  // either are missing then label will be used by the client.
+  String label;
+  String insertText;
+  String filterText;
+  if (suggestion.displayText != null) {
+    label = suggestion.displayText;
+    insertText = suggestion.completion;
+  } else {
+    switch (suggestion.element?.kind) {
+      case server.ElementKind.CONSTRUCTOR:
+      case server.ElementKind.FUNCTION:
+      case server.ElementKind.METHOD:
+        label = suggestion.completion;
+        // Label is the insert text plus the parens to indicate it's callable.
+        insertText = label;
+        filterText = label;
+        label += suggestion.parameterNames?.isNotEmpty ?? false ? '(…)' : '()';
+        break;
+      default:
+        label = suggestion.completion;
+    }
+  }
 
   final useDeprecated =
       completionCapabilities?.completionItem?.deprecatedSupport == true;
@@ -570,8 +619,8 @@ lsp.CompletionItem toCompletionItem(
     //  10 -> 999990
     //   1 -> 999999
     (1000000 - suggestion.relevance).toString(),
-    null, // filterText uses label if not set
-    null, // insertText is deprecated, but also uses label if not set
+    filterText != label ? filterText : null, // filterText uses label if not set
+    insertText != label ? insertText : null, // insertText uses label if not set
     null, // insertTextFormat (we always use plain text so can ommit this)
     new lsp.TextEdit(
       // TODO(dantup): If `clientSupportsSnippets == true` then we should map
@@ -587,21 +636,49 @@ lsp.CompletionItem toCompletionItem(
 }
 
 lsp.Diagnostic toDiagnostic(
-    server.LineInfo lineInfo, server.AnalysisError error,
+    server.ResolvedUnitResult result, server.AnalysisError error,
     [server.ErrorSeverity errorSeverity]) {
   server.ErrorCode errorCode = error.errorCode;
 
   // Default to the error's severity if none is specified.
   errorSeverity ??= errorCode.errorSeverity;
 
+  List<DiagnosticRelatedInformation> relatedInformation;
+  if (error.contextMessages.isNotEmpty) {
+    relatedInformation = error.contextMessages
+        .map((message) => toDiagnosticRelatedInformation(result, message))
+        .toList();
+  }
+
+  String message = error.message;
+  if (error.correctionMessage != null) {
+    message = '$message\n${error.correctionMessage}';
+  }
+
   return new lsp.Diagnostic(
-    toRange(lineInfo, error.offset, error.length),
+    toRange(result.lineInfo, error.offset, error.length),
     toDiagnosticSeverity(errorSeverity),
     errorCode.name.toLowerCase(),
     languageSourceName,
-    error.message,
-    null,
+    message,
+    relatedInformation,
   );
+}
+
+lsp.DiagnosticRelatedInformation toDiagnosticRelatedInformation(
+    server.ResolvedUnitResult result, analyzer.DiagnosticMessage message) {
+  String file = message.filePath;
+  server.LineInfo lineInfo = result.session.getFile(file).lineInfo;
+  return lsp.DiagnosticRelatedInformation(
+      lsp.Location(
+        Uri.file(file).toString(),
+        toRange(
+          lineInfo,
+          message.offset,
+          message.length,
+        ),
+      ),
+      message.message);
 }
 
 lsp.DiagnosticSeverity toDiagnosticSeverity(server.ErrorSeverity severity) {
@@ -664,7 +741,7 @@ lsp.Location toLocation(server.Location location, server.LineInfo lineInfo) =>
 ErrorOr<int> toOffset(
   server.LineInfo lineInfo,
   lsp.Position pos, {
-  failureIsCritial: false,
+  failureIsCritial = false,
 }) {
   if (pos.line > lineInfo.lineCount) {
     return new ErrorOr<int>.error(new lsp.ResponseError(

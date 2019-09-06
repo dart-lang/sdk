@@ -187,4 +187,14 @@ f(Iterable<int> i) {
 }
 ''');
   }
+
+  test_undefinedConstructor() async {
+    verifyNoTestUnitErrors = false;
+    await resolveTestUnit('''
+f() {
+  return new Unde/*caret*/fined();
+}
+''');
+    await assertNoAssist();
+  }
 }

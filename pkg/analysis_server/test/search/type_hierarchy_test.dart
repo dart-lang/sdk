@@ -1097,7 +1097,6 @@ class D extends C {}
     Request request =
         _createGetTypeHierarchyRequest(search, superOnly: superOnly);
     Response response = await serverChannel.sendRequest(request);
-    expect(serverErrors, isEmpty);
     return new SearchGetTypeHierarchyResult.fromResponse(response)
         .hierarchyItems;
   }

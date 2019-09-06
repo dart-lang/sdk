@@ -10,35 +10,35 @@ main() {
   instantiatedCall();
 }
 
-/*element: _directCall:apply*/
+/*member: _directCall:apply*/
 _directCall() {}
 
-/*element: directCall:*/
+/*member: directCall:*/
 void directCall() {
   Function.apply(_directCall, []);
 }
 
-/*element: _indirectCall:apply*/
+/*member: _indirectCall:apply*/
 _indirectCall() {}
 
-/*element: _indirectCallHelper:*/
+/*member: _indirectCallHelper:*/
 _indirectCallHelper(f) => Function.apply(f, []);
 
-/*element: indirectCall:*/
+/*member: indirectCall:*/
 void indirectCall() {
   _indirectCallHelper(_indirectCall);
 }
 
-/*element: Class.:*/
+/*member: Class.:*/
 class Class {
-  /*element: Class.instanceTearOff1:apply*/
+  /*member: Class.instanceTearOff1:apply*/
   instanceTearOff1() {}
 
-  /*element: Class.instanceTearOff2:*/
+  /*member: Class.instanceTearOff2:*/
   instanceTearOff2() {}
 }
 
-/*element: _instanceTearOffHelper:*/
+/*member: _instanceTearOffHelper:*/
 _instanceTearOffHelper(f) => Function.apply(f, []);
 
 instanceTearOff() {

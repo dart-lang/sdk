@@ -2,8 +2,8 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-static method f(core::Object x) → void {
-  if(!(x is core::int) && !(x is core::String)) {
+static method f(core::Object* x) → void {
+  if(!(x is core::int*) && !(x is core::String*)) {
     core::print(x);
   }
 }

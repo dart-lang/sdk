@@ -5,31 +5,31 @@ import "dart:async" as asy;
 
 import "dart:async";
 
-class C<T extends core::Object = dynamic> extends core::Object {
-  synthetic constructor •() → self::C<self::C::T>
+class C<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::C<self::C::T*>*
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=hasThisUses:false,hasTearOffUses:false]  method test2c([@vm.inferred-type.metadata=dart.core::_Smi (skip check)] generic-covariant-impl asy::FutureOr<self::C::T> x) → void {}
-[@vm.procedure-attributes.metadata=hasThisUses:false,hasTearOffUses:false]  method test3c([@vm.inferred-type.metadata=dart.async::_Future<dart.core::int> (skip check)] generic-covariant-impl asy::Future<self::C::T> x) → void {}
-[@vm.procedure-attributes.metadata=hasThisUses:false,hasTearOffUses:false]  method test4c([@vm.inferred-type.metadata=dart.async::_Future<dart.core::int> (skip check)] generic-covariant-impl asy::FutureOr<self::C::T> x) → void {}
-[@vm.procedure-attributes.metadata=hasThisUses:false,hasTearOffUses:false]  method test2r([@vm.inferred-type.metadata=#lib::C<dart.core::int> (skip check)] generic-covariant-impl self::C<asy::FutureOr<self::C::T>> x) → void {}
-[@vm.procedure-attributes.metadata=hasThisUses:false,hasTearOffUses:false]  method test3r([@vm.inferred-type.metadata=#lib::C<dart.async::Future<dart.core::int>> (skip check)] generic-covariant-impl self::C<asy::Future<self::C::T>> x) → void {}
-[@vm.procedure-attributes.metadata=hasThisUses:false,hasTearOffUses:false]  method test4r([@vm.inferred-type.metadata=#lib::C<dart.async::Future<dart.core::int>> (skip check)] generic-covariant-impl self::C<asy::FutureOr<self::C::T>> x) → void {}
-[@vm.procedure-attributes.metadata=hasThisUses:false,hasTearOffUses:false]  method test5r([@vm.inferred-type.metadata=#lib::C<dart.async::FutureOr<dart.core::int>>] generic-covariant-impl self::C<asy::Future<self::C::T>> x) → void {}
-[@vm.procedure-attributes.metadata=hasThisUses:false,hasTearOffUses:false]  method test6r([@vm.inferred-type.metadata=#lib::C<dart.async::FutureOr<dart.core::int>> (skip check)] generic-covariant-impl self::C<asy::FutureOr<self::C::T>> x) → void {}
-[@vm.procedure-attributes.metadata=hasThisUses:false,hasTearOffUses:false]  method test7r([@vm.inferred-type.metadata=#lib::C<dart.async::FutureOr<dart.core::int>>] generic-covariant-impl self::C<self::C::T> x) → void {}
-[@vm.procedure-attributes.metadata=hasThisUses:false,hasTearOffUses:false]  method test8r([@vm.inferred-type.metadata=#lib::C<dart.async::Future<dart.core::int>>] generic-covariant-impl self::C<self::C::T> x) → void {}
+[@vm.procedure-attributes.metadata=hasThisUses:false,hasTearOffUses:false]  method test2c([@vm.inferred-type.metadata=dart.core::_Smi (skip check)] generic-covariant-impl asy::FutureOr<self::C::T*>* x) → void {}
+[@vm.procedure-attributes.metadata=hasThisUses:false,hasTearOffUses:false]  method test3c([@vm.inferred-type.metadata=dart.async::_Future<dart.core::int*> (skip check)] generic-covariant-impl asy::Future<self::C::T*>* x) → void {}
+[@vm.procedure-attributes.metadata=hasThisUses:false,hasTearOffUses:false]  method test4c([@vm.inferred-type.metadata=dart.async::_Future<dart.core::int*> (skip check)] generic-covariant-impl asy::FutureOr<self::C::T*>* x) → void {}
+[@vm.procedure-attributes.metadata=hasThisUses:false,hasTearOffUses:false]  method test2r([@vm.inferred-type.metadata=#lib::C<dart.core::int*> (skip check)] generic-covariant-impl self::C<asy::FutureOr<self::C::T*>*>* x) → void {}
+[@vm.procedure-attributes.metadata=hasThisUses:false,hasTearOffUses:false]  method test3r([@vm.inferred-type.metadata=#lib::C<dart.async::Future<dart.core::int*>*> (skip check)] generic-covariant-impl self::C<asy::Future<self::C::T*>*>* x) → void {}
+[@vm.procedure-attributes.metadata=hasThisUses:false,hasTearOffUses:false]  method test4r([@vm.inferred-type.metadata=#lib::C<dart.async::Future<dart.core::int*>*> (skip check)] generic-covariant-impl self::C<asy::FutureOr<self::C::T*>*>* x) → void {}
+[@vm.procedure-attributes.metadata=hasThisUses:false,hasTearOffUses:false]  method test5r([@vm.inferred-type.metadata=#lib::C<dart.async::FutureOr<dart.core::int*>*>] generic-covariant-impl self::C<asy::Future<self::C::T*>*>* x) → void {}
+[@vm.procedure-attributes.metadata=hasThisUses:false,hasTearOffUses:false]  method test6r([@vm.inferred-type.metadata=#lib::C<dart.async::FutureOr<dart.core::int*>*> (skip check)] generic-covariant-impl self::C<asy::FutureOr<self::C::T*>*>* x) → void {}
+[@vm.procedure-attributes.metadata=hasThisUses:false,hasTearOffUses:false]  method test7r([@vm.inferred-type.metadata=#lib::C<dart.async::FutureOr<dart.core::int*>*>] generic-covariant-impl self::C<self::C::T*>* x) → void {}
+[@vm.procedure-attributes.metadata=hasThisUses:false,hasTearOffUses:false]  method test8r([@vm.inferred-type.metadata=#lib::C<dart.async::Future<dart.core::int*>*>] generic-covariant-impl self::C<self::C::T*>* x) → void {}
 }
 static method main() → dynamic {
-  dynamic c = new self::C::•<core::int>();
+  dynamic c = new self::C::•<core::int*>();
   [@vm.direct-call.metadata=#lib::C::test2c] c.test2c(3);
-  [@vm.direct-call.metadata=#lib::C::test3c] c.test3c([@vm.inferred-type.metadata=dart.async::_Future<dart.core::int>] asy::Future::value<core::int>(3));
-  [@vm.direct-call.metadata=#lib::C::test4c] c.test4c([@vm.inferred-type.metadata=dart.async::_Future<dart.core::int>] asy::Future::value<core::int>(3));
-  [@vm.direct-call.metadata=#lib::C::test2r] c.test2r(new self::C::•<core::int>());
-  [@vm.direct-call.metadata=#lib::C::test3r] c.test3r(new self::C::•<asy::Future<core::int>>());
-  [@vm.direct-call.metadata=#lib::C::test4r] c.test4r(new self::C::•<asy::Future<core::int>>());
-  [@vm.direct-call.metadata=#lib::C::test5r] c.test5r(new self::C::•<asy::FutureOr<core::int>>());
-  [@vm.direct-call.metadata=#lib::C::test6r] c.test6r(new self::C::•<asy::FutureOr<core::int>>());
-  [@vm.direct-call.metadata=#lib::C::test7r] c.test7r(new self::C::•<asy::FutureOr<core::int>>());
-  [@vm.direct-call.metadata=#lib::C::test8r] c.test8r(new self::C::•<asy::Future<core::int>>());
+  [@vm.direct-call.metadata=#lib::C::test3c] c.test3c([@vm.inferred-type.metadata=dart.async::_Future<dart.core::int*>] asy::Future::value<core::int*>(3));
+  [@vm.direct-call.metadata=#lib::C::test4c] c.test4c([@vm.inferred-type.metadata=dart.async::_Future<dart.core::int*>] asy::Future::value<core::int*>(3));
+  [@vm.direct-call.metadata=#lib::C::test2r] c.test2r(new self::C::•<core::int*>());
+  [@vm.direct-call.metadata=#lib::C::test3r] c.test3r(new self::C::•<asy::Future<core::int*>*>());
+  [@vm.direct-call.metadata=#lib::C::test4r] c.test4r(new self::C::•<asy::Future<core::int*>*>());
+  [@vm.direct-call.metadata=#lib::C::test5r] c.test5r(new self::C::•<asy::FutureOr<core::int*>*>());
+  [@vm.direct-call.metadata=#lib::C::test6r] c.test6r(new self::C::•<asy::FutureOr<core::int*>*>());
+  [@vm.direct-call.metadata=#lib::C::test7r] c.test7r(new self::C::•<asy::FutureOr<core::int*>*>());
+  [@vm.direct-call.metadata=#lib::C::test8r] c.test8r(new self::C::•<asy::Future<core::int*>*>());
 }

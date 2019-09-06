@@ -13,18 +13,18 @@ class E {}
 
 void test(void f()) {
   try {
-    var /*@type=int*/ x = 0;
+    var /*@ type=int* */ x = 0;
     f();
   } on C {
-    var /*@type=int*/ x = 0;
+    var /*@ type=int* */ x = 0;
   } on D catch (x) {
-    var /*@type=D*/ x2 = x;
+    var /*@ type=D* */ x2 = x;
   } on E catch (x, y) {
-    var /*@type=E*/ x2 = x;
-    var /*@type=StackTrace*/ y2 = y;
+    var /*@ type=E* */ x2 = x;
+    var /*@ type=StackTrace* */ y2 = y;
   } catch (x, y) {
-    var /*@type=dynamic*/ x2 = x;
-    var /*@type=StackTrace*/ y2 = y;
+    var /*@ type=dynamic */ x2 = x;
+    var /*@ type=StackTrace* */ y2 = y;
   }
 }
 

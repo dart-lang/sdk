@@ -4,18 +4,18 @@ import "dart:core" as core;
 
 class A extends core::Object {
   field dynamic x = null;
-  synthetic constructor •() → self::A
+  synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
 }
 class B extends core::Object implements self::A {
   field dynamic x = 2;
-  synthetic constructor •() → self::B
+  synthetic constructor •() → self::B*
     : super core::Object::•()
     ;
 }
 static method foo() → dynamic {
-  core::String y = new self::B::•().x;
-  core::int z = new self::B::•().x;
+  core::String* y = new self::B::•().x;
+  core::int* z = new self::B::•().x;
 }
 static method main() → dynamic {}

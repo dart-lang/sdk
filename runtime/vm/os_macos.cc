@@ -16,7 +16,7 @@
 #include <sys/time.h>        // NOLINT
 #include <unistd.h>          // NOLINT
 #if HOST_OS_IOS
-#include <syslog.h>      // NOLINT
+#include <syslog.h>  // NOLINT
 #endif
 
 #include "platform/utils.h"
@@ -140,7 +140,7 @@ intptr_t OS::ActivationFrameAlignment() {
 #elif TARGET_ARCH_X64
   return 16;  // iOS simulator
 #elif TARGET_ARCH_DBC
-  return 16;
+  return 16;  // Should be at least as much as any host architecture.
 #else
 #error Unimplemented
 #endif
@@ -211,7 +211,6 @@ DART_NOINLINE uintptr_t OS::GetProgramCounter() {
   return reinterpret_cast<uintptr_t>(
       __builtin_extract_return_addr(__builtin_return_address(0)));
 }
-
 
 void OS::Print(const char* format, ...) {
 #if HOST_OS_IOS
@@ -326,6 +325,7 @@ void OS::Cleanup() {}
 void OS::PrepareToAbort() {}
 
 void OS::Abort() {
+  PrepareToAbort();
   abort();
 }
 

@@ -181,7 +181,7 @@ class _HashSet<E> extends _InternalSet<E>
   bool contains(Object key) {
     if (key == null) {
       key = null;
-    } else if (JS('bool', '#[#] !== #', key, dart.extensionSymbol('_equals'),
+    } else if (JS<bool>('!', '#[#] !== #', key, dart.extensionSymbol('_equals'),
         dart.identityEquals)) {
       @notNull
       var k = key;
@@ -194,12 +194,12 @@ class _HashSet<E> extends _InternalSet<E>
       }
       return false;
     }
-    return JS('bool', '#.has(#)', _map, key);
+    return JS<bool>('!', '#.has(#)', _map, key);
   }
 
   E lookup(Object key) {
     if (key == null) return null;
-    if (JS('bool', '#[#] !== #', key, dart.extensionSymbol('_equals'),
+    if (JS<bool>('!', '#[#] !== #', key, dart.extensionSymbol('_equals'),
         dart.identityEquals)) {
       @notNull
       var k = key;
@@ -220,7 +220,7 @@ class _HashSet<E> extends _InternalSet<E>
     if (key == null) {
       if (JS('', '#.has(null)', map)) return false;
       key = null;
-    } else if (JS('bool', '#[#] !== #', key, dart.extensionSymbol('_equals'),
+    } else if (JS<bool>('!', '#[#] !== #', key, dart.extensionSymbol('_equals'),
         dart.identityEquals)) {
       var keyMap = _keyMap;
       @notNull
@@ -250,8 +250,8 @@ class _HashSet<E> extends _InternalSet<E>
     for (E key in objects) {
       if (key == null) {
         key = null; // converts undefined to null, if needed.
-      } else if (JS('bool', '#[#] !== #', key, dart.extensionSymbol('_equals'),
-          dart.identityEquals)) {
+      } else if (JS<bool>('!', '#[#] !== #', key,
+          dart.extensionSymbol('_equals'), dart.identityEquals)) {
         key = putLinkedMapKey(key, _keyMap);
       }
       JS('', '#.add(#)', map, key);
@@ -264,7 +264,7 @@ class _HashSet<E> extends _InternalSet<E>
   bool remove(Object key) {
     if (key == null) {
       key = null;
-    } else if (JS('bool', '#[#] !== #', key, dart.extensionSymbol('_equals'),
+    } else if (JS<bool>('!', '#[#] !== #', key, dart.extensionSymbol('_equals'),
         dart.identityEquals)) {
       @notNull
       var k = key;
@@ -286,7 +286,7 @@ class _HashSet<E> extends _InternalSet<E>
       }
     }
     var map = _map;
-    if (JS('bool', '#.delete(#)', map, key)) {
+    if (JS<bool>('!', '#.delete(#)', map, key)) {
       _modifications = (_modifications + 1) & 0x3ffffff;
       return true;
     }
@@ -310,8 +310,8 @@ class _ImmutableSet<E> extends _HashSet<E> {
     for (Object key in entries) {
       if (key == null) {
         key = null; // converts undefined to null, if needed.
-      } else if (JS('bool', '#[#] !== #', key, dart.extensionSymbol('_equals'),
-          dart.identityEquals)) {
+      } else if (JS<bool>('!', '#[#] !== #', key,
+          dart.extensionSymbol('_equals'), dart.identityEquals)) {
         key = putLinkedMapKey(key, _keyMap);
       }
       JS('', '#.add(#)', map, key);
@@ -352,7 +352,7 @@ class _IdentityHashSet<E> extends _InternalSet<E>
 
   bool add(E element) {
     var map = _map;
-    if (JS('bool', '#.has(#)', map, element)) return false;
+    if (JS<bool>('!', '#.has(#)', map, element)) return false;
     JS('', '#.add(#)', map, element);
     _modifications = (_modifications + 1) & 0x3ffffff;
     return true;
@@ -370,7 +370,7 @@ class _IdentityHashSet<E> extends _InternalSet<E>
   }
 
   bool remove(Object element) {
-    if (JS('bool', '#.delete(#)', _map, element)) {
+    if (JS<bool>('!', '#.delete(#)', _map, element)) {
       _modifications = (_modifications + 1) & 0x3ffffff;
       return true;
     }
@@ -545,10 +545,10 @@ abstract class _InternalSet<E> extends _SetBase<E> {
   int get length => JS<int>('!', '#.size', _map);
 
   @notNull
-  bool get isEmpty => JS('bool', '#.size == 0', _map);
+  bool get isEmpty => JS<bool>('!', '#.size == 0', _map);
 
   @notNull
-  bool get isNotEmpty => JS('bool', '#.size != 0', _map);
+  bool get isNotEmpty => JS<bool>('!', '#.size != 0', _map);
 
   Iterator<E> get iterator => DartIterator<E>(_jsIterator());
 

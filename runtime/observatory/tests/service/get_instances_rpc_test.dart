@@ -31,25 +31,38 @@ var tests = <IsolateTest>[
   (Isolate isolate) async {
     var obj = await eval(isolate, 'global');
     var params = {
-      'classId': obj['class']['id'],
+      'objectId': obj['class']['id'],
       'limit': 4,
     };
-    var result = await isolate.invokeRpcNoUpgrade('_getInstances', params);
+    var result = await isolate.invokeRpcNoUpgrade('getInstances', params);
     expect(result['type'], equals('InstanceSet'));
     expect(result['totalCount'], equals(2));
-    expect(result['samples'].length, equals(2));
-    expect(result['samples'][0]['type'], equals('@Instance'));
+    expect(result['instances'].length, equals(2));
+    expect(result['instances'][0]['type'], equals('@Instance'));
 
     // Limit is respected.
     params = {
-      'classId': obj['class']['id'],
+      'objectId': obj['class']['id'],
       'limit': 1,
     };
-    result = await isolate.invokeRpcNoUpgrade('_getInstances', params);
+    result = await isolate.invokeRpcNoUpgrade('getInstances', params);
     expect(result['type'], equals('InstanceSet'));
     expect(result['totalCount'], equals(2));
-    expect(result['samples'].length, equals(1));
-    expect(result['samples'][0]['type'], equals('@Instance'));
+    expect(result['instances'].length, equals(1));
+    expect(result['instances'][0]['type'], equals('@Instance'));
+
+    // Try an object ID that isn't a class ID
+    params = {
+      'objectId': isolate.rootLibrary.id,
+      'limit': 1,
+    };
+    try {
+      await isolate.invokeRpcNoUpgrade('getInstances', params);
+    } on ServerRpcException catch (_) {
+      // Success.
+    } catch (e) {
+      fail('Failed with exception: $e');
+    }
   },
 ];
 

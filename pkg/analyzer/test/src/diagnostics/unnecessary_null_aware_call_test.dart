@@ -23,25 +23,17 @@ class UnnecessaryNullAwareCallTest extends DriverResolutionTest {
 
   test_getter_parenthesized_nonNull() async {
     await assertErrorsInCode('''
-@pragma('analyzer:non-nullable')
-library foo;
-
-f() {
-  int x;
+f(int x) {
   (x)?.isEven;
 }
 ''', [
-      error(HintCode.UNNECESSARY_NULL_AWARE_CALL, 67, 2),
+      error(StaticWarningCode.UNNECESSARY_NULL_AWARE_CALL, 16, 2),
     ]);
   }
 
   test_getter_parenthesized_nullable() async {
     await assertNoErrorsInCode('''
-@pragma('analyzer:non-nullable')
-library foo;
-
-f() {
-  int? x;
+f(int? x) {
   (x)?.isEven;
 }
 ''');
@@ -49,25 +41,17 @@ f() {
 
   test_getter_simple_nonNull() async {
     await assertErrorsInCode('''
-@pragma('analyzer:non-nullable')
-library foo;
-
-f() {
-  int x;
+f(int x) {
   x?.isEven;
 }
 ''', [
-      error(HintCode.UNNECESSARY_NULL_AWARE_CALL, 65, 2),
+      error(StaticWarningCode.UNNECESSARY_NULL_AWARE_CALL, 14, 2),
     ]);
   }
 
   test_getter_simple_nullable() async {
     await assertNoErrorsInCode('''
-@pragma('analyzer:non-nullable')
-library foo;
-
-f() {
-  int? x;
+f(int? x) {
   x?.isEven;
 }
 ''');
@@ -75,25 +59,17 @@ f() {
 
   test_method_parenthesized_nonNull() async {
     await assertErrorsInCode('''
-@pragma('analyzer:non-nullable')
-library foo;
-
-f() {
-  int x;
+f(int x) {
   (x)?.round();
 }
 ''', [
-      error(HintCode.UNNECESSARY_NULL_AWARE_CALL, 67, 2),
+      error(StaticWarningCode.UNNECESSARY_NULL_AWARE_CALL, 16, 2),
     ]);
   }
 
   test_method_parenthesized_nullable() async {
     await assertNoErrorsInCode('''
-@pragma('analyzer:non-nullable')
-library foo;
-
-f() {
-  int? x;
+f(int? x) {
   (x)?.round();
 }
 ''');
@@ -101,25 +77,17 @@ f() {
 
   test_method_simple_nonNull() async {
     await assertErrorsInCode('''
-@pragma('analyzer:non-nullable')
-library foo;
-
-f() {
-  int x;
+f(int x) {
   x?.round();
 }
 ''', [
-      error(HintCode.UNNECESSARY_NULL_AWARE_CALL, 65, 2),
+      error(StaticWarningCode.UNNECESSARY_NULL_AWARE_CALL, 14, 2),
     ]);
   }
 
   test_method_simple_nullable() async {
     await assertNoErrorsInCode('''
-@pragma('analyzer:non-nullable')
-library foo;
-
-f() {
-  int? x;
+f(int? x) {
   x?.round();
 }
 ''');

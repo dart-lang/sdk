@@ -105,8 +105,8 @@ class InitializeMessageHandler
         null,
         null,
         true, // foldingRangeProvider
-        new ExecuteCommandOptions(Commands.serverSupportedCommands),
         null, // declarationProvider
+        new ExecuteCommandOptions(Commands.serverSupportedCommands),
         new ServerCapabilitiesWorkspace(
             new ServerCapabilitiesWorkspaceFolders(true, true)),
         null);

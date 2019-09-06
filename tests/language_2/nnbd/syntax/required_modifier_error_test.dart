@@ -6,22 +6,22 @@
 
 // Invalid uses of "required" modifier
 
-required //# 01: compile-time error
+required //# 01: syntax error
 int f1(
-  required //# 02: compile-time error
+  required //# 02: syntax error
   int x
 ) {}
 
-required //# 03: compile-time error
+required //# 03: syntax error
 class C1 {
-  required //# 04: compile-time error
-  int f2;
+  required //# 04: syntax error
+  int f2 = 0;
 }
 
 // Duplicate modifier
 void f2({
   required
-  required //# 05: compile-time error
+  required //# 05: syntax error
   int i,
 }){
 }
@@ -29,12 +29,9 @@ void f2({
 // Out of order modifiers
 class C2 {
   void m({
-    covariant
-    required //# 07: compile-time error
-    int i2,
-    final
-    required //# 08: compile-time error
-    int i3,
+    required int i1,
+    covariant required int i2, //# 07: syntax error
+    final required int i3, //# 08: syntax error
   }) {
   }
 }

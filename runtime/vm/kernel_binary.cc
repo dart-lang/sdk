@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
+#include <memory>
+
 #include "vm/kernel_binary.h"
 #include "platform/globals.h"
 #include "vm/compiler/frontend/kernel_to_il.h"
@@ -29,6 +31,50 @@ const char* Reader::TagName(Tag tag) {
   return "Unknown";
 }
 
+RawTypedData* Reader::ReadLineStartsData(intptr_t line_start_count) {
+  TypedData& line_starts_data = TypedData::Handle(
+      TypedData::New(kTypedDataInt8ArrayCid, line_start_count, Heap::kOld));
+
+  const intptr_t start_offset = offset();
+  intptr_t i = 0;
+  for (; i < line_start_count; ++i) {
+    const intptr_t delta = ReadUInt();
+    if (delta > kMaxInt8) {
+      break;
+    }
+    line_starts_data.SetInt8(i, static_cast<int8_t>(delta));
+  }
+
+  if (i < line_start_count) {
+    // Slow path: choose representation between Int16 and Int32 typed data.
+    set_offset(start_offset);
+    intptr_t max_delta = 0;
+    for (intptr_t i = 0; i < line_start_count; ++i) {
+      const intptr_t delta = ReadUInt();
+      if (delta > max_delta) {
+        max_delta = delta;
+      }
+    }
+
+    ASSERT(max_delta > kMaxInt8);
+    const intptr_t cid = (max_delta <= kMaxInt16) ? kTypedDataInt16ArrayCid
+                                                  : kTypedDataInt32ArrayCid;
+    line_starts_data = TypedData::New(cid, line_start_count, Heap::kOld);
+
+    set_offset(start_offset);
+    for (intptr_t i = 0; i < line_start_count; ++i) {
+      const intptr_t delta = ReadUInt();
+      if (cid == kTypedDataInt16ArrayCid) {
+        line_starts_data.SetInt16(i << 1, static_cast<int16_t>(delta));
+      } else {
+        line_starts_data.SetInt32(i << 2, delta);
+      }
+    }
+  }
+
+  return line_starts_data.raw();
+}
+
 const char* kKernelInvalidFilesize =
     "File size is too small to be a valid kernel file";
 const char* kKernelInvalidMagicIdentifier = "Invalid magic identifier";
@@ -37,7 +83,7 @@ const char* kKernelInvalidBinaryFormatVersion =
 const char* kKernelInvalidSizeIndicated =
     "Invalid kernel binary: Indicated size is invalid";
 
-Program* Program::ReadFrom(Reader* reader, const char** error) {
+std::unique_ptr<Program> Program::ReadFrom(Reader* reader, const char** error) {
   if (reader->size() < 60) {
     // A kernel file currently contains at least the following:
     //   * Magic number (32)
@@ -76,7 +122,7 @@ Program* Program::ReadFrom(Reader* reader, const char** error) {
     return nullptr;
   }
 
-  Program* program = new Program();
+  std::unique_ptr<Program> program(new Program());
   program->binary_version_ = formatVersion;
   program->kernel_data_ = reader->buffer();
   program->kernel_data_size_ = reader->size();
@@ -92,7 +138,6 @@ Program* Program::ReadFrom(Reader* reader, const char** error) {
       if (error != nullptr) {
         *error = kKernelInvalidSizeIndicated;
       }
-      delete program;
       return nullptr;
     }
     ++subprogram_count;
@@ -120,17 +165,21 @@ Program* Program::ReadFrom(Reader* reader, const char** error) {
   return program;
 }
 
-Program* Program::ReadFromFile(const char* script_uri,
-                               const char** error /* = nullptr */) {
+std::unique_ptr<Program> Program::ReadFromFile(
+    const char* script_uri, const char** error /* = nullptr */) {
   Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   if (script_uri == NULL) {
-    return NULL;
+    return nullptr;
   }
-  kernel::Program* kernel_program = NULL;
+  if (!isolate->HasTagHandler()) {
+    return nullptr;
+  }
+  std::unique_ptr<kernel::Program> kernel_program;
 
   const String& uri = String::Handle(String::New(script_uri));
-  const Object& ret = Object::Handle(thread->isolate()->CallTagHandler(
-      Dart_kKernelTag, Object::null_object(), uri));
+  const Object& ret = Object::Handle(
+      isolate->CallTagHandler(Dart_kKernelTag, Object::null_object(), uri));
   Api::Scope api_scope(thread);
   Dart_Handle retval = Api::NewHandle(thread, ret.raw());
   {
@@ -160,15 +209,15 @@ Program* Program::ReadFromFile(const char* script_uri,
   return kernel_program;
 }
 
-Program* Program::ReadFromBuffer(const uint8_t* buffer,
-                                 intptr_t buffer_length,
-                                 const char** error) {
+std::unique_ptr<Program> Program::ReadFromBuffer(const uint8_t* buffer,
+                                                 intptr_t buffer_length,
+                                                 const char** error) {
   kernel::Reader reader(buffer, buffer_length);
   return kernel::Program::ReadFrom(&reader, error);
 }
 
-Program* Program::ReadFromTypedData(const ExternalTypedData& typed_data,
-                                    const char** error) {
+std::unique_ptr<Program> Program::ReadFromTypedData(
+    const ExternalTypedData& typed_data, const char** error) {
   kernel::Reader reader(typed_data);
   return kernel::Program::ReadFrom(&reader, error);
 }

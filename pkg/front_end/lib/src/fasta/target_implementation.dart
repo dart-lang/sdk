@@ -10,7 +10,7 @@ import 'package:kernel/target/targets.dart' as backend show Target;
 
 import '../base/processed_options.dart' show ProcessedOptions;
 
-import 'builder/builder.dart' show Declaration, ClassBuilder, LibraryBuilder;
+import 'builder/builder.dart' show Builder, ClassBuilder, LibraryBuilder;
 
 import 'compiler_context.dart' show CompilerContext;
 
@@ -41,18 +41,17 @@ abstract class TargetImplementation extends Target {
   /// Shared with [CompilerContext].
   final Map<Uri, Source> uriToSource = CompilerContext.current.uriToSource;
 
-  Declaration cachedAbstractClassInstantiationError;
-  Declaration cachedCompileTimeError;
-  Declaration cachedDuplicatedFieldInitializerError;
-  Declaration cachedFallThroughError;
-  Declaration cachedNativeAnnotation;
-  Declaration cachedNativeExtensionAnnotation;
+  Builder cachedAbstractClassInstantiationError;
+  Builder cachedCompileTimeError;
+  Builder cachedDuplicatedFieldInitializerError;
+  Builder cachedFallThroughError;
+  Builder cachedNativeAnnotation;
+  Builder cachedNativeExtensionAnnotation;
 
   bool enableConstantUpdate2018;
   bool enableControlFlowCollections;
   bool enableExtensionMethods;
   bool enableNonNullable;
-  bool enableSetLiterals;
   bool enableSpreadCollections;
   bool enableTripleShift;
 
@@ -65,8 +64,6 @@ abstract class TargetImplementation extends Target {
             .isExperimentEnabled(ExperimentalFlag.extensionMethods),
         enableNonNullable = CompilerContext.current.options
             .isExperimentEnabled(ExperimentalFlag.nonNullable),
-        enableSetLiterals = CompilerContext.current.options
-            .isExperimentEnabled(ExperimentalFlag.setLiterals),
         enableSpreadCollections = CompilerContext.current.options
             .isExperimentEnabled(ExperimentalFlag.spreadCollections),
         enableTripleShift = CompilerContext.current.options
@@ -94,7 +91,7 @@ abstract class TargetImplementation extends Target {
   /// [AbstractClassInstantiationError] error.  The constructor is expected to
   /// accept a single argument of type String, which is the name of the
   /// abstract class.
-  Declaration getAbstractClassInstantiationError(Loader loader) {
+  Builder getAbstractClassInstantiationError(Loader loader) {
     if (cachedAbstractClassInstantiationError != null) {
       return cachedAbstractClassInstantiationError;
     }
@@ -105,7 +102,7 @@ abstract class TargetImplementation extends Target {
   /// Returns a reference to the constructor used for creating a compile-time
   /// error. The constructor is expected to accept a single argument of type
   /// String, which is the compile-time error message.
-  Declaration getCompileTimeError(Loader loader) {
+  Builder getCompileTimeError(Loader loader) {
     if (cachedCompileTimeError != null) return cachedCompileTimeError;
     return cachedCompileTimeError = loader.coreLibrary
         .getConstructor("_CompileTimeError", bypassLibraryPrivacy: true);
@@ -114,7 +111,7 @@ abstract class TargetImplementation extends Target {
   /// Returns a reference to the constructor used for creating a runtime error
   /// when a final field is initialized twice. The constructor is expected to
   /// accept a single argument which is the name of the field.
-  Declaration getDuplicatedFieldInitializerError(Loader loader) {
+  Builder getDuplicatedFieldInitializerError(Loader loader) {
     if (cachedDuplicatedFieldInitializerError != null) {
       return cachedDuplicatedFieldInitializerError;
     }
@@ -126,7 +123,7 @@ abstract class TargetImplementation extends Target {
   /// Returns a reference to the constructor used for creating `native`
   /// annotations. The constructor is expected to accept a single argument of
   /// type String, which is the name of the native method.
-  Declaration getNativeAnnotation(Loader loader) {
+  Builder getNativeAnnotation(Loader loader) {
     if (cachedNativeAnnotation != null) return cachedNativeAnnotation;
     LibraryBuilder internal = loader.read(Uri.parse("dart:_internal"), -1,
         accessor: loader.coreLibrary);

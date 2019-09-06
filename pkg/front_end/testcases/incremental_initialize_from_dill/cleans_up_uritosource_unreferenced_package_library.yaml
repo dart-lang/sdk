@@ -8,7 +8,6 @@
 # removed from the uri to sources.
 
 type: newworld
-strong: true
 worlds:
   - entry: main.dart
     sources:

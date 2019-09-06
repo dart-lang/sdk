@@ -13,7 +13,7 @@
 namespace dart {
 
 void TypeTestingStubGenerator::BuildOptimizedTypeTestStub(
-    Assembler* assembler,
+    compiler::Assembler* assembler,
     HierarchyInfo* hi,
     const Type& type,
     const Class& type_class) {
@@ -24,17 +24,19 @@ void TypeTestingStubGenerator::BuildOptimizedTypeTestStub(
                                       kInstanceReg, kClassIdReg);
 
   __ ldr(CODE_REG,
-         Address(THR, compiler::target::Thread::slow_type_test_stub_offset()));
-  __ Branch(
-      FieldAddress(CODE_REG, compiler::target::Code::entry_point_offset()));
+         compiler::Address(
+             THR, compiler::target::Thread::slow_type_test_stub_offset()));
+  __ Branch(compiler::FieldAddress(
+      CODE_REG, compiler::target::Code::entry_point_offset()));
 }
 
 void TypeTestingStubGenerator::
-    BuildOptimizedSubclassRangeCheckWithTypeArguments(Assembler* assembler,
-                                                      HierarchyInfo* hi,
-                                                      const Class& type_class,
-                                                      const TypeArguments& tp,
-                                                      const TypeArguments& ta) {
+    BuildOptimizedSubclassRangeCheckWithTypeArguments(
+        compiler::Assembler* assembler,
+        HierarchyInfo* hi,
+        const Class& type_class,
+        const TypeArguments& tp,
+        const TypeArguments& ta) {
   const Register kInstanceReg = R0;
   const Register kInstanceTypeArguments = NOTFP;
   const Register kClassIdReg = R9;
@@ -45,11 +47,11 @@ void TypeTestingStubGenerator::
 }
 
 void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
-    Assembler* assembler,
+    compiler::Assembler* assembler,
     HierarchyInfo* hi,
     const AbstractType& type_arg,
     intptr_t type_param_value_offset_i,
-    Label* check_failed) {
+    compiler::Label* check_failed) {
   const Register kInstantiatorTypeArgumentsReg = R2;
   const Register kFunctionTypeArgumentsReg = R1;
   const Register kInstanceTypeArguments = NOTFP;

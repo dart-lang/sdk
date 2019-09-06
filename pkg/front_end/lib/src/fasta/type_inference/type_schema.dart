@@ -17,6 +17,8 @@ import 'package:kernel/import_table.dart' show ImportTable;
 import 'package:kernel/text/ast_to_text.dart'
     show Annotator, NameSystem, Printer, globalDebuggingNames;
 
+import '../problems.dart' show unsupported;
+
 /// Determines whether a type schema contains `?` somewhere inside it.
 bool isKnown(DartType schema) => schema.accept(new _IsKnownVisitor());
 
@@ -62,6 +64,9 @@ class TypeSchemaVisitor<R> extends DartTypeVisitor<R> {
 /// The unknown type cannot appear in programs or in final inferred types: it is
 /// purely part of the local inference process.
 class UnknownType extends DartType {
+  @override
+  get nullability => unsupported("nullability", -1, null);
+
   const UnknownType();
 
   bool operator ==(Object other) {
@@ -71,8 +76,8 @@ class UnknownType extends DartType {
   }
 
   @override
-  accept(DartTypeVisitor v) {
-    if (v is TypeSchemaVisitor) {
+  accept(DartTypeVisitor<dynamic> v) {
+    if (v is TypeSchemaVisitor<dynamic>) {
       return v.visitUnknownType(this);
     } else {
       // Note: in principle it seems like this should throw, since any visitor
@@ -85,10 +90,11 @@ class UnknownType extends DartType {
   }
 
   @override
-  accept1(DartTypeVisitor1 v, arg) => v.defaultDartType(this, arg);
+  accept1(DartTypeVisitor1<dynamic, dynamic> v, arg) =>
+      v.defaultDartType(this, arg);
 
   @override
-  visitChildren(Visitor v) {}
+  visitChildren(Visitor<dynamic> v) {}
 }
 
 /// Visitor that computes [isKnown].

@@ -6,9 +6,9 @@
 library test;
 
 class C {
-  List<num> x = /*@typeArgs=num*/ [0];
+  List<num> x = /*@ typeArgs=num* */ [0];
 }
 
-List<num> y = /*@typeArgs=num*/ [0];
+List<num> y = /*@ typeArgs=num* */ [0];
 
 main() {}

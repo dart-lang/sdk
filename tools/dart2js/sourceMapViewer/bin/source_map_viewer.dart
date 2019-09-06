@@ -47,7 +47,11 @@ void handleFile(HttpRequest request) {
   }
 
   Uri uri = sourceMapFile.resolve(path);
-  new File.fromUri(uri).openRead().pipe(request.response).catchError((e) {
+  new File.fromUri(uri)
+      .openRead()
+      .cast<List<int>>()
+      .pipe(request.response)
+      .catchError((e) {
     print("Error: $e");
     request.response.close();
   });

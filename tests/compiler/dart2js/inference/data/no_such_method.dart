@@ -1,4 +1,4 @@
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   missingGetter();
   missingMethod();
@@ -10,67 +10,61 @@ main() {
 // Access missing getter.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: Class1.:[exact=Class1]*/
+/*member: Class1.:[exact=Class1]*/
 class Class1 {
-  /*element: Class1.noSuchMethod:[exact=JSUInt31]*/
+  /*member: Class1.noSuchMethod:[exact=JSUInt31]*/
   noSuchMethod(
           Invocation
               /*strong.[null|subclass=Object]*/
               /*omit.[null|exact=JSInvocationMirror]*/
-              /*strongConst.[null|subclass=Object]*/
-              /*omitConst.[null|exact=JSInvocationMirror]*/
               _) =>
       42;
 
-  /*element: Class1.method:[exact=JSUInt31]*/
+  /*member: Class1.method:[exact=JSUInt31]*/
   method() {
     dynamic a = this;
     return a. /*[exact=Class1]*/ missingGetter;
   }
 }
 
-/*element: missingGetter:[exact=JSUInt31]*/
+/*member: missingGetter:[exact=JSUInt31]*/
 missingGetter() => new Class1(). /*invoke: [exact=Class1]*/ method();
 
 ////////////////////////////////////////////////////////////////////////////////
 // Invoke missing method.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: Class2.:[exact=Class2]*/
+/*member: Class2.:[exact=Class2]*/
 class Class2 {
-  /*element: Class2.noSuchMethod:[exact=JSUInt31]*/
+  /*member: Class2.noSuchMethod:[exact=JSUInt31]*/
   noSuchMethod(
           Invocation
               /*strong.[null|subclass=Object]*/
               /*omit.[null|exact=JSInvocationMirror]*/
-              /*strongConst.[null|subclass=Object]*/
-              /*omitConst.[null|exact=JSInvocationMirror]*/
               _) =>
       42;
 
-  /*element: Class2.method:[exact=JSUInt31]*/
+  /*member: Class2.method:[exact=JSUInt31]*/
   method() {
     dynamic a = this;
     return a. /*invoke: [exact=Class2]*/ missingMethod();
   }
 }
 
-/*element: missingMethod:[exact=JSUInt31]*/
+/*member: missingMethod:[exact=JSUInt31]*/
 missingMethod() => new Class2(). /*invoke: [exact=Class2]*/ method();
 
 ////////////////////////////////////////////////////////////////////////////////
 // Pass closure to missing method.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: Class3.:[exact=Class3]*/
+/*member: Class3.:[exact=Class3]*/
 class Class3 {
-  /*element: Class3.noSuchMethod:[null|subclass=Object]*/
+  /*member: Class3.noSuchMethod:[null|subclass=Object]*/
   noSuchMethod(
       Invocation
           /*strong.[null|subclass=Object]*/
           /*omit.[null|exact=JSInvocationMirror]*/
-          /*strongConst.[null|subclass=Object]*/
-          /*omitConst.[null|exact=JSInvocationMirror]*/
           invocation) {
     return invocation
         .
@@ -81,7 +75,7 @@ class Class3 {
         first;
   }
 
-  /*element: Class3.method:[null|subclass=Object]*/
+  /*member: Class3.method:[null|subclass=Object]*/
   method() {
     dynamic a = this;
     return a. /*invoke: [exact=Class3]*/ missingMethod(
@@ -89,7 +83,7 @@ class Class3 {
   }
 }
 
-/*element: closureThroughMissingMethod:[null|subclass=Object]*/
+/*member: closureThroughMissingMethod:[null|subclass=Object]*/
 closureThroughMissingMethod() =>
     new Class3(). /*invoke: [exact=Class3]*/ method();
 
@@ -97,18 +91,16 @@ closureThroughMissingMethod() =>
 // Pass closure to missing setter.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: Class4.:[exact=Class4]*/
+/*member: Class4.:[exact=Class4]*/
 class Class4 {
-  /*element: Class4.field:[null|subclass=Object]*/
+  /*member: Class4.field:[null|subclass=Object]*/
   var field;
 
-  /*element: Class4.noSuchMethod:[null]*/
+  /*member: Class4.noSuchMethod:[null]*/
   noSuchMethod(
       Invocation
           /*strong.[null|subclass=Object]*/
           /*omit.[null|exact=JSInvocationMirror]*/
-          /*strongConst.[null|subclass=Object]*/
-          /*omitConst.[null|exact=JSInvocationMirror]*/
           invocation) {
     this. /*update: [exact=Class4]*/ field = invocation
         .
@@ -120,7 +112,7 @@ class Class4 {
     return null;
   }
 
-  /*element: Class4.method:[null]*/
+  /*member: Class4.method:[null]*/
   method() {
     dynamic a = this;
     a. /*update: [exact=Class4]*/ missingSetter =
@@ -129,6 +121,6 @@ class Class4 {
   }
 }
 
-/*element: closureThroughMissingSetter:[null]*/
+/*member: closureThroughMissingSetter:[null]*/
 closureThroughMissingSetter() =>
     new Class4(). /*invoke: [exact=Class4]*/ method();

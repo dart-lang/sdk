@@ -21,6 +21,8 @@ DEFINE_FLAG(int,
             "Definition count threshold for extensive instruction checks");
 
 // Returns true for the "optimized out" and "null" constant.
+// Such constants reside outside the IR in the sense that
+// succ/pred/block links are not maintained.
 static bool IsSpecialConstant(Definition* def) {
   if (auto c = def->AsConstant()) {
     return c->value().raw() == Symbols::OptimizedOut().raw() ||
@@ -226,7 +228,7 @@ void FlowGraphChecker::VisitInstruction(Instruction* instruction) {
   for (intptr_t i = 0, n = instruction->InputCount(); i < n; ++i) {
     VisitUseDef(instruction, instruction->InputAt(i), i, /*is_env*/ false);
   }
-  // Check all environment inputs.
+  // Check all environment inputs (including outer ones).
   intptr_t i = 0;
   for (Environment::DeepIterator it(instruction->env()); !it.Done();
        it.Advance()) {
@@ -240,8 +242,13 @@ void FlowGraphChecker::VisitInstruction(Instruction* instruction) {
 }
 
 void FlowGraphChecker::VisitDefinition(Definition* def) {
-  // Used definitions must have an SSA name.
-  ASSERT(def->HasSSATemp() || def->input_use_list() == nullptr);
+  // Used definitions must have an SSA name, and the SSA name must
+  // be less than the current_ssa_temp_index.
+  if (def->HasSSATemp()) {
+    ASSERT(def->ssa_temp_index() < flow_graph_->current_ssa_temp_index());
+  } else {
+    ASSERT(def->input_use_list() == nullptr);
+  }
   // Check all regular uses.
   Value* prev = nullptr;
   for (Value* use = def->input_use_list(); use != nullptr;
@@ -271,7 +278,6 @@ void FlowGraphChecker::VisitUseDef(Instruction* instruction,
   // Make sure each input is properly defined in the graph by something
   // that dominates the input (note that the proper dominance relation
   // on the input values of Phis is checked by the Phi visitor below).
-  bool test_def = def->HasSSATemp();
   if (def->IsPhi()) {
     ASSERT(def->GetBlock()->IsJoinEntry());
     // Phis are never linked into graph.
@@ -279,6 +285,8 @@ void FlowGraphChecker::VisitUseDef(Instruction* instruction,
     ASSERT(def->previous() == nullptr);
   } else if (def->IsConstant() || def->IsParameter() ||
              def->IsSpecialParameter()) {
+    // Special constants reside outside the IR.
+    if (IsSpecialConstant(def)) return;
     // Initial definitions are partially linked into graph, but some
     // constants are fully linked into graph (so no next() assert).
     ASSERT(def->previous() != nullptr);
@@ -287,14 +295,10 @@ void FlowGraphChecker::VisitUseDef(Instruction* instruction,
     ASSERT(def->next() != nullptr);
     ASSERT(def->previous() != nullptr);
   }
-  if (test_def) {
-    ASSERT(is_env ||  // TODO(dartbug.com/36899)
-           DefDominatesUse(def, instruction));
-    if (is_env) {
-      ASSERT(IsInUseList(def->env_use_list(), instruction));
-    } else {
-      ASSERT(IsInUseList(def->input_use_list(), instruction));
-    }
+  if (def->HasSSATemp()) {
+    ASSERT(DefDominatesUse(def, instruction));
+    ASSERT(IsInUseList(is_env ? def->env_use_list() : def->input_use_list(),
+                       instruction));
   }
 }
 
@@ -314,7 +318,7 @@ void FlowGraphChecker::VisitDefUse(Definition* def,
     ASSERT(instruction->InputAt(use->use_index()) == use);
   }
   // Make sure each use appears in the graph and is properly dominated
-  // by the defintion (note that the proper dominance relation on the
+  // by the definition (note that the proper dominance relation on the
   // input values of Phis is checked by the Phi visitor below).
   if (instruction->IsPhi()) {
     ASSERT(instruction->AsPhi()->is_alive());
@@ -330,8 +334,7 @@ void FlowGraphChecker::VisitDefUse(Definition* def,
     // Others are fully linked into graph.
     ASSERT(IsControlFlow(instruction) || instruction->next() != nullptr);
     ASSERT(instruction->previous() != nullptr);
-    ASSERT(is_env ||  // TODO(dartbug.com/36899)
-           DefDominatesUse(def, instruction));
+    ASSERT(!def->HasSSATemp() || DefDominatesUse(def, instruction));
   }
 }
 
@@ -376,6 +379,19 @@ void FlowGraphChecker::VisitBranch(BranchInstr* branch) {
 
 void FlowGraphChecker::VisitRedefinition(RedefinitionInstr* def) {
   ASSERT(def->value()->definition() != def);
+}
+
+void FlowGraphChecker::VisitInstanceCall(InstanceCallInstr* instr) {
+  // Force-optimized functions may not have instance calls inside them because
+  // we do not reset ICData for these.
+  ASSERT(!flow_graph_->function().ForceOptimize());
+}
+
+void FlowGraphChecker::VisitPolymorphicInstanceCall(
+    PolymorphicInstanceCallInstr* instr) {
+  // Force-optimized functions may not have instance calls inside them because
+  // we do not reset ICData for these.
+  ASSERT(!flow_graph_->function().ForceOptimize());
 }
 
 // Main entry point of graph checker.

@@ -39,12 +39,23 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
       ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs, Object::null_array()));
   const ICData& ic_data = ICData::ZoneHandle(ICData::New(
       function, target_name, args_descriptor, 15, 1, ICData::kInstance));
+  const Code& stub = StubCode::OneArgCheckInlineCache();
 
   // Code accessing pp is generated, but not executed. Uninitialized pp is OK.
   __ set_constant_pool_allowed(true);
 
-  __ LoadObject(R5, ic_data);
-  __ BranchLinkPatchable(StubCode::OneArgCheckInlineCache());
+  compiler::ObjectPoolBuilder& op = __ object_pool_builder();
+  const intptr_t ic_data_index =
+      op.AddObject(ic_data, ObjectPool::Patchability::kPatchable);
+  const intptr_t stub_index =
+      op.AddObject(stub, ObjectPool::Patchability::kPatchable);
+  ASSERT((ic_data_index + 1) == stub_index);
+  __ LoadDoubleWordFromPoolOffset(R5, CODE_REG,
+                                  ObjectPool::element_offset(ic_data_index));
+  __ ldr(LR, compiler::FieldAddress(
+                 CODE_REG,
+                 Code::entry_point_offset(Code::EntryKind::kMonomorphic)));
+  __ blr(LR);
   __ ret();
 }
 

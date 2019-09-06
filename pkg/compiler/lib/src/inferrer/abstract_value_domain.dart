@@ -64,6 +64,19 @@ abstract class AbstractValueStrategy {
 /// A value in an abstraction of runtime values.
 abstract class AbstractValue {}
 
+/// A pair of an AbstractValue and a precision flag. See
+/// [AbstractValueDomain.createFromStaticType] for semantics of [isPrecise].
+class AbstractValueWithPrecision {
+  final AbstractValue abstractValue;
+  final bool isPrecise;
+
+  const AbstractValueWithPrecision(this.abstractValue, this.isPrecise);
+
+  @override
+  String toString() =>
+      'AbstractValueWithPrecision($abstractValue, isPrecise: $isPrecise)';
+}
+
 /// A system that implements an abstraction over runtime values.
 abstract class AbstractValueDomain {
   /// The [AbstractValue] that represents an unknown runtime value.
@@ -162,10 +175,39 @@ abstract class AbstractValueDomain {
   /// `Stream` class used for the `async*` implementation.
   AbstractValue get asyncStarStreamType;
 
+  /// Returns an [AbstractValue] and a precision flag.
+  ///
   /// Creates an [AbstractValue] corresponding to an expression of the given
-  /// static [type] and [classRelation].
-  AbstractValue createFromStaticType(DartType type,
-      [ClassRelation classRelation = ClassRelation.subtype]);
+  /// static [type] and [classRelation], and an `isPrecise` flag that is `true`
+  /// if the [AbstractValue] precisely represents the [type], or `false` if the
+  /// [AbstractValue] is an approximation.
+  ///
+  /// If `isPrecise` is `true`, then the abstract value is equivalent to [type].
+  ///
+  /// If `isPrecise` is `false` then the abstract value contains all types in
+  /// [type] but might contain more. Two different Dart types can have the same
+  /// approximation, so care must be taken not to make subtype judgements from
+  /// imprecise abstract values.
+  ///
+  /// The type `T` where `T` is a type parameter would be modelled by an
+  /// imprecise abstract value type since we don't know how `T` is
+  /// instantiated. It might be approximated by the bound of `T`.  `List<T>`
+  /// where `T` is a type parameter would be modelled as imprecise for the same
+  /// reason.
+  ///
+  /// If the abstract value domain does not track generic type parameters (e.g.
+  /// the current implementation of type-masks), then `List<int>` would need to
+  /// be modelled by an imprecise abstract value. `List<dynamic>` might be the
+  /// imprecise approximation.
+  ///
+  /// In the context of a run-time type check, an imprecise abstract value can
+  /// be used to compute an output type by narrowing the input type, but only a
+  /// precise abstract value could be used to remove the check on the basis of
+  /// the input's abstract type. The check can only be removed with additional
+  /// reasoning, for example, that a dominating check uses the same type
+  /// expression.
+  AbstractValueWithPrecision createFromStaticType(DartType type,
+      {ClassRelation classRelation = ClassRelation.subtype, bool nullable});
 
   /// Creates an [AbstractValue] for a non-null exact instance of [cls].
   AbstractValue createNonNullExact(ClassEntity cls);

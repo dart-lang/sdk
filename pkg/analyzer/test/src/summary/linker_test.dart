@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart';
@@ -12,6 +13,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'test_strategies.dart';
 
 main() {
+  if (AnalysisDriver.useSummary2) return;
   defineReflectiveSuite(() {
     defineReflectiveTests(LinkerUnitTest);
   });
@@ -327,7 +329,7 @@ class C {
     ClassElementForLink_Class cls = library.getContainedName('C');
     expect(cls.fields, hasLength(1));
     var field = cls.fields[0];
-    expect(field.type.toString(), 'int Function(Never)');
+    expect(field.type.toString(), 'int Function<T>(T)');
   }
 
   void test_inferredType_instanceField_dynamic() {

@@ -72,7 +72,23 @@ class CallPattern : public ValueObject {
  public:
   CallPattern(uword pc, const Code& code);
 
-  RawICData* IcData();
+  RawCode* TargetCode() const;
+  void SetTargetCode(const Code& code) const;
+
+ private:
+  const ObjectPool& object_pool_;
+
+  intptr_t target_code_pool_index_;
+
+  DISALLOW_COPY_AND_ASSIGN(CallPattern);
+};
+
+class ICCallPattern : public ValueObject {
+ public:
+  ICCallPattern(uword pc, const Code& code);
+
+  RawObject* Data() const;
+  void SetData(const Object& data) const;
 
   RawCode* TargetCode() const;
   void SetTargetCode(const Code& code) const;
@@ -80,13 +96,10 @@ class CallPattern : public ValueObject {
  private:
   const ObjectPool& object_pool_;
 
-  uword end_;
-  uword ic_data_load_end_;
+  intptr_t target_pool_index_;
+  intptr_t data_pool_index_;
 
-  intptr_t target_code_pool_index_;
-  ICData& ic_data_;
-
-  DISALLOW_COPY_AND_ASSIGN(CallPattern);
+  DISALLOW_COPY_AND_ASSIGN(ICCallPattern);
 };
 
 class NativeCallPattern : public ValueObject {
@@ -187,7 +200,8 @@ class PcRelativeCallPattern : public ValueObject {
 
   int32_t distance() {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-    return Assembler::DecodeBranchOffset(*reinterpret_cast<int32_t*>(pc_));
+    return compiler::Assembler::DecodeBranchOffset(
+        *reinterpret_cast<int32_t*>(pc_));
 #else
     UNREACHABLE();
     return 0;
@@ -197,7 +211,7 @@ class PcRelativeCallPattern : public ValueObject {
   void set_distance(int32_t distance) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
     int32_t* word = reinterpret_cast<int32_t*>(pc_);
-    *word = Assembler::EncodeBranchOffset(distance, *word);
+    *word = compiler::Assembler::EncodeBranchOffset(distance, *word);
 #else
     UNREACHABLE();
 #endif

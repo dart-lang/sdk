@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -68,6 +69,27 @@ class WorkspaceSymbolsTest extends AbstractLspAnalysisServerTest {
     // Ensure we didn't get some things that definitely do not match.
     expect(symbols.any((s) => s.name == 'MyClass'), isFalse);
     expect(symbols.any((s) => s.name == 'myMethod'), isFalse);
+  }
+
+  test_invalidParams() async {
+    await initialize();
+
+    // Create a request that doesn't supply the query param.
+    final request = new RequestMessage(
+      Either2<num, String>.t1(1),
+      Method.workspace_symbol,
+      <String, dynamic>{},
+      jsonRpcVersion,
+    );
+
+    final response = await sendRequestToServer(request);
+    expect(response.error.code, equals(ErrorCodes.InvalidParams));
+    // Ensure the error is useful to the client.
+    expect(
+      response.error.message,
+      equals('Invalid params for workspace/symbol:\n'
+          'params.query must not be undefined'),
+    );
   }
 
   test_partialMatch() async {

@@ -4,7 +4,6 @@
 
 import 'package:args/args.dart';
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/ir/annotations.dart';
@@ -191,13 +190,10 @@ main(List<String> args) {
           memorySourceFiles: source,
           packageConfig: packageConfig,
           librariesSpecificationUri: librariesSpecificationUri,
-          options: (useIr
-              ? ['${Flags.enableLanguageExperiments}=constant-update-2018']
-              : [])
-            ..addAll(options));
+          options: options);
       Expect.isTrue(result.isSuccess);
       Compiler compiler = result.compiler;
-      KernelFrontEndStrategy frontendStrategy = compiler.frontendStrategy;
+      KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
       KernelToElementMapImpl elementMap = frontendStrategy.elementMap;
       ir.Component component = elementMap.env.mainComponent;
       IrAnnotationData annotationData =

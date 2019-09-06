@@ -15,7 +15,7 @@ import 'package:compiler/src/js_backend/namer.dart';
 import 'package:compiler/src/js_emitter/model.dart';
 import 'package:compiler/src/js_model/element_map.dart';
 import 'package:compiler/src/js_model/js_world.dart';
-import 'package:compiler/src/util/features.dart';
+import 'package:front_end/src/testing/features.dart';
 import 'package:js_ast/js_ast.dart' as js;
 import 'package:kernel/ast.dart' as ir;
 import '../equivalence/id_equivalence.dart';
@@ -27,7 +27,7 @@ main(List<String> args) {
     Directory dataDir =
         new Directory.fromUri(Platform.script.resolve('model_data'));
     await checkTests(dataDir, const ModelDataComputer(),
-        args: args, testCFEConstants: true);
+        args: args, testedConfigs: allInternalConfigs);
   });
 }
 
@@ -84,7 +84,7 @@ class ModelIrComputer extends IrDataExtractor<Features> {
       MemberEntity member,
       Compiler compiler,
       this._closureDataLookup)
-      : _programLookup = new ProgramLookup(compiler),
+      : _programLookup = new ProgramLookup(compiler.backendStrategy),
         super(reporter, actualMap);
 
   void registerCalls(Features features, String tag, js.Node node,

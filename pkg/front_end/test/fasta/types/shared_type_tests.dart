@@ -284,7 +284,8 @@ abstract class SubtypeTest<T, E> {
     isNotSubtype('Typedef<void>', '() -> void');
     isSubtype('VoidFunction', '() -> void');
     isNotSubtype(
-        'DefaultTypes<void, void, List<void>, List<void>, int, (int) -> void, () -> int>',
+        'DefaultTypes<void, void, List<void>, List<void>, '
+            'int, (int) -> void, () -> int>',
         '() -> void');
     isNotSubtype('void', '() -> void');
 
@@ -412,5 +413,16 @@ abstract class SubtypeTest<T, E> {
     isSubtype("({int c, int b, int a}) -> void", "({int b, int c}) -> void");
     isSubtype("({int a, int b, int c}) -> void", "({int c}) -> void");
     isSubtype("({int c, int b, int a}) -> void", "({int c}) -> void");
+
+    // Parsing of nullable and legacy types.
+    isSubtype("int?", "int?");
+    isSubtype("int*", "int*");
+    isSubtype("(int) ->? int", "(int) ->? int");
+    isSubtype("(int) ->* int", "(int) ->* int");
+    isSubtype("(int, int*, int?) -> int?", "(int, int*, int?) -> int?");
+    isSubtype("List<int>?", "List<int>?");
+    isSubtype("List<int?>?", "List<int?>?");
+    isSubtype("T & int?", "T & int?", typeParameters: "T extends Object?");
+    isSubtype("T? & int?", "T? & int?", typeParameters: "T extends Object");
   }
 }

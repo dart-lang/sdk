@@ -82,7 +82,7 @@ C:
   classSetters:
     B._x
   interfaceMembers:
-    B.f
+    C.B.f%I.f
     Object.toString
     B._x
     Object.runtimeType
@@ -91,7 +91,7 @@ C:
     Object.noSuchMethod
     Object._identityHashCode
     Object.hashCode
-    B.g
+    C.B.g%I.g
     B.check
     Object._simpleInstanceOfFalse
     Object._simpleInstanceOfTrue

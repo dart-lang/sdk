@@ -6,8 +6,8 @@
 library test;
 
 main() {
-  var /*@type=List<dynamic>*/ v = <dynamic>[
-    /*@returnType=int*/ () {
+  var /*@ type=List<dynamic>* */ v = <dynamic>[
+    /*@ returnType=int* */ () {
       return 1;
     }
   ];

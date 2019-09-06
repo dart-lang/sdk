@@ -298,9 +298,14 @@ class Server {
 
       String result;
       try {
-        result = await _service.devfs.handlePutStream(
-            fsName, fsPath, fsUri, request.transform(GZIP.decoder));
-      } catch (e) {/* ignore */}
+        result = await _service.devfs.handlePutStream(fsName, fsPath, fsUri,
+            request.cast<List<int>>().transform(GZIP.decoder));
+      } catch (e) {
+        request.response.statusCode = HttpStatus.internalServerError;
+        request.response.write(e);
+        request.response.close();
+        return;
+      }
 
       if (result != null) {
         request.response.headers.contentType =

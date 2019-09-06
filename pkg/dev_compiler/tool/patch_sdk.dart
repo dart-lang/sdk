@@ -9,27 +9,24 @@
 import 'dart:io';
 import 'dart:math' as math;
 
-// ignore: deprecated_member_use
-import 'package:analyzer/analyzer.dart'
-    show parseCompilationUnit, parseDirectives;
+import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 
 void main(List<String> argv) {
-  var self = path.relative(path.fromUri(Platform.script));
+  var self = p.relative(p.fromUri(Platform.script));
   if (argv.length < 3) {
-    var toolDir = path.relative(path.dirname(path.fromUri(Platform.script)));
-    var dartDir = path.dirname(path
-        .dirname(path.dirname(path.dirname(path.fromUri(Platform.script)))));
+    var toolDir = p.relative(p.dirname(p.fromUri(Platform.script)));
+    var dartDir =
+        p.dirname(p.dirname(p.dirname(p.dirname(p.fromUri(Platform.script)))));
 
-    var repoExample = path.join(toolDir, '..', '..', '..');
+    var repoExample = p.join(toolDir, '..', '..', '..');
     var patchExample =
-        path.join(dartDir, 'sdk', 'lib', '_internal', 'js_dev_runtime');
-    var outExample =
-        path.relative(path.normalize(path.join('gen', 'patched_sdk')));
+        p.join(dartDir, 'sdk', 'lib', '_internal', 'js_dev_runtime');
+    var outExample = p.relative(p.normalize(p.join('gen', 'patched_sdk')));
 
     print('Usage: $self DART_REPO_DIR PATCH_DIR OUTPUT_DIR');
     print('For example:');
@@ -41,24 +38,24 @@ void main(List<String> argv) {
 
   var repoDir = argv[0];
   var patchDir = argv[1];
-  var sdkLibIn = path.join(repoDir, 'sdk', 'lib');
-  var patchIn = path.join(patchDir, 'patch');
-  var privateIn = path.join(patchDir, 'private');
-  var sdkOut = path.join(argv[2], 'lib');
+  var sdkLibIn = p.join(repoDir, 'sdk', 'lib');
+  var patchIn = p.join(patchDir, 'patch');
+  var privateIn = p.join(patchDir, 'private');
+  var sdkOut = p.join(argv[2], 'lib');
 
   var INTERNAL_PATH = '_internal/js_runtime/lib/';
 
   // Copy libraries.dart and version
-  var librariesDart = path.join(patchDir, 'libraries.dart');
+  var librariesDart = p.join(patchDir, 'libraries.dart');
   var libContents = File(librariesDart).readAsStringSync();
   // TODO(jmesserly): can we remove this?
-  _writeSync(path.join(sdkOut, '_internal', 'libraries.dart'), libContents);
+  _writeSync(p.join(sdkOut, '_internal', 'libraries.dart'), libContents);
   _writeSync(
-      path.join(
+      p.join(
           sdkOut, '_internal', 'sdk_library_metadata', 'lib', 'libraries.dart'),
       libContents);
-  _writeSync(path.join(sdkOut, '..', 'version'),
-      File(path.join(repoDir, 'tools', 'VERSION')).readAsStringSync());
+  _writeSync(p.join(sdkOut, '..', 'version'),
+      File(p.join(repoDir, 'tools', 'VERSION')).readAsStringSync());
 
   // Parse libraries.dart
   var sdkLibraries = _getSdkLibraries(libContents);
@@ -70,12 +67,11 @@ void main(List<String> argv) {
     // So instead we skip explicitly marked as VM libs.
     if (library.isVmLibrary) continue;
 
-    var libraryOut = path.join(sdkLibIn, library.path);
-    var libraryOverride = path.join(patchDir, 'lib', library.path);
+    var libraryOut = p.join(sdkLibIn, library.path);
+    var libraryOverride = p.join(patchDir, 'lib', library.path);
     String libraryIn;
     if (library.path.contains(INTERNAL_PATH)) {
-      libraryIn =
-          path.join(privateIn, library.path.replaceAll(INTERNAL_PATH, ''));
+      libraryIn = p.join(privateIn, library.path.replaceAll(INTERNAL_PATH, ''));
     } else if (File(libraryOverride).existsSync()) {
       libraryIn = libraryOverride;
     } else {
@@ -90,12 +86,12 @@ void main(List<String> argv) {
       int inputModifyTime = math.max(selfModifyTime,
           libraryFile.lastModifiedSync().millisecondsSinceEpoch);
       var partFiles = <File>[];
-      for (var part in parseDirectives(libraryContents).directives) {
+      for (var part in parseString(content: libraryContents).unit.directives) {
         if (part is PartDirective) {
           var partPath = part.uri.stringValue;
-          outPaths.add(path.join(path.dirname(libraryOut), partPath));
+          outPaths.add(p.join(p.dirname(libraryOut), partPath));
 
-          var partFile = File(path.join(path.dirname(libraryIn), partPath));
+          var partFile = File(p.join(p.dirname(libraryIn), partPath));
           partFiles.add(partFile);
           inputModifyTime = math.max(inputModifyTime,
               partFile.lastModifiedSync().millisecondsSinceEpoch);
@@ -103,8 +99,8 @@ void main(List<String> argv) {
       }
 
       // See if we can find a patch file.
-      var patchPath = path.join(
-          patchIn, path.basenameWithoutExtension(libraryIn) + '_patch.dart');
+      var patchPath = p.join(
+          patchIn, p.basenameWithoutExtension(libraryIn) + '_patch.dart');
 
       var patchFile = File(patchPath);
       bool patchExists = patchFile.existsSync();
@@ -115,7 +111,7 @@ void main(List<String> argv) {
 
       // Compute output paths
       outPaths = outPaths
-          .map((p) => path.join(sdkOut, path.relative(p, from: sdkLibIn)))
+          .map((path) => p.join(sdkOut, p.relative(path, from: sdkLibIn)))
           .toList();
 
       // Compare output modify time with input modify time.
@@ -152,7 +148,7 @@ void main(List<String> argv) {
 
 /// Writes a file, creating the directory if needed.
 void _writeSync(String filePath, String contents) {
-  var outDir = Directory(path.dirname(filePath));
+  var outDir = Directory(p.dirname(filePath));
   if (!outDir.existsSync()) outDir.createSync(recursive: true);
 
   File(filePath).writeAsStringSync(contents);
@@ -188,7 +184,7 @@ List<String> _patchLibrary(List<String> partsContents, String patchContents) {
   bool failed = false;
   for (var partContent in partsContents) {
     var partEdits = StringEditBuffer(partContent);
-    var partUnit = parseCompilationUnit(partContent);
+    var partUnit = parseString(content: partContent).unit;
     var patcher = PatchApplier(partEdits, patchFinder);
     partUnit.accept(patcher);
     if (!failed) failed = patcher.patchWasMissing;
@@ -229,12 +225,12 @@ class PatchApplier extends GeneralizingAstVisitor {
     int importPos = unit.directives
         .lastWhere((d) => d is ImportDirective, orElse: () => libDir)
         .end;
-    for (var d in patch.unit.directives.where((d) => d is ImportDirective)) {
+    for (var d in patch.unit.directives.whereType<ImportDirective>()) {
       _merge(d, importPos);
     }
 
     int partPos = unit.directives.last.end;
-    for (var d in patch.unit.directives.where((d) => d is PartDirective)) {
+    for (var d in patch.unit.directives.whereType<PartDirective>()) {
       _merge(d, partPos);
     }
 
@@ -315,7 +311,7 @@ class PatchFinder extends GeneralizingAstVisitor {
 
   PatchFinder.parseAndVisit(String contents)
       : contents = contents,
-        unit = parseCompilationUnit(contents) {
+        unit = parseString(content: contents).unit {
     visitCompilationUnit(unit);
   }
 
@@ -482,6 +478,6 @@ List<SdkLibrary> _getSdkLibraries(String contents) {
   // It doesn't understand optional new/const in Dart 2. For now, we keep
   // redundant `const` in tool/input_sdk/libraries.dart as a workaround.
   var libraryBuilder = SdkLibrariesReader_LibraryBuilder(true);
-  parseCompilationUnit(contents).accept(libraryBuilder);
+  parseString(content: contents).unit.accept(libraryBuilder);
   return libraryBuilder.librariesMap.sdkLibraries;
 }

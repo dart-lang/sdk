@@ -40,9 +40,9 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
   }
 
   void assertHasResult(CompletionSuggestionKind kind, String completion,
-      {int relevance: DART_RELEVANCE_DEFAULT,
-      bool isDeprecated: false,
-      bool isPotential: false,
+      {int relevance = DART_RELEVANCE_DEFAULT,
+      bool isDeprecated = false,
+      bool isPotential = false,
       int selectionOffset,
       ElementKind elementKind}) {
     var cs;

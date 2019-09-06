@@ -60,6 +60,7 @@ ${parser.usage}""");
       final request = await client.getUrl(url).timeout(timeout);
       final response = await request.close().timeout(timeout);
       object = await response
+          .cast<List<int>>()
           .transform(new Utf8Decoder())
           .transform(new JsonDecoder())
           .first

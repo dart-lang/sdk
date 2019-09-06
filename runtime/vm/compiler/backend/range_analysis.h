@@ -250,8 +250,10 @@ class RangeBoundary : public ValueObject {
                            int64_t shift_count) {
     ASSERT(value_boundary.IsConstant());
     ASSERT(shift_count >= 0);
-    int64_t value = static_cast<int64_t>(value_boundary.ConstantValue());
-    int64_t result = value >> shift_count;
+    const int64_t value = static_cast<int64_t>(value_boundary.ConstantValue());
+    const int64_t result = (shift_count <= 63)
+                               ? (value >> shift_count)
+                               : (value >= 0 ? 0 : -1);  // Dart semantics
     return RangeBoundary(result);
   }
 
@@ -448,6 +450,10 @@ class Range : public ZoneAllocated {
                        RangeBoundary* min,
                        RangeBoundary* max);
 
+  static void Mod(const Range* right_range,
+                  RangeBoundary* min,
+                  RangeBoundary* max);
+
   static void Shr(const Range* left_range,
                   const Range* right_range,
                   RangeBoundary* min,
@@ -620,7 +626,7 @@ class RangeAnalysis : public ValueObject {
   GrowableArray<ShiftIntegerOpInstr*> shift_int64_ops_;
 
   // All CheckArrayBound/GenericCheckBound instructions.
-  GrowableArray<Instruction*> bounds_checks_;
+  GrowableArray<CheckBoundBase*> bounds_checks_;
 
   // All Constraints inserted during InsertConstraints phase. They are treated
   // as smi values.

@@ -15,6 +15,7 @@ import '../js_backend/namer.dart' show Namer;
 import '../js_backend/native_data.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/runtime_types.dart';
+import '../js_backend/runtime_types_new.dart' show RecipeEncoder;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/codegen_world_builder.dart';
 import '../universe/selector.dart' show Selector;
@@ -33,6 +34,7 @@ class ParameterStubGenerator {
   final NativeEmitter _nativeEmitter;
   final Namer _namer;
   final RuntimeTypesEncoder _rtiEncoder;
+  final RecipeEncoder _rtiRecipeEncoder; // `null` if not experimentNewRti.
   final NativeData _nativeData;
   final InterceptorData _interceptorData;
   final CodegenWorld _codegenWorld;
@@ -44,6 +46,7 @@ class ParameterStubGenerator {
       this._nativeEmitter,
       this._namer,
       this._rtiEncoder,
+      this._rtiRecipeEncoder,
       this._nativeData,
       this._interceptorData,
       this._codegenWorld,
@@ -172,15 +175,22 @@ class ParameterStubGenerator {
       for (TypeVariableType typeVariable
           in _closedWorld.elementEnvironment.getFunctionTypeVariables(member)) {
         if (selector.typeArgumentCount == 0) {
-          targetArguments[count++] = _rtiEncoder.getTypeRepresentation(
-              _emitter,
-              _closedWorld.elementEnvironment
-                  .getTypeVariableDefaultType(typeVariable.element),
-              (_) => _emitter.constantReference(
-                  // TODO(33422): Support type variables in default
-                  // types. Temporarily using the "any" type (encoded as -2) to
-                  // avoid failing on bounds checks.
-                  new IntConstantValue(new BigInt.from(-2))));
+          DartType defaultType = _closedWorld.elementEnvironment
+              .getTypeVariableDefaultType(typeVariable.element);
+          if (_rtiRecipeEncoder != null) {
+            jsAst.Expression typeRti = _rtiRecipeEncoder.evaluateRecipe(
+                _emitter,
+                _rtiRecipeEncoder.encodeRecipeWithVariablesReplaceByAny(
+                    _emitter, defaultType));
+            targetArguments[count++] = typeRti;
+          } else {
+            targetArguments[count++] = _rtiEncoder.getTypeRepresentation(
+                _emitter, defaultType, (_) => _emitter.constantReference(
+                    // TODO(33422): Support type variables in default
+                    // types. Temporarily using the "any" type (encoded as -2) to
+                    // avoid failing on bounds checks.
+                    new IntConstantValue(new BigInt.from(-2))));
+          }
         } else {
           String jsName = '\$${typeVariable.element.name}';
           stubParameters[parameterIndex++] = new jsAst.Parameter(jsName);

@@ -56,6 +56,9 @@ class FlowGraphChecker : public FlowGraphVisitor {
   void VisitIndirectGoto(IndirectGotoInstr* jmp) override;
   void VisitBranch(BranchInstr* branch) override;
   void VisitRedefinition(RedefinitionInstr* def) override;
+  void VisitInstanceCall(InstanceCallInstr* instr) override;
+  void VisitPolymorphicInstanceCall(
+      PolymorphicInstanceCallInstr* instr) override;
 
   FlowGraph* const flow_graph_;
   BlockEntryInstr* current_block_;

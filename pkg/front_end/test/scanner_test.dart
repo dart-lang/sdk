@@ -303,7 +303,12 @@ abstract class ScannerTestBase {
   }
 
   void test_hexadecimal_missingDigit() {
-    _assertError(ScannerErrorCode.MISSING_HEX_DIGIT, 1, "0x");
+    var token = _assertError(ScannerErrorCode.MISSING_HEX_DIGIT, 5, "a = 0x");
+    expect(token.lexeme, 'a');
+    token = token.next;
+    expect(token.lexeme, '=');
+    token = token.next;
+    expect(token.lexeme, '0x0');
   }
 
   void test_identifier() {
@@ -311,12 +316,50 @@ abstract class ScannerTestBase {
   }
 
   void test_illegalChar_cyrillicLetter_middle() {
-    _assertError(
-        ScannerErrorCode.ILLEGAL_CHARACTER, 5, "Shche\u0433lov", [0x433]);
+    final identifier = "Shche\u0433lov";
+    final token = _assertError(
+        ScannerErrorCode.ILLEGAL_CHARACTER, 5, identifier, [0x433]);
+    expect(token.type, TokenType.IDENTIFIER);
+    expect(token.lexeme, identifier);
+  }
+
+  void test_illegalChar_cyrillicLetter_multiple() {
+    ErrorListener listener = new ErrorListener();
+    var tokens = scanWithListener("a = Shche\u0433lov\u0429x;", listener);
+    listener.assertErrors([
+      new TestError(9, ScannerErrorCode.ILLEGAL_CHARACTER, [0x433]),
+      new TestError(13, ScannerErrorCode.ILLEGAL_CHARACTER, [0x429]),
+    ]);
+    var token = tokens;
+    expect(token.lexeme, 'a');
+    token = token.next;
+    expect(token.lexeme, '=');
+    token = token.next;
+    expect(token.type, TokenType.IDENTIFIER);
+    expect(token.lexeme, "Shche\u0433lov\u0429x");
+    token = token.next;
+    expect(token.lexeme, ';');
   }
 
   void test_illegalChar_cyrillicLetter_start() {
-    _assertError(ScannerErrorCode.ILLEGAL_CHARACTER, 0, "\u0429", [0x429]);
+    final identifier = "\u0429";
+    final token = _assertError(
+        ScannerErrorCode.ILLEGAL_CHARACTER, 0, identifier, [0x429]);
+    expect(token.type, TokenType.IDENTIFIER);
+    expect(token.lexeme, identifier);
+  }
+
+  void test_illegalChar_cyrillicLetter_start_expression() {
+    var token = _assertError(
+        ScannerErrorCode.ILLEGAL_CHARACTER, 4, 'a = \u0429;', [0x429]);
+    expect(token.lexeme, 'a');
+    token = token.next;
+    expect(token.lexeme, '=');
+    token = token.next;
+    expect(token.type, TokenType.IDENTIFIER);
+    expect(token.lexeme, "\u0429");
+    token = token.next;
+    expect(token.lexeme, ';');
   }
 
   void test_illegalChar_nbsp() {
@@ -1299,13 +1342,14 @@ abstract class ScannerTestBase {
    * [expectedOffset] the string offset that should be associated with the error
    * [source] the source to be scanned to produce the error
    */
-  void _assertError(
+  Token _assertError(
       ScannerErrorCode expectedError, int expectedOffset, String source,
       [List<Object> arguments]) {
     ErrorListener listener = new ErrorListener();
-    scanWithListener(source, listener);
+    var tokens = scanWithListener(source, listener);
     listener.assertErrors(
         [new TestError(expectedOffset, expectedError, arguments)]);
+    return tokens;
   }
 
   /**
@@ -1353,8 +1397,8 @@ abstract class ScannerTestBase {
   }
 
   /**
-   * Assert that when scanned the given [source] contains a single identifier token
-   * with the same lexeme as the original source.
+   * Assert that when scanned the given [source] contains a single identifier
+   * token with the same lexeme as the original source.
    */
   void _assertNotKeywordToken(String source,
       {ScannerConfiguration configuration}) {

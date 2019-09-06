@@ -2,16 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: Class.:[exact=Class]*/
+/*member: Class.:[exact=Class]*/
 class Class {
-  /*element: Class.field:[exact=JSUInt31]*/
+  /*member: Class.field:[exact=JSUInt31]*/
   var field = 42;
 
-  /*element: Class.method:[null]*/
+  /*member: Class.method:[null]*/
   method([/*[null|exact=JSUInt31]*/ a, /*[null|exact=JSUInt31]*/ b]) {}
 }
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   new Class();
   statementOrderFieldAccess(null);
@@ -31,7 +31,7 @@ main() {
 // Accesses in statements.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: statementOrderFieldAccess:[null]*/
+/*member: statementOrderFieldAccess:[null]*/
 @pragma('dart2js:assumeDynamic')
 statementOrderFieldAccess(/*[null|subclass=Object]*/ o) {
   o.field;
@@ -42,7 +42,7 @@ statementOrderFieldAccess(/*[null|subclass=Object]*/ o) {
 // Updates in statements.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: statementOrderFieldUpdate:[null]*/
+/*member: statementOrderFieldUpdate:[null]*/
 @pragma('dart2js:assumeDynamic')
 statementOrderFieldUpdate(/*[null|subclass=Object]*/ o) {
   o.field = 42;
@@ -53,7 +53,7 @@ statementOrderFieldUpdate(/*[null|subclass=Object]*/ o) {
 // Invocations in statements.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: statementOrderInvocation:[null]*/
+/*member: statementOrderInvocation:[null]*/
 @pragma('dart2js:assumeDynamic')
 statementOrderInvocation(/*[null|subclass=Object]*/ o) {
   o.method(null);
@@ -64,7 +64,7 @@ statementOrderInvocation(/*[null|subclass=Object]*/ o) {
 // Access in argument before method call.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: receiverVsArgument:[null]*/
+/*member: receiverVsArgument:[null]*/
 @pragma('dart2js:assumeDynamic')
 receiverVsArgument(/*[null|subclass=Object]*/ o) {
   // TODO(johnniwinther): The arguments should refine the receiver.
@@ -76,7 +76,7 @@ receiverVsArgument(/*[null|subclass=Object]*/ o) {
 // Access in multiple arguments.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: argumentsOrder:[null]*/
+/*member: argumentsOrder:[null]*/
 @pragma('dart2js:assumeDynamic')
 argumentsOrder(/*[null|subclass=Object]*/ o) {
   // TODO(johnniwinther): The arguments should refine the receiver.
@@ -88,7 +88,7 @@ argumentsOrder(/*[null|subclass=Object]*/ o) {
 // Access in both sides of an operator call.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: operatorOrder:[null]*/
+/*member: operatorOrder:[null]*/
 @pragma('dart2js:assumeDynamic')
 operatorOrder(/*[null|subclass=Object]*/ o) {
   o.field /*invoke: [exact=JSUInt31]*/ < o. /*[subclass=Object]*/ field;
@@ -99,7 +99,7 @@ operatorOrder(/*[null|subclass=Object]*/ o) {
 // Assign after access in right-hand side.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: updateVsRhs:[null]*/
+/*member: updateVsRhs:[null]*/
 @pragma('dart2js:assumeDynamic')
 updateVsRhs(/*[null|subclass=Object]*/ o) {
   // TODO(johnniwinther): The right-hand side should refine the left-hand side
@@ -112,7 +112,7 @@ updateVsRhs(/*[null|subclass=Object]*/ o) {
 // Access in both sides of a logical or.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: logicalOr:[null]*/
+/*member: logicalOr:[null]*/
 @pragma('dart2js:assumeDynamic')
 logicalOr(/*[null|subclass=Object]*/ o) {
   o.field || o. /*[subclass=Object]*/ field;
@@ -123,7 +123,7 @@ logicalOr(/*[null|subclass=Object]*/ o) {
 // Access in condition of a conditional expression.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: conditionalCondition:[null]*/
+/*member: conditionalCondition:[null]*/
 @pragma('dart2js:assumeDynamic')
 conditionalCondition(/*[null|subclass=Object]*/ o) {
   o.field ? o. /*[subclass=Object]*/ field : o. /*[subclass=Object]*/ field;
@@ -134,7 +134,7 @@ conditionalCondition(/*[null|subclass=Object]*/ o) {
 // Access both branches of a conditional expression.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: conditionalBothBranches:[null]*/
+/*member: conditionalBothBranches:[null]*/
 @pragma('dart2js:assumeDynamic')
 conditionalBothBranches(/*[null|subclass=Object]*/ o) {
   // ignore: DEAD_CODE
@@ -146,7 +146,7 @@ conditionalBothBranches(/*[null|subclass=Object]*/ o) {
 // Access in only one branch of a conditional expression.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: conditionalOneBranchOnly:[null]*/
+/*member: conditionalOneBranchOnly:[null]*/
 @pragma('dart2js:assumeDynamic')
 conditionalOneBranchOnly(/*[null|subclass=Object]*/ o) {
   // ignore: DEAD_CODE

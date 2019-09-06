@@ -2,15 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_abstract.dart';
-import 'package:analysis_server/src/flutter/flutter_correction.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analysis_server/src/protocol_server.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 
 /**
  * A [RequestHandler] that handles requests in the `flutter` domain.
@@ -22,43 +18,57 @@ class FlutterDomainHandler extends AbstractRequestHandler {
   FlutterDomainHandler(AnalysisServer server) : super(server);
 
   /**
-   * Implement the 'flutter.getChangeAddForDesignTimeConstructor' request.
+   * Implement the 'flutter.getWidgetDescription' request.
    */
-  Future getChangeAddForDesignTimeConstructor(Request request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    var params =
-        new FlutterGetChangeAddForDesignTimeConstructorParams.fromRequest(
-            request);
-    String file = params.file;
-    int offset = params.offset;
+  void getWidgetDescription(Request request) async {
+    var params = FlutterGetWidgetDescriptionParams.fromRequest(request);
+    var file = params.file;
+    var offset = params.offset;
 
-    ResolvedUnitResult result = await server.getResolvedUnit(file);
-    if (result != null) {
-      var corrections = new FlutterCorrections(
-        resolveResult: result,
-        selectionOffset: offset,
-        selectionLength: 0,
-      );
-      SourceChange change = await corrections.addForDesignTimeConstructor();
-      if (change != null) {
-        server.sendResponse(
-            new FlutterGetChangeAddForDesignTimeConstructorResult(change)
-                .toResponse(request.id));
-        return;
-      }
+    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
+      return;
     }
+
+    var resolvedUnit = await server.getResolvedUnit(file);
+    if (resolvedUnit == null) {
+      // TODO(scheglov) report error
+    }
+
+    var computer = server.flutterWidgetDescriptions;
+
+    var result = await computer.getDescription(
+      resolvedUnit,
+      offset,
+    );
+
+    if (result == null) {
+      server.sendResponse(
+        Response(
+          request.id,
+          error: RequestError(
+            RequestErrorCode.FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET,
+            'No Flutter widget at the given location.',
+          ),
+        ),
+      );
+      return;
+    }
+
     server.sendResponse(
-        new Response.invalidParameter(request, 'file', 'No change'));
+      result.toResponse(request.id),
+    );
   }
 
   @override
   Response handleRequest(Request request) {
     try {
       String requestName = request.method;
-      if (requestName ==
-          FLUTTER_REQUEST_GET_CHANGE_ADD_FOR_DESIGN_TIME_CONSTRUCTOR) {
-        getChangeAddForDesignTimeConstructor(request);
+      if (requestName == FLUTTER_REQUEST_GET_WIDGET_DESCRIPTION) {
+        getWidgetDescription(request);
+        return Response.DELAYED_RESPONSE;
+      }
+      if (requestName == FLUTTER_REQUEST_SET_WIDGET_PROPERTY_VALUE) {
+        setPropertyValue(request);
         return Response.DELAYED_RESPONSE;
       }
       if (requestName == FLUTTER_REQUEST_SET_SUBSCRIPTIONS) {
@@ -68,6 +78,33 @@ class FlutterDomainHandler extends AbstractRequestHandler {
       return exception.response;
     }
     return null;
+  }
+
+  /**
+   * Implement the 'flutter.setPropertyValue' request.
+   */
+  void setPropertyValue(Request request) async {
+    var params = FlutterSetWidgetPropertyValueParams.fromRequest(request);
+
+    var result = await server.flutterWidgetDescriptions.setPropertyValue(
+      params.id,
+      params.value,
+    );
+
+    if (result.errorCode != null) {
+      server.sendResponse(
+        Response(
+          request.id,
+          error: RequestError(result.errorCode, ''),
+        ),
+      );
+    }
+
+    server.sendResponse(
+      FlutterSetWidgetPropertyValueResult(
+        result.change,
+      ).toResponse(request.id),
+    );
   }
 
   /**

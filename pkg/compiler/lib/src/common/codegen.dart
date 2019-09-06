@@ -68,6 +68,8 @@ class CodegenImpact extends WorldImpact {
 class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
   static const String tag = 'codegen-impact';
 
+  @override
+  final MemberEntity member;
   Set<Pair<DartType, DartType>> _typeVariableBoundsSubtypeChecks;
   Set<String> _constSymbols;
   List<Set<ClassEntity>> _specializedGetInterceptors;
@@ -78,9 +80,10 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
   Set<FunctionEntity> _nativeMethods;
   Set<Selector> _oneShotInterceptors;
 
-  _CodegenImpact();
+  _CodegenImpact(this.member);
 
   _CodegenImpact.internal(
+      this.member,
       Set<DynamicUse> dynamicUses,
       Set<StaticUse> staticUses,
       Set<TypeUse> typeUses,
@@ -98,6 +101,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
 
   factory _CodegenImpact.readFromDataSource(DataSource source) {
     source.begin(tag);
+    MemberEntity member = source.readMember();
     Set<DynamicUse> dynamicUses = source
         .readList(() => DynamicUse.readFromDataSource(source),
             emptyAsNull: true)
@@ -139,6 +143,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
         ?.toSet();
     source.end(tag);
     return new _CodegenImpact.internal(
+        member,
         dynamicUses,
         staticUses,
         typeUses,
@@ -157,6 +162,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
   @override
   void writeToDataSink(DataSink sink) {
     sink.begin(tag);
+    sink.writeMember(member);
     sink.writeList(dynamicUses, (DynamicUse use) => use.writeToDataSink(sink),
         allowNull: true);
     sink.writeList(staticUses, (StaticUse use) => use.writeToDataSink(sink),
@@ -192,9 +198,11 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
 
   @override
   void apply(WorldImpactVisitor visitor) {
-    staticUses.forEach(visitor.visitStaticUse);
-    dynamicUses.forEach(visitor.visitDynamicUse);
-    typeUses.forEach(visitor.visitTypeUse);
+    staticUses.forEach((StaticUse use) => visitor.visitStaticUse(member, use));
+    dynamicUses.forEach((DynamicUse use) => visitor.visitDynamicUse);
+    typeUses.forEach((TypeUse use) => visitor.visitTypeUse(member, use));
+    constantUses
+        .forEach((ConstantUse use) => visitor.visitConstantUse(member, use));
   }
 
   void registerTypeVariableBoundsSubtypeCheck(
@@ -331,7 +339,7 @@ class CodegenRegistry {
   List<ModularExpression> _expressions;
 
   CodegenRegistry(this._elementEnvironment, this._currentElement)
-      : this._worldImpact = new _CodegenImpact();
+      : this._worldImpact = new _CodegenImpact(_currentElement);
 
   @override
   String toString() => 'CodegenRegistry for $_currentElement';
@@ -560,6 +568,9 @@ class CodegenResult {
         case ModularNameKind.globalPropertyNameForMember:
           name.value = namer.globalPropertyNameForMember(name.data);
           break;
+        case ModularNameKind.globalNameForInterfaceTypeVariable:
+          name.value = namer.globalNameForInterfaceTypeVariable(name.data);
+          break;
         case ModularNameKind.nameForGetInterceptor:
           name.value = namer.nameForGetInterceptor(name.set);
           break;
@@ -637,6 +648,7 @@ enum ModularNameKind {
   globalPropertyNameForClass,
   globalPropertyNameForType,
   globalPropertyNameForMember,
+  globalNameForInterfaceTypeVariable,
   nameForGetInterceptor,
   nameForOneShotInterceptor,
   asName,
@@ -690,6 +702,9 @@ class ModularName extends js.Name implements js.AstContainer {
       case ModularNameKind.invocation:
         data = Selector.readFromDataSource(source);
         break;
+      case ModularNameKind.globalNameForInterfaceTypeVariable:
+        data = source.readTypeVariable();
+        break;
       case ModularNameKind.nameForGetInterceptor:
         set = source.readClasses().toSet();
         break;
@@ -742,6 +757,10 @@ class ModularName extends js.Name implements js.AstContainer {
         Selector selector = data;
         selector.writeToDataSink(sink);
         break;
+      case ModularNameKind.globalNameForInterfaceTypeVariable:
+        TypeVariableEntity typeVariable = data;
+        sink.writeTypeVariable(typeVariable);
+        break;
       case ModularNameKind.nameForGetInterceptor:
         sink.writeClasses(set);
         break;
@@ -758,7 +777,7 @@ class ModularName extends js.Name implements js.AstContainer {
   }
 
   js.Name get value {
-    assert(_value != null);
+    assert(_value != null, 'value not set for $this');
     return _value;
   }
 
@@ -776,19 +795,19 @@ class ModularName extends js.Name implements js.AstContainer {
 
   @override
   String get name {
-    assert(_value != null);
+    assert(_value != null, 'value not set for $this');
     return _value.name;
   }
 
   @override
   bool get allowRename {
-    assert(_value != null);
+    assert(_value != null, 'value not set for $this');
     return _value.allowRename;
   }
 
   @override
   int compareTo(js.Name other) {
-    assert(_value != null);
+    assert(_value != null, 'value not set for $this');
     return _value.compareTo(other);
   }
 
@@ -812,7 +831,8 @@ class ModularName extends js.Name implements js.AstContainer {
   }
 
   @override
-  String toString() => 'ModularName(kind=$kind,data=$data,value=${value?.key})';
+  String toString() =>
+      'ModularName(kind=$kind, data=$data, value=${_value?.key})';
 }
 
 enum ModularExpressionKind {

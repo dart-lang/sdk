@@ -140,7 +140,7 @@ abstract class ClassGenerator {
       File measuring = new File("${dir.path}/measuring.js");
       IOSink sink = measuring.openWrite();
       sink.writeln("var start = new Date();");
-      await sink.addStream(new File(fileName).openRead());
+      await sink.addStream(new File(fileName).openRead().cast<List<int>>());
       sink.writeln("print(new Date() - start)");
       String command;
       List<String> args;

@@ -66,6 +66,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
   CompileTimeErrorCode.ACCESS_PRIVATE_ENUM_FIELD,
   CompileTimeErrorCode.AMBIGUOUS_EXPORT,
+  CompileTimeErrorCode.AMBIGUOUS_EXTENSION_METHOD_ACCESS,
   CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH,
   CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER,
   CompileTimeErrorCode.ANNOTATION_WITH_NON_CLASS,
@@ -135,6 +136,14 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS,
   CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
   CompileTimeErrorCode.EXTENDS_NON_CLASS,
+  CompileTimeErrorCode.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE,
+  CompileTimeErrorCode.EXTENSION_DECLARES_ABSTRACT_MEMBER,
+  CompileTimeErrorCode.EXTENSION_DECLARES_CONSTRUCTOR,
+  CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD,
+  CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT,
+  CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
+  CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE,
+  CompileTimeErrorCode.EXTENSION_OVERRIDE_WITHOUT_ACCESS,
   CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS,
   CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED,
   CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS,
@@ -147,6 +156,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.GENERIC_FUNCTION_TYPED_PARAM_UNSUPPORTED,
   CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND,
   CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
+  CompileTimeErrorCode.IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY,
   CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS,
   CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
   CompileTimeErrorCode.IMPLEMENTS_NON_CLASS,
@@ -172,6 +182,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.INVALID_ANNOTATION_GETTER,
   CompileTimeErrorCode.INVALID_CONSTANT,
   CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME,
+  CompileTimeErrorCode.INVALID_EXTENSION_ARGUMENT_COUNT,
   CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS,
   CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR,
   CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER,
@@ -184,6 +195,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_SET,
   CompileTimeErrorCode.INVALID_URI,
   CompileTimeErrorCode.INVALID_USE_OF_COVARIANT,
+  CompileTimeErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION,
   CompileTimeErrorCode.LABEL_IN_OUTER_SCOPE,
   CompileTimeErrorCode.LABEL_UNDEFINED,
   CompileTimeErrorCode.MAP_ENTRY_NOT_IN_MAP,
@@ -227,15 +239,16 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT,
   CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY,
   CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT,
-  CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT_FROM_DEFERRED_LIBRARY,
-  CompileTimeErrorCode.NON_CONSTANT_SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY,
-  CompileTimeErrorCode.NON_CONSTANT_IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY,
   // ignore: deprecated_member_use_from_same_package
   CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER,
   CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT,
   CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR,
   CompileTimeErrorCode.NON_SYNC_FACTORY,
+  CompileTimeErrorCode.NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
   CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS,
+  CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+  CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD_CONSTRUCTOR,
+  CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE,
   CompileTimeErrorCode.NOT_ITERABLE_SPREAD,
   CompileTimeErrorCode.NOT_MAP_SPREAD,
   CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD,
@@ -272,8 +285,11 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH,
   CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR,
   CompileTimeErrorCode.RETURN_IN_GENERATOR,
+  CompileTimeErrorCode.SET_ELEMENT_FROM_DEFERRED_LIBRARY,
   CompileTimeErrorCode.SHARED_DEFERRED_PREFIX,
+  CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY,
   CompileTimeErrorCode.SUPER_INITIALIZER_IN_OBJECT,
+  CompileTimeErrorCode.SUPER_IN_EXTENSION,
   CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT,
   CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR,
   CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
@@ -283,6 +299,9 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.UNDEFINED_CLASS,
   CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER,
   CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT,
+  CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER,
+  CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD,
+  CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER,
   CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER,
   CompileTimeErrorCode.URI_DOES_NOT_EXIST,
   CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED,
@@ -347,13 +366,14 @@ const List<ErrorCode> errorCodeValues = const [
   HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT,
   HintCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE,
   HintCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT,
-  HintCode.SDK_VERSION_BOOL_OPERATOR,
+  HintCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT,
   HintCode.SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT,
   HintCode.SDK_VERSION_GT_GT_GT_OPERATOR,
   HintCode.SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT,
   HintCode.SDK_VERSION_NEVER,
   HintCode.SDK_VERSION_SET_LITERAL,
   HintCode.SDK_VERSION_UI_AS_CODE,
+  HintCode.SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT,
   HintCode.STRICT_RAW_TYPE,
   HintCode.STRICT_RAW_TYPE_IN_AS,
   HintCode.STRICT_RAW_TYPE_IN_IS,
@@ -364,7 +384,6 @@ const List<ErrorCode> errorCodeValues = const [
   HintCode.UNDEFINED_SHOWN_NAME,
   HintCode.UNNECESSARY_CAST,
   HintCode.UNNECESSARY_NO_SUCH_METHOD,
-  HintCode.UNNECESSARY_NULL_AWARE_CALL,
   HintCode.UNNECESSARY_TYPE_CHECK_FALSE,
   HintCode.UNNECESSARY_TYPE_CHECK_TRUE,
   HintCode.UNUSED_CATCH_CLAUSE,
@@ -603,7 +622,6 @@ const List<ErrorCode> errorCodeValues = const [
   StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT,
   StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
   StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE,
-  StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
   StaticTypeWarningCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
   StaticTypeWarningCode.UNDEFINED_ENUM_CONSTANT,
   StaticTypeWarningCode.UNDEFINED_FUNCTION,
@@ -683,13 +701,19 @@ const List<ErrorCode> errorCodeValues = const [
   StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC,
   StaticWarningCode.TYPE_TEST_WITH_NON_TYPE,
   StaticWarningCode.TYPE_TEST_WITH_UNDEFINED_NAME,
+  StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE,
   StaticWarningCode.UNDEFINED_CLASS,
   StaticWarningCode.UNDEFINED_CLASS_BOOLEAN,
   StaticWarningCode.UNDEFINED_IDENTIFIER,
   StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT,
   StaticWarningCode.UNDEFINED_NAMED_PARAMETER,
+  StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION,
+  StaticWarningCode.UNNECESSARY_NULL_AWARE_CALL,
+  StaticWarningCode.UNNECESSARY_NULL_AWARE_SPREAD,
   StaticWarningCode.USE_OF_VOID_RESULT,
   StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE,
+  StaticWarningCode.INVALID_USE_OF_NULL_VALUE,
+  StaticWarningCode.INVALID_USE_OF_NEVER_VALUE,
   StrongModeCode.ASSIGNMENT_CAST,
   StrongModeCode.COULD_NOT_INFER,
   StrongModeCode.DOWN_CAST_COMPOSITE,
@@ -794,8 +818,15 @@ class AnalysisError implements Diagnostic {
    */
   final ErrorCode errorCode;
 
+  /**
+   * The message describing the problem.
+   */
   DiagnosticMessage _problemMessage;
 
+  /**
+   * The context messages associated with the problem. This list will be empty
+   * if there are no context messages.
+   */
   List<DiagnosticMessage> _contextMessages;
 
   /**
@@ -817,7 +848,8 @@ class AnalysisError implements Diagnostic {
    * [contextMessages] are provided, they will be recorded with the error.
    */
   AnalysisError(this.source, int offset, int length, this.errorCode,
-      [List<Object> arguments, List<DiagnosticMessage> contextMessages]) {
+      [List<Object> arguments,
+      List<DiagnosticMessage> contextMessages = const []]) {
     String message = formatList(errorCode.message, arguments);
     String correctionTemplate = errorCode.correction;
     if (correctionTemplate != null) {
@@ -835,15 +867,17 @@ class AnalysisError implements Diagnostic {
    * Initialize a newly created analysis error with given values.
    */
   AnalysisError.forValues(this.source, int offset, int length, this.errorCode,
-      String message, this._correction) {
+      String message, this._correction,
+      {List<DiagnosticMessage> contextMessages = const []}) {
     _problemMessage = new DiagnosticMessageImpl(
         filePath: source?.fullName,
         length: length,
         message: message,
         offset: offset);
+    _contextMessages = contextMessages;
   }
 
-  List<DiagnosticMessage> get contextMessages => _contextMessages ?? const [];
+  List<DiagnosticMessage> get contextMessages => _contextMessages;
 
   /**
    * Return the template used to create the correction to be displayed for this
@@ -864,18 +898,6 @@ class AnalysisError implements Diagnostic {
   }
 
   /**
-   * Return `true` if this error can be shown to be a non-issue because of the
-   * result of type propagation.
-   */
-  @Deprecated(
-      'Type propagation is no longer performed, so this will never be true')
-  bool get isStaticOnly => false;
-
-  @Deprecated(
-      'Type propagation is no longer performed, so this can never be true')
-  void set isStaticOnly(bool value) {}
-
-  /**
    * The number of characters from the offset to the end of the source which
    * encompasses the compilation error.
    */
@@ -892,13 +914,6 @@ class AnalysisError implements Diagnostic {
    * the error occurred.
    */
   int get offset => _problemMessage.offset;
-
-  /**
-   * The character offset from the beginning of the source (zero based) where
-   * the error occurred.
-   */
-  @Deprecated('Set the offset when the error is created')
-  set offset(int offset) {}
 
   @override
   DiagnosticMessage get problemMessage => _problemMessage;

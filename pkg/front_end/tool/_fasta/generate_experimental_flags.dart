@@ -53,9 +53,8 @@ enum ExperimentalFlag {
   for (var key in keys) {
     sb.writeln('  ${keyToIdentifier(key)},');
   }
-  sb.writeln('}');
-
   sb.write('''
+}
 
 ExperimentalFlag parseExperimentalFlag(String flag) {
   switch (flag) {
@@ -67,21 +66,27 @@ ExperimentalFlag parseExperimentalFlag(String flag) {
   sb.write('''  }
   return null;
 }
-''');
-
-  sb.write('''
 
 const Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
 ''');
   for (var key in keys) {
+    var expired = (yaml[key] as YamlMap)['expired'];
     bool shipped = (yaml[key] as YamlMap)['enabledIn'] != null;
     sb.writeln('  ExperimentalFlag.${keyToIdentifier(key)}: ${shipped},');
     if (shipped) {
-      var expired = (yaml[key] as YamlMap)['expired'];
       if (expired == false) {
         throw 'Cannot mark shipped feature as "expired: false"';
       }
     }
+  }
+  sb.write('''
+};
+
+const Map<ExperimentalFlag, bool> expiredExperimentalFlags = {
+''');
+  for (var key in keys) {
+    bool expired = (yaml[key] as YamlMap)['expired'] == true;
+    sb.writeln('  ExperimentalFlag.${keyToIdentifier(key)}: ${expired},');
   }
   sb.writeln('};');
 

@@ -36,6 +36,7 @@ namespace dart {
   V(ExceptionHandlers)                                                         \
   V(Context)                                                                   \
   V(ContextScope)                                                              \
+  V(ParameterTypeCheck)                                                        \
   V(SingleTargetCache)                                                         \
   V(UnlinkedCall)                                                              \
   V(ICData)                                                                    \
@@ -127,7 +128,8 @@ namespace dart {
   V(NativeFunction)                                                            \
   CLASS_LIST_FFI_TYPE_MARKER(V)                                                \
   V(NativeType)                                                                \
-  V(DynamicLibrary)
+  V(DynamicLibrary)                                                            \
+  V(Struct)
 
 #define DART_CLASS_LIST_TYPED_DATA(V)                                          \
   V(Int8)                                                                      \

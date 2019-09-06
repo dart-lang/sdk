@@ -64,7 +64,7 @@ abstract class int extends num {
    * of `this` and [other]
    *
    * If both operands are non-negative, the result is non-negative,
-   * otherwise the result us negative.
+   * otherwise the result is negative.
    */
   int operator |(int other);
 

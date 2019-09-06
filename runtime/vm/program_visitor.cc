@@ -631,13 +631,6 @@ void ProgramVisitor::DedupLists() {
           list_ = DedupList(list_);
           code_.set_deopt_info_array(list_);
         }
-#ifndef PRODUCT
-        list_ = code_.await_token_positions();
-        if (!list_.IsNull()) {
-          list_ = DedupList(list_);
-          code_.set_await_token_positions(list_);
-        }
-#endif  // !PRODUCT
         list_ = code_.static_calls_target_table();
         if (!list_.IsNull()) {
           list_ = DedupList(list_);

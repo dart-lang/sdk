@@ -57,7 +57,14 @@ DartType instantiateElementTypeToBounds(
     // Futhermore, the second line is represented by a GenericTypeAliasElement,
     // and its type getter does not even include its own type formals `<S>`.
     // That has to be worked around using `.function.type`.
-    var type = e is GenericTypeAliasElement ? e.function.type : e.type;
+    DartType type;
+    if (e is GenericTypeAliasElement) {
+      type = e.function.type;
+    } else if (e is FunctionTypedElement) {
+      type = e.type;
+    } else if (e is ClassElement) {
+      type = e.type;
+    }
     var bounds = rules.instantiateTypeFormalsToBounds(e.typeParameters);
     if (bounds == null) return type;
     return type.substitute2(
@@ -220,7 +227,7 @@ bool hasNoSuchMethod(ClassElement classElement) {
   var method = classElement.lookUpMethod(
       FunctionElement.NO_SUCH_METHOD_METHOD_NAME, classElement.library);
   var definingClass = method?.enclosingElement;
-  return definingClass != null && !definingClass.type.isObject;
+  return definingClass is ClassElement && !definingClass.type.isObject;
 }
 
 /// Returns true if this class is of the form:

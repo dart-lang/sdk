@@ -284,6 +284,24 @@ class Library extends NamedNode
   /// The URI of the source file this library was loaded from.
   Uri fileUri;
 
+  // TODO(jensj): Do we have a better option than this?
+  static int defaultLangaugeVersionMajor = 2;
+  static int defaultLangaugeVersionMinor = 4;
+
+  int _languageVersionMajor;
+  int _languageVersionMinor;
+  int get languageVersionMajor =>
+      _languageVersionMajor ?? defaultLangaugeVersionMajor;
+  int get languageVersionMinor =>
+      _languageVersionMinor ?? defaultLangaugeVersionMinor;
+  void setLanguageVersion(int languageVersionMajor, int languageVersionMinor) {
+    if (languageVersionMajor == null || languageVersionMinor == null) {
+      throw new StateError("Trying to set langauge version 'null'");
+    }
+    _languageVersionMajor = languageVersionMajor;
+    _languageVersionMinor = languageVersionMinor;
+  }
+
   static const int ExternalFlag = 1 << 0;
   static const int SyntheticFlag = 1 << 1;
 
@@ -334,6 +352,7 @@ class Library extends NamedNode
 
   final List<Typedef> typedefs;
   final List<Class> classes;
+  final List<Extension> extensions;
   final List<Procedure> procedures;
   final List<Field> fields;
 
@@ -345,6 +364,7 @@ class Library extends NamedNode
       List<LibraryPart> parts,
       List<Typedef> typedefs,
       List<Class> classes,
+      List<Extension> extensions,
       List<Procedure> procedures,
       List<Field> fields,
       this.fileUri,
@@ -354,6 +374,7 @@ class Library extends NamedNode
         this.parts = parts ?? <LibraryPart>[],
         this.typedefs = typedefs ?? <Typedef>[],
         this.classes = classes ?? <Class>[],
+        this.extensions = extensions ?? <Extension>[],
         this.procedures = procedures ?? <Procedure>[],
         this.fields = fields ?? <Field>[],
         super(reference) {
@@ -362,6 +383,7 @@ class Library extends NamedNode
     setParents(this.parts, this);
     setParents(this.typedefs, this);
     setParents(this.classes, this);
+    setParents(this.extensions, this);
     setParents(this.procedures, this);
     setParents(this.fields, this);
   }
@@ -392,6 +414,11 @@ class Library extends NamedNode
   void addClass(Class class_) {
     class_.parent = this;
     classes.add(class_);
+  }
+
+  void addExtension(Extension extension) {
+    extension.parent = this;
+    extensions.add(extension);
   }
 
   void addField(Field field) {
@@ -1087,6 +1114,129 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   }
 }
 
+/// Declaration of an extension.
+///
+/// The members are converted into top-level procedures and only accessible
+/// by reference in the [Extension] node.
+class Extension extends NamedNode implements FileUriNode {
+  /// Name of the extension.
+  ///
+  /// If unnamed, the extension will be given a synthesized name by the
+  /// front end.
+  String name;
+
+  /// The URI of the source file this class was loaded from.
+  Uri fileUri;
+
+  /// Type parameters declared on the extension.
+  final List<TypeParameter> typeParameters;
+
+  /// The type in the 'on clause' of the extension declaration.
+  ///
+  /// For instance A in:
+  ///
+  ///   class A {}
+  ///   extension B on A {}
+  ///
+  DartType onType;
+
+  /// The members declared by the extension.
+  ///
+  /// The members are converted into top-level members and only accessible
+  /// by reference through [ExtensionMemberDescriptor].
+  final List<ExtensionMemberDescriptor> members;
+
+  Extension(
+      {this.name,
+      List<TypeParameter> typeParameters,
+      this.onType,
+      List<Reference> members,
+      this.fileUri,
+      Reference reference})
+      : this.typeParameters = typeParameters ?? <TypeParameter>[],
+        this.members = members ?? <ExtensionMemberDescriptor>[],
+        super(reference);
+
+  Library get enclosingLibrary => parent;
+
+  @override
+  accept(TreeVisitor v) => v.visitExtension(this);
+
+  @override
+  visitChildren(Visitor v) {}
+
+  @override
+  transformChildren(Transformer v) => v.visitExtension(this);
+}
+
+/// Information about an member declaration in an extension.
+class ExtensionMemberDescriptor {
+  /// The name of the extension member.
+  ///
+  /// The name of the generated top-level member is mangled to ensure
+  /// uniqueness. This name is used to lookup an extension method the
+  /// extension itself.
+  Name name;
+
+  /// [ProcedureKind] kind of the original member, if the extension is a
+  /// [Procedure] and `null` otherwise.
+  ///
+  /// This can be either `Method`, `Getter`, `Setter`, or `Operator`.
+  ///
+  /// An extension method is converted into a regular top-level method. For
+  /// instance:
+  ///
+  ///     class A {
+  ///       var foo;
+  ///     }
+  ///     extension B on A {
+  ///       get bar => this.foo;
+  ///     }
+  ///
+  /// will be converted into
+  ///
+  ///     class A {}
+  ///     B|get#bar(A #this) => #this.foo;
+  ///
+  /// where `B|get#bar` is the synthesized name of the top-level method and
+  /// `#this` is the synthesized parameter that holds represents `this`.
+  ///
+  ProcedureKind kind;
+
+  int flags = 0;
+
+  /// Reference to the top-level member created for the extension method.
+  Reference member;
+
+  ExtensionMemberDescriptor(
+      {this.name,
+      this.kind,
+      bool isStatic: false,
+      bool isExternal: false,
+      this.member}) {
+    this.isStatic = isStatic;
+    this.isExternal = isExternal;
+  }
+
+  /// Return `true` if the extension method was declared as `static`.
+  bool get isStatic => flags & Procedure.FlagStatic != 0;
+
+  /// Return `true` if the extension method was declared as `external`.
+  bool get isExternal => flags & Procedure.FlagExternal != 0;
+
+  void set isStatic(bool value) {
+    flags = value
+        ? (flags | Procedure.FlagStatic)
+        : (flags & ~Procedure.FlagStatic);
+  }
+
+  void set isExternal(bool value) {
+    flags = value
+        ? (flags | Procedure.FlagExternal)
+        : (flags & ~Procedure.FlagExternal);
+  }
+}
+
 // ------------------------------------------------------------------------
 //                            MEMBERS
 // ------------------------------------------------------------------------
@@ -1169,6 +1319,19 @@ abstract class Member extends NamedNode implements Annotatable, FileUriNode {
   bool get isExternal;
   void set isExternal(bool value);
 
+  /// If `true` this member is compiled from a member declared in an extension
+  /// declaration.
+  ///
+  /// For instance `field`, `method1` and `method2` in:
+  ///
+  ///     extension A on B {
+  ///       static var field;
+  ///       B method1() => this;
+  ///       static B method2() => new B();
+  ///     }
+  ///
+  bool get isExtensionMember;
+
   /// The body of the procedure or constructor, or `null` if this is a field.
   FunctionNode get function => null;
 
@@ -1210,6 +1373,7 @@ class Field extends Member {
       bool isStatic: false,
       bool hasImplicitGetter,
       bool hasImplicitSetter,
+      bool isLate: false,
       int transformerFlags: 0,
       Uri fileUri,
       Reference reference})
@@ -1220,6 +1384,7 @@ class Field extends Member {
     this.isFinal = isFinal;
     this.isConst = isConst;
     this.isStatic = isStatic;
+    this.isLate = isLate;
     this.hasImplicitGetter = hasImplicitGetter ?? !isStatic;
     this.hasImplicitSetter = hasImplicitSetter ?? (!isStatic && !isFinal);
     this.transformerFlags = transformerFlags;
@@ -1232,6 +1397,8 @@ class Field extends Member {
   static const int FlagHasImplicitSetter = 1 << 4;
   static const int FlagCovariant = 1 << 5;
   static const int FlagGenericCovariantImpl = 1 << 6;
+  static const int FlagLate = 1 << 7;
+  static const int FlagExtensionMember = 1 << 8;
 
   /// Whether the field is declared with the `covariant` keyword.
   bool get isCovariant => flags & FlagCovariant != 0;
@@ -1239,6 +1406,9 @@ class Field extends Member {
   bool get isFinal => flags & FlagFinal != 0;
   bool get isConst => flags & FlagConst != 0;
   bool get isStatic => flags & FlagStatic != 0;
+
+  @override
+  bool get isExtensionMember => flags & FlagExtensionMember != 0;
 
   /// If true, a getter should be generated for this field.
   ///
@@ -1267,6 +1437,9 @@ class Field extends Member {
   /// [DispatchCategory] for details.
   bool get isGenericCovariantImpl => flags & FlagGenericCovariantImpl != 0;
 
+  /// Whether the field is declared with the `late` keyword.
+  bool get isLate => flags & FlagLate != 0;
+
   void set isCovariant(bool value) {
     flags = value ? (flags | FlagCovariant) : (flags & ~FlagCovariant);
   }
@@ -1281,6 +1454,11 @@ class Field extends Member {
 
   void set isStatic(bool value) {
     flags = value ? (flags | FlagStatic) : (flags & ~FlagStatic);
+  }
+
+  void set isExtensionMember(bool value) {
+    flags =
+        value ? (flags | FlagExtensionMember) : (flags & ~FlagExtensionMember);
   }
 
   void set hasImplicitGetter(bool value) {
@@ -1299,6 +1477,10 @@ class Field extends Member {
     flags = value
         ? (flags | FlagGenericCovariantImpl)
         : (flags & ~FlagGenericCovariantImpl);
+  }
+
+  void set isLate(bool value) {
+    flags = value ? (flags | FlagLate) : (flags & ~FlagLate);
   }
 
   /// True if the field is neither final nor const.
@@ -1407,6 +1589,9 @@ class Constructor extends Member {
   bool get isInstanceMember => false;
   bool get hasGetter => false;
   bool get hasSetter => false;
+
+  @override
+  bool get isExtensionMember => false;
 
   accept(MemberVisitor v) => v.visitConstructor(this);
 
@@ -1532,6 +1717,9 @@ class RedirectingFactoryConstructor extends Member {
   bool get hasGetter => false;
   bool get hasSetter => false;
 
+  @override
+  bool get isExtensionMember => false;
+
   bool get isUnresolved => targetReference == null;
 
   Member get target => targetReference?.asMember;
@@ -1631,6 +1819,7 @@ class Procedure extends Member {
       bool isConst: false,
       bool isForwardingStub: false,
       bool isForwardingSemiStub: false,
+      bool isExtensionMember: false,
       int transformerFlags: 0,
       Uri fileUri,
       Reference reference,
@@ -1643,6 +1832,7 @@ class Procedure extends Member {
             isConst: isConst,
             isForwardingStub: isForwardingStub,
             isForwardingSemiStub: isForwardingSemiStub,
+            isExtensionMember: isExtensionMember,
             transformerFlags: transformerFlags,
             fileUri: fileUri,
             reference: reference,
@@ -1658,6 +1848,7 @@ class Procedure extends Member {
       bool isConst: false,
       bool isForwardingStub: false,
       bool isForwardingSemiStub: false,
+      bool isExtensionMember: false,
       int transformerFlags: 0,
       Uri fileUri,
       Reference reference,
@@ -1671,6 +1862,7 @@ class Procedure extends Member {
     this.isConst = isConst;
     this.isForwardingStub = isForwardingStub;
     this.isForwardingSemiStub = isForwardingSemiStub;
+    this.isExtensionMember = isExtensionMember;
     this.transformerFlags = transformerFlags;
   }
 
@@ -1683,6 +1875,7 @@ class Procedure extends Member {
   // TODO(29841): Remove this flag after the issue is resolved.
   static const int FlagRedirectingFactoryConstructor = 1 << 6;
   static const int FlagNoSuchMethodForwarder = 1 << 7;
+  static const int FlagExtensionMember = 1 << 8;
 
   bool get isStatic => flags & FlagStatic != 0;
   bool get isAbstract => flags & FlagAbstract != 0;
@@ -1718,6 +1911,9 @@ class Procedure extends Member {
   bool get isSyntheticForwarder => isForwardingStub && !isForwardingSemiStub;
 
   bool get isNoSuchMethodForwarder => flags & FlagNoSuchMethodForwarder != 0;
+
+  @override
+  bool get isExtensionMember => flags & FlagExtensionMember != 0;
 
   void set isStatic(bool value) {
     flags = value ? (flags | FlagStatic) : (flags & ~FlagStatic);
@@ -1756,6 +1952,11 @@ class Procedure extends Member {
     flags = value
         ? (flags | FlagNoSuchMethodForwarder)
         : (flags & ~FlagNoSuchMethodForwarder);
+  }
+
+  void set isExtensionMember(bool value) {
+    flags =
+        value ? (flags | FlagExtensionMember) : (flags & ~FlagExtensionMember);
   }
 
   bool get isInstanceMember => !isStatic;
@@ -2097,7 +2298,7 @@ class FunctionNode extends TreeNode {
   static DartType _getTypeOfVariable(VariableDeclaration node) => node.type;
 
   static NamedType _getNamedTypeOfVariable(VariableDeclaration node) {
-    return new NamedType(node.name, node.type);
+    return new NamedType(node.name, node.type, isRequired: node.isRequired);
   }
 
   FunctionType get functionType {
@@ -3330,17 +3531,18 @@ class MapConcatenation extends Expression {
 /// Create an instance directly from the field values.
 ///
 /// This expression arises from const constructor calls when one or more field
-/// initializing expressions, field initializers or assert initializers contain
-/// unevaluated expressions. They only ever occur within unevaluated constants
-/// in constant expressions.
+/// initializing expressions, field initializers, assert initializers or unused
+/// arguments contain unevaluated expressions. They only ever occur within
+/// unevaluated constants in constant expressions.
 class InstanceCreation extends Expression {
   final Reference classReference;
   final List<DartType> typeArguments;
   final Map<Reference, Expression> fieldValues;
   final List<AssertStatement> asserts;
+  final List<Expression> unusedArguments;
 
-  InstanceCreation(
-      this.classReference, this.typeArguments, this.fieldValues, this.asserts);
+  InstanceCreation(this.classReference, this.typeArguments, this.fieldValues,
+      this.asserts, this.unusedArguments);
 
   Class get classNode => classReference.asClass;
 
@@ -3363,6 +3565,7 @@ class InstanceCreation extends Expression {
       value.accept(v);
     }
     visitList(asserts, v);
+    visitList(unusedArguments, v);
   }
 
   transformChildren(Transformer v) {
@@ -3374,6 +3577,7 @@ class InstanceCreation extends Expression {
       }
     });
     transformList(asserts, v, this);
+    transformList(unusedArguments, v, this);
   }
 }
 
@@ -3737,10 +3941,15 @@ class AwaitExpression extends Expression {
   }
 }
 
+/// Common super-interface for [FunctionExpression] and [FunctionDeclaration].
+abstract class LocalFunction implements TreeNode {
+  FunctionNode get function;
+}
+
 /// Expression of form `(x,y) => ...` or `(x,y) { ... }`
 ///
 /// The arrow-body form `=> e` is desugared into `return e;`.
-class FunctionExpression extends Expression {
+class FunctionExpression extends Expression implements LocalFunction {
   FunctionNode function;
 
   FunctionExpression(this.function) {
@@ -4568,7 +4777,9 @@ class VariableDeclaration extends Statement {
       bool isFinal: false,
       bool isConst: false,
       bool isFieldFormal: false,
-      bool isCovariant: false}) {
+      bool isCovariant: false,
+      bool isLate: false,
+      bool isRequired: false}) {
     assert(type != null);
     initializer?.parent = this;
     if (flags != -1) {
@@ -4578,6 +4789,8 @@ class VariableDeclaration extends Statement {
       this.isConst = isConst;
       this.isFieldFormal = isFieldFormal;
       this.isCovariant = isCovariant;
+      this.isLate = isLate;
+      this.isRequired = isRequired;
     }
   }
 
@@ -4586,12 +4799,16 @@ class VariableDeclaration extends Statement {
       {bool isFinal: true,
       bool isConst: false,
       bool isFieldFormal: false,
+      bool isLate: false,
+      bool isRequired: false,
       this.type: const DynamicType()}) {
     assert(type != null);
     initializer?.parent = this;
     this.isFinal = isFinal;
     this.isConst = isConst;
     this.isFieldFormal = isFieldFormal;
+    this.isLate = isLate;
+    this.isRequired = isRequired;
   }
 
   static const int FlagFinal = 1 << 0; // Must match serialized bit positions.
@@ -4600,6 +4817,8 @@ class VariableDeclaration extends Statement {
   static const int FlagCovariant = 1 << 3;
   static const int FlagInScope = 1 << 4; // Temporary flag used by verifier.
   static const int FlagGenericCovariantImpl = 1 << 5;
+  static const int FlagLate = 1 << 6;
+  static const int FlagRequired = 1 << 7;
 
   bool get isFinal => flags & FlagFinal != 0;
   bool get isConst => flags & FlagConst != 0;
@@ -4619,6 +4838,18 @@ class VariableDeclaration extends Statement {
   /// When `true`, runtime checks may need to be performed; see
   /// [DispatchCategory] for details.
   bool get isGenericCovariantImpl => flags & FlagGenericCovariantImpl != 0;
+
+  /// Whether the variable is declared with the `late` keyword.
+  ///
+  /// The `late` modifier is only supported on local variables and not on
+  /// parameters.
+  bool get isLate => flags & FlagLate != 0;
+
+  /// Whether the parameter is declared with the `required` keyword.
+  ///
+  /// The `required` modifier is only supported on named parameters and not on
+  /// positional parameters and local variables.
+  bool get isRequired => flags & FlagRequired != 0;
 
   void set isFinal(bool value) {
     flags = value ? (flags | FlagFinal) : (flags & ~FlagFinal);
@@ -4641,6 +4872,14 @@ class VariableDeclaration extends Statement {
     flags = value
         ? (flags | FlagGenericCovariantImpl)
         : (flags & ~FlagGenericCovariantImpl);
+  }
+
+  void set isLate(bool value) {
+    flags = value ? (flags | FlagLate) : (flags & ~FlagLate);
+  }
+
+  void set isRequired(bool value) {
+    flags = value ? (flags | FlagRequired) : (flags & ~FlagRequired);
   }
 
   void addAnnotation(Expression annotation) {
@@ -4676,7 +4915,7 @@ class VariableDeclaration extends Statement {
 /// Declaration a local function.
 ///
 /// The body of the function may use [variable] as its self-reference.
-class FunctionDeclaration extends Statement {
+class FunctionDeclaration extends Statement implements LocalFunction {
   VariableDeclaration variable; // Is final and has no initializer.
   FunctionNode function;
 
@@ -4791,6 +5030,41 @@ class _PublicName extends Name {
 //                             TYPES
 // ------------------------------------------------------------------------
 
+/// Represents nullability of a type.
+enum Nullability {
+  /// Nullable types are marked with the '?' modifier.
+  ///
+  /// Null, dynamic, and void are nullable by default.
+  nullable,
+
+  /// Non-nullable types are types that aren't marked with the '?' modifier.
+  ///
+  /// Note that Null, dynamic, and void that are nullable by default.  Note also
+  /// that some types denoted by a type parameter without the '?' modifier can
+  /// be something else rather than non-nullable.
+  nonNullable,
+
+  /// Non-legacy types that are neither nullable, nor non-nullable.
+  ///
+  /// An example of such type is type T in the example below.  Note that both
+  /// int and int? can be passed in for T, so an attempt to assign null to x is
+  /// a compile-time error as well as assigning x to y.
+  ///
+  ///   class A<T extends Object?> {
+  ///     foo(T x) {
+  ///       x = null;      // Compile-time error.
+  ///       Object y = x;  // Compile-time error.
+  ///     }
+  ///   }
+  neither,
+
+  /// Types in opt-out libraries are 'legacy' types.
+  ///
+  /// They are both subtypes and supertypes of the nullable and non-nullable
+  /// versions of the type.
+  legacy
+}
+
 /// A syntax-independent notion of a type.
 ///
 /// [DartType]s are not AST nodes and may be shared between different parents.
@@ -4809,6 +5083,8 @@ abstract class DartType extends Node {
   accept1(DartTypeVisitor1 v, arg);
 
   bool operator ==(Object other);
+
+  Nullability get nullability;
 
   /// If this is a typedef type, repeatedly unfolds its type definition until
   /// the root term is not a typedef type, otherwise returns the type itself.
@@ -4835,6 +5111,8 @@ class InvalidType extends DartType {
   visitChildren(Visitor v) {}
 
   bool operator ==(Object other) => other is InvalidType;
+
+  Nullability get nullability => throw "InvalidType doesn't have nullabiliity";
 }
 
 class DynamicType extends DartType {
@@ -4847,6 +5125,8 @@ class DynamicType extends DartType {
   visitChildren(Visitor v) {}
 
   bool operator ==(Object other) => other is DynamicType;
+
+  Nullability get nullability => Nullability.nullable;
 }
 
 class VoidType extends DartType {
@@ -4859,6 +5139,8 @@ class VoidType extends DartType {
   visitChildren(Visitor v) {}
 
   bool operator ==(Object other) => other is VoidType;
+
+  Nullability get nullability => Nullability.nullable;
 }
 
 class BottomType extends DartType {
@@ -4871,21 +5153,29 @@ class BottomType extends DartType {
   visitChildren(Visitor v) {}
 
   bool operator ==(Object other) => other is BottomType;
+
+  Nullability get nullability => Nullability.nonNullable;
 }
 
 @coq
 class InterfaceType extends DartType {
   Reference className;
+
+  final Nullability nullability;
+
   @nocoq
   final List<DartType> typeArguments;
 
   /// The [typeArguments] list must not be modified after this call. If the
   /// list is omitted, 'dynamic' type arguments are filled in.
-  InterfaceType(Class classNode, [List<DartType> typeArguments])
+  InterfaceType(Class classNode,
+      [List<DartType> typeArguments,
+      Nullability nullability = Nullability.legacy])
       : this.byReference(getClassReference(classNode),
-            typeArguments ?? _defaultTypeArguments(classNode));
+            typeArguments ?? _defaultTypeArguments(classNode), nullability);
 
-  InterfaceType.byReference(this.className, this.typeArguments);
+  InterfaceType.byReference(this.className, this.typeArguments,
+      [this.nullability = Nullability.legacy]);
 
   Class get classNode => className.asClass;
 
@@ -4938,6 +5228,7 @@ class FunctionType extends DartType {
   @coqsingle
   final List<DartType> positionalParameters;
   final List<NamedType> namedParameters; // Must be sorted.
+  final Nullability nullability;
 
   /// The [Typedef] this function type is created for.
   final TypedefType typedefType;
@@ -4948,6 +5239,7 @@ class FunctionType extends DartType {
   FunctionType(List<DartType> positionalParameters, this.returnType,
       {this.namedParameters: const <NamedType>[],
       this.typeParameters: const <TypeParameter>[],
+      this.nullability: Nullability.legacy,
       int requiredParameterCount,
       this.typedefType})
       : this.positionalParameters = positionalParameters,
@@ -5065,14 +5357,18 @@ class FunctionType extends DartType {
 ///
 /// The underlying type can be extracted using [unalias].
 class TypedefType extends DartType {
+  final Nullability nullability;
   final Reference typedefReference;
   final List<DartType> typeArguments;
 
-  TypedefType(Typedef typedefNode, [List<DartType> typeArguments])
-      : this.byReference(
-            typedefNode.reference, typeArguments ?? const <DartType>[]);
+  TypedefType(Typedef typedefNode,
+      [List<DartType> typeArguments,
+      Nullability nullability = Nullability.legacy])
+      : this.byReference(typedefNode.reference,
+            typeArguments ?? const <DartType>[], nullability);
 
-  TypedefType.byReference(this.typedefReference, this.typeArguments);
+  TypedefType.byReference(this.typedefReference, this.typeArguments,
+      [this.nullability = Nullability.legacy]);
 
   Typedef get typedefNode => typedefReference.asTypedef;
 
@@ -5118,17 +5414,24 @@ class TypedefType extends DartType {
 
 /// A named parameter in [FunctionType].
 class NamedType extends Node implements Comparable<NamedType> {
+  // Flag used for serialization if [isRequired].
+  static const int FlagRequiredNamedType = 1 << 0;
+
   final String name;
   final DartType type;
+  final bool isRequired;
 
-  NamedType(this.name, this.type);
+  NamedType(this.name, this.type, {this.isRequired: false});
 
   bool operator ==(Object other) {
-    return other is NamedType && name == other.name && type == other.type;
+    return other is NamedType &&
+        name == other.name &&
+        type == other.type &&
+        isRequired == other.isRequired;
   }
 
   int get hashCode {
-    return name.hashCode * 31 + type.hashCode * 37;
+    return name.hashCode * 31 + type.hashCode * 37 + isRequired.hashCode * 41;
   }
 
   int compareTo(NamedType other) => name.compareTo(other.name);
@@ -5155,6 +5458,30 @@ final Map<TypeParameter, int> _temporaryHashCodeTable = <TypeParameter, int>{};
 /// is the same as the [TypeParameter]'s bound.  This allows one to detect
 /// whether the bound has been promoted.
 class TypeParameterType extends DartType {
+  /// Declared by the programmer on the type.
+  final Nullability declaredNullability;
+
+  /// Actual nullability of the type, calculated from its parts.
+  ///
+  /// [nullability] is calculated from [declaredNullability] and the
+  /// nullabilities of [promotedBound] and the bound of [parameter].
+  ///
+  /// For example, in the following program [declaredNullability] both `x` and
+  /// `y` is [Nullability.nullable], because it's copied from that of `bar`.
+  /// However, despite [nullability] of `x` is [Nullability.nullable],
+  /// [nullability] of `y` is [Nullability.nonNullable] because of its
+  /// [promotedBound].
+  ///
+  ///     class A<T extends Object?> {
+  ///       foo(T? bar) {
+  ///         var x = bar;
+  ///         if (bar is int) {
+  ///           var y = bar;
+  ///         }
+  ///       }
+  ///     }
+  final Nullability nullability;
+
   TypeParameter parameter;
 
   /// An optional promoted bound on the type parameter.
@@ -5163,7 +5490,10 @@ class TypeParameterType extends DartType {
   /// is therefore the same as the bound of [parameter].
   DartType promotedBound;
 
-  TypeParameterType(this.parameter, [this.promotedBound]);
+  TypeParameterType(this.parameter,
+      [this.promotedBound, this.declaredNullability = Nullability.legacy])
+      : this.nullability =
+            getNullability(parameter, promotedBound, declaredNullability);
 
   accept(DartTypeVisitor v) => v.visitTypeParameterType(this);
   accept1(DartTypeVisitor1 v, arg) => v.visitTypeParameterType(this, arg);
@@ -5178,6 +5508,115 @@ class TypeParameterType extends DartType {
 
   /// Returns the bound of the type parameter, accounting for promotions.
   DartType get bound => promotedBound ?? parameter.bound;
+
+  /// Get nullability of [TypeParameterType] from arguments to its constructor.
+  ///
+  /// This method is supposed to be used only in the constructor of
+  /// [TypeParameterType] to compute the value of
+  /// [TypeParameterType.nullability] from the arguments passed to the constructor.
+  static Nullability getNullability(TypeParameter parameter,
+      DartType promotedBound, Nullability declaredNullability) {
+    // If promotedBound is null, getNullability returns the nullability of
+    // either T or T? where T is parameter and the presence of '?' is determined
+    // by nullability.
+
+    // If promotedBound isn't null, getNullability returns the nullability of an
+    // instesection of the left-hand side (referred to as LHS below) and the
+    // right-hand side (referred to as RHS below).  LHS is parameter followed by
+    // nullability, and RHS is promotedBound.  That is, getNullability returns
+    // the nullability of either T & P or T? & P where T is parameter, P is
+    // promotedBound, and the presence of '?' is determined by nullability.
+    // Note that RHS is always a subtype of the bound of the type parameter.
+
+    Nullability lhsNullability;
+
+    // If the nullability is explicitly nullable, that is, if the type parameter
+    // type is followed by '?' in the code, the nullability of the type is
+    // 'nullable.'
+    if (declaredNullability == Nullability.nullable) {
+      lhsNullability = Nullability.nullable;
+    } else {
+      // If the bound is nullable, both nullable and non-nullable types can be
+      // passed in for the type parameter, making the corresponding type
+      // parameter types 'neither.'  Otherwise, the nullability matches that of
+      // the bound.
+      DartType bound = parameter.bound ?? const DynamicType();
+      Nullability boundNullability =
+          bound is InvalidType ? Nullability.neither : bound.nullability;
+      lhsNullability = boundNullability == Nullability.nullable
+          ? Nullability.neither
+          : boundNullability;
+    }
+    if (promotedBound == null) {
+      return lhsNullability;
+    }
+
+    // In practice a type parameter of legacy type can only be used in type
+    // annotations within the corresponding class declaration.  If it's legacy,
+    // then the entire library containing the class is opt-out, and any RHS is
+    // deemed to be legacy too.  So, it's necessary to only check LHS for being
+    // legacy.
+    if (lhsNullability == Nullability.legacy) {
+      return Nullability.legacy;
+    }
+
+    // Intersection is non-nullable if and only if RHS is non-nullable.
+    //
+    // The proof is as follows.  Intersection is non-nullable if at least one of
+    // LHS or RHS is non-nullable.  The case of non-nullable RHS is trivial.  In
+    // the case of non-nullable LHS, its bound should be non-nullable.  RHS is
+    // known to always be a subtype of the bound of LHS; therefore, RHS is
+    // non-nullable.
+    //
+    // Note that it also follows from the above that non-nullable RHS implies
+    // non-nullable LHS, so the check below covers the case lhsNullability ==
+    // Nullability.nonNullable.
+    if (promotedBound.nullability == Nullability.nonNullable) {
+      return Nullability.nonNullable;
+    }
+
+    // If the nullability of LHS is 'neither,' the nullability of the
+    // intersection is also 'neither' if RHS is 'neither' or nullable.
+    //
+    // Consider the following example:
+    //
+    //     class A<X extends Object?, Y extends X> {
+    //       foo(X x) {
+    //         if (x is Y) {
+    //           x = null;     // Compile-time error.  Consider X = Y = int.
+    //           Object a = x; // Compile-time error.  Consider X = Y = int?.
+    //         }
+    //         if (x is int?) {
+    //           x = null;     // Compile-time error.  Consider X = int.
+    //           Object b = x; // Compile-time error.  Consider X = int?.
+    //         }
+    //       }
+    //     }
+    //
+    // Note that RHS can't be 'legacy' or non-nullable at this point due to the
+    // checks above.
+    if (lhsNullability == Nullability.neither) {
+      return Nullability.neither;
+    }
+
+    // At this point the only possibility for LHS is to be nullable, and for RHS
+    // is to be either nullable or legacy.  Both combinations for LHS and RHS
+    // should yield the nullability of RHS as the nullability for the
+    // intersection.  Consider the following code for clarification:
+    //
+    //   class A<X extends Object?, Y extends X> {
+    //     foo(X? x) {
+    //       if (x is Y) {
+    //         x = null;     // Compile-time error.  Consider X = Y = int.
+    //         Object a = x; // Compile-time error.  Consider X = Y = int?.
+    //       }
+    //       if (x is int?) {
+    //         x = null;     // Ok.  Both X? and int? are nullable.
+    //       }
+    //     }
+    //   }
+    return promotedBound.nullability;
+  }
 }
 
 /// Declaration of a type variable.
@@ -5425,7 +5864,7 @@ class SymbolConstant extends Constant {
         : '#$name';
   }
 
-  int get hashCode => name.hashCode ^ libraryReference.hashCode;
+  int get hashCode => _Hash.hash2(name, libraryReference);
 
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -5457,12 +5896,10 @@ class MapConstant extends Constant {
 
   String toString() => '${this.runtimeType}<$keyType, $valueType>($entries)';
 
-  // TODO(kustermann): Consider combining the hash codes in a better way (also
-  // below and in [listHashCode]/[mapHashCode].
   int _cachedHashCode;
   int get hashCode {
-    return _cachedHashCode ??=
-        keyType.hashCode ^ valueType.hashCode ^ listHashCode(entries);
+    return _cachedHashCode ??= _Hash.combine2Finish(
+        keyType.hashCode, valueType.hashCode, _Hash.combineListHash(entries));
   }
 
   bool operator ==(Object other) =>
@@ -5483,7 +5920,7 @@ class ConstantMapEntry {
 
   String toString() => '$key: $value';
 
-  int get hashCode => key.hashCode ^ value.hashCode;
+  int get hashCode => _Hash.hash2(key, value);
 
   bool operator ==(Object other) =>
       other is ConstantMapEntry && other.key == key && other.value == value;
@@ -5509,7 +5946,8 @@ class ListConstant extends Constant {
 
   int _cachedHashCode;
   int get hashCode {
-    return _cachedHashCode ??= typeArgument.hashCode ^ listHashCode(entries);
+    return _cachedHashCode ??= _Hash.combineFinish(
+        typeArgument.hashCode, _Hash.combineListHash(entries));
   }
 
   bool operator ==(Object other) =>
@@ -5542,7 +5980,8 @@ class SetConstant extends Constant {
 
   int _cachedHashCode;
   int get hashCode {
-    return _cachedHashCode ??= typeArgument.hashCode ^ listHashCode(entries);
+    return _cachedHashCode ??= _Hash.combineFinish(
+        typeArgument.hashCode, _Hash.combineListHash(entries));
   }
 
   bool operator ==(Object other) =>
@@ -5595,9 +6034,10 @@ class InstanceConstant extends Constant {
 
   int _cachedHashCode;
   int get hashCode {
-    return _cachedHashCode ??= classReference.hashCode ^
-        listHashCode(typeArguments) ^
-        mapHashCode(fieldValues);
+    return _cachedHashCode ??= _Hash.combine2Finish(
+        classReference.hashCode,
+        listHashCode(typeArguments),
+        _Hash.combineMapHashUnordered(fieldValues));
   }
 
   bool operator ==(Object other) {
@@ -5631,7 +6071,8 @@ class PartialInstantiationConstant extends Constant {
     return '${runtimeType}(${tearOffConstant.procedure}<${types.join(', ')}>)';
   }
 
-  int get hashCode => tearOffConstant.hashCode ^ listHashCode(types);
+  int get hashCode => _Hash.combineFinish(
+      tearOffConstant.hashCode, _Hash.combineListHash(types));
 
   bool operator ==(Object other) {
     return other is PartialInstantiationConstant &&
@@ -6128,15 +6569,112 @@ CanonicalName getCanonicalNameOfLibrary(Library library) {
   return library.canonicalName;
 }
 
+/// Murmur-inspired hashing, with a fall-back to Jenkins-inspired hashing when
+/// compiled to JavaScript.
+///
+/// A hash function should be constructed of several [combine] calls followed by
+/// a [finish] call.
+class _Hash {
+  static const int M = 0x9ddfea08eb382000 + 0xd69;
+  static const bool intIs64Bit = (1 << 63) != 0;
+
+  /// Primitive hash combining step.
+  static int combine(int value, int hash) {
+    if (intIs64Bit) {
+      value *= M;
+      value ^= _shru(value, 47);
+      value *= M;
+      hash ^= value;
+      hash *= M;
+    } else {
+      // Fall back to Jenkins-inspired hashing on JavaScript platforms.
+      hash = 0x1fffffff & (hash + value);
+      hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
+      hash = hash ^ (hash >> 6);
+    }
+    return hash;
+  }
+
+  /// Primitive hash finalization step.
+  static int finish(int hash) {
+    if (intIs64Bit) {
+      hash ^= _shru(hash, 44);
+      hash *= M;
+      hash ^= _shru(hash, 41);
+    } else {
+      // Fall back to Jenkins-inspired hashing on JavaScript platforms.
+      hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
+      hash = hash ^ (hash >> 11);
+      hash = 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
+    }
+    return hash;
+  }
+
+  static int combineFinish(int value, int hash) {
+    return finish(combine(value, hash));
+  }
+
+  static int combine2(int value1, int value2, int hash) {
+    return combine(value2, combine(value1, hash));
+  }
+
+  static int combine2Finish(int value1, int value2, int hash) {
+    return finish(combine2(value1, value2, hash));
+  }
+
+  static int hash2(Object object1, Object object2) {
+    return combine2Finish(object2.hashCode, object2.hashCode, 0);
+  }
+
+  static int combineListHash(List list, [int hash = 1]) {
+    for (var item in list) {
+      hash = _Hash.combine(item.hashCode, hash);
+    }
+    return hash;
+  }
+
+  static int combineList(List<int> hashes, int hash) {
+    for (var item in hashes) {
+      hash = combine(item, hash);
+    }
+    return hash;
+  }
+
+  static int combineMapHashUnordered(Map map, [int hash = 2]) {
+    if (map == null || map.isEmpty) return hash;
+    List<int> entryHashes = List(map.length);
+    int i = 0;
+    for (var entry in map.entries) {
+      entryHashes[i++] = combine(entry.key.hashCode, entry.value.hashCode);
+    }
+    entryHashes.sort();
+    return combineList(entryHashes, hash);
+  }
+
+  // TODO(sra): Replace with '>>>'.
+  static int _shru(int v, int n) {
+    assert(n >= 1);
+    assert(intIs64Bit);
+    return ((v >> 1) & (0x7fffFFFFffffF000 + 0xFFF)) >> (n - 1);
+  }
+}
+
 int listHashCode(List list) {
-  return list.fold(0, (int value, Object item) => value ^ item.hashCode);
+  return _Hash.finish(_Hash.combineListHash(list));
 }
 
 int mapHashCode(Map map) {
-  int value = 0;
-  for (final Object x in map.keys) value ^= x.hashCode;
-  for (final Object x in map.values) value ^= x.hashCode;
-  return value;
+  return mapHashCodeUnordered(map);
+}
+
+int mapHashCodeOrdered(Map map, [int hash = 2]) {
+  for (final Object x in map.keys) hash = _Hash.combine(x.hashCode, hash);
+  for (final Object x in map.values) hash = _Hash.combine(x.hashCode, hash);
+  return _Hash.finish(hash);
+}
+
+int mapHashCodeUnordered(Map map) {
+  return _Hash.finish(_Hash.combineMapHashUnordered(map));
 }
 
 bool listEquals(List a, List b) {

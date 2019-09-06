@@ -23,15 +23,12 @@ class MockAnalysisError implements AnalysisError {
   String message;
 
   @override
-  bool isStaticOnly;
-
-  @override
   int length;
 
   MockAnalysisError(this.source, this.errorCode, this.offset, this.message);
 
   @override
-  List<DiagnosticMessage> get contextMessages => null;
+  List<DiagnosticMessage> get contextMessages => const [];
 
   @override
   String get correction => null;

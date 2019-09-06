@@ -33,7 +33,8 @@ main() {
     ..linkedDependencies = <Uri>[platformKernel]
     ..onDiagnostic = (DiagnosticMessage message) {
       fail("Compilation error: ${message.plainTextFormatted.join('\n')}");
-    };
+    }
+    ..environmentDefines = const {};
 
   group('basic', () {
     Directory mytest;
@@ -74,7 +75,8 @@ main() {
         ..target = options.target
         ..linkedDependencies = options.linkedDependencies
         ..onDiagnostic = options.onDiagnostic
-        ..embedSourceText = false;
+        ..embedSourceText = false
+        ..environmentDefines = options.environmentDefines;
       IncrementalCompiler compiler =
           new IncrementalCompiler(optionsExcludeSources, main.uri);
       Component component = await compiler.compile();
@@ -103,7 +105,8 @@ main() {
         ..onDiagnostic = (DiagnosticMessage message) {
           errorsReported++;
           message.plainTextFormatted.forEach(print);
-        };
+        }
+        ..environmentDefines = options.environmentDefines;
       IncrementalCompiler compiler =
           new IncrementalCompiler(optionsAcceptErrors, main.uri);
       await compiler.compile();

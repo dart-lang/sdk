@@ -52,7 +52,7 @@ class TestDart extends Suite {
     }
     List<String> processedArguments = <String>[];
     processedArguments.add(Uri.base
-        .resolve("tools/testing/dart/package_testing_support.dart")
+        .resolve("pkg/test_runner/bin/package_testing_support.dart")
         .toFilePath());
     for (String commandLine in commandLines) {
       String arguments = common;

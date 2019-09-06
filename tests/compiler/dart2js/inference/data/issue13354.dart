@@ -4,25 +4,25 @@
 
 // Regression test for issue 13354.
 
-/*element: bar:[exact=JSUInt31]*/
+/*member: bar:[exact=JSUInt31]*/
 bar() => 42;
 
-/*element: baz:[subclass=Closure]*/
+/*member: baz:[subclass=Closure]*/
 baz() => bar;
 
-/*element: A.:[exact=A]*/
+/*member: A.:[exact=A]*/
 class A {
-  /*element: A.foo:[exact=JSUInt31]*/
+  /*member: A.foo:[exact=JSUInt31]*/
   foo() => 42;
 }
 
-/*element: B.:[exact=B]*/
+/*member: B.:[exact=B]*/
 class B extends A {
-  /*element: B.foo:[subclass=Closure]*/
+  /*member: B.foo:[subclass=Closure]*/
   foo() => super.foo;
 }
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   baz();
   new B(). /*invoke: [exact=B]*/ foo();

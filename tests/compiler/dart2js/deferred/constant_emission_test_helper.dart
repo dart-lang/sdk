@@ -6,7 +6,6 @@
 // Files when using deferred loading.
 
 import 'package:compiler/compiler_new.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/constants/values.dart';
 import 'package:compiler/src/deferred_load.dart';
@@ -27,17 +26,12 @@ class OutputUnitDescriptor {
 }
 
 run(Map<String, String> sourceFiles, List<OutputUnitDescriptor> outputUnits,
-    Map<String, Set<String>> expectedOutputUnits,
-    {bool useCFEConstants: false}) async {
+    Map<String, Set<String>> expectedOutputUnits) async {
   OutputCollector collector = new OutputCollector();
   CompilationResult result = await runCompiler(
-      memorySourceFiles: sourceFiles,
-      outputProvider: collector,
-      options: useCFEConstants
-          ? ['${Flags.enableLanguageExperiments}=constant-update-2018']
-          : ['${Flags.enableLanguageExperiments}=no-constant-update-2018']);
+      memorySourceFiles: sourceFiles, outputProvider: collector);
   Compiler compiler = result.compiler;
-  ProgramLookup lookup = new ProgramLookup(compiler);
+  ProgramLookup lookup = new ProgramLookup(compiler.backendStrategy);
   var closedWorld = compiler.backendClosedWorldForTesting;
   var elementEnvironment = closedWorld.elementEnvironment;
 

@@ -46,16 +46,26 @@ const List<String> _kRequiredEdgeFields = [
 ];
 
 class NodeInfo {
-  String type;
-  String name;
-  int id;
-  int selfSize;
+  final String type;
+  final String name;
+  final int id;
+  final int selfSize;
   NodeInfo(
     this.type,
     this.name,
     this.id,
     this.selfSize,
   );
+}
+
+class EdgeInfo {
+  final int target;
+  final String type;
+
+  // Either a string for property names or an int for array/context elements.
+  final dynamic nameOrIndex;
+
+  EdgeInfo(this.target, this.type, this.nameOrIndex);
 }
 
 class V8SnapshotProfile extends Graph<int> {
@@ -264,5 +274,13 @@ class V8SnapshotProfile extends Graph<int> {
     final type = info.type != null ? _nodeTypes[info.type] : null;
     final name = info.name != null ? _strings[info.name] : null;
     return NodeInfo(type, name, info.id, info.selfSize);
+  }
+
+  Iterable<EdgeInfo> targets(int node) sync* {
+    for (final _EdgeInfo info in _toEdges[node]) {
+      final String type = _edgeTypes[info.type];
+      yield EdgeInfo(info.nodeOffset, type,
+          type == "property" ? _strings[info.nameOrIndex] : info.nameOrIndex);
+    }
   }
 }

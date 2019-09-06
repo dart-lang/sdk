@@ -116,7 +116,7 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("library", Object::Handle(library()));
   const Script& script = Script::Handle(this->script());
   if (!script.IsNull()) {
-    jsobj.AddLocation(script, token_pos(), ComputeEndTokenPos());
+    jsobj.AddLocation(script, token_pos(), end_token_pos());
   }
   {
     JSONArray interfaces_array(&jsobj, "interfaces");
@@ -169,7 +169,7 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
     const ClassHeapStats* stats = class_table->StatsWithUpdatedSize(id());
     if (stats != NULL) {
       JSONObject allocation_stats(&jsobj, "_allocationStats");
-      stats->PrintToJSONObject(*this, &allocation_stats);
+      stats->PrintToJSONObject(*this, &allocation_stats, /*internal*/ true);
     }
   }
 }
@@ -333,7 +333,7 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   if ((kind() == RawFunction::kImplicitGetter) ||
       (kind() == RawFunction::kImplicitSetter) ||
       (kind() == RawFunction::kImplicitStaticGetter) ||
-      (kind() == RawFunction::kStaticFieldInitializer)) {
+      (kind() == RawFunction::kFieldInitializer)) {
     const Field& field = Field::Handle(accessor_field());
     if (!field.IsNull()) {
       jsobj.AddProperty("_field", field);
@@ -729,6 +729,10 @@ void ExceptionHandlers::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Object::PrintJSONImpl(stream, ref);
 }
 
+void ParameterTypeCheck::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Object::PrintJSONImpl(stream, ref);
+}
+
 void SingleTargetCache::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   AddCommonObjectProperties(&jsobj, "Object", ref);
@@ -854,12 +858,6 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 
   PrintJSONInlineIntervals(&jsobj);
-}
-
-void Code::set_await_token_positions(const Array& await_token_positions) const {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  StorePointer(&raw_ptr()->await_token_positions_, await_token_positions.raw());
-#endif
 }
 
 void Bytecode::PrintJSONImpl(JSONStream* stream, bool ref) const {

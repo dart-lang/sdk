@@ -5,7 +5,6 @@
 # Test that constant set literals works as expected.
 
 type: newworld
-strong: true
 worlds:
   - entry: "main.dart"
     sources:

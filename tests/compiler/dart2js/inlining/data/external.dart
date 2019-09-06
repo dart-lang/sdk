@@ -7,17 +7,17 @@ library lib;
 
 import 'package:js/js.dart';
 
-/*element: main:[]*/
+/*member: main:[]*/
 main() {
   externalFunction();
 }
 
-/*element: externalFunction:[]*/
+/*member: externalFunction:[]*/
 @pragma('dart2js:noInline')
 externalFunction() {
   _externalFunction();
 }
 
-/*element: _externalFunction:[]*/
+/*member: _externalFunction:[]*/
 @JS('externalFunction')
 external _externalFunction();

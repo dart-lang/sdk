@@ -24,6 +24,8 @@ import 'package:js_runtime/shared/embedded_names.dart'
         MANGLED_NAMES,
         METADATA,
         NATIVE_SUPERCLASS_TAG_NAME,
+        RTI_UNIVERSE,
+        RtiUniverseFieldNames,
         TYPE_TO_INTERCEPTOR_MAP,
         TYPES;
 
@@ -34,9 +36,10 @@ import '../../common.dart';
 import '../../common/tasks.dart';
 import '../../constants/values.dart'
     show ConstantValue, FunctionConstantValue, NullConstantValue;
-import '../../common_elements.dart' show CommonElements;
+import '../../common_elements.dart' show CommonElements, JElementEnvironment;
 import '../../dump_info.dart';
 import '../../elements/entities.dart';
+import '../../elements/types.dart';
 import '../../hash/sha1.dart' show Hasher;
 import '../../io/code_output.dart';
 import '../../io/location_provider.dart' show LocationCollector;
@@ -47,6 +50,9 @@ import '../../js_backend/js_backend.dart'
     show Namer, ConstantEmitter, StringBackedName;
 import '../../js_backend/js_interop_analysis.dart' as jsInteropAnalysis;
 import '../../js_backend/runtime_types.dart';
+import '../../js_backend/runtime_types_codegen.dart';
+import '../../js_backend/runtime_types_new.dart'
+    show RecipeEncoder, RecipeEncoderImpl, Ruleset, RulesetEncoder;
 import '../../options.dart';
 import '../../universe/codegen_world_builder.dart' show CodegenWorld;
 import '../../world.dart';
@@ -97,6 +103,7 @@ class ModelEmitter {
       this._emitter,
       this._sourceInformationStrategy,
       RuntimeTypesEncoder rtiEncoder,
+      RecipeEncoder rtiRecipeEncoder,
       this._shouldGenerateSourceMap)
       : _constantOrdering = new ConstantOrdering(_closedWorld.sorter) {
     this._constantEmitter = new ConstantEmitter(
@@ -105,6 +112,7 @@ class ModelEmitter {
         _closedWorld.elementEnvironment,
         _closedWorld.rtiNeed,
         rtiEncoder,
+        rtiRecipeEncoder,
         _closedWorld.fieldAnalysis,
         _emitter,
         this.generateConstantReference,

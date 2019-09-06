@@ -342,7 +342,7 @@ class FixProcessor {
       await _addFix_updateSdkConstraints('2.2.0');
     }
     if (errorCode == HintCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT ||
-        errorCode == HintCode.SDK_VERSION_BOOL_OPERATOR ||
+        errorCode == HintCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT ||
         errorCode == HintCode.SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT ||
         errorCode == HintCode.SDK_VERSION_GT_GT_GT_OPERATOR ||
         errorCode == HintCode.SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT ||
@@ -479,6 +479,7 @@ class FixProcessor {
       await _addFix_createFunction_forFunctionType();
       await _addFix_createMixin();
       await _addFix_importLibrary_withType();
+      await _addFix_importLibrary_withFunction();
       await _addFix_importLibrary_withTopLevelVariable();
       await _addFix_createLocalVariable();
     }
@@ -1780,14 +1781,14 @@ class FixProcessor {
 
           builder.write(targetLocation.prefix);
           builder.write(targetClassName);
-          if (!constructorName.isEmpty) {
+          if (constructorName.isNotEmpty) {
             builder.write('.');
             builder.addSimpleLinkedEdit('NAME', constructorName);
           }
           builder.write('(');
           writeParameters(true);
           builder.write(') : super');
-          if (!constructorName.isEmpty) {
+          if (constructorName.isNotEmpty) {
             builder.write('.');
             builder.addSimpleLinkedEdit('NAME', constructorName);
           }
@@ -2102,11 +2103,7 @@ class FixProcessor {
     String prefix = utils.getNodePrefix(target);
     // compute type
     DartType type = _inferUndefinedExpressionType(node);
-    if (!(type == null ||
-        type is InterfaceType ||
-        type is FunctionType &&
-            type.element != null &&
-            !type.element.isSynthetic)) {
+    if (!(type == null || type is InterfaceType || type is FunctionType)) {
       return;
     }
     // build variable declaration source
@@ -2133,15 +2130,15 @@ class FixProcessor {
     ClassDeclaration targetClass = node.parent as ClassDeclaration;
     ClassElement targetClassElement = targetClass.declaredElement;
     utils.targetClassElement = targetClassElement;
-    List<FunctionType> signatures =
+    List<ExecutableElement> signatures =
         InheritanceOverrideVerifier.missingOverrides(targetClass).toList();
     // sort by name, getters before setters
-    signatures.sort((FunctionType a, FunctionType b) {
-      int names = compareStrings(a.element.displayName, b.element.displayName);
+    signatures.sort((ExecutableElement a, ExecutableElement b) {
+      int names = compareStrings(a.displayName, b.displayName);
       if (names != 0) {
         return names;
       }
-      if (a.element.kind == ElementKind.GETTER) {
+      if (a.kind == ElementKind.GETTER) {
         return -1;
       }
       return 1;
@@ -2170,10 +2167,9 @@ class FixProcessor {
 
         // merge getter/setter pairs into fields
         for (int i = 0; i < signatures.length; i++) {
-          FunctionType signature = signatures[i];
-          ExecutableElement element = signature.element;
+          ExecutableElement element = signatures[i];
           if (element.kind == ElementKind.GETTER && i + 1 < signatures.length) {
-            ExecutableElement nextElement = signatures[i + 1].element;
+            ExecutableElement nextElement = signatures[i + 1];
             if (nextElement.kind == ElementKind.SETTER) {
               // remove this and the next elements, adjust iterator
               signatures.removeAt(i + 1);
@@ -2187,7 +2183,7 @@ class FixProcessor {
               builder.write(eol);
               // add field
               builder.write(prefix);
-              builder.writeType(signature.returnType, required: true);
+              builder.writeType(element.returnType, required: true);
               builder.write(' ');
               builder.write(element.name);
               builder.write(';');
@@ -2195,9 +2191,9 @@ class FixProcessor {
           }
         }
         // add elements
-        for (FunctionType signature in signatures) {
+        for (ExecutableElement element in signatures) {
           addSeparatorBetweenDeclarations();
-          builder.writeOverride(signature);
+          builder.writeOverride(element);
         }
         builder.write(location.suffix);
       });
@@ -2309,7 +2305,7 @@ class FixProcessor {
       builder.addInsertion(insertOffset, (DartEditBuilder builder) {
         builder.selectHere();
         // insert empty line before existing member
-        if (!targetClass.members.isEmpty) {
+        if (targetClass.members.isNotEmpty) {
           builder.write(eol);
         }
         // append method
@@ -2477,7 +2473,7 @@ class FixProcessor {
     }
     // Find new top-level declarations.
     {
-      var declarations = await context.getTopLevelDeclarations(name);
+      var declarations = context.getTopLevelDeclarations(name);
       for (var declaration in declarations) {
         // Check the kind.
         if (!kinds2.contains(declaration.kind)) {
@@ -2512,18 +2508,22 @@ class FixProcessor {
   Future<void> _addFix_importLibrary_withFunction() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    if (node is SimpleIdentifier && node.parent is MethodInvocation) {
-      MethodInvocation invocation = node.parent as MethodInvocation;
-      if (invocation.realTarget == null && invocation.methodName == node) {
-        String name = (node as SimpleIdentifier).name;
-        await _addFix_importLibrary_withElement(name, const [
-          ElementKind.FUNCTION,
-          ElementKind.TOP_LEVEL_VARIABLE
-        ], const [
-          TopLevelDeclarationKind.function,
-          TopLevelDeclarationKind.variable
-        ]);
+    if (node is SimpleIdentifier) {
+      if (node.parent is MethodInvocation) {
+        MethodInvocation invocation = node.parent as MethodInvocation;
+        if (invocation.realTarget != null || invocation.methodName != node) {
+          return;
+        }
       }
+
+      String name = (node as SimpleIdentifier).name;
+      await _addFix_importLibrary_withElement(name, const [
+        ElementKind.FUNCTION,
+        ElementKind.TOP_LEVEL_VARIABLE
+      ], const [
+        TopLevelDeclarationKind.function,
+        TopLevelDeclarationKind.variable
+      ]);
     }
   }
 
@@ -3276,7 +3276,7 @@ class FixProcessor {
       var changeBuilder = _newDartChangeBuilder();
       await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         builder.addSimpleReplacement(
-            range.token((node as DefaultFormalParameter).separator), '=');
+            range.token((node as DefaultFormalParameter).separator), ' =');
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_COLON_WITH_EQUALS);
     }
@@ -4008,21 +4008,18 @@ class FixProcessor {
    * the given [element].
    */
   Future<void> _addFix_useStaticAccess(AstNode target, Element element) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    Element declaringElement = element.enclosingElement;
-    if (declaringElement is ClassElement) {
-      DartType declaringType = declaringElement.type;
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        // replace "target" with class name
-        builder.addReplacement(range.node(target), (DartEditBuilder builder) {
-          builder.writeType(declaringType);
-        });
+    var declaringElement = element.enclosingElement;
+    var changeBuilder = _newDartChangeBuilder();
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      builder.addReplacement(range.node(target), (DartEditBuilder builder) {
+        builder.writeReference(declaringElement);
       });
-      _addFixFromBuilder(changeBuilder, DartFixKind.CHANGE_TO_STATIC_ACCESS,
-          args: [declaringType]);
-    }
+    });
+    _addFixFromBuilder(
+      changeBuilder,
+      DartFixKind.CHANGE_TO_STATIC_ACCESS,
+      args: [declaringElement.name],
+    );
   }
 
   Future<void> _addFix_useStaticAccess_method() async {
@@ -4052,7 +4049,7 @@ class FixProcessor {
   }
 
   void _addFixFromBuilder(ChangeBuilder builder, FixKind kind,
-      {List args: null, bool importsOnly: false}) {
+      {List args = null, bool importsOnly = false}) {
     SourceChange change = builder.sourceChange;
     if (change.edits.isEmpty && !importsOnly) {
       return;
@@ -4220,7 +4217,7 @@ class FixProcessor {
     StringBuffer buffer = new StringBuffer();
     buffer.write('super');
     String constructorName = constructor.displayName;
-    if (!constructorName.isEmpty) {
+    if (constructorName.isNotEmpty) {
       buffer.write('.');
       buffer.write(constructorName);
     }

@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -26,6 +27,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(StrongModeCastsTest);
     defineReflectiveTests(StrongModeLocalInferenceTest);
+    defineReflectiveTests(StrongModeLocalInferenceTest_NNBD);
     defineReflectiveTests(StrongModeStaticTypeAnalyzer2Test);
     defineReflectiveTests(StrongModeTypePropagationTest);
   });
@@ -1708,6 +1710,12 @@ casts() {
   cD.m1;
   cD.m1();
   cD.m2();
+
+  cN.f;
+  cN.g;
+  cN.m1;
+  cN.m1();
+  cN.m2();
 }
 
 noCasts() {
@@ -1723,12 +1731,6 @@ noCasts() {
   (d.g)(42);
   d.m1()(42);
   d.m2()()(42);
-
-  cN.f;
-  cN.g;
-  cN.m1;
-  cN.m1();
-  cN.m2();
 }
 ''');
     var unit = (await computeAnalysisResult(source)).unit;
@@ -3907,6 +3909,233 @@ class B<T2, U2> {
 }
 
 @reflectiveTest
+class StrongModeLocalInferenceTest_NNBD extends ResolverTestCase {
+  @override
+  AnalysisOptions get analysisOptions => new AnalysisOptionsImpl()
+    ..contextFeatures =
+        new FeatureSet.forTesting(additionalFeatures: [Feature.non_nullable]);
+
+  @override
+  void setUp() {
+    //TODO(mfairhurst): why is this override required?
+    super.setUp();
+    AnalysisOptionsImpl options = analysisOptions;
+    resetWith(options: options);
+  }
+
+  test_covarianceChecks_returnFunction() async {
+    // test Never cases.
+    var source = addSource(r'''
+typedef F<T>(T t);
+typedef T R<T>();
+class C<T> {
+  F<T> f = throw '';
+
+  C();
+  factory C.fact() => new C<Never>();
+
+  F<T> get g => throw '';
+  F<T> m1() => throw '';
+  R<F<T>> m2() => throw '';
+
+  casts(C<T> other, T t) {
+    other.f;
+    other.g(t);
+    other.m1();
+    other.m2;
+
+    new C<T>.fact().f(t);
+    new C<int>.fact().g;
+    new C<int>.fact().m1;
+    new C<T>.fact().m2();
+
+    new C<Object>.fact().f(42);
+    new C<Object>.fact().g;
+    new C<Object>.fact().m1;
+    new C<Object>.fact().m2();
+
+    new C.fact().f(42);
+    new C.fact().g;
+    new C.fact().m1;
+    new C.fact().m2();
+  }
+
+  noCasts(T t) {
+    f;
+    g;
+    m1();
+    m2();
+
+    f(t);
+    g(t);
+    (f)(t);
+    (g)(t);
+    m1;
+    m2;
+
+    this.f;
+    this.g;
+    this.m1();
+    this.m2();
+    this.m1;
+    this.m2;
+    (this.m1)();
+    (this.m2)();
+    this.f(t);
+    this.g(t);
+    (this.f)(t);
+    (this.g)(t);
+
+    new C<int>().f;
+    new C<T>().g;
+    new C<int>().m1();
+    new C().m2();
+
+    new D().f;
+    new D().g;
+    new D().m1();
+    new D().m2();
+  }
+}
+class D extends C<num> {
+  noCasts(t) {
+    f;
+    this.g;
+    this.m1();
+    m2;
+
+    super.f;
+    super.g;
+    super.m1;
+    super.m2();
+  }
+}
+
+D d = throw '';
+C<Object> c = throw '';
+C cD = throw '';
+C<Null> cNu = throw '';
+C<Never> cN = throw '';
+F<Object> f = throw '';
+F<Never> fN = throw '';
+R<F<Object>> rf = throw '';
+R<F<Never>> rfN = throw '';
+R<R<F<Object>>> rrf = throw '';
+R<R<F<Never>>> rrfN = throw '';
+Object obj = throw '';
+F<int> fi = throw '';
+R<F<int>> rfi = throw '';
+R<R<F<int>>> rrfi = throw '';
+
+casts() {
+  c.f;
+  c.g;
+  c.m1;
+  c.m1();
+  c.m2();
+
+  fN = c.f;
+  fN = c.g;
+  rfN = c.m1;
+  rrfN = c.m2;
+  fN = c.m1();
+  rfN = c.m2();
+
+  f = c.f;
+  f = c.g;
+  rf = c.m1;
+  rrf = c.m2;
+  f = c.m1();
+  rf = c.m2();
+  c.m2()();
+
+  c.f(obj);
+  c.g(obj);
+  (c.f)(obj);
+  (c.g)(obj);
+  (c.m1)();
+  c.m1()(obj);
+  (c.m2)();
+
+  cD.f;
+  cD.g;
+  cD.m1;
+  cD.m1();
+  cD.m2();
+
+  cNu.f;
+  cNu.g;
+  cNu.m1;
+  cNu.m1();
+  cNu.m2();
+}
+
+noCasts() {
+  fi = d.f;
+  fi = d.g;
+  rfi = d.m1;
+  fi = d.m1();
+  rrfi = d.m2;
+  rfi = d.m2();
+  d.f(42);
+  d.g(42);
+  (d.f)(42);
+  (d.g)(42);
+  d.m1()(42);
+  d.m2()()(42);
+
+  cN.f;
+  cN.g;
+  cN.m1;
+  cN.m1();
+  cN.m2();
+}
+''');
+    var unit = (await computeAnalysisResult(source)).unit;
+    assertNoErrors(source);
+
+    void expectCast(Statement statement, bool hasCast) {
+      var value = (statement as ExpressionStatement).expression;
+      if (value is AssignmentExpression) {
+        value = (value as AssignmentExpression).rightHandSide;
+      }
+      while (value is FunctionExpressionInvocation) {
+        value = (value as FunctionExpressionInvocation).function;
+      }
+      while (value is ParenthesizedExpression) {
+        value = (value as ParenthesizedExpression).expression;
+      }
+      var isCallingGetter =
+          value is MethodInvocation && !value.methodName.name.startsWith('m');
+      var cast = isCallingGetter
+          ? getImplicitOperationCast(value)
+          : getImplicitCast(value);
+      var castKind = isCallingGetter ? 'special cast' : 'cast';
+      expect(cast, hasCast ? isNotNull : isNull,
+          reason: '`$statement` should ' +
+              (hasCast ? '' : 'not ') +
+              'have a $castKind on `$value`.');
+    }
+
+    for (var s in AstFinder.getStatementsInMethod(unit, 'C', 'noCasts')) {
+      expectCast(s, false);
+    }
+    for (var s in AstFinder.getStatementsInMethod(unit, 'C', 'casts')) {
+      expectCast(s, true);
+    }
+    for (var s in AstFinder.getStatementsInMethod(unit, 'D', 'noCasts')) {
+      expectCast(s, false);
+    }
+    for (var s in AstFinder.getStatementsInTopLevelFunction(unit, 'noCasts')) {
+      expectCast(s, false);
+    }
+    for (var s in AstFinder.getStatementsInTopLevelFunction(unit, 'casts')) {
+      expectCast(s, true);
+    }
+  }
+}
+
+@reflectiveTest
 class StrongModeStaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared {
   void expectStaticInvokeType(String search, String type) {
     var invocation = findIdentifier(search).parent as MethodInvocation;
@@ -4113,7 +4342,6 @@ main() {
     expect(ft.toString(), 'List<T> Function<T>(String)');
     ft = ft.instantiate([typeProvider.intType]);
     expect(ft.toString(), 'List<int> Function(String)');
-    expect('${ft.typeArguments}/${ft.typeParameters}', '[String, int]/[E, T]');
   }
 
   test_genericMethod_explicitTypeParams() async {
@@ -4129,7 +4357,6 @@ main() {
     MethodInvocation f = findIdentifier('f<int>').parent;
     FunctionType ft = f.staticInvokeType;
     expect(ft.toString(), 'List<int> Function(String)');
-    expect('${ft.typeArguments}/${ft.typeParameters}', '[String, int]/[E, T]');
 
     SimpleIdentifier x = findIdentifier('x');
     expect(x.staticType,
@@ -4456,8 +4683,6 @@ class C<T> {
 ''');
     MethodInvocation f = findIdentifier('f<int>(3);').parent;
     expect(f.staticInvokeType.toString(), 'S Function(int)');
-    FunctionType ft = f.staticInvokeType;
-    expect('${ft.typeArguments}/${ft.typeParameters}', '[S, int]/[T, S]');
 
     expectIdentifierType('f;', 'S Function<S₀>(S₀)');
   }
@@ -4822,7 +5047,7 @@ class D extends C {}
 ''';
     await resolveTestUnit(code, noErrors: false);
     assertErrors(
-        testSource, [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
+        testSource, [CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
   }
 
   test_instantiateToBounds_class_error_instantiation_malbounded() async {
@@ -4837,7 +5062,7 @@ void test() {
     await resolveTestUnit(code, noErrors: false);
     assertErrors(testSource, [
       StrongModeCode.COULD_NOT_INFER,
-      StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
+      CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
     ]);
     expectIdentifierType('c =', 'C<List<dynamic>, List<List<dynamic>>>');
   }

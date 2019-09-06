@@ -2,29 +2,29 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: Class.:invoke*/
+/*member: Class.:invoke*/
 class Class {
   // The type parameter is never provided but needed nonetheless.
-  /*element: Class.method1:invoke=(0)*/
+  /*member: Class.method1:invoke=(0)*/
   method1<S>([a]) => S;
 
-  /*element: Class.method2:invoke=<1>(0)*/
+  /*member: Class.method2:invoke=<1>(0)*/
   method2<S>([a]) => S;
 
-  /*element: Class.method3:invoke=<1>(0)*/
+  /*member: Class.method3:invoke=<1>(0)*/
   method3<S>([a]) => S;
 
-  /*element: Class.method4:invoke=(1)*/
+  /*member: Class.method4:invoke=(1)*/
   method4<S>([a]) => S;
 
-  /*element: Class.method5:invoke*/
+  /*member: Class.method5:invoke*/
   method5<S>([a]) => S;
 
-  /*element: Class.method6:invoke*/
+  /*member: Class.method6:invoke*/
   method6<S>([a]) => S;
 }
 
-/*element: main:invoke*/
+/*member: main:invoke*/
 main() {
   dynamic c = new Class();
   c.method1();

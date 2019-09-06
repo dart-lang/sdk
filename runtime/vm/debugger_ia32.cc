@@ -31,9 +31,12 @@ void CodeBreakpoint::PatchCode() {
   {
     WritableInstructionsScope writable(instrs.PayloadStart(), instrs.Size());
     switch (breakpoint_kind_) {
-      case RawPcDescriptors::kIcCall:
-      case RawPcDescriptors::kUnoptStaticCall: {
+      case RawPcDescriptors::kIcCall: {
         stub_target = StubCode::ICCallBreakpoint().raw();
+        break;
+      }
+      case RawPcDescriptors::kUnoptStaticCall: {
+        stub_target = StubCode::UnoptStaticCallBreakpoint().raw();
         break;
       }
       case RawPcDescriptors::kRuntimeCall: {

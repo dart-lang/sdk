@@ -28,15 +28,12 @@ compile_time_constant_static5_test/21: CompileTimeError
 compile_time_constant_static5_test/23: CompileTimeError
 conditional_import_string_test: CompileTimeError
 conditional_import_test: CompileTimeError
-conditional_rewrite_test: RuntimeError
 config_import_corelib_test: CompileTimeError
 config_import_test: RuntimeError
 const_list_test: RuntimeError
 const_locals_test: RuntimeError
-const_map4_test: RuntimeError
 const_nested_test: RuntimeError
 const_string_test: RuntimeError
-constructor12_test: RuntimeError
 covariant_subtyping_test: RuntimeError
 ct_const_test: RuntimeError
 cyclic_type2_test: CompileTimeError
@@ -59,7 +56,6 @@ flatten_test/12: MissingRuntimeError
 function_propagation_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
 generic_function_bounds_test: RuntimeError
-generic_instanceof2_test: RuntimeError
 generic_is_check_test: RuntimeError
 generic_no_such_method_dispatcher_simple_test: CompileTimeError
 generic_no_such_method_dispatcher_test: CompileTimeError
@@ -116,7 +112,6 @@ nested_generic_closure_test: RuntimeError
 no_main_test/01: Crash
 no_such_method_mock_test: RuntimeError
 null_no_such_method_test: CompileTimeError
-parser_quirks_test: CompileTimeError
 regress_22443_test: RuntimeError
 regress_23408_test: CompileTimeError
 regress_29025_test: CompileTimeError
@@ -135,7 +130,6 @@ vm/type_cast_vm_test: RuntimeError
 web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 
 [ $compiler == dartdevk ]
-mixin_method_override_test/G5: Skip # Issue 34354
 private_method_tearoff_test: RuntimeError
 
 [ $compiler == dartkp ]
@@ -236,7 +230,6 @@ mixin_illegal_superclass_test/27: MissingCompileTimeError
 mixin_illegal_superclass_test/28: MissingCompileTimeError
 mixin_illegal_superclass_test/29: MissingCompileTimeError
 mixin_illegal_superclass_test/30: MissingCompileTimeError
-mixin_method_override_test/G4: Crash # Assertion error: mixin_full_resolution.dart': 'src.typeParameters.length == dst.typeParameters.length': is not true.
 multiline_newline_test/04: MissingCompileTimeError
 multiline_newline_test/04r: MissingCompileTimeError
 multiline_newline_test/05: MissingCompileTimeError
@@ -244,7 +237,6 @@ multiline_newline_test/05r: MissingCompileTimeError
 multiline_newline_test/06: MissingCompileTimeError
 multiline_newline_test/06r: MissingCompileTimeError
 null_no_such_method_test: CompileTimeError
-parser_quirks_test: CompileTimeError
 regress_23408_test: CompileTimeError
 regress_29025_test: CompileTimeError
 regress_29405_test: CompileTimeError
@@ -275,21 +267,13 @@ f_bounded_quantification2_test: CompileTimeError # Issue 34583
 f_bounded_quantification4_test: CompileTimeError # Issue 34583
 issue31596_super_test/02: MissingCompileTimeError # Issue 31596
 issue31596_super_test/04: MissingCompileTimeError # Issue 31596
-issue34488_test/01: MissingCompileTimeError # Issue 34488
-issue34488_test/02: MissingCompileTimeError # Issue 34488
-issue34488_test/03: MissingCompileTimeError # Issue 34488
-issue34488_test/04: MissingCompileTimeError # Issue 34488
-issue34488_test/05: MissingCompileTimeError # Issue 34488
-issue34488_test/06: MissingCompileTimeError # Issue 34488
 mixin_declaration/mixin_declaration_invalid_override_test/08: MissingCompileTimeError
 mixin_declaration/mixin_declaration_superinvocation_application_test/04: MissingCompileTimeError
 mixin_declaration/mixin_declaration_superinvocation_application_test/05: MissingCompileTimeError
 mixin_declaration/mixin_declaration_superinvocation_application_test/06: MissingCompileTimeError
 mixin_declaration/mixin_declaration_superinvocation_application_test/07: MissingCompileTimeError
 mixin_declaration/mixin_declaration_superinvocation_application_test/08: MissingCompileTimeError
-mixin_method_override_test/G5: Crash # Issue 34354
 nnbd/*: Skip
-override_inheritance_field_test/42: MissingCompileTimeError
 regress_22976_test/*: CompileTimeError # Issue 31935
 set_literals/invalid_set_literal_test/08: MissingCompileTimeError # Requires constant evaluation
 set_literals/invalid_set_literal_test/09: MissingCompileTimeError # Requires constant evaluation
@@ -600,8 +584,6 @@ config_import_corelib_test: CompileTimeError # Issue 31533
 config_import_test: RuntimeError # KernelVM bug: Configurable imports.
 const_evaluation_test: SkipByDesign
 const_list_test: RuntimeError
-const_map4_test: RuntimeError
-constructor12_test: RuntimeError
 constructor3_test: Fail, OK, Pass
 ct_const2_test: Skip # Incompatible flag: --compile_all
 ct_const_test: RuntimeError
@@ -632,7 +614,6 @@ flatten_test/12: MissingRuntimeError
 for_in_side_effects_test/01: MissingCompileTimeError
 function_propagation_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
-generic_instanceof2_test: RuntimeError
 generic_is_check_test: RuntimeError
 generic_methods_recursive_bound_test/03: Pass
 generic_methods_recursive_bound_test/03: MissingRuntimeError
@@ -703,7 +684,6 @@ null_no_such_method_test: CompileTimeError # Issue 31533
 null_test/mirrors: Skip # Uses mirrors.
 null_test/none: SkipByDesign
 overridden_no_such_method_test: SkipByDesign
-parser_quirks_test: CompileTimeError # Issue 31533
 redirecting_factory_reflection_test: SkipByDesign
 regress_13462_0_test: SkipByDesign
 regress_13462_1_test: SkipByDesign
@@ -827,7 +807,6 @@ regress_22728_test: RuntimeError
 [ $compiler == dartkp && $runtime == dart_precompiled && !$checked ]
 assertion_initializer_const_error_test/01: MissingCompileTimeError
 assertion_initializer_const_function_error_test/01: MissingCompileTimeError
-conditional_rewrite_test: RuntimeError # Issue 31402 (Not)
 implicit_downcast_during_combiner_test: RuntimeError
 implicit_downcast_during_compound_assignment_test: RuntimeError
 implicit_downcast_during_conditional_expression_test: RuntimeError
@@ -898,7 +877,6 @@ malbounded_type_test_test/04: Fail
 regress_30339_test: RuntimeError
 
 [ $runtime == vm && !$checked && ($compiler == dartk || $compiler == dartkb) ]
-conditional_rewrite_test: RuntimeError # Issue 31402 (Not)
 type_error_test: RuntimeError # Issue 31402 (Variable declaration)
 
 # ===== dartk + vm status lines =====
@@ -925,10 +903,8 @@ config_import_test: RuntimeError # KernelVM bug: Configurable imports.
 const_dynamic_type_literal_test/02: RuntimeError # KernelVM bug: Constant map duplicated key.
 const_list_test: RuntimeError
 const_locals_test: RuntimeError
-const_map4_test: RuntimeError
 const_nested_test: RuntimeError # KernelVM bug: Constant evaluation.
 const_string_test: RuntimeError
-constructor12_test: RuntimeError
 constructor3_test: Fail, OK, Pass
 covariant_subtyping_test: RuntimeError
 ct_const2_test: Pass, Crash # Flaky
@@ -955,7 +931,6 @@ flatten_test/12: MissingRuntimeError
 for_in_side_effects_test/01: MissingCompileTimeError
 function_propagation_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
-generic_instanceof2_test: RuntimeError
 generic_is_check_test: RuntimeError
 generic_no_such_method_dispatcher_simple_test: CompileTimeError # Issue 31533
 generic_no_such_method_dispatcher_test: CompileTimeError # Issue 31533
@@ -993,7 +968,6 @@ no_main_test/01: Skip
 no_main_test/01: DartkCrash
 no_such_method_mock_test: RuntimeError # Issue 31426
 null_no_such_method_test: CompileTimeError # Issue 31533
-parser_quirks_test: CompileTimeError # Issue 31533
 regress_22443_test: RuntimeError # KernelVM bug: Deferred loading kernel issue 30273.
 regress_23408_test: RuntimeError, CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
 regress_29025_test: CompileTimeError # Issue 31402 (Variable declaration)
@@ -1035,10 +1009,12 @@ symbol_conflict_test: Pass, Slow
 [ ($arch == simarm || $arch == simarm64 || $arch == simdbc64) && ($compiler == dartk || $compiler == dartkb) ]
 least_upper_bound_expansive_test/none: RuntimeError # Please triage.
 
+[ ($compiler == app_jitk || $compiler == dartk || $compiler == dartkb || $compiler == dartkp) && ($runtime == dart_precompiled || $runtime == vm) ]
+type_alias_equality_test/04: RuntimeError # Issue 32783
+
 [ ($compiler == app_jitk || $compiler == dartk || $compiler == dartkp) && ($runtime == dart_precompiled || $runtime == vm) ]
 covariant_subtyping_with_mixin_test: RuntimeError # Issue 34321
 type_alias_equality_test/03: RuntimeError # Issue 32783
-type_alias_equality_test/04: RuntimeError # Issue 32783
 
 [ ($compiler == dartk || $compiler == dartkb) && ($hot_reload || $hot_reload_rollback) ]
 async_star_test/01: Skip # Timeout
@@ -1057,7 +1033,6 @@ redirecting_factory_reflection_test: RuntimeError
 generic_function_bounds_test: RuntimeError # Issue 32076
 
 [ $compiler == dartkb || $compiler == dartkp ]
-mock_writable_final_private_field_test: CompileTimeError # Test uses Symbol("_...") which is a compile-time error.
 set_literals/invalid_set_literal_test/29: Pass # Gen_kernel does does constant
 set_literals/invalid_set_literal_test/30: Pass # evalutation, so these tests
 set_literals/invalid_set_literal_test/31: Pass # throw the expected errors. The

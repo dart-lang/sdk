@@ -85,6 +85,11 @@ declare_args() {
 # ......mirrors/
 # ......typed_data/
 # ......api_readme.md
+# ....model/
+# ......lexeme/
+# ........idx2word.json
+# ........model.tflite
+# ........word2idx.json
 
 # Scripts that go under bin/
 _platform_sdk_scripts = [
@@ -106,10 +111,6 @@ _scripts = [ "dartdoc" ]
 
 # Snapshots that go under bin/snapshots
 _platform_sdk_snapshots = [
-  [
-    "analysis_server",
-    "../utils/analysis_server",
-  ],
   [
     "dartanalyzer",
     "../utils/dartanalyzer:generate_dartanalyzer_snapshot",
@@ -135,12 +136,16 @@ if (create_kernel_service_snapshot) {
     ],
   ]
 }
+if (dart_target_arch != "arm") {
+  _platform_sdk_snapshots += [
+    [
+      "analysis_server",
+      "../utils/analysis_server",
+    ],
+  ]
+}
 
 _full_sdk_snapshots = [
-  [
-    "analysis_server",
-    "../utils/analysis_server",
-  ],
   [
     "dart2js",
     "../utils/compiler:dart2js",
@@ -175,6 +180,14 @@ if (create_kernel_service_snapshot) {
     [
       "kernel-service",
       "../utils/kernel-service:kernel-service_snapshot",
+    ],
+  ]
+}
+if (dart_target_arch != "arm") {
+  _full_sdk_snapshots += [
+    [
+      "analysis_server",
+      "../utils/analysis_server",
     ],
   ]
 }
@@ -280,6 +293,31 @@ if (is_win) {
         dest = "$root_out_dir/dart-sdk/lib/_internal/pub/asset/7zip"
         ignore_patterns = ".svn"
       } ]
+}
+
+if (target_cpu == "x64") {
+  copy_tree_specs += [
+      {
+        target = "copy_language_model"
+        visibility = [ ":create_common_sdk" ]
+        deps = [
+          ":copy_libraries",
+        ]
+        source = "../pkg/analysis_server/language_model"
+        dest = "$root_out_dir/dart-sdk/model"
+        ignore_patterns = "{}"
+      },
+      {
+        target = "copy_libtensorflowlite_c"
+        visibility = [ ":create_common_sdk" ]
+        deps = [
+          ":copy_libraries",
+        ]
+        source = "../third_party/pkg/tflite_native/lib/src/blobs"
+        dest = "$root_out_dir/dart-sdk/bin/snapshots"
+        ignore_patterns = "{}"
+      }
+   ]
 }
 
 # This generates targets for everything in copy_tree_specs. The targets have the
@@ -602,7 +640,7 @@ copy("copy_dev_compiler_summary") {
   deps = [
     ":copy_libraries",
     "../utils/dartdevc:dartdevc_sdk",
-    "../utils/dartdevc:dartdevc_kernel_sdk",
+    "../utils/dartdevc:dartdevc_kernel_sdk_outline",
   ]
   gen_dir = get_label_info("../utils/dartdevc:dartdevc_sdk", "target_gen_dir")
   sources = [
@@ -953,6 +991,12 @@ group("create_common_sdk") {
   ]
   if (is_win) {
     public_deps += [ ":copy_7zip" ]
+  }
+  if (target_cpu == "x64") {
+    public_deps += [
+      ":copy_language_model",
+      ":copy_libtensorflowlite_c",
+    ]
   }
 }
 

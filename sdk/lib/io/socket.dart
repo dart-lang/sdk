@@ -115,7 +115,7 @@ abstract class InternetAddress {
    * 4 or 16 byte long list. The returned list is a copy, making it possible
    * to change the list without modifying the [InternetAddress].
    */
-  List<int> get rawAddress;
+  Uint8List get rawAddress;
 
   /**
    * Returns true if the [InternetAddress] is a loopback address.
@@ -624,7 +624,7 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
    * available for immediate reading. If no data is available [:null:]
    * is returned.
    */
-  List<int> read([int len]);
+  Uint8List read([int len]);
 
   /**
    * Writes up to [count] bytes of the buffer from [offset] buffer offset to
@@ -710,7 +710,7 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
  * The [Socket] exposes both a [Stream] and a [IOSink] interface, making it
  * ideal for using together with other [Stream]s.
  */
-abstract class Socket implements Stream<List<int>>, IOSink {
+abstract class Socket implements Stream<Uint8List>, IOSink {
   /**
    * Creates a new socket connection to the host and port and returns a [Future]
    * that will complete with either a [Socket] once connected or an error
@@ -825,12 +825,12 @@ abstract class Socket implements Stream<List<int>>, IOSink {
 }
 
 /**
- * Datagram package. Data send to and received from datagram sockets
+ * Datagram package. Data sent to and received from datagram sockets
  * contains the internet address and port of the destination or source
  * togeter with the data.
  */
 class Datagram {
-  List<int> data;
+  Uint8List data;
   InternetAddress address;
   int port;
 

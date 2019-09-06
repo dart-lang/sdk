@@ -4,12 +4,12 @@
 
 /*strong.class: A:explicit=[A]*/
 class A {
-  /*element: A.instanceMethod:deps=[B.instanceMethod],exp,needsArgs,selectors=[Selector(call, instanceMethod, arity=0, types=1)]*/
+  /*member: A.instanceMethod:deps=[B.instanceMethod],exp,needsArgs,selectors=[Selector(call, instanceMethod, arity=0, types=1)]*/
   instanceMethod<T>() => T;
 }
 
 class B {
-  /*element: B.instanceMethod:needsArgs,selectors=[Selector(call, instanceMethod, arity=1, types=1)]*/
+  /*member: B.instanceMethod:needsArgs,selectors=[Selector(call, instanceMethod, arity=1, types=1)]*/
   instanceMethod<T>(A a) => a.instanceMethod<T>();
 }
 

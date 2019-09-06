@@ -11,7 +11,7 @@ import 'dart:_js_embedded_names';
 /// ignore: IMPORT_INTERNAL_LIBRARY, UNUSED_IMPORT
 import 'dart:_interceptors';
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   jsCallInt();
   jsCallEmpty();
@@ -28,35 +28,35 @@ main() {
   jsGetStaticState();
 }
 
-/*element: jsCallEmpty:[null|subclass=Object]*/
+/*member: jsCallEmpty:[null|subclass=Object]*/
 jsCallEmpty() => JS('', '#', 0);
 
-/*element: jsCallInt:[subclass=JSInt]*/
+/*member: jsCallInt:[subclass=JSInt]*/
 jsCallInt() => JS('int', '#', 0);
 
-/*element: jsCallVoid:[null|subclass=Object]*/
+/*member: jsCallVoid:[null|subclass=Object]*/
 jsCallVoid() => JS('void', '#', 0);
 
-/*element: jsCallUnion:Union([exact=JSString], [subclass=JSInt])*/
+/*member: jsCallUnion:Union([exact=JSString], [subclass=JSInt])*/
 jsCallUnion() => JS('int|String', '#', 0);
 
-/*element: jsBuiltin_rawRtiToJsConstructorName:[exact=JSString]*/
+/*member: jsBuiltin_rawRtiToJsConstructorName:[exact=JSString]*/
 jsBuiltin_rawRtiToJsConstructorName() {
   return JS_BUILTIN('String', JsBuiltin.rawRtiToJsConstructorName, null);
 }
 
-/*element: jsEmbeddedGlobal_getTypeFromName:[null|subclass=Object]*/
+/*member: jsEmbeddedGlobal_getTypeFromName:[null|subclass=Object]*/
 jsEmbeddedGlobal_getTypeFromName() {
   return JS_EMBEDDED_GLOBAL('', GET_TYPE_FROM_NAME);
 }
 
-/*element: jsEmbeddedGlobal_libraries:[null|exact=JSExtendableArray]*/
+/*member: jsEmbeddedGlobal_libraries:[null|exact=JSExtendableArray]*/
 jsEmbeddedGlobal_libraries() {
   return JS_EMBEDDED_GLOBAL('JSExtendableArray|Null', LIBRARIES);
 }
 
-/*element: jsStringConcat:[exact=JSString]*/
+/*member: jsStringConcat:[exact=JSString]*/
 jsStringConcat() => JS_STRING_CONCAT('a', 'b');
 
-/*element: jsGetStaticState:[null|subclass=Object]*/
+/*member: jsGetStaticState:[null|subclass=Object]*/
 jsGetStaticState() => JS_GET_STATIC_STATE();

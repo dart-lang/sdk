@@ -1,6 +1,6 @@
 // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
-// BSD-style licenset hat can be found in the LICENSE file.
+// BSD-style license that can be found in the LICENSE file.
 
 library dart_scanner.error_token;
 
@@ -72,11 +72,27 @@ abstract class ErrorToken extends SimpleToken {
   @override
   int get length => 1;
 
-  String get lexeme => throw assertionMessage.message;
+  String get lexeme {
+    var errorMsg = assertionMessage.message;
+
+    // Attempt to include the location which is calling the parser
+    // in an effort to debug https://github.com/dart-lang/sdk/issues/37528
+    var pattern = RegExp('^#[0-9]* *Parser');
+    var traceLines = StackTrace.current.toString().split('\n');
+    for (int index = traceLines.length - 2; index >= 0; --index) {
+      var line = traceLines[index];
+      if (line.startsWith(pattern)) {
+        errorMsg = '$errorMsg - ${traceLines[index + 1]}';
+        break;
+      }
+    }
+
+    throw errorMsg;
+  }
 
   Message get assertionMessage;
 
-  Code get errorCode => assertionMessage.code;
+  Code<dynamic> get errorCode => assertionMessage.code;
 
   int get character => null;
 

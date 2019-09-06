@@ -482,7 +482,9 @@ typedef RegisterSource<FpuRegister> FpuRegisterSource;
 // the heap and reset the builder's internal state for the next DeoptInfo.
 class DeoptInfoBuilder : public ValueObject {
  public:
-  DeoptInfoBuilder(Zone* zone, const intptr_t num_args, Assembler* assembler);
+  DeoptInfoBuilder(Zone* zone,
+                   const intptr_t num_args,
+                   compiler::Assembler* assembler);
 
   // Return address before instruction.
   void AddReturnAddress(const Function& function,
@@ -549,7 +551,7 @@ class DeoptInfoBuilder : public ValueObject {
 
   GrowableArray<DeoptInstr*> instructions_;
   const intptr_t num_args_;
-  Assembler* assembler_;
+  compiler::Assembler* assembler_;
 
   // Used to compress entries by sharing suffixes.
   TrieNode* trie_root_;

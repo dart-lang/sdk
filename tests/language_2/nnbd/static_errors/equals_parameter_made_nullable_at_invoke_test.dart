@@ -20,7 +20,7 @@ import 'dart:async';
 // operator==, but it should not be an error to "assign null" to the parameter
 // of the comparison operator.
 main() {
-  Object o;
+  Object o = 0;
   // Valid comparison.
   o == null;
 

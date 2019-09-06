@@ -18,9 +18,9 @@ import 'package:kernel/ast.dart' as ir;
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
 
-const List<String> skipForStrong = const <String>[
+const List<String> skip = const <String>[
   // TODO(johnniwinther): Remove this when issue 31767 is fixed.
-  'mixin_constructor_default_parameter_values.dart',
+  'mixin_constructor_default_parameter_values',
 ];
 
 main(List<String> args) {
@@ -31,14 +31,13 @@ runTests(List<String> args, [int shardIndex]) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(dataDir, const TypeMaskDataComputer(),
-        libDirectory: new Directory.fromUri(Platform.script.resolve('libs')),
         forUserLibrariesOnly: true,
         args: args,
         options: [stopAfterTypeInference],
-        testCFEConstants: true,
-        skipForStrong: skipForStrong,
+        testedConfigs: allInternalConfigs,
+        skip: skip,
         shardIndex: shardIndex ?? 0,
-        shards: shardIndex != null ? 2 : 1);
+        shards: shardIndex != null ? 4 : 1);
   });
 }
 

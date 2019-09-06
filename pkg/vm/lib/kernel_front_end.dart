@@ -22,6 +22,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
     show
         CompilerContext,
         CompilerOptions,
+        CompilerResult,
         DiagnosticMessage,
         DiagnosticMessageHandler,
         FileSystem,
@@ -32,6 +33,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
         StandardFileSystem,
         getMessageUri,
         kernelForProgram,
+        parseExperimentalArguments,
         parseExperimentalFlags,
         printDiagnosticMessage;
 
@@ -45,9 +47,10 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
 import 'package:kernel/vm/constants_native_effects.dart' as vm_constants;
 
-import 'bytecode/ast_remover.dart' show ASTRemover;
 import 'bytecode/bytecode_serialization.dart' show BytecodeSizeStatistics;
-import 'bytecode/gen_bytecode.dart' show generateBytecode;
+import 'bytecode/gen_bytecode.dart'
+    show generateBytecode, createFreshComponentWithBytecode;
+import 'bytecode/options.dart' show BytecodeOptions;
 
 import 'constants_error_reporter.dart' show ForwardConstantEvaluationErrors;
 import 'target/install.dart' show installAdditionalTargets;
@@ -111,19 +114,13 @@ void declareCompilerOptions(ArgParser args) {
           'Split resulting kernel file into multiple files (one per package).',
       defaultsTo: false);
   args.addFlag('gen-bytecode', help: 'Generate bytecode', defaultsTo: false);
-  args.addFlag('emit-bytecode-source-positions',
-      help: 'Emit source positions in bytecode', defaultsTo: false);
-  args.addFlag('emit-bytecode-local-var-info',
-      help: 'Emit information about local variables in bytecode',
-      defaultsTo: false);
-  args.addFlag('emit-bytecode-annotations',
-      help: 'Emit Dart annotations in bytecode', defaultsTo: false);
+  args.addMultiOption('bytecode-options',
+      help: 'Specify options for bytecode generation:',
+      valueHelp: 'opt1,opt2,...',
+      allowed: BytecodeOptions.commandLineFlags.keys,
+      allowedHelp: BytecodeOptions.commandLineFlags);
   args.addFlag('drop-ast',
-      help: 'Drop AST for members with bytecode', defaultsTo: false);
-  args.addFlag('show-bytecode-size-stat',
-      help: 'Show bytecode size breakdown.', defaultsTo: false);
-  args.addFlag('use-future-bytecode-format',
-      help: 'Generate bytecode in the bleeding edge format', defaultsTo: false);
+      help: 'Include only bytecode into the output file', defaultsTo: false);
   args.addMultiOption('enable-experiment',
       help: 'Comma separated list of experimental features to enable.');
   args.addFlag('help',
@@ -166,24 +163,25 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final bool aot = options['aot'];
   final bool tfa = options['tfa'];
   final bool linkPlatform = options['link-platform'];
+  final bool embedSources = options['embed-sources'];
   final bool genBytecode = options['gen-bytecode'];
-  final bool emitBytecodeSourcePositions =
-      options['emit-bytecode-source-positions'];
-  final bool emitBytecodeLocalVarInfo = options['emit-bytecode-local-var-info'];
-  final bool emitBytecodeAnnotations = options['emit-bytecode-annotations'];
   final bool dropAST = options['drop-ast'];
-  final bool useFutureBytecodeFormat = options['use-future-bytecode-format'];
   final bool enableAsserts = options['enable-asserts'];
   final bool enableConstantEvaluation = options['enable-constant-evaluation'];
   final bool useProtobufTreeShaker = options['protobuf-tree-shaker'];
   final bool splitOutputByPackages = options['split-output-by-packages'];
-  final bool showBytecodeSizeStat = options['show-bytecode-size-stat'];
   final List<String> experimentalFlags = options['enable-experiment'];
   final Map<String, String> environmentDefines = {};
 
   if (!parseCommandLineDefines(options['define'], environmentDefines, usage)) {
     return badUsageExitCode;
   }
+
+  final BytecodeOptions bytecodeOptions = new BytecodeOptions(
+      enableAsserts: enableAsserts,
+      emitSourceFiles: embedSources,
+      environmentDefines: environmentDefines)
+    ..parseCommandLineFlags(options['bytecode-options']);
 
   final target = createFrontEndTarget(targetName);
   if (target == null) {
@@ -218,23 +216,21 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     ..fileSystem = fileSystem
     ..linkedDependencies = linkedDependencies
     ..packagesFileUri = packagesUri
-    ..experimentalFlags = parseExperimentalFlags(experimentalFlags, print)
+    ..experimentalFlags = parseExperimentalFlags(
+        parseExperimentalArguments(experimentalFlags),
+        onError: print)
     ..onDiagnostic = (DiagnosticMessage m) {
       errorDetector(m);
     }
-    ..embedSourceText = options['embed-sources'];
+    ..embedSourceText = embedSources;
 
   final component = await compileToKernel(mainUri, compilerOptions,
       aot: aot,
       useGlobalTypeFlowAnalysis: tfa,
       environmentDefines: environmentDefines,
       genBytecode: genBytecode,
-      emitBytecodeSourcePositions: emitBytecodeSourcePositions,
-      emitBytecodeLocalVarInfo: emitBytecodeLocalVarInfo,
-      emitBytecodeAnnotations: emitBytecodeAnnotations,
+      bytecodeOptions: bytecodeOptions,
       dropAST: dropAST && !splitOutputByPackages,
-      useFutureBytecodeFormat: useFutureBytecodeFormat,
-      enableAsserts: enableAsserts,
       enableConstantEvaluation: enableConstantEvaluation,
       useProtobufTreeShaker: useProtobufTreeShaker);
 
@@ -244,7 +240,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     return compileTimeErrorExitCode;
   }
 
-  if (showBytecodeSizeStat && !splitOutputByPackages) {
+  if (bytecodeOptions.showBytecodeSizeStatistics && !splitOutputByPackages) {
     BytecodeSizeStatistics.reset();
   }
 
@@ -253,7 +249,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   printer.writeComponentFile(component);
   await sink.close();
 
-  if (showBytecodeSizeStat && !splitOutputByPackages) {
+  if (bytecodeOptions.showBytecodeSizeStatistics && !splitOutputByPackages) {
     BytecodeSizeStatistics.dump();
   }
 
@@ -267,15 +263,9 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       compilerOptions,
       component,
       outputFileName,
-      environmentDefines: environmentDefines,
       genBytecode: genBytecode,
-      enableAsserts: enableAsserts,
-      emitBytecodeSourcePositions: emitBytecodeSourcePositions,
-      emitBytecodeLocalVarInfo: emitBytecodeLocalVarInfo,
-      emitBytecodeAnnotations: emitBytecodeAnnotations,
+      bytecodeOptions: bytecodeOptions,
       dropAST: dropAST,
-      showBytecodeSizeStat: showBytecodeSizeStat,
-      useFutureBytecodeFormat: useFutureBytecodeFormat,
     );
   }
 
@@ -292,12 +282,8 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
     bool useGlobalTypeFlowAnalysis: false,
     Map<String, String> environmentDefines,
     bool genBytecode: false,
-    bool emitBytecodeSourcePositions: false,
-    bool emitBytecodeLocalVarInfo: false,
-    bool emitBytecodeAnnotations: false,
+    BytecodeOptions bytecodeOptions,
     bool dropAST: false,
-    bool useFutureBytecodeFormat: false,
-    bool enableAsserts: false,
     bool enableConstantEvaluation: true,
     bool useProtobufTreeShaker: false}) async {
   // Replace error handler to detect if there are compilation errors.
@@ -306,7 +292,8 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
   options.onDiagnostic = errorDetector;
 
   setVMEnvironmentDefines(environmentDefines, options);
-  final component = await kernelForProgram(source, options);
+  CompilerResult compilerResult = await kernelForProgram(source, options);
+  Component component = compilerResult?.component;
 
   // Run global transformations only if component is correct.
   if (aot && component != null) {
@@ -316,7 +303,6 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
         component,
         useGlobalTypeFlowAnalysis,
         environmentDefines,
-        enableAsserts,
         enableConstantEvaluation,
         useProtobufTreeShaker,
         errorDetector);
@@ -324,17 +310,11 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
 
   if (genBytecode && !errorDetector.hasCompilationErrors && component != null) {
     await runWithFrontEndCompilerContext(source, options, component, () {
-      generateBytecode(component,
-          enableAsserts: enableAsserts,
-          emitSourcePositions: emitBytecodeSourcePositions,
-          emitLocalVarInfo: emitBytecodeLocalVarInfo,
-          emitAnnotations: emitBytecodeAnnotations,
-          useFutureBytecodeFormat: useFutureBytecodeFormat,
-          environmentDefines: environmentDefines);
+      generateBytecode(component, options: bytecodeOptions);
     });
 
     if (dropAST) {
-      new ASTRemover(component).visitComponent(component);
+      component = createFreshComponentWithBytecode(component);
     }
   }
 
@@ -374,7 +354,6 @@ Future _runGlobalTransformations(
     Component component,
     bool useGlobalTypeFlowAnalysis,
     Map<String, String> environmentDefines,
-    bool enableAsserts,
     bool enableConstantEvaluation,
     bool useProtobufTreeShaker,
     ErrorDetector errorDetector) async {
@@ -392,8 +371,8 @@ Future _runGlobalTransformations(
   mixin_deduplication.transformComponent(component);
 
   if (enableConstantEvaluation) {
-    await _performConstantEvaluation(source, compilerOptions, component,
-        coreTypes, environmentDefines, enableAsserts);
+    await _performConstantEvaluation(
+        source, compilerOptions, component, coreTypes, environmentDefines);
 
     if (errorDetector.hasCompilationErrors) return;
   }
@@ -453,8 +432,7 @@ Future _performConstantEvaluation(
     CompilerOptions compilerOptions,
     Component component,
     CoreTypes coreTypes,
-    Map<String, String> environmentDefines,
-    bool enableAsserts) async {
+    Map<String, String> environmentDefines) async {
   final vmConstants = new vm_constants.VmConstantsBackend(coreTypes);
 
   await runWithFrontEndCompilerContext(source, compilerOptions, component, () {
@@ -464,7 +442,6 @@ Future _performConstantEvaluation(
         new ForwardConstantEvaluationErrors(),
         keepFields: true,
         evaluateAnnotations: true,
-        enableAsserts: enableAsserts,
         desugarSets: !compilerOptions.target.supportsSetLiterals);
   });
 }
@@ -660,15 +637,9 @@ Future writeOutputSplitByPackages(
   CompilerOptions compilerOptions,
   Component component,
   String outputFileName, {
-  Map<String, String> environmentDefines,
   bool genBytecode: false,
-  bool enableAsserts: true,
-  bool emitBytecodeSourcePositions: false,
-  bool emitBytecodeLocalVarInfo: false,
-  bool emitBytecodeAnnotations: false,
+  BytecodeOptions bytecodeOptions,
   bool dropAST: false,
-  bool showBytecodeSizeStat: false,
-  bool useFutureBytecodeFormat: false,
 }) async {
   // Package sharing: make the encoding not depend on the order in which parts
   // of a package are loaded.
@@ -692,7 +663,7 @@ Future writeOutputSplitByPackages(
   final List<String> packages = packagesSet.toList();
   packages.add('main'); // Make sure main package is last.
 
-  if (showBytecodeSizeStat) {
+  if (bytecodeOptions.showBytecodeSizeStatistics) {
     BytecodeSizeStatistics.reset();
   }
 
@@ -717,36 +688,25 @@ Future writeOutputSplitByPackages(
         component.problemsAsJson = null;
       }
 
-      ASTRemover astRemover;
+      Component partComponent = component;
       if (genBytecode) {
         final List<Library> libraries = component.libraries
             .where((lib) => packageFor(lib) == package)
             .toList();
         generateBytecode(component,
+            options: bytecodeOptions,
             libraries: libraries,
-            hierarchy: hierarchy,
-            enableAsserts: enableAsserts,
-            emitSourcePositions: emitBytecodeSourcePositions,
-            emitLocalVarInfo: emitBytecodeLocalVarInfo,
-            emitAnnotations: emitBytecodeAnnotations,
-            useFutureBytecodeFormat: useFutureBytecodeFormat,
-            environmentDefines: environmentDefines);
+            hierarchy: hierarchy);
 
         if (dropAST) {
-          astRemover = new ASTRemover(component);
-          for (var library in libraries) {
-            astRemover.visitLibrary(library);
-          }
+          partComponent = createFreshComponentWithBytecode(component);
         }
       }
 
       final BinaryPrinter printer = new LimitedBinaryPrinter(sink,
           (lib) => packageFor(lib) == package, false /* excludeUriToSource */);
-      printer.writeComponentFile(component);
+      printer.writeComponentFile(partComponent);
 
-      if (genBytecode && dropAST) {
-        astRemover.restoreAST();
-      }
       component.mainMethod = main;
       component.problemsAsJson = problems;
 
@@ -754,7 +714,7 @@ Future writeOutputSplitByPackages(
     }
   });
 
-  if (showBytecodeSizeStat) {
+  if (bytecodeOptions.showBytecodeSizeStatistics) {
     BytecodeSizeStatistics.dump();
   }
 

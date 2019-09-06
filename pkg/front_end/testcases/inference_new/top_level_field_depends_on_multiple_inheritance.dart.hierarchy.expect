@@ -148,7 +148,7 @@ G:
     Object.runtimeType
     Object._simpleInstanceOf
     Object._instanceOf
-    D.foo
+    G.D.foo%E.foo%F.foo
     Object.noSuchMethod
     Object._identityHashCode
     Object.hashCode

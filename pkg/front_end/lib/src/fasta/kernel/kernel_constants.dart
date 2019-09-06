@@ -4,7 +4,7 @@
 
 library fasta.kernel_constants;
 
-import 'package:kernel/ast.dart' show InvalidExpression, Library;
+import 'package:kernel/ast.dart' show InvalidExpression;
 
 import '../fasta_codes.dart' show LocatedMessage;
 
@@ -13,7 +13,7 @@ import '../loader.dart' show Loader;
 import 'constant_evaluator.dart' show ErrorReporter;
 
 class KernelConstantErrorReporter extends ErrorReporter {
-  final Loader<Library> loader;
+  final Loader loader;
 
   KernelConstantErrorReporter(this.loader);
 

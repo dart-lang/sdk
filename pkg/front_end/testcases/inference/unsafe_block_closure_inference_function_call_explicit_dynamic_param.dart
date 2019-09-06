@@ -7,7 +7,7 @@ library test;
 
 List<T> f<T>(T g()) => <T>[g()];
 var v = f<dynamic>(
-    /*@returnType=int*/ () {
+    /*@ returnType=int* */ () {
   return 1;
 });
 

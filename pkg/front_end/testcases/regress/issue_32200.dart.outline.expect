@@ -13,7 +13,7 @@ import "org-dartlang-testcase:///issue_32200.dart" as self;
 
 class Foo extends core::Object {
   field invalid-type self;
-  synthetic constructor •() → self::Foo
+  synthetic constructor •() → self::Foo*
     ;
 }
 static method main() → dynamic

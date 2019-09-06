@@ -1,3 +1,7 @@
+## 0.6.2
+
+* Improved documentation.
+
 ## 0.6.1+1
 
 * Support Dart 2 final release.

@@ -35,14 +35,14 @@ class Class3<T> {
   Class3(this.field);
 }
 
-/*strong.element: test:*/
-/*omit.element: test:*/
+/*strong.member: test:*/
+/*omit.member: test:*/
 test(Class3 c, Type type) {
   return c.field.runtimeType == type;
 }
 
-/*strong.element: main:*/
-/*omit.element: main:*/
+/*strong.member: main:*/
+/*omit.member: main:*/
 main() {
   Expect.isTrue(test(new Class3<int>(new Class1a()), Class1a));
   Expect.isFalse(test(new Class3<int>(new Class1b<int>()), Class1a));

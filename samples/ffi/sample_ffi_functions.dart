@@ -18,7 +18,7 @@ typedef NativeQuadOpUnsigned = ffi.Uint64 Function(
 typedef NativeFunc4 = ffi.IntPtr Function(ffi.IntPtr);
 typedef NativeDoubleUnaryOp = ffi.Double Function(ffi.Double);
 typedef NativeFloatUnaryOp = ffi.Float Function(ffi.Float);
-typedef NativeOctenaryOp = ffi.IntPtr Function(
+typedef NativeDecenaryOp = ffi.IntPtr Function(
     ffi.IntPtr,
     ffi.IntPtr,
     ffi.IntPtr,
@@ -29,7 +29,7 @@ typedef NativeOctenaryOp = ffi.IntPtr Function(
     ffi.IntPtr,
     ffi.IntPtr,
     ffi.IntPtr);
-typedef NativeDoubleOctenaryOp = ffi.Double Function(
+typedef NativeDoubleDecenaryOp = ffi.Double Function(
     ffi.Double,
     ffi.Double,
     ffi.Double,
@@ -65,9 +65,9 @@ typedef Int64PointerUnOp = ffi.Pointer<ffi.Int64> Function(
     ffi.Pointer<ffi.Int64>);
 typedef QuadOp = int Function(int, int, int, int);
 typedef DoubleUnaryOp = double Function(double);
-typedef OctenaryOp = int Function(
+typedef DecenaryOp = int Function(
     int, int, int, int, int, int, int, int, int, int);
-typedef DoubleOctenaryOp = double Function(double, double, double, double,
+typedef DoubleDecenaryOp = double Function(double, double, double, double,
     double, double, double, double, double, double);
 typedef VigesimalOp = double Function(
     int,
@@ -162,8 +162,8 @@ main(List<String> arguments) {
 
   {
     // function with many arguments: arguments get passed in registers and stack
-    OctenaryOp sumManyInts = ffiTestFunctions
-        .lookupFunction<NativeOctenaryOp, OctenaryOp>("SumManyInts");
+    DecenaryOp sumManyInts = ffiTestFunctions
+        .lookupFunction<NativeDecenaryOp, DecenaryOp>("SumManyInts");
     var result = sumManyInts(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
     print(result);
     print(result.runtimeType);
@@ -171,8 +171,8 @@ main(List<String> arguments) {
 
   {
     // function with many double arguments
-    DoubleOctenaryOp sumManyDoubles = ffiTestFunctions.lookupFunction<
-        NativeDoubleOctenaryOp, DoubleOctenaryOp>("SumManyDoubles");
+    DoubleDecenaryOp sumManyDoubles = ffiTestFunctions.lookupFunction<
+        NativeDoubleDecenaryOp, DoubleDecenaryOp>("SumManyDoubles");
     var result =
         sumManyDoubles(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0);
     print(result);

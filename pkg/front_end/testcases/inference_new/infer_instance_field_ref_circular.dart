@@ -8,12 +8,12 @@ library test;
 // In the code below, there is a circularity between A.b and x.
 
 class A {
-  var b = /*@returnType=invalid-type*/ () => x;
-  var c = /*@returnType=invalid-type*/ () => x;
+  var b = /*@ returnType=() ->* invalid-type */ () => x;
+  var c = /*@ returnType=() ->* invalid-type */ () => x;
 }
 
 var a = new A();
-var x = /*@returnType=invalid-type*/ () => a. /*@target=A::b*/ b;
-var y = /*@returnType=() -> invalid-type*/ () => a. /*@target=A::c*/ c;
+var x = /*@ returnType=invalid-type */ () => a. /*@target=A::b*/ b;
+var y = /*@ returnType=() ->* () ->* invalid-type */ () => a. /*@target=A::c*/ c;
 
 main() {}

@@ -90,7 +90,9 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
   final hierarchy = new ClassHierarchy(component);
   switch (options['transformation']) {
     case 'continuation':
-      component = cont.transformComponent(coreTypes, component);
+      bool productMode = defines["dart.vm.product"] == "true";
+      component = cont.transformComponent(coreTypes, component,
+          productMode: productMode);
       break;
     case 'resolve-mixins':
       mix.transformLibraries(
@@ -102,8 +104,7 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
     case 'constants':
       final VmConstantsBackend backend = new VmConstantsBackend(coreTypes);
       component = constants.transformComponent(
-          component, backend, defines, const constants.SimpleErrorReporter(),
-          enableAsserts: true);
+          component, backend, defines, const constants.SimpleErrorReporter());
       break;
     case 'methodcall':
       component =

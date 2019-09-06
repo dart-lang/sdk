@@ -21,11 +21,10 @@ import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 
-import 'package:front_end/src/fasta/kernel/kernel_body_builder.dart'
-    show KernelBodyBuilder;
+import 'package:front_end/src/fasta/kernel/body_builder.dart' show BodyBuilder;
 
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
-    show KernelLibraryBuilder, KernelProcedureBuilder;
+    show ProcedureBuilder;
 
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
@@ -39,9 +38,12 @@ import 'package:front_end/src/fasta/scanner.dart' show Token, scanString;
 
 import 'package:front_end/src/fasta/scope.dart' show Scope;
 
+import 'package:front_end/src/fasta/source/source_library_builder.dart'
+    show SourceLibraryBuilder;
+
 DiagnosticMessageHandler handler;
 
-class MockLibraryBuilder extends KernelLibraryBuilder {
+class MockLibraryBuilder extends SourceLibraryBuilder {
   MockLibraryBuilder(Uri uri)
       : super(
             uri,
@@ -53,27 +55,31 @@ class MockLibraryBuilder extends KernelLibraryBuilder {
                         new NoneTarget(new TargetFlags(legacyMode: true))),
                     null)
                 .loader,
-            null,
             null);
 
-  KernelProcedureBuilder mockProcedure(String name) {
-    return new KernelProcedureBuilder(null, 0, null, name, null, null,
+  ProcedureBuilder mockProcedure(String name) {
+    return new ProcedureBuilder(null, 0, null, name, null, null,
         ProcedureKind.Getter, this, -1, -1, -1, -1);
   }
 }
 
-class MockBodyBuilder extends KernelBodyBuilder {
+class MockBodyBuilder extends BodyBuilder {
   MockBodyBuilder.internal(
       MockLibraryBuilder libraryBuilder, String name, Scope scope)
-      : super(libraryBuilder, libraryBuilder.mockProcedure(name), scope, scope,
-            null, null, null, false, libraryBuilder.uri, null);
+      : super(
+            library: libraryBuilder,
+            member: libraryBuilder.mockProcedure(name),
+            enclosingScope: scope,
+            formalParameterScope: scope,
+            isDeclarationInstanceMember: false,
+            uri: libraryBuilder.uri);
 
   MockBodyBuilder(Uri uri, String name, Scope scope)
       : this.internal(new MockLibraryBuilder(uri), name, scope);
 }
 
 Expression compileExpression(String source) {
-  KernelBodyBuilder listener = new MockBodyBuilder(
+  BodyBuilder listener = new MockBodyBuilder(
       Uri.parse("org-dartlang-test:my_library.dart"),
       "<test>",
       new UnlinkedScope());

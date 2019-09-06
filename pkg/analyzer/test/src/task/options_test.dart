@@ -49,6 +49,24 @@ class ContextConfigurationTest {
   YamlMap parseOptions(String source) =>
       optionsProvider.getOptionsFromString(source);
 
+  test_configure_chromeos_checks() {
+    configureContext('''
+analyzer:
+  optional-checks:
+    chrome-os-manifest-checks
+''');
+    expect(true, analysisOptions.chromeOsManifestChecks);
+  }
+
+  test_configure_chromeos_checks_map() {
+    configureContext('''
+analyzer:
+  optional-checks:
+    chrome-os-manifest-checks : true
+''');
+    expect(true, analysisOptions.chromeOsManifestChecks);
+  }
+
   test_configure_error_processors() {
     configureContext('''
 analyzer:
@@ -126,24 +144,6 @@ analyzer:
     List<String> names = analysisOptions.enabledPluginNames;
     expect(names, ['angular2']);
   }
-
-  test_configure_chromeos_checks() {
-    configureContext('''
-analyzer:
-  optional-checks:
-    chrome-os-manifest-checks
-''');
-    expect(true, analysisOptions.chromeOsManifestChecks);
-  }
-
-  test_configure_chromeos_checks_map() {
-    configureContext('''
-analyzer:
-  optional-checks:
-    chrome-os-manifest-checks : true
-''');
-    expect(true, analysisOptions.chromeOsManifestChecks);
-  }
 }
 
 @reflectiveTest
@@ -188,11 +188,7 @@ class ErrorCodeValuesTest {
                 '_PLUS');
       } else if (errorType == StrongModeCode) {
         void removeCode(StrongModeCode code) {
-          String name = code.name;
-          declaredNames.remove(name);
-          if (name.startsWith('STRONG_MODE_')) {
-            declaredNames.remove(name.substring(12));
-          }
+          declaredNames.remove(code.name);
         }
 
         removeCode(StrongModeCode.DOWN_CAST_COMPOSITE);
@@ -430,7 +426,7 @@ analyzer:
     validate('''
 analyzer:
   errors:
-    strong_mode_assignment_cast: ignore
+    assignment_cast: ignore
 ''', []);
   }
 
@@ -479,22 +475,6 @@ analyzer:
     ''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES]);
   }
 
-  test_linter_supported_rules() {
-    Registry.ruleRegistry.register(new TestRule());
-    validate('''
-linter:
-  rules:
-    - fantastic_test_rule
-    ''', []);
-  }
-
-  test_linter_unsupported_option() {
-    validate('''
-linter:
-  unsupported: true
-    ''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE]);
-  }
-
   test_chromeos_manifest_checks() {
     validate('''
 analyzer:
@@ -509,6 +489,22 @@ analyzer:
   optional-checks:
     chromeos-manifest
 ''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE]);
+  }
+
+  test_linter_supported_rules() {
+    Registry.ruleRegistry.register(new TestRule());
+    validate('''
+linter:
+  rules:
+    - fantastic_test_rule
+    ''', []);
+  }
+
+  test_linter_unsupported_option() {
+    validate('''
+linter:
+  unsupported: true
+    ''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE]);
   }
 
   void validate(String source, List<ErrorCode> expected) {

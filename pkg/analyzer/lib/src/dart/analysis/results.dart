@@ -77,39 +77,6 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
   ParsedLibraryResultImpl.external(AnalysisSession session, Uri uri)
       : this(session, null, uri, null);
 
-  @Deprecated('This factory exists temporary until AnalysisSession migration.')
-  factory ParsedLibraryResultImpl.tmp(LibraryElement library) {
-    var session = library.session;
-    if (session != null) {
-      return session.getParsedLibraryByElement(library);
-    } else {
-      var analysisContext = library.context;
-      var units = <ParsedUnitResult>[];
-      for (var unitElement in library.units) {
-        var unitSource = unitElement.source;
-
-        if (!analysisContext.exists(unitSource)) {
-          continue;
-        }
-
-        var content = analysisContext.getContents(unitSource).data;
-        var lineInfo = analysisContext.getLineInfo(unitSource);
-        var unit = analysisContext.parseCompilationUnit(unitSource);
-        units.add(ParsedUnitResultImpl(
-            null,
-            unitSource.fullName,
-            unitSource.uri,
-            content,
-            lineInfo,
-            unitSource != library.source,
-            unit, const []));
-      }
-      var libraryPath = library.source.fullName;
-      return ParsedLibraryResultImpl(
-          null, libraryPath, library.source.uri, units);
-    }
-  }
-
   @override
   ResultState get state {
     if (path == null) {
@@ -163,6 +130,22 @@ class ParsedUnitResultImpl extends FileResultImpl implements ParsedUnitResult {
   ResultState get state => ResultState.VALID;
 }
 
+class ParseStringResultImpl implements ParseStringResult {
+  @override
+  final String content;
+
+  @override
+  final List<AnalysisError> errors;
+
+  @override
+  final CompilationUnit unit;
+
+  ParseStringResultImpl(this.content, this.unit, this.errors);
+
+  @override
+  LineInfo get lineInfo => unit.lineInfo;
+}
+
 class ResolvedLibraryResultImpl extends AnalysisResultImpl
     implements ResolvedLibraryResult {
   @override
@@ -213,34 +196,6 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
     var declaration = locator.result;
 
     return ElementDeclarationResultImpl(element, declaration, null, unitResult);
-  }
-
-  @Deprecated('This method exists temporary until AnalysisSession migration.')
-  static Future<ResolvedLibraryResult> tmp(LibraryElement library) async {
-    var session = library.session;
-    if (session != null) {
-      return session.getResolvedLibraryByElement(library);
-    } else {
-      var units = <ResolvedUnitResult>[];
-      var analysisContext = library.context;
-      for (var unitElement in library.units) {
-        var unitSource = unitElement.source;
-
-        if (!analysisContext.exists(unitSource)) {
-          continue;
-        }
-
-        var path = unitSource.fullName;
-        var content = analysisContext.getContents(unitSource).data;
-        var lineInfo = analysisContext.getLineInfo(unitSource);
-        var unit = analysisContext.resolveCompilationUnit(unitSource, library);
-        units.add(ResolvedUnitResultImpl(null, path, unitSource.uri, true,
-            content, lineInfo, unitSource != library.source, unit, const []));
-      }
-      var libraryPath = library.source.fullName;
-      return ResolvedLibraryResultImpl(null, libraryPath, library.source.uri,
-          library, library.context.typeProvider, units);
-    }
   }
 }
 

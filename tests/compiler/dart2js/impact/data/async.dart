@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: main:
+/*member: main:
  static=[
   testAnonymousAsync(0),
   testAnonymousAsyncStar(0),
@@ -31,7 +31,7 @@ main() {
   testAsyncForInTyped(null);
 }
 
-/*element: testSyncStar:
+/*member: testSyncStar:
  static=[
   _IterationMarker.endOfIteration(0),
   _IterationMarker.uncaughtError(1),
@@ -40,7 +40,7 @@ main() {
 */
 testSyncStar() sync* {}
 
-/*element: testAsync:
+/*member: testAsync:
  static=[
   StreamIterator.(1),
   _asyncAwait(2),
@@ -52,7 +52,7 @@ testSyncStar() sync* {}
 */
 testAsync() async {}
 
-/*element: testAsyncStar:
+/*member: testAsyncStar:
  static=[
   StreamIterator.(1),
   _IterationMarker.yieldSingle(1),
@@ -64,7 +64,7 @@ testAsync() async {}
 */
 testAsyncStar() async* {}
 
-/*element: testLocalSyncStar:
+/*member: testLocalSyncStar:
  static=[
   _IterationMarker.endOfIteration(0),
   _IterationMarker.uncaughtError(1),
@@ -88,7 +88,7 @@ testLocalSyncStar() {
   return local;
 }
 
-/*element: testLocalAsync:
+/*member: testLocalAsync:
  static=[
   StreamIterator.(1),
   _asyncAwait(2),
@@ -115,7 +115,7 @@ testLocalAsync() {
   return local;
 }
 
-/*element: testLocalAsyncStar:
+/*member: testLocalAsyncStar:
  static=[
   StreamIterator.(1),
   _IterationMarker.yieldSingle(1),
@@ -142,7 +142,7 @@ testLocalAsyncStar() {
   return local;
 }
 
-/*element: testAnonymousSyncStar:
+/*member: testAnonymousSyncStar:
  static=[
   _IterationMarker.endOfIteration(0),
   _IterationMarker.uncaughtError(1),
@@ -165,7 +165,7 @@ testAnonymousSyncStar() {
   return () sync* {};
 }
 
-/*element: testAnonymousAsync:
+/*member: testAnonymousAsync:
  static=[
   StreamIterator.(1),
   _asyncAwait(2),
@@ -191,7 +191,7 @@ testAnonymousAsync() {
   return () async {};
 }
 
-/*element: testAnonymousAsyncStar:
+/*member: testAnonymousAsyncStar:
  static=[
   StreamIterator.(1),
   _IterationMarker.yieldSingle(1),
@@ -217,7 +217,7 @@ testAnonymousAsyncStar() {
   return () async* {};
 }
 
-/*element: testAsyncForIn:
+/*member: testAsyncForIn:
  dynamic=[
   _StreamIterator.cancel(0),
   _StreamIterator.current,
@@ -241,7 +241,7 @@ testAsyncForIn(o) async {
   await for (var e in o) {}
 }
 
-/*element: testAsyncForInTyped:
+/*member: testAsyncForInTyped:
  dynamic=[
   _StreamIterator.cancel(0),
   _StreamIterator.current,

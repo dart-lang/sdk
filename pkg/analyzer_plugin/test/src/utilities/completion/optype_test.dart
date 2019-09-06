@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
@@ -17,6 +18,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OpTypeTest);
     defineReflectiveTests(OpTypeDart1OnlyTest);
+    defineReflectiveTests(OpTypeTestWithExtensionMethods);
   });
 }
 
@@ -1950,19 +1952,19 @@ main() {new core.String.from^CharCodes([]);}
     await assertOpType(methodBody: true);
   }
 
-  test_MethodDeclaration1() async {
+  test_MethodDeclaration_inClass1() async {
     // SimpleIdentifier  MethodDeclaration  ClassDeclaration
     addTestSource('class Bar {const ^Fara();}');
     await assertOpType(typeNames: true);
   }
 
-  test_MethodDeclaration2() async {
+  test_MethodDeclaration_inClass2() async {
     // SimpleIdentifier  MethodDeclaration  ClassDeclaration
     addTestSource('class Bar {const F^ara();}');
     await assertOpType(typeNames: true);
   }
 
-  test_MethodDeclaration_inLineComment() async {
+  test_MethodDeclaration_inClass_inLineComment() async {
     // Comment  ClassDeclaration  CompilationUnit
     addTestSource('''
       class C2 {
@@ -1971,7 +1973,7 @@ main() {new core.String.from^CharCodes([]);}
     await assertOpType();
   }
 
-  test_MethodDeclaration_inLineComment2() async {
+  test_MethodDeclaration_inClass_inLineComment2() async {
     // Comment  ClassDeclaration  CompilationUnit
     addTestSource('''
       class C2 {
@@ -1980,7 +1982,7 @@ main() {new core.String.from^CharCodes([]);}
     await assertOpType();
   }
 
-  test_MethodDeclaration_inLineComment3() async {
+  test_MethodDeclaration_inClass_inLineComment3() async {
     // Comment  ClassDeclaration  CompilationUnit
     addTestSource('''
       class C2 {
@@ -1990,7 +1992,7 @@ main() {new core.String.from^CharCodes([]);}
     await assertOpType();
   }
 
-  test_MethodDeclaration_inLineDocComment() async {
+  test_MethodDeclaration_inClass_inLineDocComment() async {
     // Comment  MethodDeclaration  ClassDeclaration  CompilationUnit
     addTestSource('''
       class C2 {
@@ -1999,7 +2001,7 @@ main() {new core.String.from^CharCodes([]);}
     await assertOpType();
   }
 
-  test_MethodDeclaration_inLineDocComment2() async {
+  test_MethodDeclaration_inClass_inLineDocComment2() async {
     // Comment  MethodDeclaration  ClassDeclaration  CompilationUnit
     addTestSource('''
       class C2 {
@@ -2008,37 +2010,37 @@ main() {new core.String.from^CharCodes([]);}
     await assertOpType();
   }
 
-  test_MethodDeclaration_inStarComment() async {
+  test_MethodDeclaration_inClass_inStarComment() async {
     // Comment  ClassDeclaration  CompilationUnit
     addTestSource('class C2 {/* ^ */ zoo(z) {} String name;}');
     await assertOpType();
   }
 
-  test_MethodDeclaration_inStarComment2() async {
+  test_MethodDeclaration_inClass_inStarComment2() async {
     // Comment  ClassDeclaration  CompilationUnit
     addTestSource('class C2 {/*  *^/ zoo(z) {} String name;}');
     await assertOpType();
   }
 
-  test_MethodDeclaration_inStarDocComment() async {
+  test_MethodDeclaration_inClass_inStarDocComment() async {
     // Comment  MethodDeclaration  ClassDeclaration  CompilationUnit
     addTestSource('class C2 {/** ^ */ zoo(z) { } String name; }');
     await assertOpType();
   }
 
-  test_MethodDeclaration_inStarDocComment2() async {
+  test_MethodDeclaration_inClass_inStarDocComment2() async {
     // Comment  MethodDeclaration  ClassDeclaration  CompilationUnit
     addTestSource('class C2 {/**  *^/ zoo(z) { } String name; }');
     await assertOpType();
   }
 
-  test_MethodDeclaration_returnType() async {
+  test_MethodDeclaration_inClass_returnType() async {
     // ClassDeclaration  CompilationUnit
     addTestSource('class C2 {^ zoo(z) { } String name; }');
     await assertOpType(typeNames: true);
   }
 
-  test_MethodDeclaration_returnType_afterLineComment() async {
+  test_MethodDeclaration_inClass_returnType_afterLineComment() async {
     // MethodDeclaration  ClassDeclaration  CompilationUnit
     addTestSource('''
       class C2 {
@@ -2047,7 +2049,7 @@ main() {new core.String.from^CharCodes([]);}
     await assertOpType(typeNames: true);
   }
 
-  test_MethodDeclaration_returnType_afterLineComment2() async {
+  test_MethodDeclaration_inClass_returnType_afterLineComment2() async {
     // MethodDeclaration  ClassDeclaration  CompilationUnit
     // TOD(danrubel) left align all test source
     addTestSource('''
@@ -2057,7 +2059,7 @@ class C2 {
     await assertOpType(typeNames: true);
   }
 
-  test_MethodDeclaration_returnType_afterLineDocComment() async {
+  test_MethodDeclaration_inClass_returnType_afterLineDocComment() async {
     // SimpleIdentifier  MethodDeclaration  ClassDeclaration  CompilationUnit
     addTestSource('''
       class C2 {
@@ -2066,7 +2068,7 @@ class C2 {
     await assertOpType(typeNames: true);
   }
 
-  test_MethodDeclaration_returnType_afterLineDocComment2() async {
+  test_MethodDeclaration_inClass_returnType_afterLineDocComment2() async {
     // SimpleIdentifier  MethodDeclaration  ClassDeclaration  CompilationUnit
     addTestSource('''
 class C2 {
@@ -2075,27 +2077,57 @@ class C2 {
     await assertOpType(typeNames: true);
   }
 
-  test_MethodDeclaration_returnType_afterStarComment() async {
+  test_MethodDeclaration_inClass_returnType_afterStarComment() async {
     // ClassDeclaration  CompilationUnit
     addTestSource('class C2 {/* */ ^ zoo(z) { } String name; }');
     await assertOpType(typeNames: true);
   }
 
-  test_MethodDeclaration_returnType_afterStarComment2() async {
+  test_MethodDeclaration_inClass_returnType_afterStarComment2() async {
     // ClassDeclaration  CompilationUnit
     addTestSource('class C2 {/* */^ zoo(z) { } String name; }');
     await assertOpType(typeNames: true);
   }
 
-  test_MethodDeclaration_returnType_afterStarDocComment() async {
+  test_MethodDeclaration_inClass_returnType_afterStarDocComment() async {
     // MethodDeclaration  ClassDeclaration  CompilationUnit
     addTestSource('class C2 {/** */ ^ zoo(z) { } String name; }');
     await assertOpType(typeNames: true);
   }
 
-  test_MethodDeclaration_returnType_afterStarDocComment2() async {
+  test_MethodDeclaration_inClass_returnType_afterStarDocComment2() async {
     // MethodDeclaration  ClassDeclaration  CompilationUnit
     addTestSource('class C2 {/** */^ zoo(z) { } String name; }');
+    await assertOpType(typeNames: true);
+  }
+
+  test_methodDeclaration_inMixin1() async {
+    // SimpleIdentifier  MethodDeclaration  MixinDeclaration
+    addTestSource('mixin M {const ^Fara();}');
+    await assertOpType(typeNames: true);
+  }
+
+  test_methodDeclaration_inMixin2() async {
+    // SimpleIdentifier  MethodDeclaration  MixinDeclaration
+    addTestSource('mixin M {const F^ara();}');
+    await assertOpType(typeNames: true);
+  }
+
+  test_methodDeclaration_inMixin_returnType() async {
+    // MixinDeclaration  CompilationUnit
+    addTestSource('mixin M {^ zoo(z) { } String name; }');
+    await assertOpType(typeNames: true);
+  }
+
+  test_mixinDeclaration_body() async {
+    // MixinDeclaration  CompilationUnit
+    addTestSource('mixin M {^}');
+    await assertOpType(typeNames: true);
+  }
+
+  test_mixinDeclaration_body2() async {
+    // SimpleIdentifier  MethodDeclaration  MixinDeclaration
+    addTestSource('mixin M {^mth() {}}');
     await assertOpType(typeNames: true);
   }
 
@@ -2399,5 +2431,48 @@ class OpTypeTestCommon extends AbstractContextTest {
   void setUp() {
     super.setUp();
     testPath = convertPath('/completionTest.dart');
+  }
+}
+
+@reflectiveTest
+class OpTypeTestWithExtensionMethods extends OpTypeTestCommon {
+  @override
+  void setUp() {
+    createAnalysisOptionsFile(
+      experiments: [
+        EnableString.extension_methods,
+      ],
+    );
+    super.setUp();
+  }
+
+  test_extensionDeclaration_body() async {
+    // ExtensionDeclaration  CompilationUnit
+    addTestSource('extension E on int {^}');
+    await assertOpType(typeNames: true);
+  }
+
+  test_extensionDeclaration_body2() async {
+    // SimpleIdentifier  MethodDeclaration  ExtensionDeclaration
+    addTestSource('extension E on int {^mth() {}}');
+    await assertOpType(typeNames: true);
+  }
+
+  test_methodDeclaration_inExtension1() async {
+    // SimpleIdentifier  ExtensionDeclaration  MixinDeclaration
+    addTestSource('extension E on int {const ^Fara();}');
+    await assertOpType(typeNames: true);
+  }
+
+  test_methodDeclaration_inExtension2() async {
+    // SimpleIdentifier  ExtensionDeclaration  MixinDeclaration
+    addTestSource('extension E on int {const F^ara();}');
+    await assertOpType(typeNames: true);
+  }
+
+  test_methodDeclaration_inExtension_returnType() async {
+    // ExtensionDeclaration  CompilationUnit
+    addTestSource('extension E on int {^ zoo(z) { } String name; }');
+    await assertOpType(typeNames: true);
   }
 }

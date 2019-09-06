@@ -23,7 +23,7 @@ class B<T> implements BB {
   }
 }
 
-/*element: method1:implicit=[method1.T],indirect,needsArgs*/
+/*member: method1:implicit=[method1.T],indirect,needsArgs*/
 @pragma('dart2js:noInline')
 method1<T>() {
   return new B<T>().foo();

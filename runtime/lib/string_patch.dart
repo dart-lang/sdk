@@ -219,6 +219,8 @@ abstract class _StringBase implements String {
     return createFromCharCodes(charCodeList, 0, length, bits);
   }
 
+  // Inlining is disabled as a workaround to http://dartbug.com/37800.
+  @pragma("vm:never-inline")
   static String _createOneByteString(List<int> charCodes, int start, int len) {
     // It's always faster to do this in Dart than to call into the runtime.
     var s = _OneByteString._allocate(len);
@@ -248,6 +250,7 @@ abstract class _StringBase implements String {
   int codeUnitAt(int index); // Implemented in the subclasses.
 
   @pragma("vm:exact-result-type", "dart:core#_Smi")
+  @pragma("vm:prefer-inline")
   int get length native "String_getLength";
 
   @pragma("vm:exact-result-type", bool)
@@ -945,10 +948,7 @@ abstract class _StringBase implements String {
 
 @pragma("vm:entry-point")
 class _OneByteString extends _StringBase {
-  factory _OneByteString._uninstantiable() {
-    throw new UnsupportedError(
-        "_OneByteString can only be allocated by the VM");
-  }
+  factory _OneByteString._uninstantiable() { throw "Unreachable"; }
 
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   int get hashCode native "String_getHashCode";
@@ -1254,10 +1254,7 @@ class _OneByteString extends _StringBase {
 
 @pragma("vm:entry-point")
 class _TwoByteString extends _StringBase {
-  factory _TwoByteString._uninstantiable() {
-    throw new UnsupportedError(
-        "_TwoByteString can only be allocated by the VM");
-  }
+  factory _TwoByteString._uninstantiable() { throw "Unreachable"; }
 
   static String _allocateFromTwoByteList(List<int> list, int start, int end)
       native "TwoByteString_allocateFromTwoByteList";
@@ -1277,10 +1274,7 @@ class _TwoByteString extends _StringBase {
 
 @pragma("vm:entry-point")
 class _ExternalOneByteString extends _StringBase {
-  factory _ExternalOneByteString._uninstantiable() {
-    throw new UnsupportedError(
-        "_ExternalOneByteString can only be allocated by the VM");
-  }
+  factory _ExternalOneByteString._uninstantiable() { throw "Unreachable"; }
 
   bool _isWhitespace(int codeUnit) {
     return _StringBase._isOneByteWhitespace(codeUnit);
@@ -1296,10 +1290,7 @@ class _ExternalOneByteString extends _StringBase {
 
 @pragma("vm:entry-point")
 class _ExternalTwoByteString extends _StringBase {
-  factory _ExternalTwoByteString._uninstantiable() {
-    throw new UnsupportedError(
-        "_ExternalTwoByteString can only be allocated by the VM");
-  }
+  factory _ExternalTwoByteString._uninstantiable() { throw "Unreachable"; }
 
   bool _isWhitespace(int codeUnit) {
     return _StringBase._isTwoByteWhitespace(codeUnit);

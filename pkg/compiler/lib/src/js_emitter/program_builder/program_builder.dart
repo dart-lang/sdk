@@ -27,10 +27,16 @@ import '../../js_backend/interceptor_data.dart';
 import '../../js_backend/namer.dart' show Namer, StringBackedName;
 import '../../js_backend/native_data.dart';
 import '../../js_backend/runtime_types.dart'
-    show RuntimeTypesChecks, RuntimeTypesNeed, RuntimeTypesEncoder;
+    show RuntimeTypesChecks, RuntimeTypesEncoder;
+import '../../js_backend/runtime_types_new.dart'
+    show RecipeEncoder, RecipeEncoding;
+import '../../js_backend/runtime_types_resolution.dart' show RuntimeTypesNeed;
 import '../../js_model/elements.dart' show JGeneratorBody, JSignatureMethod;
+import '../../js_model/type_recipe.dart'
+    show FullTypeEnvironmentStructure, TypeExpressionRecipe;
 import '../../native/enqueue.dart' show NativeCodegenEnqueuer;
 import '../../options.dart';
+import '../../universe/class_hierarchy.dart';
 import '../../universe/codegen_world_builder.dart';
 import '../../universe/selector.dart' show Selector;
 import '../../universe/world_builder.dart' show SelectorConstraints;
@@ -69,6 +75,7 @@ class ProgramBuilder {
   final InterceptorData _interceptorData;
   final RuntimeTypesChecks _rtiChecks;
   final RuntimeTypesEncoder _rtiEncoder;
+  final RecipeEncoder _rtiRecipeEncoder;
   final OneShotInterceptorData _oneShotInterceptorData;
   final CustomElementsCodegenAnalysis _customElementsCodegenAnalysis;
   final Map<MemberEntity, js.Expression> _generatedCode;
@@ -97,6 +104,10 @@ class ProgramBuilder {
   /// True if the program should store function types in the metadata.
   bool _storeFunctionTypesInMetadata = false;
 
+  final Set<TypeVariableType> _lateNamedTypeVariablesNewRti = {};
+
+  ClassHierarchy get _classHierarchy => _closedWorld.classHierarchy;
+
   ProgramBuilder(
       this._options,
       this._reporter,
@@ -111,6 +122,7 @@ class ProgramBuilder {
       this._interceptorData,
       this._rtiChecks,
       this._rtiEncoder,
+      this._rtiRecipeEncoder,
       this._oneShotInterceptorData,
       this._customElementsCodegenAnalysis,
       this._generatedCode,
@@ -235,6 +247,10 @@ class ProgramBuilder {
 
     _markEagerClasses();
 
+    if (_options.experimentNewRti) {
+      associateNamedTypeVariablesNewRti();
+    }
+
     List<Holder> holders = _registry.holders.toList(growable: false);
 
     bool needsNativeSupport =
@@ -337,7 +353,6 @@ class ProgramBuilder {
 
   js.Expression _buildTypeToInterceptorMap() {
     InterceptorStubGenerator stubGenerator = new InterceptorStubGenerator(
-        _options,
         _commonElements,
         _task.emitter,
         _nativeCodegenEnqueuer,
@@ -802,6 +817,7 @@ class ProgramBuilder {
           callStubs,
           checkedSetters,
           isChecks,
+          _rtiChecks.requiredChecks[cls],
           typeTests.functionTypeIndex,
           isDirectlyInstantiated: isInstantiated,
           hasRtiField: hasRtiField,
@@ -818,6 +834,7 @@ class ProgramBuilder {
           noSuchMethodStubs,
           checkedSetters,
           isChecks,
+          _rtiChecks.requiredChecks[cls],
           typeTests.functionTypeIndex,
           isDirectlyInstantiated: isInstantiated,
           hasRtiField: hasRtiField,
@@ -829,6 +846,18 @@ class ProgramBuilder {
     }
     _classes[cls] = result;
     return result;
+  }
+
+  void associateNamedTypeVariablesNewRti() {
+    for (TypeVariableType typeVariable in _codegenWorld.namedTypeVariablesNewRti
+        .union(_lateNamedTypeVariablesNewRti)) {
+      for (ClassEntity entity
+          in _classHierarchy.subtypesOf(typeVariable.element.typeDeclaration)) {
+        Class cls = _classes[entity];
+        if (cls == null) continue;
+        cls.namedTypeVariablesNewRti.add(typeVariable);
+      }
+    }
   }
 
   bool _methodNeedsStubs(FunctionEntity method) {
@@ -921,7 +950,8 @@ class ProgramBuilder {
     js.Expression functionType;
     if (canTearOff) {
       OutputUnit outputUnit = _outputUnitData.outputUnitForMember(element);
-      functionType = _generateFunctionType(memberType, outputUnit);
+      functionType =
+          _generateFunctionType(element.enclosingClass, memberType, outputUnit);
     }
 
     FunctionEntity method = element;
@@ -950,12 +980,22 @@ class ProgramBuilder {
         applyIndex: applyIndex);
   }
 
-  js.Expression _generateFunctionType(
+  js.Expression _generateFunctionType(ClassEntity /*?*/ enclosingClass,
       FunctionType type, OutputUnit outputUnit) {
     if (type.containsTypeVariables) {
-      js.Expression thisAccess = js.js(r'this.$receiver');
-      return _rtiEncoder.getSignatureEncoding(
-          _namer, _task.emitter, type, thisAccess);
+      if (_options.experimentNewRti) {
+        RecipeEncoding encoding = _rtiRecipeEncoder.encodeRecipe(
+            _task.emitter,
+            FullTypeEnvironmentStructure(
+                classType: _elementEnvironment.getThisType(enclosingClass)),
+            TypeExpressionRecipe(type));
+        _lateNamedTypeVariablesNewRti.addAll(encoding.typeVariables);
+        return encoding.recipe;
+      } else {
+        js.Expression thisAccess = js.js(r'this.$receiver');
+        return _rtiEncoder.getSignatureEncoding(
+            _namer, _task.emitter, type, thisAccess);
+      }
     } else {
       return _task.metadataCollector.reifyType(type, outputUnit);
     }
@@ -970,6 +1010,7 @@ class ProgramBuilder {
         _task.nativeEmitter,
         _namer,
         _rtiEncoder,
+        _options.experimentNewRti ? _rtiRecipeEncoder : null,
         _nativeData,
         _interceptorData,
         _codegenWorld,
@@ -1010,7 +1051,6 @@ class ProgramBuilder {
 
   Iterable<StaticStubMethod> _generateGetInterceptorMethods() {
     InterceptorStubGenerator stubGenerator = new InterceptorStubGenerator(
-        _options,
         _commonElements,
         _task.emitter,
         _nativeCodegenEnqueuer,
@@ -1115,7 +1155,6 @@ class ProgramBuilder {
 
   Iterable<StaticStubMethod> _generateOneShotInterceptors() {
     InterceptorStubGenerator stubGenerator = new InterceptorStubGenerator(
-        _options,
         _commonElements,
         _task.emitter,
         _nativeCodegenEnqueuer,
@@ -1176,7 +1215,7 @@ class ProgramBuilder {
     DartType type = _elementEnvironment.getFunctionType(element);
     if (needsTearOff) {
       OutputUnit outputUnit = _outputUnitData.outputUnitForMember(element);
-      functionType = _generateFunctionType(type, outputUnit);
+      functionType = _generateFunctionType(null, type, outputUnit);
     }
 
     FunctionEntity method = element;

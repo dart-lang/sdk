@@ -1,20 +1,18 @@
 main = #lib::main;
  [@vm.bytecode=
-ComponentBytecodeMetadata {
-
+BytecodeMetadata {
 Bytecode (version: stable)
 Main library: #lib
+Library '#lib'
+    name '#lib'
+    script '#lib'
 
-}
-] [@vm.bytecode=
-MembersBytecodeMetadata {
+Class '', script = '#lib'
 
-Members {
 
 Function 'foo1', static, reflectable, debuggable
     parameters [dart:core::int 'x'] (required: 1)
     return-type dart:core::int
-
 
 Bytecode {
   Entry                2
@@ -61,7 +59,6 @@ ConstantPool {
 Function 'foo2', static, reflectable, debuggable
     parameters [dart:core::int 'x'] (required: 1)
     return-type dart:core::int
-
 
 Bytecode {
   Entry                2
@@ -120,7 +117,6 @@ Function 'foo3', static, reflectable, debuggable
     parameters [dart:core::int 'x'] (required: 1)
     return-type dart:core::int
 
-
 Bytecode {
   Entry                2
   CheckStack           0
@@ -178,7 +174,6 @@ Function 'main', static, reflectable, debuggable
     parameters [] (required: 0)
     return-type dynamic
 
-
 Bytecode {
   Entry                0
   CheckStack           0
@@ -188,29 +183,28 @@ Bytecode {
 ConstantPool {
 }
 
-}
 
 }
 ]library #lib from "#lib" as #lib {
 
-  static method foo1(dart.core::int x) → dart.core::int {
-    dart.core::int y;
+  static method foo1(dart.core::int* x) → dart.core::int* {
+    dart.core::int* y;
     #L1:
     switch(x) {
       #L2:
-      case 1:
+      case #C1:
         {
           y = 11;
           break #L1;
         }
       #L3:
-      case 2:
+      case #C2:
         {
           y = 22;
           break #L1;
         }
       #L4:
-      case 3:
+      case #C3:
         {
           y = 33;
           break #L1;
@@ -218,22 +212,22 @@ ConstantPool {
     }
     return y;
   }
-  static method foo2(dart.core::int x) → dart.core::int {
-    dart.core::int y;
+  static method foo2(dart.core::int* x) → dart.core::int* {
+    dart.core::int* y;
     #L5:
     switch(x) {
       #L6:
-      case 1:
-      case 2:
-      case 3:
+      case #C1:
+      case #C2:
+      case #C3:
         {
           y = 11;
           break #L5;
         }
       #L7:
-      case 4:
-      case 5:
-      case 6:
+      case #C4:
+      case #C5:
+      case #C6:
         {
           y = 22;
           break #L5;
@@ -246,21 +240,21 @@ ConstantPool {
     }
     return y;
   }
-  static method foo3(dart.core::int x) → dart.core::int {
-    dart.core::int y;
+  static method foo3(dart.core::int* x) → dart.core::int* {
+    dart.core::int* y;
     switch(x) {
       #L9:
-      case 1:
-      case 2:
-      case 3:
+      case #C1:
+      case #C2:
+      case #C3:
         {
           y = 11;
           continue #L10;
         }
       #L10:
-      case 4:
-      case 5:
-      case 6:
+      case #C4:
+      case #C5:
+      case #C6:
         {
           y = 22;
           return 42;
@@ -274,4 +268,12 @@ ConstantPool {
     return y;
   }
   static method main() → dynamic {}
+}
+constants  {
+  #C1 = 1
+  #C2 = 2
+  #C3 = 3
+  #C4 = 4
+  #C5 = 5
+  #C6 = 6
 }

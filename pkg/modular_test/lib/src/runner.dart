@@ -100,7 +100,7 @@ class Options {
         exit(1);
       }
     }
-    Uri toUri(s) => s == null ? null : Uri.base.resolve(s);
+    Uri toUri(s) => s == null ? null : Uri.base.resolveUri(Uri.file(s));
     return Options()
       ..showSkipped = argResults['show-skipped']
       ..verbose = argResults['verbose']

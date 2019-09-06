@@ -59,7 +59,7 @@ Below is a list of LSP methods and their implementation status.
 | textDocument/didClose | ✅ | ✅ | ✅ | ✅ |
 | textDocument/publishDiagnostics | ✅ | ✅ | ✅ | ✅ |
 | textDocument/completion | ✅ | ✅ | ✅ | ✅ |
-| completionItem/resolve | | | | | not required |
+| completionItem/resolve | ✅ | ✅ | ✅ | ✅ |
 | textDocument/hover | ✅ | ✅ | ✅ | ✅ |
 | textDocument/signatureHelp | ✅ | ✅ | ✅ | ✅ | trigger character handling outstanding
 | textDocument/declaration | | | | |
@@ -71,7 +71,7 @@ Below is a list of LSP methods and their implementation status.
 | textDocument/documentSymbol | ✅ | ✅ | ✅ | ✅ |
 | textDocument/codeAction (sortMembers) | ✅ | ✅ | ✅ | ✅ |
 | textDocument/codeAction (organiseImports) | ✅ | ✅ | ✅ | ✅ |
-| textDocument/codeAction (refactors) | | | | | <!-- Only if the client advertises `codeActionLiteralSupport` with Refactors -->
+| textDocument/codeAction (refactors) | ✅ | ✅ | ✅ | ✅ |
 | textDocument/codeAction (assists) | ✅ | ✅ | ✅ | ✅ | Only if the client advertises `codeActionLiteralSupport` with `Refactor`
 | textDocument/codeAction (fixes) | ✅ | ✅ | ✅ | ✅ | Only if the client advertises `codeActionLiteralSupport` with `QuickFix`
 | textDocument/codeLens | | | | |
@@ -84,7 +84,7 @@ Below is a list of LSP methods and their implementation status.
 | textDocument/rangeFormatting | | | | | requires support from dart_style?
 | textDocument/onTypeFormatting | ✅ | ✅ | ✅ | ✅ |
 | textDocument/rename | ✅ | ✅ | ✅ | ✅ |
-| textDocument/prepareRename | | | | |
+| textDocument/prepareRename | ✅ | ✅ | ✅ | ✅ |
 | textDocument/foldingRange | ✅ | ✅ | ✅ | ✅ |
 
 ## Custom Methods

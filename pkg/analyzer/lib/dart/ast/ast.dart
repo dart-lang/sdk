@@ -378,12 +378,6 @@ abstract class AstNode implements SyntacticEntity {
   /// Return the token before [target] or `null` if it cannot be found.
   Token findPrevious(Token target);
 
-  /// Return the most immediate ancestor of this node for which the [predicate]
-  /// returns `true`, or `null` if there is no such ancestor. Note that this
-  /// node will never be returned.
-  @deprecated
-  E getAncestor<E extends AstNode>(Predicate<AstNode> predicate);
-
   /// Return the value of the property with the given [name], or `null` if this
   /// node does not have a property with the given name.
   E getProperty<E>(String name);
@@ -502,6 +496,8 @@ abstract class AstVisitor<R> {
 
   R visitExtensionDeclaration(ExtensionDeclaration node);
 
+  R visitExtensionOverride(ExtensionOverride node);
+
   R visitFieldDeclaration(FieldDeclaration node);
 
   R visitFieldFormalParameter(FieldFormalParameter node);
@@ -519,9 +515,6 @@ abstract class AstVisitor<R> {
   R visitForPartsWithExpression(ForPartsWithExpression node);
 
   R visitForStatement(ForStatement node);
-
-  @Deprecated('Replaced by visitForStatement')
-  R visitForStatement2(ForStatement2 node);
 
   R visitFunctionDeclaration(FunctionDeclaration node);
 
@@ -996,7 +989,10 @@ abstract class ClassDeclaration implements ClassOrMixinDeclaration {
   ConstructorDeclaration getConstructor(String name);
 }
 
-/// A node that declares a name within the scope of a class.
+/// A node that declares a name within the scope of a class declarations.
+///
+/// When the 'extension-methods' experiment is enabled, these nodes can also be
+/// located inside extension declarations.
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ClassMember implements Declaration {}
@@ -1050,6 +1046,9 @@ abstract class ClassTypeAlias implements TypeAlias {
 
   /// Set the token for the 'abstract' keyword to the given [token].
   void set abstractKeyword(Token token);
+
+  @override
+  ClassElement get declaredElement;
 
   /// Return the token for the '=' separating the name from the definition.
   Token get equals;
@@ -2113,11 +2112,14 @@ abstract class ExtendsClause implements AstNode {
 /// The declaration of an extension of a type.
 ///
 ///    extension ::=
-///        'extension' [SimpleIdentifier] [TypeParameterList]?
+///        'extension' [SimpleIdentifier]? [TypeParameterList]?
 ///        'on' [TypeAnnotation] '{' [ClassMember]* '}'
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class ExtensionDeclaration implements NamedCompilationUnitMember {
+abstract class ExtensionDeclaration implements CompilationUnitMember {
+  @override
+  ExtensionElement get declaredElement;
+
   /// Return the type that is being extended.
   TypeAnnotation get extendedType;
 
@@ -2130,6 +2132,10 @@ abstract class ExtensionDeclaration implements NamedCompilationUnitMember {
   /// Return the members being added to the extended class.
   NodeList<ClassMember> get members;
 
+  /// Return the name of the extension, or `null` if the extension does not have
+  /// a name.
+  SimpleIdentifier get name;
+
   /// Return the token representing the 'on' keyword.
   Token get onKeyword;
 
@@ -2141,10 +2147,54 @@ abstract class ExtensionDeclaration implements NamedCompilationUnitMember {
   TypeParameterList get typeParameters;
 }
 
+/// An override to force resolution to choose a member from a specific
+/// extension.
+///
+///    extensionOverride ::=
+///        [Identifier] [TypeArgumentList]? [ArgumentList]
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class ExtensionOverride implements Expression {
+  /// Return the list of arguments to the override. In valid code this will
+  /// contain a single argument, which evaluates to the object being extended.
+  ArgumentList get argumentList;
+
+  /// Return the actual type extended by this override, produced by applying
+  /// [typeArgumentTypes] to the generic type extended by the extension.
+  ///
+  /// Return `null` if the AST structure has not been resolved.
+  DartType get extendedType;
+
+  /// Return the name of the extension being selected.
+  Identifier get extensionName;
+
+  /// Return the forced extension element.
+  ///
+  /// Return `null` if the AST structure has not been resolved.
+  ExtensionElement get staticElement;
+
+  /// Return the type arguments to be applied to the extension, or `null` if no
+  /// type arguments were provided.
+  TypeArgumentList get typeArguments;
+
+  /// Return the actual type arguments to be applied to the extension, either
+  /// explicitly specified in [typeArguments], or inferred.
+  ///
+  /// If the AST has been resolved, never returns `null`, returns an empty list
+  /// if the extension does not have type parameters.
+  ///
+  /// Return `null` if the AST structure has not been resolved.
+  List<DartType> get typeArgumentTypes;
+}
+
 /// The declaration of one or more fields of the same type.
 ///
 ///    fieldDeclaration ::=
 ///        'static'? [VariableDeclarationList] ';'
+///
+/// Prior to the 'extension-methods' experiment, these nodes were always
+/// children of a class declaration. When the experiment is enabled, these nodes
+/// can also be children of an extension declaration.
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FieldDeclaration implements ClassMember {
@@ -2532,26 +2582,6 @@ abstract class ForStatement implements Statement {
   /// Return the right parenthesis.
   Token get rightParenthesis;
 }
-
-/// A for or for-each statement.
-///
-///    forStatement ::=
-///        'for' '(' forLoopParts ')' [Statement]
-///
-///    forLoopParts ::=
-///       [VariableDeclaration] ';' [Expression]? ';' expressionList?
-///     | [Expression]? ';' [Expression]? ';' expressionList?
-///     | [DeclaredIdentifier] 'in' [Expression]
-///     | [SimpleIdentifier] 'in' [Expression]
-///
-/// This is the class that is used to represent a for loop when either the
-/// 'control-flow-collections' or 'spread-collections' experiments are enabled.
-/// If neither of those experiments are enabled, then either `ForStatement` or
-/// `ForEachStatement` will be used.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Replaced by ForStatement')
-abstract class ForStatement2 extends ForStatement {}
 
 /// A node representing the body of a function or method.
 ///
@@ -3646,10 +3676,6 @@ abstract class ListLiteral implements TypedLiteral {
   /// Return the syntactic elements used to compute the elements of the list.
   NodeList<CollectionElement> get elements;
 
-  /// Return the syntactic elements used to compute the elements of the list.
-  @Deprecated('Replaced by elements')
-  NodeList<CollectionElement> get elements2;
-
   /// Return the left square bracket.
   Token get leftBracket;
 
@@ -3719,6 +3745,10 @@ abstract class MapLiteralEntry implements CollectionElement {
 ///    methodName ::=
 ///        [SimpleIdentifier]
 ///      | 'operator' [SimpleIdentifier]
+///
+/// Prior to the 'extension-methods' experiment, these nodes were always
+/// children of a class declaration. When the experiment is enabled, these nodes
+/// can also be children of an extension declaration.
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class MethodDeclaration implements ClassMember {
@@ -4522,11 +4552,6 @@ abstract class SetOrMapLiteral implements TypedLiteral {
   /// map.
   NodeList<CollectionElement> get elements;
 
-  /// Return the syntactic elements used to compute the elements of the set or
-  /// map.
-  @Deprecated('Replaced by elements')
-  NodeList<CollectionElement> get elements2;
-
   /// Return `true` if this literal represents a map literal.
   ///
   /// This getter will always return `false` if [isSet] returns `true`.
@@ -4643,6 +4668,18 @@ abstract class SimpleIdentifier implements Identifier {
   /// Set the element associated with this identifier based on static type
   /// information to the given [element].
   void set staticElement(Element element);
+
+  /// If the identifier is a tear-off, return the inferred type arguments
+  /// applied to the function type of the element to produce its [staticType].
+  ///
+  /// Return an empty list if the function type does not have type parameters.
+  ///
+  /// Return an empty list if the context type has type parameters.
+  ///
+  /// Return `null` if not a tear-off.
+  ///
+  /// Return `null` if the AST structure has not been resolved.
+  List<DartType> get tearOffTypeArgumentTypes;
 
   /// Return the token representing the identifier.
   Token get token;

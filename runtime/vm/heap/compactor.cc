@@ -213,11 +213,19 @@ void GCCompactor::Compact(HeapPage* pages,
     // objects move and all pages that used to have an object are released.
     // This can be helpful for finding untracked pointers because it prevents
     // an untracked pointer from getting lucky with its target not moving.
-    for (intptr_t task_index = 0; task_index < num_tasks; task_index++) {
+    bool oom = false;
+    for (intptr_t task_index = 0; task_index < num_tasks && !oom;
+         task_index++) {
       const intptr_t pages_per_task = num_pages / num_tasks;
       for (intptr_t j = 0; j < pages_per_task; j++) {
         HeapPage* page = heap_->old_space()->AllocatePage(HeapPage::kData,
                                                           /* link */ false);
+
+        if (page == nullptr) {
+          oom = true;
+          break;
+        }
+
         FreeListElement::AsElement(page->object_start(),
                                    page->object_end() - page->object_start());
 
@@ -234,9 +242,9 @@ void GCCompactor::Compact(HeapPage* pages,
     intptr_t next_forwarding_task = 0;
 
     for (intptr_t task_index = 0; task_index < num_tasks; task_index++) {
-      Dart::thread_pool()->Run(new CompactorTask(
+      Dart::thread_pool()->Run<CompactorTask>(
           thread()->isolate(), this, &barrier, &next_forwarding_task,
-          heads[task_index], &tails[task_index], freelist));
+          heads[task_index], &tails[task_index], freelist);
     }
 
     // Plan pages.

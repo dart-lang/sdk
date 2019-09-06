@@ -149,6 +149,7 @@ class AssistProcessor {
     await _addProposal_splitAndCondition();
     await _addProposal_splitVariableDeclaration();
     await _addProposal_surroundWith();
+    await _addProposal_useCurlyBraces();
 
     if (experimentStatus.control_flow_collections) {
       await _addProposal_convertConditionalExpressionToIfElement();
@@ -221,7 +222,7 @@ class AssistProcessor {
   }
 
   void _addAssistFromBuilder(DartChangeBuilder builder, AssistKind kind,
-      {List args: null}) {
+      {List args = null}) {
     SourceChange change = builder.sourceChange;
     if (change.edits.isEmpty) {
       _coverageMarker();
@@ -847,7 +848,7 @@ class AssistProcessor {
         node.offset > creation.argumentList.offset ||
         creation.staticType.element != typeProvider.listType.element ||
         creation.constructorName.name != null ||
-        creation.argumentList.arguments.length > 0) {
+        creation.argumentList.arguments.isNotEmpty) {
       _coverageMarker();
       return;
     }
@@ -971,7 +972,8 @@ class AssistProcessor {
       return;
     }
     ConstructorElement element = creation.staticElement;
-    if (element.name != 'fromIterable' ||
+    if (element == null ||
+        element.name != 'fromIterable' ||
         element.enclosingElement != typeProvider.mapType.element) {
       _coverageMarker();
       return;
@@ -2315,9 +2317,9 @@ class AssistProcessor {
       /// Replace code between [replaceOffset] and [replaceEnd] with
       /// `createState()`, empty line, or nothing.
       void replaceInterval(int replaceEnd,
-          {bool replaceWithEmptyLine: false,
-          bool hasEmptyLineBeforeCreateState: false,
-          bool hasEmptyLineAfterCreateState: true}) {
+          {bool replaceWithEmptyLine = false,
+          bool hasEmptyLineBeforeCreateState = false,
+          bool hasEmptyLineAfterCreateState = true}) {
         int replaceLength = replaceEnd - replaceOffset;
         builder.addReplacement(
           new SourceRange(replaceOffset, replaceLength),
@@ -2661,11 +2663,11 @@ class AssistProcessor {
   }
 
   Future<void> _addProposal_flutterWrapWidgetImpl(
-      {AssistKind kind: DartAssistKind.FLUTTER_WRAP_GENERIC,
+      {AssistKind kind = DartAssistKind.FLUTTER_WRAP_GENERIC,
       bool Function(Expression widgetExpr) widgetValidator,
       String parentLibraryUri,
       String parentClassName,
-      List<String> leadingLines: const []}) async {
+      List<String> leadingLines = const []}) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     Expression widgetExpr = flutter.identifyWidgetExpression(node);
@@ -3748,6 +3750,12 @@ class AssistProcessor {
           selectedStatements.add(selectedNode);
         }
       }
+      // we want only statements in blocks
+      for (var statement in selectedStatements) {
+        if (statement.parent is! Block) {
+          return;
+        }
+      }
       // we want only statements
       if (selectedStatements.isEmpty ||
           selectedStatements.length != selectedNodes.length) {
@@ -3937,6 +3945,132 @@ class AssistProcessor {
       });
       _addAssistFromBuilder(
           changeBuilder, DartAssistKind.SURROUND_WITH_TRY_FINALLY);
+    }
+  }
+
+  Future<void> _addProposal_useCurlyBraces() async {
+    Future<void> doStatement(DoStatement node) async {
+      var body = node.body;
+      if (body is Block) return;
+
+      var prefix = utils.getLinePrefix(node.offset);
+      var indent = prefix + utils.getIndent(1);
+
+      var changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (builder) {
+        builder.addSimpleReplacement(
+          range.endStart(node.doKeyword, body),
+          ' {$eol$indent',
+        );
+        builder.addSimpleReplacement(
+          range.endStart(body, node.whileKeyword),
+          '$eol$prefix} ',
+        );
+      });
+
+      _addAssistFromBuilder(changeBuilder, DartAssistKind.USE_CURLY_BRACES);
+    }
+
+    Future<void> forStatement(ForStatement node) async {
+      var body = node.body;
+      if (body is Block) return;
+
+      var prefix = utils.getLinePrefix(node.offset);
+      var indent = prefix + utils.getIndent(1);
+
+      var changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (builder) {
+        builder.addSimpleReplacement(
+          range.endStart(node.rightParenthesis, body),
+          ' {$eol$indent',
+        );
+        builder.addSimpleInsertion(body.end, '$eol$prefix}');
+      });
+
+      _addAssistFromBuilder(changeBuilder, DartAssistKind.USE_CURLY_BRACES);
+    }
+
+    Future<void> ifStatement(IfStatement node, Statement thenOrElse) async {
+      var prefix = utils.getLinePrefix(node.offset);
+      var indent = prefix + utils.getIndent(1);
+
+      var changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (builder) {
+        var thenStatement = node.thenStatement;
+        if (thenStatement is! Block &&
+            (thenOrElse == null || thenOrElse == thenStatement)) {
+          builder.addSimpleReplacement(
+            range.endStart(node.rightParenthesis, thenStatement),
+            ' {$eol$indent',
+          );
+          if (node.elseKeyword != null) {
+            builder.addSimpleReplacement(
+              range.endStart(thenStatement, node.elseKeyword),
+              '$eol$prefix} ',
+            );
+          } else {
+            builder.addSimpleInsertion(thenStatement.end, '$eol$prefix}');
+          }
+        }
+
+        var elseStatement = node.elseStatement;
+        if (elseStatement != null &&
+            elseStatement is! Block &&
+            (thenOrElse == null || thenOrElse == elseStatement)) {
+          builder.addSimpleReplacement(
+            range.endStart(node.elseKeyword, elseStatement),
+            ' {$eol$indent',
+          );
+          builder.addSimpleInsertion(elseStatement.end, '$eol$prefix}');
+        }
+      });
+
+      _addAssistFromBuilder(changeBuilder, DartAssistKind.USE_CURLY_BRACES);
+    }
+
+    Future<void> whileStatement(WhileStatement node) async {
+      var body = node.body;
+      if (body is Block) return;
+
+      var prefix = utils.getLinePrefix(node.offset);
+      var indent = prefix + utils.getIndent(1);
+
+      var changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (builder) {
+        builder.addSimpleReplacement(
+          range.endStart(node.rightParenthesis, body),
+          ' {$eol$indent',
+        );
+        builder.addSimpleInsertion(body.end, '$eol$prefix}');
+      });
+
+      _addAssistFromBuilder(changeBuilder, DartAssistKind.USE_CURLY_BRACES);
+    }
+
+    var statement = this.node.thisOrAncestorOfType<Statement>();
+    var parent = statement?.parent;
+
+    if (statement is DoStatement) {
+      return doStatement(statement);
+    } else if (parent is DoStatement) {
+      return doStatement(parent);
+    } else if (statement is ForStatement) {
+      return forStatement(statement);
+    } else if (parent is ForStatement) {
+      return forStatement(parent);
+    } else if (statement is IfStatement) {
+      if (statement.elseKeyword != null &&
+          range.token(statement.elseKeyword).contains(selectionOffset)) {
+        return ifStatement(statement, statement.elseStatement);
+      } else {
+        return ifStatement(statement, null);
+      }
+    } else if (parent is IfStatement) {
+      return ifStatement(parent, statement);
+    } else if (statement is WhileStatement) {
+      return whileStatement(statement);
+    } else if (parent is WhileStatement) {
+      return whileStatement(parent);
     }
   }
 
@@ -4165,7 +4299,7 @@ class AssistProcessor {
   /// placed inside curly braces, would lexically make the resulting literal a
   /// set literal rather than a map literal.
   bool _listHasUnambiguousElement(AstNode node) {
-    if (node is ListLiteral && node.elements.length > 0) {
+    if (node is ListLiteral && node.elements.isNotEmpty) {
       for (CollectionElement element in node.elements) {
         if (_isUnambiguousElement(element)) {
           return true;

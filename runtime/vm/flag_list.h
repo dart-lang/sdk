@@ -32,6 +32,12 @@ constexpr bool kDartPrecompiledRuntime = true;
 constexpr bool kDartPrecompiledRuntime = false;
 #endif
 
+#if defined(DART_USE_BYTECODE)
+constexpr bool kDartUseBytecode = true;
+#else
+constexpr bool kDartUseBytecode = false;
+#endif
+
 // List of all flags in the VM.
 // Flags can be one of three categories:
 // * P roduct flags: Can be set in any of the deployment modes, including in
@@ -79,6 +85,8 @@ constexpr bool kDartPrecompiledRuntime = false;
   R(disable_alloc_stubs_after_gc, false, bool, false, "Stress testing flag.")  \
   R(disassemble, false, bool, false, "Disassemble dart code.")                 \
   R(disassemble_optimized, false, bool, false, "Disassemble optimized code.")  \
+  R(disassemble_relative, false, bool, false,                                  \
+    "Use offsets instead of absolute PCs")                                     \
   R(dump_megamorphic_stats, false, bool, false,                                \
     "Dump megamorphic cache statistics")                                       \
   R(dump_symbol_stats, false, bool, false, "Dump symbol table statistics")     \
@@ -189,7 +197,7 @@ constexpr bool kDartPrecompiledRuntime = false;
   D(trace_zones, bool, false, "Traces allocation sizes in the zone.")          \
   P(truncating_left_shift, bool, true,                                         \
     "Optimize left shift to truncate if possible")                             \
-  P(use_bytecode_compiler, bool, false, "Compile from bytecode")               \
+  P(use_bytecode_compiler, bool, kDartUseBytecode, "Compile from bytecode")    \
   P(use_compactor, bool, false, "Compact the heap during old-space GC.")       \
   P(use_cha_deopt, bool, true,                                                 \
     "Use class hierarchy analysis even if it can cause deoptimization.")       \

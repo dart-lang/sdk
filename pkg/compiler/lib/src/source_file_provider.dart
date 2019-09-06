@@ -9,6 +9,8 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
+import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
+
 import '../compiler.dart' as api show Diagnostic;
 import '../compiler_new.dart' as api;
 import '../compiler_new.dart';
@@ -16,7 +18,6 @@ import 'colors.dart' as colors;
 import 'dart2js.dart' show AbortLeg;
 import 'filenames.dart';
 import 'io/source_file.dart';
-import 'util/uri_extras.dart';
 
 abstract class SourceFileProvider implements CompilerInput {
   bool isWindows = (Platform.operatingSystem == 'windows');
@@ -107,7 +108,7 @@ abstract class SourceFileProvider implements CompilerInput {
         .getUrl(resourceUri)
         .then((HttpClientRequest request) => request.close())
         .then((HttpClientResponse response) {
-      if (response.statusCode != HttpStatus.OK) {
+      if (response.statusCode != HttpStatus.ok) {
         String msg = 'Failure getting $resourceUri: '
             '${response.statusCode} ${response.reasonPhrase}';
         throw msg;
@@ -145,7 +146,7 @@ abstract class SourceFileProvider implements CompilerInput {
     throw "unimplemented";
   }
 
-  relativizeUri(Uri uri) => relativize(cwd, uri, isWindows);
+  relativizeUri(Uri uri) => fe.relativizeUri(cwd, uri, isWindows);
 
   SourceFile<List<int>> getUtf8SourceFile(Uri resourceUri) {
     return utf8SourceFiles[resourceUri];
@@ -384,12 +385,13 @@ class RandomAccessFileOutputProvider implements CompilerOutput {
 
     RandomAccessFile output;
     try {
-      output = new File(uri.toFilePath()).openSync(mode: FileMode.WRITE);
+      output = new File(uri.toFilePath()).openSync(mode: FileMode.write);
     } on FileSystemException catch (e) {
       onFailure('$e');
     }
 
-    allOutputFiles.add(relativize(currentDirectory, uri, Platform.isWindows));
+    allOutputFiles
+        .add(fe.relativizeUri(currentDirectory, uri, Platform.isWindows));
 
     int charactersWritten = 0;
 
@@ -424,7 +426,8 @@ class RandomAccessFileOutputProvider implements CompilerOutput {
   BinaryOutputSink createBinarySink(Uri uri) {
     uri = currentDirectory.resolveUri(uri);
 
-    allOutputFiles.add(relativize(currentDirectory, uri, Platform.isWindows));
+    allOutputFiles
+        .add(fe.relativizeUri(currentDirectory, uri, Platform.isWindows));
 
     if (uri.scheme != 'file') {
       onFailure('Unhandled scheme ${uri.scheme} in $uri.');
@@ -432,7 +435,7 @@ class RandomAccessFileOutputProvider implements CompilerOutput {
 
     RandomAccessFile output;
     try {
-      output = new File(uri.toFilePath()).openSync(mode: FileMode.WRITE);
+      output = new File(uri.toFilePath()).openSync(mode: FileMode.write);
     } on FileSystemException catch (e) {
       onFailure('$e');
     }

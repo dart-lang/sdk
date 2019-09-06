@@ -11,14 +11,14 @@ class C<T> {
   C._();
 
   factory C(T t) {
-    var /*@type=C<C::•::T>*/ x = new C<T>._();
+    var /*@ type=C<C::•::T*>* */ x = new C<T>._();
     x. /*@target=C::t*/ t = t;
     return x;
   }
 }
 
 test() {
-  var /*@type=C<int>*/ x = new /*@typeArgs=int*/ C(42);
+  var /*@ type=C<int*>* */ x = new /*@ typeArgs=int* */ C(42);
   x. /*@target=C::t*/ t = /*error:INVALID_ASSIGNMENT*/ 'hello';
 }
 

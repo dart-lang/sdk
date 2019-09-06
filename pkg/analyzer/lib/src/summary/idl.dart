@@ -118,6 +118,10 @@ abstract class AnalysisDriverSubtype extends base.SummaryClass {
 
 /// Information about an error in a resolved unit.
 abstract class AnalysisDriverUnitError extends base.SummaryClass {
+  /// The context messages associated with the error.
+  @Id(5)
+  List<DiagnosticMessage> get contextMessages;
+
   /// The optional correction hint for the error.
   @Id(4)
   String get correction;
@@ -295,73 +299,79 @@ abstract class AvailableDeclaration extends base.SummaryClass {
   List<AvailableDeclaration> get children;
 
   @Id(1)
-  String get defaultArgumentListString;
+  int get codeLength;
 
   @Id(2)
-  List<int> get defaultArgumentListTextRanges;
+  int get codeOffset;
 
   @Id(3)
-  String get docComplete;
+  String get defaultArgumentListString;
 
   @Id(4)
-  String get docSummary;
+  List<int> get defaultArgumentListTextRanges;
 
   @Id(5)
-  int get fieldMask;
+  String get docComplete;
 
   @Id(6)
-  bool get isAbstract;
+  String get docSummary;
 
   @Id(7)
-  bool get isConst;
+  int get fieldMask;
 
   @Id(8)
-  bool get isDeprecated;
+  bool get isAbstract;
 
   @Id(9)
+  bool get isConst;
+
+  @Id(10)
+  bool get isDeprecated;
+
+  @Id(11)
   bool get isFinal;
 
   /// The kind of the declaration.
-  @Id(10)
+  @Id(12)
   AvailableDeclarationKind get kind;
 
-  @Id(11)
+  @Id(13)
   int get locationOffset;
 
-  @Id(12)
+  @Id(14)
   int get locationStartColumn;
 
-  @Id(13)
+  @Id(15)
   int get locationStartLine;
 
   /// The first part of the declaration name, usually the only one, for example
   /// the name of a class like `MyClass`, or a function like `myFunction`.
-  @Id(14)
+  @Id(16)
   String get name;
 
-  @Id(15)
+  @Id(17)
   List<String> get parameterNames;
 
-  @Id(16)
+  @Id(18)
   String get parameters;
 
-  @Id(17)
+  @Id(19)
   List<String> get parameterTypes;
 
   /// The partial list of relevance tags.  Not every declaration has one (for
   /// example, function do not currently), and not every declaration has to
   /// store one (for classes it can be computed when we know the library that
   /// includes this file).
-  @Id(18)
+  @Id(20)
   List<String> get relevanceTags;
 
-  @Id(19)
+  @Id(21)
   int get requiredParameterCount;
 
-  @Id(20)
+  @Id(22)
   String get returnType;
 
-  @Id(21)
+  @Id(23)
   String get typeParameters;
 }
 
@@ -372,9 +382,12 @@ enum AvailableDeclarationKind {
   CONSTRUCTOR,
   ENUM,
   ENUM_CONSTANT,
+  EXTENSION,
+  FIELD,
   FUNCTION,
   FUNCTION_TYPE_ALIAS,
   GETTER,
+  METHOD,
   MIXIN,
   SETTER,
   VARIABLE
@@ -391,23 +404,28 @@ abstract class AvailableFile extends base.SummaryClass {
   List<AvailableDeclaration> get declarations;
 
   /// The Dartdoc directives in the file.
-  @Id(5)
+  @Id(1)
   DirectiveInfo get directiveInfo;
 
   /// Exports directives of the file.
-  @Id(1)
+  @Id(2)
   List<AvailableFileExport> get exports;
 
   /// Is `true` if this file is a library.
-  @Id(2)
+  @Id(3)
   bool get isLibrary;
 
   /// Is `true` if this file is a library, and it is deprecated.
-  @Id(3)
+  @Id(4)
   bool get isLibraryDeprecated;
 
+  /// Offsets of the first character of each line in the source code.
+  @informative
+  @Id(5)
+  List<int> get lineStarts;
+
   /// URIs of `part` directives.
-  @Id(4)
+  @Id(6)
   List<String> get parts;
 }
 
@@ -441,6 +459,25 @@ abstract class CodeRange extends base.SummaryClass {
 
   /// Offset of the element code relative to the beginning of the file.
   @Id(0)
+  int get offset;
+}
+
+abstract class DiagnosticMessage extends base.SummaryClass {
+  /// The absolute and normalized path of the file associated with this message.
+  @Id(0)
+  String get filePath;
+
+  /// The length of the source range associated with this message.
+  @Id(1)
+  int get length;
+
+  /// The text of the message.
+  @Id(2)
+  String get message;
+
+  /// The zero-based offset from the start of the file to the beginning of the
+  /// source range associated with this message.
+  @Id(3)
   int get offset;
 }
 
@@ -830,6 +867,7 @@ abstract class LinkedNode extends base.SummaryClass {
     LinkedNodeKind.enumDeclaration,
     LinkedNodeKind.enumConstantDeclaration,
     LinkedNodeKind.exportDirective,
+    LinkedNodeKind.extensionDeclaration,
     LinkedNodeKind.fieldDeclaration,
     LinkedNodeKind.functionDeclaration,
     LinkedNodeKind.functionTypeAlias,
@@ -856,11 +894,11 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(17, variant: LinkedNodeKind.annotation)
   int get annotation_element;
 
-  @VariantId(23, variant: LinkedNodeKind.annotation)
-  LinkedNodeType get annotation_elementType;
-
   @VariantId(8, variant: LinkedNodeKind.annotation)
   LinkedNode get annotation_name;
+
+  @VariantId(38, variant: LinkedNodeKind.annotation)
+  LinkedNodeTypeSubstitution get annotation_substitution;
 
   @VariantId(2, variant: LinkedNodeKind.argumentList)
   List<LinkedNode> get argumentList_arguments;
@@ -886,9 +924,6 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(15, variant: LinkedNodeKind.assignmentExpression)
   int get assignmentExpression_element;
 
-  @VariantId(23, variant: LinkedNodeKind.assignmentExpression)
-  LinkedNodeType get assignmentExpression_elementType;
-
   @VariantId(6, variant: LinkedNodeKind.assignmentExpression)
   LinkedNode get assignmentExpression_leftHandSide;
 
@@ -898,14 +933,14 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(7, variant: LinkedNodeKind.assignmentExpression)
   LinkedNode get assignmentExpression_rightHandSide;
 
+  @VariantId(38, variant: LinkedNodeKind.assignmentExpression)
+  LinkedNodeTypeSubstitution get assignmentExpression_substitution;
+
   @VariantId(6, variant: LinkedNodeKind.awaitExpression)
   LinkedNode get awaitExpression_expression;
 
   @VariantId(15, variant: LinkedNodeKind.binaryExpression)
   int get binaryExpression_element;
-
-  @VariantId(23, variant: LinkedNodeKind.binaryExpression)
-  LinkedNodeType get binaryExpression_elementType;
 
   @VariantId(24, variant: LinkedNodeKind.binaryExpression)
   LinkedNodeType get binaryExpression_invokeType;
@@ -918,6 +953,9 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(7, variant: LinkedNodeKind.binaryExpression)
   LinkedNode get binaryExpression_rightOperand;
+
+  @VariantId(38, variant: LinkedNodeKind.binaryExpression)
+  LinkedNodeTypeSubstitution get binaryExpression_substitution;
 
   @VariantId(2, variant: LinkedNodeKind.block)
   List<LinkedNode> get block_statements;
@@ -1054,11 +1092,11 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(15, variant: LinkedNodeKind.constructorName)
   int get constructorName_element;
 
-  @VariantId(23, variant: LinkedNodeKind.constructorName)
-  LinkedNodeType get constructorName_elementType;
-
   @VariantId(6, variant: LinkedNodeKind.constructorName)
   LinkedNode get constructorName_name;
+
+  @VariantId(38, variant: LinkedNodeKind.constructorName)
+  LinkedNodeTypeSubstitution get constructorName_substitution;
 
   @VariantId(7, variant: LinkedNodeKind.constructorName)
   LinkedNode get constructorName_type;
@@ -1138,6 +1176,18 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(6, variant: LinkedNodeKind.extendsClause)
   LinkedNode get extendsClause_superclass;
+
+  @VariantId(7, variant: LinkedNodeKind.extensionDeclaration)
+  LinkedNode get extensionDeclaration_extendedType;
+
+  @VariantId(5, variant: LinkedNodeKind.extensionDeclaration)
+  List<LinkedNode> get extensionDeclaration_members;
+
+  @VariantId(20, variant: LinkedNodeKind.extensionDeclaration)
+  String get extensionDeclaration_refName;
+
+  @VariantId(6, variant: LinkedNodeKind.extensionDeclaration)
+  LinkedNode get extensionDeclaration_typeParameters;
 
   @VariantId(6, variant: LinkedNodeKind.fieldDeclaration)
   LinkedNode get fieldDeclaration_fields;
@@ -1283,17 +1333,14 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(1, variant: LinkedNodeKind.importDirective)
   String get importDirective_prefix;
 
-  @VariantId(15, variant: LinkedNodeKind.importDirective)
-  int get importDirective_prefixOffset;
-
   @VariantId(15, variant: LinkedNodeKind.indexExpression)
   int get indexExpression_element;
 
-  @VariantId(23, variant: LinkedNodeKind.indexExpression)
-  LinkedNodeType get indexExpression_elementType;
-
   @VariantId(6, variant: LinkedNodeKind.indexExpression)
   LinkedNode get indexExpression_index;
+
+  @VariantId(38, variant: LinkedNodeKind.indexExpression)
+  LinkedNodeTypeSubstitution get indexExpression_substitution;
 
   @VariantId(7, variant: LinkedNodeKind.indexExpression)
   LinkedNode get indexExpression_target;
@@ -1308,18 +1355,21 @@ abstract class LinkedNode extends base.SummaryClass {
     LinkedNodeKind.enumConstantDeclaration,
     LinkedNodeKind.enumDeclaration,
     LinkedNodeKind.exportDirective,
+    LinkedNodeKind.extensionDeclaration,
     LinkedNodeKind.fieldDeclaration,
     LinkedNodeKind.fieldFormalParameter,
     LinkedNodeKind.functionDeclaration,
     LinkedNodeKind.functionTypedFormalParameter,
     LinkedNodeKind.functionTypeAlias,
     LinkedNodeKind.genericTypeAlias,
+    LinkedNodeKind.hideCombinator,
     LinkedNodeKind.importDirective,
     LinkedNodeKind.libraryDirective,
     LinkedNodeKind.methodDeclaration,
     LinkedNodeKind.mixinDeclaration,
     LinkedNodeKind.partDirective,
     LinkedNodeKind.partOfDirective,
+    LinkedNodeKind.showCombinator,
     LinkedNodeKind.simpleFormalParameter,
     LinkedNodeKind.topLevelVariableDeclaration,
     LinkedNodeKind.typeParameter,
@@ -1495,14 +1545,14 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(15, variant: LinkedNodeKind.postfixExpression)
   int get postfixExpression_element;
 
-  @VariantId(23, variant: LinkedNodeKind.postfixExpression)
-  LinkedNodeType get postfixExpression_elementType;
-
   @VariantId(6, variant: LinkedNodeKind.postfixExpression)
   LinkedNode get postfixExpression_operand;
 
   @VariantId(28, variant: LinkedNodeKind.postfixExpression)
   UnlinkedTokenType get postfixExpression_operator;
+
+  @VariantId(38, variant: LinkedNodeKind.postfixExpression)
+  LinkedNodeTypeSubstitution get postfixExpression_substitution;
 
   @VariantId(6, variant: LinkedNodeKind.prefixedIdentifier)
   LinkedNode get prefixedIdentifier_identifier;
@@ -1513,14 +1563,14 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(15, variant: LinkedNodeKind.prefixExpression)
   int get prefixExpression_element;
 
-  @VariantId(23, variant: LinkedNodeKind.prefixExpression)
-  LinkedNodeType get prefixExpression_elementType;
-
   @VariantId(6, variant: LinkedNodeKind.prefixExpression)
   LinkedNode get prefixExpression_operand;
 
   @VariantId(28, variant: LinkedNodeKind.prefixExpression)
   UnlinkedTokenType get prefixExpression_operator;
+
+  @VariantId(38, variant: LinkedNodeKind.prefixExpression)
+  LinkedNodeTypeSubstitution get prefixExpression_substitution;
 
   @VariantId(28, variant: LinkedNodeKind.propertyAccess)
   UnlinkedTokenType get propertyAccess_operator;
@@ -1540,8 +1590,8 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(15, variant: LinkedNodeKind.redirectingConstructorInvocation)
   int get redirectingConstructorInvocation_element;
 
-  @VariantId(23, variant: LinkedNodeKind.redirectingConstructorInvocation)
-  LinkedNodeType get redirectingConstructorInvocation_elementType;
+  @VariantId(38, variant: LinkedNodeKind.redirectingConstructorInvocation)
+  LinkedNodeTypeSubstitution get redirectingConstructorInvocation_substitution;
 
   @VariantId(6, variant: LinkedNodeKind.returnStatement)
   LinkedNode get returnStatement_expression;
@@ -1555,8 +1605,8 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(15, variant: LinkedNodeKind.simpleIdentifier)
   int get simpleIdentifier_element;
 
-  @VariantId(23, variant: LinkedNodeKind.simpleIdentifier)
-  LinkedNodeType get simpleIdentifier_elementType;
+  @VariantId(38, variant: LinkedNodeKind.simpleIdentifier)
+  LinkedNodeTypeSubstitution get simpleIdentifier_substitution;
 
   @VariantId(20, variant: LinkedNodeKind.simpleStringLiteral)
   String get simpleStringLiteral_value;
@@ -1588,8 +1638,8 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(15, variant: LinkedNodeKind.superConstructorInvocation)
   int get superConstructorInvocation_element;
 
-  @VariantId(23, variant: LinkedNodeKind.superConstructorInvocation)
-  LinkedNodeType get superConstructorInvocation_elementType;
+  @VariantId(38, variant: LinkedNodeKind.superConstructorInvocation)
+  LinkedNodeTypeSubstitution get superConstructorInvocation_substitution;
 
   @VariantId(6, variant: LinkedNodeKind.switchCase)
   LinkedNode get switchCase_expression;
@@ -1784,6 +1834,7 @@ enum LinkedNodeKind {
   expressionFunctionBody,
   expressionStatement,
   extendsClause,
+  extensionDeclaration,
   fieldDeclaration,
   fieldFormalParameter,
   formalParameterList,
@@ -1903,14 +1954,15 @@ abstract class LinkedNodeType extends base.SummaryClass {
   @Id(1)
   LinkedNodeType get functionReturnType;
 
+  /// The typedef this function type is created for.
+  @Id(9)
+  int get functionTypedef;
+
+  @Id(10)
+  List<LinkedNodeType> get functionTypedefTypeArguments;
+
   @Id(2)
   List<LinkedNodeTypeTypeParameter> get functionTypeParameters;
-
-  @Id(8)
-  int get genericTypeAliasReference;
-
-  @Id(9)
-  List<LinkedNodeType> get genericTypeAliasTypeArguments;
 
   /// Reference to a [LinkedNodeReferences].
   @Id(3)
@@ -1922,7 +1974,7 @@ abstract class LinkedNodeType extends base.SummaryClass {
   @Id(5)
   LinkedNodeTypeKind get kind;
 
-  @Id(10)
+  @Id(8)
   EntityRefNullabilitySuffix get nullabilitySuffix;
 
   @Id(6)
@@ -1954,6 +2006,15 @@ enum LinkedNodeTypeKind {
   void_
 }
 
+/// Information about a type substitution.
+abstract class LinkedNodeTypeSubstitution extends base.SummaryClass {
+  @Id(1)
+  List<LinkedNodeType> get typeArguments;
+
+  @Id(0)
+  List<int> get typeParameters;
+}
+
 /// Information about a type parameter in a function type.
 abstract class LinkedNodeTypeTypeParameter extends base.SummaryClass {
   @Id(1)
@@ -1974,9 +2035,15 @@ abstract class LinkedNodeUnit extends base.SummaryClass {
   @Id(2)
   LinkedNode get node;
 
+  /// If the unit is a part, the URI specified in the `part` directive.
+  /// Otherwise empty.
+  @Id(5)
+  String get partUriStr;
+
   @Id(1)
   UnlinkedTokens get tokens;
 
+  /// The absolute URI.
   @Id(0)
   String get uriStr;
 }
@@ -3466,6 +3533,51 @@ enum UnlinkedExprOperation {
   bitShiftRightLogical,
 }
 
+/// Unlinked summary information about an extension declaration.
+abstract class UnlinkedExtension extends base.SummaryClass {
+  /// Annotations for this extension.
+  @Id(4)
+  List<UnlinkedExpr> get annotations;
+
+  /// Code range of the extension.
+  @informative
+  @Id(7)
+  CodeRange get codeRange;
+
+  /// Documentation comment for the extension, or `null` if there is no
+  /// documentation comment.
+  @informative
+  @Id(5)
+  UnlinkedDocumentationComment get documentationComment;
+
+  /// Executable objects (methods, getters, and setters) contained in the
+  /// extension.
+  @Id(2)
+  List<UnlinkedExecutable> get executables;
+
+  /// The type being extended.
+  @Id(3)
+  EntityRef get extendedType;
+
+  /// Field declarations contained in the extension.
+  @Id(8)
+  List<UnlinkedVariable> get fields;
+
+  /// Name of the extension, or an empty string if there is no name.
+  @Id(0)
+  String get name;
+
+  /// Offset of the extension name relative to the beginning of the file, or
+  /// zero if there is no name.
+  @informative
+  @Id(1)
+  int get nameOffset;
+
+  /// Type parameters of the extension, if any.
+  @Id(6)
+  List<UnlinkedTypeParam> get typeParameters;
+}
+
 /// Unlinked summary information about an import declaration.
 abstract class UnlinkedImport extends base.SummaryClass {
   /// Annotations for this import declaration.
@@ -3534,6 +3646,7 @@ abstract class UnlinkedInformativeData extends base.SummaryClass {
     LinkedNodeKind.constructorDeclaration,
     LinkedNodeKind.defaultFormalParameter,
     LinkedNodeKind.enumDeclaration,
+    LinkedNodeKind.extensionDeclaration,
     LinkedNodeKind.fieldFormalParameter,
     LinkedNodeKind.functionDeclaration,
     LinkedNodeKind.functionTypeAlias,
@@ -3554,6 +3667,7 @@ abstract class UnlinkedInformativeData extends base.SummaryClass {
     LinkedNodeKind.constructorDeclaration,
     LinkedNodeKind.defaultFormalParameter,
     LinkedNodeKind.enumDeclaration,
+    LinkedNodeKind.extensionDeclaration,
     LinkedNodeKind.fieldFormalParameter,
     LinkedNodeKind.functionDeclaration,
     LinkedNodeKind.functionTypeAlias,
@@ -3566,6 +3680,33 @@ abstract class UnlinkedInformativeData extends base.SummaryClass {
     LinkedNodeKind.variableDeclaration,
   ])
   int get codeOffset;
+
+  @VariantId(9, variantList: [
+    LinkedNodeKind.hideCombinator,
+    LinkedNodeKind.showCombinator,
+  ])
+  int get combinatorEnd;
+
+  @VariantId(8, variantList: [
+    LinkedNodeKind.hideCombinator,
+    LinkedNodeKind.showCombinator,
+  ])
+  int get combinatorKeywordOffset;
+
+  /// Offsets of the first character of each line in the source code.
+  @VariantId(7, variant: LinkedNodeKind.compilationUnit)
+  List<int> get compilationUnit_lineStarts;
+
+  @VariantId(6, variant: LinkedNodeKind.constructorDeclaration)
+  int get constructorDeclaration_periodOffset;
+
+  @VariantId(5, variant: LinkedNodeKind.constructorDeclaration)
+  int get constructorDeclaration_returnTypeOffset;
+
+  /// If the parameter has a default value, the source text of the constant
+  /// expression in the default value.  Otherwise the empty string.
+  @VariantId(10, variant: LinkedNodeKind.defaultFormalParameter)
+  String get defaultFormalParameter_defaultValueCode;
 
   @VariantId(1, variantList: [
     LinkedNodeKind.exportDirective,
@@ -3582,6 +3723,7 @@ abstract class UnlinkedInformativeData extends base.SummaryClass {
     LinkedNodeKind.constructorDeclaration,
     LinkedNodeKind.enumDeclaration,
     LinkedNodeKind.enumConstantDeclaration,
+    LinkedNodeKind.extensionDeclaration,
     LinkedNodeKind.fieldDeclaration,
     LinkedNodeKind.functionDeclaration,
     LinkedNodeKind.functionTypeAlias,
@@ -3593,6 +3735,9 @@ abstract class UnlinkedInformativeData extends base.SummaryClass {
   ])
   List<String> get documentationComment_tokens;
 
+  @VariantId(8, variant: LinkedNodeKind.importDirective)
+  int get importDirective_prefixOffset;
+
   /// The kind of the node.
   @Id(0)
   LinkedNodeKind get kind;
@@ -3603,6 +3748,7 @@ abstract class UnlinkedInformativeData extends base.SummaryClass {
     LinkedNodeKind.constructorDeclaration,
     LinkedNodeKind.enumConstantDeclaration,
     LinkedNodeKind.enumDeclaration,
+    LinkedNodeKind.extensionDeclaration,
     LinkedNodeKind.fieldFormalParameter,
     LinkedNodeKind.functionDeclaration,
     LinkedNodeKind.functionTypedFormalParameter,
@@ -3615,16 +3761,6 @@ abstract class UnlinkedInformativeData extends base.SummaryClass {
     LinkedNodeKind.variableDeclaration,
   ])
   int get nameOffset;
-
-  @VariantId(5, variant: LinkedNodeKind.constructorDeclaration)
-  int get constructorDeclaration_returnTypeOffset;
-
-  @VariantId(6, variant: LinkedNodeKind.constructorDeclaration)
-  int get constructorDeclaration_periodOffset;
-
-  /// Offsets of the first character of each line in the source code.
-  @VariantId(7, variant: LinkedNodeKind.compilationUnit)
-  List<int> get compilationUnit_lineStarts;
 }
 
 /// Unlinked summary information about a function parameter.
@@ -4138,6 +4274,10 @@ abstract class UnlinkedUnit extends base.SummaryClass {
   /// Export declarations in the compilation unit.
   @Id(13)
   List<UnlinkedExportNonPublic> get exports;
+
+  /// Extensions declared in the compilation unit.
+  @Id(22)
+  List<UnlinkedExtension> get extensions;
 
   /// If this compilation unit was summarized in fallback mode, the path where
   /// the compilation unit may be found on disk.  Otherwise empty.

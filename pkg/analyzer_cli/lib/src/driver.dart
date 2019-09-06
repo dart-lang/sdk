@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
+import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -23,8 +24,8 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart'
     show PerformanceTag;
-import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:analyzer/src/manifest/manifest_validator.dart';
+import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/source/path_filter.dart';
@@ -350,7 +351,10 @@ class Driver with HasContextMixin implements CommandLineStarter {
           LineInfo lineInfo = new LineInfo.fromContent(content);
           List<AnalysisError> errors = analyzeAnalysisOptions(
               file.createSource(), content, analysisDriver.sourceFactory);
-          formatter.formatErrors([new AnalysisErrorInfoImpl(errors, lineInfo)]);
+          formatter.formatErrors([
+            ErrorsResultImpl(analysisDriver.currentSession, path, null,
+                lineInfo, false, errors)
+          ]);
           for (AnalysisError error in errors) {
             ErrorSeverity severity = determineProcessedSeverity(
                 error, options, analysisDriver.analysisOptions);
@@ -368,8 +372,10 @@ class Driver with HasContextMixin implements CommandLineStarter {
                   new PubspecValidator(resourceProvider, file.createSource());
               LineInfo lineInfo = new LineInfo.fromContent(content);
               List<AnalysisError> errors = validator.validate(node.nodes);
-              formatter
-                  .formatErrors([new AnalysisErrorInfoImpl(errors, lineInfo)]);
+              formatter.formatErrors([
+                ErrorsResultImpl(analysisDriver.currentSession, path, null,
+                    lineInfo, false, errors)
+              ]);
               for (AnalysisError error in errors) {
                 ErrorSeverity severity = determineProcessedSeverity(
                     error, options, analysisDriver.analysisOptions);
@@ -388,8 +394,10 @@ class Driver with HasContextMixin implements CommandLineStarter {
             LineInfo lineInfo = new LineInfo.fromContent(content);
             List<AnalysisError> errors = validator.validate(
                 content, analysisDriver.analysisOptions.chromeOsManifestChecks);
-            formatter
-                .formatErrors([new AnalysisErrorInfoImpl(errors, lineInfo)]);
+            formatter.formatErrors([
+              ErrorsResultImpl(analysisDriver.currentSession, path, null,
+                  lineInfo, false, errors)
+            ]);
             for (AnalysisError error in errors) {
               ErrorSeverity severity = determineProcessedSeverity(
                   error, options, analysisDriver.analysisOptions);

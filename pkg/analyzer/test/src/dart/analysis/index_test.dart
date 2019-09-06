@@ -5,10 +5,12 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:test/test.dart';
@@ -19,6 +21,7 @@ import 'base.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(IndexTest);
+    defineReflectiveTests(IndexWithExtensionMethodsTest);
   });
 }
 
@@ -872,6 +875,13 @@ A v = null;
 ''');
   }
 
+  test_isReferencedBy_NeverElement() async {
+    await _indexTestUnit('''
+Never f() {
+}''');
+    expect(index.usedElementOffsets, isEmpty);
+  }
+
   test_isReferencedBy_ParameterElement() async {
     await _indexTestUnit('''
 foo({var p}) {}
@@ -1279,7 +1289,8 @@ main() {
       }
     }
     for (Element e = element; e != null; e = e.enclosingElement) {
-      if (e.enclosingElement is ClassElement) {
+      if (e.enclosingElement is ClassElement ||
+          e.enclosingElement is ExtensionElement) {
         classMemberId = _getStringId(e.name);
         break;
       }
@@ -1360,6 +1371,112 @@ main() {
     AnalysisDriverUnitIndexBuilder indexBuilder = indexUnit(testUnit);
     List<int> indexBytes = indexBuilder.toBuffer();
     index = new AnalysisDriverUnitIndex.fromBuffer(indexBytes);
+  }
+}
+
+@reflectiveTest
+class IndexWithExtensionMethodsTest extends IndexTest {
+  @override
+  AnalysisOptionsImpl createAnalysisOptions() => AnalysisOptionsImpl()
+    ..contextFeatures = new FeatureSet.forTesting(
+        sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
+
+  test_isInvokedBy_MethodElement_ofExtension_instance() async {
+    await _indexTestUnit('''
+class A {}
+
+extension E on A {
+  void foo() {}
+}
+
+main(A a) {
+  a.foo();
+}
+''');
+    MethodElement element = findElement('foo');
+    assertThat(element)..isInvokedAt('foo();', true);
+  }
+
+  test_isInvokedBy_MethodElement_ofExtension_static() async {
+    await _indexTestUnit('''
+class A {}
+
+extension E on A {
+  static void foo() {}
+}
+
+main(A a) {
+  E.foo();
+}
+''');
+    MethodElement element = findElement('foo');
+    assertThat(element)..isInvokedAt('foo();', true);
+  }
+
+  test_isReferencedBy_ClassElement_fromExtension() async {
+    await _indexTestUnit('''
+class A<T> {}
+
+extension E on A<int> {}
+''');
+    ClassElement element = findElement('A');
+    assertThat(element)..isReferencedAt('A<int>', false);
+  }
+
+  test_isReferencedBy_ExtensionElement() async {
+    await _indexTestUnit('''
+class A {}
+
+extension E on A {
+  void foo() {}
+}
+
+main(A a) {
+  E(a).foo();
+}
+''');
+    ExtensionElement element = findElement('E');
+    assertThat(element)..isReferencedAt('E(a).foo()', false);
+  }
+
+  test_isReferencedBy_PropertyAccessor_ofExtension_instance() async {
+    await _indexTestUnit('''
+class A {}
+
+extension E on A {
+  int get foo => 0;
+  void set foo(int _) {}
+}
+
+main(A a) {
+  a.foo;
+  a.foo = 0;
+}
+''');
+    PropertyAccessorElement getter = findElement('foo', ElementKind.GETTER);
+    PropertyAccessorElement setter = findElement('foo=');
+    assertThat(getter)..isReferencedAt('foo;', true);
+    assertThat(setter)..isReferencedAt('foo = 0;', true);
+  }
+
+  test_isReferencedBy_PropertyAccessor_ofExtension_static() async {
+    await _indexTestUnit('''
+class A {}
+
+extension E on A {
+  static int get foo => 0;
+  static void set foo(int _) {}
+}
+
+main(A a) {
+  a.foo;
+  a.foo = 0;
+}
+''');
+    PropertyAccessorElement getter = findElement('foo', ElementKind.GETTER);
+    PropertyAccessorElement setter = findElement('foo=');
+    assertThat(getter)..isReferencedAt('foo;', true);
+    assertThat(setter)..isReferencedAt('foo = 0;', true);
   }
 }
 

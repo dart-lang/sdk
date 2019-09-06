@@ -19,7 +19,7 @@ namespace dart {
 // For other architectures, this sequence does do an increment, hence the name.
 // On DBC, we don't do an increment because generating an instance call here
 // would be too complex.
-void GenerateIncrement(Assembler* assembler) {
+void GenerateIncrement(compiler::Assembler* assembler) {
   __ Frame(1);
   __ LoadConstant(0, Smi::Handle(Smi::New(1)));
   __ Return(0);
@@ -27,7 +27,8 @@ void GenerateIncrement(Assembler* assembler) {
 
 // Generate a dart code sequence that embeds a string object in it.
 // This is used to test Embedded String objects in the instructions.
-void GenerateEmbedStringInCode(Assembler* assembler, const char* str) {
+void GenerateEmbedStringInCode(compiler::Assembler* assembler,
+                               const char* str) {
   const String& string_object =
       String::ZoneHandle(String::New(str, Heap::kOld));
   __ PushConstant(string_object);
@@ -36,7 +37,7 @@ void GenerateEmbedStringInCode(Assembler* assembler, const char* str) {
 
 // Generate a dart code sequence that embeds a smi object in it.
 // This is used to test Embedded Smi objects in the instructions.
-void GenerateEmbedSmiInCode(Assembler* assembler, intptr_t value) {
+void GenerateEmbedSmiInCode(compiler::Assembler* assembler, intptr_t value) {
   const Smi& smi_object = Smi::ZoneHandle(Smi::New(value));
   __ PushConstant(smi_object);
   __ ReturnTOS();

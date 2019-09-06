@@ -1,0 +1,33 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+type: newworld
+omitPlatform: false
+worlds:
+  - entry: main.dart
+    errors: false
+    warnings: false
+    sources:
+      main.dart: |
+        main() {
+          foo();
+        }
+        foo() {}
+    expectedLibraryCount: 1
+    expectsPlatform: true
+  - entry: main.dart
+    errors: true
+    warnings: false
+    expectInitializeFromDill: false
+    fromComponent: true
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        main() {
+          await foo();
+        }
+        foo() {}
+    expectedLibraryCount: 1
+    expectsPlatform: true

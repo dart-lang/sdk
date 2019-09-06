@@ -55,7 +55,6 @@ FlowGraph::FlowGraph(const ParsedFunction& parsed_function,
       loop_hierarchy_(nullptr),
       loop_invariant_loads_(nullptr),
       deferred_prefixes_(parsed_function.deferred_prefixes()),
-      await_token_positions_(nullptr),
       captured_parameters_(new (zone()) BitVector(zone(), variable_count())),
       inlining_id_(-1),
       should_print_(FlowGraphPrinter::ShouldPrint(parsed_function.function())) {
@@ -132,9 +131,13 @@ GrowableArray<BlockEntryInstr*>* FlowGraph::CodegenBlockOrder(
                                                        : &reverse_postorder_;
 }
 
+ConstantInstr* FlowGraph::GetExistingConstant(const Object& object) const {
+  return constant_instr_pool_.LookupValue(object);
+}
+
 ConstantInstr* FlowGraph::GetConstant(const Object& object) {
-  ConstantInstr* constant = constant_instr_pool_.LookupValue(object);
-  if (constant == NULL) {
+  ConstantInstr* constant = GetExistingConstant(object);
+  if (constant == nullptr) {
     // Otherwise, allocate and add it to the pool.
     constant =
         new (zone()) ConstantInstr(Object::ZoneHandle(zone(), object.raw()));

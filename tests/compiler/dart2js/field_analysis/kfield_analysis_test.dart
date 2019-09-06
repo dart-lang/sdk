@@ -6,10 +6,9 @@ import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/ir/util.dart';
 import 'package:compiler/src/js_backend/field_analysis.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
-import 'package:compiler/src/util/features.dart';
+import 'package:front_end/src/testing/features.dart';
 import 'package:kernel/ast.dart' as ir;
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
@@ -18,7 +17,7 @@ main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('kdata'));
     await checkTests(dataDir, const KAllocatorAnalysisDataComputer(),
-        args: args, testOmit: false, testCFEConstants: true);
+        args: args, testedConfigs: allStrongConfigs);
   });
 }
 
@@ -35,9 +34,9 @@ class KAllocatorAnalysisDataComputer extends DataComputer<Features> {
       Map<Id, ActualData<Features>> actualMap,
       {bool verbose: false}) {
     if (member.isField) {
-      KernelFrontEndStrategy frontendStrategy = compiler.frontendStrategy;
+      KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
       KFieldAnalysis allocatorAnalysis =
-          compiler.backend.fieldAnalysisForTesting;
+          frontendStrategy.fieldAnalysisForTesting;
       ir.Member node = frontendStrategy.elementMap.getMemberNode(member);
       Features features = new Features();
       if (member.isInstanceMember) {
@@ -61,9 +60,10 @@ class KAllocatorAnalysisDataComputer extends DataComputer<Features> {
         }
         features[Tags.complexity] = staticFieldData.complexity.shortText;
       }
-      Id id = computeEntityId(node);
-      actualMap[id] = new ActualData<Features>(
-          id, features, computeSourceSpanFromTreeNode(node), member);
+      Id id = computeMemberId(node);
+      ir.TreeNode nodeWithOffset = computeTreeNodeWithOffset(node);
+      actualMap[id] = new ActualData<Features>(id, features,
+          nodeWithOffset?.location?.file, nodeWithOffset?.fileOffset, member);
     }
   }
 

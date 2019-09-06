@@ -7,7 +7,6 @@
 // much be included in the initial download (loaded eagerly).
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:expect/expect.dart';
 import '../helpers/memory_compiler.dart';
@@ -17,18 +16,11 @@ void main() {
     print('--test from kernel------------------------------------------------');
     await deferredTest1();
     await deferredTest2();
-    print('--test from kernel with CFE constants-----------------------------');
-    await deferredTest1(useCFEConstants: true);
-    await deferredTest2(useCFEConstants: true);
   });
 }
 
-deferredTest1({bool useCFEConstants: false}) async {
-  CompilationResult result = await runCompiler(
-      memorySourceFiles: TEST1,
-      options: useCFEConstants
-          ? ['${Flags.enableLanguageExperiments}=constant-update-2018']
-          : ['${Flags.enableLanguageExperiments}=no-constant-update-2018']);
+deferredTest1() async {
+  CompilationResult result = await runCompiler(memorySourceFiles: TEST1);
 
   Compiler compiler = result.compiler;
   var closedWorld = compiler.backendClosedWorldForTesting;
@@ -44,12 +36,8 @@ deferredTest1({bool useCFEConstants: false}) async {
   Expect.notEquals(mainOutputUnit, outputUnitForMember(foo2));
 }
 
-deferredTest2({bool useCFEConstants: false}) async {
-  CompilationResult result = await runCompiler(
-      memorySourceFiles: TEST2,
-      options: useCFEConstants
-          ? ['${Flags.enableLanguageExperiments}=constant-update-2018']
-          : ['${Flags.enableLanguageExperiments}=no-constant-update-2018']);
+deferredTest2() async {
+  CompilationResult result = await runCompiler(memorySourceFiles: TEST2);
 
   Compiler compiler = result.compiler;
   var closedWorld = compiler.backendClosedWorldForTesting;

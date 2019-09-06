@@ -8,11 +8,13 @@ import 'dart:collection' show ListMixin;
 
 import 'dart:typed_data' show Uint16List, Uint32List;
 
-import '../../scanner/token.dart' show BeginToken, Token, TokenType;
+import '../../scanner/token.dart'
+    show BeginToken, Keyword, KeywordToken, SyntheticToken, Token, TokenType;
+
+import '../../scanner/token.dart' as analyzer show StringToken;
 
 import '../fasta_codes.dart'
     show
-        Message,
         messageExpectedHexDigit,
         messageMissingExponent,
         messageUnexpectedDollarInString,
@@ -21,12 +23,20 @@ import '../fasta_codes.dart'
 import '../scanner.dart'
     show ErrorToken, Keyword, Scanner, buildUnexpectedCharacterToken;
 
+import '../util/link.dart' show Link;
+
 import 'error_token.dart'
-    show UnsupportedOperator, UnterminatedString, UnterminatedToken;
+    show
+        NonAsciiIdentifierToken,
+        UnmatchedToken,
+        UnsupportedOperator,
+        UnterminatedString,
+        UnterminatedToken;
 
 import 'keyword_state.dart' show KeywordState;
 
-import 'token.dart' show CommentToken, DartDocToken, LanguageVersionToken;
+import 'token.dart'
+    show CommentToken, DartDocToken, LanguageVersionToken, StringToken;
 
 import 'token_constants.dart';
 
@@ -87,6 +97,13 @@ abstract class AbstractScanner implements Scanner {
   Token tail;
 
   /**
+   * A pointer to the last prepended error token.
+   */
+  Token errorTail;
+
+  bool hasErrors = false;
+
+  /**
    * A pointer to the stream of comment tokens created by this scanner
    * before they are assigned to the [Token] precedingComments field
    * of a non-comment token. A value of `null` indicates no comment tokens.
@@ -100,11 +117,19 @@ abstract class AbstractScanner implements Scanner {
 
   final List<int> lineStarts;
 
+  /**
+   * The stack of open groups, e.g [: { ... ( .. :]
+   * Each BeginToken has a pointer to the token where the group
+   * ends. This field is set when scanning the end group token.
+   */
+  Link<BeginToken> groupingStack = const Link<BeginToken>();
+
   AbstractScanner(ScannerConfiguration config, this.includeComments,
       this.languageVersionChanged,
       {int numberOfBytesHint})
       : lineStarts = new LineStarts(numberOfBytesHint) {
     this.tail = this.tokens;
+    this.errorTail = this.tokens;
     this.configuration = config;
   }
 
@@ -202,7 +227,22 @@ abstract class AbstractScanner implements Scanner {
    * known to be ASCII.
    */
   void appendSubstringToken(TokenType type, int start, bool asciiOnly,
-      [int extraOffset]);
+      [int extraOffset = 0]) {
+    appendToken(createSubstringToken(type, start, asciiOnly, extraOffset));
+  }
+
+  /**
+   * Returns a new substring from the scan offset [start] to the current
+   * [scanOffset] plus the [extraOffset]. For example, if the current
+   * scanOffset is 10, then [appendSubstringToken(5, -1)] will append the
+   * substring string [5,9).
+   *
+   * Note that [extraOffset] can only be used if the covered character(s) are
+   * known to be ASCII.
+   */
+  analyzer.StringToken createSubstringToken(
+      TokenType type, int start, bool asciiOnly,
+      [int extraOffset = 0]);
 
   /**
    * Appends a substring from the scan offset [start] to the current
@@ -212,40 +252,189 @@ abstract class AbstractScanner implements Scanner {
    * so as to be true to the original source.
    */
   void appendSyntheticSubstringToken(
+      TokenType type, int start, bool asciiOnly, String syntheticChars) {
+    appendToken(
+        createSyntheticSubstringToken(type, start, asciiOnly, syntheticChars));
+  }
+
+  /**
+   * Returns a new synthetic substring from the scan offset [start]
+   * to the current [scanOffset] plus the [syntheticChars].
+   * The [syntheticChars] are appended to the unterminated string
+   * literal's lexeme but the returned token's length will *not* include
+   * those additional characters so as to be true to the original source.
+   */
+  analyzer.StringToken createSyntheticSubstringToken(
       TokenType type, int start, bool asciiOnly, String syntheticChars);
+  /**
+   * Appends a fixed token whose kind and content is determined by [type].
+   * Appends an *operator* token from [type].
+   *
+   * An operator token represent operators like ':', '.', ';', '&&', '==', '--',
+   * '=>', etc.
+   */
+  void appendPrecedenceToken(TokenType type) {
+    appendToken(new Token(type, tokenStart, comments));
+  }
 
-  /** Documentation in subclass [ArrayBasedScanner]. */
-  void appendPrecedenceToken(TokenType type);
+  /**
+   * Appends a fixed token based on whether the current char is [choice] or not.
+   * If the current char is [choice] a fixed token whose kind and content
+   * is determined by [yes] is appended, otherwise a fixed token whose kind
+   * and content is determined by [no] is appended.
+   */
+  int select(int choice, TokenType yes, TokenType no) {
+    int next = advance();
+    if (identical(next, choice)) {
+      appendPrecedenceToken(yes);
+      return advance();
+    } else {
+      appendPrecedenceToken(no);
+      return next;
+    }
+  }
 
-  /** Documentation in subclass [ArrayBasedScanner]. */
-  int select(int choice, TokenType yes, TokenType no);
+  /**
+   * Appends a keyword token whose kind is determined by [keyword].
+   */
+  void appendKeywordToken(Keyword keyword) {
+    String syntax = keyword.lexeme;
+    // Type parameters and arguments cannot contain 'this'.
+    if (identical(syntax, 'this')) {
+      discardOpenLt();
+    }
+    appendToken(new KeywordToken(keyword, tokenStart, comments));
+  }
 
-  /** Documentation in subclass [ArrayBasedScanner]. */
-  void appendKeywordToken(Keyword keyword);
+  void appendEofToken() {
+    beginToken();
+    discardOpenLt();
+    while (!groupingStack.isEmpty) {
+      unmatchedBeginGroup(groupingStack.head);
+      groupingStack = groupingStack.tail;
+    }
+    appendToken(new Token.eof(tokenStart, comments));
+  }
 
-  /** Documentation in subclass [ArrayBasedScanner]. */
-  void appendEofToken();
+  /**
+   * Notifies scanning a whitespace character. Note that [appendWhiteSpace] is
+   * not always invoked for [$SPACE] characters.
+   *
+   * This method is used by the scanners to track line breaks and create the
+   * [lineStarts] map.
+   */
+  void appendWhiteSpace(int next) {
+    if (next == $LF) {
+      lineStarts.add(stringOffset + 1); // +1, the line starts after the $LF.
+    }
+  }
 
-  /** Documentation in subclass [ArrayBasedScanner]. */
-  void appendWhiteSpace(int next);
+  /**
+   * Notifies on [$LF] characters in multi-line comments or strings.
+   *
+   * This method is used by the scanners to track line breaks and create the
+   * [lineStarts] map.
+   */
+  void lineFeedInMultiline() {
+    lineStarts.add(stringOffset + 1);
+  }
 
-  /** Documentation in subclass [ArrayBasedScanner]. */
-  void lineFeedInMultiline();
+  /**
+   * Appends a token that begins a new group, represented by [type].
+   * Group begin tokens are '{', '(', '[', '<' and '${'.
+   */
+  void appendBeginGroup(TokenType type) {
+    Token token = new BeginToken(type, tokenStart, comments);
+    appendToken(token);
 
-  /** Documentation in subclass [ArrayBasedScanner]. */
-  void appendBeginGroup(TokenType type);
+    // { [ ${ cannot appear inside a type parameters / arguments.
+    if (!identical(type.kind, LT_TOKEN) &&
+        !identical(type.kind, OPEN_PAREN_TOKEN)) {
+      discardOpenLt();
+    }
+    groupingStack = groupingStack.prepend(token);
+  }
 
-  /** Documentation in subclass [ArrayBasedScanner]. */
-  int appendEndGroup(TokenType type, int openKind);
+  /**
+   * Appends a token that begins an end group, represented by [type].
+   * It handles the group end tokens '}', ')' and ']'. The tokens '>' and
+   * '>>' are handled separately by [appendGt] and [appendGtGt].
+   */
+  int appendEndGroup(TokenType type, int openKind) {
+    assert(!identical(openKind, LT_TOKEN)); // openKind is < for > and >>
+    if (!discardBeginGroupUntil(openKind)) {
+      // No begin group found. Just continue.
+      appendPrecedenceToken(type);
+      return advance();
+    }
+    appendPrecedenceToken(type);
+    Token close = tail;
+    BeginToken begin = groupingStack.head;
+    if (!identical(begin.kind, openKind) &&
+        !(begin.kind == QUESTION_PERIOD_OPEN_SQUARE_BRACKET_TOKEN &&
+            openKind == OPEN_SQUARE_BRACKET_TOKEN)) {
+      assert(begin.kind == STRING_INTERPOLATION_TOKEN &&
+          openKind == OPEN_CURLY_BRACKET_TOKEN);
+      // We're ending an interpolated expression.
+      begin.endGroup = close;
+      groupingStack = groupingStack.tail;
+      // Using "start-of-text" to signal that we're back in string
+      // scanning mode.
+      return $STX;
+    }
+    begin.endGroup = close;
+    groupingStack = groupingStack.tail;
+    return advance();
+  }
 
-  /** Documentation in subclass [ArrayBasedScanner]. */
-  void appendGt(TokenType type);
+  /**
+   * Appends a token for '>'.
+   * This method does not issue unmatched errors, because > is also the
+   * greater-than operator. It does not necessarily have to close a group.
+   */
+  void appendGt(TokenType type) {
+    appendPrecedenceToken(type);
+    if (groupingStack.isEmpty) return;
+    if (identical(groupingStack.head.kind, LT_TOKEN)) {
+      groupingStack.head.endGroup = tail;
+      groupingStack = groupingStack.tail;
+    }
+  }
 
-  /** Documentation in subclass [ArrayBasedScanner]. */
-  void appendGtGt(TokenType type);
+  /**
+   * Appends a token for '>>'.
+   * This method does not issue unmatched errors, because >> is also the
+   * shift operator. It does not necessarily have to close a group.
+   */
+  void appendGtGt(TokenType type) {
+    appendPrecedenceToken(type);
+    if (groupingStack.isEmpty) return;
+    if (identical(groupingStack.head.kind, LT_TOKEN)) {
+      // Don't assign endGroup: in "T<U<V>>", the '>>' token closes the outer
+      // '<', the inner '<' is left without endGroup.
+      groupingStack = groupingStack.tail;
+    }
+    if (groupingStack.isEmpty) return;
+    if (identical(groupingStack.head.kind, LT_TOKEN)) {
+      groupingStack.head.endGroup = tail;
+      groupingStack = groupingStack.tail;
+    }
+  }
 
-  /// Append [token] to the token stream.
-  void appendErrorToken(ErrorToken token);
+  /// Prepend [token] to the token stream.
+  void prependErrorToken(ErrorToken token) {
+    hasErrors = true;
+    if (errorTail == tail) {
+      appendToken(token);
+      errorTail = tail;
+    } else {
+      token.next = errorTail.next;
+      token.next.previous = token;
+      errorTail.next = token;
+      token.previous = errorTail;
+      errorTail = errorTail.next;
+    }
+  }
 
   /**
    * Returns a new comment from the scan offset [start] to the current
@@ -278,11 +467,141 @@ abstract class AbstractScanner implements Scanner {
   LanguageVersionToken createLanguageVersionToken(
       int start, int major, int minor);
 
-  /** Documentation in subclass [ArrayBasedScanner]. */
-  void discardOpenLt();
+  /**
+   * If a begin group token matches [openKind],
+   * then discard begin group tokens up to that match and return `true`,
+   * otherwise return `false`.
+   * This recovers nicely from from situations like "{[}" and "{foo());}",
+   * but not "foo(() {bar());});
+   */
+  bool discardBeginGroupUntil(int openKind) {
+    Link<BeginToken> originalStack = groupingStack;
 
-  /** Documentation in subclass [ArrayBasedScanner]. */
-  void discardInterpolation();
+    bool first = true;
+    do {
+      // Don't report unmatched errors for <; it is also the less-than operator.
+      discardOpenLt();
+      if (groupingStack.isEmpty) break; // recover
+      BeginToken begin = groupingStack.head;
+      if (openKind == begin.kind ||
+          (openKind == OPEN_CURLY_BRACKET_TOKEN &&
+              begin.kind == STRING_INTERPOLATION_TOKEN) ||
+          (openKind == OPEN_SQUARE_BRACKET_TOKEN &&
+              begin.kind == QUESTION_PERIOD_OPEN_SQUARE_BRACKET_TOKEN)) {
+        if (first) {
+          // If the expected opener has been found on the first pass
+          // then no recovery necessary.
+          return true;
+        }
+        break; // recover
+      }
+      first = false;
+      groupingStack = groupingStack.tail;
+    } while (!groupingStack.isEmpty);
+
+    // If the stack does not have any opener of the given type,
+    // then return without discarding anything.
+    // This recovers nicely from from situations like "{foo());}".
+    if (groupingStack.isEmpty) {
+      groupingStack = originalStack;
+      return false;
+    }
+
+    // Insert synthetic closers and report errors for any unbalanced openers.
+    // This recovers nicely from from situations like "{[}".
+    while (!identical(originalStack, groupingStack)) {
+      // Don't report unmatched errors for <; it is also the less-than operator.
+      if (!identical(groupingStack.head.kind, LT_TOKEN)) {
+        unmatchedBeginGroup(originalStack.head);
+      }
+      originalStack = originalStack.tail;
+    }
+    return true;
+  }
+
+  /**
+   * This method is called to discard '<' from the "grouping" stack.
+   *
+   * [PartialParser.skipExpression] relies on the fact that we do not
+   * create groups for stuff like:
+   * [:a = b < c, d = e > f:].
+   *
+   * In other words, this method is called when the scanner recognizes
+   * something which cannot possibly be part of a type parameter/argument
+   * list, like the '=' in the above example.
+   */
+  void discardOpenLt() {
+    while (!groupingStack.isEmpty &&
+        identical(groupingStack.head.kind, LT_TOKEN)) {
+      groupingStack = groupingStack.tail;
+    }
+  }
+
+  /**
+   * This method is called to discard '${' from the "grouping" stack.
+   *
+   * This method is called when the scanner finds an unterminated
+   * interpolation expression.
+   */
+  void discardInterpolation() {
+    while (!groupingStack.isEmpty) {
+      BeginToken beginToken = groupingStack.head;
+      unmatchedBeginGroup(beginToken);
+      groupingStack = groupingStack.tail;
+      if (identical(beginToken.kind, STRING_INTERPOLATION_TOKEN)) break;
+    }
+  }
+
+  void unmatchedBeginGroup(BeginToken begin) {
+    // We want to ensure that unmatched BeginTokens are reported as
+    // errors.  However, the diet parser assumes that groups are well-balanced
+    // and will never look at the endGroup token.  This is a nice property that
+    // allows us to skip quickly over correct code. By inserting an additional
+    // synthetic token in the stream, we can keep ignoring endGroup tokens.
+    //
+    // [begin] --next--> [tail]
+    // [begin] --endG--> [synthetic] --next--> [next] --next--> [tail]
+    //
+    // This allows the diet parser to skip from [begin] via endGroup to
+    // [synthetic] and ignore the [synthetic] token (assuming it's correct),
+    // then the error will be reported when parsing the [next] token.
+    //
+    // For example, tokenize("{[1};") produces:
+    //
+    // SymbolToken({) --endGroup------------------------+
+    //      |                                           |
+    //     next                                         |
+    //      v                                           |
+    // SymbolToken([) --endGroup--+                     |
+    //      |                     |                     |
+    //     next                   |                     |
+    //      v                     |                     |
+    // StringToken(1)             |                     |
+    //      |                     |                     |
+    //     next                   |                     |
+    //      v                     |                     |
+    // SymbolToken(])<------------+ <-- Synthetic token |
+    //      |                                           |
+    //     next                                         |
+    //      v                                           |
+    // UnmatchedToken([)                                |
+    //      |                                           |
+    //     next                                         |
+    //      v                                           |
+    // SymbolToken(})<----------------------------------+
+    //      |
+    //     next
+    //      v
+    // SymbolToken(;)
+    //      |
+    //     next
+    //      v
+    //     EOF
+    TokenType type = closeBraceInfoFor(begin);
+    appendToken(new SyntheticToken(type, tokenStart)..beforeSynthetic = tail);
+    begin.endGroup = tail;
+    prependErrorToken(new UnmatchedToken(begin));
+  }
 
   /// Return true when at EOF.
   bool atEndOfFile();
@@ -564,8 +883,13 @@ abstract class AbstractScanner implements Scanner {
       return select(
           $EQ, TokenType.QUESTION_QUESTION_EQ, TokenType.QUESTION_QUESTION);
     } else if (identical(next, $PERIOD)) {
+      next = advance();
+      if (_enableNonNullable && identical($OPEN_SQUARE_BRACKET, next)) {
+        appendBeginGroup(TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET);
+        return advance();
+      }
       appendPrecedenceToken(TokenType.QUESTION_PERIOD);
-      return advance();
+      return next;
     } else {
       appendPrecedenceToken(TokenType.QUESTION);
       return next;
@@ -662,7 +986,7 @@ abstract class AbstractScanner implements Scanner {
       int next = advance();
       if (identical(next, $EQ)) {
         appendPrecedenceToken(TokenType.BANG_EQ_EQ);
-        appendErrorToken(new UnsupportedOperator(tail, tokenStart));
+        prependErrorToken(new UnsupportedOperator(tail, tokenStart));
         return advance();
       } else {
         appendPrecedenceToken(TokenType.BANG_EQ);
@@ -687,7 +1011,7 @@ abstract class AbstractScanner implements Scanner {
       int next = advance();
       if (identical(next, $EQ)) {
         appendPrecedenceToken(TokenType.EQ_EQ_EQ);
-        appendErrorToken(new UnsupportedOperator(tail, tokenStart));
+        prependErrorToken(new UnsupportedOperator(tail, tokenStart));
         return advance();
       } else {
         appendPrecedenceToken(TokenType.EQ_EQ);
@@ -785,7 +1109,11 @@ abstract class AbstractScanner implements Scanner {
         hasDigits = true;
       } else {
         if (!hasDigits) {
-          unterminated(messageExpectedHexDigit, shouldAdvance: false);
+          prependErrorToken(new UnterminatedToken(
+              messageExpectedHexDigit, start, stringOffset));
+          // Recovery
+          appendSyntheticSubstringToken(
+              TokenType.HEXADECIMAL, start, true, "0");
           return next;
         }
         appendSubstringToken(TokenType.HEXADECIMAL, start, true);
@@ -840,7 +1168,7 @@ abstract class AbstractScanner implements Scanner {
           } else {
             if (!hasExponentDigits) {
               appendSyntheticSubstringToken(TokenType.DOUBLE, start, true, '0');
-              appendErrorToken(new UnterminatedToken(
+              prependErrorToken(new UnterminatedToken(
                   messageMissingExponent, tokenStart, stringOffset));
               return next;
             }
@@ -1021,7 +1349,9 @@ abstract class AbstractScanner implements Scanner {
     while (true) {
       if (identical($EOF, next)) {
         if (!asciiOnlyLines) handleUnicode(unicodeStart);
-        unterminated(messageUnterminatedComment);
+        prependErrorToken(UnterminatedToken(
+            messageUnterminatedComment, tokenStart, stringOffset));
+        advanceAfterError(true);
         break;
       } else if (identical($STAR, next)) {
         next = advance();
@@ -1085,8 +1415,8 @@ abstract class AbstractScanner implements Scanner {
    */
   void appendToken(Token token) {
     tail.next = token;
-    tail.next.previous = tail;
-    tail = tail.next;
+    token.previous = tail;
+    tail = token;
     if (comments != null && comments == token.precedingComments) {
       comments = null;
       commentsTail = null;
@@ -1163,11 +1493,7 @@ abstract class AbstractScanner implements Scanner {
    */
   int tokenizeIdentifier(int next, int start, bool allowDollar) {
     while (true) {
-      if (($a <= next && next <= $z) ||
-          ($A <= next && next <= $Z) ||
-          ($0 <= next && next <= $9) ||
-          identical(next, $_) ||
-          (identical(next, $$) && allowDollar)) {
+      if (_isIdentifierChar(next, allowDollar)) {
         next = advance();
       } else {
         // Identifier ends here.
@@ -1291,7 +1617,8 @@ abstract class AbstractScanner implements Scanner {
     } else {
       beginToken(); // The synthetic identifier starts here.
       appendSyntheticSubstringToken(TokenType.IDENTIFIER, scanOffset, true, '');
-      unterminated(messageUnexpectedDollarInString, shouldAdvance: false);
+      prependErrorToken(UnterminatedToken(
+          messageUnexpectedDollarInString, tokenStart, stringOffset));
     }
     beginToken(); // The string interpolation suffix starts here.
     return next;
@@ -1416,13 +1743,31 @@ abstract class AbstractScanner implements Scanner {
   }
 
   int unexpected(int character) {
-    appendErrorToken(buildUnexpectedCharacterToken(character, tokenStart));
-    return advanceAfterError(true);
-  }
-
-  int unterminated(Message message, {bool shouldAdvance: true}) {
-    appendErrorToken(new UnterminatedToken(message, tokenStart, stringOffset));
-    return advanceAfterError(shouldAdvance);
+    var errorToken = buildUnexpectedCharacterToken(character, tokenStart);
+    if (errorToken is NonAsciiIdentifierToken) {
+      int charOffset;
+      List<int> codeUnits = <int>[];
+      if (tail.type == TokenType.IDENTIFIER && tail.charEnd == tokenStart) {
+        charOffset = tail.charOffset;
+        codeUnits.addAll(tail.lexeme.codeUnits);
+        tail = tail.previous;
+      } else {
+        charOffset = errorToken.charOffset;
+      }
+      codeUnits.add(errorToken.character);
+      prependErrorToken(errorToken);
+      int next = advanceAfterError(true);
+      while (_isIdentifierChar(next, true)) {
+        codeUnits.add(next);
+        next = advance();
+      }
+      appendToken(StringToken.fromString(TokenType.IDENTIFIER,
+          new String.fromCharCodes(codeUnits), charOffset));
+      return next;
+    } else {
+      prependErrorToken(errorToken);
+      return advanceAfterError(true);
+    }
   }
 
   void unterminatedString(int quoteChar, int quoteStart, int start,
@@ -1434,7 +1779,7 @@ abstract class AbstractScanner implements Scanner {
     appendSyntheticSubstringToken(TokenType.STRING, start, asciiOnly, suffix);
     // Ensure that the error is reported on a visible token
     int errorStart = tokenStart < stringOffset ? tokenStart : quoteStart;
-    appendErrorToken(new UnterminatedString(prefix, errorStart, stringOffset));
+    prependErrorToken(new UnterminatedString(prefix, errorStart, stringOffset));
   }
 
   int advanceAfterError(bool shouldAdvance) {
@@ -1454,6 +1799,7 @@ TokenType closeBraceInfoFor(BeginToken begin) {
     '{': TokenType.CLOSE_CURLY_BRACKET,
     '<': TokenType.GT,
     r'${': TokenType.CLOSE_CURLY_BRACKET,
+    '?.[': TokenType.CLOSE_SQUARE_BRACKET,
   }[begin.lexeme];
 }
 
@@ -1559,4 +1905,12 @@ class ScannerConfiguration {
   })  : this.enableExtensionMethods = enableExtensionMethods ?? false,
         this.enableNonNullable = enableNonNullable ?? false,
         this.enableTripleShift = enableTripleShift ?? false;
+}
+
+bool _isIdentifierChar(int next, bool allowDollar) {
+  return ($a <= next && next <= $z) ||
+      ($A <= next && next <= $Z) ||
+      ($0 <= next && next <= $9) ||
+      identical(next, $_) ||
+      (identical(next, $$) && allowDollar);
 }

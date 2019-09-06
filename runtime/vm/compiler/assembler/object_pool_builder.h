@@ -180,8 +180,4 @@ class ObjectPoolBuilder : public ValueObject {
 
 }  // namespace dart
 
-namespace dart {
-using compiler::ObjectPoolBuilder;
-}
-
 #endif  // RUNTIME_VM_COMPILER_ASSEMBLER_OBJECT_POOL_BUILDER_H_

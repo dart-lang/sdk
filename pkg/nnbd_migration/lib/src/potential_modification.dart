@@ -33,7 +33,7 @@ class ConditionalModification extends PotentialModification {
           discard,
           _KeepNode(node.condition),
           _KeepNode(node.thenStatement),
-          _KeepNode(node.elseStatement));
+          node.elseStatement == null ? null : _KeepNode(node.elseStatement));
     } else {
       throw new UnimplementedError('TODO(paulberry)');
     }
@@ -58,7 +58,7 @@ class ConditionalModification extends PotentialModification {
     if (discard.keepTrue) {
       keepNodes.add(thenStatement); // TODO(paulberry): test
     }
-    if (discard.keepFalse) {
+    if (discard.keepFalse && elseStatement != null) {
       keepNodes.add(elseStatement); // TODO(paulberry): test
     }
     // TODO(paulberry): test thoroughly
@@ -82,21 +82,22 @@ class ConditionalModification extends PotentialModification {
   }
 }
 
-/// Records information about the possible addition of an import
-/// to the source code.
+/// Records information about the possible addition of an import to the source
+/// code.
 class PotentiallyAddImport extends PotentialModification {
   final _usages = <PotentialModification>[];
 
   final int _offset;
-  final String _importPath;
+  final String importPath;
 
   PotentiallyAddImport(
-      AstNode beforeNode, this._importPath, PotentialModification usage)
-      : _offset = beforeNode.offset {
+      AstNode beforeNode, String importPath, PotentialModification usage)
+      : this.forOffset(beforeNode.offset, importPath, usage);
+
+  PotentiallyAddImport.forOffset(
+      this._offset, this.importPath, PotentialModification usage) {
     _usages.add(usage);
   }
-
-  get importPath => _importPath;
 
   @override
   bool get isEmpty {
@@ -111,7 +112,7 @@ class PotentiallyAddImport extends PotentialModification {
   // TODO(danrubel): change all of dartfix NNBD to use DartChangeBuilder
   @override
   Iterable<SourceEdit> get modifications =>
-      isEmpty ? const [] : [SourceEdit(_offset, 0, "import '$_importPath';\n")];
+      isEmpty ? const [] : [SourceEdit(_offset, 0, "import '$importPath';\n")];
 
   void addUsage(PotentialModification usage) {
     _usages.add(usage);
@@ -124,9 +125,21 @@ class PotentiallyAddRequired extends PotentialModification {
   final NullabilityNode _node;
 
   final int _offset;
+  final String className;
+  final String methodName;
+  final String parameterName;
 
-  PotentiallyAddRequired(DefaultFormalParameter parameter, this._node)
-      : _offset = parameter.offset;
+  factory PotentiallyAddRequired(
+      DefaultFormalParameter parameter, NullabilityNode node) {
+    final element = parameter.declaredElement;
+    final method = element.enclosingElement;
+    final cls = method.enclosingElement;
+    return PotentiallyAddRequired._(
+        node, parameter.offset, cls.name, method.name, element.name);
+  }
+
+  PotentiallyAddRequired._(this._node, this._offset, this.className,
+      this.methodName, this.parameterName);
 
   @override
   bool get isEmpty => _node.isNullable;

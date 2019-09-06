@@ -713,16 +713,6 @@ bool _isSubtype(var s, var sEnv, var t, var tEnv) {
 
   if (isNullType(s)) return true;
 
-  if (isDartFunctionType(t)) {
-    return _isFunctionSubtype(s, sEnv, t, tEnv);
-  }
-
-  if (isDartFunctionType(s)) {
-    // Check function types against the `Function` class (`Object` is also a
-    // supertype, but is tested above with other 'top' types.).
-    return isDartFunctionTypeRti(t);
-  }
-
   // Get the object describing the class and check for the subtyping flag
   // constructed from the type of [s].
   var typeOfS = isJsArray(s) ? getIndex(s, 0) : s;
@@ -753,6 +743,16 @@ bool _isSubtype(var s, var sEnv, var t, var tEnv) {
       // [s] implements Future<S>. Check S <: T.
       return _isSubtype(futureArgument, sEnv, tTypeArgument, tEnv);
     }
+  }
+
+  if (isDartFunctionType(t)) {
+    return _isFunctionSubtype(s, sEnv, t, tEnv);
+  }
+
+  if (isDartFunctionType(s)) {
+    // Check function types against the `Function` class (`Object` is also a
+    // supertype, but is tested above with other 'top' types.).
+    return isDartFunctionTypeRti(t);
   }
 
   // Get the object describing the class and check for the subtyping flag

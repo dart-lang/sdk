@@ -10,6 +10,6 @@ class C {
 }
 
 main() {
-  var /*@type=double*/ y =
-      new C(). /*@typeArgs=double*/ /*@target=C::m*/ m(1, 2.0);
+  var /*@ type=double* */ y =
+      new C(). /*@ typeArgs=double* */ /*@target=C::m*/ m(1, 2.0);
 }

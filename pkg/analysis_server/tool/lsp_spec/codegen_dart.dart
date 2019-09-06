@@ -59,7 +59,7 @@ String generateDartForTypes(List<AstNode> types) {
   return formattedCode.trim() + '\n'; // Ensure a single trailing newline.
 }
 
-TypeBase resolveTypeAlias(TypeBase type, {resolveEnumClasses: false}) {
+TypeBase resolveTypeAlias(TypeBase type, {resolveEnumClasses = false}) {
   if (type is Type && _typeAliases.containsKey(type.name)) {
     final alias = _typeAliases[type.name];
     // Only follow the type if we're not an enum, or we wanted to follow enums.
@@ -161,29 +161,70 @@ Iterable<String> _wrapLines(List<String> lines, int maxLength) sync* {
 
 void _writeCanParseMethod(IndentableStringBuffer buffer, Interface interface) {
   buffer
-    ..writeIndentedln('static bool canParse(Object obj) {')
+    ..writeIndentedln(
+        'static bool canParse(Object obj, LspJsonReporter reporter) {')
     ..indent()
-    ..writeIndented('return obj is Map<String, dynamic>');
-  // In order to consider this valid for parsing, all fields that may not be
+    ..writeIndentedln('if (obj is Map<String, dynamic>) {')
+    ..indent();
+  // In order to consider this valid for parsing, all fields that must not be
   // undefined must be present and also type check for the correct type.
   // Any fields that are optional but present, must still type check.
   final fields = _getAllFields(interface);
   for (var field in fields) {
+    buffer
+      ..writeIndentedln("reporter.push('${field.name}');")
+      ..writeIndentedln('try {')
+      ..indent();
     if (!field.allowsUndefined) {
-      buffer.write(" && obj.containsKey('${field.name}') && ");
-    } else {
-      buffer.write(" && ");
+      buffer
+        ..writeIndentedln("if (!obj.containsKey('${field.name}')) {")
+        ..indent()
+        ..writeIndentedln('reporter.reportError("must not be undefined");')
+        ..writeIndentedln('return false;')
+        ..outdent()
+        ..writeIndentedln('}');
     }
+    if (!field.allowsNull && !field.allowsUndefined) {
+      buffer
+        ..writeIndentedln("if (obj['${field.name}'] == null) {")
+        ..indent()
+        ..writeIndentedln('reporter.reportError("must not be null");')
+        ..writeIndentedln('return false;')
+        ..outdent()
+        ..writeIndentedln('}');
+    }
+    buffer.writeIndented('if (');
     if (field.allowsNull || field.allowsUndefined) {
-      buffer.write("(obj['${field.name}'] == null || ");
+      buffer.write("obj['${field.name}'] != null && ");
     }
-    _writeTypeCheckCondition(buffer, "obj['${field.name}']", field.type);
-    if (field.allowsNull || field.allowsUndefined) {
-      buffer.write(")");
-    }
+    buffer.write('!(');
+    _writeTypeCheckCondition(
+        buffer, "obj['${field.name}']", field.type, 'reporter');
+    buffer
+      ..write(')) {')
+      ..indent()
+      ..writeIndentedln(
+          'reporter.reportError("must be of type ${field.type.dartTypeWithTypeArgs}");')
+      ..writeIndentedln('return false;')
+      ..outdent()
+      ..writeIndentedln('}')
+      ..outdent()
+      ..writeIndentedln('} finally {')
+      ..indent()
+      ..writeIndentedln('reporter.pop();')
+      ..outdent()
+      ..writeIndentedln('}');
   }
   buffer
-    ..writeln(';')
+    ..writeIndentedln('return true;')
+    ..outdent()
+    ..writeIndentedln('} else {')
+    ..indent()
+    ..writeIndentedln(
+        'reporter.reportError("must be of type ${interface.nameWithTypeArgs}");')
+    ..writeIndentedln('return false;')
+    ..outdent()
+    ..writeIndentedln('}')
     ..outdent()
     ..writeIndentedln('}');
 }
@@ -265,11 +306,12 @@ void _writeEnumClass(IndentableStringBuffer buffer, Namespace namespace) {
     ..writeln()
     ..writeIndentedln('final ${typeOfValues.dartTypeWithTypeArgs} _value;')
     ..writeln()
-    ..writeIndentedln('static bool canParse(Object obj) {')
+    ..writeIndentedln(
+        'static bool canParse(Object obj, LspJsonReporter reporter) {')
     ..indent();
   if (allowsAnyValue) {
     buffer.writeIndentedln('return ');
-    _writeTypeCheckCondition(buffer, 'obj', typeOfValues);
+    _writeTypeCheckCondition(buffer, 'obj', typeOfValues, 'reporter');
     buffer.writeln(';');
   } else {
     buffer
@@ -399,7 +441,7 @@ void _writeFromJsonCodeForUnion(
 
     // Dynamic matches all type checks, so only emit it if required.
     if (!isDynamic) {
-      _writeTypeCheckCondition(buffer, valueCode, type);
+      _writeTypeCheckCondition(buffer, valueCode, type, 'nullLspJsonReporter');
       buffer.write(' ? ');
     }
 
@@ -442,7 +484,8 @@ void _writeFromJsonConstructor(
   for (final subclassName in _subtypes[interface.name] ?? const <String>[]) {
     final subclass = _interfaces[subclassName];
     buffer
-      ..writeIndentedln('if (${subclass.name}.canParse(json)) {')
+      ..writeIndentedln(
+          'if (${subclass.name}.canParse(json, nullLspJsonReporter)) {')
       ..indent()
       ..writeln('return ${subclass.nameWithTypeArgs}.fromJson(json);')
       ..outdent()
@@ -623,8 +666,8 @@ void _writeType(IndentableStringBuffer buffer, AstNode type) {
   }
 }
 
-void _writeTypeCheckCondition(
-    IndentableStringBuffer buffer, String valueCode, TypeBase type) {
+void _writeTypeCheckCondition(IndentableStringBuffer buffer, String valueCode,
+    TypeBase type, String reporter) {
   type = resolveTypeAlias(type);
 
   final dartType = type.dartType;
@@ -634,14 +677,14 @@ void _writeTypeCheckCondition(
   } else if (_isSimpleType(type)) {
     buffer.write('$valueCode is $fullDartType');
   } else if (_isSpecType(type)) {
-    buffer.write('$dartType.canParse($valueCode)');
+    buffer.write('$dartType.canParse($valueCode, $reporter)');
   } else if (type is ArrayType) {
     buffer.write('($valueCode is List');
     if (fullDartType != 'dynamic') {
       // TODO(dantup): If we're happy to assume we never have two lists in a union
       // we could skip this bit.
       buffer.write(' && ($valueCode.every((item) => ');
-      _writeTypeCheckCondition(buffer, 'item', type.elementType);
+      _writeTypeCheckCondition(buffer, 'item', type.elementType, reporter);
       buffer.write('))');
     }
     buffer.write(')');
@@ -649,9 +692,9 @@ void _writeTypeCheckCondition(
     buffer.write('($valueCode is Map');
     if (fullDartType != 'dynamic') {
       buffer..write(' && (')..write('$valueCode.keys.every((item) => ');
-      _writeTypeCheckCondition(buffer, 'item', type.indexType);
+      _writeTypeCheckCondition(buffer, 'item', type.indexType, reporter);
       buffer..write('&& $valueCode.values.every((item) => ');
-      _writeTypeCheckCondition(buffer, 'item', type.valueType);
+      _writeTypeCheckCondition(buffer, 'item', type.valueType, reporter);
       buffer.write(')))');
     }
     buffer.write(')');
@@ -662,7 +705,7 @@ void _writeTypeCheckCondition(
       if (i != 0) {
         buffer.write(' || ');
       }
-      _writeTypeCheckCondition(buffer, valueCode, type.types[i]);
+      _writeTypeCheckCondition(buffer, valueCode, type.types[i], reporter);
     }
     buffer.write(')');
   } else {

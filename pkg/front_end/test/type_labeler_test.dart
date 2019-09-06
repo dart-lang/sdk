@@ -220,7 +220,7 @@ main() {
   Constant bazFooFoo2Const = new InstanceConstant(bazClass.reference,
       [foo, foo2], {xField.reference: fooConst, yField.reference: foo2Const});
   check({
-    bazFooFoo2Const: "Baz<Foo/*1*/, Foo/*2*/> " +
+    bazFooFoo2Const: "Baz<Foo/*1*/, Foo/*2*/> "
         "{x: Foo/*1*/ {boo: true}, y: Foo/*2*/ {value: 2, next: null}}"
   }, 3);
 

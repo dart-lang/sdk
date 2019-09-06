@@ -417,7 +417,7 @@ class Driver {
       }
     } finally {
       // Ensure that the repository is left at the most recent commit.
-      if (history.commitIds.length > 0) {
+      if (history.commitIds.isNotEmpty) {
         repository.checkout(history.commitIds[0]);
       }
     }

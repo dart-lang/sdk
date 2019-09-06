@@ -16,33 +16,20 @@ num_sign_test: Crash, Pass # Issue 31768
 
 [ $compiler == dart2js ]
 bigint_from_test: RuntimeError # Issue 32589
-bigint_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 bit_twiddling_test/int64: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 compare_to2_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 core_runtime_types_test: RuntimeError # Issue 34147
 date_time11_test: RuntimeError, Pass # Fails when US is on winter time, issue 31285.
-date_time_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 double_ceil_test/int64: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 double_floor_test/int64: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 double_round_test/int64: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 double_truncate_test/int64: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 error_stack_trace1_test: RuntimeError # Issue 12399
-growable_list_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-growable_list_test: RuntimeError # Concurrent modifications test always runs
-int_ceil_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int_ceil_to_double_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int_floor_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int_floor_to_double_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 int_from_environment_int64_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 int_parse_radix_int64_test/01: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 int_parse_radix_int64_test/02: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 int_parse_radix_int64_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 int_parse_radix_test/01: RuntimeError
-int_round_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int_round_to_double_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int_to_int_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int_truncate_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int_truncate_to_double_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 integer_arith_vm_test/modPow: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 integer_arith_vm_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 integer_to_radix_string_test/01: RuntimeError
@@ -52,9 +39,6 @@ integer_to_string_test/01: RuntimeError
 integer_to_string_test/01: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 iterable_return_type_test/02: RuntimeError # Dart2js does not support Uint64*.
 list_unmodifiable_test: Pass, RuntimeError # Issue 28712
-num_parse_test/01: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-num_parse_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-num_sign_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 
 [ $compiler != dartdevc ]
 error_stack_trace_test/static: MissingCompileTimeError
@@ -70,11 +54,21 @@ string_from_environment3_test/03: MissingCompileTimeError
 bool_from_environment2_test/03: MissingCompileTimeError
 string_from_environment3_test/03: MissingCompileTimeError
 
-[ $compiler == precompiler ]
-bigint_test: Pass, Timeout # --no_intrinsify
-int_parse_radix_test: Pass, Timeout # --no_intrinsify
-integer_parsed_mul_div_vm_test: Pass, Timeout # --no_intrinsify
-regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
+[ $compiler == none ]
+int_parse_radix_bad_handler_test: MissingCompileTimeError
+symbol_operator_test/03: Fail # Issue 11669
+symbol_reserved_word_test/02: CompileTimeError # Issue 20191
+symbol_reserved_word_test/04: MissingCompileTimeError # Issue 11669, 19972, With the exception of 'void', const Symbol() should not accept reserved words.
+symbol_reserved_word_test/06: RuntimeError # Issue 11669, With the exception of 'void', new Symbol() should not accept reserved words.
+symbol_reserved_word_test/07: MissingCompileTimeError # Issue 11669, 19972, With the exception of 'void', const Symbol() should not accept reserved words.
+symbol_reserved_word_test/09: RuntimeError # Issue 11669, With the exception of 'void', new Symbol() should not accept reserved words.
+symbol_reserved_word_test/10: MissingCompileTimeError # Issue 11669, 19972, With the exception of 'void', const Symbol() should not accept reserved words.
+symbol_reserved_word_test/12: RuntimeError # Issue 11669, With the exception of 'void', new Symbol() should not accept reserved words.
+symbol_test/01: Fail, Pass # Issue 11669
+symbol_test/02: MissingCompileTimeError # Issue 11669
+symbol_test/03: MissingCompileTimeError # Issue 11669
+symbol_test/none: Fail # Issue 11669
+unicode_test: Fail # Issue 6706
 
 [ $mode == debug ]
 regexp/pcre_test: Pass, Slow # Issue 22008
@@ -110,6 +104,7 @@ apply_generic_function_test: SkipByDesign # Function.apply with named args
 apply_test: Skip # Uses new Symbol via symbolMapToStringMap helper
 dynamic_nosuchmethod_test: SkipByDesign # Expects names in NSM
 error_stack_trace1_test: SkipByDesign # Expects unobfuscated stack trace
+type_tostring_test: SkipByDesign # Expects names in Type.toString()
 
 # All static_tests have expected compile-time errors.
 [ $compiler != app_jitk && $compiler != dart2analyzer && $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkb && $compiler != dartkp && $compiler != fasta ]
@@ -184,7 +179,6 @@ symbol_reserved_word_test/03: RuntimeError # Issue 19972, new Symbol('void') sho
 [ $compiler == dart2js && $minified ]
 dynamic_nosuchmethod_test: RuntimeError
 error_stack_trace1_test: RuntimeError # Issue 12399
-growable_list_test: RuntimeError # Concurrent modifications test always runs
 hash_set_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_CustomHashSet.#x), local(_CustomHashSet.#)) for j:closure_call(_CustomHashSet__CustomHashSet_closure.call).
 integer_to_radix_string_test/01: RuntimeError
 integer_to_radix_string_test/02: RuntimeError
@@ -235,9 +229,11 @@ from_environment_const_type_undefined_test/16: MissingCompileTimeError
 iterable_to_set_test: RuntimeError # is-checks do not implement strong mode type system
 string_base_vm_static_test: MissingCompileTimeError
 
-[ $compiler == precompiler && $runtime == dart_precompiled && !$checked ]
-iterable_generate_test/01: RuntimeError
-splay_tree_from_iterable_test: RuntimeError
+# We no longer expect Dart2 tests to run with the standalone VM without the new
+# common front end, but for now we get better coverage by still running them in
+# checked mode, which is mostly Dart2-compatible.
+[ $compiler == none && !$checked && ($runtime == dart_precompiled || $runtime == vm) ]
+*: SkipByDesign
 
 [ $mode == release && $hot_reload && ($compiler == dartk || $compiler == dartkb) ]
 bigint_parse_radix_test: Crash
@@ -271,12 +267,6 @@ symbol_reserved_word_test/12: RuntimeError # Issues 11669 and 31936 - throwing c
 symbol_test/none: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
 unicode_test: RuntimeError # Issue 18061: German double S.
 
-# We no longer expect Dart2 tests to run with the standalone VM without the new
-# common front end, but for now we get better coverage by still running them in
-# checked mode, which is mostly Dart2-compatible.
-[ !$checked && ($compiler == app_jit || $compiler == none || $compiler == precompiler) && ($runtime == dart_precompiled || $runtime == vm) ]
-*: SkipByDesign
-
 [ !$preview_dart_2 && ($runtime == dart_precompiled || $runtime == vm) ]
 *: SkipByDesign # Deprecating all Dart1 modes of execution
 
@@ -290,52 +280,10 @@ bigint_test: Skip # Issue 31659
 [ $arch == simdbc || $arch == simdbc64 ]
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
 
-[ $compiler == app_jit || $compiler == none || $compiler == precompiler ]
-int_parse_radix_bad_handler_test: MissingCompileTimeError
-symbol_operator_test/03: Fail # Issue 11669
-symbol_reserved_word_test/02: CompileTimeError # Issue 20191
-symbol_reserved_word_test/04: MissingCompileTimeError # Issue 11669, 19972, With the exception of 'void', const Symbol() should not accept reserved words.
-symbol_reserved_word_test/06: RuntimeError # Issue 11669, With the exception of 'void', new Symbol() should not accept reserved words.
-symbol_reserved_word_test/07: MissingCompileTimeError # Issue 11669, 19972, With the exception of 'void', const Symbol() should not accept reserved words.
-symbol_reserved_word_test/09: RuntimeError # Issue 11669, With the exception of 'void', new Symbol() should not accept reserved words.
-symbol_reserved_word_test/10: MissingCompileTimeError # Issue 11669, 19972, With the exception of 'void', const Symbol() should not accept reserved words.
-symbol_reserved_word_test/12: RuntimeError # Issue 11669, With the exception of 'void', new Symbol() should not accept reserved words.
-symbol_test/01: Fail, Pass # Issue 11669
-symbol_test/02: MissingCompileTimeError # Issue 11669
-symbol_test/03: MissingCompileTimeError # Issue 11669
-symbol_test/none: Fail # Issue 11669
-unicode_test: Fail # Issue 6706
-
-[ $compiler == app_jit || $compiler == precompiler ]
-from_environment_const_type_test/02: MissingCompileTimeError
-from_environment_const_type_test/03: MissingCompileTimeError
-from_environment_const_type_test/04: MissingCompileTimeError
-from_environment_const_type_test/06: MissingCompileTimeError
-from_environment_const_type_test/07: MissingCompileTimeError
-from_environment_const_type_test/08: MissingCompileTimeError
-from_environment_const_type_test/09: MissingCompileTimeError
-from_environment_const_type_test/11: MissingCompileTimeError
-from_environment_const_type_test/12: MissingCompileTimeError
-from_environment_const_type_test/13: MissingCompileTimeError
-from_environment_const_type_test/14: MissingCompileTimeError
-from_environment_const_type_test/16: MissingCompileTimeError
-from_environment_const_type_undefined_test/02: MissingCompileTimeError
-from_environment_const_type_undefined_test/03: MissingCompileTimeError
-from_environment_const_type_undefined_test/04: MissingCompileTimeError
-from_environment_const_type_undefined_test/06: MissingCompileTimeError
-from_environment_const_type_undefined_test/07: MissingCompileTimeError
-from_environment_const_type_undefined_test/08: MissingCompileTimeError
-from_environment_const_type_undefined_test/09: MissingCompileTimeError
-from_environment_const_type_undefined_test/11: MissingCompileTimeError
-from_environment_const_type_undefined_test/12: MissingCompileTimeError
-from_environment_const_type_undefined_test/13: MissingCompileTimeError
-from_environment_const_type_undefined_test/14: MissingCompileTimeError
-from_environment_const_type_undefined_test/16: MissingCompileTimeError
-iterable_to_set_test: RuntimeError # is-checks do not implement strong mode type system
-
 [ $compiler == dartdevc || $compiler == dartdevk ]
 bigint_from_test: RuntimeError # Issue 32589
-bigint_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+bigint_test/03: SkipSlow # modPow is very slow
+bigint_test/15: SkipSlow # modPow is very slow
 bit_twiddling_test/int64: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 compare_to2_test: RuntimeError # Issue 30170
 compare_to2_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
@@ -346,12 +294,7 @@ double_floor_test/int64: CompileTimeError, OK # Error if web int literal cannot 
 double_round_test/int64: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 double_truncate_test/int64: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 error_stack_trace_test/nullThrown: RuntimeError # .stackTrace not present for exception caught from 'throw null;'
-growable_list_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 hash_set_test/01: RuntimeError # Issue 29921
-int_ceil_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int_ceil_to_double_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int_floor_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int_floor_to_double_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 int_from_environment_int64_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 int_modulo_arith_test/none: RuntimeError # Issue 29921
 int_parse_radix_int64_test/01: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
@@ -360,11 +303,6 @@ int_parse_radix_int64_test/02: CompileTimeError, OK # Error if web int literal c
 int_parse_radix_int64_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 int_parse_radix_test/01: RuntimeError # Issue 29921
 int_parse_with_limited_ints_test: Skip # Requires fixed-size int64 support.
-int_round_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int_round_to_double_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int_to_int_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int_truncate_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int_truncate_to_double_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 integer_arith_vm_test/modPow: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 integer_arith_vm_test/modPow: RuntimeError # Issue 30170
 integer_arith_vm_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
@@ -377,9 +315,6 @@ list_concurrent_modify_test: RuntimeError # DDC uses ES6 array iterators so it d
 list_removeat_test: RuntimeError # Issue 29921
 main_test: RuntimeError # Issue 29921
 nan_infinity_test/01: RuntimeError # Issue 29921
-num_parse_test/01: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-num_parse_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-num_sign_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 regexp/alternative-length-miscalculation_test: RuntimeError # Issue 29921
 regexp/ascii-regexp-subject_test: RuntimeError # Issue 29921
 regexp/bol-with-multiline_test: RuntimeError # Issue 29921

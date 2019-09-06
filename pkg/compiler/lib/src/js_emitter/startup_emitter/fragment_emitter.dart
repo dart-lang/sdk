@@ -432,12 +432,18 @@ var #staticStateDeclaration = {};
 // Builds the inheritance structure.
 #inheritance;
 
+// Emits the embedded globals. This needs to be before constants so the embedded
+// global type resources are available for generating constants.
+#embeddedGlobalsPart1;
+
+// Adds the subtype rules for the new RTI.
+#typeRules;
+
 // Instantiates all constants.
 #constants;
 
-// Emits the embedded globals. Due to type checks in eager initializers this is
-// needed before static non-final fields initializers.
-#embeddedGlobals;
+// Adds to the embedded globals. A few globals refer to constants.
+#embeddedGlobalsPart2; 
 
 // Initializes the static non-final fields (with their constant values).
 #staticNonFinalFields;
@@ -528,6 +534,9 @@ var #typesOffset = hunkHelpers.updateTypes(#types);
 // Builds the inheritance structure.
 #inheritance;
 
+// Adds the subtype rules for the new RTI.
+#typeRules;
+
 // Instantiates all constants of this deferred fragment.
 // Note that the constant-holder has been updated earlier and storing the
 // constant values in the constant-holder makes them available globally.
@@ -577,6 +586,12 @@ class FragmentEmitter {
   final ModelEmitter _modelEmitter;
   final JClosedWorld _closedWorld;
   final CodegenWorld _codegenWorld;
+  RecipeEncoder _recipeEncoder;
+  RulesetEncoder _rulesetEncoder;
+
+  DartTypes get _dartTypes => _closedWorld.dartTypes;
+  JElementEnvironment get _elementEnvironment =>
+      _closedWorld.elementEnvironment;
 
   js.Name _call0Name, _call1Name, _call2Name;
   js.Name get call0Name =>
@@ -594,7 +609,21 @@ class FragmentEmitter {
       this._constantEmitter,
       this._modelEmitter,
       this._closedWorld,
-      this._codegenWorld);
+      this._codegenWorld) {
+    if (_options.experimentNewRti) {
+      _recipeEncoder = RecipeEncoderImpl(
+          _closedWorld,
+          _options.disableRtiOptimization
+              ? TrivialRuntimeTypesSubstitutions(_closedWorld)
+              : RuntimeTypesImpl(_closedWorld),
+          _closedWorld.nativeData,
+          _closedWorld.elementEnvironment,
+          _closedWorld.commonElements,
+          _closedWorld.rtiNeed);
+      _rulesetEncoder =
+          RulesetEncoder(_closedWorld.dartTypes, _emitter, _recipeEncoder);
+    }
+  }
 
   js.Expression generateEmbeddedGlobalAccess(String global) =>
       _emitter.generateEmbeddedGlobalAccess(global);
@@ -660,7 +689,11 @@ class FragmentEmitter {
       'constants': emitConstants(fragment),
       'staticNonFinalFields': emitStaticNonFinalFields(fragment),
       'lazyStatics': emitLazilyInitializedStatics(fragment),
-      'embeddedGlobals': emitEmbeddedGlobals(program, deferredLoadingState),
+      'embeddedGlobalsPart1':
+          emitEmbeddedGlobalsPart1(program, deferredLoadingState),
+      'embeddedGlobalsPart2':
+          emitEmbeddedGlobalsPart2(program, deferredLoadingState),
+      'typeRules': emitTypeRules(fragment),
       'nativeSupport': program.needsNativeSupport
           ? emitNativeSupport(fragment)
           : new js.EmptyStatement(),
@@ -741,6 +774,7 @@ class FragmentEmitter {
     var methodAliases = emitInstanceMethodAliases(fragment);
     var tearOffs = emitInstallTearOffs(fragment);
     var constants = emitConstants(fragment);
+    var typeRules = emitTypeRules(fragment);
     var staticNonFinalFields = emitStaticNonFinalFields(fragment);
     var lazyInitializers = emitLazilyInitializedStatics(fragment);
     // TODO(floitsch): only call emitNativeSupport if we need native.
@@ -782,6 +816,7 @@ class FragmentEmitter {
       'inheritance': inheritance,
       'aliases': methodAliases,
       'tearOffs': tearOffs,
+      'typeRules': typeRules,
       'constants': constants,
       'staticNonFinalFields': staticNonFinalFields,
       'lazyStatics': lazyInitializers,
@@ -1848,7 +1883,7 @@ class FragmentEmitter {
   }
 
   /// Emits all embedded globals.
-  js.Statement emitEmbeddedGlobals(
+  js.Statement emitEmbeddedGlobalsPart1(
       Program program, DeferredLoadingState deferredLoadingState) {
     List<js.Property> globals = [];
 
@@ -1858,8 +1893,14 @@ class FragmentEmitter {
     }
 
     if (program.typeToInterceptorMap != null) {
+      // This property is assigned later.
+      // Initialize property to avoid map transitions.
       globals.add(new js.Property(
-          js.string(TYPE_TO_INTERCEPTOR_MAP), program.typeToInterceptorMap));
+          js.string(TYPE_TO_INTERCEPTOR_MAP), js.LiteralNull()));
+    }
+
+    if (_options.experimentNewRti) {
+      globals.add(js.Property(js.string(RTI_UNIVERSE), createRtiUniverse()));
     }
 
     globals.add(emitMangledGlobalNames());
@@ -1885,6 +1926,63 @@ class FragmentEmitter {
     js.ObjectInitializer globalsObject = new js.ObjectInitializer(globals);
 
     return js.js.statement('var init = #;', globalsObject);
+  }
+
+  /// Finish setting up embedded globals.
+  js.Statement emitEmbeddedGlobalsPart2(
+      Program program, DeferredLoadingState deferredLoadingState) {
+    List<js.Statement> statements = [];
+    if (program.typeToInterceptorMap != null) {
+      statements.add(js.js.statement('init.# = #;',
+          [js.string(TYPE_TO_INTERCEPTOR_MAP), program.typeToInterceptorMap]));
+    }
+    return js.Block(statements);
+  }
+
+  js.Statement emitTypeRules(Fragment fragment) {
+    if (!_options.experimentNewRti) return js.EmptyStatement();
+
+    Ruleset ruleset = Ruleset.empty();
+    Iterable<Class> classes =
+        fragment.libraries.expand((Library library) => library.classes);
+    classes.forEach((Class cls) {
+      if (cls.classChecksNewRti == null) return;
+      InterfaceType targetType = _elementEnvironment.getThisType(cls.element);
+      Iterable<InterfaceType> supertypes = cls.classChecksNewRti.checks.map(
+          (TypeCheck check) => _dartTypes.asInstanceOf(targetType, check.cls));
+      Map<TypeVariableType, DartType> typeVariables = {};
+      for (TypeVariableType typeVariable in cls.namedTypeVariablesNewRti) {
+        TypeVariableEntity element = typeVariable.element;
+        InterfaceType supertype =
+            _dartTypes.asInstanceOf(targetType, element.typeDeclaration);
+        List<DartType> supertypeArguments = supertype.typeArguments;
+        typeVariables[typeVariable] = supertypeArguments[element.index];
+      }
+      ruleset.add(targetType, supertypes, typeVariables);
+    });
+
+    FunctionEntity method = _closedWorld.commonElements.rtiAddRulesMethod;
+    return js.js.statement('#(init.#,JSON.parse(#));', [
+      _emitter.staticFunctionAccess(method),
+      RTI_UNIVERSE,
+      _rulesetEncoder.encodeRuleset(ruleset),
+    ]);
+  }
+
+  /// Returns an expression that creates the initial Rti Universe.
+  ///
+  /// This needs to be kept in sync with `_Universe.create` in `dart:_rti`.
+  js.Expression createRtiUniverse() {
+    List<js.Property> universeFields = [];
+    void initField(String name, String value) {
+      universeFields.add(js.Property(js.string(name), js.js(value)));
+    }
+
+    initField(RtiUniverseFieldNames.evalCache, 'new Map()');
+    initField(RtiUniverseFieldNames.typeRules, '{}');
+    initField(RtiUniverseFieldNames.sharedEmptyArray, '[]');
+
+    return js.ObjectInitializer(universeFields);
   }
 
   /// Emits data needed for native classes.

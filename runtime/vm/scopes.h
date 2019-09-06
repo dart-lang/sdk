@@ -10,6 +10,7 @@
 #include "platform/assert.h"
 #include "platform/globals.h"
 #include "vm/allocation.h"
+#include "vm/compiler/backend/slot.h"
 #include "vm/growable_array.h"
 #include "vm/object.h"
 #include "vm/raw_object.h"
@@ -42,7 +43,7 @@ class LocalScope;
 //    c) [LocalVariable]s referring to values on the expression stack. Those are
 //       assigned by the flow graph builder. The indices of those variables are
 //       assigned by the flow graph builder (it simulates the expression stack
-//       height), they go from -NumVariabables - ExpressionHeight.
+//       height), they go from -NumVariables - ExpressionHeight.
 //
 //       -> These variables participate only partially in SSA renaming and can
 //          therefore only be used with [LoadLocalInstr]s and with
@@ -214,6 +215,36 @@ class LocalVariable : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(LocalVariable);
 };
 
+// Accumulates local variable descriptors while building
+// LocalVarDescriptors object.
+class LocalVarDescriptorsBuilder : public ValueObject {
+ public:
+  struct VarDesc {
+    const String* name;
+    RawLocalVarDescriptors::VarInfo info;
+  };
+
+  LocalVarDescriptorsBuilder() : vars_(8) {}
+
+  // Add variable descriptor.
+  void Add(const VarDesc& var_desc) { vars_.Add(var_desc); }
+
+  // Add all variable descriptors from given [LocalVarDescriptors] object.
+  void AddAll(Zone* zone, const LocalVarDescriptors& var_descs);
+
+  // Record deopt-id -> context-level mappings, using ranges of deopt-ids with
+  // the same context-level. [context_level_array] contains (deopt_id,
+  // context_level) tuples.
+  void AddDeoptIdToContextLevelMappings(
+      ZoneGrowableArray<intptr_t>* context_level_array);
+
+  // Finish building LocalVarDescriptor object.
+  RawLocalVarDescriptors* Done();
+
+ private:
+  GrowableArray<VarDesc> vars_;
+};
+
 class NameReference : public ZoneAllocated {
  public:
   NameReference(TokenPosition token_pos, const String& name)
@@ -317,6 +348,10 @@ class LocalScope : public ZoneAllocated {
   // scope and to its children at the same loop level.
   const GrowableArray<LocalVariable*>& context_variables() const {
     return context_variables_;
+  }
+
+  const ZoneGrowableArray<const Slot*>& context_slots() const {
+    return *context_slots_;
   }
 
   // The number of variables allocated in the context and belonging to this
@@ -434,11 +469,6 @@ class LocalScope : public ZoneAllocated {
   static RawContextScope* CreateImplicitClosureScope(const Function& func);
 
  private:
-  struct VarDesc {
-    const String* name;
-    RawLocalVarDescriptors::VarInfo info;
-  };
-
   // Allocate the variable in the current context, possibly updating the current
   // context owner scope, if the variable is the first one to be allocated at
   // this loop level.
@@ -447,7 +477,8 @@ class LocalScope : public ZoneAllocated {
   void AllocateContextVariable(LocalVariable* variable,
                                LocalScope** context_owner);
 
-  void CollectLocalVariables(GrowableArray<VarDesc>* vars, int16_t* scope_id);
+  void CollectLocalVariables(LocalVarDescriptorsBuilder* vars,
+                             int16_t* scope_id);
 
   NameReference* FindReference(const String& name) const;
 
@@ -463,8 +494,10 @@ class LocalScope : public ZoneAllocated {
   GrowableArray<LocalVariable*> variables_;
   GrowableArray<SourceLabel*> labels_;
 
-  // List of variables allocated into the context which is owned by this scope.
+  // List of variables allocated into the context which is owned by this scope,
+  // and their corresponding Slots.
   GrowableArray<LocalVariable*> context_variables_;
+  ZoneGrowableArray<const Slot*>* context_slots_;
 
   // List of names referenced in this scope and its children that
   // are not resolved to local variables.

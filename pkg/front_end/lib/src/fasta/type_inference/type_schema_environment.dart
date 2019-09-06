@@ -41,7 +41,8 @@ FunctionType substituteTypeParams(
       substitution.substituteType(type.returnType),
       namedParameters: type.namedParameters
           .map((named) => new NamedType(
-              named.name, substitution.substituteType(named.type)))
+              named.name, substitution.substituteType(named.type),
+              isRequired: named.isRequired))
           .toList(),
       typeParameters: newTypeParameters,
       requiredParameterCount: type.requiredParameterCount,
@@ -94,6 +95,10 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       : super(coreTypes, hierarchy);
 
   Class get functionClass => coreTypes.functionClass;
+
+  Class get futureClass => coreTypes.futureClass;
+
+  Class get futureOrClass => coreTypes.futureOrClass;
 
   InterfaceType getLegacyLeastUpperBound(
       InterfaceType type1, InterfaceType type2) {

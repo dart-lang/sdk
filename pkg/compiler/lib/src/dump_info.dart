@@ -12,6 +12,7 @@ import 'package:dart2js_info/json_info_codec.dart';
 import 'package:dart2js_info/binary_serialization.dart' as dump_info;
 
 import '../compiler_new.dart';
+import 'backend_strategy.dart';
 import 'common/names.dart';
 import 'common/tasks.dart' show CompilerTask;
 import 'common.dart';
@@ -24,7 +25,6 @@ import 'inferrer/abstract_value_domain.dart';
 import 'inferrer/types.dart'
     show GlobalTypeInferenceMemberResult, GlobalTypeInferenceResults;
 import 'js/js.dart' as jsAst;
-import 'js_backend/js_backend.dart' show JavaScriptBackend;
 import 'js_backend/field_analysis.dart';
 import 'universe/codegen_world_builder.dart';
 import 'universe/world_impact.dart'
@@ -204,7 +204,7 @@ class ElementInfoCollector {
 
     classInfo.size = size;
 
-    if (!compiler.backend.emitterTask.neededClasses.contains(clazz) &&
+    if (!compiler.backendStrategy.emitterTask.neededClasses.contains(clazz) &&
         classInfo.fields.isEmpty &&
         classInfo.functions.isEmpty) {
       return null;
@@ -344,13 +344,13 @@ class ElementInfoCollector {
     return _outputToInfo.putIfAbsent(outputUnit, () {
       // Dump-info currently only works with the full emitter. If another
       // emitter is used it will fail here.
-      JavaScriptBackend backend = compiler.backend;
+      BackendStrategy backendStrategy = compiler.backendStrategy;
       assert(outputUnit.name != null || outputUnit.isMainOutput);
       var filename = outputUnit.isMainOutput
           ? compiler.options.outputUri.pathSegments.last
           : deferredPartFileName(compiler.options, outputUnit.name);
       OutputUnitInfo info = new OutputUnitInfo(filename, outputUnit.name,
-          backend.emitterTask.emitter.generatedSize(outputUnit));
+          backendStrategy.emitterTask.emitter.generatedSize(outputUnit));
       info.imports
           .addAll(closedWorld.outputUnitData.getImportNames(outputUnit));
       result.outputUnits.add(info);
@@ -465,14 +465,14 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     compiler.impactStrategy.visitImpact(
         entity,
         impact,
-        new WorldImpactVisitorImpl(visitDynamicUse: (dynamicUse) {
+        new WorldImpactVisitorImpl(visitDynamicUse: (member, dynamicUse) {
           AbstractValue mask = dynamicUse.receiverConstraint;
           selections.addAll(closedWorld
               // TODO(het): Handle `call` on `Closure` through
               // `world.includesClosureCall`.
               .locateMembers(dynamicUse.selector, mask)
               .map((MemberEntity e) => new Selection(e, mask)));
-        }, visitStaticUse: (staticUse) {
+        }, visitStaticUse: (member, staticUse) {
           selections.add(new Selection(staticUse.element, null));
         }),
         IMPACT_USE);

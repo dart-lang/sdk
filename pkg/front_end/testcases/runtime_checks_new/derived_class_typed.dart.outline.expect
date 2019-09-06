@@ -2,23 +2,23 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-class B<T extends core::Object = dynamic> extends core::Object {
-  synthetic constructor •() → self::B<self::B::T>
+class B<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::B<self::B::T*>*
     ;
-  method f(generic-covariant-impl self::B::T x) → void
+  method f(generic-covariant-impl self::B::T* x) → void
     ;
-  method g({generic-covariant-impl self::B::T x}) → void
+  method g({generic-covariant-impl self::B::T* x}) → void
     ;
-  method h<generic-covariant-impl U extends self::B::T = dynamic>() → void
-    ;
-}
-class C extends self::B<core::int> {
-  synthetic constructor •() → self::C
+  method h<generic-covariant-impl U extends self::B::T* = dynamic>() → void
     ;
 }
-static method g1(self::B<core::num> b) → void
+class C extends self::B<core::int*> {
+  synthetic constructor •() → self::C*
+    ;
+}
+static method g1(self::B<core::num*>* b) → void
   ;
-static method g2(self::C c) → void
+static method g2(self::C* c) → void
   ;
 static method test() → void
   ;

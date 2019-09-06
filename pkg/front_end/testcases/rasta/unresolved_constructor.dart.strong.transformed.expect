@@ -17,7 +17,7 @@ import self as self;
 import "dart:core" as core;
 
 class Foo extends core::Object {
-  constructor •(dynamic x, dynamic y) → self::Foo
+  constructor •(dynamic x, dynamic y) → self::Foo*
     : super core::Object::•()
     ;
 }

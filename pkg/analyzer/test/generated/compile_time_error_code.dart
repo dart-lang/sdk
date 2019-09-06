@@ -43,24 +43,6 @@ String name(E e) {
     ]);
   }
 
-  test_ambiguousExport() async {
-    newFile("/test/lib/lib1.dart", content: r'''
-library lib1;
-class N {}
-''');
-    newFile("/test/lib/lib2.dart", content: r'''
-library lib2;
-class N {}
-''');
-    await assertErrorsInCode(r'''
-library L;
-export 'lib1.dart';
-export 'lib2.dart';
-''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_EXPORT, 31, 19),
-    ]);
-  }
-
   test_annotationWithNotClass() async {
     await assertErrorsInCode('''
 class Property {
@@ -648,25 +630,28 @@ var x = const C(2);
 
   test_constEvalThrowsException_unaryBitNot_null() async {
     await assertErrorsInCode('''
-const C = ~null;
+const dynamic D = null;
+const C = ~D;
 ''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 10, 5),
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 34, 2),
     ]);
   }
 
   test_constEvalThrowsException_unaryNegated_null() async {
     await assertErrorsInCode('''
-const C = -null;
+const dynamic D = null;
+const C = -D;
 ''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 10, 5),
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 34, 2),
     ]);
   }
 
   test_constEvalThrowsException_unaryNot_null() async {
     await assertErrorsInCode('''
-const C = !null;
+const dynamic D = null;
+const C = !D;
 ''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 10, 5),
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 34, 2),
     ]);
   }
 
@@ -717,12 +702,11 @@ class A {
 }
 
 const num a = 0;
-const _ = a == const A();
+const b = a == const A();
 ''',
         IsEnabledByDefault.constant_update_2018
             ? []
             : [
-                error(HintCode.UNUSED_ELEMENT, 49, 1),
                 error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING, 53,
                     14),
               ]);
@@ -1110,186 +1094,6 @@ main() {
 }
 ''', [
       error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 15),
-    ]);
-  }
-
-  test_duplicateDefinition_acrossLibraries() async {
-    var libFile = newFile('/test/lib/lib.dart', content: '''
-library lib;
-
-part 'a.dart';
-part 'test.dart';
-''');
-    newFile('/test/lib/a.dart', content: '''
-part of lib;
-
-class A {}
-''');
-    String partContent = '''
-part of lib;
-
-class A {}
-''';
-    newFile('/test/lib/test.dart', content: partContent);
-    await resolveFile(libFile.path);
-    await assertErrorsInCode(partContent, [
-      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 20, 1),
-    ]);
-  }
-
-  test_duplicateDefinition_catch() async {
-    await assertErrorsInCode(r'''
-main() {
-  try {} catch (e, e) {}
-}''', [
-      error(HintCode.UNUSED_CATCH_STACK, 28, 1),
-      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 28, 1),
-    ]);
-  }
-
-  test_duplicateDefinition_inPart() async {
-    var libFile = newFile('/test/lib/lib1.dart', content: '''
-library test;
-part 'test.dart';
-class A {}
-''');
-    String partContent = '''
-part of test;
-class A {}
-''';
-    newFile('/test/lib/test.dart', content: partContent);
-    await resolveFile(libFile.path);
-    await assertErrorsInCode(partContent, [
-      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 20, 1),
-    ]);
-  }
-
-  test_duplicateDefinition_locals_inCase() async {
-    await assertErrorsInCode(r'''
-main() {
-  switch(1) {
-    case 1:
-      var a;
-      var a;
-  }
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 45, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 58, 1),
-      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 58, 1),
-    ]);
-  }
-
-  test_duplicateDefinition_locals_inFunctionBlock() async {
-    await assertErrorsInCode(r'''
-main() {
-  int m = 0;
-  m(a) {}
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 15, 1),
-      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 24, 1),
-      error(HintCode.UNUSED_ELEMENT, 24, 1),
-    ]);
-  }
-
-  test_duplicateDefinition_locals_inIf() async {
-    await assertErrorsInCode(r'''
-main(int p) {
-  if (p != 0) {
-    var a;
-    var a;
-  }
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 38, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 49, 1),
-      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 49, 1),
-    ]);
-  }
-
-  test_duplicateDefinition_locals_inMethodBlock() async {
-    await assertErrorsInCode(r'''
-class A {
-  m() {
-    int a;
-    int a;
-  }
-}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 26, 1),
-      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 37, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 37, 1),
-    ]);
-  }
-
-  test_duplicateDefinition_notInDefiningUnit() async {
-    newFile('/test/lib/a.dart', content: '''
-part of test;
-class A {}
-''');
-    await assertNoErrorsInCode('''
-library test;
-part 'a.dart';
-class A {}
-''');
-  }
-
-  test_duplicateDefinition_parameters_inConstructor() async {
-    await assertErrorsInCode(r'''
-class A {
-  int a;
-  A(int a, this.a);
-}
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 35, 1),
-    ]);
-  }
-
-  test_duplicateDefinition_parameters_inFunctionTypeAlias() async {
-    await assertErrorsInCode(r'''
-typedef F(int a, double a);
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 24, 1),
-    ]);
-  }
-
-  test_duplicateDefinition_parameters_inLocalFunction() async {
-    await assertErrorsInCode(r'''
-main() {
-  f(int a, double a) {
-  };
-}
-''', [
-      error(HintCode.UNUSED_ELEMENT, 11, 1),
-      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 27, 1),
-    ]);
-  }
-
-  test_duplicateDefinition_parameters_inMethod() async {
-    await assertErrorsInCode(r'''
-class A {
-  m(int a, double a) {
-  }
-}
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 28, 1),
-    ]);
-  }
-
-  test_duplicateDefinition_parameters_inTopLevelFunction() async {
-    await assertErrorsInCode(r'''
-f(int a, double a) {}
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 16, 1),
-    ]);
-  }
-
-  test_duplicateDefinition_typeParameters() async {
-    await assertErrorsInCode(r'''
-class A<T, T> {}
-''', [
-      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 11, 1),
     ]);
   }
 
@@ -1798,7 +1602,7 @@ var b2 = const bool.fromEnvironment('x', defaultValue: 1);
     // The type of the defaultValue needs to be correct even when the default
     // value isn't used (because the variable is defined in the environment).
     driver.declaredVariables = new DeclaredVariables.fromMap({'x': 'true'});
-    assertErrorsInCode('''
+    await assertErrorsInCode('''
 var b = const bool.fromEnvironment('x', defaultValue: 1);
 ''', [
       error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 8, 48),
@@ -2456,7 +2260,7 @@ class Bar<T extends Foo<T>> {}
 class Baz extends Bar {}
 void main() {}
 ''', [
-      error(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 65, 3),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 65, 3),
     ]);
     // Instantiate-to-bounds should have instantiated "Bar" to "Bar<Foo>".
     expect(result.unit.declaredElement.getType('Baz').supertype.toString(),
@@ -2844,86 +2648,6 @@ set x(v) sync* {}
 ''', [
       error(CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER, 9, 4),
       error(CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER, 9, 4),
-    ]);
-  }
-
-  test_invalidReferenceToThis_factoryConstructor() async {
-    await assertErrorsInCode(r'''
-class A {
-  factory A() { return this; }
-}
-''', [
-      error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 33, 4),
-    ]);
-  }
-
-  test_invalidReferenceToThis_instanceVariableInitializer_inConstructor() async {
-    await assertErrorsInCode(r'''
-class A {
-  var f;
-  A() : f = this;
-}
-''', [
-      error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 31, 4),
-    ]);
-  }
-
-  test_invalidReferenceToThis_instanceVariableInitializer_inDeclaration() async {
-    await assertErrorsInCode(r'''
-class A {
-  var f = this;
-}
-''', [
-      error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 20, 4),
-    ]);
-  }
-
-  test_invalidReferenceToThis_staticMethod() async {
-    await assertErrorsInCode(r'''
-class A {
-  static m() { return this; }
-}
-''', [
-      error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 32, 4),
-    ]);
-  }
-
-  test_invalidReferenceToThis_staticVariableInitializer() async {
-    await assertErrorsInCode(r'''
-class A {
-  static A f = this;
-}
-''', [
-      error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 25, 4),
-    ]);
-  }
-
-  test_invalidReferenceToThis_superInitializer() async {
-    await assertErrorsInCode(r'''
-class A {
-  A(var x) {}
-}
-class B extends A {
-  B() : super(this);
-}
-''', [
-      error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 60, 4),
-    ]);
-  }
-
-  test_invalidReferenceToThis_topLevelFunction() async {
-    await assertErrorsInCode('''
-f() { return this; }
-''', [
-      error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 13, 4),
-    ]);
-  }
-
-  test_invalidReferenceToThis_variableInitializer() async {
-    await assertErrorsInCode('''
-int x = this;
-''', [
-      error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 8, 4),
     ]);
   }
 
@@ -4720,7 +4444,8 @@ main() {
 }
 print(x) {}
 ''', [
-      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 28, 1),
+      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 28, 1,
+          expectedMessages: [message('/test/lib/test.dart', 34, 1)]),
     ]);
   }
 
@@ -4733,7 +4458,8 @@ main() {
 }
 print(x) {}
 ''', [
-      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 28, 1),
+      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 28, 1,
+          expectedMessages: [message('/test/lib/test.dart', 38, 1)]),
     ]);
   }
 
@@ -4748,7 +4474,8 @@ main() {
 }
 print(x) {}
 ''', [
-      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 34, 1),
+      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 34, 1,
+          expectedMessages: [message('/test/lib/test.dart', 48, 1)]),
     ]);
   }
 
@@ -4758,7 +4485,8 @@ main() {
   var v = () => v;
 }
 ''', [
-      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 25, 1),
+      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 25, 1,
+          expectedMessages: [message('/test/lib/test.dart', 15, 1)]),
     ]);
   }
 
@@ -4768,7 +4496,8 @@ main() {
   var v = v;
 }
 ''', [
-      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 19, 1),
+      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 19, 1,
+          expectedMessages: [message('/test/lib/test.dart', 15, 1)]),
     ]);
   }
 
@@ -4780,7 +4509,8 @@ void testTypeRef() {
   print(s + String);
 }
 ''', [
-      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 23, 6),
+      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 23, 6,
+          expectedMessages: [message('/test/lib/test.dart', 44, 6)]),
     ]);
   }
 
@@ -4792,7 +4522,8 @@ void testTypeRef() {
   print(s + String);
 }
 ''', [
-      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 23, 6),
+      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 23, 6,
+          expectedMessages: [message('/test/lib/test.dart', 44, 6)]),
     ]);
   }
 
@@ -5058,6 +4789,18 @@ typedef A(A b());
   }
 
   test_typeAliasCannotReferenceItself_generic() async {
+    List<ExpectedError> expectedErrors;
+    if (AnalysisDriver.useSummary2) {
+      expectedErrors = [
+        error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 0, 37),
+        error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE, 101, 1),
+      ];
+    } else {
+      expectedErrors = [
+        error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 0, 37),
+        error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 38, 37),
+      ];
+    }
     await assertErrorsInCode(r'''
 typedef F = void Function(List<G> l);
 typedef G = void Function(List<F> l);
@@ -5065,10 +4808,7 @@ main() {
   F foo(G g) => g;
   foo(null);
 }
-''', [
-      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 0, 37),
-      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 38, 37),
-    ]);
+''', expectedErrors);
   }
 
   test_typeAliasCannotReferenceItself_parameterType_named() async {
@@ -5133,29 +4873,11 @@ typedef A B();
   }
 
   test_typeAliasCannotReferenceItself_typeVariableBounds() async {
-    var errors = [
-      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 0, 30),
-    ];
-    if (!AnalysisDriver.useSummary2) {
-      errors.add(
-        error(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 22, 3),
-      );
-    }
     await assertErrorsInCode('''
 typedef A<T extends A<int>>();
-''', errors);
-  }
-
-  test_typeArgumentNotMatchingBounds_const() async {
-    await assertErrorsInCode(r'''
-class A {}
-class B {}
-class G<E extends A> {
-  const G();
-}
-f() { return const G<B>(); }
 ''', [
-      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 81, 1),
+      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 0, 30),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 22, 3),
     ]);
   }
 
@@ -5547,9 +5269,10 @@ f() {
   Future<void> _check_constEvalThrowsException_binary_null(
       String expr, bool resolved) async {
     await assertErrorsInCode('''
-const C = $expr;
+const dynamic D = null;
+const C = ${expr.replaceAll('null', 'D')};
 ''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 10, 8),
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 34, 5),
     ]);
   }
 

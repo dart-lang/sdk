@@ -10,6 +10,7 @@ import 'dart:convert' show LineSplitter, jsonDecode, jsonEncode, utf8;
 
 import 'dart:io' show File, Platform, exitCode, stderr, stdin, stdout;
 
+import 'package:front_end/src/fasta/resolve_input_uri.dart';
 import 'package:kernel/kernel.dart'
     show CanonicalName, Library, Component, Source, loadComponentFromBytes;
 
@@ -115,7 +116,7 @@ batchEntryPoint(List<String> arguments) {
 }
 
 class BatchCompiler {
-  final Stream lines;
+  final Stream<String> lines;
 
   Uri platformUri;
 
@@ -299,7 +300,7 @@ void _appendDillForUri(DillTarget dillTarget, Uri uri) {
   dillTarget.loader.appendLibraries(platformComponent, byteCount: bytes.length);
 }
 
-Future compilePlatform(List<String> arguments) async {
+Future<void> compilePlatform(List<String> arguments) async {
   await withGlobalOptions("compile_platform", arguments, false,
       (CompilerContext c, List<String> restArguments) {
     Uri hostPlatform = Uri.base.resolveUri(new Uri.file(restArguments[2]));
@@ -309,7 +310,7 @@ Future compilePlatform(List<String> arguments) async {
   });
 }
 
-Future compilePlatformInternal(CompilerContext c, Uri fullOutput,
+Future<void> compilePlatformInternal(CompilerContext c, Uri fullOutput,
     Uri outlineOutput, Uri hostPlatform) async {
   if (c.options.verbose) {
     print("Generating outline of ${c.options.sdkRoot} into $outlineOutput");
@@ -360,7 +361,7 @@ Future<List<Uri>> computeHostDependencies(Uri hostPlatform) async {
       platform: hostPlatform, target: hostTarget);
 }
 
-Future writeDepsFile(
+Future<void> writeDepsFile(
     Uri output, Uri depsFile, List<Uri> allDependencies) async {
   if (allDependencies.isEmpty) return;
   String toRelativeFilePath(Uri uri) {
@@ -383,7 +384,7 @@ Future writeDepsFile(
     //
     //     ninja explain: expected depfile 'vm_platform.dill.d' to mention \
     //     'vm_platform.dill', got '/.../xcodebuild/ReleaseX64/vm_platform.dill'
-    return Uri.parse(relativizeUri(uri, base: Uri.base)).toFilePath();
+    return Uri.parse(relativizeUri(Uri.base, uri, isWindows)).toFilePath();
   }
 
   StringBuffer sb = new StringBuffer();

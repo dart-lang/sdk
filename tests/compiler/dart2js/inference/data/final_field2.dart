@@ -6,13 +6,13 @@
 // inferring types for fields.
 
 class A {
-  /*element: A.intField:[exact=JSUInt31]*/
+  /*member: A.intField:[exact=JSUInt31]*/
   final intField;
 
-  /*element: A.stringField:Value([exact=JSString], value: "foo")*/
+  /*member: A.stringField:Value([exact=JSString], value: "foo")*/
   final stringField;
 
-  /*element: A.:[exact=A]*/
+  /*member: A.:[exact=A]*/
   A()
       : intField = 42,
         stringField = 'foo';
@@ -22,7 +22,7 @@ class A {
         stringField = 42;
 }
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   new A();
 }

@@ -1615,16 +1615,13 @@ class ProfileBuilder : public ValueObject {
     ASSERT(function != NULL);
     const intptr_t code_index = profile_code->code_table_index();
     ASSERT(profile_code != NULL);
-    Code& code = Code::ZoneHandle();
-    if (profile_code->code().IsCode()) {
-      code ^= profile_code->code().raw();
-    } else {
-      // No inlining in bytecode.
-    }
+
     GrowableArray<const Function*>* inlined_functions = NULL;
     GrowableArray<TokenPosition>* inlined_token_positions = NULL;
     TokenPosition token_position = TokenPosition::kNoSource;
-    if (!code.IsNull()) {
+    Code& code = Code::ZoneHandle();
+    if (profile_code->code().IsCode()) {
+      code ^= profile_code->code().raw();
       inlined_functions_cache_.Get(pc, code, sample, frame_index,
                                    &inlined_functions, &inlined_token_positions,
                                    &token_position);
@@ -1637,6 +1634,11 @@ class ProfileBuilder : public ValueObject {
                     (*inlined_token_positions)[i].ToCString());
         }
       }
+    } else if (profile_code->code().IsBytecode()) {
+      // No inlining in bytecode.
+      const Bytecode& bc = Bytecode::CheckedHandle(Thread::Current()->zone(),
+                                                   profile_code->code().raw());
+      token_position = bc.GetTokenIndexOfPC(pc);
     }
 
     if (code.IsNull() || (inlined_functions == NULL) ||

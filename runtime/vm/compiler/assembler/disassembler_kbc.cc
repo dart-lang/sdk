@@ -57,7 +57,11 @@ static void Fmttgt(char** buf,
                    intptr_t* size,
                    const KBCInstr* instr,
                    int32_t value) {
-  FormatOperand(buf, size, "-> %" Px, instr + value);
+  if (FLAG_disassemble_relative) {
+    FormatOperand(buf, size, "-> %" Pd, value);
+  } else {
+    FormatOperand(buf, size, "-> %" Px, instr + value);
+  }
 }
 
 static void Fmtlit(char** buf,
@@ -160,32 +164,6 @@ static void FormatT(char* buf,
   Apply(&buf, &size, instr, op1, x, "");
 }
 
-static void FormatA_D(char* buf,
-                      intptr_t size,
-                      KernelBytecode::Opcode opcode,
-                      const KBCInstr* instr,
-                      Fmt op1,
-                      Fmt op2,
-                      Fmt op3) {
-  const int32_t a = KernelBytecode::DecodeA(instr);
-  const int32_t bc = KernelBytecode::DecodeD(instr);
-  Apply(&buf, &size, instr, op1, a, ", ");
-  Apply(&buf, &size, instr, op2, bc, "");
-}
-
-static void FormatA_X(char* buf,
-                      intptr_t size,
-                      KernelBytecode::Opcode opcode,
-                      const KBCInstr* instr,
-                      Fmt op1,
-                      Fmt op2,
-                      Fmt op3) {
-  const int32_t a = KernelBytecode::DecodeA(instr);
-  const int32_t bc = KernelBytecode::DecodeX(instr);
-  Apply(&buf, &size, instr, op1, a, ", ");
-  Apply(&buf, &size, instr, op2, bc, "");
-}
-
 static void FormatA_E(char* buf,
                       intptr_t size,
                       KernelBytecode::Opcode opcode,
@@ -257,21 +235,6 @@ static const BytecodeFormatter kFormatters[] = {
 
 static intptr_t GetConstantPoolIndex(const KBCInstr* instr) {
   switch (KernelBytecode::DecodeOpcode(instr)) {
-    case KernelBytecode::kLoadConstant_Old:
-    case KernelBytecode::kInstantiateTypeArgumentsTOS_Old:
-    case KernelBytecode::kAssertAssignable_Old:
-    case KernelBytecode::kPushConstant_Old:
-    case KernelBytecode::kStoreStaticTOS_Old:
-    case KernelBytecode::kPushStatic_Old:
-    case KernelBytecode::kAllocate_Old:
-    case KernelBytecode::kAllocateClosure_Old:
-    case KernelBytecode::kInstantiateType_Old:
-    case KernelBytecode::kDirectCall_Old:
-    case KernelBytecode::kInterfaceCall_Old:
-    case KernelBytecode::kUncheckedInterfaceCall_Old:
-    case KernelBytecode::kDynamicCall_Old:
-      return KernelBytecode::DecodeD(instr);
-
     case KernelBytecode::kLoadConstant:
     case KernelBytecode::kLoadConstant_Wide:
     case KernelBytecode::kInstantiateTypeArgumentsTOS:
@@ -284,6 +247,8 @@ static intptr_t GetConstantPoolIndex(const KBCInstr* instr) {
     case KernelBytecode::kPushConstant_Wide:
     case KernelBytecode::kStoreStaticTOS:
     case KernelBytecode::kStoreStaticTOS_Wide:
+    case KernelBytecode::kLoadStatic:
+    case KernelBytecode::kLoadStatic_Wide:
     case KernelBytecode::kPushStatic:
     case KernelBytecode::kPushStatic_Wide:
     case KernelBytecode::kAllocate:
@@ -296,6 +261,10 @@ static intptr_t GetConstantPoolIndex(const KBCInstr* instr) {
     case KernelBytecode::kDirectCall_Wide:
     case KernelBytecode::kInterfaceCall:
     case KernelBytecode::kInterfaceCall_Wide:
+    case KernelBytecode::kInstantiatedInterfaceCall:
+    case KernelBytecode::kInstantiatedInterfaceCall_Wide:
+    case KernelBytecode::kUncheckedClosureCall:
+    case KernelBytecode::kUncheckedClosureCall_Wide:
     case KernelBytecode::kUncheckedInterfaceCall:
     case KernelBytecode::kUncheckedInterfaceCall_Wide:
     case KernelBytecode::kDynamicCall:
@@ -378,7 +347,8 @@ void KernelBytecodeDisassembler::Disassemble(uword start,
                       sizeof(human_buffer), &instruction_length, bytecode,
                       &object, pc);
     formatter->ConsumeInstruction(hex_buffer, sizeof(hex_buffer), human_buffer,
-                                  sizeof(human_buffer), object, pc);
+                                  sizeof(human_buffer), object,
+                                  FLAG_disassemble_relative ? pc - start : pc);
     pc += instruction_length;
   }
 #else
@@ -393,7 +363,8 @@ void KernelBytecodeDisassembler::Disassemble(const Function& function) {
   Zone* zone = Thread::Current()->zone();
   const Bytecode& bytecode = Bytecode::Handle(zone, function.bytecode());
   THR_Print("Bytecode for function '%s' {\n", function_fullname);
-  uword start = bytecode.PayloadStart();
+  const uword start = bytecode.PayloadStart();
+  const uword base = FLAG_disassemble_relative ? 0 : start;
   DisassembleToStdout stdout_formatter;
   LogBlock lb;
   Disassemble(start, start + bytecode.Size(), &stdout_formatter, bytecode);
@@ -415,28 +386,63 @@ void KernelBytecodeDisassembler::Disassemble(const Function& function) {
     const int addr_width = (kBitsPerWord / 4) + 2;
     // "*" in a printf format specifier tells it to read the field width from
     // the printf argument list.
-    THR_Print("%-*s\ttok-ix\n", addr_width, "pc");
+    THR_Print("%-*s\tpos\tline\tcolumn\tyield\n", addr_width, "pc");
+    const Script& script = Script::Handle(zone, function.script());
     kernel::BytecodeSourcePositionsIterator iter(zone, bytecode);
     while (iter.MoveNext()) {
-      THR_Print("%#-*" Px "\t%s\n", addr_width,
-                bytecode.PayloadStart() + iter.PcOffset(),
-                iter.TokenPos().ToCString());
+      TokenPosition pos = iter.TokenPos();
+      intptr_t line = -1, column = -1;
+      script.GetTokenLocation(pos, &line, &column);
+      THR_Print("%#-*" Px "\t%s\t%" Pd "\t%" Pd "\t%s\n", addr_width,
+                base + iter.PcOffset(), pos.ToCString(), line, column,
+                iter.IsYieldPoint() ? "yield" : "");
     }
     THR_Print("}\n");
+  }
+
+  if (FLAG_print_variable_descriptors && bytecode.HasLocalVariablesInfo()) {
+    THR_Print("Local variables info for function '%s' {\n", function_fullname);
+    kernel::BytecodeLocalVariablesIterator iter(zone, bytecode);
+    while (iter.MoveNext()) {
+      switch (iter.Kind()) {
+        case kernel::BytecodeLocalVariablesIterator::kScope: {
+          THR_Print("scope 0x%" Px "-0x%" Px " pos %s-%s\tlev %" Pd "\n",
+                    base + iter.StartPC(), base + iter.EndPC(),
+                    iter.StartTokenPos().ToCString(),
+                    iter.EndTokenPos().ToCString(), iter.ContextLevel());
+        } break;
+        case kernel::BytecodeLocalVariablesIterator::kVariableDeclaration: {
+          THR_Print("var   0x%" Px "-0x%" Px " pos %s-%s\tidx %" Pd
+                    "\tdecl %s\t%s %s %s\n",
+                    base + iter.StartPC(), base + iter.EndPC(),
+                    iter.StartTokenPos().ToCString(),
+                    iter.EndTokenPos().ToCString(), iter.Index(),
+                    iter.DeclarationTokenPos().ToCString(),
+                    String::Handle(
+                        zone, AbstractType::Handle(zone, iter.Type()).Name())
+                        .ToCString(),
+                    String::Handle(zone, iter.Name()).ToCString(),
+                    iter.IsCaptured() ? "captured" : "");
+        } break;
+        case kernel::BytecodeLocalVariablesIterator::kContextVariable: {
+          THR_Print("ctxt  0x%" Px "\tidx %" Pd "\n", base + iter.StartPC(),
+                    iter.Index());
+        } break;
+      }
+    }
+    THR_Print("}\n");
+
+    THR_Print("Local variable descriptors for function '%s' {\n",
+              function_fullname);
+    const auto& var_descriptors =
+        LocalVarDescriptors::Handle(zone, bytecode.GetLocalVarDescriptors());
+    THR_Print("%s}\n", var_descriptors.ToCString());
   }
 
   THR_Print("Exception Handlers for function '%s' {\n", function_fullname);
   const ExceptionHandlers& handlers =
       ExceptionHandlers::Handle(zone, bytecode.exception_handlers());
   THR_Print("%s}\n", handlers.ToCString());
-
-  if (FLAG_print_variable_descriptors) {
-    THR_Print("Local variable descriptors for function '%s' {\n",
-              function_fullname);
-    const auto& var_descriptors =
-        LocalVarDescriptors::Handle(zone, bytecode.GetLocalVarDescriptors());
-    THR_Print("%s\n}\n", var_descriptors.ToCString());
-  }
 
 #else
   UNREACHABLE();

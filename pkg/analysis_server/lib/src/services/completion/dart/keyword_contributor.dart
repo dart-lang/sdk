@@ -194,6 +194,15 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
         return;
       }
     }
+    if (previousMember is ExtensionDeclaration) {
+      if (previousMember.leftBracket == null ||
+          previousMember.leftBracket.isSynthetic) {
+        // If the prior member is an unfinished extension declaration then the
+        // user is probably finishing that.
+        _addExtensionDeclarationKeywords(previousMember);
+        return;
+      }
+    }
     if (previousMember is MixinDeclaration) {
       if (previousMember.leftBracket == null ||
           previousMember.leftBracket.isSynthetic) {
@@ -279,6 +288,21 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   visitExpressionFunctionBody(ExpressionFunctionBody node) {
     if (entity == node.expression) {
       _addExpressionKeywords(node);
+    }
+  }
+
+  @override
+  visitExtensionDeclaration(ExtensionDeclaration node) {
+    // Don't suggest extension name
+    if (entity == node.name) {
+      return;
+    }
+    if (entity == node.rightBracket) {
+      _addExtensionBodyKeywords();
+    } else if (entity is ClassMember) {
+      _addExtensionBodyKeywords();
+    } else {
+      _addExtensionDeclarationKeywords(node);
     }
   }
 
@@ -660,6 +684,23 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
     }
   }
 
+  void _addExtensionBodyKeywords() {
+    _addSuggestions([
+      Keyword.CONST,
+      Keyword.DYNAMIC,
+      Keyword.FINAL,
+      Keyword.GET,
+      Keyword.OPERATOR,
+      Keyword.SET,
+      Keyword.STATIC,
+      Keyword.VAR,
+      Keyword.VOID
+    ]);
+    if (request.featureSet.isEnabled(Feature.non_nullable)) {
+      _addSuggestion(Keyword.LATE);
+    }
+  }
+
   void _addClassDeclarationKeywords(ClassDeclaration node) {
     // Very simplistic suggestion because analyzer will warn if
     // the extends / with / implements keywords are out of order
@@ -694,6 +735,9 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
       Keyword.VAR,
       Keyword.VOID
     ], DART_RELEVANCE_HIGH);
+    if (request.featureSet.isEnabled(Feature.extension_methods)) {
+      _addSuggestion(Keyword.EXTENSION, DART_RELEVANCE_HIGH);
+    }
     if (request.featureSet.isEnabled(Feature.non_nullable)) {
       _addSuggestion(Keyword.LATE, DART_RELEVANCE_HIGH);
     }
@@ -712,6 +756,12 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
     }
     if (_inAsyncMethodOrFunction(node)) {
       _addSuggestion(Keyword.AWAIT);
+    }
+  }
+
+  void _addExtensionDeclarationKeywords(ExtensionDeclaration node) {
+    if (node.onKeyword == null || node.onKeyword.isSynthetic) {
+      _addSuggestion(Keyword.ON, DART_RELEVANCE_HIGH);
     }
   }
 
@@ -794,7 +844,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   void _addSuggestion2(String completion,
-      {int offset, int relevance: DART_RELEVANCE_KEYWORD}) {
+      {int offset, int relevance = DART_RELEVANCE_KEYWORD}) {
     if (offset == null) {
       offset = completion.length;
     }

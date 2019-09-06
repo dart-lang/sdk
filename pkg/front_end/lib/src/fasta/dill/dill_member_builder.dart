@@ -9,12 +9,12 @@ import 'package:kernel/ast.dart'
 
 import '../kernel/kernel_builder.dart'
     show
-        Declaration,
+        Builder,
         MemberBuilder,
         isRedirectingGenerativeConstructorImplementation;
 
 import '../modifier.dart'
-    show abstractMask, constMask, externalMask, finalMask, staticMask;
+    show abstractMask, constMask, externalMask, finalMask, lateMask, staticMask;
 
 import '../problems.dart' show unhandled;
 
@@ -23,7 +23,7 @@ class DillMemberBuilder extends MemberBuilder {
 
   final Member member;
 
-  DillMemberBuilder(Member member, Declaration parent)
+  DillMemberBuilder(Member member, Builder parent)
       : modifiers = computeModifiers(member),
         member = member,
         super(parent, member.fileOffset);
@@ -70,6 +70,7 @@ int computeModifiers(Member member) {
   if (member is Field) {
     modifier |= member.isConst ? constMask : 0;
     modifier |= member.isFinal ? finalMask : 0;
+    modifier |= member.isLate ? lateMask : 0;
     modifier |= member.isStatic ? staticMask : 0;
   } else if (member is Procedure) {
     modifier |= member.isConst ? constMask : 0;

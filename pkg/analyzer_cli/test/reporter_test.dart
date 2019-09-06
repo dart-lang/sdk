@@ -4,7 +4,7 @@
 
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer_cli/src/ansi.dart' as ansi;
 import 'package:analyzer_cli/src/error_formatter.dart';
 import 'package:test/test.dart' hide ErrorFormatter;
@@ -39,8 +39,8 @@ main() {
     });
 
     test('error', () {
-      AnalysisErrorInfo error =
-          mockError(ErrorType.SYNTACTIC_ERROR, ErrorSeverity.ERROR);
+      ErrorsResultImpl error =
+          mockResult(ErrorType.SYNTACTIC_ERROR, ErrorSeverity.ERROR);
       reporter.formatErrors([error]);
       reporter.flush();
 
@@ -49,7 +49,7 @@ main() {
     });
 
     test('hint', () {
-      AnalysisErrorInfo error = mockError(ErrorType.HINT, ErrorSeverity.INFO);
+      ErrorsResultImpl error = mockResult(ErrorType.HINT, ErrorSeverity.INFO);
       reporter.formatErrors([error]);
       reporter.flush();
 
@@ -58,7 +58,7 @@ main() {
     });
 
     test('stats', () {
-      AnalysisErrorInfo error = mockError(ErrorType.HINT, ErrorSeverity.INFO);
+      ErrorsResultImpl error = mockResult(ErrorType.HINT, ErrorSeverity.INFO);
       reporter.formatErrors([error]);
       reporter.flush();
       stats.print(out);
@@ -70,7 +70,7 @@ main() {
   });
 }
 
-MockAnalysisErrorInfo mockError(ErrorType type, ErrorSeverity severity) {
+ErrorsResultImpl mockResult(ErrorType type, ErrorSeverity severity) {
   // ErrorInfo
   var location = new CharacterLocation(3, 3);
   var lineInfo = new MockLineInfo(defaultLocation: location);
@@ -80,5 +80,6 @@ MockAnalysisErrorInfo mockError(ErrorType type, ErrorSeverity severity) {
   var source = new MockSource('/foo/bar/baz.dart');
   var error = new MockAnalysisError(source, code, 20, 'MSG');
 
-  return new MockAnalysisErrorInfo(lineInfo, [error]);
+  return ErrorsResultImpl(
+      null, source.fullName, null, lineInfo, false, [error]);
 }

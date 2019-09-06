@@ -73,7 +73,7 @@ static RawArray* MakeServerControlMessage(const SendPort& sp,
 }
 
 const char* ServiceIsolate::kName = DART_VM_SERVICE_ISOLATE_NAME;
-Dart_IsolateCreateCallback ServiceIsolate::create_callback_ = NULL;
+Dart_IsolateGroupCreateCallback ServiceIsolate::create_group_callback_ = NULL;
 Monitor* ServiceIsolate::monitor_ = new Monitor();
 ServiceIsolate::State ServiceIsolate::state_ = ServiceIsolate::kStopped;
 Isolate* ServiceIsolate::isolate_ = NULL;
@@ -143,6 +143,10 @@ Dart_Port ServiceIsolate::Port() {
 
 Dart_Port ServiceIsolate::WaitForLoadPort() {
   VMTagScope tagScope(Thread::Current(), VMTag::kLoadWaitTagId);
+  return WaitForLoadPortInternal();
+}
+
+Dart_Port ServiceIsolate::WaitForLoadPortInternal() {
   MonitorLocker ml(monitor_);
   while (state_ == kStarting && (load_port_ == ILLEGAL_PORT)) {
     ml.Wait();
@@ -185,6 +189,7 @@ bool ServiceIsolate::SendServiceRpc(uint8_t* request_json,
   request.value.as_array.values = request_array;
   request.value.as_array.length = ARRAY_SIZE(request_array);
 
+  ServiceIsolate::WaitForLoadPortInternal();
   return Dart_PostCObject(ServiceIsolate::Port(), &request);
 }
 
@@ -330,16 +335,15 @@ class RunServiceTask : public ThreadPool::Task {
     char* error = NULL;
     Isolate* isolate = NULL;
 
-    Dart_IsolateCreateCallback create_callback =
-        ServiceIsolate::create_callback();
-    ASSERT(create_callback != NULL);
+    const auto create_group_callback = ServiceIsolate::create_group_callback();
+    ASSERT(create_group_callback != NULL);
 
     Dart_IsolateFlags api_flags;
     Isolate::FlagsInitialize(&api_flags);
 
     isolate = reinterpret_cast<Isolate*>(
-        create_callback(ServiceIsolate::kName, ServiceIsolate::kName, NULL,
-                        NULL, &api_flags, NULL, &error));
+        create_group_callback(ServiceIsolate::kName, ServiceIsolate::kName,
+                              NULL, NULL, &api_flags, NULL, &error));
     if (isolate == NULL) {
       if (FLAG_trace_service) {
         OS::PrintErr(DART_VM_SERVICE_ISOLATE_NAME
@@ -381,7 +385,6 @@ class RunServiceTask : public ThreadPool::Task {
     }
     Isolate* I = reinterpret_cast<Isolate*>(parameter);
     ASSERT(ServiceIsolate::IsServiceIsolate(I));
-    I->WaitForOutstandingSpawns();
     {
       // Print the error if there is one.  This may execute dart code to
       // print the exception object, so we need to use a StartIsolateScope.
@@ -389,6 +392,7 @@ class RunServiceTask : public ThreadPool::Task {
       StartIsolateScope start_scope(I);
       Thread* T = Thread::Current();
       ASSERT(I == T->isolate());
+      I->WaitForOutstandingSpawns();
       StackZone zone(T);
       HandleScope handle_scope(T);
       Error& error = Error::Handle(Z);
@@ -478,12 +482,12 @@ void ServiceIsolate::Run() {
   }
   // Grab the isolate create callback here to avoid race conditions with tests
   // that change this after Dart_Initialize returns.
-  create_callback_ = Isolate::CreateCallback();
-  if (create_callback_ == NULL) {
+  create_group_callback_ = Isolate::CreateGroupCallback();
+  if (create_group_callback_ == NULL) {
     ServiceIsolate::InitializingFailed();
     return;
   }
-  bool task_started = Dart::thread_pool()->Run(new RunServiceTask());
+  bool task_started = Dart::thread_pool()->Run<RunServiceTask>();
   ASSERT(task_started);
 }
 

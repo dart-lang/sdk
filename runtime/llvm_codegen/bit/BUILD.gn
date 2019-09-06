@@ -1,0 +1,31 @@
+# Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+executable("bit") {
+  sources = [
+    "main.cc",
+  ]
+  root_dir = rebase_path(root_out_dir)
+  defines = [ "LIT_BINARY_DIR=\"$root_dir\"" ]
+  deps = [
+    "../../../third_party/llvm:LLVMSupport",
+  ]
+  data_deps = [
+    "../codegen",
+  ]
+}
+
+source_set("test") {
+  sources = [
+    "test.cc",
+  ]
+
+  deps = [
+    "../../../third_party/llvm:LLVMSupport",
+  ]
+
+  include_dirs = [ "//runtime" ]
+
+  defines = [ "TESTING" ]
+}

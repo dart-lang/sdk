@@ -7,10 +7,6 @@
 
 namespace dart {
 
-static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 7,
-              "Cleanup support for old bytecode format versions");
-static const intptr_t kOldInstructionSize = 4;
-
 static const intptr_t kInstructionSize0 = 1;
 static const intptr_t kInstructionSizeA = 2;
 static const intptr_t kInstructionSizeD = 2;
@@ -28,13 +24,11 @@ static const intptr_t kInstructionSizeWideD_F = 6;
 static const intptr_t kInstructionSizeA_B_C = 4;
 
 const intptr_t KernelBytecode::kInstructionSize[] = {
-#define SIZE_OLD(encoding) kOldInstructionSize
 #define SIZE_ORDN(encoding) kInstructionSize##encoding
 #define SIZE_WIDE(encoding) kInstructionSizeWide##encoding
 #define SIZE_RESV(encoding) SIZE_ORDN(encoding)
 #define SIZE(name, encoding, kind, op1, op2, op3) SIZE_##kind(encoding),
     KERNEL_BYTECODES_LIST(SIZE)
-#undef SIZE_OLD
 #undef SIZE_ORDN
 #undef SIZE_WIDE
 #undef SIZE_RESV

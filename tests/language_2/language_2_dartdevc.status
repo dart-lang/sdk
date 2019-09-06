@@ -30,6 +30,10 @@ cascaded_forwarding_stubs_test: CompileTimeError
 const_cast2_test/01: CompileTimeError
 const_cast2_test/none: CompileTimeError
 const_constructor3_test/04: MissingCompileTimeError # Side-effect of working around issue 33441 for int-to-double
+const_double_in_int_op_test/dd6: Skip # Triple shift
+const_double_in_int_op_test/di6: Skip # Triple shift
+const_double_in_int_op_test/id6: Skip # Triple shift
+const_double_in_int_op_test/ii6: Skip # Triple shift
 covariant_override/tear_off_type_test: RuntimeError # Issue 28395
 covariant_subtyping_with_mixin_test: CompileTimeError # Issue 34329
 deferred_load_library_wrong_args_test/01: MissingRuntimeError, RuntimeError # Issue 29920
@@ -40,6 +44,7 @@ enum_syntax_test/06: MissingCompileTimeError
 execute_finally6_test: RuntimeError # Issue 29920
 expect_test: RuntimeError # Issue 29920
 export_private_test/01: MissingCompileTimeError # Issue 29920
+extension_methods/*: SkipByDesign # Analyzer DDC is expected to be turned down before releasing extension methods.
 f_bounded_quantification2_test: CompileTimeError # Issue 34583
 f_bounded_quantification3_test: RuntimeError # Issue 29920
 f_bounded_quantification4_test: CompileTimeError # Issue 34583
@@ -104,7 +109,6 @@ mixin_declaration/mixin_declaration_factory_test/02: Crash
 mixin_method_override_test/01: MissingCompileTimeError
 mixin_super_2_test: CompileTimeError # Issue 34806
 mixin_super_use_test: CompileTimeError # Issue 34806
-mock_writable_final_private_field_test: CompileTimeError # Issue 30848
 nested_generic_closure_test: CompileTimeError
 nnbd/*: Skip
 override_inheritance_field_test/42: CompileTimeError
@@ -245,7 +249,6 @@ mixin_illegal_superclass_test/29: MissingCompileTimeError
 mixin_illegal_superclass_test/30: MissingCompileTimeError
 mixin_super_2_test: RuntimeError # Issue 34807
 mixin_super_use_test: RuntimeError # Issue 34808
-mock_writable_final_private_field_test: RuntimeError
 multiline_newline_test/04: MissingCompileTimeError
 multiline_newline_test/04r: MissingCompileTimeError
 multiline_newline_test/05: MissingCompileTimeError
@@ -259,8 +262,8 @@ regress_23408_test: CompileTimeError # Issue 31533
 regress_24283_test: RuntimeError # Expect.equals(expected: <-1>, actual: <4294967295>) fails.
 regress_29025_test: CompileTimeError
 regress_29405_test: CompileTimeError # Issue 31402 Error: A value of type '#lib2::Foo' can't be assigned to a variable of type '(#lib2::Foo) → void'.
-regress_30339_test: RuntimeError # Uncaught Expect.isTrue(false) fails.
 regress_30339_test: CompileTimeError
+regress_30339_test: RuntimeError # Uncaught Expect.isTrue(false) fails.
 setter_no_getter_test/01: CompileTimeError
 super_bound_closure_test/none: CompileTimeError # Issue 31533
 super_call4_test/01: MissingCompileTimeError
@@ -298,7 +301,6 @@ bit_operations_test/02: MissingCompileTimeError
 bit_operations_test/03: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 bit_operations_test/04: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 bit_operations_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-branch_canonicalization_test: RuntimeError # Issue 29920; Expect.equals(expected: <0>, actual: <1>) fails.
 built_in_identifier_prefix_test: CompileTimeError
 canonical_const2_test: RuntimeError # Ints and doubles are unified.; Expect.isFalse(true) fails.
 closure_call_wrong_argument_count_negative_test: Fail
@@ -307,10 +309,8 @@ compile_time_constant_e_test: RuntimeError # Issue 30876; Expect.identical(expec
 config_import_corelib_test: CompileTimeError
 const_evaluation_test/01: RuntimeError # dart:mirrors not supported in DDC
 const_list_test: RuntimeError # Expect.equals(expected: <false>, actual: <true>) fails.
-const_map4_test: RuntimeError # Expect.equals(expected: <true>, actual: <false>) fails.
 const_switch_test/02: RuntimeError # Issue 29920; Expect.equals(expected: <0>, actual: <0.0>) fails.
 const_switch_test/04: RuntimeError # Ints and doubles are unified.; Expect.equals(expected: <1>, actual: <1.0>) fails.
-constructor12_test: RuntimeError # Issue 29920; ReferenceError: JSArrayOfT is not defined
 ct_const_test: RuntimeError # Issue 2992; RangeError: Maximum call stack size exceeded
 cyclic_type2_test: RuntimeError # Issue 29920; Uncaught ReferenceError: V is not defined
 cyclic_type_test/02: RuntimeError # Issue 29920; Uncaught RangeError: Maximum call stack size exceeded
@@ -357,7 +357,6 @@ left_shift_test: RuntimeError # Ints and doubles are unified.; Expect.equals(exp
 library_env_test/has_io_support: RuntimeError, OK # Intended to fail, bool.fromEnvironment("dart.library.async") is false
 library_env_test/has_mirror_support: RuntimeError, OK # Intended to fail, bool.fromEnvironment("dart.library.async") is false
 library_env_test/has_no_html_support: RuntimeError, OK # Intended to fail, bool.fromEnvironment("dart.library.async") is false
-list_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 local_function2_test/none: RuntimeError # ReferenceError: TToNull is not defined
 local_function3_test/none: RuntimeError # Expect.equals(expected: <true>, actual: <false>) fails.
 local_function_test/none: RuntimeError # Expect.equals(expected: <true>, actual: <false>) fails.
@@ -373,7 +372,6 @@ null_test/mirrors: RuntimeError # Uses mirrors.; ReferenceError: GenericOfT is n
 number_identity2_test: RuntimeError # Issue 29920; Expect.isTrue(false) fails.
 number_identity_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 numbers_test: RuntimeError # Issue 29920; Expect.equals(expected: <false>, actual: <true>) fails.
-parser_quirks_test: CompileTimeError
 regress_16640_test: RuntimeError # Issue 29920; Uncaught Error: type arguments should not be null: E => {
 regress_22443_test: RuntimeError # Uncaught Expect.isTrue(false) fails.
 stack_overflow_stacktrace_test: RuntimeError # Issue 29920; RangeError: Maximum call stack size exceeded

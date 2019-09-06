@@ -151,20 +151,6 @@ abstract class AstFactory {
   /// can be `null` if the reference is not to a constructor.
   CommentReference commentReference(Token newKeyword, Identifier identifier);
 
-  /// Returns a newly created compilation unit to have the given directives
-  /// and declarations. The [scriptTag] can be `null` if there is no script tag
-  /// in the compilation unit. The list of [directives] can be `null` if there
-  /// are no directives in the compilation unit. The list of [declarations] can
-  /// be `null` if there are no declarations in the compilation unit.
-  @Deprecated('Use compilationUnit2')
-  CompilationUnit compilationUnit(
-      Token beginToken,
-      ScriptTag scriptTag,
-      List<Directive> directives,
-      List<CompilationUnitMember> declarations,
-      Token endToken,
-      [FeatureSet featureSet]);
-
   /// Returns a newly created compilation unit to have the given directives and
   /// declarations.  The [scriptTag] can be `null` (or omitted) if there is no
   /// script tag in the compilation unit.  The list of [declarations] can be
@@ -173,7 +159,7 @@ abstract class AstFactory {
   /// declarations in the compilation unit.  The [featureSet] can be `null` if
   /// the set of features for this compilation unit is not known (this
   /// restricts what analysis can be done of the compilation unit).
-  CompilationUnit compilationUnit2(
+  CompilationUnit compilationUnit(
       {@required Token beginToken,
       ScriptTag scriptTag,
       List<Directive> directives,
@@ -339,7 +325,7 @@ abstract class AstFactory {
   /// Returns a newly created extends clause.
   ExtendsClause extendsClause(Token extendsKeyword, TypeName superclass);
 
-  /// Return a newly created extention declaration. The list of [typeParameters]
+  /// Return a newly created extension declaration. The list of [typeParameters]
   /// can be `null` if there are no type parameters.
   ExtensionDeclaration extensionDeclaration(
       {Comment comment,
@@ -352,6 +338,13 @@ abstract class AstFactory {
       Token leftBracket,
       List<ClassMember> members,
       Token rightBracket});
+
+  /// Return a newly created extension override. The list of [typeArguments]
+  /// can be `null` if there are no type arguments.
+  ExtensionOverride extensionOverride(
+      {@required Identifier extensionName,
+      TypeArgumentList typeArguments,
+      @required ArgumentList argumentList});
 
   /// Returns a newly created field declaration. Either or both of the [comment]
   /// and [metadata] can be `null` if the declaration does not have the
@@ -463,16 +456,6 @@ abstract class AstFactory {
 
   /// Returns a newly created for statement.
   ForStatement forStatement(
-      {Token awaitKeyword,
-      Token forKeyword,
-      Token leftParenthesis,
-      ForLoopParts forLoopParts,
-      Token rightParenthesis,
-      Statement body});
-
-  /// Returns a newly created for statement.
-  @Deprecated('Replaced by forStatement')
-  ForStatement forStatement2(
       {Token awaitKeyword,
       Token forKeyword,
       Token leftParenthesis,

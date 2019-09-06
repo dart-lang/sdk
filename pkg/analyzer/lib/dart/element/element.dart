@@ -347,10 +347,13 @@ abstract class ClassElement
 
 /// An element that is contained within a [ClassElement].
 ///
+/// When the 'extension-methods' experiment is enabled, these elements can also
+/// be contained within an extension element.
+///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ClassMemberElement implements Element {
-  @override
-  ClassElement get enclosingElement;
+  // TODO(brianwilkerson) Either remove this class or rename it to something
+  //  more correct.
 
   /// Return `true` if this element is a static element. A static element is an
   /// element that is not associated with a particular instance, but rather with
@@ -372,6 +375,10 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
   /// Return a list containing all of the enums contained in this compilation
   /// unit.
   List<ClassElement> get enums;
+
+  /// Return a list containing all of the extensions contained in this
+  /// compilation unit.
+  List<ExtensionElement> get extensions;
 
   /// Return a list containing all of the top-level functions contained in this
   /// compilation unit.
@@ -421,6 +428,9 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
 /// Clients may not extend, implement or mix-in this class.
 abstract class ConstructorElement
     implements ClassMemberElement, ExecutableElement, ConstantEvaluationTarget {
+  @override
+  ClassElement get enclosingElement;
+
   /// Return `true` if this constructor is a const constructor.
   bool get isConst;
 
@@ -818,6 +828,9 @@ class ElementKind implements Comparable<ElementKind> {
   static const ElementKind EXPORT =
       const ElementKind('EXPORT', 5, "export directive");
 
+  static const ElementKind EXTENSION =
+      const ElementKind('EXTENSION', 24, "extension");
+
   static const ElementKind FIELD = const ElementKind('FIELD', 6, "field");
 
   static const ElementKind FUNCTION =
@@ -957,6 +970,8 @@ abstract class ElementVisitor<R> {
 
   R visitExportElement(ExportElement element);
 
+  R visitExtensionElement(ExtensionElement element);
+
   R visitFieldElement(FieldElement element);
 
   R visitFieldFormalParameterElement(FieldFormalParameterElement element);
@@ -1046,7 +1061,43 @@ abstract class ExportElement implements Element, UriReferencedElement {
   LibraryElement get exportedLibrary;
 }
 
-/// A field defined within a type.
+/// An element that represents an extension.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class ExtensionElement implements TypeParameterizedElement {
+  /// Return a list containing all of the accessors (getters and setters)
+  /// declared in this extension.
+  List<PropertyAccessorElement> get accessors;
+
+  /// Return the type that is extended by this extension.
+  DartType get extendedType;
+
+  /// Return a list containing all of the fields declared in this extension.
+  List<FieldElement> get fields;
+
+  /// Return a list containing all of the methods declared in this extension.
+  List<MethodElement> get methods;
+
+  /// Return the element representing the getter with the given [name] that is
+  /// declared in this extension, or `null` if this extension does not declare a
+  /// getter with the given name.
+  PropertyAccessorElement /*?*/ getGetter(String name);
+
+  /// Return the element representing the method with the given [name] that is
+  /// declared in this extension, or `null` if this extension does not declare a
+  /// method with the given name.
+  MethodElement /*?*/ getMethod(String name);
+
+  /// Return the element representing the setter with the given [name] that is
+  /// declared in this extension, or `null` if this extension does not declare a
+  /// setter with the given name.
+  PropertyAccessorElement /*?*/ getSetter(String name);
+}
+
+/// A field defined within a class.
+///
+/// When the 'extension-methods' experiment is enabled, these elements can also
+/// be contained within an extension element.
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FieldElement
@@ -1056,6 +1107,11 @@ abstract class FieldElement
 
   /// Return `true` if this element is an enum constant.
   bool get isEnumConstant;
+
+  /// Return `true` if this element is a static element. A static element is an
+  /// element that is not associated with a particular instance, but rather with
+  /// an entire library or class.
+  bool get isStatic;
 
   /// Returns `true` if this field can be overridden in strong mode.
   @deprecated
@@ -1148,7 +1204,7 @@ abstract class FunctionTypedElement implements TypeParameterizedElement {
   /// return type was explicitly specified.
   DartType get returnType;
 
-  @override
+  /// Return the type defined by this element.
   FunctionType get type;
 }
 
@@ -1266,6 +1322,8 @@ abstract class LibraryElement implements Element {
   /// Return `true` if this library is part of the SDK.
   bool get isInSdk;
 
+  bool get isNonNullableByDefault;
+
   /// Return a list containing the strongly connected component in the
   /// import/export graph in which the current library resides.
   List<LibraryElement> get libraryCycle;
@@ -1298,8 +1356,6 @@ abstract class LibraryElement implements Element {
   /// consists of. This includes the defining compilation unit and units
   /// included using the `part` directive.
   List<CompilationUnitElement> get units;
-
-  bool get isNonNullableByDefault;
 
   /// Return a list containing all of the imports that share the given [prefix],
   /// or an empty array if there are no such imports.
@@ -1342,21 +1398,16 @@ abstract class LocalVariableElement implements LocalElement, VariableElement {
   bool get isLate;
 }
 
-/// An element that represents a method defined within a type.
+/// An element that represents a method defined within a class.
+///
+/// When the 'extension-methods' experiment is enabled, these elements can also
+/// be contained within an extension element.
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class MethodElement implements ClassMemberElement, ExecutableElement {
   @deprecated
   @override
   MethodDeclaration computeNode();
-
-  /// Gets the reified type of a tear-off of this method.
-  ///
-  /// If any of the parameters in the method are covariant, they are replaced
-  /// with Object in the returned type. If no covariant parameters are present,
-  /// returns `this`.
-  @deprecated
-  FunctionType getReifiedType(DartType objectType);
 }
 
 /// A pseudo-element that represents multiple elements defined within a single
@@ -1453,7 +1504,8 @@ abstract class ParameterElement
   bool get isRequiredPositional;
 
   /// Return the kind of this parameter.
-  @deprecated
+  @Deprecated('Use the getters isOptionalNamed, isOptionalPositional, '
+      'isRequiredNamed, and isRequiredPositional')
   ParameterKind get parameterKind;
 
   /// Return a list containing all of the parameters defined by this parameter.
@@ -1611,7 +1663,9 @@ abstract class TypeDefiningElement implements Element {
 /// Clients may not extend, implement or mix-in this class.
 abstract class TypeParameterElement implements TypeDefiningElement {
   /// Return the type representing the bound associated with this parameter, or
-  /// `null` if this parameter does not have an explicit bound.
+  /// `null` if this parameter does not have an explicit bound. Being able to
+  /// distinguish between an implicit and explicit bound is needed by the
+  /// instantiate to bounds algorithm.
   DartType get bound;
 
   @override
@@ -1629,9 +1683,6 @@ abstract class TypeParameterizedElement implements Element {
   ///
   /// If the element does not define a type, returns `true`.
   bool get isSimplyBounded;
-
-  /// The type of this element, which will be a parameterized type.
-  ParameterizedType get type;
 
   /// Return a list containing all of the type parameters declared by this
   /// element directly. This does not include type parameters that are declared

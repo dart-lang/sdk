@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   ifThenNullCheck(0);
   ifThenNullCheck(null);
@@ -22,7 +22,7 @@ main() {
   ifThenNotNullGradualCheck2(null, 0);
 }
 
-/*element: ifThenNullCheck:[exact=JSUInt31]*/
+/*member: ifThenNullCheck:[exact=JSUInt31]*/
 ifThenNullCheck(int /*[null|exact=JSUInt31]*/ value) {
   if (value == null) {
     return 0;
@@ -30,7 +30,7 @@ ifThenNullCheck(int /*[null|exact=JSUInt31]*/ value) {
   return value;
 }
 
-/*element: ifThenElseNullCheck:[exact=JSUInt31]*/
+/*member: ifThenElseNullCheck:[exact=JSUInt31]*/
 ifThenElseNullCheck(int /*[null|exact=JSUInt31]*/ value) {
   if (value == null) {
     return 0;
@@ -39,7 +39,7 @@ ifThenElseNullCheck(int /*[null|exact=JSUInt31]*/ value) {
   }
 }
 
-/*element: ifNotThenNullCheck:[exact=JSUInt31]*/
+/*member: ifNotThenNullCheck:[exact=JSUInt31]*/
 ifNotThenNullCheck(int /*[null|exact=JSUInt31]*/ value) {
   if (value != null) {
     return value;
@@ -47,7 +47,7 @@ ifNotThenNullCheck(int /*[null|exact=JSUInt31]*/ value) {
   return 0;
 }
 
-/*element: ifNotThenElseNullCheck:[exact=JSUInt31]*/
+/*member: ifNotThenElseNullCheck:[exact=JSUInt31]*/
 ifNotThenElseNullCheck(int /*[null|exact=JSUInt31]*/ value) {
   if (value != null) {
     return value;
@@ -56,7 +56,7 @@ ifNotThenElseNullCheck(int /*[null|exact=JSUInt31]*/ value) {
   }
 }
 
-/*element: ifThenNotNullComplexCheck:[exact=JSUInt31]*/
+/*member: ifThenNotNullComplexCheck:[exact=JSUInt31]*/
 ifThenNotNullComplexCheck(
     int /*[null|exact=JSUInt31]*/ a, int /*[null|exact=JSUInt31]*/ b) {
   if (a != null && a /*invoke: [exact=JSUInt31]*/ != b) {
@@ -65,7 +65,7 @@ ifThenNotNullComplexCheck(
   return 0;
 }
 
-/*element: ifThenElseNotNullComplexCheck:[null|exact=JSUInt31]*/
+/*member: ifThenElseNotNullComplexCheck:[null|exact=JSUInt31]*/
 ifThenElseNotNullComplexCheck(
     int /*[null|exact=JSUInt31]*/ a, int /*[null|exact=JSUInt31]*/ b) {
   if (a != null && a /*invoke: [exact=JSUInt31]*/ != b) {
@@ -74,7 +74,7 @@ ifThenElseNotNullComplexCheck(
   return a;
 }
 
-/*element: ifThenNotNullGradualCheck1:[exact=JSUInt31]*/
+/*member: ifThenNotNullGradualCheck1:[exact=JSUInt31]*/
 ifThenNotNullGradualCheck1(
     int /*[null|exact=JSUInt31]*/ a, int /*[exact=JSUInt31]*/ b) {
   if (a /*invoke: [null|exact=JSUInt31]*/ != b) {
@@ -85,7 +85,7 @@ ifThenNotNullGradualCheck1(
   return 0;
 }
 
-/*element: ifThenNotNullGradualCheck2:[exact=JSUInt31]*/
+/*member: ifThenNotNullGradualCheck2:[exact=JSUInt31]*/
 ifThenNotNullGradualCheck2(
     int /*[null|exact=JSUInt31]*/ a, int /*[exact=JSUInt31]*/ b) {
   if (a != null) {

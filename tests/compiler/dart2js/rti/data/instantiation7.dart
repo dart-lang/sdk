@@ -2,23 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*strong.element: f1:deps=[method],direct,explicit=[f1.T],needsArgs,needsInst=[<method.X>]*/
-/*omit.element: f1:deps=[method]*/
+/*strong.member: f1:deps=[method],direct,explicit=[f1.T],needsArgs,needsInst=[<method.X>]*/
+/*omit.member: f1:deps=[method]*/
 int f1<T>(T a, T b, T c) => null;
 
-/*strong.element: f2:deps=[method],direct,explicit=[f2.S,f2.T],needsArgs,needsInst=[<method.X,method.Y>]*/
-/*omit.element: f2:deps=[method]*/
+/*strong.member: f2:deps=[method],direct,explicit=[f2.S,f2.T],needsArgs,needsInst=[<method.X,method.Y>]*/
+/*omit.member: f2:deps=[method]*/
 int f2<T, S>(T a, S b, S c) => null;
 
-/*strong.element: f3:deps=[method],direct,explicit=[f3.S,f3.T,f3.U],needsArgs,needsInst=[<method.X,method.Y,method.Z>]*/
-/*omit.element: f3:deps=[method]*/
+/*strong.member: f3:deps=[method],direct,explicit=[f3.S,f3.T,f3.U],needsArgs,needsInst=[<method.X,method.Y,method.Z>]*/
+/*omit.member: f3:deps=[method]*/
 int f3<T, S, U>(T a, S b, U c) => null;
 
 typedef int F1<R>(R a, R b, R c);
 typedef int F2<R, P>(R a, P b, P c);
 typedef int F3<R, P, Q>(R a, P b, Q c);
 
-/*strong.element: method:indirect,needsArgs*/
+/*strong.member: method:indirect,needsArgs*/
 method<X, Y, Z>() {
   F1<X> c1;
   F2<X, Y> c2;

@@ -7,7 +7,6 @@
 # should now be relative to the new .packages file.
 
 type: newworld
-strong: true
 worlds:
   - entry: main.dart
     sources:

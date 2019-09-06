@@ -136,21 +136,13 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
     return elementFactory.libraryOfUri('${source.uri}');
   }
 
-  @override
-  @failingTest
-  test_syntheticFunctionType_genericClosure() async {
-    // TODO(scheglov) Bug in TypeSystem.getLeastUpperBound().
-    // LUB(<T>(T) → int, <T>(T) → int) gives `(T) → int`, note absence of `<T>`.
-    await super.test_syntheticFunctionType_genericClosure();
-  }
-
   void _addLibraryUnits(
     Source definingSource,
     CompilationUnit definingUnit,
     List<LinkInputUnit> units,
   ) {
     units.add(
-      LinkInputUnit(definingSource, false, definingUnit),
+      LinkInputUnit(null, definingSource, false, definingUnit),
     );
     for (var directive in definingUnit.directives) {
       if (directive is PartDirective) {
@@ -165,12 +157,12 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
           var text = _readSafely(partSource.fullName);
           var unit = parseText(text, featureSet);
           units.add(
-            LinkInputUnit(partSource, false, unit),
+            LinkInputUnit(relativeUriStr, partSource, false, unit),
           );
         } else {
           var unit = parseText('', featureSet);
           units.add(
-            LinkInputUnit(partSource, false, unit),
+            LinkInputUnit(relativeUriStr, partSource, false, unit),
           );
         }
       }

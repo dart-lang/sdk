@@ -341,7 +341,7 @@ import 'package:product2.client/entity.dart';
   }
 
   void _assertOrganize(String expectedCode,
-      {bool removeUnresolved: false, bool removeUnused: false}) {
+      {bool removeUnresolved = false, bool removeUnused = false}) {
     DirectiveOrganizer organizer = new DirectiveOrganizer(
         testCode, testUnit, testErrors,
         removeUnresolved: removeUnresolved, removeUnused: removeUnused);

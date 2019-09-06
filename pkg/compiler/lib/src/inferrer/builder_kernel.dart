@@ -17,7 +17,6 @@ import '../inferrer/types.dart';
 import '../ir/constants.dart';
 import '../ir/static_type_provider.dart';
 import '../ir/util.dart';
-import '../js_backend/backend.dart';
 import '../js_backend/field_analysis.dart';
 import '../js_model/element_map.dart';
 import '../js_model/locals.dart' show JumpVisitor;
@@ -1126,6 +1125,14 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
   /// Try to find the length given to a fixed array constructor call.
   int _findLength(ir.Arguments arguments) {
+    int finish(int length) {
+      // Filter out lengths that should not be tracked.
+      if (length < 0) return null;
+      // Serialization limit.
+      if (length >= (1 << 30)) return null;
+      return length;
+    }
+
     ir.Expression firstArgument = arguments.positional.first;
     if (firstArgument is ir.ConstantExpression &&
         firstArgument.constant is ir.DoubleConstant) {
@@ -1133,10 +1140,10 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       double doubleValue = constant.value;
       int truncatedValue = doubleValue.truncate();
       if (doubleValue == truncatedValue) {
-        return truncatedValue;
+        return finish(truncatedValue);
       }
     } else if (firstArgument is ir.IntLiteral) {
-      return firstArgument.value;
+      return finish(firstArgument.value);
     } else if (firstArgument is ir.StaticGet) {
       MemberEntity member = _elementMap.getMember(firstArgument.target);
       if (member.isField) {
@@ -1144,7 +1151,9 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
             _closedWorld.fieldAnalysis.getFieldData(member);
         if (fieldData.isEffectivelyConstant && fieldData.constantValue.isInt) {
           IntConstantValue intValue = fieldData.constantValue;
-          return intValue.intValue.toInt();
+          if (intValue.intValue.isValidInt) {
+            return finish(intValue.intValue.toInt());
+          }
         }
       }
     }
@@ -1244,22 +1253,22 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       AbstractValue mask) {
     String name = function.name;
     handleStaticInvoke(node, selector, mask, function, arguments);
-    if (name == JavaScriptBackend.JS) {
+    if (name == Identifiers.JS) {
       NativeBehavior nativeBehavior =
           _elementMap.getNativeBehaviorForJsCall(node);
       _sideEffectsBuilder.add(nativeBehavior.sideEffects);
       return _inferrer.typeOfNativeBehavior(nativeBehavior);
-    } else if (name == JavaScriptBackend.JS_EMBEDDED_GLOBAL) {
+    } else if (name == Identifiers.JS_EMBEDDED_GLOBAL) {
       NativeBehavior nativeBehavior =
           _elementMap.getNativeBehaviorForJsEmbeddedGlobalCall(node);
       _sideEffectsBuilder.add(nativeBehavior.sideEffects);
       return _inferrer.typeOfNativeBehavior(nativeBehavior);
-    } else if (name == JavaScriptBackend.JS_BUILTIN) {
+    } else if (name == Identifiers.JS_BUILTIN) {
       NativeBehavior nativeBehavior =
           _elementMap.getNativeBehaviorForJsBuiltinCall(node);
       _sideEffectsBuilder.add(nativeBehavior.sideEffects);
       return _inferrer.typeOfNativeBehavior(nativeBehavior);
-    } else if (name == JavaScriptBackend.JS_STRING_CONCAT) {
+    } else if (name == Identifiers.JS_STRING_CONCAT) {
       return _types.stringType;
     } else {
       _sideEffectsBuilder.setAllSideEffects();
@@ -1842,12 +1851,13 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
   @override
   TypeInformation visitConstantExpression(ir.ConstantExpression node) {
-    return node.constant.accept(new TypeInformationConstantVisitor(this, node));
+    return new TypeInformationConstantVisitor(this, node)
+        .visitConstant(node.constant);
   }
 }
 
 class TypeInformationConstantVisitor
-    implements ir.ConstantVisitor<TypeInformation> {
+    extends ir.ComputeOnceConstantVisitor<TypeInformation> {
   final KernelTypeGraphBuilder builder;
   final ir.ConstantExpression expression;
 
@@ -1894,7 +1904,7 @@ class TypeInformationConstantVisitor
     return builder.createMapTypeInformation(
         new ConstantReference(expression, node),
         node.entries
-            .map((e) => new Pair(e.key.accept(this), e.value.accept(this))),
+            .map((e) => new Pair(visitConstant(e.key), visitConstant(e.value))),
         isConst: true);
   }
 
@@ -1902,7 +1912,7 @@ class TypeInformationConstantVisitor
   TypeInformation visitListConstant(ir.ListConstant node) {
     return builder.createListTypeInformation(
         new ConstantReference(expression, node),
-        node.entries.map((e) => e.accept(this)),
+        node.entries.map((e) => visitConstant(e)),
         isConst: true);
   }
 
@@ -1910,7 +1920,7 @@ class TypeInformationConstantVisitor
   TypeInformation visitSetConstant(ir.SetConstant node) {
     return builder.createSetTypeInformation(
         new ConstantReference(expression, node),
-        node.entries.map((e) => e.accept(this)),
+        node.entries.map((e) => visitConstant(e)),
         isConst: true);
   }
 
@@ -1918,7 +1928,8 @@ class TypeInformationConstantVisitor
   TypeInformation visitInstanceConstant(ir.InstanceConstant node) {
     node.fieldValues.forEach((ir.Reference reference, ir.Constant value) {
       builder._inferrer.recordTypeOfField(
-          builder._elementMap.getField(reference.asField), value.accept(this));
+          builder._elementMap.getField(reference.asField),
+          visitConstant(value));
     });
     return builder._types.getConcreteTypeFor(builder
         ._closedWorld.abstractValueDomain
@@ -1928,8 +1939,8 @@ class TypeInformationConstantVisitor
   @override
   TypeInformation visitPartialInstantiationConstant(
       ir.PartialInstantiationConstant node) {
-    return builder
-        .createInstantiationTypeInformation(node.tearOffConstant.accept(this));
+    return builder.createInstantiationTypeInformation(
+        visitConstant(node.tearOffConstant));
   }
 
   @override

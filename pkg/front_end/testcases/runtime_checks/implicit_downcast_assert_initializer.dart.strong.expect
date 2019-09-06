@@ -3,16 +3,16 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  constructor •(core::Object o) → self::C
-    : assert(o as{TypeError} core::bool), super core::Object::•()
+  constructor •(core::Object* o) → self::C*
+    : assert(o as{TypeError} core::bool*), super core::Object::•()
     ;
 }
 static method main() → dynamic {
-  core::Object o = 1;
+  core::Object* o = 1;
   try {
     new self::C::•(o);
     assert(false, "no exception");
   }
-  on core::TypeError catch(no-exception-var) {
+  on core::TypeError* catch(no-exception-var) {
   }
 }

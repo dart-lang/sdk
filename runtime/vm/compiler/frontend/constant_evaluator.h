@@ -56,7 +56,17 @@ class ConstantEvaluator {
   RawObject* EvaluateExpressionSafe(intptr_t offset);
   RawObject* EvaluateAnnotations();
 
+  // Peeks to see if constant at the given offset will evaluate to
+  // instance of the given clazz.
+  bool IsInstanceConstant(intptr_t constant_offset, const Class& clazz);
+
+  // Evaluates a constant at the given offset (possibly by recursing
+  // into sub-constants).
+  RawInstance* EvaluateConstantExpression(intptr_t constant_offset);
+
  private:
+  RawInstance* EvaluateConstant(intptr_t constant_offset);
+
   void BailoutIfBackgroundCompilation();
 
   bool IsBuildingFlowGraph() const;
@@ -88,7 +98,6 @@ class ConstantEvaluator {
   void EvaluateDoubleLiteral();
   void EvaluateBoolLiteral(bool value);
   void EvaluateNullLiteral();
-  void EvaluateConstantExpression(Tag tag);
 
   void EvaluateGetStringLength(intptr_t expression_offset,
                                TokenPosition position);
@@ -138,59 +147,6 @@ class ConstantEvaluator {
   Instance& result_;
 
   DISALLOW_COPY_AND_ASSIGN(ConstantEvaluator);
-};
-
-// Helper class that reads a kernel Constant from binary.
-class ConstantHelper {
- public:
-  ConstantHelper(Zone* zone,
-                 KernelReaderHelper* helper,
-                 TypeTranslator* type_translator,
-                 ActiveClass* active_class,
-                 NameIndex skip_vmservice_library);
-
-  // Reads the constant table from the binary.
-  //
-  // This method assumes the Reader is positioned already at the constant table
-  // and an active class scope is setup.
-  const Array& ReadConstantTable();
-
- private:
-  const Script& script() const { return helper_.script_; }
-
-  void InstantiateTypeArguments(const Class& receiver_class,
-                                TypeArguments* type_arguments);
-
-  // If [index] has `dart:vm_service` as a parent and we are skipping the VM
-  // service library, this method returns `true`, otherwise `false`.
-  bool ShouldSkipConstant(NameIndex index);
-
-  Zone* zone_;
-  KernelReaderHelper& helper_;
-  TypeTranslator& type_translator_;
-  ActiveClass* const active_class_;
-  ConstantEvaluator const_evaluator_;
-  TranslationHelper& translation_helper_;
-  NameIndex skip_vmservice_library_;
-  Class& symbol_class_;
-  Field& symbol_name_field_;
-  AbstractType& temp_type_;
-  TypeArguments& temp_type_arguments_;
-  TypeArguments& temp_type_arguments2_;
-  TypeArguments& temp_type_arguments3_;
-  Object& temp_object_;
-  String& temp_string_;
-  Array& temp_array_;
-  Instance& temp_instance_;
-  Field& temp_field_;
-  Class& temp_class_;
-  Library& temp_library_;
-  Function& temp_function_;
-  Closure& temp_closure_;
-  Context& temp_context_;
-  Integer& temp_integer_;
-
-  DISALLOW_COPY_AND_ASSIGN(ConstantHelper);
 };
 
 class KernelConstMapKeyEqualsTraits : public AllStatic {

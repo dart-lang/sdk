@@ -13,6 +13,7 @@ import "package:compiler/src/elements/entities.dart";
 import "package:compiler/src/inferrer/abstract_value_domain.dart";
 import "package:compiler/src/inferrer/types.dart";
 import 'package:compiler/src/inferrer/typemasks/masks.dart';
+import 'package:compiler/src/js_model/js_strategy.dart';
 import "package:compiler/src/world.dart";
 import "package:expect/expect.dart";
 import '../helpers/memory_compiler.dart';
@@ -43,6 +44,7 @@ Future runTest1() async {
       memorySourceFiles: {'main.dart': TEST1},
       options: [Flags.disableInlining]);
   Compiler compiler = result.compiler;
+  JsBackendStrategy backendStrategy = compiler.backendStrategy;
   GlobalTypeInferenceResults results =
       compiler.globalInference.resultsForTesting;
   JClosedWorld closedWorld = results.closedWorld;
@@ -63,7 +65,7 @@ Future runTest1() async {
     AbstractValue barArgMask = results.resultOfParameter(barArg);
     Expect.equals(falseType, barArgMask);
   });
-  String barCode = compiler.backend.getGeneratedCode(bar);
+  String barCode = backendStrategy.getGeneratedCodeForTesting(bar);
   Expect.isTrue(barCode.contains('"bbb"'));
   Expect.isFalse(barCode.contains('"aaa"'));
 }
@@ -93,6 +95,7 @@ Future runTest2() async {
       memorySourceFiles: {'main.dart': TEST2},
       options: [Flags.disableInlining]);
   Compiler compiler = result.compiler;
+  JsBackendStrategy backendStrategy = compiler.backendStrategy;
   GlobalTypeInferenceResults results =
       compiler.globalInference.resultsForTesting;
   JClosedWorld closedWorld = results.closedWorld;
@@ -111,7 +114,7 @@ Future runTest2() async {
     // The argument to bar should have the same type as the return type of foo
     Expect.identical(commonMasks.boolType, barArgMask);
   });
-  String barCode = compiler.backend.getGeneratedCode(bar);
+  String barCode = backendStrategy.getGeneratedCodeForTesting(bar);
   Expect.isTrue(barCode.contains('"bbb"'));
   // Still must output the print for "aaa"
   Expect.isTrue(barCode.contains('"aaa"'));

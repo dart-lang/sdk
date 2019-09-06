@@ -111,6 +111,20 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
   _DartUnitFoldingComputerVisitor(this._computer);
 
   @override
+  void visitAssertInitializer(AssertInitializer node) {
+    _computer._addRegion(node.leftParenthesis.end, node.rightParenthesis.offset,
+        FoldingKind.INVOCATION);
+    super.visitAssertInitializer(node);
+  }
+
+  @override
+  void visitAssertStatement(AssertStatement node) {
+    _computer._addRegion(node.leftParenthesis.end, node.rightParenthesis.offset,
+        FoldingKind.INVOCATION);
+    super.visitAssertStatement(node);
+  }
+
+  @override
   void visitBlockFunctionBody(BlockFunctionBody node) {
     _computer._addRegion(node.block.leftBracket.end,
         node.block.rightBracket.offset, FoldingKind.FUNCTION_BODY);
@@ -144,6 +158,14 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
   void visitExportDirective(ExportDirective node) {
     _computer._recordDirective(node);
     super.visitExportDirective(node);
+  }
+
+  @override
+  void visitExtensionDeclaration(ExtensionDeclaration node) {
+    _computer._addRegionForAnnotations(node.metadata);
+    _computer._addRegion(
+        node.leftBracket.end, node.rightBracket.offset, FoldingKind.CLASS_BODY);
+    super.visitExtensionDeclaration(node);
   }
 
   @override

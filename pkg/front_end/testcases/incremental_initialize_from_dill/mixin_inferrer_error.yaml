@@ -6,7 +6,6 @@
 # and now swallowed somewhere when done in the incremental compiler.
 
 type: newworld
-strong: true
 worlds:
   - entry: main.dart
     sources:

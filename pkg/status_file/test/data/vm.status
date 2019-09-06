@@ -126,9 +126,6 @@ dart/optimized_stacktrace_line_and_column_test: StaticWarning
 [ $compiler == dart2analyzer && $strong ]
 *: Skip # Issue 28649
 
-[ $compiler == app_jit ]
-dart/snapshot_version_test: Fail,OK # Expects to find script snapshot relative to Dart source.
-
 [ $runtime != vm ]
 dart/snapshot_version_test: SkipByDesign  # Spawns processes
 dart/spawn_infinite_loop_test: Skip  # VM shutdown test
@@ -156,17 +153,11 @@ cc/IsolateReload_TypeIdentity: Fail # Issue 28349
 cc/IsolateReload_TypeIdentityGeneric: Fail # Issue 28349
 cc/IsolateReload_TypeIdentityParameter: Fail # Issue 28349
 
-[ $compiler == precompiler ]
-dart/byte_array_test: Skip # Incompatible flag --disable_alloc_stubs_after_gc
-
-[ $compiler == precompiler || $mode == product ]
+[ $mode == product ]
 dart/redirection_type_shuffling_test: SkipByDesign # Imports dart:mirrors
 cc/CreateMirrorSystem: SkipByDesign # Imports dart:mirrors
 cc/CoreSnapshotSize: SkipByDesign # Imports dart:mirrors
 cc/StandaloneSnapshotSize: SkipByDesign # Imports dart:mirrors
-
-[ $compiler == app_jit ]
-dart/optimized_stacktrace_line_and_column_test: RuntimeError,OK # app-jit lacks column information
 
 [ $runtime == dart_precompiled ]
 dart/optimized_stacktrace_line_and_column_test: RuntimeError,OK # AOT lacks column information

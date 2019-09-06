@@ -15,12 +15,14 @@ import 'package:analyzer/src/dart/ast/ast.dart'
         CompilationUnitImpl,
         ExtensionDeclarationImpl,
         MixinDeclarationImpl;
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/fasta/error_converter.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:front_end/src/fasta/messages.dart'
     show
         LocatedMessage,
         Message,
+        MessageCode,
         messageConstConstructorWithBody,
         messageConstMethod,
         messageConstructorWithReturnType,
@@ -44,6 +46,7 @@ import 'package:front_end/src/fasta/messages.dart'
 import 'package:front_end/src/fasta/parser.dart'
     show
         Assert,
+        ClassKind,
         FormalParameterKind,
         IdentifierContext,
         MemberKind,
@@ -109,25 +112,29 @@ class AstBuilder extends StackListener {
   bool parseFunctionBodies = true;
 
   /// `true` if non-nullable behavior is enabled.
-  ///
-  /// When setting this field, be sure to set `scanner.enableNonNullable`
-  /// to the same value.
-  bool enableNonNullable = false;
+  final bool enableNonNullable;
 
   /// `true` if spread-collections behavior is enabled
-  bool enableSpreadCollections = false;
+  final bool enableSpreadCollections;
 
   /// `true` if control-flow-collections behavior is enabled
-  bool enableControlFlowCollections = false;
+  final bool enableControlFlowCollections;
 
   /// `true` if triple-shift behavior is enabled
-  bool enableTripleShift = false;
+  final bool enableTripleShift;
 
-  FeatureSet _featureSet;
+  final FeatureSet _featureSet;
 
   AstBuilder(ErrorReporter errorReporter, this.fileUri, this.isFullAst,
+      this._featureSet,
       [Uri uri])
       : this.errorReporter = new FastaErrorReporter(errorReporter),
+        this.enableNonNullable = _featureSet.isEnabled(Feature.non_nullable),
+        this.enableSpreadCollections =
+            _featureSet.isEnabled(Feature.spread_collections),
+        this.enableControlFlowCollections =
+            _featureSet.isEnabled(Feature.control_flow_collections),
+        this.enableTripleShift = _featureSet.isEnabled(Feature.triple_shift),
         uri = uri ?? fileUri;
 
   NodeList<ClassMember> get currentDeclarationMembers {
@@ -198,13 +205,18 @@ class AstBuilder extends StackListener {
     debugEvent("ExtensionHeader");
 
     TypeParameterList typeParameters = pop();
-    SimpleIdentifier name = pop();
     List<Annotation> metadata = pop();
     Comment comment = _findComment(metadata, extensionKeyword);
+
+    SimpleIdentifier name;
+    if (nameToken != null) {
+      name = ast.simpleIdentifier(nameToken, isDeclaration: true);
+    }
 
     extensionDeclaration = ast.extensionDeclaration(
       comment: comment,
       metadata: metadata,
+      extensionKeyword: extensionKeyword,
       name: name,
       typeParameters: typeParameters,
       extendedType: null, // extendedType is set in [endExtensionDeclaration]
@@ -261,7 +273,9 @@ class AstBuilder extends StackListener {
       assert(staticToken.isModifier);
       String className = classDeclaration != null
           ? classDeclaration.name.name
-          : mixinDeclaration.name.name;
+          : (mixinDeclaration != null
+              ? mixinDeclaration.name.name
+              : extensionDeclaration.name?.name);
       if (name?.lexeme == className && getOrSet == null) {
         // This error is also reported in OutlineBuilder.beginMethod
         handleRecoverableError(
@@ -323,6 +337,129 @@ class AstBuilder extends StackListener {
     }
   }
 
+  ConstructorInitializer buildInitializer(Object initializerObject) {
+    if (initializerObject is FunctionExpressionInvocation) {
+      Expression function = initializerObject.function;
+      if (function is SuperExpression) {
+        return ast.superConstructorInvocation(
+            function.superKeyword, null, null, initializerObject.argumentList);
+      } else {
+        return ast.redirectingConstructorInvocation(
+            (function as ThisExpression).thisKeyword,
+            null,
+            null,
+            initializerObject.argumentList);
+      }
+    }
+
+    if (initializerObject is MethodInvocation) {
+      Expression target = initializerObject.target;
+      if (target is SuperExpression) {
+        return ast.superConstructorInvocation(
+            target.superKeyword,
+            initializerObject.operator,
+            initializerObject.methodName,
+            initializerObject.argumentList);
+      }
+      if (target is ThisExpression) {
+        return ast.redirectingConstructorInvocation(
+            target.thisKeyword,
+            initializerObject.operator,
+            initializerObject.methodName,
+            initializerObject.argumentList);
+      }
+      return buildInitializerTargetExpressionRecovery(
+          target, initializerObject);
+    }
+
+    if (initializerObject is PropertyAccess) {
+      return buildInitializerTargetExpressionRecovery(
+          initializerObject.target, initializerObject);
+    }
+
+    if (initializerObject is AssignmentExpression) {
+      Token thisKeyword;
+      Token period;
+      SimpleIdentifier fieldName;
+      Expression left = initializerObject.leftHandSide;
+      if (left is PropertyAccess) {
+        Expression target = left.target;
+        if (target is ThisExpression) {
+          thisKeyword = target.thisKeyword;
+          period = left.operator;
+        } else {
+          assert(target is SuperExpression);
+          // Recovery:
+          // Parser has reported FieldInitializedOutsideDeclaringClass.
+        }
+        fieldName = left.propertyName;
+      } else if (left is SimpleIdentifier) {
+        fieldName = left;
+      } else {
+        // Recovery:
+        // Parser has reported invalid assignment.
+        SuperExpression superExpression = left;
+        fieldName = ast.simpleIdentifier(superExpression.superKeyword);
+      }
+      return ast.constructorFieldInitializer(thisKeyword, period, fieldName,
+          initializerObject.operator, initializerObject.rightHandSide);
+    }
+
+    if (initializerObject is AssertInitializer) {
+      return initializerObject;
+    }
+
+    if (initializerObject is IndexExpression) {
+      return buildInitializerTargetExpressionRecovery(
+          initializerObject.target, initializerObject);
+    }
+
+    if (initializerObject is CascadeExpression) {
+      return buildInitializerTargetExpressionRecovery(
+          initializerObject.target, initializerObject);
+    }
+
+    throw new UnsupportedError('unsupported initializer:'
+        ' ${initializerObject.runtimeType} :: $initializerObject');
+  }
+
+  AstNode buildInitializerTargetExpressionRecovery(
+      Expression target, Object initializerObject) {
+    ArgumentList argumentList;
+    while (true) {
+      if (target is FunctionExpressionInvocation) {
+        argumentList = (target as FunctionExpressionInvocation).argumentList;
+        target = (target as FunctionExpressionInvocation).function;
+      } else if (target is MethodInvocation) {
+        argumentList = (target as MethodInvocation).argumentList;
+        target = (target as MethodInvocation).target;
+      } else if (target is PropertyAccess) {
+        argumentList = null;
+        target = (target as PropertyAccess).target;
+      } else {
+        break;
+      }
+    }
+    if (target is SuperExpression) {
+      // TODO(danrubel): Consider generating this error in the parser
+      // This error is also reported in the body builder
+      handleRecoverableError(messageInvalidSuperInInitializer,
+          target.superKeyword, target.superKeyword);
+      return ast.superConstructorInvocation(
+          target.superKeyword, null, null, argumentList);
+    } else if (target is ThisExpression) {
+      // TODO(danrubel): Consider generating this error in the parser
+      // This error is also reported in the body builder
+      handleRecoverableError(messageInvalidThisInInitializer,
+          target.thisKeyword, target.thisKeyword);
+      return ast.redirectingConstructorInvocation(
+          target.thisKeyword, null, null, argumentList);
+    }
+    throw new UnsupportedError('unsupported initializer:'
+        ' ${initializerObject.runtimeType} :: $initializerObject'
+        ' %% target : ${target.runtimeType} :: $target');
+  }
+
   void checkFieldFormalParameters(FormalParameterList parameters) {
     if (parameters?.parameters != null) {
       parameters.parameters.forEach((FormalParameter param) {
@@ -333,21 +470,6 @@ class AstBuilder extends StackListener {
         }
       });
     }
-  }
-
-  /// Configures the parser appropriately for the given [featureSet].
-  ///
-  /// TODO(paulberry): stop exposing `enableNonNullable`,
-  /// `enableSpreadCollections`, `enableControlFlowCollections`, and
-  /// `enableTripleShift` so that callers are forced to use this API.  Note that
-  /// this will not be a breaking change, because this code is in `lib/src`.
-  void configureFeatures(FeatureSet featureSet) {
-    enableNonNullable = featureSet.isEnabled(Feature.non_nullable);
-    enableSpreadCollections = featureSet.isEnabled(Feature.spread_collections);
-    enableControlFlowCollections =
-        featureSet.isEnabled(Feature.control_flow_collections);
-    enableTripleShift = featureSet.isEnabled(Feature.triple_shift);
-    _featureSet = featureSet;
   }
 
   @override
@@ -531,7 +653,7 @@ class AstBuilder extends StackListener {
 
   @override
   void endClassOrMixinBody(
-      int memberCount, Token leftBracket, Token rightBracket) {
+      ClassKind kind, int memberCount, Token leftBracket, Token rightBracket) {
     // TODO(danrubel): consider renaming endClassOrMixinBody
     // to endClassOrMixinOrExtensionBody
     assert(optional('{', leftBracket));
@@ -566,7 +688,7 @@ class AstBuilder extends StackListener {
     Token beginToken = pop();
     checkEmpty(endToken.charOffset);
 
-    CompilationUnitImpl unit = ast.compilationUnit2(
+    CompilationUnitImpl unit = ast.compilationUnit(
         beginToken: beginToken,
         scriptTag: scriptTag,
         directives: directives,
@@ -705,7 +827,8 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endExtensionDeclaration(Token onKeyword, Token token) {
+  void endExtensionDeclaration(
+      Token extensionKeyword, Token onKeyword, Token token) {
     TypeAnnotation type = pop();
     extensionDeclaration
       ..extendedType = type
@@ -765,6 +888,15 @@ class AstBuilder extends StackListener {
           ast.simpleIdentifier(typeName.identifier.token, isDeclaration: true);
     }
 
+    if (extensionDeclaration != null) {
+      // TODO(brianwilkerson) Decide how to handle constructor and field
+      //  declarations within extensions. They are invalid, but we might want to
+      //  resolve them in order to get navigation, search, etc.
+      errorReporter.errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.EXTENSION_DECLARES_CONSTRUCTOR,
+          name ?? returnType);
+      return;
+    }
     currentDeclarationMembers.add(ast.constructorDeclaration(
         comment,
         metadata,
@@ -807,6 +939,17 @@ class AstBuilder extends StackListener {
     Token covariantKeyword = covariantToken;
     List<Annotation> metadata = pop();
     Comment comment = _findComment(metadata, beginToken);
+    if (extensionDeclaration != null && staticToken == null) {
+      // TODO(brianwilkerson) Decide how to handle constructor and field
+      //  declarations within extensions. They are invalid, but we might want to
+      //  resolve them in order to get navigation, search, etc.
+      for (VariableDeclaration variable in variables) {
+        errorReporter.errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD,
+            variable.name);
+      }
+      return;
+    }
     currentDeclarationMembers.add(ast.fieldDeclaration2(
         comment: comment,
         metadata: metadata,
@@ -872,8 +1015,14 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endFormalParameter(Token thisKeyword, Token periodAfterThis,
-      Token nameToken, FormalParameterKind kind, MemberKind memberKind) {
+  void endFormalParameter(
+      Token thisKeyword,
+      Token periodAfterThis,
+      Token nameToken,
+      Token initializerStart,
+      Token initializerEnd,
+      FormalParameterKind kind,
+      MemberKind memberKind) {
     assert(optionalOrNull('this', thisKeyword));
     assert(thisKeyword == null
         ? periodAfterThis == null
@@ -1217,125 +1366,21 @@ class AstBuilder extends StackListener {
 
     var initializers = <ConstructorInitializer>[];
     for (Object initializerObject in initializerObjects) {
-      if (initializerObject is FunctionExpressionInvocation) {
-        Expression function = initializerObject.function;
-        if (function is SuperExpression) {
-          initializers.add(ast.superConstructorInvocation(function.superKeyword,
-              null, null, initializerObject.argumentList));
-        } else {
-          initializers.add(ast.redirectingConstructorInvocation(
-              (function as ThisExpression).thisKeyword,
-              null,
-              null,
-              initializerObject.argumentList));
-        }
-      } else if (initializerObject is MethodInvocation) {
-        Expression target = initializerObject.target;
-        if (target is SuperExpression) {
-          initializers.add(ast.superConstructorInvocation(
-              target.superKeyword,
-              initializerObject.operator,
-              initializerObject.methodName,
-              initializerObject.argumentList));
-        } else if (target is ThisExpression) {
-          initializers.add(ast.redirectingConstructorInvocation(
-              target.thisKeyword,
-              initializerObject.operator,
-              initializerObject.methodName,
-              initializerObject.argumentList));
-        } else {
-          // Recovery: Invalid initializer
-          if (target is FunctionExpressionInvocation) {
-            var targetFunct = target.function;
-            if (targetFunct is SuperExpression) {
-              initializers.add(ast.superConstructorInvocation(
-                  targetFunct.superKeyword, null, null, target.argumentList));
-              // TODO(danrubel): Consider generating this error in the parser
-              // This error is also reported in the body builder
-              handleRecoverableError(messageInvalidSuperInInitializer,
-                  targetFunct.superKeyword, targetFunct.superKeyword);
-            } else if (targetFunct is ThisExpression) {
-              initializers.add(ast.redirectingConstructorInvocation(
-                  targetFunct.thisKeyword, null, null, target.argumentList));
-              // TODO(danrubel): Consider generating this error in the parser
-              // This error is also reported in the body builder
-              handleRecoverableError(messageInvalidThisInInitializer,
-                  targetFunct.thisKeyword, targetFunct.thisKeyword);
-            } else {
-              throw new UnsupportedError(
-                  'unsupported initializer $initializerObject');
-            }
-          } else {
-            throw new UnsupportedError(
-                'unsupported initializer $initializerObject');
-          }
-        }
-      } else if (initializerObject is AssignmentExpression) {
-        Token thisKeyword;
-        Token period;
-        SimpleIdentifier fieldName;
-        Expression left = initializerObject.leftHandSide;
-        if (left is PropertyAccess) {
-          Expression target = left.target;
-          if (target is ThisExpression) {
-            thisKeyword = target.thisKeyword;
-            period = left.operator;
-          } else {
-            assert(target is SuperExpression);
-            // Recovery:
-            // Parser has reported FieldInitializedOutsideDeclaringClass.
-          }
-          fieldName = left.propertyName;
-        } else if (left is SimpleIdentifier) {
-          fieldName = left;
-        } else {
-          // Recovery:
-          // Parser has reported invalid assignment.
-          SuperExpression superExpression = left;
-          fieldName = ast.simpleIdentifier(superExpression.superKeyword);
-        }
-        initializers.add(ast.constructorFieldInitializer(
-            thisKeyword,
-            period,
-            fieldName,
-            initializerObject.operator,
-            initializerObject.rightHandSide));
-      } else if (initializerObject is AssertInitializer) {
-        initializers.add(initializerObject);
-      } else if (initializerObject is PropertyAccess) {
-        // Recovery: Invalid initializer
-        Expression target = initializerObject.target;
-        if (target is FunctionExpressionInvocation) {
-          var targetFunct = target.function;
-          if (targetFunct is SuperExpression) {
-            initializers.add(ast.superConstructorInvocation(
-                targetFunct.superKeyword, null, null, target.argumentList));
-            // TODO(danrubel): Consider generating this error in the parser
-            // This error is also reported in the body builder
-            handleRecoverableError(messageInvalidSuperInInitializer,
-                targetFunct.superKeyword, targetFunct.superKeyword);
-          } else if (targetFunct is ThisExpression) {
-            initializers.add(ast.redirectingConstructorInvocation(
-                targetFunct.thisKeyword, null, null, target.argumentList));
-            // TODO(danrubel): Consider generating this error in the parser
-            // This error is also reported in the body builder
-            handleRecoverableError(messageInvalidThisInInitializer,
-                targetFunct.thisKeyword, targetFunct.thisKeyword);
-          } else {
-            throw new UnsupportedError(
-                'unsupported initializer $initializerObject');
-          }
-        } else {
-          throw new UnsupportedError(
-              'unsupported initializer $initializerObject');
-        }
-      } else {
+      ConstructorInitializer initializer = buildInitializer(initializerObject);
+      if (initializer == null) {
         throw new UnsupportedError('unsupported initializer:'
             ' ${initializerObject.runtimeType} :: $initializerObject');
       }
+      initializers.add(initializer);
     }
 
     push(initializers);
+  }
+
+  void endInvalidAwaitExpression(
+      Token awaitKeyword, Token endToken, MessageCode errorCode) {
+    debugEvent("InvalidAwaitExpression");
+    endAwaitExpression(awaitKeyword, endToken);
   }
 
   @override
@@ -1454,8 +1499,8 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endMethod(
-      Token getOrSet, Token beginToken, Token beginParam, Token endToken) {
+  void endMethod(Token getOrSet, Token beginToken, Token beginParam,
+      Token beginInitializers, Token endToken) {
     assert(getOrSet == null ||
         optional('get', getOrSet) ||
         optional('set', getOrSet));
@@ -1522,6 +1567,15 @@ class AstBuilder extends StackListener {
           initializers,
           redirectedConstructor,
           body);
+      if (extensionDeclaration != null) {
+        // TODO(brianwilkerson) Decide how to handle constructor and field
+        //  declarations within extensions. They are invalid, but we might want
+        //  to resolve them in order to get navigation, search, etc.
+        errorReporter.errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.EXTENSION_DECLARES_CONSTRUCTOR,
+            name ?? prefixOrName);
+        return;
+      }
       currentDeclarationMembers.add(constructor);
       if (mixinDeclaration != null) {
         // TODO (danrubel): Report an error if this is a mixin declaration.
@@ -1535,6 +1589,11 @@ class AstBuilder extends StackListener {
             messageConstMethod, modifiers.constKeyword, modifiers.constKeyword);
       }
       checkFieldFormalParameters(parameters);
+      if (extensionDeclaration != null && body is EmptyFunctionBody) {
+        errorReporter.errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.EXTENSION_DECLARES_ABSTRACT_MEMBER, name);
+        return;
+      }
       currentDeclarationMembers.add(ast.methodDeclaration(
           comment,
           metadata,
@@ -1550,7 +1609,7 @@ class AstBuilder extends StackListener {
     }
 
     if (name is SimpleIdentifier) {
-      if (name.name == currentDeclarationName.name && getOrSet == null) {
+      if (name.name == currentDeclarationName?.name && getOrSet == null) {
         constructor(name, null, null);
       } else if (initializers.isNotEmpty && getOrSet == null) {
         constructor(name, null, null);
@@ -2102,7 +2161,7 @@ class AstBuilder extends StackListener {
     SimpleIdentifier stackTrace;
     if (catchParameterList != null) {
       List<FormalParameter> catchParameters = catchParameterList.parameters;
-      if (catchParameters.length > 0) {
+      if (catchParameters.isNotEmpty) {
         exception = catchParameters[0].identifier;
         localDeclarations[exception.offset] = exception;
       }
@@ -2478,7 +2537,8 @@ class AstBuilder extends StackListener {
   }
 
   void handleIndexedExpression(Token leftBracket, Token rightBracket) {
-    assert(optional('[', leftBracket));
+    assert(optional('[', leftBracket) ||
+        (enableNonNullable && optional('?.[', leftBracket)));
     assert(optional(']', rightBracket));
     debugEvent("IndexedExpression");
 

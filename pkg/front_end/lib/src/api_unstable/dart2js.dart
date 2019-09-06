@@ -4,7 +4,9 @@
 
 import 'dart:async' show Future;
 
-import 'package:kernel/kernel.dart' show Component;
+import 'package:kernel/kernel.dart' show Component, Statement;
+
+import 'package:kernel/ast.dart' as ir;
 
 import 'package:kernel/target/targets.dart' show Target;
 
@@ -15,6 +17,8 @@ import '../api_prototype/diagnostic_message.dart' show DiagnosticMessageHandler;
 import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
 
 import '../api_prototype/file_system.dart' show FileSystem;
+
+import '../api_prototype/kernel_generator.dart' show CompilerResult;
 
 import '../base/processed_options.dart' show ProcessedOptions;
 
@@ -30,12 +34,14 @@ import '../kernel_generator_impl.dart' show generateKernelInternal;
 
 import '../fasta/scanner.dart' show ErrorToken, StringToken, Token;
 
+import '../fasta/kernel/redirecting_factory_body.dart' as redirecting;
+
 import 'compiler_state.dart' show InitializedCompilerState;
 
 import 'util.dart' show equalLists, equalMaps;
 
 export '../api_prototype/compiler_options.dart'
-    show CompilerOptions, parseExperimentalFlags;
+    show CompilerOptions, parseExperimentalFlags, parseExperimentalArguments;
 
 export '../api_prototype/diagnostic_message.dart'
     show
@@ -60,9 +66,6 @@ export '../compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 
 export '../fasta/fasta_codes.dart' show LocatedMessage;
-
-export '../fasta/kernel/redirecting_factory_body.dart'
-    show RedirectingFactoryBody;
 
 export '../fasta/operator.dart' show operatorFromString;
 
@@ -116,8 +119,7 @@ InitializedCompilerState initializeCompiler(
     Uri packagesFileUri,
     {List<Uri> dependencies,
     Map<ExperimentalFlag, bool> experimentalFlags,
-    bool verify: false,
-    bool enableAsserts: false}) {
+    bool verify: false}) {
   linkedDependencies.sort((a, b) => a.toString().compareTo(b.toString()));
 
   if (oldState != null &&
@@ -135,8 +137,7 @@ InitializedCompilerState initializeCompiler(
     ..librariesSpecificationUri = librariesSpecificationUri
     ..packagesFileUri = packagesFileUri
     ..experimentalFlags = experimentalFlags
-    ..verify = verify
-    ..enableAsserts = enableAsserts;
+    ..verify = verify;
 
   ProcessedOptions processedOpts = new ProcessedOptions(options: options);
 
@@ -160,9 +161,9 @@ Future<Component> compile(
   processedOpts.inputs.add(input);
   processedOpts.clearFileSystemCache();
 
-  var compilerResult = await CompilerContext.runWithOptions(processedOpts,
-      (CompilerContext context) async {
-    var compilerResult = await generateKernelInternal();
+  CompilerResult compilerResult = await CompilerContext.runWithOptions(
+      processedOpts, (CompilerContext context) async {
+    CompilerResult compilerResult = await generateKernelInternal();
     Component component = compilerResult?.component;
     if (component == null) return null;
     if (component.mainMethod == null) {
@@ -211,4 +212,24 @@ Iterable<String> getSupportedLibraryNames(
       .allLibraries
       .where((l) => l.isSupported)
       .map((l) => l.name);
+}
+
+/// Desugar API to determine whether [member] is a redirecting factory
+/// constructor.
+// TODO(sigmund): Delete this API once `member.isRedirectingFactoryConstructor`
+// is implemented correctly for patch files (Issue #33495).
+bool isRedirectingFactory(ir.Procedure member) {
+  if (member.kind == ir.ProcedureKind.Factory) {
+    Statement body = member.function.body;
+    if (body is redirecting.RedirectingFactoryBody) return true;
+    if (body is ir.ExpressionStatement) {
+      ir.Expression expression = body.expression;
+      if (expression is ir.Let) {
+        if (expression.variable.name == redirecting.letName) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
 }

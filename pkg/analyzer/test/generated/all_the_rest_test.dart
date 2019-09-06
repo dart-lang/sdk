@@ -15,7 +15,6 @@ import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/sdk_io.dart'; // ignore: deprecated_member_use_from_same_package
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
@@ -38,8 +37,6 @@ main() {
     defineReflectiveTests(ErrorSeverityTest);
     defineReflectiveTests(FileBasedSourceTest);
     defineReflectiveTests(ResolveRelativeUriTest);
-    // ignore: deprecated_member_use_from_same_package
-    defineReflectiveTests(SDKLibrariesReaderTest);
     defineReflectiveTests(UriKindTest);
   });
 }
@@ -517,80 +514,6 @@ class ResolveRelativeUriTest {
     Uri result = resolveRelativeUri(base, contained);
     expect(result, isNotNull);
     expect(result.toString(), expectedStr);
-  }
-}
-
-@deprecated
-@reflectiveTest
-class SDKLibrariesReaderTest extends EngineTestCase {
-  test_readFrom_dart2js() async {
-    LibraryMap libraryMap = new SdkLibrariesReader(true)
-        .readFromFile(FileUtilities2.createFile("/libs.dart"), r'''
-final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
-  'first' : const LibraryInfo(
-    'first/first.dart',
-    categories: 'Client',
-    documented: true,
-    platforms: VM_PLATFORM,
-    dart2jsPath: 'first/first_dart2js.dart'),
-};''');
-    expect(libraryMap, isNotNull);
-    expect(libraryMap.size(), 1);
-    SdkLibrary first = libraryMap.getLibrary("dart:first");
-    expect(first, isNotNull);
-    expect(first.category, "Client");
-    expect(first.path, "first/first_dart2js.dart");
-    expect(first.shortName, "dart:first");
-    expect(first.isDart2JsLibrary, false);
-    expect(first.isDocumented, true);
-    expect(first.isImplementation, false);
-    expect(first.isVmLibrary, true);
-  }
-
-  test_readFrom_empty() async {
-    LibraryMap libraryMap = new SdkLibrariesReader(false)
-        .readFromFile(FileUtilities2.createFile("/libs.dart"), "");
-    expect(libraryMap, isNotNull);
-    expect(libraryMap.size(), 0);
-  }
-
-  test_readFrom_normal() async {
-    LibraryMap libraryMap = new SdkLibrariesReader(false)
-        .readFromFile(FileUtilities2.createFile("/libs.dart"), r'''
-final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
-  'first' : const LibraryInfo(
-    'first/first.dart',
-    categories: 'Client',
-    documented: true,
-    platforms: VM_PLATFORM),
-
-  'second' : const LibraryInfo(
-    'second/second.dart',
-    categories: 'Server',
-    documented: false,
-    implementation: true,
-    platforms: 0),
-};''');
-    expect(libraryMap, isNotNull);
-    expect(libraryMap.size(), 2);
-    SdkLibrary first = libraryMap.getLibrary("dart:first");
-    expect(first, isNotNull);
-    expect(first.category, "Client");
-    expect(first.path, "first/first.dart");
-    expect(first.shortName, "dart:first");
-    expect(first.isDart2JsLibrary, false);
-    expect(first.isDocumented, true);
-    expect(first.isImplementation, false);
-    expect(first.isVmLibrary, true);
-    SdkLibrary second = libraryMap.getLibrary("dart:second");
-    expect(second, isNotNull);
-    expect(second.category, "Server");
-    expect(second.path, "second/second.dart");
-    expect(second.shortName, "dart:second");
-    expect(second.isDart2JsLibrary, false);
-    expect(second.isDocumented, false);
-    expect(second.isImplementation, true);
-    expect(second.isVmLibrary, false);
   }
 }
 

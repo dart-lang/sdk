@@ -39,7 +39,8 @@ class Assembler : public AssemblerBase {
   // Misc. functionality
   intptr_t prologue_offset() const { return 0; }
 
-  void MonomorphicCheckedEntry() {}
+  void MonomorphicCheckedEntryJIT() {}
+  void MonomorphicCheckedEntryAOT() {}
 
   // Debugging and bringup support.
   void Stop(const char* message) override;
@@ -99,9 +100,6 @@ class Assembler : public AssemblerBase {
 };
 
 }  // namespace compiler
-
-using compiler::Address;
-
 }  // namespace dart
 
 #endif  // RUNTIME_VM_COMPILER_ASSEMBLER_ASSEMBLER_DBC_H_

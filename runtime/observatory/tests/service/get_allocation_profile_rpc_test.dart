@@ -23,11 +23,21 @@ var tests = <IsolateTest>[
     expect(result['type'], equals('AllocationProfile'));
     expect(result.containsKey('dateLastAccumulatorReset'), isFalse);
     expect(result.containsKey('dateLastServiceGC'), isFalse);
-    expect(result['heaps'].length, isPositive);
-    expect(result['heaps']['new']['type'], equals('HeapSpace'));
-    expect(result['heaps']['old']['type'], equals('HeapSpace'));
+    expect(result['_heaps'].length, isPositive);
+    expect(result['_heaps']['new']['type'], equals('HeapSpace'));
+    expect(result['_heaps']['old']['type'], equals('HeapSpace'));
     expect(result['members'].length, isPositive);
-    expect(result['members'][0]['type'], equals('ClassHeapStats'));
+
+    var member = result['members'][0];
+    expect(member['type'], equals('ClassHeapStats'));
+    expect(member.containsKey('_new'), isTrue);
+    expect(member.containsKey('_old'), isTrue);
+    expect(member.containsKey('_promotedInstances'), isTrue);
+    expect(member.containsKey('_promotedBytes'), isTrue);
+    expect(member.containsKey('instancesAccumulated'), isTrue);
+    expect(member.containsKey('instancesCurrent'), isTrue);
+    expect(member.containsKey('bytesCurrent'), isTrue);
+    expect(member.containsKey('accumulatedSize'), isTrue);
 
     // reset.
     params = {
@@ -38,11 +48,21 @@ var tests = <IsolateTest>[
     var firstReset = result['dateLastAccumulatorReset'];
     expect(firstReset, new isInstanceOf<String>());
     expect(result.containsKey('dateLastServiceGC'), isFalse);
-    expect(result['heaps'].length, isPositive);
-    expect(result['heaps']['new']['type'], equals('HeapSpace'));
-    expect(result['heaps']['old']['type'], equals('HeapSpace'));
+    expect(result['_heaps'].length, isPositive);
+    expect(result['_heaps']['new']['type'], equals('HeapSpace'));
+    expect(result['_heaps']['old']['type'], equals('HeapSpace'));
     expect(result['members'].length, isPositive);
-    expect(result['members'][0]['type'], equals('ClassHeapStats'));
+
+    member = result['members'][0];
+    expect(member['type'], equals('ClassHeapStats'));
+    expect(member.containsKey('_new'), isTrue);
+    expect(member.containsKey('_old'), isTrue);
+    expect(member.containsKey('_promotedInstances'), isTrue);
+    expect(member.containsKey('_promotedBytes'), isTrue);
+    expect(member.containsKey('instancesAccumulated'), isTrue);
+    expect(member.containsKey('instancesCurrent'), isTrue);
+    expect(member.containsKey('bytesCurrent'), isTrue);
+    expect(member.containsKey('accumulatedSize'), isTrue);
 
     await sleep(1000);
 
@@ -52,18 +72,28 @@ var tests = <IsolateTest>[
 
     // gc.
     params = {
-      'gc': 'full',
+      'gc': 'true',
     };
     result = await isolate.invokeRpcNoUpgrade('_getAllocationProfile', params);
     expect(result['type'], equals('AllocationProfile'));
     expect(result['dateLastAccumulatorReset'], equals(secondReset));
     var firstGC = result['dateLastServiceGC'];
     expect(firstGC, new isInstanceOf<String>());
-    expect(result['heaps'].length, isPositive);
-    expect(result['heaps']['new']['type'], equals('HeapSpace'));
-    expect(result['heaps']['old']['type'], equals('HeapSpace'));
+    expect(result['_heaps'].length, isPositive);
+    expect(result['_heaps']['new']['type'], equals('HeapSpace'));
+    expect(result['_heaps']['old']['type'], equals('HeapSpace'));
     expect(result['members'].length, isPositive);
-    expect(result['members'][0]['type'], equals('ClassHeapStats'));
+
+    member = result['members'][0];
+    expect(member['type'], equals('ClassHeapStats'));
+    expect(member.containsKey('_new'), isTrue);
+    expect(member.containsKey('_old'), isTrue);
+    expect(member.containsKey('_promotedInstances'), isTrue);
+    expect(member.containsKey('_promotedBytes'), isTrue);
+    expect(member.containsKey('instancesAccumulated'), isTrue);
+    expect(member.containsKey('instancesCurrent'), isTrue);
+    expect(member.containsKey('bytesCurrent'), isTrue);
+    expect(member.containsKey('accumulatedSize'), isTrue);
 
     await sleep(1000);
 

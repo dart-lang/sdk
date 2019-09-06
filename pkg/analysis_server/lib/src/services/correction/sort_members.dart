@@ -26,6 +26,8 @@ class MemberSorter {
     new _PriorityItem(false, _MemberKind.UNIT_FUNCTION_TYPE, true),
     new _PriorityItem(false, _MemberKind.UNIT_CLASS, false),
     new _PriorityItem(false, _MemberKind.UNIT_CLASS, true),
+    new _PriorityItem(false, _MemberKind.UNIT_EXTENSION, false),
+    new _PriorityItem(false, _MemberKind.UNIT_EXTENSION, true),
     new _PriorityItem(true, _MemberKind.CLASS_FIELD, false),
     new _PriorityItem(true, _MemberKind.CLASS_ACCESSOR, false),
     new _PriorityItem(true, _MemberKind.CLASS_ACCESSOR, true),
@@ -116,7 +118,7 @@ class MemberSorter {
       if (member is FieldDeclaration) {
         FieldDeclaration fieldDeclaration = member;
         List<VariableDeclaration> fields = fieldDeclaration.fields.variables;
-        if (!fields.isEmpty) {
+        if (fields.isNotEmpty) {
           kind = _MemberKind.CLASS_FIELD;
           isStatic = fieldDeclaration.isStatic;
           name = fields[0].name.name;
@@ -276,16 +278,16 @@ class MemberSorter {
       if (member is ClassOrMixinDeclaration) {
         kind = _MemberKind.UNIT_CLASS;
         name = member.name.name;
-      }
-      if (member is ClassTypeAlias) {
+      } else if (member is ClassTypeAlias) {
         kind = _MemberKind.UNIT_CLASS;
         name = member.name.name;
-      }
-      if (member is EnumDeclaration) {
+      } else if (member is EnumDeclaration) {
         kind = _MemberKind.UNIT_CLASS;
         name = member.name.name;
-      }
-      if (member is FunctionDeclaration) {
+      } else if (member is ExtensionDeclaration) {
+        kind = _MemberKind.UNIT_EXTENSION;
+        name = member.name?.name ?? '';
+      } else if (member is FunctionDeclaration) {
         FunctionDeclaration function = member;
         name = function.name.name;
         if (function.isGetter) {
@@ -301,20 +303,17 @@ class MemberSorter {
             kind = _MemberKind.UNIT_FUNCTION;
           }
         }
-      }
-      if (member is FunctionTypeAlias) {
+      } else if (member is FunctionTypeAlias) {
         kind = _MemberKind.UNIT_FUNCTION_TYPE;
         name = member.name.name;
-      }
-      if (member is GenericTypeAlias) {
+      } else if (member is GenericTypeAlias) {
         kind = _MemberKind.UNIT_GENERIC_TYPE_ALIAS;
         name = member.name.name;
-      }
-      if (member is TopLevelVariableDeclaration) {
+      } else if (member is TopLevelVariableDeclaration) {
         TopLevelVariableDeclaration variableDeclaration = member;
         List<VariableDeclaration> variables =
             variableDeclaration.variables.variables;
-        if (!variables.isEmpty) {
+        if (variables.isNotEmpty) {
           if (variableDeclaration.variables.isConst) {
             kind = _MemberKind.UNIT_VARIABLE_CONST;
           } else {
@@ -460,24 +459,24 @@ class _MemberInfo {
 }
 
 class _MemberKind {
-  static const UNIT_FUNCTION_MAIN = const _MemberKind('UNIT_FUNCTION_MAIN', 0);
-  static const UNIT_ACCESSOR = const _MemberKind('UNIT_ACCESSOR', 1);
-  static const UNIT_FUNCTION = const _MemberKind('UNIT_FUNCTION', 2);
+  static const CLASS_ACCESSOR = const _MemberKind('CLASS_ACCESSOR');
+  static const CLASS_CONSTRUCTOR = const _MemberKind('CLASS_CONSTRUCTOR');
+  static const CLASS_FIELD = const _MemberKind('CLASS_FIELD');
+  static const CLASS_METHOD = const _MemberKind('CLASS_METHOD');
+  static const UNIT_ACCESSOR = const _MemberKind('UNIT_ACCESSOR');
+  static const UNIT_CLASS = const _MemberKind('UNIT_CLASS');
+  static const UNIT_EXTENSION = const _MemberKind('UNIT_EXTENSION');
+  static const UNIT_FUNCTION = const _MemberKind('UNIT_FUNCTION');
+  static const UNIT_FUNCTION_MAIN = const _MemberKind('UNIT_FUNCTION_MAIN');
+  static const UNIT_FUNCTION_TYPE = const _MemberKind('UNIT_FUNCTION_TYPE');
   static const UNIT_GENERIC_TYPE_ALIAS =
-      const _MemberKind('UNIT_GENERIC_TYPE_ALIAS', 3);
-  static const UNIT_FUNCTION_TYPE = const _MemberKind('UNIT_FUNCTION_TYPE', 4);
-  static const UNIT_CLASS = const _MemberKind('UNIT_CLASS', 5);
-  static const UNIT_VARIABLE_CONST = const _MemberKind('UNIT_VARIABLE', 6);
-  static const UNIT_VARIABLE = const _MemberKind('UNIT_VARIABLE', 7);
-  static const CLASS_ACCESSOR = const _MemberKind('CLASS_ACCESSOR', 8);
-  static const CLASS_CONSTRUCTOR = const _MemberKind('CLASS_CONSTRUCTOR', 9);
-  static const CLASS_FIELD = const _MemberKind('CLASS_FIELD', 10);
-  static const CLASS_METHOD = const _MemberKind('CLASS_METHOD', 11);
+      const _MemberKind('UNIT_GENERIC_TYPE_ALIAS');
+  static const UNIT_VARIABLE = const _MemberKind('UNIT_VARIABLE');
+  static const UNIT_VARIABLE_CONST = const _MemberKind('UNIT_VARIABLE_CONST');
 
   final String name;
-  final int ordinal;
 
-  const _MemberKind(this.name, this.ordinal);
+  const _MemberKind(this.name);
 
   @override
   String toString() => name;

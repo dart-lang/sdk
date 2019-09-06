@@ -43,7 +43,7 @@ class LineInfo {
   LineInfo(this.lineStarts) {
     if (lineStarts == null) {
       throw new ArgumentError("lineStarts must be non-null");
-    } else if (lineStarts.length < 1) {
+    } else if (lineStarts.isEmpty) {
       throw new ArgumentError("lineStarts must be non-empty");
     }
   }

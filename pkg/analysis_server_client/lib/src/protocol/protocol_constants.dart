@@ -6,7 +6,7 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
-const String PROTOCOL_VERSION = '1.27.1';
+const String PROTOCOL_VERSION = '1.27.2';
 
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES = 'analysis.analyzedFiles';
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES_DIRECTORIES = 'directories';
@@ -168,6 +168,8 @@ const String EDIT_REQUEST_DARTFIX = 'edit.dartfix';
 const String EDIT_REQUEST_DARTFIX_EXCLUDED_FIXES = 'excludedFixes';
 const String EDIT_REQUEST_DARTFIX_INCLUDED = 'included';
 const String EDIT_REQUEST_DARTFIX_INCLUDED_FIXES = 'includedFixes';
+const String EDIT_REQUEST_DARTFIX_INCLUDE_PEDANTIC_FIXES =
+    'includePedanticFixes';
 const String EDIT_REQUEST_DARTFIX_INCLUDE_REQUIRED_FIXES =
     'includeRequiredFixes';
 const String EDIT_REQUEST_FORMAT = 'edit.format';
@@ -276,20 +278,19 @@ const String EXECUTION_RESPONSE_MAP_URI_FILE = 'file';
 const String EXECUTION_RESPONSE_MAP_URI_URI = 'uri';
 const String FLUTTER_NOTIFICATION_OUTLINE = 'flutter.outline';
 const String FLUTTER_NOTIFICATION_OUTLINE_FILE = 'file';
-const String FLUTTER_NOTIFICATION_OUTLINE_INSTRUMENTED_CODE =
-    'instrumentedCode';
 const String FLUTTER_NOTIFICATION_OUTLINE_OUTLINE = 'outline';
-const String FLUTTER_REQUEST_GET_CHANGE_ADD_FOR_DESIGN_TIME_CONSTRUCTOR =
-    'flutter.getChangeAddForDesignTimeConstructor';
-const String FLUTTER_REQUEST_GET_CHANGE_ADD_FOR_DESIGN_TIME_CONSTRUCTOR_FILE =
-    'file';
-const String FLUTTER_REQUEST_GET_CHANGE_ADD_FOR_DESIGN_TIME_CONSTRUCTOR_OFFSET =
-    'offset';
+const String FLUTTER_REQUEST_GET_WIDGET_DESCRIPTION =
+    'flutter.getWidgetDescription';
+const String FLUTTER_REQUEST_GET_WIDGET_DESCRIPTION_FILE = 'file';
+const String FLUTTER_REQUEST_GET_WIDGET_DESCRIPTION_OFFSET = 'offset';
 const String FLUTTER_REQUEST_SET_SUBSCRIPTIONS = 'flutter.setSubscriptions';
 const String FLUTTER_REQUEST_SET_SUBSCRIPTIONS_SUBSCRIPTIONS = 'subscriptions';
-const String
-    FLUTTER_RESPONSE_GET_CHANGE_ADD_FOR_DESIGN_TIME_CONSTRUCTOR_CHANGE =
-    'change';
+const String FLUTTER_REQUEST_SET_WIDGET_PROPERTY_VALUE =
+    'flutter.setWidgetPropertyValue';
+const String FLUTTER_REQUEST_SET_WIDGET_PROPERTY_VALUE_ID = 'id';
+const String FLUTTER_REQUEST_SET_WIDGET_PROPERTY_VALUE_VALUE = 'value';
+const String FLUTTER_RESPONSE_GET_WIDGET_DESCRIPTION_PROPERTIES = 'properties';
+const String FLUTTER_RESPONSE_SET_WIDGET_PROPERTY_VALUE_CHANGE = 'change';
 const String KYTHE_REQUEST_GET_KYTHE_ENTRIES = 'kythe.getKytheEntries';
 const String KYTHE_REQUEST_GET_KYTHE_ENTRIES_FILE = 'file';
 const String KYTHE_RESPONSE_GET_KYTHE_ENTRIES_ENTRIES = 'entries';

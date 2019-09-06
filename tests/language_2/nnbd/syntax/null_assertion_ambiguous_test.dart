@@ -38,7 +38,7 @@ main() async {
   // behavior by trying to assign to a non-nullable variable.  We check the
   // runtime behavior by verifying that the exception is thrown before an
   // assignment occurs.
-  Object x3;
+  Object x3 = 0;
   Expect.throws(() {
       x3 = a!;
   });

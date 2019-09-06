@@ -5,6 +5,8 @@
 #ifndef RUNTIME_VM_KERNEL_H_
 #define RUNTIME_VM_KERNEL_H_
 
+#include <memory>
+
 #include "platform/assert.h"
 #include "vm/allocation.h"
 #include "vm/globals.h"
@@ -62,15 +64,16 @@ class Program {
   // Read a kernel Program from the given Reader. Note the returned Program
   // can potentially contain several "sub programs", though the library count
   // etc will reference the last "sub program" only.
-  static Program* ReadFrom(Reader* reader, const char** error = nullptr);
+  static std::unique_ptr<Program> ReadFrom(Reader* reader,
+                                           const char** error = nullptr);
 
-  static Program* ReadFromFile(const char* script_uri,
-                               const char** error = nullptr);
-  static Program* ReadFromBuffer(const uint8_t* buffer,
-                                 intptr_t buffer_length,
-                                 const char** error = nullptr);
-  static Program* ReadFromTypedData(const ExternalTypedData& typed_data,
-                                    const char** error = nullptr);
+  static std::unique_ptr<Program> ReadFromFile(const char* script_uri,
+                                               const char** error = nullptr);
+  static std::unique_ptr<Program> ReadFromBuffer(const uint8_t* buffer,
+                                                 intptr_t buffer_length,
+                                                 const char** error = nullptr);
+  static std::unique_ptr<Program> ReadFromTypedData(
+      const ExternalTypedData& typed_data, const char** error = nullptr);
 
   bool is_single_program() { return single_program_; }
   uint32_t binary_version() { return binary_version_; }
@@ -207,6 +210,11 @@ void ReadParameterCovariance(const Function& function,
 // call-site: if function has no parameters or has only covariant parameters
 // as such function already checks all of its parameters.
 bool NeedsDynamicInvocationForwarder(const Function& function);
+
+// Returns a list of ParameterTypeChecks needed by a dynamic invocation
+// forwarder that targets [function]. Indices in these checks correspond to
+// bytecode frame indices.
+RawArray* CollectDynamicInvocationChecks(const Function& function);
 
 ProcedureAttributesMetadata ProcedureAttributesOf(const Function& function,
                                                   Zone* zone);

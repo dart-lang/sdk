@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -32,6 +33,7 @@ abstract class AbstractLinterContextTest extends DriverResolutionTest {
       result.session.declaredVariables,
       result.typeProvider,
       result.typeSystem,
+      InheritanceManager3(result.typeSystem),
       analysisOptions,
     );
   }

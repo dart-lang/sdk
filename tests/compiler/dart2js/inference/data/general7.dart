@@ -6,10 +6,10 @@
 /// file 'general7_ea.dart' contains similar tests for when assertions are
 /// _enabled_.
 
-/*element: foo:[null]*/
+/*member: foo:[null]*/
 foo(/*[exact=JSUInt31]*/ x, [/*[null]*/ y]) => y;
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   assert(foo('Hi', true), foo(true));
   foo(1);

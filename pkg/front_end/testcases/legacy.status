@@ -5,18 +5,43 @@
 # Status file for the legacy_test.dart test suite. This is testing generating
 # Kernel ASTs in legacy mode (Dart 1.0).
 
-DeltaBlue: Fail # Fasta and dartk disagree on static initializers
-ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
-bug31124: RuntimeError # Test has no main method (and we shouldn't add one).
-call: Fail # Test can't run.
-constructor_const_inference: RuntimeError # Test exercises strong mode semantics.  See also Issue #33813.
-constructor_initializer_invalid: RuntimeError # Fails execution after recovery
-control_flow_collection: RuntimeError
-duplicated_field_initializer: RuntimeError
-external_import: RuntimeError # Expected -- test uses import which doesn't exist.
-fallthrough: Fail # Missing FallThroughError.
-function_type_recovery: Fail
-incomplete_field_formal_parameter: Fail # Fasta doesn't recover well
+general/DeltaBlue: Fail # Fasta and dartk disagree on static initializers
+general/ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
+general/await_in_non_async: RuntimeError # Expected.
+general/bug31124: RuntimeError # Test has no main method (and we shouldn't add one).
+general/bug37476: RuntimeError # Expected.
+general/call: Fail # Test can't run.
+general/constructor_const_inference: RuntimeError # Test exercises strong mode semantics.  See also Issue #33813.
+general/constructor_initializer_invalid: RuntimeError # Fails execution after recovery
+general/control_flow_collection: RuntimeError
+general/duplicated_field_initializer: RuntimeError
+general/extension_methods: RuntimeError
+general/external_import: RuntimeError # Expected -- test uses import which doesn't exist.
+general/fallthrough: Fail # Missing FallThroughError.
+general/function_type_recovery: Fail
+general/incomplete_field_formal_parameter: Fail # Fasta doesn't recover well
+general/invocations: Fail
+general/issue37776: RuntimeError
+general/micro: Fail # External method marked abstract.
+general/minimum_int: Crash # Min int literal not supported in non-strong mode.
+general/mixin_constructors_with_default_values: RuntimeError # Expected
+general/named_parameters: Fail # Missing types and unnecessary default values.
+general/non_covariant_checks: RuntimeError # Expected
+general/operator_method_not_found: RuntimeError # Expected
+general/optional: Fail # Unnecessary default values.
+general/redirecting_factory: Fail # Missing types on constructor parameters.
+general/redirecting_factory_chain_test: Fail # Missing support for RedirectingFactoryConstructor.
+general/redirecting_factory_const_inference: RuntimeError # Test exercises strong mode semantics.  See also Issue #33813.
+general/redirecting_factory_simple_test: Fail # Missing support for RedirectingFactoryConstructor.
+general/redirecting_factory_typeargs_test: Fail # Missing support for RedirectingFactoryConstructor.
+general/redirecting_factory_typeparam_test: Fail # Missing support for RedirectingFactoryConstructor.
+general/redirecting_factory_typeparambounds_test: Fail # Missing support for RedirectingFactoryConstructor.
+general/reject_generic_function_types_in_bounds: RuntimeError # Expected
+general/spread_collection: RuntimeError
+general/type_parameter_type_named_int: RuntimeError # Expected
+general/type_variable_as_super: Fail
+general/uninitialized_fields: Fail # Fasta and dartk disagree on static initializers
+general/void_methods: Fail # Bad return from setters.
 inference/bug31436: RuntimeError # Test exercises Dart 2.0 semantics
 inference/constructors_too_many_positional_arguments: Fail
 inference/downwards_inference_annotations_locals: Fail # Issue #30031
@@ -33,12 +58,7 @@ instantiate_to_bound/body_typedef_super_bounded_type: Fail # Issue 33444
 instantiate_to_bound/non_simple_class_parametrized_typedef_cycle: RuntimeError # May be related to Issue 33479
 instantiate_to_bound/non_simple_generic_function_in_bound_regress: RuntimeError # Expected
 instantiate_to_bound/typedef_super_bounded_type: Fail # Issue 33444
-invocations: Fail
-micro: Fail # External method marked abstract.
-minimum_int: Crash # Min int literal not supported in non-strong mode.
-named_parameters: Fail # Missing types and unnecessary default values.
-operator_method_not_found: RuntimeError # Expected
-optional: Fail # Unnecessary default values.
+nnbd/nullable_param: RuntimeError
 rasta/abstract_constructor: Fail
 rasta/bad_constructor_redirection: Fail
 rasta/bad_continue: Fail
@@ -93,13 +113,6 @@ rasta/unresolved: Fail
 rasta/unresolved_constructor: Fail
 rasta/unresolved_for_in: RuntimeError # Test contains a compile-time error, signaled at run time in the JIT VM
 rasta/unresolved_recovery: Fail
-redirecting_factory: Fail # Missing types on constructor parameters.
-redirecting_factory_chain_test: Fail # Missing support for RedirectingFactoryConstructor.
-redirecting_factory_const_inference: RuntimeError # Test exercises strong mode semantics.  See also Issue #33813.
-redirecting_factory_simple_test: Fail # Missing support for RedirectingFactoryConstructor.
-redirecting_factory_typeargs_test: Fail # Missing support for RedirectingFactoryConstructor.
-redirecting_factory_typeparam_test: Fail # Missing support for RedirectingFactoryConstructor.
-redirecting_factory_typeparambounds_test: Fail # Missing support for RedirectingFactoryConstructor.
 regress/issue_29975: Fail # Issue 29975.
 regress/issue_29976: RuntimeError # Tests runtime behavior of error recovery.
 regress/issue_29982: RuntimeError # Tests runtime behavior of error recovery.
@@ -118,7 +131,7 @@ regress/issue_36400: RuntimeError
 regress/issue_36647: RuntimeError # Expected
 regress/issue_36647_2: RuntimeError # Expected
 regress/issue_36669: RuntimeError
-reject_generic_function_types_in_bounds: RuntimeError # Expected
+regress/issue_37285: RuntimeError
 runtime_checks/implicit_downcast_constructor_initializer: RuntimeError # Test exercises strong mode semantics
 runtime_checks/implicit_downcast_do: RuntimeError # Test exercises strong mode semantics
 runtime_checks/implicit_downcast_for_condition: RuntimeError # Test exercises strong mode semantics
@@ -132,8 +145,3 @@ runtime_checks_new/mixin_forwarding_stub_getter: RuntimeError # Test exercises s
 runtime_checks_new/mixin_forwarding_stub_setter: RuntimeError # Test exercises strong mode semantics
 runtime_checks_new/stub_checked_via_target: RuntimeError # Test exercises strong mode semantics
 set_literals/disambiguation_rule: RuntimeError
-spread_collection: RuntimeError
-type_parameter_type_named_int: RuntimeError # Expected
-type_variable_as_super: Fail
-uninitialized_fields: Fail # Fasta and dartk disagree on static initializers
-void_methods: Fail # Bad return from setters.

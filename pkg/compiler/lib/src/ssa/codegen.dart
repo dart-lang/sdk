@@ -26,8 +26,12 @@ import '../js_backend/checked_mode_helpers.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/namer.dart' show ModularNamer;
 import '../js_backend/runtime_types.dart';
+import '../js_backend/runtime_types_codegen.dart';
+import '../js_backend/runtime_types_new.dart'
+    show RecipeEncoder, RecipeEncoding;
 import '../js_emitter/code_emitter_task.dart' show ModularEmitter;
 import '../js_model/elements.dart' show JGeneratorBody;
+import '../js_model/type_recipe.dart' show TypeExpressionRecipe;
 import '../native/behavior.dart';
 import '../options.dart';
 import '../tracer.dart';
@@ -114,6 +118,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
           codegen.checkedModeHelpers,
           codegen.rtiSubstitutions,
           codegen.rtiEncoder,
+          codegen.rtiRecipeEncoder,
           namer,
           codegen.tracer,
           closedWorld,
@@ -143,6 +148,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
           codegen.checkedModeHelpers,
           codegen.rtiSubstitutions,
           codegen.rtiEncoder,
+          codegen.rtiRecipeEncoder,
           namer,
           codegen.tracer,
           closedWorld,
@@ -180,6 +186,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   final CheckedModeHelpers _checkedModeHelpers;
   final RuntimeTypesSubstitutions _rtiSubstitutions;
   final RuntimeTypesEncoder _rtiEncoder;
+  final RecipeEncoder _rtiRecipeEncoder;
   final ModularNamer _namer;
   final Tracer _tracer;
   final JClosedWorld _closedWorld;
@@ -234,6 +241,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       this._checkedModeHelpers,
       this._rtiSubstitutions,
       this._rtiEncoder,
+      this._rtiRecipeEncoder,
       this._namer,
       this._tracer,
       this._closedWorld,
@@ -696,6 +704,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (instruction is HCheck) {
       if (instruction is HTypeConversion ||
           instruction is HPrimitiveCheck ||
+          instruction is HAsCheck ||
+          instruction is HAsCheckSimple ||
           instruction is HBoolConversion) {
         String inputName = variableNames.getName(instruction.checkedInput);
         if (variableNames.getName(instruction) == inputName) {
@@ -3333,31 +3343,174 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   @override
   visitIsTest(HIsTest node) {
-    throw UnimplementedError('SsaCodeGenerator.visitIsTest');
+    _registry.registerTypeUse(new TypeUse.isCheck(node.dartType));
+
+    use(node.typeInput);
+    js.Expression first = pop();
+    use(node.checkedInput);
+    js.Expression second = pop();
+
+    FieldEntity field = _commonElements.rtiIsField;
+    js.Name name = _namer.instanceFieldPropertyName(field);
+
+    push(js.js('#.#(#)', [first, name, second]).withSourceInformation(
+        node.sourceInformation));
   }
 
   @override
   visitAsCheck(HAsCheck node) {
-    throw UnimplementedError('SsaCodeGenerator.visitAsCheck');
+    use(node.typeInput);
+    js.Expression first = pop();
+    use(node.checkedInput);
+    js.Expression second = pop();
+
+    _registry.registerTypeUse(TypeUse.isCheck(node.checkedTypeExpression));
+
+    FieldEntity field = node.isTypeError
+        ? _commonElements.rtiCheckField
+        : _commonElements.rtiAsField;
+    js.Name name = _namer.instanceFieldPropertyName(field);
+
+    push(js.js('#.#(#)', [first, name, second]).withSourceInformation(
+        node.sourceInformation));
+  }
+
+  @override
+  visitAsCheckSimple(HAsCheckSimple node) {
+    use(node.checkedInput);
+    MemberEntity method = node.method;
+    _registry.registerStaticUse(
+        StaticUse.staticInvoke(method, CallStructure.ONE_ARG));
+    js.Expression methodAccess = _emitter.staticFunctionAccess(method);
+    push(js.js(r'#(#)', [methodAccess, pop()]).withSourceInformation(
+        node.sourceInformation));
   }
 
   @override
   visitSubtypeCheck(HSubtypeCheck node) {
-    throw UnimplementedError('SsaCodeGenerator.visitSubtypeCheck');
+    throw UnimplementedError('SsaCodeGenerator.visitSubtypeCheck  $node');
   }
 
   @override
   visitLoadType(HLoadType node) {
-    throw UnimplementedError('SsaCodeGenerator.visitLoadType');
+    FunctionEntity helperElement = _commonElements.findType;
+    _registry.registerStaticUse(
+        new StaticUse.staticInvoke(helperElement, CallStructure.ONE_ARG));
+    js.Expression recipe = _rtiRecipeEncoder.encodeGroundRecipe(
+        _emitter, TypeExpressionRecipe(node.typeExpression));
+    js.Expression helper = _emitter.staticFunctionAccess(helperElement);
+    push(js.js(r'#(#)', [helper, recipe]).withSourceInformation(
+        node.sourceInformation));
+  }
+
+  @override
+  visitInstanceEnvironment(HInstanceEnvironment node) {
+    HInstruction input = node.inputs.single;
+    use(input);
+    js.Expression receiver = pop();
+
+    void useRtiField() {
+      push(js.js(r'#.#', [receiver, _namer.rtiFieldJsName]));
+    }
+
+    void useHelper(FunctionEntity helper) {
+      _registry.registerStaticUse(
+          new StaticUse.staticInvoke(helper, CallStructure.ONE_ARG));
+      js.Expression helperAccess = _emitter.staticFunctionAccess(helper);
+      push(js.js(r'#(#)', [helperAccess, receiver]).withSourceInformation(
+          node.sourceInformation));
+    }
+
+    // Try to use the 'rti' field, or a specialization of 'instanceType'.
+    AbstractValue receiverMask = input.instructionType;
+
+    AbstractBool isArray = _abstractValueDomain.isInstanceOf(
+        receiverMask, _commonElements.jsArrayClass);
+
+    if (isArray.isDefinitelyTrue) {
+      useHelper(_commonElements.arrayInstanceType);
+      return;
+    }
+
+    if (isArray.isDefinitelyFalse) {
+      // See if the receiver type narrows the set of classes to ones that all
+      // have a stored type field.
+      // TODO(sra): Currently the only convenient query is [getExactClass]. We
+      // should have a (cached) query to iterate over all the concrete classes
+      // in [receiverMask].
+      // TODO(sra): Store the context class on the HInstanceEnvironment. This
+      // would allow the subtype classes to be iterated.
+      ClassEntity receiverClass =
+          _abstractValueDomain.getExactClass(receiverMask);
+      if (receiverClass != null) {
+        if (_closedWorld.rtiNeed.classNeedsTypeArguments(receiverClass)) {
+          useRtiField();
+          return;
+        }
+      }
+
+      // If the type is not intercepted and is not a closure, use the 'simple'
+      // helper.
+      if (_abstractValueDomain.isInterceptor(receiverMask).isDefinitelyFalse) {
+        if (_abstractValueDomain
+            .isInstanceOf(receiverMask, _commonElements.closureClass)
+            .isDefinitelyFalse) {
+          useHelper(_commonElements.simpleInstanceType);
+          return;
+        }
+      }
+    }
+
+    useHelper(_commonElements.instanceType);
   }
 
   @override
   visitTypeEval(HTypeEval node) {
-    throw UnimplementedError('SsaCodeGenerator.visitTypeEval');
+    // Call `env._eval("recipe")`.
+    use(node.inputs[0]);
+    js.Expression environment = pop();
+    RecipeEncoding encoding = _rtiRecipeEncoder.encodeRecipe(
+        _emitter, node.envStructure, node.typeExpression);
+    js.Expression recipe = encoding.recipe;
+
+    for (TypeVariableType typeVariable in encoding.typeVariables) {
+      // TODO(fishythefish): Constraint the type variable to only be emitted on
+      // (subtypes of) the environment type.
+      _registry.registerTypeUse(TypeUse.namedTypeVariableNewRti(typeVariable));
+    }
+
+    MemberEntity method = _commonElements.rtiEvalMethod;
+    Selector selector = Selector.fromElement(method);
+    js.Name methodLiteral = _namer.invocationName(selector);
+    push(js.js('#.#(#)', [
+      environment,
+      methodLiteral,
+      recipe
+    ]).withSourceInformation(node.sourceInformation));
+
+    _registry.registerStaticUse(
+        new StaticUse.directInvoke(method, selector.callStructure, null));
   }
 
   @override
   visitTypeBind(HTypeBind node) {
-    throw UnimplementedError('SsaCodeGenerator.visitTypeBind');
+    // Call `env1._bind(env2)`.
+    assert(node.inputs.length == 2);
+    use(node.inputs[0]);
+    js.Expression environment = pop();
+    use(node.inputs[1]);
+    js.Expression extensions = pop();
+
+    MemberEntity method = _commonElements.rtiBindMethod;
+    Selector selector = Selector.fromElement(method);
+    js.Name methodLiteral = _namer.invocationName(selector);
+    push(js.js('#.#(#)', [
+      environment,
+      methodLiteral,
+      extensions
+    ]).withSourceInformation(node.sourceInformation));
+
+    _registry.registerStaticUse(
+        new StaticUse.directInvoke(method, selector.callStructure, null));
   }
 }

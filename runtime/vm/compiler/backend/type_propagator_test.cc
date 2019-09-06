@@ -37,8 +37,7 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_RedefinitionAfterStrictCompareWithNull) {
                         String::Handle(Symbols::New(thread, "v0")),
                         AbstractType::ZoneHandle(Type::IntType()));
   v0_var->set_type_check_mode(LocalVariable::kTypeCheckedByCaller);
-  H.flow_graph()->parsed_function().node_sequence()->scope()->AddVariable(
-      v0_var);
+  H.flow_graph()->parsed_function().scope()->AddVariable(v0_var);
 
   auto normal_entry = H.flow_graph()->graph_entry()->normal_entry();
 

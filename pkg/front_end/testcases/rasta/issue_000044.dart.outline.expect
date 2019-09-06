@@ -30,13 +30,14 @@ import "dart:core" as core;
 
 class C extends core::Object {
   static field dynamic _redirecting# = <dynamic>[self::C::good];
-  const constructor constant() → self::C
+  const constructor constant() → self::C*
+    : super core::Object::•()
     ;
-  constructor missingFactoryKeyword() → self::C
+  constructor missingFactoryKeyword() → self::C*
     ;
-  static factory good() → self::C
+  static factory good() → self::C*
     let dynamic #redirecting_factory = self::C::constant in invalid-expression;
-  method notEvenAConstructor(dynamic a) → self::C
+  method notEvenAConstructor(dynamic a) → self::C*
     ;
 }
 static method b(dynamic c) → invalid-type

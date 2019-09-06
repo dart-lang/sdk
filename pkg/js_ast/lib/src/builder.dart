@@ -318,6 +318,7 @@ class JsBuilder {
         case "\v":
           return r"\v";
       }
+      throw new UnsupportedError("Unexpected match: ${match.group(0)}");
     });
     LiteralString result = string(escaped);
     // We don't escape ' under the assumption that the string is wrapped

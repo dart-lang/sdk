@@ -44,38 +44,8 @@ int minified(int x, int y) => min(x, y);
     final codeAction = findCommand(codeActions, Commands.organizeImports);
     expect(codeAction, isNotNull);
 
-    final command = codeAction.map(
-      (command) => command,
-      (codeAction) => codeAction.command,
-    );
-
-    ApplyWorkspaceEditParams editParams;
-
-    final commandResponse = await handleExpectedRequest<Object,
-        ApplyWorkspaceEditParams, ApplyWorkspaceEditResponse>(
-      Method.workspace_applyEdit,
-      () => executeCommand(command),
-      handler: (edit) {
-        // When the server sends the edit back, just keep a copy and say we
-        // applied successfully (it'll be verified below).
-        editParams = edit;
-        return new ApplyWorkspaceEditResponse(true, null);
-      },
-    );
-    // Successful edits return an empty success() response.
-    expect(commandResponse, isNull);
-
-    // Ensure the edit came back, and using the documentChanges.
-    expect(editParams, isNotNull);
-    expect(editParams.edit.documentChanges, isNotNull);
-    expect(editParams.edit.changes, isNull);
-
-    // Ensure applying the changes will give us the expected content.
-    final contents = {
-      mainFilePath: withoutMarkers(content),
-    };
-    applyDocumentChanges(contents, editParams.edit.documentChanges);
-    expect(contents[mainFilePath], equals(expectedContent));
+    await verifyCodeActionEdits(codeAction, content, expectedContent,
+        expectDocumentChanges: true);
   }
 
   test_appliesCorrectEdits_withoutDocumentChangesSupport() async {
@@ -103,38 +73,7 @@ int minified(int x, int y) => min(x, y);
     final codeAction = findCommand(codeActions, Commands.organizeImports);
     expect(codeAction, isNotNull);
 
-    final command = codeAction.map(
-      (command) => command,
-      (codeAction) => codeAction.command,
-    );
-
-    ApplyWorkspaceEditParams editParams;
-
-    final commandResponse = await handleExpectedRequest<Object,
-        ApplyWorkspaceEditParams, ApplyWorkspaceEditResponse>(
-      Method.workspace_applyEdit,
-      () => executeCommand(command),
-      handler: (edit) {
-        // When the server sends the edit back, just keep a copy and say we
-        // applied successfully (it'll be verified below).
-        editParams = edit;
-        return new ApplyWorkspaceEditResponse(true, null);
-      },
-    );
-    // Successful edits return an empty success() response.
-    expect(commandResponse, isNull);
-
-    // Ensure the edit came back, and using changes.
-    expect(editParams, isNotNull);
-    expect(editParams.edit.changes, isNotNull);
-    expect(editParams.edit.documentChanges, isNull);
-
-    // Ensure applying the changes will give us the expected content.
-    final contents = {
-      mainFilePath: withoutMarkers(content),
-    };
-    applyChanges(contents, editParams.edit.changes);
-    expect(contents[mainFilePath], equals(expectedContent));
+    await verifyCodeActionEdits(codeAction, content, expectedContent);
   }
 
   test_availableAsCodeActionLiteral() async {
@@ -261,38 +200,8 @@ class SortMembersSourceCodeActionsTest extends AbstractCodeActionsTest {
     final codeAction = findCommand(codeActions, Commands.sortMembers);
     expect(codeAction, isNotNull);
 
-    final command = codeAction.map(
-      (command) => command,
-      (codeAction) => codeAction.command,
-    );
-
-    ApplyWorkspaceEditParams editParams;
-
-    final commandResponse = await handleExpectedRequest<Object,
-        ApplyWorkspaceEditParams, ApplyWorkspaceEditResponse>(
-      Method.workspace_applyEdit,
-      () => executeCommand(command),
-      handler: (edit) {
-        // When the server sends the edit back, just keep a copy and say we
-        // applied successfully (it'll be verified below).
-        editParams = edit;
-        return new ApplyWorkspaceEditResponse(true, null);
-      },
-    );
-    // Successful edits return an empty success() response.
-    expect(commandResponse, isNull);
-
-    // Ensure the edit came back, and using the documentChanges.
-    expect(editParams, isNotNull);
-    expect(editParams.edit.documentChanges, isNotNull);
-    expect(editParams.edit.changes, isNull);
-
-    // Ensure applying the changes will give us the expected content.
-    final contents = {
-      mainFilePath: withoutMarkers(content),
-    };
-    applyDocumentChanges(contents, editParams.edit.documentChanges);
-    expect(contents[mainFilePath], equals(expectedContent));
+    await verifyCodeActionEdits(codeAction, content, expectedContent,
+        expectDocumentChanges: true);
   }
 
   test_appliesCorrectEdits_withoutDocumentChangesSupport() async {
@@ -313,38 +222,7 @@ class SortMembersSourceCodeActionsTest extends AbstractCodeActionsTest {
     final codeAction = findCommand(codeActions, Commands.sortMembers);
     expect(codeAction, isNotNull);
 
-    final command = codeAction.map(
-      (command) => command,
-      (codeAction) => codeAction.command,
-    );
-
-    ApplyWorkspaceEditParams editParams;
-
-    final commandResponse = await handleExpectedRequest<Object,
-        ApplyWorkspaceEditParams, ApplyWorkspaceEditResponse>(
-      Method.workspace_applyEdit,
-      () => executeCommand(command),
-      handler: (edit) {
-        // When the server sends the edit back, just keep a copy and say we
-        // applied successfully (it'll be verified below).
-        editParams = edit;
-        return new ApplyWorkspaceEditResponse(true, null);
-      },
-    );
-    // Successful edits return an empty success() response.
-    expect(commandResponse, isNull);
-
-    // Ensure the edit came back, and using changes.
-    expect(editParams, isNotNull);
-    expect(editParams.edit.changes, isNotNull);
-    expect(editParams.edit.documentChanges, isNull);
-
-    // Ensure applying the changes will give us the expected content.
-    final contents = {
-      mainFilePath: withoutMarkers(content),
-    };
-    applyChanges(contents, editParams.edit.changes);
-    expect(contents[mainFilePath], equals(expectedContent));
+    await verifyCodeActionEdits(codeAction, content, expectedContent);
   }
 
   test_availableAsCodeActionLiteral() async {

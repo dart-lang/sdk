@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class C {
-  /*element: C._private:direct,explicit=[_private.T],needsArgs,selectors=[Selector(call, _private, arity=1, types=1)]*/
+  /*member: C._private:direct,explicit=[_private.T],needsArgs,selectors=[Selector(call, _private, arity=1, types=1)]*/
   _private<T>(t) => t is T;
 }
 

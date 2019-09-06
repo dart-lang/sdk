@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   promotedIfThen();
   promotedIfThenElse();
@@ -30,17 +30,17 @@ main() {
 // Test if-then statement with is-test
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: Class1.:[exact=Class1]*/
+/*member: Class1.:[exact=Class1]*/
 class Class1 {}
 
-/*element: _promotedIfThen:[null]*/
+/*member: _promotedIfThen:[null]*/
 _promotedIfThen(/*Union([exact=Class1], [exact=JSUInt31])*/ o) {
   if (o is Class1) {
     o. /*invoke: [exact=Class1]*/ toString();
   }
 }
 
-/*element: promotedIfThen:[null]*/
+/*member: promotedIfThen:[null]*/
 promotedIfThen() {
   _promotedIfThen(0);
   _promotedIfThen(new Class1());
@@ -50,10 +50,10 @@ promotedIfThen() {
 // Test if-then-else statement with is-test
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: Class2.:[exact=Class2]*/
+/*member: Class2.:[exact=Class2]*/
 class Class2 {}
 
-/*element: _promotedIfThenElse:[null]*/
+/*member: _promotedIfThenElse:[null]*/
 _promotedIfThenElse(/*Union([exact=Class2], [exact=JSUInt31])*/ o) {
   if (o is Class2) {
     o. /*invoke: [exact=Class2]*/ toString();
@@ -64,7 +64,7 @@ _promotedIfThenElse(/*Union([exact=Class2], [exact=JSUInt31])*/ o) {
   }
 }
 
-/*element: promotedIfThenElse:[null]*/
+/*member: promotedIfThenElse:[null]*/
 promotedIfThenElse() {
   _promotedIfThenElse(0);
   _promotedIfThenElse(new Class2());
@@ -74,10 +74,10 @@ promotedIfThenElse() {
 // Test if-then-else statement with negated is-test
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: Class3.:[exact=Class3]*/
+/*member: Class3.:[exact=Class3]*/
 class Class3 {}
 
-/*element: _promotedNotIfThenElse:[null]*/
+/*member: _promotedNotIfThenElse:[null]*/
 _promotedNotIfThenElse(/*Union([exact=Class3], [exact=JSUInt31])*/ o) {
   if (o is! Class3) {
     o. /*invoke: Union([exact=Class3], [exact=JSUInt31])*/ toString();
@@ -86,7 +86,7 @@ _promotedNotIfThenElse(/*Union([exact=Class3], [exact=JSUInt31])*/ o) {
   }
 }
 
-/*element: promotedNotIfThenElse:[null]*/
+/*member: promotedNotIfThenElse:[null]*/
 promotedNotIfThenElse() {
   _promotedNotIfThenElse(0);
   _promotedNotIfThenElse(new Class3());
@@ -96,10 +96,10 @@ promotedNotIfThenElse() {
 // Test if-then statement with is-test in &&
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: Class4.:[exact=Class4]*/
+/*member: Class4.:[exact=Class4]*/
 class Class4 {}
 
-/*element: _promotedAndIfThen:[null]*/
+/*member: _promotedAndIfThen:[null]*/
 _promotedAndIfThen(
     /*Union([exact=Class4], [exact=JSUInt31])*/ o,
     /*[exact=JSBool]*/ c) {
@@ -108,7 +108,7 @@ _promotedAndIfThen(
   }
 }
 
-/*element: promotedAndIfThen:[null]*/
+/*member: promotedAndIfThen:[null]*/
 promotedAndIfThen() {
   _promotedAndIfThen(0, true);
   _promotedAndIfThen(new Class4(), false);
@@ -118,10 +118,10 @@ promotedAndIfThen() {
 // Test if-then-else statement with is-test in &&
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: Class5.:[exact=Class5]*/
+/*member: Class5.:[exact=Class5]*/
 class Class5 {}
 
-/*element: _promotedAndIfThenElse:[null]*/
+/*member: _promotedAndIfThenElse:[null]*/
 _promotedAndIfThenElse(
     /*Union([exact=Class5], [exact=JSUInt31])*/ o,
     /*[exact=JSBool]*/ c) {
@@ -134,7 +134,7 @@ _promotedAndIfThenElse(
   }
 }
 
-/*element: promotedAndIfThenElse:[null]*/
+/*member: promotedAndIfThenElse:[null]*/
 promotedAndIfThenElse() {
   _promotedAndIfThenElse(0, true);
   _promotedAndIfThenElse(new Class5(), false);
@@ -144,10 +144,10 @@ promotedAndIfThenElse() {
 // Test if-then-else statement with negated is-test in &&
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: Class6.:[exact=Class6]*/
+/*member: Class6.:[exact=Class6]*/
 class Class6 {}
 
-/*element: _promotedNotAndIfThenElse:[null]*/
+/*member: _promotedNotAndIfThenElse:[null]*/
 _promotedNotAndIfThenElse(
     /*Union([exact=Class6], [exact=JSUInt31])*/ o,
     /*[exact=JSBool]*/ c) {
@@ -158,7 +158,7 @@ _promotedNotAndIfThenElse(
   }
 }
 
-/*element: promotedNotAndIfThenElse:[null]*/
+/*member: promotedNotAndIfThenElse:[null]*/
 promotedNotAndIfThenElse() {
   _promotedNotAndIfThenElse(0, true);
   _promotedNotAndIfThenElse(new Class6(), false);
@@ -168,10 +168,10 @@ promotedNotAndIfThenElse() {
 // Test if-then statement with is-test in ||
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: Class7.:[exact=Class7]*/
+/*member: Class7.:[exact=Class7]*/
 class Class7 {}
 
-/*element: _promotedOrIfThen:[null]*/
+/*member: _promotedOrIfThen:[null]*/
 _promotedOrIfThen(
     /*Union([exact=Class7], [exact=JSUInt31])*/ o,
     /*[exact=JSBool]*/ c) {
@@ -180,7 +180,7 @@ _promotedOrIfThen(
   }
 }
 
-/*element: promotedOrIfThen:[null]*/
+/*member: promotedOrIfThen:[null]*/
 promotedOrIfThen() {
   _promotedOrIfThen(0, true);
   _promotedOrIfThen(new Class7(), false);
@@ -190,10 +190,10 @@ promotedOrIfThen() {
 // Test if-then-else statement with is-test in ||
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: Class8.:[exact=Class8]*/
+/*member: Class8.:[exact=Class8]*/
 class Class8 {}
 
-/*element: _promotedOrIfThenElse:[null]*/
+/*member: _promotedOrIfThenElse:[null]*/
 _promotedOrIfThenElse(
     /*Union([exact=Class8], [exact=JSUInt31])*/ o,
     /*[exact=JSBool]*/ c) {
@@ -206,7 +206,7 @@ _promotedOrIfThenElse(
   }
 }
 
-/*element: promotedOrIfThenElse:[null]*/
+/*member: promotedOrIfThenElse:[null]*/
 promotedOrIfThenElse() {
   _promotedOrIfThenElse(0, true);
   _promotedOrIfThenElse(new Class8(), false);
@@ -216,10 +216,10 @@ promotedOrIfThenElse() {
 // Test if-then-else statement with negated is-test in ||
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: Class9.:[exact=Class9]*/
+/*member: Class9.:[exact=Class9]*/
 class Class9 {}
 
-/*element: _promotedNotOrIfThenElse:[null]*/
+/*member: _promotedNotOrIfThenElse:[null]*/
 _promotedNotOrIfThenElse(
     /*Union([exact=Class9], [exact=JSUInt31])*/ o,
     /*[exact=JSBool]*/ c) {
@@ -230,7 +230,7 @@ _promotedNotOrIfThenElse(
   }
 }
 
-/*element: promotedNotOrIfThenElse:[null]*/
+/*member: promotedNotOrIfThenElse:[null]*/
 promotedNotOrIfThenElse() {
   _promotedNotOrIfThenElse(0, true);
   _promotedNotOrIfThenElse(new Class9(), false);
@@ -240,10 +240,10 @@ promotedNotOrIfThenElse() {
 // Test if-then statement with doubly negated is-test
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: Class10.:[exact=Class10]*/
+/*member: Class10.:[exact=Class10]*/
 class Class10 {}
 
-/*element: _promotedNotNotIfThen:[null]*/
+/*member: _promotedNotNotIfThen:[null]*/
 _promotedNotNotIfThen(/*Union([exact=Class10], [exact=JSUInt31])*/ o) {
   if (!(o is! Class10)) {
     o
@@ -253,7 +253,7 @@ _promotedNotNotIfThen(/*Union([exact=Class10], [exact=JSUInt31])*/ o) {
   }
 }
 
-/*element: promotedNotNotIfThen:[null]*/
+/*member: promotedNotNotIfThen:[null]*/
 promotedNotNotIfThen() {
   _promotedNotNotIfThen(0);
   _promotedNotNotIfThen(new Class10());
@@ -263,10 +263,10 @@ promotedNotNotIfThen() {
 // Test if-then-else statement with negated is-test in parentheses
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: Class11.:[exact=Class11]*/
+/*member: Class11.:[exact=Class11]*/
 class Class11 {}
 
-/*element: _promotedParenNotIfThenElse:[null]*/
+/*member: _promotedParenNotIfThenElse:[null]*/
 _promotedParenNotIfThenElse(
     /*Union([exact=Class11], [exact=JSUInt31])*/ o) {
   if (!(o is Class11)) {
@@ -281,7 +281,7 @@ _promotedParenNotIfThenElse(
   }
 }
 
-/*element: promotedParenNotIfThenElse:[null]*/
+/*member: promotedParenNotIfThenElse:[null]*/
 promotedParenNotIfThenElse() {
   _promotedParenNotIfThenElse(0);
   _promotedParenNotIfThenElse(new Class11());
@@ -291,14 +291,14 @@ promotedParenNotIfThenElse() {
 // Test if-then statement with null-test
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _nullIfThen:[null]*/
+/*member: _nullIfThen:[null]*/
 _nullIfThen(/*[null|exact=JSUInt31]*/ o) {
   if (o == null) {
     o. /*invoke: [null]*/ toString();
   }
 }
 
-/*element: nullIfThen:[null]*/
+/*member: nullIfThen:[null]*/
 nullIfThen() {
   _nullIfThen(0);
   _nullIfThen(null);
@@ -308,7 +308,7 @@ nullIfThen() {
 // Test if-then-else statement null-test
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _nullIfThenElse:[null]*/
+/*member: _nullIfThenElse:[null]*/
 _nullIfThenElse(/*[null|exact=JSUInt31]*/ o) {
   if (o == null) {
     o. /*invoke: [null]*/ toString();
@@ -317,7 +317,7 @@ _nullIfThenElse(/*[null|exact=JSUInt31]*/ o) {
   }
 }
 
-/*element: nullIfThenElse:[null]*/
+/*member: nullIfThenElse:[null]*/
 nullIfThenElse() {
   _nullIfThenElse(0);
   _nullIfThenElse(null);
@@ -327,14 +327,14 @@ nullIfThenElse() {
 // Test if-then statement with negated null-test
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _notNullIfThen:[null]*/
+/*member: _notNullIfThen:[null]*/
 _notNullIfThen(/*[null|exact=JSUInt31]*/ o) {
   if (o != null) {
     o. /*invoke: [exact=JSUInt31]*/ toString();
   }
 }
 
-/*element: notNullIfThen:[null]*/
+/*member: notNullIfThen:[null]*/
 notNullIfThen() {
   _notNullIfThen(0);
   _notNullIfThen(null);
@@ -344,7 +344,7 @@ notNullIfThen() {
 // Test if-then-else statement with negated null-test
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _notNullIfThenElse:[null]*/
+/*member: _notNullIfThenElse:[null]*/
 _notNullIfThenElse(/*[null|exact=JSUInt31]*/ o) {
   if (o != null) {
     o. /*invoke: [exact=JSUInt31]*/ toString();
@@ -353,7 +353,7 @@ _notNullIfThenElse(/*[null|exact=JSUInt31]*/ o) {
   }
 }
 
-/*element: notNullIfThenElse:[null]*/
+/*member: notNullIfThenElse:[null]*/
 notNullIfThenElse() {
   _notNullIfThenElse(0);
   _notNullIfThenElse(null);
@@ -363,14 +363,14 @@ notNullIfThenElse() {
 // Test if-then statement with null-test in &&
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _nullAndIfThen:[null]*/
+/*member: _nullAndIfThen:[null]*/
 _nullAndIfThen(/*[null|exact=JSUInt31]*/ o, /*[exact=JSBool]*/ c) {
   if (o == null && c) {
     o. /*invoke: [null]*/ toString();
   }
 }
 
-/*element: nullAndIfThen:[null]*/
+/*member: nullAndIfThen:[null]*/
 nullAndIfThen() {
   _nullAndIfThen(0, true);
   _nullAndIfThen(null, false);
@@ -380,7 +380,7 @@ nullAndIfThen() {
 // Test if-then-else statement null-test in &&
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _nullAndIfThenElse:[null]*/
+/*member: _nullAndIfThenElse:[null]*/
 _nullAndIfThenElse(/*[null|exact=JSUInt31]*/ o, /*[exact=JSBool]*/ c) {
   if (o == null && c) {
     o. /*invoke: [null]*/ toString();
@@ -389,7 +389,7 @@ _nullAndIfThenElse(/*[null|exact=JSUInt31]*/ o, /*[exact=JSBool]*/ c) {
   }
 }
 
-/*element: nullAndIfThenElse:[null]*/
+/*member: nullAndIfThenElse:[null]*/
 nullAndIfThenElse() {
   _nullAndIfThenElse(0, true);
   _nullAndIfThenElse(null, false);
@@ -399,14 +399,14 @@ nullAndIfThenElse() {
 // Test if-then statement with negated null-test in &&
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _notNullAndIfThen:[null]*/
+/*member: _notNullAndIfThen:[null]*/
 _notNullAndIfThen(/*[null|exact=JSUInt31]*/ o, /*[exact=JSBool]*/ c) {
   if (o != null && c) {
     o. /*invoke: [exact=JSUInt31]*/ toString();
   }
 }
 
-/*element: notNullAndIfThen:[null]*/
+/*member: notNullAndIfThen:[null]*/
 notNullAndIfThen() {
   _notNullAndIfThen(0, true);
   _notNullAndIfThen(null, false);
@@ -416,7 +416,7 @@ notNullAndIfThen() {
 // Test if-then-else statement with negated null-test in &&
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _notNullAndIfThenElse:[null]*/
+/*member: _notNullAndIfThenElse:[null]*/
 _notNullAndIfThenElse(/*[null|exact=JSUInt31]*/ o, /*[exact=JSBool]*/ c) {
   if (o != null && c) {
     o. /*invoke: [exact=JSUInt31]*/ toString();
@@ -425,7 +425,7 @@ _notNullAndIfThenElse(/*[null|exact=JSUInt31]*/ o, /*[exact=JSBool]*/ c) {
   }
 }
 
-/*element: notNullAndIfThenElse:[null]*/
+/*member: notNullAndIfThenElse:[null]*/
 notNullAndIfThenElse() {
   _notNullAndIfThenElse(0, true);
   _notNullAndIfThenElse(null, false);

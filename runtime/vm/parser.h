@@ -11,7 +11,6 @@
 #include "platform/assert.h"
 #include "platform/globals.h"
 #include "vm/allocation.h"
-#include "vm/ast.h"
 #include "vm/class_finalizer.h"
 #include "vm/hash_table.h"
 #include "vm/kernel.h"
@@ -56,8 +55,12 @@ class ParsedFunction : public ZoneAllocated {
   const Function& function() const { return function_; }
   const Code& code() const { return code_; }
 
-  SequenceNode* node_sequence() const { return node_sequence_; }
-  void SetNodeSequence(SequenceNode* node_sequence);
+  LocalScope* scope() const { return scope_; }
+  void set_scope(LocalScope* scope) {
+    ASSERT(scope_ == nullptr);
+    ASSERT(scope != nullptr);
+    scope_ = scope;
+  }
 
   RegExpCompileData* regexp_compile_data() const {
     return regexp_compile_data_;
@@ -211,8 +214,8 @@ class ParsedFunction : public ZoneAllocated {
 
   LocalVariable* ParameterVariable(intptr_t i) const {
     ASSERT((i >= 0) && (i < function_.NumParameters()));
-    ASSERT(node_sequence() != nullptr && node_sequence()->scope() != nullptr);
-    return node_sequence()->scope()->VariableAt(i);
+    ASSERT(scope() != nullptr);
+    return scope()->VariableAt(i);
   }
 
   void SetDefaultFunctionTypeArguments(const TypeArguments& value) {
@@ -227,7 +230,7 @@ class ParsedFunction : public ZoneAllocated {
   Thread* thread_;
   const Function& function_;
   Code& code_;
-  SequenceNode* node_sequence_;
+  LocalScope* scope_;
   RegExpCompileData* regexp_compile_data_;
   LocalVariable* function_type_arguments_;
   LocalVariable* parent_type_arguments_;

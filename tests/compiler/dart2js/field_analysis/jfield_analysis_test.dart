@@ -6,10 +6,9 @@ import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/ir/util.dart';
 import 'package:compiler/src/js_backend/field_analysis.dart';
 import 'package:compiler/src/js_model/js_world.dart';
-import 'package:compiler/src/util/features.dart';
+import 'package:front_end/src/testing/features.dart';
 import 'package:kernel/ast.dart' as ir;
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
@@ -18,7 +17,7 @@ main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('jdata'));
     await checkTests(dataDir, const JAllocatorAnalysisDataComputer(),
-        args: args, testOmit: false, testCFEConstants: true);
+        args: args, testedConfigs: allStrongConfigs);
   });
 }
 
@@ -77,9 +76,10 @@ class JAllocatorAnalysisDataComputer extends DataComputer<Features> {
       if (fieldData.isEffectivelyFinal && !fieldData.isEffectivelyConstant) {
         features.add(Tags.isEffectivelyFinal);
       }
-      Id id = computeEntityId(node);
-      actualMap[id] = new ActualData<Features>(
-          id, features, computeSourceSpanFromTreeNode(node), member);
+      Id id = computeMemberId(node);
+      ir.TreeNode nodeWithOffset = computeTreeNodeWithOffset(node);
+      actualMap[id] = new ActualData<Features>(id, features,
+          nodeWithOffset?.location?.file, nodeWithOffset?.fileOffset, member);
     }
   }
 

@@ -118,7 +118,7 @@ statementOut.free();
 queryC.free();
 ```
 
-Browse the code: [CString class](../lib/src/ffi/cstring.dart), [code calling sqlite3_prepare_v2](../lib/src/database.dart#57), and [dart:ffi pointer interface](../../../../sdk/lib/ffi/ffi.dart).
+Browse the code: [CString class](../lib/src/ffi/utf8.dart), [code calling sqlite3_prepare_v2](../lib/src/database.dart#57), and [dart:ffi pointer interface](../../../../sdk/lib/ffi/ffi.dart).
 
 ## Dart API
 
@@ -152,7 +152,7 @@ class Row {
           "This row is not the current row, reading data from the non-current"
           " row is not supported by sqlite.");
     }
-    // ...  
+    // ...
     }
 }
 ```

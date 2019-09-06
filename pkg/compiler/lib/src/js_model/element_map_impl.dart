@@ -85,6 +85,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   KernelDartTypes _types;
   ir.TypeEnvironment _typeEnvironment;
   ir.ClassHierarchy _classHierarchy;
+  ConstantValuefier _constantValuefier;
 
   /// Library environment. Used for fast lookup.
   JProgramEnv programEnv;
@@ -138,10 +139,12 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       AnnotationsData annotations)
       : this.options = _elementMap.options {
     _elementEnvironment = new JsElementEnvironment(this);
-    _commonElements = new CommonElementsImpl(_elementEnvironment);
+    _commonElements =
+        new CommonElementsImpl(_elementEnvironment, _elementMap.options);
     _constantEnvironment = new JsConstantEnvironment(this, environment);
     _typeConverter = new DartTypeConverter(this);
     _types = new KernelDartTypes(this);
+    _constantValuefier = new ConstantValuefier(this);
 
     programEnv = _elementMap.env.convert();
     for (int libraryIndex = 0;
@@ -317,10 +320,11 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   JsKernelToElementMap.readFromDataSource(this.options, this.reporter,
       Environment environment, ir.Component component, DataSource source) {
     _elementEnvironment = new JsElementEnvironment(this);
-    _commonElements = new CommonElementsImpl(_elementEnvironment);
+    _commonElements = new CommonElementsImpl(_elementEnvironment, options);
     _constantEnvironment = new JsConstantEnvironment(this, environment);
     _typeConverter = new DartTypeConverter(this);
     _types = new KernelDartTypes(this);
+    _constantValuefier = new ConstantValuefier(this);
 
     source.registerComponentLookup(new ComponentLookup(component));
     _EntityLookup entityLookup = new _EntityLookup();
@@ -437,8 +441,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     source.end(typeVariableDataTag);
 
     source.begin(nestedClosuresTag);
-    _nestedClosureMap.addAll(
-        source.readMemberMap(() => source.readMembers<IndexedFunction>()));
+    _nestedClosureMap.addAll(source.readMemberMap(
+        (MemberEntity member) => source.readMembers<IndexedFunction>()));
     source.end(nestedClosuresTag);
 
     source.end(tag);
@@ -548,7 +552,10 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     sink.end(typeVariableDataTag);
 
     sink.begin(nestedClosuresTag);
-    sink.writeMemberMap(_nestedClosureMap, sink.writeMembers);
+    sink.writeMemberMap(
+        _nestedClosureMap,
+        (MemberEntity member, List<IndexedFunction> functions) =>
+            sink.writeMembers(functions));
     sink.end(nestedClosuresTag);
 
     sink.end(tag);
@@ -1447,7 +1454,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   ConstantValue getConstantValue(ir.Expression node,
       {bool requireConstant: true, bool implicitNull: false}) {
     if (node is ir.ConstantExpression) {
-      return node.constant.accept(new ConstantValuefier(this));
+      return _constantValuefier.visitConstant(node.constant);
     }
 
     ConstantExpression constant;
@@ -1670,6 +1677,33 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   @override
   MemberDefinition getMemberDefinition(MemberEntity member) {
     return getMemberDefinitionInternal(member);
+  }
+
+  @override
+  ir.Member getMemberContextNode(MemberEntity member) {
+    ir.Member getParentMember(ir.TreeNode node) {
+      while (node != null) {
+        if (node is ir.Member) {
+          return node;
+        }
+        node = node.parent;
+      }
+      return null;
+    }
+
+    MemberDefinition definition = getMemberDefinition(member);
+    switch (definition.kind) {
+      case MemberKind.regular:
+      case MemberKind.constructor:
+      case MemberKind.constructorBody:
+        return definition.node;
+      case MemberKind.closureCall:
+      case MemberKind.closureField:
+      case MemberKind.signature:
+      case MemberKind.generatorBody:
+        return getParentMember(definition.node);
+    }
+    throw new UnsupportedError('Unexpected member kind ${definition}');
   }
 
   @override

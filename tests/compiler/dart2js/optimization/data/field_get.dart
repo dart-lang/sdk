@@ -18,7 +18,7 @@ class Class1a {
   int field1;
 }
 
-/*element: method1:FieldGet=[name=Class1a.field1]*/
+/*member: method1:FieldGet=[name=Class1a.field1]*/
 @pragma('dart2js:noInline')
 method1(Class1a c) {
   return c.field1;
@@ -31,7 +31,7 @@ class Class2a {
 
 class Class2b extends Class2a {}
 
-/*element: method2:FieldGet=[name=Class2a.field2]*/
+/*member: method2:FieldGet=[name=Class2a.field2]*/
 @pragma('dart2js:noInline')
 method2(Class2a c) {
   return c.field2;
@@ -69,7 +69,7 @@ class Class5a {
   int Function() field5;
 }
 
-/*element: method5:FieldCall=[name=Class5a.field5]*/
+/*member: method5:FieldCall=[name=Class5a.field5]*/
 @pragma('dart2js:noInline')
 method5(Class5a c) {
   return c.field5();

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class Class1 {
-  /*element: Class1.field:constant=IntConstant(87)*/
+  /*member: Class1.field:constant=IntConstant(87)*/
   final int field;
 
   Class1.constructor1({this.field = 42});

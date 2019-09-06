@@ -13,6 +13,7 @@ import 'bytecode_serialization.dart'
         BufferedReader,
         BytecodeObject,
         BytecodeSizeStatistics,
+        ForwardReference,
         NamedEntryStatistics,
         doubleToIntBits,
         intBitsToDouble,
@@ -20,8 +21,9 @@ import 'bytecode_serialization.dart'
         ObjectWriter,
         StringWriter;
 import 'generics.dart'
-    show getInstantiatorTypeArguments, isRecursiveAfterFlattening;
-import 'declarations.dart' show TypeParametersDeclaration;
+    show getInstantiatorTypeArguments, hasInstantiatorTypeArguments;
+import 'declarations.dart' show SourceFile, TypeParametersDeclaration;
+import 'recursive_types_validator.dart' show RecursiveTypesValidator;
 
 /*
 
@@ -29,47 +31,43 @@ Bytecode object table is encoded in the following way
 (using notation from pkg/kernel/binary.md):
 
 type ObjectTable {
-  UInt numEntries;
-  UInt contentsSize;
+  UInt numEntries
 
-  //  Occupies contentsSize bytes.
-  ObjectContents objects[numEntries]
+  // Total size of ‘objects’ in bytes.
+  UInt objectsSize
 
-  UInt objectOffsets[numEntries]
+  ObjectContents[numEntries] objects
+
+  // Offsets relative to ‘objects’.
+  UInt[numEntries] objectOffsets
 }
 
+
 // Either reference to an object in object table, or object contents
-// written inline.
+// written inline (determined by bit 0).
 PackedObject = ObjectReference | ObjectContents
 
 type ObjectReference {
   // Bit 0 (reference bit): 1
   // Bits 1+: index in object table
-  UInt reference(<index>1)
+  UInt reference
 }
 
 type ObjectContents {
   // Bit 0 (reference bit): 0
   // Bits 1-4: object kind
   // Bits 5+ object flags
-  UInt header(<flags><kind>0)
+  UInt header
 }
 
-// Reference to a string in string table.
-type PackedString {
-  // Bit 0: set for two byte string
-  // Bits 1+: index in string table
-  UInt indexAndKind(<index><kind>)
-}
-
-// Invalid object table entry (at index 0).
+// Invalid/null object (always present at index 0).
 type InvalidObject extends ObjectContents {
   kind = 0;
 }
 
 type Library extends ObjectContents {
   kind = 1;
-  PackedString importUri;
+  PackedObject importUri;
 }
 
 type Class extends ObjectContents {
@@ -93,50 +91,6 @@ type Closure extends ObjectContents {
   UInt closureIndex;
 }
 
-type SimpleType extends ObjectContents {
-  kind = 5;
-  flags = (isDynamic, isVoid);
-  PackedObject class;
-}
-
-type TypeParameter extends ObjectContents {
-  kind = 6;
-  // Class, Member or Closure declaring this type parameter.
-  // Invalid if declared by function type.
-  PackedObject parent;
-  UInt indexInParent;
-}
-
-type GenericType extends ObjectContents {
-  kind = 7;
-  PackedObject class;
-  List<PackedObject> typeArgs;
-}
-
-type FunctionType extends ObjectContents {
-  kind = 8;
-  flags = (hasOptionalPositionalParams, hasOptionalNamedParams, hasTypeParams)
-
-  if hasTypeParams
-    UInt numTypeParameters
-    PackedObject[numTypeParameters] typeParameterNames
-    PackedObject[numTypeParameters] typeParameterBounds
-
-  UInt numParameters
-
-  if hasOptionalPositionalParams || hasOptionalNamedParams
-    UInt numRequiredParameters
-
-   Type[] positionalParameters
-   NameAndType[] namedParameters
-   PackedObject returnType
-}
-
-type NameAndType {
-  PackedObject name;
-  PackedObject type;
-}
-
 type Name extends ObjectContents {
   kind = 9;
 
@@ -152,12 +106,6 @@ type Name extends ObjectContents {
 type TypeArguments extends ObjectContents {
   kind = 10;
   List<PackedObject> args;
-}
-
-type FinalizedGenericType extends ObjectContents {
-  kind = 11;
-  PackedObject class;
-  PackedObject typeArgs;
 }
 
 abstract type ConstObject extends ObjectContents {
@@ -181,7 +129,7 @@ type ConstInt extends ConstValue {
 type ConstDouble extends ConstValue {
   kind = 12
   constantTag (flags) = 3
-  // double bits are converted to int
+  // double bits are reinterpreted as 64-bit int
   SLEB128 value;
 }
 
@@ -223,11 +171,110 @@ type ArgDesc extends ObjectContents {
 
   UInt numArguments
 
-  if hasTypeArgs
-    UInt numTypeArguments
+ if hasTypeArgs
+   UInt numTypeArguments
 
-  if hasNamedArgs
-    List<PackedObject> argNames;
+ if hasNamedArgs
+   List<PackedObject> argNames;
+}
+
+type Script extends ObjectContents {
+  kind = 14
+  flags = (hasSourceFile)
+  PackedObject uri
+  if hasSourceFile
+    UInt sourceFileOffset
+}
+
+abstract type Type extends ObjectContents {
+  kind = 15
+  flags = typeTag (4 bits)
+}
+
+type DynamicType extends Type {
+  kind = 15
+  typeTag (flags) = 1
+}
+
+type VoidType extends Type {
+  kind = 15
+  typeTag (flags) = 2
+}
+
+// SimpleType can be used only for types without instantiator type arguments.
+type SimpleType extends Type {
+  kind = 15
+  typeTag (flags) = 3
+  PackedObject class
+}
+
+type TypeParameter extends Type {
+  kind = 15
+  typeTag (flags) = 4
+  // Class, Member or Closure declaring this type parameter.
+  // Null (Invalid) if declared by function type.
+  PackedObject parent
+  UInt indexInParent
+}
+
+// Non-recursive finalized generic type.
+type GenericType extends Type {
+  kind = 15
+  typeTag (flags) = 5
+  PackedObject class
+  // Flattened type arguments vector.
+  PackedObject typeArgs
+}
+
+// Recursive finalized generic type.
+type RecursiveGenericType extends Type {
+  kind = 15
+  typeTag (flags) = 6
+  // This id is used to reference recursive types using RecursiveTypeRef.
+  // Type should be declared using RecursiveGenericType before it can be referenced.
+  // The root type should have zero recursiveId.
+  UInt recursiveId
+  PackedObject class
+  // Flattened type arguments vector.
+  PackedObject typeArgs
+}
+
+type RecursiveTypeRef extends Type {
+  kind = 15
+  typeTag (flags) = 7
+  UInt recursiveId
+}
+
+type FunctionType extends Type {
+  kind = 15
+  typeTag (flags) = 8
+
+  UInt functionTypeFlags(hasOptionalPositionalParams,
+                         hasOptionalNamedParams,
+                         hasTypeParams)
+
+  if hasTypeParams
+    TypeParametersDeclaration typeParameters
+
+  UInt numParameters
+
+  if hasOptionalPositionalParams || hasOptionalNamedParams
+    UInt numRequiredParameters
+
+  Type[] positionalParameters
+  NameAndType[] namedParameters
+  PackedObject returnType
+}
+
+type TypeParametersDeclaration {
+   UInt numTypeParameters
+   PackedObject[numTypeParameters] typeParameterNames
+   PackedObject[numTypeParameters] typeParameterBounds
+}
+
+type NameAndType {
+  PackedObject name;
+  PackedObject type;
 }
 
 */
@@ -238,15 +285,17 @@ enum ObjectKind {
   kClass,
   kMember,
   kClosure,
-  kSimpleType,
-  kTypeParameter,
-  kGenericType,
-  kFunctionType,
+  kUnused1,
+  kUnused2,
+  kUnused3,
+  kUnused4,
   kName,
   kTypeArguments,
-  kFinalizedGenericType,
+  kUnused5,
   kConstObject,
   kArgDesc,
+  kScript,
+  kType,
 }
 
 enum ConstTag {
@@ -260,6 +309,21 @@ enum ConstTag {
   kSymbol,
   kTearOffInstantiation,
 }
+
+enum TypeTag {
+  kInvalid,
+  kDynamic,
+  kVoid,
+  kSimpleType,
+  kTypeParameter,
+  kGenericType,
+  kRecursiveGenericType,
+  kRecursiveTypeRef,
+  kFunctionType,
+}
+
+/// Name of artificial class containing top-level members of a library.
+const String topLevelClassName = '';
 
 String objectKindToString(ObjectKind kind) =>
     kind.toString().substring('ObjectKind.k'.length);
@@ -314,8 +378,10 @@ abstract class ObjectHandle extends BytecodeObject {
   set flags(int value) {}
 
   bool get isCacheable => true;
+  bool get shouldBeIncludedIntoIndexTable =>
+      _useCount >= ObjectTable.indexTableUseCountThreshold && isCacheable;
 
-  factory ObjectHandle._empty(ObjectKind kind) {
+  factory ObjectHandle._empty(ObjectKind kind, int flags) {
     switch (kind) {
       case ObjectKind.kInvalid:
         return new _InvalidHandle();
@@ -327,24 +393,44 @@ abstract class ObjectHandle extends BytecodeObject {
         return new _MemberHandle._empty();
       case ObjectKind.kClosure:
         return new _ClosureHandle._empty();
-      case ObjectKind.kSimpleType:
-        return new _SimpleTypeHandle._empty();
-      case ObjectKind.kGenericType:
-        return new _GenericTypeHandle._empty();
-      case ObjectKind.kTypeParameter:
-        return new _TypeParameterHandle._empty();
-      case ObjectKind.kFunctionType:
-        return new _FunctionTypeHandle._empty();
       case ObjectKind.kName:
         return new _NameHandle._empty();
       case ObjectKind.kTypeArguments:
         return new _TypeArgumentsHandle._empty();
-      case ObjectKind.kFinalizedGenericType:
-        return new _FinalizedGenericTypeHandle._empty();
       case ObjectKind.kConstObject:
         return new _ConstObjectHandle._empty();
       case ObjectKind.kArgDesc:
         return new _ArgDescHandle._empty();
+      case ObjectKind.kScript:
+        return new _ScriptHandle._empty();
+      case ObjectKind.kType:
+        switch (TypeTag.values[flags ~/ flagBit0]) {
+          case TypeTag.kInvalid:
+            break;
+          case TypeTag.kDynamic:
+            return new _DynamicTypeHandle();
+          case TypeTag.kVoid:
+            return new _VoidTypeHandle();
+          case TypeTag.kSimpleType:
+            return new _SimpleTypeHandle._empty();
+          case TypeTag.kTypeParameter:
+            return new _TypeParameterHandle._empty();
+          case TypeTag.kGenericType:
+            return new _GenericTypeHandle._empty();
+          case TypeTag.kRecursiveGenericType:
+            return new _RecursiveGenericTypeHandle._empty();
+          case TypeTag.kRecursiveTypeRef:
+            return new _RecursiveTypeRefHandle._empty();
+          case TypeTag.kFunctionType:
+            return new _FunctionTypeHandle._empty();
+        }
+        throw 'Unexpected type tag $flags';
+      case ObjectKind.kUnused1:
+      case ObjectKind.kUnused2:
+      case ObjectKind.kUnused3:
+      case ObjectKind.kUnused4:
+      case ObjectKind.kUnused5:
+        break;
     }
     throw 'Unexpected object kind $kind';
   }
@@ -361,8 +447,9 @@ abstract class ObjectHandle extends BytecodeObject {
   factory ObjectHandle._read(BufferedReader reader, int header) {
     assert((header & referenceBit) == 0);
     final ObjectKind kind = _getKindFromHeader(header);
-    final obj = new ObjectHandle._empty(kind);
-    obj.flags = _getFlagsFromHeader(header);
+    final int flags = _getFlagsFromHeader(header);
+    final obj = new ObjectHandle._empty(kind, flags);
+    obj.flags = flags;
     obj.readContents(reader);
     return obj;
   }
@@ -391,7 +478,7 @@ class _InvalidHandle extends ObjectHandle {
 }
 
 class _LibraryHandle extends ObjectHandle {
-  String uri;
+  _NameHandle uri;
 
   _LibraryHandle._empty();
 
@@ -402,17 +489,17 @@ class _LibraryHandle extends ObjectHandle {
 
   @override
   void writeContents(BufferedWriter writer) {
-    writer.writePackedStringReference(uri);
+    writer.writePackedObject(uri);
   }
 
   @override
   void readContents(BufferedReader reader) {
-    uri = reader.readPackedStringReference();
+    uri = reader.readPackedObject();
   }
 
   @override
-  void indexStrings(StringWriter strings) {
-    strings.put(uri);
+  void accountUsesForObjectCopies(int numCopies) {
+    uri._useCount += numCopies;
   }
 
   @override
@@ -422,13 +509,10 @@ class _LibraryHandle extends ObjectHandle {
   bool operator ==(other) => other is _LibraryHandle && this.uri == other.uri;
 
   @override
-  String toString() => uri;
+  String toString() => uri.name;
 }
 
 class _ClassHandle extends ObjectHandle {
-  /// Name of artificial class containing top-level members of a library.
-  static const String topLevelClassName = '';
-
   _LibraryHandle library;
   _NameHandle name;
 
@@ -578,33 +662,69 @@ class _ClosureHandle extends ObjectHandle {
   String toString() => '$enclosingMember::Closure/$closureIndex';
 }
 
-abstract class _TypeHandle extends ObjectHandle {}
+abstract class _TypeHandle extends ObjectHandle {
+  final TypeTag tag;
 
-class _SimpleTypeHandle extends _TypeHandle {
-  static const int flagIsDynamic = ObjectHandle.flagBit0;
-  static const int flagIsVoid = ObjectHandle.flagBit1;
-
-  _ClassHandle class_;
-  int _flags = 0;
-
-  _SimpleTypeHandle._empty();
-
-  _SimpleTypeHandle(this.class_);
-
-  _SimpleTypeHandle._dynamic() : _flags = flagIsDynamic;
-
-  _SimpleTypeHandle._void() : _flags = flagIsVoid;
+  _TypeHandle(this.tag);
 
   @override
-  ObjectKind get kind => ObjectKind.kSimpleType;
+  ObjectKind get kind => ObjectKind.kType;
 
   @override
-  int get flags => _flags;
+  int get flags => tag.index * ObjectHandle.flagBit0;
 
   @override
   set flags(int value) {
-    _flags = value;
+    if (value != flags) {
+      throw 'Unable to set flags for _TypeHandle (they are occupied by type tag)';
+    }
   }
+}
+
+class _DynamicTypeHandle extends _TypeHandle {
+  _DynamicTypeHandle() : super(TypeTag.kDynamic);
+
+  @override
+  void writeContents(BufferedWriter writer) {}
+
+  @override
+  void readContents(BufferedReader reader) {}
+
+  @override
+  int get hashCode => 2029;
+
+  @override
+  bool operator ==(other) => other is _DynamicTypeHandle;
+
+  @override
+  String toString() => 'dynamic';
+}
+
+class _VoidTypeHandle extends _TypeHandle {
+  _VoidTypeHandle() : super(TypeTag.kVoid);
+
+  @override
+  void writeContents(BufferedWriter writer) {}
+
+  @override
+  void readContents(BufferedReader reader) {}
+
+  @override
+  int get hashCode => 2039;
+
+  @override
+  bool operator ==(other) => other is _VoidTypeHandle;
+
+  @override
+  String toString() => 'void';
+}
+
+class _SimpleTypeHandle extends _TypeHandle {
+  _ClassHandle class_;
+
+  _SimpleTypeHandle._empty() : super(TypeTag.kSimpleType);
+
+  _SimpleTypeHandle(this.class_) : super(TypeTag.kSimpleType);
 
   @override
   void writeContents(BufferedWriter writer) {
@@ -624,38 +744,30 @@ class _SimpleTypeHandle extends _TypeHandle {
   }
 
   @override
-  int get hashCode => class_.hashCode + _flags + 11;
+  int get hashCode => class_.hashCode + 11;
 
   @override
   bool operator ==(other) =>
-      other is _SimpleTypeHandle &&
-      this.class_ == other.class_ &&
-      this._flags == other._flags;
+      other is _SimpleTypeHandle && this.class_ == other.class_;
 
   @override
-  String toString() {
-    if ((_flags & flagIsDynamic) != 0) return 'dynamic';
-    if ((_flags & flagIsVoid) != 0) return 'void';
-    return '$class_';
-  }
+  String toString() => '$class_';
 }
 
 class _TypeParameterHandle extends _TypeHandle {
   ObjectHandle parent;
   int indexInParent;
 
-  _TypeParameterHandle._empty();
+  _TypeParameterHandle._empty() : super(TypeTag.kTypeParameter);
 
-  _TypeParameterHandle(this.parent, this.indexInParent) {
+  _TypeParameterHandle(this.parent, this.indexInParent)
+      : super(TypeTag.kTypeParameter) {
     assert(parent is _ClassHandle ||
         parent is _MemberHandle ||
         parent is _ClosureHandle ||
         parent == null);
     assert(indexInParent >= 0);
   }
-
-  @override
-  ObjectKind get kind => ObjectKind.kTypeParameter;
 
   @override
   bool get isCacheable => (parent != null);
@@ -694,46 +806,122 @@ class _TypeParameterHandle extends _TypeHandle {
 
 class _GenericTypeHandle extends _TypeHandle {
   _ClassHandle class_;
-  List<_TypeHandle> typeArgs;
+  _TypeArgumentsHandle typeArgs;
 
-  _GenericTypeHandle._empty();
+  _GenericTypeHandle._empty() : super(TypeTag.kGenericType);
 
-  _GenericTypeHandle(this.class_, this.typeArgs);
-
-  @override
-  ObjectKind get kind => ObjectKind.kGenericType;
+  _GenericTypeHandle(this.class_, this.typeArgs) : super(TypeTag.kGenericType);
 
   @override
   void writeContents(BufferedWriter writer) {
     writer.writePackedObject(class_);
-    writer.writePackedList(typeArgs);
+    writer.writePackedObject(typeArgs);
   }
 
   @override
   void readContents(BufferedReader reader) {
     class_ = reader.readPackedObject();
-    typeArgs = reader.readPackedList<_TypeHandle>();
+    typeArgs = reader.readPackedObject();
   }
 
   @override
   void accountUsesForObjectCopies(int numCopies) {
     class_._useCount += numCopies;
-    typeArgs.forEach((t) {
-      t._useCount += numCopies;
-    });
+    if (typeArgs != null) {
+      typeArgs._useCount += numCopies;
+    }
   }
 
   @override
-  int get hashCode => _combineHashes(class_.hashCode, listHashCode(typeArgs));
+  int get hashCode => _combineHashes(class_.hashCode, typeArgs.hashCode);
 
   @override
   bool operator ==(other) =>
       other is _GenericTypeHandle &&
       this.class_ == other.class_ &&
-      listEquals(this.typeArgs, other.typeArgs);
+      this.typeArgs == other.typeArgs;
 
   @override
-  String toString() => '$class_ < ${typeArgs.join(', ')} >';
+  String toString() => '$class_ $typeArgs';
+}
+
+class _RecursiveGenericTypeHandle extends _TypeHandle {
+  int id;
+  _ClassHandle class_;
+  _TypeArgumentsHandle typeArgs;
+
+  _RecursiveGenericTypeHandle._empty() : super(TypeTag.kRecursiveGenericType);
+
+  _RecursiveGenericTypeHandle(this.id, this.class_, this.typeArgs)
+      : super(TypeTag.kRecursiveGenericType);
+
+  @override
+  bool get isCacheable => (id == 0);
+
+  @override
+  void writeContents(BufferedWriter writer) {
+    writer.writePackedUInt30(id);
+    writer.writePackedObject(class_);
+    writer.writePackedObject(typeArgs);
+  }
+
+  @override
+  void readContents(BufferedReader reader) {
+    id = reader.readPackedUInt30();
+    class_ = reader.readPackedObject();
+    typeArgs = reader.readPackedObject();
+  }
+
+  @override
+  void accountUsesForObjectCopies(int numCopies) {
+    class_._useCount += numCopies;
+    if (typeArgs != null) {
+      typeArgs._useCount += numCopies;
+    }
+  }
+
+  @override
+  int get hashCode => _combineHashes(class_.hashCode, typeArgs.hashCode);
+
+  @override
+  bool operator ==(other) =>
+      other is _RecursiveGenericTypeHandle &&
+      this.class_ == other.class_ &&
+      this.typeArgs == other.typeArgs;
+
+  @override
+  String toString() => '(recursive #$id) $class_ $typeArgs';
+}
+
+class _RecursiveTypeRefHandle extends _TypeHandle {
+  int id;
+
+  _RecursiveTypeRefHandle._empty() : super(TypeTag.kRecursiveTypeRef);
+
+  _RecursiveTypeRefHandle(this.id) : super(TypeTag.kRecursiveTypeRef);
+
+  @override
+  bool get isCacheable => false;
+
+  @override
+  void writeContents(BufferedWriter writer) {
+    writer.writePackedUInt30(id);
+  }
+
+  @override
+  void readContents(BufferedReader reader) {
+    id = reader.readPackedUInt30();
+  }
+
+  @override
+  int get hashCode => id;
+
+  @override
+  bool operator ==(other) =>
+      other is _RecursiveTypeRefHandle && this.id == other.id;
+
+  @override
+  String toString() => 'recursive-ref #$id';
 }
 
 class NameAndType {
@@ -756,52 +944,44 @@ class NameAndType {
 }
 
 class _FunctionTypeHandle extends _TypeHandle {
-  static const int flagHasOptionalPositionalParams = ObjectHandle.flagBit0;
-  static const int flagHasOptionalNamedParams = ObjectHandle.flagBit1;
-  static const int flagHasTypeParams = ObjectHandle.flagBit2;
+  static const int flagHasOptionalPositionalParams = 1 << 0;
+  static const int flagHasOptionalNamedParams = 1 << 1;
+  static const int flagHasTypeParams = 1 << 2;
 
-  int _flags = 0;
+  int functionTypeFlags = 0;
   List<NameAndType> typeParams;
   int numRequiredParams;
   List<_TypeHandle> positionalParams;
   List<NameAndType> namedParams;
   _TypeHandle returnType;
 
-  _FunctionTypeHandle._empty();
+  _FunctionTypeHandle._empty() : super(TypeTag.kFunctionType);
 
   _FunctionTypeHandle(this.typeParams, this.numRequiredParams,
-      this.positionalParams, this.namedParams, this.returnType) {
+      this.positionalParams, this.namedParams, this.returnType)
+      : super(TypeTag.kFunctionType) {
     assert(numRequiredParams <= positionalParams.length + namedParams.length);
     if (numRequiredParams < positionalParams.length) {
       assert(namedParams.isEmpty);
-      _flags |= flagHasOptionalPositionalParams;
+      functionTypeFlags |= flagHasOptionalPositionalParams;
     }
     if (namedParams.isNotEmpty) {
       assert(numRequiredParams == positionalParams.length);
-      _flags |= flagHasOptionalNamedParams;
+      functionTypeFlags |= flagHasOptionalNamedParams;
     }
     if (typeParams.isNotEmpty) {
-      _flags |= flagHasTypeParams;
+      functionTypeFlags |= flagHasTypeParams;
     }
   }
-
-  @override
-  int get flags => _flags;
-
-  @override
-  set flags(int value) {
-    _flags = value;
-  }
-
-  ObjectKind get kind => ObjectKind.kFunctionType;
 
   @override
   void writeContents(BufferedWriter writer) {
-    if ((_flags & flagHasTypeParams) != 0) {
+    writer.writePackedUInt30(functionTypeFlags);
+    if ((functionTypeFlags & flagHasTypeParams) != 0) {
       new TypeParametersDeclaration(typeParams).write(writer);
     }
     writer.writePackedUInt30(positionalParams.length + namedParams.length);
-    if (_flags &
+    if (functionTypeFlags &
             (flagHasOptionalPositionalParams | flagHasOptionalNamedParams) !=
         0) {
       writer.writePackedUInt30(numRequiredParams);
@@ -818,19 +998,21 @@ class _FunctionTypeHandle extends _TypeHandle {
 
   @override
   void readContents(BufferedReader reader) {
-    if ((_flags & flagHasTypeParams) != 0) {
+    functionTypeFlags = reader.readPackedUInt30();
+    if ((functionTypeFlags & flagHasTypeParams) != 0) {
       typeParams = new TypeParametersDeclaration.read(reader).typeParams;
     } else {
       typeParams = const <NameAndType>[];
     }
     final int numParams = reader.readPackedUInt30();
     numRequiredParams = numParams;
-    if ((_flags &
+    if ((functionTypeFlags &
             (flagHasOptionalPositionalParams | flagHasOptionalNamedParams)) !=
         0) {
       numRequiredParams = reader.readPackedUInt30();
     }
-    final bool hasNamedParams = (_flags & flagHasOptionalNamedParams) != 0;
+    final bool hasNamedParams =
+        (functionTypeFlags & flagHasOptionalNamedParams) != 0;
     positionalParams = new List<_TypeHandle>.generate(
         hasNamedParams ? numRequiredParams : numParams,
         (_) => reader.readPackedObject());
@@ -854,6 +1036,24 @@ class _FunctionTypeHandle extends _TypeHandle {
       p.name._useCount += numCopies;
       p.type._useCount += numCopies;
     });
+  }
+
+  @override
+  bool get isCacheable {
+    for (var param in positionalParams) {
+      if (!param.isCacheable) {
+        return false;
+      }
+    }
+    for (var param in namedParams) {
+      if (!param.type.isCacheable) {
+        return false;
+      }
+    }
+    if (!returnType.isCacheable) {
+      return false;
+    }
+    return true;
   }
 
   @override
@@ -988,54 +1188,11 @@ class _TypeArgumentsHandle extends ObjectHandle {
   String toString() => '< ${args.join(', ')} >';
 }
 
-class _FinalizedGenericTypeHandle extends _TypeHandle {
-  _ClassHandle class_;
-  _TypeArgumentsHandle typeArgs;
-
-  _FinalizedGenericTypeHandle._empty();
-
-  _FinalizedGenericTypeHandle(this.class_, this.typeArgs);
-
-  @override
-  ObjectKind get kind => ObjectKind.kFinalizedGenericType;
-
-  @override
-  void writeContents(BufferedWriter writer) {
-    writer.writePackedObject(class_);
-    writer.writePackedObject(typeArgs);
-  }
-
-  @override
-  void readContents(BufferedReader reader) {
-    class_ = reader.readPackedObject();
-    typeArgs = reader.readPackedObject();
-  }
-
-  @override
-  void accountUsesForObjectCopies(int numCopies) {
-    class_._useCount += numCopies;
-    if (typeArgs != null) {
-      typeArgs._useCount += numCopies;
-    }
-  }
-
-  @override
-  int get hashCode => _combineHashes(class_.hashCode, typeArgs.hashCode);
-
-  @override
-  bool operator ==(other) =>
-      other is _FinalizedGenericTypeHandle &&
-      this.class_ == other.class_ &&
-      this.typeArgs == other.typeArgs;
-
-  @override
-  String toString() => '$class_ $typeArgs';
-}
-
 class _ConstObjectHandle extends ObjectHandle {
   ConstTag tag;
   dynamic value;
   ObjectHandle type;
+  int _hashCode = 0;
 
   _ConstObjectHandle._empty();
 
@@ -1202,27 +1359,31 @@ class _ConstObjectHandle extends ObjectHandle {
 
   @override
   int get hashCode {
+    if (_hashCode != 0) {
+      return _hashCode;
+    }
     switch (tag) {
       case ConstTag.kInt:
       case ConstTag.kDouble:
       case ConstTag.kBool:
       case ConstTag.kTearOff:
       case ConstTag.kSymbol:
-        return value.hashCode;
+        return _hashCode = value.hashCode;
       case ConstTag.kInstance:
         {
           final fieldValues = value as Map<ObjectHandle, ObjectHandle>;
-          return _combineHashes(type.hashCode, mapHashCode(fieldValues));
+          return _hashCode =
+              _combineHashes(type.hashCode, mapHashCode(fieldValues));
         }
         break;
       case ConstTag.kList:
         {
           final elems = value as List<ObjectHandle>;
-          return _combineHashes(type.hashCode, listHashCode(elems));
+          return _hashCode = _combineHashes(type.hashCode, listHashCode(elems));
         }
         break;
       case ConstTag.kTearOffInstantiation:
-        return _combineHashes(value.hashCode, type.hashCode);
+        return _hashCode = _combineHashes(value.hashCode, type.hashCode);
       default:
         throw 'Unexpected constant tag: $tag';
     }
@@ -1230,6 +1391,9 @@ class _ConstObjectHandle extends ObjectHandle {
 
   @override
   bool operator ==(other) {
+    if (identical(this, other)) {
+      return true;
+    }
     if (other is _ConstObjectHandle && this.tag == other.tag) {
       switch (tag) {
         case ConstTag.kInt:
@@ -1274,7 +1438,7 @@ class _ConstObjectHandle extends ObjectHandle {
   }
 }
 
-class _ArgDescHandle extends _TypeHandle {
+class _ArgDescHandle extends ObjectHandle {
   static const int flagHasNamedArgs = ObjectHandle.flagBit0;
   static const int flagHasTypeArgs = ObjectHandle.flagBit1;
 
@@ -1351,6 +1515,87 @@ class _ArgDescHandle extends _TypeHandle {
       'ArgDesc num-args $numArguments, num-type-args $numTypeArguments, names $argNames';
 }
 
+class _ScriptHandle extends ObjectHandle {
+  static const int flagHasSourceFile = ObjectHandle.flagBit0;
+
+  int _flags = 0;
+  ObjectHandle uri;
+  SourceFile _source;
+  ForwardReference<SourceFile> _sourceForwardReference;
+
+  _ScriptHandle._empty();
+
+  _ScriptHandle(this.uri, this._source) {
+    if (_source != null) {
+      _flags |= flagHasSourceFile;
+    }
+  }
+
+  @override
+  ObjectKind get kind => ObjectKind.kScript;
+
+  // Include scripts into index table if there are more than 1 reference
+  // in order to make sure there are no duplicated script objects within the
+  // same bytecode component.
+  @override
+  bool get shouldBeIncludedIntoIndexTable => _useCount > 1;
+
+  @override
+  int get flags => _flags;
+
+  @override
+  set flags(int value) {
+    _flags = value;
+  }
+
+  SourceFile get source {
+    // Unwrap forward reference on the first access.
+    if (_sourceForwardReference != null) {
+      _source = _sourceForwardReference.get();
+      _sourceForwardReference = null;
+    }
+    return _source;
+  }
+
+  set source(SourceFile sourceFile) {
+    _source = sourceFile;
+    if (_source != null) {
+      _flags |= flagHasSourceFile;
+    } else {
+      _flags &= ~flagHasSourceFile;
+    }
+  }
+
+  @override
+  void writeContents(BufferedWriter writer) {
+    writer.writePackedObject(uri);
+    if ((_flags & flagHasSourceFile) != 0) {
+      writer.writeLinkOffset(source);
+    }
+  }
+
+  @override
+  void readContents(BufferedReader reader) {
+    uri = reader.readPackedObject();
+    if ((_flags & flagHasSourceFile) != 0) {
+      // Script handles in the object table may be read before source files,
+      // so use forwarding reference here.
+      _sourceForwardReference =
+          reader.readLinkOffsetAsForwardReference<SourceFile>();
+    }
+  }
+
+  @override
+  int get hashCode => uri.hashCode;
+
+  @override
+  bool operator ==(other) => other is _ScriptHandle && this.uri == other.uri;
+
+  @override
+  String toString() =>
+      "$uri${source != null ? '(source ${source.importUri})' : ''}";
+}
+
 class ObjectTable implements ObjectWriter, ObjectReader {
   /// Object is added to an index table if it is used more than this
   /// number of times.
@@ -1367,8 +1612,8 @@ class ObjectTable implements ObjectWriter, ObjectReader {
   _NodeVisitor _nodeVisitor;
 
   ObjectTable() {
-    _dynamicType = getOrAddObject(new _SimpleTypeHandle._dynamic());
-    _voidType = getOrAddObject(new _SimpleTypeHandle._void());
+    _dynamicType = getOrAddObject(new _DynamicTypeHandle());
+    _voidType = getOrAddObject(new _VoidTypeHandle());
     _nodeVisitor = new _NodeVisitor(this);
   }
 
@@ -1388,8 +1633,13 @@ class ObjectTable implements ObjectWriter, ObjectReader {
     return handle;
   }
 
-  List<ObjectHandle> getHandles(List<Node> nodes) =>
-      nodes.map((n) => getHandle(n)).toList();
+  List<ObjectHandle> getHandles(List<Node> nodes) {
+    final handles = new List<ObjectHandle>(nodes.length);
+    for (int i = 0; i < nodes.length; ++i) {
+      handles[i] = getHandle(nodes[i]);
+    }
+    return handles;
+  }
 
   String mangleGetterName(String name) => 'get:$name';
 
@@ -1417,14 +1667,32 @@ class ObjectTable implements ObjectWriter, ObjectReader {
   }
 
   ObjectHandle getNameHandle(Library library, String name) {
+    assert(name != null);
     final libraryHandle = library != null ? getHandle(library) : null;
     return getOrAddObject(new _NameHandle(libraryHandle, name));
+  }
+
+  List<_NameHandle> getPublicNameHandles(List<String> names) {
+    if (names.isEmpty) {
+      return const <_NameHandle>[];
+    }
+    final handles = new List<_NameHandle>(names.length);
+    for (int i = 0; i < names.length; ++i) {
+      handles[i] = getNameHandle(null, names[i]);
+    }
+    return handles;
   }
 
   ObjectHandle getSelectorNameHandle(Name name,
       {bool isGetter: false, bool isSetter: false}) {
     return getNameHandle(
         name.library, mangleSelectorName(name.name, isGetter, isSetter));
+  }
+
+  ObjectHandle getTopLevelClassHandle(Library library) {
+    final libraryHandle = getHandle(library);
+    final name = getNameHandle(null, topLevelClassName);
+    return getOrAddObject(new _ClassHandle(libraryHandle, name));
   }
 
   ObjectHandle getMemberHandle(Member member,
@@ -1434,9 +1702,7 @@ class ObjectTable implements ObjectWriter, ObjectReader {
     if (parent is Class) {
       classHandle = getHandle(parent);
     } else if (parent is Library) {
-      final library = getHandle(parent);
-      final name = getNameHandle(null, _ClassHandle.topLevelClassName);
-      classHandle = getOrAddObject(new _ClassHandle(library, name));
+      classHandle = getTopLevelClassHandle(parent);
     } else {
       throw "Unexpected Member's parent ${parent.runtimeType} $parent";
     }
@@ -1454,34 +1720,61 @@ class ObjectTable implements ObjectWriter, ObjectReader {
     if (typeArgs == null) {
       return null;
     }
-    final List<_TypeHandle> handles =
-        typeArgs.map((t) => getHandle(t) as _TypeHandle).toList();
+    final handles = new List<_TypeHandle>(typeArgs.length);
+    for (int i = 0; i < typeArgs.length; ++i) {
+      handles[i] = getHandle(typeArgs[i]) as _TypeHandle;
+    }
     return getOrAddObject(new _TypeArgumentsHandle(handles));
   }
 
   ObjectHandle getArgDescHandle(int numArguments,
       [int numTypeArguments = 0, List<String> argNames = const <String>[]]) {
     return getOrAddObject(new _ArgDescHandle(
-        numArguments,
-        numTypeArguments,
-        argNames
-            .map<_NameHandle>((name) => getNameHandle(null, name))
-            .toList()));
+        numArguments, numTypeArguments, getPublicNameHandles(argNames)));
   }
 
   ObjectHandle getArgDescHandleByArguments(Arguments args,
       {bool hasReceiver: false, bool isFactory: false}) {
-    return getArgDescHandle(
-        args.positional.length +
-            args.named.length +
-            (hasReceiver ? 1 : 0) +
-            // VM expects that type arguments vector passed to a factory
-            // constructor is counted in numArguments, and not counted in
-            // numTypeArgs.
-            // TODO(alexmarkov): Clean this up.
-            (isFactory ? 1 : 0),
-        isFactory ? 0 : args.types.length,
-        new List<String>.from(args.named.map((ne) => ne.name)));
+    List<_NameHandle> argNames = const <_NameHandle>[];
+    final namedArguments = args.named;
+    if (namedArguments.isNotEmpty) {
+      argNames = new List<_NameHandle>(namedArguments.length);
+      for (int i = 0; i < namedArguments.length; ++i) {
+        argNames[i] = getNameHandle(null, namedArguments[i].name);
+      }
+    }
+    final int numArguments = args.positional.length +
+        args.named.length +
+        (hasReceiver ? 1 : 0) +
+        // VM expects that type arguments vector passed to a factory
+        // constructor is counted in numArguments, and not counted in
+        // numTypeArgs.
+        // TODO(alexmarkov): Clean this up.
+        (isFactory ? 1 : 0);
+    final int numTypeArguments = isFactory ? 0 : args.types.length;
+    return getOrAddObject(
+        new _ArgDescHandle(numArguments, numTypeArguments, argNames));
+  }
+
+  ObjectHandle getScriptHandle(Uri uri, SourceFile source) {
+    ObjectHandle uriHandle = getNameHandle(null, uri.toString());
+    _ScriptHandle handle = getOrAddObject(new _ScriptHandle(uriHandle, source));
+    if (handle.source == null && source != null) {
+      handle.source = source;
+    }
+    return handle;
+  }
+
+  List<NameAndType> getTypeParameterHandles(List<TypeParameter> typeParams) {
+    if (typeParams.isEmpty) {
+      return const <NameAndType>[];
+    }
+    final namesAndBounds = new List<NameAndType>();
+    for (TypeParameter tp in typeParams) {
+      namesAndBounds.add(
+          new NameAndType(getNameHandle(null, tp.name), getHandle(tp.bound)));
+    }
+    return namesAndBounds;
   }
 
   void declareClosure(
@@ -1506,7 +1799,7 @@ class ObjectTable implements ObjectWriter, ObjectReader {
     int tableSize = 1; // Reserve invalid entry.
     for (var obj in _objects.reversed) {
       assert(obj._reference == null);
-      if (obj._useCount >= indexTableUseCountThreshold && obj.isCacheable) {
+      if (obj.shouldBeIncludedIntoIndexTable) {
         // This object will be included into index table.
         ++tableSize;
       } else {
@@ -1635,6 +1928,8 @@ class ObjectTable implements ObjectWriter, ObjectReader {
 class _NodeVisitor extends Visitor<ObjectHandle> {
   final ObjectTable objectTable;
   final _typeParameters = <TypeParameter, ObjectHandle>{};
+  final Map<DartType, int> _recursiveTypeIds = <DartType, int>{};
+  final recursiveTypesValidator = new RecursiveTypesValidator();
 
   _NodeVisitor(this.objectTable);
 
@@ -1643,8 +1938,10 @@ class _NodeVisitor extends Visitor<ObjectHandle> {
       throw 'Unexpected node ${node.runtimeType} $node';
 
   @override
-  ObjectHandle visitLibrary(Library node) =>
-      objectTable.getOrAddObject(new _LibraryHandle(node.importUri.toString()));
+  ObjectHandle visitLibrary(Library node) {
+    final uri = objectTable.getNameHandle(null, node.importUri.toString());
+    return objectTable.getOrAddObject(new _LibraryHandle(uri));
+  }
 
   @override
   ObjectHandle visitClass(Class node) {
@@ -1670,14 +1967,11 @@ class _NodeVisitor extends Visitor<ObjectHandle> {
   @override
   ObjectHandle visitInterfaceType(InterfaceType node) {
     final classHandle = objectTable.getHandle(node.classNode);
-    if (node.typeArguments.isEmpty) {
+    if (!hasInstantiatorTypeArguments(node.classNode)) {
       return objectTable.getOrAddObject(new _SimpleTypeHandle(classHandle));
     }
-    // In order to save loading time, generic types are written out in
-    // finalized form, if possible.
-    //
-    // Object table serialization/deserialization cannot handle cycles between
-    // objects. Non-finalized types are not recursive, but finalization of
+
+    // Non-finalized types are not recursive, but finalization of
     // generic types includes flattening of type arguments and types could
     // become recursive. Consider the following example:
     //
@@ -1687,27 +1981,41 @@ class _NodeVisitor extends Visitor<ObjectHandle> {
     //  Foo<int> is not recursive, but finalized type is recursive:
     //  Foo<int>* = Foo [ Base [ Foo<int>* ], int ]
     //
-    // Recursive types are very rare, so object table includes such types in
-    // non-finalized form.
+    // Object table serialization/deserialization cannot handle cycles between
+    // objects, so recursive types require extra care when serializing.
+    // Back references to the already serialized types are represented as
+    // _RecursiveTypeRefHandle objects, which are only valid in the context
+    // of enclosing top-level _RecursiveGenericType.
     //
-    // VM handles recursive types by introducing placeholder
-    // TypeRef objects. Also, VM ensures that recursive types are contractive
-    // (e.g. their fully finalized representation should be finite).
-    //
-    if (!isRecursiveAfterFlattening(node)) {
-      List<DartType> instantiatorArgs =
-          getInstantiatorTypeArguments(node.classNode, node.typeArguments);
-      ObjectHandle typeArgsHandle =
-          objectTable.getTypeArgumentsHandle(instantiatorArgs);
-      return objectTable.getOrAddObject(
-          new _FinalizedGenericTypeHandle(classHandle, typeArgsHandle));
-    } else {
-      final List<_TypeHandle> typeArgs = node.typeArguments
-          .map((t) => objectTable.getHandle(t) as _TypeHandle)
-          .toList();
+    int recursiveId = _recursiveTypeIds[node];
+    if (recursiveId != null) {
       return objectTable
-          .getOrAddObject(new _GenericTypeHandle(classHandle, typeArgs));
+          .getOrAddObject(new _RecursiveTypeRefHandle(recursiveId));
     }
+
+    recursiveTypesValidator.validateType(node);
+
+    final isRecursive = recursiveTypesValidator.isRecursive(node);
+    if (isRecursive) {
+      recursiveId = _recursiveTypeIds.length;
+      _recursiveTypeIds[node] = recursiveId;
+    }
+
+    List<DartType> instantiatorArgs =
+        getInstantiatorTypeArguments(node.classNode, node.typeArguments);
+    ObjectHandle typeArgsHandle =
+        objectTable.getTypeArgumentsHandle(instantiatorArgs);
+
+    final result = objectTable.getOrAddObject(isRecursive
+        ? new _RecursiveGenericTypeHandle(
+            recursiveId, classHandle, typeArgsHandle)
+        : new _GenericTypeHandle(classHandle, typeArgsHandle));
+
+    if (isRecursive) {
+      _recursiveTypeIds.remove(node);
+    }
+
+    return result;
   }
 
   @override
@@ -1754,11 +2062,10 @@ class _NodeVisitor extends Visitor<ObjectHandle> {
 
   @override
   ObjectHandle visitFunctionType(FunctionType node) {
-    final typeParameters = new List<_TypeParameterHandle>.generate(
-        node.typeParameters.length,
-        (i) => objectTable.getOrAddObject(new _TypeParameterHandle(null, i)));
+    final int numEnclosingTypeParameters = _typeParameters.length;
     for (int i = 0; i < node.typeParameters.length; ++i) {
-      _typeParameters[node.typeParameters[i]] = typeParameters[i];
+      _typeParameters[node.typeParameters[i]] = objectTable.getOrAddObject(
+          new _TypeParameterHandle(null, numEnclosingTypeParameters + i));
     }
 
     final positionalParams = new List<_TypeHandle>();
@@ -1774,11 +2081,7 @@ class _NodeVisitor extends Visitor<ObjectHandle> {
     final returnType = objectTable.getHandle(node.returnType);
 
     final result = objectTable.getOrAddObject(new _FunctionTypeHandle(
-        node.typeParameters
-            .map((tp) => new NameAndType(
-                objectTable.getNameHandle(null, tp.name),
-                objectTable.getHandle(tp.bound)))
-            .toList(),
+        objectTable.getTypeParameterHandles(node.typeParameters),
         node.requiredParameterCount,
         positionalParams,
         namedParams,
@@ -1825,8 +2128,7 @@ class _NodeVisitor extends Visitor<ObjectHandle> {
   ObjectHandle visitListConstant(ListConstant node) =>
       objectTable.getOrAddObject(new _ConstObjectHandle(
           ConstTag.kList,
-          new List<ObjectHandle>.from(
-              node.entries.map((Constant c) => objectTable.getHandle(c))),
+          objectTable.getHandles(node.entries),
           objectTable.getHandle(node.typeArgument)));
 
   @override

@@ -182,9 +182,88 @@ int32_t ImageWriter::GetTextOffsetFor(RawInstructions* instructions,
   return offset;
 }
 
+#if defined(IS_SIMARM_X64)
+static intptr_t StackMapSizeInSnapshot(intptr_t len_in_bits) {
+  const intptr_t len_in_bytes =
+      Utils::RoundUp(len_in_bits, kBitsPerByte) / kBitsPerByte;
+  const intptr_t unrounded_size_in_bytes =
+      3 * compiler::target::kWordSize + len_in_bytes;
+  return Utils::RoundUp(unrounded_size_in_bytes,
+                        compiler::target::ObjectAlignment::kObjectAlignment);
+}
+
+static intptr_t StringPayloadSize(intptr_t len, bool isOneByteString) {
+  return len * (isOneByteString ? OneByteString::kBytesPerElement
+                                : TwoByteString::kBytesPerElement);
+}
+
+static intptr_t StringSizeInSnapshot(intptr_t len, bool isOneByteString) {
+  const intptr_t unrounded_size_in_bytes =
+      (String::kSizeofRawString / 2) + StringPayloadSize(len, isOneByteString);
+  return Utils::RoundUp(unrounded_size_in_bytes,
+                        compiler::target::ObjectAlignment::kObjectAlignment);
+}
+
+static intptr_t CodeSourceMapSizeInSnapshot(intptr_t len) {
+  const intptr_t unrounded_size_in_bytes =
+      2 * compiler::target::kWordSize + len;
+  return Utils::RoundUp(unrounded_size_in_bytes,
+                        compiler::target::ObjectAlignment::kObjectAlignment);
+}
+
+static intptr_t PcDescriptorsSizeInSnapshot(intptr_t len) {
+  const intptr_t unrounded_size_in_bytes =
+      2 * compiler::target::kWordSize + len;
+  return Utils::RoundUp(unrounded_size_in_bytes,
+                        compiler::target::ObjectAlignment::kObjectAlignment);
+}
+
+static constexpr intptr_t kSimarmX64InstructionsAlignment =
+    2 * compiler::target::ObjectAlignment::kObjectAlignment;
+static intptr_t InstructionsSizeInSnapshot(intptr_t len) {
+  const intptr_t header_size = Utils::RoundUp(3 * compiler::target::kWordSize,
+                                              kSimarmX64InstructionsAlignment);
+  return header_size + Utils::RoundUp(len, kSimarmX64InstructionsAlignment);
+}
+
+intptr_t ImageWriter::SizeInSnapshot(RawObject* raw_object) {
+  const classid_t cid = raw_object->GetClassId();
+
+  switch (cid) {
+    case kStackMapCid: {
+      RawStackMap* raw_map = static_cast<RawStackMap*>(raw_object);
+      return StackMapSizeInSnapshot(raw_map->ptr()->length_);
+    }
+    case kOneByteStringCid:
+    case kTwoByteStringCid: {
+      RawString* raw_str = static_cast<RawString*>(raw_object);
+      return StringSizeInSnapshot(Smi::Value(raw_str->ptr()->length_),
+                                  cid == kOneByteStringCid);
+    }
+    case kCodeSourceMapCid: {
+      RawCodeSourceMap* raw_map = static_cast<RawCodeSourceMap*>(raw_object);
+      return CodeSourceMapSizeInSnapshot(raw_map->ptr()->length_);
+    }
+    case kPcDescriptorsCid: {
+      RawPcDescriptors* raw_desc = static_cast<RawPcDescriptors*>(raw_object);
+      return PcDescriptorsSizeInSnapshot(raw_desc->ptr()->length_);
+    }
+    case kInstructionsCid: {
+      RawInstructions* raw_insns = static_cast<RawInstructions*>(raw_object);
+      return InstructionsSizeInSnapshot(Instructions::Size(raw_insns));
+    }
+    default: {
+      const Class& clazz = Class::Handle(Object::Handle(raw_object).clazz());
+      FATAL1("Unsupported class %s in rodata section.\n", clazz.ToCString());
+      return 0;
+    }
+  }
+}
+#else   // defined(IS_SIMARM_X64)
 intptr_t ImageWriter::SizeInSnapshot(RawObject* raw_object) {
   return raw_object->HeapSize();
 }
+#endif  // defined(IS_SIMARM_X64)
 
 bool ImageWriter::GetSharedDataOffsetFor(RawObject* raw_object,
                                          uint32_t* offset) {
@@ -348,12 +427,76 @@ void ImageWriter::WriteROData(WriteStream* stream) {
 #if defined(HASH_IN_OBJECT_HEADER)
     marked_tags |= static_cast<uword>(obj.raw()->ptr()->hash_) << 32;
 #endif
+
+#if defined(IS_SIMARM_X64)
+    if (obj.IsStackMap()) {
+      const StackMap& map = StackMap::Cast(obj);
+
+      // Header layout is the same between 32-bit and 64-bit architecture, but
+      // we need to recalcuate the size in words.
+      const intptr_t len_in_bits = map.Length();
+      const intptr_t len_in_bytes =
+          Utils::RoundUp(len_in_bits, kBitsPerByte) / kBitsPerByte;
+      const intptr_t size_in_bytes = StackMapSizeInSnapshot(len_in_bits);
+      marked_tags = RawObject::SizeTag::update(size_in_bytes * 2, marked_tags);
+
+      stream->WriteTargetWord(marked_tags);
+      stream->WriteFixed<uint32_t>(map.PcOffset());
+      stream->WriteFixed<uint16_t>(map.Length());
+      stream->WriteFixed<uint16_t>(map.SlowPathBitCount());
+      stream->WriteBytes(map.raw()->ptr()->data(), len_in_bytes);
+      stream->Align(compiler::target::ObjectAlignment::kObjectAlignment);
+
+    } else if (obj.IsString()) {
+      const String& str = String::Cast(obj);
+      RELEASE_ASSERT(String::GetCachedHash(str.raw()) != 0);
+      RELEASE_ASSERT(str.IsOneByteString() || str.IsTwoByteString());
+      const intptr_t size_in_bytes =
+          StringSizeInSnapshot(str.Length(), str.IsOneByteString());
+      marked_tags = RawObject::SizeTag::update(size_in_bytes * 2, marked_tags);
+
+      stream->WriteTargetWord(marked_tags);
+      stream->WriteTargetWord(
+          reinterpret_cast<uword>(str.raw()->ptr()->length_));
+      stream->WriteTargetWord(reinterpret_cast<uword>(str.raw()->ptr()->hash_));
+      stream->WriteBytes(
+          reinterpret_cast<const void*>(start + String::kSizeofRawString),
+          StringPayloadSize(str.Length(), str.IsOneByteString()));
+      stream->Align(compiler::target::ObjectAlignment::kObjectAlignment);
+    } else if (obj.IsCodeSourceMap()) {
+      const CodeSourceMap& map = CodeSourceMap::Cast(obj);
+
+      const intptr_t size_in_bytes = CodeSourceMapSizeInSnapshot(map.Length());
+      marked_tags = RawObject::SizeTag::update(size_in_bytes * 2, marked_tags);
+
+      stream->WriteTargetWord(marked_tags);
+      stream->WriteTargetWord(map.Length());
+      stream->WriteBytes(map.Data(), map.Length());
+      stream->Align(compiler::target::ObjectAlignment::kObjectAlignment);
+    } else if (obj.IsPcDescriptors()) {
+      const PcDescriptors& desc = PcDescriptors::Cast(obj);
+
+      const intptr_t size_in_bytes = PcDescriptorsSizeInSnapshot(desc.Length());
+      marked_tags = RawObject::SizeTag::update(size_in_bytes * 2, marked_tags);
+
+      stream->WriteTargetWord(marked_tags);
+      stream->WriteTargetWord(desc.Length());
+      stream->WriteBytes(desc.raw()->ptr()->data(), desc.Length());
+      stream->Align(compiler::target::ObjectAlignment::kObjectAlignment);
+    } else {
+      const Class& clazz = Class::Handle(obj.clazz());
+      FATAL1("Unsupported class %s in rodata section.\n", clazz.ToCString());
+    }
+    USE(start);
+    USE(end);
+#else   // defined(IS_SIMARM_X64)
     stream->WriteWord(marked_tags);
     start += sizeof(uword);
     for (uword* cursor = reinterpret_cast<uword*>(start);
          cursor < reinterpret_cast<uword*>(end); cursor++) {
       stream->WriteWord(*cursor);
     }
+#endif  // defined(IS_SIMARM_X64)
   }
 }
 
@@ -427,7 +570,7 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   // look like a HeapPage.
   intptr_t instructions_length = next_text_offset_;
   WriteWordLiteralText(instructions_length);
-  intptr_t header_words = Image::kHeaderSize / sizeof(uword);
+  intptr_t header_words = Image::kHeaderSize / sizeof(compiler::target::uword);
   for (intptr_t i = 1; i < header_words; i++) {
     WriteWordLiteralText(0);
   }
@@ -486,9 +629,6 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
     {
       NoSafepointScope no_safepoint;
 
-      uword beginning = reinterpret_cast<uword>(insns.raw_ptr());
-      uword entry = beginning + Instructions::HeaderSize();
-
       // Write Instructions with the mark and read-only bits set.
       uword marked_tags = insns.raw_ptr()->tags_;
       marked_tags = RawObject::OldBit::update(true, marked_tags);
@@ -502,10 +642,25 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
       marked_tags |= static_cast<uword>(insns.raw_ptr()->hash_) << 32;
 #endif
 
+#if defined(IS_SIMARM_X64)
+      const intptr_t size_in_bytes = InstructionsSizeInSnapshot(insns.Size());
+      marked_tags = RawObject::SizeTag::update(size_in_bytes * 2, marked_tags);
+      WriteWordLiteralText(marked_tags);
+      text_offset += sizeof(compiler::target::uword);
+      WriteWordLiteralText(insns.raw_ptr()->size_and_flags_);
+      text_offset += sizeof(compiler::target::uword);
+      WriteWordLiteralText(insns.raw_ptr()->unchecked_entrypoint_pc_offset_);
+      text_offset += sizeof(compiler::target::uword);
+      WriteWordLiteralText(0);
+      text_offset += sizeof(compiler::target::uword);
+#else   // defined(IS_SIMARM_X64)
+      uword beginning = reinterpret_cast<uword>(insns.raw_ptr());
+      uword entry = beginning + Instructions::HeaderSize();
       WriteWordLiteralText(marked_tags);
       beginning += sizeof(uword);
       text_offset += sizeof(uword);
       text_offset += WriteByteSequence(beginning, entry);
+#endif  // defined(IS_SIMARM_X64)
 
       ASSERT((text_offset - instr_start) == insns.HeaderSize());
     }
@@ -668,8 +823,8 @@ void AssemblyImageWriter::FrameUnwindEpilogue() {
 }
 
 intptr_t AssemblyImageWriter::WriteByteSequence(uword start, uword end) {
-  for (uword* cursor = reinterpret_cast<uword*>(start);
-       cursor < reinterpret_cast<uword*>(end); cursor++) {
+  for (auto* cursor = reinterpret_cast<compiler::target::uword*>(start);
+       cursor < reinterpret_cast<compiler::target::uword*>(end); cursor++) {
     WriteWordLiteralText(*cursor);
   }
   return end - start;
@@ -698,11 +853,10 @@ BlobImageWriter::BlobImageWriter(Thread* thread,
 }
 
 intptr_t BlobImageWriter::WriteByteSequence(uword start, uword end) {
-  for (uword* cursor = reinterpret_cast<uword*>(start);
-       cursor < reinterpret_cast<uword*>(end); cursor++) {
-    instructions_blob_stream_.WriteWord(*cursor);
-  }
-  return end - start;
+  const uword size = end - start;
+  instructions_blob_stream_.WriteBytes(reinterpret_cast<const void*>(start),
+                                       size);
+  return size;
 }
 
 void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
@@ -774,10 +928,28 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
     marked_tags |= static_cast<uword>(insns.raw_ptr()->hash_) << 32;
 #endif
 
+#if defined(IS_SIMARM_X64)
+    const intptr_t start_offset = instructions_blob_stream_.bytes_written();
+    const intptr_t size_in_bytes = InstructionsSizeInSnapshot(insns.Size());
+    marked_tags = RawObject::SizeTag::update(size_in_bytes * 2, marked_tags);
+    instructions_blob_stream_.WriteTargetWord(marked_tags);
+    instructions_blob_stream_.WriteFixed<uint32_t>(
+        insns.raw_ptr()->size_and_flags_);
+    instructions_blob_stream_.WriteFixed<uint32_t>(
+        insns.raw_ptr()->unchecked_entrypoint_pc_offset_);
+    instructions_blob_stream_.Align(kSimarmX64InstructionsAlignment);
+    instructions_blob_stream_.WriteBytes(
+        reinterpret_cast<const void*>(insns.PayloadStart()), insns.Size());
+    instructions_blob_stream_.Align(kSimarmX64InstructionsAlignment);
+    const intptr_t end_offset = instructions_blob_stream_.bytes_written();
+    text_offset += (end_offset - start_offset);
+    USE(end);
+#else   // defined(IS_SIMARM_X64)
     instructions_blob_stream_.WriteWord(marked_tags);
     text_offset += sizeof(uword);
     beginning += sizeof(uword);
     text_offset += WriteByteSequence(beginning, end);
+#endif  // defined(IS_SIMARM_X64)
 
     ASSERT((text_offset - instr_start) ==
            ImageWriter::SizeInSnapshot(insns.raw()));

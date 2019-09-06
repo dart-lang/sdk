@@ -100,6 +100,9 @@ class Flags {
   /// Flag for a combination of flags for 'production' mode.
   static const String benchmarkingProduction = '--benchmarking-production';
 
+  /// Flag for a combination of flags for benchmarking 'experiment' mode.
+  static const String benchmarkingExperiment = '--benchmarking-x';
+
   static const String conditionalDirectives = '--conditional-directives';
 
   // The syntax-only level of support for generic methods is included in the

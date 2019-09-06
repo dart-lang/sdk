@@ -8,6 +8,8 @@
 #include "vm/allocation.h"
 #include "vm/globals.h"
 
+#include "include/dart_api.h"
+
 namespace dart {
 
 #ifndef PRODUCT
@@ -54,6 +56,8 @@ class CodeObserver {
 class CodeObservers : public AllStatic {
  public:
   static void Init();
+
+  static void RegisterExternal(Dart_CodeObserver observer);
 
   static void Register(CodeObserver* observer);
 

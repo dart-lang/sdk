@@ -19,14 +19,19 @@ abstract class AbstractDataSource extends DataSourceMixin
   IndexedSource<Uri> _uriIndex;
   IndexedSource<_MemberData> _memberNodeIndex;
   IndexedSource<ImportEntity> _importIndex;
+  IndexedSource<ConstantValue> _constantIndex;
 
   Map<Type, IndexedSource> _generalCaches = {};
+
+  ir.Member _currentMemberContext;
+  _MemberData _currentMemberData;
 
   AbstractDataSource({this.useDataKinds: false}) {
     _stringIndex = new IndexedSource<String>(this);
     _uriIndex = new IndexedSource<Uri>(this);
     _memberNodeIndex = new IndexedSource<_MemberData>(this);
     _importIndex = new IndexedSource<ImportEntity>(this);
+    _constantIndex = new IndexedSource<ConstantValue>(this);
   }
 
   @override
@@ -92,6 +97,24 @@ abstract class AbstractDataSource extends DataSourceMixin
   }
 
   @override
+  T inMemberContext<T>(ir.Member context, T f()) {
+    ir.Member oldMemberContext = _currentMemberContext;
+    _MemberData oldMemberData = _currentMemberData;
+    _currentMemberContext = context;
+    _currentMemberData = null;
+    T result = f();
+    _currentMemberData = oldMemberData;
+    _currentMemberContext = oldMemberContext;
+    return result;
+  }
+
+  _MemberData get currentMemberData {
+    assert(_currentMemberContext != null,
+        "DataSink has no current member context.");
+    return _currentMemberData ??= _getMemberData(_currentMemberContext);
+  }
+
+  @override
   E readCached<E>(E f()) {
     IndexedSource source = _generalCaches[E] ??= new IndexedSource<E>(this);
     return source.read(f);
@@ -117,6 +140,7 @@ abstract class AbstractDataSource extends DataSourceMixin
     return _entityReader.readMemberFromDataSource(this, entityLookup);
   }
 
+  @override
   IndexedTypeVariable readTypeVariable() {
     return _entityReader.readTypeVariableFromDataSource(this, entityLookup);
   }
@@ -322,11 +346,11 @@ abstract class AbstractDataSource extends DataSourceMixin
       case MemberContextKind.cls:
         _ClassData cls = _readClassData();
         String name = _readString();
-        return cls.lookupMember(name);
+        return cls.lookupMemberDataByName(name);
       case MemberContextKind.library:
         _LibraryData library = _readLibraryData();
         String name = _readString();
-        return library.lookupMember(name);
+        return library.lookupMemberDataByName(name);
     }
     throw new UnsupportedError("Unsupported _MemberKind $kind");
   }
@@ -340,7 +364,7 @@ abstract class AbstractDataSource extends DataSourceMixin
   _ClassData _readClassData() {
     _LibraryData library = _readLibraryData();
     String name = _readString();
-    return library.lookupClass(name);
+    return library.lookupClassByName(name);
   }
 
   @override
@@ -419,7 +443,64 @@ abstract class AbstractDataSource extends DataSourceMixin
   @override
   ir.TreeNode readTreeNode() {
     _checkDataKind(DataKind.treeNode);
-    return _readTreeNode();
+    return _readTreeNode(null);
+  }
+
+  _MemberData _getMemberData(ir.Member node) {
+    _LibraryData libraryData =
+        componentLookup.getLibraryDataByUri(node.enclosingLibrary.importUri);
+    if (node.enclosingClass != null) {
+      _ClassData classData = libraryData.lookupClassByNode(node.enclosingClass);
+      return classData.lookupMemberDataByNode(node);
+    } else {
+      return libraryData.lookupMemberDataByNode(node);
+    }
+  }
+
+  @override
+  ir.TreeNode readTreeNodeInContext() {
+    return readTreeNodeInContextInternal(currentMemberData);
+  }
+
+  ir.TreeNode readTreeNodeInContextInternal(_MemberData memberData) {
+    _checkDataKind(DataKind.treeNode);
+    return _readTreeNode(memberData);
+  }
+
+  @override
+  ir.TreeNode readTreeNodeOrNullInContext() {
+    bool hasValue = readBool();
+    if (hasValue) {
+      return readTreeNodeInContextInternal(currentMemberData);
+    }
+    return null;
+  }
+
+  @override
+  List<E> readTreeNodesInContext<E extends ir.TreeNode>(
+      {bool emptyAsNull: false}) {
+    int count = readInt();
+    if (count == 0 && emptyAsNull) return null;
+    List<E> list = new List<E>(count);
+    for (int i = 0; i < count; i++) {
+      ir.TreeNode node = readTreeNodeInContextInternal(currentMemberData);
+      list[i] = node;
+    }
+    return list;
+  }
+
+  @override
+  Map<K, V> readTreeNodeMapInContext<K extends ir.TreeNode, V>(V f(),
+      {bool emptyAsNull: false}) {
+    int count = readInt();
+    if (count == 0 && emptyAsNull) return null;
+    Map<K, V> map = {};
+    for (int i = 0; i < count; i++) {
+      ir.TreeNode node = readTreeNodeInContextInternal(currentMemberData);
+      V value = f();
+      map[node] = value;
+    }
+    return map;
   }
 
   @override
@@ -454,6 +535,10 @@ abstract class AbstractDataSource extends DataSourceMixin
   }
 
   ConstantValue _readConstant() {
+    return _constantIndex.read(_readConstantInternal);
+  }
+
+  ConstantValue _readConstantInternal() {
     ConstantValueKind kind = _readEnumInternal(ConstantValueKind.values);
     switch (kind) {
       case ConstantValueKind.BOOL:
@@ -493,7 +578,8 @@ abstract class AbstractDataSource extends DataSourceMixin
       case ConstantValueKind.CONSTRUCTED:
         InterfaceType type = readDartType();
         Map<FieldEntity, ConstantValue> fields =
-            readMemberMap<FieldEntity, ConstantValue>(() => readConstant());
+            readMemberMap<FieldEntity, ConstantValue>(
+                (MemberEntity member) => readConstant());
         return new ConstructedConstantValue(type, fields);
       case ConstantValueKind.TYPE:
         DartType representedType = readDartType();
@@ -524,7 +610,7 @@ abstract class AbstractDataSource extends DataSourceMixin
     throw new UnsupportedError("Unexpexted constant value kind ${kind}.");
   }
 
-  ir.TreeNode _readTreeNode() {
+  ir.TreeNode _readTreeNode(_MemberData memberData) {
     _TreeNodeKind kind = _readEnumInternal(_TreeNodeKind.values);
     switch (kind) {
       case _TreeNodeKind.cls:
@@ -532,32 +618,32 @@ abstract class AbstractDataSource extends DataSourceMixin
       case _TreeNodeKind.member:
         return _readMemberData().node;
       case _TreeNodeKind.functionDeclarationVariable:
-        ir.FunctionDeclaration functionDeclaration = _readTreeNode();
+        ir.FunctionDeclaration functionDeclaration = _readTreeNode(memberData);
         return functionDeclaration.variable;
       case _TreeNodeKind.functionNode:
-        return _readFunctionNode();
+        return _readFunctionNode(memberData);
       case _TreeNodeKind.typeParameter:
-        return _readTypeParameter();
+        return _readTypeParameter(memberData);
       case _TreeNodeKind.constant:
-        // TODO(johnniwinther): Support serialization within a member context
-        // and use this to temporarily cache constant node indices.
-        ir.ConstantExpression expression = _readTreeNode();
-        _ConstantNodeIndexerVisitor indexer = new _ConstantNodeIndexerVisitor();
-        expression.constant.accept(indexer);
-        ir.Constant constant = indexer.getConstant(_readIntInternal());
+        memberData ??= _readMemberData();
+        ir.ConstantExpression expression = _readTreeNode(memberData);
+        ir.Constant constant =
+            memberData.getConstantByIndex(expression, _readIntInternal());
         return new ConstantReference(expression, constant);
       case _TreeNodeKind.node:
-        _MemberData data = _readMemberData();
+        memberData ??= _readMemberData();
         int index = _readIntInternal();
-        ir.TreeNode treeNode = data.getTreeNodeByIndex(index);
-        assert(treeNode != null,
-            "No TreeNode found for index $index in ${data.node}.$_errorContext");
+        ir.TreeNode treeNode = memberData.getTreeNodeByIndex(index);
+        assert(
+            treeNode != null,
+            "No TreeNode found for index $index in "
+            "${memberData.node}.$_errorContext");
         return treeNode;
     }
     throw new UnsupportedError("Unexpected _TreeNodeKind $kind");
   }
 
-  ir.FunctionNode _readFunctionNode() {
+  ir.FunctionNode _readFunctionNode(_MemberData memberData) {
     _FunctionNodeKind kind = _readEnumInternal(_FunctionNodeKind.values);
     switch (kind) {
       case _FunctionNodeKind.procedure:
@@ -567,10 +653,10 @@ abstract class AbstractDataSource extends DataSourceMixin
         ir.Constructor constructor = _readMemberData().node;
         return constructor.function;
       case _FunctionNodeKind.functionExpression:
-        ir.FunctionExpression functionExpression = _readTreeNode();
+        ir.FunctionExpression functionExpression = _readTreeNode(memberData);
         return functionExpression.function;
       case _FunctionNodeKind.functionDeclaration:
-        ir.FunctionDeclaration functionDeclaration = _readTreeNode();
+        ir.FunctionDeclaration functionDeclaration = _readTreeNode(memberData);
         return functionDeclaration.function;
     }
     throw new UnsupportedError("Unexpected _FunctionNodeKind $kind");
@@ -579,17 +665,17 @@ abstract class AbstractDataSource extends DataSourceMixin
   @override
   ir.TypeParameter readTypeParameterNode() {
     _checkDataKind(DataKind.typeParameterNode);
-    return _readTypeParameter();
+    return _readTypeParameter(null);
   }
 
-  ir.TypeParameter _readTypeParameter() {
+  ir.TypeParameter _readTypeParameter(_MemberData memberData) {
     _TypeParameterKind kind = _readEnumInternal(_TypeParameterKind.values);
     switch (kind) {
       case _TypeParameterKind.cls:
         ir.Class cls = _readClassData().node;
         return cls.typeParameters[_readIntInternal()];
       case _TypeParameterKind.functionNode:
-        ir.FunctionNode functionNode = _readFunctionNode();
+        ir.FunctionNode functionNode = _readFunctionNode(memberData);
         return functionNode.typeParameters[_readIntInternal()];
     }
     throw new UnsupportedError("Unexpected _TypeParameterKind kind $kind");

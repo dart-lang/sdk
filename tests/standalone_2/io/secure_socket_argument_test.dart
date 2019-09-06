@@ -5,6 +5,8 @@
 import "package:expect/expect.dart";
 import "dart:io";
 
+const SERVER_ADDRESS = "127.0.0.1";
+
 void testServerSocketArguments() {
   Expect.throws(() => SecureServerSocket.bind(SERVER_ADDRESS, 65536, null));
   Expect.throws(() => SecureServerSocket.bind(SERVER_ADDRESS, -1, null));

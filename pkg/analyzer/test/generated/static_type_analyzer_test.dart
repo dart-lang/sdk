@@ -11,7 +11,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -490,7 +490,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
         _resolvedVariable(_typeProvider.doubleType, 'd'),
         TokenType.QUESTION_QUESTION_EQ,
         _resolvedInteger(0));
-    expect(_analyze(node), same(_typeProvider.numType));
+    expect(_analyze(node), _typeProvider.numType);
     _listener.assertNoErrors();
   }
 
@@ -549,7 +549,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
     // 1 ?? 1.5
     Expression node = AstTestFactory.binaryExpression(
         _resolvedInteger(1), TokenType.QUESTION_QUESTION, _resolvedDouble(1.5));
-    expect(_analyze(node), same(_typeProvider.numType));
+    expect(_analyze(node), _typeProvider.numType);
     _listener.assertNoErrors();
   }
 
@@ -619,11 +619,13 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
     MethodElement operator =
         ElementFactory.methodElement("*", typeA, [_typeProvider.doubleType]);
     classA.methods = <MethodElement>[operator];
+
+    var asExpression = AstTestFactory.asExpression(
+        AstTestFactory.identifier3("a"), AstTestFactory.typeName(classA));
+    asExpression.staticType = typeA;
+
     BinaryExpressionImpl node = AstTestFactory.binaryExpression(
-        AstTestFactory.asExpression(
-            AstTestFactory.identifier3("a"), AstTestFactory.typeName(classA)),
-        TokenType.PLUS,
-        _resolvedDouble(2.0));
+        asExpression, TokenType.PLUS, _resolvedDouble(2.0));
     node.staticElement = operator;
     node.staticInvokeType = node.staticElement.type;
     expect(_analyze(node), same(typeA));
@@ -667,7 +669,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
         AstTestFactory.booleanLiteral(true),
         _resolvedDouble(1.0),
         _resolvedInteger(0));
-    expect(_analyze(node), same(_typeProvider.numType));
+    expect(_analyze(node), _typeProvider.numType);
     _listener.assertNoErrors();
   }
 
@@ -1523,7 +1525,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
       context = AnalysisContextFactory.contextWithCore(
           resourceProvider: resourceProvider);
     }
-    var inheritance = new InheritanceManager2(context.typeSystem);
+    var inheritance = new InheritanceManager3(context.typeSystem);
     Source source = new FileSource(getFile("/lib.dart"));
     CompilationUnitElementImpl definingCompilationUnit =
         new CompilationUnitElementImpl();

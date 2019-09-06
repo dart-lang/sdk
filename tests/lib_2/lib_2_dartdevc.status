@@ -9,7 +9,6 @@ html/xhr_test: Pass, Slow
 
 [ $compiler == dartdevk ]
 async/slow_consumer_test: CompileTimeError
-html/debugger_test: CompileTimeError
 
 [ $runtime == chrome && ($compiler == dartdevc || $compiler == dartdevk) ]
 html/element_animate_test/timing_dict: RuntimeError # Issue 29922
@@ -83,7 +82,6 @@ isolate/*: SkipByDesign # No support for dart:isolate in dart4web (http://dartbu
 js/null_test: RuntimeError # Issue 30652
 math/double_pow_test: RuntimeError # Issue 29922
 math/double_pow_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-math/low_test: RuntimeError # Issue 29922
 math/random_big_test: RuntimeError # Issue 29922
 mirrors/*: SkipByDesign # Mirrors not supported on web in Dart 2.0.
 mirrors/private_types_test: RuntimeError # Issue 29922

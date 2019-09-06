@@ -27,7 +27,7 @@ abstract class ClosureData {
   /// used inside the scope of [node].
   ScopeInfo getScopeInfo(MemberEntity member);
 
-  ClosureRepresentationInfo getClosureInfo(ir.Node localFunction);
+  ClosureRepresentationInfo getClosureInfo(ir.LocalFunction localFunction);
 
   /// Look up information about a loop, in case any variables it declares need
   /// to be boxed/snapshotted.

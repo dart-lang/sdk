@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: slash_for_doc_comments, unnecessary_const
+
 part of js_ast;
 
 class JavaScriptPrintingOptions {
@@ -1018,7 +1020,7 @@ class Printer implements NodeVisitor {
       spaceOut();
       // Object initializers require parenthesis to disambiguate
       // AssignmentExpression from FunctionBody. See:
-      // https://people.mozilla.org/~jorendorff/es6-draft.html#sec-arrow-function-definitions
+      // https://tc39.github.io/ecma262/#sec-arrow-function-definitions
       var needsParen = fun.body is ObjectInitializer;
       if (needsParen) out("(");
       visitNestedExpression(body, ASSIGNMENT,

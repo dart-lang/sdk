@@ -7,6 +7,8 @@
 import 'dart:async';
 
 import 'package:front_end/src/api_unstable/vm.dart';
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/kernel.dart';
 
 const String kDebugProcedureName = ":Eval";
@@ -75,6 +77,9 @@ class IncrementalCompiler {
         libraries: combined.values.toList(), uriToSource: uriToSource)
       ..mainMethod = mainMethod;
   }
+
+  CoreTypes getCoreTypes() => _generator.getCoreTypes();
+  ClassHierarchy getClassHierarchy() => _generator.getClassHierarchy();
 
   /// This lets incremental compiler know that results of last [compile] call
   /// were accepted, don't need to be included into subsequent [compile] calls

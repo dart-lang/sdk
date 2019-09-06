@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   closurizedCallToString();
 }
@@ -12,16 +12,16 @@ main() {
 // '.call' method in the closed world.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: method:[exact=JSUInt31]*/
+/*member: method:[exact=JSUInt31]*/
 method() => 42;
 
-/*element: Class.:[exact=Class]*/
+/*member: Class.:[exact=Class]*/
 class Class {
-  /*element: Class.call:Value([exact=JSBool], value: true)*/
+  /*member: Class.call:Value([exact=JSBool], value: true)*/
   call() => true;
 }
 
-/*element: closurizedCallToString:[exact=JSString]*/
+/*member: closurizedCallToString:[exact=JSString]*/
 closurizedCallToString() {
   var c = new Class();
   c.call(); // Make `Class.call` live.

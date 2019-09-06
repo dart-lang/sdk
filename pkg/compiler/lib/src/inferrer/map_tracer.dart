@@ -4,8 +4,8 @@
 
 library compiler.src.inferrer.map_tracer;
 
+import '../common/names.dart';
 import '../elements/entities.dart';
-import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../universe/selector.dart' show Selector;
 import 'node_tracer.dart';
 import 'type_graph_nodes.dart';
@@ -68,7 +68,7 @@ class MapTracerVisitor extends TracerVisitor {
     super.visitStaticCallSiteTypeInformation(info);
     MemberEntity called = info.calledElement;
     if (inferrer.closedWorld.commonElements.isForeign(called) &&
-        called.name == JavaScriptBackend.JS) {
+        called.name == Identifiers.JS) {
       bailout('Used in JS ${info.debugName}');
     }
   }

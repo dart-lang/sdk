@@ -829,8 +829,8 @@ class _ContentType extends _HeaderValue implements ContentType {
 }
 
 class _Cookie implements Cookie {
-  String name;
-  String value;
+  String _name;
+  String _value;
   DateTime expires;
   int maxAge;
   String domain;
@@ -838,10 +838,22 @@ class _Cookie implements Cookie {
   bool httpOnly = false;
   bool secure = false;
 
-  _Cookie([this.name, this.value]) {
-    // Default value of httponly is true.
-    httpOnly = true;
-    _validate();
+  _Cookie(String name, String value)
+      : _name = _validateName(name),
+        _value = _validateValue(value),
+        httpOnly = true;
+
+  String get name => _name;
+  String get value => _value;
+
+  set name(String newName) {
+    _validateName(newName);
+    _name = newName;
+  }
+
+  set value(String newValue) {
+    _validateValue(newValue);
+    _value = newValue;
   }
 
   _Cookie.fromSetCookieValue(String value) {
@@ -924,13 +936,12 @@ class _Cookie implements Cookie {
       }
     }
 
-    name = parseName();
-    if (done() || name.length == 0) {
+    _name = _validateName(parseName());
+    if (done() || _name.length == 0) {
       throw new HttpException("Failed to parse header value [$s]");
     }
     index++; // Skip the = character.
-    value = parseValue();
-    _validate();
+    _value = _validateValue(parseValue());
     if (done()) return;
     index++; // Skip the ; character.
     parseAttributes();
@@ -938,7 +949,7 @@ class _Cookie implements Cookie {
 
   String toString() {
     StringBuffer sb = new StringBuffer();
-    sb..write(name)..write("=")..write(value);
+    sb..write(_name)..write("=")..write(_value);
     if (expires != null) {
       sb..write("; Expires=")..write(HttpDate.format(expires));
     }
@@ -956,7 +967,7 @@ class _Cookie implements Cookie {
     return sb.toString();
   }
 
-  void _validate() {
+  static String _validateName(String newName) {
     const separators = const [
       "(",
       ")",
@@ -976,31 +987,36 @@ class _Cookie implements Cookie {
       "{",
       "}"
     ];
-    for (int i = 0; i < name.length; i++) {
-      int codeUnit = name.codeUnits[i];
+    if (newName == null) throw new ArgumentError.notNull("name");
+    for (int i = 0; i < newName.length; i++) {
+      int codeUnit = newName.codeUnits[i];
       if (codeUnit <= 32 ||
           codeUnit >= 127 ||
-          separators.indexOf(name[i]) >= 0) {
+          separators.indexOf(newName[i]) >= 0) {
         throw new FormatException(
             "Invalid character in cookie name, code unit: '$codeUnit'",
-            name,
+            newName,
             i);
       }
     }
+    return newName;
+  }
 
+  static String _validateValue(String newValue) {
+    if (newValue == null) throw new ArgumentError.notNull("value");
     // Per RFC 6265, consider surrounding "" as part of the value, but otherwise
     // double quotes are not allowed.
     int start = 0;
-    int end = value.length;
-    if (2 <= value.length &&
-        value.codeUnits[start] == 0x22 &&
-        value.codeUnits[end - 1] == 0x22) {
+    int end = newValue.length;
+    if (2 <= newValue.length &&
+        newValue.codeUnits[start] == 0x22 &&
+        newValue.codeUnits[end - 1] == 0x22) {
       start++;
       end--;
     }
 
     for (int i = start; i < end; i++) {
-      int codeUnit = value.codeUnits[i];
+      int codeUnit = newValue.codeUnits[i];
       if (!(codeUnit == 0x21 ||
           (codeUnit >= 0x23 && codeUnit <= 0x2B) ||
           (codeUnit >= 0x2D && codeUnit <= 0x3A) ||
@@ -1008,9 +1024,10 @@ class _Cookie implements Cookie {
           (codeUnit >= 0x5D && codeUnit <= 0x7E))) {
         throw new FormatException(
             "Invalid character in cookie value, code unit: '$codeUnit'",
-            value,
+            newValue,
             i);
       }
     }
+    return newValue;
   }
 }

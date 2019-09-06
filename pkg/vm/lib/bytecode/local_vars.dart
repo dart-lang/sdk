@@ -9,7 +9,11 @@ import 'dart:math' show max;
 import 'package:kernel/ast.dart';
 import 'package:kernel/transformations/continuation.dart'
     show ContinuationVariables;
+import 'package:kernel/type_environment.dart';
+import 'package:vm/bytecode/generics.dart';
+
 import 'dbc.dart';
+import 'options.dart' show BytecodeOptions;
 
 class LocalVariables {
   final Map<TreeNode, Scope> _scopes = <TreeNode, Scope>{};
@@ -24,7 +28,8 @@ class LocalVariables {
       <TreeNode, VariableDeclaration>{};
   final Map<ForInStatement, VariableDeclaration> _capturedIteratorVars =
       <ForInStatement, VariableDeclaration>{};
-  final bool enableAsserts;
+  final BytecodeOptions options;
+  final TypeEnvironment typeEnvironment;
 
   Scope _currentScope;
   Frame _currentFrame;
@@ -137,6 +142,13 @@ class LocalVariables {
         .getSyntheticVar(ContinuationVariables.awaitContextVar);
   }
 
+  VariableDeclaration get asyncStackTraceVar {
+    assert(options.causalAsyncStacks);
+    assert(_currentFrame.isSyncYielding);
+    return _currentFrame.parent
+        .getSyntheticVar(ContinuationVariables.asyncStackTraceVar);
+  }
+
   VariableDeclaration capturedSavedContextVar(TreeNode node) =>
       _capturedSavedContextVars[node];
   VariableDeclaration capturedExceptionVar(TreeNode node) =>
@@ -176,7 +188,7 @@ class LocalVariables {
   List<VariableDeclaration> get sortedNamedParameters =>
       _currentFrame.sortedNamedParameters;
 
-  LocalVariables(Member node, this.enableAsserts) {
+  LocalVariables(Member node, this.options, this.typeEnvironment) {
     final scopeBuilder = new _ScopeBuilder(this);
     node.accept(scopeBuilder);
 
@@ -230,7 +242,7 @@ class Frame {
   bool hasOptionalParameters = false;
   bool hasCapturedParameters = false;
   bool hasClosures = false;
-  bool isDartSync = true;
+  AsyncMarker dartAsyncMarker = AsyncMarker.Sync;
   bool isSyncYielding = false;
   VariableDeclaration receiverVar;
   VariableDeclaration capturedReceiverVar;
@@ -272,6 +284,12 @@ class Scope {
   bool get hasContext => contextSize > 0;
 }
 
+bool _hasReceiverParameter(TreeNode node) {
+  return node is Constructor ||
+      (node is Procedure && !node.isStatic) ||
+      (node is Field && !node.isStatic);
+}
+
 class _ScopeBuilder extends RecursiveVisitor<Null> {
   final LocalVariables locals;
 
@@ -301,6 +319,10 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
     _enterFrame(node);
 
     if (node is Field) {
+      if (_hasReceiverParameter(node)) {
+        _currentFrame.receiverVar = new VariableDeclaration('this');
+        _declareVariable(_currentFrame.receiverVar);
+      }
       node.initializer?.accept(this);
     } else {
       assert(node is Procedure ||
@@ -311,7 +333,7 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
       FunctionNode function = (node as dynamic).function;
       assert(function != null);
 
-      _currentFrame.isDartSync = function.dartAsyncMarker == AsyncMarker.Sync;
+      _currentFrame.dartAsyncMarker = function.dartAsyncMarker;
 
       _currentFrame.isSyncYielding =
           function.asyncMarker == AsyncMarker.SyncYielding;
@@ -339,7 +361,7 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
         }
       }
 
-      if (node is Constructor || (node is Procedure && !node.isStatic)) {
+      if (_hasReceiverParameter(node)) {
         _currentFrame.receiverVar = new VariableDeclaration('this');
         _declareVariable(_currentFrame.receiverVar);
       } else if (_currentFrame.parent?.receiverVar != null) {
@@ -363,6 +385,14 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
             .getSyntheticVar(ContinuationVariables.awaitJumpVar));
         _useVariable(_currentFrame.parent
             .getSyntheticVar(ContinuationVariables.awaitContextVar));
+
+        if (locals.options.causalAsyncStacks &&
+            (_currentFrame.parent.dartAsyncMarker == AsyncMarker.Async ||
+                _currentFrame.parent.dartAsyncMarker ==
+                    AsyncMarker.AsyncStar)) {
+          _useVariable(_currentFrame.parent
+              .getSyntheticVar(ContinuationVariables.asyncStackTraceVar));
+        }
       }
 
       if (node is Constructor) {
@@ -386,7 +416,7 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
       _declareVariable(_currentFrame.scratchVar);
     }
 
-    if (node is Constructor || (node is Procedure && !node.isStatic)) {
+    if (_hasReceiverParameter(node)) {
       if (locals.isCaptured(_currentFrame.receiverVar)) {
         // Duplicate receiver variable for local use.
         _currentFrame.capturedReceiverVar = _currentFrame.receiverVar;
@@ -535,7 +565,8 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
   visitVariableDeclaration(VariableDeclaration node) {
     _declareVariable(node);
 
-    if (!_currentFrame.isDartSync && node.name[0] == ':') {
+    if (_currentFrame.dartAsyncMarker != AsyncMarker.Sync &&
+        node.name[0] == ':') {
       _currentFrame.syntheticVars ??= <String, VariableDeclaration>{};
       assert(_currentFrame.syntheticVars[node.name] == null);
       _currentFrame.syntheticVars[node.name] = node;
@@ -610,7 +641,7 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
 
   @override
   visitAssertStatement(AssertStatement node) {
-    if (!locals.enableAsserts) {
+    if (!locals.options.enableAsserts) {
       return;
     }
     super.visitAssertStatement(node);
@@ -618,7 +649,7 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
 
   @override
   visitAssertBlock(AssertBlock node) {
-    if (!locals.enableAsserts) {
+    if (!locals.options.enableAsserts) {
       return;
     }
     _visitWithScope(node);
@@ -921,8 +952,7 @@ class _Allocator extends RecursiveVisitor<Null> {
 
   void _allocateParameters(TreeNode node, FunctionNode function) {
     final bool isFactory = node is Procedure && node.isFactory;
-    final bool hasReceiver =
-        node is Constructor || (node is Procedure && !node.isStatic);
+    final bool hasReceiver = _hasReceiverParameter(node);
     final bool hasClosureArg =
         node is FunctionDeclaration || node is FunctionExpression;
 
@@ -983,6 +1013,13 @@ class _Allocator extends RecursiveVisitor<Null> {
     _enterScope(node);
 
     if (node is Field) {
+      if (_hasReceiverParameter(node)) {
+        _currentFrame.numParameters = 1;
+        _allocateParameter(_currentFrame.receiverVar, 0);
+        if (_currentFrame.capturedReceiverVar != null) {
+          _allocateVariable(_currentFrame.capturedReceiverVar);
+        }
+      }
       _allocateSpecialVariables();
       node.initializer?.accept(this);
     } else {
@@ -1072,7 +1109,7 @@ class _Allocator extends RecursiveVisitor<Null> {
 
   @override
   visitAssertStatement(AssertStatement node) {
-    if (!locals.enableAsserts) {
+    if (!locals.options.enableAsserts) {
       return;
     }
     super.visitAssertStatement(node);
@@ -1080,7 +1117,7 @@ class _Allocator extends RecursiveVisitor<Null> {
 
   @override
   visitAssertBlock(AssertBlock node) {
-    if (!locals.enableAsserts) {
+    if (!locals.options.enableAsserts) {
       return;
     }
     _visit(node, scope: true);
@@ -1155,6 +1192,15 @@ class _Allocator extends RecursiveVisitor<Null> {
   @override
   visitLogicalExpression(LogicalExpression node) {
     _visit(node, temps: 1);
+  }
+
+  @override
+  visitMethodInvocation(MethodInvocation node) {
+    int numTemps = 0;
+    if (isUncheckedClosureCall(node, locals.typeEnvironment)) {
+      numTemps = 1;
+    }
+    _visit(node, temps: numTemps);
   }
 
   @override

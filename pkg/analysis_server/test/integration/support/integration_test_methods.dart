@@ -1744,6 +1744,10 @@ abstract class IntegrationTestMixin {
    *   If a name is specified that does not match the name of a known fix, an
    *   error of type UNKNOWN_FIX will be generated.
    *
+   * includePedanticFixes: bool (optional)
+   *
+   *   A flag indicating that "pedantic" fixes should be applied.
+   *
    * includeRequiredFixes: bool (optional)
    *
    *   A flag indicating that "required" fixes should be applied.
@@ -1786,10 +1790,12 @@ abstract class IntegrationTestMixin {
    */
   Future<EditDartfixResult> sendEditDartfix(List<String> included,
       {List<String> includedFixes,
+      bool includePedanticFixes,
       bool includeRequiredFixes,
       List<String> excludedFixes}) async {
     var params = new EditDartfixParams(included,
             includedFixes: includedFixes,
+            includePedanticFixes: includePedanticFixes,
             includeRequiredFixes: includeRequiredFixes,
             excludedFixes: excludedFixes)
         .toJson();
@@ -2581,36 +2587,81 @@ abstract class IntegrationTestMixin {
   }
 
   /**
-   * Return the change that adds the forDesignTime() constructor for the widget
-   * class at the given offset.
+   * Return the description of the widget instance at the given location.
+   *
+   * If the location does not have a support widget, an error of type
+   * FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET will be generated.
    *
    * Parameters
    *
    * file: FilePath
    *
-   *   The file containing the code of the class.
+   *   The file where the widget instance is created.
    *
    * offset: int
    *
-   *   The offset of the class in the code.
+   *   The offset in the file where the widget instance is created.
+   *
+   * Returns
+   *
+   * properties: List<FlutterWidgetProperty>
+   *
+   *   The list of properties of the widget. Some of the properties might be
+   *   read only, when their editor is not set. This might be because they have
+   *   type that we don't know how to edit, or for compound properties that
+   *   work as containers for sub-properties.
+   */
+  Future<FlutterGetWidgetDescriptionResult> sendFlutterGetWidgetDescription(
+      String file, int offset) async {
+    var params = new FlutterGetWidgetDescriptionParams(file, offset).toJson();
+    var result = await server.send("flutter.getWidgetDescription", params);
+    ResponseDecoder decoder = new ResponseDecoder(null);
+    return new FlutterGetWidgetDescriptionResult.fromJson(
+        decoder, 'result', result);
+  }
+
+  /**
+   * Set the value of a property, or remove it.
+   *
+   * The server will generate a change that the client should apply to the
+   * project to get the value of the property set to the new value. The
+   * complexity of the change might be from updating a single literal value in
+   * the code, to updating multiple files to get libraries imported, and new
+   * intermediate widgets instantiated.
+   *
+   * Parameters
+   *
+   * id: int
+   *
+   *   The identifier of the property, previously returned as a part of a
+   *   FlutterWidgetProperty.
+   *
+   *   An error of type FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID is
+   *   generated if the identifier is not valid.
+   *
+   * value: FlutterWidgetPropertyValue (optional)
+   *
+   *   The new value to set for the property.
+   *
+   *   If absent, indicates that the property should be removed. If the
+   *   property corresponds to an optional parameter, the corresponding named
+   *   argument is removed. If the property isRequired is true,
+   *   FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED error is generated.
    *
    * Returns
    *
    * change: SourceChange
    *
-   *   The change that adds the forDesignTime() constructor. If the change
-   *   cannot be produced, an error is returned.
+   *   The change that should be applied.
    */
-  Future<FlutterGetChangeAddForDesignTimeConstructorResult>
-      sendFlutterGetChangeAddForDesignTimeConstructor(
-          String file, int offset) async {
+  Future<FlutterSetWidgetPropertyValueResult> sendFlutterSetWidgetPropertyValue(
+      int id,
+      {FlutterWidgetPropertyValue value}) async {
     var params =
-        new FlutterGetChangeAddForDesignTimeConstructorParams(file, offset)
-            .toJson();
-    var result = await server.send(
-        "flutter.getChangeAddForDesignTimeConstructor", params);
+        new FlutterSetWidgetPropertyValueParams(id, value: value).toJson();
+    var result = await server.send("flutter.setWidgetPropertyValue", params);
     ResponseDecoder decoder = new ResponseDecoder(null);
-    return new FlutterGetChangeAddForDesignTimeConstructorResult.fromJson(
+    return new FlutterSetWidgetPropertyValueResult.fromJson(
         decoder, 'result', result);
   }
 
@@ -2670,13 +2721,6 @@ abstract class IntegrationTestMixin {
    * outline: FlutterOutline
    *
    *   The outline associated with the file.
-   *
-   * instrumentedCode: String (optional)
-   *
-   *   If the file has Flutter widgets that can be rendered, this field has the
-   *   instrumented content of the file, that allows associating widgets with
-   *   corresponding outline nodes. If there are no widgets to render, this
-   *   field is absent.
    */
   Stream<FlutterOutlineParams> onFlutterOutline;
 

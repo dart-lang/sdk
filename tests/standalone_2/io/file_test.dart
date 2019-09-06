@@ -209,7 +209,7 @@ class FileTest {
     var input = file.openRead();
     var output = outputFile.openWrite();
     Completer done = new Completer();
-    input.pipe(output).then((_) {
+    input.cast<List<int>>().pipe(output).then((_) {
       var copy = outputFile.openRead();
       int position = 0;
       copy.listen((d) {

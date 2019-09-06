@@ -8,13 +8,267 @@ import 'package:kernel/ast.dart';
 import 'bytecode_serialization.dart'
     show BufferedWriter, BufferedReader, BytecodeSizeStatistics, StringTable;
 import 'constant_pool.dart' show ConstantPool;
-import 'dbc.dart'
-    show currentBytecodeFormatVersion, futureBytecodeFormatVersion;
+import 'dbc.dart' show currentBytecodeFormatVersion;
 import 'disassembler.dart' show BytecodeDisassembler;
 import 'exceptions.dart' show ExceptionsTable;
 import 'local_variable_table.dart' show LocalVariableTable;
 import 'object_table.dart' show ObjectTable, ObjectHandle, NameAndType;
-import 'source_positions.dart' show SourcePositions;
+import 'source_positions.dart' show LineStarts, SourcePositions;
+
+class LibraryDeclaration {
+  static const usesDartMirrorsFlag = 1 << 0;
+  static const usesDartFfiFlag = 1 << 1;
+  static const hasExtensionsFlag = 1 << 2;
+
+  ObjectHandle importUri;
+  final int flags;
+  final ObjectHandle name;
+  final ObjectHandle script;
+  final List<ObjectHandle> extensionUris;
+  final List<ClassDeclaration> classes;
+
+  LibraryDeclaration(this.importUri, this.flags, this.name, this.script,
+      this.extensionUris, this.classes);
+
+  void write(BufferedWriter writer) {
+    final start = writer.offset;
+    writer.writePackedUInt30(flags);
+    writer.writePackedObject(name);
+    writer.writePackedObject(script);
+    if ((flags & hasExtensionsFlag) != 0) {
+      writer.writePackedList(extensionUris);
+    }
+    writer.writePackedUInt30(classes.length);
+    for (var cls in classes) {
+      writer.writePackedObject(cls.name);
+      writer.writeLinkOffset(cls);
+    }
+    BytecodeSizeStatistics.librariesSize += (writer.offset - start);
+  }
+
+  factory LibraryDeclaration.read(BufferedReader reader) {
+    final flags = reader.readPackedUInt30();
+    final name = reader.readPackedObject();
+    final script = reader.readPackedObject();
+    final classes =
+        List<ClassDeclaration>.generate(reader.readPackedUInt30(), (_) {
+      final className = reader.readPackedObject();
+      return reader.readLinkOffset<ClassDeclaration>()..name = className;
+    });
+    final extensionUris = ((flags & hasExtensionsFlag) != 0)
+        ? reader.readPackedList<ObjectHandle>()
+        : const <ObjectHandle>[];
+    return new LibraryDeclaration(
+        null, flags, name, script, extensionUris, classes);
+  }
+
+  @override
+  String toString() {
+    final StringBuffer sb = new StringBuffer();
+    sb.writeln('Library $importUri');
+    sb.writeln('    name $name');
+    sb.writeln('    script $script');
+    if ((flags & usesDartMirrorsFlag) != 0) {
+      sb.writeln('    uses dart:mirrors');
+    }
+    if ((flags & usesDartFfiFlag) != 0) {
+      sb.writeln('    uses dart:ffi');
+    }
+    if ((flags & hasExtensionsFlag) != 0) {
+      sb.writeln('    extensions: $extensionUris');
+    }
+    sb.writeln();
+    for (var cls in classes) {
+      sb.write(cls);
+    }
+    return sb.toString();
+  }
+}
+
+class ClassDeclaration {
+  static const isAbstractFlag = 1 << 0;
+  static const isEnumFlag = 1 << 1;
+  static const hasTypeParamsFlag = 1 << 2;
+  static const hasTypeArgumentsFlag = 1 << 3;
+  static const isTransformedMixinApplicationFlag = 1 << 4;
+  static const hasSourcePositionsFlag = 1 << 5;
+  static const hasAnnotationsFlag = 1 << 6;
+  static const hasPragmaFlag = 1 << 7;
+
+  ObjectHandle name;
+  final int flags;
+  final ObjectHandle script;
+  final int position;
+  final int endPosition;
+  final TypeParametersDeclaration typeParameters;
+  final int numTypeArguments;
+  final ObjectHandle superType;
+  final List<ObjectHandle> interfaces;
+  final Members members;
+  final AnnotationsDeclaration annotations;
+
+  ClassDeclaration(
+      this.name,
+      this.flags,
+      this.script,
+      this.position,
+      this.endPosition,
+      this.typeParameters,
+      this.numTypeArguments,
+      this.superType,
+      this.interfaces,
+      this.members,
+      this.annotations);
+
+  void write(BufferedWriter writer) {
+    final start = writer.offset;
+    writer.writePackedUInt30(flags);
+    writer.writePackedObject(script);
+
+    if ((flags & hasSourcePositionsFlag) != 0) {
+      writer.writePackedUInt30(position + 1);
+      writer.writePackedUInt30(endPosition + 1);
+    }
+    if ((flags & hasTypeArgumentsFlag) != 0) {
+      writer.writePackedUInt30(numTypeArguments);
+    }
+    if ((flags & hasTypeParamsFlag) != 0) {
+      typeParameters.write(writer);
+    }
+    writer.writePackedObject(superType);
+    writer.writePackedList(interfaces);
+    if ((flags & hasAnnotationsFlag) != 0) {
+      writer.writeLinkOffset(annotations);
+    }
+    writer.writeLinkOffset(members);
+    BytecodeSizeStatistics.classesSize += (writer.offset - start);
+  }
+
+  factory ClassDeclaration.read(BufferedReader reader) {
+    final flags = reader.readPackedUInt30();
+    final script = reader.readPackedObject();
+    final position = ((flags & hasSourcePositionsFlag) != 0)
+        ? reader.readPackedUInt30() - 1
+        : TreeNode.noOffset;
+    final endPosition = ((flags & hasSourcePositionsFlag) != 0)
+        ? reader.readPackedUInt30() - 1
+        : TreeNode.noOffset;
+    final numTypeArguments =
+        ((flags & hasTypeArgumentsFlag) != 0) ? reader.readPackedUInt30() : 0;
+    final typeParameters = ((flags & hasTypeParamsFlag) != 0)
+        ? new TypeParametersDeclaration.read(reader)
+        : null;
+    final superType = reader.readPackedObject();
+    final interfaces = reader.readPackedList<ObjectHandle>();
+    final annotations = ((flags & hasAnnotationsFlag) != 0)
+        ? reader.readLinkOffset<AnnotationsDeclaration>()
+        : null;
+    final members = reader.readLinkOffset<Members>();
+    return new ClassDeclaration(
+        null,
+        flags,
+        script,
+        position,
+        endPosition,
+        typeParameters,
+        numTypeArguments,
+        superType,
+        interfaces,
+        members,
+        annotations);
+  }
+
+  @override
+  String toString() {
+    final StringBuffer sb = new StringBuffer();
+    sb.write('Class $name, script = $script');
+    if ((flags & isAbstractFlag) != 0) {
+      sb.write(', abstract');
+    }
+    if ((flags & isEnumFlag) != 0) {
+      sb.write(', enum');
+    }
+    if ((flags & isTransformedMixinApplicationFlag) != 0) {
+      sb.write(', mixin-application');
+    }
+    if ((flags & hasPragmaFlag) != 0) {
+      sb.write(', has-pragma');
+    }
+    if ((flags & hasSourcePositionsFlag) != 0) {
+      sb.write(', pos = $position, end-pos = $endPosition');
+    }
+    sb.writeln();
+    if ((flags & hasTypeParamsFlag) != 0) {
+      sb.write('    type-params $typeParameters (args: $numTypeArguments)\n');
+    }
+    if (superType != null) {
+      sb.write('    extends $superType\n');
+    }
+    if (interfaces.isNotEmpty) {
+      sb.write('    implements $interfaces\n');
+    }
+    if ((flags & hasAnnotationsFlag) != 0) {
+      sb.write('    annotations $annotations\n');
+    }
+    sb.writeln();
+    sb.write(members.toString());
+    return sb.toString();
+  }
+}
+
+class SourceFile {
+  static const hasLineStartsFlag = 1 << 0;
+  static const hasSourceFlag = 1 << 1;
+
+  int flags;
+  final ObjectHandle importUri;
+  final LineStarts lineStarts;
+  final String source;
+
+  SourceFile(this.importUri, this.lineStarts, this.source) {
+    flags = 0;
+    if (lineStarts != null) {
+      flags |= hasLineStartsFlag;
+    }
+    if (source != null && source != '') {
+      flags |= hasSourceFlag;
+    }
+  }
+
+  void write(BufferedWriter writer) {
+    writer.writePackedUInt30(flags);
+    writer.writePackedObject(importUri);
+    if ((flags & hasLineStartsFlag) != 0) {
+      writer.writeLinkOffset(lineStarts);
+    }
+    if ((flags & hasSourceFlag) != 0) {
+      writer.writePackedStringReference(source);
+    }
+  }
+
+  factory SourceFile.read(BufferedReader reader) {
+    final flags = reader.readPackedUInt30();
+    final importUri = reader.readPackedObject();
+    final lineStarts = ((flags & hasLineStartsFlag) != 0)
+        ? reader.readLinkOffset<LineStarts>()
+        : null;
+    final source = ((flags & hasSourceFlag) != 0)
+        ? reader.readPackedStringReference()
+        : null;
+    return new SourceFile(importUri, lineStarts, source);
+  }
+
+  @override
+  String toString() {
+    final StringBuffer sb = new StringBuffer();
+    sb.writeln('SourceFile $importUri');
+    sb.writeln('------------------------------------------------');
+    sb.write(source);
+    sb.writeln('------------------------------------------------');
+    sb.writeln(lineStarts);
+    return sb.toString();
+  }
+}
 
 class Members {
   final List<FieldDeclaration> fields;
@@ -36,6 +290,7 @@ class Members {
   }
 
   void write(BufferedWriter writer) {
+    final start = writer.offset;
     writer.writePackedUInt30(countFunctions());
     writer.writePackedUInt30(fields.length);
     for (var field in fields) {
@@ -45,6 +300,7 @@ class Members {
     for (var func in functions) {
       func.write(writer);
     }
+    BytecodeSizeStatistics.membersSize += (writer.offset - start);
   }
 
   factory Members.read(BufferedReader reader) {
@@ -57,11 +313,8 @@ class Members {
   }
 
   @override
-  String toString() => "\n"
-      "Members {\n"
-      "${fields.join('\n')}\n"
-      "${functions.join('\n')}"
-      "}\n";
+  String toString() => "${fields.join('\n')}\n"
+      "${functions.join('\n')}";
 }
 
 class FieldDeclaration {
@@ -78,6 +331,7 @@ class FieldDeclaration {
   static const hasAnnotationsFlag = 1 << 10;
   static const hasPragmaFlag = 1 << 11;
   static const hasCustomScriptFlag = 1 << 12;
+  static const hasInitializerCodeFlag = 1 << 13;
 
   final int flags;
   final ObjectHandle name;
@@ -89,7 +343,7 @@ class FieldDeclaration {
   final ObjectHandle getterName;
   final ObjectHandle setterName;
   final Code initializerCode;
-  final ObjectHandle annotations;
+  final AnnotationsDeclaration annotations;
 
   FieldDeclaration(
       this.flags,
@@ -116,7 +370,7 @@ class FieldDeclaration {
       writer.writePackedUInt30(position + 1);
       writer.writePackedUInt30(endPosition + 1);
     }
-    if ((flags & hasInitializerFlag) != 0 && (flags & isStaticFlag) != 0) {
+    if ((flags & hasInitializerCodeFlag) != 0) {
       writer.writeLinkOffset(initializerCode);
     }
     if ((flags & hasInitializerFlag) == 0) {
@@ -145,10 +399,9 @@ class FieldDeclaration {
     final endPosition = ((flags & hasSourcePositionsFlag) != 0)
         ? reader.readPackedUInt30() - 1
         : TreeNode.noOffset;
-    final initializerCode =
-        ((flags & hasInitializerFlag) != 0 && (flags & isStaticFlag) != 0)
-            ? reader.readLinkOffset<Code>()
-            : null;
+    final initializerCode = ((flags & hasInitializerCodeFlag) != 0)
+        ? reader.readLinkOffset<Code>()
+        : null;
     final value =
         ((flags & hasInitializerFlag) == 0) ? reader.readPackedObject() : null;
     final getterName =
@@ -156,7 +409,7 @@ class FieldDeclaration {
     final setterName =
         ((flags & hasSetterFlag) != 0) ? reader.readPackedObject() : null;
     final annotations = ((flags & hasAnnotationsFlag) != 0)
-        ? reader.readLinkOffset<ObjectHandle>()
+        ? reader.readLinkOffset<AnnotationsDeclaration>()
         : null;
     return new FieldDeclaration(flags, name, type, value, script, position,
         endPosition, getterName, setterName, initializerCode, annotations);
@@ -164,7 +417,7 @@ class FieldDeclaration {
 
   @override
   String toString() {
-    StringBuffer sb = new StringBuffer();
+    final StringBuffer sb = new StringBuffer();
     sb.write('Field $name, type = $type');
     if ((flags & hasGetterFlag) != 0) {
       sb.write(', getter = $getterName');
@@ -194,9 +447,10 @@ class FieldDeclaration {
       sb.write(', pos = $position, end-pos = $endPosition');
     }
     sb.writeln();
-    if ((flags & hasInitializerFlag) != 0) {
-      sb.write('    initializer $initializerCode\n');
-    } else {
+    if ((flags & hasInitializerCodeFlag) != 0) {
+      sb.write('    initializer\n$initializerCode\n');
+    }
+    if ((flags & hasInitializerFlag) == 0) {
       sb.write('    value = $value\n');
     }
     if ((flags & hasAnnotationsFlag) != 0) {
@@ -242,7 +496,7 @@ class FunctionDeclaration {
   final ObjectHandle returnType;
   final ObjectHandle nativeName;
   final Code code;
-  final ObjectHandle annotations;
+  final AnnotationsDeclaration annotations;
 
   FunctionDeclaration(
       this.flags,
@@ -322,7 +576,7 @@ class FunctionDeclaration {
     final code =
         ((flags & isAbstractFlag) == 0) ? reader.readLinkOffset<Code>() : null;
     final annotations = ((flags & hasAnnotationsFlag) != 0)
-        ? reader.readLinkOffset<ObjectHandle>()
+        ? reader.readLinkOffset<AnnotationsDeclaration>()
         : null;
     return new FunctionDeclaration(
         flags,
@@ -341,7 +595,7 @@ class FunctionDeclaration {
 
   @override
   String toString() {
-    StringBuffer sb = new StringBuffer();
+    final StringBuffer sb = new StringBuffer();
     sb.write('Function $name');
     if ((flags & isConstructorFlag) != 0) {
       sb.write(', constructor');
@@ -463,6 +717,7 @@ class ParameterDeclaration {
   // Parameter flags are written separately (in Code).
   static const isCovariantFlag = 1 << 0;
   static const isGenericCovariantImplFlag = 1 << 1;
+  static const isFinalFlag = 1 << 2;
 
   final ObjectHandle name;
   final ObjectHandle type;
@@ -507,7 +762,7 @@ class Code {
 
   bool get hasExceptionsTable => exceptionsTable.blocks.isNotEmpty;
   bool get hasSourcePositions =>
-      sourcePositions != null && sourcePositions.mapping.isNotEmpty;
+      sourcePositions != null && sourcePositions.isNotEmpty;
   bool get hasLocalVariables =>
       localVariables != null && localVariables.isNotEmpty;
   bool get hasNullableFields => nullableFields.isNotEmpty;
@@ -571,7 +826,7 @@ class Code {
     if (hasClosures) {
       closures.forEach((c) => c.code.write(writer));
     }
-    BytecodeSizeStatistics.membersSize += (writer.offset - start);
+    BytecodeSizeStatistics.codeSize += (writer.offset - start);
   }
 
   factory Code.read(BufferedReader reader) {
@@ -625,8 +880,7 @@ class Code {
 
   // TODO(alexmarkov): Consider printing constant pool before bytecode.
   @override
-  String toString() => "\n"
-      "Bytecode {\n"
+  String toString() => "Bytecode {\n"
       "${new BytecodeDisassembler().disassemble(bytecodes, exceptionsTable, annotations: [
         hasSourcePositions
             ? sourcePositions.getBytecodeAnnotations()
@@ -649,7 +903,11 @@ class ClosureDeclaration {
   static const int hasOptionalNamedParamsFlag = 1 << 1;
   static const int hasTypeParamsFlag = 1 << 2;
   static const int hasSourcePositionsFlag = 1 << 3;
+  static const int isAsyncFlag = 1 << 4;
+  static const int isAsyncStarFlag = 1 << 5;
+  static const int isSyncStarFlag = 1 << 6;
 
+  final int flags;
   final ObjectHandle parent;
   final ObjectHandle name;
   final int position;
@@ -662,6 +920,7 @@ class ClosureDeclaration {
   ClosureCode code;
 
   ClosureDeclaration(
+      this.flags,
       this.parent,
       this.name,
       this.position,
@@ -673,20 +932,6 @@ class ClosureDeclaration {
       this.returnType);
 
   void write(BufferedWriter writer) {
-    int flags = 0;
-    if (numRequiredParams != parameters.length) {
-      if (numNamedParams > 0) {
-        flags |= hasOptionalNamedParamsFlag;
-      } else {
-        flags |= hasOptionalPositionalParamsFlag;
-      }
-    }
-    if (typeParams.isNotEmpty) {
-      flags |= hasTypeParamsFlag;
-    }
-    if (position != TreeNode.noOffset) {
-      flags |= hasSourcePositionsFlag;
-    }
     writer.writePackedUInt30(flags);
     writer.writePackedObject(parent);
     writer.writePackedObject(name);
@@ -755,14 +1000,23 @@ class ClosureDeclaration {
         (_) => new NameAndType(
             reader.readPackedObject(), reader.readPackedObject()));
     final returnType = reader.readPackedObject();
-    return new ClosureDeclaration(parent, name, position, endPosition,
+    return new ClosureDeclaration(flags, parent, name, position, endPosition,
         typeParams, numRequiredParams, numNamedParams, parameters, returnType);
   }
 
   @override
   String toString() {
-    StringBuffer sb = new StringBuffer();
+    final StringBuffer sb = new StringBuffer();
     sb.write('Closure $parent::$name');
+    if ((flags & isAsyncFlag) != 0) {
+      sb.write(' async');
+    }
+    if ((flags & isAsyncStarFlag) != 0) {
+      sb.write(' async*');
+    }
+    if ((flags & isSyncStarFlag) != 0) {
+      sb.write(' sync*');
+    }
     if (position != TreeNode.noOffset) {
       sb.write(' pos = $position, end-pos = $endPosition');
     }
@@ -804,7 +1058,7 @@ class ClosureCode {
 
   bool get hasExceptionsTable => exceptionsTable.blocks.isNotEmpty;
   bool get hasSourcePositions =>
-      sourcePositions != null && sourcePositions.mapping.isNotEmpty;
+      sourcePositions != null && sourcePositions.isNotEmpty;
   bool get hasLocalVariables =>
       localVariables != null && localVariables.isNotEmpty;
 
@@ -850,7 +1104,7 @@ class ClosureCode {
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.writeln('ClosureCode {');
-    sb.writeln(new BytecodeDisassembler()
+    sb.write(new BytecodeDisassembler()
         .disassemble(bytecodes, exceptionsTable, annotations: [
       hasSourcePositions
           ? sourcePositions.getBytecodeAnnotations()
@@ -861,6 +1115,20 @@ class ClosureCode {
     ]));
     sb.writeln('}');
     return sb.toString();
+  }
+}
+
+class AnnotationsDeclaration {
+  final ObjectHandle object;
+
+  AnnotationsDeclaration(this.object);
+
+  void write(BufferedWriter writer) {
+    writer.writePackedObject(object);
+  }
+
+  factory AnnotationsDeclaration.read(BufferedReader reader) {
+    return new AnnotationsDeclaration(reader.readPackedObject());
   }
 }
 
@@ -876,7 +1144,7 @@ class _Section {
 
 class Component {
   static const int magicValue = 0x44424332; // 'DBC2'
-  static const int numSections = 8;
+  static const int numSections = 13;
   static const int sectionAlignment = 4;
 
   //  UInt32 magic, version, numSections x (numItems, offset)
@@ -885,11 +1153,16 @@ class Component {
   int version;
   StringTable stringTable;
   ObjectTable objectTable;
-  List<Members> members = <Members>[];
-  List<Code> codes = <Code>[];
-  List<SourcePositions> sourcePositions = <SourcePositions>[];
-  List<LocalVariableTable> localVariables = <LocalVariableTable>[];
-  List<ObjectHandle> annotations = <ObjectHandle>[];
+  final List<LibraryDeclaration> libraries = <LibraryDeclaration>[];
+  final List<ClassDeclaration> classes = <ClassDeclaration>[];
+  final List<Members> members = <Members>[];
+  final List<Code> codes = <Code>[];
+  final List<SourcePositions> sourcePositions = <SourcePositions>[];
+  final List<LineStarts> lineStarts = <LineStarts>[];
+  final List<SourceFile> sourceFiles = <SourceFile>[];
+  final Map<Uri, SourceFile> uriToSource = <Uri, SourceFile>{};
+  final List<LocalVariableTable> localVariables = <LocalVariableTable>[];
+  final List<AnnotationsDeclaration> annotations = <AnnotationsDeclaration>[];
   ObjectHandle mainLibrary;
 
   Component(this.version)
@@ -902,38 +1175,71 @@ class Component {
     // Write sections to their own buffers in reverse order as section may
     // reference data structures from successor sections by offsets.
 
-    final BufferedWriter annotationsWriter =
-        new BufferedWriter.fromWriter(writer);
+    final annotationsWriter = new BufferedWriter.fromWriter(writer);
     for (var annot in annotations) {
       writer.linkWriter.put(annot, annotationsWriter.offset);
-      annotationsWriter.writePackedObject(annot);
+      annot.write(annotationsWriter);
     }
+    BytecodeSizeStatistics.annotationsSize += annotationsWriter.offset;
 
-    final BufferedWriter localVariablesWriter =
-        new BufferedWriter.fromWriter(writer);
+    final localVariablesWriter = new BufferedWriter.fromWriter(writer);
     for (var lv in localVariables) {
       writer.linkWriter.put(lv, localVariablesWriter.offset);
       lv.write(localVariablesWriter);
     }
+    BytecodeSizeStatistics.localVariablesSize += localVariablesWriter.offset;
 
-    final BufferedWriter sourcePositionsWriter =
-        new BufferedWriter.fromWriter(writer);
+    final lineStartsWriter = new BufferedWriter.fromWriter(writer);
+    for (var ls in lineStarts) {
+      writer.linkWriter.put(ls, lineStartsWriter.offset);
+      ls.write(lineStartsWriter);
+    }
+    BytecodeSizeStatistics.lineStartsSize += lineStartsWriter.offset;
+
+    final sourceFilesWriter = new BufferedWriter.fromWriter(writer);
+    for (var sf in sourceFiles) {
+      writer.linkWriter.put(sf, sourceFilesWriter.offset);
+      sf.write(sourceFilesWriter);
+    }
+    BytecodeSizeStatistics.sourceFilesSize += sourceFilesWriter.offset;
+
+    final sourcePositionsWriter = new BufferedWriter.fromWriter(writer);
     for (var sp in sourcePositions) {
       writer.linkWriter.put(sp, sourcePositionsWriter.offset);
       sp.write(sourcePositionsWriter);
     }
+    BytecodeSizeStatistics.sourcePositionsSize += sourcePositionsWriter.offset;
 
-    final BufferedWriter codesWriter = new BufferedWriter.fromWriter(writer);
+    final codesWriter = new BufferedWriter.fromWriter(writer);
     for (var code in codes) {
       writer.linkWriter.put(code, codesWriter.offset);
       code.write(codesWriter);
     }
 
-    final BufferedWriter membersWriter = new BufferedWriter.fromWriter(writer);
+    final membersWriter = new BufferedWriter.fromWriter(writer);
     for (var m in members) {
       writer.linkWriter.put(m, membersWriter.offset);
       m.write(membersWriter);
     }
+
+    final classesWriter = new BufferedWriter.fromWriter(writer);
+    for (var cls in classes) {
+      writer.linkWriter.put(cls, classesWriter.offset);
+      cls.write(classesWriter);
+    }
+
+    final librariesWriter = new BufferedWriter.fromWriter(writer);
+    for (var library in libraries) {
+      writer.linkWriter.put(library, librariesWriter.offset);
+      library.write(librariesWriter);
+    }
+
+    final libraryIndexWriter = new BufferedWriter.fromWriter(writer);
+    for (var library in libraries) {
+      libraryIndexWriter.writePackedObject(library.importUri);
+      libraryIndexWriter.writeLinkOffset(library);
+    }
+    BytecodeSizeStatistics.librariesSize += libraryIndexWriter.offset;
 
     BufferedWriter mainWriter;
     if (mainLibrary != null) {
@@ -941,19 +1247,24 @@ class Component {
       mainWriter.writePackedObject(mainLibrary);
     }
 
-    final BufferedWriter objectsWriter = new BufferedWriter.fromWriter(writer);
+    final objectsWriter = new BufferedWriter.fromWriter(writer);
     objectTable.write(objectsWriter);
 
-    final BufferedWriter stringsWriter = new BufferedWriter.fromWriter(writer);
+    final stringsWriter = new BufferedWriter.fromWriter(writer);
     stringTable.write(stringsWriter);
 
     List<_Section> sections = [
       new _Section(0, stringsWriter),
       new _Section(0, objectsWriter),
       new _Section(0, mainWriter),
+      new _Section(libraries.length, libraryIndexWriter),
+      new _Section(libraries.length, librariesWriter),
+      new _Section(classes.length, classesWriter),
       new _Section(members.length, membersWriter),
       new _Section(codes.length, codesWriter),
       new _Section(sourcePositions.length, sourcePositionsWriter),
+      new _Section(sourceFiles.length, sourceFilesWriter),
+      new _Section(lineStarts.length, lineStartsWriter),
       new _Section(localVariables.length, localVariablesWriter),
       new _Section(annotations.length, annotationsWriter),
     ];
@@ -1014,6 +1325,15 @@ class Component {
     reader.readUInt32();
     final mainOffset = reader.readUInt32();
 
+    final librariesNum = reader.readUInt32();
+    final libraryIndexOffset = reader.readUInt32();
+
+    reader.readUInt32();
+    final librariesOffset = reader.readUInt32();
+
+    final classesNum = reader.readUInt32();
+    final classesOffset = reader.readUInt32();
+
     final membersNum = reader.readUInt32();
     final membersOffset = reader.readUInt32();
 
@@ -1022,6 +1342,12 @@ class Component {
 
     final sourcePositionsNum = reader.readUInt32();
     final sourcePositionsOffset = reader.readUInt32();
+
+    final sourceFilesNum = reader.readUInt32();
+    final sourceFilesOffset = reader.readUInt32();
+
+    final lineStartsNum = reader.readUInt32();
+    final lineStartsOffset = reader.readUInt32();
 
     final localVariablesNum = reader.readUInt32();
     final localVariablesOffset = reader.readUInt32();
@@ -1044,9 +1370,27 @@ class Component {
     reader.offset = annotationsStart;
     for (int i = 0; i < annotationsNum; ++i) {
       int offset = reader.offset - annotationsStart;
-      ObjectHandle annot = reader.readPackedObject();
+      AnnotationsDeclaration annot = new AnnotationsDeclaration.read(reader);
       reader.linkReader.setOffset(annot, offset);
       annotations.add(annot);
+    }
+
+    final lineStartsStart = start + lineStartsOffset;
+    reader.offset = lineStartsStart;
+    for (int i = 0; i < lineStartsNum; ++i) {
+      int offset = reader.offset - lineStartsStart;
+      LineStarts ls = new LineStarts.read(reader);
+      reader.linkReader.setOffset(ls, offset);
+      lineStarts.add(ls);
+    }
+
+    final sourceFilesStart = start + sourceFilesOffset;
+    reader.offset = sourceFilesStart;
+    for (int i = 0; i < sourceFilesNum; ++i) {
+      int offset = reader.offset - sourceFilesStart;
+      SourceFile sf = new SourceFile.read(reader);
+      reader.linkReader.setOffset(sf, offset);
+      sourceFiles.add(sf);
     }
 
     final sourcePositionsStart = start + sourcePositionsOffset;
@@ -1085,22 +1429,56 @@ class Component {
       members.add(m);
     }
 
+    final classesStart = start + classesOffset;
+    reader.offset = classesStart;
+    for (int i = 0; i < classesNum; ++i) {
+      int offset = reader.offset - classesStart;
+      ClassDeclaration cls = new ClassDeclaration.read(reader);
+      reader.linkReader.setOffset(cls, offset);
+      classes.add(cls);
+    }
+
+    final librariesStart = start + librariesOffset;
+    reader.offset = librariesStart;
+    for (int i = 0; i < librariesNum; ++i) {
+      int offset = reader.offset - librariesStart;
+      LibraryDeclaration library = new LibraryDeclaration.read(reader);
+      reader.linkReader.setOffset(library, offset);
+      libraries.add(library);
+    }
+
+    final libraryIndexStart = start + libraryIndexOffset;
+    reader.offset = libraryIndexStart;
+    for (int i = 0; i < librariesNum; ++i) {
+      final importUri = reader.readPackedObject();
+      final library = reader.readLinkOffset<LibraryDeclaration>();
+      library.importUri = importUri;
+    }
+
     if (mainOffset != 0) {
       reader.offset = start + mainOffset;
       mainLibrary = reader.readPackedObject();
     }
   }
 
-  String toString() => "\n"
-      "Bytecode"
-      " (version: "
-      "${version == currentBytecodeFormatVersion ? 'stable' : version == futureBytecodeFormatVersion ? 'future' : "v$version"}"
-      ")\n"
-//      "$objectTable\n"
-//      "$stringTable\n"
-      "${mainLibrary != null ? 'Main library: $mainLibrary\n' : ''}"
-//      "${members.join('\n')}\n"
-      ;
+  @override
+  String toString() {
+    final StringBuffer sb = new StringBuffer();
+    sb.write("Bytecode (version: ");
+    if (version == currentBytecodeFormatVersion) {
+      sb.write("stable");
+    } else {
+      sb.write("v$version");
+    }
+    sb.writeln(")");
+    if (mainLibrary != null) {
+      sb.writeln("Main library: $mainLibrary");
+    }
+    for (var library in libraries) {
+      sb.write(library);
+    }
+    return sb.toString();
+  }
 }
 
 void _writeBytecodeInstructions(BufferedWriter writer, List<int> bytecodes) {

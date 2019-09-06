@@ -25,7 +25,7 @@ class DevCompilerConstants {
       TypeEnvironment types, Map<String, String> declaredVariables)
       : _visitor = _ConstantVisitor(types.coreTypes),
         _evaluator = ConstantEvaluator(const DevCompilerConstantsBackend(),
-            declaredVariables, types, false, const _ErrorReporter());
+            declaredVariables, types, const _ErrorReporter());
 
   /// Determines if an expression is constant.
   bool isConstant(Expression e) => _visitor.isConstant(e);

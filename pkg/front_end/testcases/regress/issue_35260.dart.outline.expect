@@ -14,11 +14,11 @@ import "dart:core" as core;
 
 class Supertype extends core::Object {
   static field dynamic _redirecting# = <dynamic>[self::Supertype::•];
-  static factory •() → self::Supertype
+  static factory •() → self::Supertype*
     let dynamic #redirecting_factory = self::X::• in invalid-expression;
 }
 class X extends core::Object implements self::Supertype {
-  constructor •() → self::X
+  constructor •() → self::X*
     ;
 }
 static method main() → dynamic

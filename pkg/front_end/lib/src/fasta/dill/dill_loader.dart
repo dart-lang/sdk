@@ -12,7 +12,7 @@ import '../fasta_codes.dart'
     show SummaryTemplate, Template, templateDillOutlineSummary;
 
 import '../kernel/kernel_builder.dart'
-    show KernelClassBuilder, KernelTypeBuilder, LibraryBuilder;
+    show ClassBuilder, TypeBuilder, LibraryBuilder;
 
 import '../kernel/type_builder_computer.dart' show TypeBuilderComputer;
 
@@ -26,7 +26,7 @@ import 'dill_library_builder.dart' show DillLibraryBuilder;
 
 import 'dill_target.dart' show DillTarget;
 
-class DillLoader extends Loader<Library> {
+class DillLoader extends Loader {
   DillLoader(TargetImplementation target) : super(target);
 
   Template<SummaryTemplate> get outlineSummaryTemplate =>
@@ -61,10 +61,7 @@ class DillLoader extends Loader<Library> {
     if (builder.library == null) {
       unhandled("null", "builder.library", 0, builder.fileUri);
     }
-    builder.library.classes.forEach(builder.addClass);
-    builder.library.procedures.forEach(builder.addMember);
-    builder.library.typedefs.forEach(builder.addTypedef);
-    builder.library.fields.forEach(builder.addMember);
+    builder.markAsReadyToBuild();
   }
 
   Future<Null> buildBody(DillLibraryBuilder builder) {
@@ -74,19 +71,19 @@ class DillLoader extends Loader<Library> {
   void finalizeExports() {
     builders.forEach((Uri uri, LibraryBuilder builder) {
       DillLibraryBuilder library = builder;
-      library.finalizeExports();
+      library.markAsReadyToFinalizeExports();
     });
   }
 
   @override
-  KernelClassBuilder computeClassBuilderFromTargetClass(Class cls) {
+  ClassBuilder computeClassBuilderFromTargetClass(Class cls) {
     Library kernelLibrary = cls.enclosingLibrary;
     LibraryBuilder library = builders[kernelLibrary.importUri];
-    return library[cls.name];
+    return library.lookupLocalMember(cls.name, required: true);
   }
 
   @override
-  KernelTypeBuilder computeTypeBuilder(DartType type) {
+  TypeBuilder computeTypeBuilder(DartType type) {
     return type.accept(new TypeBuilderComputer(this));
   }
 }

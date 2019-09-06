@@ -24,19 +24,30 @@ class NonNullOptOutTest extends DriverResolutionTest {
         sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
 
   test_nnbd_optOut_invalidSyntax() async {
-    assertErrorsInCode('''
+    await assertErrorsInCode('''
 // @dart = 2.2
 // NNBD syntax is not allowed
-f(x, y, z) { (x is String?) ? (x + y) : z; }
-''', [error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 70, 1)]);
+f(x, z) { (x is String?) ? x : z; }
+''', [error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 67, 1)]);
   }
 
   test_nnbd_optOut_late() async {
-    assertNoErrorsInCode('''
+    await assertNoErrorsInCode('''
 // @dart = 2.2
 class C {
   // "late" is allowed as an identifier
   int late;
+}
+''');
+  }
+
+  @failingTest
+  test_nnbd_optOut_transformsOptedInSignatures() async {
+    // Failing because we don't transform opted out signatures.
+    await assertNoErrorsInCode('''
+// @dart = 2.2
+f(String x) {
+  x + null; // OK because we're in a nullable library.
 }
 ''');
   }

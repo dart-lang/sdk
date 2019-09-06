@@ -12,6 +12,11 @@ Monitor::WaitResult MonitorLocker::WaitWithSafepointCheck(Thread* thread,
                                                           int64_t millis) {
   ASSERT(thread == Thread::Current());
   ASSERT(thread->execution_state() == Thread::kThreadInVM);
+#if defined(DEBUG)
+  if (no_safepoint_scope_) {
+    thread->DecrementNoSafepointScopeDepth();
+  }
+#endif
   thread->set_execution_state(Thread::kThreadInBlockedState);
   thread->EnterSafepoint();
   Monitor::WaitResult result = monitor_->Wait(millis);
@@ -26,6 +31,11 @@ Monitor::WaitResult MonitorLocker::WaitWithSafepointCheck(Thread* thread,
     monitor_->Enter();
   }
   thread->set_execution_state(Thread::kThreadInVM);
+#if defined(DEBUG)
+  if (no_safepoint_scope_) {
+    thread->IncrementNoSafepointScopeDepth();
+  }
+#endif
   return result;
 }
 

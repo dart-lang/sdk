@@ -381,7 +381,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
         hashCode: (Token t) => t.lexeme.hashCode);
     expr.accept(new _TokenLocalElementVisitor(map));
     // map and join tokens
-    return tokens.map((Token token) {
+    var result = tokens.map((Token token) {
       String tokenString = token.lexeme;
       // append token's Element id
       Element element = map[token];
@@ -394,6 +394,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
       // done
       return tokenString;
     }).join(_TOKEN_SEPARATOR);
+    return result + _TOKEN_SEPARATOR;
   }
 
   /**
@@ -693,7 +694,7 @@ class _OccurrencesVisitor extends GeneralizingAstVisitor<void> {
       int endTokenIndex =
           countMatches(nodeSource.substring(0, lastIndex), _TOKEN_SEPARATOR);
       Token startToken = nodeTokens[startTokenIndex];
-      Token endToken = nodeTokens[endTokenIndex];
+      Token endToken = nodeTokens[endTokenIndex - 1];
       // add occurrence range
       int start = nodeOffset + startToken.offset;
       int end = nodeOffset + endToken.end;

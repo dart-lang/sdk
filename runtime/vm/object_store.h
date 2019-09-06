@@ -143,6 +143,8 @@ class ObjectPointerVisitor;
   RW(GrowableObjectArray, changed_in_last_reload)                              \
   RW(Class, ffi_pointer_class)                                                 \
   RW(Class, ffi_native_type_class)                                             \
+  RW(Class, ffi_struct_class)                                                  \
+  RW(Object, ffi_as_function_internal)                                         \
 // Please remember the last entry must be referred in the 'to' function below.
 
 // The object store is a per isolate instance which stores references to
@@ -235,7 +237,7 @@ class ObjectStore {
                           DECLARE_OBJECT_STORE_FIELD)
 #undef DECLARE_OBJECT_STORE_FIELD
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ffi_pointer_class_);
+    return reinterpret_cast<RawObject**>(&ffi_as_function_internal_);
   }
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {

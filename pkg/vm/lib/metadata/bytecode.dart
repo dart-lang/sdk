@@ -6,53 +6,26 @@ library vm.metadata.bytecode;
 
 import 'package:kernel/ast.dart'
     show BinarySink, BinarySource, MetadataRepository, Node, TreeNode;
-import 'package:kernel/ast.dart' as ast show Component;
 import '../bytecode/bytecode_serialization.dart'
     show BufferedWriter, BufferedReader, LinkWriter, LinkReader;
-import '../bytecode/declarations.dart' show Component, Members;
+import '../bytecode/declarations.dart' show Component;
 
-abstract class BytecodeMetadata {
-  void write(BufferedWriter writer);
-}
-
-class MembersBytecodeMetadata extends BytecodeMetadata {
-  final Members members;
-
-  MembersBytecodeMetadata(this.members);
-
-  @override
-  void write(BufferedWriter writer) {
-    writer.writeLinkOffset(members);
-  }
-
-  factory MembersBytecodeMetadata.read(BufferedReader reader) {
-    return new MembersBytecodeMetadata(reader.readLinkOffset<Members>());
-  }
-
-  @override
-  String toString() => "\n"
-      "MembersBytecodeMetadata {\n"
-      "$members\n"
-      "}\n";
-}
-
-class ComponentBytecodeMetadata extends BytecodeMetadata {
+class BytecodeMetadata {
   final Component component;
 
-  ComponentBytecodeMetadata(this.component);
+  BytecodeMetadata(this.component);
 
-  @override
   void write(BufferedWriter writer) {
     component.write(writer);
   }
 
-  factory ComponentBytecodeMetadata.read(BufferedReader reader) {
-    return new ComponentBytecodeMetadata(new Component.read(reader));
+  factory BytecodeMetadata.read(BufferedReader reader) {
+    return new BytecodeMetadata(new Component.read(reader));
   }
 
   @override
   String toString() => "\n"
-      "ComponentBytecodeMetadata {\n"
+      "BytecodeMetadata {\n"
       "$component\n"
       "}\n";
 }
@@ -66,19 +39,10 @@ class BytecodeMetadataRepository extends MetadataRepository<BytecodeMetadata> {
   final Map<TreeNode, BytecodeMetadata> mapping =
       <TreeNode, BytecodeMetadata>{};
 
-  Component bytecodeComponent;
-  LinkWriter linkWriter;
-  LinkReader linkReader;
-
   @override
   void writeToBinary(BytecodeMetadata metadata, Node node, BinarySink sink) {
-    if (node is ast.Component) {
-      bytecodeComponent = (metadata as ComponentBytecodeMetadata).component;
-      linkWriter = new LinkWriter();
-    } else {
-      assert(bytecodeComponent != null);
-      assert(linkWriter != null);
-    }
+    final bytecodeComponent = metadata.component;
+    final linkWriter = new LinkWriter();
     final writer = new BufferedWriter(
         bytecodeComponent.version,
         bytecodeComponent.stringTable,
@@ -91,22 +55,10 @@ class BytecodeMetadataRepository extends MetadataRepository<BytecodeMetadata> {
 
   @override
   BytecodeMetadata readFromBinary(Node node, BinarySource source) {
-    if (node is ast.Component) {
-      linkReader = new LinkReader();
-      final reader = new BufferedReader(
-          -1, null, null, linkReader, source.bytes,
-          baseOffset: source.currentOffset);
-      bytecodeComponent = new Component.read(reader);
-      return new ComponentBytecodeMetadata(bytecodeComponent);
-    } else {
-      final reader = new BufferedReader(
-          bytecodeComponent.version,
-          bytecodeComponent.stringTable,
-          bytecodeComponent.objectTable,
-          linkReader,
-          source.bytes,
-          baseOffset: source.currentOffset);
-      return new MembersBytecodeMetadata.read(reader);
-    }
+    final linkReader = new LinkReader();
+    final reader = new BufferedReader(-1, null, null, linkReader, source.bytes,
+        baseOffset: source.currentOffset);
+    final bytecodeComponent = new Component.read(reader);
+    return new BytecodeMetadata(bytecodeComponent);
   }
 }

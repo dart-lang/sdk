@@ -20,7 +20,7 @@ class Class1a {
   int field1;
 }
 
-/*element: method1:FieldSet=[name=Class1a.field1]*/
+/*member: method1:FieldSet=[name=Class1a.field1]*/
 @pragma('dart2js:noInline')
 method1(Class1a c) {
   c.field1 = 42;
@@ -33,7 +33,7 @@ class Class2a {
 
 class Class2b extends Class2a {}
 
-/*element: method2:FieldSet=[name=Class2a.field2]*/
+/*member: method2:FieldSet=[name=Class2a.field2]*/
 @pragma('dart2js:noInline')
 method2(Class2a c) {
   c.field2 = 42;
@@ -70,7 +70,7 @@ class Class5a {
   int field5;
 }
 
-/*element: method5:FieldSet=[removed=field5]*/
+/*member: method5:FieldSet=[removed=field5]*/
 @pragma('dart2js:noInline')
 method5(Class5a c) {
   c.field5 = 42;
@@ -82,7 +82,7 @@ class Class6a {
 
 class Class6b extends Class6a {}
 
-/*element: method6:FieldSet=[removed=field6]*/
+/*member: method6:FieldSet=[removed=field6]*/
 @pragma('dart2js:noInline')
 method6(Class6a c) {
   c.field6 = 42;

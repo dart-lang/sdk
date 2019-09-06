@@ -7,8 +7,8 @@ import 'package:expect/expect.dart';
 /*strong.class: global#LinkedHashMap:deps=[Map],direct,explicit=[LinkedHashMap<LinkedHashMap.K,LinkedHashMap.V>],implicit=[LinkedHashMap.K,LinkedHashMap.V],needsArgs*/
 /*omit.class: global#LinkedHashMap:deps=[Map],needsArgs*/
 
-/*strong.element: method:implicit=[method.T],indirect,needsArgs*/
-/*omit.element: method:needsArgs*/
+/*strong.member: method:implicit=[method.T],indirect,needsArgs*/
+/*omit.member: method:needsArgs*/
 @pragma('dart2js:noInline')
 method<T>() {
   return () => <T, int>{};

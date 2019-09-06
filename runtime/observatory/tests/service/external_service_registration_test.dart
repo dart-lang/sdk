@@ -14,7 +14,7 @@ var tests = <IsolateTest>[
     VM vm = isolate.owner;
 
     final serviceEvents =
-        (await vm.getEventStream('_Service')).asBroadcastStream();
+        (await vm.getEventStream('Service')).asBroadcastStream();
 
     expect(vm.services, isEmpty,
         reason: 'No service should be registered at startup');
@@ -45,7 +45,7 @@ var tests = <IsolateTest>[
       socket.add({
         'jsonrpc': '2.0',
         'id': 1,
-        'method': '_registerService',
+        'method': 'registerService',
         'params': {'service': serviceName, 'alias': serviceAlias}
       });
 
@@ -72,7 +72,7 @@ var tests = <IsolateTest>[
       socket.add({
         'jsonrpc': '2.0',
         'id': 1,
-        'method': '_registerService',
+        'method': 'registerService',
         'params': {'service': serviceName + '2', 'alias': serviceAlias + '2'}
       });
 
@@ -99,7 +99,7 @@ var tests = <IsolateTest>[
       socket.add({
         'jsonrpc': '2.0',
         'id': 1,
-        'method': '_registerService',
+        'method': 'registerService',
         'params': {'service': serviceName, 'alias': serviceAlias}
       });
 

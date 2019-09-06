@@ -22,7 +22,7 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
     if (index < 0 || index >= len) {
       throw RangeError.index(index, this, 'index', null, len);
     }
-    return JS('int', r'#.charCodeAt(#)', this, index);
+    return JS<int>('!', r'#.charCodeAt(#)', this, index);
   }
 
   @notNull
@@ -52,7 +52,7 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
 
   @notNull
   String operator +(@nullCheck String other) {
-    return JS('String', r'# + #', this, other);
+    return JS<String>('!', r'# + #', this, other);
   }
 
   @notNull
@@ -148,16 +148,17 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
   bool startsWith(Pattern pattern, [@nullCheck int index = 0]) {
     // Suppress null check on length and all but the first
     // reference to index.
-    int length = JS('int', '#.length', this);
-    if (index < 0 || JS('int', '#', index) > length) {
+    int length = JS<int>('!', '#.length', this);
+    if (index < 0 || JS<int>('!', '#', index) > length) {
       throw RangeError.range(index, 0, this.length);
     }
     if (pattern is String) {
       String other = pattern;
-      int otherLength = JS('int', '#.length', other);
+      int otherLength = JS<int>('!', '#.length', other);
       int endIndex = index + otherLength;
       if (endIndex > length) return false;
-      return other == JS('String', r'#.substring(#, #)', this, index, endIndex);
+      return other ==
+          JS<String>('!', r'#.substring(#, #)', this, index, endIndex);
     }
     return pattern.matchAsPrefix(this, index) != null;
   }
@@ -169,17 +170,17 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
     if (startIndex < 0) throw RangeError.value(startIndex);
     if (startIndex > endIndex) throw RangeError.value(startIndex);
     if (endIndex > length) throw RangeError.value(endIndex);
-    return JS('String', r'#.substring(#, #)', this, startIndex, endIndex);
+    return JS<String>('!', r'#.substring(#, #)', this, startIndex, endIndex);
   }
 
   @notNull
   String toLowerCase() {
-    return JS('String', r'#.toLowerCase()', this);
+    return JS<String>('!', r'#.toLowerCase()', this);
   }
 
   @notNull
   String toUpperCase() {
-    return JS('String', r'#.toUpperCase()', this);
+    return JS<String>('!', r'#.toUpperCase()', this);
   }
 
   // Characters with Whitespace property (Unicode 6.3).
@@ -304,7 +305,7 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
       endIndex = _skipTrailingWhitespace(result, endIndex - 1);
     }
     if (startIndex == 0 && endIndex == length) return result;
-    return JS('String', r'#.substring(#, #)', result, startIndex, endIndex);
+    return JS<String>('!', r'#.substring(#, #)', result, startIndex, endIndex);
   }
 
   // Dart2js can't use JavaScript trimLeft directly,
@@ -318,8 +319,8 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
     // the beginning of the string.
     String result;
     int startIndex = 0;
-    if (JS('bool', 'typeof #.trimLeft != "undefined"', this)) {
-      result = JS('String', '#.trimLeft()', this);
+    if (JS<bool>('!', 'typeof #.trimLeft != "undefined"', this)) {
+      result = JS<String>('!', '#.trimLeft()', this);
       if (result.length == 0) return result;
       int firstCode = result.codeUnitAt(0);
       if (firstCode == NEL) {
@@ -331,7 +332,7 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
     }
     if (startIndex == 0) return result;
     if (startIndex == result.length) return "";
-    return JS('String', r'#.substring(#)', result, startIndex);
+    return JS<String>('!', r'#.substring(#)', result, startIndex);
   }
 
   // Dart2js can't use JavaScript trimRight directly,
@@ -348,8 +349,8 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
     int endIndex = 0;
     // trimRight is implemented by Firefox and Chrome/Blink,
     // so use it if it is there.
-    if (JS('bool', 'typeof #.trimRight != "undefined"', this)) {
-      result = JS('String', '#.trimRight()', this);
+    if (JS<bool>('!', 'typeof #.trimRight != "undefined"', this)) {
+      result = JS<String>('!', '#.trimRight()', this);
       endIndex = result.length;
       if (endIndex == 0) return result;
       int lastCode = result.codeUnitAt(endIndex - 1);
@@ -363,14 +364,14 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
 
     if (endIndex == result.length) return result;
     if (endIndex == 0) return "";
-    return JS('String', r'#.substring(#, #)', result, 0, endIndex);
+    return JS<String>('!', r'#.substring(#, #)', result, 0, endIndex);
   }
 
   @notNull
   String operator *(@nullCheck int times) {
     if (0 >= times) return '';
     if (times == 1 || this.length == 0) return this;
-    if (times != JS('int', '# >>> 0', times)) {
+    if (times != JS<int>('!', '# >>> 0', times)) {
       // times >= 2^32. We can't create a string that big.
       throw const OutOfMemoryError();
     }
@@ -378,7 +379,7 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
     String s = this;
     while (true) {
       if (times & 1 == 1) result = s + result;
-      times = JS('int', '# >>> 1', times);
+      times = JS<int>('!', '# >>> 1', times);
       if (times == 0) break;
       s += s;
     }
@@ -461,7 +462,7 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
 
   @notNull
   int compareTo(@nullCheck String other) {
-    return this == other ? 0 : JS('bool', r'# < #', this, other) ? -1 : 1;
+    return this == other ? 0 : JS<bool>('!', r'# < #', this, other) ? -1 : 1;
   }
 
   // Note: if you change this, also change the function [S].
@@ -483,10 +484,10 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
     for (int i = 0; i < length; i++) {
       hash = 0x1fffffff & (hash + JS<int>('!', r'#.charCodeAt(#)', this, i));
       hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-      hash = JS('int', '# ^ (# >> 6)', hash, hash);
+      hash = JS<int>('!', '# ^ (# >> 6)', hash, hash);
     }
     hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    hash = JS('int', '# ^ (# >> 11)', hash, hash);
+    hash = JS<int>('!', '# ^ (# >> 11)', hash, hash);
     return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
   }
 
@@ -498,9 +499,9 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
 
   @notNull
   String operator [](@nullCheck int index) {
-    if (index >= JS('int', '#.length', this) || index < 0) {
+    if (index >= JS<int>('!', '#.length', this) || index < 0) {
       throw diagnoseIndexError(this, index);
     }
-    return JS('String', '#[#]', this, index);
+    return JS<String>('!', '#[#]', this, index);
   }
 }

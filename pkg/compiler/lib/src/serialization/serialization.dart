@@ -187,6 +187,35 @@ abstract class DataSink {
   void writeTreeNodeMap<V>(Map<ir.TreeNode, V> map, void f(V value),
       {bool allowNull: false});
 
+  /// Writes a reference to the kernel tree node [value] in the known [context]
+  /// to this data sink.
+  void writeTreeNodeInContext(ir.TreeNode value);
+
+  /// Writes a reference to the potentially `null` kernel tree node [value] in
+  /// the known [context] to this data sink.
+  ///
+  /// This is a convenience method to be used together with
+  /// [DataSource.readTreeNodeOrNullInContext].
+  void writeTreeNodeOrNullInContext(ir.TreeNode value);
+
+  /// Writes references to the kernel tree node [values] in the known [context]
+  /// to this data sink. If [allowNull] is `true`, [values] is allowed to be
+  /// `null`.
+  ///
+  /// This is a convenience method to be used together with
+  /// [DataSource.readTreeNodesInContext].
+  void writeTreeNodesInContext(Iterable<ir.TreeNode> values,
+      {bool allowNull: false});
+
+  /// Writes the [map] from references to kernel tree nodes to [V] values in the
+  /// known [context] to this data sink, calling [f] to write each value to the
+  /// data sink. If [allowNull] is `true`, [map] is allowed to be `null`.
+  ///
+  /// This is a convenience method to be used together with
+  /// [DataSource.readTreeNodeMapInContext].
+  void writeTreeNodeMapInContext<V>(Map<ir.TreeNode, V> map, void f(V value),
+      {bool allowNull: false});
+
   /// Writes a reference to the kernel type parameter node [value] to this data
   /// sink.
   void writeTypeParameterNode(ir.TypeParameter value);
@@ -297,8 +326,12 @@ abstract class DataSink {
   ///
   /// This is a convenience method to be used together with
   /// [DataSource.readMemberMap].
-  void writeMemberMap<V>(Map<MemberEntity, V> map, void f(V value),
+  void writeMemberMap<V>(
+      Map<MemberEntity, V> map, void f(MemberEntity member, V value),
       {bool allowNull: false});
+
+  /// Writes a reference to the indexed type variable [value] to this data sink.
+  void writeTypeVariable(IndexedTypeVariable value);
 
   /// Writes a reference to the local [value] to this data sink.
   void writeLocal(Local local);
@@ -406,6 +439,11 @@ abstract class DataSink {
   /// Register a [CodegenWriter] with this data sink to support serialization
   /// of codegen only data.
   void registerCodegenWriter(CodegenWriter writer);
+
+  /// Invoke [f] in the context of [member]. This sets up support for
+  /// serialization of `ir.TreeNode`s using the `writeTreeNode*InContext`
+  /// methods.
+  void inMemberContext(ir.Member member, void f());
 }
 
 /// Interface for deserialization.
@@ -445,6 +483,11 @@ abstract class DataSource {
   /// Unregisters the [CodegenReader] from this data source to remove support
   /// for deserialization of codegen only data.
   void deregisterCodegenReader(CodegenReader reader);
+
+  /// Invoke [f] in the context of [member]. This sets up support for
+  /// deserialization of `ir.TreeNode`s using the `readTreeNode*InContext`
+  /// methods.
+  T inMemberContext<T>(ir.Member member, T f());
 
   /// Reads a reference to an [E] value from this data source. If the value has
   /// not yet been deserialized, [f] is called to deserialize the value itself.
@@ -577,6 +620,33 @@ abstract class DataSource {
   Map<K, V> readTreeNodeMap<K extends ir.TreeNode, V>(V f(),
       {bool emptyAsNull: false});
 
+  /// Reads a reference to a kernel tree node in the known [context] from this
+  /// data source.
+  ir.TreeNode readTreeNodeInContext();
+
+  /// Reads a reference to a potentially `null` kernel tree node in the known
+  /// [context] from this data source.
+  ir.TreeNode readTreeNodeOrNullInContext();
+
+  /// Reads a list of references to kernel tree nodes in the known [context]
+  /// from this data source. If [emptyAsNull] is `true`, `null` is returned
+  /// instead of an empty list.
+  ///
+  /// This is a convenience method to be used together with
+  /// [DataSink.writeTreeNodesInContext].
+  List<E> readTreeNodesInContext<E extends ir.TreeNode>(
+      {bool emptyAsNull: false});
+
+  /// Reads a map from kernel tree nodes to [V] values in the known [context]
+  /// from this data source, calling [f] to read each value from the data
+  /// source. If [emptyAsNull] is `true`, `null` is returned instead of an empty
+  /// map.
+  ///
+  /// This is a convenience method to be used together with
+  /// [DataSink.writeTreeNodeMapInContext].
+  Map<K, V> readTreeNodeMapInContext<K extends ir.TreeNode, V>(V f(),
+      {bool emptyAsNull: false});
+
   /// Reads a reference to a kernel type parameter node from this data source.
   ir.TypeParameter readTypeParameterNode();
 
@@ -668,8 +738,11 @@ abstract class DataSource {
   ///
   /// This is a convenience method to be used together with
   /// [DataSink.writeMemberMap].
-  Map<K, V> readMemberMap<K extends MemberEntity, V>(V f(),
+  Map<K, V> readMemberMap<K extends MemberEntity, V>(V f(MemberEntity member),
       {bool emptyAsNull: false});
+
+  /// Reads a reference to an indexed type variable from this data source.
+  IndexedTypeVariable readTypeVariable();
 
   /// Reads a reference to a local from this data source.
   Local readLocal();

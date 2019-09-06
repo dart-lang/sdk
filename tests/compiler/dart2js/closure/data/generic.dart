@@ -3,44 +3,44 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class Class1<T> {
-  /*element: Class1.field:hasThis*/
+  /*member: Class1.field:hasThis*/
   var field = /*fields=[T],free=[T],hasThis*/ () => T;
 
-  /*element: Class1.funcField:hasThis*/
+  /*member: Class1.funcField:hasThis*/
   Function funcField;
 
-  /*element: Class1.:hasThis*/
+  /*member: Class1.:hasThis*/
   Class1() {
     field = /*fields=[T],free=[T],hasThis*/ () => T;
   }
 
-  /*element: Class1.setFunc:hasThis*/
+  /*member: Class1.setFunc:hasThis*/
   Class1.setFunc(this.funcField);
 
-  /*element: Class1.fact:*/
+  /*member: Class1.fact:*/
   factory Class1.fact() => new Class1<T>();
 
-  /*element: Class1.fact2:*/
+  /*member: Class1.fact2:*/
   factory Class1.fact2() =>
       new Class1.setFunc(/*fields=[T],free=[T]*/ () => new Set<T>());
 
-  /*element: Class1.method1:hasThis*/
+  /*member: Class1.method1:hasThis*/
   method1() => T;
 
-  /*element: Class1.method2:hasThis*/
+  /*member: Class1.method2:hasThis*/
   method2() {
     return /*fields=[this],free=[this],hasThis*/ () => T;
   }
 
-  /*element: Class1.method3:hasThis*/
+  /*member: Class1.method3:hasThis*/
   method3<S>() => S;
 
-  /*element: Class1.method4:hasThis*/
+  /*member: Class1.method4:hasThis*/
   method4<S>() {
     return /*fields=[S],free=[S],hasThis*/ () => S;
   }
 
-  /*element: Class1.method5:hasThis*/
+  /*member: Class1.method5:hasThis*/
   method5() {
     /*hasThis*/ local<S>() {
       return /*fields=[S],free=[S],hasThis*/ () => S;
@@ -49,7 +49,7 @@ class Class1<T> {
     return local<double>();
   }
 
-  /*element: Class1.method6:hasThis*/
+  /*member: Class1.method6:hasThis*/
   method6<S>() {
     /*fields=[S],free=[S],hasThis*/ local<U>() {
       return /*fields=[S,U],free=[S,U],hasThis*/ () => '$S$U';
@@ -67,15 +67,15 @@ class Class1<T> {
     return local2(local<double>());
   }
 
-  /*element: Class1.staticMethod1:*/
+  /*member: Class1.staticMethod1:*/
   static staticMethod1<S>() => S;
 
-  /*element: Class1.staticMethod2:*/
+  /*member: Class1.staticMethod2:*/
   static staticMethod2<S>() {
     return /*fields=[S],free=[S]*/ () => S;
   }
 
-  /*element: Class1.staticMethod3:*/
+  /*member: Class1.staticMethod3:*/
   static staticMethod3() {
     local<S>() {
       return /*fields=[S],free=[S]*/ () => S;
@@ -84,7 +84,7 @@ class Class1<T> {
     return local<double>();
   }
 
-  /*element: Class1.staticMethod4:*/
+  /*member: Class1.staticMethod4:*/
   static staticMethod4<S>() {
     /*fields=[S],free=[S]*/ local<U>() {
       return /*fields=[S,U],free=[S,U]*/ () => '$S$U';
@@ -97,15 +97,15 @@ class Class1<T> {
   }
 }
 
-/*element: topLevelMethod1:*/
+/*member: topLevelMethod1:*/
 topLevelMethod1<S>() => S;
 
-/*element: topLevelMethod2:*/
+/*member: topLevelMethod2:*/
 topLevelMethod2<S>() {
   return /*fields=[S],free=[S]*/ () => S;
 }
 
-/*element: topLevelMethod3:*/
+/*member: topLevelMethod3:*/
 topLevelMethod3() {
   local<S>() {
     return /*fields=[S],free=[S]*/ () => S;
@@ -114,7 +114,7 @@ topLevelMethod3() {
   return local<double>();
 }
 
-/*element: topLevelMethod4:*/
+/*member: topLevelMethod4:*/
 topLevelMethod4<S>() {
   /*fields=[S],free=[S]*/ local<U>() {
     return /*fields=[S,U],free=[S,U]*/ () => '$S$U';
@@ -126,7 +126,7 @@ topLevelMethod4<S>() {
   return local2(local<double>());
 }
 
-/*element: main:*/
+/*member: main:*/
 main() {
   new Class1<int>().method1();
   new Class1<int>.fact().method2();

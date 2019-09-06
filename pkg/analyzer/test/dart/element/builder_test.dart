@@ -274,7 +274,7 @@ class C {
             null,
             AstTestFactory.typeName4('int'),
             [AstTestFactory.variableDeclaration('V')]);
-    CompilationUnit unit = astFactory.compilationUnit2(
+    CompilationUnit unit = astFactory.compilationUnit(
         beginToken: topLevelVariableDeclaration.beginToken,
         declarations: [topLevelVariableDeclaration],
         endToken: topLevelVariableDeclaration.endToken,

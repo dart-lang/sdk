@@ -2260,10 +2260,10 @@ class SourcesChangedEvent {
   }
 
   /// Return `true` if any sources were added.
-  bool get wereSourcesAdded => _changeSet.addedSources.length > 0;
+  bool get wereSourcesAdded => _changeSet.addedSources.isNotEmpty;
 
   /// Return `true` if any sources were removed or deleted.
   bool get wereSourcesRemoved =>
-      _changeSet.removedSources.length > 0 ||
-      _changeSet.removedContainers.length > 0;
+      _changeSet.removedSources.isNotEmpty ||
+      _changeSet.removedContainers.isNotEmpty;
 }

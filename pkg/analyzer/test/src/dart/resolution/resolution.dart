@@ -148,6 +148,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(element.enclosingElement, expectedEnclosing);
   }
 
+  @Deprecated('Use assertErrorsInCode')
   Future<void> assertErrorCodesInCode(
       String code, List<ErrorCode> errors) async {
     addTestFile(code);
@@ -219,6 +220,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
       ClassElement expectedClassElement, String expectedType,
       {String constructorName,
       bool expectedConstructorMember: false,
+      Map<String, String> expectedSubstitution,
       PrefixElement expectedPrefix}) {
     String expectedClassName = expectedClassElement.name;
 
@@ -250,7 +252,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
     if (expectedConstructorMember) {
       expect(actualConstructorElement, const TypeMatcher<Member>());
-      assertMember(creation, expectedType, expectedConstructorElement);
+      assertMember(creation, expectedConstructorElement, expectedSubstitution);
     } else {
       assertElement(creation, expectedConstructorElement);
     }
@@ -272,11 +274,24 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(actual, isDynamicType);
   }
 
+  void assertInvokeTypeNull(BinaryExpression node) {
+    DartType actual = node.staticInvokeType;
+    expect(actual, isNull);
+  }
+
   void assertMember(
-      Expression node, String expectedDefiningType, Element expectedBase) {
+    Expression node,
+    Element expectedBase,
+    Map<String, String> expectedSubstitution,
+  ) {
     Member actual = getNodeElement(node);
-    expect(typeString(actual.definingType), expectedDefiningType);
+
     expect(actual.baseElement, same(expectedBase));
+
+    var actualMapString = actual.substitution.map.map(
+      (k, v) => MapEntry(k.name, '$v'),
+    );
+    expect(actualMapString, expectedSubstitution);
   }
 
   void assertMethodInvocation(
@@ -398,13 +413,10 @@ mixin ResolutionTest implements ResourceProviderMixin {
       var name = node.name as SimpleIdentifier;
       assertElement(name, expectedElement);
       // TODO(scheglov) Should this be null?
-      assertType(name, expectedType);
+//      assertType(name, expectedType);
     } else {
       var name = node.name as PrefixedIdentifier;
-
-      assertElement(name.prefix, expectedPrefix);
-      expect(name.prefix.staticType, isNull);
-
+      assertImportPrefix(name.prefix, expectedPrefix);
       assertElement(name.identifier, expectedElement);
 
       // TODO(scheglov) This should be null, but it is not.
@@ -419,18 +431,26 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(node.staticType, isNull);
   }
 
-  ExpectedError error(ErrorCode code, int offset, int length) =>
-      new ExpectedError(code, offset, length);
+  ExpectedError error(ErrorCode code, int offset, int length,
+          {List<ExpectedMessage> expectedMessages =
+              const <ExpectedMessage>[]}) =>
+      ExpectedError(code, offset, length, expectedMessages: expectedMessages);
 
   Element getNodeElement(AstNode node) {
     if (node is Annotation) {
       return node.element;
     } else if (node is AssignmentExpression) {
       return node.staticElement;
+    } else if (node is BinaryExpression) {
+      return node.staticElement;
     } else if (node is Declaration) {
       return node.declaredElement;
+    } else if (node is ExtensionOverride) {
+      return node.staticElement;
     } else if (node is FormalParameter) {
       return node.declaredElement;
+    } else if (node is FunctionExpressionInvocation) {
+      return node.staticElement;
     } else if (node is Identifier) {
       return node.staticElement;
     } else if (node is IndexExpression) {
@@ -445,10 +465,15 @@ mixin ResolutionTest implements ResourceProviderMixin {
       return node.staticElement;
     } else if (node is PropertyAccess) {
       return node.propertyName.staticElement;
+    } else if (node is TypeName) {
+      return node.name.staticElement;
     } else {
       fail('Unsupported node: (${node.runtimeType}) $node');
     }
   }
+
+  ExpectedMessage message(String filePath, int offset, int length) =>
+      ExpectedMessage(convertPath(filePath), offset, length);
 
   Future<ResolvedUnitResult> resolveFile(String path);
 

@@ -105,6 +105,27 @@ abstract class ParseResult implements AnalysisResultWithErrors {
   CompilationUnit get unit;
 }
 
+/// The result of parsing of a single file. The errors returned include only
+/// those discovered during scanning and parsing.
+///
+/// Similar to [ParsedUnitResult], but does not allow access to an analysis
+/// session.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class ParseStringResult {
+  /// The content of the file that was scanned and parsed.
+  String get content;
+
+  /// The analysis errors that were computed during analysis.
+  List<AnalysisError> get errors;
+
+  /// Information about lines in the content.
+  LineInfo get lineInfo;
+
+  /// The parsed, unresolved compilation unit for the [content].
+  CompilationUnit get unit;
+}
+
 /// The result of building resolved AST(s) for the whole library.
 ///
 /// Clients may not extend, implement or mix-in this class.

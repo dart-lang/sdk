@@ -14,8 +14,8 @@ class ClosureScopeModel {
       <ir.Node, KernelCapturedScope>{};
 
   /// Collected [ScopeInfo] data for nodes.
-  Map<ir.TreeNode, KernelScopeInfo> closuresToGenerate =
-      <ir.TreeNode, KernelScopeInfo>{};
+  Map<ir.LocalFunction, KernelScopeInfo> closuresToGenerate =
+      <ir.LocalFunction, KernelScopeInfo>{};
 
   @override
   String toString() {
@@ -227,8 +227,7 @@ enum VariableUseKind {
 class VariableUse {
   final VariableUseKind kind;
   final ir.Member member;
-  final ir.TreeNode /*ir.FunctionDeclaration|ir.FunctionExpression*/
-      localFunction;
+  final ir.LocalFunction localFunction;
   final ir.MethodInvocation invocation;
   final ir.Instantiation instantiation;
 
@@ -248,10 +247,7 @@ class VariableUse {
       : this.kind = VariableUseKind.localParameter,
         this.member = null,
         this.invocation = null,
-        this.instantiation = null {
-    assert(localFunction is ir.FunctionDeclaration ||
-        localFunction is ir.FunctionExpression);
-  }
+        this.instantiation = null;
 
   VariableUse.memberReturnType(this.member)
       : this.kind = VariableUseKind.memberReturnType,
@@ -263,10 +259,7 @@ class VariableUse {
       : this.kind = VariableUseKind.localReturnType,
         this.member = null,
         this.invocation = null,
-        this.instantiation = null {
-    assert(localFunction is ir.FunctionDeclaration ||
-        localFunction is ir.FunctionExpression);
-  }
+        this.instantiation = null;
 
   VariableUse.constructorTypeArgument(this.member)
       : this.kind = VariableUseKind.constructorTypeArgument,
@@ -289,10 +282,7 @@ class VariableUse {
   VariableUse.localTypeArgument(this.localFunction, this.invocation)
       : this.kind = VariableUseKind.localTypeArgument,
         this.member = null,
-        this.instantiation = null {
-    assert(localFunction is ir.FunctionDeclaration ||
-        localFunction is ir.FunctionExpression);
-  }
+        this.instantiation = null;
 
   VariableUse.instantiationTypeArgument(this.instantiation)
       : this.kind = VariableUseKind.instantiationTypeArgument,
@@ -388,9 +378,7 @@ class TypeVariableTypeWithContext implements ir.Node {
     } else {
       // We have a generic local function type variable, like `T` in
       // `m() { local<T>() { ... } ... }`.
-      assert(
-          typeDeclaration.parent is ir.FunctionExpression ||
-              typeDeclaration.parent is ir.FunctionDeclaration,
+      assert(typeDeclaration.parent is ir.LocalFunction,
           "Unexpected type declaration: $typeDeclaration");
       kind = TypeVariableKind.local;
       typeDeclaration = typeDeclaration.parent;

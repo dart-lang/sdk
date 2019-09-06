@@ -17,6 +17,16 @@ main() {
 
 @reflectiveTest
 class CompletionTest extends AbstractLspAnalysisServerTest {
+  expectAutoImportCompletion(List<CompletionItem> items, String file) {
+    expect(
+      items.singleWhere(
+        (c) => c.detail?.contains("Auto import from '$file'") ?? false,
+        orElse: () => null,
+      ),
+      isNotNull,
+    );
+  }
+
   test_completionKinds_default() async {
     newFile(join(projectFolderPath, 'file.dart'));
     newFolder(join(projectFolderPath, 'folder'));
@@ -219,10 +229,27 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     final item = res.singleWhere((c) => c.label == 'abcdefghij');
     expect(item.insertTextFormat,
         anyOf(equals(InsertTextFormat.PlainText), isNull));
-    // ignore: deprecated_member_use_from_same_package
     expect(item.insertText, anyOf(equals('abcdefghij'), isNull));
     final updated = applyTextEdits(withoutMarkers(content), [item.textEdit]);
     expect(updated, contains('a.abcdefghij'));
+  }
+
+  test_parensNotInFilterTextInsertText() async {
+    final content = '''
+    class MyClass {}
+
+    main() {
+      MyClass a = new MyCla^
+    }
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    expect(res.any((c) => c.label == 'MyClass()'), isTrue);
+    final item = res.singleWhere((c) => c.label == 'MyClass()');
+    expect(item.filterText, equals('MyClass'));
+    expect(item.insertText, equals('MyClass'));
   }
 
   test_suggestionSets() async {
@@ -294,6 +321,300 @@ main() {
   InOtherFile
 }
     '''));
+  }
+
+  test_suggestionSets_doesNotFilterSymbolsWithSameName() async {
+    // Classes here are not re-exports, so should not be filtered out.
+    newFile(
+      join(projectFolderPath, 'source_file1.dart'),
+      content: 'class MyDuplicatedClass {}',
+    );
+    newFile(
+      join(projectFolderPath, 'source_file2.dart'),
+      content: 'class MyDuplicatedClass {}',
+    );
+    newFile(
+      join(projectFolderPath, 'source_file3.dart'),
+      content: 'class MyDuplicatedClass {}',
+    );
+
+    final content = '''
+main() {
+  MyDuplicated^
+}
+    ''';
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await initialize(
+        workspaceCapabilities:
+            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+
+    final completions =
+        res.where((c) => c.label == 'MyDuplicatedClass').toList();
+    expect(completions, hasLength(3));
+
+    // Resolve the completions so we can get the auto-import text.
+    final resolvedCompletions =
+        await Future.wait(completions.map(resolveCompletion));
+
+    expectAutoImportCompletion(resolvedCompletions, '../source_file1.dart');
+    expectAutoImportCompletion(resolvedCompletions, '../source_file2.dart');
+    expectAutoImportCompletion(resolvedCompletions, '../source_file3.dart');
+  }
+
+  test_suggestionSets_enumValues() async {
+    newFile(
+      join(projectFolderPath, 'source_file.dart'),
+      content: '''
+      enum MyExportedEnum { One, Two }
+      ''',
+    );
+
+    final content = '''
+main() {
+  var a = MyExported^
+}
+    ''';
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await initialize(
+        workspaceCapabilities:
+            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+
+    final enumCompletions =
+        res.where((c) => c.label.startsWith('MyExportedEnum')).toList();
+    expect(
+        enumCompletions.map((c) => c.label),
+        unorderedEquals(
+            ['MyExportedEnum', 'MyExportedEnum.One', 'MyExportedEnum.Two']));
+
+    final completion =
+        enumCompletions.singleWhere((c) => c.label == 'MyExportedEnum.One');
+
+    // Resolve the completion item (via server) to get its edits. This is the
+    // LSP's equiv of getSuggestionDetails() and is invoked by LSP clients to
+    // populate additional info (in our case, the additional edits for inserting
+    // the import).
+    final resolved = await resolveCompletion(completion);
+    expect(resolved, isNotNull);
+
+    // Ensure the detail field was update to show this will auto-import.
+    expect(
+        resolved.detail, startsWith("Auto import from '../source_file.dart'"));
+
+    // Ensure the edit was added on.
+    expect(resolved.textEdit, isNotNull);
+
+    // Apply both the main completion edit and the additionalTextEdits atomically.
+    final newContent = applyTextEdits(
+      withoutMarkers(content),
+      [resolved.textEdit].followedBy(resolved.additionalTextEdits).toList(),
+    );
+
+    // Ensure both edits were made - the completion, and the inserted import.
+    expect(newContent, equals('''
+import '../source_file.dart';
+
+main() {
+  var a = MyExportedEnum.One
+}
+    '''));
+  }
+
+  test_suggestionSets_enumValuesAlreadyImported() async {
+    newFile(
+      join(projectFolderPath, 'source_file.dart'),
+      content: '''
+      enum MyExportedEnum { One, Two }
+      ''',
+    );
+    newFile(
+      join(projectFolderPath, 'reexport1.dart'),
+      content: '''
+      export 'source_file.dart';
+      ''',
+    );
+    newFile(
+      join(projectFolderPath, 'reexport2.dart'),
+      content: '''
+      export 'source_file.dart';
+      ''',
+    );
+
+    final content = '''
+import '../reexport1.dart';
+
+main() {
+  var a = MyExported^
+}
+    ''';
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await initialize(
+        workspaceCapabilities:
+            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+
+    final completions =
+        res.where((c) => c.label == 'MyExportedEnum.One').toList();
+    expect(completions, hasLength(1));
+    final resolved = await resolveCompletion(completions.first);
+    // It should not include auto-import text since it's already imported.
+    expect(resolved.detail, isNull);
+  }
+
+  test_suggestionSets_filtersOutAlreadyImportedSymbols() async {
+    newFile(
+      join(projectFolderPath, 'source_file.dart'),
+      content: '''
+      class MyExportedClass {}
+      ''',
+    );
+    newFile(
+      join(projectFolderPath, 'reexport1.dart'),
+      content: '''
+      export 'source_file.dart';
+      ''',
+    );
+    newFile(
+      join(projectFolderPath, 'reexport2.dart'),
+      content: '''
+      export 'source_file.dart';
+      ''',
+    );
+
+    final content = '''
+import '../reexport1.dart';
+
+main() {
+  MyExported^
+}
+    ''';
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await initialize(
+        workspaceCapabilities:
+            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+
+    final completions = res.where((c) => c.label == 'MyExportedClass').toList();
+    expect(completions, hasLength(1));
+    final resolved = await resolveCompletion(completions.first);
+    // It should not include auto-import text since it's already imported.
+    expect(resolved.detail, isNull);
+  }
+
+  test_suggestionSets_namedConstructors() async {
+    newFile(
+      join(projectFolderPath, 'other_file.dart'),
+      content: '''
+      /// This class is in another file.
+      class InOtherFile {
+        InOtherFile.fromJson() {}
+      }
+      ''',
+    );
+
+    final content = '''
+main() {
+  var a = InOtherF^
+}
+    ''';
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await initialize(
+        workspaceCapabilities:
+            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+
+    // Find the completion for the class in the other file.
+    final completion =
+        res.singleWhere((c) => c.label == 'InOtherFile.fromJson()');
+    expect(completion, isNotNull);
+
+    // Expect no docs or text edit, since these are added during resolve.
+    expect(completion.documentation, isNull);
+    expect(completion.textEdit, isNull);
+
+    // Resolve the completion item (via server) to get its edits. This is the
+    // LSP's equiv of getSuggestionDetails() and is invoked by LSP clients to
+    // populate additional info (in our case, the additional edits for inserting
+    // the import).
+    final resolved = await resolveCompletion(completion);
+    expect(resolved, isNotNull);
+
+    // Apply both the main completion edit and the additionalTextEdits atomically.
+    final newContent = applyTextEdits(
+      withoutMarkers(content),
+      [resolved.textEdit].followedBy(resolved.additionalTextEdits).toList(),
+    );
+
+    // Ensure both edits were made - the completion, and the inserted import.
+    expect(newContent, equals('''
+import '../other_file.dart';
+
+main() {
+  var a = InOtherFile.fromJson
+}
+    '''));
+  }
+
+  test_suggestionSets_includesReexportedSymbolsForEachFile() async {
+    newFile(
+      join(projectFolderPath, 'source_file.dart'),
+      content: '''
+      class MyExportedClass {}
+      ''',
+    );
+    newFile(
+      join(projectFolderPath, 'reexport1.dart'),
+      content: '''
+      export 'source_file.dart';
+      ''',
+    );
+    newFile(
+      join(projectFolderPath, 'reexport2.dart'),
+      content: '''
+      export 'source_file.dart';
+      ''',
+    );
+
+    final content = '''
+main() {
+  MyExported^
+}
+    ''';
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await initialize(
+        workspaceCapabilities:
+            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+
+    final completions = res.where((c) => c.label == 'MyExportedClass').toList();
+    expect(completions, hasLength(3));
+
+    // Resolve the completions so we can get the auto-import text.
+    final resolvedCompletions =
+        await Future.wait(completions.map(resolveCompletion));
+
+    expectAutoImportCompletion(resolvedCompletions, '../source_file.dart');
+    expectAutoImportCompletion(resolvedCompletions, '../reexport1.dart');
+    expectAutoImportCompletion(resolvedCompletions, '../reexport2.dart');
   }
 
   test_suggestionSets_insertsIntoPartFiles() async {
@@ -464,7 +785,6 @@ main() {
     final item = res.singleWhere((c) => c.label == 'abcdefghij');
     expect(item.insertTextFormat,
         anyOf(equals(InsertTextFormat.PlainText), isNull));
-    // ignore: deprecated_member_use_from_same_package
     expect(item.insertText, anyOf(equals('abcdefghij'), isNull));
     final updated = applyTextEdits(withoutMarkers(content), [item.textEdit]);
     expect(updated, contains('a.abcdefghij'));

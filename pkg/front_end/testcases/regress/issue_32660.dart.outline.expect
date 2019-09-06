@@ -1,36 +1,60 @@
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_32660.dart:21:3: Warning: The method 'D.foo' has fewer named arguments than those of overridden method 'E.foo'.
+//   foo(int x) => x;
+//   ^
+// pkg/front_end/testcases/regress/issue_32660.dart:25:3: Context: This is the overridden method ('foo').
+//   foo(int x, {int y});
+//   ^
+// pkg/front_end/testcases/regress/issue_32660.dart:24:7: Context: Both members are inherited by the non-abstract class 'E'.
+// class E extends D {
+//       ^
+//
+// pkg/front_end/testcases/regress/issue_32660.dart:6:3: Warning: The method 'A.foo' has fewer named arguments than those of overridden method 'B.foo'.
+//   foo(int x) => x;
+//   ^
+// pkg/front_end/testcases/regress/issue_32660.dart:10:3: Context: This is the overridden method ('foo').
+//   foo(int x, {int y}) => y;
+//   ^
+// pkg/front_end/testcases/regress/issue_32660.dart:13:7: Context: Both members are inherited by the non-abstract class 'C'.
+// class C extends A implements B {
+//       ^
+//
 import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  synthetic constructor •() → self::A
+  synthetic constructor •() → self::A*
     ;
-  method foo(core::int x) → dynamic
+  method foo(core::int* x) → dynamic
     ;
 }
 class B extends core::Object {
-  synthetic constructor •() → self::B
+  synthetic constructor •() → self::B*
     ;
-  method foo(core::int x, {core::int y}) → dynamic
+  method foo(core::int* x, {core::int* y}) → dynamic
     ;
 }
 class C extends self::A implements self::B {
-  synthetic constructor •() → self::C
+  synthetic constructor •() → self::C*
     ;
-  method noSuchMethod(dynamic i) → dynamic
+  method noSuchMethod(core::Invocation* i) → dynamic
     ;
+  abstract forwarding-stub method foo(core::int* x, {core::int* y}) → dynamic;
 }
 class D extends core::Object {
-  synthetic constructor •() → self::D
+  synthetic constructor •() → self::D*
     ;
-  method foo(core::int x) → dynamic
+  method foo(core::int* x) → dynamic
     ;
 }
 class E extends self::D {
-  synthetic constructor •() → self::E
+  synthetic constructor •() → self::E*
     ;
-  abstract method foo(core::int x, {core::int y}) → dynamic;
-  method noSuchMethod(dynamic i) → dynamic
+  abstract method foo(core::int* x, {core::int* y}) → dynamic;
+  method noSuchMethod(core::Invocation* i) → dynamic
     ;
 }
 static method main() → dynamic

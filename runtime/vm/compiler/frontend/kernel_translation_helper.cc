@@ -32,6 +32,7 @@ TranslationHelper::TranslationHelper(Thread* thread)
       metadata_payloads_(ExternalTypedData::Handle(Z)),
       metadata_mappings_(ExternalTypedData::Handle(Z)),
       constants_(Array::Handle(Z)),
+      constants_table_(ExternalTypedData::Handle(Z)),
       info_(KernelProgramInfo::Handle(Z)),
       name_index_handle_(Smi::Handle(Z)) {}
 
@@ -46,6 +47,7 @@ TranslationHelper::TranslationHelper(Thread* thread, Heap::Space space)
       metadata_payloads_(ExternalTypedData::Handle(Z)),
       metadata_mappings_(ExternalTypedData::Handle(Z)),
       constants_(Array::Handle(Z)),
+      constants_table_(ExternalTypedData::Handle(Z)),
       info_(KernelProgramInfo::Handle(Z)),
       name_index_handle_(Smi::Handle(Z)) {}
 
@@ -79,6 +81,7 @@ void TranslationHelper::InitFromKernelProgramInfo(
   SetMetadataPayloads(ExternalTypedData::Handle(Z, info.metadata_payloads()));
   SetMetadataMappings(ExternalTypedData::Handle(Z, info.metadata_mappings()));
   SetConstants(Array::Handle(Z, info.constants()));
+  SetConstantsTable(ExternalTypedData::Handle(Z, info.constants_table()));
   SetKernelProgramInfo(info);
 }
 
@@ -90,6 +93,23 @@ RawGrowableObjectArray* TranslationHelper::EnsurePotentialPragmaFunctions() {
     info_.set_potential_pragma_functions(funcs);
   }
   return funcs.raw();
+}
+
+void TranslationHelper::AddPotentialExtensionLibrary(const Library& library) {
+  if (potential_extension_libraries_ == nullptr) {
+    potential_extension_libraries_ =
+        &GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
+  }
+  potential_extension_libraries_->Add(library);
+}
+
+RawGrowableObjectArray* TranslationHelper::GetPotentialExtensionLibraries() {
+  if (potential_extension_libraries_ != nullptr) {
+    GrowableObjectArray* result = potential_extension_libraries_;
+    potential_extension_libraries_ = nullptr;
+    return result->raw();
+  }
+  return GrowableObjectArray::null();
 }
 
 void TranslationHelper::SetStringOffsets(const TypedData& string_offsets) {
@@ -124,6 +144,12 @@ void TranslationHelper::SetConstants(const Array& constants) {
   ASSERT(constants_.IsNull() ||
          (constants.IsNull() || constants.Length() == 0));
   constants_ = constants.raw();
+}
+
+void TranslationHelper::SetConstantsTable(
+    const ExternalTypedData& constants_table) {
+  ASSERT(constants_table_.IsNull());
+  constants_table_ = constants_table.raw();
 }
 
 void TranslationHelper::SetKernelProgramInfo(const KernelProgramInfo& info) {
@@ -492,6 +518,20 @@ const String& TranslationHelper::DartFactoryName(NameIndex factory) {
   return String::ZoneHandle(Z, Symbols::FromConcatAll(thread_, pieces));
 }
 
+// TODO(https://github.com/dart-lang/sdk/issues/37517): Should emit code to
+// throw a NoSuchMethodError.
+static void CheckStaticLookup(const Object& target) {
+  if (target.IsNull()) {
+#ifndef PRODUCT
+    ASSERT(Isolate::Current()->HasAttemptedReload());
+    Report::LongJump(LanguageError::Handle(LanguageError::New(String::Handle(
+        String::New("Unimplemented handling of missing static target")))));
+#else
+    UNREACHABLE();
+#endif
+  }
+}
+
 RawLibrary* TranslationHelper::LookupLibraryByKernelLibrary(
     NameIndex kernel_library) {
   // We only use the string and don't rely on having any particular parent.
@@ -499,10 +539,9 @@ RawLibrary* TranslationHelper::LookupLibraryByKernelLibrary(
   ASSERT(IsLibrary(kernel_library) ||
          IsAdministrative(CanonicalNameParent(kernel_library)));
   {
-    NoSafepointScope no_safepoint_scope(thread_);
-    RawLibrary* raw_lib;
     name_index_handle_ = Smi::New(kernel_library);
-    raw_lib = info_.LookupLibrary(thread_, name_index_handle_);
+    RawLibrary* raw_lib = info_.LookupLibrary(thread_, name_index_handle_);
+    NoSafepointScope no_safepoint_scope(thread_);
     if (raw_lib != Library::null()) {
       return raw_lib;
     }
@@ -513,7 +552,7 @@ RawLibrary* TranslationHelper::LookupLibraryByKernelLibrary(
   ASSERT(!library_name.IsNull());
   const Library& library =
       Library::Handle(Z, Library::LookupLibrary(thread_, library_name));
-  ASSERT(!library.IsNull());
+  CheckStaticLookup(library);
   name_index_handle_ = Smi::New(kernel_library);
   return info_.InsertLibrary(thread_, name_index_handle_, library);
 }
@@ -521,10 +560,9 @@ RawLibrary* TranslationHelper::LookupLibraryByKernelLibrary(
 RawClass* TranslationHelper::LookupClassByKernelClass(NameIndex kernel_class) {
   ASSERT(IsClass(kernel_class));
   {
-    NoSafepointScope no_safepoint_scope(thread_);
-    RawClass* raw_class;
     name_index_handle_ = Smi::New(kernel_class);
-    raw_class = info_.LookupClass(thread_, name_index_handle_);
+    RawClass* raw_class = info_.LookupClass(thread_, name_index_handle_);
+    NoSafepointScope no_safepoint_scope(thread_);
     if (raw_class != Class::null()) {
       return raw_class;
     }
@@ -534,9 +572,14 @@ RawClass* TranslationHelper::LookupClassByKernelClass(NameIndex kernel_class) {
   NameIndex kernel_library = CanonicalNameParent(kernel_class);
   Library& library =
       Library::Handle(Z, LookupLibraryByKernelLibrary(kernel_library));
+  ASSERT(!library.IsNull());
   const Class& klass =
       Class::Handle(Z, library.LookupClassAllowPrivate(class_name));
+  CheckStaticLookup(klass);
   ASSERT(!klass.IsNull());
+  if (klass.is_declared_in_bytecode()) {
+    klass.EnsureDeclarationLoaded();
+  }
   name_index_handle_ = Smi::New(kernel_class);
   return info_.InsertClass(thread_, name_index_handle_, klass);
 }
@@ -550,14 +593,16 @@ RawField* TranslationHelper::LookupFieldByKernelField(NameIndex kernel_field) {
     Library& library =
         Library::Handle(Z, LookupLibraryByKernelLibrary(enclosing));
     klass = library.toplevel_class();
+    CheckStaticLookup(klass);
   } else {
     ASSERT(IsClass(enclosing));
     klass = LookupClassByKernelClass(enclosing);
   }
-  RawField* field = klass.LookupFieldAllowPrivate(
-      DartSymbolObfuscate(CanonicalNameString(kernel_field)));
-  ASSERT(field != Object::null());
-  return field;
+  Field& field = Field::Handle(
+      Z, klass.LookupFieldAllowPrivate(
+             DartSymbolObfuscate(CanonicalNameString(kernel_field))));
+  CheckStaticLookup(field);
+  return field.raw();
 }
 
 RawFunction* TranslationHelper::LookupStaticMethodByKernelProcedure(
@@ -570,15 +615,16 @@ RawFunction* TranslationHelper::LookupStaticMethodByKernelProcedure(
   if (IsLibrary(enclosing)) {
     Library& library =
         Library::Handle(Z, LookupLibraryByKernelLibrary(enclosing));
-    RawFunction* function = library.LookupFunctionAllowPrivate(procedure_name);
-    ASSERT(function != Object::null());
-    return function;
+    Function& function =
+        Function::Handle(Z, library.LookupFunctionAllowPrivate(procedure_name));
+    CheckStaticLookup(function);
+    return function.raw();
   } else {
     ASSERT(IsClass(enclosing));
     Class& klass = Class::Handle(Z, LookupClassByKernelClass(enclosing));
     Function& function = Function::ZoneHandle(
         Z, klass.LookupFunctionAllowPrivate(procedure_name));
-    ASSERT(!function.IsNull());
+    CheckStaticLookup(function);
     // Redirecting factory must be resolved.
     ASSERT(!function.IsRedirectingFactory() ||
            function.RedirectionTarget() != Function::null());
@@ -591,6 +637,7 @@ RawFunction* TranslationHelper::LookupConstructorByKernelConstructor(
   ASSERT(IsConstructor(constructor));
   Class& klass =
       Class::Handle(Z, LookupClassByKernelClass(EnclosingName(constructor)));
+  CheckStaticLookup(klass);
   return LookupConstructorByKernelConstructor(klass, constructor);
 }
 
@@ -598,10 +645,10 @@ RawFunction* TranslationHelper::LookupConstructorByKernelConstructor(
     const Class& owner,
     NameIndex constructor) {
   ASSERT(IsConstructor(constructor));
-  RawFunction* function =
-      owner.LookupConstructorAllowPrivate(DartConstructorName(constructor));
-  ASSERT(function != Object::null());
-  return function;
+  Function& function = Function::Handle(
+      Z, owner.LookupConstructorAllowPrivate(DartConstructorName(constructor)));
+  CheckStaticLookup(function);
+  return function.raw();
 }
 
 RawFunction* TranslationHelper::LookupConstructorByKernelConstructor(
@@ -626,15 +673,17 @@ RawFunction* TranslationHelper::LookupMethodByMember(
   NameIndex kernel_class = EnclosingName(target);
   Class& klass = Class::Handle(Z, LookupClassByKernelClass(kernel_class));
 
-  RawFunction* function = klass.LookupFunctionAllowPrivate(method_name);
+  Function& function =
+      Function::Handle(Z, klass.LookupFunctionAllowPrivate(method_name));
+  CheckStaticLookup(function);
 #ifdef DEBUG
-  if (function == Object::null()) {
+  if (function.IsNull()) {
     THR_Print("Unable to find \'%s\' in %s\n", method_name.ToCString(),
               klass.ToCString());
   }
 #endif
-  ASSERT(function != Object::null());
-  return function;
+  ASSERT(!function.IsNull());
+  return function.raw();
 }
 
 RawFunction* TranslationHelper::LookupDynamicFunction(const Class& klass,
@@ -948,17 +997,19 @@ void FieldHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kPosition:
-      position_ = helper_->ReadPosition(false);  // read position.
-      helper_->RecordTokenPosition(position_);
+      position_ = helper_->ReadPosition();  // read position.
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kEndPosition:
-      end_position_ = helper_->ReadPosition(false);  // read end position.
-      helper_->RecordTokenPosition(end_position_);
+      end_position_ = helper_->ReadPosition();  // read end position.
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kFlags:
-      flags_ = helper_->ReadFlags();
+      if (helper_->translation_helper_.info().kernel_binary_version() >= 29) {
+        flags_ = helper_->ReadUInt();
+      } else {
+        flags_ = helper_->ReadFlags();
+      }
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kName:
@@ -1010,18 +1061,15 @@ void ProcedureHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kStartPosition:
-      start_position_ = helper_->ReadPosition(false);  // read position.
-      helper_->RecordTokenPosition(start_position_);
+      start_position_ = helper_->ReadPosition();  // read position.
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kPosition:
-      position_ = helper_->ReadPosition(false);  // read position.
-      helper_->RecordTokenPosition(position_);
+      position_ = helper_->ReadPosition();  // read position.
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kEndPosition:
-      end_position_ = helper_->ReadPosition(false);  // read end position.
-      helper_->RecordTokenPosition(end_position_);
+      end_position_ = helper_->ReadPosition();  // read end position.
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kKind:
@@ -1029,7 +1077,11 @@ void ProcedureHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kFlags:
-      flags_ = helper_->ReadFlags();
+      if (helper_->translation_helper_.info().kernel_binary_version() >= 29) {
+        flags_ = helper_->ReadUInt();
+      } else {
+        flags_ = helper_->ReadFlags();
+      }
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kName:
@@ -1086,17 +1138,14 @@ void ConstructorHelper::ReadUntilExcluding(Field field) {
       FALL_THROUGH;
     case kStartPosition:
       start_position_ = helper_->ReadPosition();  // read position.
-      helper_->RecordTokenPosition(start_position_);
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kPosition:
       position_ = helper_->ReadPosition();  // read position.
-      helper_->RecordTokenPosition(position_);
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kEndPosition:
       end_position_ = helper_->ReadPosition();  // read end position.
-      helper_->RecordTokenPosition(end_position_);
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kFlags:
@@ -1155,18 +1204,15 @@ void ClassHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kStartPosition:
-      start_position_ = helper_->ReadPosition(false);  // read position.
-      helper_->RecordTokenPosition(start_position_);
+      start_position_ = helper_->ReadPosition();  // read position.
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kPosition:
-      position_ = helper_->ReadPosition(false);  // read position.
-      helper_->RecordTokenPosition(position_);
+      position_ = helper_->ReadPosition();  // read position.
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kEndPosition:
       end_position_ = helper_->ReadPosition();  // read end position.
-      helper_->RecordTokenPosition(end_position_);
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kFlags:
@@ -1259,8 +1305,18 @@ void LibraryHelper::ReadUntilExcluding(Field field) {
 
   // Ordered with fall-through.
   switch (next_read_) {
+    // Note that this (up to canonical name) needs to be kept in sync with
+    // "library_canonical_name" (currently in "kernel_loader.h").
     case kFlags: {
       flags_ = helper_->ReadFlags();
+      if (++next_read_ == field) return;
+      FALL_THROUGH;
+    }
+    case kLanguageVersion: {
+      if (binary_version_ >= 27) {
+        helper_->ReadUInt();  // Read major language version.
+        helper_->ReadUInt();  // Read minor language version.
+      }
       if (++next_read_ == field) return;
       FALL_THROUGH;
     }
@@ -1927,10 +1983,12 @@ void KernelReaderHelper::SkipDartType() {
       SkipFunctionType(true);
       return;
     case kTypedefType:
+      ReadNullability();      // read nullability.
       ReadUInt();             // read index for canonical name.
       SkipListOfDartTypes();  // read list of types.
       return;
     case kTypeParameterType:
+      ReadNullability();       // read nullability.
       ReadUInt();              // read index for parameter.
       SkipOptionalDartType();  // read bound bound.
       return;
@@ -1951,6 +2009,7 @@ void KernelReaderHelper::SkipOptionalDartType() {
 }
 
 void KernelReaderHelper::SkipInterfaceType(bool simple) {
+  ReadNullability();  // read nullability.
   ReadUInt();  // read klass_name.
   if (!simple) {
     SkipListOfDartTypes();  // read list of types.
@@ -1958,6 +2017,8 @@ void KernelReaderHelper::SkipInterfaceType(bool simple) {
 }
 
 void KernelReaderHelper::SkipFunctionType(bool simple) {
+  ReadNullability();  // read nullability.
+
   if (!simple) {
     SkipTypeParametersList();  // read type_parameters.
     ReadUInt();                // read required parameter count.
@@ -1973,6 +2034,9 @@ void KernelReaderHelper::SkipFunctionType(bool simple) {
       // read string reference (i.e. named_parameters[i].name).
       SkipStringReference();
       SkipDartType();  // read named_parameters[i].type.
+      if (translation_helper_.info().kernel_binary_version() >= 29) {
+        SkipBytes(1);  // read flags
+      }
     }
   }
 
@@ -2499,11 +2563,9 @@ void KernelReaderHelper::SkipLibraryTypedef() {
   SkipListOfVariableDeclarations();  // read named parameters.
 }
 
-TokenPosition KernelReaderHelper::ReadPosition(bool record) {
+TokenPosition KernelReaderHelper::ReadPosition() {
   TokenPosition position = reader_.ReadPosition();
-  if (record) {
-    RecordTokenPosition(position);
-  }
+  RecordTokenPosition(position);
   return position;
 }
 
@@ -2563,47 +2625,8 @@ RawTypedData* KernelReaderHelper::GetLineStartsFor(intptr_t index) {
   SetOffset(GetOffsetForSourceInfo(index));
   SkipBytes(ReadUInt());                         // skip uri.
   SkipBytes(ReadUInt());                         // skip source.
-  const intptr_t line_start_count = ReadUInt();  // read number of line start
-  // entries.
-  MallocGrowableArray<int32_t> line_starts_array;
-
-  intptr_t max_delta = 0;
-  for (intptr_t i = 0; i < line_start_count; ++i) {
-    int32_t delta = ReadUInt();
-    line_starts_array.Add(delta);
-    if (delta > max_delta) {
-      max_delta = delta;
-    }
-  }
-
-  intptr_t cid;
-  if (max_delta <= kMaxInt8) {
-    cid = kTypedDataInt8ArrayCid;
-  } else if (max_delta <= kMaxInt16) {
-    cid = kTypedDataInt16ArrayCid;
-  } else {
-    cid = kTypedDataInt32ArrayCid;
-  }
-
-  TypedData& line_starts_data =
-      TypedData::Handle(Z, TypedData::New(cid, line_start_count, Heap::kOld));
-  for (intptr_t j = 0; j < line_start_count; ++j) {
-    int32_t line_start = line_starts_array[j];
-    switch (cid) {
-      case kTypedDataInt8ArrayCid:
-        line_starts_data.SetInt8(j, static_cast<int8_t>(line_start));
-        break;
-      case kTypedDataInt16ArrayCid:
-        line_starts_data.SetInt16(j << 1, static_cast<int16_t>(line_start));
-        break;
-      case kTypedDataInt32ArrayCid:
-        line_starts_data.SetInt32(j << 2, line_start);
-        break;
-      default:
-        UNREACHABLE();
-    }
-  }
-  return line_starts_data.raw();
+  const intptr_t line_start_count = ReadUInt();
+  return reader_.ReadLineStartsData(line_start_count);
 }
 
 String& KernelReaderHelper::SourceTableImportUriFor(intptr_t index,
@@ -2776,6 +2799,8 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
   // malformed iff `T` is malformed.
   //   => We therefore ignore errors in `A` or `B`.
 
+  helper_->ReadNullability();  // read nullability.
+
   NameIndex klass_name =
       helper_->ReadCanonicalNameReference();  // read klass_name.
 
@@ -2789,8 +2814,7 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
     } else {
       // Note that the type argument vector is not yet extended.
       result_ =
-          Type::New(klass, TypeArguments::Handle(Z, klass.type_parameters()),
-                    klass.token_pos());
+          Type::New(klass, Object::null_type_arguments(), klass.token_pos());
     }
     return;
   }
@@ -2813,6 +2837,8 @@ void TypeTranslator::BuildFunctionType(bool simple) {
                                             ? *active_class_->enclosing
                                             : Function::Handle(Z),
                                         TokenPosition::kNoSource));
+
+  helper_->ReadNullability();  // read nullability.
 
   // Suspend finalization of types inside this one. They will be finalized after
   // the whole function type is constructed.
@@ -2875,6 +2901,10 @@ void TypeTranslator::BuildFunctionType(bool simple) {
       // read string reference (i.e. named_parameters[i].name).
       String& name = H.DartSymbolObfuscate(helper_->ReadStringReference());
       BuildTypeInternal();  // read named_parameters[i].type.
+      if (translation_helper_.info().kernel_binary_version() >= 29) {
+        // TODO(markov): Store 'required' bit.
+        helper_->ReadFlags();  // read flags
+      }
       parameter_types.SetAt(pos, result_);
       parameter_names.SetAt(pos, name);
     }
@@ -2904,6 +2934,7 @@ void TypeTranslator::BuildFunctionType(bool simple) {
 }
 
 void TypeTranslator::BuildTypeParameterType() {
+  helper_->ReadNullability();                      // read nullability.
   intptr_t parameter_index = helper_->ReadUInt();  // read parameter index.
   helper_->SkipOptionalDartType();                 // read bound.
 
@@ -2942,9 +2973,10 @@ void TypeTranslator::BuildTypeParameterType() {
       }
       parameter_index -= class_types.Length();
     }
-
+    // Factory function should not be considered as procedure.
     intptr_t procedure_type_parameter_count =
-        active_class_->MemberIsProcedure()
+        (active_class_->MemberIsProcedure() &&
+         !active_class_->MemberIsFactoryProcedure())
             ? active_class_->MemberTypeParameterCount(Z)
             : 0;
     if (procedure_type_parameter_count > 0) {
@@ -3139,9 +3171,7 @@ void TypeTranslator::SetupFunctionParameters(
     function_node_helper->SetJustRead(FunctionNodeHelper::kTypeParameters);
   }
 
-  ActiveTypeParametersScope scope(
-      active_class_, &function,
-      TypeArguments::Handle(Z, function.type_parameters()), Z);
+  ActiveTypeParametersScope scope(active_class_, function, Z);
 
   function_node_helper->ReadUntilExcluding(
       FunctionNodeHelper::kPositionalParameters);

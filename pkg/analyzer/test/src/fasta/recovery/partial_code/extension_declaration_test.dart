@@ -20,13 +20,19 @@ class ExtensionDeclarationTest extends PartialCodeTest {
               'keyword',
               'extension',
               [
-                ParserErrorCode.MISSING_IDENTIFIER,
                 ParserErrorCode.EXPECTED_TOKEN,
                 ParserErrorCode.EXPECTED_TYPE_NAME,
                 ParserErrorCode.EXPECTED_BODY,
               ],
-              'extension _s_ on _s_ {}',
-              failing: ['getter', 'functionNonVoid', 'functionVoid', 'mixin']),
+              'extension on _s_ {}',
+              failing: [
+                'getter',
+                'functionNonVoid',
+                'functionVoid',
+                'mixin',
+                'setter',
+                'typedef'
+              ]),
           new TestDescriptor(
               'named',
               'extension E',

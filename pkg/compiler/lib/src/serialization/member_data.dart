@@ -55,27 +55,46 @@ class _LibraryData {
   final ir.Library node;
 
   /// Cache of [_ClassData] for classes in this library.
-  Map<String, _ClassData> _classes;
+  Map<String, _ClassData> _classesByName;
+  Map<ir.Class, _ClassData> _classesByNode;
 
   /// Cache of [ir.Typedef] nodes for typedefs in this library.
   Map<String, ir.Typedef> _typedefs;
 
   /// Cache of [_MemberData] for members in this library.
-  Map<String, _MemberData> _members;
+  Map<String, _MemberData> _membersByName;
+  Map<ir.Member, _MemberData> _membersByNode;
 
   _LibraryData(this.node);
 
-  /// Returns the [_ClassData] for the class [name] in this library.
-  _ClassData lookupClass(String name) {
-    if (_classes == null) {
-      _classes = {};
+  void _ensureClasses() {
+    if (_classesByName == null) {
+      _classesByName = {};
+      _classesByNode = {};
       for (ir.Class cls in node.classes) {
-        assert(!_classes.containsKey(cls.name),
-            "Duplicate class '${cls.name}' in $_classes trying to add $cls.");
-        _classes[cls.name] = new _ClassData(cls);
+        assert(
+            !_classesByName.containsKey(cls.name),
+            "Duplicate class '${cls.name}' in $_classesByName "
+            "trying to add $cls.");
+        assert(
+            !_classesByNode.containsKey(cls),
+            "Duplicate class '${cls.name}' in $_classesByNode "
+            "trying to add $cls.");
+        _classesByNode[cls] = _classesByName[cls.name] = new _ClassData(cls);
       }
     }
-    return _classes[name];
+  }
+
+  /// Returns the [_ClassData] for the class [name] in this library.
+  _ClassData lookupClassByName(String name) {
+    _ensureClasses();
+    return _classesByName[name];
+  }
+
+  /// Returns the [_ClassData] for the class [node] in this library.
+  _ClassData lookupClassByNode(ir.Class node) {
+    _ensureClasses();
+    return _classesByNode[node];
   }
 
   ir.Typedef lookupTypedef(String name) {
@@ -92,20 +111,37 @@ class _LibraryData {
     return _typedefs[name];
   }
 
-  /// Returns the [_MemberData] for the member uniquely identified by [name] in
-  /// this library.
-  _MemberData lookupMember(String name) {
-    if (_members == null) {
-      _members = {};
+  void _ensureMembers() {
+    if (_membersByName == null) {
+      _membersByName = {};
+      _membersByNode = {};
       for (ir.Member member in node.members) {
         String name = _computeMemberName(member);
         if (name == null) continue;
-        assert(!_members.containsKey(name),
-            "Duplicate member '$name' in $_members trying to add $member.");
-        _members[name] = new _MemberData(member);
+        assert(
+            !_membersByName.containsKey(name),
+            "Duplicate member '$name' in $_membersByName "
+            "trying to add $member.");
+        assert(
+            !_membersByNode.containsKey(member),
+            "Duplicate member '$name' in $_membersByNode "
+            "trying to add $member.");
+        _membersByNode[member] = _membersByName[name] = new _MemberData(member);
       }
     }
-    return _members[name];
+  }
+
+  /// Returns the [_MemberData] for the member uniquely identified by [name] in
+  /// this library.
+  _MemberData lookupMemberDataByName(String name) {
+    _ensureMembers();
+    return _membersByName[name];
+  }
+
+  /// Returns the [_MemberData] for the member [node] in this library.
+  _MemberData lookupMemberDataByNode(ir.Member node) {
+    _ensureMembers();
+    return _membersByNode[node];
   }
 
   @override
@@ -118,24 +154,42 @@ class _ClassData {
   final ir.Class node;
 
   /// Cache of [_MemberData] for members in this class.
-  Map<String, _MemberData> _members;
+  Map<String, _MemberData> _membersByName;
+  Map<ir.Member, _MemberData> _membersByNode;
 
   _ClassData(this.node);
 
-  /// Returns the [_MemberData] for the member uniquely identified by [name] in
-  /// this class.
-  _MemberData lookupMember(String name) {
-    if (_members == null) {
-      _members = {};
+  void _ensureMembers() {
+    if (_membersByName == null) {
+      _membersByName = {};
+      _membersByNode = {};
       for (ir.Member member in node.members) {
         String name = _computeMemberName(member);
         if (name == null) continue;
-        assert(!_members.containsKey(name),
-            "Duplicate member '$name' in $_members trying to add $member.");
-        _members[name] = new _MemberData(member);
+        assert(
+            !_membersByName.containsKey(name),
+            "Duplicate member '$name' in $_membersByName "
+            "trying to add $member.");
+        assert(
+            !_membersByNode.containsKey(member),
+            "Duplicate member '$name' in $_membersByNode "
+            "trying to add $member.");
+        _membersByNode[member] = _membersByName[name] = new _MemberData(member);
       }
     }
-    return _members[name];
+  }
+
+  /// Returns the [_MemberData] for the member uniquely identified by [name] in
+  /// this class.
+  _MemberData lookupMemberDataByName(String name) {
+    _ensureMembers();
+    return _membersByName[name];
+  }
+
+  /// Returns the [_MemberData] for the member [node] in this class.
+  _MemberData lookupMemberDataByNode(ir.Member node) {
+    _ensureMembers();
+    return _membersByNode[node];
   }
 
   @override
@@ -155,6 +209,10 @@ class _MemberData {
   /// [ir.TreeNode]s.
   Map<ir.TreeNode, int> _nodeToIndexMap;
 
+  /// Cached [ir.ConstantExpression] to [_ConstantNodeIndexerVisitor] map used
+  /// for fast serialization/deserialization of constant references.
+  Map<ir.ConstantExpression, _ConstantNodeIndexerVisitor> _constantIndexMap;
+
   _MemberData(this.node);
 
   void _ensureMaps() {
@@ -164,6 +222,27 @@ class _MemberData {
       node.accept(
           new _TreeNodeIndexerVisitor(_indexToNodeMap, _nodeToIndexMap));
     }
+  }
+
+  _ConstantNodeIndexerVisitor _createConstantIndexer(
+      ir.ConstantExpression node) {
+    _ConstantNodeIndexerVisitor indexer = new _ConstantNodeIndexerVisitor();
+    node.constant.accept(indexer);
+    return indexer;
+  }
+
+  ir.Constant getConstantByIndex(ir.ConstantExpression node, int index) {
+    _constantIndexMap ??= {};
+    _ConstantNodeIndexerVisitor indexer =
+        _constantIndexMap[node] ??= _createConstantIndexer(node);
+    return indexer.getConstant(index);
+  }
+
+  int getIndexByConstant(ir.ConstantExpression node, ir.Constant constant) {
+    _constantIndexMap ??= {};
+    _ConstantNodeIndexerVisitor indexer =
+        _constantIndexMap[node] ??= _createConstantIndexer(node);
+    return indexer.getIndex(constant);
   }
 
   /// Returns the [ir.TreeNode] corresponding to [index] in this member.

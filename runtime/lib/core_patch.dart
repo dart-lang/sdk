@@ -94,14 +94,6 @@ class num {
   bool _equalToInteger(int other);
 }
 
-// The members of this class are cloned and added to each class that
-// represents an enum type.
-class _EnumHelper {
-  String _name;
-  String toString() => _name;
-  int get hashCode => _name.hashCode;
-}
-
 // _SyncIterable and _syncIterator are used by the compiler to
 // implement sync* generator functions. A sync* generator allocates
 // and returns a new _SyncIterable object.

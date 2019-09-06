@@ -58,20 +58,20 @@ _convertDataTree(data) {
 
 newObject() => JS('=Object', '{}');
 
-hasProperty(o, name) => JS('bool', '# in #', name, o);
+hasProperty(o, name) => JS<bool>('!', '# in #', name, o);
 getProperty(o, name) => JS('Object', '#[#]', o, name);
 setProperty(o, name, value) => JS('', '#[#]=#', o, name, value);
 
 callMethod(o, String method, List args) =>
     JS('Object', '#[#].apply(#, #)', o, method, o, args);
 
-instanceof(o, Function type) => JS('bool', '# instanceof #', o, type);
+instanceof(o, Function type) => JS<bool>('!', '# instanceof #', o, type);
 callConstructor(Function constr, List arguments) {
   if (arguments == null) {
     return JS('Object', 'new #()', constr);
   }
 
-  if (JS('bool', '# instanceof Array', arguments)) {
+  if (JS<bool>('!', '# instanceof Array', arguments)) {
     int argumentCount = JS('!', '#.length', arguments);
     switch (argumentCount) {
       case 0:
@@ -112,7 +112,7 @@ callConstructor(Function constr, List arguments) {
   var args = <dynamic>[null]..addAll(arguments);
   var factoryFunction = JS('', '#.bind.apply(#, #)', constr, constr, args);
   // Without this line, calling factoryFunction as a constructor throws
-  JS('String', 'String(#)', factoryFunction);
+  JS<String>('!', 'String(#)', factoryFunction);
   // This could return an UnknownJavaScriptObject, or a native
   // object for which there is an interceptor
   return JS('Object', 'new #()', factoryFunction);

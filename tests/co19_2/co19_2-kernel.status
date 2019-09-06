@@ -2,8 +2,18 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $builder_tag == bytecode_interpreter ]
+LibTest/collection/ListBase/ListBase_class_A01_t04: Pass, Slow
+LibTest/collection/ListBase/ListBase_class_A01_t05: Pass, Slow
+LibTest/collection/ListBase/ListBase_class_A01_t06: Pass, Slow
+
 [ $compiler == dartk ]
 LanguageFeatures/Set-literals/syntax_compatibility_A01_t02: RuntimeError
+
+[ $compiler == dartkb ]
+LibTest/isolate/Isolate/kill_A01_t01: Skip # Issue 37699
+LibTest/isolate/Isolate/pause_A01_t01: Skip # Issue 37699
+LibTest/isolate/Isolate/pause_A01_t02: Skip # Issue 37699
 
 [ $compiler == dartkp ]
 Language/Expressions/Instance_Creation/New/evaluation_t20: RuntimeError
@@ -50,8 +60,6 @@ LibTest/io/ZLibDecoder/fuse_A01_t01: RuntimeError
 LibTest/io/exit/exit_A01_t01: RuntimeError
 LibTest/io/exit/exit_A02_t01: RuntimeError
 LibTest/io/exitCode/exitCode_A01_t01: RuntimeError
-LibTest/isolate/Isolate/spawnUri_A01_t02: RuntimeError
-LibTest/isolate/Isolate/spawnUri_A05_t05: RuntimeError
 LibTest/isolate/ReceivePort/lastWhere_A01_t01: RuntimeError
 
 [ $compiler == fasta ]
@@ -1432,3 +1440,10 @@ LibTest/math/MutableRectangle/height_A03_t02: RuntimeError
 LibTest/math/MutableRectangle/width_A03_t02: RuntimeError
 LibTest/math/Rectangle/Rectangle_A03_t04: RuntimeError
 Utils/tests/Expect/throws_A01_t04: RuntimeError
+
+# It makes no sense to run any test that uses spawnURI under the simulator
+# as that would involve running CFE (the front end) in simulator mode
+# to compile the URI file specified in spawnURI code.
+# These Isolate tests that use spawnURI are hence skipped on purpose.
+[ $runtime == dart_precompiled || $runtime == vm && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
+LibTest/isolate/Isolate/spawnUri*: Skip

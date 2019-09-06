@@ -536,9 +536,9 @@ class C extends self::B {
     var c = addClass(new Class(name: 'C', supertype: new Supertype(b, [int])));
 
     _assertTestLibraryText('''
-class A<T, U> {}
-class B<T> extends self::A<self::B::T, core::bool> {}
-class C extends self::B<core::int> {}
+class A<T*, U*> {}
+class B<T*> extends self::A<self::B::T*, core::bool*> {}
+class C extends self::B<core::int*> {}
 ''');
 
     expect(hierarchy.getClassAsInstanceOf(a, objectClass), objectSuper);
@@ -570,9 +570,9 @@ class C extends self::B<core::int> {}
     ]));
 
     _assertTestLibraryText('''
-class A<T, U> {}
-class B<T> implements self::A<self::B::T, core::bool> {}
-class C implements self::B<core::int> {}
+class A<T*, U*> {}
+class B<T*> implements self::A<self::B::T*, core::bool*> {}
+class C implements self::B<core::int*> {}
 ''');
 
     expect(hierarchy.getClassAsInstanceOf(a, objectClass), objectSuper);
@@ -602,9 +602,9 @@ class C implements self::B<core::int> {}
         mixedInType: new Supertype(b, [int])));
 
     _assertTestLibraryText('''
-class A<T, U> {}
-class B<T> = core::Object with self::A<self::B::T, core::bool> {}
-class C = core::Object with self::B<core::int> {}
+class A<T*, U*> {}
+class B<T*> = core::Object with self::A<self::B::T*, core::bool*> {}
+class C = core::Object with self::B<core::int*> {}
 ''');
 
     expect(hierarchy.getClassAsInstanceOf(a, objectClass), objectSuper);
@@ -1208,8 +1208,8 @@ class B extends self::A {
         supertype: new Supertype(a, [bTT, bool])));
 
     _assertTestLibraryText('''
-class A<T, U> {}
-class B<T> extends self::A<self::B::T, core::bool> {}
+class A<T*, U*> {}
+class B<T*> extends self::A<self::B::T*, core::bool*> {}
 ''');
 
     var b_int = new InterfaceType(b, [int]);

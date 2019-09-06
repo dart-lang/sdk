@@ -35,16 +35,17 @@ static Function* CreateFunction(const char* name) {
 }
 
 // Test calls to stub code which calls into the runtime.
-static void GenerateCallToCallRuntimeStub(Assembler* assembler, int length) {
+static void GenerateCallToCallRuntimeStub(compiler::Assembler* assembler,
+                                          int length) {
   const int argc = 2;
   const Smi& smi_length = Smi::ZoneHandle(Smi::New(length));
-  __ enter(Immediate(0));
+  __ enter(compiler::Immediate(0));
   __ PushObject(Object::null_object());  // Push Null object for return value.
   __ PushObject(smi_length);             // Push argument 1: length.
   __ PushObject(Object::null_object());  // Push argument 2: type arguments.
   ASSERT(kAllocateArrayRuntimeEntry.argument_count() == argc);
   __ CallRuntime(kAllocateArrayRuntimeEntry, argc);
-  __ AddImmediate(ESP, Immediate(argc * kWordSize));
+  __ AddImmediate(ESP, compiler::Immediate(argc * kWordSize));
   __ popl(EAX);  // Pop return value from return slot.
   __ leave();
   __ ret();
@@ -55,7 +56,7 @@ ISOLATE_UNIT_TEST_CASE(CallRuntimeStubCode) {
                                               const Code& code);
   const int length = 10;
   const char* kName = "Test_CallRuntimeStubCode";
-  Assembler assembler(nullptr);
+  compiler::Assembler assembler(nullptr);
   GenerateCallToCallRuntimeStub(&assembler, length);
   const Code& code = Code::Handle(Code::FinalizeCodeAndNotify(
       *CreateFunction("Test_CallRuntimeStubCode"), nullptr, &assembler,
@@ -67,7 +68,7 @@ ISOLATE_UNIT_TEST_CASE(CallRuntimeStubCode) {
 }
 
 // Test calls to stub code which calls into a leaf runtime entry.
-static void GenerateCallToCallLeafRuntimeStub(Assembler* assembler,
+static void GenerateCallToCallLeafRuntimeStub(compiler::Assembler* assembler,
                                               const char* str_value,
                                               intptr_t lhs_index_value,
                                               intptr_t rhs_index_value,
@@ -76,16 +77,16 @@ static void GenerateCallToCallLeafRuntimeStub(Assembler* assembler,
   const Smi& lhs_index = Smi::ZoneHandle(Smi::New(lhs_index_value));
   const Smi& rhs_index = Smi::ZoneHandle(Smi::New(rhs_index_value));
   const Smi& length = Smi::ZoneHandle(Smi::New(length_value));
-  __ enter(Immediate(0));
+  __ enter(compiler::Immediate(0));
   __ ReserveAlignedFrameSpace(4 * kWordSize);
   __ LoadObject(EAX, str);
-  __ movl(Address(ESP, 0), EAX);  // Push argument 1.
+  __ movl(compiler::Address(ESP, 0), EAX);  // Push argument 1.
   __ LoadObject(EAX, lhs_index);
-  __ movl(Address(ESP, kWordSize), EAX);  // Push argument 2.
+  __ movl(compiler::Address(ESP, kWordSize), EAX);  // Push argument 2.
   __ LoadObject(EAX, rhs_index);
-  __ movl(Address(ESP, 2 * kWordSize), EAX);  // Push argument 3.
+  __ movl(compiler::Address(ESP, 2 * kWordSize), EAX);  // Push argument 3.
   __ LoadObject(EAX, length);
-  __ movl(Address(ESP, 3 * kWordSize), EAX);  // Push argument 4.
+  __ movl(compiler::Address(ESP, 3 * kWordSize), EAX);  // Push argument 4.
   __ CallRuntime(kCaseInsensitiveCompareUCS2RuntimeEntry, 4);
   __ leave();
   __ ret();  // Return value is in EAX.
@@ -99,7 +100,7 @@ ISOLATE_UNIT_TEST_CASE(CallLeafRuntimeStubCode) {
   intptr_t rhs_index_value = 2;
   intptr_t length_value = 2;
   const char* kName = "Test_CallLeafRuntimeStubCode";
-  Assembler assembler(nullptr);
+  compiler::Assembler assembler(nullptr);
   GenerateCallToCallLeafRuntimeStub(&assembler, str_value, lhs_index_value,
                                     rhs_index_value, length_value);
   const Code& code = Code::Handle(Code::FinalizeCodeAndNotify(

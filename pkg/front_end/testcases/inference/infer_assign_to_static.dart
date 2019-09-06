@@ -23,35 +23,35 @@ T f<T>() => null;
 B topLevelVariable;
 
 void test_topLevelVariable() {
-  topLevelVariable = /*@typeArgs=B*/ f();
-  topLevelVariable ??= /*@typeArgs=B*/ f();
-  topLevelVariable += /*@typeArgs=dynamic*/ f();
-  topLevelVariable *= /*@typeArgs=dynamic*/ f();
-  topLevelVariable &= /*@typeArgs=dynamic*/ f();
+  topLevelVariable = /*@ typeArgs=B* */ f();
+  topLevelVariable ??= /*@ typeArgs=B* */ f();
+  topLevelVariable += /*@ typeArgs=dynamic */ f();
+  topLevelVariable *= /*@ typeArgs=dynamic */ f();
+  topLevelVariable &= /*@ typeArgs=dynamic */ f();
   --topLevelVariable;
   topLevelVariable--;
-  var /*@type=B*/ v1 = topLevelVariable = /*@typeArgs=B*/ f();
-  var /*@type=B*/ v2 = topLevelVariable ??= /*@typeArgs=B*/ f();
-  var /*@type=B*/ v4 = topLevelVariable *= /*@typeArgs=dynamic*/ f();
-  var /*@type=C*/ v5 = topLevelVariable &= /*@typeArgs=dynamic*/ f();
-  var /*@type=B*/ v6 = --topLevelVariable;
-  var /*@type=B*/ v7 = topLevelVariable--;
+  var /*@ type=B* */ v1 = topLevelVariable = /*@ typeArgs=B* */ f();
+  var /*@ type=B* */ v2 = topLevelVariable ??= /*@ typeArgs=B* */ f();
+  var /*@ type=B* */ v4 = topLevelVariable *= /*@ typeArgs=dynamic */ f();
+  var /*@ type=C* */ v5 = topLevelVariable &= /*@ typeArgs=dynamic */ f();
+  var /*@ type=B* */ v6 = --topLevelVariable;
+  var /*@ type=B* */ v7 = topLevelVariable--;
 }
 
 void test_staticVariable() {
-  B.staticVariable = /*@typeArgs=B*/ f();
-  B.staticVariable ??= /*@typeArgs=B*/ f();
-  B.staticVariable += /*@typeArgs=dynamic*/ f();
-  B.staticVariable *= /*@typeArgs=dynamic*/ f();
-  B.staticVariable &= /*@typeArgs=dynamic*/ f();
+  B.staticVariable = /*@ typeArgs=B* */ f();
+  B.staticVariable ??= /*@ typeArgs=B* */ f();
+  B.staticVariable += /*@ typeArgs=dynamic */ f();
+  B.staticVariable *= /*@ typeArgs=dynamic */ f();
+  B.staticVariable &= /*@ typeArgs=dynamic */ f();
   --B.staticVariable;
   B.staticVariable--;
-  var /*@type=B*/ v1 = B.staticVariable = /*@typeArgs=B*/ f();
-  var /*@type=B*/ v2 = B.staticVariable ??= /*@typeArgs=B*/ f();
-  var /*@type=B*/ v4 = B.staticVariable *= /*@typeArgs=dynamic*/ f();
-  var /*@type=C*/ v5 = B.staticVariable &= /*@typeArgs=dynamic*/ f();
-  var /*@type=B*/ v6 = --B.staticVariable;
-  var /*@type=B*/ v7 = B.staticVariable--;
+  var /*@ type=B* */ v1 = B.staticVariable = /*@ typeArgs=B* */ f();
+  var /*@ type=B* */ v2 = B.staticVariable ??= /*@ typeArgs=B* */ f();
+  var /*@ type=B* */ v4 = B.staticVariable *= /*@ typeArgs=dynamic */ f();
+  var /*@ type=C* */ v5 = B.staticVariable &= /*@ typeArgs=dynamic */ f();
+  var /*@ type=B* */ v6 = --B.staticVariable;
+  var /*@ type=B* */ v7 = B.staticVariable--;
 }
 
 main() {}

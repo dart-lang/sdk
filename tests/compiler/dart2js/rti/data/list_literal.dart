@@ -16,7 +16,7 @@ main() {
 }
 
 class Class {
-  /*element: Class.m:implicit=[m.T],indirect,needsArgs,selectors=[Selector(call, m, arity=0, types=1)]*/
+  /*member: Class.m:implicit=[m.T],indirect,needsArgs,selectors=[Selector(call, m, arity=0, types=1)]*/
   m<T>() {
     return <T>[];
   }

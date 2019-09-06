@@ -3,10 +3,10 @@ import self as self;
 import "dart:core" as core;
 
 static method test() → dynamic {
-  dynamic f = () → core::Iterable<dynamic> /* originally sync* */ {
+  dynamic f = () → core::Iterable<dynamic>* /* originally sync* */ {
     dynamic :await_jump_var = 0;
     dynamic :await_ctx_var;
-    function :sync_op(core::_SyncIterator<dynamic> :iterator) → core::bool yielding {
+    function :sync_op(core::_SyncIterator<dynamic>* :iterator) → core::bool* yielding {
       {
         {
           :iterator.{core::_SyncIterator::_current} = 1;
@@ -21,7 +21,7 @@ static method test() → dynamic {
     }
     return new core::_SyncIterable::•<dynamic>(:sync_op);
   };
-  core::Iterable<core::num> g = f.call();
-  core::Iterable<core::int> h = f.call();
+  core::Iterable<core::num*>* g = f.call();
+  core::Iterable<core::int*>* h = f.call();
 }
 static method main() → dynamic {}

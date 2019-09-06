@@ -9,9 +9,11 @@ namespace dart {
 
 // clang-format off
 // (class-name, function-name, recognized enum, fingerprint).
-// When adding a new function add a 0 as fingerprint, build and run to get the
-// correct fingerprint from the mismatch error (or use Library::GetFunction()
-// and print func.SourceFingerprint()).
+// When adding a new function add a 0 as fingerprint, build and run with
+// `tools/test.py vm/dart/reused_instructions_test` to get the correct
+// fingerprint from the mismatch error (or use Library::GetFunction() and print
+// func.SourceFingerprint()).
+// TODO(36376): Restore checking fingerprints of recognized methods.
 #define OTHER_RECOGNIZED_LIST(V)                                               \
   V(::, identical, ObjectIdentical, 0x49c6e96a)                                \
   V(ClassID, getID, ClassIDgetID, 0x7b18b257)                                  \
@@ -47,21 +49,21 @@ namespace dart {
   V(_ByteDataView, get:_typedData, ByteDataViewTypedData, 0x0)                 \
   V(_TypedListView, get:offsetInBytes, TypedDataViewOffsetInBytes, 0x0)        \
   V(_TypedListView, get:_typedData, TypedDataViewTypedData, 0x0)               \
-  V(_ByteDataView, ., TypedData_ByteDataView_factory, 0x0)                     \
-  V(_Int8ArrayView, ., TypedData_Int8ArrayView_factory, 0x0)                   \
-  V(_Uint8ArrayView, ., TypedData_Uint8ArrayView_factory, 0x0)                 \
-  V(_Uint8ClampedArrayView, ., TypedData_Uint8ClampedArrayView_factory, 0x0)   \
-  V(_Int16ArrayView, ., TypedData_Int16ArrayView_factory, 0x0)                 \
-  V(_Uint16ArrayView, ., TypedData_Uint16ArrayView_factory, 0x0)               \
-  V(_Int32ArrayView, ., TypedData_Int32ArrayView_factory, 0x0)                 \
-  V(_Uint32ArrayView, ., TypedData_Uint32ArrayView_factory, 0x0)               \
-  V(_Int64ArrayView, ., TypedData_Int64ArrayView_factory, 0x0)                 \
-  V(_Uint64ArrayView, ., TypedData_Uint64ArrayView_factory, 0x0)               \
-  V(_Float32ArrayView, ., TypedData_Float32ArrayView_factory, 0x0)             \
-  V(_Float64ArrayView, ., TypedData_Float64ArrayView_factory, 0x0)             \
-  V(_Float32x4ArrayView, ., TypedData_Float32x4ArrayView_factory, 0x0)         \
-  V(_Int32x4ArrayView, ., TypedData_Int32x4ArrayView_factory, 0x0)             \
-  V(_Float64x2ArrayView, ., TypedData_Float64x2ArrayView_factory, 0x0)         \
+  V(_ByteDataView, ._, TypedData_ByteDataView_factory, 0x0)                    \
+  V(_Int8ArrayView, ._, TypedData_Int8ArrayView_factory, 0x0)                  \
+  V(_Uint8ArrayView, ._, TypedData_Uint8ArrayView_factory, 0x0)                \
+  V(_Uint8ClampedArrayView, ._, TypedData_Uint8ClampedArrayView_factory, 0x0)  \
+  V(_Int16ArrayView, ._, TypedData_Int16ArrayView_factory, 0x0)                \
+  V(_Uint16ArrayView, ._, TypedData_Uint16ArrayView_factory, 0x0)              \
+  V(_Int32ArrayView, ._, TypedData_Int32ArrayView_factory, 0x0)                \
+  V(_Uint32ArrayView, ._, TypedData_Uint32ArrayView_factory, 0x0)              \
+  V(_Int64ArrayView, ._, TypedData_Int64ArrayView_factory, 0x0)                \
+  V(_Uint64ArrayView, ._, TypedData_Uint64ArrayView_factory, 0x0)              \
+  V(_Float32ArrayView, ._, TypedData_Float32ArrayView_factory, 0x0)            \
+  V(_Float64ArrayView, ._, TypedData_Float64ArrayView_factory, 0x0)            \
+  V(_Float32x4ArrayView, ._, TypedData_Float32x4ArrayView_factory, 0x0)        \
+  V(_Int32x4ArrayView, ._, TypedData_Int32x4ArrayView_factory, 0x0)            \
+  V(_Float64x2ArrayView, ._, TypedData_Float64x2ArrayView_factory, 0x0)        \
   V(::, _toClampedUint8, ConvertIntToClampedUint8, 0x564b0435)                 \
   V(_StringBase, _interpolate, StringBaseInterpolate, 0x01ecb15a)              \
   V(_IntegerImplementation, toDouble, IntegerToDouble, 0x05da96ed)             \
@@ -141,7 +143,8 @@ namespace dart {
   V(_HashVMBase, get:_deletedKeys, LinkedHashMap_getDeletedKeys, 0x558481c2)   \
   V(_HashVMBase, set:_deletedKeys, LinkedHashMap_setDeletedKeys, 0x5aa9888d)   \
   V(::, _classRangeCheck, ClassRangeCheck, 0x2ae76b84)                         \
-  V(::, _classRangeCheckNegative, ClassRangeCheckNegated, 0x5acdfb75)          \
+  V(::, _asyncStackTraceHelper, AsyncStackTraceHelper, 0)                      \
+  V(::, _abi, FfiAbi, 0x0)                                                     \
 
 // List of intrinsics:
 // (class-name, function-name, intrinsification method, fingerprint).
@@ -174,7 +177,7 @@ namespace dart {
   V(_Double, get:isNegative, Double_getIsNegative, 0x3a59e7f4)                 \
   V(_Double, _mulFromInteger, Double_mulFromInteger, 0x2017fcf6)               \
   V(_Double, .fromInteger, DoubleFromInteger, 0x6d234f4b)                      \
-  V(_GrowableList, .withData, GrowableArray_Allocate, 0x28b2138e)              \
+  V(_GrowableList, ._withData, GrowableArray_Allocate, 0x28b2138e)             \
   V(_RegExp, _ExecuteMatch, RegExp_ExecuteMatch, 0x380184b1)                   \
   V(_RegExp, _ExecuteMatchSticky, RegExp_ExecuteMatchSticky, 0x79b8f955)       \
   V(Object, ==, ObjectEquals, 0x7b32a55a)                                      \
@@ -368,150 +371,6 @@ namespace dart {
   ALL_INTRINSICS_LIST(V)                                                       \
   GRAPH_INTRINSICS_LIST(V)
 
-// A list of core function that should always be inlined.
-#define INLINE_WHITE_LIST(V)                                                   \
-  V(Object, ==, ObjectEquals, 0x7b32a55a)                                      \
-  V(_List, get:length, ObjectArrayLength, 0x25952390)                          \
-  V(_ImmutableList, get:length, ImmutableArrayLength, 0x25952390)              \
-  V(_TypedListView, get:offsetInBytes, TypedDataViewOffsetInBytes, 0x0)        \
-  V(_TypedListView, get:_typedData, TypedDataViewTypedData, 0x0)               \
-  V(_TypedList, get:length, TypedListLength, 0x0)                \
-  V(_TypedListView, get:length, TypedListViewLength, 0x0)        \
-  V(_ByteDataView, get:length, ByteDataViewLength, 0x0)          \
-  V(_GrowableList, get:length, GrowableArrayLength, 0x18dd86b4)                \
-  V(_GrowableList, get:_capacity, GrowableArrayCapacity, 0x2e04be60)           \
-  V(_GrowableList, add, GrowableListAdd, 0x40b490b8)                           \
-  V(_GrowableList, removeLast, GrowableListRemoveLast, 0x007855e5)             \
-  V(_StringBase, get:length, StringBaseLength, 0x2a2d03d1)                     \
-  V(ListIterator, moveNext, ListIteratorMoveNext, 0x2dca30ce)                  \
-  V(_FixedSizeArrayIterator, moveNext, FixedListIteratorMoveNext, 0x324eb20b)  \
-  V(_GrowableList, get:iterator, GrowableArrayIterator, 0x5bd2ef37)            \
-  V(_GrowableList, forEach, GrowableArrayForEach, 0x74900bb8)                  \
-  V(_List, ., ObjectArrayAllocate, 0x2121902f)                                 \
-  V(ListMixin, get:isEmpty, ListMixinIsEmpty, 0x7be74d04)                      \
-  V(_List, get:iterator, ObjectArrayIterator, 0x6c851c55)                      \
-  V(_List, forEach, ObjectArrayForEach, 0x11406b13)                            \
-  V(_List, _slice, ObjectArraySlice, 0x4c865d1d)                               \
-  V(_ImmutableList, get:iterator, ImmutableArrayIterator, 0x6c851c55)          \
-  V(_ImmutableList, forEach, ImmutableArrayForEach, 0x11406b13)                \
-  V(_Int8ArrayView, [], Int8ArrayViewGetIndexed, 0x7e5a8458)                   \
-  V(_Int8ArrayView, []=, Int8ArrayViewSetIndexed, 0x62f615e4)                  \
-  V(_Uint8ArrayView, [], Uint8ArrayViewGetIndexed, 0x7d308247)                 \
-  V(_Uint8ArrayView, []=, Uint8ArrayViewSetIndexed, 0x65ba546e)                \
-  V(_Uint8ClampedArrayView, [], Uint8ClampedArrayViewGetIndexed, 0x7d308247)   \
-  V(_Uint8ClampedArrayView, []=, Uint8ClampedArrayViewSetIndexed, 0x65ba546e)  \
-  V(_Uint16ArrayView, [], Uint16ArrayViewGetIndexed, 0xe96836dd)               \
-  V(_Uint16ArrayView, []=, Uint16ArrayViewSetIndexed, 0x15b02947)              \
-  V(_Int16ArrayView, [], Int16ArrayViewGetIndexed, 0x1b24a48b)                 \
-  V(_Int16ArrayView, []=, Int16ArrayViewSetIndexed, 0xb91ec2e6)                \
-  V(_Uint32ArrayView, [], Uint32ArrayViewGetIndexed, 0x8a4f93b3)               \
-  V(_Uint32ArrayView, []=, Uint32ArrayViewSetIndexed, 0xf54918b5)              \
-  V(_Int32ArrayView, [], Int32ArrayViewGetIndexed, 0x85040819)                 \
-  V(_Int32ArrayView, []=, Int32ArrayViewSetIndexed, 0xaec8c6f5)                \
-  V(_Uint64ArrayView, [], Uint64ArrayViewGetIndexed, 0xd0c44fe7)               \
-  V(_Uint64ArrayView, []=, Uint64ArrayViewSetIndexed, 0x402712b7)              \
-  V(_Int64ArrayView, [], Int64ArrayViewGetIndexed, 0xf3090b95)                 \
-  V(_Int64ArrayView, []=, Int64ArrayViewSetIndexed, 0xca07e497)                \
-  V(_Float32ArrayView, [], Float32ArrayViewGetIndexed, 0xef967533)             \
-  V(_Float32ArrayView, []=, Float32ArrayViewSetIndexed, 0xc9b691bd)            \
-  V(_Float64ArrayView, [], Float64ArrayViewGetIndexed, 0x9d83f585)             \
-  V(_Float64ArrayView, []=, Float64ArrayViewSetIndexed, 0x3c1adabd)            \
-  V(_ByteDataView, get:length, ByteDataViewLength, 0x0)                        \
-  V(_ByteDataView, get:offsetInBytes, ByteDataViewOffsetInBytes, 0x0)          \
-  V(_ByteDataView, get:_typedData, ByteDataViewTypedData, 0x0)                 \
-  V(_ByteDataView, setInt8, ByteDataViewSetInt8, 0x6395293e)                   \
-  V(_ByteDataView, setUint8, ByteDataViewSetUint8, 0x79979d1f)                 \
-  V(_ByteDataView, setInt16, ByteDataViewSetInt16, 0x525ec534)                 \
-  V(_ByteDataView, setUint16, ByteDataViewSetUint16, 0x48eda263)               \
-  V(_ByteDataView, setInt32, ByteDataViewSetInt32, 0x523666fa)                 \
-  V(_ByteDataView, setUint32, ByteDataViewSetUint32, 0x5a4683da)               \
-  V(_ByteDataView, setInt64, ByteDataViewSetInt64, 0x4283a650)                 \
-  V(_ByteDataView, setUint64, ByteDataViewSetUint64, 0x687a1892)               \
-  V(_ByteDataView, setFloat32, ByteDataViewSetFloat32, 0x7d5784fd)             \
-  V(_ByteDataView, setFloat64, ByteDataViewSetFloat64, 0x00101e3f)             \
-  V(_ByteDataView, getInt8, ByteDataViewGetInt8, 0x68448b4d)                   \
-  V(_ByteDataView, getUint8, ByteDataViewGetUint8, 0x5d68cbf2)                 \
-  V(_ByteDataView, getInt16, ByteDataViewGetInt16, 0x691b5ead)                 \
-  V(_ByteDataView, getUint16, ByteDataViewGetUint16, 0x78b744d8)               \
-  V(_ByteDataView, getInt32, ByteDataViewGetInt32, 0x3a0f4efa)                 \
-  V(_ByteDataView, getUint32, ByteDataViewGetUint32, 0x583261be)               \
-  V(_ByteDataView, getInt64, ByteDataViewGetInt64, 0x77de471c)                 \
-  V(_ByteDataView, getUint64, ByteDataViewGetUint64, 0x0ffadc4b)               \
-  V(_ByteDataView, getFloat32, ByteDataViewGetFloat32, 0x6a205749)             \
-  V(_ByteDataView, getFloat64, ByteDataViewGetFloat64, 0x69f58d27)             \
-  V(::, exp, MathExp, 0x32ab9efa)                                              \
-  V(::, log, MathLog, 0x1ee8f9fc)                                              \
-  V(::, max, MathMax, 0x377e8889)                                              \
-  V(::, min, MathMin, 0x32ebc57d)                                              \
-  V(::, pow, MathPow, 0x79efc5a2)                                              \
-  V(::, _classRangeCheck, ClassRangeCheck, 0x2ae76b84)                         \
-  V(::, _classRangeCheckNegative, ClassRangeCheckNegated, 0x5acdfb75)          \
-  V(::, _toInt, ConvertMaskedInt, 0x713908fd)                                  \
-  V(::, _toInt8, ConvertIntToInt8, 0x7484a780)                                 \
-  V(::, _toUint8, ConvertIntToUint8, 0x0a15b522)                               \
-  V(::, _toInt16, ConvertIntToInt16, 0x0a83fcc6)                               \
-  V(::, _toUint16, ConvertIntToUint16, 0x6087d1af)                             \
-  V(::, _toInt32, ConvertIntToInt32, 0x62b451b9)                               \
-  V(::, _toUint32, ConvertIntToUint32, 0x17a8e085)                             \
-  V(::, _byteSwap16, ByteSwap16, 0x44f173be)                                   \
-  V(::, _byteSwap32, ByteSwap32, 0x6219333b)                                   \
-  V(::, _byteSwap64, ByteSwap64, 0x9abe57e0)                                   \
-  V(Lists, copy, ListsCopy, 0x40e974f6)                                        \
-  V(_HashVMBase, get:_index, LinkedHashMap_getIndex, 0x02477157)               \
-  V(_HashVMBase, set:_index, LinkedHashMap_setIndex, 0x4fc8d5e0)               \
-  V(_HashVMBase, get:_data, LinkedHashMap_getData, 0x2d7a70ac)                 \
-  V(_HashVMBase, set:_data, LinkedHashMap_setData, 0x0ec032e8)                 \
-  V(_HashVMBase, get:_usedData, LinkedHashMap_getUsedData, 0x088599ed)         \
-  V(_HashVMBase, set:_usedData, LinkedHashMap_setUsedData, 0x5f42ca86)         \
-  V(_HashVMBase, get:_hashMask, LinkedHashMap_getHashMask, 0x32f3b13b)         \
-  V(_HashVMBase, set:_hashMask, LinkedHashMap_setHashMask, 0x7219c45b)         \
-  V(_HashVMBase, get:_deletedKeys, LinkedHashMap_getDeletedKeys, 0x558481c2)   \
-  V(_HashVMBase, set:_deletedKeys, LinkedHashMap_setDeletedKeys, 0x5aa9888d)   \
-
-// A list of core function that should never be inlined.
-#define INLINE_BLACK_LIST(V)                                                   \
-  V(::, asin, MathAsin, 0x2ecc2fcd)                                            \
-  V(::, acos, MathAcos, 0x08cf2212)                                            \
-  V(::, atan, MathAtan, 0x1e2731d5)                                            \
-  V(::, atan2, MathAtan2, 0x39f1fa41)                                          \
-  V(::, cos, MathCos, 0x459bf5fe)                                              \
-  V(::, sin, MathSin, 0x6b7bd98c)                                              \
-  V(::, sqrt, MathSqrt, 0x70482cf3)                                            \
-  V(::, tan, MathTan, 0x3bcd772a)                                              \
-  V(_BigIntImpl, _lsh, Bigint_lsh, 0x5b6cfc8b)                                 \
-  V(_BigIntImpl, _rsh, Bigint_rsh, 0x6ff14a49)                                 \
-  V(_BigIntImpl, _absAdd, Bigint_absAdd, 0x5bf14238)                           \
-  V(_BigIntImpl, _absSub, Bigint_absSub, 0x1de5bd32)                           \
-  V(_BigIntImpl, _mulAdd, Bigint_mulAdd, 0x6f277966)                           \
-  V(_BigIntImpl, _sqrAdd, Bigint_sqrAdd, 0x68e4c8ea)                           \
-  V(_BigIntImpl, _estimateQuotientDigit, Bigint_estimateQuotientDigit,         \
-    0x35456d91)                                                                \
-  V(_BigIntMontgomeryReduction, _mulMod, Montgomery_mulMod, 0x0f7b0375)        \
-  V(_Double, >, Double_greaterThan, 0x4f1375a3)                                \
-  V(_Double, >=, Double_greaterEqualThan, 0x4260c184)                          \
-  V(_Double, <, Double_lessThan, 0x365d1eba)                                   \
-  V(_Double, <=, Double_lessEqualThan, 0x74b5eb64)                             \
-  V(_Double, ==, Double_equal, 0x613492fc)                                     \
-  V(_Double, +, Double_add, 0x53994370)                                        \
-  V(_Double, -, Double_sub, 0x3b69d466)                                        \
-  V(_Double, *, Double_mul, 0x2bb9bd5d)                                        \
-  V(_Double, /, Double_div, 0x483eee28)                                        \
-  V(_IntegerImplementation, +, Integer_add, 0x43d53af7)                        \
-  V(_IntegerImplementation, -, Integer_sub, 0x2dc22e03)                        \
-  V(_IntegerImplementation, *, Integer_mul, 0x4e7a1c24)                        \
-  V(_IntegerImplementation, ~/, Integer_truncDivide, 0x4efb2d39)               \
-  V(_IntegerImplementation, unary-, Integer_negate, 0x428bf6fa)                \
-  V(_IntegerImplementation, &, Integer_bitAnd, 0x5ab35f30)                     \
-  V(_IntegerImplementation, |, Integer_bitOr, 0x267fa107)                      \
-  V(_IntegerImplementation, ^, Integer_bitXor, 0x0c7b0230)                     \
-  V(_IntegerImplementation, >, Integer_greaterThan, 0x6599a6e1)                \
-  V(_IntegerImplementation, ==, Integer_equal, 0x58abc487)                     \
-  V(_IntegerImplementation, <, Integer_lessThan, 0x365d1eba)                   \
-  V(_IntegerImplementation, <=, Integer_lessEqualThan, 0x74b5eb64)             \
-  V(_IntegerImplementation, >=, Integer_greaterEqualThan, 0x4260c184)          \
-  V(_IntegerImplementation, <<, Integer_shl, 0x371c45fa)                       \
-  V(_IntegerImplementation, >>, Integer_sar, 0x2b630578)                       \
-
 // A list of core functions that internally dispatch based on received id.
 #define POLYMORPHIC_TARGET_LIST(V)                                             \
   V(_StringBase, [], StringBaseCharAt, 0x7cbb8603)                             \
@@ -546,7 +405,7 @@ namespace dart {
 //  result-cid, fingerprint).
 #define RECOGNIZED_LIST_FACTORY_LIST(V)                                        \
   V(_ListFactory, _List, ., kArrayCid, 0x2121902f)                             \
-  V(_GrowableListWithData, _GrowableList, .withData, kGrowableObjectArrayCid,  \
+  V(_GrowableListWithData, _GrowableList, ._withData, kGrowableObjectArrayCid, \
     0x28b2138e)                                                                \
   V(_GrowableListFactory, _GrowableList, ., kGrowableObjectArrayCid,           \
     0x3eed680b)                                                                \

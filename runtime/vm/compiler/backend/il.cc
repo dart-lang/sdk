@@ -723,6 +723,23 @@ Cids* Cids::CreateAndExpand(Zone* zone,
   return cids;
 }
 
+static intptr_t Usage(const Function& function) {
+  intptr_t count = function.usage_counter();
+  if (count < 0) {
+    if (function.HasCode()) {
+      // 'function' is queued for optimized compilation
+      count = FLAG_optimization_counter_threshold;
+    } else {
+      // 'function' is queued for unoptimized compilation
+      count = FLAG_compilation_counter_threshold;
+    }
+  } else if (Code::IsOptimized(function.CurrentCode())) {
+    // 'function' was optimized and stopped counting
+    count = FLAG_optimization_counter_threshold;
+  }
+  return count;
+}
+
 void Cids::CreateHelper(Zone* zone,
                         const ICData& ic_data,
                         int argument_number,
@@ -748,10 +765,36 @@ void Cids::CreateHelper(Zone* zone,
     }
     if (include_targets) {
       Function& function = Function::ZoneHandle(zone, ic_data.GetTargetAt(i));
-      cid_ranges_.Add(new (zone) TargetInfo(
-          id, id, &function, ic_data.GetCountAt(i), ic_data.GetExactnessAt(i)));
+      intptr_t count = ic_data.GetCountAt(i);
+      cid_ranges_.Add(new (zone) TargetInfo(id, id, &function, count,
+                                            ic_data.GetExactnessAt(i)));
     } else {
       cid_ranges_.Add(new (zone) CidRange(id, id));
+    }
+  }
+
+  if (ic_data.is_megamorphic()) {
+    const MegamorphicCache& cache =
+        MegamorphicCache::Handle(zone, ic_data.AsMegamorphicCache());
+    SafepointMutexLocker ml(Isolate::Current()->megamorphic_mutex());
+    MegamorphicCacheEntries entries(Array::Handle(zone, cache.buckets()));
+    for (intptr_t i = 0; i < entries.Length(); i++) {
+      const intptr_t id =
+          Smi::Value(entries[i].Get<MegamorphicCache::kClassIdIndex>());
+      if (id == kIllegalCid) {
+        continue;
+      }
+      if (include_targets) {
+        Function& function = Function::ZoneHandle(zone);
+        function ^= entries[i].Get<MegamorphicCache::kTargetFunctionIndex>();
+        const intptr_t filled_entry_count = cache.filled_entry_count();
+        ASSERT(filled_entry_count > 0);
+        cid_ranges_.Add(new (zone) TargetInfo(
+            id, id, &function, Usage(function) / filled_entry_count,
+            StaticTypeExactnessState::NotTracking()));
+      } else {
+        cid_ranges_.Add(new (zone) CidRange(id, id));
+      }
     }
   }
 }
@@ -1129,6 +1172,18 @@ void Instruction::RemoveEnvironment() {
   env_ = NULL;
 }
 
+void Instruction::ReplaceInEnvironment(Definition* current,
+                                       Definition* replacement) {
+  for (Environment::DeepIterator it(env()); !it.Done(); it.Advance()) {
+    Value* use = it.CurrentValue();
+    if (use->definition() == current) {
+      use->RemoveFromUseList();
+      use->set_definition(replacement);
+      replacement->AddEnvUse(use);
+    }
+  }
+}
+
 Instruction* Instruction::RemoveFromGraph(bool return_previous) {
   ASSERT(!IsBlockEntry());
   ASSERT(!IsBranch());
@@ -1216,17 +1271,28 @@ void FlowGraphVisitor::VisitBlocks() {
 }
 
 bool Value::NeedsWriteBarrier() {
-  if (Type()->IsNull() || (Type()->ToNullableCid() == kSmiCid) ||
-      (Type()->ToNullableCid() == kBoolCid)) {
-    return false;
-  }
+  Value* value = this;
+  do {
+    if (value->Type()->IsNull() ||
+        (value->Type()->ToNullableCid() == kSmiCid) ||
+        (value->Type()->ToNullableCid() == kBoolCid)) {
+      return false;
+    }
 
-  // Strictly speaking, the incremental barrier can only be skipped for
-  // immediate objects (Smis) or permanent objects (vm-isolate heap or
-  // image pages). Here we choose to skip the barrier for any constant on
-  // the assumption it will remain reachable through the object pool.
+    // Strictly speaking, the incremental barrier can only be skipped for
+    // immediate objects (Smis) or permanent objects (vm-isolate heap or
+    // image pages). Here we choose to skip the barrier for any constant on
+    // the assumption it will remain reachable through the object pool.
+    if (value->BindsToConstant()) {
+      return false;
+    }
 
-  return !BindsToConstant();
+    // Follow the chain of redefinitions as redefined value could have a more
+    // accurate type (for example, AssertAssignable of Smi to a generic T).
+    value = value->definition()->RedefinedValue();
+  } while (value != nullptr);
+
+  return true;
 }
 
 void JoinEntryInstr::AddPredecessor(BlockEntryInstr* predecessor) {
@@ -3154,7 +3220,7 @@ Definition* UnboxInt32Instr::Canonicalize(FlowGraph* flow_graph) {
 
   ConstantInstr* c = value()->definition()->AsConstant();
   if ((c != NULL) && c->value().IsSmi()) {
-    if (!is_truncating() && (kSmiBits > 32)) {
+    if (!is_truncating()) {
       // Check that constant fits into 32-bit integer.
       const int64_t value = static_cast<int64_t>(Smi::Cast(c->value()).Value());
       if (!Utils::IsInt(32, value)) {
@@ -3824,6 +3890,14 @@ void CallTargets::MergeIntoRanges() {
   Sort(OrderByFrequency);
 }
 
+void CallTargets::Print() const {
+  for (intptr_t i = 0; i < length(); i++) {
+    THR_Print("cid = [%" Pd ", %" Pd "], count = %" Pd ", target = %s\n",
+              TargetAt(i)->cid_start, TargetAt(i)->cid_end, TargetAt(i)->count,
+              TargetAt(i)->target->ToQualifiedCString());
+  }
+}
+
 // Shared code generation methods (EmitNativeCode and
 // MakeLocationSummary). Only assembly code that can be shared across all
 // architectures can be used. Machine specific register allocation and code
@@ -3881,7 +3955,7 @@ void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                    TokenPosition::kNoSource);
   }
   if (HasParallelMove()) {
-    if (Assembler::EmittingComments()) {
+    if (compiler::Assembler::EmittingComments()) {
       compiler->EmitComment(parallel_move());
     }
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
@@ -3914,7 +3988,11 @@ void FunctionEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Function& function = compiler->parsed_function().function();
   if (function.IsDynamicFunction()) {
     compiler->SpecialStatsBegin(CombinedCodeStatistics::kTagCheckedEntry);
-    __ MonomorphicCheckedEntry();
+    if (!FLAG_precompiled_mode) {
+      __ MonomorphicCheckedEntryJIT();
+    } else {
+      __ MonomorphicCheckedEntryAOT();
+    }
     compiler->SpecialStatsEnd(CombinedCodeStatistics::kTagCheckedEntry);
   }
 
@@ -3950,7 +4028,7 @@ void FunctionEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                    TokenPosition::kNoSource);
   }
   if (HasParallelMove()) {
-    if (Assembler::EmittingComments()) {
+    if (compiler::Assembler::EmittingComments()) {
       compiler->EmitComment(parallel_move());
     }
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
@@ -3987,7 +4065,7 @@ void OsrEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #endif
 
   if (HasParallelMove()) {
-    if (Assembler::EmittingComments()) {
+    if (compiler::Assembler::EmittingComments()) {
       compiler->EmitComment(parallel_move());
     }
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
@@ -4349,8 +4427,8 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
     if (is_smi_two_args_op) {
       ASSERT(ArgumentCount() == 2);
-      compiler->EmitInstanceCall(stub, *call_ic_data, deopt_id(), token_pos(),
-                                 locs());
+      compiler->EmitInstanceCallJIT(stub, *call_ic_data, deopt_id(),
+                                    token_pos(), locs(), entry_kind());
     } else {
       compiler->GenerateInstanceCall(deopt_id(), token_pos(), locs(),
                                      *call_ic_data);
@@ -4514,10 +4592,15 @@ RawType* PolymorphicInstanceCallInstr::ComputeRuntimeType(
 Definition* InstanceCallInstr::Canonicalize(FlowGraph* flow_graph) {
   const intptr_t receiver_cid = Receiver()->Type()->ToCid();
 
-  // TODO(erikcorry): Even for cold call sites we could still try to look up
-  // methods when we know the receiver cid. We don't currently do this because
-  // it turns the InstanceCall into a PolymorphicInstanceCall which doesn't get
-  // recognized or inlined when it is cold.
+  // We could turn cold call sites for known receiver cids into a StaticCall.
+  // However, that keeps the ICData of the InstanceCall from being updated.
+  // This is fine if there is no later deoptimization, but if there is, then
+  // the InstanceCall with the updated ICData for this receiver may then be
+  // better optimized by the compiler.
+  //
+  // TODO(dartbug.com/37291): Allow this optimization, but accumulate affected
+  // InstanceCallInstrs and the corresponding reciever cids during compilation.
+  // After compilation, add receiver checks to the ICData for those call sites.
   if (ic_data()->NumberOfUsedChecks() == 0) return this;
 
   const CallTargets* new_target =
@@ -4532,8 +4615,8 @@ Definition* InstanceCallInstr::Canonicalize(FlowGraph* flow_graph) {
 
   ASSERT(new_target->HasSingleTarget());
   const Function& target = new_target->FirstTarget();
-  StaticCallInstr* specialized =
-      StaticCallInstr::FromCall(flow_graph->zone(), this, target);
+  StaticCallInstr* specialized = StaticCallInstr::FromCall(
+      flow_graph->zone(), this, target, new_target->AggregateCallCount());
   flow_graph->InsertBefore(this, specialized, env(), FlowGraph::kValue);
   return specialized;
 }
@@ -4558,6 +4641,24 @@ Definition* PolymorphicInstanceCallInstr::Canonicalize(FlowGraph* flow_graph) {
 bool PolymorphicInstanceCallInstr::IsSureToCallSingleRecognizedTarget() const {
   if (FLAG_precompiled_mode && !complete()) return false;
   return targets_.HasSingleRecognizedTarget();
+}
+
+bool StaticCallInstr::InitResultType(Zone* zone) {
+  const intptr_t list_cid = FactoryRecognizer::GetResultCidOfListFactory(
+      zone, function(), ArgumentCount());
+  if (list_cid != kDynamicCid) {
+    SetResultType(zone, CompileType::FromCid(list_cid));
+    set_is_known_list_constructor(true);
+    return true;
+  } else if (function().has_pragma()) {
+    const intptr_t recognized_cid =
+        MethodRecognizer::ResultCidFromPragma(function());
+    if (recognized_cid != kDynamicCid) {
+      SetResultType(zone, CompileType::FromCid(recognized_cid));
+      return true;
+    }
+  }
+  return false;
 }
 
 Definition* StaticCallInstr::Canonicalize(FlowGraph* flow_graph) {
@@ -4707,8 +4808,9 @@ void DeoptimizeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #if !defined(TARGET_ARCH_DBC)
 
 void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptCheckClass,
-                                        licm_hoisted_ ? ICData::kHoisted : 0);
+  compiler::Label* deopt =
+      compiler->AddDeoptStub(deopt_id(), ICData::kDeoptCheckClass,
+                             licm_hoisted_ ? ICData::kHoisted : 0);
   if (IsNullCheck()) {
     EmitNullCheck(compiler, deopt);
     return;
@@ -4717,7 +4819,7 @@ void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(!cids_.IsMonomorphic() || !cids_.HasClassId(kSmiCid));
   Register value = locs()->in(0).reg();
   Register temp = locs()->temp(0).reg();
-  Label is_ok;
+  compiler::Label is_ok;
 
   __ BranchIfSmi(value, cids_.HasClassId(kSmiCid) ? &is_ok : deopt);
 
@@ -4820,8 +4922,9 @@ void UnboxInstr::EmitLoadFromBoxWithDeopt(FlowGraphCompiler* compiler) {
   const Register box = locs()->in(0).reg();
   const Register temp =
       (locs()->temp_count() > 0) ? locs()->temp(0).reg() : kNoRegister;
-  Label* deopt = compiler->AddDeoptStub(GetDeoptId(), ICData::kDeoptUnbox);
-  Label is_smi;
+  compiler::Label* deopt =
+      compiler->AddDeoptStub(GetDeoptId(), ICData::kDeoptUnbox);
+  compiler::Label is_smi;
 
   if ((value()->Type()->ToNullableCid() == box_cid) &&
       value()->Type()->is_nullable()) {
@@ -4836,7 +4939,7 @@ void UnboxInstr::EmitLoadFromBoxWithDeopt(FlowGraphCompiler* compiler) {
   EmitLoadFromBox(compiler);
 
   if (is_smi.IsLinked()) {
-    Label done;
+    compiler::Label done;
     __ Jump(&done);
     __ Bind(&is_smi);
     EmitSmiConversion(compiler);
@@ -5084,9 +5187,7 @@ bool CheckArrayBoundInstr::IsFixedLengthArrayType(intptr_t cid) {
 }
 
 Definition* CheckArrayBoundInstr::Canonicalize(FlowGraph* flow_graph) {
-  return IsRedundant(RangeBoundary::FromDefinition(length()->definition()))
-             ? index()->definition()
-             : this;
+  return IsRedundant() ? index()->definition() : this;
 }
 
 intptr_t CheckArrayBoundInstr::LengthOffsetFor(intptr_t class_id) {
@@ -5165,7 +5266,7 @@ Definition* StringInterpolateInstr::Canonicalize(FlowGraph* flow_graph) {
     if (curr == this) continue;
 
     StoreIndexedInstr* store = curr->AsStoreIndexed();
-    if (!store->index()->BindsToConstant() ||
+    if (store == nullptr || !store->index()->BindsToConstant() ||
         !store->index()->BoundConstant().IsSmi()) {
       return this;
     }
@@ -5229,12 +5330,14 @@ LoadIndexedInstr::LoadIndexedInstr(Value* array,
                                    intptr_t class_id,
                                    AlignmentType alignment,
                                    intptr_t deopt_id,
-                                   TokenPosition token_pos)
+                                   TokenPosition token_pos,
+                                   CompileType* result_type)
     : TemplateDefinition(deopt_id),
       index_scale_(index_scale),
       class_id_(class_id),
       alignment_(StrengthenAlignment(class_id, alignment)),
-      token_pos_(token_pos) {
+      token_pos_(token_pos),
+      result_type_(result_type) {
   SetInputAt(0, array);
   SetInputAt(1, index);
 }
@@ -5430,9 +5533,10 @@ LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
   ASSERT(((1 << CallingConventions::kFirstCalleeSavedCpuReg) &
           CallingConventions::kArgumentRegisters) == 0);
 
-#if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_IA32) ||                 \
-    defined(TARGET_ARCH_ARM)
+#if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_IA32)
   constexpr intptr_t kNumTemps = 2;
+#elif defined(TARGET_ARCH_ARM)
+  constexpr intptr_t kNumTemps = 3;
 #else
   constexpr intptr_t kNumTemps = 1;
 #endif
@@ -5450,6 +5554,10 @@ LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
     defined(TARGET_ARCH_ARM)
   summary->set_temp(1, Location::RegisterLocation(
                            CallingConventions::kFirstCalleeSavedCpuReg));
+#endif
+#if defined(TARGET_ARCH_ARM)
+  summary->set_temp(2, Location::RegisterLocation(
+                           CallingConventions::kSecondCalleeSavedCpuReg));
 #endif
   summary->set_out(0, compiler::ffi::ResultLocation(
                           compiler::ffi::ResultRepresentation(signature_)));

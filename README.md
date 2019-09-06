@@ -29,7 +29,7 @@ depending on your target platform and goals:
 
 Dart is free and open source.
 
-See [LICENSE][license] and [PATENTS][patents].
+See [LICENSE][license] and [PATENT_GRANT][patent_grant].
 
 ## Using Dart
 
@@ -59,8 +59,8 @@ You can also contribute patches, as described in [Contributing][contrib].
 [repo]: https://github.com/dart-lang/sdk
 [lang]: https://www.dartlang.org/docs/dart-up-and-running/ch02.html
 [tools]: https://www.dartlang.org/tools/
-[codelab]: https://www.dartlang.org/codelabs/darrrt/
+[codelab]: https://dart.dev/codelabs
 [dartbug]: http://dartbug.com
 [contrib]: https://github.com/dart-lang/sdk/wiki/Contributing
 [pubsite]: https://pub.dev
-[patents]: https://github.com/dart-lang/sdk/blob/master/PATENTS
+[patent_grant]: https://github.com/dart-lang/sdk/blob/master/PATENT_GRANT

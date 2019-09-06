@@ -73,15 +73,15 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
    * Assert that all of the visited identifiers were resolved.
    */
   void assertResolved() {
-    if (!_unresolvedNodes.isEmpty || !_wrongTypedNodes.isEmpty) {
+    if (_unresolvedNodes.isNotEmpty || _wrongTypedNodes.isNotEmpty) {
       StringBuffer buffer = new StringBuffer();
-      if (!_unresolvedNodes.isEmpty) {
+      if (_unresolvedNodes.isNotEmpty) {
         buffer.write("Failed to resolve ");
         buffer.write(_unresolvedNodes.length);
         buffer.writeln(" nodes:");
         _printNodes(buffer, _unresolvedNodes);
       }
-      if (!_wrongTypedNodes.isEmpty) {
+      if (_wrongTypedNodes.isNotEmpty) {
         buffer.write("Resolved ");
         buffer.write(_wrongTypedNodes.length);
         buffer.writeln(" to the wrong type of element:");

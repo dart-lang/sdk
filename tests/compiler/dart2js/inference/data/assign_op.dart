@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   assignPlus();
   assignAnd();
@@ -16,25 +16,25 @@ main() {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: assignPlus:[subclass=JSUInt32]*/
+/*member: assignPlus:[subclass=JSUInt32]*/
 assignPlus() {
   var i = 87;
   return i /*invoke: [exact=JSUInt31]*/ += 42;
 }
 
-/*element: assignAnd:[exact=JSUInt31]*/
+/*member: assignAnd:[exact=JSUInt31]*/
 assignAnd() {
   var i = 87;
   return i /*invoke: [exact=JSUInt31]*/ &= 42;
 }
 
-/*element: Class1.:[exact=Class1]*/
+/*member: Class1.:[exact=Class1]*/
 class Class1 {
-  /*element: Class1.field:[subclass=JSPositiveInt]*/
+  /*member: Class1.field:[subclass=JSPositiveInt]*/
   var field = 87;
 }
 
-/*element: instanceAssignPlus:[subclass=JSPositiveInt]*/
+/*member: instanceAssignPlus:[subclass=JSPositiveInt]*/
 instanceAssignPlus() {
   var c = new Class1();
   return c.
@@ -42,13 +42,13 @@ instanceAssignPlus() {
       /*invoke: [subclass=JSPositiveInt]*/ += 42;
 }
 
-/*element: Class2.:[exact=Class2]*/
+/*member: Class2.:[exact=Class2]*/
 class Class2 {
-  /*element: Class2.field:[exact=JSUInt31]*/
+  /*member: Class2.field:[exact=JSUInt31]*/
   var field = 87;
 }
 
-/*element: instanceAssignAnd:[exact=JSUInt31]*/
+/*member: instanceAssignAnd:[exact=JSUInt31]*/
 instanceAssignAnd() {
   var c = new Class2();
   return c.
@@ -56,7 +56,7 @@ instanceAssignAnd() {
       /*invoke: [exact=JSUInt31]*/ &= 42;
 }
 
-/*element: assignIndexPlus:[subclass=JSPositiveInt]*/
+/*member: assignIndexPlus:[subclass=JSPositiveInt]*/
 assignIndexPlus() {
   var i = [87];
   return i
@@ -65,7 +65,7 @@ assignIndexPlus() {
       [0] /*invoke: [subclass=JSPositiveInt]*/ += 42;
 }
 
-/*element: assignIndexAnd:[exact=JSUInt31]*/
+/*member: assignIndexAnd:[exact=JSUInt31]*/
 assignIndexAnd() {
   var i = [87];
   return i
@@ -74,7 +74,7 @@ assignIndexAnd() {
       [0] /*invoke: [exact=JSUInt31]*/ &= 42;
 }
 
-/*element: assignIndexInc:[subclass=JSPositiveInt]*/
+/*member: assignIndexInc:[subclass=JSPositiveInt]*/
 assignIndexInc() {
   var i = [87];
   return i
@@ -83,7 +83,7 @@ assignIndexInc() {
       [0] /*invoke: [subclass=JSPositiveInt]*/ ++;
 }
 
-/*element: assignIndexDec:[subclass=JSInt]*/
+/*member: assignIndexDec:[subclass=JSInt]*/
 assignIndexDec() {
   var i = [87];
   return

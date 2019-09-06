@@ -29,6 +29,25 @@ main() {
   test(map, '# = # - 1', [deferred, variableUseAlias], '--variable');
   test(map, '# = # + 2', [variableUse, variableUseAlias], 'variable += 2');
   test(map, '# = # + 2', [deferred, variableUseAlias], 'variable += 2');
+  test(map, '# = # * 2', [variableUse, variableUseAlias], 'variable *= 2');
+  test(map, '# = # * 2', [deferred, variableUseAlias], 'variable *= 2');
+
+  test(map, '# += # + 1', [variableUse, variableUseAlias],
+      'variable += variable + 1');
+  test(map, '# += # + 1', [deferred, variableUseAlias],
+      'variable += variable + 1');
+  test(map, '# += # - 1', [variableUse, variableUseAlias],
+      'variable += variable - 1');
+  test(map, '# += # - 1', [deferred, variableUseAlias],
+      'variable += variable - 1');
+  test(map, '# += # + 2', [variableUse, variableUseAlias],
+      'variable += variable + 2');
+  test(map, '# += # + 2', [deferred, variableUseAlias],
+      'variable += variable + 2');
+  test(map, '# += # * 2', [variableUse, variableUseAlias],
+      'variable += variable * 2');
+  test(map, '# += # * 2', [deferred, variableUseAlias],
+      'variable += variable * 2');
 }
 
 void test(Map<Expression, DeferredExpression> map, String template,

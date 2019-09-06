@@ -7,7 +7,7 @@ import 'package:dartfix/src/driver.dart';
 
 /// The entry point for dartfix.
 void main(List<String> args) async {
-  Driver starter = new Driver();
+  Driver starter = Driver();
 
   // Wait for the starter to complete.
   await starter.start(args);

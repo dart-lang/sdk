@@ -118,25 +118,25 @@ main() {
 // Negation
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: negate:Specializer=[Negate],PrimitiveCheck=[]*/
+/*member: negate:Specializer=[Negate],PrimitiveCheck=[]*/
 @pragma('dart2js:noInline')
 negate(o) {
   return -o;
 }
 
-/*element: negateNum:Specializer=[Negate],PrimitiveCheck=[]*/
+/*member: negateNum:Specializer=[Negate],PrimitiveCheck=[]*/
 @pragma('dart2js:noInline')
 negateNum(o) {
   return -o;
 }
 
-/*element: negateNull:Specializer=[Negate],PrimitiveCheck=[kind=receiver&type=num]*/
+/*member: negateNull:Specializer=[Negate],PrimitiveCheck=[kind=receiver&type=num]*/
 @pragma('dart2js:noInline')
 negateNull(o) {
   return -o;
 }
 
-/*element: negateString:Specializer=[!Negate]*/
+/*member: negateString:Specializer=[!Negate]*/
 @pragma('dart2js:noInline')
 negateString(o) {
   return -o;
@@ -146,49 +146,49 @@ negateString(o) {
 // Addition
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: add:Specializer=[Add],PrimitiveCheck=[]*/
+/*member: add:Specializer=[Add],PrimitiveCheck=[]*/
 @pragma('dart2js:noInline')
 add(a, b) {
   return a + b;
 }
 
-/*element: addNumInt:Specializer=[Add],PrimitiveCheck=[]*/
+/*member: addNumInt:Specializer=[Add],PrimitiveCheck=[]*/
 @pragma('dart2js:noInline')
 addNumInt(a, b) {
   return a + b;
 }
 
-/*element: addIntNum:Specializer=[Add],PrimitiveCheck=[]*/
+/*member: addIntNum:Specializer=[Add],PrimitiveCheck=[]*/
 @pragma('dart2js:noInline')
 addIntNum(a, b) {
   return a + b;
 }
 
-/*element: addNumNum:Specializer=[Add],PrimitiveCheck=[]*/
+/*member: addNumNum:Specializer=[Add],PrimitiveCheck=[]*/
 @pragma('dart2js:noInline')
 addNumNum(a, b) {
   return a + b;
 }
 
-/*element: addNullInt:Specializer=[Add],PrimitiveCheck=[kind=receiver&type=num]*/
+/*member: addNullInt:Specializer=[Add],PrimitiveCheck=[kind=receiver&type=num]*/
 @pragma('dart2js:noInline')
 addNullInt(a, b) {
   return a + b;
 }
 
-/*element: addIntNull:Specializer=[Add],PrimitiveCheck=[kind=argument&type=num]*/
+/*member: addIntNull:Specializer=[Add],PrimitiveCheck=[kind=argument&type=num]*/
 @pragma('dart2js:noInline')
 addIntNull(a, b) {
   return a + b;
 }
 
-/*element: addStringInt:Specializer=[!Add]*/
+/*member: addStringInt:Specializer=[!Add]*/
 @pragma('dart2js:noInline')
 addStringInt(a, b) {
   return a + b;
 }
 
-/*element: addIntString:Specializer=[Add],PrimitiveCheck=[kind=argument&type=num]*/
+/*member: addIntString:Specializer=[Add],PrimitiveCheck=[kind=argument&type=num]*/
 @pragma('dart2js:noInline')
 addIntString(a, b) {
   return a + b;
@@ -198,49 +198,49 @@ addIntString(a, b) {
 // Subtraction
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: subtract:Specializer=[Subtract],PrimitiveCheck=[]*/
+/*member: subtract:Specializer=[Subtract],PrimitiveCheck=[]*/
 @pragma('dart2js:noInline')
 subtract(a, b) {
   return a - b;
 }
 
-/*element: subtractNumInt:Specializer=[Subtract],PrimitiveCheck=[]*/
+/*member: subtractNumInt:Specializer=[Subtract],PrimitiveCheck=[]*/
 @pragma('dart2js:noInline')
 subtractNumInt(a, b) {
   return a - b;
 }
 
-/*element: subtractIntNum:Specializer=[Subtract],PrimitiveCheck=[]*/
+/*member: subtractIntNum:Specializer=[Subtract],PrimitiveCheck=[]*/
 @pragma('dart2js:noInline')
 subtractIntNum(a, b) {
   return a - b;
 }
 
-/*element: subtractNumNum:Specializer=[Subtract],PrimitiveCheck=[]*/
+/*member: subtractNumNum:Specializer=[Subtract],PrimitiveCheck=[]*/
 @pragma('dart2js:noInline')
 subtractNumNum(a, b) {
   return a - b;
 }
 
-/*element: subtractNullInt:Specializer=[Subtract],PrimitiveCheck=[kind=receiver&type=num]*/
+/*member: subtractNullInt:Specializer=[Subtract],PrimitiveCheck=[kind=receiver&type=num]*/
 @pragma('dart2js:noInline')
 subtractNullInt(a, b) {
   return a - b;
 }
 
-/*element: subtractIntNull:Specializer=[Subtract],PrimitiveCheck=[kind=argument&type=num]*/
+/*member: subtractIntNull:Specializer=[Subtract],PrimitiveCheck=[kind=argument&type=num]*/
 @pragma('dart2js:noInline')
 subtractIntNull(a, b) {
   return a - b;
 }
 
-/*element: subtractStringInt:Specializer=[Subtract],PrimitiveCheck=[kind=receiver&type=num]*/
+/*member: subtractStringInt:Specializer=[Subtract],PrimitiveCheck=[kind=receiver&type=num]*/
 @pragma('dart2js:noInline')
 subtractStringInt(a, b) {
   return a - b;
 }
 
-/*element: subtractIntString:Specializer=[Subtract],PrimitiveCheck=[kind=argument&type=num]*/
+/*member: subtractIntString:Specializer=[Subtract],PrimitiveCheck=[kind=argument&type=num]*/
 @pragma('dart2js:noInline')
 subtractIntString(a, b) {
   return a - b;
@@ -250,49 +250,49 @@ subtractIntString(a, b) {
 // Multiplication
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: multiply:Specializer=[Multiply],PrimitiveCheck=[]*/
+/*member: multiply:Specializer=[Multiply],PrimitiveCheck=[]*/
 @pragma('dart2js:noInline')
 multiply(a, b) {
   return a * b;
 }
 
-/*element: multiplyNumInt:Specializer=[Multiply],PrimitiveCheck=[]*/
+/*member: multiplyNumInt:Specializer=[Multiply],PrimitiveCheck=[]*/
 @pragma('dart2js:noInline')
 multiplyNumInt(a, b) {
   return a * b;
 }
 
-/*element: multiplyIntNum:Specializer=[Multiply],PrimitiveCheck=[]*/
+/*member: multiplyIntNum:Specializer=[Multiply],PrimitiveCheck=[]*/
 @pragma('dart2js:noInline')
 multiplyIntNum(a, b) {
   return a * b;
 }
 
-/*element: multiplyNumNum:Specializer=[Multiply],PrimitiveCheck=[]*/
+/*member: multiplyNumNum:Specializer=[Multiply],PrimitiveCheck=[]*/
 @pragma('dart2js:noInline')
 multiplyNumNum(a, b) {
   return a * b;
 }
 
-/*element: multiplyNullInt:Specializer=[Multiply],PrimitiveCheck=[kind=receiver&type=num]*/
+/*member: multiplyNullInt:Specializer=[Multiply],PrimitiveCheck=[kind=receiver&type=num]*/
 @pragma('dart2js:noInline')
 multiplyNullInt(a, b) {
   return a * b;
 }
 
-/*element: multiplyIntNull:Specializer=[Multiply],PrimitiveCheck=[kind=argument&type=num]*/
+/*member: multiplyIntNull:Specializer=[Multiply],PrimitiveCheck=[kind=argument&type=num]*/
 @pragma('dart2js:noInline')
 multiplyIntNull(a, b) {
   return a * b;
 }
 
-/*element: multiplyStringInt:Specializer=[!Multiply]*/
+/*member: multiplyStringInt:Specializer=[!Multiply]*/
 @pragma('dart2js:noInline')
 multiplyStringInt(a, b) {
   return a * b;
 }
 
-/*element: multiplyIntString:Specializer=[Multiply],PrimitiveCheck=[kind=argument&type=num]*/
+/*member: multiplyIntString:Specializer=[Multiply],PrimitiveCheck=[kind=argument&type=num]*/
 @pragma('dart2js:noInline')
 multiplyIntString(a, b) {
   return a * b;
@@ -302,55 +302,55 @@ multiplyIntString(a, b) {
 // Division
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: divide:Specializer=[Divide],PrimitiveCheck=[]*/
+/*member: divide:Specializer=[Divide],PrimitiveCheck=[]*/
 @pragma('dart2js:noInline')
 divide(a, b) {
   return a / b;
 }
 
-/*element: divideZero:Specializer=[Divide],PrimitiveCheck=[]*/
+/*member: divideZero:Specializer=[Divide],PrimitiveCheck=[]*/
 @pragma('dart2js:noInline')
 divideZero(a) {
   return a / 0;
 }
 
-/*element: divideNumInt:Specializer=[Divide],PrimitiveCheck=[]*/
+/*member: divideNumInt:Specializer=[Divide],PrimitiveCheck=[]*/
 @pragma('dart2js:noInline')
 divideNumInt(a, b) {
   return a / b;
 }
 
-/*element: divideIntNum:Specializer=[Divide],PrimitiveCheck=[]*/
+/*member: divideIntNum:Specializer=[Divide],PrimitiveCheck=[]*/
 @pragma('dart2js:noInline')
 divideIntNum(a, b) {
   return a / b;
 }
 
-/*element: divideNumNum:Specializer=[Divide],PrimitiveCheck=[]*/
+/*member: divideNumNum:Specializer=[Divide],PrimitiveCheck=[]*/
 @pragma('dart2js:noInline')
 divideNumNum(a, b) {
   return a / b;
 }
 
-/*element: divideNullInt:Specializer=[Divide],PrimitiveCheck=[kind=receiver&type=num]*/
+/*member: divideNullInt:Specializer=[Divide],PrimitiveCheck=[kind=receiver&type=num]*/
 @pragma('dart2js:noInline')
 divideNullInt(a, b) {
   return a / b;
 }
 
-/*element: divideIntNull:Specializer=[Divide],PrimitiveCheck=[kind=argument&type=num]*/
+/*member: divideIntNull:Specializer=[Divide],PrimitiveCheck=[kind=argument&type=num]*/
 @pragma('dart2js:noInline')
 divideIntNull(a, b) {
   return a / b;
 }
 
-/*element: divideStringInt:Specializer=[Divide],PrimitiveCheck=[kind=receiver&type=num]*/
+/*member: divideStringInt:Specializer=[Divide],PrimitiveCheck=[kind=receiver&type=num]*/
 @pragma('dart2js:noInline')
 divideStringInt(a, b) {
   return a / b;
 }
 
-/*element: divideIntString:Specializer=[Divide],PrimitiveCheck=[kind=argument&type=num]*/
+/*member: divideIntString:Specializer=[Divide],PrimitiveCheck=[kind=argument&type=num]*/
 @pragma('dart2js:noInline')
 divideIntString(a, b) {
   return a / b;
@@ -360,73 +360,73 @@ divideIntString(a, b) {
 // Truncating division
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: truncatingDivide:Specializer=[TruncatingDivide],PrimitiveCheck=[]*/
+/*member: truncatingDivide:Specializer=[TruncatingDivide],PrimitiveCheck=[]*/
 @pragma('dart2js:noInline')
 truncatingDivide(a, b) {
   return a ~/ 2;
 }
 
-/*element: truncatingDivideZero:Specializer=[!TruncatingDivide]*/
+/*member: truncatingDivideZero:Specializer=[!TruncatingDivide]*/
 @pragma('dart2js:noInline')
 truncatingDivideZero(a) {
   return a ~/ 0;
 }
 
-/*element: truncatingDivideIntNonZero1:Specializer=[TruncatingDivide],PrimitiveCheck=[]*/
+/*member: truncatingDivideIntNonZero1:Specializer=[TruncatingDivide],PrimitiveCheck=[]*/
 @pragma('dart2js:noInline')
 truncatingDivideIntNonZero1(a) {
   return a ~/ 1;
 }
 
-/*element: truncatingDivideIntNonZero2:Specializer=[TruncatingDivide],PrimitiveCheck=[]*/
+/*member: truncatingDivideIntNonZero2:Specializer=[TruncatingDivide],PrimitiveCheck=[]*/
 @pragma('dart2js:noInline')
 truncatingDivideIntNonZero2(a) {
   return a ~/ 2;
 }
 
-/*element: truncatingDivideNumInt:Specializer=[!TruncatingDivide]*/
+/*member: truncatingDivideNumInt:Specializer=[!TruncatingDivide]*/
 @pragma('dart2js:noInline')
 truncatingDivideNumInt(a, b) {
   return a ~/ b;
 }
 
-/*element: truncatingDivideNumNonZero:Specializer=[TruncatingDivide._tdivFast],PrimitiveCheck=[]*/
+/*member: truncatingDivideNumNonZero:Specializer=[TruncatingDivide._tdivFast],PrimitiveCheck=[]*/
 @pragma('dart2js:noInline')
 truncatingDivideNumNonZero(a) {
   return a ~/ 2;
 }
 
-/*element: truncatingDivideIntNum:Specializer=[!TruncatingDivide]*/
+/*member: truncatingDivideIntNum:Specializer=[!TruncatingDivide]*/
 @pragma('dart2js:noInline')
 truncatingDivideIntNum(a, b) {
   return a ~/ b;
 }
 
-/*element: truncatingDivideNumNum:Specializer=[!TruncatingDivide]*/
+/*member: truncatingDivideNumNum:Specializer=[!TruncatingDivide]*/
 @pragma('dart2js:noInline')
 truncatingDivideNumNum(a, b) {
   return a ~/ b;
 }
 
-/*element: truncatingDivideNullInt:Specializer=[!TruncatingDivide],PrimitiveCheck=[kind=receiver&type=num]*/
+/*member: truncatingDivideNullInt:Specializer=[!TruncatingDivide],PrimitiveCheck=[kind=receiver&type=num]*/
 @pragma('dart2js:noInline')
 truncatingDivideNullInt(a, b) {
   return a ~/ b;
 }
 
-/*element: truncatingDivideIntNull:Specializer=[!TruncatingDivide],PrimitiveCheck=[kind=argument&type=num]*/
+/*member: truncatingDivideIntNull:Specializer=[!TruncatingDivide],PrimitiveCheck=[kind=argument&type=num]*/
 @pragma('dart2js:noInline')
 truncatingDivideIntNull(a, b) {
   return a ~/ b;
 }
 
-/*element: truncatingDivideStringInt:Specializer=[!TruncatingDivide],PrimitiveCheck=[kind=receiver&type=num]*/
+/*member: truncatingDivideStringInt:Specializer=[!TruncatingDivide],PrimitiveCheck=[kind=receiver&type=num]*/
 @pragma('dart2js:noInline')
 truncatingDivideStringInt(a, b) {
   return a ~/ b;
 }
 
-/*element: truncatingDivideIntString:Specializer=[!TruncatingDivide],PrimitiveCheck=[kind=argument&type=num]*/
+/*member: truncatingDivideIntString:Specializer=[!TruncatingDivide],PrimitiveCheck=[kind=argument&type=num]*/
 @pragma('dart2js:noInline')
 truncatingDivideIntString(a, b) {
   return a ~/ b;
@@ -436,25 +436,25 @@ truncatingDivideIntString(a, b) {
 // .abs()
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: abs:Specializer=[Abs]*/
+/*member: abs:Specializer=[Abs]*/
 @pragma('dart2js:noInline')
 abs(o) {
   return o.abs();
 }
 
-/*element: absNum:Specializer=[Abs]*/
+/*member: absNum:Specializer=[Abs]*/
 @pragma('dart2js:noInline')
 absNum(o) {
   return o.abs();
 }
 
-/*element: absNull:Specializer=[Abs]*/
+/*member: absNull:Specializer=[Abs]*/
 @pragma('dart2js:noInline')
 absNull(o) {
   return o.abs();
 }
 
-/*element: absString:Specializer=[!Abs]*/
+/*member: absString:Specializer=[!Abs]*/
 @pragma('dart2js:noInline')
 absString(o) {
   return o.abs();
@@ -464,25 +464,25 @@ absString(o) {
 // .round()
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: round:Specializer=[Round]*/
+/*member: round:Specializer=[Round]*/
 @pragma('dart2js:noInline')
 round(o) {
   return o.round();
 }
 
-/*element: roundNum:Specializer=[Round]*/
+/*member: roundNum:Specializer=[Round]*/
 @pragma('dart2js:noInline')
 roundNum(o) {
   return o.round();
 }
 
-/*element: roundNull:Specializer=[Round]*/
+/*member: roundNull:Specializer=[Round]*/
 @pragma('dart2js:noInline')
 roundNull(o) {
   return o.round();
 }
 
-/*element: roundString:Specializer=[!Round]*/
+/*member: roundString:Specializer=[!Round]*/
 @pragma('dart2js:noInline')
 roundString(o) {
   return o.round();

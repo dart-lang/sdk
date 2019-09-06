@@ -24,10 +24,25 @@ class SafepointOperationScope : public ThreadStackResource {
   DISALLOW_COPY_AND_ASSIGN(SafepointOperationScope);
 };
 
-// Implements handling of safepoint operations for all threads in an Isolate.
+// A stack based scope that can be used to perform an operation after getting
+// all threads to a safepoint. At the end of the operation all the threads are
+// resumed. Allocations in the scope will force heap growth.
+class ForceGrowthSafepointOperationScope : public ThreadStackResource {
+ public:
+  explicit ForceGrowthSafepointOperationScope(Thread* T);
+  ~ForceGrowthSafepointOperationScope();
+
+ private:
+  bool current_growth_controller_state_;
+
+  DISALLOW_COPY_AND_ASSIGN(ForceGrowthSafepointOperationScope);
+};
+
+// Implements handling of safepoint operations for all threads in an
+// IsolateGroup.
 class SafepointHandler {
  public:
-  explicit SafepointHandler(Isolate* I);
+  explicit SafepointHandler(IsolateGroup* I);
   ~SafepointHandler();
 
   void EnterSafepointUsingLock(Thread* T);
@@ -39,8 +54,8 @@ class SafepointHandler {
   void SafepointThreads(Thread* T);
   void ResumeThreads(Thread* T);
 
-  Isolate* isolate() const { return isolate_; }
-  Monitor* threads_lock() const { return isolate_->threads_lock(); }
+  IsolateGroup* isolate_group() const { return isolate_group_; }
+  Monitor* threads_lock() const { return isolate_group_->threads_lock(); }
   bool SafepointInProgress() const {
     ASSERT(threads_lock()->IsOwnedByCurrentThread());
     return ((safepoint_operation_count_ > 0) && (owner_ != NULL));
@@ -74,7 +89,7 @@ class SafepointHandler {
     safepoint_operation_count_ -= 1;
   }
 
-  Isolate* isolate_;
+  IsolateGroup* isolate_group_;
 
   // Monitor used by thread initiating a safepoint operation to track threads
   // not at a safepoint and wait for these threads to reach a safepoint.
@@ -91,7 +106,9 @@ class SafepointHandler {
   Thread* owner_;
 
   friend class Isolate;
+  friend class IsolateGroup;
   friend class SafepointOperationScope;
+  friend class ForceGrowthSafepointOperationScope;
   friend class HeapIterationScope;
 };
 
@@ -290,7 +307,9 @@ class TransitionNativeToVM : public TransitionSafepointState {
   explicit TransitionNativeToVM(Thread* T) : TransitionSafepointState(T) {
     // We are about to execute vm code and so we are not at a safepoint anymore.
     ASSERT(T->execution_state() == Thread::kThreadInNative);
-    T->ExitSafepoint();
+    if (T->no_callback_scope_depth() == 0) {
+      T->ExitSafepoint();
+    }
     T->set_execution_state(Thread::kThreadInVM);
   }
 
@@ -298,7 +317,9 @@ class TransitionNativeToVM : public TransitionSafepointState {
     // We are returning to native code and so we are at a safepoint.
     ASSERT(thread()->execution_state() == Thread::kThreadInVM);
     thread()->set_execution_state(Thread::kThreadInNative);
-    thread()->EnterSafepoint();
+    if (thread()->no_callback_scope_depth() == 0) {
+      thread()->EnterSafepoint();
+    }
   }
 
  private:

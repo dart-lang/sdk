@@ -30,7 +30,11 @@ const int finalMask = externalMask << 1;
 
 const int staticMask = finalMask << 1;
 
-const int namedMixinApplicationMask = staticMask << 1;
+const int lateMask = staticMask << 1;
+
+const int requiredMask = lateMask << 1;
+
+const int namedMixinApplicationMask = requiredMask << 1;
 
 /// Not a modifier, used for mixins declared explicitly by using the `mixin`
 /// keyword.

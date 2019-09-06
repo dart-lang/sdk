@@ -4,10 +4,13 @@
 
 #include "vm/object.h"
 
+#include "vm/code_patcher.h"
 #include "vm/hash_table.h"
 #include "vm/isolate_reload.h"
 #include "vm/log.h"
+#include "vm/object_store.h"
 #include "vm/resolver.h"
+#include "vm/stub_code.h"
 #include "vm/symbols.h"
 
 namespace dart {
@@ -89,17 +92,156 @@ void Code::ResetICDatas(Zone* zone) const {
 #endif
 }
 
+#if !defined(TARGET_ARCH_DBC)
+static void FindICData(const Array& ic_data_array,
+                       intptr_t deopt_id,
+                       ICData* ic_data) {
+  // ic_data_array is sorted because of how it is constructed in
+  // Function::SaveICDataMap.
+  intptr_t lo = 1;
+  intptr_t hi = ic_data_array.Length() - 1;
+  while (lo <= hi) {
+    intptr_t mid = (hi - lo + 1) / 2 + lo;
+    ASSERT(mid >= lo);
+    ASSERT(mid <= hi);
+    *ic_data ^= ic_data_array.At(mid);
+    if (ic_data->deopt_id() == deopt_id) {
+      return;
+    } else if (ic_data->deopt_id() > deopt_id) {
+      hi = mid - 1;
+    } else {
+      lo = mid + 1;
+    }
+  }
+  FATAL1("Missing deopt id %" Pd "\n", deopt_id);
+}
+#endif  // !defined(TARGET_ARCH_DBC)
+
+void Code::ResetSwitchableCalls(Zone* zone) const {
+#if !defined(TARGET_ARCH_DBC)
+  if (is_optimized()) {
+    return;  // No switchable calls in optimized code.
+  }
+
+  const Object& owner = Object::Handle(zone, this->owner());
+  if (!owner.IsFunction()) {
+    return;  // No switchable calls in stub code.
+  }
+  const Function& function = Function::Cast(owner);
+
+  if (function.kind() == RawFunction::kIrregexpFunction) {
+    // Regex matchers do not support breakpoints or stepping, and they only call
+    // core library functions that cannot change due to reload. As a performance
+    // optimization, avoid this matching of ICData to PCs for these functions'
+    // large number of instance calls.
+    ASSERT(!function.is_debuggable());
+    return;
+  }
+
+  const Array& ic_data_array = Array::Handle(zone, function.ic_data_array());
+  if (ic_data_array.IsNull()) {
+    // The megamorphic miss stub and some recognized function doesn't populate
+    // their ic_data_array. Check this only happens for functions without IC
+    // calls.
+#if defined(DEBUG)
+    const PcDescriptors& descriptors =
+        PcDescriptors::Handle(zone, pc_descriptors());
+    PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kIcCall);
+    while (iter.MoveNext()) {
+      FATAL1("%s has IC calls but no ic_data_array\n", owner.ToCString());
+    }
+#endif
+    return;
+  }
+
+  ICData& ic_data = ICData::Handle(zone);
+  Object& data = Object::Handle(zone);
+  const PcDescriptors& descriptors =
+      PcDescriptors::Handle(zone, pc_descriptors());
+  PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kIcCall);
+  while (iter.MoveNext()) {
+    uword pc = PayloadStart() + iter.PcOffset();
+    CodePatcher::GetInstanceCallAt(pc, *this, &data);
+    // This check both avoids unnecessary patching to reduce log spam and
+    // prevents patching over breakpoint stubs.
+    if (!data.IsICData()) {
+      FindICData(ic_data_array, iter.DeoptId(), &ic_data);
+      ASSERT(ic_data.rebind_rule() == ICData::kInstance);
+      ASSERT(ic_data.NumArgsTested() == 1);
+      const Code& stub =
+          ic_data.is_tracking_exactness()
+              ? StubCode::OneArgCheckInlineCacheWithExactnessCheck()
+              : StubCode::OneArgCheckInlineCache();
+      CodePatcher::PatchInstanceCallAt(pc, *this, ic_data, stub);
+      if (FLAG_trace_ic) {
+        OS::PrintErr("Instance call at %" Px
+                     " resetting to polymorphic dispatch, %s\n",
+                     pc, ic_data.ToCString());
+      }
+    }
+  }
+#endif
+}
+
 void Bytecode::ResetICDatas(Zone* zone) const {
   // Iterate over the Bytecode's object pool and reset all ICDatas.
   const ObjectPool& pool = ObjectPool::Handle(zone, object_pool());
   ASSERT(!pool.IsNull());
   pool.ResetICDatas(zone);
+
+  Object& object = Object::Handle(zone);
+  String& name = String::Handle(zone);
+  Class& new_cls = Class::Handle(zone);
+  Library& new_lib = Library::Handle(zone);
+  Function& new_function = Function::Handle(zone);
+  Field& new_field = Field::Handle(zone);
+  for (intptr_t i = 0; i < pool.Length(); i++) {
+    ObjectPool::EntryType entry_type = pool.TypeAt(i);
+    if (entry_type != ObjectPool::EntryType::kTaggedObject) {
+      continue;
+    }
+    object = pool.ObjectAt(i);
+    if (object.IsFunction()) {
+      const Function& old_function = Function::Cast(object);
+      if (old_function.IsClosureFunction()) {
+        continue;
+      }
+      name = old_function.name();
+      new_cls = old_function.Owner();
+      if (new_cls.IsTopLevel()) {
+        new_lib = new_cls.library();
+        new_function = new_lib.LookupLocalFunction(name);
+      } else {
+        new_function = new_cls.LookupFunction(name);
+      }
+      if (!new_function.IsNull() &&
+          (new_function.is_static() == old_function.is_static()) &&
+          (new_function.kind() == old_function.kind())) {
+        pool.SetObjectAt(i, new_function);
+      } else {
+        VTIR_Print("Cannot rebind function %s\n", old_function.ToCString());
+      }
+    } else if (object.IsField()) {
+      const Field& old_field = Field::Cast(object);
+      name = old_field.name();
+      new_cls = old_field.Owner();
+      if (new_cls.IsTopLevel()) {
+        new_lib = new_cls.library();
+        new_field = new_lib.LookupLocalField(name);
+      } else {
+        new_field = new_cls.LookupField(name);
+      }
+      if (!new_field.IsNull() &&
+          (new_field.is_static() == old_field.is_static())) {
+        pool.SetObjectAt(i, new_field);
+      } else {
+        VTIR_Print("Cannot rebind field %s\n", old_field.ToCString());
+      }
+    }
+  }
 }
 
 void ObjectPool::ResetICDatas(Zone* zone) const {
-#ifdef TARGET_ARCH_IA32
-  UNREACHABLE();
-#else
   Object& object = Object::Handle(zone);
   for (intptr_t i = 0; i < Length(); i++) {
     ObjectPool::EntryType entry_type = TypeAt(i);
@@ -111,15 +253,12 @@ void ObjectPool::ResetICDatas(Zone* zone) const {
       ICData::Cast(object).Reset(zone);
     }
   }
-#endif
 }
 
-void Class::CopyStaticFieldValues(const Class& old_cls) const {
+void Class::CopyStaticFieldValues(IsolateReloadContext* reload_context,
+                                  const Class& old_cls) const {
   // We only update values for non-enum classes.
   const bool update_values = !is_enum_class();
-
-  IsolateReloadContext* reload_context = Isolate::Current()->reload_context();
-  ASSERT(reload_context != NULL);
 
   const Array& old_field_list = Array::Handle(old_cls.fields());
   Field& old_field = Field::Handle();
@@ -216,17 +355,15 @@ class EnumMapTraits {
 //   When an enum value is deleted, we 'become' all references to the 'deleted'
 //   sentinel value. The index value is -1.
 //
-void Class::ReplaceEnum(const Class& old_enum) const {
+void Class::ReplaceEnum(IsolateReloadContext* reload_context,
+                        const Class& old_enum) const {
   // We only do this for finalized enum classes.
   ASSERT(is_enum_class());
   ASSERT(old_enum.is_enum_class());
   ASSERT(is_finalized());
   ASSERT(old_enum.is_finalized());
 
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  IsolateReloadContext* reload_context = Isolate::Current()->reload_context();
-  ASSERT(reload_context != NULL);
+  Zone* zone = Thread::Current()->zone();
 
   Array& enum_fields = Array::Handle(zone);
   Field& field = Field::Handle(zone);
@@ -362,8 +499,10 @@ void Class::PatchFieldsAndFunctions() const {
       PatchClass::Handle(PatchClass::New(*this, Script::Handle(script())));
   ASSERT(!patch.IsNull());
   const Library& lib = Library::Handle(library());
-  patch.set_library_kernel_data(ExternalTypedData::Handle(lib.kernel_data()));
-  patch.set_library_kernel_offset(lib.kernel_offset());
+  if (!lib.is_declared_in_bytecode()) {
+    patch.set_library_kernel_data(ExternalTypedData::Handle(lib.kernel_data()));
+    patch.set_library_kernel_offset(lib.kernel_offset());
+  }
 
   const Array& funcs = Array::Handle(functions());
   Function& func = Function::Handle();
@@ -736,6 +875,7 @@ void ICData::Reset(Zone* zone) const {
     const Array& data_array = Array::Handle(
         zone, CachedEmptyICDataArray(num_args, tracking_exactness));
     set_entries(data_array);
+    set_is_megamorphic(false);
     return;
   } else if (rule == kNoRebind || rule == kNSMDispatch) {
     // TODO(30877) we should account for addition/removal of NSM.
@@ -795,4 +935,4 @@ void ICData::Reset(Zone* zone) const {
 
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
-}  // namespace dart.
+}  // namespace dart

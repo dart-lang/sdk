@@ -136,6 +136,9 @@ static const char* GetJSONRpcErrorMessage(intptr_t code) {
       return "File system does not exist";
     case kFileDoesNotExist:
       return "File does not exist";
+    case kInvalidTimelineRequest:
+      return "The timeline related request could not be completed due to the "
+             "current configuration";
     default:
       return "Extension error";
   }

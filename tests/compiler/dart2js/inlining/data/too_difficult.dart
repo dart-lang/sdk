@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: main:[]*/
+/*member: main:[]*/
 main() {
   asyncMethod();
   asyncStarMethod();
@@ -27,7 +27,7 @@ main() {
   closureInInitializer();
 }
 
-/*element: _multipleReturns:code after return*/
+/*member: _multipleReturns:code after return*/
 _multipleReturns(c) {
   if (c)
     return;
@@ -35,27 +35,27 @@ _multipleReturns(c) {
     return;
 }
 
-/*element: multipleReturns:[]*/
+/*member: multipleReturns:[]*/
 @pragma('dart2js:noInline')
 multipleReturns() {
   _multipleReturns(true);
   _multipleReturns(false);
 }
 
-/*element: _codeAfterReturn:code after return*/
+/*member: _codeAfterReturn:code after return*/
 _codeAfterReturn(c) {
   if (c) return;
   print(c);
 }
 
-/*element: codeAfterReturn:[]*/
+/*member: codeAfterReturn:[]*/
 @pragma('dart2js:noInline')
 codeAfterReturn() {
   _codeAfterReturn(true);
   _codeAfterReturn(false);
 }
 
-/*element: _multipleThrows:[]*/
+/*member: _multipleThrows:[]*/
 _multipleThrows(c) {
   if (c)
     throw '';
@@ -63,14 +63,14 @@ _multipleThrows(c) {
     throw '';
 }
 
-/*element: multipleThrows:[]*/
+/*member: multipleThrows:[]*/
 @pragma('dart2js:noInline')
 multipleThrows() {
   _multipleThrows(true);
   _multipleThrows(false);
 }
 
-/*element: _returnAndThrow:code after return*/
+/*member: _returnAndThrow:code after return*/
 _returnAndThrow(c) {
   if (c)
     return;
@@ -78,65 +78,65 @@ _returnAndThrow(c) {
     throw '';
 }
 
-/*element: returnAndThrow:[]*/
+/*member: returnAndThrow:[]*/
 @pragma('dart2js:noInline')
 returnAndThrow() {
   _returnAndThrow(true);
   _returnAndThrow(false);
 }
 
-/*element: asyncMethod:async/await*/
+/*member: asyncMethod:async/await*/
 asyncMethod() async {}
 
-/*element: asyncStarMethod:async/await*/
+/*member: asyncStarMethod:async/await*/
 asyncStarMethod() async* {}
 
-/*element: syncStarMethod:async/await*/
+/*member: syncStarMethod:async/await*/
 syncStarMethod() sync* {}
 
-/*element: localFunction:closure*/
+/*member: localFunction:closure*/
 localFunction() {
   // ignore: UNUSED_ELEMENT
   /*[]*/ local() {}
 }
 
-/*element: anonymousFunction:closure*/
+/*member: anonymousFunction:closure*/
 anonymousFunction() {
   /*[]*/ () {};
 }
 
-/*element: tryCatch:try*/
+/*member: tryCatch:try*/
 tryCatch() {
   try {} catch (e) {}
 }
 
-/*element: tryFinally:try*/
+/*member: tryFinally:try*/
 tryFinally() {
   try {} finally {}
 }
 
-/*element: tryWithRethrow:try*/
+/*member: tryWithRethrow:try*/
 tryWithRethrow() {
   try {} catch (e) {
     rethrow;
   }
 }
 
-/*element: forLoop:loop*/
+/*member: forLoop:loop*/
 forLoop() {
   for (int i = 0; i < 10; i++) {
     print(i);
   }
 }
 
-/*element: forInLoop:loop*/
+/*member: forInLoop:loop*/
 forInLoop() {
   for (var e in [0, 1, 2]) {
     print(e);
   }
 }
 
-/*element: whileLoop:loop*/
+/*member: whileLoop:loop*/
 whileLoop() {
   int i = 0;
   while (i < 10) {
@@ -145,7 +145,7 @@ whileLoop() {
   }
 }
 
-/*element: doLoop:loop*/
+/*member: doLoop:loop*/
 doLoop() {
   int i = 0;
   do {
@@ -154,12 +154,12 @@ doLoop() {
   } while (i < 10);
 }
 
-/*element: returnClosure:closure*/
+/*member: returnClosure:closure*/
 returnClosure() {
   return /*[]*/ () {};
 }
 
-/*element: throwClosure:closure*/
+/*member: throwClosure:closure*/
 throwClosure() {
   throw /*[]*/ () {};
 }
@@ -167,13 +167,13 @@ throwClosure() {
 class Class1 {
   var f;
 
-  /*element: Class1.:closure*/
+  /*member: Class1.:closure*/
   Class1() : f = (/*[]*/ () {}) {
     print(f);
   }
 }
 
-/*element: closureInInitializer:[]*/
+/*member: closureInInitializer:[]*/
 @pragma('dart2js:noInline')
 closureInInitializer() {
   new Class1();

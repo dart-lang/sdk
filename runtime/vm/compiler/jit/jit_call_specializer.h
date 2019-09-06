@@ -32,12 +32,13 @@ class JitCallSpecializer : public CallSpecializer {
 
   void LowerContextAllocation(
       Definition* instr,
-      const GrowableArray<LocalVariable*>& context_variables,
+      const ZoneGrowableArray<const Slot*>& context_variables,
       Value* context_value);
 
   void ReplaceWithStaticCall(InstanceCallInstr* instr,
                              const ICData& unary_checks,
-                             const Function& target);
+                             const Function& target,
+                             intptr_t call_count);
 
   DISALLOW_COPY_AND_ASSIGN(JitCallSpecializer);
 };

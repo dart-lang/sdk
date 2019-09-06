@@ -28,6 +28,7 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
     node.accept(LocalElementBuilder(holder, null));
 
     var astResolver = AstResolver(_linker, _libraryElement, _libraryScope);
+    astResolver.rewriteAst(node);
     astResolver.resolve(node);
   }
 
@@ -75,6 +76,13 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   @override
   void visitExportDirective(ExportDirective node) {
     node.metadata.accept(this);
+  }
+
+  @override
+  void visitExtensionDeclaration(ExtensionDeclaration node) {
+    node.metadata.accept(this);
+    node.typeParameters?.accept(this);
+    node.members.accept(this);
   }
 
   @override

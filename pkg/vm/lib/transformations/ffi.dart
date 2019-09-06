@@ -16,6 +16,9 @@ import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
 /// Represents the (instantiated) ffi.NativeType.
 enum NativeType {
+  kNativeType,
+  kNativeInteger,
+  kNativeDouble,
   kPointer,
   kNativeFunction,
   kInt8,
@@ -29,7 +32,8 @@ enum NativeType {
   kIntptr,
   kFloat,
   kDouble,
-  kVoid
+  kVoid,
+  kStruct
 }
 
 const NativeType kNativeTypeIntStart = NativeType.kInt8;
@@ -37,6 +41,9 @@ const NativeType kNativeTypeIntEnd = NativeType.kIntptr;
 
 /// The [NativeType] class names, indexed by [NativeType].
 const List<String> nativeTypeClassNames = [
+  'NativeType',
+  '_NativeInteger',
+  '_NativeDouble',
   'Pointer',
   'NativeFunction',
   'Int8',
@@ -50,7 +57,8 @@ const List<String> nativeTypeClassNames = [
   'IntPtr',
   'Float',
   'Double',
-  'Void'
+  'Void',
+  'Struct'
 ];
 
 const int UNKNOWN = 0;
@@ -58,6 +66,9 @@ const int WORD_SIZE = -1;
 
 /// The [NativeType] sizes in bytes, indexed by [NativeType].
 const List<int> nativeTypeSizes = [
+  UNKNOWN, // NativeType
+  UNKNOWN, // NativeInteger
+  UNKNOWN, // NativeDouble
   WORD_SIZE, // Pointer
   UNKNOWN, // NativeFunction
   1, // Int8
@@ -72,19 +83,92 @@ const List<int> nativeTypeSizes = [
   4, // Float
   8, // Double
   UNKNOWN, // Void
+  UNKNOWN, // Struct
 ];
+
+/// The struct layout in various ABIs.
+///
+/// ABIs differ per architectures and with different compilers.
+/// We pick the default struct layout based on the architecture and OS.
+///
+/// Compilers _can_ deviate from the default layout, but this prevents
+/// executables from making system calls. So this seems rather uncommon.
+///
+/// In the future, we might support custom struct layouts. For more info see
+/// https://github.com/dart-lang/sdk/issues/35768.
+enum Abi {
+  /// Layout in all 64bit ABIs (x64 and arm64).
+  wordSize64,
+
+  /// Layout in System V ABI for x386 (ia32 on Linux) and in iOS Arm 32 bit.
+  wordSize32Align32,
+
+  /// Layout in both the Arm 32 bit ABI and the Windows ia32 ABI.
+  wordSize32Align64,
+}
+
+/// WORD_SIZE in bytes.
+const wordSize = <Abi, int>{
+  Abi.wordSize64: 8,
+  Abi.wordSize32Align32: 4,
+  Abi.wordSize32Align64: 4,
+};
+
+/// Elements that are not aligned to their size.
+///
+/// Has an entry for all Abis. Empty entries document that every native
+/// type is aligned to it's own size in this ABI.
+///
+/// See runtime/vm/compiler/ffi.cc for asserts in the VM that verify these
+/// alignments.
+///
+/// TODO(37470): Add uncommon primitive data types when we want to support them.
+const nonSizeAlignment = <Abi, Map<NativeType, int>>{
+  Abi.wordSize64: {},
+
+  // x86 System V ABI:
+  // > uint64_t | size 8 | alignment 4
+  // > double   | size 8 | alignment 4
+  // https://github.com/hjl-tools/x86-psABI/wiki/intel386-psABI-1.1.pdf page 8.
+  //
+  // iOS 32 bit alignment:
+  // https://developer.apple.com/documentation/uikit/app_and_environment/updating_your_app_from_32-bit_to_64-bit_architecture/updating_data_structures
+  Abi.wordSize32Align32: {NativeType.kDouble: 4, NativeType.kInt64: 4},
+
+  // The default for MSVC x86:
+  // > The alignment-requirement for all data except structures, unions, and
+  // > arrays is either the size of the object or the current packing size
+  // > (specified with either /Zp or the pack pragma, whichever is less).
+  // https://docs.microsoft.com/en-us/cpp/c-language/padding-and-alignment-of-structure-members?view=vs-2019
+  //
+  // GCC _can_ compile on Linux to this alignment with -malign-double, but does
+  // not do so by default:
+  // > Warning: if you use the -malign-double switch, structures containing the
+  // > above types are aligned differently than the published application
+  // > binary interface specifications for the x86-32 and are not binary
+  // > compatible with structures in code compiled without that switch.
+  // https://gcc.gnu.org/onlinedocs/gcc/x86-Options.html
+  //
+  // Arm always requires 8 byte alignment for 8 byte values:
+  // http://infocenter.arm.com/help/topic/com.arm.doc.ihi0042d/IHI0042D_aapcs.pdf 4.1 Fundamental Data Types
+  Abi.wordSize32Align64: {},
+};
 
 /// [FfiTransformer] contains logic which is shared between
 /// _FfiUseSiteTransformer and _FfiDefinitionTransformer.
 class FfiTransformer extends Transformer {
   final TypeEnvironment env;
+  final CoreTypes coreTypes;
   final LibraryIndex index;
   final ClassHierarchy hierarchy;
   final DiagnosticReporter diagnosticReporter;
 
   final Class intClass;
   final Class doubleClass;
-  final Constructor pragmaConstructor;
+  final Class pragmaClass;
+  final Field pragmaName;
+  final Field pragmaOptions;
+  final Procedure listElementAt;
 
   final Library ffiLibrary;
   final Class nativeFunctionClass;
@@ -95,19 +179,26 @@ class FfiTransformer extends Transformer {
   final Procedure storeMethod;
   final Procedure offsetByMethod;
   final Procedure asFunctionMethod;
+  final Procedure asFunctionInternal;
   final Procedure lookupFunctionMethod;
   final Procedure fromFunctionMethod;
-  final Field structField;
+  final Field addressOfField;
+  final Constructor structFromPointer;
+  final Procedure libraryLookupMethod;
+  final Procedure abiMethod;
 
   /// Classes corresponding to [NativeType], indexed by [NativeType].
   final List<Class> nativeTypesClasses;
 
   FfiTransformer(
-      this.index, CoreTypes coreTypes, this.hierarchy, this.diagnosticReporter)
+      this.index, this.coreTypes, this.hierarchy, this.diagnosticReporter)
       : env = new TypeEnvironment(coreTypes, hierarchy),
         intClass = coreTypes.intClass,
         doubleClass = coreTypes.doubleClass,
-        pragmaConstructor = coreTypes.pragmaConstructor,
+        pragmaClass = coreTypes.pragmaClass,
+        pragmaName = coreTypes.pragmaName,
+        pragmaOptions = coreTypes.pragmaOptions,
+        listElementAt = coreTypes.index.getMember('dart:core', 'List', '[]'),
         ffiLibrary = index.getLibrary('dart:ffi'),
         nativeFunctionClass = index.getClass('dart:ffi', 'NativeFunction'),
         pointerClass = index.getClass('dart:ffi', 'Pointer'),
@@ -116,15 +207,22 @@ class FfiTransformer extends Transformer {
         loadMethod = index.getMember('dart:ffi', 'Pointer', 'load'),
         storeMethod = index.getMember('dart:ffi', 'Pointer', 'store'),
         offsetByMethod = index.getMember('dart:ffi', 'Pointer', 'offsetBy'),
+        addressOfField = index.getMember('dart:ffi', 'Struct', 'addressOf'),
+        structFromPointer =
+            index.getMember('dart:ffi', 'Struct', 'fromPointer'),
         asFunctionMethod = index.getMember('dart:ffi', 'Pointer', 'asFunction'),
+        asFunctionInternal =
+            index.getTopLevelMember('dart:ffi', '_asFunctionInternal'),
         lookupFunctionMethod =
             index.getMember('dart:ffi', 'DynamicLibrary', 'lookupFunction'),
         fromFunctionMethod =
-            index.getTopLevelMember('dart:ffi', 'fromFunction'),
-        structField = index.getTopLevelMember('dart:ffi', 'struct'),
+            index.getMember('dart:ffi', 'Pointer', 'fromFunction'),
+        libraryLookupMethod =
+            index.getMember('dart:ffi', 'DynamicLibrary', 'lookup'),
+        abiMethod = index.getTopLevelMember('dart:ffi', '_abi'),
         nativeTypesClasses = nativeTypeClassNames
             .map((name) => index.getClass('dart:ffi', name))
-            .toList() {}
+            .toList();
 
   /// Computes the Dart type corresponding to a ffi.[NativeType], returns null
   /// if it is not a valid NativeType.
@@ -145,18 +243,22 @@ class FfiTransformer extends Transformer {
   /// T extends [Pointer]                  -> T
   /// [NativeFunction]<T1 Function(T2, T3) -> S1 Function(S2, S3)
   ///    where DartRepresentationOf(Tn) -> Sn
-  DartType convertNativeTypeToDartType(DartType nativeType) {
+  DartType convertNativeTypeToDartType(DartType nativeType, bool allowStructs) {
     if (nativeType is! InterfaceType) {
       return null;
     }
-    Class nativeClass = (nativeType as InterfaceType).classNode;
-    if (env.isSubtypeOf(
-        InterfaceType(nativeClass), InterfaceType(pointerClass))) {
-      return nativeType;
-    }
+    InterfaceType native = nativeType;
+    Class nativeClass = native.classNode;
     NativeType nativeType_ = getType(nativeClass);
+
+    if (hierarchy.isSubclassOf(nativeClass, structClass)) {
+      return allowStructs ? nativeType : null;
+    }
     if (nativeType_ == null) {
       return null;
+    }
+    if (nativeType_ == NativeType.kPointer) {
+      return nativeType;
     }
     if (kNativeTypeIntStart.index <= nativeType_.index &&
         nativeType_.index <= kNativeTypeIntEnd.index) {
@@ -168,23 +270,26 @@ class FfiTransformer extends Transformer {
     if (nativeType_ == NativeType.kVoid) {
       return VoidType();
     }
-    if (nativeType_ == NativeType.kNativeFunction) {
-      DartType fun = (nativeType as InterfaceType).typeArguments[0];
-      if (fun is FunctionType) {
-        if (fun.namedParameters.isNotEmpty) return null;
-        if (fun.positionalParameters.length != fun.requiredParameterCount)
-          return null;
-        if (fun.typeParameters.length != 0) return null;
-        DartType returnType = convertNativeTypeToDartType(fun.returnType);
-        if (returnType == null) return null;
-        List<DartType> argumentTypes = fun.positionalParameters
-            .map(this.convertNativeTypeToDartType)
-            .toList();
-        if (argumentTypes.contains(null)) return null;
-        return FunctionType(argumentTypes, returnType);
-      }
+    if (nativeType_ != NativeType.kNativeFunction ||
+        native.typeArguments[0] is! FunctionType) {
+      return null;
     }
-    return null;
+
+    FunctionType fun = native.typeArguments[0];
+    if (fun.namedParameters.isNotEmpty) return null;
+    if (fun.positionalParameters.length != fun.requiredParameterCount) {
+      return null;
+    }
+    if (fun.typeParameters.length != 0) return null;
+    // TODO(36730): Structs cannot appear in native function signatures.
+    DartType returnType =
+        convertNativeTypeToDartType(fun.returnType, /*allowStructs=*/ false);
+    if (returnType == null) return null;
+    List<DartType> argumentTypes = fun.positionalParameters
+        .map((t) => convertNativeTypeToDartType(t, /*allowStructs=*/ false))
+        .toList();
+    if (argumentTypes.contains(null)) return null;
+    return FunctionType(argumentTypes, returnType);
   }
 
   NativeType getType(Class c) {

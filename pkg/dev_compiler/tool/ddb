@@ -15,11 +15,7 @@
 import 'dart:io';
 
 import 'package:args/args.dart' show ArgParser;
-import 'package:path/path.dart' as path;
-
-// TODO(vsm): Remove this once we stop ignoring.  It's off here, but
-// configurable for manual testing.
-const ignoreWhitelistedErrors = false;
+import 'package:path/path.dart' as p;
 
 void main(List<String> args) async {
   void printUsage() {
@@ -40,6 +36,10 @@ void main(List<String> args) async {
     ..addFlag('debug',
         abbr: 'd',
         help: 'Use current source instead of built SDK.',
+        defaultsTo: false)
+    ..addFlag('summarize-text',
+        help: 'Emit API summary in a .js.txt file.\n'
+            'Ignored when not passed with --kernel.',
         defaultsTo: false)
     ..addOption('runtime',
         abbr: 'r',
@@ -66,16 +66,21 @@ void main(List<String> args) async {
     printUsage();
     exit(1);
   }
-  var entry = options.rest.first;
-  var libRoot = path.dirname(entry);
-  var basename = path.basenameWithoutExtension(entry);
-
   var debug = options['debug'] as bool;
   var kernel = options['kernel'] as bool;
+  var summarizeText = options['summarize-text'] as bool;
   var binary = options['binary'] as String;
   var experiments = options['enable-experiment'] as List;
   var summaries = options['summary'] as List;
   var port = int.parse(options['port'] as String);
+
+  var entry = p.canonicalize(options.rest.first);
+  var libRoot = p.dirname(entry);
+  var basename = p.basenameWithoutExtension(entry);
+  var libname = kernel
+      ? p.relative(p.withoutExtension(entry)).replaceAll('/', '__')
+      : basename;
+  libname = libname.replaceAll('-', '_');
 
   // By default (no `-d`), we use the `dartdevc` binary on the user's path to
   // compute the SDK we use for execution.  I.e., we assume that `dart` is
@@ -84,24 +89,25 @@ void main(List<String> args) async {
   // If you want to run against a freshly built SDK, that must be first on
   // your path.
   var dartBinary = Platform.resolvedExecutable;
-  var dartSdk = path.dirname(path.dirname(dartBinary));
+  var dartSdk = p.dirname(p.dirname(dartBinary));
 
   // In debug mode (`-d`), we run from the `pkg/dev_compiler` sources.  We
   // determine the location via this actual script (i.e., `-d` assumes
   // this script remains under to `tool` sub-directory).
-  var toolPath = Platform.script.normalizePath().toFilePath();
-  var ddcPath = path.dirname(path.dirname(toolPath));
-  var dartCheckoutPath = path.dirname(path.dirname(ddcPath));
+  var toolPath =
+      Platform.script.normalizePath().toFilePath(windows: Platform.isWindows);
+  var ddcPath = p.dirname(p.dirname(toolPath));
+  var dartCheckoutPath = p.dirname(p.dirname(ddcPath));
 
   ProcessResult runDdc(String command, List<String> args) {
     if (debug) {
       // Use unbuilt script.  This only works from a source checkout.
-      args.insertAll(0,
-          ['--enable-asserts', path.join(ddcPath, 'bin', '${command}.dart')]);
+      args.insertAll(
+          0, ['--enable-asserts', p.join(ddcPath, 'bin', '$command.dart')]);
       command = dartBinary;
     } else {
       // Use built snapshot.
-      command = path.join(dartSdk, 'bin', command);
+      command = p.join(dartSdk, 'bin', command);
     }
     return Process.runSync(command, args);
   }
@@ -140,23 +146,21 @@ void main(List<String> args) async {
   String requirePath;
   String ddcSdk;
   if (debug) {
-    var sdkRoot = path.dirname(path.dirname(ddcPath));
-    var buildDir = path.join(sdkRoot, Platform.isMacOS ? 'xcodebuild' : 'out');
-    sdkJsPath = path.join(buildDir, 'ReleaseX64', 'gen', 'utils', 'dartdevc',
-        kernel ? 'kernel' : 'js', mod);
-    requirePath = path.join(sdkRoot, 'third_party', 'requirejs');
-    ddcSdk = path.join(buildDir, 'ReleaseX64', 'gen', 'utils', 'dartdevc',
-        kernel ? path.join('kernel', 'ddc_sdk.dill') : 'ddc_sdk.sum');
-  } else {
-    var suffix = kernel ? path.join('kernel', mod) : mod;
-    sdkJsPath = path.join(dartSdk, 'lib', 'dev_compiler', suffix);
-    requirePath = sdkJsPath;
-    ddcSdk = path.join(
-        dartSdk, 'lib', '_internal', kernel ? 'ddc_sdk.dill' : 'ddc_sdk.sum');
+    var sdkRoot = p.dirname(p.dirname(ddcPath));
+    var buildDir = p.join(sdkRoot, Platform.isMacOS ? 'xcodebuild' : 'out');
+    dartSdk = p.join(buildDir, 'ReleaseX64', 'dart-sdk');
   }
+  var suffix = kernel ? p.join('kernel', mod) : mod;
+  sdkJsPath = p.join(dartSdk, 'lib', 'dev_compiler', suffix);
+  requirePath = sdkJsPath;
+  ddcSdk = p.join(
+      dartSdk, 'lib', '_internal', kernel ? 'ddc_sdk.dill' : 'ddc_sdk.sum');
+
   ProcessResult result;
   var ddcArgs = [
     if (kernel) '--kernel',
+    if (kernel && summarizeText)
+      '--summarize-text',
     '--modules=$mod',
     '--dart-sdk-summary=$ddcSdk',
     // TODO(nshahan) Cleanup when we settle on using or removing library-root.
@@ -165,7 +169,7 @@ void main(List<String> args) async {
     for (var summary in summaries) '--summary=$summary',
     for (var experiment in experiments) '--enable-experiment=$experiment',
     '-o',
-    '$libRoot/$basename.js',
+    p.setExtension(entry, '.js'),
     entry
   ];
 
@@ -191,7 +195,6 @@ void main(List<String> args) async {
 <script src='$requirePath/require.js'></script>
 <script>
   require.config({
-    baseUrl: '$libRoot',
     paths: {
         'dart_sdk': '$sdkJsPath/dart_sdk'
     },
@@ -201,14 +204,13 @@ void main(List<String> args) async {
         function(sdk, app) {
     'use strict';
     sdk._debugger.registerDevtoolsFormatter();
-    sdk.dart.ignoreWhitelistedErrors($ignoreWhitelistedErrors);
-    app.$basename.main();
+    app.$libname.main();
   });
 </script>
 """;
-    var htmlFile = '$libRoot/$basename.html';
+    var htmlFile = p.setExtension(entry, '.html');
     new File(htmlFile).writeAsStringSync(html);
-    var tmp = path.join(Directory.systemTemp.path, 'ddc');
+    var tmp = p.join(Directory.systemTemp.path, 'ddc');
 
     result = Process.runSync(chromeBinary, [
       '--auto-open-devtools-for-tabs',
@@ -227,19 +229,18 @@ void main(List<String> args) async {
     } catch(e) {
     }
     let sdk = require(\"dart_sdk\");
-    let main = require(\"./$basename\").$basename.main;
-    sdk.dart.ignoreWhitelistedErrors($ignoreWhitelistedErrors);
+    let main = require(\"./$basename\").$libname.main;
     try {
       sdk._isolate_helper.startRootIsolate(main, []);
     } catch(e) {
       if (!source_maps) {
         console.log('For Dart source maps: npm install source-map-support');
       }
-      console.error(e);
+      sdk.core.print(sdk.dart.stackTrace(e));
       process.exit(1);
     }
     ''';
-    var nodeFile = '$libRoot/$basename.run.js';
+    var nodeFile = p.setExtension(entry, '.run.js');
     new File(nodeFile).writeAsStringSync(runjs);
     var nodeBinary = binary ?? 'node';
     result = Process.runSync(
@@ -249,7 +250,7 @@ void main(List<String> args) async {
     // Fix SDK import.  `d8` doesn't let us set paths, so we need a full path
     // to the SDK.
 
-    var jsFile = File('$libRoot/$basename.js');
+    var jsFile = File(p.setExtension(entry, '.js'));
     var jsContents = jsFile.readAsStringSync();
     jsContents = jsContents.replaceFirst(
         "from 'dart_sdk.js'", "from '$sdkJsPath/dart_sdk.js'");
@@ -257,9 +258,8 @@ void main(List<String> args) async {
 
     var runjs = '''
     import { dart, _isolate_helper } from '$sdkJsPath/dart_sdk.js';
-    import { $basename } from '$basename.js';
-    let main = $basename.main;
-    dart.ignoreWhitelistedErrors($ignoreWhitelistedErrors);
+    import { $libname } from '$basename.js';
+    let main = $libname.main;
     try {
       _isolate_helper.startRootIsolate(() => {}, []);
       main();
@@ -267,9 +267,9 @@ void main(List<String> args) async {
       console.error(e);
     }
     ''';
-    var d8File = path.join(libRoot, '$basename.d8.js');
+    var d8File = p.setExtension(entry, '.d8.js');
     new File(d8File).writeAsStringSync(runjs);
-    var d8Binary = binary ?? path.join(dartCheckoutPath, _d8executable);
+    var d8Binary = binary ?? p.join(dartCheckoutPath, _d8executable);
     result = Process.runSync(d8Binary, ['--module', d8File]);
   }
   await echoResult(result);
@@ -277,11 +277,11 @@ void main(List<String> args) async {
 
 String get _d8executable {
   if (Platform.isWindows) {
-    return path.join('third_party', 'd8', 'windows', 'd8.exe');
+    return p.join('third_party', 'd8', 'windows', 'd8.exe');
   } else if (Platform.isLinux) {
-    return path.join('third_party', 'd8', 'linux', 'd8');
+    return p.join('third_party', 'd8', 'linux', 'd8');
   } else if (Platform.isMacOS) {
-    return path.join('third_party', 'd8', 'macos', 'd8');
+    return p.join('third_party', 'd8', 'macos', 'd8');
   }
   throw new UnsupportedError('Unsupported platform.');
 }

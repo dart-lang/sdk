@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart' show AstNode, SimpleIdentifier;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -118,15 +119,61 @@ class ExpectedError {
   /// The offset of the beginning of the error's region.
   final int length;
 
+  /// The list of context messages that are expected to be associated with the
+  /// error.
+  final List<ExpectedMessage> expectedMessages;
+
   /// Initialize a newly created error description.
-  ExpectedError(this.code, this.offset, this.length);
+  ExpectedError(this.code, this.offset, this.length,
+      {this.expectedMessages = const <ExpectedMessage>[]});
 
   /// Return `true` if the [error] matches this description of what it's
   /// expected to be.
   bool matches(AnalysisError error) {
-    return error.offset == offset &&
-        error.length == length &&
-        error.errorCode == code;
+    if (error.offset != offset ||
+        error.length != length ||
+        error.errorCode != code) {
+      return false;
+    }
+    List<DiagnosticMessage> contextMessages = error.contextMessages.toList();
+    contextMessages.sort((first, second) {
+      int result = first.filePath.compareTo(second.filePath);
+      if (result != 0) {
+        return result;
+      }
+      return second.offset - first.offset;
+    });
+    if (contextMessages.length != expectedMessages.length) {
+      return false;
+    }
+    for (int i = 0; i < expectedMessages.length; i++) {
+      if (!expectedMessages[i].matches(contextMessages[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+}
+
+/// A description of a message that is expected to be reported with an error.
+class ExpectedMessage {
+  /// The path of the file with which the message is associated.
+  final String filePath;
+
+  /// The offset of the beginning of the error's region.
+  final int offset;
+
+  /// The offset of the beginning of the error's region.
+  final int length;
+
+  ExpectedMessage(this.filePath, this.offset, this.length);
+
+  /// Return `true` if the [message] matches this description of what it's
+  /// expected to be.
+  bool matches(DiagnosticMessage message) {
+    return message.filePath == filePath &&
+        message.offset == offset &&
+        message.length == length;
   }
 }
 
@@ -150,7 +197,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
   List<AnalysisError> get errors => _errors;
 
   /// Return `true` if at least one error has been gathered.
-  bool get hasErrors => _errors.length > 0;
+  bool get hasErrors => _errors.isNotEmpty;
 
   /// Add the given [errors] to this listener.
   void addAll(List<AnalysisError> errors) {
@@ -227,12 +274,30 @@ class GatheringErrorListener implements AnalysisErrorListener {
       buffer.writeln();
       buffer.writeln('To accept the current state, expect:');
       for (AnalysisError actual in errors) {
+        List<DiagnosticMessage> contextMessages = actual.contextMessages;
         buffer.write('  error(');
         buffer.write(actual.errorCode);
         buffer.write(', ');
         buffer.write(actual.offset);
         buffer.write(', ');
         buffer.write(actual.length);
+        if (contextMessages.isNotEmpty) {
+          buffer.write(', expectedMessages: [');
+          for (int i = 0; i < contextMessages.length; i++) {
+            DiagnosticMessage message = contextMessages[i];
+            if (i > 0) {
+              buffer.write(', ');
+            }
+            buffer.write('message(\'');
+            buffer.write(message.filePath);
+            buffer.write('\', ');
+            buffer.write(message.offset);
+            buffer.write(', ');
+            buffer.write(message.length);
+            buffer.write(')');
+          }
+          buffer.write(']');
+        }
         buffer.writeln('),');
       }
       fail(buffer.toString());

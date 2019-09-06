@@ -73,7 +73,7 @@ C:
     Object.==
   classSetters:
   interfaceMembers:
-    B.f
+    C.B.f%I.f
     Object.toString
     Object.runtimeType
     Object._simpleInstanceOf

@@ -42,7 +42,7 @@ Never sink;
 
   test_lessThan() async {
     await verifyVersion('2.3.0', '''
-Never sink;
+Never sink = (throw 42);
 ''', expectedErrors: [
       error(HintCode.SDK_VERSION_NEVER, 0, 5),
     ]);

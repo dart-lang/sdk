@@ -174,15 +174,11 @@ class RawObject {
         : public BitField<uint32_t, intptr_t, kSizeTagPos, kSizeTagSize> {};
 
     static intptr_t SizeToTagValue(intptr_t size) {
-      ASSERT(Utils::IsAligned(
-          size, compiler::target::ObjectAlignment::kObjectAlignment));
-      return (size > kMaxSizeTag)
-                 ? 0
-                 : (size >>
-                    compiler::target::ObjectAlignment::kObjectAlignmentLog2);
+      ASSERT(Utils::IsAligned(size, kObjectAlignment));
+      return (size > kMaxSizeTag) ? 0 : (size >> kObjectAlignmentLog2);
     }
     static intptr_t TagValueToSize(intptr_t value) {
-      return value << compiler::target::ObjectAlignment::kObjectAlignmentLog2;
+      return value << kObjectAlignmentLog2;
     }
   };
 
@@ -362,6 +358,10 @@ class RawObject {
     return IsFreeListElement() || IsForwardingCorpse();
   }
 
+  intptr_t GetClassId() const {
+    uint32_t tags = ptr()->tags_;
+    return ClassIdTag::decode(tags);
+  }
   intptr_t GetClassIdMayBeSmi() const {
     return IsHeapObject() ? GetClassId() : static_cast<intptr_t>(kSmiCid);
   }
@@ -490,6 +490,10 @@ class RawObject {
 #if defined(HASH_IN_OBJECT_HEADER)
   // On 64 bit there is a hash field in the header for the identity hash.
   uint32_t hash_;
+#elif defined(IS_SIMARM_X64)
+  // On simarm_x64 the hash isn't used, but we need the padding anyway so that
+  // the object layout fits assumptions made about X64.
+  uint32_t padding_;
 #endif
 
   // TODO(koda): After handling tags_, return const*, like Object::raw_ptr().
@@ -503,11 +507,6 @@ class RawObject {
                                    intptr_t class_id);
 
   intptr_t HeapSizeFromClass() const;
-
-  intptr_t GetClassId() const {
-    uint32_t tags = ptr()->tags_;
-    return ClassIdTag::decode(tags);
-  }
 
   void SetClassId(intptr_t new_cid) {
     uint32_t tags = ptr()->tags_;
@@ -660,12 +659,7 @@ class RawObject {
   friend class StoreBufferUpdateVisitor;  // RememberCard
   void RememberCard(RawObject* const* slot);
 
-  friend class Api;
-  friend class ApiMessageReader;  // GetClassId
-  friend class Serializer;        // GetClassId
   friend class Array;
-  friend class Become;  // GetClassId
-  friend class CompactorTask;  // GetClassId
   friend class ByteBuffer;
   friend class CidRewriteVisitor;
   friend class Closure;
@@ -681,25 +675,15 @@ class RawObject {
   friend class ForwardList;
   friend class GrowableObjectArray;  // StorePointer
   friend class Heap;
-  friend class HeapMapAsJSONVisitor;
   friend class ClassStatsVisitor;
   template <bool>
   friend class MarkingVisitorBase;
   friend class Mint;
   friend class Object;
   friend class OneByteString;  // StoreSmi
-  friend class RawCode;
-  friend class RawExternalTypedData;
-  friend class RawInstructions;
   friend class RawInstance;
-  friend class RawString;
-  friend class RawTypedData;
-  friend class RawTypedDataView;
   friend class Scavenger;
   friend class ScavengerVisitor;
-  friend class SizeExcludingClassVisitor;  // GetClassId
-  friend class InstanceAccumulator;        // GetClassId
-  friend class RetainingPathVisitor;       // GetClassId
   friend class ImageReader;                // tags_ check
   friend class ImageWriter;
   friend class AssemblyImageWriter;
@@ -708,29 +692,17 @@ class RawObject {
   friend class Deserializer;
   friend class SnapshotWriter;
   friend class String;
-  friend class Type;                    // GetClassId
-  friend class TypedDataBase;           // GetClassId
-  friend class TypedData;               // GetClassId
-  friend class TypedDataView;           // GetClassId
   friend class WeakProperty;            // StorePointer
   friend class Instance;                // StorePointer
   friend class StackFrame;              // GetCodeObject assertion.
   friend class CodeLookupTableBuilder;  // profiler
-  friend class NativeEntry;             // GetClassId
-  friend class WritePointerVisitor;     // GetClassId
   friend class Interpreter;
   friend class InterpreterHelpers;
   friend class Simulator;
   friend class SimulatorHelpers;
   friend class ObjectLocator;
-  friend class InstanceMorpher;  // GetClassId
-  friend class VerifyCanonicalVisitor;
-  friend class ObjectGraph::Stack;  // GetClassId
-  friend class Precompiler;         // GetClassId
-  friend class ObjectOffsetTrait;   // GetClassId
   friend class WriteBarrierUpdateVisitor;  // CheckHeapPointerStore
   friend class OffsetsTable;
-  friend class RawTransferableTypedData;  // GetClassId
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(RawObject);
@@ -800,6 +772,7 @@ class RawClass : public RawObject {
 
   cpp_vtable handle_vtable_;
   TokenPosition token_pos_;
+  TokenPosition end_token_pos_;
   int32_t instance_size_in_words_;  // Size if fixed len or 0 if variable len.
   int32_t type_arguments_field_offset_in_words_;  // Offset of type args fld.
   int32_t next_field_offset_in_words_;  // Offset of the next instance field.
@@ -807,7 +780,12 @@ class RawClass : public RawObject {
   int16_t num_type_arguments_;  // Number of type arguments in flattened vector.
   uint16_t num_native_fields_;
   uint32_t state_bits_;
-  NOT_IN_PRECOMPILED(intptr_t kernel_offset_);
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  typedef BitField<uint32_t, bool, 0, 1> IsDeclaredInBytecode;
+  typedef BitField<uint32_t, uint32_t, 1, 31> BinaryDeclarationOffset;
+  uint32_t binary_declaration_;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   friend class Instance;
   friend class Isolate;
@@ -855,25 +833,29 @@ class RawPatchClass : public RawObject {
 class RawFunction : public RawObject {
  public:
   enum Kind {
-    kRegularFunction,
-    kClosureFunction,
-    kImplicitClosureFunction,
-    kSignatureFunction,  // represents a signature only without actual code.
-    kGetterFunction,     // represents getter functions e.g: get foo() { .. }.
-    kSetterFunction,     // represents setter functions e.g: set foo(..) { .. }.
-    kConstructor,
-    kImplicitGetter,        // represents an implicit getter for fields.
-    kImplicitSetter,        // represents an implicit setter for fields.
-    kImplicitStaticGetter,  // represents an implicit getter for static
-                            // fields with initializers
-    kStaticFieldInitializer,
-    kMethodExtractor,  // converts method into implicit closure on the receiver.
-    kNoSuchMethodDispatcher,  // invokes noSuchMethod.
-    kInvokeFieldDispatcher,   // invokes a field as a closure.
-    kIrregexpFunction,  // represents a generated irregexp matcher function.
-    kDynamicInvocationForwarder,  // represents forwarder which performs type
-                                  // checks for arguments of a dynamic
-                                  // invocation.
+    kRegularFunction,          // an ordinary or operator method
+    kClosureFunction,          // a user-declared closure function
+    kImplicitClosureFunction,  // an implicit closure (i.e., tear-off)
+    kSignatureFunction,        // a signature only without actual code
+    kGetterFunction,           // getter functions e.g: get foo() { .. }
+    kSetterFunction,           // setter functions e.g: set foo(..) { .. }
+    kConstructor,              // a generative (is_static=false) or
+                               // factory (is_static=true) constructor
+    kImplicitGetter,           // an implicit getter for instance fields
+    kImplicitSetter,           // an implicit setter for instance fields
+    kImplicitStaticGetter,     // represents an implicit getter for static
+                               // fields with initializers
+    kFieldInitializer,         // the initialization expression for a static
+                               // or instance field
+    kMethodExtractor,          // return a closure on the receiver for tear-offs
+    kNoSuchMethodDispatcher,   // builds an Invocation and invokes noSuchMethod
+    kInvokeFieldDispatcher,    // invokes a field as a closure (i.e.,
+                               // call-through-getter)
+    kIrregexpFunction,         // a generated irregexp matcher function.
+    kDynamicInvocationForwarder,  // a forwarder which performs type checks for
+                                  // arguments of a dynamic call (i.e., those
+                                  // checks omitted by the caller for interface
+                                  // calls).
     kFfiTrampoline,
   };
 
@@ -1033,14 +1015,21 @@ class RawFfiTrampolineData : public RawObject {
   // Target Dart method for callbacks, otherwise null.
   RawFunction* callback_target_;
 
-  VISIT_TO(RawObject*, callback_target_);
+  // For callbacks, value to return if Dart target throws an exception.
+  RawInstance* callback_exceptional_return_;
 
-  // Callback id for callbacks, otherwise 0.
+  VISIT_TO(RawObject*, callback_exceptional_return_);
+  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
+
+  // Callback id for callbacks.
   //
   // The callbacks ids are used so that native callbacks can lookup their own
   // code objects, since native code doesn't pass code objects into function
   // calls. The callback id is also used to for verifying that callbacks are
   // called on the correct isolate. See DLRT_VerifyCallbackIsolate for details.
+  //
+  // Will be 0 for non-callbacks. Check 'callback_target_' to determine if this
+  // is a callback or not.
   uint32_t callback_id_;
 };
 
@@ -1211,9 +1200,12 @@ class RawLibrary : public RawObject {
   bool is_dart_scheme_;
   bool debuggable_;          // True if debugger can stop in library.
   bool is_in_fullsnapshot_;  // True if library is in a full snapshot.
-  NOT_IN_PRECOMPILED(intptr_t kernel_offset_);  // Offset of this library's
-                                                // kernel data in the overall
-                                                // kernel program.
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  typedef BitField<uint32_t, bool, 0, 1> IsDeclaredInBytecode;
+  typedef BitField<uint32_t, uint32_t, 1, 31> BinaryDeclarationOffset;
+  uint32_t binary_declaration_;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   friend class Class;
   friend class Isolate;
@@ -1251,8 +1243,10 @@ class RawKernelProgramInfo : public RawObject {
   RawArray* classes_cache_;
   VISIT_TO(RawObject*, classes_cache_);
 
+  uint32_t kernel_binary_version_;
+
   RawObject** to_snapshot(Snapshot::Kind kind) {
-    return reinterpret_cast<RawObject**>(&ptr()->potential_natives_);
+    return reinterpret_cast<RawObject**>(&ptr()->constants_table_);
   }
 };
 
@@ -1318,7 +1312,6 @@ class RawCode : public RawObject {
   NOT_IN_PRECOMPILED(RawArray* deopt_info_array_);
   // (code-offset, function, code) triples.
   NOT_IN_PRECOMPILED(RawArray* static_calls_target_table_);
-  NOT_IN_PRODUCT(RawArray* await_token_positions_);
   // If return_address_metadata_ is a Smi, it is the offset to the prologue.
   // Else, return_address_metadata_ is null.
   NOT_IN_PRODUCT(RawObject* return_address_metadata_);
@@ -1446,6 +1439,8 @@ class RawInstructions : public RawObject {
   friend class Function;
   friend class ImageReader;
   friend class ImageWriter;
+  friend class AssemblyImageWriter;
+  friend class BlobImageWriter;
 };
 
 class RawPcDescriptors : public RawObject {
@@ -1507,6 +1502,7 @@ class RawPcDescriptors : public RawObject {
   const uint8_t* data() const { OPEN_ARRAY_START(uint8_t, intptr_t); }
 
   friend class Object;
+  friend class ImageWriter;
 };
 
 // CodeSourceMap encodes a mapping from code PC ranges to source token
@@ -1525,6 +1521,7 @@ class RawCodeSourceMap : public RawObject {
   const uint8_t* data() const { OPEN_ARRAY_START(uint8_t, intptr_t); }
 
   friend class Object;
+  friend class ImageWriter;
 };
 
 // StackMap is an immutable representation of the layout of the stack at a
@@ -1548,6 +1545,8 @@ class RawStackMap : public RawObject {
   // Variable length data follows here (bitmap of the stack layout).
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
   const uint8_t* data() const { OPEN_ARRAY_START(uint8_t, uint8_t); }
+
+  friend class ImageWriter;
 };
 
 class RawLocalVarDescriptors : public RawObject {
@@ -1703,6 +1702,18 @@ class RawContextScope : public RawObject {
   friend class Object;
   friend class RawClosureData;
   friend class SnapshotReader;
+};
+
+class RawParameterTypeCheck : public RawObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(ParameterTypeCheck);
+  intptr_t index_;
+  VISIT_FROM(RawObject*, param_);
+  RawAbstractType* param_;
+  RawAbstractType* type_or_bound_;
+  RawString* name_;
+  RawSubtypeTestCache* cache_;
+  VISIT_TO(RawObject*, cache_);
+  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 };
 
 class RawSingleTargetCache : public RawObject {
@@ -2065,6 +2076,7 @@ class RawString : public RawInstance {
   friend class OneByteStringDeserializationCluster;
   friend class TwoByteStringDeserializationCluster;
   friend class RODataSerializationCluster;
+  friend class ImageWriter;
 };
 
 class RawOneByteString : public RawString {

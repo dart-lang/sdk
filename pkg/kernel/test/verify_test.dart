@@ -146,13 +146,13 @@ main() {
   });
   negativeTest(
       'Interface type arity too low',
-      "Type test_lib::OtherClass provides 0 type arguments"
+      "Type test_lib::OtherClass* provides 0 type arguments"
       " but the class declares 1 parameters.", (TestHarness test) {
     test.addNode(TypeLiteral(new InterfaceType(test.otherClass, [])));
   });
   negativeTest(
       'Interface type arity too high',
-      "Type test_lib::OtherClass<dynamic, dynamic> provides 2 type arguments"
+      "Type test_lib::OtherClass<dynamic, dynamic>* provides 2 type arguments"
       " but the class declares 1 parameters.", (TestHarness test) {
     test.addNode(TypeLiteral(new InterfaceType(
         test.otherClass, [new DynamicType(), new DynamicType()])));
@@ -316,7 +316,7 @@ main() {
   });
   negativeTest(
       'Invalid typedef Foo = `(Foo) => void`',
-      "The typedef 'typedef Foo = (test_lib::Foo) → void;\n'"
+      "The typedef 'typedef Foo = (test_lib::Foo) →* void;\n'"
       " refers to itself", (TestHarness test) {
     var typedef_ = new Typedef('Foo', null);
     typedef_.type =
@@ -325,7 +325,7 @@ main() {
   });
   negativeTest(
       'Invalid typedef Foo = `() => Foo`',
-      "The typedef 'typedef Foo = () → test_lib::Foo;\n'"
+      "The typedef 'typedef Foo = () →* test_lib::Foo;\n'"
       " refers to itself", (TestHarness test) {
     var typedef_ = new Typedef('Foo', null);
     typedef_.type = new FunctionType([], new TypedefType(typedef_));
@@ -333,7 +333,7 @@ main() {
   });
   negativeTest(
       'Invalid typedef Foo = C<Foo>',
-      "The typedef 'typedef Foo = test_lib::OtherClass<test_lib::Foo>;\n'"
+      "The typedef 'typedef Foo = test_lib::OtherClass<test_lib::Foo>*;\n'"
       " refers to itself", (TestHarness test) {
     var typedef_ = new Typedef('Foo', null);
     typedef_.type =
@@ -364,7 +364,7 @@ main() {
   });
   negativeTest(
       'Invalid typedefs Foo = C<Bar>, Bar = C<Foo>',
-      "The typedef 'typedef Foo = test_lib::OtherClass<test_lib::Bar>;\n'"
+      "The typedef 'typedef Foo = test_lib::OtherClass<test_lib::Bar>*;\n'"
       " refers to itself", (TestHarness test) {
     var foo = new Typedef('Foo', null);
     var bar = new Typedef('Bar', null);
@@ -426,7 +426,7 @@ main() {
   });
   negativeTest(
       'Invalid typedefs Foo<T extends Bar<T>>, Bar<T extends Foo<T>>',
-      "The typedef 'typedef Foo<T extends test_lib::Bar<T>> = dynamic;\n'"
+      "The typedef 'typedef Foo<T extends test_lib::Bar<T*>> = dynamic;\n'"
       " refers to itself", (TestHarness test) {
     var fooParam = test.makeTypeParameter('T');
     var foo =
@@ -443,7 +443,7 @@ main() {
   negativeTest(
       'Invalid typedef Foo<T extends Foo<dynamic> = C<T>',
       "The typedef 'typedef Foo<T extends test_lib::Foo<dynamic>> = "
-      "test_lib::OtherClass<T>;\n'"
+      "test_lib::OtherClass<T>*;\n'"
       " refers to itself", (TestHarness test) {
     var param = new TypeParameter('T', null);
     var foo = new Typedef('Foo',
@@ -466,7 +466,7 @@ main() {
   });
   negativeTest(
       'Dangling typedef reference',
-      "Dangling reference to 'typedef Foo = test_lib::OtherClass<dynamic>;\n'"
+      "Dangling reference to 'typedef Foo = test_lib::OtherClass<dynamic>*;\n'"
       ", parent is: 'null'", (TestHarness test) {
     var foo = new Typedef('Foo', test.otherClass.rawType, typeParameters: []);
     var field = new Field(new Name('field'),

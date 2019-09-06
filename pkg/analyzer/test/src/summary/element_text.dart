@@ -331,6 +331,26 @@ class _ElementWriter {
     }
   }
 
+  void writeExtensionElement(ExtensionElement e) {
+    writeDocumentation(e);
+    writeMetadata(e, '', '\n');
+
+    buffer.write('extension ');
+    writeName(e);
+    writeCodeRange(e);
+    writeTypeParameterElements(e.typeParameters);
+    if (e.extendedType != null) {
+      buffer.write(' on ');
+      writeType(e.extendedType);
+    }
+
+    buffer.writeln(' {');
+    e.fields.forEach(writePropertyInducingElement);
+    e.accessors.forEach(writePropertyAccessorElement);
+    e.methods.forEach(writeMethodElement);
+    buffer.writeln('}');
+  }
+
   void writeFunctionElement(FunctionElement e) {
     writeDocumentation(e);
     writeMetadata(e, '', '\n');
@@ -899,7 +919,8 @@ class _ElementWriter {
       }
     }
 
-    if (e.enclosingElement is ClassElement) {
+    if (e.enclosingElement is ClassElement ||
+        e.enclosingElement is ExtensionElement) {
       writeDocumentation(e, '  ');
       writeMetadata(e, '  ', '\n');
 
@@ -1016,6 +1037,7 @@ class _ElementWriter {
     e.enums.forEach(writeClassElement);
     e.types.forEach(writeClassElement);
     e.mixins.forEach(writeClassElement);
+    e.extensions.forEach(writeExtensionElement);
     e.topLevelVariables.forEach(writePropertyInducingElement);
     e.accessors.forEach(writePropertyAccessorElement);
     e.functions.forEach(writeFunctionElement);
@@ -1078,7 +1100,7 @@ class _ElementWriter {
 
     ElementLocation location = element.location;
     List<String> components = location.components.toList();
-    if (components.length >= 1) {
+    if (components.isNotEmpty) {
       components[0] = onlyName(components[0]);
     }
     if (components.length >= 2) {

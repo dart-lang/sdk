@@ -34,7 +34,7 @@ import "dart:core" as core;
 
 class Supertype extends core::Object {
   static field dynamic _redirecting# = <dynamic>[self::Supertype::•];
-  static factory •() → self::Supertype
+  static factory •() → self::Supertype*
     let dynamic #redirecting_factory = "Unresolved" in invalid-expression;
 }
 static method main() → dynamic {

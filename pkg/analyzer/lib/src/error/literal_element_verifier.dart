@@ -146,11 +146,12 @@ class LiteralElementVerifier {
     }
 
     InterfaceType iterableType;
-    var iterableObjectType = typeProvider.iterableObjectType;
+    var iterableDynamicType = (typeProvider.iterableDynamicType as TypeImpl)
+        .withNullability(NullabilitySuffix.question);
     if (expressionType is InterfaceTypeImpl &&
-        typeSystem.isSubtypeOf(expressionType, iterableObjectType)) {
+        typeSystem.isSubtypeOf(expressionType, iterableDynamicType)) {
       iterableType = expressionType.asInstanceOf(
-        iterableObjectType.element,
+        iterableDynamicType.element,
       );
     }
 

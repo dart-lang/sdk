@@ -72,7 +72,7 @@ void defineProperty(var obj, String property, var value) {
   JS(
       'void',
       'Object.defineProperty(#, #, '
-      '{value: #, enumerable: false, writable: true, configurable: true})',
+          '{value: #, enumerable: false, writable: true, configurable: true})',
       obj,
       property,
       value);

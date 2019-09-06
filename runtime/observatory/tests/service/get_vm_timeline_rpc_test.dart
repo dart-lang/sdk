@@ -89,19 +89,19 @@ void allEventsHaveIsolateNumber(List events) {
     }
     if (event['cat'] == 'Embedder' &&
         (event['name'] == 'DFE::ReadScript' ||
-            event['name'] == 'CreateIsolateAndSetupHelper')) {
+            event['name'] == 'CreateIsolateGroupAndSetupHelper')) {
       continue;
     }
     Map arguments = event['args'];
     expect(arguments, new isInstanceOf<Map>());
-    expect(arguments['isolateNumber'], new isInstanceOf<String>());
+    expect(arguments['isolateId'], new isInstanceOf<String>());
   }
 }
 
 var tests = <VMTest>[
   (VM vm) async {
-    Map result = await vm.invokeRpcNoUpgrade('_getVMTimeline', {});
-    expect(result['type'], equals('_Timeline'));
+    Map result = await vm.invokeRpcNoUpgrade('getVMTimeline', {});
+    expect(result['type'], equals('Timeline'));
     expect(result['traceEvents'], new isInstanceOf<List>());
     final int numEvents = result['traceEvents'].length;
     List dartEvents = filterForDartEvents(result['traceEvents']);
@@ -121,7 +121,7 @@ var tests = <VMTest>[
     int origin = timeOrigin(dartEvents);
     int extent = timeDuration(dartEvents, origin);
     // Query for the timeline with the time window for Dart events.
-    result = await vm.invokeRpcNoUpgrade('_getVMTimeline',
+    result = await vm.invokeRpcNoUpgrade('getVMTimeline',
         {'timeOriginMicros': origin, 'timeExtentMicros': extent});
     // Verify that we received fewer events than before.
     expect(result['traceEvents'].length, lessThan(numEvents));

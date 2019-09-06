@@ -7,9 +7,9 @@ library test;
 
 void f(Object x) {
   if (x is int) {
-    if (/*@promotedType=int*/ x is String) {
+    if (/*@ promotedType=int* */ x is String) {
       // Promotion blocked; String is not a subtype of int.
-      var /*@type=int*/ y = /*@promotedType=int*/ x;
+      var /*@ type=int* */ y = /*@ promotedType=int* */ x;
     }
   }
 }
@@ -17,7 +17,7 @@ void f(Object x) {
 void g(int x) {
   if (x is String) {
     // Promotion blocked; String is not a subtype of int.
-    var /*@type=int*/ y = x;
+    var /*@ type=int* */ y = x;
   }
 }
 

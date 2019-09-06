@@ -4,26 +4,246 @@
 
 library fasta.field_builder;
 
+import 'package:kernel/ast.dart' show DartType, Expression;
+
 import 'builder.dart' show LibraryBuilder, MemberBuilder;
 
-import 'package:kernel/ast.dart' show DartType;
+import 'package:kernel/ast.dart'
+    show Class, DartType, Expression, Field, InvalidType, Name, NullLiteral;
 
-abstract class FieldBuilder<T> extends MemberBuilder {
+import '../constant_context.dart' show ConstantContext;
+
+import '../fasta_codes.dart'
+    show
+        messageInternalProblemAlreadyInitialized,
+        templateCantInferTypeDueToCircularity;
+
+import '../kernel/body_builder.dart' show BodyBuilder;
+
+import '../kernel/kernel_builder.dart'
+    show
+        ClassBuilder,
+        Builder,
+        ImplicitFieldType,
+        TypeBuilder,
+        LibraryBuilder,
+        MetadataBuilder;
+
+import '../problems.dart' show internalProblem;
+
+import '../scanner.dart' show Token;
+
+import '../scope.dart' show Scope;
+
+import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+
+import '../source/source_loader.dart' show SourceLoader;
+
+import '../type_inference/type_inference_engine.dart'
+    show IncludesTypeParametersNonCovariantly, Variance;
+
+import '../type_inference/type_inferrer.dart' show TypeInferrerImpl;
+
+import '../type_inference/type_schema.dart' show UnknownType;
+
+import 'extension_builder.dart';
+
+class FieldBuilder extends MemberBuilder {
   final String name;
 
   final int modifiers;
 
-  FieldBuilder(
-      this.name, this.modifiers, LibraryBuilder compilationUnit, int charOffset)
-      : super(compilationUnit, charOffset);
+  final Field field;
+  final List<MetadataBuilder> metadata;
+  final TypeBuilder type;
+  Token constInitializerToken;
+
+  bool hadTypesInferred = false;
+
+  FieldBuilder(this.metadata, this.type, this.name, this.modifiers,
+      Builder compilationUnit, int charOffset, int charEndOffset)
+      : field = new Field(null, fileUri: compilationUnit?.fileUri)
+          ..fileOffset = charOffset
+          ..fileEndOffset = charEndOffset,
+        super(compilationUnit, charOffset);
 
   String get debugName => "FieldBuilder";
 
-  DartType get builtType;
-
-  void set initializer(T value);
-
-  bool get hasInitializer;
-
   bool get isField => true;
+
+  void set initializer(Expression value) {
+    if (!hasInitializer && value is! NullLiteral && !isConst && !isFinal) {
+      internalProblem(
+          messageInternalProblemAlreadyInitialized, charOffset, fileUri);
+    }
+    field.initializer = value..parent = field;
+  }
+
+  bool get isEligibleForInference {
+    return !library.legacyMode &&
+        type == null &&
+        (hasInitializer || isClassInstanceMember);
+  }
+
+  Field build(SourceLibraryBuilder library) {
+    field
+      ..isCovariant = isCovariant
+      ..isFinal = isFinal
+      ..isConst = isConst
+      ..isLate = isLate;
+    if (isExtensionMember) {
+      ExtensionBuilder extension = parent;
+      field.name = new Name('${extension.name}|$name', library.target);
+      field
+        ..hasImplicitGetter = false
+        ..hasImplicitSetter = false
+        ..isStatic = true
+        ..isExtensionMember = true;
+    } else {
+      // TODO(johnniwinther): How can the name already have been computed.
+      field.name ??= new Name(name, library.target);
+      bool isInstanceMember = !isStatic && !isTopLevel;
+      field
+        ..hasImplicitGetter = isInstanceMember
+        ..hasImplicitSetter = isInstanceMember && !isConst && !isFinal
+        ..isStatic = !isInstanceMember
+        ..isExtensionMember = false;
+    }
+    if (type != null) {
+      field.type = type.build(library);
+
+      if (!isFinal && !isConst) {
+        IncludesTypeParametersNonCovariantly needsCheckVisitor;
+        if (parent is ClassBuilder) {
+          Class enclosingClass = parent.target;
+          if (enclosingClass.typeParameters.isNotEmpty) {
+            needsCheckVisitor = new IncludesTypeParametersNonCovariantly(
+                enclosingClass.typeParameters,
+                // We are checking the field type as if it is the type of the
+                // parameter of the implicit setter and this is a contravariant
+                // position.
+                initialVariance: Variance.contravariant);
+          }
+        }
+        if (needsCheckVisitor != null) {
+          if (field.type.accept(needsCheckVisitor)) {
+            field.isGenericCovariantImpl = true;
+          }
+        }
+      }
+    }
+    return field;
+  }
+
+  @override
+  void buildOutlineExpressions(LibraryBuilder library) {
+    ClassBuilder classBuilder = isClassMember ? parent : null;
+    MetadataBuilder.buildAnnotations(
+        field, metadata, library, classBuilder, this);
+
+    // For modular compilation we need to include initializers of all const
+    // fields and all non-static final fields in classes with const constructors
+    // into the outline.
+    if ((isConst ||
+            (isFinal &&
+                !isStatic &&
+                isClassMember &&
+                classBuilder.hasConstConstructor)) &&
+        constInitializerToken != null) {
+      Scope scope = classBuilder?.scope ?? library.scope;
+      BodyBuilder bodyBuilder = new BodyBuilder.forOutlineExpression(
+          library, classBuilder, this, scope, fileUri);
+      bodyBuilder.constantContext =
+          isConst ? ConstantContext.inferred : ConstantContext.none;
+      initializer = bodyBuilder.parseFieldInitializer(constInitializerToken)
+        ..parent = field;
+      bodyBuilder.typeInferrer
+          ?.inferFieldInitializer(bodyBuilder, field.type, field.initializer);
+      if (library.loader is SourceLoader) {
+        SourceLoader loader = library.loader;
+        loader.transformPostInference(field, bodyBuilder.transformSetLiterals,
+            bodyBuilder.transformCollections);
+      }
+      bodyBuilder.resolveRedirectingFactoryTargets();
+    }
+    constInitializerToken = null;
+  }
+
+  Field get target => field;
+
+  @override
+  void inferType() {
+    SourceLibraryBuilder library = this.library;
+    if (field.type is! ImplicitFieldType) {
+      // We have already inferred a type.
+      return;
+    }
+    ImplicitFieldType type = field.type;
+    if (type.member != this) {
+      // The implicit type was inherited.
+      FieldBuilder other = type.member;
+      other.inferCopiedType(field);
+      return;
+    }
+    if (type.isStarted) {
+      library.addProblem(
+          templateCantInferTypeDueToCircularity.withArguments(name),
+          charOffset,
+          name.length,
+          fileUri);
+      field.type = const InvalidType();
+      return;
+    }
+    type.isStarted = true;
+    TypeInferrerImpl typeInferrer = library.loader.typeInferenceEngine
+        .createTopLevelTypeInferrer(
+            fileUri, field.enclosingClass?.thisType, null);
+    BodyBuilder bodyBuilder = new BodyBuilder.forField(this, typeInferrer);
+    bodyBuilder.constantContext =
+        isConst ? ConstantContext.inferred : ConstantContext.none;
+    initializer = bodyBuilder.parseFieldInitializer(type.initializerToken);
+    type.initializerToken = null;
+
+    DartType inferredType = typeInferrer.inferDeclarationType(typeInferrer
+        .inferExpression(field.initializer, const UnknownType(), true,
+            isVoidAllowed: true));
+
+    if (field.type is ImplicitFieldType) {
+      // `field.type` may have changed if a circularity was detected when
+      // [inferredType] was computed.
+      field.type = inferredType;
+
+      IncludesTypeParametersNonCovariantly needsCheckVisitor;
+      if (parent is ClassBuilder) {
+        Class enclosingClass = parent.target;
+        if (enclosingClass.typeParameters.isNotEmpty) {
+          needsCheckVisitor = new IncludesTypeParametersNonCovariantly(
+              enclosingClass.typeParameters,
+              // We are checking the field type as if it is the type of the
+              // parameter of the implicit setter and this is a contravariant
+              // position.
+              initialVariance: Variance.contravariant);
+        }
+      }
+      if (needsCheckVisitor != null) {
+        if (field.type.accept(needsCheckVisitor)) {
+          field.isGenericCovariantImpl = true;
+        }
+      }
+    }
+
+    // The following is a hack. The outline should contain the compiled
+    // initializers, however, as top-level inference is subtly different from
+    // we need to compile the field initializer again when everything else is
+    // compiled.
+    field.initializer = null;
+  }
+
+  void inferCopiedType(Field other) {
+    inferType();
+    other.type = field.type;
+    other.initializer = null;
+  }
+
+  DartType get builtType => field.type;
 }

@@ -2,24 +2,43 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// All imports must be in all FFI patch files to not depend on the order
+// the patches are applied.
 import "dart:_internal" show patch;
-
-@patch
-Pointer<T> allocate<T extends NativeType>({int count: 1}) native "Ffi_allocate";
-
-@patch
-T fromAddress<T extends Pointer>(int ptr) native "Ffi_fromAddress";
+import 'dart:typed_data' show TypedData;
 
 @patch
 int sizeOf<T extends NativeType>() native "Ffi_sizeOf";
 
-@patch
-Pointer<NativeFunction<T>> fromFunction<T extends Function>(
-    @DartRepresentationOf("T") Function f) native "Ffi_fromFunction";
+Pointer<T> _allocate<T extends NativeType>(int count) native "Ffi_allocate";
+
+Pointer<T> _fromAddress<T extends NativeType>(int ptr) native "Ffi_fromAddress";
+
+// The real implementation of this function (for interface calls) lives in
+// BuildFfiAsFunctionCall in the Kernel frontend. No calls can actually reach
+// this function.
+DS _asFunctionInternal<DS extends Function, NS extends Function>(
+    Pointer<NativeFunction<NS>> ptr) native "Ffi_asFunctionInternal";
+
+dynamic _asExternalTypedData(Pointer ptr, int count)
+    native "Ffi_asExternalTypedData";
 
 @patch
 @pragma("vm:entry-point")
 class Pointer<T extends NativeType> {
+  @patch
+  factory Pointer.allocate({int count: 1}) => _allocate<T>(count);
+
+  @patch
+  factory Pointer.fromAddress(int ptr) => _fromAddress(ptr);
+
+  @patch
+  static Pointer<NativeFunction<T>> fromFunction<T extends Function>(
+      @DartRepresentationOf("T") Function f,
+      Object exceptionalReturn) native "Ffi_fromFunction";
+
+  // TODO(sjindel): When NNBD is available, we should change `value` to be
+  // non-null.
   @patch
   void store(Object value) native "Ffi_store";
 
@@ -45,29 +64,23 @@ class Pointer<T extends NativeType> {
   // fromAddress(address). This would be 2 native calls rather than one.
   // What would be better?
   @patch
-  U cast<U extends Pointer>() native "Ffi_cast";
+  Pointer<U> cast<U extends NativeType>() native "Ffi_cast";
 
   @patch
-  R asFunction<R extends Function>() native "Ffi_asFunction";
+  R asFunction<R extends Function>() {
+    throw UnsupportedError("Pointer.asFunction cannot be called dynamically.");
+  }
 
   @patch
   void free() native "Ffi_free";
+
+  @patch
+  TypedData asExternalTypedData({int count: 1}) =>
+      _asExternalTypedData(this, count);
 }
 
-// This method gets called when an exception bubbles up to the native -> Dart
-// boundary from an FFI native callback. Since native code does not have any
-// concept of exceptions, the exception cannot be propagated any further.
-// Instead, print a warning with the exception and return 0/0.0 from the
-// callback.
-//
-// TODO(36856): Iron out the story behind exceptions.
-@pragma("vm:entry-point")
-void _handleExposedException(dynamic exception, dynamic stackTrace) {
-  print(
-      "==================== UNHANDLED EXCEPTION FROM FFI CALLBACK ====================");
-  print(
-      """ ** Native callbacks should not throw exceptions because they cannot be
-    propagated into native code. **""");
-  print("EXCEPTION: $exception");
-  print(stackTrace);
-}
+// Returns the ABI used for size and alignment calculations.
+// See pkg/vm/lib/transformations/ffi.dart.
+@pragma('vm:prefer-inline')
+int _abi()
+    native "Recognized method: method is directly interpreted by the bytecode interpreter or IR graph is built in the flow graph builder.";

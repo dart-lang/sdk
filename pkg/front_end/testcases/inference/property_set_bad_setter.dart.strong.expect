@@ -10,7 +10,7 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  synthetic constructor •() → self::A
+  synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
   set x(dynamic #synthetic) → void {
@@ -20,7 +20,7 @@ class A extends core::Object {
     {}
   }
 }
-static method f(self::A a) → void {
-  core::int x = a.{self::A::x} = 0;
+static method f(self::A* a) → void {
+  core::int* x = a.{self::A::x} = 0;
 }
 static method main() → dynamic {}

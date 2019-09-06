@@ -10,137 +10,94 @@ library vm.bytecode.dbc;
 /// Before bumping current bytecode version format, make sure that
 /// all users have switched to a VM which is able to consume new
 /// version of bytecode.
-const int currentBytecodeFormatVersion = 9;
-
-/// Version of experimental / bleeding edge bytecode format.
-/// Produced by bytecode generator when --use-future-bytecode-format
-/// option is enabled.
-const int futureBytecodeFormatVersion = currentBytecodeFormatVersion + 1;
+const int currentBytecodeFormatVersion = 19;
 
 enum Opcode {
-  // Old instructions, used before bytecode v7.
-  // TODO(alexmarkov): remove
-
-  kTrap_Old,
-
-  // Prologue and stack management.
-  kEntry_Old,
-  kEntryFixed_Old,
-  kEntryOptional_Old,
-  kLoadConstant_Old,
-  kFrame_Old,
-  kCheckFunctionTypeArgs_Old,
-  kCheckStack_Old,
-
-  // Object allocation.
-  kAllocate_Old,
-  kAllocateT_Old,
-  kCreateArrayTOS_Old,
-
-  // Context allocation and access.
-  kAllocateContext_Old,
-  kCloneContext_Old,
-  kLoadContextParent_Old,
-  kStoreContextParent_Old,
-  kLoadContextVar_Old,
-  kStoreContextVar_Old,
-
-  // Constants.
-  kPushConstant_Old,
-  kPushNull_Old,
-  kPushTrue_Old,
-  kPushFalse_Old,
-  kPushInt_Old,
-
-  // Locals and expression stack.
-  kDrop1_Old,
-  kPush_Old,
-  kPopLocal_Old,
-  kStoreLocal_Old,
-
-  // Instance fields and arrays.
-  kLoadFieldTOS_Old,
-  kStoreFieldTOS_Old,
-  kStoreIndexedTOS_Old,
-
-  // Static fields.
-  kPushStatic_Old,
-  kStoreStaticTOS_Old,
-
-  // Jumps.
-  kJump_Old,
-  kJumpIfNoAsserts_Old,
-  kJumpIfNotZeroTypeArgs_Old,
-  kJumpIfEqStrict_Old,
-  kJumpIfNeStrict_Old,
-  kJumpIfTrue_Old,
-  kJumpIfFalse_Old,
-  kJumpIfNull_Old,
-  kJumpIfNotNull_Old,
-
-  // Calls.
-  kUnused00_Old,
-  kInterfaceCall_Old,
-  kDynamicCall_Old,
-  kNativeCall_Old,
-  kReturnTOS_Old,
-
-  // Types and type checks.
-  kAssertAssignable_Old,
-  kAssertBoolean_Old,
-  kAssertSubtype_Old,
-  kLoadTypeArgumentsField_Old,
-  kInstantiateType_Old,
-  kInstantiateTypeArgumentsTOS_Old,
-
-  // Exception handling.
-  kThrow_Old,
-  kMoveSpecial_Old,
-  kSetFrame_Old,
-
-  // Bool operations.
-  kBooleanNegateTOS_Old,
-
-  // Null operations.
-  kEqualsNull_Old,
-
-  // Int operations.
-  kNegateInt_Old,
-  kAddInt_Old,
-  kSubInt_Old,
-  kMulInt_Old,
-  kTruncDivInt_Old,
-  kModInt_Old,
-  kBitAndInt_Old,
-  kBitOrInt_Old,
-  kBitXorInt_Old,
-  kShlInt_Old,
-  kShrInt_Old,
-  kCompareIntEq_Old,
-  kCompareIntGt_Old,
-  kCompareIntLt_Old,
-  kCompareIntGe_Old,
-  kCompareIntLe_Old,
-
-  kDirectCall_Old,
-
-  kAllocateClosure_Old,
-
-  kUncheckedInterfaceCall_Old,
-
-  // Double operations.
-  kNegateDouble_Old,
-  kAddDouble_Old,
-  kSubDouble_Old,
-  kMulDouble_Old,
-  kDivDouble_Old,
-  kCompareDoubleEq_Old,
-  kCompareDoubleGt_Old,
-  kCompareDoubleLt_Old,
-  kCompareDoubleGe_Old,
-  kCompareDoubleLe_Old,
-
-  // Bytecode instructions since bytecode format v7:
+  kUnusedOpcode000,
+  kUnusedOpcode001,
+  kUnusedOpcode002,
+  kUnusedOpcode003,
+  kUnusedOpcode004,
+  kUnusedOpcode005,
+  kUnusedOpcode006,
+  kUnusedOpcode007,
+  kUnusedOpcode008,
+  kUnusedOpcode009,
+  kUnusedOpcode010,
+  kUnusedOpcode011,
+  kUnusedOpcode012,
+  kUnusedOpcode013,
+  kUnusedOpcode014,
+  kUnusedOpcode015,
+  kUnusedOpcode016,
+  kUnusedOpcode017,
+  kUnusedOpcode018,
+  kUnusedOpcode019,
+  kUnusedOpcode020,
+  kUnusedOpcode021,
+  kUnusedOpcode022,
+  kUnusedOpcode023,
+  kUnusedOpcode024,
+  kUnusedOpcode025,
+  kUnusedOpcode026,
+  kUnusedOpcode027,
+  kUnusedOpcode028,
+  kUnusedOpcode029,
+  kUnusedOpcode030,
+  kUnusedOpcode031,
+  kUnusedOpcode032,
+  kUnusedOpcode033,
+  kUnusedOpcode034,
+  kUnusedOpcode035,
+  kUnusedOpcode036,
+  kUnusedOpcode037,
+  kUnusedOpcode038,
+  kUnusedOpcode039,
+  kUnusedOpcode040,
+  kUnusedOpcode041,
+  kUnusedOpcode042,
+  kUnusedOpcode043,
+  kUnusedOpcode044,
+  kUnusedOpcode045,
+  kUnusedOpcode046,
+  kUnusedOpcode047,
+  kUnusedOpcode048,
+  kUnusedOpcode049,
+  kUnusedOpcode050,
+  kUnusedOpcode051,
+  kUnusedOpcode052,
+  kUnusedOpcode053,
+  kUnusedOpcode054,
+  kUnusedOpcode055,
+  kUnusedOpcode056,
+  kUnusedOpcode057,
+  kUnusedOpcode058,
+  kUnusedOpcode059,
+  kUnusedOpcode060,
+  kUnusedOpcode061,
+  kUnusedOpcode062,
+  kUnusedOpcode063,
+  kUnusedOpcode064,
+  kUnusedOpcode065,
+  kUnusedOpcode066,
+  kUnusedOpcode067,
+  kUnusedOpcode068,
+  kUnusedOpcode069,
+  kUnusedOpcode070,
+  kUnusedOpcode071,
+  kUnusedOpcode072,
+  kUnusedOpcode073,
+  kUnusedOpcode074,
+  kUnusedOpcode075,
+  kUnusedOpcode076,
+  kUnusedOpcode077,
+  kUnusedOpcode078,
+  kUnusedOpcode079,
+  kUnusedOpcode080,
+  kUnusedOpcode081,
+  kUnusedOpcode082,
+  kUnusedOpcode083,
+  kUnusedOpcode084,
 
   kTrap,
 
@@ -158,9 +115,9 @@ enum Opcode {
   kCheckFunctionTypeArgs,
   kCheckFunctionTypeArgs_Wide,
   kCheckStack,
-  kUnused01,
-  kUnused02, // Reserved for CheckParameterTypes
-  kUnused03, // Reserved for CheckParameterTypes_Wide
+  kDebugCheck,
+  kJumpIfUnchecked,
+  kJumpIfUnchecked_Wide,
 
   // Object allocation.
   kAllocate,
@@ -211,8 +168,8 @@ enum Opcode {
   kUnused17, // Reserved for PushParamLast1
   kPopLocal,
   kPopLocal_Wide,
-  kUnused18, // Reserved for PopLocal0
-  kUnused19,
+  kLoadStatic,
+  kLoadStatic_Wide,
   kStoreLocal,
   kStoreLocal_Wide,
 
@@ -225,8 +182,8 @@ enum Opcode {
   kUnused20,
 
   // Static fields.
-  kPushStatic,
-  kPushStatic_Wide,
+  kUnused40,
+  kUnused41,
   kStoreStaticTOS,
   kStoreStaticTOS_Wide,
 
@@ -259,10 +216,10 @@ enum Opcode {
   kInterfaceCall_Wide,
   kUnused23, // Reserved for InterfaceCall1
   kUnused24, // Reserved for InterfaceCall1_Wide
-  kUnused25, // Reserved for InterfaceCall2
-  kUnused26, // Reserved for InterfaceCall2_Wide
-  kUnused27, // Reserved for InterfaceCall3
-  kUnused28, // Reserved for InterfaceCall3_Wide
+  kInstantiatedInterfaceCall,
+  kInstantiatedInterfaceCall_Wide,
+  kUncheckedClosureCall,
+  kUncheckedClosureCall_Wide,
   kUncheckedInterfaceCall,
   kUncheckedInterfaceCall_Wide,
   kDynamicCall,
@@ -411,6 +368,8 @@ const Map<Opcode, Format> BytecodeFormats = const {
       Encoding.kAE, const [Operand.imm, Operand.reg, Operand.none]),
   Opcode.kCheckStack: const Format(
       Encoding.kA, const [Operand.imm, Operand.none, Operand.none]),
+  Opcode.kDebugCheck: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
   Opcode.kAllocate: const Format(
       Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
   Opcode.kAllocateT: const Format(
@@ -453,7 +412,7 @@ const Map<Opcode, Format> BytecodeFormats = const {
       Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
   Opcode.kStoreIndexedTOS: const Format(
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kPushStatic: const Format(
+  Opcode.kLoadStatic: const Format(
       Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
   Opcode.kStoreStaticTOS: const Format(
       Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
@@ -475,7 +434,11 @@ const Map<Opcode, Format> BytecodeFormats = const {
       Encoding.kT, const [Operand.tgt, Operand.none, Operand.none]),
   Opcode.kJumpIfNotNull: const Format(
       Encoding.kT, const [Operand.tgt, Operand.none, Operand.none]),
+  Opcode.kJumpIfUnchecked: const Format(
+      Encoding.kT, const [Operand.tgt, Operand.none, Operand.none]),
   Opcode.kInterfaceCall: const Format(
+      Encoding.kDF, const [Operand.lit, Operand.imm, Operand.none]),
+  Opcode.kInstantiatedInterfaceCall: const Format(
       Encoding.kDF, const [Operand.lit, Operand.imm, Operand.none]),
   Opcode.kDynamicCall: const Format(
       Encoding.kDF, const [Operand.lit, Operand.imm, Operand.none]),
@@ -541,6 +504,8 @@ const Map<Opcode, Format> BytecodeFormats = const {
       Encoding.kDF, const [Operand.lit, Operand.imm, Operand.none]),
   Opcode.kAllocateClosure: const Format(
       Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
+  Opcode.kUncheckedClosureCall: const Format(
+      Encoding.kDF, const [Operand.lit, Operand.imm, Operand.none]),
   Opcode.kUncheckedInterfaceCall: const Format(
       Encoding.kDF, const [Operand.lit, Operand.imm, Operand.none]),
   Opcode.kNegateDouble: const Format(
@@ -644,6 +609,8 @@ bool isCall(Opcode opcode) {
   switch (opcode) {
     case Opcode.kDirectCall:
     case Opcode.kInterfaceCall:
+    case Opcode.kInstantiatedInterfaceCall:
+    case Opcode.kUncheckedClosureCall:
     case Opcode.kUncheckedInterfaceCall:
     case Opcode.kDynamicCall:
     case Opcode.kNativeCall:
@@ -666,7 +633,6 @@ bool isPush(Opcode opcode) {
     case Opcode.kPushTrue:
     case Opcode.kPushFalse:
     case Opcode.kPushInt:
-    case Opcode.kPushStatic:
       return true;
     default:
       return false;
@@ -685,6 +651,9 @@ const int capturedVariableIndexLimit = 1 << 32;
 
 // Context IDs are referenced using 8-bit unsigned operands.
 const int contextIdLimit = 1 << 8;
+
+// Number of arguments is encoded as 8-bit unsigned operand.
+const int argumentsLimit = 1 << 8;
 
 // Base class for exceptions thrown when certain limit of bytecode
 // format is exceeded.

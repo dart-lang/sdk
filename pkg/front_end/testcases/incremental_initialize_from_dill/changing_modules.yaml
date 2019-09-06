@@ -6,7 +6,6 @@
 # Compile again with changing modules.
 
 type: newworld
-strong: true
 modules:
   example_0.1.0:
     example_0.1.0/a.dart: |
@@ -79,6 +78,9 @@ worlds:
     modules:
       - example_0.1.0
     expectedLibraryCount: 3
+    neededDillLibraries:
+      # Needs 'b.dart' only!
+      - package:example/b.dart
     expectedContent:
       org-dartlang-test:///main.dart:
         - Procedure main
@@ -104,6 +106,8 @@ worlds:
       - example_0.1.0
       - foo_1
     expectedLibraryCount: 4
+    neededDillLibraries:
+      - package:foo/foo.dart
     expectedContent:
       org-dartlang-test:///main.dart:
         - Procedure main
@@ -132,6 +136,8 @@ worlds:
       - example_0.1.1
       - foo_2
     expectedLibraryCount: 5
+    neededDillLibraries:
+      - package:foo/foo.dart
     expectedContent:
       org-dartlang-test:///main.dart:
         - Procedure main

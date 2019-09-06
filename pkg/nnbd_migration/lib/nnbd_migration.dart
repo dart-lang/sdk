@@ -8,43 +8,50 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/src/nullability_migration_impl.dart';
 
-/// Kinds of fixes that might be performed by nullability migration.
-class NullabilityFixKind {
-  /// An import needs to be added.
-  static const addImport =
-      const NullabilityFixKind._(appliedMessage: 'Add an import');
-
-  /// A formal parameter needs to have a required annotation added.
-  static const addRequired =
-      const NullabilityFixKind._(appliedMessage: 'Add a required annotation');
-
-  /// An expression's value needs to be null-checked.
-  static const checkExpression = const NullabilityFixKind._(
-    appliedMessage: 'Added a null check to an expression',
-  );
-
-  /// An explicit type mentioned in the source program needs to be made
-  /// nullable.
-  static const makeTypeNullable = const NullabilityFixKind._(
-    appliedMessage: 'Changed a type to be nullable',
-  );
-
+/// Description of fixes that might be performed by nullability migration.
+class NullabilityFixDescription {
   /// An if-test or conditional expression needs to have its "then" branch
   /// discarded.
-  static const discardThen = const NullabilityFixKind._(
+  static const discardThen = const NullabilityFixDescription._(
     appliedMessage: 'Discarded an unreachable conditional then branch',
   );
 
   /// An if-test or conditional expression needs to have its "else" branch
   /// discarded.
-  static const discardElse = const NullabilityFixKind._(
+  static const discardElse = const NullabilityFixDescription._(
     appliedMessage: 'Discarded an unreachable conditional else branch',
+  );
+
+  /// An expression's value needs to be null-checked.
+  static const checkExpression = const NullabilityFixDescription._(
+    appliedMessage: 'Added a non-null assertion to nullable expression',
   );
 
   /// A message used by dartfix to indicate a fix has been applied.
   final String appliedMessage;
 
-  const NullabilityFixKind._({@required this.appliedMessage});
+  /// An import needs to be added.
+  factory NullabilityFixDescription.addImport(String uri) =>
+      NullabilityFixDescription._(appliedMessage: 'Add import $uri');
+
+  /// A formal parameter needs to have a required modifier added.
+  factory NullabilityFixDescription.addRequired(
+          String className, String functionName, String paramName) =>
+      NullabilityFixDescription._(
+          appliedMessage:
+              "Add 'required' modifier to parameter $paramName in " +
+                  (className == null
+                      ? functionName
+                      : '$className.$functionName'));
+
+  /// An explicit type mentioned in the source program needs to be made
+  /// nullable.
+  factory NullabilityFixDescription.makeTypeNullable(String type) =>
+      NullabilityFixDescription._(
+        appliedMessage: 'Changed type $type to be nullable',
+      );
+
+  const NullabilityFixDescription._({@required this.appliedMessage});
 }
 
 /// Provisional API for DartFix to perform nullability migration.
@@ -89,7 +96,7 @@ abstract class NullabilityMigrationListener {
 /// achieve.
 abstract class SingleNullabilityFix {
   /// What kind of fix this is.
-  NullabilityFixKind get kind;
+  NullabilityFixDescription get description;
 
   /// Location of the change, for reporting to the user.
   Location get location;

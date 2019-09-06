@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 static method main() → dynamic {
-  core::Map<core::int, dynamic> v = <core::int, dynamic>{1: () → core::int {
+  core::Map<core::int*, dynamic>* v = <core::int*, dynamic>{1: () → core::int* {
     return 1;
   }};
 }

@@ -16,9 +16,12 @@ class InitializedCompilerState {
   final ProcessedOptions processedOpts;
   final Map<Uri, WorkerInputComponent> workerInputCache;
   final IncrementalCompiler incrementalCompiler;
+  final Map<Uri, Uri> libraryToInputDill;
 
   InitializedCompilerState(this.options, this.processedOpts,
-      {this.workerInputCache, this.incrementalCompiler});
+      {this.workerInputCache,
+      this.incrementalCompiler,
+      this.libraryToInputDill});
 }
 
 /// A cached [Component] for a summary input file.

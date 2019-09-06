@@ -30,8 +30,10 @@ List<String> expected = [
   "$file:${LINE_A+1}:16", // on File
   "$file:${LINE_A+2}:31", // on 'lastModified'
   "$file:${LINE_A+2}:23", // on 'await'
+  "$file:${LINE_A+2}:21", // on '='
   "$file:${LINE_A+3}:25", // on 'exists'
   "$file:${LINE_A+3}:17", // on 'await'
+  "$file:${LINE_A+3}:15", // on '='
   "$file:${LINE_A+4}:47", // on ')', i.e. before ';'
   "$file:${LINE_A+4}:3", // on call to 'print'
   "$file:${LINE_A+5}:3", // on call to 'foo'

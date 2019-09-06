@@ -112,8 +112,7 @@ places where the debugger stopped.
 ### Technical details
 
 Some of the logic comes from https://github.com/ChromeDevTools/devtools-frontend/, for instance see
-https://github.com/ChromeDevTools/devtools-frontend/blob/fa18d70a995f06cb73365b2e5b8ae974cf60bd3a/
-front_end/sources/JavaScriptSourceFrame.js#L1520-L1523
+https://github.com/ChromeDevTools/devtools-frontend/blob/fa18d70a995f06cb73365b2e5b8ae974cf60bd3a/front_end/sources/JavaScriptSourceFrame.js#L1520-L1523
 for how a line breakpoint is resolved:
 Basically the line asked to break on in user code (e.g. in dart code) is asked for first and last
 javascript positions; these are then used to get possible breakpoints in that part. If there are

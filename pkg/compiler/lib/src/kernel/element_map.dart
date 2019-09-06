@@ -163,9 +163,8 @@ abstract class KernelToElementMap {
   /// [JS_INTERCEPTOR_CONSTANT] function, if any.
   InterfaceType getInterfaceTypeForJsInterceptorCall(ir.StaticInvocation node);
 
-  /// Returns the [Local] corresponding to the [node]. The node must be either
-  /// a [ir.FunctionDeclaration] or [ir.FunctionExpression].
-  Local getLocalFunction(ir.TreeNode node);
+  /// Returns the [Local] corresponding to the local function [node].
+  Local getLocalFunction(ir.LocalFunction node);
 
   /// Returns the [ir.Library] corresponding to [library].
   ir.Library getLibraryNode(LibraryEntity library);

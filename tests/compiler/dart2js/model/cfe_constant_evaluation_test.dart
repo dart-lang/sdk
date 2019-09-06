@@ -493,7 +493,47 @@ class C2<T> {
         'const C2<A>(id)',
         'ConstructedConstant(C2<A>(a='
             'InstantiationConstant([A],FunctionConstant(id))))'),
-  ])
+  ]),
+  const TestData('unused-arguments', '''
+class A {
+  const A();
+
+  A operator -() => this;
+}
+class B implements A {
+  const B();
+
+  B operator -() => this;
+}
+class C implements A {
+  const C();
+
+  C operator -() => this;
+}
+class Class<T extends A> {
+  const Class(T t);
+  const Class.redirect(dynamic t) : this(t);
+  const Class.method(T t) : this(-t);
+}
+class Subclass<T extends A> extends Class<T> {
+  const Subclass(dynamic t) : super(t);
+}
+''', const <ConstantData>[
+    const ConstantData(
+        'const Class<A>(const A())', 'ConstructedConstant(Class<A>())'),
+    const ConstantData('const Class<B>.redirect(const B())',
+        'ConstructedConstant(Class<B>())'),
+    const ConstantData('const Class<B>.redirect(const C())', 'NonConstant',
+        expectedErrors: 'ConstEvalInvalidType'),
+    const ConstantData('const Class<A>.method(const A())', 'NonConstant',
+        expectedErrors: 'ConstEvalInvalidMethodInvocation'),
+    const ConstantData(
+        'const Subclass<A>(const A())', 'ConstructedConstant(Subclass<A>())'),
+    const ConstantData(
+        'const Subclass<B>(const B())', 'ConstructedConstant(Subclass<B>())'),
+    const ConstantData('const Subclass<B>(const C())', 'NonConstant',
+        expectedErrors: 'ConstEvalInvalidType'),
+  ]),
 ];
 
 main(List<String> args) {
@@ -529,17 +569,15 @@ Future testData(TestData data) async {
   print(source);
 
   Future runTest() async {
-    CompilationResult result = await runCompiler(memorySourceFiles: {
-      'main.dart': source
-    }, options: [
-      Flags.enableAsserts,
-      '${Flags.enableLanguageExperiments}=constant-update-2018',
-    ]);
+    CompilationResult result = await runCompiler(
+        memorySourceFiles: {'main.dart': source},
+        options: [Flags.enableAsserts]);
     Compiler compiler = result.compiler;
-    KernelFrontEndStrategy frontEndStrategy = compiler.frontendStrategy;
+    KernelFrontendStrategy frontEndStrategy = compiler.frontendStrategy;
     KernelToElementMapImpl elementMap = frontEndStrategy.elementMap;
     KElementEnvironment elementEnvironment =
         compiler.frontendStrategy.elementEnvironment;
+    ConstantValuefier constantValuefier = new ConstantValuefier(elementMap);
     LibraryEntity library = elementEnvironment.mainLibrary;
     constants.forEach((String name, ConstantData data) {
       IndexedField field =
@@ -564,14 +602,11 @@ Future testData(TestData data) async {
             // all unevaluated constants have no uri.
             errors.add(message.code.name);
             reportLocatedMessage(elementMap.reporter, message, context);
-          },
-                  enableAsserts: true,
-                  environment: environment,
-                  supportReevaluationForTesting: true);
+          }, environment: environment, supportReevaluationForTesting: true);
           ir.Constant evaluatedConstant = evaluator.evaluate(initializer);
 
           ConstantValue value = evaluatedConstant is! ir.UnevaluatedConstant
-              ? evaluatedConstant.accept(new ConstantValuefier(elementMap))
+              ? constantValuefier.visitConstant(evaluatedConstant)
               : new NonConstantValue();
 
           Expect.isNotNull(

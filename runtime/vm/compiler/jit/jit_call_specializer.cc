@@ -52,8 +52,10 @@ bool JitCallSpecializer::TryOptimizeStaticCallUsingStaticTypes(
 
 void JitCallSpecializer::ReplaceWithStaticCall(InstanceCallInstr* instr,
                                                const ICData& unary_checks,
-                                               const Function& target) {
-  StaticCallInstr* call = StaticCallInstr::FromCall(Z, instr, target);
+                                               const Function& target,
+                                               intptr_t call_count) {
+  StaticCallInstr* call =
+      StaticCallInstr::FromCall(Z, instr, target, call_count);
   if (unary_checks.NumberOfChecks() == 1 &&
       unary_checks.GetExactnessAt(0).IsExact()) {
     if (unary_checks.GetExactnessAt(0).IsTriviallyExact()) {
@@ -143,7 +145,8 @@ void JitCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
         Function::ZoneHandle(Z, unary_checks.GetTargetAt(0));
     if (flow_graph()->CheckForInstanceCall(instr, target.kind()) ==
         FlowGraph::ToCheck::kNoCheck) {
-      ReplaceWithStaticCall(instr, unary_checks, target);
+      ReplaceWithStaticCall(instr, unary_checks, target,
+                            targets.AggregateCallCount());
       return;
     }
   }
@@ -168,7 +171,8 @@ void JitCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
     // Call can still deoptimize, do not detach environment from instr.
     const Function& target =
         Function::ZoneHandle(Z, unary_checks.GetTargetAt(0));
-    ReplaceWithStaticCall(instr, unary_checks, target);
+    ReplaceWithStaticCall(instr, unary_checks, target,
+                          targets.AggregateCallCount());
   } else {
     PolymorphicInstanceCallInstr* call =
         new (Z) PolymorphicInstanceCallInstr(instr, targets,
@@ -233,7 +237,7 @@ void JitCallSpecializer::VisitStoreInstanceField(
 // with values copied from it, otherwise it is initialized with null.
 void JitCallSpecializer::LowerContextAllocation(
     Definition* alloc,
-    const GrowableArray<LocalVariable*>& context_variables,
+    const ZoneGrowableArray<const Slot*>& context_variables,
     Value* context_value) {
   ASSERT(alloc->IsAllocateContext() || alloc->IsCloneContext());
 
@@ -262,11 +266,10 @@ void JitCallSpecializer::LowerContextAllocation(
   flow_graph()->InsertAfter(cursor, store, nullptr, FlowGraph::kEffect);
   cursor = replacement;
 
-  for (auto variable : context_variables) {
-    const auto& field = Slot::GetContextVariableSlotFor(thread(), *variable);
+  for (auto& slot : context_variables) {
     if (context_value != nullptr) {
       LoadFieldInstr* load = new (Z) LoadFieldInstr(
-          context_value->CopyWithType(Z), field, alloc->token_pos());
+          context_value->CopyWithType(Z), *slot, alloc->token_pos());
       flow_graph()->InsertAfter(cursor, load, nullptr, FlowGraph::kValue);
       cursor = load;
       initial_value = new (Z) Value(load);
@@ -275,7 +278,7 @@ void JitCallSpecializer::LowerContextAllocation(
     }
 
     store = new (Z) StoreInstanceFieldInstr(
-        field, new (Z) Value(replacement), initial_value, kNoStoreBarrier,
+        *slot, new (Z) Value(replacement), initial_value, kNoStoreBarrier,
         alloc->token_pos(), StoreInstanceFieldInstr::Kind::kInitializing);
     flow_graph()->InsertAfter(cursor, store, nullptr, FlowGraph::kEffect);
     cursor = store;
@@ -283,12 +286,11 @@ void JitCallSpecializer::LowerContextAllocation(
 }
 
 void JitCallSpecializer::VisitAllocateContext(AllocateContextInstr* instr) {
-  LowerContextAllocation(instr, instr->context_variables(), nullptr);
+  LowerContextAllocation(instr, instr->context_slots(), nullptr);
 }
 
 void JitCallSpecializer::VisitCloneContext(CloneContextInstr* instr) {
-  LowerContextAllocation(instr, instr->context_variables(),
-                         instr->context_value());
+  LowerContextAllocation(instr, instr->context_slots(), instr->context_value());
 }
 
 }  // namespace dart

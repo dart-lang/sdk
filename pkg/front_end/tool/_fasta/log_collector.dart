@@ -31,7 +31,7 @@ badRequest(HttpRequest request, int status, String message) {
 }
 
 collectLog(DateTime time, HttpRequest request) async {
-  String json = await request.transform(utf8.decoder).join();
+  String json = await request.cast<List<int>>().transform(utf8.decoder).join();
   var data;
   try {
     data = jsonDecode(json);
@@ -48,7 +48,7 @@ collectLog(DateTime time, HttpRequest request) async {
     return badRequest(request, HttpStatus.badRequest,
         "Malformed JSON data: type should be 'crash'.");
   }
-  request.response.close();
+  await request.response.close();
   String year = "${time.year}".padLeft(4, "0");
   String month = "${time.month}".padLeft(2, "0");
   String day = "${time.day}".padLeft(2, "0");

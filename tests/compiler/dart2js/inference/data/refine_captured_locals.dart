@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   refineBeforeCapture();
   refineAfterCapture();
@@ -14,13 +14,13 @@ main() {
 // Refine a local before it has been captured.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: Class1.:[exact=Class1]*/
+/*member: Class1.:[exact=Class1]*/
 class Class1 {
-  /*element: Class1.method1:[null]*/
+  /*member: Class1.method1:[null]*/
   method1() {}
 }
 
-/*element: _refineBeforeCapture:[exact=Class1]*/
+/*member: _refineBeforeCapture:[exact=Class1]*/
 _refineBeforeCapture(/*[null|exact=Class1]*/ o) {
   o. /*invoke: [null|exact=Class1]*/ method1();
   o. /*invoke: [exact=Class1]*/ method1();
@@ -29,7 +29,7 @@ _refineBeforeCapture(/*[null|exact=Class1]*/ o) {
   return localFunction();
 }
 
-/*element: refineBeforeCapture:[null]*/
+/*member: refineBeforeCapture:[null]*/
 refineBeforeCapture() {
   _refineBeforeCapture(new Class1());
   _refineBeforeCapture(null);
@@ -39,16 +39,16 @@ refineBeforeCapture() {
 // Refine a local after it has been captured.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: Class3.:[exact=Class3]*/
+/*member: Class3.:[exact=Class3]*/
 class Class3 {
-  /*element: Class3.method3:[null]*/
+  /*member: Class3.method3:[null]*/
   method3() {}
 }
 
-/*element: Class4.:[exact=Class4]*/
+/*member: Class4.:[exact=Class4]*/
 class Class4 {}
 
-/*element: _refineAfterCapture:Union([exact=Class3], [exact=Class4])*/
+/*member: _refineAfterCapture:Union([exact=Class3], [exact=Class4])*/
 _refineAfterCapture(/*Union([exact=Class3], [exact=Class4])*/ o) {
   /*Union([exact=Class3], [exact=Class4])*/ localFunction() => o;
 
@@ -58,7 +58,7 @@ _refineAfterCapture(/*Union([exact=Class3], [exact=Class4])*/ o) {
   return localFunction();
 }
 
-/*element: refineAfterCapture:[null]*/
+/*member: refineAfterCapture:[null]*/
 refineAfterCapture() {
   _refineAfterCapture(new Class3());
   _refineAfterCapture(new Class4());
@@ -68,16 +68,16 @@ refineAfterCapture() {
 // Refine a local after it has been captured in a nested local function.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: Class5.:[exact=Class5]*/
+/*member: Class5.:[exact=Class5]*/
 class Class5 {
-  /*element: Class5.method5:[null]*/
+  /*member: Class5.method5:[null]*/
   method5() {}
 }
 
-/*element: Class6.:[exact=Class6]*/
+/*member: Class6.:[exact=Class6]*/
 class Class6 {}
 
-/*element: _refineAfterNestedCapture:Union([exact=Class5], [exact=Class6])*/
+/*member: _refineAfterNestedCapture:Union([exact=Class5], [exact=Class6])*/
 _refineAfterNestedCapture(/*Union([exact=Class5], [exact=Class6])*/ o) {
   /*Union([exact=Class5], [exact=Class6])*/ localFunction() {
     /*Union([exact=Class5], [exact=Class6])*/ nestedFunction() => o;
@@ -90,7 +90,7 @@ _refineAfterNestedCapture(/*Union([exact=Class5], [exact=Class6])*/ o) {
   return localFunction();
 }
 
-/*element: refineAfterNestedCapture:[null]*/
+/*member: refineAfterNestedCapture:[null]*/
 refineAfterNestedCapture() {
   _refineAfterNestedCapture(new Class5());
   _refineAfterNestedCapture(new Class6());
@@ -100,16 +100,16 @@ refineAfterNestedCapture() {
 // Refine a local in a local function after it has been captured.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: Class7.:[exact=Class7]*/
+/*member: Class7.:[exact=Class7]*/
 class Class7 {
-  /*element: Class7.method7:[null]*/
+  /*member: Class7.method7:[null]*/
   method7() {}
 }
 
-/*element: Class8.:[exact=Class8]*/
+/*member: Class8.:[exact=Class8]*/
 class Class8 {}
 
-/*element: _refineAfterCaptureInNested:Union([exact=Class7], [exact=Class8])*/
+/*member: _refineAfterCaptureInNested:Union([exact=Class7], [exact=Class8])*/
 _refineAfterCaptureInNested(/*Union([exact=Class7], [exact=Class8])*/ o) {
   /*Union([exact=Class7], [exact=Class8])*/ localFunction(
       /*Union([exact=Class7], [exact=Class8])*/ p) {
@@ -124,7 +124,7 @@ _refineAfterCaptureInNested(/*Union([exact=Class7], [exact=Class8])*/ o) {
   return localFunction(o);
 }
 
-/*element: refineAfterCaptureInNested:[null]*/
+/*member: refineAfterCaptureInNested:[null]*/
 refineAfterCaptureInNested() {
   _refineAfterCaptureInNested(new Class7());
   _refineAfterCaptureInNested(new Class8());

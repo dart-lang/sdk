@@ -2,17 +2,17 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-class A<T extends core::int = core::int> extends core::Object {
-  synthetic constructor •() → self::A<self::A::T>
+class A<T extends core::int* = core::int*> extends core::Object {
+  synthetic constructor •() → self::A<self::A::T*>*
     : super core::Object::•()
     ;
 }
-class B<T extends self::A<core::int> = self::A<core::int>> extends core::Object {
-  synthetic constructor •() → self::B<self::B::T>
+class B<T extends self::A<core::int*>* = self::A<core::int*>*> extends core::Object {
+  synthetic constructor •() → self::B<self::B::T*>*
     : super core::Object::•()
     ;
 }
-static field self::B<self::A<core::int>> v = null;
+static field self::B<self::A<core::int*>*>* v = null;
 static method main() → dynamic {
   self::v;
 }

@@ -11,6 +11,7 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:args/args.dart';
 import 'package:bazel_worker/bazel_worker.dart';
@@ -24,7 +25,9 @@ import 'package:vm/target/flutter.dart';
 import 'package:vm/target/flutter_runner.dart';
 import 'package:compiler/src/kernel/dart2js_target.dart';
 
-main(List<String> args) async {
+/// [sendPort] may be passed in when started in an isolate. If provided, it is
+/// used for bazel worker communication instead of stdin/stdout.
+main(List<String> args, SendPort sendPort) async {
   args = preprocessArgs(args);
 
   if (args.contains('--persistent_worker')) {
@@ -32,7 +35,7 @@ main(List<String> args) async {
       throw new StateError(
           "unexpected args, expected only --persistent-worker but got: $args");
     }
-    await new KernelWorker().run();
+    await new KernelWorker(sendPort: sendPort).run();
   } else {
     var result = await computeKernel(args);
     if (!result.succeeded) {
@@ -44,6 +47,14 @@ main(List<String> args) async {
 /// A bazel worker loop that can compute full or summary kernel files.
 class KernelWorker extends AsyncWorkerLoop {
   fe.InitializedCompilerState previousState;
+
+  /// If [sendPort] is provided it is used for bazel worker communication
+  /// instead of stdin/stdout.
+  KernelWorker({SendPort sendPort})
+      : super(
+            connection: sendPort == null
+                ? null
+                : SendPortAsyncWorkerConnection(sendPort));
 
   Future<WorkResponse> performRequest(WorkRequest request) async {
     var outputBuffer = new StringBuffer();
@@ -128,6 +139,7 @@ final summaryArgsParser = new ArgParser()
   ..addOption('output')
   ..addFlag('reuse-compiler-result', defaultsTo: false)
   ..addFlag('use-incremental-compiler', defaultsTo: false)
+  ..addOption('used-inputs')
   ..addFlag('track-widget-creation', defaultsTo: false)
   ..addMultiOption('enable-experiment',
       help: 'Enable a language experiment when invoking the CFE.');
@@ -231,6 +243,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
 
   fe.InitializedCompilerState state;
   bool usingIncrementalCompiler = false;
+  bool recordUsedInputs = parsedArgs["used-inputs"] != null;
   if (parsedArgs['use-incremental-compiler'] &&
       linkedInputs.isEmpty &&
       isWorker) {
@@ -239,11 +252,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
     /// Build a map of uris to digests.
     final inputDigests = <Uri, List<int>>{};
     for (var input in inputs) {
-      var uri = Uri.parse(input.path);
-      if (uri.scheme.isEmpty) {
-        uri = Uri.parse('file://${input.path}');
-      }
-      inputDigests[uri] = input.digest;
+      inputDigests[_toUri(input.path)] = input.digest;
     }
 
     // TODO(sigmund): add support for experiments with the incremental compiler.
@@ -257,7 +266,8 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
         target,
         fileSystem,
         (parsedArgs['enable-experiment'] as List<String>),
-        summaryOnly);
+        summaryOnly,
+        trackNeededDillLibraries: recordUsedInputs);
   } else {
     state = await fe.initializeCompiler(
         // TODO(sigmund): pass an old state once we can make use of it.
@@ -278,10 +288,28 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   }
 
   List<int> kernel;
+  bool wroteUsedDills = false;
   if (usingIncrementalCompiler) {
     state.options.onDiagnostic = onDiagnostic;
     Component incrementalComponent = await state.incrementalCompiler
         .computeDelta(entryPoints: sources, fullComponent: true);
+
+    if (recordUsedInputs) {
+      Set<Uri> usedOutlines = {};
+      for (Library lib in state.incrementalCompiler.neededDillLibraries) {
+        if (lib.importUri.scheme == "dart") continue;
+        Uri uri = state.libraryToInputDill[lib.importUri];
+        if (uri == null) {
+          throw new StateError("Library ${lib.importUri} was recorded as used, "
+              "but was not in the list of known libraries.");
+        }
+        usedOutlines.add(uri);
+      }
+      var outputUsedFile = new File(parsedArgs["used-inputs"]);
+      outputUsedFile.createSync(recursive: true);
+      outputUsedFile.writeAsStringSync(usedOutlines.join("\n"));
+      wroteUsedDills = true;
+    }
 
     kernel = await state.incrementalCompiler.context.runInContext((_) {
       if (summaryOnly) {
@@ -293,7 +321,11 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
             includeSources: false, includeOffsets: false));
       }
 
-      return Future.value(fe.serializeComponent(incrementalComponent));
+      return Future.value(fe.serializeComponent(incrementalComponent,
+          filter: excludeNonSources
+              ? (library) => sources.contains(library.importUri)
+              : null,
+          includeOffsets: true));
     });
   } else if (summaryOnly) {
     kernel = await fe.compileSummary(state, sources, onDiagnostic,
@@ -308,6 +340,15 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
         includeOffsets: true);
   }
   state.options.onDiagnostic = null; // See http://dartbug.com/36983.
+
+  if (!wroteUsedDills && recordUsedInputs) {
+    // The path taken didn't record inputs used: Say we used everything.
+    var outputUsedFile = new File(parsedArgs["used-inputs"]);
+    outputUsedFile.createSync(recursive: true);
+    Set<Uri> allFiles = {...summaryInputs, ...linkedInputs};
+    outputUsedFile.writeAsStringSync(allFiles.join("\n"));
+    wroteUsedDills = true;
+  }
 
   if (kernel != null) {
     var outputFile = new File(parsedArgs['output']);
@@ -365,5 +406,7 @@ class DevCompilerSummaryTarget extends DevCompilerTarget {
 
 Uri _toUri(String uriString) {
   if (uriString == null) return null;
-  return Uri.base.resolve(uriString);
+  // Windows-style paths use '\', so convert them to '/' in case they've been
+  // concatenated with Unix-style paths.
+  return Uri.base.resolve(uriString.replaceAll("\\", "/"));
 }

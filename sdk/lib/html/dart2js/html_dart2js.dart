@@ -2676,7 +2676,7 @@ class CanvasRenderingContext2D extends Interceptor
     JS(
         'void',
         'typeof #.lineDashOffset != "undefined" ? #.lineDashOffset = # : '
-        '#.webkitLineDashOffset = #',
+            '#.webkitLineDashOffset = #',
         this,
         this,
         value,
@@ -3755,7 +3755,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
     return JS(
         'String',
         r'#.replace(/-([\da-z])/ig,'
-        r'function(_, letter) { return letter.toUpperCase();})',
+            r'function(_, letter) { return letter.toUpperCase();})',
         replacedMs);
   }
 
@@ -9845,7 +9845,7 @@ class Document extends Node {
   String get visibilityState => JS(
       'String',
       '(#.visibilityState || #.mozVisibilityState || #.msVisibilityState ||'
-      '#.webkitVisibilityState)',
+          '#.webkitVisibilityState)',
       this,
       this,
       this,
@@ -13199,6 +13199,9 @@ class Element extends Node
 
   String get innerHtml => _innerHtml;
 
+  @JSName('innerText')
+  String innerText;
+
   /**
    * This is an ease-of-use accessor for event streams which should only be
    * used when an explicit accessor is not available.
@@ -13270,28 +13273,28 @@ class Element extends Node
 
   final Element offsetParent;
 
-  int get offsetHeight => JS('num', '#.offsetHeight', this).round();
+  int get offsetHeight => JS<num>('num', '#.offsetHeight', this).round();
 
-  int get offsetLeft => JS('num', '#.offsetLeft', this).round();
+  int get offsetLeft => JS<num>('num', '#.offsetLeft', this).round();
 
-  int get offsetTop => JS('num', '#.offsetTop', this).round();
+  int get offsetTop => JS<num>('num', '#.offsetTop', this).round();
 
-  int get offsetWidth => JS('num', '#.offsetWidth', this).round();
+  int get offsetWidth => JS<num>('num', '#.offsetWidth', this).round();
 
-  int get scrollHeight => JS('num', '#.scrollHeight', this).round();
-  int get scrollLeft => JS('num', '#.scrollLeft', this).round();
+  int get scrollHeight => JS<num>('num', '#.scrollHeight', this).round();
+  int get scrollLeft => JS<num>('num', '#.scrollLeft', this).round();
 
   set scrollLeft(int value) {
     JS("void", "#.scrollLeft = #", this, value.round());
   }
 
-  int get scrollTop => JS('num', '#.scrollTop', this).round();
+  int get scrollTop => JS<num>('num', '#.scrollTop', this).round();
 
   set scrollTop(int value) {
     JS("void", "#.scrollTop = #", this, value.round());
   }
 
-  int get scrollWidth => JS('num', '#.scrollWidth', this).round();
+  int get scrollWidth => JS<num>('num', '#.scrollWidth', this).round();
 
   // To suppress missing implicit constructor warnings.
   factory Element._() {
@@ -13943,8 +13946,6 @@ class Element extends Node
 
   @JSName('innerHTML')
   String _innerHtml;
-
-  String innerText;
 
   @JSName('localName')
   final String _localName;
@@ -17193,13 +17194,11 @@ class HtmlOptionsCollection extends HtmlCollection {
   * and prints its length:
   *
   *     var path = 'myData.json';
-  *     HttpRequest.getString(path)
-  *         .then((String fileContents) {
-  *           print(fileContents.length);
-  *         })
-  *         .catchError((Error error) {
-  *           print(error.toString());
-  *         });
+  *     HttpRequest.getString(path).then((String fileContents) {
+  *       print(fileContents.length);
+  *     }).catchError((error) {
+  *       print(error.toString());
+  *     });
   *
   * ## Fetching data from other servers
   *
@@ -17717,7 +17716,7 @@ class HttpRequest extends HttpRequestEventTarget {
   final int status;
 
   /**
-   * The request response string (such as \"200 OK\").
+   * The request response string (such as \"OK\").
    * See also: [HTTP Status Codes](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
    */
   final String statusText;
@@ -18416,7 +18415,7 @@ class InputElement extends HtmlElement
 
 // Interfaces representing the InputElement APIs which are supported
 // for the various types of InputElement. From:
-// http://www.w3.org/html/wg/drafts/html/master/forms.html#the-input-element.
+// https://w3c.github.io/html/sec-forms.html#the-input-element.
 
 /**
  * Exposes the functionality common between all InputElement types.
@@ -21429,7 +21428,7 @@ class MutationObserver extends Interceptor {
     return JS(
         'MutationObserver',
         'new(window.MutationObserver||window.WebKitMutationObserver||'
-        'window.MozMutationObserver)(#)',
+            'window.MozMutationObserver)(#)',
         convertDartClosureToJS(_wrapBinaryZone(callback), 2));
   }
 }
@@ -21566,8 +21565,8 @@ class Navigator extends NavigatorConcurrentHardware
       JS(
           'void',
           '#.getUserMedia = '
-          '(#.getUserMedia || #.webkitGetUserMedia || #.mozGetUserMedia ||'
-          '#.msGetUserMedia)',
+              '(#.getUserMedia || #.webkitGetUserMedia || #.mozGetUserMedia ||'
+              '#.msGetUserMedia)',
           this,
           this,
           this,
@@ -22988,8 +22987,7 @@ class OffscreenCanvasRenderingContext2D extends Interceptor
   CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1) native;
 
   CanvasPattern createPattern(
-      /*CanvasImageSource*/ image,
-      String repetitionType) native;
+      /*CanvasImageSource*/ image, String repetitionType) native;
 
   CanvasGradient createRadialGradient(
       num x0, num y0, num r0, num x1, num y1, num r1) native;
@@ -23365,8 +23363,7 @@ class PaintRenderingContext2D extends Interceptor implements _CanvasPath {
   CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1) native;
 
   CanvasPattern createPattern(
-      /*CanvasImageSource*/ image,
-      String repetitionType) native;
+      /*CanvasImageSource*/ image, String repetitionType) native;
 
   CanvasGradient createRadialGradient(
       num x0, num y0, num r0, num x1, num y1, num r1) native;
@@ -24372,9 +24369,11 @@ class PluginArray extends Interceptor
 
   void refresh(bool reload) native;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
 
 @Native("PointerEvent")
 class PointerEvent extends MouseEvent {
@@ -24416,6 +24415,17 @@ class PointerEvent extends MouseEvent {
   final num width;
 
   List<PointerEvent> getCoalescedEvents() native;
+
+  /**
+   * PointerEvent used for both touch and mouse.  To check if touch is supported
+   * call the property TouchEvent.supported
+   */
+  static bool get supported {
+    try {
+      return PointerEvent('pointerover') is PointerEvent;
+    } catch (_) {}
+    return false;
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26651,7 +26661,7 @@ class ShadowRoot extends DocumentFragment implements DocumentOrShadowRoot {
   static bool get supported => JS(
       'bool',
       '!!(Element.prototype.createShadowRoot||'
-      'Element.prototype.webkitCreateShadowRoot)');
+          'Element.prototype.webkitCreateShadowRoot)');
 
   static bool _shadowRootDeprecationReported = false;
   static void _shadowRootDeprecationReport() {
@@ -28836,14 +28846,14 @@ class Touch extends Interceptor {
 
 // As of Chrome 37, these all changed from long to double.  This code
 // preserves backwards compatibility for the time being.
-  int get __clientX => JS('num', '#.clientX', this).round();
-  int get __clientY => JS('num', '#.clientY', this).round();
-  int get __screenX => JS('num', '#.screenX', this).round();
-  int get __screenY => JS('num', '#.screenY', this).round();
-  int get __pageX => JS('num', '#.pageX', this).round();
-  int get __pageY => JS('num', '#.pageY', this).round();
-  int get __radiusX => JS('num', '#.radiusX', this).round();
-  int get __radiusY => JS('num', '#.radiusY', this).round();
+  int get __clientX => JS<num>('num', '#.clientX', this).round();
+  int get __clientY => JS<num>('num', '#.clientY', this).round();
+  int get __screenX => JS<num>('num', '#.screenX', this).round();
+  int get __screenY => JS<num>('num', '#.screenY', this).round();
+  int get __pageX => JS<num>('num', '#.pageX', this).round();
+  int get __pageY => JS<num>('num', '#.pageY', this).round();
+  int get __radiusX => JS<num>('num', '#.radiusX', this).round();
+  int get __radiusY => JS<num>('num', '#.radiusY', this).round();
 
   Point get client => new Point(__clientX, __clientY);
 
@@ -28900,11 +28910,14 @@ class TouchEvent extends UIEvent {
 
   /**
    * Checks if touch events supported on the current platform.
-   *
-   * Note that touch events are only supported if the user is using a touch
-   * device.
    */
-  static bool get supported => Device.isEventTypeSupported('TouchEvent');
+  static bool get supported {
+    try {
+      return TouchEvent('touches') is TouchEvent;
+    } catch (_) {}
+
+    return false;
+  }
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30549,7 +30562,7 @@ class Window extends EventTarget
   // TODO: consider forcing users to do: window.location.assign('string').
   /**
    * Sets the window's location, which causes the browser to navigate to the new
-   * location. [value] may be a Location object or a String.
+   * location.
    */
   set location(value) {
     _location = value;
@@ -30602,8 +30615,11 @@ class Window extends EventTarget
   void _cancelAnimationFrame(int id) native;
 
   _ensureRequestAnimationFrame() {
-    if (JS('bool', '!!(#.requestAnimationFrame && #.cancelAnimationFrame)',
-        this, this)) return;
+    if (JS<bool>(
+        'bool',
+        '!!(#.requestAnimationFrame && #.cancelAnimationFrame)',
+        this,
+        this)) return;
 
     JS(
         'void',
@@ -32095,9 +32111,9 @@ class Window extends EventTarget
     return db;
   }
 
-  int get pageXOffset => JS('num', '#.pageXOffset', this).round();
+  int get pageXOffset => JS<num>('num', '#.pageXOffset', this).round();
 
-  int get pageYOffset => JS('num', '#.pageYOffset', this).round();
+  int get pageYOffset => JS<num>('num', '#.pageYOffset', this).round();
 
   /**
    * The distance this window has been scrolled horizontally.
@@ -32109,8 +32125,8 @@ class Window extends EventTarget
    * * [scrollX](https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollX)
    *   from MDN.
    */
-  int get scrollX => JS('bool', '("scrollX" in #)', this)
-      ? JS('num', '#.scrollX', this).round()
+  int get scrollX => JS<bool>('bool', '("scrollX" in #)', this)
+      ? JS<num>('num', '#.scrollX', this).round()
       : document.documentElement.scrollLeft;
 
   /**
@@ -32123,8 +32139,8 @@ class Window extends EventTarget
    * * [scrollY](https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollY)
    *   from MDN.
    */
-  int get scrollY => JS('bool', '("scrollY" in #)', this)
-      ? JS('num', '#.scrollY', this).round()
+  int get scrollY => JS<bool>('bool', '("scrollY" in #)', this)
+      ? JS<num>('num', '#.scrollY', this).round()
       : document.documentElement.scrollTop;
 }
 
@@ -32139,7 +32155,7 @@ class _BeforeUnloadEvent extends _WrappedEvent implements BeforeUnloadEvent {
     _returnValue = value;
     // FF and IE use the value as the return value, Chrome will return this from
     // the event callback function.
-    if (JS('bool', '("returnValue" in #)', wrapped)) {
+    if (JS<bool>('bool', '("returnValue" in #)', wrapped)) {
       JS('void', '#.returnValue = #', wrapped, value);
     }
   }
@@ -34572,12 +34588,14 @@ abstract class WindowBase implements EventTarget {
    *     var other = window.open('http://www.example.com', 'foo');
    *     // Closes other window, as it is script-closeable.
    *     other.close();
-   *     print(other.closed()); // 'true'
+   *     print(other.closed); // 'true'
    *
-   *     window.location('http://www.mysite.com', 'foo');
+   *     var newLocation = window.location
+   *         ..href = 'http://www.mysite.com';
+   *     window.location = newLocation;
    *     // Does not close this window, as the history has changed.
    *     window.close();
-   *     print(window.closed()); // 'false'
+   *     print(window.closed); // 'false'
    *
    * See also:
    *
@@ -36425,7 +36443,7 @@ abstract class ImmutableListMixin<E> implements List<E> {
 abstract class KeyCode {
   // These constant names were borrowed from Closure's Keycode enumeration
   // class.
-  // http://closure-library.googlecode.com/svn/docs/closure_goog_events_keycodes.js.source.html
+  // https://github.com/google/closure-library/blob/master/closure/goog/events/keycodes.js
   static const int WIN_KEY_FF_LINUX = 0;
   static const int MAC_ENTER = 3;
   static const int BACKSPACE = 8;
@@ -37285,7 +37303,7 @@ abstract class _KeyName {
  */
 class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
   // This code inspired by Closure's KeyHandling library.
-  // http://closure-library.googlecode.com/svn/docs/closure_goog_events_keyhandler.js.source.html
+  // https://github.com/google/closure-library/blob/master/closure/goog/events/keyhandler.js
 
   /**
    * The set of keys that have been pressed down without seeing their
@@ -37310,7 +37328,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
   /**
    * An enumeration of key identifiers currently part of the W3C draft for DOM3
    * and their mappings to keyCodes.
-   * http://www.w3.org/TR/DOM-Level-3-Events/keyset.html#KeySet-Set
+   * https://www.w3.org/TR/2003/NOTE-DOM-Level-3-Events-20031107/keyset.html#KeySet-Set
    */
   static const Map<String, int> _keyIdentifier = const {
     'Up': KeyCode.UP,
@@ -38909,17 +38927,17 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
     JS(
         'void',
         "Object.defineProperty(#, 'keyCode', {"
-        "  get : function() { return this.keyCodeVal; } })",
+            "  get : function() { return this.keyCodeVal; } })",
         eventObj);
     JS(
         'void',
         "Object.defineProperty(#, 'which', {"
-        "  get : function() { return this.keyCodeVal; } })",
+            "  get : function() { return this.keyCodeVal; } })",
         eventObj);
     JS(
         'void',
         "Object.defineProperty(#, 'charCode', {"
-        "  get : function() { return this.charCodeVal; } })",
+            "  get : function() { return this.charCodeVal; } })",
         eventObj);
 
     var keyIdentifier = _convertToHexString(charCode, keyCode);
@@ -38942,7 +38960,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   static bool get canUseDispatchEvent => JS(
       'bool',
       '(typeof document.body.dispatchEvent == "function")'
-      '&& document.body.dispatchEvent.length > 0');
+          '&& document.body.dispatchEvent.length > 0');
 
   /** The currently registered target for this event. */
   EventTarget get currentTarget => _currentTarget;

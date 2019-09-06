@@ -14,6 +14,7 @@ namespace dart {
 class LocalScope;
 class LocalVariable;
 class SlotCache;
+class Slot;
 
 // Deoptimization Id logic.
 //
@@ -97,9 +98,9 @@ class CompilerState : public ThreadStackResource {
   //
   // TODO(vegorov): create context classes for distinct context IDs and
   // populate them with slots without creating variables.
-  const GrowableArray<LocalVariable*>& GetDummyContextVariables(
+  const ZoneGrowableArray<const Slot*>& GetDummyContextSlots(
       intptr_t context_id,
-      intptr_t num_context_variables);
+      intptr_t num_context_slots);
 
   // Create a dummy LocalVariable that represents a captured local variable
   // at the given index in the context with given ID.
@@ -121,9 +122,9 @@ class CompilerState : public ThreadStackResource {
   // Cache for Slot objects created during compilation (see slot.h).
   SlotCache* slot_cache_ = nullptr;
 
-  // Caches for dummy LocalVariables and LocalScopes created during
-  // bytecode to IL translation.
-  ZoneGrowableArray<LocalScope*>* dummy_scopes_ = nullptr;
+  // Caches for dummy LocalVariables and context Slots created during bytecode
+  // to IL translation.
+  ZoneGrowableArray<ZoneGrowableArray<const Slot*>*>* dummy_slots_ = nullptr;
   ZoneGrowableArray<LocalVariable*>* dummy_captured_vars_ = nullptr;
 
   CompilerState* previous_;

@@ -51,7 +51,7 @@ class Context extends ChainContext {
   IncrementalCompiler compiler;
 }
 
-CompilerOptions getOptions(bool strong) {
+CompilerOptions getOptions() {
   final Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
   var options = new CompilerOptions()
     ..sdkRoot = sdkRoot
@@ -59,13 +59,8 @@ CompilerOptions getOptions(bool strong) {
     ..omitPlatform = true
     ..onDiagnostic = (DiagnosticMessage message) {
       // Ignored.
-    }
-    ..legacyMode = !strong;
-  if (strong) {
-    options.sdkSummary = sdkRoot.resolve("vm_platform_strong.dill");
-  } else {
-    options.sdkSummary = sdkRoot.resolve("vm_platform.dill");
-  }
+    };
+  options.sdkSummary = sdkRoot.resolve("vm_platform_strong.dill");
   return options;
 }
 
@@ -83,7 +78,7 @@ class RunTest extends Step<TestDescription, TestDescription, Context> {
     List<int> oneShotSerialized;
     try {
       IncrementalCompiler compiler =
-          new IncrementalKernelGenerator(getOptions(true), uri);
+          new IncrementalKernelGenerator(getOptions(), uri);
       oneShotSerialized = util.postProcess(await compiler.computeDelta());
     } catch (e) {
       oneShotFailed = true;
@@ -95,8 +90,7 @@ class RunTest extends Step<TestDescription, TestDescription, Context> {
     try {
       globalDebuggingNames = new NameSystem();
       if (context.compiler == null) {
-        context.compiler =
-            new IncrementalKernelGenerator(getOptions(true), uri);
+        context.compiler = new IncrementalKernelGenerator(getOptions(), uri);
       }
       Component bulkCompiledComponent = await context.compiler
           .computeDelta(entryPoints: [uri], fullComponent: true);
@@ -111,8 +105,7 @@ class RunTest extends Step<TestDescription, TestDescription, Context> {
     try {
       globalDebuggingNames = new NameSystem();
       if (context.compiler == null) {
-        context.compiler =
-            new IncrementalKernelGenerator(getOptions(true), uri);
+        context.compiler = new IncrementalKernelGenerator(getOptions(), uri);
       }
       Component bulkCompiledComponent = await context.compiler
           .computeDelta(entryPoints: [uri], fullComponent: true);
@@ -133,7 +126,7 @@ class RunTest extends Step<TestDescription, TestDescription, Context> {
     if (bulkFailed || bulk2Failed) {
       if (bulkFailed != bulk2Failed) {
         throw "Bulk-compiler failed: $bulkFailed; "
-            "second bulk-comile failed: $bulk2Failed";
+            "second bulk-compile failed: $bulk2Failed";
       }
     } else {
       checkIsEqual(bulkSerialized, bulkSerialized2);

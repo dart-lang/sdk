@@ -185,7 +185,7 @@ uword SymbolsPredefinedAddress();
 #endif
 
 typedef void (*RuntimeEntryCallInternal)(const dart::RuntimeEntry*,
-                                         compiler::Assembler*,
+                                         Assembler*,
                                          intptr_t);
 
 #if !defined(TARGET_ARCH_DBC)
@@ -198,7 +198,7 @@ class RuntimeEntry : public ValueObject {
  public:
   virtual ~RuntimeEntry() {}
 
-  void Call(compiler::Assembler* assembler, intptr_t argument_count) const {
+  void Call(Assembler* assembler, intptr_t argument_count) const {
     ASSERT(call_ != NULL);
     ASSERT(runtime_entry_ != NULL);
 
@@ -626,6 +626,7 @@ class Thread : public AllStatic {
   static word dart_stream_offset();
   static word async_stack_trace_offset();
   static word predefined_symbols_address_offset();
+  static word optimize_entry_offset();
   static word deoptimize_entry_offset();
   static word megamorphic_call_checked_entry_offset();
   static word active_exception_offset();
@@ -659,6 +660,7 @@ class Thread : public AllStatic {
   static uword safepoint_state_acquired();
 
   static word execution_state_offset();
+  static uword vm_execution_state();
   static uword native_execution_state();
   static uword generated_execution_state();
   static word stack_overflow_flags_offset();
@@ -676,7 +678,6 @@ class Thread : public AllStatic {
   static word fix_allocation_stub_code_offset();
 
   static word monomorphic_miss_stub_offset();
-  static word ic_lookup_through_code_stub_offset();
   static word lazy_specialize_type_test_stub_offset();
   static word slow_type_test_stub_offset();
   static word call_to_runtime_stub_offset();
@@ -691,9 +692,12 @@ class Thread : public AllStatic {
   static word stack_overflow_shared_with_fpu_regs_stub_offset();
   static word lazy_deopt_from_return_stub_offset();
   static word lazy_deopt_from_throw_stub_offset();
+  static word optimize_stub_offset();
   static word deoptimize_stub_offset();
   static word enter_safepoint_stub_offset();
   static word exit_safepoint_stub_offset();
+  static word call_native_through_safepoint_stub_offset();
+  static word call_native_through_safepoint_entry_point_offset();
 #endif  // !defined(TARGET_ARCH_DBC)
 
   static word no_scope_native_wrapper_entry_point_offset();
@@ -775,8 +779,10 @@ class ClassHeapStats : public AllStatic {
 
 class Instructions : public AllStatic {
  public:
-  static const word kPolymorphicEntryOffset;
-  static const word kMonomorphicEntryOffset;
+  static const word kMonomorphicEntryOffsetJIT;
+  static const word kPolymorphicEntryOffsetJIT;
+  static const word kMonomorphicEntryOffsetAOT;
+  static const word kPolymorphicEntryOffsetAOT;
   static word HeaderSize();
   static word UnalignedHeaderSize();
 };

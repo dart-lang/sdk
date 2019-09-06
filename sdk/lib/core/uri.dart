@@ -761,6 +761,9 @@ abstract class Uri {
     // authority     = [ userinfo "@" ] host [ ":" port ]
     // userinfo      = *( unreserved / pct-encoded / sub-delims / ":" )
     // host          = IP-literal / IPv4address / reg-name
+    // IP-literal    = "[" ( IPv6address / IPv6addrz / IPvFuture ) "]"
+    // IPv6addrz     = IPv6address "%25" ZoneID
+    // ZoneID        = 1*( unreserved / pct-encoded )
     // port          = *DIGIT
     // reg-name      = *( unreserved / pct-encoded / sub-delims )
     //
@@ -1251,11 +1254,11 @@ abstract class Uri {
    * defaults ot the end of the string.
    *
    * Some examples of IPv6 addresses:
-   *  * ::1
-   *  * FEDC:BA98:7654:3210:FEDC:BA98:7654:3210
-   *  * 3ffe:2a00:100:7031::1
-   *  * ::FFFF:129.144.52.38
-   *  * 2010:836B:4179::836B:4179
+   *  * `::1`
+   *  * `FEDC:BA98:7654:3210:FEDC:BA98:7654:3210`
+   *  * `3ffe:2a00:100:7031::1`
+   *  * `::FFFF:129.144.52.38`
+   *  * `2010:836B:4179::836B:4179`
    */
   static List<int> parseIPv6Address(String host, [int start = 0, int end]) {
     end ??= host.length;
@@ -1643,14 +1646,24 @@ class _Uri implements Uri {
       if (hostStart < authority.length &&
           authority.codeUnitAt(hostStart) == _LEFT_BRACKET) {
         // IPv6 host.
+        int escapeForZoneID = -1;
         for (; hostEnd < authority.length; hostEnd++) {
-          if (authority.codeUnitAt(hostEnd) == _RIGHT_BRACKET) break;
+          int char = authority.codeUnitAt(hostEnd);
+          if (char == _PERCENT && escapeForZoneID < 0) {
+            escapeForZoneID = hostEnd;
+            if (authority.startsWith("25", hostEnd + 1)) {
+              hostEnd += 2; // Might as well skip the already checked escape.
+            }
+          } else if (char == _RIGHT_BRACKET) {
+            break;
+          }
         }
         if (hostEnd == authority.length) {
           throw FormatException(
               "Invalid IPv6 host entry.", authority, hostStart);
         }
-        Uri.parseIPv6Address(authority, hostStart + 1, hostEnd);
+        Uri.parseIPv6Address(authority, hostStart + 1,
+            (escapeForZoneID < 0) ? hostEnd : escapeForZoneID);
         hostEnd++; // Skip the closing bracket.
         if (hostEnd != authority.length &&
             authority.codeUnitAt(hostEnd) != _COLON) {
@@ -1959,20 +1972,122 @@ class _Uri implements Uri {
       if (host.codeUnitAt(end - 1) != _RIGHT_BRACKET) {
         _fail(host, start, 'Missing end `]` to match `[` in host');
       }
-      Uri.parseIPv6Address(host, start + 1, end - 1);
+      String zoneID = "";
+      int index = _checkZoneID(host, start + 1, end - 1);
+      if (index < end - 1) {
+        int zoneIDstart =
+            (host.startsWith("25", index + 1)) ? index + 3 : index + 1;
+        zoneID = _normalizeZoneID(host, zoneIDstart, end - 1, "%25");
+      }
+      Uri.parseIPv6Address(host, start + 1, index);
       // RFC 5952 requires hex digits to be lower case.
-      return host.substring(start, end).toLowerCase();
+      return host.substring(start, index).toLowerCase() + zoneID + ']';
     }
     if (!strictIPv6) {
       // TODO(lrn): skip if too short to be a valid IPv6 address?
       for (int i = start; i < end; i++) {
         if (host.codeUnitAt(i) == _COLON) {
-          Uri.parseIPv6Address(host, start, end);
-          return '[$host]';
+          String zoneID = "";
+          int index = _checkZoneID(host, start, end);
+          if (index < end) {
+            int zoneIDstart =
+                (host.startsWith("25", index + 1)) ? index + 3 : index + 1;
+            zoneID = _normalizeZoneID(host, zoneIDstart, end, "%25");
+          }
+          Uri.parseIPv6Address(host, start, index);
+          return '[${host.substring(start, index)}' + zoneID + ']';
         }
       }
     }
     return _normalizeRegName(host, start, end);
+  }
+
+  // RFC 6874 check for ZoneID
+  // Return the index of first appeared `%`.
+  static int _checkZoneID(String host, int start, int end) {
+    int index = host.indexOf('%', start);
+    index = (index >= start && index < end) ? index : end;
+    return index;
+  }
+
+  static bool _isZoneIDChar(int char) {
+    return char < 127 && (_zoneIDTable[char >> 4] & (1 << (char & 0xf))) != 0;
+  }
+
+  /**
+   * Validates and does case- and percent-encoding normalization.
+   *
+   * The same as [_normalizeOrSubstring]
+   * except this function does not convert characters to lower case.
+   * The [host] must be an RFC6874 "ZoneID".
+   * ZoneID = 1*(unreserved / pct-encoded)
+   */
+  static String _normalizeZoneID(String host, int start, int end,
+      [String prefix = '']) {
+    StringBuffer buffer;
+    if (prefix != '') {
+      buffer = StringBuffer(prefix);
+    }
+    int sectionStart = start;
+    int index = start;
+    // Whether all characters between sectionStart and index are normalized,
+    bool isNormalized = true;
+
+    while (index < end) {
+      int char = host.codeUnitAt(index);
+      if (char == _PERCENT) {
+        String replacement = _normalizeEscape(host, index, true);
+        if (replacement == null && isNormalized) {
+          index += 3;
+          continue;
+        }
+        buffer ??= StringBuffer();
+        String slice = host.substring(sectionStart, index);
+        buffer.write(slice);
+        int sourceLength = 3;
+        if (replacement == null) {
+          replacement = host.substring(index, index + 3);
+        } else if (replacement == "%") {
+          _fail(host, index, "ZoneID should not contain % anymore");
+        }
+        buffer.write(replacement);
+        index += sourceLength;
+        sectionStart = index;
+        isNormalized = true;
+      } else if (_isZoneIDChar(char)) {
+        if (isNormalized && _UPPER_CASE_A <= char && _UPPER_CASE_Z >= char) {
+          // Put initial slice in buffer and continue in non-normalized mode
+          buffer ??= StringBuffer();
+          if (sectionStart < index) {
+            buffer.write(host.substring(sectionStart, index));
+            sectionStart = index;
+          }
+          isNormalized = false;
+        }
+        index++;
+      } else {
+        int sourceLength = 1;
+        if ((char & 0xFC00) == 0xD800 && (index + 1) < end) {
+          int tail = host.codeUnitAt(index + 1);
+          if ((tail & 0xFC00) == 0xDC00) {
+            char = 0x10000 | ((char & 0x3ff) << 10) | (tail & 0x3ff);
+            sourceLength = 2;
+          }
+        }
+        buffer ??= StringBuffer();
+        String slice = host.substring(sectionStart, index);
+        buffer.write(slice);
+        buffer.write(_escapeChar(char));
+        index += sourceLength;
+        sectionStart = index;
+      }
+    }
+    if (buffer == null) return host.substring(start, end);
+    if (sectionStart < end) {
+      String slice = host.substring(sectionStart, end);
+      buffer.write(slice);
+    }
+    return buffer.toString();
   }
 
   static bool _isRegNameChar(int char) {
@@ -3113,6 +3228,27 @@ class _Uri implements Uri {
     0xafff, // 0x30 - 0x3f  1111111111110101
     //                      @ABCDEFGHIJKLMNO
     0xffff, // 0x40 - 0x4f  1111111111111111
+    //                      PQRSTUVWXYZ    _
+    0x87ff, // 0x50 - 0x5f  1111111111100001
+    //                       abcdefghijklmno
+    0xfffe, // 0x60 - 0x6f  0111111111111111
+    //                      pqrstuvwxyz   ~
+    0x47ff, // 0x70 - 0x7f  1111111111100010
+  ];
+
+  // Characters allowed in the ZoneID as of RFC 6874.
+  // ZoneID = 1*( unreserved / pct-encoded )
+  static const _zoneIDTable = <int>[
+    //                     LSB            MSB
+    //                      |              |
+    0x0000, // 0x00 - 0x0f  0000000000000000
+    0x0000, // 0x10 - 0x1f  0000000000000000
+    //                       !  $%&'()*+,-.
+    0x6000, // 0x20 - 0x2f  0000000000000110
+    //                      0123456789 ; =
+    0x03ff, // 0x30 - 0x3f  1111111111000000
+    //                       ABCDEFGHIJKLMNO
+    0xfffe, // 0x40 - 0x4f  0111111111111111
     //                      PQRSTUVWXYZ    _
     0x87ff, // 0x50 - 0x5f  1111111111100001
     //                       abcdefghijklmno

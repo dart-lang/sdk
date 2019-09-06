@@ -1453,7 +1453,8 @@ void ConstantPropagator::EliminateRedundantBranches() {
 static void RemovePushArguments(StaticCallInstr* call) {
   for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
     PushArgumentInstr* push = call->PushArgumentAt(i);
-    ASSERT(push->input_use_list() == nullptr);
+    ASSERT(push->input_use_list() == nullptr);           // no direct uses
+    push->ReplaceUsesWith(push->value()->definition());  // cleanup env uses
     push->RemoveFromGraph();
   }
 }

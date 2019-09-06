@@ -8,7 +8,7 @@
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/js_backend/js_backend.dart' show JavaScriptBackend;
+import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:expect/expect.dart';
 import '../helpers/memory_compiler.dart';
 import '../helpers/output_collector.dart';
@@ -21,8 +21,9 @@ void main() {
     Compiler compiler = result.compiler;
     String mainOutput = collector.getOutput('', OutputType.js);
     String deferredOutput = collector.getOutput('out_1', OutputType.jsPart);
-    JavaScriptBackend backend = compiler.backend;
-    String isPrefix = backend.namerForTesting.fixedNames.operatorIsPrefix;
+    JsBackendStrategy backendStrategy = compiler.backendStrategy;
+    String isPrefix =
+        backendStrategy.namerForTesting.fixedNames.operatorIsPrefix;
     Expect.isTrue(
         deferredOutput.contains('${isPrefix}A: 1'),
         "Deferred output doesn't contain '${isPrefix}A: 1':\n"

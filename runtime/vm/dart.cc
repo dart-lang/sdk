@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include <memory>
+#include <utility>
+
 #include "vm/dart.h"
 
 #include "vm/clustered_snapshot.h"
@@ -87,6 +90,7 @@ class ReadOnlyHandles {
 };
 
 static void CheckOffsets() {
+#if !defined(IS_SIMARM_X64)
   // These offsets are embedded in precompiled instructions. We need the
   // compiler and the runtime to agree.
   bool ok = true;
@@ -113,7 +117,9 @@ static void CheckOffsets() {
                CHECK_RANGE, CHECK_CONSTANT, NOT_IN_PRECOMPILED_RUNTIME)
 
   if (!ok) {
-    FATAL("CheckOffsets failed.");
+    FATAL(
+        "CheckOffsets failed. Try updating offsets by running "
+        "./tools/run_offsets_extractor.sh");
   }
 #undef CHECK_FIELD
 #undef CHECK_ARRAY
@@ -122,13 +128,16 @@ static void CheckOffsets() {
 #undef CHECK_RANGE
 #undef CHECK_CONSTANT
 #undef CHECK_OFFSET
+#endif  // !defined(IS_SIMARM_X64)
 }
 
 char* Dart::Init(const uint8_t* vm_isolate_snapshot,
                  const uint8_t* instructions_snapshot,
-                 Dart_IsolateCreateCallback create,
+                 Dart_IsolateGroupCreateCallback create_group,
+                 Dart_InitializeIsolateCallback initialize_isolate,
                  Dart_IsolateShutdownCallback shutdown,
                  Dart_IsolateCleanupCallback cleanup,
+                 Dart_IsolateGroupCleanupCallback cleanup_group,
                  Dart_ThreadExitCallback thread_exit,
                  Dart_FileOpenCallback file_open,
                  Dart_FileReadCallback file_read,
@@ -136,7 +145,8 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
                  Dart_FileCloseCallback file_close,
                  Dart_EntropySource entropy_source,
                  Dart_GetVMServiceAssetsArchive get_service_assets,
-                 bool start_kernel_isolate) {
+                 bool start_kernel_isolate,
+                 Dart_CodeObserver* observer) {
   CheckOffsets();
   // TODO(iposva): Fix race condition here.
   if (vm_isolate_ != NULL || !Flags::Initialized()) {
@@ -190,6 +200,9 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
   set_entropy_source_callback(entropy_source);
   OS::Init();
   NOT_IN_PRODUCT(CodeObservers::Init());
+  if (observer != nullptr) {
+    NOT_IN_PRODUCT(CodeObservers::RegisterExternal(*observer));
+  }
   start_time_micros_ = OS::GetCurrentMonotonicMicros();
   VirtualMemory::Init();
   OSThread::Init();
@@ -226,7 +239,18 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     // Setup default flags for the VM isolate.
     Dart_IsolateFlags api_flags;
     Isolate::FlagsInitialize(&api_flags);
-    vm_isolate_ = Isolate::InitIsolate("vm-isolate", api_flags, is_vm_isolate);
+
+    // We make a fake [IsolateGroupSource] here, since the "vm-isolate" is not
+    // really an isolate itself - it acts more as a container for VM-global
+    // objects.
+    std::unique_ptr<IsolateGroupSource> source(
+        new IsolateGroupSource(nullptr, "vm-isolate", nullptr, nullptr, nullptr,
+                               nullptr, nullptr, -1, api_flags));
+    auto group = new IsolateGroup(std::move(source), /*embedder_data=*/nullptr);
+    vm_isolate_ =
+        Isolate::InitIsolate("vm-isolate", group, api_flags, is_vm_isolate);
+    group->set_initial_spawn_successful();
+
     // Verify assumptions about executing in the VM isolate.
     ASSERT(vm_isolate_ == Isolate::Current());
     ASSERT(vm_isolate_ == Thread::Current()->isolate());
@@ -349,9 +373,11 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
   Api::InitHandles();
 
   Thread::ExitIsolate();  // Unregister the VM isolate from this thread.
-  Isolate::SetCreateCallback(create);
+  Isolate::SetCreateGroupCallback(create_group);
+  Isolate::SetInitializeCallback_(initialize_isolate);
   Isolate::SetShutdownCallback(shutdown);
   Isolate::SetCleanupCallback(cleanup);
+  Isolate::SetGroupCleanupCallback(cleanup_group);
 
   if (FLAG_support_service) {
     Service::SetGetServiceAssetsCallback(get_service_assets);
@@ -594,9 +620,11 @@ char* Dart::Cleanup() {
 }
 
 Isolate* Dart::CreateIsolate(const char* name_prefix,
-                             const Dart_IsolateFlags& api_flags) {
+                             const Dart_IsolateFlags& api_flags,
+                             IsolateGroup* isolate_group) {
   // Create a new isolate.
-  Isolate* isolate = Isolate::InitIsolate(name_prefix, api_flags);
+  Isolate* isolate =
+      Isolate::InitIsolate(name_prefix, isolate_group, api_flags);
   return isolate;
 }
 
@@ -614,7 +642,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
                                   const uint8_t* shared_instructions,
                                   const uint8_t* kernel_buffer,
                                   intptr_t kernel_buffer_size,
-                                  void* data) {
+                                  void* isolate_data) {
   // Initialize the new isolate.
   Thread* T = Thread::Current();
   Isolate* I = T->isolate();
@@ -718,7 +746,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
   }
 
   I->heap()->InitGrowthControl();
-  I->set_init_callback_data(data);
+  I->set_init_callback_data(isolate_data);
   Api::SetupAcquiredError(I);
   if (FLAG_print_class_table) {
     I->class_table()->Print();
@@ -844,11 +872,12 @@ void Dart::RunShutdownCallback() {
   Thread* thread = Thread::Current();
   ASSERT(thread->execution_state() == Thread::kThreadInVM);
   Isolate* isolate = thread->isolate();
-  void* callback_data = isolate->init_callback_data();
+  void* isolate_group_data = isolate->group()->embedder_data();
+  void* isolate_data = isolate->init_callback_data();
   Dart_IsolateShutdownCallback callback = Isolate::ShutdownCallback();
   if (callback != NULL) {
     TransitionVMToNative transition(thread);
-    (callback)(callback_data);
+    (callback)(isolate_group_data, isolate_data);
   }
 }
 

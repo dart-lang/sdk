@@ -17,46 +17,20 @@ io/test_extension_fail_test: Fail # Issue 32187
 [ $compiler == app_jitk ]
 io/file_error_test: RuntimeError
 io/file_test: RuntimeError
-io/http_auth_digest_test: RuntimeError
-io/http_auth_test: RuntimeError
-io/http_cookie_date_test: CompileTimeError
-io/http_headers_test: CompileTimeError
-io/http_parser_test: CompileTimeError
-io/http_redirect_test: RuntimeError
-io/http_reuse_server_port_test: RuntimeError
-io/http_server_response_test: RuntimeError
 io/platform_test: RuntimeError
 io/regress_10026_test: RuntimeError
-io/secure_socket_argument_test: CompileTimeError
 io/test_extension_fail_test: RuntimeError
 io/test_extension_test: RuntimeError
 io/web_socket_pipe_test: RuntimeError
-io/web_socket_protocol_processor_test: CompileTimeError
 io/zlib_test: RuntimeError
 
 [ $compiler == dartkb ]
 io/dart_std_io_pipe_test: Pass, Timeout # Please triage
-io/platform_resolved_executable_test/00: RuntimeError # Reruns the same script (dill file without AST) without passing --enable-interpreter or --use-bytecode-compiler.
-io/platform_resolved_executable_test/01: RuntimeError # Reruns the same script (dill file without AST) without passing --enable-interpreter or --use-bytecode-compiler.
-io/platform_resolved_executable_test/02: RuntimeError # Reruns the same script (dill file without AST) without passing --enable-interpreter or --use-bytecode-compiler.
-io/platform_resolved_executable_test/03: RuntimeError
-io/platform_resolved_executable_test/04: RuntimeError
-io/platform_resolved_executable_test/05: RuntimeError # Reruns the same script (dill file without AST) without passing --enable-interpreter or --use-bytecode-compiler.
 io/platform_test: RuntimeError # Platform.script points to dill file.
-io/test_extension_fail_test: RuntimeError # Platform.script points to dill file.
-io/test_extension_test: RuntimeError # Platform.script points to dill file.
 no_lazy_dispatchers_test: SkipByDesign # KBC interpreter doesn't support --no_lazy_dispatchers
 
 [ $compiler == dartkp ]
 io/arguments_test: Fail # Test harness passes runtime arguments to the compiler
-io/test_runner_test: SkipByDesign # Is not relevant for AOT.
-
-[ $compiler == fasta ]
-io/http_cookie_date_test: CompileTimeError
-io/http_headers_test: CompileTimeError
-io/http_parser_test: CompileTimeError
-io/secure_socket_argument_test: CompileTimeError
-io/web_socket_protocol_processor_test: CompileTimeError
 
 [ $system == android ]
 entrypoints_verification_test: Skip # Requires shared objects which the test script doesn't "adb push".
@@ -90,7 +64,6 @@ map_insert_remove_oom_test: Skip # Heap limit too low.
 
 [ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled ]
 io/raw_socket_test: Crash
-io/skipping_dart2js_compilations_test: Crash
 io/socket_exception_test: Pass, Crash
 io/socket_finalizer_test: Pass, Crash
 io/socket_info_ipv4_test: Pass, Crash
@@ -104,7 +77,6 @@ io/compile_all_test: Pass
 io/compile_all_test: Skip # We do not support --compile-all for precompilation
 io/file_fuzz_test: RuntimeError, Pass
 io/http_client_connect_test: Skip # Flaky.
-io/http_close_test: Crash
 io/http_content_length_test: Skip # Flaky.
 io/http_proxy_advanced_test: Skip # Flaky
 io/http_proxy_test: Skip # Flaky.
@@ -134,9 +106,6 @@ regress_29350_test/none: Pass # Issue 31537
 # ===== dartkp + dart_precompiled status lines =====
 [ $compiler == dartkp && $runtime == dart_precompiled && $system != windows ]
 io/namespace_test: RuntimeError
-
-[ $compiler == dartkp && $system == android ]
-io/http_close_test: Timeout # Issue 28380
 
 [ $mode == debug && $runtime == vm && ($compiler == dartk || $compiler == dartkb) ]
 io/file_lock_test: Slow, Pass

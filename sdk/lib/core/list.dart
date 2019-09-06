@@ -464,8 +464,8 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    * This increases the length of the list by one and shifts all objects
    * at or after the index towards the end of the list.
    *
-   * An error occurs if the [index] is less than 0 or greater than length.
-   * An [UnsupportedError] occurs if the list is fixed-length.
+   * The list must be growable.
+   * The [index] value must be non-negative and no greater than [length].
    */
   void insert(int index, E element);
 
@@ -475,8 +475,8 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    * This increases the length of the list by the length of [iterable] and
    * shifts all later objects towards the end of the list.
    *
-   * An error occurs if the [index] is less than 0 or greater than length.
-   * An [UnsupportedError] occurs if the list is fixed-length.
+   * The list must be growable.
+   * The [index] value must be non-negative and no greater than [length].
    */
   void insertAll(int index, Iterable<E> iterable);
 
@@ -536,6 +536,8 @@ abstract class List<E> implements EfficientLengthIterable<E> {
 
   /**
    * Pops and returns the last object in this list.
+   *
+   * The list must not be empty.
    *
    * Throws an [UnsupportedError] if this is a fixed-length list.
    */
@@ -674,6 +676,14 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    * A range from [start] to [end] is valid if `0 <= start <= end <= len`, where
    * `len` is this list's `length`. The range starts at `start` and has length
    * `end - start`. An empty range (with `end == start`) is valid.
+   *
+   * Example:
+   * ```dart
+   *  List<int> list = new List(3);
+   *     list.fillRange(0, 2, 1);
+   *     print(list); //  [1, 1, null]
+   * ```
+   *
    */
   void fillRange(int start, int end, [E fillValue]);
 
@@ -709,4 +719,13 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    *     map.keys.toList(); // [0, 1, 2, 3]
    */
   Map<int, E> asMap();
+
+  /**
+  * Whether this list is equal to [other].
+  *
+  * Lists are, by default, only equal to themselves.
+  * Even if [other] is also a list, the equality comparison
+  * does not compare the elements of the two lists.
+  */
+ bool operator ==(Object other);
 }

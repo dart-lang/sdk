@@ -17,6 +17,8 @@ class I {
 class B extends A implements I {
   get field1 => null;
   get field2 => null;
+  set field1(value) {}
+  set field2(value) {}
 }
 
 main() {}

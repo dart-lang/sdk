@@ -1,7 +1,9 @@
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// All things regarding compile time constant expressions.
+
+// Test of apparent compile-time nature of constant evaluation. Constant Lists,
+// Maps and other objects should be identical independent of formation.
 
 import "package:expect/expect.dart";
 
@@ -70,7 +72,9 @@ class CTConstTest {
     Expect.equals(true, identical(l1, l2));
 
     final evenNumbers = const <int>[2, 2 * 2, 2 * 3, 2 * 4, 2 * 5];
-    Expect.equals(true, !identical(evenNumbers, const [2, 4, 6, 8, 10]));
+    Expect.equals(true, identical(evenNumbers, const <int>[2, 4, 6, 8, 10]));
+    Expect.equals(
+        true, !identical(evenNumbers, const <dynamic>[2, 4, 6, 8, 10]));
 
     final c11dGermany1 = const {"black": 1, "red": 2, "yellow": 3};
     Expect.equals(true,

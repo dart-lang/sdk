@@ -1,7 +1,15 @@
-include: package:pedantic/analysis_options.yaml
+include: package:pedantic/analysis_options.1.8.0.yaml
+
+analyzer:
+  strong-mode:
+    implicit-casts: false
 
 linter:
   rules:
-    - directives_ordering
-    - empty_statements
-    - unnecessary_brace_in_string_interps
+    directives_ordering: true
+    empty_statements: true
+    unnecessary_brace_in_string_interps: true
+
+    # Turn off the prefer_is_empty lint so that it can be used in the example tests
+    # and not be reported during normal package analysis.
+    prefer_is_empty: false

@@ -75,7 +75,7 @@ class Utf8Encoder extends Converter<String, List<int>> {
   ///
   /// If [start] and [end] are provided, only the substring
   /// `string.substring(start, end)` is converted.
-  List<int> convert(String string, [int start = 0, int end]) {
+  Uint8List convert(String string, [int start = 0, int end]) {
     var stringLength = string.length;
     end = RangeError.checkValidRange(start, end, stringLength);
     var length = end - start;
@@ -117,7 +117,7 @@ class Utf8Encoder extends Converter<String, List<int>> {
 class _Utf8Encoder {
   int _carry = 0;
   int _bufferIndex = 0;
-  final List<int> _buffer;
+  final Uint8List _buffer;
 
   static const _DEFAULT_BYTE_BUFFER_SIZE = 1024;
 
@@ -127,7 +127,7 @@ class _Utf8Encoder {
       : _buffer = _createBuffer(bufferSize);
 
   /// Allow an implementation to pick the most efficient way of storing bytes.
-  static List<int> _createBuffer(int size) => Uint8List(size);
+  static Uint8List _createBuffer(int size) => Uint8List(size);
 
   /// Tries to combine the given [leadingSurrogate] with the [nextCodeUnit] and
   /// writes it to [_buffer].

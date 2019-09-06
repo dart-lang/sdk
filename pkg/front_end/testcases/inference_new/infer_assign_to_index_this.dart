@@ -26,31 +26,31 @@ class Test {
 
   void test() {
     this /*@target=Test::[]=*/ [
-        /*@typeArgs=dynamic*/ f()] = /*@typeArgs=B*/ f();
+        /*@ typeArgs=dynamic */ f()] = /*@ typeArgs=B* */ f();
     this /*@target=Test::[]=*/ [
-        /*@typeArgs=dynamic*/ f()] ??= /*@typeArgs=B*/ f();
+        /*@ typeArgs=dynamic */ f()] ??= /*@ typeArgs=B* */ f();
     this /*@target=Test::[]=*/ [
-        /*@typeArgs=dynamic*/ f()] += /*@typeArgs=dynamic*/ f();
+        /*@ typeArgs=dynamic */ f()] += /*@ typeArgs=dynamic */ f();
     this /*@target=Test::[]=*/ [
-        /*@typeArgs=dynamic*/ f()] *= /*@typeArgs=dynamic*/ f();
+        /*@ typeArgs=dynamic */ f()] *= /*@ typeArgs=dynamic */ f();
     this /*@target=Test::[]=*/ [
-        /*@typeArgs=dynamic*/ f()] &= /*@typeArgs=dynamic*/ f();
-    --this /*@target=Test::[]=*/ [/*@typeArgs=dynamic*/ f()];
-    this /*@target=Test::[]=*/ [/*@typeArgs=dynamic*/ f()]--;
-    var /*@type=B*/ v1 = this /*@target=Test::[]=*/ [
-        /*@typeArgs=dynamic*/ f()] = /*@typeArgs=B*/ f();
-    var /*@type=B*/ v2 = this /*@target=Test::[]=*/ [
-        /*@typeArgs=dynamic*/ f()] ??= /*@typeArgs=B*/ f();
-    var /*@type=A*/ v3 = this /*@target=Test::[]=*/ [
-        /*@typeArgs=dynamic*/ f()] += /*@typeArgs=dynamic*/ f();
-    var /*@type=B*/ v4 = this /*@target=Test::[]=*/ [
-        /*@typeArgs=dynamic*/ f()] *= /*@typeArgs=dynamic*/ f();
-    var /*@type=C*/ v5 = this /*@target=Test::[]=*/ [
-        /*@typeArgs=dynamic*/ f()] &= /*@typeArgs=dynamic*/ f();
-    var /*@type=B*/ v6 =
-        --this /*@target=Test::[]=*/ [/*@typeArgs=dynamic*/ f()];
-    var /*@type=B*/ v7 =
-        this /*@target=Test::[]=*/ [/*@typeArgs=dynamic*/ f()]--;
+        /*@ typeArgs=dynamic */ f()] &= /*@ typeArgs=dynamic */ f();
+    --this /*@target=Test::[]=*/ [/*@ typeArgs=dynamic */ f()];
+    this /*@target=Test::[]=*/ [/*@ typeArgs=dynamic */ f()]--;
+    var /*@ type=B* */ v1 = this /*@target=Test::[]=*/ [
+        /*@ typeArgs=dynamic */ f()] = /*@ typeArgs=B* */ f();
+    var /*@ type=B* */ v2 = this /*@target=Test::[]=*/ [
+        /*@ typeArgs=dynamic */ f()] ??= /*@ typeArgs=B* */ f();
+    var /*@ type=A* */ v3 = this /*@target=Test::[]=*/ [
+        /*@ typeArgs=dynamic */ f()] += /*@ typeArgs=dynamic */ f();
+    var /*@ type=B* */ v4 = this /*@target=Test::[]=*/ [
+        /*@ typeArgs=dynamic */ f()] *= /*@ typeArgs=dynamic */ f();
+    var /*@ type=C* */ v5 = this /*@target=Test::[]=*/ [
+        /*@ typeArgs=dynamic */ f()] &= /*@ typeArgs=dynamic */ f();
+    var /*@ type=B* */ v6 =
+        --this /*@target=Test::[]=*/ [/*@ typeArgs=dynamic */ f()];
+    var /*@ type=B* */ v7 =
+        this /*@target=Test::[]=*/ [/*@ typeArgs=dynamic */ f()]--;
   }
 }
 

@@ -69,7 +69,7 @@ _handleError(dynamic error, dynamic stackTrace, List<String> args,
     messageHandler("We're sorry, you've found a bug in our compiler.");
     messageHandler("You can report this bug at:");
     messageHandler(
-        "    https://github.com/dart-lang/sdk/issues/labels/area-dev-compiler");
+        "    https://github.com/dart-lang/sdk/issues/labels/web-dev-compiler");
     messageHandler("");
     messageHandler(
         "Please include the information below in your report, along with");

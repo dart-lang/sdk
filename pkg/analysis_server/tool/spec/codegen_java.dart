@@ -50,6 +50,7 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
    */
   static const Map<String, String> _typeRenames = const {
     'bool': 'boolean',
+    'double': 'double',
     'int': 'int',
     'AvailableSuggestionRelevanceTag': 'String',
     'ExecutionContextId': 'String',
@@ -126,7 +127,10 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
   bool isPrimitive(TypeDecl type) {
     if (type is TypeReference) {
       String typeStr = javaType(type);
-      return typeStr == 'boolean' || typeStr == 'int' || typeStr == 'long';
+      return typeStr == 'boolean' ||
+          typeStr == 'double' ||
+          typeStr == 'int' ||
+          typeStr == 'long';
     }
     return false;
   }
@@ -167,6 +171,8 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
         if (optional) {
           if (typeName == 'boolean') {
             typeName = 'Boolean';
+          } else if (typeName == 'double') {
+            typeName = 'Double';
           } else if (typeName == 'int') {
             typeName = 'Integer';
           }

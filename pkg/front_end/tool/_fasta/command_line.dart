@@ -13,6 +13,7 @@ import 'package:build_integration/file_system/single_root.dart'
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions, parseExperimentalFlags;
+import 'package:front_end/src/api_prototype/compiler_options.dart';
 
 import 'package:front_end/src/api_prototype/experimental_flags.dart'
     show ExperimentalFlag;
@@ -313,8 +314,6 @@ ProcessedOptions analyzeCommandLine(
 
   final bool noDefines = options["--no-defines"];
 
-  final bool enableAsserts = options["--enable-asserts"];
-
   final bool verify = options["--verify"];
 
   final bool dumpIr = options["--dump-ir"];
@@ -353,7 +352,9 @@ ProcessedOptions analyzeCommandLine(
   }
 
   Map<ExperimentalFlag, bool> experimentalFlags = parseExperimentalFlags(
-      options["--enable-experiment"], throwCommandLineProblem);
+      parseExperimentalArguments(options["--enable-experiment"]),
+      onError: throwCommandLineProblem,
+      onWarning: print);
 
   if (programName == "compile_platform") {
     if (arguments.length != 5) {
@@ -378,7 +379,6 @@ ProcessedOptions analyzeCommandLine(
           ..packagesFileUri = packages
           ..legacyMode = legacyMode
           ..target = target
-          ..enableAsserts = enableAsserts
           ..throwOnErrorsForDebugging = errorsAreFatal
           ..throwOnWarningsForDebugging = warningsAreFatal
           ..embedSourceText = !excludeSource
@@ -401,11 +401,30 @@ ProcessedOptions analyzeCommandLine(
 
   final Uri sdk = options["--sdk"] ?? options["--compile-sdk"];
 
+  String computePlatformDillName() {
+    switch (target.name) {
+      case 'dartdevc':
+        return 'dartdevc.dill';
+      case 'dart2js':
+        return 'dart2js_platform.dill';
+      case 'dart2js_server':
+        return 'dart2js_platform.dill';
+      case 'vm':
+        return legacyMode ? 'vm_platform.dill' : "vm_platform_strong.dill";
+      case 'none':
+        return "vm_platform_strong.dill";
+      default:
+        throwCommandLineProblem(
+            'Target "${target.name}" requires an explicit --platform option.');
+    }
+    return null;
+  }
+
   final Uri platform = compileSdk
       ? null
       : (options["--platform"] ??
-          computePlatformBinariesLocation(forceBuildDir: true).resolve(
-              legacyMode ? "vm_platform.dill" : "vm_platform_strong.dill"));
+          computePlatformBinariesLocation(forceBuildDir: true)
+              .resolve(computePlatformDillName()));
 
   CompilerOptions compilerOptions = new CompilerOptions()
     ..compileSdk = compileSdk
@@ -415,7 +434,6 @@ ProcessedOptions analyzeCommandLine(
     ..packagesFileUri = packages
     ..legacyMode = legacyMode
     ..target = target
-    ..enableAsserts = enableAsserts
     ..throwOnErrorsForDebugging = errorsAreFatal
     ..throwOnWarningsForDebugging = warningsAreFatal
     ..embedSourceText = !excludeSource

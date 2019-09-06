@@ -460,7 +460,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   bool _filterPending = false;
   bool _filterActive = false;
 
-  _SecureFilter _secureFilter = new _SecureFilter();
+  _SecureFilter _secureFilter = new _SecureFilter._();
   String _selectedProtocol;
 
   static Future<_RawSecureSocket> connect(
@@ -676,7 +676,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     _scheduleReadEvent();
   }
 
-  List<int> read([int length]) {
+  Uint8List read([int length]) {
     if (length != null && (length is! int || length < 0)) {
       throw new ArgumentError(
           "Invalid length parameter in SecureSocket.read (length: $length)");
@@ -1157,14 +1157,14 @@ class _ExternalBuffer {
     return size - end;
   }
 
-  List<int> read(int bytes) {
+  Uint8List read(int bytes) {
     if (bytes == null) {
       bytes = length;
     } else {
       bytes = min(bytes, length);
     }
     if (bytes == 0) return null;
-    List<int> result = new Uint8List(bytes);
+    Uint8List result = new Uint8List(bytes);
     int bytesRead = 0;
     // Loop over zero, one, or two linear data ranges.
     while (bytesRead < bytes) {
@@ -1226,7 +1226,7 @@ class _ExternalBuffer {
 }
 
 abstract class _SecureFilter {
-  external factory _SecureFilter();
+  external factory _SecureFilter._();
 
   void connect(
       String hostName,

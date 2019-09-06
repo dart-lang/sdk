@@ -349,6 +349,8 @@ class Object {
     return *obj;
   }
 
+  static Object& ZoneHandle(Zone* zone) { return ZoneHandle(zone, null_); }
+
   static Object& ZoneHandle() {
     return ZoneHandle(Thread::Current()->zone(), null_);
   }
@@ -403,6 +405,7 @@ class Object {
   V(Bytecode, invoke_closure_bytecode)                                         \
   V(Bytecode, invoke_field_bytecode)                                           \
   V(Bytecode, nsm_dispatcher_bytecode)                                         \
+  V(Bytecode, dynamic_invocation_forwarder_bytecode)                           \
   V(Instance, sentinel)                                                        \
   V(Instance, transition_sentinel)                                             \
   V(Instance, unknown_constant)                                                \
@@ -468,6 +471,7 @@ class Object {
     return unhandled_exception_class_;
   }
   static RawClass* unwind_error_class() { return unwind_error_class_; }
+  static RawClass* dyncalltypecheck_class() { return dyncalltypecheck_class_; }
   static RawClass* singletargetcache_class() {
     return singletargetcache_class_;
   }
@@ -705,6 +709,7 @@ class Object {
   static RawClass* deopt_info_class_;          // Class of DeoptInfo.
   static RawClass* context_class_;        // Class of the Context vm object.
   static RawClass* context_scope_class_;  // Class of ContextScope vm object.
+  static RawClass* dyncalltypecheck_class_;     // Class of ParameterTypeCheck.
   static RawClass* singletargetcache_class_;    // Class of SingleTargetCache.
   static RawClass* unlinkedcall_class_;         // Class of UnlinkedCall.
   static RawClass* icdata_class_;               // Class of ICData.
@@ -854,6 +859,11 @@ class Class : public Object {
   RawString* Name() const;
   RawString* ScrubbedName() const;
   RawString* UserVisibleName() const;
+
+  // The mixin for this class if one exists. Otherwise, returns a raw pointer
+  // to this class.
+  RawClass* Mixin() const;
+
   bool IsInFullSnapshot() const;
 
   virtual RawString* DictionaryName() const { return Name(); }
@@ -863,8 +873,11 @@ class Class : public Object {
 
   TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
   void set_token_pos(TokenPosition value) const;
-
-  TokenPosition ComputeEndTokenPos() const;
+  TokenPosition end_token_pos() const {
+    ASSERT(is_declaration_loaded());
+    return raw_ptr()->end_token_pos_;
+  }
+  void set_end_token_pos(TokenPosition value) const;
 
   int32_t SourceFingerprint() const;
 
@@ -897,6 +910,7 @@ class Class : public Object {
   // The type parameters (and their bounds) are specified as an array of
   // TypeParameter.
   RawTypeArguments* type_parameters() const {
+    ASSERT(is_declaration_loaded());
     return raw_ptr()->type_parameters_;
   }
   void set_type_parameters(const TypeArguments& value) const;
@@ -962,7 +976,10 @@ class Class : public Object {
   RawClass* SuperClass(bool original_classes = false) const;
 
   // Interfaces is an array of Types.
-  RawArray* interfaces() const { return raw_ptr()->interfaces_; }
+  RawArray* interfaces() const {
+    ASSERT(is_declaration_loaded());
+    return raw_ptr()->interfaces_;
+  }
   void set_interfaces(const Array& value) const;
 
   // Returns the list of classes directly implementing this class.
@@ -1047,7 +1064,10 @@ class Class : public Object {
   void AddField(const Field& field) const;
   void AddFields(const GrowableArray<const Field*>& fields) const;
 
-  void InjectCIDFields() const;
+  // If this is a dart:internal.ClassID class, then inject our own const
+  // fields. Returns true if synthetic fields are injected and regular
+  // field declarations should be ignored.
+  bool InjectCIDFields() const;
 
   // Returns an array of all instance fields of this class and its superclasses
   // indexed by offset in words.
@@ -1189,17 +1209,71 @@ class Class : public Object {
   RawCode* allocation_stub() const { return raw_ptr()->allocation_stub_; }
   void set_allocation_stub(const Code& value) const;
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  intptr_t binary_declaration_offset() const {
+    return RawClass::BinaryDeclarationOffset::decode(
+        raw_ptr()->binary_declaration_);
+  }
+  void set_binary_declaration_offset(intptr_t value) const {
+    ASSERT(value >= 0);
+    StoreNonPointer(&raw_ptr()->binary_declaration_,
+                    RawClass::BinaryDeclarationOffset::update(
+                        value, raw_ptr()->binary_declaration_));
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
   intptr_t kernel_offset() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
-    return -1;
+    return 0;
 #else
-    return raw_ptr()->kernel_offset_;
+    ASSERT(!is_declared_in_bytecode());
+    return binary_declaration_offset();
 #endif
   }
 
-  void set_kernel_offset(intptr_t offset) const {
-    NOT_IN_PRECOMPILED(StoreNonPointer(&raw_ptr()->kernel_offset_, offset));
+  void set_kernel_offset(intptr_t value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
+    ASSERT(!is_declared_in_bytecode());
+    set_binary_declaration_offset(value);
+#endif
   }
+
+  intptr_t bytecode_offset() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return 0;
+#else
+    ASSERT(is_declared_in_bytecode());
+    return binary_declaration_offset();
+#endif
+  }
+
+  void set_bytecode_offset(intptr_t value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
+    ASSERT(is_declared_in_bytecode());
+    set_binary_declaration_offset(value);
+#endif
+  }
+
+  bool is_declared_in_bytecode() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return false;
+#else
+    return RawClass::IsDeclaredInBytecode::decode(
+        raw_ptr()->binary_declaration_);
+#endif
+  }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  void set_is_declared_in_bytecode(bool value) const {
+    StoreNonPointer(&raw_ptr()->binary_declaration_,
+                    RawClass::IsDeclaredInBytecode::update(
+                        value, raw_ptr()->binary_declaration_));
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   void DisableAllocationStub() const;
 
@@ -1241,6 +1315,10 @@ class Class : public Object {
       const Array& type_definitions,
       const Array& param_values,
       const TypeArguments& type_param_values) const;
+
+  // Load class declaration (super type, interfaces, type parameters and
+  // number of type arguments) if it is not loaded yet.
+  void EnsureDeclarationLoaded() const;
 
   RawError* EnsureIsFinalized(Thread* thread) const;
 
@@ -1293,8 +1371,10 @@ class Class : public Object {
   bool TraceAllocation(Isolate* isolate) const;
   void SetTraceAllocation(bool trace_allocation) const;
 
-  void ReplaceEnum(const Class& old_enum) const;
-  void CopyStaticFieldValues(const Class& old_cls) const;
+  void ReplaceEnum(IsolateReloadContext* reload_context,
+                   const Class& old_enum) const;
+  void CopyStaticFieldValues(IsolateReloadContext* reload_context,
+                             const Class& old_cls) const;
   void PatchFieldsAndFunctions() const;
   void MigrateImplicitStaticClosures(IsolateReloadContext* context,
                                      const Class& new_cls) const;
@@ -1394,9 +1474,10 @@ class Class : public Object {
   static const intptr_t kUnknownNumTypeArguments = -1;
 
   int16_t num_type_arguments() const { return raw_ptr()->num_type_arguments_; }
-  void set_num_type_arguments(intptr_t value) const;
 
  public:
+  void set_num_type_arguments(intptr_t value) const;
+
   bool has_pragma() const {
     return HasPragmaBit::decode(raw_ptr()->state_bits_);
   }
@@ -1488,6 +1569,41 @@ class PatchClass : public Object {
   static RawPatchClass* New();
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(PatchClass, Object);
+  friend class Class;
+};
+
+class ParameterTypeCheck : public Object {
+ public:
+  // The FP-relative index of the parameter in a bytecode frame (after optional
+  // parameter marshalling) whose assignability needs to be checked, or 0 if
+  // this is a type parameter check.
+  intptr_t index() const { return raw_ptr()->index_; }
+  void set_index(intptr_t i) const { StoreNonPointer(&raw_ptr()->index_, i); }
+
+  // The type parameter to whose bound needs to be checked, or null if this is
+  // an ordinary parameter check.
+  RawAbstractType* param() const { return raw_ptr()->param_; }
+  void set_param(const AbstractType& t) const;
+
+  // FP[index] assignable to type, OR param is subtype of bound.
+  RawAbstractType* type_or_bound() const { return raw_ptr()->type_or_bound_; }
+  void set_type_or_bound(const AbstractType& t) const;
+
+  // The parameter or type parameter's name to use in an error message.
+  RawString* name() const { return raw_ptr()->name_; }
+  void set_name(const String& n) const;
+
+  RawSubtypeTestCache* cache() const { return raw_ptr()->cache_; }
+  void set_cache(const SubtypeTestCache& c) const;
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawParameterTypeCheck));
+  }
+
+  static RawParameterTypeCheck* New();
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(ParameterTypeCheck, Object);
   friend class Class;
 };
 
@@ -1598,7 +1714,6 @@ class ICData : public Object {
 #endif
 
   void Reset(Zone* zone) const;
-  void ResetSwitchable(Zone* zone) const;
 
 // Note: only deopts with reasons before Unknown in this list are recorded in
 // the ICData. All other reasons are used purely for informational messages
@@ -1658,6 +1773,18 @@ class ICData : public Object {
   };
   RebindRule rebind_rule() const;
   void set_rebind_rule(uint32_t rebind_rule) const;
+
+  // This bit is set when a call site becomes megamorphic and starts using a
+  // MegamorphicCache instead of ICData. It means that the entries in the
+  // ICData are incomplete and the MegamorphicCache needs to also be consulted
+  // to list the call site's observed receiver classes and targets.
+  bool is_megamorphic() const {
+    return MegamorphicBit::decode(raw_ptr()->state_bits_);
+  }
+  void set_is_megamorphic(bool value) const {
+    StoreNonPointer(&raw_ptr()->state_bits_,
+                    MegamorphicBit::update(value, raw_ptr()->state_bits_));
+  }
 
   // The length of the array. This includes all sentinel entries including
   // the final one.
@@ -1788,9 +1915,10 @@ class ICData : public Object {
   // Used for printing and optimizations.
   RawICData* AsUnaryClassChecksSortedByCount() const;
 
+  RawUnlinkedCall* AsUnlinkedCall() const;
+  RawMegamorphicCache* AsMegamorphicCache() const;
+
   // Consider only used entries.
-  bool AllTargetsHaveSameOwner(intptr_t owner_cid) const;
-  bool AllReceiversAreNumbers() const;
   bool HasOneTarget() const;
   bool HasReceiverClassId(intptr_t class_id) const;
 
@@ -1851,12 +1979,12 @@ class ICData : public Object {
 
   intptr_t FindCheck(const GrowableArray<intptr_t>& cids) const;
 
- private:
-  static RawICData* New();
-
   RawArray* entries() const {
     return AtomicOperations::LoadAcquire(&raw_ptr()->entries_);
   }
+
+ private:
+  static RawICData* New();
 
   // Grows the array and also sets the argument to the index that should be used
   // for the new entry.
@@ -1880,7 +2008,9 @@ class ICData : public Object {
     kDeoptReasonPos = kTrackingExactnessPos + kTrackingExactnessSize,
     kDeoptReasonSize = kLastRecordedDeoptReason + 1,
     kRebindRulePos = kDeoptReasonPos + kDeoptReasonSize,
-    kRebindRuleSize = 3
+    kRebindRuleSize = 3,
+    kMegamorphicPos = kRebindRulePos + kRebindRuleSize,
+    kMegamorphicSize = 1,
   };
 
   COMPILE_ASSERT(kNumRebindRules <= (1 << kRebindRuleSize));
@@ -1901,6 +2031,9 @@ class ICData : public Object {
                                          uint32_t,
                                          ICData::kRebindRulePos,
                                          ICData::kRebindRuleSize> {};
+  class MegamorphicBit
+      : public BitField<uint32_t, bool, kMegamorphicPos, kMegamorphicSize> {};
+
 #if defined(DEBUG)
   // Used in asserts to verify that a check is not added twice.
   bool HasCheck(const GrowableArray<intptr_t>& cids) const;
@@ -2000,6 +2133,13 @@ class Function : public Object {
 
   // Can only be called on FFI trampolines.
   void SetFfiCallbackTarget(const Function& target) const;
+
+  // Can only be called on FFI trampolines.
+  // Null for Dart -> native calls.
+  RawInstance* FfiCallbackExceptionalReturn() const;
+
+  // Can only be called on FFI trampolines.
+  void SetFfiCallbackExceptionalReturn(const Instance& value) const;
 
   // Return a new function with instantiated result and parameter types.
   RawFunction* InstantiateSignatureFrom(
@@ -2110,6 +2250,7 @@ class Function : public Object {
   void AttachCode(const Code& value) const;
   void SetInstructions(const Code& value) const;
   void ClearCode() const;
+  void ClearBytecode() const;
 
   // Disables optimized code and switches to unoptimized code.
   void SwitchToUnoptimizedCode() const;
@@ -2249,6 +2390,9 @@ class Function : public Object {
   RawFunction* RedirectionTarget() const;
   void SetRedirectionTarget(const Function& target) const;
 
+  RawFunction* ForwardingTarget() const;
+  void SetForwardingChecks(const Array& checks) const;
+
   RawFunction::Kind kind() const {
     return KindBits::decode(raw_ptr()->kind_tag_);
   }
@@ -2296,7 +2440,7 @@ class Function : public Object {
       case RawFunction::kSignatureFunction:
       case RawFunction::kConstructor:
       case RawFunction::kImplicitStaticGetter:
-      case RawFunction::kStaticFieldInitializer:
+      case RawFunction::kFieldInitializer:
       case RawFunction::kIrregexpFunction:
         return false;
       default:
@@ -2315,7 +2459,7 @@ class Function : public Object {
       case RawFunction::kImplicitGetter:
       case RawFunction::kImplicitSetter:
       case RawFunction::kImplicitStaticGetter:
-      case RawFunction::kStaticFieldInitializer:
+      case RawFunction::kFieldInitializer:
       case RawFunction::kIrregexpFunction:
         return true;
       case RawFunction::kClosureFunction:
@@ -2514,7 +2658,7 @@ class Function : public Object {
 
   void SetKernelDataAndScript(const Script& script,
                               const ExternalTypedData& data,
-                              intptr_t offset);
+                              intptr_t offset) const;
 
   intptr_t KernelDataProgramOffset() const;
 
@@ -2628,10 +2772,11 @@ class Function : public Object {
     return kind() == RawFunction::kImplicitSetter;
   }
 
-  // Returns true if this function represents an implicit static field
-  // initializer function.
-  bool IsImplicitStaticFieldInitializer() const {
-    return kind() == RawFunction::kStaticFieldInitializer;
+  // Returns true if this function represents an the initializer for a static or
+  // instance field. The function returns the initial value and the caller is
+  // responsible for setting the field.
+  bool IsFieldInitializer() const {
+    return kind() == RawFunction::kFieldInitializer;
   }
 
   // Returns true if this function represents a (possibly implicit) closure
@@ -2822,6 +2967,7 @@ class Function : public Object {
 
   RawArray* ic_data_array() const;
   void ClearICDataArray() const;
+  RawICData* FindICData(intptr_t deopt_id) const;
 
   // Sets deopt reason in all ICData-s with given deopt_id.
   void SetDeoptReasonForAll(intptr_t deopt_id, ICData::DeoptReasonId reason);
@@ -2892,7 +3038,6 @@ class Function : public Object {
   // external: Just a declaration that expects to be defined in another patch
   //           file.
   // generated_body: Has a generated body.
-  // always_inline: Should always be inlined.
   // polymorphic_target: A polymorphic method.
   // has_pragma: Has a @pragma decoration.
   // no_such_method_forwarder: A stub method that just calls noSuchMethod.
@@ -2910,7 +3055,6 @@ class Function : public Object {
   V(Redirecting, is_redirecting)                                               \
   V(External, is_external)                                                     \
   V(GeneratedBody, is_generated_body)                                          \
-  V(AlwaysInline, always_inline)                                               \
   V(PolymorphicTarget, is_polymorphic_target)                                  \
   V(HasPragma, has_pragma)                                                     \
   V(IsNoSuchMethodForwarder, is_no_such_method_forwarder)
@@ -3002,7 +3146,6 @@ class Function : public Object {
   void set_num_optional_parameters(intptr_t value) const;  // Encoded value.
   void set_kind_tag(uint32_t value) const;
   void set_data(const Object& value) const;
-
   static RawFunction* New(Heap::Space space = Heap::kOld);
 
   RawString* QualifiedName(NameVisibility name_visibility) const;
@@ -3136,6 +3279,11 @@ class FfiTrampolineData : public Object {
 
   RawFunction* callback_target() const { return raw_ptr()->callback_target_; }
   void set_callback_target(const Function& value) const;
+
+  RawInstance* callback_exceptional_return() const {
+    return raw_ptr()->callback_exceptional_return_;
+  }
+  void set_callback_exceptional_return(const Instance& value) const;
 
   int32_t callback_id() const { return raw_ptr()->callback_id_; }
   void set_callback_id(int32_t value) const;
@@ -3307,6 +3455,13 @@ class Field : public Object {
   inline RawInstance* StaticValue() const;
   inline void SetStaticValue(const Instance& value,
                              bool save_initial_value = false) const;
+
+#ifndef DART_PRECOMPILED_RUNTIME
+  RawInstance* saved_initial_value() const {
+    return raw_ptr()->saved_initial_value_;
+  }
+  inline void set_saved_initial_value(const Instance& value) const;
+#endif
 
   RawClass* Owner() const;
   RawClass* Origin() const;  // Either mixin class, or same as owner().
@@ -3897,7 +4052,8 @@ class Library : public Object {
   void AddClassMetadata(const Class& cls,
                         const Object& tl_owner,
                         TokenPosition token_pos,
-                        intptr_t kernel_offset) const;
+                        intptr_t kernel_offset,
+                        intptr_t bytecode_offset) const;
   void AddFieldMetadata(const Field& field,
                         TokenPosition token_pos,
                         intptr_t kernel_offset,
@@ -3908,13 +4064,15 @@ class Library : public Object {
                            intptr_t bytecode_offset) const;
   void AddLibraryMetadata(const Object& tl_owner,
                           TokenPosition token_pos,
-                          intptr_t kernel_offset) const;
+                          intptr_t kernel_offset,
+                          intptr_t bytecode_offset) const;
   void AddTypeParameterMetadata(const TypeParameter& param,
                                 TokenPosition token_pos) const;
   void CloneMetadataFrom(const Library& from_library,
                          const Function& from_fun,
                          const Function& to_fun) const;
   RawObject* GetMetadata(const Object& obj) const;
+  RawArray* GetExtendedMetadata(const Object& obj, intptr_t count) const;
 
   // Tries to finds a @pragma annotation on [object].
   //
@@ -3999,16 +4157,71 @@ class Library : public Object {
   RawExternalTypedData* kernel_data() const { return raw_ptr()->kernel_data_; }
   void set_kernel_data(const ExternalTypedData& data) const;
 
-  intptr_t kernel_offset() const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-    return raw_ptr()->kernel_offset_;
+  intptr_t binary_declaration_offset() const {
+    return RawLibrary::BinaryDeclarationOffset::decode(
+        raw_ptr()->binary_declaration_);
+  }
+  void set_binary_declaration_offset(intptr_t value) const {
+    ASSERT(value >= 0);
+    StoreNonPointer(&raw_ptr()->binary_declaration_,
+                    RawLibrary::BinaryDeclarationOffset::update(
+                        value, raw_ptr()->binary_declaration_));
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+  intptr_t kernel_offset() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return 0;
 #else
-    return -1;
+    ASSERT(!is_declared_in_bytecode());
+    return binary_declaration_offset();
 #endif
   }
-  void set_kernel_offset(intptr_t offset) const {
-    NOT_IN_PRECOMPILED(StoreNonPointer(&raw_ptr()->kernel_offset_, offset));
+
+  void set_kernel_offset(intptr_t value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
+    ASSERT(!is_declared_in_bytecode());
+    set_binary_declaration_offset(value);
+#endif
   }
+
+  intptr_t bytecode_offset() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return 0;
+#else
+    ASSERT(is_declared_in_bytecode());
+    return binary_declaration_offset();
+#endif
+  }
+
+  void set_bytecode_offset(intptr_t value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
+    ASSERT(is_declared_in_bytecode());
+    set_binary_declaration_offset(value);
+#endif
+  }
+
+  bool is_declared_in_bytecode() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return false;
+#else
+    return RawLibrary::IsDeclaredInBytecode::decode(
+        raw_ptr()->binary_declaration_);
+#endif
+  }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  void set_is_declared_in_bytecode(bool value) const {
+    StoreNonPointer(&raw_ptr()->binary_declaration_,
+                    RawLibrary::IsDeclaredInBytecode::update(
+                        value, raw_ptr()->binary_declaration_));
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   static RawLibrary* LookupLibrary(Thread* thread, const String& url);
   static RawLibrary* GetLibrary(intptr_t index);
@@ -4193,7 +4406,8 @@ class KernelProgramInfo : public Object {
                                    const ExternalTypedData& constants_table,
                                    const Array& scripts,
                                    const Array& libraries_cache,
-                                   const Array& classes_cache);
+                                   const Array& classes_cache,
+                                   const uint32_t binary_version);
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawKernelProgramInfo));
@@ -4224,6 +4438,11 @@ class KernelProgramInfo : public Object {
 
   RawArray* constants() const { return raw_ptr()->constants_; }
   void set_constants(const Array& constants) const;
+
+  uint32_t kernel_binary_version() const {
+    return raw_ptr()->kernel_binary_version_;
+  }
+  void set_kernel_binary_version(uint32_t version) const;
 
   // If we load a kernel blob with evaluated constants, then we delay setting
   // the native names of [Function] objects until we've read the constant table
@@ -4378,7 +4597,8 @@ class ObjectPool : public Object {
   // Returns the pool index from the offset relative to a tagged RawObjectPool*,
   // adjusting for the tag-bit.
   static intptr_t IndexFromOffset(intptr_t offset) {
-    ASSERT(Utils::IsAligned(offset + kHeapObjectTag, kWordSize));
+    ASSERT(
+        Utils::IsAligned(offset + kHeapObjectTag, compiler::target::kWordSize));
     return (offset + kHeapObjectTag - data_offset()) /
            sizeof(RawObjectPool::Entry);
   }
@@ -4448,20 +4668,30 @@ class Instructions : public Object {
   // Note: We keep the checked entrypoint offsets even (emitting NOPs if
   // necessary) to allow them to be seen as Smis by the GC.
 #if defined(TARGET_ARCH_IA32)
-  static const intptr_t kPolymorphicEntryOffset = 0;
-  static const intptr_t kMonomorphicEntryOffset = 0;
+  static const intptr_t kMonomorphicEntryOffsetJIT = 6;
+  static const intptr_t kPolymorphicEntryOffsetJIT = 34;
+  static const intptr_t kMonomorphicEntryOffsetAOT = 0;
+  static const intptr_t kPolymorphicEntryOffsetAOT = 0;
 #elif defined(TARGET_ARCH_X64)
-  static const intptr_t kPolymorphicEntryOffset = 8;
-  static const intptr_t kMonomorphicEntryOffset = 32;
+  static const intptr_t kMonomorphicEntryOffsetJIT = 8;
+  static const intptr_t kPolymorphicEntryOffsetJIT = 40;
+  static const intptr_t kMonomorphicEntryOffsetAOT = 8;
+  static const intptr_t kPolymorphicEntryOffsetAOT = 32;
 #elif defined(TARGET_ARCH_ARM)
-  static const intptr_t kPolymorphicEntryOffset = 0;
-  static const intptr_t kMonomorphicEntryOffset = 20;
+  static const intptr_t kMonomorphicEntryOffsetJIT = 0;
+  static const intptr_t kPolymorphicEntryOffsetJIT = 40;
+  static const intptr_t kMonomorphicEntryOffsetAOT = 0;
+  static const intptr_t kPolymorphicEntryOffsetAOT = 20;
 #elif defined(TARGET_ARCH_ARM64)
-  static const intptr_t kPolymorphicEntryOffset = 8;
-  static const intptr_t kMonomorphicEntryOffset = 28;
+  static const intptr_t kMonomorphicEntryOffsetJIT = 8;
+  static const intptr_t kPolymorphicEntryOffsetJIT = 48;
+  static const intptr_t kMonomorphicEntryOffsetAOT = 8;
+  static const intptr_t kPolymorphicEntryOffsetAOT = 28;
 #elif defined(TARGET_ARCH_DBC)
-  static const intptr_t kPolymorphicEntryOffset = 0;
-  static const intptr_t kMonomorphicEntryOffset = 0;
+  static const intptr_t kMonomorphicEntryOffsetJIT = 0;
+  static const intptr_t kPolymorphicEntryOffsetJIT = 0;
+  static const intptr_t kMonomorphicEntryOffsetAOT = 0;
+  static const intptr_t kPolymorphicEntryOffsetAOT = 0;
 #else
 #error Missing entry offsets for current architecture
 #endif
@@ -4469,7 +4699,8 @@ class Instructions : public Object {
   static uword MonomorphicEntryPoint(const RawInstructions* instr) {
     uword entry = PayloadStart(instr);
     if (!HasSingleEntryPoint(instr)) {
-      entry += kPolymorphicEntryOffset;
+      entry += !FLAG_precompiled_mode ? kMonomorphicEntryOffsetJIT
+                                      : kMonomorphicEntryOffsetAOT;
     }
     return entry;
   }
@@ -4477,7 +4708,8 @@ class Instructions : public Object {
   static uword EntryPoint(const RawInstructions* instr) {
     uword entry = PayloadStart(instr);
     if (!HasSingleEntryPoint(instr)) {
-      entry += kMonomorphicEntryOffset;
+      entry += !FLAG_precompiled_mode ? kPolymorphicEntryOffsetJIT
+                                      : kPolymorphicEntryOffsetAOT;
     }
     return entry;
   }
@@ -4486,7 +4718,8 @@ class Instructions : public Object {
     uword entry =
         PayloadStart(instr) + instr->ptr()->unchecked_entrypoint_pc_offset_;
     if (!HasSingleEntryPoint(instr)) {
-      entry += kMonomorphicEntryOffset;
+      entry += !FLAG_precompiled_mode ? kPolymorphicEntryOffsetJIT
+                                      : kPolymorphicEntryOffsetAOT;
     }
     return entry;
   }
@@ -4495,7 +4728,8 @@ class Instructions : public Object {
     uword entry =
         PayloadStart(instr) + instr->ptr()->unchecked_entrypoint_pc_offset_;
     if (!HasSingleEntryPoint(instr)) {
-      entry += kPolymorphicEntryOffset;
+      entry += !FLAG_precompiled_mode ? kMonomorphicEntryOffsetJIT
+                                      : kMonomorphicEntryOffsetAOT;
     }
     return entry;
   }
@@ -4521,7 +4755,9 @@ class Instructions : public Object {
   static intptr_t HeaderSize() {
     intptr_t alignment = OS::PreferredCodeAlignment();
     intptr_t aligned_size = Utils::RoundUp(sizeof(RawInstructions), alignment);
+#if !defined(IS_SIMARM_X64)
     ASSERT(aligned_size == alignment);
+#endif  // !defined(IS_SIMARM_X64)
     return aligned_size;
   }
 
@@ -4998,6 +5234,18 @@ class Code : public Object {
     return OptimizedBit::decode(raw_ptr()->state_bits_);
   }
   void set_is_optimized(bool value) const;
+  static bool IsOptimized(RawCode* code) {
+    return Code::OptimizedBit::decode(code->ptr()->state_bits_);
+  }
+
+  bool is_force_optimized() const {
+    return ForceOptimizedBit::decode(raw_ptr()->state_bits_);
+  }
+  void set_is_force_optimized(bool value) const;
+  static bool IsForceOptimized(RawCode* code) {
+    return Code::ForceOptimizedBit::decode(code->ptr()->state_bits_);
+  }
+
   bool is_alive() const { return AliveBit::decode(raw_ptr()->state_bits_); }
   void set_is_alive(bool value) const;
 
@@ -5044,12 +5292,10 @@ class Code : public Object {
     StorePointer(&raw_ptr()->code_source_map_, code_source_map.raw());
   }
 
-  RawArray* await_token_positions() const;
-  void set_await_token_positions(const Array& await_token_positions) const;
-
   // Used during reloading (see object_reload.cc). Calls Reset on all ICDatas
   // that are embedded inside the Code or ObjecPool objects.
   void ResetICDatas(Zone* zone) const;
+  void ResetSwitchableCalls(Zone* zone) const;
 
   // Array of DeoptInfo objects.
   RawArray* deopt_info_array() const {
@@ -5231,6 +5477,9 @@ class Code : public Object {
     StorePointer(&raw_ptr()->exception_handlers_, handlers.raw());
   }
 
+  // WARNING: function() returns the owner which is not guaranteed to be
+  // a Function. It is up to the caller to guarantee it isn't a stub, class,
+  // or something else.
   // TODO(turnidge): Consider dropping this function and making
   // everybody use owner().  Currently this function is misused - even
   // while generating the snapshot.
@@ -5277,6 +5526,7 @@ class Code : public Object {
                                CodeStatistics* stats);
 
   // Notifies all active [CodeObserver]s.
+  static void NotifyCodeObservers(const Code& code, bool optimized);
   static void NotifyCodeObservers(const Function& function,
                                   const Code& code,
                                   bool optimized);
@@ -5353,12 +5603,19 @@ class Code : public Object {
   friend class RawCode;
   enum {
     kOptimizedBit = 0,
-    kAliveBit = 1,
-    kPtrOffBit = 2,
-    kPtrOffSize = 30,
+    kForceOptimizedBit = 1,
+    kAliveBit = 2,
+    kPtrOffBit = 3,
+    kPtrOffSize = 29,
   };
 
   class OptimizedBit : public BitField<int32_t, bool, kOptimizedBit, 1> {};
+
+  // Force-optimized is true if the Code was generated for a function with
+  // Function::ForceOptimize().
+  class ForceOptimizedBit
+      : public BitField<int32_t, bool, kForceOptimizedBit, 1> {};
+
   class AliveBit : public BitField<int32_t, bool, kAliveBit, 1> {};
   class PtrOffBits
       : public BitField<int32_t, intptr_t, kPtrOffBit, kPtrOffSize> {};
@@ -5376,10 +5633,6 @@ class Code : public Object {
 
     DISALLOW_COPY_AND_ASSIGN(SlowFindRawCodeVisitor);
   };
-
-  static bool IsOptimized(RawCode* code) {
-    return Code::OptimizedBit::decode(code->ptr()->state_bits_);
-  }
 
   static const intptr_t kEntrySize = sizeof(int32_t);  // NOLINT
 
@@ -5492,8 +5745,17 @@ class Bytecode : public Object {
 
   RawExternalTypedData* GetBinary(Zone* zone) const;
 
-  TokenPosition GetTokenIndexOfPC(uword pc) const;
+  TokenPosition GetTokenIndexOfPC(uword return_address) const;
   intptr_t GetTryIndexAtPc(uword return_address) const;
+
+  // Return the pc of the first 'DebugCheck' opcode of the bytecode.
+  // Return 0 if none is found.
+  uword GetFirstDebugCheckOpcodePc() const;
+
+  // Return the pc after the first 'debug checked' opcode in the range.
+  // Return 0 if none is found.
+  uword GetDebugCheckedOpcodeReturnAddress(uword from_offset,
+                                           uword to_offset) const;
 
   intptr_t instructions_binary_offset() const {
     return raw_ptr()->instructions_binary_offset_;
@@ -5546,6 +5808,7 @@ class Bytecode : public Object {
 
   const char* Name() const;
   const char* QualifiedName() const;
+  const char* FullyQualifiedName() const;
 
   class SlowFindRawBytecodeVisitor : public FindObjectVisitor {
    public:
@@ -5603,6 +5866,8 @@ class Context : public Object {
     return *ObjectAddr(context_index);
   }
   inline void SetAt(intptr_t context_index, const Object& value) const;
+
+  intptr_t GetLevel() const;
 
   void Dump(int indent = 0) const;
 
@@ -5731,6 +5996,12 @@ class MegamorphicCache : public Object {
   static const intptr_t kSpreadFactor = 7;
   static const double kLoadFactor;
 
+  enum EntryType {
+    kClassIdIndex,
+    kTargetFunctionIndex,
+    kEntryLength,
+  };
+
   RawArray* buckets() const;
   void set_buckets(const Array& buckets) const;
 
@@ -5757,8 +6028,6 @@ class MegamorphicCache : public Object {
   static RawMegamorphicCache* New(const String& target_name,
                                   const Array& arguments_descriptor);
 
-  void EnsureCapacity() const;
-
   void Insert(const Smi& class_id, const Object& target) const;
 
   void SwitchToBareInstructions();
@@ -5777,11 +6046,9 @@ class MegamorphicCache : public Object {
   void set_target_name(const String& value) const;
   void set_arguments_descriptor(const Array& value) const;
 
-  enum {
-    kClassIdIndex,
-    kTargetFunctionIndex,
-    kEntryLength,
-  };
+  // The caller must hold Isolate::megamorphic_mutex().
+  void EnsureCapacityLocked() const;
+  void InsertLocked(const Smi& class_id, const Object& target) const;
 
   static inline void SetEntry(const Array& array,
                               intptr_t index,
@@ -6033,6 +6300,8 @@ class Instance : public Object {
   // Returns true if all fields are OK for canonicalization.
   virtual bool CheckAndCanonicalizeFields(Thread* thread,
                                           const char** error_str) const;
+
+  RawInstance* CopyShallowToOldSpace(Thread* thread) const;
 
 #if defined(DEBUG)
   // Check if instance is canonical.
@@ -6297,6 +6566,10 @@ class TypeArguments : public Instance {
                             const TypeArguments& other,
                             intptr_t other_length,
                             intptr_t total_length) const;
+
+  // Concatenate [this] and [other] vectors of type parameters.
+  RawTypeArguments* ConcatenateTypeParameters(Zone* zone,
+                                              const TypeArguments& other) const;
 
   // Check if the subvector of length 'len' starting at 'from_index' of this
   // type argument vector consists solely of DynamicType, ObjectType, or
@@ -6603,6 +6876,9 @@ class AbstractType : public Instance {
 
   // Check if this type represents the Dart '_Closure' type.
   bool IsDartClosureType() const;
+
+  // Check if this type represents the 'Pointer' type from "dart:ffi".
+  bool IsFfiPointerType() const;
 
   // Check the subtype relationship.
   bool IsSubtypeOf(const AbstractType& other, Heap::Space space) const;
@@ -7091,9 +7367,7 @@ class Smi : public Integer {
     return reinterpret_cast<intptr_t>(New(value));
   }
 
-  static bool IsValid(int64_t value) {
-    return (value >= kMinValue) && (value <= kMaxValue);
-  }
+  static bool IsValid(int64_t value) { return compiler::target::IsSmi(value); }
 
   void operator=(RawSmi* value) {
     raw_ = value;
@@ -8849,8 +9123,7 @@ class ByteBuffer : public AllStatic {
 class Pointer : public Instance {
  public:
   static RawPointer* New(const AbstractType& type_arg,
-                         const Integer& c_memory_address,
-                         intptr_t class_id = kFfiPointerCid,
+                         uword native_address,
                          Heap::Space space = Heap::kNew);
 
   static intptr_t InstanceSize() {
@@ -8859,10 +9132,14 @@ class Pointer : public Instance {
 
   static bool IsPointer(const Instance& obj);
 
-  RawInteger* GetCMemoryAddress() const { return raw_ptr()->c_memory_address_; }
+  size_t NativeAddress() const {
+    return Integer::Handle(raw_ptr()->c_memory_address_).AsInt64Value();
+  }
 
-  void SetCMemoryAddress(const Integer& value) const {
-    StorePointer(&raw_ptr()->c_memory_address_, value.raw());
+  void SetNativeAddress(size_t address) const {
+    const auto& address_boxed = Integer::Handle(Integer::New(address));
+    NoSafepointScope no_safepoint_scope;
+    StorePointer(&raw_ptr()->c_memory_address_, address_boxed.raw());
   }
 
   static intptr_t type_arguments_offset() {
@@ -9653,6 +9930,12 @@ void Field::SetStaticValue(const Instance& value,
   }
 }
 
+#ifndef DART_PRECOMPILED_RUNTIME
+void Field::set_saved_initial_value(const Instance& value) const {
+  StorePointer(&raw_ptr()->saved_initial_value_, value.raw());
+}
+#endif
+
 void Context::SetAt(intptr_t index, const Object& value) const {
   StorePointer(ObjectAddr(index), value.raw());
 }
@@ -9919,6 +10202,9 @@ using SubtypeTestCacheTable = ArrayOfTuplesView<SubtypeTestCache::Entries,
                                                            TypeArguments,
                                                            TypeArguments,
                                                            TypeArguments>>;
+
+using MegamorphicCacheEntries =
+    ArrayOfTuplesView<MegamorphicCache::EntryType, std::tuple<Smi, Object>>;
 
 void DumpTypeTable(Isolate* isolate);
 void DumpTypeArgumentsTable(Isolate* isolate);

@@ -369,7 +369,7 @@ class _NullableLocalInference extends RecursiveAstVisitor {
           _nullableLocals.add(element);
         }
       } else {
-        throw new StateError('Unrecognized for loop parts');
+        throw StateError('Unrecognized for loop parts');
       }
     }
     super.visitForStatement(node);

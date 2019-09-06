@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   namedLocalFunctionInvoke();
   unnamedLocalFunctionInvoke();
@@ -21,7 +21,7 @@ main() {
 // Invocation of a named local function.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: namedLocalFunctionInvoke:[exact=JSUInt31]*/
+/*member: namedLocalFunctionInvoke:[exact=JSUInt31]*/
 namedLocalFunctionInvoke() {
   /*[exact=JSUInt31]*/ local() => 0;
   return local();
@@ -31,7 +31,7 @@ namedLocalFunctionInvoke() {
 // Invocation of an unnamed local function.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: unnamedLocalFunctionInvoke:[null|subclass=JSInt]*/
+/*member: unnamedLocalFunctionInvoke:[null|subclass=JSInt]*/
 unnamedLocalFunctionInvoke() {
   var local = /*[exact=JSUInt31]*/ () => 0;
   return local();
@@ -41,7 +41,7 @@ unnamedLocalFunctionInvoke() {
 // Access of a named local function.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: namedLocalFunctionGet:[subclass=Closure]*/
+/*member: namedLocalFunctionGet:[subclass=Closure]*/
 namedLocalFunctionGet() {
   /*[exact=JSUInt31]*/ local() => 0;
   return local;
@@ -51,7 +51,7 @@ namedLocalFunctionGet() {
 // Call a named local function recursively.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: recursiveLocalFunction:[subclass=Closure]*/
+/*member: recursiveLocalFunction:[subclass=Closure]*/
 recursiveLocalFunction() {
   /*[subclass=Closure]*/ local() => local;
   return local();
@@ -61,7 +61,7 @@ recursiveLocalFunction() {
 // Call a named local function with a missing argument.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: namedLocalFunctionInvokeMissingArgument:[null|subclass=Object]*/
+/*member: namedLocalFunctionInvokeMissingArgument:[null|subclass=Object]*/
 @pragma('dart2js:disableFinal')
 namedLocalFunctionInvokeMissingArgument() {
   /*[exact=JSUInt31]*/ local(/*[empty]*/ x) => 0;
@@ -73,7 +73,7 @@ namedLocalFunctionInvokeMissingArgument() {
 // Call a named local function with an extra argument.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: namedLocalFunctionInvokeExtraArgument:[null|subclass=Object]*/
+/*member: namedLocalFunctionInvokeExtraArgument:[null|subclass=Object]*/
 @pragma('dart2js:disableFinal')
 namedLocalFunctionInvokeExtraArgument() {
   /*[exact=JSUInt31]*/ local() => 0;
@@ -85,7 +85,7 @@ namedLocalFunctionInvokeExtraArgument() {
 // Call a named local function with an extra named argument.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: namedLocalFunctionInvokeExtraNamedArgument:[null|subclass=Object]*/
+/*member: namedLocalFunctionInvokeExtraNamedArgument:[null|subclass=Object]*/
 @pragma('dart2js:disableFinal')
 namedLocalFunctionInvokeExtraNamedArgument() {
   /*[exact=JSUInt31]*/ local() => 0;
@@ -97,7 +97,7 @@ namedLocalFunctionInvokeExtraNamedArgument() {
 // Implicit .call on a local variable.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: closureToString:[exact=JSString]*/
+/*member: closureToString:[exact=JSString]*/
 closureToString() {
   var local = /*[null]*/ () {};
   local();
@@ -108,7 +108,7 @@ closureToString() {
 // Explicit .call on a local variable.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: closureCallToString:[exact=JSString]*/
+/*member: closureCallToString:[exact=JSString]*/
 closureCallToString() {
   var local = /*[null]*/ () {};
   local.call();
@@ -119,13 +119,13 @@ closureCallToString() {
 // Operator == on the result of a parameter invocation.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _callCompare:[subclass=Closure]*/
+/*member: _callCompare:[subclass=Closure]*/
 _callCompare(int /*[subclass=Closure]*/ compare({a, b})) {
   compare(a: 0, b: 1) /*invoke: [null|subclass=JSInt]*/ == 0;
   return compare;
 }
 
-/*element: callCompare:[null]*/
+/*member: callCompare:[null]*/
 callCompare() {
   _callCompare(/*[subclass=JSInt]*/
       ({/*[exact=JSUInt31]*/ a, /*[exact=JSUInt31]*/ b}) =>
@@ -136,19 +136,19 @@ callCompare() {
 // Invocation on the result of a parameter invocation.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: Class1.:[exact=Class1]*/
+/*member: Class1.:[exact=Class1]*/
 class Class1 {
-  /*element: Class1.method1:[null]*/
+  /*member: Class1.method1:[null]*/
   method1() {}
 }
 
-/*element: _callClosure:[subclass=Closure]*/
+/*member: _callClosure:[subclass=Closure]*/
 _callClosure(/*[subclass=Closure]*/ f({c})) {
   f(c: new Class1()).method1();
   return f;
 }
 
-/*element: callClosure:[null]*/
+/*member: callClosure:[null]*/
 callClosure() {
   _callClosure(/*[exact=Class1]*/ ({/*[exact=Class1]*/ c}) => c);
 }

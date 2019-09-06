@@ -36,7 +36,7 @@ vars = {
   "chromium_git": "https://chromium.googlesource.com",
   "fuchsia_git": "https://fuchsia.googlesource.com",
 
-  "co19_2_rev": "c4a8862775188ecb25991b815e2f1f700b19d0cc",
+  "co19_2_rev": "d2c051f7537e6fe47c8ccf0bd7a7e84b02010a2a",
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
   # should be kept up to date with the revisions pulled by the Flutter engine.
@@ -55,6 +55,7 @@ vars = {
   "args_tag": "1.4.4",
   "async_tag": "2.0.8",
   "bazel_worker_tag": "bazel_worker-v0.1.20",
+  "benchmark_harness_tag": "81641290dea44c34138a109a37e215482f405f81",
   "boolean_selector_tag" : "1.0.4",
   "boringssl_gen_rev": "bbf52f18f425e29b1185f2f6753bec02ed8c5880",
   "boringssl_rev" : "702e2b6d3831486535e958f262a05c75a5cb312e",
@@ -81,11 +82,11 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
   "dart_style_tag": "1.2.8",  # Please see the note above before updating.
 
-  "dartdoc_tag" : "v0.28.2",
+  "dartdoc_tag" : "0.28.4",
   "fixnum_tag": "0.10.9",
   "glob_tag": "1.1.7",
   "html_tag" : "0.14.0+1",
-  "http_io_rev": "57da05a66f5bf7df3dd7aebe7b7efe0dfc477baa",
+  "http_io_rev": "2fa188caf7937e313026557713f7feffedd4978b",
   "http_multi_server_tag" : "2.0.5",
   "http_parser_tag" : "3.1.3",
   "http_retry_tag": "0.1.1",
@@ -96,7 +97,7 @@ vars = {
   "intl_tag": "0.15.7",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "2.0.9",
-  "linter_tag": "0.1.91",
+  "linter_tag": "0.1.96",
   "logging_tag": "0.11.3+2",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "markdown_tag": "2.0.3",
@@ -109,14 +110,14 @@ vars = {
   "package_config_tag": "1.0.5",
   "package_resolver_tag": "1.0.10",
   "path_tag": "1.6.2",
-  "pedantic_tag": "v1.5.0",
+  "pedantic_tag": "v1.8.0",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "1.3.6",
   "protobuf_rev": "7d34c9e4e552a4f66acce32e4344ae27756a1949",
-  "pub_rev": "ecd5b413271f2699f8cd9e23aa4eebb5030c964f",
+  "pub_rev": "df0f72daaa724e29ed6075e0fb5549a6d6dc5daf",
   "pub_semver_tag": "1.4.2",
   "quiver-dart_tag": "2.0.0+1",
-  "resource_rev": "2.1.5",
+  "resource_rev": "f8e37558a1c4f54550aa463b88a6a831e3e33cd6",
   "root_certificates_rev": "16ef64be64c7dfdff2b9f4b910726e635ccc519e",
   "shelf_static_rev": "v0.2.8",
   "shelf_packages_handler_tag": "1.0.4",
@@ -134,10 +135,11 @@ vars = {
   "term_glyph_tag": "1.0.1",
   "test_reflective_loader_tag": "0.1.8",
   "test_tag": "test-v1.6.4",
+  "tflite_native_rev": "06e533a9747306d1114c53427cc67eda080f51f9",
   "typed_data_tag": "1.1.6",
   "unittest_rev": "2b8375bc98bb9dc81c539c91aaea6adce12e1072",
   "usage_tag": "3.4.0",
-  "watcher_rev": "0.9.7+12",
+  "watcher_rev": "0.9.7+12-pub",
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
   "web_socket_channel_tag": "1.0.9",
   "WebCore_rev": "fb11e887f77919450e497344da570d780e078bc8",
@@ -146,7 +148,19 @@ vars = {
   "crashpad_rev": "bf327d8ceb6a669607b0dbab5a83a275d03f99ed",
   "minichromium_rev": "8d641e30a8b12088649606b912c2bc4947419ccc",
   "googletest_rev": "f854f1d27488996dc8a6db3c9453f80b02585e12",
+
+  # An LLVM backend needs LLVM binaries and headers. To avoid build time
+  # increases we can use prebuilts. We don't want to download this on every
+  # CQ/CI bot nor do we want the average Dart developer to incur that cost.
+  # So by default we will not download prebuilts.
+  "checkout_llvm": False,
+  "llvm_revision": "fe8bd96ebd6c490ea0b5c1fb342db2d7c393a109"
 }
+
+gclient_gn_args_file = Var("dart_root") + '/build/config/gclient_args.gni'
+gclient_gn_args = [
+  'checkout_llvm'
+]
 
 deps = {
   # Stuff needed for GN build.
@@ -157,7 +171,7 @@ deps = {
   Var("dart_root") + "/tools/sdks": {
       "packages": [{
           "package": "dart/dart-sdk/${{platform}}",
-          "version": "version:2.3.0",
+          "version": "version:2.5.0-dev.1.0",
       }],
       "dep_type": "cipd",
   },
@@ -236,6 +250,9 @@ deps = {
       Var("dart_git") + "async.git" + "@" + Var("async_tag"),
   Var("dart_root") + "/third_party/pkg/bazel_worker":
       Var("dart_git") + "bazel_worker.git" + "@" + Var("bazel_worker_tag"),
+  Var("dart_root") + "/third_party/pkg/benchmark_harness":
+      Var("dart_git") + "benchmark_harness.git" + "@" +
+      Var("benchmark_harness_tag"),
   Var("dart_root") + "/third_party/pkg/boolean_selector":
       Var("dart_git") + "boolean_selector.git" +
       "@" + Var("boolean_selector_tag"),
@@ -356,6 +373,8 @@ deps = {
       Var("dart_git") + "term_glyph.git" + "@" + Var("term_glyph_tag"),
   Var("dart_root") + "/third_party/pkg/test":
       Var("dart_git") + "test.git" + "@" + Var("test_tag"),
+  Var("dart_root") + "/third_party/pkg/tflite_native":
+      Var("dart_git") + "tflite_native.git" + "@" + Var("tflite_native_rev"),
   Var("dart_root") + "/third_party/pkg/test_descriptor":
       Var("dart_git") + "test_descriptor.git" + "@" + Var("test_descriptor_tag"),
   Var("dart_root") + "/third_party/pkg/test_process":
@@ -395,6 +414,16 @@ deps = {
       "dep_type": "cipd",
   },
 
+  Var("dart_root") + "/pkg/analysis_server/language_model": {
+    "packages": [
+      {
+        "package": "dart/language_model",
+        "version": "EFtZ0Z5T822s4EUOOaWeiXUppRGKp5d9Z6jomJIeQYcC",
+      }
+    ],
+    "dep_type": "cipd",
+  },
+
   Var("dart_root") + "/buildtools": {
       "packages": [
           {
@@ -404,6 +433,37 @@ deps = {
       ],
       "dep_type": "cipd",
   },
+
+  # TODO(37531): Remove these cipd packages and build with sdk instead when
+  # benchmark runner gets support for that.
+  Var("dart_root") + "/benchmarks/FfiBoringssl/dart/native/out/": {
+      "packages": [
+          {
+              "package": "dart/benchmarks/ffiboringssl",
+              "version": "commit:a86c69888b9a416f5249aacb4690a765be064969",
+          },
+      ],
+      "dep_type": "cipd",
+  },
+  Var("dart_root") + "/benchmarks/FfiCall/dart/native/out/": {
+      "packages": [
+          {
+              "package": "dart/benchmarks/fficall",
+              "version": "version:1",
+          },
+      ],
+      "dep_type": "cipd",
+  },
+  Var("dart_root") + "/third_party/llvm": {
+      "packages": [
+          {
+              "package": "fuchsia/lib/llvm/${{platform}}",
+              "version": "git_revision:" + Var("llvm_revision"),
+          },
+      ],
+      "condition": "checkout_llvm",
+      "dep_type": "cipd",
+  }
 }
 
 deps_os = {

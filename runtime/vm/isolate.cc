@@ -130,6 +130,184 @@ static RawInstance* DeserializeMessage(Thread* thread, Message* message) {
   }
 }
 
+IsolateGroup::IsolateGroup(std::unique_ptr<IsolateGroupSource> source,
+                           void* embedder_data)
+    : source_(std::move(source)),
+      embedder_data_(embedder_data),
+      thread_registry_(new ThreadRegistry()),
+      safepoint_handler_(new SafepointHandler(this)),
+      isolates_monitor_(new Monitor()),
+      isolates_() {}
+
+IsolateGroup::~IsolateGroup() {}
+
+void IsolateGroup::RegisterIsolate(Isolate* isolate) {
+  MonitorLocker ml(isolates_monitor_.get());
+  isolates_.Append(isolate);
+  isolate_count_++;
+}
+
+void IsolateGroup::UnregisterIsolate(Isolate* isolate) {
+  bool is_last_isolate = false;
+  {
+    MonitorLocker ml(isolates_monitor_.get());
+    isolates_.Remove(isolate);
+    isolate_count_--;
+    is_last_isolate = isolate_count_ == 0;
+  }
+  if (is_last_isolate) {
+    // If the creation of the isolate group (or the first isolate within the
+    // isolate group) failed, we do not invoke the cleanup callback (the
+    // embedder is responsible for handling the creation error).
+    if (initial_spawn_successful_) {
+      auto group_shutdown_callback = Isolate::GroupCleanupCallback();
+      if (group_shutdown_callback != nullptr) {
+        group_shutdown_callback(embedder_data());
+      }
+    }
+    delete this;
+  }
+}
+
+Thread* IsolateGroup::ScheduleThreadLocked(MonitorLocker* ml,
+                                           Thread* existing_mutator_thread,
+                                           bool is_vm_isolate,
+                                           bool is_mutator,
+                                           bool bypass_safepoint) {
+  ASSERT(threads_lock()->IsOwnedByCurrentThread());
+
+  // Schedule the thread into the isolate group by associating
+  // a 'Thread' structure with it (this is done while we are holding
+  // the thread registry lock).
+  Thread* thread = nullptr;
+  OSThread* os_thread = OSThread::Current();
+  if (os_thread != nullptr) {
+    // If a safepoint operation is in progress wait for it
+    // to finish before scheduling this thread in.
+    while (!bypass_safepoint && safepoint_handler()->SafepointInProgress()) {
+      ml->Wait();
+    }
+
+    if (is_mutator) {
+      if (existing_mutator_thread == nullptr) {
+        // Allocate a new [Thread] structure for the mutator thread.
+        thread = thread_registry()->GetFreeThreadLocked(is_vm_isolate);
+      } else {
+        // Reuse the existing cached [Thread] structure for the mutator thread.,
+        // see comment in 'base_isolate.h'.
+        thread_registry()->AddToActiveListLocked(existing_mutator_thread);
+        thread = existing_mutator_thread;
+      }
+    } else {
+      thread = thread_registry()->GetFreeThreadLocked(is_vm_isolate);
+    }
+
+    // Now get a free Thread structure.
+    ASSERT(thread != nullptr);
+
+    thread->ResetHighWatermark();
+
+    // Set up other values and set the TLS value.
+    thread->isolate_ = nullptr;
+    thread->isolate_group_ = this;
+    thread->set_os_thread(os_thread);
+    ASSERT(thread->execution_state() == Thread::kThreadInNative);
+    thread->set_execution_state(Thread::kThreadInVM);
+    thread->set_safepoint_state(
+        Thread::SetBypassSafepoints(bypass_safepoint, 0));
+    thread->set_vm_tag(VMTag::kVMTagId);
+    ASSERT(thread->no_safepoint_scope_depth() == 0);
+    os_thread->set_thread(thread);
+    Thread::SetCurrent(thread);
+    os_thread->EnableThreadInterrupts();
+  }
+  return thread;
+}
+
+void IsolateGroup::UnscheduleThreadLocked(MonitorLocker* ml,
+                                          Thread* thread,
+                                          bool is_mutator,
+                                          bool bypass_safepoint) {
+  // Disassociate the 'Thread' structure and unschedule the thread
+  // from this isolate group.
+  if (!is_mutator) {
+    ASSERT(thread->api_top_scope_ == nullptr);
+    ASSERT(thread->zone() == nullptr);
+    ASSERT(thread->sticky_error() == Error::null());
+  }
+  if (!bypass_safepoint) {
+    // Ensure that the thread reports itself as being at a safepoint.
+    thread->EnterSafepoint();
+  }
+  OSThread* os_thread = thread->os_thread();
+  ASSERT(os_thread != nullptr);
+  os_thread->DisableThreadInterrupts();
+  os_thread->set_thread(nullptr);
+  OSThread::SetCurrent(os_thread);
+
+  // Even if we unschedule the mutator thread, e.g. via calling
+  // `Dart_ExitIsolate()` inside a native, we might still have one or more Dart
+  // stacks active, which e.g. GC marker threads want to visit.  So we don't
+  // clear out the isolate pointer if we are on the mutator thread.
+  //
+  // The [thread] structure for the mutator thread is kept alive in the thread
+  // registry even if the mutator thread is temporarily unscheduled.
+  //
+  // All other threads are not allowed to unschedule themselves and schedule
+  // again later on.
+  if (!is_mutator) {
+    thread->isolate_ = nullptr;
+  }
+  thread->heap_ = nullptr;
+  thread->set_os_thread(nullptr);
+  thread->set_execution_state(Thread::kThreadInNative);
+  thread->set_safepoint_state(Thread::SetAtSafepoint(true, 0));
+  thread->clear_pending_functions();
+  ASSERT(thread->no_safepoint_scope_depth() == 0);
+  if (is_mutator) {
+    // The mutator thread structure stays alive and attached to the isolate as
+    // long as the isolate lives. So we simply remove the thread from the list
+    // of scheduled threads.
+    thread_registry()->RemoveFromActiveListLocked(thread);
+  } else {
+    // Return thread structure.
+    thread_registry()->ReturnThreadLocked(thread);
+  }
+}
+
+Thread* IsolateGroup::ScheduleThread(bool bypass_safepoint) {
+  // We are about to associate the thread with an isolate group and it would
+  // not be possible to correctly track no_safepoint_scope_depth for the
+  // thread in the constructor/destructor of MonitorLocker,
+  // so we create a MonitorLocker object which does not do any
+  // no_safepoint_scope_depth increments/decrements.
+  MonitorLocker ml(threads_lock(), false);
+
+  const bool is_vm_isolate = false;
+
+  // Schedule the thread into the isolate by associating
+  // a 'Thread' structure with it (this is done while we are holding
+  // the thread registry lock).
+  return ScheduleThreadLocked(&ml, /*existing_mutator_thread=*/nullptr,
+                              is_vm_isolate, /*is_mutator=*/false,
+                              bypass_safepoint);
+}
+
+void IsolateGroup::UnscheduleThread(Thread* thread,
+                                    bool is_mutator,
+                                    bool bypass_safepoint) {
+  // Disassociate the 'Thread' structure and unschedule the thread
+  // from this isolate group.
+  //
+  // We are disassociating the thread from an isolate and it would
+  // not be possible to correctly track no_safepoint_scope_depth for the
+  // thread in the constructor/destructor of MonitorLocker,
+  // so we create a MonitorLocker object which does not do any
+  // no_safepoint_scope_depth increments/decrements.
+  MonitorLocker ml(threads_lock(), false);
+  UnscheduleThreadLocked(&ml, thread, is_mutator, bypass_safepoint);
+}
+
 bool IsolateVisitor::IsVMInternalIsolate(Isolate* isolate) const {
   return Isolate::IsVMInternalIsolate(isolate);
 }
@@ -178,8 +356,11 @@ void Isolate::ValidateClassTable() {
 #endif  // DEBUG
 
 void Isolate::RehashConstants() {
-  StackZone stack_zone(Thread::Current());
+  Thread* thread = Thread::Current();
+  StackZone stack_zone(thread);
   Zone* zone = stack_zone.GetZone();
+
+  thread->heap()->ResetCanonicalHashTable();
 
   Class& cls = Class::Handle(zone);
   intptr_t top = class_table()->NumCids();
@@ -863,7 +1044,8 @@ void BaseIsolate::AssertCurrentThreadIsMutator() const {
 
 // TODO(srdjan): Some Isolate monitors can be shared. Replace their usage with
 // that shared monitor.
-Isolate::Isolate(const Dart_IsolateFlags& api_flags)
+Isolate::Isolate(IsolateGroup* isolate_group,
+                 const Dart_IsolateFlags& api_flags)
     : BaseIsolate(),
       current_tag_(UserTag::null()),
       default_tag_(UserTag::null()),
@@ -883,8 +1065,6 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       last_reload_timestamp_(OS::GetCurrentTimeMillis()),
 #endif  // !defined(PRODUCT)
       start_time_micros_(OS::GetCurrentMonotonicMicros()),
-      thread_registry_(new ThreadRegistry()),
-      safepoint_handler_(new SafepointHandler(this)),
       random_(),
       mutex_(NOT_IN_PRODUCT("Isolate::mutex_")),
       symbols_mutex_(NOT_IN_PRODUCT("Isolate::symbols_mutex_")),
@@ -892,8 +1072,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
           NOT_IN_PRODUCT("Isolate::type_canonicalization_mutex_")),
       constant_canonicalization_mutex_(
           NOT_IN_PRODUCT("Isolate::constant_canonicalization_mutex_")),
-      megamorphic_lookup_mutex_(
-          NOT_IN_PRODUCT("Isolate::megamorphic_lookup_mutex_")),
+      megamorphic_mutex_(NOT_IN_PRODUCT("Isolate::megamorphic_mutex_")),
       kernel_data_lib_cache_mutex_(
           NOT_IN_PRODUCT("Isolate::kernel_data_lib_cache_mutex_")),
       kernel_data_class_cache_mutex_(
@@ -926,10 +1105,14 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
   }
 
   if (FLAG_enable_interpreter) {
-    NOT_IN_PRECOMPILED(background_compiler_ = new BackgroundCompiler(this));
+    NOT_IN_PRECOMPILED(background_compiler_ = new BackgroundCompiler(
+                           this, /* optimizing = */ false));
   }
   NOT_IN_PRECOMPILED(optimizing_background_compiler_ =
-                         new BackgroundCompiler(this));
+                         new BackgroundCompiler(this, /* optimizing = */ true));
+
+  isolate_group->RegisterIsolate(this);
+  isolate_group_ = isolate_group;
 }
 
 #undef REUSABLE_HANDLE_SCOPE_INIT
@@ -979,10 +1162,13 @@ Isolate::~Isolate() {
       nullptr;  // Fail fast if we send messages to a dead isolate.
   ASSERT(deopt_context_ ==
          nullptr);  // No deopt in progress when isolate deleted.
-  delete spawn_state_;
   ASSERT(spawn_count_ == 0);
-  delete safepoint_handler_;
-  delete thread_registry_;
+
+  // We have cached the mutator thread, delete it.
+  ASSERT(scheduled_mutator_thread_ == nullptr);
+  mutator_thread_->isolate_ = nullptr;
+  delete mutator_thread_;
+  mutator_thread_ = nullptr;
 
   if (obfuscation_map_ != nullptr) {
     for (intptr_t i = 0; obfuscation_map_[i] != nullptr; i++) {
@@ -1000,10 +1186,19 @@ Isolate::~Isolate() {
     }
     delete[] embedder_entry_points_;
   }
+
+  // Run isolate group specific cleanup function if the last isolate in an
+  // isolate group died.
+  isolate_group_->UnregisterIsolate(this);
+  isolate_group_ = nullptr;
 }
 
 void Isolate::InitVM() {
-  create_callback_ = nullptr;
+  create_group_callback_ = nullptr;
+  initialize_callback_ = nullptr;
+  shutdown_callback_ = nullptr;
+  cleanup_callback_ = nullptr;
+  cleanup_group_callback_ = nullptr;
   if (isolates_list_monitor_ == nullptr) {
     isolates_list_monitor_ = new Monitor();
   }
@@ -1012,9 +1207,10 @@ void Isolate::InitVM() {
 }
 
 Isolate* Isolate::InitIsolate(const char* name_prefix,
+                              IsolateGroup* isolate_group,
                               const Dart_IsolateFlags& api_flags,
                               bool is_vm_isolate) {
-  Isolate* result = new Isolate(api_flags);
+  Isolate* result = new Isolate(isolate_group, api_flags);
   ASSERT(result != nullptr);
 
 #if !defined(PRODUCT)
@@ -1110,6 +1306,7 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
     if (ServiceIsolate::IsServiceIsolate(result)) {
       ServiceIsolate::SetServiceIsolate(nullptr);
     }
+
     delete result;
     return nullptr;
   }
@@ -1127,7 +1324,7 @@ void Isolate::RetainKernelBlob(const ExternalTypedData& kernel_blob) {
 
 Thread* Isolate::mutator_thread() const {
   ASSERT(thread_registry() != nullptr);
-  return thread_registry()->mutator_thread();
+  return mutator_thread_;
 }
 
 RawObject* Isolate::CallTagHandler(Dart_LibraryTag tag,
@@ -1140,7 +1337,8 @@ RawObject* Isolate::CallTagHandler(Dart_LibraryTag tag,
   Dart_Handle api_result;
   {
     TransitionVMToNative transition(thread);
-    api_result = library_tag_handler_(tag, api_arg1, api_arg2);
+    ASSERT(HasTagHandler());
+    api_result = group()->library_tag_handler()(tag, api_arg1, api_arg2);
   }
   return Api::UnwrapHandle(api_result);
 }
@@ -1206,21 +1404,6 @@ void Isolate::BuildName(const char* name_prefix) {
   }
 }
 
-void Isolate::DoneLoading() {
-  GrowableObjectArray& libs =
-      GrowableObjectArray::Handle(current_zone(), object_store()->libraries());
-  Library& lib = Library::Handle(current_zone());
-  intptr_t num_libs = libs.Length();
-  for (intptr_t i = 0; i < num_libs; i++) {
-    lib ^= libs.At(i);
-    // If this library was loaded with Dart_LoadLibrary, it was marked
-    // as 'load in progres'. Set the status to 'loaded'.
-    if (lib.LoadInProgress()) {
-      lib.SetLoaded();
-    }
-  }
-}
-
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 bool Isolate::CanReload() const {
   return !Isolate::IsVMInternalIsolate(this) && is_runnable() &&
@@ -1276,14 +1459,6 @@ void Isolate::DeleteReloadContext() {
   reload_context_ = nullptr;
 }
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-
-void Isolate::DoneFinalizing() {
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  if (IsReloading()) {
-    reload_context_->FinalizeLoading();
-  }
-#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-}
 
 const char* Isolate::MakeRunnable() {
   ASSERT(Isolate::Current() == nullptr);
@@ -1633,15 +1808,17 @@ static MessageHandler::MessageStatus RunIsolate(uword parameter) {
 
 static void ShutdownIsolate(uword parameter) {
   Isolate* isolate = reinterpret_cast<Isolate*>(parameter);
-  // We must wait for any outstanding spawn calls to complete before
-  // running the shutdown callback.
-  isolate->WaitForOutstandingSpawns();
   {
     // Print the error if there is one.  This may execute dart code to
     // print the exception object, so we need to use a StartIsolateScope.
     StartIsolateScope start_scope(isolate);
     Thread* thread = Thread::Current();
     ASSERT(thread->isolate() == isolate);
+
+    // We must wait for any outstanding spawn calls to complete before
+    // running the shutdown callback.
+    isolate->WaitForOutstandingSpawns();
+
     StackZone zone(thread);
     HandleScope handle_scope(thread);
 #if defined(DEBUG)
@@ -1758,11 +1935,6 @@ void Isolate::LowLevelShutdown() {
     }
   }
 
-#if !defined(PRODUCT)
-  // Clean up debugger resources.
-  debugger()->Shutdown();
-#endif
-
   // Close all the ports owned by this isolate.
   PortMap::ClosePorts(message_handler());
 
@@ -1861,6 +2033,9 @@ void Isolate::Shutdown() {
     HandleScope handle_scope(thread);
     ServiceIsolate::SendIsolateShutdownMessage();
     KernelIsolate::NotifyAboutIsolateShutdown(this);
+#if !defined(PRODUCT)
+    debugger()->Shutdown();
+#endif
   }
 
   if (heap_ != nullptr) {
@@ -1904,15 +2079,20 @@ void Isolate::Shutdown() {
   // as we are shutting down the isolate.
   Thread::ExitIsolate();
 
-  Dart_IsolateCleanupCallback cleanup = Isolate::CleanupCallback();
-  if (cleanup != nullptr) {
-    cleanup(init_callback_data());
+  // Run isolate specific cleanup function for all non "vm-isolate's.
+  if (Dart::vm_isolate() != this) {
+    Dart_IsolateCleanupCallback cleanup = Isolate::CleanupCallback();
+    if (cleanup != nullptr) {
+      cleanup(isolate_group_->embedder_data(), init_callback_data());
+    }
   }
 }
 
-Dart_IsolateCreateCallback Isolate::create_callback_ = nullptr;
+Dart_InitializeIsolateCallback Isolate::initialize_callback_ = nullptr;
+Dart_IsolateGroupCreateCallback Isolate::create_group_callback_ = nullptr;
 Dart_IsolateShutdownCallback Isolate::shutdown_callback_ = nullptr;
 Dart_IsolateCleanupCallback Isolate::cleanup_callback_ = nullptr;
+Dart_IsolateGroupCleanupCallback Isolate::cleanup_group_callback_ = nullptr;
 
 Monitor* Isolate::isolates_list_monitor_ = nullptr;
 Isolate* Isolate::isolates_list_head_ = nullptr;
@@ -1928,14 +2108,12 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   // Visit objects in the class table.
   class_table()->VisitObjectPointers(visitor);
 
-  // Visit objects in per isolate stubs.
-  StubCode::VisitObjectPointers(visitor);
-
   // Visit the dart api state for all local and persistent handles.
   if (api_state() != nullptr) {
     api_state()->VisitObjectPointers(visitor);
   }
 
+  visitor->clear_gc_root_type();
   // Visit the objects directly referenced from the isolate structure.
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&current_tag_));
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&default_tag_));
@@ -1996,8 +2174,16 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
 
 void Isolate::VisitStackPointers(ObjectPointerVisitor* visitor,
                                  ValidationPolicy validate_frames) {
+  visitor->set_gc_root_type("stack");
   // Visit objects in all threads (e.g., Dart stack, handles in zones).
-  thread_registry()->VisitObjectPointers(visitor, validate_frames);
+  thread_registry()->VisitObjectPointers(this, visitor, validate_frames);
+
+  // Visit mutator thread, even if the isolate isn't entered/scheduled (there
+  // might be live API handles to visit).
+  if (mutator_thread_ != nullptr) {
+    mutator_thread_->VisitObjectPointers(visitor, validate_frames);
+  }
+  visitor->clear_gc_root_type();
 }
 
 void Isolate::VisitWeakPersistentHandles(HandleVisitor* visitor) {
@@ -2007,7 +2193,7 @@ void Isolate::VisitWeakPersistentHandles(HandleVisitor* visitor) {
 }
 
 void Isolate::ReleaseStoreBuffers() {
-  thread_registry()->ReleaseStoreBuffers();
+  thread_registry()->ReleaseStoreBuffers(this);
 }
 
 void Isolate::EnableIncrementalBarrier(MarkingStack* marking_stack,
@@ -2015,12 +2201,12 @@ void Isolate::EnableIncrementalBarrier(MarkingStack* marking_stack,
   ASSERT(marking_stack_ == nullptr);
   marking_stack_ = marking_stack;
   deferred_marking_stack_ = deferred_marking_stack;
-  thread_registry()->AcquireMarkingStacks();
+  thread_registry()->AcquireMarkingStacks(this);
   ASSERT(Thread::Current()->is_marking());
 }
 
 void Isolate::DisableIncrementalBarrier() {
-  thread_registry()->ReleaseMarkingStacks();
+  thread_registry()->ReleaseMarkingStacks(this);
   ASSERT(marking_stack_ != nullptr);
   marking_stack_ = nullptr;
   deferred_marking_stack_ = nullptr;
@@ -2185,8 +2371,8 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     jsobj.AddProperty("rootLib", lib);
   }
 
-  intptr_t zone_handle_count = thread_registry_->CountZoneHandles();
-  intptr_t scoped_handle_count = thread_registry_->CountScopedHandles();
+  intptr_t zone_handle_count = thread_registry()->CountZoneHandles(this);
+  intptr_t scoped_handle_count = thread_registry()->CountScopedHandles(this);
 
   jsobj.AddProperty("_numZoneHandles", zone_handle_count);
   jsobj.AddProperty("_numScopedHandles", scoped_handle_count);
@@ -2250,7 +2436,7 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     }
   }
 
-  jsobj.AddProperty("_threads", thread_registry_);
+  jsobj.AddProperty("_threads", thread_registry());
 }
 
 void Isolate::PrintMemoryUsageJSON(JSONStream* stream) {
@@ -2554,7 +2740,7 @@ void Isolate::PauseEventHandler() {
     pause_loop_monitor_ = new Monitor();
   }
   Dart_EnterScope();
-  MonitorLocker ml(pause_loop_monitor_);
+  MonitorLocker ml(pause_loop_monitor_, false);
 
   Dart_MessageNotifyCallback saved_notify_callback = message_notify_callback();
   set_message_notify_callback(Isolate::WakePauseEventHandler);
@@ -2565,6 +2751,7 @@ void Isolate::PauseEventHandler() {
       !had_isolate_reload_context ? 0 : reload_context()->start_time_micros();
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   bool resume = false;
+  bool handle_non_service_messages = false;
   while (true) {
     // Handle all available vm service messages, up to a resume
     // request.
@@ -2575,6 +2762,8 @@ void Isolate::PauseEventHandler() {
     }
     if (resume) {
       break;
+    } else {
+      handle_non_service_messages = true;
     }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -2592,6 +2781,13 @@ void Isolate::PauseEventHandler() {
     // Wait for more service messages.
     Monitor::WaitResult res = ml.Wait();
     ASSERT(res == Monitor::kNotified);
+  }
+  // If any non-service messages came in, we need to notify the registered
+  // message notify callback to check for unhandled messages. Otherwise, events
+  // may be left unhandled until the next event comes in. See
+  // https://github.com/dart-lang/sdk/issues/37312.
+  if ((saved_notify_callback != nullptr) && handle_non_service_messages) {
+    saved_notify_callback(Api::CastIsolate(this));
   }
   set_message_notify_callback(saved_notify_callback);
   Dart_ExitScope();
@@ -2633,6 +2829,21 @@ Isolate* Isolate::LookupIsolateByPort(Dart_Port port) {
     current = current->next_;
   }
   return nullptr;
+}
+
+std::unique_ptr<char[]> Isolate::LookupIsolateNameByPort(Dart_Port port) {
+  MonitorLocker ml(isolates_list_monitor_);
+  Isolate* current = isolates_list_head_;
+  while (current != nullptr) {
+    if (current->main_port() == port) {
+      const size_t len = strlen(current->name()) + 1;
+      auto result = std::unique_ptr<char[]>(new char[len]);
+      strncpy(result.get(), current->name(), len);
+      return result;
+    }
+    current = current->next_;
+  }
+  return std::unique_ptr<char[]>();
 }
 
 bool Isolate::AddIsolateToList(Isolate* isolate) {
@@ -2789,65 +3000,55 @@ void Isolate::DecrementSpawnCount() {
 }
 
 void Isolate::WaitForOutstandingSpawns() {
+  Thread* thread = Thread::Current();
+  ASSERT(thread != NULL);
   MonitorLocker ml(&spawn_count_monitor_);
   while (spawn_count_ > 0) {
-    ml.Wait();
+    ml.WaitWithSafepointCheck(thread);
   }
 }
 
-Monitor* Isolate::threads_lock() const {
+Monitor* IsolateGroup::threads_lock() const {
   return thread_registry_->threads_lock();
 }
 
 Thread* Isolate::ScheduleThread(bool is_mutator, bool bypass_safepoint) {
-  // Schedule the thread into the isolate by associating
-  // a 'Thread' structure with it (this is done while we are holding
-  // the thread registry lock).
-  Thread* thread = nullptr;
-  OSThread* os_thread = OSThread::Current();
-  if (os_thread != nullptr) {
-    // We are about to associate the thread with an isolate and it would
-    // not be possible to correctly track no_safepoint_scope_depth for the
-    // thread in the constructor/destructor of MonitorLocker,
-    // so we create a MonitorLocker object which does not do any
-    // no_safepoint_scope_depth increments/decrements.
-    MonitorLocker ml(threads_lock(), false);
+  // We are about to associate the thread with an isolate group and it would
+  // not be possible to correctly track no_safepoint_scope_depth for the
+  // thread in the constructor/destructor of MonitorLocker,
+  // so we create a MonitorLocker object which does not do any
+  // no_safepoint_scope_depth increments/decrements.
+  MonitorLocker ml(group()->threads_lock(), false);
 
-    // Check to make sure we don't already have a mutator thread.
-    if (is_mutator && scheduled_mutator_thread_ != nullptr) {
-      return nullptr;
-    }
-
-    // If a safepoint operation is in progress wait for it
-    // to finish before scheduling this thread in.
-    while (!bypass_safepoint && safepoint_handler()->SafepointInProgress()) {
-      ml.Wait();
-    }
-
-    // Now get a free Thread structure.
-    thread = thread_registry()->GetFreeThreadLocked(this, is_mutator);
-    ASSERT(thread != nullptr);
-
-    thread->ResetHighWatermark();
-
-    // Set up other values and set the TLS value.
-    thread->isolate_ = this;
-    ASSERT(heap() != nullptr);
-    thread->heap_ = heap();
-    thread->set_os_thread(os_thread);
-    ASSERT(thread->execution_state() == Thread::kThreadInNative);
-    thread->set_execution_state(Thread::kThreadInVM);
-    thread->set_safepoint_state(
-        Thread::SetBypassSafepoints(bypass_safepoint, 0));
-    thread->set_vm_tag(VMTag::kVMTagId);
-    ASSERT(thread->no_safepoint_scope_depth() == 0);
-    os_thread->set_thread(thread);
-    if (is_mutator) {
-      scheduled_mutator_thread_ = thread;
-    }
-    Thread::SetCurrent(thread);
-    os_thread->EnableThreadInterrupts();
+  // Check to make sure we don't already have a mutator thread.
+  if (is_mutator && scheduled_mutator_thread_ != nullptr) {
+    return nullptr;
   }
+
+  // NOTE: We cannot just use `Dart::vm_isolate() == this` here, since during
+  // VM startup it might not have been set at this point.
+  const bool is_vm_isolate =
+      Dart::vm_isolate() == nullptr || Dart::vm_isolate() == this;
+
+  // We lazily create a [Thread] structure for the mutator thread, but we'll
+  // reuse it until the death of the isolate.
+  Thread* existing_mutator_thread = is_mutator ? mutator_thread_ : nullptr;
+
+  // Schedule the thread into the isolate by associating a 'Thread' structure
+  // with it (this is done while we are holding the thread registry lock).
+  Thread* thread =
+      group()->ScheduleThreadLocked(&ml, existing_mutator_thread, is_vm_isolate,
+                                    is_mutator, bypass_safepoint);
+  if (is_mutator) {
+    ASSERT(mutator_thread_ == nullptr || mutator_thread_ == thread);
+    mutator_thread_ = thread;
+    scheduled_mutator_thread_ = thread;
+  }
+  thread->isolate_ = this;
+
+  ASSERT(heap() != nullptr);
+  thread->heap_ = heap();
+
   return thread;
 }
 
@@ -2861,50 +3062,18 @@ void Isolate::UnscheduleThread(Thread* thread,
   // thread in the constructor/destructor of MonitorLocker,
   // so we create a MonitorLocker object which does not do any
   // no_safepoint_scope_depth increments/decrements.
-  MonitorLocker ml(threads_lock(), false);
+  MonitorLocker ml(group()->threads_lock(), false);
+
   if (is_mutator) {
     if (thread->sticky_error() != Error::null()) {
       ASSERT(sticky_error_ == Error::null());
       sticky_error_ = thread->StealStickyError();
     }
-  } else {
-    ASSERT(thread->api_top_scope_ == nullptr);
-    ASSERT(thread->zone() == nullptr);
-    ASSERT(thread->sticky_error() == Error::null());
-  }
-  if (!bypass_safepoint) {
-    // Ensure that the thread reports itself as being at a safepoint.
-    thread->EnterSafepoint();
-  }
-  OSThread* os_thread = thread->os_thread();
-  ASSERT(os_thread != nullptr);
-  os_thread->DisableThreadInterrupts();
-  os_thread->set_thread(nullptr);
-  OSThread::SetCurrent(os_thread);
-  if (is_mutator) {
+    ASSERT(mutator_thread_ == thread);
+    ASSERT(mutator_thread_ == scheduled_mutator_thread_);
     scheduled_mutator_thread_ = nullptr;
   }
-  // Even if we unschedule the mutator thread, e.g. via calling
-  // `Dart_ExitIsolate()` inside a native, we might still have one or more Dart
-  // stacks active, which e.g. GC marker threads want to visit.  So we don't
-  // clear out the isolate pointer if we are on the mutator thread.
-  //
-  // The [thread] structure for the mutator thread is kept alive in the thread
-  // registry even if the mutator thread is temporarily unscheduled.
-  //
-  // All other threads are not allowed to unschedule themselves and schedule
-  // again later on.
-  if (!is_mutator) {
-    thread->isolate_ = nullptr;
-  }
-  thread->heap_ = nullptr;
-  thread->set_os_thread(nullptr);
-  thread->set_execution_state(Thread::kThreadInNative);
-  thread->set_safepoint_state(Thread::SetAtSafepoint(true, 0));
-  thread->clear_pending_functions();
-  ASSERT(thread->no_safepoint_scope_depth() == 0);
-  // Return thread structure.
-  thread_registry()->ReturnThreadLocked(is_mutator, thread);
+  group()->UnscheduleThreadLocked(&ml, thread, is_mutator, bypass_safepoint);
 }
 
 static const char* NewConstChar(const char* chars) {
@@ -2924,7 +3093,8 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      bool errors_are_fatal,
                                      Dart_Port on_exit_port,
                                      Dart_Port on_error_port,
-                                     const char* debug_name)
+                                     const char* debug_name,
+                                     IsolateGroup* isolate_group)
     : isolate_(nullptr),
       parent_port_(parent_port),
       origin_id_(origin_id),
@@ -2936,6 +3106,7 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       class_name_(nullptr),
       function_name_(nullptr),
       debug_name_(debug_name),
+      isolate_group_(isolate_group),
       serialized_args_(nullptr),
       serialized_message_(message_buffer->StealMessage()),
       paused_(paused),
@@ -2967,7 +3138,8 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      bool errors_are_fatal,
                                      Dart_Port on_exit_port,
                                      Dart_Port on_error_port,
-                                     const char* debug_name)
+                                     const char* debug_name,
+                                     IsolateGroup* group)
     : isolate_(nullptr),
       parent_port_(parent_port),
       origin_id_(ILLEGAL_PORT),
@@ -2979,6 +3151,7 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       class_name_(nullptr),
       function_name_(nullptr),
       debug_name_(debug_name),
+      isolate_group_(group),
       serialized_args_(args_buffer->StealMessage()),
       serialized_message_(message_buffer->StealMessage()),
       isolate_flags_(),

@@ -88,12 +88,15 @@ bool SourceReport::ShouldSkipFunction(const Function& func) {
     }
   }
 
+  // These don't have unoptimized code and are only used for synthetic stubs.
+  if (func.ForceOptimize()) return true;
+
   switch (func.kind()) {
     case RawFunction::kRegularFunction:
     case RawFunction::kClosureFunction:
     case RawFunction::kImplicitClosureFunction:
     case RawFunction::kImplicitStaticGetter:
-    case RawFunction::kStaticFieldInitializer:
+    case RawFunction::kFieldInitializer:
     case RawFunction::kGetterFunction:
     case RawFunction::kSetterFunction:
     case RawFunction::kConstructor:
@@ -105,7 +108,11 @@ bool SourceReport::ShouldSkipFunction(const Function& func) {
       func.IsRedirectingFactory() || func.is_no_such_method_forwarder()) {
     return true;
   }
-  if (func.IsNonImplicitClosureFunction() &&
+  // Note that context_scope() remains null for closures declared in bytecode,
+  // because the same information is retrieved from the parent's local variable
+  // descriptors.
+  // See IsLocalFunction() case in BytecodeReader::ComputeLocalVarDescriptors.
+  if (!func.is_declared_in_bytecode() && func.IsNonImplicitClosureFunction() &&
       (func.context_scope() == ContextScope::null())) {
     // TODO(iposva): This can arise if we attempt to compile an inner function
     // before we have compiled its enclosing function or if the enclosing
@@ -333,13 +340,39 @@ void SourceReport::PrintPossibleBreakpointsData(JSONObject* jsobj,
     const Bytecode& bytecode = Bytecode::Handle(func.bytecode());
     ASSERT(!bytecode.IsNull());
     kernel::BytecodeSourcePositionsIterator iter(zone(), bytecode);
-    while (iter.MoveNext()) {
-      const TokenPosition token_pos = iter.TokenPos();
-      if ((token_pos < begin_pos) || (token_pos > end_pos)) {
-        // Does not correspond to a valid source position.
-        continue;
+    intptr_t token_offset = -1;
+    uword pc_offset = kUwordMax;
+    // Ignore all possible breakpoint positions until the first DebugCheck
+    // opcode of the function.
+    const uword debug_check_pc = bytecode.GetFirstDebugCheckOpcodePc();
+    if (debug_check_pc != 0) {
+      const uword debug_check_pc_offset =
+          debug_check_pc - bytecode.PayloadStart();
+      while (iter.MoveNext()) {
+        if (pc_offset != kUwordMax) {
+          // Check that there is at least one 'debug checked' opcode in the last
+          // source position range.
+          if (bytecode.GetDebugCheckedOpcodeReturnAddress(
+                  pc_offset, iter.PcOffset()) != 0) {
+            possible[token_offset] = true;
+          }
+          pc_offset = kUwordMax;
+        }
+        const TokenPosition token_pos = iter.TokenPos();
+        if ((token_pos < begin_pos) || (token_pos > end_pos)) {
+          // Does not correspond to a valid source position.
+          continue;
+        }
+        if (iter.PcOffset() < debug_check_pc_offset) {
+          // No breakpoints in prologue.
+          continue;
+        }
+        pc_offset = iter.PcOffset();
+        token_offset = token_pos.Pos() - begin_pos.Pos();
       }
-      intptr_t token_offset = token_pos.Pos() - begin_pos.Pos();
+    }
+    if (pc_offset != kUwordMax && bytecode.GetDebugCheckedOpcodeReturnAddress(
+                                      pc_offset, bytecode.Size()) != 0) {
       possible[token_offset] = true;
     }
   } else {
@@ -440,7 +473,12 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
   Code& code = Code::Handle(zone(), func.unoptimized_code());
   Bytecode& bytecode = Bytecode::Handle(zone());
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  if (FLAG_enable_interpreter && code.IsNull() && func.HasBytecode()) {
+  if (FLAG_enable_interpreter && !func.HasCode() && func.HasBytecode()) {
+    // When the bytecode of a function is loaded, the function code is not null,
+    // but pointing to the stub to interpret the bytecode. The various Print
+    // functions below take code as an argument and know to process the bytecode
+    // if code is null.
+    code = Code::null();  // Ignore installed stub to interpret bytecode.
     bytecode = func.bytecode();
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
@@ -460,7 +498,8 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
       }
       code = func.unoptimized_code();
 #if !defined(DART_PRECOMPILED_RUNTIME)
-      if (FLAG_enable_interpreter && code.IsNull() && func.HasBytecode()) {
+      if (FLAG_enable_interpreter && !func.HasCode() && func.HasBytecode()) {
+        code = Code::null();  // Ignore installed stub to interpret bytecode.
         bytecode = func.bytecode();
       }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
@@ -479,31 +518,53 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
   // We skip compiled async functions.  Once an async function has
   // been compiled, there is another function with the same range which
   // actually contains the user code.
-  if (func.IsAsyncFunction() || func.IsAsyncGenerator() ||
-      func.IsSyncGenerator()) {
-    return;
+  if (!func.IsAsyncFunction() && !func.IsAsyncGenerator() &&
+      !func.IsSyncGenerator()) {
+    JSONObject range(jsarr);
+    range.AddProperty("scriptIndex", GetScriptIndex(script));
+    range.AddProperty("startPos", begin_pos);
+    range.AddProperty("endPos", end_pos);
+    range.AddProperty("compiled", true);  // bytecode or code.
+
+    if (IsReportRequested(kCallSites)) {
+      PrintCallSitesData(&range, func, code);
+    }
+    if (IsReportRequested(kCoverage)) {
+      PrintCoverageData(&range, func, code);
+    }
+    if (IsReportRequested(kPossibleBreakpoints)) {
+      PrintPossibleBreakpointsData(&range, func, code);
+    }
+    if (IsReportRequested(kProfile)) {
+      ProfileFunction* profile_function = profile_.FindFunction(func);
+      if ((profile_function != NULL) &&
+          (profile_function->NumSourcePositions() > 0)) {
+        PrintProfileData(&range, profile_function);
+      }
+    }
   }
 
-  JSONObject range(jsarr);
-  range.AddProperty("scriptIndex", GetScriptIndex(script));
-  range.AddProperty("startPos", begin_pos);
-  range.AddProperty("endPos", end_pos);
-  range.AddProperty("compiled", true);  // bytecode or code.
-
-  if (IsReportRequested(kCallSites)) {
-    PrintCallSitesData(&range, func, code);
-  }
-  if (IsReportRequested(kCoverage)) {
-    PrintCoverageData(&range, func, code);
-  }
-  if (IsReportRequested(kPossibleBreakpoints)) {
-    PrintPossibleBreakpointsData(&range, func, code);
-  }
-  if (IsReportRequested(kProfile)) {
-    ProfileFunction* profile_function = profile_.FindFunction(func);
-    if ((profile_function != NULL) &&
-        (profile_function->NumSourcePositions() > 0)) {
-      PrintProfileData(&range, profile_function);
+  // Visit the closures declared in a bytecode function by traversing its object
+  // pool, because they do not appear in the object store's list of closures.
+  // Since local functions share the object pool, only traverse the pool once,
+  // i.e. when func is the outermost function.
+  if (!bytecode.IsNull() && !func.IsLocalFunction()) {
+    const ObjectPool& pool = ObjectPool::Handle(zone(), bytecode.object_pool());
+    Object& object = Object::Handle(zone());
+    Function& closure = Function::Handle(zone());
+    for (intptr_t i = 0; i < pool.Length(); i++) {
+      ObjectPool::EntryType entry_type = pool.TypeAt(i);
+      if (entry_type != ObjectPool::EntryType::kTaggedObject) {
+        continue;
+      }
+      object = pool.ObjectAt(i);
+      if (object.IsFunction()) {
+        closure ^= object.raw();
+        if (closure.kind() == RawFunction::kClosureFunction &&
+            closure.IsLocalFunction()) {
+          VisitFunction(jsarr, closure);
+        }
+      }
     }
   }
 }
@@ -533,19 +594,20 @@ void SourceReport::VisitLibrary(JSONArray* jsarr, const Library& lib) {
           script = cls.script();
           range.AddProperty("scriptIndex", GetScriptIndex(script));
           range.AddProperty("startPos", cls.token_pos());
-          range.AddProperty("endPos", cls.ComputeEndTokenPos());
+          range.AddProperty("endPos", cls.end_token_pos());
           range.AddProperty("compiled", false);
           range.AddProperty("error", err);
           continue;
         }
         ASSERT(cls.is_finalized());
       } else {
+        cls.EnsureDeclarationLoaded();
         // Emit one range for the whole uncompiled class.
         JSONObject range(jsarr);
         script = cls.script();
         range.AddProperty("scriptIndex", GetScriptIndex(script));
         range.AddProperty("startPos", cls.token_pos());
-        range.AddProperty("endPos", cls.ComputeEndTokenPos());
+        range.AddProperty("endPos", cls.end_token_pos());
         range.AddProperty("compiled", false);
         continue;
       }
@@ -566,6 +628,8 @@ void SourceReport::VisitLibrary(JSONArray* jsarr, const Library& lib) {
 }
 
 void SourceReport::VisitClosures(JSONArray* jsarr) {
+  // Note that closures declared in bytecode are not visited here, but in
+  // VisitFunction while traversing the object pool of their owner functions.
   const GrowableObjectArray& closures = GrowableObjectArray::Handle(
       thread()->isolate()->object_store()->closure_functions());
 

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: mod1:Specializer=[Modulo]*/
+/*member: mod1:Specializer=[Modulo]*/
 @pragma('dart2js:noInline')
 mod1(param) {
   var a = param ? 0xFFFFFFFF : 1;
@@ -11,7 +11,7 @@ mod1(param) {
   // absent: '$mod'
 }
 
-/*element: mod2:Specializer=[!Modulo]*/
+/*member: mod2:Specializer=[!Modulo]*/
 @pragma('dart2js:noInline')
 mod2(param) {
   var a = param ? 0xFFFFFFFF : -0.0;
@@ -21,7 +21,7 @@ mod2(param) {
   // absent: ' % 2'
 }
 
-/*element: mod3:Specializer=[Modulo]*/
+/*member: mod3:Specializer=[Modulo]*/
 @pragma('dart2js:noInline')
 mod3(param) {
   var a = param ? 0xFFFFFFFF : -0.0;
@@ -31,7 +31,7 @@ mod3(param) {
   // absent: '$mod'
 }
 
-/*element: rem1:Specializer=[Remainder]*/
+/*member: rem1:Specializer=[Remainder]*/
 @pragma('dart2js:noInline')
 rem1(param) {
   var a = param ? 0xFFFFFFFF : 1;
@@ -41,7 +41,7 @@ rem1(param) {
   // absent: 'remainder'
 }
 
-/*element: rem2:Specializer=[Remainder]*/
+/*member: rem2:Specializer=[Remainder]*/
 @pragma('dart2js:noInline')
 rem2(param) {
   var a = param ? 123.4 : -1;
@@ -51,7 +51,7 @@ rem2(param) {
   // absent: 'remainder'
 }
 
-/*element: rem3:Specializer=[!Remainder]*/
+/*member: rem3:Specializer=[!Remainder]*/
 @pragma('dart2js:noInline')
 rem3(param) {
   var a = param ? 123 : null;

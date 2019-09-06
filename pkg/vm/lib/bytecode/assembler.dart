@@ -79,6 +79,12 @@ class BytecodeAssembler {
     }
   }
 
+  void emitYieldPointSourcePosition() {
+    if (!isUnreachable) {
+      sourcePositions.addYieldPoint(offset, currentSourcePosition);
+    }
+  }
+
   void _emitByte(int abyte) {
     assert(_isUint8(abyte));
     bytecode.add(abyte);
@@ -282,7 +288,6 @@ class BytecodeAssembler {
   }
 
   void emitJump(Label label) {
-    emitSourcePosition();
     _emitJumpInstruction(Opcode.kJump, label);
     isUnreachable = true;
   }
@@ -317,6 +322,10 @@ class BytecodeAssembler {
 
   void emitJumpIfNotNull(Label label) {
     _emitJumpInstruction(Opcode.kJumpIfNotNull, label);
+  }
+
+  void emitJumpIfUnchecked(Label label) {
+    _emitJumpInstruction(Opcode.kJumpIfUnchecked, label);
   }
 
   void emitReturnTOS() {
@@ -354,12 +363,10 @@ class BytecodeAssembler {
   }
 
   void emitStoreLocal(int rx) {
-    emitSourcePosition();
     _emitInstructionX(Opcode.kStoreLocal, rx);
   }
 
   void emitPopLocal(int rx) {
-    emitSourcePosition();
     _emitInstructionX(Opcode.kPopLocal, rx);
   }
 
@@ -373,6 +380,16 @@ class BytecodeAssembler {
     _emitInstructionDF(Opcode.kInterfaceCall, rd, rf);
   }
 
+  void emitInstantiatedInterfaceCall(int rd, int rf) {
+    emitSourcePosition();
+    _emitInstructionDF(Opcode.kInstantiatedInterfaceCall, rd, rf);
+  }
+
+  void emitUncheckedClosureCall(int rd, int rf) {
+    emitSourcePosition();
+    _emitInstructionDF(Opcode.kUncheckedClosureCall, rd, rf);
+  }
+
   void emitUncheckedInterfaceCall(int rd, int rf) {
     emitSourcePosition();
     _emitInstructionDF(Opcode.kUncheckedInterfaceCall, rd, rf);
@@ -384,17 +401,16 @@ class BytecodeAssembler {
   }
 
   void emitNativeCall(int rd) {
-    emitSourcePosition();
     _emitInstructionD(Opcode.kNativeCall, rd);
+  }
+
+  void emitLoadStatic(int rd) {
+    _emitInstructionD(Opcode.kLoadStatic, rd);
   }
 
   void emitStoreStaticTOS(int rd) {
     emitSourcePosition();
     _emitInstructionD(Opcode.kStoreStaticTOS, rd);
-  }
-
-  void emitPushStatic(int rd) {
-    _emitInstructionD(Opcode.kPushStatic, rd);
   }
 
   void emitCreateArrayTOS() {
@@ -506,6 +522,11 @@ class BytecodeAssembler {
   void emitCheckStack(int ra) {
     emitSourcePosition();
     _emitInstructionA(Opcode.kCheckStack, ra);
+  }
+
+  void emitDebugCheck() {
+    emitSourcePosition();
+    _emitInstruction0(Opcode.kDebugCheck);
   }
 
   void emitCheckFunctionTypeArgs(int ra, int re) {

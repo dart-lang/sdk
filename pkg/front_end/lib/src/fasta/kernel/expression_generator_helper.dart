@@ -22,8 +22,7 @@ import 'constness.dart' show Constness;
 
 import 'forest.dart' show Forest;
 
-import 'kernel_builder.dart'
-    show Declaration, KernelTypeBuilder, PrefixBuilder, UnresolvedType;
+import 'kernel_builder.dart' show Builder, PrefixBuilder, UnresolvedType;
 
 import 'kernel_ast_api.dart'
     show
@@ -40,11 +39,7 @@ import 'kernel_ast_api.dart'
         TypeParameter;
 
 import 'kernel_builder.dart'
-    show
-        KernelPrefixBuilder,
-        LibraryBuilder,
-        PrefixBuilder,
-        TypeDeclarationBuilder;
+    show PrefixBuilder, LibraryBuilder, TypeDeclarationBuilder;
 
 abstract class ExpressionGeneratorHelper implements InferenceHelper {
   LibraryBuilder get library;
@@ -102,7 +97,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   StaticGet makeStaticGet(Member readTarget, Token token);
 
   Expression wrapInDeferredCheck(
-      Expression expression, KernelPrefixBuilder prefix, int charOffset);
+      Expression expression, PrefixBuilder prefix, int charOffset);
 
   bool isIdentical(Member member);
 
@@ -115,18 +110,17 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       Member interfaceTarget});
 
   Expression buildConstructorInvocation(
-      TypeDeclarationBuilder<KernelTypeBuilder, DartType> type,
+      TypeDeclarationBuilder type,
       Token nameToken,
       Token nameLastToken,
       Arguments arguments,
       String name,
-      List<UnresolvedType<KernelTypeBuilder>> typeArguments,
+      List<UnresolvedType> typeArguments,
       int charOffset,
       Constness constness);
 
-  UnresolvedType<KernelTypeBuilder> validateTypeUse(
-      UnresolvedType<KernelTypeBuilder> unresolved,
-      bool nonInstanceAccessIsError);
+  UnresolvedType validateTypeUse(
+      UnresolvedType unresolved, bool nonInstanceAccessIsError);
 
   void addProblemErrorIfConst(Message message, int charOffset, int length);
 
@@ -144,14 +138,13 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   Expression evaluateArgumentsBefore(
       Arguments arguments, Expression expression);
 
-  DartType buildDartType(UnresolvedType<KernelTypeBuilder> unresolvedType,
+  DartType buildDartType(UnresolvedType unresolvedType,
       {bool nonInstanceAccessIsError});
 
-  List<DartType> buildDartTypeArguments(
-      List<UnresolvedType<KernelTypeBuilder>> unresolvedTypes);
+  List<DartType> buildDartTypeArguments(List<UnresolvedType> unresolvedTypes);
 
   void reportDuplicatedDeclaration(
-      Declaration existing, String name, int charOffset);
+      Builder existing, String name, int charOffset);
 
   Expression wrapSyntheticExpression(Expression node, int charOffset);
 

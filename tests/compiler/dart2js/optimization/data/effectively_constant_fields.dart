@@ -13,7 +13,7 @@ class Class1 {
   var field3 = 0;
 }
 
-/*element: method1:
+/*member: method1:
  ConstantFieldGet=[name=Class1.field1&value=IntConstant(0)],
  FieldGet=[]
 */
@@ -22,7 +22,7 @@ method1(Class1 c) {
   return c.field1;
 }
 
-/*element: method2:FieldGet=[name=Class1.field2]*/
+/*member: method2:FieldGet=[name=Class1.field2]*/
 @pragma('dart2js:noInline')
 method2(Class1 c) {
   return c.field2;
@@ -43,7 +43,7 @@ class Class3 {
   int Function() field4 = _field4;
 }
 
-/*element: method4:
+/*member: method4:
  ConstantFieldCall=[name=Class3.field4&value=FunctionConstant(_field4)],
  FieldCall=[]
 */
@@ -52,7 +52,7 @@ method4(Class3 c) {
   return c.field4();
 }
 
-/*element: method6:
+/*member: method6:
  ConstantFieldGet=[name=Class1.field1&value=IntConstant(0)],
  FieldGet=[name=<null-guard>]
 */
@@ -61,7 +61,7 @@ method6(Class1 c) {
   return c.field1;
 }
 
-/*element: method7:
+/*member: method7:
  ConstantFieldCall=[name=Class3.field4&value=FunctionConstant(_field4)],
  FieldCall=[name=<null-guard>]
 */
