@@ -73,7 +73,7 @@ void BytecodeScopeBuilder::BuildScopes() {
 
       // Type check all parameters by default.
       // This may be overridden with parameter flags in
-      // BytecodeReaderHelper::ParseImplicitClosureFunction.
+      // BytecodeReaderHelper::ParseForwarderFunction.
       AddParameters(function, LocalVariable::kDoTypeCheck);
       break;
     }
@@ -114,7 +114,7 @@ void BytecodeScopeBuilder::BuildScopes() {
 
       // Type check all parameters by default.
       // This may be overridden with parameter flags in
-      // BytecodeReaderHelper::ParseImplicitClosureFunction.
+      // BytecodeReaderHelper::ParseForwarderFunction.
       AddParameters(function, LocalVariable::kDoTypeCheck);
       break;
     }

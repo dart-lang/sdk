@@ -9,6 +9,7 @@
 
 #include "lib/invocation_mirror.h"
 #include "platform/utils.h"
+#include "vm/bit_vector.h"
 #include "vm/bootstrap.h"
 #include "vm/class_finalizer.h"
 #include "vm/compiler/aot/precompiler.h"
@@ -314,6 +315,33 @@ void ParsedFunction::AllocateBytecodeVariables(intptr_t num_stack_locals) {
   ASSERT(!function().IsIrregexpFunction());
   first_parameter_index_ = VariableIndex(function().num_fixed_parameters());
   num_stack_locals_ = num_stack_locals;
+}
+
+void ParsedFunction::SetCovariantParameters(
+    const BitVector* covariant_parameters) {
+  ASSERT(covariant_parameters_ == nullptr);
+  ASSERT(covariant_parameters->length() == function_.NumParameters());
+  covariant_parameters_ = covariant_parameters;
+}
+
+void ParsedFunction::SetGenericCovariantImplParameters(
+    const BitVector* generic_covariant_impl_parameters) {
+  ASSERT(generic_covariant_impl_parameters_ == nullptr);
+  ASSERT(generic_covariant_impl_parameters->length() ==
+         function_.NumParameters());
+  generic_covariant_impl_parameters_ = generic_covariant_impl_parameters;
+}
+
+bool ParsedFunction::IsCovariantParameter(intptr_t i) const {
+  ASSERT(covariant_parameters_ != nullptr);
+  ASSERT((i >= 0) && (i < function_.NumParameters()));
+  return covariant_parameters_->Contains(i);
+}
+
+bool ParsedFunction::IsGenericCovariantImplParameter(intptr_t i) const {
+  ASSERT(generic_covariant_impl_parameters_ != nullptr);
+  ASSERT((i >= 0) && (i < function_.NumParameters()));
+  return generic_covariant_impl_parameters_->Contains(i);
 }
 
 }  // namespace dart

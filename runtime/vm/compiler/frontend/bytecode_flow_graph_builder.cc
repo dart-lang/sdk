@@ -234,6 +234,14 @@ LocalVariable* BytecodeFlowGraphBuilder::AllocateParameter(
       TokenPosition::kNoSource, TokenPosition::kNoSource, name, type);
   param_var->set_index(var_index);
 
+  if (!function().IsNonImplicitClosureFunction() &&
+      (function().is_static() ||
+       ((function().name() != Symbols::Call().raw()) &&
+        !parsed_function()->IsCovariantParameter(param_index) &&
+        !parsed_function()->IsGenericCovariantImplParameter(param_index)))) {
+    param_var->set_type_check_mode(LocalVariable::kTypeCheckedByCaller);
+  }
+
   if (var_index.value() <= 0) {
     local_vars_[-var_index.value()] = param_var;
   }

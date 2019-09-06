@@ -30,6 +30,7 @@ class ScopeBuildingResult;
 }  // namespace kernel
 
 class ArgumentsDescriptor;
+class BitVector;
 class Isolate;
 class LocalScope;
 class LocalVariable;
@@ -226,6 +227,28 @@ class ParsedFunction : public ZoneAllocated {
     return default_function_type_arguments_;
   }
 
+  // Remembers the set of covariant parameters.
+  // [covariant_parameters] is a bitvector of function.NumParameters() length.
+  void SetCovariantParameters(const BitVector* covariant_parameters);
+
+  // Remembers the set of generic-covariant-impl parameters.
+  // [covariant_parameters] is a bitvector of function.NumParameters() length.
+  void SetGenericCovariantImplParameters(
+      const BitVector* generic_covariant_impl_parameters);
+
+  bool HasCovariantParametersInfo() const {
+    return covariant_parameters_ != nullptr;
+  }
+
+  // Returns true if i-th parameter is covariant.
+  // SetCovariantParameters should be called before using this method.
+  bool IsCovariantParameter(intptr_t i) const;
+
+  // Returns true if i-th parameter is generic-covariant-impl.
+  // SetGenericCovariantImplParameters should be called before using this
+  // method.
+  bool IsGenericCovariantImplParameter(intptr_t i) const;
+
  private:
   Thread* thread_;
   const Function& function_;
@@ -255,6 +278,9 @@ class ParsedFunction : public ZoneAllocated {
   kernel::ScopeBuildingResult* kernel_scopes_;
 
   TypeArguments& default_function_type_arguments_;
+
+  const BitVector* covariant_parameters_ = nullptr;
+  const BitVector* generic_covariant_impl_parameters_ = nullptr;
 
   friend class Parser;
   DISALLOW_COPY_AND_ASSIGN(ParsedFunction);

@@ -47,20 +47,6 @@ void BytecodeMetadataHelper::ParseBytecodeFunction(
   const Function& function = parsed_function->function();
   ASSERT(function.is_declared_in_bytecode());
 
-  // No parsing is needed if function has bytecode attached.
-  // With one exception: implicit functions with artificial are still handled
-  // by shared flow graph builder which requires scopes/parsing.
-  if (function.HasBytecode() &&
-      (function.kind() != RawFunction::kImplicitGetter) &&
-      (function.kind() != RawFunction::kImplicitSetter) &&
-      (function.kind() != RawFunction::kImplicitStaticGetter) &&
-      (function.kind() != RawFunction::kMethodExtractor) &&
-      (function.kind() != RawFunction::kInvokeFieldDispatcher) &&
-      (function.kind() != RawFunction::kDynamicInvocationForwarder) &&
-      (function.kind() != RawFunction::kNoSuchMethodDispatcher)) {
-    return;
-  }
-
   BytecodeComponentData bytecode_component(
       &Array::Handle(helper_->zone_, GetBytecodeComponent()));
   BytecodeReaderHelper bytecode_reader(&H, active_class_, &bytecode_component);
@@ -231,7 +217,11 @@ void BytecodeReaderHelper::ReadCode(const Function& function,
   ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(!function.IsImplicitGetterFunction() &&
          !function.IsImplicitSetterFunction());
-  ASSERT(code_offset > 0);
+  if (code_offset == 0) {
+    FATAL2("Function %s (kind %s) doesn't have bytecode",
+           function.ToFullyQualifiedCString(),
+           Function::KindToCString(function.kind()));
+  }
 
   AlternativeReadingScope alt(&reader_, code_offset);
   // This scope is needed to set active_class_->enclosing_ which is used to
@@ -2908,41 +2898,37 @@ RawObject* BytecodeReaderHelper::BuildParameterDescriptor(
 void BytecodeReaderHelper::ParseBytecodeFunction(
     ParsedFunction* parsed_function,
     const Function& function) {
+  // Handle function kinds which don't have a user-defined body first.
   switch (function.kind()) {
     case RawFunction::kImplicitClosureFunction:
       ParseForwarderFunction(parsed_function, function,
                              Function::Handle(Z, function.parent_function()));
-      break;
+      return;
     case RawFunction::kDynamicInvocationForwarder:
       ParseForwarderFunction(
           parsed_function, function,
           Function::Handle(Z,
                            function.GetTargetOfDynamicInvocationForwarder()));
-      break;
+      return;
     case RawFunction::kImplicitGetter:
     case RawFunction::kImplicitSetter:
-      BytecodeScopeBuilder(parsed_function).BuildScopes();
-      break;
-    case RawFunction::kImplicitStaticGetter: {
-      if (IsStaticFieldGetterGeneratedAsInitializer(function, Z)) {
-        ReadCode(function, function.bytecode_offset());
-      } else {
-        BytecodeScopeBuilder(parsed_function).BuildScopes();
-      }
-      break;
-    }
-    case RawFunction::kFieldInitializer:
-      ReadCode(function, function.bytecode_offset());
-      break;
     case RawFunction::kMethodExtractor:
       BytecodeScopeBuilder(parsed_function).BuildScopes();
-      break;
+      return;
+    case RawFunction::kImplicitStaticGetter: {
+      if (IsStaticFieldGetterGeneratedAsInitializer(function, Z)) {
+        break;
+      } else {
+        BytecodeScopeBuilder(parsed_function).BuildScopes();
+        return;
+      }
+    }
     case RawFunction::kRegularFunction:
     case RawFunction::kGetterFunction:
     case RawFunction::kSetterFunction:
     case RawFunction::kClosureFunction:
     case RawFunction::kConstructor:
-      ReadCode(function, function.bytecode_offset());
+    case RawFunction::kFieldInitializer:
       break;
     case RawFunction::kNoSuchMethodDispatcher:
     case RawFunction::kInvokeFieldDispatcher:
@@ -2951,6 +2937,28 @@ void BytecodeReaderHelper::ParseBytecodeFunction(
     case RawFunction::kFfiTrampoline:
       UNREACHABLE();
       break;
+  }
+
+  // We only reach here if function has a bytecode body. Make sure it is
+  // loaded and collect information about covariant parameters.
+
+  if (!function.HasBytecode()) {
+    ReadCode(function, function.bytecode_offset());
+    ASSERT(function.HasBytecode());
+  }
+
+  // TODO(alexmarkov): simplify access to covariant / generic_covariant_impl
+  //  flags of parameters so we won't need to read them separately.
+  if (!parsed_function->HasCovariantParametersInfo()) {
+    const intptr_t num_params = function.NumParameters();
+    BitVector* covariant_parameters = new (Z) BitVector(Z, num_params);
+    BitVector* generic_covariant_impl_parameters =
+        new (Z) BitVector(Z, num_params);
+    ReadParameterCovariance(function, covariant_parameters,
+                            generic_covariant_impl_parameters);
+    parsed_function->SetCovariantParameters(covariant_parameters);
+    parsed_function->SetGenericCovariantImplParameters(
+        generic_covariant_impl_parameters);
   }
 }
 

@@ -1066,12 +1066,6 @@ CompileType ParameterInstr::ComputeType() const {
     return CompileType(CompileType::kNonNullable, cid, &type);
   }
 
-  if (function.HasBytecode() &&
-      graph_entry->parsed_function().scope() == nullptr) {
-    // TODO(alexmarkov): Consider adding scope.
-    return CompileType::Dynamic();
-  }
-
   const bool is_unchecked_entry_param =
       graph_entry->unchecked_entry() == block_;
 
@@ -1079,8 +1073,13 @@ CompileType ParameterInstr::ComputeType() const {
     LocalScope* scope = graph_entry->parsed_function().scope();
     // Note: in catch-blocks we have ParameterInstr for each local variable
     // not only for normal parameters.
-    if (index() < scope->num_variables()) {
-      const LocalVariable* param = scope->VariableAt(index());
+    const LocalVariable* param = nullptr;
+    if (scope != nullptr && (index() < scope->num_variables())) {
+      param = scope->VariableAt(index());
+    } else if (index() < function.NumParameters()) {
+      param = graph_entry->parsed_function().RawParameterVariable(index());
+    }
+    if (param != nullptr) {
       CompileType* inferred_type = NULL;
       if (!block_->IsCatchBlockEntry()) {
         inferred_type = param->parameter_type();
