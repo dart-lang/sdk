@@ -15,7 +15,9 @@ import 'package:analyzer/file_system/file_system.dart' as file_system;
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/constant/potentially_constant.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisErrorInfo, AnalysisErrorInfoImpl, AnalysisOptions, Logger;
@@ -280,6 +282,14 @@ class LinterContextImpl implements LinterContext {
     if (element == null || !element.isConst) {
       return false;
     }
+
+    // Ensure that dependencies (e.g. default parameter values) are computed.
+    var implElement = element;
+    if (element is ConstructorMember) {
+      implElement = element.baseElement;
+    }
+    (implElement as ConstructorElementImpl).computeConstantDependencies();
+
     //
     // Verify that the evaluation of the constructor would not produce an
     // exception.

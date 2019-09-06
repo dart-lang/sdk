@@ -2786,6 +2786,16 @@ class ConstructorElementImpl extends ExecutableElementImpl
     appendToWithName(buffer, name);
   }
 
+  /// Ensures that dependencies of this constructor, such as default values
+  /// of formal parameters, are evaluated.
+  void computeConstantDependencies() {
+    if (!isConstantEvaluated) {
+      AnalysisOptionsImpl analysisOptions = context.analysisOptions;
+      computeConstants(context.typeProvider, context.typeSystem,
+          context.declaredVariables, [this], analysisOptions.experimentStatus);
+    }
+  }
+
   @deprecated
   @override
   ConstructorDeclaration computeNode() =>
