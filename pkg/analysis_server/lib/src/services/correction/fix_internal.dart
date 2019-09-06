@@ -514,6 +514,7 @@ class FixProcessor extends BaseProcessor {
       await _addFix_importLibrary_withType();
     }
     if (errorCode == CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER) {
+      await _addFix_undefinedClassAccessor_useSimilar();
       await _addFix_createGetter();
     }
     if (errorCode == StaticTypeWarningCode.UNDEFINED_METHOD) {
@@ -524,9 +525,15 @@ class FixProcessor extends BaseProcessor {
       await _addFix_undefinedMethod_create();
       await _addFix_undefinedFunction_create();
     }
+    if (errorCode == CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD) {
+      await _addFix_undefinedMethod_useSimilar();
+    }
     if (errorCode == StaticTypeWarningCode.UNDEFINED_SETTER) {
       await _addFix_undefinedClassAccessor_useSimilar();
       await _addFix_createField();
+    }
+    if (errorCode == CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER) {
+      await _addFix_undefinedClassAccessor_useSimilar();
     }
     if (errorCode == CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER) {
       await _addFix_convertFlutterChild();
@@ -3578,8 +3585,9 @@ class FixProcessor extends BaseProcessor {
       // prepare target
       Expression target = null;
       if (node.parent is PrefixedIdentifier) {
-        PrefixedIdentifier invocation = node.parent as PrefixedIdentifier;
-        target = invocation.prefix;
+        target = (node.parent as PrefixedIdentifier).prefix;
+      } else if (node.parent is PropertyAccess) {
+        target = (node.parent as PropertyAccess).target;
       }
       // find getter
       if (node.inGetterContext()) {
@@ -3613,6 +3621,11 @@ class FixProcessor extends BaseProcessor {
           ClassElement classElement = clazz.declaredElement;
           _updateFinderWithClassMembers(finder, classElement);
         }
+      } else if (target is ExtensionOverride) {
+        _updateFinderWithExtensionMembers(finder, target.staticElement);
+      } else if (target is Identifier &&
+          target.staticElement is ExtensionElement) {
+        _updateFinderWithExtensionMembers(finder, target.staticElement);
       } else {
         DartType type = target.staticType;
         if (type is InterfaceType) {
@@ -3622,7 +3635,7 @@ class FixProcessor extends BaseProcessor {
       }
       // if we have close enough element, suggest to use it
       if (finder._element != null) {
-        String closestName = finder._element.name;
+        String closestName = finder._element.displayName;
         var changeBuilder = _newDartChangeBuilder();
         await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
           builder.addSimpleReplacement(range.node(node), closestName);
@@ -4450,6 +4463,13 @@ class FixProcessor extends BaseProcessor {
     if (clazz != null) {
       List<Element> members = getMembers(clazz);
       finder._updateList(members);
+    }
+  }
+
+  void _updateFinderWithExtensionMembers(
+      _ClosestElementFinder finder, ExtensionElement element) {
+    if (element != null) {
+      finder._updateList(getExtensionMembers(element));
     }
   }
 
