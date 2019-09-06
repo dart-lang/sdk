@@ -61,23 +61,95 @@ abstract class BaseProcessor {
       (session.analysisContext.analysisOptions as AnalysisOptionsImpl)
           .experimentStatus;
 
-  /// This method does nothing, but we invoke it in places where Dart VM
-  /// coverage agent fails to provide coverage information - such as almost
-  /// all "return" statements.
-  ///
-  /// https://code.google.com/p/dart/issues/detail?id=19912
-  static void _coverageMarker() {}
-
-  /// Configures [utils] using given [target].
-  void configureTargetLocation(Object target) {
-    utils.targetClassElement = null;
-    if (target is AstNode) {
-      ClassDeclaration targetClassDeclaration =
-          target.thisOrAncestorOfType<ClassDeclaration>();
-      if (targetClassDeclaration != null) {
-        utils.targetClassElement = targetClassDeclaration.declaredElement;
+  Future<ChangeBuilder>
+      createBuilder_addTypeAnnotation_DeclaredIdentifier() async {
+    DeclaredIdentifier declaredIdentifier =
+        node.thisOrAncestorOfType<DeclaredIdentifier>();
+    if (declaredIdentifier == null) {
+      ForStatement forEach = node.thisOrAncestorMatching(
+          (node) => node is ForStatement && node.forLoopParts is ForEachParts);
+      ForEachParts forEachParts = forEach?.forLoopParts;
+      int offset = node.offset;
+      if (forEach != null &&
+          forEachParts.iterable != null &&
+          offset < forEachParts.iterable.offset) {
+        declaredIdentifier = forEachParts is ForEachPartsWithDeclaration
+            ? forEachParts.loopVariable
+            : null;
       }
     }
+    if (declaredIdentifier == null) {
+      _coverageMarker();
+      return null;
+    }
+    // Ensure that there isn't already a type annotation.
+    if (declaredIdentifier.type != null) {
+      _coverageMarker();
+      return null;
+    }
+    DartType type = declaredIdentifier.identifier.staticType;
+    if (type is! InterfaceType && type is! FunctionType) {
+      _coverageMarker();
+      return null;
+    }
+    _configureTargetLocation(node);
+
+    var changeBuilder = _newDartChangeBuilder();
+    bool validChange = true;
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      Token keyword = declaredIdentifier.keyword;
+      if (keyword.keyword == Keyword.VAR) {
+        builder.addReplacement(range.token(keyword), (DartEditBuilder builder) {
+          validChange = builder.writeType(type);
+        });
+      } else {
+        builder.addInsertion(declaredIdentifier.identifier.offset,
+            (DartEditBuilder builder) {
+          validChange = builder.writeType(type);
+          builder.write(' ');
+        });
+      }
+    });
+    return validChange ? changeBuilder : null;
+  }
+
+  Future<ChangeBuilder>
+      createBuilder_addTypeAnnotation_SimpleFormalParameter() async {
+    AstNode node = this.node;
+    // should be the name of a simple parameter
+    if (node is! SimpleIdentifier || node.parent is! SimpleFormalParameter) {
+      _coverageMarker();
+      return null;
+    }
+    SimpleIdentifier name = node;
+    SimpleFormalParameter parameter = node.parent;
+    // the parameter should not have a type
+    if (parameter.type != null) {
+      _coverageMarker();
+      return null;
+    }
+    // prepare the type
+    DartType type = parameter.declaredElement.type;
+    // TODO(scheglov) If the parameter is in a method declaration, and if the
+    // method overrides a method that has a type for the corresponding
+    // parameter, it would be nice to copy down the type from the overridden
+    // method.
+    if (type is! InterfaceType) {
+      _coverageMarker();
+      return null;
+    }
+    // prepare type source
+    _configureTargetLocation(node);
+
+    var changeBuilder = _newDartChangeBuilder();
+    bool validChange = true;
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      builder.addInsertion(name.offset, (DartEditBuilder builder) {
+        validChange = builder.writeType(type);
+        builder.write(' ');
+      });
+    });
+    return validChange ? changeBuilder : null;
   }
 
   Future<ChangeBuilder>
@@ -120,7 +192,7 @@ abstract class BaseProcessor {
       _coverageMarker();
       return null;
     }
-    configureTargetLocation(node);
+    _configureTargetLocation(node);
 
     var changeBuilder = _newDartChangeBuilder();
     bool validChange = true;
@@ -140,95 +212,66 @@ abstract class BaseProcessor {
     return validChange ? changeBuilder : null;
   }
 
-  Future<ChangeBuilder>
-      createBuilder_addTypeAnnotation_SimpleFormalParameter() async {
-    AstNode node = this.node;
-    // should be the name of a simple parameter
-    if (node is! SimpleIdentifier || node.parent is! SimpleFormalParameter) {
+  Future<ChangeBuilder> createBuilder_convertDocumentationIntoLine() async {
+    Comment comment = node.thisOrAncestorOfType<Comment>();
+    if (comment == null ||
+        !comment.isDocumentation ||
+        comment.tokens.length != 1) {
       _coverageMarker();
       return null;
     }
-    SimpleIdentifier name = node;
-    SimpleFormalParameter parameter = node.parent;
-    // the parameter should not have a type
-    if (parameter.type != null) {
+    Token token = comment.tokens.first;
+    if (token.type != TokenType.MULTI_LINE_COMMENT) {
       _coverageMarker();
       return null;
     }
-    // prepare the type
-    DartType type = parameter.declaredElement.type;
-    // TODO(scheglov) If the parameter is in a method declaration, and if the
-    // method overrides a method that has a type for the corresponding
-    // parameter, it would be nice to copy down the type from the overridden
-    // method.
-    if (type is! InterfaceType) {
-      _coverageMarker();
-      return null;
+    String text = token.lexeme;
+    List<String> lines = text.split('\n');
+    String prefix = utils.getNodePrefix(comment);
+    List<String> newLines = <String>[];
+    bool firstLine = true;
+    String linePrefix = '';
+    for (String line in lines) {
+      if (firstLine) {
+        firstLine = false;
+        String expectedPrefix = '/**';
+        if (!line.startsWith(expectedPrefix)) {
+          _coverageMarker();
+          return null;
+        }
+        line = line.substring(expectedPrefix.length).trim();
+        if (line.isNotEmpty) {
+          newLines.add('/// $line');
+          linePrefix = eol + prefix;
+        }
+      } else {
+        if (line.startsWith(prefix + ' */')) {
+          break;
+        }
+        String expectedPrefix = prefix + ' *';
+        if (!line.startsWith(expectedPrefix)) {
+          _coverageMarker();
+          return null;
+        }
+        line = line.substring(expectedPrefix.length);
+        if (line.isEmpty) {
+          newLines.add('$linePrefix///');
+        } else {
+          newLines.add('$linePrefix///$line');
+        }
+        linePrefix = eol + prefix;
+      }
     }
-    // prepare type source
-    configureTargetLocation(node);
 
     var changeBuilder = _newDartChangeBuilder();
-    bool validChange = true;
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addInsertion(name.offset, (DartEditBuilder builder) {
-        validChange = builder.writeType(type);
-        builder.write(' ');
+      builder.addReplacement(range.node(comment), (DartEditBuilder builder) {
+        for (String newLine in newLines) {
+          builder.write(newLine);
+        }
       });
     });
-    return validChange ? changeBuilder : null;
-  }
-
-  Future<ChangeBuilder>
-      createBuilder_addTypeAnnotation_DeclaredIdentifier() async {
-    DeclaredIdentifier declaredIdentifier =
-        node.thisOrAncestorOfType<DeclaredIdentifier>();
-    if (declaredIdentifier == null) {
-      ForStatement forEach = node.thisOrAncestorMatching(
-          (node) => node is ForStatement && node.forLoopParts is ForEachParts);
-      ForEachParts forEachParts = forEach?.forLoopParts;
-      int offset = node.offset;
-      if (forEach != null &&
-          forEachParts.iterable != null &&
-          offset < forEachParts.iterable.offset) {
-        declaredIdentifier = forEachParts is ForEachPartsWithDeclaration
-            ? forEachParts.loopVariable
-            : null;
-      }
-    }
-    if (declaredIdentifier == null) {
-      _coverageMarker();
-      return null;
-    }
-    // Ensure that there isn't already a type annotation.
-    if (declaredIdentifier.type != null) {
-      _coverageMarker();
-      return null;
-    }
-    DartType type = declaredIdentifier.identifier.staticType;
-    if (type is! InterfaceType && type is! FunctionType) {
-      _coverageMarker();
-      return null;
-    }
-    configureTargetLocation(node);
-
-    var changeBuilder = _newDartChangeBuilder();
-    bool validChange = true;
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      Token keyword = declaredIdentifier.keyword;
-      if (keyword.keyword == Keyword.VAR) {
-        builder.addReplacement(range.token(keyword), (DartEditBuilder builder) {
-          validChange = builder.writeType(type);
-        });
-      } else {
-        builder.addInsertion(declaredIdentifier.identifier.offset,
-            (DartEditBuilder builder) {
-          validChange = builder.writeType(type);
-          builder.write(' ');
-        });
-      }
-    });
-    return validChange ? changeBuilder : null;
+    return changeBuilder;
   }
 
   @protected
@@ -365,6 +408,25 @@ abstract class BaseProcessor {
     return node != null;
   }
 
+  /// Configures [utils] using given [target].
+  void _configureTargetLocation(Object target) {
+    utils.targetClassElement = null;
+    if (target is AstNode) {
+      ClassDeclaration targetClassDeclaration =
+          target.thisOrAncestorOfType<ClassDeclaration>();
+      if (targetClassDeclaration != null) {
+        utils.targetClassElement = targetClassDeclaration.declaredElement;
+      }
+    }
+  }
+
   DartChangeBuilder _newDartChangeBuilder() =>
       DartChangeBuilderImpl.forWorkspace(workspace);
+
+  /// This method does nothing, but we invoke it in places where Dart VM
+  /// coverage agent fails to provide coverage information - such as almost
+  /// all "return" statements.
+  ///
+  /// https://code.google.com/p/dart/issues/detail?id=19912
+  static void _coverageMarker() {}
 }

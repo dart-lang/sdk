@@ -628,6 +628,9 @@ class FixProcessor extends BaseProcessor {
         await _addFix_addConst();
         await _addFix_replaceNewWithConst();
       }
+      if (errorCode.name == LintNames.slash_for_doc_comments) {
+        await _addFix_convertDocumentationIntoLine();
+      }
       if (name == LintNames.type_init_formals) {
         await _addFix_removeTypeAnnotation();
       }
@@ -1245,6 +1248,11 @@ class FixProcessor extends BaseProcessor {
         }
       }
     }
+  }
+
+  Future<void> _addFix_convertDocumentationIntoLine() async {
+    final changeBuilder = await createBuilder_convertDocumentationIntoLine();
+    _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_TO_LINE_COMMENT);
   }
 
   Future<void> _addFix_convertFlutterChild() async {

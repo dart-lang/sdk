@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/assist.dart';
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -88,6 +89,22 @@ class A {
   mmm() {}
 }
 ''');
+  }
+
+  test_onText_no_assist_with_lint() async {
+    createAnalysisOptionsFile(lints: [LintNames.slash_for_doc_comments]);
+    verifyNoTestUnitErrors = false;
+    await resolveTestUnit('''
+class A {
+  /**
+   * AAAAAAA [int] AAAAAAA
+   * BBBBBBBB BBBB BBBB
+   * CCC [A] CCCCCCCCCCC
+   */
+  mmm() {}
+}
+''');
+    await assertNoAssist();
   }
 
   test_onText_hasFirstLine() async {

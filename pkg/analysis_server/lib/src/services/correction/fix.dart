@@ -185,6 +185,8 @@ class DartFixKind {
       const FixKind('CONVERT_FLUTTER_CHILD', 50, "Convert to children:");
   static const CONVERT_FLUTTER_CHILDREN =
       const FixKind('CONVERT_FLUTTER_CHILDREN', 50, "Convert to child:");
+  static const CONVERT_TO_LINE_COMMENT = const FixKind(
+      'CONVERT_TO_LINE_COMMENT', 50, "Convert to line documentation comment");
   static const CONVERT_TO_NAMED_ARGUMENTS = const FixKind(
       'CONVERT_TO_NAMED_ARGUMENTS', 50, "Convert to named arguments");
   static const CREATE_CLASS =

@@ -36,6 +36,8 @@ import 'change_type_annotation_test.dart' as change_type_annotation;
 import 'convert_flutter_child_test.dart' as convert_flutter_child;
 import 'convert_flutter_children_test.dart' as convert_flutter_children;
 import 'convert_to_named_arguments_test.dart' as convert_to_named_arguments;
+import 'convert_documentation_into_line_test.dart'
+    as convert_documentation_into_line;
 import 'create_class_test.dart' as create_class;
 import 'create_constructor_for_final_fields_test.dart'
     as create_constructor_for_final_field;
@@ -139,6 +141,7 @@ main() {
     change_to_nearest_precise_value.main();
     change_to_static_access.main();
     change_type_annotation.main();
+    convert_documentation_into_line.main();
     convert_flutter_child.main();
     convert_flutter_children.main();
     convert_to_named_arguments.main();

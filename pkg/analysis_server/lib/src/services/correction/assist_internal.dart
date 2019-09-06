@@ -64,7 +64,11 @@ class AssistProcessor extends BaseProcessor {
     await _addProposal_assignToLocalVariable();
     await _addProposal_convertClassToMixin();
     await _addProposal_convertDocumentationIntoBlock();
-    await _addProposal_convertDocumentationIntoLine();
+    if (!_containsErrorCode(
+      {LintNames.slash_for_doc_comments},
+    )) {
+      await _addProposal_convertDocumentationIntoLine();
+    }
     await _addProposal_convertIntoFinalField();
     await _addProposal_convertIntoGetter();
     await _addProposal_convertListConstructorToListLiteral();
@@ -464,64 +468,7 @@ class AssistProcessor extends BaseProcessor {
   }
 
   Future<void> _addProposal_convertDocumentationIntoLine() async {
-    Comment comment = node.thisOrAncestorOfType<Comment>();
-    if (comment == null ||
-        !comment.isDocumentation ||
-        comment.tokens.length != 1) {
-      _coverageMarker();
-      return;
-    }
-    Token token = comment.tokens.first;
-    if (token.type != TokenType.MULTI_LINE_COMMENT) {
-      _coverageMarker();
-      return;
-    }
-    String text = token.lexeme;
-    List<String> lines = text.split('\n');
-    String prefix = utils.getNodePrefix(comment);
-    List<String> newLines = <String>[];
-    bool firstLine = true;
-    String linePrefix = '';
-    for (String line in lines) {
-      if (firstLine) {
-        firstLine = false;
-        String expectedPrefix = '/**';
-        if (!line.startsWith(expectedPrefix)) {
-          _coverageMarker();
-          return;
-        }
-        line = line.substring(expectedPrefix.length).trim();
-        if (line.isNotEmpty) {
-          newLines.add('/// $line');
-          linePrefix = eol + prefix;
-        }
-      } else {
-        if (line.startsWith(prefix + ' */')) {
-          break;
-        }
-        String expectedPrefix = prefix + ' *';
-        if (!line.startsWith(expectedPrefix)) {
-          _coverageMarker();
-          return;
-        }
-        line = line.substring(expectedPrefix.length);
-        if (line.isEmpty) {
-          newLines.add('$linePrefix///');
-        } else {
-          newLines.add('$linePrefix///$line');
-        }
-        linePrefix = eol + prefix;
-      }
-    }
-
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addReplacement(range.node(comment), (DartEditBuilder builder) {
-        for (String newLine in newLines) {
-          builder.write(newLine);
-        }
-      });
-    });
+    final changeBuilder = await createBuilder_convertDocumentationIntoLine();
     _addAssistFromBuilder(
         changeBuilder, DartAssistKind.CONVERT_DOCUMENTATION_INTO_LINE);
   }
@@ -3713,20 +3660,6 @@ class AssistProcessor extends BaseProcessor {
       }
     }
     return true;
-  }
-
-  /**
-   * Configures [utils] using given [target].
-   */
-  void _configureTargetLocation(Object target) {
-    utils.targetClassElement = null;
-    if (target is AstNode) {
-      ClassDeclaration targetClassDeclaration =
-          target.thisOrAncestorOfType<ClassDeclaration>();
-      if (targetClassDeclaration != null) {
-        utils.targetClassElement = targetClassDeclaration.declaredElement;
-      }
-    }
   }
 
   bool _containsErrorCode(Set<String> errorCodes) {
