@@ -496,6 +496,7 @@ class FixProcessor extends BaseProcessor {
     }
     if (errorCode == StaticTypeWarningCode.UNDEFINED_FUNCTION) {
       await _addFix_createClass();
+      await _addFix_importLibrary_withExtension();
       await _addFix_importLibrary_withFunction();
       await _addFix_importLibrary_withType();
       await _addFix_undefinedFunction_useSimilar();

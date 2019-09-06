@@ -73,7 +73,28 @@ class ImportLibraryShowWithExtensionMethodsTest extends FixProcessorTest {
     super.setUp();
   }
 
-  test_package() async {
+  test_override_samePackage() async {
+    addSource('/home/test/lib/lib.dart', '''
+class A {}
+extension E on int {
+  String m() => '';
+}
+''');
+    await resolveTestUnit(r'''
+import 'lib.dart' show A;
+void f(A a) {
+  print('$a ${E(3).m()}');
+}
+''');
+    await assertHasFix(r'''
+import 'lib.dart' show A, E;
+void f(A a) {
+  print('$a ${E(3).m()}');
+}
+''');
+  }
+
+  test_static_samePackage() async {
     addSource('/home/test/lib/lib.dart', '''
 class A {}
 extension E on int {
