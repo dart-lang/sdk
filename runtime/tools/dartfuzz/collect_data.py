@@ -40,83 +40,96 @@ P_SHARD = re.compile(r".*make_a_fuzz_shard_(\d+)")
 
 
 def get_shard_links(uri):
-  links = []
-  resp = requests.get(uri)
-  soup = BeautifulSoup(resp.text, "html.parser")
-  for a in soup.findAll("a"):
-    if a.text == "raw":
-      href = a["href"]
-      if ("make_a_fuzz_shard" in href and
-          "__trigger__" not in href):
-        links.append(href)
-  return links
+    links = []
+    resp = requests.get(uri)
+    soup = BeautifulSoup(resp.text, "html.parser")
+    for a in soup.findAll("a"):
+        if a.text == "raw":
+            href = a["href"]
+            if ("make_a_fuzz_shard" in href and "__trigger__" not in href):
+                links.append(href)
+    return links
 
 
 def print_reencoded(text):
-  # Re-encoding avoids breaking some terminals.
-  print(text.encode("ascii", errors="ignore").decode("unicode-escape"))
+    # Re-encoding avoids breaking some terminals.
+    print(text.encode("ascii", errors="ignore").decode("unicode-escape"))
 
 
 def print_output_all(text):
-  print_reencoded(text)
+    print_reencoded(text)
 
 
-def print_output_div(shard, text):
-  sys.stderr.write("Shard: " + shard + "  \r")
-  m = P_DIV.findall(text)
-  if m:
-    print("Shard: " + shard)
-    for x in m:
-      print_reencoded(x[0])
+def print_output_div(shard, text, keywords):
+    sys.stderr.write("Shard: " + shard + "  \r")
+    m = P_DIV.findall(text)
+    if m:
+        for x in m:
+            keep = True
+            for word in keywords:
+                if word in x[0]:
+                    keep = False
+                    break
+            if keep:
+                print_reencoded(x[0])
 
 
 def print_output_sum(shard, text, s=[0, 0, 0, 0, 0], divs=[]):
-  m = P_SUM.findall(text)
-  if not m:
-    sys.stderr.write("Failed to parse shard %s stdout for summary" % shard)
-    return
-  for test in m:
-    if int(test[-1]) == 1:
-      divs.append(shard)
-    for i in range(len(s)):
-      s[i] += int(test[i])
-  print("Tests: %d Success: %d Not-Run: %d Time-Out: %d Divergences: %d "
-        "(failing shards: %s)    \r"
-        % tuple(s + [", ".join(divs) if divs else "none"]), end="")
+    m = P_SUM.findall(text)
+    if not m:
+        sys.stderr.write("Failed to parse shard %s stdout for summary" % shard)
+        return
+    for test in m:
+        if int(test[-1]) == 1:
+            divs.append(shard)
+        for i in range(len(s)):
+            s[i] += int(test[i])
+    print(
+        "Tests: %d Success: %d Not-Run: %d Time-Out: %d Divergences: %d "
+        "(failing shards: %s)    \r" %
+        tuple(s + [", ".join(divs) if divs else "none"]),
+        end="")
 
 
-def get_stats(uri, output_type):
-  resp = requests.get(uri)
+def get_stats(uri, output_type, keywords):
+    resp = requests.get(uri)
 
-  if output_type == "all":
-    print_output_all(resp.text)
-  elif output_type == "div":
-    shard = P_SHARD.findall(uri)[0]
-    print_output_div(shard, resp.text)
-  elif output_type == "sum":
-    shard = P_SHARD.findall(uri)[0]
-    print_output_sum(shard, resp.text)
+    if output_type == "all":
+        print_output_all(resp.text)
+    elif output_type == "div":
+        shard = P_SHARD.findall(uri)[0]
+        print_output_div(shard, resp.text, keywords)
+    elif output_type == "sum":
+        shard = P_SHARD.findall(uri)[0]
+        print_output_sum(shard, resp.text)
 
 
 def main():
-  parser = argparse.ArgumentParser(description=__doc__)
-  parser.add_argument(
-      "--type",
-      choices=("div", "sum", "all"),
-      required=True,
-      help="Select output type (div: divergence report, sum: summary, all: complete stdout)"
-  )
-  parser.add_argument(
-      "uri",
-      type=str,
-      help="Uri of one make_a_fuzz run from https://ci.chromium.org/p/dart/builders/ci.sandbox/fuzz-linux."
-  )
-  args = parser.parse_args()
-  shard_links = get_shard_links(args.uri)
-  for link in shard_links:
-    get_stats(link, args.type)
-  print("")
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--type",
+        choices=("div", "sum", "all"),
+        required=True,
+        help=
+        "Select output type (div: divergence report, sum: summary, all: complete stdout)"
+    )
+    parser.add_argument(
+        "--filter",
+        nargs="+",
+        default=[],
+        help="Do not include divergences containing these keywords.")
+    parser.add_argument(
+        "uri",
+        type=str,
+        help=
+        "Uri of one make_a_fuzz run from https://ci.chromium.org/p/dart/builders/ci.sandbox/fuzz-linux."
+    )
+    args = parser.parse_args()
+    shard_links = get_shard_links(args.uri)
+    for link in shard_links:
+        get_stats(link, args.type, args.filter)
+    print("")
 
 
 if __name__ == "__main__":
-  main()
+    main()
