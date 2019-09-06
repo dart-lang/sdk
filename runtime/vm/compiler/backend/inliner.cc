@@ -1240,10 +1240,6 @@ class CallSiteInliner : public ValueObject {
           caller_graph()->parsed_function().AddToGuardedFields(
               callee_guarded_fields[i]);
         }
-        // When inlined, we add the deferred prefixes of the callee to the
-        // caller's list of deferred prefixes.
-        caller_graph()->AddToDeferredPrefixes(
-            callee_graph->deferred_prefixes());
 
         FlowGraphInliner::SetInliningId(
             callee_graph,

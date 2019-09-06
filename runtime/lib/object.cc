@@ -184,37 +184,6 @@ DEFINE_NATIVE_ENTRY(Type_getHashCode, 0, 1) {
   return Smi::New(hash_val);
 }
 
-DEFINE_NATIVE_ENTRY(LibraryPrefix_invalidateDependentCode, 0, 1) {
-  const LibraryPrefix& prefix =
-      LibraryPrefix::CheckedHandle(zone, arguments->NativeArgAt(0));
-  prefix.InvalidateDependentCode();
-  return Bool::Get(true).raw();
-}
-
-DEFINE_NATIVE_ENTRY(LibraryPrefix_load, 0, 1) {
-  const LibraryPrefix& prefix =
-      LibraryPrefix::CheckedHandle(zone, arguments->NativeArgAt(0));
-  bool hasCompleted = prefix.LoadLibrary();
-  return Bool::Get(hasCompleted).raw();
-}
-
-DEFINE_NATIVE_ENTRY(LibraryPrefix_loadError, 0, 1) {
-  const LibraryPrefix& prefix =
-      LibraryPrefix::CheckedHandle(zone, arguments->NativeArgAt(0));
-  // Currently all errors are Dart instances, e.g. I/O errors
-  // created by deferred loading code. LanguageErrors from
-  // failed loading or finalization attempts are propagated and result
-  // in the isolate's death.
-  const Instance& error = Instance::Handle(zone, prefix.LoadError());
-  return error.raw();
-}
-
-DEFINE_NATIVE_ENTRY(LibraryPrefix_isLoaded, 0, 1) {
-  const LibraryPrefix& prefix =
-      LibraryPrefix::CheckedHandle(zone, arguments->NativeArgAt(0));
-  return Bool::Get(prefix.is_loaded()).raw();
-}
-
 DEFINE_NATIVE_ENTRY(Internal_inquireIs64Bit, 0, 0) {
 #if defined(ARCH_IS_64_BIT)
   return Bool::True().raw();

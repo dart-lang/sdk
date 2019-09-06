@@ -79,11 +79,6 @@ static void DeterministicModeHandler(bool value) {
     FLAG_concurrent_mark = false;         // Timing dependent.
     FLAG_concurrent_sweep = false;        // Timing dependent.
     FLAG_random_seed = 0x44617274;        // "Dart"
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-    FLAG_load_deferred_eagerly = true;
-#else
-    COMPILE_ASSERT(FLAG_load_deferred_eagerly);
-#endif
   }
 }
 

@@ -9966,60 +9966,6 @@ void Library::SetLoaded() const {
   StoreNonPointer(&raw_ptr()->load_state_, RawLibrary::kLoaded);
 }
 
-void Library::SetLoadError(const Instance& error) const {
-  // Should not be already successfully loaded or just allocated.
-  ASSERT(LoadInProgress() || LoadRequested() || LoadFailed());
-  StoreNonPointer(&raw_ptr()->load_state_, RawLibrary::kLoadError);
-  StorePointer(&raw_ptr()->load_error_, error.raw());
-}
-
-// Traits for looking up Libraries by url in a hash set.
-class LibraryUrlTraits {
- public:
-  static const char* Name() { return "LibraryUrlTraits"; }
-  static bool ReportStats() { return false; }
-
-  // Called when growing the table.
-  static bool IsMatch(const Object& a, const Object& b) {
-    ASSERT(a.IsLibrary() && b.IsLibrary());
-    // Library objects are always canonical.
-    return a.raw() == b.raw();
-  }
-  static uword Hash(const Object& key) { return Library::Cast(key).UrlHash(); }
-};
-typedef UnorderedHashSet<LibraryUrlTraits> LibraryLoadErrorSet;
-
-RawInstance* Library::TransitiveLoadError() const {
-  if (LoadError() != Instance::null()) {
-    return LoadError();
-  }
-  Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
-  Zone* zone = thread->zone();
-  ObjectStore* object_store = isolate->object_store();
-  LibraryLoadErrorSet set(object_store->library_load_error_table());
-  bool present = false;
-  if (set.GetOrNull(*this, &present) != Object::null()) {
-    object_store->set_library_load_error_table(set.Release());
-    return Instance::null();
-  }
-  // Ensure we don't repeatedly visit the same library again.
-  set.Insert(*this);
-  object_store->set_library_load_error_table(set.Release());
-  intptr_t num_imp = num_imports();
-  Library& lib = Library::Handle(zone);
-  Instance& error = Instance::Handle(zone);
-  for (intptr_t i = 0; i < num_imp; i++) {
-    HANDLESCOPE(thread);
-    lib = ImportLibraryAt(i);
-    error = lib.TransitiveLoadError();
-    if (!error.IsNull()) {
-      break;
-    }
-  }
-  return error.raw();
-}
-
 static RawString* MakeClassMetaName(Thread* thread,
                                     Zone* zone,
                                     const Class& cls) {
@@ -11095,7 +11041,6 @@ RawLibrary* Library::NewLibraryHelper(const String& url, bool import_core_lib) {
   result.StorePointer(&result.raw_ptr()->imports_, Object::empty_array().raw());
   result.StorePointer(&result.raw_ptr()->exports_, Object::empty_array().raw());
   result.StorePointer(&result.raw_ptr()->loaded_scripts_, Array::null());
-  result.StorePointer(&result.raw_ptr()->load_error_, Instance::null());
   result.set_native_entry_resolver(NULL);
   result.set_native_entry_symbol_resolver(NULL);
   result.set_is_in_fullsnapshot(false);
@@ -11746,49 +11691,6 @@ RawLibrary* LibraryPrefix::GetLibrary(int index) const {
   return Library::null();
 }
 
-RawInstance* LibraryPrefix::LoadError() const {
-  Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
-  Zone* zone = thread->zone();
-  ObjectStore* object_store = isolate->object_store();
-  GrowableObjectArray& libs =
-      GrowableObjectArray::Handle(zone, object_store->libraries());
-  ASSERT(!libs.IsNull());
-  LibraryLoadErrorSet set(HashTables::New<LibraryLoadErrorSet>(libs.Length()));
-  object_store->set_library_load_error_table(set.Release());
-  Library& lib = Library::Handle(zone);
-  Instance& error = Instance::Handle(zone);
-  for (int32_t i = 0; i < num_imports(); i++) {
-    lib = GetLibrary(i);
-    ASSERT(!lib.IsNull());
-    HANDLESCOPE(thread);
-    error = lib.TransitiveLoadError();
-    if (!error.IsNull()) {
-      break;
-    }
-  }
-  object_store->set_library_load_error_table(Object::empty_array());
-  return error.raw();
-}
-
-bool LibraryPrefix::ContainsLibrary(const Library& library) const {
-  int32_t num_current_imports = num_imports();
-  if (num_current_imports > 0) {
-    Library& lib = Library::Handle();
-    const String& url = String::Handle(library.url());
-    String& lib_url = String::Handle();
-    for (int32_t i = 0; i < num_current_imports; i++) {
-      lib = GetLibrary(i);
-      ASSERT(!lib.IsNull());
-      lib_url = lib.url();
-      if (url.Equals(lib_url)) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
 void LibraryPrefix::AddImport(const Namespace& import) const {
   intptr_t num_current_imports = num_imports();
 
@@ -11809,9 +11711,6 @@ void LibraryPrefix::AddImport(const Namespace& import) const {
 }
 
 RawObject* LibraryPrefix::LookupObject(const String& name) const {
-  if (!is_loaded() && !FLAG_load_deferred_eagerly) {
-    return Object::null();
-  }
   Array& imports = Array::Handle(this->imports());
   Object& obj = Object::Handle();
   Namespace& import = Namespace::Handle();
@@ -11880,116 +11779,6 @@ RawClass* LibraryPrefix::LookupClass(const String& class_name) const {
   return Class::null();
 }
 
-void LibraryPrefix::set_is_loaded() const {
-  StoreNonPointer(&raw_ptr()->is_loaded_, true);
-}
-
-bool LibraryPrefix::LoadLibrary() const {
-  // Non-deferred prefixes are loaded.
-  ASSERT(is_deferred_load() || is_loaded());
-  if (is_loaded()) {
-    return true;  // Load request has already completed.
-  }
-  ASSERT(is_deferred_load());
-  ASSERT(num_imports() == 1);
-  if (Dart::vm_snapshot_kind() == Snapshot::kFullAOT) {
-    // The library list was tree-shaken away.
-    this->set_is_loaded();
-    return true;
-  }
-  // This is a prefix for a deferred library. If the library is not loaded
-  // yet and isn't being loaded, call the library tag handler to schedule
-  // loading. Once all outstanding load requests have completed, the embedder
-  // will call the core library to:
-  // - invalidate dependent code of this prefix;
-  // - mark this prefixes as loaded;
-  // - complete the future associated with this prefix.
-  const Library& deferred_lib = Library::Handle(GetLibrary(0));
-  if (deferred_lib.Loaded()) {
-    this->set_is_loaded();
-    return true;
-  } else if (deferred_lib.LoadNotStarted()) {
-    Thread* thread = Thread::Current();
-    Isolate* isolate = thread->isolate();
-    Zone* zone = thread->zone();
-    deferred_lib.SetLoadRequested();
-    const GrowableObjectArray& pending_deferred_loads =
-        GrowableObjectArray::Handle(
-            isolate->object_store()->pending_deferred_loads());
-    pending_deferred_loads.Add(deferred_lib);
-    const String& lib_url = String::Handle(zone, deferred_lib.url());
-    const Object& obj = Object::Handle(
-        zone, isolate->CallTagHandler(
-                  Dart_kImportTag, Library::Handle(zone, importer()), lib_url));
-    if (obj.IsError()) {
-      Exceptions::PropagateError(Error::Cast(obj));
-    }
-  } else {
-    // Another load request is in flight or previously failed.
-    ASSERT(deferred_lib.LoadRequested() || deferred_lib.LoadFailed());
-  }
-  return false;  // Load request not yet completed.
-}
-
-RawArray* LibraryPrefix::dependent_code() const {
-  return raw_ptr()->dependent_code_;
-}
-
-void LibraryPrefix::set_dependent_code(const Array& array) const {
-  StorePointer(&raw_ptr()->dependent_code_, array.raw());
-}
-
-class PrefixDependentArray : public WeakCodeReferences {
- public:
-  explicit PrefixDependentArray(const LibraryPrefix& prefix)
-      : WeakCodeReferences(Array::Handle(prefix.dependent_code())),
-        prefix_(prefix) {}
-
-  virtual void UpdateArrayTo(const Array& value) {
-    prefix_.set_dependent_code(value);
-  }
-
-  virtual void ReportDeoptimization(const Code& code) {
-    // This gets called when the code object is on the stack
-    // while nuking code that depends on a prefix. We don't expect
-    // this to happen, so make sure we die loudly if we find
-    // ourselves here.
-    UNIMPLEMENTED();
-  }
-
-  virtual void ReportSwitchingCode(const Code& code) {
-    if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
-      THR_Print("Prefix '%s': disabling %s code for %s function '%s'\n",
-                String::Handle(prefix_.name()).ToCString(),
-                code.is_optimized() ? "optimized" : "unoptimized",
-                code.IsDisabled() ? "'patched'" : "'unpatched'",
-                Function::Handle(code.function()).ToCString());
-    }
-  }
-
- private:
-  const LibraryPrefix& prefix_;
-  DISALLOW_COPY_AND_ASSIGN(PrefixDependentArray);
-};
-
-void LibraryPrefix::RegisterDependentCode(const Code& code) const {
-  ASSERT(is_deferred_load());
-  // In background compilation, a library can be loaded while we are compiling.
-  // The generated code will be rejected in that case,
-  ASSERT(!is_loaded() || Compiler::IsBackgroundCompilation());
-  PrefixDependentArray a(*this);
-  a.Register(code);
-}
-
-void LibraryPrefix::InvalidateDependentCode() const {
-  PrefixDependentArray a(*this);
-  if (FLAG_trace_deoptimization && a.HasCodes()) {
-    THR_Print("Deopt for lazy load (prefix %s)\n", ToCString());
-  }
-  a.DisableCode();
-  set_is_loaded();
-}
-
 RawLibraryPrefix* LibraryPrefix::New() {
   RawObject* raw = Object::Allocate(LibraryPrefix::kClassId,
                                     LibraryPrefix::InstanceSize(), Heap::kOld);
@@ -12005,7 +11794,6 @@ RawLibraryPrefix* LibraryPrefix::New(const String& name,
   result.set_num_imports(0);
   result.set_importer(importer);
   result.StoreNonPointer(&result.raw_ptr()->is_deferred_load_, deferred_load);
-  result.StoreNonPointer(&result.raw_ptr()->is_loaded_, !deferred_load);
   result.set_imports(Array::Handle(Array::New(kInitialSize)));
   result.AddImport(import);
   return result.raw();

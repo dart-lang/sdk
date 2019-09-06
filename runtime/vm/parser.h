@@ -156,12 +156,6 @@ class ParsedFunction : public ZoneAllocated {
   LocalVariable* EnsureExpressionTemp();
   LocalVariable* EnsureEntryPointsTemp();
 
-  bool HasDeferredPrefixes() const { return deferred_prefixes_->length() != 0; }
-  ZoneGrowableArray<const LibraryPrefix*>* deferred_prefixes() const {
-    return deferred_prefixes_;
-  }
-  void AddDeferredPrefix(const LibraryPrefix& prefix);
-
   ZoneGrowableArray<const Field*>* guarded_fields() const {
     return guarded_fields_;
   }
@@ -263,7 +257,6 @@ class ParsedFunction : public ZoneAllocated {
   LocalVariable* expression_temp_var_;
   LocalVariable* entry_points_temp_var_;
   LocalVariable* finally_return_temp_var_;
-  ZoneGrowableArray<const LibraryPrefix*>* deferred_prefixes_;
   ZoneGrowableArray<const Field*>* guarded_fields_;
   ZoneGrowableArray<const Instance*>* default_parameter_values_;
 

@@ -864,11 +864,6 @@ int main(int argc, char** argv) {
   TimerUtils::InitOnce();
   EventHandler::Start();
 
-#if !defined(PRODUCT)
-  // Constant true in PRODUCT mode.
-  vm_options.AddArgument("--load_deferred_eagerly");
-#endif
-
   if (IsSnapshottingForPrecompilation()) {
     vm_options.AddArgument("--precompilation");
   } else if ((snapshot_kind == kCoreJIT) || (snapshot_kind == kAppJIT)) {

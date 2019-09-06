@@ -119,7 +119,6 @@ static void PrecompilationModeHandler(bool value) {
     // These flags are constants with PRODUCT and DART_PRECOMPILED_RUNTIME.
     FLAG_deoptimize_alot = false;  // Used in some tests.
     FLAG_deoptimize_every = 0;     // Used in some tests.
-    FLAG_load_deferred_eagerly = true;
     FLAG_use_osr = false;
 #endif
   }
@@ -489,14 +488,6 @@ RawCode* CompileParsedFunctionHelper::FinalizeCompilation(
       // While doing compilation in background, usage counter is set
       // to INT_MIN. Reset counter so that function can be optimized further.
       function.SetUsageCounter(0);
-    }
-  }
-  if (parsed_function()->HasDeferredPrefixes()) {
-    ASSERT(!FLAG_load_deferred_eagerly);
-    ZoneGrowableArray<const LibraryPrefix*>* prefixes =
-        parsed_function()->deferred_prefixes();
-    for (intptr_t i = 0; i < prefixes->length(); i++) {
-      (*prefixes)[i]->RegisterDependentCode(code);
     }
   }
   return code.raw();

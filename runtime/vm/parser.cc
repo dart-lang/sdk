@@ -59,7 +59,6 @@ ParsedFunction::ParsedFunction(Thread* thread, const Function& function)
       expression_temp_var_(NULL),
       entry_points_temp_var_(NULL),
       finally_return_temp_var_(NULL),
-      deferred_prefixes_(new ZoneGrowableArray<const LibraryPrefix*>()),
       guarded_fields_(new ZoneGrowableArray<const Field*>()),
       default_parameter_values_(NULL),
       raw_type_arguments_var_(NULL),
@@ -183,20 +182,6 @@ void ParsedFunction::SetRegExpCompileData(
   ASSERT(regexp_compile_data_ == NULL);
   ASSERT(regexp_compile_data != NULL);
   regexp_compile_data_ = regexp_compile_data;
-}
-
-void ParsedFunction::AddDeferredPrefix(const LibraryPrefix& prefix) {
-  // 'deferred_prefixes_' are used to invalidate code, but no invalidation is
-  // needed if --load_deferred_eagerly.
-  ASSERT(!FLAG_load_deferred_eagerly);
-  ASSERT(prefix.is_deferred_load());
-  ASSERT(!prefix.is_loaded());
-  for (intptr_t i = 0; i < deferred_prefixes_->length(); i++) {
-    if ((*deferred_prefixes_)[i]->raw() == prefix.raw()) {
-      return;
-    }
-  }
-  deferred_prefixes_->Add(&LibraryPrefix::ZoneHandle(Z, prefix.raw()));
 }
 
 void ParsedFunction::AllocateVariables() {

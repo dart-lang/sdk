@@ -54,7 +54,6 @@ FlowGraph::FlowGraph(const ParsedFunction& parsed_function,
       prologue_info_(prologue_info),
       loop_hierarchy_(nullptr),
       loop_invariant_loads_(nullptr),
-      deferred_prefixes_(parsed_function.deferred_prefixes()),
       captured_parameters_(new (zone()) BitVector(zone(), variable_count())),
       inlining_id_(-1),
       should_print_(FlowGraphPrinter::ShouldPrint(parsed_function.function())) {
@@ -103,20 +102,6 @@ void FlowGraph::ReplaceCurrentInstruction(ForwardInstructionIterator* iterator,
     }
   }
   iterator->RemoveCurrentFromGraph();
-}
-
-void FlowGraph::AddToDeferredPrefixes(
-    ZoneGrowableArray<const LibraryPrefix*>* from) {
-  ZoneGrowableArray<const LibraryPrefix*>* to = deferred_prefixes();
-  for (intptr_t i = 0; i < from->length(); i++) {
-    const LibraryPrefix* prefix = (*from)[i];
-    for (intptr_t j = 0; j < to->length(); j++) {
-      if ((*to)[j]->raw() == prefix->raw()) {
-        return;
-      }
-    }
-    to->Add(prefix);
-  }
 }
 
 bool FlowGraph::ShouldReorderBlocks(const Function& function,

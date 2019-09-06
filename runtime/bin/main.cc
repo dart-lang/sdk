@@ -1139,13 +1139,6 @@ void main(int argc, char** argv) {
                              &app_isolate_snapshot_instructions);
   }
 
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  // Constant true if PRODUCT or DART_PRECOMPILED_RUNTIME.
-  if ((Options::gen_snapshot_kind() != kNone) || vm_run_app_snapshot) {
-    vm_options.AddArgument("--load_deferred_eagerly");
-  }
-#endif
-
   if (Options::gen_snapshot_kind() == kAppJIT) {
     vm_options.AddArgument("--fields_may_be_reset");
   }

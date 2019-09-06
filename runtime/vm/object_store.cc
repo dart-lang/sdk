@@ -80,8 +80,6 @@ RawError* ObjectStore::PreallocateObjects() {
   ASSERT(this->out_of_memory() == Instance::null());
   ASSERT(this->preallocated_stack_trace() == StackTrace::null());
 
-  this->pending_deferred_loads_ = GrowableObjectArray::New();
-
   this->closure_functions_ = GrowableObjectArray::New();
   this->resume_capabilities_ = GrowableObjectArray::New();
   this->exit_listeners_ = GrowableObjectArray::New();

@@ -107,7 +107,6 @@ class ObjectPointerVisitor;
   RW(Array, libraries_map)                                                     \
   RW(GrowableObjectArray, closure_functions)                                   \
   RW(GrowableObjectArray, pending_classes)                                     \
-  R_(GrowableObjectArray, pending_deferred_loads)                              \
   R_(GrowableObjectArray, resume_capabilities)                                 \
   R_(GrowableObjectArray, exit_listeners)                                      \
   R_(GrowableObjectArray, error_listeners)                                     \
@@ -127,7 +126,6 @@ class ObjectPointerVisitor;
   RW(Function, complete_on_async_return)                                       \
   RW(Class, async_star_stream_controller)                                      \
   RW(ObjectPool, global_object_pool)                                           \
-  RW(Array, library_load_error_table)                                          \
   RW(Array, unique_dynamic_targets)                                            \
   RW(GrowableObjectArray, megamorphic_cache_table)                             \
   RW(Code, build_method_extractor_code)                                        \
@@ -200,10 +198,6 @@ class ObjectStore {
     }
   }
 
-  void clear_pending_deferred_loads() {
-    pending_deferred_loads_ = GrowableObjectArray::New();
-  }
-
   void SetMegamorphicMissHandler(const Code& code, const Function& func) {
     // Hold onto the code so it is traced and not detached from the function.
     megamorphic_miss_code_ = code.raw();
@@ -243,7 +237,7 @@ class ObjectStore {
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFull:
-        return reinterpret_cast<RawObject**>(&library_load_error_table_);
+        return reinterpret_cast<RawObject**>(&global_object_pool_);
       case Snapshot::kFullJIT:
       case Snapshot::kFullAOT:
         return reinterpret_cast<RawObject**>(&megamorphic_miss_function_);

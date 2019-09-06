@@ -3456,7 +3456,6 @@ DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle Dart_SortClasses();
  *  current VM. The instructions piece must be loaded with read and execute
  *  permissions; the data piece may be loaded as read-only.
  *
- *   - Requires the VM to have been started with --load-deferred-eagerly.
  *   - Requires the VM to have not been started with --precompilation.
  *   - Not supported when targeting IA32 or DBC.
  *   - The VM writing the snapshot and the VM reading the snapshot must be the
