@@ -1354,7 +1354,7 @@ class Class : public Object {
 
   // Allocate a class used for VM internal objects.
   template <class FakeObject>
-  static RawClass* New();
+  static RawClass* New(Isolate* isolate, bool register_class = true);
 
   // Allocate instance classes.
   static RawClass* New(const Library& lib,
@@ -1367,19 +1367,20 @@ class Class : public Object {
                                     int num_fields);
 
   // Allocate the raw string classes.
-  static RawClass* NewStringClass(intptr_t class_id);
+  static RawClass* NewStringClass(intptr_t class_id, Isolate* isolate);
 
   // Allocate the raw TypedData classes.
-  static RawClass* NewTypedDataClass(intptr_t class_id);
+  static RawClass* NewTypedDataClass(intptr_t class_id, Isolate* isolate);
 
   // Allocate the raw TypedDataView/ByteDataView classes.
-  static RawClass* NewTypedDataViewClass(intptr_t class_id);
+  static RawClass* NewTypedDataViewClass(intptr_t class_id, Isolate* isolate);
 
   // Allocate the raw ExternalTypedData classes.
-  static RawClass* NewExternalTypedDataClass(intptr_t class_id);
+  static RawClass* NewExternalTypedDataClass(intptr_t class_id,
+                                             Isolate* isolate);
 
   // Allocate the raw Pointer classes.
-  static RawClass* NewPointerClass(intptr_t class_id);
+  static RawClass* NewPointerClass(intptr_t class_id, Isolate* isolate);
 
   // Register code that has used CHA for optimization.
   // TODO(srdjan): Also register kind of CHA optimization (e.g.: leaf class,
@@ -1534,7 +1535,9 @@ class Class : public Object {
 
   // Allocate an instance class which has a VM implementation.
   template <class FakeInstance>
-  static RawClass* New(intptr_t id);
+  static RawClass* New(intptr_t id,
+                       Isolate* isolate,
+                       bool register_class = true);
 
   // Helper that calls 'Class::New<Instance>(kIllegalCid)'.
   static RawClass* NewInstanceClass();

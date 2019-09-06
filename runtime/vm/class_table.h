@@ -193,6 +193,47 @@ class ClassTable {
   explicit ClassTable(ClassTable* original);
   ~ClassTable();
 
+  void CopyBeforeHotReload(ClassAndSize** copy, intptr_t* copy_num_cids) {
+    // The [IsolateReloadContext] will need to maintain a copy of the old class
+    // table until instances have been morphed.
+    const intptr_t bytes = sizeof(ClassAndSize) * NumCids();
+    *copy_num_cids = NumCids();
+    *copy = static_cast<ClassAndSize*>(malloc(bytes));
+    memmove(*copy, table_, bytes);
+  }
+
+  void ResetBeforeHotReload() {
+    // The [IsolateReloadContext] is now source-of-truth for GC.
+    //
+    // Though we cannot clear out the class pointers, because a hot-reload
+    // contains only a diff: If e.g. a class included in the hot-reload has a
+    // super class not included in the diff, it will look up in this class table
+    // to find the super class (e.g. `cls.SuperClass` will cause us to come
+    // here).
+    for (intptr_t i = 0; i < top_; ++i) {
+      table_[i].size_ = 0;
+    }
+  }
+
+  void ResetAfterHotReload(ClassAndSize* old_table,
+                           intptr_t num_old_cids,
+                           bool is_rollback) {
+    // The [IsolateReloadContext] is no longer source-of-truth for GC after we
+    // return, so we restore size information for all classes.
+    if (is_rollback) {
+      SetNumCids(num_old_cids);
+      memmove(table_, old_table, num_old_cids * sizeof(ClassAndSize));
+    } else {
+      CopySizesFromClassObjects();
+    }
+
+    // Can't free this table immediately as another thread (e.g., concurrent
+    // marker or sweeper) may be between loading the table pointer and loading
+    // the table element. The table will be freed at the next major GC or
+    // isolate shutdown.
+    AddOldTable(old_table);
+  }
+
   // Thread-safe.
   RawClass* At(intptr_t index) const {
     ASSERT(IsValidIndex(index));

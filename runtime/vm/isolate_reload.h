@@ -173,7 +173,7 @@ class IsolateReloadContext {
   // Prefers old classes when we are in the middle of a reload.
   RawClass* GetClassForHeapWalkAt(intptr_t cid);
   intptr_t GetClassSizeForHeapWalkAt(intptr_t cid);
-  void DiscardSavedClassTable();
+  void DiscardSavedClassTable(bool is_rollback);
 
   void RegisterClass(const Class& new_cls);
 
@@ -236,7 +236,6 @@ class IsolateReloadContext {
   void CheckpointClasses();
 
   bool ScriptModifiedSince(const Script& script, int64_t since);
-  BitVector* FindModifiedLibraries(bool force_reload, bool root_lib_modified);
   void FindModifiedSources(Thread* thread,
                            bool force_reload,
                            Dart_SourceFile** modified_sources,
