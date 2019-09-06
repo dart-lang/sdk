@@ -1799,6 +1799,11 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       // Dynamic dispatch.
       return _dynamicType;
     }
+    if (callee is ClassElement) {
+      // Not a real call; just a prefixed reference to a class name.
+      assert(_isPrefix(target));
+      return _nonNullableTypeType;
+    }
     var calleeType = getOrComputeElementType(callee, targetType: targetType);
     // TODO(paulberry): substitute if necessary
     if (propertyName.inSetterContext()) {

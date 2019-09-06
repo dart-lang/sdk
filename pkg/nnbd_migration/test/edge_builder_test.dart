@@ -4260,6 +4260,16 @@ int f() => null;
     assertEdge(always, decoratedTypeAnnotation('int').node, hard: false);
   }
 
+  test_static_method_call_prefixed() async {
+    await analyze('''
+import 'dart:async' as a;
+void f(void Function() callback) {
+  a.Timer.run(callback);
+}
+''');
+    // No assertions.  Just making sure this doesn't crash.
+  }
+
   test_stringLiteral() async {
     // TODO(paulberry): also test string interpolations
     await analyze('''
@@ -4413,6 +4423,14 @@ Type f() {
 }
 ''');
     assertNoUpstreamNullability(decoratedTypeAnnotation('Type').node);
+  }
+
+  test_typeName_prefixed() async {
+    await analyze('''
+import 'dart:async' as a;
+Type f() => a.Future;
+''');
+    assertEdge(never, decoratedTypeAnnotation('Type').node, hard: false);
   }
 
   test_typeName_union_with_bound() async {
