@@ -28,6 +28,66 @@ class NodeBuilderTest extends MigrationVisitorTestBase {
       variables.decoratedTypeParameterBound(
           findNode.typeParameter(search).declaredElement);
 
+  test_catch_clause_with_stacktrace_with_on() async {
+    await analyze('''
+void f() {
+  try {} on String catch (ex, st) {}
+}
+''');
+    var exceptionType =
+        variables.decoratedElementType(findNode.simple('ex').staticElement);
+    expect(exceptionType.node, TypeMatcher<NullabilityNodeMutable>());
+    var stackTraceType =
+        variables.decoratedElementType(findNode.simple('st').staticElement);
+    expect(stackTraceType.node, never);
+  }
+
+  test_catch_clause_with_stacktrace_without_on() async {
+    await analyze('''
+void f() {
+  try {} catch (ex, st) {}
+}
+''');
+    var exceptionType =
+        variables.decoratedElementType(findNode.simple('ex').staticElement);
+    expect(exceptionType.node, always);
+    var stackTraceType =
+        variables.decoratedElementType(findNode.simple('st').staticElement);
+    expect(stackTraceType.node, never);
+  }
+
+  test_catch_clause_without_catch() async {
+    await analyze('''
+void f() {
+  try {} on String {}
+}
+''');
+    // No assertions, since no variables are declared; we just want to make sure
+    // we don't crash.
+  }
+
+  test_catch_clause_without_stacktrace_with_on() async {
+    await analyze('''
+void f() {
+  try {} on String catch (ex) {}
+}
+''');
+    var exceptionType =
+        variables.decoratedElementType(findNode.simple('ex').staticElement);
+    expect(exceptionType.node, TypeMatcher<NullabilityNodeMutable>());
+  }
+
+  test_catch_clause_without_stacktrace_without_on() async {
+    await analyze('''
+void f() {
+  try {} catch (ex) {}
+}
+''');
+    var exceptionType =
+        variables.decoratedElementType(findNode.simple('ex').staticElement);
+    expect(exceptionType.node, always);
+  }
+
   test_class_alias_synthetic_constructors_no_parameters() async {
     await analyze('''
 class C {

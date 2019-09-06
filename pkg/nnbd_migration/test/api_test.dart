@@ -91,6 +91,86 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_catch_simple() async {
+    var content = '''
+void f() {
+  try {} catch (ex, st) {}
+}
+''';
+    var expected = '''
+void f() {
+  try {} catch (ex, st) {}
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_catch_simple_with_modifications() async {
+    var content = '''
+void f(String x, StackTrace y) {
+  try {} catch (ex, st) {
+    ex = x;
+    st = y;
+  }
+}
+main() {
+  f(null, null);
+}
+''';
+    var expected = '''
+void f(String? x, StackTrace? y) {
+  try {} catch (ex, st) {
+    ex = x;
+    st = y!;
+  }
+}
+main() {
+  f(null, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_catch_with_on() async {
+    var content = '''
+void f() {
+  try {} on String catch (ex, st) {}
+}
+''';
+    var expected = '''
+void f() {
+  try {} on String catch (ex, st) {}
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_catch_with_on_with_modifications() async {
+    var content = '''
+void f(String x, StackTrace y) {
+  try {} on String catch (ex, st) {
+    ex = x;
+    st = y;
+  }
+}
+main() {
+  f(null, null);
+}
+''';
+    var expected = '''
+void f(String? x, StackTrace? y) {
+  try {} on String? catch (ex, st) {
+    ex = x;
+    st = y!;
+  }
+}
+main() {
+  f(null, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_class_alias_synthetic_constructor_with_parameters() async {
     var content = '''
 void main() {
