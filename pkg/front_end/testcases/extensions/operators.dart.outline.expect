@@ -1,0 +1,38 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Complex extends core::Object {
+  final field core::double* real;
+  final field core::double* imaginary;
+  const constructor •(core::double* real, core::double* imaginary) → self::Complex*
+    : self::Complex::real = real, self::Complex::imaginary = imaginary, super core::Object::•()
+    ;
+  method add(self::Complex* other) → self::Complex*
+    ;
+  method sub(self::Complex* other) → self::Complex*
+    ;
+  method negate() → self::Complex*
+    ;
+  get hashCode() → core::int*
+    ;
+  operator ==(core::Object* other) → core::bool*
+    ;
+  method toString() → core::String*
+    ;
+}
+extension Operators on self::Complex* {
+  operator + = self::Operators|+;
+  operator - = self::Operators|-;
+  operator unary- = self::Operators|unary-;
+}
+static method Operators|+(final self::Complex* #this, self::Complex* other) → self::Complex*
+  ;
+static method Operators|-(final self::Complex* #this, self::Complex* other) → self::Complex*
+  ;
+static method Operators|unary-(final self::Complex* #this) → self::Complex*
+  ;
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

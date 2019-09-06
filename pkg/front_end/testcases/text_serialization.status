@@ -24,6 +24,7 @@ extensions/instance_tearoff: TextSerializationFailure
 extensions/invalid_explicit_access: TextSerializationFailure
 extensions/on_type_inference: TextSerializationFailure
 extensions/on_type_variable_inference: TextSerializationFailure
+extensions/operators: TextSerializationFailure
 extensions/other_kinds: TextSerializationFailure
 extensions/static_access: TextSerializationFailure
 extensions/static_access_of_instance: TextSerializationFailure

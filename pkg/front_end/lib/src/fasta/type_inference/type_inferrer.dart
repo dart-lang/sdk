@@ -1060,6 +1060,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       case ObjectAccessTargetKind.extensionMember:
         switch (target.extensionMethodKind) {
           case ProcedureKind.Method:
+          case ProcedureKind.Operator:
             FunctionType functionType = target.member.function.functionType;
             List<TypeParameter> extensionTypeParameters = functionType
                 .typeParameters
@@ -1087,7 +1088,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
             return substitution.substituteType(functionType.returnType);
           case ProcedureKind.Setter:
           case ProcedureKind.Factory:
-          case ProcedureKind.Operator:
             break;
         }
     }
@@ -1158,13 +1158,13 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       case ObjectAccessTargetKind.extensionMember:
         switch (target.extensionMethodKind) {
           case ProcedureKind.Method:
+          case ProcedureKind.Operator:
             return target.member.function.functionType;
           case ProcedureKind.Getter:
             // TODO(johnniwinther): Handle implicit .call on extension getter.
             return _getFunctionType(target.member.function.returnType, false);
           case ProcedureKind.Setter:
           case ProcedureKind.Factory:
-          case ProcedureKind.Operator:
             break;
         }
     }
