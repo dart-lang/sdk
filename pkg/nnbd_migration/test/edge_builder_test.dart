@@ -1749,6 +1749,29 @@ int/*2*/ g() {
             hard: false));
   }
 
+  test_genericMethodInvocation() async {
+    await analyze('''
+class Base {
+  T foo<T>(T x) => x;
+}
+class Derived extends Base {}
+int bar(Derived d, int i) => d.foo(i);
+''');
+    var implicitTypeArgumentMatcher = anyNode;
+    assertEdge(
+        decoratedTypeAnnotation('int i').node,
+        substitutionNode(
+            implicitTypeArgumentMatcher, decoratedTypeAnnotation('T x').node),
+        hard: true);
+    var implicitTypeArgumentNullability =
+        implicitTypeArgumentMatcher.matchingNode;
+    assertEdge(
+        substitutionNode(implicitTypeArgumentNullability,
+            decoratedTypeAnnotation('T foo').node),
+        decoratedTypeAnnotation('int bar').node,
+        hard: false);
+  }
+
   test_if_condition() async {
     await analyze('''
 void f(bool b) {

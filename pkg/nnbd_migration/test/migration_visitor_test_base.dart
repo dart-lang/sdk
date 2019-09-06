@@ -21,6 +21,19 @@ import 'package:test/test.dart';
 
 import 'abstract_single_unit.dart';
 
+/// A [NodeMatcher] that matches any node, and records what node it matched to.
+class AnyNodeMatcher implements NodeMatcher {
+  final List<NullabilityNode> _matchingNodes = [];
+
+  NullabilityNode get matchingNode => _matchingNodes.single;
+
+  @override
+  bool matches(NullabilityNode node) {
+    _matchingNodes.add(node);
+    return true;
+  }
+}
+
 /// Mixin allowing unit tests to create decorated types easily.
 mixin DecoratedTypeTester implements DecoratedTypeTesterBase {
   int _offset = 0;
@@ -114,7 +127,7 @@ class EdgeBuilderTestBase extends MigrationVisitorTestBase {
 /// Mixin allowing unit tests to check for the presence of graph edges.
 mixin EdgeTester {
   /// Returns a [NodeMatcher] that matches any node whatsoever.
-  NodeMatcher get anyNode => const _AnyNodeMatcher();
+  AnyNodeMatcher get anyNode => AnyNodeMatcher();
 
   NullabilityGraphForTesting get graph;
 
@@ -335,14 +348,6 @@ abstract class NodeMatcher {
   }
 
   bool matches(NullabilityNode node);
-}
-
-/// A [NodeMatcher] that matches any node.
-class _AnyNodeMatcher implements NodeMatcher {
-  const _AnyNodeMatcher();
-
-  @override
-  bool matches(NullabilityNode node) => true;
 }
 
 /// A [NodeMatcher] that matches exactly one node.

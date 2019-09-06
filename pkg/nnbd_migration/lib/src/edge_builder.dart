@@ -839,9 +839,6 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitMethodDeclaration(MethodDeclaration node) {
-    if (node.typeParameters != null) {
-      _unimplemented(node, 'Generic method');
-    }
     _handleExecutableDeclaration(node, node.declaredElement, node.metadata,
         node.returnType, node.parameters, null, node.body, null);
     return null;
