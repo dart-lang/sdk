@@ -508,6 +508,7 @@ class ProcedureBuilder extends FunctionBuilder {
     if (isExtensionInstanceMember && isSetter) {
       // TODO(johnniwinther): Avoid the synthetic variable if the parameter is
       // never modified.
+      // TODO(johnniwinther): Handle setter bodies with return statements.
       VariableDeclaration value = procedure.function.positionalParameters[1];
       procedure.function.returnType = value.type;
       Statement body = procedure.function.body;

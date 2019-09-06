@@ -131,7 +131,7 @@ extension B2<T> on B1<T> {
      builder-type-params=[T],
      member-name=B2|method1,
      member-params=[#this],
-     member-type-params=[#T]
+     member-type-params=[T]
   */
   B1<T> method1() {
     return this;
@@ -143,7 +143,7 @@ extension B2<T> on B1<T> {
    builder-type-params=[T],
    member-name=B2|get#method1,
    member-params=[#this],
-   member-type-params=[#T]
+   member-type-params=[T]
   */
 
   /*member: B2|method2:
@@ -152,7 +152,7 @@ extension B2<T> on B1<T> {
      builder-type-params=[T,S],
      member-name=B2|method2,
      member-params=[#this,o],
-     member-type-params=[#T,S]
+     member-type-params=[T,S]
   */
   B1<T> method2<S>(S o) {
     print(o);
@@ -165,7 +165,7 @@ extension B2<T> on B1<T> {
    builder-type-params=[T,S],
    member-name=B2|get#method2,
    member-params=[#this],
-   member-type-params=[#T]
+   member-type-params=[T]
   */
 }
 

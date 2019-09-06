@@ -22,7 +22,7 @@ extension GeneralGeneric<T> on T {
    builder-type-params=[T],
    member-name=GeneralGeneric|method,
    member-params=[#this],
-   member-type-params=[#T]
+   member-type-params=[T]
   */
   T method() => this;
 
@@ -32,7 +32,7 @@ extension GeneralGeneric<T> on T {
    builder-type-params=[T],
    member-name=GeneralGeneric|get#method,
    member-params=[#this],
-   member-type-params=[#T]
+   member-type-params=[T]
   */
 }
 

@@ -39,9 +39,8 @@ class TypeVariableBuilder extends TypeDeclarationBuilder {
   TypeVariableBuilder(
       String name, SourceLibraryBuilder compilationUnit, int charOffset,
       {this.bound, this.isExtensionTypeParameter: false})
-      : actualParameter =
-            new TypeParameter(isExtensionTypeParameter ? '#$name' : name, null)
-              ..fileOffset = charOffset,
+      : actualParameter = new TypeParameter(name, null)
+          ..fileOffset = charOffset,
         super(null, 0, name, compilationUnit, charOffset);
 
   TypeVariableBuilder.fromKernel(

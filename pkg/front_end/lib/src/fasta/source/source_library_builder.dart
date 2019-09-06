@@ -1388,6 +1388,9 @@ class SourceLibraryBuilder extends LibraryBuilder {
       TypeVariableBuilder existing = typeVariablesByName[tv.name];
       if (existing != null) {
         if (existing.isExtensionTypeParameter) {
+          // The type parameter from the extension is shadowed by the type
+          // parameter from the member. Rename the shadowed type parameter.
+          existing.parameter.name = '#${existing.name}';
           typeVariablesByName[tv.name] = tv;
         } else {
           addProblem(messageTypeVariableDuplicatedName, tv.charOffset,

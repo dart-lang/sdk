@@ -78,7 +78,7 @@ extension <T> on B1<T> {
      builder-type-params=[T],
      member-name=_extension#2|method,
      member-params=[#this],
-     member-type-params=[#T]
+     member-type-params=[T]
   */
   method() {}
 
@@ -88,7 +88,7 @@ extension <T> on B1<T> {
    builder-type-params=[T],
    member-name=_extension#2|get#method,
    member-params=[#this],
-   member-type-params=[#T]
+   member-type-params=[T]
   */
 }
 
@@ -136,7 +136,7 @@ extension <T extends A1> on B1<T> {
      builder-type-params=[T extends A1],
      member-name=_extension#4|method,
      member-params=[#this],
-     member-type-params=[#T extends A1]
+     member-type-params=[T extends A1]
   */
   method() {}
 
@@ -146,7 +146,7 @@ extension <T extends A1> on B1<T> {
    builder-type-params=[T extends A1],
    member-name=_extension#4|get#method,
    member-params=[#this],
-   member-type-params=[#T extends A1]
+   member-type-params=[T extends A1]
   */
 }
 

@@ -828,7 +828,7 @@ class IllegalAssignmentJudgment extends ComplexAssignmentJudgment {
 /// `a[b]`.
 class IndexAssignmentJudgment extends ComplexAssignmentJudgmentWithReceiver {
   /// In an assignment to an index expression, the index expression.
-  final Expression index;
+  Expression index;
 
   IndexAssignmentJudgment._(Expression receiver, this.index, Expression rhs,
       {bool isSuper: false})

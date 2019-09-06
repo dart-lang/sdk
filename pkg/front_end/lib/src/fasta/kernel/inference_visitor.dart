@@ -577,28 +577,31 @@ class InferenceVisitor
     // To replicate analyzer behavior, we base type inference on the write
     // member.  TODO(paulberry): would it be better to use the read member
     // when doing compound assignment?
-    FunctionType calleeType =
-        inferrer.getFunctionType(writeTarget, receiverType, false);
-    DartType expectedIndexTypeForWrite;
     DartType indexContext = const UnknownType();
-    DartType writeContext = const UnknownType();
-    if (calleeType.positionalParameters.length >= 2) {
-      // TODO(paulberry): we ought to get a context for the index expression
-      // from the index formal parameter, but analyzer doesn't so for now we
-      // replicate its behavior.
-      expectedIndexTypeForWrite = calleeType.positionalParameters[0];
-      writeContext = calleeType.positionalParameters[1];
-    }
-    inferrer.inferExpression(node.index, indexContext, true);
-    DartType indexType = getInferredType(node.index, inferrer);
+    DartType expectedIndexTypeForWrite =
+        inferrer.getIndexSetKeyType(writeTarget, receiverType);
+    DartType writeContext =
+        inferrer.getIndexSetValueType(writeTarget, receiverType);
+    ExpressionInferenceResult indexResult =
+        inferrer.inferExpression(node.index, indexContext, true);
+    DartType indexType = indexResult.inferredType;
     node._storeLetType(inferrer, node.index, indexType);
-    if (writeContext is! UnknownType) {
-      inferrer.ensureAssignable(
-          expectedIndexTypeForWrite,
-          indexType,
-          node._getInvocationArguments(inferrer, node.write).positional[0],
-          node.write.fileOffset);
+    if (indexResult.replacement != null) {
+      node.index = indexResult.replacement;
     }
+    Expression writeIndexExpression =
+        node._getInvocationArguments(inferrer, node.write).positional[0];
+    if (writeTarget.isExtensionMember) {
+      MethodInvocation write = node.write;
+      Expression replacement = inferrer.transformExtensionMethodInvocation(
+          writeTarget, write, write.receiver, write.arguments);
+      node.write = replacement;
+    }
+    if (writeContext is! UnknownType) {
+      inferrer.ensureAssignable(expectedIndexTypeForWrite, indexType,
+          writeIndexExpression, node.write.fileOffset);
+    }
+
     InvocationExpression read = node.read;
     DartType readType;
     if (read != null) {

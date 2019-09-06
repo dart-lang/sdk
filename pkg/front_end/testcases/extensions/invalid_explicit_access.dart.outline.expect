@@ -22,9 +22,9 @@ static method Extension|method(final self::Class* #this, dynamic a) → dynamic
   ;
 static method Extension|get#method(final self::Class* #this) → (dynamic) →* dynamic
   return (dynamic a) → dynamic => self::Extension|method(#this, a);
-static method GenericExtension|method<#T extends core::Object* = dynamic>(final self::GenericClass<self::GenericExtension|method::#T*>* #this) → dynamic
+static method GenericExtension|method<T extends core::Object* = dynamic>(final self::GenericClass<self::GenericExtension|method::T*>* #this) → dynamic
   ;
-static method GenericExtension|get#method<#T extends core::Object* = dynamic>(final self::GenericClass<self::GenericExtension|get#method::#T*>* #this) → () →* dynamic
-  return () → dynamic => self::GenericExtension|method<self::GenericExtension|get#method::#T*>(#this);
+static method GenericExtension|get#method<T extends core::Object* = dynamic>(final self::GenericClass<self::GenericExtension|get#method::T*>* #this) → () →* dynamic
+  return () → dynamic => self::GenericExtension|method<self::GenericExtension|get#method::T*>(#this);
 static method main() → dynamic
   ;

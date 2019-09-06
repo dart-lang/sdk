@@ -67,14 +67,14 @@ extension Extension<T extends self::Struct* = dynamic> on T* {
   get property = self::Extension|get#property;
   set property = self::Extension|set#property;
 }
-static method Extension|method<#T extends self::Struct* = dynamic>(final self::Extension|method::#T* #this) → self::Extension|method::#T*
+static method Extension|method<T extends self::Struct* = dynamic>(final self::Extension|method::T* #this) → self::Extension|method::T*
   return #this;
-static method Extension|get#method<#T extends self::Struct* = dynamic>(final self::Extension|get#method::#T* #this) → () →* self::Extension|get#method::#T*
-  return () → self::Extension|get#method::#T* => self::Extension|method<self::Extension|get#method::#T*>(#this);
-static method Extension|get#property<#T extends self::Struct* = dynamic>(final self::Extension|get#property::#T* #this) → self::Extension|get#property::#T*
+static method Extension|get#method<T extends self::Struct* = dynamic>(final self::Extension|get#method::T* #this) → () →* self::Extension|get#method::T*
+  return () → self::Extension|get#method::T* => self::Extension|method<self::Extension|get#method::T*>(#this);
+static method Extension|get#property<T extends self::Struct* = dynamic>(final self::Extension|get#property::T* #this) → self::Extension|get#property::T*
   return #this;
-static method Extension|set#property<#T extends self::Struct* = dynamic>(final self::Extension|set#property::#T* #this, self::Extension|set#property::#T* value) → self::Extension|set#property::#T* {
-  final self::Extension|set#property::#T* #t1 = value;
+static method Extension|set#property<T extends self::Struct* = dynamic>(final self::Extension|set#property::T* #this, self::Extension|set#property::T* value) → self::Extension|set#property::T* {
+  final self::Extension|set#property::T* #t1 = value;
   return #t1;
 }
 static method main() → dynamic {

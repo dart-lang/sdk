@@ -1,0 +1,36 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class MapLike<K extends core::Object* = dynamic, V extends core::Object* = dynamic> extends core::Object {
+  final field core::Map<self::MapLike::K*, self::MapLike::V*>* _map = <self::MapLike::K*, self::MapLike::V*>{};
+  synthetic constructor •() → self::MapLike<self::MapLike::K*, self::MapLike::V*>*
+    : super core::Object::•()
+    ;
+  method get(core::Object* key) → self::MapLike::V*
+    return this.{self::MapLike::_map}.{core::Map::[]}(key);
+  method put(generic-covariant-impl self::MapLike::K* key, generic-covariant-impl self::MapLike::V* value) → self::MapLike::V*
+    return let final core::Map<self::MapLike::K*, self::MapLike::V*>* #t1 = this.{self::MapLike::_map} in let final self::MapLike::K* #t2 = key in let final self::MapLike::V* #t3 = value in let final void #t4 = #t1.{core::Map::[]=}(#t2, #t3) in #t3;
+}
+extension Extension<K extends core::Object* = dynamic, V extends core::Object* = dynamic> on self::MapLike<K*, V*>* {
+  operator [] = self::Extension|[];
+  operator []= = self::Extension|[]=;
+}
+static method Extension|[]<K extends core::Object* = dynamic, V extends core::Object* = dynamic>(final self::MapLike<self::Extension|[]::K*, self::Extension|[]::V*>* #this, core::Object* key) → self::Extension|[]::V*
+  return #this.{self::MapLike::get}(key);
+static method Extension|[]=<K extends core::Object* = dynamic, V extends core::Object* = dynamic>(final self::MapLike<self::Extension|[]=::K*, self::Extension|[]=::V*>* #this, self::Extension|[]=::K* key, self::Extension|[]=::V* value) → void
+  return #this.{self::MapLike::put}(key, value);
+static method main() → dynamic {
+  self::MapLike<core::int*, core::String*>* map1 = new self::MapLike::•<core::int*, core::String*>();
+  self::expect(null, self::Extension|[]<core::int*, core::String*>(map1, 0));
+  map1.{self::MapLike::put}(0, "0");
+  self::expect("0", self::Extension|[]<core::int*, core::String*>(map1, 0));
+  self::expect(null, self::Extension|[]<core::int*, core::String*>(map1, 1));
+  self::expect("1", let final self::MapLike<core::int*, core::String*>* #t5 = map1 in let final core::int* #t6 = 1 in let final core::String* #t7 = "1" in let final void #t8 = self::Extension|[]=<core::int*, core::String*>(#t5, #t6, #t7) in #t7);
+  self::expect("1", self::Extension|[]<core::int*, core::String*>(map1, 1));
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!expected.{core::Object::==}(actual)) {
+    throw "Mismatch: expected=${expected}, actual=${actual}";
+  }
+}

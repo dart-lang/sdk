@@ -41,6 +41,7 @@ import 'package:kernel/ast.dart'
         SetLiteral,
         Statement,
         StaticGet,
+        StaticInvocation,
         SuperMethodInvocation,
         SuperPropertyGet,
         SuperPropertySet,
@@ -1171,6 +1172,108 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     throw unhandled('$target', 'getFunctionType', null, null);
   }
 
+  /// Returns the type of the 'key' parameter in an []= implementation.
+  ///
+  /// For instance
+  ///
+  ///    class Class<K, V> {
+  ///      void operator []=(K key, V value) {}
+  ///    }
+  ///
+  ///    extension Extension<K, V> on Class<K, V> {
+  ///      void operator []=(K key, V value) {}
+  ///    }
+  ///
+  ///    new Class<int, String>()[0] = 'foo';     // The key type is `int`.
+  ///    Extension<int, String>(null)[0] = 'foo'; // The key type is `int`.
+  ///
+  DartType getIndexSetKeyType(
+      ObjectAccessTarget target, DartType receiverType) {
+    switch (target.kind) {
+      case ObjectAccessTargetKind.instanceMember:
+        FunctionType functionType = _getFunctionType(
+            getGetterTypeForMemberTarget(target.member, receiverType), false);
+        if (functionType.positionalParameters.length >= 1) {
+          return functionType.positionalParameters[0];
+        }
+        break;
+      case ObjectAccessTargetKind.extensionMember:
+        switch (target.extensionMethodKind) {
+          case ProcedureKind.Operator:
+            FunctionType functionType = target.member.function.functionType;
+            if (functionType.positionalParameters.length >= 2) {
+              DartType indexType = functionType.positionalParameters[1];
+              if (functionType.typeParameters.isNotEmpty) {
+                Substitution substitution = Substitution.fromPairs(
+                    functionType.typeParameters,
+                    target.inferredExtensionTypeArguments);
+                return substitution.substituteType(indexType);
+              }
+              return indexType;
+            }
+            break;
+          default:
+            throw unhandled('$target', 'getFunctionType', null, null);
+        }
+        break;
+      case ObjectAccessTargetKind.callFunction:
+      case ObjectAccessTargetKind.unresolved:
+        break;
+    }
+    return const UnknownType();
+  }
+
+  /// Returns the type of the 'value' parameter in an []= implementation.
+  ///
+  /// For instance
+  ///
+  ///    class Class<K, V> {
+  ///      void operator []=(K key, V value) {}
+  ///    }
+  ///
+  ///    extension Extension<K, V> on Class<K, V> {
+  ///      void operator []=(K key, V value) {}
+  ///    }
+  ///
+  ///    new Class<int, String>()[0] = 'foo';     // The value type is `String`.
+  ///    Extension<int, String>(null)[0] = 'foo'; // The value type is `String`.
+  ///
+  DartType getIndexSetValueType(
+      ObjectAccessTarget target, DartType receiverType) {
+    switch (target.kind) {
+      case ObjectAccessTargetKind.instanceMember:
+        FunctionType functionType = _getFunctionType(
+            getGetterTypeForMemberTarget(target.member, receiverType), false);
+        if (functionType.positionalParameters.length >= 2) {
+          return functionType.positionalParameters[1];
+        }
+        break;
+      case ObjectAccessTargetKind.extensionMember:
+        switch (target.extensionMethodKind) {
+          case ProcedureKind.Operator:
+            FunctionType functionType = target.member.function.functionType;
+            if (functionType.positionalParameters.length >= 3) {
+              DartType indexType = functionType.positionalParameters[2];
+              if (functionType.typeParameters.isNotEmpty) {
+                Substitution substitution = Substitution.fromPairs(
+                    functionType.typeParameters,
+                    target.inferredExtensionTypeArguments);
+                return substitution.substituteType(indexType);
+              }
+              return indexType;
+            }
+            break;
+          default:
+            throw unhandled('$target', 'getFunctionType', null, null);
+        }
+        break;
+      case ObjectAccessTargetKind.callFunction:
+      case ObjectAccessTargetKind.unresolved:
+        break;
+    }
+    return const UnknownType();
+  }
+
   FunctionType _getFunctionType(DartType calleeType, bool followCall) {
     if (calleeType is FunctionType) {
       return calleeType;
@@ -1870,6 +1973,29 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     }
   }
 
+  StaticInvocation transformExtensionMethodInvocation(ObjectAccessTarget target,
+      Expression expression, Expression receiver, Arguments arguments) {
+    assert(target.isExtensionMember);
+    Procedure procedure = target.member;
+    Expression replacement;
+    expression.parent.replaceChild(
+        expression,
+        replacement = helper.forest.createStaticInvocation(
+            expression.fileOffset,
+            target.member,
+            arguments = helper.forest.createArgumentsForExtensionMethod(
+                arguments.fileOffset,
+                target.inferredExtensionTypeArguments.length,
+                procedure.function.typeParameters.length -
+                    target.inferredExtensionTypeArguments.length,
+                receiver,
+                extensionTypeArguments: target.inferredExtensionTypeArguments,
+                positionalArguments: arguments.positional,
+                namedArguments: arguments.named,
+                typeArguments: arguments.types)));
+    return replacement;
+  }
+
   /// Performs the core type inference algorithm for method invocations (this
   /// handles both null-aware and non-null-aware method invocations).
   ExpressionInferenceResult inferMethodInvocation(
@@ -1929,24 +2055,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         desugaredInvocation,
         arguments,
         expression);
-    Expression replacement;
+    StaticInvocation replacement;
     if (target.isExtensionMember) {
-      Procedure procedure = target.member;
-      expression.parent.replaceChild(
-          expression,
-          replacement = helper.forest.createStaticInvocation(
-              expression.fileOffset,
-              target.member,
-              arguments = helper.forest.createArgumentsForExtensionMethod(
-                  arguments.fileOffset,
-                  target.inferredExtensionTypeArguments.length,
-                  procedure.function.typeParameters.length -
-                      target.inferredExtensionTypeArguments.length,
-                  receiver,
-                  extensionTypeArguments: target.inferredExtensionTypeArguments,
-                  positionalArguments: arguments.positional,
-                  namedArguments: arguments.named,
-                  typeArguments: arguments.types)));
+      replacement = transformExtensionMethodInvocation(
+          target, expression, receiver, arguments);
+      arguments = replacement.arguments;
     }
     DartType inferredType = inferInvocation(typeContext, fileOffset,
         functionType, functionType.returnType, arguments,
