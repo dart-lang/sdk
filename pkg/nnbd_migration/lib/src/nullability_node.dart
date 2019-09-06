@@ -369,7 +369,6 @@ class NullabilityGraphForTesting extends NullabilityGraph {
       NullabilityNode destinationNode,
       _NullabilityEdgeKind kind,
       EdgeOrigin origin) {
-    // TODO: implement _connect
     var edge = super._connect(sources, destinationNode, kind, origin);
     _allEdges.add(edge);
     return edge;
