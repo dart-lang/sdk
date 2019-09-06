@@ -2145,10 +2145,6 @@ class RawString : public RawInstance {
 
  private:
   friend class Library;
-  friend class OneByteStringSerializationCluster;
-  friend class TwoByteStringSerializationCluster;
-  friend class OneByteStringDeserializationCluster;
-  friend class TwoByteStringDeserializationCluster;
   friend class RODataSerializationCluster;
   friend class ImageWriter;
 };

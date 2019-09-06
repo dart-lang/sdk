@@ -724,7 +724,8 @@ VM_UNIT_TEST_CASE(FullSnapshot) {
       "}\n";
   Dart_Handle result;
 
-  uint8_t* isolate_snapshot_data_buffer;
+  uint8_t* isolate_snapshot_data_buffer = nullptr;
+  intptr_t isolate_snapshot_data_size = 0;
 
   // Start an Isolate, load a script and create a full snapshot.
   Timer timer1(true, "Snapshot_test");
@@ -749,17 +750,38 @@ VM_UNIT_TEST_CASE(FullSnapshot) {
     OS::PrintErr("Without Snapshot: %" Pd64 "us\n", timer1.TotalElapsedTime());
 
     // Write snapshot with object content.
-    FullSnapshotWriter writer(Snapshot::kFull, NULL,
+    uint8_t* isolate_snapshot_text_buffer = nullptr;
+    BlobImageWriter image_writer(thread, &isolate_snapshot_text_buffer,
+                                 &malloc_allocator, 2 * MB /* initial_size */,
+                                 /*shared_objects=*/nullptr,
+                                 /*shared_instructions=*/nullptr,
+                                 /*reused_instructions=*/nullptr);
+    FullSnapshotWriter writer(Snapshot::kFull, nullptr,
                               &isolate_snapshot_data_buffer, &malloc_allocator,
-                              NULL, /*image_writer*/ nullptr);
+                              nullptr, &image_writer);
     writer.WriteFullSnapshot();
+    isolate_snapshot_data_size = writer.IsolateSnapshotSize();
+    free(isolate_snapshot_text_buffer);
   }
+
+  // Malloc gives only 8 byte alignment, but we need
+  // OS::kMaxPreferredCodeAlignment. Rellocate to VirtualMemory to get page
+  // alignment.
+  std::unique_ptr<VirtualMemory> aligned_isolate_snapshot_data_buffer(
+      VirtualMemory::Allocate(
+          Utils::RoundUp(isolate_snapshot_data_size, VirtualMemory::PageSize()),
+          false, "snapshot_test"));
+  memmove(aligned_isolate_snapshot_data_buffer->address(),
+          isolate_snapshot_data_buffer, isolate_snapshot_data_size);
+  free(isolate_snapshot_data_buffer);
+  isolate_snapshot_data_buffer = nullptr;
 
   // Now Create another isolate using the snapshot and execute a method
   // from the script.
   Timer timer2(true, "Snapshot_test");
   timer2.Start();
-  TestCase::CreateTestIsolateFromSnapshot(isolate_snapshot_data_buffer);
+  TestCase::CreateTestIsolateFromSnapshot(reinterpret_cast<uint8_t*>(
+      aligned_isolate_snapshot_data_buffer->address()));
   {
     Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
     timer2.Stop();
@@ -772,7 +794,6 @@ VM_UNIT_TEST_CASE(FullSnapshot) {
     Dart_ExitScope();
   }
   Dart_ShutdownIsolate();
-  free(isolate_snapshot_data_buffer);
 }
 
 // Helper function to call a top level Dart function and serialize the result.

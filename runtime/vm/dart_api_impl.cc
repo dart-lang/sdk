@@ -1670,10 +1670,21 @@ Dart_CreateSnapshot(uint8_t** vm_snapshot_data_buffer,
 
   Symbols::Compact();
 
+  uint8_t* vm_snapshot_instruction_buffer = nullptr;
+  BlobImageWriter vm_image_writer(T, &vm_snapshot_instruction_buffer,
+                                  ApiReallocate, 2 * MB /* initial_size */,
+                                  /*shared_objects=*/nullptr,
+                                  /*shared_instructions=*/nullptr,
+                                  /*reused_instructions=*/nullptr);
+  uint8_t* isolate_snapshot_instruction_buffer = nullptr;
+  BlobImageWriter isolate_image_writer(T, &isolate_snapshot_instruction_buffer,
+                                       ApiReallocate, 2 * MB /* initial_size */,
+                                       /*shared_objects=*/nullptr,
+                                       /*shared_instructions=*/nullptr,
+                                       /*reused_instructions=*/nullptr);
   FullSnapshotWriter writer(Snapshot::kFull, vm_snapshot_data_buffer,
                             isolate_snapshot_data_buffer, ApiReallocate,
-                            NULL /* vm_image_writer */,
-                            NULL /* isolate_image_writer */);
+                            &vm_image_writer, &isolate_image_writer);
   writer.WriteFullSnapshot();
   if (vm_snapshot_data_buffer != NULL) {
     *vm_snapshot_data_size = writer.VmIsolateSnapshotSize();
