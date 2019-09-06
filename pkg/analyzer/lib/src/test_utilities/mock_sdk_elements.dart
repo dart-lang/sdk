@@ -2,14 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
-import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta.dart';
@@ -78,7 +75,6 @@ class _MockSdkElementsBuilder {
 
     _boolElement.constructors = [
       _constructor(
-        enclosingElement: _boolElement,
         name: 'fromEnvironment',
         isConst: true,
         isFactory: true,
@@ -102,13 +98,10 @@ class _MockSdkElementsBuilder {
     var tElement = _typeParameter('T');
     _completerElement = _class(
       name: 'Completer',
+      isAbstract: true,
       typeParameters: [tElement],
     );
     _completerElement.supertype = objectType;
-
-    _completerElement.constructors = [
-      _constructor(enclosingElement: _completerElement),
-    ];
 
     return _completerElement;
   }
@@ -128,7 +121,7 @@ class _MockSdkElementsBuilder {
 
     _deprecatedElement.constructors = [
       _constructor(
-        enclosingElement: _deprecatedElement,
+        isConst: true,
         parameters: [
           _requiredParameter('message', stringType),
         ],
@@ -141,34 +134,23 @@ class _MockSdkElementsBuilder {
   ClassElementImpl get doubleElement {
     if (_doubleElement != null) return _doubleElement;
 
-    _doubleElement = _class(name: 'double');
+    _doubleElement = _class(name: 'double', isAbstract: true);
     _doubleElement.supertype = numType;
 
-    // TODO(scheglov) clean up
-    ConstFieldElementImpl varINFINITY = ElementFactory.fieldElement(
-        "INFINITY", true, false, true, doubleType,
-        initializer: AstTestFactory.doubleLiteral(double.infinity));
-    varINFINITY.constantInitializer = AstTestFactory.binaryExpression(
-        AstTestFactory.integer(1), TokenType.SLASH, AstTestFactory.integer(0));
+    FieldElement staticConstDoubleField(String name) {
+      return _field(name, doubleType, isStatic: true, isConst: true);
+    }
+
     _doubleElement.fields = <FieldElement>[
-      ElementFactory.fieldElement("NAN", true, false, true, doubleType,
-          initializer: AstTestFactory.doubleLiteral(double.nan)),
-      varINFINITY,
-      ElementFactory.fieldElement(
-          "NEGATIVE_INFINITY", true, false, true, doubleType,
-          initializer: AstTestFactory.doubleLiteral(double.negativeInfinity)),
-      ElementFactory.fieldElement("MIN_POSITIVE", true, false, true, doubleType,
-          initializer: AstTestFactory.doubleLiteral(double.minPositive)),
-      ElementFactory.fieldElement("MAX_FINITE", true, false, true, doubleType,
-          initializer: AstTestFactory.doubleLiteral(double.maxFinite)),
+      staticConstDoubleField('nan'),
+      staticConstDoubleField('infinity'),
+      staticConstDoubleField('negativeInfinity'),
+      staticConstDoubleField('minPositive'),
+      staticConstDoubleField('maxFinite'),
     ];
 
     _doubleElement.accessors =
         _doubleElement.fields.map((field) => field.getter).toList();
-
-    _doubleElement.constructors = [
-      _constructor(enclosingElement: _doubleElement)
-    ];
 
     _doubleElement.methods = [
       _method('+', doubleType, parameters: [
@@ -215,12 +197,8 @@ class _MockSdkElementsBuilder {
   ClassElementImpl get functionElement {
     if (_functionElement != null) return _functionElement;
 
-    _functionElement = _class(name: 'Function');
+    _functionElement = _class(name: 'Function', isAbstract: true);
     _functionElement.supertype = objectType;
-
-    _listElement.constructors = [
-      _constructor(enclosingElement: _functionElement),
-    ];
 
     return _functionElement;
   }
@@ -237,6 +215,7 @@ class _MockSdkElementsBuilder {
 
     _futureElement = _class(
       name: 'Future',
+      isAbstract: true,
       typeParameters: [tElement],
     );
     _futureElement.supertype = objectType;
@@ -244,7 +223,6 @@ class _MockSdkElementsBuilder {
     //   factory Future.value([FutureOr<T> value])
     _futureElement.constructors = [
       _constructor(
-        enclosingElement: _futureElement,
         isFactory: true,
         parameters: [
           _positionalParameter('value', futureOrType(tType)),
@@ -293,12 +271,11 @@ class _MockSdkElementsBuilder {
   ClassElementImpl get intElement {
     if (_intElement != null) return _intElement;
 
-    _intElement = _class(name: 'int');
+    _intElement = _class(name: 'int', isAbstract: true);
     _intElement.supertype = numType;
 
     _intElement.constructors = [
       _constructor(
-        enclosingElement: _intElement,
         name: 'fromEnvironment',
         isConst: true,
         isFactory: true,
@@ -350,12 +327,13 @@ class _MockSdkElementsBuilder {
 
     _iterableElement = _class(
       name: 'Iterable',
+      isAbstract: true,
       typeParameters: [eElement],
     );
     _iterableElement.supertype = objectType;
 
     _iterableElement.constructors = [
-      _constructor(enclosingElement: _iterableElement, isConst: true),
+      _constructor(isConst: true),
     ];
 
     _setAccessors(_iterableElement, [
@@ -374,13 +352,10 @@ class _MockSdkElementsBuilder {
 
     _iteratorElement = _class(
       name: 'Iterator',
+      isAbstract: true,
       typeParameters: [eElement],
     );
     _iteratorElement.supertype = objectType;
-
-    _iteratorElement.constructors = [
-      _constructor(enclosingElement: _iteratorElement),
-    ];
 
     _setAccessors(_iterableElement, [
       _getter('current', eType),
@@ -397,6 +372,7 @@ class _MockSdkElementsBuilder {
 
     _listElement = _class(
       name: 'List',
+      isAbstract: true,
       typeParameters: [eElement],
     );
     _listElement.supertype = objectType;
@@ -405,7 +381,9 @@ class _MockSdkElementsBuilder {
     ];
 
     _listElement.constructors = [
-      _constructor(enclosingElement: _listElement),
+      _constructor(isFactory: true, parameters: [
+        _positionalParameter('length', intType),
+      ]),
     ];
 
     _setAccessors(_listElement, [
@@ -438,13 +416,10 @@ class _MockSdkElementsBuilder {
 
     _mapElement = _class(
       name: 'Map',
+      isAbstract: true,
       typeParameters: [kElement, vElement],
     );
     _mapElement.supertype = objectType;
-
-    _mapElement.constructors = [
-      _constructor(enclosingElement: _listElement),
-    ];
 
     _setAccessors(_mapElement, [
       _getter('length', intType),
@@ -471,7 +446,6 @@ class _MockSdkElementsBuilder {
 
     _nullElement.constructors = [
       _constructor(
-        enclosingElement: _nullElement,
         name: '_uninstantiatable',
         isFactory: true,
       ),
@@ -483,7 +457,7 @@ class _MockSdkElementsBuilder {
   ClassElementImpl get numElement {
     if (_numElement != null) return _numElement;
 
-    _numElement = _class(name: 'num');
+    _numElement = _class(name: 'num', isAbstract: true);
     _numElement.supertype = objectType;
 
     _numElement.methods = [
@@ -565,7 +539,7 @@ class _MockSdkElementsBuilder {
     _objectElement.mixins = const <InterfaceType>[];
     _objectElement.typeParameters = const <TypeParameterElement>[];
     _objectElement.constructors = [
-      _constructor(enclosingElement: _objectElement),
+      _constructor(isConst: true),
     ];
 
     _objectElement.methods = [
@@ -597,7 +571,7 @@ class _MockSdkElementsBuilder {
     _overrideElement.supertype = objectType;
 
     _overrideElement.constructors = [
-      _constructor(enclosingElement: _overrideElement),
+      _constructor(isConst: true),
     ];
 
     return _overrideElement;
@@ -610,7 +584,7 @@ class _MockSdkElementsBuilder {
     _proxyElement.supertype = objectType;
 
     _proxyElement.constructors = [
-      _constructor(enclosingElement: _proxyElement),
+      _constructor(isConst: true),
     ];
 
     return _proxyElement;
@@ -624,6 +598,7 @@ class _MockSdkElementsBuilder {
 
     _setElement = _class(
       name: 'Set',
+      isAbstract: true,
       typeParameters: [eElement],
     );
     _setElement.supertype = objectType;
@@ -637,12 +612,8 @@ class _MockSdkElementsBuilder {
   ClassElementImpl get stackTraceElement {
     if (_stackTraceElement != null) return _stackTraceElement;
 
-    _stackTraceElement = _class(name: 'StackTrace');
+    _stackTraceElement = _class(name: 'StackTrace', isAbstract: true);
     _stackTraceElement.supertype = objectType;
-
-    _stackTraceElement.constructors = [
-      _constructor(enclosingElement: _stackTraceElement),
-    ];
 
     return _stackTraceElement;
   }
@@ -655,14 +626,11 @@ class _MockSdkElementsBuilder {
 
     _streamElement = _class(
       name: 'Stream',
+      isAbstract: true,
       typeParameters: [tElement],
     );
     _streamElement.isAbstract = true;
     _streamElement.supertype = objectType;
-
-    _streamElement.constructors = [
-      _constructor(enclosingElement: _streamElement),
-    ];
 
     //    StreamSubscription<T> listen(void onData(T event),
     //        {Function onError, void onDone(), bool cancelOnError});
@@ -698,7 +666,8 @@ class _MockSdkElementsBuilder {
 
     var tElement = _typeParameter('T');
     _streamSubscriptionElement = _class(
-      name: 'StreamSubscriptionElement',
+      name: 'StreamSubscription',
+      isAbstract: true,
       typeParameters: [tElement],
     );
     _streamSubscriptionElement.supertype = objectType;
@@ -709,12 +678,11 @@ class _MockSdkElementsBuilder {
   ClassElementImpl get stringElement {
     if (_stringElement != null) return _stringElement;
 
-    _stringElement = _class(name: 'String');
+    _stringElement = _class(name: 'String', isAbstract: true);
     _stringElement.supertype = objectType;
 
     _stringElement.constructors = [
       _constructor(
-        enclosingElement: _stringElement,
         name: 'fromEnvironment',
         isConst: true,
         isFactory: true,
@@ -749,12 +717,11 @@ class _MockSdkElementsBuilder {
   ClassElementImpl get symbolElement {
     if (_symbolElement != null) return _symbolElement;
 
-    _symbolElement = _class(name: 'Symbol');
+    _symbolElement = _class(name: 'Symbol', isAbstract: true);
     _symbolElement.supertype = objectType;
 
     _symbolElement.constructors = [
       _constructor(
-        enclosingElement: _symbolElement,
         isConst: true,
         isFactory: true,
         parameters: [
@@ -769,12 +736,8 @@ class _MockSdkElementsBuilder {
   ClassElementImpl get typeElement {
     if (_typeElement != null) return _typeElement;
 
-    _typeElement = _class(name: 'Type');
+    _typeElement = _class(name: 'Type', isAbstract: true);
     _typeElement.supertype = objectType;
-
-    _typeElement.constructors = [
-      _constructor(enclosingElement: _typeElement),
-    ];
 
     return _typeElement;
   }
@@ -881,12 +844,14 @@ class _MockSdkElementsBuilder {
       typeElement,
     ];
 
-    // TODO(scheglov) clean up
     coreUnit.functions = <FunctionElement>[
-      ElementFactory.functionElement3("identical", boolType,
-          <ClassElement>[objectElement, objectElement], null),
-      ElementFactory.functionElement3(
-          "print", voidType, <ClassElement>[objectElement], null)
+      _function('identical', boolType, parameters: [
+        _requiredParameter('a', objectType),
+        _requiredParameter('b', objectType),
+      ]),
+      _function('print', voidType, parameters: [
+        _requiredParameter('object', objectType),
+      ]),
     ];
 
     var deprecatedVariable = _topLevelVariable(
@@ -906,21 +871,6 @@ class _MockSdkElementsBuilder {
       _interfaceType(proxyElement),
       isConst: true,
     );
-
-    // TODO(scheglov) something better?
-    {
-      InstanceCreationExpression initializer =
-          AstTestFactory.instanceCreationExpression2(
-        Keyword.CONST,
-        AstTestFactory.typeName(deprecatedElement),
-        [AstTestFactory.string2('next release')],
-      );
-      ConstructorElement constructor = deprecatedElement.constructors.single;
-      initializer.staticElement = constructor;
-      initializer.constructorName.staticElement = constructor;
-      (deprecatedVariable as ConstTopLevelVariableElementImpl)
-          .constantInitializer = initializer;
-    }
 
     coreUnit.accessors = <PropertyAccessorElement>[
       deprecatedVariable.getter,
@@ -948,32 +898,28 @@ class _MockSdkElementsBuilder {
 
   ClassElementImpl _class({
     @required String name,
+    bool isAbstract = false,
     List<TypeParameterElement> typeParameters = const [],
   }) {
     var element = ClassElementImpl(name, 0);
     element.typeParameters = typeParameters;
-    element.constructors = const <ConstructorElement>[];
+    element.constructors = <ConstructorElement>[
+      _constructor(),
+    ];
     return element;
   }
 
   ConstructorElement _constructor({
-    @required ClassElementImpl enclosingElement,
     String name = '',
     bool isConst = false,
     bool isFactory = false,
     List<ParameterElement> parameters = const [],
-    List<DartType> optional,
-    Map<String, DartType> named,
   }) {
-    var constructor = ElementFactory.constructorElement(
-      enclosingElement,
-      name,
-      isConst,
-    );
-    constructor.constantInitializers = <ConstructorInitializer>[];
-    constructor.factory = isFactory;
-    constructor.parameters = parameters;
-    return constructor;
+    var element = ConstructorElementImpl(name, 0);
+    element.factory = isFactory;
+    element.isConst = isConst;
+    element.parameters = parameters;
+    return element;
   }
 
   FieldElement _field(
@@ -984,6 +930,20 @@ class _MockSdkElementsBuilder {
     bool isStatic = false,
   }) {
     return ElementFactory.fieldElement(name, isStatic, isFinal, isConst, type);
+  }
+
+  FunctionElement _function(
+    String name,
+    DartType returnType, {
+    List<TypeParameterElement> typeFormals = const [],
+    List<ParameterElement> parameters = const [],
+  }) {
+    var element = FunctionElementImpl(name, 0)
+      ..parameters = parameters
+      ..returnType = returnType
+      ..typeParameters = typeFormals;
+    element.type = _typeOfExecutableElement(element);
+    return element;
   }
 
   FunctionType _functionType({
@@ -1043,11 +1003,10 @@ class _MockSdkElementsBuilder {
   }
 
   ParameterElement _namedParameter(String name, DartType type,
-      {Expression initializer, String initializerCode}) {
+      {String initializerCode}) {
     var parameter = DefaultParameterElementImpl(name, 0);
     parameter.parameterKind = ParameterKind.NAMED;
     parameter.type = type;
-    parameter.constantInitializer = initializer;
     parameter.defaultValueCode = initializerCode;
     return parameter;
   }
@@ -1099,7 +1058,7 @@ class _MockSdkElementsBuilder {
   }
 
   TypeParameterElementImpl _typeParameter(String name) {
-    return ElementFactory.typeParameterElement(name);
+    return TypeParameterElementImpl(name, 0);
   }
 
   TypeParameterType _typeParameterType(TypeParameterElement element) {

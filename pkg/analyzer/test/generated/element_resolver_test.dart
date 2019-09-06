@@ -1004,7 +1004,7 @@ class ElementResolverTest extends EngineTestCase with ResourceProviderMixin {
 
   test_visitSimpleIdentifier_classScope() async {
     InterfaceType doubleType = _typeProvider.doubleType;
-    String fieldName = "NAN";
+    String fieldName = 'nan';
     SimpleIdentifier node = AstTestFactory.identifier3(fieldName);
     _resolveInClass(node, doubleType.element);
     expect(node.staticElement, getGetter(doubleType, fieldName));
