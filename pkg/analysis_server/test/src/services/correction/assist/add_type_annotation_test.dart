@@ -20,7 +20,7 @@ class AddTypeAnnotationTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.ADD_TYPE_ANNOTATION;
 
-  test_classField_final_no_assist_with_lint() async {
+  test_classField_final_noAssistWithLint() async {
     createAnalysisOptionsFile(lints: [LintNames.always_specify_types]);
     verifyNoTestUnitErrors = false;
     await resolveTestUnit('''

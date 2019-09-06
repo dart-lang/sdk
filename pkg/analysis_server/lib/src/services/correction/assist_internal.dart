@@ -60,7 +60,6 @@ class AssistProcessor extends BaseProcessor {
     )) {
       await _addProposals_addTypeAnnotation();
     }
-
     await _addProposal_assignToLocalVariable();
     await _addProposal_convertClassToMixin();
     await _addProposal_convertDocumentationIntoBlock();
@@ -129,7 +128,11 @@ class AssistProcessor extends BaseProcessor {
 
     if (experimentStatus.control_flow_collections) {
       await _addProposal_convertConditionalExpressionToIfElement();
-      await _addProposal_convertMapFromIterableToForLiteral();
+      if (!_containsErrorCode(
+        {LintNames.prefer_for_elements_to_map_fromIterable},
+      )) {
+        await _addProposal_convertMapFromIterableToForLiteral();
+      }
     }
     if (experimentStatus.spread_collections) {
       await _addProposal_convertAddAllToSpread();
@@ -714,160 +717,8 @@ class AssistProcessor extends BaseProcessor {
   }
 
   Future<void> _addProposal_convertMapFromIterableToForLiteral() async {
-    //
-    // Ensure that the selection is inside an invocation of Map.fromIterable.
-    //
-    InstanceCreationExpression creation =
-        node.thisOrAncestorOfType<InstanceCreationExpression>();
-    if (creation == null) {
-      _coverageMarker();
-      return;
-    }
-    ConstructorElement element = creation.staticElement;
-    if (element == null ||
-        element.name != 'fromIterable' ||
-        element.enclosingElement != typeProvider.mapType.element) {
-      _coverageMarker();
-      return;
-    }
-    //
-    // Ensure that the arguments have the right form.
-    //
-    NodeList<Expression> arguments = creation.argumentList.arguments;
-    if (arguments.length != 3) {
-      _coverageMarker();
-      return;
-    }
-    Expression iterator = arguments[0].unParenthesized;
-    Expression secondArg = arguments[1];
-    Expression thirdArg = arguments[2];
-
-    Expression extractBody(FunctionExpression expression) {
-      FunctionBody body = expression.body;
-      if (body is ExpressionFunctionBody) {
-        return body.expression;
-      } else if (body is BlockFunctionBody) {
-        NodeList<Statement> statements = body.block.statements;
-        if (statements.length == 1) {
-          Statement statement = statements[0];
-          if (statement is ReturnStatement) {
-            return statement.expression;
-          }
-        }
-      }
-      return null;
-    }
-
-    FunctionExpression extractClosure(String name, Expression argument) {
-      if (argument is NamedExpression && argument.name.label.name == name) {
-        Expression expression = argument.expression.unParenthesized;
-        if (expression is FunctionExpression) {
-          NodeList<FormalParameter> parameters =
-              expression.parameters.parameters;
-          if (parameters.length == 1 && parameters[0].isRequiredPositional) {
-            if (extractBody(expression) != null) {
-              return expression;
-            }
-          }
-        }
-      }
-      return null;
-    }
-
-    FunctionExpression keyClosure =
-        extractClosure('key', secondArg) ?? extractClosure('key', thirdArg);
-    FunctionExpression valueClosure =
-        extractClosure('value', thirdArg) ?? extractClosure('value', secondArg);
-    if (keyClosure == null || valueClosure == null) {
-      _coverageMarker();
-      return;
-    }
-    //
-    // Compute the loop variable name and convert the key and value closures if
-    // necessary.
-    //
-    SimpleFormalParameter keyParameter = keyClosure.parameters.parameters[0];
-    String keyParameterName = keyParameter.identifier.name;
-    SimpleFormalParameter valueParameter =
-        valueClosure.parameters.parameters[0];
-    String valueParameterName = valueParameter.identifier.name;
-    Expression keyBody = extractBody(keyClosure);
-    String keyExpressionText = utils.getNodeText(keyBody);
-    Expression valueBody = extractBody(valueClosure);
-    String valueExpressionText = utils.getNodeText(valueBody);
-
-    String loopVariableName;
-    if (keyParameterName == valueParameterName) {
-      loopVariableName = keyParameterName;
-    } else {
-      _ParameterReferenceFinder keyFinder =
-          new _ParameterReferenceFinder(keyParameter.declaredElement);
-      keyBody.accept(keyFinder);
-
-      _ParameterReferenceFinder valueFinder =
-          new _ParameterReferenceFinder(valueParameter.declaredElement);
-      valueBody.accept(valueFinder);
-
-      String computeUnusedVariableName() {
-        String candidate = 'e';
-        var index = 1;
-        while (keyFinder.referencesName(candidate) ||
-            valueFinder.referencesName(candidate)) {
-          candidate = 'e${index++}';
-        }
-        return candidate;
-      }
-
-      if (valueFinder.isParameterUnreferenced) {
-        if (valueFinder.referencesName(keyParameterName)) {
-          // The name of the value parameter is not used, but we can't use the
-          // name of the key parameter because doing so would hide a variable
-          // referenced in the value expression.
-          loopVariableName = computeUnusedVariableName();
-          keyExpressionText = keyFinder.replaceName(
-              keyExpressionText, loopVariableName, keyBody.offset);
-        } else {
-          loopVariableName = keyParameterName;
-        }
-      } else if (keyFinder.isParameterUnreferenced) {
-        if (keyFinder.referencesName(valueParameterName)) {
-          // The name of the key parameter is not used, but we can't use the
-          // name of the value parameter because doing so would hide a variable
-          // referenced in the key expression.
-          loopVariableName = computeUnusedVariableName();
-          valueExpressionText = valueFinder.replaceName(
-              valueExpressionText, loopVariableName, valueBody.offset);
-        } else {
-          loopVariableName = valueParameterName;
-        }
-      } else {
-        // The names are different and both are used. We need to find a name
-        // that would not change the resolution of any other identifiers in
-        // either the key or value expressions.
-        loopVariableName = computeUnusedVariableName();
-        keyExpressionText = keyFinder.replaceName(
-            keyExpressionText, loopVariableName, keyBody.offset);
-        valueExpressionText = valueFinder.replaceName(
-            valueExpressionText, loopVariableName, valueBody.offset);
-      }
-    }
-    //
-    // Construct the edit.
-    //
-    DartChangeBuilder changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addReplacement(range.node(creation), (DartEditBuilder builder) {
-        builder.write('{ for (var ');
-        builder.write(loopVariableName);
-        builder.write(' in ');
-        builder.write(utils.getNodeText(iterator));
-        builder.write(') ');
-        builder.write(keyExpressionText);
-        builder.write(' : ');
-        builder.write(valueExpressionText);
-        builder.write(' }');
-      });
-    });
+    final changeBuilder =
+        await createBuilder_convertMapFromIterableToForLiteral();
     _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_TO_FOR_ELEMENT);
   }
 
@@ -4010,70 +3861,6 @@ class AssistProcessor extends BaseProcessor {
       return precedence < TokenClass.LOGICAL_AND_OPERATOR.precedence;
     }
     return false;
-  }
-}
-
-/**
- * A visitor that can be used to find references to a parameter.
- */
-class _ParameterReferenceFinder extends RecursiveAstVisitor<void> {
-  /**
-   * The parameter for which references are being sought, or `null` if we are
-   * just accumulating a list of referenced names.
-   */
-  final ParameterElement parameter;
-
-  /**
-   * A list of the simple identifiers that reference the [parameter].
-   */
-  final List<SimpleIdentifier> references = <SimpleIdentifier>[];
-
-  /**
-   * A collection of the names of other simple identifiers that were found. We
-   * need to know these in order to ensure that the selected loop variable does
-   * not hide a name from an enclosing scope that is already being referenced.
-   */
-  final Set<String> otherNames = new Set<String>();
-
-  /**
-   * Initialize a newly created finder to find references to the [parameter].
-   */
-  _ParameterReferenceFinder(this.parameter) : assert(parameter != null);
-
-  /**
-   * Return `true` if the parameter is unreferenced in the nodes that have been
-   * visited.
-   */
-  bool get isParameterUnreferenced => references.isEmpty;
-
-  /**
-   * Return `true` is the given name (assumed to be different than the name of
-   * the parameter) is references in the nodes that have been visited.
-   */
-  bool referencesName(String name) => otherNames.contains(name);
-
-  /**
-   * Replace all of the references to the parameter in the given [source] with
-   * the [newName]. The [offset] is the offset of the first character of the
-   * [source] relative to the start of the file.
-   */
-  String replaceName(String source, String newName, int offset) {
-    int oldLength = parameter.name.length;
-    for (int i = references.length - 1; i >= 0; i--) {
-      int oldOffset = references[i].offset - offset;
-      source = source.replaceRange(oldOffset, oldOffset + oldLength, newName);
-    }
-    return source;
-  }
-
-  @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.staticElement == parameter) {
-      references.add(node);
-    } else if (!node.isQualified) {
-      // Only non-prefixed identifiers can be hidden.
-      otherNames.add(node.name);
-    }
   }
 }
 

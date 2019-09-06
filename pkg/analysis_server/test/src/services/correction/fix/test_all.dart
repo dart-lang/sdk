@@ -35,6 +35,7 @@ import 'change_to_test.dart' as change_to;
 import 'change_type_annotation_test.dart' as change_type_annotation;
 import 'convert_flutter_child_test.dart' as convert_flutter_child;
 import 'convert_flutter_children_test.dart' as convert_flutter_children;
+import 'convert_to_for_element_test.dart' as convert_to_for_element;
 import 'convert_to_named_arguments_test.dart' as convert_to_named_arguments;
 import 'convert_documentation_into_line_test.dart'
     as convert_documentation_into_line;
@@ -144,6 +145,7 @@ main() {
     convert_documentation_into_line.main();
     convert_flutter_child.main();
     convert_flutter_children.main();
+    convert_to_for_element.main();
     convert_to_named_arguments.main();
     create_class.main();
     create_constructor_for_final_field.main();

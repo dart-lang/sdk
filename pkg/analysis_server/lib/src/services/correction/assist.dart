@@ -72,6 +72,7 @@ class DartAssistKind {
       const AssistKind('dart.assist.convert.isNot', 30, "Convert to is!");
   static const CONVERT_INTO_IS_NOT_EMPTY = const AssistKind(
       'dart.assist.convert.isNotEmpty', 30, "Convert to 'isNotEmpty'",
+      // todo (pq): unify w/ fix
       associatedErrorCodes: <String>['prefer_is_not_empty']);
   static const CONVERT_PART_OF_TO_URI = const AssistKind(
       'dart.assist.convert.partOfToPartUri', 30, "Convert to use a URI");
@@ -90,11 +91,13 @@ class DartAssistKind {
       ]);
   static const CONVERT_TO_IF_ELEMENT = const AssistKind(
       'dart.assist.convertToIfElement', 30, "Convert to an 'if' element",
+      // todo (pq): migrate to (conditional) fix
       associatedErrorCodes: <String>[
         'prefer_if_elements_to_conditional_expressions'
       ]);
   static const CONVERT_TO_INT_LITERAL = const AssistKind(
       'dart.assist.convert.toIntLiteral', 30, "Convert to an int literal",
+      // todo (pq): migrate to (conditional) fix
       associatedErrorCodes: <String>['prefer_int_literals']);
   static const CONVERT_TO_LIST_LITERAL = const AssistKind(
       'dart.assist.convert.toListLiteral', 30, "Convert to list literal",
@@ -114,11 +117,13 @@ class DartAssistKind {
       "Convert to normal parameter");
   static const CONVERT_TO_NULL_AWARE = const AssistKind(
       'dart.assist.convert.toNullAware', 30, "Convert to use '?.'",
+      // todo (pq): migrate to (conditional) fix
       associatedErrorCodes: <String>['prefer_null_aware_operators']);
   static const CONVERT_TO_PACKAGE_IMPORT = const AssistKind(
       'dart.assist.convert.relativeToPackageImport',
       30,
       "Convert to 'package:' import",
+      // todo (pq): migrate to (conditional) fix
       associatedErrorCodes: <String>['avoid_relative_lib_imports']);
   static const CONVERT_TO_SET_LITERAL = const AssistKind(
       'dart.assist.convert.toSetLiteral', 30, "Convert to set literal",
@@ -128,10 +133,12 @@ class DartAssistKind {
       'dart.assist.convert.toSingleQuotedString',
       30,
       "Convert to single quoted string",
+      // todo (pq): migrate to (conditional) fix
       associatedErrorCodes: <String>['prefer_single_quotes']);
-  static const CONVERT_TO_SPREAD = const AssistKind(
-      'dart.assist.convertToSpread', 30, "Convert to a spread",
-      associatedErrorCodes: <String>['prefer_spread_collections']);
+  static const CONVERT_TO_SPREAD =
+      const AssistKind('dart.assist.convertToSpread', 30, "Convert to a spread",
+          // todo (pq): migrate to (conditional) fix
+          associatedErrorCodes: <String>['prefer_spread_collections']);
   static const ENCAPSULATE_FIELD =
       const AssistKind('dart.assist.encapsulateField', 30, "Encapsulate field");
   static const EXCHANGE_OPERANDS =
@@ -172,9 +179,10 @@ class DartAssistKind {
       'dart.assist.flutter.wrap.streamBuilder', 30, "Wrap with StreamBuilder");
   static const IMPORT_ADD_SHOW = const AssistKind(
       'dart.assist.addShowCombinator', 30, "Add explicit 'show' combinator");
-  static const INLINE_INVOCATION = const AssistKind(
-      'dart.assist.inline', 30, "Inline invocation of '{0}'",
-      associatedErrorCodes: <String>['prefer_inlined_adds']);
+  static const INLINE_INVOCATION =
+      const AssistKind('dart.assist.inline', 30, "Inline invocation of '{0}'",
+          // todo (pq): migrate to (conditional) fix
+          associatedErrorCodes: <String>['prefer_inlined_adds']);
   static const INTRODUCE_LOCAL_CAST_TYPE = const AssistKind(
       'dart.assist.introduceLocalCast',
       30,
@@ -193,6 +201,7 @@ class DartAssistKind {
       'dart.assist.joinVariableDeclaration', 30, "Join variable declaration");
   static const REMOVE_TYPE_ANNOTATION = const AssistKind(
       'dart.assist.removeTypeAnnotation', 29, "Remove type annotation",
+      // todo (pq): migrate to (conditional) fix
       associatedErrorCodes: <String>[
         'avoid_return_types_on_setters',
         'type_init_formals'
@@ -209,6 +218,7 @@ class DartAssistKind {
       'dart.assist.sort.child.properties.last',
       30,
       "Move child property to end of arguments",
+      // todo (pq): migrate to (conditional) fix
       associatedErrorCodes: <String>[
         'sort_child_properties_last',
       ]);

@@ -356,7 +356,7 @@ main(int a) {
 ''');
   }
 
-  test_no_assist_for_lint() async {
+  test_noAssistWithLint() async {
     createAnalysisOptionsFile(
         lints: [LintNames.curly_braces_in_flow_control_structures]);
     verifyNoTestUnitErrors = false;

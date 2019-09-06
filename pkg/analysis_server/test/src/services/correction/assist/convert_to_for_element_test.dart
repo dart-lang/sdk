@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/assist.dart';
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -63,6 +64,19 @@ f(Iterable<int> i) {
   return { for (var e in i) e * 2 : k };
 }
 ''');
+  }
+
+  test_mapFromIterable_differentParameterNames_usedInKey_conflictInValue_noAssistWithLint() async {
+    createAnalysisOptionsFile(
+        lints: [LintNames.prefer_for_elements_to_map_fromIterable]);
+    verifyNoTestUnitErrors = false;
+    await resolveTestUnit('''
+f(Iterable<int> i) {
+  var k = 3;
+  return Map.fromIt/*caret*/erable(i, key: (k) => k * 2, value: (v) => k);
+}
+''');
+    await assertNoAssist();
   }
 
   test_mapFromIterable_differentParameterNames_usedInKey_noConflictInValue() async {

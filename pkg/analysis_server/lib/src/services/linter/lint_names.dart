@@ -35,6 +35,8 @@ class LintNames {
       'prefer_equal_for_default_values';
   static const String prefer_final_fields = 'prefer_final_fields';
   static const String prefer_final_locals = 'prefer_final_locals';
+  static const String prefer_for_elements_to_map_fromIterable =
+      'prefer_for_elements_to_map_fromIterable';
   static const String prefer_is_empty = 'prefer_is_empty';
   static const String prefer_is_not_empty = 'prefer_is_not_empty';
   static const String slash_for_doc_comments = 'slash_for_doc_comments';

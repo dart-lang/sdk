@@ -91,7 +91,7 @@ class A {
 ''');
   }
 
-  test_onText_no_assist_with_lint() async {
+  test_onText_noAssistWithLint() async {
     createAnalysisOptionsFile(lints: [LintNames.slash_for_doc_comments]);
     verifyNoTestUnitErrors = false;
     await resolveTestUnit('''

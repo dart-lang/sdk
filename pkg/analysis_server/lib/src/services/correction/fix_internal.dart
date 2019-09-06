@@ -617,6 +617,9 @@ class FixProcessor extends BaseProcessor {
       if (errorCode.name == LintNames.prefer_const_declarations) {
         await _addFix_replaceFinalWithConst();
       }
+      if (errorCode.name == LintNames.prefer_for_elements_to_map_fromIterable) {
+        await _addFix_convertMapFromIterableToForLiteral();
+      }
       if (errorCode.name == LintNames.prefer_equal_for_default_values) {
         await _addFix_replaceColonWithEquals();
       }
@@ -1329,6 +1332,12 @@ class FixProcessor extends BaseProcessor {
         }
       }
     }
+  }
+
+  Future<void> _addFix_convertMapFromIterableToForLiteral() async {
+    final changeBuilder =
+        await createBuilder_convertMapFromIterableToForLiteral();
+    _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_TO_FOR_ELEMENT);
   }
 
   Future<void> _addFix_convertToNamedArgument() async {
