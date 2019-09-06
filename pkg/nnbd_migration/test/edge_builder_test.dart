@@ -1772,6 +1772,51 @@ int bar(Derived d, int i) => d.foo(i);
         hard: false);
   }
 
+  test_genericMethodInvocation_withBoundSubstitution() async {
+    await analyze('''
+class Base<T> {
+  U foo<U extends T>(U x) => x;
+}
+class Derived<V> extends Base<Iterable<V>> {}
+bar(Derived<int> d, List<int> x) => d.foo(x);
+''');
+    // Don't bother checking any edges; the assertions in the DecoratedType
+    // constructor verify that we've substituted the bound correctly.
+  }
+
+  test_genericMethodInvocation_withSubstitution() async {
+    await analyze('''
+class Base<T> {
+  U foo<U>(U x, T y) => x;
+}
+class Derived<V> extends Base<List<V>> {}
+int bar(Derived<String> d, int i, List<String> j) => d.foo(i, j);
+''');
+    assertEdge(
+        decoratedTypeAnnotation('String> j').node,
+        substitutionNode(decoratedTypeAnnotation('String> d').node,
+            decoratedTypeAnnotation('V>>').node),
+        hard: false);
+    assertEdge(
+        decoratedTypeAnnotation('List<String> j').node,
+        substitutionNode(decoratedTypeAnnotation('List<V>>').node,
+            decoratedTypeAnnotation('T y').node),
+        hard: true);
+    var implicitTypeArgumentMatcher = anyNode;
+    assertEdge(
+        decoratedTypeAnnotation('int i').node,
+        substitutionNode(
+            implicitTypeArgumentMatcher, decoratedTypeAnnotation('U x').node),
+        hard: true);
+    var implicitTypeArgumentNullability =
+        implicitTypeArgumentMatcher.matchingNode;
+    assertEdge(
+        substitutionNode(implicitTypeArgumentNullability,
+            decoratedTypeAnnotation('U foo').node),
+        decoratedTypeAnnotation('int bar').node,
+        hard: false);
+  }
+
   test_if_condition() async {
     await analyze('''
 void f(bool b) {

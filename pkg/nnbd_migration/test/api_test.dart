@@ -1592,6 +1592,45 @@ void main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  @failingTest
+  test_map_nullable_input() async {
+    // TODO(paulberry): we're currently migrating this example incorrectly.
+    // See discussion at https://dart-review.googlesource.com/c/sdk/+/115766
+    var content = '''
+Iterable<int> f(List<int> x) => x.map((y) => g(y));
+int g(int x) => x + 1;
+main() {
+  f([null]);
+}
+''';
+    var expected = '''
+Iterable<int> f(List<int?> x) => x.map((y) => g(y!));
+int g(int x) => x + 1;
+main() {
+  f([null]);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_map_nullable_output() async {
+    var content = '''
+Iterable<int> f(List<int> x) => x.map((y) => g(y));
+int g(int x) => null;
+main() {
+  f([1]);
+}
+''';
+    var expected = '''
+Iterable<int?> f(List<int> x) => x.map((y) => g(y));
+int? g(int x) => null;
+main() {
+  f([1]);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_methodInvocation_typeArguments_explicit() async {
     var content = '''
 T f<T>(T t) => t;
