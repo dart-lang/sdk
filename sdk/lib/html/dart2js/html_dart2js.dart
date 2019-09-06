@@ -28281,11 +28281,12 @@ class TemplateElement extends HtmlElement {
    *
    * See also:
    *
-   * * <https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/templates/index.html#innerhtml-on-templates>
+   * * <https://w3c.github.io/DOM-Parsing/#the-innerhtml-mixin>
    */
   void setInnerHtml(String html,
       {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
     text = null;
+    content.nodes.clear();
     var fragment = createFragment(html,
         validator: validator, treeSanitizer: treeSanitizer);
 
