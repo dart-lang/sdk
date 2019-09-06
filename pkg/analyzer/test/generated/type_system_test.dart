@@ -10,7 +10,6 @@ import 'package:analyzer/dart/ast/token.dart' show Keyword;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/ast/token.dart' show KeywordToken;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -28,7 +27,7 @@ import 'package:path/path.dart' show toUri;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'analysis_context_factory.dart';
+import 'test_analysis_context.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -381,9 +380,8 @@ abstract class BoundTestBase {
   DartType get voidType => VoidTypeImpl.instance;
 
   void setUp() {
-    InternalAnalysisContext context = AnalysisContextFactory.contextWithCore(
-        resourceProvider: new MemoryResourceProvider());
-    typeProvider = context.typeProvider;
+    var analysisContext = TestAnalysisContext();
+    typeProvider = analysisContext.typeProvider;
     var simpleFunctionElement =
         ElementFactory.genericTypeAliasElement('A', returnType: voidType);
     simpleFunctionType = simpleFunctionElement.type;
@@ -538,10 +536,9 @@ class ConstraintMatchingTest {
   DartType list(DartType T) => typeProvider.listType.instantiate([T]);
 
   void setUp() {
-    typeProvider = AnalysisContextFactory.contextWithCore(
-            resourceProvider: new MemoryResourceProvider())
-        .typeProvider;
-    typeSystem = new Dart2TypeSystem(typeProvider);
+    var analysisContext = TestAnalysisContext();
+    typeProvider = analysisContext.typeProvider;
+    typeSystem = analysisContext.typeSystem;
     T = _newTypeParameter('T');
   }
 
@@ -2400,12 +2397,11 @@ class LeastUpperBoundTest extends BoundTestBase {
 class NonNullableSubtypingTest extends SubtypingTestBase {
   @override
   void setUp() {
-    typeProvider = AnalysisContextFactory.contextWithCoreAndOptions(
-            new AnalysisOptionsImpl()
-              ..contextFeatures = FeatureSet.forTesting(
-                  additionalFeatures: [Feature.non_nullable]),
-            resourceProvider: new MemoryResourceProvider())
-        .typeProvider;
+    typeProvider = TestAnalysisContext(
+      featureSet: FeatureSet.forTesting(
+        additionalFeatures: [Feature.non_nullable],
+      ),
+    ).typeProvider;
 
     // TypeSystem should use the context type provider.
     typeSystem = new Dart2TypeSystem(typeProvider);
@@ -2959,10 +2955,9 @@ class SubtypingTestBase {
   DartType get voidType => VoidTypeImpl.instance;
 
   void setUp() {
-    typeProvider = AnalysisContextFactory.contextWithCore(
-            resourceProvider: new MemoryResourceProvider())
-        .typeProvider;
-    typeSystem = new Dart2TypeSystem(typeProvider);
+    var analysisContext = TestAnalysisContext();
+    typeProvider = analysisContext.typeProvider;
+    typeSystem = analysisContext.typeSystem;
   }
 
   void _checkEquivalent(DartType type1, DartType type2) {

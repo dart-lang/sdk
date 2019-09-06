@@ -26,7 +26,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/driver_resolution.dart';
 import '../util/element_type_matchers.dart';
-import 'analysis_context_factory.dart';
+import 'test_analysis_context.dart';
 import 'test_support.dart';
 
 main() {
@@ -1098,8 +1098,7 @@ class ElementResolverTest extends EngineTestCase with ResourceProviderMixin {
    * Create and return the resolver used by the tests.
    */
   void _createResolver() {
-    InternalAnalysisContext context = AnalysisContextFactory.contextWithCore(
-        resourceProvider: resourceProvider);
+    AnalysisContext context = TestAnalysisContext();
     _typeProvider = context.typeProvider;
 
     var inheritance = new InheritanceManager3(context.typeSystem);

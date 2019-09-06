@@ -7536,50 +7536,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     return getTypeFromParts(className, _definingCompilationUnit, _parts);
   }
 
-  /// Given an update to this library which may have added or deleted edges
-  /// in the import/export graph originating from this node only, remove any
-  /// cached library cycles in the element model which may have been
-  /// invalidated.
-  void invalidateLibraryCycles() {
-    // If we have pre-computed library cycle information, then we must
-    // invalidate the information both on this element, and on certain
-    // other elements.  Edges originating at this node may have been
-    // added or deleted.  A deleted edge that points outside of this cycle
-    // cannot change the cycle information for anything outside of this cycle,
-    // and so it is sufficient to delete the cached library information on this
-    // cycle.  An added edge which points to another node within the cycle
-    // only invalidates the cycle.  An added edge which points to a node earlier
-    // in the topological sort of cycles induces no invalidation (since there
-    // are by definition no back edges from earlier cycles in the topological
-    // order, and hence no possible cycle can have been introduced.  The only
-    // remaining case is that we have added an edge to a node which is later
-    // in the topological sort of cycles.  This can induce cycles, since it
-    // represents a new back edge.  It would be sufficient to invalidate the
-    // cycle information for all nodes that are between the target and the
-    // node in the topological order.  For simplicity, we simply invalidate
-    // all nodes which are reachable from the source node.
-    // Note that in the invalidation phase, we do not cut off when we encounter
-    // a node with no library cycle information, since we do not know whether
-    // we are in the case where invalidation has already been performed, or we
-    // are in the case where library cycles have simply never been computed from
-    // a newly reachable node.
-    Set<LibraryElementImpl> active = new HashSet();
-    void invalidate(LibraryElement element) {
-      LibraryElementImpl library =
-          element is LibraryElementHandle ? element.actualElement : element;
-      if (active.add(library)) {
-        if (library._libraryCycle != null) {
-          library._libraryCycle.forEach(invalidate);
-          library._libraryCycle = null;
-        }
-        library.exportedLibraries.forEach(invalidate);
-        library.importedLibraries.forEach(invalidate);
-      }
-    }
-
-    invalidate(this);
-  }
-
   /// Set whether the library has the given [capability] to
   /// correspond to the given [value].
   void setResolutionCapability(

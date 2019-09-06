@@ -32,7 +32,7 @@ import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 
-import 'analysis_context_factory.dart';
+import 'test_analysis_context.dart';
 import 'test_support.dart';
 
 const String _defaultSourceName = "/test.dart";
@@ -517,10 +517,8 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
    *
    * @return the library element that was created
    */
-  LibraryElementImpl createDefaultTestLibrary() => createTestLibrary(
-      AnalysisContextFactory.contextWithCore(
-          resourceProvider: resourceProvider),
-      "test");
+  LibraryElementImpl createDefaultTestLibrary() =>
+      createTestLibrary(TestAnalysisContext(), "test");
 
   /**
    * Return a source object representing a file with the given [fileName].

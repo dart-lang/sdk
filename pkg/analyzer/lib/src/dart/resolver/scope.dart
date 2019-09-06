@@ -892,9 +892,9 @@ class NamespaceBuilder {
         }
       }
       _addAllFromNamespace(
-          definedNames,
-          (library.context as InternalAnalysisContext)
-              .getPublicNamespace(library));
+        definedNames,
+        createPublicNamespaceForLibrary(library),
+      );
       return definedNames;
     } finally {
       visitedElements.remove(library);

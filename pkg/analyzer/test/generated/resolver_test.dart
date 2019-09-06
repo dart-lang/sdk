@@ -31,9 +31,9 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/driver_resolution.dart';
-import 'analysis_context_factory.dart';
 import 'parser_test.dart';
 import 'resolver_test_case.dart';
+import 'test_analysis_context.dart';
 import 'test_support.dart';
 
 main() {
@@ -253,8 +253,7 @@ class LibraryImportScopeTest extends ResolverTestCase {
   }
 
   void test_creation_nonEmpty() {
-    AnalysisContext context = AnalysisContextFactory.contextWithCore(
-        resourceProvider: resourceProvider);
+    AnalysisContext context = TestAnalysisContext();
     String importedTypeName = "A";
     ClassElement importedType = new ClassElementImpl.forNode(
         AstTestFactory.identifier3(importedTypeName));
@@ -274,8 +273,7 @@ class LibraryImportScopeTest extends ResolverTestCase {
   }
 
   void test_extensions_imported() {
-    var context = AnalysisContextFactory.contextWithCore(
-        resourceProvider: resourceProvider);
+    var context = TestAnalysisContext();
 
     var extension = ElementFactory.extensionElement('test_extension');
 
@@ -302,8 +300,7 @@ class LibraryImportScopeTest extends ResolverTestCase {
   }
 
   void test_prefixedAndNonPrefixed() {
-    AnalysisContext context = AnalysisContextFactory.contextWithCore(
-        resourceProvider: resourceProvider);
+    AnalysisContext context = TestAnalysisContext();
     String typeName = "C";
     String prefixName = "p";
     ClassElement prefixedType = ElementFactory.classElement2(typeName);
@@ -343,8 +340,7 @@ class LibraryScopeTest extends ResolverTestCase {
   }
 
   void test_creation_nonEmpty() {
-    AnalysisContext context = AnalysisContextFactory.contextWithCore(
-        resourceProvider: resourceProvider);
+    AnalysisContext context = TestAnalysisContext();
     String importedTypeName = "A";
     ClassElement importedType = new ClassElementImpl.forNode(
         AstTestFactory.identifier3(importedTypeName));
@@ -380,8 +376,7 @@ class LibraryScopeTest extends ResolverTestCase {
   }
 
   void test_extensions_imported() {
-    var context = AnalysisContextFactory.contextWithCore(
-        resourceProvider: resourceProvider);
+    var context = TestAnalysisContext();
 
     var importedUnit1 = ElementFactory.compilationUnit('/imported1.dart');
     var importedExtension = ElementFactory.extensionElement('test_extension');
@@ -417,8 +412,7 @@ class LibraryScopeTest extends ResolverTestCase {
   /// Ensure that if a library L1 defines an extension E, L2 exports L1, and L3
   /// imports L2, then E is included in the list.
   void test_extensions_imported_chain() {
-    var context = AnalysisContextFactory.contextWithCore(
-        resourceProvider: resourceProvider);
+    var context = TestAnalysisContext();
 
     var unit1 = ElementFactory.compilationUnit('/unit1.dart');
     var ext1 = ElementFactory.extensionElement('ext1');
@@ -460,8 +454,7 @@ class LibraryScopeTest extends ResolverTestCase {
   /// imported from different libraries that they are both in the list of
   /// extensions.
   void test_extensions_imported_same_name() {
-    var context = AnalysisContextFactory.contextWithCore(
-        resourceProvider: resourceProvider);
+    var context = TestAnalysisContext();
 
     var sharedExtensionName = 'test_ext';
 
@@ -505,8 +498,7 @@ class LibraryScopeTest extends ResolverTestCase {
   /// Ensure that if there are two imports for the same library that the
   /// imported extension is only in the list one time.
   void test_extensions_imported_twice() {
-    var context = AnalysisContextFactory.contextWithCore(
-        resourceProvider: resourceProvider);
+    var context = TestAnalysisContext();
 
     var sharedExtensionName = 'test_ext';
 
@@ -1384,8 +1376,7 @@ class TypeResolverVisitorTest extends ParserTestCase
 
   void setUp({bool shouldSetElementSupertypes: false}) {
     _listener = new GatheringErrorListener();
-    InternalAnalysisContext context = AnalysisContextFactory.contextWithCore(
-        resourceProvider: resourceProvider);
+    AnalysisContext context = TestAnalysisContext();
     Source librarySource = new FileSource(getFile("/lib.dart"));
     // TODO(paulberry): make it possible to override the feature set so we can
     // test NNBD features.
@@ -1429,8 +1420,7 @@ A V = new A();
 
     // Resolve API types.
     {
-      InternalAnalysisContext context = AnalysisContextFactory.contextWithCore(
-          resourceProvider: resourceProvider);
+      AnalysisContext context = TestAnalysisContext();
       var source = getFile('/test.dart').createSource();
       // TODO(paulberry): make it possible to override the feature set so we can
       // test NNBD features.
@@ -2310,8 +2300,7 @@ A v = new A();
     LibraryScope libraryScope;
     TypeResolverVisitor visitor;
     {
-      InternalAnalysisContext context = AnalysisContextFactory.contextWithCore(
-          resourceProvider: resourceProvider);
+      AnalysisContext context = TestAnalysisContext();
       var source = getFile('/test.dart').createSource();
       // TODO(paulberry): make it possible to override the feature set so we can
       // test NNBD features.
