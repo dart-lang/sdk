@@ -209,6 +209,7 @@ ExternalConstructorWithFieldInitializers/example: Fail
 ExternalFactoryRedirection/example: Fail
 ExternalFactoryWithBody/part_wrapped_script1: Fail
 ExternalFactoryWithBody/script1: Fail
+ExtensionDeclaresAbstractMember/example: Fail
 ExtensionDeclaresConstructor/example: Fail
 ExtensionDeclaresInstanceField/example: Fail
 ExtraneousModifier/part_wrapped_script1: Fail

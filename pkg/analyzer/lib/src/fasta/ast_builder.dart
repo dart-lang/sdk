@@ -15,7 +15,6 @@ import 'package:analyzer/src/dart/ast/ast.dart'
         CompilationUnitImpl,
         ExtensionDeclarationImpl,
         MixinDeclarationImpl;
-import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/fasta/error_converter.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:front_end/src/fasta/messages.dart'
@@ -1604,11 +1603,6 @@ class AstBuilder extends StackListener {
             messageConstMethod, modifiers.constKeyword, modifiers.constKeyword);
       }
       checkFieldFormalParameters(parameters);
-      if (extensionDeclaration != null && body is EmptyFunctionBody) {
-        errorReporter.errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.EXTENSION_DECLARES_ABSTRACT_MEMBER, name);
-        return;
-      }
       currentDeclarationMembers.add(ast.methodDeclaration(
           comment,
           metadata,

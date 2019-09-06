@@ -1868,6 +1868,12 @@ IllegalMixinDueToConstructorsCause:
   template: "This constructor prevents using '#name' as a mixin."
   severity: CONTEXT
 
+ExtensionDeclaresAbstractMember:
+  index: 94
+  template: "Extensions can't declare abstract members."
+  tip: "Try providing an implementation for the member."
+  analyzerCode: ParserErrorCode.EXTENSION_DECLARES_ABSTRACT_MEMBER
+
 ExtensionDeclaresConstructor:
   index: 92
   template: "Extensions can't declare constructors."

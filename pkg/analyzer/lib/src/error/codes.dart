@@ -1298,14 +1298,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
-  static const CompileTimeErrorCode EXTENSION_DECLARES_ABSTRACT_MEMBER =
-      const CompileTimeErrorCode('EXTENSION_DECLARES_ABSTRACT_MEMBER',
-          "Extensions can't declare abstract members.",
-          correction: "Try providing an implementation for the member.");
-
-  /**
-   * No parameters.
-   */
   static const CompileTimeErrorCode EXTENSION_DECLARES_MEMBER_OF_OBJECT =
       const CompileTimeErrorCode(
           'EXTENSION_DECLARES_MEMBER_OF_OBJECT',

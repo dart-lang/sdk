@@ -101,6 +101,7 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _ANNOTATION_WITH_TYPE_ARGUMENTS,
   _EXTENSION_DECLARES_CONSTRUCTOR,
   _EXTENSION_DECLARES_INSTANCE_FIELD,
+  _EXTENSION_DECLARES_ABSTRACT_MEMBER,
 ];
 
 const ParserErrorCode _ABSTRACT_CLASS_MEMBER = const ParserErrorCode(
@@ -245,6 +246,11 @@ const ParserErrorCode _EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE =
         r"Export directives must precede part directives.",
         correction:
             "Try moving the export directives before the part directives.");
+
+const ParserErrorCode _EXTENSION_DECLARES_ABSTRACT_MEMBER =
+    const ParserErrorCode('EXTENSION_DECLARES_ABSTRACT_MEMBER',
+        r"Extensions can't declare abstract members.",
+        correction: "Try providing an implementation for the member.");
 
 const ParserErrorCode _EXTENSION_DECLARES_CONSTRUCTOR = const ParserErrorCode(
     'EXTENSION_DECLARES_CONSTRUCTOR', r"Extensions can't declare constructors.",

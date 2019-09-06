@@ -3338,14 +3338,14 @@ class Parser {
     if (getOrSet != null && !inPlainSync && optional("set", getOrSet)) {
       reportRecoverableError(asyncToken, fasta.messageSetterNotSync);
     }
-    Token next = token.next;
+    final Token bodyStart = token.next;
     if (externalToken != null) {
-      if (!optional(';', next)) {
-        reportRecoverableError(next, fasta.messageExternalMethodWithBody);
+      if (!optional(';', bodyStart)) {
+        reportRecoverableError(bodyStart, fasta.messageExternalMethodWithBody);
       }
     }
-    if (optional('=', next)) {
-      reportRecoverableError(next, fasta.messageRedirectionInNonFactory);
+    if (optional('=', bodyStart)) {
+      reportRecoverableError(bodyStart, fasta.messageRedirectionInNonFactory);
       token = parseRedirectingFactoryBody(token);
     } else {
       token = parseFunctionBody(token, false,
@@ -3407,6 +3407,10 @@ class Parser {
               beforeInitializers?.next, token);
           break;
         case DeclarationKind.Extension:
+          if (optional(';', bodyStart)) {
+            reportRecoverableError(isOperator ? name.next : name,
+                fasta.messageExtensionDeclaresAbstractMember);
+          }
           listener.endExtensionMethod(getOrSet, beforeStart.next,
               beforeParam.next, beforeInitializers?.next, token);
           break;

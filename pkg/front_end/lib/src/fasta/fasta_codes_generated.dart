@@ -3439,6 +3439,17 @@ Message _withArgumentsExtendingRestricted(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExtensionDeclaresAbstractMember =
+    messageExtensionDeclaresAbstractMember;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExtensionDeclaresAbstractMember = const MessageCode(
+    "ExtensionDeclaresAbstractMember",
+    index: 94,
+    message: r"""Extensions can't declare abstract members.""",
+    tip: r"""Try providing an implementation for the member.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExtensionDeclaresConstructor =
     messageExtensionDeclaresConstructor;
 
