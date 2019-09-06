@@ -321,6 +321,7 @@ class DartFuzzTest {
     numTests = 0;
     numSuccess = 0;
     numNotRun = 0;
+    numReRun = 0;
     numTimeOut = 0;
     numDivergences = 0;
   }
@@ -354,8 +355,9 @@ class DartFuzzTest {
   }
 
   void showStatistics() {
-    stdout.write('\rTests: $numTests Success: $numSuccess Not-Run: '
-        '$numNotRun: Time-Out: $numTimeOut Divergences: $numDivergences');
+    stdout.write('\rTests: $numTests Success: $numSuccess (Re-Run: $numReRun) '
+        'Not-Run: $numNotRun Re-Run: $numReRun Time-Out: $numTimeOut '
+        'Divergences: $numDivergences');
   }
 
   void generateTest() {
@@ -374,6 +376,7 @@ class DartFuzzTest {
       result2 = runner2.run();
       if (checkDivergence(result1, result2) == ReportStatus.no_divergence) {
         print("\nNo error on re-run\n");
+        numReRun++;
       }
     }
   }
@@ -484,6 +487,7 @@ class DartFuzzTest {
   int numTests;
   int numSuccess;
   int numNotRun;
+  int numReRun;
   int numTimeOut;
   int numDivergences;
 }
