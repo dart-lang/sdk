@@ -230,6 +230,9 @@ compact, color, line, verbose, silent, status, buildbot, diff''',
     _Option('chrome', 'Path to chrome browser executable.', hide: true),
     _Option('safari', 'Path to safari browser executable.', hide: true),
     _Option.bool('use_sdk', '''Use compiler or runtime from the SDK.'''),
+    _Option.bool('nnbd', '''Opt tests into non-nullable types.'''),
+    _Option.bool('nnbd_strong_checking',
+        '''Enable strong runtime checks of non-nullable types.'''),
     // TODO(rnystrom): This does not appear to be used. Remove?
     _Option('build_directory',
         'The name of the build directory, where products are placed.',
@@ -281,9 +284,9 @@ used for browsers to connect to.''',
     _Option.int(
         'test_driver_error_port', 'Port for http test driver server errors.',
         defaultsTo: 0, hide: true),
-    _Option('test_list', 'File containing a list of tests to be executed',
+    _Option('test_list', 'File containing a list of tests to be executed.',
         hide: true),
-    _Option('tests', 'A newline separated list of tests to be executed'),
+    _Option('tests', 'A newline separated list of tests to be executed.'),
     _Option(
         'builder_tag',
         '''Machine specific options that is not captured by the regular test
@@ -294,6 +297,7 @@ options. Used to be able to make sane updates to the status files.''',
     _Option('dart2js_options', 'Extra options for dart2js compilation step.',
         hide: true),
     _Option('shared_options', 'Extra shared options.', hide: true),
+    _Option('experiments', 'Experiment flags to enable.'),
     _Option(
         'babel',
         '''Transforms dart2js output with Babel. The value must be
@@ -609,6 +613,7 @@ compiler.''',
     var dart2jsOptions = listOption("dart2js_options");
     var vmOptions = listOption("vm_options");
     var sharedOptions = listOption("shared_options");
+    var experiments = listOption("experiments");
 
     // JSON reporting implies listing and reporting.
     if (data['report_in_json'] as bool) {
@@ -690,6 +695,7 @@ compiler.''',
                     isMinified: data["minified"] as bool,
                     vmOptions: vmOptions,
                     dart2jsOptions: dart2jsOptions,
+                    experiments: experiments,
                     babel: data['babel'] as String,
                     builderTag: data["builder_tag"] as String);
             var configuration = TestConfiguration(

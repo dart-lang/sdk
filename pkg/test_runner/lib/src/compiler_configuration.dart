@@ -42,7 +42,7 @@ abstract class CompilerConfiguration {
 
   bool get _useSdk => _configuration.useSdk;
 
-  bool get _useEnableAsserts => _configuration.useEnableAsserts;
+  bool get _enableAsserts => _configuration.enableAsserts;
 
   /// Whether to run the runtime on the compilation result of a test which
   /// expects a compile-time error and the compiler did not emit one.
@@ -156,7 +156,7 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
       List<String> originalArguments,
       CommandArtifact artifact) {
     return [
-      if (_useEnableAsserts) '--enable_asserts',
+      if (_enableAsserts) '--enable_asserts',
       if (_configuration.hotReload)
         '--hot-reload-test-mode'
       else if (_configuration.hotReloadRollback)
@@ -224,7 +224,7 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
     }
 
     return [
-      if (_useEnableAsserts) '--enable_asserts',
+      if (_enableAsserts) '--enable_asserts',
       if (_configuration.hotReload)
         '--hot-reload-test-mode'
       else if (_configuration.hotReloadRollback)
@@ -600,7 +600,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
   int get timeoutMultiplier {
     var multiplier = 2;
     if (_isDebug) multiplier *= 4;
-    if (_useEnableAsserts) multiplier *= 2;
+    if (_enableAsserts) multiplier *= 2;
     return multiplier;
   }
 
@@ -786,7 +786,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
   List<String> computeCompilerArguments(
       TestFile testFile, List<String> vmOptions, List<String> args) {
     return [
-      if (_useEnableAsserts) '--enable_asserts',
+      if (_enableAsserts) '--enable_asserts',
       ...filterVmOptions(vmOptions),
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
@@ -810,7 +810,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
         _replaceDartFiles(originalArguments, "$dir/out.aotsnapshot");
 
     return [
-      if (_useEnableAsserts) '--enable_asserts',
+      if (_enableAsserts) '--enable_asserts',
       ...vmOptions,
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
@@ -827,7 +827,7 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
   int get timeoutMultiplier {
     var multiplier = 1;
     if (_isDebug) multiplier *= 2;
-    if (_useEnableAsserts) multiplier *= 2;
+    if (_enableAsserts) multiplier *= 2;
     return multiplier;
   }
 
@@ -856,7 +856,7 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
   List<String> computeCompilerArguments(
       TestFile testFile, List<String> vmOptions, List<String> args) {
     return [
-      if (_useEnableAsserts) '--enable_asserts',
+      if (_enableAsserts) '--enable_asserts',
       ...vmOptions,
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
@@ -872,7 +872,7 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
       List<String> originalArguments,
       CommandArtifact artifact) {
     return [
-      if (_useEnableAsserts) '--enable_asserts',
+      if (_enableAsserts) '--enable_asserts',
       ...vmOptions,
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
@@ -1004,7 +1004,7 @@ abstract class VMKernelCompilerMixin {
 
   bool get _isAot;
 
-  bool get _useEnableAsserts;
+  bool get _enableAsserts;
 
   List<Uri> bootstrapDependencies();
 
@@ -1045,7 +1045,7 @@ abstract class VMKernelCompilerMixin {
           name.startsWith('--packages=') ||
           name.startsWith('--enable-experiment=')),
       '-Ddart.developer.causal_async_stacks=$causalAsyncStacks',
-      if (_useEnableAsserts ||
+      if (_enableAsserts ||
           arguments.contains('--enable-asserts') ||
           arguments.contains('--enable_asserts'))
         '--enable-asserts',

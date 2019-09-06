@@ -104,6 +104,7 @@ class TestConfiguration {
   Mode get mode => configuration.mode;
   Runtime get runtime => configuration.runtime;
   System get system => configuration.system;
+  NnbdMode get nnbdMode => configuration.nnbdMode;
 
   // Boolean getters
   bool get hotReload => configuration.useHotReload;
@@ -117,7 +118,7 @@ class TestConfiguration {
   bool get useBlobs => configuration.useBlobs;
   bool get useElf => configuration.useElf;
   bool get useSdk => configuration.useSdk;
-  bool get useEnableAsserts => configuration.enableAsserts;
+  bool get enableAsserts => configuration.enableAsserts;
 
   // Various file paths.
 
@@ -147,6 +148,17 @@ class TestConfiguration {
 
   /// Extra VM options passed to the testing script.
   List<String> get vmOptions => configuration.vmOptions;
+
+  /// The names of the experiments to enable while running tests.
+  ///
+  /// A test may *require* an experiment to always be enabled by containing a
+  /// comment like:
+  ///
+  ///     // SharedOptions=--enable-experiment=extension-methods
+  ///
+  /// Enabling an experiment here in the configuration allows running the same
+  /// test both with an experiment on and off.
+  List<String> get experiments => configuration.experiments;
 
   /// Extra general options passed to the testing script.
   final List<String> sharedOptions;
@@ -243,7 +255,7 @@ class TestConfiguration {
 
     if (isMinified) args.add("--minify");
     if (isCsp) args.add("--csp");
-    if (useEnableAsserts) args.add("--enable-asserts");
+    if (enableAsserts) args.add("--enable-asserts");
     return args;
   }
 
@@ -436,41 +448,6 @@ class TestConfiguration {
     if (crossDir.existsSync()) return cross;
 
     return normal;
-  }
-
-  Map _summaryMap;
-
-  /// [toSummaryMap] returns a map of configurations important to the running
-  /// of a test. Flags and properties used for output are not included.
-  /// The summary map can be used to serialize to json for test-output logging.
-  Map toSummaryMap() {
-    return _summaryMap ??= {
-      'mode': mode.name,
-      'arch': architecture.name,
-      'compiler': compiler.name,
-      'runtime': runtime.name,
-      'checked': isChecked,
-      'host_checked': isHostChecked,
-      'minified': isMinified,
-      'csp': isCsp,
-      'system': system.name,
-      'vm_options': vmOptions,
-      'dart2js_options': dart2jsOptions,
-      'fasta': usesFasta,
-      'use_sdk': useSdk,
-      'builder_tag': builderTag,
-      'timeout': timeout,
-      'use_cfe': useAnalyzerCfe,
-      'analyzer_use_fasta_parser': useAnalyzerFastaParser,
-      'enable_asserts': useEnableAsserts,
-      'hot_reload': hotReload,
-      'hot_reload_rollback': hotReloadRollback,
-      'batch': batch,
-      'batch_dart2js': batchDart2JS,
-      'reset_browser_configuration': resetBrowser,
-      'selectors': selectors.keys.toList(),
-      'use_kernel_bytecode': useKernelBytecode,
-    };
   }
 }
 

@@ -212,10 +212,12 @@ class Configuration {
     var mode = enumOption("mode", Mode.names, Mode.find);
     var runtime = enumOption("runtime", Runtime.names, Runtime.find);
     var system = enumOption("system", System.names, System.find);
+    var nnbdMode = enumOption("nnbd", NnbdMode.names, NnbdMode.find);
 
     // Fill in any missing values using defaults when possible.
     architecture ??= Architecture.x64;
     system ??= System.host;
+    nnbdMode ??= NnbdMode.legacy;
 
     // Infer from compiler from runtime or vice versa.
     if (compiler == null) {
@@ -239,10 +241,12 @@ class Configuration {
 
     var configuration = Configuration(
         name, architecture, compiler, mode, runtime, system,
+        nnbdMode: nnbdMode,
         babel: stringOption("babel"),
         builderTag: stringOption("builder-tag"),
         vmOptions: stringListOption("vm-options"),
         dart2jsOptions: stringListOption("dart2js-options"),
+        experiments: stringListOption("experiments"),
         timeout: intOption("timeout"),
         enableAsserts: boolOption("enable-asserts"),
         isChecked: boolOption("checked"),
@@ -277,6 +281,9 @@ class Configuration {
 
   final System system;
 
+  /// Which NNBD mode to run the test files under.
+  final NnbdMode nnbdMode;
+
   final String babel;
 
   final String builderTag;
@@ -284,6 +291,17 @@ class Configuration {
   final List<String> vmOptions;
 
   final List<String> dart2jsOptions;
+
+  /// The names of the experiments to enable while running tests.
+  ///
+  /// A test may *require* an experiment to always be enabled by containing a
+  /// comment like:
+  ///
+  ///     // SharedOptions=--enable-experiment=extension-methods
+  ///
+  /// Enabling an experiment here in the configuration allows running the same
+  /// test both with an experiment on and off.
+  final List<String> experiments;
 
   final int timeout;
 
@@ -314,10 +332,12 @@ class Configuration {
 
   Configuration(this.name, this.architecture, this.compiler, this.mode,
       this.runtime, this.system,
-      {String babel,
+      {NnbdMode nnbdMode,
+      String babel,
       String builderTag,
       List<String> vmOptions,
       List<String> dart2jsOptions,
+      List<String> experiments,
       int timeout,
       bool enableAsserts,
       bool isChecked,
@@ -331,10 +351,12 @@ class Configuration {
       bool useHotReload,
       bool useHotReloadRollback,
       bool useSdk})
-      : babel = babel ?? "",
+      : nnbdMode = nnbdMode ?? NnbdMode.legacy,
+        babel = babel ?? "",
         builderTag = builderTag ?? "",
         vmOptions = vmOptions ?? <String>[],
         dart2jsOptions = dart2jsOptions ?? <String>[],
+        experiments = experiments ?? <String>[],
         timeout = timeout ?? -1,
         enableAsserts = enableAsserts ?? false,
         isChecked = isChecked ?? false,
@@ -357,10 +379,12 @@ class Configuration {
       mode == other.mode &&
       runtime == other.runtime &&
       system == other.system &&
+      nnbdMode == other.nnbdMode &&
       babel == other.babel &&
       builderTag == other.builderTag &&
-      vmOptions.join(" & ") == other.vmOptions.join(" & ") &&
-      dart2jsOptions.join(" & ") == other.dart2jsOptions.join(" & ") &&
+      _listsEqual(vmOptions, other.vmOptions) &&
+      _listsEqual(dart2jsOptions, other.dart2jsOptions) &&
+      _listsEqual(experiments, other.experiments) &&
       timeout == other.timeout &&
       enableAsserts == other.enableAsserts &&
       isChecked == other.isChecked &&
@@ -375,6 +399,20 @@ class Configuration {
       useHotReloadRollback == other.useHotReloadRollback &&
       useSdk == other.useSdk;
 
+  /// Whether [a] and [b] contain the same strings, regardless of order.
+  bool _listsEqual(List<String> a, List<String> b) {
+    if (a.length != b.length) return false;
+
+    // Using sorted lists instead of sets in case there are duplicate strings
+    // in the lists. ["a"] should not be considered equal to ["a", "a"].
+    var aSorted = a.toList()..sort();
+    var bSorted = b.toList()..sort();
+    for (var i = 0; i < aSorted.length; i++) {
+      if (aSorted[i] != bSorted[i]) return false;
+    }
+    return true;
+  }
+
   bool operator ==(Object other) =>
       other is Configuration && name == other.name && optionsEqual(other);
 
@@ -388,10 +426,12 @@ class Configuration {
       mode.hashCode ^
       runtime.hashCode ^
       system.hashCode ^
+      nnbdMode.hashCode ^
       babel.hashCode ^
       builderTag.hashCode ^
       vmOptions.join(" & ").hashCode ^
       dart2jsOptions.join(" & ").hashCode ^
+      experiments.join(" & ").hashCode ^
       timeout.hashCode ^
       _toBinary([
         enableAsserts,
@@ -420,12 +460,18 @@ class Configuration {
     fields.add("runtime: $runtime");
     fields.add("system: $system");
 
+    if (nnbdMode != NnbdMode.legacy) fields.add("nnbd: $nnbdMode");
+
+    stringListField(String name, List<String> field) {
+      if (field.isEmpty) return;
+      fields.add("$name: [${field.join(", ")}]");
+    }
+
     if (babel.isNotEmpty) fields.add("babel: $babel");
     if (builderTag.isNotEmpty) fields.add("builder-tag: $builderTag");
-    if (vmOptions.isNotEmpty)
-      fields.add("vm-options: [${vmOptions.join(", ")}]");
-    if (dart2jsOptions.isNotEmpty)
-      fields.add("dart2js-options: [${dart2jsOptions.join(", ")}]");
+    stringListField("vm-options", vmOptions);
+    stringListField("dart2js-options", dart2jsOptions);
+    stringListField("experiments", experiments);
     if (timeout > 0) fields.add("timeout: $timeout");
     if (enableAsserts) fields.add("enable-asserts");
     if (isChecked) fields.add("checked");
@@ -456,65 +502,44 @@ class Configuration {
     fields.add("runtime: $runtime ${other.runtime}");
     fields.add("system: $system ${other.system}");
 
-    if (babel.isNotEmpty || other.babel.isNotEmpty) {
-      var ours = babel == "" ? "(none)" : babel;
-      var theirs = other.babel == "" ? "(none)" : other.babel;
-      fields.add("babel: $ours $theirs");
+    stringField(String name, String value, String otherValue) {
+      if (value.isEmpty && otherValue.isEmpty) return;
+      var ours = value.isEmpty ? "(none)" : value;
+      var theirs = otherValue.isEmpty ? "(none)" : otherValue;
+      fields.add("$name: $ours $theirs");
     }
-    if (builderTag.isNotEmpty || other.builderTag.isNotEmpty) {
-      var ours = builderTag == "" ? "(none)" : builderTag;
-      var theirs = other.builderTag == "" ? "(none)" : other.builderTag;
-      fields.add("builder-tag: $ours $theirs");
+
+    stringListField(String name, List<String> value, List<String> otherValue) {
+      if (value.isEmpty && otherValue.isEmpty) return;
+      fields.add("$name: [${value.join(', ')}] [${otherValue.join(', ')}]");
     }
-    if (vmOptions.isNotEmpty || other.vmOptions.isNotEmpty) {
-      var ours = "[${vmOptions.join(", ")}]";
-      var theirs = "[${other.vmOptions.join(", ")}]";
-      fields.add("vm-options: $ours $theirs");
+
+    boolField(String name, bool value, bool otherValue) {
+      if (!value && !otherValue) return;
+      fields.add("$name: $value $otherValue");
     }
-    if (dart2jsOptions.isNotEmpty || other.dart2jsOptions.isNotEmpty) {
-      var ours = "[${dart2jsOptions.join(", ")}]";
-      var theirs = "[${other.dart2jsOptions.join(", ")}]";
-      fields.add("dart2js-options: $ours $theirs");
-    }
+
+    fields.add("nnbd: $nnbdMode ${other.nnbdMode}");
+    stringField("babel", babel, other.babel);
+    stringField("builder-tag", builderTag, other.builderTag);
+    stringListField("vm-options", vmOptions, other.vmOptions);
+    stringListField("dart2js-options", dart2jsOptions, other.dart2jsOptions);
+    stringListField("experiments", experiments, other.experiments);
     fields.add("timeout: $timeout ${other.timeout}");
-    if (enableAsserts || other.enableAsserts) {
-      fields.add("enable-asserts $enableAsserts ${other.enableAsserts}");
-    }
-    if (isChecked || other.isChecked) {
-      fields.add("checked $isChecked ${other.isChecked}");
-    }
-    if (isCsp || other.isCsp) {
-      fields.add("csp $isCsp ${other.isCsp}");
-    }
-    if (isHostChecked || other.isHostChecked) {
-      fields.add("isHostChecked $isHostChecked ${other.isHostChecked}");
-    }
-    if (isMinified || other.isMinified) {
-      fields.add("isMinified $isMinified ${other.isMinified}");
-    }
-    if (useAnalyzerCfe || other.useAnalyzerCfe) {
-      fields.add("useAnalyzerCfe $useAnalyzerCfe ${other.useAnalyzerCfe}");
-    }
-    if (useAnalyzerFastaParser || other.useAnalyzerFastaParser) {
-      fields.add("useAnalyzerFastaParser "
-          "$useAnalyzerFastaParser ${other.useAnalyzerFastaParser}");
-    }
-    if (useBlobs || other.useBlobs) {
-      fields.add("useBlobs $useBlobs ${other.useBlobs}");
-    }
-    if (useHotReload || other.useHotReload) {
-      fields.add("useHotReload $useHotReload ${other.useHotReload}");
-    }
-    if (isHostChecked) {
-      fields.add("host-checked $isHostChecked ${other.isHostChecked}");
-    }
-    if (useHotReloadRollback || other.useHotReloadRollback) {
-      fields.add("useHotReloadRollback"
-          " $useHotReloadRollback ${other.useHotReloadRollback}");
-    }
-    if (useSdk || other.useSdk) {
-      fields.add("useSdk $useSdk ${other.useSdk}");
-    }
+    boolField("enable-asserts", enableAsserts, other.enableAsserts);
+    boolField("checked", isChecked, other.isChecked);
+    boolField("csp", isCsp, other.isCsp);
+    boolField("host-checked", isHostChecked, other.isHostChecked);
+    boolField("minified", isMinified, other.isMinified);
+    boolField("use-cfe", useAnalyzerCfe, other.useAnalyzerCfe);
+    boolField("analyzer-use-fasta-parser", useAnalyzerFastaParser,
+        other.useAnalyzerFastaParser);
+    boolField("use-blobs", useBlobs, other.useBlobs);
+    boolField("host-checked", isHostChecked, other.isHostChecked);
+    boolField("hot-reload", useHotReload, other.useHotReload);
+    boolField("hot-reload-rollback", useHotReloadRollback,
+        other.useHotReloadRollback);
+    boolField("use-sdk", useSdk, other.useSdk);
 
     buffer.write(fields.join("\n   "));
     buffer.write("\n");
@@ -874,6 +899,34 @@ class System extends NamedEnum {
 
     throw "unreachable";
   }
+}
+
+/// What level of non-nullability support should be applied to the test files.
+class NnbdMode extends NamedEnum {
+  /// "Opted out" legacy mode with no NNBD features allowed.
+  static const legacy = NnbdMode._('legacy');
+
+  /// Opted in to NNBD features, but only static checking and weak runtime
+  /// checks.
+  static const optedIn = NnbdMode._('opted-in');
+
+  /// Opted in to NNBD features and with full sound runtime checks.
+  static const strong = NnbdMode._('strong');
+
+  static final List<String> names = _all.keys.toList();
+
+  static final _all = {
+    for (var mode in [legacy, optedIn, strong]) mode.name: mode
+  };
+
+  static NnbdMode find(String name) {
+    var mode = _all[name];
+    if (mode != null) return mode;
+
+    throw ArgumentError('Unknown NNBD mode "$name".');
+  }
+
+  const NnbdMode._(String name) : super(name);
 }
 
 /// Base class for an enum-like class whose values are identified by name.
