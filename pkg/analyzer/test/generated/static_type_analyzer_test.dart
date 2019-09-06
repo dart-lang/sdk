@@ -543,7 +543,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
         _resolvedInteger(2), TokenType.SLASH, _resolvedInteger(2));
     node.staticElement = getMethod(_typeProvider.numType, "/");
     node.staticInvokeType = node.staticElement.type;
-    expect(_analyze(node), same(_typeProvider.doubleType));
+    expect(_analyze(node), _typeProvider.doubleType);
     _listener.assertNoErrors();
   }
 
@@ -1154,7 +1154,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
         AstTestFactory.prefixExpression(TokenType.MINUS, _resolvedInteger(0));
     MethodElement minusMethod = getMethod(_typeProvider.numType, "-");
     node.staticElement = minusMethod;
-    expect(_analyze(node), same(_typeProvider.numType));
+    expect(_analyze(node), _typeProvider.numType);
     _listener.assertNoErrors();
   }
 
@@ -1192,7 +1192,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
         AstTestFactory.prefixExpression(TokenType.TILDE, _resolvedInteger(0));
     MethodElement tildeMethod = getMethod(_typeProvider.intType, "~");
     node.staticElement = tildeMethod;
-    expect(_analyze(node), same(_typeProvider.intType));
+    expect(_analyze(node), _typeProvider.intType);
     _listener.assertNoErrors();
   }
 

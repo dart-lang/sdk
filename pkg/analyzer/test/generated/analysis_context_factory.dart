@@ -5,27 +5,18 @@
 import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/context/context.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
-import 'package:analyzer/src/generated/testing/element_factory.dart';
-import 'package:analyzer/src/generated/testing/test_type_provider.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
+import 'package:analyzer/src/test_utilities/mock_sdk_elements.dart';
 import 'package:test/test.dart';
 
 /**
@@ -101,340 +92,18 @@ class AnalysisContextFactory {
     }
     SourceFactory sourceFactory = new SourceFactory(resolvers);
     context.sourceFactory = sourceFactory;
-    AnalysisContext coreContext = sdk.context;
-    //
-    // dart:core
-    //
-    TestTypeProvider provider = new TestTypeProvider();
-    CompilationUnitElementImpl coreUnit = new CompilationUnitElementImpl();
-    Source coreSource = sourceFactory.forUri(DartSdk.DART_CORE);
-    coreUnit.librarySource = coreUnit.source = coreSource;
-    ClassElementImpl overrideClassElement =
-        ElementFactory.classElement2("_Override");
-    ClassElementImpl proxyClassElement = ElementFactory.classElement2("_Proxy");
-    proxyClassElement.constructors = <ConstructorElement>[
-      ElementFactory.constructorElement(proxyClassElement, '', true)
-        ..isCycleFree = true
-        ..constantInitializers = <ConstructorInitializer>[]
-    ];
-    ClassElement objectClassElement = provider.objectType.element;
-    coreUnit.types = <ClassElement>[
-      provider.boolType.element,
-      provider.deprecatedType.element,
-      provider.doubleType.element,
-      provider.functionType.element,
-      provider.intType.element,
-      provider.iterableType.element,
-      provider.iteratorType.element,
-      provider.listType.element,
-      provider.mapType.element,
-      provider.nullType.element,
-      provider.numType.element,
-      objectClassElement,
-      overrideClassElement,
-      proxyClassElement,
-      provider.setType.element,
-      provider.stackTraceType.element,
-      provider.stringType.element,
-      provider.symbolType.element,
-      provider.typeType.element
-    ];
-    coreUnit.functions = <FunctionElement>[
-      ElementFactory.functionElement3("identical", provider.boolType,
-          <ClassElement>[objectClassElement, objectClassElement], null),
-      ElementFactory.functionElement3("print", VoidTypeImpl.instance,
-          <ClassElement>[objectClassElement], null)
-    ];
-    TopLevelVariableElement proxyTopLevelVariableElt =
-        ElementFactory.topLevelVariableElement3(
-            "proxy", true, false, proxyClassElement.type);
-    ConstTopLevelVariableElementImpl deprecatedTopLevelVariableElt =
-        ElementFactory.topLevelVariableElement3(
-            "deprecated", true, false, provider.deprecatedType);
-    TopLevelVariableElement overrideTopLevelVariableElt =
-        ElementFactory.topLevelVariableElement3(
-            "override", true, false, overrideClassElement.type);
-    {
-      ClassElement deprecatedElement = provider.deprecatedType.element;
-      InstanceCreationExpression initializer =
-          AstTestFactory.instanceCreationExpression2(
-              Keyword.CONST,
-              AstTestFactory.typeName(deprecatedElement),
-              [AstTestFactory.string2('next release')]);
-      ConstructorElement constructor = deprecatedElement.constructors.single;
-      initializer.staticElement = constructor;
-      initializer.constructorName.staticElement = constructor;
-      deprecatedTopLevelVariableElt.constantInitializer = initializer;
-    }
-    coreUnit.accessors = <PropertyAccessorElement>[
-      deprecatedTopLevelVariableElt.getter,
-      overrideTopLevelVariableElt.getter,
-      proxyTopLevelVariableElt.getter
-    ];
-    coreUnit.topLevelVariables = <TopLevelVariableElement>[
-      deprecatedTopLevelVariableElt,
-      overrideTopLevelVariableElt,
-      proxyTopLevelVariableElt
-    ];
-    LibraryElementImpl coreLibrary = new LibraryElementImpl.forNode(
-        coreContext,
-        null,
-        AstTestFactory.libraryIdentifier2(["dart", "core"]),
-        featureSet.isEnabled(Feature.non_nullable));
-    coreLibrary.definingCompilationUnit = coreUnit;
-    //
-    // dart:async
-    //
-    LibraryElementImpl asyncLibrary = new LibraryElementImpl.forNode(
-        coreContext,
-        null,
-        AstTestFactory.libraryIdentifier2(["dart", "async"]),
-        featureSet.isEnabled(Feature.non_nullable));
-    CompilationUnitElementImpl asyncUnit = new CompilationUnitElementImpl();
-    Source asyncSource = sourceFactory.forUri(DartSdk.DART_ASYNC);
-    asyncUnit.librarySource = asyncUnit.source = asyncSource;
-    asyncLibrary.definingCompilationUnit = asyncUnit;
-    // Future<T>
-    ClassElementImpl futureElement =
-        ElementFactory.classElement2("Future", ["T"]);
-    // FutureOr<T>
-    ClassElementImpl futureOrElement =
-        ElementFactory.classElement2("FutureOr", ["T"]);
-    futureElement.enclosingElement = asyncUnit;
-    //   factory Future.value([value])
-    ConstructorElementImpl futureConstructor =
-        ElementFactory.constructorElement2(futureElement, "value");
-    futureConstructor.parameters = <ParameterElement>[
-      ElementFactory.positionalParameter2("value", provider.dynamicType)
-    ];
-    futureConstructor.factory = true;
-    futureElement.constructors = <ConstructorElement>[futureConstructor];
-    //   Future<R> then<R>(FutureOr<R> onValue(T value), { Function onError });
-    TypeDefiningElement futureThenR = DynamicElementImpl.instance;
-    DartType onValueReturnType = DynamicTypeImpl.instance;
-    futureThenR = ElementFactory.typeParameterWithType('R');
-    onValueReturnType = futureOrElement.type.instantiate([futureThenR.type]);
-    FunctionElementImpl thenOnValue = ElementFactory.functionElement3(
-        'onValue', onValueReturnType, [futureElement.typeParameters[0]], null);
-    thenOnValue.isSynthetic = true;
 
-    DartType futureRType = futureElement.type.instantiate([futureThenR.type]);
-    MethodElementImpl thenMethod = ElementFactory.methodElementWithParameters(
-        futureElement, "then", futureRType, [
-      ElementFactory.requiredParameter2("onValue", thenOnValue.type),
-      ElementFactory.namedParameter2("onError", provider.functionType)
-    ]);
-    if (!futureThenR.type.isDynamic) {
-      thenMethod.typeParameters = <TypeParameterElement>[futureThenR];
-    }
-    thenOnValue.enclosingElement = thenMethod;
-    thenOnValue.type = new FunctionTypeImpl(thenOnValue);
-    (thenMethod.parameters[0] as ParameterElementImpl).type = thenOnValue.type;
-    thenMethod.type = new FunctionTypeImpl(thenMethod);
-
-    futureElement.methods = <MethodElement>[thenMethod];
-    // Completer
-    ClassElementImpl completerElement =
-        ElementFactory.classElement2("Completer", ["T"]);
-    ConstructorElementImpl completerConstructor =
-        ElementFactory.constructorElement2(completerElement, null);
-    completerElement.constructors = <ConstructorElement>[completerConstructor];
-    // StreamSubscription
-    ClassElementImpl streamSubscriptionElement =
-        ElementFactory.classElement2("StreamSubscription", ["T"]);
-    // Stream
-    ClassElementImpl streamElement =
-        ElementFactory.classElement2("Stream", ["T"]);
-    streamElement.isAbstract = true;
-    streamElement.constructors = <ConstructorElement>[
-      ElementFactory.constructorElement2(streamElement, null)
-    ];
-    DartType returnType = streamSubscriptionElement.type
-        .instantiate(streamElement.type.typeArguments);
-    FunctionElementImpl listenOnData = ElementFactory.functionElement3(
-        'onData',
-        VoidTypeImpl.instance,
-        <TypeDefiningElement>[streamElement.typeParameters[0]],
-        null);
-    listenOnData.isSynthetic = true;
-    List<DartType> parameterTypes = <DartType>[
-      listenOnData.type,
-    ];
-    // TODO(brianwilkerson) This is missing the optional parameters.
-    MethodElementImpl listenMethod =
-        ElementFactory.methodElement('listen', returnType, parameterTypes);
-    streamElement.methods = <MethodElement>[listenMethod];
-    listenMethod.type = new FunctionTypeImpl(listenMethod);
-
-    FunctionElementImpl listenParamFunction = parameterTypes[0].element;
-    listenParamFunction.enclosingElement = listenMethod;
-    listenParamFunction.type = new FunctionTypeImpl(listenParamFunction);
-    ParameterElementImpl listenParam = listenMethod.parameters[0];
-    listenParam.type = listenParamFunction.type;
-
-    asyncUnit.types = <ClassElement>[
-      completerElement,
-      futureElement,
-      futureOrElement,
-      streamElement,
-      streamSubscriptionElement
-    ];
-    //
-    // dart:html
-    //
-    CompilationUnitElementImpl htmlUnit = new CompilationUnitElementImpl();
-    Source htmlSource = sourceFactory.forUri(DartSdk.DART_HTML);
-    htmlUnit.librarySource = htmlUnit.source = htmlSource;
-    ClassElementImpl elementElement = ElementFactory.classElement2("Element");
-    InterfaceType elementType = elementElement.type;
-    ClassElementImpl canvasElement =
-        ElementFactory.classElement("CanvasElement", elementType);
-    ClassElementImpl contextElement =
-        ElementFactory.classElement2("CanvasRenderingContext");
-    InterfaceType contextElementType = contextElement.type;
-    ClassElementImpl context2dElement = ElementFactory.classElement(
-        "CanvasRenderingContext2D", contextElementType);
-    canvasElement.methods = <MethodElement>[
-      ElementFactory.methodElement(
-          "getContext", contextElementType, [provider.stringType])
-    ];
-    canvasElement.accessors = <PropertyAccessorElement>[
-      ElementFactory.getterElement("context2D", false, context2dElement.type)
-    ];
-    canvasElement.fields = canvasElement.accessors
-        .map((PropertyAccessorElement accessor) => accessor.variable)
-        .cast<FieldElement>()
-        .toList();
-    ClassElementImpl documentElement =
-        ElementFactory.classElement("Document", elementType);
-    ClassElementImpl htmlDocumentElement =
-        ElementFactory.classElement("HtmlDocument", documentElement.type);
-    htmlDocumentElement.methods = <MethodElement>[
-      ElementFactory.methodElement(
-          "query", elementType, <DartType>[provider.stringType])
-    ];
-    htmlUnit.types = <ClassElement>[
-      ElementFactory.classElement("AnchorElement", elementType),
-      ElementFactory.classElement("BodyElement", elementType),
-      ElementFactory.classElement("ButtonElement", elementType),
-      canvasElement,
-      contextElement,
-      context2dElement,
-      ElementFactory.classElement("DivElement", elementType),
-      documentElement,
-      elementElement,
-      htmlDocumentElement,
-      ElementFactory.classElement("InputElement", elementType),
-      ElementFactory.classElement("SelectElement", elementType)
-    ];
-    htmlUnit.functions = <FunctionElement>[
-      ElementFactory.functionElement3("query", elementElement.type,
-          <ClassElement>[provider.stringType.element], const <ClassElement>[])
-    ];
-    TopLevelVariableElementImpl document =
-        ElementFactory.topLevelVariableElement3(
-            "document", false, true, htmlDocumentElement.type);
-    htmlUnit.topLevelVariables = <TopLevelVariableElement>[document];
-    htmlUnit.accessors = <PropertyAccessorElement>[document.getter];
-    LibraryElementImpl htmlLibrary = new LibraryElementImpl.forNode(
-        coreContext,
-        null,
-        AstTestFactory.libraryIdentifier2(["dart", "dom", "html"]),
-        featureSet.isEnabled(Feature.non_nullable));
-    htmlLibrary.definingCompilationUnit = htmlUnit;
-    //
-    // dart:math
-    //
-    CompilationUnitElementImpl mathUnit = new CompilationUnitElementImpl();
-    Source mathSource = sourceFactory.forUri(_DART_MATH);
-    mathUnit.librarySource = mathUnit.source = mathSource;
-    FunctionElement cosElement = ElementFactory.functionElement3(
-        "cos",
-        provider.doubleType,
-        <ClassElement>[provider.numType.element],
-        const <ClassElement>[]);
-    TopLevelVariableElement ln10Element =
-        ElementFactory.topLevelVariableElement3(
-            "LN10", true, false, provider.doubleType);
-    TypeParameterElement maxT =
-        ElementFactory.typeParameterWithType('T', provider.numType);
-    FunctionElementImpl maxElement = ElementFactory.functionElement3(
-        "max", maxT.type, [maxT, maxT], const <ClassElement>[]);
-    maxElement.typeParameters = [maxT];
-    maxElement.type = new FunctionTypeImpl(maxElement);
-    TopLevelVariableElement piElement = ElementFactory.topLevelVariableElement3(
-        "PI", true, false, provider.doubleType);
-    ClassElementImpl randomElement = ElementFactory.classElement2("Random");
-    randomElement.isAbstract = true;
-    ConstructorElementImpl randomConstructor =
-        ElementFactory.constructorElement2(randomElement, null);
-    randomConstructor.factory = true;
-    ParameterElementImpl seedParam = new ParameterElementImpl("seed", 0);
-    seedParam.parameterKind = ParameterKind.POSITIONAL;
-    seedParam.type = provider.intType;
-    randomConstructor.parameters = <ParameterElement>[seedParam];
-    randomElement.constructors = <ConstructorElement>[randomConstructor];
-    FunctionElement sinElement = ElementFactory.functionElement3(
-        "sin",
-        provider.doubleType,
-        <ClassElement>[provider.numType.element],
-        const <ClassElement>[]);
-    FunctionElement sqrtElement = ElementFactory.functionElement3(
-        "sqrt",
-        provider.doubleType,
-        <ClassElement>[provider.numType.element],
-        const <ClassElement>[]);
-    mathUnit.accessors = <PropertyAccessorElement>[
-      ln10Element.getter,
-      piElement.getter
-    ];
-    mathUnit.functions = <FunctionElement>[
-      cosElement,
-      maxElement,
-      sinElement,
-      sqrtElement
-    ];
-    mathUnit.topLevelVariables = <TopLevelVariableElement>[
-      ln10Element,
-      piElement
-    ];
-    mathUnit.types = <ClassElement>[randomElement];
-    LibraryElementImpl mathLibrary = new LibraryElementImpl.forNode(
-        coreContext,
-        null,
-        AstTestFactory.libraryIdentifier2(["dart", "math"]),
-        featureSet.isEnabled(Feature.non_nullable));
-    mathLibrary.definingCompilationUnit = mathUnit;
-    //
-    // Record the elements.
-    //
-    Map<Source, LibraryElement> elementMap =
-        new HashMap<Source, LibraryElement>();
-    elementMap[coreSource] = coreLibrary;
-    if (asyncSource != null) {
-      elementMap[asyncSource] = asyncLibrary;
-    }
-    elementMap[htmlSource] = htmlLibrary;
-    elementMap[mathSource] = mathLibrary;
-    //
-    // Set the public and export namespaces.  We don't use exports in the fake
-    // core library so public and export namespaces are the same.
-    //
-    for (LibraryElementImpl library in elementMap.values) {
-      Namespace namespace =
-          new NamespaceBuilder().createPublicNamespaceForLibrary(library);
-      library.exportNamespace = namespace;
-      library.publicNamespace = namespace;
-    }
+    var sdkElements = MockSdkElements(
+      context,
+      featureSet.isEnabled(Feature.non_nullable)
+          ? NullabilitySuffix.none
+          : NullabilitySuffix.star,
+    );
 
     context.typeProvider = SummaryTypeProvider()
-      ..initializeCore(coreLibrary)
-      ..initializeAsync(asyncLibrary);
+      ..initializeCore(sdkElements.coreLibrary)
+      ..initializeAsync(sdkElements.asyncLibrary);
 
-    // Create the synthetic element for `loadLibrary`.
-    for (LibraryElementImpl library in elementMap.values) {
-      library.createLoadLibraryFunction(context.typeProvider);
-    }
     return context;
   }
 }
