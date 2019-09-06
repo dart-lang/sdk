@@ -81,6 +81,10 @@ class NullabilityGraph {
   /// propagation.
   static const _debugBeforePropagation = false;
 
+  /// Set this const to `true` to dump the nullability graph just before
+  /// propagation.
+  static const _debugAfterPropagation = false;
+
   /// Set containing all [NullabilityNode]s that have been passed as the
   /// `sourceNode` argument to [connect].
   final _allSourceNodes = Set<NullabilityNode>.identity();
@@ -157,6 +161,7 @@ class NullabilityGraph {
     _propagateAlways();
     _propagateUpstream();
     _propagateDownstream();
+    if (_debugAfterPropagation) _debugDump();
   }
 
   /// Records that nodes [x] and [y] should have exactly the same nullability.
