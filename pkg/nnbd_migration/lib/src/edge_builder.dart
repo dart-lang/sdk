@@ -135,11 +135,25 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType _currentFunctionType;
 
   /// The [DecoratedType] of the innermost list or set literal being visited, or
-  /// `null` if the visitor is not inside any function or method.
+  /// `null` if the visitor is not inside any list or set.
   ///
   /// This is needed to construct the appropriate nullability constraints for
-  /// ui as code list elements.
-  DecoratedType _currentLiteralType;
+  /// ui as code elements.
+  DecoratedType _currentLiteralElementType;
+
+  /// The key [DecoratedType] of the innermost map literal being visited, or
+  /// `null` if the visitor is not inside any map.
+  ///
+  /// This is needed to construct the appropriate nullability constraints for
+  /// ui as code elements.
+  DecoratedType _currentMapKeyType;
+
+  /// The value [DecoratedType] of the innermost map literal being visited, or
+  /// `null` if the visitor is not inside any map.
+  ///
+  /// This is needed to construct the appropriate nullability constraints for
+  /// ui as code elements.
+  DecoratedType _currentMapValueType;
 
   /// Information about the most recently visited binary expression whose
   /// boolean value could possibly affect nullability analysis.
@@ -821,22 +835,31 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitListLiteral(ListLiteral node) {
-    final previousLiteralType = _currentLiteralType;
+    final previousLiteralType = _currentLiteralElementType;
     try {
       var listType = node.staticType as InterfaceType;
       if (node.typeArguments == null) {
-        _currentLiteralType = DecoratedType.forImplicitType(
+        _currentLiteralElementType = DecoratedType.forImplicitType(
             _typeProvider, listType.typeArguments[0], _graph);
       } else {
-        _currentLiteralType = _variables.decoratedTypeAnnotation(
+        _currentLiteralElementType = _variables.decoratedTypeAnnotation(
             source, node.typeArguments.arguments[0]);
       }
       node.elements.forEach(_handleCollectionElement);
       return DecoratedType(listType, _graph.never,
-          typeArguments: [_currentLiteralType]);
+          typeArguments: [_currentLiteralElementType]);
     } finally {
-      _currentLiteralType = previousLiteralType;
+      _currentLiteralElementType = previousLiteralType;
     }
+  }
+
+  @override
+  DecoratedType visitMapLiteralEntry(MapLiteralEntry node) {
+    assert(_currentMapKeyType != null);
+    assert(_currentMapValueType != null);
+    _handleAssignment(node.key, destinationType: _currentMapKeyType);
+    _handleAssignment(node.value, destinationType: _currentMapValueType);
+    return null;
   }
 
   @override
@@ -1026,59 +1049,50 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var typeArguments = node.typeArguments?.arguments;
 
     if (node.isSet) {
-      DecoratedType elementType;
-      if (typeArguments == null) {
-        assert(setOrMapType.typeArguments.length == 1);
-        elementType = DecoratedType.forImplicitType(
-            _typeProvider, setOrMapType.typeArguments[0], _graph);
-      } else {
-        assert(typeArguments.length == 1);
-        elementType =
-            _variables.decoratedTypeAnnotation(source, typeArguments[0]);
-      }
-      for (var element in node.elements) {
-        if (element is Expression) {
-          _handleAssignment(element, destinationType: elementType);
+      final previousLiteralType = _currentLiteralElementType;
+      try {
+        if (typeArguments == null) {
+          assert(setOrMapType.typeArguments.length == 1);
+          _currentLiteralElementType = DecoratedType.forImplicitType(
+              _typeProvider, setOrMapType.typeArguments[0], _graph);
         } else {
-          // Handle spread and control flow elements.
-          element.accept(this);
-          // TODO(mfairhurst)
-          _unimplemented(node, 'Spread or control flow element');
+          assert(typeArguments.length == 1);
+          _currentLiteralElementType =
+              _variables.decoratedTypeAnnotation(source, typeArguments[0]);
         }
+        node.elements.forEach(_handleCollectionElement);
+        return DecoratedType(setOrMapType, _graph.never,
+            typeArguments: [_currentLiteralElementType]);
+      } finally {
+        _currentLiteralElementType = previousLiteralType;
       }
-      return DecoratedType(setOrMapType, _graph.never,
-          typeArguments: [elementType]);
     } else {
       assert(node.isMap);
-      DecoratedType keyType;
-      DecoratedType valueType;
 
-      if (typeArguments == null) {
-        assert(setOrMapType.typeArguments.length == 2);
-        keyType = DecoratedType.forImplicitType(
-            _typeProvider, setOrMapType.typeArguments[0], _graph);
-        valueType = DecoratedType.forImplicitType(
-            _typeProvider, setOrMapType.typeArguments[1], _graph);
-      } else {
-        assert(typeArguments.length == 2);
-        keyType = _variables.decoratedTypeAnnotation(source, typeArguments[0]);
-        valueType =
-            _variables.decoratedTypeAnnotation(source, typeArguments[1]);
-      }
-
-      for (var element in node.elements) {
-        if (element is MapLiteralEntry) {
-          _handleAssignment(element.key, destinationType: keyType);
-          _handleAssignment(element.value, destinationType: valueType);
+      final previousKeyType = _currentMapKeyType;
+      final previousValueType = _currentMapValueType;
+      try {
+        if (typeArguments == null) {
+          assert(setOrMapType.typeArguments.length == 2);
+          _currentMapKeyType = DecoratedType.forImplicitType(
+              _typeProvider, setOrMapType.typeArguments[0], _graph);
+          _currentMapValueType = DecoratedType.forImplicitType(
+              _typeProvider, setOrMapType.typeArguments[1], _graph);
         } else {
-          // Handle spread and control flow elements.
-          element.accept(this);
-          // TODO(mfairhurst)
-          _unimplemented(node, 'Spread or control flow element');
+          assert(typeArguments.length == 2);
+          _currentMapKeyType =
+              _variables.decoratedTypeAnnotation(source, typeArguments[0]);
+          _currentMapValueType =
+              _variables.decoratedTypeAnnotation(source, typeArguments[1]);
         }
+
+        node.elements.forEach(_handleCollectionElement);
+        return DecoratedType(setOrMapType, _graph.never,
+            typeArguments: [_currentMapKeyType, _currentMapValueType]);
+      } finally {
+        _currentMapKeyType = previousKeyType;
+        _currentMapValueType = previousValueType;
       }
-      return DecoratedType(setOrMapType, _graph.never,
-          typeArguments: [keyType, valueType]);
     }
   }
 
@@ -1507,8 +1521,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   DecoratedType _handleCollectionElement(CollectionElement element) {
     if (element is Expression) {
-      assert(_currentLiteralType != null);
-      return _handleAssignment(element, destinationType: _currentLiteralType);
+      assert(_currentLiteralElementType != null);
+      return _handleAssignment(element,
+          destinationType: _currentLiteralElementType);
     } else {
       return element.accept(this);
     }
