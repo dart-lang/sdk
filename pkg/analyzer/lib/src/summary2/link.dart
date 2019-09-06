@@ -6,13 +6,13 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart' show CompilationUnit;
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/summary/format.dart';
-import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/summary2/ast_binary_writer.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
@@ -212,10 +212,7 @@ class Linker {
 
     var coreLib = elementFactory.libraryOfUri('dart:core');
     var asyncLib = elementFactory.libraryOfUri('dart:async');
-
-    analysisContext.typeProvider = SummaryTypeProvider()
-      ..initializeCore(coreLib)
-      ..initializeAsync(asyncLib);
+    analysisContext.typeProvider = TypeProviderImpl(coreLib, asyncLib);
 
     inheritance = InheritanceManager3(typeSystem);
   }

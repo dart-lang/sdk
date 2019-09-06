@@ -10,6 +10,7 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/restricted_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -20,7 +21,6 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
-import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/summary2/link.dart' as summary2;
 import 'package:analyzer/src/summary2/linked_bundle_context.dart' as summary2;
@@ -247,9 +247,7 @@ class DevCompilerResynthesizerBuilder {
 
     var dartCore = elementFactory.libraryOfUri('dart:core');
     var dartAsync = elementFactory.libraryOfUri('dart:async');
-    var typeProvider = SummaryTypeProvider()
-      ..initializeCore(dartCore)
-      ..initializeAsync(dartAsync);
+    var typeProvider = TypeProviderImpl(dartCore, dartAsync);
     context.typeProvider = typeProvider;
 
     dartCore.createLoadLibraryFunction(typeProvider);

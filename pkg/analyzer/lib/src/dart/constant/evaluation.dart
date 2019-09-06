@@ -111,7 +111,7 @@ class ConstantEvaluationEngine {
     if (arguments[0] is NamedExpression) {
       return false;
     }
-    if (!identical(argumentValues[0].type, typeProvider.stringType)) {
+    if (argumentValues[0].type != typeProvider.stringType) {
       return false;
     }
     if (argumentCount == 2) {
@@ -122,8 +122,8 @@ class ConstantEvaluationEngine {
         }
         ParameterizedType defaultValueType =
             namedArgumentValues[_DEFAULT_VALUE_PARAM].type;
-        if (!(identical(defaultValueType, expectedDefaultValueType) ||
-            identical(defaultValueType, typeProvider.nullType))) {
+        if (!(defaultValueType == expectedDefaultValueType ||
+            defaultValueType == typeProvider.nullType)) {
           return false;
         }
       } else {
@@ -148,7 +148,7 @@ class ConstantEvaluationEngine {
     if (arguments[0] is NamedExpression) {
       return false;
     }
-    if (!identical(argumentValues[0].type, typeProvider.stringType)) {
+    if (argumentValues[0].type != typeProvider.stringType) {
       return false;
     }
     String name = argumentValues[0].toStringValue();
@@ -831,7 +831,7 @@ class ConstantEvaluationEngine {
     if (!constructor.isFactory) {
       return null;
     }
-    if (identical(constructor.enclosingElement.type, typeProvider.symbolType)) {
+    if (constructor.enclosingElement.type == typeProvider.symbolType) {
       // The dart:core.Symbol has a const factory constructor that redirects
       // to dart:_internal.Symbol.  That in turn redirects to an external
       // const constructor, which we won't be able to evaluate.

@@ -14,6 +14,7 @@ import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/ast/token.dart' show KeywordToken;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -2413,7 +2414,11 @@ class NonNullableSubtypingTest extends SubtypingTestBase {
     LibraryElement asyncLibrary = typeProvider.streamType.element.library;
 
     // Get a non-nullable type provider for convience during the test.
-    typeProvider = new NonNullableTypeProvider(coreLibrary, asyncLibrary);
+    typeProvider = TypeProviderImpl(
+      coreLibrary,
+      asyncLibrary,
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
   }
 
   void test_dynamicType() {

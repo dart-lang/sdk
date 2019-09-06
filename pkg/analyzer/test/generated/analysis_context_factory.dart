@@ -9,13 +9,13 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/string_source.dart';
-import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk_elements.dart';
 import 'package:test/test.dart';
 
@@ -100,9 +100,10 @@ class AnalysisContextFactory {
           : NullabilitySuffix.star,
     );
 
-    context.typeProvider = SummaryTypeProvider()
-      ..initializeCore(sdkElements.coreLibrary)
-      ..initializeAsync(sdkElements.asyncLibrary);
+    context.typeProvider = TypeProviderImpl(
+      sdkElements.coreLibrary,
+      sdkElements.asyncLibrary,
+    );
 
     return context;
   }

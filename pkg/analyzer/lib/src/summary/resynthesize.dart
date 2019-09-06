@@ -12,6 +12,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -20,7 +21,6 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/expr_builder.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/summary/summary_sdk.dart';
 
 /**
  * Expando for marking types with implicit type arguments, which are the same as
@@ -413,10 +413,7 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
   void _buildTypeProvider() {
     _coreLibrary = getLibraryElement('dart:core') as LibraryElementImpl;
     _asyncLibrary = getLibraryElement('dart:async') as LibraryElementImpl;
-    SummaryTypeProvider summaryTypeProvider = new SummaryTypeProvider();
-    summaryTypeProvider.initializeCore(_coreLibrary);
-    summaryTypeProvider.initializeAsync(_asyncLibrary);
-    _typeProvider = summaryTypeProvider;
+    _typeProvider = new TypeProviderImpl(_coreLibrary, _asyncLibrary);
   }
 
   /**

@@ -15,6 +15,7 @@ import 'package:analyzer/src/dart/analysis/restricted_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisOptions;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
@@ -24,7 +25,6 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
-import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/summary2/link.dart' as link2;
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
@@ -416,9 +416,7 @@ class LibraryContext {
 
     var dartCore = elementFactory.libraryOfUri('dart:core');
     var dartAsync = elementFactory.libraryOfUri('dart:async');
-    var typeProvider = SummaryTypeProvider()
-      ..initializeCore(dartCore)
-      ..initializeAsync(dartAsync);
+    var typeProvider = TypeProviderImpl(dartCore, dartAsync);
     analysisContext.typeProvider = typeProvider;
 
     dartCore.createLoadLibraryFunction(typeProvider);
