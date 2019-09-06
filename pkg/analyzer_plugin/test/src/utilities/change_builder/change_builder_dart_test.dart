@@ -12,7 +12,7 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/testing/test_type_provider.dart';
+import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -1495,25 +1495,18 @@ class B {}
 @reflectiveTest
 class DartFileEditBuilderImplTest extends AbstractContextTest
     with DartChangeBuilderMixin {
-  TypeProvider get typeProvider {
-    return new TestTypeProvider(null, driver);
-  }
-
   test_convertFunctionFromSyncToAsync_closure() async {
     String path = convertPath('/home/test/lib/test.dart');
     addSource(path, '''var f = () {}''');
 
-    CompilationUnit unit = (await driver.getResult(path))?.unit;
-    TopLevelVariableDeclaration variable =
-        unit.declarations[0] as TopLevelVariableDeclaration;
-    FunctionBody body =
-        (variable.variables.variables[0].initializer as FunctionExpression)
-            .body;
+    var resolvedUnit = await driver.getResult(path);
+    var findNode = FindNode(resolvedUnit.content, resolvedUnit.unit);
+    var body = findNode.functionBody('{}');
 
     DartChangeBuilderImpl builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       (builder as DartFileEditBuilder)
-          .convertFunctionFromSyncToAsync(body, typeProvider);
+          .convertFunctionFromSyncToAsync(body, resolvedUnit.typeProvider);
     });
     List<SourceEdit> edits = getEdits(builder);
     expect(edits, hasLength(1));
@@ -1524,14 +1517,14 @@ class DartFileEditBuilderImplTest extends AbstractContextTest
     String path = convertPath('/home/test/lib/test.dart');
     addSource(path, 'String f() {}');
 
-    CompilationUnit unit = (await driver.getResult(path))?.unit;
-    FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
-    FunctionBody body = function.functionExpression.body;
+    var resolvedUnit = await driver.getResult(path);
+    var findNode = FindNode(resolvedUnit.content, resolvedUnit.unit);
+    var body = findNode.functionBody('{}');
 
     DartChangeBuilderImpl builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       (builder as DartFileEditBuilder)
-          .convertFunctionFromSyncToAsync(body, typeProvider);
+          .convertFunctionFromSyncToAsync(body, resolvedUnit.typeProvider);
     });
     List<SourceEdit> edits = getEdits(builder);
     expect(edits, hasLength(2));
@@ -1655,14 +1648,14 @@ void functionAfter() {
     String path = convertPath('/home/test/lib/test.dart');
     addSource(path, 'String f() {}');
 
-    CompilationUnit unit = (await driver.getResult(path))?.unit;
-    FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
-    TypeAnnotation type = function.returnType;
+    var resolvedUnit = await driver.getResult(path);
+    var findNode = FindNode(resolvedUnit.content, resolvedUnit.unit);
+    var type = findNode.typeAnnotation('String');
 
     DartChangeBuilderImpl builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       (builder as DartFileEditBuilder)
-          .replaceTypeWithFuture(type, typeProvider);
+          .replaceTypeWithFuture(type, resolvedUnit.typeProvider);
     });
     List<SourceEdit> edits = getEdits(builder);
     expect(edits, hasLength(1));
