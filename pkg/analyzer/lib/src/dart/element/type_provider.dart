@@ -84,7 +84,6 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceType get boolType {
-    assert(_coreLibrary != null);
     _boolType ??= _getType(_coreLibrary, "bool");
     return _boolType;
   }
@@ -99,14 +98,12 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceType get deprecatedType {
-    assert(_coreLibrary != null);
     _deprecatedType ??= _getType(_coreLibrary, "Deprecated");
     return _deprecatedType;
   }
 
   @override
   InterfaceType get doubleType {
-    assert(_coreLibrary != null);
     _doubleType ??= _getType(_coreLibrary, "double");
     return _doubleType;
   }
@@ -116,91 +113,78 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceType get functionType {
-    assert(_coreLibrary != null);
     _functionType ??= _getType(_coreLibrary, "Function");
     return _functionType;
   }
 
   @override
   InterfaceType get futureDynamicType {
-    assert(_asyncLibrary != null);
     _futureDynamicType ??= futureType.instantiate(<DartType>[dynamicType]);
     return _futureDynamicType;
   }
 
   @override
   InterfaceType get futureNullType {
-    assert(_asyncLibrary != null);
     _futureNullType ??= futureType.instantiate(<DartType>[nullType]);
     return _futureNullType;
   }
 
   @override
   InterfaceType get futureOrNullType {
-    assert(_asyncLibrary != null);
     _futureOrNullType ??= futureOrType.instantiate(<DartType>[nullType]);
     return _futureOrNullType;
   }
 
   @override
   InterfaceType get futureOrType {
-    assert(_asyncLibrary != null);
     _futureOrType ??= _getType(_asyncLibrary, "FutureOr");
     return _futureOrType;
   }
 
   @override
   InterfaceType get futureType {
-    assert(_asyncLibrary != null);
     _futureType ??= _getType(_asyncLibrary, "Future");
     return _futureType;
   }
 
   @override
   InterfaceType get intType {
-    assert(_coreLibrary != null);
     _intType ??= _getType(_coreLibrary, "int");
     return _intType;
   }
 
   @override
   InterfaceType get iterableDynamicType {
-    assert(_coreLibrary != null);
     _iterableDynamicType ??= iterableType.instantiate(<DartType>[dynamicType]);
     return _iterableDynamicType;
   }
 
   @override
   InterfaceType get iterableObjectType {
-    assert(_coreLibrary != null);
     _iterableObjectType ??= iterableType.instantiate(<DartType>[objectType]);
     return _iterableObjectType;
   }
 
   @override
   InterfaceType get iterableType {
-    assert(_coreLibrary != null);
     _iterableType ??= _getType(_coreLibrary, "Iterable");
     return _iterableType;
   }
 
   @override
   InterfaceType get listType {
-    assert(_coreLibrary != null);
     _listType ??= _getType(_coreLibrary, "List");
     return _listType;
   }
 
   @override
   InterfaceType get mapObjectObjectType {
-    assert(_coreLibrary != null);
     return _mapObjectObjectType ??=
         mapType.instantiate(<DartType>[objectType, objectType]);
   }
 
   @override
   InterfaceType get mapType {
-    assert(_coreLibrary != null);
     _mapType ??= _getType(_coreLibrary, "Map");
     return _mapType;
   }
@@ -218,69 +202,59 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceType get nullType {
-    assert(_coreLibrary != null);
     _nullType ??= _getType(_coreLibrary, "Null");
     return _nullType;
   }
 
   @override
   InterfaceType get numType {
-    assert(_coreLibrary != null);
     _numType ??= _getType(_coreLibrary, "num");
     return _numType;
   }
 
   @override
   InterfaceType get objectType {
-    assert(_coreLibrary != null);
     _objectType ??= _getType(_coreLibrary, "Object");
     return _objectType;
   }
 
   @override
   InterfaceType get setType {
-    assert(_coreLibrary != null);
     return _setType ??= _getType(_coreLibrary, "Set");
   }
 
   @override
   InterfaceType get stackTraceType {
-    assert(_coreLibrary != null);
     _stackTraceType ??= _getType(_coreLibrary, "StackTrace");
     return _stackTraceType;
   }
 
   @override
   InterfaceType get streamDynamicType {
-    assert(_asyncLibrary != null);
     _streamDynamicType ??= streamType.instantiate(<DartType>[dynamicType]);
     return _streamDynamicType;
   }
 
   @override
   InterfaceType get streamType {
-    assert(_asyncLibrary != null);
     _streamType ??= _getType(_asyncLibrary, "Stream");
     return _streamType;
   }
 
   @override
   InterfaceType get stringType {
-    assert(_coreLibrary != null);
     _stringType ??= _getType(_coreLibrary, "String");
     return _stringType;
   }
 
   @override
   InterfaceType get symbolType {
-    assert(_coreLibrary != null);
     _symbolType ??= _getType(_coreLibrary, "Symbol");
     return _symbolType;
   }
 
   @override
   InterfaceType get typeType {
-    assert(_coreLibrary != null);
     _typeType ??= _getType(_coreLibrary, "Type");
     return _typeType;
   }
