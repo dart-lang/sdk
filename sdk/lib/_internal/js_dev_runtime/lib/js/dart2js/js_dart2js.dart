@@ -541,9 +541,7 @@ Object _putIfAbsent(weakMap, o, getValue(o)) {
   return value;
 }
 
-// The allowInterop method is a no-op in Dart Dev Compiler.
-// TODO(jacobr): tag methods so we can throw if a Dart method is passed to
-// JavaScript using the new interop without calling allowInterop.
+Expando<Function> _interopExpando = Expando<Function>();
 
 /// Returns a wrapper around function [f] that can be called from JavaScript
 /// using the package:js Dart-JavaScript interop.
@@ -556,7 +554,20 @@ Object _putIfAbsent(weakMap, o, getValue(o)) {
 /// JavaScript. We may remove the need to call this method completely in the
 /// future if Dart2Js is refactored so that its function calling conventions
 /// are more compatible with JavaScript.
-F allowInterop<F extends Function>(F f) => f;
+F allowInterop<F extends Function>(F f) {
+  var ret = _interopExpando[f];
+  if (ret == null) {
+    ret = JS(
+        '',
+        'function (...args) {'
+            ' return #(#, args);'
+            '}',
+        dart.dcall,
+        f);
+    _interopExpando[f] = ret;
+  }
+  return ret;
+}
 
 Expando<Function> _interopCaptureThisExpando = Expando<Function>();
 
@@ -571,13 +582,12 @@ Function allowInteropCaptureThis(Function f) {
   if (ret == null) {
     ret = JS(
         '',
-        'function(/*...arguments*/) {'
+        'function(...arguments) {'
             '  let args = [this];'
-            '  for (let arg of arguments) {'
-            '    args.push(arg);'
-            '  }'
-            '  return #(...args);'
+            '  args.push.apply(args, arguments);'
+            '  return #(#, args);'
             '}',
+        dart.dcall,
         f);
     _interopCaptureThisExpando[f] = ret;
   }

@@ -191,6 +191,15 @@ well as a potential crash of our AOT compiler.
 [37551]: https://github.com/dart-lang/sdk/issues/37551
 [35121]: https://github.com/dart-lang/sdk/issues/35121
 
+### Dart Dev Compiler (DDC)
+
+Callbacks passed to JS and wrapped with `allowInterop` or
+`allowInteropCaptureThis` are now strict about argument counts and argument
+types. This may mean that tests which were previously passing and relying on
+loose argument checking (too many or too few arguments, or arguments with too
+specific types like `List<Something>` instead of `List<dynamic>`) may start
+failing. This changes makes DDC behave more like dart2js with the default flags.
+
 ## 2.4.0 - 2019-06-27
 
 ### Core libraries
