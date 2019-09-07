@@ -69,8 +69,8 @@ ConstantPool {
   [32] = Reserved
   [33] = DirectCall 'dart:async::_asyncErrorWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
   [34] = Reserved
-  [35] = ObjectRef ArgDesc num-args 2, num-type-args 0, names []
-  [36] = ICData dynamic target-name 'start', arg-desc CP#35
+  [35] = DynamicCall 'start', ArgDesc num-args 2, num-type-args 0, names []
+  [36] = Reserved
   [37] = InterfaceCall 'dart:async::Completer::get:future', ArgDesc num-args 1, num-type-args 0, names []
   [38] = Reserved
   [39] = EndClosureFunctionScope
@@ -162,7 +162,7 @@ L1:
   LoadContextVar       0, 1
   Push                 r0
   LoadContextVar       0, 8
-  DynamicCall          CP#36, 2
+  DynamicCall          CP#35, 2
   Drop1
   Push                 r0
   LoadContextVar       0, 1
@@ -321,7 +321,7 @@ Bytecode {
   Push                 r0
   LoadContextVar       0, 0
   Push                 r6
-  DynamicCall          CP#30, 2
+  DynamicCall          CP#29, 2
   Drop1
   Push                 r0
   LoadContextVar       0, 0
@@ -358,8 +358,8 @@ ConstantPool {
   [26] = Reserved
   [27] = DirectCall 'dart:async::_asyncErrorWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
   [28] = Reserved
-  [29] = ObjectRef ArgDesc num-args 2, num-type-args 0, names []
-  [30] = ICData dynamic target-name 'start', arg-desc CP#29
+  [29] = DynamicCall 'start', ArgDesc num-args 2, num-type-args 0, names []
+  [30] = Reserved
   [31] = InterfaceCall 'dart:async::Completer::get:future', ArgDesc num-args 1, num-type-args 0, names []
   [32] = Reserved
 }
@@ -505,7 +505,7 @@ Bytecode {
   LoadContextVar       0, 2
   Push                 r0
   LoadContextVar       0, 10
-  DynamicCall          CP#34, 2
+  DynamicCall          CP#33, 2
   Drop1
   Push                 r0
   LoadContextVar       0, 2
@@ -546,8 +546,8 @@ ConstantPool {
   [30] = Reserved
   [31] = DirectCall 'dart:async::_asyncErrorWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
   [32] = Reserved
-  [33] = ObjectRef ArgDesc num-args 2, num-type-args 0, names []
-  [34] = ICData dynamic target-name 'start', arg-desc CP#33
+  [33] = DynamicCall 'start', ArgDesc num-args 2, num-type-args 0, names []
+  [34] = Reserved
   [35] = InterfaceCall 'dart:async::Completer::get:future', ArgDesc num-args 1, num-type-args 0, names []
   [36] = Reserved
 }
@@ -760,7 +760,7 @@ Bytecode {
   LoadContextVar       0, 1
   Push                 r0
   LoadContextVar       0, 10
-  DynamicCall          CP#42, 2
+  DynamicCall          CP#41, 2
   Drop1
   Push                 r0
   LoadContextVar       0, 1
@@ -809,8 +809,8 @@ ConstantPool {
   [38] = Reserved
   [39] = DirectCall 'dart:async::_asyncErrorWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
   [40] = Reserved
-  [41] = ObjectRef ArgDesc num-args 2, num-type-args 0, names []
-  [42] = ICData dynamic target-name 'start', arg-desc CP#41
+  [41] = DynamicCall 'start', ArgDesc num-args 2, num-type-args 0, names []
+  [42] = Reserved
   [43] = InterfaceCall 'dart:async::Completer::get:future', ArgDesc num-args 1, num-type-args 0, names []
   [44] = Reserved
 }
@@ -1160,7 +1160,7 @@ Bytecode {
   LoadContextVar       0, 3
   Push                 r0
   LoadContextVar       0, 17
-  DynamicCall          CP#40, 2
+  DynamicCall          CP#39, 2
   Drop1
   Push                 r0
   LoadContextVar       0, 3
@@ -1207,8 +1207,8 @@ ConstantPool {
   [36] = Reserved
   [37] = DirectCall 'dart:async::_asyncErrorWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
   [38] = Reserved
-  [39] = ObjectRef ArgDesc num-args 2, num-type-args 0, names []
-  [40] = ICData dynamic target-name 'start', arg-desc CP#39
+  [39] = DynamicCall 'start', ArgDesc num-args 2, num-type-args 0, names []
+  [40] = Reserved
   [41] = InterfaceCall 'dart:async::Completer::get:future', ArgDesc num-args 1, num-type-args 0, names []
   [42] = Reserved
 }
@@ -1704,8 +1704,8 @@ ConstantPool {
   [32] = Reserved
   [33] = DirectCall 'dart:async::_asyncErrorWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
   [34] = Reserved
-  [35] = ObjectRef ArgDesc num-args 2, num-type-args 0, names []
-  [36] = ICData dynamic target-name 'start', arg-desc CP#35
+  [35] = DynamicCall 'start', ArgDesc num-args 2, num-type-args 0, names []
+  [36] = Reserved
   [37] = InterfaceCall 'dart:async::Completer::get:future', ArgDesc num-args 1, num-type-args 0, names []
   [38] = Reserved
   [39] = EndClosureFunctionScope
@@ -1792,7 +1792,7 @@ ClosureCode {
   LoadContextVar       1, 0
   Push                 r0
   LoadContextVar       1, 8
-  DynamicCall          CP#36, 2
+  DynamicCall          CP#35, 2
   Drop1
   Push                 r0
   LoadContextVar       1, 0
@@ -2036,7 +2036,7 @@ Bytecode {
   LoadContextVar       0, 1
   Push                 r0
   LoadContextVar       0, 8
-  DynamicCall          CP#36, 2
+  DynamicCall          CP#35, 2
   Drop1
   Push                 r0
   LoadContextVar       0, 1
@@ -2079,8 +2079,8 @@ ConstantPool {
   [32] = Reserved
   [33] = DirectCall 'dart:async::_asyncErrorWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
   [34] = Reserved
-  [35] = ObjectRef ArgDesc num-args 2, num-type-args 0, names []
-  [36] = ICData dynamic target-name 'start', arg-desc CP#35
+  [35] = DynamicCall 'start', ArgDesc num-args 2, num-type-args 0, names []
+  [36] = Reserved
   [37] = InterfaceCall 'dart:async::Completer::get:future', ArgDesc num-args 1, num-type-args 0, names []
   [38] = Reserved
 }
