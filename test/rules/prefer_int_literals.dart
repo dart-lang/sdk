@@ -149,9 +149,9 @@ linter_issue_1227() {
 linter_issue_1231() {
   double myDouble = 3;
   max(3.0, 4); // OK
-  max(myDouble, 5.0); // OK
-  var value1 = max(myDouble, 6.0); // OK
-  double value2 = max(myDouble, 7.0); // OK
+  max(myDouble, 5.0); // LINT
+  var value1 = max(myDouble, 6.0); // LINT
+  double value2 = max(myDouble, 7.0); // LINT
   return value1 + value2;
 }
 
