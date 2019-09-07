@@ -211,27 +211,6 @@ class ExtensionMemberResolver {
   /// identified.
   _InstantiatedExtension _chooseMostSpecific(
       List<_InstantiatedExtension> extensions) {
-    //
-    // https://github.com/dart-lang/language/blob/master/accepted/future-releases/static-extension-methods/feature-specification.md#extension-conflict-resolution:
-    //
-    // If more than one extension applies to a specific member invocation, then
-    // we resort to a heuristic to choose one of the extensions to apply. If
-    // exactly one of them is "more specific" than all the others, that one is
-    // chosen. Otherwise it is a compile-time error.
-    //
-    // An extension with on type clause T1 is more specific than another
-    // extension with on type clause T2 iff
-    //
-    // 1. T2 is declared in a platform library, and T1 is not, or
-    // 2. they are both declared in platform libraries or both declared in
-    //    non-platform libraries, and
-    // 3. the instantiated type (the type after applying type inference from the
-    //    receiver) of T1 is a subtype of the instantiated type of T2 and either
-    //    not vice versa, or
-    // 4. the instantiate-to-bounds type of T1 is a subtype of the
-    //    instantiate-to-bounds type of T2 and not vice versa.
-    //
-
     for (var i = 0; i < extensions.length; i++) {
       var e1 = extensions[i];
       var isMoreSpecific = true;
@@ -418,7 +397,9 @@ class ExtensionMemberResolver {
   /// Return `true` is [e1] is more specific than [e2].
   bool _isMoreSpecific(_InstantiatedExtension e1, _InstantiatedExtension e2) {
     // 1. The latter extension is declared in a platform library, and the
-    // former extension is not.
+    //    former extension is not.
+    // 2. They are both declared in platform libraries, or both declared in
+    //    non-platform libraries.
     var e1_isInSdk = e1.element.library.isInSdk;
     var e2_isInSdk = e2.element.library.isInSdk;
     if (e1_isInSdk && !e2_isInSdk) {
@@ -430,30 +411,25 @@ class ExtensionMemberResolver {
     var extendedType1 = e1._extendedType;
     var extendedType2 = e2._extendedType;
 
-    // 2. they are both declared in platform libraries or both declared in
-    //    non-platform libraries, and
-    if (_isSubtypeAndNotViceVersa(extendedType1, extendedType2)) {
-      // 3. the instantiated type (the type after applying type inference from
-      //    the receiver) of T1 is a subtype of the instantiated type of T2 and
-      //    either not vice versa
+    // 3. The instantiated type (the type after applying type inference from
+    //    the receiver) of T1 is a subtype of the instantiated type of T2,
+    //    and either...
+    if (!_isSubtypeOf(extendedType1, extendedType2)) {
+      return false;
+    }
+
+    // 4. ...not vice versa, or...
+    if (!_isSubtypeOf(extendedType2, extendedType1)) {
       return true;
     }
 
+    // 5. ...the instantiate-to-bounds type of T1 is a subtype of the
+    //    instantiate-to-bounds type of T2 and not vice versa.
     // TODO(scheglov) store instantiated types
     var extendedTypeBound1 = _instantiateToBounds(e1.element);
     var extendedTypeBound2 = _instantiateToBounds(e2.element);
-    if (_isSubtypeAndNotViceVersa(extendedTypeBound1, extendedTypeBound2)) {
-      // or:
-      // 4. the instantiate-to-bounds type of T1 is a subtype of the
-      //    instantiate-to-bounds type of T2 and not vice versa.
-      return true;
-    }
-
-    return false;
-  }
-
-  bool _isSubtypeAndNotViceVersa(DartType t1, DartType t2) {
-    return _isSubtypeOf(t1, t2) && !_isSubtypeOf(t2, t1);
+    return _isSubtypeOf(extendedTypeBound1, extendedTypeBound2) &&
+        !_isSubtypeOf(extendedTypeBound2, extendedTypeBound1);
   }
 
   /// Ask the type system for a subtype check.

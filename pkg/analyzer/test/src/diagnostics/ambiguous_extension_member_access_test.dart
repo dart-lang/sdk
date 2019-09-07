@@ -80,6 +80,31 @@ f(A a) {
     ]);
   }
 
+  test_noMoreSpecificExtension() async {
+    await assertErrorsInCode(r'''
+class Target<T> {}
+
+class SubTarget<T> extends Target<T> {}
+
+extension E1 on SubTarget<Object> {
+  int get foo => 0;
+}
+
+extension E2<T> on Target<T> {
+  int get foo => 0;
+}
+
+f(SubTarget<num> t) {
+  // The instantiated on type of `E1(t)` is `SubTarget<Object>`.
+  // The instantiated on type of `E2(t)` is `Target<num>`.
+  // Neither is a subtype of the other, so the resolution is ambiguous.
+  t.foo;
+}
+''', [
+      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 396, 3),
+    ]);
+  }
+
   test_operator_binary() async {
     // There is no error reported.
     await assertErrorsInCode('''
