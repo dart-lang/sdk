@@ -14,7 +14,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/static_type_analyzer.dart';
@@ -1016,7 +1015,6 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
   }
 
   void test_visitListLiteral_unresolved() {
-    _analyzer = _createAnalyzer(strongMode: true);
     // [a] // where 'a' is not resolved
     Identifier identifier = AstTestFactory.identifier3('a');
     Expression node = AstTestFactory.listLiteral([identifier]);
@@ -1029,7 +1027,6 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
   }
 
   void test_visitListLiteral_unresolved_multiple() {
-    _analyzer = _createAnalyzer(strongMode: true);
     // [0, a, 1] // where 'a' is not resolved
     Identifier identifier = AstTestFactory.identifier3('a');
     Expression node = AstTestFactory.listLiteral(
@@ -1380,14 +1377,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
   /**
    * Create the analyzer used by the tests.
    */
-  StaticTypeAnalyzer _createAnalyzer({bool strongMode: false}) {
-    AnalysisContext context;
-    if (strongMode) {
-      AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-      context = TestAnalysisContext();
-    } else {
-      context = TestAnalysisContext();
-    }
+  StaticTypeAnalyzer _createAnalyzer() {
+    var context = TestAnalysisContext();
     var inheritance = new InheritanceManager3(context.typeSystem);
     Source source = new FileSource(getFile("/lib.dart"));
     CompilationUnitElementImpl definingCompilationUnit =
