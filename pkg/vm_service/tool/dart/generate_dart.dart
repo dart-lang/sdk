@@ -831,6 +831,11 @@ double assertDouble(double obj) {
   return obj;
 }
 
+dynamic assertDynamic(dynamic obj) {
+  assertNotNull(obj);
+  return obj;
+}
+
 List<int> assertListOfInt(List<int> list) {
   for (int elem in list) {
     assertInt(elem);
@@ -925,6 +930,7 @@ vms.Event assertIsolateEvent(vms.Event event) {
             'ClassHeapStats',
             'CodeRegion',
             'ContextElement',
+            'CpuSample',
             'Flag',
             'Frame',
             'InboundReference',

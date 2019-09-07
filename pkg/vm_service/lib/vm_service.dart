@@ -17,7 +17,7 @@ import 'src/service_extension_registry.dart';
 
 export 'src/service_extension_registry.dart' show ServiceExtensionRegistry;
 
-const String vmServiceVersion = '3.26.0';
+const String vmServiceVersion = '3.27.0';
 
 /// @optional
 const String optional = 'optional';
@@ -102,6 +102,8 @@ Map<String, Function> _typeFactories = {
   '@Context': ContextRef.parse,
   'Context': Context.parse,
   'ContextElement': ContextElement.parse,
+  'CpuSamples': CpuSamples.parse,
+  'CpuSample': CpuSample.parse,
   '@Error': ErrorRef.parse,
   'Error': Error.parse,
   'Event': Event.parse,
@@ -127,10 +129,12 @@ Map<String, Function> _typeFactories = {
   'MapAssociation': MapAssociation.parse,
   'MemoryUsage': MemoryUsage.parse,
   'Message': Message.parse,
+  'NativeFunction': NativeFunction.parse,
   '@Null': NullValRef.parse,
   'Null': NullVal.parse,
   '@Object': ObjRef.parse,
   'Object': Obj.parse,
+  'ProfileFunction': ProfileFunction.parse,
   'ReloadReport': ReloadReport.parse,
   'RetainingObject': RetainingObject.parse,
   'RetainingPath': RetainingPath.parse,
@@ -161,11 +165,13 @@ Map<String, List<String>> _methodReturnTypes = {
   'addBreakpoint': const ['Breakpoint'],
   'addBreakpointWithScriptUri': const ['Breakpoint'],
   'addBreakpointAtEntry': const ['Breakpoint'],
+  'clearCpuSamples': const ['Success'],
   'clearVMTimeline': const ['Success'],
   'invoke': const ['InstanceRef', 'ErrorRef', 'Sentinel'],
   'evaluate': const ['InstanceRef', 'ErrorRef', 'Sentinel'],
   'evaluateInFrame': const ['InstanceRef', 'ErrorRef', 'Sentinel'],
   'getAllocationProfile': const ['AllocationProfile'],
+  'getCpuSamples': const ['CpuSamples'],
   'getFlagList': const ['FlagList'],
   'getInboundReferences': const ['InboundReferences', 'Sentinel'],
   'getInstances': const ['InstanceSet'],
@@ -282,6 +288,11 @@ abstract class VmServiceInterface {
   ///
   /// Note that breakpoints are added and removed on a per-isolate basis.
   Future<Breakpoint> addBreakpointAtEntry(String isolateId, String functionId);
+
+  /// Clears all CPU profiling samples.
+  ///
+  /// See [Success].
+  Future<Success> clearCpuSamples(String isolateId);
 
   /// Clears all VM timeline events.
   ///
@@ -409,6 +420,16 @@ abstract class VmServiceInterface {
   /// that a garbage collection will be actually be performed.
   Future<AllocationProfile> getAllocationProfile(String isolateId,
       {bool reset, bool gc});
+
+  /// The `getCpuSamples` RPC is used to retrieve samples collected by the CPU
+  /// profiler. Only samples collected in the time range `[timeOriginMicros,
+  /// timeOriginMicros + timeExtentMicros]` will be reported.
+  ///
+  /// If the profiler is disabled, an error response will be returned.
+  ///
+  /// See [CpuSamples].
+  Future<CpuSamples> getCpuSamples(
+      String isolateId, int timeOriginMicros, int timeExtentMicros);
 
   /// The `getFlagList` RPC returns a list of all command line flags in the VM
   /// along with their current values.
@@ -921,6 +942,11 @@ class VmServerConnection {
             params['functionId'],
           );
           break;
+        case 'clearCpuSamples':
+          response = await _serviceImplementation.clearCpuSamples(
+            params['isolateId'],
+          );
+          break;
         case 'clearVMTimeline':
           response = await _serviceImplementation.clearVMTimeline();
           break;
@@ -956,6 +982,13 @@ class VmServerConnection {
             params['isolateId'],
             reset: params['reset'],
             gc: params['gc'],
+          );
+          break;
+        case 'getCpuSamples':
+          response = await _serviceImplementation.getCpuSamples(
+            params['isolateId'],
+            params['timeOriginMicros'],
+            params['timeExtentMicros'],
           );
           break;
         case 'getFlagList':
@@ -1306,6 +1339,11 @@ class VmService implements VmServiceInterface {
   }
 
   @override
+  Future<Success> clearCpuSamples(String isolateId) {
+    return _call('clearCpuSamples', {'isolateId': isolateId});
+  }
+
+  @override
   Future<Success> clearVMTimeline() => _call('clearVMTimeline');
 
   @override
@@ -1383,6 +1421,16 @@ class VmService implements VmServiceInterface {
       m['gc'] = gc;
     }
     return _call('getAllocationProfile', m);
+  }
+
+  @override
+  Future<CpuSamples> getCpuSamples(
+      String isolateId, int timeOriginMicros, int timeExtentMicros) {
+    return _call('getCpuSamples', {
+      'isolateId': isolateId,
+      'timeOriginMicros': timeOriginMicros,
+      'timeExtentMicros': timeExtentMicros
+    });
   }
 
   @override
@@ -2730,6 +2778,144 @@ class ContextElement {
   }
 
   String toString() => '[ContextElement value: ${value}]';
+}
+
+/// See [getCpuSamples] and [CpuSample].
+class CpuSamples extends Response {
+  static CpuSamples parse(Map<String, dynamic> json) =>
+      json == null ? null : new CpuSamples._fromJson(json);
+
+  /// The sampling rate for the profiler in microseconds.
+  int samplePeriod;
+
+  /// The maximum possible stack depth for samples.
+  int maxStackDepth;
+
+  /// The number of samples returned.
+  int sampleCount;
+
+  /// The timespan the set of returned samples covers, in microseconds.
+  int timeSpan;
+
+  /// The start of the period of time in which the returned samples were
+  /// collected.
+  int timeOriginMicros;
+
+  /// The duration of time covered by the returned samples.
+  int timeExtentMicros;
+
+  /// The process ID for the VM.
+  int pid;
+
+  /// A list of functions seen in the relevant samples. These references can be
+  /// looked up using the indicies provided in a `CpuSample` `stack` to
+  /// determine which function was on the stack.
+  List<ProfileFunction> functions;
+
+  /// A list of samples collected in the range `[timeOriginMicros,
+  /// timeOriginMicros + timeExtentMicros]`
+  List<CpuSample> samples;
+
+  CpuSamples();
+
+  CpuSamples._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
+    samplePeriod = json['samplePeriod'];
+    maxStackDepth = json['maxStackDepth'];
+    sampleCount = json['sampleCount'];
+    timeSpan = json['timeSpan'];
+    timeOriginMicros = json['timeOriginMicros'];
+    timeExtentMicros = json['timeExtentMicros'];
+    pid = json['pid'];
+    functions = new List<ProfileFunction>.from(
+        createServiceObject(json['functions'], const ['ProfileFunction']));
+    samples = new List<CpuSample>.from(
+        createServiceObject(json['samples'], const ['CpuSample']));
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    var json = <String, dynamic>{};
+    json['type'] = 'CpuSamples';
+    json.addAll({
+      'samplePeriod': samplePeriod,
+      'maxStackDepth': maxStackDepth,
+      'sampleCount': sampleCount,
+      'timeSpan': timeSpan,
+      'timeOriginMicros': timeOriginMicros,
+      'timeExtentMicros': timeExtentMicros,
+      'pid': pid,
+      'functions': functions.map((f) => f.toJson()).toList(),
+      'samples': samples.map((f) => f.toJson()).toList(),
+    });
+    return json;
+  }
+
+  String toString() => '[CpuSamples]';
+}
+
+/// See [getCpuSamples] and [CpuSamples].
+class CpuSample {
+  static CpuSample parse(Map<String, dynamic> json) =>
+      json == null ? null : new CpuSample._fromJson(json);
+
+  /// The thread ID representing the thread on which this sample was collected.
+  int tid;
+
+  /// The time this sample was collected in microseconds.
+  int timestamp;
+
+  /// The name of VM tag set when this sample was collected. Omitted if the VM
+  /// tag for the sample is not considered valid.
+  @optional
+  String vmTag;
+
+  /// The name of the User tag set when this sample was collected. Omitted if no
+  /// User tag was set when this sample was collected.
+  @optional
+  String userTag;
+
+  /// Provided and set to true if the sample's stack was truncated. This can
+  /// happen if the stack is deeper than the `stackDepth` in the `CpuSamples`
+  /// response.
+  @optional
+  bool truncated;
+
+  /// The call stack at the time this sample was collected. The stack is to be
+  /// interpreted as top to bottom. Each element in this array is a key into the
+  /// `functions` array in `CpuSamples`.
+  ///
+  /// Example:
+  ///
+  /// `functions[stack[0]] = @Function(bar())` `functions[stack[1]] =
+  /// @Function(foo())` `functions[stack[2]] = @Function(main())`
+  List<int> stack;
+
+  CpuSample();
+
+  CpuSample._fromJson(Map<String, dynamic> json) {
+    tid = json['tid'];
+    timestamp = json['timestamp'];
+    vmTag = json['vmTag'];
+    userTag = json['userTag'];
+    truncated = json['truncated'];
+    stack = new List<int>.from(json['stack']);
+  }
+
+  Map<String, dynamic> toJson() {
+    var json = <String, dynamic>{};
+    json.addAll({
+      'tid': tid,
+      'timestamp': timestamp,
+      'stack': stack.map((f) => f).toList(),
+    });
+    _setIfNotNull(json, 'vmTag', vmTag);
+    _setIfNotNull(json, 'userTag', userTag);
+    _setIfNotNull(json, 'truncated', truncated);
+    return json;
+  }
+
+  String toString() =>
+      '[CpuSample tid: ${tid}, timestamp: ${timestamp}, stack: ${stack}]';
 }
 
 /// `ErrorRef` is a reference to an `Error`.
@@ -4510,6 +4696,32 @@ class Message extends Response {
       'size: ${size}]';
 }
 
+/// A `NativeFunction` object is used to represent native functions in profiler
+/// samples. See [CpuSamples];
+class NativeFunction {
+  static NativeFunction parse(Map<String, dynamic> json) =>
+      json == null ? null : new NativeFunction._fromJson(json);
+
+  /// The name of the native function this object represents.
+  String name;
+
+  NativeFunction();
+
+  NativeFunction._fromJson(Map<String, dynamic> json) {
+    name = json['name'];
+  }
+
+  Map<String, dynamic> toJson() {
+    var json = <String, dynamic>{};
+    json.addAll({
+      'name': name,
+    });
+    return json;
+  }
+
+  String toString() => '[NativeFunction name: ${name}]';
+}
+
 /// `NullValRef` is a reference to an a `NullVal`.
 class NullValRef extends InstanceRef {
   static NullValRef parse(Map<String, dynamic> json) =>
@@ -4683,6 +4895,57 @@ class Obj extends Response {
   operator ==(other) => other is Obj && id == other.id;
 
   String toString() => '[Obj type: ${type}, id: ${id}]';
+}
+
+/// A `ProfileFunction` contains profiling information about a Dart or native
+/// function.
+///
+/// See [CpuSamples].
+class ProfileFunction {
+  static ProfileFunction parse(Map<String, dynamic> json) =>
+      json == null ? null : new ProfileFunction._fromJson(json);
+
+  /// The kind of function this object represents.
+  String kind;
+
+  /// The number of times function appeared on the stack during sampling events.
+  int inclusiveTicks;
+
+  /// The number of times function appeared on the top of the stack during
+  /// sampling events.
+  int exclusiveTicks;
+
+  /// The resolved URL for the script containing function.
+  String resolvedUrl;
+
+  /// The function captured during profiling.
+  dynamic function;
+
+  ProfileFunction();
+
+  ProfileFunction._fromJson(Map<String, dynamic> json) {
+    kind = json['kind'];
+    inclusiveTicks = json['inclusiveTicks'];
+    exclusiveTicks = json['exclusiveTicks'];
+    resolvedUrl = json['resolvedUrl'];
+    function = createServiceObject(json['function'], const ['dynamic']);
+  }
+
+  Map<String, dynamic> toJson() {
+    var json = <String, dynamic>{};
+    json.addAll({
+      'kind': kind,
+      'inclusiveTicks': inclusiveTicks,
+      'exclusiveTicks': exclusiveTicks,
+      'resolvedUrl': resolvedUrl,
+      'function': function.toJson(),
+    });
+    return json;
+  }
+
+  String toString() => '[ProfileFunction ' //
+      'kind: ${kind}, inclusiveTicks: ${inclusiveTicks}, exclusiveTicks: ${exclusiveTicks}, ' //
+      'resolvedUrl: ${resolvedUrl}, function: ${function}]';
 }
 
 class ReloadReport extends Response {
