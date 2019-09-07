@@ -841,6 +841,8 @@ RawObject* ActivationFrame::GetAsyncContextVariable(const String& name) {
     return Object::null();
   }
   GetVarDescriptors();
+  intptr_t var_ctxt_level = -1;
+  intptr_t ctxt_slot = -1;
   intptr_t var_desc_len = var_descriptors_.Length();
   for (intptr_t i = 0; i < var_desc_len; i++) {
     RawLocalVarDescriptors::VarInfo var_info;
@@ -855,20 +857,28 @@ RawObject* ActivationFrame::GetAsyncContextVariable(const String& name) {
         return GetStackVar(variable_index);
       } else {
         ASSERT(kind == RawLocalVarDescriptors::kContextVar);
-        if (!live_frame_) {
-          ASSERT(!ctx_.IsNull());
-          // Compiled code uses relative context levels, i.e. the frame context
-          // level is always 0 on entry.
-          // Bytecode uses absolute context levels, i.e. the frame context level
-          // on entry must be calculated.
-          const intptr_t frame_ctx_level =
-              function().is_declared_in_bytecode() ? ctx_.GetLevel() : 0;
-          return GetRelativeContextVar(var_info.scope_id,
-                                       variable_index.value(), frame_ctx_level);
+        // Variable descriptors constructed from bytecode have all variables of
+        // enclosing functions, even shadowed by the current function.
+        // Pick the variable with the highest context level.
+        if (var_info.scope_id > var_ctxt_level) {
+          var_ctxt_level = var_info.scope_id;
+          ctxt_slot = variable_index.value();
         }
-        return GetContextVar(var_info.scope_id, variable_index.value());
       }
     }
+  }
+  if (var_ctxt_level >= 0) {
+    if (!live_frame_) {
+      ASSERT(!ctx_.IsNull());
+      // Compiled code uses relative context levels, i.e. the frame context
+      // level is always 0 on entry.
+      // Bytecode uses absolute context levels, i.e. the frame context level
+      // on entry must be calculated.
+      const intptr_t frame_ctx_level =
+          function().is_declared_in_bytecode() ? ctx_.GetLevel() : 0;
+      return GetRelativeContextVar(var_ctxt_level, ctxt_slot, frame_ctx_level);
+    }
+    return GetContextVar(var_ctxt_level, ctxt_slot);
   }
   return Object::null();
 }
@@ -987,6 +997,8 @@ bool ActivationFrame::HandlesException(const Instance& exc_obj) {
 
 intptr_t ActivationFrame::GetAwaitJumpVariable() {
   GetVarDescriptors();
+  intptr_t var_ctxt_level = -1;
+  intptr_t ctxt_slot = -1;
   intptr_t var_desc_len = var_descriptors_.Length();
   intptr_t await_jump_var = -1;
   for (intptr_t i = 0; i < var_desc_len; i++) {
@@ -998,15 +1010,17 @@ intptr_t ActivationFrame::GetAwaitJumpVariable() {
       ASSERT(!ctx_.IsNull());
       // Variable descriptors constructed from bytecode have all variables of
       // enclosing functions, even shadowed by the current function.
-      // Check context level in order to pick correct :await_jump_var variable.
-      if (function().is_declared_in_bytecode() &&
-          (ctx_.GetLevel() != var_info.scope_id)) {
-        continue;
+      // Pick the :await_jump_var variable with the highest context level.
+      if (var_info.scope_id > var_ctxt_level) {
+        var_ctxt_level = var_info.scope_id;
+        ctxt_slot = var_info.index();
       }
-      Object& await_jump_index = Object::Handle(ctx_.At(var_info.index()));
-      ASSERT(await_jump_index.IsSmi());
-      await_jump_var = Smi::Cast(await_jump_index).Value();
     }
+  }
+  if (var_ctxt_level >= 0) {
+    Object& await_jump_index = Object::Handle(ctx_.At(ctxt_slot));
+    ASSERT(await_jump_index.IsSmi());
+    await_jump_var = Smi::Cast(await_jump_index).Value();
   }
   return await_jump_var;
 }
