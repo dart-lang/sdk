@@ -229,6 +229,192 @@ static void EnableProfiler() {
   }
 }
 
+class ProfileStackWalker {
+ public:
+  explicit ProfileStackWalker(Profile* profile, bool as_func = false)
+      : profile_(profile),
+        as_functions_(as_func),
+        index_(0),
+        sample_(profile->SampleAt(0)) {
+    ClearInliningData();
+  }
+
+  bool Down() {
+    if (as_functions_) {
+      return UpdateFunctionIndex();
+    } else {
+      ++index_;
+      return (index_ < sample_->length());
+    }
+  }
+
+  const char* CurrentName() {
+    if (as_functions_) {
+      ProfileFunction* func = GetFunction();
+      EXPECT(func != NULL);
+      return func->Name();
+    } else {
+      ProfileCode* code = GetCode();
+      EXPECT(code != NULL);
+      return code->name();
+    }
+  }
+
+  const char* CurrentToken() {
+    if (!as_functions_) {
+      return NULL;
+    }
+    ProfileFunction* func = GetFunction();
+    const Function& function = *(func->function());
+    if (function.IsNull()) {
+      // No function.
+      return NULL;
+    }
+    Zone* zone = Thread::Current()->zone();
+    const Script& script = Script::Handle(zone, function.script());
+    if (script.IsNull()) {
+      // No script.
+      return NULL;
+    }
+    ProfileFunctionSourcePosition pfsp(TokenPosition::kNoSource);
+    if (!func->GetSinglePosition(&pfsp)) {
+      // Not exactly one source position.
+      return NULL;
+    }
+    TokenPosition token_pos = pfsp.token_pos();
+    if (!token_pos.IsSourcePosition()) {
+      // Not a location in a script.
+      return NULL;
+    }
+    if (token_pos.IsSynthetic()) {
+      token_pos = token_pos.FromSynthetic();
+    }
+
+    String& str = String::Handle(zone);
+    if (script.kind() == RawScript::kKernelTag) {
+      intptr_t line = 0, column = 0, token_len = 0;
+      script.GetTokenLocation(token_pos, &line, &column, &token_len);
+      str = script.GetSnippet(line, column, line, column + token_len);
+    } else {
+      UNREACHABLE();
+    }
+    return str.IsNull() ? NULL : str.ToCString();
+  }
+
+  intptr_t CurrentInclusiveTicks() {
+    if (as_functions_) {
+      ProfileFunction* func = GetFunction();
+      EXPECT(func != NULL);
+      return func->inclusive_ticks();
+    } else {
+      ProfileCode* code = GetCode();
+      ASSERT(code != NULL);
+      return code->inclusive_ticks();
+    }
+  }
+
+  intptr_t CurrentExclusiveTicks() {
+    if (as_functions_) {
+      ProfileFunction* func = GetFunction();
+      EXPECT(func != NULL);
+      return func->exclusive_ticks();
+    } else {
+      ProfileCode* code = GetCode();
+      ASSERT(code != NULL);
+      return code->exclusive_ticks();
+    }
+  }
+
+  const char* VMTagName() { return VMTag::TagName(sample_->vm_tag()); }
+
+ private:
+  ProfileCode* GetCode() {
+    uword pc = sample_->At(index_);
+    int64_t timestamp = sample_->timestamp();
+    return profile_->GetCodeFromPC(pc, timestamp);
+  }
+
+  static const intptr_t kInvalidInlinedIndex = -1;
+
+  bool UpdateFunctionIndex() {
+    if (inlined_index_ != kInvalidInlinedIndex) {
+      if (inlined_index_ - 1 >= 0) {
+        --inlined_index_;
+        return true;
+      }
+      ClearInliningData();
+    }
+    ++index_;
+    return (index_ < sample_->length());
+  }
+
+  void ClearInliningData() {
+    inlined_index_ = kInvalidInlinedIndex;
+    inlined_functions_ = NULL;
+    inlined_token_positions_ = NULL;
+  }
+
+  ProfileFunction* GetFunction() {
+    // Check to see if we're currently processing inlined functions. If so,
+    // return the next inlined function.
+    ProfileFunction* function = GetInlinedFunction();
+    if (function != NULL) {
+      return function;
+    }
+
+    const uword pc = sample_->At(index_);
+    ProfileCode* profile_code =
+        profile_->GetCodeFromPC(pc, sample_->timestamp());
+    ASSERT(profile_code != NULL);
+    function = profile_code->function();
+    ASSERT(function != NULL);
+
+    TokenPosition token_position = TokenPosition::kNoSource;
+    Code& code = Code::ZoneHandle();
+    if (profile_code->code().IsCode()) {
+      code ^= profile_code->code().raw();
+      inlined_functions_cache_.Get(pc, code, sample_, index_,
+                                   &inlined_functions_,
+                                   &inlined_token_positions_, &token_position);
+    } else if (profile_code->code().IsBytecode()) {
+      // No inlining in bytecode.
+      const Bytecode& bc = Bytecode::CheckedHandle(Thread::Current()->zone(),
+                                                   profile_code->code().raw());
+      token_position = bc.GetTokenIndexOfPC(pc);
+    }
+
+    if (code.IsNull() || (inlined_functions_ == NULL) ||
+        (inlined_functions_->length() <= 1)) {
+      ClearInliningData();
+      // No inlined functions.
+      return function;
+    }
+
+    ASSERT(code.is_optimized());
+    inlined_index_ = inlined_functions_->length() - 1;
+    function = GetInlinedFunction();
+    ASSERT(function != NULL);
+    return function;
+  }
+
+  ProfileFunction* GetInlinedFunction() {
+    if ((inlined_index_ != kInvalidInlinedIndex) &&
+        (inlined_index_ < inlined_functions_->length())) {
+      return profile_->FindFunction(*(*inlined_functions_)[inlined_index_]);
+    }
+    return NULL;
+  }
+
+  Profile* profile_;
+  bool as_functions_;
+  intptr_t index_;
+  ProcessedSample* sample_;
+  ProfileCodeInlinedFunctionsCache inlined_functions_cache_;
+  GrowableArray<const Function*>* inlined_functions_;
+  GrowableArray<TokenPosition>* inlined_token_positions_;
+  intptr_t inlined_index_;
+};
+
 ISOLATE_UNIT_TEST_CASE(Profiler_TrivialRecordAllocation) {
   EnableProfiler();
   DisableNativeProfileScope dnps;
@@ -269,17 +455,13 @@ ISOLATE_UNIT_TEST_CASE(Profiler_TrivialRecordAllocation) {
     AllocationFilter filter(isolate->main_port(), class_a.id(),
                             before_allocations_micros,
                             allocation_extent_micros);
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should have 1 allocation sample.
     EXPECT_EQ(1, profile.sample_count());
-    ProfileTrieWalker walker(&profile);
+    ProfileStackWalker walker(&profile);
 
-    // Exclusive code: B.boo -> main.
-    walker.Reset(Profile::kExclusiveCode);
     // Move down from the root.
-    EXPECT(walker.Down());
-    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
-    EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateObject", walker.VMTagName());
     if (FLAG_enable_interpreter) {
       EXPECT_STREQ("[Bytecode] B.boo", walker.CurrentName());
       EXPECT(walker.Down());
@@ -293,56 +475,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_TrivialRecordAllocation) {
       EXPECT_STREQ("[Unoptimized] main", walker.CurrentName());
       EXPECT(!walker.Down());
     }
-
-    // Inclusive code: main -> B.boo.
-    walker.Reset(Profile::kInclusiveCode);
-    // Move down from the root.
-    EXPECT(walker.Down());
-    if (FLAG_enable_interpreter) {
-      EXPECT_STREQ("[Bytecode] main", walker.CurrentName());
-      EXPECT(walker.Down());
-      EXPECT_STREQ("[Bytecode] B.boo", walker.CurrentName());
-      EXPECT(walker.Down());
-    } else {
-      EXPECT_STREQ("[Unoptimized] main", walker.CurrentName());
-      EXPECT(walker.Down());
-      EXPECT_STREQ("[Unoptimized] B.boo", walker.CurrentName());
-      EXPECT(walker.Down());
-      EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
-      EXPECT(walker.Down());
-    }
-    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
-    EXPECT(!walker.Down());
-
-    // Exclusive function: B.boo -> main.
-    walker.Reset(Profile::kExclusiveFunction);
-    // Move down from the root.
-    EXPECT(walker.Down());
-    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
-    EXPECT(walker.Down());
-    if (!FLAG_enable_interpreter) {
-      EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
-      EXPECT(walker.Down());
-    }
-    EXPECT_STREQ("B.boo", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("main", walker.CurrentName());
-    EXPECT(!walker.Down());
-
-    // Inclusive function: main -> B.boo.
-    walker.Reset(Profile::kInclusiveFunction);
-    // Move down from the root.
-    EXPECT(walker.Down());
-    EXPECT_STREQ("main", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("B.boo", walker.CurrentName());
-    EXPECT(walker.Down());
-    if (!FLAG_enable_interpreter) {
-      EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
-      EXPECT(walker.Down());
-    }
-    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
-    EXPECT(!walker.Down());
   }
 
   // Query with a time filter where no allocations occurred.
@@ -354,7 +486,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_TrivialRecordAllocation) {
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id(),
                             Dart_TimelineGetMicros(), 16000);
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should have no allocation samples because none occured within
     // the specified time range.
     EXPECT_EQ(0, profile.sample_count());
@@ -404,129 +536,31 @@ ISOLATE_UNIT_TEST_CASE(Profiler_NativeAllocation) {
     // Filter for the class in the time range.
     NativeAllocationSampleFilter filter(before_allocations_micros,
                                         allocation_extent_micros);
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should have 1 allocation sample.
     EXPECT_EQ(1, profile.sample_count());
-    ProfileTrieWalker walker(&profile);
+    ProfileStackWalker walker(&profile)
 
-    // Exclusive code: NativeAllocationSampleHelper -> main.
-    walker.Reset(Profile::kExclusiveCode);
-    // Move down from the root.
-    EXPECT(walker.Down());
+        // Move down from the root.
+        EXPECT(walker.Down());
     EXPECT_SUBSTRING("[Native]", walker.CurrentName());
-    EXPECT_EQ(walker.CurrentInclusiveAllocations(), 1024);
-    EXPECT_EQ(walker.CurrentExclusiveAllocations(), 1024);
+    EXPECT_EQ(walker.native_allocation_size_bytes(), 1024);
     EXPECT(walker.Down());
     EXPECT_STREQ("dart::Dart_TestProfiler_NativeAllocation()",
                  walker.CurrentName());
-    EXPECT_EQ(walker.CurrentInclusiveAllocations(), 1024);
-    EXPECT_EQ(walker.CurrentExclusiveAllocations(), 0);
+    EXPECT_EQ(walker.native_allocation_size_bytes(), 1024);
     EXPECT(walker.Down());
     EXPECT_STREQ("dart::TestCase::Run()", walker.CurrentName());
-    EXPECT_EQ(walker.CurrentInclusiveAllocations(), 1024);
-    EXPECT_EQ(walker.CurrentExclusiveAllocations(), 0);
+    EXPECT_EQ(walker.native_allocation_size_bytes(), 1024);
     EXPECT(walker.Down());
     EXPECT_STREQ("dart::TestCaseBase::RunTest()", walker.CurrentName());
-    EXPECT_EQ(walker.CurrentInclusiveAllocations(), 1024);
-    EXPECT_EQ(walker.CurrentExclusiveAllocations(), 0);
+    EXPECT_EQ(walker.native_allocation_size_bytes(), 1024);
     EXPECT(walker.Down());
     EXPECT_STREQ("dart::TestCaseBase::RunAll()", walker.CurrentName());
-    EXPECT_EQ(walker.CurrentInclusiveAllocations(), 1024);
-    EXPECT_EQ(walker.CurrentExclusiveAllocations(), 0);
+    EXPECT_EQ(walker.native_allocation_size_bytes(), 1024);
     EXPECT(walker.Down());
     EXPECT_STREQ("main", walker.CurrentName());
-    EXPECT_EQ(walker.CurrentInclusiveAllocations(), 1024);
-    EXPECT_EQ(walker.CurrentExclusiveAllocations(), 0);
-    EXPECT(!walker.Down());
-
-    // Inclusive code: main -> NativeAllocationSampleHelper.
-    walker.Reset(Profile::kInclusiveCode);
-    // Move down from the root.
-    EXPECT(walker.Down());
-    EXPECT_STREQ("main", walker.CurrentName());
-    EXPECT_EQ(walker.CurrentInclusiveAllocations(), 1024);
-    EXPECT_EQ(walker.CurrentExclusiveAllocations(), 0);
-    EXPECT(walker.Down());
-    EXPECT_STREQ("dart::TestCaseBase::RunAll()", walker.CurrentName());
-    EXPECT_EQ(walker.CurrentInclusiveAllocations(), 1024);
-    EXPECT_EQ(walker.CurrentExclusiveAllocations(), 0);
-    EXPECT(walker.Down());
-    EXPECT_STREQ("dart::TestCaseBase::RunTest()", walker.CurrentName());
-    EXPECT_EQ(walker.CurrentInclusiveAllocations(), 1024);
-    EXPECT_EQ(walker.CurrentExclusiveAllocations(), 0);
-    EXPECT(walker.Down());
-    EXPECT_STREQ("dart::TestCase::Run()", walker.CurrentName());
-    EXPECT_EQ(walker.CurrentInclusiveAllocations(), 1024);
-    EXPECT_EQ(walker.CurrentExclusiveAllocations(), 0);
-    EXPECT(walker.Down());
-    EXPECT_STREQ("dart::Dart_TestProfiler_NativeAllocation()",
-                 walker.CurrentName());
-    EXPECT_EQ(walker.CurrentInclusiveAllocations(), 1024);
-    EXPECT_EQ(walker.CurrentExclusiveAllocations(), 0);
-    EXPECT(walker.Down());
-    EXPECT_SUBSTRING("[Native]", walker.CurrentName());
-    EXPECT_EQ(walker.CurrentInclusiveAllocations(), 1024);
-    EXPECT_EQ(walker.CurrentExclusiveAllocations(), 1024);
-    EXPECT(!walker.Down());
-
-    // Exclusive function: NativeAllocationSampleHelper -> main.
-    walker.Reset(Profile::kExclusiveFunction);
-    // Move down from the root.
-    EXPECT(walker.Down());
-    EXPECT_SUBSTRING("[Native]", walker.CurrentName());
-    EXPECT_EQ(walker.CurrentInclusiveAllocations(), 1024);
-    EXPECT_EQ(walker.CurrentExclusiveAllocations(), 1024);
-    EXPECT(walker.Down());
-    EXPECT_STREQ("dart::Dart_TestProfiler_NativeAllocation()",
-                 walker.CurrentName());
-    EXPECT_EQ(walker.CurrentInclusiveAllocations(), 1024);
-    EXPECT_EQ(walker.CurrentExclusiveAllocations(), 0);
-    EXPECT(walker.Down());
-    EXPECT_STREQ("dart::TestCase::Run()", walker.CurrentName());
-    EXPECT_EQ(walker.CurrentInclusiveAllocations(), 1024);
-    EXPECT_EQ(walker.CurrentExclusiveAllocations(), 0);
-    EXPECT(walker.Down());
-    EXPECT_STREQ("dart::TestCaseBase::RunTest()", walker.CurrentName());
-    EXPECT_EQ(walker.CurrentInclusiveAllocations(), 1024);
-    EXPECT_EQ(walker.CurrentExclusiveAllocations(), 0);
-    EXPECT(walker.Down());
-    EXPECT_STREQ("dart::TestCaseBase::RunAll()", walker.CurrentName());
-    EXPECT_EQ(walker.CurrentInclusiveAllocations(), 1024);
-    EXPECT_EQ(walker.CurrentExclusiveAllocations(), 0);
-    EXPECT(walker.Down());
-    EXPECT_STREQ("main", walker.CurrentName());
-    EXPECT_EQ(walker.CurrentInclusiveAllocations(), 1024);
-    EXPECT_EQ(walker.CurrentExclusiveAllocations(), 0);
-    EXPECT(!walker.Down());
-
-    // Inclusive function: main -> NativeAllocationSampleHelper.
-    walker.Reset(Profile::kInclusiveFunction);
-    // Move down from the root.
-    EXPECT(walker.Down());
-    EXPECT_STREQ("main", walker.CurrentName());
-    EXPECT_EQ(walker.CurrentInclusiveAllocations(), 1024);
-    EXPECT_EQ(walker.CurrentExclusiveAllocations(), 0);
-    EXPECT(walker.Down());
-    EXPECT_STREQ("dart::TestCaseBase::RunAll()", walker.CurrentName());
-    EXPECT_EQ(walker.CurrentInclusiveAllocations(), 1024);
-    EXPECT_EQ(walker.CurrentExclusiveAllocations(), 0);
-    EXPECT(walker.Down());
-    EXPECT_STREQ("dart::TestCaseBase::RunTest()", walker.CurrentName());
-    EXPECT_EQ(walker.CurrentInclusiveAllocations(), 1024);
-    EXPECT_EQ(walker.CurrentExclusiveAllocations(), 0);
-    EXPECT(walker.Down());
-    EXPECT_STREQ("dart::TestCase::Run()", walker.CurrentName());
-    EXPECT_EQ(walker.CurrentInclusiveAllocations(), 1024);
-    EXPECT_EQ(walker.CurrentExclusiveAllocations(), 0);
-    EXPECT(walker.Down());
-    EXPECT_STREQ("dart::Dart_TestProfiler_NativeAllocation()",
-                 walker.CurrentName());
-    EXPECT_EQ(walker.CurrentInclusiveAllocations(), 1024);
-    EXPECT_EQ(walker.CurrentExclusiveAllocations(), 0);
-    EXPECT(walker.Down());
-    EXPECT_SUBSTRING("[Native]", walker.CurrentName());
-    EXPECT_EQ(walker.CurrentInclusiveAllocations(), 1024);
-    EXPECT_EQ(walker.CurrentExclusiveAllocations(), 1024);
+    EXPECT_EQ(walker.native_allocation_size_bytes(), 1024);
     EXPECT(!walker.Down());
   }
 
@@ -546,7 +580,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_NativeAllocation) {
     // Filter for the class in the time range.
     NativeAllocationSampleFilter filter(before_allocations_micros,
                                         allocation_extent_micros);
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should have 0 allocation samples since we freed the memory.
     EXPECT_EQ(0, profile.sample_count());
   }
@@ -559,7 +593,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_NativeAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     NativeAllocationSampleFilter filter(Dart_TimelineGetMicros(), 16000);
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should have no allocation samples because none occured within
     // the specified time range.
     EXPECT_EQ(0, profile.sample_count());
@@ -606,7 +640,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ToggleRecordAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should have no allocation samples.
     EXPECT_EQ(0, profile.sample_count());
   }
@@ -623,17 +657,12 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ToggleRecordAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
-    ProfileTrieWalker walker(&profile);
+    ProfileStackWalker walker(&profile);
 
-    // Exclusive code: B.boo -> main.
-    walker.Reset(Profile::kExclusiveCode);
-    // Move down from the root.
-    EXPECT(walker.Down());
-    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
-    EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateObject", walker.VMTagName());
     if (FLAG_enable_interpreter) {
       EXPECT_STREQ("[Bytecode] B.boo", walker.CurrentName());
       EXPECT(walker.Down());
@@ -647,56 +676,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ToggleRecordAllocation) {
       EXPECT_STREQ("[Unoptimized] main", walker.CurrentName());
       EXPECT(!walker.Down());
     }
-
-    // Inclusive code: main -> B.boo.
-    walker.Reset(Profile::kInclusiveCode);
-    // Move down from the root.
-    EXPECT(walker.Down());
-    if (FLAG_enable_interpreter) {
-      EXPECT_STREQ("[Bytecode] main", walker.CurrentName());
-      EXPECT(walker.Down());
-      EXPECT_STREQ("[Bytecode] B.boo", walker.CurrentName());
-      EXPECT(walker.Down());
-    } else {
-      EXPECT_STREQ("[Unoptimized] main", walker.CurrentName());
-      EXPECT(walker.Down());
-      EXPECT_STREQ("[Unoptimized] B.boo", walker.CurrentName());
-      EXPECT(walker.Down());
-      EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
-      EXPECT(walker.Down());
-    }
-    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
-    EXPECT(!walker.Down());
-
-    // Exclusive function: boo -> main.
-    walker.Reset(Profile::kExclusiveFunction);
-    // Move down from the root.
-    EXPECT(walker.Down());
-    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
-    EXPECT(walker.Down());
-    if (!FLAG_enable_interpreter) {
-      EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
-      EXPECT(walker.Down());
-    }
-    EXPECT_STREQ("B.boo", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("main", walker.CurrentName());
-    EXPECT(!walker.Down());
-
-    // Inclusive function: main -> boo.
-    walker.Reset(Profile::kInclusiveFunction);
-    // Move down from the root.
-    EXPECT(walker.Down());
-    EXPECT_STREQ("main", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("B.boo", walker.CurrentName());
-    EXPECT(walker.Down());
-    if (!FLAG_enable_interpreter) {
-      EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
-      EXPECT(walker.Down());
-    }
-    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
-    EXPECT(!walker.Down());
   }
 
   // Turn off allocation tracing for A.
@@ -711,7 +690,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ToggleRecordAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should still only have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
   }
@@ -749,7 +728,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_CodeTicks) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should have no allocation samples.
     EXPECT_EQ(0, profile.sample_count());
   }
@@ -769,24 +748,18 @@ ISOLATE_UNIT_TEST_CASE(Profiler_CodeTicks) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should have three allocation samples.
     EXPECT_EQ(3, profile.sample_count());
-    ProfileTrieWalker walker(&profile);
+    ProfileStackWalker walker(&profile);
 
-    // Exclusive code: B.boo -> main.
-    walker.Reset(Profile::kExclusiveCode);
     // Move down from the root.
-    EXPECT(walker.Down());
-    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
-    EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateObject", walker.VMTagName());
     if (FLAG_enable_interpreter) {
       EXPECT_STREQ("[Bytecode] B.boo", walker.CurrentName());
-      EXPECT_EQ(3, walker.CurrentNodeTickCount());
       EXPECT_EQ(3, walker.CurrentInclusiveTicks());
       EXPECT(walker.Down());
       EXPECT_STREQ("[Bytecode] main", walker.CurrentName());
-      EXPECT_EQ(3, walker.CurrentNodeTickCount());
       EXPECT_EQ(3, walker.CurrentInclusiveTicks());
       EXPECT_EQ(0, walker.CurrentExclusiveTicks());
       EXPECT(!walker.Down());
@@ -795,49 +768,15 @@ ISOLATE_UNIT_TEST_CASE(Profiler_CodeTicks) {
       EXPECT_EQ(3, walker.CurrentExclusiveTicks());
       EXPECT(walker.Down());
       EXPECT_STREQ("[Unoptimized] B.boo", walker.CurrentName());
-      EXPECT_EQ(3, walker.CurrentNodeTickCount());
       EXPECT_EQ(3, walker.CurrentInclusiveTicks());
       EXPECT(walker.Down());
       EXPECT_STREQ("[Unoptimized] main", walker.CurrentName());
-      EXPECT_EQ(3, walker.CurrentNodeTickCount());
       EXPECT_EQ(3, walker.CurrentInclusiveTicks());
       EXPECT_EQ(0, walker.CurrentExclusiveTicks());
       EXPECT(!walker.Down());
     }
-
-    // Inclusive code: main -> B.boo.
-    walker.Reset(Profile::kInclusiveCode);
-    // Move down from the root.
-    EXPECT(walker.Down());
-    if (FLAG_enable_interpreter) {
-      EXPECT_STREQ("[Bytecode] main", walker.CurrentName());
-      EXPECT_EQ(3, walker.CurrentNodeTickCount());
-      EXPECT_EQ(3, walker.CurrentInclusiveTicks());
-      EXPECT_EQ(0, walker.CurrentExclusiveTicks());
-      EXPECT(walker.Down());
-      EXPECT_STREQ("[Bytecode] B.boo", walker.CurrentName());
-      EXPECT_EQ(3, walker.CurrentNodeTickCount());
-      EXPECT_EQ(3, walker.CurrentInclusiveTicks());
-      EXPECT(walker.Down());
-    } else {
-      EXPECT_STREQ("[Unoptimized] main", walker.CurrentName());
-      EXPECT_EQ(3, walker.CurrentNodeTickCount());
-      EXPECT_EQ(3, walker.CurrentInclusiveTicks());
-      EXPECT_EQ(0, walker.CurrentExclusiveTicks());
-      EXPECT(walker.Down());
-      EXPECT_STREQ("[Unoptimized] B.boo", walker.CurrentName());
-      EXPECT_EQ(3, walker.CurrentNodeTickCount());
-      EXPECT_EQ(3, walker.CurrentInclusiveTicks());
-      EXPECT(walker.Down());
-      EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
-      EXPECT_EQ(3, walker.CurrentExclusiveTicks());
-      EXPECT(walker.Down());
-    }
-    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
-    EXPECT(!walker.Down());
   }
 }
-
 ISOLATE_UNIT_TEST_CASE(Profiler_FunctionTicks) {
   EnableProfiler();
   DisableNativeProfileScope dnps;
@@ -870,7 +809,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_FunctionTicks) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should have no allocation samples.
     EXPECT_EQ(0, profile.sample_count());
   }
@@ -890,51 +829,24 @@ ISOLATE_UNIT_TEST_CASE(Profiler_FunctionTicks) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should have three allocation samples.
     EXPECT_EQ(3, profile.sample_count());
-    ProfileTrieWalker walker(&profile);
+    ProfileStackWalker walker(&profile, true);
 
-    // Exclusive function: B.boo -> main.
-    walker.Reset(Profile::kExclusiveFunction);
-    // Move down from the root.
-    EXPECT(walker.Down());
-    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
-    EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateObject", walker.VMTagName());
+
     if (!FLAG_enable_interpreter) {
       EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
       EXPECT_EQ(3, walker.CurrentExclusiveTicks());
       EXPECT(walker.Down());
     }
     EXPECT_STREQ("B.boo", walker.CurrentName());
-    EXPECT_EQ(3, walker.CurrentNodeTickCount());
     EXPECT_EQ(3, walker.CurrentInclusiveTicks());
     EXPECT(walker.Down());
     EXPECT_STREQ("main", walker.CurrentName());
-    EXPECT_EQ(3, walker.CurrentNodeTickCount());
     EXPECT_EQ(3, walker.CurrentInclusiveTicks());
     EXPECT_EQ(0, walker.CurrentExclusiveTicks());
-    EXPECT(!walker.Down());
-
-    // Inclusive function: main -> B.boo.
-    walker.Reset(Profile::kInclusiveFunction);
-    // Move down from the root.
-    EXPECT(walker.Down());
-    EXPECT_STREQ("main", walker.CurrentName());
-    EXPECT_EQ(3, walker.CurrentNodeTickCount());
-    EXPECT_EQ(3, walker.CurrentInclusiveTicks());
-    EXPECT_EQ(0, walker.CurrentExclusiveTicks());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("B.boo", walker.CurrentName());
-    EXPECT_EQ(3, walker.CurrentNodeTickCount());
-    EXPECT_EQ(3, walker.CurrentInclusiveTicks());
-    EXPECT(walker.Down());
-    if (!FLAG_enable_interpreter) {
-      EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
-      EXPECT_EQ(3, walker.CurrentExclusiveTicks());
-      EXPECT(walker.Down());
-    }
-    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
     EXPECT(!walker.Down());
   }
 }
@@ -965,7 +877,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_IntrinsicAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), double_class.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should have no allocation samples.
     EXPECT_EQ(0, profile.sample_count());
   }
@@ -978,21 +890,17 @@ ISOLATE_UNIT_TEST_CASE(Profiler_IntrinsicAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), double_class.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
-    ProfileTrieWalker walker(&profile);
+    ProfileStackWalker walker(&profile);
 
-    walker.Reset(Profile::kExclusiveCode);
-    EXPECT(walker.Down());
     if (FLAG_enable_interpreter) {
-      EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
-      EXPECT(walker.Down());
+      EXPECT_STREQ("DRT_AllocateObject", walker.VMTagName());
       EXPECT_STREQ("[Bytecode] foo", walker.CurrentName());
       EXPECT(!walker.Down());
     } else {
-      EXPECT_STREQ("Double_add", walker.CurrentName());
-      EXPECT(walker.Down());
+      EXPECT_STREQ("Double_add", walker.VMTagName());
       EXPECT_STREQ("[Unoptimized] double._add", walker.CurrentName());
       EXPECT(walker.Down());
       EXPECT_STREQ("[Unoptimized] double.+", walker.CurrentName());
@@ -1010,7 +918,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_IntrinsicAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), double_class.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should still only have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
   }
@@ -1037,7 +945,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ArrayAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), array_class.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should have no allocation samples.
     EXPECT_EQ(0, profile.sample_count());
   }
@@ -1050,15 +958,12 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ArrayAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), array_class.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
-    ProfileTrieWalker walker(&profile);
+    ProfileStackWalker walker(&profile);
 
-    walker.Reset(Profile::kExclusiveCode);
-    EXPECT(walker.Down());
-    EXPECT_STREQ("DRT_AllocateArray", walker.CurrentName());
-    EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateArray", walker.VMTagName());
     if (FLAG_enable_interpreter) {
       EXPECT_STREQ("[Bytecode] new _List", walker.CurrentName());
       EXPECT(walker.Down());
@@ -1082,7 +987,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ArrayAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), array_class.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should still only have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
   }
@@ -1104,7 +1009,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ArrayAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), array_class.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should have no allocation samples, since empty
     // growable lists use a shared backing.
     EXPECT_EQ(0, profile.sample_count());
@@ -1134,7 +1039,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ContextAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), context_class.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should have no allocation samples.
     EXPECT_EQ(0, profile.sample_count());
   }
@@ -1147,15 +1052,12 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ContextAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), context_class.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
-    ProfileTrieWalker walker(&profile);
+    ProfileStackWalker walker(&profile);
 
-    walker.Reset(Profile::kExclusiveCode);
-    EXPECT(walker.Down());
-    EXPECT_STREQ("DRT_AllocateContext", walker.CurrentName());
-    EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateContext", walker.VMTagName());
     if (FLAG_enable_interpreter) {
       EXPECT_STREQ("[Bytecode] foo", walker.CurrentName());
       EXPECT(!walker.Down());
@@ -1175,7 +1077,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ContextAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), context_class.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should still only have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
   }
@@ -1216,15 +1118,12 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ClosureAllocation) {
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), closure_class.id());
     filter.set_enable_vm_ticks(true);
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
-    ProfileTrieWalker walker(&profile);
+    ProfileStackWalker walker(&profile);
 
-    walker.Reset(Profile::kExclusiveCode);
-    EXPECT(walker.Down());
-    EXPECT_SUBSTRING("DRT_AllocateObject", walker.CurrentName());
-    EXPECT(walker.Down());
+    EXPECT_SUBSTRING("DRT_AllocateObject", walker.VMTagName());
     if (!FLAG_enable_interpreter) {
       EXPECT_STREQ("[Stub] Allocate _Closure", walker.CurrentName());
       EXPECT(walker.Down());
@@ -1245,7 +1144,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ClosureAllocation) {
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), closure_class.id());
     filter.set_enable_vm_ticks(true);
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should still only have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
   }
@@ -1275,7 +1174,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_TypedArrayAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), float32_list_class.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should have no allocation samples.
     EXPECT_EQ(0, profile.sample_count());
   }
@@ -1288,15 +1187,12 @@ ISOLATE_UNIT_TEST_CASE(Profiler_TypedArrayAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), float32_list_class.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
-    ProfileTrieWalker walker(&profile);
+    ProfileStackWalker walker(&profile);
 
-    walker.Reset(Profile::kExclusiveCode);
-    EXPECT(walker.Down());
-    EXPECT_STREQ("TypedData_Float32Array_new", walker.CurrentName());
-    EXPECT(walker.Down());
+    EXPECT_STREQ("TypedData_Float32Array_new", walker.VMTagName());
     if (FLAG_enable_interpreter) {
       EXPECT_STREQ("[Bytecode] new Float32List", walker.CurrentName());
       EXPECT(walker.Down());
@@ -1318,7 +1214,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_TypedArrayAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), float32_list_class.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should still only have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
   }
@@ -1331,7 +1227,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_TypedArrayAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), float32_list_class.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should now have two allocation samples.
     EXPECT_EQ(2, profile.sample_count());
   }
@@ -1363,7 +1259,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_StringAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), one_byte_string_class.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should have no allocation samples.
     EXPECT_EQ(0, profile.sample_count());
   }
@@ -1376,15 +1272,12 @@ ISOLATE_UNIT_TEST_CASE(Profiler_StringAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), one_byte_string_class.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should still only have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
-    ProfileTrieWalker walker(&profile);
+    ProfileStackWalker walker(&profile);
 
-    walker.Reset(Profile::kExclusiveCode);
-    EXPECT(walker.Down());
-    EXPECT_STREQ("String_concat", walker.CurrentName());
-    EXPECT(walker.Down());
+    EXPECT_STREQ("String_concat", walker.VMTagName());
     if (FLAG_enable_interpreter) {
       EXPECT_STREQ("[Bytecode] _StringBase.+", walker.CurrentName());
       EXPECT(walker.Down());
@@ -1406,7 +1299,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_StringAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), one_byte_string_class.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should still only have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
   }
@@ -1419,7 +1312,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_StringAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), one_byte_string_class.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should now have two allocation samples.
     EXPECT_EQ(2, profile.sample_count());
   }
@@ -1451,7 +1344,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_StringInterpolation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), one_byte_string_class.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should have no allocation samples.
     EXPECT_EQ(0, profile.sample_count());
   }
@@ -1464,15 +1357,12 @@ ISOLATE_UNIT_TEST_CASE(Profiler_StringInterpolation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), one_byte_string_class.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should still only have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
-    ProfileTrieWalker walker(&profile);
+    ProfileStackWalker walker(&profile);
 
-    walker.Reset(Profile::kExclusiveCode);
-    EXPECT(walker.Down());
-    EXPECT_STREQ("OneByteString_allocate", walker.CurrentName());
-    EXPECT(walker.Down());
+    EXPECT_STREQ("OneByteString_allocate", walker.VMTagName());
     if (FLAG_enable_interpreter) {
       EXPECT_STREQ("[Bytecode] _OneByteString._allocate", walker.CurrentName());
       EXPECT(walker.Down());
@@ -1504,7 +1394,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_StringInterpolation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), one_byte_string_class.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should still only have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
   }
@@ -1517,7 +1407,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_StringInterpolation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), one_byte_string_class.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should now have two allocation samples.
     EXPECT_EQ(2, profile.sample_count());
   }
@@ -1574,7 +1464,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_FunctionInline) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should have no allocation samples.
     EXPECT_EQ(0, profile.sample_count());
   }
@@ -1592,215 +1482,48 @@ ISOLATE_UNIT_TEST_CASE(Profiler_FunctionInline) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should have 50,000 allocation samples.
     EXPECT_EQ(50000, profile.sample_count());
-    ProfileTrieWalker walker(&profile);
-    // We have two code objects: mainA and B.boo.
-    walker.Reset(Profile::kExclusiveCode);
-    EXPECT(walker.Down());
-    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
-    EXPECT_EQ(50000, walker.CurrentExclusiveTicks());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Optimized] B.boo", walker.CurrentName());
-    EXPECT_EQ(1, walker.SiblingCount());
-    EXPECT_EQ(50000, walker.CurrentNodeTickCount());
-    EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized] mainA", walker.CurrentName());
-    EXPECT_EQ(1, walker.SiblingCount());
-    EXPECT_EQ(50000, walker.CurrentNodeTickCount());
-    EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
-    EXPECT_EQ(0, walker.CurrentExclusiveTicks());
-    EXPECT(!walker.Down());
-    // We have two code objects: mainA and B.boo.
-    walker.Reset(Profile::kInclusiveCode);
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized] mainA", walker.CurrentName());
-    EXPECT_EQ(1, walker.SiblingCount());
-    EXPECT_EQ(50000, walker.CurrentNodeTickCount());
-    EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
-    EXPECT_EQ(0, walker.CurrentExclusiveTicks());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Optimized] B.boo", walker.CurrentName());
-    EXPECT_EQ(1, walker.SiblingCount());
-    EXPECT_EQ(50000, walker.CurrentNodeTickCount());
-    EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
-    EXPECT_EQ(50000, walker.CurrentExclusiveTicks());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
-    EXPECT(!walker.Down());
-
-    // Inline expansion should show us the complete call chain:
-    // mainA -> B.boo -> B.foo -> B.choo.
-    walker.Reset(Profile::kExclusiveFunction);
-    EXPECT(walker.Down());
-    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
-    EXPECT_EQ(50000, walker.CurrentExclusiveTicks());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("B.choo", walker.CurrentName());
-    EXPECT_EQ(1, walker.SiblingCount());
-    EXPECT_EQ(50000, walker.CurrentNodeTickCount());
-    EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("B.foo", walker.CurrentName());
-    EXPECT_EQ(1, walker.SiblingCount());
-    EXPECT_EQ(50000, walker.CurrentNodeTickCount());
-    EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
-    EXPECT_EQ(0, walker.CurrentExclusiveTicks());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("B.boo", walker.CurrentName());
-    EXPECT_EQ(1, walker.SiblingCount());
-    EXPECT_EQ(50000, walker.CurrentNodeTickCount());
-    EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
-    EXPECT_EQ(0, walker.CurrentExclusiveTicks());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("mainA", walker.CurrentName());
-    EXPECT_EQ(1, walker.SiblingCount());
-    EXPECT_EQ(50000, walker.CurrentNodeTickCount());
-    EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
-    EXPECT_EQ(0, walker.CurrentExclusiveTicks());
-    EXPECT(!walker.Down());
-
-    // Inline expansion should show us the complete call chain:
-    // mainA -> B.boo -> B.foo -> B.choo.
-    walker.Reset(Profile::kInclusiveFunction);
-    EXPECT(walker.Down());
-    EXPECT_STREQ("mainA", walker.CurrentName());
-    EXPECT_EQ(1, walker.SiblingCount());
-    EXPECT_EQ(50000, walker.CurrentNodeTickCount());
-    EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
-    EXPECT_EQ(0, walker.CurrentExclusiveTicks());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("B.boo", walker.CurrentName());
-    EXPECT_EQ(1, walker.SiblingCount());
-    EXPECT_EQ(50000, walker.CurrentNodeTickCount());
-    EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
-    EXPECT_EQ(0, walker.CurrentExclusiveTicks());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("B.foo", walker.CurrentName());
-    EXPECT_EQ(1, walker.SiblingCount());
-    EXPECT_EQ(50000, walker.CurrentNodeTickCount());
-    EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
-    EXPECT_EQ(0, walker.CurrentExclusiveTicks());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("B.choo", walker.CurrentName());
-    EXPECT_EQ(1, walker.SiblingCount());
-    EXPECT_EQ(50000, walker.CurrentNodeTickCount());
-    EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
-    EXPECT_EQ(50000, walker.CurrentExclusiveTicks());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
-    EXPECT(!walker.Down());
-  }
-
-  // Test code transition tags.
-  {
-    Thread* thread = Thread::Current();
-    Isolate* isolate = thread->isolate();
-    StackZone zone(thread);
-    HANDLESCOPE(thread);
-    Profile profile(isolate);
-    AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags,
-                  ProfilerService::kCodeTransitionTagsBit);
-    // We should have 50,000 allocation samples.
-    EXPECT_EQ(50000, profile.sample_count());
-    ProfileTrieWalker walker(&profile);
-    // We have two code objects: mainA and B.boo.
-    walker.Reset(Profile::kExclusiveCode);
-    EXPECT(walker.Down());
-    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized Code]", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Optimized] B.boo", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Optimized Code]", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized] mainA", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized Code]", walker.CurrentName());
-    EXPECT(!walker.Down());
-    // We have two code objects: mainA and B.boo.
-    walker.Reset(Profile::kInclusiveCode);
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized Code]", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized] mainA", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Optimized Code]", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Optimized] B.boo", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized Code]", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
-    EXPECT(!walker.Down());
-
-    // Inline expansion should show us the complete call chain:
-    // mainA -> B.boo -> B.foo -> B.choo.
-    walker.Reset(Profile::kExclusiveFunction);
-    EXPECT(walker.Down());
-    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized Code]", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Inline End]", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("B.choo", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("B.foo", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Inline Start]", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("B.boo", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Optimized Code]", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("mainA", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized Code]", walker.CurrentName());
-    EXPECT(!walker.Down());
-
-    // Inline expansion should show us the complete call chain:
-    // mainA -> B.boo -> B.foo -> B.choo.
-    walker.Reset(Profile::kInclusiveFunction);
-    EXPECT(walker.Down());
-    EXPECT_STREQ("mainA", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Optimized Code]", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("B.boo", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Inline Start]", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("B.foo", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("B.choo", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Inline End]", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized Code]", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
-    EXPECT(!walker.Down());
+    {
+      ProfileStackWalker walker(&profile);
+      // We have two code objects: mainA and B.boo.
+      EXPECT_STREQ("DRT_AllocateObject", walker.VMTagName());
+      EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
+      EXPECT_EQ(50000, walker.CurrentExclusiveTicks());
+      EXPECT(walker.Down());
+      EXPECT_STREQ("[Optimized] B.boo", walker.CurrentName());
+      EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
+      EXPECT(walker.Down());
+      EXPECT_STREQ("[Unoptimized] mainA", walker.CurrentName());
+      EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
+      EXPECT_EQ(0, walker.CurrentExclusiveTicks());
+      EXPECT(!walker.Down());
+    }
+    {
+      ProfileStackWalker walker(&profile, true);
+      // Inline expansion should show us the complete call chain:
+      // mainA -> B.boo -> B.foo -> B.choo.
+      EXPECT_STREQ("DRT_AllocateObject", walker.VMTagName());
+      EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
+      EXPECT_EQ(50000, walker.CurrentExclusiveTicks());
+      EXPECT(walker.Down());
+      EXPECT_STREQ("B.choo", walker.CurrentName());
+      EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
+      EXPECT(walker.Down());
+      EXPECT_STREQ("B.foo", walker.CurrentName());
+      EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
+      EXPECT_EQ(0, walker.CurrentExclusiveTicks());
+      EXPECT(walker.Down());
+      EXPECT_STREQ("B.boo", walker.CurrentName());
+      EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
+      EXPECT_EQ(0, walker.CurrentExclusiveTicks());
+      EXPECT(walker.Down());
+      EXPECT_STREQ("mainA", walker.CurrentName());
+      EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
+      EXPECT_EQ(0, walker.CurrentExclusiveTicks());
+      EXPECT(!walker.Down());
+    }
   }
 }
 
@@ -1881,7 +1604,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_InliningIntervalBoundry) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should have no allocation samples.
     EXPECT_EQ(0, profile.sample_count());
   }
@@ -1898,15 +1621,12 @@ ISOLATE_UNIT_TEST_CASE(Profiler_InliningIntervalBoundry) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     EXPECT_EQ(1, profile.sample_count());
-    ProfileTrieWalker walker(&profile);
+    ProfileStackWalker walker(&profile, true);
 
     // Inline expansion should show us the complete call chain:
-    walker.Reset(Profile::kExclusiveFunction);
-    EXPECT(walker.Down());
-    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
-    EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateObject", walker.VMTagName());
     EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("maybeAlloc", walker.CurrentName());
@@ -1916,22 +1636,6 @@ ISOLATE_UNIT_TEST_CASE(Profiler_InliningIntervalBoundry) {
     EXPECT_STREQ("a", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("mainAlloc", walker.CurrentName());
-
-    // Inline expansion should show us the complete call chain:
-    walker.Reset(Profile::kInclusiveFunction);
-    EXPECT(walker.Down());
-    EXPECT_STREQ("mainAlloc", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("a", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("right", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("maybeAlloc", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
-    EXPECT(!walker.Down());
   }
 }
 
@@ -1989,16 +1693,12 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ChainedSamples) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should have 1 allocation sample.
     EXPECT_EQ(1, profile.sample_count());
-    ProfileTrieWalker walker(&profile);
+    ProfileStackWalker walker(&profile);
 
-    walker.Reset(Profile::kExclusiveCode);
-    // Move down from the root.
-    EXPECT(walker.Down());
-    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
-    EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateObject", walker.VMTagName());
     if (FLAG_enable_interpreter) {
       EXPECT_STREQ("[Bytecode] B.boo", walker.CurrentName());
       EXPECT(walker.Down());
@@ -2127,29 +1827,22 @@ ISOLATE_UNIT_TEST_CASE(Profiler_BasicSourcePosition) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should have one allocation samples.
     EXPECT_EQ(1, profile.sample_count());
-    ProfileTrieWalker walker(&profile);
+    ProfileStackWalker walker(&profile, true);
 
-    // Exclusive function: B.boo -> main.
-    walker.Reset(Profile::kExclusiveFunction);
-    // Move down from the root.
-    EXPECT(walker.Down());
-    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
-    EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateObject", walker.VMTagName());
     if (!FLAG_enable_interpreter) {
       EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
       EXPECT_EQ(1, walker.CurrentExclusiveTicks());
       EXPECT(walker.Down());
     }
     EXPECT_STREQ("B.boo", walker.CurrentName());
-    EXPECT_EQ(1, walker.CurrentNodeTickCount());
     EXPECT_EQ(1, walker.CurrentInclusiveTicks());
     EXPECT_STREQ("A", walker.CurrentToken());
     EXPECT(walker.Down());
     EXPECT_STREQ("main", walker.CurrentName());
-    EXPECT_EQ(1, walker.CurrentNodeTickCount());
     EXPECT_EQ(1, walker.CurrentInclusiveTicks());
     EXPECT_EQ(0, walker.CurrentExclusiveTicks());
     EXPECT_STREQ("boo", walker.CurrentToken());
@@ -2215,27 +1908,21 @@ ISOLATE_UNIT_TEST_CASE(Profiler_BasicSourcePositionOptimized) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should have one allocation samples.
     EXPECT_EQ(1, profile.sample_count());
-    ProfileTrieWalker walker(&profile);
+    ProfileStackWalker walker(&profile, true);
 
-    // Exclusive function: B.boo -> main.
-    walker.Reset(Profile::kExclusiveFunction);
     // Move down from the root.
-    EXPECT(walker.Down());
-    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
-    EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateObject", walker.VMTagName());
     EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
     EXPECT_EQ(1, walker.CurrentExclusiveTicks());
     EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
-    EXPECT_EQ(1, walker.CurrentNodeTickCount());
     EXPECT_EQ(1, walker.CurrentInclusiveTicks());
     EXPECT_STREQ("A", walker.CurrentToken());
     EXPECT(walker.Down());
     EXPECT_STREQ("main", walker.CurrentName());
-    EXPECT_EQ(1, walker.CurrentNodeTickCount());
     EXPECT_EQ(1, walker.CurrentInclusiveTicks());
     EXPECT_EQ(0, walker.CurrentExclusiveTicks());
     EXPECT_STREQ("boo", walker.CurrentToken());
@@ -2295,47 +1982,37 @@ ISOLATE_UNIT_TEST_CASE(Profiler_SourcePosition) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should have one allocation samples.
     EXPECT_EQ(1, profile.sample_count());
-    ProfileTrieWalker walker(&profile);
+    ProfileStackWalker walker(&profile, true);
 
-    // Exclusive function: B.boo -> main.
-    walker.Reset(Profile::kExclusiveFunction);
-    // Move down from the root.
-    EXPECT(walker.Down());
-    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
-    EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateObject", walker.VMTagName());
     if (!FLAG_enable_interpreter) {
       EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
       EXPECT_EQ(1, walker.CurrentExclusiveTicks());
       EXPECT(walker.Down());
     }
     EXPECT_STREQ("B.boo", walker.CurrentName());
-    EXPECT_EQ(1, walker.CurrentNodeTickCount());
     EXPECT_EQ(1, walker.CurrentInclusiveTicks());
     EXPECT_STREQ("A", walker.CurrentToken());
     EXPECT(walker.Down());
     EXPECT_STREQ("B.oats", walker.CurrentName());
-    EXPECT_EQ(1, walker.CurrentNodeTickCount());
     EXPECT_EQ(1, walker.CurrentInclusiveTicks());
     EXPECT_EQ(0, walker.CurrentExclusiveTicks());
     EXPECT_STREQ("boo", walker.CurrentToken());
     EXPECT(walker.Down());
     EXPECT_STREQ("C.fox", walker.CurrentName());
-    EXPECT_EQ(1, walker.CurrentNodeTickCount());
     EXPECT_EQ(1, walker.CurrentInclusiveTicks());
     EXPECT_EQ(0, walker.CurrentExclusiveTicks());
     EXPECT_STREQ("oats", walker.CurrentToken());
     EXPECT(walker.Down());
     EXPECT_STREQ("C.bacon", walker.CurrentName());
-    EXPECT_EQ(1, walker.CurrentNodeTickCount());
     EXPECT_EQ(1, walker.CurrentInclusiveTicks());
     EXPECT_EQ(0, walker.CurrentExclusiveTicks());
     EXPECT_STREQ("fox", walker.CurrentToken());
     EXPECT(walker.Down());
     EXPECT_STREQ("main", walker.CurrentName());
-    EXPECT_EQ(1, walker.CurrentNodeTickCount());
     EXPECT_EQ(1, walker.CurrentInclusiveTicks());
     EXPECT_EQ(0, walker.CurrentExclusiveTicks());
     EXPECT_STREQ("bacon", walker.CurrentToken());
@@ -2414,45 +2091,35 @@ ISOLATE_UNIT_TEST_CASE(Profiler_SourcePositionOptimized) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should have one allocation samples.
     EXPECT_EQ(1, profile.sample_count());
-    ProfileTrieWalker walker(&profile);
+    ProfileStackWalker walker(&profile, true);
 
-    // Exclusive function: B.boo -> main.
-    walker.Reset(Profile::kExclusiveFunction);
-    // Move down from the root.
-    EXPECT(walker.Down());
-    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
-    EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateObject", walker.VMTagName());
     EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
     EXPECT_EQ(1, walker.CurrentExclusiveTicks());
     EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
-    EXPECT_EQ(1, walker.CurrentNodeTickCount());
     EXPECT_EQ(1, walker.CurrentInclusiveTicks());
     EXPECT_STREQ("A", walker.CurrentToken());
     EXPECT(walker.Down());
     EXPECT_STREQ("B.oats", walker.CurrentName());
-    EXPECT_EQ(1, walker.CurrentNodeTickCount());
     EXPECT_EQ(1, walker.CurrentInclusiveTicks());
     EXPECT_EQ(0, walker.CurrentExclusiveTicks());
     EXPECT_STREQ("boo", walker.CurrentToken());
     EXPECT(walker.Down());
     EXPECT_STREQ("C.fox", walker.CurrentName());
-    EXPECT_EQ(1, walker.CurrentNodeTickCount());
     EXPECT_EQ(1, walker.CurrentInclusiveTicks());
     EXPECT_EQ(0, walker.CurrentExclusiveTicks());
     EXPECT_STREQ("oats", walker.CurrentToken());
     EXPECT(walker.Down());
     EXPECT_STREQ("C.bacon", walker.CurrentName());
-    EXPECT_EQ(1, walker.CurrentNodeTickCount());
     EXPECT_EQ(1, walker.CurrentInclusiveTicks());
     EXPECT_EQ(0, walker.CurrentExclusiveTicks());
     EXPECT_STREQ("fox", walker.CurrentToken());
     EXPECT(walker.Down());
     EXPECT_STREQ("main", walker.CurrentName());
-    EXPECT_EQ(1, walker.CurrentNodeTickCount());
     EXPECT_EQ(1, walker.CurrentInclusiveTicks());
     EXPECT_EQ(0, walker.CurrentExclusiveTicks());
     EXPECT_STREQ("bacon", walker.CurrentToken());
@@ -2515,53 +2182,42 @@ ISOLATE_UNIT_TEST_CASE(Profiler_BinaryOperatorSourcePosition) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should have one allocation samples.
     EXPECT_EQ(1, profile.sample_count());
-    ProfileTrieWalker walker(&profile);
+    ProfileStackWalker walker(&profile, true);
 
-    // Exclusive function: B.boo -> main.
-    walker.Reset(Profile::kExclusiveFunction);
-    // Move down from the root.
-    EXPECT(walker.Down());
-    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
-    EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateObject", walker.VMTagName());
     if (!FLAG_enable_interpreter) {
       EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
       EXPECT_EQ(1, walker.CurrentExclusiveTicks());
       EXPECT(walker.Down());
     }
     EXPECT_STREQ("B.boo", walker.CurrentName());
-    EXPECT_EQ(1, walker.CurrentNodeTickCount());
     EXPECT_EQ(1, walker.CurrentInclusiveTicks());
     EXPECT_STREQ("A", walker.CurrentToken());
     EXPECT(walker.Down());
     EXPECT_STREQ("B.oats", walker.CurrentName());
-    EXPECT_EQ(1, walker.CurrentNodeTickCount());
     EXPECT_EQ(1, walker.CurrentInclusiveTicks());
     EXPECT_EQ(0, walker.CurrentExclusiveTicks());
     EXPECT_STREQ("boo", walker.CurrentToken());
     EXPECT(walker.Down());
     EXPECT_STREQ("C.fox", walker.CurrentName());
-    EXPECT_EQ(1, walker.CurrentNodeTickCount());
     EXPECT_EQ(1, walker.CurrentInclusiveTicks());
     EXPECT_EQ(0, walker.CurrentExclusiveTicks());
     EXPECT_STREQ("oats", walker.CurrentToken());
     EXPECT(walker.Down());
     EXPECT_STREQ("C.+", walker.CurrentName());
-    EXPECT_EQ(1, walker.CurrentNodeTickCount());
     EXPECT_EQ(1, walker.CurrentInclusiveTicks());
     EXPECT_EQ(0, walker.CurrentExclusiveTicks());
     EXPECT_STREQ("fox", walker.CurrentToken());
     EXPECT(walker.Down());
     EXPECT_STREQ("C.bacon", walker.CurrentName());
-    EXPECT_EQ(1, walker.CurrentNodeTickCount());
     EXPECT_EQ(1, walker.CurrentInclusiveTicks());
     EXPECT_EQ(0, walker.CurrentExclusiveTicks());
     EXPECT_STREQ("+", walker.CurrentToken());
     EXPECT(walker.Down());
     EXPECT_STREQ("main", walker.CurrentName());
-    EXPECT_EQ(1, walker.CurrentNodeTickCount());
     EXPECT_EQ(1, walker.CurrentInclusiveTicks());
     EXPECT_EQ(0, walker.CurrentExclusiveTicks());
     EXPECT_STREQ("bacon", walker.CurrentToken());
@@ -2643,53 +2299,42 @@ ISOLATE_UNIT_TEST_CASE(Profiler_BinaryOperatorSourcePositionOptimized) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate->main_port(), class_a.id());
-    profile.Build(thread, &filter, Profiler::sample_buffer(), Profile::kNoTags);
+    profile.Build(thread, &filter, Profiler::sample_buffer());
     // We should have one allocation samples.
     EXPECT_EQ(1, profile.sample_count());
-    ProfileTrieWalker walker(&profile);
+    ProfileStackWalker walker(&profile, true);
 
-    // Exclusive function: B.boo -> main.
-    walker.Reset(Profile::kExclusiveFunction);
-    // Move down from the root.
-    EXPECT(walker.Down());
-    EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
-    EXPECT(walker.Down());
+    EXPECT_STREQ("DRT_AllocateObject", walker.VMTagName());
     if (!FLAG_enable_interpreter) {
       EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
       EXPECT_EQ(1, walker.CurrentExclusiveTicks());
       EXPECT(walker.Down());
     }
     EXPECT_STREQ("B.boo", walker.CurrentName());
-    EXPECT_EQ(1, walker.CurrentNodeTickCount());
     EXPECT_EQ(1, walker.CurrentInclusiveTicks());
     EXPECT_STREQ("A", walker.CurrentToken());
     EXPECT(walker.Down());
     EXPECT_STREQ("B.oats", walker.CurrentName());
-    EXPECT_EQ(1, walker.CurrentNodeTickCount());
     EXPECT_EQ(1, walker.CurrentInclusiveTicks());
     EXPECT_EQ(0, walker.CurrentExclusiveTicks());
     EXPECT_STREQ("boo", walker.CurrentToken());
     EXPECT(walker.Down());
     EXPECT_STREQ("C.fox", walker.CurrentName());
-    EXPECT_EQ(1, walker.CurrentNodeTickCount());
     EXPECT_EQ(1, walker.CurrentInclusiveTicks());
     EXPECT_EQ(0, walker.CurrentExclusiveTicks());
     EXPECT_STREQ("oats", walker.CurrentToken());
     EXPECT(walker.Down());
     EXPECT_STREQ("C.+", walker.CurrentName());
-    EXPECT_EQ(1, walker.CurrentNodeTickCount());
     EXPECT_EQ(1, walker.CurrentInclusiveTicks());
     EXPECT_EQ(0, walker.CurrentExclusiveTicks());
     EXPECT_STREQ("fox", walker.CurrentToken());
     EXPECT(walker.Down());
     EXPECT_STREQ("C.bacon", walker.CurrentName());
-    EXPECT_EQ(1, walker.CurrentNodeTickCount());
     EXPECT_EQ(1, walker.CurrentInclusiveTicks());
     EXPECT_EQ(0, walker.CurrentExclusiveTicks());
     EXPECT_STREQ("+", walker.CurrentToken());
     EXPECT(walker.Down());
     EXPECT_STREQ("main", walker.CurrentName());
-    EXPECT_EQ(1, walker.CurrentNodeTickCount());
     EXPECT_EQ(1, walker.CurrentInclusiveTicks());
     EXPECT_EQ(0, walker.CurrentExclusiveTicks());
     EXPECT_STREQ("bacon", walker.CurrentToken());

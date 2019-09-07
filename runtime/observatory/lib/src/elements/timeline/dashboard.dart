@@ -208,9 +208,9 @@ class TimelineDashboardElement extends CustomElement implements Renderable {
   Future _refresh() async {
     _flags = await _repository.getFlags(vm);
     _r.dirty();
-    final params =
-        new Map<String, dynamic>.from(await _repository.getIFrameParams(vm));
-    return _postMessage('refresh', params);
+    final traceData =
+        Map<String, dynamic>.from(await _repository.getTimeline(vm));
+    return _postMessage('refresh', traceData);
   }
 
   Future _clear() async {

@@ -106,7 +106,7 @@ class NativeMemoryProfileElement extends CustomElement implements Renderable {
             selectedTag: _tag, queue: _r.queue)
           ..onTagChange.listen((e) {
             _tag = e.element.selectedTag;
-            _request(forceFetch: true);
+            _request();
           }))
         .element);
     if (_progress.status == M.SampleProfileLoadingStatus.loaded) {
@@ -145,8 +145,10 @@ class NativeMemoryProfileElement extends CustomElement implements Renderable {
   }
 
   Future _request({bool forceFetch: false}) async {
-    for (M.Isolate isolate in _vm.isolates) {
-      await isolate.collectAllGarbage();
+    if (forceFetch) {
+      for (M.Isolate isolate in _vm.isolates) {
+        await isolate.collectAllGarbage();
+      }
     }
     _progress = null;
     _progressStream = _profiles.get(_vm, _tag, forceFetch: forceFetch);

@@ -220,6 +220,7 @@ abstract class ServiceObject implements M.ObjectRef {
         obj = new Frame._empty(owner);
         break;
       case 'Function':
+      case 'NativeFunction':
         obj = new ServiceFunction._empty(owner);
         break;
       case 'Gauge':
@@ -2572,8 +2573,10 @@ class Class extends HeapObject implements M.Class {
     });
   }
 
-  Future<ServiceObject> getAllocationSamples([String tags = 'None']) {
-    var params = {'tags': tags, 'classId': id};
+  Future<ServiceObject> getAllocationSamples() {
+    var params = {
+      'classId': id,
+    };
     return isolate.invokeRpc('_getAllocationSamples', params);
   }
 

@@ -15,7 +15,7 @@
 namespace dart {
 
 #define SERVICE_PROTOCOL_MAJOR_VERSION 3
-#define SERVICE_PROTOCOL_MINOR_VERSION 26
+#define SERVICE_PROTOCOL_MINOR_VERSION 27
 
 class Array;
 class EmbedderServiceHandler;

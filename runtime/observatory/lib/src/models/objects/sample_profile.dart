@@ -8,11 +8,11 @@ enum ProfileTreeDirection { inclusive, exclusive }
 
 abstract class SampleProfile {
   int get sampleCount;
-  int get stackDepth;
+  int get maxStackDepth;
   double get sampleRate;
   double get timeSpan;
-  Iterable<ProfileCode> get codes;
-  Iterable<ProfileFunction> get functions;
+  List<ProfileCode> get codes;
+  List<ProfileFunction> get functions;
 
   FunctionCallTree loadFunctionTree(ProfileTreeDirection direction);
   CodeCallTree loadCodeTree(ProfileTreeDirection direction);
@@ -21,6 +21,8 @@ abstract class SampleProfile {
 abstract class Profile {
   double get normalizedExclusiveTicks;
   double get normalizedInclusiveTicks;
+  void clearTicks();
+  void tickTag();
 }
 
 abstract class ProfileCode extends Profile {
@@ -31,6 +33,7 @@ abstract class ProfileCode extends Profile {
 
 abstract class ProfileFunction extends Profile {
   FunctionRef get function;
+  String get resolvedUrl;
   Map<ProfileFunction, int> get callers;
   Map<ProfileFunction, int> get callees;
 }
@@ -53,9 +56,13 @@ abstract class FunctionCallTree extends CallTree {
 
 abstract class CallTreeNode {
   double get percentage;
+  int get count;
   int get inclusiveNativeAllocations;
   int get exclusiveNativeAllocations;
   Iterable<CallTreeNode> get children;
+  void sortChildren();
+
+  void tick(Map sample, {bool exclusive = false});
 }
 
 abstract class CodeCallTreeNode extends CallTreeNode {

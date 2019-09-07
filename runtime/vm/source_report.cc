@@ -58,8 +58,7 @@ void SourceReport::Init(Thread* thread,
     // Build the profile.
     SampleFilter samplesForIsolate(thread_->isolate()->main_port(),
                                    Thread::kMutatorTask, -1, -1);
-    profile_.Build(thread, &samplesForIsolate, Profiler::sample_buffer(),
-                   Profile::kNoTags);
+    profile_.Build(thread, &samplesForIsolate, Profiler::sample_buffer());
   }
 }
 

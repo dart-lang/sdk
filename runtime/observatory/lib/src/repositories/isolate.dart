@@ -11,7 +11,7 @@ class IsolateRepository extends M.IsolateRepository {
       _vm.services.where((S.Service s) => s.service == 'reloadSources');
 
   IsolateRepository(this._vm) {
-    assert(_vm == null);
+    assert(_vm != null);
   }
 
   Future<M.Isolate> get(M.IsolateRef i) async {

@@ -13,7 +13,7 @@ import 'package:observatory/heap_snapshot.dart';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/service.dart' as S;
 import 'package:observatory/service_common.dart' as SC;
-import 'package:observatory/service_html.dart' as SH;
+import 'package:observatory/src/repositories/timeline_base.dart';
 
 part 'src/repositories/allocation_profile.dart';
 part 'src/repositories/breakpoint.dart';
