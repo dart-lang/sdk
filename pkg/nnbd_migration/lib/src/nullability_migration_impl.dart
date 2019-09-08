@@ -39,7 +39,9 @@ class NullabilityMigrationImpl implements NullabilityMigration {
   void finish() {
     _graph.propagate();
     if (_graph.unsatisfiedSubstitutions.isNotEmpty) {
-      throw new UnimplementedError('Need to report unsatisfied substitutions');
+      // TODO(paulberry): for now we just ignore unsatisfied substitutions, to
+      // work around https://github.com/dart-lang/sdk/issues/38257
+      // throw new UnimplementedError('Need to report unsatisfied substitutions');
     }
     // TODO(paulberry): it would be nice to report on unsatisfied edges as well,
     // however, since every `!` we add has an unsatisfied edge associated with

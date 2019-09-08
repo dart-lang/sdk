@@ -232,9 +232,9 @@ class Variables implements VariableRecorder, VariableRepository {
     }
 
     DecoratedType decoratedType;
-    if (element is ExecutableElement) {
+    if (element is FunctionTypedElement) {
       decoratedType = _alreadyMigratedCodeDecorator.decorate(element.type);
-    } else if (element is TopLevelVariableElement) {
+    } else if (element is VariableElement) {
       decoratedType = _alreadyMigratedCodeDecorator.decorate(element.type);
     } else {
       // TODO(paulberry)

@@ -352,6 +352,16 @@ class EdgeBuilderTest extends EdgeBuilderTestBase {
     return variables.decoratedExpressionType(findNode.expression(text));
   }
 
+  test_already_migrated_field() async {
+    await analyze('''
+double f() => double.NAN;
+''');
+    var nanElement = typeProvider.doubleType.element.getField('NAN');
+    assertEdge(variables.decoratedElementType(nanElement).node,
+        decoratedTypeAnnotation('double f').node,
+        hard: false);
+  }
+
   test_assert_demonstrates_non_null_intent() async {
     await analyze('''
 void f(int i) {
