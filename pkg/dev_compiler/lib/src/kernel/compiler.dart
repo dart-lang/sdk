@@ -4771,7 +4771,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   @override
   js_ast.Expression visitConstructorInvocation(ConstructorInvocation node) {
     var ctor = node.target;
+    var ctorClass = ctor.enclosingClass;
     var args = node.arguments;
+    if (isJSAnonymousType(ctorClass)) return _emitObjectLiteral(args);
     var result = js_ast.New(_emitConstructorName(node.constructedType, ctor),
         _emitArgumentList(args, types: false));
 
