@@ -458,16 +458,6 @@ dart_ci_sandbox_builder(
     channels=["try"],
     properties={"new_workflow_enabled": False},
     triggered_by=["dart-gitiles-trigger-flutter"],
-    triggering_policy=scheduler.greedy_batching(
-        max_concurrent_invocations=5, max_batch_size=1),
-)
-dart_ci_sandbox_builder(
-    "flutter-engine-linux-fast",
-    recipe="flutter_engine",
-    category="flutter|3Hf",
-    channels=[],
-    properties={"new_workflow_enabled": False},
-    triggered_by=["dart-gitiles-trigger-flutter"],
 )
 
 # vm|app-kernel
@@ -812,13 +802,6 @@ luci.console_view_entry(
 luci.console_view_entry(
     builder="flutter-engine-linux",
     short_name="3H",
-    category="flutter",
-    console_view="flutter-hhh",
-)
-
-luci.console_view_entry(
-    builder="flutter-engine-linux-fast",
-    short_name="3Hf",
     category="flutter",
     console_view="flutter-hhh",
 )
