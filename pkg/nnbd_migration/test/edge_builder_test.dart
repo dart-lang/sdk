@@ -4505,7 +4505,15 @@ void f(List<int> x) {}
         hard: true);
   }
 
-  test_typeName() async {
+  test_typeName_class() async {
+    await analyze('''
+class C {}
+Type f() => C;
+''');
+    assertNoUpstreamNullability(decoratedTypeAnnotation('Type').node);
+  }
+
+  test_typeName_from_sdk() async {
     await analyze('''
 Type f() {
   return int;
@@ -4514,12 +4522,36 @@ Type f() {
     assertNoUpstreamNullability(decoratedTypeAnnotation('Type').node);
   }
 
-  test_typeName_prefixed() async {
+  test_typeName_from_sdk_prefixed() async {
     await analyze('''
 import 'dart:async' as a;
 Type f() => a.Future;
 ''');
     assertEdge(never, decoratedTypeAnnotation('Type').node, hard: false);
+  }
+
+  test_typeName_functionTypeAlias() async {
+    await analyze('''
+typedef void F();
+Type f() => F;
+''');
+    assertNoUpstreamNullability(decoratedTypeAnnotation('Type').node);
+  }
+
+  test_typeName_genericTypeAlias() async {
+    await analyze('''
+typedef F = void Function();
+Type f() => F;
+''');
+    assertNoUpstreamNullability(decoratedTypeAnnotation('Type').node);
+  }
+
+  test_typeName_mixin() async {
+    await analyze('''
+mixin M {}
+Type f() => M;
+''');
+    assertNoUpstreamNullability(decoratedTypeAnnotation('Type').node);
   }
 
   test_typeName_union_with_bound() async {

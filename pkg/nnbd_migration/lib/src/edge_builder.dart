@@ -1116,7 +1116,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       return staticElement.isGetter
           ? elementType.returnType
           : elementType.positionalParameters[0];
-    } else if (staticElement is ClassElement) {
+    } else if (staticElement is TypeDefiningElement) {
       return _nonNullableTypeType;
     } else {
       // TODO(paulberry)
