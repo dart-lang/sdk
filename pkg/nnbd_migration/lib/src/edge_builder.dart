@@ -273,7 +273,6 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       // TODO(paulberry)
       _unimplemented(node, 'Assignment with operator ${node.operator.lexeme}');
     }
-    _postDominatedLocals.removeReferenceFromAllScopes(node.leftHandSide);
     var expressionType = _handleAssignment(node.rightHandSide,
         destinationExpression: node.leftHandSide);
     var conditionalNode = _conditionalNodes[node.leftHandSide];
@@ -1513,6 +1512,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         source: sourceType,
         destination: destinationType,
         hard: _postDominatedLocals.isReferenceInScope(expression));
+    if (destinationExpression != null) {
+      _postDominatedLocals.removeReferenceFromAllScopes(destinationExpression);
+    }
     if (destinationLocalVariable != null) {
       _flowAnalysis.write(destinationLocalVariable);
     }

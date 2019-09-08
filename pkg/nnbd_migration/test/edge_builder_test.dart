@@ -3066,6 +3066,18 @@ void test(bool b1, bool b2, bool b3, bool _b) {
     assertEdge(decoratedTypeAnnotation('bool b3').node, never, hard: true);
   }
 
+  test_postDominators_assignment_with_same_var_on_lhs_and_in_rhs() async {
+    await analyze('''
+void f(int i) {
+  i = g(i);
+}
+int g(int j) => 0;
+''');
+    assertEdge(decoratedTypeAnnotation('int i').node,
+        decoratedTypeAnnotation('int j').node,
+        hard: true);
+  }
+
   test_postDominators_break() async {
     await analyze('''
 class C {
