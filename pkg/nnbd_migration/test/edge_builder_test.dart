@@ -514,6 +514,73 @@ void g(List<int> x) {
         hard: false);
   }
 
+  test_assignmentExpression_compound_dynamic() async {
+    await analyze('''
+void f(dynamic x, int y) {
+  x += y;
+}
+''');
+    // No assertions; just making sure this doesn't crash.
+  }
+
+  test_assignmentExpression_compound_simple() async {
+    var code = '''
+abstract class C {
+  C operator+(C x);
+}
+C f(C y, C z) => (y += z);
+''';
+    await analyze(code);
+    var targetEdge =
+        assertEdge(decoratedTypeAnnotation('C y').node, never, hard: true);
+    expect((targetEdge.origin as CompoundAssignmentOrigin).offset,
+        code.indexOf('+='));
+    assertNullCheck(
+        checkExpression('z);'),
+        assertEdge(decoratedTypeAnnotation('C z').node,
+            decoratedTypeAnnotation('C x').node,
+            hard: true));
+    var operatorReturnEdge = assertEdge(
+        decoratedTypeAnnotation('C operator').node,
+        decoratedTypeAnnotation('C y').node,
+        hard: false);
+    expect((operatorReturnEdge.origin as CompoundAssignmentOrigin).offset,
+        code.indexOf('+='));
+    var fReturnEdge = assertEdge(decoratedTypeAnnotation('C operator').node,
+        decoratedTypeAnnotation('C f').node,
+        hard: false);
+    assertNullCheck(checkExpression('(y += z)'), fReturnEdge);
+  }
+
+  test_assignmentExpression_compound_withSubstitution() async {
+    var code = '''
+abstract class C<T> {
+  C<T> operator+(C<T> x);
+}
+C<int> f(C<int> y, C<int> z) => (y += z);
+''';
+    await analyze(code);
+    var targetEdge =
+        assertEdge(decoratedTypeAnnotation('C<int> y').node, never, hard: true);
+    expect((targetEdge.origin as CompoundAssignmentOrigin).offset,
+        code.indexOf('+='));
+    assertNullCheck(
+        checkExpression('z);'),
+        assertEdge(decoratedTypeAnnotation('C<int> z').node,
+            decoratedTypeAnnotation('C<T> x').node,
+            hard: true));
+    var operatorReturnEdge = assertEdge(
+        decoratedTypeAnnotation('C<T> operator').node,
+        decoratedTypeAnnotation('C<int> y').node,
+        hard: false);
+    expect((operatorReturnEdge.origin as CompoundAssignmentOrigin).offset,
+        code.indexOf('+='));
+    var fReturnEdge = assertEdge(decoratedTypeAnnotation('C<T> operator').node,
+        decoratedTypeAnnotation('C<int> f').node,
+        hard: false);
+    assertNullCheck(checkExpression('(y += z)'), fReturnEdge);
+  }
+
   test_assignmentExpression_field() async {
     await analyze('''
 class C {

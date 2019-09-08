@@ -269,12 +269,16 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitAssignmentExpression(AssignmentExpression node) {
-    if (node.operator.type != TokenType.EQ) {
-      // TODO(paulberry)
-      _unimplemented(node, 'Assignment with operator ${node.operator.lexeme}');
+    _CompoundOperatorInfo compoundOperatorInfo;
+    if (node.operator.type == TokenType.QUESTION_QUESTION_EQ) {
+      _unimplemented(node, 'Assignment with operator ??=');
+    } else if (node.operator.type != TokenType.EQ) {
+      compoundOperatorInfo = _CompoundOperatorInfo(
+          node.staticElement, node.operator.offset, node.staticType);
     }
     var expressionType = _handleAssignment(node.rightHandSide,
-        destinationExpression: node.leftHandSide);
+        destinationExpression: node.leftHandSide,
+        compoundOperatorInfo: compoundOperatorInfo);
     var conditionalNode = _conditionalNodes[node.leftHandSide];
     if (conditionalNode != null) {
       expressionType = expressionType.withNode(
@@ -1479,6 +1483,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType _handleAssignment(Expression expression,
       {DecoratedType destinationType,
       Expression destinationExpression,
+      _CompoundOperatorInfo compoundOperatorInfo,
       bool canInsertChecks = true}) {
     assert(
         (destinationExpression == null) != (destinationType == null),
@@ -1508,10 +1513,38 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       expressionChecks = ExpressionChecks(expression.end);
       _variables.recordExpressionChecks(source, expression, expressionChecks);
     }
-    _checkAssignment(expressionChecks,
-        source: sourceType,
-        destination: destinationType,
-        hard: _postDominatedLocals.isReferenceInScope(expression));
+    if (compoundOperatorInfo != null) {
+      var compoundOperatorMethod = compoundOperatorInfo.method;
+      if (compoundOperatorMethod != null) {
+        _checkAssignment(
+            CompoundAssignmentOrigin(source, compoundOperatorInfo.offset),
+            source: destinationType,
+            destination: _notNullType,
+            hard:
+                _postDominatedLocals.isReferenceInScope(destinationExpression));
+        DecoratedType compoundOperatorType =
+            getOrComputeElementType(compoundOperatorMethod);
+        assert(compoundOperatorType.positionalParameters.length > 0);
+        _checkAssignment(expressionChecks,
+            source: sourceType,
+            destination: compoundOperatorType.positionalParameters[0],
+            hard: _postDominatedLocals.isReferenceInScope(expression));
+        sourceType = _fixNumericTypes(compoundOperatorType.returnType,
+            compoundOperatorInfo.undecoratedType);
+        _checkAssignment(
+            CompoundAssignmentOrigin(source, compoundOperatorInfo.offset),
+            source: sourceType,
+            destination: destinationType,
+            hard: false);
+      } else {
+        sourceType = _dynamicType;
+      }
+    } else {
+      _checkAssignment(expressionChecks,
+          source: sourceType,
+          destination: destinationType,
+          hard: _postDominatedLocals.isReferenceInScope(expression));
+    }
     if (destinationExpression != null) {
       _postDominatedLocals.removeReferenceFromAllScopes(destinationExpression);
     }
@@ -2066,6 +2099,14 @@ mixin _AssignmentChecker {
 
   /// Given a [type] representing a type parameter, retrieves the type's bound.
   DecoratedType _getTypeParameterTypeBound(DecoratedType type);
+}
+
+class _CompoundOperatorInfo {
+  final MethodElement method;
+  final int offset;
+  final DartType undecoratedType;
+
+  _CompoundOperatorInfo(this.method, this.offset, this.undecoratedType);
 }
 
 /// Information about a binary expression whose boolean value could possibly
