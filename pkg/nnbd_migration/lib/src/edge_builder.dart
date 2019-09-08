@@ -1822,7 +1822,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var callee = propertyName.staticElement;
     bool calleeIsStatic = callee is ExecutableElement && callee.isStatic;
     if (_isPrefix(target)) {
-      // Nothing to do.
+      return propertyName.accept(this);
     } else if (calleeIsStatic) {
       target.accept(this);
     } else if (isConditional) {
@@ -1833,11 +1833,6 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     if (callee == null) {
       // Dynamic dispatch.
       return _dynamicType;
-    }
-    if (callee is ClassElement) {
-      // Not a real call; just a prefixed reference to a class name.
-      assert(_isPrefix(target));
-      return _nonNullableTypeType;
     }
     var calleeType = getOrComputeElementType(callee, targetType: targetType);
     // TODO(paulberry): substitute if necessary
