@@ -141,8 +141,7 @@ void testWatchDeleteDir() {
   var watcher = dir.watch(events: 0);
 
   asyncStart();
-  var sub;
-  sub = watcher.listen((event) {
+  watcher.listen((event) {
     if (event is FileSystemDeleteEvent) {
       Expect.isTrue(event.path == dir.path);
     }
@@ -298,9 +297,8 @@ void testWatchMoveSelf() {
   var watcher = dir2.watch();
 
   asyncStart();
-  var sub;
   bool gotDelete = false;
-  sub = watcher.listen((event) {
+  watcher.listen((event) {
     if (event is FileSystemDeleteEvent) {
       Expect.isTrue(event.path.endsWith('dir'));
       gotDelete = true;
@@ -319,42 +317,56 @@ testWatchConsistentModifiedFile() async {
   // happens in a very short period of time the modifying event will be missed before the
   // stream listen has been set up and the watcher will hang forever.
   // Bug: https://github.com/dart-lang/sdk/issues/37233
+  // Bug: https://github.com/dart-lang/sdk/issues/37909
   asyncStart();
   ReceivePort receivePort = ReceivePort();
-  await Isolate.spawn(modifyFiles, receivePort.sendPort);
+  Completer<bool> exiting = Completer<bool>();
 
-  await for (var object in receivePort) {
-    if (object == 'end') {
-      receivePort.close();
-      break;
+  Directory dir;
+  Completer<bool> modificationEventReceived = Completer<bool>();
+
+  StreamSubscription receiverSubscription;
+  SendPort workerSendPort;
+  receiverSubscription = receivePort.listen((object) async {
+    if (object == 'modification_started') {
+      var watcher = dir.watch();
+      var subscription;
+      // Wait for event and check the type
+      subscription = watcher.listen((data) async {
+        if (data is FileSystemModifyEvent) {
+          Expect.isTrue(data.path.endsWith('file'));
+          await subscription.cancel();
+          modificationEventReceived.complete(true);
+        }
+      });
+      return;
     }
-    var sendPort = object[0];
-    var path = object[1];
-    var dir = new Directory(path);
+    if (object == 'end') {
+      await receiverSubscription.cancel();
+      exiting.complete(true);
+      return;
+    }
+    // init event
+    workerSendPort = object[0];
+    dir = new Directory(object[1]);
+  });
 
-    sendPort.send('start');
-    // Delay some time to ensure that watcher is created when modification is running consistently.
-    await Future.delayed(Duration(milliseconds: 10));
-    var watcher = dir.watch();
-    var subscription;
+  Completer<bool> workerExitedCompleter = Completer();
+  RawReceivePort exitReceivePort = RawReceivePort((object) { workerExitedCompleter.complete(true); });
+  RawReceivePort errorReceivePort = RawReceivePort((object) { print('worker errored: $object'); });
+  await Isolate.spawn(modifyFiles, receivePort.sendPort, onExit: exitReceivePort.sendPort, onError: errorReceivePort.sendPort);
 
-    // Wait for event and check the type
-    subscription = watcher.listen((data) {
-      if (data is FileSystemModifyEvent) {
-        Expect.isTrue(data.path.endsWith('file'));
-        subscription.cancel();
-      }
-    });
+  await modificationEventReceived.future;
+  workerSendPort.send('end');
 
-    // Create a file to signal modifier isolate to stop modification and clean up temp directory.
-    var file = new File(join(dir.path, 'EventReceived'));
-    file.createSync();
-    sendPort.send('end');
-  }
+  await exiting.future;
+  await workerExitedCompleter.future;
+  exitReceivePort.close();
+  errorReceivePort.close();
   asyncEnd();
 }
 
-void modifyFiles(SendPort sendPort) {
+void modifyFiles(SendPort sendPort) async {
   // Send sendPort back to listen for modification signal.
   ReceivePort receivePort = ReceivePort();
   var dir = Directory.systemTemp.createTempSync('dart_file_system_watcher');
@@ -362,25 +374,30 @@ void modifyFiles(SendPort sendPort) {
   // Create file within the directory and keep modifying.
   var file = new File(join(dir.path, 'file'));
   file.createSync();
+  bool done = false;
   var subscription;
-  sendPort.send([receivePort.sendPort, dir.path]);
-  subscription = receivePort.listen((data) {
-    if (data == 'end') {
-      // Clean up the directory and files
-      dir.deleteSync(recursive: true);
-      sendPort.send('end');
-      subscription.cancel();
-    } else {
-      // This signal file is created once watcher isolate receives the event.
-      var signal = new File(join(dir.path, 'EventReceived'));
-      while (!signal.existsSync()) {
-        // Start modifying the file continuously before watcher start watching.
-        for (int i = 0; i < 100; i++) {
-          file.writeAsStringSync('a');
-        }
-      }
+  subscription = receivePort.listen((object) async {
+    if (object == 'end') {
+      await subscription.cancel();
+      done = true;
     }
   });
+  sendPort.send([receivePort.sendPort, dir.path]);
+  bool notificationSent = false;
+  while(!done) {
+    // Start modifying the file continuously before watcher start watching.
+    for (int i = 0; i < 100; i++) {
+      file.writeAsStringSync('a');
+    }
+    if (!notificationSent) {
+      sendPort.send('modification_started');
+      notificationSent = true;
+    }
+    await Future.delayed(Duration());
+  }
+  // Clean up the directory and files
+  dir.deleteSync(recursive: true);
+  sendPort.send('end');
 }
 
 void main() {

@@ -403,15 +403,19 @@ bool DirectoryWatchHandle::IssueRead() {
     return true;
   }
   OverlappedBuffer* buffer = OverlappedBuffer::AllocateReadBuffer(kBufferSize);
+  // Set up pending_read_ before ReadDirectoryChangesW because it might be
+  // needed in ReadComplete invoked on event loop thread right away if data is
+  // also ready right away.
+  pending_read_ = buffer;
   ASSERT(completion_port_ != INVALID_HANDLE_VALUE);
   BOOL ok = ReadDirectoryChangesW(handle_, buffer->GetBufferStart(),
                                   buffer->GetBufferSize(), recursive_, events_,
                                   NULL, buffer->GetCleanOverlapped(), NULL);
   if (ok || (GetLastError() == ERROR_IO_PENDING)) {
     // Completing asynchronously.
-    pending_read_ = buffer;
     return true;
   }
+  pending_read_ = nullptr;
   OverlappedBuffer::DisposeBuffer(buffer);
   return false;
 }
@@ -1103,7 +1107,8 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
         // If out events (can write events) have been requested, and there
         // are no pending writes, meaning any writes are already complete,
         // post an out event immediately.
-        if ((events & (1 << kOutEvent)) != 0) {
+        intptr_t out_event_mask = 1 << kOutEvent;
+        if ((events & out_event_mask) != 0) {
           if (!handle->HasPendingWrite()) {
             if (handle->is_client_socket()) {
               if (reinterpret_cast<ClientSocket*>(handle)->is_connected()) {
@@ -1114,11 +1119,22 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
                 }
               }
             } else {
-              intptr_t event_mask = 1 << kOutEvent;
-              if ((handle->Mask() & event_mask) != 0) {
-                Dart_Port port = handle->NextNotifyDartPort(event_mask);
-                DartUtils::PostInt32(port, event_mask);
+              if ((handle->Mask() & out_event_mask) != 0) {
+                Dart_Port port = handle->NextNotifyDartPort(out_event_mask);
+                DartUtils::PostInt32(port, out_event_mask);
               }
+            }
+          }
+        }
+        // Similarly, if in events (can read events) have been requested, and
+        // there is pending data available, post an in event immediately.
+        intptr_t in_event_mask = 1 << kInEvent;
+        if ((events & in_event_mask) != 0) {
+          if (handle->data_ready_ != nullptr &&
+              !handle->data_ready_->IsEmpty()) {
+            if ((handle->Mask() & in_event_mask) != 0) {
+              Dart_Port port = handle->NextNotifyDartPort(in_event_mask);
+              DartUtils::PostInt32(port, in_event_mask);
             }
           }
         }
