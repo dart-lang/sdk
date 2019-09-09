@@ -5438,7 +5438,12 @@ class Parser {
         typeInfo.isNullable &&
         typeInfo.couldBeExpression) {
       assert(optional('?', token));
-      assert(next.isIdentifier);
+      assert(next.isKeywordOrIdentifier);
+      if (!next.isIdentifier) {
+        reportRecoverableError(
+            next, fasta.templateExpectedIdentifier.withArguments(next));
+        next = rewriter.insertSyntheticIdentifier(next);
+      }
       Token afterIdentifier = next.next;
       //
       // found <typeref> `?` <identifier>
