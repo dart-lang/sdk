@@ -79,6 +79,19 @@ mixin DecoratedTypeTester implements DecoratedTypeTesterBase {
         namedParameters: named);
   }
 
+  DecoratedType future(DecoratedType parameter, {NullabilityNode node}) {
+    return DecoratedType(typeProvider.futureType.instantiate([parameter.type]),
+        node ?? newNode(),
+        typeArguments: [parameter]);
+  }
+
+  DecoratedType futureOr(DecoratedType parameter, {NullabilityNode node}) {
+    return DecoratedType(
+        typeProvider.futureOrType.instantiate([parameter.type]),
+        node ?? newNode(),
+        typeArguments: [parameter]);
+  }
+
   DecoratedType int_({NullabilityNode node}) =>
       DecoratedType(typeProvider.intType, node ?? newNode());
 

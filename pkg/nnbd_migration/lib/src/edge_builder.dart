@@ -37,6 +37,9 @@ class AssignmentCheckerForTesting extends Object with _AssignmentChecker {
   @override
   final TypeSystem _typeSystem;
 
+  @override
+  final TypeProvider _typeProvider;
+
   final NullabilityGraph _graph;
 
   /// Tests should fill in this map with the bounds of any type parameters being
@@ -46,8 +49,8 @@ class AssignmentCheckerForTesting extends Object with _AssignmentChecker {
   @override
   final DecoratedClassHierarchy _decoratedClassHierarchy;
 
-  AssignmentCheckerForTesting(
-      this._typeSystem, this._graph, this._decoratedClassHierarchy);
+  AssignmentCheckerForTesting(this._typeSystem, this._typeProvider, this._graph,
+      this._decoratedClassHierarchy);
 
   void checkAssignment(EdgeOrigin origin,
       {@required DecoratedType source,
@@ -1966,6 +1969,8 @@ mixin _AssignmentChecker {
 
   NullabilityGraph get _graph;
 
+  TypeProvider get _typeProvider;
+
   TypeSystem get _typeSystem;
 
   /// Creates the necessary constraint(s) for an assignment from [source] to
@@ -1987,6 +1992,32 @@ mixin _AssignmentChecker {
       {@required DecoratedType source, @required DecoratedType destination}) {
     var sourceType = source.type;
     var destinationType = destination.type;
+    if (destinationType.isDartAsyncFutureOr) {
+      // (From the subtyping spec):
+      // if T1 is FutureOr<S1> then T0 <: T1 iff any of the following hold:
+      // - either T0 <: Future<S1>
+      var s1 = destination.typeArguments[0];
+      if (_typeSystem.isSubtypeOf(
+          sourceType, _typeProvider.futureType.instantiate([s1.type]))) {
+        // E.g. FutureOr<int> = (... as Future<int>)
+        // This is handled by the InterfaceType logic below, since we treat
+        // FutureOr as a supertype of Future.
+      }
+      // - or T0 <: S1
+      else if (_typeSystem.isSubtypeOf(sourceType, s1.type)) {
+        // E.g. FutureOr<int> = (... as int)
+        _checkAssignment_recursion(origin, source: source, destination: s1);
+        return;
+      }
+      // - or T0 is X0 and X0 has bound S0 and S0 <: T1
+      // - or T0 is X0 & S0 and S0 <: T1
+      else if (sourceType is TypeParameterType) {
+        throw UnimplementedError('TODO(paulberry)');
+      } else {
+        // Not a subtype; this must be a downcast.
+        throw UnimplementedError('TODO(paulberry)');
+      }
+    }
     if (sourceType.isBottom || sourceType.isDartCoreNull) {
       // No further edges need to be created, since all types are trivially
       // supertypes of bottom (and of Null, in the pre-migration world).
@@ -2019,15 +2050,6 @@ mixin _AssignmentChecker {
         destinationType is InterfaceType) {
       if (_typeSystem.isSubtypeOf(sourceType, destinationType)) {
         // Ordinary (upcast) assignment.  No cast necessary.
-        if (destinationType.isDartAsyncFutureOr) {
-          if (_typeSystem.isSubtypeOf(
-              sourceType, destinationType.typeArguments[0])) {
-            // We are looking at T <: FutureOr<U>.  So treat this as T <: U.
-            _checkAssignment_recursion(origin,
-                source: source, destination: destination.typeArguments[0]);
-            return;
-          }
-        }
         var rewrittenSource = _decoratedClassHierarchy.asInstanceOf(
             source, destinationType.element);
         assert(rewrittenSource.typeArguments.length ==

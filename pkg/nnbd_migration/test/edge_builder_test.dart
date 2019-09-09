@@ -48,8 +48,8 @@ class AssignmentCheckerTest extends Object
     var typeProvider = TestTypeProvider();
     var graph = NullabilityGraphForTesting();
     var decoratedClassHierarchy = _DecoratedClassHierarchyForTesting();
-    var checker = AssignmentCheckerForTesting(
-        Dart2TypeSystem(typeProvider), graph, decoratedClassHierarchy);
+    var checker = AssignmentCheckerForTesting(Dart2TypeSystem(typeProvider),
+        typeProvider, graph, decoratedClassHierarchy);
     var assignmentCheckerTest =
         AssignmentCheckerTest._(typeProvider, graph, checker);
     decoratedClassHierarchy.assignmentCheckerTest = assignmentCheckerTest;
@@ -165,6 +165,14 @@ class AssignmentCheckerTest extends Object
     assertEdge(t1.returnType.node, t2.returnType.node, hard: false);
   }
 
+  void test_future_int_to_future_or_int() {
+    var t1 = future(int_());
+    var t2 = futureOr(int_());
+    assign(t1, t2, hard: true);
+    assertEdge(t1.node, t2.node, hard: true);
+    assertEdge(t1.typeArguments[0].node, t2.typeArguments[0].node, hard: false);
+  }
+
   test_generic_to_dynamic() {
     var t = list(object());
     assign(t, dynamic_);
@@ -225,6 +233,21 @@ class AssignmentCheckerTest extends Object
     assign(t, void_);
     assertEdge(t.node, always, hard: false);
     assertNoEdge(t.typeArguments[0].node, anyNode);
+  }
+
+  void test_int_to_future_or_int() {
+    var t1 = int_();
+    var t2 = futureOr(int_());
+    assign(t1, t2, hard: true);
+    // Note: given code like:
+    //   int x = null;
+    //   FutureOr<int> y = x;
+    // There are two possible migrations for `FutureOr<int>`: we could change it
+    // to either `FutureOr<int?>` or `FutureOr<int>?`.  We choose to do
+    // `FutureOr<int>?` because it is a narrower type, so it is less likely to
+    // cause a proliferation of nullable types in the user's program.
+    assertEdge(t1.node, t2.node, hard: true);
+    assertNoEdge(t1.node, t2.typeArguments[0].node);
   }
 
   void test_null_to_generic() {
@@ -4649,6 +4672,11 @@ class _DecoratedClassHierarchyForTesting implements DecoratedClassHierarchy {
     if (class_.name == 'MyListOfList' && superclass.name == 'List') {
       return assignmentCheckerTest._myListOfListSupertype
           .substitute({class_.typeParameters[0]: type.typeArguments[0]});
+    }
+    if (class_.name == 'Future' && superclass.name == 'FutureOr') {
+      return DecoratedType(
+          superclass.type.instantiate([type.typeArguments[0].type]), type.node,
+          typeArguments: [type.typeArguments[0]]);
     }
     throw UnimplementedError(
         'TODO(paulberry): asInstanceOf($type, $superclass)');
