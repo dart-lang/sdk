@@ -53,12 +53,6 @@ partial_instantiation_static_bounds_check_test/01: MissingCompileTimeError # Iss
 partial_instantiation_static_bounds_check_test/02: MissingCompileTimeError # Issue 34327
 partial_instantiation_static_bounds_check_test/03: MissingCompileTimeError # Issue 34327
 
-[ $compiler != compare_analyzer_cfe && $compiler != dart2js && $compiler != spec_parser && !$fasta ]
-compile_time_constant_static5_test/11: CompileTimeError # Issue 30546
-compile_time_constant_static5_test/16: CompileTimeError # Issue 30546
-compile_time_constant_static5_test/21: CompileTimeError # Issue 30546
-compile_time_constant_static5_test/23: CompileTimeError # Issue 30546
-
 [ $compiler != compare_analyzer_cfe && $compiler != spec_parser ]
 mixin_constructor_forwarding/const_constructor_test/none: CompileTimeError # Issue 32223
 mixin_constructor_forwarding/const_constructor_with_field_test/none: CompileTimeError # Issue 32223
