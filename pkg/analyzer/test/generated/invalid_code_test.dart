@@ -230,7 +230,6 @@ class InvalidCodeWithExtensionMethodsTest extends DriverResolutionTest {
     ..contextFeatures = new FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
 
-  @failingTest
   test_fuzz_14() async {
     // This crashes because parser produces `ConstructorDeclaration`.
     // So, we try to create `ConstructorElement` for it, and it wants

@@ -910,12 +910,59 @@ class AstBuilder extends StackListener {
   @override
   void endExtensionFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
+    assert(optional('factory', factoryKeyword));
+    assert(optional(';', endToken) || optional('}', endToken));
     debugEvent("ExtensionFactoryMethod");
-    // TODO(danrubel) Decide how to handle constructor declarations within
-    // extensions. They are invalid and the parser has already reported an
-    // error at this point, but we include them in order to get navigation,
-    // search, etc.
-    endClassFactoryMethod(beginToken, factoryKeyword, endToken);
+
+    Object bodyObject = pop();
+    FormalParameterList parameters = pop();
+    TypeParameterList typeParameters = pop();
+    Object constructorName = pop();
+    _Modifiers modifiers = pop();
+    List<Annotation> metadata = pop();
+
+    FunctionBody body;
+    if (bodyObject is FunctionBody) {
+      body = bodyObject;
+    } else if (bodyObject is _RedirectingFactoryBody) {
+      body = ast.emptyFunctionBody(endToken);
+    } else {
+      // Unhandled situation which should never happen.
+      // Since this event handler is just a recovery attempt,
+      // don't bother adding this declaration to the AST.
+      return;
+    }
+    Comment comment = _findComment(metadata, beginToken);
+
+    assert(parameters != null);
+
+    // Constructor declarations within extensions are invalid and the parser
+    // has already reported an error at this point, but we include them in as
+    // a method declaration in order to get navigation, search, etc.
+
+    SimpleIdentifier methodName;
+    if (constructorName is SimpleIdentifier) {
+      methodName = constructorName;
+    } else if (constructorName is PrefixedIdentifier) {
+      methodName = constructorName.identifier;
+    } else {
+      // Unsure what the method name should be in this situation.
+      // Since this event handler is just a recovery attempt,
+      // don't bother adding this declaration to the AST.
+      return;
+    }
+    currentDeclarationMembers.add(ast.methodDeclaration(
+        comment,
+        metadata,
+        modifiers?.externalKeyword,
+        modifiers?.abstractKeyword ?? modifiers?.staticKeyword,
+        null, // returnType
+        null, // getOrSet
+        null, // operatorKeyword
+        methodName,
+        typeParameters,
+        parameters,
+        body));
   }
 
   void endFieldInitializer(Token assignment, Token token) {
