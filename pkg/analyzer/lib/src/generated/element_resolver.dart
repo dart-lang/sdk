@@ -175,7 +175,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
         //  side to the operator.
         ResolutionResult result =
             _lookUpMethod(leftHandSide, staticType, methodName, leftHandSide);
-        node.staticElement = result.element;
+        node.staticElement = result.function;
         if (_shouldReportInvalidMember(staticType, result)) {
           _recordUndefinedToken(
               staticType.element,
@@ -272,8 +272,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
               memberElement = element.getNamedConstructor(name.name);
               if (memberElement == null) {
                 memberElement =
-                    _lookUpSetter(prefix, element.type, name.name, name)
-                        .element;
+                    _lookUpSetter(prefix, element.type, name.name, name).setter;
               }
             }
             if (memberElement == null) {
@@ -406,8 +405,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
     Expression function = node.function;
     DartType functionType;
     if (function is ExtensionOverride) {
-      var member = _extensionResolver.getOverrideMember(
-          function, 'call', ElementKind.METHOD);
+      var member = _extensionResolver.getOverrideMember(function, 'call');
       if (member != null && member.isStatic) {
         _resolver.errorReporter.reportErrorForNode(
             CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
@@ -486,7 +484,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       ResolutionResult setterResult =
           _lookUpMethod(target, staticType, setterMethodName, target);
       // set setter element
-      node.staticElement = setterResult.element;
+      node.staticElement = setterResult.function;
       // generate undefined method warning
       _checkForUndefinedIndexOperator(
           node, target, setterMethodName, setterResult, staticType);
@@ -495,7 +493,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
           _lookUpMethod(target, staticType, getterMethodName, target);
       // set getter element
       AuxiliaryElements auxiliaryElements =
-          new AuxiliaryElements(getterResult.element, null);
+          new AuxiliaryElements(getterResult.function, null);
       node.auxiliaryElements = auxiliaryElements;
       // generate undefined method warning
       _checkForUndefinedIndexOperator(
@@ -505,7 +503,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       ResolutionResult methodResult =
           _lookUpMethod(target, staticType, getterMethodName, target);
       // set getter element
-      node.staticElement = methodResult.element;
+      node.staticElement = methodResult.function;
       // generate undefined method warning
       _checkForUndefinedIndexOperator(
           node, target, getterMethodName, methodResult, staticType);
@@ -514,7 +512,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       ResolutionResult methodResult =
           _lookUpMethod(target, staticType, setterMethodName, target);
       // set setter element
-      node.staticElement = methodResult.element;
+      node.staticElement = methodResult.function;
       // generate undefined method warning
       _checkForUndefinedIndexOperator(
           node, target, setterMethodName, methodResult, staticType);
@@ -572,7 +570,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
     //  the operator.
     ResolutionResult result =
         _lookUpMethod(operand, staticType, methodName, operand);
-    node.staticElement = result.element;
+    node.staticElement = result.function;
     if (_shouldReportInvalidMember(staticType, result)) {
       if (operand is SuperExpression) {
         _recordUndefinedToken(
@@ -680,7 +678,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       //  the operator.
       ResolutionResult result =
           _lookUpMethod(operand, staticType, methodName, operand);
-      node.staticElement = result.element;
+      node.staticElement = result.function;
       if (_shouldReportInvalidMember(staticType, result)) {
         if (operand is SuperExpression) {
           _recordUndefinedToken(
@@ -716,7 +714,10 @@ class ElementResolver extends SimpleAstVisitor<void> {
       ExecutableElement member;
       if (propertyName.inSetterContext()) {
         member = _extensionResolver.getOverrideMember(
-            target, memberName, ElementKind.SETTER);
+          target,
+          memberName,
+          setter: true,
+        );
         if (member == null) {
           _resolver.errorReporter.reportErrorForNode(
               CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER,
@@ -724,8 +725,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
               [memberName, element.name]);
         }
         if (propertyName.inGetterContext()) {
-          PropertyAccessorElement getter = _extensionResolver.getOverrideMember(
-              target, memberName, ElementKind.GETTER);
+          PropertyAccessorElement getter =
+              _extensionResolver.getOverrideMember(target, memberName);
           if (getter == null) {
             _resolver.errorReporter.reportErrorForNode(
                 CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER,
@@ -735,10 +736,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
           propertyName.auxiliaryElements = AuxiliaryElements(getter, null);
         }
       } else if (propertyName.inGetterContext()) {
-        member = _extensionResolver.getOverrideMember(
-                target, memberName, ElementKind.GETTER) ??
-            _extensionResolver.getOverrideMember(
-                target, memberName, ElementKind.METHOD);
+        member = _extensionResolver.getOverrideMember(target, memberName);
         if (member == null) {
           _resolver.errorReporter.reportErrorForNode(
               CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER,
@@ -877,7 +875,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
         enclosingClass != null) {
       InterfaceType enclosingType = enclosingClass.type;
       AuxiliaryElements auxiliaryElements = new AuxiliaryElements(
-          _lookUpGetter(null, enclosingType, node.name, node).element, null);
+          _lookUpGetter(null, enclosingType, node.name, node).getter, null);
       node.auxiliaryElements = auxiliaryElements;
     }
     //
@@ -1227,12 +1225,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
     }
 
     var result = _extensionResolver.findExtension(
-      type,
-      FunctionElement.CALL_METHOD_NAME,
-      node,
-      ElementKind.METHOD,
-    );
-    var instantiatedMember = result.element;
+        type, FunctionElement.CALL_METHOD_NAME, node);
+    var instantiatedMember = result.function;
     if (instantiatedMember is MethodElement) {
       return instantiatedMember;
     }
@@ -1254,7 +1248,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       var getter = type.lookUpInheritedGetter(name,
           library: _definingLibrary, thisType: target is! SuperExpression);
       if (getter != null) {
-        result = ResolutionResult(getter);
+        result = ResolutionResult(property: getter.variable);
       }
     }
 
@@ -1266,8 +1260,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       return ResolutionResult.none;
     }
     if (result.isNone) {
-      result = _extensionResolver.findExtension(
-          type, name, nameNode, ElementKind.GETTER);
+      result = _extensionResolver.findExtension(type, name, nameNode);
     }
     return result;
   }
@@ -1300,7 +1293,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       var method = type.lookUpInheritedMethod(name,
           library: _definingLibrary, thisType: target is! SuperExpression);
       if (method != null) {
-        result = ResolutionResult(method);
+        result = ResolutionResult(function: method);
       }
     }
 
@@ -1312,8 +1305,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       return ResolutionResult.none;
     }
     if (result.isNone) {
-      result = _extensionResolver.findExtension(
-          type, name, nameNode, ElementKind.METHOD);
+      result = _extensionResolver.findExtension(type, name, nameNode);
     }
     return result;
   }
@@ -1332,7 +1324,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       var setter = type.lookUpInheritedSetter(name,
           library: _definingLibrary, thisType: target is! SuperExpression);
       if (setter != null) {
-        result = ResolutionResult(setter);
+        result = ResolutionResult(property: setter.variable);
       }
     }
 
@@ -1344,8 +1336,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       return ResolutionResult.none;
     }
     if (result.isNone) {
-      result = _extensionResolver.findExtension(
-          type, name, nameNode, ElementKind.SETTER);
+      result = _extensionResolver.findExtension(type, name, nameNode);
     }
     return result;
   }
@@ -1593,7 +1584,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
           forSuper: isSuper,
         );
         if (invokeElement != null) {
-          result = ResolutionResult(invokeElement);
+          result = ResolutionResult(function: invokeElement);
         }
       }
 
@@ -1604,12 +1595,11 @@ class ElementResolver extends SimpleAstVisitor<void> {
       }
 
       if (result.isNone) {
-        result = _extensionResolver.findExtension(
-            leftType, methodName, node, ElementKind.METHOD);
+        result = _extensionResolver.findExtension(leftType, methodName, node);
       }
 
-      node.staticElement = result.element;
-      node.staticInvokeType = result.element?.type;
+      node.staticElement = result.function;
+      node.staticInvokeType = result.function?.type;
       if (_shouldReportInvalidMember(leftType, result)) {
         if (isSuper) {
           _recordUndefinedToken(
@@ -1670,23 +1660,28 @@ class ElementResolver extends SimpleAstVisitor<void> {
    * Given that we are accessing a property of the given [classElement] with the
    * given [propertyName], return the element that represents the property.
    */
-  Element _resolveElement(
+  ResolutionResult _resolveElement(
       ClassElement classElement, SimpleIdentifier propertyName) {
     String name = propertyName.name;
-    Element element = null;
     if (propertyName.inSetterContext()) {
-      element = classElement.getSetter(name);
+      var element = classElement.getSetter(name);
+      if (element != null && element.isAccessibleIn(_definingLibrary)) {
+        return ResolutionResult(property: element.variable);
+      }
     }
-    if (element == null) {
-      element = classElement.getGetter(name);
+    {
+      var element = classElement.getGetter(name);
+      if (element != null && element.isAccessibleIn(_definingLibrary)) {
+        return ResolutionResult(property: element.variable);
+      }
     }
-    if (element == null) {
-      element = classElement.getMethod(name);
+    {
+      var element = classElement.getMethod(name);
+      if (element != null && element.isAccessibleIn(_definingLibrary)) {
+        return ResolutionResult(function: element);
+      }
     }
-    if (element != null && element.isAccessibleIn(_definingLibrary)) {
-      return element;
-    }
-    return null;
+    return ResolutionResult.none;
   }
 
   /**
@@ -1757,7 +1752,11 @@ class ElementResolver extends SimpleAstVisitor<void> {
             [memberName]);
       }
       if (staticElement != null) {
-        result = ResolutionResult(staticElement);
+        if (staticElement is PropertyAccessorElement) {
+          result = ResolutionResult(property: staticElement.variable);
+        } else if (staticElement is MethodElement) {
+          result = ResolutionResult(function: staticElement);
+        }
       }
     }
     //
@@ -1767,18 +1766,15 @@ class ElementResolver extends SimpleAstVisitor<void> {
     // does not apply to conditional property accesses (i.e. 'C?.m').
     //
     if (result.isNone) {
-      Element staticElement;
       ClassElement typeReference = getTypeReference(target);
       if (typeReference != null) {
         if (isCascaded) {
           typeReference = _typeType.element;
         }
-        staticElement = _resolveElement(typeReference, propertyName);
-        if (staticElement != null) {
-          result = ResolutionResult(staticElement);
-        }
+        result = _resolveElement(typeReference, propertyName);
       } else {
         if (target is SuperExpression) {
+          ExecutableElement staticElement;
           if (staticType is InterfaceTypeImpl) {
             staticElement = staticType.lookUpInheritedMember(
                 propertyName.name, _definingLibrary,
@@ -1806,8 +1802,10 @@ class ElementResolver extends SimpleAstVisitor<void> {
               }
             }
           }
-          if (staticElement != null) {
-            result = ResolutionResult(staticElement);
+          if (staticElement is PropertyAccessorElement) {
+            result = ResolutionResult(property: staticElement.variable);
+          } else if (staticElement is MethodElement) {
+            result = ResolutionResult(function: staticElement);
           }
         } else {
           result = _resolveProperty(target, staticType, propertyName);
@@ -1818,11 +1816,13 @@ class ElementResolver extends SimpleAstVisitor<void> {
     // Error was already reported in validateAnnotationElement().
     if (target.parent.parent is Annotation) {
       if (result.isSingle) {
-        propertyName.staticElement = result.element;
+        propertyName.staticElement = result.getter;
       }
       return;
     }
-    propertyName.staticElement = result.element;
+    propertyName.staticElement =
+        (propertyName.inSetterContext() ? result.setter : null) ??
+            result.getter;
     if (_shouldReportInvalidMember(staticType, result)) {
       if (staticType is FunctionType &&
           propertyName.name == FunctionElement.CALL_METHOD_NAME) {
@@ -1909,7 +1909,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
           if (enclosingClass != null) {
             setter = _lookUpSetter(
                     null, enclosingClass.type, identifier.name, identifier)
-                .element;
+                .setter;
           }
         }
         if (setter != null) {
@@ -1949,17 +1949,17 @@ class ElementResolver extends SimpleAstVisitor<void> {
                 identifier.parent is CommentReference)) {
           element =
               _lookUpSetter(null, enclosingType, identifier.name, identifier)
-                  .element;
+                  .setter;
         }
         if (element == null && identifier.inGetterContext()) {
           element =
               _lookUpGetter(null, enclosingType, identifier.name, identifier)
-                  .element;
+                  .getter;
         }
         if (element == null) {
           element =
               _lookUpMethod(null, enclosingType, identifier.name, identifier)
-                  .element;
+                  .getter;
         }
       }
     }

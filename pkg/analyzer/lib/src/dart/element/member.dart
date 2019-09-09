@@ -340,6 +340,16 @@ class FieldMember extends VariableMember implements FieldElement {
       Substitution.fromInterfaceType(definingType),
     );
   }
+
+  static FieldElement from2(
+    FieldElement element,
+    MapSubstitution substitution,
+  ) {
+    if (substitution.map.isEmpty) {
+      return element;
+    }
+    return FieldMember(element, substitution);
+  }
 }
 
 /**
@@ -642,6 +652,16 @@ class MethodMember extends ExecutableMember implements MethodElement {
       method,
       Substitution.fromInterfaceType(definingType),
     );
+  }
+
+  static MethodElement from2(
+    MethodElement element,
+    MapSubstitution substitution,
+  ) {
+    if (substitution.map.isEmpty) {
+      return element;
+    }
+    return MethodMember(element, substitution);
   }
 }
 

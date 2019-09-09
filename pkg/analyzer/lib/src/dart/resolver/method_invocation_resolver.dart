@@ -342,7 +342,6 @@ class MethodInvocationResolver {
       receiverType,
       name,
       nameNode,
-      ElementKind.METHOD,
     );
 
     if (!result.isSingle) {
@@ -350,7 +349,7 @@ class MethodInvocationResolver {
       return result;
     }
 
-    ExecutableElement member = result.element;
+    ExecutableElement member = result.getter;
     nameNode.staticElement = member;
 
     if (member.isStatic) {
@@ -392,10 +391,7 @@ class MethodInvocationResolver {
 
   void _resolveExtensionOverride(MethodInvocation node,
       ExtensionOverride override, SimpleIdentifier nameNode, String name) {
-    var member = _extensionResolver.getOverrideMember(
-            override, name, ElementKind.METHOD) ??
-        _extensionResolver.getOverrideMember(
-            override, name, ElementKind.GETTER);
+    var member = _extensionResolver.getOverrideMember(override, name);
 
     if (member == null) {
       _setDynamicResolution(node);
@@ -439,11 +435,11 @@ class MethodInvocationResolver {
       return;
     }
 
-    ResolutionResult result = _extensionResolver.findExtension(
-        receiverType, name, nameNode, ElementKind.METHOD);
+    ResolutionResult result =
+        _extensionResolver.findExtension(receiverType, name, nameNode);
     if (result.isSingle) {
-      nameNode.staticElement = result.element;
-      var calleeType = _getCalleeType(node, result.element);
+      nameNode.staticElement = result.getter;
+      var calleeType = _getCalleeType(node, result.getter);
       return _setResolution(node, calleeType);
     } else if (result.isAmbiguous) {
       return;
@@ -578,10 +574,9 @@ class MethodInvocationResolver {
       return;
     }
 
-    var result = _extensionResolver.findExtension(
-        receiverType, name, nameNode, ElementKind.METHOD);
+    var result = _extensionResolver.findExtension(receiverType, name, nameNode);
     if (result.isSingle) {
-      var target = result.element;
+      var target = result.getter;
       if (target != null) {
         nameNode.staticElement = target;
         var calleeType = _getCalleeType(node, target);
@@ -744,9 +739,9 @@ class MethodInvocationResolver {
       var call = _inheritance.getMember(type, _nameCall);
       if (call == null) {
         var result = _extensionResolver.findExtension(
-            type, _nameCall.name, node.methodName, ElementKind.METHOD);
+            type, _nameCall.name, node.methodName);
         if (result.isSingle) {
-          call = result.element;
+          call = result.function;
         } else if (result.isAmbiguous) {
           return;
         }
