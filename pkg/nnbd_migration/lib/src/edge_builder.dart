@@ -248,8 +248,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitAsExpression(AsExpression node) {
-    // TODO(brianwilkerson)
-    _unimplemented(node, 'AsExpression');
+    final typeNode = _variables.decoratedTypeAnnotation(source, node.type);
+    _handleAssignment(node.expression, destinationType: typeNode);
+    return typeNode;
   }
 
   @override

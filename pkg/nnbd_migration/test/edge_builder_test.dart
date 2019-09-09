@@ -352,6 +352,32 @@ class EdgeBuilderTest extends EdgeBuilderTestBase {
     return variables.decoratedExpressionType(findNode.expression(text));
   }
 
+  test_as_dynamic() async {
+    await analyze('''
+void f(Object o) {
+  (o as dynamic).gcd(1);
+}
+''');
+    assertEdge(decoratedTypeAnnotation('Object o').node,
+        decoratedTypeAnnotation('dynamic').node,
+        hard: true);
+    // TODO(mfairhurst): these should probably be hard edges.
+    assertEdge(decoratedTypeAnnotation('dynamic').node, never, hard: false);
+  }
+
+  test_as_int() async {
+    await analyze('''
+void f(Object o) {
+  (o as int).gcd(1);
+}
+''');
+    assertEdge(decoratedTypeAnnotation('Object o').node,
+        decoratedTypeAnnotation('int').node,
+        hard: true);
+    // TODO(mfairhurst): these should probably be hard edges.
+    assertEdge(decoratedTypeAnnotation('int').node, never, hard: false);
+  }
+
   test_already_migrated_field() async {
     await analyze('''
 double f() => double.NAN;
