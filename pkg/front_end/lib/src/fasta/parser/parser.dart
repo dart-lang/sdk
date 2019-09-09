@@ -3352,27 +3352,57 @@ class Parser {
           (staticToken == null || externalToken != null) && inPlainSync);
     }
     asyncState = savedAsyncModifier;
-    bool isConstructor = name.lexeme == enclosingDeclarationName;
-    if (!isConstructor &&
-        (optional('.', name.next) || beforeInitializers != null)) {
-      // Recovery: The name does not match,
-      // but the name is prefixed or the declaration contains initializers.
+
+    bool isConstructor = false;
+    if (optional('.', name.next) || beforeInitializers != null) {
       isConstructor = true;
-      // TODO(danrubel): report invalid constructor name
-      // Currently multiple listeners report this error, but that logic should
-      // be removed and the error reported here instead.
+      if (name.lexeme != enclosingDeclarationName) {
+        // Recovery: The name does not match,
+        // but the name is prefixed or the declaration contains initializers.
+        // Report an error and continue with invalid name.
+        // TODO(danrubel): report invalid constructor name
+        // Currently multiple listeners report this error, but that logic should
+        // be removed and the error reported here instead.
+      }
+      if (getOrSet != null) {
+        // Recovery
+        if (optional('.', name.next)) {
+          // Unexpected get/set before constructor.
+          // Report an error and skip over the token.
+          // TODO(danrubel): report an error on get/set token
+          // This is currently reported by listeners other than AstBuilder.
+          // It should be reported here rather than in the listeners.
+        } else {
+          isConstructor = false;
+          if (beforeInitializers != null) {
+            // Unexpected initializers after get/set declaration.
+            // Report an error on the initializers
+            // and continue with the get/set declaration.
+            // TODO(danrubel): report invalid initializers error
+            // Currently multiple listeners report this error, but that logic
+            // should be removed and the error reported here instead.
+          }
+        }
+      }
+    } else if (name.lexeme == enclosingDeclarationName) {
+      if (getOrSet != null) {
+        // Recovery: The get/set member name is invalid.
+        // Report an error and continue with invalid name.
+        // TODO(danrubel): report invalid get/set member name
+        // Currently multiple listeners report this error, but that logic should
+        // be removed and the error reported here instead.
+      } else {
+        isConstructor = true;
+      }
     }
+
     if (isConstructor) {
       //
       // constructor
       //
-      if (getOrSet != null) {
-        // TODO(danrubel): report an error on get/set token
-        // This is currently reported by listeners other than AstBuilder.
-        // It should be reported here rather than in the listeners.
-      }
       switch (kind) {
         case DeclarationKind.Class:
+          // TODO(danrubel): Remove getOrSet from constructor events
           listener.endClassConstructor(getOrSet, beforeStart.next,
               beforeParam.next, beforeInitializers?.next, token);
           break;
@@ -3390,7 +3420,7 @@ class Parser {
               beforeParam.next, beforeInitializers?.next, token);
           break;
         case DeclarationKind.TopLevel:
-          throw "Internal error: TopLevel method/constructor.";
+          throw "Internal error: TopLevel constructor.";
           break;
       }
     } else {
@@ -3399,6 +3429,7 @@ class Parser {
       //
       switch (kind) {
         case DeclarationKind.Class:
+          // TODO(danrubel): Remove beginInitializers token from method events
           listener.endClassMethod(getOrSet, beforeStart.next, beforeParam.next,
               beforeInitializers?.next, token);
           break;
@@ -3415,7 +3446,7 @@ class Parser {
               beforeParam.next, beforeInitializers?.next, token);
           break;
         case DeclarationKind.TopLevel:
-          throw "Internal error: TopLevel method/constructor.";
+          throw "Internal error: TopLevel method.";
           break;
       }
     }
