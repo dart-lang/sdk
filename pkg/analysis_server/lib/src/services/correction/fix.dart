@@ -189,6 +189,8 @@ class DartFixKind {
       const FixKind('CONVERT_TO_FOR_ELEMENT', 50, "Convert to a 'for' element");
   static const CONVERT_TO_IF_ELEMENT =
       const FixKind('CONVERT_TO_IF_ELEMENT', 50, "Convert to an 'if' element");
+  static const CONVERT_TO_INT_LITERAL =
+      const FixKind('CONVERT_TO_INT_LITERAL', 50, "Convert to an int literal");
   static const CONVERT_TO_LINE_COMMENT = const FixKind(
       'CONVERT_TO_LINE_COMMENT', 50, "Convert to line documentation comment");
   static const CONVERT_TO_NAMED_ARGUMENTS = const FixKind(

@@ -637,6 +637,9 @@ class FixProcessor extends BaseProcessor {
           LintNames.prefer_if_elements_to_conditional_expressions) {
         await _addFix_convertConditionalToIfElement();
       }
+      if (name == LintNames.prefer_int_literals) {
+        await _addFix_convertToIntLiteral();
+      }
       if (name == LintNames.prefer_is_empty) {
         await _addFix_replaceWithIsEmpty();
       }
@@ -1352,6 +1355,11 @@ class FixProcessor extends BaseProcessor {
     final changeBuilder =
         await createBuilder_convertMapFromIterableToForLiteral();
     _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_TO_FOR_ELEMENT);
+  }
+
+  Future<void> _addFix_convertToIntLiteral() async {
+    final changeBuilder = await createBuilder_convertToIntLiteral();
+    _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_TO_INT_LITERAL);
   }
 
   Future<void> _addFix_convertToNamedArgument() async {

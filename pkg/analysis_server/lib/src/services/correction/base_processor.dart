@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -467,6 +468,33 @@ abstract class BaseProcessor {
         builder.write(' : ');
         builder.write(valueExpressionText);
         builder.write(' }');
+      });
+    });
+    return changeBuilder;
+  }
+
+  Future<ChangeBuilder> createBuilder_convertToIntLiteral() async {
+    if (node is! DoubleLiteral) {
+      _coverageMarker();
+      return null;
+    }
+    DoubleLiteral literal = node;
+    int intValue;
+    try {
+      intValue = literal.value?.truncate();
+    } catch (e) {
+      // Double cannot be converted to int
+    }
+    if (intValue == null || intValue != literal.value) {
+      _coverageMarker();
+      return null;
+    }
+
+    var changeBuilder = _newDartChangeBuilder();
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      builder.addReplacement(new SourceRange(literal.offset, literal.length),
+          (DartEditBuilder builder) {
+        builder.write('$intValue');
       });
     });
     return changeBuilder;

@@ -32,11 +32,7 @@ class DartAssistContextImpl implements DartAssistContext {
  */
 class DartAssistKind {
   static const ADD_TYPE_ANNOTATION = const AssistKind(
-      'dart.assist.addTypeAnnotation', 30, "Add type annotation",
-      associatedErrorCodes: <String>[
-        'always_specify_types',
-        'type_annotate_public_apis'
-      ]);
+      'dart.assist.addTypeAnnotation', 30, "Add type annotation");
   static const ASSIGN_TO_LOCAL_VARIABLE = const AssistKind(
       'dart.assist.assignToVariable', 30, "Assign value to new local variable");
   static const CONVERT_CLASS_TO_MIXIN = const AssistKind(
@@ -48,17 +44,18 @@ class DartAssistKind {
   static const CONVERT_DOCUMENTATION_INTO_LINE = const AssistKind(
       'dart.assist.convert.lineComment',
       30,
-      "Convert to line documentation comment",
-      associatedErrorCodes: <String>['slash_for_doc_comments']);
+      "Convert to line documentation comment");
   static const CONVERT_INTO_ASYNC_BODY = const AssistKind(
       'dart.assist.convert.bodyToAsync', 29, "Convert to async function body");
   static const CONVERT_INTO_BLOCK_BODY = const AssistKind(
       'dart.assist.convert.bodyToBlock', 30, "Convert to block body");
   static const CONVERT_INTO_EXPRESSION_BODY = const AssistKind(
       'dart.assist.convert.bodyToExpression', 30, "Convert to expression body",
+      // todo (pq): migrate to (conditional) fix
       associatedErrorCodes: <String>['prefer_expression_function_bodies']);
   static const CONVERT_INTO_FINAL_FIELD = const AssistKind(
       'dart.assist.convert.getterToFinalField', 30, "Convert to final field",
+      // todo (pq): migrate to (conditional) fix
       associatedErrorCodes: <String>['prefer_final_fields']);
   static const CONVERT_INTO_FOR_INDEX = const AssistKind(
       'dart.assist.convert.forEachToForIndex', 30, "Convert to for-index loop");
@@ -85,19 +82,11 @@ class DartAssistKind {
       30,
       "Convert to field formal parameter");
   static const CONVERT_TO_FOR_ELEMENT = const AssistKind(
-      'dart.assist.convertToForElement', 30, "Convert to a 'for' element",
-      associatedErrorCodes: <String>[
-        'prefer_for_elements_to_map_fromIterable'
-      ]);
+      'dart.assist.convertToForElement', 30, "Convert to a 'for' element");
   static const CONVERT_TO_IF_ELEMENT = const AssistKind(
-      'dart.assist.convertToIfElement', 30, "Convert to an 'if' element",
-      associatedErrorCodes: <String>[
-        'prefer_if_elements_to_conditional_expressions'
-      ]);
+      'dart.assist.convertToIfElement', 30, "Convert to an 'if' element");
   static const CONVERT_TO_INT_LITERAL = const AssistKind(
-      'dart.assist.convert.toIntLiteral', 30, "Convert to an int literal",
-      // todo (pq): migrate to (conditional) fix
-      associatedErrorCodes: <String>['prefer_int_literals']);
+      'dart.assist.convert.toIntLiteral', 30, "Convert to an int literal");
   static const CONVERT_TO_LIST_LITERAL = const AssistKind(
       'dart.assist.convert.toListLiteral', 30, "Convert to list literal",
       // todo (brianwilkerson): unify w/ fix
@@ -241,9 +230,6 @@ class DartAssistKind {
       'dart.assist.surround.tryFinally', 29, "Surround with 'try-finally'");
   static const SURROUND_WITH_WHILE = const AssistKind(
       'dart.assist.surround.while', 24, "Surround with 'while'");
-  static const USE_CURLY_BRACES = const AssistKind(
-      'USE_CURLY_BRACES', 30, "Use curly braces",
-      associatedErrorCodes: <String>[
-        'curly_braces_in_flow_control_structures',
-      ]);
+  static const USE_CURLY_BRACES =
+      const AssistKind('USE_CURLY_BRACES', 30, "Use curly braces");
 }

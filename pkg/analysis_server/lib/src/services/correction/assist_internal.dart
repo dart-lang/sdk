@@ -82,7 +82,11 @@ class AssistProcessor extends BaseProcessor {
     await _addProposal_convertToFieldParameter();
     await _addProposal_convertToForIndexLoop();
     await _addProposal_convertToGenericFunctionSyntax();
-    await _addProposal_convertToIntLiteral();
+    if (!_containsErrorCode(
+      {LintNames.prefer_int_literals},
+    )) {
+      await _addProposal_convertToIntLiteral();
+    }
     await _addProposal_convertToIsNot_onIs();
     await _addProposal_convertToIsNot_onNot();
     await _addProposal_convertToIsNotEmpty();
@@ -1133,29 +1137,7 @@ class AssistProcessor extends BaseProcessor {
   }
 
   Future<void> _addProposal_convertToIntLiteral() async {
-    if (node is! DoubleLiteral) {
-      _coverageMarker();
-      return;
-    }
-    DoubleLiteral literal = node;
-    int intValue;
-    try {
-      intValue = literal.value?.truncate();
-    } catch (e) {
-      // Double cannot be converted to int
-    }
-    if (intValue == null || intValue != literal.value) {
-      _coverageMarker();
-      return;
-    }
-
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addReplacement(new SourceRange(literal.offset, literal.length),
-          (DartEditBuilder builder) {
-        builder.write('$intValue');
-      });
-    });
+    final changeBuilder = await createBuilder_convertToIntLiteral();
     _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_TO_INT_LITERAL);
   }
 
