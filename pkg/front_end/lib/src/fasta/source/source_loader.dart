@@ -964,10 +964,6 @@ class SourceLoader extends Loader {
   void checkMixins(List<SourceClassBuilder> sourceClasses) {
     for (SourceClassBuilder builder in sourceClasses) {
       if (builder.library.loader == this && !builder.isPatch) {
-        if (builder.isMixinDeclaration) {
-          builder.checkMixinDeclaration();
-        }
-
         Class mixedInClass = builder.cls.mixedInClass;
         if (mixedInClass != null && mixedInClass.isMixinDeclaration) {
           builder.checkMixinApplication(hierarchy);

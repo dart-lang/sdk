@@ -83,8 +83,6 @@ import '../fasta_codes.dart'
         noLength,
         templateDuplicatedDeclarationUse,
         templateGenericFunctionTypeInferredAsActualTypeArgument,
-        templateIllegalMixinDueToConstructors,
-        templateIllegalMixinDueToConstructorsCause,
         templateImplementsRepeated,
         templateImplementsSuperClass,
         templateImplicitMixinOverrideContext,
@@ -1432,26 +1430,6 @@ abstract class ClassBuilder extends DeclarationBuilder {
     return isMixinApplication && !isNamedMixinApplication
         ? "${supertype.fullNameForErrors} with ${mixedInType.fullNameForErrors}"
         : name;
-  }
-
-  void checkMixinDeclaration() {
-    assert(cls.isMixinDeclaration);
-    for (Builder constructor in constructors.local.values) {
-      if (!constructor.isSynthetic &&
-          (constructor.isFactory || constructor.isConstructor)) {
-        addProblem(
-            templateIllegalMixinDueToConstructors
-                .withArguments(fullNameForErrors),
-            charOffset,
-            noLength,
-            context: [
-              templateIllegalMixinDueToConstructorsCause
-                  .withArguments(fullNameForErrors)
-                  .withLocation(
-                      constructor.fileUri, constructor.charOffset, noLength)
-            ]);
-      }
-    }
   }
 
   void checkMixinApplication(ClassHierarchy hierarchy) {
