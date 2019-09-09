@@ -145,7 +145,6 @@ modulo_test: RuntimeError # non JS number semantics
 nan_identical_test: RuntimeError # Issue 11551
 numbers_test: RuntimeError, OK # non JS number semantics
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
-regress_30339_test: RuntimeError # Issue 26429
 regress_31057_test: Crash # Unsupported operation: Unsupported type parameter type node B.
 stacktrace_demangle_ctors_test: RuntimeError # Issue 12698
 stacktrace_rethrow_error_test/none: RuntimeError # Issue 12698
