@@ -317,7 +317,7 @@ mixin M {
   M();
 }
 ''', [
-      error(CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 27, 1),
+      error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 27, 1),
       error(StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1, 27, 1),
     ]);
   }
@@ -329,7 +329,7 @@ mixin M {
   M(this.f);
 }
 ''', [
-      error(CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 27, 1),
+      error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 27, 1),
     ]);
 
     var element = findElement.mixin('M');
@@ -830,7 +830,7 @@ mixin M {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 12, 1),
+      error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 12, 1),
     ]);
 
     // Even though it is an error for a mixin to declare a constructor,
@@ -879,7 +879,7 @@ main() {
   new M.named();
 }
 ''', [
-      error(CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 12, 1),
+      error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 12, 1),
       error(CompileTimeErrorCode.MIXIN_INSTANTIATE, 43, 1),
     ]);
 

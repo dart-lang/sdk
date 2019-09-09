@@ -3407,9 +3407,7 @@ class Parser {
               beforeParam.next, beforeInitializers?.next, token);
           break;
         case DeclarationKind.Mixin:
-          // TODO(danrubel): Mixin constructors are invalid. Currently multiple
-          // listeners report this error, but that logic should be removed
-          // and the error reported here instead.
+          reportRecoverableError(name, fasta.messageMixinDeclaresConstructor);
           listener.endMixinConstructor(getOrSet, beforeStart.next,
               beforeParam.next, beforeInitializers?.next, token);
           break;
@@ -3519,6 +3517,8 @@ class Parser {
         listener.endClassFactoryMethod(beforeStart.next, factoryKeyword, token);
         break;
       case DeclarationKind.Mixin:
+        reportRecoverableError(
+            factoryKeyword, fasta.messageMixinDeclaresConstructor);
         listener.endMixinFactoryMethod(beforeStart.next, factoryKeyword, token);
         break;
       case DeclarationKind.Extension:

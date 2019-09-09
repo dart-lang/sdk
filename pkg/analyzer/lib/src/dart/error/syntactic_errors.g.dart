@@ -102,6 +102,7 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _EXTENSION_DECLARES_CONSTRUCTOR,
   _EXTENSION_DECLARES_INSTANCE_FIELD,
   _EXTENSION_DECLARES_ABSTRACT_MEMBER,
+  _MIXIN_DECLARES_CONSTRUCTOR,
 ];
 
 const ParserErrorCode _ABSTRACT_CLASS_MEMBER = const ParserErrorCode(
@@ -439,6 +440,9 @@ const ParserErrorCode _MISSING_PREFIX_IN_DEFERRED_IMPORT =
 
 const ParserErrorCode _MISSING_STATEMENT =
     const ParserErrorCode('MISSING_STATEMENT', r"Expected a statement.");
+
+const ParserErrorCode _MIXIN_DECLARES_CONSTRUCTOR = const ParserErrorCode(
+    'MIXIN_DECLARES_CONSTRUCTOR', r"Mixins can't declare constructors.");
 
 const ParserErrorCode _MODIFIER_OUT_OF_ORDER = const ParserErrorCode(
     'MODIFIER_OUT_OF_ORDER',

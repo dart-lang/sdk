@@ -618,7 +618,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForConstConstructorWithNonConstSuper(node);
       _checkForAllFinalInitializedErrorCodes(node);
       _checkForRedirectingConstructorErrorCodes(node);
-      _checkForMixinDeclaresConstructor(node);
       _checkForMultipleSuperInitializers(node);
       _checkForRecursiveConstructorRedirect(node, constructorElement);
       if (!_checkForRecursiveFactoryRedirect(node, constructorElement)) {
@@ -3825,13 +3824,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       }
     }
     return false;
-  }
-
-  void _checkForMixinDeclaresConstructor(ConstructorDeclaration node) {
-    if (_enclosingClass.isMixin) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR, node.returnType);
-    }
   }
 
   /**

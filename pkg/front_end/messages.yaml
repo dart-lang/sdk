@@ -1861,8 +1861,15 @@ IllegalSyncGeneratorVoidReturnType:
       }
 
 IllegalMixinDueToConstructors:
+  # a class with a constructor is used as a mixin
   template: "Can't use '#name' as a mixin because it has constructors."
-  analyzerCode: MIXIN_DECLARES_CONSTRUCTOR
+  analyzerCode: MIXIN_DECLARES_CONSTRUCTOR # CompileTimeErrorCode
+
+MixinDeclaresConstructor:
+  # a mixin declaration contains a constructor declaration
+  index: 95
+  template: "Mixins can't declare constructors."
+  analyzerCode: ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR
 
 IllegalMixinDueToConstructorsCause:
   template: "This constructor prevents using '#name' as a mixin."

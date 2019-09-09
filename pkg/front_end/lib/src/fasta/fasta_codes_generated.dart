@@ -7218,6 +7218,15 @@ Message _withArgumentsMixinApplicationIncompatibleSupertype(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMixinDeclaresConstructor = messageMixinDeclaresConstructor;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMixinDeclaresConstructor = const MessageCode(
+    "MixinDeclaresConstructor",
+    index: 95,
+    message: r"""Mixins can't declare constructors.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String name,

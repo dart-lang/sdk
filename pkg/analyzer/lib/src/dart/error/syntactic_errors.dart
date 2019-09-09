@@ -539,6 +539,9 @@ class ParserErrorCode extends ErrorCode {
       "Can't have both positional and named parameters in a single parameter list.",
       correction: "Try choosing a single style of optional parameters.");
 
+  static const ParserErrorCode MIXIN_DECLARES_CONSTRUCTOR =
+      _MIXIN_DECLARES_CONSTRUCTOR;
+
   static const ParserErrorCode MODIFIER_OUT_OF_ORDER = _MODIFIER_OUT_OF_ORDER;
 
   static const ParserErrorCode MULTIPLE_EXTENDS_CLAUSES =
