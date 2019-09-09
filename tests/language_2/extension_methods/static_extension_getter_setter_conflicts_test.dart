@@ -64,7 +64,7 @@ extension E1B on C1<Object> {
 }
 
 void test1() {
-  C1<int> c1a = C1<Null>; // E1A is more specific.
+  C1<int> c1a = C1<Null>(); // E1A is more specific.
   c1a.m1;
 
   c1a.m1 = 0;
@@ -79,7 +79,7 @@ void test1() {
 
   c1a.m2 = 0;
 
-  C1<Object> c1b = C1<Null>;  // Neither extension is more specific.
+  C1<Object> c1b = C1<Null>();  // Neither extension is more specific.
 
   c1b.m1;
   //  ^^
