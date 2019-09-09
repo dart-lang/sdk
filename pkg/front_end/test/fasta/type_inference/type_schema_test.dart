@@ -117,7 +117,7 @@ class _OrdinaryVisitor<R> extends Visitor<R> {
   }
 }
 
-class _TypeSchemaVisitor<R> extends Visitor<R> implements TypeSchemaVisitor<R> {
+class _TypeSchemaVisitor<R> extends Visitor<R> {
   final _UnaryFunction<DartType, R> _defaultDartType;
   final _UnaryFunction<UnknownType, R> _visitUnknownType;
 
@@ -129,19 +129,12 @@ class _TypeSchemaVisitor<R> extends Visitor<R> implements TypeSchemaVisitor<R> {
 
   @override
   R defaultDartType(DartType node) {
-    if (_defaultDartType != null) {
+    if (node is UnknownType && _visitUnknownType != null) {
+      return _visitUnknownType(node);
+    } else if (_defaultDartType != null) {
       return _defaultDartType(node);
     } else {
       return super.defaultDartType(node);
-    }
-  }
-
-  @override
-  R visitUnknownType(UnknownType node) {
-    if (_visitUnknownType != null) {
-      return _visitUnknownType(node);
-    } else {
-      return defaultDartType(node);
     }
   }
 }

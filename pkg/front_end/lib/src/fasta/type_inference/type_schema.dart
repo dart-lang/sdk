@@ -32,7 +32,7 @@ String typeSchemaToString(DartType schema) {
 }
 
 /// Extension of [Printer] that represents the unknown type as `?`.
-class TypeSchemaPrinter extends Printer implements TypeSchemaVisitor<Null> {
+class TypeSchemaPrinter extends Printer {
   TypeSchemaPrinter(StringSink sink,
       {NameSystem syntheticNames,
       bool showExternal,
@@ -47,15 +47,9 @@ class TypeSchemaPrinter extends Printer implements TypeSchemaVisitor<Null> {
             annotator: annotator);
 
   @override
-  visitUnknownType(UnknownType node) {
+  defaultDartType(covariant UnknownType node) {
     writeWord('?');
   }
-}
-
-/// Extension of [DartTypeVisitor] which can visit [UnknownType].
-class TypeSchemaVisitor<R> extends DartTypeVisitor<R> {
-  /// Called when [UnknownType] is visited.
-  R visitUnknownType(UnknownType node) => defaultDartType(node);
 }
 
 /// The unknown type (denoted `?`) is an object which can appear anywhere that
@@ -78,16 +72,7 @@ class UnknownType extends DartType {
 
   @override
   R accept<R>(DartTypeVisitor<R> v) {
-    if (v is TypeSchemaVisitor<R>) {
-      return v.visitUnknownType(this);
-    } else {
-      // Note: in principle it seems like this should throw, since any visitor
-      // that operates on a type schema ought to inherit from TypeSchemaVisitor.
-      // However, that would make it impossible to use toString() on any type
-      // schema, since toString() uses the kernel's Printer visitor, which can't
-      // possibly inherit from TypeSchemaVisitor since it's inside kernel.
-      return v.defaultDartType(this);
-    }
+    return v.defaultDartType(this);
   }
 
   @override
@@ -99,9 +84,9 @@ class UnknownType extends DartType {
 }
 
 /// Visitor that computes [isKnown].
-class _IsKnownVisitor extends TypeSchemaVisitor<bool> {
+class _IsKnownVisitor extends DartTypeVisitor<bool> {
   @override
-  bool defaultDartType(DartType node) => true;
+  bool defaultDartType(DartType node) => node is! UnknownType;
 
   @override
   bool visitFunctionType(FunctionType node) {
@@ -130,7 +115,4 @@ class _IsKnownVisitor extends TypeSchemaVisitor<bool> {
     }
     return true;
   }
-
-  @override
-  bool visitUnknownType(UnknownType node) => false;
 }

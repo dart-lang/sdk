@@ -3,11 +3,17 @@
 // BSD-style license that can be found in the LICENSE.md file.
 
 import 'package:kernel/ast.dart'
-    show DartType, DynamicType, FunctionType, InterfaceType, NamedType;
+    show
+        DartType,
+        DartTypeVisitor,
+        DynamicType,
+        FunctionType,
+        InterfaceType,
+        NamedType;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
-import 'type_schema.dart' show TypeSchemaVisitor, UnknownType;
+import 'type_schema.dart' show UnknownType;
 
 /// Returns the greatest closure of the given type [schema] with respect to `?`.
 ///
@@ -46,7 +52,7 @@ DartType leastClosure(CoreTypes coreTypes, DartType schema) =>
 /// Each visitor method returns `null` if there are no `?`s contained in the
 /// type, otherwise it returns the result of substituting `?` with `Null` or
 /// `Object`, as appropriate.
-class _TypeSchemaEliminationVisitor extends TypeSchemaVisitor<DartType> {
+class _TypeSchemaEliminationVisitor extends DartTypeVisitor<DartType> {
   final DartType nullType;
 
   bool isLeastClosure;
@@ -115,8 +121,12 @@ class _TypeSchemaEliminationVisitor extends TypeSchemaVisitor<DartType> {
   }
 
   @override
-  DartType visitUnknownType(UnknownType node) =>
-      isLeastClosure ? nullType : const DynamicType();
+  DartType defaultDartType(DartType node) {
+    if (node is UnknownType) {
+      return isLeastClosure ? nullType : const DynamicType();
+    }
+    return null;
+  }
 
   /// Runs an instance of the visitor on the given [schema] and returns the
   /// resulting type.  If the schema contains no instances of `?`, the original
