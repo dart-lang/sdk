@@ -30,7 +30,6 @@ import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/task/api/model.dart';
-import 'package:analyzer/src/task/manager.dart';
 import 'package:front_end/src/fasta/scanner/token.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:pub_semver/pub_semver.dart';
@@ -144,10 +143,6 @@ abstract class AnalysisContext {
   /// [name].
   set name(String name);
 
-  /// The stream that is notified when sources have been added or removed,
-  /// or the source's content has changed.
-  Stream<SourcesChangedEvent> get onSourcesChanged;
-
   /// Return the source factory used to create the sources that can be analyzed
   /// in this context.
   SourceFactory get sourceFactory;
@@ -255,10 +250,6 @@ abstract class AnalysisContext {
   CancelableFuture<CompilationUnit> computeResolvedCompilationUnitAsync(
       Source source, Source librarySource);
 
-  /// Perform work until the given [result] has been computed for the given
-  /// [target]. Return the computed value.
-  V computeResult<V>(AnalysisTarget target, ResultDescriptor<V> result);
-
   /// Notifies the context that the client is going to stop using this context.
   void dispose();
 
@@ -276,13 +267,6 @@ abstract class AnalysisContext {
   /// cannot be analyzed for some reason.
   CompilationUnitElement getCompilationUnitElement(
       Source unitSource, Source librarySource);
-
-  /// Return configuration data associated with the given key or the [key]'s
-  /// default value if no state has been associated.
-  ///
-  /// See [setConfigurationData].
-  @deprecated
-  V getConfigurationData<V>(ResultDescriptor<V> key);
 
   /// Return the contents and timestamp of the given [source].
   ///
@@ -379,12 +363,6 @@ abstract class AnalysisContext {
   CompilationUnit getResolvedCompilationUnit2(
       Source unitSource, Source librarySource);
 
-  /// Return the value of the given [result] for the given [target].
-  ///
-  /// If the corresponding [target] does not exist, or the [result] is not
-  /// computed yet, then the default value is returned.
-  V getResult<V>(AnalysisTarget target, ResultDescriptor<V> result);
-
   /// Return a list of the sources being analyzed in this context whose full path
   /// is equal to the given [path].
   List<Source> getSourcesWithFullName(String path);
@@ -411,15 +389,6 @@ abstract class AnalysisContext {
   /// method will also return `false` if the source is not known to be a library
   /// or if we do not know whether it can be run on the server.
   bool isServerLibrary(Source librarySource);
-
-  /// Return the stream that is notified when a result with the given
-  /// [descriptor] is changed, e.g. computed or invalidated.
-  Stream<ResultChangedEvent> onResultChanged(ResultDescriptor descriptor);
-
-  /// Return the stream that is notified when a new value for the given
-  /// [descriptor] is computed.
-  @deprecated
-  Stream<ComputedResult> onResultComputed(ResultDescriptor descriptor);
 
   /// Parse the content of the given [source] to produce an AST structure. The
   /// resulting AST structure may or may not be resolved, and may have a slightly
@@ -481,12 +450,6 @@ abstract class AnalysisContext {
   /// is used by the context to determine what reanalysis is necessary.
   void setChangedContents(
       Source source, String contents, int offset, int oldLength, int newLength);
-
-  /// Associate this configuration [data] object with the given descriptor [key].
-  ///
-  /// See [getConfigurationData].
-  @deprecated
-  void setConfigurationData(ResultDescriptor key, Object data);
 
   /// Set the contents of the given [source] to the given [contents] and mark the
   /// source as having changed. This has the effect of overriding the default
@@ -597,9 +560,6 @@ class AnalysisEngine {
   /// The partition manager being used to manage the shared partitions.
   final PartitionManager partitionManager = new PartitionManager();
 
-  /// The task manager used to manage the tasks used to analyze code.
-  TaskManager _taskManager;
-
   AnalysisEngine._();
 
   /// Return the instrumentation service that is to be used by this analysis
@@ -624,14 +584,6 @@ class AnalysisEngine {
   /// analysis engine to the given [logger].
   void set logger(Logger logger) {
     this._logger = logger ?? Logger.NULL;
-  }
-
-  /// Return the task manager used to manage the tasks used to analyze code.
-  TaskManager get taskManager {
-    if (_taskManager == null) {
-      _taskManager = new TaskManager();
-    }
-    return _taskManager;
   }
 
   /// Clear any caches holding on to analysis results so that a full re-analysis
@@ -1808,27 +1760,6 @@ class ChangeSet_ContentChange {
       this.contents, this.offset, this.oldLength, this.newLength);
 }
 
-/// [ComputedResult] describes a value computed for a [ResultDescriptor].
-@deprecated
-class ComputedResult<V> {
-  /// The context in which the value was computed.
-  final AnalysisContext context;
-
-  /// The descriptor of the result which was computed.
-  final ResultDescriptor<V> descriptor;
-
-  /// The target for which the result was computed.
-  final AnalysisTarget target;
-
-  /// The computed value.
-  final V value;
-
-  ComputedResult(this.context, this.descriptor, this.target, this.value);
-
-  @override
-  String toString() => 'Computed $descriptor of $target in $context';
-}
-
 /// An event indicating when a source either starts or stops being implicitly
 /// analyzed.
 class ImplicitAnalysisEvent {
@@ -1875,10 +1806,6 @@ abstract class InternalAnalysisContext implements AnalysisContext {
   /// Specify whether the context is active, i.e. is being analyzed now.
   set isActive(bool value);
 
-  /// Return the [StreamController] reporting [InvalidatedResult]s for everything
-  /// in this context's cache.
-  ReentrantSynchronousStream<InvalidatedResult> get onResultInvalidated;
-
   /// Return a list containing all of the sources that have been marked as
   /// priority sources. Clients must not modify the returned list.
   List<Source> get prioritySources;
@@ -1892,19 +1819,6 @@ abstract class InternalAnalysisContext implements AnalysisContext {
 
   /// Sets the [TypeProvider] for this context.
   void set typeProvider(TypeProvider typeProvider);
-
-  /// A list of all [WorkManager]s used by this context.
-  List<WorkManager> get workManagers;
-
-  /// This method is invoked when the state of the [result] of the [entry] is
-  /// [CacheState.INVALID], so it is about to be computed.
-  ///
-  /// If the context knows how to provide the value, it sets the value into
-  /// the [entry] with all required dependencies, and returns `true`.
-  ///
-  /// Otherwise, it returns `false` to indicate that the result should be
-  /// computed as usually.
-  bool aboutToComputeResult(CacheEntry entry, ResultDescriptor result);
 
   /// Return a list containing the sources of the libraries that are exported by
   /// the library with the given [source]. The list will be empty if the given
@@ -1928,9 +1842,6 @@ abstract class InternalAnalysisContext implements AnalysisContext {
   /// flushed, otherwise return `null` and ensures that the [CompilationUnit]s
   /// will be eventually returned to the client from [performAnalysisTask].
   List<CompilationUnit> ensureResolvedDartUnits(Source source);
-
-  /// Return the cache entry associated with the given [target].
-  CacheEntry getCacheEntry(AnalysisTarget target);
 
   /// Return context that owns the given [source].
   InternalAnalysisContext getContextFor(Source source);
@@ -2197,81 +2108,4 @@ class ResolutionEraser extends GeneralizingAstVisitor<void> {
     eraser.eraseDeclarations = eraseDeclarations;
     node.accept(eraser);
   }
-}
-
-/// [ResultChangedEvent] describes a change to an analysis result.
-class ResultChangedEvent<V> {
-  /// The context in which the result was changed.
-  final AnalysisContext context;
-
-  /// The target for which the result was changed.
-  final AnalysisTarget target;
-
-  /// The descriptor of the result which was changed.
-  final ResultDescriptor<V> descriptor;
-
-  /// If the result [wasComputed], the new value of the result. If the result
-  /// [wasInvalidated], the value of before it was invalidated, may be the
-  /// default value if the result was flushed.
-  final V value;
-
-  /// Is `true` if the result was computed, or `false` is is was invalidated.
-  final bool _wasComputed;
-
-  ResultChangedEvent(this.context, this.target, this.descriptor, this.value,
-      this._wasComputed);
-
-  /// Returns `true` if the result was computed.
-  bool get wasComputed => _wasComputed;
-
-  /// Returns `true` if the result was invalidated.
-  bool get wasInvalidated => !_wasComputed;
-
-  @override
-  String toString() {
-    String operation = _wasComputed ? 'Computed' : 'Invalidated';
-    return '$operation $descriptor of $target in $context';
-  }
-}
-
-/// [SourcesChangedEvent] indicates which sources have been added, removed,
-/// or whose contents have changed.
-class SourcesChangedEvent {
-  /// The internal representation of what has changed. Clients should not access
-  /// this field directly.
-  final ChangeSet _changeSet;
-
-  /// Construct an instance representing the given changes.
-  SourcesChangedEvent(ChangeSet changeSet) : _changeSet = changeSet;
-
-  /// Construct an instance representing a source content change.
-  factory SourcesChangedEvent.changedContent(Source source, String contents) {
-    ChangeSet changeSet = new ChangeSet();
-    changeSet.changedContent(source, contents);
-    return new SourcesChangedEvent(changeSet);
-  }
-
-  /// Construct an instance representing a source content change.
-  factory SourcesChangedEvent.changedRange(Source source, String contents,
-      int offset, int oldLength, int newLength) {
-    ChangeSet changeSet = new ChangeSet();
-    changeSet.changedRange(source, contents, offset, oldLength, newLength);
-    return new SourcesChangedEvent(changeSet);
-  }
-
-  /// Return the collection of sources for which content has changed.
-  Iterable<Source> get changedSources {
-    List<Source> changedSources = new List.from(_changeSet.changedSources);
-    changedSources.addAll(_changeSet.changedContents.keys);
-    changedSources.addAll(_changeSet.changedRanges.keys);
-    return changedSources;
-  }
-
-  /// Return `true` if any sources were added.
-  bool get wereSourcesAdded => _changeSet.addedSources.isNotEmpty;
-
-  /// Return `true` if any sources were removed or deleted.
-  bool get wereSourcesRemoved =>
-      _changeSet.removedSources.isNotEmpty ||
-      _changeSet.removedContainers.isNotEmpty;
 }
