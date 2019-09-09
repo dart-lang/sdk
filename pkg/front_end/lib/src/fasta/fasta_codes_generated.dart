@@ -8137,6 +8137,54 @@ Message _withArgumentsOverrideTypeMismatchReturnType(
 const Template<
     Message Function(
         String name,
+        DartType _type,
+        DartType _type2,
+        String
+            name2)> templateOverrideTypeMismatchSetter = const Template<
+        Message Function(
+            String name, DartType _type, DartType _type2, String name2)>(
+    messageTemplate:
+        r"""The field '#name' has type '#type', which does not match the corresponding type, '#type2', in the overridden setter, '#name2'.""",
+    withArguments: _withArgumentsOverrideTypeMismatchSetter);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            String name, DartType _type, DartType _type2, String name2)>
+    codeOverrideTypeMismatchSetter = const Code<
+            Message Function(
+                String name, DartType _type, DartType _type2, String name2)>(
+        "OverrideTypeMismatchSetter", templateOverrideTypeMismatchSetter,
+        analyzerCodes: <String>["INVALID_METHOD_OVERRIDE"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsOverrideTypeMismatchSetter(
+    String name, DartType _type, DartType _type2, String name2) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeOverrideTypeMismatchSetter,
+      message:
+          """The field '${name}' has type '${type}', which does not match the corresponding type, '${type2}', in the overridden setter, '${name2}'.""" +
+              labeler.originMessages,
+      arguments: {
+        'name': name,
+        'type': _type,
+        'type2': _type2,
+        'name2': name2
+      });
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
         String
             name2)> templateOverrideTypeVariablesMismatch = const Template<
         Message Function(String name, String name2)>(

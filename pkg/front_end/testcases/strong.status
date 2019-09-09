@@ -49,6 +49,7 @@ general/override_check_accessor_with_covariant_modifier: TypeCheckError # Issue 
 general/override_check_after_inference: TypeCheckError # Issue #31620
 general/override_check_basic: TypeCheckError # Issue #31620
 general/override_check_with_covariant_modifier: TypeCheckError # Issue #31620
+general/override_setter_with_field: TypeCheckError
 general/reject_generic_function_types_in_bounds: RuntimeError # Expected
 general/spread_collection: RuntimeError
 general/statements: Crash

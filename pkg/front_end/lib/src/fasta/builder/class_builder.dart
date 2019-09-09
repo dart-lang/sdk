@@ -101,6 +101,7 @@ import '../fasta_codes.dart'
         templateOverrideMoreRequiredArguments,
         templateOverrideTypeMismatchParameter,
         templateOverrideTypeMismatchReturnType,
+        templateOverrideTypeMismatchSetter,
         templateOverrideTypeVariablesMismatch,
         templateRedirectingFactoryIncompatibleTypeArgument,
         templateRedirectionTargetNotFound,
@@ -1138,11 +1139,20 @@ abstract class ClassBuilder extends DeclarationBuilder {
       Message message;
       int fileOffset;
       if (declaredParameter == null) {
-        message = templateOverrideTypeMismatchReturnType.withArguments(
-            declaredMemberName,
-            declaredType,
-            interfaceType,
-            interfaceMemberName);
+        if (asIfDeclaredParameter) {
+          // Setter overridden by field
+          message = templateOverrideTypeMismatchSetter.withArguments(
+              declaredMemberName,
+              declaredType,
+              interfaceType,
+              interfaceMemberName);
+        } else {
+          message = templateOverrideTypeMismatchReturnType.withArguments(
+              declaredMemberName,
+              declaredType,
+              interfaceType,
+              interfaceMemberName);
+        }
         fileOffset = declaredMember.fileOffset;
       } else {
         message = templateOverrideTypeMismatchParameter.withArguments(

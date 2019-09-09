@@ -201,6 +201,7 @@ general/override_check_two_substitutions: TextSerializationFailure # Was: Pass
 general/override_check_with_covariant_modifier: TypeCheckError # Issue #31620
 general/override_inference_for_setters: TextSerializationFailure
 general/override_inference_named_parameters_ordering: TextSerializationFailure
+general/override_setter_with_field: TypeCheckError
 general/part_as_entry_point: TextSerializationFailure # Was: Pass
 general/part_as_entry_point_lib: TextSerializationFailure # Was: Pass
 general/part_not_part_of: TextSerializationFailure
