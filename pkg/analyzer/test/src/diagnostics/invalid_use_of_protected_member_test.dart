@@ -311,6 +311,9 @@ class B extends Object with A {
   }
 
   test_mixingIn_asParameter() async {
+    // TODO(srawlins): This test verifies that the analyzer **allows**
+    // protected members to be called from static members, which violates the
+    // protected spec.
     addMetaPackage();
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -339,6 +342,9 @@ main() {
   }
 
   test_setter_outsideClassAndFile() async {
+    // TODO(srawlins): This test verifies that the analyzer **allows**
+    // protected members to be called on objects other than `this`, which
+    // violates the protected spec.
     addMetaPackage();
     newFile('/lib1.dart', content: r'''
 import 'package:meta/meta.dart';

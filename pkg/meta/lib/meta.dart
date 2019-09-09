@@ -89,8 +89,8 @@ const _Experimental experimental = const _Experimental();
 /// Tools, such as the analyzer, can provide feedback if
 ///
 /// * the annotation is associated with anything other than a method, or
-/// * the annotation is associated with a method that has this annotation that
-///   can return anything other than a newly allocated object or `null`.
+/// * a method that has this annotation can return anything other than a newly
+///   allocated object or `null`.
 const _Factory factory = const _Factory();
 
 /// Used to annotate a class `C`. Indicates that `C` and all subtypes of `C`
@@ -168,9 +168,10 @@ const _OptionalTypeArgs optionalTypeArgs = const _OptionalTypeArgs();
 /// * the annotation is associated with anything other than an instance member,
 ///   or
 /// * an invocation of a member that has this annotation is used outside of an
-///   instance member defined on a class that extends or mixes in the class in
-///   which the protected member is defined, or that uses a receiver other than
-///   `this`.
+///   instance member defined on a class that extends or mixes in (or a mixin
+///   constrained to) the class in which the protected member is defined.
+/// * an invocation of a member that has this annotation is used within an
+///   instance method, but the receiver is something other than `this`.
 const _Protected protected = const _Protected();
 
 /// Used to annotate a named parameter `p` in a method or function `f`.
