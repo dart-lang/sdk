@@ -621,6 +621,9 @@ class FixProcessor extends BaseProcessor {
       if (errorCode.name == LintNames.prefer_const_declarations) {
         await _addFix_replaceFinalWithConst();
       }
+      if (errorCode.name == LintNames.prefer_expression_function_bodies) {
+        await _addFix_convertToExpressionBody();
+      }
       if (errorCode.name == LintNames.prefer_for_elements_to_map_fromIterable) {
         await _addFix_convertMapFromIterableToForLiteral();
       }
@@ -1355,6 +1358,11 @@ class FixProcessor extends BaseProcessor {
     final changeBuilder =
         await createBuilder_convertMapFromIterableToForLiteral();
     _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_TO_FOR_ELEMENT);
+  }
+
+  Future<void> _addFix_convertToExpressionBody() async {
+    final changeBuilder = await createBuilder_convertToExpressionFunctionBody();
+    _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_INTO_EXPRESSION_BODY);
   }
 
   Future<void> _addFix_convertToIntLiteral() async {

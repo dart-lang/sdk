@@ -78,7 +78,11 @@ class AssistProcessor extends BaseProcessor {
     await _addProposal_convertToAsyncFunctionBody();
     await _addProposal_convertToBlockFunctionBody();
     await _addProposal_convertToDoubleQuotedString();
-    await _addProposal_convertToExpressionFunctionBody();
+    if (!_containsErrorCode(
+      {LintNames.prefer_expression_function_bodies},
+    )) {
+      await _addProposal_convertToExpressionFunctionBody();
+    }
     await _addProposal_convertToFieldParameter();
     await _addProposal_convertToForIndexLoop();
     await _addProposal_convertToGenericFunctionSyntax();
@@ -173,39 +177,6 @@ class AssistProcessor extends BaseProcessor {
       }
     }
     return assists;
-  }
-
-  FunctionBody getEnclosingFunctionBody() {
-    // TODO(brianwilkerson) Determine whether there is a reason why this method
-    // isn't just "return node.getAncestor((node) => node is FunctionBody);"
-    {
-      FunctionExpression function =
-          node.thisOrAncestorOfType<FunctionExpression>();
-      if (function != null) {
-        return function.body;
-      }
-    }
-    {
-      FunctionDeclaration function =
-          node.thisOrAncestorOfType<FunctionDeclaration>();
-      if (function != null) {
-        return function.functionExpression.body;
-      }
-    }
-    {
-      ConstructorDeclaration constructor =
-          node.thisOrAncestorOfType<ConstructorDeclaration>();
-      if (constructor != null) {
-        return constructor.body;
-      }
-    }
-    {
-      MethodDeclaration method = node.thisOrAncestorOfType<MethodDeclaration>();
-      if (method != null) {
-        return method.body;
-      }
-    }
-    return null;
   }
 
   void _addAssistFromBuilder(DartChangeBuilder builder, AssistKind kind,
@@ -894,52 +865,7 @@ class AssistProcessor extends BaseProcessor {
   }
 
   Future<void> _addProposal_convertToExpressionFunctionBody() async {
-    // prepare current body
-    FunctionBody body = getEnclosingFunctionBody();
-    if (body is! BlockFunctionBody || body.isGenerator) {
-      _coverageMarker();
-      return;
-    }
-    // prepare return statement
-    List<Statement> statements = (body as BlockFunctionBody).block.statements;
-    if (statements.length != 1) {
-      _coverageMarker();
-      return;
-    }
-    Statement onlyStatement = statements.first;
-    // prepare returned expression
-    Expression returnExpression;
-    if (onlyStatement is ReturnStatement) {
-      returnExpression = onlyStatement.expression;
-    } else if (onlyStatement is ExpressionStatement) {
-      returnExpression = onlyStatement.expression;
-    }
-    if (returnExpression == null) {
-      _coverageMarker();
-      return;
-    }
-
-    // Return expressions can be quite large, e.g. Flutter build() methods.
-    // It is surprising to see this Quick Assist deep in the function body.
-    if (selectionOffset >= returnExpression.offset) {
-      _coverageMarker();
-      return;
-    }
-
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addReplacement(range.node(body), (DartEditBuilder builder) {
-        if (body.isAsynchronous) {
-          builder.write('async ');
-        }
-        builder.write('=> ');
-        builder.write(_getNodeText(returnExpression));
-        if (body.parent is! FunctionExpression ||
-            body.parent.parent is FunctionDeclaration) {
-          builder.write(';');
-        }
-      });
-    });
+    final changeBuilder = await createBuilder_convertToExpressionFunctionBody();
     _addAssistFromBuilder(
         changeBuilder, DartAssistKind.CONVERT_INTO_EXPRESSION_BODY);
   }

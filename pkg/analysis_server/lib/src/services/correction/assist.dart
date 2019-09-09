@@ -50,9 +50,7 @@ class DartAssistKind {
   static const CONVERT_INTO_BLOCK_BODY = const AssistKind(
       'dart.assist.convert.bodyToBlock', 30, "Convert to block body");
   static const CONVERT_INTO_EXPRESSION_BODY = const AssistKind(
-      'dart.assist.convert.bodyToExpression', 30, "Convert to expression body",
-      // todo (pq): migrate to (conditional) fix
-      associatedErrorCodes: <String>['prefer_expression_function_bodies']);
+      'dart.assist.convert.bodyToExpression', 30, "Convert to expression body");
   static const CONVERT_INTO_FINAL_FIELD = const AssistKind(
       'dart.assist.convert.getterToFinalField', 30, "Convert to final field",
       // todo (pq): migrate to (conditional) fix

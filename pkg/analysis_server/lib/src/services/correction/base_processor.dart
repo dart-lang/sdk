@@ -155,6 +155,93 @@ abstract class BaseProcessor {
     return validChange ? changeBuilder : null;
   }
 
+  Future<ChangeBuilder> createBuilder_convertToExpressionFunctionBody() async {
+    // prepare current body
+    FunctionBody body = getEnclosingFunctionBody();
+    if (body is! BlockFunctionBody || body.isGenerator) {
+      _coverageMarker();
+      return null;
+    }
+    // prepare return statement
+    List<Statement> statements = (body as BlockFunctionBody).block.statements;
+    if (statements.length != 1) {
+      _coverageMarker();
+      return null;
+    }
+    Statement onlyStatement = statements.first;
+    // prepare returned expression
+    Expression returnExpression;
+    if (onlyStatement is ReturnStatement) {
+      returnExpression = onlyStatement.expression;
+    } else if (onlyStatement is ExpressionStatement) {
+      returnExpression = onlyStatement.expression;
+    }
+    if (returnExpression == null) {
+      _coverageMarker();
+      return null;
+    }
+
+    // Return expressions can be quite large, e.g. Flutter build() methods.
+    // It is surprising to see this Quick Assist deep in the function body.
+    if (selectionOffset >= returnExpression.offset) {
+      _coverageMarker();
+      return null;
+    }
+
+    var changeBuilder = _newDartChangeBuilder();
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      builder.addReplacement(range.node(body), (DartEditBuilder builder) {
+        if (body.isAsynchronous) {
+          builder.write('async ');
+        }
+        builder.write('=> ');
+        builder.write(_getNodeText(returnExpression));
+        if (body.parent is! FunctionExpression ||
+            body.parent.parent is FunctionDeclaration) {
+          builder.write(';');
+        }
+      });
+    });
+    return changeBuilder;
+  }
+
+  /// Returns the text of the given node in the unit.
+  String /* TODO (pq): make visible */ _getNodeText(AstNode node) =>
+      utils.getNodeText(node);
+
+  FunctionBody getEnclosingFunctionBody() {
+    // TODO(brianwilkerson) Determine whether there is a reason why this method
+    // isn't just "return node.getAncestor((node) => node is FunctionBody);"
+    {
+      FunctionExpression function =
+          node.thisOrAncestorOfType<FunctionExpression>();
+      if (function != null) {
+        return function.body;
+      }
+    }
+    {
+      FunctionDeclaration function =
+          node.thisOrAncestorOfType<FunctionDeclaration>();
+      if (function != null) {
+        return function.functionExpression.body;
+      }
+    }
+    {
+      ConstructorDeclaration constructor =
+          node.thisOrAncestorOfType<ConstructorDeclaration>();
+      if (constructor != null) {
+        return constructor.body;
+      }
+    }
+    {
+      MethodDeclaration method = node.thisOrAncestorOfType<MethodDeclaration>();
+      if (method != null) {
+        return method.body;
+      }
+    }
+    return null;
+  }
+
   Future<ChangeBuilder>
       createBuilder_addTypeAnnotation_VariableDeclaration() async {
     AstNode node = this.node;
