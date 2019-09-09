@@ -1627,8 +1627,7 @@ class BytecodeSerializationCluster : public SerializationCluster {
       WriteFromTo(bytecode);
       s->Write<int32_t>(bytecode->ptr()->instructions_binary_offset_);
       s->Write<int32_t>(bytecode->ptr()->source_positions_binary_offset_);
-      NOT_IN_PRODUCT(
-          s->Write<int32_t>(bytecode->ptr()->local_variables_binary_offset_));
+      s->Write<int32_t>(bytecode->ptr()->local_variables_binary_offset_);
     }
   }
 
@@ -1663,8 +1662,7 @@ class BytecodeDeserializationCluster : public DeserializationCluster {
       ReadFromTo(bytecode);
       bytecode->ptr()->instructions_binary_offset_ = d->Read<int32_t>();
       bytecode->ptr()->source_positions_binary_offset_ = d->Read<int32_t>();
-      NOT_IN_PRODUCT(bytecode->ptr()->local_variables_binary_offset_ =
-                         d->Read<int32_t>());
+      bytecode->ptr()->local_variables_binary_offset_ = d->Read<int32_t>();
     }
   }
 

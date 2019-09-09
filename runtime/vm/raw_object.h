@@ -1423,7 +1423,7 @@ class RawBytecode : public RawObject {
 
   int32_t instructions_binary_offset_;
   int32_t source_positions_binary_offset_;
-  NOT_IN_PRODUCT(int32_t local_variables_binary_offset_);
+  int32_t local_variables_binary_offset_;
 
   static bool ContainsPC(RawObject* raw_obj, uword pc);
 

@@ -1020,13 +1020,9 @@ void BytecodeReaderHelper::ReadLocalVariables(const Bytecode& bytecode,
     return;
   }
 
-  intptr_t offset = reader_.ReadUInt();
-  USE(offset);
-
-#if !defined(PRODUCT)
+  const intptr_t offset = reader_.ReadUInt();
   bytecode.set_local_variables_binary_offset(
       bytecode_component_->GetLocalVariablesOffset() + offset);
-#endif
 }
 
 RawTypedData* BytecodeReaderHelper::NativeEntry(const Function& function,

@@ -2076,34 +2076,62 @@ void BytecodeFlowGraphBuilder::CreateParameterVariables() {
   }
 }
 
-#if !defined(PRODUCT)
-intptr_t BytecodeFlowGraphBuilder::UpdateContextLevel(const Bytecode& bytecode,
-                                                      intptr_t pc) {
-  ASSERT(B->is_recording_context_levels());
-
-  kernel::BytecodeLocalVariablesIterator iter(Z, bytecode);
-  intptr_t context_level = 0;
-  intptr_t next_pc = bytecode_length_;
-  while (iter.MoveNext()) {
-    if (iter.IsScope()) {
-      if (iter.StartPC() <= pc) {
-        if (pc < iter.EndPC()) {
-          // Found enclosing scope. Keep looking as we might find more
-          // scopes (the last one is the most specific).
-          context_level = iter.ContextLevel();
-          next_pc = iter.EndPC();
-        }
-      } else {
-        next_pc = Utils::Minimum(next_pc, iter.StartPC());
-        break;
-      }
+intptr_t BytecodeFlowGraphBuilder::UpdateScope(
+    BytecodeLocalVariablesIterator* iter,
+    intptr_t pc) {
+  // Leave scopes that have ended.
+  while ((current_scope_ != nullptr) && (current_scope_->end_pc_ <= pc)) {
+    for (LocalVariable* local : current_scope_->hidden_vars_) {
+      local_vars_[-local->index().value()] = local;
     }
+    current_scope_ = current_scope_->parent_;
   }
 
-  B->set_context_depth(context_level);
+  // Enter scopes that have started.
+  intptr_t next_pc = bytecode_length_;
+  while (!iter->IsDone()) {
+    if (iter->IsScope()) {
+      if (iter->StartPC() > pc) {
+        next_pc = iter->StartPC();
+        break;
+      }
+      if (iter->EndPC() > pc) {
+        // Push new scope and declare its variables.
+        current_scope_ = new (Z) BytecodeScope(
+            Z, iter->EndPC(), iter->ContextLevel(), current_scope_);
+        if (!seen_parameters_scope_) {
+          // Skip variables from the first scope as it may contain variables
+          // which were used in prologue (parameters, function type arguments).
+          // The already used variables should not be replaced with new ones.
+          seen_parameters_scope_ = true;
+          iter->MoveNext();
+          continue;
+        }
+        while (iter->MoveNext() && iter->IsVariableDeclaration()) {
+          const intptr_t index = iter->Index();
+          if (!iter->IsCaptured() && (index >= 0)) {
+            LocalVariable* local = new (Z) LocalVariable(
+                TokenPosition::kNoSource, TokenPosition::kNoSource,
+                String::ZoneHandle(Z, iter->Name()),
+                AbstractType::ZoneHandle(Z, iter->Type()));
+            local->set_index(VariableIndex(-index));
+            ASSERT(local_vars_[index]->index().value() == -index);
+            current_scope_->hidden_vars_.Add(local_vars_[index]);
+            local_vars_[index] = local;
+          }
+        }
+        continue;
+      }
+    }
+    iter->MoveNext();
+  }
+  if (current_scope_ != nullptr && next_pc > current_scope_->end_pc_) {
+    next_pc = current_scope_->end_pc_;
+  }
+  B->set_context_depth(
+      current_scope_ != nullptr ? current_scope_->context_level_ : 0);
   return next_pc;
 }
-#endif  // !defined(PRODUCT)
 
 FlowGraph* BytecodeFlowGraphBuilder::BuildGraph() {
   const Bytecode& bytecode = Bytecode::Handle(Z, function().bytecode());
@@ -2127,10 +2155,9 @@ FlowGraph* BytecodeFlowGraphBuilder::BuildGraph() {
   kernel::BytecodeSourcePositionsIterator source_pos_iter(Z, bytecode);
   bool update_position = source_pos_iter.MoveNext();
 
-#if !defined(PRODUCT)
-  intptr_t next_pc_to_update_context_level =
-      B->is_recording_context_levels() ? 0 : bytecode_length_;
-#endif
+  kernel::BytecodeLocalVariablesIterator local_vars_iter(Z, bytecode);
+  intptr_t next_pc_to_update_scope =
+      local_vars_iter.MoveNext() ? 0 : bytecode_length_;
 
   code_ = Fragment(normal_entry);
 
@@ -2164,11 +2191,9 @@ FlowGraph* BytecodeFlowGraphBuilder::BuildGraph() {
       update_position = source_pos_iter.MoveNext();
     }
 
-#if !defined(PRODUCT)
-    if (pc_ >= next_pc_to_update_context_level) {
-      next_pc_to_update_context_level = UpdateContextLevel(bytecode, pc_);
+    if (pc_ >= next_pc_to_update_scope) {
+      next_pc_to_update_scope = UpdateScope(&local_vars_iter, pc_);
     }
-#endif
 
     BuildInstruction(KernelBytecode::DecodeOpcode(bytecode_instr_));
 

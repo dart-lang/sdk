@@ -15212,9 +15212,7 @@ RawBytecode* Bytecode::New(uword instructions,
     result.set_pc_descriptors(Object::empty_descriptors());
     result.set_instructions_binary_offset(instructions_offset);
     result.set_source_positions_binary_offset(0);
-#if !defined(PRODUCT)
     result.set_local_variables_binary_offset(0);
-#endif
   }
   return result.raw();
 }

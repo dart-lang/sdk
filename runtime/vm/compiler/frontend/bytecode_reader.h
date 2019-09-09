@@ -412,7 +412,6 @@ class BytecodeSourcePositionsIterator : ValueObject {
   bool is_yield_point_ = false;
 };
 
-#if !defined(PRODUCT)
 class BytecodeLocalVariablesIterator : ValueObject {
  public:
   // These constants should match corresponding constants in
@@ -465,6 +464,7 @@ class BytecodeLocalVariablesIterator : ValueObject {
     return true;
   }
 
+  bool IsDone() const { return entries_remaining_ == 0; }
   intptr_t Kind() const { return cur_kind_and_flags_ & kKindMask; }
   bool IsScope() const { return Kind() == kScope; }
   bool IsVariableDeclaration() const { return Kind() == kVariableDeclaration; }
@@ -522,7 +522,6 @@ class BytecodeLocalVariablesIterator : ValueObject {
   TokenPosition cur_declaration_token_pos_ = TokenPosition::kNoSource;
   TokenPosition cur_end_token_pos_ = TokenPosition::kNoSource;
 };
-#endif  // !defined(PRODUCT)
 
 bool IsStaticFieldGetterGeneratedAsInitializer(const Function& function,
                                                Zone* zone);

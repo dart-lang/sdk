@@ -5807,7 +5807,6 @@ class Bytecode : public Object {
     return (source_positions_binary_offset() != 0);
   }
 
-#if !defined(PRODUCT)
   intptr_t local_variables_binary_offset() const {
     return raw_ptr()->local_variables_binary_offset_;
   }
@@ -5817,7 +5816,6 @@ class Bytecode : public Object {
   bool HasLocalVariablesInfo() const {
     return (local_variables_binary_offset() != 0);
   }
-#endif  // !defined(PRODUCT)
 
   RawLocalVarDescriptors* var_descriptors() const {
 #if defined(PRODUCT)
