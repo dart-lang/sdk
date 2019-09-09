@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/assist.dart';
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -93,6 +94,18 @@ abstract class A {
 }
 int f(A a) => a?.m();
 ''');
+  }
+
+  test_equal_nullOnLeft_noAssistWithLint() async {
+    createAnalysisOptionsFile(lints: [LintNames.prefer_null_aware_operators]);
+    verifyNoTestUnitErrors = false;
+    await resolveTestUnit('''
+abstract class A {
+  int m();
+}
+int f(A a) => null == a ? null : a.m();
+''');
+    await assertNoAssist();
   }
 
   test_equal_nullOnRight() async {

@@ -653,6 +653,9 @@ class FixProcessor extends BaseProcessor {
         await _addFix_addConst();
         await _addFix_replaceNewWithConst();
       }
+      if (name == LintNames.prefer_null_aware_operators) {
+        await _addFix_convertToNullAware();
+      }
       if (errorCode.name == LintNames.slash_for_doc_comments) {
         await _addFix_convertDocumentationIntoLine();
       }
@@ -733,6 +736,11 @@ class FixProcessor extends BaseProcessor {
   Future<void> _addFix_addCurlyBraces() async {
     final changeBuilder = await createBuilder_useCurlyBraces();
     _addFixFromBuilder(changeBuilder, DartFixKind.ADD_CURLY_BRACES);
+  }
+
+  Future<void> _addFix_convertToNullAware() async {
+    final changeBuilder = await createBuilder_convertToNullAware();
+    _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_TO_NULL_AWARE);
   }
 
   Future<void> _addFix_addExplicitCast() async {

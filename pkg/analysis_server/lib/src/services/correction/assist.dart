@@ -52,9 +52,7 @@ class DartAssistKind {
   static const CONVERT_INTO_EXPRESSION_BODY = const AssistKind(
       'dart.assist.convert.bodyToExpression', 30, "Convert to expression body");
   static const CONVERT_INTO_FINAL_FIELD = const AssistKind(
-      'dart.assist.convert.getterToFinalField', 30, "Convert to final field",
-      // todo (pq): migrate to (conditional) fix
-      associatedErrorCodes: <String>['prefer_final_fields']);
+      'dart.assist.convert.getterToFinalField', 30, "Convert to final field");
   static const CONVERT_INTO_FOR_INDEX = const AssistKind(
       'dart.assist.convert.forEachToForIndex', 30, "Convert to for-index loop");
   static const CONVERT_INTO_GENERIC_FUNCTION_SYNTAX = const AssistKind(
@@ -102,9 +100,7 @@ class DartAssistKind {
       30,
       "Convert to normal parameter");
   static const CONVERT_TO_NULL_AWARE = const AssistKind(
-      'dart.assist.convert.toNullAware', 30, "Convert to use '?.'",
-      // todo (pq): migrate to (conditional) fix
-      associatedErrorCodes: <String>['prefer_null_aware_operators']);
+      'dart.assist.convert.toNullAware', 30, "Convert to use '?.'");
   static const CONVERT_TO_PACKAGE_IMPORT = const AssistKind(
       'dart.assist.convert.relativeToPackageImport',
       30,

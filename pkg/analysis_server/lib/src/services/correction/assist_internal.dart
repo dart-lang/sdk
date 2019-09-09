@@ -96,7 +96,11 @@ class AssistProcessor extends BaseProcessor {
     await _addProposal_convertToIsNotEmpty();
     await _addProposal_convertToMultilineString();
     await _addProposal_convertToNormalParameter();
-    await _addProposal_convertToNullAware();
+    if (!_containsErrorCode(
+      {LintNames.prefer_null_aware_operators},
+    )) {
+      await _addProposal_convertToNullAware();
+    }
     await _addProposal_convertToPackageImport();
     await _addProposal_convertToSingleQuotedString();
     await _addProposal_encapsulateField();
@@ -1301,92 +1305,8 @@ class AssistProcessor extends BaseProcessor {
   }
 
   Future<void> _addProposal_convertToNullAware() async {
-    AstNode node = this.node;
-    if (node is! ConditionalExpression) {
-      _coverageMarker();
-      return;
-    }
-    ConditionalExpression conditional = node;
-    Expression condition = conditional.condition.unParenthesized;
-    SimpleIdentifier identifier;
-    Expression nullExpression;
-    Expression nonNullExpression;
-    int periodOffset;
-
-    if (condition is BinaryExpression) {
-      //
-      // Identify the variable being compared to `null`, or return if the
-      // condition isn't a simple comparison of `null` to a variable's value.
-      //
-      Expression leftOperand = condition.leftOperand;
-      Expression rightOperand = condition.rightOperand;
-      if (leftOperand is NullLiteral && rightOperand is SimpleIdentifier) {
-        identifier = rightOperand;
-      } else if (rightOperand is NullLiteral &&
-          leftOperand is SimpleIdentifier) {
-        identifier = leftOperand;
-      } else {
-        _coverageMarker();
-        return;
-      }
-      if (identifier.staticElement is! LocalElement) {
-        _coverageMarker();
-        return;
-      }
-      //
-      // Identify the expression executed when the variable is `null` and when
-      // it is non-`null`. Return if the `null` expression isn't a null literal
-      // or if the non-`null` expression isn't a method invocation whose target
-      // is the save variable being compared to `null`.
-      //
-      if (condition.operator.type == TokenType.EQ_EQ) {
-        nullExpression = conditional.thenExpression;
-        nonNullExpression = conditional.elseExpression;
-      } else if (condition.operator.type == TokenType.BANG_EQ) {
-        nonNullExpression = conditional.thenExpression;
-        nullExpression = conditional.elseExpression;
-      }
-      if (nullExpression == null || nonNullExpression == null) {
-        _coverageMarker();
-        return;
-      }
-      if (nullExpression.unParenthesized is! NullLiteral) {
-        _coverageMarker();
-        return;
-      }
-      Expression unwrappedExpression = nonNullExpression.unParenthesized;
-      Expression target;
-      Token operator;
-      if (unwrappedExpression is MethodInvocation) {
-        target = unwrappedExpression.target;
-        operator = unwrappedExpression.operator;
-      } else if (unwrappedExpression is PrefixedIdentifier) {
-        target = unwrappedExpression.prefix;
-        operator = unwrappedExpression.period;
-      } else {
-        _coverageMarker();
-        return;
-      }
-      if (operator.type != TokenType.PERIOD) {
-        _coverageMarker();
-        return;
-      }
-      if (!(target is SimpleIdentifier &&
-          target.staticElement == identifier.staticElement)) {
-        _coverageMarker();
-        return;
-      }
-      periodOffset = operator.offset;
-
-      DartChangeBuilder changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addDeletion(range.startStart(node, nonNullExpression));
-        builder.addSimpleInsertion(periodOffset, '?');
-        builder.addDeletion(range.endEnd(nonNullExpression, node));
-      });
-      _addAssistFromBuilder(
-          changeBuilder, DartAssistKind.CONVERT_TO_NULL_AWARE);
-    }
+    final changeBuilder = await createBuilder_convertToNullAware();
+    _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_TO_NULL_AWARE);
   }
 
   Future<void> _addProposal_convertToPackageImport() async {
