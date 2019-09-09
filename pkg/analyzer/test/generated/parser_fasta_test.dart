@@ -253,9 +253,6 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     createParser('late var f;', featureSet: nonNullable);
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
-    assertErrors(errors: [
-      expectedError(ParserErrorCode.CONFLICTING_MODIFIERS, 5, 3),
-    ]);
     expect(member, isFieldDeclaration);
     FieldDeclaration field = member;
     expect(field.covariantKeyword, isNull);
@@ -280,7 +277,7 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
     assertErrors(errors: [
-      expectedError(ParserErrorCode.CONFLICTING_MODIFIERS, 4, 4),
+      expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 4, 4),
     ]);
     expect(member, isFieldDeclaration);
     FieldDeclaration field = member;
@@ -3341,6 +3338,17 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
     expect(declarationList.lateKeyword, isNotNull);
     expect(declarationList.keyword, isNull);
     expect(declarationList.type, isNotNull);
+    expect(declarationList.variables, hasLength(1));
+  }
+
+  void test_parseVariableDeclaration_late_var() {
+    var statement = parseStatement('late var a;', featureSet: nonNullable)
+        as VariableDeclarationStatement;
+    var declarationList = statement.variables;
+    assertNoErrors();
+    expect(declarationList.lateKeyword, isNotNull);
+    expect(declarationList.keyword?.lexeme, 'var');
+    expect(declarationList.type, isNull);
     expect(declarationList.variables, hasLength(1));
   }
 

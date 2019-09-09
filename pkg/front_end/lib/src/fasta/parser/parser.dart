@@ -5399,7 +5399,8 @@ class Parser {
       } else if (optional('late', next)) {
         lateToken = token = next;
         next = token.next;
-        if (isModifier(next) && optional('final', next)) {
+        if (isModifier(next) &&
+            (optional('var', next) || optional('final', next))) {
           varFinalOrConst = token = next;
           next = token.next;
         }
