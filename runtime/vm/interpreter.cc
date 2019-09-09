@@ -2267,7 +2267,6 @@ SwitchDispatch:
 
   {
     BYTECODE(StoreStaticTOS, D);
-    DEBUG_CHECK;
     RawField* field = reinterpret_cast<RawField*>(LOAD_CONSTANT(rD));
     RawInstance* value = static_cast<RawInstance*>(*SP--);
     field->StorePointer(&field->ptr()->value_.static_value_, value, thread);

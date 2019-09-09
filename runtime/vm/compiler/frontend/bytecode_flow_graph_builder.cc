@@ -1229,8 +1229,6 @@ void BytecodeFlowGraphBuilder::BuildStoreStaticTOS() {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
   }
 
-  BuildDebugStepCheck();
-
   LoadStackSlots(1);
   Operand cp_index = DecodeOperandD();
 

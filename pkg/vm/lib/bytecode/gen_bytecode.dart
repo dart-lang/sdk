@@ -3214,6 +3214,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     final target = node.target;
     if (target is Field) {
+      if (options.emitDebuggerStops &&
+          _variableSetNeedsDebugCheck(node.value)) {
+        asm.emitDebugCheck();
+      }
       int cpIndex = cp.addStaticField(target);
       asm.emitStoreStaticTOS(cpIndex);
     } else {

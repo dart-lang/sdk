@@ -978,8 +978,6 @@ class KernelBytecode {
   // - The bytecode compiler may emit a DebugStepCheck call.
   DART_FORCE_INLINE static bool IsDebugCheckedOpcode(const KBCInstr* instr) {
     switch (DecodeOpcode(instr)) {
-      case KernelBytecode::kStoreStaticTOS:
-      case KernelBytecode::kStoreStaticTOS_Wide:
       case KernelBytecode::kDebugCheck:
       case KernelBytecode::kDirectCall:
       case KernelBytecode::kDirectCall_Wide:
