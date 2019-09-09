@@ -26,11 +26,6 @@ class BytecodeMetadataHelper : public MetadataHelper {
 
   void ParseBytecodeFunction(ParsedFunction* parsed_function);
 
-  // Reads members associated with given [node_offset] and fills in [cls].
-  // Discards fields if [discard_fields] is true.
-  // Returns true if class members are loaded.
-  bool ReadMembers(intptr_t node_offset, const Class& cls, bool discard_fields);
-
   // Read all library declarations.
   bool ReadLibraries();
 

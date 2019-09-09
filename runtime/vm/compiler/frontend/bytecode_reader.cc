@@ -54,38 +54,6 @@ void BytecodeMetadataHelper::ParseBytecodeFunction(
   bytecode_reader.ParseBytecodeFunction(parsed_function, function);
 }
 
-static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 10,
-              "Cleanup support for old bytecode format versions");
-bool BytecodeMetadataHelper::ReadMembers(intptr_t node_offset,
-                                         const Class& cls,
-                                         bool discard_fields) {
-  TIMELINE_DURATION(Thread::Current(), Compiler,
-                    "BytecodeMetadataHelper::ReadMembers");
-
-  ASSERT(node_offset > 0);
-  const intptr_t md_offset = GetNextMetadataPayloadOffset(node_offset);
-  if (md_offset < 0) {
-    return false;
-  }
-
-  ASSERT(Thread::Current()->IsMutatorThread());
-
-  BytecodeComponentData bytecode_component(
-      &Array::Handle(helper_->zone_, GetBytecodeComponent()));
-  BytecodeReaderHelper bytecode_reader(&H, active_class_, &bytecode_component);
-
-  AlternativeReadingScope alt(&bytecode_reader.reader(), md_offset);
-
-  intptr_t members_offset = bytecode_component.GetMembersOffset() +
-                            bytecode_reader.reader().ReadUInt();
-
-  AlternativeReadingScope alt2(&bytecode_reader.reader(), members_offset);
-
-  bytecode_reader.ReadMembers(cls, discard_fields);
-
-  return true;
-}
-
 bool BytecodeMetadataHelper::ReadLibraries() {
   TIMELINE_DURATION(Thread::Current(), Compiler,
                     "BytecodeMetadataHelper::ReadLibraries");
@@ -97,12 +65,6 @@ bool BytecodeMetadataHelper::ReadLibraries() {
 
   BytecodeComponentData bytecode_component(
       &Array::Handle(helper_->zone_, GetBytecodeComponent()));
-
-  static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 10,
-                "Cleanup condition");
-  if (bytecode_component.GetVersion() < 10) {
-    return false;
-  }
 
   BytecodeReaderHelper bytecode_reader(&H, active_class_, &bytecode_component);
   AlternativeReadingScope alt(&bytecode_reader.reader(),
@@ -1178,23 +1140,14 @@ RawArray* BytecodeReaderHelper::ReadBytecodeComponent(intptr_t md_offset) {
   reader_.ReadUInt32();  // Skip main.numItems
   const intptr_t main_offset = start_offset + reader_.ReadUInt32();
 
-  intptr_t num_libraries = 0;
-  intptr_t library_index_offset = 0;
-  intptr_t libraries_offset = 0;
-  intptr_t num_classes = 0;
-  intptr_t classes_offset = 0;
-  static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 10,
-                "Cleanup condition");
-  if (version >= 10) {
-    num_libraries = reader_.ReadUInt32();
-    library_index_offset = start_offset + reader_.ReadUInt32();
+  const intptr_t num_libraries = reader_.ReadUInt32();
+  const intptr_t library_index_offset = start_offset + reader_.ReadUInt32();
 
-    reader_.ReadUInt32();  // Skip libraries.numItems
-    libraries_offset = start_offset + reader_.ReadUInt32();
+  reader_.ReadUInt32();  // Skip libraries.numItems
+  const intptr_t libraries_offset = start_offset + reader_.ReadUInt32();
 
-    num_classes = reader_.ReadUInt32();
-    classes_offset = start_offset + reader_.ReadUInt32();
-  }
+  const intptr_t num_classes = reader_.ReadUInt32();
+  const intptr_t classes_offset = start_offset + reader_.ReadUInt32();
 
   reader_.ReadUInt32();  // Skip members.numItems
   const intptr_t members_offset = start_offset + reader_.ReadUInt32();
@@ -1205,25 +1158,14 @@ RawArray* BytecodeReaderHelper::ReadBytecodeComponent(intptr_t md_offset) {
   reader_.ReadUInt32();  // Skip sourcePositions.numItems
   const intptr_t source_positions_offset = start_offset + reader_.ReadUInt32();
 
-  intptr_t source_files_offset = 0;
-  intptr_t line_starts_offset = 0;
-  static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 10,
-                "Cleanup condition");
-  if (version >= 10) {
-    reader_.ReadUInt32();  // Skip sourceFiles.numItems
-    source_files_offset = start_offset + reader_.ReadUInt32();
+  reader_.ReadUInt32();  // Skip sourceFiles.numItems
+  const intptr_t source_files_offset = start_offset + reader_.ReadUInt32();
 
-    reader_.ReadUInt32();  // Skip lineStarts.numItems
-    line_starts_offset = start_offset + reader_.ReadUInt32();
-  }
+  reader_.ReadUInt32();  // Skip lineStarts.numItems
+  const intptr_t line_starts_offset = start_offset + reader_.ReadUInt32();
 
-  intptr_t local_variables_offset = 0;
-  static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 9,
-                "Cleanup condition");
-  if (version >= 9) {
-    reader_.ReadUInt32();  // Skip localVariables.numItems
-    local_variables_offset = start_offset + reader_.ReadUInt32();
-  }
+  reader_.ReadUInt32();  // Skip localVariables.numItems
+  const intptr_t local_variables_offset = start_offset + reader_.ReadUInt32();
 
   reader_.ReadUInt32();  // Skip annotations.numItems
   const intptr_t annotations_offset = start_offset + reader_.ReadUInt32();
@@ -1324,8 +1266,6 @@ RawString* BytecodeReaderHelper::ConstructorName(const Class& cls,
 RawObject* BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
   ASSERT(((header & kReferenceBit) == 0));
 
-  static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 10,
-                "Cleanup obsolete object kinds");
   // Must be in sync with enum ObjectKind in
   // pkg/vm/lib/bytecode/object_table.dart.
   enum ObjectKind {
@@ -1334,13 +1274,13 @@ RawObject* BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
     kClass,
     kMember,
     kClosure,
-    kSimpleType,     // obsolete in v10
-    kTypeParameter,  // obsolete in v10
-    kGenericType,    // obsolete in v10
-    kFunctionType,   // obsolete in v10
+    kUnused1,
+    kUnused2,
+    kUnused3,
+    kUnused4,
     kName,
     kTypeArguments,
-    kFinalizedGenericType,  // obsolete in v10
+    kUnused5,
     kConstObject,
     kArgDesc,
     kScript,
@@ -1351,19 +1291,6 @@ RawObject* BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
   // pkg/vm/lib/bytecode/object_table.dart.
   const intptr_t kFlagIsField = kFlagBit0;
   const intptr_t kFlagIsConstructor = kFlagBit1;
-
-  // SimpleType flags, must be in sync with _SimpleTypeHandle constants in
-  // pkg/vm/lib/bytecode/object_table.dart.
-  const intptr_t kFlagIsDynamic = kFlagBit0;
-  const intptr_t kFlagIsVoid = kFlagBit1;
-
-  static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 10,
-                "Cleanup old FunctionType flags");
-  // FunctionType flags, must be in sync with _FunctionTypeHandle constants in
-  // pkg/vm/lib/bytecode/object_table.dart.
-  const int kFlagHasOptionalPositionalParams = kFlagBit0;
-  const int kFlagHasOptionalNamedParams = kFlagBit1;
-  const int kFlagHasTypeParams = kFlagBit2;
 
   // ArgDesc flags, must be in sync with _ArgDescHandle constants in
   // pkg/vm/lib/bytecode/object_table.dart.
@@ -1382,14 +1309,7 @@ RawObject* BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
       UNREACHABLE();
       break;
     case kLibrary: {
-      String& uri = String::Handle(Z);
-      static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 10,
-                    "Cleanup condition");
-      if (bytecode_component_->GetVersion() < 10) {
-        uri = ReadString();
-      } else {
-        uri ^= ReadObject();
-      }
+      String& uri = String::CheckedHandle(Z, ReadObject());
       RawLibrary* library = Library::LookupLibrary(thread_, uri);
       if (library == Library::null()) {
         // We do not register expression evaluation libraries with the VM:
@@ -1502,80 +1422,6 @@ RawObject* BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
       const intptr_t closure_index = reader_.ReadUInt();
       return closures_->At(closure_index);
     }
-    case kSimpleType: {
-      static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 10,
-                    "Cleanup");
-      const Class& cls = Class::CheckedHandle(Z, ReadObject());
-      if ((flags & kFlagIsDynamic) != 0) {
-        ASSERT(cls.IsNull());
-        return AbstractType::dynamic_type().raw();
-      }
-      if ((flags & kFlagIsVoid) != 0) {
-        ASSERT(cls.IsNull());
-        return AbstractType::void_type().raw();
-      }
-      return cls.DeclarationType();
-    }
-    case kTypeParameter: {
-      static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 10,
-                    "Cleanup");
-      Object& parent = Object::Handle(Z, ReadObject());
-      const intptr_t index_in_parent = reader_.ReadUInt();
-      TypeArguments& type_parameters = TypeArguments::Handle(Z);
-      if (parent.IsClass()) {
-        type_parameters = Class::Cast(parent).type_parameters();
-      } else if (parent.IsFunction()) {
-        if (Function::Cast(parent).IsFactory()) {
-          // For factory constructors VM uses type parameters of a class
-          // instead of constructor's type parameters.
-          parent = Function::Cast(parent).Owner();
-          type_parameters = Class::Cast(parent).type_parameters();
-        } else {
-          type_parameters = Function::Cast(parent).type_parameters();
-        }
-      } else if (parent.IsNull()) {
-        ASSERT(function_type_type_parameters_ != nullptr);
-        type_parameters = function_type_type_parameters_->raw();
-      } else {
-        UNREACHABLE();
-      }
-      AbstractType& type =
-          AbstractType::Handle(Z, type_parameters.TypeAt(index_in_parent));
-      // TODO(alexmarkov): figure out how to skip this type finalization
-      // (consider finalizing type parameters of classes/functions eagerly).
-      return ClassFinalizer::FinalizeType(*active_class_->klass, type);
-    }
-    case kGenericType: {
-      static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 10,
-                    "Cleanup");
-      const Class& cls = Class::CheckedHandle(Z, ReadObject());
-      const TypeArguments& type_arguments =
-          TypeArguments::Handle(Z, ReadTypeArguments());
-      const Type& type = Type::Handle(
-          Z, Type::New(cls, type_arguments, TokenPosition::kNoSource));
-      return ClassFinalizer::FinalizeType(*active_class_->klass, type);
-    }
-    case kFunctionType: {
-      static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 10,
-                    "Cleanup");
-      Function& signature_function = Function::ZoneHandle(
-          Z, Function::NewSignatureFunction(*active_class_->klass,
-                                            active_class_->enclosing != NULL
-                                                ? *active_class_->enclosing
-                                                : Function::null_function(),
-                                            TokenPosition::kNoSource));
-
-      // This scope is needed to set active_class_->enclosing_ which is used
-      // to assign parent function for function types.
-      ActiveEnclosingFunctionScope active_enclosing_function(
-          active_class_, &signature_function);
-
-      return ReadFunctionSignature(
-          signature_function, (flags & kFlagHasOptionalPositionalParams) != 0,
-          (flags & kFlagHasOptionalNamedParams) != 0,
-          (flags & kFlagHasTypeParams) != 0,
-          /* has_positional_param_names = */ false);
-    }
     case kName: {
       const Library& library = Library::CheckedHandle(Z, ReadObject());
       if (library.IsNull()) {
@@ -1588,17 +1434,6 @@ RawObject* BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
     }
     case kTypeArguments: {
       return ReadTypeArguments();
-    }
-    case kFinalizedGenericType: {
-      static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 10,
-                    "Cleanup");
-      const Class& cls = Class::CheckedHandle(Z, ReadObject());
-      const TypeArguments& type_arguments =
-          TypeArguments::CheckedHandle(Z, ReadObject());
-      const Type& type = Type::Handle(
-          Z, Type::New(cls, type_arguments, TokenPosition::kNoSource));
-      type.SetIsFinalized();
-      return type.Canonicalize();
     }
     case kConstObject: {
       const intptr_t tag = flags / kFlagBit0;

@@ -1139,17 +1139,6 @@ void KernelLoader::FinishTopLevelClassLoading(
 
   ActiveClassScope active_class_scope(&active_class_, &toplevel_class);
 
-  if (FLAG_enable_interpreter || FLAG_use_bytecode_compiler) {
-    static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 10,
-                  "Cleanup support for old bytecode format versions");
-    ASSERT(!toplevel_class.is_declared_in_bytecode());
-    if (bytecode_metadata_helper_.ReadMembers(library_kernel_offset_,
-                                              toplevel_class, false)) {
-      ASSERT(toplevel_class.is_loaded());
-      return;
-    }
-  }
-
   // Offsets within library index are whole program offsets and not
   // relative to the library.
   const intptr_t correction = correction_offset_ - library_kernel_offset_;
@@ -1520,18 +1509,6 @@ void KernelLoader::FinishClassLoading(const Class& klass,
   // contained in the Kernel file and instead inject our own const
   // fields.
   const bool discard_fields = klass.InjectCIDFields();
-
-  if (FLAG_enable_interpreter || FLAG_use_bytecode_compiler) {
-    static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 10,
-                  "Cleanup support for old bytecode format versions");
-    ASSERT(!klass.is_declared_in_bytecode());
-    if (bytecode_metadata_helper_.ReadMembers(
-            klass.kernel_offset() + library_kernel_offset_, klass,
-            discard_fields)) {
-      ASSERT(klass.is_loaded());
-      return;
-    }
-  }
 
   fields_.Clear();
   functions_.Clear();
