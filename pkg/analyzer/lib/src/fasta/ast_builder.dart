@@ -36,7 +36,6 @@ import 'package:front_end/src/fasta/messages.dart'
         messageInvalidThisInInitializer,
         messageMissingAssignableSelector,
         messageNativeClauseShouldBeAnnotation,
-        messageStaticConstructor,
         messageTypedefNotFunction,
         templateDuplicateLabelInSwitchStatement,
         templateExpectedButGot,
@@ -276,11 +275,7 @@ class AstBuilder extends StackListener {
           : (mixinDeclaration != null
               ? mixinDeclaration.name.name
               : extensionDeclaration.name?.name);
-      if (name?.lexeme == className && getOrSet == null) {
-        // This error is also reported in OutlineBuilder.beginMethod
-        handleRecoverableError(
-            messageStaticConstructor, staticToken, staticToken);
-      } else {
+      if (name?.lexeme != className || getOrSet != null) {
         modifiers.staticKeyword = staticToken;
       }
     }

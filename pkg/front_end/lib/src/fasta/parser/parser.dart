@@ -3400,6 +3400,9 @@ class Parser {
       //
       // constructor
       //
+      if (staticToken != null) {
+        reportRecoverableError(staticToken, fasta.messageStaticConstructor);
+      }
       switch (kind) {
         case DeclarationKind.Class:
           // TODO(danrubel): Remove getOrSet from constructor events

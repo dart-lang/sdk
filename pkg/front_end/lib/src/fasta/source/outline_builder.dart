@@ -25,7 +25,6 @@ import '../fasta_codes.dart'
         messageExpectedBlockToSkip,
         messageInterpolationInUri,
         messageOperatorWithOptionalFormals,
-        messageStaticConstructor,
         messageTypedefNotFunction,
         Template,
         templateCycleInTypeVariables,
@@ -815,10 +814,7 @@ class OutlineBuilder extends StackListener {
       modifiers.add(External);
     }
     if (staticToken != null) {
-      if (inConstructor) {
-        handleRecoverableError(
-            messageStaticConstructor, staticToken, staticToken);
-      } else {
+      if (!inConstructor) {
         modifiers ??= <Modifier>[];
         modifiers.add(Static);
       }
