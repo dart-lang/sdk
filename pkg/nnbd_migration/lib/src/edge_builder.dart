@@ -754,8 +754,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
     var callee = node.staticElement;
     if (callee == null) {
-      // TODO(paulberry)
-      _unimplemented(node, 'Index expression with no static type');
+      // Dynamic dispatch.  The return type is `dynamic`.
+      // TODO(paulberry): would it be better to assume a return type of `Never`
+      // so that we don't unnecessarily propagate nullabilities everywhere?
+      return _dynamicType;
     }
     var calleeType = getOrComputeElementType(callee, targetType: targetType);
     // TODO(paulberry): substitute if necessary

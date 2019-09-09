@@ -2201,6 +2201,17 @@ int f(bool b, int i) {
         assertEdge(nullable_i, nullable_return, hard: false));
   }
 
+  test_indexExpression_dynamic() async {
+    await analyze('''
+int f(dynamic d, int i) {
+  return d[i];
+}
+''');
+    // We assume that the index expression might evaluate to anything, including
+    // `null`.
+    assertEdge(always, decoratedTypeAnnotation('int f').node, hard: false);
+  }
+
   test_indexExpression_index() async {
     await analyze('''
 class C {
