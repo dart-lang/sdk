@@ -97,6 +97,8 @@ class ScannerTest_Fasta_UTF8 extends ScannerTest_Fasta {
     }
 
     for (int byte0 = 1; byte0 <= 0xFF; ++byte0) {
+      List<int> bytes = [byte0, 0];
+      scanBytes(bytes);
       for (int byte1 = 1; byte1 <= 0xFF; ++byte1) {
         List<int> bytes = [byte0, byte1, 0];
         scanBytes(bytes);
