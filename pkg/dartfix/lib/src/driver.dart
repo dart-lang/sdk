@@ -32,11 +32,10 @@ class Driver {
   Ansi get ansi => logger.ansi;
 
   Future applyFixes() async {
-    showDescriptions('Recommended changes', result.suggestions);
     showDescriptions('Recommended changes that cannot be automatically applied',
         result.otherSuggestions);
     showDetails(result.details);
-    if (result.suggestions.isEmpty) {
+    if (result.edits.isEmpty) {
       logger.stdout('');
       logger.stdout(result.otherSuggestions.isNotEmpty
           ? 'None of the recommended changes can be automatically applied.'
