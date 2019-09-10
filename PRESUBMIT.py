@@ -250,16 +250,24 @@ def _CheckClangTidy(input_api, output_api):
             long_text=stdout)
     ]
 
+
+def _CommonChecks(input_api, output_api):
+    results = []
+    results.extend(_CheckValidHostsInDEPS(input_api, output_api))
+    results.extend(_CheckDartFormat(input_api, output_api))
+    results.extend(_CheckStatusFiles(input_api, output_api))
+    results.extend(_CheckLayering(input_api, output_api))
+    results.extend(_CheckClangTidy(input_api, output_api))
+    results.extend(
+        input_api.canned_checks.CheckPatchFormatted(input_api, output_api))
+    return results
+
+
 def CheckChangeOnCommit(input_api, output_api):
-    return (_CheckValidHostsInDEPS(input_api, output_api) + _CheckBuildStatus(
-        input_api, output_api) + _CheckDartFormat(input_api, output_api) +
-            _CheckStatusFiles(input_api, output_api) + _CheckLayering(
-                input_api, output_api) + _CheckClangTidy(
-                input_api, output_api))
+    results = _CommonChecks(input_api, output_api)
+    results.extend(_CheckBuildStatus(input_api, output_api))
+    return results
 
 
 def CheckChangeOnUpload(input_api, output_api):
-    return (_CheckValidHostsInDEPS(input_api, output_api) + _CheckDartFormat(
-        input_api, output_api) + _CheckStatusFiles(input_api, output_api) +
-            _CheckLayering(input_api, output_api) + _CheckClangTidy(
-                input_api, output_api))
+    return _CommonChecks(input_api, output_api)
