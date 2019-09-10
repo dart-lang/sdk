@@ -1300,7 +1300,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitSpreadElement(SpreadElement node) {
-    if (node.spreadOperator.type != TokenType.PERIOD_PERIOD_PERIOD_QUESTION) {
+    if (!node.isNullAware) {
       _checkForNullableDereference(node.expression);
     } else {
       _checkForUnnecessaryNullAware(node.expression, node.spreadOperator);

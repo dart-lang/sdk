@@ -1278,9 +1278,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         }
       } else if (expressionType.isDynamic) {
         return expressionType;
-      } else if (isNull &&
-          element.spreadOperator.type ==
-              TokenType.PERIOD_PERIOD_PERIOD_QUESTION) {
+      } else if (isNull && element.isNullAware) {
         return expressionType;
       }
       // TODO(brianwilkerson) Report this as an error.
@@ -1548,9 +1546,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
             elementType: expressionType,
             keyType: expressionType,
             valueType: expressionType);
-      } else if (isNull &&
-          element.spreadOperator.type ==
-              TokenType.PERIOD_PERIOD_PERIOD_QUESTION) {
+      } else if (isNull && element.isNullAware) {
         return _InferredCollectionElementTypeInformation(
             elementType: expressionType,
             keyType: expressionType,

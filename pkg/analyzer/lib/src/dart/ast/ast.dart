@@ -9189,6 +9189,10 @@ class SpreadElementImpl extends AstNodeImpl
   }
 
   @override
+  bool get isNullAware =>
+      spreadOperator.type == TokenType.PERIOD_PERIOD_PERIOD_QUESTION;
+
+  @override
   E accept<E>(AstVisitor<E> visitor) {
     return visitor.visitSpreadElement(this);
   }
