@@ -1990,7 +1990,7 @@ void Assembler::LoadClassById(Register result, Register class_id) {
 
   LoadIsolate(result);
   LoadFromOffset(kWord, result, result, table_offset);
-  ldr(result, Address(result, class_id, LSL, kWordSizeLog2);
+  ldr(result, Address(result, class_id, LSL, target::kWordSizeLog2));
 }
 
 void Assembler::CompareClassId(Register object,
