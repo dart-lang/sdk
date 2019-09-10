@@ -585,6 +585,9 @@ class FixProcessor extends BaseProcessor {
       if (name == LintNames.avoid_init_to_null) {
         await _addFix_removeInitializer();
       }
+      if (name == LintNames.avoid_relative_lib_imports) {
+        await _addFix_convertToPackageImport();
+      }
       if (name == LintNames.avoid_return_types_on_setters) {
         await _addFix_removeTypeAnnotation();
       }
@@ -736,11 +739,6 @@ class FixProcessor extends BaseProcessor {
   Future<void> _addFix_addCurlyBraces() async {
     final changeBuilder = await createBuilder_useCurlyBraces();
     _addFixFromBuilder(changeBuilder, DartFixKind.ADD_CURLY_BRACES);
-  }
-
-  Future<void> _addFix_convertToNullAware() async {
-    final changeBuilder = await createBuilder_convertToNullAware();
-    _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_TO_NULL_AWARE);
   }
 
   Future<void> _addFix_addExplicitCast() async {
@@ -1447,6 +1445,16 @@ class FixProcessor extends BaseProcessor {
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_TO_NAMED_ARGUMENTS);
     }
+  }
+
+  Future<void> _addFix_convertToNullAware() async {
+    final changeBuilder = await createBuilder_convertToNullAware();
+    _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_TO_NULL_AWARE);
+  }
+
+  Future<void> _addFix_convertToPackageImport() async {
+    final changeBuilder = await createBuilder_convertToPackageImport();
+    _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_TO_PACKAGE_IMPORT);
   }
 
   Future<void> _addFix_createClass() async {

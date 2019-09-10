@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/assist.dart';
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -52,7 +53,7 @@ import ':[invalidUri]';
 
   test_nonPackage_Uri() async {
     addSource('/home/test/lib/foo.dart', '');
-
+    testFile = convertPath('/home/test/lib/src/test.dart');
     await resolveTestUnit('''
 import 'dart:core';
 ''');
@@ -82,5 +83,16 @@ import '../foo/bar.dart';
     await assertHasAssistAt('bar.dart', '''
 import 'package:test/foo/bar.dart';
 ''');
+  }
+
+  test_relativeImport_noAssistWithLint() async {
+    createAnalysisOptionsFile(lints: [LintNames.avoid_relative_lib_imports]);
+    verifyNoTestUnitErrors = false;
+    addSource('/home/test/lib/foo.dart', '');
+
+    await resolveTestUnit('''
+import '../lib/foo.dart';
+''');
+    await assertNoAssist();
   }
 }

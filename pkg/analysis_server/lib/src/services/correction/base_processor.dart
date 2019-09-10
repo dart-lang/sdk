@@ -155,182 +155,6 @@ abstract class BaseProcessor {
     return validChange ? changeBuilder : null;
   }
 
-  Future<ChangeBuilder> createBuilder_convertToNullAware() async {
-    AstNode node = this.node;
-    if (node is! ConditionalExpression) {
-      _coverageMarker();
-      return null;
-    }
-    ConditionalExpression conditional = node;
-    Expression condition = conditional.condition.unParenthesized;
-    SimpleIdentifier identifier;
-    Expression nullExpression;
-    Expression nonNullExpression;
-    int periodOffset;
-
-    if (condition is BinaryExpression) {
-      //
-      // Identify the variable being compared to `null`, or return if the
-      // condition isn't a simple comparison of `null` to a variable's value.
-      //
-      Expression leftOperand = condition.leftOperand;
-      Expression rightOperand = condition.rightOperand;
-      if (leftOperand is NullLiteral && rightOperand is SimpleIdentifier) {
-        identifier = rightOperand;
-      } else if (rightOperand is NullLiteral &&
-          leftOperand is SimpleIdentifier) {
-        identifier = leftOperand;
-      } else {
-        _coverageMarker();
-        return null;
-      }
-      if (identifier.staticElement is! LocalElement) {
-        _coverageMarker();
-        return null;
-      }
-      //
-      // Identify the expression executed when the variable is `null` and when
-      // it is non-`null`. Return if the `null` expression isn't a null literal
-      // or if the non-`null` expression isn't a method invocation whose target
-      // is the save variable being compared to `null`.
-      //
-      if (condition.operator.type == TokenType.EQ_EQ) {
-        nullExpression = conditional.thenExpression;
-        nonNullExpression = conditional.elseExpression;
-      } else if (condition.operator.type == TokenType.BANG_EQ) {
-        nonNullExpression = conditional.thenExpression;
-        nullExpression = conditional.elseExpression;
-      }
-      if (nullExpression == null || nonNullExpression == null) {
-        _coverageMarker();
-        return null;
-      }
-      if (nullExpression.unParenthesized is! NullLiteral) {
-        _coverageMarker();
-        return null;
-      }
-      Expression unwrappedExpression = nonNullExpression.unParenthesized;
-      Expression target;
-      Token operator;
-      if (unwrappedExpression is MethodInvocation) {
-        target = unwrappedExpression.target;
-        operator = unwrappedExpression.operator;
-      } else if (unwrappedExpression is PrefixedIdentifier) {
-        target = unwrappedExpression.prefix;
-        operator = unwrappedExpression.period;
-      } else {
-        _coverageMarker();
-        return null;
-      }
-      if (operator.type != TokenType.PERIOD) {
-        _coverageMarker();
-        return null;
-      }
-      if (!(target is SimpleIdentifier &&
-          target.staticElement == identifier.staticElement)) {
-        _coverageMarker();
-        return null;
-      }
-      periodOffset = operator.offset;
-
-      DartChangeBuilder changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addDeletion(range.startStart(node, nonNullExpression));
-        builder.addSimpleInsertion(periodOffset, '?');
-        builder.addDeletion(range.endEnd(nonNullExpression, node));
-      });
-      return changeBuilder;
-    }
-    return null;
-  }
-
-  Future<ChangeBuilder> createBuilder_convertToExpressionFunctionBody() async {
-    // prepare current body
-    FunctionBody body = getEnclosingFunctionBody();
-    if (body is! BlockFunctionBody || body.isGenerator) {
-      _coverageMarker();
-      return null;
-    }
-    // prepare return statement
-    List<Statement> statements = (body as BlockFunctionBody).block.statements;
-    if (statements.length != 1) {
-      _coverageMarker();
-      return null;
-    }
-    Statement onlyStatement = statements.first;
-    // prepare returned expression
-    Expression returnExpression;
-    if (onlyStatement is ReturnStatement) {
-      returnExpression = onlyStatement.expression;
-    } else if (onlyStatement is ExpressionStatement) {
-      returnExpression = onlyStatement.expression;
-    }
-    if (returnExpression == null) {
-      _coverageMarker();
-      return null;
-    }
-
-    // Return expressions can be quite large, e.g. Flutter build() methods.
-    // It is surprising to see this Quick Assist deep in the function body.
-    if (selectionOffset >= returnExpression.offset) {
-      _coverageMarker();
-      return null;
-    }
-
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addReplacement(range.node(body), (DartEditBuilder builder) {
-        if (body.isAsynchronous) {
-          builder.write('async ');
-        }
-        builder.write('=> ');
-        builder.write(_getNodeText(returnExpression));
-        if (body.parent is! FunctionExpression ||
-            body.parent.parent is FunctionDeclaration) {
-          builder.write(';');
-        }
-      });
-    });
-    return changeBuilder;
-  }
-
-  /// Returns the text of the given node in the unit.
-  String /* TODO (pq): make visible */ _getNodeText(AstNode node) =>
-      utils.getNodeText(node);
-
-  FunctionBody getEnclosingFunctionBody() {
-    // TODO(brianwilkerson) Determine whether there is a reason why this method
-    // isn't just "return node.getAncestor((node) => node is FunctionBody);"
-    {
-      FunctionExpression function =
-          node.thisOrAncestorOfType<FunctionExpression>();
-      if (function != null) {
-        return function.body;
-      }
-    }
-    {
-      FunctionDeclaration function =
-          node.thisOrAncestorOfType<FunctionDeclaration>();
-      if (function != null) {
-        return function.functionExpression.body;
-      }
-    }
-    {
-      ConstructorDeclaration constructor =
-          node.thisOrAncestorOfType<ConstructorDeclaration>();
-      if (constructor != null) {
-        return constructor.body;
-      }
-    }
-    {
-      MethodDeclaration method = node.thisOrAncestorOfType<MethodDeclaration>();
-      if (method != null) {
-        return method.body;
-      }
-    }
-    return null;
-  }
-
   Future<ChangeBuilder>
       createBuilder_addTypeAnnotation_VariableDeclaration() async {
     AstNode node = this.node;
@@ -649,6 +473,56 @@ abstract class BaseProcessor {
     return changeBuilder;
   }
 
+  Future<ChangeBuilder> createBuilder_convertToExpressionFunctionBody() async {
+    // prepare current body
+    FunctionBody body = getEnclosingFunctionBody();
+    if (body is! BlockFunctionBody || body.isGenerator) {
+      _coverageMarker();
+      return null;
+    }
+    // prepare return statement
+    List<Statement> statements = (body as BlockFunctionBody).block.statements;
+    if (statements.length != 1) {
+      _coverageMarker();
+      return null;
+    }
+    Statement onlyStatement = statements.first;
+    // prepare returned expression
+    Expression returnExpression;
+    if (onlyStatement is ReturnStatement) {
+      returnExpression = onlyStatement.expression;
+    } else if (onlyStatement is ExpressionStatement) {
+      returnExpression = onlyStatement.expression;
+    }
+    if (returnExpression == null) {
+      _coverageMarker();
+      return null;
+    }
+
+    // Return expressions can be quite large, e.g. Flutter build() methods.
+    // It is surprising to see this Quick Assist deep in the function body.
+    if (selectionOffset >= returnExpression.offset) {
+      _coverageMarker();
+      return null;
+    }
+
+    var changeBuilder = _newDartChangeBuilder();
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      builder.addReplacement(range.node(body), (DartEditBuilder builder) {
+        if (body.isAsynchronous) {
+          builder.write('async ');
+        }
+        builder.write('=> ');
+        builder.write(_getNodeText(returnExpression));
+        if (body.parent is! FunctionExpression ||
+            body.parent.parent is FunctionDeclaration) {
+          builder.write(';');
+        }
+      });
+    });
+    return changeBuilder;
+  }
+
   Future<ChangeBuilder> createBuilder_convertToIntLiteral() async {
     if (node is! DoubleLiteral) {
       _coverageMarker();
@@ -674,6 +548,135 @@ abstract class BaseProcessor {
       });
     });
     return changeBuilder;
+  }
+
+  Future<ChangeBuilder> createBuilder_convertToNullAware() async {
+    AstNode node = this.node;
+    if (node is! ConditionalExpression) {
+      _coverageMarker();
+      return null;
+    }
+    ConditionalExpression conditional = node;
+    Expression condition = conditional.condition.unParenthesized;
+    SimpleIdentifier identifier;
+    Expression nullExpression;
+    Expression nonNullExpression;
+    int periodOffset;
+
+    if (condition is BinaryExpression) {
+      //
+      // Identify the variable being compared to `null`, or return if the
+      // condition isn't a simple comparison of `null` to a variable's value.
+      //
+      Expression leftOperand = condition.leftOperand;
+      Expression rightOperand = condition.rightOperand;
+      if (leftOperand is NullLiteral && rightOperand is SimpleIdentifier) {
+        identifier = rightOperand;
+      } else if (rightOperand is NullLiteral &&
+          leftOperand is SimpleIdentifier) {
+        identifier = leftOperand;
+      } else {
+        _coverageMarker();
+        return null;
+      }
+      if (identifier.staticElement is! LocalElement) {
+        _coverageMarker();
+        return null;
+      }
+      //
+      // Identify the expression executed when the variable is `null` and when
+      // it is non-`null`. Return if the `null` expression isn't a null literal
+      // or if the non-`null` expression isn't a method invocation whose target
+      // is the save variable being compared to `null`.
+      //
+      if (condition.operator.type == TokenType.EQ_EQ) {
+        nullExpression = conditional.thenExpression;
+        nonNullExpression = conditional.elseExpression;
+      } else if (condition.operator.type == TokenType.BANG_EQ) {
+        nonNullExpression = conditional.thenExpression;
+        nullExpression = conditional.elseExpression;
+      }
+      if (nullExpression == null || nonNullExpression == null) {
+        _coverageMarker();
+        return null;
+      }
+      if (nullExpression.unParenthesized is! NullLiteral) {
+        _coverageMarker();
+        return null;
+      }
+      Expression unwrappedExpression = nonNullExpression.unParenthesized;
+      Expression target;
+      Token operator;
+      if (unwrappedExpression is MethodInvocation) {
+        target = unwrappedExpression.target;
+        operator = unwrappedExpression.operator;
+      } else if (unwrappedExpression is PrefixedIdentifier) {
+        target = unwrappedExpression.prefix;
+        operator = unwrappedExpression.period;
+      } else {
+        _coverageMarker();
+        return null;
+      }
+      if (operator.type != TokenType.PERIOD) {
+        _coverageMarker();
+        return null;
+      }
+      if (!(target is SimpleIdentifier &&
+          target.staticElement == identifier.staticElement)) {
+        _coverageMarker();
+        return null;
+      }
+      periodOffset = operator.offset;
+
+      DartChangeBuilder changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addDeletion(range.startStart(node, nonNullExpression));
+        builder.addSimpleInsertion(periodOffset, '?');
+        builder.addDeletion(range.endEnd(nonNullExpression, node));
+      });
+      return changeBuilder;
+    }
+    return null;
+  }
+
+  Future<ChangeBuilder> createBuilder_convertToPackageImport() async {
+    var node = this.node;
+    if (node is StringLiteral) {
+      node = node.parent;
+    }
+    if (node is ImportDirective) {
+      ImportDirective importDirective = node;
+      var uriSource = importDirective.uriSource;
+
+      // Ignore if invalid URI.
+      if (uriSource == null) {
+        return null;
+      }
+
+      var importUri = uriSource.uri;
+      if (importUri.scheme != 'package') {
+        return null;
+      }
+
+      // Don't offer to convert a 'package:' URI to itself.
+      try {
+        if (Uri.parse(importDirective.uriContent).scheme == 'package') {
+          return null;
+        }
+      } on FormatException {
+        return null;
+      }
+
+      var changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (builder) {
+        builder.addSimpleReplacement(
+          range.node(importDirective.uri),
+          "'$importUri'",
+        );
+      });
+      return changeBuilder;
+    }
+    return null;
   }
 
   @protected
@@ -803,6 +806,39 @@ abstract class BaseProcessor {
     return null;
   }
 
+  FunctionBody getEnclosingFunctionBody() {
+    // TODO(brianwilkerson) Determine whether there is a reason why this method
+    // isn't just "return node.getAncestor((node) => node is FunctionBody);"
+    {
+      FunctionExpression function =
+          node.thisOrAncestorOfType<FunctionExpression>();
+      if (function != null) {
+        return function.body;
+      }
+    }
+    {
+      FunctionDeclaration function =
+          node.thisOrAncestorOfType<FunctionDeclaration>();
+      if (function != null) {
+        return function.functionExpression.body;
+      }
+    }
+    {
+      ConstructorDeclaration constructor =
+          node.thisOrAncestorOfType<ConstructorDeclaration>();
+      if (constructor != null) {
+        return constructor.body;
+      }
+    }
+    {
+      MethodDeclaration method = node.thisOrAncestorOfType<MethodDeclaration>();
+      if (method != null) {
+        return method.body;
+      }
+    }
+    return null;
+  }
+
   @protected
   bool setupCompute() {
     final locator = NodeLocator(selectionOffset, selectionEnd);
@@ -821,6 +857,10 @@ abstract class BaseProcessor {
       }
     }
   }
+
+  /// Returns the text of the given node in the unit.
+  String /* TODO (pq): make visible */ _getNodeText(AstNode node) =>
+      utils.getNodeText(node);
 
   DartChangeBuilder _newDartChangeBuilder() =>
       DartChangeBuilderImpl.forWorkspace(workspace);

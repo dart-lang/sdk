@@ -104,9 +104,7 @@ class DartAssistKind {
   static const CONVERT_TO_PACKAGE_IMPORT = const AssistKind(
       'dart.assist.convert.relativeToPackageImport',
       30,
-      "Convert to 'package:' import",
-      // todo (pq): migrate to (conditional) fix
-      associatedErrorCodes: <String>['avoid_relative_lib_imports']);
+      "Convert to 'package:' import");
   static const CONVERT_TO_SET_LITERAL = const AssistKind(
       'dart.assist.convert.toSetLiteral', 30, "Convert to set literal",
       // todo (brianwilkerson): unify w/ fix

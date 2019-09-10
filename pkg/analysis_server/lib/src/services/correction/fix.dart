@@ -199,6 +199,8 @@ class DartFixKind {
       'CONVERT_TO_NAMED_ARGUMENTS', 50, "Convert to named arguments");
   static const CONVERT_TO_NULL_AWARE =
       const FixKind('CONVERT_TO_NULL_AWARE', 50, "Convert to use '?.'");
+  static const CONVERT_TO_PACKAGE_IMPORT = const FixKind(
+      'CONVERT_TO_PACKAGE_IMPORT', 50, "Convert to 'package:' import");
   static const CREATE_CLASS =
       const FixKind('CREATE_CLASS', 50, "Create class '{0}'");
   static const CREATE_CONSTRUCTOR =

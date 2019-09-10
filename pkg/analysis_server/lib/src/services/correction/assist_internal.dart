@@ -101,7 +101,11 @@ class AssistProcessor extends BaseProcessor {
     )) {
       await _addProposal_convertToNullAware();
     }
-    await _addProposal_convertToPackageImport();
+    if (!_containsErrorCode(
+      {LintNames.avoid_relative_lib_imports},
+    )) {
+      await _addProposal_convertToPackageImport();
+    }
     await _addProposal_convertToSingleQuotedString();
     await _addProposal_encapsulateField();
     await _addProposal_exchangeOperands();
@@ -1310,45 +1314,9 @@ class AssistProcessor extends BaseProcessor {
   }
 
   Future<void> _addProposal_convertToPackageImport() async {
-    var node = this.node;
-    if (node is StringLiteral) {
-      node = node.parent;
-    }
-    if (node is ImportDirective) {
-      ImportDirective importDirective = node;
-      var uriSource = importDirective.uriSource;
-
-      // Ignore if invalid URI.
-      if (uriSource == null) {
-        return;
-      }
-
-      var importUri = uriSource.uri;
-      if (importUri.scheme != 'package') {
-        return;
-      }
-
-      // Don't offer to convert a 'package:' URI to itself.
-      try {
-        if (Uri.parse(importDirective.uriContent).scheme == 'package') {
-          return;
-        }
-      } on FormatException {
-        return;
-      }
-
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (builder) {
-        builder.addSimpleReplacement(
-          range.node(importDirective.uri),
-          "'$importUri'",
-        );
-      });
-      _addAssistFromBuilder(
-        changeBuilder,
-        DartAssistKind.CONVERT_TO_PACKAGE_IMPORT,
-      );
-    }
+    final changeBuilder = await createBuilder_convertToPackageImport();
+    _addAssistFromBuilder(
+        changeBuilder, DartAssistKind.CONVERT_TO_PACKAGE_IMPORT);
   }
 
   Future<void> _addProposal_convertToSingleQuotedString() async {
