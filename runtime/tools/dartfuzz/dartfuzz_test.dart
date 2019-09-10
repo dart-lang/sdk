@@ -148,6 +148,9 @@ abstract class TestRunner {
     if (mode.endsWith('dbc64')) return 'ReleaseSIMDBC64';
     throw ('unknown tag in mode: $mode');
   }
+
+  // Print steps to reproduce build and run.
+  void printReproductionCommand();
 }
 
 /// Concrete test runner of Dart JIT.
@@ -162,6 +165,8 @@ class TestRunnerJIT implements TestRunner {
   TestResult run() {
     return runCommand(cmd, env);
   }
+
+  void printReproductionCommand() => print(cmd.join(" "));
 
   String description;
   String dart;
@@ -189,6 +194,12 @@ class TestRunnerAOT implements TestRunner {
       return result;
     }
     return runCommand([dart, snapshot], env);
+  }
+
+  void printReproductionCommand() {
+    print(
+        ["DART_CONFIGURATION=${env['DART_CONFIGURATION']}", ...cmd].join(" "));
+    print([dart, snapshot].join(" "));
   }
 
   String description;
@@ -227,6 +238,12 @@ class TestRunnerKBC implements TestRunner {
     return runCommand(cmd, env);
   }
 
+  void printReproductionCommand() {
+    print(
+        [generate, '--gen-bytecode', platform, '-o', dill, fileName].join(" "));
+    print(cmd.join(" "));
+  }
+
   String description;
   String generate;
   String platform;
@@ -252,6 +269,11 @@ class TestRunnerDJS implements TestRunner {
       return result;
     }
     return runCommand(['nodejs', js], env);
+  }
+
+  void printReproductionCommand() {
+    print([dart2js, fileName, '-o', js].join(" "));
+    print(['nodejs', js].join(" "));
   }
 
   String description;
@@ -369,15 +391,21 @@ class DartFuzzTest {
   void runTest() {
     TestResult result1 = runner1.run();
     TestResult result2 = runner2.run();
-    if (checkDivergence(result1, result2) == ReportStatus.rerun && rerun) {
+    var report = checkDivergence(result1, result2);
+    if (report == ReportStatus.rerun && rerun) {
       print("\nCommencing re-run .... \n");
       numDivergences--;
       result1 = runner1.run();
       result2 = runner2.run();
-      if (checkDivergence(result1, result2) == ReportStatus.no_divergence) {
+      report = checkDivergence(result1, result2);
+      if (report == ReportStatus.no_divergence) {
         print("\nNo error on re-run\n");
         numRerun++;
       }
+    }
+    if (report == ReportStatus.reported ||
+        (!rerun && report == ReportStatus.rerun)) {
+      showReproduce();
     }
   }
 
@@ -453,6 +481,17 @@ class DartFuzzTest {
             '\nfail2:\n${result2.exitCode}\n${result2.output}\n${result2.stderr}\n');
       }
     }
+  }
+
+  void showReproduce() {
+    print("\n-- BEGIN REPRODUCE  --\n");
+    print("dartfuzz.dart --${ffi ? "" : "no-"}ffi --${fp ? "" : "no-"}fp"
+        "--seed ${seed} $fileName");
+    print("\n-- RUN 1 --\n");
+    runner1.printReproductionCommand();
+    print("\n-- RUN 2 --\n");
+    runner2.printReproductionCommand();
+    print("\n-- END REPRODUCE  --\n");
   }
 
   // Context.
