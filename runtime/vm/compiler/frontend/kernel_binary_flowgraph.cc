@@ -44,8 +44,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFieldInitializer() {
     UNREACHABLE();
   }
 
-  B->graph_entry_ =
-      new (Z) GraphEntryInstr(*parsed_function(), Compiler::kNoOSRDeoptId);
+  B->graph_entry_ = new (Z) GraphEntryInstr(*parsed_function(), B->osr_id_);
 
   auto normal_entry = B->BuildFunctionEntry(B->graph_entry_);
   B->graph_entry_->set_normal_entry(normal_entry);
@@ -63,6 +62,9 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFieldInitializer() {
   body += Return(TokenPosition::kNoSource);
 
   PrologueInfo prologue_info(-1, -1);
+  if (B->IsCompiledForOsr()) {
+    B->graph_entry_->RelinkToOsrEntry(Z, B->last_used_block_id_ + 1);
+  }
   return new (Z) FlowGraph(*parsed_function(), B->graph_entry_,
                            B->last_used_block_id_, prologue_info);
 }

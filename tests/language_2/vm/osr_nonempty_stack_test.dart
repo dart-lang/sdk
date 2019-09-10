@@ -93,6 +93,12 @@ List<int> test5(int m, int n) {
   return x;
 }
 
+List<int> globalList = [
+  1,
+  for (int loc1 = 2; loc1 <= 100000; loc1++) loc1,
+  100001
+];
+
 main() {
   int n = 20000;
   int g = 457;
@@ -133,5 +139,11 @@ main() {
     int expect = k <= 1 ? ((k == 0) ? 10 : g++) : -5 + 2 * k;
     Expect.equals(e[i], expect);
     if (++k == (n + 2)) k = 0;
+  }
+
+  Expect.isTrue(globalList != null);
+  Expect.equals(100001, globalList.length);
+  for (int i = 0; i < globalList.length; i++) {
+    Expect.equals(globalList[i], i + 1);
   }
 }
