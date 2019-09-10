@@ -2796,12 +2796,8 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   // Non-Closure handling.
   {
     __ Bind(&not_closure);
-    if (n == 1) {
-      __ SmiTag(kInstanceCidOrFunction);
-    } else {
-      ASSERT(n >= 2);
+    if (n >= 2) {
       Label has_no_type_arguments;
-      // [LoadClassById] also tags [kInstanceCidOrFunction] as a side-effect.
       __ LoadClassById(R5, kInstanceCidOrFunction);
       __ mov(kInstanceInstantiatorTypeArgumentsReg, kNullReg);
       __ LoadFieldFromOffset(
@@ -2818,6 +2814,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
         __ mov(kInstanceDelayedFunctionTypeArgumentsReg, kNullReg);
       }
     }
+    __ SmiTag(kInstanceCidOrFunction);
   }
 
   Label found, not_found, next_iteration;

@@ -803,7 +803,6 @@ class Assembler : public AssemblerBase {
 
   // Loading and comparing classes of objects.
   void LoadClassId(Register result, Register object);
-
   void LoadClassById(Register result, Register class_id);
 
   void CompareClassId(Register object,
