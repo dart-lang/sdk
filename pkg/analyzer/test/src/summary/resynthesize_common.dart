@@ -2075,6 +2075,28 @@ class C/*codeOffset=0, codeLength=462*/ {
         withConstElements: false);
   }
 
+  test_codeRange_enum() async {
+    var library = await checkLibrary('''
+enum E {
+  aaa, bbb, ccc
+}
+''');
+    checkElementText(
+        library,
+        r'''
+enum E/*codeOffset=0, codeLength=26*/ {
+  synthetic final int index/*codeOffset=null, codeLength=null*/;
+  synthetic static const List<E> values/*codeOffset=null, codeLength=null*/;
+  static const E aaa/*codeOffset=11, codeLength=3*/;
+  static const E bbb/*codeOffset=16, codeLength=3*/;
+  static const E ccc/*codeOffset=21, codeLength=3*/;
+  String toString/*codeOffset=null, codeLength=null*/() {}
+}
+''',
+        withCodeRanges: true,
+        withConstElements: false);
+  }
+
   test_codeRange_extensions() async {
     featureSet = enableExtensionMethods;
     var library = await checkLibrary('''

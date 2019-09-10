@@ -148,6 +148,8 @@ class LinkedUnitContext {
       }
     } else if (node is ConstructorDeclaration) {
       return LazyConstructorDeclaration.getCodeLength(this, node);
+    } else if (node is EnumConstantDeclaration) {
+      return LazyEnumConstantDeclaration.getCodeLength(this, node);
     } else if (node is EnumDeclaration) {
       return LazyEnumDeclaration.getCodeLength(this, node);
     } else if (node is ExtensionDeclaration) {
@@ -181,6 +183,8 @@ class LinkedUnitContext {
       return 0;
     } else if (node is ConstructorDeclaration) {
       return LazyConstructorDeclaration.getCodeOffset(this, node);
+    } else if (node is EnumConstantDeclaration) {
+      return LazyEnumConstantDeclaration.getCodeOffset(this, node);
     } else if (node is EnumDeclaration) {
       return LazyEnumDeclaration.getCodeOffset(this, node);
     } else if (node is ExtensionDeclaration) {

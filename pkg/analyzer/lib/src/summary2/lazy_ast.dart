@@ -574,6 +574,28 @@ class LazyEnumConstantDeclaration {
     return node.getProperty(_key);
   }
 
+  static int getCodeLength(
+    LinkedUnitContext context,
+    EnumConstantDeclaration node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null) {
+      return context.getInformativeData(lazy.data)?.codeLength ?? 0;
+    }
+    return node.length;
+  }
+
+  static int getCodeOffset(
+    LinkedUnitContext context,
+    EnumConstantDeclaration node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null) {
+      return context.getInformativeData(lazy.data)?.codeOffset ?? 0;
+    }
+    return node.offset;
+  }
+
   static void readDocumentationComment(
     LinkedUnitContext context,
     EnumConstantDeclaration node,
