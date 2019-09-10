@@ -215,6 +215,90 @@ abstract class BaseProcessor {
     return validChange ? changeBuilder : null;
   }
 
+  Future<ConvertToSpreadCollectionsChange>
+      createBuilder_convertAddAllToSpread() async {
+    AstNode node = this.node;
+    if (node is! SimpleIdentifier || node.parent is! MethodInvocation) {
+      _coverageMarker();
+      return null;
+    }
+    SimpleIdentifier name = node;
+    MethodInvocation invocation = node.parent;
+    if (name != invocation.methodName ||
+        name.name != 'addAll' ||
+        !invocation.isCascaded ||
+        invocation.argumentList.arguments.length != 1) {
+      _coverageMarker();
+      return null;
+    }
+    CascadeExpression cascade = invocation.thisOrAncestorOfType();
+    NodeList<Expression> sections = cascade.cascadeSections;
+    Expression target = cascade.target;
+    if (target is! ListLiteral || sections[0] != invocation) {
+      // TODO(brianwilkerson) Consider extending this to handle set literals.
+      _coverageMarker();
+      return null;
+    }
+
+    bool isEmptyListLiteral(Expression expression) =>
+        expression is ListLiteral && expression.elements.isEmpty;
+
+    ListLiteral list = target;
+    Expression argument = invocation.argumentList.arguments[0];
+    String elementText;
+    ConvertToSpreadCollectionsChange change =
+        ConvertToSpreadCollectionsChange();
+    List<String> args = null;
+    if (argument is BinaryExpression &&
+        argument.operator.type == TokenType.QUESTION_QUESTION) {
+      Expression right = argument.rightOperand;
+      if (isEmptyListLiteral(right)) {
+        // ..addAll(things ?? const [])
+        // ..addAll(things ?? [])
+        elementText = '...?${utils.getNodeText(argument.leftOperand)}';
+      }
+    } else if (experimentStatus.control_flow_collections &&
+        argument is ConditionalExpression) {
+      Expression elseExpression = argument.elseExpression;
+      if (isEmptyListLiteral(elseExpression)) {
+        // ..addAll(condition ? things : const [])
+        // ..addAll(condition ? things : [])
+        String conditionText = utils.getNodeText(argument.condition);
+        String thenText = utils.getNodeText(argument.thenExpression);
+        elementText = 'if ($conditionText) ...$thenText';
+      }
+    } else if (argument is ListLiteral) {
+      // ..addAll([ ... ])
+      NodeList<CollectionElement> elements = argument.elements;
+      if (elements.isEmpty) {
+        // TODO(brianwilkerson) Consider adding a cleanup for the empty list
+        //  case. We can essentially remove the whole invocation because it does
+        //  nothing.
+        return null;
+      }
+      int startOffset = elements.first.offset;
+      int endOffset = elements.last.end;
+      elementText = utils.getText(startOffset, endOffset - startOffset);
+      change.isLineInvocation = true;
+      args = ['addAll'];
+    }
+    elementText ??= '...${utils.getNodeText(argument)}';
+    DartChangeBuilder changeBuilder = _newDartChangeBuilder();
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      if (list.elements.isNotEmpty) {
+        // ['a']..addAll(['b', 'c']);
+        builder.addSimpleInsertion(list.elements.last.end, ', $elementText');
+      } else {
+        // []..addAll(['b', 'c']);
+        builder.addSimpleInsertion(list.leftBracket.end, elementText);
+      }
+      builder.addDeletion(range.node(invocation));
+    });
+    change.args = args;
+    change.builder = changeBuilder;
+    return change;
+  }
+
   Future<ChangeBuilder>
       createBuilder_convertConditionalExpressionToIfElement() async {
     AstNode node = this.node.thisOrAncestorOfType<ConditionalExpression>();
@@ -926,6 +1010,12 @@ abstract class BaseProcessor {
   ///
   /// https://code.google.com/p/dart/issues/detail?id=19912
   static void _coverageMarker() {}
+}
+
+class ConvertToSpreadCollectionsChange {
+  ChangeBuilder builder;
+  List<String> args;
+  bool isLineInvocation = false;
 }
 
 /// A visitor that can be used to find references to a parameter.

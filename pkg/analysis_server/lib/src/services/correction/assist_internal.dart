@@ -159,7 +159,11 @@ class AssistProcessor extends BaseProcessor {
       }
     }
     if (experimentStatus.spread_collections) {
-      await _addProposal_convertAddAllToSpread();
+      if (!_containsErrorCode(
+        {LintNames.prefer_spread_collections},
+      )) {
+        await _addProposal_convertAddAllToSpread();
+      }
     }
 
     return assists;
@@ -260,83 +264,13 @@ class AssistProcessor extends BaseProcessor {
   }
 
   Future<void> _addProposal_convertAddAllToSpread() async {
-    AstNode node = this.node;
-    if (node is! SimpleIdentifier || node.parent is! MethodInvocation) {
-      _coverageMarker();
-      return;
+    final change = await createBuilder_convertAddAllToSpread();
+    if (change != null) {
+      final kind = change.isLineInvocation
+          ? DartAssistKind.INLINE_INVOCATION
+          : DartAssistKind.CONVERT_TO_SPREAD;
+      _addAssistFromBuilder(change.builder, kind, args: change.args);
     }
-    SimpleIdentifier name = node;
-    MethodInvocation invocation = node.parent;
-    if (name != invocation.methodName ||
-        name.name != 'addAll' ||
-        !invocation.isCascaded ||
-        invocation.argumentList.arguments.length != 1) {
-      _coverageMarker();
-      return;
-    }
-    CascadeExpression cascade = invocation.thisOrAncestorOfType();
-    NodeList<Expression> sections = cascade.cascadeSections;
-    Expression target = cascade.target;
-    if (target is! ListLiteral || sections[0] != invocation) {
-      // TODO(brianwilkerson) Consider extending this to handle set literals.
-      _coverageMarker();
-      return;
-    }
-
-    bool isEmptyListLiteral(Expression expression) =>
-        expression is ListLiteral && expression.elements.isEmpty;
-
-    ListLiteral list = target;
-    Expression argument = invocation.argumentList.arguments[0];
-    String elementText;
-    AssistKind kind = DartAssistKind.CONVERT_TO_SPREAD;
-    List<String> args = null;
-    if (argument is BinaryExpression &&
-        argument.operator.type == TokenType.QUESTION_QUESTION) {
-      Expression right = argument.rightOperand;
-      if (isEmptyListLiteral(right)) {
-        // ..addAll(things ?? const [])
-        // ..addAll(things ?? [])
-        elementText = '...?${utils.getNodeText(argument.leftOperand)}';
-      }
-    } else if (experimentStatus.control_flow_collections &&
-        argument is ConditionalExpression) {
-      Expression elseExpression = argument.elseExpression;
-      if (isEmptyListLiteral(elseExpression)) {
-        // ..addAll(condition ? things : const [])
-        // ..addAll(condition ? things : [])
-        String conditionText = utils.getNodeText(argument.condition);
-        String thenText = utils.getNodeText(argument.thenExpression);
-        elementText = 'if ($conditionText) ...$thenText';
-      }
-    } else if (argument is ListLiteral) {
-      // ..addAll([ ... ])
-      NodeList<CollectionElement> elements = argument.elements;
-      if (elements.isEmpty) {
-        // TODO(brianwilkerson) Consider adding a cleanup for the empty list
-        //  case. We can essentially remove the whole invocation because it does
-        //  nothing.
-        return;
-      }
-      int startOffset = elements.first.offset;
-      int endOffset = elements.last.end;
-      elementText = utils.getText(startOffset, endOffset - startOffset);
-      kind = DartAssistKind.INLINE_INVOCATION;
-      args = ['addAll'];
-    }
-    elementText ??= '...${utils.getNodeText(argument)}';
-    DartChangeBuilder changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      if (list.elements.isNotEmpty) {
-        // ['a']..addAll(['b', 'c']);
-        builder.addSimpleInsertion(list.elements.last.end, ', $elementText');
-      } else {
-        // []..addAll(['b', 'c']);
-        builder.addSimpleInsertion(list.leftBracket.end, elementText);
-      }
-      builder.addDeletion(range.node(invocation));
-    });
-    _addAssistFromBuilder(changeBuilder, kind, args: args);
   }
 
   Future<void> _addProposal_convertClassToMixin() async {

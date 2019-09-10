@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/assist.dart';
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -39,6 +40,18 @@ f() {
   print(['a', ...ints.map((i) => i.toString())]..addAll(['c']));
 }
 ''');
+  }
+
+  test_addAll_expression_noAssistWithLint() async {
+    createAnalysisOptionsFile(lints: [LintNames.prefer_spread_collections]);
+    verifyNoTestUnitErrors = false;
+    await resolveTestUnit('''
+f() {
+  var ints = [1, 2, 3];
+  print(['a']..addAl/*caret*/l(ints.map((i) => i.toString()))..addAll(['c']));
+}
+''');
+    await assertNoAssist();
   }
 
   test_addAll_expression_toEmptyList() async {

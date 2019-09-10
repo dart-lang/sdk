@@ -665,6 +665,9 @@ class FixProcessor extends BaseProcessor {
       if (errorCode.name == LintNames.slash_for_doc_comments) {
         await _addFix_convertDocumentationIntoLine();
       }
+      if (name == LintNames.prefer_spread_collections) {
+        await _addFix_convertAddAllToSpread();
+      }
       if (name == LintNames.type_init_formals) {
         await _addFix_removeTypeAnnotation();
       }
@@ -1871,6 +1874,16 @@ class FixProcessor extends BaseProcessor {
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.CREATE_CONSTRUCTOR_SUPER,
           args: [proposalName]);
+    }
+  }
+
+  Future<void> _addFix_convertAddAllToSpread() async {
+    final change = await createBuilder_convertAddAllToSpread();
+    if (change != null) {
+      final kind = change.isLineInvocation
+          ? DartFixKind.INLINE_INVOCATION
+          : DartFixKind.CONVERT_TO_SPREAD;
+      _addFixFromBuilder(change.builder, kind, args: change.args);
     }
   }
 
