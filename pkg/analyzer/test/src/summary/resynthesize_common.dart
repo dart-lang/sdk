@@ -4617,6 +4617,31 @@ class C {
 ''');
   }
 
+  test_constructor_initializers_genericFunctionType() async {
+    var library = await checkLibrary('''
+class A<T> {
+  const A();
+}
+class B {
+  const B(dynamic x);
+  const B.f()
+   : this(A<Function()>());
+}
+''');
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+class A<T> {
+  const A();
+}
+class B {
+  const B(dynamic x);
+  const B.f() = B : this(
+        A/*location: test.dart;A*/<Function()>());
+}
+''');
+    }
+  }
+
   test_constructor_initializers_superInvocation_named() async {
     var library = await checkLibrary('''
 class A {
@@ -5259,6 +5284,28 @@ class X {
 }
 void defaultF<T>(T v) {}
 ''');
+  }
+
+  test_defaultValue_genericFunctionType() async {
+    var library = await checkLibrary('''
+class A<T> {
+  const A();
+}
+class B {
+  void foo({a: const A<Function()>()}) {}
+}
+''');
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+class A<T> {
+  const A();
+}
+class B {
+  void foo({dynamic a: const
+        A/*location: test.dart;A*/<Function()>()}) {}
+}
+''');
+    }
   }
 
   test_defaultValue_refersToExtension_method_inside() async {
