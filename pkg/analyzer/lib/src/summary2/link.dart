@@ -6,15 +6,15 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart' show CompilationUnit;
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/summary/format.dart';
-import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/summary2/ast_binary_writer.dart';
-import 'package:analyzer/src/summary2/builder/source_library_builder.dart';
+import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/linking_bundle_context.dart';
@@ -44,7 +44,7 @@ class Linker {
   LinkingBundleContext linkingBundleContext;
 
   /// Libraries that are being linked.
-  final Map<Uri, SourceLibraryBuilder> builders = {};
+  final Map<Uri, LibraryBuilder> builders = {};
 
   InheritanceManager3 inheritance; // TODO(scheglov) cache it
 
@@ -75,7 +75,7 @@ class Linker {
 
   void link(List<LinkInputLibrary> inputLibraries) {
     for (var inputLibrary in inputLibraries) {
-      SourceLibraryBuilder.build(this, inputLibrary);
+      LibraryBuilder.build(this, inputLibrary);
     }
     // TODO(scheglov) do in build() ?
     elementFactory.addBundle(bundleContext);
@@ -122,8 +122,8 @@ class Linker {
       library.buildInitialExportScope();
     }
 
-    var exporters = new Set<SourceLibraryBuilder>();
-    var exportees = new Set<SourceLibraryBuilder>();
+    var exporters = new Set<LibraryBuilder>();
+    var exportees = new Set<LibraryBuilder>();
 
     for (var library in builders.values) {
       library.addExporters();
@@ -138,7 +138,7 @@ class Linker {
       }
     }
 
-    var both = new Set<SourceLibraryBuilder>();
+    var both = new Set<LibraryBuilder>();
     for (var exported in exportees) {
       if (exporters.contains(exported)) {
         both.add(exported);
@@ -212,10 +212,7 @@ class Linker {
 
     var coreLib = elementFactory.libraryOfUri('dart:core');
     var asyncLib = elementFactory.libraryOfUri('dart:async');
-
-    analysisContext.typeProvider = SummaryTypeProvider()
-      ..initializeCore(coreLib)
-      ..initializeAsync(asyncLib);
+    analysisContext.typeProvider = TypeProviderImpl(coreLib, asyncLib);
 
     inheritance = InheritanceManager3(typeSystem);
   }

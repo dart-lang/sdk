@@ -1063,6 +1063,9 @@ static Sample* SetupSampleNative(SampleBuffer* sample_buffer, ThreadId tid) {
   // purposes as some samples may be collected when no thread exists.
   if (thread != NULL) {
     sample->set_thread_task(thread->task_kind());
+    sample->set_vm_tag(thread->vm_tag());
+  } else {
+    sample->set_vm_tag(VMTag::kEmbedderTagId);
   }
   return sample;
 }

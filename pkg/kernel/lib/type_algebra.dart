@@ -241,8 +241,8 @@ abstract class Substitution {
   /// [first] if they overlap.
   ///
   /// Neither substitution is applied to the results of the other, so this does
-  /// *not* correspond to a sequence of two subsitutions. For example, combining
-  /// `{T -> List<G>}` with `{G -> String}` does not correspond to
+  /// *not* correspond to a sequence of two substitutions. For example,
+  /// combining `{T -> List<G>}` with `{G -> String}` does not correspond to
   /// `{T -> List<String>}` because the result from substituting `T` is not
   /// searched for occurences of `G`.
   static Substitution combine(Substitution first, Substitution second) {

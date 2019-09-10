@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/node_builder.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
@@ -26,26 +25,6 @@ class DecoratedClassHierarchy {
 
   DecoratedClassHierarchy(this._variables, this._graph);
 
-  /// Retrieves a [DecoratedType] describing how [class_] implements
-  /// [superclass].
-  ///
-  /// If [class_] does not implement [superclass], raises an exception.
-  ///
-  /// Note that the returned [DecoratedType] will have a node of `never`,
-  /// because the relationship between a class and its superclass is not
-  /// nullable.
-  DecoratedType getDecoratedSupertype(
-      ClassElement class_, ClassElement superclass) {
-    assert(!(class_.library.isDartCore && class_.name == 'Null'));
-    assert(class_ is! ClassElementHandle);
-    assert(superclass is! ClassElementHandle);
-    if (superclass.typeParameters.isEmpty) {
-      return DecoratedType(superclass.type, _graph.never);
-    }
-    return _getGenericSupertypeDecorations(class_)[superclass] ??
-        (throw StateError('Unrelated types'));
-  }
-
   /// Retrieves a [DecoratedType] describing how [type] implements [superclass].
   ///
   /// If [type] is not an interface type, or it does not implement [superclass],
@@ -62,6 +41,24 @@ class DecoratedClassHierarchy {
     return result.withNode(type.node);
   }
 
+  /// Retrieves a [DecoratedType] describing how [class_] implements
+  /// [superclass].
+  ///
+  /// If [class_] does not implement [superclass], raises an exception.
+  ///
+  /// Note that the returned [DecoratedType] will have a node of `never`,
+  /// because the relationship between a class and its superclass is not
+  /// nullable.
+  DecoratedType getDecoratedSupertype(
+      ClassElement class_, ClassElement superclass) {
+    assert(!(class_.library.isDartCore && class_.name == 'Null'));
+    if (superclass.typeParameters.isEmpty) {
+      return DecoratedType(superclass.type, _graph.never);
+    }
+    return _getGenericSupertypeDecorations(class_)[superclass] ??
+        (throw StateError('Unrelated types: $class_ and $superclass'));
+  }
+
   /// Computes a map whose keys are all the superclasses of [class_], and whose
   /// values indicate how [class_] implements each superclass.
   Map<ClassElement, DecoratedType> _getGenericSupertypeDecorations(
@@ -70,7 +67,7 @@ class DecoratedClassHierarchy {
     if (decorations == null) {
       // Call ourselves recursively to compute how each of [class_]'s direct
       // superclasses relates to all of its transitive superclasses.
-      decorations = _genericSupertypeDecorations[class_] = {};
+      decorations = {};
       var decoratedDirectSupertypes =
           _variables.decoratedDirectSupertypes(class_);
       for (var entry in decoratedDirectSupertypes.entries) {
@@ -96,6 +93,7 @@ class DecoratedClassHierarchy {
         // superclass.
         decorations[superclass] ??= decoratedSupertype;
       }
+      _genericSupertypeDecorations[class_] = decorations;
     }
     return decorations;
   }

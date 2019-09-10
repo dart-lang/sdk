@@ -14,6 +14,8 @@
 namespace dart {
 namespace kernel {
 
+class BytecodeLocalVariablesIterator;
+
 // This class builds flow graph from bytecode. It is used either to compile
 // from bytecode, or generate bytecode interpreter (the latter is not
 // fully implemented yet).
@@ -107,6 +109,24 @@ class BytecodeFlowGraphBuilder {
     const Object& value_;
   };
 
+  // Scope declared in bytecode local variables information.
+  class BytecodeScope : public ZoneAllocated {
+   public:
+    BytecodeScope(Zone* zone,
+                  intptr_t end_pc,
+                  intptr_t context_level,
+                  BytecodeScope* parent)
+        : end_pc_(end_pc),
+          context_level_(context_level),
+          parent_(parent),
+          hidden_vars_(zone, 4) {}
+
+    const intptr_t end_pc_;
+    const intptr_t context_level_;
+    BytecodeScope* const parent_;
+    ZoneGrowableArray<LocalVariable*> hidden_vars_;
+  };
+
   Operand DecodeOperandA();
   Operand DecodeOperandB();
   Operand DecodeOperandC();
@@ -152,6 +172,7 @@ class BytecodeFlowGraphBuilder {
 
   void BuildInstruction(KernelBytecode::Opcode opcode);
   void BuildFfiAsFunction();
+  void BuildFfiNativeCallbackFunction();
   void BuildDebugStepCheck();
 
 #define DECLARE_BUILD_METHOD(name, encoding, kind, op1, op2, op3)              \
@@ -167,11 +188,9 @@ class BytecodeFlowGraphBuilder {
                           const ExceptionHandlers& handlers,
                           GraphEntryInstr* graph_entry);
 
-#if !defined(PRODUCT)
-  // Update context level for the given bytecode PC. returns
-  // next PC where context level might need an update.
-  intptr_t UpdateContextLevel(const Bytecode& bytecode, intptr_t pc);
-#endif
+  // Update current scope, context level and local variables for the given PC.
+  // Returns next PC where scope might need an update.
+  intptr_t UpdateScope(BytecodeLocalVariablesIterator* iter, intptr_t pc);
 
   // Figure out entry points style.
   UncheckedEntryPointStyle ChooseEntryPointStyle(
@@ -214,6 +233,8 @@ class BytecodeFlowGraphBuilder {
   GraphEntryInstr* graph_entry_ = nullptr;
   UncheckedEntryPointStyle entry_point_style_ = UncheckedEntryPointStyle::kNone;
   bool build_debug_step_checks_ = false;
+  bool seen_parameters_scope_ = false;
+  BytecodeScope* current_scope_ = nullptr;
 };
 
 }  // namespace kernel

@@ -6,7 +6,7 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
-const String PROTOCOL_VERSION = '1.27.2';
+const String PROTOCOL_VERSION = '1.27.3';
 
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES = 'analysis.analyzedFiles';
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES_DIRECTORIES = 'directories';
@@ -341,6 +341,8 @@ const String SERVER_NOTIFICATION_ERROR = 'server.error';
 const String SERVER_NOTIFICATION_ERROR_IS_FATAL = 'isFatal';
 const String SERVER_NOTIFICATION_ERROR_MESSAGE = 'message';
 const String SERVER_NOTIFICATION_ERROR_STACK_TRACE = 'stackTrace';
+const String SERVER_NOTIFICATION_LOG = 'server.log';
+const String SERVER_NOTIFICATION_LOG_ENTRY = 'entry';
 const String SERVER_NOTIFICATION_STATUS = 'server.status';
 const String SERVER_NOTIFICATION_STATUS_ANALYSIS = 'analysis';
 const String SERVER_NOTIFICATION_STATUS_PUB = 'pub';

@@ -334,11 +334,16 @@ FunctionType _createSmall(returnType, List required) => JS('', '''(() => {
 })()''');
 
 class FunctionType extends AbstractFunctionType {
-  final returnType;
+  final Type returnType;
   List args;
   List optionals;
+  // Named arguments native JS Object of the form { namedArgName: namedArgType }
   final named;
   // TODO(vsm): This is just parameter metadata for now.
+  // Suspected but not confirmed: Only used by mirrors for pageloader2 support.
+  // The metadata is represented as a list of JS arrays, one for each argument
+  // that contains the annotations for that argument or an empty array if there
+  // are no annotations.
   List metadata = [];
   String _stringValue;
 
@@ -380,6 +385,11 @@ class FunctionType extends AbstractFunctionType {
     return _memoizeArray(_fnTypeTypeMap, keys, create);
   }
 
+  /// Returns the function arguments.
+  ///
+  /// If an argument is provided with annotations (encoded as a JS array where
+  /// the first element is the argument, and the rest are annotations) the
+  /// annotations are extracted and saved in [metadata].
   List _process(List array) {
     var result = [];
     for (var i = 0; JS<bool>('!', '# < #.length', i, array); ++i) {
@@ -398,7 +408,8 @@ class FunctionType extends AbstractFunctionType {
   FunctionType(this.returnType, this.args, this.optionals, this.named) {
     this.args = _process(this.args);
     this.optionals = _process(this.optionals);
-    // TODO(vsm): Add named arguments.
+    // TODO(vsm): Named arguments were never used by pageloader2 so they were
+    // never processed here.
   }
 
   toString() => name;

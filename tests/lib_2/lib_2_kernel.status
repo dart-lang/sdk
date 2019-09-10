@@ -4,53 +4,31 @@
 # Sections in this file should contain "$compiler == dartk" or
 # "$compiler == dartkp".
 
-convert/streamed_conversion_json_utf8_decode_test: Pass, Slow # Uses --verify_before_gc --verify_after_gc --old_gen_growth_rate=1 flags
+convert/streamed_conversion_json_utf8_decode_test: Slow # Uses --verify_before_gc --verify_after_gc --old_gen_growth_rate=1 flags
 isolate/ping_pause_test: Skip # Issue https://dartbug.com/37787
 
-[ $builder_tag == asan ]
-isolate/non_fatal_exception_in_timer_callback_test: Pass, Fail # Issue 34724
-mirrors/dynamic_load_test: Fail # Issue 32187
-
 [ $compiler == dartkb ]
-convert/streamed_conversion_json_utf8_decode_test: Pass, Timeout # Please triage.
-isolate/isolate_complex_messages_test: Pass, Crash # runtime/vm/object.cc: 17395: error: expected: type_arguments.IsNull() || type_arguments.IsCanonical()
-isolate/mandel_isolate_test: Pass, Timeout # Please triage.
-isolate/spawn_uri_exported_main_test: Pass, RuntimeError # Please triage: Expect.fail('Isolate was not spawned successfully.')
-mirrors/library_uri_io_test: RuntimeError # Platform.script points to dill file.
+isolate/isolate_complex_messages_test: Crash # runtime/vm/object.cc: 17395: error: expected: type_arguments.IsNull() || type_arguments.IsCanonical()
 
 [ $compiler == fasta ]
 html/*: Skip # TODO(ahe): Make dart:html available.
 js/*: Skip # TODO(ahe): Make dart:js available.
 
-[ $fasta ]
-async/future_or_type_test: CompileTimeError # Issue 34626
-mirrors/generic_f_bounded_mixin_application_test: CompileTimeError # Issue 34613
-mirrors/redirecting_factory_test/01: CompileTimeError # Issue 34714
-mirrors/redirecting_factory_test/none: CompileTimeError # Issue 34714
-
 [ $arch == simdbc64 && $hot_reload_rollback ]
 convert/streamed_conversion_json_utf8_decode_test: SkipSlow # Uses --verify_before_gc --verify_after_gc --old_gen_growth_rate=1 flags
-
-[ $arch == x64 && $builder_tag == asan && $compiler == dartk ]
-mirrors/dynamic_load_test: Fail # Memory leak (issue 34724)
 
 [ $arch == x64 && $mode == debug && $runtime == vm && ($compiler == dartk || $compiler == dartkb) ]
 mirrors/invocation_fuzz_test: Skip # Because it times out, issue 29439.
 
 [ $arch == x64 && ($hot_reload || $hot_reload_rollback) ]
-convert/base64_test/01: Pass, Crash # http://dartbug.com/35948
-isolate/int32_length_overflow_test: Timeout # Issue 35733
-
-[ $builder_tag == obfuscated && $compiler == dartkp ]
-collection/list_test: RuntimeError # Issue 34911
+convert/base64_test/01: Crash # http://dartbug.com/35948
 
 [ $builder_tag == optimization_counter_threshold && ($compiler == dartk || $compiler == dartkb) ]
-isolate/unresolved_ports_test: CompileTimeError, Pass, Timeout # Fails to compile on opt counter builder (#31838)
-mirrors/invocation_fuzz_test/emptyarray: Pass, Crash, RuntimeError # Flaky on vm-kernel-optcounter-threshold-linux-release-x64, bug #31838
-mirrors/invocation_fuzz_test/false: Pass, Crash, RuntimeError # Flaky on vm-kernel-optcounter-threshold-linux-release-x64, bug #31838
-mirrors/invocation_fuzz_test/none: Pass, Crash, RuntimeError # Flaky on vm-kernel-optcounter-threshold-linux-release-x64, bug #31838
-mirrors/invocation_fuzz_test/smi: Crash, RuntimeError, Fail, Pass # Crashes on opt counter builder (#31838)
-mirrors/invocation_fuzz_test/string: Pass, Crash, RuntimeError # Flaky on vm-kernel-optcounter-threshold-linux-release-x64, bug #31838
+mirrors/invocation_fuzz_test/emptyarray: Crash # Flaky on vm-kernel-optcounter-threshold-linux-release-x64, bug #31838
+mirrors/invocation_fuzz_test/false: Crash # Flaky on vm-kernel-optcounter-threshold-linux-release-x64, bug #31838
+mirrors/invocation_fuzz_test/none: Crash # Flaky on vm-kernel-optcounter-threshold-linux-release-x64, bug #31838
+mirrors/invocation_fuzz_test/smi: Crash # Crashes on opt counter builder (#31838)
+mirrors/invocation_fuzz_test/string: Crash # Flaky on vm-kernel-optcounter-threshold-linux-release-x64, bug #31838
 
 [ $compiler == app_jitk && ($mode == product || $mode == release) ]
 isolate/spawn_uri_nested_vm_test: Skip # Timeout, Issue 33385
@@ -60,7 +38,6 @@ isolate/static_function_test: Skip # Flaky (https://github.com/dart-lang/sdk/iss
 
 # ===== dartkp + dart_precompiled status lines =====
 [ $compiler == dartkp && $runtime == dart_precompiled ]
-async/slow_consumer2_test: RuntimeError # Issue 31402 (Invocation arguments)
 html/*: SkipByDesign # dart:html not supported on VM.
 isolate/deferred_in_isolate2_test: Skip # Times out. Deferred loading kernel issue 28335.
 isolate/deferred_in_isolate_test: Skip # Times out. Deferred loading kernel issue 28335.
@@ -73,69 +50,24 @@ mirrors/other_declarations_location_test: Crash # Issue 33325 (assertion error, 
 [ $mode == debug && $hot_reload_rollback && ($compiler == dartk || $compiler == dartkb) ]
 isolate/message3_test/constList_identical: Skip # Timeout
 
-[ $runtime == vm && $checked && ($compiler == dartk || $compiler == dartkb) ]
-mirrors/redirecting_factory_different_type_test/none: RuntimeError # Issue 28424
-
 # ===== dartk + vm status lines =====
 [ $runtime == vm && ($compiler == dartk || $compiler == dartkb) ]
-async/slow_consumer2_test: CompileTimeError # Issue 31402 (Invocation arguments)
 html/*: SkipByDesign # dart:html not supported on VM.
 isolate/deferred_in_isolate2_test: Skip # Times out. Deferred loading kernel issue 28335.
 isolate/deferred_in_isolate_test: Skip # Times out. Deferred loading kernel issue 28335.
 isolate/issue_21398_parent_isolate2_test/01: Skip # Times out. Deferred loading kernel issue 28335.
 isolate/static_function_test: Skip # Times out. Issue 31855. CompileTimeError. Issue 31402
-mirrors/class_declarations_test/01: RuntimeError # Issue 31402 (Invocation arguments)
-mirrors/class_declarations_test/none: RuntimeError # Issue 31402 (Invocation arguments)
-mirrors/constructor_private_name_test: RuntimeError # Issue 33345 - Incorrect qualified symbol literal from kernel reader
-mirrors/constructors_test: CompileTimeError # Issue 31402 (Invocation arguments)
-mirrors/dart2js_mirrors_test: RuntimeError # 31916
-mirrors/enum_test: RuntimeError # Issue 31402 (Invocation arguments)
 mirrors/invocation_fuzz_test: Crash
-mirrors/library_declarations_test/none: RuntimeError # Issue 31402 (Invocation arguments)
-mirrors/library_exports_hidden_test: RuntimeError # Issue 33098
-mirrors/library_exports_shown_test: RuntimeError # Issue 33098
-mirrors/library_import_deferred_loading_test: RuntimeError # Issue 33098
-mirrors/library_imports_deferred_test: RuntimeError # Issue 33098
-mirrors/library_imports_hidden_test: RuntimeError # Issue 33098
-mirrors/library_imports_metadata_test: RuntimeError # Issue 33098
-mirrors/library_imports_prefixed_show_hide_test: RuntimeError # Issue 33098
-mirrors/library_imports_prefixed_test: RuntimeError # Issue 33098
-mirrors/library_imports_shown_test: RuntimeError # Issue 33098
 mirrors/metadata_allowed_values_test/16: Skip # Flaky, crashes.
-mirrors/method_mirror_source_line_ending_test: RuntimeError # Issue 33478
-mirrors/method_mirror_source_test: RuntimeError # Issue 33041
-mirrors/mirrors_nsm_mismatch_test: CompileTimeError # Issue 31533
-mirrors/mirrors_nsm_test/dart2js: CompileTimeError # Issue 31533
-mirrors/mirrors_nsm_test/none: CompileTimeError # Issue 31533
 mirrors/mirrors_used*: SkipByDesign # Invalid tests. MirrorsUsed does not have a specification, and dart:mirrors is not required to hide declarations that are not covered by any MirrorsUsed annotation.
-mirrors/mixin_application_test: RuntimeError # Issue 31402 (Invocation arguments)
-mirrors/mixin_members_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/native_class_test: SkipByDesign # Imports dart:html
-mirrors/operator_test: CompileTimeError # Issue 31402 (Invocation arguments)
-mirrors/other_declarations_location_test: RuntimeError # Issue 33325 (no source positions for type parameters).
-mirrors/parameter_of_mixin_app_constructor_test: RuntimeError # Issue 31402 (Invocation arguments)
-mirrors/private_symbol_test: RuntimeError # Issue 33326 - CFE/kernel invalid typedef substitution
-mirrors/private_types_test: RuntimeError # Issue 33326 - CFE/kernel invalid typedef substitution
-mirrors/repeated_private_anon_mixin_app_test: RuntimeError # Mangled mixin application class name
-mirrors/static_members_easier_test: RuntimeError # Issue 31402 (Invocation arguments)
-mirrors/static_members_test: RuntimeError # Issue 31402 (Invocation arguments)
-mirrors/symbol_validation_test/01: RuntimeError # Issue 31537
-mirrors/symbol_validation_test/none: RuntimeError # Issue 31537
-mirrors/typedef_deferred_library_test: CompileTimeError # Deferred loading kernel issue 28335.
 
 [ $hot_reload_rollback && ($compiler == dartk || $compiler == dartkb) ]
 isolate/illegal_msg_function_test: Skip # Timeout
 isolate/pause_test: Skip # Timeout
 
-# Enabling of dartk for sim{arm,arm64,dbc64} revealed these test failures, which
-# are to be triaged.  Isolate tests are skipped on purpose due to the usage of
-# batch mode.
-[ ($arch == simarm || $arch == simarm64 || $arch == simdbc64) && ($compiler == dartk || $compiler == dartkb) ]
-mirrors/library_uri_io_test: RuntimeError # Please triage.
-
 [ ($compiler == dartk || $compiler == dartkb) && ($hot_reload || $hot_reload_rollback) ]
-isolate/mandel_isolate_test: Pass, Timeout, RuntimeError # Test can time out which results in runtime error
-isolate/message4_test: Pass, Timeout, Crash # Timeout and sporadic crash (issue 33824)
+isolate/message4_test: Crash # Timeout and sporadic crash (issue 33824)
 mirrors/dynamic_load_test: Crash
 mirrors/library_uri_io_test: Skip # Timeout
 mirrors/library_uri_package_test: Skip # Timeout
@@ -143,9 +75,6 @@ mirrors/library_uri_package_test: Skip # Timeout
 [ $compiler == app_jitk || $compiler == dartk || $compiler == dartkb || $compiler == dartkp ]
 html/*: SkipByDesign
 js/*: SkipByDesign
-
-[ $compiler == dartk || $compiler == dartkb ]
-async/slow_consumer2_test: RuntimeError # Issue 31402 (Invocation arguments)
 
 [ $hot_reload || $hot_reload_rollback ]
 isolate/issue_6610_test: Skip # Sources are looked up on every reload request.

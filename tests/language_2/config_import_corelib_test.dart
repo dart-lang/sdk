@@ -26,23 +26,15 @@ main() {
     Expect.isTrue(lib.ioSpecific());
     Expect.equals("classy io", cy.ioSpecific());
 
-    Expect.throws(() {
-      lib.httpSpecific();
-    });
-    Expect.throws(() {
-      cy.httpSpecific();
-    });
+    Expect.isFalse(lib.httpSpecific());
+    Expect.throws(cy.httpSpecific);
   } else if (http) {
     Expect.isTrue(lib.general());
     Expect.equals("http", lib.name);
     Expect.equals("classy http", cy.name);
 
-    Expect.throws(() {
-      lib.ioSpecific();
-    });
-    Expect.throws(() {
-      cy.ioSpecific();
-    });
+    Expect.isFalse(lib.ioSpecific());
+    Expect.throws(cy.ioSpecific);
 
     Expect.isTrue(lib.httpSpecific());
     Expect.equals("classy http", cy.httpSpecific());
@@ -51,18 +43,10 @@ main() {
     Expect.equals("general", lib.name);
     Expect.equals("classy general", cy.name);
 
-    Expect.throws(() {
-      lib.ioSpecific();
-    });
-    Expect.throws(() {
-      cy.ioSpecific();
-    });
+    Expect.isFalse(lib.ioSpecific());
+    Expect.throws(cy.ioSpecific);
 
-    Expect.throws(() {
-      lib.httpSpecific();
-    });
-    Expect.throws(() {
-      cy.httpSpecific();
-    });
+    Expect.isFalse(lib.httpSpecific());
+    Expect.throws(cy.httpSpecific);
   }
 }

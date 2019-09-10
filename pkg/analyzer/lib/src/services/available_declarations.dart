@@ -590,7 +590,7 @@ class DeclarationsTracker {
         file.path,
         file.uri,
         file.isLibraryDeprecated,
-        file.exportedDeclarations,
+        file.exportedDeclarations ?? const [],
       );
       _idToLibrary[file.id] = library;
       _changesController.add(
@@ -735,7 +735,7 @@ class DeclarationsTracker {
           libraryFile.path,
           libraryFile.uri,
           libraryFile.isLibraryDeprecated,
-          libraryFile.exportedDeclarations,
+          libraryFile.exportedDeclarations ?? const [],
         );
         _idToLibrary[library.id] = library;
         changedLibraries.add(library);
@@ -824,6 +824,9 @@ class RelevanceTags {
       case DeclarationKind.FUNCTION_TYPE_ALIAS:
         var name = declaration.name;
         return <String>['$uriStr::$name'];
+      case DeclarationKind.CONSTRUCTOR:
+        var className = declaration.parent.name;
+        return <String>['$uriStr::$className'];
       case DeclarationKind.ENUM_CONSTANT:
         var enumName = declaration.parent.name;
         return <String>['$uriStr::$enumName'];

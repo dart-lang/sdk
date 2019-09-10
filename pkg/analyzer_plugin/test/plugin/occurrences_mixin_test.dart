@@ -62,7 +62,7 @@ class OccurrencesMixinTest with ResourceProviderMixin {
             return;
           }
         }
-        fail('No occurence named $elementName');
+        fail('No occurrence named $elementName');
       }
 
       validate('method', [10, 30]);

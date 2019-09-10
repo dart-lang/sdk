@@ -789,8 +789,9 @@ void ScopeBuilder::VisitExpression() {
     case kSetConcatenation:
     case kMapConcatenation:
     case kInstanceCreation:
-      // Collection concatenation and instance creation operations are removed
-      // by the constant evaluator.
+    case kFileUriExpression:
+      // Collection concatenation, instance creation operations and
+      // in-expression URI changes are removed by the constant evaluator.
       UNREACHABLE();
       break;
     case kIsExpression:
@@ -1637,6 +1638,7 @@ void ScopeBuilder::FinalizeExceptionVariable(
     raw_variable =
         new LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
                           symbol, AbstractType::dynamic_type());
+    raw_variable->set_is_forced_stack();
     const bool ok = scope_->AddVariable(raw_variable);
     ASSERT(ok);
   } else {

@@ -9,6 +9,7 @@
 
 #include "lib/invocation_mirror.h"
 #include "platform/utils.h"
+#include "vm/bit_vector.h"
 #include "vm/bootstrap.h"
 #include "vm/class_finalizer.h"
 #include "vm/compiler/aot/precompiler.h"
@@ -58,7 +59,6 @@ ParsedFunction::ParsedFunction(Thread* thread, const Function& function)
       expression_temp_var_(NULL),
       entry_points_temp_var_(NULL),
       finally_return_temp_var_(NULL),
-      deferred_prefixes_(new ZoneGrowableArray<const LibraryPrefix*>()),
       guarded_fields_(new ZoneGrowableArray<const Field*>()),
       default_parameter_values_(NULL),
       raw_type_arguments_var_(NULL),
@@ -184,20 +184,6 @@ void ParsedFunction::SetRegExpCompileData(
   regexp_compile_data_ = regexp_compile_data;
 }
 
-void ParsedFunction::AddDeferredPrefix(const LibraryPrefix& prefix) {
-  // 'deferred_prefixes_' are used to invalidate code, but no invalidation is
-  // needed if --load_deferred_eagerly.
-  ASSERT(!FLAG_load_deferred_eagerly);
-  ASSERT(prefix.is_deferred_load());
-  ASSERT(!prefix.is_loaded());
-  for (intptr_t i = 0; i < deferred_prefixes_->length(); i++) {
-    if ((*deferred_prefixes_)[i]->raw() == prefix.raw()) {
-      return;
-    }
-  }
-  deferred_prefixes_->Add(&LibraryPrefix::ZoneHandle(Z, prefix.raw()));
-}
-
 void ParsedFunction::AllocateVariables() {
   ASSERT(!function().IsIrregexpFunction());
   LocalScope* scope = this->scope();
@@ -314,6 +300,33 @@ void ParsedFunction::AllocateBytecodeVariables(intptr_t num_stack_locals) {
   ASSERT(!function().IsIrregexpFunction());
   first_parameter_index_ = VariableIndex(function().num_fixed_parameters());
   num_stack_locals_ = num_stack_locals;
+}
+
+void ParsedFunction::SetCovariantParameters(
+    const BitVector* covariant_parameters) {
+  ASSERT(covariant_parameters_ == nullptr);
+  ASSERT(covariant_parameters->length() == function_.NumParameters());
+  covariant_parameters_ = covariant_parameters;
+}
+
+void ParsedFunction::SetGenericCovariantImplParameters(
+    const BitVector* generic_covariant_impl_parameters) {
+  ASSERT(generic_covariant_impl_parameters_ == nullptr);
+  ASSERT(generic_covariant_impl_parameters->length() ==
+         function_.NumParameters());
+  generic_covariant_impl_parameters_ = generic_covariant_impl_parameters;
+}
+
+bool ParsedFunction::IsCovariantParameter(intptr_t i) const {
+  ASSERT(covariant_parameters_ != nullptr);
+  ASSERT((i >= 0) && (i < function_.NumParameters()));
+  return covariant_parameters_->Contains(i);
+}
+
+bool ParsedFunction::IsGenericCovariantImplParameter(intptr_t i) const {
+  ASSERT(generic_covariant_impl_parameters_ != nullptr);
+  ASSERT((i >= 0) && (i < function_.NumParameters()));
+  return generic_covariant_impl_parameters_->Contains(i);
 }
 
 }  // namespace dart

@@ -5,6 +5,8 @@
 import 'dart:convert';
 
 import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analysis_server/src/channel/byte_stream_channel.dart';
 
 /// Helper for tracking request handling statistics.
 ///
@@ -12,9 +14,31 @@ import 'package:analysis_server/protocol/protocol.dart';
 class RequestStatisticsHelper {
   final Map<String, _RequestStatistics> _statisticsMap = {};
 
-  /// The sink to write statistics to.
-  /// It is set externally when we get to `AnalysisServer` instance.
-  StringSink sink;
+  /// The [StringSink] to which performance logger should copy its output.
+  _ServerLogStringSink _perfLoggerStringSink;
+
+  /// The channel to send 'server.log' notifications to.
+  ByteStreamServerChannel _serverChannel;
+
+  /// Is `true` if the client subscribed for "server.log" notification.
+  bool _isNotificationSubscribed = false;
+
+  RequestStatisticsHelper() {
+    _perfLoggerStringSink = _ServerLogStringSink(this);
+  }
+
+  /// Set whether the client subscribed for "server.log" notification.
+  set isNotificationSubscribed(bool value) {
+    _isNotificationSubscribed = value;
+  }
+
+  /// The [StringSink] to which performance logger should copy its output.
+  StringSink get perfLoggerStringSink => _perfLoggerStringSink;
+
+  /// The channel sets itself using this method.
+  set serverChannel(ByteStreamServerChannel serverChannel) {
+    _serverChannel = serverChannel;
+  }
 
   /// Add a time marker item to the data associated with the [request].
   void addItemTimeNow(Request request, String name) {
@@ -58,25 +82,20 @@ class RequestStatisticsHelper {
   /// The server finished processing a request, and sends the [response].
   /// Record the time when the response is about to be sent to the client.
   void addResponse(Response response) {
+    if (!_isNotificationSubscribed) return;
+    if (_serverChannel == null) return;
+
     var id = response.id;
     var stat = _statisticsMap.remove(id);
     if (stat != null) {
       stat.responseTime = DateTime.now();
-
-      if (sink != null) {
-        sink.writeln(
-          json.encode(
-            {
-              'requestStatistics': stat.toJson(),
-            },
-          ),
-        );
-      }
+      _sendLogEntry(ServerLogEntryKind.RESPONSE, stat.toJson());
     }
   }
 
   void logNotification(Notification notification) {
-    if (sink == null) return;
+    if (!_isNotificationSubscribed) return;
+    if (_serverChannel == null) return;
 
     var event = notification.event;
 
@@ -105,15 +124,12 @@ class RequestStatisticsHelper {
       }
     }
 
-    sink.writeln(
-      json.encode({
-        'notification': map,
-      }),
-    );
+    _sendLogEntry(ServerLogEntryKind.NOTIFICATION, map);
   }
 
   void _logRequest(Request request) {
-    if (sink == null) return;
+    if (!_isNotificationSubscribed) return;
+    if (_serverChannel == null) return;
 
     var method = request.method;
     var map = <String, Object>{
@@ -137,10 +153,22 @@ class RequestStatisticsHelper {
       map = request.toJson();
     }
 
-    sink.writeln(
-      json.encode({
-        'request': map,
-      }),
+    _sendLogEntry(ServerLogEntryKind.REQUEST, map);
+  }
+
+  void _sendLogEntry(ServerLogEntryKind kind, Object data) {
+    if (!_isNotificationSubscribed) return;
+    if (_serverChannel == null) return;
+
+    _serverChannel.sendNotification(
+      Notification(
+        'server.log',
+        <String, Object>{
+          'time': DateTime.now().millisecondsSinceEpoch,
+          'kind': kind.toJson(),
+          'data': data,
+        },
+      ),
     );
   }
 }
@@ -161,16 +189,15 @@ class _RequestStatistics {
   );
 
   Map<String, Object> toJson() {
-    var baseTime = clientRequestTime.millisecondsSinceEpoch;
     var map = {
       'id': id,
       'method': method,
-      'clientRequestTime': baseTime,
-      'serverRequestTime': serverRequestTime.millisecondsSinceEpoch - baseTime,
-      'responseTime': responseTime.millisecondsSinceEpoch - baseTime,
+      'clientRequestTime': clientRequestTime.millisecondsSinceEpoch,
+      'serverRequestTime': serverRequestTime.millisecondsSinceEpoch,
+      'responseTime': responseTime.millisecondsSinceEpoch,
     };
     if (items.isNotEmpty) {
-      map['items'] = items.map((item) => item.toJson(baseTime)).toList();
+      map['items'] = items.map((item) => item.toJson()).toList();
     }
     return map;
   }
@@ -188,13 +215,35 @@ class _RequestStatisticsItem {
 
   _RequestStatisticsItem(this.name, {this.timeValue});
 
-  Map<String, Object> toJson(int baseTimeMillis) {
+  Map<String, Object> toJson() {
     if (timeValue != null) {
       return {
         'name': name,
-        'timeValue': timeValue.millisecondsSinceEpoch - baseTimeMillis,
+        'timeValue': timeValue.millisecondsSinceEpoch,
       };
     }
     throw StateError('Unknown value: $name');
+  }
+}
+
+class _ServerLogStringSink implements StringSink {
+  final RequestStatisticsHelper helper;
+
+  _ServerLogStringSink(this.helper);
+
+  void write(Object obj) {
+    throw UnimplementedError();
+  }
+
+  void writeAll(Iterable objects, [String separator = '']) {
+    throw UnimplementedError();
+  }
+
+  void writeCharCode(int charCode) {
+    throw UnimplementedError();
+  }
+
+  void writeln([Object obj = '']) {
+    helper._sendLogEntry(ServerLogEntryKind.RAW, '$obj');
   }
 }

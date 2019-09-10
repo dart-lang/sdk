@@ -22,7 +22,7 @@ expressions under the appropriate conditions:
 
 ```dart
 // Example: these are now valid constants.
-const i = 3;
+const Object i = 3;
 const list = [i as int];
 const set = {if (list is List<int>) ...list};
 const map = {if (i is int) i : "int"};
@@ -161,11 +161,14 @@ const int x = (s == null) ? 0 : s.length;
 
 #### Linter
 
-The Linter was updated to `0.1.96`, which includes:
+The Linter was updated to `0.1.97+1`, which includes:
 
-* fixed false positives in `unnecessary_parens`
-* various changes to migrate to preferred analyzer APIs
-* rule test fixes
+* internal migration away from using analyzer `resolutionMap`
+* various fixes and improvements to anticipate support for extension-methods
+* new lint: `camel_case_extensions`
+* rule template generation improvements
+* new lint: `avoid_equals_and_hash_code_on_mutable_classes`
+* extended `avoid_slow_async_io` to flag async `Directory` methods
 
 #### Dartdoc
 
@@ -187,6 +190,15 @@ well as a potential crash of our AOT compiler.
 
 [37551]: https://github.com/dart-lang/sdk/issues/37551
 [35121]: https://github.com/dart-lang/sdk/issues/35121
+
+### Dart Dev Compiler (DDC)
+
+Callbacks passed to JS and wrapped with `allowInterop` or
+`allowInteropCaptureThis` are now strict about argument counts and argument
+types. This may mean that tests which were previously passing and relying on
+loose argument checking (too many or too few arguments, or arguments with too
+specific types like `List<Something>` instead of `List<dynamic>`) may start
+failing. This changes makes DDC behave more like dart2js with the default flags.
 
 ## 2.4.0 - 2019-06-27
 

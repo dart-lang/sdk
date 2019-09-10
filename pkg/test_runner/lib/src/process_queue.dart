@@ -500,7 +500,7 @@ abstract class CommandExecutor {
   Future cleanup();
   // TODO(kustermann): The [timeout] parameter should be a property of Command.
   Future<CommandOutput> runCommand(
-      Node<Command> node, covariant Command command, int timeout);
+      Node<Command> node, Command command, int timeout);
 }
 
 class CommandExecutorImpl implements CommandExecutor {
@@ -605,7 +605,7 @@ class CommandExecutorImpl implements CommandExecutor {
           adbDevicePool.releaseDevice(device);
         }
       });
-    } else if (command is VmBatchCommand) {
+    } else if (command is VMBatchCommand) {
       var name = command.displayName;
       return _getBatchRunner(command.displayName + command.dartFile)
           .runCommand(name, command, timeout, command.arguments);
@@ -713,7 +713,7 @@ class CommandExecutorImpl implements CommandExecutor {
       // immediately.
       if (result.exitCode != 0) break;
     }
-    return createCommandOutput(command, result.exitCode, result.timedOut,
+    return command.createOutput(result.exitCode, result.timedOut,
         utf8.encode('$writer'), [], stopwatch.elapsed, false);
   }
 
@@ -773,7 +773,7 @@ class CommandExecutorImpl implements CommandExecutor {
       // immediately.
       if (result.exitCode != 0) break;
     }
-    return createCommandOutput(command, result.exitCode, result.timedOut,
+    return command.createOutput(result.exitCode, result.timedOut,
         utf8.encode('$writer'), [], stopwatch.elapsed, false);
   }
 
@@ -1009,7 +1009,7 @@ class BatchRunnerProcess {
     _arguments = arguments;
     _processEnvironmentOverrides = command.environmentOverrides;
 
-    // TOOD(jmesserly): this restarts `dartdevc --batch` to work around a
+    // TODO(jmesserly): this restarts `dartdevc --batch` to work around a
     // memory leak, see https://github.com/dart-lang/sdk/issues/30314.
     var clearMemoryLeak = command is CompilationCommand &&
         command.displayName == 'dartdevc' &&
@@ -1085,8 +1085,7 @@ class BatchRunnerProcess {
     if (outcome == "CRASH") exitCode = unhandledCompilerExceptionExitCode;
     if (outcome == "PARSE_FAIL") exitCode = parseFailExitCode;
     if (outcome == "FAIL" || outcome == "TIMEOUT") exitCode = 1;
-    var output = createCommandOutput(
-        _command,
+    var output = _command.createOutput(
         exitCode,
         outcome == "TIMEOUT",
         _testStdout.toList(),

@@ -7,8 +7,10 @@
 // VMOptions=
 // VMOptions=--deterministic --optimization-counter-threshold=10
 // VMOptions=--use-slow-path
+// VMOptions=--use-slow-path --stacktrace-every=100
 // VMOptions=--write-protect-code --no-dual-map-code
 // VMOptions=--write-protect-code --no-dual-map-code --use-slow-path
+// VMOptions=--write-protect-code --no-dual-map-code --stacktrace-every=100
 // SharedObjects=ffi_test_functions
 
 library FfiTest;

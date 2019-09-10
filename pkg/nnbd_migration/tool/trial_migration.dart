@@ -45,6 +45,7 @@ main() async {
         .where((s) => s.endsWith('.dart'))
         .toList();
     print('  ${files.length} files found');
+    var previousExceptionCount = listener.numExceptions;
     var migration = NullabilityMigration(listener, permissive: true);
     for (var file in files) {
       var resolvedUnit = await context.currentSession.getResolvedUnit(file);
@@ -55,6 +56,8 @@ main() async {
       migration.processInput(resolvedUnit);
     }
     migration.finish();
+    var exceptionCount = listener.numExceptions - previousExceptionCount;
+    print('  $exceptionCount exceptions in this package');
   }
   print('${listener.numTypesMadeNullable} types made nullable');
   print('${listener.numNullChecksAdded} null checks added');
@@ -74,6 +77,11 @@ main() async {
 /// Set this to a non-null value to cause any exception to be printed in full
 /// if its category contains the string.
 const String categoryOfInterest = null;
+
+/// Set this to `true` to cause just the exception nodes to be printed when
+/// `categoryOfInterest` is non-null.  Set this to `false` to cause the full
+/// stack trace to be printed.
+const bool printExceptionNodeOnly = false;
 
 class _Listener implements NullabilityMigrationListener {
   final groupedExceptions = <String, List<String>>{};
@@ -128,7 +136,11 @@ Exception $exception
 $stackTrace
 ''';
     if (categoryOfInterest != null && category.contains(categoryOfInterest)) {
-      print(detail);
+      if (printExceptionNodeOnly) {
+        print('$node');
+      } else {
+        print(detail);
+      }
     }
     (groupedExceptions[category] ??= []).add(detail);
     ++numExceptions;

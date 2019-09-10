@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -323,16 +322,28 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         operator == TokenType.BAR_BAR_EQ) {
       _recordStaticType(node, _nonNullable(_typeProvider.boolType));
     } else {
-      ExecutableElement staticMethodElement = node.staticElement;
-      DartType staticType = _computeStaticReturnType(staticMethodElement);
-      staticType = _typeSystem.refineBinaryExpressionType(
-          _getStaticType(node.leftHandSide, read: true),
-          operator,
-          node.rightHandSide.staticType,
-          staticType,
-          _featureSet);
-      _recordStaticType(node, staticType);
+      var operatorElement = node.staticElement;
+      var type = operatorElement?.returnType ?? _dynamicType;
+      type = _typeSystem.refineBinaryExpressionType(
+        _getStaticType(node.leftHandSide, read: true),
+        operator,
+        node.rightHandSide.staticType,
+        type,
+        _featureSet,
+      );
+      _recordStaticType(node, type);
+
+      var leftWriteType = _getStaticType(node.leftHandSide);
+      if (!_typeSystem.isAssignableTo(type, leftWriteType,
+          featureSet: _featureSet)) {
+        _resolver.errorReporter.reportTypeErrorForNode(
+          StaticTypeWarningCode.INVALID_ASSIGNMENT,
+          node.rightHandSide,
+          [type, leftWriteType],
+        );
+      }
     }
+    _nullShortingTermination(node);
   }
 
   /**
@@ -594,15 +605,20 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    */
   @override
   void visitIndexExpression(IndexExpression node) {
+    DartType type;
     if (node.inSetterContext()) {
-      ExecutableElement staticMethodElement = node.staticElement;
-      DartType staticType = _computeArgumentType(staticMethodElement);
-      _recordStaticType(node, staticType);
+      var parameters = node.staticElement?.parameters;
+      if (parameters?.length == 2) {
+        type = parameters[1].type;
+      }
     } else {
-      ExecutableElement staticMethodElement = node.staticElement;
-      DartType staticType = _computeStaticReturnType(staticMethodElement);
-      _recordStaticType(node, staticType);
+      type = node.staticElement?.returnType;
     }
+
+    type ??= _dynamicType;
+
+    _recordStaticType(node, type);
+    _nullShortingTermination(node);
   }
 
   /**
@@ -839,6 +855,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     SimpleIdentifier prefixedIdentifier = node.identifier;
     Element staticElement = prefixedIdentifier.staticElement;
+
+    if (staticElement is ExtensionElement) {
+      _setExtensionIdentifierType(node);
+      return;
+    }
+
     DartType staticType = _dynamicType;
     if (staticElement is ClassElement) {
       if (_isNotTypeLiteral(node)) {
@@ -953,15 +975,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       // TODO(brianwilkerson) Report this internal error.
     }
 
-    if (node.operator.type == TokenType.QUESTION_PERIOD &&
-        _nonNullableEnabled) {
-      staticType = _typeSystem.makeNullable(staticType);
-    }
     staticType = _inferTearOff(node, node.propertyName, staticType);
 
     if (!_inferObjectAccess(node, staticType, propertyName)) {
       _recordStaticType(propertyName, staticType);
       _recordStaticType(node, staticType);
+      _nullShortingTermination(node);
     }
   }
 
@@ -1072,6 +1091,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     Element element = node.staticElement;
+
+    if (element is ExtensionElement) {
+      _setExtensionIdentifierType(node);
+      return;
+    }
+
     DartType staticType = _dynamicType;
     if (element is ClassElement) {
       if (_isNotTypeLiteral(node)) {
@@ -1131,7 +1156,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
 
   @override
   void visitSuperExpression(SuperExpression node) {
-    if (thisType == null) {
+    if (thisType == null ||
+        node.thisOrAncestorOfType<ExtensionDeclaration>() != null) {
       // TODO(brianwilkerson) Report this error if it hasn't already been
       // reported.
       _recordStaticType(node, _dynamicType);
@@ -1225,22 +1251,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     }
   }
 
-  /**
-   * Record that the static type of the given node is the type of the second argument to the method
-   * represented by the given element.
-   *
-   * @param element the element representing the method invoked by the given node
-   */
-  DartType _computeArgumentType(ExecutableElement element) {
-    if (element != null) {
-      List<ParameterElement> parameters = element.parameters;
-      if (parameters != null && parameters.length == 2) {
-        return parameters[1].type;
-      }
-    }
-    return _dynamicType;
-  }
-
   DartType _computeElementType(CollectionElement element) {
     if (element is ForElement) {
       return _computeElementType(element.body);
@@ -1268,9 +1278,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         }
       } else if (expressionType.isDynamic) {
         return expressionType;
-      } else if (isNull &&
-          element.spreadOperator.type ==
-              TokenType.PERIOD_PERIOD_PERIOD_QUESTION) {
+      } else if (isNull && element.isNullAware) {
         return expressionType;
       }
       // TODO(brianwilkerson) Report this as an error.
@@ -1538,9 +1546,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
             elementType: expressionType,
             keyType: expressionType,
             valueType: expressionType);
-      } else if (isNull &&
-          element.spreadOperator.type ==
-              TokenType.PERIOD_PERIOD_PERIOD_QUESTION) {
+      } else if (isNull && element.isNullAware) {
         return _InferredCollectionElementTypeInformation(
             elementType: expressionType,
             keyType: expressionType,
@@ -1764,7 +1770,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     AstNode parent = node.parent;
     if (initializer != null) {
       if (parent is VariableDeclarationList && parent.type == null) {
-        DartType type = resolutionMap.staticTypeForExpression(initializer);
+        DartType type = initializer.staticType;
         if (type != null && !type.isBottom && !type.isDartCoreNull) {
           VariableElement element = node.declaredElement;
           if (element is LocalVariableElementImpl) {
@@ -2002,6 +2008,25 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     return type;
   }
 
+  /// If we reached a null-shorting termination, and the [node] has null
+  /// shorting, make the type of the [node] nullable.
+  void _nullShortingTermination(Expression node) {
+    if (!_nonNullableEnabled) return;
+
+    var parent = node.parent;
+    if (parent is AssignmentExpression && parent.leftHandSide == node) {
+      return;
+    }
+    if (parent is PropertyAccess) {
+      return;
+    }
+
+    if (_hasNullShorting(node)) {
+      var type = node.staticType;
+      node.staticType = _typeSystem.makeNullable(type);
+    }
+  }
+
   /**
    * Record that the static type of the given node is the given type.
    *
@@ -2013,6 +2038,40 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       expression.staticType = _dynamicType;
     } else {
       expression.staticType = type;
+    }
+  }
+
+  void _setExtensionIdentifierType(Identifier node) {
+    if (node is SimpleIdentifier && node.inDeclarationContext()) {
+      return;
+    }
+
+    var parent = node.parent;
+
+    if (parent is PrefixedIdentifier && parent.identifier == node) {
+      node = parent;
+      parent = node.parent;
+    }
+
+    if (parent is CommentReference ||
+        parent is ExtensionOverride && parent.extensionName == node ||
+        parent is MethodInvocation && parent.target == node ||
+        parent is PrefixedIdentifier && parent.prefix == node ||
+        parent is PropertyAccess && parent.target == node) {
+      return;
+    }
+
+    _resolver.errorReporter.reportErrorForNode(
+      CompileTimeErrorCode.EXTENSION_AS_EXPRESSION,
+      node,
+      [node.name],
+    );
+
+    if (node is PrefixedIdentifier) {
+      node.identifier.staticType = _dynamicType;
+      node.staticType = _dynamicType;
+    } else if (node is SimpleIdentifier) {
+      node.staticType = _dynamicType;
     }
   }
 
@@ -2115,6 +2174,23 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     } else {
       return type;
     }
+  }
+
+  /// Return `true` if the [node] has null-aware shorting, e.g. `foo?.bar`.
+  static bool _hasNullShorting(Expression node) {
+    if (node is AssignmentExpression) {
+      return _hasNullShorting(node.leftHandSide);
+    }
+    if (node is IndexExpression) {
+      return node.leftBracket.type ==
+              TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET ||
+          _hasNullShorting(node.target);
+    }
+    if (node is PropertyAccess) {
+      return node.operator.type == TokenType.QUESTION_PERIOD ||
+          _hasNullShorting(node.target);
+    }
+    return false;
   }
 }
 

@@ -4,8 +4,6 @@
 
 import 'dart:io';
 
-import 'package:front_end/src/api_unstable/vm.dart'
-    show defaultExperimentalFlags, ExperimentalFlag;
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
@@ -15,7 +13,6 @@ import 'package:vm/transformations/pragma.dart'
     show ConstantPragmaAnnotationParser;
 import 'package:vm/transformations/type_flow/transformer.dart'
     show transformComponent;
-import 'annotation_matcher.dart';
 
 import '../../common_test_utils.dart';
 
@@ -28,13 +25,8 @@ runTestCase(Uri source) async {
 
   final coreTypes = new CoreTypes(component);
 
-  component = transformComponent(
-      target,
-      coreTypes,
-      component,
-      defaultExperimentalFlags[ExperimentalFlag.constantUpdate2018]
-          ? new ConstantPragmaAnnotationParser(coreTypes)
-          : new ExpressionPragmaAnnotationParser(coreTypes));
+  component = transformComponent(target, coreTypes, component,
+      new ConstantPragmaAnnotationParser(coreTypes));
 
   final actual = kernelLibraryToString(component.mainMethod.enclosingLibrary);
 

@@ -2248,8 +2248,9 @@ void KernelReaderHelper::SkipExpression() {
     case kSetConcatenation:
     case kMapConcatenation:
     case kInstanceCreation:
-      // Collection concatenation and instance creation operations are removed
-      // by the constant evaluator.
+    case kFileUriExpression:
+      // Collection concatenation, instance creation operations and
+      // in-expression URI changes are removed by the constant evaluator.
       UNREACHABLE();
       break;
     case kIsExpression:
@@ -2806,6 +2807,9 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
 
   const Class& klass = Class::Handle(Z, H.LookupClassByKernelClass(klass_name));
   ASSERT(!klass.IsNull());
+  if (klass.is_declared_in_bytecode()) {
+    klass.EnsureDeclarationLoaded();
+  }
   if (simple) {
     if (finalize_ || klass.is_type_finalized()) {
       // Fast path for non-generic types: retrieve or populate the class's only

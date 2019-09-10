@@ -128,7 +128,7 @@ class SpawnIsolateTask : public ThreadPool::Task {
   }
 
   ~SpawnIsolateTask() override {
-    if (parent_isolate_) {
+    if (parent_isolate_ != nullptr) {
       parent_isolate_->DecrementSpawnCount();
     }
   }

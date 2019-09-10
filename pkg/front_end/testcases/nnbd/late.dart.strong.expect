@@ -3,18 +3,18 @@ import self as self;
 import "dart:core" as core;
 
 class Class extends core::Object {
-  late field core::int* lateInstanceField = null;
-  late final field core::int* finalLateInstanceField = 0;
-  late static field core::int* lateStaticField = null;
-  late static final field core::int* finalLateStaticField = 0;
+  late field core::int lateInstanceField = null;
+  late final field core::int finalLateInstanceField = 0;
+  late static field core::int lateStaticField = null;
+  late static final field core::int finalLateStaticField = 0;
   synthetic constructor •() → self::Class*
     : super core::Object::•()
     ;
   method method() → dynamic {
-    late core::int* lateVariable;
-    late final core::int* lateFinalVariable = 0;
+    late core::int lateVariable;
+    late final core::int lateFinalVariable = 0;
   }
 }
-late static field core::int* lateStaticField;
-late static final field core::int* finalLateStaticField;
+late static field core::int lateStaticField;
+late static final field core::int finalLateStaticField;
 static method main() → dynamic {}

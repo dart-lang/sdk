@@ -5,90 +5,9 @@
 # Sections in this file should contain "$compiler == dart2analyzer".
 
 [ $compiler == dart2analyzer ]
-accessor_conflict_export2_test: CompileTimeError # Issue 25626
-accessor_conflict_export_test: CompileTimeError # Issue 25626
-accessor_conflict_import2_test: CompileTimeError # Issue 25626
-accessor_conflict_import_prefixed2_test: CompileTimeError # Issue 25626
-accessor_conflict_import_prefixed_test: CompileTimeError # Issue 25626
-accessor_conflict_import_test: CompileTimeError # Issue 25626
-cascaded_forwarding_stubs_test: CompileTimeError # Issue 34329
-config_import_corelib_test: CompileTimeError, StaticWarning, OK # failing-by-design: Will never pass, see Issue #34332
-const_cast2_test/01: CompileTimeError # failing-by-design: Not a const expression, see Issue #34334
-const_cast2_test/none: CompileTimeError # failing-by-design: Not a const expression, see Issue #34334
-covariant_subtyping_with_mixin_test: CompileTimeError # Issue 34329
-dynamic_prefix_core_test/01: MissingCompileTimeError # failing-by-design: #34339
-enum_syntax_test/05: Fail # Issue 34341
-enum_syntax_test/06: Fail # Issue 34341
-f_bounded_quantification2_test: CompileTimeError # Issue 34583
-f_bounded_quantification4_test: CompileTimeError # Issue 34583
-forwarding_stub_tearoff_test: CompileTimeError # Issue 34329
-generic_local_functions_test: CompileTimeError # Issue 28515
-generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
-generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30207
 generic_no_such_method_dispatcher_simple_test: Skip # failing-by-design: This test is just for kernel
-generic_no_such_method_dispatcher_test: CompileTimeError # failing-by-design: This test needs to be updated for Dart 2, see Issue #34366
-generic_tearoff_test: CompileTimeError # failing-by-design: Analysis of generic function typed parameters is not yet supported
-getter_setter_in_lib_test: Fail # Issue 23286
-getters_setters2_test/01: CompileTimeError # failing-by-design: Test needs refactoring, see Issue #34365
-getters_setters_type_test/01: CompileTimeError # failing-by-design: Test needs refactoring, see Issue #34365
-hidden_import_test/01: MissingStaticWarning # failing-by-design: invalid test, see Issue #34302
-hidden_import_test/02: MissingStaticWarning # failing-by-design: invalid test, see Issue #34302
-implements_futureor_test/01: MissingCompileTimeError # Issue #33745
-implicit_creation/implicit_const_context_constructor_generic_named_test: CompileTimeError # Issue #34367
-implicit_creation/implicit_const_context_constructor_generic_test: CompileTimeError # Issue #34367
-implicit_creation/implicit_const_context_prefix_constructor_generic_named_test: CompileTimeError # Issue #34367
-implicit_creation/implicit_const_context_prefix_constructor_generic_test: CompileTimeError # Issue #34367
-index_assign_operator_infer_return_type_test: CompileTimeError # failing-by-design: outdated against the spec, see Issue #34368
-initializing_formal_final_test: MissingCompileTimeError # Issue #34369
-interface_test/00: MissingCompileTimeError # Issue #34370
-invalid_returns/async_invalid_return_00_test/none: CompileTimeError # issue #34319
-invalid_returns/async_invalid_return_01_test/none: CompileTimeError # issue #34319
-invalid_returns/async_invalid_return_02_test/none: CompileTimeError # issue #34319
-invalid_returns/async_invalid_return_03_test/none: CompileTimeError # issue #34319
-invalid_returns/async_invalid_return_04_test/none: CompileTimeError # issue #34319
-invalid_returns/sync_invalid_return_00_test/none: CompileTimeError # issue #34319
-invalid_returns/sync_invalid_return_01_test/none: CompileTimeError # issue #34319
-invalid_returns/sync_invalid_return_02_test/none: CompileTimeError # issue #34319
-invalid_returns/sync_invalid_return_03_test/none: CompileTimeError # issue #34319
-invalid_returns/sync_invalid_return_04_test/none: CompileTimeError # issue #34319
-invalid_returns/sync_invalid_return_05_test/none: CompileTimeError # issue #34319
-issue31596_implement_covariant_test: CompileTimeError # Issue #31596
-issue31596_override_test/01: CompileTimeError # Issue #31596
-issue31596_override_test/02: CompileTimeError # Issue #31596
-issue31596_override_test/03: CompileTimeError # Issue #31596
-issue31596_override_test/04: CompileTimeError # Issue #31596
-issue31596_override_test/none: CompileTimeError # Issue #31596
-issue31596_super_test/01: CompileTimeError # Issue #31596
-issue31596_super_test/03: CompileTimeError # Issue #31596
-issue31596_super_test/05: CompileTimeError # Issue #31596
-issue31596_super_test/none: CompileTimeError # Issue #31596
-issue31596_tearoff_test: CompileTimeError # Issue #31596
-issue31596_test: CompileTimeError # Issue #31596
-issue34498_test: MissingCompileTimeError # Issue 34500
 large_class_declaration_test: Slow
-malformed2_test: Pass, MissingCompileTimeError # Flaky: issue 31056.
-nested_generic_closure_test: CompileTimeError # Issue #28515
-no_main_test/01: Fail # failing-by-design, the analyzer has no restriction that a library include a main function.
-part_of_multiple_libs_test/01: MissingCompileTimeError # Issue 33227
-part_refers_to_core_library_test/01: MissingCompileTimeError # Issue 29709
-prefix_shadow_test/01: MissingCompileTimeError # Issue 33005
 regress_23408_test: Skip # don't care about the static warning.
-regress_29025_test: CompileTimeError # Issue 29081
-regress_29405_test: CompileTimeError # Issue 29421
-regress_29784_test/02: MissingCompileTimeError # Issue 29784
-regress_33479_test/01: Crash # Issue #33479
-setter3_test/01: CompileTimeError # Invalid test, see https://github.com/dart-lang/sdk/issues/33837
-setter3_test/02: CompileTimeError # Invalid test, see https://github.com/dart-lang/sdk/issues/33837
-super_setter_test: CompileTimeError # Invalid test, see https://github.com/dart-lang/sdk/issues/33837
-type_variable_static_context_negative_test: Fail # Issue 12161
 vm/debug_break_enabled_vm_test: Skip
 vm/debug_break_vm_test/*: Skip
-vm/reflect_core_vm_test: CompileTimeError # Issue 33994
 vm/regress_27201_test: SkipByDesign # Loads bad library, so will always crash.
-vm/regression_32912_test/01: MissingCompileTimeError # Issue 32912
-vm/regression_32912_test/02: MissingCompileTimeError # Issue 32912
-vm/regression_32912_test/03: MissingCompileTimeError # Issue 32912
-void/return_future_future_or_void_async_error1_test/none: CompileTimeError # issue #34319
-void/return_future_or_future_or_void_sync_error2_test/none: CompileTimeError # issue #34319
-void/return_future_or_void_sync_error4_test/none: CompileTimeError # issue #34319
-void/void_type_usage_test/final_local_for_in2: MissingCompileTimeError # issue 35508

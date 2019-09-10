@@ -89,8 +89,8 @@ const _Experimental experimental = const _Experimental();
 /// Tools, such as the analyzer, can provide feedback if
 ///
 /// * the annotation is associated with anything other than a method, or
-/// * the annotation is associated with a method that has this annotation that
-///   can return anything other than a newly allocated object or `null`.
+/// * a method that has this annotation can return anything other than a newly
+///   allocated object or `null`.
 const _Factory factory = const _Factory();
 
 /// Used to annotate a class `C`. Indicates that `C` and all subtypes of `C`
@@ -149,10 +149,10 @@ const _Literal literal = const _Literal();
 ///   without invoking the overridden method.
 const _MustCallSuper mustCallSuper = const _MustCallSuper();
 
-/// Used to annotate a class declaration `C`. Indicates that any type arguments
-/// declared on `C` are to be treated as optional.  Tools such as the analyzer
-/// and linter can use this information to suppress warnings that would
-/// otherwise require type arguments to be provided for instances of `C`.
+/// Used to annotate a class, mixin, or extension declaration `C`. Indicates
+/// that any type arguments declared on `C` are to be treated as optional.
+/// Tools such as the analyzer and linter can use this information to suppress
+/// warnings that would otherwise require type arguments on `C` to be provided.
 const _OptionalTypeArgs optionalTypeArgs = const _OptionalTypeArgs();
 
 /// Used to annotate an instance member (method, getter, setter, operator, or
@@ -168,9 +168,10 @@ const _OptionalTypeArgs optionalTypeArgs = const _OptionalTypeArgs();
 /// * the annotation is associated with anything other than an instance member,
 ///   or
 /// * an invocation of a member that has this annotation is used outside of an
-///   instance member defined on a class that extends or mixes in the class in
-///   which the protected member is defined, or that uses a receiver other than
-///   `this`.
+///   instance member defined on a class that extends or mixes in (or a mixin
+///   constrained to) the class in which the protected member is defined.
+/// * an invocation of a member that has this annotation is used within an
+///   instance method, but the receiver is something other than `this`.
 const _Protected protected = const _Protected();
 
 /// Used to annotate a named parameter `p` in a method or function `f`.
@@ -216,7 +217,7 @@ const _Virtual virtual = const _Virtual();
 /// Tools, such as the analyzer, can provide feedback if
 ///
 /// * the annotation is associated with a declaration other than a public
-///   instance member in a class, or
+///   instance member in a class or mixin, or
 /// * the member is referenced outside of the defining library.
 const _VisibleForOverriding visibleForOverriding =
     const _VisibleForOverriding();
@@ -227,7 +228,8 @@ const _VisibleForOverriding visibleForOverriding =
 /// Tools, such as the analyzer, can provide feedback if
 ///
 /// * the annotation is associated with a declaration not in the `lib` folder
-///   of a package, or
+///   of a package, or a private declaration, or a declaration in an unnamed
+///   static extension, or
 /// * the declaration is referenced outside of its the defining library or a
 ///   library which is in the `test` folder of the defining package.
 const _VisibleForTesting visibleForTesting = const _VisibleForTesting();
@@ -240,7 +242,7 @@ class Immutable {
   final String reason;
 
   /// Initialize a newly created instance to have the given [reason].
-  const Immutable([this.reason]);
+  const Immutable([this.reason = '']);
 }
 
 /// Used to annotate a named parameter `p` in a method or function `f`.
@@ -259,7 +261,7 @@ class Required {
   final String reason;
 
   /// Initialize a newly created instance to have the given [reason].
-  const Required([this.reason]);
+  const Required([this.reason = '']);
 }
 
 class _AlwaysThrows {

@@ -275,7 +275,11 @@ class Interpreter {
   bool is_debugging_;
 #endif  // !PRODUCT
 
+  bool supports_unboxed_doubles_;
+  bool supports_unboxed_simd128_;
+
   friend class InterpreterSetjmpBuffer;
+
   DISALLOW_COPY_AND_ASSIGN(Interpreter);
 };
 

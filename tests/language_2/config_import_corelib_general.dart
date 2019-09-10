@@ -4,7 +4,11 @@
 
 class Classy {
   String get name => "classy general";
+  String httpSpecific() => throw UnimplementedError();
+  String ioSpecific() => throw UnimplementedError();
 }
 
 bool general() => true;
+bool httpSpecific() => false;
+bool ioSpecific() => false;
 final String name = "general";

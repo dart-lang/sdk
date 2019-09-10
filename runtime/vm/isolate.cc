@@ -79,11 +79,6 @@ static void DeterministicModeHandler(bool value) {
     FLAG_concurrent_mark = false;         // Timing dependent.
     FLAG_concurrent_sweep = false;        // Timing dependent.
     FLAG_random_seed = 0x44617274;        // "Dart"
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-    FLAG_load_deferred_eagerly = true;
-#else
-    COMPILE_ASSERT(FLAG_load_deferred_eagerly);
-#endif
   }
 }
 
@@ -676,7 +671,7 @@ void IsolateMessageHandler::MessageNotify(Message::Priority priority) {
     I->ScheduleInterrupts(Thread::kMessageInterrupt);
   }
   Dart_MessageNotifyCallback callback = I->message_notify_callback();
-  if (callback) {
+  if (callback != nullptr) {
     // Allow the embedder to handle message notification.
     (*callback)(Api::CastIsolate(I));
   }
@@ -2009,6 +2004,15 @@ void Isolate::MaybeIncreaseReloadEveryNStackOverflowChecks() {
 }
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
+void Isolate::set_forward_table_new(WeakTable* table) {
+  std::unique_ptr<WeakTable> value(table);
+  forward_table_new_ = std::move(value);
+}
+void Isolate::set_forward_table_old(WeakTable* table) {
+  std::unique_ptr<WeakTable> value(table);
+  forward_table_old_ = std::move(value);
+}
+
 void Isolate::Shutdown() {
   ASSERT(this == Isolate::Current());
   BackgroundCompiler::Stop(this);
@@ -2810,7 +2814,7 @@ void Isolate::VisitIsolates(IsolateVisitor* visitor) {
   // SafepointMonitorLocker to ensure the lock has safepoint checks.
   SafepointMonitorLocker ml(isolates_list_monitor_);
   Isolate* current = isolates_list_head_;
-  while (current) {
+  while (current != nullptr) {
     visitor->VisitIsolate(current);
     current = current->next_;
   }
@@ -2878,7 +2882,7 @@ void Isolate::RemoveIsolateFromList(Isolate* isolate) {
   }
   Isolate* previous = nullptr;
   Isolate* current = isolates_list_head_;
-  while (current) {
+  while (current != nullptr) {
     if (current == isolate) {
       ASSERT(previous != nullptr);
       previous->next_ = current->next_;

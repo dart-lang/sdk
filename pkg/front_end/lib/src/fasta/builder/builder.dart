@@ -55,6 +55,8 @@ export 'name_iterator.dart' show NameIterator;
 
 export 'named_type_builder.dart' show NamedTypeBuilder;
 
+export 'nullability_builder.dart' show NullabilityBuilder;
+
 export 'prefix_builder.dart' show PrefixBuilder;
 
 export 'type_alias_builder.dart' show TypeAliasBuilder;

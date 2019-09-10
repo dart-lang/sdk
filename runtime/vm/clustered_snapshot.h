@@ -259,11 +259,6 @@ class Serializer : public ThreadStackResource {
           return WriteRefId(Object::null());
         }
 #endif  // !DART_PRECOMPILED_RUNTIME
-        if (object->IsSendPort()) {
-          // TODO(rmacnak): Do a better job of resetting fields in
-          // precompilation and assert this is unreachable.
-          return WriteRefId(Object::null());
-        }
         FATAL("Missing ref");
       }
     }
@@ -533,7 +528,10 @@ class Deserializer : public ThreadStackResource {
     for (RawObject** p = from; p <= to_snapshot; p++) {
       *p = ReadRef();
     }
-    // TODO(sjindel/rmacnak): Is this really necessary?
+    // This is necessary because, unlike Object::Allocate, the clustered
+    // deserializer allocates object without null-initializing them. Instead,
+    // each deserialization cluster is responsible for initializing every field,
+    // ensuring that every field is written to exactly once.
     for (RawObject** p = to_snapshot + 1; p <= to; p++) {
       *p = Object::null();
     }

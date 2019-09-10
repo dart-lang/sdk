@@ -220,6 +220,7 @@ abstract class ServiceObject implements M.ObjectRef {
         obj = new Frame._empty(owner);
         break;
       case 'Function':
+      case 'NativeFunction':
         obj = new ServiceFunction._empty(owner);
         break;
       case 'Gauge':
@@ -693,7 +694,7 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
     updateFromServiceMap({'name': 'vm', 'type': '@VM'});
   }
 
-  void postServiceEvent(String streamId, Map response, ByteData data) {
+  void postServiceEvent(String streamId, Map response, Uint8List data) {
     var map = response;
     assert(!map.containsKey('_data'));
     if (data != null) {
@@ -1329,10 +1330,6 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     }
   }
 
-  Future collectAllGarbage() {
-    return invokeRpc('_collectAllGarbage', {});
-  }
-
   /// Fetches and builds the class hierarchy for this isolate. Returns the
   /// Object class object.
   Future<Class> getClassHierarchy() async {
@@ -1461,7 +1458,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
   DartError error;
   StreamController _snapshotFetch;
 
-  List<ByteData> _chunksInProgress;
+  List<Uint8List> _chunksInProgress;
 
   List<Thread> get threads => _threads;
   final List<Thread> _threads = new List<Thread>();
@@ -1474,6 +1471,20 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
 
   int get numScopedHandles => _numScopedHandles;
   int _numScopedHandles;
+
+  static Uint8List _flatten(List<Uint8List> chunks) {
+    var length = 0;
+    for (var chunk in chunks) {
+      length += chunk.length;
+    }
+    var flattened = new Uint8List(length);
+    var position = 0;
+    for (var chunk in chunks) {
+      flattened.setRange(position, position + chunk.length, chunk);
+      position += chunk.length;
+    }
+    return flattened;
+  }
 
   void _loadHeapSnapshot(ServiceEvent event) {
     if (_snapshotFetch == null || _snapshotFetch.isClosed) {
@@ -1494,11 +1505,11 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
       return;
     }
 
-    var loadedChunks = _chunksInProgress;
-    _chunksInProgress = null;
+    var flattened = _flatten(_chunksInProgress);
+    _chunksInProgress = null; // Make chunks GC'able.
 
     if (_snapshotFetch != null) {
-      _snapshotFetch.add(loadedChunks);
+      _snapshotFetch.add(flattened);
       _snapshotFetch.close();
     }
   }
@@ -2091,7 +2102,7 @@ class ServiceEvent extends ServiceObject {
   DartError reloadError;
   bool atAsyncSuspension;
   Instance inspectee;
-  ByteData data;
+  Uint8List data;
   int count;
   String reason;
   String exceptions;
@@ -2558,8 +2569,10 @@ class Class extends HeapObject implements M.Class {
     });
   }
 
-  Future<ServiceObject> getAllocationSamples([String tags = 'None']) {
-    var params = {'tags': tags, 'classId': id};
+  Future<ServiceObject> getAllocationSamples() {
+    var params = {
+      'classId': id,
+    };
     return isolate.invokeRpc('_getAllocationSamples', params);
   }
 

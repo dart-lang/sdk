@@ -3,13 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'summary_common.dart';
 import 'test_strategies.dart';
 
 main() {
-  if (AnalysisDriver.useSummary2) return;
+  if (AnalysisDriver.useSummary2) {
+    test('fake', () {});
+    return;
+  }
   defineReflectiveSuite(() {
     defineReflectiveTests(PrelinkerTest);
   });

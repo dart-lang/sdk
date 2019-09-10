@@ -132,7 +132,7 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
       } else {
         Dart_ListSetAt(event, 2, Dart_Null());
       }
-      Dart_ListSetAt(event, 3, Dart_NewBoolean(e->mask & IN_MOVED_TO));
+      Dart_ListSetAt(event, 3, Dart_NewBoolean((e->mask & IN_MOVED_TO) != 0u));
       Dart_ListSetAt(event, 4, Dart_NewInteger(e->wd));
       Dart_ListSetAt(events, i, event);
       i++;

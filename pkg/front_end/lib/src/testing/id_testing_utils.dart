@@ -97,7 +97,7 @@ Member lookupClassMember(Class cls, String memberName, {bool required: true}) {
   });
 }
 
-TypeParameterScopeBuilder lookupLibraryDeclarationBuilder(
+LibraryBuilder lookupLibraryBuilder(
     InternalCompilerResult compilerResult, Library library,
     {bool required: true}) {
   SourceLoader loader = compilerResult.kernelTargetForTesting.loader;
@@ -105,6 +105,14 @@ TypeParameterScopeBuilder lookupLibraryDeclarationBuilder(
   if (builder == null && required) {
     throw new ArgumentError("DeclarationBuilder for $library not found.");
   }
+  return builder;
+}
+
+TypeParameterScopeBuilder lookupLibraryDeclarationBuilder(
+    InternalCompilerResult compilerResult, Library library,
+    {bool required: true}) {
+  SourceLibraryBuilder builder =
+      lookupLibraryBuilder(compilerResult, library, required: required);
   return builder.libraryDeclaration;
 }
 
@@ -196,8 +204,8 @@ MemberBuilder lookupMemberBuilder(
   return memberBuilder;
 }
 
-/// Look up the [MemberBuilder] for [member] through the [ClassBuilder] for
-/// [cls] using [memberName] as its name.
+/// Look up the [MemberBuilder] for [member] through the [ExtensionBuilder] for
+/// [extension] using [memberName] as its name.
 MemberBuilder lookupExtensionMemberBuilder(
     InternalCompilerResult compilerResult,
     Extension extension,
@@ -254,7 +262,7 @@ class ConstantToTextVisitor implements ConstantVisitor<void> {
     }
   }
 
-  void defaultConstant(Constant node) => throw UnimplementedError(
+  void defaultConstant(Constant node) => throw new UnimplementedError(
       'Unexpected constant $node (${node.runtimeType})');
 
   void visitNullConstant(NullConstant node) {
@@ -378,8 +386,8 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
     }
   }
 
-  void defaultDartType(DartType node) =>
-      throw UnimplementedError('Unexpected type $node (${node.runtimeType})');
+  void defaultDartType(DartType node) => throw new UnimplementedError(
+      'Unexpected type $node (${node.runtimeType})');
 
   void visitInvalidType(InvalidType node) {
     sb.write('<invalid>');
@@ -525,25 +533,24 @@ String extensionMethodDescriptorToText(ExtensionMemberDescriptor descriptor) {
   if (descriptor.isStatic) {
     sb.write('static ');
   }
-  if (descriptor.kind == null) {
-    sb.write('field ');
-  } else {
-    switch (descriptor.kind) {
-      case ProcedureKind.Method:
-        break;
-      case ProcedureKind.Getter:
-        sb.write('getter ');
-        break;
-      case ProcedureKind.Setter:
-        sb.write('setter ');
-        break;
-      case ProcedureKind.Operator:
-        sb.write('operator ');
-        break;
-      case ProcedureKind.Factory:
-        throw new UnsupportedError(
-            "Unexpected procedure kind ${descriptor.kind}.");
-    }
+  switch (descriptor.kind) {
+    case ExtensionMemberKind.Method:
+      break;
+    case ExtensionMemberKind.Getter:
+      sb.write('getter ');
+      break;
+    case ExtensionMemberKind.Setter:
+      sb.write('setter ');
+      break;
+    case ExtensionMemberKind.Operator:
+      sb.write('operator ');
+      break;
+    case ExtensionMemberKind.Field:
+      sb.write('field ');
+      break;
+    case ExtensionMemberKind.TearOff:
+      sb.write('tearoff ');
+      break;
   }
   sb.write(descriptor.name.name);
   sb.write('=');

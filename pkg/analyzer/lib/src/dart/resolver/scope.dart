@@ -407,12 +407,14 @@ class LibraryImportScope extends Scope {
   List<ExtensionElement> get extensions {
     if (_extensions == null) {
       _extensions = [];
-      for (var namespace in _importedNamespaces) {
-        for (var element in namespace.definedNames.values) {
-          if (element is ExtensionElement &&
-              element.name.isNotEmpty /* named */ &&
-              !_extensions.contains(element)) {
-            _extensions.add(element);
+      List<ImportElement> imports = _definingLibrary.imports;
+      int count = imports.length;
+      for (int i = 0; i < count; i++) {
+        if (imports[i].prefix == null) {
+          for (var element in imports[i].namespace.definedNames.values) {
+            if (element is ExtensionElement && !_extensions.contains(element)) {
+              _extensions.add(element);
+            }
           }
         }
       }
@@ -807,7 +809,7 @@ class NamespaceBuilder {
    */
   void _addIfPublic(Map<String, Element> definedNames, Element element) {
     String name = element.name;
-    if (name != null && !Scope.isPrivateName(name)) {
+    if (name != null && name.isNotEmpty && !Scope.isPrivateName(name)) {
       definedNames[name] = element;
     }
   }
@@ -890,9 +892,9 @@ class NamespaceBuilder {
         }
       }
       _addAllFromNamespace(
-          definedNames,
-          (library.context as InternalAnalysisContext)
-              .getPublicNamespace(library));
+        definedNames,
+        createPublicNamespaceForLibrary(library),
+      );
       return definedNames;
     } finally {
       visitedElements.remove(library);

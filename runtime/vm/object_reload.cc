@@ -665,33 +665,16 @@ class InstanceSizeConflict : public ClassReasonForCancelling {
   }
 };
 
-class UnimplementedDeferredLibrary : public ReasonForCancelling {
- public:
-  UnimplementedDeferredLibrary(Zone* zone,
-                               const Library& from,
-                               const Library& to,
-                               const String& name)
-      : ReasonForCancelling(zone), from_(from), to_(to), name_(name) {}
-
- private:
-  const Library& from_;
-  const Library& to_;
-  const String& name_;
-
-  RawString* ToString() {
-    const String& lib_url = String::Handle(to_.url());
-    from_.ToCString();
-    return String::NewFormatted(
-        "Reloading support for deferred loading has not yet been implemented:"
-        " library '%s' has deferred import '%s'",
-        lib_url.ToCString(), name_.ToCString());
-  }
-};
-
 // This is executed before iterating over the instances.
 void Class::CheckReload(const Class& replacement,
                         IsolateReloadContext* context) const {
   ASSERT(IsolateReloadContext::IsSameClass(*this, replacement));
+
+  if (!is_declaration_loaded()) {
+    // The old class hasn't been used in any meanfully way, so the VM is okay
+    // with any change.
+    return;
+  }
 
   // Ensure is_enum_class etc have been set.
   replacement.EnsureDeclarationLoaded();
@@ -816,20 +799,7 @@ bool Class::CanReloadPreFinalized(const Class& replacement,
 
 void Library::CheckReload(const Library& replacement,
                           IsolateReloadContext* context) const {
-  // TODO(26878): If the replacement library uses deferred loading,
-  // reject it.  We do not yet support reloading deferred libraries.
-  LibraryPrefix& prefix = LibraryPrefix::Handle();
-  LibraryPrefixIterator it(replacement);
-  while (it.HasNext()) {
-    prefix = it.GetNext();
-    if (prefix.is_deferred_load()) {
-      const String& prefix_name = String::Handle(prefix.name());
-      context->AddReasonForCancelling(
-          new (context->zone()) UnimplementedDeferredLibrary(
-              context->zone(), *this, replacement, prefix_name));
-      return;
-    }
-  }
+  // Currently no library properties will prevent a reload.
 }
 
 void CallSiteResetter::Reset(const ICData& ic) {

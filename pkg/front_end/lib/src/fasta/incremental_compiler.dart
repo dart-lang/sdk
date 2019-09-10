@@ -48,7 +48,7 @@ import '../api_prototype/incremental_kernel_generator.dart'
 
 import '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
 
-import 'builder/builder.dart' show LibraryBuilder;
+import 'builder/builder.dart' show ClassBuilder, LibraryBuilder;
 
 import 'builder_graph.dart' show BuilderGraph;
 
@@ -248,7 +248,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
         // Remove component problems for libraries we don't reuse.
         if (remainingComponentProblems.isNotEmpty) {
-          Library lib = builder.target;
+          Library lib = builder.library;
           removeLibraryFromRemainingComponentProblems(lib, uriTranslator);
         }
       }
@@ -256,7 +256,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       if (removedDillBuilders) {
         dillLoadedData.loader.libraries.clear();
         for (LibraryBuilder builder in dillLoadedData.loader.builders.values) {
-          dillLoadedData.loader.libraries.add(builder.target);
+          dillLoadedData.loader.libraries.add(builder.library);
         }
       }
 
@@ -282,7 +282,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       if (hierarchy != null) {
         List<Library> removedLibraries = new List<Library>();
         for (LibraryBuilder builder in notReusedLibraries) {
-          Library lib = builder.target;
+          Library lib = builder.library;
           removedLibraries.add(lib);
         }
         hierarchy.applyTreeChanges(removedLibraries, const []);
@@ -389,7 +389,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         allLibraries = outputLibraries.toSet();
         if (!c.options.omitPlatform) {
           for (int i = 0; i < platformBuilders.length; i++) {
-            Library lib = platformBuilders[i].target;
+            Library lib = platformBuilders[i].library;
             outputLibraries.add(lib);
           }
         }
@@ -503,7 +503,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     if (modulesToLoad != null && userBuilders != null) {
       Set<Library> loadedNotKept = new Set<Library>();
       for (LibraryBuilder builder in userBuilders.values) {
-        loadedNotKept.add(builder.target);
+        loadedNotKept.add(builder.library);
       }
       for (Component module in modulesToLoad) {
         loadedNotKept.removeAll(module.libraries);
@@ -651,13 +651,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
     List<Uri> worklist = new List<Uri>();
     worklist.addAll(entries);
-    for (LibraryBuilder library in reusedLibraries) {
-      if (library.uri.scheme == "dart" && !library.isSynthetic) {
+    for (LibraryBuilder libraryBuilder in reusedLibraries) {
+      if (libraryBuilder.uri.scheme == "dart" && !libraryBuilder.isSynthetic) {
         continue;
       }
-      Library lib = library.target;
-      potentiallyReferencedLibraries[library.uri] = lib;
-      libraryMap[library.uri] = lib;
+      Library lib = libraryBuilder.library;
+      potentiallyReferencedLibraries[libraryBuilder.uri] = lib;
+      libraryMap[libraryBuilder.uri] = lib;
     }
 
     LibraryGraph graph = new LibraryGraph(libraryMap);
@@ -683,7 +683,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       if (uri.scheme == "package") continue;
       LibraryBuilder builder = userCode.loader.builders.remove(uri);
       if (builder != null) {
-        Library lib = builder.target;
+        Library lib = builder.library;
         removedLibraries.add(lib);
         dillLoadedData.loader.builders.remove(uri);
         CompilerContext.current.uriToSource.remove(uri);
@@ -834,13 +834,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     assert(dillLoadedData != null && userCode != null);
 
     return await context.runInContext((_) async {
-      LibraryBuilder library =
+      LibraryBuilder libraryBuilder =
           userCode.loader.read(libraryUri, -1, accessor: userCode.loader.first);
 
-      Class kernelClass;
+      Class cls;
       if (className != null) {
-        kernelClass = library.scopeBuilder[className]?.target;
-        if (kernelClass == null) return null;
+        ClassBuilder classBuilder = libraryBuilder.scopeBuilder[className];
+        cls = classBuilder?.cls;
+        if (cls == null) return null;
       }
 
       userCode.loader.seenMessages.clear();
@@ -857,12 +858,16 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         debugExprUri,
         userCode.loader,
         null,
-        scope: library.scope.createNestedScope("expression"),
-        nameOrigin: library.target,
+        scope: libraryBuilder.scope.createNestedScope("expression"),
+        nameOrigin: libraryBuilder.library,
       );
+      debugLibrary.setLanguageVersion(
+          libraryBuilder.library.languageVersionMajor,
+          libraryBuilder.library.languageVersionMinor);
 
-      if (library is DillLibraryBuilder) {
-        for (LibraryDependency dependency in library.target.dependencies) {
+      if (libraryBuilder is DillLibraryBuilder) {
+        for (LibraryDependency dependency
+            in libraryBuilder.library.dependencies) {
           if (!dependency.isImport) continue;
 
           List<Combinator> combinators;
@@ -871,10 +876,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             combinators ??= <Combinator>[];
 
             combinators.add(combinator.isShow
-                ? new Combinator.show(
-                    combinator.names, combinator.fileOffset, library.fileUri)
-                : new Combinator.hide(
-                    combinator.names, combinator.fileOffset, library.fileUri));
+                ? new Combinator.show(combinator.names, combinator.fileOffset,
+                    libraryBuilder.fileUri)
+                : new Combinator.hide(combinator.names, combinator.fileOffset,
+                    libraryBuilder.fileUri));
           }
 
           debugLibrary.addImport(
@@ -915,13 +920,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         ..parent = parameters;
 
       procedure.fileUri = debugLibrary.fileUri;
-      procedure.parent = className != null ? kernelClass : library.target;
+      procedure.parent = className != null ? cls : libraryBuilder.library;
 
       userCode.uriToSource.remove(debugExprUri);
       userCode.loader.sourceBytes.remove(debugExprUri);
 
       // Make sure the library has a canonical name.
-      Component c = new Component(libraries: [debugLibrary.target]);
+      Component c = new Component(libraries: [debugLibrary.library]);
       c.computeCanonicalNames();
 
       userCode.runProcedureTransformations(procedure);
@@ -972,31 +977,31 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       return false;
     }
 
-    addBuilderAndInvalidateUris(Uri uri, LibraryBuilder library) {
-      if (uri.scheme == "dart" && !library.isSynthetic) {
-        result.add(library);
+    addBuilderAndInvalidateUris(Uri uri, LibraryBuilder libraryBuilder) {
+      if (uri.scheme == "dart" && !libraryBuilder.isSynthetic) {
+        result.add(libraryBuilder);
         return;
       }
-      builders[uri] = library;
-      if (isInvalidated(uri, library.target.fileUri)) {
+      builders[uri] = libraryBuilder;
+      if (isInvalidated(uri, libraryBuilder.library.fileUri)) {
         invalidatedImportUris.add(uri);
       }
-      if (library is SourceLibraryBuilder) {
-        for (LibraryBuilder part in library.parts) {
+      if (libraryBuilder is SourceLibraryBuilder) {
+        for (LibraryBuilder part in libraryBuilder.parts) {
           if (isInvalidated(part.uri, part.fileUri)) {
             invalidatedImportUris.add(part.uri);
             builders[part.uri] = part;
           }
         }
-      } else if (library is DillLibraryBuilder) {
-        for (LibraryPart part in library.target.parts) {
-          Uri partUri = library.uri.resolve(part.partUri);
-          Uri fileUri =
-              getPartFileUri(library.library.fileUri, part, uriTranslator);
+      } else if (libraryBuilder is DillLibraryBuilder) {
+        for (LibraryPart part in libraryBuilder.library.parts) {
+          Uri partUri = libraryBuilder.uri.resolve(part.partUri);
+          Uri fileUri = getPartFileUri(
+              libraryBuilder.library.fileUri, part, uriTranslator);
 
           if (isInvalidated(partUri, fileUri)) {
             invalidatedImportUris.add(partUri);
-            builders[partUri] = library;
+            builders[partUri] = libraryBuilder;
           }
         }
       }

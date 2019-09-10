@@ -116,8 +116,6 @@ constexpr bool kDartUseBytecode = false;
   P(interpret_irregexp, bool, USING_DBC, "Use irregexp bytecode interpreter")  \
   P(lazy_dispatchers, bool, true, "Generate dispatchers lazily")               \
   P(link_natives_lazily, bool, false, "Link native calls lazily")              \
-  C(load_deferred_eagerly, true, true, bool, false,                            \
-    "Load deferred libraries eagerly.")                                        \
   R(log_marker_tasks, false, bool, false,                                      \
     "Log debugging information for old gen GC marking tasks.")                 \
   P(marker_tasks, int, USING_MULTICORE ? 2 : 0,                                \

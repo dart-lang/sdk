@@ -206,9 +206,33 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
+    var outerScope = scope;
+    var outerReference = reference;
+
+    var name = node.identifier.name;
+    reference = reference.getChild('@parameter').getChild(name);
+    reference.node = node;
+
+    var element = ParameterElementImpl.forLinkedNode(
+      outerReference.element,
+      reference,
+      node,
+    );
+    node.identifier.staticElement = element;
+    _createTypeParameterElements(node.typeParameters);
+
+    scope = new EnclosedScope(scope);
+    for (var typeParameter in element.typeParameters) {
+      scope.define(typeParameter);
+    }
+
     node.type?.accept(this);
+    node.typeParameters?.accept(this);
     node.parameters?.accept(this);
     nodesToBuildType.addDeclaration(node);
+
+    scope = outerScope;
+    reference = outerReference;
   }
 
   @override

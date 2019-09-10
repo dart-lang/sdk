@@ -6,6 +6,8 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'add_async_test.dart' as add_async;
 import 'add_await_test.dart' as add_await;
+import 'add_const_test.dart' as add_const;
+import 'add_curly_braces_test.dart' as add_curly_braces;
 import 'add_explicit_cast_test.dart' as add_explicit_cast;
 import 'add_field_formal_parameters_test.dart' as add_field_formal_parameters;
 import 'add_missing_enum_case_clauses_test.dart'
@@ -23,6 +25,7 @@ import 'add_required_test.dart' as add_required;
 import 'add_static_test.dart' as add_static;
 import 'add_super_constructor_invocation_test.dart'
     as add_super_constructor_invocation;
+import 'add_type_annotation_test.dart' as add_type_annotation;
 import 'analysis_options/test_all.dart' as analysis_options;
 import 'change_argument_name_test.dart' as change_argument_name;
 import 'change_to_nearest_precise_value_test.dart'
@@ -30,9 +33,16 @@ import 'change_to_nearest_precise_value_test.dart'
 import 'change_to_static_access_test.dart' as change_to_static_access;
 import 'change_to_test.dart' as change_to;
 import 'change_type_annotation_test.dart' as change_type_annotation;
+import 'convert_documentation_into_line_test.dart'
+    as convert_documentation_into_line;
 import 'convert_flutter_child_test.dart' as convert_flutter_child;
 import 'convert_flutter_children_test.dart' as convert_flutter_children;
+import 'convert_into_expression_body_test.dart' as convert_into_expression_body;
+import 'convert_to_for_element_test.dart' as convert_to_for_element;
+import 'convert_to_if_element_test.dart' as convert_to_if_element;
+import 'convert_to_int_literal_test.dart' as convert_to_int_literal;
 import 'convert_to_named_arguments_test.dart' as convert_to_named_arguments;
+import 'convert_to_null_aware_test.dart' as convert_to_null_aware;
 import 'create_class_test.dart' as create_class;
 import 'create_constructor_for_final_fields_test.dart'
     as create_constructor_for_final_field;
@@ -47,6 +57,7 @@ import 'create_method_test.dart' as create_method;
 import 'create_missing_overrides_test.dart' as create_missing_overrides;
 import 'create_mixin_test.dart' as create_mixin;
 import 'create_no_such_method_test.dart' as create_no_such_method;
+import 'create_setter_test.dart' as create_setter;
 import 'extend_class_for_mixin_test.dart' as extend_class_for_mixin;
 import 'fix_test.dart' as fix;
 import 'import_async_test.dart' as import_async;
@@ -58,6 +69,7 @@ import 'insert_semicolon_test.dart' as insert_semicolon;
 import 'make_class_abstract_test.dart' as make_class_abstract;
 import 'make_field_not_final_test.dart' as make_field_not_final;
 import 'make_final_test.dart' as make_final;
+import 'make_variable_not_final_test.dart' as make_variable_not_final;
 import 'move_type_arguments_to_class_test.dart' as move_type_arguments_to_class;
 import 'remove_annotation_test.dart' as remove_annotation;
 import 'remove_await_test.dart' as remove_await;
@@ -89,6 +101,7 @@ import 'rename_to_camel_case_test.dart' as rename_to_camel_case;
 import 'replace_boolean_with_bool_test.dart' as replace_boolean_with_bool;
 import 'replace_colon_with_equals_test.dart' as replace_colon_with_equals;
 import 'replace_final_with_const_test.dart' as replace_final_with_const;
+import 'replace_new_with_const_test.dart' as replace_new_with_const;
 import 'replace_null_with_closure_test.dart' as replace_null_with_closure;
 import 'replace_return_type_future_test.dart' as replace_return_type_future;
 import 'replace_var_with_dynamic_test.dart' as replace_var_with_dynamic;
@@ -113,6 +126,8 @@ main() {
   defineReflectiveSuite(() {
     add_async.main();
     add_await.main();
+    add_const.main();
+    add_curly_braces.main();
     add_explicit_cast.main();
     add_field_formal_parameters.main();
     add_missing_enum_case_clauses.main();
@@ -125,15 +140,22 @@ main() {
     add_required.main();
     add_static.main();
     add_super_constructor_invocation.main();
+    add_type_annotation.main();
     analysis_options.main();
     change_argument_name.main();
     change_to.main();
     change_to_nearest_precise_value.main();
     change_to_static_access.main();
     change_type_annotation.main();
+    convert_documentation_into_line.main();
     convert_flutter_child.main();
     convert_flutter_children.main();
+    convert_into_expression_body.main();
+    convert_to_for_element.main();
+    convert_to_if_element.main();
+    convert_to_int_literal.main();
     convert_to_named_arguments.main();
+    convert_to_null_aware.main();
     create_class.main();
     create_constructor_for_final_field.main();
     create_constructor_super.main();
@@ -147,6 +169,7 @@ main() {
     create_missing_overrides.main();
     create_mixin.main();
     create_no_such_method.main();
+    create_setter.main();
     extend_class_for_mixin.main();
     fix.main();
     import_async.main();
@@ -158,6 +181,7 @@ main() {
     make_class_abstract.main();
     make_field_not_final.main();
     make_final.main();
+    make_variable_not_final.main();
     move_type_arguments_to_class.main();
     remove_annotation.main();
     remove_await.main();
@@ -186,6 +210,7 @@ main() {
     replace_boolean_with_bool.main();
     replace_colon_with_equals.main();
     replace_final_with_const.main();
+    replace_new_with_const.main();
     replace_null_with_closure.main();
     replace_return_type_future.main();
     replace_var_with_dynamic.main();

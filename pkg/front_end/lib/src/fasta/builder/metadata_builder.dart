@@ -34,8 +34,9 @@ class MetadataBuilder {
     Scope scope = parent is Library || parent is Class || classBuilder == null
         ? library.scope
         : classBuilder.scope;
-    BodyBuilder bodyBuilder = new BodyBuilder.forOutlineExpression(
-        library, classBuilder, member, scope, fileUri);
+    BodyBuilder bodyBuilder = library.loader
+        .createBodyBuilderForOutlineExpression(
+            library, classBuilder, member, scope, fileUri);
     for (int i = 0; i < metadata.length; ++i) {
       MetadataBuilder annotationBuilder = metadata[i];
       parent.addAnnotation(

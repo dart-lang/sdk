@@ -9,6 +9,8 @@ enum Dictionaries {
   cfeMessages,
   cfeCode,
   cfeTests,
+  // The blacklist is special and is always loaded!
+  blacklist,
 }
 
 Map<Dictionaries, Set<String>> loadedDictionaries;
@@ -20,6 +22,7 @@ SpellingResult spellcheckString(String s,
 
   List<String> wrongWords;
   List<int> wrongWordsOffset;
+  List<bool> wrongWordBlacklisted;
   List<int> wordOffsets = new List<int>();
   List<String> words =
       splitStringIntoWords(s, wordOffsets, splitAsCode: splitAsCode);
@@ -29,6 +32,7 @@ SpellingResult spellcheckString(String s,
     bool found = false;
     for (int j = 0; j < dictionaries.length; j++) {
       Dictionaries dictionaryType = dictionaries[j];
+      if (dictionaryType == Dictionaries.blacklist) continue;
       Set<String> dictionary = loadedDictionaries[dictionaryType];
       if (dictionary.contains(word)) {
         found = true;
@@ -40,16 +44,22 @@ SpellingResult spellcheckString(String s,
       wrongWords.add(word);
       wrongWordsOffset ??= new List<int>();
       wrongWordsOffset.add(offset);
+      wrongWordBlacklisted ??= new List<bool>();
+      wrongWordBlacklisted
+          .add(loadedDictionaries[Dictionaries.blacklist].contains(word));
     }
   }
-  return new SpellingResult(wrongWords, wrongWordsOffset);
+
+  return new SpellingResult(wrongWords, wrongWordsOffset, wrongWordBlacklisted);
 }
 
 class SpellingResult {
   final List<String> misspelledWords;
   final List<int> misspelledWordsOffset;
+  final List<bool> misspelledWordsBlacklisted;
 
-  SpellingResult(this.misspelledWords, this.misspelledWordsOffset);
+  SpellingResult(this.misspelledWords, this.misspelledWordsOffset,
+      this.misspelledWordsBlacklisted);
 }
 
 void ensureDictionariesLoaded(List<Dictionaries> dictionaries) {
@@ -71,6 +81,14 @@ void ensureDictionariesLoaded(List<Dictionaries> dictionaries) {
   }
 
   loadedDictionaries ??= new Map<Dictionaries, Set<String>>();
+  // Ensure the blacklist is loaded.
+  Set<String> blacklistDictionary = loadedDictionaries[Dictionaries.blacklist];
+  if (blacklistDictionary == null) {
+    blacklistDictionary = new Set<String>();
+    loadedDictionaries[Dictionaries.blacklist] = blacklistDictionary;
+    addWords(dictionaryToUri(Dictionaries.blacklist), blacklistDictionary);
+  }
+
   for (int j = 0; j < dictionaries.length; j++) {
     Dictionaries dictionaryType = dictionaries[j];
     Set<String> dictionary = loadedDictionaries[dictionaryType];
@@ -78,6 +96,13 @@ void ensureDictionariesLoaded(List<Dictionaries> dictionaries) {
       dictionary = new Set<String>();
       loadedDictionaries[dictionaryType] = dictionary;
       addWords(dictionaryToUri(dictionaryType), dictionary);
+      // Check that no good words occur in the blacklist.
+      for (String s in dictionary) {
+        if (blacklistDictionary.contains(s)) {
+          throw "Word '$s' in dictionary $dictionaryType "
+              "is also in the blacklist.";
+        }
+      }
     }
   }
 }
@@ -96,6 +121,9 @@ Uri dictionaryToUri(Dictionaries dictionaryType) {
     case Dictionaries.cfeTests:
       return Uri.base
           .resolve("pkg/front_end/test/spell_checking_list_tests.txt");
+    case Dictionaries.blacklist:
+      return Uri.base
+          .resolve("pkg/front_end/test/spell_checking_list_blacklist.txt");
   }
   throw "Unknown Dictionary";
 }
@@ -107,9 +135,9 @@ List<String> splitStringIntoWords(String s, List<int> splitOffsets,
   String regExpStringInner = r"\s-=\|\/,";
   if (splitAsCode) {
     // If splitting as code also split by "_", ":", ".", "(", ")", "<", ">",
-    // "[", "]", "{", "}", "@", "&", "#", "?". (As well as doing stuff to camel
-    // casing further below).
-    regExpStringInner = "${regExpStringInner}_:\\.\\(\\)<>\\[\\]\{\}@&#\\?";
+    // "[", "]", "{", "}", "@", "&", "#", "?", "%".
+    // (As well as doing stuff to camel casing further below).
+    regExpStringInner = "${regExpStringInner}_:\\.\\(\\)<>\\[\\]\{\}@&#\\?%";
   }
   // Match one or more of the characters specified above.
   String regExp = "[$regExpStringInner]+";

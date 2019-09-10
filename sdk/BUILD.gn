@@ -84,6 +84,7 @@ declare_args() {
 # ......math/
 # ......mirrors/
 # ......typed_data/
+# ......wasm/
 # ......api_readme.md
 # ....model/
 # ......lexeme/
@@ -114,6 +115,10 @@ _platform_sdk_snapshots = [
   [
     "dartanalyzer",
     "../utils/dartanalyzer:generate_dartanalyzer_snapshot",
+  ],
+  [
+    "dart2native",
+    "../utils/dart2native:generate_dart2native_snapshot",
   ],
   [
     "dartdoc",
@@ -153,6 +158,10 @@ _full_sdk_snapshots = [
   [
     "dartanalyzer",
     "../utils/dartanalyzer:generate_dartanalyzer_snapshot",
+  ],
+  [
+    "dart2native",
+    "../utils/dart2native:generate_dart2native_snapshot",
   ],
   [
     "dartdevc",
@@ -216,6 +225,7 @@ _full_sdk_libraries = [
   "profiler",
   "svg",
   "typed_data",
+  "wasm",
   "web_audio",
   "web_gl",
   "web_sql",
@@ -249,22 +259,22 @@ _platform_sdk_libraries = _full_sdk_libraries
 copy_tree_specs = []
 
 # This rule copies dartdoc templates to
-# bin/snapshots/resources/dartdoc/templates
+# bin/resources/dartdoc/templates
 copy_tree_specs += [ {
       target = "copy_dartdoc_templates"
       visibility = [ ":copy_dartdoc_files" ]
       source = "../third_party/pkg/dartdoc/lib/templates"
-      dest = "$root_out_dir/dart-sdk/bin/snapshots/resources/dartdoc/templates"
+      dest = "$root_out_dir/dart-sdk/bin/resources/dartdoc/templates"
       ignore_patterns = "{}"
     } ]
 
 # This rule copies dartdoc resources to
-# bin/snapshots/resources/dartdoc/resources
+# bin/resources/dartdoc/resources
 copy_tree_specs += [ {
       target = "copy_dartdoc_resources"
       visibility = [ ":copy_dartdoc_files" ]
       source = "../third_party/pkg/dartdoc/lib/resources"
-      dest = "$root_out_dir/dart-sdk/bin/snapshots/resources/dartdoc/resources"
+      dest = "$root_out_dir/dart-sdk/bin/resources/dartdoc/resources"
       ignore_patterns = "{}"
     } ]
 
@@ -421,9 +431,6 @@ copy("copy_gen_snapshot") {
       "$gen_snapshot_out/$gen_snapshot_stripped_binary",
     ]
   }
-  if (is_win) {
-    sources += [ "$gen_snapshot_out/gen_snapshot.lib" ]
-  }
   outputs = [
     "$root_out_dir/dart-sdk/bin/utils/{{source_file_part}}",
   ]
@@ -436,6 +443,23 @@ copy("copy_dart2aot") {
   }
   sources = [
     "bin/dart2aot$ext",
+  ]
+  outputs = [
+    "$root_out_dir/dart-sdk/bin/{{source_file_part}}",
+  ]
+}
+
+copy("copy_dart2native") {
+  deps = [
+    ":copy_gen_kernel_snapshot",
+    ":copy_gen_snapshot",
+  ]
+  ext = ""
+  if (is_win) {
+    ext = ".bat"
+  }
+  sources = [
+    "bin/dart2native$ext",
   ]
   outputs = [
     "$root_out_dir/dart-sdk/bin/{{source_file_part}}",
@@ -566,7 +590,7 @@ group("copy_full_sdk_snapshots") {
 }
 
 # This rule writes the .packages file for dartdoc resources.
-write_file("$root_out_dir/dart-sdk/bin/snapshots/resources/dartdoc/.packages",
+write_file("$root_out_dir/dart-sdk/bin/resources/dartdoc/.packages",
            "dartdoc:.")
 
 # This is the main rule for copying the files that dartdoc needs.
@@ -978,6 +1002,7 @@ group("create_common_sdk") {
     ":copy_analysis_summaries",
     ":copy_api_readme",
     ":copy_dart",
+    ":copy_dart2native",
     ":copy_dartdoc_files",
     ":copy_headers",
     ":copy_libraries_dart",

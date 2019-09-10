@@ -30,6 +30,31 @@ DEFINE_FLAG(bool, use_far_branches, false, "Enable far branches for ARM.");
 
 namespace compiler {
 
+AssemblerBase::~AssemblerBase() {}
+
+intptr_t AssemblerBase::InsertAlignedRelocation(BSS::Relocation reloc) {
+  // We cannot put a relocation at the very start (it's not a valid
+  // instruction)!
+  ASSERT(CodeSize() != 0);
+
+  // Align to a target word boundary.
+  const intptr_t offset =
+      Utils::RoundUp(CodeSize(), compiler::target::kWordSize);
+
+  while (CodeSize() < offset) {
+    Breakpoint();
+  }
+  ASSERT(CodeSize() == offset);
+
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  buffer_.Emit<compiler::target::word>(BSS::RelocationIndex(reloc) *
+                                       compiler::target::kWordSize);
+
+  ASSERT(CodeSize() == (offset + compiler::target::kWordSize));
+
+  return offset;
+}
+
 static uword NewContents(intptr_t capacity) {
   Zone* zone = Thread::Current()->zone();
   uword result = zone->AllocUnsafe(capacity);

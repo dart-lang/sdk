@@ -353,6 +353,10 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   // Kernel buffer and pushes the resulting closure.
   Fragment BuildFfiAsFunctionInternal();
 
+  // Build build FG for '_nativeCallbackFunction'. Reads an Arguments from the
+  // Kernel buffer and pushes the resulting Function object.
+  Fragment BuildFfiNativeCallbackFunction();
+
   FlowGraphBuilder* flow_graph_builder_;
   ActiveClass* const active_class_;
   TypeTranslator type_translator_;

@@ -158,9 +158,11 @@ Precompiler::Precompiler(Thread* thread)
       pending_functions_(
           GrowableObjectArray::Handle(GrowableObjectArray::New())),
       sent_selectors_(),
-      enqueued_functions_(),
+      enqueued_functions_(
+          HashTables::New<FunctionSet>(/*initial_capacity=*/1024)),
       fields_to_retain_(),
-      functions_to_retain_(),
+      functions_to_retain_(
+          HashTables::New<FunctionSet>(/*initial_capacity=*/1024)),
       classes_to_retain_(),
       typeargs_to_retain_(),
       types_to_retain_(),
@@ -173,6 +175,10 @@ Precompiler::Precompiler(Thread* thread)
 }
 
 Precompiler::~Precompiler() {
+  // We have to call Release() in DEBUG mode.
+  enqueued_functions_.Release();
+  functions_to_retain_.Release();
+
   ASSERT(Precompiler::singleton_ == this);
   Precompiler::singleton_ = NULL;
 }
@@ -700,11 +706,11 @@ void Precompiler::AddTypesOf(const Class& cls) {
 
 void Precompiler::AddTypesOf(const Function& function) {
   if (function.IsNull()) return;
-  if (functions_to_retain_.HasKey(&function)) return;
+  if (functions_to_retain_.ContainsKey(function)) return;
   // We don't expect to see a reference to a redirecting factory. Only its
   // target should remain.
   ASSERT(!function.IsRedirectingFactory());
-  functions_to_retain_.Insert(&Function::ZoneHandle(Z, function.raw()));
+  functions_to_retain_.Insert(function);
 
   AbstractType& type = AbstractType::Handle(Z);
   type = function.result_type();
@@ -938,9 +944,9 @@ RawFunction* Precompiler::CompileStaticInitializer(const Field& field) {
 }
 
 void Precompiler::AddFunction(const Function& function) {
-  if (enqueued_functions_.HasKey(&function)) return;
+  if (enqueued_functions_.ContainsKey(function)) return;
 
-  enqueued_functions_.Insert(&Function::ZoneHandle(Z, function.raw()));
+  enqueued_functions_.Insert(function);
   pending_functions_.Add(function);
   changed_ = true;
 }
@@ -1340,7 +1346,7 @@ void Precompiler::TraceForRetainedFunctions() {
       functions = cls.functions();
       for (intptr_t j = 0; j < functions.Length(); j++) {
         function ^= functions.At(j);
-        bool retain = enqueued_functions_.HasKey(&function);
+        bool retain = enqueued_functions_.ContainsKey(function);
         if (!retain && function.HasImplicitClosureFunction()) {
           // It can happen that all uses of an implicit closure inline their
           // target function, leaving the target function uncompiled. Keep
@@ -1360,7 +1366,7 @@ void Precompiler::TraceForRetainedFunctions() {
   closures = isolate()->object_store()->closure_functions();
   for (intptr_t j = 0; j < closures.Length(); j++) {
     function ^= closures.At(j);
-    bool retain = enqueued_functions_.HasKey(&function);
+    bool retain = enqueued_functions_.ContainsKey(function);
     if (retain) {
       AddTypesOf(function);
 
@@ -1400,7 +1406,7 @@ void Precompiler::DropFunctions() {
       retained_functions = GrowableObjectArray::New();
       for (intptr_t j = 0; j < functions.Length(); j++) {
         function ^= functions.At(j);
-        bool retain = functions_to_retain_.HasKey(&function);
+        bool retain = functions_to_retain_.ContainsKey(function);
         function.DropUncompiledImplicitClosureFunction();
         if (retain) {
           retained_functions.Add(function);
@@ -1426,7 +1432,7 @@ void Precompiler::DropFunctions() {
   retained_functions = GrowableObjectArray::New();
   for (intptr_t j = 0; j < closures.Length(); j++) {
     function ^= closures.At(j);
-    bool retain = functions_to_retain_.HasKey(&function);
+    bool retain = functions_to_retain_.ContainsKey(function);
     if (retain) {
       retained_functions.Add(function);
     } else {
@@ -1763,7 +1769,7 @@ void Precompiler::DropLibraryEntries() {
           continue;
         }
       } else if (entry.IsFunction()) {
-        if (functions_to_retain_.HasKey(&Function::Cast(entry))) {
+        if (functions_to_retain_.ContainsKey(Function::Cast(entry))) {
           used++;
           continue;
         }
@@ -1999,10 +2005,11 @@ void Precompiler::BindStaticCalls() {
   // finally clauses, and not all functions are compiled through the
   // tree-shaker's queue
   ProgramVisitor::VisitFunctions(&visitor);
-  FunctionSet::Iterator it(enqueued_functions_.GetIterator());
-  for (const Function** current = it.Next(); current != NULL;
-       current = it.Next()) {
-    visitor.Visit(**current);
+  FunctionSet::Iterator it(&enqueued_functions_);
+  Function& handle = Function::Handle();
+  while (it.MoveNext()) {
+    handle ^= enqueued_functions_.GetKey(it.Current());
+    visitor.Visit(handle);
   }
 }
 
@@ -2085,10 +2092,11 @@ void Precompiler::DedupUnlinkedCalls() {
     // duplicated finally clauses, and not all functions are compiled through
     // the tree-shaker's queue
     ProgramVisitor::VisitFunctions(&visitor);
-    FunctionSet::Iterator it(enqueued_functions_.GetIterator());
-    for (const Function** current = it.Next(); current != NULL;
-         current = it.Next()) {
-      visitor.Visit(**current);
+    FunctionSet::Iterator it(&enqueued_functions_);
+    Function& current = Function::Handle();
+    while (it.MoveNext()) {
+      current ^= enqueued_functions_.GetKey(it.Current());
+      visitor.Visit(current);
     }
   }
 #endif
@@ -2219,8 +2227,6 @@ void PrecompileParsedFunctionHelper::FinalizeCompilation(
     function.set_unoptimized_code(code);
     function.AttachCode(code);
   }
-  ASSERT(!parsed_function()->HasDeferredPrefixes());
-  ASSERT(FLAG_load_deferred_eagerly);
 }
 
 // Return false if bailed out.
@@ -2285,7 +2291,12 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       pass_state.reorder_blocks =
           FlowGraph::ShouldReorderBlocks(function, optimized());
 
-      if (optimized()) {
+      if (function.ForceOptimize()) {
+        ASSERT(optimized());
+        TIMELINE_DURATION(thread(), CompilerVerbose, "OptimizationPasses");
+        flow_graph = CompilerPass::RunForceOptimizedPipeline(CompilerPass::kAOT,
+                                                             &pass_state);
+      } else if (optimized()) {
         TIMELINE_DURATION(thread(), CompilerVerbose, "OptimizationPasses");
 
         pass_state.inline_id_to_function.Add(&function);
@@ -2302,7 +2313,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
                                             &speculative_policy);
         pass_state.call_specializer = &call_specializer;
 
-        CompilerPass::RunPipeline(CompilerPass::kAOT, &pass_state);
+        flow_graph = CompilerPass::RunPipeline(CompilerPass::kAOT, &pass_state);
       }
 
       ASSERT(pass_state.inline_id_to_function.length() ==

@@ -737,10 +737,11 @@ TimelineStream::TimelineStream(const char* name,
     : name_(name),
       fuchsia_name_(fuchsia_name),
 #if defined(HOST_OS_FUCHSIA)
-      enabled_(true) {  // For generated code.
+      enabled_(static_cast<uintptr_t>(true))  // For generated code.
 #else
-      enabled_(enabled) {
+      enabled_(static_cast<uintptr_t>(enabled))
 #endif
+{
 }
 
 TimelineEvent* TimelineStream::StartEvent() {

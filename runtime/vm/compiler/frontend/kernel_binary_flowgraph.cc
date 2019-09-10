@@ -1164,8 +1164,9 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
     case kSetConcatenation:
     case kMapConcatenation:
     case kInstanceCreation:
-      // Collection concatenation and instance creation operations are removed
-      // by the constant evaluator.
+    case kFileUriExpression:
+      // Collection concatenation, instance creation operations and
+      // in-expression URI changes are removed by the constant evaluator.
       UNREACHABLE();
       break;
     case kIsExpression:
@@ -3056,8 +3057,12 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,
     ++argument_count;
   }
 
-  if (compiler::ffi::IsAsFunctionInternal(Z, H.isolate(), target)) {
+  const auto recognized_kind = MethodRecognizer::RecognizeKind(target);
+  if (recognized_kind == MethodRecognizer::kFfiAsFunctionInternal) {
     return BuildFfiAsFunctionInternal();
+  } else if (FLAG_precompiled_mode &&
+             recognized_kind == MethodRecognizer::kFfiNativeCallbackFunction) {
+    return BuildFfiNativeCallbackFunction();
   }
 
   Fragment instructions;
@@ -3065,7 +3070,7 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,
 
   const bool special_case_nop_async_stack_trace_helper =
       !FLAG_causal_async_stacks &&
-      target.recognized_kind() == MethodRecognizer::kAsyncStackTraceHelper;
+      recognized_kind == MethodRecognizer::kAsyncStackTraceHelper;
 
   const bool special_case_unchecked_cast =
       klass.IsTopLevel() && (klass.library() == Library::InternalLibrary()) &&
@@ -5038,6 +5043,65 @@ Fragment StreamingFlowGraphBuilder::BuildFfiAsFunctionInternal() {
   ASSERT(named_args_len == 0);
   code += B->BuildFfiAsFunctionInternalCall(type_arguments);
   return code;
+}
+
+Fragment StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction() {
+#if defined(TARGET_ARCH_DBC)
+  UNREACHABLE();
+#else
+  // The call-site must look like this (guaranteed by the FE which inserts it):
+  //
+  //   _nativeCallbackFunction<NativeSignatureType>(target, exceptionalReturn)
+  //
+  // The FE also guarantees that all three arguments are constants.
+
+  const intptr_t argc = ReadUInt();  // read argument count
+  ASSERT(argc == 2);                 // target, exceptionalReturn
+
+  const intptr_t list_length = ReadListLength();  // read types list length
+  ASSERT(list_length == 1);                       // native signature
+  const TypeArguments& type_arguments =
+      T.BuildTypeArguments(list_length);  // read types.
+  ASSERT(type_arguments.Length() == 1 && type_arguments.IsInstantiated());
+  const Function& native_sig = Function::Handle(
+      Z, Type::Cast(AbstractType::Handle(Z, type_arguments.TypeAt(0)))
+             .signature());
+
+  Fragment code;
+  const intptr_t positional_count =
+      ReadListLength();  // read positional argument count
+  ASSERT(positional_count == 2);
+
+  // Read target expression and extract the target function.
+  code += BuildExpression();  // build first positional argument (target)
+  Definition* target_def = B->Peek();
+  ASSERT(target_def->IsConstant());
+  const Closure& target_closure =
+      Closure::Cast(target_def->AsConstant()->value());
+  ASSERT(!target_closure.IsNull());
+  Function& target = Function::Handle(Z, target_closure.function());
+  ASSERT(!target.IsNull() && target.IsImplicitClosureFunction());
+  target = target.parent_function();
+  code += Drop();
+
+  // Build second positional argument (exceptionalReturn).
+  code += BuildExpression();
+  Definition* exceptional_return_def = B->Peek();
+  ASSERT(exceptional_return_def->IsConstant());
+  const Instance& exceptional_return =
+      Instance::Cast(exceptional_return_def->AsConstant()->value());
+  code += Drop();
+
+  const intptr_t named_args_len =
+      ReadListLength();  // skip (empty) named arguments list
+  ASSERT(named_args_len == 0);
+
+  const Function& result =
+      Function::ZoneHandle(Z, compiler::ffi::NativeCallbackFunction(
+                                  native_sig, target, exceptional_return));
+  code += Constant(result);
+  return code;
+#endif
 }
 
 }  // namespace kernel

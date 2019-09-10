@@ -28,6 +28,66 @@ class NodeBuilderTest extends MigrationVisitorTestBase {
       variables.decoratedTypeParameterBound(
           findNode.typeParameter(search).declaredElement);
 
+  test_catch_clause_with_stacktrace_with_on() async {
+    await analyze('''
+void f() {
+  try {} on String catch (ex, st) {}
+}
+''');
+    var exceptionType =
+        variables.decoratedElementType(findNode.simple('ex').staticElement);
+    expect(exceptionType.node, TypeMatcher<NullabilityNodeMutable>());
+    var stackTraceType =
+        variables.decoratedElementType(findNode.simple('st').staticElement);
+    expect(stackTraceType.node, never);
+  }
+
+  test_catch_clause_with_stacktrace_without_on() async {
+    await analyze('''
+void f() {
+  try {} catch (ex, st) {}
+}
+''');
+    var exceptionType =
+        variables.decoratedElementType(findNode.simple('ex').staticElement);
+    expect(exceptionType.node, always);
+    var stackTraceType =
+        variables.decoratedElementType(findNode.simple('st').staticElement);
+    expect(stackTraceType.node, never);
+  }
+
+  test_catch_clause_without_catch() async {
+    await analyze('''
+void f() {
+  try {} on String {}
+}
+''');
+    // No assertions, since no variables are declared; we just want to make sure
+    // we don't crash.
+  }
+
+  test_catch_clause_without_stacktrace_with_on() async {
+    await analyze('''
+void f() {
+  try {} on String catch (ex) {}
+}
+''');
+    var exceptionType =
+        variables.decoratedElementType(findNode.simple('ex').staticElement);
+    expect(exceptionType.node, TypeMatcher<NullabilityNodeMutable>());
+  }
+
+  test_catch_clause_without_stacktrace_without_on() async {
+    await analyze('''
+void f() {
+  try {} catch (ex) {}
+}
+''');
+    var exceptionType =
+        variables.decoratedElementType(findNode.simple('ex').staticElement);
+    expect(exceptionType.node, always);
+  }
+
   test_class_alias_synthetic_constructors_no_parameters() async {
     await analyze('''
 class C {
@@ -336,6 +396,19 @@ class D<V> = Object with C<int, V>;
         same(decoratedTypeAnnotation('int').node));
     expect(decorated.typeArguments[1].node,
         same(decoratedTypeAnnotation('V>;').node));
+  }
+
+  test_directSupertypes_dartCoreClass() async {
+    await analyze('''
+abstract class D<V> extends Iterable<V> {}
+''');
+    var types = decoratedDirectSupertypes('D');
+    var super_ = types.values.single;
+    expect(super_.type.toString(), 'Iterable<V>');
+    expect(super_.node, same(never));
+    expect(super_.typeArguments, hasLength(1));
+    expect(super_.typeArguments[0].node,
+        same(decoratedTypeAnnotation('V> {').node));
   }
 
   test_directSupertypes_mixin_extends_default() async {
@@ -1457,6 +1530,80 @@ class C<T> {}
     var bound = decoratedTypeParameterBound('T');
     assertUnion(always, bound.node);
     expect(bound.type, same(typeProvider.objectType));
+  }
+
+  test_typedef_reference_generic_instantiated() async {
+    await analyze('''
+typedef F<T> = T Function();
+F<int> f;
+''');
+    // The instantiation of F should produce fresh nullability nodes, distinct
+    // from the ones in the typedef (they will be unified by the edge builder).
+    // This is necessary because there is no guarantee of whether the typedef or
+    // its usage will be visited first.
+    var typedefDecoratedType =
+        variables.decoratedElementType(findElement.genericTypeAlias('F'));
+    var decoratedType = decoratedTypeAnnotation('F<int>');
+    expect(decoratedType.node, TypeMatcher<NullabilityNodeMutable>());
+    expect(decoratedType.node, isNot(same(typedefDecoratedType.node)));
+    expect(decoratedType.returnType.type.toString(), 'int');
+    expect(
+        decoratedType.returnType.node, TypeMatcher<NullabilityNodeMutable>());
+    expect(decoratedType.returnType.node,
+        isNot(same(typedefDecoratedType.returnType.node)));
+    expect(decoratedType.typeFormalBounds, isEmpty);
+  }
+
+  test_typedef_reference_generic_uninstantiated() async {
+    await analyze('''
+typedef F = T Function<T extends num>();
+F f;
+''');
+    // The instantiation of F should produce fresh nullability nodes, distinct
+    // from the ones in the typedef (they will be unified by the edge builder).
+    // This is necessary because there is no guarantee of whether the typedef or
+    // its usage will be visited first.
+    var typedefDecoratedType =
+        variables.decoratedElementType(findElement.genericTypeAlias('F'));
+    var decoratedType = decoratedTypeAnnotation('F f');
+    expect(decoratedType.node, TypeMatcher<NullabilityNodeMutable>());
+    expect(decoratedType.node, isNot(same(typedefDecoratedType.node)));
+    expect(decoratedType.returnType.type.toString(), 'T');
+    expect(
+        decoratedType.returnType.node, TypeMatcher<NullabilityNodeMutable>());
+    expect(decoratedType.returnType.node,
+        isNot(same(typedefDecoratedType.returnType.node)));
+    expect(decoratedType.typeFormalBounds, hasLength(1));
+    expect(decoratedType.typeFormalBounds[0].type.toString(), 'num');
+    expect(decoratedType.typeFormalBounds[0].node,
+        isNot(same(typedefDecoratedType.typeFormalBounds[0].node)));
+  }
+
+  test_typedef_reference_simple() async {
+    await analyze('''
+typedef int F(String s);
+F f;
+''');
+    // The instantiation of F should produce fresh nullability nodes, distinct
+    // from the ones in the typedef (they will be unified by the edge builder).
+    // This is necessary because there is no guarantee of whether the typedef or
+    // its usage will be visited first.
+    var typedefDecoratedType =
+        variables.decoratedElementType(findElement.genericTypeAlias('F'));
+    var decoratedType = decoratedTypeAnnotation('F f');
+    expect(decoratedType.node, TypeMatcher<NullabilityNodeMutable>());
+    expect(decoratedType.node, isNot(same(typedefDecoratedType.node)));
+    expect(decoratedType.returnType.type.toString(), 'int');
+    expect(
+        decoratedType.returnType.node, TypeMatcher<NullabilityNodeMutable>());
+    expect(decoratedType.returnType.node,
+        isNot(same(typedefDecoratedType.returnType.node)));
+    expect(decoratedType.positionalParameters[0].type.toString(), 'String');
+    expect(decoratedType.positionalParameters[0].node,
+        TypeMatcher<NullabilityNodeMutable>());
+    expect(decoratedType.positionalParameters[0].node,
+        isNot(same(typedefDecoratedType.positionalParameters[0].node)));
+    expect(decoratedType.typeFormalBounds, isEmpty);
   }
 
   test_variableDeclaration_type_simple() async {

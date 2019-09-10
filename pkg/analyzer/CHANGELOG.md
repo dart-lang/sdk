@@ -1,8 +1,15 @@
-## 0.38.2-dev
+## 0.38.2
 * The type of `FunctionTypeAlias.declaredElement` has been refined to
   `FunctionTypeAliasElement`.  Since the new type is a refinement of
   the old one, the only effect on clients should be to make certain
   casts unnecessary.
+* Deprecated `HintCode.INVALID_REQUIRED_PARAM` and replaced it with more
+  specific hints, `HintCode.INVALID_REQUIRED_NAMED_PARAM`,
+  `HintCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM`, and
+  `HintCode.INVALID_REQUIRED_POSITIONAL_PARAM` to address #36966.
+* Deprecated `CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS`.  It
+  has been renamed to
+  `CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS`.
 
 ## 0.38.1
 * LinterVistor support for extension method AST nodes.

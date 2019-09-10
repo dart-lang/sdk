@@ -488,9 +488,9 @@ void main() {
         'error:TYPE_ARGUMENT_NOT_MATCHING_BOUNDS';
 //    if (hasExtraTaskModelPass) errors = '$errors,$errors';
     var unit = await checkFile('''
-class Clonable<T> {}
+class Cloneable<T> {}
 
-class Pair<T extends Clonable<T>, U extends Clonable<U>> {
+class Pair<T extends Cloneable<T>, U extends Cloneable<U>> {
   T t;
   U u;
   Pair(this.t, this.u);
@@ -503,7 +503,7 @@ main() {
 }
 ''');
     var x = findLocalVariable(unit, 'x');
-    expect(x.type.toString(), 'Pair<Clonable<dynamic>, Clonable<dynamic>>');
+    expect(x.type.toString(), 'Pair<Cloneable<dynamic>, Cloneable<dynamic>>');
   }
 
   test_constructors_inferFromArguments() async {
@@ -524,7 +524,7 @@ main() {
   C<num> c_num2 = (/*info:INFERRED_TYPE_ALLOCATION*/new C(456))
       ..t = 1.0;
 
-  // Down't infer from explicit dynamic.
+  // Don't infer from explicit dynamic.
   var c_dynamic = new C<dynamic>(42);
   x.t = /*error:INVALID_ASSIGNMENT*/'hello';
 }
@@ -2488,7 +2488,7 @@ foo() {
 ''');
   }
 
-  test_inferedType_usesSyntheticFunctionType() async {
+  test_inferredType_usesSyntheticFunctionType() async {
     var mainUnit = await checkFileElement('''
 int f() => null;
 String g() => null;
@@ -2498,7 +2498,7 @@ var v = /*info:INFERRED_TYPE_LITERAL*/[f, g];
     expect(v.type.toString(), 'List<Object Function()>');
   }
 
-  test_inferedType_usesSyntheticFunctionType_functionTypedParam() async {
+  test_inferredType_usesSyntheticFunctionType_functionTypedParam() async {
     var mainUnit = await checkFileElement('''
 int f(int x(String y)) => null;
 String g(int x(String y)) => null;
@@ -2508,7 +2508,7 @@ var v = /*info:INFERRED_TYPE_LITERAL*/[f, g];
     expect(v.type.toString(), 'List<Object Function(int Function(String))>');
   }
 
-  test_inferedType_usesSyntheticFunctionType_namedParam() async {
+  test_inferredType_usesSyntheticFunctionType_namedParam() async {
     var mainUnit = await checkFileElement('''
 int f({int x}) => null;
 String g({int x}) => null;
@@ -2518,7 +2518,7 @@ var v = /*info:INFERRED_TYPE_LITERAL*/[f, g];
     expect(v.type.toString(), 'List<Object Function({x: int})>');
   }
 
-  test_inferedType_usesSyntheticFunctionType_positionalParam() async {
+  test_inferredType_usesSyntheticFunctionType_positionalParam() async {
     var mainUnit = await checkFileElement('''
 int f([int x]) => null;
 String g([int x]) => null;
@@ -2528,7 +2528,7 @@ var v = /*info:INFERRED_TYPE_LITERAL*/[f, g];
     expect(v.type.toString(), 'List<Object Function([int])>');
   }
 
-  test_inferedType_usesSyntheticFunctionType_requiredParam() async {
+  test_inferredType_usesSyntheticFunctionType_requiredParam() async {
     var mainUnit = await checkFileElement('''
 int f(int x) => null;
 String g(int x) => null;

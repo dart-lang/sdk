@@ -14,9 +14,8 @@
 
 import 'dart:io';
 
-import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
-import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
@@ -31,35 +30,35 @@ class DartLib {
 }
 
 // Lists of recognized methods, organized by return type.
-var boolTable = List<DartLib>();
-var intTable = List<DartLib>();
-var doubleTable = List<DartLib>();
-var stringTable = List<DartLib>();
-var listTable = List<DartLib>();
-var setTable = List<DartLib>();
-var mapTable = List<DartLib>();
+var boolTable = <DartLib>[];
+var intTable = <DartLib>[];
+var doubleTable = <DartLib>[];
+var stringTable = <DartLib>[];
+var listTable = <DartLib>[];
+var setTable = <DartLib>[];
+var mapTable = <DartLib>[];
 
 main() async {
   // Set paths. Note that for this particular use case, packageRoot can be
   // any directory. Here, we set it to the top of the SDK development, and
   // derive the required sdkPath from there.
-  String packageRoot = Platform.environment['DART_TOP'];
+  final String packageRoot = Platform.environment['DART_TOP'];
   if (packageRoot == null) {
-    throw new StateError('No environment variable DART_TOP');
+    throw StateError('No environment variable DART_TOP');
   }
-  String sdkPath = '$packageRoot/tools/sdks/dart-sdk';
+  final sdkPath = '$packageRoot/tools/sdks/dart-sdk';
 
   // This does most of the hard work of getting the analyzer configured
   // correctly. Typically the included paths are the files and directories
   // that need to be analyzed, but the SDK is always available, so it isn't
   // really important for this particular use case. We use the implementation
   // class in order to pass in the sdkPath directly.
-  PhysicalResourceProvider provider = PhysicalResourceProvider.INSTANCE;
-  AnalysisContextCollection collection = new AnalysisContextCollectionImpl(
+  final provider = PhysicalResourceProvider.INSTANCE;
+  final collection = AnalysisContextCollectionImpl(
       includedPaths: <String>[packageRoot],
       resourceProvider: provider,
       sdkPath: sdkPath);
-  AnalysisSession session = collection.contexts[0].currentSession;
+  final AnalysisSession session = collection.contexts[0].currentSession;
 
   // Visit libraries for table generation.
   await visitLibraryAtUri(session, 'dart:async');
@@ -85,10 +84,10 @@ main() async {
 }
 
 visitLibraryAtUri(AnalysisSession session, String uri) async {
-  String libPath = session.uriConverter.uriToPath(Uri.parse(uri));
+  final String libPath = session.uriConverter.uriToPath(Uri.parse(uri));
   ResolvedLibraryResult result = await session.getResolvedLibrary(libPath);
   if (result.state != ResultState.VALID) {
-    throw new StateError('Unable to resolve "$uri"');
+    throw StateError('Unable to resolve "$uri"');
   }
   visitLibrary(result.element);
 }
@@ -140,7 +139,7 @@ void visitClass(ClassElement classElement) {
   for (ConstructorElement constructor in classElement.constructors) {
     if (constructor.isPublic &&
         constructor.isFactory &&
-        !constructor.name.isEmpty) {
+        constructor.name.isNotEmpty) {
       addToTable(
           typeString(classElement.type),
           '${classElement.name}.${constructor.name}',
@@ -244,6 +243,8 @@ List<DartLib> getTable(String ret) {
       return setTable;
     case 'M':
       return mapTable;
+    default:
+      throw ArgumentError('Invalid ret value: $ret');
   }
 }
 

@@ -100,7 +100,7 @@ PrefixBuilder createPrefixBuilder(
   if (prefix == null) return null;
   LibraryDependency dependency = null;
   if (deferred) {
-    dependency = new LibraryDependency.deferredImport(imported.target, prefix,
+    dependency = new LibraryDependency.deferredImport(imported.library, prefix,
         combinators: toKernelCombinators(combinators))
       ..fileOffset = charOffset;
   }

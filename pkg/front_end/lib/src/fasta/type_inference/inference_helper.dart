@@ -2,16 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:kernel/ast.dart' show Arguments, Expression, FunctionType;
+import 'dart:core' hide MapEntry;
+
+import 'package:kernel/ast.dart';
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
 import '../fasta_codes.dart' show LocatedMessage, Message;
 
+import '../kernel/forest.dart';
+
 abstract class InferenceHelper {
   CoreTypes get coreTypes;
 
   Uri get uri;
+
+  Forest get forest;
 
   set transformSetLiterals(bool value);
 

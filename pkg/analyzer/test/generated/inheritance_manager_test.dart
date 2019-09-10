@@ -19,7 +19,7 @@ import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'analysis_context_factory.dart';
+import 'test_analysis_context.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -1110,8 +1110,7 @@ class InheritanceManagerTest with ResourceProviderMixin {
    */
   @deprecated
   InheritanceManager _createInheritanceManager() {
-    AnalysisContext context = AnalysisContextFactory.contextWithCore(
-        resourceProvider: resourceProvider);
+    AnalysisContext context = TestAnalysisContext();
     Source source = new FileSource(getFile("/test.dart"));
     CompilationUnitElementImpl definingCompilationUnit =
         new CompilationUnitElementImpl();

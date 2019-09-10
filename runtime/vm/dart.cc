@@ -648,7 +648,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
   // Initialize the new isolate.
   Thread* T = Thread::Current();
   Isolate* I = T->isolate();
-#if defined(SUPPORT_TIMLINE)
+#if defined(SUPPORT_TIMELINE)
   TimelineDurationScope tds(T, Timeline::GetIsolateStream(),
                             "InitializeIsolate");
   tds.SetNumArguments(1);
@@ -858,6 +858,14 @@ const char* Dart::FeaturesString(Isolate* isolate,
 #endif
 #else
 #error What architecture?
+#endif
+  } else {
+#if defined(ARCH_IS_32_BIT)
+    buffer.AddString(" 32-bit");
+#elif defined(ARCH_IS_64_BIT)
+    buffer.AddString(" 64-bit");
+#else
+#error What word size?
 #endif
   }
 

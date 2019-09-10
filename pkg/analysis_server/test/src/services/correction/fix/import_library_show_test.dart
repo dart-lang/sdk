@@ -11,6 +11,7 @@ import 'fix_processor.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ImportLibraryShowTest);
+    defineReflectiveTests(ImportLibraryShowWithExtensionMethodsTest);
   });
 }
 
@@ -24,39 +25,92 @@ class ImportLibraryShowTest extends FixProcessorTest {
 class A {}
 class B {}
 ''');
-    await resolveTestUnit('''
+    await resolveTestUnit(r'''
 import 'lib.dart' show A;
 main() {
   A a;
   B b;
-  print('\$a \$b');
+  print('$a $b');
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(r'''
 import 'lib.dart' show A, B;
 main() {
   A a;
   B b;
-  print('\$a \$b');
+  print('$a $b');
 }
 ''');
   }
 
   test_sdk() async {
-    await resolveTestUnit('''
+    await resolveTestUnit(r'''
 import 'dart:collection' show HashMap;
 main() {
   HashMap s = null;
   LinkedHashMap f = null;
-  print('\$s \$f');
+  print('$s $f');
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(r'''
 import 'dart:collection' show HashMap, LinkedHashMap;
 main() {
   HashMap s = null;
   LinkedHashMap f = null;
-  print('\$s \$f');
+  print('$s $f');
+}
+''');
+  }
+}
+
+@reflectiveTest
+class ImportLibraryShowWithExtensionMethodsTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.IMPORT_LIBRARY_SHOW;
+
+  void setUp() {
+    createAnalysisOptionsFile(experiments: ['extension-methods']);
+    super.setUp();
+  }
+
+  test_override_samePackage() async {
+    addSource('/home/test/lib/lib.dart', '''
+class A {}
+extension E on int {
+  String m() => '';
+}
+''');
+    await resolveTestUnit(r'''
+import 'lib.dart' show A;
+void f(A a) {
+  print('$a ${E(3).m()}');
+}
+''');
+    await assertHasFix(r'''
+import 'lib.dart' show A, E;
+void f(A a) {
+  print('$a ${E(3).m()}');
+}
+''');
+  }
+
+  test_static_samePackage() async {
+    addSource('/home/test/lib/lib.dart', '''
+class A {}
+extension E on int {
+  static String m() => '';
+}
+''');
+    await resolveTestUnit(r'''
+import 'lib.dart' show A;
+void f(A a) {
+  print('$a ${E.m()}');
+}
+''');
+    await assertHasFix(r'''
+import 'lib.dart' show A, E;
+void f(A a) {
+  print('$a ${E.m()}');
 }
 ''');
   }

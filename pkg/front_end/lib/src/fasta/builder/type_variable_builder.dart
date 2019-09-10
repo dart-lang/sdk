@@ -4,17 +4,26 @@
 
 library fasta.type_variable_builder;
 
-import 'builder.dart' show LibraryBuilder, TypeBuilder, TypeDeclarationBuilder;
+import 'builder.dart'
+    show
+        LibraryBuilder,
+        NullabilityBuilder,
+        TypeBuilder,
+        TypeDeclarationBuilder;
 
 import 'package:kernel/ast.dart'
-    show DartType, TypeParameter, TypeParameterType;
+    show DartType, Nullability, TypeParameter, TypeParameterType;
 
 import '../fasta_codes.dart' show templateTypeArgumentsOnTypeVariable;
 
 import '../kernel/kernel_builder.dart'
     show ClassBuilder, NamedTypeBuilder, LibraryBuilder, TypeBuilder;
 
+import '../problems.dart' show unsupported;
+
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+
+import 'declaration.dart';
 
 class TypeVariableBuilder extends TypeDeclarationBuilder {
   TypeBuilder bound;
@@ -25,17 +34,21 @@ class TypeVariableBuilder extends TypeDeclarationBuilder {
 
   TypeVariableBuilder actualOrigin;
 
+  final bool isExtensionTypeParameter;
+
   TypeVariableBuilder(
       String name, SourceLibraryBuilder compilationUnit, int charOffset,
-      {this.bound, bool synthesizeTypeParameterName: false})
-      : actualParameter = new TypeParameter(
-            synthesizeTypeParameterName ? '#$name' : name, null)
+      {this.bound, this.isExtensionTypeParameter: false})
+      : actualParameter = new TypeParameter(name, null)
           ..fileOffset = charOffset,
         super(null, 0, name, compilationUnit, charOffset);
 
   TypeVariableBuilder.fromKernel(
       TypeParameter parameter, LibraryBuilder compilationUnit)
       : actualParameter = parameter,
+        // TODO(johnniwinther): Do we need to support synthesized type
+        //  parameters from kernel?
+        this.isExtensionTypeParameter = false,
         super(null, 0, parameter.name, compilationUnit, parameter.fileOffset);
 
   bool get isTypeVariable => true;
@@ -55,11 +68,20 @@ class TypeVariableBuilder extends TypeDeclarationBuilder {
 
   TypeVariableBuilder get origin => actualOrigin ?? this;
 
+  /// The [TypeParameter] built by this builder.
   TypeParameter get parameter => origin.actualParameter;
 
-  TypeParameter get target => parameter;
+  // Deliberately unrelated return type to statically detect more accidental
+  // uses until Builder.target is fully retired.
+  UnrelatedTarget get target => unsupported(
+      "TypeVariableBuilder.target is deprecated. "
+      "Use TypeVariableBuilder.parameter instead.",
+      charOffset,
+      fileUri);
 
-  DartType buildType(LibraryBuilder library, List<TypeBuilder> arguments) {
+  DartType buildType(LibraryBuilder library, Nullability nullability,
+      List<TypeBuilder> arguments) {
+    // TODO(dmitryas): Use [nullability].
     if (arguments != null) {
       int charOffset = -1; // TODO(ahe): Provide these.
       Uri fileUri = null; // TODO(ahe): Provide these.
@@ -72,8 +94,8 @@ class TypeVariableBuilder extends TypeDeclarationBuilder {
     return new TypeParameterType(parameter);
   }
 
-  DartType buildTypesWithBuiltArguments(
-      LibraryBuilder library, List<DartType> arguments) {
+  DartType buildTypesWithBuiltArguments(LibraryBuilder library,
+      Nullability nullability, List<DartType> arguments) {
     if (arguments != null) {
       int charOffset = -1; // TODO(ahe): Provide these.
       Uri fileUri = null; // TODO(ahe): Provide these.
@@ -83,17 +105,20 @@ class TypeVariableBuilder extends TypeDeclarationBuilder {
           name.length,
           fileUri);
     }
-    return buildType(library, null);
+    return buildType(library, nullability, null);
   }
 
   TypeBuilder asTypeBuilder() {
-    return new NamedTypeBuilder(name, null)..bind(this);
+    return new NamedTypeBuilder(
+        name, const NullabilityBuilder.pendingImplementation(), null)
+      ..bind(this);
   }
 
   void finish(
       LibraryBuilder library, ClassBuilder object, TypeBuilder dynamicType) {
     if (isPatch) return;
-    DartType objectType = object.buildType(library, null);
+    // TODO(dmitryas): Set the nullability of objectType correctly.
+    DartType objectType = object.buildType(library, Nullability.legacy, null);
     parameter.bound ??= bound?.build(library) ?? objectType;
     // If defaultType is not set, initialize it to dynamic, unless the bound is
     // explicitly specified as Object, in which case defaultType should also be
@@ -119,11 +144,11 @@ class TypeVariableBuilder extends TypeDeclarationBuilder {
 
   @override
   bool operator ==(Object other) {
-    return other is TypeVariableBuilder && target == other.target;
+    return other is TypeVariableBuilder && parameter == other.parameter;
   }
 
   @override
-  int get hashCode => target.hashCode;
+  int get hashCode => parameter.hashCode;
 
   static List<TypeParameter> typeParametersFromBuilders(
       List<TypeVariableBuilder> builders) {
@@ -131,7 +156,7 @@ class TypeVariableBuilder extends TypeDeclarationBuilder {
     List<TypeParameter> result =
         new List<TypeParameter>.filled(builders.length, null, growable: true);
     for (int i = 0; i < builders.length; i++) {
-      result[i] = builders[i].target;
+      result[i] = builders[i].parameter;
     }
     return result;
   }

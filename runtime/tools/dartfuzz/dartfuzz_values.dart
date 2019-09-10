@@ -11,14 +11,14 @@ class DartType {
 
   const DartType._withName(this.name);
 
-  static const VOID = const DartType._withName('void');
-  static const BOOL = const DartType._withName('bool');
-  static const INT = const DartType._withName('int');
-  static const DOUBLE = const DartType._withName('double');
-  static const STRING = const DartType._withName('String');
-  static const INT_LIST = const DartType._withName('List<int>');
-  static const INT_SET = const DartType._withName('Set<int>');
-  static const INT_STRING_MAP = const DartType._withName('Map<int, String>');
+  static const VOID = DartType._withName('void');
+  static const BOOL = DartType._withName('bool');
+  static const INT = DartType._withName('int');
+  static const DOUBLE = DartType._withName('double');
+  static const STRING = DartType._withName('String');
+  static const INT_LIST = DartType._withName('List<int>');
+  static const INT_SET = DartType._withName('Set<int>');
+  static const INT_STRING_MAP = DartType._withName('Map<int, String>');
 
   // All value types.
   static const allTypes = [

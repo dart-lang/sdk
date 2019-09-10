@@ -2,29 +2,27 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-typedef T F<T>(T t);
+abstract class F<T> {
+  T foo(T t);
+}
 
 class B<T extends F<T>> {}
 
 class C<T extends F<C<T>>> {}
 
-class D extends B<D> {
+class D extends B<D> implements F<D> {
   D foo(D x) => x;
-  D call(D x) => x;
-  D bar(D x) => x;
 }
 
-class E extends C<E> {
+class E extends C<E> implements F<C<E>> {
   C<E> foo(C<E> x) => x;
-  C<E> call(C<E> x) => x;
-  C<E> bar(C<E> x) => x;
 }
 
 main() {
-  F<D> fd = new D();
-  var d = fd(fd);
+  D fd = D();
+  var d = fd.foo(fd);
   print(d);
-  F<E> fe = new E();
-  var e = fe(fe);
+  E fe = E();
+  var e = fe.foo(fe);
   print(e);
 }

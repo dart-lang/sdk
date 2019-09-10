@@ -355,7 +355,7 @@ class ModifierRecoveryContext {
       if (constToken != null) {
         reportConflictingModifiers(next, constToken);
       } else if (varToken != null) {
-        reportConflictingModifiers(next, varToken);
+        reportModifierOutOfOrder(next, varToken.lexeme);
       } else if (finalToken != null) {
         reportModifierOutOfOrder(next, finalToken.lexeme);
       }
@@ -429,10 +429,6 @@ class ModifierRecoveryContext {
     assert(optional('var', next));
     if (varFinalOrConst == null && !afterFactory) {
       varToken = next;
-
-      if (lateToken != null) {
-        reportConflictingModifiers(next, lateToken);
-      }
       return next;
     }
 

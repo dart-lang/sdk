@@ -349,6 +349,7 @@ class TreeShaker {
   final Set<Class> _usedClasses = new Set<Class>();
   final Set<Class> _classesUsedInType = new Set<Class>();
   final Set<Member> _usedMembers = new Set<Member>();
+  final Set<Extension> _usedExtensions = new Set<Extension>();
   final Set<Typedef> _usedTypedefs = new Set<Typedef>();
   _TreeShakerTypeVisitor typeVisitor;
   _TreeShakerConstantVisitor constantVisitor;
@@ -367,10 +368,13 @@ class TreeShaker {
     _pass2.transform(component);
   }
 
+  bool isClassReferencedFromNativeCode(Class c) =>
+      typeFlowAnalysis.nativeCodeOracle.isClassReferencedFromNativeCode(c);
   bool isClassUsed(Class c) => _usedClasses.contains(c);
   bool isClassUsedInType(Class c) => _classesUsedInType.contains(c);
   bool isClassAllocated(Class c) => typeFlowAnalysis.isClassAllocated(c);
   bool isMemberUsed(Member m) => _usedMembers.contains(m);
+  bool isExtensionUsed(Extension e) => _usedExtensions.contains(e);
   bool isMemberBodyReachable(Member m) => typeFlowAnalysis.isMemberUsed(m);
   bool isFieldInitializerReachable(Field f) =>
       typeFlowAnalysis.isFieldInitializerUsed(f);
@@ -432,6 +436,27 @@ class TreeShaker {
       }
 
       transformList(m.annotations, _pass1, m);
+
+      // If the member is kept alive we need to keep the extension alive.
+      if (m.isExtensionMember) {
+        // The AST should have exactly one [Extension] for [m].
+        final extension = m.enclosingLibrary.extensions.firstWhere((extension) {
+          return extension.members
+              .any((descriptor) => descriptor.member.asMember == m);
+        }, orElse: () => null);
+        assertx(extension != null);
+
+        // Ensure we retain the [Extension] itself (though members might be
+        // shaken)
+        addUsedExtension(extension);
+      }
+    }
+  }
+
+  void addUsedExtension(Extension node) {
+    if (_usedExtensions.add(node)) {
+      transformList(node.typeParameters, _pass1, node);
+      node.onType?.accept(typeVisitor);
     }
   }
 
@@ -580,8 +605,16 @@ class _TreeShakerPass1 extends Transformer {
   }
 
   @override
+  Extension visitExtension(Extension node) {
+    // The extension can be considered a weak node, we'll only retain it if
+    // normal code references any of it's members.
+    return node;
+  }
+
+  @override
   TreeNode visitClass(Class node) {
-    if (shaker.isClassAllocated(node)) {
+    if (shaker.isClassAllocated(node) ||
+        shaker.isClassReferencedFromNativeCode(node)) {
       shaker.addClassUsedInType(node);
     }
     transformList(node.constructors, this, node);
@@ -985,6 +1018,31 @@ class _TreeShakerPass2 extends Transformer {
     }
 
     return node;
+  }
+
+  @override
+  Extension visitExtension(Extension node) {
+    if (shaker.isExtensionUsed(node)) {
+      int writeIndex = 0;
+      for (int i = 0; i < node.members.length; ++i) {
+        final ExtensionMemberDescriptor descriptor = node.members[i];
+
+        // To avoid depending on the order in which members and extensions are
+        // visited during the transformation, we handle both cases: either the
+        // member was already removed or it will be removed later.
+        final Reference memberReference = descriptor.member;
+        final bool isBound = memberReference.node != null;
+        if (isBound && shaker.isMemberUsed(memberReference.node)) {
+          node.members[writeIndex++] = descriptor;
+        }
+      }
+      node.members.length = writeIndex;
+
+      // We only retain the extension if at least one member is retained.
+      assertx(node.members.length > 0);
+      return node;
+    }
+    return null;
   }
 
   void _makeUnreachableBody(FunctionNode function) {

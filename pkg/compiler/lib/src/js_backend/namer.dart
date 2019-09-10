@@ -867,7 +867,10 @@ class Namer extends ModularNamer {
     // apply. So we can directly grab a name.
     if (element is JSEntity) {
       return _disambiguateInternalMember(
-          element, () => (element as JSEntity).declaredName);
+          element,
+          () => (element as JSEntity)
+              .declaredName
+              .replaceAll(_nonIdentifierRE, '_'));
     }
 
     // If the name of the field might clash with another field,
@@ -1257,7 +1260,7 @@ class Namer extends ModularNamer {
       ClassEntity enclosingClass = element.enclosingClass;
       return '${enclosingClass.name}_${element.name}';
     }
-    return element.name.replaceAll('+', '_');
+    return element.name.replaceAll(_nonIdentifierRE, '_');
   }
 
   String _proposeNameForLazyStaticGetter(MemberEntity element) {

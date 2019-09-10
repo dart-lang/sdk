@@ -32,7 +32,7 @@ import 'package:testing/testing.dart'
     show Chain, ChainContext, Result, Step, TestDescription, runMe;
 
 main([List<String> arguments = const []]) =>
-    runMe(arguments, createContext, "../testing.json");
+    runMe(arguments, createContext, configurationPath: "../testing.json");
 
 Future<Context> createContext(
     Chain suite, Map<String, String> environment) async {
@@ -227,7 +227,7 @@ class ExplicitTypeLintListener extends LintListener {
     }
   }
 
-  void endFields(Token staticToken, Token covariantToken, Token lateToken,
+  void endClassFields(Token staticToken, Token covariantToken, Token lateToken,
       Token varFinalOrConst, int count, Token beginToken, Token endToken) {
     if (!_latestType.type) {
       onProblem(

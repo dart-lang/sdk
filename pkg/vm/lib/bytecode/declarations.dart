@@ -906,6 +906,7 @@ class ClosureDeclaration {
   static const int isAsyncFlag = 1 << 4;
   static const int isAsyncStarFlag = 1 << 5;
   static const int isSyncStarFlag = 1 << 6;
+  static const int isDebuggableFlag = 1 << 7;
 
   final int flags;
   final ObjectHandle parent;
@@ -1130,6 +1131,9 @@ class AnnotationsDeclaration {
   factory AnnotationsDeclaration.read(BufferedReader reader) {
     return new AnnotationsDeclaration(reader.readPackedObject());
   }
+
+  @override
+  String toString() => object.toString();
 }
 
 class _Section {

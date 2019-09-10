@@ -8,8 +8,10 @@ import "package:expect/expect.dart";
 
 class A<T extends B<T>> {}
 
-class B<T> extends A {}
+class B<T extends B<T>> extends A<T> {}
+
+class Foo<T extends B<T>> extends B<Foo<T>> {}
 
 main() {
-  Expect.equals("B<B<dynamic>>", new B<B>().runtimeType.toString());
+  Expect.equals("Foo<Foo<B<dynamic>>>", new Foo<Foo>().runtimeType.toString());
 }

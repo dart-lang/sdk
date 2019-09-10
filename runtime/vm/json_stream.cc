@@ -270,7 +270,7 @@ void JSONStream::PostReply() {
 
 const char* JSONStream::LookupParam(const char* key) const {
   for (int i = 0; i < num_params(); i++) {
-    if (!strcmp(key, param_keys_[i])) {
+    if (strcmp(key, param_keys_[i]) == 0) {
       return param_values_[i];
     }
   }

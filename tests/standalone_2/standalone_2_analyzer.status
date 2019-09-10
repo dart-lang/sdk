@@ -5,11 +5,4 @@
 [ $compiler == dart2analyzer ]
 deferred_transitive_import_error_test: Skip # Contains intentional errors.
 io/process_exit_negative_test: Skip
-package/scenarios/invalid/invalid_package_name_test: Crash, OK # Analyzer exits on invalid package config
-package/scenarios/invalid/invalid_utf8_test: Crash, OK # Analyzer exits on invalid package config
-package/scenarios/invalid/non_existent_packages_file_test: Crash, OK # Analyzer exits on invalid package config
-package/scenarios/invalid/same_package_twice_test: Crash, OK # Analyzer exits on invalid package config
 
-[ $compiler == dart2analyzer && $system == windows ]
-package/scenarios/empty_packages_file/empty_packages_file_option_test: Crash, Pass # Issue 28645
-package/scenarios/packages_file_strange_formatting/empty_package_dir_test: Crash # Issue 28645

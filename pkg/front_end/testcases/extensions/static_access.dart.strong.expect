@@ -12,7 +12,11 @@ extension Extension on self::Class* {
   static method genericMethod = self::Extension|genericMethod;
   static get property = get self::Extension|property;
   static field field = self::Extension|field;
+  method instanceMethod = self::Extension|instanceMethod;
+  tearoff instanceMethod = self::Extension|get#instanceMethod;
+  get instanceProperty = self::Extension|get#instanceProperty;
   static set property = set self::Extension|property;
+  set instanceProperty = self::Extension|set#instanceProperty;
 }
 static field dynamic Extension|field;
 static method Extension|method() → dynamic {}
@@ -20,6 +24,15 @@ static method Extension|genericMethod<T extends core::Object* = dynamic>(self::E
 static get Extension|property() → dynamic
   return 42;
 static set Extension|property(dynamic value) → void {}
+static method Extension|instanceMethod(final self::Class* #this) → dynamic {}
+static method Extension|get#instanceMethod(final self::Class* #this) → () →* dynamic
+  return () → dynamic => self::Extension|instanceMethod(#this);
+static method Extension|get#instanceProperty(final self::Class* #this) → dynamic
+  return 42;
+static method Extension|set#instanceProperty(final self::Class* #this, dynamic value) → dynamic {
+  final dynamic #t1 = value;
+  return #t1;
+}
 static method main() → dynamic {
   self::Extension|method();
   self::Extension|genericMethod<core::int*>(42);

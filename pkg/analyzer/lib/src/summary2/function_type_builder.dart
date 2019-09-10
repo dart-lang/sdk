@@ -63,18 +63,19 @@ class FunctionTypeBuilder extends TypeBuilder {
       return _type;
     }
 
+    for (TypeParameterElementImpl typeParameter in typeFormals) {
+      typeParameter.bound = _buildType(typeParameter.bound);
+    }
+
+    for (ParameterElementImpl parameter in parameters) {
+      parameter.type = _buildType(parameter.type);
+    }
+
     var builtReturnType = _buildType(returnType);
     _type = FunctionTypeImpl.synthetic(
       builtReturnType,
       typeFormals,
-      parameters.map((e) {
-        return ParameterElementImpl.synthetic(
-          e.name,
-          _buildType(e.type),
-          // ignore: deprecated_member_use_from_same_package
-          e.parameterKind,
-        );
-      }).toList(),
+      parameters,
       nullabilitySuffix: nullabilitySuffix,
     );
 

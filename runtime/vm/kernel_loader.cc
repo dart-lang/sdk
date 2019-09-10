@@ -1139,22 +1139,32 @@ void KernelLoader::FinishTopLevelClassLoading(
 
   ActiveClassScope active_class_scope(&active_class_, &toplevel_class);
 
-  if (FLAG_enable_interpreter || FLAG_use_bytecode_compiler) {
-    static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 10,
-                  "Cleanup support for old bytecode format versions");
-    ASSERT(!toplevel_class.is_declared_in_bytecode());
-    if (bytecode_metadata_helper_.ReadMembers(library_kernel_offset_,
-                                              toplevel_class, false)) {
-      ASSERT(toplevel_class.is_loaded());
-      return;
-    }
-  }
-
   // Offsets within library index are whole program offsets and not
   // relative to the library.
   const intptr_t correction = correction_offset_ - library_kernel_offset_;
   helper_.SetOffset(library_index.ClassOffset(library_index.class_count()) +
                     correction);
+
+  if (kernel_binary_version_ >= 30) {
+    const intptr_t extension_count = helper_.ReadListLength();
+    for (intptr_t i = 0; i < extension_count; ++i) {
+      helper_.ReadTag();                     // read tag.
+      helper_.SkipCanonicalNameReference();  // skip canonical name.
+      helper_.SkipStringReference();         // skip name.
+      helper_.ReadUInt();                    // read source uri index.
+      helper_.ReadPosition();                // read file offset.
+      helper_.SkipTypeParametersList();      // skip type parameter list.
+      helper_.SkipDartType();                // skip on-type.
+
+      const intptr_t extension_member_count = helper_.ReadListLength();
+      for (intptr_t j = 0; j < extension_member_count; ++j) {
+        helper_.SkipName();                    // skip name.
+        helper_.ReadByte();                    // read kind.
+        helper_.ReadByte();                    // read flags.
+        helper_.SkipCanonicalNameReference();  // skip member reference
+      }
+    }
+  }
 
   fields_.Clear();
   functions_.Clear();
@@ -1295,7 +1305,7 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library,
       for (intptr_t n = 0; n < name_count; ++n) {
         String& show_hide_name =
             H.DartSymbolObfuscate(helper_.ReadStringReference());
-        if (flags & LibraryDependencyHelper::Show) {
+        if ((flags & LibraryDependencyHelper::Show) != 0) {
           show_list.Add(show_hide_name, Heap::kOld);
         } else {
           hide_list.Add(show_hide_name, Heap::kOld);
@@ -1330,7 +1340,7 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library,
     }
     String& prefix = H.DartSymbolPlain(dependency_helper.name_index_);
     ns = Namespace::New(target_library, show_names, hide_names);
-    if (dependency_helper.flags_ & LibraryDependencyHelper::Export) {
+    if ((dependency_helper.flags_ & LibraryDependencyHelper::Export) != 0) {
       library->AddExport(ns);
     } else {
       if (prefix.IsNull() || prefix.Length() == 0) {
@@ -1342,7 +1352,8 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library,
         } else {
           library_prefix = LibraryPrefix::New(
               prefix, ns,
-              dependency_helper.flags_ & LibraryDependencyHelper::Deferred,
+              (dependency_helper.flags_ & LibraryDependencyHelper::Deferred) !=
+                  0,
               *library);
           library->AddObject(library_prefix, prefix);
         }
@@ -1498,18 +1509,6 @@ void KernelLoader::FinishClassLoading(const Class& klass,
   // contained in the Kernel file and instead inject our own const
   // fields.
   const bool discard_fields = klass.InjectCIDFields();
-
-  if (FLAG_enable_interpreter || FLAG_use_bytecode_compiler) {
-    static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 10,
-                  "Cleanup support for old bytecode format versions");
-    ASSERT(!klass.is_declared_in_bytecode());
-    if (bytecode_metadata_helper_.ReadMembers(
-            klass.kernel_offset() + library_kernel_offset_, klass,
-            discard_fields)) {
-      ASSERT(klass.is_loaded());
-      return;
-    }
-  }
 
   fields_.Clear();
   functions_.Clear();

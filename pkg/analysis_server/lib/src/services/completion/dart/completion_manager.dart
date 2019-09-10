@@ -269,6 +269,18 @@ class DartCompletionManager implements CompletionContributor {
         }
       }
     }
+
+    if (containingNode is VariableDeclaration &&
+        containingNode.equals != null &&
+        target.offset >= containingNode.equals.end) {
+      var parent = containingNode.parent;
+      if (parent is VariableDeclarationList) {
+        var type = parent.type?.type;
+        if (type is InterfaceType) {
+          addTypeTag(type);
+        }
+      }
+    }
   }
 
   static List<String> _ensureList(Map<String, List<String>> map, String key) {

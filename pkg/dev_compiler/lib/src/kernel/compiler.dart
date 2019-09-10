@@ -62,7 +62,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// Let variables collected for the given function.
   List<js_ast.TemporaryId> _letVariables;
 
-  final _constTable = js_ast.TemporaryId("CT");
+  final _constTable = _emitTemporaryId("CT");
 
   // Constant getters used to populate the constant table.
   final _constLazyAccessors = List<js_ast.Method>();
@@ -216,10 +216,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   final NullableInference _nullableInference;
 
   factory ProgramCompiler(Component component, ClassHierarchy hierarchy,
-      SharedCompilerOptions options, Map<String, String> declaredVariables) {
+      SharedCompilerOptions options) {
     var coreTypes = CoreTypes(component);
     var types = TypeSchemaEnvironment(coreTypes, hierarchy);
-    var constants = DevCompilerConstants(types, declaredVariables);
+    var constants = DevCompilerConstants();
     var nativeTypes = NativeTypeSet(coreTypes, constants);
     var jsTypeRep = JSTypeRep(types, hierarchy);
     return ProgramCompiler._(coreTypes, coreTypes.index, nativeTypes, constants,
@@ -503,6 +503,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
   }
 
+  static js_ast.Identifier _emitIdentifier(String name) =>
+      js_ast.Identifier(escapeIdentifier(name));
+
+  static js_ast.TemporaryId _emitTemporaryId(String name) =>
+      js_ast.TemporaryId(escapeIdentifier(name));
+
   js_ast.Statement _emitClassDeclaration(Class c) {
     // Mixins are unrolled in _defineClass.
     if (c.isAnonymousMixin) return null;
@@ -518,8 +524,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // https://github.com/dart-lang/sdk/issues/31003
     var className = c.typeParameters.isNotEmpty
         ? (c == _jsArrayClass
-            ? js_ast.Identifier(c.name)
-            : js_ast.TemporaryId(getLocalClassName(c)))
+            ? _emitIdentifier(c.name)
+            : _emitTemporaryId(getLocalClassName(c)))
         : _emitTopLevelName(c);
 
     var savedClassProperties = _classProperties;
@@ -586,7 +592,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       jsFormals,
       _typeTable.discharge(formals),
       body,
-      className ?? js_ast.Identifier(name)
+      className ?? _emitIdentifier(name)
     ]);
 
     var genericArgs = [
@@ -610,7 +616,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           .toStatement();
     }
     var classExpr = js_ast.ClassExpression(
-        js_ast.TemporaryId(getLocalClassName(c)), heritage, methods);
+        _emitTemporaryId(getLocalClassName(c)), heritage, methods);
     return js.statement('# = #;', [className, classExpr]);
   }
 
@@ -651,10 +657,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var instanceMethods = methods.where((m) => !m.isStatic).toList();
 
     body.add(_emitClassStatement(c, className, heritage, staticMethods));
-    var superclassId = js_ast.TemporaryId(getLocalClassName(c.superclass));
+    var superclassId = _emitTemporaryId(getLocalClassName(c.superclass));
     var classId = className is js_ast.Identifier
         ? className
-        : js_ast.TemporaryId(getLocalClassName(c));
+        : _emitTemporaryId(getLocalClassName(c));
 
     var mixinMemberClass =
         js_ast.ClassExpression(classId, superclassId, instanceMethods);
@@ -819,7 +825,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         mixinBody.add(runtimeStatement('applyMixin(#, #)', [
           classExpr,
           js_ast.ClassExpression(
-              js_ast.TemporaryId(getLocalClassName(c)), mixinClass, methods)
+              _emitTemporaryId(getLocalClassName(c)), mixinClass, methods)
         ]));
       }
 
@@ -837,14 +843,14 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       var m = mixins[i];
       var mixinName =
           getLocalClassName(superclass) + '_' + getLocalClassName(m.classNode);
-      var mixinId = js_ast.TemporaryId(mixinName + '\$');
+      var mixinId = _emitTemporaryId(mixinName + '\$');
       // Bind the mixin class to a name to workaround a V8 bug with es6 classes
       // and anonymous function names.
       // TODO(leafp:) Eliminate this once the bug is fixed:
       // https://bugs.chromium.org/p/v8/issues/detail?id=7069
       body.add(js.statement("const # = #", [
         mixinId,
-        js_ast.ClassExpression(js_ast.TemporaryId(mixinName), baseClass, [])
+        js_ast.ClassExpression(_emitTemporaryId(mixinName), baseClass, [])
       ]));
 
       emitMixinConstructors(mixinId, m);
@@ -1098,7 +1104,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (isClassSymbol == null) {
       // TODO(jmesserly): we could export these symbols, if we want to mark
       // implemented interfaces for user-defined classes.
-      var id = js_ast.TemporaryId("_is_${getLocalClassName(c)}_default");
+      var id = _emitTemporaryId("_is_${getLocalClassName(c)}_default");
       moduleItems.add(
           js.statement('const # = Symbol(#);', [id, js.string(id.name, "'")]));
       isClassSymbol = id;
@@ -1831,7 +1837,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         js_ast.Method(
             name,
             js.fun('function(x) { return super.# = #; }',
-                [name, _emitCast(js_ast.Identifier('x'), setterType)]),
+                [name, _emitCast(_emitIdentifier('x'), setterType)]),
             isSetter: true),
         js_ast.Method(name, js.fun('function() { return super.#; }', [name]),
             isGetter: true)
@@ -1852,7 +1858,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var positionalParameters = function.positionalParameters;
     for (var i = 0, n = positionalParameters.length; i < n; i++) {
       var param = positionalParameters[i];
-      var jsParam = js_ast.Identifier(param.name);
+      var jsParam = _emitIdentifier(param.name);
       jsParams.add(jsParam);
 
       if (isCovariantParameter(param) &&
@@ -1935,7 +1941,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var args =
         field.isFinal ? [js_ast.Super(), name] : [js_ast.This(), virtualField];
 
-    js_ast.Expression value = js_ast.Identifier('value');
+    js_ast.Expression value = _emitIdentifier('value');
     if (!field.isFinal && isCovariantField(field)) {
       value = _emitCast(value, field.type);
     }
@@ -1969,7 +1975,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     // Generate setter
     if (!field.isFinal) {
-      var value = js_ast.TemporaryId('value');
+      var value = _emitTemporaryId('value');
       fn = js_ast.Fun([value], js.block('{ this.# = #; }', [name, value]));
       method = js_ast.Method(_declareMemberName(field), fn, isSetter: true);
       jsMethods.add(method);
@@ -2242,7 +2248,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         var parts = runtimeName.split('.');
         if (parts.length < 2) return propertyName(runtimeName);
 
-        js_ast.Expression result = js_ast.Identifier(parts[0]);
+        js_ast.Expression result = _emitIdentifier(parts[0]);
         for (int i = 1; i < parts.length; i++) {
           result = js_ast.PropertyAccess(result, propertyName(parts[i]));
         }
@@ -2449,7 +2455,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     var nameExpr = _emitTopLevelName(p);
     body.add(js.statement('# = #',
-        [nameExpr, js_ast.NamedFunction(js_ast.TemporaryId(p.name.name), fn)]));
+        [nameExpr, js_ast.NamedFunction(_emitTemporaryId(p.name.name), fn)]));
     // Function types of top-level/static functions are only needed when
     // dart:mirrors is enabled.
     // TODO(jmesserly): do we even need this for mirrors, since statics are not
@@ -2503,8 +2509,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   /// Emits a Dart [type] into code.
-  js_ast.Expression _emitType(DartType type) =>
-      type.accept(this) as js_ast.Expression;
+  js_ast.Expression _emitType(DartType type) => type.accept(this);
 
   js_ast.Expression _emitInvalidNode(Node node, [String message = '']) {
     if (message.isNotEmpty) message += ' ';
@@ -2748,7 +2753,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       _emitTypeParameter(type.parameter);
 
   js_ast.Identifier _emitTypeParameter(TypeParameter t) =>
-      js_ast.Identifier(getTypeParameterName(t));
+      _emitIdentifier(getTypeParameterName(t));
 
   @override
   js_ast.Expression visitTypedefType(TypedefType type) =>
@@ -2799,7 +2804,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   List<js_ast.Identifier> _emitTypeFormals(List<TypeParameter> typeFormals) {
     return typeFormals
-        .map((t) => js_ast.Identifier(getTypeParameterName(t)))
+        .map((t) => _emitIdentifier(getTypeParameterName(t)))
         .toList();
   }
 
@@ -2813,7 +2818,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     emitGeneratorFn(List<js_ast.Parameter> getParameters(js_ast.Block jsBody)) {
       var savedController = _asyncStarController;
       _asyncStarController = function.asyncMarker == AsyncMarker.AsyncStar
-          ? js_ast.TemporaryId('stream')
+          ? _emitTemporaryId('stream')
           : null;
 
       js_ast.Expression gen;
@@ -2831,7 +2836,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         gen = genFn;
         if (name != null) {
           gen = js_ast.NamedFunction(
-              js_ast.TemporaryId(
+              _emitTemporaryId(
                   js_ast.friendlyNameForDartOperator[name] ?? name),
               genFn);
         }
@@ -3004,11 +3009,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
 
     for (var p in f.positionalParameters.take(f.requiredParameterCount)) {
-      var jsParam = js_ast.Identifier(p.name);
+      var jsParam = _emitIdentifier(p.name);
       initParameter(p, jsParam);
     }
     for (var p in f.positionalParameters.skip(f.requiredParameterCount)) {
-      var jsParam = js_ast.Identifier(p.name);
+      var jsParam = _emitIdentifier(p.name);
       var defaultValue = _defaultParamValue(p);
       if (defaultValue != null) {
         body.add(js.statement(
@@ -3085,7 +3090,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   js_ast.Statement _visitStatement(Statement s) {
     if (s == null) return null;
-    var result = s.accept(this) as js_ast.Statement;
+    var result = s.accept(this);
     // TODO(jmesserly): is the `is! Block` still necessary?
     if (s is! Block) result.sourceInformation = _nodeStart(s);
 
@@ -3156,7 +3161,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (e is ConstantExpression) {
       return visitConstant(e.constant);
     }
-    var result = e.accept(this) as js_ast.Expression;
+    var result = e.accept(this);
     result.sourceInformation ??= _nodeStart(e);
     return result;
   }
@@ -3483,7 +3488,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       }
 
       if (variableIsReferenced(node.variable.name, iterable)) {
-        var temp = js_ast.TemporaryId('iter');
+        var temp = _emitTemporaryId('iter');
         return js_ast.Block([
           iterable.toVariableDeclaration(temp),
           js_ast.ForOf(init, temp, body)
@@ -3519,7 +3524,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
                 .firstWhere((p) => p.isFactory && p.name.name == '')),
         [_visitExpression(node.iterable)]);
 
-    var iter = js_ast.TemporaryId('iter');
+    var iter = _emitTemporaryId('iter');
     return js.statement(
         '{'
         '  let # = #;'
@@ -3552,7 +3557,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var cases = <js_ast.SwitchCase>[];
 
     if (_inLabeledContinueSwitch) {
-      var labelState = js_ast.TemporaryId("labelState");
+      var labelState = _emitTemporaryId("labelState");
       // TODO(markzipan): Retrieve the real label name with source offsets
       var labelName = 'SL${_switchLabelStates.length}';
       _switchLabelStates[node] = _SwitchLabelState(labelName, labelState);
@@ -3859,9 +3864,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var name = v.name;
     if (name == null || name.startsWith('#')) {
       name = name == null ? 't${_tempVariables.length}' : name.substring(1);
-      return _tempVariables.putIfAbsent(v, () => js_ast.TemporaryId(name));
+      return _tempVariables.putIfAbsent(v, () => _emitTemporaryId(name));
     }
-    return js_ast.Identifier(name);
+    return _emitIdentifier(name);
   }
 
   /// Emits the declaration of a variable.
@@ -4516,21 +4521,21 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
                 : 'function() { return super[#]; }',
             [jsName]);
 
-        return js_ast.Method(js_ast.TemporaryId(name), fn,
+        return js_ast.Method(_emitTemporaryId(name), fn,
             isGetter: !setter, isSetter: setter);
       } else {
         var function = member.function;
         var params = [
           ..._emitTypeFormals(function.typeParameters),
           for (var param in function.positionalParameters)
-            js_ast.Identifier(param.name),
+            _emitIdentifier(param.name),
           if (function.namedParameters.isNotEmpty) namedArgumentTemp,
         ];
 
         var fn = js.fun(
             'function(#) { return super[#](#); }', [params, jsName, params]);
         name = js_ast.friendlyNameForDartOperator[name] ?? name;
-        return js_ast.Method(js_ast.TemporaryId(name), fn);
+        return js_ast.Method(_emitTemporaryId(name), fn);
       }
     });
     return js_ast.PropertyAccess(js_ast.This(), jsMethod.name);
@@ -4766,7 +4771,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   @override
   js_ast.Expression visitConstructorInvocation(ConstructorInvocation node) {
     var ctor = node.target;
+    var ctorClass = ctor.enclosingClass;
     var args = node.arguments;
+    if (isJSAnonymousType(ctorClass)) return _emitObjectLiteral(args);
     var result = js_ast.New(_emitConstructorName(node.constructedType, ctor),
         _emitArgumentList(args, types: false));
 
@@ -4919,79 +4926,31 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   @override
   js_ast.Expression visitListConcatenation(ListConcatenation node) {
     // Only occurs inside unevaluated constants.
-    List<js_ast.Expression> entries = [];
-    _concatenate(Expression node) {
-      if (node is ListConcatenation) {
-        node.lists.forEach(_concatenate);
-      } else {
-        node.accept(this);
-        if (node is ConstantExpression) {
-          var list = node.constant as ListConstant;
-          entries.addAll(list.entries.map(visitConstant));
-        } else if (node is ListLiteral) {
-          entries.addAll(node.expressions.map(_visitExpression));
-        }
-      }
-    }
-
-    node.lists.forEach(_concatenate);
-    return _emitConstList(node.typeArgument, entries);
+    throw UnsupportedError("List concatenation");
   }
 
   @override
   js_ast.Expression visitSetConcatenation(SetConcatenation node) {
     // Only occurs inside unevaluated constants.
-    List<js_ast.Expression> entries = [];
-    _concatenate(Expression node) {
-      if (node is SetConcatenation) {
-        node.sets.forEach(_concatenate);
-      } else {
-        node.accept(this);
-        if (node is ConstantExpression) {
-          var set = node.constant as SetConstant;
-          entries.addAll(set.entries.map(visitConstant));
-        } else if (node is SetLiteral) {
-          entries.addAll(node.expressions.map(_visitExpression));
-        }
-      }
-    }
-
-    node.sets.forEach(_concatenate);
-    return _emitConstSet(node.typeArgument, entries);
+    throw UnsupportedError("Set concatenation");
   }
 
   @override
   js_ast.Expression visitMapConcatenation(MapConcatenation node) {
     // Only occurs inside unevaluated constants.
-    List<js_ast.Expression> entries = [];
-    _concatenate(Expression node) {
-      if (node is MapConcatenation) {
-        node.maps.forEach(_concatenate);
-      } else {
-        node.accept(this);
-        if (node is ConstantExpression) {
-          var map = node.constant as MapConstant;
-          for (var entry in map.entries) {
-            entries.add(visitConstant(entry.key));
-            entries.add(visitConstant(entry.value));
-          }
-        } else if (node is MapLiteral) {
-          for (var entry in node.entries) {
-            entries.add(_visitExpression(entry.key));
-            entries.add(_visitExpression(entry.value));
-          }
-        }
-      }
-    }
-
-    node.maps.forEach(_concatenate);
-    return _emitConstMap(node.keyType, node.valueType, entries);
+    throw UnsupportedError("Map concatenation");
   }
 
   @override
   js_ast.Expression visitInstanceCreation(InstanceCreation node) {
     // Only occurs inside unevaluated constants.
     throw UnsupportedError("Instance creation");
+  }
+
+  @override
+  js_ast.Expression visitFileUriExpression(FileUriExpression node) {
+    // Only occurs inside unevaluated constants.
+    throw UnsupportedError("File URI expression");
   }
 
   @override
@@ -5355,7 +5314,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
     var constAliasString = "C${constAliasCache.length}";
     var constAliasProperty = propertyName(constAliasString);
-    var constAliasId = js_ast.TemporaryId(constAliasString);
+    var constAliasId = _emitTemporaryId(constAliasString);
     var constAccessor =
         js.call("# || #.#", [constAliasId, _constTable, constAliasProperty]);
     constAliasCache[node] = constAccessor;

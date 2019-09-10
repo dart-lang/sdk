@@ -14,9 +14,10 @@ primeTimeline() {
   Timeline.instantSync('ISYNC', arguments: {'fruit': 'banana'});
   Timeline.finishSync();
   TimelineTask task = new TimelineTask();
-  task.start('TASK1');
-  task.instant('ITASK');
-  task.finish();
+  task.start('TASK1', arguments: {'task1-start-key': 'task1-start-value'});
+  task.instant('ITASK',
+      arguments: {'task1-instant-key': 'task1-instant-value'});
+  task.finish(arguments: {'task1-finish-key': 'task1-finish-value'});
 
   Flow flow = Flow.begin(id: 123);
   Timeline.startSync('peach', flow: flow);
@@ -31,10 +32,23 @@ List filterForDartEvents(List events) {
   return events.where((event) => event['cat'] == 'Dart').toList();
 }
 
-bool eventsContains(List events, String phase, String name) {
+bool mapContains(Map map, Map submap) {
+  for (var key in submap.keys) {
+    if (map[key] != submap[key]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool eventsContains(List events, String phase, String name, [Map arguments]) {
   for (Map event in events) {
     if ((event['ph'] == phase) && (event['name'] == name)) {
-      return true;
+      if (arguments == null) {
+        return true;
+      } else if (mapContains(event['args'], arguments)) {
+        return true;
+      }
     }
   }
   return false;
@@ -108,11 +122,21 @@ var tests = <VMTest>[
     expect(dartEvents.length, equals(11));
     allEventsHaveIsolateNumber(dartEvents);
     allEventsHaveIsolateNumber(result['traceEvents']);
-    expect(eventsContains(dartEvents, 'i', 'ISYNC'), isTrue);
+    expect(
+        eventsContains(dartEvents, 'i', 'ISYNC', {'fruit': 'banana'}), isTrue);
     expect(eventsContains(dartEvents, 'X', 'apple'), isTrue);
-    expect(eventsContains(dartEvents, 'b', 'TASK1'), isTrue);
-    expect(eventsContains(dartEvents, 'e', 'TASK1'), isTrue);
-    expect(eventsContains(dartEvents, 'n', 'ITASK'), isTrue);
+    expect(
+        eventsContains(
+            dartEvents, 'b', 'TASK1', {'task1-start-key': 'task1-start-value'}),
+        isTrue);
+    expect(
+        eventsContains(dartEvents, 'e', 'TASK1',
+            {'task1-finish-key': 'task1-finish-value'}),
+        isTrue);
+    expect(
+        eventsContains(dartEvents, 'n', 'ITASK',
+            {'task1-instant-key': 'task1-instant-value'}),
+        isTrue);
     expect(eventsContains(dartEvents, 'q', 'ITASK'), isFalse);
     expect(eventsContains(dartEvents, 'X', 'peach'), isTrue);
     expect(eventsContains(dartEvents, 'X', 'watermelon'), isTrue);

@@ -20,7 +20,7 @@ Future<Null> main([List<String> arguments = const []]) async {
     await checkDill();
     return null;
   }
-  await runMe(arguments, createContext, "../testing.json");
+  await runMe(arguments, createContext, configurationPath: "../testing.json");
   await checkDill();
 }
 

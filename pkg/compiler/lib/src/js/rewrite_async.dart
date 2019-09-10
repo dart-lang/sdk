@@ -509,7 +509,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   /// [fn] in that place.
   withExpressions(List<js.Expression> nodes, fn(List<js.Expression> results)) {
     int oldTempVarIndex = currentTempVarIndex;
-    // Find last occurence of a 'transform' expression in [nodes].
+    // Find last occurrence of a 'transform' expression in [nodes].
     // All expressions before that must be stored in temp-vars.
     int lastTransformIndex = 0;
     for (int i = nodes.length - 1; i >= 0; --i) {

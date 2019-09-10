@@ -4,6 +4,8 @@
 
 library front_end.compiler_options;
 
+import 'package:kernel/ast.dart' as kernel show Library;
+
 import 'package:kernel/target/targets.dart' show Target;
 
 import 'diagnostic_message.dart' show DiagnosticMessageHandler;
@@ -215,6 +217,13 @@ class CompilerOptions {
 
   /// Whether to write a file (e.g. a dill file) when reporting a crash.
   bool writeFileOnCrashReport = true;
+
+  /// The current sdk version string, e.g. "2.6.0-edge.sha1hash".
+  /// For instance used for language versioning (specifying the maximum
+  /// version).
+  String currentSdkVersion = "${kernel.Library.defaultLanguageVersionMajor}"
+      "."
+      "${kernel.Library.defaultLanguageVersionMinor}";
 }
 
 /// Parse experimental flag arguments of the form 'flag' or 'no-flag' into a map

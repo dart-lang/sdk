@@ -22728,21 +22728,330 @@ class ServerGetVersionResult implements ResponseResult {
 }
 
 /**
+ * ServerLogEntry
+ *
+ * {
+ *   "time": int
+ *   "kind": ServerLogEntryKind
+ *   "data": String
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class ServerLogEntry implements HasToJson {
+  int _time;
+
+  ServerLogEntryKind _kind;
+
+  String _data;
+
+  /**
+   * The time (milliseconds since epoch) at which the server created this log
+   * entry.
+   */
+  int get time => _time;
+
+  /**
+   * The time (milliseconds since epoch) at which the server created this log
+   * entry.
+   */
+  void set time(int value) {
+    assert(value != null);
+    this._time = value;
+  }
+
+  /**
+   * The kind of the entry, used to determine how to interpret the "data"
+   * field.
+   */
+  ServerLogEntryKind get kind => _kind;
+
+  /**
+   * The kind of the entry, used to determine how to interpret the "data"
+   * field.
+   */
+  void set kind(ServerLogEntryKind value) {
+    assert(value != null);
+    this._kind = value;
+  }
+
+  /**
+   * The payload of the entry, the actual format is determined by the "kind"
+   * field.
+   */
+  String get data => _data;
+
+  /**
+   * The payload of the entry, the actual format is determined by the "kind"
+   * field.
+   */
+  void set data(String value) {
+    assert(value != null);
+    this._data = value;
+  }
+
+  ServerLogEntry(int time, ServerLogEntryKind kind, String data) {
+    this.time = time;
+    this.kind = kind;
+    this.data = data;
+  }
+
+  factory ServerLogEntry.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      int time;
+      if (json.containsKey("time")) {
+        time = jsonDecoder.decodeInt(jsonPath + ".time", json["time"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "time");
+      }
+      ServerLogEntryKind kind;
+      if (json.containsKey("kind")) {
+        kind = new ServerLogEntryKind.fromJson(
+            jsonDecoder, jsonPath + ".kind", json["kind"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "kind");
+      }
+      String data;
+      if (json.containsKey("data")) {
+        data = jsonDecoder.decodeString(jsonPath + ".data", json["data"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "data");
+      }
+      return new ServerLogEntry(time, kind, data);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "ServerLogEntry", json);
+    }
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["time"] = time;
+    result["kind"] = kind.toJson();
+    result["data"] = data;
+    return result;
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is ServerLogEntry) {
+      return time == other.time && kind == other.kind && data == other.data;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, time.hashCode);
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    hash = JenkinsSmiHash.combine(hash, data.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * ServerLogEntryKind
+ *
+ * enum {
+ *   NOTIFICATION
+ *   RAW
+ *   REQUEST
+ *   RESPONSE
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class ServerLogEntryKind implements Enum {
+  /**
+   * A notification from the server, such as "analysis.highlights". The "data"
+   * field contains a JSON object with abbreviated notification.
+   */
+  static const ServerLogEntryKind NOTIFICATION =
+      const ServerLogEntryKind._("NOTIFICATION");
+
+  /**
+   * Arbitrary string, describing some event that happened in the server, e.g.
+   * starting a file analysis, and details which files were accessed. These
+   * entries are not structured, but provide context information about requests
+   * and notification, and can be related by "time" for further manual
+   * analysis.
+   */
+  static const ServerLogEntryKind RAW = const ServerLogEntryKind._("RAW");
+
+  /**
+   * A request from the client, as the server views it, e.g. "edit.getAssists".
+   * The "data" field contains a JSON object with abbreviated request.
+   */
+  static const ServerLogEntryKind REQUEST =
+      const ServerLogEntryKind._("REQUEST");
+
+  /**
+   * Various counters and measurements related to execution of a request. The
+   * "data" field contains a JSON object with following fields:
+   *
+   * - "id" - the id of the request - copied from the request.
+   * - "method" - the method of the request, e.g. "edit.getAssists".
+   * - "clientRequestTime" - the time (milliseconds since epoch) at which the
+   *   client made the request - copied from the request.
+   * - "serverRequestTime" - the time (milliseconds since epoch) at which the
+   *   server received and decoded the JSON request.
+   * - "responseTime" - the time (milliseconds since epoch) at which the server
+   *   created the response to be encoded into JSON and sent to the client.
+   */
+  static const ServerLogEntryKind RESPONSE =
+      const ServerLogEntryKind._("RESPONSE");
+
+  /**
+   * A list containing all of the enum values that are defined.
+   */
+  static const List<ServerLogEntryKind> VALUES = const <ServerLogEntryKind>[
+    NOTIFICATION,
+    RAW,
+    REQUEST,
+    RESPONSE
+  ];
+
+  @override
+  final String name;
+
+  const ServerLogEntryKind._(this.name);
+
+  factory ServerLogEntryKind(String name) {
+    switch (name) {
+      case "NOTIFICATION":
+        return NOTIFICATION;
+      case "RAW":
+        return RAW;
+      case "REQUEST":
+        return REQUEST;
+      case "RESPONSE":
+        return RESPONSE;
+    }
+    throw new Exception('Illegal enum value: $name');
+  }
+
+  factory ServerLogEntryKind.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json is String) {
+      try {
+        return new ServerLogEntryKind(json);
+      } catch (_) {
+        // Fall through
+      }
+    }
+    throw jsonDecoder.mismatch(jsonPath, "ServerLogEntryKind", json);
+  }
+
+  @override
+  String toString() => "ServerLogEntryKind.$name";
+
+  String toJson() => name;
+}
+
+/**
+ * server.log params
+ *
+ * {
+ *   "entry": ServerLogEntry
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class ServerLogParams implements HasToJson {
+  ServerLogEntry _entry;
+
+  ServerLogEntry get entry => _entry;
+
+  void set entry(ServerLogEntry value) {
+    assert(value != null);
+    this._entry = value;
+  }
+
+  ServerLogParams(ServerLogEntry entry) {
+    this.entry = entry;
+  }
+
+  factory ServerLogParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      ServerLogEntry entry;
+      if (json.containsKey("entry")) {
+        entry = new ServerLogEntry.fromJson(
+            jsonDecoder, jsonPath + ".entry", json["entry"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "entry");
+      }
+      return new ServerLogParams(entry);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "server.log params", json);
+    }
+  }
+
+  factory ServerLogParams.fromNotification(Notification notification) {
+    return new ServerLogParams.fromJson(
+        new ResponseDecoder(null), "params", notification.params);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["entry"] = entry.toJson();
+    return result;
+  }
+
+  Notification toNotification() {
+    return new Notification("server.log", toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is ServerLogParams) {
+      return entry == other.entry;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, entry.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
  * ServerService
  *
  * enum {
+ *   LOG
  *   STATUS
  * }
  *
  * Clients may not extend, implement or mix-in this class.
  */
 class ServerService implements Enum {
+  static const ServerService LOG = const ServerService._("LOG");
+
   static const ServerService STATUS = const ServerService._("STATUS");
 
   /**
    * A list containing all of the enum values that are defined.
    */
-  static const List<ServerService> VALUES = const <ServerService>[STATUS];
+  static const List<ServerService> VALUES = const <ServerService>[LOG, STATUS];
 
   @override
   final String name;
@@ -22751,6 +23060,8 @@ class ServerService implements Enum {
 
   factory ServerService(String name) {
     switch (name) {
+      case "LOG":
+        return LOG;
       case "STATUS":
         return STATUS;
     }
@@ -23071,6 +23382,7 @@ class ServerStatusParams implements HasToJson {
  *   "lexeme": String
  *   "type": optional String
  *   "validElementKinds": optional List<String>
+ *   "offset": int
  * }
  *
  * Clients may not extend, implement or mix-in this class.
@@ -23081,6 +23393,8 @@ class TokenDetails implements HasToJson {
   String _type;
 
   List<String> _validElementKinds;
+
+  int _offset;
 
   /**
    * The token's lexeme.
@@ -23127,10 +23441,27 @@ class TokenDetails implements HasToJson {
     this._validElementKinds = value;
   }
 
-  TokenDetails(String lexeme, {String type, List<String> validElementKinds}) {
+  /**
+   * The offset of the first character of the token in the file which it
+   * originated from.
+   */
+  int get offset => _offset;
+
+  /**
+   * The offset of the first character of the token in the file which it
+   * originated from.
+   */
+  void set offset(int value) {
+    assert(value != null);
+    this._offset = value;
+  }
+
+  TokenDetails(String lexeme, int offset,
+      {String type, List<String> validElementKinds}) {
     this.lexeme = lexeme;
     this.type = type;
     this.validElementKinds = validElementKinds;
+    this.offset = offset;
   }
 
   factory TokenDetails.fromJson(
@@ -23156,7 +23487,13 @@ class TokenDetails implements HasToJson {
             json["validElementKinds"],
             jsonDecoder.decodeString);
       }
-      return new TokenDetails(lexeme,
+      int offset;
+      if (json.containsKey("offset")) {
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "offset");
+      }
+      return new TokenDetails(lexeme, offset,
           type: type, validElementKinds: validElementKinds);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "TokenDetails", json);
@@ -23173,6 +23510,7 @@ class TokenDetails implements HasToJson {
     if (validElementKinds != null) {
       result["validElementKinds"] = validElementKinds;
     }
+    result["offset"] = offset;
     return result;
   }
 
@@ -23185,7 +23523,8 @@ class TokenDetails implements HasToJson {
       return lexeme == other.lexeme &&
           type == other.type &&
           listEqual(validElementKinds, other.validElementKinds,
-              (String a, String b) => a == b);
+              (String a, String b) => a == b) &&
+          offset == other.offset;
     }
     return false;
   }
@@ -23196,6 +23535,7 @@ class TokenDetails implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, lexeme.hashCode);
     hash = JenkinsSmiHash.combine(hash, type.hashCode);
     hash = JenkinsSmiHash.combine(hash, validElementKinds.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }

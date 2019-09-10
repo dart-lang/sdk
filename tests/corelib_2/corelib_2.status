@@ -163,9 +163,6 @@ symbol_reserved_word_test/12: RuntimeError # Issues 11669 and 31936 - throwing c
 symbol_test/none: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
 unicode_test: RuntimeError # Issue 18061: German double S.
 
-[ !$preview_dart_2 && ($runtime == dart_precompiled || $runtime == vm) ]
-*: SkipByDesign # Deprecating all Dart1 modes of execution
-
 [ ($arch == simdbc || $arch == simdbc64) && ($hot_reload || $hot_reload_rollback) ]
 uri_parse_test: SkipSlow
 

@@ -89,7 +89,7 @@ class ReadStream : public ValueObject {
   const uint8_t* AddressOfCurrentPosition() const { return current_; }
 
   void Advance(intptr_t value) {
-    ASSERT((end_ - current_) > value);
+    ASSERT((end_ - current_) >= value);
     current_ = current_ + value;
   }
 

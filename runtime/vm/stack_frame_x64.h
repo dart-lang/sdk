@@ -5,6 +5,10 @@
 #ifndef RUNTIME_VM_STACK_FRAME_X64_H_
 #define RUNTIME_VM_STACK_FRAME_X64_H_
 
+#if !defined(RUNTIME_VM_STACK_FRAME_H_)
+#error Do not include stack_frame_x64.h directly; use stack_frame.h instead.
+#endif
+
 #include "vm/constants_x64.h"
 
 namespace dart {

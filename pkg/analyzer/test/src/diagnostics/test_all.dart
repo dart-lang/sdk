@@ -20,6 +20,8 @@ import 'assignment_to_method_test.dart' as assignment_to_method;
 import 'assignment_to_type_test.dart' as assignment_to_type;
 import 'async_keyword_used_as_identifier_test.dart'
     as async_keyword_used_as_identifier;
+import 'builtin_identifier_as_extension_name_test.dart'
+    as builtin_as_extension_name;
 import 'can_be_null_after_null_aware_test.dart' as can_be_null_after_null_aware;
 import 'case_block_not_terminated_test.dart' as case_block_not_terminated;
 import 'cast_to_non_type_test.dart' as cast_to_non_type;
@@ -34,6 +36,7 @@ import 'const_constructor_with_mixin_with_field_test.dart'
 import 'const_eval_throws_exception_test.dart' as const_eval_throws_exception;
 import 'const_map_key_expression_type_implements_equals_test.dart'
     as const_map_key_expression_type_implements_equals;
+import 'const_not_initialized_test.dart' as const_not_initialized;
 import 'const_set_element_type_implements_equals_test.dart'
     as const_set_element_type_implements_equals;
 import 'const_spread_expected_list_or_set_test.dart'
@@ -62,6 +65,7 @@ import 'export_suplicated_library_named_test.dart'
     as export_suplicated_library_named;
 import 'expression_in_map_test.dart' as expression_in_map;
 import 'extends_non_class_test.dart' as extends_non_class;
+import 'extension_as_expression_test.dart' as extension_as_expression;
 import 'extension_conflicting_static_and_instance_test.dart'
     as extension_conflicting_static_and_instance;
 import 'extension_declares_abstract_method_test.dart'
@@ -121,7 +125,11 @@ import 'invalid_override_different_default_values_positional_test.dart'
     as invalid_override_different_default_values_positional;
 import 'invalid_override_test.dart' as invalid_override;
 import 'invalid_reference_to_this_test.dart' as invalid_reference_to_this;
-import 'invalid_required_param_test.dart' as invalid_required_param;
+import 'invalid_required_named_param_test.dart' as invalid_required_named_param;
+import 'invalid_required_optional_positional_param_test.dart'
+    as invalid_required_optional_positional_param;
+import 'invalid_required_positional_param_test.dart'
+    as invalid_required_positional_param;
 import 'invalid_sealed_annotation_test.dart' as invalid_sealed_annotation;
 import 'invalid_use_of_covariant_in_extension_test.dart'
     as invalid_use_of_covariant_in_extension;
@@ -189,8 +197,8 @@ import 'non_void_return_for_setter_test.dart' as non_void_return_for_setter;
 import 'not_a_type_test.dart' as not_a_type;
 import 'not_assigned_potentially_non_nullable_local_variable_test.dart'
     as not_assigned_potentially_non_nullable_local_variable;
-import 'not_enough_required_arguments_test.dart'
-    as not_enough_required_arguments;
+import 'not_enough_positional_arguments_test.dart'
+    as not_enough_positional_arguments;
 import 'not_initialized_non_nullable_instance_field_test.dart'
     as not_initialized_non_nullable_instance_field;
 import 'not_initialized_non_nullable_variable_test.dart'
@@ -313,6 +321,7 @@ main() {
     assignment_to_method.main();
     assignment_to_type.main();
     async_keyword_used_as_identifier.main();
+    builtin_as_extension_name.main();
     can_be_null_after_null_aware.main();
     case_block_not_terminated.main();
     cast_to_non_type.main();
@@ -322,6 +331,7 @@ main() {
     const_constructor_with_mixin_with_field.main();
     const_eval_throws_exception.main();
     const_map_key_expression_type_implements_equals.main();
+    const_not_initialized.main();
     const_set_element_type_implements_equals.main();
     const_spread_expected_list_or_set.main();
     const_spread_expected_map.main();
@@ -344,6 +354,7 @@ main() {
     export_suplicated_library_named.main();
     expression_in_map.main();
     extends_non_class.main();
+    extension_as_expression.main();
     extension_conflicting_static_and_instance.main();
     extension_declares_abstract_method.main();
     extension_declares_constructor.main();
@@ -380,7 +391,9 @@ main() {
     invalid_override_different_default_values_positional.main();
     invalid_override.main();
     invalid_reference_to_this.main();
-    invalid_required_param.main();
+    invalid_required_named_param.main();
+    invalid_required_optional_positional_param.main();
+    invalid_required_positional_param.main();
     invalid_sealed_annotation.main();
     invalid_use_of_covariant_in_extension.main();
     invalid_use_of_never_value.main();
@@ -431,7 +444,7 @@ main() {
     non_void_return_for_setter.main();
     not_a_type.main();
     not_assigned_potentially_non_nullable_local_variable.main();
-    not_enough_required_arguments.main();
+    not_enough_positional_arguments.main();
     not_initialized_non_nullable_instance_field.main();
     not_initialized_non_nullable_variable.main();
     not_iterable_spread.main();

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
@@ -15,6 +15,7 @@ import 'driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtensionMethodsDeclarationTest);
+    defineReflectiveTests(ExtensionMethodsExtendedTypeTest);
     defineReflectiveTests(ExtensionMethodsExternalReferenceTest);
     defineReflectiveTests(ExtensionMethodsInternalReferenceTest);
   });
@@ -48,6 +49,31 @@ extension E on Object {
         ])
       ];
 
+  test_constructor() async {
+    await assertErrorsInCode('''
+extension E {
+  E() {}
+}
+''', [
+      error(ParserErrorCode.EXPECTED_TOKEN, 10, 1),
+      error(ParserErrorCode.EXPECTED_TYPE_NAME, 12, 1),
+      error(ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR, 16, 1),
+    ]);
+  }
+
+  test_factory() async {
+    await assertErrorsInCode('''
+extension E {
+  factory S() {}
+}
+''', [
+      error(ParserErrorCode.EXPECTED_TOKEN, 10, 1),
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 12, 0),
+      error(ParserErrorCode.EXPECTED_TYPE_NAME, 12, 1),
+      error(ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR, 16, 7),
+    ]);
+  }
+
   test_fromPlatform() async {
     await assertNoErrorsInCode('''
 import 'dart:test2';
@@ -75,110 +101,6 @@ class C {}
 extension E1 on C {}
 extension E2 on C {}
 ''');
-  }
-
-  test_named_generic() async {
-    await assertNoErrorsInCode('''
-class C<T> {}
-extension E<S> on C<S> {}
-''');
-    var extendedType = findNode.typeAnnotation('C<S>');
-    assertElement(extendedType, findElement.class_('C'));
-    assertType(extendedType, 'C<S>');
-  }
-
-  test_named_onDynamic() async {
-    await assertNoErrorsInCode('''
-extension E on dynamic {}
-''');
-    var extendedType = findNode.typeAnnotation('dynamic');
-    assertType(extendedType, 'dynamic');
-  }
-
-  test_named_onEnum() async {
-    await assertNoErrorsInCode('''
-enum A {a, b, c}
-extension E on A {}
-''');
-    var extendedType = findNode.typeAnnotation('A {}');
-    assertElement(extendedType, findElement.enum_('A'));
-    assertType(extendedType, 'A');
-  }
-
-  test_named_onFunctionType() async {
-    try {
-      await assertNoErrorsInCode('''
-extension E on int Function(int) {}
-''');
-      var extendedType = findNode.typeAnnotation('Function');
-      assertType(extendedType, 'int Function(int)');
-      if (!AnalysisDriver.useSummary2) {
-        throw 'Test passed - expected to fail.';
-      }
-    } on String {
-      rethrow;
-    } catch (e) {
-      if (AnalysisDriver.useSummary2) {
-        rethrow;
-      }
-    }
-  }
-
-  test_named_onInterface() async {
-    await assertNoErrorsInCode('''
-class C { }
-extension E on C {}
-''');
-    var extendedType = findNode.typeAnnotation('C {}');
-    assertElement(extendedType, findElement.class_('C'));
-    assertType(extendedType, 'C');
-  }
-
-  test_unnamed_generic() async {
-    await assertNoErrorsInCode('''
-class C<T> {}
-extension<S> on C<S> {}
-''');
-    var extendedType = findNode.typeAnnotation('C<S>');
-    assertElement(extendedType, findElement.class_('C'));
-    assertType(extendedType, 'C<S>');
-  }
-
-  test_unnamed_onDynamic() async {
-    await assertNoErrorsInCode('''
-extension on dynamic {}
-''');
-    var extendedType = findNode.typeAnnotation('dynamic');
-    assertType(extendedType, 'dynamic');
-  }
-
-  test_unnamed_onEnum() async {
-    await assertNoErrorsInCode('''
-enum A {a, b, c}
-extension on A {}
-''');
-    var extendedType = findNode.typeAnnotation('A {}');
-    assertElement(extendedType, findElement.enum_('A'));
-    assertType(extendedType, 'A');
-  }
-
-  @failingTest
-  test_unnamed_onFunctionType() async {
-    await assertNoErrorsInCode('''
-extension on int Function(int) {}
-''');
-    var extendedType = findNode.typeAnnotation('int ');
-    assertType(extendedType, 'int Function(int)');
-  }
-
-  test_unnamed_onInterface() async {
-    await assertNoErrorsInCode('''
-class C { }
-extension on C {}
-''');
-    var extendedType = findNode.typeAnnotation('C {}');
-    assertElement(extendedType, findElement.class_('C'));
-    assertType(extendedType, 'C');
   }
 
   test_visibility_hidden() async {
@@ -337,7 +259,6 @@ f(Object o, A a, B b) {
 ''');
   }
 
-  @failingTest
   test_visibility_withPrefix() async {
     newFile('/test/lib/lib.dart', content: '''
 class C {}
@@ -354,6 +275,129 @@ f(p.C c) {
 ''', [
       error(StaticTypeWarningCode.UNDEFINED_GETTER, 40, 1),
     ]);
+  }
+}
+
+/// Tests that show that extension declarations support all of the possible
+/// types in the `on` clause.
+@reflectiveTest
+class ExtensionMethodsExtendedTypeTest extends BaseExtensionMethodsTest {
+  test_named_generic() async {
+    await assertNoErrorsInCode('''
+class C<T> {}
+extension E<S> on C<S> {}
+''');
+    var extendedType = findNode.typeAnnotation('C<S>');
+    assertElement(extendedType, findElement.class_('C'));
+    assertType(extendedType, 'C<S>');
+  }
+
+  test_named_onDynamic() async {
+    await assertNoErrorsInCode('''
+extension E on dynamic {}
+''');
+    var extendedType = findNode.typeAnnotation('dynamic');
+    assertType(extendedType, 'dynamic');
+  }
+
+  test_named_onEnum() async {
+    await assertNoErrorsInCode('''
+enum A {a, b, c}
+extension E on A {}
+''');
+    var extendedType = findNode.typeAnnotation('A {}');
+    assertElement(extendedType, findElement.enum_('A'));
+    assertType(extendedType, 'A');
+  }
+
+  test_named_onFunctionType() async {
+    await assertNoErrorsInCode('''
+extension E on int Function(int) {}
+''');
+    var extendedType = findNode.typeAnnotation('Function');
+    assertType(extendedType, 'int Function(int)');
+  }
+
+  test_named_onInterface() async {
+    await assertNoErrorsInCode('''
+class C { }
+extension E on C {}
+''');
+    var extendedType = findNode.typeAnnotation('C {}');
+    assertElement(extendedType, findElement.class_('C'));
+    assertType(extendedType, 'C');
+  }
+
+  test_named_onMixin() async {
+    await assertNoErrorsInCode('''
+mixin M {
+}
+extension E on M {}
+''');
+    var extendedType = findNode.typeAnnotation('M {}');
+    assertElement(extendedType, findElement.mixin('M'));
+    assertType(extendedType, 'M');
+  }
+
+  test_unnamed_generic() async {
+    await assertNoErrorsInCode('''
+class C<T> {}
+extension<S> on C<S> {}
+''');
+    var extendedType = findNode.typeAnnotation('C<S>');
+    assertElement(extendedType, findElement.class_('C'));
+    assertType(extendedType, 'C<S>');
+  }
+
+  test_unnamed_onDynamic() async {
+    await assertNoErrorsInCode('''
+extension on dynamic {}
+''');
+    var extendedType = findNode.typeAnnotation('dynamic');
+    assertType(extendedType, 'dynamic');
+  }
+
+  test_unnamed_onEnum() async {
+    await assertNoErrorsInCode('''
+enum A {a, b, c}
+extension on A {}
+''');
+    var extendedType = findNode.typeAnnotation('A {}');
+    assertElement(extendedType, findElement.enum_('A'));
+    assertType(extendedType, 'A');
+  }
+
+  test_unnamed_onFunctionType() async {
+    await assertNoErrorsInCode('''
+extension on int Function(String) {}
+''');
+    var extendedType = findNode.typeAnnotation('Function');
+    assertType(extendedType, 'int Function(String)');
+    var returnType = findNode.typeAnnotation('int');
+    assertType(returnType, 'int');
+    var parameterType = findNode.typeAnnotation('String');
+    assertType(parameterType, 'String');
+  }
+
+  test_unnamed_onInterface() async {
+    await assertNoErrorsInCode('''
+class C { }
+extension on C {}
+''');
+    var extendedType = findNode.typeAnnotation('C {}');
+    assertElement(extendedType, findElement.class_('C'));
+    assertType(extendedType, 'C');
+  }
+
+  test_unnamed_onMixin() async {
+    await assertNoErrorsInCode('''
+mixin M {
+}
+extension on M {}
+''');
+    var extendedType = findNode.typeAnnotation('M {}');
+    assertElement(extendedType, findElement.mixin('M'));
+    assertType(extendedType, 'M');
   }
 }
 
@@ -599,27 +643,6 @@ f(B b) {
 ''');
     var access = findNode.prefixed('b.a');
     assertElement(access, findElement.getter('a', of: 'B_Ext'));
-    assertType(access, 'int');
-  }
-
-  test_instance_getter_with_setter() async {
-    await assertNoErrorsInCode('''
-class C {}
-
-extension E on C {
-  int get a => 1;
-}
-
-extension E2 on C {
-  set a(int v) { }
-}
-
-f(C c) {
-  print(c.a);
-}
-''');
-    var access = findNode.prefixed('c.a');
-    assertElement(access, findElement.getter('a'));
     assertType(access, 'int');
   }
 
@@ -1081,27 +1104,6 @@ f(C c) {
 ''');
     var access = findNode.prefixed('c.a');
     assertElement(access, findElement.setter('a'));
-  }
-
-  test_instance_setter_with_getter() async {
-    await assertNoErrorsInCode('''
-class C {}
-
-extension E on C {
-  int get a => 1;
-}
-
-extension E2 on C {
-  set a(int v) { }
-}
-
-f(C c) {
-  print(c.a = 1);
-}
-''');
-    var access = findNode.prefixed('c.a');
-    assertElement(access, findElement.setter('a'));
-    assertType(access, 'int');
   }
 
   test_instance_tearoff_fromExtension_functionType() async {

@@ -42,6 +42,7 @@ import '../fasta_codes.dart'
         messageConstEvalNotListOrSetInSpread,
         messageConstEvalNotMapInSpread,
         messageConstEvalNullValue,
+        messageConstEvalStartingPoint,
         messageConstEvalUnevaluated,
         noLength,
         templateConstEvalDeferredLibrary,
@@ -117,14 +118,14 @@ void transformLibraries(
 
 class JavaScriptIntConstant extends DoubleConstant {
   final BigInt bigIntValue;
-  JavaScriptIntConstant(int value) : this.fromBigInt(BigInt.from(value));
+  JavaScriptIntConstant(int value) : this.fromBigInt(new BigInt.from(value));
   JavaScriptIntConstant.fromDouble(double value)
-      : bigIntValue = BigInt.from(value),
+      : bigIntValue = new BigInt.from(value),
         super(value);
   JavaScriptIntConstant.fromBigInt(this.bigIntValue)
       : super(bigIntValue.toDouble());
   JavaScriptIntConstant.fromUInt64(int value)
-      : this.fromBigInt(BigInt.from(value).toUnsigned(64));
+      : this.fromBigInt(new BigInt.from(value).toUnsigned(64));
 
   DartType getType(TypeEnvironment types) => types.intType;
 
@@ -212,7 +213,7 @@ class ConstantsTransformer extends Transformer {
   Procedure visitProcedure(Procedure node) {
     constantEvaluator.withNewEnvironment(() {
       transformAnnotations(node.annotations, node);
-      node.function = node.function.accept(this)..parent = node;
+      node.function = node.function.accept<TreeNode>(this)..parent = node;
     });
     return node;
   }
@@ -222,7 +223,7 @@ class ConstantsTransformer extends Transformer {
     constantEvaluator.withNewEnvironment(() {
       transformAnnotations(node.annotations, node);
       transformList(node.initializers, this, node);
-      node.function = node.function.accept(this)..parent = node;
+      node.function = node.function.accept<TreeNode>(this)..parent = node;
     });
     return node;
   }
@@ -295,7 +296,7 @@ class ConstantsTransformer extends Transformer {
       }
     }
     if (node.body != null) {
-      node.body = node.body.accept(this)..parent = node;
+      node.body = node.body.accept<TreeNode>(this)..parent = node;
     }
     return node;
   }
@@ -321,7 +322,8 @@ class ConstantsTransformer extends Transformer {
           }
         }
       } else {
-        node.initializer = node.initializer.accept(this)..parent = node;
+        node.initializer = node.initializer.accept<TreeNode>(this)
+          ..parent = node;
       }
     }
     return node;
@@ -343,7 +345,8 @@ class ConstantsTransformer extends Transformer {
       } else {
         transformAnnotations(node.annotations, node);
         if (node.initializer != null) {
-          node.initializer = node.initializer.accept(this)..parent = node;
+          node.initializer = node.initializer.accept<TreeNode>(this)
+            ..parent = node;
         }
       }
       return node;
@@ -589,34 +592,43 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     lazyDepth = 0;
     try {
       Constant result = _evaluateSubexpression(node);
-      if (errorOnUnevaluatedConstant && result is UnevaluatedConstant) {
-        return report(node, messageConstEvalUnevaluated);
+      if (result is UnevaluatedConstant) {
+        if (errorOnUnevaluatedConstant) {
+          return report(node, messageConstEvalUnevaluated);
+        }
+        return new UnevaluatedConstant(
+            removeRedundantFileUriExpressions(result.expression));
       }
       return result;
     } on _AbortDueToError catch (e) {
       final Uri uri = getFileUri(e.node);
       final int fileOffset = getFileOffset(uri, e.node);
-      final LocatedMessage locatedMessage =
+      final LocatedMessage locatedMessageActualError =
           e.message.withLocation(uri, fileOffset, noLength);
 
-      final List<LocatedMessage> contextMessages = <LocatedMessage>[];
+      final List<LocatedMessage> contextMessages = <LocatedMessage>[
+        locatedMessageActualError
+      ];
       if (e.context != null) contextMessages.addAll(e.context);
       for (final TreeNode node in contextChain) {
+        if (node == e.node) continue;
         final Uri uri = getFileUri(node);
         final int fileOffset = getFileOffset(uri, node);
         contextMessages.add(
             messageConstEvalContext.withLocation(uri, fileOffset, noLength));
       }
-      errorReporter.report(locatedMessage, contextMessages);
+
+      {
+        final Uri uri = getFileUri(node);
+        final int fileOffset = getFileOffset(uri, node);
+        final LocatedMessage locatedMessage = messageConstEvalStartingPoint
+            .withLocation(uri, fileOffset, noLength);
+        errorReporter.report(locatedMessage, contextMessages);
+      }
       return new UnevaluatedConstant(new InvalidExpression(e.message.message));
     } on _AbortDueToInvalidExpression catch (e) {
-      // TODO(askesc): Copy position from erroneous node.
-      // Currently not possible, as it might be in a different file.
-      // Can be done if we add an explicit URI to InvalidExpression.
-      InvalidExpression invalid = new InvalidExpression(e.message);
-      if (invalid.fileOffset == TreeNode.noOffset) {
-        invalid.fileOffset = node.fileOffset;
-      }
+      InvalidExpression invalid = new InvalidExpression(e.message)
+        ..fileOffset = node.fileOffset;
       errorReporter.reportInvalidExpression(invalid);
       return new UnevaluatedConstant(invalid);
     }
@@ -636,8 +648,13 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   /// Produce an unevaluated constant node for an expression.
   Constant unevaluated(Expression original, Expression replacement) {
     replacement.fileOffset = original.fileOffset;
-    // TODO(askesc,johnniwinther): Preserve fileUri on [replacement].
-    return new UnevaluatedConstant(replacement);
+    return new UnevaluatedConstant(
+        new FileUriExpression(replacement, getFileUri(original))
+          ..fileOffset = original.fileOffset);
+  }
+
+  Expression removeRedundantFileUriExpressions(Expression node) {
+    return node.accept(new RedundantFileUriExpressionRemover()) as Expression;
   }
 
   /// Extract an expression from a (possibly unevaluated) constant to become
@@ -759,6 +776,11 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     // evaluation.
     return reportInvalid(
         node, 'Constant evaluation has no support for ${node.runtimeType}!');
+  }
+
+  @override
+  Constant visitFileUriExpression(FileUriExpression node) {
+    return _evaluateSubexpression(node.expression);
   }
 
   @override
@@ -2296,6 +2318,23 @@ class EvaluationEnvironment {
   DartType substituteType(DartType type) {
     if (_typeVariables.isEmpty) return type;
     return substitute(type, _typeVariables);
+  }
+}
+
+class RedundantFileUriExpressionRemover extends Transformer {
+  Uri currentFileUri = null;
+
+  TreeNode visitFileUriExpression(FileUriExpression node) {
+    if (node.fileUri == currentFileUri) {
+      return node.expression.accept(this);
+    } else {
+      Uri oldFileUri = currentFileUri;
+      currentFileUri = node.fileUri;
+      node.expression = node.expression.accept(this) as Expression
+        ..parent = node;
+      currentFileUri = oldFileUri;
+      return node;
+    }
   }
 }
 

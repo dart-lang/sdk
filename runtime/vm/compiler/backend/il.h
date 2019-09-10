@@ -5,6 +5,8 @@
 #ifndef RUNTIME_VM_COMPILER_BACKEND_IL_H_
 #define RUNTIME_VM_COMPILER_BACKEND_IL_H_
 
+#include <utility>
+
 #include "vm/allocation.h"
 #include "vm/code_descriptors.h"
 #include "vm/compiler/backend/compile_type.h"
@@ -24,6 +26,7 @@
 
 namespace dart {
 
+class BinaryFeedback;
 class BitVector;
 class BlockEntryInstr;
 class BlockEntryWithInitialDefs;
@@ -46,10 +49,10 @@ class ParsedFunction;
 class Range;
 class RangeAnalysis;
 class RangeBoundary;
-class SExpression;
 class SExpList;
-class UnboxIntegerInstr;
+class SExpression;
 class TypeUsageInfo;
+class UnboxIntegerInstr;
 
 namespace compiler {
 class BlockBuilder;
@@ -573,14 +576,14 @@ struct TargetInfo : public CidRange {
 // and PolymorphicInstanceCall instructions.
 class Cids : public ZoneAllocated {
  public:
-  explicit Cids(Zone* zone) : zone_(zone) {}
+  explicit Cids(Zone* zone) : cid_ranges_(zone, 6) {}
   // Creates the off-heap Cids object that reflects the contents
   // of the on-VM-heap IC data.
   // Ranges of Cids are merged if there is only one target function and
   // it is used for all cids in the gaps between ranges.
-  static Cids* CreateAndExpand(Zone* zone,
-                               const ICData& ic_data,
-                               int argument_number);
+  static Cids* CreateForArgument(Zone* zone,
+                                 const BinaryFeedback& binary_feedback,
+                                 int argument_number);
   static Cids* CreateMonomorphic(Zone* zone, intptr_t cid);
 
   bool Equals(const Cids& other) const;
@@ -609,12 +612,7 @@ class Cids : public ZoneAllocated {
   intptr_t ComputeHighestCid() const;
 
  protected:
-  void CreateHelper(Zone* zone,
-                    const ICData& ic_data,
-                    int argument_number,
-                    bool include_targets);
   GrowableArray<CidRange*> cid_ranges_;
-  Zone* zone_;
 
  private:
   DISALLOW_IMPLICIT_CONSTRUCTORS(Cids);
@@ -623,18 +621,24 @@ class Cids : public ZoneAllocated {
 class CallTargets : public Cids {
  public:
   explicit CallTargets(Zone* zone) : Cids(zone) {}
+
+  static const CallTargets* CreateMonomorphic(Zone* zone,
+                                              intptr_t receiver_cid,
+                                              const Function& target);
+
   // Creates the off-heap CallTargets object that reflects the contents
   // of the on-VM-heap IC data.
-  static CallTargets* Create(Zone* zone, const ICData& ic_data);
+  static const CallTargets* Create(Zone* zone, const ICData& ic_data);
 
   // This variant also expands the class-ids to neighbouring classes that
   // inherit the same method.
-  static CallTargets* CreateAndExpand(Zone* zone, const ICData& ic_data);
+  static const CallTargets* CreateAndExpand(Zone* zone, const ICData& ic_data);
 
   TargetInfo* TargetAt(int i) const { return static_cast<TargetInfo*>(At(i)); }
 
   intptr_t AggregateCallCount() const;
 
+  StaticTypeExactnessState MonomorphicExactness() const;
   bool HasSingleTarget() const;
   bool HasSingleRecognizedTarget() const;
   const Function& FirstTarget() const;
@@ -642,8 +646,94 @@ class CallTargets : public Cids {
 
   void Print() const;
 
+  bool ReceiverIs(intptr_t cid) const {
+    return IsMonomorphic() && MonomorphicReceiverCid() == cid;
+  }
+  bool ReceiverIsSmiOrMint() const {
+    if (cid_ranges_.is_empty()) {
+      return false;
+    }
+    for (intptr_t i = 0, n = cid_ranges_.length(); i < n; i++) {
+      for (intptr_t j = cid_ranges_[i]->cid_start; j <= cid_ranges_[i]->cid_end;
+           j++) {
+        if (j != kSmiCid && j != kMintCid) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
  private:
+  void CreateHelper(Zone* zone, const ICData& ic_data);
   void MergeIntoRanges();
+};
+
+// Represents type feedback for the binary operators, and a few recognized
+// static functions (see MethodRecognizer::NumArgsCheckedForStaticCall).
+class BinaryFeedback : public ZoneAllocated {
+ public:
+  explicit BinaryFeedback(Zone* zone) : feedback_(zone, 2) {}
+
+  static const BinaryFeedback* Create(Zone* zone, const ICData& ic_data);
+  static const BinaryFeedback* CreateMonomorphic(Zone* zone,
+                                                 intptr_t receiver_cid,
+                                                 intptr_t argument_cid);
+
+  bool ArgumentIs(intptr_t cid) const {
+    if (feedback_.is_empty()) {
+      return false;
+    }
+    for (intptr_t i = 0, n = feedback_.length(); i < n; i++) {
+      if (feedback_[i].second != cid) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool OperandsAreEither(intptr_t cid_a, intptr_t cid_b) const {
+    if (feedback_.is_empty()) {
+      return false;
+    }
+    for (intptr_t i = 0, n = feedback_.length(); i < n; i++) {
+      if ((feedback_[i].first != cid_a) && (feedback_[i].first != cid_b)) {
+        return false;
+      }
+      if ((feedback_[i].second != cid_a) && (feedback_[i].second != cid_b)) {
+        return false;
+      }
+    }
+    return true;
+  }
+  bool OperandsAreSmiOrNull() const {
+    return OperandsAreEither(kSmiCid, kNullCid);
+  }
+  bool OperandsAreSmiOrMint() const {
+    return OperandsAreEither(kSmiCid, kMintCid);
+  }
+  bool OperandsAreSmiOrDouble() const {
+    return OperandsAreEither(kSmiCid, kDoubleCid);
+  }
+
+  bool OperandsAre(intptr_t cid) const {
+    if (feedback_.length() != 1) return false;
+    return (feedback_[0].first == cid) && (feedback_[0].second == cid);
+  }
+
+  bool IncludesOperands(intptr_t cid) const {
+    for (intptr_t i = 0, n = feedback_.length(); i < n; i++) {
+      if ((feedback_[i].first == cid) && (feedback_[i].second == cid)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+ private:
+  GrowableArray<std::pair<intptr_t, intptr_t>> feedback_;
+
+  friend class Cids;
 };
 
 class Instruction : public ZoneAllocated {
@@ -1319,6 +1409,8 @@ class BlockEntryInstr : public Instruction {
                              BitVector* block_marks);
 
  private:
+  friend class FlowGraphDeserializer;  // Access to AddPredecessor().
+
   virtual void RawSetInputAt(intptr_t i, Value* value) { UNREACHABLE(); }
 
   virtual void ClearPredecessors() = 0;
@@ -1506,6 +1598,12 @@ class GraphEntryInstr : public BlockEntryWithInitialDefs {
   PRINT_TO_SUPPORT
 
  private:
+  friend class FlowGraphDeserializer;  // For the constructor with deopt_id arg.
+
+  GraphEntryInstr(const ParsedFunction& parsed_function,
+                  intptr_t osr_id,
+                  intptr_t deopt_id);
+
   virtual void ClearPredecessors() {}
   virtual void AddPredecessor(BlockEntryInstr* predecessor) { UNREACHABLE(); }
 
@@ -1904,10 +2002,7 @@ class Definition : public Instruction {
   explicit Definition(intptr_t deopt_id = DeoptId::kNone);
 
   // Overridden by definitions that have call counts.
-  virtual intptr_t CallCount() const {
-    UNREACHABLE();
-    return -1;
-  }
+  virtual intptr_t CallCount() const { return -1; }
 
   intptr_t temp_index() const { return temp_index_; }
   void set_temp_index(intptr_t index) { temp_index_ = index; }
@@ -3272,13 +3367,25 @@ class AssertBooleanInstr : public TemplateDefinition<1, Throws, Pure> {
 // the type arguments of a generic function or an arguments descriptor.
 class SpecialParameterInstr : public TemplateDefinition<0, NoThrow> {
  public:
-  enum SpecialParameterKind {
-    kContext,
-    kTypeArgs,
-    kArgDescriptor,
-    kException,
-    kStackTrace
-  };
+#define FOR_EACH_SPECIAL_PARAMETER_KIND(M)                                     \
+  M(Context)                                                                   \
+  M(TypeArgs)                                                                  \
+  M(ArgDescriptor)                                                             \
+  M(Exception)                                                                 \
+  M(StackTrace)
+
+#define KIND_DECL(name) k##name,
+  enum SpecialParameterKind { FOR_EACH_SPECIAL_PARAMETER_KIND(KIND_DECL) };
+#undef KIND_DECL
+
+  // Defined as a static intptr_t instead of inside the enum since some
+  // switch statements depend on the exhaustibility checking.
+#define KIND_INC(name) +1
+  static const intptr_t kNumKinds = 0 FOR_EACH_SPECIAL_PARAMETER_KIND(KIND_INC);
+#undef KIND_INC
+
+  static const char* KindToCString(SpecialParameterKind k);
+  static bool KindFromCString(const char* str, SpecialParameterKind* out);
 
   SpecialParameterInstr(SpecialParameterKind kind,
                         intptr_t deopt_id,
@@ -3304,23 +3411,6 @@ class SpecialParameterInstr : public TemplateDefinition<0, NoThrow> {
 
   PRINT_OPERANDS_TO_SUPPORT
   ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
-
-  static const char* KindToCString(SpecialParameterKind kind) {
-    switch (kind) {
-      case kContext:
-        return "kContext";
-      case kTypeArgs:
-        return "kTypeArgs";
-      case kArgDescriptor:
-        return "kArgDescriptor";
-      case kException:
-        return "kException";
-      case kStackTrace:
-        return "kStackTrace";
-    }
-    UNREACHABLE();
-    return NULL;
-  }
 
  private:
   const SpecialParameterKind kind_;
@@ -3440,6 +3530,7 @@ class ClosureCallInstr : public TemplateDartCall<1> {
   Code::EntryKind entry_kind() const { return entry_kind_; }
 
   PRINT_OPERANDS_TO_SUPPORT
+  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  private:
   const Code::EntryKind entry_kind_;
@@ -3584,12 +3675,22 @@ class InstanceCallInstr : public TemplateDartCall<0> {
 
   void set_entry_kind(Code::EntryKind value) { entry_kind_ = value; }
 
+  const CallTargets& Targets();
+  void SetTargets(const CallTargets* targets) { targets_ = targets; }
+
+  const BinaryFeedback& BinaryFeedback();
+  void SetBinaryFeedback(const class BinaryFeedback* binary) {
+    binary_ = binary;
+  }
+
  protected:
   friend class CallSpecializer;
   void set_ic_data(ICData* value) { ic_data_ = value; }
 
  private:
   const ICData* ic_data_;
+  const CallTargets* targets_ = nullptr;
+  const class BinaryFeedback* binary_ = nullptr;
   const String& function_name_;
   const Token::Kind token_kind_;  // Binary op, unary op, kGET or kILLEGAL.
   const intptr_t checked_argument_count_;
@@ -3713,6 +3814,7 @@ class StrictCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
   bool AttributesEqual(Instruction* other) const;
 
   PRINT_OPERANDS_TO_SUPPORT
+  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT;
 
  private:
   // True if the comparison must check for double or Mint and
@@ -4107,11 +4209,17 @@ class StaticCallInstr : public TemplateDartCall<0> {
   virtual AliasIdentity Identity() const { return identity_; }
   virtual void SetIdentity(AliasIdentity identity) { identity_ = identity; }
 
+  const CallTargets& Targets();
+  const BinaryFeedback& BinaryFeedback();
+
   PRINT_OPERANDS_TO_SUPPORT
   ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
+  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  private:
   const ICData* ic_data_;
+  const CallTargets* targets_ = nullptr;
+  const class BinaryFeedback* binary_ = nullptr;
   const intptr_t call_count_;
   const Function& function_;
   const ICData::RebindRule rebind_rule_;
@@ -4190,10 +4298,7 @@ class DropTempsInstr : public Definition {
     return false;
   }
 
-  virtual bool MayThrow() const {
-    UNREACHABLE();
-    return false;
-  }
+  virtual bool MayThrow() const { return false; }
 
   virtual TokenPosition token_pos() const { return TokenPosition::kTempMove; }
 
@@ -4238,10 +4343,7 @@ class MakeTempInstr : public TemplateDefinition<0, NoThrow, Pure> {
     return false;
   }
 
-  virtual bool MayThrow() const {
-    UNREACHABLE();
-    return false;
-  }
+  virtual bool MayThrow() const { return false; }
 
   virtual TokenPosition token_pos() const { return TokenPosition::kTempMove; }
 
@@ -4445,6 +4547,8 @@ class DebugStepCheckInstr : public TemplateInstruction<0, NoThrow> {
   virtual bool HasUnknownSideEffects() const { return true; }
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
+  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
+
  private:
   const TokenPosition token_pos_;
   const RawPcDescriptors::Kind stub_kind_;
@@ -4561,6 +4665,7 @@ class StoreInstanceFieldInstr : public TemplateInstruction<2, NoThrow> {
 
   PRINT_OPERANDS_TO_SUPPORT
   ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
+  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  private:
   friend class JitCallSpecializer;  // For ASSERT(initialization_).
@@ -7641,8 +7746,9 @@ class CheckNullInstr : public TemplateDefinition<1, Throws, Pure> {
   virtual bool RecomputeType();
 
   // CheckNull can implicitly call Dart code (NoSuchMethodError constructor),
-  // so it can lazily deopt.
+  // so it needs a deopt ID in optimized and unoptimized code.
   virtual bool ComputeCanDeoptimize() const { return true; }
+  virtual bool CanBecomeDeoptimizationTarget() const { return true; }
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
@@ -7652,6 +7758,8 @@ class CheckNullInstr : public TemplateDefinition<1, Throws, Pure> {
                                         FlowGraphCompiler* compiler);
 
   virtual Value* RedefinedValue() const;
+
+  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  private:
   const TokenPosition token_pos_;
@@ -8454,6 +8562,7 @@ class Environment : public ZoneAllocated {
  private:
   friend class ShallowIterator;
   friend class compiler::BlockBuilder;  // For Environment constructor.
+  friend class FlowGraphDeserializer;   // For constructor and deopt_id_.
 
   Environment(intptr_t length,
               intptr_t fixed_parameter_count,

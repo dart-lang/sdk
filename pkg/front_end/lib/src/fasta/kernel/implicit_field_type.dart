@@ -23,12 +23,12 @@ class ImplicitFieldType extends DartType {
 
   ImplicitFieldType(this.member, this.initializerToken);
 
-  accept(DartTypeVisitor<Object> v) {
-    unsupported("accept", member.charOffset, member.fileUri);
+  R accept<R>(DartTypeVisitor<R> v) {
+    throw unsupported("accept", member.charOffset, member.fileUri);
   }
 
-  accept1(DartTypeVisitor1<Object, Object> v, arg) {
-    unsupported("accept1", member.charOffset, member.fileUri);
+  R accept1<R, A>(DartTypeVisitor1<R, A> v, arg) {
+    throw unsupported("accept1", member.charOffset, member.fileUri);
   }
 
   visitChildren(Visitor<Object> v) {

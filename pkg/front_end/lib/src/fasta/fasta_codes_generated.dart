@@ -1719,6 +1719,14 @@ const MessageCode messageConstEvalNullValue = const MessageCode(
     message: r"""Null value during constant evaluation.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstEvalStartingPoint = messageConstEvalStartingPoint;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstEvalStartingPoint = const MessageCode(
+    "ConstEvalStartingPoint",
+    message: r"""Constant evaluation error:""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstEvalUnevaluated = messageConstEvalUnevaluated;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3300,6 +3308,47 @@ Message _withArgumentsExperimentNotEnabled(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExplicitExtensionArgumentMismatch =
+    messageExplicitExtensionArgumentMismatch;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExplicitExtensionArgumentMismatch = const MessageCode(
+    "ExplicitExtensionArgumentMismatch",
+    message:
+        r"""Explicit extension application requires exactly 1 positional argument.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        int
+            count)> templateExplicitExtensionTypeArgumentMismatch = const Template<
+        Message Function(String name, int count)>(
+    messageTemplate:
+        r"""Explicit extension application of extension '#name' takes '#count' type argument(s).""",
+    withArguments: _withArgumentsExplicitExtensionTypeArgumentMismatch);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, int count)>
+    codeExplicitExtensionTypeArgumentMismatch =
+    const Code<Message Function(String name, int count)>(
+  "ExplicitExtensionTypeArgumentMismatch",
+  templateExplicitExtensionTypeArgumentMismatch,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExplicitExtensionTypeArgumentMismatch(
+    String name, int count) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (count == null) throw 'No count provided';
+  return new Message(codeExplicitExtensionTypeArgumentMismatch,
+      message:
+          """Explicit extension application of extension '${name}' takes '${count}' type argument(s).""",
+      arguments: {'name': name, 'count': count});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExportAfterPart = messageExportAfterPart;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3388,6 +3437,39 @@ Message _withArgumentsExtendingRestricted(String name) {
           """'${name}' is restricted and can't be extended or implemented.""",
       arguments: {'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExtensionDeclaresAbstractMember =
+    messageExtensionDeclaresAbstractMember;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExtensionDeclaresAbstractMember = const MessageCode(
+    "ExtensionDeclaresAbstractMember",
+    index: 94,
+    message: r"""Extensions can't declare abstract members.""",
+    tip: r"""Try providing an implementation for the member.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExtensionDeclaresConstructor =
+    messageExtensionDeclaresConstructor;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExtensionDeclaresConstructor = const MessageCode(
+    "ExtensionDeclaresConstructor",
+    index: 92,
+    message: r"""Extensions can't declare constructors.""",
+    tip: r"""Try removing the constructor declaration.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExtensionDeclaresInstanceField =
+    messageExtensionDeclaresInstanceField;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExtensionDeclaresInstanceField = const MessageCode(
+    "ExtensionDeclaresInstanceField",
+    index: 93,
+    message: r"""Extensions can't declare instance fields""",
+    tip: r"""Try removing the field declaration or making it a static field""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExternalClass = messageExternalClass;
@@ -3673,6 +3755,81 @@ Message _withArgumentsFfiDartTypeMismatch(DartType _type, DartType _type2) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiExceptionalReturnNull = messageFfiExceptionalReturnNull;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiExceptionalReturnNull = const MessageCode(
+    "FfiExceptionalReturnNull",
+    message: r"""Exceptional return value must not be null.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiExpectedConstant = messageFfiExpectedConstant;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiExpectedConstant = const MessageCode(
+    "FfiExpectedConstant",
+    message: r"""Exceptional return value must be a constant.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType
+            _type)> templateFfiExpectedExceptionalReturn = const Template<
+        Message Function(DartType _type)>(
+    messageTemplate:
+        r"""Expected an exceptional return value for a native callback returning '#type'.""",
+    withArguments: _withArgumentsFfiExpectedExceptionalReturn);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type)> codeFfiExpectedExceptionalReturn =
+    const Code<Message Function(DartType _type)>(
+  "FfiExpectedExceptionalReturn",
+  templateFfiExpectedExceptionalReturn,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFfiExpectedExceptionalReturn(DartType _type) {
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeFfiExpectedExceptionalReturn,
+      message:
+          """Expected an exceptional return value for a native callback returning '${type}'.""" +
+              labeler.originMessages,
+      arguments: {'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType
+            _type)> templateFfiExpectedNoExceptionalReturn = const Template<
+        Message Function(DartType _type)>(
+    messageTemplate:
+        r"""Exceptional return value cannot be provided for a native callback returning '#type'.""",
+    withArguments: _withArgumentsFfiExpectedNoExceptionalReturn);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type)>
+    codeFfiExpectedNoExceptionalReturn =
+    const Code<Message Function(DartType _type)>(
+  "FfiExpectedNoExceptionalReturn",
+  templateFfiExpectedNoExceptionalReturn,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFfiExpectedNoExceptionalReturn(DartType _type) {
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeFfiExpectedNoExceptionalReturn,
+      message:
+          """Exceptional return value cannot be provided for a native callback returning '${type}'.""" +
+              labeler.originMessages,
+      arguments: {'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateFfiExtendsOrImplementsSealedClass =
     const Template<Message Function(String name)>(
@@ -3702,7 +3859,7 @@ const Template<
     Message Function(String name)> templateFfiFieldAnnotation = const Template<
         Message Function(String name)>(
     messageTemplate:
-        r"""Field '#name' requires exactly one annotation to declare its C++ type, which cannot be Void. dart:ffi Structs cannot have regular Dart fields.""",
+        r"""Field '#name' requires exactly one annotation to declare its native type, which cannot be Void. dart:ffi Structs cannot have regular Dart fields.""",
     withArguments: _withArgumentsFfiFieldAnnotation);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3718,7 +3875,7 @@ Message _withArgumentsFfiFieldAnnotation(String name) {
   name = demangleMixinApplicationName(name);
   return new Message(codeFfiFieldAnnotation,
       message:
-          """Field '${name}' requires exactly one annotation to declare its C++ type, which cannot be Void. dart:ffi Structs cannot have regular Dart fields.""",
+          """Field '${name}' requires exactly one annotation to declare its native type, which cannot be Void. dart:ffi Structs cannot have regular Dart fields.""",
       arguments: {'name': name});
 }
 
@@ -3754,7 +3911,7 @@ const Template<
             name)> templateFfiFieldNoAnnotation = const Template<
         Message Function(String name)>(
     messageTemplate:
-        r"""Field '#name' requires no annotation to declare its C++ type, it is a Pointer which is represented by the same type in Dart and C++.""",
+        r"""Field '#name' requires no annotation to declare its native type, it is a Pointer which is represented by the same type in Dart and native code.""",
     withArguments: _withArgumentsFfiFieldNoAnnotation);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3770,7 +3927,7 @@ Message _withArgumentsFfiFieldNoAnnotation(String name) {
   name = demangleMixinApplicationName(name);
   return new Message(codeFfiFieldNoAnnotation,
       message:
-          """Field '${name}' requires no annotation to declare its C++ type, it is a Pointer which is represented by the same type in Dart and C++.""",
+          """Field '${name}' requires no annotation to declare its native type, it is a Pointer which is represented by the same type in Dart and native code.""",
       arguments: {'name': name});
 }
 
@@ -3779,7 +3936,7 @@ const Template<
     Message Function(String name)> templateFfiNotStatic = const Template<
         Message Function(String name)>(
     messageTemplate:
-        r"""#name expects a static function as parameter. dart:ffi only supports calling static Dart functions from c.""",
+        r"""#name expects a static function as parameter. dart:ffi only supports calling static Dart functions from native code.""",
     withArguments: _withArgumentsFfiNotStatic);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3795,7 +3952,7 @@ Message _withArgumentsFfiNotStatic(String name) {
   name = demangleMixinApplicationName(name);
   return new Message(codeFfiNotStatic,
       message:
-          """${name} expects a static function as parameter. dart:ffi only supports calling static Dart functions from c.""",
+          """${name} expects a static function as parameter. dart:ffi only supports calling static Dart functions from native code.""",
       arguments: {'name': name});
 }
 
@@ -7061,6 +7218,15 @@ Message _withArgumentsMixinApplicationIncompatibleSupertype(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMixinDeclaresConstructor = messageMixinDeclaresConstructor;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMixinDeclaresConstructor = const MessageCode(
+    "MixinDeclaresConstructor",
+    index: 95,
+    message: r"""Mixins can't declare constructors.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String name,
@@ -7959,6 +8125,54 @@ Message _withArgumentsOverrideTypeMismatchReturnType(
           """The return type of the method '${name}' is '${type}', which does not match the return type, '${type2}', of the overridden method, '${name2}'.""" +
               labeler.originMessages,
       tip: """Change to a subtype of '${type2}'.""",
+      arguments: {
+        'name': name,
+        'type': _type,
+        'type2': _type2,
+        'name2': name2
+      });
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        DartType _type,
+        DartType _type2,
+        String
+            name2)> templateOverrideTypeMismatchSetter = const Template<
+        Message Function(
+            String name, DartType _type, DartType _type2, String name2)>(
+    messageTemplate:
+        r"""The field '#name' has type '#type', which does not match the corresponding type, '#type2', in the overridden setter, '#name2'.""",
+    withArguments: _withArgumentsOverrideTypeMismatchSetter);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            String name, DartType _type, DartType _type2, String name2)>
+    codeOverrideTypeMismatchSetter = const Code<
+            Message Function(
+                String name, DartType _type, DartType _type2, String name2)>(
+        "OverrideTypeMismatchSetter", templateOverrideTypeMismatchSetter,
+        analyzerCodes: <String>["INVALID_METHOD_OVERRIDE"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsOverrideTypeMismatchSetter(
+    String name, DartType _type, DartType _type2, String name2) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeOverrideTypeMismatchSetter,
+      message:
+          """The field '${name}' has type '${type}', which does not match the corresponding type, '${type2}', in the overridden setter, '${name2}'.""" +
+              labeler.originMessages,
       arguments: {
         'name': name,
         'type': _type,

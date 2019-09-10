@@ -255,7 +255,7 @@ abstract class _AcceptStructuredClone {
     }
 
     // Assume anything else is already a valid Dart object, either by having
-    // already been processed, or e.g. a clonable native class.
+    // already been processed, or e.g. a cloneable native class.
     return e;
   }
 

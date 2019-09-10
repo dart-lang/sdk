@@ -174,6 +174,44 @@ class KeywordContributorTest extends DartCompletionContributorTest {
         Keyword.WHILE
       ];
 
+  List<Keyword> get statementStartInSwitchCaseInClass => [
+        Keyword.ASSERT,
+        Keyword.BREAK,
+        Keyword.CONST,
+        Keyword.DO,
+        Keyword.FINAL,
+        Keyword.FOR,
+        Keyword.IF,
+        Keyword.NEW,
+        Keyword.RETURN,
+        Keyword.SUPER,
+        Keyword.THIS,
+        Keyword.SWITCH,
+        Keyword.THROW,
+        Keyword.TRY,
+        Keyword.VAR,
+        Keyword.VOID,
+        Keyword.WHILE
+      ];
+
+  List<Keyword> get statementStartInSwitchCaseOutsideClass => [
+        Keyword.ASSERT,
+        Keyword.BREAK,
+        Keyword.CONST,
+        Keyword.DO,
+        Keyword.FINAL,
+        Keyword.FOR,
+        Keyword.IF,
+        Keyword.NEW,
+        Keyword.RETURN,
+        Keyword.SWITCH,
+        Keyword.THROW,
+        Keyword.TRY,
+        Keyword.VAR,
+        Keyword.VOID,
+        Keyword.WHILE
+      ];
+
   List<Keyword> get statementStartInSwitchInClass => [
         Keyword.ASSERT,
         Keyword.BREAK,
@@ -1983,6 +2021,18 @@ f() => [...^];
         relevance: DART_RELEVANCE_HIGH);
   }
 
+  test_switch_statement_case_break_insideClass() async {
+    addTestSource('class A{foo() {switch(1) {case 1: b^}}}');
+    await computeSuggestions();
+    assertSuggestKeywords(statementStartInSwitchCaseInClass);
+  }
+
+  test_switch_statement_case_break_outsideClass() async {
+    addTestSource('foo() {switch(1) {case 1: b^}}');
+    await computeSuggestions();
+    assertSuggestKeywords(statementStartInSwitchCaseOutsideClass);
+  }
+
   test_switch_statement_insideClass() async {
     addTestSource('class A{foo() {switch(1) {case 1:^}}}');
     await computeSuggestions();
@@ -2156,6 +2206,14 @@ class KeywordContributorWithNnbdTest extends KeywordContributorTest {
   @override
   List<Keyword> get statementStartInLoopOutsideClass =>
       super.statementStartInLoopOutsideClass..add(Keyword.LATE);
+
+  @override
+  List<Keyword> get statementStartInSwitchCaseInClass =>
+      super.statementStartInSwitchCaseInClass..add(Keyword.LATE);
+
+  @override
+  List<Keyword> get statementStartInSwitchCaseOutsideClass =>
+      super.statementStartInSwitchCaseOutsideClass..add(Keyword.LATE);
 
   @override
   List<Keyword> get statementStartInSwitchInClass =>

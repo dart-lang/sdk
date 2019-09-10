@@ -184,6 +184,12 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       _backendUsage.isNoSuchMethodUsed = true;
     }
 
+    if (_nativeData.isAllowInteropUsed) {
+      _backendUsage.processBackendImpact(_impacts.allowInterop);
+      enqueuer
+          .applyImpact(_impacts.allowInterop.createImpact(_elementEnvironment));
+    }
+
     if (!enqueuer.queueIsEmpty) return false;
 
     return true;

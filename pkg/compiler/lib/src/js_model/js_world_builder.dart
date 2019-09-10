@@ -288,6 +288,7 @@ class JsClosedWorldBuilder {
         map.toBackendMemberMap(nativeBasicData.jsInteropMembers, identity);
     return new NativeBasicDataImpl(
         _elementEnvironment,
+        nativeBasicData.isAllowInteropUsed,
         nativeClassTagInfo,
         jsInteropLibraries,
         jsInteropClasses,

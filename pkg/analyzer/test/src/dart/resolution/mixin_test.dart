@@ -317,7 +317,7 @@ mixin M {
   M();
 }
 ''', [
-      error(CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 27, 1),
+      error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 27, 1),
       error(StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1, 27, 1),
     ]);
   }
@@ -329,7 +329,7 @@ mixin M {
   M(this.f);
 }
 ''', [
-      error(CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 27, 1),
+      error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 27, 1),
     ]);
 
     var element = findElement.mixin('M');
@@ -830,7 +830,7 @@ mixin M {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 12, 1),
+      error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 12, 1),
     ]);
 
     // Even though it is an error for a mixin to declare a constructor,
@@ -879,7 +879,7 @@ main() {
   new M.named();
 }
 ''', [
-      error(CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 12, 1),
+      error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 12, 1),
       error(CompileTimeErrorCode.MIXIN_INSTANTIATE, 43, 1),
     ]);
 
@@ -1240,10 +1240,10 @@ mixin M on A {
 
 abstract class X extends A with U1, U2, M {}
 ''', [
-      error(StaticWarningCode.UNDEFINED_CLASS, 121, 2),
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 121, 2),
       error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 121, 2),
       error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 125, 2),
-      error(StaticWarningCode.UNDEFINED_CLASS, 125, 2),
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 125, 2),
       error(
           CompileTimeErrorCode
               .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,

@@ -17,11 +17,16 @@ Library getLibrary(NamedNode node) {
   return null;
 }
 
-final Pattern _syntheticTypeCharacters = RegExp('[&^#.]');
+final Pattern _syntheticTypeCharacters = RegExp('[&^#.|]');
 
-String _escapeIdentifier(String identifier) {
+String escapeIdentifier(String identifier) {
   // Remove the special characters used to encode mixin application class names
-  // which are legal in Kernel, but not in JavaScript.
+  // and extension method / parameter names which are legal in Kernel, but not
+  // in JavaScript.
+  //
+  // Note, there is an implicit assumption here that we won't have
+  // collisions since everything is mapped to \$.  That may work out fine given
+  // how these are sythesized, but may need to revisit.
   return identifier?.replaceAll(_syntheticTypeCharacters, r'$');
 }
 
@@ -32,13 +37,13 @@ String _escapeIdentifier(String identifier) {
 ///
 /// In the current encoding, generic classes are generated in a function scope
 /// which avoids name clashes of the escaped class name.
-String getLocalClassName(Class node) => _escapeIdentifier(node.name);
+String getLocalClassName(Class node) => escapeIdentifier(node.name);
 
 /// Returns the escaped name for the type parameter [node].
 ///
 /// In the current encoding, generic classes are generated in a function scope
 /// which avoids name clashes of the escaped parameter name.
-String getTypeParameterName(TypeParameter node) => _escapeIdentifier(node.name);
+String getTypeParameterName(TypeParameter node) => escapeIdentifier(node.name);
 
 String getTopLevelName(NamedNode n) {
   if (n is Procedure) return n.name.name;
@@ -101,7 +106,6 @@ bool isBuiltinAnnotation(
 /// This function works regardless of whether the CFE is evaluating constants,
 /// or whether the constant is a field reference (such as "anonymous" above).
 Class getAnnotationClass(Expression node) {
-  node = unwrapUnevaluatedConstant(node);
   if (node is ConstantExpression) {
     var constant = node.constant;
     if (constant is InstanceConstant) return constant.classNode;
@@ -112,19 +116,6 @@ Class getAnnotationClass(Expression node) {
     if (type is InterfaceType) return type.classNode;
   }
   return null;
-}
-
-Expression unwrapUnevaluatedConstant(Expression node) {
-  // TODO(jmesserly): see if we can configure CFE to preseve the original
-  // expression, rather than wrapping in an UnevaluatedConstant and then
-  // a ConstantExpression.
-  if (node is ConstantExpression) {
-    var constant = node.constant;
-    if (constant is UnevaluatedConstant) {
-      return constant.expression;
-    }
-  }
-  return node;
 }
 
 /// Returns true if [name] is an operator method that is available on primitive

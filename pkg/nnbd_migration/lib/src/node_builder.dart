@@ -60,21 +60,36 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   final TypeProvider _typeProvider;
 
+  /// For convenience, a [DecoratedType] representing `dynamic`.
+  final DecoratedType _dynamicType;
+
   /// For convenience, a [DecoratedType] representing non-nullable `Object`.
   final DecoratedType _nonNullableObjectType;
 
+  /// For convenience, a [DecoratedType] representing non-nullable `StackTrace`.
+  final DecoratedType _nonNullableStackTraceType;
+
   NodeBuilder(this._variables, this.source, this.listener, this._graph,
       this._typeProvider)
-      : _nonNullableObjectType =
-            DecoratedType(_typeProvider.objectType, _graph.never);
+      : _dynamicType = DecoratedType(_typeProvider.dynamicType, _graph.always),
+        _nonNullableObjectType =
+            DecoratedType(_typeProvider.objectType, _graph.never),
+        _nonNullableStackTraceType =
+            DecoratedType(_typeProvider.stackTraceType, _graph.never);
 
   @override
   DecoratedType visitCatchClause(CatchClause node) {
     DecoratedType exceptionType = node.exceptionType?.accept(this);
     if (node.exceptionParameter != null) {
-      exceptionType ??= DecoratedType(_typeProvider.objectType, _graph.never);
+      // If there is no `on Type` part of the catch clause, the type is dynamic.
+      exceptionType ??= _dynamicType;
       _variables.recordDecoratedElementType(
           node.exceptionParameter.staticElement, exceptionType);
+    }
+    if (node.stackTraceParameter != null) {
+      // The type of stack traces is always StackTrace (non-nullable).
+      _variables.recordDecoratedElementType(
+          node.stackTraceParameter.staticElement, _nonNullableStackTraceType);
     }
     node.stackTraceParameter?.accept(this);
     node.body?.accept(this);
@@ -366,18 +381,26 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         parent is ImplementsClause ||
         parent is WithClause ||
         parent is OnClause ||
-        parent is ClassTypeAlias ||
-        parent is CatchClause) {
+        parent is ClassTypeAlias) {
       nullabilityNode = _graph.never;
     } else {
       nullabilityNode = NullabilityNode.forTypeAnnotation(node.end);
     }
-    var decoratedType = DecoratedType(type, nullabilityNode,
-        typeArguments: typeArguments,
-        returnType: decoratedReturnType,
-        positionalParameters: positionalParameters,
-        namedParameters: namedParameters,
-        typeFormalBounds: typeFormalBounds);
+    DecoratedType decoratedType;
+    if (type is FunctionType && node is! GenericFunctionType) {
+      // node is a reference to a typedef.  Treat it like an inferred type (we
+      // synthesize new nodes for it).  These nodes will be unioned with the
+      // typedef nodes by the edge builder.
+      decoratedType = DecoratedType.forImplicitFunction(
+          _typeProvider, type, nullabilityNode, _graph);
+    } else {
+      decoratedType = DecoratedType(type, nullabilityNode,
+          typeArguments: typeArguments,
+          returnType: decoratedReturnType,
+          positionalParameters: positionalParameters,
+          namedParameters: namedParameters,
+          typeFormalBounds: typeFormalBounds);
+    }
     _variables.recordDecoratedTypeAnnotation(
         source,
         node,

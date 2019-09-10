@@ -55,7 +55,7 @@ class A {
 }
 var v = const A(null);
 ''', [
-      error(StaticWarningCode.UNDEFINED_CLASS, 18, 10),
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 18, 10),
     ]);
   }
 
@@ -245,7 +245,7 @@ class A {
 }
 var v = const A('foo');
 ''', [
-      error(StaticWarningCode.UNDEFINED_CLASS, 18, 10),
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 18, 10),
     ]);
   }
 
@@ -418,7 +418,7 @@ class A {
 }
 var v = const A('foo');
 ''', [
-      error(StaticWarningCode.UNDEFINED_CLASS, 40, 10),
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 40, 10),
     ]);
   }
 
@@ -458,7 +458,7 @@ class A {
 }
 var v = const A(null);
 ''', [
-      error(StaticWarningCode.UNDEFINED_CLASS, 40, 10),
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 40, 10),
     ]);
   }
 
@@ -523,7 +523,7 @@ class A {
 }
 var v = const A(null);
 ''', [
-      error(StaticWarningCode.UNDEFINED_CLASS, 20, 10),
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 20, 10),
     ]);
   }
 
@@ -564,7 +564,7 @@ class A {
 }
 var v = const A('foo');
 ''', [
-      error(StaticWarningCode.UNDEFINED_CLASS, 20, 10),
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 20, 10),
     ]);
   }
 
@@ -607,7 +607,7 @@ const int x = null;
     await assertErrorsInCode('''
 const Unresolved x = null;
 ''', [
-      error(StaticWarningCode.UNDEFINED_CLASS, 6, 10),
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 6, 10),
     ]);
   }
 
@@ -624,7 +624,7 @@ const int x = 'foo';
     await assertErrorsInCode('''
 const Unresolved x = 'foo';
 ''', [
-      error(StaticWarningCode.UNDEFINED_CLASS, 6, 10),
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 6, 10),
     ]);
   }
 }

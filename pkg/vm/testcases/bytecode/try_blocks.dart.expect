@@ -347,10 +347,10 @@ ConstantPool {
 Closure #lib::testTryCatch3::'foo' () -> void
 ClosureCode {
   EntryFixed           1, 6
-  CheckStack           0
   Push                 FP[-5]
   LoadFieldTOS         CP#1
   PopLocal             r0
+  CheckStack           0
   Push                 r0
   PopLocal             r2
 Try #0 start:
@@ -383,10 +383,10 @@ L1:
 Closure #lib::testTryCatch3::'bar' () -> void
 ClosureCode {
   EntryFixed           1, 6
-  CheckStack           0
   Push                 FP[-5]
   LoadFieldTOS         CP#1
   PopLocal             r0
+  CheckStack           0
   Push                 r0
   PopLocal             r2
 Try #0 start:
@@ -735,10 +735,10 @@ ConstantPool {
 Closure #lib::testTryFinally2::'foo' () -> void
 ClosureCode {
   EntryFixed           1, 2
-  CheckStack           0
   Push                 FP[-5]
   LoadFieldTOS         CP#7
   PopLocal             r0
+  CheckStack           0
   Push                 r0
   LoadContextVar       0, 0
   DirectCall           CP#3, 1
@@ -800,7 +800,7 @@ Try #0 handler:
   DirectCall           CP#3, 1
   Drop1
   Push                 r2
-  DynamicCall          CP#19, 1
+  DynamicCall          CP#18, 1
   Drop1
   Push                 r3
   Push                 r4
@@ -813,7 +813,7 @@ L1:
   DirectCall           CP#3, 1
   Drop1
   Push                 r2
-  DynamicCall          CP#20, 1
+  DynamicCall          CP#18, 1
   Drop1
   Push                 r0
   LoadContextParent
@@ -843,17 +843,16 @@ ConstantPool {
   [15] = Reserved
   [16] = InstanceField dart:core::_Closure::_function (field)
   [17] = Reserved
-  [18] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
-  [19] = ICData dynamic target-name 'call', arg-desc CP#18
-  [20] = ICData dynamic target-name 'call', arg-desc CP#18
+  [18] = DynamicCall 'call', ArgDesc num-args 1, num-type-args 0, names []
+  [19] = Reserved
 }
 Closure #lib::testTryFinally3::'<anonymous closure>' () -> dart:core::int
 ClosureCode {
   EntryFixed           1, 6
-  CheckStack           0
   Push                 FP[-5]
   LoadFieldTOS         CP#1
   PopLocal             r0
+  CheckStack           0
   Push                 r0
   LoadContextVar       0, 0
   DirectCall           CP#3, 1

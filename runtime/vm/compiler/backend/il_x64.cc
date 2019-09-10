@@ -1024,10 +1024,6 @@ void NativeEntryInstr::SaveArgument(FlowGraphCompiler* compiler,
 }
 
 void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if (FLAG_precompiled_mode) {
-    UNREACHABLE();
-  }
-
   __ Bind(compiler->GetJumpLabel(this));
 
   // Create a dummy frame holding the pushed arguments. This simplifies
@@ -1055,9 +1051,38 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ PushRegisters(CallingConventions::kCalleeSaveCpuRegisters,
                    CallingConventions::kCalleeSaveXmmRegisters);
 
-  // Load the thread object.
-  // TODO(35765): Fix linking issue on AOT.
-  //
+  // Load the address of DLRT_GetThreadForNativeCallback without using Thread.
+  if (FLAG_precompiled_mode) {
+    compiler::Label skip_reloc;
+    __ jmp(&skip_reloc);
+    compiler->InsertBSSRelocation(
+        BSS::Relocation::DRT_GetThreadForNativeCallback);
+    const intptr_t reloc_end = __ CodeSize();
+    __ Bind(&skip_reloc);
+
+    const intptr_t kLeaqLength = 7;
+    __ leaq(RAX, compiler::Address::AddressRIPRelative(
+                     -kLeaqLength - compiler::target::kWordSize));
+    ASSERT((__ CodeSize() - reloc_end) == kLeaqLength);
+
+    // RAX holds the address of the relocation.
+    __ movq(RCX, compiler::Address(RAX, 0));
+
+    // RCX holds the relocation itself: RAX - bss_start.
+    // RAX = RAX + (bss_start - RAX) = bss_start
+    __ addq(RAX, RCX);
+
+    // RAX holds the start of the BSS section.
+    // Load the "get-thread" routine: *bss_start.
+    __ movq(RAX, compiler::Address(RAX, 0));
+  } else if (!NativeCallbackTrampolines::Enabled()) {
+    // In JIT mode, we can just paste the address of the runtime entry into the
+    // generated code directly. This is not a problem since we don't save
+    // callbacks into JIT snapshots.
+    __ movq(RAX, compiler::Immediate(reinterpret_cast<intptr_t>(
+                     DLRT_GetThreadForNativeCallback)));
+  }
+
   // Create another frame to align the frame before continuing in "native" code.
   // If we were called by a trampoline, it has already loaded the thread.
   if (!NativeCallbackTrampolines::Enabled()) {
@@ -1066,8 +1091,6 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     COMPILE_ASSERT(RAX != CallingConventions::kArg1Reg);
     __ movq(CallingConventions::kArg1Reg, compiler::Immediate(callback_id_));
-    __ movq(RAX, compiler::Immediate(reinterpret_cast<int64_t>(
-                     DLRT_GetThreadForNativeCallback)));
     __ CallCFunction(RAX);
     __ movq(THR, RAX);
 
@@ -4779,7 +4802,7 @@ LocationSummary* MathMinMaxInstr::MakeLocationSummary(Zone* zone,
 void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT((op_kind() == MethodRecognizer::kMathMin) ||
          (op_kind() == MethodRecognizer::kMathMax));
-  const intptr_t is_min = (op_kind() == MethodRecognizer::kMathMin);
+  const bool is_min = op_kind() == MethodRecognizer::kMathMin;
   if (result_cid() == kDoubleCid) {
     compiler::Label done, returns_nan, are_equal;
     XmmRegister left = locs()->in(0).fpu_reg();
@@ -5689,6 +5712,64 @@ static void EmitInt64ModTruncDiv(FlowGraphCompiler* compiler,
                                  Register tmp,
                                  Register out) {
   ASSERT(op_kind == Token::kMOD || op_kind == Token::kTRUNCDIV);
+
+  // Special case 64-bit div/mod by compile-time constant. Note that various
+  // special constants (such as powers of two) should have been optimized
+  // earlier in the pipeline. Div or mod by zero falls into general code
+  // to implement the exception.
+  if (auto c = instruction->right()->definition()->AsConstant()) {
+    if (c->value().IsInteger()) {
+      const int64_t divisor = Integer::Cast(c->value()).AsInt64Value();
+      if (divisor <= -2 || divisor >= 2) {
+        // For x DIV c or x MOD c: use magic operations.
+        compiler::Label pos;
+        int64_t magic = 0;
+        int64_t shift = 0;
+        Utils::CalculateMagicAndShiftForDivRem(divisor, &magic, &shift);
+        // RDX:RAX = magic * numerator.
+        ASSERT(left == RAX);
+        __ MoveRegister(TMP, RAX);  // save numerator
+        __ LoadImmediate(RAX, compiler::Immediate(magic));
+        __ imulq(TMP);
+        // RDX +/-= numerator.
+        if (divisor > 0 && magic < 0) {
+          __ addq(RDX, TMP);
+        } else if (divisor < 0 && magic > 0) {
+          __ subq(RDX, TMP);
+        }
+        // Shift if needed.
+        if (shift != 0) {
+          __ sarq(RDX, compiler::Immediate(shift));
+        }
+        // RDX += 1 if RDX < 0.
+        __ movq(RAX, RDX);
+        __ shrq(RDX, compiler::Immediate(63));
+        __ addq(RDX, RAX);
+        // Finalize DIV or MOD.
+        if (op_kind == Token::kTRUNCDIV) {
+          ASSERT(out == RAX && tmp == RDX);
+          __ movq(RAX, RDX);
+        } else {
+          ASSERT(out == RDX && tmp == RAX);
+          __ movq(RAX, TMP);
+          __ LoadImmediate(TMP, compiler::Immediate(divisor));
+          __ imulq(RDX, TMP);
+          __ subq(RAX, RDX);
+          // Compensate for Dart's Euclidean view of MOD.
+          __ testq(RAX, RAX);
+          __ j(GREATER_EQUAL, &pos);
+          if (divisor > 0) {
+            __ addq(RAX, TMP);
+          } else {
+            __ subq(RAX, TMP);
+          }
+          __ Bind(&pos);
+          __ movq(RDX, RAX);
+        }
+        return;
+      }
+    }
+  }
 
   // Prepare a slow path.
   Range* right_range = instruction->right()->definition()->range();

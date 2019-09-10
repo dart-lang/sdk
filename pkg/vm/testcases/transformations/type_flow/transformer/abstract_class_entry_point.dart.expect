@@ -1,0 +1,8 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+@#C3
+abstract class AbstractEmptyClass extends core::Object {
+}
+static method main() → dynamic {}

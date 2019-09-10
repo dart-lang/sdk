@@ -397,7 +397,7 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
     __ ldr(R1, Address(PC, 0));
     __ b(&call);
     __ Emit(
-        reinterpret_cast<int32_t>(&DLRT_GetThreadForNativeCallbackTrampoline));
+        reinterpret_cast<intptr_t>(&DLRT_GetThreadForNativeCallbackTrampoline));
 
     __ Bind(&call);
     __ blx(R1);

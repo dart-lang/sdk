@@ -150,6 +150,11 @@ class Utils {
   static int CountLeadingZeros(uword x);
   static int CountTrailingZeros(uword x);
 
+  // Computes magic numbers to implement DIV or MOD operator.
+  static void CalculateMagicAndShiftForDivRem(int64_t divisor,
+                                              int64_t* magic,
+                                              int64_t* shift);
+
   // Computes a hash value for the given string.
   static uint32_t StringHash(const char* data, int length);
 

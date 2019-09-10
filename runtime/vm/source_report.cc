@@ -5,6 +5,7 @@
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/source_report.h"
 
+#include "vm/bit_vector.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/isolate.h"
 #include "vm/kernel_loader.h"
@@ -57,8 +58,7 @@ void SourceReport::Init(Thread* thread,
     // Build the profile.
     SampleFilter samplesForIsolate(thread_->isolate()->main_port(),
                                    Thread::kMutatorTask, -1, -1);
-    profile_.Build(thread, &samplesForIsolate, Profiler::sample_buffer(),
-                   Profile::kNoTags);
+    profile_.Build(thread, &samplesForIsolate, Profiler::sample_buffer());
   }
 }
 
@@ -330,11 +330,8 @@ void SourceReport::PrintPossibleBreakpointsData(JSONObject* jsobj,
   const TokenPosition begin_pos = func.token_pos();
   const TokenPosition end_pos = func.end_token_pos();
   intptr_t func_length = (end_pos.Pos() - begin_pos.Pos()) + 1;
-  GrowableArray<char> possible(func_length);
-  possible.SetLength(func_length);
-  for (int i = 0; i < func_length; i++) {
-    possible[i] = false;
-  }
+
+  BitVector possible(zone(), func_length);
 
   if (code.IsNull()) {
     const Bytecode& bytecode = Bytecode::Handle(func.bytecode());
@@ -354,7 +351,7 @@ void SourceReport::PrintPossibleBreakpointsData(JSONObject* jsobj,
           // source position range.
           if (bytecode.GetDebugCheckedOpcodeReturnAddress(
                   pc_offset, iter.PcOffset()) != 0) {
-            possible[token_offset] = true;
+            possible.Add(token_offset);
           }
           pc_offset = kUwordMax;
         }
@@ -373,7 +370,7 @@ void SourceReport::PrintPossibleBreakpointsData(JSONObject* jsobj,
     }
     if (pc_offset != kUwordMax && bytecode.GetDebugCheckedOpcodeReturnAddress(
                                       pc_offset, bytecode.Size()) != 0) {
-      possible[token_offset] = true;
+      possible.Add(token_offset);
     }
   } else {
     const uint8_t kSafepointKind =
@@ -391,13 +388,13 @@ void SourceReport::PrintPossibleBreakpointsData(JSONObject* jsobj,
         continue;
       }
       intptr_t token_offset = token_pos.Pos() - begin_pos.Pos();
-      possible[token_offset] = true;
+      possible.Add(token_offset);
     }
   }
 
   JSONArray bpts(jsobj, "possibleBreakpoints");
   for (int i = 0; i < func_length; i++) {
-    if (possible[i]) {
+    if (possible.Contains(i)) {
       // Add the token position.
       bpts.AddValue(begin_pos.Pos() + i);
     }

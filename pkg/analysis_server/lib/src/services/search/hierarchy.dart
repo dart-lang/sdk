@@ -64,6 +64,28 @@ Future<Set<ClassElement>> getDirectSubClasses(
   return matches.map((match) => match.element).cast<ClassElement>().toSet();
 }
 
+/// Return the non-synthetic children of the given [extension]. This includes
+/// fields, accessors and methods, but excludes synthetic elements.
+List<Element> getExtensionMembers(ExtensionElement extension, [String name]) {
+  List<Element> members = <Element>[];
+  visitChildren(extension, (Element element) {
+    if (element.isSynthetic) {
+      return false;
+    }
+    if (name != null && element.displayName != name) {
+      return false;
+    }
+    if (element is ExecutableElement) {
+      members.add(element);
+    }
+    if (element is FieldElement) {
+      members.add(element);
+    }
+    return false;
+  });
+  return members;
+}
+
 /**
  * @return all implementations of the given {@link ClassMemberElement} is its superclasses and
  *         their subclasses.

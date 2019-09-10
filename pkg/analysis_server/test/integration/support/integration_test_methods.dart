@@ -135,6 +135,20 @@ abstract class IntegrationTestMixin {
   StreamController<ServerErrorParams> _onServerError;
 
   /**
+   * The stream of entries describing events happened in the server.
+   *
+   * Parameters
+   *
+   * entry: ServerLogEntry
+   */
+  Stream<ServerLogParams> onServerLog;
+
+  /**
+   * Stream controller for [onServerLog].
+   */
+  StreamController<ServerLogParams> _onServerLog;
+
+  /**
    * Reports the current status of the server. Parameters are omitted if there
    * has been no change in the status represented by that parameter.
    *
@@ -2739,6 +2753,8 @@ abstract class IntegrationTestMixin {
     onServerConnected = _onServerConnected.stream.asBroadcastStream();
     _onServerError = new StreamController<ServerErrorParams>(sync: true);
     onServerError = _onServerError.stream.asBroadcastStream();
+    _onServerLog = new StreamController<ServerLogParams>(sync: true);
+    onServerLog = _onServerLog.stream.asBroadcastStream();
     _onServerStatus = new StreamController<ServerStatusParams>(sync: true);
     onServerStatus = _onServerStatus.stream.asBroadcastStream();
     _onAnalysisAnalyzedFiles =
@@ -2814,6 +2830,11 @@ abstract class IntegrationTestMixin {
         outOfTestExpect(params, isServerErrorParams);
         _onServerError
             .add(new ServerErrorParams.fromJson(decoder, 'params', params));
+        break;
+      case "server.log":
+        outOfTestExpect(params, isServerLogParams);
+        _onServerLog
+            .add(new ServerLogParams.fromJson(decoder, 'params', params));
         break;
       case "server.status":
         outOfTestExpect(params, isServerStatusParams);

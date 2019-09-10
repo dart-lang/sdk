@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -33,7 +32,7 @@ import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 
-import 'analysis_context_factory.dart';
+import 'test_analysis_context.dart';
 import 'test_support.dart';
 
 const String _defaultSourceName = "/test.dart";
@@ -245,8 +244,8 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
     if (node.name == "void") {
       return;
     }
-    if (resolutionMap.staticTypeForExpression(node) != null &&
-        resolutionMap.staticTypeForExpression(node).isDynamic &&
+    if (node.staticType != null &&
+        node.staticType.isDynamic &&
         node.staticElement == null) {
       return;
     }
@@ -285,10 +284,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
       if (root is CompilationUnit) {
         CompilationUnit rootCU = root;
         if (rootCU.declaredElement != null) {
-          return resolutionMap
-              .elementDeclaredByCompilationUnit(rootCU)
-              .source
-              .fullName;
+          return rootCU.declaredElement.source.fullName;
         } else {
           return "<unknown file- CompilationUnit.getElement() returned null>";
         }
@@ -521,10 +517,8 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
    *
    * @return the library element that was created
    */
-  LibraryElementImpl createDefaultTestLibrary() => createTestLibrary(
-      AnalysisContextFactory.contextWithCore(
-          resourceProvider: resourceProvider),
-      "test");
+  LibraryElementImpl createDefaultTestLibrary() =>
+      createTestLibrary(TestAnalysisContext(), "test");
 
   /**
    * Return a source object representing a file with the given [fileName].

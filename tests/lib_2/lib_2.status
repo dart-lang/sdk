@@ -117,9 +117,6 @@ html/transition_event_test: Skip # Times out. Issue 22167
 [ $runtime != dart_precompiled && ($runtime != vm || $compiler != dartk && $compiler != none) ]
 isolate/vm_rehash_test: SkipByDesign
 
-[ !$preview_dart_2 && ($runtime == dart_precompiled || $runtime == vm) ]
-*: SkipByDesign # Deprecating all Dart1 modes of execution
-
 [ $arch == simarm || $arch == simarmv5te || $arch == simarmv6 ]
 convert/utf85_test: Skip # Pass, Slow Issue 12644.
 

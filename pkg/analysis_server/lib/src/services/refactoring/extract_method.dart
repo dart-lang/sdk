@@ -20,7 +20,6 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -452,8 +451,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     AstNode parent = _parentMember.parent;
     // top-level function
     if (parent is CompilationUnit) {
-      LibraryElement libraryElement =
-          resolutionMap.elementDeclaredByCompilationUnit(parent).library;
+      LibraryElement libraryElement = parent.declaredElement.library;
       return validateCreateFunction(searchEngine, libraryElement, name);
     }
     // method of class

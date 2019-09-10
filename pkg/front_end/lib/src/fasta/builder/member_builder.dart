@@ -4,11 +4,16 @@
 
 library fasta.member_builder;
 
+import 'dart:core' hide MapEntry;
+
+import 'package:kernel/ast.dart';
+
 import '../problems.dart' show unsupported;
 
 import 'builder.dart'
     show ClassBuilder, Builder, LibraryBuilder, ModifierBuilder;
 
+import 'declaration.dart';
 import 'declaration_builder.dart';
 import 'extension_builder.dart';
 
@@ -53,11 +58,30 @@ abstract class MemberBuilder extends ModifierBuilder {
     if (parent is LibraryBuilder) {
       LibraryBuilder library = parent;
       return library.partOfLibrary ?? library;
+    } else if (parent is ExtensionBuilder) {
+      ExtensionBuilder extension = parent;
+      return extension.library;
     } else {
       ClassBuilder cls = parent;
       return cls.library;
     }
   }
+
+  /// The [Member] built by this builder;
+  Member get member;
+
+  // TODO(johnniwinther): Deprecate this.
+  Member get target => member;
+
+  // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
+  Member get extensionTearOff =>
+      unsupported("extensionTearOff", charOffset, fileUri);
+
+  // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
+  Procedure get procedure => unsupported("procedure", charOffset, fileUri);
+
+  // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
+  ProcedureKind get kind => unsupported("kind", charOffset, fileUri);
 
   void buildOutlineExpressions(LibraryBuilder library) {}
 

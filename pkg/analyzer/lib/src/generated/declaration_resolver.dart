@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -299,6 +298,14 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
         _walk(new ElementWalker.forGenericFunctionType(element), () {
           super.visitGenericFunctionType(node);
         });
+      } else {
+        var builder = new LocalElementBuilder(ElementHolder(), _enclosingUnit);
+        node.accept(builder);
+
+        var nodeImpl = node as GenericFunctionTypeImpl;
+        _enclosingUnit.encloseElement(
+          nodeImpl.declaredElement as GenericFunctionTypeElementImpl,
+        );
       }
     }
   }
@@ -561,168 +568,6 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
     _walker = outerWalker;
   }
 
-  /// Apply the [type] that is created by the [constructorName] and the
-  /// [constructorElement] it references.
-  static void applyConstructorElement(
-      LibraryElement enclosingLibraryElement,
-      PrefixElement prefixElement,
-      ConstructorElement constructorElement,
-      DartType type,
-      ConstructorName constructorName) {
-    constructorName.staticElement = constructorElement;
-
-    ClassElement classElement = constructorElement?.enclosingElement;
-
-    Identifier typeIdentifier = constructorName.type.name;
-    if (prefixElement != null) {
-      PrefixedIdentifier prefixedTypeIdentifier = typeIdentifier;
-      prefixedTypeIdentifier.staticType = type;
-
-      prefixedTypeIdentifier.prefix.staticElement = prefixElement;
-
-      SimpleIdentifier classNode = prefixedTypeIdentifier.identifier;
-      classNode.staticElement = classElement;
-      classNode.staticType = type;
-    } else {
-      if (typeIdentifier is SimpleIdentifier) {
-        typeIdentifier.staticElement = classElement;
-        typeIdentifier.staticType = type;
-      } else if (typeIdentifier is PrefixedIdentifier) {
-        constructorName.type = astFactory.typeName(typeIdentifier.prefix, null);
-        constructorName.period = typeIdentifier.period;
-        constructorName.name = typeIdentifier.identifier;
-      }
-    }
-
-    constructorName.name?.staticElement = constructorElement;
-
-    DeclarationResolver.applyToTypeAnnotation(
-        enclosingLibraryElement, type, constructorName.type);
-  }
-
-  /// Apply the types of the [parameterElements] to the [parameterList] that
-  /// have an explicit type annotation.
-  static void applyParameters(
-      LibraryElement enclosingLibraryElement,
-      List<ParameterElement> parameterElements,
-      FormalParameterList parameterList) {
-    List<FormalParameter> parameters = parameterList.parameters;
-
-    int length = parameterElements.length;
-    if (parameters.length != length) {
-      throw new StateError('Parameter counts do not match');
-    }
-    for (int i = 0; i < length; i++) {
-      ParameterElementImpl element = parameterElements[i];
-      FormalParameter parameter = parameters[i];
-
-      DeclarationResolver.resolveMetadata(
-          parameter, parameter.metadata, element);
-
-      NormalFormalParameter normalParameter;
-      if (parameter is NormalFormalParameter) {
-        normalParameter = parameter;
-      } else if (parameter is DefaultFormalParameter) {
-        normalParameter = parameter.parameter;
-      }
-      assert(normalParameter != null);
-
-      if (normalParameter is SimpleFormalParameterImpl) {
-        normalParameter.declaredElement = element;
-      }
-
-      if (normalParameter.identifier != null) {
-        element.nameOffset = normalParameter.identifier.offset;
-        normalParameter.identifier.staticElement = element;
-        normalParameter.identifier.staticType = element.type;
-      }
-
-      // Apply the type or the return type, if a function typed parameter.
-      TypeAnnotation functionReturnType;
-      FormalParameterList functionParameterList;
-      if (normalParameter is SimpleFormalParameter) {
-        applyToTypeAnnotation(
-            enclosingLibraryElement, element.type, normalParameter.type);
-      } else if (normalParameter is FunctionTypedFormalParameter) {
-        functionReturnType = normalParameter.returnType;
-        functionParameterList = normalParameter.parameters;
-      } else if (normalParameter is FieldFormalParameter) {
-        if (normalParameter.parameters == null) {
-          applyToTypeAnnotation(
-              enclosingLibraryElement, element.type, normalParameter.type);
-        } else {
-          functionReturnType = normalParameter.type;
-          functionParameterList = normalParameter.parameters;
-        }
-      }
-
-      if (functionParameterList != null) {
-        FunctionType elementType = element.type;
-        if (functionReturnType != null) {
-          applyToTypeAnnotation(enclosingLibraryElement, elementType.returnType,
-              functionReturnType);
-        }
-        applyParameters(enclosingLibraryElement, elementType.parameters,
-            functionParameterList);
-      }
-    }
-  }
-
-  /// Apply the [type] to the [typeAnnotation] by setting the type of the
-  /// [typeAnnotation] to the [type] and recursively applying each of the type
-  /// arguments of the [type] to the corresponding type arguments of the
-  /// [typeAnnotation].
-  static void applyToTypeAnnotation(LibraryElement enclosingLibraryElement,
-      DartType type, TypeAnnotation typeAnnotation) {
-    if (typeAnnotation is GenericFunctionTypeImpl) {
-      if (type is! FunctionType) {
-        throw new StateError('Non-function type ($type) '
-            'for generic function annotation ($typeAnnotation)');
-      }
-      FunctionType functionType = type;
-      typeAnnotation.type = type;
-      applyToTypeAnnotation(enclosingLibraryElement, functionType.returnType,
-          typeAnnotation.returnType);
-      applyParameters(enclosingLibraryElement, functionType.parameters,
-          typeAnnotation.parameters);
-    } else if (typeAnnotation is TypeNameImpl) {
-      typeAnnotation.type = type;
-
-      Identifier typeIdentifier = typeAnnotation.name;
-      SimpleIdentifier typeName;
-      if (typeIdentifier is PrefixedIdentifier) {
-        if (enclosingLibraryElement != null) {
-          String prefixName = typeIdentifier.prefix.name;
-          for (var import in enclosingLibraryElement.imports) {
-            if (import.prefix?.name == prefixName) {
-              typeIdentifier.prefix.staticElement = import.prefix;
-              break;
-            }
-          }
-        }
-        typeName = typeIdentifier.identifier;
-      } else {
-        typeName = typeIdentifier;
-      }
-
-      Element typeElement = type.element;
-      if (typeElement is GenericFunctionTypeElement &&
-          typeElement.enclosingElement is GenericTypeAliasElement) {
-        typeElement = typeElement.enclosingElement;
-      }
-
-      typeName.staticElement = typeElement;
-      typeName.staticType = type;
-    }
-    if (typeAnnotation is NamedType) {
-      TypeArgumentList typeArguments = typeAnnotation.typeArguments;
-      if (typeArguments != null) {
-        _applyTypeArgumentsToList(
-            enclosingLibraryElement, type, typeArguments.arguments);
-      }
-    }
-  }
-
   /// Associate each of the annotation [nodes] with the corresponding
   /// [ElementAnnotation] in [annotations]. If there is a problem, report it
   /// against the given [parent] node.
@@ -749,31 +594,6 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
       AstNode parent, NodeList<Annotation> nodes, Element element) {
     if (element != null) {
       resolveAnnotations(parent, nodes, element.metadata);
-    }
-  }
-
-  /// Recursively apply each of the type arguments of the [type] to the
-  /// corresponding type arguments of the [typeArguments].
-  static void _applyTypeArgumentsToList(LibraryElement enclosingLibraryElement,
-      DartType type, List<TypeAnnotation> typeArguments) {
-    if (type != null && type.isDynamic) {
-      for (TypeAnnotation argument in typeArguments) {
-        applyToTypeAnnotation(enclosingLibraryElement, type, argument);
-      }
-    } else if (type is ParameterizedType) {
-      List<DartType> argumentTypes = type.typeArguments;
-      int argumentCount = argumentTypes.length;
-      if (argumentCount != typeArguments.length) {
-        throw new StateError('Found $argumentCount argument types '
-            'for ${typeArguments.length} type arguments');
-      }
-      for (int i = 0; i < argumentCount; i++) {
-        applyToTypeAnnotation(
-            enclosingLibraryElement, argumentTypes[i], typeArguments[i]);
-      }
-    } else {
-      throw new StateError('Attempting to apply a non-parameterized type '
-          '(${type.runtimeType}) to type arguments');
     }
   }
 

@@ -34,7 +34,7 @@ class Future<T> {
 
   Future<R> then<R>(FutureOr<R> onValue(T value)) => null;
   Future<T> whenComplete(action());
-  
+
   static Future<List<T>> wait<T>(Iterable<Future<T>> futures) => null;
 }
 
@@ -43,10 +43,12 @@ class FutureOr<T> {}
 abstract class Completer<T> {
   factory Completer() => null;
   factory Completer.sync() => null;
+
   Future<T> get future;
+  bool get isCompleted;
+
   void complete([value]);
   void completeError(Object error, [StackTrace stackTrace]);
-  bool get isCompleted;
 }
 
 abstract class Timer {
@@ -59,27 +61,31 @@ abstract class Timer {
     '$sdkRoot/lib/async/stream.dart',
     r'''
 part of dart.async;
+
 abstract class Stream<T> {
+  Stream();
+  factory Stream.fromIterable(Iterable<T> data) => null;
+
   Future<T> get first;
+
   StreamSubscription<T> listen(void onData(T event),
                                { Function onError,
                                  void onDone(),
                                  bool cancelOnError});
-  Stream();
-  factory Stream.fromIterable(Iterable<T> data) => null;
 }
 
 abstract class StreamIterator<T> {}
 
 abstract class StreamSubscription<T> {
+  bool get isPaused;
+
+  Future<E> asFuture<E>([E futureValue]);
   Future cancel();
   void onData(void handleData(T data));
   void onError(Function handleError);
   void onDone(void handleDone());
   void pause([Future resumeSignal]);
   void resume();
-  bool get isPaused;
-  Future<E> asFuture<E>([E futureValue]);
 }
 
 abstract class StreamTransformer<S, T> {}
@@ -106,15 +112,59 @@ final MockSdkLibrary _LIB_COLLECTION = MockSdkLibrary([
     '''
 library dart.collection;
 
-abstract class HashMap<K, V> implements Map<K, V> {}
-abstract class LinkedHashMap<K, V> implements Map<K, V> {
-  factory LinkedHashMap(
+abstract class HashMap<K, V> implements Map<K, V> {
+  external factory HashMap(
       {bool equals(K key1, K key2),
       int hashCode(K key),
-      bool isValidKey(potentialKey)}) => null;
+      bool isValidKey(potentialKey)});
+
+  external factory HashMap.identity();
+
+  factory HashMap.from(Map other) => null;
+
+  factory HashMap.of(Map<K, V> other) => null;
+
+  factory HashMap.fromIterable(Iterable iterable,
+      {K key(element), V value(element)}) => null;
+
+  factory HashMap.fromIterables(Iterable<K> keys, Iterable<V> values) => null;
+
+  factory HashMap.fromEntries(Iterable<MapEntry<K, V>> entries) => null;
 }
-abstract class HashSet<E> implements Set<E> {}
-abstract class LinkedHashSet<E> implements Set<E> {}
+
+abstract class LinkedHashMap<K, V> implements Map<K, V> {
+  external factory LinkedHashMap(
+      {bool equals(K key1, K key2),
+      int hashCode(K key),
+      bool isValidKey(potentialKey)});
+
+  external factory LinkedHashMap.identity();
+
+  factory LinkedHashMap.from(Map other) => null;
+
+  factory LinkedHashMap.of(Map<K, V> other) => null;
+
+  factory LinkedHashMap.fromIterable(Iterable iterable,
+      {K key(element), V value(element)}) => null;
+
+  factory LinkedHashMap.fromIterables(Iterable<K> keys, Iterable<V> values)
+      => null;
+
+  factory LinkedHashMap.fromEntries(Iterable<MapEntry<K, V>> entries) => null;
+}
+
+abstract class LinkedHashSet<E> implements Set<E> {
+  external factory LinkedHashSet(
+      {bool equals(E e1, E e2),
+      int hashCode(E e),
+      bool isValidKey(potentialKey)});
+
+  external factory LinkedHashSet.identity();
+
+  factory LinkedHashSet.from(Iterable elements) => null;
+
+  factory LinkedHashSet.of(Iterable<E> elements) => null;
+}
 ''',
   )
 ]);
@@ -130,6 +180,7 @@ library dart.convert;
 import 'dart:async';
 
 abstract class Converter<S, T> implements StreamTransformer {}
+
 class JsonDecoder extends Converter<String, Object> {}
 ''',
     )
@@ -161,6 +212,7 @@ void print(Object object) {}
 abstract class bool extends Object {
   external const factory bool.fromEnvironment(String name,
       {bool defaultValue: false});
+
   bool operator &(bool other);
   bool operator |(bool other);
   bool operator ^(bool other);
@@ -197,6 +249,8 @@ abstract class double extends num {
   double operator -(num other);
   double operator -();
   double operator /(num other);
+  int operator ~/(num other);
+
   double abs();
   int ceil();
   double ceilToDouble();
@@ -207,11 +261,17 @@ abstract class double extends num {
   double roundToDouble();
   int truncate();
   double truncateToDouble();
-  int operator ~/(num other);
+
   external static double parse(String source, [double onError(String source)]);
 }
 
 class Duration implements Comparable<Duration> {}
+
+class Error {
+  Error();
+  static String safeToString(Object object) => '';
+  external StackTrace get stackTrace;
+}
 
 class Exception {
   factory Exception([var message]) => null;
@@ -230,14 +290,12 @@ abstract class int extends num {
   int operator <<(int shiftAmount);
   int operator >>(int shiftAmount);
   int operator ^(int other);
-  String toString();
-
   int operator |(int other);
-
   int operator ~();
 
-  int gcd(int other);
   int abs();
+  int gcd(int other);
+  String toString();
 
   external static int parse(String source,
       {int radix, int onError(String source)});
@@ -248,10 +306,15 @@ abstract class Invocation {}
 abstract class Iterable<E> {
   E get first;
   bool get isEmpty;
+  bool get isNotEmpty;
   Iterator<E> get iterator;
   int get length;
 
+  bool contains(Object element);
+
   Iterable<T> expand<T>(Iterable<T> f(E element));
+
+  E firstWhere(bool test(E element), { E orElse()});
 
   R fold<R>(R initialValue, R combine(R previousValue, E element)) => null;
 
@@ -282,19 +345,26 @@ class List<E> implements Iterable<E> {
   void add(E value) {}
   void addAll(Iterable<E> iterable) {}
   void clear() {}
+  int indexOf(Object element);
 
   noSuchMethod(Invocation invocation) => null;
 }
 
 class Map<K, V> {
   factory Map() => null;
+
   factory Map.fromIterable(Iterable iterable,
       {K key(element), V value(element)}) => null;
+
   Iterable<K> get keys => null;
+  bool get isEmpty;
+  bool get isNotEmpty;
   int get length => 0;
   Iterable<V> get values => null;
+
   V operator [](K key) => null;
   void operator []=(K key, V value) {}
+
   Map<RK, RV> cast<RK, RV>() => null;
   bool containsKey(Object key) => false;
 }
@@ -318,22 +388,26 @@ abstract class num implements Comparable<num> {
   bool operator >=(num other);
   int operator >>(int other);
   int operator ^(int other);
+  int operator |(int other);
+  int operator ~();
+  int operator ~/(num other);
+
   num abs();
   int round();
   double toDouble();
   int toInt();
-  int operator |(int other);
-  int operator ~();
-  int operator ~/(num other);
 }
 
 class Object {
   const Object();
+
   int get hashCode => 0;
   Type get runtimeType => null;
+
   bool operator ==(other) => identical(this, other);
-  dynamic noSuchMethod(Invocation invocation) => null;
+
   String toString() => 'a string';
+  dynamic noSuchMethod(Invocation invocation) => null;
 }
 
 abstract class Pattern {}
@@ -347,6 +421,7 @@ abstract class Set<E> implements Iterable<E> {
   factory Set.identity() => null;
   factory Set.from(Iterable elements) => null;
   factory Set.of(Iterable<E> elements) => null;
+
   Set<R> cast<R>();
 }
 
@@ -355,14 +430,18 @@ class StackTrace {}
 abstract class String implements Comparable<String>, Pattern {
   external factory String.fromCharCodes(Iterable<int> charCodes,
       [int start = 0, int end]);
+
   List<int> get codeUnits;
   int indexOf(Pattern pattern, [int start]);
   bool get isEmpty => false;
   bool get isNotEmpty => false;
   int get length => 0;
+
   String operator +(String other) => null;
   bool operator ==(Object other);
+
   int codeUnitAt(int index);
+  bool contains(String other, [int startIndex = 0]);
   String substring(int len) => null;
   String toLowerCase();
   String toUpperCase();
@@ -493,6 +572,57 @@ class ExternalName {
   ],
 );
 
+final MockSdkLibrary _LIB_IO = MockSdkLibrary(
+  [
+    MockSdkLibraryUnit(
+      'dart:io',
+      '$sdkRoot/lib/io/io.dart',
+      '''
+library dart.io;
+
+abstract class Directory implements FileSystemEntity {
+  factory Directory(String path) => null;
+
+  Future<bool> exists() async => true;
+  bool existsSync() => true;
+
+  Future<FileStat> stat() async => null;
+  FileStat statSync() => null;
+}
+
+abstract class File implements FileSystemEntity {
+  factory File(String path) => null;
+
+  Future<DateTime> lastModified();
+  DateTime lastModifiedSync();
+
+  Future<bool> exists() async => true;
+  bool existsSync() => true;
+
+  Future<FileStat> stat() async => null;
+  FileStat statSync() => null;
+}
+
+abstract class FileSystemEntity {
+  static Future<bool> isDirectory(String path) => true;
+  static bool isDirectorySync(String path) => true;
+
+  static Future<bool> isFile(String path) => true;
+  static bool isFileSync(String path) => true;
+
+  static Future<bool> isLink(String path) => true;
+  static bool isLinkSync(String path) => true;
+
+  static Future<FileSystemEntityType> type(
+    String path, {bool followLinks: true}) async => null;
+  static FileSystemEntityType typeSync(
+    String path, {bool followLinks: true}) => null;
+}
+''',
+    )
+  ],
+);
+
 final MockSdkLibrary _LIB_MATH = MockSdkLibrary(
   [
     MockSdkLibraryUnit(
@@ -512,11 +642,13 @@ external double cos(num radians);
 external double sin(num radians);
 external double sqrt(num radians);
 external double tan(num radians);
+
 class Random {
   bool nextBool() => true;
   double nextDouble() => 2.0;
   int nextInt() => 1;
 }
+
 class Point<T extends num> {}
 ''',
     )
@@ -530,6 +662,7 @@ final List<SdkLibrary> _LIBRARIES = [
   _LIB_COLLECTION,
   _LIB_CONVERT,
   _LIB_FOREIGN_HELPER,
+  _LIB_IO,
   _LIB_MATH,
   _LIB_HTML_DART2JS,
   _LIB_HTML_DARTIUM,
@@ -544,6 +677,7 @@ final Map<String, String> _librariesDartEntries = {
   'core': 'const LibraryInfo("core/core.dart")',
   'html': 'const LibraryInfo("html/dartium/html_dartium.dart", '
       'dart2jsPath: "html/dart2js/html_dart2js.dart")',
+  'io': 'const LibraryInfo("io/io.dart")',
   'math': 'const LibraryInfo("math/math.dart")',
   '_foreign_helper':
       'const LibraryInfo("_internal/js_runtime/lib/foreign_helper.dart")',

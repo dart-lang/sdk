@@ -590,6 +590,7 @@ class Assembler : public AssemblerBase {
   REGULAR_UNARY(not, 0xF7, 2)
   REGULAR_UNARY(neg, 0xF7, 3)
   REGULAR_UNARY(mul, 0xF7, 4)
+  REGULAR_UNARY(imul, 0xF7, 5)
   REGULAR_UNARY(div, 0xF7, 6)
   REGULAR_UNARY(idiv, 0xF7, 7)
   REGULAR_UNARY(inc, 0xFF, 0)
@@ -937,7 +938,7 @@ class Assembler : public AssemblerBase {
   void GenerateUnRelocatedPcRelativeCall(intptr_t offset_into_target = 0);
 
   // Debugging and bringup support.
-  void Breakpoint() { int3(); }
+  void Breakpoint() override { int3(); }
   void Stop(const char* message) override;
 
   static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);

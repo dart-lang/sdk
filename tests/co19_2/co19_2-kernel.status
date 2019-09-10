@@ -18,29 +18,15 @@ Language/Statements/For/syntax_t20: Crash # Assertion error: kernel_shadow_ast.d
 LanguageFeatures/Constant-update-2018/NewOperators_A01_t06/none: Crash
 
 [ $runtime == vm ]
-LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Slow # Does many calls
-LibTest/collection/ListMixin/ListMixin_class_A01_t02: Pass, Slow # Does many calls
-LibTest/core/List/List_class_A01_t02: Pass, Slow # Does many calls
-LibTest/io/FileSystemCreateEvent/isDirectory_A01_t06: Pass, RuntimeError # https://github.com/dart-lang/co19/issues/186
+LibTest/collection/ListBase/ListBase_class_A01_t02: Slow # Does many calls
+LibTest/collection/ListMixin/ListMixin_class_A01_t02: Slow # Does many calls
+LibTest/core/List/List_class_A01_t02: Slow # Does many calls
 LibTest/io/RawDatagramSocket/*: Skip # RawDatagramSocket are flacky. Skip them all until rewritten
-LibTest/io/RawDatagramSocket/any_A01_t02: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/170
-LibTest/io/RawDatagramSocket/any_A01_t03: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/170
-LibTest/io/RawDatagramSocket/asBroadcastStream_A01_t02: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/170
-LibTest/io/RawDatagramSocket/distinct_A01_t05: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/170
-LibTest/io/RawDatagramSocket/lastWhere_A01_t02: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/170
-LibTest/io/RawDatagramSocket/listen_A02_t02: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/170
-LibTest/io/RawDatagramSocket/receive_A01_t01: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/170
-LibTest/io/RawDatagramSocket/timeout_A02_t01: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/170
-LibTest/io/RawDatagramSocket/timeout_A06_t01: Pass, Fail # Next roll might fix it (see https://github.com/dart-lang/co19/commit/8b2e2be5bc3bb9fec41efec8ac6fc777e231d915)
-LibTest/io/RawDatagramSocket/where_A01_t01: Pass, Fail # Issue https://github.com/dart-lang/co19/issues/170
 
 [ $fasta ]
 Language/Classes/Instance_Methods/Operators/allowed_names_t01: Skip # triple-shift flag
 Language/Classes/Instance_Methods/Operators/allowed_names_t23: Skip # triple-shift flag
 Language/Classes/Instance_Methods/Operators/arity_1_t19: Skip # triple-shift flag
-Language/Classes/Superclasses/wrong_superclass_t08: MissingCompileTimeError # Issue 30273
-Language/Classes/Superinterfaces/wrong_type_t05: MissingCompileTimeError # Issue 30273
-Language/Classes/method_definition_t06: MissingCompileTimeError # Legal
 Language/Enums/restrictions_t10: Crash
 Language/Expressions/Assignment/Compound_Assignment/expression_assignment_t12: Skip # triple-shift flag
 Language/Expressions/Assignment/Compound_Assignment/indexed_expression_assignment_t12: Skip # triple-shift flag
@@ -52,13 +38,8 @@ Language/Expressions/Bitwise_Expressions/syntax_t01: Skip # triple-shift flag
 Language/Expressions/Constants/bitwise_operators_t01: Skip # triple-shift flag
 Language/Expressions/Constants/bitwise_operators_t07: Skip # triple-shift flag
 Language/Expressions/Constants/bitwise_operators_t08: Skip # triple-shift flag
-Language/Expressions/Constants/constant_list_t02: MissingCompileTimeError # Legal because of implicit const
-Language/Expressions/Constants/constant_map_t02: MissingCompileTimeError # Legal because of implicit const
 Language/Expressions/Equality/syntax_t01: Skip # triple-shift flag
-Language/Expressions/Instance_Creation/Const/arguments_t03: MissingCompileTimeError # Legal because of implicit const
-Language/Expressions/Instance_Creation/New/syntax_t04: MissingCompileTimeError # Legal because of implicit new
 Language/Expressions/Lists/syntax_t01: Skip # triple-shift flag
-Language/Expressions/Maps/key_value_equals_operator_t01: MissingCompileTimeError # Issue 32557
 Language/Expressions/Maps/syntax_t01: Skip # triple-shift flag
 Language/Expressions/Relational_Expressions/syntax_t01: Skip # triple-shift experiment flag
 Language/Expressions/Shift/allowed_characters_t02: Skip # triple-shift flag
@@ -89,7 +70,6 @@ Language/Expressions/Strings/String_Interpolation/syntax_t01: Skip # triple-shif
 Language/Expressions/Symbols/syntax_t02: Skip # triple-shift experiment flag
 Language/Expressions/parentheses_t01: Skip # triple-shift experiment flag
 Language/Functions/syntax_t03: Skip # triple-shift experiment flag
-Language/Libraries_and_Scripts/Imports/library_name_t01: MissingCompileTimeError # Expects an error, but this is a warning in Dart 2
 Language/Mixins/Mixin_Application/abstract_t09: Crash
 Language/Mixins/Mixin_Application/abstract_t10: Crash
 Language/Mixins/Mixin_Application/abstract_t11: Crash
@@ -103,7 +83,6 @@ Language/Mixins/Mixin_Application/initializers_t05: Crash
 Language/Mixins/Mixin_Application/initializers_t06: Crash
 Language/Mixins/Mixin_Application/interfaces_t06: Crash
 Language/Mixins/Mixin_Application/interfaces_t07: Crash
-Language/Mixins/Mixin_Application/static_warning_t01: MissingCompileTimeError # Mixin super equirement
 Language/Mixins/Mixin_Application/superclass_t03: Crash
 Language/Mixins/Mixin_Application/superclass_t04: Crash
 Language/Mixins/Mixin_Application/superinterfaces_t10: Crash
@@ -114,13 +93,10 @@ Language/Mixins/Mixin_Application/syntax_t26: Crash
 Language/Mixins/Mixin_Application/warning_t04: Crash
 Language/Mixins/Mixin_Application/wrong_mixin_type_t09: Crash
 Language/Mixins/Mixin_Composition/order_t02: Crash
-Language/Mixins/declaring_constructor_t05: MissingCompileTimeError # Mixin constructor
-Language/Mixins/declaring_constructor_t06: MissingCompileTimeError # Mixin constructor
 Language/Mixins/declaring_constructor_t11: Crash
 Language/Reference/Operator_Precedence/precedence_01_assignment_t14: Skip # triple-shift experimental flag
 Language/Reference/Operator_Precedence/precedence_12_Shift_t04: Skip # triple-shift experimental flag
 Language/Reference/Operator_Precedence/precedence_t05: Skip # triple-shift experimental flag
-Language/Statements/Continue/label_t07: MissingCompileTimeError # Issue 34206
 Language/Statements/Expression_Statements/syntax_t06: Skip # triple-shift experimental flag
 LanguageFeatures/Constant-update-2018/NewOperators_A01_t01: Crash
 LanguageFeatures/Constant-update-2018/NewOperators_A01_t02: Crash
@@ -199,9 +175,6 @@ LanguageFeatures/Instantiate-to-bound/class/static/class_typedef_l2_t08/01: Cras
 LanguageFeatures/Instantiate-to-bound/class/static/class_typedef_l2_t08/02: Crash
 LanguageFeatures/Instantiate-to-bound/class/static/class_typedef_l2_t08/none: Crash
 LanguageFeatures/Set-literals/disambiguating_A02_t03: Crash
-LanguageFeatures/Super-mixins/covariance_t03: MissingCompileTimeError # Issue 35111
-LanguageFeatures/Super-mixins/covariance_t06: MissingCompileTimeError # Issue 35111
-LanguageFeatures/Super-mixins/covariance_t07: MissingCompileTimeError # Issue 35111
 LanguageFeatures/regression/34803_t01: Crash
 LanguageFeatures/regression/34803_t02: Crash
 
@@ -214,18 +187,7 @@ LibTest/core/List/List_class_A01_t02: Crash # Issue http://dartbug.com/35242
 LanguageFeatures/Subtyping/static/generated/function_type_function_arguments_binding_A04_t02: Crash
 
 [ $arch == simdbc64 && ($compiler == dartk || $compiler == dartkb) ]
-LibTest/collection/ListBase/ListBase_class_A01_t02: Timeout, Pass # https://github.com/dart-lang/sdk/issues/35316 as well?
-LibTest/collection/ListMixin/ListMixin_class_A01_t02: Timeout, Pass # https://github.com/dart-lang/sdk/issues/35316 as well?
 LibTest/isolate/Isolate/removeErrorListener_A02_t01: Crash
-
-[ $compiler != dart2js && $runtime != vm && $fasta ]
-Language/Classes/Constructors/Constant_Constructors/invalid_constant_initializer_t02: MissingCompileTimeError # Issue 34192
-Language/Expressions/Instance_Creation/Const/exception_t01: MissingCompileTimeError # Issue 31936
-Language/Metadata/compilation_t03: MissingCompileTimeError # Issue 34205
-
-[ $compiler != dart2js && $fasta ]
-Language/Statements/Switch/equal_operator_t01: MissingCompileTimeError # Issue 32557
-Language/Statements/Switch/equal_operator_t02: MissingCompileTimeError # Issue 32557
 
 [ $runtime == vm && $system == linux && ($compiler == dartk || $compiler == dartkb) ]
 LibTest/isolate/Isolate/spawn_A06_t03: Crash
@@ -237,9 +199,6 @@ LibTest/collection/ListMixin/ListMixin_class_A01_t02: Slow
 LibTest/collection/ListMixin/ListMixin_class_A01_t03: Slow
 LibTest/core/List/List_class_A01_t02: Slow
 LibTest/core/List/List_class_A01_t03: Slow
-
-[ $runtime != vm && $fasta ]
-Language/Classes/Constructors/Constant_Constructors/potentially_constant_expression_t01: MissingCompileTimeError # Issue 34192
 
 [ $runtime != vm && ($compiler == dartk || $compiler == dartkb) ]
 Language/Classes/Constructors/Constant_Constructors/potentially_constant_expression_t01: Crash

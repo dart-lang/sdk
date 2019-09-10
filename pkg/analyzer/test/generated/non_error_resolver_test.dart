@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -793,8 +792,7 @@ class D {}
 class E {}
 ''');
     CompilationUnit unit = result.unit;
-    ClassElement classC =
-        resolutionMap.elementDeclaredByCompilationUnit(unit).getType('C');
+    ClassElement classC = unit.declaredElement.getType('C');
     expect(classC.documentationComment, isNotNull);
   }
 
@@ -1894,8 +1892,7 @@ mixin M<T> on A<T> {}
 class C extends A<B> with M {}
 ''');
     CompilationUnit unit = result.unit;
-    ClassElement classC =
-        resolutionMap.elementDeclaredByCompilationUnit(unit).getType('C');
+    ClassElement classC = unit.declaredElement.getType('C');
     expect(classC.mixins, hasLength(1));
     expect(classC.mixins[0].toString(), 'M<B>');
   }
@@ -1917,8 +1914,7 @@ class C extends A<int Function(String)> with M {}
       ),
     ]);
     CompilationUnit unit = result.unit;
-    ClassElement classC =
-        resolutionMap.elementDeclaredByCompilationUnit(unit).getType('C');
+    ClassElement classC = unit.declaredElement.getType('C');
     expect(classC.mixins, hasLength(1));
     expect(classC.mixins[0].toString(), 'M<int, String>');
   }
@@ -1934,8 +1930,7 @@ mixin M<T> on A<List<T>> {}
 class C extends A<List<B>> with M {}
 ''');
     CompilationUnit unit = result.unit;
-    ClassElement classC =
-        resolutionMap.elementDeclaredByCompilationUnit(unit).getType('C');
+    ClassElement classC = unit.declaredElement.getType('C');
     expect(classC.mixins, hasLength(1));
     expect(classC.mixins[0].toString(), 'M<B>');
   }

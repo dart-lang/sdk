@@ -206,4 +206,20 @@ A f() => A([1, 2, 3]);
 ''');
     assertCanBeConst("A([", true);
   }
+
+  void test_true_importedClass_defaultValue() async {
+    var aPath = convertPath('/test/lib/a.dart');
+    newFile(aPath, content: r'''
+class A {
+  final int a;
+  const A({int b = 1}) : a = b * 2;
+}
+''');
+    await resolve('''
+import 'a.dart';
+
+A f() => A();
+''');
+    assertCanBeConst("A();", true);
+  }
 }

@@ -304,6 +304,7 @@ void _appendDillForUri(DillTarget dillTarget, Uri uri) {
 Future<void> compilePlatform(List<String> arguments) async {
   await withGlobalOptions("compile_platform", arguments, false,
       (CompilerContext c, List<String> restArguments) {
+    c.compilingPlatform = true;
     Uri hostPlatform = Uri.base.resolveUri(new Uri.file(restArguments[2]));
     Uri outlineOutput = Uri.base.resolveUri(new Uri.file(restArguments[4]));
     return compilePlatformInternal(

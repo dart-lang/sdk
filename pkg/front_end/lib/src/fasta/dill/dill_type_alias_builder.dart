@@ -28,7 +28,7 @@ class DillTypeAliasBuilder extends TypeAliasBuilder {
   }
 
   @override
-  int get typeVariablesCount => target.typeParameters.length;
+  int get typeVariablesCount => typedef.typeParameters.length;
 
   @override
   FunctionTypeBuilder get type {
@@ -37,7 +37,7 @@ class DillTypeAliasBuilder extends TypeAliasBuilder {
 
   @override
   DartType buildThisType(LibraryBuilder library) {
-    return thisType ??= target.type;
+    return thisType ??= typedef.type;
   }
 
   @override
@@ -48,10 +48,10 @@ class DillTypeAliasBuilder extends TypeAliasBuilder {
     // [cls.typeParameters].
     if (arguments == null) {
       List<DartType> result = new List<DartType>.filled(
-          target.typeParameters.length, null,
+          typedef.typeParameters.length, null,
           growable: true);
       for (int i = 0; i < result.length; ++i) {
-        result[i] = target.typeParameters[i].defaultType;
+        result[i] = typedef.typeParameters[i].defaultType;
       }
       return result;
     }

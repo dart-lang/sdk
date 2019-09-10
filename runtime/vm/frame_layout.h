@@ -5,6 +5,9 @@
 #ifndef RUNTIME_VM_FRAME_LAYOUT_H_
 #define RUNTIME_VM_FRAME_LAYOUT_H_
 
+#include "platform/assert.h"
+#include "platform/globals.h"
+
 // FrameLayout structure captures configuration specific properties of the
 // frame layout used by the runtime system and compiler.
 //

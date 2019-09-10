@@ -461,8 +461,9 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
     case kSetConcatenation:
     case kMapConcatenation:
     case kInstanceCreation:
-      // Collection concatenation and instance creation operations are removed
-      // by the constant evaluator.
+    case kFileUriExpression:
+      // Collection concatenation, instance creation operations and
+      // in-expression URI changes are removed by the constant evaluator.
       UNREACHABLE();
       break;
     case kIsExpression:
@@ -645,7 +646,7 @@ void KernelFingerprintHelper::CalculateStatementFingerprint() {
           ReadPosition();                    // read jth position.
           CalculateExpressionFingerprint();  // read jth expression.
         }
-        BuildHash(ReadBool());            // read is_default.
+        BuildHash(static_cast<uint32_t>(ReadBool()));  // read is_default.
         CalculateStatementFingerprint();  // read body.
       }
       return;

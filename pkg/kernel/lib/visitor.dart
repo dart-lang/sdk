@@ -43,6 +43,7 @@ abstract class ExpressionVisitor<R> {
   R visitSetConcatenation(SetConcatenation node) => defaultExpression(node);
   R visitMapConcatenation(MapConcatenation node) => defaultExpression(node);
   R visitInstanceCreation(InstanceCreation node) => defaultExpression(node);
+  R visitFileUriExpression(FileUriExpression node) => defaultExpression(node);
   R visitIsExpression(IsExpression node) => defaultExpression(node);
   R visitAsExpression(AsExpression node) => defaultExpression(node);
   R visitSymbolLiteral(SymbolLiteral node) => defaultExpression(node);
@@ -170,6 +171,7 @@ class TreeVisitor<R>
   R visitSetConcatenation(SetConcatenation node) => defaultExpression(node);
   R visitMapConcatenation(MapConcatenation node) => defaultExpression(node);
   R visitInstanceCreation(InstanceCreation node) => defaultExpression(node);
+  R visitFileUriExpression(FileUriExpression node) => defaultExpression(node);
   R visitIsExpression(IsExpression node) => defaultExpression(node);
   R visitAsExpression(AsExpression node) => defaultExpression(node);
   R visitSymbolLiteral(SymbolLiteral node) => defaultExpression(node);
@@ -403,7 +405,7 @@ class _ConstantCallbackVisitor<R> implements ConstantVisitor<R> {
 /// value for each subnode. The visitor caches the computed values ensuring that
 /// each subnode is only visited once.
 class ComputeOnceConstantVisitor<R> implements _ConstantCallback<R> {
-  _ConstantCallbackVisitor _visitor;
+  _ConstantCallbackVisitor<R> _visitor;
   Map<Constant, R> cache = new LinkedHashMap.identity();
 
   ComputeOnceConstantVisitor() {
@@ -684,6 +686,8 @@ abstract class ExpressionVisitor1<R, T> {
   R visitMapConcatenation(MapConcatenation node, T arg) =>
       defaultExpression(node, arg);
   R visitInstanceCreation(InstanceCreation node, T arg) =>
+      defaultExpression(node, arg);
+  R visitFileUriExpression(FileUriExpression node, T arg) =>
       defaultExpression(node, arg);
   R visitIsExpression(IsExpression node, T arg) => defaultExpression(node, arg);
   R visitAsExpression(AsExpression node, T arg) => defaultExpression(node, arg);

@@ -650,16 +650,22 @@ Cids* Cids::CreateMonomorphic(Zone* zone, intptr_t cid) {
   return cids;
 }
 
-Cids* Cids::CreateAndExpand(Zone* zone,
-                            const ICData& ic_data,
-                            int argument_number) {
+Cids* Cids::CreateForArgument(Zone* zone,
+                              const BinaryFeedback& binary_feedback,
+                              int argument_number) {
   Cids* cids = new (zone) Cids(zone);
-  cids->CreateHelper(zone, ic_data, argument_number,
-                     /* include_targets = */ false);
-  cids->Sort(OrderById);
+  for (intptr_t i = 0; i < binary_feedback.feedback_.length(); i++) {
+    ASSERT((argument_number == 0) || (argument_number == 1));
+    const intptr_t cid = argument_number == 0
+                             ? binary_feedback.feedback_[i].first
+                             : binary_feedback.feedback_[i].second;
+    cids->Add(new (zone) CidRange(cid, cid));
+  }
 
-  // Merge adjacent class id ranges.
-  {
+  if (cids->length() != 0) {
+    cids->Sort(OrderById);
+
+    // Merge adjacent class id ranges.
     int dest = 0;
     for (int src = 1; src < cids->length(); src++) {
       if (cids->cid_ranges_[dest]->cid_end + 1 >=
@@ -671,53 +677,6 @@ Cids* Cids::CreateAndExpand(Zone* zone,
       }
     }
     cids->SetLength(dest + 1);
-  }
-
-  // Merging/extending cid ranges is also done in CallTargets::CreateAndExpand.
-  // If changing this code, consider also adjusting CallTargets code.
-
-  if (cids->length() > 1 && argument_number == 0 && ic_data.HasOneTarget()) {
-    // Try harder to merge ranges if method lookups in the gaps result in the
-    // same target method.
-    const Function& target = Function::Handle(zone, ic_data.GetTargetAt(0));
-    if (!MethodRecognizer::PolymorphicTarget(target)) {
-      const auto& args_desc_array =
-          Array::Handle(zone, ic_data.arguments_descriptor());
-      ArgumentsDescriptor args_desc(args_desc_array);
-      const auto& name = String::Handle(zone, ic_data.target_name());
-      auto& fn = Function::Handle(zone);
-
-      intptr_t dest = 0;
-      for (intptr_t src = 1; src < cids->length(); src++) {
-        // Inspect all cids in the gap and see if they all resolve to the same
-        // target.
-        bool can_merge = true;
-        for (intptr_t cid = cids->cid_ranges_[dest]->cid_end + 1,
-                      end = cids->cid_ranges_[src]->cid_start;
-             cid < end; ++cid) {
-          bool class_is_abstract = false;
-          if (FlowGraphCompiler::LookupMethodFor(cid, name, args_desc, &fn,
-                                                 &class_is_abstract)) {
-            if (fn.raw() == target.raw()) {
-              continue;
-            }
-            if (class_is_abstract) {
-              continue;
-            }
-          }
-          can_merge = false;
-          break;
-        }
-
-        if (can_merge) {
-          cids->cid_ranges_[dest]->cid_end = cids->cid_ranges_[src]->cid_end;
-        } else {
-          dest++;
-          if (src != dest) cids->cid_ranges_[dest] = cids->cid_ranges_[src];
-        }
-      }
-      cids->SetLength(dest + 1);
-    }
   }
 
   return cids;
@@ -740,64 +699,55 @@ static intptr_t Usage(const Function& function) {
   return count;
 }
 
-void Cids::CreateHelper(Zone* zone,
-                        const ICData& ic_data,
-                        int argument_number,
-                        bool include_targets) {
-  ASSERT(argument_number < ic_data.NumArgsTested());
-
-  if (ic_data.NumberOfChecks() == 0) return;
-
+void CallTargets::CreateHelper(Zone* zone, const ICData& ic_data) {
   Function& dummy = Function::Handle(zone);
 
-  bool check_one_arg = ic_data.NumArgsTested() == 1;
+  const intptr_t num_args_tested = ic_data.NumArgsTested();
 
-  int checks = ic_data.NumberOfChecks();
-  for (int i = 0; i < checks; i++) {
-    if (ic_data.GetCountAt(i) == 0) continue;
-    intptr_t id = 0;
-    if (check_one_arg) {
+  for (int i = 0, n = ic_data.NumberOfChecks(); i < n; i++) {
+    if (ic_data.GetCountAt(i) == 0) {
+      continue;
+    }
+
+    intptr_t id = kDynamicCid;
+    if (num_args_tested == 0) {
+    } else if (num_args_tested == 1) {
       ic_data.GetOneClassCheckAt(i, &id, &dummy);
     } else {
+      ASSERT(num_args_tested == 2);
       GrowableArray<intptr_t> arg_ids;
       ic_data.GetCheckAt(i, &arg_ids, &dummy);
-      id = arg_ids[argument_number];
+      id = arg_ids[0];
     }
-    if (include_targets) {
-      Function& function = Function::ZoneHandle(zone, ic_data.GetTargetAt(i));
-      intptr_t count = ic_data.GetCountAt(i);
-      cid_ranges_.Add(new (zone) TargetInfo(id, id, &function, count,
-                                            ic_data.GetExactnessAt(i)));
-    } else {
-      cid_ranges_.Add(new (zone) CidRange(id, id));
-    }
+    Function& function = Function::ZoneHandle(zone, ic_data.GetTargetAt(i));
+    intptr_t count = ic_data.GetCountAt(i);
+    cid_ranges_.Add(new (zone) TargetInfo(id, id, &function, count,
+                                          ic_data.GetExactnessAt(i)));
   }
 
   if (ic_data.is_megamorphic()) {
+    ASSERT(num_args_tested == 1);  // Only 1-arg ICData will turn megamorphic.
     const String& name = String::Handle(zone, ic_data.target_name());
     const Array& descriptor =
         Array::Handle(zone, ic_data.arguments_descriptor());
+    Thread* thread = Thread::Current();
     const MegamorphicCache& cache = MegamorphicCache::Handle(
-        zone, MegamorphicCacheTable::LookupClone(Thread::Current(), name,
-                                                 descriptor));
+        zone, MegamorphicCacheTable::Lookup(thread, name, descriptor));
+    SafepointMutexLocker ml(thread->isolate()->megamorphic_mutex());
     MegamorphicCacheEntries entries(Array::Handle(zone, cache.buckets()));
-    for (intptr_t i = 0; i < entries.Length(); i++) {
+    for (intptr_t i = 0, n = entries.Length(); i < n; i++) {
       const intptr_t id =
           Smi::Value(entries[i].Get<MegamorphicCache::kClassIdIndex>());
       if (id == kIllegalCid) {
         continue;
       }
-      if (include_targets) {
-        Function& function = Function::ZoneHandle(zone);
-        function ^= entries[i].Get<MegamorphicCache::kTargetFunctionIndex>();
-        const intptr_t filled_entry_count = cache.filled_entry_count();
-        ASSERT(filled_entry_count > 0);
-        cid_ranges_.Add(new (zone) TargetInfo(
-            id, id, &function, Usage(function) / filled_entry_count,
-            StaticTypeExactnessState::NotTracking()));
-      } else {
-        cid_ranges_.Add(new (zone) CidRange(id, id));
-      }
+      Function& function = Function::ZoneHandle(zone);
+      function ^= entries[i].Get<MegamorphicCache::kTargetFunctionIndex>();
+      const intptr_t filled_entry_count = cache.filled_entry_count();
+      ASSERT(filled_entry_count > 0);
+      cid_ranges_.Add(new (zone) TargetInfo(
+          id, id, &function, Usage(function) / filled_entry_count,
+          StaticTypeExactnessState::NotTracking()));
     }
   }
 }
@@ -810,6 +760,11 @@ bool Cids::IsMonomorphic() const {
 intptr_t Cids::MonomorphicReceiverCid() const {
   ASSERT(IsMonomorphic());
   return cid_ranges_[0]->cid_start;
+}
+
+StaticTypeExactnessState CallTargets::MonomorphicExactness() const {
+  ASSERT(IsMonomorphic());
+  return TargetAt(0)->exactness;
 }
 
 CheckClassInstr::CheckClassInstr(Value* value,
@@ -1113,9 +1068,14 @@ const Object& Value::BoundConstant() const {
 
 GraphEntryInstr::GraphEntryInstr(const ParsedFunction& parsed_function,
                                  intptr_t osr_id)
-    : BlockEntryWithInitialDefs(0,
-                                kInvalidTryIndex,
-                                CompilerState::Current().GetNextDeoptId()),
+    : GraphEntryInstr(parsed_function,
+                      osr_id,
+                      CompilerState::Current().GetNextDeoptId()) {}
+
+GraphEntryInstr::GraphEntryInstr(const ParsedFunction& parsed_function,
+                                 intptr_t osr_id,
+                                 intptr_t deopt_id)
+    : BlockEntryWithInitialDefs(0, kInvalidTryIndex, deopt_id),
       parsed_function_(parsed_function),
       catch_entries_(),
       indirect_entries_(),
@@ -1651,6 +1611,7 @@ bool BlockEntryInstr::FindOsrEntryAndRelink(GraphEntryInstr* graph_entry,
 
       auto goto_join = new GotoInstr(AsJoinEntry(),
                                      CompilerState::Current().GetNextDeoptId());
+      ASSERT(parent != nullptr);
       goto_join->CopyDeoptIdFrom(*parent);
       osr_entry->LinkTo(goto_join);
 
@@ -2021,6 +1982,26 @@ static int64_t RepresentationMask(Representation r) {
                               (64 - RepresentationBits(r)));
 }
 
+static int64_t TruncateTo(int64_t v, Representation r) {
+  switch (r) {
+    case kTagged: {
+      // Smi occupies word minus kSmiTagShift bits.
+      const intptr_t kTruncateBits =
+          (kBitsPerInt64 - kBitsPerWord) + kSmiTagShift;
+      return Utils::ShiftLeftWithTruncation(v, kTruncateBits) >> kTruncateBits;
+    }
+    case kUnboxedInt32:
+      return Utils::ShiftLeftWithTruncation(v, kBitsPerInt32) >> kBitsPerInt32;
+    case kUnboxedUint32:
+      return v & kMaxUint32;
+    case kUnboxedInt64:
+      return v;
+    default:
+      UNREACHABLE();
+      return 0;
+  }
+}
+
 static bool ToIntegerConstant(Value* value, int64_t* result) {
   if (!value->BindsToConstant()) {
     UnboxInstr* unbox = value->definition()->AsUnbox();
@@ -2032,7 +2013,7 @@ static bool ToIntegerConstant(Value* value, int64_t* result) {
 
         case kUnboxedUint32:
           if (ToIntegerConstant(unbox->value(), result)) {
-            *result &= RepresentationMask(kUnboxedUint32);
+            *result = TruncateTo(*result, kUnboxedUint32);
             return true;
           }
           break;
@@ -2380,8 +2361,8 @@ RawInteger* BinaryIntegerOpInstr::Evaluate(const Integer& left,
 
   if (!result.IsNull()) {
     if (is_truncating()) {
-      int64_t truncated = result.AsTruncatedInt64Value();
-      truncated &= RepresentationMask(representation());
+      const int64_t truncated =
+          TruncateTo(result.AsTruncatedInt64Value(), representation());
       result = Integer::New(truncated, Heap::kOld);
       ASSERT(IsRepresentable(result, representation()));
     } else if (!IsRepresentable(result, representation())) {
@@ -2514,7 +2495,6 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
     return this;
   }
 
-  const int64_t range_mask = RepresentationMask(representation());
   if (is_truncating()) {
     switch (op_kind()) {
       case Token::kMUL:
@@ -2523,7 +2503,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
       case Token::kBIT_AND:
       case Token::kBIT_OR:
       case Token::kBIT_XOR:
-        rhs = (rhs & range_mask);
+        rhs = TruncateTo(rhs, representation());
         break;
       default:
         break;
@@ -2566,21 +2546,21 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
     case Token::kBIT_AND:
       if (rhs == 0) {
         return right()->definition();
-      } else if (rhs == range_mask) {
+      } else if (rhs == RepresentationMask(representation())) {
         return left()->definition();
       }
       break;
     case Token::kBIT_OR:
       if (rhs == 0) {
         return left()->definition();
-      } else if (rhs == range_mask) {
+      } else if (rhs == RepresentationMask(representation())) {
         return right()->definition();
       }
       break;
     case Token::kBIT_XOR:
       if (rhs == 0) {
         return left()->definition();
-      } else if (rhs == range_mask) {
+      } else if (rhs == RepresentationMask(representation())) {
         UnaryIntegerOpInstr* bit_not = UnaryIntegerOpInstr::Make(
             representation(), Token::kBIT_NOT, left()->CopyWithType(),
             GetDeoptId(), range());
@@ -2608,6 +2588,12 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
           flow_graph->InsertBefore(this, negation, env(), FlowGraph::kValue);
           return negation;
         }
+      }
+      break;
+
+    case Token::kMOD:
+      if (std::abs(rhs) == 1) {
+        return CreateConstantResult(flow_graph, Object::smi_zero());
       }
       break;
 
@@ -3124,10 +3110,18 @@ Definition* BoxInt64Instr::Canonicalize(FlowGraph* flow_graph) {
     return replacement;
   }
 
-  IntConverterInstr* conv = value()->definition()->AsIntConverter();
-  if (conv != NULL) {
-    Definition* replacement = this;
+  // For all x, box(unbox(x)) = x.
+  if (auto unbox = value()->definition()->AsUnboxInt64()) {
+    if (unbox->speculative_mode() == kNotSpeculative) {
+      return unbox->value()->definition();
+    }
+  } else if (auto unbox = value()->definition()->AsUnboxedConstant()) {
+    return flow_graph->GetConstant(unbox->value());
+  }
 
+  // Find a more precise box instruction.
+  if (auto conv = value()->definition()->AsIntConverter()) {
+    Definition* replacement;
     switch (conv->from()) {
       case kUnboxedInt32:
         replacement = new BoxInt32Instr(conv->value()->CopyWithType());
@@ -3139,11 +3133,7 @@ Definition* BoxInt64Instr::Canonicalize(FlowGraph* flow_graph) {
         UNREACHABLE();
         break;
     }
-
-    if (replacement != this) {
-      flow_graph->InsertBefore(this, replacement, NULL, FlowGraph::kValue);
-    }
-
+    flow_graph->InsertBefore(this, replacement, NULL, FlowGraph::kValue);
     return replacement;
   }
 
@@ -3772,19 +3762,58 @@ bool UnboxInstr::CanConvertSmi() const {
   }
 }
 
-CallTargets* CallTargets::Create(Zone* zone, const ICData& ic_data) {
+const BinaryFeedback* BinaryFeedback::Create(Zone* zone,
+                                             const ICData& ic_data) {
+  BinaryFeedback* result = new (zone) BinaryFeedback(zone);
+  if (ic_data.NumArgsTested() == 2) {
+    for (intptr_t i = 0, n = ic_data.NumberOfChecks(); i < n; i++) {
+      if (ic_data.GetCountAt(i) == 0) {
+        continue;
+      }
+      GrowableArray<intptr_t> arg_ids;
+      ic_data.GetClassIdsAt(i, &arg_ids);
+      result->feedback_.Add({arg_ids[0], arg_ids[1]});
+    }
+  }
+  return result;
+}
+
+const BinaryFeedback* BinaryFeedback::CreateMonomorphic(Zone* zone,
+                                                        intptr_t receiver_cid,
+                                                        intptr_t argument_cid) {
+  BinaryFeedback* result = new (zone) BinaryFeedback(zone);
+  result->feedback_.Add({receiver_cid, argument_cid});
+  return result;
+}
+
+const CallTargets* CallTargets::CreateMonomorphic(Zone* zone,
+                                                  intptr_t receiver_cid,
+                                                  const Function& target) {
   CallTargets* targets = new (zone) CallTargets(zone);
-  targets->CreateHelper(zone, ic_data, /* argument_number = */ 0,
-                        /* include_targets = */ true);
+  const intptr_t count = 1;
+  targets->cid_ranges_.Add(new (zone) TargetInfo(
+      receiver_cid, receiver_cid, &Function::ZoneHandle(zone, target.raw()),
+      count, StaticTypeExactnessState::NotTracking()));
+  return targets;
+}
+
+const CallTargets* CallTargets::Create(Zone* zone, const ICData& ic_data) {
+  CallTargets* targets = new (zone) CallTargets(zone);
+  targets->CreateHelper(zone, ic_data);
   targets->Sort(OrderById);
   targets->MergeIntoRanges();
   return targets;
 }
 
-CallTargets* CallTargets::CreateAndExpand(Zone* zone, const ICData& ic_data) {
+const CallTargets* CallTargets::CreateAndExpand(Zone* zone,
+                                                const ICData& ic_data) {
   CallTargets& targets = *new (zone) CallTargets(zone);
-  targets.CreateHelper(zone, ic_data, /* argument_number = */ 0,
-                       /* include_targets = */ true);
+  targets.CreateHelper(zone, ic_data);
+
+  if (targets.is_empty() || targets.IsMonomorphic()) {
+    return &targets;
+  }
+
   targets.Sort(OrderById);
 
   Array& args_desc_array = Array::Handle(zone, ic_data.arguments_descriptor());
@@ -3868,6 +3897,10 @@ CallTargets* CallTargets::CreateAndExpand(Zone* zone, const ICData& ic_data) {
 }
 
 void CallTargets::MergeIntoRanges() {
+  if (length() == 0) {
+    return;  // For correctness not performance: must not update length to 1.
+  }
+
   // Merge adjacent class id ranges.
   int dest = 0;
   // We merge entries that dispatch to the same target, but polymorphic targets
@@ -4239,6 +4272,30 @@ void MaterializeObjectInstr::RemapRegisters(intptr_t* cpu_reg_slots,
   }
 }
 
+const char* SpecialParameterInstr::KindToCString(SpecialParameterKind k) {
+  switch (k) {
+#define KIND_CASE(Name)                                                        \
+  case SpecialParameterKind::k##Name:                                          \
+    return #Name;
+    FOR_EACH_SPECIAL_PARAMETER_KIND(KIND_CASE)
+#undef KIND_CASE
+  }
+  return nullptr;
+}
+
+bool SpecialParameterInstr::KindFromCString(const char* str,
+                                            SpecialParameterKind* out) {
+  ASSERT(str != nullptr && out != nullptr);
+#define KIND_CASE(Name)                                                        \
+  if (strcmp(str, #Name) == 0) {                                               \
+    *out = SpecialParameterKind::k##Name;                                      \
+    return true;                                                               \
+  }
+  FOR_EACH_SPECIAL_PARAMETER_KIND(KIND_CASE)
+#undef KIND_CASE
+  return false;
+}
+
 LocationSummary* SpecialParameterInstr::MakeLocationSummary(Zone* zone,
                                                             bool opt) const {
   // Only appears in initial definitions, never in normal code.
@@ -4492,6 +4549,56 @@ RawFunction* InstanceCallInstr::ResolveForReceiverClass(
                                                   args_desc, allow_add);
 }
 
+const CallTargets& InstanceCallInstr::Targets() {
+  if (targets_ == nullptr) {
+    Zone* zone = Thread::Current()->zone();
+    if (HasICData()) {
+      targets_ = CallTargets::CreateAndExpand(zone, *ic_data());
+    } else {
+      targets_ = new (zone) CallTargets(zone);
+      ASSERT(targets_->is_empty());
+    }
+  }
+  return *targets_;
+}
+
+const BinaryFeedback& InstanceCallInstr::BinaryFeedback() {
+  if (binary_ == nullptr) {
+    Zone* zone = Thread::Current()->zone();
+    if (HasICData()) {
+      binary_ = BinaryFeedback::Create(zone, *ic_data());
+    } else {
+      binary_ = new (zone) class BinaryFeedback(zone);
+    }
+  }
+  return *binary_;
+}
+
+const CallTargets& StaticCallInstr::Targets() {
+  if (targets_ == nullptr) {
+    Zone* zone = Thread::Current()->zone();
+    if (HasICData()) {
+      targets_ = CallTargets::CreateAndExpand(zone, *ic_data());
+    } else {
+      targets_ = new (zone) CallTargets(zone);
+      ASSERT(targets_->is_empty());
+    }
+  }
+  return *targets_;
+}
+
+const BinaryFeedback& StaticCallInstr::BinaryFeedback() {
+  if (binary_ == nullptr) {
+    Zone* zone = Thread::Current()->zone();
+    if (HasICData()) {
+      binary_ = BinaryFeedback::Create(zone, *ic_data());
+    } else {
+      binary_ = new (zone) class BinaryFeedback(zone);
+    }
+  }
+  return *binary_;
+}
+
 bool CallTargets::HasSingleRecognizedTarget() const {
   if (!HasSingleTarget()) return false;
   return MethodRecognizer::RecognizeKind(FirstTarget()) !=
@@ -4499,7 +4606,7 @@ bool CallTargets::HasSingleRecognizedTarget() const {
 }
 
 bool CallTargets::HasSingleTarget() const {
-  ASSERT(length() != 0);
+  if (length() == 0) return false;
   for (int i = 0; i < length(); i++) {
     if (TargetAt(i)->target->raw() != TargetAt(0)->target->raw()) return false;
   }
@@ -4604,7 +4711,7 @@ Definition* InstanceCallInstr::Canonicalize(FlowGraph* flow_graph) {
   // TODO(dartbug.com/37291): Allow this optimization, but accumulate affected
   // InstanceCallInstrs and the corresponding reciever cids during compilation.
   // After compilation, add receiver checks to the ICData for those call sites.
-  if (ic_data()->NumberOfUsedChecks() == 0) return this;
+  if (Targets().is_empty()) return this;
 
   const CallTargets* new_target =
       FlowGraphCompiler::ResolveCallTargetsForReceiverCid(
@@ -4985,6 +5092,10 @@ void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       EmitLoadFromBox(compiler);
     } else if (CanConvertSmi() && (value_cid == kSmiCid)) {
       EmitSmiConversion(compiler);
+    } else if (representation() == kUnboxedInt32 && value()->Type()->IsInt()) {
+      EmitLoadInt32FromBoxOrSmi(compiler);
+    } else if (representation() == kUnboxedInt64 && value()->Type()->IsInt()) {
+      EmitLoadInt64FromBoxOrSmi(compiler);
     } else {
       ASSERT(CanDeoptimize());
       EmitLoadFromBoxWithDeopt(compiler);

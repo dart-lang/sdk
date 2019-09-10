@@ -12,7 +12,6 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol
     show Element, ElementKind;
@@ -112,8 +111,7 @@ class _Visitor extends LocalDeclarationVisitor {
       ClassDeclaration classDecl, ConstructorDeclaration constructorDecl) {
     String completion = classDecl.name.name;
 
-    ClassElement classElement =
-        resolutionMap.elementDeclaredByClassDeclaration(classDecl);
+    ClassElement classElement = classDecl.declaredElement;
     int relevance = optype.returnValueSuggestionsFilter(
         classElement?.type, DART_RELEVANCE_DEFAULT);
     if (constructorDecl != null) {

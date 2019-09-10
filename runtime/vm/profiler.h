@@ -477,24 +477,56 @@ class AbstractCode {
   const char* Name() const {
     if (code_.IsCode()) {
       return Code::Cast(code_).Name();
-    } else {
+    } else if (code_.IsBytecode()) {
       return Bytecode::Cast(code_).Name();
+    } else {
+      return "";
     }
   }
 
   const char* QualifiedName() const {
     if (code_.IsCode()) {
       return Code::Cast(code_).QualifiedName();
-    } else {
+    } else if (code_.IsBytecode()) {
       return Bytecode::Cast(code_).QualifiedName();
+    } else {
+      return "";
+    }
+  }
+
+  bool IsStubCode() const {
+    if (code_.IsCode()) {
+      return Code::Cast(code_).IsStubCode();
+    } else if (code_.IsBytecode()) {
+      return (Bytecode::Cast(code_).function() == Function::null());
+    } else {
+      return false;
+    }
+  }
+
+  bool IsAllocationStubCode() const {
+    if (code_.IsCode()) {
+      return Code::Cast(code_).IsAllocationStubCode();
+    } else {
+      return false;
+    }
+  }
+
+  bool IsTypeTestStubCode() const {
+    if (code_.IsCode()) {
+      return Code::Cast(code_).IsTypeTestStubCode();
+    } else {
+      return false;
     }
   }
 
   RawObject* owner() const {
     if (code_.IsCode()) {
       return Code::Cast(code_).owner();
-    } else {
+    } else if (code_.IsBytecode()) {
       return Bytecode::Cast(code_).function();
+    } else {
+      return Object::null();
     }
   }
 

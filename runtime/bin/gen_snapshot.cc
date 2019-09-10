@@ -864,11 +864,6 @@ int main(int argc, char** argv) {
   TimerUtils::InitOnce();
   EventHandler::Start();
 
-#if !defined(PRODUCT)
-  // Constant true in PRODUCT mode.
-  vm_options.AddArgument("--load_deferred_eagerly");
-#endif
-
   if (IsSnapshottingForPrecompilation()) {
     vm_options.AddArgument("--precompilation");
   } else if ((snapshot_kind == kCoreJIT) || (snapshot_kind == kAppJIT)) {
@@ -909,7 +904,7 @@ int main(int argc, char** argv) {
         MapFile(load_vm_snapshot_instructions_filename, File::kReadExecute,
                 &init_params.vm_snapshot_instructions);
   }
-  if (load_isolate_snapshot_data_filename) {
+  if (load_isolate_snapshot_data_filename != nullptr) {
     mapped_isolate_snapshot_data =
         MapFile(load_isolate_snapshot_data_filename, File::kReadOnly,
                 &isolate_snapshot_data);

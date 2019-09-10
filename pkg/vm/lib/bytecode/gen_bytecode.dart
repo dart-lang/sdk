@@ -4,10 +4,6 @@
 
 library vm.bytecode.gen_bytecode;
 
-// TODO(askesc): We should not need to call the constant evaluator
-// explicitly once constant-update-2018 is shipped.
-import 'package:front_end/src/api_prototype/constant_evaluator.dart'
-    show ConstantEvaluator, EvaluationEnvironment;
 import 'package:front_end/src/api_unstable/vm.dart'
     show
         CompilerContext,
@@ -26,8 +22,6 @@ import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/type_algebra.dart'
     show Substitution, containsTypeVariable;
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
-import 'package:kernel/vm/constants_native_effects.dart'
-    show VmConstantsBackend;
 import 'assembler.dart';
 import 'bytecode_serialization.dart' show StringTable;
 import 'constant_pool.dart';
@@ -56,7 +50,6 @@ import 'options.dart' show BytecodeOptions;
 import 'recognized_methods.dart' show RecognizedMethods;
 import 'recursive_types_validator.dart' show IllegalRecursiveTypeException;
 import 'source_positions.dart' show LineStarts, SourcePositions;
-import '../constants_error_reporter.dart' show ForwardConstantEvaluationErrors;
 import '../metadata/bytecode.dart';
 
 import 'dart:convert' show utf8;
@@ -81,14 +74,10 @@ void generateBytecode(
   hierarchy ??= new ClassHierarchy(component,
       onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
   final typeEnvironment = new TypeEnvironment(coreTypes, hierarchy);
-  final constantsBackend = new VmConstantsBackend(coreTypes);
-  final errorReporter = new ForwardConstantEvaluationErrors();
-  final constantEvaluator = new ConstantEvaluator(constantsBackend,
-      options.environmentDefines, typeEnvironment, errorReporter);
   libraries ??= component.libraries;
   try {
-    final bytecodeGenerator = new BytecodeGenerator(component, coreTypes,
-        hierarchy, typeEnvironment, constantEvaluator, options);
+    final bytecodeGenerator = new BytecodeGenerator(
+        component, coreTypes, hierarchy, typeEnvironment, options);
     for (var library in libraries) {
       bytecodeGenerator.visitLibrary(library);
     }
@@ -103,7 +92,6 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   final CoreTypes coreTypes;
   final ClassHierarchy hierarchy;
   final TypeEnvironment typeEnvironment;
-  final ConstantEvaluator constantEvaluator;
   final BytecodeOptions options;
   final BytecodeMetadataRepository metadata = new BytecodeMetadataRepository();
   final RecognizedMethods recognizedMethods;
@@ -145,7 +133,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   int maxSourcePosition;
 
   BytecodeGenerator(ast.Component component, this.coreTypes, this.hierarchy,
-      this.typeEnvironment, this.constantEvaluator, this.options)
+      this.typeEnvironment, this.options)
       : recognizedMethods = new RecognizedMethods(typeEnvironment),
         formatVersion = currentBytecodeFormatVersion,
         astUriToSource = component.uriToSource {
@@ -339,7 +327,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       flags |= ClassDeclaration.hasSourcePositionsFlag;
       position = library.fileOffset;
     }
-    Annotations annotations = getAnnotations(library.annotations);
+    Annotations annotations = getLibraryAnnotations(library);
     if (annotations.object != null) {
       flags |= ClassDeclaration.hasAnnotationsFlag;
       if (annotations.hasPragma) {
@@ -374,8 +362,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     if (nodes.isEmpty) {
       return const Annotations(null, false);
     }
-    List<Constant> constants = constantEvaluator.withNewEnvironment(
-        () => nodes.map(_evaluateConstantExpression).toList());
+    List<Constant> constants = nodes.map(_getConstant).toList();
     bool hasPragma = constants.any(_isPragma);
     if (!options.emitAnnotations) {
       if (hasPragma) {
@@ -410,8 +397,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       return const Annotations(null, false);
     }
 
-    List<Constant> functionConstants = constantEvaluator.withNewEnvironment(
-        () => functionNodes.map(_evaluateConstantExpression).toList());
+    List<Constant> functionConstants = functionNodes.map(_getConstant).toList();
     bool hasPragma = functionConstants.any(_isPragma);
     if (!options.emitAnnotations && !hasPragma) {
       return const Annotations(null, false);
@@ -423,8 +409,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     bytecodeComponent.annotations.add(functionDecl);
 
     for (final parameterNodes in parameterNodeLists) {
-      List<Constant> parameterConstants = constantEvaluator.withNewEnvironment(
-          () => parameterNodes.map(_evaluateConstantExpression).toList());
+      List<Constant> parameterConstants =
+          parameterNodes.map(_getConstant).toList();
       final parameterObject = objectTable
           .getHandle(new ListConstant(const DynamicType(), parameterConstants));
       final parameterDecl = new AnnotationsDeclaration(parameterObject);
@@ -434,12 +420,72 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     return new Annotations(functionDecl, hasPragma);
   }
 
+  // Insert annotations for library and its dependencies into the
+  // annotations section. Returns annotations for the library only.
+  // Bytecode reader will implicitly find library dependencies by reading
+  // an extra object after reading library annotations.
+  Annotations getLibraryAnnotations(Library library) {
+    Annotations annotations = getAnnotations(library.annotations);
+    final bool emitDependencies =
+        options.emitAnnotations && library.dependencies.isNotEmpty;
+    if (annotations.object == null && !emitDependencies) {
+      return annotations;
+    }
+
+    // We need to emit both annotations and dependencies objects, appending
+    // null if an object is missing.
+    if (annotations.object == null) {
+      final annotationsDecl = new AnnotationsDeclaration(null);
+      bytecodeComponent.annotations.add(annotationsDecl);
+      annotations = new Annotations(annotationsDecl, false);
+    }
+    if (!emitDependencies) {
+      bytecodeComponent.annotations.add(new AnnotationsDeclaration(null));
+      return annotations;
+    }
+
+    // Create a constant object representing library dependencies.
+    // These objects are used by dart:mirrors and vm-service implementation.
+    final deps = <Constant>[];
+    for (var dependency in library.dependencies) {
+      final prefix = dependency.name != null
+          ? StringConstant(dependency.name)
+          : NullConstant();
+      final showNames = dependency.combinators
+          .where((c) => c.isShow)
+          .expand((c) => c.names)
+          .map((name) => StringConstant(name))
+          .toList();
+      final hideNames = dependency.combinators
+          .where((c) => c.isHide)
+          .expand((c) => c.names)
+          .map((name) => StringConstant(name))
+          .toList();
+      final depAnnots = dependency.annotations.map(_getConstant).toList();
+      deps.add(ListConstant(const DynamicType(), <Constant>[
+        StringConstant(dependency.targetLibrary.importUri.toString()),
+        BoolConstant(dependency.isExport),
+        BoolConstant(dependency.isDeferred),
+        prefix,
+        ListConstant(const DynamicType(), showNames),
+        ListConstant(const DynamicType(), hideNames),
+        ListConstant(const DynamicType(), depAnnots),
+      ]));
+    }
+    final ObjectHandle dependenciesObject =
+        objectTable.getHandle(ListConstant(const DynamicType(), deps));
+    final dependenciesDecl = new AnnotationsDeclaration(dependenciesObject);
+    bytecodeComponent.annotations.add(dependenciesDecl);
+
+    return annotations;
+  }
+
   FieldDeclaration getFieldDeclaration(Field field, Code initializer) {
     int flags = 0;
     Constant value;
     if (_hasTrivialInitializer(field)) {
       if (field.initializer != null) {
-        value = _evaluateConstantExpression(field.initializer);
+        value = _getConstant(field.initializer);
       }
     } else {
       flags |= FieldDeclaration.hasInitializerFlag;
@@ -675,9 +721,11 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   }
 
   ParameterDeclaration getParameterDeclaration(VariableDeclaration variable) {
-    final name = objectTable.getNameHandle(null, variable.name);
-    final type = objectTable.getHandle(variable.type);
-    return new ParameterDeclaration(name, type);
+    final name = variable.name;
+    final lib = name.startsWith('_') ? enclosingMember.enclosingLibrary : null;
+    final nameHandle = objectTable.getNameHandle(lib, name);
+    final typeHandle = objectTable.getHandle(variable.type);
+    return new ParameterDeclaration(nameHandle, typeHandle);
   }
 
   List<int> getParameterFlags(FunctionNode function) {
@@ -935,9 +983,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       _dartFfiLibrary ??= libraryIndex.tryGetLibrary('dart:ffi');
 
   void _recordSourcePosition(int fileOffset) {
-    if (options.emitSourcePositions) {
-      asm.currentSourcePosition = fileOffset;
-    }
+    asm.currentSourcePosition = fileOffset;
     maxSourcePosition = math.max(maxSourcePosition, fileOffset);
   }
 
@@ -1029,23 +1075,24 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     }
   }
 
-  Constant _evaluateConstantExpression(Expression expr) {
+  Constant _getConstant(Expression expr) {
     if (expr is ConstantExpression) {
       return expr.constant;
     }
-    final constant = constantEvaluator.evaluate(expr);
-    if (constant is UnevaluatedConstant &&
-        constant.expression is InvalidExpression) {
-      // Compile-time error is already reported. Proceed with compilation
-      // in order to report errors in other constant expressions.
-      hasErrors = true;
-      return new NullConstant();
-    }
-    return constant;
+
+    // Literals outside of const expressions are not transformed by the
+    // constant transformer, but they need to be treated as constants here.
+    if (expr is BoolLiteral) return new BoolConstant(expr.value);
+    if (expr is DoubleLiteral) return new DoubleConstant(expr.value);
+    if (expr is IntLiteral) return new IntConstant(expr.value);
+    if (expr is NullLiteral) return new NullConstant();
+    if (expr is StringLiteral) return new StringConstant(expr.value);
+
+    throw 'Expected constant, got ${expr.runtimeType}';
   }
 
   void _genPushConstExpr(Expression expr) {
-    final constant = _evaluateConstantExpression(expr);
+    final constant = _getConstant(expr);
     if (constant is NullConstant) {
       asm.emitPushNull();
     } else if (constant is BoolConstant) {
@@ -1302,16 +1349,11 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     if (condition is BoolLiteral) {
       return condition.value;
     }
-    Constant constant;
     if (condition is ConstantExpression) {
-      constant = condition.constant;
-    } else if ((condition is StaticGet && condition.target.isConst) ||
-        (condition is StaticInvocation && condition.isConst) ||
-        (condition is VariableGet && condition.variable.isConst)) {
-      constant = _evaluateConstantExpression(condition);
-    }
-    if (constant is BoolConstant) {
-      return constant.value;
+      Constant constant = condition.constant;
+      if (constant is BoolConstant) {
+        return constant.value;
+      }
     }
     return null;
   }
@@ -1321,6 +1363,29 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     if (constantValue != null) {
       if (constantValue == value) {
         asm.emitJump(dest);
+      }
+      return;
+    }
+    if (condition is MethodInvocation &&
+        condition.name.name == '==' &&
+        (condition.receiver is NullLiteral ||
+            condition.arguments.positional.single is NullLiteral)) {
+      if (condition.receiver is NullLiteral) {
+        _generateNode(condition.arguments.positional.single);
+      } else {
+        _generateNode(condition.receiver);
+      }
+      if (options.emitDebuggerStops &&
+          condition.fileOffset != TreeNode.noOffset) {
+        final savedSourcePosition = asm.currentSourcePosition;
+        _recordSourcePosition(condition.fileOffset);
+        asm.emitDebugCheck();
+        asm.currentSourcePosition = savedSourcePosition;
+      }
+      if (value) {
+        asm.emitJumpIfNull(dest);
+      } else {
+        asm.emitJumpIfNotNull(dest);
       }
       return;
     }
@@ -1336,7 +1401,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     if (param.initializer == null) {
       return cp.addObjectRef(null);
     }
-    final constant = _evaluateConstantExpression(param.initializer);
+    final constant = _getConstant(param.initializer);
     return cp.addObjectRef(constant);
   }
 
@@ -1415,7 +1480,6 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
           new List<TypeParameter>.from(enclosingFunction.typeParameters);
       functionTypeParametersSet = functionTypeParameters.toSet();
     }
-    constantEvaluator.env = new EvaluationEnvironment();
     if (!hasCode) {
       return;
     }
@@ -1430,7 +1494,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     initializedFields = null; // Tracked for constructors only.
     nullableFields = const <ObjectHandle>[];
     cp = new ConstantPool(stringTable, objectTable);
-    asm = new BytecodeAssembler();
+    asm = new BytecodeAssembler(options);
     savedAssemblers = <BytecodeAssembler>[];
     currentLoopDepth = 0;
     savedMaxSourcePositions = <int>[];
@@ -1537,7 +1601,6 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     functionTypeParametersSet = null;
     instantiatorTypeArguments = null;
     locals = null;
-    constantEvaluator.env = null;
     labeledStatements = null;
     switchCases = null;
     tryCatches = null;
@@ -1603,13 +1666,16 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     } else {
       asm.emitEntry(locals.frameSize);
     }
-    asm.emitCheckStack(0);
 
     if (isClosure) {
       asm.emitPush(locals.closureVarIndexInFrame);
       asm.emitLoadFieldTOS(cp.addInstanceField(closureContext));
       asm.emitPopLocal(locals.contextVarIndexInFrame);
     }
+
+    // CheckStack must see a properly initialized context when stress-testing
+    // stack trace collection.
+    asm.emitCheckStack(0);
 
     if (locals.hasFunctionTypeArgsVar) {
       if (function.typeParameters.isNotEmpty) {
@@ -2045,18 +2111,11 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   void _pushAssemblerState() {
     savedAssemblers.add(asm);
-    asm = new BytecodeAssembler();
+    asm = new BytecodeAssembler(options);
   }
 
   void _popAssemblerState() {
     asm = savedAssemblers.removeLast();
-  }
-
-  void _evaluateDefaultParameterValue(VariableDeclaration param) {
-    if (param.initializer != null && param.initializer is! BasicLiteral) {
-      final constant = _evaluateConstantExpression(param.initializer);
-      param.initializer = new ConstantExpression(constant)..parent = param;
-    }
   }
 
   int _genClosureBytecode(
@@ -2082,12 +2141,6 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     List<Label> savedYieldPoints = yieldPoints;
     yieldPoints = locals.isSyncYieldingFrame ? <Label>[] : null;
 
-    // Replace default values of optional parameters with constants,
-    // as default value expressions could use local const variables which
-    // are not available in bytecode.
-    function.positionalParameters.forEach(_evaluateDefaultParameterValue);
-    locals.sortedNamedParameters.forEach(_evaluateDefaultParameterValue);
-
     final int closureIndex = closures.length;
     final closure = getClosureDeclaration(node, function, name, closureIndex,
         savedIsClosure ? parentFunction : enclosingMember);
@@ -2102,11 +2155,14 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         parentFunction != null &&
         (parentFunction.dartAsyncMarker == AsyncMarker.Async ||
             parentFunction.dartAsyncMarker == AsyncMarker.AsyncStar)) {
+      final savedSourcePosition = asm.currentSourcePosition;
+      _recordSourcePosition(TreeNode.noOffset);
       _genLoadVar(locals.asyncStackTraceVar,
           currentContextLevel: locals.contextLevelAtEntry);
       _genDirectCall(
           setAsyncThreadStackTrace, objectTable.getArgDescHandle(1), 1);
       asm.emitDrop1();
+      asm.currentSourcePosition = savedSourcePosition;
     }
 
     Label continuationSwitchLabel;
@@ -2190,6 +2246,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         flags |= ClosureDeclaration.isSyncStarFlag;
         break;
       default:
+        flags |= ClosureDeclaration.isDebuggableFlag;
         break;
     }
 
@@ -2447,7 +2504,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   /// the last finally block.
   void _generateNonLocalControlTransfer(
       TreeNode from, TreeNode to, GenerateContinuation continuation) {
-    if (options.emitDebuggerStops) {
+    if (options.emitDebuggerStops && from.fileOffset != TreeNode.noOffset) {
       asm.emitDebugCheck(); // Before context is unwound.
     }
     List<TryFinally> tryFinallyBlocks = _getEnclosingTryFinallyBlocks(from, to);
@@ -3063,6 +3120,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       }
     }
     tryCatches[tryCatch].needsStackTrace = true;
+
+    if (options.emitDebuggerStops) {
+      asm.emitDebugCheck(); // Allow breakpoint on explicit rethrow statement.
+    }
     _genRethrow(tryCatch);
   }
 
@@ -3076,13 +3137,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         initializer is NullLiteral) {
       return true;
     }
-    Constant constValue;
-    if (initializer is ConstantExpression) {
-      constValue = initializer.constant;
-    } else if (field.isConst) {
-      constValue = _evaluateConstantExpression(initializer);
-    }
-    if (constValue is PrimitiveConstant) {
+    if (initializer is ConstantExpression &&
+        initializer.constant is PrimitiveConstant) {
       return true;
     }
     return false;
@@ -3158,6 +3214,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     final target = node.target;
     if (target is Field) {
+      if (options.emitDebuggerStops &&
+          _variableSetNeedsDebugCheck(node.value)) {
+        asm.emitDebugCheck();
+      }
       int cpIndex = cp.addStaticField(target);
       asm.emitStoreStaticTOS(cpIndex);
     } else {
@@ -3209,6 +3269,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   @override
   visitThrow(Throw node) {
     _generateNode(node.expression);
+
+    if (options.emitDebuggerStops) {
+      asm.emitDebugCheck();
+    }
     asm.emitThrow(0);
   }
 
@@ -3273,7 +3337,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       rhs is ConstantExpression ||
       rhs is StaticGet ||
       rhs is FunctionExpression ||
-      rhs is VariableGet;
+      rhs is VariableGet ||
+      rhs is AsExpression;
 
   void _genFutureNull() {
     asm.emitPushNull();
@@ -3413,6 +3478,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     // Front-end inserts implicit cast (type check) which ensures that
     // result of iterable expression is Iterable<dynamic>.
+    _recordSourcePosition(node.iterable.fileOffset);
     asm.emitInterfaceCall(
         cp.addInterfaceCall(InvocationKind.getter, iterableIterator,
             objectTable.getArgDescHandle(1)),
@@ -3454,6 +3520,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     _genJumpIfFalse(/* negated = */ false, done);
 
     _enterScope(node);
+    _recordSourcePosition(node.bodyOffset);
 
     _genPushContextIfCaptured(node.variable);
 
@@ -3569,6 +3636,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       _generateNode(expr);
       _genReturnTOS();
     } else {
+      if (options.emitDebuggerStops) {
+        // Stop on the return statement before executing finally blocks.
+        asm.emitDebugCheck();
+      }
       if (expr is BasicLiteral) {
         _addFinallyBlocks(tryFinallyBlocks, () {
           _generateNode(expr);
@@ -3617,15 +3688,18 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       if (switchCase.isDefault) {
         defaultLabel = caseLabel;
       } else {
-        for (var expr in switchCase.expressions) {
+        final savedSourcePosition = asm.currentSourcePosition;
+        for (int i = 0; i < switchCase.expressions.length; ++i) {
+          _recordSourcePosition(switchCase.expressionOffsets[i]);
           asm.emitPush(temp);
-          _genPushConstExpr(expr);
+          _genPushConstExpr(switchCase.expressions[i]);
           asm.emitInterfaceCall(
               cp.addInterfaceCall(
                   InvocationKind.method, coreTypes.objectEquals, equalsArgDesc),
               2);
           _genJumpIfTrue(/* negated = */ false, caseLabel);
         }
+        asm.currentSourcePosition = savedSourcePosition;
       }
     }
 
@@ -3786,7 +3860,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     bool hasCatchAll = false;
 
+    final savedSourcePosition = asm.currentSourcePosition;
     for (Catch catchClause in node.catches) {
+      _recordSourcePosition(catchClause.fileOffset);
       tryBlock.types.add(cp.addType(catchClause.guard));
 
       Label skipCatch;
@@ -3824,6 +3900,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         asm.bind(skipCatch);
       }
     }
+    asm.currentSourcePosition = savedSourcePosition;
 
     if (!hasCatchAll) {
       tryBlock.needsStackTrace = true;
@@ -3874,10 +3951,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   @override
   visitVariableDeclaration(VariableDeclaration node) {
-    if (node.isConst) {
-      final Constant constant = _evaluateConstantExpression(node.initializer);
-      constantEvaluator.env.addVariableValue(node, constant);
-    } else {
+    if (!node.isConst) {
       final bool isCaptured = locals.isCaptured(node);
       if (isCaptured) {
         _genPushContextForVariable(node);
@@ -3891,7 +3965,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         asm.emitPushNull();
       }
 
-      if (options.emitDebuggerStops) {
+      if (options.emitDebuggerStops &&
+          (node.initializer == null ||
+              _variableSetNeedsDebugCheck(node.initializer))) {
         final savedSourcePosition = asm.currentSourcePosition;
         if (node.fileEqualsOffset != TreeNode.noOffset) {
           _recordSourcePosition(node.fileEqualsOffset);

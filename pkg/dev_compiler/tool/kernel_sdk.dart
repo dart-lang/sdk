@@ -75,11 +75,9 @@ Future main(List<String> args) async {
   File(librarySpecPath)
       .copySync(p.join(p.dirname(outputDir), p.basename(librarySpecPath)));
 
-  var jsModule = ProgramCompiler(
-      component,
-      compilerResult.classHierarchy,
-      SharedCompilerOptions(moduleName: 'dart_sdk'),
-      {}).emitModule(component, [], [], {});
+  var jsModule = ProgramCompiler(component, compilerResult.classHierarchy,
+          SharedCompilerOptions(moduleName: 'dart_sdk'))
+      .emitModule(component, [], [], {});
   var moduleFormats = {
     'amd': ModuleFormat.amd,
     'common': ModuleFormat.common,

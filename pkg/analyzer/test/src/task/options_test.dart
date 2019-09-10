@@ -186,6 +186,14 @@ class ErrorCodeValuesTest {
         declaredNames.remove(
             StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS.name +
                 '_PLUS');
+        declaredNames.remove('EXTRA_POSITIONAL_ARGUMENTS');
+        declaredNames.remove('EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED');
+        declaredNames.remove('IMPORT_OF_NON_LIBRARY');
+        declaredNames.remove('NOT_ENOUGH_REQUIRED_ARGUMENTS');
+        declaredNames.remove('REDIRECT_TO_MISSING_CONSTRUCTOR');
+        declaredNames.remove('REDIRECT_TO_NON_CLASS');
+        declaredNames.remove('UNDEFINED_CLASS');
+        declaredNames.remove('UNDEFINED_NAMED_PARAMETER');
       } else if (errorType == StrongModeCode) {
         void removeCode(StrongModeCode code) {
           declaredNames.remove(code.name);
@@ -233,6 +241,7 @@ class ErrorCodeValuesTest {
         declaredNames.remove('TODO_REGEX');
       } else if (errorType == CompileTimeErrorCode) {
         declaredNames.remove('ANNOTATION_WITH_TYPE_ARGUMENTS');
+        declaredNames.remove('NOT_ENOUGH_REQUIRED_ARGUMENTS');
       } else if (errorType == ParserErrorCode) {
         declaredNames.remove('CONST_AFTER_FACTORY');
         declaredNames.remove('CONST_AND_COVARIANT');

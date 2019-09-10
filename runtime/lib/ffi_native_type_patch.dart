@@ -68,8 +68,8 @@ class Double extends _NativeDouble {}
 
 @patch
 @pragma("vm:entry-point")
-class Void extends NativeType {}
+abstract class Void extends NativeType {}
 
 @patch
 @pragma("vm:entry-point")
-class NativeFunction<T extends Function> extends NativeType {}
+abstract class NativeFunction<T extends Function> extends NativeType {}

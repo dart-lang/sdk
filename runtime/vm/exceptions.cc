@@ -515,12 +515,16 @@ static void ClearLazyDeopts(Thread* thread, uword frame_pointer) {
     {
       DartFrameIterator frames(thread,
                                StackFrameIterator::kNoCrossThreadIteration);
-      StackFrame* frame = frames.NextFrame();
-      while ((frame != NULL) && (frame->fp() < frame_pointer)) {
+      for (StackFrame* frame = frames.NextFrame(); frame != nullptr;
+           frame = frames.NextFrame()) {
+        if (frame->is_interpreted()) {
+          continue;
+        } else if (frame->fp() >= frame_pointer) {
+          break;
+        }
         if (frame->IsMarkedForLazyDeopt()) {
           frame->UnmarkForLazyDeopt();
         }
-        frame = frames.NextFrame();
       }
     }
 

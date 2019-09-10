@@ -17,18 +17,27 @@ class ResolutionResult {
   /// The state of the result.
   final _ResolutionResultState state;
 
-  /// The element that was found, or `null` if the [state] is not
-  /// [_ResolutionResultState.single].
-  final ExecutableElement element;
+  /// The function that was found, or `null` if the [state] is not
+  /// [_ResolutionResultState.single], or a [property] was found.
+  final ExecutableElement function;
+
+  /// The property that was found, or `null` if the [state] is not
+  /// [_ResolutionResultState.single], or a [function] was found.
+  final PropertyInducingElement property;
 
   /// Initialize a newly created result to represent resolving to a single
-  /// [element].
-  ResolutionResult(this.element)
-      : assert(element != null),
+  /// [function] or [property].
+  ResolutionResult({this.function, this.property})
+      : assert(function != null || property != null),
         state = _ResolutionResultState.single;
 
   /// Initialize a newly created result with no element and the given [state].
-  const ResolutionResult._(this.state) : element = null;
+  const ResolutionResult._(this.state)
+      : function = null,
+        property = null;
+
+  /// Return the getter of the [property], or the [function].
+  ExecutableElement get getter => function ?? property?.getter;
 
   /// Return `true` if this result represents the case where multiple ambiguous
   /// elements were found.
@@ -41,6 +50,17 @@ class ResolutionResult {
   /// Return `true` if this result represents the case where a single element
   /// was found.
   bool get isSingle => state == _ResolutionResultState.single;
+
+  /// If this is a property, return `true` is the property is static.
+  /// If this is a function, return `true` is the function is static.
+  /// Otherwise return `false`.
+  bool get isStatic {
+    return function?.isStatic ?? property?.isStatic ?? false;
+  }
+
+  /// Return the setter of the [property], or `null` if this is not a property,
+  /// or the property does not have a setter.
+  ExecutableElement get setter => property?.setter;
 }
 
 /// The state of a [ResolutionResult].

@@ -2079,6 +2079,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     List<js.Expression> arguments = visitArguments(node.inputs, start: 0);
 
+    if (element == _commonElements.jsAllowInterop) {
+      _nativeData.registerAllowInterop();
+    }
+
     if (element == _commonElements.checkConcurrentModificationError) {
       // Manually inline the [checkConcurrentModificationError] function.  This
       // function is only called from a for-loop update.  Ideally we would just

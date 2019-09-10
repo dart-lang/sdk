@@ -572,7 +572,7 @@ class RegisterSet : public ValueObject {
 
   void AddAllNonReservedRegisters(bool include_fpu_registers) {
     for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; --i) {
-      if (kReservedCpuRegisters & (1 << i)) continue;
+      if ((kReservedCpuRegisters & (1 << i)) != 0u) continue;
       Add(Location::RegisterLocation(static_cast<Register>(i)));
     }
 

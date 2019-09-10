@@ -45,7 +45,8 @@ import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/kernel_builder.dart'
     show FormalParameterBuilder, TypeAliasBuilder, TypeBuilder;
 
-import '../parser.dart' show Assert, ClassKind, MemberKind, Parser, optional;
+import '../parser.dart'
+    show Assert, DeclarationKind, MemberKind, Parser, optional;
 
 import '../problems.dart'
     show DebugAbort, internalProblem, unexpected, unhandled;
@@ -64,7 +65,7 @@ import '../source/value_kinds.dart';
 import '../quote.dart' show unescapeString;
 
 class DietListener extends StackListener {
-  final SourceLibraryBuilder library;
+  final SourceLibraryBuilder libraryBuilder;
 
   final ClassHierarchy hierarchy;
 
@@ -96,7 +97,7 @@ class DietListener extends StackListener {
 
   DietListener(SourceLibraryBuilder library, this.hierarchy, this.coreTypes,
       this.typeInferenceEngine)
-      : library = library,
+      : libraryBuilder = library,
         uri = library.fileUri,
         memberScope = library.scope,
         enableNative =
@@ -262,8 +263,8 @@ class DietListener extends StackListener {
     checkEmpty(typedefKeyword.charOffset);
     if (name is ParserRecovery) return;
 
-    Builder typedefBuilder = lookupBuilder(typedefKeyword, null, name);
-    parseMetadata(typedefBuilder, metadata, typedefBuilder.target);
+    TypeAliasBuilder typedefBuilder = lookupBuilder(typedefKeyword, null, name);
+    parseMetadata(typedefBuilder, metadata, typedefBuilder.typedef);
     if (typedefBuilder is TypeAliasBuilder) {
       TypeBuilder type = typedefBuilder.type;
       if (type is FunctionTypeBuilder) {
@@ -281,13 +282,13 @@ class DietListener extends StackListener {
                   parseMetadata(typedefBuilder, metadataToken, null);
               if (formal.isPositional) {
                 VariableDeclaration parameter =
-                    typedefBuilder.target.positionalParameters[i];
+                    typedefBuilder.typedef.positionalParameters[i];
                 for (Expression annotation in annotations) {
                   parameter.addAnnotation(annotation);
                 }
               } else {
                 for (VariableDeclaration named
-                    in typedefBuilder.target.namedParameters) {
+                    in typedefBuilder.typedef.namedParameters) {
                   if (named.name == formal.name) {
                     for (Expression annotation in annotations) {
                       named.addAnnotation(annotation);
@@ -308,7 +309,7 @@ class DietListener extends StackListener {
   }
 
   @override
-  void endFields(Token staticToken, Token covariantToken, Token lateToken,
+  void endClassFields(Token staticToken, Token covariantToken, Token lateToken,
       Token varFinalOrConst, int count, Token beginToken, Token endToken) {
     debugEvent("Fields");
     buildFields(count, beginToken, false);
@@ -498,10 +499,10 @@ class DietListener extends StackListener {
         unescapeString(importUriToken.lexeme, importUriToken, this);
     if (importUri.startsWith("dart-ext:")) return;
 
-    Library libraryNode = library.target;
+    Library libraryNode = libraryBuilder.library;
     LibraryDependency dependency =
         libraryNode.dependencies[importExportDirectiveIndex++];
-    parseMetadata(library, metadata, dependency);
+    parseMetadata(libraryBuilder, metadata, dependency);
   }
 
   @override
@@ -514,10 +515,10 @@ class DietListener extends StackListener {
     debugEvent("Export");
 
     Token metadata = pop();
-    Library libraryNode = library.target;
+    Library libraryNode = libraryBuilder.library;
     LibraryDependency dependency =
         libraryNode.dependencies[importExportDirectiveIndex++];
-    parseMetadata(library, metadata, dependency);
+    parseMetadata(libraryBuilder, metadata, dependency);
   }
 
   @override
@@ -525,14 +526,14 @@ class DietListener extends StackListener {
     debugEvent("Part");
 
     Token metadata = pop();
-    Library libraryNode = library.target;
+    Library libraryNode = libraryBuilder.library;
     if (libraryNode.parts.length > partDirectiveIndex) {
       // If partDirectiveIndex >= libraryNode.parts.length we are in a case of
       // on part having other parts. An error has already been issued.
       // Don't try to parse metadata into other parts that have nothing to do
       // with the one this keyword is talking about.
       LibraryPart part = libraryNode.parts[partDirectiveIndex++];
-      parseMetadata(library, metadata, part);
+      parseMetadata(libraryBuilder, metadata, part);
     }
   }
 
@@ -560,9 +561,9 @@ class DietListener extends StackListener {
   }
 
   @override
-  void endFactoryMethod(
+  void endClassFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
-    debugEvent("FactoryMethod");
+    debugEvent("ClassFactoryMethod");
     Token bodyToken = pop();
     Object name = pop();
     Token metadata = pop();
@@ -605,7 +606,7 @@ class DietListener extends StackListener {
   }
 
   @override
-  void endMethod(Token getOrSet, Token beginToken, Token beginParam,
+  void endClassMethod(Token getOrSet, Token beginToken, Token beginParam,
       Token beginInitializers, Token endToken) {
     debugEvent("Method");
     // TODO(danrubel): Consider removing the beginParam parameter
@@ -643,13 +644,33 @@ class DietListener extends StackListener {
     // for better error recovery?
     InterfaceType thisType =
         extensionThis == null ? currentDeclaration?.thisType : null;
-    TypeInferrer typeInferrer =
-        typeInferenceEngine?.createLocalTypeInferrer(uri, thisType, library);
+    TypeInferrer typeInferrer = typeInferenceEngine?.createLocalTypeInferrer(
+        uri, thisType, libraryBuilder);
     ConstantContext constantContext = builder.isConstructor && builder.isConst
         ? ConstantContext.inferred
         : ConstantContext.none;
+    return createListenerInternal(
+        builder,
+        memberScope,
+        formalParameterScope,
+        isDeclarationInstanceMember,
+        extensionThis,
+        extensionTypeParameters,
+        typeInferrer,
+        constantContext);
+  }
+
+  StackListener createListenerInternal(
+      ModifierBuilder builder,
+      Scope memberScope,
+      Scope formalParameterScope,
+      bool isDeclarationInstanceMember,
+      VariableDeclaration extensionThis,
+      List<TypeParameter> extensionTypeParameters,
+      TypeInferrer typeInferrer,
+      ConstantContext constantContext) {
     return new BodyBuilder(
-        library: library,
+        libraryBuilder: libraryBuilder,
         member: builder,
         enclosingScope: memberScope,
         formalParameterScope: formalParameterScope,
@@ -738,7 +759,7 @@ class DietListener extends StackListener {
   }
 
   @override
-  void beginClassOrMixinBody(ClassKind kind, Token token) {
+  void beginClassOrMixinBody(DeclarationKind kind, Token token) {
     assert(checkState(token, [
       ValueKind.Token,
       ValueKind.NameOrParserRecovery,
@@ -749,7 +770,7 @@ class DietListener extends StackListener {
     Object name = pop();
     pop(); // Annotation begin token.
     assert(currentDeclaration == null);
-    assert(memberScope == library.scope);
+    assert(memberScope == libraryBuilder.scope);
     if (name is ParserRecovery) {
       currentClassIsParserRecovery = true;
       return;
@@ -760,11 +781,11 @@ class DietListener extends StackListener {
 
   @override
   void endClassOrMixinBody(
-      ClassKind kind, int memberCount, Token beginToken, Token endToken) {
+      DeclarationKind kind, int memberCount, Token beginToken, Token endToken) {
     debugEvent("ClassOrMixinBody");
     currentDeclaration = null;
     currentClassIsParserRecovery = false;
-    memberScope = library.scope;
+    memberScope = libraryBuilder.scope;
   }
 
   @override
@@ -796,7 +817,7 @@ class DietListener extends StackListener {
     debugEvent("beginExtensionDeclaration");
     String name = nameToken?.lexeme ??
         // Synthesized name used internally.
-        'extension#${unnamedExtensionCounter++}';
+        '_extension#${unnamedExtensionCounter++}';
     push(name);
     push(extensionKeyword);
   }
@@ -889,7 +910,8 @@ class DietListener extends StackListener {
     if (isTopLevel) {
       token = parser.parseTopLevelMember(metadata ?? token);
     } else {
-      token = parser.parseClassOrMixinMember(metadata ?? token).next;
+      // TODO(danrubel): disambiguate between class/mixin/extension members
+      token = parser.parseClassMember(metadata ?? token, null).next;
     }
     listenerFinishFields(listener, startToken, metadata, isTopLevel);
     listener.checkEmpty(token.charOffset);
@@ -910,9 +932,9 @@ class DietListener extends StackListener {
         declaration = currentDeclaration.scope.local[name];
       }
     } else if (getOrSet != null && optional("set", getOrSet)) {
-      declaration = library.scope.setters[name];
+      declaration = libraryBuilder.scope.setters[name];
     } else {
-      declaration = library.scopeBuilder[name];
+      declaration = libraryBuilder.scopeBuilder[name];
     }
     declaration = handleDuplicatedName(declaration, token);
     checkBuilder(token, declaration, name);
@@ -977,7 +999,7 @@ class DietListener extends StackListener {
   @override
   void addProblem(Message message, int charOffset, int length,
       {bool wasHandled: false, List<LocatedMessage> context}) {
-    library.addProblem(message, charOffset, length, uri,
+    libraryBuilder.addProblem(message, charOffset, length, uri,
         wasHandled: wasHandled, context: context);
   }
 

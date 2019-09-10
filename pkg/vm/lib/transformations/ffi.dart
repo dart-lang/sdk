@@ -186,6 +186,8 @@ class FfiTransformer extends Transformer {
   final Constructor structFromPointer;
   final Procedure libraryLookupMethod;
   final Procedure abiMethod;
+  final Procedure pointerFromFunctionProcedure;
+  final Procedure nativeCallbackFunctionProcedure;
 
   /// Classes corresponding to [NativeType], indexed by [NativeType].
   final List<Class> nativeTypesClasses;
@@ -220,6 +222,10 @@ class FfiTransformer extends Transformer {
         libraryLookupMethod =
             index.getMember('dart:ffi', 'DynamicLibrary', 'lookup'),
         abiMethod = index.getTopLevelMember('dart:ffi', '_abi'),
+        pointerFromFunctionProcedure =
+            index.getTopLevelMember('dart:ffi', '_pointerFromFunction'),
+        nativeCallbackFunctionProcedure =
+            index.getTopLevelMember('dart:ffi', '_nativeCallbackFunction'),
         nativeTypesClasses = nativeTypeClassNames
             .map((name) => index.getClass('dart:ffi', name))
             .toList();

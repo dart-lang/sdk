@@ -20,7 +20,6 @@ import 'package:kernel/transformations/continuation.dart' as cont;
 import 'package:kernel/transformations/empty.dart' as empty;
 import 'package:kernel/transformations/method_call.dart' as method_call;
 import 'package:kernel/transformations/mixin_full_resolution.dart' as mix;
-import 'package:kernel/transformations/coq.dart' as coq;
 import 'package:kernel/vm/constants_native_effects.dart';
 
 ArgParser parser = new ArgParser()
@@ -97,9 +96,6 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
     case 'resolve-mixins':
       mix.transformLibraries(
           new NoneTarget(null), coreTypes, hierarchy, component.libraries);
-      break;
-    case 'coq':
-      component = coq.transformComponent(coreTypes, component);
       break;
     case 'constants':
       final VmConstantsBackend backend = new VmConstantsBackend(coreTypes);

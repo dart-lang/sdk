@@ -45,8 +45,19 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   @override
   LinkedNodeBuilder visitAnnotation(Annotation node) {
     var elementComponents = _componentsOfElement(node.element);
+
+    LinkedNodeBuilder storedArguments;
+    var arguments = node.arguments;
+    if (arguments != null) {
+      if (arguments.arguments.every(_isSerializableExpression)) {
+        storedArguments = arguments.accept(this);
+      } else {
+        storedArguments = LinkedNodeBuilder.argumentList();
+      }
+    }
+
     return LinkedNodeBuilder.annotation(
-      annotation_arguments: node.arguments?.accept(this),
+      annotation_arguments: storedArguments,
       annotation_constructorName: node.constructorName?.accept(this),
       annotation_element: elementComponents.rawElement,
       annotation_substitution: elementComponents.substitution,
@@ -1354,6 +1365,10 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
               _hasConstConstructor)) {
         initializer = null;
       }
+    }
+
+    if (!_isSerializableExpression(initializer)) {
+      initializer = null;
     }
 
     var builder = LinkedNodeBuilder.variableDeclaration(

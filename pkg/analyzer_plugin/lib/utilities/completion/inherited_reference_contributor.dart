@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -55,8 +54,8 @@ class InheritedReferenceContributor
       return;
     }
     containingLibrary = request.result.libraryElement;
-    _computeSuggestionsForClass2(collector, target,
-        resolutionMap.elementDeclaredByClassDeclaration(classDecl), optype);
+    _computeSuggestionsForClass2(
+        collector, target, classDecl.declaredElement, optype);
   }
 
   /**
@@ -85,7 +84,7 @@ class InheritedReferenceContributor
       if (classDecl == null || classDecl.declaredElement == null) {
         return;
       }
-      classElement = resolutionMap.elementDeclaredByClassDeclaration(classDecl);
+      classElement = classDecl.declaredElement;
     }
     containingLibrary = request.result.libraryElement;
     _computeSuggestionsForClass2(collector, target, classElement, optype,

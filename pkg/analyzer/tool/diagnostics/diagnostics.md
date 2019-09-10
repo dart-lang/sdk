@@ -23,8 +23,8 @@ the `const` keyword because it's implied by the fact that everything in that
 region is required to be a constant. The following locations are constant
 contexts:
 
-* Everything inside a list, map or set literal that's prefixed by the keyword
-  `const`. Example:
+* Everything inside a list, map or set literal that's prefixed by the
+  `const` keyword. Example:
 
   ```dart
   var l = const [/*constant context*/];
@@ -36,7 +36,7 @@ contexts:
   var p = const Point(/*constant context*/);
   ```
 
-* The initializer for a variable that's prefixed by the keyword `const`.
+* The initializer for a variable that's prefixed by the `const` keyword.
   Example:
 
   ```dart
@@ -432,6 +432,7 @@ The following code produces this diagnostic:
 
 {% prettify dart %}
 typedef Binary = int Function(int, int);
+
 int f() {
   return [!Binary!](1, 2);
 }
@@ -477,8 +478,8 @@ _The values in a const list literal must be constants._
 
 The analyzer produces this diagnostic when an element in a constant list
 literal isn't a constant value. The list literal can be constant either
-explicitly (because it's prefixed by the keyword `const`) or implicitly
-(because it appears in a <a href=”#constant-context”>constant context</a>).
+explicitly (because it's prefixed by the `const` keyword) or implicitly
+(because it appears in a [constant context](#constant-context)).
 
 #### Example
 
@@ -493,8 +494,8 @@ const y = <int>[0, 1, [!x!]];
 #### Common fixes
 
 If the list needs to be a constant list, then convert the element to be a
-constant. In the example above, you might add the keyword `const`
-to the declaration of `x`:
+constant. In the example above, you might add the `const` keyword to the
+declaration of `x`:
 
 {% prettify dart %}
 const int x = 2;
@@ -609,6 +610,7 @@ The following code produces this diagnostic because `f` is a function:
 
 {% prettify dart %}
 C f() {}
+
 class C {
   factory C() = [!f!];
 }
@@ -627,6 +629,7 @@ the constructor to return the value from the constructor's body:
 
 {% prettify dart %}
 C f() {}
+
 class C {
   factory C() => f();
 }
@@ -692,6 +695,7 @@ The following code produces this diagnostic:
 
 {% prettify dart %}
 class A<E extends num> {}
+
 var a = A<[!String!]>();
 {% endprettify %}
 
@@ -701,6 +705,7 @@ Change the type argument to be a subclass of the bounds:
 
 {% prettify dart %}
 class A<E extends num> {}
+
 var a = A<int>();
 {% endprettify %}
 
@@ -720,6 +725,7 @@ The following code produces this diagnostic:
 
 {% prettify dart %}
 class Point {}
+
 void main() {
   [!Piont!] p;
 }
@@ -733,6 +739,7 @@ fixing the spelling of the class:
 
 {% prettify dart %}
 class Point {}
+
 void main() {
   Point p;
 }
@@ -757,6 +764,7 @@ The following code produces this diagnostic:
 
 {% prettify dart %}
 List<int> empty() => [];
+
 void main() {
   print([!emty!]());
 }
@@ -770,6 +778,7 @@ by fixing the spelling of the function:
 
 {% prettify dart %}
 List<int> empty() => [];
+
 void main() {
   print(empty());
 }
@@ -793,12 +802,7 @@ visible in the scope in which it's being referenced.
 The following code produces this diagnostic:
 
 {% prettify dart %}
-class Point {
-  final int x;
-  final int y;
-  Point(this.x, this.y);
-  operator +(Point other) => Point(x + other.x, y + other.[!z!]);
-}
+int f(String s) => s.[!len!];
 {% endprettify %}
 
 #### Common fix
@@ -808,12 +812,7 @@ the name of a getter that is defined. The example above can be corrected by
 fixing the spelling of the getter:
 
 {% prettify dart %}
-class Point {
-  final int x;
-  final int y;
-  Point(this.x, this.y);
-  operator +(Point other) => Point(x + other.x, y + other.y);
-}
+int f(String s) => s.length;
 {% endprettify %}
 
 ### undefined_identifier
@@ -893,6 +892,7 @@ The following code produces this diagnostic:
 class C {
   m({int b}) {}
 }
+
 void f(C c) {
   c.m([!a!]: 1);
 }
@@ -907,6 +907,7 @@ The example above can be fixed by changing `a` to `b`:
 class C {
   m({int b}) {}
 }
+
 void f(C c) {
   c.m(b: 1);
 }
@@ -919,9 +920,11 @@ target to the subclass:
 class C {
   m({int b}) {}
 }
+
 class D extends C {
   m({int a, int b}) {}
 }
+
 void f(C c) {
   (c as D).m(a: 1);
 }
@@ -933,6 +936,7 @@ If the parameter should be added to the function, then add it:
 class C {
   m({int a, int b}) {}
 }
+
 void f(C c) {
   c.m(a: 1);
 }
@@ -1049,8 +1053,7 @@ The following code produces this diagnostic:
 {% prettify dart %}
 import [!'dart:async'!];
 
-void main() {
-}
+void main() {}
 {% endprettify %}
 
 #### Common fixes

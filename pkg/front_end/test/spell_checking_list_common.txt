@@ -32,6 +32,7 @@ accessible
 accessing
 accessor
 accessors
+accidental
 accidentally
 accordance
 according
@@ -79,6 +80,7 @@ algebra
 algorithm
 algorithms
 alias
+alignment
 all
 allocated
 allocating
@@ -218,6 +220,7 @@ backward
 backwards
 bad
 balanced
+bare
 base
 based
 basic
@@ -334,6 +337,7 @@ canonicalize
 canonicalized
 capabilities
 capability
+capable
 capital
 capture
 captured
@@ -386,6 +390,7 @@ chunk
 circularities
 circularity
 circumstances
+clashing
 class
 classes
 classic
@@ -512,6 +517,7 @@ connected
 connection
 consequence
 consequently
+conservative
 conservatively
 consider
 considered
@@ -593,6 +599,7 @@ could
 couldn't
 count
 counter
+counting
 counts
 couple
 covariance
@@ -603,16 +610,19 @@ covered
 covers
 crash
 crashed
+crashes
 crashing
 create
 created
 creates
 creating
 creation
+crossed
 curly
 current
 currently
 custom
+customize
 cyan
 cycle
 cycles
@@ -819,6 +829,7 @@ earlier
 early
 easier
 easiest
+easily
 edge
 edges
 edit
@@ -855,10 +866,12 @@ encoded
 encoder
 encodes
 encoding
+encounter
 encountered
 encounters
 end
 ended
+endian
 ending
 endings
 ends
@@ -877,6 +890,7 @@ entered
 entering
 entire
 entirely
+entirety
 entities
 entity
 entity's
@@ -889,6 +903,7 @@ environment
 equal
 equality
 equals
+equivalence
 equivalent
 equivalents
 erroneous
@@ -899,6 +914,7 @@ escaped
 escapes
 escaping
 essence
+essentials
 etc
 evaluate
 evaluated
@@ -924,6 +940,7 @@ examples
 exceeded
 except
 exception
+exceptional
 exceptions
 exclamation
 exclude
@@ -1237,6 +1254,7 @@ ignored
 ignores
 ignoring
 illegal
+imaginary
 imitation
 immediate
 immediately
@@ -1352,6 +1370,8 @@ instantiating
 instantiation
 instantiations
 instead
+instruction
+instructions
 instrumentation
 instrumented
 int
@@ -1402,6 +1422,7 @@ investigate
 invocation
 invocation's
 invocations
+invokable
 invoke
 invoked
 invokes
@@ -1608,6 +1629,7 @@ mathematical
 matter
 maturity
 max
+maximum
 may
 maybe
 mean
@@ -1662,6 +1684,7 @@ mixins
 mock
 mode
 model
+models
 modes
 modifiable
 modification
@@ -1812,6 +1835,7 @@ operations
 operator
 operators
 opposed
+opted
 optimistically
 optimization
 optimize
@@ -1830,6 +1854,7 @@ original
 originally
 originate
 originated
+originates
 originating
 origins
 orphan
@@ -1906,6 +1931,7 @@ patching
 paths
 pattern
 peek
+pending
 percent
 perform
 performance
@@ -1925,8 +1951,10 @@ physical
 pick
 picked
 pipeline
+piping
 pivot
 place
+places
 placed
 placeholder
 placeholders
@@ -1976,6 +2004,7 @@ precisely
 precision
 preclude
 precondition
+predefined
 predicate
 preemptively
 prefer
@@ -1985,6 +2014,7 @@ preferred
 prefix
 prefixed
 prefixes
+prelude
 prepare
 prepared
 preparing
@@ -2084,6 +2114,7 @@ qualified
 qualifier
 qualifiers
 quality
+queried
 query
 question
 queue
@@ -2109,6 +2140,7 @@ reading
 reads
 ready
 real
+realigned
 realized
 really
 reason
@@ -2156,6 +2188,7 @@ referred
 refers
 refine
 refinement
+reflecting
 regardless
 region
 regions
@@ -2173,11 +2206,13 @@ relate
 related
 relation
 relational
+relations
 relationship
 relationships
 relative
 release
 relevant
+relied
 relies
 reloads
 rely
@@ -2189,12 +2224,14 @@ remains
 remember
 remembered
 remembers
+reminder
 remote
 remove
 removed
 removes
 removing
 rename
+renamed
 renaming
 repeated
 repeatedly
@@ -2237,6 +2274,7 @@ resolves
 resolving
 resources
 respect
+respected
 respective
 respectively
 respects
@@ -2256,6 +2294,7 @@ resynthesize
 retain
 retained
 rethrow
+retired
 retrieve
 retrieved
 retrieves
@@ -2298,6 +2337,7 @@ runs
 runtime
 safe
 safely
+safety
 said
 sake
 same
@@ -2350,6 +2390,7 @@ sending
 sends
 sense
 sent
+sentence
 sentinel
 separate
 separated
@@ -2392,6 +2433,7 @@ should
 shouldn't
 show
 shown
+shows
 shrink
 side
 sign
@@ -2401,6 +2443,7 @@ signature
 signatures
 signed
 silent
+silently
 silly
 similar
 similarly
@@ -2452,6 +2495,7 @@ sort
 sorted
 sorting
 sorts
+sought
 source
 sources
 space
@@ -2483,6 +2527,7 @@ stage
 stamps
 standalone
 standard
+stands
 star
 start
 started
@@ -2560,6 +2605,7 @@ suffice
 sufficient
 sufficiently
 suffix
+suffixes
 suggested
 suitable
 summaries
@@ -2608,6 +2654,7 @@ system
 systems
 tab
 table
+tables
 tabs
 tag
 tail
@@ -2749,6 +2796,7 @@ trying
 turn
 turned
 turning
+turns
 tv
 twice
 two
@@ -2760,9 +2808,11 @@ types
 typically
 typing
 unable
+unambiguous
 unary
 unbalanced
 unbind
+uncertain
 unchanged
 unclaimed
 unclear
@@ -2771,6 +2821,7 @@ under
 underlying
 underscore
 understand
+understood
 unevaluated
 unexpected
 unfinished
@@ -2799,6 +2850,7 @@ unmodified
 unnamed
 unnecessarily
 unnecessary
+unparsable
 unpromoted
 unread
 unrecognized
@@ -2872,6 +2924,7 @@ verifies
 verify
 verifying
 version
+versioning
 versions
 vertex
 vertical

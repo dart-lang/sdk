@@ -4,7 +4,7 @@
 
 import 'package:expect/expect.dart';
 
-import 'package:test_runner/src/test_file.dart';
+import 'package:test_runner/src/static_error.dart';
 import 'package:test_runner/src/update_errors.dart';
 
 // Note: This test file validates how some of the special markers used by the
@@ -192,12 +192,12 @@ int j =
 /\/ [cfe] Error.
 """);
 
-  // Uses an explicit error location if there's no length.
+  // Uses length one if there's no length.
   expectUpdate("""
 int i = "bad";
 """, errors: [StaticError(line: 1, column: 9, message: "Error.")], expected: """
 int i = "bad";
-/\/ [error line 1, column 9]
+/\/      ^
 /\/ [cfe] Error.
 """);
 
@@ -209,6 +209,29 @@ int i =
 int i =
 "bad";
 /\/ [error line 2, column 1]
+/\/ [cfe] Error.
+""");
+
+  // Handles shifted line numbers in explicit error locations.
+  // Note that the reported line is line 6, but the output is line 3 to take
+  // into account the three removed lines.
+  expectUpdate("""
+main() {
+/\/ ^^
+/\/ [analyzer] ERROR.CODE
+/\/ [cfe] Error.
+}
+Error here;
+""", errors: [
+    StaticError(line: 6, column: 1, length: 5, code: "NEW.ERROR"),
+    StaticError(line: 6, column: 2, length: 3, message: "Error."),
+  ], expected: """
+main() {
+}
+Error here;
+/\/ [error line 3, column 1, length 5]
+/\/ [analyzer] NEW.ERROR
+/\/ [error line 3, column 2, length 3]
 /\/ [cfe] Error.
 """);
 
@@ -245,6 +268,65 @@ someBadCode();
 /\/ [cfe] Wrong 2.
 /\/      ^^^^^
 /\/ [cfe] Wrong 1.
+""");
+
+  regression();
+}
+
+void regression() {
+  // https://github.com/dart-lang/sdk/issues/37990.
+  expectUpdate(
+      """
+int get xx => 3;
+int get yy => 3;
+
+class A {
+  void test() {
+    xx = 1;
+/\/  ^^^^^^^^^^^^^^
+/\/ [cfe] unspecified
+/\/  ^^^^^^^^^^^^^^
+/\/ [analyzer] unspecified
+
+
+    yy(4);
+/\/  ^^^^^^^^^^^^^^
+/\/ [cfe] unspecified
+/\/  ^^^^^^^^^^^^^^
+/\/ [analyzer] unspecified
+
+  }
+}
+""",
+      removeAnalyzer: false,
+      errors: [
+        StaticError(
+            line: 6, column: 5, length: 14, message: "Setter not found: 'xx'."),
+        StaticError(
+            line: 16,
+            column: 7,
+            message: "The method 'call' isn't defined for the class 'int'.")
+      ],
+      expected: """
+int get xx => 3;
+int get yy => 3;
+
+class A {
+  void test() {
+    xx = 1;
+/\/  ^^^^^^^^^^^^^^
+/\/ [analyzer] unspecified
+/\/ [cfe] Setter not found: 'xx'.
+
+
+    yy(4);
+/\/  ^^^^^^^^^^^^^^
+/\/ [analyzer] unspecified
+/\/    ^
+/\/ [cfe] The method 'call' isn't defined for the class 'int'.
+
+  }
+}
 """);
 }
 

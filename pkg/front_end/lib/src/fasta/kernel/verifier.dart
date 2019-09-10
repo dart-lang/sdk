@@ -9,6 +9,7 @@ import 'package:kernel/ast.dart'
         AsExpression,
         Class,
         Component,
+        DartType,
         ExpressionStatement,
         Field,
         Let,
@@ -32,7 +33,7 @@ import '../fasta_codes.dart'
 
 import '../severity.dart' show Severity;
 
-import '../type_inference/type_schema.dart' show TypeSchemaVisitor, UnknownType;
+import '../type_inference/type_schema.dart' show UnknownType;
 
 import 'kernel_shadow_ast.dart' show SyntheticExpressionJudgment;
 
@@ -47,8 +48,7 @@ List<LocatedMessage> verifyComponent(Component component,
   return verifier.errors;
 }
 
-class FastaVerifyingVisitor extends VerifyingVisitor
-    implements TypeSchemaVisitor<void> {
+class FastaVerifyingVisitor extends VerifyingVisitor {
   final List<LocatedMessage> errors = <LocatedMessage>[];
 
   Uri fileUri;
@@ -174,9 +174,12 @@ class FastaVerifyingVisitor extends VerifyingVisitor
   }
 
   @override
-  visitUnknownType(UnknownType node) {
-    // Note: we can't pass [node] to [problem] because it's not a [TreeNode].
-    problem(null, "Unexpected appearance of the unknown type.");
+  defaultDartType(DartType node) {
+    if (node is UnknownType) {
+      // Note: we can't pass [node] to [problem] because it's not a [TreeNode].
+      problem(null, "Unexpected appearance of the unknown type.");
+    }
+    super.defaultDartType(node);
   }
 
   @override

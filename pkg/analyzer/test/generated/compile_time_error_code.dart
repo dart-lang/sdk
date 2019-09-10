@@ -1690,10 +1690,10 @@ void g(T f<T>(T x)) {}
       await assertErrorsInCode(code, [
         // Due to dartbug.com/28515, some additional errors appear when using the
         // new analysis driver.
-        error(StaticWarningCode.UNDEFINED_CLASS, 7, 1),
+        error(CompileTimeErrorCode.UNDEFINED_CLASS, 7, 1),
         error(CompileTimeErrorCode.GENERIC_FUNCTION_TYPED_PARAM_UNSUPPORTED, 7,
             11),
-        error(StaticWarningCode.UNDEFINED_CLASS, 14, 1),
+        error(CompileTimeErrorCode.UNDEFINED_CLASS, 14, 1),
       ]);
     }
   }
@@ -4938,7 +4938,7 @@ f() {
   return const A();
 }
 ''', [
-      error(StaticWarningCode.UNDEFINED_CLASS, 21, 1),
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 21, 1),
     ]);
   }
 

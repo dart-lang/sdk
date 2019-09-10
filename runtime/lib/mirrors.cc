@@ -253,20 +253,27 @@ static RawInstance* CreateMethodMirror(const Function& func,
   args.SetAt(4, Bool::Get(func.is_static()));
 
   intptr_t kind_flags = 0;
-  kind_flags |= (func.is_abstract() << Mirrors::kAbstract);
-  kind_flags |= (func.IsGetterFunction() << Mirrors::kGetter);
-  kind_flags |= (func.IsSetterFunction() << Mirrors::kSetter);
+  kind_flags |=
+      (static_cast<intptr_t>(func.is_abstract()) << Mirrors::kAbstract);
+  kind_flags |=
+      (static_cast<intptr_t>(func.IsGetterFunction()) << Mirrors::kGetter);
+  kind_flags |=
+      (static_cast<intptr_t>(func.IsSetterFunction()) << Mirrors::kSetter);
   bool is_ctor = (func.kind() == RawFunction::kConstructor);
-  kind_flags |= (is_ctor << Mirrors::kConstructor);
-  kind_flags |= ((is_ctor && func.is_const()) << Mirrors::kConstCtor);
+  kind_flags |= (static_cast<intptr_t>(is_ctor) << Mirrors::kConstructor);
+  kind_flags |= (static_cast<intptr_t>(is_ctor && func.is_const())
+                 << Mirrors::kConstCtor);
   kind_flags |=
-      ((is_ctor && func.IsGenerativeConstructor()) << Mirrors::kGenerativeCtor);
+      (static_cast<intptr_t>(is_ctor && func.IsGenerativeConstructor())
+       << Mirrors::kGenerativeCtor);
+  kind_flags |= (static_cast<intptr_t>(is_ctor && func.is_redirecting())
+                 << Mirrors::kRedirectingCtor);
+  kind_flags |= (static_cast<intptr_t>(is_ctor && func.IsFactory())
+                 << Mirrors::kFactoryCtor);
   kind_flags |=
-      ((is_ctor && func.is_redirecting()) << Mirrors::kRedirectingCtor);
-  kind_flags |= ((is_ctor && func.IsFactory()) << Mirrors::kFactoryCtor);
-  kind_flags |= (func.is_external() << Mirrors::kExternal);
+      (static_cast<intptr_t>(func.is_external()) << Mirrors::kExternal);
   bool is_synthetic = func.is_no_such_method_forwarder();
-  kind_flags |= (is_synthetic << Mirrors::kSynthetic);
+  kind_flags |= (static_cast<intptr_t>(is_synthetic) << Mirrors::kSynthetic);
   args.SetAt(5, Smi::Handle(Smi::New(kind_flags)));
 
   return CreateMirror(Symbols::_LocalMethodMirror(), args);
@@ -366,11 +373,14 @@ static RawInstance* CreateCombinatorMirror(const Object& identifiers,
 
 static RawInstance* CreateLibraryDependencyMirror(Thread* thread,
                                                   const Instance& importer,
-                                                  const Namespace& ns,
+                                                  const Library& importee,
+                                                  const Array& show_names,
+                                                  const Array& hide_names,
+                                                  const Object& metadata,
                                                   const LibraryPrefix& prefix,
+                                                  const String& prefix_name,
                                                   const bool is_import,
                                                   const bool is_deferred) {
-  const Library& importee = Library::Handle(ns.library());
   const Instance& importee_mirror =
       Instance::Handle(CreateLibraryMirror(thread, importee));
   if (importee_mirror.IsNull()) {
@@ -378,8 +388,6 @@ static RawInstance* CreateLibraryDependencyMirror(Thread* thread,
     return Instance::null();
   }
 
-  const Array& show_names = Array::Handle(ns.show_names());
-  const Array& hide_names = Array::Handle(ns.hide_names());
   intptr_t n = show_names.IsNull() ? 0 : show_names.Length();
   intptr_t m = hide_names.IsNull() ? 0 : hide_names.Length();
   const Array& combinators = Array::Handle(Array::New(n + m));
@@ -396,12 +404,6 @@ static RawInstance* CreateLibraryDependencyMirror(Thread* thread,
     combinators.SetAt(i++, t);
   }
 
-  Object& metadata = Object::Handle(ns.GetMetadata());
-  if (metadata.IsError()) {
-    Exceptions::PropagateError(Error::Cast(metadata));
-    UNREACHABLE();
-  }
-
   const Array& args = Array::Handle(Array::New(7));
   args.SetAt(0, importer);
   if (importee.Loaded() || prefix.IsNull()) {
@@ -413,12 +415,107 @@ static RawInstance* CreateLibraryDependencyMirror(Thread* thread,
     args.SetAt(1, prefix);
   }
   args.SetAt(2, combinators);
-  args.SetAt(3, prefix.IsNull() ? Object::null_object()
-                                : String::Handle(prefix.name()));
+  args.SetAt(3, prefix_name);
   args.SetAt(4, Bool::Get(is_import));
   args.SetAt(5, Bool::Get(is_deferred));
   args.SetAt(6, metadata);
   return CreateMirror(Symbols::_LocalLibraryDependencyMirror(), args);
+}
+
+static RawInstance* CreateLibraryDependencyMirror(Thread* thread,
+                                                  const Instance& importer,
+                                                  const Namespace& ns,
+                                                  const LibraryPrefix& prefix,
+                                                  const bool is_import,
+                                                  const bool is_deferred) {
+  const Library& importee = Library::Handle(ns.library());
+  const Array& show_names = Array::Handle(ns.show_names());
+  const Array& hide_names = Array::Handle(ns.hide_names());
+
+  Object& metadata = Object::Handle(ns.GetMetadata());
+  if (metadata.IsError()) {
+    Exceptions::PropagateError(Error::Cast(metadata));
+    UNREACHABLE();
+  }
+
+  auto& prefix_name = String::Handle();
+  if (!prefix.IsNull()) {
+    prefix_name = prefix.name();
+  }
+
+  return CreateLibraryDependencyMirror(thread, importer, importee, show_names,
+                                       hide_names, metadata, prefix,
+                                       prefix_name, is_import, is_deferred);
+}
+
+static RawGrowableObjectArray* CreateBytecodeLibraryDependencies(
+    Thread* thread,
+    const Library& lib,
+    const Instance& lib_mirror) {
+  ASSERT(lib.is_declared_in_bytecode());
+
+  // Make sure top level class (containing annotations) is fully loaded.
+  lib.EnsureTopLevelClassIsFinalized();
+
+  const auto& deps = GrowableObjectArray::Handle(GrowableObjectArray::New());
+  Array& metadata = Array::Handle(lib.GetExtendedMetadata(lib, 1));
+  if (metadata.Length() == 0) {
+    return deps.raw();
+  }
+
+  // Library has the only element in the extended metadata.
+  metadata ^= metadata.At(0);
+  if (metadata.IsNull()) {
+    return deps.raw();
+  }
+
+  auto& desc = Array::Handle();
+  auto& target_uri = String::Handle();
+  auto& importee = Library::Handle();
+  auto& is_export = Bool::Handle();
+  auto& is_deferred = Bool::Handle();
+  auto& prefix_name = String::Handle();
+  auto& show_names = Array::Handle();
+  auto& hide_names = Array::Handle();
+  auto& dep_metadata = Instance::Handle();
+  auto& dep = Instance::Handle();
+  const auto& no_prefix = LibraryPrefix::Handle();
+
+  for (intptr_t i = 0, n = metadata.Length(); i < n; ++i) {
+    desc ^= metadata.At(i);
+    // Each dependency is represented as an array with the following layout:
+    //  [0] = target library URI (String)
+    //  [1] = is_export (bool)
+    //  [2] = is_deferred (bool)
+    //  [3] = prefix (String or null)
+    //  [4] = list of show names (List<String>)
+    //  [5] = list of hide names (List<String>)
+    //  [6] = annotations
+    // The library dependencies are encoded by getLibraryAnnotations(),
+    // pkg/vm/lib/bytecode/gen_bytecode.dart.
+    target_uri ^= desc.At(0);
+    is_export ^= desc.At(1);
+    is_deferred ^= desc.At(2);
+    prefix_name ^= desc.At(3);
+    show_names ^= desc.At(4);
+    hide_names ^= desc.At(5);
+    dep_metadata ^= desc.At(6);
+
+    importee = Library::LookupLibrary(thread, target_uri);
+    if (importee.IsNull()) {
+      continue;
+    }
+    ASSERT(importee.Loaded());
+
+    dep = CreateLibraryDependencyMirror(
+        thread, lib_mirror, importee, show_names, hide_names, dep_metadata,
+        no_prefix, prefix_name, !is_export.value(), is_deferred.value());
+    if (!dep.IsNull()) {
+      deps.Add(dep);
+    }
+  }
+
+  return deps.raw();
 }
 
 DEFINE_NATIVE_ENTRY(LibraryMirror_fromPrefix, 0, 1) {
@@ -435,6 +532,10 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_libraryDependencies, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, lib_mirror, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(1));
   const Library& lib = Library::Handle(ref.GetLibraryReferent());
+
+  if (lib.is_declared_in_bytecode()) {
+    return CreateBytecodeLibraryDependencies(thread, lib, lib_mirror);
+  }
 
   Array& ports = Array::Handle();
   Namespace& ns = Namespace::Handle();

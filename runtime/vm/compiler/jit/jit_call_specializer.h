@@ -36,7 +36,6 @@ class JitCallSpecializer : public CallSpecializer {
       Value* context_value);
 
   void ReplaceWithStaticCall(InstanceCallInstr* instr,
-                             const ICData& unary_checks,
                              const Function& target,
                              intptr_t call_count);
 

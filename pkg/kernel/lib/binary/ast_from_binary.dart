@@ -415,6 +415,7 @@ class BinaryBuilder {
   }
 
   List<int> _indexComponents() {
+    _checkEmptyInput();
     int savedByteOffset = _byteOffset;
     _byteOffset = _bytes.length - 4;
     List<int> index = <int>[];
@@ -431,6 +432,10 @@ class BinaryBuilder {
     return new List.from(index.reversed);
   }
 
+  void _checkEmptyInput() {
+    if (_bytes.length == 0) throw new StateError("Empty input given.");
+  }
+
   /// Deserializes a kernel component and stores it in [component].
   ///
   /// When linking with a non-empty component, canonical names must have been
@@ -438,6 +443,8 @@ class BinaryBuilder {
   ///
   /// The input bytes may contain multiple files concatenated.
   void readComponent(Component component, {bool checkCanonicalNames: false}) {
+    _checkEmptyInput();
+
     // Check that we have a .dill file and it has the correct version before we
     // start decoding it.  Otherwise we will fail for cryptic reasons.
     int offset = _byteOffset;
@@ -576,10 +583,10 @@ class BinaryBuilder {
     result.libraryOffsets = new List<int>(result.libraryCount + 1);
     result.componentFileSizeInBytes = readUint32();
     if (result.componentFileSizeInBytes != componentFileSize) {
-      throw 'Malformed binary: This component file\'s component index indicates that'
-          ' the filesize should be $componentFileSize but other component indexes'
-          ' has indicated that the size should be '
-          '${result.componentFileSizeInBytes}.';
+      throw "Malformed binary: This component file's component index indicates that"
+          " the file size should be $componentFileSize but other component indexes"
+          " has indicated that the size should be "
+          "${result.componentFileSizeInBytes}.";
     }
 
     // Skip to the start of the index.
@@ -873,6 +880,11 @@ class BinaryBuilder {
       return readClass(classOffsets[index + 1]);
     }, library);
     _byteOffset = classOffsets.last;
+
+    _mergeNamedNodeList(library.extensions, (index) {
+      return readExtension();
+    }, library);
+
     _mergeNamedNodeList(library.fields, (index) => readField(), library);
     _mergeNamedNodeList(library.procedures, (index) {
       _byteOffset = procedureOffsets[index];
@@ -1054,6 +1066,57 @@ class BinaryBuilder {
 
     _byteOffset = endOffset;
 
+    return node;
+  }
+
+  Extension readExtension() {
+    int tag = readByte();
+    assert(tag == Tag.Extension);
+
+    CanonicalName canonicalName = readCanonicalNameReference();
+    Reference reference = canonicalName.getReference();
+    Extension node = reference.node;
+    if (alwaysCreateNewNamedNodes) {
+      node = null;
+    }
+    bool shouldWriteData = node == null || _isReadingLibraryImplementation;
+    if (node == null) {
+      node = new Extension(reference: reference);
+    }
+
+    String name = readStringOrNullIfEmpty();
+    assert(() {
+      debugPath.add(node.name ?? 'extension');
+      return true;
+    }());
+
+    Uri fileUri = readUriReference();
+    node.fileOffset = readOffset();
+
+    readAndPushTypeParameterList(node.typeParameters, node);
+    DartType onType = readDartType();
+    typeParameterStack.length = 0;
+
+    if (shouldWriteData) {
+      node.name = name;
+      node.fileUri = fileUri;
+      node.onType = onType;
+    }
+
+    int length = readUInt();
+    for (int i = 0; i < length; i++) {
+      Name name = readName();
+      int kind = readByte();
+      int flags = readByte();
+      CanonicalName canonicalName = readCanonicalNameReference();
+      if (shouldWriteData) {
+        node.members.add(new ExtensionMemberDescriptor(
+            name: name,
+            kind: ExtensionMemberKind.values[kind],
+            member: canonicalName.getReference())
+          ..flags = flags);
+      }
+    }
     return node;
   }
 
@@ -1600,6 +1663,11 @@ class BinaryBuilder {
         List<Expression> unusedArguments = readExpressionList();
         return new InstanceCreation(classReference, typeArguments, fieldValues,
             asserts, unusedArguments)
+          ..fileOffset = offset;
+      case Tag.FileUriExpression:
+        Uri fileUri = readUriReference();
+        int offset = readOffset();
+        return new FileUriExpression(readExpression(), fileUri)
           ..fileOffset = offset;
       case Tag.IsExpression:
         int offset = readOffset();

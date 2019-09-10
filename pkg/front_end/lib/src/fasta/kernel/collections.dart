@@ -50,10 +50,10 @@ mixin ControlFlowElement on Expression {
   }
 
   @override
-  accept(ExpressionVisitor<Object> v) => v.defaultExpression(this);
+  R accept<R>(ExpressionVisitor<R> v) => v.defaultExpression(this);
 
   @override
-  accept1(ExpressionVisitor1<Object, Object> v, arg) =>
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
       v.defaultExpression(this, arg);
 }
 
@@ -80,7 +80,7 @@ class SpreadElement extends Expression with ControlFlowElement {
   @override
   transformChildren(Transformer v) {
     if (expression != null) {
-      expression = expression.accept(v);
+      expression = expression.accept<TreeNode>(v);
       expression?.parent = this;
     }
   }
@@ -108,15 +108,15 @@ class IfElement extends Expression with ControlFlowElement {
   @override
   transformChildren(Transformer v) {
     if (condition != null) {
-      condition = condition.accept(v);
+      condition = condition.accept<TreeNode>(v);
       condition?.parent = this;
     }
     if (then != null) {
-      then = then.accept(v);
+      then = then.accept<TreeNode>(v);
       then?.parent = this;
     }
     if (otherwise != null) {
-      otherwise = otherwise.accept(v);
+      otherwise = otherwise.accept<TreeNode>(v);
       otherwise?.parent = this;
     }
   }
@@ -148,12 +148,12 @@ class ForElement extends Expression with ControlFlowElement {
   transformChildren(Transformer v) {
     transformList(variables, v, this);
     if (condition != null) {
-      condition = condition.accept(v);
+      condition = condition.accept<TreeNode>(v);
       condition?.parent = this;
     }
     transformList(updates, v, this);
     if (body != null) {
-      body = body.accept(v);
+      body = body.accept<TreeNode>(v);
       body?.parent = this;
     }
   }
@@ -188,23 +188,23 @@ class ForInElement extends Expression with ControlFlowElement {
 
   transformChildren(Transformer v) {
     if (variable != null) {
-      variable = variable.accept(v);
+      variable = variable.accept<TreeNode>(v);
       variable?.parent = this;
     }
     if (iterable != null) {
-      iterable = iterable.accept(v);
+      iterable = iterable.accept<TreeNode>(v);
       iterable?.parent = this;
     }
     if (prologue != null) {
-      prologue = prologue.accept(v);
+      prologue = prologue.accept<TreeNode>(v);
       prologue?.parent = this;
     }
     if (body != null) {
-      body = body.accept(v);
+      body = body.accept<TreeNode>(v);
       body?.parent = this;
     }
     if (problem != null) {
-      problem = problem.accept(v);
+      problem = problem.accept<TreeNode>(v);
       problem?.parent = this;
     }
   }
@@ -213,26 +213,26 @@ class ForInElement extends Expression with ControlFlowElement {
 mixin ControlFlowMapEntry implements MapEntry {
   @override
   Expression get key {
-    throw UnsupportedError('ControlFlowMapEntry.key getter');
+    throw new UnsupportedError('ControlFlowMapEntry.key getter');
   }
 
   @override
   void set key(Expression expr) {
-    throw UnsupportedError('ControlFlowMapEntry.key setter');
+    throw new UnsupportedError('ControlFlowMapEntry.key setter');
   }
 
   @override
   Expression get value {
-    throw UnsupportedError('ControlFlowMapEntry.value getter');
+    throw new UnsupportedError('ControlFlowMapEntry.value getter');
   }
 
   @override
   void set value(Expression expr) {
-    throw UnsupportedError('ControlFlowMapEntry.value setter');
+    throw new UnsupportedError('ControlFlowMapEntry.value setter');
   }
 
   @override
-  accept(TreeVisitor<Object> v) => v.defaultTreeNode(this);
+  R accept<R>(TreeVisitor<R> v) => v.defaultTreeNode(this);
 }
 
 /// A spread element in a map literal.
@@ -258,7 +258,7 @@ class SpreadMapEntry extends TreeNode with ControlFlowMapEntry {
   @override
   transformChildren(Transformer v) {
     if (expression != null) {
-      expression = expression.accept(v);
+      expression = expression.accept<TreeNode>(v);
       expression?.parent = this;
     }
   }
@@ -286,15 +286,15 @@ class IfMapEntry extends TreeNode with ControlFlowMapEntry {
   @override
   transformChildren(Transformer v) {
     if (condition != null) {
-      condition = condition.accept(v);
+      condition = condition.accept<TreeNode>(v);
       condition?.parent = this;
     }
     if (then != null) {
-      then = then.accept(v);
+      then = then.accept<TreeNode>(v);
       then?.parent = this;
     }
     if (otherwise != null) {
-      otherwise = otherwise.accept(v);
+      otherwise = otherwise.accept<TreeNode>(v);
       otherwise?.parent = this;
     }
   }
@@ -326,12 +326,12 @@ class ForMapEntry extends TreeNode with ControlFlowMapEntry {
   transformChildren(Transformer v) {
     transformList(variables, v, this);
     if (condition != null) {
-      condition = condition.accept(v);
+      condition = condition.accept<TreeNode>(v);
       condition?.parent = this;
     }
     transformList(updates, v, this);
     if (body != null) {
-      body = body.accept(v);
+      body = body.accept<TreeNode>(v);
       body?.parent = this;
     }
   }
@@ -366,23 +366,23 @@ class ForInMapEntry extends TreeNode with ControlFlowMapEntry {
 
   transformChildren(Transformer v) {
     if (variable != null) {
-      variable = variable.accept(v);
+      variable = variable.accept<TreeNode>(v);
       variable?.parent = this;
     }
     if (iterable != null) {
-      iterable = iterable.accept(v);
+      iterable = iterable.accept<TreeNode>(v);
       iterable?.parent = this;
     }
     if (prologue != null) {
-      prologue = prologue.accept(v);
+      prologue = prologue.accept<TreeNode>(v);
       prologue?.parent = this;
     }
     if (body != null) {
-      body = body.accept(v);
+      body = body.accept<TreeNode>(v);
       body?.parent = this;
     }
     if (problem != null) {
-      problem = problem.accept(v);
+      problem = problem.accept<TreeNode>(v);
       problem?.parent = this;
     }
   }

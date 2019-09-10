@@ -21,13 +21,13 @@ class ImplicitTypeArgument extends DartType {
   get nullability => unsupported("nullability", -1, null);
 
   @override
-  accept(DartTypeVisitor<Object> v) {
-    unhandled("$runtimeType", "${v.runtimeType}", -1, null);
+  R accept<R>(DartTypeVisitor<R> v) {
+    throw unhandled("$runtimeType", "${v.runtimeType}", -1, null);
   }
 
   @override
-  accept1(DartTypeVisitor1<Object, Object> v, arg) {
-    unhandled("$runtimeType", "${v.runtimeType}", -1, null);
+  R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) {
+    throw unhandled("$runtimeType", "${v.runtimeType}", -1, null);
   }
 
   @override

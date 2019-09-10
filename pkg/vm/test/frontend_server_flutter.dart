@@ -52,6 +52,7 @@ main(List<String> args) async {
           f.uri.toString().contains("/packages/")) &&
       f.uri.toString().endsWith("/.packages")));
 
+  List<String> allCompilationErrors = [];
   for (File dotPackage in dotPackagesFiles) {
     Directory tempDir;
     Directory systemTempDir = Directory.systemTemp;
@@ -60,17 +61,35 @@ main(List<String> args) async {
       Directory testDir =
           new Directory.fromUri(dotPackage.parent.uri.resolve("test/"));
       if (!testDir.existsSync()) continue;
+      if (testDir.toString().contains("packages/flutter_web_plugins/test/")) {
+        // TODO(jensj): Figure out which tests are web-tests, and compile those
+        // in a setup that can handle that.
+        continue;
+      }
       print("Go for $testDir");
-      await attemptStuff(
+      List<String> compilationErrors = await attemptStuff(
           tempDir, flutterPlatformDirectory, dotPackage, testDir);
+      if (compilationErrors.isNotEmpty) {
+        print("Notice that we had ${compilationErrors.length} "
+            "compilation errors for $testDir");
+        allCompilationErrors.addAll(compilationErrors);
+      }
     } finally {
       tempDir.delete(recursive: true);
     }
   }
+  if (allCompilationErrors.isNotEmpty) {
+    print("Had a total of ${allCompilationErrors.length} compilation errors:");
+    allCompilationErrors.forEach(print);
+    throw "Had a total of ${allCompilationErrors.length} compilation errors";
+  }
 }
 
-void attemptStuff(Directory tempDir, Directory flutterPlatformDirectory,
-    File dotPackage, Directory testDir) async {
+Future<List<String>> attemptStuff(
+    Directory tempDir,
+    Directory flutterPlatformDirectory,
+    File dotPackage,
+    Directory testDir) async {
   File dillFile = new File('${tempDir.path}/dill.dill');
   if (dillFile.existsSync()) {
     throw "$dillFile already exists.";
@@ -90,10 +109,20 @@ void attemptStuff(Directory tempDir, Directory flutterPlatformDirectory,
     // '--unsafe-package-serialization',
   ];
 
+  bool shouldSkip(File f) {
+    // TODO(jensj): Come up with a better way to (temporarily) skip some tests.
+    List<String> pathSegments = f.uri.pathSegments;
+    if (pathSegments.sublist(pathSegments.length - 5).join("/") ==
+        "packages/flutter/test/widgets/html_element_view_test.dart") {
+      return true;
+    }
+    return false;
+  }
+
   List<File> testFiles = new List<File>.from(testDir
       .listSync(recursive: true)
-      .where((f) => f.path.endsWith("_test.dart")));
-  if (testFiles.isEmpty) return;
+      .where((f) => f.path.endsWith("_test.dart") && !shouldSkip(f)));
+  if (testFiles.isEmpty) return [];
 
   Stopwatch stopwatch = new Stopwatch()..start();
 
@@ -122,21 +151,32 @@ void attemptStuff(Directory tempDir, Directory flutterPlatformDirectory,
   inputStreamController
       .add('compile ${testFileIterator.current.path}\n'.codeUnits);
   int compilations = 0;
+  List<String> compilationErrors = [];
   receivedResults.stream.listen((Result compiledResult) {
     stdout.write(" --- done in ${stopwatch2.elapsedMilliseconds} ms\n");
     stopwatch2.reset();
-    compiledResult.expectNoErrors();
-
-    List<int> resultBytes = dillFile.readAsBytesSync();
-    Component component = loadComponentFromBytes(platformData);
-    component = loadComponentFromBytes(resultBytes, component);
-    verifyComponent(component);
-    print("        => verified in ${stopwatch2.elapsedMilliseconds} ms.");
+    bool error = false;
+    try {
+      compiledResult.expectNoErrors();
+    } catch (e) {
+      print("Got errors. Compiler output for this compile:");
+      outputParser.allReceived.forEach(print);
+      compilationErrors.add(testFileIterator.current.path);
+      error = true;
+    }
+    if (!error) {
+      List<int> resultBytes = dillFile.readAsBytesSync();
+      Component component = loadComponentFromBytes(platformData);
+      component = loadComponentFromBytes(resultBytes, component);
+      verifyComponent(component);
+      print("        => verified in ${stopwatch2.elapsedMilliseconds} ms.");
+    }
     stopwatch2.reset();
 
     inputStreamController.add('accept\n'.codeUnits);
     inputStreamController.add('reset\n'.codeUnits);
     compilations++;
+    outputParser.allReceived.clear();
 
     if (!testFileIterator.moveNext()) {
       inputStreamController.add('quit\n'.codeUnits);
@@ -160,6 +200,8 @@ void attemptStuff(Directory tempDir, Directory flutterPlatformDirectory,
 
   print("Did $compilations compilations and verifications in "
       "${stopwatch.elapsedMilliseconds} ms.");
+
+  return compilationErrors;
 }
 
 // The below is copied from incremental_compiler_test.dart,
@@ -176,7 +218,10 @@ class OutputParser {
   String _boundaryKey;
   bool _readingSources;
 
+  List<String> allReceived = new List<String>();
+
   void listener(String s) {
+    allReceived.add(s);
     if (_boundaryKey == null) {
       const String RESULT_OUTPUT_SPACE = 'result ';
       if (s.startsWith(RESULT_OUTPUT_SPACE)) {

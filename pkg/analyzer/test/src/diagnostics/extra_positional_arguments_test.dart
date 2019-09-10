@@ -22,7 +22,8 @@ main() {
   (int x, {int y}) {} (0, 1);
 }
 ''', [
-      error(StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED, 31, 6),
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED, 31,
+          6),
     ]);
   }
 
@@ -33,8 +34,8 @@ main() {
   f(0, 1, '2');
 }
 ''', [
-      error(
-          StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED, 25, 11),
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED, 25,
+          11),
     ]);
   }
 }
@@ -48,7 +49,7 @@ main() {
   f(0, 1, '2');
 }
 ''', [
-      error(StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS, 19, 11),
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 19, 11),
     ]);
   }
 
@@ -58,7 +59,7 @@ main() {
   (int x) {} (0, 1);
 }
 ''', [
-      error(StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS, 22, 6),
+      error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 22, 6),
     ]);
   }
 }

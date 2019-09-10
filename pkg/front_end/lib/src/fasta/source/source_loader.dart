@@ -113,6 +113,8 @@ import '../scanner.dart'
         Token,
         scan;
 
+import '../type_inference/type_inferrer.dart';
+
 import 'diet_listener.dart' show DietListener;
 
 import 'diet_parser.dart' show DietParser;
@@ -212,9 +214,6 @@ class SourceLoader extends Loader {
             enableExtensionMethods: target.enableExtensionMethods,
             enableNonNullable: target.enableNonNullable),
         languageVersionChanged: (_, LanguageVersionToken version) {
-      // TODO(jensj): What if we have several? What if it is unsupported?
-      // What if the language version was already set via packages and this is
-      // higher? Etc
       library.setLanguageVersion(version.major, version.minor,
           offset: version.offset, length: version.length, explicit: true);
     });
@@ -263,6 +262,9 @@ class SourceLoader extends Loader {
 
       case "dart:_internal":
         return utf8.encode(defaultDartInternalSource);
+
+      case "dart:typed_data":
+        return utf8.encode(defaultDartTypedDataSource);
 
       default:
         return utf8.encode(message == null ? "" : "/* ${message.message} */");
@@ -809,13 +811,13 @@ class SourceLoader extends Loader {
   Component computeFullComponent() {
     Set<Library> libraries = new Set<Library>();
     List<Library> workList = <Library>[];
-    builders.forEach((Uri uri, LibraryBuilder library) {
-      if (!library.isPatch &&
-          (library.loader == this ||
-              library.uri.scheme == "dart" ||
-              library == this.first)) {
-        if (libraries.add(library.target)) {
-          workList.add(library.target);
+    builders.forEach((Uri uri, LibraryBuilder libraryBuilder) {
+      if (!libraryBuilder.isPatch &&
+          (libraryBuilder.loader == this ||
+              libraryBuilder.uri.scheme == "dart" ||
+              libraryBuilder == this.first)) {
+        if (libraries.add(libraryBuilder.library)) {
+          workList.add(libraryBuilder.library);
         }
       }
     });
@@ -951,7 +953,7 @@ class SourceLoader extends Loader {
     for (SourceClassBuilder builder in sourceClasses) {
       if (builder.library.loader == this && !builder.isPatch) {
         if (builder.addNoSuchMethodForwarders(target, hierarchy)) {
-          changedClasses.add(builder.target);
+          changedClasses.add(builder.cls);
         }
       }
     }
@@ -962,10 +964,6 @@ class SourceLoader extends Loader {
   void checkMixins(List<SourceClassBuilder> sourceClasses) {
     for (SourceClassBuilder builder in sourceClasses) {
       if (builder.library.loader == this && !builder.isPatch) {
-        if (builder.isMixinDeclaration) {
-          builder.checkMixinDeclaration();
-        }
-
         Class mixedInClass = builder.cls.mixedInClass;
         if (mixedInClass != null && mixedInClass.isMixinDeclaration) {
           builder.checkMixinApplication(hierarchy);
@@ -1046,8 +1044,7 @@ class SourceLoader extends Loader {
       node.accept(collectionTransformer ??= new CollectionTransformer(this));
     }
     if (transformSetLiterals) {
-      node.accept(setLiteralTransformer ??= new SetLiteralTransformer(this,
-          transformConst: !target.enableConstantUpdate2018));
+      node.accept(setLiteralTransformer ??= new SetLiteralTransformer(this));
     }
   }
 
@@ -1061,9 +1058,8 @@ class SourceLoader extends Loader {
       }
     }
     if (transformSetLiterals) {
-      SetLiteralTransformer transformer = setLiteralTransformer ??=
-          new SetLiteralTransformer(this,
-              transformConst: !target.enableConstantUpdate2018);
+      SetLiteralTransformer transformer =
+          setLiteralTransformer ??= new SetLiteralTransformer(this);
       for (int i = 0; i < list.length; ++i) {
         list[i] = list[i].accept(transformer);
       }
@@ -1120,6 +1116,11 @@ class SourceLoader extends Loader {
   @override
   TypeBuilder computeTypeBuilder(DartType type) {
     return type.accept(new TypeBuilderComputer(this));
+  }
+
+  BodyBuilder createBodyBuilderForField(
+      FieldBuilder field, TypeInferrer typeInferrer) {
+    return new BodyBuilder.forField(field, typeInferrer);
   }
 }
 
@@ -1261,6 +1262,16 @@ class _UnmodifiableSet {
 const String defaultDartInternalSource = """
 class Symbol {
   const Symbol(String name);
+}
+""";
+
+/// A minimal implementation of dart:typed_data that is sufficient to create an
+/// instance of [CoreTypes] and compile program.
+const String defaultDartTypedDataSource = """
+class Endian {
+  static const Endian little = null;
+  static const Endian big = null;
+  static final Endian host = null;
 }
 """;
 

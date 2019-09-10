@@ -3,12 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/error/analyzer_error_code.dart';
 
 /**
  * The hints and coding recommendations for best practices which are not
  * mentioned in the Dart Language Specification.
  */
-class HintCode extends ErrorCode {
+class HintCode extends AnalyzerErrorCode {
   /**
    * When the target expression uses '?.' operator, it can be `null`, so all the
    * subsequent invocations should also use '?.' operator.
@@ -82,7 +83,8 @@ class HintCode extends ErrorCode {
   static const HintCode DEPRECATED_MEMBER_USE = const HintCode(
       'DEPRECATED_MEMBER_USE', "'{0}' is deprecated and shouldn't be used.",
       correction: "Try replacing the use of the deprecated member with the "
-          "replacement.");
+          "replacement.",
+      hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -112,7 +114,8 @@ class HintCode extends ErrorCode {
       const HintCode('DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE',
           "'{0}' is deprecated and shouldn't be used.",
           correction: "Try replacing the use of the deprecated member with the "
-              "replacement.");
+              "replacement.",
+          hasPublishedDocs: true);
 
   /**
    * Users should not create a class named `Function` anymore.
@@ -308,7 +311,36 @@ class HintCode extends ErrorCode {
   // ```
   static const HintCode INVALID_LITERAL_ANNOTATION = const HintCode(
       'INVALID_LITERAL_ANNOTATION',
-      "Only const constructors can have the `@literal` annotation.");
+      "Only const constructors can have the `@literal` annotation.",
+      hasPublishedDocs: true);
+
+  /**
+   * This hint is generated anywhere where `@required` annotates a named
+   * parameter with a default value.
+   *
+   * Parameters:
+   * 0: the name of the member
+   */
+  static const HintCode INVALID_REQUIRED_NAMED_PARAM = const HintCode(
+      'INVALID_REQUIRED_NAMED_PARAM',
+      "The type parameter '{0}' is annotated with @required but only named "
+          "parameters without a default value can be annotated with it.",
+      correction: "Remove @required.");
+
+  /**
+   * This hint is generated anywhere where `@required` annotates an optional
+   * positional parameter.
+   *
+   * Parameters:
+   * 0: the name of the member
+   */
+  static const HintCode INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM =
+      const HintCode(
+          'INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM',
+          "Incorrect use of the annotation @required on the optional "
+              "positional parameter '{0}'. Optional positional parameters "
+              "cannot be required.",
+          correction: "Remove @required.");
 
   /**
    * This hint is generated anywhere where `@required` annotates a non named
@@ -316,11 +348,29 @@ class HintCode extends ErrorCode {
    *
    * Parameters:
    * 0: the name of the member
+   *
+   * Deprecated: Use the more specific [INVALID_REQUIRED_NAMED_PARAM],
+   * [INVALID_REQUIRED_OPTIONAL_POSITION_PARAM], and
+   * [INVALID_REQUIRED_POSITION_PARAM]
    */
+  @deprecated
   static const HintCode INVALID_REQUIRED_PARAM = const HintCode(
       'INVALID_REQUIRED_PARAM',
       "The type parameter '{0}' is annotated with @required but only named "
           "parameters without default value can be annotated with it.",
+      correction: "Remove @required.");
+
+  /**
+   * This hint is generated anywhere where `@required` annotates a non optional
+   * positional parameter.
+   *
+   * Parameters:
+   * 0: the name of the member
+   */
+  static const HintCode INVALID_REQUIRED_POSITIONAL_PARAM = const HintCode(
+      'INVALID_REQUIRED_POSITIONAL_PARAM',
+      "Redundant use of the annotation @required on the required positional "
+          "parameter '{0}'.",
       correction: "Remove @required.");
 
   /**
@@ -485,7 +535,8 @@ class HintCode extends ErrorCode {
       "This function has a return type of '{0}', but doesn't end with a "
           "return statement.",
       correction: "Try adding a return statement, "
-          "or changing the return type to 'void'.");
+          "or changing the return type to 'void'.",
+      hasPublishedDocs: true);
 
   /**
    * This hint is generated anywhere where a `@sealed` class is used as a
@@ -754,7 +805,8 @@ class HintCode extends ErrorCode {
       'SDK_VERSION_SET_LITERAL',
       "Set literals weren't supported until version 2.2, but this code is "
           "required to be able to run on earlier versions.",
-      correction: "Try updating the SDK constraints.");
+      correction: "Try updating the SDK constraints.",
+      hasPublishedDocs: true);
 
   /**
    * The type Never is being used in code that is expected to run on versions of
@@ -929,7 +981,8 @@ class HintCode extends ErrorCode {
   // If the declaration was intended to be used, then add the missing code.
   static const HintCode UNUSED_ELEMENT = const HintCode(
       'UNUSED_ELEMENT', "The declaration '{0}' isn't referenced.",
-      correction: "Try removing the declaration of '{0}'.");
+      correction: "Try removing the declaration of '{0}'.",
+      hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -957,7 +1010,8 @@ class HintCode extends ErrorCode {
   // If the field was intended to be used, then add the missing code.
   static const HintCode UNUSED_FIELD = const HintCode(
       'UNUSED_FIELD', "The value of the field '{0}' isn't used.",
-      correction: "Try removing the field, or using it.");
+      correction: "Try removing the field, or using it.",
+      hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -976,8 +1030,7 @@ class HintCode extends ErrorCode {
   // ```dart
   // import [!'dart:async'!];
   //
-  // void main() {
-  // }
+  // void main() {}
   // ```
   //
   // #### Common fixes
@@ -988,7 +1041,7 @@ class HintCode extends ErrorCode {
   // code.
   static const HintCode UNUSED_IMPORT = const HintCode(
       'UNUSED_IMPORT', "Unused import: '{0}'.",
-      correction: "Try removing the import directive.");
+      correction: "Try removing the import directive.", hasPublishedDocs: true);
 
   /**
    * Unused labels are labels that are never referenced in either a 'break' or
@@ -1026,7 +1079,8 @@ class HintCode extends ErrorCode {
   static const HintCode UNUSED_LOCAL_VARIABLE = const HintCode(
       'UNUSED_LOCAL_VARIABLE',
       "The value of the local variable '{0}' isn't used.",
-      correction: "Try removing the variable, or using it.");
+      correction: "Try removing the variable, or using it.",
+      hasPublishedDocs: true);
 
   /**
    * Unused shown names are names shown on imports which are never used.

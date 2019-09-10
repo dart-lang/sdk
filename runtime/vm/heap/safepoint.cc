@@ -45,16 +45,17 @@ ForceGrowthSafepointOperationScope::ForceGrowthSafepointOperationScope(
   Isolate* I = T->isolate();
   ASSERT(I != NULL);
 
-  Heap* heap = I->heap();
-  current_growth_controller_state_ = heap->GrowthControlState();
-  heap->DisableGrowthControl();
-
   SafepointHandler* handler = I->group()->safepoint_handler();
   ASSERT(handler != NULL);
 
   // Signal all threads to get to a safepoint and wait for them to
   // get to a safepoint.
   handler->SafepointThreads(T);
+
+  // N.B.: Change growth policy inside the safepoint to prevent racy access.
+  Heap* heap = I->heap();
+  current_growth_controller_state_ = heap->GrowthControlState();
+  heap->DisableGrowthControl();
 }
 
 ForceGrowthSafepointOperationScope::~ForceGrowthSafepointOperationScope() {
@@ -63,13 +64,14 @@ ForceGrowthSafepointOperationScope::~ForceGrowthSafepointOperationScope() {
   Isolate* I = T->isolate();
   ASSERT(I != NULL);
 
+  // N.B.: Change growth policy inside the safepoint to prevent racy access.
+  Heap* heap = I->heap();
+  heap->SetGrowthControlState(current_growth_controller_state_);
+
   // Resume all threads which are blocked for the safepoint operation.
   SafepointHandler* handler = I->safepoint_handler();
   ASSERT(handler != NULL);
   handler->ResumeThreads(T);
-
-  Heap* heap = I->heap();
-  heap->SetGrowthControlState(current_growth_controller_state_);
 
   if (current_growth_controller_state_) {
     ASSERT(T->CanCollectGarbage());

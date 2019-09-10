@@ -9,7 +9,6 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -17,7 +16,7 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test/test.dart';
 
-import 'analysis_context_factory.dart';
+import 'test_analysis_context.dart';
 
 /// The class `EngineTestCase` defines utility methods for making assertions.
 class EngineTestCase {
@@ -53,8 +52,7 @@ class EngineTestCase {
   }
 
   AnalysisContext createAnalysisContext() {
-    return AnalysisContextFactory.contextWithCore(
-        resourceProvider: new MemoryResourceProvider());
+    return TestAnalysisContext();
   }
 
   /// Return the getter in the given [type] with the given [name]. Inherited

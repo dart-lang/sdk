@@ -111,7 +111,11 @@ abstract class ChainContext {
 
   ExpectationSet get expectationSet => ExpectationSet.Default;
 
-  Future<Null> run(Chain suite, Set<String> selectors) async {
+  Future<Null> run(Chain suite, Set<String> selectors,
+      {int shards = 1, int shard = 0}) async {
+    assert(shards >= 1, "Invalid shards count: $shards");
+    assert(0 <= shard && shard < shards,
+        "Invalid shard index: $shard, not in range [0,$shards[.");
     List<String> partialSelectors = selectors
         .where((s) => s.endsWith('...'))
         .map((s) => s.substring(0, s.length - 3))
@@ -124,6 +128,15 @@ abstract class ChainContext {
     }
     List<TestDescription> descriptions = await stream.toList();
     descriptions.sort();
+    if (shards > 1) {
+      List<TestDescription> shardDescriptions = [];
+      for (int index = 0; index < descriptions.length; index++) {
+        if (index % shards == shard) {
+          shardDescriptions.add(descriptions[index]);
+        }
+      }
+      descriptions = shardDescriptions;
+    }
     Map<TestDescription, Result> unexpectedResults =
         <TestDescription, Result>{};
     Map<TestDescription, Set<Expectation>> unexpectedOutcomes =

@@ -340,7 +340,7 @@ bool Options::ProcessAbiVersionOption(const char* arg,
     return false;
   }
   int ver = 0;
-  for (int i = 0; value[i]; ++i) {
+  for (int i = 0; value[i] != '\0'; ++i) {
     if (value[i] >= '0' && value[i] <= '9') {
       ver = (ver * 10) + value[i] - '0';
     } else {

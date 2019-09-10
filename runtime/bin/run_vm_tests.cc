@@ -253,7 +253,7 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
   CHECK_RESULT(result);
 
   // Setup kernel service as the main script for this isolate.
-  if (kernel_service_buffer) {
+  if (kernel_service_buffer != nullptr) {
     result = Dart_LoadScriptFromKernel(kernel_service_buffer,
                                        kernel_service_buffer_size);
     CHECK_RESULT(result);

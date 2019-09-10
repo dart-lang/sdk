@@ -684,6 +684,41 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 
   @override
+  void writeSetterDeclaration(String name,
+      {void bodyWriter(),
+      bool isStatic: false,
+      String nameGroupName,
+      DartType parameterType,
+      String parameterTypeGroupName}) {
+    if (isStatic) {
+      write(Keyword.STATIC.lexeme);
+      write(' ');
+    }
+    write(Keyword.SET.lexeme);
+    write(' ');
+    if (nameGroupName != null) {
+      addSimpleLinkedEdit(nameGroupName, name);
+    } else {
+      write(name);
+    }
+    write('(');
+    if (parameterType != null && !parameterType.isDynamic) {
+      if (writeType(parameterType, groupName: parameterTypeGroupName)) {
+        write(' ');
+      }
+    }
+    // TODO(brianwilkerson) The name of the setter is unlikely to be a good name
+    //  for the parameter. We need to find a better name to produce here.
+    write(name);
+    write(') ');
+    if (bodyWriter == null) {
+      write('{}');
+    } else {
+      bodyWriter();
+    }
+  }
+
+  @override
   bool writeType(DartType type,
       {bool addSupertypeProposals: false,
       String groupName,

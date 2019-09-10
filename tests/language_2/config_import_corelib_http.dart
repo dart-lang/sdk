@@ -7,8 +7,10 @@ import "dart:http";
 class Classy {
   String get name => "classy http";
   String httpSpecific() => "classy http";
+  String ioSpecific() => throw UnimplementedError();
 }
 
 bool general() => true;
 bool httpSpecific() => true;
+bool ioSpecific() => false;
 final String name = "http";

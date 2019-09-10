@@ -77,6 +77,9 @@ void main() {
   expectSplit("foo?bar", false, ["foo?bar"], [0]);
   expectSplit("foo?bar", true, ["foo", "bar"], [0, 4]);
 
+  expectSplit("foo%bar", false, ["foo%bar"], [0]);
+  expectSplit("foo%bar", true, ["foo", "bar"], [0, 4]);
+
   print("OK");
 }
 

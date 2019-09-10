@@ -10,31 +10,12 @@ import 'dart:convert' show jsonDecode;
 
 import 'dart:io' show Directory, File, Platform;
 
-import 'package:front_end/src/api_prototype/compiler_options.dart';
-import 'package:kernel/ast.dart'
-    show AwaitExpression, Component, Library, Node, Visitor;
-
-import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
-
-import 'package:kernel/core_types.dart' show CoreTypes;
-
-import 'package:kernel/kernel.dart' show loadComponentFromBytes;
-
-import 'package:kernel/target/targets.dart'
-    show TargetFlags, DiagnosticReporter;
-
-import 'package:testing/testing.dart'
+import 'package:front_end/src/api_prototype/compiler_options.dart'
     show
-        Chain,
-        ChainContext,
-        Expectation,
-        ExpectationSet,
-        Result,
-        Step,
-        TestDescription,
-        StdioProcess;
-
-import 'package:vm/target/vm.dart' show VmTarget;
+        CompilerOptions,
+        DiagnosticMessage,
+        parseExperimentalArguments,
+        parseExperimentalFlags;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions, DiagnosticMessage;
@@ -67,7 +48,36 @@ import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
 
-import 'package:front_end/src/fasta/testing/kernel_chain.dart'
+import 'package:front_end/src/fasta/ticker.dart' show Ticker;
+
+import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
+
+import 'package:kernel/ast.dart'
+    show AwaitExpression, Component, Library, Node, Visitor;
+
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+
+import 'package:kernel/core_types.dart' show CoreTypes;
+
+import 'package:kernel/kernel.dart' show loadComponentFromBytes;
+
+import 'package:kernel/target/targets.dart'
+    show TargetFlags, DiagnosticReporter;
+
+import 'package:testing/testing.dart'
+    show
+        Chain,
+        ChainContext,
+        Expectation,
+        ExpectationSet,
+        Result,
+        Step,
+        TestDescription,
+        StdioProcess;
+
+import 'package:vm/target/vm.dart' show VmTarget;
+
+import '../../utils/kernel_chain.dart'
     show
         KernelTextSerialization,
         MatchContext,
@@ -77,12 +87,8 @@ import 'package:front_end/src/fasta/testing/kernel_chain.dart'
         Verify,
         WriteDill;
 
-import 'package:front_end/src/fasta/testing/validating_instrumentation.dart'
+import '../../utils/validating_instrumentation.dart'
     show ValidatingInstrumentation;
-
-import 'package:front_end/src/fasta/ticker.dart' show Ticker;
-
-import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
 
 export 'package:testing/testing.dart' show Chain, runMe;
 

@@ -65,6 +65,7 @@ enum TypedDataElementType {
 enum class MemoryOrder {
   kRelaxed,
   kRelease,
+  kAcquire,
 };
 
 #define SNAPSHOT_WRITER_SUPPORT()                                              \
@@ -689,7 +690,7 @@ class RawObject {
   friend class RawInstance;
   friend class Scavenger;
   friend class ScavengerVisitor;
-  friend class ImageReader;                // tags_ check
+  friend class ImageReader;  // tags_ check
   friend class ImageWriter;
   friend class AssemblyImageWriter;
   friend class BlobImageWriter;
@@ -716,9 +717,9 @@ class RawObject {
 class RawClass : public RawObject {
  public:
   enum ClassFinalizedState {
-    kAllocated = 0,         // Initial state.
-    kPreFinalized,          // VM classes: size precomputed, but no checks done.
-    kFinalized,             // Class parsed, finalized and ready for use.
+    kAllocated = 0,  // Initial state.
+    kPreFinalized,   // VM classes: size precomputed, but no checks done.
+    kFinalized,      // Class parsed, finalized and ready for use.
   };
   enum ClassLoadingState {
     // Class object is created, but it is not filled up.
@@ -750,13 +751,13 @@ class RawClass : public RawObject {
   RawTypeArguments* type_parameters_;  // Array of TypeParameter.
   RawAbstractType* super_type_;
   RawFunction* signature_function_;  // Associated function for typedef class.
-  RawArray* constants_;      // Canonicalized const instances of this class.
-  RawType* declaration_type_;              // Declaration type for this class.
+  RawArray* constants_;        // Canonicalized const instances of this class.
+  RawType* declaration_type_;  // Declaration type for this class.
   RawArray* invocation_dispatcher_cache_;  // Cache for dispatcher functions.
   RawCode* allocation_stub_;  // Stub code for allocation of instances.
   RawGrowableObjectArray* direct_implementors_;  // Array of Class.
-  RawGrowableObjectArray* direct_subclasses_;  // Array of Class.
-  RawArray* dependent_code_;                   // CHA optimized codes.
+  RawGrowableObjectArray* direct_subclasses_;    // Array of Class.
+  RawArray* dependent_code_;                     // CHA optimized codes.
   VISIT_TO(RawObject*, dependent_code_);
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
@@ -837,32 +838,77 @@ class RawPatchClass : public RawObject {
 
 class RawFunction : public RawObject {
  public:
+  // When you add a new kind, please also update the observatory to account
+  // for the new string returned by KindToCString().
+  // - runtime/observatory/lib/src/models/objects/function.dart (FunctionKind)
+  // - runtime/observatory/lib/src/elements/function_view.dart
+  //   (_functionKindToString)
+  // - runtime/observatory/lib/src/service/object.dart (stringToFunctionKind)
+#define FOR_EACH_RAW_FUNCTION_KIND(V)                                          \
+  /* an ordinary or operator method */                                         \
+  V(RegularFunction)                                                           \
+  /* a user-declared closure function */                                       \
+  V(ClosureFunction)                                                           \
+  /* an implicit closure (i.e., tear-off) */                                   \
+  V(ImplicitClosureFunction)                                                   \
+  /* a signature only without actual code */                                   \
+  V(SignatureFunction)                                                         \
+  /* getter functions e.g: get foo() { .. } */                                 \
+  V(GetterFunction)                                                            \
+  /* setter functions e.g: set foo(..) { .. } */                               \
+  V(SetterFunction)                                                            \
+  /* a generative (is_static=false) or factory (is_static=true) constructor */ \
+  V(Constructor)                                                               \
+  /* an implicit getter for instance fields */                                 \
+  V(ImplicitGetter)                                                            \
+  /* an implicit setter for instance fields */                                 \
+  V(ImplicitSetter)                                                            \
+  /* represents an implicit getter for static fields with initializers */      \
+  V(ImplicitStaticGetter)                                                      \
+  /* the initialization expression for a static or instance field */           \
+  V(FieldInitializer)                                                          \
+  /* return a closure on the receiver for tear-offs */                         \
+  V(MethodExtractor)                                                           \
+  /* builds an Invocation and invokes noSuchMethod */                          \
+  V(NoSuchMethodDispatcher)                                                    \
+  /* invokes a field as a closure (i.e., call-through-getter) */               \
+  V(InvokeFieldDispatcher)                                                     \
+  /* a generated irregexp matcher function. */                                 \
+  V(IrregexpFunction)                                                          \
+  /* a forwarder which performs type checks for arguments of a dynamic call */ \
+  /* (i.e., those checks omitted by the caller for interface calls). */        \
+  V(DynamicInvocationForwarder)                                                \
+  V(FfiTrampoline)
+
   enum Kind {
-    kRegularFunction,          // an ordinary or operator method
-    kClosureFunction,          // a user-declared closure function
-    kImplicitClosureFunction,  // an implicit closure (i.e., tear-off)
-    kSignatureFunction,        // a signature only without actual code
-    kGetterFunction,           // getter functions e.g: get foo() { .. }
-    kSetterFunction,           // setter functions e.g: set foo(..) { .. }
-    kConstructor,              // a generative (is_static=false) or
-                               // factory (is_static=true) constructor
-    kImplicitGetter,           // an implicit getter for instance fields
-    kImplicitSetter,           // an implicit setter for instance fields
-    kImplicitStaticGetter,     // represents an implicit getter for static
-                               // fields with initializers
-    kFieldInitializer,         // the initialization expression for a static
-                               // or instance field
-    kMethodExtractor,          // return a closure on the receiver for tear-offs
-    kNoSuchMethodDispatcher,   // builds an Invocation and invokes noSuchMethod
-    kInvokeFieldDispatcher,    // invokes a field as a closure (i.e.,
-                               // call-through-getter)
-    kIrregexpFunction,         // a generated irregexp matcher function.
-    kDynamicInvocationForwarder,  // a forwarder which performs type checks for
-                                  // arguments of a dynamic call (i.e., those
-                                  // checks omitted by the caller for interface
-                                  // calls).
-    kFfiTrampoline,
+#define KIND_DEFN(Name) k##Name,
+    FOR_EACH_RAW_FUNCTION_KIND(KIND_DEFN)
+#undef KIND_DEFN
   };
+
+  static const char* KindToCString(Kind k) {
+    switch (k) {
+#define KIND_CASE(Name)                                                        \
+  case Kind::k##Name:                                                          \
+    return #Name;
+      FOR_EACH_RAW_FUNCTION_KIND(KIND_CASE)
+#undef KIND_CASE
+      default:
+        UNREACHABLE();
+        return nullptr;
+    }
+  }
+
+  static bool KindFromCString(const char* str, Kind* out) {
+#define KIND_CASE(Name)                                                        \
+  if (strcmp(str, #Name) == 0) {                                               \
+    *out = Kind::k##Name;                                                      \
+    return true;                                                               \
+  }
+    FOR_EACH_RAW_FUNCTION_KIND(KIND_CASE)
+#undef KIND_CASE
+    return false;
+  }
 
   enum AsyncModifier {
     kNoModifier = 0x0,
@@ -881,7 +927,7 @@ class RawFunction : public RawObject {
 
   RAW_HEAP_OBJECT_IMPLEMENTATION(Function);
 
-  uword entry_point_;  // Accessed from generated code.
+  uword entry_point_;            // Accessed from generated code.
   uword unchecked_entry_point_;  // Accessed from generated code.
 
   VISIT_FROM(RawObject*, name_);
@@ -924,11 +970,10 @@ class RawFunction : public RawObject {
 
   NOT_IN_PRECOMPILED(TokenPosition token_pos_);
   NOT_IN_PRECOMPILED(TokenPosition end_token_pos_);
-  uint32_t kind_tag_;                          // See Function::KindTagBits.
+  uint32_t kind_tag_;  // See Function::KindTagBits.
   uint32_t packed_fields_;
 
-  typedef BitField<uint32_t, bool, 0, 1>
-      PackedHasNamedOptionalParameters;
+  typedef BitField<uint32_t, bool, 0, 1> PackedHasNamedOptionalParameters;
   typedef BitField<uint32_t,
                    bool,
                    PackedHasNamedOptionalParameters::kNextBit,
@@ -1160,7 +1205,6 @@ class RawLibrary : public RawObject {
     kLoadRequested,   // Compiler or script requested load of library.
     kLoadInProgress,  // Library is in the process of being loaded.
     kLoaded,          // Library is loaded.
-    kLoadError,       // Error occurred during load of the Library.
   };
 
   RAW_HEAP_OBJECT_IMPLEMENTATION(Library);
@@ -1175,12 +1219,11 @@ class RawLibrary : public RawObject {
   RawGrowableObjectArray* owned_scripts_;
   RawArray* imports_;        // List of Namespaces imported without prefix.
   RawArray* exports_;        // List of re-exported Namespaces.
-  RawInstance* load_error_;  // Error iff load_state_ == kLoadError.
   RawExternalTypedData* kernel_data_;
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFullAOT:
-        return reinterpret_cast<RawObject**>(&ptr()->load_error_);
+        return reinterpret_cast<RawObject**>(&ptr()->exports_);
       case Snapshot::kFull:
       case Snapshot::kFullJIT:
         return reinterpret_cast<RawObject**>(&ptr()->kernel_data_);
@@ -1258,7 +1301,7 @@ class RawKernelProgramInfo : public RawObject {
 class RawCode : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Code);
 
-  uword entry_point_;          // Accessed from generated code.
+  uword entry_point_;  // Accessed from generated code.
 
   // In AOT this entry-point supports switchable calls. It checks the type of
   // the receiver on entry to the function and calls a stub to patch up the
@@ -1294,7 +1337,7 @@ class RawCode : public RawObject {
   // type checks are necessary or this Code belongs to a stub). In this case
   // 'unchecked_entry_point_' will refer to the same position as 'entry_point_'.
   //
-  uword unchecked_entry_point_;  // Accessed from generated code.
+  uword unchecked_entry_point_;              // Accessed from generated code.
   uword monomorphic_unchecked_entry_point_;  // Accessed from generated code.
 
   VISIT_FROM(RawObject*, object_pool_);
@@ -1374,11 +1417,13 @@ class RawBytecode : public RawObject {
   VISIT_TO(RawObject*, var_descriptors_);
 #endif
 
-  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
+  RawObject** to_snapshot(Snapshot::Kind kind) {
+    return reinterpret_cast<RawObject**>(&ptr()->pc_descriptors_);
+  }
 
   int32_t instructions_binary_offset_;
   int32_t source_positions_binary_offset_;
-  NOT_IN_PRODUCT(int32_t local_variables_binary_offset_);
+  int32_t local_variables_binary_offset_;
 
   static bool ContainsPC(RawObject* raw_obj, uword pc);
 
@@ -1451,17 +1496,38 @@ class RawInstructions : public RawObject {
 
 class RawPcDescriptors : public RawObject {
  public:
+// The macro argument V is passed two arguments, the raw name of the enum value
+// and the initialization expression used within the enum definition.  The uses
+// of enum values inside the initialization expression are hardcoded currently,
+// so the second argument is useless outside the enum definition and should be
+// dropped by other users of this macro.
+#define FOR_EACH_RAW_PC_DESCRIPTOR(V)                                          \
+  /* Deoptimization continuation point. */                                     \
+  V(Deopt, 1)                                                                  \
+  /* IC call. */                                                               \
+  V(IcCall, kDeopt << 1)                                                       \
+  /* Call to a known target via stub. */                                       \
+  V(UnoptStaticCall, kIcCall << 1)                                             \
+  /* Runtime call. */                                                          \
+  V(RuntimeCall, kUnoptStaticCall << 1)                                        \
+  /* OSR entry point in unopt. code. */                                        \
+  V(OsrEntry, kRuntimeCall << 1)                                               \
+  /* Call rewind target address. */                                            \
+  V(Rewind, kOsrEntry << 1)                                                    \
+  /* Target-word-size relocation. */                                           \
+  V(BSSRelocation, kRewind << 1)                                               \
+  V(Other, kBSSRelocation << 1)                                                \
+  V(AnyKind, -1)
+
   enum Kind {
-    kDeopt = 1,                            // Deoptimization continuation point.
-    kIcCall = kDeopt << 1,                 // IC call.
-    kUnoptStaticCall = kIcCall << 1,       // Call to a known target via stub.
-    kRuntimeCall = kUnoptStaticCall << 1,  // Runtime call.
-    kOsrEntry = kRuntimeCall << 1,         // OSR entry point in unopt. code.
-    kRewind = kOsrEntry << 1,              // Call rewind target address.
-    kOther = kRewind << 1,
-    kLastKind = kOther,
-    kAnyKind = -1
+#define ENUM_DEF(name, init) k##name = init,
+    FOR_EACH_RAW_PC_DESCRIPTOR(ENUM_DEF)
+#undef ENUM_DEF
+        kLastKind = kOther,
   };
+
+  static const char* KindToCString(Kind k);
+  static bool KindFromCString(const char* cstr, Kind* out);
 
   class MergedKindTry {
    public:
@@ -1850,9 +1916,7 @@ class RawLibraryPrefix : public RawInstance {
   RawString* name_;           // Library prefix name.
   RawLibrary* importer_;      // Library which declares this prefix.
   RawArray* imports_;         // Libraries imported with this prefix.
-  RawArray* dependent_code_;  // Code that refers to deferred, unloaded
-                              // library prefix.
-  VISIT_TO(RawObject*, dependent_code_)
+  VISIT_TO(RawObject*, imports_)
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFull:
@@ -1870,7 +1934,6 @@ class RawLibraryPrefix : public RawInstance {
   }
   uint16_t num_imports_;  // Number of library entries in libraries_.
   bool is_deferred_load_;
-  bool is_loaded_;
 };
 
 class RawTypeArguments : public RawInstance {
@@ -2077,10 +2140,6 @@ class RawString : public RawInstance {
 
  private:
   friend class Library;
-  friend class OneByteStringSerializationCluster;
-  friend class TwoByteStringSerializationCluster;
-  friend class OneByteStringDeserializationCluster;
-  friend class TwoByteStringDeserializationCluster;
   friend class RODataSerializationCluster;
   friend class ImageWriter;
 };

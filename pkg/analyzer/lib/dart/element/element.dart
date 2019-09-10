@@ -1389,14 +1389,7 @@ abstract class LocalElement implements Element {
 /// A local variable.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class LocalVariableElement implements LocalElement, VariableElement {
-  /// Return `true` if this local variable uses late evaluation semantics.
-  ///
-  /// This will always return `false` unless the experiment 'non-nullable' is
-  /// enabled.
-  @experimental
-  bool get isLate;
-}
+abstract class LocalVariableElement implements LocalElement, VariableElement {}
 
 /// An element that represents a method defined within a class.
 ///
@@ -1602,13 +1595,6 @@ abstract class PropertyInducingElement implements VariableElement {
   /// will be synthetic.
   PropertyAccessorElement get getter;
 
-  /// Return `true` if this variable uses late evaluation semantics.
-  ///
-  /// This will always return `false` unless the experiment 'non-nullable' is
-  /// enabled.
-  @experimental
-  bool get isLate;
-
   /// Return the propagated type of this variable, or `null` if type propagation
   /// has not been performed, for example because the variable is not final.
   @deprecated
@@ -1744,6 +1730,13 @@ abstract class VariableElement implements Element, ConstantEvaluationTarget {
   /// Variables that are declared with the 'const' modifier will return `false`
   /// even though they are implicitly final.
   bool get isFinal;
+
+  /// Return `true` if this variable uses late evaluation semantics.
+  ///
+  /// This will always return `false` unless the experiment 'non-nullable' is
+  /// enabled.
+  @experimental
+  bool get isLate;
 
   /// Return `true` if this variable is potentially mutated somewhere in a
   /// closure. This information is only available for local variables (including

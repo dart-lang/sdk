@@ -192,28 +192,28 @@ static method main() → dynamic {
     core::print(e);
   }
   try {
-    c.{self::C::field12} as{TypeError} <S extends core::num* = dynamic>() →* S;
+    c.{self::C::field12} as{TypeError} <S extends core::num* = dynamic>() →* S*;
     throw "TypeError expected";
   }
   on core::TypeError* catch(final core::TypeError* e) {
     core::print(e);
   }
   try {
-    c.{self::C::field13} as{TypeError} <S extends core::num* = dynamic>(S) →* void;
+    c.{self::C::field13} as{TypeError} <S extends core::num* = dynamic>(S*) →* void;
     throw "TypeError expected";
   }
   on core::TypeError* catch(final core::TypeError* e) {
     core::print(e);
   }
   try {
-    c.{self::C::field14} as{TypeError} <S extends core::num* = dynamic>(S) →* S;
+    c.{self::C::field14} as{TypeError} <S extends core::num* = dynamic>(S*) →* S*;
     throw "TypeError expected";
   }
   on core::TypeError* catch(final core::TypeError* e) {
     core::print(e);
   }
   try {
-    c.{self::C::field15} as{TypeError} (<S extends core::num* = dynamic>() →* S) →* void;
+    c.{self::C::field15} as{TypeError} (<S extends core::num* = dynamic>() →* S*) →* void;
     throw "TypeError expected";
   }
   on core::TypeError* catch(final core::TypeError* e) {
@@ -267,28 +267,28 @@ static method main() → dynamic {
     core::print(e);
   }
   try {
-    c.{self::C::getter12} as{TypeError} <S extends core::num* = dynamic>() →* S;
+    c.{self::C::getter12} as{TypeError} <S extends core::num* = dynamic>() →* S*;
     throw "TypeError expected";
   }
   on core::TypeError* catch(final core::TypeError* e) {
     core::print(e);
   }
   try {
-    c.{self::C::getter13} as{TypeError} <S extends core::num* = dynamic>(S) →* void;
+    c.{self::C::getter13} as{TypeError} <S extends core::num* = dynamic>(S*) →* void;
     throw "TypeError expected";
   }
   on core::TypeError* catch(final core::TypeError* e) {
     core::print(e);
   }
   try {
-    c.{self::C::getter14} as{TypeError} <S extends core::num* = dynamic>(S) →* S;
+    c.{self::C::getter14} as{TypeError} <S extends core::num* = dynamic>(S*) →* S*;
     throw "TypeError expected";
   }
   on core::TypeError* catch(final core::TypeError* e) {
     core::print(e);
   }
   try {
-    c.{self::C::getter15} as{TypeError} (<S extends core::num* = dynamic>() →* S) →* void;
+    c.{self::C::getter15} as{TypeError} (<S extends core::num* = dynamic>() →* S*) →* void;
     throw "TypeError expected";
   }
   on core::TypeError* catch(final core::TypeError* e) {

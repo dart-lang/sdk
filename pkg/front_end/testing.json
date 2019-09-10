@@ -1,10 +1,8 @@
 {
-"":"Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file",
-"":"for details. All rights reserved. Use of this source code is governed by a",
-"":"BSD-style license that can be found in the LICENSE.md file.",
-
+  "": "Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file",
+  "": "for details. All rights reserved. Use of this source code is governed by a",
+  "": "BSD-style license that can be found in the LICENSE.md file.",
   "packages": "../../.packages",
-
   "suites": [
     {
       "name": "messages",
@@ -12,12 +10,9 @@
       "source": "test/fasta/messages_test.dart",
       "path": "./",
       "status": "messages.status",
-      "pattern": [
-      ],
-      "exclude": [
-      ]
+      "pattern": [],
+      "exclude": []
     },
-
     {
       "name": "scanner",
       "kind": "Chain",
@@ -27,10 +22,8 @@
       "pattern": [
         "\\.dart$"
       ],
-      "exclude": [
-      ]
+      "exclude": []
     },
-
     {
       "name": "parser",
       "kind": "Chain",
@@ -49,7 +42,6 @@
         "/sdk/generated/"
       ]
     },
-
     {
       "name": "outline",
       "kind": "Chain",
@@ -67,11 +59,10 @@
         "/testcases/expression/"
       ]
     },
-
     {
       "name": "strong",
       "kind": "Chain",
-      "source": "test/fasta/strong_test.dart",
+      "source": "test/fasta/strong_tester.dart",
       "path": "testcases/",
       "status": "testcases/strong.status",
       "pattern": [
@@ -85,7 +76,6 @@
         "/testcases/expression/"
       ]
     },
-
     {
       "name": "text_serialization",
       "kind": "Chain",
@@ -103,7 +93,6 @@
         "/testcases/expression/"
       ]
     },
-
     {
       "name": "incremental",
       "kind": "Chain",
@@ -113,8 +102,7 @@
       "pattern": [
         "\\.incremental\\.yaml$"
       ],
-      "exclude": [
-      ]
+      "exclude": []
     },
     {
       "name": "expression",
@@ -125,8 +113,7 @@
       "pattern": [
         "\\.expression\\.yaml$"
       ],
-      "exclude": [
-      ]
+      "exclude": []
     },
     {
       "name": "incremental_load_from_dill",
@@ -137,10 +124,8 @@
       "pattern": [
         "\\.yaml$"
       ],
-      "exclude": [
-      ]
+      "exclude": []
     },
-
     {
       "name": "incremental_bulk_compiler_smoke",
       "kind": "Chain",
@@ -167,10 +152,8 @@
         "/language_2/script2_negative_test\\.dart$",
         "/language_2/unbalanced_brace_test\\.dart$"
       ],
-      "exclude": [
-      ]
+      "exclude": []
     },
-
     {
       "name": "incremental_bulk_compiler_full",
       "kind": "Chain",
@@ -180,10 +163,8 @@
       "pattern": [
         "language_2/.*_test\\.dart$"
       ],
-      "exclude": [
-      ]
+      "exclude": []
     },
-
     {
       "name": "old_dill_test",
       "kind": "Chain",
@@ -193,10 +174,8 @@
       "pattern": [
         ".*\\.dill$"
       ],
-      "exclude": [
-      ]
+      "exclude": []
     },
-
     {
       "name": "lint_test",
       "kind": "Chain",
@@ -210,21 +189,20 @@
         "src/fasta/fasta_codes_generated\\.dart$"
       ]
     },
-
     {
       "name": "spelling_test_src_test",
       "kind": "Chain",
       "source": "test/spelling_test_src_test.dart",
-      "path": "lib/",
+      "path": "../",
       "status": "test/spelling_test.status",
       "pattern": [
-        ".*\\.dart$"
+        "front_end/lib/.*\\.dart$",
+        "kernel/lib/.*\\.dart$"
       ],
       "exclude": [
         "src/fasta/fasta_codes_generated\\.dart$"
       ]
     },
-
     {
       "name": "spelling_test_not_src_test",
       "kind": "Chain",
@@ -272,7 +250,17 @@
         "tool/_fasta/abcompile\\.dart$"
       ]
     },
-
+    {
+      "name": "spelling_test_external_targets",
+      "kind": "Chain",
+      "source": "test/spelling_test_external_targets.dart",
+      "path": "../../",
+      "status": "test/spelling_test.status",
+      "pattern": [
+        ".*\\.dart$"
+      ],
+      "exclude": []
+    },
     {
       "name": "sdk",
       "kind": "Chain",
@@ -300,7 +288,6 @@
         "/sdk/tests/language_2/setter_override_test\\.dart$"
       ]
     },
-
     {
       "note": "Tests dart2js fully, excluding browser-only tests.",
       "name": "dart2js",
@@ -314,7 +301,6 @@
         "-cdart2js -rd8 dart2js_extra dart2js_native"
       ]
     },
-
     {
       "note": "Minimal testing of Fasta.",
       "name": "fasta_min",
@@ -328,7 +314,6 @@
         "-cdartk -rvm"
       ]
     },
-
     {
       "note": "Tests Fasta fully, including the above dart2js tests.",
       "name": "fasta_max",
@@ -343,7 +328,6 @@
         "-cdart2js -rd8 dart2js_extra dart2js_native"
       ]
     },
-
     {
       "note": "Runs dart2js in a mode where it invokes Fasta.",
       "name": "dart2js_with_kernel",
@@ -355,7 +339,6 @@
         "-cdart2js -rd8 --use-sdk --minified language language_2 dart2js_extra dart2js_native corelib corelib_2"
       ]
     },
-
     {
       "name": "type_promotion_look_ahead",
       "kind": "Chain",
@@ -374,12 +357,8 @@
       ]
     }
   ],
-
-
   "analyze": {
-
     "options": "analysis_options_no_lints.yaml",
-
     "uris": [
       "lib/",
       "../analyzer/lib/src/generated/parser_fasta.dart",
@@ -388,16 +367,16 @@
       "../kernel/lib/",
       "../testing/"
     ],
-
     "git grep": {
-      "pathspecs": [ "*.dart" ],
+      "pathspecs": [
+        "*.dart"
+      ],
       "patterns": [
         "package:front_end/",
         "package:kernel/",
         "package:testing/"
       ]
     },
-
     "exclude": [
       "^pkg/analysis_server/lib/src/analysis_server\\.dart",
       "test/extensions/data/",

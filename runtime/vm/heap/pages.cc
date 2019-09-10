@@ -355,8 +355,8 @@ HeapPage* PageSpace::AllocateLargePage(intptr_t size, HeapPage::PageType type) {
     page->set_next(large_pages_);
     large_pages_ = page;
 
-    // Only one object in this page (at least until String::MakeExternal or
-    // Array::MakeFixedLength is called).
+    // Only one object in this page (at least until Array::MakeFixedLength
+    // is called).
     page->set_object_end(page->object_start() + size);
   }
   return page;
@@ -410,6 +410,9 @@ void PageSpace::FreePage(HeapPage* page, HeapPage* previous_page) {
 }
 
 void PageSpace::FreeLargePage(HeapPage* page, HeapPage* previous_page) {
+  // Thread should be at a safepoint when this code is called and hence
+  // it is not necessary to lock large_pages_.
+  ASSERT(Thread::Current()->IsAtSafepoint());
   IncreaseCapacityInWords(-(page->memory_->size() >> kWordSizeLog2));
   // Remove the page from the list.
   if (previous_page != NULL) {
@@ -775,6 +778,7 @@ void PageSpace::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
 }
 
 void PageSpace::VisitRememberedCards(ObjectPointerVisitor* visitor) const {
+  ASSERT(Thread::Current()->IsAtSafepoint());
   for (HeapPage* page = large_pages_; page != NULL; page = page->next()) {
     page->VisitRememberedCards(visitor);
   }
@@ -1498,11 +1502,7 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
   idle_gc_threshold_in_words_ =
       after.CombinedCapacityInWords() + 2 * kPageSizeInWords;
 
-  if (FLAG_log_growth) {
-    THR_Print("%s: threshold=%" Pd "kB, idle_threshold=%" Pd "kB, reason=gc\n",
-              heap_->isolate()->name(), gc_threshold_in_words_ / KBInWords,
-              idle_gc_threshold_in_words_ / KBInWords);
-  }
+  RecordUpdate(before, after, "gc");
 }
 
 void PageSpaceController::EvaluateAfterLoading(SpaceUsage after) {
@@ -1526,11 +1526,30 @@ void PageSpaceController::EvaluateAfterLoading(SpaceUsage after) {
   idle_gc_threshold_in_words_ =
       after.CombinedCapacityInWords() + 2 * kPageSizeInWords;
 
+  RecordUpdate(after, after, "loaded");
+}
+
+void PageSpaceController::RecordUpdate(SpaceUsage before,
+                                       SpaceUsage after,
+                                       const char* reason) {
+#if defined(SUPPORT_TIMELINE)
+  TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "UpdateGrowthLimit");
+  tds.SetNumArguments(5);
+  tds.CopyArgument(0, "Reason", reason);
+  tds.FormatArgument(1, "Before.CombinedCapacity (kB)", "%" Pd "",
+                     RoundWordsToKB(before.CombinedCapacityInWords()));
+  tds.FormatArgument(2, "After.CombinedCapacity (kB)", "%" Pd "",
+                     RoundWordsToKB(after.CombinedCapacityInWords()));
+  tds.FormatArgument(3, "Threshold (kB)", "%" Pd "",
+                     RoundWordsToKB(gc_threshold_in_words_));
+  tds.FormatArgument(4, "Idle Threshold (kB)", "%" Pd "",
+                     RoundWordsToKB(idle_gc_threshold_in_words_));
+#endif
+
   if (FLAG_log_growth) {
-    THR_Print("%s: threshold=%" Pd "kB, idle_threshold=%" Pd
-              "kB, reason=loaded\n",
+    THR_Print("%s: threshold=%" Pd "kB, idle_threshold=%" Pd "kB, reason=%s\n",
               heap_->isolate()->name(), gc_threshold_in_words_ / KBInWords,
-              idle_gc_threshold_in_words_ / KBInWords);
+              idle_gc_threshold_in_words_ / KBInWords, reason);
   }
 }
 

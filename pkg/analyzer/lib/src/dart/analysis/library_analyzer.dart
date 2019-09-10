@@ -22,6 +22,8 @@ import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/ast_rewrite.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/legacy_type_asserter.dart';
@@ -68,7 +70,7 @@ class LibraryAnalyzer {
   final AnalysisContext _context;
   final ElementResynthesizer _resynthesizer;
   final LinkedElementFactory _elementFactory;
-  TypeProvider _typeProvider;
+  TypeProviderImpl _typeProvider;
 
   final TypeSystem _typeSystem;
   LibraryElement _libraryElement;
@@ -134,13 +136,9 @@ class LibraryAnalyzer {
     FeatureSet featureSet = units[_library].featureSet;
     _typeProvider = _context.typeProvider;
     if (featureSet.isEnabled(Feature.non_nullable)) {
-      if (_typeProvider is! NonNullableTypeProvider) {
-        _typeProvider = NonNullableTypeProvider.from(_typeProvider);
-      }
+      _typeProvider = _typeProvider.withNullability(NullabilitySuffix.none);
     } else {
-      if (_typeProvider is NonNullableTypeProvider) {
-        _typeProvider = TypeProviderImpl.from(_typeProvider);
-      }
+      _typeProvider = _typeProvider.withNullability(NullabilitySuffix.star);
     }
     units.forEach((file, unit) {
       _validateFeatureSet(unit, featureSet);
@@ -537,11 +535,10 @@ class LibraryAnalyzer {
             directive.prefix?.staticElement = importElement.prefix;
             Source source = importElement.importedLibrary?.source;
             if (source != null && !_isLibrarySource(source)) {
-              ErrorCode errorCode = importElement.isDeferred
-                  ? StaticWarningCode.IMPORT_OF_NON_LIBRARY
-                  : CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY;
               libraryErrorReporter.reportErrorForNode(
-                  errorCode, directive.uri, [directive.uri]);
+                  CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY,
+                  directive.uri,
+                  [directive.uri]);
             }
           }
         }

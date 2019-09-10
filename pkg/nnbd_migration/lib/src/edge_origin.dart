@@ -16,6 +16,12 @@ class AlwaysNullableTypeOrigin extends EdgeOriginWithLocation {
   AlwaysNullableTypeOrigin(Source source, int offset) : super(source, offset);
 }
 
+/// Edge origin resulting from the use of a value on the LHS of a compound
+/// assignment.
+class CompoundAssignmentOrigin extends EdgeOriginWithLocation {
+  CompoundAssignmentOrigin(Source source, int offset) : super(source, offset);
+}
+
 /// Common interface for classes providing information about how an edge came
 /// to be; that is, what was found in the source code that led the migration
 /// tool to create the edge.

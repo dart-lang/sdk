@@ -113,7 +113,7 @@ class CollectionTransformer extends Transformer {
     int i = 0;
     for (; i < elements.length; ++i) {
       if (elements[i] is ControlFlowElement) break;
-      elements[i] = elements[i].accept(this)..parent = node;
+      elements[i] = elements[i].accept<TreeNode>(this)..parent = node;
     }
 
     // If there were only expressions, we are done.
@@ -159,7 +159,8 @@ class CollectionTransformer extends Transformer {
     } else if (element is ForInElement) {
       _translateForInElement(element, elementType, isSet, result, body);
     } else {
-      _addExpressionElement(element.accept(this), isSet, result, body);
+      _addExpressionElement(
+          element.accept<TreeNode>(this), isSet, result, body);
     }
   }
 
@@ -190,7 +191,8 @@ class CollectionTransformer extends Transformer {
           ? elseStatements.first
           : new Block(elseStatements);
     }
-    body.add(new IfStatement(element.condition.accept(this), thenBody, elseBody)
+    body.add(new IfStatement(
+        element.condition.accept<TreeNode>(this), thenBody, elseBody)
       ..fileOffset = element.fileOffset);
   }
 
@@ -201,7 +203,7 @@ class CollectionTransformer extends Transformer {
     Statement loopBody =
         statements.length == 1 ? statements.first : new Block(statements);
     ForStatement loop = new ForStatement(element.variables,
-        element.condition?.accept(this), element.updates, loopBody)
+        element.condition?.accept<TreeNode>(this), element.updates, loopBody)
       ..fileOffset = element.fileOffset;
     transformList(loop.variables, this, loop);
     transformList(loop.updates, this, loop);
@@ -215,7 +217,7 @@ class CollectionTransformer extends Transformer {
     if (prologue == null) {
       statements = <Statement>[];
     } else {
-      prologue = prologue.accept(this);
+      prologue = prologue.accept<TreeNode>(this);
       statements =
           prologue is Block ? prologue.statements : <Statement>[prologue];
     }
@@ -223,17 +225,17 @@ class CollectionTransformer extends Transformer {
     Statement loopBody =
         statements.length == 1 ? statements.first : new Block(statements);
     if (element.problem != null) {
-      body.add(new ExpressionStatement(element.problem.accept(this)));
+      body.add(new ExpressionStatement(element.problem.accept<TreeNode>(this)));
     }
     body.add(new ForInStatement(
-        element.variable, element.iterable.accept(this), loopBody,
+        element.variable, element.iterable.accept<TreeNode>(this), loopBody,
         isAsync: element.isAsync)
       ..fileOffset = element.fileOffset);
   }
 
   void _translateSpreadElement(SpreadElement element, DartType elementType,
       bool isSet, VariableDeclaration result, List<Statement> body) {
-    Expression value = element.expression.accept(this);
+    Expression value = element.expression.accept<TreeNode>(this);
     // Null-aware spreads require testing the subexpression's value.
     VariableDeclaration temp;
     if (element.isNullAware) {
@@ -314,7 +316,7 @@ class CollectionTransformer extends Transformer {
     int i = 0;
     for (; i < node.entries.length; ++i) {
       if (node.entries[i] is ControlFlowMapEntry) break;
-      node.entries[i] = node.entries[i].accept(this)..parent = node;
+      node.entries[i] = node.entries[i].accept<TreeNode>(this)..parent = node;
     }
 
     // If there were no control-flow entries we are done.
@@ -350,7 +352,7 @@ class CollectionTransformer extends Transformer {
     } else if (entry is ForInMapEntry) {
       _translateForInEntry(entry, keyType, valueType, result, body);
     } else {
-      _addNormalEntry(entry.accept(this), result, body);
+      _addNormalEntry(entry.accept<TreeNode>(this), result, body);
     }
   }
 
@@ -380,7 +382,7 @@ class CollectionTransformer extends Transformer {
           elseBody.length == 1 ? elseBody.first : new Block(elseBody);
     }
     body.add(new IfStatement(
-        entry.condition.accept(this), thenStatement, elseStatement));
+        entry.condition.accept<TreeNode>(this), thenStatement, elseStatement));
   }
 
   void _translateForEntry(ForMapEntry entry, DartType keyType,
@@ -389,8 +391,8 @@ class CollectionTransformer extends Transformer {
     _translateEntry(entry.body, keyType, valueType, result, statements);
     Statement loopBody =
         statements.length == 1 ? statements.first : new Block(statements);
-    ForStatement loop = new ForStatement(
-        entry.variables, entry.condition?.accept(this), entry.updates, loopBody)
+    ForStatement loop = new ForStatement(entry.variables,
+        entry.condition?.accept<TreeNode>(this), entry.updates, loopBody)
       ..fileOffset = entry.fileOffset;
     transformList(loop.variables, this, loop);
     transformList(loop.updates, this, loop);
@@ -404,7 +406,7 @@ class CollectionTransformer extends Transformer {
     if (prologue == null) {
       statements = <Statement>[];
     } else {
-      prologue = prologue.accept(this);
+      prologue = prologue.accept<TreeNode>(this);
       statements =
           prologue is Block ? prologue.statements : <Statement>[prologue];
     }
@@ -412,17 +414,17 @@ class CollectionTransformer extends Transformer {
     Statement loopBody =
         statements.length == 1 ? statements.first : new Block(statements);
     if (entry.problem != null) {
-      body.add(new ExpressionStatement(entry.problem.accept(this)));
+      body.add(new ExpressionStatement(entry.problem.accept<TreeNode>(this)));
     }
     body.add(new ForInStatement(
-        entry.variable, entry.iterable.accept(this), loopBody,
+        entry.variable, entry.iterable.accept<TreeNode>(this), loopBody,
         isAsync: entry.isAsync)
       ..fileOffset = entry.fileOffset);
   }
 
   void _translateSpreadEntry(SpreadMapEntry entry, DartType keyType,
       DartType valueType, VariableDeclaration result, List<Statement> body) {
-    Expression value = entry.expression.accept(this);
+    Expression value = entry.expression.accept<TreeNode>(this);
     // Null-aware spreads require testing the subexpression's value.
     VariableDeclaration temp;
     if (entry.isNullAware) {
@@ -499,7 +501,7 @@ class CollectionTransformer extends Transformer {
     int i = 0;
     for (; i < elements.length; ++i) {
       if (elements[i] is ControlFlowElement) break;
-      elements[i] = elements[i].accept(this)..parent = node;
+      elements[i] = elements[i].accept<TreeNode>(this)..parent = node;
     }
 
     // If there were only expressions, we are done.
@@ -524,7 +526,7 @@ class CollectionTransformer extends Transformer {
           parts.add(makeLiteral(currentPart));
           currentPart = null;
         }
-        Expression spreadExpression = element.expression.accept(this);
+        Expression spreadExpression = element.expression.accept<TreeNode>(this);
         if (element.isNullAware) {
           VariableDeclaration temp =
               new VariableDeclaration(null, initializer: spreadExpression);
@@ -544,10 +546,10 @@ class CollectionTransformer extends Transformer {
           parts.add(makeLiteral(currentPart));
           currentPart = null;
         }
-        Expression condition = element.condition.accept(this);
-        Expression then = makeLiteral([element.then]).accept(this);
+        Expression condition = element.condition.accept<TreeNode>(this);
+        Expression then = makeLiteral([element.then]).accept<TreeNode>(this);
         Expression otherwise = element.otherwise != null
-            ? makeLiteral([element.otherwise]).accept(this)
+            ? makeLiteral([element.otherwise]).accept<TreeNode>(this)
             : makeLiteral([]);
         parts.add(new ConditionalExpression(
             condition, then, otherwise, const DynamicType()));
@@ -557,7 +559,7 @@ class CollectionTransformer extends Transformer {
             element.fileOffset, getFileUri(element));
       } else {
         currentPart ??= <Expression>[];
-        currentPart.add(element.accept(this));
+        currentPart.add(element.accept<TreeNode>(this));
       }
     }
     if (currentPart != null) {
@@ -573,7 +575,7 @@ class CollectionTransformer extends Transformer {
     int i = 0;
     for (; i < node.entries.length; ++i) {
       if (node.entries[i] is ControlFlowMapEntry) break;
-      node.entries[i] = node.entries[i].accept(this)..parent = node;
+      node.entries[i] = node.entries[i].accept<TreeNode>(this)..parent = node;
     }
 
     // If there were no control-flow entries we are done.
@@ -595,7 +597,7 @@ class CollectionTransformer extends Transformer {
           parts.add(makeLiteral(currentPart));
           currentPart = null;
         }
-        Expression spreadExpression = entry.expression.accept(this);
+        Expression spreadExpression = entry.expression.accept<TreeNode>(this);
         if (entry.isNullAware) {
           VariableDeclaration temp =
               new VariableDeclaration(null, initializer: spreadExpression);
@@ -615,10 +617,10 @@ class CollectionTransformer extends Transformer {
           parts.add(makeLiteral(currentPart));
           currentPart = null;
         }
-        Expression condition = entry.condition.accept(this);
-        Expression then = makeLiteral([entry.then]).accept(this);
+        Expression condition = entry.condition.accept<TreeNode>(this);
+        Expression then = makeLiteral([entry.then]).accept<TreeNode>(this);
         Expression otherwise = entry.otherwise != null
-            ? makeLiteral([entry.otherwise]).accept(this)
+            ? makeLiteral([entry.otherwise]).accept<TreeNode>(this)
             : makeLiteral([]);
         parts.add(new ConditionalExpression(
             condition, then, otherwise, const DynamicType()));
@@ -628,7 +630,7 @@ class CollectionTransformer extends Transformer {
             entry.fileOffset, getFileUri(entry));
       } else {
         currentPart ??= <MapEntry>[];
-        currentPart.add(entry.accept(this));
+        currentPart.add(entry.accept<TreeNode>(this));
       }
     }
     if (currentPart != null) {

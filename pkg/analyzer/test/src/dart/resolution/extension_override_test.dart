@@ -556,6 +556,10 @@ f(C c) => E(c).a;
 
   void validateOverride({List<DartType> typeArguments}) {
     expect(extensionOverride.extensionName.staticElement, extension);
+
+    expect(extensionOverride.staticType, isNull);
+    expect(extensionOverride.extensionName.staticType, isNull);
+
     if (typeArguments == null) {
       expect(extensionOverride.typeArguments, isNull);
     } else {

@@ -46,6 +46,55 @@ class SlotCache : public ZoneAllocated {
   DirectChainedHashMap<PointerKeyValueTrait<const Slot> > fields_;
 };
 
+#define NATIVE_SLOT_NAME(C, F, id, M) Kind::k##C##_##F
+#define NATIVE_TO_STR(C, F, id, M) #C "_" #F
+
+const char* Slot::KindToCString(Kind k) {
+  switch (k) {
+#define NATIVE_CASE(C, F, id, M)                                               \
+  case NATIVE_SLOT_NAME(C, F, id, M):                                          \
+    return NATIVE_TO_STR(C, F, id, M);
+    NATIVE_SLOTS_LIST(NATIVE_CASE)
+#undef NATIVE_CASE
+    case Kind::kTypeArguments:
+      return "TypeArguments";
+    case Kind::kCapturedVariable:
+      return "CapturedVariable";
+    case Kind::kDartField:
+      return "DartField";
+    default:
+      UNREACHABLE();
+      return nullptr;
+  }
+}
+
+bool Slot::KindFromCString(const char* str, Kind* out) {
+  ASSERT(str != nullptr && out != nullptr);
+#define NATIVE_CASE(C, F, id, M)                                               \
+  if (strcmp(str, NATIVE_TO_STR(C, F, id, M)) == 0) {                          \
+    *out = NATIVE_SLOT_NAME(C, F, id, M);                                      \
+    return true;                                                               \
+  }
+  NATIVE_SLOTS_LIST(NATIVE_CASE)
+#undef NATIVE_CASE
+  if (strcmp(str, "TypeArguments") == 0) {
+    *out = Kind::kTypeArguments;
+    return true;
+  }
+  if (strcmp(str, "CapturedVariable") == 0) {
+    *out = Kind::kCapturedVariable;
+    return true;
+  }
+  if (strcmp(str, "DartField") == 0) {
+    *out = Kind::kDartField;
+    return true;
+  }
+  return false;
+}
+
+#undef NATIVE_TO_STR
+#undef NATIVE_SLOT_NAME
+
 const Slot& Slot::GetNativeSlot(Kind kind) {
   // There is a fixed statically known number of native slots so we cache
   // them statically.

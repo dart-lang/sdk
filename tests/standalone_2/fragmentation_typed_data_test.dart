@@ -13,12 +13,17 @@
 // VMOptions=--concurrent_mark --use_compactor
 // VMOptions=--concurrent_mark --use_compactor --force_evacuation
 
+import 'dart:io';
 import 'dart:typed_data';
 
 main() {
+  // We have less memory available on the Android testing devices, and if we
+  // allocate to much the kernel may summarily terminate us.
+  final double factor = Platform.isAndroid ? 0.5 : 1.0;
+
   final List<List> arrays = [];
   // Fill up heap with alternate large-small items.
-  for (int i = 0; i < 500000; i++) {
+  for (int i = 0; i < 500000 * factor; i++) {
     arrays.add(new Uint32List(260));
     arrays.add(new Uint32List(1));
   }
@@ -27,7 +32,7 @@ main() {
     arrays[i] = null;
   }
   // Allocate a lot of large items which don't fit in the gaps created above.
-  for (int i = 0; i < 600000; i++) {
+  for (int i = 0; i < 600000 * factor; i++) {
     arrays.add(new Uint32List(300));
   }
 }

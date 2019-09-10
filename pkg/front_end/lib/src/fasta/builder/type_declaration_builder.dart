@@ -4,7 +4,7 @@
 
 library fasta.type_declaration_builder;
 
-import 'package:kernel/ast.dart' show DartType;
+import 'package:kernel/ast.dart' show DartType, Nullability;
 
 import 'builder.dart'
     show Builder, LibraryBuilder, MetadataBuilder, ModifierBuilder, TypeBuilder;
@@ -31,9 +31,10 @@ abstract class TypeDeclarationBuilder extends ModifierBuilder {
 
   int get typeVariablesCount => 0;
 
-  DartType buildType(LibraryBuilder library, List<TypeBuilder> arguments);
+  DartType buildType(LibraryBuilder library, Nullability nullability,
+      List<TypeBuilder> arguments);
 
   /// [arguments] have already been built.
-  DartType buildTypesWithBuiltArguments(
-      LibraryBuilder library, List<DartType> arguments);
+  DartType buildTypesWithBuiltArguments(LibraryBuilder library,
+      Nullability nullability, List<DartType> arguments);
 }

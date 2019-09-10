@@ -254,7 +254,8 @@ class ProgramBuilder {
     List<Holder> holders = _registry.holders.toList(growable: false);
 
     bool needsNativeSupport =
-        _nativeCodegenEnqueuer.hasInstantiatedNativeClasses;
+        _nativeCodegenEnqueuer.hasInstantiatedNativeClasses ||
+            _nativeData.isAllowInteropUsed;
 
     assert(!needsNativeSupport || nativeClasses.isNotEmpty);
 

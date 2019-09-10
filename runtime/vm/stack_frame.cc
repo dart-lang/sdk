@@ -515,8 +515,8 @@ bool StackFrame::FindExceptionHandler(Thread* thread,
   ExceptionHandlerInfo* info = cache->Lookup(pc());
   if (info != NULL) {
     *handler_pc = start + info->handler_pc_offset;
-    *needs_stacktrace = info->needs_stacktrace;
-    *has_catch_all = info->has_catch_all;
+    *needs_stacktrace = (info->needs_stacktrace != 0);
+    *has_catch_all = (info->has_catch_all != 0);
     return true;
   }
 
@@ -544,8 +544,8 @@ bool StackFrame::FindExceptionHandler(Thread* thread,
   ExceptionHandlerInfo handler_info;
   handlers.GetHandlerInfo(try_index, &handler_info);
   *handler_pc = start + handler_info.handler_pc_offset;
-  *needs_stacktrace = handler_info.needs_stacktrace;
-  *has_catch_all = handler_info.has_catch_all;
+  *needs_stacktrace = (handler_info.needs_stacktrace != 0);
+  *has_catch_all = (handler_info.has_catch_all != 0);
   cache->Insert(pc(), handler_info);
   return true;
 }

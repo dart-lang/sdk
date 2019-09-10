@@ -82,6 +82,9 @@ AsciiControlCharacter:
   analyzerCode: ILLEGAL_CHARACTER
   expression: "\x1b 1"
 
+ConstEvalStartingPoint:
+  template: "Constant evaluation error:"
+
 ConstEvalContext:
   template: "While analyzing:"
 
@@ -1858,12 +1861,37 @@ IllegalSyncGeneratorVoidReturnType:
       }
 
 IllegalMixinDueToConstructors:
+  # a class with a constructor is used as a mixin
   template: "Can't use '#name' as a mixin because it has constructors."
-  analyzerCode: MIXIN_DECLARES_CONSTRUCTOR
+  analyzerCode: MIXIN_DECLARES_CONSTRUCTOR # CompileTimeErrorCode
+
+MixinDeclaresConstructor:
+  # a mixin declaration contains a constructor declaration
+  index: 95
+  template: "Mixins can't declare constructors."
+  analyzerCode: ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR
 
 IllegalMixinDueToConstructorsCause:
   template: "This constructor prevents using '#name' as a mixin."
   severity: CONTEXT
+
+ExtensionDeclaresAbstractMember:
+  index: 94
+  template: "Extensions can't declare abstract members."
+  tip: "Try providing an implementation for the member."
+  analyzerCode: ParserErrorCode.EXTENSION_DECLARES_ABSTRACT_MEMBER
+
+ExtensionDeclaresConstructor:
+  index: 92
+  template: "Extensions can't declare constructors."
+  tip: "Try removing the constructor declaration."
+  analyzerCode: ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR
+
+ExtensionDeclaresInstanceField:
+  index: 93
+  template: "Extensions can't declare instance fields"
+  tip: "Try removing the field declaration or making it a static field"
+  analyzerCode: ParserErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD
 
 ConflictsWithConstructor:
   template: "Conflicts with constructor '#name'."
@@ -2013,6 +2041,10 @@ OverrideTypeMismatchParameter:
 OverrideTypeMismatchReturnType:
   template: "The return type of the method '#name' is '#type', which does not match the return type, '#type2', of the overridden method, '#name2'."
   tip: "Change to a subtype of '#type2'."
+  analyzerCode: INVALID_METHOD_OVERRIDE
+
+OverrideTypeMismatchSetter:
+  template: "The field '#name' has type '#type', which does not match the corresponding type, '#type2', in the overridden setter, '#name2'."
   analyzerCode: INVALID_METHOD_OVERRIDE
 
 PartOfSelf:
@@ -3463,17 +3495,17 @@ FfiTypeUnsized:
 
 FfiFieldAnnotation:
   # Used by dart:ffi
-  template: "Field '#name' requires exactly one annotation to declare its C++ type, which cannot be Void. dart:ffi Structs cannot have regular Dart fields."
+  template: "Field '#name' requires exactly one annotation to declare its native type, which cannot be Void. dart:ffi Structs cannot have regular Dart fields."
   external: test/ffi_test.dart
 
 FfiFieldNoAnnotation:
   # Used by dart:ffi
-  template: "Field '#name' requires no annotation to declare its C++ type, it is a Pointer which is represented by the same type in Dart and C++."
+  template: "Field '#name' requires no annotation to declare its native type, it is a Pointer which is represented by the same type in Dart and native code."
   external: test/ffi_test.dart
 
 FfiNotStatic:
   # Used by dart:ffi
-  template: "#name expects a static function as parameter. dart:ffi only supports calling static Dart functions from c."
+  template: "#name expects a static function as parameter. dart:ffi only supports calling static Dart functions from native code."
   external: test/ffi_test.dart
 
 FfiFieldInitializer:
@@ -3499,6 +3531,26 @@ FfiWrongStructInheritance:
 FfiDartTypeMismatch:
   # Used by dart:ffi
   template: "Expected '#type' to be a subtype of '#type2'."
+  external: test/ffi_test.dart
+
+FfiExpectedExceptionalReturn:
+  # Used by dart:ffi
+  template: "Expected an exceptional return value for a native callback returning '#type'."
+  external: test/ffi_test.dart
+
+FfiExpectedNoExceptionalReturn:
+  # Used by dart:ffi
+  template: "Exceptional return value cannot be provided for a native callback returning '#type'."
+  external: test/ffi_test.dart
+
+FfiExpectedConstant:
+  # Used by dart:ffi
+  template: "Exceptional return value must be a constant."
+  external: test/ffi_test.dart
+
+FfiExceptionalReturnNull:
+  # Used by dart:ffi
+  template: "Exceptional return value must not be null."
   external: test/ffi_test.dart
 
 SpreadTypeMismatch:
@@ -3640,3 +3692,9 @@ LanguageVersionMismatchInPart:
       // @dart = 2.3
 
       part of 'main.dart';
+
+ExplicitExtensionArgumentMismatch:
+  template: "Explicit extension application requires exactly 1 positional argument."
+
+ExplicitExtensionTypeArgumentMismatch:
+  template: "Explicit extension application of extension '#name' takes '#count' type argument(s)."

@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/static_member_contributor.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -12,6 +13,7 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(StaticMemberContributorTest);
+    defineReflectiveTests(StaticMemberContributorWithExtensionMethodsTest);
   });
 }
 
@@ -302,5 +304,34 @@ void main() {async.Future.^.w()}''');
     assertNotSuggested('w');
     assertNotSuggested('Object');
     assertNotSuggested('==');
+  }
+}
+
+@reflectiveTest
+class StaticMemberContributorWithExtensionMethodsTest
+    extends DartCompletionContributorTest {
+  @override
+  DartCompletionContributor createContributor() {
+    return new StaticMemberContributor();
+  }
+
+  @override
+  void setupResourceProvider() {
+    super.setupResourceProvider();
+    createAnalysisOptionsFile(experiments: [EnableString.extension_methods]);
+  }
+
+  test_extension() async {
+    addTestSource('''
+extension E on Object {
+  static int i;
+  static String s;
+}
+main() {E.^}
+''');
+    await computeSuggestions();
+    assertNotSuggested('E');
+    assertSuggestField('i', 'int');
+    assertSuggestField('s', 'String');
   }
 }

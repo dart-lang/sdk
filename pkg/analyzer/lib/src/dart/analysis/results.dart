@@ -290,6 +290,12 @@ class _DeclarationByElementLocator extends GeneralizingAstVisitor<void> {
           }
         }
       }
+    } else if (element is ExtensionElement) {
+      if (node is ExtensionDeclaration) {
+        if (_hasOffset(node.name)) {
+          result = node;
+        }
+      }
     } else if (element is FieldElement) {
       if (node is EnumConstantDeclaration) {
         if (_hasOffset(node.name)) {

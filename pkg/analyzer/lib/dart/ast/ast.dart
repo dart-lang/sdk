@@ -4787,6 +4787,9 @@ abstract class SpreadElement implements CollectionElement {
 
   /// The spread operator, either '...' or '...?'.
   Token get spreadOperator;
+
+  /// Whether this is a null-aware spread, as opposed to a non-null spread.
+  bool get isNullAware;
 }
 
 /// A node that represents a statement.

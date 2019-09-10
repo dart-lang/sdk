@@ -13,7 +13,10 @@ import os.path
 import scm
 import subprocess
 import tempfile
+import platform
 
+def is_cpp_file(path):
+    return path.endswith('.cc') or path.endswith('.h')
 
 def _CheckFormat(input_api,
                  identification,
@@ -199,9 +202,6 @@ def _CheckLayering(input_api, output_api):
   """
 
     # Run only if .cc or .h file was modified.
-    def is_cpp_file(path):
-        return path.endswith('.cc') or path.endswith('.h')
-
     if all(not is_cpp_file(f.LocalPath()) for f in input_api.AffectedFiles()):
         return []
 
@@ -219,15 +219,47 @@ def _CheckLayering(input_api, output_api):
     else:
         return []
 
+def _CheckClangTidy(input_api, output_api):
+    """Run clang-tidy on VM changes."""
+
+    # Only run clang-tidy on linux x64.
+    if platform.system() != 'Linux' or platform.machine() != 'x86_64':
+        return []
+
+    # Run only for modified .cc or .h files.
+    files = []
+    for f in input_api.AffectedFiles():
+        path = f.LocalPath()
+        if is_cpp_file(path): files.append(path)
+
+    if not files:
+        return []
+
+    args = [
+        'tools/sdks/dart-sdk/bin/dart',
+        'runtime/tools/run_clang_tidy.dart',
+    ]
+    args.extend(files)
+    stdout = input_api.subprocess.check_output(args).strip()
+    if not stdout:
+        return []
+
+    return [
+        output_api.PresubmitError(
+            'The `clang-tidy` linter revealed issues:',
+            long_text=stdout)
+    ]
 
 def CheckChangeOnCommit(input_api, output_api):
     return (_CheckValidHostsInDEPS(input_api, output_api) + _CheckBuildStatus(
         input_api, output_api) + _CheckDartFormat(input_api, output_api) +
             _CheckStatusFiles(input_api, output_api) + _CheckLayering(
+                input_api, output_api) + _CheckClangTidy(
                 input_api, output_api))
 
 
 def CheckChangeOnUpload(input_api, output_api):
     return (_CheckValidHostsInDEPS(input_api, output_api) + _CheckDartFormat(
         input_api, output_api) + _CheckStatusFiles(input_api, output_api) +
-            _CheckLayering(input_api, output_api))
+            _CheckLayering(input_api, output_api) + _CheckClangTidy(
+                input_api, output_api))

@@ -10,7 +10,7 @@ abstract class HeapSnapshot {
   SnapshotObject get root;
   HeapSnapshotMergedDominatorNode get mergedDominatorTree;
   Iterable<SnapshotClass> get classes;
-  List<ByteData> get chunks;
+  Uint8List get encoded;
 }
 
 abstract class HeapSnapshotMergedDominatorNode {

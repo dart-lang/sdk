@@ -44,7 +44,7 @@ void testIntegerShifts() {
   }
 }
 
-void testNonDoublesShift() {
+void testNonDoubleShifts() {
   double n = 0.0;
   n >>> 1; //# 01: compile-time error
   for (dynamic number in [0.0, 1.0, 2.4, -2.4, double.infinity, double.nan]) {
@@ -60,25 +60,25 @@ int testConstantShifts() {
   // >>> is a constant operation on integers.
   const c1 = 2 >>> 1;
   const c2 = (1 >>> 0) >>> 0;
-  // >> is a potentially constant operation independent of type.
+  // >>> is a potentially constant operation independent of type.
   // The type must still type-check.
   const c3 = false ? 1 : c >>> c;
-  const c4 = true || c >>> c;
 
   // It's an error if it doesn't type-check.
-  const c5 = true || "string" >>> 1;  //# 02: compile-time error
+  const c4 = true || c >>> c; //# 02: compile-time error
+  const c5 = true || "string" >>> 1;  //# 03: compile-time error
 
   // Or if the shift isn't on integers and it is evaluated.
-  const c6 = c >>> c; //# 03: compile-time error
+  const c6 = c >>> c; //# 04: compile-time error
 
   // Or if shifting throws
-  const c7 = 1 >>> -1; //# 04: compile-time error
-  const c8 = 1 >>> 65; //# 05: compile-time error
+  const c7 = 1 >>> -1; //# 05: compile-time error
+  const c8 = 1 >>> 65; //# 06: compile-time error
 
-  Expect.notNull(c1 + c2 + c3 + c4);  // Avoid "unused variable" warnings.
+  Expect.isNotNull(c1 + c2 + c3);  // Avoid "unused variable" warnings.
 }
 
-const bool isJSBitOps => (-1 | 0) > 0;
+const bool isJSBitOps = (-1 | 0) > 0;
 const String jsFlag = isJSBitOps ? " (JS)" : "";
 
 void testShift(int value, int shift) {
@@ -94,7 +94,7 @@ void testShift(int value, int shift) {
     return;
   }
   var expected;
-  if (isJsBitOps) {
+  if (isJSBitOps) {
     // TODO: Check that this is the desired behavior for JS >>>.
     expected = value.toUnsigned(32) >> shift;
   } else if (value < 0) {

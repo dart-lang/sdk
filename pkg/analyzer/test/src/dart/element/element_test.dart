@@ -10,7 +10,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
-import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
@@ -3330,24 +3329,6 @@ class LibraryElementImplTest extends EngineTestCase {
     library.parts = <CompilationUnitElement>[unitA, unitB];
     expect(library.units,
         unorderedEquals(<CompilationUnitElement>[unitLib, unitA, unitB]));
-  }
-
-  void test_invalidateLibraryCycles_withHandle() {
-    AnalysisContext context = createAnalysisContext();
-    context.sourceFactory = new SourceFactory([]);
-    LibraryElementImpl library = ElementFactory.library(context, "foo");
-    LibraryElementImpl importedLibrary = ElementFactory.library(context, "bar");
-    ElementLocation location = new ElementLocationImpl.con2('');
-    TestElementResynthesizer resynthesizer =
-        new TestElementResynthesizer(context, {location: importedLibrary});
-    LibraryElement importedLibraryHandle =
-        new LibraryElementHandle(resynthesizer, location);
-    ImportElementImpl import =
-        ElementFactory.importFor(importedLibraryHandle, null);
-    library.imports = <ImportElement>[import];
-    library.libraryCycle; // Force computation of the cycle.
-
-    library.invalidateLibraryCycles();
   }
 
   void test_setImports() {

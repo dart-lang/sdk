@@ -1507,7 +1507,7 @@ CObject* File::LockRequest(const CObjectArray& request) {
 // Inspired by sdk/lib/core/uri.dart
 UriDecoder::UriDecoder(const char* uri) : uri_(uri) {
   const char* ch = uri;
-  while ((*ch != 0) && (*ch != '%')) {
+  while ((*ch != '\0') && (*ch != '%')) {
     ch++;
   }
   if (*ch == 0) {
@@ -1524,7 +1524,7 @@ UriDecoder::UriDecoder(const char* uri) : uri_(uri) {
   strncpy(dest, uri, i);
   decoded_ = dest;
   dest += i;
-  while (*ch) {
+  while (*ch != '\0') {
     if (*ch != '%') {
       *(dest++) = *(ch++);
       continue;

@@ -26,11 +26,6 @@ class BytecodeMetadataHelper : public MetadataHelper {
 
   void ParseBytecodeFunction(ParsedFunction* parsed_function);
 
-  // Reads members associated with given [node_offset] and fills in [cls].
-  // Discards fields if [discard_fields] is true.
-  // Returns true if class members are loaded.
-  bool ReadMembers(intptr_t node_offset, const Class& cls, bool discard_fields);
-
   // Read all library declarations.
   bool ReadLibraries();
 
@@ -369,8 +364,9 @@ class BytecodeReader : public AllStatic {
 
 class BytecodeSourcePositionsIterator : ValueObject {
  public:
-  // This constant should match corresponding constant in class SourcePositions
-  // (pkg/vm/lib/bytecode/source_positions.dart).
+  // These constants should match corresponding constants in class
+  // SourcePositions (pkg/vm/lib/bytecode/source_positions.dart).
+  static const intptr_t kSyntheticCodeMarker = -1;
   static const intptr_t kYieldPointMarker = -2;
 
   BytecodeSourcePositionsIterator(Zone* zone, const Bytecode& bytecode)
@@ -400,7 +396,11 @@ class BytecodeSourcePositionsIterator : ValueObject {
 
   uword PcOffset() const { return cur_bci_; }
 
-  TokenPosition TokenPos() const { return TokenPosition(cur_token_pos_); }
+  TokenPosition TokenPos() const {
+    return (cur_token_pos_ == kSyntheticCodeMarker)
+               ? TokenPosition::kNoSource
+               : TokenPosition(cur_token_pos_);
+  }
 
   bool IsYieldPoint() const { return is_yield_point_; }
 
@@ -412,7 +412,6 @@ class BytecodeSourcePositionsIterator : ValueObject {
   bool is_yield_point_ = false;
 };
 
-#if !defined(PRODUCT)
 class BytecodeLocalVariablesIterator : ValueObject {
  public:
   // These constants should match corresponding constants in
@@ -465,6 +464,7 @@ class BytecodeLocalVariablesIterator : ValueObject {
     return true;
   }
 
+  bool IsDone() const { return entries_remaining_ == 0; }
   intptr_t Kind() const { return cur_kind_and_flags_ & kKindMask; }
   bool IsScope() const { return Kind() == kScope; }
   bool IsVariableDeclaration() const { return Kind() == kVariableDeclaration; }
@@ -522,7 +522,6 @@ class BytecodeLocalVariablesIterator : ValueObject {
   TokenPosition cur_declaration_token_pos_ = TokenPosition::kNoSource;
   TokenPosition cur_end_token_pos_ = TokenPosition::kNoSource;
 };
-#endif  // !defined(PRODUCT)
 
 bool IsStaticFieldGetterGeneratedAsInitializer(const Function& function,
                                                Zone* zone);

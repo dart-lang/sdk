@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io' show Directory, Platform;
+import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/fasta/messages.dart' show FormattedMessage;
 import 'package:front_end/src/testing/id.dart' show ActualData, Id;
 import 'package:front_end/src/testing/id_testing.dart'
@@ -11,9 +12,9 @@ import 'package:front_end/src/testing/id_testing.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart'
     show
         CfeDataExtractor,
-        InternalCompilerResult,
         DataComputer,
-        defaultCfeConfig,
+        InternalCompilerResult,
+        TestConfig,
         createUriForFileName,
         onFailure,
         runTestFor;
@@ -21,8 +22,9 @@ import 'package:kernel/ast.dart' show Library;
 
 main(List<String> args) async {
   // Fix default/max major and minor version so we can test it.
-  Library.defaultLangaugeVersionMajor = 2;
-  Library.defaultLangaugeVersionMinor = 8;
+  // This config sets it to 2.8.
+  TestConfigWithLanguageVersion cfeConfig =
+      new TestConfigWithLanguageVersion(cfeMarker, "cfe");
 
   Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
   await runTests(dataDir,
@@ -30,8 +32,17 @@ main(List<String> args) async {
       supportedMarkers: [cfeMarker],
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
-      runTest: runTestFor(
-          const LanguageVersioningDataComputer(), [defaultCfeConfig]));
+      runTest: runTestFor(const LanguageVersioningDataComputer(), [cfeConfig]));
+}
+
+class TestConfigWithLanguageVersion extends TestConfig {
+  TestConfigWithLanguageVersion(String marker, String name)
+      : super(marker, name);
+
+  @override
+  void customizeCompilerOptions(CompilerOptions options) {
+    options.currentSdkVersion = "2.8";
+  }
 }
 
 class LanguageVersioningDataComputer extends DataComputer<String> {

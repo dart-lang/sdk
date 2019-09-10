@@ -15,7 +15,6 @@ import 'package:analyzer/src/dart/ast/ast.dart'
         CompilationUnitImpl,
         ExtensionDeclarationImpl,
         MixinDeclarationImpl;
-import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/fasta/error_converter.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:front_end/src/fasta/messages.dart'
@@ -37,7 +36,6 @@ import 'package:front_end/src/fasta/messages.dart'
         messageInvalidThisInInitializer,
         messageMissingAssignableSelector,
         messageNativeClauseShouldBeAnnotation,
-        messageStaticConstructor,
         messageTypedefNotFunction,
         templateDuplicateLabelInSwitchStatement,
         templateExpectedButGot,
@@ -47,7 +45,7 @@ import 'package:front_end/src/fasta/messages.dart'
 import 'package:front_end/src/fasta/parser.dart'
     show
         Assert,
-        ClassKind,
+        DeclarationKind,
         FormalParameterKind,
         IdentifierContext,
         MemberKind,
@@ -277,11 +275,7 @@ class AstBuilder extends StackListener {
           : (mixinDeclaration != null
               ? mixinDeclaration.name.name
               : extensionDeclaration.name?.name);
-      if (name?.lexeme == className && getOrSet == null) {
-        // This error is also reported in OutlineBuilder.beginMethod
-        handleRecoverableError(
-            messageStaticConstructor, staticToken, staticToken);
-      } else {
+      if (name?.lexeme != className || getOrSet != null) {
         modifiers.staticKeyword = staticToken;
       }
     }
@@ -649,8 +643,8 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endClassOrMixinBody(
-      ClassKind kind, int memberCount, Token leftBracket, Token rightBracket) {
+  void endClassOrMixinBody(DeclarationKind kind, int memberCount,
+      Token leftBracket, Token rightBracket) {
     // TODO(danrubel): consider renaming endClassOrMixinBody
     // to endClassOrMixinOrExtensionBody
     assert(optional('{', leftBracket));
@@ -834,11 +828,11 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endFactoryMethod(
+  void endClassFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
     assert(optional('factory', factoryKeyword));
     assert(optional(';', endToken) || optional('}', endToken));
-    debugEvent("FactoryMethod");
+    debugEvent("ClassFactoryMethod");
 
     FunctionBody body;
     Token separator;
@@ -885,15 +879,6 @@ class AstBuilder extends StackListener {
           ast.simpleIdentifier(typeName.identifier.token, isDeclaration: true);
     }
 
-    if (extensionDeclaration != null) {
-      // TODO(brianwilkerson) Decide how to handle constructor and field
-      //  declarations within extensions. They are invalid, but we might want to
-      //  resolve them in order to get navigation, search, etc.
-      errorReporter.errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.EXTENSION_DECLARES_CONSTRUCTOR,
-          name ?? returnType);
-      return;
-    }
     currentDeclarationMembers.add(ast.constructorDeclaration(
         comment,
         metadata,
@@ -910,6 +895,71 @@ class AstBuilder extends StackListener {
         body));
   }
 
+  @override
+  void endMixinFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token endToken) {
+    debugEvent("MixinFactoryMethod");
+    endClassFactoryMethod(beginToken, factoryKeyword, endToken);
+  }
+
+  @override
+  void endExtensionFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token endToken) {
+    assert(optional('factory', factoryKeyword));
+    assert(optional(';', endToken) || optional('}', endToken));
+    debugEvent("ExtensionFactoryMethod");
+
+    Object bodyObject = pop();
+    FormalParameterList parameters = pop();
+    TypeParameterList typeParameters = pop();
+    Object constructorName = pop();
+    _Modifiers modifiers = pop();
+    List<Annotation> metadata = pop();
+
+    FunctionBody body;
+    if (bodyObject is FunctionBody) {
+      body = bodyObject;
+    } else if (bodyObject is _RedirectingFactoryBody) {
+      body = ast.emptyFunctionBody(endToken);
+    } else {
+      // Unhandled situation which should never happen.
+      // Since this event handler is just a recovery attempt,
+      // don't bother adding this declaration to the AST.
+      return;
+    }
+    Comment comment = _findComment(metadata, beginToken);
+
+    assert(parameters != null);
+
+    // Constructor declarations within extensions are invalid and the parser
+    // has already reported an error at this point, but we include them in as
+    // a method declaration in order to get navigation, search, etc.
+
+    SimpleIdentifier methodName;
+    if (constructorName is SimpleIdentifier) {
+      methodName = constructorName;
+    } else if (constructorName is PrefixedIdentifier) {
+      methodName = constructorName.identifier;
+    } else {
+      // Unsure what the method name should be in this situation.
+      // Since this event handler is just a recovery attempt,
+      // don't bother adding this declaration to the AST.
+      return;
+    }
+    currentDeclarationMembers.add(ast.methodDeclaration(
+        comment,
+        metadata,
+        modifiers?.externalKeyword,
+        modifiers?.abstractKeyword ?? modifiers?.staticKeyword,
+        null, // returnType
+        null, // getOrSet
+        null, // operatorKeyword
+        methodName,
+        typeParameters,
+        parameters,
+        body));
+  }
+
   void endFieldInitializer(Token assignment, Token token) {
     assert(optional('=', assignment));
     debugEvent("FieldInitializer");
@@ -920,7 +970,7 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endFields(Token staticToken, Token covariantToken, Token lateToken,
+  void endClassFields(Token staticToken, Token covariantToken, Token lateToken,
       Token varFinalOrConst, int count, Token beginToken, Token semicolon) {
     assert(optional(';', semicolon));
     debugEvent("Fields");
@@ -936,17 +986,6 @@ class AstBuilder extends StackListener {
     Token covariantKeyword = covariantToken;
     List<Annotation> metadata = pop();
     Comment comment = _findComment(metadata, beginToken);
-    if (extensionDeclaration != null && staticToken == null) {
-      // TODO(brianwilkerson) Decide how to handle constructor and field
-      //  declarations within extensions. They are invalid, but we might want to
-      //  resolve them in order to get navigation, search, etc.
-      for (VariableDeclaration variable in variables) {
-        errorReporter.errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD,
-            variable.name);
-      }
-      return;
-    }
     currentDeclarationMembers.add(ast.fieldDeclaration2(
         comment: comment,
         metadata: metadata,
@@ -954,6 +993,32 @@ class AstBuilder extends StackListener {
         staticKeyword: staticToken,
         fieldList: variableList,
         semicolon: semicolon));
+  }
+
+  @override
+  void endMixinFields(Token staticToken, Token covariantToken, Token lateToken,
+      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
+    endClassFields(staticToken, covariantToken, lateToken, varFinalOrConst,
+        count, beginToken, endToken);
+  }
+
+  @override
+  void endExtensionFields(
+      Token staticToken,
+      Token covariantToken,
+      Token lateToken,
+      Token varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
+    if (staticToken == null) {
+      // TODO(danrubel) Decide how to handle instance field declarations
+      // within extensions. They are invalid and the parser has already reported
+      // an error at this point, but we include them in order to get navigation,
+      // search, etc.
+    }
+    endClassFields(staticToken, covariantToken, lateToken, varFinalOrConst,
+        count, beginToken, endToken);
   }
 
   @override
@@ -1499,12 +1564,90 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endMethod(Token getOrSet, Token beginToken, Token beginParam,
+  void endClassMethod(Token getOrSet, Token beginToken, Token beginParam,
       Token beginInitializers, Token endToken) {
     assert(getOrSet == null ||
         optional('get', getOrSet) ||
         optional('set', getOrSet));
-    debugEvent("Method");
+    debugEvent("ClassMethod");
+
+    var bodyObject = pop();
+    pop(); // initializers
+    pop(); // separator
+    FormalParameterList parameters = pop();
+    TypeParameterList typeParameters = pop();
+    var name = pop();
+    TypeAnnotation returnType = pop();
+    _Modifiers modifiers = pop();
+    List<Annotation> metadata = pop();
+    Comment comment = _findComment(metadata, beginToken);
+
+    assert(parameters != null || optional('get', getOrSet));
+
+    FunctionBody body;
+    if (bodyObject is FunctionBody) {
+      body = bodyObject;
+    } else if (bodyObject is _RedirectingFactoryBody) {
+      body = ast.emptyFunctionBody(endToken);
+    } else {
+      unhandled("${bodyObject.runtimeType}", "bodyObject",
+          beginToken.charOffset, uri);
+    }
+
+    Token operatorKeyword;
+    SimpleIdentifier nameId;
+    if (name is SimpleIdentifier) {
+      nameId = name;
+    } else if (name is _OperatorName) {
+      operatorKeyword = name.operatorKeyword;
+      nameId = name.name;
+    } else {
+      throw new UnimplementedError();
+    }
+
+    if (modifiers?.constKeyword != null) {
+      // This error is also reported in OutlineBuilder.endMethod
+      handleRecoverableError(
+          messageConstMethod, modifiers.constKeyword, modifiers.constKeyword);
+    }
+    checkFieldFormalParameters(parameters);
+    currentDeclarationMembers.add(ast.methodDeclaration(
+        comment,
+        metadata,
+        modifiers?.externalKeyword,
+        modifiers?.abstractKeyword ?? modifiers?.staticKeyword,
+        returnType,
+        getOrSet,
+        operatorKeyword,
+        nameId,
+        typeParameters,
+        parameters,
+        body));
+  }
+
+  @override
+  void endMixinMethod(Token getOrSet, Token beginToken, Token beginParam,
+      Token beginInitializers, Token endToken) {
+    debugEvent("MixinMethod");
+    endClassMethod(
+        getOrSet, beginToken, beginParam, beginInitializers, endToken);
+  }
+
+  @override
+  void endExtensionMethod(Token getOrSet, Token beginToken, Token beginParam,
+      Token beginInitializers, Token endToken) {
+    debugEvent("ExtensionMethod");
+    endClassMethod(
+        getOrSet, beginToken, beginParam, beginInitializers, endToken);
+  }
+
+  @override
+  void endClassConstructor(Token getOrSet, Token beginToken, Token beginParam,
+      Token beginInitializers, Token endToken) {
+    assert(getOrSet == null ||
+        optional('get', getOrSet) ||
+        optional('set', getOrSet));
+    debugEvent("ClassConstructor");
 
     var bodyObject = pop();
     List<ConstructorInitializer> initializers = pop() ?? const [];
@@ -1532,97 +1675,78 @@ class AstBuilder extends StackListener {
           beginToken.charOffset, uri);
     }
 
-    void constructor(
-        SimpleIdentifier prefixOrName, Token period, SimpleIdentifier name) {
-      if (typeParameters != null) {
-        // Outline builder also reports this error message.
-        handleRecoverableError(messageConstructorWithTypeParameters,
-            typeParameters.beginToken, typeParameters.endToken);
-      }
-      if (modifiers?.constKeyword != null &&
-          body != null &&
-          (body.length > 1 || body.beginToken?.lexeme != ';')) {
-        // This error is also reported in BodyBuilder.finishFunction
-        Token bodyToken = body.beginToken ?? modifiers.constKeyword;
-        handleRecoverableError(
-            messageConstConstructorWithBody, bodyToken, bodyToken);
-      }
-      if (returnType != null) {
-        // This error is also reported in OutlineBuilder.endMethod
-        handleRecoverableError(messageConstructorWithReturnType,
-            returnType.beginToken, returnType.beginToken);
-      }
-      ConstructorDeclaration constructor = ast.constructorDeclaration(
-          comment,
-          metadata,
-          modifiers?.externalKeyword,
-          modifiers?.finalConstOrVarKeyword,
-          null,
-          // TODO(paulberry): factoryKeyword
-          ast.simpleIdentifier(prefixOrName.token),
-          period,
-          name,
-          parameters,
-          separator,
-          initializers,
-          redirectedConstructor,
-          body);
-      if (extensionDeclaration != null) {
-        // TODO(brianwilkerson) Decide how to handle constructor and field
-        //  declarations within extensions. They are invalid, but we might want
-        //  to resolve them in order to get navigation, search, etc.
-        errorReporter.errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.EXTENSION_DECLARES_CONSTRUCTOR,
-            name ?? prefixOrName);
-        return;
-      }
-      currentDeclarationMembers.add(constructor);
-      if (mixinDeclaration != null) {
-        // TODO (danrubel): Report an error if this is a mixin declaration.
-      }
-    }
-
-    void method(Token operatorKeyword, SimpleIdentifier name) {
-      if (modifiers?.constKeyword != null) {
-        // This error is also reported in OutlineBuilder.endMethod
-        handleRecoverableError(
-            messageConstMethod, modifiers.constKeyword, modifiers.constKeyword);
-      }
-      checkFieldFormalParameters(parameters);
-      if (extensionDeclaration != null && body is EmptyFunctionBody) {
-        errorReporter.errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.EXTENSION_DECLARES_ABSTRACT_MEMBER, name);
-        return;
-      }
-      currentDeclarationMembers.add(ast.methodDeclaration(
-          comment,
-          metadata,
-          modifiers?.externalKeyword,
-          modifiers?.abstractKeyword ?? modifiers?.staticKeyword,
-          returnType,
-          getOrSet,
-          operatorKeyword,
-          name,
-          typeParameters,
-          parameters,
-          body));
-    }
-
+    SimpleIdentifier prefixOrName;
+    Token period;
+    SimpleIdentifier nameOrNull;
     if (name is SimpleIdentifier) {
-      if (name.name == currentDeclarationName?.name && getOrSet == null) {
-        constructor(name, null, null);
-      } else if (initializers.isNotEmpty && getOrSet == null) {
-        constructor(name, null, null);
-      } else {
-        method(null, name);
-      }
-    } else if (name is _OperatorName) {
-      method(name.operatorKeyword, name.name);
+      prefixOrName = name;
     } else if (name is PrefixedIdentifier) {
-      constructor(name.prefix, name.period, name.identifier);
+      prefixOrName = name.prefix;
+      period = name.period;
+      nameOrNull = name.identifier;
     } else {
       throw new UnimplementedError();
     }
+
+    if (typeParameters != null) {
+      // Outline builder also reports this error message.
+      handleRecoverableError(messageConstructorWithTypeParameters,
+          typeParameters.beginToken, typeParameters.endToken);
+    }
+    if (modifiers?.constKeyword != null &&
+        body != null &&
+        (body.length > 1 || body.beginToken?.lexeme != ';')) {
+      // This error is also reported in BodyBuilder.finishFunction
+      Token bodyToken = body.beginToken ?? modifiers.constKeyword;
+      handleRecoverableError(
+          messageConstConstructorWithBody, bodyToken, bodyToken);
+    }
+    if (returnType != null) {
+      // This error is also reported in OutlineBuilder.endMethod
+      handleRecoverableError(messageConstructorWithReturnType,
+          returnType.beginToken, returnType.beginToken);
+    }
+    ConstructorDeclaration constructor = ast.constructorDeclaration(
+        comment,
+        metadata,
+        modifiers?.externalKeyword,
+        modifiers?.finalConstOrVarKeyword,
+        null,
+        // TODO(paulberry): factoryKeyword
+        ast.simpleIdentifier(prefixOrName.token),
+        period,
+        nameOrNull,
+        parameters,
+        separator,
+        initializers,
+        redirectedConstructor,
+        body);
+    currentDeclarationMembers.add(constructor);
+    if (mixinDeclaration != null) {
+      // TODO (danrubel): Report an error if this is a mixin declaration.
+    }
+  }
+
+  @override
+  void endMixinConstructor(Token getOrSet, Token beginToken, Token beginParam,
+      Token beginInitializers, Token endToken) {
+    debugEvent("MixinConstructor");
+    // TODO(danrubel) Decide how to handle constructor declarations within
+    // mixins. They are invalid, but we include them in order to get navigation,
+    // search, etc. Currently the error is reported by multiple listeners,
+    // but should be moved into the parser.
+    endClassConstructor(
+        getOrSet, beginToken, beginParam, beginInitializers, endToken);
+  }
+
+  @override
+  void endExtensionConstructor(Token getOrSet, Token beginToken,
+      Token beginParam, Token beginInitializers, Token endToken) {
+    debugEvent("ExtensionConstructor");
+    // TODO(danrubel) Decide how to handle constructor declarations within
+    // extensions. They are invalid and the parser has already reported an
+    // error at this point. In the future, we should include them in order
+    // to get navigation, search, etc.
   }
 
   @override

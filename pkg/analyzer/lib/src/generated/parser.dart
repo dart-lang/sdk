@@ -5643,7 +5643,7 @@ class Parser {
 
   /// Create and return a new token with the given [type]. The token will
   /// replace the first portion of the given [token], so it will have the same
-  /// offset and will have any comments that might have preceeded the token.
+  /// offset and will have any comments that might have preceded the token.
   Token _createToken(Token token, TokenType type, {bool isBegin: false}) {
     CommentToken comments = token.precedingComments;
     if (comments == null) {
@@ -7437,7 +7437,7 @@ class Parser {
       return null;
     }
     //
-    // We can't skip a type parameter because it can be preceeded by metadata,
+    // We can't skip a type parameter because it can be preceded by metadata,
     // so we just assume that everything before the matching end token is valid.
     //
     int depth = 1;

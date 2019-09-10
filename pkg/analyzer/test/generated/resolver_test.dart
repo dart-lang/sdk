@@ -8,7 +8,6 @@ import 'dart:collection';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -17,6 +16,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
@@ -26,15 +26,14 @@ import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/source/source_resource.dart';
-import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/driver_resolution.dart';
-import 'analysis_context_factory.dart';
 import 'parser_test.dart';
 import 'resolver_test_case.dart';
+import 'test_analysis_context.dart';
 import 'test_support.dart';
 
 main() {
@@ -50,7 +49,6 @@ main() {
     defineReflectiveTests(ScopeTest);
     defineReflectiveTests(StrictModeTest);
     defineReflectiveTests(TypePropagationTest);
-    defineReflectiveTests(TypeProviderImplTest);
     defineReflectiveTests(TypeResolverVisitorTest);
   });
 }
@@ -255,8 +253,7 @@ class LibraryImportScopeTest extends ResolverTestCase {
   }
 
   void test_creation_nonEmpty() {
-    AnalysisContext context = AnalysisContextFactory.contextWithCore(
-        resourceProvider: resourceProvider);
+    AnalysisContext context = TestAnalysisContext();
     String importedTypeName = "A";
     ClassElement importedType = new ClassElementImpl.forNode(
         AstTestFactory.identifier3(importedTypeName));
@@ -276,8 +273,7 @@ class LibraryImportScopeTest extends ResolverTestCase {
   }
 
   void test_extensions_imported() {
-    var context = AnalysisContextFactory.contextWithCore(
-        resourceProvider: resourceProvider);
+    var context = TestAnalysisContext();
 
     var extension = ElementFactory.extensionElement('test_extension');
 
@@ -304,8 +300,7 @@ class LibraryImportScopeTest extends ResolverTestCase {
   }
 
   void test_prefixedAndNonPrefixed() {
-    AnalysisContext context = AnalysisContextFactory.contextWithCore(
-        resourceProvider: resourceProvider);
+    AnalysisContext context = TestAnalysisContext();
     String typeName = "C";
     String prefixName = "p";
     ClassElement prefixedType = ElementFactory.classElement2(typeName);
@@ -345,8 +340,7 @@ class LibraryScopeTest extends ResolverTestCase {
   }
 
   void test_creation_nonEmpty() {
-    AnalysisContext context = AnalysisContextFactory.contextWithCore(
-        resourceProvider: resourceProvider);
+    AnalysisContext context = TestAnalysisContext();
     String importedTypeName = "A";
     ClassElement importedType = new ClassElementImpl.forNode(
         AstTestFactory.identifier3(importedTypeName));
@@ -382,8 +376,7 @@ class LibraryScopeTest extends ResolverTestCase {
   }
 
   void test_extensions_imported() {
-    var context = AnalysisContextFactory.contextWithCore(
-        resourceProvider: resourceProvider);
+    var context = TestAnalysisContext();
 
     var importedUnit1 = ElementFactory.compilationUnit('/imported1.dart');
     var importedExtension = ElementFactory.extensionElement('test_extension');
@@ -419,8 +412,7 @@ class LibraryScopeTest extends ResolverTestCase {
   /// Ensure that if a library L1 defines an extension E, L2 exports L1, and L3
   /// imports L2, then E is included in the list.
   void test_extensions_imported_chain() {
-    var context = AnalysisContextFactory.contextWithCore(
-        resourceProvider: resourceProvider);
+    var context = TestAnalysisContext();
 
     var unit1 = ElementFactory.compilationUnit('/unit1.dart');
     var ext1 = ElementFactory.extensionElement('ext1');
@@ -462,8 +454,7 @@ class LibraryScopeTest extends ResolverTestCase {
   /// imported from different libraries that they are both in the list of
   /// extensions.
   void test_extensions_imported_same_name() {
-    var context = AnalysisContextFactory.contextWithCore(
-        resourceProvider: resourceProvider);
+    var context = TestAnalysisContext();
 
     var sharedExtensionName = 'test_ext';
 
@@ -507,8 +498,7 @@ class LibraryScopeTest extends ResolverTestCase {
   /// Ensure that if there are two imports for the same library that the
   /// imported extension is only in the list one time.
   void test_extensions_imported_twice() {
-    var context = AnalysisContextFactory.contextWithCore(
-        resourceProvider: resourceProvider);
+    var context = TestAnalysisContext();
 
     var sharedExtensionName = 'test_ext';
 
@@ -611,8 +601,11 @@ class NonNullableTypeProviderTest extends EngineTestCase {
     //
     // Create a type provider and ensure that it can return the expected types.
     //
-    TypeProvider provider =
-        new NonNullableTypeProvider(coreLibrary, asyncLibrary);
+    TypeProvider provider = new TypeProviderImpl(
+      coreLibrary,
+      asyncLibrary,
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
     assertNonNullable(provider.boolType);
     expect(provider.bottomType, isNotNull);
     assertNonNullable(provider.deprecatedType);
@@ -822,8 +815,7 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<void> {
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     // In cases where we have a prefixed identifier where the prefix is dynamic,
     // we don't want to assert that the node will have a type.
-    if (node.staticType == null &&
-        resolutionMap.staticTypeForExpression(node.prefix).isDynamic) {
+    if (node.staticType == null && node.prefix.staticType.isDynamic) {
       return;
     }
     super.visitPrefixedIdentifier(node);
@@ -885,10 +877,7 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<void> {
       if (root is CompilationUnit) {
         CompilationUnit rootCU = root;
         if (rootCU.declaredElement != null) {
-          return resolutionMap
-              .elementDeclaredByCompilationUnit(rootCU)
-              .source
-              .fullName;
+          return rootCU.declaredElement.source.fullName;
         } else {
           return "<unknown file- CompilationUnit.getElement() returned null>";
         }
@@ -1342,116 +1331,6 @@ main() {
 }
 
 @reflectiveTest
-class TypeProviderImplTest extends EngineTestCase {
-  void test_creation() {
-    //
-    // Create a mock library element with the types expected to be in dart:core.
-    // We cannot use either ElementFactory or TestTypeProvider (which uses
-    // ElementFactory) because we side-effect the elements in ways that would
-    // break other tests.
-    //
-    InterfaceType objectType = _classElement("Object", null).type;
-    InterfaceType boolType = _classElement("bool", objectType).type;
-    InterfaceType numType = _classElement("num", objectType).type;
-    InterfaceType doubleType = _classElement("double", numType).type;
-    InterfaceType functionType = _classElement("Function", objectType).type;
-    InterfaceType futureType = _classElement("Future", objectType, ["T"]).type;
-    InterfaceType futureOrType =
-        _classElement("FutureOr", objectType, ["T"]).type;
-    InterfaceType intType = _classElement("int", numType).type;
-    InterfaceType iterableType =
-        _classElement("Iterable", objectType, ["T"]).type;
-    InterfaceType listType = _classElement("List", objectType, ["E"]).type;
-    InterfaceType mapType = _classElement("Map", objectType, ["K", "V"]).type;
-    InterfaceType setType = _classElement("Set", objectType, ["E"]).type;
-    InterfaceType stackTraceType = _classElement("StackTrace", objectType).type;
-    InterfaceType streamType = _classElement("Stream", objectType, ["T"]).type;
-    InterfaceType stringType = _classElement("String", objectType).type;
-    InterfaceType symbolType = _classElement("Symbol", objectType).type;
-    InterfaceType typeType = _classElement("Type", objectType).type;
-    CompilationUnitElementImpl coreUnit = new CompilationUnitElementImpl();
-    coreUnit.types = <ClassElement>[
-      boolType.element,
-      doubleType.element,
-      functionType.element,
-      intType.element,
-      iterableType.element,
-      listType.element,
-      mapType.element,
-      setType.element,
-      objectType.element,
-      stackTraceType.element,
-      stringType.element,
-      symbolType.element,
-      typeType.element
-    ];
-    coreUnit.source = new StringSource('', null, uri: Uri.parse('dart:core'));
-    coreUnit.librarySource = coreUnit.source;
-    CompilationUnitElementImpl asyncUnit = new CompilationUnitElementImpl();
-    asyncUnit.types = <ClassElement>[
-      futureType.element,
-      futureOrType.element,
-      streamType.element
-    ];
-
-    asyncUnit.source = new StringSource('', null, uri: Uri.parse('dart:async'));
-    asyncUnit.librarySource = asyncUnit.source;
-    LibraryElementImpl coreLibrary = new LibraryElementImpl.forNode(
-        null, null, AstTestFactory.libraryIdentifier2(["dart.core"]), true);
-    coreLibrary.definingCompilationUnit = coreUnit;
-    LibraryElementImpl asyncLibrary = new LibraryElementImpl.forNode(
-        null, null, AstTestFactory.libraryIdentifier2(["dart.async"]), true);
-    asyncLibrary.definingCompilationUnit = asyncUnit;
-    //
-    // Create a type provider and ensure that it can return the expected types.
-    //
-    TypeProviderImpl provider = new TypeProviderImpl(coreLibrary, asyncLibrary);
-    expect(provider.boolType, same(boolType));
-    expect(provider.bottomType, isNotNull);
-    expect(provider.doubleType, same(doubleType));
-    expect(provider.dynamicType, isNotNull);
-    expect(provider.functionType, same(functionType));
-    expect(provider.futureType, same(futureType));
-    expect(provider.futureOrType, same(futureOrType));
-    expect(provider.intType, same(intType));
-    expect(provider.listType, same(listType));
-    expect(provider.mapType, same(mapType));
-    expect(provider.objectType, same(objectType));
-    expect(provider.stackTraceType, same(stackTraceType));
-    expect(provider.streamType, same(streamType));
-    expect(provider.stringType, same(stringType));
-    expect(provider.symbolType, same(symbolType));
-    expect(provider.typeType, same(typeType));
-  }
-
-  ClassElement _classElement(String typeName, InterfaceType superclassType,
-      [List<String> parameterNames]) {
-    ClassElementImpl element =
-        new ClassElementImpl.forNode(AstTestFactory.identifier3(typeName));
-    element.supertype = superclassType;
-    if (parameterNames != null) {
-      int count = parameterNames.length;
-      if (count > 0) {
-        List<TypeParameterElementImpl> typeParameters =
-            new List<TypeParameterElementImpl>(count);
-        List<TypeParameterTypeImpl> typeArguments =
-            new List<TypeParameterTypeImpl>(count);
-        for (int i = 0; i < count; i++) {
-          TypeParameterElementImpl typeParameter =
-              new TypeParameterElementImpl.forNode(
-                  AstTestFactory.identifier3(parameterNames[i]));
-          typeParameters[i] = typeParameter;
-          typeArguments[i] = new TypeParameterTypeImpl(typeParameter);
-          typeParameter.type = typeArguments[i];
-        }
-        element.typeParameters = typeParameters;
-      }
-    }
-    return element;
-  }
-}
-
-@reflectiveTest
 class TypeResolverVisitorTest extends ParserTestCase
     with ResourceProviderMixin {
   /**
@@ -1497,8 +1376,7 @@ class TypeResolverVisitorTest extends ParserTestCase
 
   void setUp({bool shouldSetElementSupertypes: false}) {
     _listener = new GatheringErrorListener();
-    InternalAnalysisContext context = AnalysisContextFactory.contextWithCore(
-        resourceProvider: resourceProvider);
+    AnalysisContext context = TestAnalysisContext();
     Source librarySource = new FileSource(getFile("/lib.dart"));
     // TODO(paulberry): make it possible to override the feature set so we can
     // test NNBD features.
@@ -1542,8 +1420,7 @@ A V = new A();
 
     // Resolve API types.
     {
-      InternalAnalysisContext context = AnalysisContextFactory.contextWithCore(
-          resourceProvider: resourceProvider);
+      AnalysisContext context = TestAnalysisContext();
       var source = getFile('/test.dart').createSource();
       // TODO(paulberry): make it possible to override the feature set so we can
       // test NNBD features.
@@ -2288,7 +2165,7 @@ A v = new A();
     _resolveNode(typeName, []);
     expect(typeName.type, DynamicTypeImpl.instance);
     expect(typeName.name.staticElement, null);
-    _listener.assertErrorsWithCodes([StaticWarningCode.UNDEFINED_CLASS]);
+    _listener.assertErrorsWithCodes([CompileTimeErrorCode.UNDEFINED_CLASS]);
   }
 
   test_visitTypeName_parameters_arguments() async {
@@ -2334,7 +2211,7 @@ A v = new A();
     expect(typeName.type, DynamicTypeImpl.instance);
     expect(prefix.staticElement, null);
     expect(suffix.staticElement, null);
-    _listener.assertErrorsWithCodes([StaticWarningCode.UNDEFINED_CLASS]);
+    _listener.assertErrorsWithCodes([CompileTimeErrorCode.UNDEFINED_CLASS]);
   }
 
   test_visitTypeName_void() async {
@@ -2423,8 +2300,7 @@ A v = new A();
     LibraryScope libraryScope;
     TypeResolverVisitor visitor;
     {
-      InternalAnalysisContext context = AnalysisContextFactory.contextWithCore(
-          resourceProvider: resourceProvider);
+      AnalysisContext context = TestAnalysisContext();
       var source = getFile('/test.dart').createSource();
       // TODO(paulberry): make it possible to override the feature set so we can
       // test NNBD features.

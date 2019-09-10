@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -1821,8 +1820,7 @@ class E extends D implements C<int> {}
     InstanceCreationExpression exp = stmt.expression;
     ClassElement elementB = AstFinder.getClass(unit, "B").declaredElement;
     ClassElement elementA = AstFinder.getClass(unit, "A").declaredElement;
-    expect(resolutionMap.typeForTypeName(exp.constructorName.type).element,
-        elementB);
+    expect(exp.constructorName.type.type.element, elementB);
     _isInstantiationOf(_hasElement(elementB))(
         [_isType(elementA.typeParameters[0].type)])(exp.staticType);
   }
@@ -1874,8 +1872,7 @@ class E extends D implements C<int> {}
     expect(type0.normalParameterTypes[0], typeProvider.stringType);
 
     FunctionExpression anon1 = (statements[1] as ReturnStatement).expression;
-    FunctionType type1 =
-        resolutionMap.elementDeclaredByFunctionExpression(anon1).type;
+    FunctionType type1 = anon1.declaredElement.type;
     expect(type1.returnType, typeProvider.intType);
     expect(type1.normalParameterTypes[0], typeProvider.intType);
   }
@@ -1899,7 +1896,7 @@ class E extends D implements C<int> {}
       VariableDeclarationStatement stmt = statements[i];
       VariableDeclaration decl = stmt.variables.variables[0];
       FunctionExpression exp = decl.initializer;
-      return resolutionMap.elementDeclaredByFunctionExpression(exp).type;
+      return exp.declaredElement.type;
     }
 
     _isFunction2Of(_isInt, _isNull)(literal(0));
@@ -1928,7 +1925,7 @@ class E extends D implements C<int> {}
       VariableDeclarationStatement stmt = statements[i];
       VariableDeclaration decl = stmt.variables.variables[0];
       FunctionExpression exp = decl.initializer;
-      return resolutionMap.elementDeclaredByFunctionExpression(exp).type;
+      return exp.declaredElement.type;
     }
 
     _isFunction2Of(_isInt, _isNull)(literal(0));
@@ -1993,7 +1990,7 @@ class E extends D implements C<int> {}
       ExpressionStatement stmt = statements[i];
       FunctionExpressionInvocation invk = stmt.expression;
       FunctionExpression exp = invk.argumentList.arguments[0];
-      return resolutionMap.elementDeclaredByFunctionExpression(exp).type;
+      return exp.declaredElement.type;
     }
 
     _isFunction2Of(_isInt, _isNull)(literal(0));
@@ -2024,7 +2021,7 @@ class E extends D implements C<int> {}
       ExpressionStatement stmt = statements[i];
       FunctionExpressionInvocation invk = stmt.expression;
       FunctionExpression exp = invk.argumentList.arguments[0];
-      return resolutionMap.elementDeclaredByFunctionExpression(exp).type;
+      return exp.declaredElement.type;
     }
 
     _isFunction2Of(_isInt, _isNull)(literal(0));
@@ -2053,7 +2050,7 @@ class E extends D implements C<int> {}
       ExpressionStatement stmt = statements[i];
       MethodInvocation invk = stmt.expression;
       FunctionExpression exp = invk.argumentList.arguments[0];
-      return resolutionMap.elementDeclaredByFunctionExpression(exp).type;
+      return exp.declaredElement.type;
     }
 
     _isFunction2Of(_isInt, _isNull)(literal(0));
@@ -2082,7 +2079,7 @@ class E extends D implements C<int> {}
       ExpressionStatement stmt = statements[i];
       MethodInvocation invk = stmt.expression;
       FunctionExpression exp = invk.argumentList.arguments[0];
-      return resolutionMap.elementDeclaredByFunctionExpression(exp).type;
+      return exp.declaredElement.type;
     }
 
     _isFunction2Of(_isInt, _isNull)(literal(0));
@@ -2113,7 +2110,7 @@ class E extends D implements C<int> {}
       ExpressionStatement stmt = statements[i];
       MethodInvocation invk = stmt.expression;
       FunctionExpression exp = invk.argumentList.arguments[0];
-      return resolutionMap.elementDeclaredByFunctionExpression(exp).type;
+      return exp.declaredElement.type;
     }
 
     _isFunction2Of(_isInt, _isNull)(literal(0));
@@ -2144,7 +2141,7 @@ class E extends D implements C<int> {}
       ExpressionStatement stmt = statements[i];
       MethodInvocation invk = stmt.expression;
       FunctionExpression exp = invk.argumentList.arguments[0];
-      return resolutionMap.elementDeclaredByFunctionExpression(exp).type;
+      return exp.declaredElement.type;
     }
 
     _isFunction2Of(_isInt, _isNull)(literal(0));
@@ -2847,10 +2844,8 @@ num test(Iterable values) => values.fold(values.first as num, max);
 
     VariableDeclaration mapB = AstFinder.getFieldInClass(unit, "B", "map");
     MethodDeclaration mapC = AstFinder.getMethodInClass(unit, "C", "map");
-    assertMapOfIntToListOfInt(
-        resolutionMap.elementDeclaredByVariableDeclaration(mapB).type);
-    assertMapOfIntToListOfInt(
-        resolutionMap.elementDeclaredByMethodDeclaration(mapC).returnType);
+    assertMapOfIntToListOfInt(mapB.declaredElement.type);
+    assertMapOfIntToListOfInt(mapC.declaredElement.returnType);
 
     SetOrMapLiteral mapLiteralB = mapB.initializer;
     SetOrMapLiteral mapLiteralC =

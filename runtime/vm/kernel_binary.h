@@ -20,13 +20,14 @@ static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
 
 // Both version numbers are inclusive.
 static const uint32_t kMinSupportedKernelFormatVersion = 18;
-static const uint32_t kMaxSupportedKernelFormatVersion = 29;
+static const uint32_t kMaxSupportedKernelFormatVersion = 31;
 
 // Keep in sync with package:kernel/lib/binary/tag.dart
 #define KERNEL_TAG_LIST(V)                                                     \
   V(Nothing, 0)                                                                \
   V(Something, 1)                                                              \
   V(Class, 2)                                                                  \
+  V(Extension, 115)                                                            \
   V(FunctionNode, 3)                                                           \
   V(Field, 4)                                                                  \
   V(Constructor, 5)                                                            \
@@ -66,6 +67,7 @@ static const uint32_t kMaxSupportedKernelFormatVersion = 29;
   V(SetConcatenation, 112)                                                     \
   V(MapConcatenation, 113)                                                     \
   V(InstanceCreation, 114)                                                     \
+  V(FileUriExpression, 116)                                                    \
   V(IsExpression, 37)                                                          \
   V(AsExpression, 38)                                                          \
   V(StringLiteral, 39)                                                         \
@@ -123,9 +125,6 @@ static const uint32_t kMaxSupportedKernelFormatVersion = 29;
   V(TypeParameterType, 95)                                                     \
   V(SimpleInterfaceType, 96)                                                   \
   V(SimpleFunctionType, 97)                                                    \
-  V(NullReference, 99)                                                         \
-  V(ClassReference, 100)                                                       \
-  V(MemberReference, 101)                                                      \
   V(ConstantExpression, 106)                                                   \
   V(Deprecated_ConstantExpression, 107)                                        \
   V(SpecializedVariableGet, 128)                                               \

@@ -13,6 +13,7 @@ general/override_check_accessor_with_covariant_modifier: TypeCheckError
 general/override_check_after_inference: TypeCheckError
 general/override_check_basic: TypeCheckError
 general/override_check_with_covariant_modifier: TypeCheckError
+general/override_setter_with_field: TypeCheckError
 
 inference/conflicting_fields: TypeCheckError
 inference/conflicts_can_happen2: Fail

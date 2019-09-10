@@ -250,6 +250,9 @@ class Uris {
   static final Uri dart__js_embedded_names =
       new Uri(scheme: 'dart', path: '_js_embedded_names');
 
+  /// The URI for 'dart:js'.
+  static final Uri dart_js = Uri(scheme: 'dart', path: 'js');
+
   /// The URI for 'package:js'.
   static final Uri package_js = new Uri(scheme: 'package', path: 'js/js.dart');
 

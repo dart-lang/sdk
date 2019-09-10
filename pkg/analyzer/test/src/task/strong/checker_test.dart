@@ -1972,10 +1972,10 @@ main() {
   // resolving these shouldn't crash.
   foo/*error:EXTRA_POSITIONAL_ARGUMENTS*/(1, 2, 3);
   x = foo/*error:EXTRA_POSITIONAL_ARGUMENTS*/('1', '2', '3');
-  foo/*error:NOT_ENOUGH_REQUIRED_ARGUMENTS*/(1);
-  x = foo/*error:NOT_ENOUGH_REQUIRED_ARGUMENTS*/('1');
+  foo/*error:NOT_ENOUGH_POSITIONAL_ARGUMENTS*/(1);
+  x = foo/*error:NOT_ENOUGH_POSITIONAL_ARGUMENTS*/('1');
   x = foo/*error:EXTRA_POSITIONAL_ARGUMENTS*/(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/1, /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/2, 3);
-  x = foo/*error:NOT_ENOUGH_REQUIRED_ARGUMENTS*/(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/1);
+  x = foo/*error:NOT_ENOUGH_POSITIONAL_ARGUMENTS*/(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/1);
 
   // named arguments
   bar(y: 1, x: 2, /*error:UNDEFINED_NAMED_PARAMETER*/z: 3);
@@ -2037,12 +2037,12 @@ class F extends A<num> {
 
   test_genericMethodSuperSubstitute() async {
     await checkFile(r'''
-class Clonable<T> {}
+class Cloneable<T> {}
 class G<T> {
-  create<A extends Clonable<T>, B extends Iterable<A>>() => null;
+  create<A extends Cloneable<T>, B extends Iterable<A>>() => null;
 }
 class H extends G<num> {
-  create2() => super.create<Clonable<int>, List<Clonable<int>>>();
+  create2() => super.create<Cloneable<int>, List<Cloneable<int>>>();
 }
     ''');
   }
@@ -4899,18 +4899,18 @@ void g<T extends num>(T object) {
   if (object is int) print(object.isEven);
   if (object is String) print(/*info:DYNAMIC_INVOKE*/object./*error:UNDEFINED_METHOD*/substring(1));
 }
-class Clonable<T> {}
-class SubClonable<T> extends Clonable<T> {
+class Cloneable<T> {}
+class SubCloneable<T> extends Cloneable<T> {
   T m(T t) => t;
 }
-void takesSubClonable<A>(SubClonable<A> t) {}
+void takesSubCloneable<A>(SubCloneable<A> t) {}
 
-void h<T extends Clonable<T>>(T object) {
-  if (/*info:NON_GROUND_TYPE_CHECK_INFO*/object is SubClonable<T>) {
+void h<T extends Cloneable<T>>(T object) {
+  if (/*info:NON_GROUND_TYPE_CHECK_INFO*/object is SubCloneable<T>) {
     print(object.m(object));
 
-    SubClonable<T> s = object;
-    takesSubClonable<T>(object);
+    SubCloneable<T> s = object;
+    takesSubCloneable<T>(object);
     // Issue #35799: According to the language team, this should work, but both
     // analyzer and CFE currently reject it, likely due to a strange
     // representation of promoted type variables.

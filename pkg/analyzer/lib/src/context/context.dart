@@ -17,7 +17,6 @@ import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:analyzer/src/task/api/model.dart';
-import 'package:analyzer/src/task/driver.dart';
 
 /**
  * An [AnalysisContext] in which analysis can be performed.
@@ -45,23 +44,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * The set of declared variables used when computing constant values.
    */
   DeclaredVariables _declaredVariables = new DeclaredVariables();
-
-  @override
-  final ReentrantSynchronousStream<InvalidatedResult> onResultInvalidated =
-      new ReentrantSynchronousStream<InvalidatedResult>();
-
-  ReentrantSynchronousStreamSubscription onResultInvalidatedSubscription = null;
-
-  /**
-   * A list of all [WorkManager]s used by this context.
-   */
-  @override
-  final List<WorkManager> workManagers = <WorkManager>[];
-
-  /**
-   * The analysis driver used to perform analysis.
-   */
-  AnalysisDriver driver;
 
   /**
    * The [TypeProvider] for this context, `null` if not yet created.
@@ -198,11 +180,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  Stream<SourcesChangedEvent> get onSourcesChanged {
-    throw UnimplementedError();
-  }
-
-  @override
   List<Source> get prioritySources {
     throw UnimplementedError();
   }
@@ -263,11 +240,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  bool aboutToComputeResult(CacheEntry entry, ResultDescriptor result) {
-    throw UnimplementedError();
-  }
-
-  @override
   void addListener(AnalysisListener listener) {
     throw UnimplementedError();
   }
@@ -323,11 +295,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     throw UnimplementedError();
   }
 
-  @override
-  V computeResult<V>(AnalysisTarget target, ResultDescriptor<V> descriptor) {
-    throw UnimplementedError();
-  }
-
   /**
    * Create an analysis cache based on the given source [factory].
    */
@@ -349,19 +316,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  CacheEntry getCacheEntry(AnalysisTarget target) {
-    throw UnimplementedError();
-  }
-
-  @override
   CompilationUnitElement getCompilationUnitElement(
       Source unitSource, Source librarySource) {
-    throw UnimplementedError();
-  }
-
-  @deprecated
-  @override
-  V getConfigurationData<V>(ResultDescriptor<V> key) {
     throw UnimplementedError();
   }
 
@@ -456,11 +412,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  V getResult<V>(AnalysisTarget target, ResultDescriptor<V> result) {
-    throw UnimplementedError();
-  }
-
-  @override
   List<Source> getSourcesWithFullName(String path) {
     throw UnimplementedError();
   }
@@ -491,17 +442,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   bool isServerLibrary(Source librarySource) {
-    throw UnimplementedError();
-  }
-
-  @override
-  Stream<ResultChangedEvent> onResultChanged(ResultDescriptor descriptor) {
-    throw UnimplementedError();
-  }
-
-  @override
-  @deprecated
-  Stream<ComputedResult> onResultComputed(ResultDescriptor descriptor) {
     throw UnimplementedError();
   }
 
@@ -540,12 +480,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   void setChangedContents(Source source, String contents, int offset,
       int oldLength, int newLength) {
-    throw UnimplementedError();
-  }
-
-  @deprecated
-  @override
-  void setConfigurationData(ResultDescriptor key, Object data) {
     throw UnimplementedError();
   }
 

@@ -54,8 +54,8 @@ class TokenDetailBuilder {
 
   /// Create the details for a single [token], using the given list of [kinds].
   void _createDetails(Token token, String type, List<String> kinds) {
-    details.add(
-        new TokenDetails(token.lexeme, type: type, validElementKinds: kinds));
+    details.add(new TokenDetails(token.lexeme, token.offset,
+        type: type, validElementKinds: kinds));
   }
 
   /// Return a unique identifier for the type of the given [expression].

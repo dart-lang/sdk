@@ -78,48 +78,46 @@ class Symbols;
   using RawObjectType = Raw##object;                                           \
   Raw##object* raw() const { return reinterpret_cast<Raw##object*>(raw_); }    \
   bool Is##object() const { return true; }                                     \
-  static object& Handle(Zone* zone, Raw##object* raw_ptr) {                    \
-    object* obj = reinterpret_cast<object*>(VMHandles::AllocateHandle(zone));  \
-    initializeHandle(obj, raw_ptr);                                            \
-    return *obj;                                                               \
+  DART_NOINLINE static object& Handle() {                                      \
+    return HandleImpl(Thread::Current()->zone(), object::null());              \
   }                                                                            \
-  static object& Handle() {                                                    \
-    return Handle(Thread::Current()->zone(), object::null());                  \
+  DART_NOINLINE static object& Handle(Zone* zone) {                            \
+    return HandleImpl(zone, object::null());                                   \
   }                                                                            \
-  static object& Handle(Zone* zone) { return Handle(zone, object::null()); }   \
-  static object& Handle(Raw##object* raw_ptr) {                                \
-    return Handle(Thread::Current()->zone(), raw_ptr);                         \
+  DART_NOINLINE static object& Handle(Raw##object* raw_ptr) {                  \
+    return HandleImpl(Thread::Current()->zone(), raw_ptr);                     \
   }                                                                            \
-  static object& CheckedHandle(Zone* zone, RawObject* raw_ptr) {               \
-    object* obj = reinterpret_cast<object*>(VMHandles::AllocateHandle(zone));  \
-    initializeHandle(obj, raw_ptr);                                            \
-    if (!obj->Is##object()) {                                                  \
-      FATAL2("Handle check failed: saw %s expected %s", obj->ToCString(),      \
-             #object);                                                         \
-    }                                                                          \
-    return *obj;                                                               \
+  DART_NOINLINE static object& Handle(Zone* zone, Raw##object* raw_ptr) {      \
+    return HandleImpl(zone, raw_ptr);                                          \
   }                                                                            \
-  static object& ZoneHandle(Zone* zone, Raw##object* raw_ptr) {                \
-    object* obj =                                                              \
-        reinterpret_cast<object*>(VMHandles::AllocateZoneHandle(zone));        \
-    initializeHandle(obj, raw_ptr);                                            \
-    return *obj;                                                               \
+  DART_NOINLINE static object& ZoneHandle() {                                  \
+    return ZoneHandleImpl(Thread::Current()->zone(), object::null());          \
   }                                                                            \
-  static object* ReadOnlyHandle() {                                            \
+  DART_NOINLINE static object& ZoneHandle(Zone* zone) {                        \
+    return ZoneHandleImpl(zone, object::null());                               \
+  }                                                                            \
+  DART_NOINLINE static object& ZoneHandle(Raw##object* raw_ptr) {              \
+    return ZoneHandleImpl(Thread::Current()->zone(), raw_ptr);                 \
+  }                                                                            \
+  DART_NOINLINE static object& ZoneHandle(Zone* zone, Raw##object* raw_ptr) {  \
+    return ZoneHandleImpl(zone, raw_ptr);                                      \
+  }                                                                            \
+  DART_NOINLINE static object* ReadOnlyHandle() {                              \
     object* obj = reinterpret_cast<object*>(Dart::AllocateReadOnlyHandle());   \
     initializeHandle(obj, object::null());                                     \
     return obj;                                                                \
   }                                                                            \
-  static object& ZoneHandle(Zone* zone) {                                      \
-    return ZoneHandle(zone, object::null());                                   \
+  DART_NOINLINE static object& CheckedHandle(Zone* zone, RawObject* raw_ptr) { \
+    object* obj = reinterpret_cast<object*>(VMHandles::AllocateHandle(zone));  \
+    initializeHandle(obj, raw_ptr);                                            \
+    if (!obj->Is##object()) {                                                  \
+      FATAL2("Handle check failed: saw %s expected %s", obj->ToCString(),      \
+             #object);                                                         \
+    }                                                                          \
+    return *obj;                                                               \
   }                                                                            \
-  static object& ZoneHandle() {                                                \
-    return ZoneHandle(Thread::Current()->zone(), object::null());              \
-  }                                                                            \
-  static object& ZoneHandle(Raw##object* raw_ptr) {                            \
-    return ZoneHandle(Thread::Current()->zone(), raw_ptr);                     \
-  }                                                                            \
-  static object& CheckedZoneHandle(Zone* zone, RawObject* raw_ptr) {           \
+  DART_NOINLINE static object& CheckedZoneHandle(Zone* zone,                   \
+                                                 RawObject* raw_ptr) {         \
     object* obj =                                                              \
         reinterpret_cast<object*>(VMHandles::AllocateZoneHandle(zone));        \
     initializeHandle(obj, raw_ptr);                                            \
@@ -129,7 +127,7 @@ class Symbols;
     }                                                                          \
     return *obj;                                                               \
   }                                                                            \
-  static object& CheckedZoneHandle(RawObject* raw_ptr) {                       \
+  DART_NOINLINE static object& CheckedZoneHandle(RawObject* raw_ptr) {         \
     return CheckedZoneHandle(Thread::Current()->zone(), raw_ptr);              \
   }                                                                            \
   /* T::Cast cannot be applied to a null Object, because the object vtable */  \
@@ -150,6 +148,17 @@ class Symbols;
   static const ClassId kClassId = k##object##Cid;                              \
                                                                                \
  private: /* NOLINT */                                                         \
+  static object& HandleImpl(Zone* zone, Raw##object* raw_ptr) {                \
+    object* obj = reinterpret_cast<object*>(VMHandles::AllocateHandle(zone));  \
+    initializeHandle(obj, raw_ptr);                                            \
+    return *obj;                                                               \
+  }                                                                            \
+  static object& ZoneHandleImpl(Zone* zone, Raw##object* raw_ptr) {            \
+    object* obj =                                                              \
+        reinterpret_cast<object*>(VMHandles::AllocateZoneHandle(zone));        \
+    initializeHandle(obj, raw_ptr);                                            \
+    return *obj;                                                               \
+  }                                                                            \
   /* Initialize the handle based on the raw_ptr in the presence of null. */    \
   static void initializeHandle(object* obj, RawObject* raw_ptr) {              \
     if (raw_ptr != Object::null()) {                                           \
@@ -599,6 +608,29 @@ class Object {
     // Can't use Contains, as it uses tags_, which is set through this method.
     ASSERT(reinterpret_cast<uword>(addr) >= RawObject::ToAddr(raw()));
     *const_cast<FieldType*>(addr) = value;
+  }
+
+  template <typename FieldType, typename ValueType, MemoryOrder order>
+  void StoreNonPointer(const FieldType* addr, ValueType value) const {
+    // Can't use Contains, as it uses tags_, which is set through this method.
+    ASSERT(reinterpret_cast<uword>(addr) >= RawObject::ToAddr(raw()));
+
+    if (order == MemoryOrder::kRelease) {
+      AtomicOperations::StoreRelease(const_cast<FieldType*>(addr), value);
+    } else {
+      ASSERT(order == MemoryOrder::kRelaxed);
+      StoreNonPointer<FieldType, ValueType>(addr, value);
+    }
+  }
+
+  template <typename FieldType, MemoryOrder order = MemoryOrder::kRelaxed>
+  FieldType LoadNonPointer(const FieldType* addr) const {
+    if (order == MemoryOrder::kAcquire) {
+      return AtomicOperations::LoadAcquire(const_cast<FieldType*>(addr));
+    } else {
+      ASSERT(order == MemoryOrder::kRelaxed);
+      return *const_cast<FieldType*>(addr);
+    }
   }
 
   // Provides non-const access to non-pointer fields within the object. Such
@@ -1322,7 +1354,7 @@ class Class : public Object {
 
   // Allocate a class used for VM internal objects.
   template <class FakeObject>
-  static RawClass* New();
+  static RawClass* New(Isolate* isolate, bool register_class = true);
 
   // Allocate instance classes.
   static RawClass* New(const Library& lib,
@@ -1335,19 +1367,20 @@ class Class : public Object {
                                     int num_fields);
 
   // Allocate the raw string classes.
-  static RawClass* NewStringClass(intptr_t class_id);
+  static RawClass* NewStringClass(intptr_t class_id, Isolate* isolate);
 
   // Allocate the raw TypedData classes.
-  static RawClass* NewTypedDataClass(intptr_t class_id);
+  static RawClass* NewTypedDataClass(intptr_t class_id, Isolate* isolate);
 
   // Allocate the raw TypedDataView/ByteDataView classes.
-  static RawClass* NewTypedDataViewClass(intptr_t class_id);
+  static RawClass* NewTypedDataViewClass(intptr_t class_id, Isolate* isolate);
 
   // Allocate the raw ExternalTypedData classes.
-  static RawClass* NewExternalTypedDataClass(intptr_t class_id);
+  static RawClass* NewExternalTypedDataClass(intptr_t class_id,
+                                             Isolate* isolate);
 
   // Allocate the raw Pointer classes.
-  static RawClass* NewPointerClass(intptr_t class_id);
+  static RawClass* NewPointerClass(intptr_t class_id, Isolate* isolate);
 
   // Register code that has used CHA for optimization.
   // TODO(srdjan): Also register kind of CHA optimization (e.g.: leaf class,
@@ -1502,7 +1535,9 @@ class Class : public Object {
 
   // Allocate an instance class which has a VM implementation.
   template <class FakeInstance>
-  static RawClass* New(intptr_t id);
+  static RawClass* New(intptr_t id,
+                       Isolate* isolate,
+                       bool register_class = true);
 
   // Helper that calls 'Class::New<Instance>(kIllegalCid)'.
   static RawClass* NewInstanceClass();
@@ -1760,28 +1795,34 @@ class ICData : public Object {
 
   // Call site classification that is helpful for hot-reload. Call sites with
   // different `RebindRule` have to be rebound differently.
+#define FOR_EACH_REBIND_RULE(V)                                                \
+  V(Instance)                                                                  \
+  V(NoRebind)                                                                  \
+  V(NSMDispatch)                                                               \
+  V(Optimized)                                                                 \
+  V(Static)                                                                    \
+  V(Super)
+
   enum RebindRule {
-    kInstance,
-    kNoRebind,
-    kNSMDispatch,
-    kOptimized,
-    kStatic,
-    kSuper,
-    kNumRebindRules,
+#define REBIND_ENUM_DEF(name) k##name,
+    FOR_EACH_REBIND_RULE(REBIND_ENUM_DEF)
+#undef REBIND_ENUM_DEF
+        kNumRebindRules,
   };
+  static const char* RebindRuleToCString(RebindRule r);
+  static bool RebindRuleFromCString(const char* str, RebindRule* out);
   RebindRule rebind_rule() const;
   void set_rebind_rule(uint32_t rebind_rule) const;
 
-  // This bit is set when a call site becomes megamorphic and starts using a
-  // MegamorphicCache instead of ICData. It means that the entries in the
-  // ICData are incomplete and the MegamorphicCache needs to also be consulted
-  // to list the call site's observed receiver classes and targets.
-  bool is_megamorphic() const {
-    return MegamorphicBit::decode(raw_ptr()->state_bits_);
-  }
   void set_is_megamorphic(bool value) const {
-    StoreNonPointer(&raw_ptr()->state_bits_,
-                    MegamorphicBit::update(value, raw_ptr()->state_bits_));
+    // We don't have concurrent RW access to [state_bits_].
+    const uint32_t updated_bits =
+        MegamorphicBit::update(value, raw_ptr()->state_bits_);
+
+    // Though we ensure that once the state bits are updated, all other previous
+    // writes to the IC are visible as well.
+    StoreNonPointer<uint32_t, uint32_t, MemoryOrder::kRelease>(
+        &raw_ptr()->state_bits_, updated_bits);
   }
 
   // The length of the array. This includes all sentinel entries including
@@ -1915,8 +1956,6 @@ class ICData : public Object {
 
   RawUnlinkedCall* AsUnlinkedCall() const;
 
-  // Consider only used entries.
-  bool HasOneTarget() const;
   bool HasReceiverClassId(intptr_t class_id) const;
 
   // Note: passing non-null receiver_type enables exactness tracking for
@@ -1948,9 +1987,6 @@ class ICData : public Object {
   static intptr_t ExactnessIndexFor(intptr_t num_args) { return num_args + 2; }
 
   bool IsUsedAt(intptr_t i) const;
-
-  void GetUsedCidsForTwoArgs(GrowableArray<intptr_t>* first,
-                             GrowableArray<intptr_t>* second) const;
 
   void PrintToJSONArray(const JSONArray& jsarray,
                         TokenPosition token_pos) const;
@@ -1994,6 +2030,20 @@ class ICData : public Object {
   void SetNumArgsTested(intptr_t value) const;
   void set_entries(const Array& value) const;
   void set_state_bits(uint32_t bits) const;
+
+  // This bit is set when a call site becomes megamorphic and starts using a
+  // MegamorphicCache instead of ICData. It means that the entries in the
+  // ICData are incomplete and the MegamorphicCache needs to also be consulted
+  // to list the call site's observed receiver classes and targets.
+  // In the compiler, this should only be read once by CallTargets to avoid the
+  // compiler seeing an unstable set of feedback.
+  bool is_megamorphic() const {
+    // Ensure any following load instructions do not get performed before this
+    // one.
+    const uint32_t bits = LoadNonPointer<uint32_t, MemoryOrder::kAcquire>(
+        &raw_ptr()->state_bits_);
+    return MegamorphicBit::decode(bits);
+  }
 
   bool ValidateInterceptor(const Function& target) const;
 
@@ -2056,13 +2106,14 @@ class ICData : public Object {
   static RawArray* cached_icdata_arrays_[kCachedICDataArrayCount];
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ICData, Object);
+  friend class CallSiteResetter;
+  friend class CallTargets;
   friend class Class;
+  friend class Deserializer;
   friend class ICDataTestTask;
   friend class Interpreter;
-  friend class SnapshotWriter;
   friend class Serializer;
-  friend class Deserializer;
-  friend class CallSiteResetter;
+  friend class SnapshotWriter;
 };
 
 // Often used constants for number of free function type parameters.
@@ -3961,12 +4012,6 @@ class Library : public Object {
   void SetLoadInProgress() const;
   bool Loaded() const { return raw_ptr()->load_state_ == RawLibrary::kLoaded; }
   void SetLoaded() const;
-  bool LoadFailed() const {
-    return raw_ptr()->load_state_ == RawLibrary::kLoadError;
-  }
-  RawInstance* LoadError() const { return raw_ptr()->load_error_; }
-  void SetLoadError(const Instance& error) const;
-  RawInstance* TransitiveLoadError() const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawLibrary));
@@ -4240,6 +4285,7 @@ class Library : public Object {
   static RawLibrary* ProfilerLibrary();
   static RawLibrary* TypedDataLibrary();
   static RawLibrary* VMServiceLibrary();
+  static RawLibrary* WasmLibrary();
 
   // Eagerly compile all classes and functions in the library.
   static RawError* CompileAll(bool ignore_error = false);
@@ -5363,6 +5409,9 @@ class Code : public Object {
 
   void Disassemble(DisassemblyFormatter* formatter = NULL) const;
 
+  // Returns true if all BSS relocations in the code have been patched.
+  bool VerifyBSSRelocations() const;
+
   class Comments : public ZoneAllocated {
    public:
     static Comments& New(intptr_t count);
@@ -5758,7 +5807,6 @@ class Bytecode : public Object {
     return (source_positions_binary_offset() != 0);
   }
 
-#if !defined(PRODUCT)
   intptr_t local_variables_binary_offset() const {
     return raw_ptr()->local_variables_binary_offset_;
   }
@@ -5768,7 +5816,6 @@ class Bytecode : public Object {
   bool HasLocalVariablesInfo() const {
     return (local_variables_binary_offset() != 0);
   }
-#endif  // !defined(PRODUCT)
 
   RawLocalVarDescriptors* var_descriptors() const {
 #if defined(PRODUCT)
@@ -6460,27 +6507,12 @@ class LibraryPrefix : public Instance {
   intptr_t num_imports() const { return raw_ptr()->num_imports_; }
   RawLibrary* importer() const { return raw_ptr()->importer_; }
 
-  RawInstance* LoadError() const;
-
-  bool ContainsLibrary(const Library& library) const;
   RawLibrary* GetLibrary(int index) const;
   void AddImport(const Namespace& import) const;
   RawObject* LookupObject(const String& name) const;
   RawClass* LookupClass(const String& class_name) const;
 
   bool is_deferred_load() const { return raw_ptr()->is_deferred_load_; }
-  bool is_loaded() const { return raw_ptr()->is_loaded_; }
-  bool LoadLibrary() const;
-
-  // Return the list of code objects that were compiled when this
-  // prefix was not yet loaded. These code objects will be invalidated
-  // when the prefix is loaded.
-  RawArray* dependent_code() const;
-  void set_dependent_code(const Array& array) const;
-
-  // Add the given code object to the list of dependent ones.
-  void RegisterDependentCode(const Code& code) const;
-  void InvalidateDependentCode() const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawLibraryPrefix));
@@ -6499,7 +6531,6 @@ class LibraryPrefix : public Instance {
   void set_imports(const Array& value) const;
   void set_num_imports(intptr_t value) const;
   void set_importer(const Library& value) const;
-  void set_is_loaded() const;
 
   static RawLibraryPrefix* New();
 
@@ -6612,6 +6643,11 @@ class TypeArguments : public Instance {
 
   // Return true if this vector contains a recursive type argument.
   bool IsRecursive() const;
+
+  virtual RawInstance* CheckAndCanonicalize(Thread* thread,
+                                            const char** error_str) const {
+    return Canonicalize();
+  }
 
   // Canonicalize only if instantiated, otherwise returns 'this'.
   RawTypeArguments* Canonicalize(TrailPtr trail = NULL) const;
@@ -7341,8 +7377,8 @@ class Smi : public Integer {
   static intptr_t InstanceSize() { return 0; }
 
   static RawSmi* New(intptr_t value) {
-    RawSmi* raw_smi =
-        reinterpret_cast<RawSmi*>((value << kSmiTagShift) | kSmiTag);
+    RawSmi* raw_smi = reinterpret_cast<RawSmi*>(
+        (static_cast<uintptr_t>(value) << kSmiTagShift) | kSmiTag);
     ASSERT(ValueFromRawSmi(raw_smi) == value);
     return raw_smi;
   }

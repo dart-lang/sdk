@@ -275,6 +275,11 @@ Future<CompilerResult> _compile(List<String> args,
     doneInputSummaries = List<Component>(summaryModules.length);
     compilerState = await fe.initializeIncrementalCompiler(
         oldCompilerState,
+        {
+          "trackWidgetCreation=$trackWidgetCreation",
+          "multiRootScheme=${fileSystem.markerScheme}",
+          "multiRootRoots=${fileSystem.roots}",
+        },
         doneInputSummaries,
         compileSdk,
         sourcePathToUri(getSdkPath()),
@@ -377,8 +382,7 @@ Future<CompilerResult> _compile(List<String> args,
     outFiles.add(File(outPaths.first + '.txt').writeAsString(sb.toString()));
   }
 
-  var compiler = ProgramCompiler(
-      component, result.classHierarchy, options, declaredVariables);
+  var compiler = ProgramCompiler(component, result.classHierarchy, options);
 
   var jsModule = compiler.emitModule(
       component, result.inputSummaries, inputSummaries, summaryModules);

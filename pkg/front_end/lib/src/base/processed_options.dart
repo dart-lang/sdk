@@ -306,6 +306,11 @@ class ProcessedOptions {
   /// Whether to write a file (e.g. a dill file) when reporting a crash.
   bool get writeFileOnCrashReport => _raw.writeFileOnCrashReport;
 
+  /// The current sdk version string, e.g. "2.6.0-edge.sha1hash".
+  /// For instance used for language versioning (specifying the maximum
+  /// version).
+  String get currentSdkVersion => _raw.currentSdkVersion;
+
   Target _target;
   Target get target => _target ??=
       _raw.target ?? new NoneTarget(new TargetFlags(legacyMode: legacyMode));

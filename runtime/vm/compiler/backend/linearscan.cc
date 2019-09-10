@@ -603,7 +603,8 @@ void FlowGraphAllocator::BuildLiveRanges() {
 
     // Check if any values live into the loop can be spilled for free.
     if (block->IsLoopHeader()) {
-      current_interference_set = NULL;
+      ASSERT(loop_info != nullptr);
+      current_interference_set = nullptr;
       for (BitVector::Iterator it(liveness_.GetLiveInSetAt(i)); !it.Done();
            it.Advance()) {
         LiveRange* range = GetLiveRange(it.Current());

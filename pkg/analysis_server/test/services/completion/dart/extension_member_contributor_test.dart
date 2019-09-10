@@ -26,6 +26,17 @@ class ExtensionMemberContributorTest extends DartCompletionContributorTest {
     super.setUp();
   }
 
+  test_extension() async {
+    addTestSource('''
+extension E on int {}
+void f() {
+  E.a^
+}
+''');
+    await computeSuggestions();
+    assertNoSuggestions();
+  }
+
   test_extensionOverride_doesNotMatch() async {
     addTestSource('''
 extension E on int {

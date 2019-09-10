@@ -84,7 +84,7 @@ abstract class DartType {
   /// Is `true` if this type is the 'Object' type defined in 'dart:core'.
   bool get isObject => false;
 
-  /// Applies [f] to each occurence of a [TypeVariableType] within this
+  /// Applies [f] to each occurrence of a [TypeVariableType] within this
   /// type. This excludes function type variables, whether free or bound.
   void forEachTypeVariable(f(TypeVariableType variable)) {}
 

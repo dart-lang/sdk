@@ -8,16 +8,34 @@
 
 expression/eval: TextSerializationFailure # Was: Pass
 expression/main: TextSerializationFailure # Was: Pass
-extensions/explicit_this: TextSerializationFailure
-extensions/extension_methods: TextSerializationFailure
-extensions/implicit_this: TextSerializationFailure
 extensions/direct_instance_access: TextSerializationFailure
 extensions/direct_static_access: TextSerializationFailure
+extensions/explicit_extension_access: TextSerializationFailure
+extensions/explicit_extension_inference: TextSerializationFailure
+extensions/explicit_generic_extension_access: TextSerializationFailure
+extensions/explicit_this: TextSerializationFailure
+extensions/extension_methods: TextSerializationFailure
+extensions/implicit_extension_inference: TextSerializationFailure
+extensions/implicit_this: TextSerializationFailure
+extensions/index: TextSerializationFailure
+extensions/instance_access: TextSerializationFailure
+extensions/instance_access_of_static: TextSerializationFailure
 extensions/instance_members: TextSerializationFailure
+extensions/instance_tearoff: TextSerializationFailure
+extensions/invalid_explicit_access: TextSerializationFailure
+extensions/nested_on_types: TextSerializationFailure
+extensions/on_type_inference: TextSerializationFailure
+extensions/on_type_variable_inference: TextSerializationFailure
+extensions/operators: TextSerializationFailure
 extensions/other_kinds: TextSerializationFailure
 extensions/static_access: TextSerializationFailure
+extensions/static_access_of_instance: TextSerializationFailure
 extensions/type_variables: TextSerializationFailure
 extensions/use_this: TextSerializationFailure
+general/error_locations/error_location_01: TextSerializationFailure
+general/error_locations/error_location_02: TextSerializationFailure
+general/error_locations/error_location_03: TextSerializationFailure
+general/error_locations/error_location_04: TextSerializationFailure
 general/abstract_members: TypeCheckError
 general/abstract_overrides_concrete_with_no_such_method: TextSerializationFailure
 general/accessors: TextSerializationFailure # Was: RuntimeError
@@ -183,6 +201,7 @@ general/override_check_two_substitutions: TextSerializationFailure # Was: Pass
 general/override_check_with_covariant_modifier: TypeCheckError # Issue #31620
 general/override_inference_for_setters: TextSerializationFailure
 general/override_inference_named_parameters_ordering: TextSerializationFailure
+general/override_setter_with_field: TypeCheckError
 general/part_as_entry_point: TextSerializationFailure # Was: Pass
 general/part_as_entry_point_lib: TextSerializationFailure # Was: Pass
 general/part_not_part_of: TextSerializationFailure

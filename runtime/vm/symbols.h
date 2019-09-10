@@ -72,6 +72,9 @@ class ObjectPointerVisitor;
   V(DartExtensionScheme, "dart-ext:")                                          \
   V(DartFfi, "dart:ffi")                                                       \
   V(DartFfiLibName, "ffi")                                                     \
+  V(DartWasm, "dart:wasm")                                                     \
+  V(DartWasmLibName, "wasm")                                                   \
+  V(DartLibraryWasm, "dart.library.wasm")                                      \
   V(DartIOLibName, "dart.io")                                                  \
   V(DartInternal, "dart:_internal")                                            \
   V(DartIsVM, "dart.isVM")                                                     \
@@ -114,6 +117,7 @@ class ObjectPointerVisitor;
   V(ExternalTwoByteString, "_ExternalTwoByteString")                           \
   V(FactoryResult, "factory result")                                           \
   V(FallThroughError, "FallThroughError")                                      \
+  V(FfiCallback, "_FfiCallback")                                               \
   V(FfiDouble, "Double")                                                       \
   V(FfiDynamicLibrary, "DynamicLibrary")                                       \
   V(FfiFloat, "Float")                                                         \

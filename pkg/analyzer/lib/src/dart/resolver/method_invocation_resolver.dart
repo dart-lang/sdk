@@ -160,11 +160,10 @@ class MethodInvocationResolver {
       MethodElement callMethod =
           type.lookUpMethod(FunctionElement.CALL_METHOD_NAME, _definingLibrary);
       if (callMethod != null) {
-        return _resolveArgumentsToFunction(false, argumentList, callMethod);
+        return _resolveArgumentsToFunction(argumentList, callMethod);
       }
     } else if (type is FunctionType) {
-      return _resolveArgumentsToParameters(
-          false, argumentList, type.parameters);
+      return _resolveArgumentsToParameters(argumentList, type.parameters);
     }
     return null;
   }
@@ -283,34 +282,28 @@ class MethodInvocationResolver {
   }
 
   /// Given an [argumentList] and the [executableElement] that will be invoked
-  /// using those argument, compute the list of parameters that correspond to the
-  /// list of arguments. An error will be reported if any of the arguments cannot
-  /// be matched to a parameter. The flag [reportAsError] should be `true` if a
-  /// compile-time error should be reported; or `false` if a compile-time warning
-  /// should be reported. Return the parameters that correspond to the arguments,
-  /// or `null` if no correspondence could be computed.
-  List<ParameterElement> _resolveArgumentsToFunction(bool reportAsError,
+  /// using those argument, compute the list of parameters that correspond to
+  /// the list of arguments. An error will be reported if any of the arguments
+  /// cannot be matched to a parameter. Return the parameters that correspond to
+  /// the arguments, or `null` if no correspondence could be computed.
+  List<ParameterElement> _resolveArgumentsToFunction(
       ArgumentList argumentList, ExecutableElement executableElement) {
     if (executableElement == null) {
       return null;
     }
     List<ParameterElement> parameters = executableElement.parameters;
-    return _resolveArgumentsToParameters(
-        reportAsError, argumentList, parameters);
+    return _resolveArgumentsToParameters(argumentList, parameters);
   }
 
   /// Given an [argumentList] and the [parameters] related to the element that
   /// will be invoked using those arguments, compute the list of parameters that
   /// correspond to the list of arguments. An error will be reported if any of
-  /// the arguments cannot be matched to a parameter. The flag [reportAsError]
-  /// should be `true` if a compile-time error should be reported; or `false` if
-  /// a compile-time warning should be reported. Return the parameters that
+  /// the arguments cannot be matched to a parameter. Return the parameters that
   /// correspond to the arguments.
-  List<ParameterElement> _resolveArgumentsToParameters(bool reportAsError,
+  List<ParameterElement> _resolveArgumentsToParameters(
       ArgumentList argumentList, List<ParameterElement> parameters) {
     return ResolverVisitor.resolveArgumentsToParameters(
-        argumentList, parameters, _resolver.errorReporter.reportErrorForNode,
-        reportAsError: reportAsError);
+        argumentList, parameters, _resolver.errorReporter.reportErrorForNode);
   }
 
   /// Given that we are accessing a property of the given [classElement] with the
@@ -349,7 +342,6 @@ class MethodInvocationResolver {
       receiverType,
       name,
       nameNode,
-      ElementKind.METHOD,
     );
 
     if (!result.isSingle) {
@@ -357,7 +349,7 @@ class MethodInvocationResolver {
       return result;
     }
 
-    ExecutableElement member = result.element;
+    ExecutableElement member = result.getter;
     nameNode.staticElement = member;
 
     if (member.isStatic) {
@@ -399,10 +391,7 @@ class MethodInvocationResolver {
 
   void _resolveExtensionOverride(MethodInvocation node,
       ExtensionOverride override, SimpleIdentifier nameNode, String name) {
-    var member = _extensionResolver.getOverrideMember(
-            override, name, ElementKind.METHOD) ??
-        _extensionResolver.getOverrideMember(
-            override, name, ElementKind.GETTER);
+    var member = _extensionResolver.getOverrideMember(override, name);
 
     if (member == null) {
       _setDynamicResolution(node);
@@ -446,11 +435,11 @@ class MethodInvocationResolver {
       return;
     }
 
-    ResolutionResult result = _extensionResolver.findExtension(
-        receiverType, name, nameNode, ElementKind.METHOD);
+    ResolutionResult result =
+        _extensionResolver.findExtension(receiverType, name, nameNode);
     if (result.isSingle) {
-      nameNode.staticElement = result.element;
-      var calleeType = _getCalleeType(node, result.element);
+      nameNode.staticElement = result.getter;
+      var calleeType = _getCalleeType(node, result.getter);
       return _setResolution(node, calleeType);
     } else if (result.isAmbiguous) {
       return;
@@ -585,10 +574,9 @@ class MethodInvocationResolver {
       return;
     }
 
-    var result = _extensionResolver.findExtension(
-        receiverType, name, nameNode, ElementKind.METHOD);
+    var result = _extensionResolver.findExtension(receiverType, name, nameNode);
     if (result.isSingle) {
-      var target = result.element;
+      var target = result.getter;
       if (target != null) {
         nameNode.staticElement = target;
         var calleeType = _getCalleeType(node, target);
@@ -751,9 +739,9 @@ class MethodInvocationResolver {
       var call = _inheritance.getMember(type, _nameCall);
       if (call == null) {
         var result = _extensionResolver.findExtension(
-            type, _nameCall.name, node.methodName, ElementKind.METHOD);
+            type, _nameCall.name, node.methodName);
         if (result.isSingle) {
-          call = result.element;
+          call = result.function;
         } else if (result.isAmbiguous) {
           return;
         }

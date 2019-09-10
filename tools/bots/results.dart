@@ -131,10 +131,14 @@ Future<List<Map<String, dynamic>>> loadResults(String path) async {
 }
 
 Map<String, Map<String, dynamic>> createResultsMap(
-        List<Map<String, dynamic>> results) =>
-    new Map<String, Map<String, dynamic>>.fromIterable(results,
-        key: (dynamic result) =>
-            "${result["configuration"]}:${result["name"]}");
+    List<Map<String, dynamic>> results) {
+  Map<String, Map<String, dynamic>> result = {};
+  for (Map<String, dynamic> map in results) {
+    var key = "${map["configuration"]}:${map["name"]}";
+    result.putIfAbsent(key, () => map);
+  }
+  return result;
+}
 
 Map<String, Map<String, dynamic>> parseResultsMap(String contents) =>
     createResultsMap(parseResults(contents));

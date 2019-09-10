@@ -10,10 +10,10 @@ import 'package:analyzer/dart/ast/token.dart' show Keyword;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/ast/token.dart' show KeywordToken;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -27,7 +27,7 @@ import 'package:path/path.dart' show toUri;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'analysis_context_factory.dart';
+import 'test_analysis_context.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -380,9 +380,8 @@ abstract class BoundTestBase {
   DartType get voidType => VoidTypeImpl.instance;
 
   void setUp() {
-    InternalAnalysisContext context = AnalysisContextFactory.contextWithCore(
-        resourceProvider: new MemoryResourceProvider());
-    typeProvider = context.typeProvider;
+    var analysisContext = TestAnalysisContext();
+    typeProvider = analysisContext.typeProvider;
     var simpleFunctionElement =
         ElementFactory.genericTypeAliasElement('A', returnType: voidType);
     simpleFunctionType = simpleFunctionElement.type;
@@ -537,10 +536,9 @@ class ConstraintMatchingTest {
   DartType list(DartType T) => typeProvider.listType.instantiate([T]);
 
   void setUp() {
-    typeProvider = AnalysisContextFactory.contextWithCore(
-            resourceProvider: new MemoryResourceProvider())
-        .typeProvider;
-    typeSystem = new Dart2TypeSystem(typeProvider);
+    var analysisContext = TestAnalysisContext();
+    typeProvider = analysisContext.typeProvider;
+    typeSystem = analysisContext.typeSystem;
     T = _newTypeParameter('T');
   }
 
@@ -945,19 +943,19 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
   }
 
   void test_boundedRecursively() {
-    // class Clonable<T extends Clonable<T>>
-    ClassElementImpl clonable =
-        ElementFactory.classElement('Clonable', objectType, ['T']);
-    (clonable.typeParameters[0] as TypeParameterElementImpl).bound =
-        clonable.type;
-    // class Foo extends Clonable<Foo>
+    // class Cloneable<T extends Cloneable<T>>
+    ClassElementImpl cloneable =
+        ElementFactory.classElement('Cloneable', objectType, ['T']);
+    (cloneable.typeParameters[0] as TypeParameterElementImpl).bound =
+        cloneable.type;
+    // class Foo extends Cloneable<Foo>
     ClassElementImpl foo = ElementFactory.classElement('Foo', null);
-    foo.supertype = clonable.type.instantiate([foo.type]);
+    foo.supertype = cloneable.type.instantiate([foo.type]);
 
-    // <S extends Clonable<S>>
+    // <S extends Cloneable<S>>
     var s = TypeBuilder.variable('S');
     (s.element as TypeParameterElementImpl).bound =
-        clonable.type.instantiate([s]);
+        cloneable.type.instantiate([s]);
     // (S, S) -> S
     var clone = TypeBuilder.function(types: [s], required: [s, s], result: s);
     expect(_inferCall(clone, [foo.type, foo.type]), [foo.type]);
@@ -2399,12 +2397,11 @@ class LeastUpperBoundTest extends BoundTestBase {
 class NonNullableSubtypingTest extends SubtypingTestBase {
   @override
   void setUp() {
-    typeProvider = AnalysisContextFactory.contextWithCoreAndOptions(
-            new AnalysisOptionsImpl()
-              ..contextFeatures = FeatureSet.forTesting(
-                  additionalFeatures: [Feature.non_nullable]),
-            resourceProvider: new MemoryResourceProvider())
-        .typeProvider;
+    typeProvider = TestAnalysisContext(
+      featureSet: FeatureSet.forTesting(
+        additionalFeatures: [Feature.non_nullable],
+      ),
+    ).typeProvider;
 
     // TypeSystem should use the context type provider.
     typeSystem = new Dart2TypeSystem(typeProvider);
@@ -2413,7 +2410,11 @@ class NonNullableSubtypingTest extends SubtypingTestBase {
     LibraryElement asyncLibrary = typeProvider.streamType.element.library;
 
     // Get a non-nullable type provider for convience during the test.
-    typeProvider = new NonNullableTypeProvider(coreLibrary, asyncLibrary);
+    typeProvider = TypeProviderImpl(
+      coreLibrary,
+      asyncLibrary,
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
   }
 
   void test_dynamicType() {
@@ -2954,10 +2955,9 @@ class SubtypingTestBase {
   DartType get voidType => VoidTypeImpl.instance;
 
   void setUp() {
-    typeProvider = AnalysisContextFactory.contextWithCore(
-            resourceProvider: new MemoryResourceProvider())
-        .typeProvider;
-    typeSystem = new Dart2TypeSystem(typeProvider);
+    var analysisContext = TestAnalysisContext();
+    typeProvider = analysisContext.typeProvider;
+    typeSystem = analysisContext.typeSystem;
   }
 
   void _checkEquivalent(DartType type1, DartType type2) {

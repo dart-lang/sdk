@@ -76,7 +76,7 @@ int SSLCertContext::CertificateCallback(int preverify_ok,
     filter->callback_error = result;
     return 0;
   }
-  return DartUtils::GetBooleanValue(result);
+  return static_cast<int>(DartUtils::GetBooleanValue(result));
 }
 
 SSLCertContext* SSLCertContext::GetSecurityContext(Dart_NativeArguments args) {

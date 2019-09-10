@@ -200,7 +200,7 @@ abstract class Browser {
           .listen(_addStdout, onError: (error) {
         // This should _never_ happen, but we really want this in the log
         // if it actually does due to dart:io or vm bug.
-        _logEvent("An error occured in the process stdout handling: $error");
+        _logEvent("An error occurred in the process stdout handling: $error");
       }, onDone: closeStdout);
 
       stderrSubscription = process.stderr
@@ -208,7 +208,7 @@ abstract class Browser {
           .listen(_addStderr, onError: (error) {
         // This should _never_ happen, but we really want this in the log
         // if it actually does due to dart:io or vm bug.
-        _logEvent("An error occured in the process stderr handling: $error");
+        _logEvent("An error occurred in the process stderr handling: $error");
       }, onDone: closeStderr);
 
       process.exitCode.then((exitCode) {
@@ -1200,7 +1200,7 @@ class BrowserTestingServer {
     }
 
     void errorHandler(e) {
-      if (!underTermination) print("Error occured in httpserver: $e");
+      if (!underTermination) print("Error occurred in httpserver: $e");
     }
 
     errorReportingServer.listen(errorReportingHandler, onError: errorHandler);

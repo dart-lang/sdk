@@ -39,7 +39,7 @@ class BulkCompiler {
               ..packagesFileUri ??= Uri.base.resolve(".packages")
               ..linkedDependencies = <Uri>[
                 computePlatformBinariesLocation(forceBuildDir: true)
-                    .resolve("vm_platform.dill")
+                    .resolve("vm_platform_strong.dill")
               ]
               ..fileSystem = (new FileBackedMemoryFileSystem()
                 ..entities[mainUri.path] =

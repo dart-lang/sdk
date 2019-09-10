@@ -5,6 +5,10 @@
 #ifndef RUNTIME_PLATFORM_UTILS_MACOS_H_
 #define RUNTIME_PLATFORM_UTILS_MACOS_H_
 
+#if !defined(RUNTIME_PLATFORM_UTILS_H_)
+#error Do not include utils_macos.h directly; use utils.h instead.
+#endif
+
 #include <AvailabilityMacros.h>
 #include <libkern/OSByteOrder.h>  // NOLINT
 

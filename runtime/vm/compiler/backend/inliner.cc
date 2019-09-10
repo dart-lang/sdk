@@ -979,21 +979,6 @@ class CallSiteInliner : public ValueObject {
       // Install bailout jump.
       LongJumpScope jump;
       if (setjmp(*jump.Set()) == 0) {
-        Isolate* isolate = Isolate::Current();
-        // Makes sure no classes are loaded during parsing in background.
-        const intptr_t loading_invalidation_gen_at_start =
-            isolate->loading_invalidation_gen();
-
-        if (Compiler::IsBackgroundCompilation()) {
-          if ((loading_invalidation_gen_at_start !=
-               isolate->loading_invalidation_gen())) {
-            // Loading occured while parsing. We need to abort here because
-            // state changed while compiling.
-            Compiler::AbortBackgroundCompilation(
-                DeoptId::kNone, "Loading occured while parsing in inliner");
-          }
-        }
-
         // Load IC data for the callee.
         ZoneGrowableArray<const ICData*>* ic_data_array =
             new (Z) ZoneGrowableArray<const ICData*>();
@@ -1255,10 +1240,6 @@ class CallSiteInliner : public ValueObject {
           caller_graph()->parsed_function().AddToGuardedFields(
               callee_guarded_fields[i]);
         }
-        // When inlined, we add the deferred prefixes of the callee to the
-        // caller's list of deferred prefixes.
-        caller_graph()->AddToDeferredPrefixes(
-            callee_graph->deferred_prefixes());
 
         FlowGraphInliner::SetInliningId(
             callee_graph,
@@ -1910,6 +1891,7 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
         // Unshared.  Graft the normal entry on after the check class
         // instruction.
         auto target = callee_entry->AsGraphEntry()->normal_entry();
+        ASSERT(cursor != nullptr);
         cursor->LinkTo(target->next());
         target->ReplaceAsPredecessorWith(current_block);
         // Unuse all inputs of the graph entry and the normal entry. They are
@@ -1970,6 +1952,7 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
             new TargetEntryInstr(AllocateBlockId(), try_idx, DeoptId::kNone);
         below_target->InheritDeoptTarget(zone(), call_);
         current_block->AddDominatedBlock(below_target);
+        ASSERT(cursor != nullptr);  // read before overwrite
         cursor = current_block = below_target;
         *branch_top->true_successor_address() = below_target;
 
@@ -1987,9 +1970,9 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
       }
 
       branch->InheritDeoptTarget(zone(), call_);
-      cursor = AppendInstruction(cursor, branch);
+      AppendInstruction(cursor, branch);
+      cursor = nullptr;
       current_block->set_last_instruction(branch);
-      cursor = NULL;
 
       // 2. Handle a match by linking to the inlined body.  There are three
       // cases (unshared, shared first predecessor, and shared subsequent
@@ -3322,15 +3305,16 @@ bool FlowGraphInliner::TryReplaceInstanceCallWithInline(
     ForwardInstructionIterator* iterator,
     InstanceCallInstr* call,
     SpeculativeInliningPolicy* policy) {
-  Function& target = Function::Handle(Z);
-  GrowableArray<intptr_t> class_ids;
-  call->ic_data()->GetCheckAt(0, &class_ids, &target);
-  const intptr_t receiver_cid = class_ids[0];
+  const CallTargets& targets = call->Targets();
+  ASSERT(targets.IsMonomorphic());
+  const intptr_t receiver_cid = targets.MonomorphicReceiverCid();
+  const Function& target = targets.FirstTarget();
+  const auto exactness = targets.MonomorphicExactness();
+  ExactnessInfo exactness_info{exactness.IsExact(), false};
+
   FunctionEntryInstr* entry = nullptr;
   Instruction* last = nullptr;
   Definition* result = nullptr;
-  auto exactness = call->ic_data()->GetExactnessAt(0);
-  ExactnessInfo exactness_info{exactness.IsExact(), false};
   if (FlowGraphInliner::TryInlineRecognizedMethod(
           flow_graph, receiver_cid, target, call,
           call->Receiver()->definition(), call->token_pos(), call->ic_data(),
@@ -3353,8 +3337,7 @@ bool FlowGraphInliner::TryReplaceInstanceCallWithInline(
     switch (check) {
       case FlowGraph::ToCheck::kCheckCid: {
         Instruction* check_class = flow_graph->CreateCheckClass(
-            call->Receiver()->definition(),
-            *Cids::CreateAndExpand(Z, *call->ic_data(), 0), call->deopt_id(),
+            call->Receiver()->definition(), targets, call->deopt_id(),
             call->token_pos());
         flow_graph->InsertBefore(call, check_class, call->env(),
                                  FlowGraph::kEffect);
@@ -3384,7 +3367,7 @@ bool FlowGraphInliner::TryReplaceInstanceCallWithInline(
     }
     // Replace all uses of this definition with the result.
     if (call->HasUses()) {
-      ASSERT(result->HasSSATemp());
+      ASSERT(result != nullptr && result->HasSSATemp());
       call->ReplaceUsesWith(result);
     }
     // Finally insert the sequence other definition in place of this one in the
@@ -3997,16 +3980,12 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
     case MethodRecognizer::kGrowableArraySetData:
       ASSERT((receiver_cid == kGrowableObjectArrayCid) ||
              ((receiver_cid == kDynamicCid) && call->IsStaticCall()));
-      ASSERT(call->IsStaticCall() ||
-             (ic_data == NULL || ic_data->NumberOfChecksIs(1)));
       return InlineGrowableArraySetter(
           flow_graph, Slot::GrowableObjectArray_data(), kEmitStoreBarrier, call,
           receiver, graph_entry, entry, last, result);
     case MethodRecognizer::kGrowableArraySetLength:
       ASSERT((receiver_cid == kGrowableObjectArrayCid) ||
              ((receiver_cid == kDynamicCid) && call->IsStaticCall()));
-      ASSERT(call->IsStaticCall() ||
-             (ic_data == NULL || ic_data->NumberOfChecksIs(1)));
       return InlineGrowableArraySetter(
           flow_graph, Slot::GrowableObjectArray_length(), kNoStoreBarrier, call,
           receiver, graph_entry, entry, last, result);

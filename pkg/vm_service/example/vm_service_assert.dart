@@ -28,6 +28,11 @@ double assertDouble(double obj) {
   return obj;
 }
 
+dynamic assertDynamic(dynamic obj) {
+  assertNotNull(obj);
+  return obj;
+}
+
 List<int> assertListOfInt(List<int> list) {
   for (int elem in list) {
     assertInt(elem);
@@ -429,6 +434,36 @@ List<vms.ContextElement> assertListOfContextElement(
   return list;
 }
 
+vms.CpuSamples assertCpuSamples(vms.CpuSamples obj) {
+  assertNotNull(obj);
+  assertString(obj.type);
+  assertInt(obj.samplePeriod);
+  assertInt(obj.maxStackDepth);
+  assertInt(obj.sampleCount);
+  assertInt(obj.timeSpan);
+  assertInt(obj.timeOriginMicros);
+  assertInt(obj.timeExtentMicros);
+  assertInt(obj.pid);
+  assertListOfProfileFunction(obj.functions);
+  assertListOfCpuSample(obj.samples);
+  return obj;
+}
+
+vms.CpuSample assertCpuSample(vms.CpuSample obj) {
+  assertNotNull(obj);
+  assertInt(obj.tid);
+  assertInt(obj.timestamp);
+  assertListOfInt(obj.stack);
+  return obj;
+}
+
+List<vms.CpuSample> assertListOfCpuSample(List<vms.CpuSample> list) {
+  for (vms.CpuSample elem in list) {
+    assertCpuSample(elem);
+  }
+  return list;
+}
+
 vms.ErrorRef assertErrorRef(vms.ErrorRef obj) {
   assertNotNull(obj);
   assertString(obj.type);
@@ -773,6 +808,12 @@ List<vms.Message> assertListOfMessage(List<vms.Message> list) {
   return list;
 }
 
+vms.NativeFunction assertNativeFunction(vms.NativeFunction obj) {
+  assertNotNull(obj);
+  assertString(obj.name);
+  return obj;
+}
+
 vms.NullValRef assertNullValRef(vms.NullValRef obj) {
   assertNotNull(obj);
   assertString(obj.type);
@@ -819,6 +860,24 @@ vms.Obj assertObj(vms.Obj obj) {
   assertString(obj.type);
   assertString(obj.id);
   return obj;
+}
+
+vms.ProfileFunction assertProfileFunction(vms.ProfileFunction obj) {
+  assertNotNull(obj);
+  assertString(obj.kind);
+  assertInt(obj.inclusiveTicks);
+  assertInt(obj.exclusiveTicks);
+  assertString(obj.resolvedUrl);
+  assertDynamic(obj.function);
+  return obj;
+}
+
+List<vms.ProfileFunction> assertListOfProfileFunction(
+    List<vms.ProfileFunction> list) {
+  for (vms.ProfileFunction elem in list) {
+    assertProfileFunction(elem);
+  }
+  return list;
 }
 
 vms.ReloadReport assertReloadReport(vms.ReloadReport obj) {

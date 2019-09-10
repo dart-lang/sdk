@@ -718,25 +718,11 @@ ISOLATE_UNIT_TEST_CASE(Service_Profile) {
   }
 
   Array& service_msg = Array::Handle();
-  service_msg = Eval(lib, "[0, port, '0', '_getCpuProfile', [], []]");
-  HandleIsolateMessage(isolate, service_msg);
-  EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
-  // Expect error (tags required).
-  EXPECT_SUBSTRING("\"error\"", handler.msg());
-
-  service_msg =
-      Eval(lib, "[0, port, '0', '_getCpuProfile', ['tags'], ['None']]");
+  service_msg = Eval(lib, "[0, port, '0', 'getCpuSamples', [], []]");
   HandleIsolateMessage(isolate, service_msg);
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
   // Expect profile
-  EXPECT_SUBSTRING("\"type\":\"_CpuProfile\"", handler.msg());
-
-  service_msg =
-      Eval(lib, "[0, port, '0', '_getCpuProfile', ['tags'], ['Bogus']]");
-  HandleIsolateMessage(isolate, service_msg);
-  EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
-  // Expect error.
-  EXPECT_SUBSTRING("\"error\"", handler.msg());
+  EXPECT_SUBSTRING("\"type\":\"CpuSamples\"", handler.msg());
 }
 
 #endif  // !defined(TARGET_ARCH_ARM64)

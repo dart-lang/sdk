@@ -10,6 +10,10 @@ extension Extension on Class {
   static get property => 42;
   static set property(value) {}
   static var field;
+
+  instanceMethod() {}
+  get instanceProperty => 42;
+  set instanceProperty(value) {}
 }
 
 main() {

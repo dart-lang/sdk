@@ -194,14 +194,12 @@ class TimelineTask {
     if (!_hasTimeline) return;
     ArgumentError.checkNotNull(name, 'name');
     var block = new _AsyncBlock._(name, _taskId);
-    if (arguments != null) {
-      block._arguments = arguments;
-    }
     _stack.add(block);
-    block._start();
+    block._start(arguments);
   }
 
   /// Emit an instant event for this task.
+  /// Optionally takes a [Map] of [arguments].
   void instant(String name, {Map arguments}) {
     if (!_hasTimeline) return;
     ArgumentError.checkNotNull(name, 'name');
@@ -214,7 +212,8 @@ class TimelineTask {
   }
 
   /// Finish the last synchronous operation that was started.
-  void finish() {
+  /// Optionally takes a [Map] of [arguments].
+  void finish({Map arguments}) {
     if (!_hasTimeline) {
       return;
     }
@@ -223,7 +222,7 @@ class TimelineTask {
     }
     // Pop top item off of stack.
     var block = _stack.removeLast();
-    block._finish();
+    block._finish(arguments);
   }
 
   /// Retrieve the [TimelineTask]'s task id. Will throw an exception if the
@@ -254,22 +253,18 @@ class _AsyncBlock {
   /// The asynchronous task id.
   final int _taskId;
 
-  /// An (optional) set of arguments which will be serialized to JSON and
-  /// associated with this block.
-  Map _arguments;
-
   _AsyncBlock._(this.name, this._taskId);
 
   // Emit the start event.
-  void _start() {
-    _reportTaskEvent(
-        _getTraceClock(), _taskId, 'b', category, name, _argumentsAsJson(null));
+  void _start(Map arguments) {
+    _reportTaskEvent(_getTraceClock(), _taskId, 'b', category, name,
+        _argumentsAsJson(arguments));
   }
 
   // Emit the finish event.
-  void _finish() {
+  void _finish(Map arguments) {
     _reportTaskEvent(_getTraceClock(), _taskId, 'e', category, name,
-        _argumentsAsJson(_arguments));
+        _argumentsAsJson(arguments));
   }
 }
 

@@ -300,6 +300,26 @@ main() {
 ''');
   }
 
+  test_relevanceTags_location_initializer() async {
+    addTestFile(r'''
+int v = // ref;
+''');
+
+    var results = await _getSuggestions(
+      testFile,
+      testCode.indexOf(' // ref'),
+    );
+
+    assertJsonText(results.includedSuggestionRelevanceTags, r'''
+[
+  {
+    "tag": "dart:core::int",
+    "relevanceBoost": 10
+  }
+]
+''');
+  }
+
   test_relevanceTags_location_listLiteral() async {
     addTestFile(r'''
 main() {

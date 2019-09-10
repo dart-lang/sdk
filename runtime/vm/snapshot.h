@@ -196,9 +196,6 @@ class Snapshot {
   const uint8_t* Addr() const { return reinterpret_cast<const uint8_t*>(this); }
 
   const uint8_t* DataImage() const {
-    if (!IncludesCode(kind())) {
-      return NULL;
-    }
     uword offset = Utils::RoundUp(length(), OS::kMaxPreferredCodeAlignment);
     return Addr() + offset;
   }
@@ -255,6 +252,7 @@ class BaseReader {
     return stream_.AddressOfCurrentPosition();
   }
 
+  void Align(intptr_t value) { stream_.Align(value); }
   void Advance(intptr_t value) { stream_.Advance(value); }
 
   intptr_t PendingBytes() const { return stream_.PendingBytes(); }
@@ -517,6 +515,8 @@ class BaseWriter : public StackResource {
     Write<int8_t>(static_cast<int8_t>(flags));
   }
 
+  void Align(intptr_t value) { stream_.Align(value); }
+
   // Write out a buffer of bytes.
   void WriteBytes(const uint8_t* addr, intptr_t len) {
     stream_.WriteBytes(addr, len);
@@ -605,12 +605,15 @@ class ForwardList {
  private:
   intptr_t first_object_id() const { return first_object_id_; }
   intptr_t next_object_id() const { return nodes_.length() + first_object_id_; }
-  Heap* heap() const { return thread_->isolate()->heap(); }
+  Isolate* isolate() const { return thread_->isolate(); }
 
   Thread* thread_;
   const intptr_t first_object_id_;
   GrowableArray<Node*> nodes_;
   intptr_t first_unprocessed_object_id_;
+
+  void SetObjectId(RawObject* object, intptr_t id);
+  intptr_t GetObjectId(RawObject* object);
 
   DISALLOW_COPY_AND_ASSIGN(ForwardList);
 };

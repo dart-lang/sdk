@@ -18,7 +18,7 @@ import '../kernel/kernel_builder.dart'
         Scope,
         TypeVariableBuilder;
 
-import '../modifier.dart' show abstractMask;
+import '../modifier.dart' show abstractMask, namedMixinApplicationMask;
 
 import 'dill_library_builder.dart' show DillLibraryBuilder;
 
@@ -37,9 +37,15 @@ class DillClassBuilder extends ClassBuilder {
             null,
             null,
             null,
-            new Scope(<String, MemberBuilder>{}, <String, MemberBuilder>{},
-                parent.scope, "class ${cls.name}", isModifiable: false),
-            new Scope(<String, MemberBuilder>{}, null, null, cls.name,
+            new Scope(
+                local: <String, MemberBuilder>{},
+                setters: <String, MemberBuilder>{},
+                parent: parent.scope,
+                debugName: "class ${cls.name}",
+                isModifiable: false),
+            new Scope(
+                local: <String, MemberBuilder>{},
+                debugName: cls.name,
                 isModifiable: false),
             parent,
             cls.fileOffset);
@@ -136,7 +142,14 @@ class DillClassBuilder extends ClassBuilder {
 }
 
 int computeModifiers(Class cls) {
-  return cls.isAbstract ? abstractMask : 0;
+  int modifiers = 0;
+  if (cls.isAbstract) {
+    modifiers |= abstractMask;
+  }
+  if (cls.isMixinApplication && cls.name != null) {
+    modifiers |= namedMixinApplicationMask;
+  }
+  return modifiers;
 }
 
 TypeBuilder computeTypeBuilder(

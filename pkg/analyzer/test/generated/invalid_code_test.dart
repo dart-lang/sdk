@@ -4,14 +4,30 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(InvalidCodeTest);
+    if (AnalysisDriver.useSummary2) {
+      defineReflectiveTests(InvalidCodeSummary2Test);
+    } else {
+      defineReflectiveTests(InvalidCodeTest);
+    }
+    defineReflectiveTests(InvalidCodeWithExtensionMethodsTest);
   });
+}
+
+@reflectiveTest
+class InvalidCodeSummary2Test extends InvalidCodeTest {
+  @failingTest
+  test_fuzz_12() {
+    return test_fuzz_12();
+  }
 }
 
 /// Tests for various end-to-end cases when invalid code caused exceptions
@@ -115,6 +131,53 @@ class C {
 ''');
   }
 
+  test_fuzz_09() async {
+    await _assertCanBeAnalyzed(r'''
+typedef void F(int a, this.b);
+''');
+    var function = findElement.genericTypeAlias('F').function;
+    assertElementTypeString(
+      function.type,
+      'void Function(int, dynamic)',
+    );
+  }
+
+  test_fuzz_10() async {
+    await _assertCanBeAnalyzed(r'''
+void f<@A(() { Function() v; }) T>() {}
+''');
+  }
+
+  test_fuzz_11() async {
+    // Here `F` is a generic function, so it cannot be used as a bound for
+    // a type parameter. The reason it crashed was that we did not build
+    // the bound for `Y` (not `T`), because of the order in which types
+    // for `T extends F` and `typedef F` were built.
+    await _assertCanBeAnalyzed(r'''
+typedef F<X> = void Function<Y extends num>();
+class A<T extends F> {}
+''');
+  }
+
+  test_fuzz_12() async {
+    // This code crashed with summary2 because usually AST reader is lazy,
+    // so we did not read metadata `@b` for `c`. But default values must be
+    // read fully.
+    await _assertCanBeAnalyzed(r'''
+void f({a = [for (@b c = 0;;)]}) {}
+''');
+  }
+
+  test_fuzz_13() async {
+    // `x is int` promotes the type of `x` to `S extends int`, and the
+    // underlying element is `TypeParameterMember`, which by itself is
+    // questionable.  But this is not a valid constant anyway, so we should
+    // not even try to serialize it.
+    await _assertCanBeAnalyzed(r'''
+const v = [<S extends num>(S x) => x is int ? x : 0];
+''');
+  }
+
   test_genericFunction_asTypeArgument_ofUnresolvedClass() async {
     await _assertCanBeAnalyzed(r'''
 C<int Function()> c;
@@ -149,6 +212,31 @@ class C {
     await _assertCanBeAnalyzed('''
 class C {
   C() : this = 0;
+}
+''');
+  }
+
+  Future<void> _assertCanBeAnalyzed(String text) async {
+    addTestFile(text);
+    await resolveTestFile();
+    assertHasTestErrors();
+  }
+}
+
+@reflectiveTest
+class InvalidCodeWithExtensionMethodsTest extends DriverResolutionTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = new FeatureSet.forTesting(
+        sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
+
+  test_fuzz_14() async {
+    // This crashes because parser produces `ConstructorDeclaration`.
+    // So, we try to create `ConstructorElement` for it, and it wants
+    // `ClassElement` as the enclosing element. But we have `ExtensionElement`.
+    await _assertCanBeAnalyzed(r'''
+extension E {
+  factory S() {}
 }
 ''');
   }

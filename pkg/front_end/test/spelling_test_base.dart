@@ -28,7 +28,7 @@ import 'package:testing/testing.dart'
 
 import 'spell_checking_utils.dart' as spell;
 
-abstract class Context extends ChainContext {
+abstract class SpellContext extends ChainContext {
   final List<Step> steps = const <Step>[
     const SpellTest(),
   ];
@@ -41,15 +41,17 @@ abstract class Context extends ChainContext {
   }
 
   List<spell.Dictionaries> get dictionaries;
+
+  bool get onlyBlacklisted;
 }
 
-class SpellTest extends Step<TestDescription, TestDescription, Context> {
+class SpellTest extends Step<TestDescription, TestDescription, SpellContext> {
   const SpellTest();
 
   String get name => "spell test";
 
   Future<Result<TestDescription>> run(
-      TestDescription description, Context context) async {
+      TestDescription description, SpellContext context) async {
     File f = new File.fromUri(description.uri);
     List<int> rawBytes = f.readAsBytesSync();
 
@@ -90,6 +92,8 @@ class SpellTest extends Step<TestDescription, TestDescription, Context> {
               dictionaries: context.dictionaries);
           if (spellingResult.misspelledWords != null) {
             for (int i = 0; i < spellingResult.misspelledWords.length; i++) {
+              bool blacklisted = spellingResult.misspelledWordsBlacklisted[i];
+              if (context.onlyBlacklisted && !blacklisted) continue;
               int offset =
                   comment.offset + spellingResult.misspelledWordsOffset[i];
               String word = spellingResult.misspelledWords[i];
@@ -106,6 +110,8 @@ class SpellTest extends Step<TestDescription, TestDescription, Context> {
             dictionaries: context.dictionaries);
         if (spellingResult.misspelledWords != null) {
           for (int i = 0; i < spellingResult.misspelledWords.length; i++) {
+            bool blacklisted = spellingResult.misspelledWordsBlacklisted[i];
+            if (context.onlyBlacklisted && !blacklisted) continue;
             int offset = token.offset + spellingResult.misspelledWordsOffset[i];
             String word = spellingResult.misspelledWords[i];
             addErrorMessage(offset, word.length, "Misspelled word '$word'.");

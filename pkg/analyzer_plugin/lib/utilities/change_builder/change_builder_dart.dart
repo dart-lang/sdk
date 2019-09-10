@@ -266,6 +266,24 @@ abstract class DartEditBuilder implements EditBuilder {
   void writeReference(Element element);
 
   /**
+   * Write the code for a declaration of a setter with the given [name]. If a
+   * [bodyWriter] is provided, it will be invoked to write the body of the
+   * setter. (The space between the name and the body will automatically be
+   * written.) If [isStatic] is `true`, then the declaration will be preceded
+   * by the `static` keyword. If a [nameGroupName] is provided, the name of the
+   * getter will be included in the linked edit group with that name. If a
+   * [parameterType] is provided, then it will be used as the type of the
+   * parameter. If a [parameterTypeGroupName] is provided, then if a parameter
+   * type was written it will be in the linked edit group with that name.
+   */
+  void writeSetterDeclaration(String name,
+      {void bodyWriter(),
+      bool isStatic: false,
+      String nameGroupName,
+      DartType parameterType,
+      String parameterTypeGroupName});
+
+  /**
    * Write the code for a type annotation for the given [type]. If the [type] is
    * either `null` or represents the type 'dynamic', then the behavior depends
    * on whether a type is [required]. If [required] is `true`, then 'var' will

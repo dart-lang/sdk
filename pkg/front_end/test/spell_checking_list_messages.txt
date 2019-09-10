@@ -6,6 +6,7 @@
 # Comments can also be inline like 'correct # this is ok'.
 # Note that at least one space before the hash is required.
 
+argument(s)
 b
 c
 compilercontext.runincontext

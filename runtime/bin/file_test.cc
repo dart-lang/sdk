@@ -41,7 +41,7 @@ TEST_CASE(OpenUri_RelativeFilename) {
       strlen(kFilename) * 3 + 1));
   char* t = encoded;
   // percent-encode all characters 'c'
-  for (const char* p = kFilename; *p; p++) {
+  for (const char* p = kFilename; *p != '\0'; p++) {
     if (*p == 'c') {
       *t++ = '%';
       *t++ = '6';
@@ -70,7 +70,7 @@ TEST_CASE(OpenUri_AbsoluteFilename) {
       strlen(kFilename) * 3 + 1));
   char* t = encoded;
   // percent-encode all characters 'c'
-  for (const char* p = kFilename; *p; p++) {
+  for (const char* p = kFilename; *p != '\0'; p++) {
     if (*p == 'c') {
       *t++ = '%';
       *t++ = '6';
@@ -110,7 +110,7 @@ TEST_CASE(OpenUri_ValidUri) {
       strlen(kFilename) * 3 + 1));
   char* t = encoded;
   // percent-encode all characters 'c'
-  for (const char* p = kFilename; *p; p++) {
+  for (const char* p = kFilename; *p != '\0'; p++) {
     if (*p == 'c') {
       *t++ = '%';
       *t++ = '6';
@@ -151,7 +151,7 @@ TEST_CASE(OpenUri_UriWithSpaces) {
       strlen(kFilename) * 3 + 1));
   char* t = encoded;
   // percent-encode all spaces
-  for (const char* p = kFilename; *p; p++) {
+  for (const char* p = kFilename; *p != '\0'; p++) {
     if (*p == ' ') {
       *t++ = '%';
       *t++ = '2';
@@ -180,7 +180,7 @@ TEST_CASE(OpenUri_InvalidUriPercentEncoding) {
       strlen(kFilename) * 3 + 1));
   char* t = encoded;
   // percent-encode all characters 'c'
-  for (const char* p = kFilename; *p; p++) {
+  for (const char* p = kFilename; *p != '\0'; p++) {
     if (*p == 'c') {
       *t++ = '%';
       *t++ = 'f';
@@ -200,7 +200,7 @@ TEST_CASE(OpenUri_TruncatedUriPercentEncoding) {
       strlen(kFilename) * 3 + 1));
   char* t = encoded;
   // percent-encode all characters 'c'
-  for (const char* p = kFilename; *p; p++) {
+  for (const char* p = kFilename; *p != '\0'; p++) {
     if (*p == 'c') {
       *t++ = '%';
       *t++ = 'f';

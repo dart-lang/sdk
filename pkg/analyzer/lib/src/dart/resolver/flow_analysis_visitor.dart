@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -45,8 +44,6 @@ class AnalyzerNodeOperations implements NodeOperations<Expression> {
 /// code that are independent from visiting AST during resolution, so can
 /// be extracted.
 class FlowAnalysisHelper {
-  static final _trueLiteral = astFactory.booleanLiteral(null, true);
-
   /// The reused instance for creating new [FlowAnalysis] instances.
   final NodeOperations<Expression> _nodeOperations;
 
@@ -124,6 +121,42 @@ class FlowAnalysisHelper {
     }
   }
 
+  void breakStatement(BreakStatement node) {
+    var target = getLabelTarget(node, node.label?.staticElement);
+    flow.handleBreak(target);
+  }
+
+  /// Mark the [node] as unreachable if it is not covered by another node that
+  /// is already known to be unreachable.
+  void checkUnreachableNode(AstNode node) {
+    if (flow == null) return;
+    if (flow.isReachable) return;
+
+    if (result != null) {
+      // Ignore the [node] if it is fully covered by the last unreachable.
+      if (result.unreachableNodes.isNotEmpty) {
+        var last = result.unreachableNodes.last;
+        if (node.offset >= last.offset && node.end <= last.end) return;
+      }
+
+      result.unreachableNodes.add(node);
+    }
+  }
+
+  void continueStatement(ContinueStatement node) {
+    var target = getLabelTarget(node, node.label?.staticElement);
+    flow.handleContinue(target);
+  }
+
+  void for_bodyBegin(AstNode node, Expression condition) {
+    flow.for_bodyBegin(node is Statement ? node : null, condition);
+  }
+
+  void for_conditionBegin(AstNode node, Expression condition) {
+    var assigned = assignedVariables.writtenInNode(node);
+    flow.for_conditionBegin(assigned);
+  }
+
   void functionBody_enter(FunctionBody node) {
     _blockFunctionBodyLevel++;
 
@@ -163,47 +196,6 @@ class FlowAnalysisHelper {
     }
 
     flow.finish();
-  }
-
-  void breakStatement(BreakStatement node) {
-    var target = getLabelTarget(node, node.label?.staticElement);
-    flow.handleBreak(target);
-  }
-
-  /// Mark the [node] as unreachable if it is not covered by another node that
-  /// is already known to be unreachable.
-  void checkUnreachableNode(AstNode node) {
-    if (flow == null) return;
-    if (flow.isReachable) return;
-
-    if (result != null) {
-      // Ignore the [node] if it is fully covered by the last unreachable.
-      if (result.unreachableNodes.isNotEmpty) {
-        var last = result.unreachableNodes.last;
-        if (node.offset >= last.offset && node.end <= last.end) return;
-      }
-
-      result.unreachableNodes.add(node);
-    }
-  }
-
-  void continueStatement(ContinueStatement node) {
-    var target = getLabelTarget(node, node.label?.staticElement);
-    flow.handleContinue(target);
-  }
-
-  void for_bodyBegin(AstNode node, Expression condition) {
-    flow.for_bodyBegin(
-        node is Statement ? node : null, condition ?? _trueLiteral);
-  }
-
-  void for_conditionBegin(AstNode node, Expression condition) {
-    if (condition != null) {
-      var assigned = assignedVariables[node];
-      flow.for_conditionBegin(assigned);
-    } else {
-      flow.booleanLiteral(_trueLiteral, true);
-    }
   }
 
   void isExpression(IsExpression node) {
@@ -364,9 +356,9 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitDoStatement(DoStatement node) {
-    assignedVariables.beginStatementOrElement();
+    assignedVariables.beginNode();
     super.visitDoStatement(node);
-    assignedVariables.endStatementOrElement(node);
+    assignedVariables.endNode(node);
   }
 
   @override
@@ -386,32 +378,32 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
 
     expression.accept(this);
 
-    assignedVariables.beginStatementOrElement();
+    assignedVariables.beginNode();
     members.accept(this);
-    assignedVariables.endStatementOrElement(node);
+    assignedVariables.endNode(node);
   }
 
   @override
   void visitTryStatement(TryStatement node) {
-    assignedVariables.beginStatementOrElement();
+    assignedVariables.beginNode();
     node.body.accept(this);
-    assignedVariables.endStatementOrElement(node.body);
+    assignedVariables.endNode(node.body);
 
     node.catchClauses.accept(this);
 
     var finallyBlock = node.finallyBlock;
     if (finallyBlock != null) {
-      assignedVariables.beginStatementOrElement();
+      assignedVariables.beginNode();
       finallyBlock.accept(this);
-      assignedVariables.endStatementOrElement(finallyBlock);
+      assignedVariables.endNode(finallyBlock);
     }
   }
 
   @override
   void visitWhileStatement(WhileStatement node) {
-    assignedVariables.beginStatementOrElement();
+    assignedVariables.beginNode();
     super.visitWhileStatement(node);
-    assignedVariables.endStatementOrElement(node);
+    assignedVariables.endNode(node);
   }
 
   void _handleFor(AstNode node, ForLoopParts forLoopParts, AstNode body) {
@@ -424,19 +416,19 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
         throw new StateError('Unrecognized for loop parts');
       }
 
-      assignedVariables.beginStatementOrElement();
+      assignedVariables.beginNode();
       forLoopParts.condition?.accept(this);
       body.accept(this);
       forLoopParts.updaters?.accept(this);
-      assignedVariables.endStatementOrElement(node);
+      assignedVariables.endNode(node);
     } else if (forLoopParts is ForEachParts) {
       var iterable = forLoopParts.iterable;
 
       iterable.accept(this);
 
-      assignedVariables.beginStatementOrElement();
+      assignedVariables.beginNode();
       body.accept(this);
-      assignedVariables.endStatementOrElement(node);
+      assignedVariables.endNode(node);
     } else {
       throw new StateError('Unrecognized for loop parts');
     }

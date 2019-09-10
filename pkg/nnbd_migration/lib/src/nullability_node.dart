@@ -81,6 +81,10 @@ class NullabilityGraph {
   /// propagation.
   static const _debugBeforePropagation = false;
 
+  /// Set this const to `true` to dump the nullability graph just before
+  /// propagation.
+  static const _debugAfterPropagation = false;
+
   /// Set containing all [NullabilityNode]s that have been passed as the
   /// `sourceNode` argument to [connect].
   final _allSourceNodes = Set<NullabilityNode>.identity();
@@ -157,6 +161,7 @@ class NullabilityGraph {
     _propagateAlways();
     _propagateUpstream();
     _propagateDownstream();
+    if (_debugAfterPropagation) _debugDump();
   }
 
   /// Records that nodes [x] and [y] should have exactly the same nullability.
@@ -344,20 +349,29 @@ class NullabilityGraph {
 /// testing.
 @visibleForTesting
 class NullabilityGraphForTesting extends NullabilityGraph {
-  /// Iterates through all edges that have this node as one of their sources.
-  ///
-  /// There is no guarantee of uniqueness of the iterated edges.
-  @visibleForTesting
-  Iterable<NullabilityEdge> getDownstreamEdges(NullabilityNode node) {
-    return node._downstreamEdges;
+  final List<NullabilityEdge> _allEdges = [];
+
+  /// Prints out a representation of the graph nodes.  Useful in debugging
+  /// broken tests.
+  void debugDump() {
+    _debugDump();
   }
 
-  /// Iterates through all edges that have this node as their destination.
-  ///
-  /// There is no guarantee of uniqueness of the iterated nodes.
+  /// Iterates through all edges in the graph.
   @visibleForTesting
-  Iterable<NullabilityEdge> getUpstreamEdges(NullabilityNode node) {
-    return node._upstreamEdges;
+  Iterable<NullabilityEdge> getAllEdges() {
+    return _allEdges;
+  }
+
+  @override
+  NullabilityEdge _connect(
+      List<NullabilityNode> sources,
+      NullabilityNode destinationNode,
+      _NullabilityEdgeKind kind,
+      EdgeOrigin origin) {
+    var edge = super._connect(sources, destinationNode, kind, origin);
+    _allEdges.add(edge);
+    return edge;
   }
 }
 

@@ -179,6 +179,7 @@ class VMPage extends MatchingPage {
       ];
     }).catchError((e, stack) {
       Logger.root.severe('VMPage visit error: $e');
+      Logger.root.severe('Stack: $stack');
       // Reroute to vm-connect.
       app.locationManager.go(Uris.vmConnect());
     });

@@ -99,14 +99,14 @@ main() {
   negativeTest(
       'Class type parameter from another class',
       "Type parameter 'test_lib::OtherClass::OtherT' referenced out of scope,"
-      " parent is: 'test_lib::OtherClass'.", (TestHarness test) {
+          " parent is: 'test_lib::OtherClass'.", (TestHarness test) {
     test.addNode(
         TypeLiteral(new TypeParameterType(test.otherClass.typeParameters[0])));
   });
   negativeTest(
       'Class type parameter in static method',
       "Type parameter 'test_lib::TestClass::T' referenced from static context,"
-      " parent is: 'test_lib::TestClass'.", (TestHarness test) {
+          " parent is: 'test_lib::TestClass'.", (TestHarness test) {
     test.addNode(Procedure(
         new Name('bar'),
         ProcedureKind.Method,
@@ -117,7 +117,7 @@ main() {
   negativeTest(
       'Class type parameter in static field',
       "Type parameter 'test_lib::TestClass::T' referenced from static context,"
-      " parent is: 'test_lib::TestClass'.", (TestHarness test) {
+          " parent is: 'test_lib::TestClass'.", (TestHarness test) {
     test.addNode(Field(new Name('field'),
         initializer:
             new TypeLiteral(new TypeParameterType(test.classTypeParameter)),
@@ -147,13 +147,13 @@ main() {
   negativeTest(
       'Interface type arity too low',
       "Type test_lib::OtherClass* provides 0 type arguments"
-      " but the class declares 1 parameters.", (TestHarness test) {
+          " but the class declares 1 parameters.", (TestHarness test) {
     test.addNode(TypeLiteral(new InterfaceType(test.otherClass, [])));
   });
   negativeTest(
       'Interface type arity too high',
       "Type test_lib::OtherClass<dynamic, dynamic>* provides 2 type arguments"
-      " but the class declares 1 parameters.", (TestHarness test) {
+          " but the class declares 1 parameters.", (TestHarness test) {
     test.addNode(TypeLiteral(new InterfaceType(
         test.otherClass, [new DynamicType(), new DynamicType()])));
   });
@@ -173,7 +173,7 @@ main() {
   negativeTest(
       'Missing block parent pointer',
       "Incorrect parent pointer on ReturnStatement:"
-      " expected 'Block', but found: 'Null'.", (TestHarness test) {
+          " expected 'Block', but found: 'Null'.", (TestHarness test) {
     var block = new Block([]);
     block.statements.add(new ReturnStatement());
     test.addNode(block);
@@ -181,7 +181,7 @@ main() {
   negativeTest(
       'Missing function parent pointer',
       "Incorrect parent pointer on FunctionNode:"
-      " expected 'Procedure', but found: 'Null'.", (TestHarness test) {
+          " expected 'Procedure', but found: 'Null'.", (TestHarness test) {
     var procedure = new Procedure(new Name('bar'), ProcedureKind.Method, null);
     procedure.function = new FunctionNode(new EmptyStatement());
     test.addNode(procedure);
@@ -212,7 +212,7 @@ main() {
   negativeTest(
       'StaticInvocation with too many parameters',
       "StaticInvocation with incompatible arguments for"
-      " 'test_lib::TestClass::bar'.", (TestHarness test) {
+          " 'test_lib::TestClass::bar'.", (TestHarness test) {
     var method = new Procedure(new Name('bar'), ProcedureKind.Method,
         new FunctionNode(new EmptyStatement()),
         isStatic: true);
@@ -222,7 +222,7 @@ main() {
   negativeTest(
       'StaticInvocation with too few parameters',
       "StaticInvocation with incompatible arguments for"
-      " 'test_lib::TestClass::bar'.", (TestHarness test) {
+          " 'test_lib::TestClass::bar'.", (TestHarness test) {
     var method = new Procedure(
         new Name('bar'),
         ProcedureKind.Method,
@@ -235,7 +235,7 @@ main() {
   negativeTest(
       'StaticInvocation with unmatched named parameter',
       "StaticInvocation with incompatible arguments for"
-      " 'test_lib::TestClass::bar'.", (TestHarness test) {
+          " 'test_lib::TestClass::bar'.", (TestHarness test) {
     var method = new Procedure(new Name('bar'), ProcedureKind.Method,
         new FunctionNode(new EmptyStatement()),
         isStatic: true);
@@ -248,7 +248,7 @@ main() {
   negativeTest(
       'StaticInvocation with missing type argument',
       "StaticInvocation with wrong number of type arguments for"
-      " 'test_lib::TestClass::bar'.", (TestHarness test) {
+          " 'test_lib::TestClass::bar'.", (TestHarness test) {
     var method = new Procedure(
         new Name('bar'),
         ProcedureKind.Method,
@@ -261,7 +261,7 @@ main() {
   negativeTest(
       'ConstructorInvocation with missing type argument',
       "ConstructorInvocation with wrong number of type arguments for"
-      " 'test_lib::TestClass::foo'.", (TestHarness test) {
+          " 'test_lib::TestClass::foo'.", (TestHarness test) {
     var class_ = new Class(
         name: 'Test',
         typeParameters: [test.makeTypeParameter()],
@@ -309,7 +309,7 @@ main() {
   negativeTest(
       'Invalid typedef Foo = Foo',
       "The typedef 'typedef Foo = test_lib::Foo;\n'"
-      " refers to itself", (TestHarness test) {
+          " refers to itself", (TestHarness test) {
     var typedef_ = new Typedef('Foo', null);
     typedef_.type = new TypedefType(typedef_);
     test.addNode(typedef_);
@@ -317,7 +317,7 @@ main() {
   negativeTest(
       'Invalid typedef Foo = `(Foo) => void`',
       "The typedef 'typedef Foo = (test_lib::Foo) →* void;\n'"
-      " refers to itself", (TestHarness test) {
+          " refers to itself", (TestHarness test) {
     var typedef_ = new Typedef('Foo', null);
     typedef_.type =
         new FunctionType([new TypedefType(typedef_)], const VoidType());
@@ -326,7 +326,7 @@ main() {
   negativeTest(
       'Invalid typedef Foo = `() => Foo`',
       "The typedef 'typedef Foo = () →* test_lib::Foo;\n'"
-      " refers to itself", (TestHarness test) {
+          " refers to itself", (TestHarness test) {
     var typedef_ = new Typedef('Foo', null);
     typedef_.type = new FunctionType([], new TypedefType(typedef_));
     test.addNode(typedef_);
@@ -334,7 +334,7 @@ main() {
   negativeTest(
       'Invalid typedef Foo = C<Foo>',
       "The typedef 'typedef Foo = test_lib::OtherClass<test_lib::Foo>*;\n'"
-      " refers to itself", (TestHarness test) {
+          " refers to itself", (TestHarness test) {
     var typedef_ = new Typedef('Foo', null);
     typedef_.type =
         new InterfaceType(test.otherClass, [new TypedefType(typedef_)]);
@@ -343,7 +343,7 @@ main() {
   negativeTest(
       'Invalid typedefs Foo = Bar, Bar = Foo',
       "The typedef 'typedef Foo = test_lib::Bar;\n'"
-      " refers to itself", (TestHarness test) {
+          " refers to itself", (TestHarness test) {
     var foo = new Typedef('Foo', null);
     var bar = new Typedef('Bar', null);
     foo.type = new TypedefType(bar);
@@ -354,7 +354,7 @@ main() {
   negativeTest(
       'Invalid typedefs Foo = Bar, Bar = C<Foo>',
       "The typedef 'typedef Foo = test_lib::Bar;\n'"
-      " refers to itself", (TestHarness test) {
+          " refers to itself", (TestHarness test) {
     var foo = new Typedef('Foo', null);
     var bar = new Typedef('Bar', null);
     foo.type = new TypedefType(bar);
@@ -365,7 +365,7 @@ main() {
   negativeTest(
       'Invalid typedefs Foo = C<Bar>, Bar = C<Foo>',
       "The typedef 'typedef Foo = test_lib::OtherClass<test_lib::Bar>*;\n'"
-      " refers to itself", (TestHarness test) {
+          " refers to itself", (TestHarness test) {
     var foo = new Typedef('Foo', null);
     var bar = new Typedef('Bar', null);
     foo.type = new InterfaceType(test.otherClass, [new TypedefType(bar)]);
@@ -385,7 +385,7 @@ main() {
   negativeTest(
       'Invalid long typedefs C20 = C19 = ... = C1 = C0 = C20',
       "The typedef 'typedef C0 = test_lib::C19;\n'"
-      " refers to itself", (TestHarness test) {
+          " refers to itself", (TestHarness test) {
     var typedef_ = new Typedef('C0', null);
     test.enclosingLibrary.addTypedef(typedef_);
     var first = typedef_;
@@ -427,7 +427,7 @@ main() {
   negativeTest(
       'Invalid typedefs Foo<T extends Bar<T>>, Bar<T extends Foo<T>>',
       "The typedef 'typedef Foo<T extends test_lib::Bar<T*>> = dynamic;\n'"
-      " refers to itself", (TestHarness test) {
+          " refers to itself", (TestHarness test) {
     var fooParam = test.makeTypeParameter('T');
     var foo =
         new Typedef('Foo', const DynamicType(), typeParameters: [fooParam]);
@@ -443,8 +443,8 @@ main() {
   negativeTest(
       'Invalid typedef Foo<T extends Foo<dynamic> = C<T>',
       "The typedef 'typedef Foo<T extends test_lib::Foo<dynamic>> = "
-      "test_lib::OtherClass<T>*;\n'"
-      " refers to itself", (TestHarness test) {
+          "test_lib::OtherClass<T*>*;\n'"
+          " refers to itself", (TestHarness test) {
     var param = new TypeParameter('T', null);
     var foo = new Typedef('Foo',
         new InterfaceType(test.otherClass, [new TypeParameterType(param)]),
@@ -455,7 +455,7 @@ main() {
   negativeTest(
       'Typedef arity error',
       "The typedef type test_lib::Foo provides 0 type arguments"
-      " but the typedef declares 1 parameters.", (TestHarness test) {
+          " but the typedef declares 1 parameters.", (TestHarness test) {
     var param = test.makeTypeParameter('T');
     var foo =
         new Typedef('Foo', test.otherClass.rawType, typeParameters: [param]);
@@ -467,7 +467,7 @@ main() {
   negativeTest(
       'Dangling typedef reference',
       "Dangling reference to 'typedef Foo = test_lib::OtherClass<dynamic>*;\n'"
-      ", parent is: 'null'", (TestHarness test) {
+          ", parent is: 'null'", (TestHarness test) {
     var foo = new Typedef('Foo', test.otherClass.rawType, typeParameters: []);
     var field = new Field(new Name('field'),
         type: new TypedefType(foo, []), isStatic: true);

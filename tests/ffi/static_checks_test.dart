@@ -36,6 +36,7 @@ void main() {
   testFromFunctionTypeMismatch();
   testFromFunctionClosure();
   testFromFunctionTearOff();
+  testFromFunctionAbstract();
   testLookupFunctionGeneric();
   testLookupFunctionGeneric2();
   testLookupFunctionWrongNativeFunctionSignature();
@@ -246,6 +247,10 @@ void testFromFunctionTearOff() {
   fld = X().tearoff;
   ffi.Pointer<ffi.NativeFunction<NativeDoubleUnOp>> p;
   p = ffi.fromFunction(fld); //# 75: compile-time error
+}
+
+void testFromFunctionAbstract() {
+  ffi.Pointer.fromFunction<Function>(testFromFunctionAbstract);  //# 76: compile-time error
 }
 
 void testLookupFunctionGeneric() {

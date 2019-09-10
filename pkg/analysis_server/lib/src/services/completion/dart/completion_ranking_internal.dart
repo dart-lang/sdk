@@ -116,7 +116,7 @@ Token getCurrentToken(DartCompletionRequest request) {
 
 bool testInsideQuotes(DartCompletionRequest request) {
   final token = getCurrentToken(request);
-  if (token.isSynthetic) {
+  if (token == null || token.isSynthetic) {
     return false;
   }
 
@@ -136,7 +136,7 @@ bool testInsideQuotes(DartCompletionRequest request) {
 }
 
 bool isTokenDot(Token token) {
-  return !token.isSynthetic && token.lexeme.endsWith('.');
+  return token != null && !token.isSynthetic && token.lexeme.endsWith('.');
 }
 
 bool testFollowingDot(DartCompletionRequest request) {

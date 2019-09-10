@@ -5,6 +5,10 @@
 #ifndef RUNTIME_PLATFORM_UTILS_ANDROID_H_
 #define RUNTIME_PLATFORM_UTILS_ANDROID_H_
 
+#if !defined(RUNTIME_PLATFORM_UTILS_H_)
+#error Do not include utils_android.h directly; use utils.h instead.
+#endif
+
 #include <endian.h>  // NOLINT
 
 namespace dart {

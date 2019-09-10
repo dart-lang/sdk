@@ -1350,7 +1350,7 @@ abstract class AbstractScanner implements Scanner {
     while (true) {
       if (identical($EOF, next)) {
         if (!asciiOnlyLines) handleUnicode(unicodeStart);
-        prependErrorToken(UnterminatedToken(
+        prependErrorToken(new UnterminatedToken(
             messageUnterminatedComment, tokenStart, stringOffset));
         advanceAfterError(true);
         break;
@@ -1618,7 +1618,7 @@ abstract class AbstractScanner implements Scanner {
     } else {
       beginToken(); // The synthetic identifier starts here.
       appendSyntheticSubstringToken(TokenType.IDENTIFIER, scanOffset, true, '');
-      prependErrorToken(UnterminatedToken(
+      prependErrorToken(new UnterminatedToken(
           messageUnexpectedDollarInString, tokenStart, stringOffset));
     }
     beginToken(); // The string interpolation suffix starts here.
@@ -1763,7 +1763,7 @@ abstract class AbstractScanner implements Scanner {
         codeUnits.add(next);
         next = advance();
       }
-      appendToken(StringToken.fromString(TokenType.IDENTIFIER,
+      appendToken(new StringToken.fromString(TokenType.IDENTIFIER,
           new String.fromCharCodes(codeUnits), charOffset));
       return next;
     } else {
@@ -1885,9 +1885,9 @@ class LineStarts extends Object with ListMixin<int> {
 /// [ScannerConfiguration] contains information for configuring which tokens
 /// the scanner produces based upon the Dart language level.
 class ScannerConfiguration {
-  static const ScannerConfiguration classic = ScannerConfiguration();
+  static const ScannerConfiguration classic = const ScannerConfiguration();
   static const ScannerConfiguration nonNullable =
-      ScannerConfiguration(enableNonNullable: true);
+      const ScannerConfiguration(enableNonNullable: true);
 
   /// Experimental flag for enabling scanning of the `extension` keyword.
   final bool enableExtensionMethods;

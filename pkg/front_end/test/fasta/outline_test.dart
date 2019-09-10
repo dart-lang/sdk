@@ -14,4 +14,4 @@ Future<FastaContext> createContext(
 }
 
 main([List<String> arguments = const []]) =>
-    runMe(arguments, createContext, "../../testing.json");
+    runMe(arguments, createContext, configurationPath: "../../testing.json");

@@ -352,7 +352,7 @@ class TypeArgumentsVerifier {
         //
         //     <TFrom, TTo extends TFrom>
         //     <TFrom, TTo extends Iterable<TFrom>>
-        //     <T extends Clonable<T>>
+        //     <T extends Cloneable<T>>
         //
         DartType argType = typeArgs[i];
 

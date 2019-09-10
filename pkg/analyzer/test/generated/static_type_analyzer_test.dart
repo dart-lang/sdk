@@ -12,10 +12,8 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/static_type_analyzer.dart';
@@ -27,8 +25,8 @@ import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'analysis_context_factory.dart';
 import 'resolver_test_case.dart';
+import 'test_analysis_context.dart';
 import 'test_support.dart';
 
 main() {
@@ -429,26 +427,6 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
     _listener.assertNoErrors();
   }
 
-  void test_visitAssignmentExpression_compound_II() {
-    validate(TokenType operator) {
-      InterfaceType numType = _typeProvider.numType;
-      InterfaceType intType = _typeProvider.intType;
-      SimpleIdentifier identifier = _resolvedVariable(intType, "i");
-      AssignmentExpression node = AstTestFactory.assignmentExpression(
-          identifier, operator, _resolvedInteger(1));
-      MethodElement plusMethod = getMethod(numType, "+");
-      node.staticElement = plusMethod;
-      expect(_analyze(node), same(intType));
-      _listener.assertNoErrors();
-    }
-
-    validate(TokenType.MINUS_EQ);
-    validate(TokenType.PERCENT_EQ);
-    validate(TokenType.PLUS_EQ);
-    validate(TokenType.STAR_EQ);
-    validate(TokenType.TILDE_SLASH_EQ);
-  }
-
   void test_visitAssignmentExpression_compound_lazy() {
     validate(TokenType operator) {
       InterfaceType boolType = _typeProvider.boolType;
@@ -461,46 +439,6 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
 
     validate(TokenType.AMPERSAND_AMPERSAND_EQ);
     validate(TokenType.BAR_BAR_EQ);
-  }
-
-  void test_visitAssignmentExpression_compound_plusID() {
-    validate(TokenType operator) {
-      InterfaceType numType = _typeProvider.numType;
-      InterfaceType intType = _typeProvider.intType;
-      InterfaceType doubleType = _typeProvider.doubleType;
-      SimpleIdentifier identifier = _resolvedVariable(intType, "i");
-      AssignmentExpression node = AstTestFactory.assignmentExpression(
-          identifier, operator, _resolvedDouble(1.0));
-      MethodElement plusMethod = getMethod(numType, "+");
-      node.staticElement = plusMethod;
-      expect(_analyze(node), same(doubleType));
-      _listener.assertNoErrors();
-    }
-
-    validate(TokenType.MINUS_EQ);
-    validate(TokenType.PERCENT_EQ);
-    validate(TokenType.PLUS_EQ);
-    validate(TokenType.STAR_EQ);
-  }
-
-  void test_visitAssignmentExpression_compoundIfNull_differentTypes() {
-    // double d; d ??= 0
-    Expression node = AstTestFactory.assignmentExpression(
-        _resolvedVariable(_typeProvider.doubleType, 'd'),
-        TokenType.QUESTION_QUESTION_EQ,
-        _resolvedInteger(0));
-    expect(_analyze(node), _typeProvider.numType);
-    _listener.assertNoErrors();
-  }
-
-  void test_visitAssignmentExpression_compoundIfNull_sameTypes() {
-    // int i; i ??= 0
-    Expression node = AstTestFactory.assignmentExpression(
-        _resolvedVariable(_typeProvider.intType, 'i'),
-        TokenType.QUESTION_QUESTION_EQ,
-        _resolvedInteger(0));
-    expect(_analyze(node), same(_typeProvider.intType));
-    _listener.assertNoErrors();
   }
 
   void test_visitAssignmentExpression_simple() {
@@ -604,7 +542,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
         _resolvedInteger(2), TokenType.SLASH, _resolvedInteger(2));
     node.staticElement = getMethod(_typeProvider.numType, "/");
     node.staticInvokeType = node.staticElement.type;
-    expect(_analyze(node), same(_typeProvider.doubleType));
+    expect(_analyze(node), _typeProvider.doubleType);
     _listener.assertNoErrors();
   }
 
@@ -981,79 +919,6 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
     _listener.assertNoErrors();
   }
 
-  void test_visitIndexExpression_getter() {
-    // List a;
-    // a[2]
-    InterfaceType listType = _typeProvider.listType;
-    SimpleIdentifier identifier = _resolvedVariable(listType, "a");
-    IndexExpression node =
-        AstTestFactory.indexExpression(identifier, _resolvedInteger(2));
-    MethodElement indexMethod = listType.element.methods[0];
-    node.staticElement = indexMethod;
-    expect(_analyze(node), same(listType.typeArguments[0]));
-    _listener.assertNoErrors();
-  }
-
-  void test_visitIndexExpression_setter() {
-    // List a;
-    // a[2] = 0
-    InterfaceType listType = _typeProvider.listType;
-    SimpleIdentifier identifier = _resolvedVariable(listType, "a");
-    IndexExpression node =
-        AstTestFactory.indexExpression(identifier, _resolvedInteger(2));
-    MethodElement indexMethod = listType.element.methods[1];
-    node.staticElement = indexMethod;
-    AstTestFactory.assignmentExpression(
-        node, TokenType.EQ, AstTestFactory.integer(0));
-    expect(_analyze(node), same(listType.typeArguments[0]));
-    _listener.assertNoErrors();
-  }
-
-  void test_visitIndexExpression_typeParameters() {
-    // List<int> list = ...
-    // list[0]
-    InterfaceType intType = _typeProvider.intType;
-    InterfaceType listType = _typeProvider.listType;
-    // (int) -> E
-    MethodElement methodElement = getMethod(listType, "[]");
-    // "list" has type List<int>
-    SimpleIdentifier identifier = AstTestFactory.identifier3("list");
-    InterfaceType listOfIntType = listType.instantiate(<DartType>[intType]);
-    identifier.staticType = listOfIntType;
-    // list[0] has MethodElement element (int) -> E
-    IndexExpression indexExpression =
-        AstTestFactory.indexExpression(identifier, AstTestFactory.integer(0));
-    MethodElement indexMethod = MethodMember.from(methodElement, listOfIntType);
-    indexExpression.staticElement = indexMethod;
-    // analyze and assert result of the index expression
-    expect(_analyze(indexExpression), same(intType));
-    _listener.assertNoErrors();
-  }
-
-  void test_visitIndexExpression_typeParameters_inSetterContext() {
-    // List<int> list = ...
-    // list[0] = 0;
-    InterfaceType intType = _typeProvider.intType;
-    InterfaceType listType = _typeProvider.listType;
-    // (int, E) -> void
-    MethodElement methodElement = getMethod(listType, "[]=");
-    // "list" has type List<int>
-    SimpleIdentifier identifier = AstTestFactory.identifier3("list");
-    InterfaceType listOfIntType = listType.instantiate(<DartType>[intType]);
-    identifier.staticType = listOfIntType;
-    // list[0] has MethodElement element (int) -> E
-    IndexExpression indexExpression =
-        AstTestFactory.indexExpression(identifier, AstTestFactory.integer(0));
-    MethodElement indexMethod = MethodMember.from(methodElement, listOfIntType);
-    indexExpression.staticElement = indexMethod;
-    // list[0] should be in a setter context
-    AstTestFactory.assignmentExpression(
-        indexExpression, TokenType.EQ, AstTestFactory.integer(0));
-    // analyze and assert result of the index expression
-    expect(_analyze(indexExpression), same(intType));
-    _listener.assertNoErrors();
-  }
-
   void test_visitInstanceCreationExpression_named() {
     // new C.m()
     ClassElementImpl classElement = ElementFactory.classElement2("C");
@@ -1150,7 +1015,6 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
   }
 
   void test_visitListLiteral_unresolved() {
-    _analyzer = _createAnalyzer(strongMode: true);
     // [a] // where 'a' is not resolved
     Identifier identifier = AstTestFactory.identifier3('a');
     Expression node = AstTestFactory.listLiteral([identifier]);
@@ -1163,7 +1027,6 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
   }
 
   void test_visitListLiteral_unresolved_multiple() {
-    _analyzer = _createAnalyzer(strongMode: true);
     // [0, a, 1] // where 'a' is not resolved
     Identifier identifier = AstTestFactory.identifier3('a');
     Expression node = AstTestFactory.listLiteral(
@@ -1288,7 +1151,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
         AstTestFactory.prefixExpression(TokenType.MINUS, _resolvedInteger(0));
     MethodElement minusMethod = getMethod(_typeProvider.numType, "-");
     node.staticElement = minusMethod;
-    expect(_analyze(node), same(_typeProvider.numType));
+    expect(_analyze(node), _typeProvider.numType);
     _listener.assertNoErrors();
   }
 
@@ -1326,7 +1189,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
         AstTestFactory.prefixExpression(TokenType.TILDE, _resolvedInteger(0));
     MethodElement tildeMethod = getMethod(_typeProvider.intType, "~");
     node.staticElement = tildeMethod;
-    expect(_analyze(node), same(_typeProvider.intType));
+    expect(_analyze(node), _typeProvider.intType);
     _listener.assertNoErrors();
   }
 
@@ -1514,16 +1377,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
   /**
    * Create the analyzer used by the tests.
    */
-  StaticTypeAnalyzer _createAnalyzer({bool strongMode: false}) {
-    InternalAnalysisContext context;
-    if (strongMode) {
-      AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-      context = AnalysisContextFactory.contextWithCoreAndOptions(options,
-          resourceProvider: resourceProvider);
-    } else {
-      context = AnalysisContextFactory.contextWithCore(
-          resourceProvider: resourceProvider);
-    }
+  StaticTypeAnalyzer _createAnalyzer() {
+    var context = TestAnalysisContext();
     var inheritance = new InheritanceManager3(context.typeSystem);
     Source source = new FileSource(getFile("/lib.dart"));
     CompilationUnitElementImpl definingCompilationUnit =

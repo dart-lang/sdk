@@ -253,7 +253,12 @@ void ClassTable::SetAt(intptr_t index, RawClass* raw_cls) {
   if (raw_cls == NULL) {
     table_[index] = ClassAndSize(raw_cls, 0);
   } else {
-    table_[index] = ClassAndSize(raw_cls, Class::instance_size(raw_cls));
+    // Ensure we never change size for a given cid from one non-zero size to
+    // another non-zero size.
+    const intptr_t old_size = table_[index].size_;
+    const intptr_t new_size = Class::instance_size(raw_cls);
+    ASSERT(old_size == 0 || old_size == new_size);
+    table_[index] = ClassAndSize(raw_cls, new_size);
   }
 }
 

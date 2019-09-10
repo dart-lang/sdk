@@ -91,6 +91,86 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_catch_simple() async {
+    var content = '''
+void f() {
+  try {} catch (ex, st) {}
+}
+''';
+    var expected = '''
+void f() {
+  try {} catch (ex, st) {}
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_catch_simple_with_modifications() async {
+    var content = '''
+void f(String x, StackTrace y) {
+  try {} catch (ex, st) {
+    ex = x;
+    st = y;
+  }
+}
+main() {
+  f(null, null);
+}
+''';
+    var expected = '''
+void f(String? x, StackTrace? y) {
+  try {} catch (ex, st) {
+    ex = x;
+    st = y!;
+  }
+}
+main() {
+  f(null, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_catch_with_on() async {
+    var content = '''
+void f() {
+  try {} on String catch (ex, st) {}
+}
+''';
+    var expected = '''
+void f() {
+  try {} on String catch (ex, st) {}
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_catch_with_on_with_modifications() async {
+    var content = '''
+void f(String x, StackTrace y) {
+  try {} on String catch (ex, st) {
+    ex = x;
+    st = y;
+  }
+}
+main() {
+  f(null, null);
+}
+''';
+    var expected = '''
+void f(String? x, StackTrace? y) {
+  try {} on String? catch (ex, st) {
+    ex = x;
+    st = y!;
+  }
+}
+main() {
+  f(null, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_class_alias_synthetic_constructor_with_parameters() async {
     var content = '''
 void main() {
@@ -821,6 +901,72 @@ int f(int i) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_dynamic_method_call() async {
+    var content = '''
+class C {
+  int g(int i) => i;
+}
+int f(bool b, dynamic d) {
+  if (b) return 0;
+  return d.g(null);
+}
+main() {
+  f(true, null);
+  f(false, C());
+}
+''';
+    // `d.g(null)` is a dynamic call, so we can't tell that it will target `C.g`
+    // at runtime.  So we can't figure out that we need to make g's argument and
+    // return types nullable.
+    //
+    // We do, however, make f's return type nullable, since there is no way of
+    // knowing whether a dynamic call will return `null`.
+    var expected = '''
+class C {
+  int g(int i) => i;
+}
+int? f(bool b, dynamic d) {
+  if (b) return 0;
+  return d.g(null);
+}
+main() {
+  f(true, null);
+  f(false, C());
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_dynamic_property_access() async {
+    var content = '''
+class C {
+  int get g => 0;
+}
+int f(bool b, dynamic d) {
+  if (b) return 0;
+  return d.g;
+}
+main() {
+  f(true, null);
+  f(false, C());
+}
+''';
+    var expected = '''
+class C {
+  int get g => 0;
+}
+int? f(bool b, dynamic d) {
+  if (b) return 0;
+  return d.g;
+}
+main() {
+  f(true, null);
+  f(false, C());
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_field_formal_param_typed() async {
     var content = '''
 class C {
@@ -935,6 +1081,54 @@ class C {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_field_initializer_untyped_list_literal() async {
+    var content = '''
+class C {
+  List<int> f;
+  C() : f = [null];
+}
+''';
+    var expected = '''
+class C {
+  List<int?> f;
+  C() : f = [null];
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_field_initializer_untyped_map_literal() async {
+    var content = '''
+class C {
+  Map<String, int> f;
+  C() : f = {"foo": null};
+}
+''';
+    var expected = '''
+class C {
+  Map<String, int?> f;
+  C() : f = {"foo": null};
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_field_initializer_untyped_set_literal() async {
+    var content = '''
+class C {
+  Set<int> f;
+  C() : f = {null};
+}
+''';
+    var expected = '''
+class C {
+  Set<int?> f;
+  C() : f = {null};
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_field_type_inferred() async {
     var content = '''
 int f() => null;
@@ -955,6 +1149,36 @@ class C {
   void g() {
     x = f()!;
   }
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_flow_analysis_complex() async {
+    var content = '''
+int f(int x) {
+  while (x == null) {
+    x = g(x);
+  }
+  return x;
+}
+int g(int x) => x == null ? 1 : null;
+main() {
+  f(null);
+}
+''';
+    // Flow analysis can tell that the loop only exits if x is non-null, so the
+    // return type of `f` can remain `int`, and no null check is needed.
+    var expected = '''
+int f(int? x) {
+  while (x == null) {
+    x = g(x);
+  }
+  return x;
+}
+int? g(int? x) => x == null ? 1 : null;
+main() {
+  f(null);
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -1443,6 +1667,77 @@ int? f() => null;
 void main() {
   var x = 1;
   x = f()!;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  @failingTest
+  test_map_nullable_input() async {
+    // TODO(paulberry): we're currently migrating this example incorrectly.
+    // See discussion at https://dart-review.googlesource.com/c/sdk/+/115766
+    var content = '''
+Iterable<int> f(List<int> x) => x.map((y) => g(y));
+int g(int x) => x + 1;
+main() {
+  f([null]);
+}
+''';
+    var expected = '''
+Iterable<int> f(List<int?> x) => x.map((y) => g(y!));
+int g(int x) => x + 1;
+main() {
+  f([null]);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_map_nullable_output() async {
+    var content = '''
+Iterable<int> f(List<int> x) => x.map((y) => g(y));
+int g(int x) => null;
+main() {
+  f([1]);
+}
+''';
+    var expected = '''
+Iterable<int?> f(List<int> x) => x.map((y) => g(y));
+int? g(int x) => null;
+main() {
+  f([1]);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_methodInvocation_typeArguments_explicit() async {
+    var content = '''
+T f<T>(T t) => t;
+void g() {
+  int x = f<int>(null);
+}
+''';
+    var expected = '''
+T f<T>(T t) => t;
+void g() {
+  int? x = f<int?>(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_methodInvocation_typeArguments_inferred() async {
+    var content = '''
+T f<T>(T t) => t;
+void g() {
+  int x = f(null);
+}
+''';
+    var expected = '''
+T f<T>(T t) => t;
+void g() {
+  int? x = f(null);
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -2034,6 +2329,36 @@ class D<U> {}
 D<int?> test(C<int?/*?*/> c) => -c;
 ''';
     await _checkSingleFileChanges(content, expected);
+  }
+
+  test_prefixes() async {
+    var root = '/home/test/lib';
+    var path1 = convertPath('$root/file1.dart');
+    var file1 = '''
+import 'file2.dart';
+int x;
+int f() => null;
+''';
+    var expected1 = '''
+import 'file2.dart';
+int? x;
+int? f() => null;
+''';
+    var path2 = convertPath('$root/file2.dart');
+    var file2 = '''
+import 'file1.dart' as f1;
+void main() {
+  f1.x = f1.f();
+}
+''';
+    var expected2 = '''
+import 'file1.dart' as f1;
+void main() {
+  f1.x = f1.f();
+}
+''';
+    await _checkMultipleFileChanges(
+        {path1: file1, path2: file2}, {path1: expected1, path2: expected2});
   }
 
   test_prefixExpression_bang() async {

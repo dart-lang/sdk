@@ -54,7 +54,7 @@ vars = {
   "gperftools_revision": "e9ab4c53041ac62feefbbb076d326e9a77dd1567",
 
   # Revisions of /third_party/* dependencies.
-  "args_tag": "1.4.4",
+  "args_tag": "1.5.0",
   "async_tag": "2.0.8",
   "bazel_worker_tag": "bazel_worker-v0.1.20",
   "benchmark_harness_tag": "81641290dea44c34138a109a37e215482f405f81",
@@ -84,7 +84,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
   "dart_style_tag": "1.2.8",  # Please see the note above before updating.
 
-  "dartdoc_tag" : "0.28.4",
+  "dartdoc_rev" : "6934accd88c29a73cae26d0c4def3323efc2119c",
   "fixnum_tag": "0.10.9",
   "glob_tag": "1.1.7",
   "html_tag" : "0.14.0+1",
@@ -99,7 +99,7 @@ vars = {
   "intl_tag": "0.15.7",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "2.0.9",
-  "linter_tag": "0.1.96",
+  "linter_tag": "0.1.97+1",
   "logging_tag": "0.11.3+2",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "markdown_tag": "2.0.3",
@@ -138,7 +138,7 @@ vars = {
   "term_glyph_tag": "1.0.1",
   "test_reflective_loader_tag": "0.1.8",
   "test_tag": "test-v1.6.4",
-  "tflite_native_rev": "65889224d8ee32ceaf4f78d8d29fd59750e1b817",
+  "tflite_native_rev": "06e533a9747306d1114c53427cc67eda080f51f9",
   "typed_data_tag": "1.1.6",
   "unittest_rev": "2b8375bc98bb9dc81c539c91aaea6adce12e1072",
   "usage_tag": "3.4.0",
@@ -276,7 +276,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/dart2js_info":
       Var("dart_git") + "dart2js_info.git" + "@" + Var("dart2js_info_tag"),
   Var("dart_root") + "/third_party/pkg/dartdoc":
-      Var("dart_git") + "dartdoc.git" + "@" + Var("dartdoc_tag"),
+      Var("dart_git") + "dartdoc.git" + "@" + Var("dartdoc_rev"),
   Var("dart_root") + "/third_party/pkg/fixnum":
       Var("dart_git") + "fixnum.git" + "@" + Var("fixnum_tag"),
   Var("dart_root") + "/third_party/pkg/glob":
@@ -448,6 +448,16 @@ deps = {
       "dep_type": "cipd",
   },
 
+  Var("dart_root") + "/pkg/front_end/test/fasta/types/benchmark_data": {
+    "packages": [
+      {
+        "package": "dart/cfe/benchmark_data",
+        "version": "sha1sum:4168b133ab7bce01c91311a8d4f25d4d6cb026f3",
+      }
+    ],
+    "dep_type": "cipd",
+  },
+
   # TODO(37531): Remove these cipd packages and build with sdk instead when
   # benchmark runner gets support for that.
   Var("dart_root") + "/benchmarks/FfiBoringssl/dart/native/out/": {
@@ -514,21 +524,6 @@ hooks = [
       "--extract",
       "--directory",
       Var('dart_root') + "/third_party/firefox_jsshell",
-    ],
-  },
-  {
-    "name": "front_end_benchmark_data",
-    "pattern": ".",
-    "action": [
-      "download_from_google_storage",
-      "--no_auth",
-      "--no_resume",
-      "--bucket",
-      "dart-dependencies",
-      "--recursive",
-      "--extract",
-      "--directory",
-      Var('dart_root') + "/pkg/front_end/test/fasta/types",
     ],
   },
   {

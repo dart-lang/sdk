@@ -92,6 +92,11 @@ abstract class SecureSocket implements Socket {
    * the [socket] will be used. The [host] can be either a [String] or
    * an [InternetAddress].
    *
+   * [supportedProtocols] is an optional list of protocols (in decreasing
+   * order of preference) to use during the ALPN protocol negotiation with the
+   * server.  Example values are "http/1.1" or "h2".  The selected protocol
+   * can be obtained via [SecureSocket.selectedProtocol].
+   *
    * Calling this function will _not_ cause a DNS host lookup. If the
    * [host] passed is a [String] the [InternetAddress] for the
    * resulting [SecureSocket] will have the passed in [host] as its
@@ -104,14 +109,16 @@ abstract class SecureSocket implements Socket {
   static Future<SecureSocket> secure(Socket socket,
       {host,
       SecurityContext context,
-      bool onBadCertificate(X509Certificate certificate)}) {
+      bool onBadCertificate(X509Certificate certificate),
+      @Since("2.6") List<String> supportedProtocols}) {
     return ((socket as dynamic /*_Socket*/)._detachRaw() as Future)
         .then<RawSecureSocket>((detachedRaw) {
       return RawSecureSocket.secure(detachedRaw[0] as RawSocket,
           subscription: detachedRaw[1] as StreamSubscription<RawSocketEvent>,
           host: host,
           context: context,
-          onBadCertificate: onBadCertificate);
+          onBadCertificate: onBadCertificate,
+          supportedProtocols: supportedProtocols);
     }).then<SecureSocket>((raw) => new SecureSocket._(raw));
   }
 
@@ -271,6 +278,11 @@ abstract class RawSecureSocket implements RawSocket {
    * for the TLS handshake. If [host] is not passed the host name from
    * the [socket] will be used. The [host] can be either a [String] or
    * an [InternetAddress].
+   *
+   * [supportedProtocols] is an optional list of protocols (in decreasing
+   * order of preference) to use during the ALPN protocol negotiation with the
+   * server.  Example values are "http/1.1" or "h2".  The selected protocol
+   * can be obtained via [SecureSocket.selectedProtocol].
    *
    * Calling this function will _not_ cause a DNS host lookup. If the
    * [host] passed is a [String] the [InternetAddress] for the

@@ -297,9 +297,6 @@ class FieldMember extends VariableMember implements FieldElement {
   @override
   bool get isEnumConstant => baseElement.isEnumConstant;
 
-  @override
-  bool get isLate => baseElement.isLate;
-
   @deprecated
   @override
   bool get isVirtual => baseElement.isVirtual;
@@ -342,6 +339,16 @@ class FieldMember extends VariableMember implements FieldElement {
       field,
       Substitution.fromInterfaceType(definingType),
     );
+  }
+
+  static FieldElement from2(
+    FieldElement element,
+    MapSubstitution substitution,
+  ) {
+    if (substitution.map.isEmpty) {
+      return element;
+    }
+    return FieldMember(element, substitution);
   }
 }
 
@@ -645,6 +652,16 @@ class MethodMember extends ExecutableMember implements MethodElement {
       method,
       Substitution.fromInterfaceType(definingType),
     );
+  }
+
+  static MethodElement from2(
+    MethodElement element,
+    MapSubstitution substitution,
+  ) {
+    if (substitution.map.isEmpty) {
+      return element;
+    }
+    return MethodMember(element, substitution);
   }
 }
 
@@ -1022,6 +1039,9 @@ abstract class VariableMember extends Member implements VariableElement {
 
   @override
   bool get isFinal => baseElement.isFinal;
+
+  @override
+  bool get isLate => baseElement.isLate;
 
   @override
   @deprecated

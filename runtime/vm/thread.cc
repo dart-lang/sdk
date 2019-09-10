@@ -42,7 +42,7 @@ Thread::~Thread() {
   // There should be no top api scopes at this point.
   ASSERT(api_top_scope() == NULL);
   // Delete the resusable api scope if there is one.
-  if (api_reusable_scope_) {
+  if (api_reusable_scope_ != nullptr) {
     delete api_reusable_scope_;
     api_reusable_scope_ = NULL;
   }
@@ -941,7 +941,7 @@ DisableThreadInterruptsScope::~DisableThreadInterruptsScope() {
 }
 
 const intptr_t kInitialCallbackIdsReserved = 1024;
-int32_t Thread::AllocateFfiCallbackId(uword* trampoline) {
+int32_t Thread::AllocateFfiCallbackId() {
   Zone* Z = isolate()->current_zone();
   if (ffi_callback_code_ == GrowableObjectArray::null()) {
     ffi_callback_code_ = GrowableObjectArray::New(kInitialCallbackIdsReserved);
@@ -955,7 +955,7 @@ int32_t Thread::AllocateFfiCallbackId(uword* trampoline) {
   if (NativeCallbackTrampolines::Enabled()) {
     auto* const tramps = isolate()->native_callback_trampolines();
     ASSERT(tramps->next_callback_id() == id);
-    *trampoline = tramps->AllocateTrampoline();
+    tramps->AllocateTrampoline();
   }
 #endif
 
@@ -964,7 +964,25 @@ int32_t Thread::AllocateFfiCallbackId(uword* trampoline) {
 
 void Thread::SetFfiCallbackCode(int32_t callback_id, const Code& code) {
   Zone* Z = isolate()->current_zone();
+
+  /// In AOT the callback ID might have been allocated during compilation but
+  /// 'ffi_callback_code_' is initialized to empty again when the program
+  /// starts. Therefore we may need to initialize or expand it to accomodate
+  /// the callback ID.
+
+  if (ffi_callback_code_ == GrowableObjectArray::null()) {
+    ffi_callback_code_ = GrowableObjectArray::New(kInitialCallbackIdsReserved);
+  }
+
   const auto& array = GrowableObjectArray::Handle(Z, ffi_callback_code_);
+
+  if (callback_id >= array.Length()) {
+    if (callback_id >= array.Capacity()) {
+      array.Grow(callback_id + 1);
+    }
+    array.SetLength(callback_id + 1);
+  }
+
   array.SetAt(callback_id, code);
 }
 

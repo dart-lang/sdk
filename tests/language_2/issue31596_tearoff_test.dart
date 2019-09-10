@@ -8,41 +8,41 @@ class A {}
 
 class B extends A {}
 
-class B2 extends A {}
-
 class C {
   void f(B x) {}
 }
 
-abstract class I {
-  void f(covariant A x);
+abstract class I<X> {
+  void f(X x);
 }
 
 // This class contains a forwarding stub for f to allow it to satisfy the
-// interface I, while still ensuring that the x argument is type checked before
-// C.f is executed.
+// interface I<B>, while still ensuring that the x argument is type checked
+// before C.f is executed.
 //
 // For purposes of static type checking, the interface of the class D is
-// considered to contain a method f with signature (A) -> void.  For purposes of
+// considered to contain a method f with signature (B) -> void.  For purposes of
 // runtime behavior, a tearoff of D.f is considered to have the reified runtime
 // type (Object) -> void.
-class D extends C implements I {}
+class D extends C implements I<B> {}
 
 main() {
   var d = new D();
-  B2 b2Null = null;
-  B2 b2 = new B2();
+  A aNull = null;
+  A a = new A();
 
-  // Since the compile-time type of D.f is (A) -> void, it is assignable to (B2)
+  // Since the compile-time type of D.f is (B) -> void, it is assignable to (A)
   // -> void.  Since the runtime type is (Object) -> void, the assignment is
   // allowed at runtime as well.
-  void Function(B2) g = d.f;
+  // TODO: Implicit downcast from void Function(B) to void Function(A) will be a
+  // compile-time error with NNBD. Consider using `d.f as dynamic`.
+  void Function(A) g = d.f;
 
   // However, the tear-off performs a runtime check of its argument, so it
   // accepts a value of `null`, but it does not accept a value whose runtime
-  // type is B2.
-  g(b2Null);
+  // type is A.
+  g(aNull);
   Expect.throwsTypeError(() {
-    g(b2);
+    g(a);
   });
 }

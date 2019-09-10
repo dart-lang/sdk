@@ -3556,7 +3556,7 @@ class DotPrinter : public NodeVisitor {
 
 void DotPrinter::PrintNode(const char* label, RegExpNode* node) {
   OS::PrintErr("digraph G {\n  graph [label=\"");
-  for (intptr_t i = 0; label[i]; i++) {
+  for (intptr_t i = 0; label[i] != '\0'; i++) {
     switch (label[i]) {
       case '\\':
         OS::PrintErr("\\\\");
@@ -5286,7 +5286,7 @@ RegExpEngine::CompilationResult RegExpEngine::CompileIR(
 
   const Function& function = parsed_function->function();
   const intptr_t specialization_cid = function.string_specialization_cid();
-  const intptr_t is_sticky = function.is_sticky_specialization();
+  const bool is_sticky = function.is_sticky_specialization();
   const bool is_one_byte = (specialization_cid == kOneByteStringCid ||
                             specialization_cid == kExternalOneByteStringCid);
   RegExp& regexp = RegExp::Handle(zone, function.regexp());

@@ -2,14 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// .packages specifies 2.5, this library tries to go above that, which is an
-// error. The library stays on the .packages specified one (2.5) and an error is
-// issued.
+// .packages specifies 2.5, this library tries to go above that, which is fine.
 
-/*error: LanguageVersionTooHigh*/
 // @dart = 2.6
 
-/*library: languageVersion=2.5*/
+/*library: languageVersion=2.6*/
 
 foo3() {
   print("Hello from foo3!");

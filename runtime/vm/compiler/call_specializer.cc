@@ -40,131 +40,19 @@ static bool IsNumberCid(intptr_t cid) {
   return (cid == kSmiCid) || (cid == kDoubleCid);
 }
 
-static bool ClassIdIsOneOf(intptr_t class_id,
-                           const GrowableArray<intptr_t>& class_ids) {
-  for (intptr_t i = 0; i < class_ids.length(); i++) {
-    ASSERT(class_ids[i] != kIllegalCid);
-    if (class_ids[i] == class_id) {
-      return true;
-    }
-  }
-  return false;
-}
-
-// Returns true if ICData tests two arguments and all ICData cids are in the
-// required sets 'receiver_class_ids' or 'argument_class_ids', respectively.
-static bool ICDataHasOnlyReceiverArgumentClassIds(
-    const ICData& ic_data,
-    const GrowableArray<intptr_t>& receiver_class_ids,
-    const GrowableArray<intptr_t>& argument_class_ids) {
-  if (ic_data.NumArgsTested() != 2) {
-    return false;
-  }
-  const intptr_t len = ic_data.NumberOfChecks();
-  GrowableArray<intptr_t> class_ids;
-  for (intptr_t i = 0; i < len; i++) {
-    if (ic_data.IsUsedAt(i)) {
-      ic_data.GetClassIdsAt(i, &class_ids);
-      ASSERT(class_ids.length() == 2);
-      if (!ClassIdIsOneOf(class_ids[0], receiver_class_ids) ||
-          !ClassIdIsOneOf(class_ids[1], argument_class_ids)) {
-        return false;
-      }
-    }
-  }
-  return true;
-}
-
-static bool ICDataHasReceiverArgumentClassIds(const ICData& ic_data,
-                                              intptr_t receiver_class_id,
-                                              intptr_t argument_class_id) {
-  if (ic_data.NumArgsTested() != 2) {
-    return false;
-  }
-  const intptr_t len = ic_data.NumberOfChecks();
-  for (intptr_t i = 0; i < len; i++) {
-    if (ic_data.IsUsedAt(i)) {
-      GrowableArray<intptr_t> class_ids;
-      ic_data.GetClassIdsAt(i, &class_ids);
-      ASSERT(class_ids.length() == 2);
-      if ((class_ids[0] == receiver_class_id) &&
-          (class_ids[1] == argument_class_id)) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-static bool HasOnlyOneSmi(const ICData& ic_data) {
-  return (ic_data.NumberOfUsedChecks() == 1) &&
-         ic_data.HasReceiverClassId(kSmiCid);
-}
-
-static bool HasOnlySmiOrMint(const ICData& ic_data) {
-  if (ic_data.NumberOfUsedChecks() == 1) {
-    return ic_data.HasReceiverClassId(kSmiCid) ||
-           ic_data.HasReceiverClassId(kMintCid);
-  }
-  return (ic_data.NumberOfUsedChecks() == 2) &&
-         ic_data.HasReceiverClassId(kSmiCid) &&
-         ic_data.HasReceiverClassId(kMintCid);
-}
-
-bool CallSpecializer::HasOnlyTwoOf(const ICData& ic_data, intptr_t cid) {
-  if (ic_data.NumberOfUsedChecks() != 1) {
-    return false;
-  }
-  GrowableArray<intptr_t> first;
-  GrowableArray<intptr_t> second;
-  ic_data.GetUsedCidsForTwoArgs(&first, &second);
-  return (first[0] == cid) && (second[0] == cid);
-}
-
-// Returns false if the ICData contains anything other than the 4 combinations
-// of Mint and Smi for the receiver and argument classes.
-static bool HasTwoMintOrSmi(const ICData& ic_data) {
-  GrowableArray<intptr_t> first;
-  GrowableArray<intptr_t> second;
-  ic_data.GetUsedCidsForTwoArgs(&first, &second);
-  for (intptr_t i = 0; i < first.length(); i++) {
-    if ((first[i] != kSmiCid) && (first[i] != kMintCid)) {
-      return false;
-    }
-    if ((second[i] != kSmiCid) && (second[i] != kMintCid)) {
-      return false;
-    }
-  }
-  return true;
-}
-
-// Returns false if the ICData contains anything other than the 4 combinations
-// of Double and Smi for the receiver and argument classes.
-static bool HasTwoDoubleOrSmi(const ICData& ic_data) {
-  GrowableArray<intptr_t> class_ids(2);
-  class_ids.Add(kSmiCid);
-  class_ids.Add(kDoubleCid);
-  return ICDataHasOnlyReceiverArgumentClassIds(ic_data, class_ids, class_ids);
-}
-
-static bool HasOnlyOneDouble(const ICData& ic_data) {
-  return (ic_data.NumberOfUsedChecks() == 1) &&
-         ic_data.HasReceiverClassId(kDoubleCid);
-}
-
-static bool ShouldSpecializeForDouble(const ICData& ic_data) {
+static bool ShouldSpecializeForDouble(const BinaryFeedback& binary_feedback) {
   // Don't specialize for double if we can't unbox them.
   if (!CanUnboxDouble()) {
     return false;
   }
 
   // Unboxed double operation can't handle case of two smis.
-  if (ICDataHasReceiverArgumentClassIds(ic_data, kSmiCid, kSmiCid)) {
+  if (binary_feedback.IncludesOperands(kSmiCid)) {
     return false;
   }
 
-  // Check that it have seen only smis and doubles.
-  return HasTwoDoubleOrSmi(ic_data);
+  // Check that the call site has seen only smis and doubles.
+  return binary_feedback.OperandsAreSmiOrDouble();
 }
 
 // Optimize instance calls using ICData.
@@ -208,7 +96,8 @@ void CallSpecializer::ApplyClassIds() {
 
 bool CallSpecializer::TryCreateICData(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
-  if (call->ic_data()->NumberOfUsedChecks() > 0) {
+
+  if (call->Targets().length() > 0) {
     // This occurs when an instance call has too many checks, will be converted
     // to megamorphic call.
     return false;
@@ -272,17 +161,14 @@ bool CallSpecializer::TryCreateICData(InstanceCallInstr* call) {
       return false;
     }
 
-    // Create new ICData, do not modify the one attached to the instruction
-    // since it is attached to the assembly instruction itself.
-    const ICData& ic_data = ICData::ZoneHandle(
-        Z, ICData::NewFrom(*call->ic_data(), class_ids.length()));
-    if (class_ids.length() > 1) {
-      ic_data.AddCheck(class_ids, function);
-    } else {
-      ASSERT(class_ids.length() == 1);
-      ic_data.AddReceiverCheck(class_ids[0], function);
+    // Update the CallTargets attached to the instruction with our speculative
+    // target. The next round of CallSpecializer::VisitInstanceCall will make
+    // use of this.
+    call->SetTargets(CallTargets::CreateMonomorphic(Z, class_ids[0], function));
+    if (class_ids.length() == 2) {
+      call->SetBinaryFeedback(
+          BinaryFeedback::CreateMonomorphic(Z, class_ids[0], class_ids[1]));
     }
-    call->set_ic_data(&ic_data);
     return true;
   }
 
@@ -365,11 +251,11 @@ void CallSpecializer::AddCheckClass(Definition* to_check,
 }
 
 void CallSpecializer::AddChecksForArgNr(InstanceCallInstr* call,
-                                        Definition* instr,
+                                        Definition* argument,
                                         int argument_number) {
   const Cids* cids =
-      Cids::CreateAndExpand(Z, *call->ic_data(), argument_number);
-  AddCheckClass(instr, *cids, call->deopt_id(), call->env(), call);
+      Cids::CreateForArgument(zone(), call->BinaryFeedback(), argument_number);
+  AddCheckClass(argument, *cids, call->deopt_id(), call->env(), call);
 }
 
 void CallSpecializer::AddCheckNull(Value* to_check,
@@ -390,30 +276,12 @@ void CallSpecializer::AddCheckNull(Value* to_check,
   }
 }
 
-static bool ArgIsAlways(intptr_t cid,
-                        const ICData& ic_data,
-                        intptr_t arg_number) {
-  ASSERT(ic_data.NumArgsTested() > arg_number);
-  if (ic_data.NumberOfUsedChecks() == 0) {
-    return false;
+bool CallSpecializer::TryReplaceWithIndexedOp(InstanceCallInstr* call) {
+  if (call->Targets().IsMonomorphic()) {
+    return FlowGraphInliner::TryReplaceInstanceCallWithInline(
+        flow_graph_, current_iterator(), call, speculative_policy_);
   }
-  const intptr_t num_checks = ic_data.NumberOfChecks();
-  for (intptr_t i = 0; i < num_checks; i++) {
-    if (ic_data.IsUsedAt(i) && ic_data.GetClassIdAt(i, arg_number) != cid) {
-      return false;
-    }
-  }
-  return true;
-}
-
-bool CallSpecializer::TryReplaceWithIndexedOp(InstanceCallInstr* call,
-                                              const ICData* unary_checks) {
-  // Check for monomorphic IC data.
-  if (!unary_checks->NumberOfChecksIs(1)) {
-    return false;
-  }
-  return FlowGraphInliner::TryReplaceInstanceCallWithInline(
-      flow_graph_, current_iterator(), call, speculative_policy_);
+  return false;
 }
 
 // Return true if d is a string of length one (a constant or result from
@@ -436,7 +304,7 @@ static bool IsLengthOneString(Definition* d) {
 // E.g., detect str[x] == "x"; and use an integer comparison of char-codes.
 bool CallSpecializer::TryStringLengthOneEquality(InstanceCallInstr* call,
                                                  Token::Kind op_kind) {
-  ASSERT(HasOnlyTwoOf(*call->ic_data(), kOneByteStringCid));
+  ASSERT(call->BinaryFeedback().OperandsAre(kOneByteStringCid));
   // Check that left and right are length one strings (either string constants
   // or results of string-from-char-code.
   Definition* left = call->ArgumentAt(0);
@@ -516,8 +384,7 @@ static bool SmiFitsInDouble() {
 
 bool CallSpecializer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
                                                Token::Kind op_kind) {
-  const ICData& ic_data = *call->ic_data();
-  ASSERT(ic_data.NumArgsTested() == 2);
+  const BinaryFeedback& binary_feedback = call->BinaryFeedback();
 
   ASSERT(call->type_args_len() == 0);
   ASSERT(call->ArgumentCount() == 2);
@@ -525,9 +392,9 @@ bool CallSpecializer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
   Definition* const right = call->ArgumentAt(1);
 
   intptr_t cid = kIllegalCid;
-  if (HasOnlyTwoOf(ic_data, kOneByteStringCid)) {
+  if (binary_feedback.OperandsAre(kOneByteStringCid)) {
     return TryStringLengthOneEquality(call, op_kind);
-  } else if (HasOnlyTwoOf(ic_data, kSmiCid)) {
+  } else if (binary_feedback.OperandsAre(kSmiCid)) {
     InsertBefore(call,
                  new (Z) CheckSmiInstr(new (Z) Value(left), call->deopt_id(),
                                        call->token_pos()),
@@ -537,15 +404,15 @@ bool CallSpecializer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
                                        call->token_pos()),
                  call->env(), FlowGraph::kEffect);
     cid = kSmiCid;
-  } else if (HasTwoMintOrSmi(ic_data) &&
+  } else if (binary_feedback.OperandsAreSmiOrMint() &&
              FlowGraphCompiler::SupportsUnboxedInt64()) {
     cid = kMintCid;
-  } else if (HasTwoDoubleOrSmi(ic_data) && CanUnboxDouble()) {
+  } else if (binary_feedback.OperandsAreSmiOrDouble() && CanUnboxDouble()) {
     // Use double comparison.
     if (SmiFitsInDouble()) {
       cid = kDoubleCid;
     } else {
-      if (ICDataHasReceiverArgumentClassIds(ic_data, kSmiCid, kSmiCid)) {
+      if (binary_feedback.IncludesOperands(kSmiCid)) {
         // We cannot use double comparison on two smis. Need polymorphic
         // call.
         return false;
@@ -562,11 +429,7 @@ bool CallSpecializer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
     // Check if ICDData contains checks with Smi/Null combinations. In that case
     // we can still emit the optimized Smi equality operation but need to add
     // checks for null or Smi.
-    GrowableArray<intptr_t> smi_or_null(2);
-    smi_or_null.Add(kSmiCid);
-    smi_or_null.Add(kNullCid);
-    if (ICDataHasOnlyReceiverArgumentClassIds(ic_data, smi_or_null,
-                                              smi_or_null)) {
+    if (binary_feedback.OperandsAreSmiOrNull()) {
       AddChecksForArgNr(call, left, /* arg_number = */ 0);
       AddChecksForArgNr(call, right, /* arg_number = */ 1);
 
@@ -599,16 +462,15 @@ bool CallSpecializer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
 
 bool CallSpecializer::TryReplaceWithRelationalOp(InstanceCallInstr* call,
                                                  Token::Kind op_kind) {
-  const ICData& ic_data = *call->ic_data();
-  ASSERT(ic_data.NumArgsTested() == 2);
-
   ASSERT(call->type_args_len() == 0);
   ASSERT(call->ArgumentCount() == 2);
+
+  const BinaryFeedback& binary_feedback = call->BinaryFeedback();
   Definition* left = call->ArgumentAt(0);
   Definition* right = call->ArgumentAt(1);
 
   intptr_t cid = kIllegalCid;
-  if (HasOnlyTwoOf(ic_data, kSmiCid)) {
+  if (binary_feedback.OperandsAre(kSmiCid)) {
     InsertBefore(call,
                  new (Z) CheckSmiInstr(new (Z) Value(left), call->deopt_id(),
                                        call->token_pos()),
@@ -618,15 +480,15 @@ bool CallSpecializer::TryReplaceWithRelationalOp(InstanceCallInstr* call,
                                        call->token_pos()),
                  call->env(), FlowGraph::kEffect);
     cid = kSmiCid;
-  } else if (HasTwoMintOrSmi(ic_data) &&
+  } else if (binary_feedback.OperandsAreSmiOrMint() &&
              FlowGraphCompiler::SupportsUnboxedInt64()) {
     cid = kMintCid;
-  } else if (HasTwoDoubleOrSmi(ic_data) && CanUnboxDouble()) {
+  } else if (binary_feedback.OperandsAreSmiOrDouble() && CanUnboxDouble()) {
     // Use double comparison.
     if (SmiFitsInDouble()) {
       cid = kDoubleCid;
     } else {
-      if (ICDataHasReceiverArgumentClassIds(ic_data, kSmiCid, kSmiCid)) {
+      if (binary_feedback.IncludesOperands(kSmiCid)) {
         // We cannot use double comparison on two smis. Need polymorphic
         // call.
         return false;
@@ -654,31 +516,33 @@ bool CallSpecializer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
                                              Token::Kind op_kind) {
   intptr_t operands_type = kIllegalCid;
   ASSERT(call->HasICData());
-  const ICData& ic_data = *call->ic_data();
+  const BinaryFeedback& binary_feedback = call->BinaryFeedback();
   switch (op_kind) {
     case Token::kADD:
     case Token::kSUB:
     case Token::kMUL:
-      if (HasOnlyTwoOf(ic_data, kSmiCid)) {
+      if (binary_feedback.OperandsAre(kSmiCid)) {
         // Don't generate smi code if the IC data is marked because
         // of an overflow.
-        operands_type = ic_data.HasDeoptReason(ICData::kDeoptBinarySmiOp)
-                            ? kMintCid
-                            : kSmiCid;
-      } else if (HasTwoMintOrSmi(ic_data) &&
+        operands_type =
+            call->ic_data()->HasDeoptReason(ICData::kDeoptBinarySmiOp)
+                ? kMintCid
+                : kSmiCid;
+      } else if (binary_feedback.OperandsAreSmiOrMint() &&
                  FlowGraphCompiler::SupportsUnboxedInt64()) {
         // Don't generate mint code if the IC data is marked because of an
         // overflow.
-        if (ic_data.HasDeoptReason(ICData::kDeoptBinaryInt64Op)) return false;
+        if (call->ic_data()->HasDeoptReason(ICData::kDeoptBinaryInt64Op))
+          return false;
         operands_type = kMintCid;
-      } else if (ShouldSpecializeForDouble(ic_data)) {
+      } else if (ShouldSpecializeForDouble(binary_feedback)) {
         operands_type = kDoubleCid;
-      } else if (HasOnlyTwoOf(ic_data, kFloat32x4Cid)) {
+      } else if (binary_feedback.OperandsAre(kFloat32x4Cid)) {
         operands_type = kFloat32x4Cid;
-      } else if (HasOnlyTwoOf(ic_data, kInt32x4Cid)) {
+      } else if (binary_feedback.OperandsAre(kInt32x4Cid)) {
         ASSERT(op_kind != Token::kMUL);  // Int32x4 doesn't have a multiply op.
         operands_type = kInt32x4Cid;
-      } else if (HasOnlyTwoOf(ic_data, kFloat64x2Cid)) {
+      } else if (binary_feedback.OperandsAre(kFloat64x2Cid)) {
         operands_type = kFloat64x2Cid;
       } else {
         return false;
@@ -686,12 +550,12 @@ bool CallSpecializer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
       break;
     case Token::kDIV:
       if (!FlowGraphCompiler::SupportsHardwareDivision()) return false;
-      if (ShouldSpecializeForDouble(ic_data) ||
-          HasOnlyTwoOf(ic_data, kSmiCid)) {
+      if (ShouldSpecializeForDouble(binary_feedback) ||
+          binary_feedback.OperandsAre(kSmiCid)) {
         operands_type = kDoubleCid;
-      } else if (HasOnlyTwoOf(ic_data, kFloat32x4Cid)) {
+      } else if (binary_feedback.OperandsAre(kFloat32x4Cid)) {
         operands_type = kFloat32x4Cid;
-      } else if (HasOnlyTwoOf(ic_data, kFloat64x2Cid)) {
+      } else if (binary_feedback.OperandsAre(kFloat64x2Cid)) {
         operands_type = kFloat64x2Cid;
       } else {
         return false;
@@ -700,11 +564,11 @@ bool CallSpecializer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
     case Token::kBIT_AND:
     case Token::kBIT_OR:
     case Token::kBIT_XOR:
-      if (HasOnlyTwoOf(ic_data, kSmiCid)) {
+      if (binary_feedback.OperandsAre(kSmiCid)) {
         operands_type = kSmiCid;
-      } else if (HasTwoMintOrSmi(ic_data)) {
+      } else if (binary_feedback.OperandsAreSmiOrMint()) {
         operands_type = kMintCid;
-      } else if (HasOnlyTwoOf(ic_data, kInt32x4Cid)) {
+      } else if (binary_feedback.OperandsAre(kInt32x4Cid)) {
         operands_type = kInt32x4Cid;
       } else {
         return false;
@@ -712,22 +576,22 @@ bool CallSpecializer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
       break;
     case Token::kSHR:
     case Token::kSHL:
-      if (HasOnlyTwoOf(ic_data, kSmiCid)) {
+      if (binary_feedback.OperandsAre(kSmiCid)) {
         // Left shift may overflow from smi into mint or big ints.
         // Don't generate smi code if the IC data is marked because
         // of an overflow.
-        if (ic_data.HasDeoptReason(ICData::kDeoptBinaryInt64Op)) {
+        if (call->ic_data()->HasDeoptReason(ICData::kDeoptBinaryInt64Op)) {
           return false;
         }
-        operands_type = ic_data.HasDeoptReason(ICData::kDeoptBinarySmiOp)
-                            ? kMintCid
-                            : kSmiCid;
-      } else if (HasTwoMintOrSmi(ic_data) &&
-                 HasOnlyOneSmi(ICData::Handle(
-                     Z, ic_data.AsUnaryClassChecksForArgNr(1)))) {
+        operands_type =
+            call->ic_data()->HasDeoptReason(ICData::kDeoptBinarySmiOp)
+                ? kMintCid
+                : kSmiCid;
+      } else if (binary_feedback.OperandsAreSmiOrMint() &&
+                 binary_feedback.ArgumentIs(kSmiCid)) {
         // Don't generate mint code if the IC data is marked because of an
         // overflow.
-        if (ic_data.HasDeoptReason(ICData::kDeoptBinaryInt64Op)) {
+        if (call->ic_data()->HasDeoptReason(ICData::kDeoptBinaryInt64Op)) {
           return false;
         }
         // Check for smi/mint << smi or smi/mint >> smi.
@@ -739,8 +603,8 @@ bool CallSpecializer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
     case Token::kMOD:
     case Token::kTRUNCDIV:
       if (!FlowGraphCompiler::SupportsHardwareDivision()) return false;
-      if (HasOnlyTwoOf(ic_data, kSmiCid)) {
-        if (ic_data.HasDeoptReason(ICData::kDeoptBinarySmiOp)) {
+      if (binary_feedback.OperandsAre(kSmiCid)) {
+        if (call->ic_data()->HasDeoptReason(ICData::kDeoptBinarySmiOp)) {
           return false;
         }
         operands_type = kSmiCid;
@@ -844,7 +708,7 @@ bool CallSpecializer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
   ASSERT(call->ArgumentCount() == 1);
   Definition* input = call->ArgumentAt(0);
   Definition* unary_op = NULL;
-  if (HasOnlyOneSmi(*call->ic_data())) {
+  if (call->Targets().ReceiverIs(kSmiCid)) {
     InsertBefore(call,
                  new (Z) CheckSmiInstr(new (Z) Value(input), call->deopt_id(),
                                        call->token_pos()),
@@ -852,11 +716,11 @@ bool CallSpecializer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
     unary_op = new (Z)
         UnarySmiOpInstr(op_kind, new (Z) Value(input), call->deopt_id());
   } else if ((op_kind == Token::kBIT_NOT) &&
-             HasOnlySmiOrMint(*call->ic_data()) &&
+             call->Targets().ReceiverIsSmiOrMint() &&
              FlowGraphCompiler::SupportsUnboxedInt64()) {
     unary_op = new (Z)
         UnaryInt64OpInstr(op_kind, new (Z) Value(input), call->deopt_id());
-  } else if (HasOnlyOneDouble(*call->ic_data()) &&
+  } else if (call->Targets().ReceiverIs(kDoubleCid) &&
              (op_kind == Token::kNEGATE) && CanUnboxDouble()) {
     AddReceiverCheck(call);
     unary_op = new (Z) UnaryDoubleOpInstr(Token::kNEGATE, new (Z) Value(input),
@@ -869,33 +733,16 @@ bool CallSpecializer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
   return true;
 }
 
-// Lookup field with the given name in the given class.
-RawField* CallSpecializer::GetField(intptr_t class_id,
-                                    const String& field_name) {
-  Class& cls = Class::Handle(Z, isolate()->class_table()->At(class_id));
-  Field& field = Field::Handle(Z);
-  while (!cls.IsNull()) {
-    field = cls.LookupInstanceField(field_name);
-    if (!field.IsNull()) {
-      return should_clone_fields_ ? field.CloneFromOriginal() : field.raw();
-    }
-    cls = cls.SuperClass();
-  }
-  return Field::null();
-}
-
 bool CallSpecializer::TryInlineImplicitInstanceGetter(InstanceCallInstr* call) {
-  ASSERT(call->HasICData());
-  const ICData& ic_data = *call->ic_data();
-  ASSERT(ic_data.HasOneTarget());
-  GrowableArray<intptr_t> class_ids;
-  ic_data.GetClassIdsAt(0, &class_ids);
-  ASSERT(class_ids.length() == 1);
+  const CallTargets& targets = call->Targets();
+  ASSERT(targets.HasSingleTarget());
+
   // Inline implicit instance getter.
-  const String& field_name =
-      String::Handle(Z, Field::NameFromGetter(call->function_name()));
-  const Field& field = Field::ZoneHandle(Z, GetField(class_ids[0], field_name));
+  Field& field = Field::ZoneHandle(Z, targets.FirstTarget().accessor_field());
   ASSERT(!field.IsNull());
+  if (should_clone_fields_) {
+    field = field.CloneFromOriginal();
+  }
 
   switch (
       flow_graph()->CheckForInstanceCall(call, RawFunction::kImplicitGetter)) {
@@ -935,35 +782,23 @@ void CallSpecializer::InlineImplicitInstanceGetter(Definition* call,
   }
 }
 
-bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr,
-                                              const ICData& unary_ic_data) {
-  ASSERT(!unary_ic_data.NumberOfChecksIs(0) &&
-         (unary_ic_data.NumArgsTested() == 1));
-  ASSERT(instr->HasICData());
-  if (unary_ic_data.NumberOfChecksIs(0)) {
-    // No type feedback collected.
-    return false;
-  }
-  if (!unary_ic_data.HasOneTarget()) {
+bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
+  const CallTargets& targets = instr->Targets();
+  if (!targets.HasSingleTarget()) {
     // Polymorphic sites are inlined like normal method calls by conventional
     // inlining.
     return false;
   }
-  Function& target = Function::Handle(Z);
-  intptr_t class_id;
-  unary_ic_data.GetOneClassCheckAt(0, &class_id, &target);
+  const Function& target = targets.FirstTarget();
   if (target.kind() != RawFunction::kImplicitSetter) {
     // Non-implicit setter are inlined like normal method calls.
     return false;
   }
-  // Inline implicit instance setter.
-  String& field_name = String::Handle(Z, instr->function_name().raw());
-  if (Function::IsDynamicInvocationForwarderName(field_name)) {
-    field_name = Function::DemangleDynamicInvocationForwarderName(field_name);
-  }
-  field_name = Field::NameFromSetter(field_name);
-  const Field& field = Field::ZoneHandle(Z, GetField(class_id, field_name));
+  Field& field = Field::ZoneHandle(Z, target.accessor_field());
   ASSERT(!field.IsNull());
+  if (should_clone_fields_) {
+    field = field.CloneFromOriginal();
+  }
 
   switch (
       flow_graph()->CheckForInstanceCall(instr, RawFunction::kImplicitSetter)) {
@@ -984,10 +819,10 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr,
   // True if we can use unchecked entry into the setter.
   bool is_unchecked_call = false;
   if (!FLAG_precompiled_mode) {
-    if (unary_ic_data.NumberOfChecks() == 1 &&
-        unary_ic_data.GetExactnessAt(0).IsExact()) {
-      if (unary_ic_data.GetExactnessAt(0).IsTriviallyExact()) {
-        flow_graph()->AddExactnessGuard(instr, unary_ic_data.GetCidAt(0));
+    if (targets.IsMonomorphic() && targets.MonomorphicExactness().IsExact()) {
+      if (targets.MonomorphicExactness().IsTriviallyExact()) {
+        flow_graph()->AddExactnessGuard(instr,
+                                        targets.MonomorphicReceiverCid());
       }
       is_unchecked_call = true;
     }
@@ -1109,20 +944,13 @@ bool CallSpecializer::InlineSimdBinaryOp(InstanceCallInstr* call,
 
 // Only unique implicit instance getters can be currently handled.
 bool CallSpecializer::TryInlineInstanceGetter(InstanceCallInstr* call) {
-  ASSERT(call->HasICData());
-  const ICData& ic_data = *call->ic_data();
-  if (ic_data.NumberOfUsedChecks() == 0) {
-    // No type feedback collected.
-    return false;
-  }
-
-  if (!ic_data.HasOneTarget()) {
+  const CallTargets& targets = call->Targets();
+  if (!targets.HasSingleTarget()) {
     // Polymorphic sites are inlined like normal methods by conventional
     // inlining in FlowGraphInliner.
     return false;
   }
-
-  const Function& target = Function::Handle(Z, ic_data.GetTargetAt(0));
+  const Function& target = targets.FirstTarget();
   if (target.kind() != RawFunction::kImplicitGetter) {
     // Non-implicit getters are inlined like normal methods by conventional
     // inlining in FlowGraphInliner.
@@ -1148,28 +976,26 @@ void CallSpecializer::ReplaceWithMathCFunction(
 
 // Inline only simple, frequently called core library methods.
 bool CallSpecializer::TryInlineInstanceMethod(InstanceCallInstr* call) {
-  ASSERT(call->HasICData());
-  const ICData& ic_data = *call->ic_data();
-  if (ic_data.NumberOfUsedChecks() != 1) {
+  const CallTargets& targets = call->Targets();
+  if (!targets.IsMonomorphic()) {
     // No type feedback collected or multiple receivers/targets found.
     return false;
   }
 
-  Function& target = Function::Handle(Z);
-  GrowableArray<intptr_t> class_ids;
-  ic_data.GetCheckAt(0, &class_ids, &target);
+  const Function& target = targets.FirstTarget();
+  intptr_t receiver_cid = targets.MonomorphicReceiverCid();
   MethodRecognizer::Kind recognized_kind =
       MethodRecognizer::RecognizeKind(target);
 
   if (CanUnboxDouble() &&
       (recognized_kind == MethodRecognizer::kIntegerToDouble)) {
-    if (class_ids[0] == kSmiCid) {
+    if (receiver_cid == kSmiCid) {
       AddReceiverCheck(call);
       ReplaceCall(call,
                   new (Z) SmiToDoubleInstr(new (Z) Value(call->ArgumentAt(0)),
                                            call->token_pos()));
       return true;
-    } else if ((class_ids[0] == kMintCid) && CanConvertInt64ToDouble()) {
+    } else if ((receiver_cid == kMintCid) && CanConvertInt64ToDouble()) {
       AddReceiverCheck(call);
       ReplaceCall(call,
                   new (Z) Int64ToDoubleInstr(new (Z) Value(call->ArgumentAt(0)),
@@ -1178,7 +1004,7 @@ bool CallSpecializer::TryInlineInstanceMethod(InstanceCallInstr* call) {
     }
   }
 
-  if (class_ids[0] == kDoubleCid) {
+  if (receiver_cid == kDoubleCid) {
     if (!CanUnboxDouble()) {
       return false;
     }
@@ -1281,7 +1107,7 @@ RawBool* CallSpecializer::InstanceOfAsBool(
             : Class::IsSubtypeOf(cls, Object::null_type_arguments(), type_class,
                                  Object::null_type_arguments(), Heap::kOld);
     results->Add(cls.id());
-    results->Add(is_subtype);
+    results->Add(static_cast<intptr_t>(is_subtype));
     if (prev.IsNull()) {
       prev = Bool::Get(is_subtype).raw();
     } else {
@@ -1480,22 +1306,20 @@ void CallSpecializer::VisitStaticCall(StaticCallInstr* call) {
 
     MethodRecognizer::Kind recognized_kind =
         MethodRecognizer::RecognizeKind(call->function());
+    const CallTargets& targets = call->Targets();
+    const BinaryFeedback& binary_feedback = call->BinaryFeedback();
 
     switch (recognized_kind) {
       case MethodRecognizer::kMathMin:
       case MethodRecognizer::kMathMax: {
         // We can handle only monomorphic min/max call sites with both arguments
         // being either doubles or smis.
-        if (CanUnboxDouble() && call->HasICData() &&
-            call->ic_data()->NumberOfChecksIs(1) &&
+        if (CanUnboxDouble() && targets.IsMonomorphic() &&
             (call->FirstArgIndex() == 0)) {
-          const ICData& ic_data = *call->ic_data();
           intptr_t result_cid = kIllegalCid;
-          if (ICDataHasReceiverArgumentClassIds(ic_data, kDoubleCid,
-                                                kDoubleCid)) {
+          if (binary_feedback.IncludesOperands(kDoubleCid)) {
             result_cid = kDoubleCid;
-          } else if (ICDataHasReceiverArgumentClassIds(ic_data, kSmiCid,
-                                                       kSmiCid)) {
+          } else if (binary_feedback.IncludesOperands(kSmiCid)) {
             result_cid = kSmiCid;
           }
           if (result_cid != kIllegalCid) {
@@ -1503,8 +1327,7 @@ void CallSpecializer::VisitStaticCall(StaticCallInstr* call) {
                 recognized_kind, new (Z) Value(call->ArgumentAt(0)),
                 new (Z) Value(call->ArgumentAt(1)), call->deopt_id(),
                 result_cid);
-            const Cids* cids =
-                Cids::CreateAndExpand(Z, ic_data, /* argument_number =*/0);
+            const Cids* cids = Cids::CreateMonomorphic(Z, result_cid);
             AddCheckClass(min_max->left()->definition(), *cids,
                           call->deopt_id(), call->env(), call);
             AddCheckClass(min_max->right()->definition(), *cids,
@@ -1516,17 +1339,16 @@ void CallSpecializer::VisitStaticCall(StaticCallInstr* call) {
         break;
       }
       case MethodRecognizer::kDoubleFromInteger: {
-        if (call->HasICData() && call->ic_data()->NumberOfChecksIs(1) &&
+        if (call->HasICData() && targets.IsMonomorphic() &&
             (call->FirstArgIndex() == 0)) {
-          const ICData& ic_data = *call->ic_data();
           if (CanUnboxDouble()) {
-            if (ArgIsAlways(kSmiCid, ic_data, 1)) {
+            if (binary_feedback.ArgumentIs(kSmiCid)) {
               Definition* arg = call->ArgumentAt(1);
               AddCheckSmi(arg, call->deopt_id(), call->env(), call);
               ReplaceCall(call, new (Z) SmiToDoubleInstr(new (Z) Value(arg),
                                                          call->token_pos()));
               return;
-            } else if (ArgIsAlways(kMintCid, ic_data, 1) &&
+            } else if (binary_feedback.ArgumentIs(kMintCid) &&
                        CanConvertInt64ToDouble()) {
               Definition* arg = call->ArgumentAt(1);
               ReplaceCall(call, new (Z) Int64ToDoubleInstr(new (Z) Value(arg),
@@ -1569,7 +1391,7 @@ static void TryAddTest(ZoneGrowableArray<intptr_t>* results,
                        bool result) {
   if (!CidTestResultsContains(*results, test_cid)) {
     results->Add(test_cid);
-    results->Add(result);
+    results->Add(static_cast<intptr_t>(result));
   }
 }
 
@@ -1605,7 +1427,7 @@ bool CallSpecializer::SpecializeTestCidsForNumericTypes(
       (*results)[i] = (*results)[i - 2];
     }
     (*results)[0] = kSmiCid;
-    (*results)[1] = smi_is_subtype;
+    (*results)[1] = static_cast<intptr_t>(smi_is_subtype);
   }
 
   ASSERT(type.IsInstantiated());

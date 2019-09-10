@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:nnbd_migration/src/already_migrated_code_decorator.dart';
 import 'package:nnbd_migration/src/conditional_discard.dart';
@@ -32,14 +33,15 @@ class Variables implements VariableRecorder, VariableRepository {
 
   final AlreadyMigratedCodeDecorator _alreadyMigratedCodeDecorator;
 
-  Variables(this._graph)
-      : _alreadyMigratedCodeDecorator = AlreadyMigratedCodeDecorator(_graph);
+  Variables(this._graph, TypeProvider typeProvider)
+      : _alreadyMigratedCodeDecorator =
+            AlreadyMigratedCodeDecorator(_graph, typeProvider);
 
   @override
   Map<ClassElement, DecoratedType> decoratedDirectSupertypes(
       ClassElement class_) {
     assert(class_ is! ClassElementHandle);
-    return _decoratedDirectSupertypes[class_] ??
+    return _decoratedDirectSupertypes[class_] ??=
         _decorateDirectSupertypes(class_);
   }
 
@@ -230,9 +232,9 @@ class Variables implements VariableRecorder, VariableRepository {
     }
 
     DecoratedType decoratedType;
-    if (element is ExecutableElement) {
+    if (element is FunctionTypedElement) {
       decoratedType = _alreadyMigratedCodeDecorator.decorate(element.type);
-    } else if (element is TopLevelVariableElement) {
+    } else if (element is VariableElement) {
       decoratedType = _alreadyMigratedCodeDecorator.decorate(element.type);
     } else {
       // TODO(paulberry)
@@ -246,9 +248,8 @@ class Variables implements VariableRecorder, VariableRepository {
   Map<ClassElement, DecoratedType> _decorateDirectSupertypes(
       ClassElement class_) {
     var result = <ClassElement, DecoratedType>{};
-    for (var supertype in class_.allSupertypes) {
-      var decoratedSupertype =
-          _alreadyMigratedCodeDecorator.decorate(supertype);
+    for (var decoratedSupertype
+        in _alreadyMigratedCodeDecorator.getImmediateSupertypes(class_)) {
       assert(identical(decoratedSupertype.node, _graph.never));
       var class_ = (decoratedSupertype.type as InterfaceType).element;
       if (class_ is ClassElementHandle) {

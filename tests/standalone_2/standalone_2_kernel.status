@@ -4,23 +4,11 @@
 # Sections in this file should contain "$compiler == dartk" or
 # "$compiler == dartkp".
 
-fragmentation_test: Pass, Slow # GC heavy
-io/process_sync_test: Pass, Slow # Spawns synchronously subprocesses in sequence.
-
-[ $builder_tag == asan ]
-io/file_test: Fail # Issue 34724
-io/http_server_response_test: Fail # Issue 34724
-io/process_sync_test: Pass, Fail # https://github.com/dart-lang/sdk/issues/34724
-io/signals_test: Fail # Issue 34724
-io/test_extension_fail_test: Fail # Issue 32187
+fragmentation_test: Slow # GC heavy
+io/process_sync_test: Slow # Spawns synchronously subprocesses in sequence.
 
 [ $compiler == dartkb ]
-io/dart_std_io_pipe_test: Pass, Timeout # Please triage
-io/platform_test: RuntimeError # Platform.script points to dill file.
 no_lazy_dispatchers_test: SkipByDesign # KBC interpreter doesn't support --no_lazy_dispatchers
-
-[ $compiler == dartkp ]
-io/arguments_test: Fail # Test harness passes runtime arguments to the compiler
 
 [ $system == android ]
 entrypoints_verification_test: Skip # Requires shared objects which the test script doesn't "adb push".
@@ -28,17 +16,8 @@ entrypoints_verification_test: Skip # Requires shared objects which the test scr
 [ $arch == ia32 && $builder_tag == optimization_counter_threshold ]
 io/file_lock_test: SkipSlow # Timeout
 
-[ $arch == ia32 && $compiler == dartk ]
-io/dart_std_io_pipe_test: Timeout, Pass # Issue 34723
-
 [ $arch == simarm64 && ($compiler == dartk || $compiler == dartkb) ]
 io/http_bind_test: Slow
-
-[ $arch == x64 && $builder_tag == asan && $compiler == dartk ]
-io/file_test: Fail # Memory leak (issue 34724)
-io/http_server_response_test: Fail # Memory leak (issue 34724)
-io/signals_test: Pass, RuntimeError # Issue 34734
-io/test_extension_fail_test: Fail # Memory leak (issue 34724)
 
 [ $builder_tag == optimization_counter_threshold && ($compiler == dartk || $compiler == dartkb) ]
 map_insert_remove_oom_test: Skip # Heap limit too low.
@@ -66,7 +45,6 @@ io/platform_test: Crash
 io/raw_datagram_socket_test: Skip # Flaky.
 io/raw_secure_server_closing_test: Skip # Flaky
 io/raw_socket_test: Crash
-io/secure_builtin_roots_test: Timeout, Pass # Times out on bots.
 io/secure_multiple_client_server_test: Skip # Flaky.
 io/secure_server_closing_test: Skip # Flaky.
 io/secure_server_socket_test: Skip # Flaky.
@@ -77,7 +55,6 @@ io/web_socket_ping_test: Skip # Flaky.
 io/web_socket_test: Skip # Flaky.
 map_insert_remove_oom_test: Skip # Heap limit too low.
 no_support_debugger_test: Skip # kernel-service snapshot not compatible with flag disabled
-regress_29350_test/none: Pass # Issue 31537
 
 [ $mode == debug && $runtime == vm && ($compiler == dartk || $compiler == dartkb) ]
 io/file_lock_test: Slow
@@ -93,14 +70,10 @@ io/web_socket_ping_test: Crash
 
 [ $runtime == vm && ($compiler == dartk || $compiler == dartkb) ]
 no_support_debugger_test: Skip # kernel-service snapshot not compatible with flag disabled
-regress_29350_test/none: Pass # Issue 31537
 
 [ $system == windows && ($compiler == dartk || $compiler == dartkb) ]
-io/compile_all_test: Pass, Fail # Possibly related to issue 32373
 io/dart_std_io_pipe_test: Slow
 io/secure_builtin_roots_test: Skip # Issues 32137 and 32138.
-io/test_extension_fail_test: RuntimeError, Pass # Issue 32137.
-io/test_extension_test: RuntimeError, Pass # Issue 32137.
 io/wait_for_event_isolate_test: Skip # Issues 32137 and 32138.
 map_insert_remove_oom_test: Skip # Heap limit too low.
 
@@ -116,12 +89,8 @@ io/echo_server_stream_test: Slow
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
 [ ($arch == simarm || $arch == simarm64 || $arch == simdbc64) && ($compiler == dartk || $compiler == dartkb) ]
-io/directory_list_sync_test: Timeout, Pass # Please triage.
-io/file_blocking_lock_test: Pass, Crash # Please triage.
+io/file_blocking_lock_test: Crash # Please triage.
 io/file_lock_test: Slow
-io/platform_test: RuntimeError # Platform.script points to dill file.
-io/test_extension_fail_test: RuntimeError # Platform.script points to dill file.
-io/test_extension_test: RuntimeError # Platform.script points to dill file.
 map_insert_remove_oom_test: Skip # Heap limit too low.
 
 [ ($compiler == dartk || $compiler == dartkb) && ($hot_reload || $hot_reload_rollback) ]
@@ -129,7 +98,6 @@ io/addlatexhash_test: Skip # Timeout
 io/http_advanced_test: Skip # Timeout
 io/http_auth_digest_test: Crash
 io/http_auth_test: Skip # Timeout
-io/http_basic_test: Pass, Timeout # Issue 28046
 io/http_proxy_advanced_test: Skip # Timeout
 io/http_read_test: Skip # Timeout
 io/pipe_server_test: Skip # Timeout

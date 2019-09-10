@@ -103,6 +103,8 @@ ConstEvalNonConstantVariableGet/example: Fail
 ConstEvalNotListOrSetInSpread/example: Fail
 ConstEvalNotMapInSpread/example: Fail
 ConstEvalNullValue/example: Fail
+ConstEvalStartingPoint/analyzerCode: Fail # This is just used for displaying the starting point.
+ConstEvalStartingPoint/example: Fail # This is just used for displaying the starting point.
 ConstEvalUnevaluated/analyzerCode: Fail
 ConstEvalUnevaluated/example: Fail
 ConstEvalZeroDivisor/example: Fail
@@ -124,8 +126,6 @@ CovariantMember/part_wrapped_script1: Fail
 CovariantMember/part_wrapped_script2: Fail
 CovariantMember/script1: Fail
 CovariantMember/script2: Fail
-CycleInTypeVariables/part_wrapped_script1: Fail
-CycleInTypeVariables/script1: Fail # We report an error for each type variable involved in the cycle.
 CyclicClassHierarchy/part_wrapped_script1: Fail
 CyclicClassHierarchy/part_wrapped_script2: Fail
 CyclicClassHierarchy/script1: Fail # We report an error for each class involved in the cycle.
@@ -193,6 +193,10 @@ ExpectedType/example: Fail
 ExpectedUri/analyzerCode: Fail
 ExpectedUri/example: Fail
 ExperimentNotEnabled/example: Fail
+ExplicitExtensionArgumentMismatch/analyzerCode: Fail
+ExplicitExtensionArgumentMismatch/example: Fail
+ExplicitExtensionTypeArgumentMismatch/analyzerCode: Fail
+ExplicitExtensionTypeArgumentMismatch/example: Fail
 ExportAfterPart/part_wrapped_script1: Fail
 ExportAfterPart/script1: Fail
 ExpressionNotMetadata/analyzerCode: Fail
@@ -205,6 +209,9 @@ ExternalConstructorWithFieldInitializers/example: Fail
 ExternalFactoryRedirection/example: Fail
 ExternalFactoryWithBody/part_wrapped_script1: Fail
 ExternalFactoryWithBody/script1: Fail
+ExtensionDeclaresAbstractMember/example: Fail
+ExtensionDeclaresConstructor/example: Fail
+ExtensionDeclaresInstanceField/example: Fail
 ExtraneousModifier/part_wrapped_script1: Fail
 ExtraneousModifier/part_wrapped_script2: Fail
 ExtraneousModifier/part_wrapped_script3: Fail
@@ -258,6 +265,10 @@ FfiDartTypeMismatch/analyzerCode: Fail
 FfiExtendsOrImplementsSealedClass/analyzerCode: Fail
 FfiStructGeneric/analyzerCode: Fail
 FfiWrongStructInheritance/analyzerCode: Fail
+FfiExpectedExceptionalReturn/analyzerCode: Fail
+FfiExpectedNoExceptionalReturn/analyzerCode: Fail
+FfiExpectedConstant/analyzerCode: Fail
+FfiExceptionalReturnNull/analyzerCode: Fail
 FieldInitializedOutsideDeclaringClass/part_wrapped_script1: Fail
 FieldInitializedOutsideDeclaringClass/script1: Fail
 FieldInitializerOutsideConstructor/part_wrapped_script1: Fail
@@ -363,6 +374,7 @@ MissingMain/analyzerCode: Fail
 MissingMain/example: Fail
 MissingPartOf/part_wrapped_script: Fail # Using 'part' in the (now) part.
 MissingPrefixInDeferredImport/example: Fail
+MixinDeclaresConstructor/example: Fail
 MixinInferenceNoMatchingClass/example: Fail
 ModifierOutOfOrder/part_wrapped_script1: Fail
 ModifierOutOfOrder/script1: Fail
@@ -407,6 +419,7 @@ OverrideMismatchNamedParameter/example: Fail
 OverrideMoreRequiredArguments/example: Fail
 OverrideTypeMismatchParameter/example: Fail
 OverrideTypeMismatchReturnType/example: Fail
+OverrideTypeMismatchSetter/example: Fail
 OverrideTypeVariablesMismatch/example: Fail
 PackageNotFound/analyzerCode: Fail
 PackageNotFound/example: Fail

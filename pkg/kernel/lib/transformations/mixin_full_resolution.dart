@@ -181,7 +181,7 @@ class MixinFullResolution {
           if (src.positionalParameters.length !=
                   dst.positionalParameters.length ||
               src.namedParameters.length != dst.namedParameters.length) {
-            // A compile time error has already occured, but don't crash below,
+            // A compile time error has already occurred, but don't crash below,
             // and don't add several procedures with the same name to the class.
             continue outer;
           }

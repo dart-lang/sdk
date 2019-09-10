@@ -77,7 +77,7 @@ abstract class ErrorToken extends SimpleToken {
 
     // Attempt to include the location which is calling the parser
     // in an effort to debug https://github.com/dart-lang/sdk/issues/37528
-    RegExp pattern = RegExp('^#[0-9]* *Parser');
+    RegExp pattern = new RegExp('^#[0-9]* *Parser');
     List<String> traceLines = StackTrace.current.toString().split('\n');
     for (int index = traceLines.length - 2; index >= 0; --index) {
       String line = traceLines[index];

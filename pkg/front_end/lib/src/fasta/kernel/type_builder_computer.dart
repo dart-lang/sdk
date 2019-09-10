@@ -30,6 +30,7 @@ import '../kernel/kernel_builder.dart'
         NamedTypeBuilder,
         TypeVariableBuilder,
         LibraryBuilder,
+        NullabilityBuilder,
         TypeBuilder,
         VoidTypeBuilder;
 
@@ -51,13 +52,17 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
   }
 
   TypeBuilder visitDynamicType(DynamicType node) {
-    return new NamedTypeBuilder("dynamic", null)
+    // 'dynamic' is always nullable.
+    return new NamedTypeBuilder(
+        "dynamic", const NullabilityBuilder.nullable(), null)
       ..bind(
           new DynamicTypeBuilder(const DynamicType(), loader.coreLibrary, -1));
   }
 
   TypeBuilder visitVoidType(VoidType node) {
-    return new NamedTypeBuilder("void", null)
+    // 'void' is always nullable.
+    return new NamedTypeBuilder(
+        "void", const NullabilityBuilder.nullable(), null)
       ..bind(new VoidTypeBuilder(const VoidType(), loader.coreLibrary, -1));
   }
 
@@ -76,7 +81,11 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
         arguments[i] = kernelArguments[i].accept(this);
       }
     }
-    return new NamedTypeBuilder(cls.name, arguments)..bind(cls);
+    // TODO(dmitryas): Compute the nullabilityBuilder field for the result from
+    //  the nullability field of 'node'.
+    return new NamedTypeBuilder(
+        cls.name, const NullabilityBuilder.pendingImplementation(), arguments)
+      ..bind(cls);
   }
 
   @override
@@ -114,7 +123,10 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
     Class kernelClass = parameter.parent;
     Library kernelLibrary = kernelClass.enclosingLibrary;
     LibraryBuilder library = loader.builders[kernelLibrary.importUri];
-    return new NamedTypeBuilder(parameter.name, null)
+    // TODO(dmitryas): Compute the nullabilityBuilder field for the result from
+    //  the nullability field of 'node'.
+    return new NamedTypeBuilder(
+        parameter.name, const NullabilityBuilder.pendingImplementation(), null)
       ..bind(new TypeVariableBuilder.fromKernel(parameter, library));
   }
 

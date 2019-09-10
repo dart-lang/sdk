@@ -1311,6 +1311,7 @@ RawTypedData* TypedData::ReadFrom(SnapshotReader* reader,
   intptr_t length_in_bytes = len * element_size;
   NoSafepointScope no_safepoint;
   uint8_t* data = reinterpret_cast<uint8_t*>(result.DataAddr(0));
+  reader->Align(Zone::kAlignment);
   reader->ReadBytes(data, length_in_bytes);
 
   // If it is a canonical constant make it one.
@@ -1456,6 +1457,7 @@ void RawTypedData::WriteTo(SnapshotWriter* writer,
     writer->WriteTags(writer->GetObjectTags(this));
     writer->Write<RawObject*>(ptr()->length_);
     uint8_t* data = reinterpret_cast<uint8_t*>(ptr()->data());
+    writer->Align(Zone::kAlignment);
     writer->WriteBytes(data, bytes);
   }
 }

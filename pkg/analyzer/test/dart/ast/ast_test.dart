@@ -30,6 +30,7 @@ main() {
     defineReflectiveTests(PreviousTokenTest);
     defineReflectiveTests(SimpleIdentifierTest);
     defineReflectiveTests(SimpleStringLiteralTest);
+    defineReflectiveTests(SpreadElementTest);
     defineReflectiveTests(StringInterpolationTest);
     defineReflectiveTests(VariableDeclarationTest);
   });
@@ -1185,6 +1186,21 @@ class SimpleStringLiteralTest extends ParserTestCase {
     expect(stringLiteral.beginToken, same(token));
     expect(stringLiteral.endToken, same(token));
     expect(stringLiteral.value, "value");
+  }
+}
+
+@reflectiveTest
+class SpreadElementTest extends ParserTestCase {
+  void test_notNullAwareSpread() {
+    final spread = AstTestFactory.spreadElement(
+        TokenType.PERIOD_PERIOD_PERIOD, AstTestFactory.nullLiteral());
+    expect(spread.isNullAware, isFalse);
+  }
+
+  void test_nullAwareSpread() {
+    final spread = AstTestFactory.spreadElement(
+        TokenType.PERIOD_PERIOD_PERIOD_QUESTION, AstTestFactory.nullLiteral());
+    expect(spread.isNullAware, isTrue);
   }
 }
 

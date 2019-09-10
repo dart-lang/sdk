@@ -25,7 +25,7 @@ class StaticMemberContributor extends DartCompletionContributor {
     Expression targetId = request.dotTarget;
     if (targetId is Identifier && !request.target.isCascade) {
       Element elem = targetId.staticElement;
-      if (elem is ClassElement) {
+      if (elem is ClassElement || elem is ExtensionElement) {
         LibraryElement containingLibrary = request.libraryElement;
         // Gracefully degrade if the library could not be determined
         // e.g. detached part file or source change
@@ -72,6 +72,11 @@ class _SuggestionBuilder extends GeneralizingElementVisitor {
   @override
   visitElement(Element element) {
     // ignored
+  }
+
+  @override
+  visitExtensionElement(ExtensionElement element) {
+    element.visitChildren(this);
   }
 
   @override

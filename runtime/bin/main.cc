@@ -275,7 +275,7 @@ static bool OnIsolateInitialize(void** child_callback_data, char** error) {
     }
   } else {
     result = DartUtils::ResolveScript(Dart_NewStringFromCString(script_uri));
-    if (Dart_IsError(result)) return result;
+    if (Dart_IsError(result)) return result != nullptr;
 
     if (isolate_group_data->kernel_buffer().get() != nullptr) {
       // Various core-library parts will send requests to the Loader to resolve
@@ -284,7 +284,7 @@ static bool OnIsolateInitialize(void** child_callback_data, char** error) {
       // bypasses normal source code loading paths that initialize it.
       const char* resolved_script_uri = NULL;
       result = Dart_StringToCString(result, &resolved_script_uri);
-      if (Dart_IsError(result)) return result;
+      if (Dart_IsError(result)) return result != nullptr;
       Loader::InitForSnapshot(resolved_script_uri, isolate_data);
     }
   }
@@ -661,12 +661,12 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
     }
   }
 
-  if (flags->copy_parent_code && callback_data) {
-    IsolateGroupData* parent_isolate_data =
-        reinterpret_cast<IsolateGroupData*>(callback_data);
-    parent_kernel_buffer = parent_isolate_data->kernel_buffer();
+  if (flags->copy_parent_code && callback_data != nullptr) {
+    auto parent_isolate_group_data =
+        reinterpret_cast<IsolateData*>(callback_data)->isolate_group_data();
+    parent_kernel_buffer = parent_isolate_group_data->kernel_buffer();
     kernel_buffer = parent_kernel_buffer.get();
-    kernel_buffer_size = parent_isolate_data->kernel_buffer_size();
+    kernel_buffer_size = parent_isolate_group_data->kernel_buffer_size();
   }
 
   if (kernel_buffer == NULL && !isolate_run_app_snapshot) {
@@ -1138,13 +1138,6 @@ void main(int argc, char** argv) {
                              &app_isolate_snapshot_data,
                              &app_isolate_snapshot_instructions);
   }
-
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  // Constant true if PRODUCT or DART_PRECOMPILED_RUNTIME.
-  if ((Options::gen_snapshot_kind() != kNone) || vm_run_app_snapshot) {
-    vm_options.AddArgument("--load_deferred_eagerly");
-  }
-#endif
 
   if (Options::gen_snapshot_kind() == kAppJIT) {
     vm_options.AddArgument("--fields_may_be_reset");

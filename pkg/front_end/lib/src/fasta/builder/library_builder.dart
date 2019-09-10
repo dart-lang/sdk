@@ -32,10 +32,13 @@ import 'builder.dart'
         FieldBuilder,
         ModifierBuilder,
         NameIterator,
+        NullabilityBuilder,
         PrefixBuilder,
         Scope,
         ScopeBuilder,
         TypeBuilder;
+
+import 'declaration.dart';
 
 abstract class LibraryBuilder extends ModifierBuilder {
   final Scope scope;
@@ -60,6 +63,14 @@ abstract class LibraryBuilder extends ModifierBuilder {
   bool get legacyMode => false;
 
   bool get isSynthetic => false;
+
+  // Deliberately unrelated return type to statically detect more accidental
+  // use until Builder.target is fully retired.
+  UnrelatedTarget get target => unsupported(
+      "LibraryBuilder.target is deprecated. "
+      "Use LibraryBuilder.library instead.",
+      charOffset,
+      fileUri);
 
   /// Set the langauge version to a specific non-null major and minor version.
   ///
@@ -91,13 +102,13 @@ abstract class LibraryBuilder extends ModifierBuilder {
   @override
   int get modifiers => 0;
 
-  @override
-  Library get target;
+  /// Returns the [Library] built by this builder.
+  Library get library;
 
   Uri get uri;
 
   Iterator<Builder> get iterator {
-    return LibraryLocalDeclarationIterator(this);
+    return new LibraryLocalDeclarationIterator(this);
   }
 
   NameIterator get nameIterator {
@@ -262,6 +273,19 @@ abstract class LibraryBuilder extends ModifierBuilder {
   void buildOutlineExpressions() {}
 
   List<FieldBuilder> takeImplicitlyTypedFields() => null;
+
+  // TODO(dmitryas): Compute the predicate using the library version instead.
+  bool get isNonNullableByDefault => loader.target.enableNonNullable;
+
+  NullabilityBuilder computeNullabilityFromToken(bool markedAsNullable) {
+    if (!isNonNullableByDefault) {
+      return const NullabilityBuilder.legacy();
+    }
+    if (markedAsNullable) {
+      return const NullabilityBuilder.nullable();
+    }
+    return const NullabilityBuilder.omitted();
+  }
 }
 
 class LibraryLocalDeclarationIterator implements Iterator<Builder> {

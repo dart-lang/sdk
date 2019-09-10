@@ -257,22 +257,20 @@ abstract class TestSuite {
   /// pubspec checkouts ...).
   String createOutputDirectory(Path testPath) {
     var checked = configuration.isChecked ? '-checked' : '';
-    var legacy = configuration.noPreviewDart2 ? '-legacy' : '';
     var minified = configuration.isMinified ? '-minified' : '';
     var sdk = configuration.useSdk ? '-sdk' : '';
     var dirName = "${configuration.compiler.name}-${configuration.runtime.name}"
-        "$checked$legacy$minified$sdk";
+        "$checked$minified$sdk";
     return createGeneratedTestDirectoryHelper("tests", dirName, testPath);
   }
 
   String createCompilationOutputDirectory(Path testPath) {
     var checked = configuration.isChecked ? '-checked' : '';
-    var legacy = configuration.noPreviewDart2 ? '-legacy' : '';
     var minified = configuration.isMinified ? '-minified' : '';
     var csp = configuration.isCsp ? '-csp' : '';
     var sdk = configuration.useSdk ? '-sdk' : '';
     var dirName = "${configuration.compiler.name}"
-        "$checked$legacy$minified$csp$sdk";
+        "$checked$minified$csp$sdk";
     return createGeneratedTestDirectoryHelper(
         "compilations", dirName, testPath);
   }
@@ -334,7 +332,7 @@ class VMTestSuite extends TestSuite {
       doTest = null;
       if (onDone != null) onDone();
     } catch (error, s) {
-      print("Fatal error occured: $error");
+      print("Fatal error occurred: $error");
       print(s);
       exit(1);
     }
@@ -362,23 +360,20 @@ class VMTestSuite extends TestSuite {
         hasStaticWarning: false,
         hasCrash: testExpectation == Expectation.crash);
 
-    var args = configuration.standardOptions.toList();
-    if (configuration.compilerConfiguration.previewDart2) {
-      var filename = configuration.architecture == Architecture.x64
-          ? '$buildDir/gen/kernel-service.dart.snapshot'
-          : '$buildDir/gen/kernel_service.dill';
-      var dfePath = Path(filename).absolute.toNativePath();
+    var filename = configuration.architecture == Architecture.x64
+        ? '$buildDir/gen/kernel-service.dart.snapshot'
+        : '$buildDir/gen/kernel_service.dill';
+    var dfePath = Path(filename).absolute.toNativePath();
+    var args = [
+      if (expectations.contains(Expectation.crash)) '--suppress-core-dump',
       // '--dfe' has to be the first argument for run_vm_test to pick it up.
-      args.insert(0, '--dfe=$dfePath');
-      args.addAll(configuration.vmOptions);
-    }
-    if (expectations.contains(Expectation.crash)) {
-      args.insert(0, '--suppress-core-dump');
-    }
+      '--dfe=$dfePath',
+      ...configuration.standardOptions,
+      ...configuration.vmOptions,
+      test.name
+    ];
 
-    args.add(test.name);
-
-    var command = Command.process(
+    var command = ProcessCommand(
         'run_vm_unittest', targetRunnerPath, args, environmentOverrides);
     enqueueNewTestCase(testFile, fullName, [command], expectations);
   }
@@ -701,12 +696,7 @@ class StandardTestSuite extends TestSuite {
     String tempDir;
     if (compilerConfiguration.hasCompiler) {
       compileTimeArguments = compilerConfiguration.computeCompilerArguments(
-          vmOptions,
-          testFile.sharedOptions,
-          testFile.dartOptions,
-          testFile.dart2jsOptions,
-          testFile.ddcOptions,
-          args);
+          testFile, vmOptions, args);
       // Avoid doing this for analyzer.
       var path = testFile.path;
       if (vmOptionsVariant != 0) {
@@ -873,13 +863,8 @@ class StandardTestSuite extends TestSuite {
     };
     assert(supportedCompilers.contains(configuration.compiler));
 
-    var args = configuration.compilerConfiguration.computeCompilerArguments(
-        null,
-        testFile.sharedOptions,
-        null,
-        testFile.dart2jsOptions,
-        testFile.ddcOptions,
-        commonArguments);
+    var args = configuration.compilerConfiguration
+        .computeCompilerArguments(testFile, null, commonArguments);
     var compilation = configuration.compilerConfiguration
         .computeCompilationArtifact(outputDir, args, environmentOverrides);
     commands.addAll(compilation.commands);

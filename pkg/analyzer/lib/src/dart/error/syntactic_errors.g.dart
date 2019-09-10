@@ -99,6 +99,10 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _VAR_AND_TYPE,
   _INVALID_INITIALIZER,
   _ANNOTATION_WITH_TYPE_ARGUMENTS,
+  _EXTENSION_DECLARES_CONSTRUCTOR,
+  _EXTENSION_DECLARES_INSTANCE_FIELD,
+  _EXTENSION_DECLARES_ABSTRACT_MEMBER,
+  _MIXIN_DECLARES_CONSTRUCTOR,
 ];
 
 const ParserErrorCode _ABSTRACT_CLASS_MEMBER = const ParserErrorCode(
@@ -243,6 +247,21 @@ const ParserErrorCode _EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE =
         r"Export directives must precede part directives.",
         correction:
             "Try moving the export directives before the part directives.");
+
+const ParserErrorCode _EXTENSION_DECLARES_ABSTRACT_MEMBER =
+    const ParserErrorCode('EXTENSION_DECLARES_ABSTRACT_MEMBER',
+        r"Extensions can't declare abstract members.",
+        correction: "Try providing an implementation for the member.");
+
+const ParserErrorCode _EXTENSION_DECLARES_CONSTRUCTOR = const ParserErrorCode(
+    'EXTENSION_DECLARES_CONSTRUCTOR', r"Extensions can't declare constructors.",
+    correction: "Try removing the constructor declaration.");
+
+const ParserErrorCode _EXTENSION_DECLARES_INSTANCE_FIELD =
+    const ParserErrorCode('EXTENSION_DECLARES_INSTANCE_FIELD',
+        r"Extensions can't declare instance fields",
+        correction:
+            "Try removing the field declaration or making it a static field");
 
 const ParserErrorCode _EXTERNAL_CLASS = const ParserErrorCode(
     'EXTERNAL_CLASS', r"Classes can't be declared to be 'external'.",
@@ -421,6 +440,9 @@ const ParserErrorCode _MISSING_PREFIX_IN_DEFERRED_IMPORT =
 
 const ParserErrorCode _MISSING_STATEMENT =
     const ParserErrorCode('MISSING_STATEMENT', r"Expected a statement.");
+
+const ParserErrorCode _MIXIN_DECLARES_CONSTRUCTOR = const ParserErrorCode(
+    'MIXIN_DECLARES_CONSTRUCTOR', r"Mixins can't declare constructors.");
 
 const ParserErrorCode _MODIFIER_OUT_OF_ORDER = const ParserErrorCode(
     'MODIFIER_OUT_OF_ORDER',

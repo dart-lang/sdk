@@ -12,19 +12,12 @@ import 'dart:typed_data';
 import 'package:logging/logging.dart';
 
 class _ReadStream {
-  final List<ByteData> _chunks;
-  int _chunkIndex = 0;
-  int _byteIndex = 0;
+  final Uint8List _buffer;
+  int _position = 0;
 
-  _ReadStream(this._chunks);
+  _ReadStream(this._buffer);
 
-  int readByte() {
-    while (_byteIndex >= _chunks[_chunkIndex].lengthInBytes) {
-      _chunkIndex++;
-      _byteIndex = 0;
-    }
-    return _chunks[_chunkIndex].getUint8(_byteIndex++);
-  }
+  int readByte() => _buffer[_position++];
 
   /// Read one ULEB128 number.
   int readUnsigned() {
@@ -342,15 +335,48 @@ class _VerticesIterator implements Iterator<SnapshotObject> {
   }
 }
 
+class _InstancesIterable extends IterableBase<SnapshotObject> {
+  final _SnapshotGraph _graph;
+  final int _cid;
+
+  _InstancesIterable(this._graph, this._cid);
+
+  Iterator<SnapshotObject> get iterator => new _InstancesIterator(_graph, _cid);
+}
+
+class _InstancesIterator implements Iterator<SnapshotObject> {
+  final _SnapshotGraph _graph;
+  final int _cid;
+
+  int _nextId = 0;
+  SnapshotObject current;
+
+  _InstancesIterator(this._graph, this._cid);
+
+  bool moveNext() {
+    while (_nextId < _graph._N) {
+      if (_graph._cids[_nextId] == _cid) {
+        current = new _SnapshotObject._(_nextId++, _graph, "");
+        return true;
+      }
+      _nextId++;
+    }
+    return false;
+  }
+}
+
 abstract class SnapshotClass {
   String get name;
   int get externalSize;
   int get shallowSize;
   int get ownedSize;
   int get instanceCount;
+  Iterable<SnapshotObject> get instances;
 }
 
 class _SnapshotClass implements SnapshotClass {
+  final _SnapshotGraph _graph;
+  final int _cid;
   final String name;
   final String libName;
   final String libUri;
@@ -370,7 +396,10 @@ class _SnapshotClass implements SnapshotClass {
   int get externalSize => liveExternalSize;
   int get instanceCount => liveInstanceCount;
 
-  _SnapshotClass(this.name, this.libName, this.libUri);
+  Iterable<SnapshotObject> get instances =>
+      new _InstancesIterable(_graph, _cid);
+
+  _SnapshotClass(this._graph, this._cid, this.name, this.libName, this.libUri);
 }
 
 abstract class SnapshotGraph {
@@ -384,7 +413,7 @@ abstract class SnapshotGraph {
   Iterable<SnapshotClass> get classes;
   Iterable<SnapshotObject> get objects;
 
-  factory SnapshotGraph(List<ByteData> chunks) => new _SnapshotGraph(chunks);
+  factory SnapshotGraph(Uint8List encoded) => new _SnapshotGraph(encoded);
   Stream<String> process();
 }
 
@@ -403,7 +432,7 @@ const kRootName = "Root";
 const kUnknownFieldName = "<unknown>";
 
 class _SnapshotGraph implements SnapshotGraph {
-  _SnapshotGraph(List<ByteData> chunks) : this._chunks = chunks;
+  _SnapshotGraph(Uint8List encoded) : this._encoded = encoded;
 
   int get size => _liveShallowSize + _liveExternalSize;
   int get shallowSize => _liveShallowSize;
@@ -466,8 +495,8 @@ class _SnapshotGraph implements SnapshotGraph {
     (() async {
       // We build futures here instead of marking the steps as async to avoid the
       // heavy lifting being inside a transformed method.
-      var stream = new _ReadStream(_chunks);
-      _chunks = null;
+      var stream = new _ReadStream(_encoded);
+      _encoded = null;
 
       controller.add("Loading classes...");
       await new Future(() => _readClasses(stream));
@@ -520,7 +549,7 @@ class _SnapshotGraph implements SnapshotGraph {
     return controller.stream;
   }
 
-  List<ByteData> _chunks;
+  Uint8List _encoded;
 
   int _kStackCid;
   int _kFieldCid;
@@ -572,7 +601,7 @@ class _SnapshotGraph implements SnapshotGraph {
 
     var K = stream.readUnsigned();
     var classes = new List<_SnapshotClass>(K + 1);
-    classes[0] = new _SnapshotClass("Root", "", "");
+    classes[0] = new _SnapshotClass(this, 0, "Root", "", "");
 
     for (var cid = 1; cid <= K; cid++) {
       int flags = stream.readUnsigned();
@@ -580,7 +609,7 @@ class _SnapshotGraph implements SnapshotGraph {
       String libName = stream.readUtf8();
       String libUri = stream.readUtf8();
       String reserved = stream.readUtf8();
-      var cls = new _SnapshotClass(name, libName, libUri);
+      final cls = new _SnapshotClass(this, cid, name, libName, libUri);
       int edgeCount = stream.readUnsigned();
       for (int i = 0; i < edgeCount; i++) {
         int flags = stream.readUnsigned();

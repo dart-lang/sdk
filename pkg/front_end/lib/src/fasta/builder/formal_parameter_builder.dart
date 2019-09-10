@@ -60,7 +60,7 @@ class FormalParameterBuilder extends ModifierBuilder {
   FormalParameterKind kind = FormalParameterKind.mandatory;
 
   /// The variable declaration created for this formal parameter.
-  VariableDeclaration declaration;
+  VariableDeclaration variable;
 
   /// The first token of the default value, if any.
   ///
@@ -94,12 +94,12 @@ class FormalParameterBuilder extends ModifierBuilder {
   @override
   String get fullNameForErrors => name;
 
-  VariableDeclaration get target => declaration;
+  VariableDeclaration get target => variable;
 
   VariableDeclaration build(
       SourceLibraryBuilder library, int functionNestingLevel) {
-    if (declaration == null) {
-      declaration = new VariableDeclarationJudgment(name, functionNestingLevel,
+    if (variable == null) {
+      variable = new VariableDeclarationJudgment(name, functionNestingLevel,
           type: type?.build(library),
           isFinal: isFinal,
           isConst: isConst,
@@ -108,7 +108,7 @@ class FormalParameterBuilder extends ModifierBuilder {
           isRequired: isNamedRequired)
         ..fileOffset = charOffset;
     }
-    return declaration;
+    return variable;
   }
 
   FormalParameterBuilder clone(List<TypeBuilder> newTypes) {
@@ -120,7 +120,7 @@ class FormalParameterBuilder extends ModifierBuilder {
   }
 
   FormalParameterBuilder forFormalParameterInitializerScope() {
-    assert(declaration != null);
+    assert(variable != null);
     return !isInitializingFormal
         ? this
         : (new FormalParameterBuilder(
@@ -131,15 +131,15 @@ class FormalParameterBuilder extends ModifierBuilder {
             null,
             charOffset)
           ..parent = parent
-          ..declaration = declaration);
+          ..variable = variable);
   }
 
   void finalizeInitializingFormal() {
     Object cls = parent.parent;
     if (cls is ClassBuilder) {
-      Builder field = cls.scope.lookup(name, charOffset, fileUri);
-      if (field is FieldBuilder) {
-        target.type = field.target.type;
+      Builder fieldBuilder = cls.scope.lookup(name, charOffset, fileUri);
+      if (fieldBuilder is FieldBuilder) {
+        variable.type = fieldBuilder.field.type;
       }
     }
   }
@@ -152,23 +152,27 @@ class FormalParameterBuilder extends ModifierBuilder {
     // constant evaluation. Similarly we need to include initializers for
     // optional and named parameters of instance methods because these might be
     // needed to generated noSuchMethod forwarders.
-    final bool isConstConstructorParameter =
-        (parent is ConstructorBuilder && parent.target.isConst);
+    bool isConstConstructorParameter = false;
+    if (parent is ConstructorBuilder) {
+      ConstructorBuilder constructorBuilder = parent;
+      isConstConstructorParameter = constructorBuilder.constructor.isConst;
+    }
     if ((isConstConstructorParameter || parent.isClassInstanceMember) &&
         initializerToken != null) {
       final ClassBuilder classBuilder = parent.parent;
       Scope scope = classBuilder.scope;
-      BodyBuilder bodyBuilder = new BodyBuilder.forOutlineExpression(
-          library, classBuilder, this, scope, fileUri);
+      BodyBuilder bodyBuilder = library.loader
+          .createBodyBuilderForOutlineExpression(
+              library, classBuilder, this, scope, fileUri);
       bodyBuilder.constantContext = ConstantContext.required;
-      target.initializer = bodyBuilder.parseFieldInitializer(initializerToken)
-        ..parent = target;
+      variable.initializer = bodyBuilder.parseFieldInitializer(initializerToken)
+        ..parent = variable;
       bodyBuilder.typeInferrer?.inferParameterInitializer(
-          bodyBuilder, target.initializer, target.type);
+          bodyBuilder, variable.initializer, variable.type);
       if (library.loader is SourceLoader) {
         SourceLoader loader = library.loader;
-        loader.transformPostInference(target, bodyBuilder.transformSetLiterals,
-            bodyBuilder.transformCollections);
+        loader.transformPostInference(variable,
+            bodyBuilder.transformSetLiterals, bodyBuilder.transformCollections);
       }
       bodyBuilder.resolveRedirectingFactoryTargets();
     }

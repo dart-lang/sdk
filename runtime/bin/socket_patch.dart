@@ -137,6 +137,7 @@ class _InternetAddress implements InternetAddress {
   final String address;
   final String _host;
   final Uint8List _in_addr;
+  final int _scope_id;
 
   InternetAddressType get type => _in_addr.length == _IPv4AddrLength
       ? InternetAddressType.IPv4
@@ -185,7 +186,8 @@ class _InternetAddress implements InternetAddress {
 
   Future<InternetAddress> reverse() => _NativeSocket.reverseLookup(this);
 
-  _InternetAddress(this.address, this._host, this._in_addr);
+  _InternetAddress(this.address, this._host, this._in_addr,
+      [this._scope_id = 0]);
 
   factory _InternetAddress.parse(String address) {
     if (address is! String) {
@@ -387,7 +389,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       } else {
         return response.skip(1).map<InternetAddress>((result) {
           var type = new InternetAddressType._from(result[0]);
-          return new _InternetAddress(result[1], host, result[2]);
+          return new _InternetAddress(result[1], host, result[2], result[3]);
         }).toList();
       }
     });
@@ -430,8 +432,40 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     });
   }
 
+  static String escapeLinkLocalAddress(String host) {
+    // if the host contains escape, host is an IPv6 address with scope ID.
+    // Remove '25' before feeding into native calls.
+    int index = host.indexOf('%');
+    if (index >= 0) {
+      if (!checkLinkLocalAddress(host)) {
+        // The only well defined usage is link-local address. Checks Section 4 of https://tools.ietf.org/html/rfc6874.
+        // If it is not a valid link-local address and contains escape character, throw an exception.
+        throw new FormatException(
+            '${host} is not a valid link-local address but contains %. Scope id should be used as part of link-local address.',
+            host,
+            index);
+      }
+      if (host.startsWith("25", index + 1)) {
+        // Remove '25' after '%' if present
+        host = host.replaceRange(index + 1, index + 3, '');
+      }
+    }
+    return host;
+  }
+
+  static bool checkLinkLocalAddress(String host) {
+    // The shortest possible link-local address is [fe80::1]
+    if (host.length < 7) return false;
+    var char = host[2];
+    return host.startsWith('fe') &&
+        (char == '8' || char == '9' || char == 'a' || char == 'b');
+  }
+
   static Future<ConnectionTask<_NativeSocket>> startConnect(
       host, int port, sourceAddress) {
+    if (host is String) {
+      host = escapeLinkLocalAddress(host);
+    }
     _throwOnBadPort(port);
     if (sourceAddress != null && sourceAddress is! _InternetAddress) {
       if (sourceAddress is String) {
@@ -465,11 +499,12 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
         socket.localAddress = address;
         var result;
         if (sourceAddress == null) {
-          result = socket.nativeCreateConnect(address._in_addr, port);
+          result = socket.nativeCreateConnect(
+              address._in_addr, port, address._scope_id);
         } else {
           assert(sourceAddress is _InternetAddress);
-          result = socket.nativeCreateBindConnect(
-              address._in_addr, port, sourceAddress._in_addr);
+          result = socket.nativeCreateBindConnect(address._in_addr, port,
+              sourceAddress._in_addr, address._scope_id);
         }
         if (result is OSError) {
           // Keep first error, if present.
@@ -594,13 +629,15 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   static Future<_NativeSocket> bind(
       host, int port, int backlog, bool v6Only, bool shared) async {
     _throwOnBadPort(port);
-
+    if (host is String) {
+      host = escapeLinkLocalAddress(host);
+    }
     final address = await _resolveHost(host);
 
     var socket = new _NativeSocket.listen();
     socket.localAddress = address;
     var result = socket.nativeCreateBindListen(
-        address._in_addr, port, backlog, v6Only, shared);
+        address._in_addr, port, backlog, v6Only, shared, address._scope_id);
     if (result is OSError) {
       throw new SocketException("Failed to create server socket",
           osError: result, address: address, port: port);
@@ -1183,12 +1220,13 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       native "Socket_WriteList";
   nativeSendTo(List<int> buffer, int offset, int bytes, Uint8List address,
       int port) native "Socket_SendTo";
-  nativeCreateConnect(Uint8List addr, int port) native "Socket_CreateConnect";
-  nativeCreateBindConnect(Uint8List addr, int port, Uint8List sourceAddr)
-      native "Socket_CreateBindConnect";
+  nativeCreateConnect(Uint8List addr, int port, int scope_id)
+      native "Socket_CreateConnect";
+  nativeCreateBindConnect(Uint8List addr, int port, Uint8List sourceAddr,
+      int scope_id) native "Socket_CreateBindConnect";
   bool isBindError(int errorNumber) native "SocketBase_IsBindError";
   nativeCreateBindListen(Uint8List addr, int port, int backlog, bool v6Only,
-      bool shared) native "ServerSocket_CreateBindListen";
+      bool shared, int scope_id) native "ServerSocket_CreateBindListen";
   nativeCreateBindDatagram(Uint8List addr, int port, bool reuseAddress,
       bool reusePort, int ttl) native "Socket_CreateBindDatagram";
   nativeAccept(_NativeSocket socket) native "ServerSocket_Accept";

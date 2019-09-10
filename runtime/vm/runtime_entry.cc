@@ -1131,7 +1131,7 @@ static void TrySwitchInstanceCall(const ICData& ic_data,
   if (Debugger::IsDebugging(thread, caller_function)) return;
 #endif
 
-  intptr_t num_checks = ic_data.NumberOfChecks();
+  const intptr_t num_checks = ic_data.NumberOfChecks();
 
   // Monomorphic call.
   if (FLAG_unopt_monomorphic_calls && (num_checks == 1)) {
@@ -1168,7 +1168,7 @@ static void TrySwitchInstanceCall(const ICData& ic_data,
     const Array& descriptor =
         Array::Handle(zone, ic_data.arguments_descriptor());
     const MegamorphicCache& cache = MegamorphicCache::Handle(
-        zone, MegamorphicCacheTable::LookupOriginal(thread, name, descriptor));
+        zone, MegamorphicCacheTable::Lookup(thread, name, descriptor));
     ic_data.set_is_megamorphic(true);
     CodePatcher::PatchInstanceCallAt(caller_frame->pc(), caller_code, cache,
                                      StubCode::MegamorphicCall());
@@ -1795,8 +1795,7 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
       if (number_of_checks > FLAG_max_polymorphic_checks) {
         // Switch to megamorphic call.
         const MegamorphicCache& cache = MegamorphicCache::Handle(
-            zone,
-            MegamorphicCacheTable::LookupOriginal(thread, name, descriptor));
+            zone, MegamorphicCacheTable::Lookup(thread, name, descriptor));
         DartFrameIterator iterator(thread,
                                    StackFrameIterator::kNoCrossThreadIteration);
         StackFrame* miss_function_frame = iterator.NextFrame();
@@ -2054,12 +2053,12 @@ static void HandleStackOverflowTestCases(Thread* thread) {
       }
     }
   }
-  if ((FLAG_deoptimize_filter != NULL) || (FLAG_stacktrace_filter != NULL) ||
-      FLAG_reload_every) {
+  if (FLAG_deoptimize_filter != nullptr || FLAG_stacktrace_filter != nullptr ||
+      (FLAG_reload_every != 0)) {
     DartFrameIterator iterator(thread,
                                StackFrameIterator::kNoCrossThreadIteration);
     StackFrame* frame = iterator.NextFrame();
-    ASSERT(frame != NULL);
+    ASSERT(frame != nullptr);
     Code& code = Code::Handle();
     Function& function = Function::Handle();
     if (frame->is_interpreted()) {
@@ -2071,21 +2070,22 @@ static void HandleStackOverflowTestCases(Thread* thread) {
     }
     ASSERT(!function.IsNull());
     const char* function_name = function.ToFullyQualifiedCString();
-    ASSERT(function_name != NULL);
+    ASSERT(function_name != nullptr);
     if (!code.IsNull()) {
       if (!code.is_optimized() && FLAG_reload_every_optimized) {
         // Don't do the reload if we aren't inside optimized code.
         do_reload = false;
       }
-      if (code.is_optimized() && FLAG_deoptimize_filter != NULL &&
-          strstr(function_name, FLAG_deoptimize_filter) != NULL) {
+      if (code.is_optimized() && FLAG_deoptimize_filter != nullptr &&
+          strstr(function_name, FLAG_deoptimize_filter) != nullptr &&
+          !function.ForceOptimize()) {
         OS::PrintErr("*** Forcing deoptimization (%s)\n",
                      function.ToFullyQualifiedCString());
         do_deopt = true;
       }
     }
-    if (FLAG_stacktrace_filter != NULL &&
-        strstr(function_name, FLAG_stacktrace_filter) != NULL) {
+    if (FLAG_stacktrace_filter != nullptr &&
+        strstr(function_name, FLAG_stacktrace_filter) != nullptr) {
       OS::PrintErr("*** Computing stacktrace (%s)\n",
                    function.ToFullyQualifiedCString());
       do_stacktrace = true;
@@ -2149,15 +2149,18 @@ static void HandleStackOverflowTestCases(Thread* thread) {
     intptr_t num_frames = stack->Length();
     for (intptr_t i = 0; i < num_frames; i++) {
       ActivationFrame* frame = stack->FrameAt(i);
-#ifndef DART_PRECOMPILED_RUNTIME
-      if (!frame->IsInterpreted() && !frame->function().ForceOptimize()) {
-        // Ensure that we have unoptimized code.
-        frame->function().EnsureHasCompiledUnoptimizedCode();
-      }
-      const int num_vars = frame->NumLocalVariables();
-#else
+      int num_vars = 0;
       // Variable locations and number are unknown when precompiling.
-      const int num_vars = 0;
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      // NumLocalVariables() can call EnsureHasUnoptimizedCode() for
+      // non-interpreted functions.
+      if (!frame->function().ForceOptimize()) {
+        if (!frame->IsInterpreted()) {
+          // Ensure that we have unoptimized code.
+          frame->function().EnsureHasCompiledUnoptimizedCode();
+        }
+        num_vars = frame->NumLocalVariables();
+      }
 #endif
       TokenPosition unused = TokenPosition::kNoSource;
       for (intptr_t v = 0; v < num_vars; v++) {
@@ -2750,11 +2753,11 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t,
     THR_Print("== Deoptimizing code for '%s', %s, %s\n",
               function.ToFullyQualifiedCString(),
               deoptimizing_code ? "code & frame" : "frame",
-              is_lazy_deopt ? "lazy-deopt" : "");
+              (is_lazy_deopt != 0u) ? "lazy-deopt" : "");
   }
 
 #if !defined(TARGET_ARCH_DBC)
-  if (is_lazy_deopt) {
+  if (is_lazy_deopt != 0u) {
     uword deopt_pc = isolate->FindPendingDeopt(caller_frame->fp());
     if (FLAG_trace_deoptimization) {
       THR_Print("Lazy deopt fp=%" Pp " pc=%" Pp "\n", caller_frame->fp(),

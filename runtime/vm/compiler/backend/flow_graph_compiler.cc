@@ -242,6 +242,13 @@ bool FlowGraphCompiler::CanOSRFunction() const {
   return isolate()->use_osr() && CanOptimizeFunction() && !is_optimizing();
 }
 
+void FlowGraphCompiler::InsertBSSRelocation(BSS::Relocation reloc) {
+  const intptr_t offset = assembler()->InsertAlignedRelocation(reloc);
+  AddDescriptor(RawPcDescriptors::kBSSRelocation, /*pc_offset=*/offset,
+                /*deopt_id=*/DeoptId::kNone, TokenPosition::kNoSource,
+                /*try_index=*/-1);
+}
+
 bool FlowGraphCompiler::ForceSlowPathForStackOverflow() const {
 #if !defined(PRODUCT)
   if ((FLAG_stacktrace_every > 0) || (FLAG_deoptimize_every > 0) ||
@@ -1401,7 +1408,9 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
                                : ic_data.arguments_descriptor());
   ASSERT(ArgumentsDescriptor(arguments_descriptor).TypeArgsLen() ==
          args_info.type_args_len);
-  if (is_optimizing() && !ForcedOptimization()) {
+  // Force-optimized functions lack the deopt info which allows patching of
+  // optimized static calls.
+  if (is_optimizing() && (!ForcedOptimization() || FLAG_precompiled_mode)) {
     EmitOptimizedStaticCall(function, arguments_descriptor,
                             args_info.count_with_type_args, deopt_id, token_pos,
                             locs, entry_kind);
@@ -1413,6 +1422,7 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
           GetOrAddStaticCallICData(deopt_id, function, arguments_descriptor,
                                    kNumArgsChecked, rebind_rule)
               ->raw();
+      call_ic_data = call_ic_data.Original();
     }
     AddCurrentDescriptor(RawPcDescriptors::kRewind, deopt_id, token_pos);
     EmitUnoptimizedStaticCall(args_info.count_with_type_args, deopt_id,

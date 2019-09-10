@@ -73,7 +73,6 @@ namespace dart {
   F(Library, owned_scripts_)                                                   \
   F(Library, imports_)                                                         \
   F(Library, exports_)                                                         \
-  F(Library, load_error_)                                                      \
   F(Library, kernel_data_)                                                     \
   F(Library, resolved_names_)                                                  \
   F(Library, exported_names_)                                                  \
@@ -138,7 +137,6 @@ namespace dart {
   F(LibraryPrefix, name_)                                                      \
   F(LibraryPrefix, importer_)                                                  \
   F(LibraryPrefix, imports_)                                                   \
-  F(LibraryPrefix, dependent_code_)                                            \
   F(TypeArguments, instantiations_)                                            \
   F(TypeArguments, length_)                                                    \
   F(TypeArguments, hash_)                                                      \
