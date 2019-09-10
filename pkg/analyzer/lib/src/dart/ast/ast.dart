@@ -5913,8 +5913,8 @@ class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
   /// index expression is part of a cascade expression.
   ExpressionImpl _target;
 
-  /// The period ("..") before a cascaded index expression, or `null` if this
-  /// index expression is not part of a cascade expression.
+  /// The period (".." | "?..") before a cascaded index expression,
+  /// or `null` if this index expression is not part of a cascade expression.
   @override
   Token period;
 
@@ -7131,7 +7131,7 @@ class MethodInvocationImpl extends InvocationExpressionImpl
   /// The operator that separates the target from the method name, or `null`
   /// if there is no target. In an ordinary method invocation this will be a
   /// period ('.'). In a cascade section this will be the cascade operator
-  /// ('..').
+  /// ('..' | '?..').
   @override
   Token operator;
 
@@ -7180,7 +7180,9 @@ class MethodInvocationImpl extends InvocationExpressionImpl
 
   @override
   bool get isCascaded =>
-      operator != null && operator.type == TokenType.PERIOD_PERIOD;
+      operator != null &&
+      (operator.type == TokenType.PERIOD_PERIOD ||
+          operator.type == TokenType.QUESTION_PERIOD_PERIOD);
 
   @override
   SimpleIdentifier get methodName => _methodName;
@@ -8437,7 +8439,9 @@ class PropertyAccessImpl extends ExpressionImpl implements PropertyAccess {
 
   @override
   bool get isCascaded =>
-      operator != null && operator.type == TokenType.PERIOD_PERIOD;
+      operator != null &&
+      (operator.type == TokenType.PERIOD_PERIOD ||
+          operator.type == TokenType.QUESTION_PERIOD_PERIOD);
 
   @override
   Precedence get precedence => Precedence.postfix;

@@ -169,7 +169,7 @@ class AstBuilder extends StackListener {
   }
 
   void beginCascade(Token token) {
-    assert(optional('..', token));
+    assert(optional('..', token) || optional('?..', token));
     debugEvent("beginCascade");
 
     Expression expression = pop();
@@ -577,12 +577,14 @@ class AstBuilder extends StackListener {
     assert(operatorToken.isOperator ||
         optional('.', operatorToken) ||
         optional('?.', operatorToken) ||
-        optional('..', operatorToken));
+        optional('..', operatorToken) ||
+        optional('?..', operatorToken));
     debugEvent("BinaryExpression");
 
     if (identical(".", operatorToken.stringValue) ||
         identical("?.", operatorToken.stringValue) ||
-        identical("..", operatorToken.stringValue)) {
+        identical("..", operatorToken.stringValue) ||
+        identical("?..", operatorToken.stringValue)) {
       doDotExpression(operatorToken);
     } else {
       Expression right = pop();
