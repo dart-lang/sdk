@@ -1131,7 +1131,7 @@ class BatchRunnerProcess {
     }
     var processFuture =
         io.Process.start(executable, arguments, environment: environment);
-    processFuture.then((io.Process p) {
+    processFuture.then<dynamic>((io.Process p) {
       _process = p;
 
       Stream<String> _stdoutStream = _process.stdout
