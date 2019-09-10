@@ -37,11 +37,16 @@ class _Option {
   // TODO(rnystrom): Some string options use "" to mean "no value" and others
   // use null. Clean that up.
   _Option(this.name, this.description,
-      {String abbr, List<String> values, String defaultsTo, bool hide})
+      {String abbr,
+      List<String> values,
+      String defaultsTo,
+      bool allowMultiple,
+      bool hide})
       : abbreviation = abbr,
         values = values ?? [],
         defaultValue = defaultsTo,
         type = _OptionValueType.string,
+        allowMultiple = allowMultiple ?? true,
         verboseOnly = hide ?? false;
 
   _Option.bool(this.name, this.description, {String abbr, bool hide})
@@ -49,6 +54,7 @@ class _Option {
         values = [],
         defaultValue = false,
         type = _OptionValueType.bool,
+        allowMultiple = false,
         verboseOnly = hide ?? false;
 
   _Option.int(this.name, this.description,
@@ -57,6 +63,7 @@ class _Option {
         values = [],
         defaultValue = defaultsTo,
         type = _OptionValueType.int,
+        allowMultiple = false,
         verboseOnly = hide ?? false;
 
   final String name;
@@ -66,14 +73,16 @@ class _Option {
   final Object defaultValue;
   final _OptionValueType type;
 
+  /// Whether a comma-separated list of values is permitted.
+  final bool allowMultiple;
+
   /// Only show this option in the verbose help.
   final bool verboseOnly;
 
-  /// Gets the shortest command line argument used to refer to this option.
+  /// The shortest command line argument used to refer to this option.
   String get shortCommand => abbreviation != null ? "-$abbreviation" : command;
 
-  /// Gets the canonical long command line argument used to refer to this
-  /// option.
+  /// The canonical long command line argument used to refer to this option.
   String get command => "--${name.replaceAll('_', '-')}";
 }
 
@@ -151,7 +160,6 @@ simdbc, simdbc64''',
 test options, specifying how tests should be run.''',
         abbr: 'n',
         hide: true),
-    _Option.bool('strong', 'Deprecated, no-op.', hide: true),
     // TODO(sigmund): rename flag once we migrate all dart2js bots to the test
     // matrix.
     _Option.bool('host_checked', 'Run compiler with assertions enabled.',
@@ -189,7 +197,8 @@ Allowed values are:
 compact, color, line, verbose, silent, status, buildbot, diff''',
         abbr: 'p',
         values: Progress.names,
-        defaultsTo: Progress.compact.name),
+        defaultsTo: Progress.compact.name,
+        allowMultiple: false),
     _Option('step_name', 'Step name for use by -pbuildbot.', hide: true),
     _Option.bool('report',
         'Print a summary report of the number of tests, by expectation.',
@@ -230,9 +239,14 @@ compact, color, line, verbose, silent, status, buildbot, diff''',
     _Option('chrome', 'Path to chrome browser executable.', hide: true),
     _Option('safari', 'Path to safari browser executable.', hide: true),
     _Option.bool('use_sdk', '''Use compiler or runtime from the SDK.'''),
-    _Option.bool('nnbd', '''Opt tests into non-nullable types.'''),
-    _Option.bool('nnbd_strong_checking',
-        '''Enable strong runtime checks of non-nullable types.'''),
+    _Option(
+        'nnbd',
+        '''Which set of non-nullable type features to use.
+
+Allowed values are: legacy, weak, strong''',
+        values: NnbdMode.names,
+        defaultsTo: NnbdMode.legacy.name,
+        allowMultiple: false),
     // TODO(rnystrom): This does not appear to be used. Remove?
     _Option('build_directory',
         'The name of the build directory, where products are placed.',
@@ -380,6 +394,7 @@ compiler.''',
           verbose: arguments.contains("--verbose") || arguments.contains("-v"));
       return null;
     }
+
     if (arguments.contains("--list-configurations")) {
       var testMatrixFile = "tools/bots/test_matrix.json";
       var testMatrix = TestMatrix.fromPath(testMatrixFile);
@@ -476,10 +491,19 @@ compiler.''',
         case _OptionValueType.string:
           // Validate against the allowed values.
           if (!option.values.isEmpty) {
-            for (var v in value.split(",")) {
-              if (!option.values.contains(v)) {
-                _fail('Unknown value "$v" for command line option "$command".');
+            validate(String value) {
+              if (!option.values.contains(value)) {
+                _fail('Unknown value "$value" for option "$command".');
               }
+            }
+
+            if (option.allowMultiple) {
+              value.split(",").forEach(validate);
+            } else {
+              if (value.contains(",")) {
+                _fail('Only a single value is allowed for option "$command".');
+              }
+              validate(value);
             }
           }
 
@@ -493,9 +517,9 @@ compiler.''',
     // If a named configuration was specified ensure no other options, which are
     // implied by the named configuration, were specified.
     if (configuration['named_configuration'] is String) {
-      for (final optionName in _namedConfigurationOptions) {
+      for (var optionName in _namedConfigurationOptions) {
         if (configuration.containsKey(optionName)) {
-          final namedConfig = configuration['named_configuration'];
+          var namedConfig = configuration['named_configuration'];
           _fail("The named configuration '$namedConfig' implies "
               "'$optionName'. Try removing '$optionName'.");
         }
@@ -654,6 +678,9 @@ compiler.''',
       compilers.addAll(runtimes.map((runtime) => runtime.defaultCompiler));
     }
 
+    var progress = Progress.find(data["progress"] as String);
+    var nnbdMode = NnbdMode.find(data["nnbd"] as String);
+
     // Expand runtimes.
     for (var runtime in runtimes) {
       // Start installing the runtime if needed.
@@ -676,10 +703,11 @@ compiler.''',
             var mode = Mode.find(modeName);
             var system = System.find(data["system"] as String);
             var namedConfiguration =
-                getNamedConfiguration(data["named_configuration"] as String);
+                _namedConfiguration(data["named_configuration"] as String);
             var innerConfiguration = namedConfiguration ??
                 Configuration("custom configuration", architecture, compiler,
                     mode, runtime, system,
+                    nnbdMode: nnbdMode,
                     timeout: data["timeout"] as int,
                     enableAsserts: data["enable_asserts"] as bool,
                     useAnalyzerCfe: data["use_cfe"] as bool,
@@ -700,7 +728,7 @@ compiler.''',
                     builderTag: data["builder_tag"] as String);
             var configuration = TestConfiguration(
                 configuration: innerConfiguration,
-                progress: Progress.find(data["progress"] as String),
+                progress: progress,
                 selectors: selectors,
                 testList: data["test_list_contents"] as List<String>,
                 repeat: data["repeat"] as int,
@@ -903,14 +931,22 @@ Options:''');
   }
 }
 
-Configuration getNamedConfiguration(String template) {
+/// Exception thrown when the arguments could not be parsed.
+class OptionParseException implements Exception {
+  final String message;
+
+  OptionParseException(this.message);
+}
+
+Configuration _namedConfiguration(String template) {
   if (template == null) return null;
-  final testMatrixFile = "tools/bots/test_matrix.json";
-  TestMatrix testMatrix = TestMatrix.fromPath(testMatrixFile);
-  final configuration = testMatrix.configurations
+
+  var testMatrixFile = "tools/bots/test_matrix.json";
+  var testMatrix = TestMatrix.fromPath(testMatrixFile);
+  var configuration = testMatrix.configurations
       .singleWhere((c) => c.name == template, orElse: () => null);
   if (configuration == null) {
-    final names = testMatrix.configurations
+    var names = testMatrix.configurations
         .map((configuration) => configuration.name)
         .toList();
     names.sort();
@@ -921,8 +957,7 @@ Configuration getNamedConfiguration(String template) {
   return configuration;
 }
 
-/// Prints [message] and exits with a non-zero exit code.
+/// Throws an [OptionParseException] with [message].
 void _fail(String message) {
-  print(message);
-  exit(1);
+  throw OptionParseException(message);
 }

@@ -198,7 +198,7 @@ void main() {
       test("other options from map", () {
         expect(
             Configuration.parse("dart2js", {
-              "nnbd": "opted-in",
+              "nnbd": "weak",
               "builder-tag": "the tag",
               "vm-options": ["vm stuff", "more vm stuff"],
               "dart2js-options": ["dart2js stuff", "more dart2js stuff"],
@@ -214,7 +214,7 @@ void main() {
             }),
             equals(Configuration("dart2js", Architecture.x64, Compiler.dart2js,
                 Mode.release, Runtime.d8, System.host,
-                nnbdMode: NnbdMode.optedIn,
+                nnbdMode: NnbdMode.weak,
                 builderTag: "the tag",
                 vmOptions: ["vm stuff", "more vm stuff"],
                 dart2jsOptions: ["dart2js stuff", "more dart2js stuff"],
