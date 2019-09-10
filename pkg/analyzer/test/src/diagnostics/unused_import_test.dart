@@ -328,14 +328,14 @@ f() {
   test_instance_setter() async {
     newFile('/test/lib/lib1.dart', content: r'''
 extension E on String {
-  void set length(int i) {}
+  void set foo(int i) {}
 }
 ''');
     await assertNoErrorsInCode('''
 import 'lib1.dart';
 
 f() {
-  'abc'.length = 2;
+  'abc'.foo = 2;
 }
 ''');
   }

@@ -125,6 +125,37 @@ class UndefinedGetterWithExtensionMethodsTest extends UndefinedGetterTest {
     ..contextFeatures = new FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
 
+  test_instance_extendedHasSetter_extensionHasGetter() async {
+    await assertErrorsInCode('''
+class C {
+  void set foo(int _) {}
+}
+
+extension E on C {
+  int get foo => 0;
+
+  f() {
+    this.foo;
+  }
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_GETTER, 95, 3),
+    ]);
+  }
+
+  test_instance_undefined_hasSetter() async {
+    await assertErrorsInCode('''
+extension E on int {
+  void set foo(int _) {}
+}
+f() {
+  0.foo;
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_GETTER, 58, 3),
+    ]);
+  }
+
   test_instance_withInference() async {
     await assertErrorsInCode(r'''
 extension E on int {}
@@ -145,6 +176,24 @@ f(C c) {
 }
 ''', [
       error(StaticTypeWarningCode.UNDEFINED_GETTER, 46, 1),
+    ]);
+  }
+
+  test_this_extendedHasSetter_extensionHasGetter() async {
+    await assertErrorsInCode('''
+class C {
+  void set foo(int _) {}
+}
+
+extension E on C {
+  int get foo => 0;
+}
+
+f(C c) {
+  c.foo;
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_GETTER, 93, 3),
     ]);
   }
 }
