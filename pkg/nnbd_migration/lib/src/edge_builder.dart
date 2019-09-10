@@ -1132,6 +1132,42 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   @override
+  DecoratedType visitSpreadElement(SpreadElement node) {
+    final spreadType = node.expression.staticType;
+    if (_typeSystem.isSubtypeOf(
+        spreadType, _typeProvider.mapObjectObjectType)) {
+      assert(_currentMapKeyType != null && _currentMapValueType != null);
+      final expectedType = _typeSystem.instantiateType(_typeProvider.mapType,
+          [_currentMapKeyType.type, _currentMapValueType.type]);
+      final expectedDecoratedType = DecoratedType.forImplicitType(
+          _typeProvider, expectedType, _graph,
+          typeArguments: [_currentMapKeyType, _currentMapValueType]);
+
+      _handleAssignment(node.expression,
+          destinationType: expectedDecoratedType);
+    } else if (_typeSystem.isSubtypeOf(
+        spreadType, _typeProvider.iterableDynamicType)) {
+      assert(_currentLiteralElementType != null);
+      final expectedType = _typeSystem.instantiateType(
+          _typeProvider.iterableType, [_currentLiteralElementType.type]);
+      final expectedDecoratedType = DecoratedType.forImplicitType(
+          _typeProvider, expectedType, _graph,
+          typeArguments: [_currentLiteralElementType]);
+
+      _handleAssignment(node.expression,
+          destinationType: expectedDecoratedType);
+    } else {
+      // Downcast. We can't assume nullability here, so do nothing.
+    }
+
+    if (!node.isNullAware) {
+      _checkExpressionNotNull(node.expression);
+    }
+
+    return null;
+  }
+
+  @override
   DecoratedType visitStringLiteral(StringLiteral node) {
     node.visitChildren(this);
     return DecoratedType(node.staticType, _graph.never);

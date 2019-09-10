@@ -4409,6 +4409,93 @@ int f() => null;
     assertEdge(always, decoratedTypeAnnotation('int').node, hard: false);
   }
 
+  test_spread_element_list() async {
+    await analyze('''
+void f(List<int> ints) {
+  <int>[...ints];
+}
+''');
+
+    assertEdge(decoratedTypeAnnotation('List<int>').node, never, hard: true);
+    assertEdge(
+        substitutionNode(decoratedTypeAnnotation('int> ints').node, anyNode),
+        decoratedTypeAnnotation('int>[').node,
+        hard: false);
+  }
+
+  test_spread_element_list_dynamic() async {
+    await analyze('''
+void f(dynamic ints) {
+  <int>[...ints];
+}
+''');
+
+    // Mostly just check this doesn't crash.
+    assertEdge(decoratedTypeAnnotation('dynamic').node, never, hard: true);
+  }
+
+  test_spread_element_list_nullable() async {
+    await analyze('''
+void f(List<int> ints) {
+  <int>[...?ints];
+}
+''');
+
+    assertNoEdge(decoratedTypeAnnotation('List<int>').node, never);
+    assertEdge(
+        substitutionNode(decoratedTypeAnnotation('int> ints').node, anyNode),
+        decoratedTypeAnnotation('int>[').node,
+        hard: false);
+  }
+
+  test_spread_element_map() async {
+    await analyze('''
+void f(Map<String, int> map) {
+  <String, int>{...map};
+}
+''');
+
+    assertEdge(decoratedTypeAnnotation('Map<String, int>').node, never,
+        hard: true);
+    assertEdge(decoratedTypeAnnotation('String, int> map').node,
+        decoratedTypeAnnotation('String, int>{').node,
+        hard: false);
+    assertEdge(decoratedTypeAnnotation('int> map').node,
+        decoratedTypeAnnotation('int>{').node,
+        hard: false);
+  }
+
+  test_spread_element_set() async {
+    await analyze('''
+void f(Set<int> ints) {
+  <int>{...ints};
+}
+''');
+
+    assertEdge(decoratedTypeAnnotation('Set<int>').node, never, hard: true);
+    assertEdge(
+        substitutionNode(decoratedTypeAnnotation('int> ints').node, anyNode),
+        decoratedTypeAnnotation('int>{').node,
+        hard: false);
+  }
+
+  test_spread_element_subtype() async {
+    await analyze('''
+abstract class C<T, R> implements Iterable<R> {}
+void f(C<dynamic, int> ints) {
+  <int>[...ints];
+}
+''');
+
+    assertEdge(decoratedTypeAnnotation('C<dynamic, int>').node, never,
+        hard: true);
+    assertEdge(
+        substitutionNode(decoratedTypeAnnotation('int> ints').node,
+            decoratedTypeAnnotation('R> {}').node),
+        decoratedTypeAnnotation('int>[').node,
+        hard: false);
+  }
+
   test_static_method_call_prefixed() async {
     await analyze('''
 import 'dart:async' as a;

@@ -140,20 +140,38 @@ class DecoratedType {
   /// nodes everywhere that don't correspond to any source location.  These
   /// nodes can later be unioned with other nodes.
   factory DecoratedType.forImplicitType(
-      TypeProvider typeProvider, DartType type, NullabilityGraph graph) {
+      TypeProvider typeProvider, DartType type, NullabilityGraph graph,
+      {List<DecoratedType> typeArguments}) {
     if (type.isDynamic || type.isVoid) {
+      assert(typeArguments == null);
       return DecoratedType(type, graph.always);
     } else if (type is InterfaceType) {
+      assert(() {
+        if (typeArguments != null) {
+          assert(typeArguments.length == type.typeArguments.length);
+          for (var i = 0; i < typeArguments.length; ++i) {
+            assert(typeArguments[i].type == type.typeArguments[i]);
+          }
+        }
+        return true;
+      }());
+
+      typeArguments ??= type.typeArguments
+          .map((t) => DecoratedType.forImplicitType(typeProvider, t, graph))
+          .toList();
       return DecoratedType(type, NullabilityNode.forInferredType(),
-          typeArguments: type.typeArguments
-              .map((t) => DecoratedType.forImplicitType(typeProvider, t, graph))
-              .toList());
+          typeArguments: typeArguments);
     } else if (type is FunctionType) {
+      if (typeArguments != null) {
+        throw "Not supported: implicit function type with explicit type arguments";
+      }
       return DecoratedType.forImplicitFunction(
           typeProvider, type, NullabilityNode.forInferredType(), graph);
     } else if (type is TypeParameterType) {
+      assert(typeArguments == null);
       return DecoratedType(type, NullabilityNode.forInferredType());
     } else if (type is BottomTypeImpl) {
+      assert(typeArguments == null);
       return DecoratedType(type, NullabilityNode.forInferredType());
     }
     // TODO(paulberry)
