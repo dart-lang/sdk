@@ -206,9 +206,10 @@ class _Visitor extends SimpleAstVisitor {
     final allowedCommentVisitor = _AllowedCommentVisitor(lineInfo);
     node.accept(allowedCommentVisitor);
 
-    final allowedLines = []
-      ..addAll(allowedLineVisitor.allowedLines)
-      ..addAll(allowedCommentVisitor.allowedLines);
+    final allowedLines = [
+      ...allowedLineVisitor.allowedLines,
+      ...allowedCommentVisitor.allowedLines
+    ];
 
     for (final line in longLines) {
       if (allowedLines.contains(line.index + 1)) continue;

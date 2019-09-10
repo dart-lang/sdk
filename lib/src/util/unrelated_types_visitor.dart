@@ -64,7 +64,7 @@ DartType _findIterableTypeArgument(
   }
 
   return _findIterableTypeArgument(definition, type.superclass,
-      accumulator: [type]..addAll(accumulator)..addAll(implementedInterfaces));
+      accumulator: [type, ...accumulator, ...implementedInterfaces]);
 }
 
 bool _isParameterizedMethodInvocation(
