@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Run pub.dart on the Dart VM. This script assumes the Dart SDK's directory
+# structure.
+
+function follow_links() {
+  file="$1"
+  while [ -h "$file" ]; do
+    # On Mac OS, readlink -f doesn't work.
+    file="$(readlink "$file")"
+  done
+  echo "$file"
+}
+
+function array_contains() {
+  local needle="$1"
+  local element
+  shift
+  for element; do [ "$element" = "$needle" ] && return 0; done
+  return 1
+}
+
+# Unlike $0, $BASH_SOURCE points to the absolute path of this file.
+PROG_NAME="$(follow_links "$BASH_SOURCE")"
+
+# Handle the case where dart-sdk/bin has been symlinked to.
+BIN_DIR="$(cd "${PROG_NAME%/*}" ; pwd -P)"
+
+
+unset VM_OPTIONS
+declare -a VM_OPTIONS
+
+# Allow extra VM options to be passed in through an environment variable.
+if [[ $DART_VM_OPTIONS ]]; then
+  read -a OPTIONS <<< "$DART_VM_OPTIONS"
+  VM_OPTIONS+=("${OPTIONS[@]}")
+fi
+
+# Run the pub snapshot.
+DART="$BIN_DIR/dart"
+if array_contains "--no-preview-dart-2" "${VM_OPTIONS[@]}"; then
+  echo "Pub no longer supports Dart 1"
+  exit -1
+else
+  SNAPSHOT="$BIN_DIR/snapshots/pub.dart.snapshot"
+  exec "$DART" "${VM_OPTIONS[@]}" "$SNAPSHOT" "$@"
+fi
