@@ -57,16 +57,6 @@ def _CheckFormat(input_api,
     return unformatted_files
 
 
-def _CheckBuildStatus(input_api, output_api):
-    results = []
-    status_check = input_api.canned_checks.CheckTreeIsOpen(
-        input_api,
-        output_api,
-        json_url='http://dart-status.appspot.com/current?format=json')
-    results.extend(status_check)
-    return results
-
-
 def _CheckDartFormat(input_api, output_api):
     local_root = input_api.change.RepositoryRoot()
     upstream = input_api.change._upstream
@@ -264,9 +254,7 @@ def _CommonChecks(input_api, output_api):
 
 
 def CheckChangeOnCommit(input_api, output_api):
-    results = _CommonChecks(input_api, output_api)
-    results.extend(_CheckBuildStatus(input_api, output_api))
-    return results
+    return _CommonChecks(input_api, output_api)
 
 
 def CheckChangeOnUpload(input_api, output_api):
