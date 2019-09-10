@@ -239,8 +239,10 @@ class TestRunnerKBC implements TestRunner {
   }
 
   void printReproductionCommand() {
-    print(
-        [generate, '--gen-bytecode', platform, '-o', dill, fileName].join(" "));
+    if (generate != null) {
+      print([generate, '--gen-bytecode', platform, '-o', dill, fileName]
+          .join(" "));
+    }
     print(cmd.join(" "));
   }
 
@@ -485,7 +487,7 @@ class DartFuzzTest {
 
   void showReproduce() {
     print("\n-- BEGIN REPRODUCE  --\n");
-    print("dartfuzz.dart --${ffi ? "" : "no-"}ffi --${fp ? "" : "no-"}fp"
+    print("dartfuzz.dart --${ffi ? "" : "no-"}ffi --${fp ? "" : "no-"}fp "
         "--seed ${seed} $fileName");
     print("\n-- RUN 1 --\n");
     runner1.printReproductionCommand();
