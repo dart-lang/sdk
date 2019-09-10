@@ -106,7 +106,11 @@ class AssistProcessor extends BaseProcessor {
     )) {
       await _addProposal_convertToPackageImport();
     }
-    await _addProposal_convertToSingleQuotedString();
+    if (!_containsErrorCode(
+      {LintNames.prefer_single_quotes},
+    )) {
+      await _addProposal_convertToSingleQuotedString();
+    }
     await _addProposal_encapsulateField();
     await _addProposal_exchangeOperands();
     await _addProposal_flutterConvertToChildren();
@@ -3400,57 +3404,8 @@ class AssistProcessor extends BaseProcessor {
   }
 
   Future<void> _convertQuotes(bool fromDouble, AssistKind kind) async {
-    if (node is SimpleStringLiteral) {
-      SimpleStringLiteral literal = node;
-      if (fromDouble ? !literal.isSingleQuoted : literal.isSingleQuoted) {
-        String newQuote = literal.isMultiline
-            ? (fromDouble ? "'''" : '"""')
-            : (fromDouble ? "'" : '"');
-        int quoteLength = literal.isMultiline ? 3 : 1;
-        String lexeme = literal.literal.lexeme;
-        if (lexeme.indexOf(newQuote) < 0) {
-          var changeBuilder = _newDartChangeBuilder();
-          await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-            builder.addSimpleReplacement(
-                new SourceRange(
-                    literal.offset + (literal.isRaw ? 1 : 0), quoteLength),
-                newQuote);
-            builder.addSimpleReplacement(
-                new SourceRange(literal.end - quoteLength, quoteLength),
-                newQuote);
-          });
-          _addAssistFromBuilder(changeBuilder, kind);
-        }
-      }
-    } else if (node is InterpolationString) {
-      StringInterpolation parent = node.parent;
-      if (fromDouble ? !parent.isSingleQuoted : parent.isSingleQuoted) {
-        String newQuote = parent.isMultiline
-            ? (fromDouble ? "'''" : '"""')
-            : (fromDouble ? "'" : '"');
-        int quoteLength = parent.isMultiline ? 3 : 1;
-        NodeList<InterpolationElement> elements = parent.elements;
-        for (int i = 0; i < elements.length; i++) {
-          InterpolationElement element = elements[i];
-          if (element is InterpolationString) {
-            String lexeme = element.contents.lexeme;
-            if (lexeme.indexOf(newQuote) >= 0) {
-              return;
-            }
-          }
-        }
-        var changeBuilder = _newDartChangeBuilder();
-        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-          builder.addSimpleReplacement(
-              new SourceRange(
-                  parent.offset + (parent.isRaw ? 1 : 0), quoteLength),
-              newQuote);
-          builder.addSimpleReplacement(
-              new SourceRange(parent.end - quoteLength, quoteLength), newQuote);
-        });
-        _addAssistFromBuilder(changeBuilder, kind);
-      }
-    }
+    final changeBuilder = await createBuilder_convertQuotes(fromDouble);
+    _addAssistFromBuilder(changeBuilder, kind);
   }
 
   /**

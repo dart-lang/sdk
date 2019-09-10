@@ -112,9 +112,7 @@ class DartAssistKind {
   static const CONVERT_TO_SINGLE_QUOTED_STRING = const AssistKind(
       'dart.assist.convert.toSingleQuotedString',
       30,
-      "Convert to single quoted string",
-      // todo (pq): migrate to (conditional) fix
-      associatedErrorCodes: <String>['prefer_single_quotes']);
+      "Convert to single quoted string");
   static const CONVERT_TO_SPREAD =
       const AssistKind('dart.assist.convertToSpread', 30, "Convert to a spread",
           // todo (pq): migrate to (conditional) fix

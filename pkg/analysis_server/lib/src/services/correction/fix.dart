@@ -201,6 +201,8 @@ class DartFixKind {
       const FixKind('CONVERT_TO_NULL_AWARE', 50, "Convert to use '?.'");
   static const CONVERT_TO_PACKAGE_IMPORT = const FixKind(
       'CONVERT_TO_PACKAGE_IMPORT', 50, "Convert to 'package:' import");
+  static const CONVERT_TO_SINGLE_QUOTED_STRING = const FixKind(
+      'CONVERT_TO_SINGLE_QUOTED_STRING', 50, "Convert to single quoted string");
   static const CREATE_CLASS =
       const FixKind('CREATE_CLASS', 50, "Create class '{0}'");
   static const CREATE_CONSTRUCTOR =

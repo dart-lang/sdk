@@ -47,6 +47,7 @@ class LintNames {
   static const String prefer_is_not_empty = 'prefer_is_not_empty';
   static const String prefer_null_aware_operators =
       'prefer_null_aware_operators';
+  static const String prefer_single_quotes = 'prefer_single_quotes';
   static const String slash_for_doc_comments = 'slash_for_doc_comments';
   static const String type_annotate_public_apis = 'type_annotate_public_apis';
   static const String type_init_formals = 'type_init_formals';

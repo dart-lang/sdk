@@ -659,6 +659,9 @@ class FixProcessor extends BaseProcessor {
       if (name == LintNames.prefer_null_aware_operators) {
         await _addFix_convertToNullAware();
       }
+      if (name == LintNames.prefer_single_quotes) {
+        await _addFix_convertSingleQuotes();
+      }
       if (errorCode.name == LintNames.slash_for_doc_comments) {
         await _addFix_convertDocumentationIntoLine();
       }
@@ -1364,6 +1367,12 @@ class FixProcessor extends BaseProcessor {
     final changeBuilder =
         await createBuilder_convertMapFromIterableToForLiteral();
     _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_TO_FOR_ELEMENT);
+  }
+
+  Future<void> _addFix_convertSingleQuotes() async {
+    final changeBuilder = await createBuilder_convertQuotes(true);
+    _addFixFromBuilder(
+        changeBuilder, DartFixKind.CONVERT_TO_SINGLE_QUOTED_STRING);
   }
 
   Future<void> _addFix_convertToExpressionBody() async {
