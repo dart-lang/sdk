@@ -1439,6 +1439,15 @@ int f(bool b, int i) {
     assertLUB(nullable_conditional, nullable_i, always);
   }
 
+  test_constructor_default_parameter_value_bool() async {
+    await analyze('''
+class C {
+  C([bool b = true]);
+}
+''');
+    assertNoUpstreamNullability(decoratedTypeAnnotation('bool b').node);
+  }
+
   test_constructor_named() async {
     await analyze('''
 class C {
