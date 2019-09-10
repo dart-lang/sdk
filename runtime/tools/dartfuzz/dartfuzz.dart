@@ -14,7 +14,7 @@ import 'dartfuzz_ffiapi.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.40';
+const String version = '1.41';
 
 // Restriction on statements and expressions.
 const int stmtLength = 2;
@@ -798,8 +798,7 @@ class DartFuzz {
 
   void emitCollectionElement(int depth, DartType tp) {
     int r = depth <= exprDepth ? rand.nextInt(10) : 10;
-    // TODO(ajcbik): renable, https://github.com/dart-lang/sdk/issues/38231
-    switch (r + 3) {
+    switch (r) {
       // Favors elements over control-flow collections.
       case 0:
         emit('...'); // spread
