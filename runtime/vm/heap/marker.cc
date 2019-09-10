@@ -501,11 +501,11 @@ void GCMarker::ProcessWeakTables(PageSpace* page_space) {
         heap_->GetWeakTable(Heap::kOld, static_cast<Heap::WeakSelector>(sel));
     intptr_t size = table->size();
     for (intptr_t i = 0; i < size; i++) {
-      if (table->IsValidEntryAt(i)) {
-        RawObject* raw_obj = table->ObjectAt(i);
+      if (table->IsValidEntryAtExclusive(i)) {
+        RawObject* raw_obj = table->ObjectAtExclusive(i);
         ASSERT(raw_obj->IsHeapObject());
         if (!raw_obj->IsMarked()) {
-          table->InvalidateAt(i);
+          table->InvalidateAtExclusive(i);
         }
       }
     }

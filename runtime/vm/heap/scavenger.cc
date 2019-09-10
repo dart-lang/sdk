@@ -851,8 +851,8 @@ void Scavenger::ProcessWeakReferences() {
                               WeakTable* replacement_old) {
     intptr_t size = table->size();
     for (intptr_t i = 0; i < size; i++) {
-      if (table->IsValidEntryAt(i)) {
-        RawObject* raw_obj = table->ObjectAt(i);
+      if (table->IsValidEntryAtExclusive(i)) {
+        RawObject* raw_obj = table->ObjectAtExclusive(i);
         ASSERT(raw_obj->IsHeapObject());
         uword raw_addr = RawObject::ToAddr(raw_obj);
         uword header = *reinterpret_cast<uword*>(raw_addr);
@@ -862,7 +862,7 @@ void Scavenger::ProcessWeakReferences() {
           raw_obj = RawObject::FromAddr(new_addr);
           auto replacement =
               raw_obj->IsNewObject() ? replacement_new : replacement_old;
-          replacement->SetValue(raw_obj, table->ValueAt(i));
+          replacement->SetValueExclusive(raw_obj, table->ValueAtExclusive(i));
         }
       }
     }

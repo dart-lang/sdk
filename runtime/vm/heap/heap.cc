@@ -885,10 +885,10 @@ void Heap::ForwardWeakEntries(RawObject* before_object,
   for (int sel = 0; sel < Heap::kNumWeakSelectors; sel++) {
     const auto selector = static_cast<Heap::WeakSelector>(sel);
     auto before_table = GetWeakTable(before_space, selector);
-    intptr_t entry = before_table->RemoveValue(before_object);
+    intptr_t entry = before_table->RemoveValueExclusive(before_object);
     if (entry != 0) {
       auto after_table = GetWeakTable(after_space, selector);
-      after_table->SetValue(after_object, entry);
+      after_table->SetValueExclusive(after_object, entry);
     }
   }
 
