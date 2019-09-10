@@ -945,7 +945,7 @@ void BytecodeReaderHelper::ReadExceptionsTable(const Bytecode& bytecode,
   if (try_block_count > 0) {
     const ObjectPool& pool = ObjectPool::Handle(Z, bytecode.object_pool());
     AbstractType& handler_type = AbstractType::Handle(Z);
-    Array& handler_types = Array::ZoneHandle(Z);
+    Array& handler_types = Array::Handle(Z);
     DescriptorList* pc_descriptors_list = new (Z) DescriptorList(64);
     ExceptionHandlerList* exception_handlers_list =
         new (Z) ExceptionHandlerList();
@@ -986,9 +986,13 @@ void BytecodeReaderHelper::ReadExceptionsTable(const Bytecode& bytecode,
                                          DeoptId::kNone,
                                          TokenPosition::kNoSource, -1);
 
+      // The exception handler keeps a zone handle of the types array, rather
+      // than a raw pointer. Do not share the handle across iterations to avoid
+      // clobbering the array.
       exception_handlers_list->AddHandler(
           try_index, outer_try_index, handler_pc, TokenPosition::kNoSource,
-          is_generated, handler_types, needs_stacktrace);
+          is_generated, Array::ZoneHandle(Z, handler_types.raw()),
+          needs_stacktrace);
     }
     const PcDescriptors& descriptors = PcDescriptors::Handle(
         Z, pc_descriptors_list->FinalizePcDescriptors(bytecode.PayloadStart()));

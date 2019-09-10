@@ -85,7 +85,6 @@ intptr_t StackTraceUtils::CollectFrames(Thread* thread,
       code_array.SetAt(array_offset, bytecode);
     } else {
       code = frame->LookupDartCode();
-      function = code.function();
       offset = Smi::New(frame->pc() - code.PayloadStart());
       code_array.SetAt(array_offset, code);
     }

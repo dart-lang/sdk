@@ -1184,6 +1184,10 @@ ActivationFrame* DebuggerStackTrace::GetHandlerFrame(
     const Instance& exc_obj) const {
   for (intptr_t frame_index = 0; frame_index < Length(); frame_index++) {
     ActivationFrame* frame = FrameAt(frame_index);
+    if (FLAG_trace_debugger_stacktrace) {
+      OS::PrintErr("GetHandlerFrame: #%04" Pd " %s", frame_index,
+                   frame->ToCString());
+    }
     if (frame->HandlesException(exc_obj)) {
       return frame;
     }
@@ -1606,6 +1610,10 @@ RawTypeArguments* ActivationFrame::BuildParameters(
 }
 
 const char* ActivationFrame::ToCString() {
+  if (function().IsNull()) {
+    return Thread::Current()->zone()->PrintToString("[ Frame kind: %s]\n",
+                                                    KindToCString(kind_));
+  }
   const String& url = String::Handle(SourceUrl());
   intptr_t line = LineNumber();
   const char* func_name = Debugger::QualifiedFunctionName(function());
@@ -1630,7 +1638,7 @@ const char* ActivationFrame::ToCString() {
         "\turl = %s\n"
         "\tline = %" Pd
         "\n"
-        "\tcontext = %s\n",
+        "\tcontext = %s]\n",
         IsInterpreted() ? "bytecode" : "code", func_name, url.ToCString(), line,
         ctx_.ToCString());
   }
