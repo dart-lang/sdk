@@ -734,7 +734,7 @@ class HintCode extends AnalyzerErrorCode {
    */
   static const HintCode SDK_VERSION_EXTENSION_METHODS = const HintCode(
       'SDK_VERSION_EXTENSION_METHODS',
-      "Extension methods weren't supported until version 2.X.0, "
+      "Extension methods weren't supported until version 2.6.0, "
           "but this code is required to be able to run on earlier versions.",
       correction: "Try updating the SDK constraints.");
 

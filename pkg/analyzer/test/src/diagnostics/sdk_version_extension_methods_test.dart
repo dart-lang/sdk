@@ -21,7 +21,6 @@ class SdkVersionExtensionMethodsTest extends SdkConstraintVerifierTest {
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
     ..enabledExperiments = [EnableString.extension_methods];
 
-  @failingTest
   test_extension_equals() async {
     await verifyVersion('2.6.0', '''
 extension E on int {}
@@ -36,7 +35,6 @@ extension E on int {}
     ]);
   }
 
-  @failingTest
   test_extensionOverride_equals() async {
     await verifyVersion('2.6.0', '''
 extension E on int {
