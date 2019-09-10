@@ -494,7 +494,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_TrivialRecordAllocation) {
 }
 
 #if defined(DART_USE_TCMALLOC) && defined(HOST_OS_LINUX) && defined(DEBUG) &&  \
-    defined(HOST_ARCH_x64)
+    defined(HOST_ARCH_X64)
 
 DART_NOINLINE static void NativeAllocationSampleHelper(char** result) {
   ASSERT(result != NULL);
@@ -502,12 +502,12 @@ DART_NOINLINE static void NativeAllocationSampleHelper(char** result) {
 }
 
 ISOLATE_UNIT_TEST_CASE(Profiler_NativeAllocation) {
-  EnableProfiler();
-
   bool enable_malloc_hooks_saved = FLAG_profiler_native_memory;
   FLAG_profiler_native_memory = true;
 
-  MallocHooks::InitOnce();
+  EnableProfiler();
+
+  MallocHooks::Init();
   MallocHooks::ResetStats();
   bool stack_trace_collection_enabled =
       MallocHooks::stack_trace_collection_enabled();
@@ -536,31 +536,27 @@ ISOLATE_UNIT_TEST_CASE(Profiler_NativeAllocation) {
     // Filter for the class in the time range.
     NativeAllocationSampleFilter filter(before_allocations_micros,
                                         allocation_extent_micros);
-    profile.Build(thread, &filter, Profiler::sample_buffer());
+    profile.Build(thread, &filter, Profiler::allocation_sample_buffer());
     // We should have 1 allocation sample.
     EXPECT_EQ(1, profile.sample_count());
-    ProfileStackWalker walker(&profile)
+    ProfileStackWalker walker(&profile);
 
-        // Move down from the root.
-        EXPECT(walker.Down());
+    // Move down from the root.
     EXPECT_SUBSTRING("[Native]", walker.CurrentName());
-    EXPECT_EQ(walker.native_allocation_size_bytes(), 1024);
+    EXPECT_EQ(1024ul, profile.SampleAt(0)->native_allocation_size_bytes());
     EXPECT(walker.Down());
     EXPECT_STREQ("dart::Dart_TestProfiler_NativeAllocation()",
                  walker.CurrentName());
-    EXPECT_EQ(walker.native_allocation_size_bytes(), 1024);
     EXPECT(walker.Down());
     EXPECT_STREQ("dart::TestCase::Run()", walker.CurrentName());
-    EXPECT_EQ(walker.native_allocation_size_bytes(), 1024);
     EXPECT(walker.Down());
     EXPECT_STREQ("dart::TestCaseBase::RunTest()", walker.CurrentName());
-    EXPECT_EQ(walker.native_allocation_size_bytes(), 1024);
     EXPECT(walker.Down());
     EXPECT_STREQ("dart::TestCaseBase::RunAll()", walker.CurrentName());
-    EXPECT_EQ(walker.native_allocation_size_bytes(), 1024);
+    EXPECT(walker.Down());
+    EXPECT_SUBSTRING("[Native]", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("main", walker.CurrentName());
-    EXPECT_EQ(walker.native_allocation_size_bytes(), 1024);
     EXPECT(!walker.Down());
   }
 
@@ -601,11 +597,10 @@ ISOLATE_UNIT_TEST_CASE(Profiler_NativeAllocation) {
 
   MallocHooks::set_stack_trace_collection_enabled(
       stack_trace_collection_enabled);
-  MallocHooks::TearDown();
   FLAG_profiler_native_memory = enable_malloc_hooks_saved;
 }
-#endif  // defined(DART_USE_TCMALLOC) && !defined(PRODUCT) &&
-        // !defined(TARGET_ARCH_DBC) && !defined(HOST_OS_FUCHSIA)
+#endif  // defined(DART_USE_TCMALLOC) && defined(HOST_OS_LINUX) &&             \
+        // defined(DEBUG) && defined(HOST_ARCH_X64)
 
 ISOLATE_UNIT_TEST_CASE(Profiler_ToggleRecordAllocation) {
   EnableProfiler();
