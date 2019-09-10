@@ -196,6 +196,9 @@ class Snapshot {
   const uint8_t* Addr() const { return reinterpret_cast<const uint8_t*>(this); }
 
   const uint8_t* DataImage() const {
+    if (!IncludesCode(kind())) {
+      return NULL;
+    }
     uword offset = Utils::RoundUp(length(), OS::kMaxPreferredCodeAlignment);
     return Addr() + offset;
   }

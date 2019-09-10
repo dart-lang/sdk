@@ -3305,6 +3305,19 @@ class MintDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d) {}
+
+  void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
+    const Class& mint_cls =
+        Class::Handle(zone, Isolate::Current()->object_store()->mint_class());
+    mint_cls.set_constants(Object::empty_array());
+    Object& number = Object::Handle(zone);
+    for (intptr_t i = start_index_; i < stop_index_; i++) {
+      number = refs.At(i);
+      if (number.IsMint() && number.IsCanonical()) {
+        mint_cls.InsertCanonicalMint(zone, Mint::Cast(number));
+      }
+    }
+  }
 };
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -4086,6 +4099,159 @@ class ArrayDeserializationCluster : public DeserializationCluster {
 };
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
+class OneByteStringSerializationCluster : public SerializationCluster {
+ public:
+  OneByteStringSerializationCluster() : SerializationCluster("OneByteString") {}
+  ~OneByteStringSerializationCluster() {}
+
+  void Trace(Serializer* s, RawObject* object) {
+    RawOneByteString* str = reinterpret_cast<RawOneByteString*>(object);
+    objects_.Add(str);
+  }
+
+  void WriteAlloc(Serializer* s) {
+    s->WriteCid(kOneByteStringCid);
+    intptr_t count = objects_.length();
+    s->WriteUnsigned(count);
+    for (intptr_t i = 0; i < count; i++) {
+      RawOneByteString* str = objects_[i];
+      s->AssignRef(str);
+      AutoTraceObject(str);
+      intptr_t length = Smi::Value(str->ptr()->length_);
+      s->WriteUnsigned(length);
+    }
+  }
+
+  void WriteFill(Serializer* s) {
+    intptr_t count = objects_.length();
+    for (intptr_t i = 0; i < count; i++) {
+      RawOneByteString* str = objects_[i];
+      AutoTraceObject(str);
+      intptr_t length = Smi::Value(str->ptr()->length_);
+      s->WriteUnsigned(length);
+      s->Write<bool>(str->IsCanonical());
+      intptr_t hash = String::GetCachedHash(str);
+      s->Write<int32_t>(hash);
+      s->WriteBytes(str->ptr()->data(), length);
+    }
+  }
+
+ private:
+  GrowableArray<RawOneByteString*> objects_;
+};
+#endif  // !DART_PRECOMPILED_RUNTIME
+
+class OneByteStringDeserializationCluster : public DeserializationCluster {
+ public:
+  OneByteStringDeserializationCluster() {}
+  ~OneByteStringDeserializationCluster() {}
+
+  void ReadAlloc(Deserializer* d) {
+    start_index_ = d->next_index();
+    PageSpace* old_space = d->heap()->old_space();
+    intptr_t count = d->ReadUnsigned();
+    for (intptr_t i = 0; i < count; i++) {
+      intptr_t length = d->ReadUnsigned();
+      d->AssignRef(AllocateUninitialized(old_space,
+                                         OneByteString::InstanceSize(length)));
+    }
+    stop_index_ = d->next_index();
+  }
+
+  void ReadFill(Deserializer* d) {
+    for (intptr_t id = start_index_; id < stop_index_; id++) {
+      RawOneByteString* str = reinterpret_cast<RawOneByteString*>(d->Ref(id));
+      intptr_t length = d->ReadUnsigned();
+      bool is_canonical = d->Read<bool>();
+      Deserializer::InitializeHeader(str, kOneByteStringCid,
+                                     OneByteString::InstanceSize(length),
+                                     is_canonical);
+      str->ptr()->length_ = Smi::New(length);
+      String::SetCachedHash(str, d->Read<int32_t>());
+      for (intptr_t j = 0; j < length; j++) {
+        str->ptr()->data()[j] = d->Read<uint8_t>();
+      }
+    }
+  }
+};
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+class TwoByteStringSerializationCluster : public SerializationCluster {
+ public:
+  TwoByteStringSerializationCluster() : SerializationCluster("TwoByteString") {}
+  ~TwoByteStringSerializationCluster() {}
+
+  void Trace(Serializer* s, RawObject* object) {
+    RawTwoByteString* str = reinterpret_cast<RawTwoByteString*>(object);
+    objects_.Add(str);
+  }
+
+  void WriteAlloc(Serializer* s) {
+    s->WriteCid(kTwoByteStringCid);
+    intptr_t count = objects_.length();
+    s->WriteUnsigned(count);
+    for (intptr_t i = 0; i < count; i++) {
+      RawTwoByteString* str = objects_[i];
+      s->AssignRef(str);
+      AutoTraceObject(str);
+      intptr_t length = Smi::Value(str->ptr()->length_);
+      s->WriteUnsigned(length);
+    }
+  }
+
+  void WriteFill(Serializer* s) {
+    intptr_t count = objects_.length();
+    for (intptr_t i = 0; i < count; i++) {
+      RawTwoByteString* str = objects_[i];
+      AutoTraceObject(str);
+      intptr_t length = Smi::Value(str->ptr()->length_);
+      s->WriteUnsigned(length);
+      s->Write<bool>(str->IsCanonical());
+      intptr_t hash = String::GetCachedHash(str);
+      s->Write<int32_t>(hash);
+      s->WriteBytes(reinterpret_cast<uint8_t*>(str->ptr()->data()), length * 2);
+    }
+  }
+
+ private:
+  GrowableArray<RawTwoByteString*> objects_;
+};
+#endif  // !DART_PRECOMPILED_RUNTIME
+
+class TwoByteStringDeserializationCluster : public DeserializationCluster {
+ public:
+  TwoByteStringDeserializationCluster() {}
+  ~TwoByteStringDeserializationCluster() {}
+
+  void ReadAlloc(Deserializer* d) {
+    start_index_ = d->next_index();
+    PageSpace* old_space = d->heap()->old_space();
+    intptr_t count = d->ReadUnsigned();
+    for (intptr_t i = 0; i < count; i++) {
+      intptr_t length = d->ReadUnsigned();
+      d->AssignRef(AllocateUninitialized(old_space,
+                                         TwoByteString::InstanceSize(length)));
+    }
+    stop_index_ = d->next_index();
+  }
+
+  void ReadFill(Deserializer* d) {
+    for (intptr_t id = start_index_; id < stop_index_; id++) {
+      RawTwoByteString* str = reinterpret_cast<RawTwoByteString*>(d->Ref(id));
+      intptr_t length = d->ReadUnsigned();
+      bool is_canonical = d->Read<bool>();
+      Deserializer::InitializeHeader(str, kTwoByteStringCid,
+                                     TwoByteString::InstanceSize(length),
+                                     is_canonical);
+      str->ptr()->length_ = Smi::New(length);
+      String::SetCachedHash(str, d->Read<int32_t>());
+      uint8_t* cdata = reinterpret_cast<uint8_t*>(str->ptr()->data());
+      d->ReadBytes(cdata, length * 2);
+    }
+  }
+};
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class FakeSerializationCluster : public SerializationCluster {
  public:
   FakeSerializationCluster(const char* name, intptr_t size)
@@ -4205,10 +4371,16 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
 
   if (Snapshot::IncludesCode(kind_)) {
     switch (cid) {
+      case kPcDescriptorsCid:
+        return new (Z) RODataSerializationCluster("(RO)PcDescriptors", cid);
       case kCodeSourceMapCid:
         return new (Z) RODataSerializationCluster("(RO)CodeSourceMap", cid);
       case kStackMapCid:
         return new (Z) RODataSerializationCluster("(RO)StackMap", cid);
+      case kOneByteStringCid:
+        return new (Z) RODataSerializationCluster("(RO)OneByteString", cid);
+      case kTwoByteStringCid:
+        return new (Z) RODataSerializationCluster("(RO)TwoByteString", cid);
     }
   }
 
@@ -4247,8 +4419,6 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
 #endif  // !DART_PRECOMPILED_RUNTIME
     case kObjectPoolCid:
       return new (Z) ObjectPoolSerializationCluster();
-    case kPcDescriptorsCid:
-      return new (Z) RODataSerializationCluster("(RO)PcDescriptors", cid);
     case kExceptionHandlersCid:
       return new (Z) ExceptionHandlersSerializationCluster();
     case kContextCid:
@@ -4298,9 +4468,9 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
     case kImmutableArrayCid:
       return new (Z) ArraySerializationCluster(kImmutableArrayCid);
     case kOneByteStringCid:
-      return new (Z) RODataSerializationCluster("(RO)OneByteString", cid);
+      return new (Z) OneByteStringSerializationCluster();
     case kTwoByteStringCid:
-      return new (Z) RODataSerializationCluster("(RO)TwoByteString", cid);
+      return new (Z) TwoByteStringSerializationCluster();
     default:
       break;
   }
@@ -4794,15 +4964,17 @@ Deserializer::Deserializer(Thread* thread,
       zone_(thread->zone()),
       kind_(kind),
       stream_(buffer, size),
-      image_reader_(nullptr),
-      refs_(nullptr),
+      image_reader_(NULL),
+      refs_(NULL),
       next_ref_index_(1),
-      clusters_(nullptr) {
-  ASSERT((instructions_buffer != nullptr) || !Snapshot::IncludesCode(kind));
-  ASSERT(data_buffer != nullptr);
-  image_reader_ =
-      new (zone_) ImageReader(data_buffer, instructions_buffer,
-                              shared_data_buffer, shared_instructions_buffer);
+      clusters_(NULL) {
+  if (Snapshot::IncludesCode(kind)) {
+    ASSERT(instructions_buffer != NULL);
+    ASSERT(data_buffer != NULL);
+    image_reader_ =
+        new (zone_) ImageReader(data_buffer, instructions_buffer,
+                                shared_data_buffer, shared_instructions_buffer);
+  }
   stream_.SetPosition(offset);
 }
 
@@ -4915,14 +5087,25 @@ DeserializationCluster* Deserializer::ReadCluster() {
       return new (Z) ArrayDeserializationCluster(kArrayCid);
     case kImmutableArrayCid:
       return new (Z) ArrayDeserializationCluster(kImmutableArrayCid);
-    case kOneByteStringCid:
-    case kTwoByteStringCid:
-      return new (Z) RODataDeserializationCluster();
+    case kOneByteStringCid: {
+      if (Snapshot::IncludesCode(kind_)) {
+        return new (Z) RODataDeserializationCluster();
+      } else {
+        return new (Z) OneByteStringDeserializationCluster();
+      }
+    }
+    case kTwoByteStringCid: {
+      if (Snapshot::IncludesCode(kind_)) {
+        return new (Z) RODataDeserializationCluster();
+      } else {
+        return new (Z) TwoByteStringDeserializationCluster();
+      }
+    }
     default:
       break;
   }
   FATAL1("No cluster defined for cid %" Pd, cid);
-  return nullptr;
+  return NULL;
 }
 
 RawApiError* Deserializer::VerifyImageAlignment() {
@@ -5309,8 +5492,7 @@ FullSnapshotWriter::~FullSnapshotWriter() {}
 intptr_t FullSnapshotWriter::WriteVMSnapshot() {
   TIMELINE_DURATION(thread(), Isolate, "WriteVMSnapshot");
 
-  ASSERT(vm_snapshot_data_buffer_ != nullptr);
-  ASSERT(vm_image_writer_ != nullptr);
+  ASSERT(vm_snapshot_data_buffer_ != NULL);
   Serializer serializer(thread(), kind_, vm_snapshot_data_buffer_, alloc_,
                         kInitialSize, vm_image_writer_, /*vm=*/true,
                         profile_writer_);
@@ -5327,12 +5509,14 @@ intptr_t FullSnapshotWriter::WriteVMSnapshot() {
   serializer.FillHeader(serializer.kind());
   clustered_vm_size_ = serializer.bytes_written();
 
-  vm_image_writer_->SetProfileWriter(profile_writer_);
-  vm_image_writer_->Write(serializer.stream(), true);
-  mapped_data_size_ += vm_image_writer_->data_size();
-  mapped_text_size_ += vm_image_writer_->text_size();
-  vm_image_writer_->ResetOffsets();
-  vm_image_writer_->ClearProfileWriter();
+  if (Snapshot::IncludesCode(kind_)) {
+    vm_image_writer_->SetProfileWriter(profile_writer_);
+    vm_image_writer_->Write(serializer.stream(), true);
+    mapped_data_size_ += vm_image_writer_->data_size();
+    mapped_text_size_ += vm_image_writer_->text_size();
+    vm_image_writer_->ResetOffsets();
+    vm_image_writer_->ClearProfileWriter();
+  }
 
   // The clustered part + the direct mapped data part.
   vm_isolate_snapshot_size_ = serializer.bytes_written();
@@ -5342,13 +5526,11 @@ intptr_t FullSnapshotWriter::WriteVMSnapshot() {
 void FullSnapshotWriter::WriteIsolateSnapshot(intptr_t num_base_objects) {
   TIMELINE_DURATION(thread(), Isolate, "WriteIsolateSnapshot");
 
-  ASSERT(isolate_snapshot_data_buffer_ != nullptr);
-  ASSERT(isolate_image_writer_ != nullptr);
   Serializer serializer(thread(), kind_, isolate_snapshot_data_buffer_, alloc_,
                         kInitialSize, isolate_image_writer_, /*vm=*/false,
                         profile_writer_);
   ObjectStore* object_store = isolate()->object_store();
-  ASSERT(object_store != nullptr);
+  ASSERT(object_store != NULL);
 
   serializer.ReserveHeader();
   serializer.WriteVersionAndFeatures(false);
@@ -5358,16 +5540,18 @@ void FullSnapshotWriter::WriteIsolateSnapshot(intptr_t num_base_objects) {
   serializer.FillHeader(serializer.kind());
   clustered_isolate_size_ = serializer.bytes_written();
 
-  isolate_image_writer_->SetProfileWriter(profile_writer_);
-  isolate_image_writer_->Write(serializer.stream(), false);
+  if (Snapshot::IncludesCode(kind_)) {
+    isolate_image_writer_->SetProfileWriter(profile_writer_);
+    isolate_image_writer_->Write(serializer.stream(), false);
 #if defined(DART_PRECOMPILER)
-  isolate_image_writer_->DumpStatistics();
+    isolate_image_writer_->DumpStatistics();
 #endif
 
-  mapped_data_size_ += isolate_image_writer_->data_size();
-  mapped_text_size_ += isolate_image_writer_->text_size();
-  isolate_image_writer_->ResetOffsets();
-  isolate_image_writer_->ClearProfileWriter();
+    mapped_data_size_ += isolate_image_writer_->data_size();
+    mapped_text_size_ += isolate_image_writer_->text_size();
+    isolate_image_writer_->ResetOffsets();
+    isolate_image_writer_->ClearProfileWriter();
+  }
 
   // The clustered part + the direct mapped data part.
   isolate_snapshot_size_ = serializer.bytes_written();
@@ -5488,11 +5672,11 @@ RawApiError* FullSnapshotReader::ReadVMSnapshot() {
     return api_error;
   }
 
-  ASSERT(data_image_ != nullptr);
-  thread_->isolate()->SetupImagePage(data_image_,
-                                     /* is_executable */ false);
   if (Snapshot::IncludesCode(kind_)) {
-    ASSERT(instructions_image_ != nullptr);
+    ASSERT(data_image_ != NULL);
+    thread_->isolate()->SetupImagePage(data_image_,
+                                       /* is_executable */ false);
+    ASSERT(instructions_image_ != NULL);
     thread_->isolate()->SetupImagePage(instructions_image_,
                                        /* is_executable */ true);
   }
@@ -5519,18 +5703,18 @@ RawApiError* FullSnapshotReader::ReadIsolateSnapshot() {
     return api_error;
   }
 
-  ASSERT(data_image_ != nullptr);
-  thread_->isolate()->SetupImagePage(data_image_,
-                                     /* is_executable */ false);
   if (Snapshot::IncludesCode(kind_)) {
-    ASSERT(instructions_image_ != nullptr);
+    ASSERT(data_image_ != NULL);
+    thread_->isolate()->SetupImagePage(data_image_,
+                                       /* is_executable */ false);
+    ASSERT(instructions_image_ != NULL);
     thread_->isolate()->SetupImagePage(instructions_image_,
                                        /* is_executable */ true);
-    if (shared_data_image_ != nullptr) {
+    if (shared_data_image_ != NULL) {
       thread_->isolate()->SetupImagePage(shared_data_image_,
                                          /* is_executable */ false);
     }
-    if (shared_instructions_image_ != nullptr) {
+    if (shared_instructions_image_ != NULL) {
       thread_->isolate()->SetupImagePage(shared_instructions_image_,
                                          /* is_executable */ true);
     }
