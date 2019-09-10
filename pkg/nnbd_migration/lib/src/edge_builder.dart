@@ -1184,7 +1184,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitSuperExpression(SuperExpression node) {
-    return DecoratedType(node.staticType, _graph.never);
+    return _handleThisOrSuper(node);
   }
 
   @override
@@ -1214,7 +1214,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitThisExpression(ThisExpression node) {
-    return DecoratedType(node.staticType, _graph.never);
+    return _handleThisOrSuper(node);
   }
 
   @override
@@ -1911,6 +1911,19 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     } else {
       return _checkExpressionNotNull(target);
     }
+  }
+
+  DecoratedType _handleThisOrSuper(Expression node) {
+    var type = node.staticType as InterfaceType;
+    // Instantiate the type, and any type arguments, with `_graph.never`,
+    // because the type of `this` is always `ClassName<Param, Param, ...>` with
+    // no `?`s.  (Even if some of the type parameters are allowed to be
+    // instantiated with nullable types at runtime, a reference to `this` can't
+    // be migrated in such a way that forces them to be nullable).
+    return DecoratedType(type, _graph.never,
+        typeArguments: type.typeArguments
+            .map((t) => DecoratedType(t, _graph.never))
+            .toList());
   }
 
   bool _isConditionalExpression(Expression expression) {
