@@ -90,7 +90,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
       : ObjectPointerVisitor(isolate),
         thread_(Thread::Current()),
 #ifndef PRODUCT
-        num_classes_(isolate->class_table()->Capacity()),
+        num_classes_(isolate->shared_class_table()->Capacity()),
         class_stats_count_(new intptr_t[num_classes_]),
         class_stats_size_(new intptr_t[num_classes_]),
 #endif  // !PRODUCT
@@ -372,7 +372,8 @@ static bool IsUnreachable(const RawObject* raw_obj) {
 class MarkingWeakVisitor : public HandleVisitor {
  public:
   explicit MarkingWeakVisitor(Thread* thread)
-      : HandleVisitor(thread), class_table_(thread->isolate()->class_table()) {}
+      : HandleVisitor(thread),
+        class_table_(thread->isolate()->shared_class_table()) {}
 
   void VisitHandle(uword addr) {
     FinalizablePersistentHandle* handle =
@@ -394,7 +395,7 @@ class MarkingWeakVisitor : public HandleVisitor {
   }
 
  private:
-  ClassTable* class_table_;
+  SharedClassTable* class_table_;
 
   DISALLOW_COPY_AND_ASSIGN(MarkingWeakVisitor);
 };
@@ -724,7 +725,7 @@ void GCMarker::FinalizeResultsFrom(MarkingVisitorType* visitor) {
 #ifndef PRODUCT
     // Class heap stats are not themselves thread-safe yet, so we update the
     // stats while holding stats_mutex_.
-    ClassTable* table = heap_->isolate()->class_table();
+    auto table = heap_->isolate()->shared_class_table();
     for (intptr_t i = 0; i < table->NumCids(); ++i) {
       const intptr_t count = visitor->live_count(i);
       if (count > 0) {

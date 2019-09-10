@@ -804,7 +804,6 @@ class Assembler : public AssemblerBase {
   // Loading and comparing classes of objects.
   void LoadClassId(Register result, Register object);
 
-  // Overwrites class_id register (it will be tagged afterwards).
   void LoadClassById(Register result, Register class_id);
 
   void CompareClassId(Register object,

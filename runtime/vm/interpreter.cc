@@ -264,7 +264,7 @@ DART_FORCE_INLINE static bool TryAllocate(Thread* thread,
                                           RawObject** result) {
   const uword start = thread->top();
 #ifndef PRODUCT
-  ClassTable* table = thread->isolate()->class_table();
+  auto table = thread->isolate()->shared_class_table();
   if (UNLIKELY(table->TraceAllocationFor(class_id))) {
     return false;
   }

@@ -2202,7 +2202,7 @@ RawObject* Object::Allocate(intptr_t cls_id, intptr_t size, Heap::Space space) {
     }
   }
 #ifndef PRODUCT
-  ClassTable* class_table = thread->isolate()->class_table();
+  auto class_table = thread->isolate()->shared_class_table();
   if (space == Heap::kNew) {
     class_table->UpdateAllocatedNew(cls_id, size);
   } else {
@@ -3298,7 +3298,7 @@ void Class::DisableAllCHAOptimizedCode() {
 
 bool Class::TraceAllocation(Isolate* isolate) const {
 #ifndef PRODUCT
-  ClassTable* class_table = isolate->class_table();
+  auto class_table = isolate->shared_class_table();
   return class_table->TraceAllocationFor(id());
 #else
   return false;
@@ -3310,7 +3310,7 @@ void Class::SetTraceAllocation(bool trace_allocation) const {
   Isolate* isolate = Isolate::Current();
   const bool changed = trace_allocation != this->TraceAllocation(isolate);
   if (changed) {
-    ClassTable* class_table = isolate->class_table();
+    auto class_table = isolate->shared_class_table();
     class_table->SetTraceAllocationFor(id(), trace_allocation);
     DisableAllocationStub();
   }

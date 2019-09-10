@@ -281,7 +281,7 @@ class ScavengerWeakVisitor : public HandleVisitor {
   ScavengerWeakVisitor(Thread* thread, Scavenger* scavenger)
       : HandleVisitor(thread),
         scavenger_(scavenger),
-        class_table_(thread->isolate()->class_table()) {
+        class_table_(thread->isolate()->shared_class_table()) {
     ASSERT(scavenger->heap_->isolate() == thread->isolate());
   }
 
@@ -307,7 +307,7 @@ class ScavengerWeakVisitor : public HandleVisitor {
 
  private:
   Scavenger* scavenger_;
-  ClassTable* class_table_;
+  SharedClassTable* class_table_;
 
   DISALLOW_COPY_AND_ASSIGN(ScavengerWeakVisitor);
 };
@@ -486,7 +486,7 @@ intptr_t Scavenger::NewSizeInWords(intptr_t old_size_in_words) const {
 }
 
 SemiSpace* Scavenger::Prologue(Isolate* isolate) {
-  NOT_IN_PRODUCT(isolate->class_table()->ResetCountersNew());
+  NOT_IN_PRODUCT(isolate->shared_class_table()->ResetCountersNew());
 
   isolate->ReleaseStoreBuffers();
   AbandonTLABs(isolate);
@@ -593,7 +593,7 @@ void Scavenger::Epilogue(Isolate* isolate, SemiSpace* from) {
     heap_->UpdateGlobalMaxUsed();
   }
 
-  NOT_IN_PRODUCT(isolate->class_table()->UpdatePromoted());
+  NOT_IN_PRODUCT(isolate->shared_class_table()->UpdatePromoted());
 }
 
 bool Scavenger::ShouldPerformIdleScavenge(int64_t deadline) {
@@ -708,7 +708,7 @@ void Scavenger::IterateWeakRoots(Isolate* isolate, HandleVisitor* visitor) {
 
 void Scavenger::ProcessToSpace(ScavengerVisitor* visitor) {
   Thread* thread = Thread::Current();
-  NOT_IN_PRODUCT(ClassTable* class_table = thread->isolate()->class_table());
+  NOT_IN_PRODUCT(auto class_table = visitor->isolate()->shared_class_table());
 
   // Iterate until all work has been drained.
   while ((resolved_top_ < top_) || PromotedStackHasMore()) {
@@ -1161,7 +1161,8 @@ void Scavenger::AllocateExternal(intptr_t cid, intptr_t size) {
   ASSERT(size >= 0);
   external_size_ += size;
   NOT_IN_PRODUCT(
-      heap_->isolate()->class_table()->UpdateAllocatedExternalNew(cid, size));
+      heap_->isolate()->shared_class_table()->UpdateAllocatedExternalNew(cid,
+                                                                         size));
 }
 
 void Scavenger::FreeExternal(intptr_t size) {

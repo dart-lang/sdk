@@ -340,6 +340,9 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   SafepointHandler* safepoint_handler() const {
     return group()->safepoint_handler();
   }
+
+  SharedClassTable* shared_class_table() { return shared_class_table_.get(); }
+
   ClassTable* class_table() { return &class_table_; }
   static intptr_t class_table_offset() {
     return OFFSET_OF(Isolate, class_table_);
@@ -1023,6 +1026,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   RawUserTag* current_tag_;
   RawUserTag* default_tag_;
   RawCode* ic_miss_code_;
+  std::unique_ptr<SharedClassTable> shared_class_table_;
   ObjectStore* object_store_ = nullptr;
   ClassTable class_table_;
   bool single_step_ = false;

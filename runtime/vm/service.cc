@@ -3943,7 +3943,7 @@ static bool GetAllocationProfileImpl(Thread* thread,
   Isolate* isolate = thread->isolate();
   if (should_reset_accumulator) {
     isolate->UpdateLastAllocationProfileAccumulatorResetTimestamp();
-    isolate->class_table()->ResetAllocationAccumulators();
+    isolate->shared_class_table()->ResetAllocationAccumulators();
   }
   if (should_collect) {
     isolate->UpdateLastAllocationProfileGCTimestamp();
