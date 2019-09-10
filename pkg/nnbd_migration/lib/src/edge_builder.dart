@@ -838,7 +838,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitLibraryDirective(LibraryDirective node) {
-    // skip directives
+    // skip directives, but not their metadata
+    node.metadata.accept(this);
     return null;
   }
 
@@ -924,7 +925,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitNamespaceDirective(NamespaceDirective node) {
-    // skip directives
+    // skip directives, but not their metadata
+    node.metadata.accept(this);
     return null;
   }
 
@@ -936,6 +938,13 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitParenthesizedExpression(ParenthesizedExpression node) {
     return node.expression.accept(this);
+  }
+
+  @override
+  DecoratedType visitPartOfDirective(PartOfDirective node) {
+    // skip directives, but not their metadata
+    node.metadata.accept(this);
+    return null;
   }
 
   @override
