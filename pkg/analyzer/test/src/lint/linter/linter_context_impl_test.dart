@@ -184,6 +184,16 @@ A f() => A();
     assertCanBeConst("A(", false);
   }
 
+  void test_false_typeParameter() async {
+    await resolve('''
+class A<T> {
+  const A();
+}
+f<U>() => A<U>();
+''');
+    assertCanBeConst("A<U>", false);
+  }
+
   void test_true_constConstructorArg() async {
     await resolve('''
 class A {
