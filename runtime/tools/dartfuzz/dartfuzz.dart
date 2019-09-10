@@ -14,7 +14,7 @@ import 'dartfuzz_ffiapi.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.39';
+const String version = '1.40';
 
 // Restriction on statements and expressions.
 const int stmtLength = 2;
@@ -167,43 +167,72 @@ class DartFuzz {
     emitLn(').cast<ffi.NativeFunction<${typeName}>>().asFunction();');
   }
 
+  void emitMethod(
+      String name, int index, List<DartType> method, bool isFfiMethod) {
+    if (isFfiMethod) {
+      emitFfiTypedef("${name}Ffi${index}Type", method);
+      emitLn('${method[0].name} ${name}Ffi$index(', newline: false);
+    } else {
+      emitLn('${method[0].name} $name$index(', newline: false);
+    }
+    emitParDecls(method);
+    if (!isFfiMethod && rand.nextInt(10) == 0) {
+      // Emit a method using "=>" syntax.
+      emit(') => ');
+      emitExpr(0, method[0]);
+      emit(';', newline: true);
+      return;
+    }
+    emit(') {', newline: true);
+    indent += 2;
+    assert(localVars.isEmpty);
+    if (emitStatements(0)) {
+      emitReturn();
+    }
+    assert(localVars.isEmpty);
+    indent -= 2;
+    emitLn('}');
+    if (isFfiMethod) {
+      emitFfiCast("${name}${index}", "${name}Ffi${index}",
+          "${name}Ffi${index}Type", method);
+    }
+    emit('', newline: true);
+  }
+
   void emitMethods(String name, List<List<DartType>> methods,
       [List<bool> ffiStatus]) {
     for (int i = 0; i < methods.length; i++) {
       List<DartType> method = methods[i];
       currentMethod = i;
       final bool isFfiMethod = ffiStatus != null && ffiStatus[i];
-      if (isFfiMethod) {
-        emitFfiTypedef("${name}Ffi${i}Type", method);
-        emitLn('${method[0].name} ${name}Ffi$i(', newline: false);
-      } else {
-        emitLn('${method[0].name} $name$i(', newline: false);
-      }
-      emitParDecls(method);
-      if (!isFfiMethod && rand.nextInt(10) == 0) {
-        // Emit a method using "=>" syntax.
-        emit(') => ');
-        emitExpr(0, method[0]);
-        emit(';', newline: true);
-        currentMethod = null;
-        continue;
-      }
-      emit(') {', newline: true);
-      indent += 2;
-      assert(localVars.isEmpty);
-      if (emitStatements(0)) {
-        emitReturn();
-      }
-      assert(localVars.isEmpty);
-      indent -= 2;
-      emitLn('}');
-      if (isFfiMethod) {
-        emitFfiCast(
-            "${name}${i}", "${name}Ffi${i}", "${name}Ffi${i}Type", method);
-      }
-      emit('', newline: true);
+      emitMethod(name, i, method, isFfiMethod);
       currentMethod = null;
     }
+  }
+
+  // Randomly overwrite some methods from the parent classes.
+  void emitVirtualMethods() {
+    final currentClassTmp = currentClass;
+    int parentClass = classParents[currentClass];
+    // Chase randomly up in class hierarchy.
+    while (parentClass >= 0) {
+      for (int j = 0, n = classMethods[parentClass].length; j < n; j++) {
+        if (rand.nextInt(8) == 0) {
+          currentClass = parentClass;
+          currentMethod = j;
+          emitMethod('$methodName${parentClass}_', j,
+              classMethods[parentClass][j], false);
+          currentMethod = null;
+          currentClass = null;
+        }
+      }
+      if (rand.nextInt(2) == 0 || classParents.length > parentClass) {
+        break;
+      } else {
+        parentClass = classParents[parentClass];
+      }
+    }
+    currentClass = currentClassTmp;
   }
 
   void emitClasses() {
@@ -231,6 +260,7 @@ class DartFuzz {
       indent += 2;
       emitVarDecls('$fieldName${i}_', classFields[i]);
       currentClass = i;
+      emitVirtualMethods();
       emitMethods('$methodName${i}_', classMethods[i]);
       emitLn('void run() {');
       indent += 2;
