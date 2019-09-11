@@ -47,6 +47,19 @@ f(var a) {
       error(StaticTypeWarningCode.UNDEFINED_SETTER, 43, 1),
     ]);
   }
+
+  test_static_definedInSuperclass() async {
+    await assertErrorsInCode('''
+class S {
+  static set s(int i) {}
+}
+class C extends S {}
+f(var p) {
+  f(C.s = 1);
+}''', [
+      error(StaticTypeWarningCode.UNDEFINED_SETTER, 75, 1),
+    ]);
+  }
 }
 
 @reflectiveTest

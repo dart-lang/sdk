@@ -15,6 +15,27 @@ main() {
 
 @reflectiveTest
 class UndefinedIdentifierTest extends DriverResolutionTest {
+  @failingTest
+  test_commentReference() async {
+    await assertErrorsInCode('''
+/** [m] xxx [new B.c] */
+class A {
+}''', [
+      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 5, 1),
+      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 17, 1),
+    ]);
+  }
+
+  test_for() async {
+    await assertErrorsInCode('''
+f(var l) {
+  for (e in l) {
+  }
+}''', [
+      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 18, 1),
+    ]);
+  }
+
   test_forElement_inList_insideElement() async {
     await assertNoErrorsInCode('''
 f(Object x) {
@@ -53,6 +74,76 @@ f() {
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
       error(StaticWarningCode.UNDEFINED_IDENTIFIER, 31, 1),
+    ]);
+  }
+
+  test_function() async {
+    await assertErrorsInCode('''
+int a() => b;
+''', [
+      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 11, 1),
+    ]);
+  }
+
+  test_importCore_withShow() async {
+    await assertErrorsInCode('''
+import 'dart:core' show List;
+main() {
+  List;
+  String;
+}''', [
+      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 49, 6),
+    ]);
+  }
+
+  test_initializer() async {
+    await assertErrorsInCode('''
+var a = b;
+''', [
+      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 8, 1),
+    ]);
+  }
+
+  test_methodInvocation() async {
+    await assertErrorsInCode('''
+f() { C.m(); }
+''', [
+      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 6, 1),
+    ]);
+  }
+
+  test_private_getter() async {
+    newFile("/test/lib/lib.dart", content: '''
+library lib;
+class A {
+  var _foo;
+}''');
+    await assertErrorsInCode('''
+import 'lib.dart';
+class B extends A {
+  test() {
+    var v = _foo;
+  }
+}''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 58, 1),
+      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 62, 4),
+    ]);
+  }
+
+  test_private_setter() async {
+    newFile("/test/lib/lib.dart", content: '''
+library lib;
+class A {
+  var _foo;
+}''');
+    await assertErrorsInCode('''
+import 'lib.dart';
+class B extends A {
+  test() {
+    _foo = 42;
+  }
+}''', [
+      error(StaticWarningCode.UNDEFINED_IDENTIFIER, 54, 4),
     ]);
   }
 }
