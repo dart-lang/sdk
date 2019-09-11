@@ -38,7 +38,6 @@ import 'test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AnalysisDeltaTest);
     defineReflectiveTests(ChangeSetTest);
     defineReflectiveTests(EnclosedScopeTest);
     defineReflectiveTests(ErrorResolverTest);
@@ -60,46 +59,6 @@ main() {
 /// causing the rest of the method to be flagged as dead code.
 void _fail(String message) {
   fail(message);
-}
-
-@reflectiveTest
-class AnalysisDeltaTest extends EngineTestCase {
-  TestSource source1 = new TestSource('/1.dart');
-  TestSource source2 = new TestSource('/2.dart');
-  TestSource source3 = new TestSource('/3.dart');
-
-  void test_getAddedSources() {
-    AnalysisDelta delta = new AnalysisDelta();
-    delta.setAnalysisLevel(source1, AnalysisLevel.ALL);
-    delta.setAnalysisLevel(source2, AnalysisLevel.ERRORS);
-    delta.setAnalysisLevel(source3, AnalysisLevel.NONE);
-    List<Source> addedSources = delta.addedSources;
-    expect(addedSources, hasLength(2));
-    expect(addedSources, unorderedEquals([source1, source2]));
-  }
-
-  void test_getAnalysisLevels() {
-    AnalysisDelta delta = new AnalysisDelta();
-    expect(delta.analysisLevels.length, 0);
-  }
-
-  void test_setAnalysisLevel() {
-    AnalysisDelta delta = new AnalysisDelta();
-    delta.setAnalysisLevel(source1, AnalysisLevel.ALL);
-    delta.setAnalysisLevel(source2, AnalysisLevel.ERRORS);
-    Map<Source, AnalysisLevel> levels = delta.analysisLevels;
-    expect(levels.length, 2);
-    expect(levels[source1], AnalysisLevel.ALL);
-    expect(levels[source2], AnalysisLevel.ERRORS);
-  }
-
-  void test_toString() {
-    AnalysisDelta delta = new AnalysisDelta();
-    delta.setAnalysisLevel(new TestSource(), AnalysisLevel.ALL);
-    String result = delta.toString();
-    expect(result, isNotNull);
-    expect(result.isNotEmpty, isTrue);
-  }
 }
 
 @reflectiveTest

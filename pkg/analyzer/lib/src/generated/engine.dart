@@ -107,70 +107,6 @@ abstract class AnalysisContext {
   void applyChanges(ChangeSet changeSet);
 }
 
-/// A representation of changes to the types of analysis that should be
-/// performed.
-class AnalysisDelta {
-  /// A mapping from source to what type of analysis should be performed on that
-  /// source.
-  Map<Source, AnalysisLevel> _analysisMap =
-      new HashMap<Source, AnalysisLevel>();
-
-  /// Return a collection of the sources that have been added. This is equivalent
-  /// to calling [getAnalysisLevels] and collecting all sources that do not have
-  /// an analysis level of [AnalysisLevel.NONE].
-  List<Source> get addedSources {
-    List<Source> result = new List<Source>();
-    _analysisMap.forEach((Source source, AnalysisLevel level) {
-      if (level != AnalysisLevel.NONE) {
-        result.add(source);
-      }
-    });
-    return result;
-  }
-
-  /// Return a mapping of sources to the level of analysis that should be
-  /// performed.
-  Map<Source, AnalysisLevel> get analysisLevels => _analysisMap;
-
-  /// Record that the given [source] should be analyzed at the given [level].
-  void setAnalysisLevel(Source source, AnalysisLevel level) {
-    _analysisMap[source] = level;
-  }
-
-  @override
-  String toString() {
-    StringBuffer buffer = new StringBuffer();
-    bool needsSeparator = _appendSources(buffer, false, AnalysisLevel.ALL);
-    needsSeparator =
-        _appendSources(buffer, needsSeparator, AnalysisLevel.RESOLVED);
-    _appendSources(buffer, needsSeparator, AnalysisLevel.NONE);
-    return buffer.toString();
-  }
-
-  /// Append to the given [buffer] all sources with the given analysis [level],
-  /// prefixed with a label and a separator if [needsSeparator] is `true`.
-  bool _appendSources(
-      StringBuffer buffer, bool needsSeparator, AnalysisLevel level) {
-    bool first = true;
-    _analysisMap.forEach((Source source, AnalysisLevel sourceLevel) {
-      if (sourceLevel == level) {
-        if (first) {
-          first = false;
-          if (needsSeparator) {
-            buffer.write("; ");
-          }
-          buffer.write(level);
-          buffer.write(" ");
-        } else {
-          buffer.write(", ");
-        }
-        buffer.write(source.fullName);
-      }
-    });
-    return needsSeparator || !first;
-  }
-}
-
 /// The entry point for the functionality provided by the analysis engine. There
 /// is a single instance of this class.
 class AnalysisEngine {
@@ -310,79 +246,6 @@ class AnalysisErrorInfoImpl implements AnalysisErrorInfo {
   /// [lineInfo].
   AnalysisErrorInfoImpl(this.errors, this.lineInfo);
 }
-
-/// The levels at which a source can be analyzed.
-class AnalysisLevel implements Comparable<AnalysisLevel> {
-  /// Indicates a source should be fully analyzed.
-  static const AnalysisLevel ALL = const AnalysisLevel('ALL', 0);
-
-  /// Indicates a source should be resolved and that errors, warnings and hints
-  /// are needed.
-  static const AnalysisLevel ERRORS = const AnalysisLevel('ERRORS', 1);
-
-  /// Indicates a source should be resolved, but that errors, warnings and hints
-  /// are not needed.
-  static const AnalysisLevel RESOLVED = const AnalysisLevel('RESOLVED', 2);
-
-  /// Indicates a source is not of interest to the client.
-  static const AnalysisLevel NONE = const AnalysisLevel('NONE', 3);
-
-  static const List<AnalysisLevel> values = const [ALL, ERRORS, RESOLVED, NONE];
-
-  /// The name of this analysis level.
-  final String name;
-
-  /// The ordinal value of the analysis level.
-  final int ordinal;
-
-  const AnalysisLevel(this.name, this.ordinal);
-
-  @override
-  int get hashCode => ordinal;
-
-  @override
-  int compareTo(AnalysisLevel other) => ordinal - other.ordinal;
-
-  @override
-  String toString() => name;
-}
-
-/// An object that is listening for results being produced by an analysis
-/// context.
-abstract class AnalysisListener {
-  /// Reports that a task, described by the given [taskDescription] is about to
-  /// be performed by the given [context].
-  void aboutToPerformTask(AnalysisContext context, String taskDescription);
-
-  /// Reports that the [errors] associated with the given [source] in the given
-  /// [context] has been updated to the given errors. The [lineInfo] is the line
-  /// information associated with the source.
-  void computedErrors(AnalysisContext context, Source source,
-      List<AnalysisError> errors, LineInfo lineInfo);
-
-  /// Reports that the given [source] is no longer included in the set of sources
-  /// that are being analyzed by the given analysis [context].
-  void excludedSource(AnalysisContext context, Source source);
-
-  /// Reports that the given [source] is now included in the set of sources that
-  /// are being analyzed by the given analysis [context].
-  void includedSource(AnalysisContext context, Source source);
-
-  /// Reports that the given Dart [source] was parsed in the given [context],
-  /// producing the given [unit].
-  void parsedDart(AnalysisContext context, Source source, CompilationUnit unit);
-
-  /// Reports that the given Dart [source] was resolved in the given [context].
-  void resolvedDart(
-      AnalysisContext context, Source source, CompilationUnit unit);
-}
-
-/// Futures returned by [AnalysisContext] for pending analysis results will
-/// complete with this error if it is determined that analysis results will
-/// never become available (e.g. because the requested source is not subject to
-/// analysis, or because the requested source is a part file which is not a part
-/// of any known library).
-class AnalysisNotScheduledError implements Exception {}
 
 /// A set of analysis options used to control the behavior of an analysis
 /// context.
@@ -1236,25 +1099,6 @@ class NullLogger implements Logger {
 
   @override
   void logInformation(String message, [CaughtException exception]) {}
-}
-
-/// An exception created when an analysis attempt fails because a source was
-/// deleted between the time the analysis started and the time the results of the
-/// analysis were ready to be recorded.
-class ObsoleteSourceAnalysisException extends AnalysisException {
-  /// The source that was removed while it was being analyzed.
-  Source _source;
-
-  /// Initialize a newly created exception to represent the removal of the given
-  /// [source].
-  ObsoleteSourceAnalysisException(Source source)
-      : super(
-            "The source '${source.fullName}' was removed while it was being analyzed") {
-    this._source = source;
-  }
-
-  /// Return the source that was removed while it was being analyzed.
-  Source get source => _source;
 }
 
 /// Container with global [AnalysisContext] performance statistics.
