@@ -87,22 +87,6 @@ main() {} // ref
     _assertEmptyChange(result.change);
   }
 
-  test_invalid_label() async {
-    addTestFile(r'''
-import 'dart:math';
-
-main() {} // ref
-''');
-
-    var mathSet = await waitForSetWithUri('dart:math');
-
-    var response = await waitResponse(
-      _buildRequest(id: mathSet.id, label: 'foo', offset: 0),
-    );
-
-    expect(response.error.code, RequestErrorCode.INVALID_PARAMETER);
-  }
-
   test_invalid_library() async {
     addTestFile('');
 

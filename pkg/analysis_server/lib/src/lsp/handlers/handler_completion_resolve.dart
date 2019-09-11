@@ -77,11 +77,6 @@ class CompletionResolveHandler
         var analysisDriver = server.getAnalysisDriver(data.file);
         var session = analysisDriver.currentSession;
 
-        var fileElement = await session.getUnitElement(data.file);
-        var libraryPath = fileElement.element.librarySource.fullName;
-
-        var resolvedLibrary = await session.getResolvedLibrary(libraryPath);
-
         if (token.isCancellationRequested) {
           return cancelled();
         }
@@ -115,14 +110,8 @@ class CompletionResolveHandler
 
         var newInsertText = item.insertText ?? item.label;
         final builder = DartChangeBuilder(session);
-        await builder.addFileEdit(libraryPath, (builder) {
-          final result = builder.importLibraryElement(
-            targetLibrary: resolvedLibrary,
-            targetPath: libraryPath,
-            targetOffset: data.offset,
-            requestedLibrary: requestedLibraryElement,
-            requestedElement: requestedElement,
-          );
+        await builder.addFileEdit(data.file, (builder) {
+          final result = builder.importLibraryElement(library.uri);
           if (result.prefix != null) {
             newInsertText = '${result.prefix}.$newInsertText';
           }

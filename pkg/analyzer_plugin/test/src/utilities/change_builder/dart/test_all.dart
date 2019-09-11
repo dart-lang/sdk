@@ -5,12 +5,10 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'import_library_element_test.dart' as import_library_element;
-import 'syntactic_scope_test.dart' as syntactic_scope;
 
 /// Utility for manually running all tests.
 main() {
   defineReflectiveSuite(() {
     import_library_element.main();
-    syntactic_scope.main();
   });
 }
