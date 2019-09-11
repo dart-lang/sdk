@@ -436,10 +436,11 @@ class BytecodeLocalVariablesIterator : ValueObject {
   }
 
   bool MoveNext() {
-    if (entries_remaining_ == 0) {
+    if (entries_remaining_ <= 0) {
+      // Finished looking at the last entry, now we're done.
+      entries_remaining_ = -1;
       return false;
     }
-    ASSERT(entries_remaining_ > 0);
     --entries_remaining_;
     cur_kind_and_flags_ = reader_.ReadByte();
     cur_start_pc_ += reader_.ReadSLEB128();
@@ -464,7 +465,10 @@ class BytecodeLocalVariablesIterator : ValueObject {
     return true;
   }
 
-  bool IsDone() const { return entries_remaining_ == 0; }
+  // Returns true after iterator moved past the last entry and
+  // MoveNext() returned false.
+  bool IsDone() const { return entries_remaining_ < 0; }
+
   intptr_t Kind() const { return cur_kind_and_flags_ & kKindMask; }
   bool IsScope() const { return Kind() == kScope; }
   bool IsVariableDeclaration() const { return Kind() == kVariableDeclaration; }
