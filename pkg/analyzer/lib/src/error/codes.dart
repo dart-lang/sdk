@@ -3540,6 +3540,18 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
+   * 0: the name of the defining type
+   */
+  static const CompileTimeErrorCode
+      UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE =
+      const CompileTimeErrorCode(
+          'UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE',
+          "Static members from the extended type or one of its superclasses must "
+              "be qualified by the name of the defining type.",
+          correction: "Try adding '{0}.' before the name.");
+
+  /**
+   * Parameters:
    * 0: the URI pointing to a non-existent file
    */
   // #### Description

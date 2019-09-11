@@ -304,6 +304,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD,
   CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER,
   CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER,
+  CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE,
   CompileTimeErrorCode.URI_DOES_NOT_EXIST,
   CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED,
   CompileTimeErrorCode.URI_WITH_INTERPOLATION,

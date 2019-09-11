@@ -5074,10 +5074,24 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (element is ExecutableElement && !element.isStatic) {
       return;
     }
-    _errorReporter.reportErrorForNode(
-        StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
-        name,
-        [enclosingElement.name]);
+    if (element is MethodElement) {
+      // Invalid methods are reported in
+      // [MethodInvocationResolver._resolveReceiverNull].
+      return;
+    }
+    if (_enclosingExtension != null) {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode
+              .UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE,
+          name,
+          [enclosingElement.displayName]);
+    } else {
+      _errorReporter.reportErrorForNode(
+          StaticTypeWarningCode
+              .UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
+          name,
+          [enclosingElement.displayName]);
+    }
   }
 
   /**

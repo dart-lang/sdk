@@ -296,7 +296,6 @@ class LocalLibraryContributorWithExtensionMethodsTest
     createAnalysisOptionsFile(experiments: [EnableString.extension_methods]);
   }
 
-  @soloTest
   test_partFile_extension() async {
     addSource('/home/test/lib/a.dart', '''
 part of libA;

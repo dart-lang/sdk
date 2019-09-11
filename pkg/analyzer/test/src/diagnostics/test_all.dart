@@ -306,6 +306,8 @@ import 'unnecessary_null_aware_spread_test.dart'
     as unnecessary_null_aware_spread;
 import 'unnecessary_type_check_false_test.dart' as unnecessary_type_check_false;
 import 'unnecessary_type_check_true_test.dart' as unnecessary_type_check_true;
+import 'unqualified_reference_to_static_member_of_extended_type_test.dart'
+    as unqualified_reference_to_static_member_of_extended_type;
 import 'unused_catch_clause_test.dart' as unused_catch_clause;
 import 'unused_catch_stack_test.dart' as unused_catch_stack;
 import 'unused_element_test.dart' as unused_element;
@@ -532,6 +534,7 @@ main() {
     unnecessary_null_aware_spread.main();
     unnecessary_type_check_false.main();
     unnecessary_type_check_true.main();
+    unqualified_reference_to_static_member_of_extended_type.main();
     unused_catch_clause.main();
     unused_catch_stack.main();
     unused_element.main();

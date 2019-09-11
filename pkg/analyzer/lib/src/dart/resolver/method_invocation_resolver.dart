@@ -566,11 +566,19 @@ class MethodInvocationResolver {
     if (targetElement != null && targetElement.isStatic) {
       nameNode.staticElement = targetElement;
       _setDynamicResolution(node);
-      _resolver.errorReporter.reportErrorForNode(
-        StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
-        nameNode,
-        [receiverType.displayName],
-      );
+      if (_resolver.enclosingExtension != null) {
+        _resolver.errorReporter.reportErrorForNode(
+            CompileTimeErrorCode
+                .UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE,
+            nameNode,
+            [targetElement.enclosingElement.displayName]);
+      } else {
+        _resolver.errorReporter.reportErrorForNode(
+            StaticTypeWarningCode
+                .UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
+            nameNode,
+            [targetElement.enclosingElement.displayName]);
+      }
       return;
     }
 
