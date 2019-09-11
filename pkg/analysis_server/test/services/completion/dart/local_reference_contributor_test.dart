@@ -4950,7 +4950,24 @@ class LocalReferenceContributorWithExtensionMethodsTest
     super.setUp();
   }
 
-  test_extensionDeclaration_body() async {
+  test_extensionDeclaration_inMethod() async {
+    // ExtensionDeclaration  CompilationUnit
+    addTestSource('''
+extension E on int {}
+class C {
+  void m() {
+    ^
+  }
+}
+''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggest('E');
+  }
+
+  test_extensionDeclaration_notInBody() async {
     // ExtensionDeclaration  CompilationUnit
     addSource('/home/test/lib/b.dart', '''
 class B { }''');

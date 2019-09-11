@@ -160,6 +160,18 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   }
 
   @override
+  void declaredExtension(ExtensionDeclaration declaration) {
+    if (optype.includeReturnValueSuggestions) {
+      _addLocalSuggestion_includeReturnValueSuggestions(
+          declaration.documentationComment,
+          declaration.name,
+          NO_RETURN_TYPE,
+          protocol.ElementKind.EXTENSION,
+          isDeprecated: isDeprecated(declaration));
+    }
+  }
+
+  @override
   void declaredField(FieldDeclaration fieldDecl, VariableDeclaration varDecl) {
     if ((optype.includeReturnValueSuggestions &&
             (!optype.inStaticMethodBody || fieldDecl.isStatic)) ||
