@@ -45,11 +45,17 @@ Future<void> main(List<String> args) async {
     final String aotPath = path.join(tmp, "test.aot");
     final String exePath = path.join(tmp, "test.exe");
 
-    final dillResult = await runGenKernel("generate dill", [
+    final String dart = path.join(
+        "tools", "sdks", "dart-sdk", "bin", "dart${executableSuffix}");
+
+    final dillResult = await runBinary("generate dill", dart, [
+      genKernel,
+      "--platform",
+      platformDill,
       "--aot",
       "-o",
       dillPath,
-      Platform.script.toFilePath(),
+      "runtime/tests/vm/dart/run_appended_aot_snapshot_test.dart",
     ]);
     expectOutput("", dillResult);
 
