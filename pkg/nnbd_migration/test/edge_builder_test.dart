@@ -747,6 +747,48 @@ void f(C c, int i, int j) {
         hard: true);
   }
 
+  test_assignmentExpression_nullAware_complex_contravariant() async {
+    await analyze('''
+void Function(int) f(void Function(int) x, void Function(int) y) => x ??= y;
+''');
+    var xNullable =
+        decoratedGenericFunctionTypeAnnotation('void Function(int) x').node;
+    var xParamNullable = decoratedTypeAnnotation('int) x').node;
+    var yParamNullable = decoratedTypeAnnotation('int) y').node;
+    var returnParamNullable = decoratedTypeAnnotation('int) f').node;
+    assertEdge(xParamNullable, yParamNullable,
+        hard: false, guards: [xNullable]);
+    assertEdge(returnParamNullable, xParamNullable, hard: false);
+  }
+
+  test_assignmentExpression_nullAware_complex_covariant() async {
+    await analyze('''
+List<int> f(List<int> x, List<int> y) => x ??= y;
+''');
+    var xNullable = decoratedTypeAnnotation('List<int> x').node;
+    var xElementNullable = decoratedTypeAnnotation('int> x').node;
+    var yElementNullable = decoratedTypeAnnotation('int> y').node;
+    var returnElementNullable = decoratedTypeAnnotation('int> f').node;
+    assertEdge(yElementNullable, xElementNullable,
+        hard: false, guards: [xNullable]);
+    assertEdge(xElementNullable, returnElementNullable, hard: false);
+  }
+
+  test_assignmentExpression_nullAware_simple() async {
+    await analyze('''
+int f(int x, int y) => (x ??= y);
+''');
+    var yNullable = decoratedTypeAnnotation('int y').node;
+    var xNullable = decoratedTypeAnnotation('int x').node;
+    var returnNullable = decoratedTypeAnnotation('int f').node;
+    var glbNode = decoratedExpressionType('(x ??= y)').node;
+    assertEdge(yNullable, xNullable, hard: true, guards: [xNullable]);
+    assertEdge(yNullable, glbNode, hard: false, guards: [xNullable]);
+    assertEdge(glbNode, xNullable, hard: false);
+    assertEdge(glbNode, yNullable, hard: false);
+    assertEdge(glbNode, returnNullable, hard: false);
+  }
+
   test_assignmentExpression_operands() async {
     await analyze('''
 void f(int i, int j) {

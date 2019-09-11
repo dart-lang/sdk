@@ -274,15 +274,17 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitAssignmentExpression(AssignmentExpression node) {
     _CompoundOperatorInfo compoundOperatorInfo;
+    bool isQuestionAssign = false;
     if (node.operator.type == TokenType.QUESTION_QUESTION_EQ) {
-      _unimplemented(node, 'Assignment with operator ??=');
+      isQuestionAssign = true;
     } else if (node.operator.type != TokenType.EQ) {
       compoundOperatorInfo = _CompoundOperatorInfo(
           node.staticElement, node.operator.offset, node.staticType);
     }
     var expressionType = _handleAssignment(node.rightHandSide,
         destinationExpression: node.leftHandSide,
-        compoundOperatorInfo: compoundOperatorInfo);
+        compoundOperatorInfo: compoundOperatorInfo,
+        questionAssignNode: isQuestionAssign ? node : null);
     var conditionalNode = _conditionalNodes[node.leftHandSide];
     if (conditionalNode != null) {
       expressionType = expressionType.withNode(
@@ -1535,6 +1537,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       {DecoratedType destinationType,
       Expression destinationExpression,
       _CompoundOperatorInfo compoundOperatorInfo,
+      Expression questionAssignNode,
       bool canInsertChecks = true}) {
     assert(
         (destinationExpression == null) != (destinationType == null),
@@ -1554,47 +1557,64 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         destinationType = destinationExpression.accept(this);
       }
     }
-    var sourceType = expression.accept(this);
-    if (sourceType == null) {
-      throw StateError('No type computed for ${expression.runtimeType} '
-          '(${expression.toSource()}) offset=${expression.offset}');
+    if (questionAssignNode != null) {
+      _guards.add(destinationType.node);
     }
-    ExpressionChecks expressionChecks;
-    if (canInsertChecks && !sourceType.type.isDynamic) {
-      expressionChecks = ExpressionChecks(expression.end);
-      _variables.recordExpressionChecks(source, expression, expressionChecks);
-    }
-    if (compoundOperatorInfo != null) {
-      var compoundOperatorMethod = compoundOperatorInfo.method;
-      if (compoundOperatorMethod != null) {
-        _checkAssignment(
-            CompoundAssignmentOrigin(source, compoundOperatorInfo.offset),
-            source: destinationType,
-            destination: _notNullType,
-            hard:
-                _postDominatedLocals.isReferenceInScope(destinationExpression));
-        DecoratedType compoundOperatorType =
-            getOrComputeElementType(compoundOperatorMethod);
-        assert(compoundOperatorType.positionalParameters.length > 0);
+    DecoratedType sourceType;
+    try {
+      sourceType = expression.accept(this);
+      if (sourceType == null) {
+        throw StateError('No type computed for ${expression.runtimeType} '
+            '(${expression.toSource()}) offset=${expression.offset}');
+      }
+      ExpressionChecks expressionChecks;
+      if (canInsertChecks && !sourceType.type.isDynamic) {
+        expressionChecks = ExpressionChecks(expression.end);
+        _variables.recordExpressionChecks(source, expression, expressionChecks);
+      }
+      if (compoundOperatorInfo != null) {
+        var compoundOperatorMethod = compoundOperatorInfo.method;
+        if (compoundOperatorMethod != null) {
+          _checkAssignment(
+              CompoundAssignmentOrigin(source, compoundOperatorInfo.offset),
+              source: destinationType,
+              destination: _notNullType,
+              hard: _postDominatedLocals
+                  .isReferenceInScope(destinationExpression));
+          DecoratedType compoundOperatorType =
+              getOrComputeElementType(compoundOperatorMethod);
+          assert(compoundOperatorType.positionalParameters.length > 0);
+          _checkAssignment(expressionChecks,
+              source: sourceType,
+              destination: compoundOperatorType.positionalParameters[0],
+              hard: _postDominatedLocals.isReferenceInScope(expression));
+          sourceType = _fixNumericTypes(compoundOperatorType.returnType,
+              compoundOperatorInfo.undecoratedType);
+          _checkAssignment(
+              CompoundAssignmentOrigin(source, compoundOperatorInfo.offset),
+              source: sourceType,
+              destination: destinationType,
+              hard: false);
+        } else {
+          sourceType = _dynamicType;
+        }
+      } else {
         _checkAssignment(expressionChecks,
             source: sourceType,
-            destination: compoundOperatorType.positionalParameters[0],
-            hard: _postDominatedLocals.isReferenceInScope(expression));
-        sourceType = _fixNumericTypes(compoundOperatorType.returnType,
-            compoundOperatorInfo.undecoratedType);
-        _checkAssignment(
-            CompoundAssignmentOrigin(source, compoundOperatorInfo.offset),
-            source: sourceType,
             destination: destinationType,
-            hard: false);
-      } else {
-        sourceType = _dynamicType;
+            hard: _postDominatedLocals.isReferenceInScope(expression));
       }
-    } else {
-      _checkAssignment(expressionChecks,
-          source: sourceType,
-          destination: destinationType,
-          hard: _postDominatedLocals.isReferenceInScope(expression));
+      if (questionAssignNode != null) {
+        // a ??= b is only nullable if both a and b are nullable.
+        sourceType = destinationType.withNode(_nullabilityNodeForGLB(
+            questionAssignNode, sourceType.node, destinationType.node));
+        _variables.recordDecoratedExpressionType(
+            questionAssignNode, sourceType);
+      }
+    } finally {
+      if (questionAssignNode != null) {
+        _guards.removeLast();
+      }
     }
     if (destinationExpression != null) {
       _postDominatedLocals.removeReferenceFromAllScopes(destinationExpression);
