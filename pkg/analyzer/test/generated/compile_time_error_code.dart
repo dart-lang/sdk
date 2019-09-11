@@ -32,6 +32,7 @@ class B<T> implements A<List<T>> {}
     ]);
   }
 
+  @failingTest
   test_accessPrivateEnumField() async {
     await assertErrorsInCode(r'''
 enum E { ONE }

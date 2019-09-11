@@ -46,14 +46,27 @@ f() {
 
   test_override_undefined_hasSetter() async {
     await assertErrorsInCode('''
-extension E on String {
-  void set s(int x) {}
+extension E on int {
+  set foo(int _) {}
 }
 f() {
-  E('a').s += 1;
+  E(0).foo;
 }
 ''', [
-      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER, 64, 1),
+      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER, 56, 3),
+    ]);
+  }
+
+  test_override_undefined_hasSetter_plusEq() async {
+    await assertErrorsInCode('''
+extension E on int {
+  set foo(int _) {}
+}
+f() {
+  E(0).foo += 1;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER, 56, 3),
     ]);
   }
 

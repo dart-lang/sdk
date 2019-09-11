@@ -586,6 +586,7 @@ class ElementFactory {
     setter.parameters = <ParameterElement>[parameter];
     setter.returnType = VoidTypeImpl.instance;
     setter.type = new FunctionTypeImpl(setter);
+    setter.isStatic = isStatic;
     field.setter = setter;
     return setter;
   }

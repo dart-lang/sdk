@@ -868,11 +868,11 @@ class ElementResolverTest extends EngineTestCase with ResourceProviderMixin {
     // set accessors
     String propName = "b";
     PropertyAccessorElement getter =
-        ElementFactory.getterElement(propName, false, _typeProvider.intType);
+        ElementFactory.getterElement(propName, true, _typeProvider.intType);
     PropertyAccessorElement setter =
-        ElementFactory.setterElement(propName, false, _typeProvider.intType);
+        ElementFactory.setterElement(propName, true, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getter, setter];
-    // prepare "A.m"
+    // prepare "A.b"
     SimpleIdentifier target = AstTestFactory.identifier3("A");
     target.staticElement = classA;
     target.staticType = classA.type;
@@ -889,8 +889,8 @@ class ElementResolverTest extends EngineTestCase with ResourceProviderMixin {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     // set methods
     String propName = "m";
-    MethodElement method =
-        ElementFactory.methodElement("m", _typeProvider.intType);
+    var method = ElementFactory.methodElement("m", _typeProvider.intType);
+    method.isStatic = true;
     classA.methods = <MethodElement>[method];
     // prepare "A.m"
     SimpleIdentifier target = AstTestFactory.identifier3("A");
@@ -898,8 +898,7 @@ class ElementResolverTest extends EngineTestCase with ResourceProviderMixin {
     target.staticType = classA.type;
     PrefixedIdentifier identifier =
         AstTestFactory.identifier(target, AstTestFactory.identifier3(propName));
-    AstTestFactory.assignmentExpression(
-        identifier, TokenType.EQ, AstTestFactory.nullLiteral());
+    AstTestFactory.expressionStatement(identifier);
     // resolve
     _resolveNode(identifier);
     expect(identifier.staticElement, same(method));
@@ -912,9 +911,9 @@ class ElementResolverTest extends EngineTestCase with ResourceProviderMixin {
     // set accessors
     String propName = "b";
     PropertyAccessorElement getter =
-        ElementFactory.getterElement(propName, false, _typeProvider.intType);
+        ElementFactory.getterElement(propName, true, _typeProvider.intType);
     PropertyAccessorElement setter =
-        ElementFactory.setterElement(propName, false, _typeProvider.intType);
+        ElementFactory.setterElement(propName, true, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getter, setter];
     // prepare "A.b = null"
     SimpleIdentifier target = AstTestFactory.identifier3("A");
