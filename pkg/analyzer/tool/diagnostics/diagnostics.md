@@ -175,7 +175,7 @@ original code looks like this:
 
 {% prettify dart %}
 union(a, b) {
-  var x = {...a, ...b};
+  var x = [!{...a, ...b}!];
   return x;
 }
 {% endprettify %}
@@ -203,8 +203,8 @@ can't be assigned to the static type of the corresponding parameter.
 The following code produces this diagnostic:
 
 {% prettify dart %}
-int f(int x) => x;
-num g(num y) => f([!y!]);
+String f(String x) => x;
+String g(num y) => f([!y!]);
 {% endprettify %}
 
 #### Common fixes
@@ -213,8 +213,8 @@ If possible, rewrite the code so that the static type is assignable. In the
 example above you might be able to change the type of the parameter `y`:
 
 {% prettify dart %}
-int f(int x) => x;
-int g(int y) => f(y);
+String f(String x) => x;
+String g(String y) => f(y);
 {% endprettify %}
 
 If that fix isn't possible, then add code to handle the case where the
@@ -222,15 +222,15 @@ argument value isn't the required type. One approach is to coerce other
 types to the required type:
 
 {% prettify dart %}
-int f(int x) => x;
-num g(num y) => f(y.floor());
+String f(String x) => x;
+String g(num y) => f(y.toString());
 {% endprettify %}
 
 Another approach is to add explicit type tests and fallback code:
 
 {% prettify dart %}
-int f(int x) => x;
-num g(num y) => f(y is int ? y : 0);
+String f(String x) => x;
+String g(num y) => f(y is String ? y : '');
 {% endprettify %}
 
 If you believe that the runtime type of the argument will always be the
@@ -238,8 +238,8 @@ same as the static type of the parameter, and you're willing to risk having
 an exception thrown at runtime if you're wrong, then add an explicit cast:
 
 {% prettify dart %}
-int f(int x) => x;
-num g(num y) => f(y as int);
+String f(String x) => x;
+String g(num y) => f(y as String);
 {% endprettify %}
 
 ### const_initialized_with_non_constant_value
@@ -380,7 +380,7 @@ The following code generates this diagnostic:
 var map = <String, int>{'a': 0, 'b': 1, [!'c'!]};
 {% endprettify %}
 
-#### Common fix
+#### Common fixes
 
 If the expression is intended to compute either a key or a value in an
 entry, fix the issue by replacing the expression with the key or the value.
@@ -404,6 +404,8 @@ to a const constructor.
 The following code produces this diagnostic:
 
 {% prettify dart %}
+import 'package:meta/meta.dart';
+
 [!@literal!]
 var x;
 {% endprettify %}
@@ -487,8 +489,8 @@ The following code produces this diagnostic because `x` isn't a constant,
 even though it appears in an implicitly constant list literal:
 
 {% prettify dart %}
-int x = 2;
-const y = <int>[0, 1, [!x!]];
+var x = 2;
+var y = const <int>[0, 1, [!x!]];
 {% endprettify %}
 
 #### Common fixes
@@ -498,17 +500,17 @@ constant. In the example above, you might add the `const` keyword to the
 declaration of `x`:
 
 {% prettify dart %}
-const int x = 2;
-const y = <int>[0, 1, x];
+const x = 2;
+var y = const <int>[0, 1, x];
 {% endprettify %}
 
 If the expression can't be made a constant, then the list can't be a
 constant either, so you must change the code so that the list isn't a
-constant. In the example above this means removing the `const` keyword from
-the declaration of `y`:
+constant. In the example above this means removing the `const` keyword
+before the list literal:
 
 {% prettify dart %}
-int x = 2;
+var x = 2;
 var y = <int>[0, 1, x];
 {% endprettify %}
 
@@ -555,9 +557,7 @@ The following code produces this diagnostic because `f` is a function:
 
 {% prettify dart %}
 f() {}
-main() {
-  [!f!] v = null;
-}
+g([!f!] v) {}
 {% endprettify %}
 
 #### Common fixes
@@ -583,7 +583,7 @@ var m = <String, int>{'a': 0, 'b': 1};
 var s = <String>{...[!m!]};
 {% endprettify %}
 
-#### Common fix
+#### Common fixes
 
 The most common fix is to replace the expression with one that produces an
 iterable object:
@@ -609,7 +609,7 @@ constructor.
 The following code produces this diagnostic because `f` is a function:
 
 {% prettify dart %}
-C f() {}
+C f() => null;
 
 class C {
   factory C() = [!f!];
@@ -628,7 +628,7 @@ If you're trying to return the value returned by a function, then rewrite
 the constructor to return the value from the constructor's body:
 
 {% prettify dart %}
-C f() {}
+C f() => null;
 
 class C {
   factory C() => f();
@@ -649,15 +649,16 @@ against earlier versions of the SDK.
 
 #### Example
 
-In a package that defines the SDK constraint (in the pubspec.yaml file),
-with a lower bound of less than 2.2. For example:
+Here's an example of a pubspec that defines an SDK constraint with a lower
+bound of less than 2.2:
 
 ```yaml
 environment:
   sdk: '>=2.1.0 <2.4.0'
 ```
 
-The following code generates this diagnostic:
+In the package that has that pubspec, code like the following produces this
+diagnostic:
 
 {% prettify dart %}
 var s = [!<int>{}!];
@@ -726,9 +727,7 @@ The following code produces this diagnostic:
 {% prettify dart %}
 class Point {}
 
-void main() {
-  [!Piont!] p;
-}
+void f([!Piont!] p) {}
 {% endprettify %}
 
 #### Common fixes
@@ -740,9 +739,7 @@ fixing the spelling of the class:
 {% prettify dart %}
 class Point {}
 
-void main() {
-  Point p;
-}
+void f(Point p) {}
 {% endprettify %}
 
 If the class is defined but isn't visible, then you probably need to add an
@@ -805,7 +802,7 @@ The following code produces this diagnostic:
 int f(String s) => s.[!len!];
 {% endprettify %}
 
-#### Common fix
+#### Common fixes
 
 If the identifier isn't defined, then either define it or replace it with
 the name of a getter that is defined. The example above can be corrected by
@@ -864,7 +861,7 @@ The following code produces this diagnostic:
 int f(List<int> l) => l.[!removeMiddle!]();
 {% endprettify %}
 
-#### Common fix
+#### Common fixes
 
 If the identifier isn't defined, then either define it or replace it with
 the name of a method that is defined. The example above can be corrected by
@@ -968,7 +965,7 @@ class Point {
 }
 {% endprettify %}
 
-#### Common fix
+#### Common fixes
 
 If the identifier isn't defined, then either define it or replace it with
 the name of a setter that is defined. The example above can be corrected by

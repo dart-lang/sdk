@@ -346,6 +346,7 @@ class List<E> implements Iterable<E> {
   void addAll(Iterable<E> iterable) {}
   void clear() {}
   int indexOf(Object element);
+  E removeLast() {}
 
   noSuchMethod(Invocation invocation) => null;
 }
@@ -393,6 +394,7 @@ abstract class num implements Comparable<num> {
   int operator ~/(num other);
 
   num abs();
+  int floor();
   int round();
   double toDouble();
   int toInt();

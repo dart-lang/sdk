@@ -298,6 +298,8 @@ class HintCode extends AnalyzerErrorCode {
   // The following code produces this diagnostic:
   //
   // ```dart
+  // import 'package:meta/meta.dart';
+  //
   // [!@literal!]
   // var x;
   // ```
@@ -771,15 +773,17 @@ class HintCode extends AnalyzerErrorCode {
   //
   // #### Example
   //
-  // In a package that defines the SDK constraint (in the pubspec.yaml file),
-  // with a lower bound of less than 2.2. For example:
+  // Here's an example of a pubspec that defines an SDK constraint with a lower
+  // bound of less than 2.2:
   //
   // ```yaml
+  // %uri="pubspec.yaml"
   // environment:
   //   sdk: '>=2.1.0 <2.4.0'
   // ```
   //
-  // The following code generates this diagnostic:
+  // In the package that has that pubspec, code like the following produces this
+  // diagnostic:
   //
   // ```dart
   // var s = [!<int>{}!];

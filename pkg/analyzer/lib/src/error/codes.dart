@@ -282,7 +282,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // ```dart
   // union(a, b) {
-  //   var x = {...a, ...b};
+  //   var x = [!{...a, ...b}!];
   //   return x;
   // }
   // ```
@@ -1198,7 +1198,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // var map = <String, int>{'a': 0, 'b': 1, [!'c'!]};
   // ```
   //
-  // #### Common fix
+  // #### Common fixes
   //
   // If the expression is intended to compute either a key or a value in an
   // entry, fix the issue by replacing the expression with the key or the value.
@@ -2513,8 +2513,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // even though it appears in an implicitly constant list literal:
   //
   // ```dart
-  // int x = 2;
-  // const y = <int>[0, 1, [!x!]];
+  // var x = 2;
+  // var y = const <int>[0, 1, [!x!]];
   // ```
   //
   // #### Common fixes
@@ -2524,17 +2524,17 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // declaration of `x`:
   //
   // ```dart
-  // const int x = 2;
-  // const y = <int>[0, 1, x];
+  // const x = 2;
+  // var y = const <int>[0, 1, x];
   // ```
   //
   // If the expression can't be made a constant, then the list can't be a
   // constant either, so you must change the code so that the list isn't a
-  // constant. In the example above this means removing the `const` keyword from
-  // the declaration of `y`:
+  // constant. In the example above this means removing the `const` keyword
+  // before the list literal:
   //
   // ```dart
-  // int x = 2;
+  // var x = 2;
   // var y = <int>[0, 1, x];
   // ```
   static const CompileTimeErrorCode NON_CONSTANT_LIST_ELEMENT =
@@ -2746,7 +2746,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // var s = <String>{...[!m!]};
   // ```
   //
-  // #### Common fix
+  // #### Common fixes
   //
   // The most common fix is to replace the expression with one that produces an
   // iterable object:
@@ -3078,7 +3078,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // The following code produces this diagnostic because `f` is a function:
   //
   // ```dart
-  // C f() {}
+  // C f() => null;
   //
   // class C {
   //   factory C() = [!f!];
@@ -3097,7 +3097,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // the constructor to return the value from the constructor's body:
   //
   // ```dart
-  // C f() {}
+  // C f() => null;
   //
   // class C {
   //   factory C() => f();
@@ -3364,9 +3364,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // ```dart
   // class Point {}
   //
-  // void main() {
-  //   [!Piont!] p;
-  // }
+  // void f([!Piont!] p) {}
   // ```
   //
   // #### Common fixes
@@ -3378,9 +3376,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // ```dart
   // class Point {}
   //
-  // void main() {
-  //   Point p;
-  // }
+  // void f(Point p) {}
   // ```
   //
   // If the class is defined but isn't visible, then you probably need to add an
@@ -4123,7 +4119,7 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
   // int f(String s) => s.[!len!];
   // ```
   //
-  // #### Common fix
+  // #### Common fixes
   //
   // If the identifier isn't defined, then either define it or replace it with
   // the name of a getter that is defined. The example above can be corrected by
@@ -4161,7 +4157,7 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
   // int f(List<int> l) => l.[!removeMiddle!]();
   // ```
   //
-  // #### Common fix
+  // #### Common fixes
   //
   // If the identifier isn't defined, then either define it or replace it with
   // the name of a method that is defined. The example above can be corrected by
@@ -4239,7 +4235,7 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
   // }
   // ```
   //
-  // #### Common fix
+  // #### Common fixes
   //
   // If the identifier isn't defined, then either define it or replace it with
   // the name of a setter that is defined. The example above can be corrected by
@@ -4521,8 +4517,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // The following code produces this diagnostic:
   //
   // ```dart
-  // int f(int x) => x;
-  // num g(num y) => f([!y!]);
+  // String f(String x) => x;
+  // String g(num y) => f([!y!]);
   // ```
   //
   // #### Common fixes
@@ -4531,8 +4527,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // example above you might be able to change the type of the parameter `y`:
   //
   // ```dart
-  // int f(int x) => x;
-  // int g(int y) => f(y);
+  // String f(String x) => x;
+  // String g(String y) => f(y);
   // ```
   //
   // If that fix isn't possible, then add code to handle the case where the
@@ -4540,15 +4536,15 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // types to the required type:
   //
   // ```dart
-  // int f(int x) => x;
-  // num g(num y) => f(y.floor());
+  // String f(String x) => x;
+  // String g(num y) => f(y.toString());
   // ```
   //
   // Another approach is to add explicit type tests and fallback code:
   //
   // ```dart
-  // int f(int x) => x;
-  // num g(num y) => f(y is int ? y : 0);
+  // String f(String x) => x;
+  // String g(num y) => f(y is String ? y : '');
   // ```
   //
   // If you believe that the runtime type of the argument will always be the
@@ -4556,8 +4552,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // an exception thrown at runtime if you're wrong, then add an explicit cast:
   //
   // ```dart
-  // int f(int x) => x;
-  // num g(num y) => f(y as int);
+  // String f(String x) => x;
+  // String g(num y) => f(y as String);
   // ```
   static const StaticWarningCode ARGUMENT_TYPE_NOT_ASSIGNABLE =
       const StaticWarningCode(
@@ -5276,9 +5272,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
   //
   // ```dart
   // f() {}
-  // main() {
-  //   [!f!] v = null;
-  // }
+  // g([!f!] v) {}
   // ```
   //
   // #### Common fixes
