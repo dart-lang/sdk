@@ -86,6 +86,7 @@ linter:
 #    - prefer_function_declarations_over_variables
 #    - prefer_generic_function_type_aliases # under review (see #1068)
     - prefer_initializing_formals
+    - prefer_inlined_adds
 #    - prefer_interpolation_to_compose_strings
 #    - prefer_iterable_whereType (included in pedantic)
 #    - prefer_mixin

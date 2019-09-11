@@ -34,7 +34,7 @@ docs() {
 @Task('Format linter sources.')
 format() {
   Pub.run('dart_style',
-      script: 'format', arguments: ['--overwrite']..addAll(sourcePaths));
+      script: 'format', arguments: ['--overwrite', ...sourcePaths]);
 }
 
 @Task('Generate a lint rule stub.')
