@@ -3,7 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == app_jitk ]
-add_breakpoint_rpc_test: SkipByDesign # non-kernel specific version of add_breakpoint_rpc_kernel_test.
 async_generator_breakpoint_test: SkipByDesign # No incremental compiler available.
 bad_reload_test: RuntimeError
 break_on_activation_test: SkipByDesign # No incremental compiler available.
@@ -158,10 +157,7 @@ set_name_rpc_test: RuntimeError # Please triage.
 simple_reload_test: RuntimeError, Timeout
 valid_source_locations_test: Pass, Slow, Timeout # Issue 34736
 
-# Kernel works slightly different. There are kernel specific versions.
-# These are the non-kernel specific versions so skip tests and allow errors.
 [ $compiler == dartk || $compiler == dartkb ]
-add_breakpoint_rpc_test: SkipByDesign # non-kernel specific version of add_breakpoint_rpc_kernel_test.
 bad_reload_test: RuntimeError # Issue 34025
 coverage_optimized_function_test: Pass, Slow
 evaluate_activation_in_method_class_test: RuntimeError # Issue 35505

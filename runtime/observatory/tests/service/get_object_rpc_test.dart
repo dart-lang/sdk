@@ -703,7 +703,7 @@ var tests = <IsolateTest>[
     expect(result['id'], startsWith('libraries/'));
     expect(result['uri'], startsWith('file:'));
     expect(result['uri'], endsWith('get_object_rpc_test.dart'));
-    expect(result['_kind'], equals(ifKernel('kernel', 'script')));
+    expect(result['_kind'], equals('kernel'));
     expect(result['library']['type'], equals('@Library'));
     expect(result['source'], startsWith('// Copyright (c)'));
     expect(result['tokenPosTable'].length, isPositive);

@@ -579,36 +579,3 @@ List<String> removeAdjacentDuplicates(List<String> fromList) {
   }
   return result;
 }
-
-bool isKernel() {
-  for (String argument in Platform.executableArguments) {
-    if (argument.startsWith("--no-preview_dart_2")) return false;
-    if (argument.startsWith("--no-preview-dart-2")) return false;
-  }
-  return true;
-}
-
-E ifKernel<E>(E then, E otherwise) {
-  if (isKernel()) return then;
-  return otherwise;
-}
-
-void ifKernelExecute(Function kernelFunction, Function nonKernelFunction) {
-  if (isKernel()) {
-    kernelFunction();
-  } else {
-    nonKernelFunction();
-  }
-}
-
-void nonKernelExecute(Function nonKernelFunction) {
-  if (!isKernel()) {
-    nonKernelFunction();
-  }
-}
-
-void kernelExecute(Function kernelFunction) {
-  if (isKernel()) {
-    kernelFunction();
-  }
-}
