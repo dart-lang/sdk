@@ -2537,6 +2537,92 @@ int f() {
     assertNoUpstreamNullability(decoratedTypeAnnotation('int').node);
   }
 
+  test_invocation_arguments() async {
+    await analyze('''
+int f(Function g, int i, int j) => g(h(i), named: h(j));
+int h(int x) => 0;
+''');
+    // Make sure the appropriate edges get created for the calls to h().
+    assertEdge(decoratedTypeAnnotation('int i').node,
+        decoratedTypeAnnotation('int x').node,
+        hard: true);
+    assertEdge(decoratedTypeAnnotation('int j').node,
+        decoratedTypeAnnotation('int x').node,
+        hard: true);
+  }
+
+  test_invocation_arguments_parenthesized() async {
+    await analyze('''
+int f(Function g, int i, int j) => (g)(h(i), named: h(j));
+int h(int x) => 0;
+''');
+    // Make sure the appropriate edges get created for the calls to h().
+    assertEdge(decoratedTypeAnnotation('int i').node,
+        decoratedTypeAnnotation('int x').node,
+        hard: true);
+    assertEdge(decoratedTypeAnnotation('int j').node,
+        decoratedTypeAnnotation('int x').node,
+        hard: true);
+  }
+
+  test_invocation_dynamic() async {
+    await analyze('''
+int f(dynamic g) => g();
+''');
+    assertEdge(always, decoratedTypeAnnotation('int f').node, hard: false);
+  }
+
+  test_invocation_dynamic_parenthesized() async {
+    await analyze('''
+int f(dynamic g) => (g)();
+''');
+    assertEdge(always, decoratedTypeAnnotation('int f').node, hard: false);
+  }
+
+  test_invocation_function() async {
+    await analyze('''
+int f(Function g) => g();
+''');
+    assertEdge(always, decoratedTypeAnnotation('int f').node, hard: false);
+    assertNullCheck(
+        checkExpression('g('),
+        assertEdge(decoratedTypeAnnotation('Function g').node, never,
+            hard: true));
+  }
+
+  test_invocation_function_parenthesized() async {
+    await analyze('''
+int f(Function g) => (g)();
+''');
+    assertEdge(always, decoratedTypeAnnotation('int f').node, hard: false);
+    assertNullCheck(
+        checkExpression('g)('),
+        assertEdge(decoratedTypeAnnotation('Function g').node, never,
+            hard: true));
+  }
+
+  test_invocation_type_arguments() async {
+    await analyze('''
+int f(Function g) => g<C<int>>();
+class C<T extends num> {}
+''');
+    // Make sure the appropriate edge gets created for the instantiation of C.
+    assertEdge(decoratedTypeAnnotation('int>').node,
+        decoratedTypeAnnotation('num>').node,
+        hard: true);
+  }
+
+  test_invocation_type_arguments_parenthesized() async {
+    await analyze('''
+int f(Function g) => (g)<C<int>>();
+class C<T extends num> {}
+''');
+    // Make sure the appropriate edge gets created for the instantiation of C.
+    assertEdge(decoratedTypeAnnotation('int>').node,
+        decoratedTypeAnnotation('num>').node,
+        hard: true);
+  }
+
   @failingTest
   test_isExpression_genericFunctionType() async {
     await analyze('''

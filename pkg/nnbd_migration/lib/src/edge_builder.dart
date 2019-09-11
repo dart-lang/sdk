@@ -664,9 +664,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitFunctionExpressionInvocation(
       FunctionExpressionInvocation node) {
-    DecoratedType calleeType = node.function.accept(this);
-    return _handleInvocationArguments(node, node.argumentList.arguments,
-        node.typeArguments, node.typeArgumentTypes, calleeType, null);
+    return _handleFunctionExpressionInvocation(node, node.function,
+        node.argumentList, node.typeArguments, node.typeArgumentTypes);
   }
 
   @override
@@ -906,6 +905,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       node.typeArguments?.accept(this);
       node.argumentList.accept(this);
       return _dynamicType;
+    } else if (callee is VariableElement) {
+      // Function expression invocation that looks like a method invocation.
+      return _handleFunctionExpressionInvocation(node, node.methodName,
+          node.argumentList, node.typeArguments, node.typeArgumentTypes);
     }
     var calleeType = getOrComputeElementType(callee, targetType: targetType);
     if (callee is PropertyAccessorElement) {
@@ -1800,6 +1803,24 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         _flowAnalysis.forEach_end();
       }
     });
+  }
+
+  DecoratedType _handleFunctionExpressionInvocation(
+      AstNode node,
+      Expression function,
+      ArgumentList argumentList,
+      TypeArgumentList typeArguments,
+      List<DartType> typeArgumentTypes) {
+    DecoratedType calleeType = _checkExpressionNotNull(function);
+    if (calleeType.type is FunctionType) {
+      return _handleInvocationArguments(node, argumentList.arguments,
+          typeArguments, typeArgumentTypes, calleeType, null);
+    } else {
+      // Invocation of type `dynamic` or `Function`.
+      typeArguments?.accept(this);
+      argumentList.accept(this);
+      return _dynamicType;
+    }
   }
 
   /// Creates the necessary constraint(s) for an [argumentList] when invoking an
