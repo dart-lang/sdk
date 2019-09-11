@@ -19,7 +19,6 @@ import '../fasta_codes.dart'
         Message,
         messageConstConstructorWithBody,
         messageConstInstanceField,
-        messageConstMethod,
         messageConstructorWithReturnType,
         messageConstructorWithTypeParameters,
         messageExpectedBlockToSkip,
@@ -1031,7 +1030,8 @@ class OutlineBuilder extends StackListener {
           beginInitializers: beginInitializers);
     } else {
       if (isConst) {
-        addProblem(messageConstMethod, varFinalOrConstOffset, 5);
+        // TODO(danrubel): consider removing this
+        // because it is an error to have a const method.
         modifiers &= ~constMask;
       }
       final int startCharOffset =

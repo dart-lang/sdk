@@ -3428,6 +3428,10 @@ class Parser {
       //
       // method
       //
+      if (varFinalOrConst != null) {
+        assert(optional('const', varFinalOrConst));
+        reportRecoverableError(varFinalOrConst, fasta.messageConstMethod);
+      }
       switch (kind) {
         case DeclarationKind.Class:
           // TODO(danrubel): Remove beginInitializers token from method events

@@ -23,7 +23,6 @@ import 'package:front_end/src/fasta/messages.dart'
         Message,
         MessageCode,
         messageConstConstructorWithBody,
-        messageConstMethod,
         messageConstructorWithReturnType,
         messageConstructorWithTypeParameters,
         messageDirectiveAfterDeclaration,
@@ -1607,11 +1606,6 @@ class AstBuilder extends StackListener {
       throw new UnimplementedError();
     }
 
-    if (modifiers?.constKeyword != null) {
-      // This error is also reported in OutlineBuilder.endMethod
-      handleRecoverableError(
-          messageConstMethod, modifiers.constKeyword, modifiers.constKeyword);
-    }
     checkFieldFormalParameters(parameters);
     currentDeclarationMembers.add(ast.methodDeclaration(
         comment,
