@@ -75,24 +75,21 @@ class MappedAppSnapshot : public AppSnapshot {
   MappedMemory* isolate_instructions_mapping_;
 };
 
-static AppSnapshot* TryReadAppSnapshotBlobs(const char* script_name) {
-  File* file = File::Open(NULL, script_name, File::kRead);
-  if (file == NULL) {
-    return NULL;
+static AppSnapshot* TryReadAppSnapshotBlobs(const char* script_name,
+                                            File* file) {
+  if ((file->Length() - file->Position()) < kAppSnapshotHeaderSize) {
+    return nullptr;
   }
-  RefCntReleaseScope<File> rs(file);
-  if (file->Length() < kAppSnapshotHeaderSize) {
-    return NULL;
-  }
+
   int64_t header[5];
   ASSERT(sizeof(header) == kAppSnapshotHeaderSize);
   if (!file->ReadFully(&header, kAppSnapshotHeaderSize)) {
-    return NULL;
+    return nullptr;
   }
   ASSERT(sizeof(header[0]) == appjit_magic_number.length);
   if (memcmp(&header[0], appjit_magic_number.bytes,
              appjit_magic_number.length) != 0) {
-    return NULL;
+    return nullptr;
   }
 
   int64_t vm_data_size = header[1];
@@ -115,45 +112,80 @@ static AppSnapshot* TryReadAppSnapshotBlobs(const char* script_name) {
         Utils::RoundUp(isolate_instructions_position, kAppSnapshotPageSize);
   }
 
-  MappedMemory* vm_data_mapping = NULL;
+  MappedMemory* vm_data_mapping = nullptr;
   if (vm_data_size != 0) {
     vm_data_mapping =
         file->Map(File::kReadOnly, vm_data_position, vm_data_size);
-    if (vm_data_mapping == NULL) {
+    if (vm_data_mapping == nullptr) {
       FATAL1("Failed to memory map snapshot: %s\n", script_name);
     }
   }
 
-  MappedMemory* vm_instr_mapping = NULL;
+  MappedMemory* vm_instr_mapping = nullptr;
   if (vm_instructions_size != 0) {
     vm_instr_mapping = file->Map(File::kReadExecute, vm_instructions_position,
                                  vm_instructions_size);
-    if (vm_instr_mapping == NULL) {
+    if (vm_instr_mapping == nullptr) {
       FATAL1("Failed to memory map snapshot: %s\n", script_name);
     }
   }
 
-  MappedMemory* isolate_data_mapping = NULL;
+  MappedMemory* isolate_data_mapping = nullptr;
   if (isolate_data_size != 0) {
     isolate_data_mapping =
         file->Map(File::kReadOnly, isolate_data_position, isolate_data_size);
-    if (isolate_data_mapping == NULL) {
+    if (isolate_data_mapping == nullptr) {
       FATAL1("Failed to memory map snapshot: %s\n", script_name);
     }
   }
 
-  MappedMemory* isolate_instr_mapping = NULL;
+  MappedMemory* isolate_instr_mapping = nullptr;
   if (isolate_instructions_size != 0) {
     isolate_instr_mapping =
         file->Map(File::kReadExecute, isolate_instructions_position,
                   isolate_instructions_size);
-    if (isolate_instr_mapping == NULL) {
+    if (isolate_instr_mapping == nullptr) {
       FATAL1("Failed to memory map snapshot: %s\n", script_name);
     }
   }
 
   return new MappedAppSnapshot(vm_data_mapping, vm_instr_mapping,
                                isolate_data_mapping, isolate_instr_mapping);
+}
+
+static AppSnapshot* TryReadAppSnapshotBlobs(const char* script_name) {
+  File* file = File::Open(NULL, script_name, File::kRead);
+  if (file == nullptr) {
+    return nullptr;
+  }
+  RefCntReleaseScope<File> rs(file);
+  return TryReadAppSnapshotBlobs(script_name, file);
+}
+
+AppSnapshot* Snapshot::TryReadAppendedAppSnapshotBlobs(
+    const char* container_path) {
+  File* file = File::Open(NULL, container_path, File::kRead);
+  if (file == nullptr) {
+    return nullptr;
+  }
+  RefCntReleaseScope<File> rs(file);
+
+  // Check for payload appended at the end of the container file.
+  // If header is found, jump to payload offset.
+  int64_t appended_header[2];
+  if (!file->SetPosition(file->Length() - sizeof(appended_header))) {
+    return nullptr;
+  }
+  if (!file->ReadFully(&appended_header, sizeof(appended_header))) {
+    return nullptr;
+  }
+  if (memcmp(&appended_header[1], appjit_magic_number.bytes,
+             appjit_magic_number.length) != 0 ||
+      appended_header[0] <= 0 || !file->SetPosition(appended_header[0])) {
+    return nullptr;
+  }
+
+  return TryReadAppSnapshotBlobs(container_path, file);
 }
 
 #if defined(DART_PRECOMPILED_RUNTIME)

@@ -245,6 +245,9 @@ cc/ScriptSnapshotsUpdateSubclasses: Fail, Crash, OK # Script snapshots not suppo
 dart/redirection_type_shuffling_test/00: RuntimeError, Pass
 dart/redirection_type_shuffling_test/none: RuntimeError
 
+[ $compiler != dartkp || $system != linux && $system != macos && $system != windows ]
+dart/run_appended_aot_snapshot_test: SkipByDesign # Tests the precompiled runtime.
+
 [ $mode == debug || $runtime != dart_precompiled || $system == android ]
 dart/use_bare_instructions_flag_test: SkipByDesign # This test is for VM AOT only and is quite slow (so we don't run it in debug mode).
 
