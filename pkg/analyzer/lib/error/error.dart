@@ -382,8 +382,6 @@ const List<ErrorCode> errorCodeValues = const [
   HintCode.SDK_VERSION_UI_AS_CODE,
   HintCode.SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT,
   HintCode.STRICT_RAW_TYPE,
-  HintCode.STRICT_RAW_TYPE_IN_AS,
-  HintCode.STRICT_RAW_TYPE_IN_IS,
   HintCode.SUBTYPE_OF_SEALED_CLASS,
   HintCode.TYPE_CHECK_IS_NOT_NULL,
   HintCode.TYPE_CHECK_IS_NULL,

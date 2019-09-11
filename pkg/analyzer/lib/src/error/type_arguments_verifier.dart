@@ -194,12 +194,9 @@ class TypeArgumentsVerifier {
     if (_isMissingTypeArguments(
         node, node.type, node.name.staticElement, null)) {
       AstNode unwrappedParent = parentEscapingTypeArguments(node);
-      if (unwrappedParent is AsExpression) {
-        _errorReporter.reportErrorForNode(
-            HintCode.STRICT_RAW_TYPE_IN_AS, node, [node.type]);
-      } else if (unwrappedParent is IsExpression) {
-        _errorReporter.reportErrorForNode(
-            HintCode.STRICT_RAW_TYPE_IN_IS, node, [node.type]);
+      if (unwrappedParent is AsExpression || unwrappedParent is IsExpression) {
+        // Do not report a "Strict raw type" error in this case; too noisy.
+        // See https://github.com/dart-lang/language/blob/master/resources/type-system/strict-raw-types.md#conditions-for-a-raw-type-hint
       } else {
         _errorReporter
             .reportErrorForNode(HintCode.STRICT_RAW_TYPE, node, [node.type]);

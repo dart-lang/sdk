@@ -845,24 +845,6 @@ class HintCode extends AnalyzerErrorCode {
       correction: "Use explicit type arguments for '{0}'.");
 
   /**
-   * When "strict-raw-types" is enabled, raw types must be inferred via the
-   * context type, or have type arguments.
-   */
-  static const HintCode STRICT_RAW_TYPE_IN_AS = HintCode(
-      'STRICT_RAW_TYPE_IN_AS',
-      "The generic type '{0}' should have explicit type arguments but doesn't.",
-      correction: "Use explicit type arguments for '{0}'.");
-
-  /**
-   * When "strict-raw-types" is enabled, raw types must be inferred via the
-   * context type, or have type arguments.
-   */
-  static const HintCode STRICT_RAW_TYPE_IN_IS = HintCode(
-      'STRICT_RAW_TYPE_IN_IS',
-      "The generic type '{0}' should have explicit type arguments but doesn't.",
-      correction: "Use explicit type arguments for '{0}'.");
-
-  /**
    * This hint is generated anywhere where a `@sealed` class or mixin is used as
    * a super-type of a class.
    */

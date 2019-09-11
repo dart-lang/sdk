@@ -4457,9 +4457,9 @@ main() {
 
   {
     Object isCheck;
-    if (isCheck is /*info:STRICT_RAW_TYPE_IN_IS*/List) {}
-    if (isCheck is List</*info:STRICT_RAW_TYPE_IN_IS*/List>) {}
-    if (isCheck is /*info:STRICT_RAW_TYPE_IN_IS*/C) {}
+    if (isCheck is List) {}
+    if (isCheck is List<List>) {}
+    if (isCheck is C) {}
 
     if (isCheck is List<dynamic>) {}
     if (isCheck is List<int>) {}
@@ -4469,9 +4469,9 @@ main() {
 
   {
     Object asCheck;
-    var asList = asCheck as /*info:STRICT_RAW_TYPE_IN_AS*/List;
-    var asMap = asCheck as Map<dynamic, /*info:STRICT_RAW_TYPE_IN_AS*/List>;
-    var asC = asCheck as /*info:STRICT_RAW_TYPE_IN_AS*/C;
+    var asList = asCheck as List;
+    var asMap = asCheck as Map<dynamic, List>;
+    var asC = asCheck as C;
   }
 }
     ''');
