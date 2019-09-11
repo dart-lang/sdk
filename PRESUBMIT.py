@@ -18,6 +18,26 @@ import platform
 def is_cpp_file(path):
     return path.endswith('.cc') or path.endswith('.h')
 
+
+def _CheckNnbdSdkSync(input_api, output_api):
+    files = [git_file.LocalPath() for git_file in input_api.AffectedTextFiles()]
+    unsynchronized_files = []
+    for file in files:
+        if file.startswith('sdk/'):
+            nnbd_file = 'sdk_nnbd/' + file[4:]
+            if not nnbd_file in files:
+                unsynchronized_files.append(nnbd_file)
+    if unsynchronized_files:
+        return [
+            output_api.PresubmitPromptWarning(
+                'Changes were made to sdk/ that were not made to sdk_nnbd/\n'
+                'Please update these files as well:\n'
+                '\n'
+                '%s' % ('\n'.join(unsynchronized_files)))
+        ]
+    return []
+
+
 def _CheckFormat(input_api,
                  identification,
                  extension,
@@ -243,6 +263,7 @@ def _CheckClangTidy(input_api, output_api):
 
 def _CommonChecks(input_api, output_api):
     results = []
+    results.extend(_CheckNnbdSdkSync(input_api, output_api))
     results.extend(_CheckValidHostsInDEPS(input_api, output_api))
     results.extend(_CheckDartFormat(input_api, output_api))
     results.extend(_CheckStatusFiles(input_api, output_api))
