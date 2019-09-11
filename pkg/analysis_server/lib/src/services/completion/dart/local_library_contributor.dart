@@ -85,6 +85,14 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
   }
 
   @override
+  void visitExtensionElement(ExtensionElement element) {
+    if (optype.includeReturnValueSuggestions) {
+      addSuggestion(element, prefix: prefix, relevance: DART_RELEVANCE_DEFAULT);
+    }
+    element.visitChildren(this);
+  }
+
+  @override
   void visitFunctionElement(FunctionElement element) {
     // Do not suggest operators or local functions
     if (element.isOperator) {
@@ -190,8 +198,6 @@ class LocalLibraryContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     if (!request.includeIdentifiers) {
       return const <CompletionSuggestion>[];
     }
