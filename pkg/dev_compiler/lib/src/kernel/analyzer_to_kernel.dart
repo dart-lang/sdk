@@ -121,9 +121,6 @@ class AnalyzerToKernel {
     return result;
   }
 
-  /// Dispose the Analysis Context used for summary conversion.
-  void dispose() => _resynth.context.dispose();
-
   void verifyReferences() {
     _references.forEach((element, reference) {
       // Ensure each reference has a corresponding node.
@@ -898,7 +895,6 @@ a.AnalysisContextImpl _createContextForSummaries(
       as a.AnalysisContextImpl;
   context.sourceFactory = a.SourceFactory(
       [a.DartUriResolver(sdk), a.InSummaryUriResolver(null, summaryData)]);
-  context.useSdkCachePartition = false;
   // TODO(jmesserly): do we need to set analysisOptions or declaredVariables?
   return context;
 }

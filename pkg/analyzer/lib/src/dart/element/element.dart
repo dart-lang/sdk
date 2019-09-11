@@ -3709,7 +3709,9 @@ abstract class ElementImpl implements Element {
 
   @deprecated
   @override
-  CompilationUnit get unit => context.resolveCompilationUnit(source, library);
+  CompilationUnit get unit {
+    throw UnimplementedError();
+  }
 
   @override
   bool operator ==(Object object) {

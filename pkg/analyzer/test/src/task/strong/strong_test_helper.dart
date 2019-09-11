@@ -224,7 +224,6 @@ void _reportFailure(
 class AbstractStrongTest with ResourceProviderMixin {
   bool _checkCalled = true;
 
-  AnalysisContext _context = null;
   AnalysisDriver _driver = null;
 
   Map<String, List<Folder>> packageMap;
@@ -374,7 +373,6 @@ class AbstractStrongTest with ResourceProviderMixin {
   void tearDown() {
     // This is a sanity check, in case only addFile is called.
     expect(_checkCalled, true, reason: 'must call check() method in test case');
-    _context?.dispose();
     _driver?.dispose();
     AnalysisEngine.instance.clearCaches();
   }

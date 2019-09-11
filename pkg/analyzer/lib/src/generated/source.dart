@@ -50,6 +50,8 @@ abstract class BasicSource extends Source {
 
 /**
  * A cache used to override the default content of a [Source].
+ *
+ * TODO(scheglov) Remove it.
  */
 class ContentCache {
   /**
