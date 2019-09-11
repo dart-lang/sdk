@@ -4,6 +4,7 @@
 import 'dart:io';
 
 import 'package:expect/expect.dart';
+import 'package:expect/minitest.dart';
 
 import 'package:test_runner/src/path.dart';
 import 'package:test_runner/src/static_error.dart';
@@ -27,6 +28,7 @@ void main() {
   testParseErrorExpectations();
   testName();
   testMultitest();
+  testShardHash();
 }
 
 void testParseDill() {
@@ -535,6 +537,18 @@ void testMultitest() {
   Expect.isFalse(d.hasCompileError);
   Expect.isFalse(d.hasRuntimeError);
   Expect.isTrue(d.hasStaticWarning);
+}
+
+void testShardHash() {
+  // Test files with paths should successfully return some kind of integer. We
+  // don't want to depend on the hash algorithm, so we can't really be more
+  // specific than that.
+  var testFile = parse("", path: "a_test.dart");
+  Expect.isTrue(testFile.shardHash is int);
+
+  // VM test files are hard-coded to return hash zero because they don't have a
+  // path to base the hash on.
+  Expect.equals(0, TestFile.vmUnitTest().shardHash);
 }
 
 void expectParseErrorExpectations(String source, List<StaticError> errors) {

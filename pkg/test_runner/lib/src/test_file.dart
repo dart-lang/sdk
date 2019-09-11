@@ -66,8 +66,20 @@ abstract class _TestFileBase {
   /// static error reporting.
   bool get isStaticErrorTest => expectedErrors.isNotEmpty;
 
+  /// A hash code used to spread tests across shards.
+  int get shardHash {
+    // The VM C++ unit tests have a special fake TestFile with no suite
+    // directory or path. Don't crash in that case.
+    // TODO(rnystrom): Is there a cleaner solution? Should we use the C++ file
+    // as the path for the TestFile?
+    if (originPath == null) return 0;
+
+    return originPath.relativeTo(_suiteDirectory).toString().hashCode;
+  }
+
   _TestFileBase(this._suiteDirectory, this.path, this.expectedErrors) {
-    assert(path.isAbsolute);
+    // The VM C++ unit tests have a special fake TestFile with no path.
+    if (path != null) assert(path.isAbsolute);
   }
 
   /// The logical name of the test.
