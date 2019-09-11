@@ -954,13 +954,10 @@ visible in the scope in which the identifier is being referenced.
 The following code produces this diagnostic:
 
 {% prettify dart %}
-class Point {
-  int x;
-  int y;
-  Point(this.x, this.y);
-  void shiftBy(Point other) {
-    this.x += other.x;
-    this.[!z!] += other.y;
+class C {
+  int x = 0;
+  void foo(int y) {
+    this.[!z!] = y;
   }
 }
 {% endprettify %}
@@ -972,13 +969,10 @@ the name of a setter that is defined. The example above can be corrected by
 fixing the spelling of the setter:
 
 {% prettify dart %}
-class Point {
-  int x;
-  int y;
-  Point(this.x, this.y);
-  void shiftBy(Point other) {
-    this.x += other.x;
-    this.y += other.y;
+class C {
+  int x = 0;
+  void foo(int y) {
+    this.x = y;
   }
 }
 {% endprettify %}

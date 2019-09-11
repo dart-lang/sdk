@@ -4224,13 +4224,10 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
   // The following code produces this diagnostic:
   //
   // ```dart
-  // class Point {
-  //   int x;
-  //   int y;
-  //   Point(this.x, this.y);
-  //   void shiftBy(Point other) {
-  //     this.x += other.x;
-  //     this.[!z!] += other.y;
+  // class C {
+  //   int x = 0;
+  //   void foo(int y) {
+  //     this.[!z!] = y;
   //   }
   // }
   // ```
@@ -4242,13 +4239,10 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
   // fixing the spelling of the setter:
   //
   // ```dart
-  // class Point {
-  //   int x;
-  //   int y;
-  //   Point(this.x, this.y);
-  //   void shiftBy(Point other) {
-  //     this.x += other.x;
-  //     this.y += other.y;
+  // class C {
+  //   int x = 0;
+  //   void foo(int y) {
+  //     this.x = y;
   //   }
   // }
   // ```
