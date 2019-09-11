@@ -2742,6 +2742,35 @@ int f(dynamic d, int j) {
     assertEdge(always, decoratedTypeAnnotation('int f').node, hard: false);
   }
 
+  test_methodInvocation_dynamic_arguments() async {
+    await analyze('''
+int f(dynamic d, int i, int j) {
+  return d.g(h(i), named: h(j));
+}
+int h(int x) => 0;
+''');
+    // Make sure the appropriate edges get created for the calls to h().
+    assertEdge(decoratedTypeAnnotation('int i').node,
+        decoratedTypeAnnotation('int x').node,
+        hard: true);
+    assertEdge(decoratedTypeAnnotation('int j').node,
+        decoratedTypeAnnotation('int x').node,
+        hard: true);
+  }
+
+  test_methodInvocation_dynamic_type_arguments() async {
+    await analyze('''
+int f(dynamic d, int i, int j) {
+  return d.g<C<int>>();
+}
+class C<T extends num> {}
+''');
+    // Make sure the appropriate edge gets created for the instantiation of C.
+    assertEdge(decoratedTypeAnnotation('int>').node,
+        decoratedTypeAnnotation('num>').node,
+        hard: true);
+  }
+
   test_methodInvocation_object_method() async {
     await analyze('''
 String f(int i) => i.toString();

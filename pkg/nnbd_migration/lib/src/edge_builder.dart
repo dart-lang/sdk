@@ -903,6 +903,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       // Dynamic dispatch.  The return type is `dynamic`.
       // TODO(paulberry): would it be better to assume a return type of `Never`
       // so that we don't unnecessarily propagate nullabilities everywhere?
+      node.typeArguments?.accept(this);
+      node.argumentList.accept(this);
       return _dynamicType;
     }
     var calleeType = getOrComputeElementType(callee, targetType: targetType);
