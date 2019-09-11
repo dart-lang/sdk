@@ -251,6 +251,10 @@ class FieldFormalParameterMember extends ParameterMember
   @override
   FieldElement get field {
     var field = (baseElement as FieldFormalParameterElement).field;
+    if (field == null) {
+      return null;
+    }
+
     return FieldMember(field, _substitution);
   }
 
