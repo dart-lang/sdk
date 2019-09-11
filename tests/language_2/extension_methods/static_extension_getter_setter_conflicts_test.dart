@@ -133,25 +133,6 @@ extension E2 on C2 {
     this.mc.toRadixString(16);
     // Check that `this.me` refers to `E2.me`.
     this.me.substring(0);
-
-    // An unqualified identifier is matched against the extension (by basename).
-
-    m1 = 0;
-    1 + m1;
-    //  ^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_EXTENSION_GETTER
-    // [cfe] unspecified
-
-    1 + m2;
-    if (true) m2 = 0; // for the indent!
-    //        ^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_EXTENSION_SETTER
-    // [cfe] unspecified
-
-    // Check that `mc` refers to `C2.me`.
-    mc.toRadixString(16);
-    // Check that `me` refers to `E2.me`.
-    me.substring(0);
   }
 }
 
