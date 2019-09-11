@@ -14,7 +14,7 @@ import 'dartfuzz_ffiapi.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.41';
+const String version = '1.42';
 
 // Restriction on statements and expressions.
 const int stmtLength = 2;
@@ -801,8 +801,13 @@ class DartFuzz {
     switch (r) {
       // Favors elements over control-flow collections.
       case 0:
-        emit('...'); // spread
-        emitCollection(depth + 1, tp);
+        // TODO (ajcbik): Remove restriction once compiler is fixed.
+        if (depth < 2) {
+          emit('...'); // spread
+          emitCollection(depth + 1, tp);
+        } else {
+          emitElement(depth, tp);
+        }
         break;
       case 1:
         emit('if (');
