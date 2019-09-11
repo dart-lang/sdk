@@ -2097,6 +2097,35 @@ mixin _AssignmentChecker {
       {@required DecoratedType source, @required DecoratedType destination}) {
     var sourceType = source.type;
     var destinationType = destination.type;
+    if (!_typeSystem.isSubtypeOf(sourceType, destinationType)) {
+      // Not a proper upcast assignment.  It is either an implicit downcast or
+      // some illegal code.  It's handled on a "best effort" basis.
+      if (destinationType is TypeParameterType &&
+          sourceType is! TypeParameterType) {
+        // Assume an assignment to the type parameter's bound.
+        _checkAssignment(origin,
+            source: source,
+            destination:
+                _getTypeParameterTypeBound(destination).withNode(_graph.always),
+            hard: false);
+        return;
+      }
+      if (sourceType is InterfaceType && destinationType is InterfaceType) {
+        if (_typeSystem.isSubtypeOf(destinationType, sourceType)) {
+          var rewrittenDestination = _decoratedClassHierarchy.asInstanceOf(
+              destination, sourceType.element);
+          assert(rewrittenDestination.typeArguments.length ==
+              source.typeArguments.length);
+          for (int i = 0; i < rewrittenDestination.typeArguments.length; i++) {
+            _checkAssignment(origin,
+                source: source.typeArguments[i],
+                destination: rewrittenDestination.typeArguments[i],
+                hard: false);
+          }
+        }
+      }
+      return;
+    }
     if (destinationType.isDartAsyncFutureOr) {
       // (From the subtyping spec):
       // if T1 is FutureOr<S1> then T0 <: T1 iff any of the following hold:
@@ -2119,8 +2148,9 @@ mixin _AssignmentChecker {
       else if (sourceType is TypeParameterType) {
         throw UnimplementedError('TODO(paulberry)');
       } else {
-        // Not a subtype; this must be a downcast.
-        throw UnimplementedError('TODO(paulberry)');
+        // Not a subtype.  This should never happen, since we handle the
+        // implicit downcast case above.
+        assert(false, 'not a subtype');
       }
     }
     if (sourceType.isBottom || sourceType.isDartCoreNull) {
@@ -2143,44 +2173,17 @@ mixin _AssignmentChecker {
             hard: false);
         return;
       }
-    } else if (destinationType is TypeParameterType) {
-      // Effectively this is a downcast assignment from the source type to the
-      // type parameter's bound.
-      _checkAssignment(origin,
-          source: source,
-          destination:
-              _getTypeParameterTypeBound(destination).withNode(_graph.always),
-          hard: false);
     } else if (sourceType is InterfaceType &&
         destinationType is InterfaceType) {
-      if (_typeSystem.isSubtypeOf(sourceType, destinationType)) {
-        // Ordinary (upcast) assignment.  No cast necessary.
-        var rewrittenSource = _decoratedClassHierarchy.asInstanceOf(
-            source, destinationType.element);
-        assert(rewrittenSource.typeArguments.length ==
-            destination.typeArguments.length);
-        for (int i = 0; i < rewrittenSource.typeArguments.length; i++) {
-          _checkAssignment(origin,
-              source: rewrittenSource.typeArguments[i],
-              destination: destination.typeArguments[i],
-              hard: false);
-        }
-      } else if (_typeSystem.isSubtypeOf(destinationType, sourceType)) {
-        // Implicit downcast assignment.
-        // TODO(paulberry): the migration tool should insert a cast.
-        var rewrittenDestination = _decoratedClassHierarchy.asInstanceOf(
-            destination, sourceType.element);
-        assert(rewrittenDestination.typeArguments.length ==
-            source.typeArguments.length);
-        for (int i = 0; i < rewrittenDestination.typeArguments.length; i++) {
-          _checkAssignment(origin,
-              source: source.typeArguments[i],
-              destination: rewrittenDestination.typeArguments[i],
-              hard: false);
-        }
-      } else {
-        // This should never arise for correct code; if it does arise, recover
-        // from the error by just not creating any additional edges.
+      var rewrittenSource = _decoratedClassHierarchy.asInstanceOf(
+          source, destinationType.element);
+      assert(rewrittenSource.typeArguments.length ==
+          destination.typeArguments.length);
+      for (int i = 0; i < rewrittenSource.typeArguments.length; i++) {
+        _checkAssignment(origin,
+            source: rewrittenSource.typeArguments[i],
+            destination: destination.typeArguments[i],
+            hard: false);
       }
     } else if (sourceType is FunctionType && destinationType is FunctionType) {
       _checkAssignment(origin,
