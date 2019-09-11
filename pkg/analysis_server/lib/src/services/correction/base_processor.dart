@@ -299,6 +299,47 @@ abstract class BaseProcessor {
     return change;
   }
 
+  Future<ChangeBuilder> createBuilder_inlineAdd() async {
+    AstNode node = this.node;
+    if (node is! SimpleIdentifier || node.parent is! MethodInvocation) {
+      _coverageMarker();
+      return null;
+    }
+    SimpleIdentifier name = node;
+    MethodInvocation invocation = node.parent;
+    if (name != invocation.methodName ||
+        name.name != 'add' ||
+        !invocation.isCascaded ||
+        invocation.argumentList.arguments.length != 1) {
+      _coverageMarker();
+      return null;
+    }
+    CascadeExpression cascade = invocation.thisOrAncestorOfType();
+    NodeList<Expression> sections = cascade.cascadeSections;
+    Expression target = cascade.target;
+    if (target is! ListLiteral || sections[0] != invocation) {
+      // TODO(brianwilkerson) Consider extending this to handle set literals.
+      _coverageMarker();
+      return null;
+    }
+    ListLiteral list = target;
+    Expression argument = invocation.argumentList.arguments[0];
+    String elementText = utils.getNodeText(argument);
+
+    DartChangeBuilder changeBuilder = _newDartChangeBuilder();
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      if (list.elements.isNotEmpty) {
+        // ['a']..add(e);
+        builder.addSimpleInsertion(list.elements.last.end, ', $elementText');
+      } else {
+        // []..add(e);
+        builder.addSimpleInsertion(list.leftBracket.end, elementText);
+      }
+      builder.addDeletion(range.node(invocation));
+    });
+    return changeBuilder;
+  }
+
   Future<ChangeBuilder>
       createBuilder_convertConditionalExpressionToIfElement() async {
     AstNode node = this.node.thisOrAncestorOfType<ConditionalExpression>();

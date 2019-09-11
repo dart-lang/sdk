@@ -643,6 +643,9 @@ class FixProcessor extends BaseProcessor {
           LintNames.prefer_if_elements_to_conditional_expressions) {
         await _addFix_convertConditionalToIfElement();
       }
+      if (name == LintNames.prefer_inlined_adds) {
+        await _addFix_convertToInlineAdd();
+      }
       if (name == LintNames.prefer_int_literals) {
         await _addFix_convertToIntLiteral();
       }
@@ -1287,6 +1290,16 @@ class FixProcessor extends BaseProcessor {
     }
   }
 
+  Future<void> _addFix_convertAddAllToSpread() async {
+    final change = await createBuilder_convertAddAllToSpread();
+    if (change != null) {
+      final kind = change.isLineInvocation
+          ? DartFixKind.INLINE_INVOCATION
+          : DartFixKind.CONVERT_TO_SPREAD;
+      _addFixFromBuilder(change.builder, kind, args: change.args);
+    }
+  }
+
   Future<void> _addFix_convertConditionalToIfElement() async {
     final changeBuilder =
         await createBuilder_convertConditionalExpressionToIfElement();
@@ -1381,6 +1394,12 @@ class FixProcessor extends BaseProcessor {
   Future<void> _addFix_convertToExpressionBody() async {
     final changeBuilder = await createBuilder_convertToExpressionFunctionBody();
     _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_INTO_EXPRESSION_BODY);
+  }
+
+  Future<void> _addFix_convertToInlineAdd() async {
+    final changeBuilder = await createBuilder_inlineAdd();
+    _addFixFromBuilder(changeBuilder, DartFixKind.INLINE_INVOCATION,
+        args: ['add']);
   }
 
   Future<void> _addFix_convertToIntLiteral() async {
@@ -1874,16 +1893,6 @@ class FixProcessor extends BaseProcessor {
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.CREATE_CONSTRUCTOR_SUPER,
           args: [proposalName]);
-    }
-  }
-
-  Future<void> _addFix_convertAddAllToSpread() async {
-    final change = await createBuilder_convertAddAllToSpread();
-    if (change != null) {
-      final kind = change.isLineInvocation
-          ? DartFixKind.INLINE_INVOCATION
-          : DartFixKind.CONVERT_TO_SPREAD;
-      _addFixFromBuilder(change.builder, kind, args: change.args);
     }
   }
 

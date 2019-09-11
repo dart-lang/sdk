@@ -156,9 +156,7 @@ class DartAssistKind {
   static const IMPORT_ADD_SHOW = const AssistKind(
       'dart.assist.addShowCombinator', 30, "Add explicit 'show' combinator");
   static const INLINE_INVOCATION =
-      const AssistKind('dart.assist.inline', 30, "Inline invocation of '{0}'",
-          // todo (pq): migrate to (conditional) fix
-          associatedErrorCodes: <String>['prefer_inlined_adds']);
+      const AssistKind('dart.assist.inline', 30, "Inline invocation of '{0}'");
   static const INTRODUCE_LOCAL_CAST_TYPE = const AssistKind(
       'dart.assist.introduceLocalCast',
       30,

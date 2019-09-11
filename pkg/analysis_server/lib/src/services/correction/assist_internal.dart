@@ -125,7 +125,11 @@ class AssistProcessor extends BaseProcessor {
     await _addProposal_flutterWrapWidget();
     await _addProposal_flutterWrapWidgets();
     await _addProposal_importAddShow();
-    await _addProposal_inlineAdd();
+    if (!_containsErrorCode(
+      {LintNames.prefer_inlined_adds},
+    )) {
+      await _addProposal_inlineAdd();
+    }
     await _addProposal_introduceLocalTestedType();
     await _addProposal_invertIf();
     await _addProposal_joinIfStatementInner();
@@ -159,10 +163,16 @@ class AssistProcessor extends BaseProcessor {
       }
     }
     if (experimentStatus.spread_collections) {
+      final preferSpreadsLintFound =
+          _containsErrorCode({LintNames.prefer_spread_collections});
+      final preferInlinedAddsLintFound =
+          _containsErrorCode({LintNames.prefer_inlined_adds});
       if (!_containsErrorCode(
         {LintNames.prefer_spread_collections},
       )) {
-        await _addProposal_convertAddAllToSpread();
+        await _addProposal_convertAddAllToSpread(
+            preferInlinedAdds: !preferInlinedAddsLintFound,
+            convertToSpreads: !preferSpreadsLintFound);
       }
     }
 
@@ -263,9 +273,13 @@ class AssistProcessor extends BaseProcessor {
     }
   }
 
-  Future<void> _addProposal_convertAddAllToSpread() async {
+  Future<void> _addProposal_convertAddAllToSpread(
+      {bool preferInlinedAdds = true, bool convertToSpreads = true}) async {
     final change = await createBuilder_convertAddAllToSpread();
     if (change != null) {
+      if (change.isLineInvocation && !preferInlinedAdds || !convertToSpreads) {
+        return;
+      }
       final kind = change.isLineInvocation
           ? DartAssistKind.INLINE_INVOCATION
           : DartAssistKind.CONVERT_TO_SPREAD;
@@ -2124,43 +2138,7 @@ class AssistProcessor extends BaseProcessor {
   }
 
   Future<void> _addProposal_inlineAdd() async {
-    AstNode node = this.node;
-    if (node is! SimpleIdentifier || node.parent is! MethodInvocation) {
-      _coverageMarker();
-      return;
-    }
-    SimpleIdentifier name = node;
-    MethodInvocation invocation = node.parent;
-    if (name != invocation.methodName ||
-        name.name != 'add' ||
-        !invocation.isCascaded ||
-        invocation.argumentList.arguments.length != 1) {
-      _coverageMarker();
-      return;
-    }
-    CascadeExpression cascade = invocation.thisOrAncestorOfType();
-    NodeList<Expression> sections = cascade.cascadeSections;
-    Expression target = cascade.target;
-    if (target is! ListLiteral || sections[0] != invocation) {
-      // TODO(brianwilkerson) Consider extending this to handle set literals.
-      _coverageMarker();
-      return;
-    }
-    ListLiteral list = target;
-    Expression argument = invocation.argumentList.arguments[0];
-    String elementText = utils.getNodeText(argument);
-
-    DartChangeBuilder changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      if (list.elements.isNotEmpty) {
-        // ['a']..add(e);
-        builder.addSimpleInsertion(list.elements.last.end, ', $elementText');
-      } else {
-        // []..add(e);
-        builder.addSimpleInsertion(list.leftBracket.end, elementText);
-      }
-      builder.addDeletion(range.node(invocation));
-    });
+    final changeBuilder = await createBuilder_inlineAdd();
     _addAssistFromBuilder(changeBuilder, DartAssistKind.INLINE_INVOCATION,
         args: ['add']);
   }
