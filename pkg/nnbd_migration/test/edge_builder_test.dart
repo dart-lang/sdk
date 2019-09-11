@@ -981,6 +981,18 @@ int f(int i, int j) => i >> j;
     assertNoUpstreamNullability(decoratedTypeAnnotation('int f').node);
   }
 
+  test_binaryExpression_left_dynamic() async {
+    await analyze('''
+Object f(dynamic x, int y) => x + g(y);
+int g(int z) => z;
+''');
+    assertEdge(decoratedTypeAnnotation('int y').node,
+        decoratedTypeAnnotation('int z').node,
+        hard: true);
+    assertNoEdge(decoratedTypeAnnotation('int g').node, anyNode);
+    assertEdge(always, decoratedTypeAnnotation('Object f').node, hard: false);
+  }
+
   test_binaryExpression_lt_result_not_null() async {
     await analyze('''
 bool f(int i, int j) => i < j;
@@ -1128,6 +1140,20 @@ int f(int i, int j) => i ?? j;
     var right = decoratedTypeAnnotation('int j').node;
     var expression = decoratedExpressionType('??').node;
     assertEdge(right, expression, guards: [left], hard: false);
+  }
+
+  test_binaryExpression_right_dynamic() async {
+    await analyze('''
+class C {
+  C operator+(C other) => other;
+}
+C f(C x, dynamic y) => x + y;
+''');
+    assertNullCheck(checkExpression('x +'),
+        assertEdge(decoratedTypeAnnotation('C x').node, never, hard: true));
+    assertEdge(decoratedTypeAnnotation('C operator').node,
+        decoratedTypeAnnotation('C f').node,
+        hard: false);
   }
 
   test_binaryExpression_slash_result_not_null() async {
