@@ -299,47 +299,6 @@ abstract class BaseProcessor {
     return change;
   }
 
-  Future<ChangeBuilder> createBuilder_inlineAdd() async {
-    AstNode node = this.node;
-    if (node is! SimpleIdentifier || node.parent is! MethodInvocation) {
-      _coverageMarker();
-      return null;
-    }
-    SimpleIdentifier name = node;
-    MethodInvocation invocation = node.parent;
-    if (name != invocation.methodName ||
-        name.name != 'add' ||
-        !invocation.isCascaded ||
-        invocation.argumentList.arguments.length != 1) {
-      _coverageMarker();
-      return null;
-    }
-    CascadeExpression cascade = invocation.thisOrAncestorOfType();
-    NodeList<Expression> sections = cascade.cascadeSections;
-    Expression target = cascade.target;
-    if (target is! ListLiteral || sections[0] != invocation) {
-      // TODO(brianwilkerson) Consider extending this to handle set literals.
-      _coverageMarker();
-      return null;
-    }
-    ListLiteral list = target;
-    Expression argument = invocation.argumentList.arguments[0];
-    String elementText = utils.getNodeText(argument);
-
-    DartChangeBuilder changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      if (list.elements.isNotEmpty) {
-        // ['a']..add(e);
-        builder.addSimpleInsertion(list.elements.last.end, ', $elementText');
-      } else {
-        // []..add(e);
-        builder.addSimpleInsertion(list.leftBracket.end, elementText);
-      }
-      builder.addDeletion(range.node(invocation));
-    });
-    return changeBuilder;
-  }
-
   Future<ChangeBuilder>
       createBuilder_convertConditionalExpressionToIfElement() async {
     AstNode node = this.node.thisOrAncestorOfType<ConditionalExpression>();
@@ -857,6 +816,92 @@ abstract class BaseProcessor {
       return changeBuilder;
     }
     return null;
+  }
+
+  Future<ChangeBuilder> createBuilder_inlineAdd() async {
+    AstNode node = this.node;
+    if (node is! SimpleIdentifier || node.parent is! MethodInvocation) {
+      _coverageMarker();
+      return null;
+    }
+    SimpleIdentifier name = node;
+    MethodInvocation invocation = node.parent;
+    if (name != invocation.methodName ||
+        name.name != 'add' ||
+        !invocation.isCascaded ||
+        invocation.argumentList.arguments.length != 1) {
+      _coverageMarker();
+      return null;
+    }
+    CascadeExpression cascade = invocation.thisOrAncestorOfType();
+    NodeList<Expression> sections = cascade.cascadeSections;
+    Expression target = cascade.target;
+    if (target is! ListLiteral || sections[0] != invocation) {
+      // TODO(brianwilkerson) Consider extending this to handle set literals.
+      _coverageMarker();
+      return null;
+    }
+    ListLiteral list = target;
+    Expression argument = invocation.argumentList.arguments[0];
+    String elementText = utils.getNodeText(argument);
+
+    DartChangeBuilder changeBuilder = _newDartChangeBuilder();
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      if (list.elements.isNotEmpty) {
+        // ['a']..add(e);
+        builder.addSimpleInsertion(list.elements.last.end, ', $elementText');
+      } else {
+        // []..add(e);
+        builder.addSimpleInsertion(list.leftBracket.end, elementText);
+      }
+      builder.addDeletion(range.node(invocation));
+    });
+    return changeBuilder;
+  }
+
+  /// todo (pq): unify with similar behavior in fix.
+  Future<ChangeBuilder> createBuilder_removeTypeAnnotation() async {
+    VariableDeclarationList declarationList =
+        node.thisOrAncestorOfType<VariableDeclarationList>();
+    if (declarationList == null) {
+      _coverageMarker();
+      return null;
+    }
+    // we need a type
+    TypeAnnotation typeNode = declarationList.type;
+    if (typeNode == null) {
+      _coverageMarker();
+      return null;
+    }
+    // ignore if an incomplete variable declaration
+    if (declarationList.variables.length == 1 &&
+        declarationList.variables[0].name.isSynthetic) {
+      _coverageMarker();
+      return null;
+    }
+    // must be not after the name of the variable
+    VariableDeclaration firstVariable = declarationList.variables[0];
+    if (selectionOffset > firstVariable.name.end) {
+      _coverageMarker();
+      return null;
+    }
+    // The variable must have an initializer, otherwise there is no other
+    // source for its type.
+    if (firstVariable.initializer == null) {
+      _coverageMarker();
+      return null;
+    }
+    Token keyword = declarationList.keyword;
+    var changeBuilder = _newDartChangeBuilder();
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      SourceRange typeRange = range.startStart(typeNode, firstVariable);
+      if (keyword != null && keyword.lexeme != 'var') {
+        builder.addSimpleReplacement(typeRange, '');
+      } else {
+        builder.addSimpleReplacement(typeRange, 'var ');
+      }
+    });
+    return changeBuilder;
   }
 
   @protected

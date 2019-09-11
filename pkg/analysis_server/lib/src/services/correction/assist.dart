@@ -174,12 +174,10 @@ class DartAssistKind {
   static const JOIN_VARIABLE_DECLARATION = const AssistKind(
       'dart.assist.joinVariableDeclaration', 30, "Join variable declaration");
   static const REMOVE_TYPE_ANNOTATION = const AssistKind(
-      'dart.assist.removeTypeAnnotation', 29, "Remove type annotation",
-      // todo (pq): migrate to (conditional) fix
-      associatedErrorCodes: <String>[
-        'avoid_return_types_on_setters',
-        'type_init_formals'
-      ]);
+      // todo (pq): unify w/ fix
+      'dart.assist.removeTypeAnnotation',
+      29,
+      "Remove type annotation");
   static const REPLACE_CONDITIONAL_WITH_IF_ELSE = const AssistKind(
       'dart.assist.convert.conditionalToIfElse',
       30,

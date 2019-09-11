@@ -2509,46 +2509,9 @@ class AssistProcessor extends BaseProcessor {
   }
 
   Future<void> _addProposal_removeTypeAnnotation() async {
-    VariableDeclarationList declarationList =
-        node.thisOrAncestorOfType<VariableDeclarationList>();
-    if (declarationList == null) {
-      _coverageMarker();
-      return;
-    }
-    // we need a type
-    TypeAnnotation typeNode = declarationList.type;
-    if (typeNode == null) {
-      _coverageMarker();
-      return;
-    }
-    // ignore if an incomplete variable declaration
-    if (declarationList.variables.length == 1 &&
-        declarationList.variables[0].name.isSynthetic) {
-      _coverageMarker();
-      return;
-    }
-    // must be not after the name of the variable
-    VariableDeclaration firstVariable = declarationList.variables[0];
-    if (selectionOffset > firstVariable.name.end) {
-      _coverageMarker();
-      return;
-    }
-    // The variable must have an initializer, otherwise there is no other
-    // source for its type.
-    if (firstVariable.initializer == null) {
-      _coverageMarker();
-      return;
-    }
-    Token keyword = declarationList.keyword;
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      SourceRange typeRange = range.startStart(typeNode, firstVariable);
-      if (keyword != null && keyword.lexeme != 'var') {
-        builder.addSimpleReplacement(typeRange, '');
-      } else {
-        builder.addSimpleReplacement(typeRange, 'var ');
-      }
-    });
+    // todo (pq): unify w/ fix (and then add a guard to not assist on lints:
+    // avoid_return_types_on_setters, type_init_formals)
+    final changeBuilder = await createBuilder_removeTypeAnnotation();
     _addAssistFromBuilder(changeBuilder, DartAssistKind.REMOVE_TYPE_ANNOTATION);
   }
 
