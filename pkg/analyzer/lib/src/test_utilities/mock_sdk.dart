@@ -500,7 +500,147 @@ final MockSdkLibrary _LIB_HTML_DART2JS = MockSdkLibrary(
       '$sdkRoot/lib/html/dart2js/html_dart2js.dart',
       '''
 library dart.html;
-class HtmlElement {}
+import 'dart:async';
+
+class Event {}
+class MouseEvent extends Event {}
+class FocusEvent extends Event {}
+class KeyEvent extends Event {}
+
+abstract class ElementStream<T extends Event> implements Stream<T> {}
+
+abstract class Element {
+  /// Stream of `cut` events handled by this [Element].
+  ElementStream<Event> get onCut => null;
+
+  String get id => null;
+
+  set id(String value) => null;
+}
+
+class HtmlElement extends Element {
+  int tabIndex;
+  ElementStream<Event> get onChange => null;
+  ElementStream<MouseEvent> get onClick => null;
+  ElementStream<KeyEvent> get onKeyUp => null;
+  ElementStream<KeyEvent> get onKeyDown => null;
+
+  bool get hidden => null;
+  set hidden(bool value) => null;
+
+  void set className(String s){}
+  void set readOnly(bool b){}
+  void set tabIndex(int i){}
+
+  String _innerHtml;
+  String get innerHtml {
+    throw 'not the real implementation';
+  }
+  set innerHtml(String value) {
+    // stuff
+  }
+}
+
+class AnchorElement extends HtmlElement {
+  factory AnchorElement({String href}) {
+    AnchorElement e = JS('returns:AnchorElement;creates:AnchorElement;new:true',
+        '#.createElement(#)', document, "a");
+    if (href != null) e.href = href;
+    return e;
+  }
+
+  String href;
+  String _privateField;
+}
+
+class BodyElement extends HtmlElement {
+  factory BodyElement() => document.createElement("body");
+
+  ElementStream<Event> get onUnload => null;
+}
+
+class ButtonElement extends HtmlElement {
+  factory ButtonElement._() { throw new UnsupportedError("Not supported"); }
+  factory ButtonElement() => document.createElement("button");
+
+  bool autofocus;
+}
+
+class HeadingElement extends HtmlElement {
+  factory HeadingElement._() { throw new UnsupportedError("Not supported"); }
+  factory HeadingElement.h1() => document.createElement("h1");
+  factory HeadingElement.h2() => document.createElement("h2");
+  factory HeadingElement.h3() => document.createElement("h3");
+}
+
+class InputElement extends HtmlElement {
+  factory InputElement._() { throw new UnsupportedError("Not supported"); }
+  factory InputElement() => document.createElement("input");
+
+  String value;
+  String validationMessage;
+}
+
+class IFrameElement extends HtmlElement {
+  factory IFrameElement._() { throw new UnsupportedError("Not supported"); }
+  factory IFrameElement() => JS(
+      'returns:IFrameElement;creates:IFrameElement;new:true',
+      '#.createElement(#)',
+      document,
+      "iframe");
+
+  String src;
+}
+
+class OptionElement extends HtmlElement {
+  factory OptionElement({String data: '', String value : '', bool selected: false}) {
+  }
+
+  factory OptionElement._([String data, String value, bool defaultSelected, bool selected]) {
+  }
+}
+
+class TableSectionElement extends HtmlElement {
+
+  List<TableRowElement> get rows => null;
+
+  TableRowElement addRow() {
+  }
+
+  TableRowElement insertRow(int index) => null;
+
+  factory TableSectionElement._() { throw new UnsupportedError("Not supported"); }
+
+  @Deprecated("Internal Use Only")
+  external static Type get instanceRuntimeType;
+
+  @Deprecated("Internal Use Only")
+  TableSectionElement.internal_() : super.internal_();
+}
+
+class TemplateElement extends HtmlElement {
+  factory TemplateElement._() { throw new UnsupportedError("Not supported"); }
+  factory TemplateElement() => document.createElement("template");
+}
+
+class AudioElement extends MediaElement {
+  factory AudioElement._([String src]) {
+    if (src != null) {
+      return AudioElement._create_1(src);
+    }
+    return AudioElement._create_2();
+  }
+
+  static AudioElement _create_1(src) => JS('AudioElement', 'new Audio(#)', src);
+  static AudioElement _create_2() => JS('AudioElement', 'new Audio()');
+  AudioElement.created() : super.created();
+
+  factory AudioElement([String src]) => new AudioElement._(src);
+}
+
+class MediaElement extends Element {}
+
+dynamic JS(a, b, c, d) {}
 ''',
     )
   ],
@@ -512,34 +652,148 @@ final MockSdkLibrary _LIB_HTML_DARTIUM = MockSdkLibrary(
       'dart:html',
       '$sdkRoot/lib/html/dartium/html_dartium.dart',
       '''
-library dart.dom.html;
+library dart.html;
+import 'dart:async';
 
-final HtmlDocument document;
+class Event {}
+class MouseEvent extends Event {}
+class FocusEvent extends Event {}
+class KeyEvent extends Event {}
 
-abstract class Element {}
+abstract class ElementStream<T extends Event> implements Stream<T> {}
 
-abstract class HtmlDocument {
-  Element query(String relativeSelectors) => null;
+abstract class Element {
+  /// Stream of `cut` events handled by this [Element].
+  ElementStream<Event> get onCut => null;
+
+  String get id => null;
+
+  set id(String value) => null;
 }
 
-abstract class HtmlElement extends Element {}
+class HtmlElement extends Element {
+  int tabIndex;
+  ElementStream<Event> get onChange => null;
+  ElementStream<MouseEvent> get onClick => null;
+  ElementStream<KeyEvent> get onKeyUp => null;
+  ElementStream<KeyEvent> get onKeyDown => null;
 
-abstract class AnchorElement extends HtmlElement {}
-abstract class BodyElement extends HtmlElement {}
-abstract class ButtonElement extends HtmlElement {}
-abstract class DivElement extends HtmlElement {}
-abstract class InputElement extends HtmlElement {}
-abstract class SelectElement extends HtmlElement {}
+  bool get hidden => null;
+  set hidden(bool value) => null;
 
+  void set className(String s){}
+  void set readOnly(bool b){}
+  void set tabIndex(int i){}
 
-abstract class CanvasElement extends HtmlElement {
-  Object getContext(String contextId, [Map attributes]);
-  CanvasRenderingContext2D get context2D;
+  String _innerHtml;
+  String get innerHtml {
+    throw 'not the real implementation';
+  }
+  set innerHtml(String value) {
+    // stuff
+  }
 }
 
-abstract class CanvasRenderingContext2D {}
+class AnchorElement extends HtmlElement {
+  factory AnchorElement({String href}) {
+    AnchorElement e = JS('returns:AnchorElement;creates:AnchorElement;new:true',
+        '#.createElement(#)', document, "a");
+    if (href != null) e.href = href;
+    return e;
+  }
 
-Element query(String relativeSelectors) => null;
+  String href;
+  String _privateField;
+}
+
+class BodyElement extends HtmlElement {
+  factory BodyElement() => document.createElement("body");
+
+  ElementStream<Event> get onUnload => null;
+}
+
+class ButtonElement extends HtmlElement {
+  factory ButtonElement._() { throw new UnsupportedError("Not supported"); }
+  factory ButtonElement() => document.createElement("button");
+
+  bool autofocus;
+}
+
+class HeadingElement extends HtmlElement {
+  factory HeadingElement._() { throw new UnsupportedError("Not supported"); }
+  factory HeadingElement.h1() => document.createElement("h1");
+  factory HeadingElement.h2() => document.createElement("h2");
+  factory HeadingElement.h3() => document.createElement("h3");
+}
+
+class InputElement extends HtmlElement {
+  factory InputElement._() { throw new UnsupportedError("Not supported"); }
+  factory InputElement() => document.createElement("input");
+
+  String value;
+  String validationMessage;
+}
+
+class IFrameElement extends HtmlElement {
+  factory IFrameElement._() { throw new UnsupportedError("Not supported"); }
+  factory IFrameElement() => JS(
+      'returns:IFrameElement;creates:IFrameElement;new:true',
+      '#.createElement(#)',
+      document,
+      "iframe");
+
+  String src;
+}
+
+class OptionElement extends HtmlElement {
+  factory OptionElement({String data: '', String value : '', bool selected: false}) {
+  }
+
+  factory OptionElement._([String data, String value, bool defaultSelected, bool selected]) {
+  }
+}
+
+class TableSectionElement extends HtmlElement {
+
+  List<TableRowElement> get rows => null;
+
+  TableRowElement addRow() {
+  }
+
+  TableRowElement insertRow(int index) => null;
+
+  factory TableSectionElement._() { throw new UnsupportedError("Not supported"); }
+
+  @Deprecated("Internal Use Only")
+  external static Type get instanceRuntimeType;
+
+  @Deprecated("Internal Use Only")
+  TableSectionElement.internal_() : super.internal_();
+}
+
+class TemplateElement extends HtmlElement {
+  factory TemplateElement._() { throw new UnsupportedError("Not supported"); }
+  factory TemplateElement() => document.createElement("template");
+}
+
+class AudioElement extends MediaElement {
+  factory AudioElement._([String src]) {
+    if (src != null) {
+      return AudioElement._create_1(src);
+    }
+    return AudioElement._create_2();
+  }
+
+  static AudioElement _create_1(src) => JS('AudioElement', 'new Audio(#)', src);
+  static AudioElement _create_2() => JS('AudioElement', 'new Audio()');
+  AudioElement.created() : super.created();
+
+  factory AudioElement([String src]) => new AudioElement._(src);
+}
+
+class MediaElement extends Element {}
+
+dynamic JS(a, b, c, d) {}
 ''',
     )
   ],
