@@ -393,8 +393,10 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
         // "return" statement requires special handling
         if (lastStatement is ReturnStatement) {
           _methodExpression = lastStatement.expression;
-          SourceRange methodExpressionRange = range.node(_methodExpression);
-          _methodExpressionPart = _createSourcePart(methodExpressionRange);
+          if (_methodExpression != null) {
+            SourceRange methodExpressionRange = range.node(_methodExpression);
+            _methodExpressionPart = _createSourcePart(methodExpressionRange);
+          }
           // exclude "return" statement from statements
           statements = statements.sublist(0, statements.length - 1);
         }

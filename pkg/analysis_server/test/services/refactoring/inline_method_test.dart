@@ -470,6 +470,27 @@ main() {
 ''');
   }
 
+  test_function_hasReturn_noExpression() async {
+    await indexTestUnit(r'''
+test(a, b) {
+  print(a);
+  print(b);
+  return;
+}
+main() {
+  test(1, 2);
+}
+''');
+    _createRefactoring('test(a, b)');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+main() {
+  print(1);
+  print(2);
+}
+''');
+  }
+
   test_function_hasReturn_noVars_oneUsage() async {
     await indexTestUnit(r'''
 test(a, b) {
