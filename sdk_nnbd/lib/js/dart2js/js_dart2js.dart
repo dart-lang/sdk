@@ -123,7 +123,7 @@ _callDartFunction(callback, bool captureThis, self, List arguments) {
   if (captureThis) {
     arguments = [self]..addAll(arguments);
   }
-  var dartArgs = new List.from(arguments.map(_convertToDart));
+  var dartArgs = List.from(arguments.map(_convertToDart));
   return _convertToJS(Function.apply(callback, dartArgs));
 }
 
@@ -135,7 +135,7 @@ class JsObject {
   // The wrapped JS object.
   final dynamic _jsObject;
 
-  // This shoud only be called from _wrapToDart
+  // This should only be called from _wrapToDart
   JsObject._fromJs(this._jsObject) {
     assert(_jsObject != null);
   }
@@ -143,32 +143,31 @@ class JsObject {
   /// Constructs a JavaScript object from its native [constructor] and returns
   /// a proxy to it.
   factory JsObject(JsFunction constructor, [List arguments]) {
-    var constr = _convertToJS(constructor);
+    var ctor = _convertToJS(constructor);
     if (arguments == null) {
-      return _wrapToDart(JS('', 'new #()', constr));
+      return _wrapToDart(JS('', 'new #()', ctor));
     }
 
     if (JS('bool', '# instanceof Array', arguments)) {
       int argumentCount = JS('int', '#.length', arguments);
       switch (argumentCount) {
         case 0:
-          return _wrapToDart(JS('', 'new #()', constr));
+          return _wrapToDart(JS('', 'new #()', ctor));
 
         case 1:
           var arg0 = _convertToJS(JS('', '#[0]', arguments));
-          return _wrapToDart(JS('', 'new #(#)', constr, arg0));
+          return _wrapToDart(JS('', 'new #(#)', ctor, arg0));
 
         case 2:
           var arg0 = _convertToJS(JS('', '#[0]', arguments));
           var arg1 = _convertToJS(JS('', '#[1]', arguments));
-          return _wrapToDart(JS('', 'new #(#, #)', constr, arg0, arg1));
+          return _wrapToDart(JS('', 'new #(#, #)', ctor, arg0, arg1));
 
         case 3:
           var arg0 = _convertToJS(JS('', '#[0]', arguments));
           var arg1 = _convertToJS(JS('', '#[1]', arguments));
           var arg2 = _convertToJS(JS('', '#[2]', arguments));
-          return _wrapToDart(
-              JS('', 'new #(#, #, #)', constr, arg0, arg1, arg2));
+          return _wrapToDart(JS('', 'new #(#, #, #)', ctor, arg0, arg1, arg2));
 
         case 4:
           var arg0 = _convertToJS(JS('', '#[0]', arguments));
@@ -176,7 +175,7 @@ class JsObject {
           var arg2 = _convertToJS(JS('', '#[2]', arguments));
           var arg3 = _convertToJS(JS('', '#[3]', arguments));
           return _wrapToDart(
-              JS('', 'new #(#, #, #, #)', constr, arg0, arg1, arg2, arg3));
+              JS('', 'new #(#, #, #, #)', ctor, arg0, arg1, arg2, arg3));
       }
     }
 
@@ -188,7 +187,7 @@ class JsObject {
     // After that, use the JavaScript 'new' operator which overrides any binding
     // of 'this' with the new instance.
     var args = <dynamic>[null]..addAll(arguments.map(_convertToJS));
-    var factoryFunction = JS('', '#.bind.apply(#, #)', constr, constr, args);
+    var factoryFunction = JS('', '#.bind.apply(#, #)', ctor, ctor, args);
     // Without this line, calling factoryFunction as a constructor throws
     JS('String', 'String(#)', factoryFunction);
     // This could return an UnknownJavaScriptObject, or a native
@@ -199,8 +198,8 @@ class JsObject {
 
     // TODO(sra): Investigate:
     //
-    //     var jsObj = JS('', 'Object.create(#.prototype)', constr);
-    //     JS('', '#.apply(#, #)', constr, jsObj,
+    //     var jsObj = JS('', 'Object.create(#.prototype)', ctor);
+    //     JS('', '#.apply(#, #)', ctor, jsObj,
     //         []..addAll(arguments.map(_convertToJS)));
     //     return _wrapToDart(jsObj);
   }
@@ -216,7 +215,7 @@ class JsObject {
   /// `bool`, `num`, or `String`.
   factory JsObject.fromBrowserObject(object) {
     if (object is num || object is String || object is bool || object == null) {
-      throw new ArgumentError("object cannot be a num, string, bool, or null");
+      throw ArgumentError("object cannot be a num, string, bool, or null");
     }
     return _wrapToDart(_convertToJS(object));
   }
@@ -230,13 +229,13 @@ class JsObject {
   /// JavaScript type, and all other objects are proxied.
   factory JsObject.jsify(object) {
     if ((object is! Map) && (object is! Iterable)) {
-      throw new ArgumentError("object must be a Map or Iterable");
+      throw ArgumentError("object must be a Map or Iterable");
     }
     return _wrapToDart(_convertDataTree(object));
   }
 
   static _convertDataTree(data) {
-    var _convertedObjects = new HashMap.identity();
+    var _convertedObjects = HashMap.identity();
 
     _convert(o) {
       if (_convertedObjects.containsKey(o)) {
@@ -246,7 +245,7 @@ class JsObject {
         final convertedMap = JS('=Object', '{}');
         _convertedObjects[o] = convertedMap;
         for (var key in o.keys) {
-          JS('=Object', '#[#]=#', convertedMap, key, _convert(o[key]));
+          JS('=Object', '#[#] = #', convertedMap, key, _convert(o[key]));
         }
         return convertedMap;
       } else if (o is Iterable) {
@@ -268,7 +267,7 @@ class JsObject {
   /// The type of [property] must be either [String] or [num].
   dynamic operator [](property) {
     if (property is! String && property is! num) {
-      throw new ArgumentError("property is not a String or num");
+      throw ArgumentError("property is not a String or num");
     }
     return _convertToDart(JS('', '#[#]', _jsObject, property));
   }
@@ -277,11 +276,11 @@ class JsObject {
   // object.
   //
   // The type of [property] must be either [String] or [num].
-  operator []=(property, value) {
+  void operator []=(property, value) {
     if (property is! String && property is! num) {
-      throw new ArgumentError("property is not a String or num");
+      throw ArgumentError("property is not a String or num");
     }
-    JS('', '#[#]=#', _jsObject, property, _convertToJS(value));
+    JS('', '#[#] = #', _jsObject, property, _convertToJS(value));
   }
 
   int get hashCode => 0;
@@ -295,7 +294,7 @@ class JsObject {
   /// This is the equivalent of the `in` operator in JavaScript.
   bool hasProperty(property) {
     if (property is! String && property is! num) {
-      throw new ArgumentError("property is not a String or num");
+      throw ArgumentError("property is not a String or num");
     }
     return JS('bool', '# in #', property, _jsObject);
   }
@@ -305,7 +304,7 @@ class JsObject {
   /// This is the equivalent of the `delete` operator in JavaScript.
   void deleteProperty(property) {
     if (property is! String && property is! num) {
-      throw new ArgumentError("property is not a String or num");
+      throw ArgumentError("property is not a String or num");
     }
     JS('bool', 'delete #[#]', _jsObject, property);
   }
@@ -332,15 +331,10 @@ class JsObject {
   /// The type of [method] must be either [String] or [num].
   dynamic callMethod(method, [List args]) {
     if (method is! String && method is! num) {
-      throw new ArgumentError("method is not a String or num");
+      throw ArgumentError("method is not a String or num");
     }
-    return _convertToDart(JS(
-        '',
-        '#[#].apply(#, #)',
-        _jsObject,
-        method,
-        _jsObject,
-        args == null ? null : new List.from(args.map(_convertToJS))));
+    return _convertToDart(JS('', '#[#].apply(#, #)', _jsObject, method,
+        _jsObject, args == null ? null : List.from(args.map(_convertToJS))));
   }
 }
 
@@ -350,7 +344,7 @@ class JsFunction extends JsObject {
   /// with the value of JavaScript `this` passed as the first argument.
   factory JsFunction.withThis(Function f) {
     var jsFunc = _convertDartFunction(f, captureThis: true);
-    return new JsFunction._fromJs(jsFunc);
+    return JsFunction._fromJs(jsFunc);
   }
 
   JsFunction._fromJs(jsObject) : super._fromJs(jsObject);
@@ -362,7 +356,7 @@ class JsFunction extends JsObject {
       '#.apply(#, #)',
       _jsObject,
       _convertToJS(thisArg),
-      args == null ? null : new List.from(args.map(_convertToJS))));
+      args == null ? null : List.from(args.map(_convertToJS))));
 }
 
 /// A [List] that proxies a JavaScript array.
@@ -379,22 +373,22 @@ class JsArray<E> extends JsObject with ListMixin<E> {
 
   _checkIndex(int index) {
     if (index is int && (index < 0 || index >= length)) {
-      throw new RangeError.range(index, 0, length);
+      throw RangeError.range(index, 0, length);
     }
   }
 
   _checkInsertIndex(int index) {
     if (index is int && (index < 0 || index >= length + 1)) {
-      throw new RangeError.range(index, 0, length);
+      throw RangeError.range(index, 0, length);
     }
   }
 
   static _checkRange(int start, int end, int length) {
     if (start < 0 || start > length) {
-      throw new RangeError.range(start, 0, length);
+      throw RangeError.range(start, 0, length);
     }
     if (end < start || end > length) {
-      throw new RangeError.range(end, start, length);
+      throw RangeError.range(end, start, length);
     }
   }
 
@@ -425,7 +419,7 @@ class JsArray<E> extends JsObject with ListMixin<E> {
     if (JS('bool', 'typeof # === "number" && (# >>> 0) === #', len, len, len)) {
       return JS('int', '#', len);
     }
-    throw new StateError('Bad JsArray length');
+    throw StateError('Bad JsArray length');
   }
 
   void set length(int length) {
@@ -441,7 +435,7 @@ class JsArray<E> extends JsObject with ListMixin<E> {
   void addAll(Iterable<E> iterable) {
     var list = (JS('bool', '# instanceof Array', iterable))
         ? iterable
-        : new List.from(iterable);
+        : List.from(iterable);
     callMethod('push', list);
   }
 
@@ -456,7 +450,7 @@ class JsArray<E> extends JsObject with ListMixin<E> {
   }
 
   E removeLast() {
-    if (length == 0) throw new RangeError(-1);
+    if (length == 0) throw RangeError(-1);
     return callMethod('pop');
   }
 
@@ -469,7 +463,7 @@ class JsArray<E> extends JsObject with ListMixin<E> {
     _checkRange(start, end, this.length);
     int length = end - start;
     if (length == 0) return;
-    if (skipCount < 0) throw new ArgumentError(skipCount);
+    if (skipCount < 0) throw ArgumentError(skipCount);
     var args = <dynamic>[start, length]
       ..addAll(iterable.skip(skipCount).take(length));
     callMethod('splice', args);
@@ -580,7 +574,7 @@ Object _convertToDart(o) {
     return JS('TypedData', '#', o);
   } else if (JS('bool', '# instanceof Date', o)) {
     var ms = JS('num', '#.getTime()', o);
-    return new DateTime.fromMillisecondsSinceEpoch(ms);
+    return DateTime.fromMillisecondsSinceEpoch(ms);
   } else if (JS('bool', '#.constructor === #', o, _dartProxyCtor)) {
     return JS('', '#.o', o);
   } else {
@@ -591,14 +585,14 @@ Object _convertToDart(o) {
 Object _wrapToDart(o) {
   if (JS('bool', 'typeof # == "function"', o)) {
     return _getDartProxy(
-        o, DART_CLOSURE_PROPERTY_NAME, (o) => new JsFunction._fromJs(o));
+        o, DART_CLOSURE_PROPERTY_NAME, (o) => JsFunction._fromJs(o));
   }
   if (JS('bool', '# instanceof Array', o)) {
     return _getDartProxy(
-        o, _DART_OBJECT_PROPERTY_NAME, (o) => new JsArray._fromJs(o));
+        o, _DART_OBJECT_PROPERTY_NAME, (o) => JsArray._fromJs(o));
   }
   return _getDartProxy(
-      o, _DART_OBJECT_PROPERTY_NAME, (o) => new JsObject._fromJs(o));
+      o, _DART_OBJECT_PROPERTY_NAME, (o) => JsObject._fromJs(o));
 }
 
 Object _getDartProxy(o, String propertyName, createProxy(o)) {
@@ -616,9 +610,6 @@ Object _getDartProxy(o, String propertyName, createProxy(o)) {
   }
   return dartProxy;
 }
-
-// ---------------------------------------------------------------------------
-// Start of methods for new style Dart-JS interop.
 
 _convertDartFunctionFast(Function f) {
   var existing = JS('', '#.#', f, _JS_FUNCTION_PROPERTY_NAME);
@@ -696,7 +687,7 @@ F allowInterop<F extends Function>(F f) {
 Function allowInteropCaptureThis(Function f) {
   if (JS('bool', 'typeof(#) == "function"', f)) {
     // Behavior when the function is already a JS function is unspecified.
-    throw new ArgumentError(
+    throw ArgumentError(
         "Function is already a JS function so cannot capture this.");
     return f;
   } else {
