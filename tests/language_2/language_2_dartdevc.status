@@ -9,7 +9,6 @@ const_double_in_int_op_test/di6: Skip # Triple shift
 const_double_in_int_op_test/id6: Skip # Triple shift
 const_double_in_int_op_test/ii6: Skip # Triple shift
 extension_methods/*: SkipByDesign # Analyzer DDC is expected to be turned down before releasing extension methods.
-generic_no_such_method_dispatcher_simple_test: Skip # This test is just for kernel.
 large_class_declaration_test: Slow
 nnbd/*: Skip
 
