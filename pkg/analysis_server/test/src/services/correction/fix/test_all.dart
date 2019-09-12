@@ -83,6 +83,7 @@ import 'remove_duplicate_case_test.dart' as remove_duplicate_case;
 import 'remove_empty_catch_test.dart' as remove_empty_catch;
 import 'remove_empty_constructor_body_test.dart'
     as remove_empty_constructor_body;
+import 'remove_unused_label_test.dart' as remove_unused_label;
 import 'remove_empty_else_test.dart' as remove_empty_else;
 import 'remove_empty_statement_test.dart' as remove_empty_statement;
 import 'remove_initializer_test.dart' as remove_initializer;
@@ -216,6 +217,7 @@ main() {
     remove_unused_catch_clause.main();
     remove_unused_catch_stack.main();
     remove_unused_import.main();
+    remove_unused_label.main();
     rename_to_camel_case.main();
     replace_boolean_with_bool.main();
     replace_colon_with_equals.main();

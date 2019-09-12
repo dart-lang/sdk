@@ -373,10 +373,9 @@ class FixProcessor extends BaseProcessor {
     if (errorCode == HintCode.UNUSED_IMPORT) {
       await _addFix_removeUnusedImport();
     }
-    // TODO(brianwilkerson) Add a fix to remove the label.
-//    if (errorCode == HintCode.UNUSED_LABEL) {
-//      await _addFix_removeUnusedLabel();
-//    }
+    if (errorCode == HintCode.UNUSED_LABEL) {
+      await _addFix_removeUnusedLabel();
+    }
     // TODO(brianwilkerson) Add a fix to remove the local variable, either with
     //  or without the initialization code.
 //    if (errorCode == HintCode.UNUSED_LOCAL_VARIABLE) {
@@ -3471,6 +3470,18 @@ class FixProcessor extends BaseProcessor {
       builder.addDeletion(utils.getLinesRange(range.node(importDirective)));
     });
     _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_UNUSED_IMPORT);
+  }
+
+  Future<void> _addFix_removeUnusedLabel() async {
+    final parent = node.parent;
+    if (parent is Label) {
+      var nextToken = parent.endToken.next;
+      final changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addDeletion(range.startStart(parent, nextToken));
+      });
+      _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_UNUSED_LABEL);
+    }
   }
 
   Future<void> _addFix_renameToCamelCase() async {
