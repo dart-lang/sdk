@@ -207,12 +207,79 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE =
       _EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE;
 
+  /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an abstract declaration is
+  // declared in an extension. Extensions can declare only concrete members.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // extension E on String {
+  //   int [!a!]();
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Either provide an implementation for the member or remove it.
   static const ParserErrorCode EXTENSION_DECLARES_ABSTRACT_MEMBER =
       _EXTENSION_DECLARES_ABSTRACT_MEMBER;
 
+  /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a constructor declaration is
+  // found in an extension. It isn't valid to define a constructor because
+  // extensions aren't classes, and it isn't possible to create an instance of
+  // an extension.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // extension E on String {
+  //   [!E!]() : super();
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Remove the constructor or replace it with a static method.
   static const ParserErrorCode EXTENSION_DECLARES_CONSTRUCTOR =
       _EXTENSION_DECLARES_CONSTRUCTOR;
 
+  /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an instance field declaration is
+  // found in an extension. It isn't valid to define an instance field because
+  // extensions can only add behavior, not state.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // extension E on String {
+  //   String [!s!];
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Remove the field, make it a static field, or convert it to be a getter,
+  // setter, or method.
   static const ParserErrorCode EXTENSION_DECLARES_INSTANCE_FIELD =
       _EXTENSION_DECLARES_INSTANCE_FIELD;
 

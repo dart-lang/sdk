@@ -335,6 +335,7 @@ class _SnippetTest extends DriverResolutionTest with PackageMixin {
 
   /// Initialize a newly created test to test the given [snippet].
   _SnippetTest(this.snippet) {
+    analysisOptions.enabledExperiments = ['extension-methods'];
     String pubspecContent = snippet.auxiliaryFiles['pubspec.yaml'];
     if (pubspecContent != null) {
       for (String line in pubspecContent.split('\n')) {

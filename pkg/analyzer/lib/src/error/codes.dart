@@ -146,13 +146,69 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "explicitly hiding the name in one of the export directives.");
 
   /**
-   * It is a compile time error if there are two applicable extensions defining
-   * the same member and neither is more specific than the other.
-   *
    * Parameters:
    * 0: the name of the member
    * 1: the name of the first declaring extension
    * 2: the name of the second declaring extension
+   */
+  // #### Description
+  //
+  // When code refers to a member of an object (for example, `o.m()` or `o.m` or
+  // `o[i]`) where the static type of `o` doesn't declare the member (`m` or
+  // `[]`, for example), then the analyzer tries to find the member in an
+  // extension. For example, if the member is `m`, then the analyzer looks for
+  // extensions that declare a member named `m` and have an extended type that
+  // the static type of `o` can be assigned to. When there's more than one such
+  // extension in scope, the extension whose extended type is most specific is
+  // selected.
+  //
+  // The analyzer produces this diagnostic when none of the extensions has an
+  // extended type that's more specific than the extended types of all of the
+  // other extensions, making the reference to the member ambiguous.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because there's no way to
+  // choose between the member in `E1` and the member in `E2`:
+  //
+  // ```dart
+  // extension E1 on String {
+  //   int get charCount => 1;
+  // }
+  //
+  // extension E2 on String {
+  //   int get charCount => 2;
+  // }
+  //
+  // void f(String s) {
+  //   print(s.[!charCount!]);
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If you don't need both extensions, then you can delete or hide one of them.
+  //
+  // If you need both, then explicitly select the one you want to use by using
+  // an extension override:
+  //
+  // ```dart
+  // extension E1 on String {
+  //   int get charCount => length;
+  // }
+  //
+  // extension E2 on String {
+  //   int get charCount => length;
+  // }
+  //
+  // void f(String s) {
+  //   print(E2(s).charCount);
+  // }
+  // ```
+  /*
+   * TODO(brianwilkerson) This message doesn't handle the possible case where
+   *  there are more than 2 extensions, nor does it handle well the case where
+   *  one or more of the extensions is unnamed.
    */
   static const CompileTimeErrorCode AMBIGUOUS_EXTENSION_MEMBER_ACCESS =
       const CompileTimeErrorCode(
@@ -1289,17 +1345,43 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try replacing it with a valid expression.");
 
   /**
-   * It is for an extension to define a static member and an instance member
-   * with the same base name.
-   *
    * Parameters:
    * 0: the name of the extension defining the conflicting member
    * 1: the name of the conflicting static member
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an extension declaration
+  // contains both an instance member and a static member that have the same
+  // name. The instance member and the static member can't have the same name
+  // because it's unclear which member is being referenced by an unqualified use
+  // of the name within the body of the extension.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // extension E on Object {
+  //   int get a => 0;
+  //   static int [!a!]() => 0;
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Rename or remove one of the members:
+  //
+  // ```dart
+  // extension E on Object {
+  //   int get a => 0;
+  //   static int b() => 0;
+  // }
+  // ```
   static const CompileTimeErrorCode EXTENSION_CONFLICTING_STATIC_AND_INSTANCE =
       const CompileTimeErrorCode(
           'EXTENSION_CONFLICTING_STATIC_AND_INSTANCE',
-          "Extension '{0}' can't define static member '{1}' and instance "
+          "Extension '{0}' can't define static member '{1}' and an instance "
               "member with the same name.",
           correction:
               "Try renaming the member to a name that doesn't conflict.");
@@ -1307,6 +1389,33 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an extension declaration
+  // declares a member with the same name as a member declared in the class
+  // `Object`. Such a member can never be used because the member in `Object` is
+  // always found first.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // extension E on String {
+  //   String [!toString!]() => this;
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Remove the member or rename it so that the name doesn't conflict with the
+  // member in `Object`:
+  //
+  // ```dart
+  // extension E on String {
+  //   String displayString() => this;
+  // }
+  // ```
   static const CompileTimeErrorCode EXTENSION_DECLARES_MEMBER_OF_OBJECT =
       const CompileTimeErrorCode(
           'EXTENSION_DECLARES_MEMBER_OF_OBJECT',
@@ -1317,6 +1426,40 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an extension override is the
+  // target of the invocation of a static member. Similar to static members in
+  // classes, the static members of an extension should be accessed using the
+  // name of the extension, not an extension override.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // extension E on String {
+  //   static void staticMethod() {}
+  // }
+  //
+  // void f() {
+  //   E('').[!staticMethod!]();
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Replace the extension override with the name of the extension:
+  //
+  // ```dart
+  // extension E on String {
+  //   static void staticMethod() {}
+  // }
+  //
+  // void f() {
+  //   E.staticMethod();
+  // }
+  // ```
   static const CompileTimeErrorCode EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER =
       const CompileTimeErrorCode(
           'EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER',
@@ -1329,6 +1472,43 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 0: the type of the argument
    * 1: the extended type
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the argument to an extension
+  // override isn't assignable to the type being extended by the extension.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // extension E on String {
+  //   void method() {}
+  // }
+  //
+  // void f() {
+  //   E([!3!]).method();
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If you're using the correct extension, then update the argument to have the
+  // correct type:
+  //
+  // ```dart
+  // extension E on String {
+  //   void method() {}
+  // }
+  //
+  // void f() {
+  //   E(3.toString()).method();
+  // }
+  // ```
+  //
+  // If there's a different extension that's valid for the type of the argument,
+  // then either replace the name of the extension or unwrap the target so that
+  // the correct extension is found.
   static const CompileTimeErrorCode EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE =
       const CompileTimeErrorCode(
           'EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE',
@@ -1338,6 +1518,53 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an extension override is found
+  // that isn't being used to access one of the members of the extension. The
+  // extension override syntax doesn't have any runtime semantics; it only
+  // controls which member is selected at compile time.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // extension E on int {
+  //   int get a => 0;
+  // }
+  //
+  // void f(int i) {
+  //   print([!E(i)!]);
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If you want to invoke one of the members of the extension, then add the
+  // invocation:
+  //
+  // ```dart
+  // extension E on int {
+  //   int get a => 0;
+  // }
+  //
+  // void f(int i) {
+  //   print(E(i).a);
+  // }
+  // ```
+  //
+  // If you don't want to invoke a member, then unwrap the target:
+  //
+  // ```dart
+  // extension E on int {
+  //   int get a => 0;
+  // }
+  //
+  // void f(int i) {
+  //   print(i);
+  // }
+  // ```
   static const CompileTimeErrorCode EXTENSION_OVERRIDE_WITHOUT_ACCESS =
       const CompileTimeErrorCode('EXTENSION_OVERRIDE_WITHOUT_ACCESS',
           "An extension override can only be used to access instance members.",
@@ -1852,6 +2079,53 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an extension override doesn't
+  // have exactly one argument. The argument is the expression used to compute
+  // the value of `this` within the extension method, so there must be one
+  // argument.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because there are no arguments:
+  //
+  // ```dart
+  // extension E on String {
+  //   String join(String other) => '$this $other';
+  // }
+  //
+  // void f() {
+  //   E[!()!].join('b');
+  // }
+  // ```
+  //
+  // And, the following code produces this diagnostic because there's more than
+  // one argument:
+  //
+  // ```dart
+  // extension E on String {
+  //   String join(String other) => '$this $other';
+  // }
+  //
+  // void f() {
+  //   E[!('a', 'b')!].join('c');
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Provide one argument for the extension override:
+  //
+  // ```dart
+  // extension E on String {
+  //   String join(String other) => '$this $other';
+  // }
+  //
+  // void f() {
+  //   E('a').join('b');
+  // }
+  // ```
   static const CompileTimeErrorCode INVALID_EXTENSION_ARGUMENT_COUNT =
       const CompileTimeErrorCode(
           'INVALID_EXTENSION_ARGUMENT_COUNT',
@@ -1972,6 +2246,32 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a member declared inside an
+  // extension uses the keyword `covariant` in the declaration of a parameter.
+  // Extensions aren't classes and don't have subclasses, so the keyword serves
+  // no purpose.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // extension E on String {
+  //   void a([!covariant!] int i) {}
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Remove the 'covariant' keyword:
+  //
+  // ```dart
+  // extension E on String {
+  //   void a(int i) {}
+  // }
+  // ```
   static const CompileTimeErrorCode INVALID_USE_OF_COVARIANT_IN_EXTENSION =
       const CompileTimeErrorCode('INVALID_USE_OF_COVARIANT_IN_EXTENSION',
           "The 'covariant' keyword can't be used in extensions.",
@@ -3219,11 +3519,36 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a member declared inside an
+  // extension uses the `super` keyword . Extensions aren't classes and don't
+  // have superclasses, so the `super` keyword serves no purpose.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // extension E on Object {
+  //   String get displayString => [!super!].toString();
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Remove the `super` keyword :
+  //
+  // ```dart
+  // extension E on Object {
+  //   String get displayString => toString();
+  // }
+  // ```
   static const CompileTimeErrorCode SUPER_IN_EXTENSION =
       const CompileTimeErrorCode(
           'SUPER_IN_EXTENSION',
-          "You can't reference 'super' in an extension because extensions do "
-              "not have a superclass.");
+          "The 'super' keyword can't be used in an extension because an "
+              "extension doesn't have a superclass.");
 
   /**
    * 12.15.4 Super Invocation: A super method invocation <i>i</i> has the form
@@ -3428,6 +3753,94 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 0: the name of the getter that is undefined
    * 1: the name of the extension that was explicitly specified
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an extension override is used to
+  // invoke a getter, but the getter isn't defined by the specified extension.
+  // The analyzer also produces this diagnostic when a static getter is
+  // referenced but isn't defined by the specified extension.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the extension `E`
+  // doesn't declare an instance getter named `b`:
+  //
+  // ```dart
+  // extension E on String {
+  //   String get a => 'a';
+  // }
+  //
+  // extension F on String {
+  //   String get b => 'b';
+  // }
+  //
+  // void f() {
+  //   E('c').[!b!];
+  // }
+  // ```
+  //
+  // The following code produces this diagnostic because the extension `E`
+  // doesn't declare a static getter named `a`:
+  //
+  // ```dart
+  // extension E on String {}
+  //
+  // var x = E.[!a!];
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the name of the getter is incorrect, then change it to the name of an
+  // existing getter:
+  //
+  // ```dart
+  // extension E on String {
+  //   String get a => 'a';
+  // }
+  //
+  // extension F on String {
+  //   String get b => 'b';
+  // }
+  //
+  // void f() {
+  //   E('c').a;
+  // }
+  // ```
+  //
+  // If the name of the getter is correct but the name of the extension is
+  // wrong, then change the name of the extension to the correct name:
+  //
+  // ```dart
+  // extension E on String {
+  //   String get a => 'a';
+  // }
+  //
+  // extension F on String {
+  //   String get b => 'b';
+  // }
+  //
+  // void f() {
+  //   F('c').b;
+  // }
+  // ```
+  //
+  // If the name of the getter and extension are both correct, but the getter
+  // isn't defined, then define the getter:
+  //
+  // ```dart
+  // extension E on String {
+  //   String get a => 'a';
+  //   String get b => 'z';
+  // }
+  //
+  // extension F on String {
+  //   String get b => 'b';
+  // }
+  //
+  // void f() {
+  //   E('c').b;
+  // }
+  // ```
   static const CompileTimeErrorCode UNDEFINED_EXTENSION_GETTER =
       const CompileTimeErrorCode('UNDEFINED_EXTENSION_GETTER',
           "The getter '{0}' isn't defined for the extension '{1}'.",
@@ -3440,6 +3853,94 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 0: the name of the method that is undefined
    * 1: the name of the extension that was explicitly specified
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an extension override is used to
+  // invoke a method, but the method isn't defined by the specified extension.
+  // The analyzer also produces this diagnostic when a static method is
+  // referenced but isn't defined by the specified extension.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the extension `E`
+  // doesn't declare an instance method named `b`:
+  //
+  // ```dart
+  // extension E on String {
+  //   String a() => 'a';
+  // }
+  //
+  // extension F on String {
+  //   String b() => 'b';
+  // }
+  //
+  // void f() {
+  //   E('c').[!b!]();
+  // }
+  // ```
+  //
+  // The following code produces this diagnostic because the extension `E`
+  // doesn't declare a static method named `a`:
+  //
+  // ```dart
+  // extension E on String {}
+  //
+  // var x = E.[!a!]();
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the name of the method is incorrect, then change it to the name of an
+  // existing method:
+  //
+  // ```dart
+  // extension E on String {
+  //   String a() => 'a';
+  // }
+  //
+  // extension F on String {
+  //   String b() => 'b';
+  // }
+  //
+  // void f() {
+  //   E('c').a();
+  // }
+  // ```
+  //
+  // If the name of the method is correct, but the name of the extension is
+  // wrong, then change the name of the extension to the correct name:
+  //
+  // ```dart
+  // extension E on String {
+  //   String a() => 'a';
+  // }
+  //
+  // extension F on String {
+  //   String b() => 'b';
+  // }
+  //
+  // void f() {
+  //   F('c').b();
+  // }
+  // ```
+  //
+  // If the name of the method and extension are both correct, but the method
+  // isn't defined, then define the method:
+  //
+  // ```dart
+  // extension E on String {
+  //   String a() => 'a';
+  //   String b() => 'z';
+  // }
+  //
+  // extension F on String {
+  //   String b() => 'b';
+  // }
+  //
+  // void f() {
+  //   E('c').b();
+  // }
+  // ```
   static const CompileTimeErrorCode UNDEFINED_EXTENSION_METHOD =
       const CompileTimeErrorCode('UNDEFINED_EXTENSION_METHOD',
           "The method '{0}' isn't defined for the extension '{1}'.",
@@ -3452,6 +3953,96 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 0: the name of the setter that is undefined
    * 1: the name of the extension that was explicitly specified
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an extension override is used to
+  // invoke a setter, but the setter isn't defined by the specified extension.
+  // The analyzer also produces this diagnostic when a static setter is
+  // referenced but isn't defined by the specified extension.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the extension `E`
+  // doesn't declare an instance setter named `b`:
+  //
+  // ```dart
+  // extension E on String {
+  //   set a(String v) {}
+  // }
+  //
+  // extension F on String {
+  //   set b(String v) {}
+  // }
+  //
+  // void f() {
+  //   E('c').[!b!] = 'd';
+  // }
+  // ```
+  //
+  // The following code produces this diagnostic because the extension `E`
+  // doesn't declare a static setter named `a`:
+  //
+  // ```dart
+  // extension E on String {}
+  //
+  // void f() {
+  //   E.[!a!] = 3;
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the name of the setter is incorrect, then change it to the name of an
+  // existing setter:
+  //
+  // ```dart
+  // extension E on String {
+  //   set a(String v) {}
+  // }
+  //
+  // extension F on String {
+  //   set b(String v) {}
+  // }
+  //
+  // void f() {
+  //   E('c').a = 'd';
+  // }
+  // ```
+  //
+  // If the name of the setter is correct, but the name of the extension is
+  // wrong, then change the name of the extension to the correct name:
+  //
+  // ```dart
+  // extension E on String {
+  //   set a(String v) {}
+  // }
+  //
+  // extension F on String {
+  //   set b(String v) {}
+  // }
+  //
+  // void f() {
+  //   F('c').b = 'd';
+  // }
+  // ```
+  //
+  // If the name of the setter and extension are both correct, but the setter
+  // isn't defined, then define the setter:
+  //
+  // ```dart
+  // extension E on String {
+  //   set a(String v) {}
+  //   set b(String v) {}
+  // }
+  //
+  // extension F on String {
+  //   set b(String v) {}
+  // }
+  //
+  // void f() {
+  //   E('c').b = 'd';
+  // }
+  // ```
   static const CompileTimeErrorCode UNDEFINED_EXTENSION_SETTER =
       const CompileTimeErrorCode('UNDEFINED_EXTENSION_SETTER',
           "The setter '{0}' isn't defined for the extension '{1}'.",
@@ -3466,7 +4057,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when a method or function invocation
-  // has a named argument, but the method or function being invoked doesn’t
+  // has a named argument, but the method or function being invoked doesn't
   // define a parameter with the same name.
   //
   // #### Example
@@ -4226,7 +4817,7 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
   // ```dart
   // class C {
   //   int x = 0;
-  //   void foo(int y) {
+  //   void m(int y) {
   //     this.[!z!] = y;
   //   }
   // }
@@ -4241,7 +4832,7 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
   // ```dart
   // class C {
   //   int x = 0;
-  //   void foo(int y) {
+  //   void m(int y) {
   //     this.x = y;
   //   }
   // }

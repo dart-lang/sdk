@@ -512,7 +512,7 @@ class HintCode extends AnalyzerErrorCode {
    */
   // #### Description
   //
-  // Any function or method that doesn’t end with either an explicit return or a
+  // Any function or method that doesn't end with either an explicit return or a
   // throw implicitly returns `null`. This is rarely the desired behavior. The
   // analyzer produces this diagnostic when it finds an implicit return.
   //
@@ -685,10 +685,52 @@ class HintCode extends AnalyzerErrorCode {
       "A package import shouldn't contain '..'.");
 
   /**
-   * A class defined in `dart:async` that was not exported from `dart:core`
-   * before version 2.1 is being referenced via `dart:core` in code that is
-   * expected to run on earlier versions.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when either the class `Future` or
+  // `Stream` is referenced in a library that doesn't import `dart:async` in
+  // code that has an SDK constraint whose lower bound is less than 2.1.0. In
+  // earlier versions, these classes weren't defined in `dart:core`, so the
+  // import was necessary.
+  //
+  // #### Example
+  //
+  // Here's an example of a pubspec that defines an SDK constraint with a lower
+  // bound of less than 2.1.0:
+  //
+  // ```yaml
+  // %uri="pubspec.yaml"
+  // environment:
+  //   sdk: '>=2.0.0 <2.4.0'
+  // ```
+  //
+  // In the package that has that pubspec, code like the following produces this
+  // diagnostic:
+  //
+  // ```dart
+  // void f([!Future!] f) {}
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If you don't need to support older versions of the SDK, then you can
+  // increase the SDK constraint to allow the classes to be referenced:
+  //
+  // ```yaml
+  // environment:
+  //   sdk: '>=2.1.0 <2.4.0'
+  // ```
+  //
+  // If you need to support older versions of the SDK, then import the
+  // `dart:async` library.
+  //
+  // ```dart
+  // import 'dart:async';
+  //
+  // void f(Future f) {}
+  // ```
   static const HintCode SDK_VERSION_ASYNC_EXPORTED_FROM_CORE = const HintCode(
       'SDK_VERSION_ASYNC_EXPORTED_FROM_CORE',
       "The class '{0}' wasn't exported from 'dart:core' until version 2.1, "
@@ -697,9 +739,54 @@ class HintCode extends AnalyzerErrorCode {
           "Try either importing 'dart:async' or updating the SDK constraints.");
 
   /**
-   * An as expression being used in a const context is expected to run on
-   * versions of the SDK that did not support them.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an as expression inside a
+  // [constant context](#constant-context) is found in code that has an SDK
+  // constraint whose lower bound is less than 2.3.2. Using an as expression in
+  // a [constant context](#constant-context) wasn't supported in earlier
+  // versions, so this code won't be able to run against earlier versions of the
+  // SDK.
+  //
+  // #### Example
+  //
+  // Here's an example of a pubspec that defines an SDK constraint with a lower
+  // bound of less than 2.3.2:
+  //
+  // ```yaml
+  // %uri="pubspec.yaml"
+  // environment:
+  //   sdk: '>=2.1.0 <2.4.0'
+  // ```
+  //
+  // In the package that has that pubspec, code like the following generates
+  // this diagnostic:
+  //
+  // ```dart
+  // const num n = 3;
+  // const int i = [!n as int!];
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If you don't need to support older versions of the SDK, then you can
+  // ncrease the SDK constraint to allow the expression to be used:
+  //
+  // ```yaml
+  // environment:
+  //   sdk: '>=2.3.2 <2.4.0'
+  // ```
+  //
+  // If you need to support older versions of the SDK, then either rewrite the
+  // code to not use an as expression, or change the code so that the as
+  // expression is not in a [constant context](#constant-context).:
+  //
+  // ```dart
+  // num x = 3;
+  // int y = x as int;
+  // ```
   static const HintCode SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT = const HintCode(
       'SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT',
       "The use of an as expression in a constant expression wasn't "
@@ -708,9 +795,56 @@ class HintCode extends AnalyzerErrorCode {
       correction: "Try updating the SDK constraints.");
 
   /**
-   * The operator '&', '|' or '^' is being used on boolean values in code that
-   * is expected to run on versions of the SDK that did not support it.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when any use of the `&`, `|` or `^`
+  // operators on the class `bool` inside a
+  // [constant context](#constant-context) is found in code that has an SDK
+  // constraint whose lower bound is less than 2.3.2. Using these operators in a
+  // [constant context](#constant-context) wasn't supported in earlier versions,
+  // so this code won't be able to run against earlier versions of the SDK.
+  //
+  // #### Example
+  //
+  // Here's an example of a pubspec that defines an SDK constraint with a lower
+  // bound of less than 2.3.2:
+  //
+  // ```yaml
+  // %uri="pubspec.yaml"
+  // environment:
+  //   sdk: '>=2.1.0 <2.4.0'
+  // ```
+  //
+  // In the package that has that pubspec, code like the following produces this
+  // diagnostic:
+  //
+  // ```dart
+  // const bool a = true;
+  // const bool b = false;
+  // const bool c = a [!&!] b;
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If you don't need to support older versions of the SDK, then you can
+  // increase the SDK constraint to allow the operators to be used:
+  //
+  // ```yaml
+  // environment:
+  //  sdk: '>=2.3.2 <2.4.0'
+  // ```
+  //
+  // If you need to support older versions of the SDK, then either rewrite the
+  // code to not use these operators, or change the code so that the expression
+  // is not in a [constant context](#constant-context).:
+  //
+  // ```dart
+  // const bool a = true;
+  // const bool b = false;
+  // bool c = a & b;
+  // ```
   static const HintCode SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT = const HintCode(
       'SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT',
       "Using the operator '{0}' for 'bool's in a constant expression wasn't "
@@ -719,9 +853,58 @@ class HintCode extends AnalyzerErrorCode {
       correction: "Try updating the SDK constraints.");
 
   /**
-   * The operator '==' is being used on non-primitive values in code that
-   * is expected to run on versions of the SDK that did not support it.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the operator `==` is used on a
+  // non-primitive type inside a [constant context](#constant-context) is found
+  // in code that has an SDK constraint whose lower bound is less than 2.3.2.
+  // Using this operator in a [constant context](#constant-context) wasn't
+  // supported in earlier versions, so this code won't be able to run against
+  // earlier versions of the SDK.
+  //
+  // #### Example
+  //
+  // Here's an example of a pubspec that defines an SDK constraint with a lower
+  // bound of less than 2.3.2:
+  //
+  // ```yaml
+  // %uri="pubspec.yaml"
+  // environment:
+  //   sdk: '>=2.1.0 <2.4.0'
+  // ```
+  //
+  // In the package that has that pubspec, code like the following produces this
+  // diagnostic:
+  //
+  // ```dart
+  // class C {}
+  // const C a = null;
+  // const C b = null;
+  // const bool same = a [!==!] b;
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If you don't need to support older versions of the SDK, then you can
+  // increase the SDK constraint to allow the operator to be used:
+  //
+  // ```yaml
+  // environment:
+  //   sdk: '>=2.3.2 <2.4.0'
+  // ```
+  //
+  // If you need to support older versions of the SDK, then either rewrite the
+  // code to not use the `==` operator, or change the code so that the
+  // expression is not in a [constant context](#constant-context).:
+  //
+  // ```dart
+  // class C {}
+  // const C a = null;
+  // const C b = null;
+  // bool same = a == b;
+  // ```
   static const HintCode SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT =
       const HintCode(
           'SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT',
@@ -731,9 +914,58 @@ class HintCode extends AnalyzerErrorCode {
           correction: "Try updating the SDK constraints.");
 
   /**
-   * Extension method features are being used in code that is expected to run
-   * on versions of the SDK that did not support them.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an extension declaration or an
+  // extension override is found in code that has an SDK constraint whose lower
+  // bound is less than 2.6.0. Using extensions wasn't supported in earlier
+  // versions, so this code won't be able to run against earlier versions of the
+  // SDK.
+  //
+  // #### Example
+  //
+  // Here's an example of a pubspec that defines an SDK constraint with a lower
+  // bound of less than 2.6.0:
+  //
+  // ```yaml
+  // %uri="pubspec.yaml"
+  // environment:
+  //  sdk: '>=2.4.0 <2.7.0'
+  // ```
+  //
+  // In the package that has that pubspec, code like the following generates
+  // this diagnostic:
+  //
+  // ```dart
+  // [!extension!] E on String {
+  //   void sayHello() {
+  //     print('Hello $this');
+  //   }
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If you don't need to support older versions of the SDK, then you can
+  // increase the SDK constraint to allow the syntax to be used:
+  //
+  // ```yaml
+  // environment:
+  //   sdk: '>=2.6.0 <2.7.0'
+  // ```
+  //
+  // If you need to support older versions of the SDK, then rewrite the code to
+  // not make use of extensions. The most common way to do this is to rewrite
+  // the members of the extension as top-level functions (or methods) that take
+  // the value that would have been bound to `this` as a parameter:
+  //
+  // ```dart
+  // void sayHello(String s) {
+  //   print('Hello $s');
+  // }
+  // ```
   static const HintCode SDK_VERSION_EXTENSION_METHODS = const HintCode(
       'SDK_VERSION_EXTENSION_METHODS',
       "Extension methods weren't supported until version 2.6.0, "
@@ -741,9 +973,57 @@ class HintCode extends AnalyzerErrorCode {
       correction: "Try updating the SDK constraints.");
 
   /**
-   * The operator '>>>' is being used in code that is expected to run on
-   * versions of the SDK that did not support it.
+   * No parameters.
    */
+  /* // #### Description
+  //
+  // The analyzer produces this diagnostic when the operator `>>>` is used in
+  // code that has an SDK constraint whose lower bound is less than 2.X.0. This
+  // operator wasn't supported in earlier versions, so this code won't be able
+  // to run against earlier versions of the SDK.
+  //
+  // #### Example
+  //
+  // Here's an example of a pubspec that defines an SDK constraint with a lower
+  // bound of less than 2.X.0:
+  //
+  // ```yaml
+  // %uri="pubspec.yaml"
+  // environment:
+  //  sdk: '>=2.0.0 <2.4.0'
+  // ```
+  //
+  // In the package that has that pubspec, code like the following produces this
+  // diagnostic:
+  //
+  // ```dart
+  // int x = 3 [!>>>!] 4;
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If you don't need to support older versions of the SDK, then you can
+  // increase the SDK constraint to allow the operator to be used:
+  //
+  // ```yaml
+  // environment:
+  //   sdk: '>=2.3.2 <2.4.0'
+  // ```
+  //
+  // If you need to support older versions of the SDK, then rewrite the code to
+  // not use the `>>>` operator:
+  //
+  // ```dart
+  // int x = logicalShiftRight(3, 4);
+  //
+  // int logicalShiftRight(int leftOperand, int rightOperand) {
+  //   int divisor = 1 << rightOperand;
+  //   if (divisor == 0) {
+  //     return 0;
+  //   }
+  //   return leftOperand ~/ divisor;
+  // }
+  // ``` */
   static const HintCode SDK_VERSION_GT_GT_GT_OPERATOR = const HintCode(
       'SDK_VERSION_GT_GT_GT_OPERATOR',
       "The operator '>>>' wasn't supported until version 2.3.2, but this code "
@@ -751,9 +1031,55 @@ class HintCode extends AnalyzerErrorCode {
       correction: "Try updating the SDK constraints.");
 
   /**
-   * An is expression being used in a const context is expected to run on
-   * versions of the SDK that did not support them.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an is expression inside a
+  // [constant context](#constant-context) is found in code that has an SDK
+  // constraint whose lower bound is less than 2.3.2. Using an is expression in
+  // a [constant context](#constant-context) wasn't supported in earlier
+  // versions, so this code won't be able to run against earlier versions of the
+  // SDK.
+  //
+  // #### Example
+  //
+  // Here's an example of a pubspec that defines an SDK constraint with a lower
+  // bound of less than 2.3.2:
+  //
+  // ```yaml
+  // %uri="pubspec.yaml"
+  // environment:
+  //   sdk: '>=2.1.0 <2.4.0'
+  // ```
+  //
+  // In the package that has that pubspec, code like the following generates
+  // this diagnostic:
+  //
+  // ```dart
+  // const x = 4;
+  // const y = [!x is int!] ? 0 : 1;
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If you don't need to support older versions of the SDK, then you can
+  // increase the SDK constraint to allow the expression to be used:
+  //
+  // ```yaml
+  // environment:
+  //   sdk: '>=2.3.2 <2.4.0'
+  // ```
+  //
+  // If you need to support older versions of the SDK, then either rewrite the
+  // code to not use the is operator, or, if that's not possible, change the
+  // code so that the is expression is not in a
+  // [constant context](#constant-context).:
+  //
+  // ```dart
+  // const x = 4;
+  // var y = x is int ? 0 : 1;
+  // ```
   static const HintCode SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT = const HintCode(
       'SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT',
       "The use of an is expression in a constant expression wasn't supported "
@@ -767,14 +1093,14 @@ class HintCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when a set literal is found in code
-  // that has an SDK constraint whose lower bound is less than 2.2. Set literals
-  // weren't supported in earlier versions, so this code won't be able to run
-  // against earlier versions of the SDK.
+  // that has an SDK constraint whose lower bound is less than 2.2.0. Set
+  // literals weren't supported in earlier versions, so this code won't be able
+  // to run against earlier versions of the SDK.
   //
   // #### Example
   //
   // Here's an example of a pubspec that defines an SDK constraint with a lower
-  // bound of less than 2.2:
+  // bound of less than 2.2.0:
   //
   // ```yaml
   // %uri="pubspec.yaml"
@@ -813,16 +1139,106 @@ class HintCode extends AnalyzerErrorCode {
       hasPublishedDocs: true);
 
   /**
-   * The type Never is being used in code that is expected to run on versions of
-   * the SDK that did not support it.
+   * No parameters.
    */
+  /* // #### Description
+  //
+  // The analyzer produces this diagnostic when a reference to the class `Never`
+  // is found in code that has an SDK constraint whose lower bound is less than
+  // 2.X.0. This class wasn't defined in earlier versions, so this code won't be
+  // able to run against earlier versions of the SDK.
+  //
+  // #### Example
+  //
+  // Here's an example of a pubspec that defines an SDK constraint with a lower
+  // bound of less than 2.X.0:
+  //
+  // ```yaml
+  // %uri="pubspec.yaml"
+  // environment:
+  //   sdk: '>=2.5.0 <2.6.0'
+  // ```
+  //
+  // In the package that has that pubspec, code like the following produces this
+  // diagnostic:
+  //
+  // ```dart
+  // [!Never!] n;
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If you don't need to support older versions of the SDK, then you can
+  // increase the SDK constraint to allow the type to be used:
+  //
+  // ```yaml
+  // environment:
+  //   sdk: '>=2.X.0 <2.7.0'
+  // ```
+  //
+  // If you need to support older versions of the SDK, then rewrite the code to
+  // not reference this class:
+  //
+  // ```dart
+  // dynamic x;
+  // ``` */
   static const HintCode SDK_VERSION_NEVER = const HintCode(
       'SDK_VERSION_NEVER', "The type Never is not yet supported.");
 
   /**
-   * The for, if or spread element is being used in code that is expected to run
-   * on versions of the SDK that did not support them.
+   * No parameters.
    */
+
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a for, if, or spread element is
+  // found in code that has an SDK constraint whose lower bound is less than
+  // 2.3.0. Using a for, if, or spread element wasn't supported in earlier
+  // versions, so this code won't be able to run against earlier versions of the
+  // SDK.
+  //
+  // #### Example
+  //
+  // Here's an example of a pubspec that defines an SDK constraint with a lower
+  // bound of less than 2.3.0:
+  //
+  // ```yaml
+  // %uri="pubspec.yaml"
+  // environment:
+  //   sdk: '>=2.2.0 <2.4.0'
+  // ```
+  //
+  // In the package that has that pubspec, code like the following generates
+  // this diagnostic:
+  //
+  // ```dart
+  // var digits = [[!for (int i = 0; i < 10; i++) i!]];
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If you don't need to support older versions of the SDK, then you can
+  // increase the SDK constraint to allow the syntax to be used:
+  //
+  // ```yaml
+  // environment:
+  //   sdk: '>=2.3.0 <2.4.0'
+  // ```
+  //
+  // If you need to support older versions of the SDK, then rewrite the code to
+  // not make use of those elements:
+  //
+  // ```dart
+  // var digits = _initializeDigits();
+  //
+  // List<int> _initializeDigits() {
+  //   var digits = <int>[];
+  //   for (int i = 0; i < 10; i++) {
+  //     digits.add(i);
+  //   }
+  //   return digits;
+  // }
+  // ```
   static const HintCode SDK_VERSION_UI_AS_CODE = const HintCode(
       'SDK_VERSION_UI_AS_CODE',
       "The for, if, and spread elements weren't supported until version 2.2.2, "
@@ -830,14 +1246,66 @@ class HintCode extends AnalyzerErrorCode {
       correction: "Try updating the SDK constraints.");
 
   /**
-   * The for, if or spread element is being used in a const context that is
-   * expected to run on versions of the SDK that did not support them.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an if or spread element inside
+  // a [constant context](#constant-context) is found in code that has an
+  // SDK constraint whose lower bound is less than 2.5.0. Using an if or
+  // spread element inside a [constant context](#constant-context) wasn't
+  // supported in earlier versions, so this code won't be able to run against
+  // earlier versions of the SDK.
+  //
+  // #### Example
+  //
+  // Here's an example of a pubspec that defines an SDK constraint with a lower
+  // bound of less than 2.5.0:
+  //
+  // ```yaml
+  // %uri="pubspec.yaml"
+  // environment:
+  //   sdk: '>=2.4.0 <2.6.0'
+  // ```
+  //
+  // In the package that has that pubspec, code like the following generates
+  // this diagnostic:
+  //
+  // ```dart
+  // const a = [1, 2];
+  // const b = [[!...a!]];
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If you don't need to support older versions of the SDK, then you can
+  // increase the SDK constraint to allow the syntax to be used:
+  //
+  // ```yaml
+  // environment:
+  //   sdk: '>=2.5.0 <2.6.0'
+  // ```
+  //
+  // If you need to support older versions of the SDK, then rewrite the code to
+  // not make use of those elements:
+  //
+  // ```dart
+  // const a = [1, 2];
+  // const b = [1, 2];
+  // ```
+  //
+  // If that's not possible, change the code so that the element is not in a
+  // [constant context](#constant-context).:
+  //
+  // ```dart
+  // const a = [1, 2];
+  // var b = [...a];
+  // ```
   static const HintCode SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT = const HintCode(
       'SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT',
-      "The for, if and spread elements weren't supported in constant "
-          "expressions until version 2.5.0, but this code is required to be "
-          "able to run on earlier versions.",
+      "The if and spread elements weren't supported in constant expressions "
+          "until version 2.5.0, but this code is required to be able to run on "
+          "earlier versions.",
       correction: "Try updating the SDK constraints.");
 
   /**
