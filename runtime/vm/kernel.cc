@@ -8,6 +8,7 @@
 #include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/frontend/constant_evaluator.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/longjump.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"  // For Parser::kParameter* constants.
@@ -134,8 +135,7 @@ class KernelTokenPositionCollector : public KernelReaderHelper {
       intptr_t data_program_offset,
       intptr_t initial_script_index,
       intptr_t record_for_script_id,
-      GrowableArray<intptr_t>* record_token_positions_into,
-      GrowableArray<intptr_t>* record_yield_positions_into)
+      GrowableArray<intptr_t>* record_token_positions_into)
       : KernelReaderHelper(zone,
                            translation_helper,
                            script,
@@ -143,13 +143,11 @@ class KernelTokenPositionCollector : public KernelReaderHelper {
                            data_program_offset),
         current_script_id_(initial_script_index),
         record_for_script_id_(record_for_script_id),
-        record_token_positions_into_(record_token_positions_into),
-        record_yield_positions_into_(record_yield_positions_into) {}
+        record_token_positions_into_(record_token_positions_into) {}
 
   void CollectTokenPositions(intptr_t kernel_offset);
 
   void RecordTokenPosition(TokenPosition position) override;
-  void RecordYieldPosition(TokenPosition position) override;
 
   void set_current_script_id(intptr_t id) override { current_script_id_ = id; }
 
@@ -157,7 +155,6 @@ class KernelTokenPositionCollector : public KernelReaderHelper {
   intptr_t current_script_id_;
   intptr_t record_for_script_id_;
   GrowableArray<intptr_t>* record_token_positions_into_;
-  GrowableArray<intptr_t>* record_yield_positions_into_;
 
   DISALLOW_COPY_AND_ASSIGN(KernelTokenPositionCollector);
 };
@@ -192,13 +189,6 @@ void KernelTokenPositionCollector::RecordTokenPosition(TokenPosition position) {
   if (record_for_script_id_ == current_script_id_ &&
       record_token_positions_into_ != NULL && position.IsReal()) {
     record_token_positions_into_->Add(position.value());
-  }
-}
-
-void KernelTokenPositionCollector::RecordYieldPosition(TokenPosition position) {
-  if (record_for_script_id_ == current_script_id_ &&
-      record_yield_positions_into_ != NULL && position.IsReal()) {
-    record_yield_positions_into_->Add(position.value());
   }
 }
 
@@ -246,8 +236,7 @@ static void CollectKernelDataTokenPositions(
     intptr_t data_kernel_offset,
     Zone* zone,
     TranslationHelper* helper,
-    GrowableArray<intptr_t>* token_positions,
-    GrowableArray<intptr_t>* yield_positions) {
+    GrowableArray<intptr_t>* token_positions) {
   if (kernel_data.IsNull()) {
     return;
   }
@@ -255,7 +244,7 @@ static void CollectKernelDataTokenPositions(
   KernelTokenPositionCollector token_position_collector(
       zone, helper, script, kernel_data, data_kernel_offset,
       entry_script.kernel_script_index(), script.kernel_script_index(),
-      token_positions, yield_positions);
+      token_positions);
 
   token_position_collector.CollectTokenPositions(kernel_offset);
 }
@@ -333,7 +322,6 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
   helper.InitFromScript(interesting_script);
 
   GrowableArray<intptr_t> token_positions(10);
-  GrowableArray<intptr_t> yield_positions(1);
 
   Isolate* isolate = thread->isolate();
   const GrowableObjectArray& libs =
@@ -396,7 +384,7 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
                   data, interesting_script, entry_script,
                   temp_field.kernel_offset(),
                   temp_field.KernelDataProgramOffset(), zone, &helper,
-                  &token_positions, &yield_positions);
+                  &token_positions);
             }
           }
           temp_array = klass.functions();
@@ -415,7 +403,7 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
                   data, interesting_script, entry_script,
                   temp_function.kernel_offset(),
                   temp_function.KernelDataProgramOffset(), zone, &helper,
-                  &token_positions, &yield_positions);
+                  &token_positions);
             }
           }
         } else {
@@ -432,10 +420,9 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
           if (entry_script.raw() != interesting_script.raw()) {
             continue;
           }
-          CollectKernelDataTokenPositions(data, interesting_script,
-                                          entry_script, class_offset,
-                                          library_kernel_offset, zone, &helper,
-                                          &token_positions, &yield_positions);
+          CollectKernelDataTokenPositions(
+              data, interesting_script, entry_script, class_offset,
+              library_kernel_offset, zone, &helper, &token_positions);
         }
       } else if (entry.IsFunction()) {
         temp_function ^= entry.raw();
@@ -452,7 +439,7 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
               data, interesting_script, entry_script,
               temp_function.kernel_offset(),
               temp_function.KernelDataProgramOffset(), zone, &helper,
-              &token_positions, &yield_positions);
+              &token_positions);
         }
       } else if (entry.IsField()) {
         const Field& field = Field::Cast(entry);
@@ -476,8 +463,7 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
           data = field.KernelData();
           CollectKernelDataTokenPositions(
               data, interesting_script, entry_script, field.kernel_offset(),
-              field.KernelDataProgramOffset(), zone, &helper, &token_positions,
-              &yield_positions);
+              field.KernelDataProgramOffset(), zone, &helper, &token_positions);
         }
       }
     }
@@ -487,10 +473,6 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
   Array& array_object = Array::Handle(zone);
   array_object = AsSortedDuplicateFreeArray(&token_positions);
   script.set_debug_positions(array_object);
-  array_object = AsSortedDuplicateFreeArray(&yield_positions);
-  // Note that yield positions in members declared in bytecode are not collected
-  // here, but on demand in the debugger.
-  script.set_yield_positions(array_object);
 }
 
 class MetadataEvaluator : public KernelReaderHelper {

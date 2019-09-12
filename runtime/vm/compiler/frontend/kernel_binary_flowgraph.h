@@ -21,9 +21,11 @@ namespace kernel {
 
 class StreamingFlowGraphBuilder : public KernelReaderHelper {
  public:
-  StreamingFlowGraphBuilder(FlowGraphBuilder* flow_graph_builder,
-                            const ExternalTypedData& data,
-                            intptr_t data_program_offset)
+  StreamingFlowGraphBuilder(
+      FlowGraphBuilder* flow_graph_builder,
+      const ExternalTypedData& data,
+      intptr_t data_program_offset,
+      GrowableObjectArray* record_yield_positions = nullptr)
       : KernelReaderHelper(
             flow_graph_builder->zone_,
             &flow_graph_builder->translation_helper_,
@@ -44,7 +46,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
         inferred_type_metadata_helper_(this),
         procedure_attributes_metadata_helper_(this),
         call_site_attributes_metadata_helper_(this, &type_translator_),
-        closure_owner_(Object::Handle(flow_graph_builder->zone_)) {}
+        closure_owner_(Object::Handle(flow_graph_builder->zone_)),
+        record_yield_positions_(record_yield_positions) {}
 
   virtual ~StreamingFlowGraphBuilder() {}
 
@@ -363,6 +366,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   ProcedureAttributesMetadataHelper procedure_attributes_metadata_helper_;
   CallSiteAttributesMetadataHelper call_site_attributes_metadata_helper_;
   Object& closure_owner_;
+  GrowableObjectArray* record_yield_positions_;
 
   friend class KernelLoader;
 

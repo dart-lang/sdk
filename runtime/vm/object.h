@@ -3879,6 +3879,8 @@ class Script : public Object {
 
   RawArray* yield_positions() const;
 
+  RawGrowableObjectArray* GetYieldPositions(const Function& function) const;
+
   RawLibrary* FindLibrary() const;
   RawString* GetLine(intptr_t line_number,
                      Heap::Space space = Heap::kNew) const;

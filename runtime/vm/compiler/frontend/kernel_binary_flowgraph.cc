@@ -4764,6 +4764,10 @@ Fragment StreamingFlowGraphBuilder::BuildYieldStatement() {
 
   ASSERT(flags == kNativeYieldFlags);  // Must have been desugared.
 
+  // Collect yield position
+  if (record_yield_positions_ != nullptr) {
+    record_yield_positions_->Add(Smi::Handle(Z, Smi::New(position.value())));
+  }
   // Setup yield/continue point:
   //
   //   ...

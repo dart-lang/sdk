@@ -1036,12 +1036,6 @@ class KernelReaderHelper {
     USE(id);
   }
 
-  virtual void RecordYieldPosition(TokenPosition position) {
-    // Do nothing by default.
-    // This is overridden in KernelTokenPositionCollector.
-    USE(position);
-  }
-
   virtual void RecordTokenPosition(TokenPosition position) {
     // Do nothing by default.
     // This is overridden in KernelTokenPositionCollector.

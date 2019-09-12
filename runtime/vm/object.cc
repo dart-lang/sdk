@@ -9503,14 +9503,26 @@ void Script::set_yield_positions(const Array& value) const {
 }
 
 RawArray* Script::yield_positions() const {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  Array& yields = Array::Handle(raw_ptr()->yield_positions_);
-  if (yields.IsNull() && kind() == RawScript::kKernelTag) {
-    // This is created lazily. Now we need it.
-    kernel::CollectTokenPositionsFor(*this);
-  }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   return raw_ptr()->yield_positions_;
+}
+
+RawGrowableObjectArray* Script::GetYieldPositions(
+    const Function& function) const {
+  if (!function.IsAsyncClosure() && !function.IsAsyncGenClosure())
+    return GrowableObjectArray::null();
+  ASSERT(!function.is_declared_in_bytecode());
+  Compiler::ComputeYieldPositions(function);
+  UnorderedHashMap<SmiTraits> function_map(raw_ptr()->yield_positions_);
+  const auto& key = Smi::Handle(Smi::New(function.token_pos().value()));
+  intptr_t entry = function_map.FindKey(key);
+  GrowableObjectArray& array = GrowableObjectArray::Handle();
+  if (entry < 0) {
+    array ^= GrowableObjectArray::null();
+  } else {
+    array ^= function_map.GetPayload(entry, 0);
+  }
+  function_map.Release();
+  return array.raw();
 }
 
 RawTypedData* Script::line_starts() const {

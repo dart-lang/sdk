@@ -2475,8 +2475,7 @@ void KernelReaderHelper::SkipStatement() {
       SkipStatement();  // read finalizer.
       return;
     case kYieldStatement: {
-      TokenPosition position = ReadPosition();  // read position.
-      RecordYieldPosition(position);
+      ReadPosition();    // read position.
       ReadByte();        // read flags.
       SkipExpression();  // read expression.
       return;

@@ -1060,41 +1060,18 @@ void ActivationFrame::ExtractTokenPositionFromAsyncClosure() {
 
   ASSERT(!IsInterpreted());
   ASSERT(script.kind() == RawScript::kKernelTag);
-  const Array& await_to_token_map =
-      Array::Handle(zone, script.yield_positions());
-  if (await_to_token_map.IsNull()) {
-    // No mapping.
-    return;
-  }
   const intptr_t await_jump_var = GetAwaitJumpVariable();
   if (await_jump_var < 0) {
     return;
   }
   intptr_t await_to_token_map_index = await_jump_var - 1;
-  // yield_positions returns all yield positions for the script (in sorted
-  // order).
-  // We thus need to offset the function start to get the actual index.
-  if (!function_.token_pos().IsReal()) {
-    return;
-  }
-  const intptr_t function_start = function_.token_pos().value();
-  for (intptr_t i = 0;
-       i < await_to_token_map.Length() &&
-       Smi::Value(reinterpret_cast<RawSmi*>(await_to_token_map.At(i))) <
-           function_start;
-       i++) {
-    await_to_token_map_index++;
-  }
-
-  if (await_to_token_map_index >= await_to_token_map.Length()) {
-    return;
-  }
-
+  const auto& array =
+      GrowableObjectArray::Handle(zone, script.GetYieldPositions(function_));
+  // await_jump_var is non zero means that array should not be empty
+  // index also fall into the correct range
+  ASSERT(array.Length() > 0 && await_to_token_map_index < array.Length());
   const Object& token_pos =
-      Object::Handle(await_to_token_map.At(await_to_token_map_index));
-  if (token_pos.IsNull()) {
-    return;
-  }
+      Object::Handle(zone, array.At(await_to_token_map_index));
   ASSERT(token_pos.IsSmi());
   token_pos_ = TokenPosition(Smi::Cast(token_pos).Value());
   token_pos_initialized_ = true;
@@ -4406,12 +4383,16 @@ bool Debugger::IsAtAsyncJump(ActivationFrame* top_frame) {
     ASSERT(!top_frame->IsInterpreted());
     const Script& script = Script::Handle(zone, top_frame->SourceScript());
     ASSERT(script.kind() == RawScript::kKernelTag);
-    // Are we at a yield point (previous await)?
-    const Array& yields = Array::Handle(script.yield_positions());
+    const auto& yield_positions = GrowableObjectArray::Handle(
+        zone, script.GetYieldPositions(top_frame->function()));
+    // No yield statements
+    if (yield_positions.IsNull() || (yield_positions.Length() == 0)) {
+      return false;
+    }
     intptr_t looking_for = top_frame->TokenPos().value();
     Smi& value = Smi::Handle(zone);
-    for (int i = 0; i < yields.Length(); i++) {
-      value ^= yields.At(i);
+    for (int i = 0; i < yield_positions.Length(); i++) {
+      value ^= yield_positions.At(i);
       if (value.Value() == looking_for) {
         return true;
       }
