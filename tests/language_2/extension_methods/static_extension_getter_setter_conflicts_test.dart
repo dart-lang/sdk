@@ -50,8 +50,7 @@ void test0() {
 
 // Conflicting extensions.
 
-class C1<T> {
-}
+class C1<T> {}
 
 extension E1A<T> on C1<T> {
   int get m1 => 0;
@@ -79,7 +78,7 @@ void test1() {
 
   c1a.m2 = 0;
 
-  C1<Object> c1b = C1<Null>();  // Neither extension is more specific.
+  C1<Object> c1b = C1<Null>(); // Neither extension is more specific.
 
   c1b.m1;
   //  ^^

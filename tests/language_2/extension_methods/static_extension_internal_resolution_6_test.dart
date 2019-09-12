@@ -37,7 +37,6 @@ extension GenericExtension<T> on T {
   }
 }
 
-
 const bool extensionValue = true;
 
 void checkExtensionValue(bool x) {
@@ -51,6 +50,7 @@ extension StaticExt on AGlobal {
   static set setterInInstanceScope(bool x) {
     checkExtensionValue(x);
   }
+
   static bool methodInInstanceScope() => extensionValue;
 
   // Add the global symbols
@@ -59,6 +59,7 @@ extension StaticExt on AGlobal {
   static set setterInGlobalScope(bool x) {
     checkExtensionValue(x);
   }
+
   static bool methodInGlobalScope() => extensionValue;
 
   void testNakedIdentifiers() {
@@ -86,6 +87,7 @@ extension StaticExt on AGlobal {
       checkExtensionValue(t2);
     }
   }
+
   void instanceTest() {
     StaticExt(this).testNakedIdentifiers();
   }

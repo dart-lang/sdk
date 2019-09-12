@@ -19,5 +19,6 @@ class A {
   set setterInInstanceScope(String x) {
     checkInstanceValue(x);
   }
+
   String methodInInstanceScope() => instanceValue;
 }

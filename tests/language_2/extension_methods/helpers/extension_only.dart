@@ -20,6 +20,6 @@ extension ExtraExt on A {
   set setterInOtherExtensionScope(double x) {
     checkOtherExtensionValue(x);
   }
-  double methodInOtherExtensionScope() => otherExtensionValue;
 
+  double methodInOtherExtensionScope() => otherExtensionValue;
 }

@@ -26,7 +26,6 @@ class Rec<T extends Rec<T>> {}
 
 class RecSolution extends Rec<RecSolution> {}
 
-
 void main() {
   String s = "s";
   int i = 0;
