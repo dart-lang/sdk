@@ -1862,8 +1862,7 @@ class IndirectEntryInstr : public JoinEntryInstr {
 
 class CatchBlockEntryInstr : public BlockEntryWithInitialDefs {
  public:
-  CatchBlockEntryInstr(TokenPosition handler_token_pos,
-                       bool is_generated,
+  CatchBlockEntryInstr(bool is_generated,
                        intptr_t block_id,
                        intptr_t try_index,
                        GraphEntryInstr* graph_entry,
@@ -1885,7 +1884,6 @@ class CatchBlockEntryInstr : public BlockEntryWithInitialDefs {
         raw_exception_var_(raw_exception_var),
         raw_stacktrace_var_(raw_stacktrace_var),
         needs_stacktrace_(needs_stacktrace),
-        handler_token_pos_(handler_token_pos),
         is_generated_(is_generated) {}
 
   DECLARE_INSTRUCTION(CatchBlockEntry)
@@ -1911,7 +1909,6 @@ class CatchBlockEntryInstr : public BlockEntryWithInitialDefs {
   bool needs_stacktrace() const { return needs_stacktrace_; }
 
   bool is_generated() const { return is_generated_; }
-  TokenPosition handler_token_pos() const { return handler_token_pos_; }
 
   // Returns try index for the try block to which this catch handler
   // corresponds.
@@ -1938,7 +1935,6 @@ class CatchBlockEntryInstr : public BlockEntryWithInitialDefs {
   const LocalVariable* raw_exception_var_;
   const LocalVariable* raw_stacktrace_var_;
   const bool needs_stacktrace_;
-  TokenPosition handler_token_pos_;
   bool is_generated_;
 
   DISALLOW_COPY_AND_ASSIGN(CatchBlockEntryInstr);

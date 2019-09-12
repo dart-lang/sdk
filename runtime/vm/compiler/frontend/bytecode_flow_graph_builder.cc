@@ -1969,10 +1969,10 @@ void BytecodeFlowGraphBuilder::CollectControlFlow(
         Array::ZoneHandle(Z, handlers.GetHandledTypes(try_index));
 
     CatchBlockEntryInstr* entry = new (Z) CatchBlockEntryInstr(
-        TokenPosition::kNoSource, handler_info.is_generated != 0,
-        B->AllocateBlockId(), handler_info.outer_try_index, graph_entry,
-        handler_types, try_index, handler_info.needs_stacktrace != 0,
-        B->GetNextDeoptId(), nullptr, nullptr, exception_var_, stacktrace_var_);
+        handler_info.is_generated != 0, B->AllocateBlockId(),
+        handler_info.outer_try_index, graph_entry, handler_types, try_index,
+        handler_info.needs_stacktrace != 0, B->GetNextDeoptId(), nullptr,
+        nullptr, exception_var_, stacktrace_var_);
     graph_entry->AddCatchEntry(entry);
 
     code_ = Fragment(entry);

@@ -5170,7 +5170,6 @@ class ExceptionHandlers : public Object {
                       uword handler_pc_offset,
                       bool needs_stacktrace,
                       bool has_catch_all,
-                      TokenPosition token_pos,
                       bool is_generated) const;
 
   RawArray* GetHandledTypes(intptr_t try_index) const;

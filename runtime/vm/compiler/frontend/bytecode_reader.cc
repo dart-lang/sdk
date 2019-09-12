@@ -990,9 +990,8 @@ void BytecodeReaderHelper::ReadExceptionsTable(const Bytecode& bytecode,
       // than a raw pointer. Do not share the handle across iterations to avoid
       // clobbering the array.
       exception_handlers_list->AddHandler(
-          try_index, outer_try_index, handler_pc, TokenPosition::kNoSource,
-          is_generated, Array::ZoneHandle(Z, handler_types.raw()),
-          needs_stacktrace);
+          try_index, outer_try_index, handler_pc, is_generated,
+          Array::ZoneHandle(Z, handler_types.raw()), needs_stacktrace);
     }
     const PcDescriptors& descriptors = PcDescriptors::Handle(
         Z, pc_descriptors_list->FinalizePcDescriptors(bytecode.PayloadStart()));

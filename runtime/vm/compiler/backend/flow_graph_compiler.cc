@@ -715,12 +715,11 @@ void FlowGraphCompiler::GenerateDeferredCode() {
 void FlowGraphCompiler::AddExceptionHandler(intptr_t try_index,
                                             intptr_t outer_try_index,
                                             intptr_t pc_offset,
-                                            TokenPosition token_pos,
                                             bool is_generated,
                                             const Array& handler_types,
                                             bool needs_stacktrace) {
   exception_handlers_list_->AddHandler(try_index, outer_try_index, pc_offset,
-                                       token_pos, is_generated, handler_types,
+                                       is_generated, handler_types,
                                        needs_stacktrace);
 }
 

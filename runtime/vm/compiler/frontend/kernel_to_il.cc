@@ -228,7 +228,6 @@ Fragment FlowGraphBuilder::CatchBlockEntry(const Array& handler_types,
   LocalVariable* raw_stacktrace_var = CurrentRawStackTrace();
 
   CatchBlockEntryInstr* entry = new (Z) CatchBlockEntryInstr(
-      TokenPosition::kNoSource,  // Token position of catch block.
       is_synthesized,  // whether catch block was synthesized by FE compiler
       AllocateBlockId(), CurrentTryIndex(), graph_entry_, handler_types,
       handler_index, needs_stacktrace, GetNextDeoptId(), exception_var,

@@ -13019,7 +13019,6 @@ void ExceptionHandlers::SetHandlerInfo(intptr_t try_index,
                                        uword handler_pc_offset,
                                        bool needs_stacktrace,
                                        bool has_catch_all,
-                                       TokenPosition token_pos,
                                        bool is_generated) const {
   ASSERT((try_index >= 0) && (try_index < num_entries()));
   NoSafepointScope no_safepoint;
