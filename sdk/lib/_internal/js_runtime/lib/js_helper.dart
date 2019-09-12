@@ -366,7 +366,7 @@ class JSInvocationMirror implements Invocation {
         list.add(createRuntimeType(_arguments[start + index]));
       }
     }
-    return list;
+    return JSArray.markUnmodifiableList(list);
   }
 
   List get positionalArguments {
