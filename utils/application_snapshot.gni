@@ -74,11 +74,64 @@ template("_application_snapshot") {
   if (defined(invoker.output)) {
     output = invoker.output
   }
+
+  # Build the kernel file using the prebuilt VM to speed up the debug and
+  # simulator builds.
+  prebuilt_dart_action(target_name + "_dill") {
+    deps = extra_deps + [
+             "../../runtime/vm:kernel_platform_files($dart_host_toolchain)",
+             "../../runtime/vm:vm_platform",
+           ]
+    gen_kernel_script = "../../pkg/vm/bin/gen_kernel.dart"
+    platform_dill = "$root_out_dir/vm_platform_strong.dill"
+
+    inputs = extra_inputs + [
+               gen_kernel_script,
+               platform_dill,
+               main_dart,
+               dot_packages,
+             ]
+    output = "$root_gen_dir/$name.dart.dill"
+    outputs = [
+      output,
+    ]
+
+    depfile = "$output.d"
+    abs_depfile = rebase_path(depfile)
+    rebased_output = rebase_path(output, root_build_dir)
+    vm_args = [
+      "--depfile=$abs_depfile",
+      "--depfile_output_filename=$rebased_output",
+    ]
+
+    script = gen_kernel_script
+
+    args = [
+      "--packages=" + rebase_path(dot_packages),
+      "--platform=" + rebase_path(platform_dill),
+      "--no-aot",
+      "--no-embed-sources",
+      "--no-link-platform",
+      "--output=" + rebase_path(output),
+    ]
+    # TODO(bytecode): Remove special case for the kernel service once
+    # interpreter-compiled transitions no longer cause stack overflows in
+    # the language_2/deep_nesting* tests.
+    if (dart_platform_bytecode && (name != "kernel-service_snapshot")) {
+      args += [
+        "--gen-bytecode",
+        "--drop-ast",
+        "--bytecode-options=source-positions",
+      ]
+    }
+    args += [ rebase_path(main_dart) ]
+  }
+
   dart_action(target_name) {
-    deps = extra_deps
+    deps = extra_deps + [ ":${target_name}_dill" ]
     depfile = "$output.d"
 
-    script = main_dart
+    script = "$root_gen_dir/$name.dart.dill"
 
     inputs = extra_inputs
 
@@ -90,16 +143,14 @@ template("_application_snapshot") {
     abs_output = rebase_path(output, root_build_dir)
 
     vm_args = [
-      "--deterministic",
-      "--packages=$dot_packages",
-      "--snapshot=$abs_output",
-      "--snapshot-depfile=$abs_depfile",
-    ] + snapshot_vm_args
+                "--deterministic",
+                "--packages=$dot_packages",
+                "--snapshot=$abs_output",
+                "--snapshot-depfile=$abs_depfile",
+              ] + snapshot_vm_args
 
     if (dart_snapshot_kind == "kernel") {
-      vm_args += [
-        "--snapshot-kind=kernel",
-      ]
+      vm_args += [ "--snapshot-kind=kernel" ]
       assert(training_args != "", "Ignoring unused argument")
       args = []
     } else if (dart_snapshot_kind == "app-jit") {
@@ -141,9 +192,7 @@ template("application_snapshot") {
     if (!defined(invoker.deps)) {
       deps = []
     }
-    deps += [
-      "$_dart_root/utils/kernel-service:kernel-service"
-    ]
+    deps += [ "$_dart_root/utils/kernel-service:kernel-service" ]
   }
 }
 

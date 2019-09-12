@@ -10,7 +10,6 @@ import("../application_snapshot.gni")
 group("kernel-service") {
   if (create_kernel_service_snapshot) {
     deps = [
-      # TODO(rmacnak): Link this into 'dart'.
       ":copy_kernel-service_snapshot",
     ]
   } else {
@@ -20,13 +19,8 @@ group("kernel-service") {
   }
 }
 
-# TODO: Switch this to use kernel based app-jit snapshot
-# when we are ready to switch to the kernel based core snapshots.
 kernel_application_snapshot("kernel-service_snapshot") {
-  main_dart = "$root_gen_dir/kernel_service.dill"
-  deps = [
-    ":kernel_service_dill",
-  ]
+  main_dart = "../../pkg/vm/bin/kernel_service.dart"
   training_args = [
     "--train",
     "file:///" + rebase_path("../../pkg/compiler/lib/src/dart2js.dart"),
