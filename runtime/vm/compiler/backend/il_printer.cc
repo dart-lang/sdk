@@ -1147,16 +1147,13 @@ void ParallelMoveInstr::PrintTo(BufferFormatter* f) const {
 
 void Environment::PrintTo(BufferFormatter* f) const {
   f->Print(" env={ ");
-  intptr_t arg_count = 0;
+  int arg_count = 0;
   for (intptr_t i = 0; i < values_.length(); ++i) {
-    auto const value = values_[i];
     if (i > 0) f->Print(", ");
-    if (auto const push = value->definition()->AsPushArgument()) {
-      f->Print("a%" Pd " (", arg_count++);
-      push->value()->PrintTo(f);
-      f->Print(")");
+    if (values_[i]->definition()->IsPushArgument()) {
+      f->Print("a%d", arg_count++);
     } else {
-      value->PrintTo(f);
+      values_[i]->PrintTo(f);
     }
     if ((locations_ != NULL) && !locations_[i].IsInvalid()) {
       f->Print(" [");

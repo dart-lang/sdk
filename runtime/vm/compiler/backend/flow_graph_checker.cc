@@ -307,8 +307,6 @@ void FlowGraphChecker::VisitUseDef(Instruction* instruction,
     ASSERT(DefDominatesUse(def, instruction));
     ASSERT(IsInUseList(is_env ? def->env_use_list() : def->input_use_list(),
                        instruction));
-  } else if (def->IsPushArgument()) {
-    ASSERT(DefDominatesUse(def, instruction));
   }
 }
 

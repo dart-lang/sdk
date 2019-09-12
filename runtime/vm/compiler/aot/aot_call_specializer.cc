@@ -1058,37 +1058,6 @@ void AotCallSpecializer::VisitStaticCall(StaticCallInstr* instr) {
   CallSpecializer::VisitStaticCall(instr);
 }
 
-// Replaces any PushArguments for [call] appearing in [env] with the definition
-// of the PushArgument's value. If [idx] is given, then only PushArguments at
-// that index or later are replaced. If [env] is nullptr or [idx] is greater
-// than the number of arguments to [call], then this function is a no-op.
-static void ReplacePushesInEnvWithValueDefinition(Environment* env,
-                                                  InstanceCallInstr* call,
-                                                  intptr_t idx = 0) {
-  ASSERT(call != nullptr);
-  if (env == nullptr) return;
-  if (idx >= call->ArgumentCount()) return;
-  auto const first_push = call->PushArgumentAt(idx);
-  Environment::DeepIterator it(env);
-  // First, look in the iterator for [first_push].
-  for (; !it.Done(); it.Advance()) {
-    if (it.CurrentValue()->definition() == first_push) break;
-  }
-  if (it.Done()) return;
-  // If we found [first_push], then any other references to later push
-  // arguments should come immediately in the environment, so iterate
-  // and replace as described above. If we hit the end, a non-push argument or
-  // a push argument unrelated to the original call, then stop.
-  for (intptr_t i = idx; i < call->ArgumentCount(); i++) {
-    if (it.Done()) return;
-    auto const value = it.CurrentValue();
-    auto const push = value->definition()->AsPushArgument();
-    if (push != call->PushArgumentAt(i)) break;
-    value->BindToEnvironment(push->value()->definition());
-    it.Advance();
-  }
-}
-
 bool AotCallSpecializer::TryExpandCallThroughGetter(const Class& receiver_class,
                                                     InstanceCallInstr* call) {
   // If it's an accessor call it can't be a call through getter.
@@ -1157,75 +1126,25 @@ bool AotCallSpecializer::TryExpandCallThroughGetter(const Class& receiver_class,
       /*checked_argument_count=*/1,
       thread()->compiler_state().GetNextDeoptId());
 
-  // For any instructions with environments between the old receiver push and
-  // the original call, replace any appearances of the post-receiver
-  // PushArguments from the call in the environment with the underlying value.
-  // This will allow us to put the new PushArguments in different places than
-  // the old ones.
-  for (auto inst = call->PushArgumentAt(receiver_idx)->next(); inst != call;
-       inst = inst->next()) {
-    ASSERT(inst != nullptr);
-    ReplacePushesInEnvWithValueDefinition(inst->env(), call, receiver_idx + 1);
+  // Insert all new instructions, except .call() invocation into the
+  // graph.
+  for (intptr_t i = 0; i < invoke_get->ArgumentCount(); i++) {
+    InsertBefore(call, invoke_get->PushArgumentAt(i), NULL, FlowGraph::kEffect);
   }
-
-  // Insert all the new instructions into the graph.
-
-  // First, insert the [invoke_get] instruction, then directly replace the old
-  // TypeArguments push (if any) as well as the old receiver push with the
-  // receiver push for [invoke_get].
-  //
-  // We must insert [invoke_get] right before the old call because local
-  // variables may have been redefined during the evaluation of the arguments to
-  // the old call. If they were, then there may be references to the results of
-  // those evaluations in the environment.
   InsertBefore(call, invoke_get, call->env(), FlowGraph::kValue);
-  ReplacePushesInEnvWithValueDefinition(invoke_get->env(), call,
-                                        receiver_idx + 1);
-  if (receiver_idx > 0) {
-    call->PushArgumentAt(0)->ReplaceWith(invoke_call->PushArgumentAt(0),
-                                         /*iterator=*/nullptr);
-  }
-  call->PushArgumentAt(receiver_idx)
-      ->ReplaceWith(invoke_get->PushArgumentAt(0), /*iterator=*/nullptr);
-
-  // For the instructions that will replace the original call, we'll also need
-  // to alter their environments. For [invoke_get], we just need to change
-  // pushes that we'll be replacing later, and we do that now after copying
-  // the original call's environment as part of the InsertBefore.
-  ReplacePushesInEnvWithValueDefinition(invoke_get->env(), call,
-                                        receiver_idx + 1);
-
-  // Next, replace the original call with the new .call(...) invocation.
-  // To update the environment for [invoke_call], just change reference to the
-  // receiver PushArgument. All other push arguments will be changed in the
-  // last step.
-  call->ReplaceWith(invoke_call, current_iterator());
-  for (Environment::DeepIterator it(invoke_call->env()); !it.Done();
-       it.Advance()) {
-    auto const val = it.CurrentValue();
-    if (auto const push = val->definition()->AsPushArgument()) {
-      if (push == call->PushArgumentAt(receiver_idx)) {
-        val->BindToEnvironment(invoke_call->PushArgumentAt(receiver_idx));
-        break;  // The push argument will only appear once in the environment.
-      }
-    }
-  }
-
-  // Finally, add all the other push arguments for [invoke_call] between
-  // [invoke_get] and [invoke_call]. For the non-receiver pushes, redirect uses
-  // of the old instruction to the new one (notably, in the environment for
-  // [invoke_call] copied from the original) and remove the old instruction.
-  // (The only other use for [invoke_call]'s receiver push, if any, is in its
-  // environment, which we already handled earlier.)
-  ASSERT(call->ArgumentCount() == invoke_call->ArgumentCount());
-  InsertBefore(invoke_call, invoke_call->PushArgumentAt(receiver_idx),
-               /*env=*/nullptr, FlowGraph::kEffect);
-  for (intptr_t i = receiver_idx + 1; i < call->ArgumentCount(); i++) {
-    InsertBefore(invoke_call, invoke_call->PushArgumentAt(i), /*env=*/nullptr,
+  for (intptr_t i = 0; i < invoke_call->ArgumentCount(); i++) {
+    InsertBefore(call, invoke_call->PushArgumentAt(i), NULL,
                  FlowGraph::kEffect);
+  }
+  // Replace original PushArguments in the graph (mainly env uses).
+  ASSERT(call->ArgumentCount() == invoke_call->ArgumentCount());
+  for (intptr_t i = 0; i < call->ArgumentCount(); i++) {
     call->PushArgumentAt(i)->ReplaceUsesWith(invoke_call->PushArgumentAt(i));
     call->PushArgumentAt(i)->RemoveFromGraph();
   }
+
+  // Replace original call with .call(...) invocation.
+  call->ReplaceWith(invoke_call, current_iterator());
 
   // AOT compiler expects all calls to have an ICData.
   EnsureICData(Z, flow_graph()->function(), invoke_get);
