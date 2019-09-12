@@ -324,6 +324,22 @@ class IndexExpressionTest extends EngineTestCase {
     AstTestFactory.prefixExpression(TokenType.PLUS_PLUS, expression);
     expect(expression.inSetterContext(), isTrue);
   }
+
+  void test_isNullAware_regularIndex() {
+    final expression = AstTestFactory.indexExpression(
+        AstTestFactory.nullLiteral(),
+        AstTestFactory.nullLiteral(),
+        TokenType.OPEN_SQUARE_BRACKET);
+    expect(expression.isNullAware, isFalse);
+  }
+
+  void test_isNullAware_true() {
+    final expression = AstTestFactory.indexExpression(
+        AstTestFactory.nullLiteral(),
+        AstTestFactory.nullLiteral(),
+        TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET);
+    expect(expression.isNullAware, isTrue);
+  }
 }
 
 @reflectiveTest

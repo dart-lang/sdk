@@ -5991,6 +5991,10 @@ class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
   bool get isCascaded => period != null;
 
   @override
+  bool get isNullAware =>
+      leftBracket.type == TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET;
+
+  @override
   Precedence get precedence => Precedence.postfix;
 
   @deprecated

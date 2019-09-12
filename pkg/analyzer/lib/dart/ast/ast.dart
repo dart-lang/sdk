@@ -3303,6 +3303,9 @@ abstract class IndexExpression
   /// ancestor that is a [CascadeExpression].
   bool get isCascaded;
 
+  /// Whether this index expression is null aware (as opposed to non-null).
+  bool get isNullAware;
+
   /// Return the left square bracket.
   Token get leftBracket;
 

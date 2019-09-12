@@ -2182,9 +2182,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       return _hasNullShorting(node.leftHandSide);
     }
     if (node is IndexExpression) {
-      return node.leftBracket.type ==
-              TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET ||
-          _hasNullShorting(node.target);
+      return node.isNullAware || _hasNullShorting(node.target);
     }
     if (node is PropertyAccess) {
       return node.isNullAware || _hasNullShorting(node.target);
