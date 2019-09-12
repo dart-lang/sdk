@@ -30,8 +30,12 @@ const char* SExpression::ToCString(Zone* zone) const {
 }
 
 bool SExpBool::Equals(SExpression* sexp) const {
-  if (!sexp->IsBool()) return false;
-  return this->value() == sexp->AsBool()->value();
+  if (auto const b = sexp->AsBool()) return b->Equals(value());
+  return false;
+}
+
+bool SExpBool::Equals(bool val) const {
+  return value() == val;
 }
 
 void SExpBool::SerializeToLine(TextBuffer* buffer) const {
@@ -40,8 +44,12 @@ void SExpBool::SerializeToLine(TextBuffer* buffer) const {
 }
 
 bool SExpDouble::Equals(SExpression* sexp) const {
-  if (!sexp->IsDouble()) return false;
-  return this->value() == sexp->AsDouble()->value();
+  if (auto const d = sexp->AsDouble()) return d->Equals(value());
+  return false;
+}
+
+bool SExpDouble::Equals(double val) const {
+  return value() == val;
 }
 
 void SExpDouble::SerializeToLine(TextBuffer* buffer) const {
@@ -53,8 +61,12 @@ void SExpDouble::SerializeToLine(TextBuffer* buffer) const {
 }
 
 bool SExpInteger::Equals(SExpression* sexp) const {
-  if (!sexp->IsInteger()) return false;
-  return this->value() == sexp->AsInteger()->value();
+  if (auto const i = sexp->AsInteger()) return i->Equals(value());
+  return false;
+}
+
+bool SExpInteger::Equals(int64_t val) const {
+  return value() == val;
 }
 
 void SExpInteger::SerializeToLine(TextBuffer* buffer) const {
@@ -62,8 +74,12 @@ void SExpInteger::SerializeToLine(TextBuffer* buffer) const {
 }
 
 bool SExpString::Equals(SExpression* sexp) const {
-  if (!sexp->IsString()) return false;
-  return strcmp(this->value(), sexp->AsString()->value()) == 0;
+  if (auto const s = sexp->AsString()) return s->Equals(value());
+  return false;
+}
+
+bool SExpString::Equals(const char* str) const {
+  return strcmp(value(), str) == 0;
 }
 
 void SExpString::SerializeToLine(TextBuffer* buffer) const {
@@ -73,8 +89,12 @@ void SExpString::SerializeToLine(TextBuffer* buffer) const {
 }
 
 bool SExpSymbol::Equals(SExpression* sexp) const {
-  if (!sexp->IsSymbol()) return false;
-  return strcmp(this->value(), sexp->AsSymbol()->value()) == 0;
+  if (auto const s = sexp->AsSymbol()) return s->Equals(value());
+  return false;
+}
+
+bool SExpSymbol::Equals(const char* str) const {
+  return strcmp(value(), str) == 0;
 }
 
 void SExpSymbol::SerializeToLine(TextBuffer* buffer) const {

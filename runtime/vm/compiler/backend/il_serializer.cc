@@ -343,19 +343,55 @@ SExpression* FlowGraphSerializer::FieldToSExp(const Field& field) {
 
 SExpression* FlowGraphSerializer::AbstractTypeToSExp(const AbstractType& t) {
   if (t.IsNull()) return nullptr;
+  ASSERT(t.IsFinalized());
   auto sexp = new (zone()) SExpList(zone());
   if (t.IsTypeParameter()) {
     const auto& param = TypeParameter::Cast(t);
     AddSymbol(sexp, "TypeParameter");
     tmp_string_ = param.name();
     AddSymbol(sexp, tmp_string_.ToCString());
+    if (param.IsFunctionTypeParameter()) {
+      if (param.parameterized_function() != flow_graph_->function().raw()) {
+        type_function_ = param.parameterized_function();
+        sexp->AddExtra("function", CanonicalNameToSExp(type_function_));
+      } else if (FLAG_verbose_flow_graph_serialization) {
+        sexp->AddExtra("function",
+                       CanonicalNameToSExp(flow_graph_->function()));
+      }
+    } else if (param.IsClassTypeParameter()) {
+      if (param.parameterized_class() != flow_graph_->function().Owner()) {
+        type_class_ = param.parameterized_class();
+        AddExtraInteger(sexp, "class", type_class_.id());
+      } else if (FLAG_verbose_flow_graph_serialization) {
+        type_class_ = flow_graph_->function().Owner();
+        AddExtraInteger(sexp, "class", type_class_.id());
+      }
+    }
     return sexp;
   }
   if (t.IsTypeRef()) {
     const auto& ref = TypeRef::Cast(t);
     AddSymbol(sexp, "TypeRef");
     type_ref_type_ = ref.type();
-    AddExtraInteger(sexp, "hash", type_ref_type_.Hash());
+    auto const hash = type_ref_type_.Hash();
+    // Check to see if this is a TypeRef to a type we're currently serializing.
+    // If it is not, then we need to serialize the underlying type, as it
+    // otherwise won't be available when deserializing.
+    auto const open_type = open_recursive_types_.LookupValue(hash);
+    if (open_type == nullptr) {
+      // Allocate a new handle as we may re-enter the TypeRef branch.
+      auto& type = AbstractType::Handle(zone(), ref.type());
+      sexp->Add(AbstractTypeToSExp(type));
+      // If we serialized the referrent, then we don't need this information,
+      // but it may be useful for debugging so add it in verbose mode.
+      if (FLAG_verbose_flow_graph_serialization) {
+        AddExtraInteger(sexp, "hash", hash);
+      }
+    } else {
+      // Make sure we didn't have a hash collision.
+      ASSERT(open_type->Equals(type_ref_type_));
+      AddExtraInteger(sexp, "hash", hash);
+    }
     if (FLAG_verbose_flow_graph_serialization) {
       AddExtraString(sexp, "type", type_ref_type_.ToCString());
     }
@@ -364,15 +400,17 @@ SExpression* FlowGraphSerializer::AbstractTypeToSExp(const AbstractType& t) {
   ASSERT(t.IsType());
   AddSymbol(sexp, "Type");
   const auto& typ = Type::Cast(t);
-  ASSERT(typ.IsFinalized());
+  // We want to check for the type being recursive before we may serialize
+  // any sub-parts that include possible TypeRefs to this type.
+  if (typ.IsRecursive()) {
+    AddExtraInteger(sexp, "hash", typ.Hash());
+    open_recursive_types_.Insert(typ.Hash(), &typ);
+  }
   if (typ.HasTypeClass()) {
     type_class_ = typ.type_class();
     // This avoids re-entry as long as serializing a class doesn't involve
     // serializing concrete (non-parameter, non-reference) types.
     sexp->Add(DartValueToSExp(type_class_));
-    if (typ.IsRecursive()) {
-      AddExtraInteger(sexp, "hash", typ.Hash());
-    }
     // Since type arguments may themselves be instantiations of generic
     // classes, we may call back into this function in the middle of printing
     // the TypeArguments and so we must allocate a fresh handle here.
@@ -385,6 +423,9 @@ SExpression* FlowGraphSerializer::AbstractTypeToSExp(const AbstractType& t) {
     // just printing out this version.
     AddString(sexp, typ.ToCString());
   }
+  // If we were parsing a recursive type, we're now done building it, so
+  // remove it from the open recursive types.
+  if (typ.IsRecursive()) open_recursive_types_.Remove(typ.Hash());
   return sexp;
 }
 
@@ -421,6 +462,9 @@ SExpression* FlowGraphSerializer::TypeArgumentsToSExp(const TypeArguments& ta) {
   for (intptr_t i = 0; i < ta.Length(); i++) {
     type_arguments_elem_ = ta.TypeAt(i);
     sexp->Add(DartValueToSExp(type_arguments_elem_));
+  }
+  if (FLAG_verbose_flow_graph_serialization && ta.IsRecursive()) {
+    AddExtraInteger(sexp, "hash", ta.Hash());
   }
   return sexp;
 }
@@ -890,6 +934,54 @@ void DebugStepCheckInstr::AddExtraInfoToSExpression(
   }
 }
 
+SExpression* FlowGraphSerializer::ICDataToSExp(const ICData* ic_data) {
+  auto const sexp = new (zone()) SExpList(zone());
+  AddSymbol(sexp, "ICData");
+
+  if (ic_data->is_tracking_exactness()) {
+    ic_data_type_ = ic_data->receivers_static_type();
+    sexp->AddExtra("receivers_static_type", AbstractTypeToSExp(ic_data_type_));
+  }
+
+  if (ic_data->is_megamorphic() || FLAG_verbose_flow_graph_serialization) {
+    AddExtraBool(sexp, "is_megamorphic", ic_data->is_megamorphic());
+  }
+
+  auto const num_checks = ic_data->NumberOfChecks();
+  GrowableArray<intptr_t> class_ids(zone(), 2);
+  for (intptr_t i = 0; i < num_checks; i++) {
+    auto const entry = new (zone()) SExpList(zone());
+
+    auto const count = ic_data->GetCountAt(i);
+    if (count > 0 || FLAG_verbose_flow_graph_serialization) {
+      AddExtraInteger(entry, "count", count);
+    }
+
+    class_ids.Clear();
+    ic_data->GetCheckAt(i, &class_ids, &ic_data_target_);
+    entry->AddExtra("target", DartValueToSExp(ic_data_target_));
+    for (auto const cid : class_ids) {
+      entry->Add(new (zone()) SExpInteger(cid));
+    }
+
+    sexp->Add(entry);
+  }
+
+  if (FLAG_verbose_flow_graph_serialization) {
+    AddExtraSymbol(sexp, "rebind_rule",
+                   ICData::RebindRuleToCString(ic_data->rebind_rule()));
+    tmp_string_ = ic_data->target_name();
+    AddExtraString(sexp, "target_name", tmp_string_.ToCString());
+    ic_data_target_ = ic_data->Owner();
+    sexp->AddExtra("owner", DartValueToSExp(ic_data_target_));
+    AddExtraInteger(sexp, "num_args_tested", ic_data->NumArgsTested());
+    auto& args_desc = Array::Handle(zone(), ic_data->arguments_descriptor());
+    sexp->AddExtra("arguments_descriptor", DartValueToSExp(args_desc));
+  }
+
+  return sexp;
+}
+
 void TailCallInstr::AddOperandsToSExpression(SExpList* sexp,
                                              FlowGraphSerializer* s) const {
   if (auto const code = s->DartValueToSExp(code_)) {
@@ -914,9 +1006,7 @@ void TemplateDartCall<kInputCount>::AddExtraInfoToSExpression(
     s->AddExtraInteger(sexp, "type_args_len", type_args_len());
   }
   s->AddExtraInteger(sexp, "args_len", ArgumentCountWithoutTypeArgs());
-  if (this->CallCount() > 0 || FLAG_verbose_flow_graph_serialization) {
-    s->AddExtraInteger(sexp, "call_count", this->CallCount());
-  }
+
   const auto& arg_names = argument_names();
   if (!arg_names.IsNull()) {
     auto arg_names_sexp = new (s->zone()) SExpList(s->zone());
@@ -947,7 +1037,13 @@ void StaticCallInstr::AddExtraInfoToSExpression(SExpList* sexp,
                                                 FlowGraphSerializer* s) const {
   TemplateDartCall<0>::AddExtraInfoToSExpression(sexp, s);
 
-  if (rebind_rule_ != ICData::kInstance ||
+  if (HasICData()) {
+    sexp->AddExtra("ic_data", s->ICDataToSExp(ic_data()));
+  } else if (CallCount() > 0 || FLAG_verbose_flow_graph_serialization) {
+    s->AddExtraInteger(sexp, "call_count", CallCount());
+  }
+
+  if (rebind_rule_ != ICData::kStatic ||
       FLAG_verbose_flow_graph_serialization) {
     auto const str = ICData::RebindRuleToCString(rebind_rule_);
     ASSERT(str != nullptr);
@@ -959,6 +1055,34 @@ void InstanceCallInstr::AddOperandsToSExpression(SExpList* sexp,
                                                  FlowGraphSerializer* s) const {
   if (auto const target = s->DartValueToSExp(interface_target())) {
     sexp->Add(target);
+  }
+}
+
+void InstanceCallInstr::AddExtraInfoToSExpression(
+    SExpList* sexp,
+    FlowGraphSerializer* s) const {
+  TemplateDartCall<0>::AddExtraInfoToSExpression(sexp, s);
+
+  if (HasICData()) {
+    sexp->AddExtra("ic_data", s->ICDataToSExp(ic_data()));
+  }
+
+  if (function_name().IsNull()) {
+    if (!interface_target().IsNull()) {
+      s->AddExtraSymbol(sexp, "function_name", "null");
+    }
+  } else {
+    if (interface_target().IsNull() ||
+        function_name().raw() != interface_target().name()) {
+      s->AddExtraString(sexp, "function_name", function_name().ToCString());
+    }
+  }
+
+  if (token_kind() != Token::kILLEGAL) {
+    s->AddExtraSymbol(sexp, "token_kind", Token::Str(token_kind()));
+  }
+  if (checked_argument_count() > 0 || FLAG_verbose_flow_graph_serialization) {
+    s->AddExtraInteger(sexp, "checked_arg_count", checked_argument_count());
   }
 }
 

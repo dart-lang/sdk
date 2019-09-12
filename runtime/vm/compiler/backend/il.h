@@ -3666,6 +3666,7 @@ class InstanceCallInstr : public TemplateDartCall<0> {
 
   PRINT_OPERANDS_TO_SUPPORT
   ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
+  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
   bool MatchesCoreName(const String& name);
 

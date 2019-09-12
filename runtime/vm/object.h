@@ -2017,6 +2017,8 @@ class ICData : public Object {
   }
 
  private:
+  friend class FlowGraphSerializer;  // For is_megamorphic()
+
   static RawICData* New();
 
   // Grows the array and also sets the argument to the index that should be used
