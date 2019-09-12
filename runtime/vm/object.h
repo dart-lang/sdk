@@ -2992,8 +2992,6 @@ class Function : public Object {
 
   RawFunction* GetDynamicInvocationForwarder(const String& mangled_name,
                                              bool allow_add = true) const;
-
-  RawFunction* GetTargetOfDynamicInvocationForwarder() const;
 #endif
 
   // Slow function, use in asserts to track changes in important library

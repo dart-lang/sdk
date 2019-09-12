@@ -2769,10 +2769,8 @@ void BytecodeReaderHelper::ParseBytecodeFunction(
                              Function::Handle(Z, function.parent_function()));
       return;
     case RawFunction::kDynamicInvocationForwarder:
-      ParseForwarderFunction(
-          parsed_function, function,
-          Function::Handle(Z,
-                           function.GetTargetOfDynamicInvocationForwarder()));
+      ParseForwarderFunction(parsed_function, function,
+                             Function::Handle(Z, function.ForwardingTarget()));
       return;
     case RawFunction::kImplicitGetter:
     case RawFunction::kImplicitSetter:

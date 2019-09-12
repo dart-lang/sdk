@@ -3173,16 +3173,6 @@ RawFunction* Function::GetDynamicInvocationForwarder(
   return result.raw();
 }
 
-RawFunction* Function::GetTargetOfDynamicInvocationForwarder() const {
-  ASSERT(IsDynamicInvocationForwarder());
-  auto& func_name = String::Handle(name());
-  func_name = DemangleDynamicInvocationForwarderName(func_name);
-  const auto& owner = Class::Handle(Owner());
-  RawFunction* target = owner.LookupDynamicFunction(func_name);
-  ASSERT(target != Function::null());
-  return target;
-}
-
 #endif
 
 bool AbstractType::InstantiateAndTestSubtype(
