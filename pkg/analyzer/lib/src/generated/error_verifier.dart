@@ -1106,7 +1106,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _typeArgumentsVerifier.checkMethodInvocation(node);
     _checkForNullableDereference(methodName);
     _requiredParametersVerifier.visitMethodInvocation(node);
-    if (node.operator?.type != TokenType.QUESTION_PERIOD &&
+    if (!node.isNullAware &&
         methodName.name != 'toString' &&
         methodName.name != 'noSuchMethod') {
       _checkForNullableDereference(target);

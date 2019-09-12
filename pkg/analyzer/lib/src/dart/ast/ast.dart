@@ -7185,6 +7185,9 @@ class MethodInvocationImpl extends InvocationExpressionImpl
           operator.type == TokenType.QUESTION_PERIOD_PERIOD);
 
   @override
+  bool get isNullAware => operator?.type == TokenType.QUESTION_PERIOD;
+
+  @override
   SimpleIdentifier get methodName => _methodName;
 
   @override

@@ -26,6 +26,7 @@ main() {
     defineReflectiveTests(FieldFormalParameterTest);
     defineReflectiveTests(IndexExpressionTest);
     defineReflectiveTests(MethodDeclarationTest);
+    defineReflectiveTests(MethodInvocationTest);
     defineReflectiveTests(NodeListTest);
     defineReflectiveTests(PreviousTokenTest);
     defineReflectiveTests(SimpleIdentifierTest);
@@ -359,6 +360,31 @@ class MethodDeclarationTest extends EngineTestCase {
         AstTestFactory.methodDeclaration4(operator: true, name: 'm');
     expect(declaration.firstTokenAfterCommentAndMetadata,
         declaration.operatorKeyword);
+  }
+}
+
+@reflectiveTest
+class MethodInvocationTest extends ParserTestCase {
+  void test_isNullAware_cascade() {
+    final invocation = AstTestFactory.methodInvocation3(
+        AstTestFactory.nullLiteral(), 'foo', null, [], TokenType.PERIOD_PERIOD);
+    expect(invocation.isNullAware, isFalse);
+  }
+
+  void test_isNullAware_regularInvocation() {
+    final invocation = AstTestFactory.methodInvocation3(
+        AstTestFactory.nullLiteral(), 'foo', null, [], TokenType.PERIOD);
+    expect(invocation.isNullAware, isFalse);
+  }
+
+  void test_isNullAware_true() {
+    final invocation = AstTestFactory.methodInvocation3(
+        AstTestFactory.nullLiteral(),
+        'foo',
+        null,
+        [],
+        TokenType.QUESTION_PERIOD);
+    expect(invocation.isNullAware, isTrue);
   }
 }
 

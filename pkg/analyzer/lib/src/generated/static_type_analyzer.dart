@@ -593,8 +593,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     _inferGenericInvocationExpression(node);
-    DartType staticType = _computeInvokeReturnType(node.staticInvokeType,
-        isNullableInvoke: false);
+    DartType staticType =
+        _computeInvokeReturnType(node.staticInvokeType, isNullAware: false);
     _recordStaticType(node, staticType);
   }
 
@@ -777,7 +777,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     if (!inferredStaticType) {
       DartType staticStaticType = _computeInvokeReturnType(
           node.staticInvokeType,
-          isNullableInvoke: node.operator?.type == TokenType.QUESTION_PERIOD);
+          isNullAware: node.isNullAware);
       _recordStaticType(node, staticStaticType);
     }
   }
@@ -1292,7 +1292,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    * type that is being invoked.
    */
   DartType /*!*/ _computeInvokeReturnType(DartType type,
-      {@required bool isNullableInvoke}) {
+      {@required bool isNullAware}) {
     TypeImpl /*!*/ returnType;
     if (type is InterfaceType) {
       MethodElement callMethod = type.lookUpMethod(
@@ -1304,7 +1304,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       returnType = _dynamicType;
     }
 
-    if (isNullableInvoke && _nonNullableEnabled) {
+    if (isNullAware && _nonNullableEnabled) {
       returnType = _typeSystem.makeNullable(returnType);
     }
 
@@ -1351,10 +1351,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       FunctionType propertyType = element.type;
       if (propertyType != null) {
         return _computeInvokeReturnType(propertyType.returnType,
-            isNullableInvoke: false);
+            isNullAware: false);
       }
     } else if (element is ExecutableElement) {
-      return _computeInvokeReturnType(element.type, isNullableInvoke: false);
+      return _computeInvokeReturnType(element.type, isNullAware: false);
     }
     return _dynamicType;
   }

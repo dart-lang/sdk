@@ -1158,7 +1158,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
     } else if (parent is PrefixedIdentifier) {
       return true;
     } else if (parent is MethodInvocation) {
-      return identical(parent.target, node);
+      return identical(parent.target, node) &&
+          parent.operator?.type == TokenType.PERIOD;
     }
     return false;
   }

@@ -598,9 +598,7 @@ class MethodInvocationResolver {
 
   void _resolveReceiverPrefix(MethodInvocation node, SimpleIdentifier receiver,
       PrefixElement prefix, SimpleIdentifier nameNode, String name) {
-    if (node.operator.type == TokenType.QUESTION_PERIOD) {
-      _reportPrefixIdentifierNotFollowedByDot(receiver);
-    }
+    // Note: prefix?.bar is reported as an error in ElementResolver.
 
     if (name == FunctionElement.LOAD_LIBRARY_NAME) {
       var imports = _definingLibrary.getImportsWithPrefix(prefix);

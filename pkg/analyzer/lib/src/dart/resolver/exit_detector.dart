@@ -419,7 +419,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
       if (target.accept(this)) {
         return true;
       }
-      if (node.operator.type == TokenType.QUESTION_PERIOD) {
+      if (node.isNullAware) {
         return false;
       }
     }

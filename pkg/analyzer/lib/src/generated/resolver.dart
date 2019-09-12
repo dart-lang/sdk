@@ -934,7 +934,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
     // CAN_BE_NULL_AFTER_NULL_AWARE
     if (parent is MethodInvocation &&
-        parent.operator.type != TokenType.QUESTION_PERIOD &&
+        !parent.isNullAware &&
         _nullType.lookUpMethod(parent.methodName.name, _currentLibrary) ==
             null) {
       _errorReporter.reportErrorForNode(
