@@ -29,6 +29,7 @@ main() {
     defineReflectiveTests(MethodInvocationTest);
     defineReflectiveTests(NodeListTest);
     defineReflectiveTests(PreviousTokenTest);
+    defineReflectiveTests(PropertyAccessTest);
     defineReflectiveTests(SimpleIdentifierTest);
     defineReflectiveTests(SimpleStringLiteralTest);
     defineReflectiveTests(SpreadElementTest);
@@ -734,6 +735,27 @@ E f() => g;
     ClassDeclaration clazz = unit.declarations[0];
     MethodDeclaration method = clazz.members[1];
     expect(method.findPrevious(findToken('D')).lexeme, '}');
+  }
+}
+
+@reflectiveTest
+class PropertyAccessTest extends ParserTestCase {
+  void test_isNullAware_cascade() {
+    final invocation = AstTestFactory.propertyAccess2(
+        AstTestFactory.nullLiteral(), 'foo', TokenType.PERIOD_PERIOD);
+    expect(invocation.isNullAware, isFalse);
+  }
+
+  void test_isNullAware_regularPropertyAccess() {
+    final invocation = AstTestFactory.propertyAccess2(
+        AstTestFactory.nullLiteral(), 'foo', TokenType.PERIOD);
+    expect(invocation.isNullAware, isFalse);
+  }
+
+  void test_isNullAware_true() {
+    final invocation = AstTestFactory.propertyAccess2(
+        AstTestFactory.nullLiteral(), 'foo', TokenType.QUESTION_PERIOD);
+    expect(invocation.isNullAware, isTrue);
   }
 }
 

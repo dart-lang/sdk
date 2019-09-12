@@ -942,7 +942,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       return;
     }
     if (parent is PropertyAccess &&
-        parent.operator.type != TokenType.QUESTION_PERIOD &&
+        !parent.isNullAware &&
         _nullType.lookUpGetter(parent.propertyName.name, _currentLibrary) ==
             null) {
       _errorReporter.reportErrorForNode(

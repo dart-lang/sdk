@@ -1219,7 +1219,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _checkForStaticAccessToInstanceMember(typeReference, propertyName);
     _checkForInstanceAccessToStaticMember(
         typeReference, node.target, propertyName);
-    if (node.operator?.type != TokenType.QUESTION_PERIOD &&
+    if (!node.isNullAware &&
         !_objectPropertyNames.contains(propertyName.name)) {
       _checkForNullableDereference(node.target);
     }

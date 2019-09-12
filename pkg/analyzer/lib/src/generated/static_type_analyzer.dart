@@ -2187,8 +2187,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
           _hasNullShorting(node.target);
     }
     if (node is PropertyAccess) {
-      return node.operator.type == TokenType.QUESTION_PERIOD ||
-          _hasNullShorting(node.target);
+      return node.isNullAware || _hasNullShorting(node.target);
     }
     return false;
   }

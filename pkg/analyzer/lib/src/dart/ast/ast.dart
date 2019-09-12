@@ -8447,6 +8447,10 @@ class PropertyAccessImpl extends ExpressionImpl implements PropertyAccess {
           operator.type == TokenType.QUESTION_PERIOD_PERIOD);
 
   @override
+  bool get isNullAware =>
+      operator != null && operator.type == TokenType.QUESTION_PERIOD;
+
+  @override
   Precedence get precedence => Precedence.postfix;
 
   @override

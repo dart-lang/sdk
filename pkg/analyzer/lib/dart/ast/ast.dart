@@ -4414,6 +4414,9 @@ abstract class PropertyAccess implements Expression {
   /// ancestor that is a [CascadeExpression].
   bool get isCascaded;
 
+  /// Whether this property access is null aware (as opposed to non-null).
+  bool get isNullAware;
+
   /// Return the property access operator.
   Token get operator;
 
