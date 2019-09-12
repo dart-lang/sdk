@@ -4,6 +4,7 @@
 library kernel.type_algebra;
 
 import 'ast.dart';
+import 'clone.dart';
 
 /// Returns a type where all occurrences of the given type parameters have been
 /// replaced with the corresponding types.
@@ -109,11 +110,25 @@ FreshTypeParameters getFreshTypeParameters(List<TypeParameter> typeParameters) {
   for (int i = 0; i < typeParameters.length; ++i) {
     map[typeParameters[i]] = new TypeParameterType(freshParameters[i]);
   }
+  CloneVisitor cloner;
   for (int i = 0; i < typeParameters.length; ++i) {
-    freshParameters[i].bound = substitute(typeParameters[i].bound, map);
-    freshParameters[i].defaultType = typeParameters[i].defaultType != null
-        ? substitute(typeParameters[i].defaultType, map)
+    TypeParameter typeParameter = typeParameters[i];
+    TypeParameter freshTypeParameter = freshParameters[i];
+
+    freshTypeParameter.bound = substitute(typeParameter.bound, map);
+    freshTypeParameter.defaultType = typeParameter.defaultType != null
+        ? substitute(typeParameter.defaultType, map)
         : null;
+    if (typeParameter.annotations.isNotEmpty) {
+      // Annotations can't refer to type parameters, so the cloner shouldn't
+      // perform the substitution.
+      // TODO(dmitryas): Consider rewriting getFreshTypeParameters using cloner
+      // for copying typeParameters as well.
+      cloner ??= new CloneVisitor();
+      for (Expression annotation in typeParameter.annotations) {
+        freshTypeParameter.addAnnotation(cloner.clone(annotation));
+      }
+    }
   }
   return new FreshTypeParameters(freshParameters, Substitution.fromMap(map));
 }

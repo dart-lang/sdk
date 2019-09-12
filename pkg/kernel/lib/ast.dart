@@ -2446,7 +2446,15 @@ class FunctionNode extends TreeNode {
     return new NamedType(node.name, node.type, isRequired: node.isRequired);
   }
 
-  FunctionType get functionType {
+  /// Returns the function type of the node reusing its type parameters.
+  ///
+  /// This getter works similarly to [functionType], but reuses type parameters
+  /// of the function node (or the class enclosing it -- see the comment on
+  /// [functionType] about constructors of generic classes) in the result.  It
+  /// is useful in some contexts, especially when reasoning about the function
+  /// type of the enclosing generic function and in combination with
+  /// [FunctionType.withoutTypeParameters].
+  FunctionType get thisFunctionType {
     TreeNode parent = this.parent;
     List<NamedType> named =
         namedParameters.map(_getNamedTypeOfVariable).toList(growable: false);
@@ -2462,6 +2470,21 @@ class FunctionNode extends TreeNode {
         namedParameters: named,
         typeParameters: typeParametersCopy,
         requiredParameterCount: requiredParameterCount);
+  }
+
+  /// Returns the function type of the function node.
+  ///
+  /// If the function node describes a generic function, the resulting function
+  /// type will be generic.  If the function node describes a constructor of a
+  /// generic class, the resulting function type will be generic with its type
+  /// parameters constructed after those of the class.  In both cases, if the
+  /// resulting function type is generic, a fresh set of type parameters is used
+  /// in it.
+  FunctionType get functionType {
+    return typeParameters.isEmpty
+        ? thisFunctionType
+        : getFreshTypeParameters(typeParameters)
+            .applyToFunctionType(thisFunctionType);
   }
 
   R accept<R>(TreeVisitor<R> v) => v.visitFunctionNode(this);

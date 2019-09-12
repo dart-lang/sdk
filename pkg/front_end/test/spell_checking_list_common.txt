@@ -914,6 +914,7 @@ escape
 escaped
 escapes
 escaping
+especially
 essence
 essentials
 etc
@@ -2146,6 +2147,7 @@ realized
 really
 reason
 reasonable
+reasoning
 reasons
 receive
 receiver
@@ -2306,6 +2308,7 @@ returns
 retype
 reuse
 reused
+reuses
 reusing
 reverse
 reversed

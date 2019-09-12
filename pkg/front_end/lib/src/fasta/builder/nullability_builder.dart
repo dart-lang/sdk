@@ -42,7 +42,7 @@ class NullabilityBuilder {
   /// it redirects to [NullabilityBuilder.legacy] as a conservative safety
   /// measure for the pre-NNBD code and as a visible reminder of the feature
   /// implementation being in progress in the NNBD code.
-  // TODO(dmitryas): Remove this constructor.
+  // TODO(38286): Remove this constructor.
   const NullabilityBuilder.pendingImplementation() : this.legacy();
 
   Nullability build(LibraryBuilder libraryBuilder, {Nullability ifOmitted}) {

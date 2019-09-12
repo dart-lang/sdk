@@ -1351,7 +1351,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       for (var ctor in allConstructors) {
         var memberName = _constructorName(ctor.name.name);
         var type = _emitAnnotatedFunctionType(
-            ctor.function.functionType.withoutTypeParameters, ctor);
+            ctor.function.thisFunctionType.withoutTypeParameters, ctor);
         constructors.add(js_ast.Property(memberName, type));
       }
       emitSignature('Constructor', constructors);
@@ -1392,7 +1392,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     FunctionType result;
     if (!f.positionalParameters.any(isCovariantParameter) &&
         !f.namedParameters.any(isCovariantParameter)) {
-      result = f.functionType;
+      result = f.thisFunctionType;
     } else {
       reifyParameter(VariableDeclaration p) =>
           isCovariantParameter(p) ? _coreTypes.objectClass.thisType : p.type;
@@ -1405,7 +1405,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           f.positionalParameters.map(reifyParameter).toList(), f.returnType,
           namedParameters: f.namedParameters.map(reifyNamedParameter).toList()
             ..sort(),
-          typeParameters: f.functionType.typeParameters,
+          typeParameters: f.thisFunctionType.typeParameters,
           requiredParameterCount: f.requiredParameterCount);
     }
     return _getTypeFromClass(result, member.enclosingClass, fromClass)
@@ -1846,7 +1846,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     assert(!member.isAccessor);
 
     var superMethodType =
-        substituteType(superMember.function.functionType) as FunctionType;
+        substituteType(superMember.function.thisFunctionType) as FunctionType;
     var function = member.function;
 
     var body = <js_ast.Statement>[];
@@ -2461,9 +2461,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // TODO(jmesserly): do we even need this for mirrors, since statics are not
     // commonly reflected on?
     if (_options.emitMetadata && _reifyFunctionType(p.function)) {
-      body.add(
-          _emitFunctionTagged(nameExpr, p.function.functionType, topLevel: true)
-              .toStatement());
+      body.add(_emitFunctionTagged(nameExpr, p.function.thisFunctionType,
+              topLevel: true)
+          .toStatement());
     }
 
     _currentUri = savedUri;
@@ -2916,14 +2916,14 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var gen = emitGeneratorFn((_) => []);
     // Return type of an async body is `Future<flatten(T)>`, where T is the
     // declared return type.
-    var returnType = _types.unfutureType(function.functionType.returnType);
+    var returnType = _types.unfutureType(function.thisFunctionType.returnType);
     return js.call('#.async(#, #)',
         [emitLibraryName(_coreTypes.asyncLibrary), _emitType(returnType), gen]);
   }
 
   /// Gets the expected return type of a `sync*` or `async*` body.
   DartType _getExpectedReturnType(FunctionNode f, Class expected) {
-    var type = f.functionType.returnType;
+    var type = f.thisFunctionType.returnType;
     if (type is InterfaceType) {
       var match = _hierarchy.getTypeAsInstanceOf(type, expected);
       if (match != null) return match.typeArguments[0];
@@ -3819,7 +3819,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (_reifyFunctionType(func)) {
       declareFn = js_ast.Block([
         declareFn,
-        _emitFunctionTagged(_emitVariableRef(node.variable), func.functionType)
+        _emitFunctionTagged(
+                _emitVariableRef(node.variable), func.thisFunctionType)
             .toStatement()
       ]);
     }
@@ -4006,7 +4007,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // TODO(jmesserly): we could tag static/top-level function types once
       // in the module initialization, rather than at the point where they
       // escape.
-      return _emitFunctionTagged(result, target.function.functionType);
+      return _emitFunctionTagged(result, target.function.thisFunctionType);
     }
     return result;
   }

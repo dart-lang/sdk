@@ -1619,7 +1619,7 @@ abstract class ClassBuilder extends DeclarationBuilder {
     // its enclosing class, because constructors cannot specify type parameters
     // of their own.
     FunctionType factoryType =
-        factory.procedure.function.functionType.withoutTypeParameters;
+        factory.procedure.function.thisFunctionType.withoutTypeParameters;
     FunctionType redirecteeType =
         computeRedirecteeType(factory, typeEnvironment);
 

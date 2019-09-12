@@ -196,7 +196,7 @@ class InferenceVisitor
     DartType inferredType = inferrer.inferInvocation(
         typeContext,
         node.fileOffset,
-        node.target.function.functionType,
+        node.target.function.thisFunctionType,
         computeConstructorReturnType(node.target),
         node.arguments,
         isConst: node.isConst);
@@ -262,7 +262,7 @@ class InferenceVisitor
     DartType inferredType = inferrer.inferInvocation(
         typeContext,
         node.fileOffset,
-        node.target.function.functionType,
+        node.target.function.thisFunctionType,
         computeConstructorReturnType(node.target),
         node.argumentJudgments,
         isConst: node.isConst);
@@ -506,7 +506,7 @@ class InferenceVisitor
         null,
         node.fileOffset,
         substitution.substituteType(
-            node.target.function.functionType.withoutTypeParameters),
+            node.target.function.thisFunctionType.withoutTypeParameters),
         inferrer.thisType,
         node.argumentsJudgment,
         skipTypeArgumentInference: true);
@@ -1751,7 +1751,7 @@ class InferenceVisitor
     inferrer.inferInvocation(
         null,
         node.fileOffset,
-        node.target.function.functionType,
+        node.target.function.thisFunctionType,
         node.target.enclosingClass.thisType,
         node.argumentJudgments,
         skipTypeArgumentInference: true);
@@ -1939,7 +1939,7 @@ class InferenceVisitor
         null,
         node.fileOffset,
         substitution.substituteType(
-            node.target.function.functionType.withoutTypeParameters),
+            node.target.function.thisFunctionType.withoutTypeParameters),
         inferrer.thisType,
         node.argumentJudgments,
         skipTypeArgumentInference: true);
@@ -2015,7 +2015,7 @@ class InferenceVisitor
     FunctionType calleeType;
     DartType returnType;
     if (node.constructor != null) {
-      calleeType = node.constructor.function.functionType;
+      calleeType = node.constructor.function.thisFunctionType;
       returnType = computeConstructorReturnType(node.constructor);
     } else {
       calleeType = new FunctionType([], const DynamicType());

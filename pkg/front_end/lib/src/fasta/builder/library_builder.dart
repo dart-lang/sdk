@@ -274,7 +274,7 @@ abstract class LibraryBuilder extends ModifierBuilder {
 
   List<FieldBuilder> takeImplicitlyTypedFields() => null;
 
-  // TODO(dmitryas): Compute the predicate using the library version instead.
+  // TODO(38287): Compute the predicate using the library version instead.
   bool get isNonNullableByDefault => loader.target.enableNonNullable;
 
   NullabilityBuilder computeNullabilityFromToken(bool markedAsNullable) {
