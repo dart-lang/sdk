@@ -44,6 +44,12 @@ class TypeProviderImpl extends TypeProviderBase {
   final LibraryElement _coreLibrary;
   final LibraryElement _asyncLibrary;
 
+  ClassElement _futureElement;
+  ClassElement _futureOrElement;
+  ClassElement _iterableElement;
+  ClassElement _mapElement;
+  ClassElement _streamElement;
+
   InterfaceType _boolType;
   InterfaceType _deprecatedType;
   InterfaceType _doubleType;
@@ -119,19 +125,39 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceType get futureDynamicType {
-    _futureDynamicType ??= futureType.instantiate(<DartType>[dynamicType]);
+    _futureDynamicType ??= InterfaceTypeImpl.explicit(
+      futureElement,
+      [dynamicType],
+      nullabilitySuffix: _nullabilitySuffix,
+    );
     return _futureDynamicType;
+  }
+
+  ClassElement get futureElement {
+    return _futureElement ??= _getClassElement(_asyncLibrary, 'Future');
   }
 
   @override
   InterfaceType get futureNullType {
-    _futureNullType ??= futureType.instantiate(<DartType>[nullType]);
+    _futureNullType ??= InterfaceTypeImpl.explicit(
+      futureElement,
+      [nullType],
+      nullabilitySuffix: _nullabilitySuffix,
+    );
     return _futureNullType;
+  }
+
+  ClassElement get futureOrElement {
+    return _futureOrElement ??= _getClassElement(_asyncLibrary, 'FutureOr');
   }
 
   @override
   InterfaceType get futureOrNullType {
-    _futureOrNullType ??= futureOrType.instantiate(<DartType>[nullType]);
+    _futureOrNullType ??= InterfaceTypeImpl.explicit(
+      futureOrElement,
+      [nullType],
+      nullabilitySuffix: _nullabilitySuffix,
+    );
     return _futureOrNullType;
   }
 
@@ -155,13 +181,25 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceType get iterableDynamicType {
-    _iterableDynamicType ??= iterableType.instantiate(<DartType>[dynamicType]);
+    _iterableDynamicType ??= InterfaceTypeImpl.explicit(
+      iterableElement,
+      [dynamicType],
+      nullabilitySuffix: _nullabilitySuffix,
+    );
     return _iterableDynamicType;
+  }
+
+  ClassElement get iterableElement {
+    return _iterableElement ??= _getClassElement(_coreLibrary, 'Iterable');
   }
 
   @override
   InterfaceType get iterableObjectType {
-    _iterableObjectType ??= iterableType.instantiate(<DartType>[objectType]);
+    _iterableObjectType ??= InterfaceTypeImpl.explicit(
+      iterableElement,
+      [objectType],
+      nullabilitySuffix: _nullabilitySuffix,
+    );
     return _iterableObjectType;
   }
 
@@ -177,10 +215,18 @@ class TypeProviderImpl extends TypeProviderBase {
     return _listType;
   }
 
+  ClassElement get mapElement {
+    return _mapElement ??= _getClassElement(_coreLibrary, 'Map');
+  }
+
   @override
   InterfaceType get mapObjectObjectType {
-    return _mapObjectObjectType ??=
-        mapType.instantiate(<DartType>[objectType, objectType]);
+    _mapObjectObjectType ??= InterfaceTypeImpl.explicit(
+      mapElement,
+      [objectType, objectType],
+      nullabilitySuffix: _nullabilitySuffix,
+    );
+    return _mapObjectObjectType;
   }
 
   @override
@@ -231,8 +277,16 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceType get streamDynamicType {
-    _streamDynamicType ??= streamType.instantiate(<DartType>[dynamicType]);
+    _streamDynamicType ??= InterfaceTypeImpl.explicit(
+      streamElement,
+      [dynamicType],
+      nullabilitySuffix: _nullabilitySuffix,
+    );
     return _streamDynamicType;
+  }
+
+  ClassElement get streamElement {
+    return _streamElement ??= _getClassElement(_asyncLibrary, 'Stream');
   }
 
   @override
@@ -270,13 +324,20 @@ class TypeProviderImpl extends TypeProviderBase {
         nullabilitySuffix: nullabilitySuffix);
   }
 
-  /// Return the type with the given [name] from the given [library], or
+  /// Return the class with the given [name] from the given [library], or
   /// throw a [StateError] if there is no class with the given name.
-  InterfaceType _getType(LibraryElement library, String name) {
+  ClassElement _getClassElement(LibraryElement library, String name) {
     var element = library.getType(name);
     if (element == null) {
       throw StateError('No definition of type $name');
     }
+    return element;
+  }
+
+  /// Return the type with the given [name] from the given [library], or
+  /// throw a [StateError] if there is no class with the given name.
+  InterfaceType _getType(LibraryElement library, String name) {
+    var element = _getClassElement(library, name);
 
     var typeArguments = const <DartType>[];
     var typeParameters = element.typeParameters;
