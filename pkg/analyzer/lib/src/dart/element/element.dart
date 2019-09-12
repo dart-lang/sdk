@@ -1897,7 +1897,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   }
 
   @override
-  String get identifier => source.encoding;
+  String get identifier => '${source.uri}';
 
   @override
   ElementKind get kind => ElementKind.COMPILATION_UNIT;
@@ -7184,7 +7184,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   }
 
   @override
-  String get identifier => _definingCompilationUnit.source.encoding;
+  String get identifier => '${_definingCompilationUnit.source.uri}';
 
   @override
   List<LibraryElement> get importedLibraries {

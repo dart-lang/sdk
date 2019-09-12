@@ -10,7 +10,6 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart' hide SdkLibrariesReader;
-import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -349,15 +348,6 @@ class FileBasedSourceTest {
     expect(FileBasedSource.fileReadMode('\ra'), '\na');
 
     FileBasedSource.fileReadMode = (String s) => s;
-  }
-
-  test_getEncoding() async {
-    SourceFactory factory = new SourceFactory(
-        [new ResourceUriResolver(PhysicalResourceProvider.INSTANCE)]);
-    String fullPath = "/does/not/exist.dart";
-    JavaFile file = FileUtilities2.createFile(fullPath);
-    FileBasedSource source = new FileBasedSource(file);
-    expect(factory.fromEncoding(source.encoding), source);
   }
 
   test_getFullName() async {
