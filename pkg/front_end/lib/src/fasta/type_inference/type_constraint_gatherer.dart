@@ -298,17 +298,10 @@ abstract class TypeConstraintGatherer {
       DartType supertypeArg = supertype.typeArguments[0];
       DartType supertypeFuture = futureType(supertypeArg);
 
-      // The outcome of both trySubtypeMatch and _isSubtypeMatch is includes the
-      // returned boolean value and the added constraints to _protoConstraints.
-      // Here we need to match 'subtype' against both possibilities of the
-      // FutureOr<X> which is 'supertype,' that is, we need to match 'subtype'
-      // against Future<X> and X.  However, if the first matching against
-      // Future<X> finds any new constraints and adds them to _protoConstraints,
-      // we should prefer them over the constraints possibly found while
-      // matching against X.  Note that if matching against Future<X> returned
-      // true, but didn't find any new constraints, then matching against X
-      // should still be done and the new constraints should still be added to
-      // _protoConstraints.
+      // The match against FutureOr<X> succeeds if the match against either
+      // Future<X> or X succeeds.  If they both succeed, the one adding new
+      // constraints should be preferred.  If both matches against Future<X> and
+      // X add new constraints, the former should be preferred over the latter.
       int oldProtoConstraintsLength = _protoConstraints.length;
       bool matchesFuture = trySubtypeMatch(subtype, supertypeFuture);
       bool matchesArg = oldProtoConstraintsLength != _protoConstraints.length
