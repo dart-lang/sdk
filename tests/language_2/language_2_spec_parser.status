@@ -14,7 +14,6 @@ deep_nesting_expression_test: Skip # JVM stack overflow.
 deep_nesting_statement_test: Skip # JVM stack overflow.
 double_invalid_test: Skip # Contains illegaly formatted double.
 extension_methods: Skip # Not yet supported.
-external_test/21: Fail # Test expects `runtime error`, it is a syntax error.
 getter_declaration_negative_test: Fail # Negative, uses getter with parameter.
 inst_field_initializer1_negative_test: Skip # Negative, not syntax.
 instance_call_wrong_argument_count_negative_test: Skip # Negative, not syntax.

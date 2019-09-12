@@ -52,7 +52,6 @@ vm/regress_28325_test: SkipByDesign # Looks for filename in stack trace
 inference_enum_list_test: Skip # Issue 35885
 
 [ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled ]
-external_test/13: Crash
 vm/precompiled_static_initializer_test: Slow
 
 # ==== dartkp + dart_precompiled status lines ====
