@@ -1156,7 +1156,8 @@ const Context& ActivationFrame::GetSavedCurrentContext() {
       } else if (obj.IsContext()) {
         ctx_ = Context::Cast(obj).raw();
       } else {
-        ASSERT(obj.IsNull());
+        ASSERT(obj.IsNull() || obj.raw() == Symbols::OptimizedOut().raw());
+        ctx_ = Context::null();
       }
       return ctx_;
     }
@@ -1431,7 +1432,12 @@ RawObject* ActivationFrame::GetRelativeContextVar(intptr_t var_ctx_level,
                                                   intptr_t ctx_slot,
                                                   intptr_t frame_ctx_level) {
   const Context& ctx = GetSavedCurrentContext();
-  ASSERT(!ctx.IsNull());
+
+  // It's possible that ctx was optimized out as no locals were captured by the
+  // context. See issue #38182.
+  if (ctx.IsNull()) {
+    return Symbols::OptimizedOut().raw();
+  }
 
   intptr_t level_diff = frame_ctx_level - var_ctx_level;
   if (level_diff == 0) {
