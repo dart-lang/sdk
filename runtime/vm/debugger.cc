@@ -3293,7 +3293,7 @@ void Debugger::FindCompiledFunctions(
         (function.end_token_pos() == end_pos) &&
         (function.script() == script.raw())) {
       if (function.is_debuggable()) {
-        if (function.HasBytecode()) {
+        if (FLAG_enable_interpreter && function.HasBytecode()) {
           bytecode_function_list->Add(function);
         }
         if (function.HasCode()) {
@@ -3303,7 +3303,7 @@ void Debugger::FindCompiledFunctions(
       if (function.HasImplicitClosureFunction()) {
         function = function.ImplicitClosureFunction();
         if (function.is_debuggable()) {
-          if (function.HasBytecode()) {
+          if (FLAG_enable_interpreter && function.HasBytecode()) {
             bytecode_function_list->Add(function);
           }
           if (function.HasCode()) {
@@ -3337,11 +3337,12 @@ void Debugger::FindCompiledFunctions(
           ASSERT(!function.IsNull());
           bool function_added = false;
           if (function.is_debuggable() &&
-              (function.HasCode() || function.HasBytecode()) &&
+              (function.HasCode() ||
+               (FLAG_enable_interpreter && function.HasBytecode())) &&
               function.token_pos() == start_pos &&
               function.end_token_pos() == end_pos &&
               function.script() == script.raw()) {
-            if (function.HasBytecode()) {
+            if (FLAG_enable_interpreter && function.HasBytecode()) {
               bytecode_function_list->Add(function);
             }
             if (function.HasCode()) {
@@ -3352,7 +3353,7 @@ void Debugger::FindCompiledFunctions(
           if (function_added && function.HasImplicitClosureFunction()) {
             function = function.ImplicitClosureFunction();
             if (function.is_debuggable()) {
-              if (function.HasBytecode()) {
+              if (FLAG_enable_interpreter && function.HasBytecode()) {
                 bytecode_function_list->Add(function);
               }
               if (function.HasCode()) {
@@ -3498,6 +3499,7 @@ BreakpointLocation* Debugger::SetCodeBreakpoints(
     intptr_t requested_column,
     TokenPosition exact_token_pos,
     const GrowableObjectArray& functions) {
+  ASSERT(!in_bytecode || FLAG_enable_interpreter);
   Function& function = Function::Handle();
   function ^= functions.At(0);
   TokenPosition breakpoint_pos =
@@ -4720,6 +4722,10 @@ TokenPosition Debugger::FindExactTokenPosition(const Script& script,
 void Debugger::HandleCodeChange(bool bytecode_loaded, const Function& func) {
   if (breakpoint_locations_ == NULL) {
     // Return with minimal overhead if there are no breakpoints.
+    return;
+  }
+  if (bytecode_loaded && !FLAG_enable_interpreter) {
+    // We do not set breakpoints in bytecode if the interpreter is not used.
     return;
   }
   if (!func.is_debuggable()) {
