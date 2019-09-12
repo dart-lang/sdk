@@ -698,7 +698,12 @@ Instruction* FlowGraphDeserializer::ParseInstruction(SExpList* list) {
   if (auto const deopt_int = CheckInteger(list->ExtraLookupValue("deopt_id"))) {
     deopt_id = deopt_int->value();
   }
-  InstrInfo common_info = {deopt_id, TokenPosition::kNoSource};
+  TokenPosition token_pos = TokenPosition::kNoSource;
+  if (auto const token_int =
+          CheckInteger(list->ExtraLookupValue("token_pos"))) {
+    token_pos = TokenPosition(token_int->value());
+  }
+  InstrInfo common_info = {deopt_id, token_pos};
 
   // Parse the environment before handling the instruction, as we may have
   // references to PushArguments and parsing the instruction may pop
@@ -799,6 +804,39 @@ AllocateObjectInstr* FlowGraphDeserializer::DeserializeAllocateObject(
   return inst;
 }
 
+AssertAssignableInstr* FlowGraphDeserializer::DeserializeAssertAssignable(
+    SExpList* sexp,
+    const InstrInfo& info) {
+  auto const val = ParseValue(Retrieve(sexp, 1));
+  if (val == nullptr) return nullptr;
+
+  auto const inst_type_args = ParseValue(Retrieve(sexp, 2));
+  if (inst_type_args == nullptr) return nullptr;
+
+  auto const func_type_args = ParseValue(Retrieve(sexp, 3));
+  if (func_type_args == nullptr) return nullptr;
+
+  auto& dst_type = AbstractType::Handle(zone());
+  auto const dst_type_sexp = Retrieve(sexp, "type");
+  if (!ParseDartValue(dst_type_sexp, &dst_type)) return nullptr;
+
+  auto& dst_name = String::ZoneHandle(zone());
+  auto const dst_name_sexp = Retrieve(sexp, "name");
+  if (!ParseDartValue(dst_name_sexp, &dst_name)) return nullptr;
+
+  auto kind = AssertAssignableInstr::Kind::kUnknown;
+  if (auto const kind_sexp = CheckSymbol(sexp->ExtraLookupValue("kind"))) {
+    if (!AssertAssignableInstr::ParseKind(kind_sexp->value(), &kind)) {
+      StoreError(kind_sexp, "unknown AssertAssignable kind");
+      return nullptr;
+    }
+  }
+
+  return new (zone())
+      AssertAssignableInstr(info.token_pos, val, inst_type_args, func_type_args,
+                            dst_type, dst_name, info.deopt_id, kind);
+}
+
 AssertBooleanInstr* FlowGraphDeserializer::DeserializeAssertBoolean(
     SExpList* sexp,
     const InstrInfo& info) {
@@ -806,6 +844,15 @@ AssertBooleanInstr* FlowGraphDeserializer::DeserializeAssertBoolean(
   if (val == nullptr) return nullptr;
 
   return new (zone()) AssertBooleanInstr(info.token_pos, val, info.deopt_id);
+}
+
+BooleanNegateInstr* FlowGraphDeserializer::DeserializeBooleanNegate(
+    SExpList* sexp,
+    const InstrInfo& info) {
+  auto const value = ParseValue(Retrieve(sexp, 1));
+  if (value == nullptr) return nullptr;
+
+  return new (zone()) BooleanNegateInstr(value);
 }
 
 BranchInstr* FlowGraphDeserializer::DeserializeBranch(SExpList* sexp,
@@ -893,7 +940,7 @@ DebugStepCheckInstr* FlowGraphDeserializer::DeserializeDebugStepCheck(
     const InstrInfo& info) {
   auto kind = RawPcDescriptors::kAnyKind;
   if (auto const kind_sexp = CheckSymbol(Retrieve(sexp, "stub_kind"))) {
-    if (!RawPcDescriptors::KindFromCString(kind_sexp->value(), &kind)) {
+    if (!RawPcDescriptors::ParseKind(kind_sexp->value(), &kind)) {
       StoreError(kind_sexp, "not a valid RawPcDescriptors::Kind name");
       return nullptr;
     }
@@ -958,6 +1005,15 @@ InstanceCallInstr* FlowGraphDeserializer::DeserializeInstanceCall(
   return inst;
 }
 
+LoadClassIdInstr* FlowGraphDeserializer::DeserializeLoadClassId(
+    SExpList* sexp,
+    const InstrInfo& info) {
+  auto const val = ParseValue(Retrieve(sexp, 1));
+  if (val == nullptr) return nullptr;
+
+  return new (zone()) LoadClassIdInstr(val);
+}
+
 LoadFieldInstr* FlowGraphDeserializer::DeserializeLoadField(
     SExpList* sexp,
     const InstrInfo& info) {
@@ -968,6 +1024,33 @@ LoadFieldInstr* FlowGraphDeserializer::DeserializeLoadField(
   if (!ParseSlot(CheckTaggedList(Retrieve(sexp, 2)), &slot)) return nullptr;
 
   return new (zone()) LoadFieldInstr(instance, *slot, info.token_pos);
+}
+
+NativeCallInstr* FlowGraphDeserializer::DeserializeNativeCall(
+    SExpList* sexp,
+    const InstrInfo& info) {
+  auto& function = Function::ZoneHandle(zone());
+  if (!ParseDartValue(Retrieve(sexp, 1), &function)) return nullptr;
+  if (!function.IsFunction()) {
+    StoreError(sexp->At(1), "expected a Function value");
+    return nullptr;
+  }
+
+  auto const name_sexp = CheckString(Retrieve(sexp, "name"));
+  if (name_sexp == nullptr) return nullptr;
+  const auto& name =
+      String::ZoneHandle(zone(), String::New(name_sexp->value()));
+
+  bool link_lazily = false;
+  if (auto const link_sexp = CheckBool(sexp->ExtraLookupValue("link_lazily"))) {
+    link_lazily = link_sexp->value();
+  }
+
+  CallInfo call_info(zone());
+  if (!ParseCallInfo(sexp, &call_info)) return nullptr;
+
+  return new (zone()) NativeCallInstr(&name, &function, link_lazily,
+                                      info.token_pos, call_info.arguments);
 }
 
 ParameterInstr* FlowGraphDeserializer::DeserializeParameter(
@@ -1006,7 +1089,7 @@ SpecialParameterInstr* FlowGraphDeserializer::DeserializeSpecialParameter(
   auto const kind_sexp = CheckSymbol(Retrieve(sexp, 1));
   if (kind_sexp == nullptr) return nullptr;
   SpecialParameterInstr::SpecialParameterKind kind;
-  if (!SpecialParameterInstr::KindFromCString(kind_sexp->value(), &kind)) {
+  if (!SpecialParameterInstr::ParseKind(kind_sexp->value(), &kind)) {
     StoreError(kind_sexp, "unknown special parameter kind");
     return nullptr;
   }
@@ -1033,7 +1116,7 @@ StaticCallInstr* FlowGraphDeserializer::DeserializeStaticCall(
   auto rebind_rule = ICData::kStatic;
   if (auto const rebind_sexp =
           CheckSymbol(sexp->ExtraLookupValue("rebind_rule"))) {
-    if (!ICData::RebindRuleFromCString(rebind_sexp->value(), &rebind_rule)) {
+    if (!ICData::ParseRebindRule(rebind_sexp->value(), &rebind_rule)) {
       StoreError(rebind_sexp, "unknown rebind rule value");
       return nullptr;
     }
@@ -1101,6 +1184,11 @@ StrictCompareInstr* FlowGraphDeserializer::DeserializeStrictCompare(
 
   return new (zone()) StrictCompareInstr(info.token_pos, kind, left, right,
                                          needs_check, info.deopt_id);
+}
+
+ThrowInstr* FlowGraphDeserializer::DeserializeThrow(SExpList* sexp,
+                                                    const InstrInfo& info) {
+  return new (zone()) ThrowInstr(info.token_pos, info.deopt_id);
 }
 
 bool FlowGraphDeserializer::ParseCallInfo(SExpList* call, CallInfo* out) {
@@ -1323,13 +1411,11 @@ bool FlowGraphDeserializer::CanonicalizeInstance(SExpression* sexp,
   // where [thread()->zone()] does not match [zone()] (e.g., due to StackZone)
   // until this is addressed.
   *out = Instance::Cast(*out).CheckAndCanonicalize(thread(), &error_str);
-  if (!out->IsNull()) return true;
   if (error_str != nullptr) {
     StoreError(sexp, "error during canonicalization: %s", error_str);
-  } else {
-    StoreError(sexp, "unexpected error during canonicalization");
+    return false;
   }
-  return false;
+  return true;
 }
 
 bool FlowGraphDeserializer::ParseAbstractType(SExpression* sexp, Object* out) {
@@ -1441,7 +1527,7 @@ bool FlowGraphDeserializer::ParseFunction(SExpList* list, Object* out) {
   // Check the kind expected by the S-expression if one was specified.
   if (auto const kind_sexp = CheckSymbol(list->ExtraLookupValue("kind"))) {
     RawFunction::Kind kind;
-    if (!RawFunction::KindFromCString(kind_sexp->value(), &kind)) {
+    if (!RawFunction::ParseKind(kind_sexp->value(), &kind)) {
       StoreError(kind_sexp, "unexpected function kind");
       return false;
     }
@@ -1622,7 +1708,11 @@ bool FlowGraphDeserializer::ParseType(SExpression* sexp, Object* out) {
                                            "TypeArguments")) {
     if (!ParseTypeArguments(ta_sexp, &type_args)) return false;
   }
-  *out = Type::New(cls, type_args, TokenPosition::kNoSource, Heap::kOld);
+  TokenPosition token_pos = TokenPosition::kNoSource;
+  if (const auto pos_sexp = CheckInteger(list->ExtraLookupValue("token_pos"))) {
+    token_pos = TokenPosition(pos_sexp->value());
+  }
+  *out = Type::New(cls, type_args, token_pos, Heap::kOld);
   auto& type = Type::Cast(*out);
   if (is_recursive) {
     while (!pending_typerefs->is_empty()) {
@@ -1931,7 +2021,7 @@ bool FlowGraphDeserializer::ParseSlot(SExpList* list, const Slot** out) {
   const auto kind_sexp = CheckSymbol(Retrieve(list, "kind"));
   if (kind_sexp == nullptr) return false;
   Slot::Kind kind;
-  if (!Slot::KindFromCString(kind_sexp->value(), &kind)) {
+  if (!Slot::ParseKind(kind_sexp->value(), &kind)) {
     StoreError(kind_sexp, "unknown Slot kind");
     return false;
   }

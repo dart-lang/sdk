@@ -13406,7 +13406,7 @@ const char* ICData::RebindRuleToCString(RebindRule r) {
   }
 }
 
-bool ICData::RebindRuleFromCString(const char* str, RebindRule* out) {
+bool ICData::ParseRebindRule(const char* str, RebindRule* out) {
 #define RULE_CASE(Name)                                                        \
   if (strcmp(str, #Name) == 0) {                                               \
     *out = RebindRule::k##Name;                                                \

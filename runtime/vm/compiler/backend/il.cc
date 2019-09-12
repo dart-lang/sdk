@@ -767,6 +767,30 @@ StaticTypeExactnessState CallTargets::MonomorphicExactness() const {
   return TargetAt(0)->exactness;
 }
 
+const char* AssertAssignableInstr::KindToCString(Kind kind) {
+  switch (kind) {
+#define KIND_CASE(name)                                                        \
+  case k##name:                                                                \
+    return #name;
+    FOR_EACH_ASSERT_ASSIGNABLE_KIND(KIND_CASE)
+#undef KIND_CASE
+    default:
+      UNREACHABLE();
+      return nullptr;
+  }
+}
+
+bool AssertAssignableInstr::ParseKind(const char* str, Kind* out) {
+#define KIND_CASE(name)                                                        \
+  if (strcmp(str, #name) == 0) {                                               \
+    *out = Kind::k##name;                                                      \
+    return true;                                                               \
+  }
+  FOR_EACH_ASSERT_ASSIGNABLE_KIND(KIND_CASE)
+#undef KIND_CASE
+  return false;
+}
+
 CheckClassInstr::CheckClassInstr(Value* value,
                                  intptr_t deopt_id,
                                  const Cids& cids,
@@ -4283,8 +4307,8 @@ const char* SpecialParameterInstr::KindToCString(SpecialParameterKind k) {
   return nullptr;
 }
 
-bool SpecialParameterInstr::KindFromCString(const char* str,
-                                            SpecialParameterKind* out) {
+bool SpecialParameterInstr::ParseKind(const char* str,
+                                      SpecialParameterKind* out) {
   ASSERT(str != nullptr && out != nullptr);
 #define KIND_CASE(Name)                                                        \
   if (strcmp(str, #Name) == 0) {                                               \

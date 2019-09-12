@@ -400,6 +400,9 @@ SExpression* FlowGraphSerializer::AbstractTypeToSExp(const AbstractType& t) {
   ASSERT(t.IsType());
   AddSymbol(sexp, "Type");
   const auto& typ = Type::Cast(t);
+  if (!typ.token_pos().IsNoSource()) {
+    AddExtraInteger(sexp, "token_pos", typ.token_pos().value());
+  }
   // We want to check for the type being recursive before we may serialize
   // any sub-parts that include possible TypeRefs to this type.
   if (typ.IsRecursive()) {
@@ -765,6 +768,9 @@ void Instruction::AddExtraInfoToSExpression(SExpList* sexp,
   if (env() != nullptr) {
     sexp->AddExtra("env", env()->ToSExpression(s));
   }
+  if (!token_pos().IsNoSource()) {
+    s->AddExtraInteger(sexp, "token_pos", token_pos().value());
+  }
 }
 
 SExpression* Definition::ToSExpression(FlowGraphSerializer* s) const {
@@ -779,6 +785,14 @@ SExpression* Definition::ToSExpression(FlowGraphSerializer* s) const {
   }
   sexp->Add(Instruction::ToSExpression(s));
   return sexp;
+}
+
+void AssertAssignableInstr::AddExtraInfoToSExpression(
+    SExpList* sexp,
+    FlowGraphSerializer* s) const {
+  Instruction::AddExtraInfoToSExpression(sexp, s);
+  sexp->AddExtra("type", s->DartValueToSExp(dst_type()));
+  sexp->AddExtra("name", s->DartValueToSExp(dst_name()));
 }
 
 void ConstantInstr::AddOperandsToSExpression(SExpList* sexp,
@@ -994,6 +1008,17 @@ void NativeCallInstr::AddOperandsToSExpression(SExpList* sexp,
                                                FlowGraphSerializer* s) const {
   if (auto const func = s->DartValueToSExp(function())) {
     sexp->Add(func);
+  }
+}
+
+void NativeCallInstr::AddExtraInfoToSExpression(SExpList* sexp,
+                                                FlowGraphSerializer* s) const {
+  TemplateDartCall<0>::AddExtraInfoToSExpression(sexp, s);
+  if (!native_name().IsNull()) {
+    s->AddExtraString(sexp, "name", native_name().ToCString());
+  }
+  if (link_lazily() || FLAG_verbose_flow_graph_serialization) {
+    s->AddExtraBool(sexp, "link_lazily", link_lazily());
   }
 }
 

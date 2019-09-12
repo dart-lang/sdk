@@ -1810,7 +1810,7 @@ class ICData : public Object {
         kNumRebindRules,
   };
   static const char* RebindRuleToCString(RebindRule r);
-  static bool RebindRuleFromCString(const char* str, RebindRule* out);
+  static bool ParseRebindRule(const char* str, RebindRule* out);
   RebindRule rebind_rule() const;
   void set_rebind_rule(uint32_t rebind_rule) const;
 

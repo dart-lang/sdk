@@ -87,7 +87,9 @@ class FlowGraphDeserializer : ValueObject {
 
 #define FOR_EACH_HANDLED_INSTRUCTION_IN_DESERIALIZER(M)                        \
   M(AllocateObject)                                                            \
+  M(AssertAssignable)                                                          \
   M(AssertBoolean)                                                             \
+  M(BooleanNegate)                                                             \
   M(Branch)                                                                    \
   M(CheckNull)                                                                 \
   M(CheckStackOverflow)                                                        \
@@ -95,14 +97,17 @@ class FlowGraphDeserializer : ValueObject {
   M(DebugStepCheck)                                                            \
   M(Goto)                                                                      \
   M(InstanceCall)                                                              \
+  M(LoadClassId)                                                               \
   M(LoadField)                                                                 \
+  M(NativeCall)                                                                \
   M(Parameter)                                                                 \
   M(PushArgument)                                                              \
   M(Return)                                                                    \
   M(SpecialParameter)                                                          \
   M(StaticCall)                                                                \
   M(StoreInstanceField)                                                        \
-  M(StrictCompare)
+  M(StrictCompare)                                                             \
+  M(Throw)
 
   // Helper methods for AllUnhandledInstructions.
   static bool IsHandledInstruction(Instruction* inst);

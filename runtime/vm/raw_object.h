@@ -899,7 +899,7 @@ class RawFunction : public RawObject {
     }
   }
 
-  static bool KindFromCString(const char* str, Kind* out) {
+  static bool ParseKind(const char* str, Kind* out) {
 #define KIND_CASE(Name)                                                        \
   if (strcmp(str, #Name) == 0) {                                               \
     *out = Kind::k##Name;                                                      \
@@ -1525,7 +1525,7 @@ class RawPcDescriptors : public RawObject {
   };
 
   static const char* KindToCString(Kind k);
-  static bool KindFromCString(const char* cstr, Kind* out);
+  static bool ParseKind(const char* cstr, Kind* out);
 
   class MergedKindTry {
    public:

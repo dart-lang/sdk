@@ -660,7 +660,7 @@ const char* RawPcDescriptors::KindToCString(Kind k) {
   }
 }
 
-bool RawPcDescriptors::KindFromCString(const char* cstr, Kind* out) {
+bool RawPcDescriptors::ParseKind(const char* cstr, Kind* out) {
   ASSERT(cstr != nullptr && out != nullptr);
 #define ENUM_CASE(name, init)                                                  \
   if (strcmp(#name, cstr) == 0) {                                              \

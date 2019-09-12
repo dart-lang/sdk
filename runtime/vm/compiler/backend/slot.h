@@ -103,7 +103,7 @@ class Slot : public ZoneAllocated {
   // clang-format on
 
   static const char* KindToCString(Kind k);
-  static bool KindFromCString(const char* str, Kind* k);
+  static bool ParseKind(const char* str, Kind* k);
 
   // Returns a slot that represents length field for the given [array_cid].
   static const Slot& GetLengthFieldForArrayCid(intptr_t array_cid);
