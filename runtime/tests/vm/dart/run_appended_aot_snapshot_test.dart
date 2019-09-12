@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:async";
-import 'dart:convert';
 import "dart:io";
 import 'dart:typed_data';
 
@@ -45,13 +44,7 @@ Future<void> main(List<String> args) async {
     final String aotPath = path.join(tmp, "test.aot");
     final String exePath = path.join(tmp, "test.exe");
 
-    final String dart = path.join(
-        "tools", "sdks", "dart-sdk", "bin", "dart${executableSuffix}");
-
-    final dillResult = await runBinary("generate dill", dart, [
-      genKernel,
-      "--platform",
-      platformDill,
+    final dillResult = await runGenKernel("generate dill", [
       "--aot",
       "-o",
       dillPath,
