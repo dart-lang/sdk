@@ -2097,6 +2097,25 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38339')
+  test_operator_eq_with_inferred_parameter_type() async {
+    var content = '''
+class C {
+  operator==(Object other) {
+    return other is C;
+  }
+}
+''';
+    var expected = '''
+class C {
+  operator==(Object other) {
+    return other is C;
+  }
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_override_parameter_type_non_nullable() async {
     var content = '''
 abstract class Base {
