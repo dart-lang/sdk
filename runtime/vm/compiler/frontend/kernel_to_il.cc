@@ -2397,7 +2397,6 @@ Fragment FlowGraphBuilder::FfiPointerFromAddress(const Type& result_type) {
   // do not appear in the type arguments to a any Pointer classes in an FFI
   // signature.
   ASSERT(args.IsNull() || args.IsInstantiated());
-  args = args.Canonicalize();
 
   Fragment code;
   code += Constant(args);
@@ -2450,6 +2449,14 @@ Fragment FlowGraphBuilder::FfiConvertArgumentToNative(
     const AbstractType& ffi_type,
     const Representation native_representation) {
   Fragment body;
+
+  // Return 0 for void.
+  if (compiler::ffi::NativeTypeIsVoid(ffi_type)) {
+    body += Drop();
+    body += IntConstant(0);
+    body += UnboxTruncate(kUnboxedFfiIntPtr);
+    return body;
+  }
 
   // Check for 'null'.
   body += LoadLocal(MakeTemporary());
@@ -2607,20 +2614,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiCallback(const Function& function) {
                       /*needs_stacktrace=*/false, /*is_synthesized=*/true);
 
   // Return the "exceptional return" value given in 'fromFunction'.
-  //
-  // For pointer and void return types, the exceptional return is always null --
-  // return 0 instead.
-  if (compiler::ffi::NativeTypeIsPointer(ffi_type) ||
-      compiler::ffi::NativeTypeIsVoid(ffi_type)) {
-    ASSERT(function.FfiCallbackExceptionalReturn() == Object::null());
-    catch_body += IntConstant(0);
-    catch_body += UnboxTruncate(kUnboxedFfiIntPtr);
-  } else {
-    catch_body += Constant(
-        Instance::ZoneHandle(Z, function.FfiCallbackExceptionalReturn()));
-    catch_body += FfiConvertArgumentToNative(function, ffi_type, result_rep);
-  }
-
+  catch_body += Constant(
+      Instance::ZoneHandle(Z, function.FfiCallbackExceptionalReturn()));
+  catch_body += FfiConvertArgumentToNative(function, ffi_type, result_rep);
   catch_body += NativeReturn(result_rep);
   --catch_depth_;
 

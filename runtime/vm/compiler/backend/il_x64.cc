@@ -1024,6 +1024,10 @@ void NativeEntryInstr::SaveArgument(FlowGraphCompiler* compiler,
 }
 
 void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (FLAG_precompiled_mode) {
+    UNREACHABLE();
+  }
+
   __ Bind(compiler->GetJumpLabel(this));
 
   // Create a dummy frame holding the pushed arguments. This simplifies
@@ -1051,38 +1055,9 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ PushRegisters(CallingConventions::kCalleeSaveCpuRegisters,
                    CallingConventions::kCalleeSaveXmmRegisters);
 
-  // Load the address of DLRT_GetThreadForNativeCallback without using Thread.
-  if (FLAG_precompiled_mode) {
-    compiler::Label skip_reloc;
-    __ jmp(&skip_reloc);
-    compiler->InsertBSSRelocation(
-        BSS::Relocation::DRT_GetThreadForNativeCallback);
-    const intptr_t reloc_end = __ CodeSize();
-    __ Bind(&skip_reloc);
-
-    const intptr_t kLeaqLength = 7;
-    __ leaq(RAX, compiler::Address::AddressRIPRelative(
-                     -kLeaqLength - compiler::target::kWordSize));
-    ASSERT((__ CodeSize() - reloc_end) == kLeaqLength);
-
-    // RAX holds the address of the relocation.
-    __ movq(RCX, compiler::Address(RAX, 0));
-
-    // RCX holds the relocation itself: RAX - bss_start.
-    // RAX = RAX + (bss_start - RAX) = bss_start
-    __ addq(RAX, RCX);
-
-    // RAX holds the start of the BSS section.
-    // Load the "get-thread" routine: *bss_start.
-    __ movq(RAX, compiler::Address(RAX, 0));
-  } else if (!NativeCallbackTrampolines::Enabled()) {
-    // In JIT mode, we can just paste the address of the runtime entry into the
-    // generated code directly. This is not a problem since we don't save
-    // callbacks into JIT snapshots.
-    __ movq(RAX, compiler::Immediate(reinterpret_cast<intptr_t>(
-                     DLRT_GetThreadForNativeCallback)));
-  }
-
+  // Load the thread object.
+  // TODO(35765): Fix linking issue on AOT.
+  //
   // Create another frame to align the frame before continuing in "native" code.
   // If we were called by a trampoline, it has already loaded the thread.
   if (!NativeCallbackTrampolines::Enabled()) {
@@ -1091,6 +1066,8 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     COMPILE_ASSERT(RAX != CallingConventions::kArg1Reg);
     __ movq(CallingConventions::kArg1Reg, compiler::Immediate(callback_id_));
+    __ movq(RAX, compiler::Immediate(reinterpret_cast<int64_t>(
+                     DLRT_GetThreadForNativeCallback)));
     __ CallCFunction(RAX);
     __ movq(THR, RAX);
 

@@ -143,8 +143,6 @@ namespace dart {
   V(::, _classRangeCheck, ClassRangeCheck, 0xca52e30a)                         \
   V(::, _asyncStackTraceHelper, AsyncStackTraceHelper, 0xaeaed5cb)             \
   V(::, _abi, FfiAbi, 0xf2e89620)                                              \
-  V(::, _asFunctionInternal, FfiAsFunctionInternal, 0x82525e9e)                \
-  V(::, _nativeCallbackFunction, FfiNativeCallbackFunction, 0x591fb33c)        \
 
 // List of intrinsics:
 // (class-name, function-name, intrinsification method, fingerprint).

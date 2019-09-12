@@ -936,7 +936,7 @@ class Assembler : public AssemblerBase {
   void GenerateUnRelocatedPcRelativeCall(intptr_t offset_into_target = 0);
 
   // Debugging and bringup support.
-  void Breakpoint() override { int3(); }
+  void Breakpoint() { int3(); }
   void Stop(const char* message) override;
 
   static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);

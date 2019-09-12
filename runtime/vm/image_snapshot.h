@@ -48,11 +48,6 @@ class Image : ValueObject {
     return snapshot_size - kHeaderSize;
   }
 
-  uword bss_offset() const {
-    return *(reinterpret_cast<const uword*>(raw_memory_) + 1);
-  }
-
-  static constexpr intptr_t kHeaderFields = 2;
   static const intptr_t kHeaderSize = OS::kMaxPreferredCodeAlignment;
 
  private:
@@ -319,15 +314,8 @@ class AssemblyImageWriter : public ImageWriter {
   void FrameUnwindPrologue();
   void FrameUnwindEpilogue();
   intptr_t WriteByteSequence(uword start, uword end);
-
-#if defined(TARGET_ARCH_IS_64_BIT)
-  const char* kLiteralPrefix = ".quad";
-#else
-  const char* kLiteralPrefix = ".long";
-#endif
-
   void WriteWordLiteralText(compiler::target::uword value) {
-    // Padding is helpful for comparing the .S with --disassemble.
+// Padding is helpful for comparing the .S with --disassemble.
 #if defined(TARGET_ARCH_IS_64_BIT)
     assembly_stream_.Print(".quad 0x%0.16" Px "\n", value);
 #else

@@ -15,13 +15,10 @@ void DescriptorList::AddDescriptor(RawPcDescriptors::Kind kind,
                                    TokenPosition token_pos,
                                    intptr_t try_index) {
   ASSERT((kind == RawPcDescriptors::kRuntimeCall) ||
-         (kind == RawPcDescriptors::kBSSRelocation) ||
          (kind == RawPcDescriptors::kOther) || (deopt_id != DeoptId::kNone));
 
-  // When precompiling, we only use pc descriptors for exceptions and
-  // relocations.
-  if (!FLAG_precompiled_mode || try_index != -1 ||
-      kind == RawPcDescriptors::kBSSRelocation) {
+  // When precompiling, we only use pc descriptors for exceptions.
+  if (!FLAG_precompiled_mode || try_index != -1) {
     int32_t merged_kind_try =
         RawPcDescriptors::MergedKindTry::Encode(kind, try_index);
 

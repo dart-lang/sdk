@@ -485,7 +485,7 @@ class Assembler : public AssemblerBase {
   void set_use_far_branches(bool b) { use_far_branches_ = b; }
 
   // Debugging and bringup support.
-  void Breakpoint() override { brk(0); }
+  void Breakpoint() { brk(0); }
   void Stop(const char* message) override;
 
   static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);

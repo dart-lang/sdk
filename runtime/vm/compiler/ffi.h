@@ -56,10 +56,6 @@ RawFunction* TrampolineFunction(const Function& dart_signature,
 
 #if !defined(TARGET_ARCH_DBC)
 
-RawFunction* NativeCallbackFunction(const Function& c_signature,
-                                    const Function& dart_target,
-                                    const Instance& exceptional_return);
-
 // Unboxed representations of the arguments to a C signature function.
 ZoneGrowableArray<Representation>* ArgumentRepresentations(
     const Function& signature);
@@ -149,7 +145,10 @@ class CallbackArgumentTranslator : public ValueObject {
   intptr_t argument_slots_used_ = 0;
   intptr_t argument_slots_required_ = 0;
 };
+
 #endif  // defined(TARGET_ARCH_DBC)
+
+bool IsAsFunctionInternal(Zone* zone, Isolate* isolate, const Function& func);
 
 }  // namespace ffi
 

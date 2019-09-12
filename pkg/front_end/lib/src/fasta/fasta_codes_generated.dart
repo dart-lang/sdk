@@ -3755,81 +3755,6 @@ Message _withArgumentsFfiDartTypeMismatch(DartType _type, DartType _type2) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeFfiExceptionalReturnNull = messageFfiExceptionalReturnNull;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFfiExceptionalReturnNull = const MessageCode(
-    "FfiExceptionalReturnNull",
-    message: r"""Exceptional return value must not be null.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeFfiExpectedConstant = messageFfiExpectedConstant;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFfiExpectedConstant = const MessageCode(
-    "FfiExpectedConstant",
-    message: r"""Exceptional return value must be a constant.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-    Message Function(
-        DartType
-            _type)> templateFfiExpectedExceptionalReturn = const Template<
-        Message Function(DartType _type)>(
-    messageTemplate:
-        r"""Expected an exceptional return value for a native callback returning '#type'.""",
-    withArguments: _withArgumentsFfiExpectedExceptionalReturn);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(DartType _type)> codeFfiExpectedExceptionalReturn =
-    const Code<Message Function(DartType _type)>(
-  "FfiExpectedExceptionalReturn",
-  templateFfiExpectedExceptionalReturn,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiExpectedExceptionalReturn(DartType _type) {
-  TypeLabeler labeler = new TypeLabeler();
-  List<Object> typeParts = labeler.labelType(_type);
-  String type = typeParts.join();
-  return new Message(codeFfiExpectedExceptionalReturn,
-      message:
-          """Expected an exceptional return value for a native callback returning '${type}'.""" +
-              labeler.originMessages,
-      arguments: {'type': _type});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-    Message Function(
-        DartType
-            _type)> templateFfiExpectedNoExceptionalReturn = const Template<
-        Message Function(DartType _type)>(
-    messageTemplate:
-        r"""Exceptional return value cannot be provided for a native callback returning '#type'.""",
-    withArguments: _withArgumentsFfiExpectedNoExceptionalReturn);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(DartType _type)>
-    codeFfiExpectedNoExceptionalReturn =
-    const Code<Message Function(DartType _type)>(
-  "FfiExpectedNoExceptionalReturn",
-  templateFfiExpectedNoExceptionalReturn,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiExpectedNoExceptionalReturn(DartType _type) {
-  TypeLabeler labeler = new TypeLabeler();
-  List<Object> typeParts = labeler.labelType(_type);
-  String type = typeParts.join();
-  return new Message(codeFfiExpectedNoExceptionalReturn,
-      message:
-          """Exceptional return value cannot be provided for a native callback returning '${type}'.""" +
-              labeler.originMessages,
-      arguments: {'type': _type});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateFfiExtendsOrImplementsSealedClass =
     const Template<Message Function(String name)>(
@@ -3859,7 +3784,7 @@ const Template<
     Message Function(String name)> templateFfiFieldAnnotation = const Template<
         Message Function(String name)>(
     messageTemplate:
-        r"""Field '#name' requires exactly one annotation to declare its native type, which cannot be Void. dart:ffi Structs cannot have regular Dart fields.""",
+        r"""Field '#name' requires exactly one annotation to declare its C++ type, which cannot be Void. dart:ffi Structs cannot have regular Dart fields.""",
     withArguments: _withArgumentsFfiFieldAnnotation);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3875,7 +3800,7 @@ Message _withArgumentsFfiFieldAnnotation(String name) {
   name = demangleMixinApplicationName(name);
   return new Message(codeFfiFieldAnnotation,
       message:
-          """Field '${name}' requires exactly one annotation to declare its native type, which cannot be Void. dart:ffi Structs cannot have regular Dart fields.""",
+          """Field '${name}' requires exactly one annotation to declare its C++ type, which cannot be Void. dart:ffi Structs cannot have regular Dart fields.""",
       arguments: {'name': name});
 }
 
@@ -3911,7 +3836,7 @@ const Template<
             name)> templateFfiFieldNoAnnotation = const Template<
         Message Function(String name)>(
     messageTemplate:
-        r"""Field '#name' requires no annotation to declare its native type, it is a Pointer which is represented by the same type in Dart and native code.""",
+        r"""Field '#name' requires no annotation to declare its C++ type, it is a Pointer which is represented by the same type in Dart and C++.""",
     withArguments: _withArgumentsFfiFieldNoAnnotation);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3927,7 +3852,7 @@ Message _withArgumentsFfiFieldNoAnnotation(String name) {
   name = demangleMixinApplicationName(name);
   return new Message(codeFfiFieldNoAnnotation,
       message:
-          """Field '${name}' requires no annotation to declare its native type, it is a Pointer which is represented by the same type in Dart and native code.""",
+          """Field '${name}' requires no annotation to declare its C++ type, it is a Pointer which is represented by the same type in Dart and C++.""",
       arguments: {'name': name});
 }
 
@@ -3936,7 +3861,7 @@ const Template<
     Message Function(String name)> templateFfiNotStatic = const Template<
         Message Function(String name)>(
     messageTemplate:
-        r"""#name expects a static function as parameter. dart:ffi only supports calling static Dart functions from native code.""",
+        r"""#name expects a static function as parameter. dart:ffi only supports calling static Dart functions from c.""",
     withArguments: _withArgumentsFfiNotStatic);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3952,7 +3877,7 @@ Message _withArgumentsFfiNotStatic(String name) {
   name = demangleMixinApplicationName(name);
   return new Message(codeFfiNotStatic,
       message:
-          """${name} expects a static function as parameter. dart:ffi only supports calling static Dart functions from native code.""",
+          """${name} expects a static function as parameter. dart:ffi only supports calling static Dart functions from c.""",
       arguments: {'name': name});
 }
 

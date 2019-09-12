@@ -21,7 +21,6 @@
 #include "platform/globals.h"
 #include "vm/allocation.h"
 #include "vm/bitfield.h"
-#include "vm/bss_relocs.h"
 #include "vm/class_id.h"
 #include "vm/code_entry_kind.h"
 #include "vm/constants.h"

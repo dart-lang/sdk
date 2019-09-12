@@ -210,58 +210,6 @@ Representation ResultRepresentationBase(const Function& signature) {
 
 #if !defined(TARGET_ARCH_DBC)
 
-RawFunction* NativeCallbackFunction(const Function& c_signature,
-                                    const Function& dart_target,
-                                    const Instance& exceptional_return) {
-  Thread* const thread = Thread::Current();
-  const int32_t callback_id = thread->AllocateFfiCallbackId();
-
-  // Create a new Function named '<target>_FfiCallback' and stick it in the
-  // 'dart:ffi' library. Note that these functions will never be invoked by
-  // Dart, so they have may have duplicate names.
-  Zone* const zone = thread->zone();
-  const auto& name = String::Handle(
-      zone, Symbols::FromConcat(thread, Symbols::FfiCallback(),
-                                String::Handle(zone, dart_target.name())));
-  const Library& lib = Library::Handle(zone, Library::FfiLibrary());
-  const Class& owner_class = Class::Handle(zone, lib.toplevel_class());
-  const Function& function =
-      Function::Handle(zone, Function::New(name, RawFunction::kFfiTrampoline,
-                                           /*is_static=*/true,
-                                           /*is_const=*/false,
-                                           /*is_abstract=*/false,
-                                           /*is_external=*/false,
-                                           /*is_native=*/false, owner_class,
-                                           TokenPosition::kNoSource));
-  function.set_is_debuggable(false);
-
-  // Set callback-specific fields which the flow-graph builder needs to generate
-  // the body.
-  function.SetFfiCSignature(c_signature);
-  function.SetFfiCallbackId(callback_id);
-  function.SetFfiCallbackTarget(dart_target);
-
-  // We need to load the exceptional return value as a constant in the generated
-  // function. Even though the FE ensures that it is a constant, it could still
-  // be a literal allocated in new space. We need to copy it into old space in
-  // that case.
-  //
-  // Exceptional return values currently cannot be pointers because we don't
-  // have constant pointers.
-  //
-  // TODO(36730): We'll need to extend this when we support passing/returning
-  // structs by value.
-  ASSERT(exceptional_return.IsNull() || exceptional_return.IsNumber());
-  if (!exceptional_return.IsSmi() && exceptional_return.IsNew()) {
-    function.SetFfiCallbackExceptionalReturn(Instance::Handle(
-        zone, exceptional_return.CopyShallowToOldSpace(thread)));
-  } else {
-    function.SetFfiCallbackExceptionalReturn(exceptional_return);
-  }
-
-  return function.raw();
-}
-
 ZoneGrowableArray<Representation>* ArgumentRepresentations(
     const Function& signature) {
   return ArgumentRepresentationsBase<CallingConventions>(signature);
@@ -701,6 +649,27 @@ Representation FfiSignatureDescriptor::ResultRepresentation() const {
 }
 
 #endif  // defined(TARGET_ARCH_DBC)
+
+bool IsAsFunctionInternal(Zone* zone, Isolate* isolate, const Function& func) {
+  Object& asFunctionInternal =
+      Object::Handle(zone, isolate->object_store()->ffi_as_function_internal());
+  if (asFunctionInternal.raw() == Object::null()) {
+    // Cache the reference.
+    const Library& ffi =
+        Library::Handle(zone, isolate->object_store()->ffi_library());
+    asFunctionInternal =
+        ffi.LookupFunctionAllowPrivate(Symbols::AsFunctionInternal());
+    // Cannot assert that 'asFunctionInternal' is found because it may have been
+    // tree-shaken.
+    if (asFunctionInternal.IsNull()) {
+      // Set the entry in the object store to a sentinel so we don't try to look
+      // it up again.
+      asFunctionInternal = Object::sentinel().raw();
+    }
+    isolate->object_store()->set_ffi_as_function_internal(asFunctionInternal);
+  }
+  return func.raw() == asFunctionInternal.raw();
+}
 
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 

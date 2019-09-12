@@ -5,15 +5,6 @@
 [ $arch == simdbc || $arch == simdbc64 ]
 *: Skip # SIMDBC will be deleted soon.
 
-# Issue 37295, not yet supported in blobs snapshots at present.
-[ $compiler == dartkp && $system == windows ]
-function_callbacks_test: Skip
-regress_37511_callbacks_test: Skip
-stacktrace_regress_37910_test: Skip
-
-[ $compiler != dartkp || $system != windows ]
-function_callbacks_unsupported_test: SkipByDesign # See above
-
 [ $builder_tag == asan ]
 data_not_asan_test: SkipByDesign # This test tries to allocate too much memory on purpose.
 
@@ -24,6 +15,11 @@ data_not_asan_test: SkipByDesign # This test tries to allocate too much memory o
 function_callbacks_test/01: Skip
 function_callbacks_test/02: Skip
 function_callbacks_test/03: Skip
+
+[ $runtime == dart_precompiled ]
+function_callbacks_test: Skip  # Issue dartbug.com/37295
+regress_37511_callbacks_test: Skip  # Issue dartbug.com/37295
+stacktrace_regress_37910_test: Skip # Issue dartbug.com/37295
 
 [ $arch == arm && $system != android ]
 *: Skip # "hardfp" calling convention is not yet supported (iOS is also supported but not tested): dartbug.com/36309

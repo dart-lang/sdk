@@ -1036,16 +1036,15 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ pushl(EDI);
 
   // Load the thread object.
-  //
+  // Linking in AOT is not relevant here since we don't support AOT for IA32.
   // Create another frame to align the frame before continuing in "native" code.
   // If we were called by a trampoline, it has already loaded the thread.
-  ASSERT(!FLAG_precompiled_mode);  // No relocation for AOT linking.
   if (!NativeCallbackTrampolines::Enabled()) {
     __ EnterFrame(0);
     __ ReserveAlignedFrameSpace(compiler::target::kWordSize);
 
     __ movl(compiler::Address(SPREG, 0), compiler::Immediate(callback_id_));
-    __ movl(EAX, compiler::Immediate(reinterpret_cast<intptr_t>(
+    __ movl(EAX, compiler::Immediate(reinterpret_cast<int64_t>(
                      DLRT_GetThreadForNativeCallback)));
     __ call(EAX);
     __ movl(THR, EAX);

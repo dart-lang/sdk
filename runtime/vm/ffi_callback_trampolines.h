@@ -57,13 +57,11 @@ class NativeCallbackTrampolines : public ValueObject {
 
   // Allocates a callback trampoline corresponding to the callback id
   // 'next_callback_id()'. Returns an entrypoint to the trampoline.
-  void AllocateTrampoline();
-
-  // Get the entrypoint for a previously allocated callback ID.
-  uword TrampolineForId(int32_t callback_id);
+  uword AllocateTrampoline();
 
  private:
   MallocGrowableArray<VirtualMemory*> trampoline_pages_;
+  uword next_callback_trampoline_ = 0;
   intptr_t trampolines_left_on_page_ = 0;
   intptr_t next_callback_id_ = 0;
 

@@ -429,6 +429,88 @@ DEFINE_NATIVE_ENTRY(Ffi_sizeOf, 1, 0) {
   return Integer::New(SizeOf(type_arg));
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_PRECOMPILER) &&        \
+    !defined(TARGET_ARCH_DBC)
+// Generates assembly to trampoline from native code into Dart.
+static uword CompileNativeCallback(const Function& c_signature,
+                                   const Function& dart_target,
+                                   const Instance& exceptional_return) {
+  Thread* const thread = Thread::Current();
+
+  uword entry_point = 0;
+  const int32_t callback_id = thread->AllocateFfiCallbackId(&entry_point);
+  ASSERT(NativeCallbackTrampolines::Enabled() == (entry_point != 0));
+
+  // Create a new Function named 'FfiCallback' and stick it in the 'dart:ffi'
+  // library. Note that these functions will never be invoked by Dart, so it
+  // doesn't matter that they all have the same name.
+  Zone* const Z = thread->zone();
+  const String& name = String::Handle(Symbols::New(thread, "FfiCallback"));
+  const Library& lib = Library::Handle(Z, Library::FfiLibrary());
+  const Class& owner_class = Class::Handle(Z, lib.toplevel_class());
+  const Function& function =
+      Function::Handle(Z, Function::New(name, RawFunction::kFfiTrampoline,
+                                        /*is_static=*/true,
+                                        /*is_const=*/false,
+                                        /*is_abstract=*/false,
+                                        /*is_external=*/false,
+                                        /*is_native=*/false, owner_class,
+                                        TokenPosition::kMinSource));
+  function.set_is_debuggable(false);
+
+  // Set callback-specific fields which the flow-graph builder needs to generate
+  // the body.
+  function.SetFfiCSignature(c_signature);
+  function.SetFfiCallbackId(callback_id);
+  function.SetFfiCallbackTarget(dart_target);
+
+  // We require that the exceptional return value for functions returning 'Void'
+  // must be 'null', since native code should not look at the result.
+  if (compiler::ffi::NativeTypeIsVoid(
+          AbstractType::Handle(c_signature.result_type())) &&
+      !exceptional_return.IsNull()) {
+    Exceptions::ThrowUnsupportedError(
+        "Only 'null' may be used as the exceptional return value for a "
+        "callback returning void.");
+  }
+
+  // We need to load the exceptional return value as a constant in the generated
+  // function. This means we need to ensure that it's in old space and has no
+  // (transitively) mutable fields. This is done by checking (asserting) that
+  // it's a built-in FFI class, whose fields are all immutable, or a
+  // user-defined Pointer class, which has no fields.
+  //
+  // TODO(36730): We'll need to extend this when we support passing/returning
+  // structs by value.
+  ASSERT(exceptional_return.IsNull() || exceptional_return.IsNumber() ||
+         exceptional_return.IsPointer());
+  if (!exceptional_return.IsSmi() && exceptional_return.IsNew()) {
+    function.SetFfiCallbackExceptionalReturn(
+        Instance::Handle(exceptional_return.CopyShallowToOldSpace(thread)));
+  } else {
+    function.SetFfiCallbackExceptionalReturn(exceptional_return);
+  }
+
+  // We compile the callback immediately because we need to return a pointer to
+  // the entry-point. Native calls do not use patching like Dart calls, so we
+  // cannot compile it lazily.
+  const Object& result =
+      Object::Handle(Z, Compiler::CompileOptimizedFunction(thread, function));
+  if (result.IsError()) {
+    Exceptions::PropagateError(Error::Cast(result));
+  }
+  ASSERT(result.IsCode());
+  const Code& code = Code::Cast(result);
+
+  thread->SetFfiCallbackCode(callback_id, code);
+
+  if (entry_point != 0) {
+    return entry_point;
+  } else {
+    return code.EntryPoint();
+  }
+}
+#endif
 
 // Static invocations to this method are translated directly in streaming FGB
 // and bytecode FGB. However, we can still reach this entrypoint in the bytecode
@@ -460,6 +542,80 @@ DEFINE_NATIVE_ENTRY(Ffi_asFunctionInternal, 2, 1) {
   return Closure::New(Object::null_type_arguments(),
                       Object::null_type_arguments(), function, context,
                       Heap::kOld);
+#endif
+}
+
+DEFINE_NATIVE_ENTRY(Ffi_fromFunction, 1, 2) {
+#if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER) ||          \
+    defined(TARGET_ARCH_DBC)
+  // https://github.com/dart-lang/sdk/issues/37295
+  // FFI is supported, but callbacks are not.
+  Exceptions::ThrowUnsupportedError(
+      "FFI callbacks are not yet supported in AOT or on DBC.");
+#else
+  GET_NATIVE_TYPE_ARGUMENT(type_arg, arguments->NativeTypeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Closure, closure, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, exceptional_return,
+                               arguments->NativeArgAt(1));
+
+  if (!type_arg.IsInstantiated() || !type_arg.IsFunctionType()) {
+    // TODO(35902): Remove this when dynamic invocations of fromFunction are
+    // prohibited.
+    Exceptions::ThrowUnsupportedError(
+        "Type argument to fromFunction must an instantiated function type.");
+  }
+
+  const Function& native_signature =
+      Function::Handle(Type::Cast(type_arg).signature());
+  Function& func = Function::Handle(closure.function());
+  TypeArguments& type_args = TypeArguments::Handle(zone);
+  type_args = TypeArguments::New(1);
+  type_args.SetTypeAt(Pointer::kNativeTypeArgPos, type_arg);
+  type_args = type_args.Canonicalize();
+
+  Class& native_function_class =
+      Class::Handle(isolate->class_table()->At(kFfiNativeFunctionCid));
+  const auto& error =
+      Error::Handle(native_function_class.EnsureIsFinalized(Thread::Current()));
+  if (!error.IsNull()) {
+    Exceptions::PropagateError(error);
+  }
+
+  Type& native_function_type = Type::Handle(
+      Type::New(native_function_class, type_args, TokenPosition::kNoSource));
+  native_function_type ^=
+      ClassFinalizer::FinalizeType(Class::Handle(), native_function_type);
+  native_function_type ^= native_function_type.Canonicalize();
+
+  // The FE verifies that the target of a 'fromFunction' is a static method, so
+  // the value we see here must be a static tearoff. See ffi_use_sites.dart for
+  // details.
+  //
+  // TODO(36748): Define hot-reload semantics of native callbacks. We may need
+  // to look up the target by name.
+  ASSERT(func.IsImplicitClosureFunction());
+  func = func.parent_function();
+  ASSERT(func.is_static());
+
+  const AbstractType& return_type =
+      AbstractType::Handle(native_signature.result_type());
+  if (compiler::ffi::NativeTypeIsVoid(return_type)) {
+    if (!exceptional_return.IsNull()) {
+      const String& error = String::Handle(
+          String::NewFormatted("Exceptional return argument to 'fromFunction' "
+                               "must be null for functions returning void."));
+      Exceptions::ThrowArgumentError(error);
+    }
+  } else if (!compiler::ffi::NativeTypeIsPointer(return_type) &&
+             exceptional_return.IsNull()) {
+    const String& error = String::Handle(String::NewFormatted(
+        "Exceptional return argument to 'fromFunction' must not be null."));
+    Exceptions::ThrowArgumentError(error);
+  }
+
+  return Pointer::New(
+      native_function_type,
+      CompileNativeCallback(native_signature, func, exceptional_return));
 #endif
 }
 
@@ -536,8 +692,8 @@ DEFINE_NATIVE_ENTRY(Ffi_asExternalTypedData, 0, 2) {
 
   const auto& typed_data_class =
       Class::Handle(zone, isolate->class_table()->At(cid));
-  const auto& error =
-      Error::Handle(zone, typed_data_class.EnsureIsFinalized(thread));
+  const auto& error = Error::Handle(
+      zone, typed_data_class.EnsureIsFinalized(Thread::Current()));
   if (!error.IsNull()) {
     Exceptions::PropagateError(error);
   }
@@ -545,91 +701,6 @@ DEFINE_NATIVE_ENTRY(Ffi_asExternalTypedData, 0, 2) {
   return ExternalTypedData::New(
       cid, reinterpret_cast<uint8_t*>(pointer.NativeAddress()), element_count,
       Heap::kNew);
-}
-
-DEFINE_NATIVE_ENTRY(Ffi_nativeCallbackFunction, 1, 2) {
-#if defined(TARGET_ARCH_DBC)
-  Exceptions::ThrowUnsupportedError(
-      "FFI callbacks are not yet supported on DBC.");
-#elif defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
-  // Calls to this function are removed by the flow-graph builder in AOT.
-  // See StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction().
-  UNREACHABLE();
-#else
-  GET_NATIVE_TYPE_ARGUMENT(type_arg, arguments->NativeTypeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Closure, closure, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Instance, exceptional_return,
-                               arguments->NativeArgAt(1));
-
-  ASSERT(type_arg.IsInstantiated() && type_arg.IsFunctionType());
-  const Function& native_signature =
-      Function::Handle(zone, Type::Cast(type_arg).signature());
-  Function& func = Function::Handle(zone, closure.function());
-
-  // The FE verifies that the target of a 'fromFunction' is a static method, so
-  // the value we see here must be a static tearoff. See ffi_use_sites.dart for
-  // details.
-  //
-  // TODO(36748): Define hot-reload semantics of native callbacks. We may need
-  // to look up the target by name.
-  ASSERT(func.IsImplicitClosureFunction());
-  func = func.parent_function();
-  ASSERT(func.is_static());
-
-  // We are returning an object which is not an Instance here. This is only OK
-  // because we know that the result will be passed directly to
-  // _pointerFromFunction and will not leak out into user code.
-  arguments->SetReturn(
-      Function::Handle(zone, compiler::ffi::NativeCallbackFunction(
-                                 native_signature, func, exceptional_return)));
-
-  // Because we have already set the return value.
-  return Object::sentinel().raw();
-#endif
-}
-
-DEFINE_NATIVE_ENTRY(Ffi_pointerFromFunction, 1, 1) {
-  GET_NATIVE_TYPE_ARGUMENT(type_arg, arguments->NativeTypeArgAt(0));
-  const Function& function =
-      Function::CheckedHandle(zone, arguments->NativeArg0());
-
-  Code& code = Code::Handle(zone);
-
-#if defined(DART_PRECOMPILED_RUNTIME)
-  code = function.CurrentCode();
-
-  // Blobs snapshots don't support BSS-relative relocations required by native
-  // callbacks (yet). Issue an error if the code has an unpatched relocation.
-  if (!code.VerifyBSSRelocations()) {
-    Exceptions::ThrowUnsupportedError(
-        "FFI callbacks are not yet supported in blobs snapshots. Please use "
-        "ELF or Assembly snapshots instead.");
-  }
-#else
-  // We compile the callback immediately because we need to return a pointer to
-  // the entry-point. Native calls do not use patching like Dart calls, so we
-  // cannot compile it lazily.
-  const Object& result = Object::Handle(
-      zone, Compiler::CompileOptimizedFunction(thread, function));
-  if (result.IsError()) {
-    Exceptions::PropagateError(Error::Cast(result));
-  }
-  ASSERT(result.IsCode());
-  code ^= result.raw();
-#endif
-
-  ASSERT(!code.IsNull());
-  thread->SetFfiCallbackCode(function.FfiCallbackId(), code);
-
-  uword entry_point = code.EntryPoint();
-#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(TARGET_ARCH_DBC)
-  if (NativeCallbackTrampolines::Enabled()) {
-    entry_point = isolate->native_callback_trampolines()->TrampolineForId(
-        function.FfiCallbackId());
-  }
-#endif
-
-  return Pointer::New(type_arg, entry_point);
 }
 
 #if defined(TARGET_ARCH_DBC)
