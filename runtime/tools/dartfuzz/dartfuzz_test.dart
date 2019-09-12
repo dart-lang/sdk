@@ -315,6 +315,13 @@ class DartFuzzTest {
     print('\n${isolate}: done');
     showStatistics();
     print('');
+    if (timeoutSeeds.isNotEmpty) {
+      print('${isolate} timeout: ' + timeoutSeeds.join(", "));
+    }
+    if (skippedSeeds.isNotEmpty) {
+      print('${isolate} skipped: ' + skippedSeeds.join(", "));
+    }
+    print('');
 
     cleanup();
     return numDivergences;
@@ -348,6 +355,8 @@ class DartFuzzTest {
     numRerun = 0;
     numTimeout = 0;
     numDivergences = 0;
+    timeoutSeeds = {};
+    skippedSeeds = {};
   }
 
   bool samePrecision(String mode1, String mode2) =>
@@ -427,10 +436,12 @@ class DartFuzzTest {
         case -sigkill:
           // Both had a time out.
           numTimeout++;
+          timeoutSeeds.add(seed);
           break;
         default:
           // Both had an error.
           numSkipped++;
+          skippedSeeds.add(seed);
           break;
       }
     } else {
@@ -440,6 +451,7 @@ class DartFuzzTest {
         // with at least one time out is treated as a regular time out.
         if (result1.exitCode == -sigkill || result2.exitCode == -sigkill) {
           numTimeout++;
+          timeoutSeeds.add(seed);
           return ReportStatus.ignored;
         }
       }
@@ -531,6 +543,8 @@ class DartFuzzTest {
   int numRerun;
   int numTimeout;
   int numDivergences;
+  Set<int> timeoutSeeds;
+  Set<int> skippedSeeds;
 }
 
 /// Class to start fuzz testing session.
