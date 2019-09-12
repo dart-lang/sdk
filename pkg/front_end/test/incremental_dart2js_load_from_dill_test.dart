@@ -84,7 +84,7 @@ Future<void> testDart2jsCompile() async {
     bool initializeResult = await initializedCompile(
         dart2jsUrl, fullDillFromInitialized, initializeWith, [invalidateUri],
         options: getOptions()..target = new NoneTarget(new TargetFlags()));
-    Expect.equals(initializeResult, initializeExpect);
+    Expect.equals(initializeExpect, initializeResult);
     print("Initialized compile(s) from ${initializeWith.pathSegments.last} "
         "took ${stopwatch.elapsedMilliseconds} ms");
 

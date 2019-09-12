@@ -179,6 +179,12 @@ class CanonicalName {
   void unbind() {
     if (reference == null) return;
     assert(reference.canonicalName == this);
+    if (reference.node is Class) {
+      // TODO(jensj): Get rid of this. This is only needed because pkg:vm does
+      // weird stuff in transformations. `unbind` should probably be private.
+      Class c = reference.node;
+      c.ensureLoaded();
+    }
     reference.canonicalName = null;
     reference = null;
   }

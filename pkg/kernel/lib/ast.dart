@@ -64,6 +64,7 @@
 ///
 library kernel.ast;
 
+import 'dart:collection' show ListBase;
 import 'dart:convert' show utf8;
 
 import 'visitor.dart';
@@ -200,7 +201,38 @@ abstract class Annotatable {
 class Reference {
   CanonicalName canonicalName;
 
-  NamedNode node;
+  NamedNode _node;
+
+  NamedNode get node {
+    if (_node == null) {
+      // Either this is an unbound reference or it belongs to a lazy-loaded
+      // (and not yet loaded) class. If it belongs to a lazy-loaded class,
+      // load the class.
+
+      CanonicalName canonicalNameParent = canonicalName?.parent;
+      while (canonicalNameParent != null) {
+        if (canonicalNameParent.name.startsWith("@")) {
+          break;
+        }
+        canonicalNameParent = canonicalNameParent.parent;
+      }
+      if (canonicalNameParent != null) {
+        NamedNode parentNamedNode =
+            canonicalNameParent?.parent?.reference?._node;
+        if (parentNamedNode is Class) {
+          Class parentClass = parentNamedNode;
+          if (parentClass.lazyBuilder != null) {
+            parentClass.ensureLoaded();
+          }
+        }
+      }
+    }
+    return _node;
+  }
+
+  void set node(NamedNode node) {
+    _node = node;
+  }
 
   String toString() {
     if (canonicalName != null) {
@@ -745,6 +777,41 @@ enum ClassLevel {
   Body,
 }
 
+/// List-wrapper that marks the parent-class as dirty if the list is modified.
+///
+/// The idea being, that for non-dirty classes (classes just loaded from dill)
+/// the canonical names has already been calculated, and recalculating them is
+/// not needed. If, however, we change anything, recalculation of the canonical
+/// names can be needed.
+class DirtifyingList<E> extends ListBase<E> {
+  final Class dirtifyClass;
+  final List<E> wrapped;
+
+  DirtifyingList(this.dirtifyClass, this.wrapped);
+
+  @override
+  int get length {
+    return wrapped.length;
+  }
+
+  @override
+  void set length(int length) {
+    dirtifyClass.dirty = true;
+    wrapped.length = length;
+  }
+
+  @override
+  E operator [](int index) {
+    return wrapped[index];
+  }
+
+  @override
+  void operator []=(int index, E value) {
+    dirtifyClass.dirty = true;
+    wrapped[index] = value;
+  }
+}
+
 /// Declaration of a regular class or a mixin application.
 ///
 /// Mixin applications may not contain fields or procedures, as they implicitly
@@ -885,23 +952,92 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   /// The types from the `implements` clause.
   final List<Supertype> implementedTypes;
 
+  /// Internal. Should *ONLY* be used from within kernel.
+  ///
+  /// If non-null, the function that will have to be called to fill-out the
+  /// content of this class. Note that this should not be called directly though.
+  void Function() lazyBuilder;
+
+  /// Makes sure the class is loaded, i.e. the fields, procedures etc have been
+  /// loaded from the dill. Generally, one should not need to call this as it is
+  /// done automatically when accessing the lists.
+  void ensureLoaded() {
+    if (lazyBuilder != null) {
+      var lazyBuilderLocal = lazyBuilder;
+      lazyBuilder = null;
+      lazyBuilderLocal();
+    }
+  }
+
+  /// Internal. Should *ONLY* be used from within kernel.
+  ///
+  /// Used for adding fields when reading the dill file.
+  final List<Field> fieldsInternal;
+  DirtifyingList<Field> _fieldsView;
+
   /// Fields declared in the class.
   ///
   /// For mixin applications this should be empty.
-  final List<Field> fields;
+  List<Field> get fields {
+    ensureLoaded();
+    // If already dirty the caller just might as well add stuff directly too.
+    if (dirty) return fieldsInternal;
+    _fieldsView ??= new DirtifyingList(this, fieldsInternal);
+    return _fieldsView;
+  }
+
+  /// Internal. Should *ONLY* be used from within kernel.
+  ///
+  /// Used for adding constructors when reading the dill file.
+  final List<Constructor> constructorsInternal;
+  DirtifyingList<Constructor> _constructorsView;
 
   /// Constructors declared in the class.
-  final List<Constructor> constructors;
+  List<Constructor> get constructors {
+    ensureLoaded();
+    // If already dirty the caller just might as well add stuff directly too.
+    if (dirty) return constructorsInternal;
+    _constructorsView ??= new DirtifyingList(this, constructorsInternal);
+    return _constructorsView;
+  }
+
+  /// Internal. Should *ONLY* be used from within kernel.
+  ///
+  /// Used for adding procedures when reading the dill file.
+  final List<Procedure> proceduresInternal;
+  DirtifyingList<Procedure> _proceduresView;
 
   /// Procedures declared in the class.
   ///
   /// For mixin applications this should only contain forwarding stubs.
-  final List<Procedure> procedures;
+  List<Procedure> get procedures {
+    ensureLoaded();
+    // If already dirty the caller just might as well add stuff directly too.
+    if (dirty) return proceduresInternal;
+    _proceduresView ??= new DirtifyingList(this, proceduresInternal);
+    return _proceduresView;
+  }
+
+  /// Internal. Should *ONLY* be used from within kernel.
+  ///
+  /// Used for adding redirecting factory constructor when reading the dill
+  /// file.
+  final List<RedirectingFactoryConstructor>
+      redirectingFactoryConstructorsInternal;
+  DirtifyingList<RedirectingFactoryConstructor>
+      _redirectingFactoryConstructorsView;
 
   /// Redirecting factory constructors declared in the class.
   ///
   /// For mixin applications this should be empty.
-  final List<RedirectingFactoryConstructor> redirectingFactoryConstructors;
+  List<RedirectingFactoryConstructor> get redirectingFactoryConstructors {
+    ensureLoaded();
+    // If already dirty the caller just might as well add stuff directly too.
+    if (dirty) return redirectingFactoryConstructorsInternal;
+    _redirectingFactoryConstructorsView ??=
+        new DirtifyingList(this, redirectingFactoryConstructorsInternal);
+    return _redirectingFactoryConstructorsView;
+  }
 
   Class(
       {this.name,
@@ -919,23 +1055,24 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
       Reference reference})
       : this.typeParameters = typeParameters ?? <TypeParameter>[],
         this.implementedTypes = implementedTypes ?? <Supertype>[],
-        this.fields = fields ?? <Field>[],
-        this.constructors = constructors ?? <Constructor>[],
-        this.procedures = procedures ?? <Procedure>[],
-        this.redirectingFactoryConstructors =
+        this.fieldsInternal = fields ?? <Field>[],
+        this.constructorsInternal = constructors ?? <Constructor>[],
+        this.proceduresInternal = procedures ?? <Procedure>[],
+        this.redirectingFactoryConstructorsInternal =
             redirectingFactoryConstructors ?? <RedirectingFactoryConstructor>[],
         super(reference) {
     setParents(this.typeParameters, this);
-    setParents(this.constructors, this);
-    setParents(this.procedures, this);
-    setParents(this.fields, this);
-    setParents(this.redirectingFactoryConstructors, this);
+    setParents(this.constructorsInternal, this);
+    setParents(this.proceduresInternal, this);
+    setParents(this.fieldsInternal, this);
+    setParents(this.redirectingFactoryConstructorsInternal, this);
     this.isAbstract = isAbstract;
     this.isAnonymousMixin = isAnonymousMixin;
   }
 
   void computeCanonicalNames() {
     assert(canonicalName != null);
+    if (!dirty) return;
     for (int i = 0; i < fields.length; ++i) {
       Field member = fields[i];
       canonicalName.getChildFromMember(member).bindTo(member.reference);
@@ -1008,20 +1145,27 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   /// The library containing this class.
   Library get enclosingLibrary => parent;
 
+  /// Internal. Should *ONLY* be used from within kernel.
+  ///
+  /// If true we have to compute canonical names for all children of this class.
+  /// if false we can skip it.
+  bool dirty = true;
+
   /// Adds a member to this class.
   ///
   /// Throws an error if attempting to add a field or procedure to a mixin
   /// application.
   void addMember(Member member) {
+    dirty = true;
     member.parent = this;
     if (member is Constructor) {
-      constructors.add(member);
+      constructorsInternal.add(member);
     } else if (member is Procedure) {
-      procedures.add(member);
+      proceduresInternal.add(member);
     } else if (member is Field) {
-      fields.add(member);
+      fieldsInternal.add(member);
     } else if (member is RedirectingFactoryConstructor) {
-      redirectingFactoryConstructors.add(member);
+      redirectingFactoryConstructorsInternal.add(member);
     } else {
       throw new ArgumentError(member);
     }
@@ -6326,6 +6470,14 @@ class Component extends TreeNode {
   }
 
   void unbindCanonicalNames() {
+    // TODO(jensj): Get rid of this.
+    for (int i = 0; i < libraries.length; i++) {
+      Library lib = libraries[i];
+      for (int j = 0; j < lib.classes.length; j++) {
+        Class c = lib.classes[j];
+        c.dirty = true;
+      }
+    }
     root.unbindAll();
   }
 

@@ -229,6 +229,8 @@ digests
 dijkstra's
 directed
 directions
+dirtify
+dirtifying
 dirty
 disallow
 disambiguator
@@ -638,6 +640,8 @@ realign
 reassigned
 rebind
 rebuild
+recalculating
+recalculation
 recall
 received
 recompiled

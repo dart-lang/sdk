@@ -839,12 +839,18 @@ Future<List<int>> normalCompileToBytes(Uri input,
 
 Future<Component> normalCompileToComponent(Uri input,
     {CompilerOptions options, IncrementalCompiler compiler}) async {
-  options ??= getOptions();
-  compiler ??= new TestIncrementalCompiler(options, input);
-  Component component = await compiler.computeDelta();
+  Component component =
+      await normalCompilePlain(input, options: options, compiler: compiler);
   util.throwOnEmptyMixinBodies(component);
   util.throwOnInsufficientUriToSource(component);
   return component;
+}
+
+Future<Component> normalCompilePlain(Uri input,
+    {CompilerOptions options, IncrementalCompiler compiler}) async {
+  options ??= getOptions();
+  compiler ??= new TestIncrementalCompiler(options, input);
+  return await compiler.computeDelta();
 }
 
 Future<bool> initializedCompile(

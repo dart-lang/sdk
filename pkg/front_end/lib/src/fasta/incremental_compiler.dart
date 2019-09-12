@@ -717,7 +717,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     if (summaryBytes != null) {
       ticker.logMs("Read ${c.options.sdkSummary}");
       data.component = c.options.target.configureComponent(new Component());
-      new BinaryBuilder(summaryBytes, disableLazyReading: false)
+      new BinaryBuilder(summaryBytes,
+              disableLazyReading: false, disableLazyClassReading: true)
           .readComponent(data.component);
       ticker.logMs("Deserialized ${c.options.sdkSummary}");
       bytesLength += summaryBytes.length;
