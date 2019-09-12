@@ -1629,6 +1629,23 @@ class C {
     await _checkSingleFileChanges(content, expected);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38340')
+  test_is_promotion_implies_non_nullable() async {
+    var content = '''
+bool f(Object o) => o is int && o.isEven;
+main() {
+  f(null);
+}
+''';
+    var expected = '''
+bool f(Object? o) => o is int && o.isEven;
+main() {
+  f(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_local_function() async {
     var content = '''
 int f(int i) {
