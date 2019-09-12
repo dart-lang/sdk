@@ -114,6 +114,7 @@ import 'replace_var_with_dynamic_test.dart' as replace_var_with_dynamic;
 import 'replace_with_brackets_test.dart' as replace_with_brackets;
 import 'replace_with_conditional_assignment_test.dart'
     as replace_with_conditional_assignment;
+import 'replace_with_extension_name_test.dart' as replace_with_extension_name;
 import 'replace_with_identifier_test.dart' as replace_with_identifier;
 import 'replace_with_is_empty_test.dart' as replace_with_is_empty;
 import 'replace_with_is_not_empty_test.dart' as replace_with_is_not_empty;
@@ -228,6 +229,7 @@ main() {
     replace_var_with_dynamic.main();
     replace_with_brackets.main();
     replace_with_conditional_assignment.main();
+    replace_with_extension_name.main();
     replace_with_identifier.main();
     replace_with_is_empty.main();
     replace_with_is_not_empty.main();

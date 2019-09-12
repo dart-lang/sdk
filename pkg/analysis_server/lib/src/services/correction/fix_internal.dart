@@ -562,6 +562,10 @@ class FixProcessor extends BaseProcessor {
     if (errorCode == StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH) {
       await _addFix_addMissingEnumCaseClauses();
     }
+    if (errorCode ==
+        CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER) {
+      await _addFix_replaceWithExtensionName();
+    }
     // lints
     if (errorCode is LintCode) {
       String name = errorCode.name;
@@ -3655,6 +3659,30 @@ class FixProcessor extends BaseProcessor {
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.USE_CONST);
     }
+  }
+
+  Future<void> _addFix_replaceWithExtensionName() async {
+    if (node is! SimpleIdentifier) {
+      return;
+    }
+    AstNode parent = node.parent;
+    AstNode target = null;
+    if (parent is MethodInvocation && node == parent.methodName) {
+      target = parent.target;
+    } else if (parent is PropertyAccess && node == parent.propertyName) {
+      target = parent.target;
+    }
+    if (target is! ExtensionOverride) {
+      return;
+    }
+    ExtensionOverride override = target;
+    var changeBuilder = _newDartChangeBuilder();
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      builder.addSimpleReplacement(
+          range.node(override), utils.getNodeText(override.extensionName));
+    });
+    _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_WITH_EXTENSION_NAME,
+        args: [override.extensionName.name]);
   }
 
   Future<void> _addFix_replaceWithIdentifier() async {

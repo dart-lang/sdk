@@ -344,6 +344,8 @@ class DartFixKind {
       const FixKind('REPLACE_WITH_BRACKETS', 50, "Replace with { }");
   static const REPLACE_WITH_CONDITIONAL_ASSIGNMENT = const FixKind(
       'REPLACE_WITH_CONDITIONAL_ASSIGNMENT', 50, "Replace with ??=");
+  static const REPLACE_WITH_EXTENSION_NAME =
+      const FixKind('REPLACE_WITH_EXTENSION_NAME', 50, "Replace with '{0}'");
   static const REPLACE_WITH_IDENTIFIER =
       const FixKind('REPLACE_WITH_IDENTIFIER', 50, "Replace with identifier");
   static const REPLACE_WITH_IS_EMPTY =
