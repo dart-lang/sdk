@@ -140,7 +140,11 @@ class AssistProcessor extends BaseProcessor {
     await _addProposal_reparentFlutterList();
     await _addProposal_replaceConditionalWithIfElse();
     await _addProposal_replaceIfElseWithConditional();
-    await _addProposal_sortChildPropertyLast();
+    if (!_containsErrorCode(
+      {LintNames.sort_child_properties_last},
+    )) {
+      await _addProposal_sortChildPropertyLast();
+    }
     await _addProposal_splitAndCondition();
     await _addProposal_splitVariableDeclaration();
     await _addProposal_surroundWith();
@@ -2732,42 +2736,7 @@ class AssistProcessor extends BaseProcessor {
   }
 
   Future<void> _addProposal_sortChildPropertyLast() async {
-    NamedExpression childProp = flutter.findNamedExpression(node, 'child');
-    if (childProp == null) {
-      childProp = flutter.findNamedExpression(node, 'children');
-    }
-    if (childProp == null) {
-      return;
-    }
-
-    var parent = childProp.parent?.parent;
-    if (parent is! InstanceCreationExpression ||
-        !flutter.isWidgetCreation(parent)) {
-      return;
-    }
-
-    InstanceCreationExpression creationExpression = parent;
-    var args = creationExpression.argumentList;
-
-    var last = args.arguments.last;
-    if (last == childProp) {
-      // Already sorted.
-      return;
-    }
-
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      var start = childProp.beginToken.previous.end;
-      var end = childProp.endToken.next.end;
-      var childRange = range.startOffsetEndOffset(start, end);
-
-      var childText = utils.getRangeText(childRange);
-      builder.addSimpleReplacement(childRange, '');
-      builder.addSimpleInsertion(last.end + 1, childText);
-
-      changeBuilder.setSelection(new Position(file, last.end + 1));
-    });
-
+    final changeBuilder = await createBuilder_sortChildPropertyLast();
     _addAssistFromBuilder(
         changeBuilder, DartAssistKind.SORT_CHILD_PROPERTY_LAST);
   }

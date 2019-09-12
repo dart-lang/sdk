@@ -17,6 +17,7 @@ import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
@@ -856,6 +857,46 @@ abstract class BaseProcessor {
       }
       builder.addDeletion(range.node(invocation));
     });
+    return changeBuilder;
+  }
+
+  Future<ChangeBuilder> createBuilder_sortChildPropertyLast() async {
+    NamedExpression childProp = flutter.findNamedExpression(node, 'child');
+    if (childProp == null) {
+      childProp = flutter.findNamedExpression(node, 'children');
+    }
+    if (childProp == null) {
+      return null;
+    }
+
+    var parent = childProp.parent?.parent;
+    if (parent is! InstanceCreationExpression ||
+        !flutter.isWidgetCreation(parent)) {
+      return null;
+    }
+
+    InstanceCreationExpression creationExpression = parent;
+    var args = creationExpression.argumentList;
+
+    var last = args.arguments.last;
+    if (last == childProp) {
+      // Already sorted.
+      return null;
+    }
+
+    var changeBuilder = _newDartChangeBuilder();
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      var start = childProp.beginToken.previous.end;
+      var end = childProp.endToken.next.end;
+      var childRange = range.startOffsetEndOffset(start, end);
+
+      var childText = utils.getRangeText(childRange);
+      builder.addSimpleReplacement(childRange, '');
+      builder.addSimpleInsertion(last.end + 1, childText);
+
+      changeBuilder.setSelection(new Position(file, last.end + 1));
+    });
+
     return changeBuilder;
   }
 

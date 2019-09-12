@@ -189,11 +189,7 @@ class DartAssistKind {
   static const SORT_CHILD_PROPERTY_LAST = const AssistKind(
       'dart.assist.sort.child.properties.last',
       30,
-      "Move child property to end of arguments",
-      // todo (pq): migrate to (conditional) fix
-      associatedErrorCodes: <String>[
-        'sort_child_properties_last',
-      ]);
+      "Move child property to end of arguments");
   static const SPLIT_AND_CONDITION = const AssistKind(
       'dart.assist.splitIfConjunction', 30, "Split && condition");
   static const SPLIT_VARIABLE_DECLARATION = const AssistKind(

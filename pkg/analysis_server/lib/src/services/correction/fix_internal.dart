@@ -671,6 +671,9 @@ class FixProcessor extends BaseProcessor {
       if (name == LintNames.prefer_spread_collections) {
         await _addFix_convertAddAllToSpread();
       }
+      if (name == LintNames.sort_child_properties_last) {
+        await _addFix_sortChildPropertiesLast();
+      }
       if (name == LintNames.type_init_formals) {
         await _addFix_removeTypeAnnotation();
       }
@@ -3796,6 +3799,11 @@ class FixProcessor extends BaseProcessor {
         await addFixOfExpression(expression.unParenthesized);
       }
     }
+  }
+
+  Future<void> _addFix_sortChildPropertiesLast() async {
+    final changeBuilder = await createBuilder_sortChildPropertyLast();
+    _addFixFromBuilder(changeBuilder, DartFixKind.SORT_CHILD_PROPERTY_LAST);
   }
 
   Future<void> _addFix_undefinedClass_useSimilar() async {

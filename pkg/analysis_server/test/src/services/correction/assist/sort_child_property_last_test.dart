@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/assist.dart';
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -96,5 +97,25 @@ main() {
 }
 ''');
     assertExitPosition(after: "],");
+  }
+
+  test_sort_noAssistWithLint() async {
+    addFlutterPackage();
+    createAnalysisOptionsFile(lints: [LintNames.sort_child_properties_last]);
+    verifyNoTestUnitErrors = false;
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+main() {
+  Column(
+    /*caret*/children: <Widget>[
+      Text('aaa'),
+      Text('bbbbbb'),
+      Text('ccccccccc'),
+    ],
+    crossAxisAlignment: CrossAxisAlignment.center,
+  );
+}
+''');
+    await assertNoAssist();
   }
 }
