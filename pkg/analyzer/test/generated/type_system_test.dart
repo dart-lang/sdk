@@ -13,14 +13,12 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/token.dart' show KeywordToken;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart'
     show NonExistingSource, UriKind;
 import 'package:analyzer/src/generated/testing/element_factory.dart';
-import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' show toUri;
@@ -55,6 +53,8 @@ abstract class AbstractTypeSystemTest {
 
   InterfaceType get functionType => typeProvider.functionType;
 
+  InterfaceType get futureOrType => typeProvider.futureOrType;
+
   InterfaceType get intType => typeProvider.intType;
 
   InterfaceType get iterableType => typeProvider.iterableType;
@@ -71,11 +71,18 @@ abstract class AbstractTypeSystemTest {
 
   InterfaceType get stringType => typeProvider.stringType;
 
+  FeatureSet get testFeatureSet {
+    return FeatureSet.forTesting();
+  }
+
   DartType get voidType => VoidTypeImpl.instance;
 
   void setUp() {
-    typeProvider = new TestTypeProvider();
-    typeSystem = new Dart2TypeSystem(typeProvider);
+    var analysisContext = TestAnalysisContext(
+      featureSet: testFeatureSet,
+    );
+    typeProvider = analysisContext.typeProvider;
+    typeSystem = analysisContext.typeSystem;
   }
 }
 
@@ -348,43 +355,16 @@ class AssignabilityTest extends AbstractTypeSystemTest {
 /**
  * Base class for testing LUB and GLB in spec and strong mode.
  */
-abstract class BoundTestBase {
-  TypeProvider typeProvider;
-  Dart2TypeSystem typeSystem;
+abstract class BoundTestBase extends AbstractTypeSystemTest {
   FunctionType simpleFunctionType;
 
-  DartType get bottomType => typeProvider.bottomType;
-
-  InterfaceType get doubleType => typeProvider.doubleType;
-
-  DartType get dynamicType => typeProvider.dynamicType;
-
-  InterfaceType get functionType => typeProvider.functionType;
-
-  InterfaceType get futureOrType => typeProvider.futureOrType;
-
-  InterfaceType get intType => typeProvider.intType;
-
-  InterfaceType get iterableType => typeProvider.iterableType;
-
-  InterfaceType get listType => typeProvider.listType;
-
-  InterfaceType get nullType => typeProvider.nullType;
-
-  InterfaceType get numType => typeProvider.numType;
-
-  InterfaceType get objectType => typeProvider.objectType;
-
-  InterfaceType get stringType => typeProvider.stringType;
-
-  DartType get voidType => VoidTypeImpl.instance;
-
   void setUp() {
-    var analysisContext = TestAnalysisContext();
-    typeProvider = analysisContext.typeProvider;
-    var simpleFunctionElement =
-        ElementFactory.genericTypeAliasElement('A', returnType: voidType);
-    simpleFunctionType = simpleFunctionElement.type;
+    super.setUp();
+    simpleFunctionType = FunctionTypeImpl.synthetic(
+      voidType,
+      const <TypeParameterElement>[],
+      const <ParameterElement>[],
+    );
   }
 
   void _checkGreatestLowerBound(
@@ -501,24 +481,8 @@ abstract class BoundTestBase {
 }
 
 @reflectiveTest
-class ConstraintMatchingTest {
-  TypeProvider typeProvider;
-  TypeSystem typeSystem;
+class ConstraintMatchingTest extends AbstractTypeSystemTest {
   TypeParameterType T;
-
-  DartType get dynamicType => DynamicTypeImpl.instance;
-
-  InterfaceType get functionType => typeProvider.functionType;
-
-  InterfaceType get intType => typeProvider.intType;
-
-  InterfaceType get nullType => typeProvider.nullType;
-
-  InterfaceType get objectType => typeProvider.objectType;
-
-  InterfaceType get stringType => typeProvider.stringType;
-
-  DartType get voidType => VoidTypeImpl.instance;
 
   DartType fn(DartType paramType, DartType returnType) =>
       new FunctionElementImpl.synthetic([
@@ -536,9 +500,7 @@ class ConstraintMatchingTest {
   DartType list(DartType T) => typeProvider.listType.instantiate([T]);
 
   void setUp() {
-    var analysisContext = TestAnalysisContext();
-    typeProvider = analysisContext.typeProvider;
-    typeSystem = analysisContext.typeSystem;
+    super.setUp();
     T = _newTypeParameter('T');
   }
 
@@ -1159,11 +1121,6 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
 
 @reflectiveTest
 class GreatestLowerBoundTest extends BoundTestBase {
-  void setUp() {
-    super.setUp();
-    typeSystem = new Dart2TypeSystem(typeProvider);
-  }
-
   void test_bottom_function() {
     _checkGreatestLowerBound(bottomType, simpleFunctionType, bottomType);
   }
@@ -1557,11 +1514,6 @@ class GreatestLowerBoundTest extends BoundTestBase {
 
 @reflectiveTest
 class LeastUpperBoundFunctionsTest extends BoundTestBase {
-  void setUp() {
-    super.setUp();
-    typeSystem = new Dart2TypeSystem(typeProvider);
-  }
-
   void test_differentRequiredArity() {
     var type1 = _functionType(required: [intType, intType]);
     var type2 = _functionType(required: [intType, intType, intType]);
@@ -1726,11 +1678,6 @@ class LeastUpperBoundFunctionsTest extends BoundTestBase {
 
 @reflectiveTest
 class LeastUpperBoundTest extends BoundTestBase {
-  void setUp() {
-    super.setUp();
-    typeSystem = new Dart2TypeSystem(typeProvider);
-  }
-
   void test_bottom_function() {
     _checkLeastUpperBound(bottomType, simpleFunctionType, simpleFunctionType);
   }
@@ -2396,24 +2343,9 @@ class LeastUpperBoundTest extends BoundTestBase {
 @reflectiveTest
 class NonNullableSubtypingTest extends SubtypingTestBase {
   @override
-  void setUp() {
-    typeProvider = TestAnalysisContext(
-      featureSet: FeatureSet.forTesting(
-        additionalFeatures: [Feature.non_nullable],
-      ),
-    ).typeProvider;
-
-    // TypeSystem should use the context type provider.
-    typeSystem = new Dart2TypeSystem(typeProvider);
-
-    LibraryElement coreLibrary = typeProvider.objectType.element.library;
-    LibraryElement asyncLibrary = typeProvider.streamType.element.library;
-
-    // Get a non-nullable type provider for convience during the test.
-    typeProvider = TypeProviderImpl(
-      coreLibrary,
-      asyncLibrary,
-      nullabilitySuffix: NullabilitySuffix.none,
+  FeatureSet get testFeatureSet {
+    return FeatureSet.forTesting(
+      additionalFeatures: [Feature.non_nullable],
     );
   }
 
@@ -2926,40 +2858,7 @@ class SubtypingTest extends SubtypingTestBase {
   }
 }
 
-class SubtypingTestBase {
-  TypeProvider typeProvider;
-  TypeSystem typeSystem;
-
-  DartType get bottomType => typeProvider.bottomType;
-
-  InterfaceType get doubleType => typeProvider.doubleType;
-
-  DartType get dynamicType => typeProvider.dynamicType;
-
-  InterfaceType get functionType => typeProvider.functionType;
-
-  InterfaceType get futureOrType => typeProvider.futureOrType;
-
-  InterfaceType get intType => typeProvider.intType;
-
-  InterfaceType get listType => typeProvider.listType;
-
-  DartType get nullType => typeProvider.nullType;
-
-  InterfaceType get numType => typeProvider.numType;
-
-  InterfaceType get objectType => typeProvider.objectType;
-
-  InterfaceType get stringType => typeProvider.stringType;
-
-  DartType get voidType => VoidTypeImpl.instance;
-
-  void setUp() {
-    var analysisContext = TestAnalysisContext();
-    typeProvider = analysisContext.typeProvider;
-    typeSystem = analysisContext.typeSystem;
-  }
-
+class SubtypingTestBase extends AbstractTypeSystemTest {
   void _checkEquivalent(DartType type1, DartType type2) {
     _checkIsSubtypeOf(type1, type2);
     _checkIsSubtypeOf(type2, type1);

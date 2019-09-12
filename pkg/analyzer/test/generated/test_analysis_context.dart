@@ -15,7 +15,7 @@ class TestAnalysisContext implements AnalysisContext {
   final SourceFactory sourceFactory = _MockSourceFactory();
 
   AnalysisOptions _analysisOptions;
-  TypeProvider _typeProvider;
+  TypeProviderImpl _typeProvider;
   TypeSystem _typeSystem;
 
   TestAnalysisContext({FeatureSet featureSet}) {
@@ -33,6 +33,11 @@ class TestAnalysisContext implements AnalysisContext {
       sdkElements.coreLibrary,
       sdkElements.asyncLibrary,
     );
+
+    if (_analysisOptions.contextFeatures.isEnabled(Feature.non_nullable)) {
+      _typeProvider = _typeProvider.withNullability(NullabilitySuffix.none);
+    }
+
     _typeSystem = Dart2TypeSystem(typeProvider);
   }
 
