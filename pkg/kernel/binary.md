@@ -143,7 +143,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 31;
+  UInt32 formatVersion = 32;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
   UriSource sourceMap;
@@ -228,7 +228,7 @@ type Name {
 }
 
 type Library {
-  Byte flags (isExternal, isSynthetic);
+  Byte flags (isExternal, isSynthetic, isNonNullableOptedIn);
   UInt languageVersionMajor;
   UInt languageVersionMinor;
   CanonicalNameReference canonicalName;

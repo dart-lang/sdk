@@ -330,6 +330,7 @@ class Library extends NamedNode
 
   static const int ExternalFlag = 1 << 0;
   static const int SyntheticFlag = 1 << 1;
+  static const int NonNullableOptedInFlag = 1 << 2;
 
   int flags = 0;
 
@@ -352,6 +353,13 @@ class Library extends NamedNode
   bool get isSynthetic => flags & SyntheticFlag != 0;
   void set isSynthetic(bool value) {
     flags = value ? (flags | SyntheticFlag) : (flags & ~SyntheticFlag);
+  }
+
+  bool get isNonNullableOptedIn => (flags & NonNullableOptedInFlag) != 0;
+  void set isNonNullableOptedIn(bool value) {
+    flags = value
+        ? (flags | NonNullableOptedInFlag)
+        : (flags & ~NonNullableOptedInFlag);
   }
 
   String name;
