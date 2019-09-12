@@ -1249,6 +1249,12 @@ SuperNullAware:
   tip: "Try replacing '?.' with '.'"
   analyzerCode: ParserErrorCode.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER
 
+NullAwareCascadeOutOfOrder:
+  index: 96
+  template: "The '?..' cascade operator must be first in the cascade sequence."
+  tip: "Try moving the '?..' operator to be the first cascade operator in the sequence."
+  analyzerCode: ParserErrorCode.NULL_AWARE_CASCADE_OUT_OF_ORDER
+
 ConstFieldWithoutInitializer:
   template: "The const variable '#name' must be initialized."
   tip: "Try adding an initializer ('= <expression>') to the declaration."

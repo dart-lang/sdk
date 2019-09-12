@@ -7656,6 +7656,19 @@ Message _withArgumentsNotConstantExpression(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNullAwareCascadeOutOfOrder =
+    messageNullAwareCascadeOutOfOrder;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNullAwareCascadeOutOfOrder = const MessageCode(
+    "NullAwareCascadeOutOfOrder",
+    index: 96,
+    message:
+        r"""The '?..' cascade operator must be first in the cascade sequence.""",
+    tip:
+        r"""Try moving the '?..' operator to be the first cascade operator in the sequence.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeObjectExtends = messageObjectExtends;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

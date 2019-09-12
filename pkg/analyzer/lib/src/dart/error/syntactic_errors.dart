@@ -652,6 +652,9 @@ class ParserErrorCode extends ErrorCode {
           correction:
               "Try moving all of the normal parameters before the optional parameters.");
 
+  static const ErrorCode NULL_AWARE_CASCADE_OUT_OF_ORDER =
+      _NULL_AWARE_CASCADE_OUT_OF_ORDER;
+
   static const ParserErrorCode POSITIONAL_AFTER_NAMED_ARGUMENT =
       const ParserErrorCode('POSITIONAL_AFTER_NAMED_ARGUMENT',
           "Positional arguments must occur before named arguments.",
