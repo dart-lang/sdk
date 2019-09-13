@@ -564,18 +564,23 @@ class StandardTestSuite extends TestSuite {
   /// options.
   void _testCasesFromTestFile(
       TestFile testFile, ExpectationSet expectations, TestCaseEvent onTest) {
-    // Static error tests are currently skipped on every implementation except
-    // analyzer and Fasta.
+    // Static error tests are skipped on every implementation except analyzer
+    // and Fasta.
     // TODO(rnystrom): Should other configurations that use CFE support static
     // error tests?
     // TODO(rnystrom): Skipping this here is a little unusual because most
-    // skips are handled in enqueueStandardTest(). However, if the configuration
-    // is running on browser, calling enqueueStandardTest() will try to create
+    // skips are handled in _addTestCase(). However, if the configuration
+    // is running on a browser, calling _addTestCase() will try to create
     // a set of commands which ultimately causes an exception in
     // DummyRuntimeConfiguration. This avoids that.
     if (testFile.isStaticErrorTest &&
         configuration.compiler != Compiler.dart2analyzer &&
         configuration.compiler != Compiler.fasta) {
+      return;
+    }
+
+    // The configuration must support everything the test needs.
+    if (!configuration.supportedFeatures.containsAll(testFile.requirements)) {
       return;
     }
 

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'dart:io';
 
+import 'feature.dart';
 import 'path.dart';
 import 'static_error.dart';
 
@@ -23,20 +24,28 @@ final _packagesRegExp = RegExp(r"// Packages=(.*)");
 List<String> _splitWords(String s) =>
     s.split(' ').where((e) => e != '').toList();
 
-List<String> _parseOption(String filePath, String contents, String name,
+List<T> _parseOption<T>(
+    String filePath, String contents, String name, T Function(String) convert,
     {bool allowMultiple = false}) {
   var matches = RegExp('// $name=(.*)').allMatches(contents);
   if (!allowMultiple && matches.length > 1) {
     throw Exception('More than one "// $name=" line in test $filePath');
   }
 
-  var options = <String>[];
+  var options = <T>[];
   for (var match in matches) {
-    options.addAll(_splitWords(match[1]));
+    for (var option in _splitWords(match[1])) {
+      options.add(convert(option));
+    }
   }
 
   return options;
 }
+
+List<String> _parseStringOption(String filePath, String contents, String name,
+        {bool allowMultiple = false}) =>
+    _parseOption<String>(filePath, contents, name, (string) => string,
+        allowMultiple: allowMultiple);
 
 abstract class _TestFileBase {
   /// The test suite directory containing this test.
@@ -164,6 +173,7 @@ class TestFile extends _TestFileBase {
       Path suiteDirectory, String filePath, String contents) {
     if (filePath.endsWith('.dill')) {
       return TestFile._(suiteDirectory, Path(filePath), [],
+          requirements: [],
           vmOptions: [[]],
           sharedOptions: [],
           dart2jsOptions: [],
@@ -183,6 +193,16 @@ class TestFile extends _TestFileBase {
           otherResources: []);
     }
 
+    // Required features.
+    var requirements =
+        _parseOption<Feature>(filePath, contents, 'Requirements', (name) {
+      for (var feature in Feature.all) {
+        if (feature.name == name) return feature;
+      }
+
+      throw FormatException('Unknown feature "$name" in test $filePath');
+    });
+
     // VM options.
     var vmOptions = <List<String>>[];
     var matches = _vmOptionsRegExp.allMatches(contents);
@@ -192,14 +212,16 @@ class TestFile extends _TestFileBase {
     if (vmOptions.isEmpty) vmOptions.add(<String>[]);
 
     // Other options.
-    var dartOptions = _parseOption(filePath, contents, 'DartOptions');
-    var sharedOptions = _parseOption(filePath, contents, 'SharedOptions');
-    var dart2jsOptions = _parseOption(filePath, contents, 'dart2jsOptions');
-    var ddcOptions = _parseOption(filePath, contents, 'dartdevcOptions');
-    var otherResources =
-        _parseOption(filePath, contents, 'OtherResources', allowMultiple: true);
-    var sharedObjects =
-        _parseOption(filePath, contents, 'SharedObjects', allowMultiple: true);
+    var dartOptions = _parseStringOption(filePath, contents, 'DartOptions');
+    var sharedOptions = _parseStringOption(filePath, contents, 'SharedOptions');
+    var dart2jsOptions =
+        _parseStringOption(filePath, contents, 'dart2jsOptions');
+    var ddcOptions = _parseStringOption(filePath, contents, 'dartdevcOptions');
+    var otherResources = _parseStringOption(
+        filePath, contents, 'OtherResources',
+        allowMultiple: true);
+    var sharedObjects = _parseStringOption(filePath, contents, 'SharedObjects',
+        allowMultiple: true);
 
     // Environment.
     Map<String, String> environment;
@@ -304,6 +326,7 @@ class TestFile extends _TestFileBase {
         hasStaticWarning: contents.contains("@static-warning"),
         hasCrash: false,
         subtestNames: subtestNames,
+        requirements: requirements,
         sharedOptions: sharedOptions,
         dartOptions: dartOptions,
         dart2jsOptions: dart2jsOptions,
@@ -326,6 +349,7 @@ class TestFile extends _TestFileBase {
         isMultitest = false,
         isMultiHtmlTest = false,
         subtestNames = [],
+        requirements = [],
         sharedOptions = [],
         dartOptions = [],
         dart2jsOptions = [],
@@ -347,6 +371,7 @@ class TestFile extends _TestFileBase {
       this.hasStaticWarning,
       this.hasCrash,
       this.subtestNames,
+      this.requirements,
       this.sharedOptions,
       this.dartOptions,
       this.dart2jsOptions,
@@ -376,6 +401,14 @@ class TestFile extends _TestFileBase {
   final bool hasCrash;
 
   final List<String> subtestNames;
+
+  /// The features that a test configuration must support in order to run this
+  /// test.
+  ///
+  /// If the current configuration does not support one or more of these
+  /// requirements, the test is implicitly skipped.
+  final List<Feature> requirements;
+
   final List<String> sharedOptions;
   final List<String> dartOptions;
   final List<String> dart2jsOptions;
@@ -410,6 +443,7 @@ class TestFile extends _TestFileBase {
   hasStaticWarning: $hasStaticWarning
   hasCrash: $hasCrash
   subtestNames: $subtestNames
+  requirements: $requirements
   sharedOptions: $sharedOptions
   dartOptions: $dartOptions
   dart2jsOptions: $dart2jsOptions
@@ -449,6 +483,7 @@ class _MultitestFile extends _TestFileBase implements TestFile {
   String get packageRoot => _origin.packageRoot;
   String get packages => _origin.packages;
 
+  List<Feature> get requirements => _origin.requirements;
   List<String> get dart2jsOptions => _origin.dart2jsOptions;
   List<String> get dartOptions => _origin.dartOptions;
   List<String> get ddcOptions => _origin.ddcOptions;
