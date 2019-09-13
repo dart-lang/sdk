@@ -1805,8 +1805,8 @@ class InferenceVisitor
       }
     }
     ExpressionInferenceResult result = inferrer.inferMethodInvocation(
-        node, node.receiver, node.fileOffset, node._isImplicitCall, typeContext,
-        desugaredInvocation: node);
+        node, node.receiver, node.fileOffset, typeContext, node,
+        isImplicitCall: node._isImplicitCall);
     return new ExpressionInferenceResult(
         result.inferredType, result.replacement);
   }
@@ -1835,9 +1835,13 @@ class InferenceVisitor
   ExpressionInferenceResult visitNullAwareMethodInvocation(
       NullAwareMethodInvocation node, DartType typeContext) {
     ExpressionInferenceResult result = inferrer.inferMethodInvocation(
-        node, node.variable.initializer, node.fileOffset, false, typeContext,
-        receiverVariable: node.variable,
-        desugaredInvocation: node._desugaredInvocation);
+        node,
+        node.variable.initializer,
+        node.fileOffset,
+        typeContext,
+        node._desugaredInvocation,
+        nullAwareReceiverVariable: node.variable,
+        isImplicitCall: false);
     node.body.staticType = result.inferredType;
     Expression replacement = node.replace();
     return new ExpressionInferenceResult(result.inferredType, replacement);
@@ -2151,13 +2155,12 @@ class InferenceVisitor
       inferrer.instrumentation?.record(inferrer.uri, node.fileOffset, 'target',
           new InstrumentationValueForMember(node.interfaceTarget));
     }
-    ExpressionInferenceResult result = inferrer.inferMethodInvocation(
-        node, null, node.fileOffset, false, typeContext,
-        target: node.interfaceTarget != null
+    ExpressionInferenceResult result = inferrer.inferSuperMethodInvocation(
+        node,
+        typeContext,
+        node.interfaceTarget != null
             ? new ObjectAccessTarget.interfaceMember(node.interfaceTarget)
-            : const ObjectAccessTarget.unresolved(),
-        methodName: node.name,
-        arguments: node.arguments);
+            : const ObjectAccessTarget.unresolved());
     return new ExpressionInferenceResult(result.inferredType);
   }
 

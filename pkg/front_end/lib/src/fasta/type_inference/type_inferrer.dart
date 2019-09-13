@@ -1971,15 +1971,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       kernel.Expression expression,
       kernel.Expression receiver,
       int fileOffset,
-      bool isImplicitCall,
       DartType typeContext,
-      {VariableDeclaration receiverVariable,
-      MethodInvocation desugaredInvocation,
-      ObjectAccessTarget target,
-      Name methodName,
-      Arguments arguments}) {
-    assert(desugaredInvocation == null || target == null);
-    assert(desugaredInvocation != null || target != null);
+      MethodInvocation methodInvocation,
+      {VariableDeclaration nullAwareReceiverVariable,
+      bool isImplicitCall}) {
     // First infer the receiver so we can look up the method that was invoked.
     DartType receiverType;
     if (receiver == null) {
@@ -1989,20 +1984,17 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           inferExpression(receiver, const UnknownType(), true);
       receiverType = result.inferredType;
     }
-    receiverVariable?.type = receiverType;
-    if (desugaredInvocation != null) {
-      target = findMethodInvocationMember(receiverType, desugaredInvocation);
-      methodName = desugaredInvocation.name;
-      arguments = desugaredInvocation.arguments;
-    }
+    nullAwareReceiverVariable?.type = receiverType;
+    ObjectAccessTarget target =
+        findMethodInvocationMember(receiverType, methodInvocation);
+    Name methodName = methodInvocation.name;
+    Arguments arguments = methodInvocation.arguments;
     assert(
         target != null,
         "No target for ${expression} with desugared "
-        "invocation ${desugaredInvocation}.");
-    bool isOverloadedArithmeticOperator = target.isInstanceMember &&
-        target.member is Procedure &&
-        typeSchemaEnvironment.isOverloadedArithmeticOperatorAndType(
-            target.member, receiverType);
+        "invocation ${methodInvocation}.");
+    bool isOverloadedArithmeticOperator =
+        _isOverloadedArithmeticOperatorAndType(target, receiverType);
     DartType calleeType = getGetterType(target, receiverType);
     FunctionType functionType =
         getFunctionType(target, receiverType, !isImplicitCall);
@@ -2021,7 +2013,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         receiver,
         receiverType,
         target,
-        desugaredInvocation,
+        methodInvocation,
         arguments,
         expression);
     StaticInvocation replacement;
@@ -2038,7 +2030,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     if (methodName.name == '==') {
       inferredType = coreTypes.boolClass.rawType;
     }
-    handleInvocationContravariance(checkKind, desugaredInvocation, arguments,
+    handleInvocationContravariance(checkKind, methodInvocation, arguments,
         expression, inferredType, functionType, fileOffset);
     if (isImplicitCall && target.isInstanceMember) {
       Member member = target.member;
@@ -2051,7 +2043,19 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         parent?.replaceChild(expression, errorNode);
       }
     }
+    _checkBoundsInMethodInvocation(
+        target, receiverType, calleeType, methodName, arguments, fileOffset);
 
+    return new ExpressionInferenceResult(inferredType, replacement);
+  }
+
+  void _checkBoundsInMethodInvocation(
+      ObjectAccessTarget target,
+      DartType receiverType,
+      DartType calleeType,
+      Name methodName,
+      Arguments arguments,
+      int fileOffset) {
     // If [arguments] were inferred, check them.
     // TODO(dmitryas): Figure out why [library] is sometimes null? Answer:
     // because top level inference never got a library. This has changed so
@@ -2088,8 +2092,52 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           fileOffset,
           inferred: getExplicitTypeArguments(arguments) == null);
     }
+  }
 
-    return new ExpressionInferenceResult(inferredType, replacement);
+  bool _isOverloadedArithmeticOperatorAndType(
+      ObjectAccessTarget target, DartType receiverType) {
+    return target.isInstanceMember &&
+        target.member is Procedure &&
+        typeSchemaEnvironment.isOverloadedArithmeticOperatorAndType(
+            target.member, receiverType);
+  }
+
+  /// Performs the core type inference algorithm for super method invocations.
+  ExpressionInferenceResult inferSuperMethodInvocation(
+      kernel.SuperMethodInvocation expression,
+      DartType typeContext,
+      ObjectAccessTarget target) {
+    int fileOffset = expression.fileOffset;
+    Name methodName = expression.name;
+    Arguments arguments = expression.arguments;
+    DartType receiverType = thisType;
+    bool isOverloadedArithmeticOperator =
+        _isOverloadedArithmeticOperatorAndType(target, receiverType);
+    DartType calleeType = getGetterType(target, receiverType);
+    FunctionType functionType = getFunctionType(target, receiverType, true);
+
+    if (!target.isUnresolved &&
+        calleeType is! DynamicType &&
+        calleeType != coreTypes.functionClass.rawType &&
+        identical(functionType, unknownFunction)) {
+      TreeNode parent = expression.parent;
+      kernel.Expression error = helper.wrapInProblem(expression,
+          templateInvokeNonFunction.withArguments(methodName.name), noLength);
+      parent?.replaceChild(expression, error);
+      return const ExpressionInferenceResult(const DynamicType());
+    }
+    DartType inferredType = inferInvocation(typeContext, fileOffset,
+        functionType, functionType.returnType, arguments,
+        isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
+        receiverType: receiverType,
+        isImplicitExtensionMember: target.isExtensionMember);
+    if (methodName.name == '==') {
+      inferredType = coreTypes.boolClass.rawType;
+    }
+    _checkBoundsInMethodInvocation(
+        target, receiverType, calleeType, methodName, arguments, fileOffset);
+
+    return new ExpressionInferenceResult(inferredType);
   }
 
   @override
