@@ -53,8 +53,6 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   Forest get forest;
 
-  bool get legacyMode;
-
   Constructor lookupConstructor(Name name, {bool isSuper});
 
   Expression toValue(node);

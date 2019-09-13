@@ -1040,8 +1040,7 @@ abstract class ClassBuilder extends DeclarationBuilder {
                         interfaceMember.fileOffset, noLength)
               ] +
               inheritedContext(isInterfaceCheck, declaredMember));
-    } else if (!library.loader.target.backendTarget.legacyMode &&
-        declaredFunction?.typeParameters != null) {
+    } else if (declaredFunction?.typeParameters != null) {
       Map<TypeParameter, DartType> substitutionMap =
           <TypeParameter, DartType>{};
       for (int i = 0; i < declaredFunction.typeParameters.length; ++i) {
@@ -1109,8 +1108,6 @@ abstract class ClassBuilder extends DeclarationBuilder {
       VariableDeclaration declaredParameter,
       bool isInterfaceCheck,
       {bool asIfDeclaredParameter = false}) {
-    if (library.loader.target.backendTarget.legacyMode) return;
-
     if (interfaceSubstitution != null) {
       interfaceType = interfaceSubstitution.substituteType(interfaceType);
     }

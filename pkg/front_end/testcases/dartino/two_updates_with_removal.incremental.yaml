@@ -14,13 +14,9 @@ main.dart.patch: |
   foo() {
     print("Hello, Brave New World!");
   }
-  ==== "threw"
+  ==== {"messages":[],"hasCompileTimeError":1}
   >>>>
 
   main() {
-    try {
-      foo();
-    } catch (e) {
-      print("threw");
-    }
+    foo();
   }

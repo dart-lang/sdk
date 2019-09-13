@@ -91,9 +91,7 @@ class FieldBuilder extends MemberBuilder {
   }
 
   bool get isEligibleForInference {
-    return !library.legacyMode &&
-        type == null &&
-        (hasInitializer || isClassInstanceMember);
+    return type == null && (hasInitializer || isClassInstanceMember);
   }
 
   Field build(SourceLibraryBuilder libraryBuilder) {

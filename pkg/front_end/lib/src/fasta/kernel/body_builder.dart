@@ -171,9 +171,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   final TypePromoter typePromoter;
 
-  @override
-  final bool legacyMode;
-
   /// Only used when [member] is a constructor. It tracks if an implicit super
   /// initializer is needed.
   ///
@@ -292,7 +289,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         needsImplicitSuperInitializer = declarationBuilder is ClassBuilder &&
             coreTypes?.objectClass != declarationBuilder.cls,
         typePromoter = typeInferrer?.typePromoter,
-        legacyMode = libraryBuilder.legacyMode,
         super(enclosingScope);
 
   BodyBuilder.withParents(FieldBuilder field, SourceLibraryBuilder part,
@@ -351,8 +347,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   TypeEnvironment get typeEnvironment => typeInferrer?.typeSchemaEnvironment;
 
-  DartType get implicitTypeArgument =>
-      legacyMode ? const DynamicType() : const ImplicitTypeArgument();
+  DartType get implicitTypeArgument => const ImplicitTypeArgument();
 
   @override
   void push(Object node) {
@@ -820,15 +815,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
     // For async, async*, and sync* functions with declared return types, we
     // need to determine whether those types are valid.
-    // TODO(hillerstrom): currently, we need to check whether [legacyMode] is
-    // enabled for two reasons:
-    // 1) the [isSubtypeOf] predicate produces false-negatives when
-    // [legacyMode] is enabled.
-    // 2) the member [typeEnvironment] might be null when [legacyMode] is
-    // enabled.
-    // This particular behavior can be observed when running the fasta perf
-    // benchmarks.
-    if (!legacyMode && builder.returnType != null) {
+    if (builder.returnType != null) {
       DartType returnType = builder.function.returnType;
       // We use the same trick in each case below. For example to decide whether
       // Future<T> <: [returnType] for every T, we rely on Future<Bot> and
@@ -1013,7 +1000,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       Expression replacementNode;
 
       RedirectionTarget redirectionTarget =
-          getRedirectionTarget(initialTarget, this, legacyMode: legacyMode);
+          getRedirectionTarget(initialTarget, this);
       Member resolvedTarget = redirectionTarget?.target;
 
       if (resolvedTarget == null) {
@@ -1632,20 +1619,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             .withLocation(uri, charOffset, length);
       }
     }
-    if (legacyMode && constantContext == ConstantContext.none) {
-      addProblem(message.messageObject, message.charOffset, message.length,
-          wasHandled: true, context: context);
-      return forest.createThrow(
-          null,
-          libraryBuilder.loader.instantiateNoSuchMethodError(
-              receiver, name, arguments, charOffset,
-              isMethod: !isGetter && !isSetter,
-              isGetter: isGetter,
-              isSetter: isSetter,
-              isStatic: isStatic,
-              isTopLevel: !isStatic && !isSuper))
-        ..fileOffset = charOffset;
-    }
     return desugarSyntheticExpression(buildProblem(
         message.messageObject, message.charOffset, message.length,
         context: context));
@@ -2072,15 +2045,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void handleLiteralInt(Token token) {
     debugEvent("LiteralInt");
     int value = int.tryParse(token.lexeme);
-    if (legacyMode) {
-      if (value == null) {
-        push(unhandled(
-            'large integer', 'handleLiteralInt', token.charOffset, uri));
-      } else {
-        push(forest.createIntLiteral(value, token));
-      }
-      return;
-    }
     // Postpone parsing of literals resulting in a negative value
     // (hex literals >= 2^63). These are only allowed when not negated.
     if (value == null || value < 0) {
@@ -2552,10 +2516,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         typeArgument = const InvalidType();
       } else {
         typeArgument = buildDartType(typeArguments.single);
-        if (!legacyMode) {
-          typeArgument =
-              instantiateToBounds(typeArgument, coreTypes.objectClass);
-        }
+        typeArgument = instantiateToBounds(typeArgument, coreTypes.objectClass);
       }
     } else {
       typeArgument = implicitTypeArgument;
@@ -2578,9 +2539,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     DartType typeArgument;
     if (typeArguments != null) {
       typeArgument = buildDartType(typeArguments.single);
-      if (!libraryBuilder.loader.target.legacyMode) {
-        typeArgument = instantiateToBounds(typeArgument, coreTypes.objectClass);
-      }
+      typeArgument = instantiateToBounds(typeArgument, coreTypes.objectClass);
     } else {
       typeArgument = implicitTypeArgument;
     }
@@ -2708,10 +2667,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       } else {
         keyType = buildDartType(typeArguments[0]);
         valueType = buildDartType(typeArguments[1]);
-        if (!legacyMode) {
-          keyType = instantiateToBounds(keyType, coreTypes.objectClass);
-          valueType = instantiateToBounds(valueType, coreTypes.objectClass);
-        }
+        keyType = instantiateToBounds(keyType, coreTypes.objectClass);
+        valueType = instantiateToBounds(valueType, coreTypes.objectClass);
       }
     } else {
       DartType implicitTypeArgument = this.implicitTypeArgument;
@@ -3463,25 +3420,23 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       int charLength: noLength}) {
     // The argument checks for the initial target of redirecting factories
     // invocations are skipped in Dart 1.
-    if (!legacyMode || !isRedirectingFactory(target, helper: this)) {
-      List<TypeParameter> typeParameters = target.function.typeParameters;
-      if (target is Constructor) {
-        assert(!target.enclosingClass.isAbstract);
-        typeParameters = target.enclosingClass.typeParameters;
-      }
-      LocatedMessage argMessage = checkArgumentsForFunction(
-          target.function, arguments, charOffset, typeParameters);
-      if (argMessage != null) {
-        return wrapSyntheticExpression(
-            throwNoSuchMethodError(
-                forest.createNullLiteral(null)..fileOffset = charOffset,
-                target.name.name,
-                arguments,
-                charOffset,
-                candidate: target,
-                message: argMessage),
-            charOffset);
-      }
+    List<TypeParameter> typeParameters = target.function.typeParameters;
+    if (target is Constructor) {
+      assert(!target.enclosingClass.isAbstract);
+      typeParameters = target.enclosingClass.typeParameters;
+    }
+    LocatedMessage argMessage = checkArgumentsForFunction(
+        target.function, arguments, charOffset, typeParameters);
+    if (argMessage != null) {
+      return wrapSyntheticExpression(
+          throwNoSuchMethodError(
+              forest.createNullLiteral(null)..fileOffset = charOffset,
+              target.name.name,
+              arguments,
+              charOffset,
+              candidate: target,
+              message: argMessage),
+          charOffset);
     }
 
     bool isConst = constness == Constness.explicitConst;
@@ -3594,12 +3549,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (typeParameters.length != types.length) {
       if (types.length == 0) {
         // Expected `typeParameters.length` type arguments, but none given, so
-        // we fill in dynamic in legacy mode, and use type inference otherwise.
-        if (legacyMode) {
-          for (int i = 0; i < typeParameters.length; i++) {
-            types.add(const DynamicType());
-          }
-        }
+        // we use type inference.
       } else {
         // A wrong (non-zero) amount of type arguments given. That's an error.
         // TODO(jensj): Position should be on type arguments instead.
@@ -3813,31 +3763,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           (target is Procedure && target.kind == ProcedureKind.Factory)) {
         Expression invocation;
 
-        if (legacyMode && isRedirectingFactory(target, helper: this)) {
-          // In legacy mode the checks that are done in [buildStaticInvocation]
-          // on the initial target of a redirecting factory invocation should
-          // be skipped. So we build the invocation nodes directly here without
-          // doing any checks.
-          if (target.function.typeParameters != null &&
-              target.function.typeParameters.length !=
-                  forest.argumentsTypeArguments(arguments).length) {
-            arguments = forest.createArguments(
-                noLocation, forest.argumentsPositional(arguments),
-                named: forest.argumentsNamed(arguments),
-                types: new List<DartType>.filled(
-                    target.function.typeParameters.length, const DynamicType(),
-                    growable: true));
-          }
-          invocation = new FactoryConstructorInvocationJudgment(
-              target, arguments,
-              isConst: constness == Constness.explicitConst)
-            ..fileOffset = nameToken.charOffset;
-        } else {
-          invocation = buildStaticInvocation(target, arguments,
-              constness: constness,
-              charOffset: nameToken.charOffset,
-              charLength: nameToken.length);
-        }
+        invocation = buildStaticInvocation(target, arguments,
+            constness: constness,
+            charOffset: nameToken.charOffset,
+            charLength: nameToken.length);
 
         if (invocation is StaticInvocation &&
             isRedirectingFactory(target, helper: this)) {
@@ -4203,24 +4132,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         typeParameters, asyncModifier, body, token.charOffset)
       ..fileOffset = beginToken.charOffset;
 
-    if (libraryBuilder.legacyMode && asyncModifier != AsyncMarker.Sync) {
-      DartType returnType;
-      switch (asyncModifier) {
-        case AsyncMarker.Async:
-          returnType = coreTypes.futureClass.rawType;
-          break;
-        case AsyncMarker.AsyncStar:
-          returnType = coreTypes.streamClass.rawType;
-          break;
-        case AsyncMarker.SyncStar:
-          returnType = coreTypes.iterableClass.rawType;
-          break;
-        default:
-          returnType = const DynamicType();
-          break;
-      }
-      function.returnType = returnType;
-    }
     if (constantContext != ConstantContext.none) {
       push(buildProblem(fasta.messageNotAConstantExpression, formals.charOffset,
           formals.length));
@@ -4867,32 +4778,19 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     // Peek to leave type parameters on top of stack.
     List<TypeVariableBuilder> typeVariables = peek();
 
-    if (!legacyMode) {
-      List<TypeBuilder> calculatedBounds = calculateBounds(
-          typeVariables,
-          libraryBuilder.loader.target.dynamicType,
-          libraryBuilder.loader.target.bottomType,
-          libraryBuilder.loader.target.objectClassBuilder);
-      for (int i = 0; i < typeVariables.length; ++i) {
-        typeVariables[i].defaultType = calculatedBounds[i];
-        typeVariables[i].defaultType.resolveIn(
-            scope,
-            typeVariables[i].charOffset,
-            typeVariables[i].fileUri,
-            libraryBuilder);
-        typeVariables[i].finish(
-            libraryBuilder,
-            libraryBuilder.loader.target.objectClassBuilder,
-            libraryBuilder.loader.target.dynamicType);
-      }
-    } else {
-      for (int i = 0; i < typeVariables.length; ++i) {
-        typeVariables[i].defaultType = libraryBuilder.loader.target.dynamicType;
-        typeVariables[i].finish(
-            libraryBuilder,
-            libraryBuilder.loader.target.objectClassBuilder,
-            libraryBuilder.loader.target.dynamicType);
-      }
+    List<TypeBuilder> calculatedBounds = calculateBounds(
+        typeVariables,
+        libraryBuilder.loader.target.dynamicType,
+        libraryBuilder.loader.target.bottomType,
+        libraryBuilder.loader.target.objectClassBuilder);
+    for (int i = 0; i < typeVariables.length; ++i) {
+      typeVariables[i].defaultType = calculatedBounds[i];
+      typeVariables[i].defaultType.resolveIn(scope, typeVariables[i].charOffset,
+          typeVariables[i].fileUri, libraryBuilder);
+      typeVariables[i].finish(
+          libraryBuilder,
+          libraryBuilder.loader.target.objectClassBuilder,
+          libraryBuilder.loader.target.dynamicType);
     }
   }
 
@@ -4941,8 +4839,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       {List<LocatedMessage> context}) {
     int charOffset = forest.readOffset(expression);
     Severity severity = message.code.severity;
-    if (severity == Severity.error ||
-        severity == Severity.errorLegacyWarning && !legacyMode) {
+    if (severity == Severity.error || severity == Severity.errorLegacyWarning) {
       return wrapInLocatedProblem(
           expression, message.withLocation(uri, charOffset, length),
           context: context);
@@ -5122,8 +5019,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
                   ..fileOffset = assignmentOffset))
           ..fileOffset = assignmentOffset;
       } else {
-        if (!legacyMode &&
-            formalType != null &&
+        if (formalType != null &&
             !typeEnvironment.isSubtypeOf(formalType, builder.field.type)) {
           libraryBuilder.addProblem(
               fasta.templateInitializingFormalTypeMismatch
@@ -5441,14 +5337,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   Expression wrapSyntheticExpression(Expression desugared, int charOffset) {
-    if (legacyMode) return desugared;
     return shadow.SyntheticWrapper.wrapSyntheticExpression(desugared)
       ..fileOffset = charOffset;
   }
 
   @override
   Expression desugarSyntheticExpression(Expression node) {
-    if (legacyMode) return node;
     shadow.SyntheticExpressionJudgment shadowNode = node;
     return shadowNode.desugared;
   }
@@ -5456,7 +5350,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   Expression wrapInvalidConstructorInvocation(Expression desugared,
       Member constructor, Arguments arguments, int charOffset) {
-    if (legacyMode) return desugared;
     return shadow.SyntheticWrapper.wrapInvalidConstructorInvocation(
         desugared, constructor, arguments)
       ..fileOffset = charOffset;
@@ -5465,7 +5358,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   Expression wrapInvalidWrite(
       Expression desugared, Expression expression, int charOffset) {
-    if (legacyMode) return desugared;
     return shadow.SyntheticWrapper.wrapInvalidWrite(desugared, expression)
       ..fileOffset = charOffset;
   }
@@ -5473,7 +5365,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   Expression wrapUnresolvedTargetInvocation(
       Expression desugared, Arguments arguments, int charOffset) {
-    if (legacyMode) return desugared;
     return shadow.SyntheticWrapper.wrapUnresolvedTargetInvocation(
         desugared, arguments)
       ..fileOffset = charOffset;
@@ -5482,7 +5373,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   Expression wrapUnresolvedVariableAssignment(
       Expression desugared, bool isCompound, Expression rhs, int charOffset) {
-    if (legacyMode) return desugared;
     return shadow.SyntheticWrapper.wrapUnresolvedVariableAssignment(
         desugared, isCompound, rhs)
       ..fileOffset = charOffset;

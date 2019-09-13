@@ -60,8 +60,6 @@ abstract class LibraryBuilder extends ModifierBuilder {
         exportScopeBuilder = new ScopeBuilder(exportScope),
         super(null, -1, fileUri);
 
-  bool get legacyMode => false;
-
   bool get isSynthetic => false;
 
   // Deliberately unrelated return type to statically detect more accidental

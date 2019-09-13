@@ -298,8 +298,6 @@ class ProcessedOptions {
   /// effect.
   void clearFileSystemCache() => _fileSystem = null;
 
-  bool get legacyMode => _raw.legacyMode;
-
   /// Whether to generate bytecode.
   bool get bytecode => _raw.bytecode;
 
@@ -312,8 +310,8 @@ class ProcessedOptions {
   String get currentSdkVersion => _raw.currentSdkVersion;
 
   Target _target;
-  Target get target => _target ??=
-      _raw.target ?? new NoneTarget(new TargetFlags(legacyMode: legacyMode));
+  Target get target =>
+      _target ??= _raw.target ?? new NoneTarget(new TargetFlags());
 
   bool isExperimentEnabled(ExperimentalFlag flag) {
     assert(defaultExperimentalFlags.containsKey(flag),
@@ -646,7 +644,6 @@ class ProcessedOptions {
         '(provided: ${_raw.librariesSpecificationUri})');
     sb.writeln('SDK summary: ${_sdkSummary} (provided: ${_raw.sdkSummary})');
 
-    sb.writeln('Legacy mode: ${legacyMode}');
     sb.writeln('Target: ${_target?.name} (provided: ${_raw.target?.name})');
 
     sb.writeln('throwOnErrorsForDebugging: ${throwOnErrorsForDebugging}');

@@ -11,12 +11,9 @@ main.dart.patch: |
       print('v1');
     }
   }
-  ==== "v2"
+  ==== {"messages":[],"hasCompileTimeError":1}
   >>>>
   main() {
-    try {
-      C.m();
-    } catch (e) {
-      print('v2');
-    }
+    C.m();
+    print('v2');
   }

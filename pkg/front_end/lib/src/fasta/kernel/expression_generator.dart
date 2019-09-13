@@ -353,7 +353,7 @@ abstract class Generator {
 
   Expression _finish(
       Expression body, ComplexAssignmentJudgment complexAssignment) {
-    if (!_helper.legacyMode && complexAssignment != null) {
+    if (complexAssignment != null) {
       complexAssignment.desugared = body;
       return complexAssignment;
     } else {
@@ -858,7 +858,6 @@ class NullAwarePropertyAccessGenerator extends Generator {
       ..fileOffset = fileOffset;
     if (complexAssignment != null) {
       body = makeLet(receiver, nullAwareGuard);
-      if (_helper.legacyMode) return body;
       PropertyAssignmentJudgment kernelPropertyAssign = complexAssignment;
       kernelPropertyAssign.nullAwareGuard = nullAwareGuard;
       kernelPropertyAssign.desugared = body;

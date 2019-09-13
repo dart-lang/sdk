@@ -549,7 +549,6 @@ class ProcedureBuilder extends FunctionBuilder {
   }
 
   bool get isEligibleForTopLevelInference {
-    if (library.legacyMode) return false;
     if (isDeclarationInstanceMember) {
       if (returnType == null) return true;
       if (formals != null) {
@@ -864,7 +863,6 @@ class ConstructorBuilder extends FunctionBuilder {
   }
 
   bool get isEligibleForTopLevelInference {
-    if (library.legacyMode) return false;
     if (formals != null) {
       for (FormalParameterBuilder formal in formals) {
         if (formal.type == null && formal.isInitializingFormal) return true;

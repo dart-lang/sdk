@@ -21,9 +21,6 @@ class DevCompilerTarget extends Target {
   WidgetCreatorTracker _widgetTracker;
 
   @override
-  bool get legacyMode => false;
-
-  @override
   bool get enableSuperMixins => true;
 
   @override

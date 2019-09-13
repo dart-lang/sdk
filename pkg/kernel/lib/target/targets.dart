@@ -10,10 +10,9 @@ import '../core_types.dart';
 final List<String> targetNames = targets.keys.toList();
 
 class TargetFlags {
-  final bool legacyMode;
   final bool trackWidgetCreation;
 
-  TargetFlags({this.legacyMode = false, this.trackWidgetCreation = false});
+  TargetFlags({this.trackWidgetCreation = false});
 }
 
 typedef Target _TargetBuilder(TargetFlags flags);
@@ -111,8 +110,6 @@ abstract class Target {
   /// Classes from the SDK whose interface is required for the modular
   /// transformations.
   Map<String, List<String>> get requiredSdkClasses => CoreTypes.requiredClasses;
-
-  bool get legacyMode;
 
   /// A derived class may change this to `true` to enable forwarders to
   /// user-defined `noSuchMethod` that are generated for each abstract member
@@ -274,7 +271,6 @@ class NoneTarget extends Target {
 
   NoneTarget(this.flags);
 
-  bool get legacyMode => flags.legacyMode;
   String get name => 'none';
   List<String> get extraRequiredLibraries => <String>[];
   void performModularTransformationsOnLibraries(

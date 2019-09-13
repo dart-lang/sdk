@@ -7,6 +7,7 @@ library fasta.severity;
 enum Severity {
   context,
   error,
+  // TODO(johnniwinther): Remove legacy warning.
   errorLegacyWarning,
   ignored,
   internalProblem,

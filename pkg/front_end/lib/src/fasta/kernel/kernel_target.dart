@@ -132,8 +132,6 @@ class KernelTarget extends TargetImplementation {
   final TypeBuilder bottomType =
       new NamedTypeBuilder("Null", const NullabilityBuilder.nullable(), null);
 
-  bool get legacyMode => backendTarget.legacyMode;
-
   final bool excludeSource = !CompilerContext.current.options.embedSourceText;
 
   final Map<String, String> environmentDefines =
@@ -268,7 +266,6 @@ class KernelTarget extends TargetImplementation {
           loader.checkSemantics(objectClassBuilder);
       loader.finishTypeVariables(objectClassBuilder, dynamicType);
       loader.buildComponent();
-      loader.finalizeInitializingFormals();
       installDefaultSupertypes();
       installSyntheticConstructors(myClasses);
       loader.resolveConstructors();

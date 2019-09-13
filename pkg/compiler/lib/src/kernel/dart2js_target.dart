@@ -51,10 +51,7 @@ class Dart2jsTarget extends Target {
   Dart2jsTarget(this.name, this.flags);
 
   @override
-  bool get legacyMode => flags.legacyMode;
-
-  @override
-  bool get enableNoSuchMethodForwarders => !flags.legacyMode;
+  bool get enableNoSuchMethodForwarders => true;
 
   @override
   List<String> get extraRequiredLibraries => _requiredLibraries[name];

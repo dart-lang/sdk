@@ -12,9 +12,8 @@ main.dart.patch: |
   }
   >>>>
   main() {
-    try {
+  <<<<
+  ====
       foo();
-    } catch(e) {
-      print('threw');
-    }
+  >>>>
   }
