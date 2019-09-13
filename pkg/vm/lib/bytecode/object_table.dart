@@ -6,7 +6,6 @@ library vm.bytecode.object_table;
 
 import 'package:kernel/ast.dart' hide MapEntry;
 import 'package:kernel/core_types.dart' show CoreTypes;
-import 'package:kernel/type_algebra.dart' show getFreshTypeParameters;
 
 import 'bytecode_serialization.dart'
     show
@@ -2060,27 +2059,8 @@ class _NodeVisitor extends Visitor<ObjectHandle> {
         .getOrAddObject(new _TypeParameterHandle(parentHandle, indexInParent));
   }
 
-  /// This is a workaround to <https://github.com/dart-lang/sdk/issues/37536>.
-  /// TODO(37536): remove this workaround once the issue is fixed.
-  ///
-  /// In certain cases, front-end produces function types with type parameters
-  /// which already belong to a closure. This results in the incorrect
-  /// canonicalization of types.
-  ///
-  /// This method corrects FunctionType by creating fresh type parameters.
-  FunctionType _fixTypeParameters(FunctionType type) {
-    for (var typeParam in type.typeParameters) {
-      if (typeParam.parent != null) {
-        final fresh = getFreshTypeParameters(type.typeParameters);
-        return fresh.applyToFunctionType(type);
-      }
-    }
-    return type;
-  }
-
   @override
   ObjectHandle visitFunctionType(FunctionType node) {
-    node = _fixTypeParameters(node);
     final int numEnclosingTypeParameters = _typeParameters.length;
     for (int i = 0; i < node.typeParameters.length; ++i) {
       _typeParameters[node.typeParameters[i]] = objectTable.getOrAddObject(
