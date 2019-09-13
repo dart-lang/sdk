@@ -717,6 +717,86 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "changing the import to not be deferred.");
 
   /**
+   * 16.12.2 Const: An expression of one of the forms !e, e1 && e2 or e1 || e2,
+   * where e, e1 and e2 are constant expressions that evaluate to a boolean
+   * value.
+   */
+  static const CompileTimeErrorCode CONST_EVAL_TYPE_BOOL =
+      const CompileTimeErrorCode(
+          'CONST_EVAL_TYPE_BOOL',
+          "In constant expressions, operands of this operator must be of type "
+              "'bool'.");
+
+  /**
+   * 16.12.2 Const: An expression of one of the forms !e, e1 && e2 or e1 || e2,
+   * where e, e1 and e2 are constant expressions that evaluate to a boolean
+   * value.
+   */
+  static const CompileTimeErrorCode CONST_EVAL_TYPE_BOOL_INT =
+      const CompileTimeErrorCode(
+          'CONST_EVAL_TYPE_BOOL_INT',
+          "In constant expressions, operands of this operator must be of type "
+              "'bool' or 'int'.");
+
+  /**
+   * 16.12.2 Const: An expression of one of the forms e1 == e2 or e1 != e2 where
+   * e1 and e2 are constant expressions that evaluate to a numeric, string or
+   * boolean value or to null.
+   */
+  static const CompileTimeErrorCode CONST_EVAL_TYPE_BOOL_NUM_STRING =
+      const CompileTimeErrorCode(
+          'CONST_EVAL_TYPE_BOOL_NUM_STRING',
+          "In constant expressions, operands of this operator must be of type "
+              "'bool', 'num', 'String' or 'null'.");
+
+  /**
+   * 16.12.2 Const: An expression of one of the forms ~e, e1 ^ e2, e1 & e2,
+   * e1 | e2, e1 >> e2 or e1 << e2, where e, e1 and e2 are constant expressions
+   * that evaluate to an integer value or to null.
+   */
+  static const CompileTimeErrorCode CONST_EVAL_TYPE_INT =
+      const CompileTimeErrorCode(
+          'CONST_EVAL_TYPE_INT',
+          "In constant expressions, operands of this operator must be of type "
+              "'int'.");
+
+  /**
+   * 16.12.2 Const: An expression of one of the forms e, e1 + e2, e1 - e2, e1 *
+   * e2, e1 / e2, e1 ~/ e2, e1 > e2, e1 < e2, e1 >= e2, e1 <= e2 or e1 % e2,
+   * where e, e1 and e2 are constant expressions that evaluate to a numeric
+   * value or to null.
+   */
+  static const CompileTimeErrorCode CONST_EVAL_TYPE_NUM =
+      const CompileTimeErrorCode(
+          'CONST_EVAL_TYPE_NUM',
+          "In constant expressions, operands of this operator must be of type "
+              "'num'.");
+
+  static const CompileTimeErrorCode CONST_EVAL_TYPE_TYPE =
+      const CompileTimeErrorCode(
+          'CONST_EVAL_TYPE_TYPE',
+          "In constant expressions, operands of this operator must be of type "
+              "'Type'.");
+
+  /**
+   * 16.12.2 Const: It is a compile-time error if evaluation of a constant
+   * object results in an uncaught exception being thrown.
+   */
+  static const CompileTimeErrorCode CONST_EVAL_THROWS_EXCEPTION =
+      const CompileTimeErrorCode('CONST_EVAL_THROWS_EXCEPTION',
+          "Evaluation of this constant expression throws an exception.");
+
+  /**
+   * 16.12.2 Const: It is a compile-time error if evaluation of a constant
+   * object results in an uncaught exception being thrown.
+   */
+  static const CompileTimeErrorCode CONST_EVAL_THROWS_IDBZE =
+      const CompileTimeErrorCode(
+          'CONST_EVAL_THROWS_IDBZE',
+          "Evaluation of this constant expression throws an "
+              "IntegerDivisionByZeroException.");
+
+  /**
    * 6.2 Formal Parameters: It is a compile-time error if a formal parameter is
    * declared as a constant variable.
    */
@@ -796,14 +876,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try declaring the field as final, or adding the keyword "
               "'static'.");
 
-  static const CompileTimeErrorCode CONST_SPREAD_EXPECTED_LIST_OR_SET =
-      const CompileTimeErrorCode('CONST_SPREAD_EXPECTED_LIST_OR_SET',
-          "A list or a set is expected in this spread.");
-
-  static const CompileTimeErrorCode CONST_SPREAD_EXPECTED_MAP =
-      const CompileTimeErrorCode(
-          'CONST_SPREAD_EXPECTED_MAP', "A map is expected in this spread.");
-
   /**
    * 12.8 Maps: It is a compile-time error if the key of an entry in a constant
    * map literal is an instance of a class that implements the operator
@@ -845,85 +917,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try using a different value for the element, or "
               "removing the keyword 'const' from the set.");
 
-  /**
-   * 16.12.2 Const: An expression of one of the forms !e, e1 && e2 or e1 || e2,
-   * where e, e1 and e2 are constant expressions that evaluate to a boolean
-   * value.
-   */
-  static const CompileTimeErrorCode CONST_EVAL_TYPE_BOOL =
-      const CompileTimeErrorCode(
-          'CONST_EVAL_TYPE_BOOL',
-          "In constant expressions, operands of this operator must be of type "
-              "'bool'.");
+  static const CompileTimeErrorCode CONST_SPREAD_EXPECTED_LIST_OR_SET =
+      const CompileTimeErrorCode('CONST_SPREAD_EXPECTED_LIST_OR_SET',
+          "A list or a set is expected in this spread.");
 
-  /**
-   * 16.12.2 Const: An expression of one of the forms !e, e1 && e2 or e1 || e2,
-   * where e, e1 and e2 are constant expressions that evaluate to a boolean
-   * value.
-   */
-  static const CompileTimeErrorCode CONST_EVAL_TYPE_BOOL_INT =
+  static const CompileTimeErrorCode CONST_SPREAD_EXPECTED_MAP =
       const CompileTimeErrorCode(
-          'CONST_EVAL_TYPE_BOOL_INT',
-          "In constant expressions, operands of this operator must be of type "
-              "'bool' or 'int'.");
-
-  /**
-   * 16.12.2 Const: An expression of one of the forms e1 == e2 or e1 != e2 where
-   * e1 and e2 are constant expressions that evaluate to a numeric, string or
-   * boolean value or to null.
-   */
-  static const CompileTimeErrorCode CONST_EVAL_TYPE_BOOL_NUM_STRING =
-      const CompileTimeErrorCode(
-          'CONST_EVAL_TYPE_BOOL_NUM_STRING',
-          "In constant expressions, operands of this operator must be of type "
-              "'bool', 'num', 'String' or 'null'.");
-
-  /**
-   * 16.12.2 Const: An expression of one of the forms ~e, e1 ^ e2, e1 & e2,
-   * e1 | e2, e1 >> e2 or e1 << e2, where e, e1 and e2 are constant expressions
-   * that evaluate to an integer value or to null.
-   */
-  static const CompileTimeErrorCode CONST_EVAL_TYPE_INT =
-      const CompileTimeErrorCode(
-          'CONST_EVAL_TYPE_INT',
-          "In constant expressions, operands of this operator must be of type "
-              "'int'.");
-
-  /**
-   * 16.12.2 Const: An expression of one of the forms e, e1 + e2, e1 - e2, e1 *
-   * e2, e1 / e2, e1 ~/ e2, e1 > e2, e1 < e2, e1 >= e2, e1 <= e2 or e1 % e2,
-   * where e, e1 and e2 are constant expressions that evaluate to a numeric
-   * value or to null.
-   */
-  static const CompileTimeErrorCode CONST_EVAL_TYPE_NUM =
-      const CompileTimeErrorCode(
-          'CONST_EVAL_TYPE_NUM',
-          "In constant expressions, operands of this operator must be of type "
-              "'num'.");
-
-  static const CompileTimeErrorCode CONST_EVAL_TYPE_TYPE =
-      const CompileTimeErrorCode(
-          'CONST_EVAL_TYPE_TYPE',
-          "In constant expressions, operands of this operator must be of type "
-              "'Type'.");
-
-  /**
-   * 16.12.2 Const: It is a compile-time error if evaluation of a constant
-   * object results in an uncaught exception being thrown.
-   */
-  static const CompileTimeErrorCode CONST_EVAL_THROWS_EXCEPTION =
-      const CompileTimeErrorCode('CONST_EVAL_THROWS_EXCEPTION',
-          "Evaluation of this constant expression throws an exception.");
-
-  /**
-   * 16.12.2 Const: It is a compile-time error if evaluation of a constant
-   * object results in an uncaught exception being thrown.
-   */
-  static const CompileTimeErrorCode CONST_EVAL_THROWS_IDBZE =
-      const CompileTimeErrorCode(
-          'CONST_EVAL_THROWS_IDBZE',
-          "Evaluation of this constant expression throws an "
-              "IntegerDivisionByZeroException.");
+          'CONST_SPREAD_EXPECTED_MAP', "A map is expected in this spread.");
 
   /**
    * 16.12.2 Const: If <i>T</i> is a parameterized type <i>S&lt;U<sub>1</sub>,
@@ -1024,15 +1024,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try calling a different constructor.");
 
   /**
-   * 15.3.1 Typedef: It is a compile-time error if any default values are
-   * specified in the signature of a function type alias.
-   */
-  static const CompileTimeErrorCode DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS =
-      const CompileTimeErrorCode('DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS',
-          "Default parameter values aren't allowed in typedefs.",
-          correction: "Try removing the default value.");
-
-  /**
    * It is an error to call the default List constructor with a length argument
    * and a type argument which is potentially non-nullable.
    */
@@ -1042,6 +1033,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "A list whose values can't be 'null' can't be given an initial "
               "length because the initial values would all be 'null'.",
           correction: "Try removing the argument or using 'List.filled'.");
+
+  /**
+   * 15.3.1 Typedef: It is a compile-time error if any default values are
+   * specified in the signature of a function type alias.
+   */
+  static const CompileTimeErrorCode DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS =
+      const CompileTimeErrorCode('DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS',
+          "Default parameter values aren't allowed in typedefs.",
+          correction: "Try removing the default value.");
 
   /**
    * 6.2.1 Required Formals: By means of a function signature that names the
@@ -1172,6 +1172,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "parameter.");
 
   /**
+   * 16.11 Sets: It is a compile-time error if two elements of a constant set
+   * literal are equal according to their `==` operator (16.27).
+   */
+  static const CompileTimeErrorCode EQUAL_ELEMENTS_IN_CONST_SET =
+      const CompileTimeErrorCode('EQUAL_ELEMENTS_IN_CONST_SET',
+          "Two values in a constant set can't be equal.");
+
+  /**
    * No parameters.
    */
   // #### Description
@@ -1207,14 +1215,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "Two keys in a constant map literal can't be equal.",
           correction: "Change or remove the duplicate key.",
           hasPublishedDocs: true);
-
-  /**
-   * 16.11 Sets: It is a compile-time error if two elements of a constant set
-   * literal are equal according to their `==` operator (16.27).
-   */
-  static const CompileTimeErrorCode EQUAL_ELEMENTS_IN_CONST_SET =
-      const CompileTimeErrorCode('EQUAL_ELEMENTS_IN_CONST_SET',
-          "Two values in a constant set can't be equal.");
 
   /**
    * SDK implementation libraries can be exported only by other SDK libraries.
@@ -1272,21 +1272,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
-   * 7.9 Superclasses: It is a compile-time error if the extends clause of a
-   * class <i>C</i> includes a type expression that does not denote a class
-   * available in the lexical scope of <i>C</i>.
-   *
-   * Parameters:
-   * 0: the name of the superclass that was not found
-   */
-  static const CompileTimeErrorCode EXTENDS_NON_CLASS =
-      const CompileTimeErrorCode(
-          'EXTENDS_NON_CLASS', "Classes can only extend other classes.",
-          correction:
-              "Try specifying a different superclass, or removing the extends "
-              "clause.");
-
-  /**
    * 12.2 Null: It is a compile-time error for a class to attempt to extend or
    * implement Null.
    *
@@ -1334,6 +1319,21 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           'EXTENDS_DEFERRED_CLASS', "Classes can't extend deferred classes.",
           correction: "Try specifying a different superclass, or "
               "removing the extends clause.");
+
+  /**
+   * 7.9 Superclasses: It is a compile-time error if the extends clause of a
+   * class <i>C</i> includes a type expression that does not denote a class
+   * available in the lexical scope of <i>C</i>.
+   *
+   * Parameters:
+   * 0: the name of the superclass that was not found
+   */
+  static const CompileTimeErrorCode EXTENDS_NON_CLASS =
+      const CompileTimeErrorCode(
+          'EXTENDS_NON_CLASS', "Classes can only extend other classes.",
+          correction:
+              "Try specifying a different superclass, or removing the extends "
+              "clause.");
 
   /**
    * Parameters:
@@ -1631,19 +1631,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try removing one of the initializations.");
 
   /**
-   * 5 Variables: It is a compile-time error if a final instance variable that
-   * has is initialized by means of an initializing formal of a constructor is
-   * also initialized elsewhere in the same constructor.
-   *
-   * Parameters:
-   * 0: the name of the field in question
-   */
-  static const CompileTimeErrorCode FINAL_INITIALIZED_MULTIPLE_TIMES =
-      const CompileTimeErrorCode('FINAL_INITIALIZED_MULTIPLE_TIMES',
-          "'{0}' is a final field and so can only be set once.",
-          correction: "Try removing all but one of the initializations.");
-
-  /**
    * 7.6.1 Generative Constructors: It is a compile-time error if an
    * initializing formal is used by a function other than a non-redirecting
    * generative constructor.
@@ -1677,6 +1664,47 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       const CompileTimeErrorCode('FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR',
           "The redirecting constructor can't have a field initializer.",
           correction: "Try using a normal parameter.");
+
+  /**
+   * 5 Variables: It is a compile-time error if a final instance variable that
+   * has is initialized by means of an initializing formal of a constructor is
+   * also initialized elsewhere in the same constructor.
+   *
+   * Parameters:
+   * 0: the name of the field in question
+   */
+  static const CompileTimeErrorCode FINAL_INITIALIZED_MULTIPLE_TIMES =
+      const CompileTimeErrorCode('FINAL_INITIALIZED_MULTIPLE_TIMES',
+          "'{0}' is a final field and so can only be set once.",
+          correction: "Try removing all but one of the initializations.");
+
+  static const CompileTimeErrorCode FOR_IN_WITH_CONST_VARIABLE =
+      const CompileTimeErrorCode('FOR_IN_WITH_CONST_VARIABLE',
+          "A for-in loop-variable can't be 'const'.",
+          correction: "Try removing the 'const' modifier from the variable, or "
+              "use a different variable.");
+
+  /**
+   * It is a compile-time error if a generic function type is used as a bound
+   * for a formal type parameter of a class or a function.
+   */
+  static const CompileTimeErrorCode GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND =
+      const CompileTimeErrorCode('GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND',
+          "Generic function types can't be used as type parameter bounds",
+          correction: "Try making the free variable in the function type part"
+              " of the larger declaration signature");
+
+  /**
+   * It is a compile-time error if a generic function type is used as an actual
+   * type argument.
+   */
+  static const CompileTimeErrorCode
+      GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT =
+      const CompileTimeErrorCode(
+          'GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT',
+          "A generic function type can't be a type argument.",
+          correction: "Try removing type parameters from the generic function "
+              "type, or using 'dynamic' as the type argument here.");
 
   /**
    * Temporary error to work around dartbug.com/28515.
@@ -2041,24 +2069,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try using a top-level variable or a field.");
 
   /**
-   * 9. Functions: It is a compile-time error if an async, async* or sync*
-   * modifier is attached to the body of a setter or constructor.
-   */
-  static const CompileTimeErrorCode INVALID_MODIFIER_ON_CONSTRUCTOR =
-      const CompileTimeErrorCode('INVALID_MODIFIER_ON_CONSTRUCTOR',
-          "The modifier '{0}' can't be applied to the body of a constructor.",
-          correction: "Try removing the modifier.");
-
-  /**
-   * 9. Functions: It is a compile-time error if an async, async* or sync*
-   * modifier is attached to the body of a setter or constructor.
-   */
-  static const CompileTimeErrorCode INVALID_MODIFIER_ON_SETTER =
-      const CompileTimeErrorCode('INVALID_MODIFIER_ON_SETTER',
-          "The modifier '{0}' can't be applied to the body of a setter.",
-          correction: "Try removing the modifier.");
-
-  /**
    * TODO(brianwilkerson) Remove this when we have decided on how to report
    * errors in compile-time constants. Until then, this acts as a placeholder
    * for more informative errors.
@@ -2150,6 +2160,24 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "function type.",
           correction: "Try using a generic function type "
               "(returnType 'Function(' parameters ')').");
+
+  /**
+   * 9. Functions: It is a compile-time error if an async, async* or sync*
+   * modifier is attached to the body of a setter or constructor.
+   */
+  static const CompileTimeErrorCode INVALID_MODIFIER_ON_CONSTRUCTOR =
+      const CompileTimeErrorCode('INVALID_MODIFIER_ON_CONSTRUCTOR',
+          "The modifier '{0}' can't be applied to the body of a constructor.",
+          correction: "Try removing the modifier.");
+
+  /**
+   * 9. Functions: It is a compile-time error if an async, async* or sync*
+   * modifier is attached to the body of a setter or constructor.
+   */
+  static const CompileTimeErrorCode INVALID_MODIFIER_ON_SETTER =
+      const CompileTimeErrorCode('INVALID_MODIFIER_ON_SETTER',
+          "The modifier '{0}' can't be applied to the body of a setter.",
+          correction: "Try removing the modifier.");
 
   /**
    * It is an error if an optional parameter (named or otherwise) with no
@@ -2274,7 +2302,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // ```
   static const CompileTimeErrorCode INVALID_USE_OF_COVARIANT_IN_EXTENSION =
       const CompileTimeErrorCode('INVALID_USE_OF_COVARIANT_IN_EXTENSION',
-          "The 'covariant' keyword can't be used in extensions.",
+          "The 'covariant' keyword can't be used in an extension.",
           correction: "Try removing the 'covariant' keyword.");
 
   /**
@@ -2943,6 +2971,20 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "Initializer expressions in constant constructors must be "
               "constants.");
 
+  /**
+   * 7.6.1 Generative Constructors: Let <i>C</i> be the class in which the
+   * superinitializer appears and let <i>S</i> be the superclass of <i>C</i>.
+   * Let <i>k</i> be a generative constructor. It is a compile-time error if
+   * class <i>S</i> does not declare a generative constructor named <i>S</i>
+   * (respectively <i>S.id</i>)
+   */
+  static const CompileTimeErrorCode NON_GENERATIVE_CONSTRUCTOR =
+      const CompileTimeErrorCode('NON_GENERATIVE_CONSTRUCTOR',
+          "The generative constructor '{0}' expected, but factory found.",
+          correction:
+              "Try calling a different constructor in the superclass, or "
+              "making the called constructor not be a factory constructor.");
+
   static const CompileTimeErrorCode NON_SYNC_FACTORY =
       const CompileTimeErrorCode('NON_SYNC_FACTORY',
           "Factory bodies can't use 'async', 'async*', or 'sync*'.");
@@ -3069,20 +3111,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           'NOT_NULL_AWARE_NULL_SPREAD',
           "The Null typed expression can't be used with a non-null-aware "
               "spread.");
-
-  /**
-   * 7.6.1 Generative Constructors: Let <i>C</i> be the class in which the
-   * superinitializer appears and let <i>S</i> be the superclass of <i>C</i>.
-   * Let <i>k</i> be a generative constructor. It is a compile-time error if
-   * class <i>S</i> does not declare a generative constructor named <i>S</i>
-   * (respectively <i>S.id</i>)
-   */
-  static const CompileTimeErrorCode NON_GENERATIVE_CONSTRUCTOR =
-      const CompileTimeErrorCode('NON_GENERATIVE_CONSTRUCTOR',
-          "The generative constructor '{0}' expected, but factory found.",
-          correction:
-              "Try calling a different constructor in the superclass, or "
-              "making the called constructor not be a factory constructor.");
 
   /**
    * It is an error if the type `T` in the on-catch clause `on T catch` is
@@ -3353,6 +3381,29 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "'{0}' can't use itself as a mixin.");
 
   /**
+   * 7.6.1 Generative constructors: A generative constructor may be
+   * <i>redirecting</i>, in which case its only action is to invoke another
+   * generative constructor.
+   */
+  static const CompileTimeErrorCode REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR =
+      const CompileTimeErrorCode('REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR',
+          "The constructor '{0}' couldn't be found in '{1}'.",
+          correction: "Try redirecting to a different constructor, or "
+              "defining the constructor named '{0}'.");
+
+  /**
+   * 7.6.1 Generative constructors: A generative constructor may be
+   * <i>redirecting</i>, in which case its only action is to invoke another
+   * generative constructor.
+   */
+  static const CompileTimeErrorCode
+      REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR =
+      const CompileTimeErrorCode(
+          'REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR',
+          "Generative constructor can't redirect to a factory constructor.",
+          correction: "Try redirecting to a different constructor.");
+
+  /**
    * 7.6.2 Factories: It is a compile-time error if <i>k</i> is prefixed with
    * the const modifier but <i>k'</i> is not a constant constructor.
    */
@@ -3420,29 +3471,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           'REDIRECT_TO_NON_CONST_CONSTRUCTOR',
           "Constant factory constructor can't delegate to a non-constant "
               "constructor.",
-          correction: "Try redirecting to a different constructor.");
-
-  /**
-   * 7.6.1 Generative constructors: A generative constructor may be
-   * <i>redirecting</i>, in which case its only action is to invoke another
-   * generative constructor.
-   */
-  static const CompileTimeErrorCode REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR =
-      const CompileTimeErrorCode('REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR',
-          "The constructor '{0}' couldn't be found in '{1}'.",
-          correction: "Try redirecting to a different constructor, or "
-              "defining the constructor named '{0}'.");
-
-  /**
-   * 7.6.1 Generative constructors: A generative constructor may be
-   * <i>redirecting</i>, in which case its only action is to invoke another
-   * generative constructor.
-   */
-  static const CompileTimeErrorCode
-      REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR =
-      const CompileTimeErrorCode(
-          'REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR',
-          "Generative constructor can't redirect to a factory constructor.",
           correction: "Try redirecting to a different constructor.");
 
   /**
@@ -3615,34 +3643,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           'TYPE_ARGUMENT_NOT_MATCHING_BOUNDS', "'{0}' doesn't extend '{1}'.",
           correction: "Try using a type that is or is a subclass of '{1}'.",
           hasPublishedDocs: true);
-
-  /**
-   * It is a compile-time error if a generic function type is used as a bound
-   * for a formal type parameter of a class or a function.
-   */
-  static const CompileTimeErrorCode GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND =
-      const CompileTimeErrorCode('GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND',
-          "Generic function types can't be used as type parameter bounds",
-          correction: "Try making the free variable in the function type part"
-              " of the larger declaration signature");
-
-  static const CompileTimeErrorCode FOR_IN_WITH_CONST_VARIABLE =
-      const CompileTimeErrorCode('FOR_IN_WITH_CONST_VARIABLE',
-          "A for-in loop-variable can't be 'const'.",
-          correction: "Try removing the 'const' modifier from the variable, or "
-              "use a different variable.");
-
-  /**
-   * It is a compile-time error if a generic function type is used as an actual
-   * type argument.
-   */
-  static const CompileTimeErrorCode
-      GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT =
-      const CompileTimeErrorCode(
-          'GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT',
-          "A generic function type can't be a type argument.",
-          correction: "Try removing type parameters from the generic function "
-              "type, or using 'dynamic' as the type argument here.");
 
   /**
    * 15.3.1 Typedef: Any self reference, either directly, or recursively via
@@ -6179,7 +6179,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
       'USE_OF_VOID_RESULT',
       "The expression here has a type of 'void', and therefore can't be used.",
       correction:
-          "Try checking to see if you are using the correct API; there might "
+          "Try checking to see if you're using the correct API; there might "
           "be a function or call that returns void you didn't expect. Also "
           "check type parameters and variables which might also be void.");
 

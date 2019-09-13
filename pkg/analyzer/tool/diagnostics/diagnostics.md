@@ -809,7 +809,7 @@ var x;
 
 ### invalid_use_of_covariant_in_extension
 
-_The 'covariant' keyword can't be used in extensions._
+_The 'covariant' keyword can't be used in an extension._
 
 #### Description
 
@@ -1157,8 +1157,8 @@ int y = x as int;
 
 ### sdk_version_bool_operator_in_const_context
 
-_Using the operator '{0}' for 'bool's in a constant expression wasn't supported
-until version 2.3.2, but this code is required to be able to run on earlier versions._
+_The use of the operator '{0}' for 'bool' operands in a constant context wasn't
+supported until version 2.3.2, but this code is required to be able to run on earlier versions._
 
 #### Description
 
@@ -1320,7 +1320,7 @@ void sayHello(String s) {
 
 ### sdk_version_is_expression_in_const_context
 
-_The use of an is expression in a constant expression wasn't supported until
+_The use of an is expression in a constant context wasn't supported until
 version 2.3.2, but this code is required to be able to run on earlier versions._
 
 #### Description
