@@ -944,6 +944,16 @@ class SuperPropertyAccessGenerator extends Generator {
   }
 
   @override
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
+    if (setter == null) {
+      _helper.warnUnresolvedSet(name, fileOffset, isSuper: true);
+    }
+    SuperPropertySet write = new SuperPropertySet(name, value, setter)
+      ..fileOffset = fileOffset;
+    return write;
+  }
+
+  @override
   Expression _makeWrite(Expression value, bool voidContext,
       ComplexAssignmentJudgment complexAssignment) {
     if (setter == null) {

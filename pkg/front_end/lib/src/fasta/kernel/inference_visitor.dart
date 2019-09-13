@@ -127,12 +127,6 @@ class InferenceVisitor
   }
 
   @override
-  ExpressionInferenceResult visitSuperPropertySet(
-      SuperPropertySet node, DartType typeContext) {
-    return _unhandledExpression(node, typeContext);
-  }
-
-  @override
   ExpressionInferenceResult visitStaticSet(
       StaticSet node, DartType typeContext) {
     return _unhandledExpression(node, typeContext);
@@ -2222,6 +2216,30 @@ class InferenceVisitor
         node.interfaceTarget != null
             ? new ObjectAccessTarget.interfaceMember(node.interfaceTarget)
             : const ObjectAccessTarget.unresolved());
+  }
+
+  @override
+  ExpressionInferenceResult visitSuperPropertySet(
+      SuperPropertySet node, DartType typeContext) {
+    DartType receiverType = inferrer.classHierarchy.getTypeAsInstanceOf(
+        inferrer.thisType, inferrer.thisType.classNode.supertype.classNode);
+
+    ObjectAccessTarget writeTarget = inferrer.findInterfaceMember(
+        receiverType, node.name, node.fileOffset,
+        setter: true, instrumented: true);
+    if (writeTarget.isInstanceMember) {
+      node.interfaceTarget = writeTarget.member;
+    }
+    DartType writeContext = inferrer.getSetterType(writeTarget, receiverType);
+    ExpressionInferenceResult rhsResult = inferrer.inferExpression(
+        node.value, writeContext ?? const UnknownType(), true,
+        isVoidAllowed: true);
+    DartType rhsType = rhsResult.inferredType;
+    inferrer.ensureAssignable(
+        writeContext, rhsType, node.value, node.fileOffset,
+        isVoidAllowed: writeContext is VoidType);
+
+    return new ExpressionInferenceResult(rhsType);
   }
 
   @override
