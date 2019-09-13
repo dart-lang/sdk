@@ -909,6 +909,32 @@ int? g(int i) => f(i);
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_definitely_assigned_value() async {
+    var content = '''
+String f(bool b) {
+  String s;
+  if (b) {
+    s = 'true';
+  } else {
+    s = 'false';
+  }
+  return s;
+}
+''';
+    var expected = '''
+String f(bool b) {
+  String s;
+  if (b) {
+    s = 'true';
+  } else {
+    s = 'false';
+  }
+  return s;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_discard_simple_condition() async {
     var content = '''
 int f(int i) {
@@ -2064,6 +2090,29 @@ int f(int i, [int j]) {
 int f(int i, [int? j]) {
   if (i == 0) return i;
   return i + j!;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38344')
+  test_not_definitely_assigned_value() async {
+    var content = '''
+String f(bool b) {
+  String s;
+  if (b) {
+    s = 'true';
+  }
+  return s;
+}
+''';
+    var expected = '''
+String? f(bool b) {
+  String? s;
+  if (b) {
+    s = 'true';
+  }
+  return s;
 }
 ''';
     await _checkSingleFileChanges(content, expected);
