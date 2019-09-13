@@ -1785,6 +1785,7 @@ CodeBreakpoint::CodeBreakpoint(const Bytecode& bytecode,
 #endif
 {
   ASSERT(!bytecode.IsNull());
+  ASSERT(FLAG_enable_interpreter);
   ASSERT(token_pos_.IsReal());
   ASSERT(pc_ != 0);
 }
@@ -3154,7 +3155,7 @@ void Debugger::MakeCodeBreakpointAt(const Function& func,
   ASSERT(!func.HasOptimizedCode());
   ASSERT(func.HasCode() || func.HasBytecode());
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  if (func.HasBytecode()) {
+  if (func.HasBytecode() && FLAG_enable_interpreter) {
     Bytecode& bytecode = Bytecode::Handle(func.bytecode());
     ASSERT(!bytecode.IsNull());
     uword pc = 0;
