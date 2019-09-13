@@ -1850,8 +1850,8 @@ class InferenceVisitor
   ExpressionInferenceResult visitNullAwarePropertyGet(
       NullAwarePropertyGet node, DartType typeContext) {
     ExpressionInferenceResult result = inferrer.inferPropertyGet(
-        node, node.receiver, node.fileOffset, typeContext,
-        receiverVariable: node.variable, desugaredGet: node._desugaredGet);
+        node, node.receiver, node.fileOffset, typeContext, node._desugaredGet,
+        nullAwareReceiverVariable: node.variable);
     node.body.staticType = result.inferredType;
     Expression replacement = node.replace();
     return new ExpressionInferenceResult(result.inferredType, replacement);
@@ -1933,8 +1933,7 @@ class InferenceVisitor
   ExpressionInferenceResult visitPropertyGet(
       PropertyGet node, DartType typeContext) {
     return inferrer.inferPropertyGet(
-        node, node.receiver, node.fileOffset, typeContext,
-        desugaredGet: node, allowExtensionMethods: true);
+        node, node.receiver, node.fileOffset, typeContext, node);
   }
 
   @override
@@ -2171,11 +2170,12 @@ class InferenceVisitor
       inferrer.instrumentation?.record(inferrer.uri, node.fileOffset, 'target',
           new InstrumentationValueForMember(node.interfaceTarget));
     }
-    return inferrer.inferPropertyGet(node, null, node.fileOffset, typeContext,
-        readTarget: node.interfaceTarget != null
+    return inferrer.inferSuperPropertyGet(
+        node,
+        typeContext,
+        node.interfaceTarget != null
             ? new ObjectAccessTarget.interfaceMember(node.interfaceTarget)
-            : const ObjectAccessTarget.unresolved(),
-        propertyName: node.name);
+            : const ObjectAccessTarget.unresolved());
   }
 
   @override

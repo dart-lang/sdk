@@ -89,10 +89,12 @@ static method testExtension1() → dynamic {
   self::Class1* c1 = new self::Class1::•(1);
   self::expect(0, self::Extension1|method(c0));
   self::expect(1, self::Extension1|method(c1));
+  self::expect(1, self::Extension1|method(c1));
   self::expect(42, self::Extension1|genericMethod<core::int*>(c0, 42));
   self::expect(43, self::Extension1|genericMethod<core::num*>(c0, 43));
   self::expect(88, self::Extension1|genericMethod<core::int*>(c1, 87));
   self::expect(89, self::Extension1|genericMethod<core::num*>(c1, 88));
+  self::expect(0, self::Extension1|get#property(c0));
   self::expect(0, self::Extension1|get#property(c0));
   self::expect(42, self::Extension1|set#property(c0, 42));
   self::expect(1, self::Extension1|get#property(c1));
@@ -106,11 +108,13 @@ static method testExtension2() → dynamic {
   self::Class2* c0 = new self::Class2::•(0);
   self::Class2* c1 = new self::Class2::•(1);
   self::expect(3, self::Extension2|method(c0));
+  self::expect(3, self::Extension2|method(c0));
   self::expect(4, self::Extension2|method(c1));
   self::expect(46, self::Extension2|genericMethod<core::int*>(c0, 42));
   self::expect(47, self::Extension2|genericMethod<core::num*>(c0, 43));
   self::expect(92, self::Extension2|genericMethod<core::int*>(c1, 87));
   self::expect(93, self::Extension2|genericMethod<core::num*>(c1, 88));
+  self::expect(5, self::Extension2|get#property(c0));
   self::expect(5, self::Extension2|get#property(c0));
   self::expect(42, self::Extension2|set#property(c0, 42));
   self::expect(48, self::Extension2|get#property(c0));
