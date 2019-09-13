@@ -5022,6 +5022,7 @@ class LinkedNodeBuilder extends Object
   double _variantField_21;
   LinkedNodeTypeBuilder _variantField_25;
   String _variantField_20;
+  List<LinkedNodeTypeBuilder> _variantField_39;
   int _flags;
   String _variantField_1;
   int _variantField_36;
@@ -5065,6 +5066,12 @@ class LinkedNodeBuilder extends Object
   }
 
   @override
+  LinkedNodeTypeBuilder get extensionOverride_extendedType {
+    assert(kind == idl.LinkedNodeKind.extensionOverride);
+    return _variantField_24;
+  }
+
+  @override
   LinkedNodeTypeBuilder get invocationExpression_invokeType {
     assert(kind == idl.LinkedNodeKind.functionExpressionInvocation ||
         kind == idl.LinkedNodeKind.methodInvocation);
@@ -5091,6 +5098,11 @@ class LinkedNodeBuilder extends Object
 
   set binaryExpression_invokeType(LinkedNodeTypeBuilder value) {
     assert(kind == idl.LinkedNodeKind.binaryExpression);
+    _variantField_24 = value;
+  }
+
+  set extensionOverride_extendedType(LinkedNodeTypeBuilder value) {
+    assert(kind == idl.LinkedNodeKind.extensionOverride);
     _variantField_24 = value;
   }
 
@@ -5151,6 +5163,12 @@ class LinkedNodeBuilder extends Object
   @override
   List<LinkedNodeBuilder> get enumDeclaration_constants {
     assert(kind == idl.LinkedNodeKind.enumDeclaration);
+    return _variantField_2 ??= <LinkedNodeBuilder>[];
+  }
+
+  @override
+  List<LinkedNodeBuilder> get extensionOverride_arguments {
+    assert(kind == idl.LinkedNodeKind.extensionOverride);
     return _variantField_2 ??= <LinkedNodeBuilder>[];
   }
 
@@ -5294,6 +5312,11 @@ class LinkedNodeBuilder extends Object
 
   set enumDeclaration_constants(List<LinkedNodeBuilder> value) {
     assert(kind == idl.LinkedNodeKind.enumDeclaration);
+    _variantField_2 = value;
+  }
+
+  set extensionOverride_arguments(List<LinkedNodeBuilder> value) {
+    assert(kind == idl.LinkedNodeKind.extensionOverride);
     _variantField_2 = value;
   }
 
@@ -6419,6 +6442,12 @@ class LinkedNodeBuilder extends Object
   }
 
   @override
+  LinkedNodeBuilder get extensionOverride_extensionName {
+    assert(kind == idl.LinkedNodeKind.extensionOverride);
+    return _variantField_7;
+  }
+
+  @override
   LinkedNodeBuilder get fieldFormalParameter_typeParameters {
     assert(kind == idl.LinkedNodeKind.fieldFormalParameter);
     return _variantField_7;
@@ -6677,6 +6706,11 @@ class LinkedNodeBuilder extends Object
     _variantField_7 = value;
   }
 
+  set extensionOverride_extensionName(LinkedNodeBuilder value) {
+    assert(kind == idl.LinkedNodeKind.extensionOverride);
+    _variantField_7 = value;
+  }
+
   set fieldFormalParameter_typeParameters(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.fieldFormalParameter);
     _variantField_7 = value;
@@ -6890,6 +6924,12 @@ class LinkedNodeBuilder extends Object
   }
 
   @override
+  LinkedNodeBuilder get extensionOverride_typeArguments {
+    assert(kind == idl.LinkedNodeKind.extensionOverride);
+    return _variantField_8;
+  }
+
+  @override
   LinkedNodeBuilder get fieldFormalParameter_formalParameters {
     assert(kind == idl.LinkedNodeKind.fieldFormalParameter);
     return _variantField_8;
@@ -6975,6 +7015,11 @@ class LinkedNodeBuilder extends Object
 
   set constructorDeclaration_parameters(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.constructorDeclaration);
+    _variantField_8 = value;
+  }
+
+  set extensionOverride_typeArguments(LinkedNodeBuilder value) {
+    assert(kind == idl.LinkedNodeKind.extensionOverride);
     _variantField_8 = value;
   }
 
@@ -7739,6 +7784,17 @@ class LinkedNodeBuilder extends Object
   }
 
   @override
+  List<LinkedNodeTypeBuilder> get extensionOverride_typeArgumentTypes {
+    assert(kind == idl.LinkedNodeKind.extensionOverride);
+    return _variantField_39 ??= <LinkedNodeTypeBuilder>[];
+  }
+
+  set extensionOverride_typeArgumentTypes(List<LinkedNodeTypeBuilder> value) {
+    assert(kind == idl.LinkedNodeKind.extensionOverride);
+    _variantField_39 = value;
+  }
+
+  @override
   int get flags => _flags ??= 0;
 
   set flags(int value) {
@@ -8386,6 +8442,19 @@ class LinkedNodeBuilder extends Object
         _variantField_5 = extensionDeclaration_members,
         _variantField_20 = extensionDeclaration_refName,
         _variantField_36 = informativeId;
+
+  LinkedNodeBuilder.extensionOverride({
+    LinkedNodeTypeBuilder extensionOverride_extendedType,
+    List<LinkedNodeBuilder> extensionOverride_arguments,
+    LinkedNodeBuilder extensionOverride_extensionName,
+    LinkedNodeBuilder extensionOverride_typeArguments,
+    List<LinkedNodeTypeBuilder> extensionOverride_typeArgumentTypes,
+  })  : _kind = idl.LinkedNodeKind.extensionOverride,
+        _variantField_24 = extensionOverride_extendedType,
+        _variantField_2 = extensionOverride_arguments,
+        _variantField_7 = extensionOverride_extensionName,
+        _variantField_8 = extensionOverride_typeArguments,
+        _variantField_39 = extensionOverride_typeArgumentTypes;
 
   LinkedNodeBuilder.fieldDeclaration({
     List<LinkedNodeBuilder> annotatedNode_metadata,
@@ -9245,6 +9314,12 @@ class LinkedNodeBuilder extends Object
       extensionDeclaration_extendedType?.flushInformative();
       extensionDeclaration_members?.forEach((b) => b.flushInformative());
       informativeId = null;
+    } else if (kind == idl.LinkedNodeKind.extensionOverride) {
+      extensionOverride_extendedType?.flushInformative();
+      extensionOverride_arguments?.forEach((b) => b.flushInformative());
+      extensionOverride_extensionName?.flushInformative();
+      extensionOverride_typeArguments?.flushInformative();
+      extensionOverride_typeArgumentTypes?.forEach((b) => b.flushInformative());
     } else if (kind == idl.LinkedNodeKind.fieldDeclaration) {
       annotatedNode_metadata?.forEach((b) => b.flushInformative());
       fieldDeclaration_fields?.flushInformative();
@@ -10056,6 +10131,32 @@ class LinkedNodeBuilder extends Object
       signature.addInt(this.flags ?? 0);
       signature.addString(this.extensionDeclaration_refName ?? '');
       signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.extensionOverride) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.extensionOverride_arguments == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.extensionOverride_arguments.length);
+        for (var x in this.extensionOverride_arguments) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature.addBool(this.extensionOverride_extensionName != null);
+      this.extensionOverride_extensionName?.collectApiSignature(signature);
+      signature.addBool(this.extensionOverride_typeArguments != null);
+      this.extensionOverride_typeArguments?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addBool(this.extensionOverride_extendedType != null);
+      this.extensionOverride_extendedType?.collectApiSignature(signature);
+      signature.addString(this.name ?? '');
+      if (this.extensionOverride_typeArgumentTypes == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.extensionOverride_typeArgumentTypes.length);
+        for (var x in this.extensionOverride_typeArgumentTypes) {
+          x?.collectApiSignature(signature);
+        }
+      }
     } else if (kind == idl.LinkedNodeKind.fieldDeclaration) {
       signature.addInt(this.kind == null ? 0 : this.kind.index);
       if (this.annotatedNode_metadata == null) {
@@ -11146,6 +11247,7 @@ class LinkedNodeBuilder extends Object
     fb.Offset offset_variantField_10;
     fb.Offset offset_variantField_25;
     fb.Offset offset_variantField_20;
+    fb.Offset offset_variantField_39;
     fb.Offset offset_variantField_1;
     fb.Offset offset_variantField_30;
     fb.Offset offset_variantField_14;
@@ -11207,6 +11309,10 @@ class LinkedNodeBuilder extends Object
     }
     if (_variantField_20 != null) {
       offset_variantField_20 = fbBuilder.writeString(_variantField_20);
+    }
+    if (!(_variantField_39 == null || _variantField_39.isEmpty)) {
+      offset_variantField_39 = fbBuilder
+          .writeList(_variantField_39.map((b) => b.finish(fbBuilder)).toList());
     }
     if (_variantField_1 != null) {
       offset_variantField_1 = fbBuilder.writeString(_variantField_1);
@@ -11310,6 +11416,9 @@ class LinkedNodeBuilder extends Object
     if (offset_variantField_20 != null) {
       fbBuilder.addOffset(20, offset_variantField_20);
     }
+    if (offset_variantField_39 != null) {
+      fbBuilder.addOffset(39, offset_variantField_39);
+    }
     if (_flags != null && _flags != 0) {
       fbBuilder.addUint32(18, _flags);
     }
@@ -11402,6 +11511,7 @@ class _LinkedNodeImpl extends Object
   double _variantField_21;
   idl.LinkedNodeType _variantField_25;
   String _variantField_20;
+  List<idl.LinkedNodeType> _variantField_39;
   int _flags;
   String _variantField_1;
   int _variantField_36;
@@ -11445,6 +11555,14 @@ class _LinkedNodeImpl extends Object
   @override
   idl.LinkedNodeType get binaryExpression_invokeType {
     assert(kind == idl.LinkedNodeKind.binaryExpression);
+    _variantField_24 ??=
+        const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 24, null);
+    return _variantField_24;
+  }
+
+  @override
+  idl.LinkedNodeType get extensionOverride_extendedType {
+    assert(kind == idl.LinkedNodeKind.extensionOverride);
     _variantField_24 ??=
         const _LinkedNodeTypeReader().vTableGet(_bc, _bcOffset, 24, null);
     return _variantField_24;
@@ -11534,6 +11652,15 @@ class _LinkedNodeImpl extends Object
   @override
   List<idl.LinkedNode> get enumDeclaration_constants {
     assert(kind == idl.LinkedNodeKind.enumDeclaration);
+    _variantField_2 ??=
+        const fb.ListReader<idl.LinkedNode>(const _LinkedNodeReader())
+            .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
+    return _variantField_2;
+  }
+
+  @override
+  List<idl.LinkedNode> get extensionOverride_arguments {
+    assert(kind == idl.LinkedNodeKind.extensionOverride);
     _variantField_2 ??=
         const fb.ListReader<idl.LinkedNode>(const _LinkedNodeReader())
             .vTableGet(_bc, _bcOffset, 2, const <idl.LinkedNode>[]);
@@ -12494,6 +12621,14 @@ class _LinkedNodeImpl extends Object
   }
 
   @override
+  idl.LinkedNode get extensionOverride_extensionName {
+    assert(kind == idl.LinkedNodeKind.extensionOverride);
+    _variantField_7 ??=
+        const _LinkedNodeReader().vTableGet(_bc, _bcOffset, 7, null);
+    return _variantField_7;
+  }
+
+  @override
   idl.LinkedNode get fieldFormalParameter_typeParameters {
     assert(kind == idl.LinkedNodeKind.fieldFormalParameter);
     _variantField_7 ??=
@@ -12792,6 +12927,14 @@ class _LinkedNodeImpl extends Object
   @override
   idl.LinkedNode get constructorDeclaration_parameters {
     assert(kind == idl.LinkedNodeKind.constructorDeclaration);
+    _variantField_8 ??=
+        const _LinkedNodeReader().vTableGet(_bc, _bcOffset, 8, null);
+    return _variantField_8;
+  }
+
+  @override
+  idl.LinkedNode get extensionOverride_typeArguments {
+    assert(kind == idl.LinkedNodeKind.extensionOverride);
     _variantField_8 ??=
         const _LinkedNodeReader().vTableGet(_bc, _bcOffset, 8, null);
     return _variantField_8;
@@ -13370,6 +13513,15 @@ class _LinkedNodeImpl extends Object
     _variantField_20 ??=
         const fb.StringReader().vTableGet(_bc, _bcOffset, 20, '');
     return _variantField_20;
+  }
+
+  @override
+  List<idl.LinkedNodeType> get extensionOverride_typeArgumentTypes {
+    assert(kind == idl.LinkedNodeKind.extensionOverride);
+    _variantField_39 ??=
+        const fb.ListReader<idl.LinkedNodeType>(const _LinkedNodeTypeReader())
+            .vTableGet(_bc, _bcOffset, 39, const <idl.LinkedNodeType>[]);
+    return _variantField_39;
   }
 
   @override
@@ -13969,6 +14121,26 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (extensionDeclaration_refName != '')
         _result["extensionDeclaration_refName"] = extensionDeclaration_refName;
       if (informativeId != 0) _result["informativeId"] = informativeId;
+    }
+    if (kind == idl.LinkedNodeKind.extensionOverride) {
+      if (extensionOverride_extendedType != null)
+        _result["extensionOverride_extendedType"] =
+            extensionOverride_extendedType.toJson();
+      if (extensionOverride_arguments.isNotEmpty)
+        _result["extensionOverride_arguments"] = extensionOverride_arguments
+            .map((_value) => _value.toJson())
+            .toList();
+      if (extensionOverride_extensionName != null)
+        _result["extensionOverride_extensionName"] =
+            extensionOverride_extensionName.toJson();
+      if (extensionOverride_typeArguments != null)
+        _result["extensionOverride_typeArguments"] =
+            extensionOverride_typeArguments.toJson();
+      if (extensionOverride_typeArgumentTypes.isNotEmpty)
+        _result["extensionOverride_typeArgumentTypes"] =
+            extensionOverride_typeArgumentTypes
+                .map((_value) => _value.toJson())
+                .toList();
     }
     if (kind == idl.LinkedNodeKind.fieldDeclaration) {
       if (annotatedNode_metadata.isNotEmpty)
@@ -15147,6 +15319,19 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "extensionDeclaration_refName": extensionDeclaration_refName,
         "flags": flags,
         "informativeId": informativeId,
+        "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.extensionOverride) {
+      return {
+        "extensionOverride_extendedType": extensionOverride_extendedType,
+        "extensionOverride_arguments": extensionOverride_arguments,
+        "extensionOverride_extensionName": extensionOverride_extensionName,
+        "extensionOverride_typeArguments": extensionOverride_typeArguments,
+        "extensionOverride_typeArgumentTypes":
+            extensionOverride_typeArgumentTypes,
+        "flags": flags,
         "kind": kind,
         "name": name,
       };

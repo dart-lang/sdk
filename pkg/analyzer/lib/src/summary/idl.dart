@@ -1189,6 +1189,21 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(6, variant: LinkedNodeKind.extensionDeclaration)
   LinkedNode get extensionDeclaration_typeParameters;
 
+  @VariantId(2, variant: LinkedNodeKind.extensionOverride)
+  List<LinkedNode> get extensionOverride_arguments;
+
+  @VariantId(24, variant: LinkedNodeKind.extensionOverride)
+  LinkedNodeType get extensionOverride_extendedType;
+
+  @VariantId(7, variant: LinkedNodeKind.extensionOverride)
+  LinkedNode get extensionOverride_extensionName;
+
+  @VariantId(8, variant: LinkedNodeKind.extensionOverride)
+  LinkedNode get extensionOverride_typeArguments;
+
+  @VariantId(39, variant: LinkedNodeKind.extensionOverride)
+  List<LinkedNodeType> get extensionOverride_typeArgumentTypes;
+
   @VariantId(6, variant: LinkedNodeKind.fieldDeclaration)
   LinkedNode get fieldDeclaration_fields;
 
@@ -1914,6 +1929,7 @@ enum LinkedNodeKind {
   whileStatement,
   withClause,
   yieldStatement,
+  extensionOverride,
 }
 
 /// Information about a single library in a [LinkedNodeBundle].

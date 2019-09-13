@@ -429,7 +429,9 @@ enum LinkedNodeKind : byte {
 
   withClause,
 
-  yieldStatement
+  yieldStatement,
+
+  extensionOverride
 }
 
 /// Kinds of [LinkedNodeType]s.
@@ -1960,6 +1962,8 @@ table LinkedNode {
   variantField_25:LinkedNodeType (id: 25);
 
   variantField_20:string (id: 20);
+
+  variantField_39:[LinkedNodeType] (id: 39);
 
   flags:uint (id: 18);
 

@@ -230,6 +230,29 @@ class InvalidCodeWithExtensionMethodsTest extends DriverResolutionTest {
     ..contextFeatures = new FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
 
+  test_extensionOverrideInAnnotationContext() async {
+    await _assertCanBeAnalyzed('''
+class R {
+  const R(int x);
+}
+
+@R(E(null).f())
+extension E on Object {
+  int f() => 0;
+}
+''');
+  }
+
+  test_extensionOverrideInConstContext() async {
+    await _assertCanBeAnalyzed('''
+extension E on Object {
+  int f() => 0;
+}
+
+const e = E(null).f();
+''');
+  }
+
   test_fuzz_14() async {
     // This crashes because parser produces `ConstructorDeclaration`.
     // So, we try to create `ConstructorElement` for it, and it wants
