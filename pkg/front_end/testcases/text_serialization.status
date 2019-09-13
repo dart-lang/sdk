@@ -183,6 +183,8 @@ general/named_function_scope: TextSerializationFailure # Was: Pass
 general/named_parameters: TextSerializationFailure # Was: Pass
 general/native_as_name: TextSerializationFailure # Was: Pass
 general/nested_implicit_const_with_env_var: TextSerializationFailure # Was: Pass
+general/nested_property_set: TextSerializationFailure
+general/nested_variable_set: TypeCheckError
 general/no_such_method_private_setter: TextSerializationFailure # Was: Pass
 general/no_such_method_private_setter_lib: TextSerializationFailure # Was: Pass
 general/non_covariant_checks: TextSerializationFailure

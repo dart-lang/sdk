@@ -41,6 +41,7 @@ general/micro: RuntimeError
 general/mixin_application_override: ExpectationFileMismatch # Too many errors.
 general/mixin_application_override: TypeCheckError
 general/mixin_constructors_with_default_values: RuntimeError # Expected
+general/nested_variable_set: TypeCheckError
 general/operator_method_not_found: RuntimeError # Expected
 general/optional: TypeCheckError
 general/override_check_accessor_after_inference: TypeCheckError # Issue #31620

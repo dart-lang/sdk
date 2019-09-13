@@ -1,0 +1,21 @@
+pkg/front_end/testcases/general/nested_variable_set.dart:11:25: Context: Write to intLocal2@249
+  intLocal1 = intLocal2 = numLocal;
+                        ^
+pkg/front_end/testcases/general/nested_variable_set.dart:11:13: Context: Write to intLocal1@232
+  intLocal1 = intLocal2 = numLocal;
+            ^
+pkg/front_end/testcases/general/nested_variable_set.dart:12:24: Context: Write to numLocal@266
+  intLocal1 = numLocal = intLocal2;
+                       ^
+pkg/front_end/testcases/general/nested_variable_set.dart:12:13: Context: Write to intLocal1@232
+  intLocal1 = numLocal = intLocal2;
+            ^
+pkg/front_end/testcases/general/nested_variable_set.dart:13:12: Context: Write to numLocal@266
+  numLocal = 0.5;
+           ^
+pkg/front_end/testcases/general/nested_variable_set.dart:15:29: Context: Write to doubleLocal@285
+    intLocal1 = doubleLocal = numLocal;
+                            ^
+pkg/front_end/testcases/general/nested_variable_set.dart:15:15: Context: Write to intLocal1@232
+    intLocal1 = doubleLocal = numLocal;
+              ^

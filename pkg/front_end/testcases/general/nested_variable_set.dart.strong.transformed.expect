@@ -1,0 +1,11 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  core::int* intLocal1;
+  core::int* intLocal2;
+  core::num* numLocal;
+  intLocal1 = intLocal2 = numLocal as{TypeError} core::int*;
+  intLocal1 = numLocal = intLocal2;
+}

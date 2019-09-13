@@ -121,12 +121,6 @@ class InferenceVisitor
   }
 
   @override
-  ExpressionInferenceResult visitPropertySet(
-      PropertySet node, DartType typeContext) {
-    return _unhandledExpression(node, typeContext);
-  }
-
-  @override
   ExpressionInferenceResult visitSetConcatenation(
       SetConcatenation node, DartType typeContext) {
     return _unhandledExpression(node, typeContext);
@@ -524,8 +518,12 @@ class InferenceVisitor
     Expression rhs;
     ExpressionStatement statement =
         body is Block ? body.statements.first : body;
-    SyntheticExpressionJudgment judgment = statement.expression;
-    syntheticAssignment = judgment.desugared;
+    Expression statementExpression = statement.expression;
+    if (statementExpression is SyntheticExpressionJudgment) {
+      syntheticAssignment = statementExpression.desugared;
+    } else {
+      syntheticAssignment = statementExpression;
+    }
     if (syntheticAssignment is VariableSet) {
       syntheticWriteType = elementType = syntheticAssignment.variable.type;
       rhs = syntheticAssignment.value;
@@ -1876,6 +1874,45 @@ class InferenceVisitor
         inferrer.inferExpression(body, typeContext, true, isVoidAllowed: true);
     DartType inferredType = result.inferredType;
     return new ExpressionInferenceResult(inferredType);
+  }
+
+  @override
+  ExpressionInferenceResult visitPropertySet(
+      PropertySet node, DartType typeContext) {
+    DartType receiverType;
+    if (node.receiver != null) {
+      receiverType = inferrer
+          .inferExpression(node.receiver, const UnknownType(), true)
+          .inferredType;
+    } else {
+      receiverType = inferrer.thisType;
+    }
+    ObjectAccessTarget target =
+        inferrer.findPropertySetMember(receiverType, node);
+    DartType writeContext = inferrer.getSetterType(target, receiverType);
+    ExpressionInferenceResult rhsResult = inferrer.inferExpression(
+        node.value, writeContext ?? const UnknownType(), true,
+        isVoidAllowed: true);
+    DartType rhsType = rhsResult.inferredType;
+    inferrer.ensureAssignable(
+        writeContext, rhsType, node.value, node.fileOffset,
+        isVoidAllowed: writeContext is VoidType);
+    Expression replacement;
+    if (target.isExtensionMember) {
+      node.parent.replaceChild(
+          node,
+          replacement = inferrer.helper.forest.createStaticInvocation(
+              node.fileOffset,
+              target.member,
+              inferrer.helper.forest.createArgumentsForExtensionMethod(
+                  node.fileOffset,
+                  target.inferredExtensionTypeArguments.length,
+                  0,
+                  node.receiver,
+                  extensionTypeArguments: target.inferredExtensionTypeArguments,
+                  positionalArguments: [node.value])));
+    }
+    return new ExpressionInferenceResult(rhsType, replacement);
   }
 
   ExpressionInferenceResult visitPropertyAssignmentJudgment(

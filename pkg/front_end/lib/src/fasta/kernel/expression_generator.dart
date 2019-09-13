@@ -627,6 +627,12 @@ class PropertyAccessGenerator extends Generator {
   }
 
   @override
+  Expression buildAssignment(Expression value, {bool voidContext: false}) {
+    return new PropertySet(receiver, name, value, setter)
+      ..fileOffset = fileOffset;
+  }
+
+  @override
   Expression _makeSimpleWrite(Expression value, bool voidContext,
       ComplexAssignmentJudgment complexAssignment) {
     PropertySet write = new PropertySet(receiver, name, value, setter)
