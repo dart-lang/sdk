@@ -103,8 +103,8 @@ Function 'callWithArgs', static, reflectable, debuggable
 
 Bytecode {
   Entry                2
-  CheckStack           0
   CheckFunctionTypeArgs 8, r0
+  CheckStack           0
   PushConstant         CP#0
   StoreLocal           r1
   Push                 r1
@@ -321,7 +321,6 @@ ClosureCode {
   Push                 FP[-6]
   LoadFieldTOS         CP#1
   PopLocal             r1
-  CheckStack           0
   Push                 FP[-6]
   LoadFieldTOS         CP#3
   StoreLocal           r0
@@ -332,6 +331,7 @@ ClosureCode {
 L1:
   CheckFunctionTypeArgs 1, r0
 L2:
+  CheckStack           0
   Push                 r0
   Push                 FP[-6]
   LoadFieldTOS         CP#6
@@ -573,8 +573,8 @@ Function 'foo', reflectable, debuggable
 
 Bytecode {
   Entry                5
-  CheckStack           0
   CheckFunctionTypeArgs 2, r0
+  CheckStack           0
   AllocateContext      0, 1
   PopLocal             r1
   Push                 r1
@@ -664,7 +664,6 @@ ClosureCode {
   Push                 FP[-5]
   LoadFieldTOS         CP#1
   PopLocal             r1
-  CheckStack           0
   Push                 FP[-5]
   LoadFieldTOS         CP#3
   StoreLocal           r0
@@ -675,6 +674,7 @@ ClosureCode {
 L1:
   CheckFunctionTypeArgs 2, r0
 L2:
+  CheckStack           0
   Push                 r0
   Push                 FP[-5]
   LoadFieldTOS         CP#6
@@ -724,7 +724,6 @@ ClosureCode {
   Push                 FP[-5]
   LoadFieldTOS         CP#1
   PopLocal             r1
-  CheckStack           0
   Push                 FP[-5]
   LoadFieldTOS         CP#3
   StoreLocal           r0
@@ -735,6 +734,7 @@ ClosureCode {
 L1:
   CheckFunctionTypeArgs 2, r0
 L2:
+  CheckStack           0
   Push                 r0
   Push                 FP[-5]
   LoadFieldTOS         CP#6

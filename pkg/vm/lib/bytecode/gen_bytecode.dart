@@ -1673,46 +1673,45 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       asm.emitPopLocal(locals.contextVarIndexInFrame);
     }
 
-    // CheckStack must see a properly initialized context when stress-testing
-    // stack trace collection.
-    asm.emitCheckStack(0);
+    if (locals.hasFunctionTypeArgsVar && function.typeParameters.isNotEmpty) {
+      assert(!(node is Procedure && node.isFactory));
 
-    if (locals.hasFunctionTypeArgsVar) {
-      if (function.typeParameters.isNotEmpty) {
-        assert(!(node is Procedure && node.isFactory));
-
-        Label done = new Label();
-
-        if (isClosure) {
-          _handleDelayedTypeArguments(done);
-        }
-
-        asm.emitCheckFunctionTypeArgs(function.typeParameters.length,
-            locals.functionTypeArgsVarIndexInFrame);
-
-        _handleDefaultTypeArguments(function, done);
-
-        asm.bind(done);
-      }
+      Label done = new Label();
 
       if (isClosure) {
-        if (function.typeParameters.isNotEmpty) {
-          final int numParentTypeArgs = locals.numParentTypeArguments;
-          asm.emitPush(locals.functionTypeArgsVarIndexInFrame);
-          asm.emitPush(locals.closureVarIndexInFrame);
-          asm.emitLoadFieldTOS(
-              cp.addInstanceField(closureFunctionTypeArguments));
-          _genPushInt(numParentTypeArgs);
-          _genPushInt(numParentTypeArgs + function.typeParameters.length);
-          _genDirectCall(
-              prependTypeArguments, objectTable.getArgDescHandle(4), 4);
-          asm.emitPopLocal(locals.functionTypeArgsVarIndexInFrame);
-        } else {
-          asm.emitPush(locals.closureVarIndexInFrame);
-          asm.emitLoadFieldTOS(
-              cp.addInstanceField(closureFunctionTypeArguments));
-          asm.emitPopLocal(locals.functionTypeArgsVarIndexInFrame);
-        }
+        _handleDelayedTypeArguments(done);
+      }
+
+      asm.emitCheckFunctionTypeArgs(function.typeParameters.length,
+          locals.functionTypeArgsVarIndexInFrame);
+
+      _handleDefaultTypeArguments(function, done);
+
+      asm.bind(done);
+    }
+
+    // CheckStack must see a properly initialized context when stress-testing
+    // stack trace collection.
+    // Also, simdbc doesn't support arguments descriptor SpecialDbcRegister as
+    // a source location for deopt info, so CheckStack should be generated
+    // after the code which uses arguments descriptor.
+    asm.emitCheckStack(0);
+
+    if (locals.hasFunctionTypeArgsVar && isClosure) {
+      if (function.typeParameters.isNotEmpty) {
+        final int numParentTypeArgs = locals.numParentTypeArguments;
+        asm.emitPush(locals.functionTypeArgsVarIndexInFrame);
+        asm.emitPush(locals.closureVarIndexInFrame);
+        asm.emitLoadFieldTOS(cp.addInstanceField(closureFunctionTypeArguments));
+        _genPushInt(numParentTypeArgs);
+        _genPushInt(numParentTypeArgs + function.typeParameters.length);
+        _genDirectCall(
+            prependTypeArguments, objectTable.getArgDescHandle(4), 4);
+        asm.emitPopLocal(locals.functionTypeArgsVarIndexInFrame);
+      } else {
+        asm.emitPush(locals.closureVarIndexInFrame);
+        asm.emitLoadFieldTOS(cp.addInstanceField(closureFunctionTypeArguments));
+        asm.emitPopLocal(locals.functionTypeArgsVarIndexInFrame);
       }
     }
   }

@@ -80,8 +80,8 @@ Function 'foo3', static, reflectable, debuggable
 
 Bytecode {
   Entry                2
-  CheckStack           0
   CheckFunctionTypeArgs 1, r0
+  CheckStack           0
   PushNull
   Push                 r0
   InstantiateTypeArgumentsTOS 0, CP#1

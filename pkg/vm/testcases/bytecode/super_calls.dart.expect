@@ -53,8 +53,8 @@ Function 'foo', reflectable, debuggable
 
 Bytecode {
   Entry                1
-  CheckStack           0
   CheckFunctionTypeArgs 1, r0
+  CheckStack           0
   PushNull
   ReturnTOS
 }
