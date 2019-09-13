@@ -4343,30 +4343,9 @@ main() {
   var explicitDynamicIsOK = C<dynamic>(42);
 
   var rawConstructorCall = /*info:INFERENCE_FAILURE_ON_INSTANCE_CREATION*/C();
-  var upwardsInfersDynamic = /*info:INFERENCE_FAILURE_ON_INSTANCE_CREATION*/C(42 as dynamic);
-  var namedConstructor = /*info:INFERENCE_FAILURE_ON_INSTANCE_CREATION*/C.of(42 as dynamic);
   var factoryConstructor = /*info:INFERENCE_FAILURE_ON_INSTANCE_CREATION*/C.from(42);
-}
-    ''');
-    await check(strictInference: true);
-  }
-
-  test_strictInference_instanceCreation_optionalTypeArgs() async {
-    addMetaPackage();
-    addFile(r'''
-import 'package:meta/meta.dart';
-@optionalTypeArgs
-class C<T> {
-  C([T t]);
-  C.of(T t);
-  factory C.from(Object e) => C();
-}
-
-main() {
-  var rawConstructorCall = C();
   var upwardsInfersDynamic = C(42 as dynamic);
   var namedConstructor = C.of(42 as dynamic);
-  var factoryConstructor = C.from(42);
 }
     ''');
     await check(strictInference: true);

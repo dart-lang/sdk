@@ -6,7 +6,7 @@ import 'dart:collection';
 import 'dart:math' as math;
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart' show AstNode;
+import 'package:analyzer/dart/ast/ast.dart' show AstNode, ConstructorName;
 import 'package:analyzer/dart/ast/token.dart' show Keyword, TokenType;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -17,7 +17,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart' show TypeParameterMember;
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
-import 'package:analyzer/src/error/codes.dart' show StrongModeCode;
+import 'package:analyzer/src/error/codes.dart' show HintCode, StrongModeCode;
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
@@ -106,9 +106,15 @@ class Dart2TypeSystem extends TypeSystem {
    */
   final bool implicitCasts;
 
+  /// A flag indicating whether inference failures are allowed, off by default.
+  ///
+  /// This option is experimental and subject to change.
+  final bool strictInference;
+
   final TypeProvider typeProvider;
 
-  Dart2TypeSystem(this.typeProvider, {this.implicitCasts: true});
+  Dart2TypeSystem(this.typeProvider,
+      {this.implicitCasts: true, this.strictInference: false});
 
   /// Returns true iff the type [t] accepts function types, and requires an
   /// implicit coercion if interface types with a `call` method are passed in.
@@ -1398,6 +1404,20 @@ class GenericInferrer {
 
       if (UnknownInferredType.isKnown(inferred)) {
         knownTypes[typeParam] = inferred;
+      } else if (_typeSystem.strictInference) {
+        // [typeParam] could not be inferred. A result will still be returned
+        // by [infer], with [typeParam] filled in as its bounds. This is
+        // considered a failure of inference, under the "strict-inference"
+        // mode.
+        if (errorNode is ConstructorName) {
+          String constructorName = '${errorNode.type}.${errorNode.name}';
+          errorReporter?.reportTypeErrorForNode(
+              HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION,
+              errorNode,
+              [constructorName]);
+        }
+        // TODO(srawlins): More inference failure cases, like functions, and
+        // function expressions.
       }
     }
 
@@ -2874,7 +2894,8 @@ abstract class TypeSystem implements public.TypeSystem {
   static TypeSystem create(AnalysisContext context) {
     var options = context.analysisOptions as AnalysisOptionsImpl;
     return new Dart2TypeSystem(context.typeProvider,
-        implicitCasts: options.implicitCasts);
+        implicitCasts: options.implicitCasts,
+        strictInference: options.strictInference);
   }
 }
 
