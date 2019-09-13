@@ -84,22 +84,22 @@ export 'package:kernel/ast.dart'
 
 export 'kernel_shadow_ast.dart'
     show
-        ArgumentsJudgment,
+        ArgumentsImpl,
         CascadeJudgment,
         ComplexAssignmentJudgment,
         DeferredCheckJudgment,
         FactoryConstructorInvocationJudgment,
-        FunctionDeclarationJudgment,
+        FunctionDeclarationImpl,
         IfNullJudgment,
         InvalidSuperInitializerJudgment,
         LoadLibraryTearOffJudgment,
-        MethodInvocationJudgment,
+        MethodInvocationImpl,
         NamedFunctionExpressionJudgment,
         NullAwareMethodInvocationJudgment,
         NullAwarePropertyGetJudgment,
-        ReturnJudgment,
+        ReturnStatementImpl,
         ShadowInvalidFieldInitializer,
         ShadowInvalidInitializer,
         ShadowLargeIntLiteral,
-        VariableDeclarationJudgment,
-        VariableGetJudgment;
+        VariableDeclarationImpl,
+        VariableGetImpl;

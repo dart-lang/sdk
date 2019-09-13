@@ -110,7 +110,7 @@ import '../kernel/kernel_shadow_ast.dart'
         ExpressionJudgment,
         ShadowTypeInferenceEngine,
         ShadowTypeInferrer,
-        VariableDeclarationJudgment,
+        VariableDeclarationImpl,
         getExplicitTypeArguments,
         getExtensionTypeParameterCount;
 
@@ -1891,8 +1891,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     // Otherwise, if `Qi` is not `_`, let `Ri` be the greatest closure of
     // `Qi[T/S]` with respect to `?`.  Otherwise, let `Ri` be `dynamic`.
     for (int i = 0; i < formals.length; i++) {
-      VariableDeclarationJudgment formal = formals[i];
-      if (VariableDeclarationJudgment.isImplicitlyTyped(formal)) {
+      VariableDeclarationImpl formal = formals[i];
+      if (VariableDeclarationImpl.isImplicitlyTyped(formal)) {
         DartType inferredType;
         if (formalTypesFromContext[i] == coreTypes.nullClass.rawType) {
           inferredType = coreTypes.objectClass.rawType;
@@ -2441,8 +2441,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     }
     if (expression is VariableGet) {
       VariableDeclaration variable = expression.variable;
-      if (variable is VariableDeclarationJudgment &&
-          VariableDeclarationJudgment.isLocalFunction(variable)) {
+      if (variable is VariableDeclarationImpl &&
+          VariableDeclarationImpl.isLocalFunction(variable)) {
         return templateInvalidCastLocalFunction;
       }
     }

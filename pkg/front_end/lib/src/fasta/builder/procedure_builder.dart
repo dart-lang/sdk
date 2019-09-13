@@ -45,7 +45,7 @@ import '../kernel/kernel_builder.dart'
         TypeVariableBuilder,
         isRedirectingGenerativeConstructorImplementation;
 
-import '../kernel/kernel_shadow_ast.dart' show VariableDeclarationJudgment;
+import '../kernel/kernel_shadow_ast.dart' show VariableDeclarationImpl;
 
 import '../kernel/redirecting_factory_body.dart' show RedirectingFactoryBody;
 
@@ -301,7 +301,7 @@ abstract class FunctionBuilder extends MemberBuilder {
       // Do this after building the parameters, since the diet listener
       // assumes that parameters are built, even if illegal in number.
       VariableDeclaration parameter =
-          new VariableDeclarationJudgment("#synthetic", 0);
+          new VariableDeclarationImpl("#synthetic", 0);
       result.positionalParameters.clear();
       result.positionalParameters.add(parameter);
       parameter.parent = result;
@@ -515,7 +515,7 @@ class ProcedureBuilder extends FunctionBuilder {
       List<Statement> statements = [];
       Block block = new Block(statements);
       VariableDeclaration variableDeclaration =
-          new VariableDeclarationJudgment.forValue(
+          new VariableDeclarationImpl.forValue(
               new VariableGet(value)..fileOffset = procedure.fileOffset)
             ..type = value.type;
       statements.add(variableDeclaration);

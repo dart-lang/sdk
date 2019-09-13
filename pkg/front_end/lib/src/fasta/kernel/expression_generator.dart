@@ -87,12 +87,12 @@ import 'kernel_shadow_ast.dart'
     show
         ComplexAssignmentJudgment,
         LoadLibraryTearOffJudgment,
-        MethodInvocationJudgment,
+        MethodInvocationImpl,
         NullAwarePropertyGetJudgment,
         PropertyAssignmentJudgment,
         SyntheticWrapper,
-        VariableDeclarationJudgment,
-        VariableGetJudgment,
+        VariableDeclarationImpl,
+        VariableGetImpl,
         getExplicitTypeArguments;
 
 /// A generator represents a subexpression for which we can't yet build an
@@ -263,9 +263,8 @@ abstract class Generator {
         offset: offset);
     complexAssignment?.combiner = combiner;
     complexAssignment?.isPostIncDec = true;
-    VariableDeclarationJudgment dummy =
-        new VariableDeclarationJudgment.forValue(
-            _makeWrite(combiner, true, complexAssignment));
+    VariableDeclarationImpl dummy = new VariableDeclarationImpl.forValue(
+        _makeWrite(combiner, true, complexAssignment));
     return _finish(
         makeLet(value, makeLet(dummy, valueAccess())), complexAssignment);
   }
@@ -503,7 +502,7 @@ class VariableUseGenerator extends Generator {
     TypePromotionFact fact = _helper.typePromoter
         ?.getFactForAccess(variable, _helper.functionNestingLevel);
     TypePromotionScope scope = _helper.typePromoter?.currentScope;
-    VariableGetJudgment read = new VariableGetJudgment(variable, fact, scope)
+    VariableGetImpl read = new VariableGetImpl(variable, fact, scope)
       ..fileOffset = fileOffset;
     complexAssignment?.read = read;
     return read;
@@ -1012,8 +1011,8 @@ class IndexedAccessGenerator extends Generator {
 
   @override
   Expression _makeSimpleRead() {
-    MethodInvocationJudgment read = new MethodInvocationJudgment(receiver,
-        indexGetName, _forest.createArguments(fileOffset, <Expression>[index]),
+    MethodInvocationImpl read = new MethodInvocationImpl(receiver, indexGetName,
+        _forest.createArguments(fileOffset, <Expression>[index]),
         interfaceTarget: getter)
       ..fileOffset = fileOffset;
     return read;
@@ -1023,7 +1022,7 @@ class IndexedAccessGenerator extends Generator {
   Expression _makeSimpleWrite(Expression value, bool voidContext,
       ComplexAssignmentJudgment complexAssignment) {
     if (!voidContext) return _makeWriteAndReturn(value, complexAssignment);
-    MethodInvocationJudgment write = new MethodInvocationJudgment(
+    MethodInvocationImpl write = new MethodInvocationImpl(
         receiver,
         indexSetName,
         _forest.createArguments(fileOffset, <Expression>[index, value]),
@@ -1035,7 +1034,7 @@ class IndexedAccessGenerator extends Generator {
 
   @override
   Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
-    MethodInvocationJudgment read = new MethodInvocationJudgment(
+    MethodInvocationImpl read = new MethodInvocationImpl(
         receiverAccess(),
         indexGetName,
         _forest.createArguments(fileOffset, <Expression>[indexAccess()]),
@@ -1049,7 +1048,7 @@ class IndexedAccessGenerator extends Generator {
   Expression _makeWrite(Expression value, bool voidContext,
       ComplexAssignmentJudgment complexAssignment) {
     if (!voidContext) return _makeWriteAndReturn(value, complexAssignment);
-    MethodInvocationJudgment write = new MethodInvocationJudgment(
+    MethodInvocationImpl write = new MethodInvocationImpl(
         receiverAccess(),
         indexSetName,
         _forest.createArguments(fileOffset, <Expression>[indexAccess(), value]),
@@ -1066,7 +1065,7 @@ class IndexedAccessGenerator extends Generator {
     // The call to []= does not return the value like direct-style assignments
     // do.  We need to bind the value in a let.
     VariableDeclaration valueVariable = new VariableDeclaration.forValue(value);
-    MethodInvocationJudgment write = new MethodInvocationJudgment(
+    MethodInvocationImpl write = new MethodInvocationImpl(
         receiverAccess(),
         indexSetName,
         _forest.createArguments(fileOffset,
@@ -1074,8 +1073,7 @@ class IndexedAccessGenerator extends Generator {
         interfaceTarget: setter)
       ..fileOffset = fileOffset;
     complexAssignment?.write = write;
-    VariableDeclarationJudgment dummy =
-        new VariableDeclarationJudgment.forValue(write);
+    VariableDeclarationImpl dummy = new VariableDeclarationImpl.forValue(write);
     return makeLet(
         valueVariable, makeLet(dummy, new VariableGet(valueVariable)));
   }
@@ -1164,7 +1162,7 @@ class ThisIndexedAccessGenerator extends Generator {
   Expression _makeWriteAndReturn(
       Expression value, ComplexAssignmentJudgment complexAssignment) {
     VariableDeclaration valueVariable = new VariableDeclaration.forValue(value);
-    MethodInvocationJudgment write = new MethodInvocationJudgment(
+    MethodInvocationImpl write = new MethodInvocationImpl(
         _forest.createThisExpression(token),
         indexSetName,
         _forest.createArguments(fileOffset,
@@ -1179,7 +1177,7 @@ class ThisIndexedAccessGenerator extends Generator {
 
   @override
   Expression _makeSimpleRead() {
-    return new MethodInvocationJudgment(_forest.createThisExpression(token),
+    return new MethodInvocationImpl(_forest.createThisExpression(token),
         indexGetName, _forest.createArguments(fileOffset, <Expression>[index]),
         interfaceTarget: getter)
       ..fileOffset = fileOffset;
@@ -1189,7 +1187,7 @@ class ThisIndexedAccessGenerator extends Generator {
   Expression _makeSimpleWrite(Expression value, bool voidContext,
       ComplexAssignmentJudgment complexAssignment) {
     if (!voidContext) return _makeWriteAndReturn(value, complexAssignment);
-    MethodInvocationJudgment write = new MethodInvocationJudgment(
+    MethodInvocationImpl write = new MethodInvocationImpl(
         _forest.createThisExpression(token),
         indexSetName,
         _forest.createArguments(fileOffset, <Expression>[index, value]),
@@ -1201,7 +1199,7 @@ class ThisIndexedAccessGenerator extends Generator {
 
   @override
   Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
-    MethodInvocationJudgment read = new MethodInvocationJudgment(
+    MethodInvocationImpl read = new MethodInvocationImpl(
         _forest.createThisExpression(token),
         indexGetName,
         _forest.createArguments(fileOffset, <Expression>[indexAccess()]),
@@ -1215,7 +1213,7 @@ class ThisIndexedAccessGenerator extends Generator {
   Expression _makeWrite(Expression value, bool voidContext,
       ComplexAssignmentJudgment complexAssignment) {
     if (!voidContext) return _makeWriteAndReturn(value, complexAssignment);
-    MethodInvocationJudgment write = new MethodInvocationJudgment(
+    MethodInvocationImpl write = new MethodInvocationImpl(
         _forest.createThisExpression(token),
         indexSetName,
         _forest.createArguments(fileOffset, <Expression>[indexAccess(), value]),
@@ -3653,7 +3651,7 @@ Expression makeLet(VariableDeclaration variable, Expression body) {
 Expression makeBinary(Expression left, Name operator, Procedure interfaceTarget,
     Expression right, ExpressionGeneratorHelper helper,
     {int offset: TreeNode.noOffset}) {
-  return new MethodInvocationJudgment(left, operator,
+  return new MethodInvocationImpl(left, operator,
       helper.forest.createArguments(offset, <Expression>[right]),
       interfaceTarget: interfaceTarget)
     ..fileOffset = offset;

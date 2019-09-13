@@ -113,18 +113,6 @@ class InferenceVisitor
   }
 
   @override
-  ExpressionInferenceResult visitLoadLibrary(
-      LoadLibrary node, DartType typeContext) {
-    return _unhandledExpression(node, typeContext);
-  }
-
-  @override
-  ExpressionInferenceResult visitMethodInvocation(
-      MethodInvocation node, DartType typeContext) {
-    return _unhandledExpression(node, typeContext);
-  }
-
-  @override
   ExpressionInferenceResult visitSetConcatenation(
       SetConcatenation node, DartType typeContext) {
     return _unhandledExpression(node, typeContext);
@@ -139,12 +127,6 @@ class InferenceVisitor
   @override
   ExpressionInferenceResult visitStaticSet(
       StaticSet node, DartType typeContext) {
-    return _unhandledExpression(node, typeContext);
-  }
-
-  @override
-  ExpressionInferenceResult visitVariableGet(
-      VariableGet node, DartType typeContext) {
     return _unhandledExpression(node, typeContext);
   }
 
@@ -166,21 +148,6 @@ class InferenceVisitor
 
   @override
   void visitAssertBlock(AssertBlock node) {
-    _unhandledStatement(node);
-  }
-
-  @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
-    _unhandledStatement(node);
-  }
-
-  @override
-  void visitReturnStatement(ReturnStatement node) {
-    _unhandledStatement(node);
-  }
-
-  @override
-  void visitVariableDeclaration(VariableDeclaration node) {
     _unhandledStatement(node);
   }
 
@@ -459,7 +426,7 @@ class InferenceVisitor
     DartType elementType;
     bool typeNeeded = false;
     bool typeChecksNeeded = !inferrer.isTopLevel;
-    if (VariableDeclarationJudgment.isImplicitlyTyped(variable)) {
+    if (VariableDeclarationImpl.isImplicitlyTyped(variable)) {
       typeNeeded = true;
       elementType = const UnknownType();
     } else {
@@ -643,7 +610,8 @@ class InferenceVisitor
         node, typeContext, returnTypeInstrumentationOffset, returnContext);
   }
 
-  void visitFunctionDeclarationJudgment(FunctionDeclarationJudgment node) {
+  @override
+  void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
     inferrer.inferMetadataKeepingHelper(node.variable.annotations);
     DartType returnContext =
         node._hasImplicitReturnType ? null : node.function.returnType;
@@ -1754,8 +1722,9 @@ class InferenceVisitor
     return new ExpressionInferenceResult(inferredType);
   }
 
-  ExpressionInferenceResult visitMethodInvocationJudgment(
-      MethodInvocationJudgment node, DartType typeContext) {
+  @override
+  ExpressionInferenceResult visitMethodInvocation(
+      covariant MethodInvocationImpl node, DartType typeContext) {
     if (node.name.name == 'unary-' &&
         node.arguments.types.isEmpty &&
         node.arguments.positional.isEmpty &&
@@ -1962,8 +1931,7 @@ class InferenceVisitor
     for (int i = 0; i < typeArguments.length; i++) {
       typeArguments[i] = new TypeParameterType(classTypeParameters[i]);
     }
-    ArgumentsJudgment.setNonInferrableArgumentTypes(
-        node.arguments, typeArguments);
+    ArgumentsImpl.setNonInferrableArgumentTypes(node.arguments, typeArguments);
     inferrer.inferInvocation(
         null,
         node.fileOffset,
@@ -1971,14 +1939,15 @@ class InferenceVisitor
         node.target.enclosingClass.thisType,
         node.arguments,
         skipTypeArgumentInference: true);
-    ArgumentsJudgment.removeNonInferrableArgumentTypes(node.arguments);
+    ArgumentsImpl.removeNonInferrableArgumentTypes(node.arguments);
   }
 
   @override
   ExpressionInferenceResult visitRethrow(Rethrow node, DartType typeContext) =>
       const ExpressionInferenceResult(const BottomType());
 
-  void visitReturnJudgment(ReturnJudgment node) {
+  @override
+  void visitReturnStatement(covariant ReturnStatementImpl node) {
     Expression expression = node.expression;
     ClosureContext closureContext = inferrer.closureContext;
     DartType typeContext = !closureContext.isGenerator
@@ -2327,7 +2296,8 @@ class InferenceVisitor
     return new ExpressionInferenceResult(inferredType);
   }
 
-  void visitVariableDeclarationJudgment(VariableDeclarationJudgment node) {
+  @override
+  void visitVariableDeclaration(covariant VariableDeclarationImpl node) {
     Expression initializer = node.initializer;
     DartType declaredType =
         node._implicitlyTyped ? const UnknownType() : node.type;
@@ -2390,9 +2360,10 @@ class InferenceVisitor
     return new ExpressionInferenceResult(inferredType);
   }
 
-  ExpressionInferenceResult visitVariableGetJudgment(
-      VariableGetJudgment node, DartType typeContext) {
-    VariableDeclarationJudgment variable = node.variable;
+  @override
+  ExpressionInferenceResult visitVariableGet(
+      covariant VariableGetImpl node, DartType typeContext) {
+    VariableDeclarationImpl variable = node.variable;
     bool mutatedInClosure = variable._mutatedInClosure;
     DartType declaredOrInferredType = variable.type;
 
@@ -2447,8 +2418,9 @@ class InferenceVisitor
         node.expression, node.fileOffset);
   }
 
-  ExpressionInferenceResult visitLoadLibraryJudgment(
-      LoadLibraryJudgment node, DartType typeContext) {
+  @override
+  ExpressionInferenceResult visitLoadLibrary(
+      covariant LoadLibraryImpl node, DartType typeContext) {
     DartType inferredType =
         inferrer.typeSchemaEnvironment.futureType(const DynamicType());
     if (node.arguments != null) {

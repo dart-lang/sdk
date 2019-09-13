@@ -110,7 +110,7 @@ InterfaceType computeConstructorReturnType(Member constructor) {
 }
 
 int getExtensionTypeParameterCount(Arguments arguments) {
-  if (arguments is ArgumentsJudgment) {
+  if (arguments is ArgumentsImpl) {
     return arguments._extensionTypeParameterCount;
   } else {
     // TODO(johnniwinther): Remove this path or assert why it is accepted.
@@ -119,7 +119,7 @@ int getExtensionTypeParameterCount(Arguments arguments) {
 }
 
 int getExtensionTypeArgumentCount(Arguments arguments) {
-  if (arguments is ArgumentsJudgment) {
+  if (arguments is ArgumentsImpl) {
     return arguments._extensionTypeArgumentCount;
   } else {
     // TODO(johnniwinther): Remove this path or assert why it is accepted.
@@ -128,7 +128,7 @@ int getExtensionTypeArgumentCount(Arguments arguments) {
 }
 
 List<DartType> getExplicitExtensionTypeArguments(Arguments arguments) {
-  if (arguments is ArgumentsJudgment) {
+  if (arguments is ArgumentsImpl) {
     if (arguments._extensionTypeArgumentCount == 0) {
       return null;
     } else {
@@ -143,7 +143,7 @@ List<DartType> getExplicitExtensionTypeArguments(Arguments arguments) {
 }
 
 List<DartType> getExplicitTypeArguments(Arguments arguments) {
-  if (arguments is ArgumentsJudgment) {
+  if (arguments is ArgumentsImpl) {
     if (arguments._explicitTypeArgumentCount == 0) {
       return null;
     } else if (arguments._extensionTypeParameterCount == 0) {
@@ -179,8 +179,8 @@ class ClassInferenceInfo {
   ClassInferenceInfo(this.builder);
 }
 
-/// Concrete shadow object representing a set of invocation arguments.
-class ArgumentsJudgment extends Arguments {
+/// Front end specific implementation of [Argument].
+class ArgumentsImpl extends Arguments {
   // TODO(johnniwinther): Move this to the static invocation instead.
   final int _extensionTypeParameterCount;
 
@@ -188,14 +188,14 @@ class ArgumentsJudgment extends Arguments {
 
   int _explicitTypeArgumentCount;
 
-  ArgumentsJudgment(List<Expression> positional,
+  ArgumentsImpl(List<Expression> positional,
       {List<DartType> types, List<NamedExpression> named})
       : _explicitTypeArgumentCount = types?.length ?? 0,
         _extensionTypeParameterCount = 0,
         _extensionTypeArgumentCount = 0,
         super(positional, types: types, named: named);
 
-  ArgumentsJudgment.forExtensionMethod(int extensionTypeParameterCount,
+  ArgumentsImpl.forExtensionMethod(int extensionTypeParameterCount,
       int typeParameterCount, Expression receiver,
       {List<DartType> extensionTypeArguments = const <DartType>[],
       List<DartType> typeArguments = const <DartType>[],
@@ -225,13 +225,13 @@ class ArgumentsJudgment extends Arguments {
   }
 
   static void setNonInferrableArgumentTypes(
-      ArgumentsJudgment arguments, List<DartType> types) {
+      ArgumentsImpl arguments, List<DartType> types) {
     arguments.types.clear();
     arguments.types.addAll(types);
     arguments._explicitTypeArgumentCount = types.length;
   }
 
-  static void removeNonInferrableArgumentTypes(ArgumentsJudgment arguments) {
+  static void removeNonInferrableArgumentTypes(ArgumentsImpl arguments) {
     arguments.types.clear();
     arguments._explicitTypeArgumentCount = 0;
   }
@@ -263,7 +263,7 @@ class CascadeJudgment extends Let implements ExpressionJudgment {
   /// variable.  Caller is responsible for ensuring that [variable]'s
   /// initializer is the expression preceding the first `..` of the cascade
   /// expression.
-  CascadeJudgment(VariableDeclarationJudgment variable)
+  CascadeJudgment(VariableDeclarationImpl variable)
       : super(
             variable,
             makeLet(new VariableDeclaration.forValue(new _UnfinishedCascade()),
@@ -548,7 +548,7 @@ class FactoryConstructorInvocationJudgment extends StaticInvocation
   bool hasBeenInferred = false;
 
   FactoryConstructorInvocationJudgment(
-      Procedure target, ArgumentsJudgment arguments,
+      Procedure target, ArgumentsImpl arguments,
       {bool isConst: false})
       : super(target, arguments, isConst: isConst);
 
@@ -559,23 +559,16 @@ class FactoryConstructorInvocationJudgment extends StaticInvocation
   }
 }
 
-/// Concrete shadow object representing a local function declaration in kernel
-/// form.
-class FunctionDeclarationJudgment extends FunctionDeclaration
-    implements StatementJudgment {
+/// Front end specific implementation of [FunctionDeclaration].
+class FunctionDeclarationImpl extends FunctionDeclaration {
   bool _hasImplicitReturnType = false;
 
-  FunctionDeclarationJudgment(
-      VariableDeclarationJudgment variable, FunctionNode function)
+  FunctionDeclarationImpl(
+      VariableDeclarationImpl variable, FunctionNode function)
       : super(variable, function);
 
-  @override
-  void acceptInference(InferenceVisitor visitor) {
-    return visitor.visitFunctionDeclarationJudgment(this);
-  }
-
   static void setHasImplicitReturnType(
-      FunctionDeclarationJudgment declaration, bool hasImplicitReturnType) {
+      FunctionDeclarationImpl declaration, bool hasImplicitReturnType) {
     declaration._hasImplicitReturnType = hasImplicitReturnType;
   }
 }
@@ -584,7 +577,7 @@ class FunctionDeclarationJudgment extends FunctionDeclaration
 class InvalidSuperInitializerJudgment extends LocalInitializer
     implements InitializerJudgment {
   final Constructor target;
-  final ArgumentsJudgment argumentsJudgment;
+  final ArgumentsImpl argumentsJudgment;
 
   InvalidSuperInitializerJudgment(
       this.target, this.argumentsJudgment, VariableDeclaration variable)
@@ -785,24 +778,16 @@ class ShadowInvalidFieldInitializer extends LocalInitializer
   }
 }
 
-/// Shadow object for [MethodInvocation].
-class MethodInvocationJudgment extends MethodInvocation
-    implements ExpressionJudgment {
+/// Front end specific implementation of [MethodInvocation].
+class MethodInvocationImpl extends MethodInvocation {
   /// Indicates whether this method invocation is a call to a `call` method
   /// resulting from the invocation of a function expression.
   final bool _isImplicitCall;
 
-  MethodInvocationJudgment(
-      Expression receiver, Name name, ArgumentsJudgment arguments,
+  MethodInvocationImpl(Expression receiver, Name name, ArgumentsImpl arguments,
       {bool isImplicitCall: false, Member interfaceTarget})
       : _isImplicitCall = isImplicitCall,
         super(receiver, name, arguments, interfaceTarget);
-
-  @override
-  ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitMethodInvocationJudgment(this, typeContext);
-  }
 }
 
 /// Concrete shadow object representing a named function expression.
@@ -816,7 +801,7 @@ class MethodInvocationJudgment extends MethodInvocation
 ///     let f = () { ... } in f
 class NamedFunctionExpressionJudgment extends Let
     implements ExpressionJudgment {
-  NamedFunctionExpressionJudgment(VariableDeclarationJudgment variable)
+  NamedFunctionExpressionJudgment(VariableDeclarationImpl variable)
       : super(variable, new VariableGet(variable));
 
   @override
@@ -904,16 +889,12 @@ class PropertyAssignmentJudgment extends ComplexAssignmentJudgmentWithReceiver {
   }
 }
 
-/// Concrete shadow object representing a return statement in kernel form.
-class ReturnJudgment extends ReturnStatement implements StatementJudgment {
+/// Front end specific implementation of [ReturnStatement].
+class ReturnStatementImpl extends ReturnStatement {
   final bool isArrow;
 
-  ReturnJudgment(this.isArrow, [Expression expression]) : super(expression);
-
-  @override
-  void acceptInference(InferenceVisitor visitor) {
-    return visitor.visitReturnJudgment(this);
-  }
+  ReturnStatementImpl(this.isArrow, [Expression expression])
+      : super(expression);
 }
 
 /// Common base class for shadow objects representing statements in kernel
@@ -1118,7 +1099,7 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
     DartType inferredType = result.inferredType;
     assert(inferredType != null, "No type inferred for $expression.");
     if (inferredType is VoidType && !isVoidAllowed) {
-      if (expression.parent is! ArgumentsJudgment) {
+      if (expression.parent is! ArgumentsImpl) {
         helper?.addProblem(
             messageVoidExpression, expression.fileOffset, noLength);
       }
@@ -1170,7 +1151,7 @@ class ShadowTypePromoter extends TypePromoterImpl {
 
   @override
   int getVariableFunctionNestingLevel(VariableDeclaration variable) {
-    if (variable is VariableDeclarationJudgment) {
+    if (variable is VariableDeclarationImpl) {
       return variable._functionNestingLevel;
     } else {
       // Hack to deal with the fact that BodyBuilder still creates raw
@@ -1183,8 +1164,8 @@ class ShadowTypePromoter extends TypePromoterImpl {
 
   @override
   bool isPromotionCandidate(VariableDeclaration variable) {
-    assert(variable is VariableDeclarationJudgment);
-    VariableDeclarationJudgment kernelVariableDeclaration = variable;
+    assert(variable is VariableDeclarationImpl);
+    VariableDeclarationImpl kernelVariableDeclaration = variable;
     return !kernelVariableDeclaration._isLocalFunction;
   }
 
@@ -1195,7 +1176,7 @@ class ShadowTypePromoter extends TypePromoterImpl {
 
   @override
   void setVariableMutatedAnywhere(VariableDeclaration variable) {
-    if (variable is VariableDeclarationJudgment) {
+    if (variable is VariableDeclarationImpl) {
       variable._mutatedAnywhere = true;
     } else {
       // Hack to deal with the fact that BodyBuilder still creates raw
@@ -1207,7 +1188,7 @@ class ShadowTypePromoter extends TypePromoterImpl {
 
   @override
   void setVariableMutatedInClosure(VariableDeclaration variable) {
-    if (variable is VariableDeclarationJudgment) {
+    if (variable is VariableDeclarationImpl) {
       variable._mutatedInClosure = true;
     } else {
       // Hack to deal with the fact that BodyBuilder still creates raw
@@ -1219,7 +1200,7 @@ class ShadowTypePromoter extends TypePromoterImpl {
 
   @override
   bool wasVariableMutatedAnywhere(VariableDeclaration variable) {
-    if (variable is VariableDeclarationJudgment) {
+    if (variable is VariableDeclarationImpl) {
       return variable._mutatedAnywhere;
     } else {
       // Hack to deal with the fact that BodyBuilder still creates raw
@@ -1241,9 +1222,8 @@ class VariableAssignmentJudgment extends ComplexAssignmentJudgment {
   }
 }
 
-/// Concrete shadow object representing a variable declaration in kernel form.
-class VariableDeclarationJudgment extends VariableDeclaration
-    implements StatementJudgment {
+/// Front end specific implementation of [VariableDeclaration].
+class VariableDeclarationImpl extends VariableDeclaration {
   final bool forSyntheticToken;
 
   final bool _implicitlyTyped;
@@ -1264,7 +1244,7 @@ class VariableDeclarationJudgment extends VariableDeclaration
   // TODO(ahe): Investigate if this can be removed.
   final bool _isLocalFunction;
 
-  VariableDeclarationJudgment(String name, this._functionNestingLevel,
+  VariableDeclarationImpl(String name, this._functionNestingLevel,
       {this.forSyntheticToken: false,
       Expression initializer,
       DartType type,
@@ -1287,46 +1267,41 @@ class VariableDeclarationJudgment extends VariableDeclaration
             isLate: isLate,
             isRequired: isRequired);
 
-  VariableDeclarationJudgment.forEffect(
+  VariableDeclarationImpl.forEffect(
       Expression initializer, this._functionNestingLevel)
       : forSyntheticToken = false,
         _implicitlyTyped = false,
         _isLocalFunction = false,
         super.forValue(initializer);
 
-  VariableDeclarationJudgment.forValue(Expression initializer)
+  VariableDeclarationImpl.forValue(Expression initializer)
       : forSyntheticToken = false,
         _functionNestingLevel = 0,
         _implicitlyTyped = true,
         _isLocalFunction = false,
         super.forValue(initializer);
 
-  @override
-  void acceptInference(InferenceVisitor visitor) {
-    return visitor.visitVariableDeclarationJudgment(this);
-  }
-
-  /// Determine whether the given [VariableDeclarationJudgment] had an implicit
+  /// Determine whether the given [VariableDeclarationImpl] had an implicit
   /// type.
   ///
   /// This is static to avoid introducing a method that would be visible to
   /// the kernel.
-  static bool isImplicitlyTyped(VariableDeclarationJudgment variable) =>
+  static bool isImplicitlyTyped(VariableDeclarationImpl variable) =>
       variable._implicitlyTyped;
 
-  /// Determines whether the given [VariableDeclarationJudgment] represents a
+  /// Determines whether the given [VariableDeclarationImpl] represents a
   /// local function.
   ///
   /// This is static to avoid introducing a method that would be visible to the
   /// kernel.
-  static bool isLocalFunction(VariableDeclarationJudgment variable) =>
+  static bool isLocalFunction(VariableDeclarationImpl variable) =>
       variable._isLocalFunction;
 }
 
 /// Synthetic judgment class representing an attempt to invoke an unresolved
 /// target.
 class UnresolvedTargetInvocationJudgment extends SyntheticExpressionJudgment {
-  final ArgumentsJudgment argumentsJudgment;
+  final ArgumentsImpl argumentsJudgment;
 
   UnresolvedTargetInvocationJudgment._(
       kernel.Expression desugared, this.argumentsJudgment)
@@ -1356,33 +1331,21 @@ class UnresolvedVariableAssignmentJudgment extends SyntheticExpressionJudgment {
   }
 }
 
-/// Concrete shadow object representing a read from a variable in kernel form.
-class VariableGetJudgment extends VariableGet implements ExpressionJudgment {
+/// Front end specific implementation of [VariableGet].
+class VariableGetImpl extends VariableGet {
   final TypePromotionFact _fact;
 
   final TypePromotionScope _scope;
 
-  VariableGetJudgment(VariableDeclaration variable, this._fact, this._scope)
+  VariableGetImpl(VariableDeclaration variable, this._fact, this._scope)
       : super(variable);
-
-  @override
-  ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitVariableGetJudgment(this, typeContext);
-  }
 }
 
-/// Concrete shadow object representing a deferred load library call.
-class LoadLibraryJudgment extends LoadLibrary implements ExpressionJudgment {
+/// Front end specific implementation of [LoadLibrary].
+class LoadLibraryImpl extends LoadLibrary {
   final Arguments arguments;
 
-  LoadLibraryJudgment(LibraryDependency import, this.arguments) : super(import);
-
-  @override
-  ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitLoadLibraryJudgment(this, typeContext);
-  }
+  LoadLibraryImpl(LibraryDependency import, this.arguments) : super(import);
 }
 
 /// Concrete shadow object representing a tear-off of a `loadLibrary` function.

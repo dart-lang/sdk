@@ -28,14 +28,14 @@ import 'collections.dart'
 
 import 'kernel_shadow_ast.dart'
     show
-        ArgumentsJudgment,
+        ArgumentsImpl,
         IntJudgment,
-        LoadLibraryJudgment,
-        MethodInvocationJudgment,
-        ReturnJudgment,
+        LoadLibraryImpl,
+        MethodInvocationImpl,
+        ReturnStatementImpl,
         ShadowLargeIntLiteral,
         SyntheticExpressionJudgment,
-        VariableDeclarationJudgment;
+        VariableDeclarationImpl;
 
 /// A shadow tree factory.
 class Forest {
@@ -43,7 +43,7 @@ class Forest {
 
   Arguments createArguments(int fileOffset, List<Expression> positional,
       {List<DartType> types, List<NamedExpression> named}) {
-    return new ArgumentsJudgment(positional, types: types, named: named)
+    return new ArgumentsImpl(positional, types: types, named: named)
       ..fileOffset = fileOffset ?? TreeNode.noOffset;
   }
 
@@ -56,7 +56,7 @@ class Forest {
       List<DartType> typeArguments = const <DartType>[],
       List<Expression> positionalArguments = const <Expression>[],
       List<NamedExpression> namedArguments = const <NamedExpression>[]}) {
-    return new ArgumentsJudgment.forExtensionMethod(
+    return new ArgumentsImpl.forExtensionMethod(
         extensionTypeParameterCount, typeParameterCount, receiver,
         extensionTypeArguments: extensionTypeArguments,
         typeArguments: typeArguments,
@@ -82,7 +82,7 @@ class Forest {
   }
 
   void argumentsSetTypeArguments(Arguments arguments, List<DartType> types) {
-    ArgumentsJudgment.setNonInferrableArgumentTypes(arguments, types);
+    ArgumentsImpl.setNonInferrableArgumentTypes(arguments, types);
   }
 
   StringLiteral asLiteralString(Expression value) => value;
@@ -224,7 +224,7 @@ class Forest {
 
   Expression createLoadLibrary(
       LibraryDependency dependency, Arguments arguments) {
-    return new LoadLibraryJudgment(dependency, arguments);
+    return new LoadLibraryImpl(dependency, arguments);
   }
 
   Expression checkLibraryIsLoaded(LibraryDependency dependency) {
@@ -498,7 +498,7 @@ class Forest {
   /// Return a representation of a return statement.
   Statement createReturnStatement(int fileOffset, Expression expression,
       {bool isArrow: true}) {
-    return new ReturnJudgment(isArrow, expression)
+    return new ReturnStatementImpl(isArrow, expression)
       ..fileOffset = fileOffset ?? TreeNode.noOffset;
   }
 
@@ -638,7 +638,7 @@ class Forest {
       bool isFieldFormal: false,
       bool isCovariant: false,
       bool isLocalFunction: false}) {
-    return new VariableDeclarationJudgment(name, functionNestingLevel,
+    return new VariableDeclarationImpl(name, functionNestingLevel,
         type: type,
         initializer: initializer,
         isFinal: isFinal,
@@ -651,7 +651,7 @@ class Forest {
   VariableDeclaration createVariableDeclarationForValue(
       int fileOffset, Expression initializer,
       {DartType type = const DynamicType()}) {
-    return new VariableDeclarationJudgment.forValue(initializer)
+    return new VariableDeclarationImpl.forValue(initializer)
       ..type = type
       ..fileOffset = fileOffset ?? TreeNode.noOffset;
   }
@@ -694,7 +694,7 @@ class Forest {
 
   MethodInvocation createFunctionInvocation(
       int fileOffset, Expression expression, Arguments arguments) {
-    return new MethodInvocationJudgment(expression, callName, arguments)
+    return new MethodInvocationImpl(expression, callName, arguments)
       ..fileOffset = fileOffset ?? TreeNode.noOffset;
   }
 

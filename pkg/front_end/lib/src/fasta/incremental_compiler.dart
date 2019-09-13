@@ -74,7 +74,7 @@ import 'hybrid_file_system.dart' show HybridFileSystem;
 
 import 'kernel/kernel_builder.dart' show ClassHierarchyBuilder;
 
-import 'kernel/kernel_shadow_ast.dart' show VariableDeclarationJudgment;
+import 'kernel/kernel_shadow_ast.dart' show VariableDeclarationImpl;
 
 import 'kernel/kernel_target.dart' show KernelTarget;
 
@@ -906,7 +906,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       FunctionNode parameters = new FunctionNode(null,
           typeParameters: typeDefinitions,
           positionalParameters: definitions.keys
-              .map((name) => new VariableDeclarationJudgment(name, 0))
+              .map((name) => new VariableDeclarationImpl(name, 0))
               .toList());
 
       debugLibrary.build(userCode.loader.coreLibrary, modifyTarget: false);

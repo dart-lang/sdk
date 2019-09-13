@@ -1210,7 +1210,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
               .withLocation(uri, eof.charOffset, eof.length));
     }
 
-    ReturnJudgment fakeReturn = new ReturnJudgment(true, expression);
+    ReturnStatementImpl fakeReturn = new ReturnStatementImpl(true, expression);
 
     typeInferrer?.inferFunctionBody(
         this, const DynamicType(), AsyncMarker.Sync, fakeReturn);
@@ -1775,8 +1775,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     Object fact =
         typePromoter?.getFactForAccess(variable, functionNestingLevel);
     Object scope = typePromoter?.currentScope;
-    return new VariableGetJudgment(variable, fact, scope)
-      ..fileOffset = charOffset;
+    return new VariableGetImpl(variable, fact, scope)..fileOffset = charOffset;
   }
 
   /// Helper method to create a [ReadOnlyAccessGenerator] on the [variable]
@@ -2187,7 +2186,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     bool isFinal = (currentLocalVariableModifiers & finalMask) != 0;
     bool isLate = (currentLocalVariableModifiers & lateMask) != 0;
     assert(isConst == (constantContext == ConstantContext.inferred));
-    VariableDeclaration variable = new VariableDeclarationJudgment(
+    VariableDeclaration variable = new VariableDeclarationImpl(
         identifier.name, functionNestingLevel,
         forSyntheticToken: deprecated_extractToken(identifier).isSynthetic,
         initializer: initializer,
@@ -2363,11 +2362,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (variableOrExpression is VariableDeclaration) {
       return <VariableDeclaration>[variableOrExpression];
     } else if (variableOrExpression is Expression) {
-      VariableDeclaration variable = new VariableDeclarationJudgment.forEffect(
+      VariableDeclaration variable = new VariableDeclarationImpl.forEffect(
           variableOrExpression, functionNestingLevel);
       return <VariableDeclaration>[variable];
     } else if (variableOrExpression is ExpressionStatement) {
-      VariableDeclaration variable = new VariableDeclarationJudgment.forEffect(
+      VariableDeclaration variable = new VariableDeclarationImpl.forEffect(
           variableOrExpression.expression, functionNestingLevel);
       return <VariableDeclaration>[variable];
     } else if (forest.isVariablesDeclaration(variableOrExpression)) {
@@ -4042,7 +4041,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("FunctionName");
     Identifier name = pop();
     Token nameToken = deprecated_extractToken(name);
-    VariableDeclaration variable = new VariableDeclarationJudgment(
+    VariableDeclaration variable = new VariableDeclarationImpl(
         name.name, functionNestingLevel,
         forSyntheticToken: nameToken.isSynthetic,
         isFinal: true,
@@ -4054,7 +4053,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (existing != null) {
       reportDuplicatedDeclaration(existing, name.name, name.charOffset);
     }
-    push(new FunctionDeclarationJudgment(
+    push(new FunctionDeclarationImpl(
         variable,
         // The function node is created later.
         null)
@@ -4128,7 +4127,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           variable.addAnnotation(annotation);
         }
       }
-      FunctionDeclarationJudgment.setHasImplicitReturnType(
+      FunctionDeclarationImpl.setHasImplicitReturnType(
           declaration, hasImplicitReturnType);
 
       variable.type = function.functionType;
@@ -4350,7 +4349,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           typePromoter?.getFactForAccess(variable, functionNestingLevel);
       TypePromotionScope scope = typePromoter?.currentScope;
       Expression syntheticAssignment = lvalue.buildAssignment(
-          new VariableGetJudgment(variable, fact, scope)
+          new VariableGetImpl(variable, fact, scope)
             ..fileOffset = inKeyword.offset,
           voidContext: true);
       if (syntheticAssignment is shadow.SyntheticExpressionJudgment) {
@@ -5038,7 +5037,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   Initializer buildInvalidSuperInitializer(
-      Constructor target, ArgumentsJudgment arguments, Expression expression,
+      Constructor target, ArgumentsImpl arguments, Expression expression,
       [int charOffset = -1]) {
     needsImplicitSuperInitializer = false;
     return new InvalidSuperInitializerJudgment(
@@ -5305,7 +5304,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       }
 
       receiver = new SuperPropertyGet(name, target)..fileOffset = offset;
-      MethodInvocation node = new MethodInvocationJudgment(
+      MethodInvocation node = new MethodInvocationImpl(
           receiver, callName, arguments,
           isImplicitCall: true)
         ..fileOffset = forest.readOffset(arguments);
@@ -5327,7 +5326,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             ..fileOffset = offset)
         ..fileOffset = offset;
     } else {
-      MethodInvocation node = new MethodInvocationJudgment(
+      MethodInvocation node = new MethodInvocationImpl(
           receiver, name, arguments,
           isImplicitCall: isImplicitCall, interfaceTarget: interfaceTarget)
         ..fileOffset = offset;
