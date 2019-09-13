@@ -91,6 +91,37 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38341')
+  test_back_propagation_stops_at_implicitly_typed_variables() async {
+    var content = '''
+class C {
+  int v;
+  C(this.v);
+}
+f(C c) {
+  var x = c.v;
+  print(x + 1);
+}
+main() {
+  C(null);
+}
+''';
+    var expected = '''
+class C {
+  int? v;
+  C(this.v);
+}
+f(C c) {
+  var x = c.v!;
+  print(x + 1);
+}
+main() {
+  C(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_catch_simple() async {
     var content = '''
 void f() {
