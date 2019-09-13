@@ -316,12 +316,13 @@ class DartFuzzTest {
     showStatistics();
     print('');
     if (timeoutSeeds.isNotEmpty) {
-      print('${isolate} timeout: ' + timeoutSeeds.join(", "));
+      print('\n${isolate} timeout: ' + timeoutSeeds.join(", "));
+      print('');
     }
     if (skippedSeeds.isNotEmpty) {
-      print('${isolate} skipped: ' + skippedSeeds.join(", "));
+      print('\n${isolate} skipped: ' + skippedSeeds.join(", "));
+      print('');
     }
-    print('');
 
     cleanup();
     return numDivergences;
