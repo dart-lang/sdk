@@ -5,7 +5,6 @@
 // Test that we can load a wasm module, find a function, and call it.
 
 import "package:expect/expect.dart";
-import 'dart:ffi';
 import "dart:wasm";
 import "dart:typed_data";
 

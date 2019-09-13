@@ -8,7 +8,20 @@ library dart.wasm;
 
 import 'dart:typed_data';
 
-export 'dart:ffi' show Int32, Int64, Float, Double, Void;
+// Represents the WASM 32-bit int type.
+class Int32 {}
+
+// Represents the WASM 64-bit int type.
+class Int64 {}
+
+// Represents the WASM 32-bit float type.
+class Float {}
+
+// Represents the WASM 64-bit float type.
+class Double {}
+
+// Represents the return type of a void function in WASM.
+class Void {}
 
 // WasmModule is a compiled module that can be instantiated.
 abstract class WasmModule {

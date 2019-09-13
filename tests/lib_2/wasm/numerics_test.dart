@@ -5,7 +5,6 @@
 // Test numeric types.
 
 import "package:expect/expect.dart";
-import 'dart:ffi';
 import "dart:wasm";
 import "dart:typed_data";
 
