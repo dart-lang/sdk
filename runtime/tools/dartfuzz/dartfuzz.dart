@@ -14,7 +14,7 @@ import 'dartfuzz_ffiapi.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.42';
+const String version = '1.43';
 
 // Restriction on statements and expressions.
 const int stmtLength = 2;
@@ -504,7 +504,9 @@ class DartFuzz {
   bool emitForIn(int depth) {
     final int i = localVars.length;
     emitLn('for (int $localName$i in ', newline: false);
+    localVars.add(null); // declared, but don't use
     emitExpr(0, rand.nextBool() ? DartType.INT_LIST : DartType.INT_SET);
+    localVars.removeLast(); // will get type
     emit(') {', newline: true);
     indent += 2;
     nest++;
@@ -520,10 +522,11 @@ class DartFuzz {
   // Emit a simple membership forEach loop.
   bool emitForEach(int depth) {
     final int i = localVars.length;
+    final int j = i + 1;
     emitLn("", newline: false);
     final emittedVar = emitScalarVar(DartType.INT_STRING_MAP, isLhs: false);
     iterVars.add(emittedVar);
-    emit('.forEach(($localName$i, $localName${i + 1}) {\n');
+    emit('.forEach(($localName$i, $localName$j) {\n');
     indent += 2;
     final int nestTmp = nest;
     // Reset, since forEach cannot break out of own or enclosing context.
@@ -628,8 +631,11 @@ class DartFuzz {
   // Emit a new program scope that introduces a new local variable.
   bool emitScope(int depth) {
     DartType tp = getType();
-    emitLn('{ ${tp.name} $localName${localVars.length} = ', newline: false);
+    final int i = localVars.length;
+    emitLn('{ ${tp.name} $localName$i = ', newline: false);
+    localVars.add(null); // declared, but don't use
     emitExpr(0, tp);
+    localVars.removeLast(); // will get type
     emit(';', newline: true);
     indent += 2;
     localVars.add(tp);
@@ -824,6 +830,7 @@ class DartFuzz {
           final int i = localVars.length;
           emit('for (int $localName$i ');
           // For-loop (induction, list, set).
+          localVars.add(null); // declared, but don't use
           switch (rand.nextInt(3)) {
             case 0:
               emit('= 0; $localName$i < ');
@@ -841,10 +848,13 @@ class DartFuzz {
               emit(') ');
               break;
           }
+          localVars.removeLast(); // will get type
           nest++;
+          iterVars.add("$localName$i");
           localVars.add(DartType.INT);
           emitCollectionElement(depth + 1, tp);
           localVars.removeLast();
+          iterVars.removeLast();
           nest--;
           break;
         }
