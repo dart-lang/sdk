@@ -102,6 +102,9 @@ library_for_all_configs("libdart_lib") {
       ]
     }
   }
+  if (dart_enable_wasm) {
+    defines = [ "DART_ENABLE_WASM" ]
+  }
   include_dirs = [ ".." ]
   allsources = async_runtime_cc_files + collection_runtime_cc_files +
                core_runtime_cc_files + developer_runtime_cc_files +

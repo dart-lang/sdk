@@ -89,6 +89,9 @@ declare_args() {
 
   # Whether libdart should export the symbols of the Dart API.
   dart_lib_export_symbols = true
+
+  # Whether dart:wasm should be enabled.
+  dart_enable_wasm = false
 }
 
 declare_args() {
