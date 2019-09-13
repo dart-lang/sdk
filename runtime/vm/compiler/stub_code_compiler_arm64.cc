@@ -222,6 +222,8 @@ void StubCodeCompiler::GenerateEnterSafepointStub(Assembler* assembler) {
 
   __ PopRegisters(all_registers);
   __ LeaveFrame();
+
+  __ mov(CSP, SP);
   __ Ret();
 }
 
@@ -249,6 +251,8 @@ void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
 
   __ PopRegisters(all_registers);
   __ LeaveFrame();
+
+  __ mov(CSP, SP);
   __ Ret();
 }
 
@@ -395,7 +399,7 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
 
   // EnterSafepoint clobbers TMP, TMP2 and R8 -- all volatile and not holding
   // return values.
-  __ EnterSafepoint(R8);
+  __ EnterSafepoint(/*scratch=*/R8);
 
   // Pop LR and THR from the real stack (CSP).
   __ ldp(THR, LR, Address(CSP, 2 * target::kWordSize, Address::PairPostIndex));

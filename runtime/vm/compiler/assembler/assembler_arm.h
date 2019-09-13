@@ -1337,9 +1337,6 @@ class Assembler : public AssemblerBase {
                              CanBeSmi can_be_smi,
                              BarrierFilterMode barrier_filter_mode);
 
-  void EnterSafepointSlowly();
-  void ExitSafepointSlowly();
-
   friend class dart::FlowGraphCompiler;
   std::function<void(Condition, Register)>
       generate_invoke_write_barrier_wrapper_;

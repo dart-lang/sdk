@@ -1542,8 +1542,8 @@ class Assembler : public AssemblerBase {
 
   // Emit code to transition between generated mode and native mode.
   //
-  // These require that CSP and SP are equal and aligned and require a scratch
-  // register (in addition to TMP/TMP2).
+  // These require and ensure that CSP and SP are equal and aligned and require
+  // a scratch register (in addition to TMP/TMP2).
 
   void TransitionGeneratedToNative(Register destination_address,
                                    Register new_exit_frame,

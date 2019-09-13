@@ -546,34 +546,35 @@ void Assembler::strex(Register rd, Register rt, Register rn, Condition cond) {
 }
 
 void Assembler::EnterSafepoint(Register addr, Register state) {
+  // We generate the same number of instructions whether or not the slow-path is
+  // forced. This simplifies GenerateJitCallbackTrampolines.
+  Label slow_path, done, retry;
   if (FLAG_use_slow_path || TargetCPUFeatures::arm_version() == ARMv5TE) {
-    EnterSafepointSlowly();
-  } else {
-    Label slow_path, done, retry;
-    LoadImmediate(addr, target::Thread::safepoint_state_offset());
-    add(addr, THR, Operand(addr));
-    Bind(&retry);
-    ldrex(state, addr);
-    cmp(state, Operand(target::Thread::safepoint_state_unacquired()));
-    b(&slow_path, NE);
-
-    mov(state, Operand(target::Thread::safepoint_state_acquired()));
-    strex(TMP, state, addr);
-    cmp(TMP, Operand(0));  // 0 means strex was successful.
-    b(&done, EQ);
-    b(&retry);
-
-    Bind(&slow_path);
-    EnterSafepointSlowly();
-
-    Bind(&done);
+    b(&slow_path);
   }
-}
 
-void Assembler::EnterSafepointSlowly() {
+  LoadImmediate(addr, target::Thread::safepoint_state_offset());
+  add(addr, THR, Operand(addr));
+  Bind(&retry);
+  ldrex(state, addr);
+  cmp(state, Operand(target::Thread::safepoint_state_unacquired()));
+  b(&slow_path, NE);
+
+  mov(state, Operand(target::Thread::safepoint_state_acquired()));
+  strex(TMP, state, addr);
+  cmp(TMP, Operand(0));  // 0 means strex was successful.
+  b(&done, EQ);
+
+  if (!FLAG_use_slow_path && TargetCPUFeatures::arm_version() != ARMv5TE) {
+    b(&retry);
+  }
+
+  Bind(&slow_path);
   ldr(TMP, Address(THR, target::Thread::enter_safepoint_stub_offset()));
   ldr(TMP, FieldAddress(TMP, target::Code::entry_point_offset()));
   blx(TMP);
+
+  Bind(&done);
 }
 
 void Assembler::TransitionGeneratedToNative(Register destination_address,
@@ -597,34 +598,35 @@ void Assembler::TransitionGeneratedToNative(Register destination_address,
 }
 
 void Assembler::ExitSafepoint(Register addr, Register state) {
+  // We generate the same number of instructions whether or not the slow-path is
+  // forced, for consistency with EnterSafepoint.
+  Label slow_path, done, retry;
   if (FLAG_use_slow_path || TargetCPUFeatures::arm_version() == ARMv5TE) {
-    ExitSafepointSlowly();
-  } else {
-    Label slow_path, done, retry;
-    LoadImmediate(addr, target::Thread::safepoint_state_offset());
-    add(addr, THR, Operand(addr));
-    Bind(&retry);
-    ldrex(state, addr);
-    cmp(state, Operand(target::Thread::safepoint_state_acquired()));
-    b(&slow_path, NE);
-
-    mov(state, Operand(target::Thread::safepoint_state_unacquired()));
-    strex(TMP, state, addr);
-    cmp(TMP, Operand(0));  // 0 means strex was successful.
-    b(&done, EQ);
-    b(&retry);
-
-    Bind(&slow_path);
-    ExitSafepointSlowly();
-
-    Bind(&done);
+    b(&slow_path);
   }
-}
 
-void Assembler::ExitSafepointSlowly() {
+  LoadImmediate(addr, target::Thread::safepoint_state_offset());
+  add(addr, THR, Operand(addr));
+  Bind(&retry);
+  ldrex(state, addr);
+  cmp(state, Operand(target::Thread::safepoint_state_acquired()));
+  b(&slow_path, NE);
+
+  mov(state, Operand(target::Thread::safepoint_state_unacquired()));
+  strex(TMP, state, addr);
+  cmp(TMP, Operand(0));  // 0 means strex was successful.
+  b(&done, EQ);
+
+  if (!FLAG_use_slow_path && TargetCPUFeatures::arm_version() != ARMv5TE) {
+    b(&retry);
+  }
+
+  Bind(&slow_path);
   ldr(TMP, Address(THR, target::Thread::exit_safepoint_stub_offset()));
   ldr(TMP, FieldAddress(TMP, target::Code::entry_point_offset()));
   blx(TMP);
+
+  Bind(&done);
 }
 
 void Assembler::TransitionNativeToGenerated(Register addr,
