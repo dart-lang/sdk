@@ -223,7 +223,6 @@ class InferenceVisitor
         .inferredType;
     DartType inferredType =
         inferrer.typeSchemaEnvironment.unfutureType(operandType);
-    inferrer.storeInferredType(node, inferredType);
     return new ExpressionInferenceResult(inferredType);
   }
 
@@ -331,7 +330,6 @@ class InferenceVisitor
         computeConstructorReturnType(node.target),
         node.arguments,
         isConst: node.isConst);
-    inferrer.storeInferredType(node, inferredType);
     if (!inferrer.isTopLevel) {
       SourceLibraryBuilder library = inferrer.library;
       if (!hasExplicitTypeArguments) {
@@ -625,7 +623,6 @@ class InferenceVisitor
       FunctionExpression node, DartType typeContext) {
     DartType inferredType =
         visitFunctionNode(node.function, typeContext, null, node.fileOffset);
-    inferrer.storeInferredType(node, inferredType);
     return new ExpressionInferenceResult(inferredType);
   }
 
@@ -1857,8 +1854,6 @@ class InferenceVisitor
     ExpressionInferenceResult result =
         inferrer.inferExpression(body, typeContext, true, isVoidAllowed: true);
     DartType inferredType = result.inferredType;
-    // TODO(ahe): This shouldn't be needed. See InferredTypeVisitor.visitLet.
-    inferrer.storeInferredType(node, inferredType);
     return new ExpressionInferenceResult(inferredType);
   }
 
@@ -1906,7 +1901,6 @@ class InferenceVisitor
                   extensionTypeArguments:
                       writeTarget.inferredExtensionTypeArguments,
                   positionalArguments: [node.rhs])));
-      inferrer.storeInferredType(replacement, inferredType);
     } else {
       node._replaceWithDesugared();
     }
@@ -2077,7 +2071,6 @@ class InferenceVisitor
     if (target is Procedure && target.kind == ProcedureKind.Method) {
       type = inferrer.instantiateTearOff(type, typeContext, node);
     }
-    inferrer.storeInferredType(node, type);
     return new ExpressionInferenceResult(type);
   }
 
@@ -2091,7 +2084,6 @@ class InferenceVisitor
         getExplicitTypeArguments(node.arguments) != null;
     DartType inferredType = inferrer.inferInvocation(typeContext,
         node.fileOffset, calleeType, calleeType.returnType, node.arguments);
-    inferrer.storeInferredType(node, inferredType);
     if (!inferrer.isTopLevel &&
         !hadExplicitTypeArguments &&
         node.target != null) {

@@ -1686,14 +1686,6 @@ InternalProblemDebugAbort:
   template: "Compilation aborted due to fatal '#name' at:\n#string"
   severity: INTERNAL_PROBLEM
 
-InternalProblemNoInferredTypeStored:
-  template: "There's no inferred type for '#name'."
-  severity: INTERNAL_PROBLEM
-
-InternalProblemStoringMultipleInferredTypes:
-  template: "There's already an inferred type, '#type', for '#name'."
-  severity: INTERNAL_PROBLEM
-
 InternalProblemLabelUsageInVariablesDeclaration:
   template: "Unexpected usage of label inside declaration of variables."
   severity: INTERNAL_PROBLEM

@@ -86,8 +86,6 @@ import '../fasta_codes.dart'
         templateArgumentTypeNotAssignable,
         templateDuplicatedNamedArgument,
         templateImplicitCallOfNonMethod,
-        templateInternalProblemNoInferredTypeStored,
-        templateInternalProblemStoringMultipleInferredTypes,
         templateInvalidAssignment,
         templateInvalidCastFunctionExpr,
         templateInvalidCastLiteralList,
@@ -107,7 +105,6 @@ import '../kernel/expression_generator.dart' show buildIsNull;
 
 import '../kernel/kernel_shadow_ast.dart'
     show
-        ExpressionJudgment,
         ShadowTypeInferenceEngine,
         ShadowTypeInferrer,
         VariableDeclarationImpl,
@@ -118,7 +115,7 @@ import '../kernel/type_algorithms.dart' show hasAnyTypeVariables;
 
 import '../names.dart' show callName, unaryMinusName;
 
-import '../problems.dart' show internalProblem, unexpected, unhandled;
+import '../problems.dart' show unexpected, unhandled;
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
@@ -531,8 +528,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   @override
   final SourceLibraryBuilder library;
 
-  final Map<TreeNode, DartType> inferredTypesMap = <TreeNode, DartType>{};
-
   InferenceHelper helper;
 
   /// Context information for the current closure, or `null` if we are not
@@ -555,32 +550,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         typeSchemaEnvironment = engine.typeSchemaEnvironment,
         isTopLevel = topLevel,
         super.private(engine.coreTypes);
-
-  DartType storeInferredType(TreeNode node, DartType type) {
-    if (node is ExpressionJudgment) {
-      return type;
-    } else {
-      if (inferredTypesMap.containsKey(node)) {
-        internalProblem(
-            templateInternalProblemStoringMultipleInferredTypes.withArguments(
-                inferredTypesMap[node], "${node.runtimeType}"),
-            node.fileOffset,
-            uri);
-      }
-      return inferredTypesMap[node] = type;
-    }
-  }
-
-  DartType readInferredType(TreeNode node) {
-    if (!inferredTypesMap.containsKey(node) && !isTopLevel) {
-      internalProblem(
-          templateInternalProblemNoInferredTypeStored
-              .withArguments("${node.runtimeType}"),
-          node.fileOffset,
-          uri);
-    }
-    return inferredTypesMap[node];
-  }
 
   /// Gets the type promoter that should be used to promote types during
   /// inference.
@@ -2218,7 +2187,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           break;
       }
     }
-    storeInferredType(expression, inferredType);
     return new ExpressionInferenceResult(inferredType, replacement);
   }
 

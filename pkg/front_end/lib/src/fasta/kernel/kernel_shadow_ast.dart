@@ -98,7 +98,6 @@ import 'expression_generator.dart' show makeLet;
 import 'implicit_type_argument.dart' show ImplicitTypeArgument;
 
 part "inference_visitor.dart";
-part "inferred_type_visitor.dart";
 
 /// Computes the return type of a (possibly factory) constructor.
 InterfaceType computeConstructorReturnType(Member constructor) {
