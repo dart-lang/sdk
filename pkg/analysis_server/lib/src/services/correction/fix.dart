@@ -266,6 +266,8 @@ class DartFixKind {
       "Move type arguments to after class name");
   static const MAKE_VARIABLE_NOT_FINAL = const FixKind(
       'MAKE_VARIABLE_NOT_FINAL', 50, "Make variable '{0}' not final");
+  static const QUALIFY_REFERENCE =
+      const FixKind('QUALIFY_REFERENCE', 50, "Use '{0}'");
   static const REMOVE_ANNOTATION =
       const FixKind('REMOVE_ANNOTATION', 50, "Remove the '{0}' annotation");
   static const REMOVE_AWAIT = const FixKind('REMOVE_AWAIT', 50, "Remove await");
