@@ -303,8 +303,6 @@ class BlockJudgment extends Block implements StatementJudgment {
 /// `..`.  If a further `..` follows that expression, the caller should call
 /// [extend] followed by [finalize] for each subsequent cascade.
 class CascadeJudgment extends Let implements ExpressionJudgment {
-  DartType inferredType;
-
   /// Pointer to the last "let" expression in the cascade.
   Let nextCascade;
 
@@ -522,7 +520,7 @@ abstract class ComplexAssignmentJudgment extends SyntheticExpressionJudgment {
     } else {
       _storeLetType(inferrer, write, combinedType);
     }
-    inferredType =
+    DartType inferredType =
         isPostIncDec ? (readType ?? const DynamicType()) : combinedType;
     return new _ComplexAssignmentInferenceResult(
         combinerTarget.member, inferredType);
@@ -553,8 +551,9 @@ abstract class ComplexAssignmentJudgmentWithReceiver
 
   DartType _inferReceiver(ShadowTypeInferrer inferrer) {
     if (receiver != null) {
-      inferrer.inferExpression(receiver, const UnknownType(), true);
-      DartType receiverType = getInferredType(receiver, inferrer);
+      DartType receiverType = inferrer
+          .inferExpression(receiver, const UnknownType(), true)
+          .inferredType;
       _storeLetType(inferrer, receiver, receiverType);
       return receiverType;
     } else if (isSuper) {
@@ -582,8 +581,6 @@ class ContinueSwitchJudgment extends ContinueSwitchStatement
 
 /// Shadow object representing a deferred check in kernel form.
 class DeferredCheckJudgment extends Let implements ExpressionJudgment {
-  DartType inferredType;
-
   DeferredCheckJudgment(VariableDeclaration variable, Expression body)
       : super(variable, body);
 
@@ -610,8 +607,6 @@ class DoJudgment extends DoStatement implements StatementJudgment {
 
 /// Concrete shadow object representing a double literal in kernel form.
 class DoubleJudgment extends DoubleLiteral implements ExpressionJudgment {
-  DartType inferredType;
-
   DoubleJudgment(double value) : super(value);
 
   @override
@@ -624,8 +619,6 @@ class DoubleJudgment extends DoubleLiteral implements ExpressionJudgment {
 /// Common base class for shadow objects representing expressions in kernel
 /// form.
 abstract class ExpressionJudgment extends Expression {
-  DartType inferredType;
-
   /// Calls back to [inferrer] to perform type inference for whatever concrete
   /// type of [Expression] this is.
   ExpressionInferenceResult acceptInference(
@@ -660,7 +653,7 @@ class ExpressionStatementJudgment extends ExpressionStatement
 /// factory constructor.
 class FactoryConstructorInvocationJudgment extends StaticInvocation
     implements ExpressionJudgment {
-  DartType inferredType;
+  bool hasBeenInferred = false;
 
   FactoryConstructorInvocationJudgment(
       Procedure target, ArgumentsJudgment arguments,
@@ -771,8 +764,6 @@ class InvalidSuperInitializerJudgment extends LocalInitializer
 ///
 ///     let v = a in v == null ? b : v
 class IfNullJudgment extends Let implements ExpressionJudgment {
-  DartType inferredType;
-
   IfNullJudgment(VariableDeclaration variable, Expression body)
       : super(variable, body);
 
@@ -892,7 +883,6 @@ Expression checkWebIntLiteralsErrorIfUnexact(
 
 /// Concrete shadow object representing an integer literal in kernel form.
 class IntJudgment extends IntLiteral implements ExpressionJudgment {
-  DartType inferredType;
   final String literal;
 
   IntJudgment(int value, this.literal) : super(value);
@@ -915,8 +905,6 @@ class ShadowLargeIntLiteral extends IntLiteral implements ExpressionJudgment {
   final String literal;
   final int fileOffset;
   bool isParenthesized = false;
-
-  DartType inferredType;
 
   ShadowLargeIntLiteral(this.literal, this.fileOffset) : super(0);
 
@@ -975,8 +963,6 @@ class ShadowInvalidFieldInitializer extends LocalInitializer
 
 /// Type inference derivation for [ListLiteral].
 class ListLiteralJudgment extends ListLiteral implements ExpressionJudgment {
-  DartType inferredType;
-
   ListLiteralJudgment(List<Expression> expressions,
       {DartType typeArgument, bool isConst: false})
       : assert(typeArgument != null),
@@ -991,8 +977,6 @@ class ListLiteralJudgment extends ListLiteral implements ExpressionJudgment {
 
 /// Type inference derivation for [SetLiteral].
 class SetLiteralJudgment extends SetLiteral implements ExpressionJudgment {
-  DartType inferredType;
-
   SetLiteralJudgment(List<Expression> expressions,
       {DartType typeArgument, bool isConst: false})
       : assert(typeArgument != null),
@@ -1007,8 +991,6 @@ class SetLiteralJudgment extends SetLiteral implements ExpressionJudgment {
 
 /// Type inference derivation for [MapLiteral].
 class MapLiteralJudgment extends MapLiteral implements ExpressionJudgment {
-  DartType inferredType;
-
   MapLiteralJudgment(List<MapEntry> judgments,
       {DartType keyType, DartType valueType, bool isConst: false})
       : assert(keyType != null),
@@ -1026,8 +1008,6 @@ class MapLiteralJudgment extends MapLiteral implements ExpressionJudgment {
 /// Shadow object for [MethodInvocation].
 class MethodInvocationJudgment extends MethodInvocation
     implements ExpressionJudgment {
-  DartType inferredType;
-
   /// Indicates whether this method invocation is a call to a `call` method
   /// resulting from the invocation of a function expression.
   final bool _isImplicitCall;
@@ -1058,8 +1038,6 @@ class MethodInvocationJudgment extends MethodInvocation
 ///     let f = () { ... } in f
 class NamedFunctionExpressionJudgment extends Let
     implements ExpressionJudgment {
-  DartType inferredType;
-
   NamedFunctionExpressionJudgment(VariableDeclarationJudgment variable)
       : super(variable, new VariableGet(variable));
 
@@ -1080,8 +1058,6 @@ class NamedFunctionExpressionJudgment extends Let
 ///     let v = a in v == null ? null : v.b(...)
 class NullAwareMethodInvocationJudgment extends Let
     implements ExpressionJudgment {
-  DartType inferredType;
-
   NullAwareMethodInvocationJudgment(
       VariableDeclaration variable, Expression body)
       : super(variable, body);
@@ -1105,8 +1081,6 @@ class NullAwareMethodInvocationJudgment extends Let
 ///
 ///     let v = a in v == null ? null : v.b
 class NullAwarePropertyGetJudgment extends Let implements ExpressionJudgment {
-  DartType inferredType;
-
   NullAwarePropertyGetJudgment(
       VariableDeclaration variable, ConditionalExpression body)
       : super(variable, body);
@@ -1220,8 +1194,6 @@ class SuperInitializerJudgment extends SuperInitializer
 /// Shadow object for [SuperMethodInvocation].
 class SuperMethodInvocationJudgment extends SuperMethodInvocation
     implements ExpressionJudgment {
-  DartType inferredType;
-
   SuperMethodInvocationJudgment(Name name, ArgumentsJudgment arguments,
       {Procedure interfaceTarget})
       : super(name, arguments, interfaceTarget);
@@ -1238,8 +1210,6 @@ class SuperMethodInvocationJudgment extends SuperMethodInvocation
 /// Shadow object for [SuperPropertyGet].
 class SuperPropertyGetJudgment extends SuperPropertyGet
     implements ExpressionJudgment {
-  DartType inferredType;
-
   SuperPropertyGetJudgment(Name name, {Member interfaceTarget})
       : super(name, interfaceTarget);
 
@@ -1283,8 +1253,6 @@ class SwitchStatementJudgment extends SwitchStatement
 /// Shadow object for [SymbolLiteral].
 class SymbolLiteralJudgment extends SymbolLiteral
     implements ExpressionJudgment {
-  DartType inferredType;
-
   SymbolLiteralJudgment(String value) : super(value);
 
   @override
@@ -1336,8 +1304,6 @@ class InvalidWriteJudgment extends SyntheticExpressionJudgment {
 /// These expressions are removed by type inference and replaced with their
 /// desugared equivalents.
 class SyntheticExpressionJudgment extends Let implements ExpressionJudgment {
-  DartType inferredType;
-
   SyntheticExpressionJudgment._(Expression desugared)
       : super(new VariableDeclaration('_', initializer: new NullLiteral()),
             desugared);
@@ -1567,8 +1533,6 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
 }
 
 class TypeLiteralJudgment extends TypeLiteral implements ExpressionJudgment {
-  DartType inferredType;
-
   TypeLiteralJudgment(DartType type) : super(type);
 
   @override
@@ -1776,8 +1740,6 @@ class UnresolvedVariableAssignmentJudgment extends SyntheticExpressionJudgment {
 
 /// Concrete shadow object representing a read from a variable in kernel form.
 class VariableGetJudgment extends VariableGet implements ExpressionJudgment {
-  DartType inferredType;
-
   final TypePromotionFact _fact;
 
   final TypePromotionScope _scope;
@@ -1821,8 +1783,6 @@ class YieldJudgment extends YieldStatement implements StatementJudgment {
 class LoadLibraryJudgment extends LoadLibrary implements ExpressionJudgment {
   final Arguments arguments;
 
-  DartType inferredType;
-
   LoadLibraryJudgment(LibraryDependency import, this.arguments) : super(import);
 
   ArgumentsJudgment get argumentJudgments => arguments;
@@ -1838,8 +1798,6 @@ class LoadLibraryJudgment extends LoadLibrary implements ExpressionJudgment {
 class LoadLibraryTearOffJudgment extends StaticGet
     implements ExpressionJudgment {
   final LibraryDependency import;
-
-  DartType inferredType;
 
   LoadLibraryTearOffJudgment(this.import, Procedure target) : super(target);
 

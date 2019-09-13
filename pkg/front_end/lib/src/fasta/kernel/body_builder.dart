@@ -997,7 +997,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       if (invocation.parent == null) continue;
       if (typeInferrer != null) {
         if (invocation is FactoryConstructorInvocationJudgment &&
-            invocation.inferredType == null) {
+            !invocation.hasBeenInferred) {
           continue;
         }
       } else {

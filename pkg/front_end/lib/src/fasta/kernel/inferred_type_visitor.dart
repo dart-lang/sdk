@@ -4,14 +4,6 @@
 
 part of "kernel_shadow_ast.dart";
 
-DartType getInferredType(Expression expression, TypeInferrerImpl inferrer) {
-  if (expression is ExpressionJudgment) {
-    return expression.inferredType;
-  } else {
-    return expression.accept1(const InferredTypeVisitor(), inferrer);
-  }
-}
-
 DartType invalidToBottom(DartType type) {
   // TODO(ahe): This should really return [BottomType], but that requires more
   // work to the Kernel type system and implementation.

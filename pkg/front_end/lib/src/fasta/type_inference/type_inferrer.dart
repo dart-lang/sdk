@@ -558,7 +558,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   DartType storeInferredType(TreeNode node, DartType type) {
     if (node is ExpressionJudgment) {
-      return node.inferredType = type;
+      return type;
     } else {
       if (inferredTypesMap.containsKey(node)) {
         internalProblem(
