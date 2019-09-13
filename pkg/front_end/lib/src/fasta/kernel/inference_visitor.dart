@@ -5,7 +5,10 @@
 part of "kernel_shadow_ast.dart";
 
 class InferenceVisitor
-    extends BodyVisitor1<ExpressionInferenceResult, DartType> {
+    implements
+        ExpressionVisitor1<ExpressionInferenceResult, DartType>,
+        StatementVisitor<void>,
+        InitializerVisitor<void> {
   final ShadowTypeInferrer inferrer;
 
   Class mapEntryClass;
@@ -24,8 +27,7 @@ class InferenceVisitor
 
   InferenceVisitor(this.inferrer);
 
-  @override
-  ExpressionInferenceResult defaultExpression(
+  ExpressionInferenceResult _unhandledExpression(
       Expression node, DartType typeContext) {
     unhandled("${node.runtimeType}", "InferenceVisitor", node.fileOffset,
         inferrer.helper.uri);
@@ -33,10 +35,173 @@ class InferenceVisitor
   }
 
   @override
-  ExpressionInferenceResult defaultStatement(Statement node, _) {
+  ExpressionInferenceResult defaultExpression(
+      Expression node, DartType typeContext) {
+    return _unhandledExpression(node, typeContext);
+  }
+
+  @override
+  ExpressionInferenceResult defaultBasicLiteral(
+      BasicLiteral node, DartType typeContext) {
+    return _unhandledExpression(node, typeContext);
+  }
+
+  @override
+  ExpressionInferenceResult visitBlockExpression(
+      BlockExpression node, DartType typeContext) {
+    return _unhandledExpression(node, typeContext);
+  }
+
+  @override
+  ExpressionInferenceResult visitConstantExpression(
+      ConstantExpression node, DartType typeContext) {
+    return _unhandledExpression(node, typeContext);
+  }
+
+  @override
+  ExpressionInferenceResult visitDirectMethodInvocation(
+      DirectMethodInvocation node, DartType typeContext) {
+    return _unhandledExpression(node, typeContext);
+  }
+
+  @override
+  ExpressionInferenceResult visitDirectPropertyGet(
+      DirectPropertyGet node, DartType typeContext) {
+    return _unhandledExpression(node, typeContext);
+  }
+
+  @override
+  ExpressionInferenceResult visitDirectPropertySet(
+      DirectPropertySet node, DartType typeContext) {
+    return _unhandledExpression(node, typeContext);
+  }
+
+  @override
+  ExpressionInferenceResult visitFileUriExpression(
+      FileUriExpression node, DartType typeContext) {
+    return _unhandledExpression(node, typeContext);
+  }
+
+  @override
+  ExpressionInferenceResult visitInstanceCreation(
+      InstanceCreation node, DartType typeContext) {
+    return _unhandledExpression(node, typeContext);
+  }
+
+  @override
+  ExpressionInferenceResult visitInstantiation(
+      Instantiation node, DartType typeContext) {
+    return _unhandledExpression(node, typeContext);
+  }
+
+  @override
+  ExpressionInferenceResult visitListConcatenation(
+      ListConcatenation node, DartType typeContext) {
+    return _unhandledExpression(node, typeContext);
+  }
+
+  @override
+  ExpressionInferenceResult visitMapConcatenation(
+      MapConcatenation node, DartType typeContext) {
+    return _unhandledExpression(node, typeContext);
+  }
+
+  @override
+  ExpressionInferenceResult visitPropertySet(
+      PropertySet node, DartType typeContext) {
+    return _unhandledExpression(node, typeContext);
+  }
+
+  @override
+  ExpressionInferenceResult visitLoadLibrary(
+      LoadLibrary node, DartType typeContext) {
+    return _unhandledExpression(node, typeContext);
+  }
+
+  @override
+  ExpressionInferenceResult visitMethodInvocation(
+      MethodInvocation node, DartType typeContext) {
+    return _unhandledExpression(node, typeContext);
+  }
+
+  @override
+  ExpressionInferenceResult visitSetConcatenation(
+      SetConcatenation node, DartType typeContext) {
+    return _unhandledExpression(node, typeContext);
+  }
+
+  @override
+  ExpressionInferenceResult visitSuperPropertySet(
+      SuperPropertySet node, DartType typeContext) {
+    return _unhandledExpression(node, typeContext);
+  }
+
+  @override
+  ExpressionInferenceResult visitStaticSet(
+      StaticSet node, DartType typeContext) {
+    return _unhandledExpression(node, typeContext);
+  }
+
+  @override
+  ExpressionInferenceResult visitVariableGet(
+      VariableGet node, DartType typeContext) {
+    return _unhandledExpression(node, typeContext);
+  }
+
+  @override
+  ExpressionInferenceResult visitVariableSet(
+      VariableSet node, DartType typeContext) {
+    return _unhandledExpression(node, typeContext);
+  }
+
+  void _unhandledStatement(Statement node) {
     unhandled("${node.runtimeType}", "InferenceVisitor", node.fileOffset,
         inferrer.helper.uri);
-    return const ExpressionInferenceResult(const InvalidType());
+  }
+
+  @override
+  void defaultStatement(Statement node) {
+    _unhandledStatement(node);
+  }
+
+  @override
+  void visitAssertBlock(AssertBlock node) {
+    _unhandledStatement(node);
+  }
+
+  @override
+  void visitFunctionDeclaration(FunctionDeclaration node) {
+    _unhandledStatement(node);
+  }
+
+  @override
+  void visitReturnStatement(ReturnStatement node) {
+    _unhandledStatement(node);
+  }
+
+  @override
+  void visitVariableDeclaration(VariableDeclaration node) {
+    _unhandledStatement(node);
+  }
+
+  void _unhandledInitializer(Initializer node) {
+    unhandled("${node.runtimeType}", "InferenceVisitor", node.fileOffset,
+        node.location.file);
+  }
+
+  @override
+  void defaultInitializer(Initializer node) {
+    _unhandledInitializer(node);
+  }
+
+  @override
+  void visitInvalidInitializer(Initializer node) {
+    _unhandledInitializer(node);
+  }
+
+  @override
+  void visitLocalInitializer(LocalInitializer node) {
+    _unhandledInitializer(node);
   }
 
   @override
@@ -50,11 +215,6 @@ class InferenceVisitor
       new ExpressionInferenceResult(inferrer.coreTypes.intClass.rawType);
 
   @override
-  ExpressionInferenceResult visitDoubleLiteral(
-          DoubleLiteral node, DartType typeContext) =>
-      new ExpressionInferenceResult(inferrer.coreTypes.doubleClass.rawType);
-
-  @override
   ExpressionInferenceResult visitAsExpression(
       AsExpression node, DartType typeContext) {
     inferrer.inferExpression(
@@ -63,13 +223,15 @@ class InferenceVisitor
     return new ExpressionInferenceResult(node.type);
   }
 
-  void visitAssertInitializerJudgment(AssertInitializerJudgment node) {
-    inferrer.inferStatement(node.judgment);
+  @override
+  void visitAssertInitializer(AssertInitializer node) {
+    inferrer.inferStatement(node.statement);
   }
 
-  void visitAssertStatementJudgment(AssertStatementJudgment node) {
-    Expression conditionJudgment = node.conditionJudgment;
-    Expression messageJudgment = node.messageJudgment;
+  @override
+  void visitAssertStatement(AssertStatement node) {
+    Expression conditionJudgment = node.condition;
+    Expression messageJudgment = node.message;
     InterfaceType expectedType = inferrer.coreTypes.boolClass.rawType;
     DartType conditionType = inferrer
         .inferExpression(conditionJudgment, expectedType, !inferrer.isTopLevel)
@@ -98,9 +260,10 @@ class InferenceVisitor
     return new ExpressionInferenceResult(inferredType);
   }
 
-  void visitBlockJudgment(BlockJudgment node) {
-    for (Statement judgment in node.judgments) {
-      inferrer.inferStatement(judgment);
+  @override
+  void visitBlock(Block node) {
+    for (Statement statement in node.statements) {
+      inferrer.inferStatement(statement);
     }
   }
 
@@ -110,14 +273,14 @@ class InferenceVisitor
       new ExpressionInferenceResult(inferrer.coreTypes.boolClass.rawType);
 
   @override
-  Null visitBreakStatement(BreakStatement node, _) {
+  void visitBreakStatement(BreakStatement node) {
     // No inference needs to be done.
   }
 
   ExpressionInferenceResult visitCascadeJudgment(
       CascadeJudgment node, DartType typeContext) {
     ExpressionInferenceResult result =
-        inferrer.inferExpression(node.targetJudgment, typeContext, true);
+        inferrer.inferExpression(node.target, typeContext, true);
     node.variable.type = result.inferredType;
     for (Expression judgment in node.cascadeJudgments) {
       inferrer.inferExpression(
@@ -213,7 +376,8 @@ class InferenceVisitor
     return new ExpressionInferenceResult(inferredType);
   }
 
-  void visitContinueSwitchJudgment(ContinueSwitchJudgment node) {
+  @override
+  void visitContinueSwitchStatement(ContinueSwitchStatement node) {
     // No inference needs to be done.
   }
 
@@ -227,30 +391,33 @@ class InferenceVisitor
     return new ExpressionInferenceResult(result.inferredType);
   }
 
-  void visitDoJudgment(DoJudgment node) {
-    Expression conditionJudgment = node.conditionJudgment;
+  @override
+  void visitDoStatement(DoStatement node) {
+    Expression condition = node.condition;
     inferrer.inferStatement(node.body);
     InterfaceType boolType = inferrer.coreTypes.boolClass.rawType;
     DartType conditionType = inferrer
-        .inferExpression(conditionJudgment, boolType, !inferrer.isTopLevel)
+        .inferExpression(condition, boolType, !inferrer.isTopLevel)
         .inferredType;
     inferrer.ensureAssignable(
         boolType, conditionType, node.condition, node.condition.fileOffset);
   }
 
-  ExpressionInferenceResult visitDoubleJudgment(
-      DoubleJudgment node, DartType typeContext) {
+  ExpressionInferenceResult visitDoubleLiteral(
+      DoubleLiteral node, DartType typeContext) {
     return new ExpressionInferenceResult(
         inferrer.coreTypes.doubleClass.rawType);
   }
 
-  void visitEmptyStatementJudgment(EmptyStatementJudgment node) {
+  @override
+  void visitEmptyStatement(EmptyStatement node) {
     // No inference needs to be done.
   }
 
-  void visitExpressionStatementJudgment(ExpressionStatementJudgment node) {
+  @override
+  void visitExpressionStatement(ExpressionStatement node) {
     inferrer.inferExpression(
-        node.judgment, const UnknownType(), !inferrer.isTopLevel,
+        node.expression, const UnknownType(), !inferrer.isTopLevel,
         isVoidAllowed: true);
   }
 
@@ -263,7 +430,7 @@ class InferenceVisitor
         node.fileOffset,
         node.target.function.thisFunctionType,
         computeConstructorReturnType(node.target),
-        node.argumentJudgments,
+        node.arguments,
         isConst: node.isConst);
     node.hasBeenInferred = true;
     if (!inferrer.isTopLevel) {
@@ -277,7 +444,8 @@ class InferenceVisitor
     return new ExpressionInferenceResult(inferredType);
   }
 
-  void visitShadowFieldInitializer(ShadowFieldInitializer node) {
+  @override
+  void visitFieldInitializer(FieldInitializer node) {
     ExpressionInferenceResult initializerResult =
         inferrer.inferExpression(node.value, node.field.type, true);
     DartType initializerType = initializerResult.inferredType;
@@ -427,7 +595,7 @@ class InferenceVisitor
   }
 
   @override
-  Null visitForInStatement(ForInStatement node, _) {
+  void visitForInStatement(ForInStatement node) {
     if (node.variable.name == null) {
       handleForInWithoutVariable(node.variable, node.iterable, node.body,
           isAsync: node.isAsync);
@@ -437,8 +605,9 @@ class InferenceVisitor
     }
   }
 
-  void visitForJudgment(ForJudgment node) {
-    Expression conditionJudgment = node.conditionJudgment;
+  @override
+  void visitForStatement(ForStatement node) {
+    Expression condition = node.condition;
     for (VariableDeclaration variable in node.variables) {
       if (variable.name == null) {
         Expression initializer = variable.initializer;
@@ -452,16 +621,15 @@ class InferenceVisitor
         inferrer.inferStatement(variable);
       }
     }
-    if (conditionJudgment != null) {
+    if (condition != null) {
       InterfaceType expectedType = inferrer.coreTypes.boolClass.rawType;
       DartType conditionType = inferrer
-          .inferExpression(
-              conditionJudgment, expectedType, !inferrer.isTopLevel)
+          .inferExpression(condition, expectedType, !inferrer.isTopLevel)
           .inferredType;
       inferrer.ensureAssignable(expectedType, conditionType, node.condition,
           node.condition.fileOffset);
     }
-    for (Expression update in node.updateJudgments) {
+    for (Expression update in node.updates) {
       inferrer.inferExpression(
           update, const UnknownType(), !inferrer.isTopLevel,
           isVoidAllowed: true);
@@ -469,11 +637,8 @@ class InferenceVisitor
     inferrer.inferStatement(node.body);
   }
 
-  DartType visitFunctionNodeJudgment(
-      FunctionNodeJudgment node,
-      DartType typeContext,
-      DartType returnContext,
-      int returnTypeInstrumentationOffset) {
+  DartType visitFunctionNode(FunctionNode node, DartType typeContext,
+      DartType returnContext, int returnTypeInstrumentationOffset) {
     return inferrer.inferLocalFunction(
         node, typeContext, returnTypeInstrumentationOffset, returnContext);
   }
@@ -482,16 +647,16 @@ class InferenceVisitor
     inferrer.inferMetadataKeepingHelper(node.variable.annotations);
     DartType returnContext =
         node._hasImplicitReturnType ? null : node.function.returnType;
-    DartType inferredType = visitFunctionNodeJudgment(
-        node.functionJudgment, null, returnContext, node.fileOffset);
+    DartType inferredType =
+        visitFunctionNode(node.function, null, returnContext, node.fileOffset);
     node.variable.type = inferredType;
   }
 
   @override
   ExpressionInferenceResult visitFunctionExpression(
       FunctionExpression node, DartType typeContext) {
-    DartType inferredType = visitFunctionNodeJudgment(
-        node.function, typeContext, null, node.fileOffset);
+    DartType inferredType =
+        visitFunctionNode(node.function, typeContext, null, node.fileOffset);
     inferrer.storeInferredType(node, inferredType);
     return new ExpressionInferenceResult(inferredType);
   }
@@ -513,8 +678,8 @@ class InferenceVisitor
 
   ExpressionInferenceResult visitIfNullJudgment(
       IfNullJudgment node, DartType typeContext) {
-    Expression leftJudgment = node.leftJudgment;
-    Expression rightJudgment = node.rightJudgment;
+    Expression leftJudgment = node.left;
+    Expression rightJudgment = node.right;
     // To infer `e0 ?? e1` in context K:
     // - Infer e0 in context K to get T0
     DartType lhsType =
@@ -542,11 +707,12 @@ class InferenceVisitor
     return new ExpressionInferenceResult(inferredType);
   }
 
-  void visitIfJudgment(IfJudgment node) {
-    Expression conditionJudgment = node.conditionJudgment;
+  @override
+  void visitIfStatement(IfStatement node) {
+    Expression condition = node.condition;
     InterfaceType expectedType = inferrer.coreTypes.boolClass.rawType;
     DartType conditionType = inferrer
-        .inferExpression(conditionJudgment, expectedType, !inferrer.isTopLevel)
+        .inferExpression(condition, expectedType, !inferrer.isTopLevel)
         .inferredType;
     inferrer.ensureAssignable(
         expectedType, conditionType, node.condition, node.condition.fileOffset);
@@ -709,7 +875,7 @@ class InferenceVisitor
   }
 
   @override
-  Null visitLabeledStatement(LabeledStatement node, _) {
+  void visitLabeledStatement(LabeledStatement node) {
     inferrer.inferStatement(node.body);
   }
 
@@ -921,8 +1087,9 @@ class InferenceVisitor
     }
   }
 
-  ExpressionInferenceResult visitListLiteralJudgment(
-      ListLiteralJudgment node, DartType typeContext) {
+  @override
+  ExpressionInferenceResult visitListLiteral(
+      ListLiteral node, DartType typeContext) {
     Class listClass = inferrer.coreTypes.listClass;
     InterfaceType listType = listClass.thisType;
     List<DartType> inferredTypes;
@@ -1358,8 +1525,9 @@ class InferenceVisitor
     }
   }
 
-  ExpressionInferenceResult visitMapLiteralJudgment(
-      MapLiteralJudgment node, DartType typeContext) {
+  @override
+  ExpressionInferenceResult visitMapLiteral(
+      MapLiteral node, DartType typeContext) {
     Class mapClass = inferrer.coreTypes.mapClass;
     InterfaceType mapType = mapClass.thisType;
     List<DartType> inferredTypes;
@@ -1388,12 +1556,12 @@ class InferenceVisitor
             typeContextIsIterable &&
             !typeContextIsMap) {
           // Set literal
-          SetLiteralJudgment setLiteral = new SetLiteralJudgment([],
+          SetLiteral setLiteral = new SetLiteral([],
               typeArgument: const ImplicitTypeArgument(), isConst: node.isConst)
             ..fileOffset = node.fileOffset;
           node.parent.replaceChild(node, setLiteral);
           ExpressionInferenceResult setLiteralResult =
-              visitSetLiteralJudgment(setLiteral, typeContext);
+              visitSetLiteral(setLiteral, typeContext);
           DartType inferredType = setLiteralResult.inferredType;
           return new ExpressionInferenceResult(inferredType);
         }
@@ -1503,7 +1671,7 @@ class InferenceVisitor
             'typeArgs',
             new InstrumentationValueForTypeArgs([inferredTypeArgument]));
 
-        SetLiteralJudgment setLiteral = new SetLiteralJudgment(setElements,
+        SetLiteral setLiteral = new SetLiteral(setElements,
             typeArgument: inferredTypeArgument, isConst: node.isConst)
           ..fileOffset = node.fileOffset;
         node.parent.replaceChild(node, setLiteral);
@@ -1664,7 +1832,7 @@ class InferenceVisitor
 
   ExpressionInferenceResult visitNamedFunctionExpressionJudgment(
       NamedFunctionExpressionJudgment node, DartType typeContext) {
-    Expression initializer = node.variableJudgment.initializer;
+    Expression initializer = node.variable.initializer;
     DartType inferredType =
         inferrer.inferExpression(initializer, typeContext, true).inferredType;
     node.variable.type = inferredType;
@@ -1696,7 +1864,7 @@ class InferenceVisitor
   ExpressionInferenceResult visitNullAwarePropertyGetJudgment(
       NullAwarePropertyGetJudgment node, DartType typeContext) {
     ExpressionInferenceResult result = inferrer.inferPropertyGet(
-        node, node.receiverJudgment, node.fileOffset, typeContext,
+        node, node.receiver, node.fileOffset, typeContext,
         receiverVariable: node.variable, desugaredGet: node._desugaredGet);
     node.body.staticType = result.inferredType;
     return new ExpressionInferenceResult(result.inferredType);
@@ -1785,8 +1953,8 @@ class InferenceVisitor
         desugaredGet: node, allowExtensionMethods: true);
   }
 
-  void visitRedirectingInitializerJudgment(
-      RedirectingInitializerJudgment node) {
+  @override
+  void visitRedirectingInitializer(RedirectingInitializer node) {
     List<TypeParameter> classTypeParameters =
         node.target.enclosingClass.typeParameters;
     List<DartType> typeArguments =
@@ -1801,7 +1969,7 @@ class InferenceVisitor
         node.fileOffset,
         node.target.function.thisFunctionType,
         node.target.enclosingClass.thisType,
-        node.argumentJudgments,
+        node.arguments,
         skipTypeArgumentInference: true);
     ArgumentsJudgment.removeNonInferrableArgumentTypes(node.arguments);
   }
@@ -1811,15 +1979,15 @@ class InferenceVisitor
       const ExpressionInferenceResult(const BottomType());
 
   void visitReturnJudgment(ReturnJudgment node) {
-    Expression judgment = node.judgment;
+    Expression expression = node.expression;
     ClosureContext closureContext = inferrer.closureContext;
     DartType typeContext = !closureContext.isGenerator
         ? closureContext.returnOrYieldContext
         : const UnknownType();
     DartType inferredType;
-    if (node.expression != null) {
+    if (expression != null) {
       inferredType = inferrer
-          .inferExpression(judgment, typeContext, true, isVoidAllowed: true)
+          .inferExpression(expression, typeContext, true, isVoidAllowed: true)
           .inferredType;
     } else {
       inferredType = inferrer.coreTypes.nullClass.rawType;
@@ -1827,8 +1995,9 @@ class InferenceVisitor
     closureContext.handleReturn(inferrer, node, inferredType, node.isArrow);
   }
 
-  ExpressionInferenceResult visitSetLiteralJudgment(
-      SetLiteralJudgment node, DartType typeContext) {
+  @override
+  ExpressionInferenceResult visitSetLiteral(
+      SetLiteral node, DartType typeContext) {
     Class setClass = inferrer.coreTypes.setClass;
     InterfaceType setType = setClass.thisType;
     List<DartType> inferredTypes;
@@ -1982,7 +2151,8 @@ class InferenceVisitor
           StringLiteral node, DartType typeContext) =>
       new ExpressionInferenceResult(inferrer.coreTypes.stringClass.rawType);
 
-  void visitSuperInitializerJudgment(SuperInitializerJudgment node) {
+  @override
+  void visitSuperInitializer(SuperInitializer node) {
     Substitution substitution = Substitution.fromSupertype(
         inferrer.classHierarchy.getClassAsInstanceOf(
             inferrer.thisType.classNode, node.target.enclosingClass));
@@ -1992,12 +2162,13 @@ class InferenceVisitor
         substitution.substituteType(
             node.target.function.thisFunctionType.withoutTypeParameters),
         inferrer.thisType,
-        node.argumentJudgments,
+        node.arguments,
         skipTypeArgumentInference: true);
   }
 
-  ExpressionInferenceResult visitSuperMethodInvocationJudgment(
-      SuperMethodInvocationJudgment node, DartType typeContext) {
+  @override
+  ExpressionInferenceResult visitSuperMethodInvocation(
+      SuperMethodInvocation node, DartType typeContext) {
     if (node.interfaceTarget != null) {
       inferrer.instrumentation?.record(inferrer.uri, node.fileOffset, 'target',
           new InstrumentationValueForMember(node.interfaceTarget));
@@ -2012,8 +2183,9 @@ class InferenceVisitor
     return new ExpressionInferenceResult(result.inferredType);
   }
 
-  ExpressionInferenceResult visitSuperPropertyGetJudgment(
-      SuperPropertyGetJudgment node, DartType typeContext) {
+  @override
+  ExpressionInferenceResult visitSuperPropertyGet(
+      SuperPropertyGet node, DartType typeContext) {
     if (node.interfaceTarget != null) {
       inferrer.instrumentation?.record(inferrer.uri, node.fileOffset, 'target',
           new InstrumentationValueForMember(node.interfaceTarget));
@@ -2025,14 +2197,15 @@ class InferenceVisitor
         propertyName: node.name);
   }
 
-  void visitSwitchStatementJudgment(SwitchStatementJudgment node) {
-    Expression expressionJudgment = node.expressionJudgment;
+  @override
+  void visitSwitchStatement(SwitchStatement node) {
+    Expression expression = node.expression;
     DartType expressionType = inferrer
-        .inferExpression(expressionJudgment, const UnknownType(), true)
+        .inferExpression(expression, const UnknownType(), true)
         .inferredType;
 
-    for (SwitchCaseJudgment switchCase in node.caseJudgments) {
-      for (Expression caseExpression in switchCase.expressionJudgments) {
+    for (SwitchCase switchCase in node.cases) {
+      for (Expression caseExpression in switchCase.expressions) {
         ExpressionInferenceResult caseExpressionResult =
             inferrer.inferExpression(caseExpression, expressionType, true);
         DartType caseExpressionType = caseExpressionResult.inferredType;
@@ -2047,7 +2220,7 @@ class InferenceVisitor
               noLength,
               context: [
                 messageSwitchExpressionNotAssignableCause.withLocation(
-                    inferrer.uri, expressionJudgment.fileOffset, noLength)
+                    inferrer.uri, expression.fileOffset, noLength)
               ]);
         }
       }
@@ -2055,8 +2228,9 @@ class InferenceVisitor
     }
   }
 
-  ExpressionInferenceResult visitSymbolLiteralJudgment(
-      SymbolLiteralJudgment node, DartType typeContext) {
+  @override
+  ExpressionInferenceResult visitSymbolLiteral(
+      SymbolLiteral node, DartType typeContext) {
     DartType inferredType = inferrer.coreTypes.symbolClass.rawType;
     return new ExpressionInferenceResult(inferredType);
   }
@@ -2072,8 +2246,8 @@ class InferenceVisitor
       calleeType = new FunctionType([], const DynamicType());
       returnType = const DynamicType();
     }
-    DartType inferredType = inferrer.inferInvocation(typeContext,
-        node.fileOffset, calleeType, returnType, node.argumentJudgments);
+    DartType inferredType = inferrer.inferInvocation(
+        typeContext, node.fileOffset, calleeType, returnType, node.arguments);
     node._replaceWithDesugared();
     return new ExpressionInferenceResult(inferredType);
   }
@@ -2107,24 +2281,27 @@ class InferenceVisitor
     return const ExpressionInferenceResult(const BottomType());
   }
 
-  void visitCatchJudgment(CatchJudgment node) {
+  void visitCatch(Catch node) {
     inferrer.inferStatement(node.body);
   }
 
-  void visitTryCatchJudgment(TryCatchJudgment node) {
+  @override
+  void visitTryCatch(TryCatch node) {
     inferrer.inferStatement(node.body);
-    for (CatchJudgment catch_ in node.catchJudgments) {
-      visitCatchJudgment(catch_);
+    for (Catch catch_ in node.catches) {
+      visitCatch(catch_);
     }
   }
 
-  void visitTryFinallyJudgment(TryFinallyJudgment node) {
+  @override
+  void visitTryFinally(TryFinally node) {
     inferrer.inferStatement(node.body);
     inferrer.inferStatement(node.finalizer);
   }
 
-  ExpressionInferenceResult visitTypeLiteralJudgment(
-      TypeLiteralJudgment node, DartType typeContext) {
+  @override
+  ExpressionInferenceResult visitTypeLiteral(
+      TypeLiteral node, DartType typeContext) {
     DartType inferredType = inferrer.coreTypes.typeClass.rawType;
     return new ExpressionInferenceResult(inferredType);
   }
@@ -2151,14 +2328,14 @@ class InferenceVisitor
   }
 
   void visitVariableDeclarationJudgment(VariableDeclarationJudgment node) {
-    Expression initializerJudgment = node.initializerJudgment;
+    Expression initializer = node.initializer;
     DartType declaredType =
         node._implicitlyTyped ? const UnknownType() : node.type;
     DartType inferredType;
     DartType initializerType;
-    if (initializerJudgment != null) {
+    if (initializer != null) {
       ExpressionInferenceResult initializerResult = inferrer.inferExpression(
-          initializerJudgment,
+          initializer,
           declaredType,
           !inferrer.isTopLevel || node._implicitlyTyped,
           isVoidAllowed: true);
@@ -2233,19 +2410,21 @@ class InferenceVisitor
     return new ExpressionInferenceResult(type);
   }
 
-  void visitWhileJudgment(WhileJudgment node) {
-    Expression conditionJudgment = node.conditionJudgment;
+  @override
+  void visitWhileStatement(WhileStatement node) {
+    Expression condition = node.condition;
     InterfaceType expectedType = inferrer.coreTypes.boolClass.rawType;
     DartType conditionType = inferrer
-        .inferExpression(conditionJudgment, expectedType, !inferrer.isTopLevel)
+        .inferExpression(condition, expectedType, !inferrer.isTopLevel)
         .inferredType;
     inferrer.ensureAssignable(
         expectedType, conditionType, node.condition, node.condition.fileOffset);
     inferrer.inferStatement(node.body);
   }
 
-  void visitYieldJudgment(YieldJudgment node) {
-    Expression judgment = node.judgment;
+  @override
+  void visitYieldStatement(YieldStatement node) {
+    Expression expression = node.expression;
     ClosureContext closureContext = inferrer.closureContext;
     DartType inferredType;
     if (closureContext.isGenerator) {
@@ -2258,10 +2437,10 @@ class InferenceVisitor
                 : inferrer.coreTypes.iterableClass);
       }
       inferredType =
-          inferrer.inferExpression(judgment, typeContext, true).inferredType;
+          inferrer.inferExpression(expression, typeContext, true).inferredType;
     } else {
       inferredType = inferrer
-          .inferExpression(judgment, const UnknownType(), true)
+          .inferExpression(expression, const UnknownType(), true)
           .inferredType;
     }
     closureContext.handleYield(inferrer, node.isYieldStar, inferredType,
@@ -2275,7 +2454,7 @@ class InferenceVisitor
     if (node.arguments != null) {
       FunctionType calleeType = new FunctionType([], inferredType);
       inferrer.inferInvocation(typeContext, node.fileOffset, calleeType,
-          calleeType.returnType, node.argumentJudgments);
+          calleeType.returnType, node.arguments);
     }
     return new ExpressionInferenceResult(inferredType);
   }

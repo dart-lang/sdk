@@ -6,6 +6,8 @@ library fasta.body_builder;
 
 import 'dart:core' hide MapEntry;
 
+import 'package:kernel/ast.dart';
+
 import '../builder/declaration_builder.dart';
 
 import '../constant_context.dart' show ConstantContext;
@@ -926,9 +928,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     } else {
       if (body != null) {
         builder.body = new Block(<Statement>[
-          new ExpressionStatementJudgment(desugarSyntheticExpression(
-              buildProblem(fasta.messageExternalMethodWithBody, body.fileOffset,
-                  noLength)))
+          new ExpressionStatement(desugarSyntheticExpression(buildProblem(
+              fasta.messageExternalMethodWithBody, body.fileOffset, noLength)))
             ..fileOffset = body.fileOffset,
           body,
         ])
@@ -4482,10 +4483,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (inCatchBlock) {
       push(forest.createRethrowStatement(rethrowToken, endToken));
     } else {
-      push(new ExpressionStatementJudgment(buildProblem(
-          fasta.messageRethrowNotCatch,
-          offsetForToken(rethrowToken),
-          lengthForToken(rethrowToken)))
+      push(new ExpressionStatement(buildProblem(fasta.messageRethrowNotCatch,
+          offsetForToken(rethrowToken), lengthForToken(rethrowToken)))
         ..fileOffset = offsetForToken(rethrowToken));
     }
   }
@@ -4638,7 +4637,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     for (Expression expression in expressions) {
       expressionOffsets.add(forest.readOffset(expression));
     }
-    push(new SwitchCaseJudgment(expressions, expressionOffsets, block,
+    push(new SwitchCase(expressions, expressionOffsets, block,
         isDefault: defaultKeyword != null)
       ..fileOffset = firstToken.charOffset);
     push(labels ?? NullValue.Labels);
@@ -4653,7 +4652,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     exitSwitchScope();
     exitLocalScope();
     Expression expression = popForValue();
-    Statement result = new SwitchStatementJudgment(expression, cases)
+    Statement result = new SwitchStatement(expression, cases)
       ..fileOffset = switchKeyword.charOffset;
     if (target.hasUsers) {
       result = forest.createLabeledStatement(result);
@@ -4799,7 +4798,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       }
       if (target.isGotoTarget &&
           target.functionNestingLevel == functionNestingLevel) {
-        ContinueSwitchStatement statement = new ContinueSwitchJudgment(null)
+        ContinueSwitchStatement statement = new ContinueSwitchStatement(null)
           ..fileOffset = continueKeyword.charOffset;
         target.addGoto(statement);
         push(statement);
@@ -5019,8 +5018,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   Statement buildProblemStatement(Message message, int charOffset,
       {List<LocatedMessage> context, int length, bool suppressMessage: false}) {
     length ??= noLength;
-    return new ExpressionStatementJudgment(buildProblem(
-        message, charOffset, length,
+    return new ExpressionStatement(buildProblem(message, charOffset, length,
         context: context, suppressMessage: suppressMessage));
   }
 
@@ -5139,7 +5137,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
                     .withLocation(builder.fileUri, builder.charOffset, noLength)
               ]);
         }
-        return new ShadowFieldInitializer(builder.field, expression)
+        return new FieldInitializer(builder.field, expression)
           ..fileOffset = assignmentOffset
           ..isSynthetic = isSynthetic;
       }
@@ -5168,7 +5166,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           charOffset);
     }
     needsImplicitSuperInitializer = false;
-    return new SuperInitializerJudgment(constructor, arguments)
+    return new SuperInitializer(constructor, arguments)
       ..fileOffset = charOffset
       ..isSynthetic = isSynthetic;
   }
@@ -5185,7 +5183,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       // TODO(askesc): Produce invalid initializer.
     }
     needsImplicitSuperInitializer = false;
-    return new RedirectingInitializerJudgment(constructor, arguments)
+    return new RedirectingInitializer(constructor, arguments)
       ..fileOffset = charOffset;
   }
 
@@ -5302,13 +5300,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
               offset,
               name.name.length);
         }
-        return new SuperMethodInvocationJudgment(name, arguments,
-            interfaceTarget: target)
+        return new SuperMethodInvocation(name, arguments, target)
           ..fileOffset = offset;
       }
 
-      receiver = new SuperPropertyGetJudgment(name, interfaceTarget: target)
-        ..fileOffset = offset;
+      receiver = new SuperPropertyGet(name, target)..fileOffset = offset;
       MethodInvocation node = new MethodInvocationJudgment(
           receiver, callName, arguments,
           isImplicitCall: true)
@@ -5677,7 +5673,7 @@ class FormalParameters {
         return a.name.compareTo(b.name);
       });
     }
-    return new FunctionNodeJudgment(body,
+    return new FunctionNode(body,
         typeParameters: type.typeParameters,
         positionalParameters: positionalParameters,
         namedParameters: namedParameters,
@@ -5738,7 +5734,7 @@ Block combineStatements(Statement statement, Statement body) {
     statement.parent = body;
     return body;
   } else {
-    return new BlockJudgment(<Statement>[statement, body])
+    return new Block(<Statement>[statement, body])
       ..fileOffset = statement.fileOffset;
   }
 }

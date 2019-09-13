@@ -7,23 +7,7 @@ library fasta.expression_generator;
 
 import 'dart:core' hide MapEntry;
 
-import 'package:kernel/ast.dart'
-    show
-        Constructor,
-        Field,
-        IntLiteral,
-        InvalidExpression,
-        Let,
-        Node,
-        PropertyGet,
-        PropertySet,
-        StaticSet,
-        SuperMethodInvocation,
-        SuperPropertySet,
-        TreeNode,
-        TypeParameter,
-        VariableGet,
-        VariableSet;
+import 'package:kernel/ast.dart';
 
 import '../../scanner/token.dart' show Token;
 
@@ -106,8 +90,6 @@ import 'kernel_shadow_ast.dart'
         MethodInvocationJudgment,
         NullAwarePropertyGetJudgment,
         PropertyAssignmentJudgment,
-        SuperMethodInvocationJudgment,
-        SuperPropertyGetJudgment,
         SyntheticWrapper,
         VariableDeclarationJudgment,
         VariableGetJudgment,
@@ -938,9 +920,8 @@ class SuperPropertyAccessGenerator extends Generator {
       _helper.warnUnresolvedGet(name, fileOffset, isSuper: true);
     }
     // TODO(ahe): Use [DirectPropertyGet] when possible.
-    SuperPropertyGetJudgment read =
-        new SuperPropertyGetJudgment(name, interfaceTarget: getter)
-          ..fileOffset = fileOffset;
+    SuperPropertyGet read = new SuperPropertyGet(name, getter)
+      ..fileOffset = fileOffset;
     complexAssignment?.read = read;
     return read;
   }
@@ -1321,9 +1302,8 @@ class SuperIndexedAccessGenerator extends Generator {
       _helper.warnUnresolvedMethod(indexGetName, fileOffset, isSuper: true);
     }
     // TODO(ahe): Use [DirectMethodInvocation] when possible.
-    return new SuperMethodInvocationJudgment(
-        indexGetName, _forest.createArguments(fileOffset, <Expression>[index]),
-        interfaceTarget: getter)
+    return new SuperMethodInvocation(indexGetName,
+        _forest.createArguments(fileOffset, <Expression>[index]), getter)
       ..fileOffset = fileOffset;
   }
 
