@@ -470,6 +470,7 @@ class BinaryBuilder {
     List<int> componentFileSizes = _indexComponents();
     if (componentFileSizes.length > 1) {
       _disableLazyReading = true;
+      _disableLazyClassReading = true;
     }
     int componentFileIndex = 0;
     while (_byteOffset < _bytes.length) {
@@ -489,6 +490,7 @@ class BinaryBuilder {
     List<int> componentFileSizes = _indexComponents();
     if (componentFileSizes.length > 1) {
       _disableLazyReading = true;
+      _disableLazyClassReading = true;
     }
     int componentFileIndex = 0;
     while (_byteOffset < _bytes.length) {
