@@ -1419,14 +1419,14 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void beginCascade(Token token) {
     debugEvent("beginCascade");
     Expression expression = popForValue();
-    if (expression is CascadeJudgment) {
+    if (expression is Cascade) {
       push(expression);
       push(new VariableUseGenerator(this, token, expression.variable));
       expression.extend();
     } else {
       VariableDeclaration variable = forest.createVariableDeclarationForValue(
           expression.fileOffset, expression);
-      push(new CascadeJudgment(variable)..fileOffset = expression.fileOffset);
+      push(new Cascade(variable)..fileOffset = expression.fileOffset);
       push(new VariableUseGenerator(this, token, variable));
     }
   }
@@ -1435,7 +1435,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void endCascade() {
     debugEvent("endCascade");
     Expression expression = popForEffect();
-    CascadeJudgment cascadeReceiver = pop();
+    Cascade cascadeReceiver = pop();
     cascadeReceiver.finalize(expression);
     push(cascadeReceiver);
   }
@@ -5209,7 +5209,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
     if (isNullAware) {
       VariableDeclaration variable = new VariableDeclaration.forValue(receiver);
-      return new NullAwareMethodInvocationJudgment(
+      return new NullAwareMethodInvocation(
           variable,
           forest.createConditionalExpression(
               buildIsNull(new VariableGet(variable), offset, this),
@@ -5285,7 +5285,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     VariableDeclaration check = new VariableDeclaration.forValue(
         forest.checkLibraryIsLoaded(prefix.dependency))
       ..fileOffset = charOffset;
-    return new DeferredCheckJudgment(check, expression);
+    return new DeferredCheck(check, expression);
   }
 
   /// TODO(ahe): This method is temporarily implemented. Once type promotion is

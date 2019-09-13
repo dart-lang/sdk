@@ -37,6 +37,20 @@ class InferenceVisitor
   @override
   ExpressionInferenceResult defaultExpression(
       Expression node, DartType typeContext) {
+    if (node is InternalExpression) {
+      switch (node.kind) {
+        case InternalExpressionKind.Cascade:
+          return visitCascade(node, typeContext);
+        case InternalExpressionKind.DeferredCheck:
+          return visitDeferredCheck(node, typeContext);
+        case InternalExpressionKind.LoadLibraryTearOff:
+          return visitLoadLibraryTearOff(node, typeContext);
+        case InternalExpressionKind.NullAwareMethodInvocation:
+          return visitNullAwareMethodInvocation(node, typeContext);
+        case InternalExpressionKind.NullAwareMethodPropertyGet:
+          return visitNullAwarePropertyGet(node, typeContext);
+      }
+    }
     return _unhandledExpression(node, typeContext);
   }
 
@@ -243,17 +257,17 @@ class InferenceVisitor
     // No inference needs to be done.
   }
 
-  ExpressionInferenceResult visitCascadeJudgment(
-      CascadeJudgment node, DartType typeContext) {
+  ExpressionInferenceResult visitCascade(Cascade node, DartType typeContext) {
     ExpressionInferenceResult result =
-        inferrer.inferExpression(node.target, typeContext, true);
+        inferrer.inferExpression(node.expression, typeContext, true);
     node.variable.type = result.inferredType;
-    for (Expression judgment in node.cascadeJudgments) {
+    for (Expression judgment in node.cascades) {
       inferrer.inferExpression(
           judgment, const UnknownType(), !inferrer.isTopLevel,
           isVoidAllowed: true);
     }
-    return new ExpressionInferenceResult(result.inferredType);
+    Expression replacement = node.replace();
+    return new ExpressionInferenceResult(result.inferredType, replacement);
   }
 
   @override
@@ -346,14 +360,15 @@ class InferenceVisitor
     // No inference needs to be done.
   }
 
-  ExpressionInferenceResult visitDeferredCheckJudgment(
-      DeferredCheckJudgment node, DartType typeContext) {
+  ExpressionInferenceResult visitDeferredCheck(
+      DeferredCheck node, DartType typeContext) {
     // Since the variable is not used in the body we don't need to type infer
     // it.  We can just type infer the body.
     ExpressionInferenceResult result = inferrer.inferExpression(
         node.expression, typeContext, true,
         isVoidAllowed: true);
-    return new ExpressionInferenceResult(result.inferredType);
+    Expression replacement = node.replace();
+    return new ExpressionInferenceResult(result.inferredType, replacement);
   }
 
   @override
@@ -1817,23 +1832,25 @@ class InferenceVisitor
     return new ExpressionInferenceResult(boolType);
   }
 
-  ExpressionInferenceResult visitNullAwareMethodInvocationJudgment(
-      NullAwareMethodInvocationJudgment node, DartType typeContext) {
+  ExpressionInferenceResult visitNullAwareMethodInvocation(
+      NullAwareMethodInvocation node, DartType typeContext) {
     ExpressionInferenceResult result = inferrer.inferMethodInvocation(
         node, node.variable.initializer, node.fileOffset, false, typeContext,
         receiverVariable: node.variable,
         desugaredInvocation: node._desugaredInvocation);
     node.body.staticType = result.inferredType;
-    return new ExpressionInferenceResult(result.inferredType);
+    Expression replacement = node.replace();
+    return new ExpressionInferenceResult(result.inferredType, replacement);
   }
 
-  ExpressionInferenceResult visitNullAwarePropertyGetJudgment(
-      NullAwarePropertyGetJudgment node, DartType typeContext) {
+  ExpressionInferenceResult visitNullAwarePropertyGet(
+      NullAwarePropertyGet node, DartType typeContext) {
     ExpressionInferenceResult result = inferrer.inferPropertyGet(
         node, node.receiver, node.fileOffset, typeContext,
         receiverVariable: node.variable, desugaredGet: node._desugaredGet);
     node.body.staticType = result.inferredType;
-    return new ExpressionInferenceResult(result.inferredType);
+    Expression replacement = node.replace();
+    return new ExpressionInferenceResult(result.inferredType, replacement);
   }
 
   @override
@@ -2423,11 +2440,12 @@ class InferenceVisitor
     return new ExpressionInferenceResult(inferredType);
   }
 
-  ExpressionInferenceResult visitLoadLibraryTearOffJudgment(
-      LoadLibraryTearOffJudgment node, DartType typeContext) {
+  ExpressionInferenceResult visitLoadLibraryTearOff(
+      LoadLibraryTearOff node, DartType typeContext) {
     DartType inferredType = new FunctionType(
         [], inferrer.typeSchemaEnvironment.futureType(const DynamicType()));
-    return new ExpressionInferenceResult(inferredType);
+    Expression replacement = node.replace();
+    return new ExpressionInferenceResult(inferredType, replacement);
   }
 
   @override

@@ -117,7 +117,7 @@ abstract class TreeNode extends Node {
 
   R accept<R>(TreeVisitor<R> v);
   void visitChildren(Visitor v);
-  transformChildren(Transformer v);
+  void transformChildren(Transformer v);
 
   /// Replaces [child] with [replacement].
   ///

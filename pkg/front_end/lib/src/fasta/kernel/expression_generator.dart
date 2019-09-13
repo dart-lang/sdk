@@ -86,9 +86,9 @@ import 'kernel_builder.dart'
 import 'kernel_shadow_ast.dart'
     show
         ComplexAssignmentJudgment,
-        LoadLibraryTearOffJudgment,
+        LoadLibraryTearOff,
         MethodInvocationImpl,
-        NullAwarePropertyGetJudgment,
+        NullAwarePropertyGet,
         PropertyAssignmentJudgment,
         SyntheticWrapper,
         VariableDeclarationImpl,
@@ -863,7 +863,7 @@ class NullAwarePropertyAccessGenerator extends Generator {
       kernelPropertyAssign.desugared = body;
       return kernelPropertyAssign;
     } else {
-      return new NullAwarePropertyGetJudgment(receiver, nullAwareGuard)
+      return new NullAwarePropertyGet(receiver, nullAwareGuard)
         ..fileOffset = fileOffset;
     }
   }
@@ -2047,7 +2047,7 @@ class LoadLibraryGenerator extends Generator {
   @override
   Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
     builder.importDependency.targetLibrary;
-    LoadLibraryTearOffJudgment read = new LoadLibraryTearOffJudgment(
+    LoadLibraryTearOff read = new LoadLibraryTearOff(
         builder.importDependency, builder.createTearoffMethod(_helper.forest))
       ..fileOffset = fileOffset;
     complexAssignment?.read = read;
