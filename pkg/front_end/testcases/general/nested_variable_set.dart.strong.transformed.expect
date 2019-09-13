@@ -6,6 +6,14 @@ static method main() → dynamic {
   core::int* intLocal1;
   core::int* intLocal2;
   core::num* numLocal;
-  intLocal1 = intLocal2 = numLocal as{TypeError} core::int*;
+  core::double* doubleLocal;
+  intLocal1 = (intLocal2 = numLocal as{TypeError} core::int*) as{TypeError} core::int*;
   intLocal1 = numLocal = intLocal2;
+  numLocal = 0.5;
+  try {
+    intLocal1 = (doubleLocal = numLocal as{TypeError} core::double*) as{TypeError} core::int*;
+    throw "Should fail";
+  }
+  on dynamic catch(final dynamic _) {
+  }
 }

@@ -4673,13 +4673,13 @@ class ForInStatement extends Statement {
   R accept1<R, A>(StatementVisitor1<R, A> v, A arg) =>
       v.visitForInStatement(this, arg);
 
-  visitChildren(Visitor v) {
+  void visitChildren(Visitor v) {
     variable?.accept(v);
     iterable?.accept(v);
     body?.accept(v);
   }
 
-  transformChildren(Transformer v) {
+  void transformChildren(Transformer v) {
     if (variable != null) {
       variable = variable.accept<TreeNode>(v);
       variable?.parent = this;

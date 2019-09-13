@@ -138,12 +138,6 @@ class InferenceVisitor
     return _unhandledExpression(node, typeContext);
   }
 
-  @override
-  ExpressionInferenceResult visitVariableSet(
-      VariableSet node, DartType typeContext) {
-    return _unhandledExpression(node, typeContext);
-  }
-
   void _unhandledStatement(Statement node) {
     unhandled("${node.runtimeType}", "InferenceVisitor", node.fileOffset,
         inferrer.helper.uri);
@@ -516,9 +510,11 @@ class InferenceVisitor
     DartType syntheticWriteType;
     Expression syntheticAssignment;
     Expression rhs;
-    ExpressionStatement statement =
+    // If `true`, the synthetic statement should not be visited.
+    bool skipStatement = false;
+    ExpressionStatement syntheticStatement =
         body is Block ? body.statements.first : body;
-    Expression statementExpression = statement.expression;
+    Expression statementExpression = syntheticStatement.expression;
     if (statementExpression is SyntheticExpressionJudgment) {
       syntheticAssignment = statementExpression.desugared;
     } else {
@@ -527,6 +523,9 @@ class InferenceVisitor
     if (syntheticAssignment is VariableSet) {
       syntheticWriteType = elementType = syntheticAssignment.variable.type;
       rhs = syntheticAssignment.value;
+      // This expression is fully handled in this method so we should not
+      // visit the synthetic statement.
+      skipStatement = true;
     } else if (syntheticAssignment is PropertySet ||
         syntheticAssignment is SuperPropertySet) {
       DartType receiverType = inferrer.thisType;
@@ -559,7 +558,17 @@ class InferenceVisitor
       variable.type = inferredType;
     }
 
-    inferrer.inferStatement(body);
+    if (body is Block) {
+      for (Statement statement in body.statements) {
+        if (!skipStatement || statement != syntheticStatement) {
+          inferrer.inferStatement(statement);
+        }
+      }
+    } else {
+      if (!skipStatement) {
+        inferrer.inferStatement(body);
+      }
+    }
 
     if (syntheticWriteType != null) {
       inferrer.ensureAssignable(
@@ -2322,6 +2331,20 @@ class InferenceVisitor
       TypeLiteral node, DartType typeContext) {
     DartType inferredType = inferrer.coreTypes.typeClass.rawType;
     return new ExpressionInferenceResult(inferredType);
+  }
+
+  @override
+  ExpressionInferenceResult visitVariableSet(
+      VariableSet node, DartType typeContext) {
+    DartType writeContext = node.variable.type;
+    ExpressionInferenceResult rhsResult = inferrer.inferExpression(
+        node.value, writeContext ?? const UnknownType(), true,
+        isVoidAllowed: true);
+    DartType rhsType = rhsResult.inferredType;
+    inferrer.ensureAssignable(
+        writeContext, rhsType, node.value, node.fileOffset,
+        isVoidAllowed: writeContext is VoidType);
+    return new ExpressionInferenceResult(rhsType);
   }
 
   ExpressionInferenceResult visitVariableAssignmentJudgment(

@@ -509,6 +509,19 @@ class VariableUseGenerator extends Generator {
   }
 
   @override
+  Expression buildAssignment(Expression value, {bool voidContext: false}) {
+    _helper.typePromoter
+        ?.mutateVariable(variable, _helper.functionNestingLevel);
+    Expression write;
+    if (variable.isFinal || variable.isConst) {
+      write = _makeInvalidWrite(value);
+    } else {
+      write = new VariableSet(variable, value)..fileOffset = fileOffset;
+    }
+    return write;
+  }
+
+  @override
   Expression _makeWrite(Expression value, bool voidContext,
       ComplexAssignmentJudgment complexAssignment) {
     _helper.typePromoter
