@@ -407,36 +407,43 @@ class Reader : public ValueObject {
 class AlternativeReadingScope {
  public:
   AlternativeReadingScope(Reader* reader, intptr_t new_position)
-      : reader_(reader),
-        saved_size_(reader_->size()),
-        saved_raw_buffer_(reader_->raw_buffer()),
-        saved_typed_data_(reader_->typed_data()),
-        saved_offset_(reader_->offset()) {
+      : reader_(reader), saved_offset_(reader_->offset()) {
     reader_->set_offset(new_position);
   }
 
-  AlternativeReadingScope(Reader* reader,
-                          const ExternalTypedData* new_typed_data,
-                          intptr_t new_position)
+  explicit AlternativeReadingScope(Reader* reader)
+      : reader_(reader), saved_offset_(reader_->offset()) {}
+
+  ~AlternativeReadingScope() { reader_->set_offset(saved_offset_); }
+
+  intptr_t saved_offset() { return saved_offset_; }
+
+ private:
+  Reader* const reader_;
+  const intptr_t saved_offset_;
+
+  DISALLOW_COPY_AND_ASSIGN(AlternativeReadingScope);
+};
+
+// Similar to AlternativeReadingScope, but also switches reading to another
+// typed data array.
+class AlternativeReadingScopeWithNewData {
+ public:
+  AlternativeReadingScopeWithNewData(Reader* reader,
+                                     const ExternalTypedData* new_typed_data,
+                                     intptr_t new_position)
       : reader_(reader),
         saved_size_(reader_->size()),
         saved_raw_buffer_(reader_->raw_buffer()),
         saved_typed_data_(reader_->typed_data()),
         saved_offset_(reader_->offset()) {
-    reader_->set_raw_buffer(NULL);
+    reader_->set_raw_buffer(nullptr);
     reader_->set_typed_data(new_typed_data);
     reader_->set_size(new_typed_data->Length());
     reader_->set_offset(new_position);
   }
 
-  explicit AlternativeReadingScope(Reader* reader)
-      : reader_(reader),
-        saved_size_(reader_->size()),
-        saved_raw_buffer_(reader_->raw_buffer()),
-        saved_typed_data_(reader_->typed_data()),
-        saved_offset_(reader_->offset()) {}
-
-  ~AlternativeReadingScope() {
+  ~AlternativeReadingScopeWithNewData() {
     reader_->set_raw_buffer(saved_raw_buffer_);
     reader_->set_typed_data(saved_typed_data_);
     reader_->set_size(saved_size_);
@@ -452,7 +459,7 @@ class AlternativeReadingScope {
   const ExternalTypedData* saved_typed_data_;
   intptr_t saved_offset_;
 
-  DISALLOW_COPY_AND_ASSIGN(AlternativeReadingScope);
+  DISALLOW_COPY_AND_ASSIGN(AlternativeReadingScopeWithNewData);
 };
 
 // A helper class that resets the readers min and max positions both upon

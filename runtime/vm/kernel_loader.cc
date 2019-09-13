@@ -1815,7 +1815,7 @@ void KernelLoader::ReadVMAnnotations(const Library& library,
         }
         const intptr_t offset_in_constant_table = helper_.ReadUInt();
 
-        AlternativeReadingScope scope(
+        AlternativeReadingScopeWithNewData scope(
             &helper_.reader_,
             &ExternalTypedData::Handle(Z,
                                        kernel_program_info_.constants_table()),

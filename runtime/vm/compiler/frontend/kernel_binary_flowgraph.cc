@@ -232,7 +232,8 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
             ExternalTypedData::Handle(Z, class_field.KernelData());
         ASSERT(!kernel_data.IsNull());
         intptr_t field_offset = class_field.kernel_offset();
-        AlternativeReadingScope alt(&reader_, &kernel_data, field_offset);
+        AlternativeReadingScopeWithNewData alt(&reader_, &kernel_data,
+                                               field_offset);
         FieldHelper field_helper(this);
         field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
         Tag initializer_tag = ReadTag();  // read first part of initializer.

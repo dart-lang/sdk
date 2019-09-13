@@ -188,8 +188,8 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
                   ExternalTypedData::Handle(Z, class_field.KernelData());
               ASSERT(!kernel_data.IsNull());
               intptr_t field_offset = class_field.kernel_offset();
-              AlternativeReadingScope alt(&helper_.reader_, &kernel_data,
-                                          field_offset);
+              AlternativeReadingScopeWithNewData alt(
+                  &helper_.reader_, &kernel_data, field_offset);
               FieldHelper field_helper(&helper_);
               field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
               Tag initializer_tag =
@@ -473,8 +473,8 @@ void ScopeBuilder::VisitConstructor() {
             ExternalTypedData::Handle(Z, class_field.KernelData());
         ASSERT(!kernel_data.IsNull());
         intptr_t field_offset = class_field.kernel_offset();
-        AlternativeReadingScope alt(&helper_.reader_, &kernel_data,
-                                    field_offset);
+        AlternativeReadingScopeWithNewData alt(&helper_.reader_, &kernel_data,
+                                               field_offset);
         FieldHelper field_helper(&helper_);
         field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
         Tag initializer_tag = helper_.ReadTag();
@@ -1739,7 +1739,8 @@ StringIndex ScopeBuilder::GetNameFromVariableDeclaration(
   ASSERT(!kernel_data.IsNull());
 
   // Temporarily go to the variable declaration, read the name.
-  AlternativeReadingScope alt(&helper_.reader_, &kernel_data, kernel_offset);
+  AlternativeReadingScopeWithNewData alt(&helper_.reader_, &kernel_data,
+                                         kernel_offset);
   VariableDeclarationHelper helper(&helper_);
   helper.ReadUntilIncluding(VariableDeclarationHelper::kNameIndex);
   return helper.name_index_;

@@ -1621,7 +1621,9 @@ RawObject* BytecodeReaderHelper::ReadType(intptr_t tag) {
       return AbstractType::void_type().raw();
     case kSimpleType: {
       const Class& cls = Class::CheckedHandle(Z, ReadObject());
-      cls.EnsureDeclarationLoaded();
+      if (!cls.is_declaration_loaded()) {
+        LoadReferencedClass(cls);
+      }
       return cls.DeclarationType();
     }
     case kTypeParameter: {
@@ -1652,7 +1654,9 @@ RawObject* BytecodeReaderHelper::ReadType(intptr_t tag) {
     }
     case kGenericType: {
       const Class& cls = Class::CheckedHandle(Z, ReadObject());
-      cls.EnsureDeclarationLoaded();
+      if (!cls.is_declaration_loaded()) {
+        LoadReferencedClass(cls);
+      }
       const TypeArguments& type_arguments =
           TypeArguments::CheckedHandle(Z, ReadObject());
       const Type& type = Type::Handle(
@@ -1663,7 +1667,9 @@ RawObject* BytecodeReaderHelper::ReadType(intptr_t tag) {
     case kRecursiveGenericType: {
       const intptr_t id = reader_.ReadUInt();
       const Class& cls = Class::CheckedHandle(Z, ReadObject());
-      cls.EnsureDeclarationLoaded();
+      if (!cls.is_declaration_loaded()) {
+        LoadReferencedClass(cls);
+      }
       const auto saved_pending_recursive_types = pending_recursive_types_;
       if (id == 0) {
         pending_recursive_types_ = &GrowableObjectArray::Handle(
@@ -2298,6 +2304,27 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
   }
 
   functions_ = nullptr;
+}
+
+void BytecodeReaderHelper::LoadReferencedClass(const Class& cls) {
+  ASSERT(!cls.is_declaration_loaded());
+
+  if (!cls.is_declared_in_bytecode()) {
+    cls.EnsureDeclarationLoaded();
+    return;
+  }
+
+  const auto& script = Script::Handle(Z, cls.script());
+  if (H.GetKernelProgramInfo().raw() != script.kernel_program_info()) {
+    // Class comes from a different binary.
+    cls.EnsureDeclarationLoaded();
+    return;
+  }
+
+  // We can reuse current BytecodeReaderHelper.
+  ActiveClassScope active_class_scope(active_class_, &cls);
+  AlternativeReadingScope alt(&reader_, cls.bytecode_offset());
+  ReadClassDeclaration(cls);
 }
 
 void BytecodeReaderHelper::ReadClassDeclaration(const Class& cls) {

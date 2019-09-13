@@ -225,6 +225,10 @@ class BytecodeReaderHelper : public ValueObject {
            expression_evaluation_library_->raw() == library.raw();
   }
 
+  // Similar to cls.EnsureClassDeclaration, but may be more efficient if
+  // class is from the current kernel binary.
+  void LoadReferencedClass(const Class& cls);
+
   Reader reader_;
   TranslationHelper& translation_helper_;
   ActiveClass* const active_class_;
