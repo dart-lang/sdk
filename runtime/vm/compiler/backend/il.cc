@@ -1326,8 +1326,7 @@ void Value::RemoveFromUseList() {
   } else if (this == def->env_use_list()) {
     def->set_env_use_list(next);
     if (next != NULL) next->set_previous_use(NULL);
-  } else {
-    Value* prev = previous_use();
+  } else if (Value* prev = previous_use()) {
     prev->set_next_use(next);
     if (next != NULL) next->set_previous_use(prev);
   }

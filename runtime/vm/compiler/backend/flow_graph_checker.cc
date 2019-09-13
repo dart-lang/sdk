@@ -368,6 +368,7 @@ void FlowGraphChecker::VisitPhi(PhiInstr* phi) {
   ASSERT(phi->InputCount() == current_block_->PredecessorCount());
   for (intptr_t i = 0, n = phi->InputCount(); i < n; ++i) {
     Definition* def = phi->InputAt(i)->definition();
+    ASSERT(def->HasSSATemp());  // phis have SSA defs
     BlockEntryInstr* edge = current_block_->PredecessorAt(i);
     ASSERT(DefDominatesUse(def, edge->last_instruction()));
   }
