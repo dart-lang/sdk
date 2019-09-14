@@ -9362,13 +9362,12 @@ RawTypedData* Script::kernel_string_offsets() const {
 
 void Script::LookupSourceAndLineStarts(Zone* zone) const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  if (Source() == String::null()) {
-    // This is a script without source info.
+  if (!IsLazyLookupSourceAndLineStarts()) {
     return;
   }
   const String& uri = String::Handle(zone, resolved_url());
   ASSERT(uri.IsSymbol());
-  if (uri.Length() > 0 && Source() == Symbols::Empty().raw()) {
+  if (uri.Length() > 0) {
     // Entry included only to provide URI - actual source should already exist
     // in the VM, so try to find it.
     Library& lib = Library::Handle(zone);
@@ -9378,18 +9377,18 @@ void Script::LookupSourceAndLineStarts(Zone* zone) const {
     for (intptr_t i = 0; i < libs.Length(); i++) {
       lib ^= libs.At(i);
       script = lib.LookupScript(uri, /* useResolvedUri = */ true);
-      if (!script.IsNull() && script.kind() == RawScript::kKernelTag &&
-          script.Source() != Symbols::Empty().raw()) {
-        set_source(String::Handle(zone, script.Source()));
-        set_line_starts(TypedData::Handle(zone, script.line_starts()));
-        // Note that we may find a script without source info (null source).
-        // We will not repeat the lookup in this case.
-        return;
+      if (!script.IsNull() && script.kind() == RawScript::kKernelTag) {
+        const auto& source = String::Handle(zone, script.Source());
+        const auto& line_starts = TypedData::Handle(zone, script.line_starts());
+        if (!source.IsNull() || !line_starts.IsNull()) {
+          set_source(source);
+          set_line_starts(line_starts);
+          break;
+        }
       }
     }
-    set_source(Object::null_string());
-    // No script found. Set source to null to prevent further lookup.
   }
+  SetLazyLookupSourceAndLineStarts(false);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
@@ -9531,7 +9530,22 @@ RawArray* Script::debug_positions() const {
 }
 
 void Script::set_kind(RawScript::Kind value) const {
-  StoreNonPointer(&raw_ptr()->kind_, value);
+  set_kind_and_tags(
+      RawScript::KindBits::update(value, raw_ptr()->kind_and_tags_));
+}
+
+void Script::set_kind_and_tags(uint8_t value) const {
+  StoreNonPointer(&raw_ptr()->kind_and_tags_, value);
+}
+
+void Script::SetLazyLookupSourceAndLineStarts(bool value) const {
+  set_kind_and_tags(RawScript::LazyLookupSourceAndLineStartsBit::update(
+      value, raw_ptr()->kind_and_tags_));
+}
+
+bool Script::IsLazyLookupSourceAndLineStarts() const {
+  return RawScript::LazyLookupSourceAndLineStartsBit::decode(
+      raw_ptr()->kind_and_tags_);
 }
 
 void Script::set_load_timestamp(int64_t value) const {
@@ -9807,6 +9821,7 @@ RawScript* Script::New(const String& url,
       String::Handle(zone, Symbols::New(thread, resolved_url)));
   result.set_source(source);
   result.SetLocationOffset(0, 0);
+  result.set_kind_and_tags(0);
   result.set_kind(kind);
   result.set_kernel_script_index(0);
   result.set_load_timestamp(

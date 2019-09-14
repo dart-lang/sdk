@@ -3840,9 +3840,11 @@ class Script : public Object {
 
   void LookupSourceAndLineStarts(Zone* zone) const;
   RawGrowableObjectArray* GenerateLineNumberArray() const;
+
   RawScript::Kind kind() const {
-    return static_cast<RawScript::Kind>(raw_ptr()->kind_);
+    return RawScript::KindBits::decode(raw_ptr()->kind_and_tags_);
   }
+
   const char* GetKindAsCString() const;
   intptr_t line_offset() const { return raw_ptr()->line_offset_; }
   intptr_t col_offset() const { return raw_ptr()->col_offset_; }
@@ -3922,10 +3924,14 @@ class Script : public Object {
                             intptr_t kernel_buffer_len) const;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
+  void SetLazyLookupSourceAndLineStarts(bool value) const;
+  bool IsLazyLookupSourceAndLineStarts() const;
+
  private:
   void set_resolved_url(const String& value) const;
   void set_source(const String& value) const;
   void set_kind(RawScript::Kind value) const;
+  void set_kind_and_tags(uint8_t value) const;
   void set_load_timestamp(int64_t value) const;
   RawArray* debug_positions() const;
 

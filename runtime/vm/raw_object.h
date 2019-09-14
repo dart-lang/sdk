@@ -1162,6 +1162,12 @@ class RawScript : public RawObject {
     kEvaluateTag,
     kKernelTag,
   };
+  enum {
+    kKindPos = 0,
+    kKindSize = 3,
+    kLazyLookupSourceAndLineStartsPos = kKindPos + kKindSize,
+    kLazyLookupSourceAndLineStartsSize = 1,
+  };
 
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(Script);
@@ -1194,7 +1200,15 @@ class RawScript : public RawObject {
 
   int32_t line_offset_;
   int32_t col_offset_;
-  int8_t kind_;  // Of type Kind.
+
+  using KindBits = BitField<uint8_t, Kind, kKindPos, kKindSize>;
+  using LazyLookupSourceAndLineStartsBit =
+      BitField<uint8_t,
+               bool,
+               kLazyLookupSourceAndLineStartsPos,
+               kLazyLookupSourceAndLineStartsSize>;
+  uint8_t kind_and_tags_;
+
   intptr_t kernel_script_index_;
   int64_t load_timestamp_;
 };

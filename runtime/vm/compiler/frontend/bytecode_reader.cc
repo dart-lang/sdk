@@ -1813,16 +1813,17 @@ RawScript* BytecodeReaderHelper::ReadSourceFile(const String& uri,
     source = ReadString(/* is_canonical = */ false);
   }
 
-  if (source.IsNull() && line_starts.IsNull()) {
-    // This script provides a uri only, but no source or line_starts array.
-    // The source is set to the empty symbol, indicating that source and
-    // line_starts array are lazily looked up if needed.
-    source = Symbols::Empty().raw();  // Lookup is postponed.
-  }
-
   const Script& script = Script::Handle(
       Z, Script::New(import_uri, uri, source, RawScript::kKernelTag));
   script.set_line_starts(line_starts);
+
+  if (source.IsNull() && line_starts.IsNull()) {
+    // This script provides a uri only, but no source or line_starts array.
+    // This could be a reference to a Script in another kernel binary.
+    // Make an attempt to find source and line starts when needed.
+    script.SetLazyLookupSourceAndLineStarts(true);
+  }
+
   return script.raw();
 }
 
