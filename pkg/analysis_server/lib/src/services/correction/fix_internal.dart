@@ -376,11 +376,9 @@ class FixProcessor extends BaseProcessor {
     if (errorCode == HintCode.UNUSED_LABEL) {
       await _addFix_removeUnusedLabel();
     }
-    // TODO(brianwilkerson) Add a fix to remove the local variable, either with
-    //  or without the initialization code.
-//    if (errorCode == HintCode.UNUSED_LOCAL_VARIABLE) {
-//      await _addFix_removeUnusedLocalVariable();
-//    }
+    if (errorCode == HintCode.UNUSED_LOCAL_VARIABLE) {
+      await _addFix_removeUnusedLocalVariable();
+    }
     if (errorCode == HintCode.UNUSED_SHOWN_NAME) {
       await _addFix_removeNameFromCombinator();
     }
@@ -3533,6 +3531,50 @@ class FixProcessor extends BaseProcessor {
         builder.addDeletion(range.startStart(parent, nextToken));
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_UNUSED_LABEL);
+    }
+  }
+
+  Future<void> _addFix_removeUnusedLocalVariable() async {
+    final declaration = node.parent;
+    if (!(declaration is VariableDeclaration && declaration.name == node)) {
+      return;
+    }
+
+    Element element = (declaration as VariableDeclaration).declaredElement;
+    if (element is LocalElement) {
+      final functionBody = declaration.thisOrAncestorOfType<FunctionBody>();
+      final references = findLocalElementReferences(functionBody, element);
+      final changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        for (var reference in references) {
+          final node = reference.thisOrAncestorMatching((node) =>
+              node is VariableDeclaration || node is AssignmentExpression);
+          var sourceRange;
+          if (node is VariableDeclaration) {
+            VariableDeclarationList parent = node.parent;
+            if (parent.variables.length == 1) {
+              sourceRange = range.node(parent.parent);
+            } else {
+              sourceRange =
+                  range.endEnd(node.beginToken.previous, node.endToken.next);
+            }
+          } else if (node is AssignmentExpression) {
+            // todo (pq): consider node.parent is! ExpressionStatement to handle
+            // assignments in parens, etc.
+            if (node.parent is ArgumentList) {
+              sourceRange =
+                  range.endStart(node.beginToken.previous, node.operator.next);
+            } else {
+              sourceRange = range.node(node.parent);
+            }
+          } else {
+            return;
+          }
+          builder.addDeletion(utils.getLinesRange(sourceRange));
+        }
+      });
+      _addFixFromBuilder(
+          changeBuilder, DartFixKind.REMOVE_UNUSED_LOCAL_VARIABLE);
     }
   }
 

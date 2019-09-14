@@ -37,6 +37,7 @@ class FixesTest extends AbstractAnalysisTest {
     addTestFile('''
 main() {
   Completer<String> x = null;
+  print(x);
 }
 ''');
     await waitForTasksFinished();
