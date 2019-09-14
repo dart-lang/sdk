@@ -65,6 +65,9 @@ class Pointer<T extends NativeType> extends NativeType {
   /// The [value] is automatically marshalled into its native representation.
   /// Note that ints which do not fit in [T] are truncated and sign extended,
   /// and doubles stored into Pointer<[Float]> lose precision.
+  ///
+  /// See also:
+  /// - [Pointer.asExternalTypedData], a more efficient way to read/write from Dart
   external void store(@DartRepresentationOf("T") Object value);
 
   /// Load a Dart value from this location.
@@ -72,6 +75,9 @@ class Pointer<T extends NativeType> extends NativeType {
   /// The value is automatically unmarshalled from its native representation.
   /// Loading a [Struct] reference returns a reference backed by native memory
   /// (the same pointer as it's loaded from).
+  ///
+  /// See also:
+  /// - [Pointer.asExternalTypedData], a more efficient way to read/write from Dart
   external R load<@DartRepresentationOf("T") R>();
 
   /// Access to the raw pointer value.
@@ -102,6 +108,9 @@ class Pointer<T extends NativeType> extends NativeType {
   external void free();
 
   /// Creates an *external* typed data array backed by this pointer.
+  ///
+  /// Using this to read/write data in Dart side is significantly faster
+  /// than [Pointer.load]/[Pointer.store]. To write, use [List.setRange].
   ///
   /// The typed data array returned is only valid for as long as the backing
   /// [Pointer]. Accessing any element of the type data array after this
