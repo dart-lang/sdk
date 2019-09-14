@@ -14,6 +14,7 @@ import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:meta/meta.dart';
 
 /**
  * A constructor element defined in a parameterized type where the values of the
@@ -933,6 +934,13 @@ class TypeParameterMember extends Member implements TypeParameterElement {
       buffer.write(" extends ");
       buffer.write(bound);
     }
+  }
+
+  @override
+  TypeParameterType instantiate({
+    @required NullabilitySuffix nullabilitySuffix,
+  }) {
+    return baseElement.instantiate(nullabilitySuffix: nullabilitySuffix);
   }
 
   @override
