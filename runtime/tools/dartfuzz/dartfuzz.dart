@@ -14,7 +14,7 @@ import 'dartfuzz_ffiapi.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.44';
+const String version = '1.45';
 
 // Restriction on statements and expressions.
 const int stmtLength = 2;
@@ -128,6 +128,7 @@ class DartFuzz {
     globalMethods = fillTypes2();
     classFields = fillTypes2(limit: 8);
     classMethods = fillTypes3(classFields.length);
+    virtualClassMethods = <Map<int, List<int>>>[];
     classParents = <int>[];
     // Setup optional ffi methods and types.
     final ffiStatus = <bool>[for (final _ in globalMethods) false];
@@ -240,14 +241,17 @@ class DartFuzz {
   void emitVirtualMethods() {
     final currentClassTmp = currentClass;
     int parentClass = classParents[currentClass];
+    final vcm = <int, List<int>>{};
     // Chase randomly up in class hierarchy.
     while (parentClass >= 0) {
+      vcm[parentClass] = <int>[];
       for (int j = 0, n = classMethods[parentClass].length; j < n; j++) {
         if (rand.nextInt(8) == 0) {
           currentClass = parentClass;
           currentMethod = j;
           emitMethod('$methodName${parentClass}_', j,
               classMethods[parentClass][j], false);
+          vcm[parentClass].add(currentMethod);
           currentMethod = null;
           currentClass = null;
         }
@@ -259,6 +263,7 @@ class DartFuzz {
       }
     }
     currentClass = currentClassTmp;
+    virtualClassMethods.add(vcm);
   }
 
   void emitClasses() {
@@ -322,6 +327,27 @@ class DartFuzz {
     }
   }
 
+  void emitTryCatchFinally(Function tryBody, Function catchBody,
+      {Function finallyBody}) {
+    emitLn('try {');
+    indent += 2;
+    emitLn("", newline: false);
+    tryBody();
+    emit(";", newline: true);
+    indent -= 2;
+    emitLn('} catch (e, st) {');
+    indent += 2;
+    catchBody();
+    indent -= 2;
+    if (finallyBody != null) {
+      emitLn('} finally {');
+      indent += 2;
+      finallyBody();
+      indent -= 2;
+    }
+    emitLn('}');
+  }
+
   void emitMain() {
     emitLn('main() {');
     indent += 2;
@@ -330,53 +356,51 @@ class DartFuzz {
 
     // Call each global method once.
     for (int i = 0; i < globalMethods.length; i++) {
-      emitLn('try {');
-      indent += 2;
-      emitLn("", newline: false);
-      emitCall(1, "$methodName${i}", globalMethods[i]);
-      emit(";", newline: true);
-      indent -= 2;
-      emitLn('} catch (exception, stackTrace) {');
-      indent += 2;
-      emitLn("print('$methodName$i throws');");
-      indent -= 2;
-      emitLn('}');
+      emitTryCatchFinally(() {
+        emitCall(1, "$methodName${i}", globalMethods[i]);
+      }, () {
+        emitLn("print('$methodName$i throws');");
+      });
     }
 
     // Call each class method once.
     for (int i = 0; i < classMethods.length; i++) {
       for (int j = 0; j < classMethods[i].length; j++) {
-        emitLn('try {');
-        indent += 2;
-        emitLn("", newline: false);
-        emitCall(1, "X${i}().$methodName${i}_${j}", classMethods[i][j]);
-        emit(";", newline: true);
-        indent -= 2;
-        emitLn('} catch (exception, stackTrace) {');
-        indent += 2;
-        emitLn("print('X${i}().$methodName${i}_${j}() throws');");
-        indent -= 2;
-        emitLn('}');
+        emitTryCatchFinally(() {
+          emitCall(1, "X${i}().$methodName${i}_${j}", classMethods[i][j]);
+        }, () {
+          emitLn("print('X${i}().$methodName${i}_${j}() throws');");
+        });
+      }
+      // Call each virtual class method once.
+      int parentClass = classParents[i];
+      while (parentClass >= 0) {
+        if (virtualClassMethods[i].containsKey(parentClass)) {
+          for (int j = 0; j < virtualClassMethods[i][parentClass].length; j++) {
+            emitTryCatchFinally(() {
+              emitCall(1, "X${i}().$methodName${parentClass}_${j}",
+                  classMethods[parentClass][j]);
+            }, () {
+              emitLn(
+                  "print('X${i}().$methodName${parentClass}_${j}() throws');");
+            });
+          }
+        }
+        parentClass = classParents[parentClass];
       }
     }
 
-    emitLn('try {');
-    indent += 2;
-    emitLn('X${classFields.length - 1}().run();');
-    indent -= 2;
-    emitLn('} catch (exception, stackTrace) {');
-    indent += 2;
-    emitLn("print('X${classFields.length - 1}().run() throws');");
-    indent -= 2;
-    emitLn('} finally {');
-    indent += 2;
-    emitLn("print('", newline: false);
-    for (int i = 0; i < globalVars.length; i++) {
-      emit('\$$varName$i\\n');
-    }
-    emit("');", newline: true);
-    indent -= 2;
-    emitLn('}');
+    emitTryCatchFinally(() {
+      emit('X${classFields.length - 1}().run()');
+    }, () {
+      emitLn("print('X${classFields.length - 1}().run() throws');");
+    }, finallyBody: () {
+      emitLn("print('", newline: false);
+      for (int i = 0; i < globalVars.length; i++) {
+        emit('\$$varName$i\\n');
+      }
+      emit("');", newline: true);
+    });
     indent -= 2;
     emitLn('}');
   }
@@ -1524,7 +1548,7 @@ class DartFuzz {
   // Types of global variables.
   List<DartType> globalVars;
 
-  // Names of currenty active iterator variables.
+  // Names of currently active iterator variables.
   // These are tracked to avoid modifications within the loop body,
   // which can lead to infinite loops.
   List<String> iterVars;
@@ -1537,6 +1561,10 @@ class DartFuzz {
 
   // Prototypes of all methods over all classes (first element is return type).
   List<List<List<DartType>>> classMethods;
+
+  // List of virtual functions per class. Map is from parent class index to List
+  // of overloaded functions from that parent.
+  List<Map<int, List<int>>> virtualClassMethods;
 
   // Parent class indices for all classes.
   List<int> classParents;
