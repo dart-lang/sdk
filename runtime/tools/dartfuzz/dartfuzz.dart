@@ -14,7 +14,7 @@ import 'dartfuzz_ffiapi.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.45';
+const String version = '1.46';
 
 // Restriction on statements and expressions.
 const int stmtLength = 2;
@@ -126,7 +126,7 @@ class DartFuzz {
     globalVars = fillTypes1();
     globalVars.addAll(DartType.allTypes); // always one each
     globalMethods = fillTypes2();
-    classFields = fillTypes2(limit: 8);
+    classFields = fillTypes2(limit: 4);
     classMethods = fillTypes3(classFields.length);
     virtualClassMethods = <Map<int, List<int>>>[];
     classParents = <int>[];
