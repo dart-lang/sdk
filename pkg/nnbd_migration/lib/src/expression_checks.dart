@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:nnbd_migration/src/edge_origin.dart';
@@ -68,6 +69,6 @@ class ExpressionChecks extends PotentialModification {
 class ExpressionChecksOrigin extends EdgeOrigin {
   final ExpressionChecks checks;
 
-  ExpressionChecksOrigin(Source source, int offset, this.checks)
-      : super(source, offset);
+  ExpressionChecksOrigin(Source source, Expression node, this.checks)
+      : super(source, node);
 }

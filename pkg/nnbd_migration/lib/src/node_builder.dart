@@ -325,7 +325,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     if (type.isVoid || type.isDynamic) {
       var nullabilityNode = NullabilityNode.forTypeAnnotation(node.end);
       _graph.connect(_graph.always, nullabilityNode,
-          AlwaysNullableTypeOrigin(source, node.offset));
+          AlwaysNullableTypeOrigin(source, node));
       var decoratedType = DecoratedType(type, nullabilityNode);
       _variables.recordDecoratedTypeAnnotation(
           source, node, decoratedType, null);
@@ -411,12 +411,12 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     switch (_classifyComment(commentToken)) {
       case _NullabilityComment.bang:
         _graph.connect(decoratedType.node, _graph.never,
-            NullabilityCommentOrigin(source, commentToken.offset),
+            NullabilityCommentOrigin(source, node),
             hard: true);
         break;
       case _NullabilityComment.question:
         _graph.connect(_graph.always, decoratedType.node,
-            NullabilityCommentOrigin(source, commentToken.offset));
+            NullabilityCommentOrigin(source, node));
         break;
       case _NullabilityComment.none:
         break;
@@ -437,7 +437,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     } else {
       var nullabilityNode = NullabilityNode.forInferredType();
       _graph.union(_graph.always, nullabilityNode,
-          AlwaysNullableTypeOrigin(source, node.offset));
+          AlwaysNullableTypeOrigin(source, node));
       decoratedBound = DecoratedType(_typeProvider.objectType, nullabilityNode);
     }
     _typeFormalBounds?.add(decoratedBound);
