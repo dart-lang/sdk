@@ -2675,6 +2675,18 @@ class C<T extends num> {}
   }
 
   @failingTest
+  test_isExpression_directlyRelatedTypeParameter() async {
+    await analyze('''
+bool f(List<num> list) => list is List<int>
+''');
+    assertNoUpstreamNullability(decoratedTypeAnnotation('bool').node);
+    assertEdge(decoratedTypeAnnotation('List<int>').node, never, hard: false);
+    assertEdge(decoratedTypeAnnotation('num').node,
+        decoratedTypeAnnotation('int').node,
+        hard: false);
+  }
+
+  @failingTest
   test_isExpression_genericFunctionType() async {
     await analyze('''
 bool f(a) => a is int Function(String);
@@ -2682,19 +2694,33 @@ bool f(a) => a is int Function(String);
     assertNoUpstreamNullability(decoratedTypeAnnotation('bool').node);
   }
 
+  @failingTest
+  test_isExpression_indirectlyRelatedTypeParameter() async {
+    await analyze('''
+bool f(Iterable<num> iter) => iter is List<int>
+''');
+    assertNoUpstreamNullability(decoratedTypeAnnotation('bool').node);
+    assertEdge(decoratedTypeAnnotation('List').node, never, hard: false);
+    assertEdge(decoratedTypeAnnotation('num').node,
+        decoratedTypeAnnotation('int').node,
+        hard: false);
+  }
+
   test_isExpression_typeName_noTypeArguments() async {
     await analyze('''
 bool f(a) => a is String;
 ''');
     assertNoUpstreamNullability(decoratedTypeAnnotation('bool').node);
+    assertEdge(decoratedTypeAnnotation('String').node, never, hard: false);
   }
 
-  @failingTest
   test_isExpression_typeName_typeArguments() async {
     await analyze('''
 bool f(a) => a is List<int>;
 ''');
     assertNoUpstreamNullability(decoratedTypeAnnotation('bool').node);
+    assertEdge(decoratedTypeAnnotation('List').node, never, hard: false);
+    assertEdge(always, decoratedTypeAnnotation('int').node, hard: false);
   }
 
   test_library_metadata() async {

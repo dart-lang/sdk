@@ -1702,6 +1702,16 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_isExpression_typeName_typeArguments() async {
+    var content = '''
+bool f(a) => a is List<int>;
+''';
+    var expected = '''
+bool f(a) => a is List<int?>;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_local_function() async {
     var content = '''
 int f(int i) {
