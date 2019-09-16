@@ -6658,8 +6658,14 @@ abstract class TypeProvider {
   /// Return the type representing 'Future<dynamic>'.
   InterfaceType get futureDynamicType;
 
+  /// Return the element representing the built-in class 'Future'.
+  ClassElement get futureElement;
+
   /// Return the type representing 'Future<Null>'.
   InterfaceType get futureNullType;
+
+  /// Return the element representing the built-in class 'FutureOr'.
+  ClassElement get futureOrElement;
 
   /// Return the type representing 'FutureOr<Null>'.
   InterfaceType get futureOrNullType;
@@ -6676,14 +6682,23 @@ abstract class TypeProvider {
   /// Return the type representing the type 'Iterable<dynamic>'.
   InterfaceType get iterableDynamicType;
 
+  /// Return the element representing the built-in class 'Iterable'.
+  ClassElement get iterableElement;
+
   /// Return the type representing the type 'Iterable<Object>'.
   InterfaceType get iterableObjectType;
 
   /// Return the type representing the built-in type 'Iterable'.
   InterfaceType get iterableType;
 
+  /// Return the element representing the built-in class 'List'.
+  ClassElement get listElement;
+
   /// Return the type representing the built-in type 'List'.
   InterfaceType get listType;
+
+  /// Return the element representing the built-in class 'Map'.
+  ClassElement get mapElement;
 
   /// Return the type representing 'Map<Object, Object>'.
   InterfaceType get mapObjectObjectType;
@@ -6710,6 +6725,9 @@ abstract class TypeProvider {
   /// Return the type representing the built-in type 'Object'.
   InterfaceType get objectType;
 
+  /// Return the element representing the built-in class 'Set'.
+  ClassElement get setElement;
+
   /// Return the type representing the built-in type 'Set'.
   InterfaceType get setType;
 
@@ -6719,11 +6737,17 @@ abstract class TypeProvider {
   /// Return the type representing 'Stream<dynamic>'.
   InterfaceType get streamDynamicType;
 
+  /// Return the element representing the built-in class 'Stream'.
+  ClassElement get streamElement;
+
   /// Return the type representing the built-in type 'Stream'.
   InterfaceType get streamType;
 
   /// Return the type representing the built-in type 'String'.
   InterfaceType get stringType;
+
+  /// Return the element representing the built-in class 'Symbol'.
+  ClassElement get symbolElement;
 
   /// Return the type representing the built-in type 'Symbol'.
   InterfaceType get symbolType;
@@ -6733,6 +6757,14 @@ abstract class TypeProvider {
 
   /// Return the type representing the built-in type `void`.
   VoidType get voidType;
+
+  /// Return the instantiation of the built-in class 'FutureOr' with the
+  /// given [valueType]. The type has the nullability suffix of this provider.
+  InterfaceType futureOrType2(DartType valueType);
+
+  /// Return the instantiation of the built-in class 'Future' with the
+  /// given [valueType]. The type has the nullability suffix of this provider.
+  InterfaceType futureType2(DartType valueType);
 
   /// Return 'true' if [id] is the name of a getter on
   /// the Object type.
@@ -6745,6 +6777,27 @@ abstract class TypeProvider {
   /// Return 'true' if [id] is the name of a method on
   /// the Object type.
   bool isObjectMethod(String id);
+
+  /// Return the instantiation of the built-in class 'Iterable' with the
+  /// given [elementType]. The type has the nullability suffix of this provider.
+  InterfaceType iterableType2(DartType elementType);
+
+  /// Return the instantiation of the built-in class 'List' with the
+  /// given [elementType]. The type has the nullability suffix of this provider.
+  InterfaceType listType2(DartType elementType);
+
+  /// Return the instantiation of the built-in class 'List' with the
+  /// given [keyType] and [valueType]. The type has the nullability suffix of
+  /// this provider.
+  InterfaceType mapType2(DartType keyType, DartType valueType);
+
+  /// Return the instantiation of the built-in class 'Set' with the
+  /// given [elementType]. The type has the nullability suffix of this provider.
+  InterfaceType setType2(DartType elementType);
+
+  /// Return the instantiation of the built-in class 'Stream' with the
+  /// given [elementType]. The type has the nullability suffix of this provider.
+  InterfaceType streamType2(DartType elementType);
 }
 
 /// Modes in which [TypeResolverVisitor] works.

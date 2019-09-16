@@ -5581,8 +5581,14 @@ class TypeProviderForLink extends TypeProviderBase {
       _futureDynamicType ??= futureType.instantiate(<DartType>[dynamicType]);
 
   @override
+  ClassElement get futureElement => futureType.element;
+
+  @override
   InterfaceType get futureNullType =>
       _futureNullType ??= futureType.instantiate(<DartType>[nullType]);
+
+  @override
+  ClassElement get futureOrElement => futureOrType.element;
 
   @override
   InterfaceType get futureOrNullType =>
@@ -5605,6 +5611,9 @@ class TypeProviderForLink extends TypeProviderBase {
       iterableType.instantiate(<DartType>[dynamicType]);
 
   @override
+  ClassElement get iterableElement => iterableType.element;
+
+  @override
   InterfaceType get iterableObjectType =>
       _iterableObjectType ??= iterableType.instantiate(<DartType>[objectType]);
 
@@ -5613,8 +5622,14 @@ class TypeProviderForLink extends TypeProviderBase {
       _iterableType ??= _buildInterfaceType(_linker.coreLibrary, 'Iterable');
 
   @override
+  ClassElement get listElement => listType.element;
+
+  @override
   InterfaceType get listType =>
       _listType ??= _buildInterfaceType(_linker.coreLibrary, 'List');
+
+  @override
+  ClassElement get mapElement => mapType.element;
 
   @override
   InterfaceType get mapObjectObjectType => _mapObjectObjectType ??=
@@ -5646,6 +5661,9 @@ class TypeProviderForLink extends TypeProviderBase {
       _objectType ??= _buildInterfaceType(_linker.coreLibrary, 'Object');
 
   @override
+  ClassElement get setElement => setType.element;
+
+  @override
   InterfaceType get setType =>
       _setType ??= _buildInterfaceType(_linker.coreLibrary, 'Set');
 
@@ -5658,12 +5676,18 @@ class TypeProviderForLink extends TypeProviderBase {
       _streamDynamicType ??= streamType.instantiate(<DartType>[dynamicType]);
 
   @override
+  ClassElement get streamElement => streamType.element;
+
+  @override
   InterfaceType get streamType =>
       _streamType ??= _buildInterfaceType(_linker.asyncLibrary, 'Stream');
 
   @override
   InterfaceType get stringType =>
       _stringType ??= _buildInterfaceType(_linker.coreLibrary, 'String');
+
+  @override
+  ClassElement get symbolElement => symbolType.element;
 
   @override
   InterfaceType get symbolType =>
@@ -5675,6 +5699,41 @@ class TypeProviderForLink extends TypeProviderBase {
 
   @override
   VoidType get voidType => VoidTypeImpl.instance;
+
+  @override
+  InterfaceType futureOrType2(DartType valueType) {
+    return futureOrType.instantiate([valueType]);
+  }
+
+  @override
+  InterfaceType futureType2(DartType valueType) {
+    return futureType.instantiate([valueType]);
+  }
+
+  @override
+  InterfaceType iterableType2(DartType elementType) {
+    return iterableType.instantiate([elementType]);
+  }
+
+  @override
+  InterfaceType listType2(DartType elementType) {
+    return listType.instantiate([elementType]);
+  }
+
+  @override
+  InterfaceType mapType2(DartType keyType, DartType valueType) {
+    return mapType.instantiate([keyType, valueType]);
+  }
+
+  @override
+  InterfaceType setType2(DartType elementType) {
+    return setType.instantiate([elementType]);
+  }
+
+  @override
+  InterfaceType streamType2(DartType elementType) {
+    return streamType.instantiate([elementType]);
+  }
 
   InterfaceType _buildInterfaceType(
       LibraryElementForLink library, String name) {

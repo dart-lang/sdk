@@ -23,13 +23,17 @@ class TestTypeProvider extends TypeProviderImpl {
     context ??= _MockAnalysisContext();
     var sdkElements = MockSdkElements(context, nullabilitySuffix);
     return TestTypeProvider._(
+      nullabilitySuffix,
       sdkElements.coreLibrary,
       sdkElements.asyncLibrary,
     );
   }
 
-  TestTypeProvider._(LibraryElement coreLibrary, LibraryElement asyncLibrary)
-      : super(coreLibrary, asyncLibrary);
+  TestTypeProvider._(
+    NullabilitySuffix nullabilitySuffix,
+    LibraryElement coreLibrary,
+    LibraryElement asyncLibrary,
+  ) : super(coreLibrary, asyncLibrary, nullabilitySuffix: nullabilitySuffix);
 }
 
 class _MockAnalysisContext implements AnalysisContext {

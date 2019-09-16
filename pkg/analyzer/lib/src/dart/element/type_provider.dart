@@ -48,8 +48,11 @@ class TypeProviderImpl extends TypeProviderBase {
   ClassElement _futureElement;
   ClassElement _futureOrElement;
   ClassElement _iterableElement;
+  ClassElement _listElement;
   ClassElement _mapElement;
+  ClassElement _setElement;
   ClassElement _streamElement;
+  ClassElement _symbolElement;
 
   InterfaceType _boolType;
   InterfaceType _deprecatedType;
@@ -190,6 +193,7 @@ class TypeProviderImpl extends TypeProviderBase {
     return _iterableDynamicType;
   }
 
+  @override
   ClassElement get iterableElement {
     return _iterableElement ??= _getClassElement(_coreLibrary, 'Iterable');
   }
@@ -211,11 +215,17 @@ class TypeProviderImpl extends TypeProviderBase {
   }
 
   @override
+  ClassElement get listElement {
+    return _listElement ??= _getClassElement(_coreLibrary, 'List');
+  }
+
+  @override
   InterfaceType get listType {
     _listType ??= _getType(_coreLibrary, "List");
     return _listType;
   }
 
+  @override
   ClassElement get mapElement {
     return _mapElement ??= _getClassElement(_coreLibrary, 'Map');
   }
@@ -266,6 +276,11 @@ class TypeProviderImpl extends TypeProviderBase {
   }
 
   @override
+  ClassElement get setElement {
+    return _setElement ??= _getClassElement(_coreLibrary, 'Set');
+  }
+
+  @override
   InterfaceType get setType {
     return _setType ??= _getType(_coreLibrary, "Set");
   }
@@ -286,6 +301,7 @@ class TypeProviderImpl extends TypeProviderBase {
     return _streamDynamicType;
   }
 
+  @override
   ClassElement get streamElement {
     return _streamElement ??= _getClassElement(_asyncLibrary, 'Stream');
   }
@@ -303,6 +319,11 @@ class TypeProviderImpl extends TypeProviderBase {
   }
 
   @override
+  ClassElement get symbolElement {
+    return _symbolElement ??= _getClassElement(_coreLibrary, 'Symbol');
+  }
+
+  @override
   InterfaceType get symbolType {
     _symbolType ??= _getType(_coreLibrary, "Symbol");
     return _symbolType;
@@ -316,6 +337,62 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   VoidType get voidType => VoidTypeImpl.instance;
+
+  @override
+  InterfaceType futureOrType2(DartType valueType) {
+    return futureOrElement.instantiate(
+      typeArguments: [valueType],
+      nullabilitySuffix: _nullabilitySuffix,
+    );
+  }
+
+  @override
+  InterfaceType futureType2(DartType valueType) {
+    return futureElement.instantiate(
+      typeArguments: [valueType],
+      nullabilitySuffix: _nullabilitySuffix,
+    );
+  }
+
+  @override
+  InterfaceType iterableType2(DartType elementType) {
+    return iterableElement.instantiate(
+      typeArguments: [elementType],
+      nullabilitySuffix: _nullabilitySuffix,
+    );
+  }
+
+  @override
+  InterfaceType listType2(DartType elementType) {
+    return listElement.instantiate(
+      typeArguments: [elementType],
+      nullabilitySuffix: _nullabilitySuffix,
+    );
+  }
+
+  @override
+  InterfaceType mapType2(DartType keyType, DartType valueType) {
+    return mapElement.instantiate(
+      typeArguments: [keyType, valueType],
+      nullabilitySuffix: _nullabilitySuffix,
+    );
+  }
+
+  @override
+  InterfaceType setType2(DartType elementType) {
+    return setElement.instantiate(
+      typeArguments: [elementType],
+      nullabilitySuffix: _nullabilitySuffix,
+    );
+  }
+
+  @override
+  InterfaceType streamType2(DartType elementType) {
+    return streamElement.instantiate(
+      typeArguments: [elementType],
+      nullabilitySuffix: _nullabilitySuffix,
+    );
+  }
 
   TypeProviderImpl withNullability(NullabilitySuffix nullabilitySuffix) {
     if (_nullabilitySuffix == nullabilitySuffix) {
