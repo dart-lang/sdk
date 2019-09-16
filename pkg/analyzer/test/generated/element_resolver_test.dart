@@ -26,6 +26,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/driver_resolution.dart';
 import '../util/element_type_matchers.dart';
+import 'elements_types_mixin.dart';
 import 'test_analysis_context.dart';
 import 'test_support.dart';
 
@@ -297,7 +298,8 @@ class C {}
 }
 
 @reflectiveTest
-class ElementResolverTest extends EngineTestCase with ResourceProviderMixin {
+class ElementResolverTest extends EngineTestCase
+    with ResourceProviderMixin, ElementsTypesMixin {
   /**
    * The error listener to which errors will be reported.
    */
@@ -322,6 +324,8 @@ class ElementResolverTest extends EngineTestCase with ResourceProviderMixin {
    * The resolver being used to resolve the test cases.
    */
   ElementResolver _resolver;
+
+  TypeProvider get typeProvider => _typeProvider;
 
   void fail_visitExportDirective_combinators() {
     _fail("Not yet tested");
@@ -392,22 +396,23 @@ class ElementResolverTest extends EngineTestCase with ResourceProviderMixin {
     // class B implements A {}
     //
     ClassElementImpl classB = ElementFactory.classElement2("B");
-    classB.interfaces = <InterfaceType>[classA.type];
+    classB.interfaces = <InterfaceType>[interfaceType(classA)];
     //
     // class C extends Object with B {}
     //
     ClassElementImpl classC = ElementFactory.classElement2("C");
-    classC.mixins = <InterfaceType>[classB.type];
+    classC.mixins = <InterfaceType>[interfaceType(classB)];
     //
     // class D extends C {}
     //
-    ClassElementImpl classD = ElementFactory.classElement("D", classC.type);
+    ClassElementImpl classD =
+        ElementFactory.classElement("D", interfaceType(classC));
     //
     // D a;
     // a[i];
     //
     SimpleIdentifier array = AstTestFactory.identifier3("a");
-    array.staticType = classD.type;
+    array.staticType = interfaceType(classD);
     IndexExpression expression =
         AstTestFactory.indexExpression(array, AstTestFactory.identifier3("i"));
     expect(_resolveIndexExpression(expression), same(operator));
@@ -852,9 +857,9 @@ class ElementResolverTest extends EngineTestCase with ResourceProviderMixin {
     classA.accessors = <PropertyAccessorElement>[getter];
     SimpleIdentifier target = AstTestFactory.identifier3("a");
     VariableElementImpl variable = ElementFactory.localVariableElement(target);
-    variable.type = classA.type;
+    variable.type = interfaceType(classA);
     target.staticElement = variable;
-    target.staticType = classA.type;
+    target.staticType = interfaceType(classA);
     PrefixedIdentifier identifier = AstTestFactory.identifier(
         target, AstTestFactory.identifier3(getterName));
     _resolveNode(identifier);
@@ -875,7 +880,7 @@ class ElementResolverTest extends EngineTestCase with ResourceProviderMixin {
     // prepare "A.b"
     SimpleIdentifier target = AstTestFactory.identifier3("A");
     target.staticElement = classA;
-    target.staticType = classA.type;
+    target.staticType = interfaceType(classA);
     PrefixedIdentifier identifier =
         AstTestFactory.identifier(target, AstTestFactory.identifier3(propName));
     // resolve
@@ -895,7 +900,7 @@ class ElementResolverTest extends EngineTestCase with ResourceProviderMixin {
     // prepare "A.m"
     SimpleIdentifier target = AstTestFactory.identifier3("A");
     target.staticElement = classA;
-    target.staticType = classA.type;
+    target.staticType = interfaceType(classA);
     PrefixedIdentifier identifier =
         AstTestFactory.identifier(target, AstTestFactory.identifier3(propName));
     AstTestFactory.expressionStatement(identifier);
@@ -918,7 +923,7 @@ class ElementResolverTest extends EngineTestCase with ResourceProviderMixin {
     // prepare "A.b = null"
     SimpleIdentifier target = AstTestFactory.identifier3("A");
     target.staticElement = classA;
-    target.staticType = classA.type;
+    target.staticType = interfaceType(classA);
     PrefixedIdentifier identifier =
         AstTestFactory.identifier(target, AstTestFactory.identifier3(propName));
     AstTestFactory.assignmentExpression(
@@ -948,7 +953,7 @@ class ElementResolverTest extends EngineTestCase with ResourceProviderMixin {
         ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getter];
     SimpleIdentifier target = AstTestFactory.identifier3("a");
-    target.staticType = classA.type;
+    target.staticType = interfaceType(classA);
     PropertyAccess access = AstTestFactory.propertyAccess2(target, getterName);
     _resolveNode(access);
     expect(access.propertyName.staticElement, same(getter));
@@ -970,7 +975,8 @@ class ElementResolverTest extends EngineTestCase with ResourceProviderMixin {
         ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getter];
     SuperExpression target = AstTestFactory.superExpression();
-    target.staticType = ElementFactory.classElement("B", classA.type).type;
+    target.staticType =
+        interfaceType(ElementFactory.classElement("B", interfaceType(classA)));
     PropertyAccess access = AstTestFactory.propertyAccess2(target, getterName);
     AstTestFactory.methodDeclaration2(
         null,
@@ -992,7 +998,7 @@ class ElementResolverTest extends EngineTestCase with ResourceProviderMixin {
         ElementFactory.setterElement(setterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[setter];
     ThisExpression target = AstTestFactory.thisExpression();
-    target.staticType = classA.type;
+    target.staticType = interfaceType(classA);
     PropertyAccess access = AstTestFactory.propertyAccess2(target, setterName);
     AstTestFactory.assignmentExpression(
         access, TokenType.EQ, AstTestFactory.integer(0));
@@ -1048,7 +1054,7 @@ class ElementResolverTest extends EngineTestCase with ResourceProviderMixin {
         ElementFactory.constructorElement2(superclass, null);
     superclass.constructors = <ConstructorElement>[superConstructor];
     ClassElementImpl subclass =
-        ElementFactory.classElement("B", superclass.type);
+        ElementFactory.classElement("B", interfaceType(superclass));
     ConstructorElementImpl subConstructor =
         ElementFactory.constructorElement2(subclass, null);
     subclass.constructors = <ConstructorElement>[subConstructor];
@@ -1071,7 +1077,7 @@ class ElementResolverTest extends EngineTestCase with ResourceProviderMixin {
     superConstructor.parameters = <ParameterElement>[parameter];
     superclass.constructors = <ConstructorElement>[superConstructor];
     ClassElementImpl subclass =
-        ElementFactory.classElement("B", superclass.type);
+        ElementFactory.classElement("B", interfaceType(superclass));
     ConstructorElementImpl subConstructor =
         ElementFactory.constructorElement2(subclass, null);
     subclass.constructors = <ConstructorElement>[subConstructor];

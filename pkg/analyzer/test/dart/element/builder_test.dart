@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -2540,7 +2541,13 @@ mixin M<T, U> on A, B implements C {
     expect(alias, isNotNull);
     assertHasCodeRange(alias, 50, 31);
     expect(alias.name, aliasName);
-    expect(alias.type, isNotNull);
+    expect(
+      alias.instantiate2(
+        typeArguments: [],
+        nullabilitySuffix: NullabilitySuffix.none,
+      ),
+      isNotNull,
+    );
     expect(alias.isSynthetic, isFalse);
     List<VariableElement> parameters = alias.parameters;
     expect(parameters, hasLength(2));
@@ -2567,7 +2574,6 @@ mixin M<T, U> on A, B implements C {
     GenericTypeAliasElementImpl alias = aliases[0];
     expect(alias, isNotNull);
     expect(alias.name, aliasName);
-    expect(alias.type, isNotNull);
     expect(alias.isSynthetic, isFalse);
     List<VariableElement> parameters = alias.parameters;
     expect(parameters, isNotNull);

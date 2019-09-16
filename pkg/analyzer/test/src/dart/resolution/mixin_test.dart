@@ -8,6 +8,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../generated/elements_types_mixin.dart';
 import 'driver_resolution.dart';
 
 main() {
@@ -17,7 +18,8 @@ main() {
 }
 
 @reflectiveTest
-class MixinDriverResolutionTest extends DriverResolutionTest {
+class MixinDriverResolutionTest extends DriverResolutionTest
+    with ElementsTypesMixin {
   test_accessor_getter() async {
     await assertNoErrorsInCode(r'''
 mixin M {
@@ -92,7 +94,7 @@ class A extends Object with M {} // A
     var mElement = findElement.mixin('M');
 
     var aElement = findElement.class_('A');
-    assertElementTypes(aElement.mixins, [mElement.type]);
+    assertElementTypes(aElement.mixins, [interfaceType(mElement)]);
 
     var mRef = findNode.typeName('M {} // A');
     assertTypeName(mRef, mElement, 'M');
@@ -107,7 +109,7 @@ class A = Object with M;
     var mElement = findElement.mixin('M');
 
     var aElement = findElement.class_('A');
-    assertElementTypes(aElement.mixins, [mElement.type]);
+    assertElementTypes(aElement.mixins, [interfaceType(mElement)]);
 
     var mRef = findNode.typeName('M;');
     assertTypeName(mRef, mElement, 'M');
@@ -153,7 +155,7 @@ mixin M {}
     expect(element.isEnum, isFalse);
     expect(element.isMixin, isTrue);
     expect(element.isMixinApplication, isFalse);
-    expect(element.type.isObject, isFalse);
+    expect(interfaceType(element).isObject, isFalse);
 
     assertElementTypes(element.superclassConstraints, [objectType]);
     assertElementTypes(element.interfaces, []);
@@ -174,11 +176,11 @@ mixin M2 on A implements B, C {}
     var c = findElement.class_('C');
     assertElementTypes(
       findElement.mixin('M1').allSupertypes,
-      [a.type, b.type, objectType],
+      [interfaceType(a), interfaceType(b), objectType],
     );
     assertElementTypes(
       findElement.mixin('M2').allSupertypes,
-      [a.type, objectType, b.type, c.type],
+      [interfaceType(a), objectType, interfaceType(b), interfaceType(c)],
     );
   }
 
@@ -196,15 +198,15 @@ mixin M2 on B<String> {}
     assertElementTypes(
       findElement.mixin('M1').allSupertypes,
       [
-        a.type.instantiate([intType, doubleType]),
+        interfaceType(a, typeArguments: [intType, doubleType]),
         objectType
       ],
     );
     assertElementTypes(
       findElement.mixin('M2').allSupertypes,
       [
-        b.type.instantiate([stringType]),
-        a.type.instantiate([intType, stringType]),
+        interfaceType(b, typeArguments: [stringType]),
+        interfaceType(a, typeArguments: [intType, stringType]),
         objectType
       ],
     );
@@ -353,7 +355,7 @@ mixin M implements math.Random {}
     var randomElement = mathImport.importedLibrary.getType('Random');
 
     var element = findElement.mixin('M');
-    assertElementTypes(element.interfaces, [randomElement.type]);
+    assertElementTypes(element.interfaces, [interfaceType(randomElement)]);
 
     var typeRef = findNode.typeName('Random {}');
     assertTypeName(typeRef, randomElement, 'Random',
@@ -916,7 +918,9 @@ mixin M on math.Random {}
     var randomElement = mathImport.importedLibrary.getType('Random');
 
     var element = findElement.mixin('M');
-    assertElementTypes(element.superclassConstraints, [randomElement.type]);
+    assertElementTypes(element.superclassConstraints, [
+      interfaceType(randomElement),
+    ]);
 
     var typeRef = findNode.typeName('Random {}');
     assertTypeName(typeRef, randomElement, 'Random',
@@ -993,7 +997,9 @@ mixin B on A {} // ref
 
     var a = findElement.mixin('A');
     var b = findElement.mixin('B');
-    assertElementTypes(b.superclassConstraints, [a.type]);
+    assertElementTypes(b.superclassConstraints, [
+      interfaceType(a),
+    ]);
   }
 
   test_error_onRepeated() async {
@@ -1258,7 +1264,7 @@ mixin M {}
 ''');
 
     var element = findElement.mixin('M');
-    var type = element.type;
+    var type = interfaceType(element);
     // ignore: deprecated_member_use_from_same_package
     expect(type.isMoreSpecificThan(intType), isFalse);
   }

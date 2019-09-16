@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
@@ -685,10 +686,16 @@ class MyClass {}''';
     DartChangeBuilderImpl builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(11, (EditBuilder builder) {
-        (builder as DartEditBuilder).writeLocalVariableDeclaration('foo',
-            initializerWriter: () {
-          builder.write('null');
-        }, type: A.declaredElement.type);
+        (builder as DartEditBuilder).writeLocalVariableDeclaration(
+          'foo',
+          initializerWriter: () {
+            builder.write('null');
+          },
+          type: A.declaredElement.instantiate(
+            typeArguments: [],
+            nullabilitySuffix: NullabilitySuffix.star,
+          ),
+        );
       });
     });
     SourceEdit edit = getEdit(builder);
@@ -710,8 +717,14 @@ class MyClass {}''';
     DartChangeBuilderImpl builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(11, (EditBuilder builder) {
-        (builder as DartEditBuilder).writeLocalVariableDeclaration('foo',
-            type: A.declaredElement.type, typeGroupName: 'type');
+        (builder as DartEditBuilder).writeLocalVariableDeclaration(
+          'foo',
+          type: A.declaredElement.instantiate(
+            typeArguments: [],
+            nullabilitySuffix: NullabilitySuffix.star,
+          ),
+          typeGroupName: 'type',
+        );
       });
     });
     SourceEdit edit = getEdit(builder);
@@ -740,8 +753,15 @@ class MyClass {}''';
     DartChangeBuilderImpl builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(11, (EditBuilder builder) {
-        (builder as DartEditBuilder).writeLocalVariableDeclaration('foo',
-            isFinal: true, type: A.declaredElement.type, typeGroupName: 'type');
+        (builder as DartEditBuilder).writeLocalVariableDeclaration(
+          'foo',
+          isFinal: true,
+          type: A.declaredElement.instantiate(
+            typeArguments: [],
+            nullabilitySuffix: NullabilitySuffix.star,
+          ),
+          typeGroupName: 'type',
+        );
       });
     });
     SourceEdit edit = getEdit(builder);
@@ -1245,12 +1265,12 @@ import 'a.dart' as p;
     String content = 'class A {} class B<E> {}';
     addSource(path, content);
     InterfaceType typeA = await _getType(path, 'A');
-    InterfaceType typeB = await _getType(path, 'B');
+    InterfaceType typeBofA = await _getType(path, 'B', typeArguments: [typeA]);
 
     DartChangeBuilderImpl builder = newBuilder();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(content.length - 1, (EditBuilder builder) {
-        (builder as DartEditBuilder).writeType(typeB.instantiate([typeA]));
+        (builder as DartEditBuilder).writeType(typeBofA);
       });
     });
     SourceEdit edit = getEdit(builder);
@@ -1317,8 +1337,10 @@ import 'a.dart' as p;
     String content = 'class A<T> {}';
     addSource(path, content);
 
-    InterfaceType typeA = await _getType(path, 'A');
-    DartType typeT = typeA.typeParameters.single.type;
+    var classA = await _getClassElement(path, 'A');
+    DartType typeT = classA.typeParameters.single.instantiate(
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
 
     var builder = newBuilder();
     await builder.addFileEdit(path, (builder) {
@@ -1382,13 +1404,22 @@ class B {}
     var builder = newBuilder();
     await builder.addFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
-        builder.writeType(a1.type);
+        builder.writeType(a1.instantiate(
+          typeArguments: [],
+          nullabilitySuffix: NullabilitySuffix.star,
+        ));
         builder.write(' a1; ');
 
-        builder.writeType(a2.type);
+        builder.writeType(a2.instantiate(
+          typeArguments: [],
+          nullabilitySuffix: NullabilitySuffix.star,
+        ));
         builder.write(' a2; ');
 
-        builder.writeType(b.type);
+        builder.writeType(b.instantiate(
+          typeArguments: [],
+          nullabilitySuffix: NullabilitySuffix.star,
+        ));
         builder.write(' b;');
       });
     }, importPrefixGenerator: prefixGenerator);
@@ -1571,9 +1602,16 @@ class B {}
     return result.element.accessors.firstWhere((v) => v.name == name);
   }
 
-  Future<InterfaceType> _getType(String path, String name) async {
+  Future<InterfaceType> _getType(
+    String path,
+    String name, {
+    List<DartType> typeArguments = const [],
+  }) async {
     ClassElement classElement = await _getClassElement(path, name);
-    return classElement.type;
+    return classElement.instantiate(
+      typeArguments: typeArguments,
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
   }
 }
 
@@ -1760,7 +1798,12 @@ class C extends B {}
     CompilationUnit unit = (await driver.getResult(path))?.unit;
     ClassDeclaration classC = unit.declarations[2] as ClassDeclaration;
     DartLinkedEditBuilderImpl builder = new DartLinkedEditBuilderImpl(null);
-    builder.addSuperTypesAsSuggestions(classC.declaredElement.type);
+    builder.addSuperTypesAsSuggestions(
+      classC.declaredElement.instantiate(
+        typeArguments: [],
+        nullabilitySuffix: NullabilitySuffix.star,
+      ),
+    );
     List<LinkedEditSuggestion> suggestions = builder.suggestions;
     expect(suggestions, hasLength(4));
     expect(suggestions.map((s) => s.value),
@@ -2785,9 +2828,16 @@ class B extends A {
       }
     }
 
+    var targetType = targetElement.instantiate(
+      typeArguments: targetElement.typeParameters
+          .map((e) => e.instantiate(nullabilitySuffix: NullabilitySuffix.star))
+          .toList(),
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
+
     TypeSystem typeSystem = await session.typeSystem;
     var inherited = new InheritanceManager3(typeSystem).getInherited(
-      targetElement.type,
+      targetType,
       new Name(null, nameToOverride),
     );
 

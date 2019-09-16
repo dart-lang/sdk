@@ -25,6 +25,7 @@ import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'elements_types_mixin.dart';
 import 'resolver_test_case.dart';
 import 'test_analysis_context.dart';
 import 'test_support.dart';
@@ -172,7 +173,9 @@ main() {
           typeFormals: '[S]',
           identifierType: 'void Function<S>(S)');
 
-      typeS = type.typeFormals[0].type;
+      typeS = type.typeFormals[0].instantiate(
+        nullabilitySuffix: NullabilitySuffix.star,
+      );
       type = type.instantiate([DynamicTypeImpl.instance]);
       expect(type.toString(), 'void Function(dynamic)');
       expect(type.typeParameters.toString(), '[S]');
@@ -227,7 +230,8 @@ void useMap(Map<int, int> m) {
 }
 
 @reflectiveTest
-class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
+class StaticTypeAnalyzerTest extends EngineTestCase
+    with ResourceProviderMixin, ElementsTypesMixin {
   /**
    * The error listener to which errors will be reported.
    */
@@ -247,6 +251,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
    * The type provider used to access the types.
    */
   TypeProvider _typeProvider;
+
+  TypeProvider get typeProvider => _typeProvider;
 
   /**
    * The type system used to analyze the test cases.
@@ -279,22 +285,26 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
     // class Derived<T> extends Future<T> { ... }
     ClassElementImpl derivedClass =
         ElementFactory.classElement2('Derived', ['T']);
-    derivedClass.supertype = _typeProvider.futureType
-        .instantiate([derivedClass.typeParameters[0].type]);
+    derivedClass.supertype =
+        futureType(typeParameterType(derivedClass.typeParameters[0]));
     InterfaceType intType = _typeProvider.intType;
     DartType dynamicType = _typeProvider.dynamicType;
-    InterfaceType derivedIntType = derivedClass.type.instantiate([intType]);
+    InterfaceType derivedIntType =
+        interfaceType(derivedClass, typeArguments: [intType]);
     // flatten(Derived) = dynamic
     InterfaceType derivedDynamicType =
-        derivedClass.type.instantiate([dynamicType]);
+        interfaceType(derivedClass, typeArguments: [dynamicType]);
     expect(_flatten(derivedDynamicType), dynamicType);
     // flatten(Derived<int>) = int
     expect(_flatten(derivedIntType), intType);
     // flatten(Derived<Derived>) = Derived
-    expect(_flatten(derivedClass.type.instantiate([derivedDynamicType])),
+    expect(
+        _flatten(
+            interfaceType(derivedClass, typeArguments: [derivedDynamicType])),
         derivedDynamicType);
     // flatten(Derived<Derived<int>>) = Derived<int>
-    expect(_flatten(derivedClass.type.instantiate([derivedIntType])),
+    expect(
+        _flatten(interfaceType(derivedClass, typeArguments: [derivedIntType])),
         derivedIntType);
   }
 
@@ -303,13 +313,13 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
     // class B extends A
     ClassElementImpl classA = ElementFactory.classElement2('A', []);
     ClassElementImpl classB = ElementFactory.classElement2('B', []);
-    classA.supertype = classB.type;
-    classB.supertype = classA.type;
+    classA.supertype = interfaceType(classB);
+    classB.supertype = interfaceType(classA);
     // flatten(A) = A and flatten(B) = B, since neither class contains Future
     // in its class hierarchy.  Even though there is a loop in the class
     // hierarchy, flatten() should terminate.
-    expect(_flatten(classA.type), classA.type);
-    expect(_flatten(classB.type), classB.type);
+    expect(_flatten(interfaceType(classA)), interfaceType(classA));
+    expect(_flatten(interfaceType(classB)), interfaceType(classB));
   }
 
   void test_flatten_related_derived_types() {
@@ -318,26 +328,25 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
     // class Derived<T> extends Future<T>
     ClassElementImpl derivedClass =
         ElementFactory.classElement2('Derived', ['T']);
-    derivedClass.supertype = _typeProvider.futureType
-        .instantiate([derivedClass.typeParameters[0].type]);
-    InterfaceType derivedType = derivedClass.type;
+    derivedClass.supertype =
+        futureType(typeParameterType(derivedClass.typeParameters[0]));
     // class A extends Derived<int> implements Derived<num> { ... }
-    ClassElementImpl classA =
-        ElementFactory.classElement('A', derivedType.instantiate([intType]));
+    ClassElementImpl classA = ElementFactory.classElement(
+        'A', interfaceType(derivedClass, typeArguments: [intType]));
     classA.interfaces = <InterfaceType>[
-      derivedType.instantiate([numType])
+      interfaceType(derivedClass, typeArguments: [numType]),
     ];
     // class B extends Future<num> implements Future<int> { ... }
-    ClassElementImpl classB =
-        ElementFactory.classElement('B', derivedType.instantiate([numType]));
+    ClassElementImpl classB = ElementFactory.classElement(
+        'B', interfaceType(derivedClass, typeArguments: [numType]));
     classB.interfaces = <InterfaceType>[
-      derivedType.instantiate([intType])
+      interfaceType(derivedClass, typeArguments: [intType])
     ];
     // flatten(A) = flatten(B) = int, since int is more specific than num.
     // The code in flatten() that inhibits infinite recursion shouldn't be
     // fooled by the fact that Derived appears twice in the type hierarchy.
-    expect(_flatten(classA.type), intType);
-    expect(_flatten(classB.type), intType);
+    expect(_flatten(interfaceType(classA)), intType);
+    expect(_flatten(interfaceType(classB)), intType);
   }
 
   void test_flatten_related_types() {
@@ -357,8 +366,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
       futureType.instantiate([intType])
     ];
     // flatten(A) = flatten(B) = int, since int is more specific than num.
-    expect(_flatten(classA.type), intType);
-    expect(_flatten(classB.type), intType);
+    expect(_flatten(interfaceType(classA)), intType);
+    expect(_flatten(interfaceType(classB)), intType);
   }
 
   void test_flatten_simple() {
@@ -403,8 +412,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
     ];
     // flatten(A) = A and flatten(B) = B, since neither string nor int is more
     // specific than the other.
-    expect(_flatten(classA.type), classA.type);
-    expect(_flatten(classB.type), classB.type);
+    expect(_flatten(interfaceType(classA)), interfaceType(classA));
+    expect(_flatten(interfaceType(classB)), interfaceType(classB));
   }
 
   void test_visitAdjacentStrings() {
@@ -419,11 +428,11 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
     // class A { ... this as B ... }
     // class B extends A {}
     ClassElement superclass = ElementFactory.classElement2("A");
-    InterfaceType superclassType = superclass.type;
+    InterfaceType superclassType = interfaceType(superclass);
     ClassElement subclass = ElementFactory.classElement("B", superclassType);
     Expression node = AstTestFactory.asExpression(
         AstTestFactory.thisExpression(), AstTestFactory.typeName(subclass));
-    expect(_analyze(node, superclassType), same(subclass.type));
+    expect(_analyze(node, superclassType), interfaceType(subclass));
     _listener.assertNoErrors();
   }
 
@@ -552,7 +561,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
     // }
     // (a as A) * 2.0
     ClassElementImpl classA = ElementFactory.classElement2("A");
-    InterfaceType typeA = classA.type;
+    InterfaceType typeA = interfaceType(classA);
     MethodElement operator =
         ElementFactory.methodElement("*", typeA, [_typeProvider.doubleType]);
     classA.methods = <MethodElement>[operator];
@@ -932,7 +941,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
             AstTestFactory.typeName(classElement),
             [AstTestFactory.identifier3(constructorName)]);
     node.staticElement = constructor;
-    expect(_analyze(node), same(classElement.type));
+    expect(_analyze(node), interfaceType(classElement));
     _listener.assertNoErrors();
   }
 
@@ -945,14 +954,15 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
     elementC.constructors = <ConstructorElement>[constructor];
     TypeName typeName =
         AstTestFactory.typeName(elementC, [AstTestFactory.typeName(elementI)]);
-    typeName.type = elementC.type.instantiate(<DartType>[elementI.type]);
+    typeName.type =
+        interfaceType(elementC, typeArguments: [interfaceType(elementI)]);
     InstanceCreationExpression node =
         AstTestFactory.instanceCreationExpression2(null, typeName);
     node.staticElement = constructor;
-    InterfaceType interfaceType = _analyze(node) as InterfaceType;
-    List<DartType> typeArgs = interfaceType.typeArguments;
+    InterfaceType type = _analyze(node) as InterfaceType;
+    List<DartType> typeArgs = type.typeArguments;
     expect(typeArgs.length, 1);
-    expect(typeArgs[0], elementI.type);
+    expect(typeArgs[0], interfaceType(elementI));
     _listener.assertNoErrors();
   }
 
@@ -966,7 +976,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
         AstTestFactory.instanceCreationExpression2(
             null, AstTestFactory.typeName(classElement));
     node.staticElement = constructor;
-    expect(_analyze(node), same(classElement.type));
+    expect(_analyze(node), interfaceType(classElement));
     _listener.assertNoErrors();
   }
 
@@ -1246,8 +1256,9 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
 
   void test_visitSuperExpression() {
     // super
-    InterfaceType superType = ElementFactory.classElement2("A").type;
-    InterfaceType thisType = ElementFactory.classElement("B", superType).type;
+    InterfaceType superType = interfaceType(ElementFactory.classElement2("A"));
+    InterfaceType thisType =
+        interfaceType(ElementFactory.classElement("B", superType));
     Expression node = AstTestFactory.superExpression();
     expect(_analyze(node, thisType), same(thisType));
     _listener.assertNoErrors();
@@ -1260,9 +1271,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
 
   void test_visitThisExpression() {
     // this
-    InterfaceType thisType =
-        ElementFactory.classElement("B", ElementFactory.classElement2("A").type)
-            .type;
+    InterfaceType thisType = interfaceType(ElementFactory.classElement(
+        "B", interfaceType(ElementFactory.classElement2("A"))));
     Expression node = AstTestFactory.thisExpression();
     expect(_analyze(node, thisType), same(thisType));
     _listener.assertNoErrors();

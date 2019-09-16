@@ -5062,7 +5062,13 @@ class _DecoratedClassHierarchyForTesting implements DecoratedClassHierarchy {
     var class_ = (type.type as InterfaceType).element;
     if (class_ == superclass) return type;
     if (superclass.name == 'Object') {
-      return DecoratedType(superclass.type, type.node);
+      return DecoratedType(
+        superclass.instantiate(
+          typeArguments: const [],
+          nullabilitySuffix: NullabilitySuffix.star,
+        ),
+        type.node,
+      );
     }
     if (class_.name == 'MyListOfList' && superclass.name == 'List') {
       return assignmentCheckerTest._myListOfListSupertype
@@ -5070,8 +5076,13 @@ class _DecoratedClassHierarchyForTesting implements DecoratedClassHierarchy {
     }
     if (class_.name == 'Future' && superclass.name == 'FutureOr') {
       return DecoratedType(
-          superclass.type.instantiate([type.typeArguments[0].type]), type.node,
-          typeArguments: [type.typeArguments[0]]);
+        superclass.instantiate(
+          typeArguments: [type.typeArguments[0].type],
+          nullabilitySuffix: NullabilitySuffix.star,
+        ),
+        type.node,
+        typeArguments: [type.typeArguments[0]],
+      );
     }
     throw UnimplementedError(
         'TODO(paulberry): asInstanceOf($type, $superclass)');

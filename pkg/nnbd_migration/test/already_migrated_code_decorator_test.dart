@@ -231,9 +231,12 @@ class _AlreadyMigratedCodeDecoratorTest {
   test_getImmediateSupertypes_generic() {
     var t = ElementFactory.typeParameterElement('T');
     var class_ = ElementFactory.classElement3(
-        name: 'C',
-        typeParameters: [t],
-        supertype: typeProvider.iterableType.instantiate([t.type]));
+      name: 'C',
+      typeParameters: [t],
+      supertype: typeProvider.iterableType.instantiate(
+        [t.instantiate(nullabilitySuffix: NullabilitySuffix.star)],
+      ),
+    );
     var decoratedSupertypes = decorator.getImmediateSupertypes(class_).toList();
     expect(decoratedSupertypes, hasLength(1));
     checkIterable(decoratedSupertypes[0], never,

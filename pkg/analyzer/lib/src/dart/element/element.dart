@@ -194,6 +194,11 @@ abstract class AbstractClassElementImpl extends ElementImpl
     @required List<DartType> typeArguments,
     @required NullabilitySuffix nullabilitySuffix,
   }) {
+    if (typeArguments.length != typeParameters.length) {
+      var ta = 'typeArguments.length (${typeArguments.length})';
+      var tp = 'typeParameters.length (${typeParameters.length})';
+      throw ArgumentError('$ta != $tp');
+    }
     return InterfaceTypeImpl.explicit(
       this,
       typeArguments,
@@ -6399,11 +6404,10 @@ class GenericTypeAliasElementImpl extends ElementImpl
     @required NullabilitySuffix nullabilitySuffix,
   }) {
     // TODO(scheglov) Replace with strict function type.
-    _type ??= new FunctionTypeImpl.forTypedef(
+    return FunctionTypeImpl.forTypedef(
       this,
       nullabilitySuffix: nullabilitySuffix,
-    );
-    return _type;
+    ).instantiate(typeArguments);
   }
 
   @override

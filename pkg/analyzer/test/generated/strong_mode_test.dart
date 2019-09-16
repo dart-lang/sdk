@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -1821,8 +1822,10 @@ class E extends D implements C<int> {}
     ClassElement elementB = AstFinder.getClass(unit, "B").declaredElement;
     ClassElement elementA = AstFinder.getClass(unit, "A").declaredElement;
     expect(exp.constructorName.type.type.element, elementB);
-    _isInstantiationOf(_hasElement(elementB))(
-        [_isType(elementA.typeParameters[0].type)])(exp.staticType);
+    _isInstantiationOf(_hasElement(elementB))([
+      _isType(elementA.typeParameters[0]
+          .instantiate(nullabilitySuffix: NullabilitySuffix.star))
+    ])(exp.staticType);
   }
 
   test_fieldDeclaration_propagation() async {

@@ -11,12 +11,15 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
+import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../generated/elements_types_mixin.dart';
 import '../../../generated/parser_test.dart' show ParserTestCase;
 import '../../../generated/test_support.dart';
 import '../../../util/ast_type_matchers.dart';
@@ -130,7 +133,9 @@ class B {}''');
 }
 
 @reflectiveTest
-class ResolutionCopierTest extends EngineTestCase {
+class ResolutionCopierTest with ElementsTypesMixin {
+  final TypeProvider typeProvider = TestTypeProvider();
+
   void test_visitAdjacentStrings() {
     AdjacentStrings createNode() => astFactory.adjacentStrings([
           astFactory.simpleStringLiteral(null, 'hello'),
@@ -138,7 +143,7 @@ class ResolutionCopierTest extends EngineTestCase {
         ]);
 
     AdjacentStrings fromNode = createNode();
-    DartType staticType = ElementFactory.classElement2("B").type;
+    DartType staticType = interfaceType(ElementFactory.classElement2('B'));
     fromNode.staticType = staticType;
 
     AdjacentStrings toNode = createNode();
@@ -161,7 +166,7 @@ class ResolutionCopierTest extends EngineTestCase {
   void test_visitAsExpression() {
     AsExpression fromNode = AstTestFactory.asExpression(
         AstTestFactory.identifier3("x"), AstTestFactory.typeName4("A"));
-    DartType staticType = ElementFactory.classElement2("B").type;
+    DartType staticType = interfaceType(ElementFactory.classElement2('B'));
     fromNode.staticType = staticType;
     AsExpression toNode = AstTestFactory.asExpression(
         AstTestFactory.identifier3("x"), AstTestFactory.typeName4("A"));
@@ -174,7 +179,7 @@ class ResolutionCopierTest extends EngineTestCase {
         AstTestFactory.identifier3("a"),
         TokenType.PLUS_EQ,
         AstTestFactory.identifier3("b"));
-    DartType staticType = ElementFactory.classElement2("C").type;
+    DartType staticType = interfaceType(ElementFactory.classElement2('C'));
     MethodElement staticElement = ElementFactory.methodElement("+", staticType);
     fromNode.staticElement = staticElement;
     fromNode.staticType = staticType;
@@ -192,7 +197,7 @@ class ResolutionCopierTest extends EngineTestCase {
         AstTestFactory.identifier3("a"),
         TokenType.PLUS,
         AstTestFactory.identifier3("b"));
-    DartType staticType = ElementFactory.classElement2("C").type;
+    DartType staticType = interfaceType(ElementFactory.classElement2('C'));
     MethodElement staticElement = ElementFactory.methodElement("+", staticType);
     fromNode.staticElement = staticElement;
     fromNode.staticType = staticType;
@@ -207,7 +212,7 @@ class ResolutionCopierTest extends EngineTestCase {
 
   void test_visitBooleanLiteral() {
     BooleanLiteral fromNode = AstTestFactory.booleanLiteral(true);
-    DartType staticType = ElementFactory.classElement2("C").type;
+    DartType staticType = interfaceType(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     BooleanLiteral toNode = AstTestFactory.booleanLiteral(true);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -217,7 +222,7 @@ class ResolutionCopierTest extends EngineTestCase {
   void test_visitCascadeExpression() {
     CascadeExpression fromNode = AstTestFactory.cascadeExpression(
         AstTestFactory.identifier3("a"), [AstTestFactory.identifier3("b")]);
-    DartType staticType = ElementFactory.classElement2("C").type;
+    DartType staticType = interfaceType(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     CascadeExpression toNode = AstTestFactory.cascadeExpression(
         AstTestFactory.identifier3("a"), [AstTestFactory.identifier3("b")]);
@@ -239,7 +244,7 @@ class ResolutionCopierTest extends EngineTestCase {
         AstTestFactory.identifier3("c"),
         AstTestFactory.identifier3("a"),
         AstTestFactory.identifier3("b"));
-    DartType staticType = ElementFactory.classElement2("C").type;
+    DartType staticType = interfaceType(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     ConditionalExpression toNode = AstTestFactory.conditionalExpression(
         AstTestFactory.identifier3("c"),
@@ -283,7 +288,7 @@ class ResolutionCopierTest extends EngineTestCase {
 
   void test_visitDoubleLiteral() {
     DoubleLiteral fromNode = AstTestFactory.doubleLiteral(1.0);
-    DartType staticType = ElementFactory.classElement2("C").type;
+    DartType staticType = interfaceType(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     DoubleLiteral toNode = AstTestFactory.doubleLiteral(1.0);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -305,7 +310,7 @@ class ResolutionCopierTest extends EngineTestCase {
             loopVariable: AstTestFactory.declaredIdentifier3('a'),
             iterable: AstTestFactory.identifier3('b'));
 
-    DartType typeB = ElementFactory.classElement2("B").type;
+    DartType typeB = interfaceType(ElementFactory.classElement2('B'));
 
     ForEachPartsWithDeclaration fromNode = createNode();
     (fromNode.iterable as SimpleIdentifier).staticType = typeB;
@@ -321,8 +326,8 @@ class ResolutionCopierTest extends EngineTestCase {
             identifier: AstTestFactory.identifier3('a'),
             iterable: AstTestFactory.identifier3('b'));
 
-    DartType typeA = ElementFactory.classElement2("A").type;
-    DartType typeB = ElementFactory.classElement2("B").type;
+    DartType typeA = interfaceType(ElementFactory.classElement2('A'));
+    DartType typeB = interfaceType(ElementFactory.classElement2('B'));
 
     ForEachPartsWithIdentifier fromNode = createNode();
     fromNode.identifier.staticType = typeA;
@@ -341,7 +346,7 @@ class ResolutionCopierTest extends EngineTestCase {
             iterable: AstTestFactory.identifier3('b')),
         body: AstTestFactory.identifier3('c'));
 
-    DartType typeC = ElementFactory.classElement2("C").type;
+    DartType typeC = interfaceType(ElementFactory.classElement2('C'));
 
     ForElement fromNode = createNode();
     (fromNode.body as SimpleIdentifier).staticType = typeC;
@@ -359,8 +364,8 @@ class ResolutionCopierTest extends EngineTestCase {
             condition: AstTestFactory.identifier3('b'),
             updaters: [AstTestFactory.identifier3('c')]);
 
-    DartType typeB = ElementFactory.classElement2("B").type;
-    DartType typeC = ElementFactory.classElement2("C").type;
+    DartType typeB = interfaceType(ElementFactory.classElement2('B'));
+    DartType typeC = interfaceType(ElementFactory.classElement2('C'));
 
     ForPartsWithDeclarations fromNode = createNode();
     (fromNode.condition as SimpleIdentifier).staticType = typeB;
@@ -378,9 +383,9 @@ class ResolutionCopierTest extends EngineTestCase {
         condition: AstTestFactory.identifier3('b'),
         updaters: [AstTestFactory.identifier3('c')]);
 
-    DartType typeA = ElementFactory.classElement2("A").type;
-    DartType typeB = ElementFactory.classElement2("B").type;
-    DartType typeC = ElementFactory.classElement2("C").type;
+    DartType typeA = interfaceType(ElementFactory.classElement2('A'));
+    DartType typeB = interfaceType(ElementFactory.classElement2('B'));
+    DartType typeC = interfaceType(ElementFactory.classElement2('C'));
 
     ForPartsWithExpression fromNode = createNode();
     (fromNode.initialization as SimpleIdentifier).staticType = typeA;
@@ -402,9 +407,9 @@ class ResolutionCopierTest extends EngineTestCase {
         body: AstTestFactory.expressionStatement(
             AstTestFactory.identifier3('c')));
 
-    DartType typeA = ElementFactory.classElement2("A").type;
-    DartType typeB = ElementFactory.classElement2("B").type;
-    DartType typeC = ElementFactory.classElement2("C").type;
+    DartType typeA = interfaceType(ElementFactory.classElement2('A'));
+    DartType typeB = interfaceType(ElementFactory.classElement2('B'));
+    DartType typeC = interfaceType(ElementFactory.classElement2('C'));
 
     ForStatement fromNode = createNode();
     ForEachPartsWithIdentifier fromForLoopParts = fromNode.forLoopParts;
@@ -430,9 +435,9 @@ class ResolutionCopierTest extends EngineTestCase {
         AstTestFactory.formalParameterList(),
         AstTestFactory.emptyFunctionBody());
     MethodElement element = ElementFactory.methodElement(
-        "m", ElementFactory.classElement2("C").type);
+        "m", interfaceType(ElementFactory.classElement2('C')));
     fromNode.declaredElement = element;
-    DartType staticType = ElementFactory.classElement2("C").type;
+    DartType staticType = interfaceType(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     FunctionExpression toNode = AstTestFactory.functionExpression2(
         AstTestFactory.formalParameterList(),
@@ -447,7 +452,7 @@ class ResolutionCopierTest extends EngineTestCase {
         AstTestFactory.functionExpressionInvocation(
             AstTestFactory.identifier3("f"));
     MethodElement staticElement = ElementFactory.methodElement(
-        "m", ElementFactory.classElement2("C").type);
+        "m", interfaceType(ElementFactory.classElement2('C')));
     fromNode.staticElement = staticElement;
     FunctionExpressionInvocation toNode =
         AstTestFactory.functionExpressionInvocation(
@@ -469,9 +474,9 @@ class ResolutionCopierTest extends EngineTestCase {
         thenElement: AstTestFactory.identifier3('b'),
         elseElement: AstTestFactory.identifier3('c'));
 
-    DartType typeA = ElementFactory.classElement2("A").type;
-    DartType typeB = ElementFactory.classElement2("B").type;
-    DartType typeC = ElementFactory.classElement2("C").type;
+    DartType typeA = interfaceType(ElementFactory.classElement2('A'));
+    DartType typeB = interfaceType(ElementFactory.classElement2('B'));
+    DartType typeC = interfaceType(ElementFactory.classElement2('C'));
 
     IfElement fromNode = createNode();
     (fromNode.condition as SimpleIdentifier).staticType = typeA;
@@ -499,12 +504,12 @@ class ResolutionCopierTest extends EngineTestCase {
     IndexExpression fromNode = AstTestFactory.indexExpression(
         AstTestFactory.identifier3("a"), AstTestFactory.integer(0));
     MethodElement staticElement = ElementFactory.methodElement(
-        "m", ElementFactory.classElement2("C").type);
+        "m", interfaceType(ElementFactory.classElement2('C')));
     AuxiliaryElements auxiliaryElements =
         new AuxiliaryElements(staticElement, null);
     fromNode.auxiliaryElements = auxiliaryElements;
     fromNode.staticElement = staticElement;
-    DartType staticType = ElementFactory.classElement2("C").type;
+    DartType staticType = interfaceType(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     IndexExpression toNode = AstTestFactory.indexExpression(
         AstTestFactory.identifier3("a"), AstTestFactory.integer(0));
@@ -521,7 +526,7 @@ class ResolutionCopierTest extends EngineTestCase {
     ConstructorElement staticElement = ElementFactory.constructorElement2(
         ElementFactory.classElement2("C"), null);
     fromNode.staticElement = staticElement;
-    DartType staticType = ElementFactory.classElement2("C").type;
+    DartType staticType = interfaceType(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     InstanceCreationExpression toNode =
         AstTestFactory.instanceCreationExpression2(
@@ -533,7 +538,7 @@ class ResolutionCopierTest extends EngineTestCase {
 
   void test_visitIntegerLiteral() {
     IntegerLiteral fromNode = AstTestFactory.integer(2);
-    DartType staticType = ElementFactory.classElement2("C").type;
+    DartType staticType = interfaceType(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     IntegerLiteral toNode = AstTestFactory.integer(2);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -543,7 +548,7 @@ class ResolutionCopierTest extends EngineTestCase {
   void test_visitIsExpression() {
     IsExpression fromNode = AstTestFactory.isExpression(
         AstTestFactory.identifier3("x"), false, AstTestFactory.typeName4("A"));
-    DartType staticType = ElementFactory.classElement2("C").type;
+    DartType staticType = interfaceType(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     IsExpression toNode = AstTestFactory.isExpression(
         AstTestFactory.identifier3("x"), false, AstTestFactory.typeName4("A"));
@@ -554,7 +559,7 @@ class ResolutionCopierTest extends EngineTestCase {
   void test_visitLibraryIdentifier() {
     LibraryIdentifier fromNode =
         AstTestFactory.libraryIdentifier([AstTestFactory.identifier3("lib")]);
-    DartType staticType = ElementFactory.classElement2("C").type;
+    DartType staticType = interfaceType(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     LibraryIdentifier toNode =
         AstTestFactory.libraryIdentifier([AstTestFactory.identifier3("lib")]);
@@ -570,9 +575,9 @@ class ResolutionCopierTest extends EngineTestCase {
         [AstTestFactory.identifier3('b')],
         null);
 
-    DartType typeA = ElementFactory.classElement2("A").type;
-    DartType typeB = ElementFactory.classElement2("B").type;
-    DartType typeC = ElementFactory.classElement2("C").type;
+    DartType typeA = interfaceType(ElementFactory.classElement2('A'));
+    DartType typeB = interfaceType(ElementFactory.classElement2('B'));
+    DartType typeC = interfaceType(ElementFactory.classElement2('C'));
 
     ListLiteral fromNode = createNode();
     (fromNode.typeArguments.arguments[0] as TypeName).type = typeA;
@@ -588,7 +593,7 @@ class ResolutionCopierTest extends EngineTestCase {
 
   void test_visitMapLiteral() {
     SetOrMapLiteral fromNode = AstTestFactory.setOrMapLiteral(null, null);
-    DartType staticType = ElementFactory.classElement2("C").type;
+    DartType staticType = interfaceType(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     SetOrMapLiteral toNode = AstTestFactory.setOrMapLiteral(null, null);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -609,7 +614,7 @@ class ResolutionCopierTest extends EngineTestCase {
   void test_visitNamedExpression() {
     NamedExpression fromNode =
         AstTestFactory.namedExpression2("n", AstTestFactory.integer(0));
-    DartType staticType = ElementFactory.classElement2("C").type;
+    DartType staticType = interfaceType(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     NamedExpression toNode =
         AstTestFactory.namedExpression2("n", AstTestFactory.integer(0));
@@ -619,7 +624,7 @@ class ResolutionCopierTest extends EngineTestCase {
 
   void test_visitNullLiteral() {
     NullLiteral fromNode = AstTestFactory.nullLiteral();
-    DartType staticType = ElementFactory.classElement2("C").type;
+    DartType staticType = interfaceType(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     NullLiteral toNode = AstTestFactory.nullLiteral();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -629,7 +634,7 @@ class ResolutionCopierTest extends EngineTestCase {
   void test_visitParenthesizedExpression() {
     ParenthesizedExpression fromNode =
         AstTestFactory.parenthesizedExpression(AstTestFactory.integer(0));
-    DartType staticType = ElementFactory.classElement2("C").type;
+    DartType staticType = interfaceType(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     ParenthesizedExpression toNode =
         AstTestFactory.parenthesizedExpression(AstTestFactory.integer(0));
@@ -664,9 +669,9 @@ class ResolutionCopierTest extends EngineTestCase {
     PostfixExpression fromNode = AstTestFactory.postfixExpression(
         AstTestFactory.identifier3(variableName), TokenType.PLUS_PLUS);
     MethodElement staticElement = ElementFactory.methodElement(
-        "+", ElementFactory.classElement2("C").type);
+        "+", interfaceType(ElementFactory.classElement2('C')));
     fromNode.staticElement = staticElement;
-    DartType staticType = ElementFactory.classElement2("C").type;
+    DartType staticType = interfaceType(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     PostfixExpression toNode = AstTestFactory.postfixExpression(
         AstTestFactory.identifier3(variableName), TokenType.PLUS_PLUS);
@@ -677,7 +682,7 @@ class ResolutionCopierTest extends EngineTestCase {
 
   void test_visitPrefixedIdentifier() {
     PrefixedIdentifier fromNode = AstTestFactory.identifier5("p", "f");
-    DartType staticType = ElementFactory.classElement2("C").type;
+    DartType staticType = interfaceType(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     PrefixedIdentifier toNode = AstTestFactory.identifier5("p", "f");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -687,9 +692,9 @@ class ResolutionCopierTest extends EngineTestCase {
   void test_visitPrefixExpression() {
     PrefixExpression fromNode = AstTestFactory.prefixExpression(
         TokenType.PLUS_PLUS, AstTestFactory.identifier3("x"));
-    DartType staticType = ElementFactory.classElement2("C").type;
+    DartType staticType = interfaceType(ElementFactory.classElement2('C'));
     MethodElement staticElement = ElementFactory.methodElement(
-        "+", ElementFactory.classElement2("C").type);
+        "+", interfaceType(ElementFactory.classElement2('C')));
     fromNode.staticElement = staticElement;
     fromNode.staticType = staticType;
     PrefixExpression toNode = AstTestFactory.prefixExpression(
@@ -702,7 +707,7 @@ class ResolutionCopierTest extends EngineTestCase {
   void test_visitPropertyAccess() {
     PropertyAccess fromNode =
         AstTestFactory.propertyAccess2(AstTestFactory.identifier3("x"), "y");
-    DartType staticType = ElementFactory.classElement2("C").type;
+    DartType staticType = interfaceType(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     PropertyAccess toNode =
         AstTestFactory.propertyAccess2(AstTestFactory.identifier3("x"), "y");
@@ -724,7 +729,7 @@ class ResolutionCopierTest extends EngineTestCase {
 
   void test_visitRethrowExpression() {
     RethrowExpression fromNode = AstTestFactory.rethrowExpression();
-    DartType staticType = ElementFactory.classElement2("C").type;
+    DartType staticType = interfaceType(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     RethrowExpression toNode = AstTestFactory.rethrowExpression();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -737,10 +742,10 @@ class ResolutionCopierTest extends EngineTestCase {
             [AstTestFactory.typeName4('A'), AstTestFactory.typeName4('B')]),
         elements: [AstTestFactory.mapLiteralEntry3('c', 'd')]);
 
-    DartType typeA = ElementFactory.classElement2("A").type;
-    DartType typeB = ElementFactory.classElement2("B").type;
-    DartType typeC = ElementFactory.classElement2("C").type;
-    DartType typeD = ElementFactory.classElement2("D").type;
+    DartType typeA = interfaceType(ElementFactory.classElement2('A'));
+    DartType typeB = interfaceType(ElementFactory.classElement2('B'));
+    DartType typeC = interfaceType(ElementFactory.classElement2('C'));
+    DartType typeD = interfaceType(ElementFactory.classElement2('D'));
 
     SetOrMapLiteral fromNode = createNode();
     (fromNode.typeArguments.arguments[0] as TypeName).type = typeA;
@@ -764,8 +769,8 @@ class ResolutionCopierTest extends EngineTestCase {
             AstTestFactory.typeArgumentList([AstTestFactory.typeName4('A')]),
         elements: [AstTestFactory.identifier3('b')]);
 
-    DartType typeA = ElementFactory.classElement2("A").type;
-    DartType typeB = ElementFactory.classElement2("B").type;
+    DartType typeA = interfaceType(ElementFactory.classElement2('A'));
+    DartType typeB = interfaceType(ElementFactory.classElement2('B'));
 
     SetOrMapLiteral fromNode = createNode();
     (fromNode.typeArguments.arguments[0] as TypeName).type = typeA;
@@ -780,12 +785,12 @@ class ResolutionCopierTest extends EngineTestCase {
   void test_visitSimpleIdentifier() {
     SimpleIdentifier fromNode = AstTestFactory.identifier3("x");
     MethodElement staticElement = ElementFactory.methodElement(
-        "m", ElementFactory.classElement2("C").type);
+        "m", interfaceType(ElementFactory.classElement2('C')));
     AuxiliaryElements auxiliaryElements =
         new AuxiliaryElements(staticElement, null);
     fromNode.auxiliaryElements = auxiliaryElements;
     fromNode.staticElement = staticElement;
-    DartType staticType = ElementFactory.classElement2("C").type;
+    DartType staticType = interfaceType(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     SimpleIdentifier toNode = AstTestFactory.identifier3("x");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -796,7 +801,7 @@ class ResolutionCopierTest extends EngineTestCase {
 
   void test_visitSimpleStringLiteral() {
     SimpleStringLiteral fromNode = AstTestFactory.string2("abc");
-    DartType staticType = ElementFactory.classElement2("C").type;
+    DartType staticType = interfaceType(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     SimpleStringLiteral toNode = AstTestFactory.string2("abc");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -810,7 +815,7 @@ class ResolutionCopierTest extends EngineTestCase {
         expression: astFactory.listLiteral(
             null, null, null, [AstTestFactory.identifier3('a')], null));
 
-    DartType typeA = ElementFactory.classElement2("A").type;
+    DartType typeA = interfaceType(ElementFactory.classElement2('A'));
 
     SpreadElement fromNode = createNode();
     ((fromNode.expression as ListLiteral).elements[0] as SimpleIdentifier)
@@ -827,7 +832,7 @@ class ResolutionCopierTest extends EngineTestCase {
   void test_visitStringInterpolation() {
     StringInterpolation fromNode =
         AstTestFactory.string([AstTestFactory.interpolationString("a", "'a'")]);
-    DartType staticType = ElementFactory.classElement2("C").type;
+    DartType staticType = interfaceType(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     StringInterpolation toNode =
         AstTestFactory.string([AstTestFactory.interpolationString("a", "'a'")]);
@@ -849,7 +854,7 @@ class ResolutionCopierTest extends EngineTestCase {
 
   void test_visitSuperExpression() {
     SuperExpression fromNode = AstTestFactory.superExpression();
-    DartType staticType = ElementFactory.classElement2("C").type;
+    DartType staticType = interfaceType(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     SuperExpression toNode = AstTestFactory.superExpression();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -858,7 +863,7 @@ class ResolutionCopierTest extends EngineTestCase {
 
   void test_visitSymbolLiteral() {
     SymbolLiteral fromNode = AstTestFactory.symbolLiteral(["s"]);
-    DartType staticType = ElementFactory.classElement2("C").type;
+    DartType staticType = interfaceType(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     SymbolLiteral toNode = AstTestFactory.symbolLiteral(["s"]);
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -867,7 +872,7 @@ class ResolutionCopierTest extends EngineTestCase {
 
   void test_visitThisExpression() {
     ThisExpression fromNode = AstTestFactory.thisExpression();
-    DartType staticType = ElementFactory.classElement2("C").type;
+    DartType staticType = interfaceType(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     ThisExpression toNode = AstTestFactory.thisExpression();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -876,7 +881,7 @@ class ResolutionCopierTest extends EngineTestCase {
 
   void test_visitThrowExpression() {
     ThrowExpression fromNode = AstTestFactory.throwExpression();
-    DartType staticType = ElementFactory.classElement2("C").type;
+    DartType staticType = interfaceType(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
     ThrowExpression toNode = AstTestFactory.throwExpression();
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -885,7 +890,7 @@ class ResolutionCopierTest extends EngineTestCase {
 
   void test_visitTypeName() {
     TypeName fromNode = AstTestFactory.typeName4("C");
-    DartType type = ElementFactory.classElement2("C").type;
+    DartType type = interfaceType(ElementFactory.classElement2('C'));
     fromNode.type = type;
     TypeName toNode = AstTestFactory.typeName4("C");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -894,10 +899,11 @@ class ResolutionCopierTest extends EngineTestCase {
 
   void _copyAndVerifyInvocation(
       InvocationExpression fromNode, InvocationExpression toNode) {
-    DartType staticType = ElementFactory.classElement2("C").type;
+    DartType staticType = interfaceType(ElementFactory.classElement2('C'));
     fromNode.staticType = staticType;
 
-    DartType staticInvokeType = ElementFactory.classElement2("C").type;
+    DartType staticInvokeType =
+        interfaceType(ElementFactory.classElement2('C'));
     fromNode.staticInvokeType = staticInvokeType;
 
     ResolutionCopier.copyResolutionData(fromNode, toNode);

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:source_span/source_span.dart';
 import 'package:test/test.dart';
@@ -106,8 +107,14 @@ main() {
     var aImport = findElement.importFind('package:test/a.dart');
     var bImport = findElement.importFind('package:test/b.dart');
 
-    var firstType = aImport.class_('A').type;
-    var secondType = bImport.class_('B').type;
+    var firstType = aImport.class_('A').instantiate(
+      typeArguments: [],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+    var secondType = bImport.class_('B').instantiate(
+      typeArguments: [],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
 
     var reporter = ErrorReporter(listener, firstType.element.source);
 
@@ -137,8 +144,14 @@ main() {
     var aImport = findElement.importFind('package:test/a.dart');
     var bImport = findElement.importFind('package:test/b.dart');
 
-    var firstType = aImport.class_('A').type;
-    var secondType = bImport.class_('A').type;
+    var firstType = aImport.class_('A').instantiate(
+      typeArguments: [],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+    var secondType = bImport.class_('A').instantiate(
+      typeArguments: [],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
 
     var reporter = ErrorReporter(listener, firstType.element.source);
     reporter.reportTypeErrorForNode(

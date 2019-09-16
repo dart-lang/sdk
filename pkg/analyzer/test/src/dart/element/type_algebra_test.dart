@@ -6,10 +6,11 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../resolution/driver_resolution.dart';
+import '../../../generated/elements_types_mixin.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -22,14 +23,14 @@ main() {
 }
 
 @reflectiveTest
-class SubstituteEmptyTest extends DriverResolutionTest {
+class SubstituteEmptyTest extends _Base {
   test_interface() async {
-    addTestFile(r'''
-class A<T> {}
-''');
-    await resolveTestFile();
+    // class A<T> {}
+    var T = typeParameter('T');
+    var A = class_(name: 'A', typeParameters: [T]);
 
-    var type = findElement.class_('A').type;
+    var type = interfaceType(A, typeArguments: [intType]);
+
     var result = Substitution.empty.substituteType(type);
     expect(result, same(type));
   }
@@ -38,21 +39,19 @@ class A<T> {}
 @reflectiveTest
 class SubstituteFromInterfaceTypeTest extends _Base {
   test_interface() async {
-    addTestFile(r'''
-class A<T> {}
-class B<U> extends A<U> {}
-''');
-    await resolveTestFile();
+    // class A<T> {}
+    var T = typeParameter('T');
+    var A = class_(name: 'A', typeParameters: [T]);
 
-    var a = findElement.class_('A');
-    var b = findElement.class_('B');
-    var u = b.typeParameters.single;
+    // class B<U>  {}
+    var U = typeParameter('U');
+    var B = class_(name: 'B', typeParameters: [U]);
 
-    var bType = _instantiate(b, [intType]);
-    var substitution = Substitution.fromInterfaceType(bType);
+    var BofInt = interfaceType(B, typeArguments: [intType]);
+    var substitution = Substitution.fromInterfaceType(BofInt);
 
-    // `extends A<U>`
-    var type = _instantiate(a, [u.type]);
+    // A<U>
+    var type = interfaceType(A, typeArguments: [typeParameterType(U)]);
     assertElementTypeString(type, 'A<U>');
 
     var result = substitution.substituteType(type);
@@ -61,188 +60,170 @@ class B<U> extends A<U> {}
 }
 
 @reflectiveTest
-class SubstituteFromPairsTest extends DriverResolutionTest {
+class SubstituteFromPairsTest extends _Base {
   test_interface() async {
-    addTestFile(r'''
-class A<T, U> {}
-''');
-    await resolveTestFile();
+    // class A<T, U> {}
+    var T = typeParameter('T');
+    var U = typeParameter('U');
+    var A = class_(name: 'A', typeParameters: [T, U]);
 
-    var a = findElement.class_('A');
+    var type = interfaceType(
+      A,
+      typeArguments: [
+        typeParameterType(T),
+        typeParameterType(U),
+      ],
+    );
+
     var result = Substitution.fromPairs(
-      a.typeParameters,
+      [T, U],
       [intType, doubleType],
-    ).substituteType(a.type);
+    ).substituteType(type);
     assertElementTypeString(result, 'A<int, double>');
   }
 }
 
 @reflectiveTest
-class SubstituteFromUpperAndLowerBoundsTest extends DriverResolutionTest {
+class SubstituteFromUpperAndLowerBoundsTest extends _Base {
   test_function() async {
-    addTestFile(r'''
-typedef F<T> = T Function(T);
-''');
-    await resolveTestFile();
-
-    var type = findElement.genericTypeAlias('F').function.type;
-    var t = findElement.typeParameter('T');
+    // T Function(T)
+    var T = typeParameter('T');
+    var type = functionType(
+      required: [typeParameterType(T)],
+      returns: typeParameterType(T),
+    );
 
     var result = Substitution.fromUpperAndLowerBounds(
-      {t: intType},
-      {t: BottomTypeImpl.instance},
+      {T: typeProvider.intType},
+      {T: BottomTypeImpl.instance},
     ).substituteType(type);
-    assertElementTypeString(result, 'int Function(Never)');
+    expect(result.toString(), 'int Function(Never)');
   }
 }
 
 @reflectiveTest
 class SubstituteTest extends _Base {
   test_bottom() async {
-    addTestFile(r'''
-class A<T> {}
-''');
-    await resolveTestFile();
-
-    var t = findElement.typeParameter('T');
-    _assertIdenticalType(typeProvider.bottomType, {t: intType});
+    var T = typeParameter('T');
+    _assertIdenticalType(typeProvider.bottomType, {T: intType});
   }
 
   test_dynamic() async {
-    addTestFile(r'''
-class A<T> {}
-''');
-    await resolveTestFile();
-
-    var t = findElement.typeParameter('T');
-    _assertIdenticalType(typeProvider.dynamicType, {t: intType});
+    var T = typeParameter('T');
+    _assertIdenticalType(typeProvider.dynamicType, {T: intType});
   }
 
   test_function_noTypeParameters() async {
-    addTestFile(r'''
-typedef F = bool Function(int);
-class B<T> {}
-''');
-    await resolveTestFile();
+    var type = functionType(required: [intType], returns: boolType);
 
-    var type = findElement.genericTypeAlias('F').function.type;
-    var t = findElement.typeParameter('T');
-    _assertIdenticalType(type, {t: intType});
+    var T = typeParameter('T');
+    _assertIdenticalType(type, {T: intType});
   }
 
   test_function_typeFormals() async {
-    addTestFile(r'''
-typedef F<T> = T Function<U extends T>(U);
-''');
-    await resolveTestFile();
+    // typedef F<T> = T Function<U extends T>(U);
+    var T = typeParameter('T');
+    var U = typeParameter('U', bound: typeParameterType(T));
+    var type = functionType(
+      typeFormals: [U],
+      required: [
+        typeParameterType(U),
+      ],
+      returns: typeParameterType(T),
+    );
 
-    var type = findElement.genericTypeAlias('F').function.type;
-    var t = findElement.typeParameter('T');
     assertElementTypeString(type, 'T Function<U extends T>(U)');
     _assertSubstitution(
       type,
-      {t: intType},
+      {T: intType},
       'int Function<U extends int>(U)',
     );
   }
 
   test_function_typeParameters() async {
-    addTestFile(r'''
-typedef F<T, U> = T Function(U u, bool);
-''');
-    await resolveTestFile();
+    // typedef F<T, U> = T Function(U u, bool);
+    var T = typeParameter('T');
+    var U = typeParameter('U');
+    var type = functionType(
+      required: [
+        typeParameterType(U),
+        boolType,
+      ],
+      returns: typeParameterType(T),
+    );
 
-    var type = findElement.genericTypeAlias('F').function.type;
-    var t = findElement.typeParameter('T');
-    var u = findElement.typeParameter('U');
     assertElementTypeString(type, 'T Function(U, bool)');
     _assertSubstitution(
       type,
-      {t: intType},
+      {T: intType},
       'int Function(U, bool)',
     );
     _assertSubstitution(
       type,
-      {t: intType, u: doubleType},
+      {T: intType, U: doubleType},
       'int Function(double, bool)',
     );
   }
 
   test_interface_arguments() async {
-    addTestFile(r'''
-class A<T> {}
-class B<U> {}
-''');
-    await resolveTestFile();
+    // class A<T> {}
+    var T = typeParameter('T');
+    var A = class_(name: 'A', typeParameters: [T]);
 
-    var a = findElement.class_('A');
-    var u = findElement.typeParameter('U');
-    var uType = new TypeParameterTypeImpl(u);
+    var U = typeParameter('U');
+    var type = interfaceType(A, typeArguments: [
+      typeParameterType(U),
+    ]);
 
-    var type = _instantiate(a, [uType]);
     assertElementTypeString(type, 'A<U>');
-    _assertSubstitution(type, {u: intType}, 'A<int>');
+    _assertSubstitution(type, {U: intType}, 'A<int>');
   }
 
   test_interface_arguments_deep() async {
-    addTestFile(r'''
-class A<T> {}
-class B<U> {}
-''');
-    await resolveTestFile();
+    var T = typeParameter('T');
+    var A = class_(name: 'A', typeParameters: [T]);
 
-    var a = findElement.class_('A');
-    var u = findElement.typeParameter('U');
-    var uType = new TypeParameterTypeImpl(u);
-
-    var type = _instantiate(a, [
-      _instantiate(listElement, [uType])
+    var U = typeParameter('U');
+    var type = interfaceType(A, typeArguments: [
+      interfaceType(
+        typeProvider.listType.element,
+        typeArguments: [
+          typeParameterType(U),
+        ],
+      )
     ]);
     assertElementTypeString(type, 'A<List<U>>');
-    _assertSubstitution(type, {u: intType}, 'A<List<int>>');
+
+    _assertSubstitution(type, {U: intType}, 'A<List<int>>');
   }
 
   test_interface_noArguments() async {
-    addTestFile(r'''
-class A {}
-class B<T> {}
-''');
-    await resolveTestFile();
+    // class A {}
+    var A = class_(name: 'A');
 
-    var a = findElement.class_('A');
-    var t = findElement.typeParameter('T');
-    _assertIdenticalType(a.type, {t: intType});
+    var type = interfaceType(A);
+    var T = typeParameter('T');
+    _assertIdenticalType(type, {T: intType});
   }
 
   test_interface_noArguments_inArguments() async {
-    addTestFile(r'''
-class A<T> {}
-class B<U> {}
-''');
-    await resolveTestFile();
+    // class A<T> {}
+    var T = typeParameter('T');
+    var A = class_(name: 'A', typeParameters: [T]);
 
-    var a = findElement.class_('A');
-    var u = findElement.typeParameter('U');
-    _assertIdenticalType(
-      _instantiate(a, [intType]),
-      {u: doubleType},
-    );
+    var type = interfaceType(A, typeArguments: [intType]);
+
+    var U = typeParameter('U');
+    _assertIdenticalType(type, {U: doubleType});
   }
 
   test_void() async {
-    addTestFile(r'''
-class A<T> {}
-''');
-    await resolveTestFile();
-
-    var t = findElement.typeParameter('T');
-    _assertIdenticalType(voidType, {t: intType});
+    var T = typeParameter('T');
+    _assertIdenticalType(typeProvider.voidType, {T: intType});
   }
 
   test_void_emptyMap() async {
-    addTestFile('');
-    await resolveTestFile();
-    _assertIdenticalType(voidType, {});
+    _assertIdenticalType(intType, {});
   }
 
   void _assertIdenticalType(
@@ -261,11 +242,21 @@ class A<T> {}
   }
 }
 
-class _Base extends DriverResolutionTest {
-  /// Intentionally low-level implementation for creating [InterfaceType]
-  /// for [ClassElement] and type arguments. We just create it explicitly,
-  /// without using `InterfaceType.instantiate()`.
-  InterfaceType _instantiate(ClassElement element, List<DartType> arguments) {
-    return new InterfaceTypeImpl(element)..typeArguments = arguments;
+class _Base with ElementsTypesMixin {
+  final typeProvider = TestTypeProvider();
+
+  InterfaceType get boolType => typeProvider.boolType;
+
+  InterfaceType get doubleType => typeProvider.doubleType;
+
+  InterfaceType get intType => typeProvider.intType;
+
+  /// Whether `DartType.toString()` with nullability should be asked.
+  bool get typeToStringWithNullability => false;
+
+  void assertElementTypeString(DartType type, String expected) {
+    TypeImpl typeImpl = type;
+    expect(typeImpl.toString(withNullability: typeToStringWithNullability),
+        expected);
   }
 }

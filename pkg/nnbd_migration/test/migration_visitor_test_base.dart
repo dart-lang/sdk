@@ -113,8 +113,14 @@ mixin DecoratedTypeTester implements DecoratedTypeTesterBase {
   }
 
   DecoratedType typeParameterType(TypeParameterElement typeParameter,
-          {NullabilityNode node}) =>
-      DecoratedType(typeParameter.type, node ?? newNode());
+      {NullabilityNode node}) {
+    return DecoratedType(
+      typeParameter.instantiate(
+        nullabilitySuffix: NullabilitySuffix.star,
+      ),
+      node ?? newNode(),
+    );
+  }
 }
 
 /// Base functionality that must be implemented by classes mixing in
