@@ -29,7 +29,7 @@ class InferenceFailureOnUninitializedVariableTest
 
   test_localVariable() async {
     String code = r'''
-f() {
+void f() {
   var a;
 }
 ''';
@@ -40,7 +40,7 @@ f() {
 
   test_localVariable_withInitializer() async {
     String code = r'''
-f() {
+void f() {
   var a = 7;
 }
 ''';
@@ -50,7 +50,7 @@ f() {
 
   test_localVariable_withType() async {
     String code = r'''
-f() {
+void f() {
   int a;
   dynamic b;
   Object c;

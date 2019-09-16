@@ -91,6 +91,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// Is `true` if NNBD is enabled for the library being analyzed.
   final bool _isNonNullable;
 
+  /// True if inference failures should be reported, otherwise false.
+  final bool _strictInference;
+
   /// Create a new instance of the [BestPracticesVerifier].
   ///
   /// @param errorReporter the error reporter
@@ -108,6 +111,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   })  : _nullType = typeProvider.nullType,
         _typeSystem = typeSystem ?? new Dart2TypeSystem(typeProvider),
         _isNonNullable = unit.featureSet.isEnabled(Feature.non_nullable),
+        _strictInference =
+            (analysisOptions as AnalysisOptionsImpl).strictInference,
         _inheritanceManager = inheritanceManager,
         _invalidAccessVerifier =
             new _InvalidAccessVerifier(_errorReporter, _currentLibrary) {
@@ -305,10 +310,22 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     try {
       _checkForMissingReturn(
           node.returnType, node.functionExpression.body, element, node);
+
+      // Return types are inferred only on non-recursive local functions.
+      if (node.parent is CompilationUnit) {
+        _checkStrictInferenceReturnType(node.returnType, node, node.name.name);
+      }
       super.visitFunctionDeclaration(node);
     } finally {
       _inDeprecatedMember = wasInDeprecatedMember;
     }
+  }
+
+  @override
+  void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
+    // TODO(srawlins): Check strict-inference return type on recursive
+    // local functions.
+    super.visitFunctionDeclarationStatement(node);
   }
 
   @override
@@ -317,6 +334,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       _checkForMissingReturn(null, node.body, node.declaredElement, node);
     }
     super.visitFunctionExpression(node);
+  }
+
+  @override
+  void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
+    _checkStrictInferenceReturnType(
+        node.returnType, node, node.identifier.name);
+    super.visitFunctionTypedFormalParameter(node);
   }
 
   @override
@@ -360,6 +384,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       //checkForOverridingPrivateMember(node);
       _checkForMissingReturn(node.returnType, node.body, element, node);
       _checkForUnnecessaryNoSuchMethod(node);
+      _checkStrictInferenceReturnType(node.returnType, node, node.name.name);
       super.visitMethodDeclaration(node);
     } finally {
       _inDeprecatedMember = wasInDeprecatedMember;
@@ -1107,6 +1132,20 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     for (final param in namedParamsWithRequiredAndDefault) {
       _errorReporter.reportErrorForNode(HintCode.INVALID_REQUIRED_NAMED_PARAM,
           param, [param.identifier.name]);
+    }
+  }
+
+  /// In "strict-inference" mode, check that [returnNode]'s return type is specified.
+  void _checkStrictInferenceReturnType(
+      AstNode returnType, AstNode reportNode, String displayName) {
+    if (!_strictInference) {
+      return;
+    }
+    if (returnType == null) {
+      _errorReporter.reportErrorForNode(
+          HintCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE,
+          reportNode,
+          [displayName]);
     }
   }
 
@@ -2843,7 +2882,7 @@ class OverrideVerifier extends RecursiveAstVisitor {
   }
 }
 
-/// An AST visitor that is used to resolve the some of the nodes within a single
+/// An AST visitor that is used to resolve some of the nodes within a single
 /// compilation unit. The nodes that are skipped are those that are within
 /// function bodies.
 class PartialResolverVisitor extends ResolverVisitor {
