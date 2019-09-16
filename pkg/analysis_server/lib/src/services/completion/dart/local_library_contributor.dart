@@ -10,9 +10,9 @@ import 'package:analysis_server/src/services/completion/dart/suggestion_builder.
     show createSuggestion, ElementSuggestionBuilder;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 
 import '../../../protocol_server.dart'

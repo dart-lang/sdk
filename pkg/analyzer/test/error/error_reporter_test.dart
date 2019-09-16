@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:source_span/source_span.dart';
 import 'package:test/test.dart';

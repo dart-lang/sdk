@@ -6,6 +6,7 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
@@ -2576,38 +2577,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return _lookUpMemberInInterfaces(
         superclass, true, library, visitedInterfaces, getMember);
   }
-}
-
-/**
- * Suffix indicating the nullability of a type.
- *
- * This enum describes whether a `?` or `*` would be used at the end of the
- * canonical representation of a type.  It's subtly different the notions of
- * "nullable", "non-nullable", "potentially nullable", and "potentially
- * non-nullable" defined by the spec.  For example, the type `Null` is nullable,
- * even though it lacks a trailing `?`.
- */
-enum NullabilitySuffix {
-  /**
-   * An indication that the canonical representation of the type under
-   * consideration ends with `?`.  Types having this nullability suffix should
-   * be interpreted as being unioned with the Null type.
-   */
-  question,
-
-  /**
-   * An indication that the canonical representation of the type under
-   * consideration ends with `*`.  Types having this nullability suffix are
-   * called "legacy types"; it has not yet been determined whether they should
-   * be unioned with the Null type.
-   */
-  star,
-
-  /**
-   * An indication that the canonical representation of the type under
-   * consideration does not end with either `?` or `*`.
-   */
-  none
 }
 
 /**

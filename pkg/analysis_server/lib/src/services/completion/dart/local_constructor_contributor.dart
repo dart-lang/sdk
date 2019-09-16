@@ -14,8 +14,8 @@ import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol
     show Element, ElementKind;
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
