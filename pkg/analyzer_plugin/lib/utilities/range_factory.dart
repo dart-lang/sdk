@@ -70,6 +70,24 @@ class RangeFactory {
   }
 
   /**
+   * Return a source range that covers the given [item] (including a leading or
+   * trailing comma as appropriate) in the containing [list].
+   */
+  SourceRange nodeInList<T extends AstNode>(NodeList<T> list, T item) {
+    if (list.length == 1) {
+      return node(item);
+    }
+    final index = list.indexOf(item);
+    // Remove trailing comma.
+    if (index == 0) {
+      return startStart(item, list[1]);
+    } else {
+      // Remove leading comma.
+      return endEnd(list[index - 1], item);
+    }
+  }
+
+  /**
    * Return a source range that covers all of the given [nodes] (that is, from
    * the start of the first node to the end of the last node.
    */
