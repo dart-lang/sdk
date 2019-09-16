@@ -60,10 +60,11 @@ import '../fasta_codes.dart'
         templateConstEvalInvalidStringInterpolationOperand,
         templateConstEvalInvalidSymbolName,
         templateConstEvalKeyImplementsEqual,
-        templateConstEvalNegativeShift,
         templateConstEvalNonConstantLiteral,
         templateConstEvalNonConstantVariableGet,
         templateConstEvalZeroDivisor;
+
+import 'constant_int_folder.dart';
 
 part 'constant_collection_builders.dart';
 
@@ -114,22 +115,6 @@ void transformLibraries(
   for (final Library library in libraries) {
     constantsTransformer.convertLibrary(library);
   }
-}
-
-class JavaScriptIntConstant extends DoubleConstant {
-  final BigInt bigIntValue;
-  JavaScriptIntConstant(int value) : this.fromBigInt(new BigInt.from(value));
-  JavaScriptIntConstant.fromDouble(double value)
-      : bigIntValue = new BigInt.from(value),
-        super(value);
-  JavaScriptIntConstant.fromBigInt(this.bigIntValue)
-      : super(bigIntValue.toDouble());
-  JavaScriptIntConstant.fromUInt64(int value)
-      : this.fromBigInt(new BigInt.from(value).toUnsigned(64));
-
-  DartType getType(TypeEnvironment types) => types.intType;
-
-  String toString() => '$bigIntValue';
 }
 
 class ConstantsTransformer extends Transformer {
@@ -499,6 +484,7 @@ class ConstantsTransformer extends Transformer {
 class ConstantEvaluator extends RecursiveVisitor<Constant> {
   final ConstantsBackend backend;
   final NumberSemantics numberSemantics;
+  ConstantIntFolder intFolder;
   Map<String, String> environmentDefines;
   final bool errorOnUnevaluatedConstant;
   final CoreTypes coreTypes;
@@ -552,6 +538,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
           "No 'environmentDefines' passed to the constant evaluator but the "
           "ConstantsBackend does not support unevaluated constants.");
     }
+    intFolder = new ConstantIntFolder.forSemantics(this, numberSemantics);
     primitiveEqualCache = <Class, bool>{
       coreTypes.boolClass: true,
       coreTypes.doubleClass: false,
@@ -795,14 +782,12 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   Constant visitIntLiteral(IntLiteral node) {
     // The frontend ensures that integer literals are valid according to the
     // target representation.
-    return targetingJavaScript
-        ? canonicalize(new JavaScriptIntConstant.fromUInt64(node.value))
-        : canonicalize(new IntConstant(node.value));
+    return canonicalize(intFolder.makeIntConstant(node.value, unsigned: true));
   }
 
   @override
   Constant visitDoubleLiteral(DoubleLiteral node) {
-    return canonicalize(makeDoubleConstant(node.value));
+    return canonicalize(new DoubleConstant(node.value));
   }
 
   @override
@@ -824,14 +809,6 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       result = runInsideContext(constant.expression, () {
         return _evaluateSubexpression(constant.expression);
       });
-    } else if (targetingJavaScript) {
-      if (constant is DoubleConstant) {
-        double value = constant.value;
-        // TODO(askesc, fishythefish): Handle infinite integers.
-        if (value.isFinite && value.truncateToDouble() == value) {
-          result = new JavaScriptIntConstant.fromDouble(value);
-        }
-      }
     }
     // If there were already constants in the AST then we make sure we
     // re-canonicalize them.  After running the transformer we will therefore
@@ -1330,112 +1307,14 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
                     other.getType(typeEnvironment)));
         }
       }
-    } else if (receiver is IntConstant || receiver is JavaScriptIntConstant) {
+    } else if (intFolder.isInt(receiver)) {
       if (arguments.length == 0) {
-        switch (op) {
-          case 'unary-':
-            if (targetingJavaScript) {
-              BigInt value = (receiver as JavaScriptIntConstant).bigIntValue;
-              if (value == BigInt.zero) {
-                return canonicalize(new DoubleConstant(-0.0));
-              }
-              return canonicalize(new JavaScriptIntConstant.fromBigInt(-value));
-            }
-            int value = (receiver as IntConstant).value;
-            return canonicalize(new IntConstant(-value));
-          case '~':
-            if (targetingJavaScript) {
-              BigInt value = (receiver as JavaScriptIntConstant).bigIntValue;
-              return canonicalize(new JavaScriptIntConstant.fromBigInt(
-                  (~value).toUnsigned(32)));
-            }
-            int value = (receiver as IntConstant).value;
-            return canonicalize(new IntConstant(~value));
-        }
+        return canonicalize(intFolder.foldUnaryOperator(node, op, receiver));
       } else if (arguments.length == 1) {
         final Constant other = arguments[0];
-        if (other is IntConstant || other is JavaScriptIntConstant) {
-          if ((op == '<<' || op == '>>' || op == '>>>')) {
-            Object receiverValue = receiver is IntConstant
-                ? receiver.value
-                : (receiver as JavaScriptIntConstant).bigIntValue;
-            int otherValue = other is IntConstant
-                ? other.value
-                : (other as JavaScriptIntConstant).bigIntValue.toInt();
-            if (otherValue < 0) {
-              return report(
-                  node.arguments.positional.first,
-                  // TODO(askesc): Change argument types in template to
-                  // constants.
-                  templateConstEvalNegativeShift.withArguments(
-                      op, '${receiverValue}', '${otherValue}'));
-            }
-          }
-
-          if ((op == '%' || op == '~/')) {
-            Object receiverValue = receiver is IntConstant
-                ? receiver.value
-                : (receiver as JavaScriptIntConstant).bigIntValue;
-            int otherValue = other is IntConstant
-                ? other.value
-                : (other as JavaScriptIntConstant).bigIntValue.toInt();
-            if (otherValue == 0) {
-              return report(
-                  node.arguments.positional.first,
-                  // TODO(askesc): Change argument type in template to constant.
-                  templateConstEvalZeroDivisor.withArguments(
-                      op, '${receiverValue}'));
-            }
-          }
-
-          switch (op) {
-            case '|':
-            case '&':
-            case '^':
-              int receiverValue = receiver is IntConstant
-                  ? receiver.value
-                  : (receiver as JavaScriptIntConstant)
-                      .bigIntValue
-                      .toUnsigned(32)
-                      .toInt();
-              int otherValue = other is IntConstant
-                  ? other.value
-                  : (other as JavaScriptIntConstant)
-                      .bigIntValue
-                      .toUnsigned(32)
-                      .toInt();
-              return evaluateBinaryBitOperation(
-                  op, receiverValue, otherValue, node);
-            case '<<':
-            case '>>':
-            case '>>>':
-              bool negative = false;
-              int receiverValue;
-              if (receiver is IntConstant) {
-                receiverValue = receiver.value;
-              } else {
-                BigInt bigIntValue =
-                    (receiver as JavaScriptIntConstant).bigIntValue;
-                receiverValue = bigIntValue.toUnsigned(32).toInt();
-                negative = bigIntValue.isNegative;
-              }
-              int otherValue = other is IntConstant
-                  ? other.value
-                  : (other as JavaScriptIntConstant).bigIntValue.toInt();
-
-              return evaluateBinaryShiftOperation(
-                  op, receiverValue, otherValue, node,
-                  negativeReceiver: negative);
-            default:
-              num receiverValue = receiver is IntConstant
-                  ? receiver.value
-                  : (receiver as DoubleConstant).value;
-              num otherValue = other is IntConstant
-                  ? other.value
-                  : (other as DoubleConstant).value;
-              return evaluateBinaryNumericOperation(
-                  op, receiverValue, otherValue, node);
-          }
+        if (intFolder.isInt(other)) {
+          return canonicalize(
+              intFolder.foldBinaryOperator(node, op, receiver, other));
         } else if (other is DoubleConstant) {
           if ((op == '|' || op == '&' || op == '^') ||
               (op == '<<' || op == '>>' || op == '>>>')) {
@@ -1447,11 +1326,9 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
                     typeEnvironment.intType,
                     other.getType(typeEnvironment)));
           }
-          num receiverValue = receiver is IntConstant
-              ? receiver.value
-              : (receiver as DoubleConstant).value;
-          return evaluateBinaryNumericOperation(
-              op, receiverValue, other.value, node);
+          num receiverValue = (receiver as PrimitiveConstant<num>).value;
+          return canonicalize(evaluateBinaryNumericOperation(
+              op, receiverValue, other.value, node));
         }
         return report(
             node,
@@ -1475,17 +1352,15 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       if (arguments.length == 0) {
         switch (op) {
           case 'unary-':
-            return canonicalize(makeDoubleConstant(-receiver.value));
+            return canonicalize(new DoubleConstant(-receiver.value));
         }
       } else if (arguments.length == 1) {
         final Constant other = arguments[0];
 
         if (other is IntConstant || other is DoubleConstant) {
-          final num value = (other is IntConstant)
-              ? other.value
-              : (other as DoubleConstant).value;
-          return evaluateBinaryNumericOperation(
-              op, receiver.value, value, node);
+          final num value = (other as PrimitiveConstant<num>).value;
+          return canonicalize(
+              evaluateBinaryNumericOperation(op, receiver.value, value, node));
         }
         return report(
             node,
@@ -1627,10 +1502,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
 
     final Constant receiver = _evaluateSubexpression(node.receiver);
     if (receiver is StringConstant && node.name.name == 'length') {
-      if (targetingJavaScript) {
-        return canonicalize(new JavaScriptIntConstant(receiver.value.length));
-      }
-      return canonicalize(new IntConstant(receiver.value.length));
+      return canonicalize(intFolder.makeIntConstant(receiver.value.length));
     } else if (shouldBeUnevaluated) {
       return unevaluated(node,
           new PropertyGet(extract(receiver), node.name, node.interfaceTarget));
@@ -1708,7 +1580,12 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     for (int i = 0; i < node.expressions.length; i++) {
       Constant constant = _evaluateSubexpression(node.expressions[i]);
       if (constant is PrimitiveConstant<Object>) {
-        String value = constant.toString();
+        String value;
+        if (constant is DoubleConstant && intFolder.isInt(constant)) {
+          value = new BigInt.from(constant.value).toString();
+        } else {
+          value = constant.toString();
+        }
         Object last = concatenated.last;
         if (last is StringBuffer) {
           last.write(value);
@@ -1784,16 +1661,17 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
               return boolConstant;
             } else if (target.enclosingClass == coreTypes.intClass) {
               int intValue = value != null ? int.tryParse(value) : null;
-              intValue ??= defaultValue is IntConstant
-                  ? defaultValue.value
-                  : defaultValue is JavaScriptIntConstant
-                      ? defaultValue.bigIntValue.toInt()
-                      : null;
-              if (intValue == null) return nullConstant;
-              if (targetingJavaScript) {
-                return canonicalize(new JavaScriptIntConstant(intValue));
+              Constant intConstant;
+              if (intValue != null) {
+                bool negated = value.startsWith('-');
+                intConstant =
+                    intFolder.makeIntConstant(intValue, unsigned: !negated);
+              } else if (intFolder.isInt(defaultValue)) {
+                intConstant = defaultValue;
+              } else {
+                intConstant = nullConstant;
               }
-              return canonicalize(new IntConstant(intValue));
+              return canonicalize(intConstant);
             } else if (target.enclosingClass == coreTypes.stringClass) {
               value ??=
                   defaultValue is StringConstant ? defaultValue.value : null;
@@ -1945,8 +1823,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   }
 
   bool hasPrimitiveEqual(Constant constant) {
-    // TODO(askesc, fishythefish): Make sure the correct class is inferred
-    // when we clean up JavaScript int constant handling.
+    if (intFolder.isInt(constant)) return true;
     DartType type = constant.getType(typeEnvironment);
     return !(type is InterfaceType && !classHasPrimitiveEqual(type.classNode));
   }
@@ -1969,18 +1846,6 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
 
   BoolConstant makeBoolConstant(bool value) =>
       value ? trueConstant : falseConstant;
-
-  DoubleConstant makeDoubleConstant(double value) {
-    if (targetingJavaScript) {
-      // Convert to an integer when possible (matching the runtime behavior
-      // of `is int`).
-      if (value.isFinite && !identical(value, -0.0)) {
-        int i = value.toInt();
-        if (value == i.toDouble()) return new JavaScriptIntConstant(i);
-      }
-    }
-    return new DoubleConstant(value);
-  }
 
   bool isSubtype(Constant constant, DartType type) {
     DartType constantType = constant.getType(typeEnvironment);
@@ -2095,88 +1960,26 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     }
   }
 
-  Constant evaluateBinaryBitOperation(String op, int a, int b, TreeNode node) {
-    int result;
-    switch (op) {
-      case '|':
-        result = a | b;
-        break;
-      case '&':
-        result = a & b;
-        break;
-      case '^':
-        result = a ^ b;
-        break;
-    }
-
-    if (targetingJavaScript) {
-      return canonicalize(new JavaScriptIntConstant(result));
-    }
-    return canonicalize(new IntConstant(result));
-  }
-
-  Constant evaluateBinaryShiftOperation(String op, int a, int b, TreeNode node,
-      {negativeReceiver: false}) {
-    int result;
-    switch (op) {
-      case '<<':
-        result = a << b;
-        break;
-      case '>>':
-        if (targetingJavaScript) {
-          if (negativeReceiver) {
-            const int signBit = 0x80000000;
-            a -= (a & signBit) << 1;
-          }
-          result = a >> b;
-        } else {
-          result = a >> b;
-        }
-        break;
-      case '>>>':
-        // TODO(fishythefish): Implement JS semantics for `>>>`.
-        result = b >= 64 ? 0 : (a >> b) & ((1 << (64 - b)) - 1);
-        break;
-    }
-
-    if (targetingJavaScript) {
-      return canonicalize(new JavaScriptIntConstant(result.toUnsigned(32)));
-    }
-    return canonicalize(new IntConstant(result));
-  }
-
+  /// Binary operation between two operands, at least one of which is a double.
   Constant evaluateBinaryNumericOperation(
       String op, num a, num b, TreeNode node) {
-    num result;
     switch (op) {
       case '+':
-        result = a + b;
-        break;
+        return new DoubleConstant(a + b);
       case '-':
-        result = a - b;
-        break;
+        return new DoubleConstant(a - b);
       case '*':
-        result = a * b;
-        break;
+        return new DoubleConstant(a * b);
       case '/':
-        result = a / b;
-        break;
+        return new DoubleConstant(a / b);
       case '~/':
-        result = a ~/ b;
-        break;
+        if (b == 0) {
+          return report(
+              node, templateConstEvalZeroDivisor.withArguments(op, '$a'));
+        }
+        return intFolder.truncatingDivide(a, b);
       case '%':
-        result = a % b;
-        break;
-    }
-
-    if (result is int) {
-      if (targetingJavaScript) {
-        return canonicalize(new JavaScriptIntConstant(result));
-      }
-      return canonicalize(new IntConstant(result.toSigned(64)));
-    }
-    if (result is double) {
-      return canonicalize(makeDoubleConstant(result));
+        return new DoubleConstant(a % b);
     }
 
     switch (op) {

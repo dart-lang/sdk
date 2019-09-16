@@ -6076,6 +6076,7 @@ class BoolConstant extends PrimitiveConstant<bool> {
   DartType getType(TypeEnvironment types) => types.boolType;
 }
 
+/// An integer constant on a non-JS target.
 class IntConstant extends PrimitiveConstant<int> {
   IntConstant(int value) : super(value);
 
@@ -6086,6 +6087,7 @@ class IntConstant extends PrimitiveConstant<int> {
   DartType getType(TypeEnvironment types) => types.intType;
 }
 
+/// A double constant on a non-JS target or any numeric constant on a JS target.
 class DoubleConstant extends PrimitiveConstant<double> {
   DoubleConstant(double value) : super(value);
 
