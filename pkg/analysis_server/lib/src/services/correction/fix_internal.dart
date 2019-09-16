@@ -21,6 +21,7 @@ import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
@@ -363,13 +364,16 @@ class FixProcessor extends BaseProcessor {
     if (errorCode == HintCode.UNUSED_CATCH_STACK) {
       await _addFix_removeUnusedCatchStack();
     }
-    // TODO(brianwilkerson) Add a fix to remove the declaration. Decide whether
-    //  this should be a single general fix, or multiple more specific fixes
-    //  such as [_addFix_removeMethodDeclaration].
-//    if (errorCode == HintCode.UNUSED_ELEMENT ||
-//        errorCode == HintCode.UNUSED_FIELD) {
-//      await _addFix_removeUnusedDeclaration();
-//    }
+
+    // todo (pq): add support for elements.
+    if (errorCode ==
+            HintCode
+                .UNUSED_FIELD /* ||
+        errorCode == HintCode.UNUSED_ELEMENT */
+        ) {
+      await _addFix_removeUnusedField();
+    }
+
     if (errorCode == HintCode.UNUSED_IMPORT) {
       await _addFix_removeUnusedImport();
     }
@@ -3507,6 +3511,86 @@ class FixProcessor extends BaseProcessor {
     }
   }
 
+  Future<void> _addFix_removeUnusedField() async {
+    final declaration = node.parent;
+    if (declaration is VariableDeclaration) {
+      Element element = declaration.declaredElement;
+      if (element is FieldElement) {
+        final references = _findAllReferences(unit, element);
+        final changeBuilder = _newDartChangeBuilder();
+        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+          for (var reference in references) {
+            final referenceNode = reference.thisOrAncestorMatching((node) =>
+                node is VariableDeclaration ||
+                node is ExpressionStatement ||
+                node is ConstructorFieldInitializer ||
+                node is FieldFormalParameter);
+            if (referenceNode == null) {
+              // todo (pq): in this case we should not create a change (not an incomplete one)
+              return;
+            }
+            var sourceRange;
+            if (referenceNode is VariableDeclaration) {
+              // todo (pq): add range util: SourceRange nodeInList<T>(NodeList<T> list, T node)
+              VariableDeclarationList parent = referenceNode.parent;
+              if (parent.variables.length == 1) {
+                sourceRange = range.node(parent.parent);
+              } else {
+                // Trailing comma.
+                if (referenceNode.endToken.next.type == TokenType.COMMA) {
+                  sourceRange = range.endEnd(referenceNode.beginToken.previous,
+                      referenceNode.endToken.next);
+                } else {
+                  // Leading comma.
+                  sourceRange = range.startEnd(
+                      referenceNode.beginToken.previous, referenceNode);
+                }
+              }
+            } else if (referenceNode is ConstructorFieldInitializer) {
+              ConstructorDeclaration cons =
+                  referenceNode.parent as ConstructorDeclaration;
+              // A() : _f = 0;
+              if (cons.initializers.length == 1) {
+                sourceRange = range.startEnd(cons.separator, referenceNode);
+              } else {
+                final nextToken = referenceNode.endToken.next;
+                // Trailing comma.
+                if (nextToken.type == TokenType.COMMA) {
+                  sourceRange = range.startEnd(referenceNode, nextToken);
+                } else {
+                  // Leading  comma.
+                  sourceRange = range.startEnd(
+                      referenceNode.beginToken.previous, referenceNode);
+                }
+              }
+            } else if (referenceNode is FieldFormalParameter) {
+              FormalParameterList params =
+                  referenceNode.parent as FormalParameterList;
+              if (params.parameters.length == 1) {
+                sourceRange = range.endStart(
+                    params.leftParenthesis, params.rightParenthesis);
+              } else {
+                final nextToken = referenceNode.endToken.next;
+                // Trailing comma.
+                if (nextToken.type == TokenType.COMMA) {
+                  sourceRange = range.startStart(referenceNode, nextToken.next);
+                } else {
+                  // Leading  comma.
+                  sourceRange = range.startEnd(
+                      referenceNode.beginToken.previous, referenceNode);
+                }
+              }
+            } else {
+              sourceRange = range.node(referenceNode);
+            }
+            builder.addDeletion(utils.getLinesRange(sourceRange));
+          }
+        });
+        _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_UNUSED_FIELD);
+      }
+    }
+  }
+
   Future<void> _addFix_removeUnusedImport() async {
     // prepare ImportDirective
     ImportDirective importDirective =
@@ -4470,6 +4554,12 @@ class FixProcessor extends BaseProcessor {
     _addFixFromBuilder(changeBuilder, DartFixKind.CREATE_METHOD, args: [name]);
   }
 
+  List<SimpleIdentifier> _findAllReferences(AstNode root, Element element) {
+    var collector = _ElementReferenceCollector(element);
+    root.accept(collector);
+    return collector.references;
+  }
+
   /// Return the class, enum or mixin declaration for the given [element].
   Future<ClassOrMixinDeclaration> _getClassDeclaration(
       ClassElement element) async {
@@ -4872,6 +4962,32 @@ class _ClosestElementFinder {
   void _updateList(Iterable<Element> elements) {
     for (Element element in elements) {
       _update(element);
+    }
+  }
+}
+
+class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
+  final Element element;
+  final List<SimpleIdentifier> references = [];
+
+  _ElementReferenceCollector(this.element);
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    final staticElement = node.staticElement;
+    if (staticElement == element) {
+      references.add(node);
+    }
+    // Implicit Setter.
+    else if (staticElement is PropertyAccessorElement) {
+      if (staticElement.variable == element) {
+        references.add(node);
+      }
+      // Field Formals.
+    } else if (staticElement is FieldFormalParameterElement) {
+      if (staticElement.field == element) {
+        references.add(node);
+      }
     }
   }
 }
