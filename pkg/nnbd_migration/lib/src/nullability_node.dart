@@ -22,12 +22,7 @@ class NullabilityEdge {
 
   final _NullabilityEdgeKind _kind;
 
-  /// An [EdgeOrigin] object indicating what was found in the source code that
-  /// caused the edge to be generated.
-  final EdgeOrigin origin;
-
-  NullabilityEdge._(
-      this.destinationNode, this.sources, this._kind, this.origin);
+  NullabilityEdge._(this.destinationNode, this.sources, this._kind);
 
   Iterable<NullabilityNode> get guards => sources.skip(1);
 
@@ -175,7 +170,7 @@ class NullabilityGraph {
       NullabilityNode destinationNode,
       _NullabilityEdgeKind kind,
       EdgeOrigin origin) {
-    var edge = NullabilityEdge._(destinationNode, sources, kind, origin);
+    var edge = NullabilityEdge._(destinationNode, sources, kind);
     for (var source in sources) {
       _connectDownstream(source, edge);
     }
@@ -351,6 +346,8 @@ class NullabilityGraph {
 class NullabilityGraphForTesting extends NullabilityGraph {
   final List<NullabilityEdge> _allEdges = [];
 
+  final Map<NullabilityEdge, EdgeOrigin> _edgeOrigins = {};
+
   /// Prints out a representation of the graph nodes.  Useful in debugging
   /// broken tests.
   void debugDump() {
@@ -363,6 +360,10 @@ class NullabilityGraphForTesting extends NullabilityGraph {
     return _allEdges;
   }
 
+  /// Retrieves the [EdgeOrigin] object that was used to create [edge].
+  @visibleForTesting
+  EdgeOrigin getEdgeOrigin(NullabilityEdge edge) => _edgeOrigins[edge];
+
   @override
   NullabilityEdge _connect(
       List<NullabilityNode> sources,
@@ -371,6 +372,7 @@ class NullabilityGraphForTesting extends NullabilityGraph {
       EdgeOrigin origin) {
     var edge = super._connect(sources, destinationNode, kind, origin);
     _allEdges.add(edge);
+    _edgeOrigins[edge] = origin;
     return edge;
   }
 }
