@@ -23,8 +23,6 @@ cyclic_type_test/*: Skip
 enum_duplicate_test/*: Skip # Uses Enum.toString()
 enum_private_test/*: Skip # Uses Enum.toString()
 enum_test: Skip # Uses Enum.toString()
-f_bounded_quantification4_test: Skip
-f_bounded_quantification5_test: Skip
 full_stacktrace1_test: Skip
 full_stacktrace2_test: Skip
 full_stacktrace3_test: Skip
