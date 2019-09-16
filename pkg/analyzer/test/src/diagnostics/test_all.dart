@@ -103,6 +103,8 @@ import 'import_deferred_library_with_load_function_test.dart'
 import 'import_duplicated_library_named_test.dart'
     as import_duplicated_library_named;
 import 'import_of_non_library_test.dart' as import_of_non_library;
+import 'inference_failure_on_collection_literal_test.dart'
+    as inference_failure_on_collection_literal;
 import 'inference_failure_on_function_return_type_test.dart'
     as inference_failure_on_function_return_type;
 import 'inference_failure_on_uninitialized_variable_test.dart'
@@ -393,6 +395,7 @@ main() {
     import_deferred_library_with_load_function.main();
     import_duplicated_library_named.main();
     import_of_non_library.main();
+    inference_failure_on_collection_literal.main();
     inference_failure_on_function_return_type.main();
     inference_failure_on_uninitialized_variable.main();
     inference_failure_on_untyped_parameter.main();

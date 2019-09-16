@@ -4265,68 +4265,6 @@ void main() {
     await check();
   }
 
-  test_strictInference_collectionLiterals() async {
-    addFile(r'''
-main() {
-  var emptyList = /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/[];
-  var emptyMap = /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/{};
-  final finalEmptyList = /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/[];
-  final finalEmptyMap = /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/{};
-  const constEmptyList = /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/[];
-  const constEmptyMap = /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/{};
-
-  void listFunction(
-      [list = /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/const []]) => print(list);
-  void mapFunction(
-      [map = /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/const {}]) => print(map);
-
-  var conditionalEmptyList =
-      "a" == "b" ? [1, 2, 3] : /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/[];
-
-  dynamic returnsList1() => /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/[];
-  Object returnsList2() => [];
-  void returnsList3() => [];
-
-  var onlyInnermostEmptyCollections = {
-    /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/[]:
-        /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/{}
-  };
-
-  // Inference has enough info in all of the cases below.
-  var upwardsInfersDynamicList = [42 as dynamic];
-  var upwardsInfersDynamicList2 = [42 as dynamic, 43 as dynamic];
-  var upwardsInfersDynamicList3 = [42 , 43.0];
-  var upwardsInfersDynamicSet = {42 as dynamic};
-
-  // Upwards inference provides correct types.
-  dynamic d;
-  var upwardsInfersDynamicMap1 = {d: 2};
-  var upwardsInfersDynamicMap2 = {4: d};
-  var upwardsInfersDynamicMap3 = {d: d};
-  var listWithElements = [1, 2, 3];
-
-  // The type of the right side of `??` is inferred from the left.
-  var nullAwareEmptyList = [1, 2, 3] ?? [];
-
-  // Type arguments provide types.
-  var typeArgList = <dynamic>[];
-  var typeArgSet = <dynamic>{};
-  var typeArgMap = <dynamic, dynamic>{};
-
-  // Downwards inference provides correct types.
-  Set<dynamic> downwardsInfersDynamicSet = {};
-  Map<dynamic, dynamic> downwardsInfersDynamicDynamicMap = {};
-  List<int> downwardsInfersIntList = [];
-  Set<int> downwardsInfersIntSet = {};
-
-  // The type of `set` is `Set<dynamic>`.
-  int setLength(Set set) => set.length;
-  setLength({});
-}
-    ''');
-    await check(strictInference: true);
-  }
-
   test_strictInference_instanceCreation() async {
     addFile(r'''
 class C<T> {
