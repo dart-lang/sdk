@@ -628,4 +628,6 @@ class NullabilityNodeTest {
   }
 }
 
-class _TestEdgeOrigin extends EdgeOrigin {}
+class _TestEdgeOrigin implements EdgeOrigin {
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}

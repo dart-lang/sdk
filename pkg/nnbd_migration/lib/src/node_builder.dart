@@ -707,7 +707,7 @@ abstract class VariableRepository {
 
   /// Associates a set of nullability checks with the given expression [node].
   void recordExpressionChecks(
-      Source source, Expression expression, ExpressionChecks checks);
+      Source source, Expression expression, ExpressionChecksOrigin origin);
 }
 
 /// Types of comments that can influence nullability

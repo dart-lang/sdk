@@ -1413,8 +1413,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       {bool hard = false}) {
     var edge = _graph.connect(source, destination, origin,
         hard: hard, guards: _guards);
-    if (origin is ExpressionChecks) {
-      origin.edges.add(edge);
+    if (origin is ExpressionChecksOrigin) {
+      origin.checks.edges.add(edge);
     }
   }
 
@@ -1576,10 +1576,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         throw StateError('No type computed for ${expression.runtimeType} '
             '(${expression.toSource()}) offset=${expression.offset}');
       }
-      ExpressionChecks expressionChecks;
+      ExpressionChecksOrigin expressionChecksOrigin;
       if (canInsertChecks && !sourceType.type.isDynamic) {
-        expressionChecks = ExpressionChecks(expression.end);
-        _variables.recordExpressionChecks(source, expression, expressionChecks);
+        expressionChecksOrigin = ExpressionChecksOrigin(
+            source, expression.end, ExpressionChecks(expression.end));
+        _variables.recordExpressionChecks(
+            source, expression, expressionChecksOrigin);
       }
       if (compoundOperatorInfo != null) {
         var compoundOperatorMethod = compoundOperatorInfo.method;
@@ -1593,7 +1595,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           DecoratedType compoundOperatorType =
               getOrComputeElementType(compoundOperatorMethod);
           assert(compoundOperatorType.positionalParameters.length > 0);
-          _checkAssignment(expressionChecks,
+          _checkAssignment(expressionChecksOrigin,
               source: sourceType,
               destination: compoundOperatorType.positionalParameters[0],
               hard: _postDominatedLocals.isReferenceInScope(expression));
@@ -1608,7 +1610,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           sourceType = _dynamicType;
         }
       } else {
-        _checkAssignment(expressionChecks,
+        _checkAssignment(expressionChecksOrigin,
             source: sourceType,
             destination: destinationType,
             hard: _postDominatedLocals.isReferenceInScope(expression));

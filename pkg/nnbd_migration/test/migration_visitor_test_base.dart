@@ -233,7 +233,7 @@ class InstrumentedVariables extends Variables {
 
   final _decoratedExpressionTypes = <Expression, DecoratedType>{};
 
-  final _expressionChecks = <Expression, ExpressionChecks>{};
+  final _expressionChecks = <Expression, ExpressionChecksOrigin>{};
 
   final _possiblyOptional = <DefaultFormalParameter, NullabilityNode>{};
 
@@ -241,7 +241,7 @@ class InstrumentedVariables extends Variables {
       : super(graph, typeProvider);
 
   /// Gets the [ExpressionChecks] associated with the given [expression].
-  ExpressionChecks checkExpression(Expression expression) =>
+  ExpressionChecksOrigin checkExpression(Expression expression) =>
       _expressionChecks[_normalizeExpression(expression)];
 
   /// Gets the [conditionalDiscard] associated with the given [expression].
@@ -271,9 +271,9 @@ class InstrumentedVariables extends Variables {
 
   @override
   void recordExpressionChecks(
-      Source source, Expression expression, ExpressionChecks checks) {
-    super.recordExpressionChecks(source, expression, checks);
-    _expressionChecks[_normalizeExpression(expression)] = checks;
+      Source source, Expression expression, ExpressionChecksOrigin origin) {
+    super.recordExpressionChecks(source, expression, origin);
+    _expressionChecks[_normalizeExpression(expression)] = origin;
   }
 
   @override

@@ -12,13 +12,13 @@ import 'package:analyzer/src/generated/source.dart';
 /// this class is used for the edge connecting `always` to the type of f's `x`
 /// parameter, due to the fact that the `dynamic` type is always considered
 /// nullable.
-class AlwaysNullableTypeOrigin extends EdgeOriginWithLocation {
+class AlwaysNullableTypeOrigin extends EdgeOrigin {
   AlwaysNullableTypeOrigin(Source source, int offset) : super(source, offset);
 }
 
 /// Edge origin resulting from the use of a value on the LHS of a compound
 /// assignment.
-class CompoundAssignmentOrigin extends EdgeOriginWithLocation {
+class CompoundAssignmentOrigin extends EdgeOrigin {
   CompoundAssignmentOrigin(Source source, int offset) : super(source, offset);
 }
 
@@ -26,12 +26,6 @@ class CompoundAssignmentOrigin extends EdgeOriginWithLocation {
 /// to be; that is, what was found in the source code that led the migration
 /// tool to create the edge.
 abstract class EdgeOrigin {
-  const EdgeOrigin();
-}
-
-/// Common base class for edge origins that are associated with a single
-/// location in the source code.
-abstract class EdgeOriginWithLocation extends EdgeOrigin {
   /// The source file containing the code construct that led to the edge.
   final Source source;
 
@@ -39,12 +33,12 @@ abstract class EdgeOriginWithLocation extends EdgeOrigin {
   /// edge.
   final int offset;
 
-  EdgeOriginWithLocation(this.source, this.offset);
+  EdgeOrigin(this.source, this.offset);
 }
 
 /// Edge origin resulting from the relationship between a field formal parameter
 /// and the corresponding field.
-class FieldFormalParameterOrigin extends EdgeOriginWithLocation {
+class FieldFormalParameterOrigin extends EdgeOrigin {
   FieldFormalParameterOrigin(Source source, int offset) : super(source, offset);
 }
 
@@ -57,12 +51,12 @@ class FieldFormalParameterOrigin extends EdgeOriginWithLocation {
 /// the `int` in the return type is nullable if both the `int`s in the types of
 /// `x` and `y` are nullable, due to the fact that the `int` in the return type
 /// is the greatest lower bound of the two other `int`s.
-class GreatestLowerBoundOrigin extends EdgeOriginWithLocation {
+class GreatestLowerBoundOrigin extends EdgeOrigin {
   GreatestLowerBoundOrigin(Source source, int offset) : super(source, offset);
 }
 
 /// Edge origin resulting from the presence of a `??` operator.
-class IfNullOrigin extends EdgeOriginWithLocation {
+class IfNullOrigin extends EdgeOrigin {
   IfNullOrigin(Source source, int offset) : super(source, offset);
 }
 
@@ -79,18 +73,18 @@ class IfNullOrigin extends EdgeOriginWithLocation {
 /// this class is used for the edge connecting the types of the `i` parameters
 /// between the implicit constructor for `D` and the explicit constructor for
 /// `C`.
-class ImplicitMixinSuperCallOrigin extends EdgeOriginWithLocation {
+class ImplicitMixinSuperCallOrigin extends EdgeOrigin {
   ImplicitMixinSuperCallOrigin(Source source, int offset)
       : super(source, offset);
 }
 
 /// Edge origin resulting from an inheritance relationship between two methods.
-class InheritanceOrigin extends EdgeOriginWithLocation {
+class InheritanceOrigin extends EdgeOrigin {
   InheritanceOrigin(Source source, int offset) : super(source, offset);
 }
 
 /// Edge origin resulting from a type that is inferred from its initializer.
-class InitializerInferenceOrigin extends EdgeOriginWithLocation {
+class InitializerInferenceOrigin extends EdgeOrigin {
   InitializerInferenceOrigin(Source source, int offset) : super(source, offset);
 }
 
@@ -102,7 +96,7 @@ class InitializerInferenceOrigin extends EdgeOriginWithLocation {
 ///
 /// this class is used for the edge connecting the type of x's type parameter
 /// with the type bound in the declaration of C.
-class InstantiateToBoundsOrigin extends EdgeOriginWithLocation {
+class InstantiateToBoundsOrigin extends EdgeOrigin {
   InstantiateToBoundsOrigin(Source source, int offset) : super(source, offset);
 }
 
@@ -118,7 +112,7 @@ class InstantiateToBoundsOrigin extends EdgeOriginWithLocation {
 /// this class is used for the edge connecting `always` to the type of f's `i`
 /// parameter, due to the fact that the call to `f` implicitly passes a null
 /// value for `i`.
-class NamedParameterNotSuppliedOrigin extends EdgeOriginWithLocation {
+class NamedParameterNotSuppliedOrigin extends EdgeOrigin {
   NamedParameterNotSuppliedOrigin(Source source, int offset)
       : super(source, offset);
 }
@@ -132,7 +126,7 @@ class NamedParameterNotSuppliedOrigin extends EdgeOriginWithLocation {
 ///
 /// this class is used for the edge connecting the type of f's `i` parameter to
 /// `never`, due to the assert statement proclaiming that `i` is not `null`.
-class NonNullAssertionOrigin extends EdgeOriginWithLocation {
+class NonNullAssertionOrigin extends EdgeOrigin {
   NonNullAssertionOrigin(Source source, int offset) : super(source, offset);
 }
 
@@ -144,7 +138,7 @@ class NonNullAssertionOrigin extends EdgeOriginWithLocation {
 ///
 /// this class is used for the edge connecting `always` to the type of f's `i`
 /// parameter, due to the presence of the `/*?*/` comment.
-class NullabilityCommentOrigin extends EdgeOriginWithLocation {
+class NullabilityCommentOrigin extends EdgeOrigin {
   NullabilityCommentOrigin(Source source, int offset) : super(source, offset);
 }
 
@@ -155,7 +149,7 @@ class NullabilityCommentOrigin extends EdgeOriginWithLocation {
 ///
 /// this class is used for the edge connecting `always` to the type of f's `i`
 /// parameter, due to the fact that `i` is optional and has no initializer.
-class OptionalFormalParameterOrigin extends EdgeOriginWithLocation {
+class OptionalFormalParameterOrigin extends EdgeOrigin {
   OptionalFormalParameterOrigin(Source source, int offset)
       : super(source, offset);
 }

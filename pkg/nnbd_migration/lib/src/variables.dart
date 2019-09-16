@@ -160,8 +160,8 @@ class Variables implements VariableRecorder, VariableRepository {
 
   @override
   void recordExpressionChecks(
-      Source source, Expression expression, ExpressionChecks checks) {
-    _addPotentialModification(source, checks);
+      Source source, Expression expression, ExpressionChecksOrigin origin) {
+    _addPotentialModification(source, origin.checks);
   }
 
   @override

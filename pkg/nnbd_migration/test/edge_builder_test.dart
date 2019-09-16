@@ -365,14 +365,14 @@ class EdgeBuilderTest extends EdgeBuilderTestBase {
   /// [expressionChecks] is the object tracking whether or not a null check is
   /// needed.
   void assertNullCheck(
-      ExpressionChecks expressionChecks, NullabilityEdge expectedEdge) {
-    expect(expressionChecks.edges, contains(expectedEdge));
+      ExpressionChecksOrigin expressionChecks, NullabilityEdge expectedEdge) {
+    expect(expressionChecks.checks.edges, contains(expectedEdge));
   }
 
   /// Gets the [ExpressionChecks] associated with the expression whose text
   /// representation is [text], or `null` if the expression has no
   /// [ExpressionChecks] associated with it.
-  ExpressionChecks checkExpression(String text) {
+  ExpressionChecksOrigin checkExpression(String text) {
     return variables.checkExpression(findNode.expression(text));
   }
 
@@ -2494,8 +2494,8 @@ f(int i) => C<int>(i/*check*/);
     var nullable_c_t = decoratedTypeAnnotation('C<int>').typeArguments[0].node;
     var nullable_t = decoratedTypeAnnotation('T t').node;
     var check_i = checkExpression('i/*check*/');
-    var nullable_c_t_or_nullable_t =
-        check_i.edges.single.destinationNode as NullabilityNodeForSubstitution;
+    var nullable_c_t_or_nullable_t = check_i.checks.edges.single.destinationNode
+        as NullabilityNodeForSubstitution;
     expect(nullable_c_t_or_nullable_t.innerNode, same(nullable_c_t));
     expect(nullable_c_t_or_nullable_t.outerNode, same(nullable_t));
     assertNullCheck(check_i,
@@ -2513,8 +2513,8 @@ f(int i) => C<int>(t: i/*check*/);
     var nullable_c_t = decoratedTypeAnnotation('C<int>').typeArguments[0].node;
     var nullable_t = decoratedTypeAnnotation('T t').node;
     var check_i = checkExpression('i/*check*/');
-    var nullable_c_t_or_nullable_t =
-        check_i.edges.single.destinationNode as NullabilityNodeForSubstitution;
+    var nullable_c_t_or_nullable_t = check_i.checks.edges.single.destinationNode
+        as NullabilityNodeForSubstitution;
     expect(nullable_c_t_or_nullable_t.innerNode, same(nullable_c_t));
     expect(nullable_c_t_or_nullable_t.outerNode, same(nullable_t));
     assertNullCheck(check_i,
@@ -2931,8 +2931,8 @@ void g(C<int> c, int i) {
     var nullable_c_t = decoratedTypeAnnotation('C<int>').typeArguments[0].node;
     var nullable_t = decoratedTypeAnnotation('T t').node;
     var check_i = checkExpression('i/*check*/');
-    var nullable_c_t_or_nullable_t =
-        check_i.edges.single.destinationNode as NullabilityNodeForSubstitution;
+    var nullable_c_t_or_nullable_t = check_i.checks.edges.single.destinationNode
+        as NullabilityNodeForSubstitution;
     expect(nullable_c_t_or_nullable_t.innerNode, same(nullable_c_t));
     expect(nullable_c_t_or_nullable_t.outerNode, same(nullable_t));
     assertNullCheck(check_i,
@@ -2957,8 +2957,8 @@ void f(List<int> x, int i) {
         .node;
     expect(nullable_t, same(never));
     var check_i = checkExpression('i/*check*/');
-    var nullable_list_t_or_nullable_t =
-        check_i.edges.single.destinationNode as NullabilityNodeForSubstitution;
+    var nullable_list_t_or_nullable_t = check_i
+        .checks.edges.single.destinationNode as NullabilityNodeForSubstitution;
     expect(nullable_list_t_or_nullable_t.innerNode, same(nullable_list_t));
     expect(nullable_list_t_or_nullable_t.outerNode, same(nullable_t));
     assertNullCheck(check_i,
@@ -2976,8 +2976,8 @@ void g(int i) {
     var nullable_f_t = decoratedTypeAnnotation('int>').node;
     var nullable_t = decoratedTypeAnnotation('T t').node;
     var check_i = checkExpression('i/*check*/');
-    var nullable_f_t_or_nullable_t =
-        check_i.edges.single.destinationNode as NullabilityNodeForSubstitution;
+    var nullable_f_t_or_nullable_t = check_i.checks.edges.single.destinationNode
+        as NullabilityNodeForSubstitution;
     expect(nullable_f_t_or_nullable_t.innerNode, same(nullable_f_t));
     expect(nullable_f_t_or_nullable_t.outerNode, same(nullable_t));
     assertNullCheck(check_i,
@@ -3069,8 +3069,8 @@ int g() => (f<int>(1));
 ''');
     var check_i = checkExpression('(f<int>(1))');
     var nullable_f_t = decoratedTypeAnnotation('int>').node;
-    var nullable_f_t_or_nullable_t =
-        check_i.edges.single.primarySource as NullabilityNodeForSubstitution;
+    var nullable_f_t_or_nullable_t = check_i.checks.edges.single.primarySource
+        as NullabilityNodeForSubstitution;
     var nullable_t = decoratedTypeAnnotation('T f').node;
     expect(nullable_f_t_or_nullable_t.innerNode, same(nullable_f_t));
     expect(nullable_f_t_or_nullable_t.outerNode, same(nullable_t));
@@ -5107,6 +5107,8 @@ class _DecoratedClassHierarchyForTesting implements DecoratedClassHierarchy {
   }
 }
 
-class _TestEdgeOrigin extends EdgeOrigin {
+class _TestEdgeOrigin implements EdgeOrigin {
   const _TestEdgeOrigin();
+
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
