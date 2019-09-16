@@ -35,27 +35,29 @@ void main() {
   group('method delegation', () {
     test('works for simple methods', () {
       var request = rpcRequest("getVersion");
-      var version = Version()
-        ..major = 1
-        ..minor = 0;
+      var version = Version(major: 1, minor: 0);
       when(serviceMock.getVersion()).thenAnswer((_) => Future.value(version));
       expect(responsesController.stream, emits(rpcResponse(version)));
       requestsController.add(request);
     });
 
     test('works for methods with parameters', () {
-      var isolate = Isolate()
-        ..id = '123'
-        ..number = '0'
-        ..startTime = 1
-        ..runnable = true
-        ..livePorts = 2
-        ..pauseOnExit = false
-        ..pauseEvent = (Event()
-          ..kind = EventKind.kResume
-          ..timestamp = 3)
-        ..libraries = []
-        ..breakpoints = [];
+      var isolate = Isolate(
+        name: 'isolate',
+        exceptionPauseMode: ExceptionPauseMode.kNone,
+        id: '123',
+        number: '0',
+        startTime: 1,
+        runnable: true,
+        livePorts: 2,
+        pauseOnExit: false,
+        pauseEvent: Event(
+          kind: EventKind.kResume,
+          timestamp: 3,
+        ),
+        libraries: [],
+        breakpoints: [],
+      );
       var request = rpcRequest("getIsolate", params: {'isolateId': isolate.id});
       when(serviceMock.getIsolate(isolate.id))
           .thenAnswer((Invocation invocation) {
@@ -67,18 +69,22 @@ void main() {
     });
 
     test('works for methods with list parameters', () {
-      var isolate = Isolate()
-        ..id = '123'
-        ..number = '0'
-        ..startTime = 1
-        ..runnable = true
-        ..livePorts = 2
-        ..pauseOnExit = false
-        ..pauseEvent = (Event()
-          ..kind = EventKind.kResume
-          ..timestamp = 3)
-        ..libraries = []
-        ..breakpoints = [];
+      var isolate = Isolate(
+        name: 'isolate',
+        exceptionPauseMode: ExceptionPauseMode.kNone,
+        id: '123',
+        number: '0',
+        startTime: 1,
+        runnable: true,
+        livePorts: 2,
+        pauseOnExit: false,
+        pauseEvent: Event(
+          kind: EventKind.kResume,
+          timestamp: 3,
+        ),
+        libraries: [],
+        breakpoints: [],
+      );
       var request = rpcRequest("setVMTimelineFlags", params: {
         'isolateId': isolate.id,
         // Note: the dynamic list below is intentional in order to exercise the
@@ -100,7 +106,7 @@ void main() {
       test('with no params or isolateId', () {
         var extension = 'ext.cool';
         var request = rpcRequest(extension, params: null);
-        var response = Response()..json = {"hello": "world"};
+        var response = Response(type: '')..json = {"hello": "world"};
         when(serviceMock.callServiceExtension(
           extension,
           isolateId: argThat(isNull, named: 'isolateId'),
@@ -117,7 +123,7 @@ void main() {
       test('with isolateId and no other params', () {
         var extension = 'ext.cool';
         var request = rpcRequest(extension, params: {'isolateId': '1'});
-        var response = Response()..json = {"hello": "world"};
+        var response = Response(type: '')..json = {"hello": "world"};
         when(serviceMock.callServiceExtension(
           extension,
           isolateId: argThat(equals('1'), named: 'isolateId'),
@@ -135,7 +141,7 @@ void main() {
         var extension = 'ext.cool';
         var params = {'cool': 'option'};
         var request = rpcRequest(extension, params: params);
-        var response = Response()..json = {"hello": "world"};
+        var response = Response(type: '')..json = {"hello": "world"};
         when(serviceMock.callServiceExtension(
           extension,
           isolateId: argThat(isNull, named: 'isolateId'),
@@ -154,7 +160,7 @@ void main() {
         var params = {'cool': 'option'};
         var request =
             rpcRequest(extension, params: Map.of(params)..['isolateId'] = '1');
-        var response = Response()..json = {"hello": "world"};
+        var response = Response(type: '')..json = {"hello": "world"};
         when(serviceMock.callServiceExtension(
           extension,
           isolateId: argThat(equals("1"), named: 'isolateId'),
@@ -209,12 +215,14 @@ void main() {
         eventController = serviceMock.streamControllers[streamId];
 
         var events = [
-          Event()
-            ..kind = EventKind.kIsolateStart
-            ..timestamp = 0,
-          Event()
-            ..kind = EventKind.kIsolateExit
-            ..timestamp = 1,
+          Event(
+            kind: EventKind.kIsolateStart,
+            timestamp: 0,
+          ),
+          Event(
+            kind: EventKind.kIsolateExit,
+            timestamp: 1,
+          )
         ];
         events.forEach(eventController.add);
         await expect(
@@ -231,9 +239,10 @@ void main() {
         requestsController.add(request);
         await expect(responseQueue, emitsThrough(rpcResponse(response)));
 
-        var nextEvent = Event()
-          ..kind = EventKind.kIsolateReload
-          ..timestamp = 2;
+        var nextEvent = Event(
+          kind: EventKind.kIsolateReload,
+          timestamp: 2,
+        );
         eventController.add(nextEvent);
         expect(responseQueue,
             neverEmits(streamNotifyResponse(streamId, nextEvent)));
@@ -294,24 +303,32 @@ void main() {
       test('gives register and unregister events', () async {
         var serviceId = 'ext.test.service';
         var serviceRegisteredEvent = streamNotifyResponse(
-            serviceStream,
-            Event()
-              ..kind = EventKind.kServiceRegistered
-              ..method = serviceId
-              ..service = serviceId);
+          serviceStream,
+          Event(
+            kind: EventKind.kServiceRegistered,
+            timestamp: 0,
+            method: serviceId,
+            service: serviceId,
+          ),
+        );
         var serviceUnRegisteredEvent = streamNotifyResponse(
-            serviceStream,
-            Event()
-              ..kind = EventKind.kServiceUnregistered
-              ..method = serviceId
-              ..service = serviceId);
+          serviceStream,
+          Event(
+            kind: EventKind.kServiceUnregistered,
+            timestamp: 0,
+            method: serviceId,
+            service: serviceId,
+          ),
+        );
 
         requestsController.add(
             rpcRequest('streamListen', params: {'streamId': serviceStream}));
         requestsController
             .add(rpcRequest('registerService', params: {'service': serviceId}));
         await expect(
-            responsesController.stream, emitsThrough(serviceRegisteredEvent));
+            responsesController.stream
+                .map((Map response) => stripEventTimestamp(response)),
+            emitsThrough(serviceRegisteredEvent));
 
         // Connect another client to get the previous register events and the
         // unregister event.
@@ -326,7 +343,8 @@ void main() {
             responsesController2.sink, serviceRegistry, null);
 
         expect(
-            responsesController2.stream,
+            responsesController2.stream
+                .map((Map response) => stripEventTimestamp(response)),
             emitsThrough(emitsInOrder(
                 [serviceRegisteredEvent, serviceUnRegisteredEvent])));
 
@@ -380,7 +398,7 @@ void main() {
           clientInputController.sink, serviceRegistry, serviceMock);
 
       var requestParams = {'foo': 'bar'};
-      var expectedResponse = Response()..json = {'zap': 'zip'};
+      var expectedResponse = Response(type: '')..json = {'zap': 'zip'};
       await client.registerService(serviceId, null);
       // Duplicate registrations should fail.
       expect(client.registerService(serviceId, null),
@@ -402,7 +420,7 @@ void main() {
       // This should complete as well.
       await clientConnection.done;
 
-      var mockResponse = Response()..json = {'mock': 'response'};
+      var mockResponse = Response(type: '')..json = {'mock': 'response'};
       when(serviceMock.callServiceExtension(serviceId,
               args: argThat(equals(requestParams), named: 'args'),
               isolateId: argThat(isNull, named: 'isolateId')))
@@ -461,6 +479,14 @@ Map<String, Object> streamNotifyResponse(String streamId, Event event) {
       'event': event.toJson(),
     },
   };
+}
+
+Map<String, Object> stripEventTimestamp(Map response) {
+  if (response.containsKey('params') &&
+      response['params'].containsKey('event')) {
+    response['params']['event']['timestamp'] = 0;
+  }
+  return response;
 }
 
 class MockVmService extends Mock implements VmServiceInterface {
