@@ -4,6 +4,29 @@
 
 ### Language
 
+### Core libraries
+
+### Dart VM
+
+### Tools
+
+#### Pub
+
+#### Linter
+
+The Linter was updated to `0.1.97+1`, which includes:
+
+* internal migration away from using analyzer `resolutionMap`
+* various fixes and improvements to anticipate support for extension-methods
+* new lint: `camel_case_extensions`
+* rule template generation improvements
+* new lint: `avoid_equals_and_hash_code_on_mutable_classes`
+* extended `avoid_slow_async_io` to flag async `Directory` methods
+
+## 2.5.0 - 2019-09-10
+
+### Language
+
 The set of operations allowed in constant expressions has been expanded as
 described in
 the [constant update proposal](https://github.com/dart-lang/language/issues/61).
@@ -124,7 +147,7 @@ const int x = (s == null) ? 0 : s.length;
 
 #### `dart:io`
 
-* **Breaking change** [#37192](https://github.com/dart-lang/sdk/issues/37192): 
+* **Breaking change** [#37192](https://github.com/dart-lang/sdk/issues/37192):
   The `Cookie` class's constructor's `name` and `value`
   optional positional parameters are now mandatory. The
   signature changes from:
@@ -142,7 +165,7 @@ const int x = (s == null) ? 0 : s.length;
   Since code could not previously correctly omit the parameters, this is not
   really a breaking change.
 
-* **Breaking change** [#37192](https://github.com/dart-lang/sdk/issues/37192): 
+* **Breaking change** [#37192](https://github.com/dart-lang/sdk/issues/37192):
   The `Cookie` class's `name` and `value` setters now
   validates that the strings are made from the allowed character set and are not
   null. The constructor already made these checks and this
@@ -161,14 +184,11 @@ const int x = (s == null) ? 0 : s.length;
 
 #### Linter
 
-The Linter was updated to `0.1.97+1`, which includes:
+The Linter was updated to `0.1.96`, which includes:
 
-* internal migration away from using analyzer `resolutionMap`
-* various fixes and improvements to anticipate support for extension-methods
-* new lint: `camel_case_extensions`
-* rule template generation improvements
-* new lint: `avoid_equals_and_hash_code_on_mutable_classes`
-* extended `avoid_slow_async_io` to flag async `Directory` methods
+* fixed false positives in `unnecessary_parens`
+* various changes to migrate to preferred analyzer APIs
+* rule test fixes
 
 #### Dartdoc
 

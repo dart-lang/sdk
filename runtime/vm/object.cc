@@ -2202,7 +2202,7 @@ RawObject* Object::Allocate(intptr_t cls_id, intptr_t size, Heap::Space space) {
     }
   }
 #ifndef PRODUCT
-  ClassTable* class_table = thread->isolate()->class_table();
+  auto class_table = thread->isolate()->shared_class_table();
   if (space == Heap::kNew) {
     class_table->UpdateAllocatedNew(cls_id, size);
   } else {
@@ -3298,7 +3298,7 @@ void Class::DisableAllCHAOptimizedCode() {
 
 bool Class::TraceAllocation(Isolate* isolate) const {
 #ifndef PRODUCT
-  ClassTable* class_table = isolate->class_table();
+  auto class_table = isolate->shared_class_table();
   return class_table->TraceAllocationFor(id());
 #else
   return false;
@@ -3310,7 +3310,7 @@ void Class::SetTraceAllocation(bool trace_allocation) const {
   Isolate* isolate = Isolate::Current();
   const bool changed = trace_allocation != this->TraceAllocation(isolate);
   if (changed) {
-    ClassTable* class_table = isolate->class_table();
+    auto class_table = isolate->shared_class_table();
     class_table->SetTraceAllocationFor(id(), trace_allocation);
     DisableAllocationStub();
   }
@@ -8104,21 +8104,31 @@ void Function::SetDeoptReasonForAll(intptr_t deopt_id,
 }
 
 bool Function::CheckSourceFingerprint(const char* prefix, int32_t fp) const {
-  // TODO(36376): Restore checking fingerprints of recognized methods.
-  // '(kernel_offset() <= 0)' looks like an impossible condition, fix this and
-  //  re-enable fingerprints checking.
-  if (!Isolate::Current()->obfuscate() && !is_declared_in_bytecode() &&
-      (kernel_offset() <= 0) && (SourceFingerprint() != fp)) {
+  if (Isolate::Current()->obfuscate() || FLAG_precompiled_mode ||
+      (Dart::vm_snapshot_kind() != Snapshot::kNone)) {
+    return true;  // The kernel structure has been altered, skip checking.
+  }
+
+  if (is_declared_in_bytecode()) {
+    // AST and bytecode compute different fingerprints, and we only track one
+    // fingerprint set.
+    return true;
+  }
+
+  if (SourceFingerprint() != fp) {
     const bool recalculatingFingerprints = false;
     if (recalculatingFingerprints) {
       // This output can be copied into a file, then used with sed
       // to replace the old values.
-      // sed -i.bak -f /tmp/newkeys runtime/vm/compiler/method_recognizer.h
+      // sed -i.bak -f /tmp/newkeys \
+      //    runtime/vm/compiler/recognized_methods_list.h
       THR_Print("s/0x%08x/0x%08x/\n", fp, SourceFingerprint());
     } else {
       THR_Print(
-          "FP mismatch while recognizing method %s:"
-          " expecting 0x%08x found 0x%08x\n",
+          "FP mismatch while recognizing method %s: expecting 0x%08x found "
+          "0x%08x.\nIf the behavior of this function has changed, then changes "
+          "are also needed in the VM's compiler. Otherwise the fingerprint can "
+          "simply be updated in recognized_methods_list.h\n",
           ToFullyQualifiedCString(), fp, SourceFingerprint());
       return false;
     }

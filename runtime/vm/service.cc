@@ -1415,70 +1415,6 @@ static bool GetScripts(Thread* thread, JSONStream* js) {
   return true;
 }
 
-static const MethodParameter* get_unused_changes_in_last_reload_params[] = {
-    ISOLATE_PARAMETER, NULL,
-};
-
-static bool GetUnusedChangesInLastReload(Thread* thread, JSONStream* js) {
-  if (CheckCompilerDisabled(thread, js)) {
-    return true;
-  }
-
-  const GrowableObjectArray& changed_in_last_reload =
-      GrowableObjectArray::Handle(
-          thread->isolate()->object_store()->changed_in_last_reload());
-  if (changed_in_last_reload.IsNull()) {
-    js->PrintError(kIsolateMustHaveReloaded, "No change to compare with.");
-    return true;
-  }
-  JSONObject jsobj(js);
-  jsobj.AddProperty("type", "UnusedChangesInLastReload");
-  JSONArray jsarr(&jsobj, "unused");
-  Object& changed = Object::Handle();
-  Function& function = Function::Handle();
-  Field& field = Field::Handle();
-  Class& cls = Class::Handle();
-  Array& functions = Array::Handle();
-  Array& fields = Array::Handle();
-  for (intptr_t i = 0; i < changed_in_last_reload.Length(); i++) {
-    changed = changed_in_last_reload.At(i);
-    if (changed.IsFunction()) {
-      function ^= changed.raw();
-      if (!function.WasExecuted()) {
-        jsarr.AddValue(function);
-      }
-    } else if (changed.IsField()) {
-      field ^= changed.raw();
-      if (field.IsUninitialized() ||
-          field.initializer_changed_after_initialization()) {
-        jsarr.AddValue(field);
-      }
-    } else if (changed.IsClass()) {
-      cls ^= changed.raw();
-      if (!cls.is_finalized()) {
-        // Not used at all.
-        jsarr.AddValue(cls);
-      } else {
-        functions = cls.functions();
-        for (intptr_t j = 0; j < functions.Length(); j++) {
-          function ^= functions.At(j);
-          if (!function.WasExecuted()) {
-            jsarr.AddValue(function);
-          }
-        }
-        fields = cls.fields();
-        for (intptr_t j = 0; j < fields.Length(); j++) {
-          field ^= fields.At(j);
-          if (field.IsUninitialized()) {
-            jsarr.AddValue(field);
-          }
-        }
-      }
-    }
-  }
-  return true;
-}
-
 static const MethodParameter* get_stack_params[] = {
     RUNNABLE_ISOLATE_PARAMETER,
     NULL,
@@ -3943,7 +3879,7 @@ static bool GetAllocationProfileImpl(Thread* thread,
   Isolate* isolate = thread->isolate();
   if (should_reset_accumulator) {
     isolate->UpdateLastAllocationProfileAccumulatorResetTimestamp();
-    isolate->class_table()->ResetAllocationAccumulators();
+    isolate->shared_class_table()->ResetAllocationAccumulators();
   }
   if (should_collect) {
     isolate->UpdateLastAllocationProfileGCTimestamp();
@@ -4763,8 +4699,6 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_source_report_params },
   { "getStack", GetStack,
     get_stack_params },
-  { "_getUnusedChangesInLastReload", GetUnusedChangesInLastReload,
-    get_unused_changes_in_last_reload_params },
   { "_getTagProfile", GetTagProfile,
     get_tag_profile_params },
   { "_getTypeArgumentsList", GetTypeArgumentsList,

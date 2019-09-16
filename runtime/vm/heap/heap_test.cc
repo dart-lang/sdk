@@ -82,7 +82,7 @@ class ClassHeapStatsTestHelper {
  public:
   static ClassHeapStats* GetHeapStatsForCid(ClassTable* class_table,
                                             intptr_t cid) {
-    return class_table->PreliminaryStatsAt(cid);
+    return class_table->shared_class_table()->PreliminaryStatsAt(cid);
   }
 
   static void DumpClassHeapStats(ClassHeapStats* stats) {

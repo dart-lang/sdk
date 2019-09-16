@@ -2075,6 +2075,28 @@ class C/*codeOffset=0, codeLength=462*/ {
         withConstElements: false);
   }
 
+  test_codeRange_enum() async {
+    var library = await checkLibrary('''
+enum E {
+  aaa, bbb, ccc
+}
+''');
+    checkElementText(
+        library,
+        r'''
+enum E/*codeOffset=0, codeLength=26*/ {
+  synthetic final int index/*codeOffset=null, codeLength=null*/;
+  synthetic static const List<E> values/*codeOffset=null, codeLength=null*/;
+  static const E aaa/*codeOffset=11, codeLength=3*/;
+  static const E bbb/*codeOffset=16, codeLength=3*/;
+  static const E ccc/*codeOffset=21, codeLength=3*/;
+  String toString/*codeOffset=null, codeLength=null*/() {}
+}
+''',
+        withCodeRanges: true,
+        withConstElements: false);
+  }
+
   test_codeRange_extensions() async {
     featureSet = enableExtensionMethods;
     var library = await checkLibrary('''
@@ -4617,6 +4639,31 @@ class C {
 ''');
   }
 
+  test_constructor_initializers_genericFunctionType() async {
+    var library = await checkLibrary('''
+class A<T> {
+  const A();
+}
+class B {
+  const B(dynamic x);
+  const B.f()
+   : this(A<Function()>());
+}
+''');
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+class A<T> {
+  const A();
+}
+class B {
+  const B(dynamic x);
+  const B.f() = B : this(
+        A/*location: test.dart;A*/<Function()>());
+}
+''');
+    }
+  }
+
   test_constructor_initializers_superInvocation_named() async {
     var library = await checkLibrary('''
 class A {
@@ -5259,6 +5306,28 @@ class X {
 }
 void defaultF<T>(T v) {}
 ''');
+  }
+
+  test_defaultValue_genericFunctionType() async {
+    var library = await checkLibrary('''
+class A<T> {
+  const A();
+}
+class B {
+  void foo({a: const A<Function()>()}) {}
+}
+''');
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+class A<T> {
+  const A();
+}
+class B {
+  void foo({dynamic a: const
+        A/*location: test.dart;A*/<Function()>()}) {}
+}
+''');
+    }
   }
 
   test_defaultValue_refersToExtension_method_inside() async {

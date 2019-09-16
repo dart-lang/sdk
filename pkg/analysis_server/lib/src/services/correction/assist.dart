@@ -104,9 +104,7 @@ class DartAssistKind {
   static const CONVERT_TO_PACKAGE_IMPORT = const AssistKind(
       'dart.assist.convert.relativeToPackageImport',
       30,
-      "Convert to 'package:' import",
-      // todo (pq): migrate to (conditional) fix
-      associatedErrorCodes: <String>['avoid_relative_lib_imports']);
+      "Convert to 'package:' import");
   static const CONVERT_TO_SET_LITERAL = const AssistKind(
       'dart.assist.convert.toSetLiteral', 30, "Convert to set literal",
       // todo (brianwilkerson): unify w/ fix
@@ -114,13 +112,9 @@ class DartAssistKind {
   static const CONVERT_TO_SINGLE_QUOTED_STRING = const AssistKind(
       'dart.assist.convert.toSingleQuotedString',
       30,
-      "Convert to single quoted string",
-      // todo (pq): migrate to (conditional) fix
-      associatedErrorCodes: <String>['prefer_single_quotes']);
-  static const CONVERT_TO_SPREAD =
-      const AssistKind('dart.assist.convertToSpread', 30, "Convert to a spread",
-          // todo (pq): migrate to (conditional) fix
-          associatedErrorCodes: <String>['prefer_spread_collections']);
+      "Convert to single quoted string");
+  static const CONVERT_TO_SPREAD = const AssistKind(
+      'dart.assist.convertToSpread', 30, "Convert to a spread");
   static const ENCAPSULATE_FIELD =
       const AssistKind('dart.assist.encapsulateField', 30, "Encapsulate field");
   static const EXCHANGE_OPERANDS =

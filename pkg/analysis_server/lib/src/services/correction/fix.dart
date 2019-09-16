@@ -199,6 +199,12 @@ class DartFixKind {
       'CONVERT_TO_NAMED_ARGUMENTS', 50, "Convert to named arguments");
   static const CONVERT_TO_NULL_AWARE =
       const FixKind('CONVERT_TO_NULL_AWARE', 50, "Convert to use '?.'");
+  static const CONVERT_TO_PACKAGE_IMPORT = const FixKind(
+      'CONVERT_TO_PACKAGE_IMPORT', 50, "Convert to 'package:' import");
+  static const CONVERT_TO_SINGLE_QUOTED_STRING = const FixKind(
+      'CONVERT_TO_SINGLE_QUOTED_STRING', 50, "Convert to single quoted string");
+  static const CONVERT_TO_SPREAD =
+      const FixKind('CONVERT_TO_SPREAD', 50, "Convert to a spread");
   static const CREATE_CLASS =
       const FixKind('CREATE_CLASS', 50, "Create class '{0}'");
   static const CREATE_CONSTRUCTOR =
@@ -245,6 +251,8 @@ class DartFixKind {
       const FixKind('IMPORT_LIBRARY_SDK', 54, "Import library '{0}'");
   static const IMPORT_LIBRARY_SHOW =
       const FixKind('IMPORT_LIBRARY_SHOW', 55, "Update library '{0}' import");
+  static const INLINE_INVOCATION =
+      const FixKind('INLINE_INVOCATION', 30, "Inline invocation of '{0}'");
   static const INSERT_SEMICOLON =
       const FixKind('INSERT_SEMICOLON', 50, "Insert ';'");
   static const MAKE_CLASS_ABSTRACT =

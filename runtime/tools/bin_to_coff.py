@@ -4,8 +4,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# See also "PE Format" at https://docs.microsoft.com/en-us/windows/win32/debug/pe-format
-
 import argparse
 from ctypes import create_string_buffer
 from struct import *
@@ -21,7 +19,6 @@ FILE_HEADER_AR32WR = 0x100  # File is 32-bit little endian
 SECTION_HEADER_TEXT = 0x20  # Contains executable code
 SECTION_HEADER_DATA = 0x40  # Contains only initialized data
 SECTION_HEADER_BSS = 0x80  # Contains uninitialized data
-SECTION_HEADER_ALIGN_32BYTES = 0x600000
 
 # FILE HEADER FORMAT
 # typedef struct {
@@ -179,18 +176,17 @@ def main():
     offset += FILE_HEADER_SIZE
 
     section_name = SECTION_NAME_RODATA
-    section_flags = SECTION_HEADER_DATA
+    section_type = SECTION_HEADER_DATA
     if args.executable:
         section_name = SECTION_NAME_TEXT
-        section_flags = SECTION_HEADER_TEXT
-    section_flags |= SECTION_HEADER_ALIGN_32BYTES
+        section_type = SECTION_HEADER_TEXT
 
     # Populate the section header for a single section.
     pack_into(SECTION_HEADER_FORMAT, buff, offset, section_name, SECTION_PADDR,
               SECTION_VADDR, section_size + size_symbol_size,
               SECTION_RAW_DATA_PTR, SECTION_RELOCATION_PTR,
               SECTION_LINE_NUMS_PTR, SECTION_NUM_RELOCATION,
-              SECTION_NUM_LINE_NUMS, section_flags)
+              SECTION_NUM_LINE_NUMS, section_type)
     offset += SECTION_HEADER_SIZE
 
     # Copy the binary data.

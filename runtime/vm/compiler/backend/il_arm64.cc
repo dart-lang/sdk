@@ -5419,6 +5419,55 @@ static void EmitInt64ModTruncDiv(FlowGraphCompiler* compiler,
                                  Register out) {
   ASSERT(op_kind == Token::kMOD || op_kind == Token::kTRUNCDIV);
 
+  // Special case 64-bit div/mod by compile-time constant. Note that various
+  // special constants (such as powers of two) should have been optimized
+  // earlier in the pipeline. Div or mod by zero falls into general code
+  // to implement the exception.
+  if (FLAG_optimization_level <= 2) {
+    // We only consider magic operations under O3.
+  } else if (auto c = instruction->right()->definition()->AsConstant()) {
+    if (c->value().IsInteger()) {
+      const int64_t divisor = Integer::Cast(c->value()).AsInt64Value();
+      if (divisor <= -2 || divisor >= 2) {
+        // For x DIV c or x MOD c: use magic operations.
+        compiler::Label pos;
+        int64_t magic = 0;
+        int64_t shift = 0;
+        Utils::CalculateMagicAndShiftForDivRem(divisor, &magic, &shift);
+        // Compute tmp = high(magic * numerator).
+        __ LoadImmediate(TMP2, magic);
+        __ smulh(TMP2, TMP2, left);
+        // Compute tmp +/-= numerator.
+        if (divisor > 0 && magic < 0) {
+          __ add(TMP2, TMP2, compiler::Operand(left));
+        } else if (divisor < 0 && magic > 0) {
+          __ sub(TMP2, TMP2, compiler::Operand(left));
+        }
+        // Shift if needed.
+        if (shift != 0) {
+          __ add(TMP2, ZR, compiler::Operand(TMP2, ASR, shift));
+        }
+        // Finalize DIV or MOD.
+        if (op_kind == Token::kTRUNCDIV) {
+          __ sub(out, TMP2, compiler::Operand(TMP2, ASR, 63));
+        } else {
+          __ sub(TMP2, TMP2, compiler::Operand(TMP2, ASR, 63));
+          __ LoadImmediate(TMP, divisor);
+          __ msub(out, TMP2, TMP, left);
+          // Compensate for Dart's Euclidean view of MOD.
+          __ CompareRegisters(out, ZR);
+          if (divisor > 0) {
+            __ add(TMP2, out, compiler::Operand(TMP));
+          } else {
+            __ sub(TMP2, out, compiler::Operand(TMP));
+          }
+          __ csel(out, TMP2, out, LT);
+        }
+        return;
+      }
+    }
+  }
+
   // Prepare a slow path.
   Range* right_range = instruction->right()->definition()->range();
   Int64DivideSlowPath* slow_path = new (Z) Int64DivideSlowPath(

@@ -1479,7 +1479,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void endBinaryExpression(Token token) {
     debugEvent("BinaryExpression");
-    if (optional(".", token) || optional("..", token)) {
+    if (optional(".", token) ||
+        optional("..", token) ||
+        optional("?..", token)) {
       return doDotOrCascadeExpression(token);
     }
     if (optional("&&", token) || optional("||", token)) {

@@ -1090,6 +1090,7 @@ ImageReader::ImageReader(const uint8_t* data_image,
       shared_data_image_(shared_data_image),
       shared_instructions_image_(shared_instructions_image) {
   ASSERT(data_image != NULL);
+  ASSERT(instructions_image != NULL);
 }
 
 RawApiError* ImageReader::VerifyAlignment() const {
@@ -1106,7 +1107,6 @@ RawApiError* ImageReader::VerifyAlignment() const {
 }
 
 RawInstructions* ImageReader::GetInstructionsAt(int32_t offset) const {
-  ASSERT(instructions_image_ != nullptr);
   ASSERT(Utils::IsAligned(offset, OS::PreferredCodeAlignment()));
 
   RawObject* result;

@@ -34,7 +34,6 @@
   ARRAY(ObjectPool, element_offset)                                            \
   CONSTANT(Array, kMaxElements)                                                \
   CONSTANT(Array, kMaxNewSpaceElements)                                        \
-  CONSTANT(ClassTable, kSizeOfClassPairLog2)                                   \
   CONSTANT(Instructions, kMonomorphicEntryOffsetJIT)                           \
   CONSTANT(Instructions, kPolymorphicEntryOffsetJIT)                           \
   CONSTANT(Instructions, kMonomorphicEntryOffsetAOT)                           \
@@ -71,7 +70,9 @@
   NOT_IN_PRODUCT(                                                              \
       FIELD(ClassHeapStats, allocated_size_since_gc_new_space_offset))         \
   NOT_IN_PRODUCT(FIELD(ClassHeapStats, state_offset))                          \
+  FIELD(ClassTable, shared_class_table_offset)                                 \
   FIELD(ClassTable, table_offset)                                              \
+  NOT_IN_PRODUCT(FIELD(SharedClassTable, class_heap_stats_table_offset))       \
   FIELD(Closure, context_offset)                                               \
   FIELD(Closure, delayed_type_arguments_offset)                                \
   FIELD(Closure, function_offset)                                              \
@@ -244,7 +245,6 @@
   NOT_IN_PRODUCT(ARRAY_STRUCTFIELD(                                            \
       ClassTable, NewSpaceSizeOffsetFor, ClassOffsetFor,                       \
       ClassHeapStats::allocated_size_since_gc_new_space_offset()))             \
-  NOT_IN_PRODUCT(FIELD(ClassTable, class_heap_stats_table_offset))             \
   RANGE(Code, entry_point_offset, CodeEntryKind, CodeEntryKind::kNormal,       \
         CodeEntryKind::kMonomorphicUnchecked,                                  \
         [](CodeEntryKind value) { return true; })                              \

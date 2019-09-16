@@ -139,7 +139,6 @@ class ObjectPointerVisitor;
   R_(Function, megamorphic_miss_function)                                      \
   RW(Array, code_order_table)                                                  \
   RW(Array, obfuscation_map)                                                   \
-  RW(GrowableObjectArray, changed_in_last_reload)                              \
   RW(Class, ffi_pointer_class)                                                 \
   RW(Class, ffi_native_type_class)                                             \
   RW(Class, ffi_struct_class)                                                  \

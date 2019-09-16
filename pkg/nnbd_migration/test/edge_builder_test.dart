@@ -375,6 +375,16 @@ class EdgeBuilderTest extends EdgeBuilderTestBase {
     return variables.decoratedExpressionType(findNode.expression(text));
   }
 
+  test_already_migrated_field() async {
+    await analyze('''
+double f() => double.NAN;
+''');
+    var nanElement = typeProvider.doubleType.element.getField('NAN');
+    assertEdge(variables.decoratedElementType(nanElement).node,
+        decoratedTypeAnnotation('double f').node,
+        hard: false);
+  }
+
   test_as_dynamic() async {
     await analyze('''
 void f(Object o) {
@@ -399,16 +409,6 @@ void f(Object o) {
         hard: true);
     // TODO(mfairhurst): these should probably be hard edges.
     assertEdge(decoratedTypeAnnotation('int').node, never, hard: false);
-  }
-
-  test_already_migrated_field() async {
-    await analyze('''
-double f() => double.NAN;
-''');
-    var nanElement = typeProvider.doubleType.element.getField('NAN');
-    assertEdge(variables.decoratedElementType(nanElement).node,
-        decoratedTypeAnnotation('double f').node,
-        hard: false);
   }
 
   test_assert_demonstrates_non_null_intent() async {
@@ -747,6 +747,48 @@ void f(C c, int i, int j) {
         hard: true);
   }
 
+  test_assignmentExpression_nullAware_complex_contravariant() async {
+    await analyze('''
+void Function(int) f(void Function(int) x, void Function(int) y) => x ??= y;
+''');
+    var xNullable =
+        decoratedGenericFunctionTypeAnnotation('void Function(int) x').node;
+    var xParamNullable = decoratedTypeAnnotation('int) x').node;
+    var yParamNullable = decoratedTypeAnnotation('int) y').node;
+    var returnParamNullable = decoratedTypeAnnotation('int) f').node;
+    assertEdge(xParamNullable, yParamNullable,
+        hard: false, guards: [xNullable]);
+    assertEdge(returnParamNullable, xParamNullable, hard: false);
+  }
+
+  test_assignmentExpression_nullAware_complex_covariant() async {
+    await analyze('''
+List<int> f(List<int> x, List<int> y) => x ??= y;
+''');
+    var xNullable = decoratedTypeAnnotation('List<int> x').node;
+    var xElementNullable = decoratedTypeAnnotation('int> x').node;
+    var yElementNullable = decoratedTypeAnnotation('int> y').node;
+    var returnElementNullable = decoratedTypeAnnotation('int> f').node;
+    assertEdge(yElementNullable, xElementNullable,
+        hard: false, guards: [xNullable]);
+    assertEdge(xElementNullable, returnElementNullable, hard: false);
+  }
+
+  test_assignmentExpression_nullAware_simple() async {
+    await analyze('''
+int f(int x, int y) => (x ??= y);
+''');
+    var yNullable = decoratedTypeAnnotation('int y').node;
+    var xNullable = decoratedTypeAnnotation('int x').node;
+    var returnNullable = decoratedTypeAnnotation('int f').node;
+    var glbNode = decoratedExpressionType('(x ??= y)').node;
+    assertEdge(yNullable, xNullable, hard: true, guards: [xNullable]);
+    assertEdge(yNullable, glbNode, hard: false, guards: [xNullable]);
+    assertEdge(glbNode, xNullable, hard: false);
+    assertEdge(glbNode, yNullable, hard: false);
+    assertEdge(glbNode, returnNullable, hard: false);
+  }
+
   test_assignmentExpression_operands() async {
     await analyze('''
 void f(int i, int j) {
@@ -939,6 +981,18 @@ int f(int i, int j) => i >> j;
     assertNoUpstreamNullability(decoratedTypeAnnotation('int f').node);
   }
 
+  test_binaryExpression_left_dynamic() async {
+    await analyze('''
+Object f(dynamic x, int y) => x + g(y);
+int g(int z) => z;
+''');
+    assertEdge(decoratedTypeAnnotation('int y').node,
+        decoratedTypeAnnotation('int z').node,
+        hard: true);
+    assertNoEdge(decoratedTypeAnnotation('int g').node, anyNode);
+    assertEdge(always, decoratedTypeAnnotation('Object f').node, hard: false);
+  }
+
   test_binaryExpression_lt_result_not_null() async {
     await analyze('''
 bool f(int i, int j) => i < j;
@@ -1086,6 +1140,20 @@ int f(int i, int j) => i ?? j;
     var right = decoratedTypeAnnotation('int j').node;
     var expression = decoratedExpressionType('??').node;
     assertEdge(right, expression, guards: [left], hard: false);
+  }
+
+  test_binaryExpression_right_dynamic() async {
+    await analyze('''
+class C {
+  C operator+(C other) => other;
+}
+C f(C x, dynamic y) => x + y;
+''');
+    assertNullCheck(checkExpression('x +'),
+        assertEdge(decoratedTypeAnnotation('C x').node, never, hard: true));
+    assertEdge(decoratedTypeAnnotation('C operator').node,
+        decoratedTypeAnnotation('C f').node,
+        hard: false);
   }
 
   test_binaryExpression_slash_result_not_null() async {
@@ -1437,6 +1505,15 @@ int f(bool b, int i) {
     var nullable_i = decoratedTypeAnnotation('int i').node;
     var nullable_conditional = decoratedExpressionType('(b ?').node;
     assertLUB(nullable_conditional, nullable_i, always);
+  }
+
+  test_constructor_default_parameter_value_bool() async {
+    await analyze('''
+class C {
+  C([bool b = true]);
+}
+''');
+    assertNoUpstreamNullability(decoratedTypeAnnotation('bool b').node);
   }
 
   test_constructor_named() async {
@@ -2486,6 +2563,92 @@ int f() {
     assertNoUpstreamNullability(decoratedTypeAnnotation('int').node);
   }
 
+  test_invocation_arguments() async {
+    await analyze('''
+int f(Function g, int i, int j) => g(h(i), named: h(j));
+int h(int x) => 0;
+''');
+    // Make sure the appropriate edges get created for the calls to h().
+    assertEdge(decoratedTypeAnnotation('int i').node,
+        decoratedTypeAnnotation('int x').node,
+        hard: true);
+    assertEdge(decoratedTypeAnnotation('int j').node,
+        decoratedTypeAnnotation('int x').node,
+        hard: true);
+  }
+
+  test_invocation_arguments_parenthesized() async {
+    await analyze('''
+int f(Function g, int i, int j) => (g)(h(i), named: h(j));
+int h(int x) => 0;
+''');
+    // Make sure the appropriate edges get created for the calls to h().
+    assertEdge(decoratedTypeAnnotation('int i').node,
+        decoratedTypeAnnotation('int x').node,
+        hard: true);
+    assertEdge(decoratedTypeAnnotation('int j').node,
+        decoratedTypeAnnotation('int x').node,
+        hard: true);
+  }
+
+  test_invocation_dynamic() async {
+    await analyze('''
+int f(dynamic g) => g();
+''');
+    assertEdge(always, decoratedTypeAnnotation('int f').node, hard: false);
+  }
+
+  test_invocation_dynamic_parenthesized() async {
+    await analyze('''
+int f(dynamic g) => (g)();
+''');
+    assertEdge(always, decoratedTypeAnnotation('int f').node, hard: false);
+  }
+
+  test_invocation_function() async {
+    await analyze('''
+int f(Function g) => g();
+''');
+    assertEdge(always, decoratedTypeAnnotation('int f').node, hard: false);
+    assertNullCheck(
+        checkExpression('g('),
+        assertEdge(decoratedTypeAnnotation('Function g').node, never,
+            hard: true));
+  }
+
+  test_invocation_function_parenthesized() async {
+    await analyze('''
+int f(Function g) => (g)();
+''');
+    assertEdge(always, decoratedTypeAnnotation('int f').node, hard: false);
+    assertNullCheck(
+        checkExpression('g)('),
+        assertEdge(decoratedTypeAnnotation('Function g').node, never,
+            hard: true));
+  }
+
+  test_invocation_type_arguments() async {
+    await analyze('''
+int f(Function g) => g<C<int>>();
+class C<T extends num> {}
+''');
+    // Make sure the appropriate edge gets created for the instantiation of C.
+    assertEdge(decoratedTypeAnnotation('int>').node,
+        decoratedTypeAnnotation('num>').node,
+        hard: true);
+  }
+
+  test_invocation_type_arguments_parenthesized() async {
+    await analyze('''
+int f(Function g) => (g)<C<int>>();
+class C<T extends num> {}
+''');
+    // Make sure the appropriate edge gets created for the instantiation of C.
+    assertEdge(decoratedTypeAnnotation('int>').node,
+        decoratedTypeAnnotation('num>').node,
+        hard: true);
+  }
+
   @failingTest
   test_isExpression_genericFunctionType() async {
     await analyze('''
@@ -2689,6 +2852,35 @@ int f(dynamic d, int j) {
         decoratedTypeAnnotation('int f').node);
     // We do, however, assume that it might return anything, including `null`.
     assertEdge(always, decoratedTypeAnnotation('int f').node, hard: false);
+  }
+
+  test_methodInvocation_dynamic_arguments() async {
+    await analyze('''
+int f(dynamic d, int i, int j) {
+  return d.g(h(i), named: h(j));
+}
+int h(int x) => 0;
+''');
+    // Make sure the appropriate edges get created for the calls to h().
+    assertEdge(decoratedTypeAnnotation('int i').node,
+        decoratedTypeAnnotation('int x').node,
+        hard: true);
+    assertEdge(decoratedTypeAnnotation('int j').node,
+        decoratedTypeAnnotation('int x').node,
+        hard: true);
+  }
+
+  test_methodInvocation_dynamic_type_arguments() async {
+    await analyze('''
+int f(dynamic d, int i, int j) {
+  return d.g<C<int>>();
+}
+class C<T extends num> {}
+''');
+    // Make sure the appropriate edge gets created for the instantiation of C.
+    assertEdge(decoratedTypeAnnotation('int>').node,
+        decoratedTypeAnnotation('num>').node,
+        hard: true);
   }
 
   test_methodInvocation_object_method() async {
@@ -4601,12 +4793,36 @@ String f() {
 
   test_superExpression() async {
     await analyze('''
-class C {
-  C f() => super;
+class B {
+  void f(int/*1*/ i, int/*2*/ j) {}
+}
+class C extends B {
+  void f(int/*3*/ i, int/*4*/ j) => super.f(j, i);
 }
 ''');
+    assertEdge(decoratedTypeAnnotation('int/*3*/').node,
+        decoratedTypeAnnotation('int/*2*/').node,
+        hard: true);
+    assertEdge(decoratedTypeAnnotation('int/*4*/').node,
+        decoratedTypeAnnotation('int/*1*/').node,
+        hard: true);
+  }
 
-    assertNoUpstreamNullability(decoratedTypeAnnotation('C f').node);
+  test_superExpression_generic() async {
+    await analyze('''
+class B<U> {
+  U g() => null;
+}
+class C<T> extends B<T> {
+  T f() => super.g();
+}
+''');
+    assertEdge(
+        substitutionNode(
+            substitutionNode(never, decoratedTypeAnnotation('T> {').node),
+            decoratedTypeAnnotation('U g').node),
+        decoratedTypeAnnotation('T f').node,
+        hard: false);
   }
 
   test_symbolLiteral() async {
@@ -4624,8 +4840,17 @@ class C {
   C f() => this;
 }
 ''');
-
     assertNoUpstreamNullability(decoratedTypeAnnotation('C f').node);
+  }
+
+  test_thisExpression_generic() async {
+    await analyze('''
+class C<T> {
+  C<T> f() => this;
+}
+''');
+    assertNoUpstreamNullability(decoratedTypeAnnotation('C<T> f').node);
+    assertNoUpstreamNullability(decoratedTypeAnnotation('T> f').node);
   }
 
   test_throwExpression() async {

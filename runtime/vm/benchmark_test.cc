@@ -511,13 +511,25 @@ static uint8_t* malloc_allocator(uint8_t* ptr,
   return reinterpret_cast<uint8_t*>(realloc(ptr, new_size));
 }
 
-// Start an Isolate, load a script and create a full snapshot.
-static void BenchmarkSnapshotSize(Benchmark* benchmark, const char* script) {
+BENCHMARK_SIZE(CoreSnapshotSize) {
+  const char* kScriptChars =
+      "import 'dart:async';\n"
+      "import 'dart:core';\n"
+      "import 'dart:collection';\n"
+      "import 'dart:_internal';\n"
+      "import 'dart:math';\n"
+      "import 'dart:isolate';\n"
+      "import 'dart:mirrors';\n"
+      "import 'dart:typed_data';\n"
+      "\n";
+
+  // Start an Isolate, load a script and create a full snapshot.
+  uint8_t* vm_snapshot_data_buffer;
+  uint8_t* isolate_snapshot_data_buffer;
   // Need to load the script into the dart: core library due to
   // the import of dart:_internal.
-  TestCase::LoadCoreTestScript(script, nullptr);
+  TestCase::LoadCoreTestScript(kScriptChars, NULL);
 
-  Thread* thread = Thread::Current();
   TransitionNativeToVM transition(thread);
   StackZone zone(thread);
   HANDLESCOPE(thread);
@@ -525,63 +537,58 @@ static void BenchmarkSnapshotSize(Benchmark* benchmark, const char* script) {
   Api::CheckAndFinalizePendingClasses(thread);
 
   // Write snapshot with object content.
-  uint8_t* vm_snapshot_data_buffer = nullptr;
-  uint8_t* isolate_snapshot_data_buffer = nullptr;
-  uint8_t* vm_snapshot_text_buffer = nullptr;
-  uint8_t* isolate_snapshot_text_buffer = nullptr;
-  BlobImageWriter vm_image_writer(thread, &vm_snapshot_text_buffer,
-                                  &malloc_allocator, 2 * MB /* initial_size */,
-                                  /*shared_objects=*/nullptr,
-                                  /*shared_instructions=*/nullptr,
-                                  /*reused_instructions=*/nullptr);
-  BlobImageWriter isolate_image_writer(thread, &isolate_snapshot_text_buffer,
-                                       &malloc_allocator,
-                                       2 * MB /* initial_size */,
-                                       /*shared_objects=*/nullptr,
-                                       /*shared_instructions=*/nullptr,
-                                       /*reused_instructions=*/nullptr);
   FullSnapshotWriter writer(Snapshot::kFull, &vm_snapshot_data_buffer,
                             &isolate_snapshot_data_buffer, &malloc_allocator,
-                            &vm_image_writer, &isolate_image_writer);
+                            NULL, NULL /* image_writer */);
   writer.WriteFullSnapshot();
   const Snapshot* snapshot =
       Snapshot::SetupFromBuffer(isolate_snapshot_data_buffer);
   ASSERT(snapshot->kind() == Snapshot::kFull);
-  benchmark->set_score(writer.IsolateSnapshotSize() +
-                       isolate_image_writer.data_size());
+  benchmark->set_score(snapshot->length());
 
   free(vm_snapshot_data_buffer);
-  free(vm_snapshot_text_buffer);
   free(isolate_snapshot_data_buffer);
-  free(isolate_snapshot_text_buffer);
-}
-
-BENCHMARK_SIZE(CoreSnapshotSize) {
-  BenchmarkSnapshotSize(benchmark,
-                        "import 'dart:async';\n"
-                        "import 'dart:core';\n"
-                        "import 'dart:collection';\n"
-                        "import 'dart:_internal';\n"
-                        "import 'dart:math';\n"
-                        "import 'dart:isolate';\n"
-                        "import 'dart:mirrors';\n"
-                        "import 'dart:typed_data';\n"
-                        "\n");
 }
 
 BENCHMARK_SIZE(StandaloneSnapshotSize) {
-  BenchmarkSnapshotSize(benchmark,
-                        "import 'dart:async';\n"
-                        "import 'dart:core';\n"
-                        "import 'dart:collection';\n"
-                        "import 'dart:convert';\n"
-                        "import 'dart:math';\n"
-                        "import 'dart:isolate';\n"
-                        "import 'dart:mirrors';\n"
-                        "import 'dart:typed_data';\n"
-                        "import 'dart:io';\n"
-                        "import 'dart:cli';\n"
-                        "\n");
+  const char* kScriptChars =
+      "import 'dart:async';\n"
+      "import 'dart:core';\n"
+      "import 'dart:collection';\n"
+      "import 'dart:convert';\n"
+      "import 'dart:math';\n"
+      "import 'dart:isolate';\n"
+      "import 'dart:mirrors';\n"
+      "import 'dart:typed_data';\n"
+      "import 'dart:io';\n"
+      "import 'dart:cli';\n"
+      "\n";
+
+  // Start an Isolate, load a script and create a full snapshot.
+  uint8_t* vm_snapshot_data_buffer;
+  uint8_t* isolate_snapshot_data_buffer;
+  // Need to load the script into the dart: core library due to
+  // the import of dart:_internal.
+  TestCase::LoadCoreTestScript(kScriptChars, NULL);
+
+  TransitionNativeToVM transition(thread);
+  StackZone zone(thread);
+  HANDLESCOPE(thread);
+
+  Api::CheckAndFinalizePendingClasses(thread);
+
+  // Write snapshot with object content.
+  FullSnapshotWriter writer(Snapshot::kFull, &vm_snapshot_data_buffer,
+                            &isolate_snapshot_data_buffer, &malloc_allocator,
+                            NULL, NULL /* image_writer */);
+  writer.WriteFullSnapshot();
+  const Snapshot* snapshot =
+      Snapshot::SetupFromBuffer(isolate_snapshot_data_buffer);
+  ASSERT(snapshot->kind() == Snapshot::kFull);
+  benchmark->set_score(snapshot->length());
+
+  free(vm_snapshot_data_buffer);
+  free(isolate_snapshot_data_buffer);
 }
 
 BENCHMARK(CreateMirrorSystem) {

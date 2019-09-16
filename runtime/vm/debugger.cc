@@ -637,13 +637,14 @@ void ActivationFrame::GetPcDescriptors() {
   }
 }
 
-// Compute token_pos_ and token_pos_initialized_.
-// If not IsInterpreted(), then also compute try_index_ and deopt_id_.
+// If not token_pos_initialized_, compute token_pos_, try_index_ and,
+// if not IsInterpreted(), also compute deopt_id_.
 TokenPosition ActivationFrame::TokenPos() {
   if (!token_pos_initialized_) {
     token_pos_initialized_ = true;
     if (IsInterpreted()) {
       token_pos_ = bytecode().GetTokenIndexOfPC(pc_);
+      try_index_ = bytecode().GetTryIndexAtPc(pc_);
       return token_pos_;
     }
     token_pos_ = TokenPosition::kNoSource;
@@ -663,16 +664,6 @@ TokenPosition ActivationFrame::TokenPos() {
 }
 
 intptr_t ActivationFrame::TryIndex() {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  if (IsInterpreted()) {
-    if (pc_desc_.IsNull()) {
-      ASSERT(try_index_ == -1);
-      pc_desc_ = bytecode().pc_descriptors();
-      try_index_ = bytecode().GetTryIndexAtPc(pc_);
-    }
-    return try_index_;
-  }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   if (!token_pos_initialized_) {
     TokenPos();  // Side effect: computes token_pos_initialized_, try_index_.
   }
@@ -2467,9 +2458,9 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
           // Grab the awaiter.
           async_activation ^= activation->GetAsyncAwaiter();
           async_stack_trace ^= activation->GetCausalStack();
-          // see comment regarding skipping frames of async functions called
-          // synchronously above.
-          skip_sync_async_frames_count = 2;
+          // Interpreted bytecode does not invoke _ClosureCall().
+          // Skip _AsyncAwaitCompleterStart() only.
+          skip_sync_async_frames_count = 1;
         } else {
           stack_trace->AddActivation(
               CollectDartFrame(isolate, frame->pc(), frame, bytecode));

@@ -877,16 +877,22 @@ abstract class AbstractScanner implements Scanner {
   }
 
   int tokenizeQuestion(int next) {
-    // ? ?. ?? ??=
+    // ? ?. ?.. ?? ??=
     next = advance();
     if (identical(next, $QUESTION)) {
       return select(
           $EQ, TokenType.QUESTION_QUESTION_EQ, TokenType.QUESTION_QUESTION);
     } else if (identical(next, $PERIOD)) {
       next = advance();
-      if (_enableNonNullable && identical($OPEN_SQUARE_BRACKET, next)) {
-        appendBeginGroup(TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET);
-        return advance();
+      if (_enableNonNullable) {
+        if (identical($PERIOD, next)) {
+          appendPrecedenceToken(TokenType.QUESTION_PERIOD_PERIOD);
+          return advance();
+        }
+        if (identical($OPEN_SQUARE_BRACKET, next)) {
+          appendBeginGroup(TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET);
+          return advance();
+        }
       }
       appendPrecedenceToken(TokenType.QUESTION_PERIOD);
       return next;

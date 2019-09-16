@@ -155,182 +155,6 @@ abstract class BaseProcessor {
     return validChange ? changeBuilder : null;
   }
 
-  Future<ChangeBuilder> createBuilder_convertToNullAware() async {
-    AstNode node = this.node;
-    if (node is! ConditionalExpression) {
-      _coverageMarker();
-      return null;
-    }
-    ConditionalExpression conditional = node;
-    Expression condition = conditional.condition.unParenthesized;
-    SimpleIdentifier identifier;
-    Expression nullExpression;
-    Expression nonNullExpression;
-    int periodOffset;
-
-    if (condition is BinaryExpression) {
-      //
-      // Identify the variable being compared to `null`, or return if the
-      // condition isn't a simple comparison of `null` to a variable's value.
-      //
-      Expression leftOperand = condition.leftOperand;
-      Expression rightOperand = condition.rightOperand;
-      if (leftOperand is NullLiteral && rightOperand is SimpleIdentifier) {
-        identifier = rightOperand;
-      } else if (rightOperand is NullLiteral &&
-          leftOperand is SimpleIdentifier) {
-        identifier = leftOperand;
-      } else {
-        _coverageMarker();
-        return null;
-      }
-      if (identifier.staticElement is! LocalElement) {
-        _coverageMarker();
-        return null;
-      }
-      //
-      // Identify the expression executed when the variable is `null` and when
-      // it is non-`null`. Return if the `null` expression isn't a null literal
-      // or if the non-`null` expression isn't a method invocation whose target
-      // is the save variable being compared to `null`.
-      //
-      if (condition.operator.type == TokenType.EQ_EQ) {
-        nullExpression = conditional.thenExpression;
-        nonNullExpression = conditional.elseExpression;
-      } else if (condition.operator.type == TokenType.BANG_EQ) {
-        nonNullExpression = conditional.thenExpression;
-        nullExpression = conditional.elseExpression;
-      }
-      if (nullExpression == null || nonNullExpression == null) {
-        _coverageMarker();
-        return null;
-      }
-      if (nullExpression.unParenthesized is! NullLiteral) {
-        _coverageMarker();
-        return null;
-      }
-      Expression unwrappedExpression = nonNullExpression.unParenthesized;
-      Expression target;
-      Token operator;
-      if (unwrappedExpression is MethodInvocation) {
-        target = unwrappedExpression.target;
-        operator = unwrappedExpression.operator;
-      } else if (unwrappedExpression is PrefixedIdentifier) {
-        target = unwrappedExpression.prefix;
-        operator = unwrappedExpression.period;
-      } else {
-        _coverageMarker();
-        return null;
-      }
-      if (operator.type != TokenType.PERIOD) {
-        _coverageMarker();
-        return null;
-      }
-      if (!(target is SimpleIdentifier &&
-          target.staticElement == identifier.staticElement)) {
-        _coverageMarker();
-        return null;
-      }
-      periodOffset = operator.offset;
-
-      DartChangeBuilder changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        builder.addDeletion(range.startStart(node, nonNullExpression));
-        builder.addSimpleInsertion(periodOffset, '?');
-        builder.addDeletion(range.endEnd(nonNullExpression, node));
-      });
-      return changeBuilder;
-    }
-    return null;
-  }
-
-  Future<ChangeBuilder> createBuilder_convertToExpressionFunctionBody() async {
-    // prepare current body
-    FunctionBody body = getEnclosingFunctionBody();
-    if (body is! BlockFunctionBody || body.isGenerator) {
-      _coverageMarker();
-      return null;
-    }
-    // prepare return statement
-    List<Statement> statements = (body as BlockFunctionBody).block.statements;
-    if (statements.length != 1) {
-      _coverageMarker();
-      return null;
-    }
-    Statement onlyStatement = statements.first;
-    // prepare returned expression
-    Expression returnExpression;
-    if (onlyStatement is ReturnStatement) {
-      returnExpression = onlyStatement.expression;
-    } else if (onlyStatement is ExpressionStatement) {
-      returnExpression = onlyStatement.expression;
-    }
-    if (returnExpression == null) {
-      _coverageMarker();
-      return null;
-    }
-
-    // Return expressions can be quite large, e.g. Flutter build() methods.
-    // It is surprising to see this Quick Assist deep in the function body.
-    if (selectionOffset >= returnExpression.offset) {
-      _coverageMarker();
-      return null;
-    }
-
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addReplacement(range.node(body), (DartEditBuilder builder) {
-        if (body.isAsynchronous) {
-          builder.write('async ');
-        }
-        builder.write('=> ');
-        builder.write(_getNodeText(returnExpression));
-        if (body.parent is! FunctionExpression ||
-            body.parent.parent is FunctionDeclaration) {
-          builder.write(';');
-        }
-      });
-    });
-    return changeBuilder;
-  }
-
-  /// Returns the text of the given node in the unit.
-  String /* TODO (pq): make visible */ _getNodeText(AstNode node) =>
-      utils.getNodeText(node);
-
-  FunctionBody getEnclosingFunctionBody() {
-    // TODO(brianwilkerson) Determine whether there is a reason why this method
-    // isn't just "return node.getAncestor((node) => node is FunctionBody);"
-    {
-      FunctionExpression function =
-          node.thisOrAncestorOfType<FunctionExpression>();
-      if (function != null) {
-        return function.body;
-      }
-    }
-    {
-      FunctionDeclaration function =
-          node.thisOrAncestorOfType<FunctionDeclaration>();
-      if (function != null) {
-        return function.functionExpression.body;
-      }
-    }
-    {
-      ConstructorDeclaration constructor =
-          node.thisOrAncestorOfType<ConstructorDeclaration>();
-      if (constructor != null) {
-        return constructor.body;
-      }
-    }
-    {
-      MethodDeclaration method = node.thisOrAncestorOfType<MethodDeclaration>();
-      if (method != null) {
-        return method.body;
-      }
-    }
-    return null;
-  }
-
   Future<ChangeBuilder>
       createBuilder_addTypeAnnotation_VariableDeclaration() async {
     AstNode node = this.node;
@@ -389,6 +213,90 @@ abstract class BaseProcessor {
       }
     });
     return validChange ? changeBuilder : null;
+  }
+
+  Future<ConvertToSpreadCollectionsChange>
+      createBuilder_convertAddAllToSpread() async {
+    AstNode node = this.node;
+    if (node is! SimpleIdentifier || node.parent is! MethodInvocation) {
+      _coverageMarker();
+      return null;
+    }
+    SimpleIdentifier name = node;
+    MethodInvocation invocation = node.parent;
+    if (name != invocation.methodName ||
+        name.name != 'addAll' ||
+        !invocation.isCascaded ||
+        invocation.argumentList.arguments.length != 1) {
+      _coverageMarker();
+      return null;
+    }
+    CascadeExpression cascade = invocation.thisOrAncestorOfType();
+    NodeList<Expression> sections = cascade.cascadeSections;
+    Expression target = cascade.target;
+    if (target is! ListLiteral || sections[0] != invocation) {
+      // TODO(brianwilkerson) Consider extending this to handle set literals.
+      _coverageMarker();
+      return null;
+    }
+
+    bool isEmptyListLiteral(Expression expression) =>
+        expression is ListLiteral && expression.elements.isEmpty;
+
+    ListLiteral list = target;
+    Expression argument = invocation.argumentList.arguments[0];
+    String elementText;
+    ConvertToSpreadCollectionsChange change =
+        ConvertToSpreadCollectionsChange();
+    List<String> args = null;
+    if (argument is BinaryExpression &&
+        argument.operator.type == TokenType.QUESTION_QUESTION) {
+      Expression right = argument.rightOperand;
+      if (isEmptyListLiteral(right)) {
+        // ..addAll(things ?? const [])
+        // ..addAll(things ?? [])
+        elementText = '...?${utils.getNodeText(argument.leftOperand)}';
+      }
+    } else if (experimentStatus.control_flow_collections &&
+        argument is ConditionalExpression) {
+      Expression elseExpression = argument.elseExpression;
+      if (isEmptyListLiteral(elseExpression)) {
+        // ..addAll(condition ? things : const [])
+        // ..addAll(condition ? things : [])
+        String conditionText = utils.getNodeText(argument.condition);
+        String thenText = utils.getNodeText(argument.thenExpression);
+        elementText = 'if ($conditionText) ...$thenText';
+      }
+    } else if (argument is ListLiteral) {
+      // ..addAll([ ... ])
+      NodeList<CollectionElement> elements = argument.elements;
+      if (elements.isEmpty) {
+        // TODO(brianwilkerson) Consider adding a cleanup for the empty list
+        //  case. We can essentially remove the whole invocation because it does
+        //  nothing.
+        return null;
+      }
+      int startOffset = elements.first.offset;
+      int endOffset = elements.last.end;
+      elementText = utils.getText(startOffset, endOffset - startOffset);
+      change.isLineInvocation = true;
+      args = ['addAll'];
+    }
+    elementText ??= '...${utils.getNodeText(argument)}';
+    DartChangeBuilder changeBuilder = _newDartChangeBuilder();
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      if (list.elements.isNotEmpty) {
+        // ['a']..addAll(['b', 'c']);
+        builder.addSimpleInsertion(list.elements.last.end, ', $elementText');
+      } else {
+        // []..addAll(['b', 'c']);
+        builder.addSimpleInsertion(list.leftBracket.end, elementText);
+      }
+      builder.addDeletion(range.node(invocation));
+    });
+    change.args = args;
+    change.builder = changeBuilder;
+    return change;
   }
 
   Future<ChangeBuilder>
@@ -649,6 +557,111 @@ abstract class BaseProcessor {
     return changeBuilder;
   }
 
+  Future<ChangeBuilder> createBuilder_convertQuotes(bool fromDouble) async {
+    if (node is SimpleStringLiteral) {
+      SimpleStringLiteral literal = node;
+      if (fromDouble ? !literal.isSingleQuoted : literal.isSingleQuoted) {
+        String newQuote = literal.isMultiline
+            ? (fromDouble ? "'''" : '"""')
+            : (fromDouble ? "'" : '"');
+        int quoteLength = literal.isMultiline ? 3 : 1;
+        String lexeme = literal.literal.lexeme;
+        if (lexeme.indexOf(newQuote) < 0) {
+          var changeBuilder = _newDartChangeBuilder();
+          await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+            builder.addSimpleReplacement(
+                new SourceRange(
+                    literal.offset + (literal.isRaw ? 1 : 0), quoteLength),
+                newQuote);
+            builder.addSimpleReplacement(
+                new SourceRange(literal.end - quoteLength, quoteLength),
+                newQuote);
+          });
+          return changeBuilder;
+        }
+      }
+    } else if (node is InterpolationString) {
+      StringInterpolation parent = node.parent;
+      if (fromDouble ? !parent.isSingleQuoted : parent.isSingleQuoted) {
+        String newQuote = parent.isMultiline
+            ? (fromDouble ? "'''" : '"""')
+            : (fromDouble ? "'" : '"');
+        int quoteLength = parent.isMultiline ? 3 : 1;
+        NodeList<InterpolationElement> elements = parent.elements;
+        for (int i = 0; i < elements.length; i++) {
+          InterpolationElement element = elements[i];
+          if (element is InterpolationString) {
+            String lexeme = element.contents.lexeme;
+            if (lexeme.indexOf(newQuote) >= 0) {
+              return null;
+            }
+          }
+        }
+        var changeBuilder = _newDartChangeBuilder();
+        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+          builder.addSimpleReplacement(
+              new SourceRange(
+                  parent.offset + (parent.isRaw ? 1 : 0), quoteLength),
+              newQuote);
+          builder.addSimpleReplacement(
+              new SourceRange(parent.end - quoteLength, quoteLength), newQuote);
+        });
+        return changeBuilder;
+      }
+    }
+    return null;
+  }
+
+  Future<ChangeBuilder> createBuilder_convertToExpressionFunctionBody() async {
+    // prepare current body
+    FunctionBody body = getEnclosingFunctionBody();
+    if (body is! BlockFunctionBody || body.isGenerator) {
+      _coverageMarker();
+      return null;
+    }
+    // prepare return statement
+    List<Statement> statements = (body as BlockFunctionBody).block.statements;
+    if (statements.length != 1) {
+      _coverageMarker();
+      return null;
+    }
+    Statement onlyStatement = statements.first;
+    // prepare returned expression
+    Expression returnExpression;
+    if (onlyStatement is ReturnStatement) {
+      returnExpression = onlyStatement.expression;
+    } else if (onlyStatement is ExpressionStatement) {
+      returnExpression = onlyStatement.expression;
+    }
+    if (returnExpression == null) {
+      _coverageMarker();
+      return null;
+    }
+
+    // Return expressions can be quite large, e.g. Flutter build() methods.
+    // It is surprising to see this Quick Assist deep in the function body.
+    if (selectionOffset >= returnExpression.offset) {
+      _coverageMarker();
+      return null;
+    }
+
+    var changeBuilder = _newDartChangeBuilder();
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      builder.addReplacement(range.node(body), (DartEditBuilder builder) {
+        if (body.isAsynchronous) {
+          builder.write('async ');
+        }
+        builder.write('=> ');
+        builder.write(_getNodeText(returnExpression));
+        if (body.parent is! FunctionExpression ||
+            body.parent.parent is FunctionDeclaration) {
+          builder.write(';');
+        }
+      });
+    });
+    return changeBuilder;
+  }
+
   Future<ChangeBuilder> createBuilder_convertToIntLiteral() async {
     if (node is! DoubleLiteral) {
       _coverageMarker();
@@ -674,6 +687,135 @@ abstract class BaseProcessor {
       });
     });
     return changeBuilder;
+  }
+
+  Future<ChangeBuilder> createBuilder_convertToNullAware() async {
+    AstNode node = this.node;
+    if (node is! ConditionalExpression) {
+      _coverageMarker();
+      return null;
+    }
+    ConditionalExpression conditional = node;
+    Expression condition = conditional.condition.unParenthesized;
+    SimpleIdentifier identifier;
+    Expression nullExpression;
+    Expression nonNullExpression;
+    int periodOffset;
+
+    if (condition is BinaryExpression) {
+      //
+      // Identify the variable being compared to `null`, or return if the
+      // condition isn't a simple comparison of `null` to a variable's value.
+      //
+      Expression leftOperand = condition.leftOperand;
+      Expression rightOperand = condition.rightOperand;
+      if (leftOperand is NullLiteral && rightOperand is SimpleIdentifier) {
+        identifier = rightOperand;
+      } else if (rightOperand is NullLiteral &&
+          leftOperand is SimpleIdentifier) {
+        identifier = leftOperand;
+      } else {
+        _coverageMarker();
+        return null;
+      }
+      if (identifier.staticElement is! LocalElement) {
+        _coverageMarker();
+        return null;
+      }
+      //
+      // Identify the expression executed when the variable is `null` and when
+      // it is non-`null`. Return if the `null` expression isn't a null literal
+      // or if the non-`null` expression isn't a method invocation whose target
+      // is the save variable being compared to `null`.
+      //
+      if (condition.operator.type == TokenType.EQ_EQ) {
+        nullExpression = conditional.thenExpression;
+        nonNullExpression = conditional.elseExpression;
+      } else if (condition.operator.type == TokenType.BANG_EQ) {
+        nonNullExpression = conditional.thenExpression;
+        nullExpression = conditional.elseExpression;
+      }
+      if (nullExpression == null || nonNullExpression == null) {
+        _coverageMarker();
+        return null;
+      }
+      if (nullExpression.unParenthesized is! NullLiteral) {
+        _coverageMarker();
+        return null;
+      }
+      Expression unwrappedExpression = nonNullExpression.unParenthesized;
+      Expression target;
+      Token operator;
+      if (unwrappedExpression is MethodInvocation) {
+        target = unwrappedExpression.target;
+        operator = unwrappedExpression.operator;
+      } else if (unwrappedExpression is PrefixedIdentifier) {
+        target = unwrappedExpression.prefix;
+        operator = unwrappedExpression.period;
+      } else {
+        _coverageMarker();
+        return null;
+      }
+      if (operator.type != TokenType.PERIOD) {
+        _coverageMarker();
+        return null;
+      }
+      if (!(target is SimpleIdentifier &&
+          target.staticElement == identifier.staticElement)) {
+        _coverageMarker();
+        return null;
+      }
+      periodOffset = operator.offset;
+
+      DartChangeBuilder changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addDeletion(range.startStart(node, nonNullExpression));
+        builder.addSimpleInsertion(periodOffset, '?');
+        builder.addDeletion(range.endEnd(nonNullExpression, node));
+      });
+      return changeBuilder;
+    }
+    return null;
+  }
+
+  Future<ChangeBuilder> createBuilder_convertToPackageImport() async {
+    var node = this.node;
+    if (node is StringLiteral) {
+      node = node.parent;
+    }
+    if (node is ImportDirective) {
+      ImportDirective importDirective = node;
+      var uriSource = importDirective.uriSource;
+
+      // Ignore if invalid URI.
+      if (uriSource == null) {
+        return null;
+      }
+
+      var importUri = uriSource.uri;
+      if (importUri.scheme != 'package') {
+        return null;
+      }
+
+      // Don't offer to convert a 'package:' URI to itself.
+      try {
+        if (Uri.parse(importDirective.uriContent).scheme == 'package') {
+          return null;
+        }
+      } on FormatException {
+        return null;
+      }
+
+      var changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (builder) {
+        builder.addSimpleReplacement(
+          range.node(importDirective.uri),
+          "'$importUri'",
+        );
+      });
+      return changeBuilder;
+    }
+    return null;
   }
 
   @protected
@@ -803,6 +945,39 @@ abstract class BaseProcessor {
     return null;
   }
 
+  FunctionBody getEnclosingFunctionBody() {
+    // TODO(brianwilkerson) Determine whether there is a reason why this method
+    // isn't just "return node.getAncestor((node) => node is FunctionBody);"
+    {
+      FunctionExpression function =
+          node.thisOrAncestorOfType<FunctionExpression>();
+      if (function != null) {
+        return function.body;
+      }
+    }
+    {
+      FunctionDeclaration function =
+          node.thisOrAncestorOfType<FunctionDeclaration>();
+      if (function != null) {
+        return function.functionExpression.body;
+      }
+    }
+    {
+      ConstructorDeclaration constructor =
+          node.thisOrAncestorOfType<ConstructorDeclaration>();
+      if (constructor != null) {
+        return constructor.body;
+      }
+    }
+    {
+      MethodDeclaration method = node.thisOrAncestorOfType<MethodDeclaration>();
+      if (method != null) {
+        return method.body;
+      }
+    }
+    return null;
+  }
+
   @protected
   bool setupCompute() {
     final locator = NodeLocator(selectionOffset, selectionEnd);
@@ -822,6 +997,10 @@ abstract class BaseProcessor {
     }
   }
 
+  /// Returns the text of the given node in the unit.
+  String /* TODO (pq): make visible */ _getNodeText(AstNode node) =>
+      utils.getNodeText(node);
+
   DartChangeBuilder _newDartChangeBuilder() =>
       DartChangeBuilderImpl.forWorkspace(workspace);
 
@@ -831,6 +1010,12 @@ abstract class BaseProcessor {
   ///
   /// https://code.google.com/p/dart/issues/detail?id=19912
   static void _coverageMarker() {}
+}
+
+class ConvertToSpreadCollectionsChange {
+  ChangeBuilder builder;
+  List<String> args;
+  bool isLineInvocation = false;
 }
 
 /// A visitor that can be used to find references to a parameter.

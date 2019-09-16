@@ -2544,6 +2544,16 @@ class NNBDParserTest_Fasta extends FastaParserTestCase {
     parseCompilationUnit('D? foo(X? x) { X? x1; X? x2 = x + bar(7); }');
   }
 
+  void test_assignment_complex2() {
+    parseCompilationUnit(r'''
+main() {
+  A? a;
+  String? s = '';
+  a?..foo().length..x27 = s!..toString().length;
+}
+''');
+  }
+
   void test_assignment_simple() {
     parseCompilationUnit('D? foo(X? x) { X? x1; X? x2 = x; }');
   }
@@ -2559,6 +2569,39 @@ class NNBDParserTest_Fasta extends FastaParserTestCase {
     expect(expression.operator.lexeme, '??');
     SimpleIdentifier rhs = expression.rightOperand;
     expect(rhs.name, 'x2');
+  }
+
+  void test_cascade_withNullCheck_indexExpression() {
+    var unit = parseCompilationUnit('main() { a?..[27]; }');
+    FunctionDeclaration funct = unit.declarations[0];
+    BlockFunctionBody body = funct.functionExpression.body;
+    ExpressionStatement statement = body.block.statements[0];
+    CascadeExpression cascade = statement.expression;
+    IndexExpression indexExpression = cascade.cascadeSections[0];
+    expect(indexExpression.period.lexeme, '?..');
+    expect(indexExpression.toSource(), '?..[27]');
+  }
+
+  void test_cascade_withNullCheck_methodInvocation() {
+    var unit = parseCompilationUnit('main() { a?..foo(); }');
+    FunctionDeclaration funct = unit.declarations[0];
+    BlockFunctionBody body = funct.functionExpression.body;
+    ExpressionStatement statement = body.block.statements[0];
+    CascadeExpression cascade = statement.expression;
+    MethodInvocation invocation = cascade.cascadeSections[0];
+    expect(invocation.operator.lexeme, '?..');
+    expect(invocation.toSource(), '?..foo()');
+  }
+
+  void test_cascade_withNullCheck_propertyAccess() {
+    var unit = parseCompilationUnit('main() { a?..x27; }');
+    FunctionDeclaration funct = unit.declarations[0];
+    BlockFunctionBody body = funct.functionExpression.body;
+    ExpressionStatement statement = body.block.statements[0];
+    CascadeExpression cascade = statement.expression;
+    PropertyAccess propertyAccess = cascade.cascadeSections[0];
+    expect(propertyAccess.operator.lexeme, '?..');
+    expect(propertyAccess.toSource(), '?..x27');
   }
 
   void test_conditional() {

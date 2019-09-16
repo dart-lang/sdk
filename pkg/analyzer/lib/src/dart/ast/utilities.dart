@@ -7526,7 +7526,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitIndexExpression(IndexExpression node) {
     if (node.isCascaded) {
-      _writer.print("..");
+      _writer.print(node.period.lexeme);
     } else {
       _visitNode(node.target);
     }
@@ -7635,7 +7635,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitMethodInvocation(MethodInvocation node) {
     if (node.isCascaded) {
-      _writer.print("..");
+      _writer.print(node.operator.lexeme);
     } else {
       if (node.target != null) {
         node.target.accept(this);
@@ -7735,7 +7735,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitPropertyAccess(PropertyAccess node) {
     if (node.isCascaded) {
-      _writer.print("..");
+      _writer.print(node.operator.lexeme);
     } else {
       _visitNode(node.target);
       _writer.print(node.operator.lexeme);
@@ -8833,7 +8833,7 @@ class ToSourceVisitor2 implements AstVisitor<void> {
   @override
   void visitIndexExpression(IndexExpression node) {
     if (node.isCascaded) {
-      sink.write("..");
+      sink.write(node.period.lexeme);
     } else {
       safelyVisitNode(node.target);
     }
@@ -8942,7 +8942,7 @@ class ToSourceVisitor2 implements AstVisitor<void> {
   @override
   void visitMethodInvocation(MethodInvocation node) {
     if (node.isCascaded) {
-      sink.write("..");
+      sink.write(node.operator.lexeme);
     } else {
       if (node.target != null) {
         node.target.accept(this);
@@ -9042,7 +9042,7 @@ class ToSourceVisitor2 implements AstVisitor<void> {
   @override
   void visitPropertyAccess(PropertyAccess node) {
     if (node.isCascaded) {
-      sink.write("..");
+      sink.write(node.operator.lexeme);
     } else {
       safelyVisitNode(node.target);
       sink.write(node.operator.lexeme);

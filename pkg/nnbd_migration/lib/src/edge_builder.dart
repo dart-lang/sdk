@@ -274,15 +274,17 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitAssignmentExpression(AssignmentExpression node) {
     _CompoundOperatorInfo compoundOperatorInfo;
+    bool isQuestionAssign = false;
     if (node.operator.type == TokenType.QUESTION_QUESTION_EQ) {
-      _unimplemented(node, 'Assignment with operator ??=');
+      isQuestionAssign = true;
     } else if (node.operator.type != TokenType.EQ) {
       compoundOperatorInfo = _CompoundOperatorInfo(
           node.staticElement, node.operator.offset, node.staticType);
     }
     var expressionType = _handleAssignment(node.rightHandSide,
         destinationExpression: node.leftHandSide,
-        compoundOperatorInfo: compoundOperatorInfo);
+        compoundOperatorInfo: compoundOperatorInfo,
+        questionAssignNode: isQuestionAssign ? node : null);
     var conditionalNode = _conditionalNodes[node.leftHandSide];
     if (conditionalNode != null) {
       expressionType = expressionType.withNode(
@@ -369,13 +371,17 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           (callee.enclosingElement as ClassElement)
               .typeParameters
               .isNotEmpty)); // TODO(paulberry)
-      assert(callee != null); // TODO(paulberry)
-      var calleeType = getOrComputeElementType(callee);
-      // TODO(paulberry): substitute if necessary
-      assert(calleeType.positionalParameters.length > 0); // TODO(paulberry)
-      _handleAssignment(node.rightOperand,
-          destinationType: calleeType.positionalParameters[0]);
-      return _fixNumericTypes(calleeType.returnType, node.staticType);
+      if (callee == null) {
+        node.rightOperand.accept(this);
+        return _dynamicType;
+      } else {
+        var calleeType = getOrComputeElementType(callee);
+        // TODO(paulberry): substitute if necessary
+        assert(calleeType.positionalParameters.length > 0); // TODO(paulberry)
+        _handleAssignment(node.rightOperand,
+            destinationType: calleeType.positionalParameters[0]);
+        return _fixNumericTypes(calleeType.returnType, node.staticType);
+      }
     } else {
       // TODO(paulberry)
       node.leftOperand.accept(this);
@@ -662,9 +668,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitFunctionExpressionInvocation(
       FunctionExpressionInvocation node) {
-    DecoratedType calleeType = node.function.accept(this);
-    return _handleInvocationArguments(node, node.argumentList.arguments,
-        node.typeArguments, node.typeArgumentTypes, calleeType, null);
+    return _handleFunctionExpressionInvocation(node, node.function,
+        node.argumentList, node.typeArguments, node.typeArgumentTypes);
   }
 
   @override
@@ -901,7 +906,13 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       // Dynamic dispatch.  The return type is `dynamic`.
       // TODO(paulberry): would it be better to assume a return type of `Never`
       // so that we don't unnecessarily propagate nullabilities everywhere?
+      node.typeArguments?.accept(this);
+      node.argumentList.accept(this);
       return _dynamicType;
+    } else if (callee is VariableElement) {
+      // Function expression invocation that looks like a method invocation.
+      return _handleFunctionExpressionInvocation(node, node.methodName,
+          node.argumentList, node.typeArguments, node.typeArgumentTypes);
     }
     var calleeType = getOrComputeElementType(callee, targetType: targetType);
     if (callee is PropertyAccessorElement) {
@@ -1184,7 +1195,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitSuperExpression(SuperExpression node) {
-    return DecoratedType(node.staticType, _graph.never);
+    return _handleThisOrSuper(node);
   }
 
   @override
@@ -1214,7 +1225,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitThisExpression(ThisExpression node) {
-    return DecoratedType(node.staticType, _graph.never);
+    return _handleThisOrSuper(node);
   }
 
   @override
@@ -1535,6 +1546,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       {DecoratedType destinationType,
       Expression destinationExpression,
       _CompoundOperatorInfo compoundOperatorInfo,
+      Expression questionAssignNode,
       bool canInsertChecks = true}) {
     assert(
         (destinationExpression == null) != (destinationType == null),
@@ -1554,47 +1566,64 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         destinationType = destinationExpression.accept(this);
       }
     }
-    var sourceType = expression.accept(this);
-    if (sourceType == null) {
-      throw StateError('No type computed for ${expression.runtimeType} '
-          '(${expression.toSource()}) offset=${expression.offset}');
+    if (questionAssignNode != null) {
+      _guards.add(destinationType.node);
     }
-    ExpressionChecks expressionChecks;
-    if (canInsertChecks && !sourceType.type.isDynamic) {
-      expressionChecks = ExpressionChecks(expression.end);
-      _variables.recordExpressionChecks(source, expression, expressionChecks);
-    }
-    if (compoundOperatorInfo != null) {
-      var compoundOperatorMethod = compoundOperatorInfo.method;
-      if (compoundOperatorMethod != null) {
-        _checkAssignment(
-            CompoundAssignmentOrigin(source, compoundOperatorInfo.offset),
-            source: destinationType,
-            destination: _notNullType,
-            hard:
-                _postDominatedLocals.isReferenceInScope(destinationExpression));
-        DecoratedType compoundOperatorType =
-            getOrComputeElementType(compoundOperatorMethod);
-        assert(compoundOperatorType.positionalParameters.length > 0);
+    DecoratedType sourceType;
+    try {
+      sourceType = expression.accept(this);
+      if (sourceType == null) {
+        throw StateError('No type computed for ${expression.runtimeType} '
+            '(${expression.toSource()}) offset=${expression.offset}');
+      }
+      ExpressionChecks expressionChecks;
+      if (canInsertChecks && !sourceType.type.isDynamic) {
+        expressionChecks = ExpressionChecks(expression.end);
+        _variables.recordExpressionChecks(source, expression, expressionChecks);
+      }
+      if (compoundOperatorInfo != null) {
+        var compoundOperatorMethod = compoundOperatorInfo.method;
+        if (compoundOperatorMethod != null) {
+          _checkAssignment(
+              CompoundAssignmentOrigin(source, compoundOperatorInfo.offset),
+              source: destinationType,
+              destination: _notNullType,
+              hard: _postDominatedLocals
+                  .isReferenceInScope(destinationExpression));
+          DecoratedType compoundOperatorType =
+              getOrComputeElementType(compoundOperatorMethod);
+          assert(compoundOperatorType.positionalParameters.length > 0);
+          _checkAssignment(expressionChecks,
+              source: sourceType,
+              destination: compoundOperatorType.positionalParameters[0],
+              hard: _postDominatedLocals.isReferenceInScope(expression));
+          sourceType = _fixNumericTypes(compoundOperatorType.returnType,
+              compoundOperatorInfo.undecoratedType);
+          _checkAssignment(
+              CompoundAssignmentOrigin(source, compoundOperatorInfo.offset),
+              source: sourceType,
+              destination: destinationType,
+              hard: false);
+        } else {
+          sourceType = _dynamicType;
+        }
+      } else {
         _checkAssignment(expressionChecks,
             source: sourceType,
-            destination: compoundOperatorType.positionalParameters[0],
-            hard: _postDominatedLocals.isReferenceInScope(expression));
-        sourceType = _fixNumericTypes(compoundOperatorType.returnType,
-            compoundOperatorInfo.undecoratedType);
-        _checkAssignment(
-            CompoundAssignmentOrigin(source, compoundOperatorInfo.offset),
-            source: sourceType,
             destination: destinationType,
-            hard: false);
-      } else {
-        sourceType = _dynamicType;
+            hard: _postDominatedLocals.isReferenceInScope(expression));
       }
-    } else {
-      _checkAssignment(expressionChecks,
-          source: sourceType,
-          destination: destinationType,
-          hard: _postDominatedLocals.isReferenceInScope(expression));
+      if (questionAssignNode != null) {
+        // a ??= b is only nullable if both a and b are nullable.
+        sourceType = destinationType.withNode(_nullabilityNodeForGLB(
+            questionAssignNode, sourceType.node, destinationType.node));
+        _variables.recordDecoratedExpressionType(
+            questionAssignNode, sourceType);
+      }
+    } finally {
+      if (questionAssignNode != null) {
+        _guards.removeLast();
+      }
     }
     if (destinationExpression != null) {
       _postDominatedLocals.removeReferenceFromAllScopes(destinationExpression);
@@ -1647,9 +1676,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     assert(_currentFunctionType == null);
     metadata.accept(this);
     returnType?.accept(this);
+    _createFlowAnalysis(body);
     parameters?.accept(this);
     _currentFunctionType = _variables.decoratedElementType(declaredElement);
-    _createFlowAnalysis(body);
     _addParametersToFlowAnalysis(parameters);
     // Push a scope of post-dominated declarations on the stack.
     _postDominatedLocals.pushScope(elements: declaredElement.parameters);
@@ -1778,6 +1807,24 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         _flowAnalysis.forEach_end();
       }
     });
+  }
+
+  DecoratedType _handleFunctionExpressionInvocation(
+      AstNode node,
+      Expression function,
+      ArgumentList argumentList,
+      TypeArgumentList typeArguments,
+      List<DartType> typeArgumentTypes) {
+    DecoratedType calleeType = _checkExpressionNotNull(function);
+    if (calleeType.type is FunctionType) {
+      return _handleInvocationArguments(node, argumentList.arguments,
+          typeArguments, typeArgumentTypes, calleeType, null);
+    } else {
+      // Invocation of type `dynamic` or `Function`.
+      typeArguments?.accept(this);
+      argumentList.accept(this);
+      return _dynamicType;
+    }
   }
 
   /// Creates the necessary constraint(s) for an [argumentList] when invoking an
@@ -1913,6 +1960,19 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
   }
 
+  DecoratedType _handleThisOrSuper(Expression node) {
+    var type = node.staticType as InterfaceType;
+    // Instantiate the type, and any type arguments, with `_graph.never`,
+    // because the type of `this` is always `ClassName<Param, Param, ...>` with
+    // no `?`s.  (Even if some of the type parameters are allowed to be
+    // instantiated with nullable types at runtime, a reference to `this` can't
+    // be migrated in such a way that forces them to be nullable).
+    return DecoratedType(type, _graph.never,
+        typeArguments: type.typeArguments
+            .map((t) => DecoratedType(t, _graph.never))
+            .toList());
+  }
+
   bool _isConditionalExpression(Expression expression) {
     Token token;
     if (expression is MethodInvocation) {
@@ -2037,6 +2097,35 @@ mixin _AssignmentChecker {
       {@required DecoratedType source, @required DecoratedType destination}) {
     var sourceType = source.type;
     var destinationType = destination.type;
+    if (!_typeSystem.isSubtypeOf(sourceType, destinationType)) {
+      // Not a proper upcast assignment.  It is either an implicit downcast or
+      // some illegal code.  It's handled on a "best effort" basis.
+      if (destinationType is TypeParameterType &&
+          sourceType is! TypeParameterType) {
+        // Assume an assignment to the type parameter's bound.
+        _checkAssignment(origin,
+            source: source,
+            destination:
+                _getTypeParameterTypeBound(destination).withNode(_graph.always),
+            hard: false);
+        return;
+      }
+      if (sourceType is InterfaceType && destinationType is InterfaceType) {
+        if (_typeSystem.isSubtypeOf(destinationType, sourceType)) {
+          var rewrittenDestination = _decoratedClassHierarchy.asInstanceOf(
+              destination, sourceType.element);
+          assert(rewrittenDestination.typeArguments.length ==
+              source.typeArguments.length);
+          for (int i = 0; i < rewrittenDestination.typeArguments.length; i++) {
+            _checkAssignment(origin,
+                source: source.typeArguments[i],
+                destination: rewrittenDestination.typeArguments[i],
+                hard: false);
+          }
+        }
+      }
+      return;
+    }
     if (destinationType.isDartAsyncFutureOr) {
       // (From the subtyping spec):
       // if T1 is FutureOr<S1> then T0 <: T1 iff any of the following hold:
@@ -2059,8 +2148,9 @@ mixin _AssignmentChecker {
       else if (sourceType is TypeParameterType) {
         throw UnimplementedError('TODO(paulberry)');
       } else {
-        // Not a subtype; this must be a downcast.
-        throw UnimplementedError('TODO(paulberry)');
+        // Not a subtype.  This should never happen, since we handle the
+        // implicit downcast case above.
+        assert(false, 'not a subtype');
       }
     }
     if (sourceType.isBottom || sourceType.isDartCoreNull) {
@@ -2083,44 +2173,17 @@ mixin _AssignmentChecker {
             hard: false);
         return;
       }
-    } else if (destinationType is TypeParameterType) {
-      // Effectively this is a downcast assignment from the source type to the
-      // type parameter's bound.
-      _checkAssignment(origin,
-          source: source,
-          destination:
-              _getTypeParameterTypeBound(destination).withNode(_graph.always),
-          hard: false);
     } else if (sourceType is InterfaceType &&
         destinationType is InterfaceType) {
-      if (_typeSystem.isSubtypeOf(sourceType, destinationType)) {
-        // Ordinary (upcast) assignment.  No cast necessary.
-        var rewrittenSource = _decoratedClassHierarchy.asInstanceOf(
-            source, destinationType.element);
-        assert(rewrittenSource.typeArguments.length ==
-            destination.typeArguments.length);
-        for (int i = 0; i < rewrittenSource.typeArguments.length; i++) {
-          _checkAssignment(origin,
-              source: rewrittenSource.typeArguments[i],
-              destination: destination.typeArguments[i],
-              hard: false);
-        }
-      } else if (_typeSystem.isSubtypeOf(destinationType, sourceType)) {
-        // Implicit downcast assignment.
-        // TODO(paulberry): the migration tool should insert a cast.
-        var rewrittenDestination = _decoratedClassHierarchy.asInstanceOf(
-            destination, sourceType.element);
-        assert(rewrittenDestination.typeArguments.length ==
-            source.typeArguments.length);
-        for (int i = 0; i < rewrittenDestination.typeArguments.length; i++) {
-          _checkAssignment(origin,
-              source: source.typeArguments[i],
-              destination: rewrittenDestination.typeArguments[i],
-              hard: false);
-        }
-      } else {
-        // This should never arise for correct code; if it does arise, recover
-        // from the error by just not creating any additional edges.
+      var rewrittenSource = _decoratedClassHierarchy.asInstanceOf(
+          source, destinationType.element);
+      assert(rewrittenSource.typeArguments.length ==
+          destination.typeArguments.length);
+      for (int i = 0; i < rewrittenSource.typeArguments.length; i++) {
+        _checkAssignment(origin,
+            source: rewrittenSource.typeArguments[i],
+            destination: destination.typeArguments[i],
+            hard: false);
       }
     } else if (sourceType is FunctionType && destinationType is FunctionType) {
       _checkAssignment(origin,

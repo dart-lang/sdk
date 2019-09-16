@@ -9,6 +9,7 @@
 #include "vm/heap/become.h"
 #include "vm/heap/freelist.h"
 #include "vm/isolate.h"
+#include "vm/isolate_reload.h"
 #include "vm/object.h"
 #include "vm/runtime_entry.h"
 #include "vm/visitor.h"
@@ -57,11 +58,11 @@ void RawObject::Validate(Isolate* isolate) const {
     }
   }
   intptr_t class_id = ClassIdTag::decode(tags);
-  if (!isolate->class_table()->IsValidIndex(class_id)) {
+  if (!isolate->shared_class_table()->IsValidIndex(class_id)) {
     FATAL1("Invalid class id encountered %" Pd "\n", class_id);
   }
-  if ((class_id == kNullCid) &&
-      (isolate->class_table()->At(class_id) == NULL)) {
+  if (class_id == kNullCid &&
+      isolate->shared_class_table()->HasValidClassAt(class_id)) {
     // Null class not yet initialized; skip.
     return;
   }
@@ -212,9 +213,19 @@ intptr_t RawObject::HeapSizeFromClass() const {
       // TODO(koda): Add Size(ClassTable*) interface to allow caching in loops.
       Isolate* isolate = Isolate::Current();
 #if defined(DEBUG)
-      ClassTable* class_table = isolate->class_table();
+      auto class_table = isolate->shared_class_table();
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      auto reload_context = isolate->reload_context();
+      const bool use_saved_class_table =
+          reload_context != nullptr ? reload_context->UseSavedClassTableForGC()
+                                    : false;
+#else
+      const bool use_saved_class_table = false;
+#endif
+
+      ASSERT(use_saved_class_table || class_table->SizeAt(class_id) > 0);
       if (!class_table->IsValidIndex(class_id) ||
-          !class_table->HasValidClassAt(class_id)) {
+          (!class_table->HasValidClassAt(class_id) && !use_saved_class_table)) {
         FATAL2("Invalid class id: %" Pd " from tags %x\n", class_id,
                ptr()->tags_);
       }

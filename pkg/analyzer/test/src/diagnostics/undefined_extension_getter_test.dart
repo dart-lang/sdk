@@ -22,7 +22,7 @@ class UndefinedExtensionGetterTest extends DriverResolutionTest {
     ..contextFeatures = new FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
 
-  test_instance_defined() async {
+  test_override_defined() async {
     await assertNoErrorsInCode('''
 extension E on String {
   int get g => 0;
@@ -33,7 +33,7 @@ f() {
 ''');
   }
 
-  test_instance_withoutSetter() async {
+  test_override_undefined() async {
     await assertErrorsInCode('''
 extension E on String {}
 f() {
@@ -44,7 +44,7 @@ f() {
     ]);
   }
 
-  test_instance_withSetter() async {
+  test_override_undefined_hasSetter() async {
     await assertErrorsInCode('''
 extension E on String {
   void set s(int x) {}

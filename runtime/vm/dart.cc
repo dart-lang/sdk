@@ -859,14 +859,6 @@ const char* Dart::FeaturesString(Isolate* isolate,
 #else
 #error What architecture?
 #endif
-  } else {
-#if defined(ARCH_IS_32_BIT)
-    buffer.AddString(" 32-bit");
-#elif defined(ARCH_IS_64_BIT)
-    buffer.AddString(" 64-bit");
-#else
-#error What word size?
-#endif
   }
 
   if (FLAG_precompiled_mode && FLAG_dwarf_stack_traces) {

@@ -1154,7 +1154,7 @@ void main(int argc, char** argv) {
 
   char* error = nullptr;
   if (!dart::embedder::InitOnce(&error)) {
-    Syslog::PrintErr("Stanalone embedder initialization failed: %s\n", error);
+    Syslog::PrintErr("Standalone embedder initialization failed: %s\n", error);
     free(error);
     Platform::Exit(kErrorExitCode);
   }

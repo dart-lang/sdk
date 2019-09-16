@@ -269,7 +269,7 @@ class RunningProcess {
       var processFuture = io.Process.start(command.executable, args,
           environment: processEnvironment,
           workingDirectory: command.workingDirectory);
-      processFuture.then((io.Process process) {
+      processFuture.then<dynamic>((io.Process process) {
         var stdoutFuture = process.stdout.pipe(stdout);
         var stderrFuture = process.stderr.pipe(stderr);
         pid = process.pid;

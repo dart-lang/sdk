@@ -101,8 +101,16 @@ class AssistProcessor extends BaseProcessor {
     )) {
       await _addProposal_convertToNullAware();
     }
-    await _addProposal_convertToPackageImport();
-    await _addProposal_convertToSingleQuotedString();
+    if (!_containsErrorCode(
+      {LintNames.avoid_relative_lib_imports},
+    )) {
+      await _addProposal_convertToPackageImport();
+    }
+    if (!_containsErrorCode(
+      {LintNames.prefer_single_quotes},
+    )) {
+      await _addProposal_convertToSingleQuotedString();
+    }
     await _addProposal_encapsulateField();
     await _addProposal_exchangeOperands();
     await _addProposal_flutterConvertToChildren();
@@ -151,7 +159,11 @@ class AssistProcessor extends BaseProcessor {
       }
     }
     if (experimentStatus.spread_collections) {
-      await _addProposal_convertAddAllToSpread();
+      if (!_containsErrorCode(
+        {LintNames.prefer_spread_collections},
+      )) {
+        await _addProposal_convertAddAllToSpread();
+      }
     }
 
     return assists;
@@ -252,83 +264,13 @@ class AssistProcessor extends BaseProcessor {
   }
 
   Future<void> _addProposal_convertAddAllToSpread() async {
-    AstNode node = this.node;
-    if (node is! SimpleIdentifier || node.parent is! MethodInvocation) {
-      _coverageMarker();
-      return;
+    final change = await createBuilder_convertAddAllToSpread();
+    if (change != null) {
+      final kind = change.isLineInvocation
+          ? DartAssistKind.INLINE_INVOCATION
+          : DartAssistKind.CONVERT_TO_SPREAD;
+      _addAssistFromBuilder(change.builder, kind, args: change.args);
     }
-    SimpleIdentifier name = node;
-    MethodInvocation invocation = node.parent;
-    if (name != invocation.methodName ||
-        name.name != 'addAll' ||
-        !invocation.isCascaded ||
-        invocation.argumentList.arguments.length != 1) {
-      _coverageMarker();
-      return;
-    }
-    CascadeExpression cascade = invocation.thisOrAncestorOfType();
-    NodeList<Expression> sections = cascade.cascadeSections;
-    Expression target = cascade.target;
-    if (target is! ListLiteral || sections[0] != invocation) {
-      // TODO(brianwilkerson) Consider extending this to handle set literals.
-      _coverageMarker();
-      return;
-    }
-
-    bool isEmptyListLiteral(Expression expression) =>
-        expression is ListLiteral && expression.elements.isEmpty;
-
-    ListLiteral list = target;
-    Expression argument = invocation.argumentList.arguments[0];
-    String elementText;
-    AssistKind kind = DartAssistKind.CONVERT_TO_SPREAD;
-    List<String> args = null;
-    if (argument is BinaryExpression &&
-        argument.operator.type == TokenType.QUESTION_QUESTION) {
-      Expression right = argument.rightOperand;
-      if (isEmptyListLiteral(right)) {
-        // ..addAll(things ?? const [])
-        // ..addAll(things ?? [])
-        elementText = '...?${utils.getNodeText(argument.leftOperand)}';
-      }
-    } else if (experimentStatus.control_flow_collections &&
-        argument is ConditionalExpression) {
-      Expression elseExpression = argument.elseExpression;
-      if (isEmptyListLiteral(elseExpression)) {
-        // ..addAll(condition ? things : const [])
-        // ..addAll(condition ? things : [])
-        String conditionText = utils.getNodeText(argument.condition);
-        String thenText = utils.getNodeText(argument.thenExpression);
-        elementText = 'if ($conditionText) ...$thenText';
-      }
-    } else if (argument is ListLiteral) {
-      // ..addAll([ ... ])
-      NodeList<CollectionElement> elements = argument.elements;
-      if (elements.isEmpty) {
-        // TODO(brianwilkerson) Consider adding a cleanup for the empty list
-        //  case. We can essentially remove the whole invocation because it does
-        //  nothing.
-        return;
-      }
-      int startOffset = elements.first.offset;
-      int endOffset = elements.last.end;
-      elementText = utils.getText(startOffset, endOffset - startOffset);
-      kind = DartAssistKind.INLINE_INVOCATION;
-      args = ['addAll'];
-    }
-    elementText ??= '...${utils.getNodeText(argument)}';
-    DartChangeBuilder changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      if (list.elements.isNotEmpty) {
-        // ['a']..addAll(['b', 'c']);
-        builder.addSimpleInsertion(list.elements.last.end, ', $elementText');
-      } else {
-        // []..addAll(['b', 'c']);
-        builder.addSimpleInsertion(list.leftBracket.end, elementText);
-      }
-      builder.addDeletion(range.node(invocation));
-    });
-    _addAssistFromBuilder(changeBuilder, kind, args: args);
   }
 
   Future<void> _addProposal_convertClassToMixin() async {
@@ -1310,45 +1252,9 @@ class AssistProcessor extends BaseProcessor {
   }
 
   Future<void> _addProposal_convertToPackageImport() async {
-    var node = this.node;
-    if (node is StringLiteral) {
-      node = node.parent;
-    }
-    if (node is ImportDirective) {
-      ImportDirective importDirective = node;
-      var uriSource = importDirective.uriSource;
-
-      // Ignore if invalid URI.
-      if (uriSource == null) {
-        return;
-      }
-
-      var importUri = uriSource.uri;
-      if (importUri.scheme != 'package') {
-        return;
-      }
-
-      // Don't offer to convert a 'package:' URI to itself.
-      try {
-        if (Uri.parse(importDirective.uriContent).scheme == 'package') {
-          return;
-        }
-      } on FormatException {
-        return;
-      }
-
-      var changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (builder) {
-        builder.addSimpleReplacement(
-          range.node(importDirective.uri),
-          "'$importUri'",
-        );
-      });
-      _addAssistFromBuilder(
-        changeBuilder,
-        DartAssistKind.CONVERT_TO_PACKAGE_IMPORT,
-      );
-    }
+    final changeBuilder = await createBuilder_convertToPackageImport();
+    _addAssistFromBuilder(
+        changeBuilder, DartAssistKind.CONVERT_TO_PACKAGE_IMPORT);
   }
 
   Future<void> _addProposal_convertToSingleQuotedString() async {
@@ -3432,57 +3338,8 @@ class AssistProcessor extends BaseProcessor {
   }
 
   Future<void> _convertQuotes(bool fromDouble, AssistKind kind) async {
-    if (node is SimpleStringLiteral) {
-      SimpleStringLiteral literal = node;
-      if (fromDouble ? !literal.isSingleQuoted : literal.isSingleQuoted) {
-        String newQuote = literal.isMultiline
-            ? (fromDouble ? "'''" : '"""')
-            : (fromDouble ? "'" : '"');
-        int quoteLength = literal.isMultiline ? 3 : 1;
-        String lexeme = literal.literal.lexeme;
-        if (lexeme.indexOf(newQuote) < 0) {
-          var changeBuilder = _newDartChangeBuilder();
-          await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-            builder.addSimpleReplacement(
-                new SourceRange(
-                    literal.offset + (literal.isRaw ? 1 : 0), quoteLength),
-                newQuote);
-            builder.addSimpleReplacement(
-                new SourceRange(literal.end - quoteLength, quoteLength),
-                newQuote);
-          });
-          _addAssistFromBuilder(changeBuilder, kind);
-        }
-      }
-    } else if (node is InterpolationString) {
-      StringInterpolation parent = node.parent;
-      if (fromDouble ? !parent.isSingleQuoted : parent.isSingleQuoted) {
-        String newQuote = parent.isMultiline
-            ? (fromDouble ? "'''" : '"""')
-            : (fromDouble ? "'" : '"');
-        int quoteLength = parent.isMultiline ? 3 : 1;
-        NodeList<InterpolationElement> elements = parent.elements;
-        for (int i = 0; i < elements.length; i++) {
-          InterpolationElement element = elements[i];
-          if (element is InterpolationString) {
-            String lexeme = element.contents.lexeme;
-            if (lexeme.indexOf(newQuote) >= 0) {
-              return;
-            }
-          }
-        }
-        var changeBuilder = _newDartChangeBuilder();
-        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-          builder.addSimpleReplacement(
-              new SourceRange(
-                  parent.offset + (parent.isRaw ? 1 : 0), quoteLength),
-              newQuote);
-          builder.addSimpleReplacement(
-              new SourceRange(parent.end - quoteLength, quoteLength), newQuote);
-        });
-        _addAssistFromBuilder(changeBuilder, kind);
-      }
-    }
+    final changeBuilder = await createBuilder_convertQuotes(fromDouble);
+    _addAssistFromBuilder(changeBuilder, kind);
   }
 
   /**

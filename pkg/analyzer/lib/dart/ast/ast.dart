@@ -825,7 +825,8 @@ abstract class BreakStatement implements Statement {
 ///        [Expression] cascadeSection*
 ///
 ///    cascadeSection ::=
-///        '..'  (cascadeSelector arguments*) (assignableSelector arguments*)*
+///        ('..' | '?..') (cascadeSelector arguments*)
+///        (assignableSelector arguments*)*
 ///        (assignmentOperator expressionWithoutCascade)?
 ///
 ///    cascadeSelector ::=

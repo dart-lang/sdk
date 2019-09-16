@@ -181,6 +181,7 @@ main() {
         ElementKind.CONSTRUCTOR,
         ElementKind.ENUM,
         ElementKind.ENUM_CONSTANT,
+        ElementKind.EXTENSION,
         ElementKind.FUNCTION,
         ElementKind.FUNCTION_TYPE_ALIAS,
         ElementKind.MIXIN,

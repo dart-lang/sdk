@@ -908,7 +908,7 @@ class NnbdMode extends NamedEnum {
 
   /// Opted in to NNBD features, but only static checking and weak runtime
   /// checks.
-  static const optedIn = NnbdMode._('opted-in');
+  static const weak = NnbdMode._('weak');
 
   /// Opted in to NNBD features and with full sound runtime checks.
   static const strong = NnbdMode._('strong');
@@ -916,7 +916,7 @@ class NnbdMode extends NamedEnum {
   static final List<String> names = _all.keys.toList();
 
   static final _all = {
-    for (var mode in [legacy, optedIn, strong]) mode.name: mode
+    for (var mode in [legacy, weak, strong]) mode.name: mode
   };
 
   static NnbdMode find(String name) {

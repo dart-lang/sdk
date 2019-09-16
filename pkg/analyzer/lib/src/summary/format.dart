@@ -23610,6 +23610,7 @@ class UnlinkedInformativeDataBuilder extends Object
         kind == idl.LinkedNodeKind.compilationUnit ||
         kind == idl.LinkedNodeKind.constructorDeclaration ||
         kind == idl.LinkedNodeKind.defaultFormalParameter ||
+        kind == idl.LinkedNodeKind.enumConstantDeclaration ||
         kind == idl.LinkedNodeKind.enumDeclaration ||
         kind == idl.LinkedNodeKind.extensionDeclaration ||
         kind == idl.LinkedNodeKind.fieldFormalParameter ||
@@ -23631,6 +23632,7 @@ class UnlinkedInformativeDataBuilder extends Object
         kind == idl.LinkedNodeKind.compilationUnit ||
         kind == idl.LinkedNodeKind.constructorDeclaration ||
         kind == idl.LinkedNodeKind.defaultFormalParameter ||
+        kind == idl.LinkedNodeKind.enumConstantDeclaration ||
         kind == idl.LinkedNodeKind.enumDeclaration ||
         kind == idl.LinkedNodeKind.extensionDeclaration ||
         kind == idl.LinkedNodeKind.fieldFormalParameter ||
@@ -23654,6 +23656,7 @@ class UnlinkedInformativeDataBuilder extends Object
         kind == idl.LinkedNodeKind.compilationUnit ||
         kind == idl.LinkedNodeKind.constructorDeclaration ||
         kind == idl.LinkedNodeKind.defaultFormalParameter ||
+        kind == idl.LinkedNodeKind.enumConstantDeclaration ||
         kind == idl.LinkedNodeKind.enumDeclaration ||
         kind == idl.LinkedNodeKind.extensionDeclaration ||
         kind == idl.LinkedNodeKind.fieldFormalParameter ||
@@ -23675,6 +23678,7 @@ class UnlinkedInformativeDataBuilder extends Object
         kind == idl.LinkedNodeKind.compilationUnit ||
         kind == idl.LinkedNodeKind.constructorDeclaration ||
         kind == idl.LinkedNodeKind.defaultFormalParameter ||
+        kind == idl.LinkedNodeKind.enumConstantDeclaration ||
         kind == idl.LinkedNodeKind.enumDeclaration ||
         kind == idl.LinkedNodeKind.extensionDeclaration ||
         kind == idl.LinkedNodeKind.fieldFormalParameter ||
@@ -23944,9 +23948,13 @@ class UnlinkedInformativeDataBuilder extends Object
         _variantField_10 = defaultFormalParameter_defaultValueCode;
 
   UnlinkedInformativeDataBuilder.enumConstantDeclaration({
+    int codeLength,
+    int codeOffset,
     int nameOffset,
     List<String> documentationComment_tokens,
   })  : _kind = idl.LinkedNodeKind.enumConstantDeclaration,
+        _variantField_2 = codeLength,
+        _variantField_3 = codeOffset,
         _variantField_1 = nameOffset,
         _variantField_4 = documentationComment_tokens;
 
@@ -24219,6 +24227,8 @@ class UnlinkedInformativeDataBuilder extends Object
     } else if (kind == idl.LinkedNodeKind.enumConstantDeclaration) {
       signature.addInt(this.kind == null ? 0 : this.kind.index);
       signature.addInt(this.nameOffset ?? 0);
+      signature.addInt(this.codeLength ?? 0);
+      signature.addInt(this.codeOffset ?? 0);
       if (this.documentationComment_tokens == null) {
         signature.addInt(0);
       } else {
@@ -24486,6 +24496,7 @@ class _UnlinkedInformativeDataImpl extends Object
         kind == idl.LinkedNodeKind.compilationUnit ||
         kind == idl.LinkedNodeKind.constructorDeclaration ||
         kind == idl.LinkedNodeKind.defaultFormalParameter ||
+        kind == idl.LinkedNodeKind.enumConstantDeclaration ||
         kind == idl.LinkedNodeKind.enumDeclaration ||
         kind == idl.LinkedNodeKind.extensionDeclaration ||
         kind == idl.LinkedNodeKind.fieldFormalParameter ||
@@ -24509,6 +24520,7 @@ class _UnlinkedInformativeDataImpl extends Object
         kind == idl.LinkedNodeKind.compilationUnit ||
         kind == idl.LinkedNodeKind.constructorDeclaration ||
         kind == idl.LinkedNodeKind.defaultFormalParameter ||
+        kind == idl.LinkedNodeKind.enumConstantDeclaration ||
         kind == idl.LinkedNodeKind.enumDeclaration ||
         kind == idl.LinkedNodeKind.extensionDeclaration ||
         kind == idl.LinkedNodeKind.fieldFormalParameter ||
@@ -24688,6 +24700,8 @@ abstract class _UnlinkedInformativeDataMixin
             defaultFormalParameter_defaultValueCode;
     }
     if (kind == idl.LinkedNodeKind.enumConstantDeclaration) {
+      if (codeLength != 0) _result["codeLength"] = codeLength;
+      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
       if (nameOffset != 0) _result["nameOffset"] = nameOffset;
       if (documentationComment_tokens.isNotEmpty)
         _result["documentationComment_tokens"] = documentationComment_tokens;
@@ -24863,6 +24877,8 @@ abstract class _UnlinkedInformativeDataMixin
     }
     if (kind == idl.LinkedNodeKind.enumConstantDeclaration) {
       return {
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
         "nameOffset": nameOffset,
         "documentationComment_tokens": documentationComment_tokens,
         "kind": kind,

@@ -12,6 +12,7 @@ class LintNames {
       'avoid_annotating_with_dynamic';
   static const String avoid_empty_else = 'avoid_empty_else';
   static const String avoid_init_to_null = 'avoid_init_to_null';
+  static const String avoid_relative_lib_imports = 'avoid_relative_lib_imports';
   static const String avoid_return_types_on_setters =
       'avoid_return_types_on_setters';
   static const String avoid_types_on_closure_parameters =
@@ -46,7 +47,9 @@ class LintNames {
   static const String prefer_is_not_empty = 'prefer_is_not_empty';
   static const String prefer_null_aware_operators =
       'prefer_null_aware_operators';
+  static const String prefer_single_quotes = 'prefer_single_quotes';
   static const String slash_for_doc_comments = 'slash_for_doc_comments';
+  static const String prefer_spread_collections = 'prefer_spread_collections';
   static const String type_annotate_public_apis = 'type_annotate_public_apis';
   static const String type_init_formals = 'type_init_formals';
   static const String unawaited_futures = 'unawaited_futures';

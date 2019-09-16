@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Only needed so that [TestFile] can be referenced in doc comments.
+import 'test_file.dart';
+
 /// Describes a static error.
 ///
 /// These can be parsed from comments in [TestFile]s, in which case they

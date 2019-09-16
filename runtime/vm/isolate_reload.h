@@ -145,6 +145,8 @@ class IsolateReloadContext {
   // All zone allocated objects must be allocated from this zone.
   Zone* zone() const { return zone_; }
 
+  bool UseSavedClassTableForGC() const { return saved_class_table_ != nullptr; }
+
   bool reload_skipped() const { return reload_skipped_; }
   bool reload_aborted() const { return reload_aborted_; }
   RawError* error() const;

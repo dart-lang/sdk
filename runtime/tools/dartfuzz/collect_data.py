@@ -87,8 +87,8 @@ def print_output_sum(shard, text, s=[0, 0, 0, 0, 0, 0], divs=[]):
         for i in range(len(s)):
             s[i] += int(test[i])
     print(
-        "Tests: %d Success: %d (Rerun: %d) Skipped: %d Timeout: %d Divergences: %d"
-        "(failing shards: %s)    \r" %
+        "Tests: %d Success: %d (Rerun: %d) Skipped: %d Timeout: %d "
+        "Divergences: %d (failing shards: %s)    \r" %
         tuple(s + [", ".join(divs) if divs else "none"]),
         end="")
 

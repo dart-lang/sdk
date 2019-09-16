@@ -585,6 +585,9 @@ class FixProcessor extends BaseProcessor {
       if (name == LintNames.avoid_init_to_null) {
         await _addFix_removeInitializer();
       }
+      if (name == LintNames.avoid_relative_lib_imports) {
+        await _addFix_convertToPackageImport();
+      }
       if (name == LintNames.avoid_return_types_on_setters) {
         await _addFix_removeTypeAnnotation();
       }
@@ -656,8 +659,14 @@ class FixProcessor extends BaseProcessor {
       if (name == LintNames.prefer_null_aware_operators) {
         await _addFix_convertToNullAware();
       }
+      if (name == LintNames.prefer_single_quotes) {
+        await _addFix_convertSingleQuotes();
+      }
       if (errorCode.name == LintNames.slash_for_doc_comments) {
         await _addFix_convertDocumentationIntoLine();
+      }
+      if (name == LintNames.prefer_spread_collections) {
+        await _addFix_convertAddAllToSpread();
       }
       if (name == LintNames.type_init_formals) {
         await _addFix_removeTypeAnnotation();
@@ -736,11 +745,6 @@ class FixProcessor extends BaseProcessor {
   Future<void> _addFix_addCurlyBraces() async {
     final changeBuilder = await createBuilder_useCurlyBraces();
     _addFixFromBuilder(changeBuilder, DartFixKind.ADD_CURLY_BRACES);
-  }
-
-  Future<void> _addFix_convertToNullAware() async {
-    final changeBuilder = await createBuilder_convertToNullAware();
-    _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_TO_NULL_AWARE);
   }
 
   Future<void> _addFix_addExplicitCast() async {
@@ -1368,6 +1372,12 @@ class FixProcessor extends BaseProcessor {
     _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_TO_FOR_ELEMENT);
   }
 
+  Future<void> _addFix_convertSingleQuotes() async {
+    final changeBuilder = await createBuilder_convertQuotes(true);
+    _addFixFromBuilder(
+        changeBuilder, DartFixKind.CONVERT_TO_SINGLE_QUOTED_STRING);
+  }
+
   Future<void> _addFix_convertToExpressionBody() async {
     final changeBuilder = await createBuilder_convertToExpressionFunctionBody();
     _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_INTO_EXPRESSION_BODY);
@@ -1447,6 +1457,16 @@ class FixProcessor extends BaseProcessor {
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_TO_NAMED_ARGUMENTS);
     }
+  }
+
+  Future<void> _addFix_convertToNullAware() async {
+    final changeBuilder = await createBuilder_convertToNullAware();
+    _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_TO_NULL_AWARE);
+  }
+
+  Future<void> _addFix_convertToPackageImport() async {
+    final changeBuilder = await createBuilder_convertToPackageImport();
+    _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_TO_PACKAGE_IMPORT);
   }
 
   Future<void> _addFix_createClass() async {
@@ -1854,6 +1874,16 @@ class FixProcessor extends BaseProcessor {
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.CREATE_CONSTRUCTOR_SUPER,
           args: [proposalName]);
+    }
+  }
+
+  Future<void> _addFix_convertAddAllToSpread() async {
+    final change = await createBuilder_convertAddAllToSpread();
+    if (change != null) {
+      final kind = change.isLineInvocation
+          ? DartFixKind.INLINE_INVOCATION
+          : DartFixKind.CONVERT_TO_SPREAD;
+      _addFixFromBuilder(change.builder, kind, args: change.args);
     }
   }
 

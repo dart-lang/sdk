@@ -214,6 +214,7 @@ class DartCompletionManager implements CompletionContributor {
       if (opType.includeReturnValueSuggestions) {
         kinds.add(protocol.ElementKind.CONSTRUCTOR);
         kinds.add(protocol.ElementKind.ENUM_CONSTANT);
+        kinds.add(protocol.ElementKind.EXTENSION);
         kinds.add(protocol.ElementKind.FUNCTION);
         kinds.add(protocol.ElementKind.TOP_LEVEL_VARIABLE);
       }

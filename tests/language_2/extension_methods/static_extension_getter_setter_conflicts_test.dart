@@ -68,13 +68,13 @@ void test1() {
   c1a.m1;
 
   c1a.m1 = 0;
-  //  ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_EXTENSION_SETTER
+  //  ^^
+  // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_LOCAL
   // [cfe] unspecified
 
   c1a.m2;
   //  ^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_EXTENSION_GETTER
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
   // [cfe] unspecified
 
   c1a.m2 = 0;
@@ -87,7 +87,7 @@ void test1() {
   // [cfe] unspecified
 
   c1b.m1 = 0;
-  //  ^^^^^^
+  //  ^^
   // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
   // [cfe] unspecified
 
@@ -97,7 +97,7 @@ void test1() {
   // [cfe] unspecified
 
   c1b.m2 = 0;
-  //  ^^^^^^
+  //  ^^
   // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
   // [cfe] unspecified
 }
@@ -119,14 +119,14 @@ extension E2 on C2 {
 
     this.m1;
     this.m1 = 0;
-    //   ^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_EXTENSION_SETTER
+    //   ^^
+    // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
     // [cfe] unspecified
 
     this.m2 = 0;
     this.m2;
     //   ^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_EXTENSION_GETTER
+    // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
     // [cfe] unspecified
 
     // Check that `this.mc` refers to `C2.mc`.
