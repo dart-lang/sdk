@@ -1423,8 +1423,7 @@ RawObject* ActivationFrame::GetRelativeContextVar(intptr_t var_ctx_level,
     }
     ASSERT((ctx_slot >= 0) && (ctx_slot < ctx.num_variables()));
     return ctx.At(ctx_slot);
-  } else {
-    ASSERT(level_diff > 0);
+  } else if (level_diff > 0) {
     Context& var_ctx = Context::Handle(ctx.raw());
     while (level_diff > 0 && !var_ctx.IsNull()) {
       level_diff--;
@@ -1437,6 +1436,9 @@ RawObject* ActivationFrame::GetRelativeContextVar(intptr_t var_ctx_level,
     ASSERT(!var_ctx.IsNull());
     ASSERT((ctx_slot >= 0) && (ctx_slot < var_ctx.num_variables()));
     return var_ctx.At(ctx_slot);
+  } else {
+    PrintContextMismatchError(ctx_slot, frame_ctx_level, var_ctx_level);
+    return Object::null();
   }
 }
 
@@ -1590,7 +1592,7 @@ const char* ActivationFrame::ToCString() {
   }
   const String& url = String::Handle(SourceUrl());
   intptr_t line = LineNumber();
-  const char* func_name = Debugger::QualifiedFunctionName(function());
+  const char* func_name = function().ToFullyQualifiedCString();
   if (live_frame_) {
     return Thread::Current()->zone()->PrintToString(
         "[ Frame pc(0x%" Px " %s offset:0x%" Px ") fp(0x%" Px ") sp(0x%" Px

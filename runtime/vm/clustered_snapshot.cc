@@ -500,13 +500,12 @@ class FunctionSerializationCluster : public SerializationCluster {
         WriteField(func, ic_data_array_);
       }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
       if (kind != Snapshot::kFullAOT) {
         s->WriteTokenPosition(func->ptr()->token_pos_);
         s->WriteTokenPosition(func->ptr()->end_token_pos_);
         s->Write<uint32_t>(func->ptr()->binary_declaration_);
       }
-#endif
+
       s->Write<uint32_t>(func->ptr()->packed_fields_);
       s->Write<uint32_t>(func->ptr()->kind_tag_);
     }
