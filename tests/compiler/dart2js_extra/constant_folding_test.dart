@@ -387,6 +387,7 @@ void main() {
   const TruncatingDivide(-9007199254740991, 0.5, -18014398509481982).check();
   const TruncatingDivide(-9007199254740991, -0.5, 18014398509481982).check();
   const TruncatingDivide(0x8000000000000000, -1, -0x8000000000000000).check();
+  const TruncatingDivide(0x6000000000000000, 0.5, 0xC000000000000000).check();
   const TruncatingDivide(2.71828, 3.14159, 0).check();
   const TruncatingDivide(2.71828, 1, 2).check();
   const TruncatingDivide(2.71828, -1, -2).check();
