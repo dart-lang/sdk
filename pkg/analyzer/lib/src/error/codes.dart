@@ -6141,7 +6141,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
               "dynamic.");
 
   /**
-   * It is an error to call a method or getter on an expression of type [Never],
+   * It is an error to call a method or getter on an expression of type `Never`,
    * or to invoke it as if it were a function.
    *
    * Go out of our way to provide a *little* more information here because many
