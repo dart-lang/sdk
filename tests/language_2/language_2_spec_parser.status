@@ -8,7 +8,6 @@ closure_type_test: Pass # Marked as RuntimeError for all in language_2.status.
 conditional_import_string_test: Fail # Uses conditional import.
 conditional_import_test: Fail # Uses conditional import.
 config_import_corelib_test: Fail # Uses conditional import.
-config_import_test: Fail # Uses conditional import.
 const_native_factory_test: Skip # Uses `native`.
 deep_nesting_expression_test: Skip # JVM stack overflow.
 deep_nesting_statement_test: Skip # JVM stack overflow.

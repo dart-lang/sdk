@@ -15,7 +15,6 @@ call_method_must_not_be_getter_test/03: RuntimeError # Issue 32155
 canonical_const2_test: RuntimeError, OK # non JS number semantics
 closure_type_arguments_test: Crash # Issue 34272
 config_import_corelib_test: CompileTimeError # we need a special platform.dill file for categories=all. Once we fix that, all dart:* are supported when using '--categories=all' so this will become a RuntimeError, OK.
-config_import_test: RuntimeError # Test flag is not passed to the compiler.
 const_constructor3_test/04: MissingCompileTimeError # OK - Subtype check uses JS number semantics.
 const_dynamic_type_literal_test/03: Pass # but it shouldn't until we fix issue 17207
 const_switch_test/02: RuntimeError, OK # constant identity based on JS constants
