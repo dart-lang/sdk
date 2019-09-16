@@ -66,7 +66,7 @@ main() {
       new Stream.fromIterable([1, 1, 2, 2, 1, 3])
           .map((v) => new T(v))
           .distinct()
-          .transform(reifyErrors)
+          .transform(reifyErrors.cast<T, dynamic>())
           .map((v) => v is T ? v.value : "$v"),
       [1, "[2]", "[2]", 3],
       "==-throws");
