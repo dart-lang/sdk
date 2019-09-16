@@ -103,6 +103,9 @@ abstract class AbstractClassElementImpl extends ElementImpl
   }
 
   @override
+  bool get isDartCoreObject => false;
+
+  @override
   bool get isEnum => false;
 
   @override
@@ -746,7 +749,7 @@ class ClassElementImpl extends AbstractClassElementImpl
     MethodElement method = lookUpConcreteMethod(
         FunctionElement.NO_SUCH_METHOD_METHOD_NAME, library);
     ClassElement definingClass = method?.enclosingElement;
-    return definingClass != null && !definingClass.type.isObject;
+    return definingClass != null && !definingClass.isDartCoreObject;
   }
 
   @override
@@ -842,6 +845,9 @@ class ClassElementImpl extends AbstractClassElementImpl
     _assertNotResynthesized(_unlinkedClass);
     setModifier(Modifier.ABSTRACT, isAbstract);
   }
+
+  @override
+  bool get isDartCoreObject => !isMixin && supertype == null;
 
   @override
   bool get isMixinApplication {

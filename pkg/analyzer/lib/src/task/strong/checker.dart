@@ -1393,7 +1393,7 @@ class _OverrideChecker {
 
   void check(Declaration node) {
     var element = node.declaredElement as ClassElement;
-    if (element.type.isObject) {
+    if (element.isDartCoreObject) {
       return;
     }
     _checkForCovariantGenerics(node, element);

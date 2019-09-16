@@ -1056,7 +1056,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           Element classElement = methodElement?.enclosingElement;
           return methodElement is MethodElement &&
               classElement is ClassElement &&
-              !classElement.type.isObject;
+              !classElement.isDartCoreObject;
         }
       }
       return false;

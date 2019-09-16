@@ -72,6 +72,9 @@ class ClassElementHandle extends ElementHandle implements ClassElement {
   bool get isAbstract => actualElement.isAbstract;
 
   @override
+  bool get isDartCoreObject => actualElement.isDartCoreObject;
+
+  @override
   bool get isEnum => actualElement.isEnum;
 
   @override

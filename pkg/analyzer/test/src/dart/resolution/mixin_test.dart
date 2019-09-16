@@ -156,6 +156,7 @@ mixin M {}
     expect(element.isMixin, isTrue);
     expect(element.isMixinApplication, isFalse);
     expect(interfaceType(element).isObject, isFalse);
+    expect(element.isDartCoreObject, isFalse);
 
     assertElementTypes(element.superclassConstraints, [objectType]);
     assertElementTypes(element.interfaces, []);

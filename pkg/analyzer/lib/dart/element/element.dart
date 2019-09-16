@@ -102,6 +102,10 @@ abstract class ClassElement
   /// <i>abstract</i> is different from <i>has unimplemented members</i>.
   bool get isAbstract;
 
+  /// Return `true` if this class represents the class 'Object' defined in the
+  /// dart:core library.
+  bool get isDartCoreObject;
+
   /// Return `true` if this class is defined by an enum declaration.
   bool get isEnum;
 

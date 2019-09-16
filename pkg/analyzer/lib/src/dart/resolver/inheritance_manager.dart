@@ -275,7 +275,7 @@ class InheritanceManager {
               ExecutableElement value = map[memberName];
               ClassElement definingClass = value
                   .getAncestor((Element element) => element is ClassElement);
-              if (!definingClass.type.isObject) {
+              if (!definingClass.isDartCoreObject) {
                 ExecutableElement existingValue = resultMap[memberName];
                 if (existingValue == null ||
                     (existingValue != null && !_isAbstract(value))) {

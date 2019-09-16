@@ -1207,7 +1207,7 @@ class CodeGenerator extends Object
       List<js_ast.Method> methods,
       List<js_ast.Statement> body,
       List<js_ast.Statement> deferredSupertypes) {
-    if (classElem.type.isObject) {
+    if (classElem.isDartCoreObject) {
       body.add(_emitClassStatement(classElem, className, null, methods));
       return;
     }
@@ -1423,7 +1423,7 @@ class CodeGenerator extends Object
     bool hasJsPeer = _extensionTypes.isNativeClass(classElem);
     bool hasIterator = false;
 
-    if (type.isObject) {
+    if (classElem.isDartCoreObject) {
       // Dart does not use ES6 constructors.
       // Add an error to catch any invalid usage.
       jsMethods.add(
@@ -2005,7 +2005,7 @@ class CodeGenerator extends Object
   /// Ensure `dartx.` symbols we will use are present.
   void _initExtensionSymbols(ClassElement classElem) {
     if (_extensionTypes.hasNativeSubtype(classElem.type) ||
-        classElem.type.isObject) {
+        classElem.isDartCoreObject) {
       for (var members in [classElem.methods, classElem.accessors]) {
         for (var m in members) {
           if (!m.isAbstract && !m.isStatic && m.isPublic) {
@@ -2055,7 +2055,7 @@ class CodeGenerator extends Object
       if (elements.isEmpty) return;
 
       if (!name.startsWith('Static')) {
-        var proto = classElem.type.isObject
+        var proto = classElem.isDartCoreObject
             ? js.call('Object.create(null)')
             : runtimeCall('get${name}s(#.__proto__)', [className]);
         elements.insert(0, js_ast.Property(propertyName('__proto__'), proto));
@@ -2347,7 +2347,7 @@ class CodeGenerator extends Object
     // Get the supertype's unnamed constructor.
     superCtor ??= element.supertype?.element?.unnamedConstructor;
     if (superCtor == null) {
-      assert(element.type.isObject ||
+      assert(element.isDartCoreObject ||
           element.isMixin ||
           options.unsafeForceCompile);
       return null;
@@ -2381,7 +2381,7 @@ class CodeGenerator extends Object
   }
 
   bool _hasUnnamedConstructor(ClassElement e) {
-    if (e.type.isObject) return false;
+    if (e.isDartCoreObject) return false;
     var ctor = e.unnamedConstructor;
     if (ctor != null && !ctor.isSynthetic) return true;
     return e.fields.any((f) => !f.isStatic && !f.isSynthetic);

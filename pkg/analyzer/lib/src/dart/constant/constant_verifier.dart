@@ -356,7 +356,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       MethodElement method =
           element.lookUpConcreteMethod("==", _currentLibrary);
       if (method == null ||
-          (method.enclosingElement as ClassElement).type.isObject) {
+          (method.enclosingElement as ClassElement).isDartCoreObject) {
         return false;
       }
       // there is == that we don't like
