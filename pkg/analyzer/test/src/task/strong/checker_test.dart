@@ -538,16 +538,16 @@ class F extends E {
 class G extends E implements D {}
 
 class D_error extends C {
-  /*error:INVALID_OVERRIDE*/int f(int x) => x;
+  int /*error:INVALID_OVERRIDE*/f(int x) => x;
 }
 class E_error extends D {
-  /*error:INVALID_OVERRIDE*/int f(covariant double x) => 0;
+  int /*error:INVALID_OVERRIDE*/f(covariant double x) => 0;
 }
 class F_error extends E {
-  /*error:INVALID_OVERRIDE*/int f(covariant double x) => 0;
+  int /*error:INVALID_OVERRIDE*/f(covariant double x) => 0;
 }
 class G_error extends E implements D {
-  /*error:INVALID_OVERRIDE*/int f(covariant double x) => 0;
+  int /*error:INVALID_OVERRIDE*/f(covariant double x) => 0;
 }
     ''');
   }
@@ -615,16 +615,16 @@ class F extends E {
 class G extends E implements D {}
 
 class D_error extends C {
-  /*error:INVALID_OVERRIDE*/int f(String x) => 0;
+  int /*error:INVALID_OVERRIDE*/f(String x) => 0;
 }
 class E_error extends D {
-  /*error:INVALID_OVERRIDE*/int f(double x) => 0;
+  int /*error:INVALID_OVERRIDE*/f(double x) => 0;
 }
 class F_error extends E {
-  /*error:INVALID_OVERRIDE*/int f(double x) => 0;
+  int /*error:INVALID_OVERRIDE*/f(double x) => 0;
 }
 class G_error extends E implements D {
-  /*error:INVALID_OVERRIDE*/int f(double x) => 0;
+  int /*error:INVALID_OVERRIDE*/f(double x) => 0;
 }
     ''');
   }
@@ -717,17 +717,17 @@ class Base {
 }
 
 class Child extends Base {
-  /*error:INVALID_OVERRIDE*/A f1; // invalid for getter
-  /*error:INVALID_OVERRIDE*/C f2; // invalid for setter
+  A /*error:INVALID_OVERRIDE*/f1; // invalid for getter
+  C /*error:INVALID_OVERRIDE*/f2; // invalid for setter
   var f3;
-  /*error:INVALID_OVERRIDE*/dynamic f4;
+  dynamic /*error:INVALID_OVERRIDE*/f4;
 }
 
 class Child2 implements Base {
-  /*error:INVALID_OVERRIDE*/A f1; // invalid for getter
-  /*error:INVALID_OVERRIDE*/C f2; // invalid for setter
+  A /*error:INVALID_OVERRIDE*/f1; // invalid for getter
+  C /*error:INVALID_OVERRIDE*/f2; // invalid for setter
   var f3;
-  /*error:INVALID_OVERRIDE*/dynamic f4;
+  dynamic /*error:INVALID_OVERRIDE*/f4;
 }
 ''');
   }
@@ -746,17 +746,17 @@ abstract class Base {
 }
 
 class Child extends Base {
-  /*error:INVALID_OVERRIDE*/A get f1 => null;
+  A get /*error:INVALID_OVERRIDE*/f1 => null;
   C get f2 => null;
   get f3 => null;
-  /*error:INVALID_OVERRIDE*/dynamic get f4 => null;
+  dynamic get /*error:INVALID_OVERRIDE*/f4 => null;
 }
 
 class /*error:NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR*/Child2 implements Base {
-  /*error:INVALID_OVERRIDE*/A get f1 => null;
+  A get /*error:INVALID_OVERRIDE*/f1 => null;
   C get f2 => null;
   get f3 => null;
-  /*error:INVALID_OVERRIDE*/dynamic get f4 => null;
+  dynamic get /*error:INVALID_OVERRIDE*/f4 => null;
 }
 ''');
   }
@@ -770,12 +770,12 @@ class F {
 }
 
 class G extends F {
-  /*error:INVALID_OVERRIDE*/final ToVoid<int> f = null;
+  final ToVoid<int> /*error:INVALID_OVERRIDE*/f = null;
   final ToVoid<dynamic> g = null;
 }
 
 class H implements F {
-  /*error:INVALID_OVERRIDE*/final ToVoid<int> f = null;
+  final ToVoid<int> /*error:INVALID_OVERRIDE*/f = null;
   final ToVoid<dynamic> g = null;
 }
  ''');
@@ -833,7 +833,7 @@ class Child extends Base {
   B get f5 => null;
 
   void set f1(A value) {}
-  /*error:INVALID_OVERRIDE*/void set f2(C value) {}
+  void set /*error:INVALID_OVERRIDE*/f2(C value) {}
   void set f3(value) {}
   void set f4(dynamic value) {}
   set f5(B value) {}
@@ -847,7 +847,7 @@ class Child2 implements Base {
   B get f5 => null;
 
   void set f1(A value) {}
-  /*error:INVALID_OVERRIDE*/void set f2(C value) {}
+  void set /*error:INVALID_OVERRIDE*/f2(C value) {}
   void set f3(value) {}
   void set f4(dynamic value) {}
   set f5(B value) {}
@@ -1953,7 +1953,7 @@ class Base<T extends B> {
 }
 
 class Derived<S extends A> extends Base<B> {
-  /*error:INVALID_OVERRIDE*/S foo() => null;
+  S /*error:INVALID_OVERRIDE*/foo() => null;
 }
 
 class Derived2<S extends B> extends Base<B> {
@@ -2061,10 +2061,10 @@ abstract class Base {
 }
 
 class Child extends Base {
-  /*error:INVALID_OVERRIDE*/A get f1 => null;
+  A get /*error:INVALID_OVERRIDE*/f1 => null;
   C get f2 => null;
   get f3 => null;
-  /*error:INVALID_OVERRIDE*/dynamic get f4 => null;
+  dynamic get /*error:INVALID_OVERRIDE*/f4 => null;
 }
 ''');
   }
@@ -2079,12 +2079,12 @@ class F {
 }
 
 class G extends F {
-  /*error:INVALID_OVERRIDE*/ToVoid<int> get f => null;
+  ToVoid<int> get /*error:INVALID_OVERRIDE*/f => null;
   ToVoid<dynamic> get g => null;
 }
 
 class H implements F {
-  /*error:INVALID_OVERRIDE*/ToVoid<int> get f => null;
+  ToVoid<int> get /*error:INVALID_OVERRIDE*/f => null;
   ToVoid<dynamic> get g => null;
 }
 ''');
@@ -2495,7 +2495,7 @@ class C {
   set x(Object y) {}
 }
 class D implements B, C {
-  /*error:INVALID_OVERRIDE*/int x;
+  int /*error:INVALID_OVERRIDE*/x;
 }
     ''');
   }
@@ -2509,13 +2509,13 @@ abstract class I {
 abstract class M implements I {}
 
 class C extends Object with M {
-  /*error:INVALID_OVERRIDE*/String x;
+  String /*error:INVALID_OVERRIDE*/x;
 }
 
 abstract class M2 = Object with M;
 
 class C2 extends Object with M2 {
-  /*error:INVALID_OVERRIDE*/String x;
+  String /*error:INVALID_OVERRIDE*/x;
 }
     ''');
   }
@@ -2545,13 +2545,13 @@ abstract class I<E> {
 abstract class M<E> implements I<E> {}
 
 class C extends Object with M<int> {
-  /*error:INVALID_OVERRIDE*/String x;
+  String /*error:INVALID_OVERRIDE*/x;
 }
 
 abstract class D extends Object with M<num> {}
 /*error:CONFLICTING_GENERIC_INTERFACES*/
 /*error:CONFLICTING_GENERIC_INTERFACES*/class E extends D with M<int> {
-  /*error:INVALID_OVERRIDE*/int x;
+  int /*error:INVALID_OVERRIDE*/x;
 }
 /*error:CONFLICTING_GENERIC_INTERFACES*/
 /*error:CONFLICTING_GENERIC_INTERFACES*/class F extends D with M<int> {
@@ -2588,37 +2588,37 @@ class Base {
 }
 
 class T1 extends Base {
-  /*error:INVALID_OVERRIDE*/B get /*error:MISMATCHED_GETTER_AND_SETTER_TYPES*/f => null;
+  B get /*error:INVALID_OVERRIDE, error:MISMATCHED_GETTER_AND_SETTER_TYPES*/f => null;
 }
 
 class T2 extends Base {
-  /*error:INVALID_OVERRIDE*/set /*error:MISMATCHED_GETTER_AND_SETTER_TYPES*/f(
+  set /*error:INVALID_OVERRIDE, error:MISMATCHED_GETTER_AND_SETTER_TYPES*/f(
       B b) => null;
 }
 
 class T3 extends Base {
-  /*error:INVALID_OVERRIDE*/final B
-      /*error:FINAL_NOT_INITIALIZED, error:MISMATCHED_GETTER_AND_SETTER_TYPES*/f;
+  final B
+      /*error:FINAL_NOT_INITIALIZED, error:INVALID_OVERRIDE, error:MISMATCHED_GETTER_AND_SETTER_TYPES*/f;
 }
 class T4 extends Base {
   // two: one for the getter one for the setter.
-  /*error:INVALID_OVERRIDE, error:INVALID_OVERRIDE*/B f;
+  B /*error:INVALID_OVERRIDE, error:INVALID_OVERRIDE*/f;
 }
 
 class /*error:NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE*/T5 implements Base {
-  /*error:INVALID_OVERRIDE*/B get /*error:MISMATCHED_GETTER_AND_SETTER_TYPES*/f => null;
+  /**/B get /*error:INVALID_OVERRIDE, error:MISMATCHED_GETTER_AND_SETTER_TYPES*/f => null;
 }
 
 class /*error:NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE*/T6 implements Base {
-  /*error:INVALID_OVERRIDE*/set /*error:MISMATCHED_GETTER_AND_SETTER_TYPES*/f(B b) => null;
+  set /*error:INVALID_OVERRIDE, error:MISMATCHED_GETTER_AND_SETTER_TYPES*/f(B b) => null;
 }
 
 class /*error:NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE*/T7 implements Base {
-  /*error:INVALID_OVERRIDE*/final B /*error:MISMATCHED_GETTER_AND_SETTER_TYPES*/f = null;
+  final B /*error:INVALID_OVERRIDE, error:MISMATCHED_GETTER_AND_SETTER_TYPES*/f = null;
 }
 class T8 implements Base {
   // two: one for the getter one for the setter.
-  /*error:INVALID_OVERRIDE, error:INVALID_OVERRIDE*/B f;
+  B /*error:INVALID_OVERRIDE, error:INVALID_OVERRIDE*/f;
 }
 ''');
   }
@@ -3339,12 +3339,12 @@ class Base {
 }
 
 class Child extends Base {
-  /*error:INVALID_OVERRIDE*/A m1(A value) => null;
-  /*error:INVALID_OVERRIDE*/C m2(C value) => null;
-  /*error:INVALID_OVERRIDE*/A m3(C value) => null;
+  A /*error:INVALID_OVERRIDE*/m1(A value) => null;
+  C /*error:INVALID_OVERRIDE*/m2(C value) => null;
+  A /*error:INVALID_OVERRIDE*/m3(C value) => null;
   C m4(A value) => null;
   m5(value) => null;
-  /*error:INVALID_OVERRIDE*/dynamic m6(dynamic value) => null;
+  dynamic /*error:INVALID_OVERRIDE*/m6(dynamic value) => null;
 }
 ''');
   }
@@ -3363,12 +3363,12 @@ class F {
 }
 
 class G extends F {
-  /*error:INVALID_OVERRIDE*/void f(int x) {}
+  void /*error:INVALID_OVERRIDE*/f(int x) {}
   void g(dynamic x) {}
 }
 
 class H implements F {
-  /*error:INVALID_OVERRIDE*/void f(int x) {}
+  void /*error:INVALID_OVERRIDE*/f(int x) {}
   void g(dynamic x) {}
 }
 ''');
@@ -3749,7 +3749,7 @@ class D extends B implements A { }
     return checkFile(r'''
 abstract class A { void test(A arg) { } }
 abstract class B extends A {
-  /*error:INVALID_OVERRIDE*/void test(B arg) { }
+  void /*error:INVALID_OVERRIDE*/test(B arg) { }
 }
 abstract class X implements A { }
 
@@ -3779,7 +3779,7 @@ class GrandChild extends main.Child {
   var _f3;
   var _f4;
 
-  /*error:INVALID_OVERRIDE*/String _m1() => null;
+  String /*error:INVALID_OVERRIDE*/_m1() => null;
 }
 ''', name: '/helper.dart');
     await checkFile('''
@@ -4063,15 +4063,15 @@ class F {
 
 class G extends F {
   void set f(ToVoid<int> x) {}
-  /*error:INVALID_OVERRIDE*/void set g(ToVoid<dynamic> x) {}
-  /*error:INVALID_OVERRIDE*/void set h(int x) {}
+  void set /*error:INVALID_OVERRIDE*/g(ToVoid<dynamic> x) {}
+  void set /*error:INVALID_OVERRIDE*/h(int x) {}
   void set i(dynamic x) {}
 }
 
 class H implements F {
   void set f(ToVoid<int> x) {}
-  /*error:INVALID_OVERRIDE*/void set g(ToVoid<dynamic> x) {}
-  /*error:INVALID_OVERRIDE*/void set h(int x) {}
+  void set /*error:INVALID_OVERRIDE*/g(ToVoid<dynamic> x) {}
+  void set /*error:INVALID_OVERRIDE*/h(int x) {}
   void set i(dynamic x) {}
 }
  ''');
@@ -4111,7 +4111,7 @@ abstract class Base {
 
 class Child extends Base {
   void set f1(A value) {}
-  /*error:INVALID_OVERRIDE*/void set f2(C value) {}
+  void set /*error:INVALID_OVERRIDE*/f2(C value) {}
   void set f3(value) {}
   void set f4(dynamic value) {}
   set f5(B value) {}
@@ -5091,7 +5091,7 @@ class A {
 }
 
 class B extends A {
-  /*error:INVALID_OVERRIDE*/T method<T>(T x) => x;
+  T /*error:INVALID_OVERRIDE*/method<T>(T x) => x;
 }
     ''');
   }

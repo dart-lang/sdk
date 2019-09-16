@@ -24,7 +24,7 @@ class B extends A {
   String get g { return 'a'; }
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 60, 28),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 71, 1),
     ]);
   }
 
@@ -37,8 +37,8 @@ class B extends A {
   int f;
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 46, 5),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 46, 5),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 50, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 50, 1),
     ]);
   }
 
@@ -56,8 +56,8 @@ class B extends A {
   String get getter => null;
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 152, 26),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 152, 26),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 163, 6),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 163, 6),
     ]);
   }
 
@@ -73,8 +73,22 @@ class B implements I<int>, J<String> {
   double get g => null;
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 127, 21),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 127, 21),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 138, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 138, 1),
+    ]);
+  }
+
+  test_method_abstractOverridesConcrete() async {
+    await assertErrorsInCode('''
+class A	{
+  int add(int a, int b) => a + b;
+}
+class B	extends A {
+  int add();
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 52, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 72, 3),
     ]);
   }
 
@@ -87,7 +101,7 @@ class B extends A {
   m({a}) {}
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 49, 9),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 49, 1),
     ]);
   }
 
@@ -100,7 +114,7 @@ class B extends A {
   m({a, c}) {}
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 49, 12),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 49, 1),
     ]);
   }
 
@@ -113,7 +127,7 @@ class B implements A {
   m({String a}) {}
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 53, 16),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 53, 1),
     ]);
   }
 
@@ -126,7 +140,7 @@ class B implements A {
   m(String a) {}
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 51, 14),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 51, 1),
     ]);
   }
 
@@ -139,7 +153,7 @@ class B extends A {
   m(String a) {}
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 48, 14),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 48, 1),
     ]);
   }
 
@@ -155,8 +169,8 @@ class B extends I<int> implements J<String> {
   m(double d) {}
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 132, 14),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 132, 14),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 132, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 132, 1),
     ]);
   }
 
@@ -173,8 +187,8 @@ class B extends A {
   m(String n) {}
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 124, 14),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 124, 14),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 124, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 124, 1),
     ]);
   }
 
@@ -191,8 +205,8 @@ class B implements I<int>, J<String> {
   m(double d) {}
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 125, 14),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 125, 14),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 125, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 125, 1),
     ]);
   }
 
@@ -205,7 +219,7 @@ class B implements A {
   m([String a]) {}
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 53, 16),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 53, 1),
     ]);
   }
 
@@ -222,8 +236,8 @@ class B extends A {
   m([String n]) {}
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 128, 16),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 128, 16),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 128, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 128, 1),
     ]);
   }
 
@@ -236,7 +250,7 @@ class B extends A {
   m([a]) {}
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 49, 9),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 49, 1),
     ]);
   }
 
@@ -249,7 +263,7 @@ class B extends A {
   m(a, b, [c]) {}
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 55, 15),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 55, 1),
     ]);
   }
 
@@ -262,7 +276,7 @@ class B extends A {
   m(a, [c, d]) {}
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 55, 15),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 55, 1),
     ]);
   }
 
@@ -275,7 +289,7 @@ class B extends A {
   m(a, b) {}
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 44, 10),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 44, 1),
     ]);
   }
 
@@ -288,7 +302,7 @@ class B implements A {
   String m() { return 'a'; }
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 61, 26),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 68, 1),
     ]);
   }
 
@@ -303,7 +317,7 @@ class C implements B {
   String m() { return 'a'; }
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 91, 26),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 98, 1),
     ]);
   }
 
@@ -316,7 +330,7 @@ class B extends Object with A {
   String m() { return 'a'; }
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 70, 26),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 77, 1),
     ]);
   }
 
@@ -329,7 +343,7 @@ class B extends A {
   String m() { return 'a'; }
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 58, 26),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 65, 1),
     ]);
   }
 
@@ -344,7 +358,7 @@ class C extends B {
   String m() { return 'a'; }
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 80, 26),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 87, 1),
     ]);
   }
 
@@ -361,8 +375,8 @@ class B extends A {
   String m() => '';
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 122, 17),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 122, 17),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 129, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 129, 1),
     ]);
   }
 
@@ -375,7 +389,7 @@ class B extends A {
   void m() {}
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 58, 11),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 63, 1),
     ]);
   }
 
@@ -388,7 +402,7 @@ class B extends A {
   void set s(String v) {}
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 57, 23),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 66, 1),
     ]);
   }
 
@@ -405,8 +419,8 @@ class B extends A {
   set setter14(String _) => null;
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 169, 31),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 169, 31),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 173, 8),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 173, 8),
     ]);
   }
 
@@ -424,8 +438,8 @@ class B extends A {
   set setter14(String _) => null;
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 162, 31),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 162, 31),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 166, 8),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 166, 8),
     ]);
   }
 
@@ -441,8 +455,8 @@ class B implements I<int>, J<String> {
   set s(double d) {}
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 121, 18),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 121, 18),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 125, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 125, 1),
     ]);
   }
 }
