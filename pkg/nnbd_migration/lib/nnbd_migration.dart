@@ -7,6 +7,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:meta/meta.dart';
+import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/src/nullability_migration_impl.dart';
 
 /// Description of fixes that might be performed by nullability migration.
@@ -68,7 +69,9 @@ abstract class NullabilityMigration {
   /// complete.  TODO(paulberry): remove this mode once the migration algorithm
   /// is fully implemented.
   factory NullabilityMigration(NullabilityMigrationListener listener,
-      {bool permissive}) = NullabilityMigrationImpl;
+          {bool permissive,
+          NullabilityMigrationInstrumentation instrumentation}) =
+      NullabilityMigrationImpl;
 
   void finish();
 

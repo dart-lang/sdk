@@ -7,12 +7,13 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 
 /// Representation of a type in the code to be migrated.  In addition to
 /// tracking the (unmigrated) [DartType], we track the [ConstraintVariable]s
 /// indicating whether the type, and the types that compose it, are nullable.
-class DecoratedType {
+class DecoratedType implements DecoratedTypeInfo {
   /// Mapping from type parameter elements to the decorated types of those type
   /// parameters' bounds.
   ///
@@ -21,11 +22,13 @@ class DecoratedType {
   /// stored in [Variables._decoratedTypeParameterBounds].
   static final _decoratedTypeParameterBounds = Expando<DecoratedType>();
 
+  @override
   final DartType type;
 
+  @override
   final NullabilityNode node;
 
-  /// If `this` is a function type, the [DecoratedType] of its return type.
+  @override
   final DecoratedType returnType;
 
   /// If `this` is a function type, the [DecoratedType] of each of its
@@ -319,6 +322,12 @@ class DecoratedType {
         type.instantiate(undecoratedArgumentTypes), substitution);
   }
 
+  @override
+  DecoratedTypeInfo namedParameter(String name) => namedParameters[name];
+
+  @override
+  DecoratedTypeInfo positionalParameter(int i) => positionalParameters[i];
+
   /// Apply the given [substitution] to this type.
   ///
   /// [undecoratedResult] is the result of the substitution, as determined by
@@ -386,6 +395,9 @@ class DecoratedType {
       throw '$type'; // TODO(paulberry)
     }
   }
+
+  @override
+  DecoratedTypeInfo typeArgument(int i) => typeArguments[i];
 
   /// Creates a shallow copy of `this`, replacing the nullability node.
   DecoratedType withNode(NullabilityNode node) => DecoratedType(type, node,

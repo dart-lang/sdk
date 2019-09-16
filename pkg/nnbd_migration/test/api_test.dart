@@ -2,14 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'abstract_context.dart';
+import 'api_test_base.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -41,7 +40,7 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
     for (var path in input.keys) {
       newFile(path, content: input[path]);
     }
-    var listener = new _TestMigrationListener();
+    var listener = new TestMigrationListener();
     var migration =
         NullabilityMigration(listener, permissive: _usePermissiveMode);
     for (var path in input.keys) {
@@ -53,7 +52,7 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
     }
     migration.finish();
     var sourceEdits = <String, List<SourceEdit>>{};
-    for (var entry in listener._edits.entries) {
+    for (var entry in listener.edits.entries) {
       var path = entry.key.fullName;
       expect(expectedOutput.keys, contains(path));
       sourceEdits[path] = entry.value;
@@ -3061,25 +3060,5 @@ class _ProvisionalApiTestWithReset extends _ProvisionalApiTestBase
   @override
   void _afterPrepare() {
     driver.resetUriResolution();
-  }
-}
-
-class _TestMigrationListener implements NullabilityMigrationListener {
-  final _edits = <Source, List<SourceEdit>>{};
-
-  List<String> details = [];
-
-  @override
-  void addEdit(SingleNullabilityFix fix, SourceEdit edit) {
-    (_edits[fix.source] ??= []).add(edit);
-  }
-
-  @override
-  void addFix(SingleNullabilityFix fix) {}
-
-  @override
-  void reportException(
-      Source source, AstNode node, Object exception, StackTrace stackTrace) {
-    fail('Exception reported: $exception');
   }
 }

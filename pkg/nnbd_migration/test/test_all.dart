@@ -12,6 +12,7 @@ import 'decorated_type_test.dart' as decorated_type_test;
 import 'edge_builder_flow_analysis_test.dart'
     as edge_builder_flow_analysis_test;
 import 'edge_builder_test.dart' as edge_builder_test;
+import 'instrumentation_test.dart' as instrumentation_test;
 import 'node_builder_test.dart' as node_builder_test;
 import 'nullability_node_test.dart' as nullability_node_test;
 import 'utilities/test_all.dart' as utilities;
@@ -24,6 +25,7 @@ main() {
     decorated_type_test.main();
     edge_builder_flow_analysis_test.main();
     edge_builder_test.main();
+    instrumentation_test.main();
     node_builder_test.main();
     nullability_node_test.main();
     utilities.main();

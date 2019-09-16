@@ -16,6 +16,7 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:front_end/src/fasta/flow_analysis/flow_analysis.dart';
 import 'package:meta/meta.dart';
+import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/conditional_discard.dart';
 import 'package:nnbd_migration/src/decorated_class_hierarchy.dart';
@@ -95,6 +96,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   final VariableRepository _variables;
 
   final NullabilityMigrationListener /*?*/ listener;
+
+  final NullabilityMigrationInstrumentation /*?*/ instrumentation;
 
   final NullabilityGraph _graph;
 
@@ -189,7 +192,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   List<String> _objectGetNames;
 
   EdgeBuilder(this._typeProvider, this._typeSystem, this._variables,
-      this._graph, this.source, this.listener)
+      this._graph, this.source, this.listener,
+      {this.instrumentation})
       : _decoratedClassHierarchy = DecoratedClassHierarchy(_variables, _graph),
         _inheritanceManager = InheritanceManager3(_typeSystem),
         _notNullType = DecoratedType(_typeProvider.objectType, _graph.never),
@@ -798,6 +802,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         decoratedTypeArguments = typeArgumentTypes
             .map((t) => DecoratedType.forImplicitType(_typeProvider, t, _graph))
             .toList();
+        instrumentation?.implicitTypeArguments(
+            source, node, decoratedTypeArguments);
       } else {
         // Note: this could happen if the code being migrated has errors.
         typeArgumentTypes = const [];
@@ -853,8 +859,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     try {
       var listType = node.staticType as InterfaceType;
       if (node.typeArguments == null) {
-        _currentLiteralElementType = DecoratedType.forImplicitType(
+        var elementType = DecoratedType.forImplicitType(
             _typeProvider, listType.typeArguments[0], _graph);
+        instrumentation?.implicitTypeArguments(source, node, [elementType]);
+        _currentLiteralElementType = elementType;
       } else {
         _currentLiteralElementType = _variables.decoratedTypeAnnotation(
             source, node.typeArguments.arguments[0]);
@@ -1081,8 +1089,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       try {
         if (typeArguments == null) {
           assert(setOrMapType.typeArguments.length == 1);
-          _currentLiteralElementType = DecoratedType.forImplicitType(
+          var elementType = DecoratedType.forImplicitType(
               _typeProvider, setOrMapType.typeArguments[0], _graph);
+          instrumentation?.implicitTypeArguments(source, node, [elementType]);
+          _currentLiteralElementType = elementType;
         } else {
           assert(typeArguments.length == 1);
           _currentLiteralElementType =
@@ -1102,10 +1112,14 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       try {
         if (typeArguments == null) {
           assert(setOrMapType.typeArguments.length == 2);
-          _currentMapKeyType = DecoratedType.forImplicitType(
+          var keyType = DecoratedType.forImplicitType(
               _typeProvider, setOrMapType.typeArguments[0], _graph);
-          _currentMapValueType = DecoratedType.forImplicitType(
+          _currentMapKeyType = keyType;
+          var valueType = DecoratedType.forImplicitType(
               _typeProvider, setOrMapType.typeArguments[1], _graph);
+          _currentMapValueType = valueType;
+          instrumentation
+              ?.implicitTypeArguments(source, node, [keyType, valueType]);
         } else {
           assert(typeArguments.length == 2);
           _currentMapKeyType =
@@ -1860,6 +1874,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
               .map((argType) =>
                   DecoratedType.forImplicitType(_typeProvider, argType, _graph))
               .toList();
+          instrumentation?.implicitTypeArguments(source, node, argumentTypes);
           calleeType = calleeType.instantiate(argumentTypes);
         } else if (constructorTypeParameters != null) {
           // No need to instantiate; caller has already substituted in the
