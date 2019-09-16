@@ -189,6 +189,7 @@ general/no_such_method_private_setter: TextSerializationFailure # Was: Pass
 general/no_such_method_private_setter_lib: TextSerializationFailure # Was: Pass
 general/non_covariant_checks: TextSerializationFailure
 general/null_aware: TextSerializationFailure # Was: Pass
+general/null_aware_for_in: TextSerializationFailure
 general/operator_method_not_found: TextSerializationFailure
 general/operators: TextSerializationFailure # Was: Pass
 general/optional: TypeCheckError

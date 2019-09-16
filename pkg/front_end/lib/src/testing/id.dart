@@ -350,21 +350,29 @@ abstract class DataRegistry<T> {
   /// Checks for duplicate data for [id].
   void registerValue(Uri uri, int offset, Id id, T value, Object object) {
     if (value != null) {
+      ActualData<T> newData = new ActualData<T>(id, value, uri, offset, object);
       if (actualMap.containsKey(id)) {
-        // TODO(johnniwinther): Maybe let the test supply a way to merge
-        // multiple data on the same id?
         ActualData<T> existingData = actualMap[id];
-        report(uri, offset, "Duplicate id ${id}, value=$value, object=$object");
-        report(
-            uri,
-            offset,
-            "Duplicate id ${id}, value=${existingData.value}, "
-            "object=${existingData.object}");
-        fail("Duplicate id $id.");
+        ActualData<T> mergedData = mergeData(existingData, newData);
+        if (mergedData != null) {
+          actualMap[id] = newData;
+        } else {
+          report(
+              uri, offset, "Duplicate id ${id}, value=$value, object=$object");
+          report(
+              uri,
+              offset,
+              "Duplicate id ${id}, value=${existingData.value}, "
+              "object=${existingData.object}");
+          fail("Duplicate id $id.");
+        }
+      } else {
+        actualMap[id] = newData;
       }
-      actualMap[id] = new ActualData<T>(id, value, uri, offset, object);
     }
   }
+
+  ActualData<T> mergeData(ActualData<T> value1, ActualData<T> value2) => null;
 
   /// Called to report duplicate errors.
   void report(Uri uri, int offset, String message);

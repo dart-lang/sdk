@@ -1432,6 +1432,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     this.helper = helper;
     ExpressionInferenceResult result =
         inferExpression(initializer, context, true, isVoidAllowed: true);
+    if (result.replacement != null) {
+      initializer = result.replacement;
+    }
     ensureAssignable(
         context, result.inferredType, initializer, initializer.fileOffset,
         isVoidAllowed: context is VoidType);
@@ -1931,6 +1934,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     } else {
       ExpressionInferenceResult result =
           inferExpression(receiver, const UnknownType(), true);
+      if (result.replacement != null) {
+        receiver = result.replacement;
+      }
       receiverType = result.inferredType;
     }
     nullAwareReceiverVariable?.type = receiverType;
@@ -2097,6 +2103,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     assert(declaredType != null);
     ExpressionInferenceResult result =
         inferExpression(initializer, declaredType, true);
+    if (result.replacement != null) {
+      initializer = result.replacement;
+    }
     ensureAssignable(
         declaredType, result.inferredType, initializer, initializer.fileOffset);
     this.helper = null;
@@ -2118,6 +2127,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     } else {
       ExpressionInferenceResult result =
           inferExpression(receiver, const UnknownType(), true);
+      if (result.replacement != null) {
+        receiver = result.replacement;
+      }
       receiverType = result.inferredType;
     }
     nullAwareReceiverVariable?.type = receiverType;
